@@ -1,9 +1,8 @@
 import type { SwipeAction } from "@/entities/preferences/@x/study-session";
-import { type CardProgressFields, recordCardStudyProgress } from "@/entities/study-progress/@x/study-session";
+import { recordStudyProgress, type StudyProgress } from "@/entities/study-progress/@x/study-session";
 
 import type {
   StudySession,
-  StudySessionCard,
   StudySessionMovement,
   StudySessions,
   StudySessionSwipeEffect,
@@ -62,13 +61,13 @@ export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
 const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];
 
-// Finds the loaded Card at the active session position for swipe planning.
-const findCurrentStudySessionCard = <Card extends StudySessionCard>(
+// Finds the loaded progress at the active session position for swipe planning.
+const findCurrentStudyProgress = (
   session: StudySession,
-  cards: readonly Card[]
-): Card | undefined => {
+  progresses: readonly StudyProgress[]
+): StudyProgress | undefined => {
   const cardId = getCurrentStudySessionCardId(session);
-  return cardId == null ? undefined : cards.find(({ id }) => id === cardId);
+  return cardId == null ? undefined : progresses.find((progress) => progress.cardId === cardId);
 };
 
 // Collapses control actions into the movement, exit, or no-op effects understood by a study session.
@@ -78,10 +77,10 @@ const resolveStudySessionSwipeEffect = (swipeAction: SwipeAction): StudySessionS
   return swipeAction === "GoToPrevCard" ? "previous" : "next";
 };
 
-// Plans a swipe without mutation and emits progress only when the current session and Card still resolve.
+// Plans a swipe without mutation and emits an edit only when the active Card's progress still resolves.
 export const planStudySessionSwipe = (
   session: StudySession | undefined,
-  cards: readonly CardProgressFields[],
+  progresses: readonly StudyProgress[],
   swipeAction: SwipeAction,
   studiedAt: number
 ): StudySessionSwipePlan => {
@@ -90,13 +89,13 @@ export const planStudySessionSwipe = (
   const effect = resolveStudySessionSwipeEffect(swipeAction);
   if (effect === "none" || effect === "exit") return { effect };
 
-  const card = findCurrentStudySessionCard(session, cards);
-  if (card == null) return { effect: "none" };
+  const progress = findCurrentStudyProgress(session, progresses);
+  if (progress == null) return { effect: "none" };
 
   return {
     effect,
     session,
-    progress: recordCardStudyProgress(card, swipeAction, studiedAt),
+    progress: recordStudyProgress(progress, swipeAction, studiedAt),
   };
 };
 

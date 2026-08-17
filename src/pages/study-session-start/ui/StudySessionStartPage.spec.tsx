@@ -9,12 +9,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { clearStudySessions, useStudySession } from "@/entities/study-session";
-import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { createCard, createDeck, createPreferences, createStudyProgress } from "@/test/factories";
+
+type StudyProgress = ReturnType<typeof createStudyProgress>;
 
 const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
   deck: null as Deck | null,
   cards: [] as Card[],
+  progresses: [] as StudyProgress[],
   setDarkMode: vi.fn(),
 }));
 
@@ -30,6 +33,10 @@ vi.mock("@/entities/deck", () => ({
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
+}));
+vi.mock("@/entities/study-progress", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/study-progress")>()),
+  useStudyProgresses: () => mocks.progresses,
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
@@ -66,6 +73,7 @@ describe("StudySessionStartPage", () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
     mocks.deck = createDeck({ id: deckId, name: "Japanese vocabulary" });
     mocks.cards = [createCard({ id: cardId, deckId })];
+    mocks.progresses = [createStudyProgress({ cardId })];
     vi.clearAllMocks();
   });
 
@@ -99,6 +107,7 @@ describe("StudySessionStartPage", () => {
 
   it("stays on the start page when no cards match", () => {
     mocks.cards = [];
+    mocks.progresses = [];
     renderPage();
 
     fireEvent.keyDown(document.body, { key: "Enter" });

@@ -2,8 +2,8 @@ import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
 import {
   buildStudyCardOrder,
-  type CardProgressFields,
   type StudyCardOrderOptions,
+  type StudyProgress,
 } from "@/entities/study-progress/@x/study-session";
 
 import { persist } from "zustand/middleware";
@@ -79,10 +79,10 @@ const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
 // Session start owns the state mutation while study-progress owns how the card order is derived.
 export const startStudy = (
   deckId: DeckId,
-  cards: CardProgressFields[],
+  progresses: StudyProgress[],
   studyPreferences: StudyCardOrderOptions
 ): void => {
-  startStudySession(deckId, buildStudyCardOrder(cards, studyPreferences));
+  startStudySession(deckId, buildStudyCardOrder(progresses, studyPreferences));
 };
 
 // Advances one session's recent-study timestamp without changing its position.

@@ -5,6 +5,7 @@ import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preferences";
+import { editStudyProgress } from "@/entities/study-progress";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -25,7 +26,6 @@ const deck = createLocalDeck({
 const eligibleCard = createLocalCard({
   id: "eligible-card",
   deckId: deck.id,
-  score: 1,
   tags: ["eligible"],
   uniqueKey: "eligible-card",
 });
@@ -38,14 +38,12 @@ const laterCard = createLocalCard({
 const highScoreCard = createLocalCard({
   id: "high-score-card",
   deckId: deck.id,
-  score: 2,
   tags: ["eligible"],
   uniqueKey: "high-score-card",
 });
 const futureCard = createLocalCard({
   id: "future-card",
   deckId: deck.id,
-  nextSeeingAt: new Date(253_402_300_799_999),
   tags: ["eligible"],
   uniqueKey: "future-card",
 });
@@ -66,6 +64,11 @@ describe("useStudySessionStartState", () => {
       { kind: "create", card: laterCard },
       { kind: "create", card: highScoreCard },
       { kind: "create", card: futureCard },
+    ]);
+    await Promise.all([
+      editStudyProgress("", { cardId: eligibleCard.id, score: 1 }),
+      editStudyProgress("", { cardId: highScoreCard.id, score: 2 }),
+      editStudyProgress("", { cardId: futureCard.id, nextSeeingAt: new Date(253_402_300_799_999) }),
     ]);
   });
 

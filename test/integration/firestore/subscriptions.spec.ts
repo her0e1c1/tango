@@ -8,10 +8,19 @@ import "@/test/initializeTestFirestore";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { deleteCard, editCard, fetchCardReads, fetchCards, mutateCards, subscribeCards } from "@/entities/card";
+import {
+  deleteCard,
+  editCard,
+  fetchCardReads,
+  mutateCards,
+  replaceRemoteCards,
+  subscribeCardReads,
+} from "@/entities/card";
 import { createDeck, deleteDeck, editDeck, fetchDecks, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
+import { replaceRemoteStudyProgresses } from "@/entities/study-progress";
+import { studyProgressStore } from "@/entities/study-progress/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
 vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn(() => 100) }));
@@ -19,10 +28,21 @@ vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
+const subscribeCardState = (uid: string, onError: (error: Error) => void) =>
+  subscribeCardReads(
+    uid,
+    (reads) => {
+      replaceRemoteCards(reads.map(({ card }) => card));
+      replaceRemoteStudyProgresses(reads.map(({ progress }) => progress));
+    },
+    onError
+  );
+
 describe("Query realtime subscriptions", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     deckStore.setState({ remoteDecks: [], localDecks: [] });
+    studyProgressStore.setState({ remoteProgresses: [], localProgresses: [] });
   });
 
   afterAll(async () => {
@@ -37,21 +57,16 @@ describe("Query realtime subscriptions", () => {
       deckId: deck.id,
       uid,
       frontText: "Fetched Card",
-      score: 2,
-      numberOfSeen: 3,
     });
     await createDeck(uid, deck);
     await mutateCards(uid, [{ kind: "create", card }]);
 
-    const [decks, cards, reads] = await Promise.all([fetchDecks(uid), fetchCards(uid), fetchCardReads(uid)]);
+    const [decks, reads] = await Promise.all([fetchDecks(uid), fetchCardReads(uid)]);
 
     expect(decks).toContainEqual(expect.objectContaining({ id: deck.id, name: "Fetched Deck" }));
-    expect(cards).toContainEqual(
-      expect.objectContaining({ id: card.id, frontText: "Fetched Card", score: 2, numberOfSeen: 3 })
-    );
     expect(reads).toContainEqual({
       card: expect.objectContaining({ id: card.id, frontText: "Fetched Card" }),
-      progress: expect.objectContaining({ cardId: card.id, score: 2, numberOfSeen: 3 }),
+      progress: expect.objectContaining({ cardId: card.id, score: 0, numberOfSeen: 0 }),
     });
   });
 
@@ -59,7 +74,7 @@ describe("Query realtime subscriptions", () => {
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
-    const stopCards = subscribeCards(uid, (error) => errors.push(error));
+    const stopCards = subscribeCardState(uid, (error) => errors.push(error));
 
     try {
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
@@ -69,6 +84,9 @@ describe("Query realtime subscriptions", () => {
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(expect.objectContaining({ id: deck.id }));
         expect(cardStore.getState().remoteCards).toContainEqual(expect.objectContaining({ id: card.id }));
+        expect(studyProgressStore.getState().remoteProgresses).toContainEqual(
+          expect.objectContaining({ cardId: card.id })
+        );
       });
 
       await editDeck(uid, { ...deck, name: "Updated" });
@@ -87,6 +105,9 @@ describe("Query realtime subscriptions", () => {
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks.find((candidate) => candidate.id === deck.id)).toBeUndefined();
         expect(cardStore.getState().remoteCards.find((candidate) => candidate.id === card.id)).toBeUndefined();
+        expect(
+          studyProgressStore.getState().remoteProgresses.find((progress) => progress.cardId === card.id)
+        ).toBeUndefined();
       });
       expect(errors).toEqual([]);
     } finally {
@@ -99,7 +120,7 @@ describe("Query realtime subscriptions", () => {
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
-    const stopCards = subscribeCards(uid, (error) => errors.push(error));
+    const stopCards = subscribeCardState(uid, (error) => errors.push(error));
     const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Before stop" });
     const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid, frontText: "Before stop" });
 
@@ -120,7 +141,10 @@ describe("Query realtime subscriptions", () => {
     await editCard(uid, { ...card, frontText: "After stop" });
 
     expect(await fetchDecks(uid)).toContainEqual(expect.objectContaining({ id: deck.id, name: "After stop" }));
-    expect(await fetchCards(uid)).toContainEqual(expect.objectContaining({ id: card.id, frontText: "After stop" }));
+    expect(await fetchCardReads(uid)).toContainEqual({
+      card: expect.objectContaining({ id: card.id, frontText: "After stop" }),
+      progress: expect.objectContaining({ cardId: card.id }),
+    });
     expect(deckStore.getState().remoteDecks).toContainEqual(
       expect.objectContaining({ id: deck.id, name: "Before stop" })
     );

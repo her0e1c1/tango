@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { actAsync } from "@/test/act";
-import { createCard, createDeck } from "@/test/factories";
+import { createCard, createDeck, createStudyProgress } from "@/test/factories";
 
 const controls = vi.hoisted(() => ({
   uid: "",
@@ -23,9 +23,14 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    fetchCards: () => {
+    fetchCardReads: () => {
       if (controls.remoteReadError !== undefined) return Promise.reject(controls.remoteReadError);
-      return Promise.resolve(controls.remoteCards);
+      return Promise.resolve(
+        controls.remoteCards.map((card) => ({
+          card,
+          progress: createStudyProgress({ cardId: card.id }),
+        }))
+      );
     },
     mutateCards: (...arguments_: Parameters<typeof actual.mutateCards>) => {
       if (controls.nextMutationError !== undefined) {

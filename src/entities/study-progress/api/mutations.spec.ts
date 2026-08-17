@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  editLocalCardStudyProgress: vi.fn(),
   editLocalStudyProgress: vi.fn(),
   editRemoteStudyProgress: vi.fn(),
   findCardById: vi.fn(),
 }));
 
 vi.mock("@/entities/card/@x/study-progress", () => ({
-  editLocalCardStudyProgress: mocks.editLocalCardStudyProgress,
   findCardById: mocks.findCardById,
 }));
 vi.mock("../model/store", () => ({ editLocalStudyProgress: mocks.editLocalStudyProgress }));
@@ -21,16 +19,9 @@ describe("StudyProgress mutations", () => {
 
   it("updates local state without writing to Firestore", async () => {
     mocks.findCardById.mockReturnValue({ id: "local", deckId: "deck" });
-    mocks.editLocalStudyProgress.mockReturnValue({ cardId: "local", score: 2, numberOfSeen: 3 });
-
     await editStudyProgress("", { cardId: "local", score: 2 });
 
     expect(mocks.editLocalStudyProgress).toHaveBeenCalledExactlyOnceWith({ cardId: "local", score: 2 });
-    expect(mocks.editLocalCardStudyProgress).toHaveBeenCalledExactlyOnceWith({
-      id: "local",
-      score: 2,
-      numberOfSeen: 3,
-    });
     expect(mocks.editRemoteStudyProgress).not.toHaveBeenCalled();
   });
 
@@ -44,7 +35,6 @@ describe("StudyProgress mutations", () => {
       score: 2,
     });
     expect(mocks.editLocalStudyProgress).not.toHaveBeenCalled();
-    expect(mocks.editLocalCardStudyProgress).not.toHaveBeenCalled();
   });
 
   it("rejects progress for an unknown Card", async () => {

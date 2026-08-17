@@ -46,6 +46,3 @@ export type StudySessionSwipePlan =
       session: StudySession;
       progress: StudyProgressEdit;
     };
-
-/** Minimal Card identity needed to resolve a study session position. */
-export type StudySessionCard = { id: StudySession["cardOrderIds"][number] };

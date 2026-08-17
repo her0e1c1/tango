@@ -11,14 +11,26 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { createCard } from "@/test/factories";
+import { createCard, createStudyProgress } from "@/test/factories";
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { CardListView } from "./CardListView";
 
-const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", score: 0, tags: [] });
-const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
+const buildCardListItem = (item: ReturnType<typeof createCard>) => {
+  const progress = createStudyProgress({ cardId: item.id });
+  return {
+    id: item.id,
+    frontText: item.frontText,
+    score: progress.score,
+    numberOfSeen: progress.numberOfSeen,
+    tags: item.tags,
+  };
+};
+const card = buildCardListItem(createCard({ id: "card-id", frontText: "Front", backText: "Back", tags: [] }));
+const otherCard = buildCardListItem(
+  createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] })
+);
 
 describe("CardListView", () => {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {

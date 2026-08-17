@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { useAuthUid } from "@/entities/auth";
 import { cardContentSchema, editCard, type CardId, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
+import { useStudyProgress } from "@/entities/study-progress";
 import type { Form, Option, Tag, Textarea } from "@/shared/ui/forms";
 
 interface CardFormTagField extends Option {
@@ -48,6 +49,7 @@ interface UseCardFormStateOptions {
 export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormStateOptions) => {
   const uid = useAuthUid();
   const card = useCard(cardId);
+  const progress = useStudyProgress(cardId);
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<CardFormValues>({
     ...(card && {
@@ -80,7 +82,7 @@ export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormState
       id: card.id,
       uniqueKey: card.uniqueKey,
       ...(card.createdAt ? { createdAt: new Date(card.createdAt).toLocaleDateString() } : {}),
-      ...(card.lastSeenAt != null ? { lastSeenAt: new Date(card.lastSeenAt).toLocaleDateString() } : {}),
+      ...(progress?.lastSeenAt != null ? { lastSeenAt: new Date(progress.lastSeenAt).toLocaleDateString() } : {}),
     },
     fields: {
       frontText: register("frontText"),

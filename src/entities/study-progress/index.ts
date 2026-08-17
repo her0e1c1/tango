@@ -1,2 +1,4 @@
 export { editStudyProgress } from "./api/mutations";
-export { createStudyProgressFromCard, isStudyProgressEligible } from "./model/rules";
+export { useStudyProgress, useStudyProgresses } from "./model/hooks";
+export { isStudyProgressEligible } from "./model/rules";
+export { clearRemoteStudyProgresses, replaceRemoteStudyProgresses } from "./model/store";

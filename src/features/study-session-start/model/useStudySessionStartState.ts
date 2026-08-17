@@ -4,18 +4,38 @@ import { useAuthUid } from "@/entities/auth";
 import { type Card, useCardsByDeckId } from "@/entities/card";
 import { type Deck, editDeck, isDeckTagSelectionMatching, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
-import { createStudyProgressFromCard, isStudyProgressEligible } from "@/entities/study-progress";
+import { isStudyProgressEligible, useStudyProgresses } from "@/entities/study-progress";
 import { startStudy } from "@/entities/study-session";
 
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
+type StudyProgress = ReturnType<typeof useStudyProgresses>[number];
+
+interface CardWithProgress {
+  card: Card;
+  progress: StudyProgress;
+}
+
+// Pairs each Card with its independently owned progress while omitting incomplete read snapshots.
+const joinCardsWithProgress = (cards: Card[], progresses: StudyProgress[]): CardWithProgress[] => {
+  const progressByCardId = new Map(progresses.map((progress) => [progress.cardId, progress]));
+  return cards.flatMap((card) => {
+    const progress = progressByCardId.get(card.id);
+    return progress === undefined ? [] : [{ card, progress }];
+  });
+};
 
 // Keeps multi-Entity selection in the use-case owner while each Entity supplies only its own pure rule.
-const selectStudyCards = (cards: Card[], deck: Deck, useCardInterval: boolean, now = Date.now()): Card[] =>
+const selectStudyCards = (
+  cards: CardWithProgress[],
+  deck: Deck,
+  useCardInterval: boolean,
+  now = Date.now()
+): CardWithProgress[] =>
   cards.filter(
-    (card) =>
+    ({ card, progress }) =>
       isDeckTagSelectionMatching(card.tags, deck) &&
       isStudyProgressEligible(
-        createStudyProgressFromCard(card),
+        progress,
         {
           maximumScore: deck.scoreMax,
           minimumScore: deck.scoreMin,
@@ -29,12 +49,13 @@ export const useStudySessionStartState = (deckId: string) => {
   const uid = useAuthUid();
   const deck = useDeck(deckId);
   const preferences = usePreferences();
+  const progresses = useStudyProgresses();
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
   const [filter, setFilter] = useState<DeckFilterValues>();
 
   if (deck == null) return;
 
-  const cards = selectStudyCards(deckCards, deck, preferences.study.useCardInterval);
+  const cards = selectStudyCards(joinCardsWithProgress(deckCards, progresses), deck, preferences.study.useCardInterval);
   const storedFilter: DeckFilterValues = {
     scoreMax: deck.scoreMax,
     scoreMin: deck.scoreMin,
@@ -60,6 +81,11 @@ export const useStudySessionStartState = (deckId: string) => {
     rawCardsLength: deckCards.length,
     cardsLength: cards.length,
     tags,
-    onStart: () => startStudy(deck.id, cards, preferences.study),
+    onStart: () =>
+      startStudy(
+        deck.id,
+        cards.map(({ progress }) => progress),
+        preferences.study
+      ),
   };
 };

@@ -3,6 +3,7 @@ import * as React from "react";
 import { useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
+import { useStudyProgresses } from "@/entities/study-progress";
 import { setStudySessionIndex } from "@/entities/study-session";
 
 import { useAutoPlay } from "./useAutoPlay";
@@ -13,9 +14,10 @@ export const useStudyDeck = (deckId: string) => useDeck(deckId);
 
 export const useStudy = (deckId: string) => {
   const cards = useCards();
+  const progresses = useStudyProgresses();
   const deck = useStudyDeck(deckId);
   const preferences = usePreferences();
-  const sessionState = useStudySessionState(deckId, cards);
+  const sessionState = useStudySessionState(deckId, cards, progresses);
   const [showBackText, setShowBackText] = React.useState(false);
   const hideBackText = () => setShowBackText(false);
   const { autoPlay, toggleAutoPlay } = useAutoPlay(sessionState, {
@@ -23,7 +25,7 @@ export const useStudy = (deckId: string) => {
     cardInterval: preferences.study.cardInterval,
     onAdvance: hideBackText,
   });
-  const swipe = useSwipe(deckId, cards, hideBackText);
+  const swipe = useSwipe(deckId, progresses, hideBackText);
 
   const updateIndex = (currentIndex: number): void => {
     if (!setStudySessionIndex(deckId, currentIndex)) return;
@@ -57,9 +59,9 @@ export const useStudy = (deckId: string) => {
     card: {
       frontText: sessionState.card.frontText,
       category,
-      score: sessionState.card.score,
-      numberOfSeen: sessionState.card.numberOfSeen,
-      ...(sessionState.card.lastSeenAt !== undefined ? { lastSeenAt: sessionState.card.lastSeenAt } : {}),
+      score: sessionState.progress.score,
+      numberOfSeen: sessionState.progress.numberOfSeen,
+      ...(sessionState.progress.lastSeenAt !== undefined ? { lastSeenAt: sessionState.progress.lastSeenAt } : {}),
       back: {
         text: sessionState.card.backText,
         category,

@@ -14,7 +14,7 @@ const meta = {
   component: Template,
   tags: ["autodocs"],
   args: {
-    card: fixture.card.default,
+    card: fixture.cardListItem.default,
   },
 } satisfies Meta<typeof Template>;
 
@@ -24,11 +24,11 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Unstudied: Story = {
-  args: { card: { ...fixture.card.default, numberOfSeen: 0, score: 0 } },
+  args: { card: fixture.cardListItem.unstudied },
 };
 
-export const LongText: Story = { args: { card: fixture.card.long } };
-export const LongTags: Story = { args: { card: fixture.card.longTags } };
+export const LongText: Story = { args: { card: fixture.cardListItem.long } };
+export const LongTags: Story = { args: { card: fixture.cardListItem.longTags } };
 export const ActionsOpen: Story = { args: { menuOpen: true } };
 export const Pending: Story = { args: { disabled: true } };
 export const Mobile: Story = { parameters: { viewport: { defaultViewport: "iphonex" } } };

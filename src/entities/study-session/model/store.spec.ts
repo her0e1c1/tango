@@ -19,11 +19,11 @@ import {
 
 const STUDY_STORAGE_KEY = "tango-study";
 
-// Starts a deterministic study session from the supplied Card order.
+// Starts a deterministic study session from the supplied progress order.
 const startSession = (deckId: string, cardOrderIds: string[]): void => {
   startStudy(
     deckId,
-    cardOrderIds.map((id, numberOfSeen) => ({ id, score: 0, numberOfSeen })),
+    cardOrderIds.map((cardId, numberOfSeen) => ({ cardId, score: 0, numberOfSeen })),
     { shuffled: false, maxNumberOfCardsToLearn: 0 }
   );
 };

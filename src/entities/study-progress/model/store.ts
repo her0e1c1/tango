@@ -91,7 +91,17 @@ const createStudyProgressStore = ({ storage, skipHydration }: CreateStudyProgres
   );
 };
 
-const studyProgressStore = createStudyProgressStore();
+export const studyProgressStore = createStudyProgressStore();
+
+// Replaces the remote progress snapshot published with the active Card subscription.
+export const replaceRemoteStudyProgresses = (remoteProgresses: StudyProgress[]): void => {
+  studyProgressStore.setState({ remoteProgresses });
+};
+
+// Clears remote progress when its authentication scope ends.
+export const clearRemoteStudyProgresses = (): void => {
+  studyProgressStore.setState({ remoteProgresses: [] });
+};
 
 // Creates or replaces one local progress record after validating the complete model.
 export const createLocalStudyProgress = (input: StudyProgress): StudyProgress => {

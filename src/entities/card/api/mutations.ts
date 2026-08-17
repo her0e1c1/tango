@@ -10,7 +10,7 @@ import type {
 import { findDeckById } from "@/entities/deck/@x/card";
 import {
   createLocalStudyProgress,
-  createStudyProgressFromCard,
+  createStudyProgress,
   deleteLocalStudyProgress,
   deleteLocalStudyProgresses,
 } from "@/entities/study-progress/@x/card";
@@ -53,7 +53,7 @@ const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput
 const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
   if (isLocalDeck(card.deckId)) {
     const createdCard = createLocalCard(card);
-    createLocalStudyProgress(createStudyProgressFromCard(createdCard));
+    createLocalStudyProgress(createStudyProgress(createdCard.id));
     return;
   }
   await createRemoteCard(uid, requireRemoteCardCreate(card));

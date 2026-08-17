@@ -39,17 +39,6 @@ export interface StudyProgressFilter {
   respectNextSeeingAt: boolean;
 }
 
-/** Card fields needed to reconstruct its StudyProgress model. */
-export interface CardProgressFields {
-  id: CardId;
-  score: number;
-  numberOfSeen: number;
-  // Schema-derived Cards can retain explicit undefined values, so entity rules accept both optional forms.
-  lastSeenAt?: number | undefined;
-  nextSeeingAt?: Date | undefined;
-  interval?: number | undefined;
-}
-
 /** Ordering and size controls used when starting a study session. */
 export interface StudyCardOrderOptions {
   shuffled: boolean;

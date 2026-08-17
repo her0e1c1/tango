@@ -28,11 +28,6 @@ const cardCreateFieldsSchema = editableCardFieldsSchema.extend({
   id: cardIdSchema,
   deckId: cardDeckIdSchema,
   deletedAt: z.number().nullable().default(null),
-  score: z.number().default(0),
-  numberOfSeen: z.number().default(0),
-  lastSeenAt: z.number().optional(),
-  nextSeeingAt: z.date().optional(),
-  interval: z.number().optional(),
 });
 
 export const cardCreateSchema = cardCreateFieldsSchema.extend({ uid: cardUidSchema });
@@ -48,14 +43,7 @@ export const localCardSchema = localCardCreateSchema.extend({
   updatedAt: z.number(),
 });
 
-// Zustand JSON storage serializes Dates as strings; hydration accepts only strings that restore to valid Dates.
-const persistedDateSchema = z.preprocess(
-  (value) => (typeof value === "string" ? new Date(value) : value),
-  z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date")
-);
-
-const persistedCardSchema = localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
-export const persistedCardStateSchema = z.object({ localCards: z.array(persistedCardSchema) });
+export const persistedCardStateSchema = z.object({ localCards: z.array(localCardSchema) });
 
 export const localCardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });
 export const cardEditSchema = localCardEditSchema.extend({ uid: cardUidSchema });

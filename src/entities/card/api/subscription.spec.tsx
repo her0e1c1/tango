@@ -1,10 +1,6 @@
-import { act, renderHook } from "@testing-library/react";
+import { act } from "@testing-library/react";
 import { Timestamp } from "firebase/firestore";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { createLocalCard } from "@/test/factories";
-import { useCards } from "../model/hooks";
-import { cardStore } from "../model/store";
 
 const mocks = vi.hoisted(() => ({
   collection: vi.fn((...parts: unknown[]) => parts),
@@ -25,7 +21,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
-import { subscribeCardReads, subscribeCards } from "./firestore";
+import { subscribeCardReads } from "./firestore";
 
 // Builds a Firestore-like Card document with optional field overrides.
 const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
@@ -54,7 +50,6 @@ const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Err
 
 describe("Card Firestore subscription", () => {
   beforeEach(() => {
-    cardStore.setState({ remoteCards: [], localCards: [] });
     vi.clearAllMocks();
     mocks.onSnapshot.mockReturnValue(vi.fn());
   });
@@ -102,45 +97,6 @@ describe("Card Firestore subscription", () => {
         },
       },
     ]);
-  });
-
-  it("fully replaces active Cards from each snapshot", () => {
-    const localCard = createLocalCard({ id: "local", frontText: "Local front" });
-    cardStore.setState({ localCards: [localCard] });
-    const { result } = renderHook(useCards);
-    subscribeCards("uid-a", vi.fn());
-
-    act(() =>
-      getSnapshotHandler()({
-        docs: [
-          cardDocument("active", {
-            lastSeenAt: 50,
-            nextSeeingAt: Timestamp.fromMillis(60),
-            interval: 7,
-            url: "https://example.com/card",
-            startLine: 8,
-            endLine: 9,
-          }),
-          cardDocument("deleted", { deletedAt: 3 }),
-        ],
-      })
-    );
-
-    expect(result.current).toEqual([
-      expect.objectContaining({
-        id: "active",
-        lastSeenAt: 50,
-        nextSeeingAt: new Date(60),
-        interval: 7,
-        url: "https://example.com/card",
-        startLine: 8,
-        endLine: 9,
-      }),
-      localCard,
-    ]);
-
-    act(() => getSnapshotHandler()({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
-    expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" }), localCard]);
   });
 
   it("reports invalid Firestore documents", () => {

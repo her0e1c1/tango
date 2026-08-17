@@ -14,6 +14,7 @@ import "@testing-library/jest-dom/vitest";
 import { replaceAuthSession } from "@/entities/auth";
 import { clearRemoteCards, useCards } from "@/entities/card";
 import { clearRemoteDecks, useDecks } from "@/entities/deck";
+import { clearRemoteStudyProgresses, useStudyProgresses } from "@/entities/study-progress";
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 vi.mock("firebase/firestore", async (importOriginal) => {
@@ -85,10 +86,16 @@ const authenticatedSession = (uid: string) => ({
 const RepositoryView = () => {
   const cards = useCards();
   const decks = useDecks();
+  const progresses = useStudyProgresses();
   return (
     <>
       <p>{decks.length === 0 ? "No remote Decks" : decks.map((deck) => deck.name).join(", ")}</p>
       <p>{cards.length === 0 ? "No remote Cards" : cards.map((card) => card.frontText).join(", ")}</p>
+      <p>
+        {progresses.length === 0
+          ? "No remote progress"
+          : progresses.map((progress) => `${progress.cardId}: ${String(progress.score)}`).join(", ")}
+      </p>
     </>
   );
 };
@@ -105,6 +112,7 @@ describe("FirestoreSubscriptionsProvider", () => {
   beforeEach(() => {
     clearRemoteCards();
     clearRemoteDecks();
+    clearRemoteStudyProgresses();
     replaceAuthSession({ status: "initializing" });
   });
 
@@ -114,6 +122,7 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(screen.getByText("Application content")).toBeVisible();
     expect(screen.getByText("No remote Decks")).toBeVisible();
     expect(screen.getByText("No remote Cards")).toBeVisible();
+    expect(screen.getByText("No remote progress")).toBeVisible();
   });
 
   it("shows remote data for the authenticated identity", () => {
@@ -123,6 +132,7 @@ describe("FirestoreSubscriptionsProvider", () => {
 
     expect(screen.getByText("Deck for user-a")).toBeVisible();
     expect(screen.getByText("Front for user-a")).toBeVisible();
+    expect(screen.getByText("card-user-a: 0")).toBeVisible();
   });
 
   it("replaces visible remote data when the authenticated identity changes", () => {
@@ -134,6 +144,7 @@ describe("FirestoreSubscriptionsProvider", () => {
 
     expect(screen.getByText("Deck for user-b")).toBeVisible();
     expect(screen.getByText("Front for user-b")).toBeVisible();
+    expect(screen.getByText("card-user-b: 0")).toBeVisible();
     expect(screen.queryByText("Deck for user-a")).not.toBeInTheDocument();
     expect(screen.queryByText("Front for user-a")).not.toBeInTheDocument();
   });
@@ -148,6 +159,7 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(screen.getByText("Application content")).toBeVisible();
     expect(screen.getByText("No remote Decks")).toBeVisible();
     expect(screen.getByText("No remote Cards")).toBeVisible();
+    expect(screen.getByText("No remote progress")).toBeVisible();
   });
 
   it("clears remote data when the provider unmounts", () => {
@@ -160,5 +172,6 @@ describe("FirestoreSubscriptionsProvider", () => {
 
     expect(screen.getByText("No remote Decks")).toBeVisible();
     expect(screen.getByText("No remote Cards")).toBeVisible();
+    expect(screen.getByText("No remote progress")).toBeVisible();
   });
 });

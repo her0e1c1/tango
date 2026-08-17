@@ -9,7 +9,7 @@ import "@testing-library/jest-dom/vitest";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { clearStudySessions, startStudy } from "@/entities/study-session";
-import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
+import { createLocalCard, createLocalDeck, createPreferences, createStudyProgress } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
@@ -66,7 +66,7 @@ describe("DeckListPage", () => {
       { kind: "create", card: activeCard },
       { kind: "create", card: freshCard },
     ]);
-    startStudy(activeDeck.id, [activeCard], mocks.preferences.study);
+    startStudy(activeDeck.id, [createStudyProgress({ cardId: activeCard.id })], mocks.preferences.study);
   });
 
   it("navigates from each visible Deck action", async () => {

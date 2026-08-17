@@ -13,11 +13,12 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
-import { createDeck, createPreferences } from "@/test/factories";
+import { createDeck, createPreferences, createStudyProgress } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   preferences: null as Preferences | null,
   cards: [] as Card[],
+  progresses: [] as ReturnType<typeof createStudyProgress>[],
   deck: undefined as Deck | undefined,
   editStudyProgress: vi.fn(),
   touchStudySession: vi.fn(),
@@ -43,6 +44,7 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 vi.mock("@/entities/study-progress", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/study-progress")>()),
   editStudyProgress: mocks.editStudyProgress,
+  useStudyProgresses: () => mocks.progresses,
 }));
 vi.mock("@/entities/study-session", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/study-session")>();
@@ -72,13 +74,11 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   backText: `${id}-back`,
   tags: [],
   uniqueKey: id,
-  score: 0,
-  numberOfSeen: 0,
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  lastSeenAt: 0,
 }));
+const progresses = cards.map((card) => createStudyProgress({ cardId: card.id, lastSeenAt: 0 }));
 
 describe("useStudy", () => {
   beforeEach(() => {
@@ -87,6 +87,7 @@ describe("useStudy", () => {
     vi.clearAllMocks();
     mocks.editStudyProgress.mockResolvedValue(undefined);
     mocks.cards = cards;
+    mocks.progresses = progresses;
     mocks.deck = createDeck({ id: deckId, category: "raw" });
     mocks.preferences = createPreferences({
       cardInterval: 1,
@@ -95,7 +96,7 @@ describe("useStudy", () => {
       showSwipeFeedback: true,
       cardSwipeRight: "GoToNextCardMastered",
     });
-    startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deckId, progresses, { shuffled: false, maxNumberOfCardsToLearn: 0 });
   });
 
   afterEach(() => {
@@ -163,7 +164,7 @@ describe("useStudy", () => {
     const previousSessionId = getStudySession(deckId)?.sessionId;
 
     act(() => vi.advanceTimersByTime(500));
-    act(() => startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+    act(() => startStudy(deckId, progresses, { shuffled: false, maxNumberOfCardsToLearn: 0 }));
     expect(getStudySession(deckId)?.sessionId).not.toBe(previousSessionId);
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
 
@@ -265,8 +266,9 @@ describe("useStudy", () => {
 
   it("removes the session after the final card is persisted", async () => {
     clearStudySessions();
-    startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deckId, progresses.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 });
     mocks.cards = cards.slice(0, 1);
+    mocks.progresses = progresses.slice(0, 1);
     const { result } = renderHook(() => useStudy(deckId));
 
     await actAsync(() => result.current.swipeRight());

@@ -13,10 +13,7 @@ export default defineConfig([
     },
   },
   {
-    files: [
-      "./src/entities/study-progress/**",
-      "./src/features/deck-list/**",
-    ],
+    files: ["./src/features/deck-list/**"],
     rules: {
       "fsd/insignificant-slice": "off",
     },

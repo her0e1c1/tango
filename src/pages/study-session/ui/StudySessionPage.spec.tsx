@@ -8,10 +8,13 @@ import "@testing-library/jest-dom/vitest";
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { clearStudySessions, startStudy } from "@/entities/study-session";
-import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
+import { createLocalCard, createLocalDeck, createPreferences, createStudyProgress } from "@/test/factories";
+
+type StudyProgress = ReturnType<typeof createStudyProgress>;
 
 const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
+  progresses: [] as StudyProgress[],
   editStudyProgress: vi.fn(),
   removeStudySession: vi.fn(),
   setDarkMode: vi.fn(),
@@ -42,7 +45,11 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
   };
 });
 // Persistence is outside Page behavior; successful writes let the real study workflow advance.
-vi.mock("@/entities/study-progress", () => ({ editStudyProgress: mocks.editStudyProgress }));
+vi.mock("@/entities/study-progress", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/study-progress")>()),
+  editStudyProgress: mocks.editStudyProgress,
+  useStudyProgresses: () => mocks.progresses,
+}));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionPage } from "./StudySessionPage";
@@ -56,8 +63,6 @@ describe("StudySessionPage", () => {
     frontText: "Front one",
     backText: "Back one",
     uniqueKey: "first-card",
-    score: 2,
-    numberOfSeen: 3,
   });
   const secondCard = createLocalCard({
     id: "second-card",
@@ -65,9 +70,9 @@ describe("StudySessionPage", () => {
     frontText: "Front two",
     backText: "Back two",
     uniqueKey: "second-card",
-    score: 1,
-    numberOfSeen: 4,
   });
+  const firstProgress = createStudyProgress({ cardId: firstCard.id, score: 2, numberOfSeen: 3 });
+  const secondProgress = createStudyProgress({ cardId: secondCard.id, score: 1, numberOfSeen: 4 });
   const renderPage = (path = `/deck/${deckId}/study`) =>
     render(
       <MemoryRouter initialEntries={[path]}>
@@ -81,6 +86,7 @@ describe("StudySessionPage", () => {
   beforeEach(async () => {
     clearStudySessions();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
+    mocks.progresses = [firstProgress, secondProgress];
     mocks.editStudyProgress.mockReset().mockResolvedValue(undefined);
     mocks.removeStudySession.mockReset();
     mocks.setDarkMode.mockReset();
@@ -92,7 +98,7 @@ describe("StudySessionPage", () => {
       { kind: "create", card: firstCard },
       { kind: "create", card: secondCard },
     ]);
-    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    startStudy(deckId, mocks.progresses, mocks.preferences.study);
   });
 
   it("renders the active session from stored Entity state", () => {
@@ -124,7 +130,7 @@ describe("StudySessionPage", () => {
     await deleteCard("", firstCard);
     await deleteCard("", secondCard);
     clearStudySessions();
-    startStudy(deckId, [firstCard], mocks.preferences.study);
+    startStudy(deckId, [firstProgress], mocks.preferences.study);
 
     renderPage();
 

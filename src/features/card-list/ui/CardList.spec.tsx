@@ -7,13 +7,14 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { createCard, createDeck, createPreferences, createStudyProgress } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   deleteCard: vi.fn(),
   editStudyProgress: vi.fn(),
   deck: undefined as Deck | undefined,
   cards: [] as Card[],
+  progresses: [] as ReturnType<typeof createStudyProgress>[],
   preferences: undefined as Preferences | undefined,
 }));
 
@@ -40,6 +41,7 @@ vi.mock("@/entities/preferences", async (importOriginal) => ({
 vi.mock("@/entities/study-progress", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/study-progress")>()),
   editStudyProgress: mocks.editStudyProgress,
+  useStudyProgresses: () => mocks.progresses,
 }));
 
 import type * as React from "react";
@@ -59,7 +61,6 @@ const card = createCard({
   deckId: deck.id,
   frontText: "Front",
   backText: "Back",
-  score: 0,
   tags: [],
 });
 const onEditCard = vi.fn();
@@ -113,6 +114,7 @@ const renderCardList = (overrides: Partial<CardListHarnessProps> = {}) => {
   const props = { ...defaultProps, ...overrides };
   mocks.deck = props.deck;
   mocks.cards = props.cards;
+  mocks.progresses = props.cards.map((item) => createStudyProgress({ cardId: item.id }));
   mocks.preferences = props.preferences;
   return render(<CardListHarness {...props} />);
 };

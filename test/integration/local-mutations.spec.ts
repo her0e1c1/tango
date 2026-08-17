@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { deleteCard, editCard, mutateCards, useCards } from "@/entities/card";
 import { createDeck, deleteDeck, editDeck, useDecks } from "@/entities/deck";
 import { clearStudySessions, getStudySession, startStudy } from "@/entities/study-session";
-import { createLocalCard, createLocalDeck } from "@/test/factories";
+import { createLocalCard, createLocalDeck, createStudyProgress } from "@/test/factories";
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 
@@ -47,8 +47,8 @@ describe("local Entity mutations", () => {
       { kind: "create", card },
       { kind: "create", card: otherCard },
     ]);
-    startStudy(deck.id, [card], studyOptions);
-    startStudy(otherDeck.id, [otherCard], studyOptions);
+    startStudy(deck.id, [createStudyProgress({ cardId: card.id })], studyOptions);
+    startStudy(otherDeck.id, [createStudyProgress({ cardId: otherCard.id })], studyOptions);
 
     await editDeck("", { id: deck.id, name: "Renamed" });
     await deleteDeck("", deck);

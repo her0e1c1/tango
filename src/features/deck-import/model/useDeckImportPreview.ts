@@ -3,7 +3,7 @@ import type { Deck } from "@/entities/deck";
 
 import { useRef, useState } from "react";
 
-import { fetchCards, generateCardId } from "@/entities/card";
+import { fetchCardReads, generateCardId } from "@/entities/card";
 import { fetchDecks } from "@/entities/deck";
 import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
@@ -46,8 +46,8 @@ const loadDestinationData = async (
   if (storageMode === "local") return localData;
 
   // Listener-backed stores may lag, so remote plans must use authoritative server reads.
-  const [decks, cards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
-  return { decks, cards };
+  const [decks, cardReads] = await Promise.all([fetchDecks(uid), fetchCardReads(uid)]);
+  return { decks, cards: cardReads.map(({ card }) => card) };
 };
 
 export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreviewOptions) => {

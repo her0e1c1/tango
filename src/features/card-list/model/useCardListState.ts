@@ -11,7 +11,7 @@ import {
   useDeck,
 } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
-import { createStudyProgressFromCard, editStudyProgress, isStudyProgressEligible } from "@/entities/study-progress";
+import { editStudyProgress, isStudyProgressEligible, useStudyProgresses } from "@/entities/study-progress";
 
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
 
@@ -28,6 +28,13 @@ interface CardListAnswer {
   category: string;
   code: boolean;
   dark: boolean;
+}
+
+type StudyProgress = ReturnType<typeof useStudyProgresses>[number];
+
+interface CardWithProgress {
+  card: Card;
+  progress: StudyProgress;
 }
 
 export interface CardListState {
@@ -48,21 +55,35 @@ export interface CardListState {
   onConfirmDeletion: () => Promise<void>;
 }
 
-const buildCardListItem = (card: Card): CardListItem => ({
+const buildCardListItem = ({ card, progress }: CardWithProgress): CardListItem => ({
   id: card.id,
   frontText: card.frontText,
-  score: card.score,
-  numberOfSeen: card.numberOfSeen,
+  score: progress.score,
+  numberOfSeen: progress.numberOfSeen,
   tags: card.tags,
 });
 
+// Pairs each Card with its independently owned progress while omitting incomplete read snapshots.
+const joinCardsWithProgress = (cards: Card[], progresses: StudyProgress[]): CardWithProgress[] => {
+  const progressByCardId = new Map(progresses.map((progress) => [progress.cardId, progress]));
+  return cards.flatMap((card) => {
+    const progress = progressByCardId.get(card.id);
+    return progress === undefined ? [] : [{ card, progress }];
+  });
+};
+
 // Keeps multi-Entity selection in the use-case owner while each Entity supplies only its own pure rule.
-const selectStudyCards = (cards: Card[], deck: Deck, useCardInterval: boolean, now = Date.now()): Card[] =>
+const selectStudyCards = (
+  cards: CardWithProgress[],
+  deck: Deck,
+  useCardInterval: boolean,
+  now = Date.now()
+): CardWithProgress[] =>
   cards.filter(
-    (card) =>
+    ({ card, progress }) =>
       isDeckTagSelectionMatching(card.tags, deck) &&
       isStudyProgressEligible(
-        createStudyProgressFromCard(card),
+        progress,
         {
           maximumScore: deck.scoreMax,
           minimumScore: deck.scoreMin,
@@ -76,6 +97,7 @@ export const useCardListState = (deckId: string) => {
   const uid = useAuthUid();
   const deck = useDeck(deckId);
   const preferences = usePreferences();
+  const progresses = useStudyProgresses();
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
   const [filter, setFilter] = React.useState<DeckFilterValues>();
   const [shownCard, setShownCard] = React.useState<Card>();
@@ -86,7 +108,7 @@ export const useCardListState = (deckId: string) => {
 
   if (deck == null) return;
 
-  const cards = selectStudyCards(deckCards, deck, preferences.study.useCardInterval);
+  const cards = selectStudyCards(joinCardsWithProgress(deckCards, progresses), deck, preferences.study.useCardInterval);
   const storedFilter: DeckFilterValues = {
     scoreMax: deck.scoreMax,
     scoreMin: deck.scoreMin,
@@ -99,14 +121,18 @@ export const useCardListState = (deckId: string) => {
   };
 
   const changeScore = (id: CardId, offset: number) => {
-    const card = mustFindCardById(cards, id);
-    void editStudyProgress(uid, { cardId: card.id, score: card.score + offset })
+    const item = cards.find(({ card }) => card.id === id);
+    if (item === undefined) throw new Error(`Card not found: ${id}`);
+    void editStudyProgress(uid, { cardId: item.card.id, score: item.progress.score + offset })
       .then(() => setMutationError(null))
       .catch(setMutationError);
   };
 
   const requestDeletion = (id: CardId) => {
-    const card = mustFindCardById(cards, id);
+    const card = mustFindCardById(
+      cards.map((item) => item.card),
+      id
+    );
     setSuccessMessage(undefined);
     setDeletionErrorCardId(undefined);
     setDeletionTarget(card);
@@ -157,7 +183,13 @@ export const useCardListState = (deckId: string) => {
           },
     mutationError,
     successMessage,
-    onShowCard: (id: CardId) => setShownCard(mustFindCardById(cards, id)),
+    onShowCard: (id: CardId) =>
+      setShownCard(
+        mustFindCardById(
+          cards.map((item) => item.card),
+          id
+        )
+      ),
     onCloseCard: () => setShownCard(undefined),
     onSwipedLeft: (id: CardId) => changeScore(id, -1),
     onSwipedRight: (id: CardId) => changeScore(id, 1),

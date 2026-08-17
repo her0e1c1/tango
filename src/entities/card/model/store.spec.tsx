@@ -11,7 +11,6 @@ import {
   deleteLocalCard,
   deleteLocalCardsByDeckId,
   editLocalCard,
-  editLocalCardStudyProgress,
   replaceRemoteCards,
 } from "./store";
 
@@ -84,15 +83,15 @@ describe("Card store", () => {
     });
   });
 
-  it("persists only local Cards and restores dates after hydration", async () => {
+  it("persists only local Card content", async () => {
     const storage = useMemoryStorage();
     const remoteCard = createCard({ id: "remote" });
-    const localCard = createLocalCardFixture({ id: "local", nextSeeingAt: new Date(1000) });
+    const localCard = createLocalCardFixture({ id: "local" });
     cardStore.setState({ remoteCards: [remoteCard], localCards: [localCard] });
 
     const persistedValue = (await storage.getItem("tango-local-cards")) ?? "{}";
     expect(JSON.parse(persistedValue)).toEqual({
-      state: { localCards: [{ ...localCard, nextSeeingAt: new Date(1000).toISOString() }] },
+      state: { localCards: [localCard] },
       version: 1,
     });
 
@@ -103,11 +102,11 @@ describe("Card store", () => {
   });
 
   it("hydrates version 1 local Cards without retaining a UID", async () => {
-    const localCard = createLocalCardFixture({ id: "persisted-local", nextSeeingAt: new Date(1000) });
+    const localCard = createLocalCardFixture({ id: "persisted-local" });
     useMemoryStorage({
       "tango-local-cards": JSON.stringify({
         state: {
-          localCards: [{ ...localCard, uid: "previous-user", nextSeeingAt: localCard.nextSeeingAt?.toISOString() }],
+          localCards: [{ ...localCard, uid: "previous-user", score: 3, numberOfSeen: 4 }],
         },
         version: 1,
       }),
@@ -117,12 +116,13 @@ describe("Card store", () => {
 
     expect(cardStore.getState().localCards).toEqual([localCard]);
     expect(cardStore.getState().localCards[0]).not.toHaveProperty("uid");
+    expect(cardStore.getState().localCards[0]).not.toHaveProperty("score");
   });
 
   it("rejects invalid persisted Cards", async () => {
     useMemoryStorage({
       "tango-local-cards": JSON.stringify({
-        state: { localCards: [{ ...createCard(), nextSeeingAt: "invalid" }] },
+        state: { localCards: [{ ...createCard(), tags: [42] }] },
         version: 1,
       }),
     });
@@ -142,10 +142,6 @@ describe("Card store", () => {
 
     const updatedCard = editLocalCard({ id: "local", frontText: "updated" });
     expect(updatedCard).toEqual(expect.objectContaining({ frontText: "updated", createdAt: 10, updatedAt: 20 }));
-
-    vi.mocked(Date.now).mockReturnValueOnce(30);
-    const updatedProgress = editLocalCardStudyProgress({ id: "local", score: 2, numberOfSeen: 3 });
-    expect(updatedProgress).toEqual(expect.objectContaining({ score: 2, numberOfSeen: 3, updatedAt: 30 }));
 
     deleteLocalCard("local");
     expect(cardStore.getState().localCards).toEqual([]);

@@ -8,6 +8,7 @@ import type { RemoteCard } from "@/entities/card";
 import type { LocalCard } from "@/entities/card/model/types";
 import type { LocalDeck, RemoteDeck } from "@/entities/deck/model/types";
 import type { Preferences } from "@/entities/preferences";
+import { createStudyProgress as createDefaultStudyProgress } from "@/entities/study-progress/model/defaults";
 
 type AppearancePreferences = Preferences["appearance"];
 type StudyPreferences = Preferences["study"];
@@ -66,8 +67,6 @@ export const createCard = (overrides: Partial<RemoteCard> = {}): RemoteCard => (
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  score: 0,
-  numberOfSeen: 0,
   ...overrides,
 });
 
@@ -81,8 +80,14 @@ export const createLocalCard = (overrides: Partial<LocalCard> = {}): LocalCard =
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  score: 0,
-  numberOfSeen: 0,
+  ...overrides,
+});
+
+type StudyProgress = ReturnType<typeof createDefaultStudyProgress>;
+
+/** Builds Card-scoped learning progress independently from Card content fixtures. */
+export const createStudyProgress = (overrides: Partial<StudyProgress> = {}): StudyProgress => ({
+  ...createDefaultStudyProgress("card-id"),
   ...overrides,
 });
 

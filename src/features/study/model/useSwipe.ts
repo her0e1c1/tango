@@ -1,13 +1,14 @@
 import { useAuthUid } from "@/entities/auth";
-import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preferences";
-import { editStudyProgress } from "@/entities/study-progress";
+import { editStudyProgress, type useStudyProgresses } from "@/entities/study-progress";
 import { getStudySession, moveStudySession, planStudySessionSwipe, removeStudySession } from "@/entities/study-session";
 
 import * as React from "react";
 
 import { useSwipeFeedback } from "./useSwipeFeedback";
+
+type StudyProgress = ReturnType<typeof useStudyProgresses>[number];
 
 export interface SwipeState {
   swipeUp: () => Promise<void>;
@@ -17,7 +18,11 @@ export interface SwipeState {
   swipeFeedback?: SwipeDirection;
 }
 
-export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: () => void): SwipeState => {
+export const useSwipe = (
+  deckId: DeckId,
+  progresses: readonly StudyProgress[],
+  onCardChanged: () => void
+): SwipeState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
   const feedback = useSwipeFeedback(preferences.appearance.showSwipeFeedback);
@@ -28,7 +33,7 @@ export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: 
     if (swipeState.current.inProgress) return;
 
     const swipeAction = preferences.controls[direction];
-    const swipePlan = planStudySessionSwipe(getStudySession(deckId), cards, swipeAction, Date.now());
+    const swipePlan = planStudySessionSwipe(getStudySession(deckId), progresses, swipeAction, Date.now());
     if (swipePlan.effect === "none") return;
     if (swipePlan.effect === "exit") {
       feedback.showSwipe(direction);

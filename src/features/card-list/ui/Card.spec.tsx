@@ -10,17 +10,15 @@ import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Card as CardEntity } from "@/entities/card";
 import { Card } from "./Card";
 
 const card = {
   id: "card-id",
   frontText: "A long front",
-  backText: "Back",
   score: 3,
   numberOfSeen: 7,
   tags: ["one", "two"],
-} as CardEntity;
+} satisfies React.ComponentProps<typeof Card>["card"];
 
 /**
  * Renders the test-only Controlled Card component with controlled state or providers.

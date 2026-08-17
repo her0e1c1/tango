@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { createCard, createPreferences } from "@/test/factories";
+import { createPreferences, createStudyProgress } from "@/test/factories";
 import { clearStudySessions, getStudySession, startStudy } from "./store";
 
 describe("startStudy", () => {
@@ -12,25 +12,25 @@ describe("startStudy", () => {
   });
 
   it("starts at index zero with the configured card order", () => {
-    const cards = [
-      createCard({ id: "first", numberOfSeen: 3 }),
-      createCard({ id: "second", numberOfSeen: 2 }),
-      createCard({ id: "third", numberOfSeen: 1 }),
+    const progresses = [
+      createStudyProgress({ cardId: "first", numberOfSeen: 3 }),
+      createStudyProgress({ cardId: "second", numberOfSeen: 2 }),
+      createStudyProgress({ cardId: "third", numberOfSeen: 1 }),
     ];
     const { study } = createPreferences({ shuffled: false, maxNumberOfCardsToLearn: 2 });
 
-    startStudy("deck", cards, study);
+    startStudy("deck", progresses, study);
 
     expect(getStudySession("deck")?.currentIndex).toBe(0);
     expect(getStudySession("deck")?.cardOrderIds).toEqual(["third", "second"]);
   });
 
   it("copies the card order into the session", () => {
-    const cards = [createCard({ id: "first" }), createCard({ id: "second" })];
+    const progresses = [createStudyProgress({ cardId: "first" }), createStudyProgress({ cardId: "second" })];
     const { study } = createPreferences({ shuffled: false, maxNumberOfCardsToLearn: 2 });
 
-    startStudy("deck", cards, study);
-    cards.reverse();
+    startStudy("deck", progresses, study);
+    progresses.reverse();
 
     expect(getStudySession("deck")?.cardOrderIds).toEqual(["first", "second"]);
   });

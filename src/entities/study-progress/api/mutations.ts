@@ -1,4 +1,4 @@
-import { editLocalCardStudyProgress, findCardById } from "@/entities/card/@x/study-progress";
+import { findCardById } from "@/entities/card/@x/study-progress";
 import { editLocalStudyProgress } from "../model/store";
 import type { StudyProgressEdit } from "../model/types";
 import { editRemoteStudyProgress } from "./firestore";
@@ -13,8 +13,5 @@ export const editStudyProgress = async (uid: string, progress: StudyProgressEdit
     return;
   }
 
-  const updatedProgress = editLocalStudyProgress(progress);
-  const { cardId: id, ...fields } = updatedProgress;
-  // Card consumers migrate in #604; keep their runtime view aligned without making Card persistence authoritative.
-  editLocalCardStudyProgress({ id, ...fields });
+  editLocalStudyProgress(progress);
 };

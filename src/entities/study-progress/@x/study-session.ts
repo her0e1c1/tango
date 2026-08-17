@@ -1,2 +1,2 @@
-export { buildStudyCardOrder, recordCardStudyProgress } from "../model/rules";
-export type { CardProgressFields, StudyCardOrderOptions, StudyProgressEdit } from "../model/types";
+export { buildStudyCardOrder, recordStudyProgress } from "../model/rules";
+export type { StudyCardOrderOptions, StudyProgress, StudyProgressEdit } from "../model/types";

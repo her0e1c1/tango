@@ -1,8 +1,9 @@
 import React from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { clearRemoteCards, subscribeCards } from "@/entities/card";
+import { clearRemoteCards, replaceRemoteCards, subscribeCardReads } from "@/entities/card";
 import { clearRemoteDecks, subscribeDecks } from "@/entities/deck";
+import { clearRemoteStudyProgresses, replaceRemoteStudyProgresses } from "@/entities/study-progress";
 
 const reportSubscriptionError = (error: Error): void => {
   // biome-ignore lint/suspicious/noConsole: Subscription failures need a last-resort runtime error sink.
@@ -17,7 +18,15 @@ export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> =
       return;
     }
 
-    const stopCards = subscribeCards(uid, reportSubscriptionError);
+    const stopCards = subscribeCardReads(
+      uid,
+      (reads) => {
+        // Both stores must observe the same validated physical snapshot even though their models stay separated.
+        replaceRemoteCards(reads.map(({ card }) => card));
+        replaceRemoteStudyProgresses(reads.map(({ progress }) => progress));
+      },
+      reportSubscriptionError
+    );
     const stopDecks = subscribeDecks(uid, reportSubscriptionError);
 
     return () => {
@@ -25,6 +34,7 @@ export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> =
       stopDecks();
       clearRemoteCards();
       clearRemoteDecks();
+      clearRemoteStudyProgresses();
     };
   }, [uid]);
 

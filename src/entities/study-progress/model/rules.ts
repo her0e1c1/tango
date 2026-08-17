@@ -2,9 +2,7 @@ import * as lodash from "lodash";
 
 import type { SwipeAction } from "@/entities/preferences/@x/study-progress";
 
-import { createStudyProgress } from "./defaults";
 import type {
-  CardProgressFields,
   StudyCardOrderOptions,
   StudyProgress,
   StudyProgressEdit,
@@ -22,17 +20,6 @@ const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
   return "unrated";
 };
 
-// Projects a Card's learning fields into StudyProgress while preserving which optional fields are absent.
-export const createStudyProgressFromCard = (card: CardProgressFields): StudyProgress => {
-  const progress = createStudyProgress(card.id);
-  progress.score = card.score;
-  progress.numberOfSeen = card.numberOfSeen;
-  if (card.lastSeenAt !== undefined) progress.lastSeenAt = card.lastSeenAt;
-  if (card.nextSeeingAt !== undefined) progress.nextSeeingAt = card.nextSeeingAt;
-  if (card.interval !== undefined) progress.interval = card.interval;
-  return progress;
-};
-
 // Updates the signed rating streak; reversing direction passes through zero and an unrated action leaves it unchanged.
 const calculateScore = (score: number, rating: StudyRating): number => {
   if (rating === "mastered") return score >= 0 ? score + 1 : 0;
@@ -41,20 +28,23 @@ const calculateScore = (score: number, rating: StudyRating): number => {
 };
 
 // Builds the persistence patch for one interaction, which always increments the seen count and records its timestamp.
-const recordStudyProgress = (progress: StudyProgress, rating: StudyRating, studiedAt: number): StudyProgressEdit => ({
+const buildStudyProgressEdit = (
+  progress: StudyProgress,
+  rating: StudyRating,
+  studiedAt: number
+): StudyProgressEdit => ({
   cardId: progress.cardId,
   score: calculateScore(progress.score, rating),
   numberOfSeen: progress.numberOfSeen + 1,
   lastSeenAt: studiedAt,
 });
 
-// Translates a studied Card and its control action into the progress patch owned by the StudyProgress Entity.
-export const recordCardStudyProgress = (
-  card: CardProgressFields,
+// Translates one interaction into the persistence patch owned by StudyProgress.
+export const recordStudyProgress = (
+  progress: StudyProgress,
   swipeAction: SwipeAction,
   studiedAt: number
-): StudyProgressEdit =>
-  recordStudyProgress(createStudyProgressFromCard(card), resolveStudyRating(swipeAction), studiedAt);
+): StudyProgressEdit => buildStudyProgressEdit(progress, resolveStudyRating(swipeAction), studiedAt);
 
 // Accepts progress inside the inclusive score bounds and, when enabled, only after its next scheduled time.
 export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyProgressFilter, now: number): boolean => {
@@ -72,13 +62,10 @@ const compareStudyProgress = (first: StudyProgress, second: StudyProgress): numb
 
 // Builds a least-seen-first Card order, optionally shuffling the full set before applying a positive session limit.
 export const buildStudyCardOrder = (
-  cards: CardProgressFields[],
+  progresses: StudyProgress[],
   options: StudyCardOrderOptions
 ): StudyProgress["cardId"][] => {
-  let cardOrderIds = cards
-    .map(createStudyProgressFromCard)
-    .sort(compareStudyProgress)
-    .map((progress) => progress.cardId);
+  let cardOrderIds = [...progresses].sort(compareStudyProgress).map((progress) => progress.cardId);
   // The maximum follows shuffling so a limited randomized session can draw from the complete card set.
   if (options.shuffled) cardOrderIds = lodash.shuffle(cardOrderIds);
   if (options.maxNumberOfCardsToLearn > 0) cardOrderIds = cardOrderIds.slice(0, options.maxNumberOfCardsToLearn);

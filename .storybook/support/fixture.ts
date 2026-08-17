@@ -9,7 +9,7 @@ import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 
 import type { Option } from "@/shared/ui/forms/Select";
-import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { createCard, createDeck, createPreferences, createStudyProgress } from "@/test/factories";
 
 export const form = {
   options: {
@@ -70,36 +70,44 @@ export const card = {
   default: createCard({
     frontText: "front text",
     backText: "back test",
-    score: 3,
-    numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: Date.now(),
   }),
   long: createCard({
     frontText: "too long front text ".repeat(20),
     backText: "back test".repeat(100),
-    score: 3,
-    numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: Date.now(),
   }),
   toolong: createCard({
     frontText: "too long front text ".repeat(20),
     backText: "back test".repeat(100),
-    score: 3,
-    numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: Date.now(),
   }),
   longTags: createCard({
     frontText: "front text",
     backText: "back test",
-    score: 3,
-    numberOfSeen: 5,
     tags: tags.toolong,
-    lastSeenAt: Date.now(),
   }),
 } as const satisfies Record<string, Card>;
+
+export const studyProgress = {
+  default: createStudyProgress({ score: 3, numberOfSeen: 5, lastSeenAt: Date.now() }),
+  unstudied: createStudyProgress(),
+} as const;
+
+const buildCardListItem = (item: Card, progress: ReturnType<typeof createStudyProgress>) => ({
+  id: item.id,
+  frontText: item.frontText,
+  score: progress.score,
+  numberOfSeen: progress.numberOfSeen,
+  tags: item.tags,
+});
+
+export const cardListItem = {
+  default: buildCardListItem(card.default, studyProgress.default),
+  unstudied: buildCardListItem(card.default, studyProgress.unstudied),
+  long: buildCardListItem(card.long, studyProgress.default),
+  longTags: buildCardListItem(card.longTags, studyProgress.default),
+} as const;
 
 export const cards = {
   default: [1, 2, 3, 4, 5, 6, 7].map((id) => ({ ...card.default, id: `default-card-${id}` })),
@@ -118,6 +126,11 @@ export const cards = {
     card.toolong,
   ].map((item, index) => ({ ...item, id: `long-card-${index + 1}` })),
 } as const satisfies Record<string, Card[]>;
+
+export const cardListItems = {
+  default: cards.default.map((item) => buildCardListItem(item, studyProgress.default)),
+  long: cards.long.map((item) => buildCardListItem(item, studyProgress.default)),
+} as const;
 
 export const preferences = {
   default: createPreferences({

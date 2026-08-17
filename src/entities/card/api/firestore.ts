@@ -6,25 +6,23 @@ import type {
   DeleteCardInput,
   EditCardInput,
   RemoteCard,
-  RemoteCardRead,
 } from "../model/types";
 
 import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
-import { mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
+import { createStudyProgress, mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument } from "../model/dto";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
-import { replaceRemoteCards } from "../model/store";
-import { parseCardDocument } from "./document";
+import { type CardDocument, parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
 /** @public Cross-Entity read contract for the two models sharing one physical Card document. */
 export interface CardRead {
-  card: RemoteCardRead;
+  card: RemoteCard;
   progress: StudyProgress;
 }
 
@@ -42,7 +40,7 @@ const mapCardRead = (id: CardId, value: unknown): CardRead => {
 const mapActiveCardReads = (documents: ReadonlyArray<{ id: string; data: () => unknown }>): CardRead[] =>
   documents.map((document) => mapCardRead(document.id, document.data())).filter(({ card }) => card.deletedAt === null);
 
-/** @public Lets later consumers adopt separated reads without changing current Card state in this PR. */
+/** Subscribes to Card documents as separated Card and StudyProgress models. */
 export const subscribeCardReads = (
   uid: string,
   onReads: (reads: CardRead[]) => void,
@@ -60,37 +58,24 @@ export const subscribeCardReads = (
     onError
   );
 
-// Existing consumers stay behind the combined Card API until #604 migrates them to separated reads.
-const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
-  const combinedCard: RemoteCard = {
-    ...card,
-    score: progress.score,
-    numberOfSeen: progress.numberOfSeen,
-  };
-  if (progress.lastSeenAt !== undefined) combinedCard.lastSeenAt = progress.lastSeenAt;
-  if (progress.nextSeeingAt !== undefined) combinedCard.nextSeeingAt = progress.nextSeeingAt;
-  if (progress.interval !== undefined) combinedCard.interval = progress.interval;
-  return combinedCard;
-};
-
-/** Keeps existing Card subscribers on the combined read model until #604. */
-export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
-  subscribeCardReads(uid, (reads) => replaceRemoteCards(reads.map(combineCardRead)), onError);
-
-/** @public Fetch counterpart to subscribeCardReads for the separated read boundary. */
+/** Fetches Card documents once as separated Card and StudyProgress models. */
 export const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
   const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
   return mapActiveCardReads(snapshot.docs);
 };
 
-/** Keeps existing authoritative fetch consumers on the combined read model until #604. */
-export const fetchCards = async (uid: string): Promise<RemoteCard[]> =>
-  (await fetchCardReads(uid)).map(combineCardRead);
-
 /** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();
-  const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
+  const progress = createStudyProgress(card.id);
+  // The shared physical document starts both models, but progress never enters the Card domain input.
+  const document = omitUndefined({
+    ...card,
+    score: progress.score,
+    numberOfSeen: progress.numberOfSeen,
+    createdAt,
+    updatedAt: createdAt,
+  } satisfies CardDocument);
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 

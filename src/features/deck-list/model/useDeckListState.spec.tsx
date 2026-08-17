@@ -5,7 +5,7 @@ import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { clearStudySessions, startStudy } from "@/entities/study-session";
-import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
+import { createLocalCard, createLocalDeck, createPreferences, createStudyProgress } from "@/test/factories";
 
 import { useDeckListState } from "./useDeckListState";
 
@@ -30,6 +30,7 @@ const cards = [
 const studyPreferences = createPreferences({ shuffled: false, useCardInterval: false }).study;
 
 const cardsForDeck = (deckId: string) => cards.filter((card) => card.deckId === deckId);
+const progressesForDeck = (deckId: string) => cardsForDeck(deckId).map(({ id }) => createStudyProgress({ cardId: id }));
 
 describe("useDeckListState", () => {
   beforeEach(async () => {
@@ -43,9 +44,9 @@ describe("useDeckListState", () => {
     );
 
     vi.setSystemTime(100);
-    startStudy("active-old", cardsForDeck("active-old"), studyPreferences);
+    startStudy("active-old", progressesForDeck("active-old"), studyPreferences);
     vi.setSystemTime(200);
-    startStudy("active-new", cardsForDeck("active-new"), studyPreferences);
+    startStudy("active-new", progressesForDeck("active-new"), studyPreferences);
   });
 
   afterEach(async () => {
