@@ -1,7 +1,13 @@
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
+
+const mocks = vi.hoisted(() => ({
+  loginGoogle: vi.fn<() => Promise<unknown>>(),
+}));
+
+vi.mock("./signIn", () => ({ loginGoogle: mocks.loginGoogle }));
 
 import { useSignIn } from "./useSignIn";
 
@@ -17,9 +23,15 @@ const deferred = <T,>() => {
 };
 
 describe("useSignIn", () => {
+  beforeEach(() => {
+    mocks.loginGoogle.mockReset();
+    mocks.loginGoogle.mockResolvedValue(undefined);
+  });
+
   it("reports a pending sign-in until the operation completes", async () => {
     const request = deferred<void>();
-    const { result } = renderHook(() => useSignIn(() => request.promise));
+    mocks.loginGoogle.mockReturnValue(request.promise);
+    const { result } = renderHook(() => useSignIn());
 
     let operation!: Promise<void>;
     act(() => {
@@ -41,15 +53,8 @@ describe("useSignIn", () => {
   it("clears a failed sign-in when the user retries", async () => {
     const failure = new Error("Sign-in failed");
     const retry = deferred<void>();
-    let firstAttempt = true;
-    const signIn = () => {
-      if (firstAttempt) {
-        firstAttempt = false;
-        return Promise.reject(failure);
-      }
-      return retry.promise;
-    };
-    const { result } = renderHook(() => useSignIn(signIn));
+    mocks.loginGoogle.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
+    const { result } = renderHook(() => useSignIn());
 
     await actAsync(async () => {
       await expect(result.current.signIn()).rejects.toThrow("Sign-in failed");
@@ -75,8 +80,8 @@ describe("useSignIn", () => {
 
   it("does not carry a failed sign-in into a later mount", async () => {
     const failure = new Error("Sign-in failed");
-    const signIn = () => Promise.reject(failure);
-    const { result: firstResult, unmount } = renderHook(() => useSignIn(signIn));
+    mocks.loginGoogle.mockRejectedValue(failure);
+    const { result: firstResult, unmount } = renderHook(() => useSignIn());
 
     await actAsync(async () => {
       await expect(firstResult.current.signIn()).rejects.toThrow("Sign-in failed");
@@ -84,7 +89,7 @@ describe("useSignIn", () => {
     expect(firstResult.current.error).toBe(failure);
     unmount();
 
-    const { result: secondResult } = renderHook(() => useSignIn(signIn));
+    const { result: secondResult } = renderHook(() => useSignIn());
 
     expect(secondResult.current.pending).toBe(false);
     expect(secondResult.current.error).toBeNull();

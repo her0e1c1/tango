@@ -1,6 +1,8 @@
 import { useState } from "react";
 
-export const useSignIn = (signIn: () => Promise<void>) => {
+import { loginGoogle } from "./signIn";
+
+export const useSignIn = () => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -8,7 +10,7 @@ export const useSignIn = (signIn: () => Promise<void>) => {
     setPending(true);
     setError(null);
     try {
-      await signIn();
+      await loginGoogle();
     } catch (nextError) {
       setError(nextError);
       throw nextError;

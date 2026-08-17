@@ -1,15 +1,13 @@
 /**
  * @file Defines Tango's route tree.
- * Each URL is connected to a page component while route-level authentication actions and unknown
- * route recovery stay at the application boundary.
+ * Each URL is connected to a page component while unknown route recovery stays at the application
+ * boundary.
  */
 
 import type React from "react";
 import { Route, Routes } from "react-router-dom";
 
 import { routes, useNavigation } from "@/features/navigate";
-import { loginGoogle } from "@/features/sign-in";
-import { signOutCurrentUser } from "@/features/sign-out";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
@@ -38,10 +36,6 @@ const UnknownRoute = () => {
   );
 };
 
-const login = async () => {
-  await loginGoogle();
-};
-
 /**
  * Renders Tango's route tree inside the router supplied by the caller.
  * Production uses BrowserRouter while Storybook can provide MemoryRouter for isolated page stories.
@@ -55,7 +49,7 @@ export const AppRoutes: React.FC = () => (
     <Route path={routes.deckStudy.path} element={<StudySessionPage />} />
     <Route path={routes.cardView.path} element={<CardViewPage />} />
     <Route path={routes.cardForm.path} element={<CardFormPage />} />
-    <Route path={routes.settings.path} element={<SettingsPage login={login} logout={signOutCurrentUser} />} />
+    <Route path={routes.settings.path} element={<SettingsPage />} />
     <Route path={routes.deckImport.path} element={<DeckImportPage />} />
     <Route path={routes.notFound.path} element={<UnknownRoute />} />
   </Routes>
