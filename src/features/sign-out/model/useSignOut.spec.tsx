@@ -1,8 +1,14 @@
 import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { actAsync } from "@/test/act";
+
+const mocks = vi.hoisted(() => ({
+  signOutCurrentUser: vi.fn<() => Promise<void>>(),
+}));
+
+vi.mock("./signOut", () => ({ signOutCurrentUser: mocks.signOutCurrentUser }));
 
 import { useSignOut } from "./useSignOut";
 
@@ -19,12 +25,15 @@ const deferred = <T,>() => {
 
 describe("useSignOut", () => {
   beforeEach(() => {
+    mocks.signOutCurrentUser.mockReset();
+    mocks.signOutCurrentUser.mockResolvedValue(undefined);
     replaceAuthSession({ status: "initializing" });
   });
 
   it("reports a pending sign-out until the operation completes", async () => {
     const request = deferred<void>();
-    const { result } = renderHook(() => useSignOut(() => request.promise));
+    mocks.signOutCurrentUser.mockReturnValue(request.promise);
+    const { result } = renderHook(() => useSignOut());
 
     let operation!: Promise<void>;
     act(() => {
@@ -46,15 +55,8 @@ describe("useSignOut", () => {
   it("clears a failed sign-out when the user retries", async () => {
     const failure = new Error("Sign-out failed");
     const retry = deferred<void>();
-    let firstAttempt = true;
-    const signOut = () => {
-      if (firstAttempt) {
-        firstAttempt = false;
-        return Promise.reject(failure);
-      }
-      return retry.promise;
-    };
-    const { result } = renderHook(() => useSignOut(signOut));
+    mocks.signOutCurrentUser.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
+    const { result } = renderHook(() => useSignOut());
 
     await actAsync(async () => {
       await expect(result.current.signOut()).rejects.toThrow("Sign-out failed");
@@ -80,8 +82,8 @@ describe("useSignOut", () => {
 
   it("does not carry a failed sign-out into a later mount", async () => {
     const failure = new Error("Sign-out failed");
-    const signOut = () => Promise.reject(failure);
-    const { result: firstResult, unmount } = renderHook(() => useSignOut(signOut));
+    mocks.signOutCurrentUser.mockRejectedValue(failure);
+    const { result: firstResult, unmount } = renderHook(() => useSignOut());
 
     await actAsync(async () => {
       await expect(firstResult.current.signOut()).rejects.toThrow("Sign-out failed");
@@ -89,7 +91,7 @@ describe("useSignOut", () => {
     expect(firstResult.current.error).toBe(failure);
     unmount();
 
-    const { result: secondResult } = renderHook(() => useSignOut(signOut));
+    const { result: secondResult } = renderHook(() => useSignOut());
 
     expect(secondResult.current.pending).toBe(false);
     expect(secondResult.current.error).toBeNull();
@@ -102,7 +104,7 @@ describe("useSignOut", () => {
       status: "authenticated",
       uid: "linked-user",
     });
-    const { result } = renderHook(() => useSignOut(() => Promise.resolve()));
+    const { result } = renderHook(() => useSignOut());
 
     expect(result.current.isLoggedIn).toBe(true);
     expect(result.current.identity).toEqual({

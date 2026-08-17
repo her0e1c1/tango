@@ -2,7 +2,9 @@ import { useState } from "react";
 
 import { useAuthAccount, useAuthUid } from "@/entities/auth";
 
-export const useSignOut = (signOut: () => Promise<void>) => {
+import { signOutCurrentUser } from "./signOut";
+
+export const useSignOut = () => {
   const account = useAuthAccount();
   const uid = useAuthUid();
   const [pending, setPending] = useState(false);
@@ -12,7 +14,7 @@ export const useSignOut = (signOut: () => Promise<void>) => {
     setPending(true);
     setError(null);
     try {
-      await signOut();
+      await signOutCurrentUser();
     } catch (nextError) {
       setError(nextError);
       throw nextError;

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { linkWithPopup, signOut } from "firebase/auth";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -10,23 +11,20 @@ import { createPreferences } from "@/test/factories";
 
 import { SettingsPage } from "./SettingsPage";
 
-vi.mock("@/shared/firebase", () => ({ auth: {} }));
+const mocks = vi.hoisted(() => ({
+  auth: { currentUser: { isAnonymous: true } },
+}));
 
-const successfulOperation = () => Promise.resolve();
+vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
+vi.mock("firebase/auth");
 
-const renderPage = ({
-  login = successfulOperation,
-  logout = successfulOperation,
-}: {
-  login?: () => Promise<void>;
-  logout?: () => Promise<void>;
-} = {}) => {
+const renderPage = () => {
   const router = createMemoryRouter(
     [
       { path: "/", element: <div>Home Page</div> },
       {
         path: "/settings",
-        element: <SettingsPage login={login} logout={logout} />,
+        element: <SettingsPage />,
       },
     ],
     { initialEntries: ["/settings"] }
@@ -37,6 +35,10 @@ const renderPage = ({
 
 describe("SettingsPage", () => {
   beforeEach(() => {
+    vi.mocked(linkWithPopup).mockReset();
+    vi.mocked(linkWithPopup).mockResolvedValue({ user: {} } as never);
+    vi.mocked(signOut).mockReset();
+    vi.mocked(signOut).mockResolvedValue(undefined);
     replaceAuthSession({ status: "initializing" });
     updatePreferences(createPreferences({ appearance: { darkMode: false } }));
   });
@@ -56,15 +58,8 @@ describe("SettingsPage", () => {
       status: "authenticated",
       uid: "test-user",
     });
-    let shouldFail = true;
-    const logout = () => {
-      if (shouldFail) {
-        shouldFail = false;
-        return Promise.reject(new Error("Sign-out failed"));
-      }
-      return Promise.resolve();
-    };
-    renderPage({ logout });
+    vi.mocked(signOut).mockRejectedValueOnce(new Error("Sign-out failed")).mockResolvedValueOnce(undefined);
+    renderPage();
 
     await userEvent.click(screen.getByRole("button", { name: "Logout" }));
 
@@ -80,15 +75,10 @@ describe("SettingsPage", () => {
   });
 
   it("lets a signed-out user retry a failed sign-in", async () => {
-    let shouldFail = true;
-    const login = () => {
-      if (shouldFail) {
-        shouldFail = false;
-        return Promise.reject(new Error("Sign-in failed"));
-      }
-      return Promise.resolve();
-    };
-    renderPage({ login });
+    vi.mocked(linkWithPopup)
+      .mockRejectedValueOnce(new Error("Sign-in failed"))
+      .mockResolvedValueOnce({ user: {} } as never);
+    renderPage();
 
     await userEvent.click(screen.getByRole("button", { name: "Login" }));
 
