@@ -2,6 +2,7 @@ import type { SwipeAction } from "@/entities/preferences/@x/study-session";
 import { type CardProgressFields, recordCardStudyProgress } from "@/entities/study-progress/@x/study-session";
 
 import type {
+  ResolvedStudySession,
   StudySession,
   StudySessionCard,
   StudySessionMovement,
@@ -62,13 +63,21 @@ export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
 const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];
 
-// Finds the loaded Card at the active session position for swipe planning.
-const findCurrentStudySessionCard = <Card extends StudySessionCard>(
-  session: StudySession,
+// Resolves whether an active session can study now, is waiting for Cards, or is invalid.
+export const resolveStudySession = <Card extends StudySessionCard>(
+  session: StudySession | undefined,
   cards: readonly Card[]
-): Card | undefined => {
+): ResolvedStudySession<Card> => {
+  if (session == null) return { status: "invalid" };
+
   const cardId = getCurrentStudySessionCardId(session);
-  return cardId == null ? undefined : cards.find(({ id }) => id === cardId);
+  if (cardId == null) return { status: "invalid" };
+
+  const card = cards.find(({ id }) => id === cardId);
+  if (card != null) return { status: "studying", session, card };
+
+  // An empty collection can still be an in-flight read; loaded Cards prove that the persisted Card is absent.
+  return { status: cards.length === 0 ? "preparing" : "invalid" };
 };
 
 // Collapses control actions into the movement, exit, or no-op effects understood by a study session.
@@ -90,13 +99,13 @@ export const planStudySessionSwipe = (
   const effect = resolveStudySessionSwipeEffect(swipeAction);
   if (effect === "none" || effect === "exit") return { effect };
 
-  const card = findCurrentStudySessionCard(session, cards);
-  if (card == null) return { effect: "none" };
+  const resolvedSession = resolveStudySession(session, cards);
+  if (resolvedSession.status !== "studying") return { effect: "none" };
 
   return {
     effect,
     session,
-    progress: recordCardStudyProgress(card, swipeAction, studiedAt),
+    progress: recordCardStudyProgress(resolvedSession.card, swipeAction, studiedAt),
   };
 };
 
