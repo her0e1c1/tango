@@ -7,7 +7,7 @@ import { useAuthUid } from "@/entities/auth";
 import { generateCardId, mutateCards, useCards } from "@/entities/card";
 import { createDeck, useDecks } from "@/entities/deck";
 import sampleCards from "../../../../sample/build/output.json";
-import { executePreparedDeckImport, prepareDeckImport } from "./useDeckImportExecution";
+import { executePreparedDeckImport, prepareSampleDeckImport } from "./useDeckImportExecution";
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
@@ -21,10 +21,10 @@ interface SampleDeckPreparationOptions {
 }
 
 export const prepareSampleDeck = (uid: string, options: SampleDeckPreparationOptions) =>
-  prepareDeckImport(
+  prepareSampleDeckImport(
     {
+      id: sampleDeckId(uid),
       name: SAMPLE_DECK_NAME,
-      preferredDeckId: sampleDeckId(uid),
       rows: sampleCards.map((card, index) => ({ rowNumber: index + 1, card })),
     },
     { uid, ...options }

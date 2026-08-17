@@ -91,8 +91,8 @@ const ImportPreview = (props: ImportPreviewProps) => {
 
   const busy = Boolean(props.pending || props.validating);
   const canImport = preview.analysis.rows.length > 0 && preview.analysis.invalidCount === 0 && !busy;
-  const visibleRows = preview.plan.rows.slice(0, 10);
-  const hiddenRowCount = preview.plan.rows.length - visibleRows.length;
+  const visibleRows = preview.analysis.rows.slice(0, 10);
+  const hiddenRowCount = preview.analysis.rows.length - visibleRows.length;
 
   return (
     <section aria-labelledby="import-preview-heading" className="space-y-4">
@@ -105,23 +105,13 @@ const ImportPreview = (props: ImportPreviewProps) => {
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-surface border border-border bg-surface-muted p-3">
-          <h3 className="font-semibold text-ink">Validation</h3>
-          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption text-ink-muted">
-            <li>{preview.analysis.rows.length} valid</li>
-            <li>{preview.analysis.skippedRows.length} skipped</li>
-            <li>{preview.analysis.invalidCount} invalid</li>
-          </ul>
-        </div>
-        <div className="rounded-surface border border-border bg-surface-muted p-3">
-          <h3 className="font-semibold text-ink">Planned changes</h3>
-          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption text-ink-muted">
-            <li>{preview.plan.created} create</li>
-            <li>{preview.plan.updated} update</li>
-            <li>{preview.plan.unchanged} unchanged</li>
-          </ul>
-        </div>
+      <div className="rounded-surface border border-border bg-surface-muted p-3">
+        <h3 className="font-semibold text-ink">Validation</h3>
+        <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption text-ink-muted">
+          <li>{preview.analysis.rows.length} valid</li>
+          <li>{preview.analysis.skippedRows.length} skipped</li>
+          <li>{preview.analysis.invalidCount} invalid</li>
+        </ul>
       </div>
 
       {preview.analysis.issues.length > 0 ? (
@@ -149,7 +139,6 @@ const ImportPreview = (props: ImportPreviewProps) => {
             <thead className="bg-surface-muted">
               <tr>
                 <th className="px-3 py-2">Row</th>
-                <th className="px-3 py-2">Action</th>
                 <th className="px-3 py-2">Front</th>
                 <th className="px-3 py-2">Back</th>
                 <th className="px-3 py-2">Tags</th>
@@ -160,7 +149,6 @@ const ImportPreview = (props: ImportPreviewProps) => {
               {visibleRows.map((row) => (
                 <tr key={row.rowNumber} className="border-t border-border">
                   <td className="px-3 py-2">{row.rowNumber}</td>
-                  <td className="px-3 py-2 capitalize">{row.action}</td>
                   <td className="max-w-64 break-words px-3 py-2">{row.card.frontText}</td>
                   <td className="max-w-64 break-words px-3 py-2">{row.card.backText}</td>
                   <td className="px-3 py-2">{row.card.tags.join(", ")}</td>
@@ -261,7 +249,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
               Four columns without a header: front text, back text, tags (optional), and uniqueKey.
             </Description>
             <Description>
-              uniqueKey is required. Keep it stable to update the same card and avoid duplicates when importing again.
+              uniqueKey is required and must be unique within the CSV file. Each import creates a new Deck.
             </Description>
           </div>
         </section>

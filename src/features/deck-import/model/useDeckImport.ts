@@ -19,7 +19,7 @@ export const useDeckImport = () => {
   const decks = useDecks();
   const preferences = usePreferences();
   const execution = useDeckImportExecution(uid);
-  const preview = useDeckImportPreview({ uid, cards, decks });
+  const preview = useDeckImportPreview({ uid });
   const [status, setStatus] = useState<DeckImportStatus>("idle");
 
   const selectFile = async (file: File) => {

@@ -21,18 +21,6 @@ const preview = {
     issues: [],
     invalidCount: 0,
   },
-  plan: {
-    rows: [
-      {
-        rowNumber: 1,
-        card: { frontText: "front", backText: "back", tags: ["tag"], uniqueKey: "key-1" },
-        action: "create",
-      },
-    ],
-    created: 1,
-    updated: 0,
-    unchanged: 0,
-  },
 } satisfies DeckImportPreview;
 
 describe("DeckImportView", () => {
@@ -118,7 +106,7 @@ describe("DeckImportView", () => {
     expect(onDownloadSample).toHaveBeenCalledOnce();
   });
 
-  it("shows validation, planned changes, row content, and waits for explicit import", async () => {
+  it("shows validation and row content, and waits for explicit import", async () => {
     const onImport = vi.fn();
     render(<DeckImportView sampleText="front,back,,key" preview={preview} onImport={onImport} />);
 
@@ -126,9 +114,8 @@ describe("DeckImportView", () => {
     expect(screen.getByText("1 valid")).toBeVisible();
     expect(screen.getByText("1 skipped")).toBeVisible();
     expect(screen.getByText("0 invalid")).toBeVisible();
-    expect(screen.getByText("1 create")).toBeVisible();
-    expect(screen.getByText("0 update")).toBeVisible();
-    expect(screen.getByText("0 unchanged")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Planned changes" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Action" })).not.toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "front" })).toBeVisible();
     expect(screen.getByRole("cell", { name: "key-1" })).toBeVisible();
     expect(onImport).not.toHaveBeenCalled();
@@ -153,7 +140,6 @@ describe("DeckImportView", () => {
           },
         ],
       },
-      plan: { rows: [], created: 0, updated: 0, unchanged: 0 },
     };
     render(<DeckImportView sampleText="front,back,,key" preview={invalidPreview} />);
 

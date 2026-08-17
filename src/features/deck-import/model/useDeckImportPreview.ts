@@ -1,10 +1,6 @@
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
-
 import { useRef, useState } from "react";
 
-import { fetchCards, generateCardId } from "@/entities/card";
-import { fetchDecks } from "@/entities/deck";
+import { generateCardId } from "@/entities/card";
 import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { prepareDeckImport } from "./useDeckImportExecution";
@@ -12,7 +8,6 @@ import { prepareDeckImport } from "./useDeckImportExecution";
 export interface DeckImportPreview {
   deckName: string;
   analysis: DeckImportAnalysis;
-  plan: PreparedDeckImport["plan"];
 }
 
 interface DeckImportPreviewState {
@@ -27,8 +22,6 @@ interface PreparedDeckImportState {
 
 interface UseDeckImportPreviewOptions {
   uid: string;
-  decks: Deck[];
-  cards: Card[];
 }
 
 const initialState = (): DeckImportPreviewState => ({
@@ -38,19 +31,7 @@ const initialState = (): DeckImportPreviewState => ({
 });
 const createPreparedImportState = (): PreparedDeckImportState => ({ preparedImport: undefined });
 
-const loadDestinationData = async (
-  storageMode: DeckImportStorageMode,
-  uid: string,
-  localData: { decks: Deck[]; cards: Card[] }
-) => {
-  if (storageMode === "local") return localData;
-
-  // Listener-backed stores may lag, so remote plans must use authoritative server reads.
-  const [decks, cards] = await Promise.all([fetchDecks(uid), fetchCards(uid)]);
-  return { decks, cards };
-};
-
-export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreviewOptions) => {
+export const useDeckImportPreview = ({ uid }: UseDeckImportPreviewOptions) => {
   const preparedImportRef = useRef<PreparedDeckImportState>(createPreparedImportState());
   const [state, setState] = useState<DeckImportPreviewState>(initialState);
   const updateState = (update: Partial<DeckImportPreviewState>) => {
@@ -64,13 +45,11 @@ export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreview
 
     try {
       const analysis = await parseCsv(await file.text());
-      const destinationData = await loadDestinationData(storageMode, uid, { decks, cards });
-
       const preparedImport = prepareDeckImport(
         { name: file.name, rows: analysis.rows, storageMode },
-        { uid, ...destinationData, generateCardId }
+        { uid, generateCardId }
       );
-      const preview = { deckName: file.name, analysis, plan: preparedImport.plan };
+      const preview = { deckName: file.name, analysis };
       preparedImportRef.current.preparedImport = preparedImport;
       updateState({ preview });
       return preview;

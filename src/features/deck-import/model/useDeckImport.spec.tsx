@@ -1,4 +1,3 @@
-import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 
 import { act, renderHook } from "@testing-library/react";
@@ -7,13 +6,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { actAsync } from "@/test/act";
-import { createCard, createDeck } from "@/test/factories";
 
 const controls = vi.hoisted(() => ({
   uid: "",
-  remoteDecks: [] as Deck[],
-  remoteCards: [] as Card[],
-  remoteReadError: undefined as unknown,
   nextMutationError: undefined as unknown,
 }));
 
@@ -23,10 +18,6 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    fetchCards: () => {
-      if (controls.remoteReadError !== undefined) return Promise.reject(controls.remoteReadError);
-      return Promise.resolve(controls.remoteCards);
-    },
     mutateCards: (...arguments_: Parameters<typeof actual.mutateCards>) => {
       if (controls.nextMutationError !== undefined) {
         const error = controls.nextMutationError;
@@ -34,16 +25,6 @@ vi.mock("@/entities/card", async (importOriginal) => {
         return Promise.reject(error);
       }
       return actual.mutateCards(...arguments_);
-    },
-  };
-});
-vi.mock("@/entities/deck", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/entities/deck")>();
-  return {
-    ...actual,
-    fetchDecks: () => {
-      if (controls.remoteReadError !== undefined) return Promise.reject(controls.remoteReadError);
-      return Promise.resolve(controls.remoteDecks);
     },
   };
 });
@@ -65,9 +46,6 @@ const findDeck = (decks: Deck[], name: string) => decks.find((deck) => deck.name
 describe("useDeckImport", () => {
   beforeEach(() => {
     controls.uid = "";
-    controls.remoteDecks = [];
-    controls.remoteCards = [];
-    controls.remoteReadError = undefined;
     controls.nextMutationError = undefined;
   });
 
@@ -81,7 +59,6 @@ describe("useDeckImport", () => {
     expect(result.current.deckImport.preview).toMatchObject({
       deckName: name,
       analysis: { invalidCount: 0 },
-      plan: { created: 1, updated: 0, unchanged: 0 },
     });
     expect(findDeck(result.current.decks, name)).toBeUndefined();
 
@@ -101,7 +78,7 @@ describe("useDeckImport", () => {
     expect(result.current.deckImport.result).toMatchObject({ created: 1, updated: 0, skipped: 0 });
   });
 
-  it("updates a local Card and then skips an identical re-import", async () => {
+  it("creates a new local Deck instead of updating a same-name Deck", async () => {
     const name = "behavior-reimport.csv";
     const { result } = renderDeckImport();
     act(() => result.current.deckImport.setStorageMode("local"));
@@ -112,20 +89,17 @@ describe("useDeckImport", () => {
     const originalCard = result.current.cards.find((card) => card.deckId === originalDeck?.id);
 
     await actAsync(async () => result.current.deckImport.selectFile(csvFile(name, "new back")));
-    expect(result.current.deckImport.preview?.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
     await actAsync(async () => result.current.deckImport.importPreview());
 
-    expect(result.current.decks.filter((deck) => deck.name === name)).toHaveLength(1);
+    const matchingDecks = result.current.decks.filter((deck) => deck.name === name);
+    expect(matchingDecks).toHaveLength(2);
     expect(result.current.cards.filter((card) => card.deckId === originalDeck?.id)).toEqual([
-      expect.objectContaining({ id: originalCard?.id, backText: "new back" }),
+      expect.objectContaining({ id: originalCard?.id, backText: "old back" }),
     ]);
-
-    await actAsync(async () => result.current.deckImport.selectFile(csvFile(name, "new back")));
-    expect(result.current.deckImport.preview?.plan).toMatchObject({ created: 0, updated: 0, unchanged: 1 });
-    await actAsync(async () => result.current.deckImport.importPreview());
-
-    expect(result.current.deckImport.result).toMatchObject({ created: 0, updated: 0, skipped: 1 });
-    expect(result.current.cards.filter((card) => card.deckId === originalDeck?.id)).toHaveLength(1);
+    const newDeck = matchingDecks.find((deck) => deck.id !== originalDeck?.id);
+    expect(result.current.cards.filter((card) => card.deckId === newDeck?.id)).toEqual([
+      expect.objectContaining({ backText: "new back" }),
+    ]);
   });
 
   it("keeps an invalid CSV in preview without creating a Deck", async () => {
@@ -160,45 +134,6 @@ describe("useDeckImport", () => {
     await expect(result.current.deckImport.importPreview()).rejects.toThrow("Select a CSV file");
   });
 
-  it("builds a remote preview from current server data instead of stale local state", async () => {
-    controls.uid = "uid-a";
-    const serverDeck = createDeck({ id: "remote-preview-deck", name: "behavior-remote.csv", uid: controls.uid });
-    controls.remoteDecks = [serverDeck];
-    controls.remoteCards = [
-      createCard({
-        id: "remote-preview-card",
-        deckId: serverDeck.id,
-        uid: controls.uid,
-        frontText: "front",
-        backText: "old back",
-        tags: ["tag"],
-        uniqueKey: "key",
-      }),
-    ];
-    const { result } = renderDeckImport();
-
-    await actAsync(async () => result.current.deckImport.selectFile(csvFile("behavior-remote.csv", "new back")));
-
-    expect(result.current.deckImport.preview?.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
-    expect(findDeck(result.current.decks, "behavior-remote.csv")).toBeUndefined();
-  });
-
-  it("exposes a remote preview failure without changing stored data", async () => {
-    controls.uid = "uid-a";
-    controls.remoteReadError = new Error("server read failed");
-    const name = "behavior-read-failure.csv";
-    const { result } = renderDeckImport();
-
-    await actAsync(async () => {
-      await expect(result.current.deckImport.selectFile(csvFile(name))).rejects.toThrow("server read failed");
-    });
-
-    expect(result.current.deckImport.preview).toBeUndefined();
-    expect(result.current.deckImport.previewError).toEqual(new Error("server read failed"));
-    expect(result.current.deckImport.error).toBeNull();
-    expect(findDeck(result.current.decks, name)).toBeUndefined();
-  });
-
   it("requires a fresh preview after a failed save and then completes the retry", async () => {
     const name = "behavior-retry.csv";
     const file = csvFile(name);
@@ -219,10 +154,12 @@ describe("useDeckImport", () => {
 
     await actAsync(async () => result.current.deckImport.selectFile(file));
     expect(result.current.deckImport.error).toBeNull();
-    expect(result.current.deckImport.preview?.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
     await actAsync(async () => result.current.deckImport.importPreview());
 
     expect(result.current.deckImport.result).toMatchObject({ created: 1, updated: 0, skipped: 0 });
-    expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toHaveLength(1);
+    expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toEqual([]);
+    const retryDeck = result.current.decks.find((deck) => deck.name === name && deck.id !== savedDeck?.id);
+    expect(retryDeck).toBeDefined();
+    expect(result.current.cards.filter((card) => card.deckId === retryDeck?.id)).toHaveLength(1);
   });
 });

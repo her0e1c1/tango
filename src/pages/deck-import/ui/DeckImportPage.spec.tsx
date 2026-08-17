@@ -103,7 +103,7 @@ describe("DeckImportPage", () => {
 
     await selectLocalFile(name, "saved back");
 
-    expect(screen.getByText("1 create")).toBeVisible();
+    expect(screen.getByText("1 valid")).toBeVisible();
     expect(screen.queryByRole("heading", { level: 1, name: "Deck list destination" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
@@ -134,7 +134,7 @@ describe("DeckImportPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
-    expect(screen.getByText(name)).toBeVisible();
+    expect(screen.getAllByText(name)).toHaveLength(2);
     expect(screen.getByText("front: retry back")).toBeVisible();
   });
 });

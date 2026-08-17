@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { createCard, createDeck, createLocalCard, createLocalDeck } from "@/test/factories";
-import { prepareDeckImport } from "./useDeckImportExecution";
+import { createCard, createDeck } from "@/test/factories";
+import { prepareDeckImport, prepareSampleDeckImport } from "./useDeckImportExecution";
 
 describe("prepareDeckImport", () => {
   const row = {
@@ -15,7 +15,7 @@ describe("prepareDeckImport", () => {
   it("prepares a Card creation and its preview action together", () => {
     const preparedImport = prepareDeckImport(
       { name: "deck.csv", rows },
-      { uid: "uid", decks: [], cards: [], generateCardId: vi.fn(() => "card") }
+      { uid: "uid", generateCardId: vi.fn(() => "card") }
     );
 
     expect(preparedImport.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
@@ -24,42 +24,10 @@ describe("prepareDeckImport", () => {
     ]);
   });
 
-  it("prepares an update from the Card with the same unique key", () => {
-    const deck = createDeck({ id: "deck", name: "deck.csv", uid: "uid" });
-    const existing = createCard({
-      id: "existing",
-      deckId: deck.id,
-      uid: deck.uid,
-      frontText: "before",
-      uniqueKey: "key-1",
-    });
-    const preparedImport = prepareDeckImport(
-      { name: deck.name, rows },
-      { uid: deck.uid, decks: [deck], cards: [existing], generateCardId: vi.fn() }
-    );
-
-    expect(preparedImport.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
-    expect(preparedImport.mutations).toEqual([
-      { kind: "edit", card: expect.objectContaining({ id: existing.id, frontText: "front" }) },
-    ]);
-  });
-
-  it("skips a Card with identical editable content", () => {
-    const deck = createDeck({ id: "deck", name: "deck.csv", uid: "uid" });
-    const existing = createCard({ ...row.card, deckId: deck.id, uid: deck.uid });
-    const preparedImport = prepareDeckImport(
-      { name: deck.name, rows },
-      { uid: deck.uid, decks: [deck], cards: [existing], generateCardId: vi.fn() }
-    );
-
-    expect(preparedImport.plan).toMatchObject({ created: 0, updated: 0, unchanged: 1 });
-    expect(preparedImport.mutations).toEqual([]);
-  });
-
   it("prepares local Deck and Card creation without an account owner", () => {
     const preparedImport = prepareDeckImport(
       { name: "local.csv", rows, storageMode: "local" },
-      { uid: "", decks: [], cards: [], generateCardId: vi.fn(() => "local-card") }
+      { uid: "", generateCardId: vi.fn(() => "local-card") }
     );
 
     expect(preparedImport.destination).toEqual({ id: expect.any(String), name: "local.csv", localMode: true });
@@ -75,30 +43,30 @@ describe("prepareDeckImport", () => {
     ]);
   });
 
-  it("plans a local re-import from only the matching local Deck", () => {
-    const remoteDeck = createDeck({ id: "remote", name: "shared.csv", uid: "uid" });
-    const localDeck = createLocalDeck({ id: "local", name: "shared.csv" });
-    const remoteCard = createCard({ ...row.card, id: "remote-card", deckId: remoteDeck.id, uid: remoteDeck.uid });
-    const localCard = createLocalCard({
-      ...row.card,
-      id: "local-card",
-      deckId: localDeck.id,
+  it("keeps stable destination reuse inside the sample import path", () => {
+    const deck = createDeck({ id: "sample", name: "Sample Deck", uid: "uid" });
+    const existing = createCard({
+      id: "existing",
+      deckId: deck.id,
+      uid: deck.uid,
       frontText: "before",
+      uniqueKey: "key-1",
     });
-    const preparedImport = prepareDeckImport(
-      { name: localDeck.name, rows, storageMode: "local" },
+    const preparedImport = prepareSampleDeckImport(
+      { id: deck.id, name: deck.name, rows },
       {
-        uid: "uid",
-        decks: [remoteDeck, localDeck],
-        cards: [remoteCard, localCard],
+        uid: deck.uid,
+        decks: [deck],
+        cards: [existing],
         generateCardId: vi.fn(),
       }
     );
 
-    expect(preparedImport.destination.id).toBe(localDeck.id);
+    expect(preparedImport.destination.id).toBe(deck.id);
+    expect(preparedImport.needsDeckCreation).toBe(false);
     expect(preparedImport.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
     expect(preparedImport.mutations).toEqual([
-      { kind: "edit", card: expect.objectContaining({ id: localCard.id, frontText: "front" }) },
+      { kind: "edit", card: expect.objectContaining({ id: existing.id, frontText: "front" }) },
     ]);
   });
 });

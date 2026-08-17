@@ -23,7 +23,6 @@ export interface PreparedDeckImport {
   needsDeckCreation: boolean;
   mutations: CardMutation[];
   plan: {
-    rows: (DeckImportRow & { action: DeckImportAction })[];
     created: number;
     updated: number;
     unchanged: number;
@@ -32,16 +31,24 @@ export interface PreparedDeckImport {
 
 interface DeckImportSource {
   name: string;
-  preferredDeckId?: DeckId;
   rows: DeckImportRow[];
   storageMode?: DeckImportStorageMode;
 }
 
 interface DeckImportPreparationDependencies {
   uid: string;
+  generateCardId: () => string;
+}
+
+interface SampleDeckImportSource {
+  id: DeckId;
+  name: string;
+  rows: DeckImportRow[];
+}
+
+interface SampleDeckImportPreparationDependencies extends DeckImportPreparationDependencies {
   decks: Deck[];
   cards: Card[];
-  generateCardId: () => string;
 }
 
 interface DeckImportExecutionDependencies {
@@ -55,19 +62,12 @@ const isRemoteCard = (card: Card): card is RemoteCard => "uid" in card;
 const usesStorageMode = (card: Card, storageMode: DeckImportStorageMode): boolean =>
   storageMode === "remote" ? isRemoteCard(card) : !isRemoteCard(card);
 
-const matchesDestination = (candidate: Deck, source: DeckImportSource, storageMode: DeckImportStorageMode): boolean => {
-  if (candidate.localMode !== (storageMode === "local")) return false;
-  return source.preferredDeckId === undefined
-    ? candidate.name === source.name
-    : candidate.id === source.preferredDeckId;
-};
-
 const createDestination = (
   source: DeckImportSource,
   uid: string,
   storageMode: DeckImportStorageMode
 ): DeckImportCreateInput => {
-  const id = source.preferredDeckId ?? generateDeckId();
+  const id = generateDeckId();
   return storageMode === "local" ? { id, name: source.name, localMode: true } : { id, uid, name: source.name };
 };
 
@@ -95,7 +95,6 @@ const prepareCardMutations = ({
   generateCardId: () => string;
 }): Pick<PreparedDeckImport, "plan" | "mutations"> => {
   const byUniqueKey = indexCardsByUniqueKey(existing);
-  const planRows: PreparedDeckImport["plan"]["rows"] = [];
   const mutations: CardMutation[] = [];
   const counts: Record<DeckImportAction, number> = { create: 0, update: 0, unchanged: 0 };
 
@@ -103,7 +102,6 @@ const prepareCardMutations = ({
     const current = byUniqueKey.get(row.card.uniqueKey);
     const action = actionFor(current, row);
     counts[action] += 1;
-    planRows.push({ ...row, action });
 
     if (action === "create") {
       const cardFields = { ...row.card, id: generateCardId(), deckId: destinationId };
@@ -118,7 +116,6 @@ const prepareCardMutations = ({
   return {
     mutations,
     plan: {
-      rows: planRows,
       created: counts.create,
       updated: counts.update,
       unchanged: counts.unchanged,
@@ -128,17 +125,40 @@ const prepareCardMutations = ({
 
 export const prepareDeckImport = (
   source: DeckImportSource,
-  { uid, decks, cards, generateCardId }: DeckImportPreparationDependencies
+  { uid, generateCardId }: DeckImportPreparationDependencies
 ): PreparedDeckImport => {
   const storageMode = source.storageMode ?? "remote";
   if (storageMode === "remote" && uid === "") throw new Error("A confirmed user is required for remote imports");
 
-  const existingDeck = decks.find((candidate) => matchesDestination(candidate, source, storageMode));
+  const destination = createDestination(source, uid, storageMode);
+  return {
+    uid,
+    destination,
+    needsDeckCreation: true,
+    ...prepareCardMutations({
+      rows: source.rows,
+      existing: [],
+      destinationId: destination.id,
+      uid,
+      storageMode,
+      generateCardId,
+    }),
+  };
+};
+
+// Sample bootstrap owns its stable destination so normal CSV imports never reuse a Deck implicitly.
+export const prepareSampleDeckImport = (
+  source: SampleDeckImportSource,
+  { uid, decks, cards, generateCardId }: SampleDeckImportPreparationDependencies
+): PreparedDeckImport => {
+  if (uid === "") throw new Error("A confirmed user is required for the sample Deck");
+
+  const existingDeck = decks.find((candidate) => candidate.id === source.id && !candidate.localMode);
   // View models intentionally omit ownership metadata, so remote commands recover it from the active session.
   const destination =
-    existingDeck == null ? createDestination(source, uid, storageMode) : reuseDestination(existingDeck, uid);
+    existingDeck == null ? { id: source.id, uid, name: source.name } : reuseDestination(existingDeck, uid);
+  const existing = cards.filter((card) => card.deckId === destination.id && usesStorageMode(card, "remote"));
 
-  const existing = cards.filter((card) => card.deckId === destination.id && usesStorageMode(card, storageMode));
   return {
     uid,
     destination,
@@ -148,7 +168,7 @@ export const prepareDeckImport = (
       existing,
       destinationId: destination.id,
       uid,
-      storageMode,
+      storageMode: "remote",
       generateCardId,
     }),
   };

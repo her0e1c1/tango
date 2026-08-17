@@ -8,8 +8,8 @@ import "@/test/initializeTestFirestore";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { deleteCard, editCard, fetchCardReads, fetchCards, mutateCards, subscribeCards } from "@/entities/card";
-import { createDeck, deleteDeck, editDeck, fetchDecks, subscribeDecks } from "@/entities/deck";
+import { deleteCard, editCard, fetchCardReads, mutateCards, subscribeCards } from "@/entities/card";
+import { createDeck, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { createCard, createDeck as createDeckFixture } from "@/test/factories";
@@ -29,7 +29,7 @@ describe("Query realtime subscriptions", () => {
     await Promise.all(getApps().map(deleteApp));
   });
 
-  it("fetches Cards and Decks through their public read APIs", async () => {
+  it("fetches separated Card reads through the public read API", async () => {
     const uid = "uid";
     const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Fetched Deck" });
     const card = createCard({
@@ -43,12 +43,8 @@ describe("Query realtime subscriptions", () => {
     await createDeck(uid, deck);
     await mutateCards(uid, [{ kind: "create", card }]);
 
-    const [decks, cards, reads] = await Promise.all([fetchDecks(uid), fetchCards(uid), fetchCardReads(uid)]);
+    const reads = await fetchCardReads(uid);
 
-    expect(decks).toContainEqual(expect.objectContaining({ id: deck.id, name: "Fetched Deck" }));
-    expect(cards).toContainEqual(
-      expect.objectContaining({ id: card.id, frontText: "Fetched Card", score: 2, numberOfSeen: 3 })
-    );
     expect(reads).toContainEqual({
       card: expect.objectContaining({ id: card.id, frontText: "Fetched Card" }),
       progress: expect.objectContaining({ cardId: card.id, score: 2, numberOfSeen: 3 }),
@@ -119,8 +115,6 @@ describe("Query realtime subscriptions", () => {
     await editDeck(uid, { ...deck, name: "After stop" });
     await editCard(uid, { ...card, frontText: "After stop" });
 
-    expect(await fetchDecks(uid)).toContainEqual(expect.objectContaining({ id: deck.id, name: "After stop" }));
-    expect(await fetchCards(uid)).toContainEqual(expect.objectContaining({ id: card.id, frontText: "After stop" }));
     expect(deckStore.getState().remoteDecks).toContainEqual(
       expect.objectContaining({ id: deck.id, name: "Before stop" })
     );
