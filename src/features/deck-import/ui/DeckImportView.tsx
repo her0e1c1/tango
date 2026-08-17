@@ -23,6 +23,7 @@ interface DeckImportViewProps {
   error?: unknown;
   previewError?: unknown;
   storageMode?: DeckImportStorageMode;
+  fileName?: string;
 }
 
 const resultCounts = (result: DeckImportResult) => (
@@ -195,6 +196,7 @@ const ImportPreview = (props: ImportPreviewProps) => {
 export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
   const busy = Boolean(props.pending || props.validating);
   const storageMode = props.storageMode ?? "remote";
+  const fileName = props.fileName ?? props.preview?.deckName;
 
   return (
     <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
@@ -244,7 +246,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
           </fieldset>
           <Upload
             disabled={busy}
-            {...(props.preview !== undefined ? { fileName: props.preview.deckName } : {})}
+            {...(fileName !== undefined ? { fileName } : {})}
             {...(props.onChange !== undefined ? { onChange: props.onChange } : {})}
           />
         </section>

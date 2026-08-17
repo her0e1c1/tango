@@ -154,11 +154,15 @@ export const prepareDeckImport = (
   };
 };
 
+const assertPreparedImportOwner = (preparedImport: PreparedDeckImport, uid: string) => {
+  if (preparedImport.uid !== uid) throw new Error("The prepared Deck import belongs to a different user");
+};
+
 export const executePreparedDeckImport = async (
   preparedImport: PreparedDeckImport,
   { uid, createDeck, mutateCards }: DeckImportExecutionDependencies
 ) => {
-  if (preparedImport.uid !== uid) throw new Error("The prepared Deck import belongs to a different user");
+  assertPreparedImportOwner(preparedImport, uid);
   if (preparedImport.needsDeckCreation) await createDeck(preparedImport.destination);
   if (preparedImport.mutations.length > 0) await mutateCards(preparedImport.mutations);
 
@@ -186,23 +190,26 @@ export const useDeckImportExecution = (uid: string) => {
   };
 
   const run = async (preparedImport: PreparedDeckImport) => {
+    // Ownership mismatch is an invariant, so check it before the expected persistence failure boundary.
+    assertPreparedImportOwner(preparedImport, uid);
     updateState({ error: null });
+    let importResult: DeckImportResult | undefined;
     try {
-      const importResult = await executePreparedDeckImport(preparedImport, {
+      importResult = await executePreparedDeckImport(preparedImport, {
         uid,
         createDeck: (deck) => persistDeck(uid, deck),
         mutateCards: (mutations) => persistCardMutations(uid, mutations),
       });
       updateState({ result: importResult });
-      return importResult;
     } catch (caughtError) {
       updateState({ result: undefined, error: caughtError });
-      throw caughtError;
     }
+    return importResult;
   };
 
   return {
     run,
+    fail: (error: unknown) => updateState({ result: undefined, error }),
     clear: () => updateState({ error: null, result: undefined }),
     error: state.error,
     result: state.result,

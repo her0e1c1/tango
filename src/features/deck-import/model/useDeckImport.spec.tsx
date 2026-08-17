@@ -144,7 +144,10 @@ describe("useDeckImport", () => {
         issues: [expect.objectContaining({ rowNumber: 1, message: "Expected 4 columns, found 2." })],
       },
     });
-    await expect(result.current.deckImport.importPreview()).rejects.toThrow("Fix invalid CSV rows");
+    await actAsync(async () => {
+      expect(await result.current.deckImport.importPreview()).toEqual({ status: "failure" });
+    });
+    expect(result.current.deckImport.previewError).toEqual(new Error("Fix invalid CSV rows before importing"));
     expect(findDeck(result.current.decks, name)).toBeUndefined();
   });
 
@@ -157,7 +160,10 @@ describe("useDeckImport", () => {
 
     expect(result.current.deckImport.storageMode).toBe("remote");
     expect(result.current.deckImport.preview).toBeUndefined();
-    await expect(result.current.deckImport.importPreview()).rejects.toThrow("Select a CSV file");
+    await actAsync(async () => {
+      expect(await result.current.deckImport.importPreview()).toEqual({ status: "failure" });
+    });
+    expect(result.current.deckImport.previewError).toEqual(new Error("Select a CSV file before importing"));
   });
 
   it("builds a remote preview from current server data instead of stale local state", async () => {
@@ -190,9 +196,10 @@ describe("useDeckImport", () => {
     const { result } = renderDeckImport();
 
     await actAsync(async () => {
-      await expect(result.current.deckImport.selectFile(csvFile(name))).rejects.toThrow("server read failed");
+      expect(await result.current.deckImport.selectFile(csvFile(name))).toEqual({ status: "failure" });
     });
 
+    expect(result.current.deckImport.fileName).toBe(name);
     expect(result.current.deckImport.preview).toBeUndefined();
     expect(result.current.deckImport.previewError).toEqual(new Error("server read failed"));
     expect(result.current.deckImport.error).toBeNull();
@@ -208,7 +215,7 @@ describe("useDeckImport", () => {
     controls.nextMutationError = new Error("card mutation failed");
 
     await actAsync(async () => {
-      await expect(result.current.deckImport.importPreview()).rejects.toThrow("card mutation failed");
+      expect(await result.current.deckImport.importPreview()).toEqual({ status: "failure" });
     });
 
     const savedDeck = findDeck(result.current.decks, name);
@@ -224,5 +231,16 @@ describe("useDeckImport", () => {
 
     expect(result.current.deckImport.result).toMatchObject({ created: 1, updated: 0, skipped: 0 });
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toHaveLength(1);
+  });
+
+  it("makes a sample preparation failure observable without rejecting", async () => {
+    const { result } = renderDeckImport();
+
+    await actAsync(async () => {
+      expect(await result.current.deckImport.addSample()).toEqual({ status: "failure" });
+    });
+
+    expect(result.current.deckImport.error).toEqual(new Error("A confirmed user is required for remote imports"));
+    expect(result.current.deckImport.pending).toBe(false);
   });
 });

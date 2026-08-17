@@ -17,6 +17,7 @@ export interface DeckImportPreview {
 
 interface DeckImportPreviewState {
   storageMode: DeckImportStorageMode;
+  fileName: string | undefined;
   preview: DeckImportPreview | undefined;
   error: unknown;
 }
@@ -33,6 +34,7 @@ interface UseDeckImportPreviewOptions {
 
 const initialState = (): DeckImportPreviewState => ({
   storageMode: "remote",
+  fileName: undefined,
   preview: undefined,
   error: null,
 });
@@ -60,39 +62,64 @@ export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreview
   const selectFile = async (file: File) => {
     const { storageMode } = state;
     preparedImportRef.current.preparedImport = undefined;
-    updateState({ preview: undefined, error: null });
+    updateState({ fileName: file.name, preview: undefined, error: null });
 
+    let analysis: DeckImportAnalysis;
     try {
-      const analysis = await parseCsv(await file.text());
-      const destinationData = await loadDestinationData(storageMode, uid, { decks, cards });
-
-      const preparedImport = prepareDeckImport(
-        { name: file.name, rows: analysis.rows, storageMode },
-        { uid, ...destinationData, generateCardId }
-      );
-      const preview = { deckName: file.name, analysis, plan: preparedImport.plan };
-      preparedImportRef.current.preparedImport = preparedImport;
-      updateState({ preview });
-      return preview;
+      analysis = await parseCsv(await file.text());
     } catch (caughtError) {
       updateState({ error: caughtError });
-      throw caughtError;
+      return;
     }
+
+    let destinationData: { decks: Deck[]; cards: Card[] };
+    try {
+      destinationData = await loadDestinationData(storageMode, uid, { decks, cards });
+    } catch (caughtError) {
+      updateState({ error: caughtError });
+      return;
+    }
+
+    if (storageMode === "remote" && uid === "") {
+      updateState({ error: new Error("A confirmed user is required for remote imports") });
+      return;
+    }
+
+    // Preparation runs outside the expected I/O failure boundaries so schema and programming invariants still reject.
+    const preparedImport = prepareDeckImport(
+      { name: file.name, rows: analysis.rows, storageMode },
+      { uid, ...destinationData, generateCardId }
+    );
+    const preview = { deckName: file.name, analysis, plan: preparedImport.plan };
+    preparedImportRef.current.preparedImport = preparedImport;
+    updateState({ preview });
+    return preview;
   };
 
   const setStorageMode = (storageMode: DeckImportStorageMode) => {
     if (state.storageMode === storageMode) return false;
 
     preparedImportRef.current.preparedImport = undefined;
-    updateState({ storageMode, preview: undefined, error: null });
+    updateState({ storageMode, fileName: undefined, preview: undefined, error: null });
     return true;
   };
 
   const takePreparedImport = () => {
     const { preview } = state;
-    if (preview == null) throw new Error("Select a CSV file before importing");
-    if (preview.analysis.invalidCount > 0) throw new Error("Fix invalid CSV rows before importing");
-    if (preview.analysis.rows.length === 0) throw new Error("The CSV file has no valid rows");
+    const preconditionError =
+      preview == null
+        ? new Error("Select a CSV file before importing")
+        : preview.analysis.invalidCount > 0
+          ? new Error("Fix invalid CSV rows before importing")
+          : preview.analysis.rows.length === 0
+            ? new Error("The CSV file has no valid rows")
+            : undefined;
+    if (preconditionError !== undefined) {
+      updateState({ error: preconditionError });
+      return;
+    }
+
+    // A valid preview must always retain its one-shot prepared import until execution starts.
     if (preparedImportRef.current.preparedImport == null) {
       throw new Error("The prepared Deck import is not available");
     }
@@ -108,6 +135,7 @@ export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreview
     takePreparedImport,
     clearError: () => updateState({ error: null }),
     storageMode: state.storageMode,
+    fileName: state.fileName,
     preview: state.preview,
     error: state.error,
   };

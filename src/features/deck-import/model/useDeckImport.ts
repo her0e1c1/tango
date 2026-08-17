@@ -5,13 +5,17 @@ import { generateCardId, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
 import { prepareSampleDeck } from "./useAddSampleDeck";
-import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
+import type { DeckImportResult, DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { useDeckImportExecution } from "./useDeckImportExecution";
 import { useDeckImportPreview } from "./useDeckImportPreview";
 
 export type { DeckImportPreview } from "./useDeckImportPreview";
 
 type DeckImportStatus = "idle" | "validating" | "importing";
+type DeckImportOperationResult<Value> = { status: "success"; value: Value } | { status: "failure" };
+
+const operationSucceeded = <Value>(value: Value): DeckImportOperationResult<Value> => ({ status: "success", value });
+const operationFailed = { status: "failure" } as const;
 
 export const useDeckImport = () => {
   const uid = useAuthUid();
@@ -26,7 +30,8 @@ export const useDeckImport = () => {
     execution.clear();
     setStatus("validating");
     try {
-      return await preview.selectFile(file);
+      const selectedPreview = await preview.selectFile(file);
+      return selectedPreview === undefined ? operationFailed : operationSucceeded(selectedPreview);
     } finally {
       setStatus("idle");
     }
@@ -36,23 +41,37 @@ export const useDeckImport = () => {
     if (preview.setStorageMode(storageMode)) execution.clear();
   };
 
-  const runImport = async (prepare: () => PreparedDeckImport) => {
+  const runImport = async (
+    prepare: () => PreparedDeckImport | undefined
+  ): Promise<DeckImportOperationResult<DeckImportResult>> => {
     const preparedImport = prepare();
+    if (preparedImport === undefined) return operationFailed;
+
     preview.clearError();
     setStatus("importing");
     try {
-      return await execution.run(preparedImport);
+      const importResult = await execution.run(preparedImport);
+      return importResult === undefined ? operationFailed : operationSucceeded(importResult);
     } finally {
       setStatus("idle");
     }
+  };
+
+  const addSample = () => {
+    if (uid === "") {
+      execution.fail(new Error("A confirmed user is required for remote imports"));
+      return Promise.resolve(operationFailed);
+    }
+    return runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId }));
   };
 
   return {
     selectFile,
     setStorageMode,
     importPreview: () => runImport(preview.takePreparedImport),
-    addSample: () => runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId })),
+    addSample,
     storageMode: preview.storageMode,
+    fileName: preview.fileName,
     preview: preview.preview,
     validating: status === "validating",
     pending: status === "importing",

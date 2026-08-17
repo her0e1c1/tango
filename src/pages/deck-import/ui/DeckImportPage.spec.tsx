@@ -137,4 +137,14 @@ describe("DeckImportPage", () => {
     expect(screen.getByText(name)).toBeVisible();
     expect(screen.getByText("front: retry back")).toBeVisible();
   });
+
+  it("shows a sample preparation failure in place", async () => {
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Add sample deck" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed");
+    expect(screen.getByRole("alert")).toHaveTextContent("A confirmed user is required for remote imports");
+    expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
+  });
 });
