@@ -70,7 +70,7 @@ describe("useStudySessionStartState", () => {
   });
 
   afterEach(async () => {
-    await deleteDeck("", deck);
+    await deleteDeck("", deck.id);
     clearStudySessions();
   });
 

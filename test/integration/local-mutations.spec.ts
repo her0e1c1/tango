@@ -33,7 +33,7 @@ describe("local Entity mutations", () => {
     const remainingCards = renderHook(() => useCards());
     expect(remainingCards.result.current.find(({ id }) => id === card.id)).toBeUndefined();
     remainingCards.unmount();
-    await deleteDeck("", deck);
+    await deleteDeck("", deck.id);
   });
 
   it("deletes a local Deck with its Cards and study session without affecting other Decks", async () => {
@@ -51,7 +51,7 @@ describe("local Entity mutations", () => {
     startStudy(otherDeck.id, [otherCard], studyOptions);
 
     await editDeck("", { id: deck.id, name: "Renamed" });
-    await deleteDeck("", deck);
+    await deleteDeck("", deck.id);
 
     const decks = renderHook(() => useDecks());
     const cards = renderHook(() => useCards());
@@ -63,6 +63,6 @@ describe("local Entity mutations", () => {
     expect(getStudySession(otherDeck.id)).toBeDefined();
     decks.unmount();
     cards.unmount();
-    await deleteDeck("", otherDeck);
+    await deleteDeck("", otherDeck.id);
   });
 });

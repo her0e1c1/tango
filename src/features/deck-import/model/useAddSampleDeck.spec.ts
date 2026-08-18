@@ -51,6 +51,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         convertToBr: deck.convertToBr ?? false,
         createdAt: 0,
         updatedAt: 0,
+        uid: deck.uid,
         localMode: false,
       };
       repository.decks = [...repository.decks, savedDeck];

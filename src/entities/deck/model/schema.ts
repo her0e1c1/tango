@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
+export const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
 export const deckIdSchema = z.string().min(1, "Deck id is required");
 const deckUidSchema = z.string().min(1, "Deck owner is required");
 
@@ -53,7 +53,6 @@ export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   id: deckIdSchema,
   url: editableDeckFieldsSchema.shape.url.nullable(),
 });
-const deckIdentitySchema = z.object({ id: deckIdSchema, uid: deckUidSchema });
 
 // Rejects remote Deck commands whose stored owner differs from the authenticated user.
 const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, context: z.RefinementCtx): void => {
@@ -74,7 +73,3 @@ export const editDeckSchema = z.object({
   uid: authenticatedUidSchema,
   deck: deckEditSchema,
 });
-
-export const deleteDeckSchema = z
-  .object({ uid: authenticatedUidSchema, deck: deckIdentitySchema })
-  .superRefine(validateDeckOwner);

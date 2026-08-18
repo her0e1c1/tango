@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { createDeck, createLocalDeck as createLocalDeckFixture } from "@/test/factories";
-import { toDeckView } from "./dto";
 import { useDeck, useDecks } from "./hooks";
 import {
   clearRemoteDecks,
@@ -55,9 +54,9 @@ describe("Deck store", () => {
     const localDeck = createLocalDeckFixture({ id: "local" });
     deckStore.setState({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
 
-    expect(renderHook(useDecks).result.current).toEqual([toDeckView(remoteDeck), toDeckView(localDeck)]);
-    expect(renderHook(() => useDeck("remote")).result.current).toEqual(toDeckView(remoteDeck));
-    expect(renderHook(() => useDeck("local")).result.current).toEqual(toDeckView(localDeck));
+    expect(renderHook(useDecks).result.current).toEqual([remoteDeck, localDeck]);
+    expect(renderHook(() => useDeck("remote")).result.current).toBe(remoteDeck);
+    expect(renderHook(() => useDeck("local")).result.current).toBe(localDeck);
     expect(renderHook(() => useDeck("missing")).result.current).toBeUndefined();
   });
 

@@ -17,6 +17,13 @@ describe("Deck mutations", () => {
     const deck = createDeckFixture({ id: "missing" });
 
     await expect(editDeck("uid", { id: deck.id, name: "Renamed" })).rejects.toThrow('Deck "missing" was not found');
-    await expect(deleteDeck("uid", deck)).rejects.toThrow('Deck "missing" was not found');
+    await expect(deleteDeck("uid", deck.id)).rejects.toThrow('Deck "missing" was not found');
+  });
+
+  it("rejects remote deletion when the authenticated user does not own the Deck", async () => {
+    const deck = createDeckFixture({ id: "remote", uid: "owner" });
+    deckStore.setState({ remoteDecks: [deck] });
+
+    await expect(deleteDeck("other-user", deck.id)).rejects.toThrow("owner does not match");
   });
 });
