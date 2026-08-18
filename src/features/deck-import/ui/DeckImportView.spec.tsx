@@ -8,19 +8,21 @@ import type { DeckImportResult } from "../model/useDeckImportExecution";
 
 import { DeckImportView } from "./DeckImportView";
 
+const previewRow = {
+  rowNumber: 1,
+  card: { frontText: "front", backText: "back", tags: ["tag"], uniqueKey: "key-1" },
+};
+
 const preview = {
   deckName: "deck.csv",
+  destinationLabel: "deck.csv",
   analysis: {
-    rows: [
-      {
-        rowNumber: 1,
-        card: { frontText: "front", backText: "back", tags: ["tag"], uniqueKey: "key-1" },
-      },
-    ],
+    rows: [previewRow],
     skippedRows: [2],
     issues: [],
     invalidCount: 0,
   },
+  plan: undefined,
 } satisfies DeckImportPreview;
 
 describe("DeckImportView", () => {
@@ -78,6 +80,36 @@ describe("DeckImportView", () => {
     expect(screen.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
   });
 
+  it("requires an explicit existing Deck selection from plain destination options", async () => {
+    const onDestinationTypeChange = vi.fn();
+    const onDestinationDeckChange = vi.fn();
+    const view = render(
+      <DeckImportView
+        sampleText="front,back,,key"
+        destinationType="new"
+        destinationOptions={[{ id: "deck-id", label: "Existing Deck" }]}
+        onDestinationTypeChange={onDestinationTypeChange}
+        onDestinationDeckChange={onDestinationDeckChange}
+      />
+    );
+
+    await userEvent.click(screen.getByRole("radio", { name: /Import into existing deck/ }));
+    expect(onDestinationTypeChange).toHaveBeenCalledExactlyOnceWith("existing");
+
+    view.rerender(
+      <DeckImportView
+        sampleText="front,back,,key"
+        destinationType="existing"
+        destinationOptions={[{ id: "deck-id", label: "Existing Deck" }]}
+        onDestinationTypeChange={onDestinationTypeChange}
+        onDestinationDeckChange={onDestinationDeckChange}
+      />
+    );
+    expect(screen.getByLabelText("Upload a csv file")).toBeDisabled();
+    await userEvent.selectOptions(screen.getByLabelText("Destination deck"), "deck-id");
+    expect(onDestinationDeckChange).toHaveBeenCalledExactlyOnceWith("deck-id");
+  });
+
   it("documents uniqueKey and exposes sample add, download, and code controls", async () => {
     const onAddSample = vi.fn();
     const onDownloadSample = vi.fn();
@@ -110,7 +142,7 @@ describe("DeckImportView", () => {
     const onImport = vi.fn();
     render(<DeckImportView sampleText="front,back,,key" preview={preview} onImport={onImport} />);
 
-    expect(screen.getAllByText("deck.csv")).toHaveLength(2);
+    expect(screen.getAllByText("deck.csv")).toHaveLength(3);
     expect(screen.getByText("1 valid")).toBeVisible();
     expect(screen.getByText("1 skipped")).toBeVisible();
     expect(screen.getByText("0 invalid")).toBeVisible();
@@ -123,6 +155,28 @@ describe("DeckImportView", () => {
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
     expect(onImport).toHaveBeenCalledOnce();
+  });
+
+  it("shows create, update, and unchanged actions only for an existing destination", () => {
+    const existingPreview = {
+      ...preview,
+      destinationLabel: "Existing Deck",
+      plan: {
+        rows: [{ ...previewRow, action: "update" }],
+        created: 0,
+        updated: 1,
+        unchanged: 0,
+      },
+    } satisfies DeckImportPreview;
+
+    render(<DeckImportView sampleText="front,back,,key" preview={existingPreview} />);
+
+    expect(screen.getByText("Existing Deck")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Planned changes" })).toBeVisible();
+    expect(screen.getByText("0 create")).toBeVisible();
+    expect(screen.getByText("1 update")).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Action" })).toBeVisible();
+    expect(screen.getByRole("cell", { name: "update" })).toBeVisible();
   });
 
   it("shows invalid row context and requires a corrected file", () => {

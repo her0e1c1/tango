@@ -3,13 +3,20 @@ import { AiOutlineCloudDownload } from "react-icons/ai";
 
 import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
-import { Upload } from "@/shared/ui/forms";
+import { Select, Upload } from "@/shared/ui/forms";
 import type { DeckImportPreview } from "../model/useDeckImport";
-import type { DeckImportResult, DeckImportStorageMode } from "../model/useDeckImportExecution";
+import type { DeckImportDestinationType } from "../model/useDeckImportPreview";
+import type {
+  DeckImportDestinationOption,
+  DeckImportResult,
+  DeckImportStorageMode,
+} from "../model/useDeckImportExecution";
 
 interface DeckImportViewProps {
   onChange?: (file: File) => void;
   onStorageModeChange?: (storageMode: DeckImportStorageMode) => void;
+  onDestinationTypeChange?: (destinationType: DeckImportDestinationType) => void;
+  onDestinationDeckChange?: (deckId: string) => void;
   onAddSample?: () => void;
   onDownloadSample?: () => void;
   onImport?: () => void;
@@ -23,6 +30,9 @@ interface DeckImportViewProps {
   error?: unknown;
   previewError?: unknown;
   storageMode?: DeckImportStorageMode;
+  destinationType?: DeckImportDestinationType;
+  destinationDeckId?: string | undefined;
+  destinationOptions?: DeckImportDestinationOption[];
 }
 
 const resultCounts = (result: DeckImportResult) => (
@@ -93,6 +103,7 @@ const ImportPreview = (props: ImportPreviewProps) => {
   const canImport = preview.analysis.rows.length > 0 && preview.analysis.invalidCount === 0 && !busy;
   const visibleRows = preview.analysis.rows.slice(0, 10);
   const hiddenRowCount = preview.analysis.rows.length - visibleRows.length;
+  const actionByRowNumber = new Map(preview.plan?.rows.map((row) => [row.rowNumber, row.action]) ?? []);
 
   return (
     <section aria-labelledby="import-preview-heading" className="space-y-4">
@@ -100,18 +111,37 @@ const ImportPreview = (props: ImportPreviewProps) => {
         <h2 id="import-preview-heading" className="text-title font-bold text-ink">
           Review import
         </h2>
-        <p className="mt-1 break-words text-caption text-ink-muted">
-          Deck: <strong className="text-ink">{preview.deckName}</strong>
-        </p>
+        <dl className="mt-1 space-y-1 break-words text-caption text-ink-muted">
+          <div>
+            <dt className="inline">CSV: </dt>
+            <dd className="inline font-semibold text-ink">{preview.deckName}</dd>
+          </div>
+          <div>
+            <dt className="inline">Destination: </dt>
+            <dd className="inline font-semibold text-ink">{preview.destinationLabel}</dd>
+          </div>
+        </dl>
       </div>
 
-      <div className="rounded-surface border border-border bg-surface-muted p-3">
-        <h3 className="font-semibold text-ink">Validation</h3>
-        <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption text-ink-muted">
-          <li>{preview.analysis.rows.length} valid</li>
-          <li>{preview.analysis.skippedRows.length} skipped</li>
-          <li>{preview.analysis.invalidCount} invalid</li>
-        </ul>
+      <div className={preview.plan == null ? undefined : "grid gap-3 sm:grid-cols-2"}>
+        <div className="rounded-surface border border-border bg-surface-muted p-3">
+          <h3 className="font-semibold text-ink">Validation</h3>
+          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption text-ink-muted">
+            <li>{preview.analysis.rows.length} valid</li>
+            <li>{preview.analysis.skippedRows.length} skipped</li>
+            <li>{preview.analysis.invalidCount} invalid</li>
+          </ul>
+        </div>
+        {preview.plan == null ? null : (
+          <div className="rounded-surface border border-border bg-surface-muted p-3">
+            <h3 className="font-semibold text-ink">Planned changes</h3>
+            <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption text-ink-muted">
+              <li>{preview.plan.created} create</li>
+              <li>{preview.plan.updated} update</li>
+              <li>{preview.plan.unchanged} unchanged</li>
+            </ul>
+          </div>
+        )}
       </div>
 
       {preview.analysis.issues.length > 0 ? (
@@ -139,6 +169,7 @@ const ImportPreview = (props: ImportPreviewProps) => {
             <thead className="bg-surface-muted">
               <tr>
                 <th className="px-3 py-2">Row</th>
+                {preview.plan == null ? null : <th className="px-3 py-2">Action</th>}
                 <th className="px-3 py-2">Front</th>
                 <th className="px-3 py-2">Back</th>
                 <th className="px-3 py-2">Tags</th>
@@ -149,6 +180,9 @@ const ImportPreview = (props: ImportPreviewProps) => {
               {visibleRows.map((row) => (
                 <tr key={row.rowNumber} className="border-t border-border">
                   <td className="px-3 py-2">{row.rowNumber}</td>
+                  {preview.plan == null ? null : (
+                    <td className="px-3 py-2 capitalize">{actionByRowNumber.get(row.rowNumber)}</td>
+                  )}
                   <td className="max-w-64 break-words px-3 py-2">{row.card.frontText}</td>
                   <td className="max-w-64 break-words px-3 py-2">{row.card.backText}</td>
                   <td className="px-3 py-2">{row.card.tags.join(", ")}</td>
@@ -180,9 +214,78 @@ const ImportPreview = (props: ImportPreviewProps) => {
   );
 };
 
+interface ImportDestinationProps {
+  busy: boolean;
+  destinationType: DeckImportDestinationType;
+  destinationDeckId: string | undefined;
+  destinationOptions: DeckImportDestinationOption[];
+  onDestinationTypeChange: DeckImportViewProps["onDestinationTypeChange"];
+  onDestinationDeckChange: DeckImportViewProps["onDestinationDeckChange"];
+}
+
+const ImportDestination = (props: ImportDestinationProps) => (
+  <fieldset className="space-y-2" disabled={props.busy}>
+    <legend className="mb-2 font-semibold text-ink">Import destination</legend>
+    <label className="flex cursor-pointer items-start gap-2 text-body text-ink">
+      <input
+        type="radio"
+        name="deck-import-destination-type"
+        value="new"
+        checked={props.destinationType === "new"}
+        onChange={() => props.onDestinationTypeChange?.("new")}
+      />
+      <span>
+        <span className="block font-semibold">Create new deck</span>
+        <span className="block text-caption text-ink-muted">Always create a new Deck for this CSV.</span>
+      </span>
+    </label>
+    <label className="flex cursor-pointer items-start gap-2 text-body text-ink">
+      <input
+        type="radio"
+        name="deck-import-destination-type"
+        value="existing"
+        checked={props.destinationType === "existing"}
+        onChange={() => props.onDestinationTypeChange?.("existing")}
+      />
+      <span>
+        <span className="block font-semibold">Import into existing deck</span>
+        <span className="block text-caption text-ink-muted">Match Cards by uniqueKey in a Deck you choose.</span>
+      </span>
+    </label>
+    {props.destinationType === "existing" ? (
+      <div className="space-y-1 pl-6">
+        <label htmlFor="deck-import-destination" className="block text-caption font-semibold text-ink">
+          Destination deck
+        </label>
+        <Select
+          id="deck-import-destination"
+          empty
+          value={props.destinationDeckId ?? ""}
+          options={props.destinationOptions.map((option) => ({ label: option.label, value: option.id }))}
+          onChange={(event) => props.onDestinationDeckChange?.(event.currentTarget.value)}
+        />
+        {props.destinationOptions.length === 0 ? (
+          <p className="text-caption text-ink-muted">No Decks use the selected storage mode.</p>
+        ) : props.destinationDeckId == null ? (
+          <p className="text-caption text-ink-muted">Choose a destination Deck before selecting a CSV file.</p>
+        ) : null}
+      </div>
+    ) : null}
+  </fieldset>
+);
+
+const hasSelectedDestination = (
+  destinationType: DeckImportDestinationType,
+  destinationDeckId: string | undefined,
+  destinationOptions: DeckImportDestinationOption[]
+) => destinationType === "new" || destinationOptions.some((option) => option.id === destinationDeckId);
+
 export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
   const busy = Boolean(props.pending || props.validating);
   const storageMode = props.storageMode ?? "remote";
+  const destinationType = props.destinationType ?? "new";
+  const destinationOptions = props.destinationOptions ?? [];
+  const destinationReady = hasSelectedDestination(destinationType, props.destinationDeckId, destinationOptions);
 
   return (
     <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
@@ -230,8 +333,16 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
               </span>
             </label>
           </fieldset>
+          <ImportDestination
+            busy={busy}
+            destinationType={destinationType}
+            destinationDeckId={props.destinationDeckId}
+            destinationOptions={destinationOptions}
+            onDestinationTypeChange={props.onDestinationTypeChange}
+            onDestinationDeckChange={props.onDestinationDeckChange}
+          />
           <Upload
-            disabled={busy}
+            disabled={busy || !destinationReady}
             {...(props.preview !== undefined ? { fileName: props.preview.deckName } : {})}
             {...(props.onChange !== undefined ? { onChange: props.onChange } : {})}
           />
@@ -249,7 +360,8 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
               Four columns without a header: front text, back text, tags (optional), and uniqueKey.
             </Description>
             <Description>
-              uniqueKey is required and must be unique within the CSV file. Each import creates a new Deck.
+              uniqueKey is required and must be unique within the CSV file. Existing Deck imports use it to create,
+              update, or leave each Card unchanged.
             </Description>
           </div>
         </section>

@@ -8,6 +8,7 @@ import { DeckImportView as Template } from "./DeckImportView";
 
 const preview = {
   deckName: "spanish-basics.csv",
+  destinationLabel: "spanish-basics.csv",
   analysis: {
     rows: [
       {
@@ -23,6 +24,7 @@ const preview = {
     issues: [],
     invalidCount: 0,
   },
+  plan: undefined,
 } satisfies DeckImportPreview;
 
 const meta = {
@@ -48,6 +50,24 @@ export const Default: Story = {};
 
 export const Preview: Story = {
   args: { preview },
+};
+
+export const ExistingDestination: Story = {
+  args: {
+    destinationType: "existing",
+    destinationDeckId: "spanish-basics",
+    destinationOptions: [{ id: "spanish-basics", label: "Spanish basics" }],
+    preview: {
+      ...preview,
+      destinationLabel: "Spanish basics",
+      plan: {
+        rows: preview.analysis.rows.map((row, index) => ({ ...row, action: index === 0 ? "update" : "create" })),
+        created: 1,
+        updated: 1,
+        unchanged: 0,
+      },
+    },
+  },
 };
 
 export const Invalid: Story = {

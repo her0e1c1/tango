@@ -1,4 +1,12 @@
-import type { DeckCreate, DeckCreateInput, DeckEdit, DeckId, DeleteDeckInput, EditDeckInput } from "../model/types";
+import type {
+  Deck,
+  DeckCreate,
+  DeckCreateInput,
+  DeckEdit,
+  DeckId,
+  DeleteDeckInput,
+  EditDeckInput,
+} from "../model/types";
 
 import {
   collection,
@@ -6,6 +14,7 @@ import {
   deleteField,
   doc,
   getDocs,
+  getDocsFromServer,
   onSnapshot,
   query,
   setDoc,
@@ -47,6 +56,15 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     },
     onError
   );
+
+/** Fetches active remote Decks so import validation does not depend on listener timing. */
+export const fetchDecks = async (uid: string): Promise<Deck[]> => {
+  const snapshot = await getDocsFromServer(query(collection(db, DECK_COLLECTION), where("uid", "==", uid)));
+  return snapshot.docs.flatMap((document) => {
+    const deck = readActiveRemoteDeck(document.id, document.data());
+    return deck === undefined ? [] : [deck];
+  });
+};
 
 // Writes a new Deck document with synchronized creation and update timestamps.
 const createDeckDocument = async (deck: DeckCreate): Promise<void> => {

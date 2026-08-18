@@ -18,8 +18,8 @@ export const useDeckImport = () => {
   const cards = useCards();
   const decks = useDecks();
   const preferences = usePreferences();
-  const execution = useDeckImportExecution(uid);
-  const preview = useDeckImportPreview({ uid });
+  const execution = useDeckImportExecution(uid, decks);
+  const preview = useDeckImportPreview({ uid, decks, cards });
   const [status, setStatus] = useState<DeckImportStatus>("idle");
 
   const selectFile = async (file: File) => {
@@ -36,6 +36,14 @@ export const useDeckImport = () => {
     if (preview.setStorageMode(storageMode)) execution.clear();
   };
 
+  const setDestinationType = (destinationType: typeof preview.destinationType) => {
+    if (preview.setDestinationType(destinationType)) execution.clear();
+  };
+
+  const setDestinationDeckId = (destinationDeckId: string) => {
+    if (preview.setDestinationDeckId(destinationDeckId)) execution.clear();
+  };
+
   const runImport = async (prepare: () => PreparedDeckImport) => {
     const preparedImport = prepare();
     preview.clearError();
@@ -47,12 +55,24 @@ export const useDeckImport = () => {
     }
   };
 
+  const importPreview = async () => {
+    const result = await runImport(preview.getPreparedImport);
+    // Keep the same prepared IDs after a failure so retrying cannot leave an additional partial Deck.
+    preview.completePreparedImport();
+    return result;
+  };
+
   return {
     selectFile,
     setStorageMode,
-    importPreview: () => runImport(preview.takePreparedImport),
+    setDestinationType,
+    setDestinationDeckId,
+    importPreview,
     addSample: () => runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId })),
     storageMode: preview.storageMode,
+    destinationType: preview.destinationType,
+    destinationDeckId: preview.destinationDeckId,
+    destinationOptions: preview.destinationOptions,
     preview: preview.preview,
     validating: status === "validating",
     pending: status === "importing",

@@ -47,6 +47,7 @@ export const useAddSampleDeck = () => {
         return createDeck(uid, deck);
       },
       mutateCards: (mutations) => mutateCards(uid, mutations),
+      loadDeck: (id) => Promise.resolve(decks.find((deck) => deck.id === id)),
     }).catch(() => undefined);
   }, [cards, decks, uid]);
 };

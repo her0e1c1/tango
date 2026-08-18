@@ -102,6 +102,32 @@ describe("useDeckImport", () => {
     ]);
   });
 
+  it("updates Cards only after the user explicitly selects an existing Deck", async () => {
+    const name = "behavior-existing.csv";
+    const { result } = renderDeckImport();
+    act(() => result.current.deckImport.setStorageMode("local"));
+    await actAsync(async () => result.current.deckImport.selectFile(csvFile(name, "old back")));
+    await actAsync(async () => result.current.deckImport.importPreview());
+    const existingDeck = findDeck(result.current.decks, name);
+    const existingCard = result.current.cards.find((card) => card.deckId === existingDeck?.id);
+
+    act(() => result.current.deckImport.setDestinationType("existing"));
+    expect(result.current.deckImport.destinationOptions).toContainEqual({ id: existingDeck?.id, label: name });
+    act(() => result.current.deckImport.setDestinationDeckId(existingDeck?.id ?? ""));
+    await actAsync(async () => result.current.deckImport.selectFile(csvFile("renamed-source.csv", "new back")));
+
+    expect(result.current.deckImport.preview).toMatchObject({
+      destinationLabel: name,
+      plan: { created: 0, updated: 1, unchanged: 0 },
+    });
+    await actAsync(async () => result.current.deckImport.importPreview());
+
+    expect(result.current.decks.filter((deck) => deck.name === name)).toHaveLength(1);
+    expect(result.current.cards.filter((card) => card.deckId === existingDeck?.id)).toEqual([
+      expect.objectContaining({ id: existingCard?.id, backText: "new back" }),
+    ]);
+  });
+
   it("keeps an invalid CSV in preview without creating a Deck", async () => {
     const name = "behavior-invalid.csv";
     const { result } = renderDeckImport();
@@ -134,7 +160,7 @@ describe("useDeckImport", () => {
     await expect(result.current.deckImport.importPreview()).rejects.toThrow("Select a CSV file");
   });
 
-  it("requires a fresh preview after a failed save and then completes the retry", async () => {
+  it("retries a failed new import with the same Deck instead of leaving an orphan", async () => {
     const name = "behavior-retry.csv";
     const file = csvFile(name);
     const { result } = renderDeckImport();
@@ -150,16 +176,10 @@ describe("useDeckImport", () => {
     expect(savedDeck).toBeDefined();
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toEqual([]);
     expect(result.current.deckImport.error).toEqual(new Error("card mutation failed"));
-    await expect(result.current.deckImport.importPreview()).rejects.toThrow("prepared Deck import is not available");
-
-    await actAsync(async () => result.current.deckImport.selectFile(file));
-    expect(result.current.deckImport.error).toBeNull();
     await actAsync(async () => result.current.deckImport.importPreview());
 
     expect(result.current.deckImport.result).toMatchObject({ created: 1, updated: 0, skipped: 0 });
-    expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toEqual([]);
-    const retryDeck = result.current.decks.find((deck) => deck.name === name && deck.id !== savedDeck?.id);
-    expect(retryDeck).toBeDefined();
-    expect(result.current.cards.filter((card) => card.deckId === retryDeck?.id)).toHaveLength(1);
+    expect(result.current.decks.filter((deck) => deck.name === name)).toHaveLength(1);
+    expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toHaveLength(1);
   });
 });

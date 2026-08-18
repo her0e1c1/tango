@@ -1,4 +1,4 @@
-export { subscribeDecks } from "./api/firestore";
+export { fetchDecks, subscribeDecks } from "./api/firestore";
 export { generateDeckId } from "./api/id";
 export { createDeck, deleteDeck, editDeck } from "./api/mutations";
 export {

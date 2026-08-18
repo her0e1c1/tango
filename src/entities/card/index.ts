@@ -1,4 +1,4 @@
-export { subscribeCards } from "./api/firestore";
+export { fetchCards, subscribeCards } from "./api/firestore";
 /** @public Separated read operations for the cross-Entity Card document boundary. */
 export { fetchCardReads, subscribeCardReads } from "./api/firestore";
 /** @public Separated read contract for the cross-Entity Card document boundary. */
