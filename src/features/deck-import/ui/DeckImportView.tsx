@@ -24,7 +24,6 @@ interface DeckImportViewProps {
   previewError?: unknown;
   storageMode?: DeckImportStorageMode;
   fileName?: string;
-  fileReselectionRequired?: boolean;
 }
 
 const resultCounts = (result: DeckImportResult) => (
@@ -220,7 +219,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
           result={props.result}
           error={props.error}
           onBack={props.onBack}
-          fileReselectionRequired={props.fileReselectionRequired}
+          fileReselectionRequired={props.error != null && fileName !== undefined && props.preview === undefined}
         />
         <PreviewError error={props.previewError} />
         <section className="space-y-4">

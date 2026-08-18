@@ -106,16 +106,16 @@ export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreview
 
   const takePreparedImport = () => {
     const { preview } = state;
-    const preconditionError =
-      preview == null
-        ? new Error("Select a CSV file before importing")
-        : preview.analysis.invalidCount > 0
-          ? new Error("Fix invalid CSV rows before importing")
-          : preview.analysis.rows.length === 0
-            ? new Error("The CSV file has no valid rows")
-            : undefined;
-    if (preconditionError !== undefined) {
-      updateState({ error: preconditionError });
+    if (preview == null) {
+      updateState({ error: new Error("Select a CSV file before importing") });
+      return;
+    }
+    if (preview.analysis.invalidCount > 0) {
+      updateState({ error: new Error("Fix invalid CSV rows before importing") });
+      return;
+    }
+    if (preview.analysis.rows.length === 0) {
+      updateState({ error: new Error("The CSV file has no valid rows") });
       return;
     }
 
@@ -125,7 +125,9 @@ export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreview
     }
 
     const { preparedImport } = preparedImportRef.current;
+    // Execution may persist only part of the plan, so every retry must prepare again from current destination data.
     preparedImportRef.current.preparedImport = undefined;
+    updateState({ preview: undefined });
     return preparedImport;
   };
 
@@ -133,10 +135,6 @@ export const useDeckImportPreview = ({ uid, decks, cards }: UseDeckImportPreview
     selectFile,
     setStorageMode,
     takePreparedImport,
-    invalidate: () => {
-      preparedImportRef.current.preparedImport = undefined;
-      updateState({ preview: undefined });
-    },
     clearError: () => updateState({ error: null }),
     storageMode: state.storageMode,
     fileName: state.fileName,

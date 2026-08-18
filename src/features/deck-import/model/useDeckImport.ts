@@ -21,11 +21,9 @@ export const useDeckImport = () => {
   const execution = useDeckImportExecution(uid);
   const preview = useDeckImportPreview({ uid, cards, decks });
   const [status, setStatus] = useState<DeckImportStatus>("idle");
-  const [fileReselectionRequired, setFileReselectionRequired] = useState(false);
 
   const selectFile = async (file: File) => {
     execution.clear();
-    setFileReselectionRequired(false);
     setStatus("validating");
     try {
       return await preview.selectFile(file);
@@ -35,29 +33,23 @@ export const useDeckImport = () => {
   };
 
   const setStorageMode = (storageMode: DeckImportStorageMode) => {
-    if (preview.setStorageMode(storageMode)) {
-      execution.clear();
-      setFileReselectionRequired(false);
-    }
+    if (preview.setStorageMode(storageMode)) execution.clear();
   };
 
-  const runImport = async (prepare: () => PreparedDeckImport | undefined, onExecutionFailure?: () => void) => {
+  const runImport = async (prepare: () => PreparedDeckImport | undefined) => {
     const preparedImport = prepare();
     if (preparedImport === undefined) return;
 
     preview.clearError();
     setStatus("importing");
     try {
-      const importResult = await execution.run(preparedImport);
-      if (importResult === undefined) onExecutionFailure?.();
-      return importResult;
+      return await execution.run(preparedImport);
     } finally {
       setStatus("idle");
     }
   };
 
   const addSample = () => {
-    setFileReselectionRequired(false);
     if (uid === "") {
       execution.fail(new Error("A confirmed user is required for remote imports"));
       return Promise.resolve();
@@ -65,24 +57,16 @@ export const useDeckImport = () => {
     return runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId }));
   };
 
-  const importPreview = () =>
-    runImport(preview.takePreparedImport, () => {
-      // Persistence can fail after creating the Deck, so retry must rebuild a plan from current destination data.
-      preview.invalidate();
-      setFileReselectionRequired(true);
-    });
-
   return {
     selectFile,
     setStorageMode,
-    importPreview,
+    importPreview: () => runImport(preview.takePreparedImport),
     addSample,
     storageMode: preview.storageMode,
     fileName: preview.fileName,
     preview: preview.preview,
     validating: status === "validating",
     pending: status === "importing",
-    fileReselectionRequired,
     error: execution.error,
     previewError: preview.error,
     result: execution.result,
