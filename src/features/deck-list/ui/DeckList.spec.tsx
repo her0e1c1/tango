@@ -140,7 +140,7 @@ describe("DeckList", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    await waitFor(() => expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith("user-id", recentDeck));
+    await waitFor(() => expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith("user-id", recentDeck.id));
     expect(screen.getByRole("status")).toHaveTextContent("Deleted deck “Recent deck”.");
   });
 

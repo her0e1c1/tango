@@ -79,8 +79,8 @@ const createDestination = (name: string, uid: string, storageMode: DeckImportSto
   return storageMode === "local" ? { id, name, localMode: true } : { id, uid, name };
 };
 
-const reuseDestination = (deck: Deck, uid: string): DeckImportCreateInput =>
-  deck.localMode ? { id: deck.id, name: deck.name, localMode: true } : { id: deck.id, uid, name: deck.name };
+const reuseDestination = (deck: Deck): DeckImportCreateInput =>
+  deck.localMode ? { id: deck.id, name: deck.name, localMode: true } : { id: deck.id, uid: deck.uid, name: deck.name };
 
 const actionFor = (existing: Card | undefined, row: DeckImportRow): DeckImportAction => {
   if (existing == null) return "create";
@@ -153,7 +153,7 @@ export const prepareDeckImport = (
     if (selectedDeck.localMode !== (storageMode === "local")) {
       throw new Error("The selected Deck no longer uses the chosen storage mode");
     }
-    destination = reuseDestination(selectedDeck, uid);
+    destination = reuseDestination(selectedDeck);
     existing = cards.filter((card) => card.deckId === destination.id && usesStorageMode(card, storageMode));
   }
   return {
@@ -180,9 +180,7 @@ export const prepareSampleDeckImport = (
   if (uid === "") throw new Error("A confirmed user is required for the sample Deck");
 
   const existingDeck = decks.find((candidate) => candidate.id === source.id && !candidate.localMode);
-  // View models intentionally omit ownership metadata, so remote commands recover it from the active session.
-  const destination =
-    existingDeck == null ? { id: source.id, uid, name: source.name } : reuseDestination(existingDeck, uid);
+  const destination = existingDeck == null ? { id: source.id, uid, name: source.name } : reuseDestination(existingDeck);
   const existing = cards.filter((card) => card.deckId === destination.id && usesStorageMode(card, "remote"));
 
   return {

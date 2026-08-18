@@ -1,12 +1,5 @@
-import type {
-  Deck,
-  DeckCreate,
-  DeckCreateInput,
-  DeckEdit,
-  DeckId,
-  DeleteDeckInput,
-  EditDeckInput,
-} from "../model/types";
+import type { z } from "zod";
+import type { Deck, DeckCreateInput, DeckId } from "../model/types";
 
 import {
   collection,
@@ -25,10 +18,15 @@ import {
 import { db } from "@/shared/firebase";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
-import { toDeckDocument, toRemoteDeckStore } from "../model/dto";
-import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
+import {
+  authenticatedUidSchema,
+  createDeckSchema,
+  type deckEditSchema,
+  deckIdSchema,
+  editDeckSchema,
+} from "../model/schema";
 import { replaceRemoteDecks } from "../model/store";
-import { parseDeckDocument } from "./document";
+import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
 const CARD_COLLECTION = "card";
@@ -36,7 +34,7 @@ const CARD_COLLECTION = "card";
 // Parses an active remote Deck while omitting tombstoned documents.
 const readActiveRemoteDeck = (id: DeckId, value: unknown) => {
   const document = parseDeckDocument(id, value);
-  return document.deletedAt === null ? toRemoteDeckStore(id, document) : undefined;
+  return document.deletedAt === null ? toDeck(id, document) : undefined;
 };
 
 // Subscribes the remote Deck store to active documents owned by one user.
@@ -67,7 +65,7 @@ export const fetchDecks = async (uid: string): Promise<Deck[]> => {
 };
 
 // Writes a new Deck document with synchronized creation and update timestamps.
-const createDeckDocument = async (deck: DeckCreate): Promise<void> => {
+const createDeckDocument = async (deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {
   const createdAt = getCurrentTimeMillis();
   const document = toDeckDocument(deck, createdAt);
   await setDoc(doc(db, DECK_COLLECTION, deck.id), document);
@@ -80,7 +78,7 @@ export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<vo
 };
 
 // Writes editable Deck fields and advances the update timestamp.
-const updateDeckDocument = async (deck: DeckEdit): Promise<void> => {
+const updateDeckDocument = async (deck: z.infer<typeof deckEditSchema>): Promise<void> => {
   const document = omitUndefined({
     name: deck.name,
     url: deck.url === null ? deleteField() : deck.url,
@@ -97,7 +95,7 @@ const updateDeckDocument = async (deck: DeckEdit): Promise<void> => {
 };
 
 // Validates an authenticated Deck edit before updating Firestore.
-export const editDeck = async (uid: string, deck: EditDeckInput["deck"]): Promise<void> => {
+export const editDeck = async (uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> => {
   const input = editDeckSchema.parse({ uid, deck });
   await updateDeckDocument(input.deck);
 };
@@ -113,7 +111,8 @@ const deleteDeckDocuments = async (uid: string, deckId: string): Promise<void> =
 };
 
 // Validates Deck ownership before deleting its remote document graph.
-export const deleteDeck = async (uid: string, deck: DeleteDeckInput["deck"]): Promise<void> => {
-  const input = deleteDeckSchema.parse({ uid, deck });
-  await deleteDeckDocuments(input.uid, input.deck.id);
+export const deleteDeck = async (uid: string, deckId: DeckId): Promise<void> => {
+  const userId = authenticatedUidSchema.parse(uid);
+  const id = deckIdSchema.parse(deckId);
+  await deleteDeckDocuments(userId, id);
 };

@@ -4,7 +4,6 @@
  */
 
 import type { Deck, DeckCreateInput } from "@/entities/deck";
-import type { RemoteDeck } from "@/entities/deck/model/types";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
@@ -17,7 +16,10 @@ import { createCard, createDeck as createDeckFixture } from "@/test/factories";
 
 const uuid = Uuid.v4;
 
-const toFirestoreDeck = ({ localMode: _localMode, ...deck }: RemoteDeck) => ({ ...deck, deletedAt: null });
+const toFirestoreDeck = ({ localMode: _localMode, ...deck }: Extract<Deck, { localMode: false }>) => ({
+  ...deck,
+  deletedAt: null,
+});
 
 vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn() }));
 vi.mock("@/shared/firebase", async () => ({
@@ -93,7 +95,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await createDeck("uid", d);
     await Promise.all(cards.map((card) => createCardCommand("uid", card)));
 
-    await deleteDeck("uid", d);
+    await deleteDeck("uid", d.id);
 
     await expect(getDoc(doc(db, "deck", d.id))).rejects.toMatchObject({ code: "permission-denied" });
     await Promise.all(
