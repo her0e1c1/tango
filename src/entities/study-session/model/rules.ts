@@ -2,6 +2,7 @@ import type { SwipeAction } from "@/entities/preferences/@x/study-session";
 import { recordStudyProgress, type StudyProgress } from "@/entities/study-progress/@x/study-session";
 
 import type {
+  ResolvedStudySession,
   StudySession,
   StudySessionMovement,
   StudySessions,
@@ -68,6 +69,28 @@ const findCurrentStudyProgress = (
 ): StudyProgress | undefined => {
   const cardId = getCurrentStudySessionCardId(session);
   return cardId == null ? undefined : progresses.find((progress) => progress.cardId === cardId);
+};
+
+// Resolves whether an active session can study now, is waiting for data, or is invalid.
+export const resolveStudySession = <
+  Card extends { id: StudySession["cardOrderIds"][number] },
+  Progress extends { cardId: StudySession["cardOrderIds"][number] },
+>(
+  session: StudySession | undefined,
+  cards: readonly Card[],
+  progresses: readonly Progress[]
+): ResolvedStudySession<Card, Progress> => {
+  if (session == null) return { status: "invalid" };
+
+  const cardId = getCurrentStudySessionCardId(session);
+  if (cardId == null) return { status: "invalid" };
+
+  const card = cards.find(({ id }) => id === cardId);
+  const progress = progresses.find((candidate) => candidate.cardId === cardId);
+  if (card != null && progress != null) return { status: "studying", session, card, progress };
+
+  // Either empty collection can still be an in-flight read; loaded data proves the session entry is absent.
+  return { status: cards.length === 0 || progresses.length === 0 ? "preparing" : "invalid" };
 };
 
 // Collapses control actions into the movement, exit, or no-op effects understood by a study session.

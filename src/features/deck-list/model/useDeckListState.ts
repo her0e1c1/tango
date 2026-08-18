@@ -66,7 +66,7 @@ export const useDeckListState = () => {
     const { deck } = deletionTarget;
     setDeletionErrorDeckId(undefined);
     try {
-      await deleteDeck(uid, deck);
+      await deleteDeck(uid, deck.id);
       setDeletionTarget(undefined);
       setSuccessMessage(`Deleted deck “${deck.name}”.`);
     } catch {

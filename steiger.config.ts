@@ -30,6 +30,8 @@ export default defineConfig([
       "./src/features/card-list/**",
       "./src/features/deck-edit/**",
       "./src/features/preferences-edit/**",
+      "./src/features/sign-in/**",
+      "./src/features/sign-out/**",
       "./src/features/study/**",
       "./src/features/study-session-start/**",
     ],

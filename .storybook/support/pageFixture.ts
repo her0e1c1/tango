@@ -1,8 +1,7 @@
 /** @file Defines deterministic application data shared by route-level Storybook stories. */
 
 import type { CardId, RemoteCard } from "@/entities/card";
-import type { DeckId } from "@/entities/deck";
-import type { RemoteDeck } from "@/entities/deck/model/types";
+import type { Deck, DeckId } from "@/entities/deck";
 
 import { createCard, createDeck, createPreferences, createStudyProgress } from "@/test/factories";
 import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";
@@ -14,7 +13,7 @@ export const PAGE_STORY_CARD_ID: CardId = "storybook-hello";
 
 const timestamp = Date.UTC(2026, 6, 1, 9, 0, 0);
 
-const pageStoryDecks: RemoteDeck[] = [
+const pageStoryDecks: Extract<Deck, { localMode: false }>[] = [
   createDeck({
     id: PAGE_STORY_DECK_ID,
     uid: PAGE_STORY_UID,

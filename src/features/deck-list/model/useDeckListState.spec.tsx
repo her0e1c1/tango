@@ -51,7 +51,7 @@ describe("useDeckListState", () => {
 
   afterEach(async () => {
     clearStudySessions();
-    await Promise.all(decks.map((deck) => deleteDeck("", deck)));
+    await Promise.all(decks.map((deck) => deleteDeck("", deck.id)));
     vi.useRealTimers();
   });
 

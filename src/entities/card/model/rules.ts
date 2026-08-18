@@ -1,5 +1,5 @@
 import { cardContentSchema } from "./schema";
-import type { Card, CardId, CardRaw } from "./types";
+import type { Card, CardRaw } from "./types";
 
 const cardContentFields: ReadonlySet<string> = new Set(["frontText", "backText", "tags", "uniqueKey"]);
 // Narrows an arbitrary validation path segment to a Card content field that callers can display safely.
@@ -44,12 +44,3 @@ export const hasSameEditableCardContent = (left: CardRaw, right: CardRaw): boole
 // Collects unique tags for one Deck and sorts them so filter controls receive a deterministic order.
 export const filterTagsByDeckId = (cards: Card[], deckId: string): string[] =>
   [...new Set(filterCardsByDeckId(cards, deckId).flatMap((card) => card.tags))].sort();
-
-// Returns the requested Card or throws when a caller's Card reference no longer resolves.
-export const mustFindCardById = (cards: readonly Card[], id: CardId): Card => {
-  const card = cards.find((candidate) => candidate.id === id);
-
-  if (card == null) throw new Error(`Card not found: ${id}`);
-
-  return card;
-};

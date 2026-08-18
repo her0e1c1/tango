@@ -5,10 +5,9 @@
  */
 
 import type { CardId, RemoteCard } from "@/entities/card";
-import { replaceRemoteCards } from "@/entities/card";
-import type { DeckId } from "@/entities/deck";
+import { replaceRemoteCards } from "@/entities/card/model/store";
+import type { Deck, DeckId } from "@/entities/deck";
 import { replaceRemoteDecks } from "@/entities/deck/model/store";
-import type { RemoteDeck } from "@/entities/deck/model/types";
 
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
@@ -32,7 +31,7 @@ type PartialPreferences = {
 
 export interface PageStoryParameters {
   path: string;
-  decks?: RemoteDeck[];
+  decks?: Extract<Deck, { localMode: false }>[];
   cards?: RemoteCard[];
   progresses?: StudyProgress[];
   preferences?: PartialPreferences;
@@ -40,7 +39,7 @@ export interface PageStoryParameters {
   autoPlay?: boolean;
 }
 
-const cloneDeck = (deck: RemoteDeck): RemoteDeck => ({
+const cloneDeck = (deck: Extract<Deck, { localMode: false }>): Extract<Deck, { localMode: false }> => ({
   ...deck,
   selectedTags: [...deck.selectedTags],
 });

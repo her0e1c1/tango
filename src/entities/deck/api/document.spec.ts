@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createDeck } from "@/test/factories";
-import { toDeckDocument, toRemoteDeckStore } from "../model/dto";
-import { parseDeckDocument } from "./document";
+import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 describe("Deck Firestore document mapping", () => {
   it("accepts legacy strings without applying current command validation", () => {
@@ -76,7 +75,7 @@ describe("Deck Firestore document mapping", () => {
       updatedAt: 2,
     });
 
-    expect(toRemoteDeckStore("deck", document)).toEqual({
+    expect(toDeck("deck", document)).toEqual({
       id: "deck",
       uid: "owner",
       localMode: false,

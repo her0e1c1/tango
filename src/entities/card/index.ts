@@ -17,5 +17,4 @@ export {
   getCardContentValidationErrors,
   hasSameEditableCardContent,
   indexCardsByUniqueKey,
-  mustFindCardById,
 } from "./model/rules";

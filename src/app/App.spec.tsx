@@ -15,8 +15,6 @@ vi.mock("@/app/providers/auth", () => ({
 vi.mock("@/app/providers/firestore-subscriptions", () => ({
   FirestoreSubscriptionsProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
-vi.mock("@/features/sign-in", () => ({ loginGoogle: vi.fn() }));
-vi.mock("@/features/sign-out", () => ({ signOutCurrentUser: vi.fn() }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));

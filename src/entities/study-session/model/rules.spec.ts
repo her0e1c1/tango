@@ -7,6 +7,7 @@ import {
   groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
   planStudySessionSwipe,
+  resolveStudySession,
 } from "./rules";
 import type { StudySession } from "./types";
 
@@ -68,6 +69,35 @@ describe("canMoveStudySession", () => {
     expect(canMoveStudySession(session, "next")).toBe(true);
     expect(canMoveStudySession({ ...session, currentIndex: 0 }, "previous")).toBe(false);
     expect(canMoveStudySession({ ...session, currentIndex: 2 }, "next")).toBe(false);
+  });
+});
+
+describe("resolveStudySession", () => {
+  const cards = [{ id: "card-1", frontText: "front" }];
+  const progresses = [{ cardId: "card-1", score: 0 }];
+
+  it("resolves the Card and progress at the active session position", () => {
+    const activeSession = { ...session, currentIndex: 0 };
+
+    expect(resolveStudySession(activeSession, cards, progresses)).toEqual({
+      status: "studying",
+      session: activeSession,
+      card: cards[0],
+      progress: progresses[0],
+    });
+  });
+
+  it("waits while Cards or progress have not loaded", () => {
+    const activeSession = { ...session, currentIndex: 0 };
+
+    expect(resolveStudySession(activeSession, [], progresses)).toEqual({ status: "preparing" });
+    expect(resolveStudySession(activeSession, cards, [])).toEqual({ status: "preparing" });
+  });
+
+  it("rejects a missing session, empty position, or absent loaded data", () => {
+    expect(resolveStudySession(undefined, cards, progresses)).toEqual({ status: "invalid" });
+    expect(resolveStudySession({ ...session, cardOrderIds: [] }, [], [])).toEqual({ status: "invalid" });
+    expect(resolveStudySession(session, cards, progresses)).toEqual({ status: "invalid" });
   });
 });
 

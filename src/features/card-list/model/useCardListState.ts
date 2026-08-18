@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
+import { deleteCard, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, editDeck, getCategory, isHighlightLanguage, selectStudyCards, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
 import { editStudyProgress, useStudyProgresses } from "@/entities/study-progress";
@@ -81,20 +81,21 @@ export const useCardListState = (deckId: string) => {
     setFilter((current) => ({ ...(current ?? storedFilter), [key]: value }));
     void editDeck(uid, { id: deck.id, [key]: value }).catch(() => undefined);
   };
-
-  const changeScore = (id: CardId, offset: number) => {
+  const mustFindStudyCard = (id: CardId) => {
     const item = cards.find(({ card }) => card.id === id);
     if (item === undefined) throw new Error(`Card not found: ${id}`);
+    return item;
+  };
+
+  const changeScore = (id: CardId, offset: number) => {
+    const item = mustFindStudyCard(id);
     void editStudyProgress(uid, { cardId: item.card.id, score: item.progress.score + offset })
       .then(() => setMutationError(null))
       .catch(setMutationError);
   };
 
   const requestDeletion = (id: CardId) => {
-    const card = mustFindCardById(
-      cards.map((item) => item.card),
-      id
-    );
+    const { card } = mustFindStudyCard(id);
     setSuccessMessage(undefined);
     setDeletionErrorCardId(undefined);
     setDeletionTarget(card);
@@ -145,13 +146,7 @@ export const useCardListState = (deckId: string) => {
           },
     mutationError,
     successMessage,
-    onShowCard: (id: CardId) =>
-      setShownCard(
-        mustFindCardById(
-          cards.map((item) => item.card),
-          id
-        )
-      ),
+    onShowCard: (id: CardId) => setShownCard(mustFindStudyCard(id).card),
     onCloseCard: () => setShownCard(undefined),
     onSwipedLeft: (id: CardId) => changeScore(id, -1),
     onSwipedRight: (id: CardId) => changeScore(id, 1),

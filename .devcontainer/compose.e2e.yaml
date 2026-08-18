@@ -2,9 +2,13 @@
 # local development; this override supplies the app env, remote browser, and
 # Playwright runner env needed by browser tests.
 services:
+  auth:
+    pull_policy: never
+
   app:
     env_file:
       - ../.env.e2e
+    pull_policy: never
 
   browser:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
@@ -27,6 +31,7 @@ services:
       retries: 60
 
   dev:
+    pull_policy: never
     environment:
       PLAYWRIGHT_BASE_URL: http://app.test:4173
       PW_TEST_CONNECT_WS_ENDPOINT: ws://browser:3000/

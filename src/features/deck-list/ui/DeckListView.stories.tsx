@@ -5,6 +5,7 @@
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect, fn } from "storybook/test";
 
 import type { Deck } from "@/entities/deck";
 import type { DeckListState } from "../model/useDeckListState";
@@ -65,11 +66,16 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const HoverHighlight: Story = {
-  play: async ({ canvas, userEvent }) => {
-    const [firstDeck] = canvas.getAllByRole("button", { name: /^View / });
-    if (firstDeck == null) throw new Error("HoverHighlight requires at least one deck");
-    await userEvent.hover(firstDeck);
+export const ViewDeck: Story = {
+  args: { deckCard: { onClickName: fn() } },
+  play: async ({ args, canvas, userEvent }) => {
+    const [viewButton] = canvas.getAllByRole("button", { name: /^View / });
+    const [firstDeck] = mixed.studying;
+    if (viewButton == null || firstDeck == null) throw new Error("ViewDeck requires at least one Deck");
+
+    await userEvent.click(viewButton);
+
+    await expect(args.deckCard?.onClickName).toHaveBeenCalledWith(firstDeck.deck.id);
   },
 };
 

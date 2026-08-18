@@ -114,8 +114,8 @@ describe("DeckListPage", () => {
   });
 
   it("renders an empty list after all Decks are removed", async () => {
-    await deleteDeck("", activeDeck);
-    await deleteDeck("", freshDeck);
+    await deleteDeck("", activeDeck.id);
+    await deleteDeck("", freshDeck.id);
     renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();

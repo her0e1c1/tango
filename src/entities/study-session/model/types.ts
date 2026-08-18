@@ -46,3 +46,8 @@ export type StudySessionSwipePlan =
       session: StudySession;
       progress: StudyProgressEdit;
     };
+
+/** Resolution of an active study session against the currently loaded Card and progress. */
+export type ResolvedStudySession<Card, Progress> =
+  | { status: "preparing" | "invalid" }
+  | { status: "studying"; session: StudySession; card: Card; progress: Progress };

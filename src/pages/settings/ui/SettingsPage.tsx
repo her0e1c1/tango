@@ -8,16 +8,11 @@ import { routes, useNavigation } from "@/features/navigate";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 
-interface SettingsPageProps {
-  login: () => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-export const SettingsPage: React.FC<SettingsPageProps> = ({ login, logout }) => {
+export const SettingsPage: React.FC = () => {
   const navigation = useNavigation();
 
-  const signIn = useSignIn(login);
-  const signOut = useSignOut(logout);
+  const signIn = useSignIn();
+  const signOut = useSignOut();
   const { isLoggedIn } = signOut;
   const accountOperation = isLoggedIn
     ? {

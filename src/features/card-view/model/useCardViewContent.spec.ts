@@ -27,7 +27,7 @@ describe("useCardViewContent", () => {
   });
 
   afterEach(async () => {
-    await deleteDeck("", deck);
+    await deleteDeck("", deck.id);
   });
 
   it("shows stored Card content with its Deck category and current theme", () => {

@@ -1,8 +1,8 @@
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
+import type { z } from "zod";
 
 import { omitUndefined } from "@/shared/lib/omitUndefined";
-import { toLocalDeckStore } from "./dto";
 import {
   deckEditSchema,
   deckIdSchema,
@@ -10,20 +10,12 @@ import {
   localDeckSchema,
   persistedDeckStateSchema,
 } from "./schema";
-import type {
-  DeckEdit,
-  DeckId,
-  DeckStore,
-  LocalDeck,
-  LocalDeckCreateInput,
-  PersistedDeckState,
-  RemoteDeck,
-} from "./types";
+import type { Deck, DeckId, LocalDeckCreateInput } from "./types";
 
 /** Live Deck collections separated by remote and local persistence ownership. */
 interface DeckState {
-  remoteDecks: RemoteDeck[];
-  localDecks: LocalDeck[];
+  remoteDecks: Extract<Deck, { localMode: false }>[];
+  localDecks: Extract<Deck, { localMode: true }>[];
 }
 
 /** Injectable persistence controls used to create an isolated Deck store. */
@@ -33,16 +25,16 @@ interface CreateDeckStoreOptions {
 }
 
 // Reject the stored collection as a unit so live state never mixes validated Decks with an incompatible payload.
-const parsePersistedDeckState = (value: unknown): PersistedDeckState => {
+const parsePersistedDeckState = (value: unknown): z.infer<typeof persistedDeckStateSchema> => {
   const result = persistedDeckStateSchema.safeParse(value);
-  return result.success ? { localDecks: result.data.localDecks.map(toLocalDeckStore) } : { localDecks: [] };
+  return result.success ? result.data : { localDecks: [] };
 };
 
 // Creates a Deck store whose durable state contains only validated local Decks.
 const createDeckStore = ({ storage, skipHydration }: CreateDeckStoreOptions = {}) => {
-  const persistStorage = createJSONStorage<PersistedDeckState>(() => storage ?? localStorage);
+  const persistStorage = createJSONStorage<z.infer<typeof persistedDeckStateSchema>>(() => storage ?? localStorage);
   return createStore<DeckState>()(
-    persist<DeckState, [], [], PersistedDeckState>(() => ({ remoteDecks: [], localDecks: [] }), {
+    persist<DeckState, [], [], z.infer<typeof persistedDeckStateSchema>>(() => ({ remoteDecks: [], localDecks: [] }), {
       name: "tango-local-decks",
       version: 1,
       ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
@@ -60,7 +52,7 @@ const createDeckStore = ({ storage, skipHydration }: CreateDeckStoreOptions = {}
 export const deckStore = createDeckStore();
 
 // Replaces the remote Deck snapshot published by the active subscription.
-export const replaceRemoteDecks = (remoteDecks: RemoteDeck[]): void => {
+export const replaceRemoteDecks = (remoteDecks: Extract<Deck, { localMode: false }>[]): void => {
   deckStore.setState({ remoteDecks });
 };
 
@@ -70,17 +62,17 @@ export const clearRemoteDecks = (): void => {
 };
 
 // Finds one Deck across remote and local collections after validating its identifier.
-export const findDeckById = (id: DeckId): DeckStore | undefined => {
+export const findDeckById = (id: DeckId): Deck | undefined => {
   const deckId = deckIdSchema.parse(id);
   const state = deckStore.getState();
   return state.remoteDecks.find((deck) => deck.id === deckId) ?? state.localDecks.find((deck) => deck.id === deckId);
 };
 
 // Creates and persists a local Deck with Entity-owned timestamps.
-export const createLocalDeck = (input: LocalDeckCreateInput): LocalDeck => {
+export const createLocalDeck = (input: LocalDeckCreateInput): Extract<Deck, { localMode: true }> => {
   const deck = localDeckCreateSchema.parse(input);
   const timestamp = Date.now();
-  const createdDeck = toLocalDeckStore(localDeckSchema.parse({ ...deck, createdAt: timestamp, updatedAt: timestamp }));
+  const createdDeck = localDeckSchema.parse({ ...deck, createdAt: timestamp, updatedAt: timestamp });
   // Treat a retried create as an upsert by id so persisted local data cannot accumulate duplicate Decks.
   const localDecks = deckStore.getState().localDecks.filter(({ id }) => id !== createdDeck.id);
   deckStore.setState({ localDecks: [...localDecks, createdDeck] });
@@ -88,7 +80,7 @@ export const createLocalDeck = (input: LocalDeckCreateInput): LocalDeck => {
 };
 
 // Applies a validated partial edit to an existing local Deck.
-export const editLocalDeck = (input: DeckEdit): LocalDeck => {
+export const editLocalDeck = (input: z.input<typeof deckEditSchema>): Extract<Deck, { localMode: true }> => {
   const edit = deckEditSchema.parse(input);
   const { localDecks } = deckStore.getState();
   const currentDeck = localDecks.find(({ id }) => id === edit.id);
@@ -101,7 +93,7 @@ export const editLocalDeck = (input: DeckEdit): LocalDeck => {
     url: edit.url === null ? undefined : (edit.url ?? currentDeck.url),
     updatedAt: Date.now(),
   });
-  const updatedDeck = toLocalDeckStore(localDeckSchema.parse(updatedValues));
+  const updatedDeck = localDeckSchema.parse(updatedValues);
   deckStore.setState({ localDecks: localDecks.map((deck) => (deck.id === updatedDeck.id ? updatedDeck : deck)) });
   return updatedDeck;
 };
