@@ -13,7 +13,7 @@ type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "t
 const selectStudyCards = (cards: Card[], deck: Deck, useCardInterval: boolean, now = Date.now()): Card[] =>
   cards.filter(
     (card) =>
-      isDeckTagSelectionMatching(card.tags, deck) &&
+      isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter) &&
       isStudyProgressEligible(
         createStudyProgressFromCard(card),
         {

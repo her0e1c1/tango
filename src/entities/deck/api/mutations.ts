@@ -1,8 +1,10 @@
-import type { DeckCreateInput, DeckId, EditDeckInput, LocalDeckCreateInput } from "../model/types";
+import type { z } from "zod";
+import type { DeckCreateInput, DeckId, LocalDeckCreateInput } from "../model/types";
 
 import { deleteLocalCardsByDeckId } from "@/entities/card/@x/deck";
 import { removeStudySession } from "@/entities/study-session/@x/deck";
 import { createLocalDeck, deleteLocalDeck, editLocalDeck, findDeckById } from "../model/store";
+import { authenticatedUidSchema, type deckEditSchema } from "../model/schema";
 import {
   createDeck as createRemoteDeck,
   deleteDeck as deleteRemoteDeck,
@@ -19,14 +21,14 @@ const requireDeck = (id: DeckId) => {
 // Routes a Deck create through the payload's persistence mode.
 export const createDeck = async (uid: string, deck: DeckCreateInput | LocalDeckCreateInput): Promise<void> => {
   if (deck.localMode) {
-    createLocalDeck({ ...deck, localMode: true });
+    createLocalDeck(deck);
     return;
   }
   await createRemoteDeck(uid, deck);
 };
 
 // Routes a Deck edit through the stored Deck's persistence mode.
-export const editDeck = async (uid: string, deck: EditDeckInput["deck"]): Promise<void> => {
+export const editDeck = async (uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> => {
   if (requireDeck(deck.id).localMode) {
     editLocalDeck(deck);
     return;
@@ -35,15 +37,17 @@ export const editDeck = async (uid: string, deck: EditDeckInput["deck"]): Promis
 };
 
 // Deletes a Deck and its owned local or remote resources before clearing its study session.
-export const deleteDeck = async (uid: string, deck: { id: DeckId }): Promise<void> => {
-  const currentDeck = requireDeck(deck.id);
+export const deleteDeck = async (uid: string, deckId: DeckId): Promise<void> => {
+  const currentDeck = requireDeck(deckId);
   if (currentDeck.localMode) {
-    deleteLocalCardsByDeckId(deck.id);
-    deleteLocalDeck(deck.id);
+    deleteLocalCardsByDeckId(deckId);
+    deleteLocalDeck(deckId);
   } else {
-    await deleteRemoteDeck(uid, { id: deck.id, uid: currentDeck.uid });
+    const userId = authenticatedUidSchema.parse(uid);
+    if (currentDeck.uid !== userId) throw new Error("Deck owner does not match the authenticated user");
+    await deleteRemoteDeck(userId, deckId);
   }
 
   // A deleted Deck must not leave a resumable session behind in persisted client state.
-  removeStudySession(deck.id);
+  removeStudySession(deckId);
 };

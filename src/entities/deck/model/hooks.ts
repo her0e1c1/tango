@@ -1,20 +1,17 @@
 import { useStore } from "zustand";
 
-import { toDeckView } from "./dto";
 import { deckStore } from "./store";
 import type { Deck, DeckId } from "./types";
 
-// Reads remote and local Decks as persistence-neutral views.
+// Reads the remote and local Deck collections without remapping their values.
 export const useDecks = (): Deck[] => {
   const state = useStore(deckStore);
-  return [...state.remoteDecks, ...state.localDecks].map(toDeckView);
+  return [...state.remoteDecks, ...state.localDecks];
 };
 
-// Reads one persistence-neutral Deck view by identifier.
-export const useDeck = (id: DeckId | undefined): Deck | undefined => {
-  const storedDeck = useStore(
+// Reads one Deck by identifier without remapping its value.
+export const useDeck = (id: DeckId | undefined): Deck | undefined =>
+  useStore(
     deckStore,
     (state) => state.remoteDecks.find((deck) => deck.id === id) ?? state.localDecks.find((deck) => deck.id === id)
   );
-  return storedDeck === undefined ? undefined : toDeckView(storedDeck);
-};

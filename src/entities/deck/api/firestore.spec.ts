@@ -18,8 +18,8 @@ describe("Deck Firestore persistence", () => {
     await expect(editDeck("", { id: deck.id })).rejects.toThrow("confirmed user");
   });
 
-  it("rejects delete requests without a confirmed matching owner", async () => {
-    await expect(deleteDeck("", deck)).rejects.toThrow("confirmed user");
-    await expect(deleteDeck("uid-b", deck)).rejects.toThrow("owner does not match");
+  it("rejects delete requests without a confirmed user or Deck id", async () => {
+    await expect(deleteDeck("", deck.id)).rejects.toThrow("confirmed user");
+    await expect(deleteDeck(deck.uid, "")).rejects.toThrow("Deck id");
   });
 });

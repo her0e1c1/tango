@@ -52,11 +52,11 @@ describe("mustFindDeckById", () => {
 
 describe("isDeckTagSelectionMatching", () => {
   it("accepts any tag set when the Deck has no selected tags", () => {
-    expect(isDeckTagSelectionMatching([], createDeck({ selectedTags: [] }))).toBe(true);
+    expect(isDeckTagSelectionMatching([], [], false)).toBe(true);
   });
 
   it("applies the Deck's OR and AND tag modes", () => {
-    expect(isDeckTagSelectionMatching(["x"], createDeck({ selectedTags: ["x", "y"], tagAndFilter: false }))).toBe(true);
-    expect(isDeckTagSelectionMatching(["x"], createDeck({ selectedTags: ["x", "y"], tagAndFilter: true }))).toBe(false);
+    expect(isDeckTagSelectionMatching(["x"], ["x", "y"], false)).toBe(true);
+    expect(isDeckTagSelectionMatching(["x"], ["x", "y"], true)).toBe(false);
   });
 });

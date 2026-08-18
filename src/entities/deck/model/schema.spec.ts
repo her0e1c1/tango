@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createDeck as createDeckFixture } from "@/test/factories";
 
-import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "./schema";
+import { createDeckSchema, editDeckSchema } from "./schema";
 
 describe("Deck operation schemas", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
@@ -62,24 +62,6 @@ describe("Deck operation schemas", () => {
       ["provided Deck URL", { uid: "uid-a", deck: { id: "deck", url: "not-a-url" } }, "valid URL"],
     ])("rejects an invalid %s", (_case, input, message) => {
       expect(() => editDeckSchema.parse(input)).toThrow(message);
-    });
-  });
-
-  describe("deleteDeckSchema", () => {
-    it("accepts a Deck identity owned by the authenticated user", () => {
-      expect(deleteDeckSchema.parse({ uid: "uid-a", deck })).toEqual({
-        uid: "uid-a",
-        deck: { id: "deck", uid: "uid-a" },
-      });
-    });
-
-    it.each([
-      ["authenticated uid", { uid: "", deck }, "confirmed user"],
-      ["Deck id", { uid: "uid-a", deck: { ...deck, id: "" } }, "Deck id"],
-      ["Deck uid", { uid: "uid-a", deck: { ...deck, uid: "" } }, "Deck owner"],
-      ["owner relationship", { uid: "uid-b", deck }, "owner does not match"],
-    ])("rejects an invalid %s", (_case, input, message) => {
-      expect(() => deleteDeckSchema.parse(input)).toThrow(message);
     });
   });
 });
