@@ -1,7 +1,7 @@
 import type { Card } from "@/entities/card/@x/deck";
 import { isStudyProgressEligible, type StudyProgress } from "@/entities/study-progress/@x/deck";
 
-import type { Category, DeckDomain, DeckId, StudyCardEligibilityOptions } from "./types";
+import type { Category, DeckDomain, DeckId } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -65,23 +65,29 @@ const isDeckTagSelectionMatching = (
   return tags.some((tag) => candidateTags.includes(tag));
 };
 
-// Combines Deck tag selection with StudyProgress constraints so every study entry point uses one eligibility rule.
-export const isStudyCardEligible = (
-  card: Pick<Card, "tags">,
-  progress: StudyProgress,
+// Joins Cards with their progress and applies the shared Deck study constraints in one pass.
+export const selectStudyCards = (
+  cards: readonly Card[],
+  progresses: readonly StudyProgress[],
   deck: DeckDomain,
-  options: StudyCardEligibilityOptions
-): boolean =>
-  isDeckTagSelectionMatching(card.tags, deck) &&
-  isStudyProgressEligible(
-    progress,
-    {
-      maximumScore: deck.scoreMax,
-      minimumScore: deck.scoreMin,
-      respectNextSeeingAt: options.useCardInterval,
-    },
-    options.now
-  );
+  { useCardInterval, now }: { useCardInterval: boolean; now: number }
+) => {
+  const progressByCardId = new Map(progresses.map((progress) => [progress.cardId, progress]));
+  const progressConstraints = {
+    maximumScore: deck.scoreMax,
+    minimumScore: deck.scoreMin,
+    respectNextSeeingAt: useCardInterval,
+  };
+
+  return cards.flatMap((card) => {
+    const progress = progressByCardId.get(card.id);
+    return progress != null &&
+      isDeckTagSelectionMatching(card.tags, deck) &&
+      isStudyProgressEligible(progress, progressConstraints, now)
+      ? [{ card, progress }]
+      : [];
+  });
+};
 
 // Returns the requested Deck or throws when a caller's Deck reference no longer resolves.
 export const mustFindDeckById = <TDeck extends DeckDomain>(decks: readonly TDeck[], id: DeckId): TDeck => {

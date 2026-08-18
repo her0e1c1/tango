@@ -42,12 +42,6 @@ export type DeckDomain = {
   updatedAt: number;
 };
 
-/** Runtime controls for evaluating whether a Card is currently eligible for study in a Deck. */
-export interface StudyCardEligibilityOptions {
-  useCardInterval: boolean;
-  now: number;
-}
-
 /** Browser-persisted Deck variant without remote ownership metadata. */
 export type LocalDeck = DeckDomain & { localMode: true };
 /** Firestore-backed Deck variant with authenticated ownership metadata. */

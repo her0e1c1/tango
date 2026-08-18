@@ -5,8 +5,8 @@ export {
   CATEGORY,
   getCategory,
   isHighlightLanguage,
-  isStudyCardEligible,
   mustFindDeckById,
+  selectStudyCards,
 } from "./model/rules";
 export { useDeck, useDecks } from "./model/hooks";
 export { deckFormSchema } from "./model/schema";

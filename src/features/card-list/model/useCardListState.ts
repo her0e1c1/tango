@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
-import { type Deck, editDeck, getCategory, isHighlightLanguage, isStudyCardEligible, useDeck } from "@/entities/deck";
+import { type Deck, editDeck, getCategory, isHighlightLanguage, selectStudyCards, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
 import { editStudyProgress, useStudyProgresses } from "@/entities/study-progress";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
@@ -67,14 +67,9 @@ export const useCardListState = (deckId: string) => {
 
   if (deck == null) return;
 
-  const progressByCardId = new Map(progresses.map((progress) => [progress.cardId, progress]));
-  const eligibilityOptions = { useCardInterval: preferences.study.useCardInterval, now: getCurrentTimeMillis() };
-  // Incomplete snapshots stay hidden while the Deck Entity owns the shared product eligibility rule.
-  const cards = deckCards.flatMap((card) => {
-    const progress = progressByCardId.get(card.id);
-    return progress != null && isStudyCardEligible(card, progress, deck, eligibilityOptions)
-      ? [{ card, progress }]
-      : [];
+  const cards = selectStudyCards(deckCards, progresses, deck, {
+    useCardInterval: preferences.study.useCardInterval,
+    now: getCurrentTimeMillis(),
   });
   const storedFilter: DeckFilterValues = {
     scoreMax: deck.scoreMax,

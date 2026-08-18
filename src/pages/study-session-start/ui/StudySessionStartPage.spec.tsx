@@ -27,7 +27,8 @@ vi.mock("@/entities/card", () => ({
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/deck", () => ({
   editDeck: vi.fn(),
-  isStudyCardEligible: () => true,
+  selectStudyCards: (cards: Card[], progresses: StudyProgress[]) =>
+    cards.map((card, index) => ({ card, progress: progresses[index] })),
   useDeck: () => mocks.deck ?? undefined,
 }));
 vi.mock("@/entities/preferences", () => ({
