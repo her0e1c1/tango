@@ -8,7 +8,7 @@ import "@testing-library/jest-dom/vitest";
 import { setDarkMode, updatePreferences, usePreferences } from "@/entities/preferences";
 import { createPreferences } from "@/test/factories";
 
-import { SettingsForm } from "../../ui/components/SettingsForm";
+import { SettingsForm } from "../../ui/SettingsForm";
 import { usePreferencesFormState } from "./usePreferencesFormState";
 
 const preferences = createPreferences({
