@@ -1,2 +1,2 @@
-export { DeckEditForm } from "./ui/DeckEditForm";
-export { useDeckFormState } from "./model/useDeckFormState";
+export { type DeckFormProps, useDeckFormState } from "./model/useDeckFormState";
+export { DeckForm } from "./ui/DeckForm";

@@ -6,8 +6,8 @@ import { defaultPreferences } from "./defaults";
 import { preferencesSchema } from "./schema";
 import type { Preferences } from "./types";
 
-/** Partial updates grouped by each top-level preference category. */
-type PartialPreferences = {
+/** @internal Partial updates grouped by each top-level preference category. */
+export type PartialPreferences = {
   [K in keyof Preferences]?: Partial<Preferences[K]>;
 };
 
@@ -60,6 +60,20 @@ export const preferencesStore = createPreferencesStore();
 // Applies a partial preferences update through the store's validation boundary.
 export const updatePreferences: PreferencesStoreState["updatePreferences"] = (preferences) =>
   preferencesStore.getState().updatePreferences(preferences);
+
+/** @internal Replaces the whole snapshot so deterministic fixtures never inherit earlier store state. */
+export const replacePreferences = (input: PartialPreferences): void => {
+  const preferences = preferencesSchema.parse(input);
+  preferencesStore.setState({
+    preferences: {
+      ...preferences,
+      study: {
+        ...preferences.study,
+        selectedTags: [...preferences.study.selectedTags],
+      },
+    },
+  });
+};
 
 // Sets the appearance color mode preference explicitly.
 export const setDarkMode = (darkMode: boolean): void => updatePreferences({ appearance: { darkMode } });

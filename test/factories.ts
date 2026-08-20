@@ -4,7 +4,7 @@
  * objects.
  */
 
-import type { LocalCard, RemoteCard } from "@/entities/card/model/types";
+import type { LocalCard, RemoteCard } from "@/entities/card/testing";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preferences";
 

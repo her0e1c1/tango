@@ -13,10 +13,7 @@ export default defineConfig([
     },
   },
   {
-    files: [
-      "./src/entities/study-progress/**",
-      "./src/features/deck-list/**",
-    ],
+    files: ["./src/entities/study-progress/**"],
     rules: {
       "fsd/insignificant-slice": "off",
     },
@@ -30,7 +27,6 @@ export default defineConfig([
   {
     files: [
       "./src/features/card-edit/**",
-      "./src/features/card-list/**",
       "./src/features/deck-edit/**",
       "./src/features/preferences-edit/**",
       "./src/features/sign-in/**",
@@ -39,7 +35,7 @@ export default defineConfig([
       "./src/features/study-session-start/**",
     ],
     rules: {
-      // Route-specific features intentionally own their workflows while serving a single route adapter.
+      // These slices remain independently meaningful user workflows even when one Page is their only current caller.
       "fsd/insignificant-slice": "off",
     },
   },

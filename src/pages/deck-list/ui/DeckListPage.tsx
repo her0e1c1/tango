@@ -1,20 +1,19 @@
-import * as React from "react";
+import type * as React from "react";
 import { useKey } from "react-use";
 
 import { useAddSampleDeck } from "@/features/deck-import";
-import { DeckListView, useDeckListState } from "@/features/deck-list";
 import { routes, useNavigation } from "@/features/navigate";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
+import { useDeckListState } from "../model/useDeckListState";
+import { DeckList } from "./DeckList";
+
 export const DeckListPage: React.FC = () => {
   const navigation = useNavigation();
   const deckList = useDeckListState();
-  const [openMenuDeckId, setOpenMenuDeckId] = React.useState<string>();
 
-  const closeMenu = () => setOpenMenuDeckId(undefined);
-  const toggleMenu = (id: string) => setOpenMenuDeckId((value) => (value === id ? undefined : id));
   const continueStudy = (id: string) => {
     deckList.onContinueStudy(id);
     void navigation.to(routes.deckStudy.to(id));
@@ -50,12 +49,9 @@ export const DeckListPage: React.FC = () => {
           onConfirm={deckList.onConfirmDeletion}
         />
       ) : null}
-      <DeckListView
+      <DeckList
         sections={deckList.sections}
         deckCard={{
-          openMenuDeckId,
-          onToggleMenu: toggleMenu,
-          onCloseMenu: closeMenu,
           onClickEdit: (id) => void navigation.to(routes.deckForm.to(id)),
           onClickName: (id) => void navigation.to(routes.cardList.to(id)),
           onClickContinue: continueStudy,
