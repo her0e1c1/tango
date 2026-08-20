@@ -5,6 +5,7 @@ export {
   groupDecksByStudyStatus,
   planStudySessionSwipe,
   resolveStudySession,
+  selectStudyCards,
 } from "./model/rules";
 export type { StudySession } from "./model/types";
 export {
