@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { generateCardId, useCards } from "@/entities/card";
-import { useDecks } from "@/entities/deck";
+import { generateCardId } from "@/entities/card";
+import { generateDeckId } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
 import { prepareSampleDeck } from "./useAddSampleDeck";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
@@ -15,11 +15,9 @@ type DeckImportStatus = "idle" | "validating" | "importing";
 
 export const useDeckImport = () => {
   const uid = useAuthUid();
-  const cards = useCards();
-  const decks = useDecks();
   const preferences = usePreferences();
   const execution = useDeckImportExecution(uid);
-  const preview = useDeckImportPreview({ uid, cards, decks });
+  const preview = useDeckImportPreview(uid);
   const [status, setStatus] = useState<DeckImportStatus>("idle");
 
   const selectFile = async (file: File) => {
@@ -47,11 +45,18 @@ export const useDeckImport = () => {
     }
   };
 
+  const importPreview = async () => {
+    const result = await runImport(preview.getPreparedImport);
+    // Preserve generated IDs after a failed write so retrying cannot create another partial Deck.
+    preview.completePreparedImport();
+    return result;
+  };
+
   return {
     selectFile,
     setStorageMode,
-    importPreview: () => runImport(preview.takePreparedImport),
-    addSample: () => runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId })),
+    importPreview,
+    addSample: () => runImport(() => prepareSampleDeck(uid, { generateDeckId, generateCardId })),
     storageMode: preview.storageMode,
     preview: preview.preview,
     validating: status === "validating",

@@ -1,4 +1,4 @@
-export { fetchDecks, subscribeDecks } from "./api/firestore";
+export { subscribeDecks } from "./api/firestore";
 export { generateDeckId } from "./api/id";
 export { createDeck, deleteDeck, editDeck } from "./api/mutations";
 export { CATEGORY, getCategory, isHighlightLanguage, mustFindDeckById } from "./model/rules";

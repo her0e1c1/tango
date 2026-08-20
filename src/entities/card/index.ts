@@ -1,4 +1,4 @@
-export { fetchCards, subscribeCards } from "./api/firestore";
+export { subscribeCards } from "./api/firestore";
 /** @public Separated read operations for the cross-Entity Card document boundary. */
 export { fetchCardReads, subscribeCardReads } from "./api/firestore";
 /** @public Separated read contract for the cross-Entity Card document boundary. */
@@ -13,13 +13,10 @@ export type {
   CardId,
   CardMutation,
   CardRaw,
-  RemoteCard,
 } from "./model/types";
 export {
   countCardsByDeckId,
   filterCardsByDeckId,
   getCardContentValidationErrors,
-  hasSameEditableCardContent,
-  indexCardsByUniqueKey,
   mustFindCardById,
 } from "./model/rules";
