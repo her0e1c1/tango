@@ -3,6 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { StudySession } from "@/entities/study-session";
+import { useDeckListState } from "@/features/deck-list";
 import { createCard, createDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -29,7 +30,6 @@ vi.mock("@/entities/study-session", async (importOriginal) => ({
   useStudySessions: () => sessionsByDeckId,
 }));
 
-import { useDeckListState } from "../model/useDeckListState";
 import { DeckList } from "./DeckList";
 
 const recentDeck = createDeck({ id: "recent", name: "Recent deck", category: "math" });

@@ -1,27 +1,24 @@
 import * as React from "react";
 
-import type { DeckId } from "@/entities/deck";
+import { type DeckListState, DeckListView } from "@/features/deck-list";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 
-import type { DeckListState } from "../model/useDeckListState";
-import { DeckListView } from "./DeckListView";
-
 export interface DeckListProps {
   state: DeckListState;
-  onViewDeck: (id: DeckId) => void;
-  onContinueDeck: (id: DeckId) => void;
-  onStartDeck: (id: DeckId) => void;
-  onEditDeck: (id: DeckId) => void;
+  onViewDeck: (id: string) => void;
+  onContinueDeck: (id: string) => void;
+  onStartDeck: (id: string) => void;
+  onEditDeck: (id: string) => void;
 }
 
 export const DeckList: React.FC<DeckListProps> = (props) => {
   const { state } = props;
-  const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
+  const [openMenuDeckId, setOpenMenuDeckId] = React.useState<string>();
 
   const closeMenu = () => setOpenMenuDeckId(undefined);
-  const toggleMenu = (id: DeckId) => setOpenMenuDeckId((value) => (value === id ? undefined : id));
-  const continueStudy = (id: DeckId) => {
+  const toggleMenu = (id: string) => setOpenMenuDeckId((value) => (value === id ? undefined : id));
+  const continueStudy = (id: string) => {
     state.onContinueStudy(id);
     props.onContinueDeck(id);
   };

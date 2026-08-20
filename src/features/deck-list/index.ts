@@ -1,2 +1,2 @@
-export { DeckList } from "./ui/DeckList";
-export { useDeckListState } from "./model/useDeckListState";
+export { type DeckListState, useDeckListState } from "./model/useDeckListState";
+export { DeckListView } from "./ui/DeckListView";

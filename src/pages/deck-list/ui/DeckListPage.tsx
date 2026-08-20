@@ -2,9 +2,11 @@ import type * as React from "react";
 import { useKey } from "react-use";
 
 import { useAddSampleDeck } from "@/features/deck-import";
-import { DeckList, useDeckListState } from "@/features/deck-list";
+import { useDeckListState } from "@/features/deck-list";
 import { routes, useNavigation } from "@/features/navigate";
 import { AppLayout } from "@/widgets/app-layout";
+
+import { DeckList } from "./DeckList";
 
 export const DeckListPage: React.FC = () => {
   const navigation = useNavigation();
