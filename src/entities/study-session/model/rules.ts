@@ -1,5 +1,11 @@
+import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
 import type { SwipeAction } from "@/entities/preferences/@x/study-session";
-import { type CardProgressFields, recordCardStudyProgress } from "@/entities/study-progress/@x/study-session";
+import {
+  type CardProgressFields,
+  createStudyProgressFromCard,
+  isStudyProgressEligible,
+  recordCardStudyProgress,
+} from "@/entities/study-progress/@x/study-session";
 
 import type {
   ResolvedStudySession,
@@ -33,6 +39,19 @@ interface DecksByStudyStatus<TDeck> {
   inactive: TDeck[];
 }
 
+/** Card fields needed to decide whether the Card belongs in a study session. */
+interface StudyCardSelectionCard extends CardProgressFields {
+  tags: readonly string[];
+}
+
+/** Deck-owned filters that define the study-session candidate set. */
+interface StudyCardSelectionDeck {
+  scoreMax: number | null;
+  scoreMin: number | null;
+  selectedTags: readonly string[];
+  tagAndFilter: boolean;
+}
+
 // Compares Deck names with locale-aware ascending order for deterministic presentation ties.
 const compareDeckNames = (left: NamedDeck, right: NamedDeck): number => left.name.localeCompare(right.name);
 
@@ -58,6 +77,27 @@ export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
 
   return { active, inactive };
 };
+
+// Selects the Cards allowed by the Deck's tag filters and current StudyProgress eligibility rules.
+export const selectStudyCards = <TCard extends StudyCardSelectionCard>(
+  cards: readonly TCard[],
+  deck: StudyCardSelectionDeck,
+  respectNextSeeingAt: boolean,
+  now = Date.now()
+): TCard[] =>
+  cards.filter(
+    (card) =>
+      isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter) &&
+      isStudyProgressEligible(
+        createStudyProgressFromCard(card),
+        {
+          maximumScore: deck.scoreMax,
+          minimumScore: deck.scoreMin,
+          respectNextSeeingAt,
+        },
+        now
+      )
+  );
 
 // Reads the Card id at the session cursor, returning undefined for an empty or out-of-range position.
 const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>

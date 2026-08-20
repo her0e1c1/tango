@@ -1,13 +1,7 @@
 export { fetchDecks, subscribeDecks } from "./api/firestore";
 export { generateDeckId } from "./api/id";
 export { createDeck, deleteDeck, editDeck } from "./api/mutations";
-export {
-  CATEGORY,
-  getCategory,
-  isDeckTagSelectionMatching,
-  isHighlightLanguage,
-  mustFindDeckById,
-} from "./model/rules";
+export { CATEGORY, getCategory, isHighlightLanguage, mustFindDeckById } from "./model/rules";
 export { useDeck, useDecks } from "./model/hooks";
 export { deckFormSchema } from "./model/schema";
 export { clearRemoteDecks } from "./model/store";

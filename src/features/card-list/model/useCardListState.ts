@@ -2,16 +2,10 @@ import * as React from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
-import {
-  type Deck,
-  editDeck,
-  getCategory,
-  isDeckTagSelectionMatching,
-  isHighlightLanguage,
-  useDeck,
-} from "@/entities/deck";
+import { type Deck, editDeck, getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preferences";
-import { createStudyProgressFromCard, editStudyProgress, isStudyProgressEligible } from "@/entities/study-progress";
+import { editStudyProgress } from "@/entities/study-progress";
+import { selectStudyCards } from "@/entities/study-session";
 
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
 
@@ -55,22 +49,6 @@ const buildCardListItem = (card: Card): CardListItem => ({
   numberOfSeen: card.numberOfSeen,
   tags: card.tags,
 });
-
-// Keeps multi-Entity selection in the use-case owner while each Entity supplies only its own pure rule.
-const selectStudyCards = (cards: Card[], deck: Deck, useCardInterval: boolean, now = Date.now()): Card[] =>
-  cards.filter(
-    (card) =>
-      isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter) &&
-      isStudyProgressEligible(
-        createStudyProgressFromCard(card),
-        {
-          maximumScore: deck.scoreMax,
-          minimumScore: deck.scoreMin,
-          respectNextSeeingAt: useCardInterval,
-        },
-        now
-      )
-  );
 
 export const useCardListState = (deckId: string) => {
   const uid = useAuthUid();
