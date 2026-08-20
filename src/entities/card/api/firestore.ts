@@ -83,10 +83,6 @@ export const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
   return mapActiveCardReads(snapshot.docs);
 };
 
-/** Keeps existing authoritative fetch consumers on the combined read model until #604. */
-export const fetchCards = async (uid: string): Promise<RemoteCard[]> =>
-  (await fetchCardReads(uid)).map(combineCardRead);
-
 /** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = getCurrentTimeMillis();

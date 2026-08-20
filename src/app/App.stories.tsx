@@ -81,7 +81,7 @@ export const Import: Story = {
     await userEvent.upload(canvas.getByLabelText("Upload a csv file"), file);
 
     await expect(await canvas.findByRole("heading", { level: 2, name: "Review import" })).toBeVisible();
-    await expect(canvas.getByText("1 create")).toBeVisible();
+    await expect(canvas.getByText("1 valid")).toBeVisible();
     await expect(canvas.getByText("storybook answer")).toBeVisible();
   },
 };
