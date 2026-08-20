@@ -91,6 +91,7 @@ export const createLocalCard = (overrides: Partial<LocalCard> = {}): LocalCard =
 });
 
 export type PreferencesOverrides = {
+  loadSample?: boolean;
   appearance?: Partial<AppearancePreferences>;
   study?: Partial<StudyPreferences>;
   controls?: Partial<ControlPreferences>;
@@ -154,8 +155,9 @@ const createControls = (
  * Tests can change one setting without repeating every required preference field.
  */
 export const createPreferences = (overrides: PreferencesOverrides = {}): Preferences => {
-  const { appearance, study, controls, ...flat } = overrides;
+  const { loadSample = true, appearance, study, controls, ...flat } = overrides;
   return {
+    loadSample,
     appearance: createAppearance(appearance, flat),
     study: createStudy(study, flat),
     controls: createControls(controls, flat),

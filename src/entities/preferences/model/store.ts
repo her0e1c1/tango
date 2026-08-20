@@ -8,7 +8,10 @@ import type { Preferences } from "./types";
 
 /** Partial updates grouped by each top-level preference category. */
 type PartialPreferences = {
-  [K in keyof Preferences]?: Partial<Preferences[K]>;
+  loadSample?: Preferences["loadSample"];
+  appearance?: Partial<Preferences["appearance"]>;
+  study?: Partial<Preferences["study"]>;
+  controls?: Partial<Preferences["controls"]>;
 };
 
 /** Live preferences state and its validated update operation. */
@@ -31,6 +34,7 @@ const createPreferencesStore = () =>
         updatePreferences: (preferencesInput) =>
           set((state) => {
             const { selectedTags, ...study } = preferencesInput.study ?? {};
+            if (preferencesInput.loadSample !== undefined) state.preferences.loadSample = preferencesInput.loadSample;
             Object.assign(state.preferences.appearance, preferencesInput.appearance);
             Object.assign(state.preferences.study, study);
             Object.assign(state.preferences.controls, preferencesInput.controls);

@@ -36,6 +36,7 @@ describe("preferences store", () => {
     const store = preferencesStore;
 
     store.getState().updatePreferences({
+      loadSample: false,
       appearance: { darkMode: true },
       study: { cardInterval: 15 },
       controls: { showScoreSlider: true },
@@ -46,6 +47,7 @@ describe("preferences store", () => {
 
     expect(store.getState().preferences).toEqual({
       ...defaultPreferences,
+      loadSample: false,
       study: { ...defaultPreferences.study, cardInterval: 15 },
       appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: true },
       controls: { ...defaultPreferences.controls, showScoreSlider: true, showSwipeButtonList: false },
@@ -69,12 +71,13 @@ describe("preferences store", () => {
 
   it("updates preferences through the public helpers", () => {
     setDarkMode(true);
-    updatePreferences({ study: { cardInterval: 15 } });
+    updatePreferences({ loadSample: false, study: { cardInterval: 15 } });
     toggleShowHeader();
     toggleShowSwipeButtonList();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
+      loadSample: false,
       appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: false },
       study: { ...defaultPreferences.study, cardInterval: 15 },
       controls: { ...defaultPreferences.controls, showSwipeButtonList: false },
@@ -84,12 +87,13 @@ describe("preferences store", () => {
   it("persists preference changes", () => {
     const storage = useMemoryStorage();
 
-    preferencesStore.getState().updatePreferences({ appearance: { darkMode: true } });
+    preferencesStore.getState().updatePreferences({ loadSample: false, appearance: { darkMode: true } });
 
     expect(JSON.parse(storage.getItem("tango-config") ?? "{}")).toEqual({
       state: {
         preferences: {
           ...defaultPreferences,
+          loadSample: false,
           appearance: { ...defaultPreferences.appearance, darkMode: true },
         },
       },
@@ -100,6 +104,7 @@ describe("preferences store", () => {
   it("hydrates persisted preferences", async () => {
     const persistedPreferences = {
       ...defaultPreferences,
+      loadSample: false,
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
     };

@@ -1,7 +1,8 @@
 import type { Card, CardMutation } from "@/entities/card";
-import type { Deck, DeckCreateInput } from "@/entities/deck";
+import type { Deck, DeckCreateInput, LocalDeckCreateInput } from "@/entities/deck";
 
 import { renderHook, waitFor } from "@testing-library/react";
+import React, { type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDeck } from "@/test/factories";
@@ -10,6 +11,7 @@ const repository = vi.hoisted(() => ({
   uid: "uid-a",
   cards: [] as Card[],
   decks: [] as Deck[],
+  loadSample: true,
   nextCardNumber: 1,
 }));
 
@@ -38,8 +40,8 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
-    createDeck: (_uid: string, deck: DeckCreateInput) => {
-      const savedDeck: Deck = {
+    createDeck: (_uid: string, deck: DeckCreateInput | LocalDeckCreateInput) => {
+      const fields = {
         id: deck.id,
         name: deck.name,
         isPublic: deck.isPublic ?? false,
@@ -51,33 +53,48 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         convertToBr: deck.convertToBr ?? false,
         createdAt: 0,
         updatedAt: 0,
-        uid: deck.uid,
-        localMode: false,
       };
+      const savedDeck: Deck = deck.localMode
+        ? { ...fields, localMode: true }
+        : { ...fields, uid: deck.uid, localMode: false };
       repository.decks = [...repository.decks, savedDeck];
       return Promise.resolve();
     },
     useDecks: () => repository.decks,
   };
 });
+vi.mock("@/entities/preferences", () => ({
+  updatePreferences: (preferences: { loadSample?: boolean }) => {
+    if (preferences.loadSample !== undefined) repository.loadSample = preferences.loadSample;
+  },
+  usePreferences: () => ({ loadSample: repository.loadSample }),
+}));
 
 import { useAddSampleDeck } from "./useAddSampleDeck";
+
+const strictMode = ({ children }: { children: ReactNode }) => React.createElement(React.StrictMode, null, children);
 
 describe("useAddSampleDeck", () => {
   beforeEach(() => {
     repository.uid = "uid-a";
     repository.cards = [];
     repository.decks = [];
+    repository.loadSample = true;
     repository.nextCardNumber = 1;
   });
 
-  it("leaves storage empty for a signed-out user", () => {
+  it("persists the sample locally without a signed-in user", async () => {
     repository.uid = "";
 
     renderHook(useAddSampleDeck);
 
-    expect(repository.decks).toEqual([]);
-    expect(repository.cards).toEqual([]);
+    await waitFor(() => expect(repository.loadSample).toBe(false));
+
+    expect(repository.decks).toEqual([
+      expect.objectContaining({ id: "sample-v1", name: "Sample Deck", localMode: true }),
+    ]);
+    expect(repository.cards.length).toBeGreaterThan(0);
+    expect(repository.cards.every((card) => card.deckId === "sample-v1" && !("uid" in card))).toBe(true);
   });
 
   it("preserves existing storage without adding a sample", () => {
@@ -88,21 +105,31 @@ describe("useAddSampleDeck", () => {
 
     expect(repository.decks).toEqual([existingDeck]);
     expect(repository.cards).toEqual([]);
+    expect(repository.loadSample).toBe(true);
   });
 
-  it("persists one account-synced sample when storage has no Decks", async () => {
+  it("does not add a sample when automatic loading is disabled", () => {
+    repository.loadSample = false;
+
     renderHook(useAddSampleDeck);
 
-    await waitFor(() => expect(repository.cards.length).toBeGreaterThan(0));
+    expect(repository.decks).toEqual([]);
+    expect(repository.cards).toEqual([]);
+  });
 
-    expect(repository.decks).toEqual([
-      expect.objectContaining({
-        id: "sample-v1-uid-a",
-        name: "Sample Deck",
-        localMode: false,
-      }),
-    ]);
-    expect(repository.cards.every((card) => card.deckId === "sample-v1-uid-a")).toBe(true);
-    expect(repository.cards.every((card) => "uid" in card && card.uid === "uid-a")).toBe(true);
+  it("imports once under StrictMode and stays disabled after the sample is removed", async () => {
+    const { unmount } = renderHook(useAddSampleDeck, { wrapper: strictMode });
+
+    await waitFor(() => expect(repository.loadSample).toBe(false));
+    expect(repository.decks).toHaveLength(1);
+    expect(new Set(repository.cards.map((card) => card.uniqueKey)).size).toBe(repository.cards.length);
+    unmount();
+
+    repository.decks = [];
+    repository.cards = [];
+    renderHook(useAddSampleDeck, { wrapper: strictMode });
+
+    expect(repository.decks).toEqual([]);
+    expect(repository.cards).toEqual([]);
   });
 });

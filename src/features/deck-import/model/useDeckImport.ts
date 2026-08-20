@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAuthUid } from "@/entities/auth";
 import { generateCardId, useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
-import { usePreferences } from "@/entities/preferences";
+import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { prepareSampleDeck } from "./useAddSampleDeck";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { useDeckImportExecution } from "./useDeckImportExecution";
@@ -47,11 +47,18 @@ export const useDeckImport = () => {
     }
   };
 
+  const addSample = async () => {
+    const result = await runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId }));
+    // Explicit imports remain available, but a successful one also satisfies the automatic bootstrap permanently.
+    updatePreferences({ loadSample: false });
+    return result;
+  };
+
   return {
     selectFile,
     setStorageMode,
     importPreview: () => runImport(preview.takePreparedImport),
-    addSample: () => runImport(() => prepareSampleDeck(uid, { cards, decks, generateCardId })),
+    addSample,
     storageMode: preview.storageMode,
     preview: preview.preview,
     validating: status === "validating",

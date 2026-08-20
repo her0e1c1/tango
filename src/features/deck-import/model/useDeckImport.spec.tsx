@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
+import { updatePreferences, usePreferences } from "@/entities/preferences";
 import { actAsync } from "@/test/act";
 import { createCard, createDeck } from "@/test/factories";
 
@@ -58,6 +59,7 @@ const renderDeckImport = () =>
     deckImport: useDeckImport(),
     decks: useDecks(),
     cards: useCards(),
+    preferences: usePreferences(),
   }));
 
 const findDeck = (decks: Deck[], name: string) => decks.find((deck) => deck.name === name);
@@ -69,6 +71,7 @@ describe("useDeckImport", () => {
     controls.remoteCards = [];
     controls.remoteReadError = undefined;
     controls.nextMutationError = undefined;
+    updatePreferences({ loadSample: true });
   });
 
   it("previews a local CSV before saving its Deck and Cards", async () => {
@@ -224,5 +227,19 @@ describe("useDeckImport", () => {
 
     expect(result.current.deckImport.result).toMatchObject({ created: 1, updated: 0, skipped: 0 });
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toHaveLength(1);
+  });
+
+  it("adds the sample to local storage and disables its automatic bootstrap", async () => {
+    const { result } = renderDeckImport();
+
+    await actAsync(async () => result.current.deckImport.addSample());
+
+    const sampleDeck = findDeck(result.current.decks, "Sample Deck");
+    expect(sampleDeck).toMatchObject({ id: "sample-v1", localMode: true });
+    expect(result.current.cards.filter((card) => card.deckId === sampleDeck?.id)).not.toEqual([]);
+    expect(
+      result.current.cards.filter((card) => card.deckId === sampleDeck?.id).every((card) => !("uid" in card))
+    ).toBe(true);
+    expect(result.current.preferences.loadSample).toBe(false);
   });
 });
