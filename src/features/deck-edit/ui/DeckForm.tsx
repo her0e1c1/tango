@@ -8,6 +8,7 @@ import type { DeckFormProps } from "../model/useDeckFormState";
 export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const sectionHeadingIdPrefix = useId();
   const basicHeadingId = `${sectionHeadingIdPrefix}-deck-basic-heading`;
+  const storageHeadingId = `${sectionHeadingIdPrefix}-deck-storage-heading`;
   const importHeadingId = `${sectionHeadingIdPrefix}-deck-import-heading`;
   const nameInputId = `${sectionHeadingIdPrefix}-deck-name`;
   const nameErrorId = `${nameInputId}-error`;
@@ -16,6 +17,20 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
 
   return (
     <Form onSubmit={props.onSubmit}>
+      <section
+        aria-labelledby={storageHeadingId}
+        className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
+      >
+        <div>
+          <h2 id={storageHeadingId} className="text-title font-semibold text-ink">
+            Storage
+          </h2>
+          <p className="mt-1 text-caption text-ink-muted">Choose whether this deck stays on this device.</p>
+        </div>
+        <FormItem label="Local only" help={props.localModeHelp}>
+          <Switch {...props.fields.localMode} aria-label="Local only" />
+        </FormItem>
+      </section>
       <section
         aria-labelledby={basicHeadingId}
         className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
