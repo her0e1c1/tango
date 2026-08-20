@@ -12,17 +12,26 @@ import { clearStudySessions, startStudy } from "@/entities/study-session";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
+  deleteDeck: vi.fn(),
+  downloadTextFile: vi.fn(),
   preferences: null as unknown as Preferences,
   setDarkMode: vi.fn(),
 }));
 
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/deck", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/entities/deck")>();
+  mocks.deleteDeck.mockImplementation(original.deleteDeck);
+
+  return { ...original, deleteDeck: mocks.deleteDeck };
+});
 vi.mock("@/entities/preferences", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/features/deck-import", () => ({ useAddSampleDeck: () => undefined }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.downloadTextFile }));
 
 import { DeckListPage } from "./DeckListPage";
 
@@ -58,6 +67,8 @@ describe("DeckListPage", () => {
 
   beforeEach(async () => {
     clearStudySessions();
+    mocks.deleteDeck.mockClear();
+    mocks.downloadTextFile.mockReset();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
     await createDeck("", activeDeck);
@@ -94,12 +105,49 @@ describe("DeckListPage", () => {
   it("deletes a local Deck and reports the visible result", async () => {
     renderPage();
 
+    const trigger = screen.getByRole("button", { name: "Open actions for Fresh deck" });
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.getByRole("button", { name: "View Fresh deck" })).toBeVisible();
+    expect(trigger).toHaveFocus();
+
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+
+    expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith("user-id", freshDeck.id);
+    expect(await screen.findByText("Deleted deck “Fresh deck”.")).toBeVisible();
+    await waitFor(() => expect(screen.queryByRole("button", { name: "View Fresh deck" })).not.toBeInTheDocument());
+  });
+
+  it("downloads a visible Deck", async () => {
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Download" }));
+
+    expect(mocks.downloadTextFile).toHaveBeenCalledExactlyOnceWith(
+      expect.any(String),
+      "Fresh deck.csv",
+      "text/plain;charset=utf-8"
+    );
+  });
+
+  it("keeps a failed deletion available for retry", async () => {
+    mocks.deleteDeck.mockRejectedValueOnce(new Error("delete failed"));
+    renderPage();
+
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    expect(await screen.findByText("Deleted deck “Fresh deck”.")).toBeVisible();
-    await waitFor(() => expect(screen.queryByRole("button", { name: "View Fresh deck" })).not.toBeInTheDocument());
+    expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+
+    await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
+    expect(mocks.deleteDeck).toHaveBeenCalledTimes(2);
   });
 
   it("navigates from both route shortcuts", async () => {
