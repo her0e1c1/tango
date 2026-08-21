@@ -8,9 +8,9 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 
-import { Score } from "@/shared/ui/content/Score";
-import { Feedback } from "@/shared/ui/feedback";
-import type { FeedbackTone } from "@/shared/ui/feedback/Feedback";
+import { Feedback } from "../feedback";
+import type { FeedbackTone } from "../feedback/Feedback";
+import { Score } from "./Score";
 
 describe("shared status content", () => {
   it.each([

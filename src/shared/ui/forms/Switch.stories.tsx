@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn } from "storybook/test";
 
-import { Switch as Template } from "@/shared/ui/forms/Switch";
+import { Switch as Template } from "./Switch";
 
 const meta = {
   title: "Shared/Forms/Switch",

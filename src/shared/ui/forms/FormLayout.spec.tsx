@@ -4,8 +4,8 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 
-import { Form } from "@/shared/ui/forms/Form";
-import { FormItem } from "@/shared/ui/forms/FormItem";
+import { Form } from "./Form";
+import { FormItem } from "./FormItem";
 
 const appearsBefore = (first: Node, second: Node): boolean => {
   // biome-ignore lint/suspicious/noBitwiseOperators: compareDocumentPosition returns a DOM bitmask by contract.

@@ -9,7 +9,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { Button } from "@/shared/ui/button";
+import { Button } from "../button";
 
 describe("Button action control", () => {
   it("does not activate while disabled", () => {

@@ -4,7 +4,7 @@
  * and interaction rules.
  */
 
-import { Button } from "@/shared/ui/button";
+import { Button } from "../button";
 
 export interface RemoteMutationNoticeProps {
   pending: boolean;

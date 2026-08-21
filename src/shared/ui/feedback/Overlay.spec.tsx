@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { Overlay } from "@/shared/ui/feedback/Overlay";
+import { Overlay } from "./Overlay";
 
 describe("shared overlay surface", () => {
   it("reports clicks from an accessibly named overlay", () => {

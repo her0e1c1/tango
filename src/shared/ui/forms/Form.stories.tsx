@@ -6,10 +6,10 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Form as Template } from "@/shared/ui/forms/Form";
-import { FormItem } from "@/shared/ui/forms/FormItem";
-import { Input } from "@/shared/ui/forms/Input";
-import { Switch } from "@/shared/ui/forms/Switch";
+import { Form as Template } from "./Form";
+import { FormItem } from "./FormItem";
+import { Input } from "./Input";
+import { Switch } from "./Switch";
 
 /**
  * Prepares review form data for the Storybook examples in this file.
