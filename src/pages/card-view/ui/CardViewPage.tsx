@@ -5,7 +5,11 @@ import { CardView, useCardViewContent } from "@/features/card-view";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-const CardViewContent = ({ cardId }: { cardId: string }) => {
+export const CardViewPage: React.FC = () => {
+  const params = useParams();
+  const cardId = params.id;
+  if (cardId == null) throw new Error("invalid card id");
+
   const content = useCardViewContent(cardId);
 
   if (content == null) {
@@ -19,12 +23,4 @@ const CardViewContent = ({ cardId }: { cardId: string }) => {
       <CardView {...content} />
     </AppLayout>
   );
-};
-
-export const CardViewPage: React.FC = () => {
-  const params = useParams();
-  const cardId = params.id;
-  if (cardId == null) throw new Error("invalid card id");
-
-  return <CardViewContent cardId={cardId} />;
 };

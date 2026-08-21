@@ -12,7 +12,7 @@ test("restores an imported local-only Deck for list and study flows", async ({ p
     mimeType: "text/csv",
     buffer: Buffer.from('"local front","local back","tag","local-key"'),
   });
-  await expect(page.getByText("1 create")).toBeVisible();
+  await expect(page.getByText("1 valid")).toBeVisible();
   await page.getByRole("button", { name: "Import", exact: true }).click();
 
   await expect(page).toHaveURL(/\/$/);

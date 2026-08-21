@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { Deck, DeckCreateInput, DeckId } from "../model/types";
+import type { DeckCreateInput, DeckId } from "../model/types";
 
 import {
   collection,
@@ -7,7 +7,6 @@ import {
   deleteField,
   doc,
   getDocs,
-  getDocsFromServer,
   onSnapshot,
   query,
   setDoc,
@@ -54,15 +53,6 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     },
     onError
   );
-
-// Fetches an authoritative snapshot of active Deck views owned by one user.
-export const fetchDecks = async (uid: string): Promise<Deck[]> => {
-  const snapshot = await getDocsFromServer(query(collection(db, DECK_COLLECTION), where("uid", "==", uid)));
-  return snapshot.docs.flatMap((document) => {
-    const deck = readActiveRemoteDeck(document.id, document.data());
-    return deck === undefined ? [] : [deck];
-  });
-};
 
 // Writes a new Deck document with synchronized creation and update timestamps.
 const createDeckDocument = async (deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {

@@ -19,7 +19,7 @@ const page = (path: string, overrides: Partial<Omit<PageStoryParameters, "path">
 });
 
 const meta = {
-  title: "Page",
+  title: "Integration/Routes",
   component: AppRoutes,
   decorators: [withPageStory],
   loaders: [
@@ -81,7 +81,7 @@ export const Import: Story = {
     await userEvent.upload(canvas.getByLabelText("Upload a csv file"), file);
 
     await expect(await canvas.findByRole("heading", { level: 2, name: "Review import" })).toBeVisible();
-    await expect(canvas.getByText("1 create")).toBeVisible();
+    await expect(canvas.getByText("1 valid")).toBeVisible();
     await expect(canvas.getByText("storybook answer")).toBeVisible();
   },
 };

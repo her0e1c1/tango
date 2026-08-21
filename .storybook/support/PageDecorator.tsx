@@ -4,33 +4,27 @@
  * normal containers, hooks, and route parameters.
  */
 
-import type { CardId, RemoteCard } from "@/entities/card";
-import { replaceRemoteCards } from "@/entities/card/model/store";
+import type { CardId } from "@/entities/card";
+import { type RemoteCard, replaceRemoteCards } from "@/entities/card/testing";
 import type { Deck, DeckId } from "@/entities/deck";
-import { replaceRemoteDecks } from "@/entities/deck/model/store";
+import { replaceRemoteDecks } from "@/entities/deck/testing";
 
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { replaceAuthSession } from "@/entities/auth";
-import type { Preferences } from "@/entities/preferences";
-import { preferencesSchema } from "@/entities/preferences/model/schema";
-import { preferencesStore } from "@/entities/preferences/model/store";
+import { type PreferencesFixture, replacePreferences } from "@/entities/preferences/testing";
 import { clearStudySessions, setStudySessionIndex, startStudy } from "@/entities/study-session";
 
 export const PAGE_STORY_UID = "storybook-user";
 
 type StudySessionFixtures = Partial<Record<DeckId, { cardOrderIds: CardId[]; currentIndex: number }>>;
 
-type PartialPreferences = {
-  [K in keyof Preferences]?: Partial<Preferences[K]>;
-};
-
 export interface PageStoryParameters {
   path: string;
   decks?: Extract<Deck, { localMode: false }>[];
   cards?: RemoteCard[];
-  preferences?: PartialPreferences;
+  preferences?: PreferencesFixture;
   sessionsByDeckId?: StudySessionFixtures;
   autoPlay?: boolean;
 }
@@ -62,20 +56,11 @@ export const preparePageStory = (parameters: PageStoryParameters): void => {
 
   const decks = (parameters.decks ?? []).map(cloneDeck);
   const cards = (parameters.cards ?? []).map(cloneCard);
-  const preferences = preferencesSchema.parse({
+  replacePreferences({
     ...parameters.preferences,
     study: {
       ...(parameters.preferences?.study ?? {}),
       ...(parameters.autoPlay !== undefined ? { defaultAutoPlay: parameters.autoPlay } : {}),
-    },
-  });
-  preferencesStore.setState({
-    preferences: {
-      ...preferences,
-      study: {
-        ...preferences.study,
-        selectedTags: [...preferences.study.selectedTags],
-      },
     },
   });
   Object.entries(parameters.sessionsByDeckId ?? {}).forEach(([deckId, session]) => {

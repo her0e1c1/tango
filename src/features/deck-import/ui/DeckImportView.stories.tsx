@@ -23,23 +23,6 @@ const preview = {
     issues: [],
     invalidCount: 0,
   },
-  plan: {
-    rows: [
-      {
-        rowNumber: 1,
-        card: { frontText: "hello", backText: "hola", tags: ["greeting"], uniqueKey: "hello-es" },
-        action: "update",
-      },
-      {
-        rowNumber: 2,
-        card: { frontText: "goodbye", backText: "adiós", tags: ["greeting"], uniqueKey: "goodbye-es" },
-        action: "create",
-      },
-    ],
-    created: 1,
-    updated: 1,
-    unchanged: 0,
-  },
 } satisfies DeckImportPreview;
 
 const meta = {
@@ -83,7 +66,6 @@ export const Invalid: Story = {
           },
         ],
       },
-      plan: { rows: [], created: 0, updated: 0, unchanged: 0 },
     },
   },
 };
@@ -98,7 +80,7 @@ export const Pending: Story = {
 export const Success: Story = {
   args: {
     preview,
-    result: { created: 1, updated: 1, skipped: 0, deckId: "spanish-basics" },
+    result: { created: 2, deckId: "spanish-basics" },
   },
 };
 

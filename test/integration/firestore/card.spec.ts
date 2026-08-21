@@ -4,8 +4,8 @@
  * "should update a card", and "should import cards".
  */
 
-import { mutateCards, type Card, type RemoteCard } from "@/entities/card";
-import type { CardCreateInput } from "@/entities/card/model/types";
+import { mutateCards, type Card } from "@/entities/card";
+import type { CardCreateInput, RemoteCard } from "@/entities/card/model/types";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
