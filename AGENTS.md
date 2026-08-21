@@ -11,6 +11,14 @@
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
 
+## Architecture
+
+- Follow the current official Feature-Sliced Design guidance before repository-specific placement preferences.
+- Prefer the FSD v2.1 page-first approach: keep code in the Page that consumes it until actual reuse justifies moving it to a lower layer.
+- Treat the recommended `@feature-sliced/steiger-plugin` rules as architectural constraints. Resolve violations structurally instead of disabling a recommended rule unless the user explicitly requests an exception.
+- Do not retain a Feature or Entity slice solely because the code is conceptually a user action or domain concept when it has only one Page consumer; prefer colocating insignificant slices with that Page.
+- Move reusable cross-Page workflows to Features, reusable domain concepts and rules to Entities, and broadly reusable technical or UI primitives to Shared.
+
 ## Coding Style
 
 - Prefer clear names and small functions; use comments to preserve intent that the code cannot express on its own.

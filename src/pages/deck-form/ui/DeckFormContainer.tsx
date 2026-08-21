@@ -1,10 +1,10 @@
 import type * as React from "react";
 
-import { useDeckFormState } from "@/features/deck-edit";
 import { routes, useNavigation } from "@/features/navigate";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
+import { useDeckFormState } from "../model/useDeckFormState";
 import { DeckEditor } from "./DeckEditor";
 
 export const DeckFormContainer: React.FC<{ deckId: string }> = ({ deckId }) => {

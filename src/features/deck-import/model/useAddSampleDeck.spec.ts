@@ -63,7 +63,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     useDecks: () => repository.decks,
   };
 });
-vi.mock("@/entities/preferences", () => ({
+vi.mock("@/entities/preference", () => ({
   updatePreferences: (preferences: { loadSample?: boolean }) => {
     if (preferences.loadSample !== undefined) repository.loadSample = preferences.loadSample;
   },

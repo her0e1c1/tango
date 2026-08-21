@@ -6,7 +6,7 @@
 
 import type { LocalCard, RemoteCard } from "@/entities/card/testing";
 import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
+import type { Preferences } from "@/entities/preference";
 
 type AppearancePreferences = Preferences["appearance"];
 type StudyPreferences = Preferences["study"];

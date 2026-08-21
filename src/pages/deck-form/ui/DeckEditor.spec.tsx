@@ -6,8 +6,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck, useDeck } from "@/entities/deck";
-import { useDeckFormState } from "@/features/deck-edit";
 import { createLocalDeck } from "@/test/factories";
+
+import { useDeckFormState } from "../model/useDeckFormState";
 
 const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,

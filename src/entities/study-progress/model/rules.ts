@@ -1,6 +1,6 @@
 import * as lodash from "lodash";
 
-import type { SwipeAction } from "@/entities/preferences/@x/study-progress";
+import type { SwipeAction } from "@/entities/preference/@x/study-progress";
 
 import { createStudyProgress } from "./defaults";
 import type {

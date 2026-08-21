@@ -1,6 +1,6 @@
 import React from "react";
 
-import { startAuthSession } from "@/app/providers/auth/lifecycle";
+import { startAuthSession } from "@/app/auth/lifecycle";
 import { useAuthSession } from "@/entities/auth";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 

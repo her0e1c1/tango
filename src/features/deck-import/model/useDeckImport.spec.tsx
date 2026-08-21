@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
-import { updatePreferences, usePreferences } from "@/entities/preferences";
+import { updatePreferences, usePreferences } from "@/entities/preference";
 import { actAsync } from "@/test/act";
 
 const controls = vi.hoisted(() => ({

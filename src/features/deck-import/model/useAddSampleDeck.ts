@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useAuthUid } from "@/entities/auth";
 import { generateCardId, mutateCards } from "@/entities/card";
 import { createDeck, useDecks } from "@/entities/deck";
-import { updatePreferences, usePreferences } from "@/entities/preferences";
+import { updatePreferences, usePreferences } from "@/entities/preference";
 import sampleCards from "../../../../sample/build/output.json";
 import { executePreparedDeckImport, prepareDeckImport } from "./useDeckImportExecution";
 

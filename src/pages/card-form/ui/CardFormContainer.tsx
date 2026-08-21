@@ -1,10 +1,10 @@
 import type * as React from "react";
 
-import { useCardFormState } from "@/features/card-edit";
 import { useNavigation } from "@/features/navigate";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
+import { useCardFormState } from "../model/useCardFormState";
 import { CardEditor } from "./CardEditor";
 
 export const CardFormContainer: React.FC<{ cardId: string }> = ({ cardId }) => {

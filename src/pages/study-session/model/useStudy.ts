@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
-import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preferences";
+import { toggleShowHeader, toggleShowSwipeButtonList, usePreferences } from "@/entities/preference";
 import { setStudySessionIndex } from "@/entities/study-session";
 
 import { useAutoPlay } from "./useAutoPlay";
