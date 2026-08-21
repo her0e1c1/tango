@@ -4,14 +4,15 @@
  * and interaction rules.
  */
 
+import "github-markdown-css/github-markdown.css";
+import "katex/dist/katex.min.css";
 import type * as React from "react";
-import { Style } from "@/shared/ui/content/Style";
 import Markdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
-import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
-import "katex/dist/katex.min.css";
-import "github-markdown-css/github-markdown.css";
+import remarkMath from "remark-math";
+
+import { Style } from "./Style";
 
 /**
  * Renders the Math Content user interface.

@@ -7,10 +7,11 @@
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
-import { AuthProvider } from "@/app/auth";
-import { FirestoreSubscriptionsProvider } from "@/app/firestore-subscriptions";
-import { AppRoutes } from "@/app/routes";
 import { usePreferences } from "@/entities/preference";
+
+import { AuthProvider } from "./auth";
+import { FirestoreSubscriptionsProvider } from "./firestore-subscriptions";
+import { AppRoutes } from "./routes";
 
 /**
  * Renders the App user interface.

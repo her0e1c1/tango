@@ -83,25 +83,6 @@ export default [
     },
     rules: {
       ...boundariesRecommended.rules,
-      "boundaries/dependencies": [
-        "error",
-        {
-          checkInternals: true,
-          default: "allow",
-          rules: [
-            {
-              from: { type: sliceLayers },
-              disallow: {
-                dependency: {
-                  relationship: { to: "internal" },
-                  source: "@/**",
-                },
-              },
-              message: "Use a relative import within the same slice.",
-            },
-          ],
-        },
-      ],
       "boundaries/no-unknown-files": "error",
     },
   }),

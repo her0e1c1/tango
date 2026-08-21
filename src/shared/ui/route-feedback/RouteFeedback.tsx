@@ -6,8 +6,8 @@
 
 import type * as React from "react";
 
-import { Button, type ButtonVariant } from "@/shared/ui/button";
-import { Layout } from "@/shared/ui/layout";
+import { Button, type ButtonVariant } from "../button";
+import { Layout } from "../layout";
 
 type RouteFeedbackTone = "loading" | "error" | "not-found";
 

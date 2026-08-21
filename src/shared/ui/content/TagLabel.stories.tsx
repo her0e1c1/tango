@@ -6,8 +6,8 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { RemovableTag } from "@/shared/ui/content/RemovableTag";
-import { TagLabel } from "@/shared/ui/content/TagLabel";
+import { RemovableTag } from "./RemovableTag";
+import { TagLabel } from "./TagLabel";
 
 const meta = {
   title: "Shared/Content/TagLabel",

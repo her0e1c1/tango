@@ -26,7 +26,7 @@ interface DeckImportSource {
 interface DeckImportPreparationDependencies {
   uid: string;
   generateDeckId: () => DeckId;
-  generateCardId: () => string;
+  generateCardId: (row: DeckImportRow) => string;
 }
 
 interface DeckImportExecutionDependencies {
@@ -56,10 +56,10 @@ const prepareCardCreations = ({
   destinationId: DeckId;
   uid: string;
   storageMode: DeckImportStorageMode;
-  generateCardId: () => string;
+  generateCardId: (row: DeckImportRow) => string;
 }): CardMutation[] =>
   rows.map((row) => {
-    const cardFields = { ...row.card, id: generateCardId(), deckId: destinationId };
+    const cardFields = { ...row.card, id: generateCardId(row), deckId: destinationId };
     // Local persistence stays account-agnostic; Card mutation routing follows the parent Deck's localMode.
     const card = storageMode === "local" ? cardFields : { ...cardFields, uid };
     return { kind: "create", card };

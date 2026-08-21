@@ -6,10 +6,11 @@
 
 import cx from "classnames";
 import * as React from "react";
-import { Style } from "@/shared/ui/content/Style";
 // biome-ignore lint/correctness/noUnresolvedImports: highlight.js exposes this default through its ESM export map.
 import hljs from "highlight.js";
+
 import "./Code.scss";
+import { Style } from "./Style";
 
 /**
  * Renders the Highlight user interface.

@@ -31,6 +31,8 @@ const DEFAULT_CONTROLS = {
   cardSwipeRight: "GoToNextCard" as const,
 };
 
+const DEFAULT_LOAD_SAMPLE = true;
+
 export const swipeActionSchema = z.enum([
   "DoNothing",
   "GoBack",
@@ -86,11 +88,13 @@ export const controlPreferencesSchema = z
 
 export const preferencesSchema = z
   .object({
+    loadSample: z.boolean().catch(DEFAULT_LOAD_SAMPLE),
     appearance: appearancePreferencesSchema,
     study: studyPreferencesSchema,
     controls: controlPreferencesSchema,
   })
   .catch({
+    loadSample: DEFAULT_LOAD_SAMPLE,
     appearance: DEFAULT_APPEARANCE,
     study: DEFAULT_STUDY,
     controls: DEFAULT_CONTROLS,

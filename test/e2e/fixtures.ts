@@ -23,6 +23,7 @@ const emulatorToken = (uid: string) => {
 };
 
 export const e2eConfig = {
+  loadSample: true,
   appearance: {
     darkMode: false,
     showHeader: true,
