@@ -1,9 +1,11 @@
 # Pages Instructions
 
 - Keep URL routes and exported Page components one-to-one: each route renders one dedicated Page, and each Page serves one route.
-- Treat Pages as route-level composition boundaries. Pages may read route params, own navigation and screen shortcuts, and compose Feature or Widget state and UI.
-- Do not import Entities from Pages, including type-only imports. Pass route parameters as strings and let Feature models resolve Entity state, existence, commands, and Entity-specific transformations.
-- Keep Page components concise and orchestration-only. Compose lower-layer UI and connect navigation callbacks; do not implement reusable domain rules or complex Feature workflows in Pages.
-- Move reusable business logic and Feature-specific workflows to the appropriate `entities` or `features/model` layer, then invoke them from the Page.
-- Do not define custom hooks in `src/pages`. Use framework or library hooks such as `useParams`, `useNavigate`, and `useKey`, or existing hooks exposed by lower layers.
+- Keep screen-specific presentation, state connections, workflows, and composition in the corresponding Page slice.
+- Name the route entry and composition boundary `*Page.tsx`. A Page may read route params, own navigation and screen shortcuts, and connect to lower-layer hooks and stores.
+- Name a Page-internal state or workflow connection boundary `*Container.tsx`. Add a Container only when splitting the Page makes the connection boundary clearer; a small Page may pass props directly to presentational components.
+- Keep every other component under `ui/` presentational by default. It receives prepared data through props, reports user intent through callbacks, and must not connect to application or domain hooks, stores, mutations, or workflows. UI-only local state and presentation-supporting React or library hooks are allowed.
+- Pages and their Containers may import lower FSD layers, including Entities, through public APIs. Do not introduce a Feature solely to detour around a lower-layer import.
+- Keep reusable domain rules in `entities` and independently meaningful user workflows in `features`; Page-specific models must not duplicate or absorb those responsibilities.
 - Own screen-level keyboard shortcut mappings and registration in `src/pages`. Use `useKey` directly and delegate shortcut actions to lower layers.
+- Organize `ui/` subdirectories by UI meaning, such as `toolbar`, rather than technical categories such as `component` or `container`.

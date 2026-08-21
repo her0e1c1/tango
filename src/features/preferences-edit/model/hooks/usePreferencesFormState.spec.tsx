@@ -8,7 +8,6 @@ import "@testing-library/jest-dom/vitest";
 import { setDarkMode, updatePreferences, usePreferences } from "@/entities/preferences";
 import { createPreferences } from "@/test/factories";
 
-import { SettingsForm } from "../../ui/SettingsForm";
 import { usePreferencesFormState } from "./usePreferencesFormState";
 
 const preferences = createPreferences({
@@ -24,13 +23,16 @@ const preferences = createPreferences({
   cardInterval: 0,
 });
 
-const SettingsFormHarness: React.FC = () => {
+const PreferencesFormHarness: React.FC = () => {
   const formState = usePreferencesFormState();
   const savedPreferences = usePreferences();
 
   return (
     <>
-      <SettingsForm {...formState} />
+      <input aria-label="Show header" type="checkbox" {...formState.fields.showHeader} />
+      <input aria-label="Dark mode" type="checkbox" {...formState.fields.darkMode} />
+      <input aria-label="Maximum cards" type="range" {...formState.fields.maxNumberOfCardsToLearn} />
+      <input aria-label="Autoplay interval" type="range" {...formState.fields.cardInterval} />
       <output aria-label="Saved header preference">{String(savedPreferences.appearance.showHeader)}</output>
       <output aria-label="Saved maximum cards">{savedPreferences.study.maxNumberOfCardsToLearn}</output>
       <output aria-label="Saved autoplay interval">{savedPreferences.study.cardInterval}</output>
@@ -38,13 +40,13 @@ const SettingsFormHarness: React.FC = () => {
   );
 };
 
-describe("SettingsForm with usePreferencesFormState", () => {
+describe("usePreferencesFormState", () => {
   beforeEach(() => {
     updatePreferences(preferences);
   });
 
   it("saves boolean and numeric changes as the user edits them", async () => {
-    render(<SettingsFormHarness />);
+    render(<PreferencesFormHarness />);
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
     fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
@@ -62,7 +64,7 @@ describe("SettingsForm with usePreferencesFormState", () => {
   });
 
   it("reflects a theme change saved elsewhere in the application", async () => {
-    render(<SettingsFormHarness />);
+    render(<PreferencesFormHarness />);
     expect(screen.getByRole("checkbox", { name: "Dark mode" })).not.toBeChecked();
 
     act(() => {

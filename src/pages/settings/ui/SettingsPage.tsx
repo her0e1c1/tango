@@ -1,12 +1,14 @@
 import type * as React from "react";
 import { useKey } from "react-use";
 
-import { SettingsForm, usePreferencesFormState } from "@/features/preferences-edit";
+import { usePreferencesFormState } from "@/features/preferences-edit";
 import { useSignIn } from "@/features/sign-in";
 import { useSignOut } from "@/features/sign-out";
 import { routes, useNavigation } from "@/features/navigate";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
+
+import { SettingsForm } from "./SettingsForm";
 
 export const SettingsPage: React.FC = () => {
   const navigation = useNavigation();

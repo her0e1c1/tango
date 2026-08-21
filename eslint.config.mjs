@@ -147,9 +147,14 @@ export default [
       ],
     },
   },
+  // Only Page and Container names declare UI boundaries that may connect to application or domain state.
   {
-    files: ["src/pages/**/*.{ts,tsx}"],
-    ignores: testFiles,
+    files: ["src/pages/*/ui/**/*.{ts,tsx}"],
+    ignores: [
+      ...testFiles,
+      "src/pages/*/ui/**/*Page.{ts,tsx}",
+      "src/pages/*/ui/**/*Container.{ts,tsx}",
+    ],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -157,8 +162,32 @@ export default [
           patterns: [
             {
               group: ["@/entities", "@/entities/*"],
-              message:
-                "Pages must not import Entities directly. Pass route parameters to Features and let Features own Entity access.",
+              allowTypeImports: true,
+              message: "Presentational Page UI must receive Entity data and actions through props.",
+            },
+            {
+              group: ["@/features", "@/features/*"],
+              importNamePattern: "^use[A-Z]",
+              allowTypeImports: true,
+              message: "Only a Page or Container may connect to a Feature hook.",
+            },
+            {
+              group: [
+                "../hooks",
+                "../hooks/*",
+                "../model",
+                "../model/*",
+                "../../hooks",
+                "../../hooks/*",
+                "../../model",
+                "../../model/*",
+                "../../../hooks",
+                "../../../hooks/*",
+                "../../../model",
+                "../../../model/*",
+              ],
+              allowTypeImports: true,
+              message: "Presentational Page UI must receive Page state and workflows through props.",
             },
           ],
         },

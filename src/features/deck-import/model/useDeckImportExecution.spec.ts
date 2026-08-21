@@ -2,8 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { createCard, createDeck, createLocalCard, createLocalDeck } from "@/test/factories";
-import { prepareDeckImport } from "./useDeckImportExecution";
+import { executePreparedDeckImport, prepareDeckImport } from "./useDeckImportExecution";
 
 describe("prepareDeckImport", () => {
   const row = {
@@ -12,93 +11,101 @@ describe("prepareDeckImport", () => {
   };
   const rows = [row];
 
-  it("prepares a Card creation and its preview action together", () => {
+  it("prepares a new remote Deck and Card creations", () => {
     const preparedImport = prepareDeckImport(
       { name: "deck.csv", rows },
-      { uid: "uid", decks: [], cards: [], generateCardId: vi.fn(() => "card") }
+      {
+        uid: "uid",
+        generateDeckId: vi.fn(() => "deck"),
+        generateCardId: vi.fn(() => "card"),
+      }
     );
 
-    expect(preparedImport.plan).toMatchObject({ created: 1, updated: 0, unchanged: 0 });
+    expect(preparedImport.destination).toEqual({ id: "deck", uid: "uid", name: "deck.csv" });
     expect(preparedImport.mutations).toEqual([
-      { kind: "create", card: expect.objectContaining({ id: "card", uniqueKey: "key-1" }) },
+      {
+        kind: "create",
+        card: { ...row.card, id: "card", deckId: "deck", uid: "uid" },
+      },
     ]);
   });
 
-  it("prepares an update from the Card with the same unique key", () => {
-    const deck = createDeck({ id: "deck", name: "deck.csv", uid: "uid" });
-    const existing = createCard({
-      id: "existing",
-      deckId: deck.id,
-      uid: deck.uid,
-      frontText: "before",
-      uniqueKey: "key-1",
-    });
-    const preparedImport = prepareDeckImport(
-      { name: deck.name, rows },
-      { uid: deck.uid, decks: [deck], cards: [existing], generateCardId: vi.fn() }
-    );
+  it("generates a new destination for every preparation", () => {
+    const generateDeckId = vi.fn().mockReturnValueOnce("deck-1").mockReturnValueOnce("deck-2");
+    const dependencies = {
+      uid: "uid",
+      generateDeckId,
+      generateCardId: vi.fn().mockReturnValueOnce("card-1").mockReturnValueOnce("card-2"),
+    };
 
-    expect(preparedImport.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
-    expect(preparedImport.mutations).toEqual([
-      { kind: "edit", card: expect.objectContaining({ id: existing.id, frontText: "front" }) },
-    ]);
-  });
+    const first = prepareDeckImport({ name: "same.csv", rows }, dependencies);
+    const second = prepareDeckImport({ name: "same.csv", rows }, dependencies);
 
-  it("skips a Card with identical editable content", () => {
-    const deck = createDeck({ id: "deck", name: "deck.csv", uid: "uid" });
-    const existing = createCard({ ...row.card, deckId: deck.id, uid: deck.uid });
-    const preparedImport = prepareDeckImport(
-      { name: deck.name, rows },
-      { uid: deck.uid, decks: [deck], cards: [existing], generateCardId: vi.fn() }
-    );
-
-    expect(preparedImport.plan).toMatchObject({ created: 0, updated: 0, unchanged: 1 });
-    expect(preparedImport.mutations).toEqual([]);
+    expect(first.destination.id).toBe("deck-1");
+    expect(second.destination.id).toBe("deck-2");
+    expect(first.mutations[0]).toMatchObject({ kind: "create", card: { id: "card-1", deckId: "deck-1" } });
+    expect(second.mutations[0]).toMatchObject({ kind: "create", card: { id: "card-2", deckId: "deck-2" } });
   });
 
   it("prepares local Deck and Card creation without an account owner", () => {
     const preparedImport = prepareDeckImport(
       { name: "local.csv", rows, storageMode: "local" },
-      { uid: "", decks: [], cards: [], generateCardId: vi.fn(() => "local-card") }
+      {
+        uid: "",
+        generateDeckId: vi.fn(() => "local-deck"),
+        generateCardId: vi.fn(() => "local-card"),
+      }
     );
 
-    expect(preparedImport.destination).toEqual({ id: expect.any(String), name: "local.csv", localMode: true });
+    expect(preparedImport.destination).toEqual({ id: "local-deck", name: "local.csv", localMode: true });
     expect(preparedImport.mutations).toEqual([
       {
         kind: "create",
-        card: {
-          ...row.card,
-          id: "local-card",
-          deckId: preparedImport.destination.id,
-        },
+        card: { ...row.card, id: "local-card", deckId: "local-deck" },
       },
     ]);
   });
 
-  it("plans a local re-import from only the matching local Deck", () => {
-    const remoteDeck = createDeck({ id: "remote", name: "shared.csv", uid: "uid" });
-    const localDeck = createLocalDeck({ id: "local", name: "shared.csv" });
-    const remoteCard = createCard({ ...row.card, id: "remote-card", deckId: remoteDeck.id, uid: remoteDeck.uid });
-    const localCard = createLocalCard({
-      ...row.card,
-      id: "local-card",
-      deckId: localDeck.id,
-      frontText: "before",
-    });
-    const preparedImport = prepareDeckImport(
-      { name: localDeck.name, rows, storageMode: "local" },
-      {
-        uid: "uid",
-        decks: [remoteDeck, localDeck],
-        cards: [remoteCard, localCard],
-        generateCardId: vi.fn(),
-      }
-    );
+  it("requires a confirmed user for a remote import", () => {
+    expect(() =>
+      prepareDeckImport(
+        { name: "remote.csv", rows },
+        { uid: "", generateDeckId: vi.fn(() => "deck"), generateCardId: vi.fn(() => "card") }
+      )
+    ).toThrow("A confirmed user is required for remote imports");
+  });
+});
 
-    expect(preparedImport.destination.id).toBe(localDeck.id);
-    expect(preparedImport.plan).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
-    expect(preparedImport.mutations).toEqual([
-      { kind: "edit", card: expect.objectContaining({ id: localCard.id, frontText: "front" }) },
-    ]);
+describe("executePreparedDeckImport", () => {
+  it("creates the prepared Deck before its Cards", async () => {
+    const preparedImport = prepareDeckImport(
+      {
+        name: "deck.csv",
+        rows: [
+          {
+            rowNumber: 1,
+            card: { frontText: "front", backText: "back", tags: [], uniqueKey: "key" },
+          },
+        ],
+      },
+      { uid: "uid", generateDeckId: () => "deck", generateCardId: () => "card" }
+    );
+    const calls: string[] = [];
+    const createDeck = vi.fn(() => {
+      calls.push("deck");
+      return Promise.resolve();
+    });
+    const mutateCards = vi.fn(() => {
+      calls.push("cards");
+      return Promise.resolve();
+    });
+
+    await expect(executePreparedDeckImport(preparedImport, { uid: "uid", createDeck, mutateCards })).resolves.toEqual({
+      created: 1,
+      deckId: "deck",
+    });
+    expect(calls).toEqual(["deck", "cards"]);
+    expect(createDeck).toHaveBeenCalledWith(preparedImport.destination);
+    expect(mutateCards).toHaveBeenCalledWith(preparedImport.mutations);
   });
 });

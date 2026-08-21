@@ -6,8 +6,6 @@ import {
   filterCardsByDeckId,
   filterTagsByDeckId,
   getCardContentValidationErrors,
-  hasSameEditableCardContent,
-  indexCardsByUniqueKey,
   mustFindCardById,
 } from "./rules";
 
@@ -51,30 +49,6 @@ describe("filterCardsByDeckId", () => {
     const card3 = createCard({ id: "card-3", deckId: "deck-a" });
 
     expect(filterCardsByDeckId([card1, card2, card3], "deck-a")).toEqual([card1, card3]);
-  });
-});
-
-describe("indexCardsByUniqueKey", () => {
-  it("indexes Cards by their domain key", () => {
-    const target = createCard({ uniqueKey: "target" });
-
-    expect(indexCardsByUniqueKey([target]).get("target")).toBe(target);
-  });
-});
-
-describe("hasSameEditableCardContent", () => {
-  it("ignores persistence fields while comparing editable content", () => {
-    const left = createCard({ id: "left", frontText: "front", backText: "back", tags: ["tag"] });
-    const right = createCard({ id: "right", frontText: "front", backText: "back", tags: ["tag"] });
-
-    expect(hasSameEditableCardContent(left, right)).toBe(true);
-  });
-
-  it("detects changed editable content", () => {
-    const left = createCard({ backText: "before" });
-    const right = createCard({ backText: "after" });
-
-    expect(hasSameEditableCardContent(left, right)).toBe(false);
   });
 });
 

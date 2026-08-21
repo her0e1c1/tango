@@ -1,10 +1,9 @@
-import type { Card } from "@/entities/card";
-import type { Deck, DeckId } from "@/entities/deck";
+import type { DeckId } from "@/entities/deck";
 
 import { useEffect } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { generateCardId, mutateCards, useCards } from "@/entities/card";
+import { generateCardId, mutateCards } from "@/entities/card";
 import { createDeck, useDecks } from "@/entities/deck";
 import { updatePreferences, usePreferences } from "@/entities/preferences";
 import sampleCards from "../../../../sample/build/output.json";
@@ -17,8 +16,6 @@ const SAMPLE_DECK_ID: DeckId = `sample-v${String(SAMPLE_VERSION)}`;
 let pendingSampleDeckImport: Promise<unknown> | undefined;
 
 interface SampleDeckPreparationOptions {
-  cards: Card[];
-  decks: Deck[];
   generateCardId: () => string;
 }
 
@@ -26,11 +23,10 @@ export const prepareSampleDeck = (uid: string, options: SampleDeckPreparationOpt
   prepareDeckImport(
     {
       name: SAMPLE_DECK_NAME,
-      preferredDeckId: SAMPLE_DECK_ID,
       rows: sampleCards.map((card, index) => ({ rowNumber: index + 1, card })),
       storageMode: "local",
     },
-    { uid, ...options }
+    { uid, generateDeckId: () => SAMPLE_DECK_ID, ...options }
   );
 
 const startSampleDeckImport = (importSample: () => Promise<unknown>): Promise<unknown> => {
@@ -51,7 +47,6 @@ const startSampleDeckImport = (importSample: () => Promise<unknown>): Promise<un
 
 export const useAddSampleDeck = () => {
   const uid = useAuthUid();
-  const cards = useCards();
   const decks = useDecks();
   const { loadSample } = usePreferences();
 
@@ -60,11 +55,11 @@ export const useAddSampleDeck = () => {
 
     // Bootstrap is opportunistic and must not block the Deck list when local persistence fails.
     void startSampleDeckImport(() =>
-      executePreparedDeckImport(prepareSampleDeck(uid, { cards, decks, generateCardId }), {
+      executePreparedDeckImport(prepareSampleDeck(uid, { generateCardId }), {
         uid,
         createDeck: (deck) => createDeck(uid, deck),
         mutateCards: (mutations) => mutateCards(uid, mutations),
       })
     ).catch(() => undefined);
-  }, [cards, decks, loadSample, uid]);
+  }, [decks, loadSample, uid]);
 };

@@ -1,2 +1,2 @@
-export { CardEditForm } from "./ui/CardEditForm";
-export { useCardFormState } from "./model/useCardFormState";
+export { type CardFormProps, useCardFormState } from "./model/useCardFormState";
+export { CardForm } from "./ui/CardForm";

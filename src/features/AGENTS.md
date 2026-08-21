@@ -1,10 +1,16 @@
 # Features Instructions
 
+## Slice scope
+
+- Keep a Feature only when it represents an independently meaningful user action or workflow that a Page can compose.
+- Do not create or retain a Feature merely as a home for Page-specific presentation, a props-driven Storybook target, or a single Page's connection boundary.
+- Move Page-specific presentation and orchestration to the owning Page slice, while keeping reusable domain state and rules in Entities.
+
 ## `model/`
 
 - Do not implement or duplicate domain logic owned by an Entity. Entity-owned logic is logic that remains valid independently of a specific Feature or UI.
 - If needed, expose Entity-owned logic from `entities` and consume it here.
-- Feature-specific workflows may coordinate multiple Entities.
+- An independently meaningful Feature workflow may coordinate multiple Entities.
 - For list/view Features, define UI-facing interfaces and map Entity data to them without reimplementing Entity rules.
 - For edit Features, define UI-facing form interfaces and map Entity data and constraints to form state/input without reimplementing Entity rules.
 

@@ -31,16 +31,6 @@ export const getCardContentValidationErrors = (card: CardRaw): Partial<Record<ke
 export const filterCardsByDeckId = (cards: Card[], deckId: string): Card[] =>
   cards.filter((card) => card.deckId === deckId);
 
-// Indexes Cards by import identity; when keys repeat, the last Card intentionally becomes the lookup result.
-export const indexCardsByUniqueKey = <T extends Card>(cards: readonly T[]): Map<string, T> =>
-  new Map(cards.map((card) => [card.uniqueKey, card]));
-
-// Compares imported content only; uniqueKey identifies the target rather than content that an import can change.
-export const hasSameEditableCardContent = (left: CardRaw, right: CardRaw): boolean =>
-  left.frontText === right.frontText &&
-  left.backText === right.backText &&
-  left.tags.join("\0") === right.tags.join("\0");
-
 // Collects unique tags for one Deck and sorts them so filter controls receive a deterministic order.
 export const filterTagsByDeckId = (cards: Card[], deckId: string): string[] =>
   [...new Set(filterCardsByDeckId(cards, deckId).flatMap((card) => card.tags))].sort();

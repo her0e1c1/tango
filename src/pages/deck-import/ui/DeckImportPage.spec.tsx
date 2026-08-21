@@ -103,7 +103,7 @@ describe("DeckImportPage", () => {
 
     await selectLocalFile(name, "saved back");
 
-    expect(screen.getByText("1 create")).toBeVisible();
+    expect(screen.getByText("1 valid")).toBeVisible();
     expect(screen.queryByRole("heading", { level: 1, name: "Deck list destination" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
@@ -112,7 +112,7 @@ describe("DeckImportPage", () => {
     expect(screen.getByText("front: saved back")).toBeVisible();
   });
 
-  it("shows a failed save in place and completes after the file is selected again", async () => {
+  it("shows a failed save in place and retries the same import", async () => {
     const name = "page-behavior-retry.csv";
     renderPage();
     await selectLocalFile(name, "retry back");
@@ -124,13 +124,6 @@ describe("DeckImportPage", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("card mutation failed");
     expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
 
-    fireEvent.change(screen.getByLabelText(/Upload a csv file/), {
-      target: {
-        files: [new File(['"front","retry back","tag","key"'], name, { type: "text/csv" })],
-      },
-    });
-    expect(await screen.findByRole("heading", { level: 2, name: "Review import" })).toBeVisible();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
