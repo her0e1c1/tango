@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
+import { updatePreferences, usePreferences } from "@/entities/preference";
 import { actAsync } from "@/test/act";
 
 const controls = vi.hoisted(() => ({
@@ -39,6 +40,7 @@ const renderDeckImport = () =>
     deckImport: useDeckImport(),
     decks: useDecks(),
     cards: useCards(),
+    preferences: usePreferences(),
   }));
 
 const findDeck = (decks: Deck[], name: string) => decks.find((deck) => deck.name === name);
@@ -47,6 +49,7 @@ describe("useDeckImport", () => {
   beforeEach(() => {
     controls.uid = "";
     controls.nextMutationError = undefined;
+    updatePreferences({ loadSample: true });
   });
 
   it("previews a local CSV before saving its Deck and Cards", async () => {
@@ -155,5 +158,33 @@ describe("useDeckImport", () => {
     expect(result.current.deckImport.result).toMatchObject({ created: 1 });
     expect(result.current.decks.filter((deck) => deck.name === name)).toHaveLength(1);
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toHaveLength(1);
+  });
+
+  it("adds the sample to local storage and disables its automatic bootstrap", async () => {
+    const { result } = renderDeckImport();
+
+    await actAsync(async () => result.current.deckImport.addSample());
+
+    const sampleDeck = findDeck(result.current.decks, "Sample Deck");
+    expect(sampleDeck).toMatchObject({ id: "sample-v1", localMode: true });
+    expect(result.current.cards.filter((card) => card.deckId === sampleDeck?.id)).not.toEqual([]);
+    expect(
+      result.current.cards.filter((card) => card.deckId === sampleDeck?.id).every((card) => !("uid" in card))
+    ).toBe(true);
+    expect(result.current.preferences.loadSample).toBe(false);
+  });
+
+  it("keeps repeated sample imports idempotent", async () => {
+    const { result } = renderDeckImport();
+
+    await actAsync(async () => result.current.deckImport.addSample());
+    const firstCards = result.current.cards.filter((card) => card.deckId === "sample-v1");
+    const firstCardIds = firstCards.map((card) => card.id);
+
+    await actAsync(async () => result.current.deckImport.addSample());
+    const repeatedCards = result.current.cards.filter((card) => card.deckId === "sample-v1");
+
+    expect(repeatedCards).toHaveLength(firstCards.length);
+    expect(repeatedCards.map((card) => card.id)).toEqual(firstCardIds);
   });
 });

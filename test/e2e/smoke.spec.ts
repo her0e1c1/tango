@@ -24,6 +24,29 @@ test("shows the deck list smoke screen", async ({ page }) => {
 
   await expect(page.getByText("tango")).toBeVisible();
   await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();
+  const sampleState = await page.evaluate(() => {
+    const preferences = JSON.parse(window.localStorage.getItem("tango-config") ?? "{}").state?.preferences;
+    const decks = JSON.parse(window.localStorage.getItem("tango-local-decks") ?? "{}").state?.localDecks ?? [];
+    const cards = JSON.parse(window.localStorage.getItem("tango-local-cards") ?? "{}").state?.localCards ?? [];
+    const sampleDeck = decks.find((deck: { name?: string }) => deck.name === "Sample Deck");
+    return {
+      loadSample: preferences?.loadSample,
+      localMode: sampleDeck?.localMode,
+      createdAt: sampleDeck?.createdAt,
+      cardCount: cards.filter((card: { deckId?: string }) => card.deckId === sampleDeck?.id).length,
+    };
+  });
+  expect(sampleState).toMatchObject({ loadSample: false, localMode: true });
+  expect(sampleState.cardCount).toBeGreaterThan(0);
+
+  await page.reload();
+
+  await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();
+  const reloadedCreatedAt = await page.evaluate(() => {
+    const decks = JSON.parse(window.localStorage.getItem("tango-local-decks") ?? "{}").state?.localDecks ?? [];
+    return decks.find((deck: { name?: string }) => deck.name === "Sample Deck")?.createdAt;
+  });
+  expect(reloadedCreatedAt).toBe(sampleState.createdAt);
   await page.evaluate(() => window.assertNoBrowserErrors());
 });
 
