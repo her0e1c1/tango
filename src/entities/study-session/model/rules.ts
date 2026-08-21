@@ -1,5 +1,5 @@
 import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
-import type { SwipeAction } from "@/entities/preferences/@x/study-session";
+import type { SwipeAction } from "@/entities/preference/@x/study-session";
 import {
   type CardProgressFields,
   createStudyProgressFromCard,

@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import type { DeckFormProps } from "@/features/deck-edit";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
+import type { DeckFormProps } from "../model/useDeckFormState";
 import { DeckEditor } from "./DeckEditor";
 
 const longDeck = {

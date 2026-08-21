@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
+import type { Preferences } from "@/entities/preference";
 import {
   clearStudySessions,
   getStudySession,
@@ -25,8 +25,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-1" }));
-vi.mock("@/entities/preferences", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/preferences")>()),
+vi.mock("@/entities/preference", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/preference")>()),
   usePreferences: () => {
     if (mocks.preferences == null) throw new Error("Preferences not initialized");
     return mocks.preferences;

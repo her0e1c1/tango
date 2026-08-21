@@ -1,4 +1,4 @@
-import type { SwipeDirection } from "@/entities/preferences";
+import type { SwipeDirection } from "@/entities/preference";
 
 import * as React from "react";
 

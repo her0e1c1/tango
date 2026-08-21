@@ -1,6 +1,6 @@
 import { useCardsByDeckId } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { usePreferences } from "@/entities/preferences";
+import { usePreferences } from "@/entities/preference";
 import { selectStudyCards, startStudy } from "@/entities/study-session";
 
 export const useStudySessionStartState = (deck: Deck) => {
