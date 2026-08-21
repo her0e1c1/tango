@@ -6,13 +6,13 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { setDarkMode, updatePreferences } from "@/entities/preferences";
+import { setDarkMode, updatePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
-vi.mock("@/app/providers/auth", () => ({
+vi.mock("@/app/auth", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
-vi.mock("@/app/providers/firestore-subscriptions", () => ({
+vi.mock("@/app/firestore-subscriptions", () => ({
   FirestoreSubscriptionsProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));

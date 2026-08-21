@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
-import { updatePreferences } from "@/entities/preferences";
+import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 

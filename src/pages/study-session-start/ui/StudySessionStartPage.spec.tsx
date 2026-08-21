@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
+import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -27,7 +27,7 @@ vi.mock("@/entities/deck", () => ({
   isDeckTagSelectionMatching: () => true,
   useDeck: () => mocks.deck ?? undefined,
 }));
-vi.mock("@/entities/preferences", () => ({
+vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));

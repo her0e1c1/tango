@@ -6,7 +6,7 @@
 
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
+import type { Preferences } from "@/entities/preference";
 
 import type { Option } from "@/shared/ui/forms/Select";
 import { createCard, createDeck, createPreferences } from "@/test/factories";

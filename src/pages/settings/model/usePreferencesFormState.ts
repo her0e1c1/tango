@@ -1,4 +1,4 @@
-import { studyPreferencesLimits, type Preferences, updatePreferences, usePreferences } from "@/entities/preferences";
+import { studyPreferencesLimits, type Preferences, updatePreferences, usePreferences } from "@/entities/preference";
 
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";

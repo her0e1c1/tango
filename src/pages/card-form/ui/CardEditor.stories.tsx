@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import type { CardFormProps } from "@/features/card-edit";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
+import type { CardFormProps } from "../model/useCardFormState";
 import { CardEditor } from "./CardEditor";
 
 const longCard = {

@@ -2,14 +2,15 @@ import type * as React from "react";
 import { useKey } from "react-use";
 
 import { touchStudySession } from "@/entities/study-session";
-import { DeckDeletionDialog, useDeckDeletion } from "@/features/deck-delete";
-import { useDeckExport } from "@/features/deck-export";
 import { useAddSampleDeck } from "@/features/deck-import";
 import { routes, useNavigation } from "@/features/navigate";
 import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
+import { useDeckDeletion } from "../model/useDeckDeletion";
+import { useDeckExport } from "../model/useDeckExport";
 import { useDeckListState } from "../model/useDeckListState";
+import { DeckDeletionDialog } from "./DeckDeletionDialog";
 import { DeckList } from "./DeckList";
 
 export const DeckListPage: React.FC = () => {

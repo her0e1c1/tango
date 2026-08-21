@@ -1,6 +1,6 @@
 import { useCard } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
-import { usePreferences } from "@/entities/preferences";
+import { usePreferences } from "@/entities/preference";
 
 import { buildCardViewContent } from "./buildCardViewContent";
 

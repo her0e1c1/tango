@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
-import { setDarkMode, updatePreferences } from "@/entities/preferences";
+import { setDarkMode, updatePreferences } from "@/entities/preference";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 import { useCardViewContent } from "./useCardViewContent";

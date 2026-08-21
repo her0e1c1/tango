@@ -1,6 +1,6 @@
 import cx from "classnames";
 import type * as React from "react";
-import type { SwipeDirection } from "@/entities/preferences";
+import type { SwipeDirection } from "@/entities/preference";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";

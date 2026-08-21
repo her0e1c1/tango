@@ -1,4 +1,4 @@
-import type { Preferences } from "@/entities/preferences";
+import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -25,7 +25,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 
   return { ...original, deleteDeck: mocks.deleteDeck };
 });
-vi.mock("@/entities/preferences", () => ({
+vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));

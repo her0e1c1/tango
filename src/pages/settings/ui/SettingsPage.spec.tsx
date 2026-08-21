@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
-import { updatePreferences } from "@/entities/preferences";
+import { updatePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
 import { SettingsPage } from "./SettingsPage";
