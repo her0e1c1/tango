@@ -12,6 +12,7 @@ import { createCard, createDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   deleteCard: vi.fn(),
+  editDeck: vi.fn(),
   editStudyProgress: vi.fn(),
   deck: undefined as Deck | undefined,
   cards: [] as Card[],
@@ -32,6 +33,7 @@ vi.mock("@/entities/card", async (importOriginal) => ({
 }));
 vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
+  editDeck: mocks.editDeck,
   useDeck: () => mocks.deck,
 }));
 vi.mock("@/entities/preferences", async (importOriginal) => ({
@@ -99,6 +101,7 @@ describe("CardListContainer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.deleteCard.mockResolvedValue(undefined);
+    mocks.editDeck.mockResolvedValue(undefined);
     mocks.editStudyProgress.mockResolvedValue(undefined);
   });
 
