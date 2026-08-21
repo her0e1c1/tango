@@ -77,7 +77,7 @@
     "@rolldown/plugin-babel": "^0.2.3",
     "@storybook/addon-docs": "^10.4.6",
     "@storybook/addon-links": "^10.4.6",
-    "@storybook/addon-themes": "^10.4.6",
+    "@storybook/addon-themes": "^10.5.9",
     "@storybook/addon-vitest": "^10.4.6",
     "@storybook/react": "^10.4.6",
     "@storybook/react-vite": "^10.4.6",
