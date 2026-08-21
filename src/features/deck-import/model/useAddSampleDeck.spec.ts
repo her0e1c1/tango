@@ -12,7 +12,6 @@ const repository = vi.hoisted(() => ({
   cards: [] as Card[],
   decks: [] as Deck[],
   loadSample: true,
-  nextCardNumber: 1,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -21,16 +20,10 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    generateCardId: () => {
-      const cardNumber = repository.nextCardNumber;
-      repository.nextCardNumber += 1;
-      return `sample-card-${String(cardNumber)}`;
-    },
     mutateCards: (_uid: string, mutations: CardMutation[]) => {
-      repository.cards = [
-        ...repository.cards,
-        ...mutations.flatMap((mutation) => (mutation.kind === "create" ? [mutation.card as Card] : [])),
-      ];
+      const createdCards = mutations.flatMap((mutation) => (mutation.kind === "create" ? [mutation.card as Card] : []));
+      const createdIds = new Set(createdCards.map((card) => card.id));
+      repository.cards = [...repository.cards.filter((card) => !createdIds.has(card.id)), ...createdCards];
       return Promise.resolve();
     },
     useCards: () => repository.cards,
@@ -57,7 +50,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
       const savedDeck: Deck = deck.localMode
         ? { ...fields, localMode: true }
         : { ...fields, uid: deck.uid, localMode: false };
-      repository.decks = [...repository.decks, savedDeck];
+      repository.decks = [...repository.decks.filter(({ id }) => id !== savedDeck.id), savedDeck];
       return Promise.resolve();
     },
     useDecks: () => repository.decks,
@@ -80,7 +73,6 @@ describe("useAddSampleDeck", () => {
     repository.cards = [];
     repository.decks = [];
     repository.loadSample = true;
-    repository.nextCardNumber = 1;
   });
 
   it("persists the sample locally without a signed-in user", async () => {

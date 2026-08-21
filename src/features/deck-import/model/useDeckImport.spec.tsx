@@ -173,4 +173,18 @@ describe("useDeckImport", () => {
     ).toBe(true);
     expect(result.current.preferences.loadSample).toBe(false);
   });
+
+  it("keeps repeated sample imports idempotent", async () => {
+    const { result } = renderDeckImport();
+
+    await actAsync(async () => result.current.deckImport.addSample());
+    const firstCards = result.current.cards.filter((card) => card.deckId === "sample-v1");
+    const firstCardIds = firstCards.map((card) => card.id);
+
+    await actAsync(async () => result.current.deckImport.addSample());
+    const repeatedCards = result.current.cards.filter((card) => card.deckId === "sample-v1");
+
+    expect(repeatedCards).toHaveLength(firstCards.length);
+    expect(repeatedCards.map((card) => card.id)).toEqual(firstCardIds);
+  });
 });

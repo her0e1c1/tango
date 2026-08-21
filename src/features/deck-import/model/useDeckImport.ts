@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { generateCardId } from "@/entities/card";
 import { updatePreferences, usePreferences } from "@/entities/preference";
 import { prepareSampleDeck } from "./useAddSampleDeck";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
@@ -52,7 +51,7 @@ export const useDeckImport = () => {
   };
 
   const addSample = async () => {
-    const result = await runImport(() => prepareSampleDeck(uid, { generateCardId }));
+    const result = await runImport(() => prepareSampleDeck(uid));
     // Explicit imports remain available, but a successful one also satisfies the automatic bootstrap permanently.
     updatePreferences({ loadSample: false });
     return result;
