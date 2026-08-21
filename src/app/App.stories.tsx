@@ -19,7 +19,7 @@ const page = (path: string, overrides: Partial<Omit<PageStoryParameters, "path">
 });
 
 const meta = {
-  title: "Page",
+  title: "Integration/Routes",
   component: AppRoutes,
   decorators: [withPageStory],
   loaders: [

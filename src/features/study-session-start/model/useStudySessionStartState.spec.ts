@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
@@ -75,18 +75,17 @@ describe("useStudySessionStartState", () => {
   });
 
   it("starts the stored Deck with its eligible Cards and Study preferences", () => {
-    const { result } = renderHook(() => useStudySessionStartState(deck.id));
+    const { result } = renderHook(() => useStudySessionStartState(deck));
 
     expect(result.current).toMatchObject({
       deckName: "Japanese vocabulary",
       maxNumberOfCardsToLearn: 12,
-      rawCardsLength: 4,
       cardsLength: 1,
       tags: ["eligible", "later"],
     });
 
     act(() => {
-      result.current?.onStart();
+      result.current.onStart();
     });
 
     expect(getStudySession(deck.id)).toMatchObject({
@@ -96,20 +95,13 @@ describe("useStudySessionStartState", () => {
     });
   });
 
-  it("starts with Cards matching a filter changed by the user", async () => {
-    const { result } = renderHook(() => useStudySessionStartState(deck.id));
+  it("starts with Cards matching the Page-composed filter", () => {
+    const { result } = renderHook(() => useStudySessionStartState({ ...deck, selectedTags: ["later"] }));
+
+    expect(result.current.cardsLength).toBe(1);
 
     act(() => {
-      result.current?.filter.setSelectedTags(["later"]);
-    });
-
-    await waitFor(() => {
-      expect(result.current?.filter.selectedTags).toEqual(["later"]);
-      expect(result.current?.cardsLength).toBe(1);
-    });
-
-    act(() => {
-      result.current?.onStart();
+      result.current.onStart();
     });
 
     expect(getStudySession(deck.id)?.cardOrderIds).toEqual([laterCard.id]);
