@@ -5,10 +5,11 @@
  */
 
 import type * as React from "react";
-import { FullScreen } from "@/shared/ui/full-screen";
-import { Header, type HeaderProps } from "@/shared/ui/header";
-import { Main } from "@/shared/ui/main";
-import { Outer } from "@/shared/ui/outer";
+
+import { FullScreen } from "../full-screen";
+import { Header, type HeaderProps } from "../header";
+import { Main } from "../main";
+import { Outer } from "../outer";
 
 /**
  * Renders the Footer user interface.

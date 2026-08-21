@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { Description, Style, Title } from "@/shared/ui/content";
+import { Description, Style, Title } from ".";
 
 describe("shared content hierarchy", () => {
   it("activates an interactive title from the keyboard", () => {

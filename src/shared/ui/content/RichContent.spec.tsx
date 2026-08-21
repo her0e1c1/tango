@@ -9,8 +9,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 
-import { Code } from "@/shared/ui/content/Code";
-import { MathContent } from "@/shared/ui/content/Math";
+import { Code } from "./Code";
+import { MathContent } from "./Math";
 
 describe("shared rich content", () => {
   it("keeps code copyable, categorized, and horizontally scrollable", async () => {

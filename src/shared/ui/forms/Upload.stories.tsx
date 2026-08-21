@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Upload as Template } from "@/shared/ui/forms/Upload";
+import { Upload as Template } from "./Upload";
 
 const meta = {
   title: "Shared/Forms/Upload",

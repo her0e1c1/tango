@@ -11,10 +11,10 @@ import "@testing-library/jest-dom/vitest";
 import { createRef } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { Slider } from "@/shared/ui/forms/Slider";
-import { Switch } from "@/shared/ui/forms/Switch";
-import { Tag } from "@/shared/ui/forms/Tag";
-import { Upload } from "@/shared/ui/forms/Upload";
+import { Slider } from "./Slider";
+import { Switch } from "./Switch";
+import { Tag } from "./Tag";
+import { Upload } from "./Upload";
 
 describe("shared selection controls", () => {
   it("forwards accessible naming props to the switch input", () => {

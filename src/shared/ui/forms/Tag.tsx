@@ -7,7 +7,7 @@
 import cx from "classnames";
 import type * as React from "react";
 
-import { tagClassName } from "@/shared/ui/content";
+import { tagClassName } from "../content";
 
 /**
  * Renders the Tag user interface.

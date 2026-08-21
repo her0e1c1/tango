@@ -6,9 +6,7 @@ export default defineConfig([
   ...fsd.configs.recommended,
   {
     rules: {
-      "fsd/forbidden-imports": "error",
-      "fsd/no-public-api-sidestep": "error",
-      "fsd/public-api": "error",
+      "fsd/import-locality": "error",
     },
   },
 ]);

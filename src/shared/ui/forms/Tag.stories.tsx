@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Tag as Template } from "@/shared/ui/forms/Tag";
+import { Tag as Template } from "./Tag";
 
 const meta = {
   title: "Shared/Forms/Tag",

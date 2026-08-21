@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Overlay as Template } from "@/shared/ui/feedback/Overlay";
+import { Overlay as Template } from "./Overlay";
 
 const meta = {
   title: "Shared/Feedback/Overlay",
