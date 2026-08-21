@@ -1,7 +1,7 @@
 import { useAuthUid } from "@/entities/auth";
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import { type SwipeDirection, usePreferences } from "@/entities/preferences";
+import { type SwipeDirection, usePreferences } from "@/entities/preference";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getStudySession, moveStudySession, planStudySessionSwipe, removeStudySession } from "@/entities/study-session";
 

@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider, useLocation } from "react-router-do
 import { beforeEach, describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { updatePreferences } from "@/entities/preferences";
+import { updatePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
 import { AppLayout } from "./AppLayout";

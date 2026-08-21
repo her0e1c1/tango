@@ -3,7 +3,7 @@ import * as React from "react";
 import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
-import { usePreferences } from "@/entities/preferences";
+import { usePreferences } from "@/entities/preference";
 import { editStudyProgress } from "@/entities/study-progress";
 import { selectStudyCards } from "@/entities/study-session";
 

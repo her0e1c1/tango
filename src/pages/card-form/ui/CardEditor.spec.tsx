@@ -7,8 +7,9 @@ import "@testing-library/jest-dom/vitest";
 
 import { mutateCards, useCard } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
-import { useCardFormState } from "@/features/card-edit";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
+
+import { useCardFormState } from "../model/useCardFormState";
 
 const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,

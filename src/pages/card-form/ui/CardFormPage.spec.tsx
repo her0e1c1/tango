@@ -1,4 +1,4 @@
-import type { Preferences } from "@/entities/preferences";
+import type { Preferences } from "@/entities/preference";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
-vi.mock("@/entities/preferences", () => ({
+vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));

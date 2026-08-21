@@ -13,7 +13,7 @@ import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { replaceAuthSession } from "@/entities/auth";
-import { type PreferencesFixture, replacePreferences } from "@/entities/preferences/testing";
+import { type PreferencesFixture, replacePreferences } from "@/entities/preference/testing";
 import { clearStudySessions, setStudySessionIndex, startStudy } from "@/entities/study-session";
 
 export const PAGE_STORY_UID = "storybook-user";

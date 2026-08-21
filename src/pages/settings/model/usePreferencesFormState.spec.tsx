@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { setDarkMode, updatePreferences, usePreferences } from "@/entities/preferences";
+import { setDarkMode, updatePreferences, usePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
 import { usePreferencesFormState } from "./usePreferencesFormState";

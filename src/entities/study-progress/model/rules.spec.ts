@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { SwipeAction } from "@/entities/preferences/@x/study-progress";
+import type { SwipeAction } from "@/entities/preference/@x/study-progress";
 
 import {
   buildStudyCardOrder,

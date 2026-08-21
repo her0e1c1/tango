@@ -4,10 +4,10 @@ import { useKey, useLatest } from "react-use";
 import { useDeck } from "@/entities/deck";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { routes, useNavigation } from "@/features/navigate";
-import { type StudyState, useStudy } from "@/features/study";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
+import { type StudyState, useStudy } from "../model/useStudy";
 import { StudySession } from "./StudySession";
 
 type StudyShortcutAction =
@@ -88,7 +88,7 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
     if (currentStudy?.status === "studying") void currentStudy[action]();
   };
 
-  // useKey retains its initial handler, so that handler reads current Feature state through one stable ref.
+  // useKey retains its initial handler, so that handler reads current Page state through one stable ref.
   useKey("ArrowUp", runWhileStudying("swipeUp"));
   useKey("ArrowDown", runWhileStudying("swipeDown"));
   useKey("ArrowLeft", runWhileStudying("swipeLeft"));

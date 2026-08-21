@@ -2,15 +2,17 @@
 
 ## Slice scope
 
-- Keep a Feature only when it represents an independently meaningful user action or workflow that a Page can compose.
+- Follow FSD v2.1 page-first: create or retain a Feature only when the same user interaction or workflow is reused or composed by multiple Pages.
+- Keep a workflow in its owning Page when that Page is its only consumer, even when the workflow is an independently meaningful user action.
+- Resolve `fsd/insignificant-slice` structurally by merging single-consumer Feature slices into their owning Page rather than disabling the rule.
+- Promote Page code to a Feature when actual cross-Page reuse appears.
 - Do not create or retain a Feature merely as a home for Page-specific presentation, a props-driven Storybook target, or a single Page's connection boundary.
-- Move Page-specific presentation and orchestration to the owning Page slice, while keeping reusable domain state and rules in Entities.
 
 ## `model/`
 
-- Do not implement or duplicate domain logic owned by an Entity. Entity-owned logic is logic that remains valid independently of a specific Feature or UI.
-- If needed, expose Entity-owned logic from `entities` and consume it here.
-- An independently meaningful Feature workflow may coordinate multiple Entities.
+- Do not implement or duplicate reusable domain logic owned by an Entity.
+- If needed by multiple consumers, expose Entity-owned logic from `entities` and consume it here.
+- A reusable Feature workflow may coordinate multiple Entities.
 - For list/view Features, define UI-facing interfaces and map Entity data to them without reimplementing Entity rules.
 - For edit Features, define UI-facing form interfaces and map Entity data and constraints to form state/input without reimplementing Entity rules.
 

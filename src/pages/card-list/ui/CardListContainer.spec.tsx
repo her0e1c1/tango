@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preferences";
+import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -36,8 +36,8 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
   editDeck: mocks.editDeck,
   useDeck: () => mocks.deck,
 }));
-vi.mock("@/entities/preferences", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/preferences")>()),
+vi.mock("@/entities/preference", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/preference")>()),
   usePreferences: () => mocks.preferences,
 }));
 vi.mock("@/entities/study-progress", async (importOriginal) => ({

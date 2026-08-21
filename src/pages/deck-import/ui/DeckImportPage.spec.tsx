@@ -27,7 +27,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
     },
   };
 });
-vi.mock("@/entities/preferences", () => ({
+vi.mock("@/entities/preference", () => ({
   usePreferences: () => ({ appearance: { darkMode: false } }),
   setDarkMode: controls.setDarkMode,
 }));

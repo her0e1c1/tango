@@ -1,4 +1,4 @@
-import type { Preferences } from "@/entities/preferences";
+import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
-vi.mock("@/entities/preferences", () => ({
+vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
   toggleShowHeader: mocks.toggleShowHeader,
