@@ -10,9 +10,9 @@ import "@testing-library/jest-dom/vitest";
 import { createRef } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { Input } from "@/shared/ui/forms/Input";
-import { Select } from "@/shared/ui/forms/Select";
-import { Textarea } from "@/shared/ui/forms/Textarea";
+import { Input } from "./Input";
+import { Select } from "./Select";
+import { Textarea } from "./Textarea";
 
 describe("shared text controls", () => {
   it("forwards an id so external labels can name the input", () => {

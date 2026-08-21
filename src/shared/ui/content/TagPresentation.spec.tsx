@@ -5,8 +5,8 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import { RemovableTag } from "@/shared/ui/content/RemovableTag";
-import { TagLabel } from "@/shared/ui/content/TagLabel";
+import { RemovableTag } from "./RemovableTag";
+import { TagLabel } from "./TagLabel";
 
 describe("tag presentation", () => {
   it("renders compact read-only tag content outside the tab order", () => {

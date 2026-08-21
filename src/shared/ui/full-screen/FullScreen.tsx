@@ -6,7 +6,8 @@
 
 import cx from "classnames";
 import type * as React from "react";
-import { useButtonInteraction } from "@/shared/ui/button-interaction";
+
+import { useButtonInteraction } from "../button-interaction";
 
 /**
  * Renders the Full Screen user interface.

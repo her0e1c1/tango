@@ -1,8 +1,9 @@
 import saveAs from "file-saver";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { downloadTextFile } from "@/shared/files";
 import { createBlobConstructor } from "@/test/factories";
+
+import { downloadTextFile } from ".";
 
 vi.mock("file-saver", () => ({ default: vi.fn() }));
 

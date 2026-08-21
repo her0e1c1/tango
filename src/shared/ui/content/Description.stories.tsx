@@ -6,7 +6,7 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Description as Template } from "@/shared/ui/content/Description";
+import { Description as Template } from "./Description";
 
 const meta = {
   title: "Shared/Content/Description",

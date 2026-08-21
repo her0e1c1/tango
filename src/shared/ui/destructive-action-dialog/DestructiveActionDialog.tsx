@@ -1,7 +1,7 @@
 import * as React from "react";
 
-import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
-import { Button } from "@/shared/ui/button";
+import { focusableElementSelector } from "../../lib/focusableElementSelector";
+import { Button } from "../button";
 
 export interface DestructiveActionDialogProps {
   title: string;

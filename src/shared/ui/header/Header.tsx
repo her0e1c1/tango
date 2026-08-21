@@ -8,7 +8,8 @@ import cx from "classnames";
 import type * as React from "react";
 import { IconContext } from "react-icons";
 import { AiFillSetting, AiOutlineUpload, AiOutlineSun, AiFillMoon } from "react-icons/ai";
-import { Logo } from "@/shared/ui/logo";
+
+import { Logo } from "../logo";
 
 export interface HeaderProps {
   fixed?: boolean;

@@ -7,10 +7,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect } from "storybook/test";
 
-import { AppRoutes } from "@/app/routes";
 import { routes } from "@/features/navigate";
 import { type PageStoryParameters, preparePageStory, withPageStory } from "@/storybook/PageDecorator";
 import { PAGE_STORY_CARD_ID, PAGE_STORY_DECK_ID, pageStoryState } from "@/storybook/pageFixture";
+
+import { AppRoutes } from "./routes";
 
 const page = (path: string, overrides: Partial<Omit<PageStoryParameters, "path">> = {}): PageStoryParameters => ({
   ...pageStoryState,
