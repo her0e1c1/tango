@@ -1,9 +1,11 @@
 import type * as React from "react";
 import { useKey } from "react-use";
 
+import { touchStudySession } from "@/entities/study-session";
+import { DeckDeletionDialog, useDeckDeletion } from "@/features/deck-delete";
+import { useDeckExport } from "@/features/deck-export";
 import { useAddSampleDeck } from "@/features/deck-import";
 import { routes, useNavigation } from "@/features/navigate";
-import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -13,9 +15,12 @@ import { DeckList } from "./DeckList";
 export const DeckListPage: React.FC = () => {
   const navigation = useNavigation();
   const deckList = useDeckListState();
+  const deletion = useDeckDeletion();
+  const exportDeck = useDeckExport();
 
   const continueStudy = (id: string) => {
-    deckList.onContinueStudy(id);
+    // The Entity owns session recency while this route entry owns the destination shown afterward.
+    touchStudySession(id);
     void navigation.to(routes.deckStudy.to(id));
   };
 
@@ -25,30 +30,8 @@ export const DeckListPage: React.FC = () => {
 
   return (
     <AppLayout showHeader>
-      <Feedback tone="success">{deckList.successMessage}</Feedback>
-      {deckList.deletionTarget != null ? (
-        <DestructiveActionDialog
-          title="Delete deck?"
-          targetLabel="Deck"
-          targetName={deckList.deletionTarget.deckName}
-          confirmLabel="Delete deck"
-          {...(deckList.deletionTarget.hasError
-            ? { errorMessage: "Unable to delete this deck. Check your connection and try again." }
-            : {})}
-          description={
-            <>
-              <p>
-                This permanently deletes {deckList.deletionTarget.cardCount}{" "}
-                {deckList.deletionTarget.cardCount === 1 ? "card" : "cards"} in this deck.
-              </p>
-              <p>Any in-progress study session for this deck will also end.</p>
-              <p>This action cannot be undone.</p>
-            </>
-          }
-          onCancel={deckList.onCancelDeletion}
-          onConfirm={deckList.onConfirmDeletion}
-        />
-      ) : null}
+      <Feedback tone="success">{deletion.successMessage}</Feedback>
+      <DeckDeletionDialog target={deletion.target} onCancel={deletion.cancel} onConfirm={deletion.confirm} />
       <DeckList
         sections={deckList.sections}
         deckCard={{
@@ -57,8 +40,8 @@ export const DeckListPage: React.FC = () => {
           onClickContinue: continueStudy,
           onClickRestart: (id) => void navigation.to(routes.deckStudyStart.to(id)),
           onClickStudy: (id) => void navigation.to(routes.deckStudyStart.to(id)),
-          onClickDownload: deckList.onDownload,
-          onClickDelete: deckList.onRequestDeletion,
+          onClickDownload: exportDeck,
+          onClickDelete: deletion.request,
         }}
       />
     </AppLayout>

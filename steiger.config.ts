@@ -27,7 +27,9 @@ export default defineConfig([
   {
     files: [
       "./src/features/card-edit/**",
+      "./src/features/deck-delete/**",
       "./src/features/deck-edit/**",
+      "./src/features/deck-export/**",
       "./src/features/preferences-edit/**",
       "./src/features/sign-in/**",
       "./src/features/sign-out/**",
