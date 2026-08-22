@@ -6,7 +6,6 @@
 import type React from "react";
 import { Route, Routes } from "react-router-dom";
 
-import { routes } from "@/features/navigate";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
@@ -17,6 +16,7 @@ import { NotFoundPage } from "@/pages/not-found";
 import { SettingsPage } from "@/pages/settings";
 import { StudySessionPage } from "@/pages/study-session";
 import { StudySessionStartPage } from "@/pages/study-session-start";
+import { routes } from "@/shared/router";
 
 /**
  * Renders Tango's route tree inside the router supplied by the caller.

@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect } from "storybook/test";
 
-import { routes } from "@/features/navigate";
+import { routes } from "@/shared/router";
 import { type PageStoryParameters, preparePageStory, withPageStory } from "@/storybook/PageDecorator";
 import { PAGE_STORY_CARD_ID, PAGE_STORY_DECK_ID, pageStoryState } from "@/storybook/pageFixture";
 

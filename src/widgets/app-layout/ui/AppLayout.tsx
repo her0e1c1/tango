@@ -1,13 +1,14 @@
 import type * as React from "react";
+import { useNavigate } from "react-router-dom";
 
 import { setDarkMode, usePreferences } from "@/entities/preference";
-import { routes, useNavigation } from "@/features/navigate";
+import { routes } from "@/shared/router";
 import { Layout } from "@/shared/ui/layout";
 
 type AppLayoutProps = Omit<React.ComponentProps<typeof Layout>, "headerProps">;
 
 export const AppLayout: React.FC<AppLayoutProps> = (props) => {
-  const navigation = useNavigation();
+  const navigate = useNavigate();
   const preferences = usePreferences();
 
   return (
@@ -16,9 +17,9 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
       headerProps={{
         dark: preferences.appearance.darkMode,
         onClickDarkMode: setDarkMode,
-        onClickLogo: () => void navigation.to(routes.deckList.to()),
-        onClickImport: () => void navigation.to(routes.deckImport.to()),
-        onClickSettings: () => void navigation.to(routes.settings.to()),
+        onClickLogo: () => void navigate(routes.deckList.to()),
+        onClickImport: () => void navigate(routes.deckImport.to()),
+        onClickSettings: () => void navigate(routes.settings.to()),
       }}
     />
   );

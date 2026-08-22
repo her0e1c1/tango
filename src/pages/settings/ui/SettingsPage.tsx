@@ -1,7 +1,8 @@
 import type * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { routes, useNavigation } from "@/features/navigate";
+import { routes } from "@/shared/router";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -11,7 +12,7 @@ import { useSignOut } from "../model/useSignOut";
 import { SettingsForm } from "./SettingsForm";
 
 export const SettingsPage: React.FC = () => {
-  const navigation = useNavigation();
+  const navigate = useNavigate();
 
   const signIn = useSignIn();
   const signOut = useSignOut();
@@ -34,7 +35,7 @@ export const SettingsPage: React.FC = () => {
   const runAccountOperation = () => void accountOperation.run().catch(() => undefined);
 
   const formState = usePreferencesFormState();
-  useKey("t", () => void navigation.to(routes.deckList.to()));
+  useKey("t", () => void navigate(routes.deckList.to()));
 
   return (
     <AppLayout showHeader>
