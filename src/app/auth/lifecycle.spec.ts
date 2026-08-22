@@ -41,7 +41,6 @@ const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCre
   const studySession = await import("@/entities/study-session");
   studySession.clearStudySessions();
   const auth = await import("@/entities/auth");
-  const authTesting = await import("@/entities/auth/testing");
   const lifecycle = await import("./lifecycle");
   auth.setAuthUser(null);
   let authStatus: AuthBootstrapStatus = "starting";
@@ -54,7 +53,6 @@ const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCre
 
   return {
     ...auth,
-    ...authTesting,
     ...studySession,
     getAuthStatus: () => authStatus,
     publishUser,

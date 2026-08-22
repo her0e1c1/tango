@@ -6,8 +6,7 @@ import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { setAuthUser } from "@/entities/auth";
-import { getAuthUser } from "@/entities/auth/testing";
+import { getAuthUser, setAuthUser } from "@/entities/auth";
 import { clearStudySessions } from "@/entities/study-session";
 
 const firebaseAuth = vi.hoisted(() => ({

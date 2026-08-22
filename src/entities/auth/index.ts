@@ -1,3 +1,3 @@
 export { useAuthAccount, useAuthUid } from "./model/hooks";
-export { setAuthUser } from "./model/store";
+export { getAuthUser, setAuthUser } from "./model/store";
 export type { AuthUser } from "./model/types";
