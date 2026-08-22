@@ -13,10 +13,11 @@
 
 ## Review Workflow
 
-- After non-documentation changes pass the required checks, delegate a final review to `reviewer`.
-- Have it review the three-dot diff against `origin/main`, plus staged, unstaged, and untracked changes. Wait for the result.
-- Resolve each finding or reject it with evidence. After any non-documentation fix, rerun relevant checks and the review.
-- The reviewer must not edit files.
+1. Delegate a review to the `reviewer` subagent.
+2. Fix every P0 finding. P1 and P2 findings are optional.
+3. After fixes, delegate another review.
+4. Stop when there are no P0 findings or after three review rounds.
+5. Report any unresolved findings to the user.
 
 ## Architecture
 
