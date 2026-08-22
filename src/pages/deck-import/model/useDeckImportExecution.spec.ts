@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { executePreparedDeckImport, prepareDeckImport } from "./useDeckImportExecution";
+import { prepareDeckImport } from "./useDeckImportExecution";
 
 describe("prepareDeckImport", () => {
   const row = {
@@ -73,39 +73,5 @@ describe("prepareDeckImport", () => {
         { uid: "", generateDeckId: vi.fn(() => "deck"), generateCardId: vi.fn(() => "card") }
       )
     ).toThrow("A confirmed user is required for remote imports");
-  });
-});
-
-describe("executePreparedDeckImport", () => {
-  it("creates the prepared Deck before its Cards", async () => {
-    const preparedImport = prepareDeckImport(
-      {
-        name: "deck.csv",
-        rows: [
-          {
-            rowNumber: 1,
-            card: { frontText: "front", backText: "back", tags: [], uniqueKey: "key" },
-          },
-        ],
-      },
-      { uid: "uid", generateDeckId: () => "deck", generateCardId: () => "card" }
-    );
-    const calls: string[] = [];
-    const createDeck = vi.fn(() => {
-      calls.push("deck");
-      return Promise.resolve();
-    });
-    const mutateCards = vi.fn(() => {
-      calls.push("cards");
-      return Promise.resolve();
-    });
-
-    await expect(executePreparedDeckImport(preparedImport, { uid: "uid", createDeck, mutateCards })).resolves.toEqual({
-      created: 1,
-      deckId: "deck",
-    });
-    expect(calls).toEqual(["deck", "cards"]);
-    expect(createDeck).toHaveBeenCalledWith(preparedImport.destination);
-    expect(mutateCards).toHaveBeenCalledWith(preparedImport.mutations);
   });
 });

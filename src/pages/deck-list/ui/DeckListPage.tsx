@@ -4,7 +4,7 @@ import { useKey } from "react-use";
 
 import { touchStudySession } from "@/entities/study-session";
 import { DeckDeletionDialog, useDeckDeletion } from "@/features/deck-deletion";
-import { useAddSampleDeck } from "@/features/deck-import";
+import { useAddSampleDeck } from "@/features/sample-deck";
 import { routes } from "@/shared/router";
 import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";
