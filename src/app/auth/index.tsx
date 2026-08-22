@@ -39,5 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = (
     );
   }
 
-  return <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />;
+  return (
+    <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />
+  );
 };
