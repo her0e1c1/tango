@@ -9,7 +9,14 @@ import type {
 
 import { findDeckById } from "@/entities/deck/@x/card";
 import { cardCreateSchema } from "../model/schema";
-import { createLocalCard, deleteLocalCard, editLocalCard, findCardById } from "../model/store";
+import {
+  cardStore,
+  createLocalCard,
+  deleteLocalCard,
+  deleteLocalCardsByDeckId,
+  editLocalCard,
+  findCardById,
+} from "../model/store";
 import {
   createCard as createRemoteCard,
   deleteCard as deleteRemoteCard,
@@ -44,6 +51,17 @@ const createCard = async (uid: string, card: CardMutationCreateInput): Promise<v
     return;
   }
   await createRemoteCard(uid, requireRemoteCardCreate(card));
+};
+
+// Copies a Deck's local Cards to remote persistence before removing the local copies.
+export const moveLocalCardsToRemote = async (uid: string, deckId: string): Promise<void> => {
+  const localCards = cardStore.getState().localCards.filter((card) => card.deckId === deckId);
+  await Promise.all(
+    localCards.map(({ createdAt: _createdAt, updatedAt: _updatedAt, ...card }) =>
+      createRemoteCard(uid, { ...card, uid })
+    )
+  );
+  deleteLocalCardsByDeckId(deckId);
 };
 
 // Narrows a stored Card to the owner-bearing remote variant.

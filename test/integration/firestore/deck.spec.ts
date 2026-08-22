@@ -9,10 +9,13 @@ import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card/api/firestore";
+import { cardStore } from "@/entities/card/model/store";
 import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
+import { editDeck as editStoredDeck } from "@/entities/deck";
+import { deckStore } from "@/entities/deck/model/store";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import * as Uuid from "uuid";
-import { createCard, createDeck as createDeckFixture } from "@/test/factories";
+import { createCard, createDeck as createDeckFixture, createLocalCard, createLocalDeck } from "@/test/factories";
 
 const uuid = Uuid.v4;
 
@@ -101,5 +104,35 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await Promise.all(
       cards.map((card) => expect(getDoc(doc(db, "card", card.id))).rejects.toMatchObject({ code: "permission-denied" }))
     );
+  });
+
+  it("moves a local Deck and its Cards to Firestore when local mode is disabled", async () => {
+    const deck = createLocalDeck({ id: uuid(), name: "Local Deck" });
+    const cards = [
+      createLocalCard({ id: uuid(), deckId: deck.id, frontText: "first" }),
+      createLocalCard({ id: uuid(), deckId: deck.id, frontText: "second" }),
+    ];
+    deckStore.setState({ localDecks: [deck] });
+    cardStore.setState({ localCards: cards });
+
+    await editStoredDeck("uid", { id: deck.id, name: "Synced Deck", localMode: false });
+
+    expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({
+      id: deck.id,
+      uid: "uid",
+      name: "Synced Deck",
+    });
+    await Promise.all(
+      cards.map(async (card) => {
+        expect((await getDoc(doc(db, "card", card.id))).data()).toMatchObject({
+          id: card.id,
+          deckId: deck.id,
+          uid: "uid",
+          frontText: card.frontText,
+        });
+      })
+    );
+    expect(deckStore.getState().localDecks).not.toContainEqual(expect.objectContaining({ id: deck.id }));
+    expect(cardStore.getState().localCards).not.toContainEqual(expect.objectContaining({ deckId: deck.id }));
   });
 });
