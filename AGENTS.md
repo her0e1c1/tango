@@ -11,6 +11,13 @@
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
 
+## Review Workflow
+
+- After implementing non-documentation changes and running the required checks, delegate a final review to the project-scoped `reviewer` subagent.
+- Ask the reviewer to inspect every change relative to `origin/main`, including committed, staged, unstaged, and untracked files, then wait for its result before finishing.
+- Resolve every concrete finding or explain with evidence why it does not apply. If a fix materially changes behavior, rerun the relevant checks and the reviewer.
+- Keep the reviewer read-only. It reports findings but does not edit files.
+
 ## Architecture
 
 - Follow the current official Feature-Sliced Design guidance before repository-specific placement preferences.
