@@ -1,12 +1,12 @@
 import type { User, UserCredential } from "firebase/auth";
 
-import { act, render, screen } from "@testing-library/react";
+import { act, render, renderHook, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { getAuthUser, setAuthUser } from "@/entities/auth";
+import { setAuthUser, useAuthUid } from "@/entities/auth";
 import { clearStudySessions } from "@/entities/study-session";
 
 const firebaseAuth = vi.hoisted(() => ({
@@ -101,6 +101,7 @@ describe("AuthProvider", () => {
     view.unmount();
     publishUser(createUser("user-b"));
 
-    expect(getAuthUser()).toMatchObject({ uid: "user-a" });
+    const { result } = renderHook(useAuthUid);
+    expect(result.current).toBe("user-a");
   });
 });

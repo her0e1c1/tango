@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { getAuthUser, setAuthUser } from "./store";
+import { authUserStore, setAuthUser } from "./store";
 
 describe("authUserStore", () => {
   beforeEach(() => setAuthUser(null));
 
   it("starts without an authenticated user", () => {
-    expect(getAuthUser()).toBeNull();
+    expect(authUserStore.getState()).toBeNull();
   });
 
   it("replaces the current user", () => {
@@ -16,7 +16,7 @@ describe("authUserStore", () => {
       displayName: null,
     });
 
-    expect(getAuthUser()).toEqual({
+    expect(authUserStore.getState()).toEqual({
       uid: "uid-a",
       isAnonymous: true,
       displayName: null,
@@ -32,6 +32,6 @@ describe("authUserStore", () => {
 
     setAuthUser(null);
 
-    expect(getAuthUser()).toBeNull();
+    expect(authUserStore.getState()).toBeNull();
   });
 });
