@@ -19,12 +19,19 @@ export const Controller: React.FC<ControllerProps> = (props) => {
 
   return (
     <IconContext.Provider value={{ className: "dark:text-gray-200 text-2xl" }}>
-      <div className="flex px-4 items-center">
-        {!autoPlay ? (
-          <AiOutlineCaretRight data-testid="play" onClick={props.onToggleAutoPlay} className="text-xl" />
-        ) : (
-          <AiOutlinePause data-testid="pause" onClick={props.onToggleAutoPlay} className="text-xl" />
-        )}
+      <div className="flex items-center px-4">
+        <button
+          type="button"
+          aria-label={autoPlay ? "Pause" : "Play"}
+          className="inline-flex size-touch shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          onClick={props.onToggleAutoPlay}
+        >
+          {autoPlay ? (
+            <AiOutlinePause aria-hidden="true" className="text-xl" />
+          ) : (
+            <AiOutlineCaretRight aria-hidden="true" className="text-xl" />
+          )}
+        </button>
         <div className="flex-1 px-2">
           <Slider
             min={0}
