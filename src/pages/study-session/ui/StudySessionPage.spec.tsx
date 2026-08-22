@@ -105,6 +105,7 @@ describe("StudySessionPage", () => {
     renderPage();
 
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
+    expect(screen.getByRole("toolbar", { name: "Study actions" })).toBeVisible();
     expect(screen.getByText("Front one")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
@@ -143,7 +144,10 @@ describe("StudySessionPage", () => {
     renderPage();
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    expect(screen.getByRole("toolbar", { name: "Study actions" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Exit" })).toBeVisible();
+    expect(screen.getByLabelText("Score 2, positive")).toBeVisible();
+    expect(screen.getByText(/3 times/)).toBeVisible();
   });
 
   it("shows loading feedback while active session cards are unavailable", async () => {

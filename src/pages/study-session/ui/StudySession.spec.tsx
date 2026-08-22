@@ -31,10 +31,15 @@ describe("StudySession", () => {
 
   it("reports the explicit Exit action through a plain callback", () => {
     const onExit = vi.fn();
-    render(<StudySession onExit={onExit} frontTextSlot={<div>Front</div>} />);
+    render(
+      <StudySession onExit={onExit} cardOverlaySlot={<div>Card metadata</div>} frontTextSlot={<div>Front</div>} />
+    );
 
     const exit = screen.getByRole("button", { name: "Exit" });
+    const actions = screen.getByRole("toolbar", { name: "Study actions" });
     expect(exit).toBeVisible();
+    expect(actions).toContainElement(exit);
+    expect(actions).not.toContainElement(screen.getByText("Card metadata"));
 
     fireEvent.click(exit);
 
