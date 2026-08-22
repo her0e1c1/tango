@@ -24,7 +24,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-1" }));
+vi.mock("@/entities/user", () => ({
+  useCurrentUser: () => ({ uid: "user-1", isAnonymous: true, displayName: null }),
+}));
 vi.mock("@/entities/preference", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preference")>()),
   usePreferences: () => {
