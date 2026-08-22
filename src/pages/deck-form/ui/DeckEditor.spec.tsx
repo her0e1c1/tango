@@ -15,9 +15,6 @@ const writeControls = vi.hoisted(() => ({
   nextError: undefined as unknown,
 }));
 
-vi.mock("@/entities/auth", () => ({
-  useAuthUid: () => "user-id",
-}));
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
