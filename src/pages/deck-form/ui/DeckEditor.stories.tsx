@@ -40,6 +40,7 @@ const meta = {
   args: {
     deckName: fixture.deck.default.name,
     form: createForm(fixture.deck.default),
+    onDelete: () => undefined,
   },
 } satisfies Meta<typeof DeckEditor>;
 

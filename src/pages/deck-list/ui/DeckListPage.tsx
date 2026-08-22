@@ -2,13 +2,12 @@ import type * as React from "react";
 import { useKey } from "react-use";
 
 import { touchStudySession } from "@/entities/study-session";
+import { DeckDeletionDialog, useDeckDeletion } from "@/features/deck-deletion";
 import { useAddSampleDeck } from "@/features/deck-import";
 import { routes, useNavigation } from "@/features/navigate";
-import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
-import { useDeckDeletion } from "../model/useDeckDeletion";
 import { useDeckExport } from "../model/useDeckExport";
 import { useDeckListState } from "../model/useDeckListState";
 import { DeckList } from "./DeckList";
@@ -33,27 +32,7 @@ export const DeckListPage: React.FC = () => {
     <AppLayout showHeader>
       <Feedback tone="success">{deletion.successMessage}</Feedback>
       {deletion.target != null && (
-        <DestructiveActionDialog
-          title="Delete deck?"
-          targetLabel="Deck"
-          targetName={deletion.target.deckName}
-          confirmLabel="Delete deck"
-          {...(deletion.target.hasError
-            ? { errorMessage: "Unable to delete this deck. Check your connection and try again." }
-            : {})}
-          description={
-            <>
-              <p>
-                This permanently deletes {deletion.target.cardCount}{" "}
-                {deletion.target.cardCount === 1 ? "card" : "cards"} in this deck.
-              </p>
-              <p>Any in-progress study session for this deck will also end.</p>
-              <p>This action cannot be undone.</p>
-            </>
-          }
-          onCancel={deletion.cancel}
-          onConfirm={deletion.confirm}
-        />
+        <DeckDeletionDialog target={deletion.target} onCancel={deletion.cancel} onConfirm={deletion.confirm} />
       )}
       <DeckList
         sections={deckList.sections}
