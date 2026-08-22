@@ -18,7 +18,8 @@ const STUDY_STORAGE_KEY = "tango-study";
 // No migration is registered: changing this version deliberately invalidates older state shapes.
 const STUDY_STORAGE_VERSION = 4;
 
-const createStudySessionId = (): string => crypto.randomUUID();
+const createStudySessionId = (): string =>
+  crypto.randomUUID?.() ?? crypto.getRandomValues(new Uint32Array(4)).join("-");
 
 /** Persisted study sessions indexed by their owning Deck. */
 interface StudySessionState {
