@@ -87,7 +87,7 @@ export const prepareDeckImport = (
   };
 };
 
-export const executePreparedDeckImport = async (
+const executePreparedDeckImport = async (
   preparedImport: PreparedDeckImport,
   { uid, createDeck, mutateCards }: DeckImportExecutionDependencies
 ) => {
