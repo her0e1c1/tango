@@ -21,7 +21,7 @@ type StudyShortcutAction =
   | "toggleSwipeButtonList"
   | "toggleAutoPlay";
 
-const renderStudyScreen = (state: StudyState | undefined) => {
+const renderStudyScreen = (state: StudyState | undefined, onExit: () => void) => {
   if (state == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
 
   if (state.status !== "studying") {
@@ -43,6 +43,7 @@ const renderStudyScreen = (state: StudyState | undefined) => {
   return (
     <AppLayout fullscreen scroll={state.showBackText} showHeader={state.showHeader}>
       <StudySession
+        onExit={onExit}
         showController={state.showController}
         showBackText={state.showBackText}
         showSwipeButtonList={state.showSwipeButtonList}
@@ -84,6 +85,7 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
   const navigate = useNavigate();
   const study = useStudy(deckId);
   const latestStudy = useLatest(study);
+  const exit = () => void navigate(routes.cardList.to(deckId));
   const runWhileStudying = (action: StudyShortcutAction) => () => {
     const currentStudy = latestStudy.current;
     if (currentStudy?.status === "studying") void currentStudy[action]();
@@ -104,7 +106,7 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
     void navigate(routes.deckList.to(), { replace: true });
   }, [navigate, study?.status]);
 
-  return renderStudyScreen(study);
+  return renderStudyScreen(study, exit);
 };
 
 export const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {

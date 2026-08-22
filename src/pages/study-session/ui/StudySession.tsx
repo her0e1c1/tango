@@ -1,6 +1,7 @@
 import cx from "classnames";
 import type * as React from "react";
 import type { SwipeDirection } from "@/entities/preference";
+import { Button } from "@/shared/ui/button";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
@@ -25,7 +26,17 @@ export interface StudySessionProps {
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
   feedbackSlot?: React.ReactNode;
+  onExit: () => void;
 }
+
+const ExitAction: React.FC<{ onExit: () => void }> = ({ onExit }) => (
+  // Keep Exit below the optional Header's footprint so it remains usable in either Header state.
+  <div className="fixed left-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] top-[calc(var(--spacing-touch)+1.5rem+env(safe-area-inset-top))] z-40">
+    <Button size="sm" variant="quiet" onClick={onExit}>
+      Exit
+    </Button>
+  </div>
+);
 
 const SwipeFeedback: React.FC<{ swipeFeedback: SwipeDirection | undefined }> = ({ swipeFeedback }) => {
   if (swipeFeedback === undefined) return null;
@@ -109,6 +120,7 @@ const Controls: React.FC<{
 export const StudySession: React.FC<StudySessionProps> = (props) => (
   <>
     {props.feedbackSlot}
+    <ExitAction onExit={props.onExit} />
     <SwipeFeedback swipeFeedback={props.swipeFeedback} />
     <CardContent
       showBackText={props.showBackText}

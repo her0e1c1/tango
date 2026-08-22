@@ -1,13 +1,13 @@
 import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useParams } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
-import { clearStudySessions, startStudy } from "@/entities/study-session";
+import { clearStudySessions, getStudySession, startStudy } from "@/entities/study-session";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -47,6 +47,11 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionPage } from "./StudySessionPage";
 
+const CardListDestination = () => {
+  const { id } = useParams();
+  return <h1>Cards for {id}</h1>;
+};
+
 describe("StudySessionPage", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
@@ -73,6 +78,7 @@ describe("StudySessionPage", () => {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path="/" element={<h1>Deck list destination</h1>} />
+          <Route path="/deck/:id" element={<CardListDestination />} />
           <Route path="/deck/:id/study" element={<StudySessionPage />} />
         </Routes>
       </MemoryRouter>
@@ -118,6 +124,26 @@ describe("StudySessionPage", () => {
 
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
+  });
+
+  it("exits a deep-linked Study to the same Deck without changing the resumable session", () => {
+    renderPage();
+    const sessionBeforeExit = getStudySession(deckId);
+
+    fireEvent.click(screen.getByRole("button", { name: "Exit" }));
+
+    expect(screen.getByRole("heading", { level: 1, name: `Cards for ${deckId}` })).toBeVisible();
+    expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
+    expect(mocks.removeStudySession).not.toHaveBeenCalled();
+  });
+
+  it("keeps Exit available when the Header is hidden", () => {
+    mocks.preferences = createPreferences({ appearance: { darkMode: false, showHeader: false } });
+
+    renderPage();
+
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Exit" })).toBeVisible();
   });
 
   it("shows loading feedback while active session cards are unavailable", async () => {
