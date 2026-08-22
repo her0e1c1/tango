@@ -51,7 +51,13 @@ export const toDeck = (id: DeckId, document: DeckDocument): Extract<Deck, { loca
   updatedAt: document.updatedAt,
   ...(document.migration === undefined
     ? {}
-    : { migration: { id: document.migration.id, revision: document.migration.revision } }),
+    : {
+        migration: {
+          id: document.migration.id,
+          revision: document.migration.revision,
+          fingerprint: document.migration.fingerprint,
+        },
+      }),
 });
 
 // Converts a validated create input to the Firestore representation and adds server-owned timestamps.

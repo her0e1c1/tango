@@ -74,7 +74,10 @@ describe("Card store", () => {
   });
 
   it("shows only Cards from the visible migration and removes local duplicates", () => {
-    const deck = createDeck({ id: "deck", migration: { id: "active", revision: 1 } });
+    const deck = createDeck({
+      id: "deck",
+      migration: { id: "active", revision: 1, fingerprint: "a".repeat(64) },
+    });
     const activeCard = createCard({ id: "card", deckId: deck.id, migrationId: "active" });
     const staleCard = createCard({ id: "stale", deckId: deck.id, migrationId: "replaced" });
     const localDuplicate = createLocalCardFixture({ id: activeCard.id, deckId: deck.id });

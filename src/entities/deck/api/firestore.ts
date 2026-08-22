@@ -54,7 +54,7 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
         const visibleDecks = remoteDecks.filter((deck) => {
           if (deck.migration === undefined) return true;
           const localDeck = deckStore.getState().localDecks.find(({ id }) => id === deck.id);
-          return localDeck === undefined || deck.migration.revision >= localDeck.localRevision;
+          return localDeck === undefined || deck.migration.fingerprint === localDeck.migration?.fingerprint;
         });
         replaceRemoteDecks(visibleDecks);
 
@@ -62,7 +62,7 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
         for (const deck of visibleDecks) {
           if (deck.migration !== undefined) {
             const localDeck = deckStore.getState().localDecks.find(({ id }) => id === deck.id);
-            if (localDeck !== undefined && deck.migration.revision >= localDeck.localRevision) {
+            if (localDeck !== undefined && deck.migration.fingerprint === localDeck.migration?.fingerprint) {
               deleteLocalCardsByDeckId(deck.id);
               deleteLocalDeck(deck.id);
             }
@@ -93,7 +93,7 @@ export interface DeckMigrationStart {
   complete: boolean;
 }
 
-// Registers the newest local revision transactionally; equal revisions resume one shared attempt.
+// Registers one exact local snapshot transactionally; equal revisions resume only when their fingerprints match.
 export const beginDeckMigration = async (
   uid: string,
   deck: DeckCreateInput,
@@ -113,11 +113,15 @@ export const beginDeckMigration = async (
       if (currentDocument.migration.revision > requestedMigration.revision) {
         throw new Error("A newer Deck migration already exists");
       }
-      if (currentDocument.migration.revision === requestedMigration.revision) {
+      if (
+        currentDocument.migration.revision === requestedMigration.revision &&
+        currentDocument.migration.fingerprint === requestedMigration.fingerprint
+      ) {
         return {
           migration: {
             id: currentDocument.migration.id,
             revision: currentDocument.migration.revision,
+            fingerprint: currentDocument.migration.fingerprint,
           },
           complete: currentDocument.migration.state === "complete",
         };

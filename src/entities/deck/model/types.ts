@@ -11,6 +11,8 @@ export type DeckId = z.infer<typeof deckIdSchema>;
 export interface DeckMigration {
   id: string;
   revision: number;
+  /** SHA-256 identity of the exact Deck and Card snapshot written by this attempt. */
+  fingerprint: string;
 }
 
 /** Deck data used throughout the application, including the fields needed by its persistence mode. */

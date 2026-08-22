@@ -6,6 +6,7 @@ const deckUidSchema = z.string().min(1, "Deck owner is required");
 export const deckMigrationSchema = z.object({
   id: z.string().min(1, "Deck migration id is required"),
   revision: z.number().int().nonnegative(),
+  fingerprint: z.string().regex(/^[0-9a-f]{64}$/, "Deck migration fingerprint must be a SHA-256 digest"),
 });
 
 const editableDeckFieldsSchema = z.object({

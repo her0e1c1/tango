@@ -118,8 +118,8 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     const cardId = uuid();
     const oldDeck = { ...newDeck, id: deckId, name: "old snapshot" };
     const newDeckRevision = { ...newDeck, id: deckId, name: "new snapshot" };
-    const oldMigration = { id: uuid(), revision: 0 };
-    const newMigration = { id: uuid(), revision: 1 };
+    const oldMigration = { id: uuid(), revision: 0, fingerprint: "a".repeat(64) };
+    const newMigration = { id: uuid(), revision: 1, fingerprint: "b".repeat(64) };
 
     await beginDeckMigration("uid", oldDeck, oldMigration);
     await beginDeckMigration("uid", newDeckRevision, newMigration);
@@ -146,7 +146,41 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     });
   });
 
-  it("moves a local Deck and its Cards to Firestore when local mode is disabled", async () => {
+  it("does not share a migration id across different snapshots at the same revision", async () => {
+    const deckId = uuid();
+    const cardId = uuid();
+    const firstMigration = { id: uuid(), revision: 1, fingerprint: "a".repeat(64) };
+    const secondMigration = { id: uuid(), revision: 1, fingerprint: "b".repeat(64) };
+
+    await beginDeckMigration("uid", { ...newDeck, id: deckId, name: "first snapshot" }, firstMigration);
+    const secondStart = await beginDeckMigration(
+      "uid",
+      { ...newDeck, id: deckId, name: "second snapshot" },
+      secondMigration
+    );
+
+    expect(secondStart.migration).toEqual(secondMigration);
+    await expect(
+      writeDeckMigrationCards("uid", deckId, firstMigration, [
+        createCard({ id: cardId, deckId, uid: "uid", frontText: "first card" }),
+      ])
+    ).rejects.toMatchObject({ code: "permission-denied" });
+    await writeDeckMigrationCards("uid", deckId, secondMigration, [
+      createCard({ id: cardId, deckId, uid: "uid", frontText: "second card" }),
+    ]);
+    await finalizeDeckMigration("uid", deckId, secondMigration);
+
+    expect((await getDoc(doc(db, "deck", deckId))).data()).toMatchObject({
+      name: "second snapshot",
+      migration: { ...secondMigration, state: "complete" },
+    });
+    expect((await getDoc(doc(db, "card", cardId))).data()).toMatchObject({
+      frontText: "second card",
+      migrationId: secondMigration.id,
+    });
+  });
+
+  it.sequential("moves a local Deck and its Cards to Firestore when local mode is disabled", async () => {
     const deck = createLocalDeck({ id: uuid(), name: "Local Deck" });
     const cards = [
       createLocalCard({ id: uuid(), deckId: deck.id, frontText: "first" }),
@@ -176,7 +210,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(cardStore.getState().localCards).not.toContainEqual(expect.objectContaining({ deckId: deck.id }));
   });
 
-  it("moves a local Deck with 500 Cards through resumable chunks", async () => {
+  it.sequential("moves a local Deck with 500 Cards through resumable chunks", async () => {
     const deck = createLocalDeck({ id: uuid(), name: "Large local Deck" });
     const cards = Array.from({ length: 500 }, (_, index) =>
       createLocalCard({ id: uuid(), deckId: deck.id, frontText: `card ${String(index)}` })

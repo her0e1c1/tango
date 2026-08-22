@@ -120,6 +120,26 @@ describe("Deck mutations", () => {
     expect(deckStore.getState().localDecks).toEqual([]);
   });
 
+  it("derives a different migration fingerprint for different Card snapshots at the same revision", async () => {
+    const deck = createLocalDeck({ id: "local" });
+    const firstCard = createLocalCard({ id: "card", deckId: deck.id, frontText: "first snapshot" });
+    const secondCard = createLocalCard({ id: firstCard.id, deckId: deck.id, frontText: "second snapshot" });
+    deckStore.setState({ localDecks: [deck] });
+    mocks.getLocalCardsByDeckId.mockReturnValue([firstCard]);
+
+    await editDeck("uid", { id: deck.id, localMode: false });
+    const firstMigration = mocks.beginDeckMigration.mock.calls[0]?.[2];
+
+    deckStore.setState({ localDecks: [deck] });
+    mocks.getLocalCardsByDeckId.mockReturnValue([secondCard]);
+    await editDeck("uid", { id: deck.id, localMode: false });
+    const secondMigration = mocks.beginDeckMigration.mock.calls[1]?.[2];
+
+    expect(firstMigration).toEqual(expect.objectContaining({ revision: 0, fingerprint: expect.any(String) }));
+    expect(secondMigration).toEqual(expect.objectContaining({ revision: 0, fingerprint: expect.any(String) }));
+    expect(firstMigration?.fingerprint).not.toBe(secondMigration?.fingerprint);
+  });
+
   it("keeps local data when Cards change during the remote commit", async () => {
     const deck = createLocalDeck({ id: "local" });
     const originalCard = createLocalCard({ id: "card", deckId: deck.id, frontText: "before" });

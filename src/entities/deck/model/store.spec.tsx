@@ -61,7 +61,7 @@ describe("Deck store", () => {
   });
 
   it("prefers a completed remote Deck over its local migration copy", () => {
-    const migration = { id: "migration", revision: 1 };
+    const migration = { id: "migration", revision: 1, fingerprint: "a".repeat(64) };
     const remoteDeck = createDeck({ id: "shared", migration });
     const localDeck = createLocalDeckFixture({
       id: remoteDeck.id,

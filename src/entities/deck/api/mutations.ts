@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import type { DeckCreateInput, DeckId, LocalDeckCreateInput } from "../model/types";
 
-import { deleteLocalCardsByDeckId, getLocalCardsByDeckId } from "@/entities/card/@x/deck";
+import { type CardCreateInput, deleteLocalCardsByDeckId, getLocalCardsByDeckId } from "@/entities/card/@x/deck";
 import { removeStudySession } from "@/entities/study-session/@x/deck";
 import { generateId } from "@/shared/lib/generateId";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
@@ -30,6 +30,13 @@ const requireDeck = (id: DeckId) => {
   return deck;
 };
 
+const createMigrationFingerprint = async (deck: DeckCreateInput, cards: CardCreateInput[]): Promise<string> => {
+  // Include ordered outbound values so only the exact graph can resume or authorize local cleanup across tabs.
+  const snapshot = new TextEncoder().encode(JSON.stringify({ deck, cards }));
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", snapshot);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
 const moveLocalDeckToRemote = async (
   uid: string,
   currentDeck: Extract<ReturnType<typeof requireDeck>, { localMode: true }>,
@@ -37,9 +44,6 @@ const moveLocalDeckToRemote = async (
 ): Promise<void> => {
   const userId = authenticatedUidSchema.parse(uid);
   const localDeck = editLocalDeck({ ...edit, id: currentDeck.id, localMode: true });
-  const requestedMigration = localDeck.migration ?? { id: generateId(), revision: localDeck.localRevision };
-  let migrationDeck =
-    localDeck.migration === undefined ? setLocalDeckMigration(localDeck.id, requestedMigration) : localDeck;
   const {
     createdAt: _createdAt,
     updatedAt: _updatedAt,
@@ -48,18 +52,25 @@ const moveLocalDeckToRemote = async (
     migration: _migration,
     url: _currentUrl,
     ...currentValues
-  } = migrationDeck;
+  } = localDeck;
   const remoteDeck = {
     ...currentValues,
-    ...omitUndefined(migrationDeck.url === undefined ? {} : { url: migrationDeck.url }),
+    ...omitUndefined(localDeck.url === undefined ? {} : { url: localDeck.url }),
     uid: userId,
     localMode: false as const,
   } satisfies DeckCreateInput;
-  const localCards = getLocalCardsByDeckId(migrationDeck.id);
+  const localCards = getLocalCardsByDeckId(localDeck.id);
   const remoteCards = localCards.map(({ createdAt: _cardCreatedAt, updatedAt: _cardUpdatedAt, ...card }) => ({
     ...card,
     uid: userId,
   }));
+  const fingerprint = await createMigrationFingerprint(remoteDeck, remoteCards);
+  const requestedMigration =
+    localDeck.migration?.fingerprint === fingerprint
+      ? localDeck.migration
+      : { id: generateId(), revision: localDeck.localRevision, fingerprint };
+  let migrationDeck =
+    localDeck.migration === requestedMigration ? localDeck : setLocalDeckMigration(localDeck.id, requestedMigration);
 
   const start = await beginDeckMigration(userId, remoteDeck, requestedMigration);
   if (start.migration.id !== requestedMigration.id) {
@@ -81,6 +92,7 @@ const moveLocalDeckToRemote = async (
   if (
     latestLocalDeck?.migration?.id !== start.migration.id ||
     latestLocalDeck.migration.revision !== start.migration.revision ||
+    latestLocalDeck.migration.fingerprint !== start.migration.fingerprint ||
     !cardsUnchanged
   ) {
     throw new Error(
