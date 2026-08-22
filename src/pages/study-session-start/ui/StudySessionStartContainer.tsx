@@ -1,10 +1,11 @@
 import type * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import type { Deck } from "@/entities/deck";
 import { useDeck } from "@/entities/deck";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
-import { routes, useNavigation } from "@/features/navigate";
+import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -16,7 +17,7 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
 const AvailableStudySessionStartContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const navigation = useNavigation();
+  const navigate = useNavigate();
   const filter = useDeckFilterState(deck);
   // Session selection must see optimistic filter state before its persistence request completes.
   const state = useStudySessionStartState({
@@ -28,7 +29,7 @@ const AvailableStudySessionStartContainer: React.FC<{ deck: Deck }> = ({ deck })
   });
   const start = () => {
     state.onStart();
-    void navigation.to(routes.deckStudy.to(deck.id), { replace: true });
+    void navigate(routes.deckStudy.to(deck.id), { replace: true });
   };
   const startFromEnter = (event: KeyboardEvent) => {
     if (state.cardsLength === 0 || hasInteractiveShortcutTarget(event.target)) return;

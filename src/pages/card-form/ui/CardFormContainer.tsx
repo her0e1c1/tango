@@ -1,6 +1,6 @@
 import type * as React from "react";
+import { useNavigate } from "react-router-dom";
 
-import { useNavigation } from "@/features/navigate";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -8,8 +8,8 @@ import { useCardFormState } from "../model/useCardFormState";
 import { CardEditor } from "./CardEditor";
 
 export const CardFormContainer: React.FC<{ cardId: string }> = ({ cardId }) => {
-  const navigation = useNavigation();
-  const goBack = () => void navigation.back();
+  const navigate = useNavigate();
+  const goBack = () => void navigate(-1);
   const editor = useCardFormState({ cardId, onCancel: goBack, onSaved: goBack });
 
   if (editor == null) {

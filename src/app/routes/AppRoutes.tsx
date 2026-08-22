@@ -5,9 +5,8 @@
  */
 
 import type React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 
-import { routes, useNavigation } from "@/features/navigate";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
@@ -17,6 +16,7 @@ import { DeckListPage } from "@/pages/deck-list";
 import { SettingsPage } from "@/pages/settings";
 import { StudySessionPage } from "@/pages/study-session";
 import { StudySessionStartPage } from "@/pages/study-session-start";
+import { routes } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 /**
@@ -24,14 +24,14 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
  * Shows a page-not-found message with actions to go home or return to the previous route.
  */
 const UnknownRoute = () => {
-  const navigation = useNavigation();
+  const navigate = useNavigate();
 
   return (
     <RouteFeedback
       title="Page not found"
       tone="not-found"
-      primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
-      secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
+      primaryAction={{ label: "Go home", onClick: () => void navigate(routes.deckList.to()) }}
+      secondaryAction={{ label: "Go back", onClick: () => void navigate(-1) }}
     />
   );
 };
