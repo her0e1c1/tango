@@ -12,7 +12,6 @@ const controls = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "" }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
