@@ -13,10 +13,10 @@
 
 ## Review Workflow
 
-- After implementing non-documentation changes and running the required checks, delegate a final review to the project-scoped `reviewer` subagent.
-- Ask the reviewer to inspect every change relative to `origin/main`, including committed, staged, unstaged, and untracked files, then wait for its result before finishing.
-- Resolve every concrete finding or explain with evidence why it does not apply. After any non-documentation fix, rerun the relevant checks and the reviewer.
-- Keep the reviewer non-editing. It must not modify files.
+- After non-documentation changes pass the required checks, delegate a final review to `reviewer`.
+- Have it review the three-dot diff against `origin/main`, plus staged, unstaged, and untracked changes. Wait for the result.
+- Resolve each finding or reject it with evidence. After any non-documentation fix, rerun relevant checks and the review.
+- The reviewer must not edit files.
 
 ## Architecture
 
