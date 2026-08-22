@@ -9,7 +9,17 @@ interface DeckDeletionTarget {
   cardCount: number;
 }
 
-export const useDeckDeletion = () => {
+export interface DeckDeletionTargetView {
+  deckName: string;
+  cardCount: number;
+  hasError: boolean;
+}
+
+interface UseDeckDeletionOptions {
+  onDeleted?: () => void;
+}
+
+export const useDeckDeletion = ({ onDeleted }: UseDeckDeletionOptions = {}) => {
   const uid = useAuthUid();
   const cards = useCards();
   const decks = useDecks();
@@ -34,6 +44,7 @@ export const useDeckDeletion = () => {
       await deleteDeck(uid, target.deck.id);
       setTarget(undefined);
       setSuccessMessage(`Deleted deck “${target.deck.name}”.`);
+      onDeleted?.();
     } catch {
       // Keep the target open so a transient write failure can be retried without losing user intent.
       setHasError(true);
