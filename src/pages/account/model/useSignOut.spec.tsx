@@ -1,7 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { replaceAuthSession } from "@/entities/auth";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
@@ -27,7 +26,6 @@ describe("useSignOut", () => {
   beforeEach(() => {
     mocks.signOutCurrentUser.mockReset();
     mocks.signOutCurrentUser.mockResolvedValue(undefined);
-    replaceAuthSession({ status: "initializing" });
   });
 
   it("reports a pending sign-out until the operation completes", async () => {
@@ -95,36 +93,5 @@ describe("useSignOut", () => {
 
     expect(secondResult.current.pending).toBe(false);
     expect(secondResult.current.error).toBeNull();
-  });
-
-  it("reflects the current account identity and login state", () => {
-    replaceAuthSession({
-      displayName: "Ada",
-      isAnonymous: false,
-      status: "authenticated",
-      uid: "linked-user",
-    });
-    const { result } = renderHook(() => useSignOut());
-
-    expect(result.current.isLoggedIn).toBe(true);
-    expect(result.current.identity).toEqual({
-      displayName: "Ada",
-      uid: "linked-user",
-    });
-
-    act(() => {
-      replaceAuthSession({
-        displayName: null,
-        isAnonymous: true,
-        status: "authenticated",
-        uid: "anonymous-user",
-      });
-    });
-
-    expect(result.current.isLoggedIn).toBe(false);
-    expect(result.current.identity).toEqual({
-      displayName: null,
-      uid: "anonymous-user",
-    });
   });
 });

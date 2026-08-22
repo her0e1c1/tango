@@ -229,10 +229,10 @@ test("logout replaces the UID-scoped Query cache", async ({ page }) => {
   await expect(page.getByText("Logout Deck A")).toBeVisible();
   await expect(page.getByText("Logout Deck B")).not.toBeVisible();
 
-  await page.goto("/settings");
+  await page.goto("/account");
   await expect(page.getByText(uidA, { exact: true })).toHaveCount(1);
   const nextSignIn = page.waitForResponse((response) => response.url().includes("accounts:signUp") && response.ok());
-  await page.getByRole("button", { name: "Logout" }).click();
+  await page.getByRole("button", { name: "Sign out" }).click();
   await nextSignIn;
   await expect(page.getByText(uidB, { exact: true })).toHaveCount(1);
 

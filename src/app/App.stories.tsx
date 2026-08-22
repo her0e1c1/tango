@@ -69,6 +69,10 @@ export const Settings: Story = {
   parameters: { page: page(routes.settings.to()) },
 };
 
+export const Account: Story = {
+  parameters: { page: page(routes.account.to()) },
+};
+
 export const Import: Story = {
   parameters: { page: page(routes.deckImport.to()) },
   play: async ({ canvas, userEvent }) => {

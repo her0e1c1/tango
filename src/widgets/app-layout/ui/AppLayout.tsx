@@ -19,6 +19,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
         onClickDarkMode: setDarkMode,
         onClickLogo: () => void navigate(routes.deckList.to()),
         onClickImport: () => void navigate(routes.deckImport.to()),
+        onClickAccount: () => void navigate(routes.account.to()),
         onClickSettings: () => void navigate(routes.settings.to()),
       }}
     />
