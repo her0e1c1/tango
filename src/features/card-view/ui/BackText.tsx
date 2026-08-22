@@ -23,7 +23,7 @@ export interface BackTextProps {
 export const BackText: React.FC<BackTextProps> = (props) => (
   <Style
     div
-    className="mx-auto h-full w-full max-w-reading overflow-x-hidden p-section-gap"
+    className="mx-auto h-full w-full overflow-x-hidden p-section-gap"
     {...(props.onClick !== undefined ? { onClick: props.onClick } : {})}
   >
     {props.category === "math" ? (

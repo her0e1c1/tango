@@ -1,9 +1,8 @@
 import type * as React from "react";
 import { useId } from "react";
-import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool, AiOutlineUser } from "react-icons/ai";
+import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool } from "react-icons/ai";
 
 import { SettingsRow, SettingsSection } from "./SettingsSection";
-import { Button } from "@/shared/ui/button";
 import { Slider, Switch } from "@/shared/ui/forms";
 
 interface SettingsFields {
@@ -19,15 +18,9 @@ interface SettingsFields {
 }
 
 export interface SettingsFormProps {
-  isLoggedIn?: boolean;
-  identity?: { uid: string; displayName: string | null };
   fields: SettingsFields;
   maxNumberOfCardsToLearn: number;
   cardInterval: number;
-  onLogin?: () => void;
-  onLogout?: () => void;
-  accountPending?: boolean;
-  accountFeedback?: React.ReactNode;
   version?: string;
 }
 
@@ -59,47 +52,6 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         <p className="text-caption text-ink-muted">Changes are saved automatically</p>
       </div>
       <div className="space-y-4">
-        <SettingsSection title="Account" description="Profile and sign-in" icon={<AiOutlineUser />}>
-          <div className="flex min-h-touch items-center justify-between gap-4 px-4 py-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <span
-                aria-hidden="true"
-                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-primary text-ink-inverse"
-              >
-                <AiOutlineUser />
-              </span>
-              <div className="min-w-0">
-                <p className="break-words text-body font-medium text-ink">
-                  {props.isLoggedIn ? (props.identity?.displayName ?? "No name") : "Google Login"}
-                </p>
-                <p className="text-caption text-ink-muted">
-                  {props.isLoggedIn ? "Signed in with Google" : "Sync your decks across devices"}
-                </p>
-              </div>
-            </div>
-            {props.isLoggedIn ? (
-              <Button
-                variant="quiet"
-                size="sm"
-                {...(props.accountPending !== undefined ? { loading: props.accountPending } : {})}
-                {...(props.onLogout !== undefined ? { onClick: props.onLogout } : {})}
-              >
-                Logout
-              </Button>
-            ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                {...(props.accountPending !== undefined ? { loading: props.accountPending } : {})}
-                {...(props.onLogin !== undefined ? { onClick: props.onLogin } : {})}
-              >
-                Login
-              </Button>
-            )}
-          </div>
-          {props.accountFeedback}
-        </SettingsSection>
-
         <SettingsSection title="Appearance" description="Navigation and visual feedback" icon={<AiOutlineEye />}>
           <SettingsRow inputId={inputIds.showHeader} label="Show header" description="Keep app navigation visible">
             <Switch
@@ -220,23 +172,17 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
               <h2 id={advancedHeadingId} className="text-body font-bold text-ink">
                 Advanced
               </h2>
-              <span className="block text-caption text-ink-muted">Version and user ID</span>
+              <span className="block text-caption text-ink-muted">Application version</span>
             </span>
             <AiOutlineDown
               aria-hidden="true"
               className="shrink-0 text-ink-muted transition-transform duration-normal ease-calm group-open:rotate-180"
             />
           </summary>
-          <div className="divide-y divide-border border-t border-border">
+          <div className="border-t border-border">
             <div className="flex min-h-touch items-center justify-between gap-4 px-4 py-3">
               <span className="text-body font-medium text-ink">Version</span>
               <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.version}</span>
-            </div>
-            <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
-              <span className="shrink-0 text-body font-medium text-ink">User ID</span>
-              <span className="min-w-0 break-all text-right text-caption text-ink-muted">
-                {props.identity?.uid ?? ""}
-              </span>
             </div>
           </div>
         </details>

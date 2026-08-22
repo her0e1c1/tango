@@ -7,7 +7,7 @@
 import cx from "classnames";
 import type * as React from "react";
 import { IconContext } from "react-icons";
-import { AiFillSetting, AiOutlineUpload, AiOutlineSun, AiFillMoon } from "react-icons/ai";
+import { AiFillMoon, AiFillSetting, AiOutlineSun, AiOutlineUpload, AiOutlineUser } from "react-icons/ai";
 
 import { Logo } from "../logo";
 
@@ -17,6 +17,7 @@ export interface HeaderProps {
   onClickLogo?: () => void;
   onClickDarkMode?: (b: boolean) => void;
   onClickImport?: () => void;
+  onClickAccount?: () => void;
   onClickSettings?: () => void;
 }
 
@@ -64,6 +65,9 @@ export const Header: React.FC<HeaderProps> = (props) => (
       )}
       <button type="button" aria-label="Import decks" onClick={props.onClickImport}>
         <AiOutlineUpload />
+      </button>
+      <button type="button" aria-label="Open account" onClick={props.onClickAccount}>
+        <AiOutlineUser />
       </button>
       <button type="button" aria-label="Open settings" onClick={props.onClickSettings}>
         <AiFillSetting />

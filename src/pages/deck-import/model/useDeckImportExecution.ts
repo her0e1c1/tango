@@ -87,7 +87,7 @@ export const prepareDeckImport = (
   };
 };
 
-export const executePreparedDeckImport = async (
+const executePreparedDeckImport = async (
   preparedImport: PreparedDeckImport,
   { uid, createDeck, mutateCards }: DeckImportExecutionDependencies
 ) => {
@@ -116,24 +116,30 @@ export const useDeckImportExecution = (uid: string) => {
     setState((current) => ({ ...current, ...update }));
   };
 
-  const run = async (preparedImport: PreparedDeckImport) => {
+  const run = async (operation: () => Promise<DeckImportResult>): Promise<DeckImportResult | undefined> => {
     updateState({ error: null });
+    let importResult: DeckImportResult | undefined;
     try {
-      const importResult = await executePreparedDeckImport(preparedImport, {
+      importResult = await operation();
+      updateState({ result: importResult });
+    } catch (caughtError) {
+      updateState({ result: undefined, error: caughtError });
+    }
+    return importResult;
+  };
+
+  const runPrepared = (prepare: () => PreparedDeckImport) =>
+    run(() =>
+      executePreparedDeckImport(prepare(), {
         uid,
         createDeck: (deck) => persistDeck(uid, deck),
         mutateCards: (mutations) => persistCardMutations(uid, mutations),
-      });
-      updateState({ result: importResult });
-      return importResult;
-    } catch (caughtError) {
-      updateState({ result: undefined, error: caughtError });
-      throw caughtError;
-    }
-  };
+      })
+    );
 
   return {
     run,
+    runPrepared,
     clear: () => updateState({ error: null, result: undefined }),
     error: state.error,
     result: state.result,

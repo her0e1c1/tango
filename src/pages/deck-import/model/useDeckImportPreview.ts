@@ -49,10 +49,8 @@ export const useDeckImportPreview = (uid: string) => {
       const preview = { deckName: file.name, analysis };
       preparedImportRef.current.preparedImport = preparedImport;
       updateState({ preview });
-      return preview;
     } catch (caughtError) {
       updateState({ error: caughtError });
-      throw caughtError;
     }
   };
 

@@ -46,7 +46,9 @@ const DeckEditorHarness = (props: { deckId: string; onCancel: () => void; onSave
   const editor = useDeckFormState({ deckId: props.deckId, onCancel: props.onCancel, onSaved: props.onSaved });
 
   if (editor == null) return null;
-  return <DeckEditor deckName={editor.deckName} form={editor.form} saveError={editor.saveError} />;
+  return (
+    <DeckEditor deckName={editor.deckName} form={editor.form} saveError={editor.saveError} onDelete={() => undefined} />
+  );
 };
 
 // A fresh Entity read after remount proves that the form displays the last successful edit.

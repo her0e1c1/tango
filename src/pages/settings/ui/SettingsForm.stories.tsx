@@ -3,7 +3,6 @@ import type { ComponentProps } from "react";
 
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 
 import { SettingsForm as Form } from "./SettingsForm";
 
@@ -49,42 +48,12 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const LoggedOut: Story = {};
-export const LoggedIn: Story = {
-  args: {
-    ...settingsFormProps,
-    isLoggedIn: true,
-    identity: { uid: "settings-user", displayName: "Settings User" },
-  },
-};
-export const AccountPending: Story = {
-  args: {
-    accountPending: true,
-    accountFeedback: <RemoteMutationNotice pending error={null} onRetry={() => undefined} pendingLabel="Signing in…" />,
-  },
-};
-export const AccountError: Story = {
-  args: {
-    accountFeedback: (
-      <RemoteMutationNotice
-        pending={false}
-        error={new Error("Sign in failed")}
-        onRetry={() => undefined}
-        errorLabel="Unable to sign in."
-      />
-    ),
-  },
-};
+export const Default: Story = {};
 export const LongContent: Story = {
   args: {
     ...settingsFormProps,
-    isLoggedIn: true,
-    identity: {
-      uid: "settings-user-with-an-intentionally-long-identifier-for-responsive-review-1234567890",
-      displayName: "A settings user with an intentionally long display name for responsive review",
-    },
     version: "2026.07.16-calm-focus-settings-presentation-long-metadata",
   },
 };
-export const Dark: Story = { ...LoggedIn, globals: { theme: "dark" } };
+export const Dark: Story = { globals: { theme: "dark" } };
 export const Mobile: Story = { ...LongContent, parameters: { viewport: { defaultViewport: "iphonex" } } };

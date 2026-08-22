@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
-import { updatePreferences, usePreferences } from "@/entities/preference";
-import { prepareSampleDeck } from "./useAddSampleDeck";
-import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
+import { usePreferences } from "@/entities/preference";
+import { addSampleDeck } from "@/features/sample-deck";
+import type { DeckImportResult, DeckImportStorageMode } from "./useDeckImportExecution";
 import { useDeckImportExecution } from "./useDeckImportExecution";
 import { useDeckImportPreview } from "./useDeckImportPreview";
 
@@ -22,7 +22,7 @@ export const useDeckImport = () => {
     execution.clear();
     setStatus("validating");
     try {
-      return await preview.selectFile(file);
+      await preview.selectFile(file);
     } finally {
       setStatus("idle");
     }
@@ -32,30 +32,25 @@ export const useDeckImport = () => {
     if (preview.setStorageMode(storageMode)) execution.clear();
   };
 
-  const runImport = async (prepare: () => PreparedDeckImport) => {
-    const preparedImport = prepare();
+  const runImport = async (operation: () => Promise<DeckImportResult | undefined>) => {
     preview.clearError();
     setStatus("importing");
     try {
-      return await execution.run(preparedImport);
+      return await operation();
     } finally {
       setStatus("idle");
     }
   };
 
   const importPreview = async () => {
-    const result = await runImport(preview.getPreparedImport);
-    // Preserve generated IDs after a failed write so retrying cannot create another partial Deck.
+    const result = await runImport(() => execution.runPrepared(preview.getPreparedImport));
+    if (result === undefined) return;
+    // Failed writes retain generated IDs so retrying cannot create another partial Deck.
     preview.completePreparedImport();
     return result;
   };
 
-  const addSample = async () => {
-    const result = await runImport(() => prepareSampleDeck(uid));
-    // Explicit imports remain available, but a successful one also satisfies the automatic bootstrap permanently.
-    updatePreferences({ loadSample: false });
-    return result;
-  };
+  const addSample = () => runImport(() => execution.run(() => addSampleDeck(uid)));
 
   return {
     selectFile,

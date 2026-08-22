@@ -27,7 +27,7 @@ export const CardView: React.FC<CardViewProps> = ({ text, category, code, dark, 
   return (
     <section
       aria-label="Card answer"
-      className="mx-auto w-full max-w-reading rounded-surface bg-surface-elevated text-ink shadow-surface"
+      className="mx-auto w-full rounded-surface bg-surface-elevated text-ink shadow-surface"
     >
       {content}
     </section>
