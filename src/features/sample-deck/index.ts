@@ -1,1 +1,1 @@
-export { prepareSampleDeck, useAddSampleDeck } from "./model/useAddSampleDeck";
+export { addSampleDeck, useAddSampleDeck } from "./model/useAddSampleDeck";
