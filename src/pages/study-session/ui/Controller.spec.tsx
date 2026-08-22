@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { Controller } from "./Controller";
@@ -9,7 +10,7 @@ describe("Controller", () => {
     const onToggleAutoPlay = vi.fn();
     render(<Controller autoPlay={false} onToggleAutoPlay={onToggleAutoPlay} />);
 
-    fireEvent.click(screen.getByTestId("play"));
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
 
     expect(onToggleAutoPlay).toHaveBeenCalledOnce();
   });
@@ -17,9 +18,22 @@ describe("Controller", () => {
   it("reflects the controlled autoplay value", () => {
     const { rerender } = render(<Controller autoPlay={false} />);
 
+    expect(screen.getByRole("button", { name: "Play" })).toHaveAttribute("type", "button");
+
     rerender(<Controller autoPlay />);
 
-    expect(screen.getByTestId("pause")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+  });
+
+  it("supports native keyboard activation", async () => {
+    const user = userEvent.setup();
+    const onToggleAutoPlay = vi.fn();
+    render(<Controller autoPlay={false} onToggleAutoPlay={onToggleAutoPlay} />);
+
+    screen.getByRole("button", { name: "Play" }).focus();
+    await user.keyboard("{Enter}");
+
+    expect(onToggleAutoPlay).toHaveBeenCalledOnce();
   });
 
   it("delegates manual index changes", () => {
