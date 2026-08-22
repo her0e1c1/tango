@@ -15,8 +15,8 @@
 
 - After implementing non-documentation changes and running the required checks, delegate a final review to the project-scoped `reviewer` subagent.
 - Ask the reviewer to inspect every change relative to `origin/main`, including committed, staged, unstaged, and untracked files, then wait for its result before finishing.
-- Resolve every concrete finding or explain with evidence why it does not apply. If a fix materially changes behavior, rerun the relevant checks and the reviewer.
-- Keep the reviewer read-only. It reports findings but does not edit files.
+- Resolve every concrete finding or explain with evidence why it does not apply. After any non-documentation fix, rerun the relevant checks and the reviewer.
+- Keep the reviewer non-editing. It must not modify files.
 
 ## Architecture
 
