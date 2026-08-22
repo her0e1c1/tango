@@ -18,8 +18,8 @@ const defineIdRoute = (path: string): IdRoute => ({
   to: (id) => path.replace(":id", () => id),
 });
 
-// Route matching and navigation must share one contract so path changes cannot leave generated
-// destinations stale.
+// Route matching and navigation across higher layers share one technical contract in Shared so
+// path changes cannot leave generated destinations stale or require upward FSD imports.
 export const routes = {
   deckList: defineStaticRoute("/"),
   cardList: defineIdRoute("/deck/:id"),

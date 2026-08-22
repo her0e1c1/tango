@@ -3,7 +3,7 @@ import { useKey } from "react-use";
 
 import { touchStudySession } from "@/entities/study-session";
 import { useAddSampleDeck } from "@/features/deck-import";
-import { routes, useNavigation } from "@/features/navigate";
+import { routes, useNavigation } from "@/shared/router";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";

@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { useKey } from "react-use";
 
-import { routes, useNavigation } from "@/features/navigate";
+import { routes, useNavigation } from "@/shared/router";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 

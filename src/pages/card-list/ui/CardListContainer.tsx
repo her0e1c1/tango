@@ -3,7 +3,7 @@ import type * as React from "react";
 import { type Deck, useDeck } from "@/entities/deck";
 import { BackText } from "@/features/card-view";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
-import { routes, useNavigation } from "@/features/navigate";
+import { routes, useNavigation } from "@/shared/router";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";

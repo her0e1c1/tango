@@ -2,7 +2,7 @@ import type React from "react";
 import { useKey } from "react-use";
 
 import { DeckImportView, downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck-import";
-import { routes, useNavigation } from "@/features/navigate";
+import { routes, useNavigation } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 
 export const DeckImportPage: React.FC = () => {

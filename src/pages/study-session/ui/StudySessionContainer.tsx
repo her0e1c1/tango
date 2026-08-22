@@ -3,7 +3,7 @@ import { useKey, useLatest } from "react-use";
 
 import { useDeck } from "@/entities/deck";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
-import { routes, useNavigation } from "@/features/navigate";
+import { routes, useNavigation } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 

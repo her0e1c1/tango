@@ -4,7 +4,7 @@ import { useKey } from "react-use";
 import type { Deck } from "@/entities/deck";
 import { useDeck } from "@/entities/deck";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
-import { routes, useNavigation } from "@/features/navigate";
+import { routes, useNavigation } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 

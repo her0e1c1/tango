@@ -1,6 +1,6 @@
 import type * as React from "react";
 
-import { useNavigation } from "@/features/navigate";
+import { useNavigation } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 

@@ -1,6 +1,6 @@
 import type { RouteFeedbackProps } from "@/shared/ui/route-feedback";
 
-import { routes, useNavigation } from "@/features/navigate";
+import { routes, useNavigation } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 export const RouteNotFound = (props: Pick<RouteFeedbackProps, "description" | "title">) => {

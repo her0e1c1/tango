@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { routes, useNavigation } from "@/features/navigate";
+import { routes, useNavigation } from "@/shared/router";
 
 import { CardListContainer } from "./CardListContainer";
 
