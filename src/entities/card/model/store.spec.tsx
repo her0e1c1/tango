@@ -2,8 +2,7 @@ import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
-import { deckStore } from "@/entities/deck/@x/card";
-import { createCard, createDeck, createLocalCard as createLocalCardFixture } from "@/test/factories";
+import { createCard, createLocalCard as createLocalCardFixture } from "@/test/factories";
 import { useCard, useCards, useCardsByDeckId } from "./hooks";
 import {
   cardStore,
@@ -46,7 +45,6 @@ describe("Card store", () => {
   beforeEach(() => {
     useMemoryStorage();
     cardStore.setState({ remoteCards: [], localCards: [] });
-    deckStore.setState({ remoteDecks: [], localDecks: [] });
     vi.useRealTimers();
   });
 
@@ -71,20 +69,6 @@ describe("Card store", () => {
     expect(renderHook(() => useCard("remote")).result.current).toEqual(remoteCard);
     expect(renderHook(() => useCard("local")).result.current).toEqual(localCard);
     expect(renderHook(() => useCard("missing")).result.current).toBeUndefined();
-  });
-
-  it("shows only Cards from the visible migration and removes local duplicates", () => {
-    const deck = createDeck({
-      id: "deck",
-      migration: { id: "active", revision: 1, fingerprint: "a".repeat(64) },
-    });
-    const activeCard = createCard({ id: "card", deckId: deck.id, migrationId: "active" });
-    const staleCard = createCard({ id: "stale", deckId: deck.id, migrationId: "replaced" });
-    const localDuplicate = createLocalCardFixture({ id: activeCard.id, deckId: deck.id });
-    deckStore.setState({ remoteDecks: [deck] });
-    cardStore.setState({ remoteCards: [activeCard, staleCard], localCards: [localDuplicate] });
-
-    expect(renderHook(useCards).result.current).toEqual([activeCard]);
   });
 
   it("selects cards and tags for a deck", () => {

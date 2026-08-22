@@ -55,13 +55,6 @@ describe("Deck operation schemas", () => {
       expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", url: null } }).deck).toHaveProperty("url", null);
     });
 
-    it("accepts disabling local mode as an edit command", () => {
-      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", localMode: false } }).deck).toEqual({
-        id: "deck",
-        localMode: false,
-      });
-    });
-
     it.each([
       ["authenticated uid", { uid: "", deck: { id: "deck" } }, "confirmed user"],
       ["Deck id", { uid: "uid-a", deck: { id: "" } }, "Deck id"],

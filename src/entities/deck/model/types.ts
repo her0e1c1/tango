@@ -7,14 +7,6 @@ export type Category = string;
 /** Stable identifier shared by Deck boundaries and dependent Entities. */
 export type DeckId = z.infer<typeof deckIdSchema>;
 
-/** Persisted identity that orders and resumes one local-to-remote migration attempt. */
-export interface DeckMigration {
-  id: string;
-  revision: number;
-  /** SHA-256 identity of the exact Deck and Card snapshot written by this attempt. */
-  fingerprint: string;
-}
-
 /** Deck data used throughout the application, including the fields needed by its persistence mode. */
 export type Deck = {
   /** Stable identity referenced by Cards, routes, study sessions, and persistence boundaries. */
@@ -41,9 +33,7 @@ export type Deck = {
   createdAt: number;
   /** Unix epoch time in milliseconds when the Deck was last changed. */
   updatedAt: number;
-  /** Present while a local migration is resumable and on remote data created by that migration. */
-  migration?: DeckMigration | undefined;
-} & ({ localMode: true; localRevision: number } | { uid: string; localMode: false });
+} & ({ localMode: true } | { uid: string; localMode: false });
 
 /** Input accepted at the remote Deck creation boundary. */
 export type DeckCreateInput = z.input<typeof deckCreateSchema>;

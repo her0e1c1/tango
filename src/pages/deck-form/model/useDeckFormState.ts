@@ -11,7 +11,6 @@ import type { Form, Input, Select, Switch } from "@/shared/ui/forms";
 interface DeckFormFields {
   name: React.ComponentProps<typeof Input>;
   convertToBr: React.ComponentProps<typeof Switch>;
-  localMode: React.ComponentProps<typeof Switch>;
   url: React.ComponentProps<typeof Input>;
   category: React.ComponentProps<typeof Select>;
 }
@@ -23,7 +22,6 @@ export interface DeckFormProps {
     updatedAt?: string;
   };
   fields: DeckFormFields;
-  localModeHelp: string;
   errors: {
     name: string | undefined;
     url: string | undefined;
@@ -52,7 +50,6 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
         category: deck.category,
         url: deck.url || undefined,
         convertToBr: deck.convertToBr,
-        localMode: deck.localMode,
       },
     }),
     resolver: zodResolver(deckFormSchema),
@@ -63,12 +60,7 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
   const submit = handleSubmit(async (values) => {
     setSaveError(null);
     try {
-      await editDeck(uid, {
-        id: deck.id,
-        ...values,
-        localMode: values.localMode ?? deck.localMode,
-        url: values.url ?? null,
-      });
+      await editDeck(uid, { id: deck.id, ...values, url: values.url ?? null });
       onSaved();
     } catch (error) {
       setSaveError(error);
@@ -87,8 +79,6 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
     fields: {
       name: register("name"),
       convertToBr: register("convertToBr"),
-      // Moving Firestore data back into browser-only storage needs a separate copy-and-delete workflow.
-      localMode: { ...register("localMode"), disabled: !deck.localMode },
       // Keep optional Deck URLs absent even though an empty HTML input reports an empty string.
       url: register("url", { setValueAs: (value: unknown) => (value === "" ? undefined : value) }),
       category: {
@@ -96,9 +86,6 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
         options: CATEGORY.map((category) => ({ label: category, value: category })),
       },
     },
-    localModeHelp: deck.localMode
-      ? "Turn off to save this deck and its cards to Firestore. This change cannot be undone."
-      : "This deck and its cards are saved to Firestore.",
     errors: {
       name: formState.errors.name?.message,
       url: formState.errors.url?.message,

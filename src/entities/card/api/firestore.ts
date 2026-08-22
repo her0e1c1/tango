@@ -8,7 +8,6 @@ import type {
   RemoteCard,
   RemoteCardRead,
 } from "../model/types";
-import type { WriteBatch } from "firebase/firestore";
 
 import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
@@ -84,28 +83,11 @@ export const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
   return mapActiveCardReads(snapshot.docs);
 };
 
-/** Builds a physical Card document with synchronized creation and update timestamps. */
-const toCardDocument = (card: CardCreate, createdAt: number, migrationId?: string): RemoteCard =>
-  omitUndefined({ ...card, createdAt, updatedAt: createdAt, migrationId } satisfies RemoteCard);
-
 /** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
-  const document = toCardDocument(card, getCurrentTimeMillis());
+  const createdAt = getCurrentTimeMillis();
+  const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
-};
-
-/** Adds validated Card creates to one caller-owned migration batch. */
-export const addCardCreatesToBatch = (
-  batch: WriteBatch,
-  input: { uid: string; cards: CardCreateInput[]; createdAt: number; migrationId: string }
-): void => {
-  for (const card of input.cards) {
-    const create = createCardSchema.parse({ uid: input.uid, card });
-    batch.set(
-      doc(db, CARD_COLLECTION, create.card.id),
-      toCardDocument(create.card, input.createdAt, input.migrationId)
-    );
-  }
 };
 
 /** Validates Card ownership before creating its Firestore document. */

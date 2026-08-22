@@ -23,7 +23,6 @@ const cardDocumentSchema = z.object({
   url: z.string().optional(),
   startLine: z.number().optional(),
   endLine: z.number().optional(),
-  migrationId: z.string().min(1).optional(),
 });
 
 /** Validated field shape stored in one physical Card Firestore document. */

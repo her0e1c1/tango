@@ -48,7 +48,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         updatedAt: 0,
       };
       const savedDeck: Deck = deck.localMode
-        ? { ...fields, localMode: true, localRevision: 0 }
+        ? { ...fields, localMode: true }
         : { ...fields, uid: deck.uid, localMode: false };
       repository.decks = [...repository.decks.filter(({ id }) => id !== savedDeck.id), savedDeck];
       return Promise.resolve();

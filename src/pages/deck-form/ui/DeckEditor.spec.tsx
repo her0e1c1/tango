@@ -13,7 +13,6 @@ import { useDeckFormState } from "../model/useDeckFormState";
 const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,
   nextError: undefined as unknown,
-  writes: [] as { uid: string; deck: Record<string, unknown> }[],
 }));
 
 vi.mock("@/entities/auth", () => ({
@@ -27,14 +26,12 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     CATEGORY: ["language", "science"],
     // Keep successful writes on the real local Entity path while controlling only failure and timing.
     editDeck: async (...args: Parameters<typeof actual.editDeck>) => {
-      writeControls.writes.push({ uid: args[0], deck: args[1] });
       if (writeControls.nextError !== undefined) {
         const error = writeControls.nextError;
         writeControls.nextError = undefined;
         throw error;
       }
       await writeControls.beforeWrite?.();
-      if (args[1].localMode === false) return;
       return actual.editDeck(...args);
     },
   };
@@ -67,7 +64,6 @@ describe("DeckEditor", () => {
   beforeEach(async () => {
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
-    writeControls.writes = [];
     await createDeck(
       "",
       createLocalDeck({
@@ -99,23 +95,6 @@ describe("DeckEditor", () => {
     expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveValue("https://example.com/deck.csv");
     expect(screen.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
     expect(screen.getByRole("combobox")).toHaveValue("science");
-  });
-
-  it("requests Firestore persistence when local-only storage is turned off", async () => {
-    const onSaved = vi.fn();
-    renderForm(onSaved);
-    const localOnly = screen.getByRole("checkbox", { name: "Local only" });
-
-    expect(localOnly).toBeChecked();
-    expect(screen.getByText(/save this deck and its cards to Firestore/)).toBeVisible();
-    await userEvent.click(localOnly);
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-
-    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
-    expect(writeControls.writes.at(-1)).toEqual({
-      uid: "user-id",
-      deck: expect.objectContaining({ id: deckId, localMode: false }),
-    });
   });
 
   it("uses the form submit state while saving", async () => {

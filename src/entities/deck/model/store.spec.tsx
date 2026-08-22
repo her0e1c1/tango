@@ -60,20 +60,6 @@ describe("Deck store", () => {
     expect(renderHook(() => useDeck("missing")).result.current).toBeUndefined();
   });
 
-  it("prefers a completed remote Deck over its local migration copy", () => {
-    const migration = { id: "migration", revision: 1, fingerprint: "a".repeat(64) };
-    const remoteDeck = createDeck({ id: "shared", migration });
-    const localDeck = createLocalDeckFixture({
-      id: remoteDeck.id,
-      migration,
-      localRevision: migration.revision,
-    });
-    deckStore.setState({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
-
-    expect(renderHook(useDecks).result.current).toEqual([remoteDeck]);
-    expect(renderHook(() => useDeck(remoteDeck.id)).result.current).toBe(remoteDeck);
-  });
-
   it("persists only local Decks and restores them after hydration", async () => {
     const storage = useMemoryStorage();
     const remoteDeck = createDeck({ id: "remote" });
@@ -133,7 +119,6 @@ describe("Deck store", () => {
         convertToBr: false,
         createdAt: 1,
         updatedAt: 2,
-        localRevision: 0,
       },
     ]);
   });
@@ -164,9 +149,7 @@ describe("Deck store", () => {
     expect(createdDeck).not.toHaveProperty("uid");
 
     const updatedDeck = editLocalDeck({ id: "local", name: "Renamed", url: null });
-    expect(updatedDeck).toEqual(
-      expect.objectContaining({ name: "Renamed", createdAt: 10, updatedAt: 20, localRevision: 1 })
-    );
+    expect(updatedDeck).toEqual(expect.objectContaining({ name: "Renamed", createdAt: 10, updatedAt: 20 }));
     expect(updatedDeck).not.toHaveProperty("url");
 
     deleteLocalDeck("local");

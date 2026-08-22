@@ -12,14 +12,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /deck/{deckId} {
       function isPublic() {
-        // Public readers must never observe a Deck before all migration chunks are finalized.
-        return resource.data.isPublic == true &&
-               (!("migration" in resource.data) || resource.data.migration.state == "complete");
+        return resource.data.isPublic == true;
       }
-      // Migration registration must transactionally confirm that a new Deck id is unused before creating it.
-      allow get: if (request.auth != null && !exists(/databases/$(database)/documents/deck/$(deckId))) ||
-                    isOwner() || isPublic();
-      allow list: if isOwner() || isPublic();
+      allow read: if isOwner() || isPublic();
       allow create: if isValid();
       allow update: if isValidOwner();
       allow delete: if isOwner();
@@ -28,34 +23,15 @@ service cloud.firestore {
       function getDeck(deckId) {
         return get(/databases/$(database)/documents/deck/$(deckId));
       }
-      function getDeckAfter(deckId) {
-        return getAfter(/databases/$(database)/documents/deck/$(deckId));
-      }
       function isPublic() {
-        // Tagged chunks are public only when they belong to the completed migration currently published by the Deck.
-        return getDeck(resource.data.deckId).data.isPublic == true &&
-               (!("migration" in getDeck(resource.data.deckId).data) ||
-                getDeck(resource.data.deckId).data.migration.state == "complete") &&
-               (!("migrationId" in resource.data) ||
-                (("migration" in getDeck(resource.data.deckId).data) &&
-                 resource.data.migrationId == getDeck(resource.data.deckId).data.migration.id));
+        return getDeck(resource.data.deckId).data.isPublic == true;
       }
       function belongsToDeck() {
-        // Migration batches must authorize Cards against the latest parent state in the same request.
-        return getDeckAfter(request.resource.data.deckId).data.uid == request.auth.uid
-      }
-      function matchesDeckMigration() {
-        return (!("migrationId" in request.resource.data) &&
-                (!("migration" in getDeckAfter(request.resource.data.deckId).data) ||
-                 getDeckAfter(request.resource.data.deckId).data.migration.state == "complete")) ||
-               (("migrationId" in request.resource.data) &&
-                ("migration" in getDeckAfter(request.resource.data.deckId).data) &&
-                request.resource.data.migrationId ==
-                  getDeckAfter(request.resource.data.deckId).data.migration.id);
+        return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid() && belongsToDeck() && matchesDeckMigration();
-      allow update: if isValidOwner() && belongsToDeck() && matchesDeckMigration();
+      allow create: if isValid() && belongsToDeck();
+      allow update: if isValidOwner() && belongsToDeck();
       allow delete: if isOwner();
     }
   }

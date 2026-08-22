@@ -6,8 +6,7 @@ import type { Deck, DeckId } from "./types";
 // Reads the remote and local Deck collections without remapping their values.
 export const useDecks = (): Deck[] => {
   const state = useStore(deckStore);
-  const remoteIds = new Set(state.remoteDecks.map(({ id }) => id));
-  return [...state.remoteDecks, ...state.localDecks.filter(({ id }) => !remoteIds.has(id))];
+  return [...state.remoteDecks, ...state.localDecks];
 };
 
 // Reads one Deck by identifier without remapping its value.

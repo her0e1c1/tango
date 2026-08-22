@@ -3,11 +3,6 @@ import { z } from "zod";
 export const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
 export const deckIdSchema = z.string().min(1, "Deck id is required");
 const deckUidSchema = z.string().min(1, "Deck owner is required");
-export const deckMigrationSchema = z.object({
-  id: z.string().min(1, "Deck migration id is required"),
-  revision: z.number().int().nonnegative(),
-  fingerprint: z.string().regex(/^[0-9a-f]{64}$/, "Deck migration fingerprint must be a SHA-256 digest"),
-});
 
 const editableDeckFieldsSchema = z.object({
   name: z.string().trim().min(1, "Deck name is required."),
@@ -21,14 +16,12 @@ const editableDeckFieldsSchema = z.object({
   convertToBr: z.boolean(),
 });
 
-export const deckFormSchema = editableDeckFieldsSchema
-  .pick({
-    name: true,
-    category: true,
-    url: true,
-    convertToBr: true,
-  })
-  .extend({ localMode: z.boolean().optional() });
+export const deckFormSchema = editableDeckFieldsSchema.pick({
+  name: true,
+  category: true,
+  url: true,
+  convertToBr: true,
+});
 
 const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
@@ -52,8 +45,6 @@ export const localDeckCreateSchema = deckCreateFieldsSchema.extend({ localMode: 
 export const localDeckSchema = localDeckCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
-  localRevision: z.number().int().nonnegative().default(0),
-  migration: deckMigrationSchema.optional(),
 });
 
 export const persistedDeckStateSchema = z.object({ localDecks: z.array(localDeckSchema) });
@@ -61,7 +52,6 @@ export const persistedDeckStateSchema = z.object({ localDecks: z.array(localDeck
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   id: deckIdSchema,
   url: editableDeckFieldsSchema.shape.url.nullable(),
-  localMode: z.boolean().optional(),
 });
 
 // Rejects remote Deck commands whose stored owner differs from the authenticated user.

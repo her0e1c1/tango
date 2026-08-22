@@ -41,7 +41,6 @@ export const createLocalDeck = (
 ): Extract<Deck, { localMode: true }> => ({
   id: "local-deck-id",
   localMode: true,
-  localRevision: 0,
   name: "Local Deck",
   isPublic: false,
   createdAt: 0,
