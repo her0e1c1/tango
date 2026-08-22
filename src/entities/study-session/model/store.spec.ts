@@ -57,6 +57,16 @@ describe("study store", () => {
     });
   });
 
+  it("starts a session when randomUUID is unavailable", () => {
+    vi.stubGlobal("crypto", {
+      getRandomValues: () => new Uint32Array([1, 2, 3, 4]),
+    });
+
+    startSession("deck-1", ["card-1"]);
+
+    expect(getStudySession("deck-1")?.sessionId).toBe("1-2-3-4");
+  });
+
   it("keeps independent study sessions for multiple decks", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
