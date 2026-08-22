@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { updatePreferences, usePreferences } from "@/entities/preference";
-import { prepareSampleDeck } from "./useAddSampleDeck";
+import { prepareSampleDeck } from "@/features/sample-deck";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { useDeckImportExecution } from "./useDeckImportExecution";
 import { useDeckImportPreview } from "./useDeckImportPreview";
