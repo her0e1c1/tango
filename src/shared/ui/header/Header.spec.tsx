@@ -20,6 +20,7 @@ describe("Header", () => {
         onClickLogo={() => events.push("logo")}
         onClickDarkMode={(dark) => events.push(`dark:${dark}`)}
         onClickImport={() => events.push("import")}
+        onClickAccount={() => events.push("account")}
         onClickSettings={() => events.push("settings")}
       />
     );
@@ -27,13 +28,14 @@ describe("Header", () => {
     fireEvent.click(screen.getByRole("button", { name: "tango" }));
     fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
     fireEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open account" }));
     fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
-    expect(events).toEqual(["logo", "dark:true", "import", "settings"]);
+    expect(events).toEqual(["logo", "dark:true", "import", "account", "settings"]);
 
     view.rerender(<Header dark onClickDarkMode={(dark) => events.push(`dark:${dark}`)} />);
     fireEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
 
-    expect(events).toEqual(["logo", "dark:true", "import", "settings", "dark:false"]);
+    expect(events).toEqual(["logo", "dark:true", "import", "account", "settings", "dark:false"]);
   });
 });

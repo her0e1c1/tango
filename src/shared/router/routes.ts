@@ -28,6 +28,7 @@ export const routes = {
   deckStudy: defineIdRoute("/deck/:id/study"),
   cardView: defineIdRoute("/card/:id"),
   cardForm: defineIdRoute("/card/:id/edit"),
+  account: defineStaticRoute("/account"),
   settings: defineStaticRoute("/settings"),
   deckImport: defineStaticRoute("/import"),
   notFound: { path: "*" },

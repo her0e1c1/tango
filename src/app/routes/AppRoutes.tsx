@@ -7,6 +7,7 @@
 import type React from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
+import { AccountPage } from "@/pages/account";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
@@ -49,6 +50,7 @@ export const AppRoutes: React.FC = () => (
     <Route path={routes.deckStudy.path} element={<StudySessionPage />} />
     <Route path={routes.cardView.path} element={<CardViewPage />} />
     <Route path={routes.cardForm.path} element={<CardFormPage />} />
+    <Route path={routes.account.path} element={<AccountPage />} />
     <Route path={routes.settings.path} element={<SettingsPage />} />
     <Route path={routes.deckImport.path} element={<DeckImportPage />} />
     <Route path={routes.notFound.path} element={<UnknownRoute />} />
