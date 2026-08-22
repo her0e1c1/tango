@@ -1,6 +1,6 @@
 import type { Preferences } from "@/entities/preference";
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -75,6 +75,25 @@ describe("DeckFormPage", () => {
     renderPage();
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+  });
+
+  it("deletes the deck from its settings page after confirmation", async () => {
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
+    expect(dialog).toHaveTextContent("Deck name");
+    expect(dialog).toHaveTextContent("This permanently deletes 0 cards in this deck.");
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Deck name" })).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    await userEvent.click(
+      within(screen.getByRole("alertdialog", { name: "Delete deck?" })).getByRole("button", { name: "Delete deck" })
+    );
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
