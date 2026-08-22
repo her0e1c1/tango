@@ -2,9 +2,11 @@ import type React from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { DeckImportView, downloadSampleCsv, SAMPLE_CSV_TEXT, useDeckImport } from "@/features/deck-import";
 import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
+import { downloadSampleCsv, SAMPLE_CSV_TEXT } from "../lib/sampleCsv";
+import { useDeckImport } from "../model/useDeckImport";
+import { DeckImportView } from "./DeckImportView";
 
 export const DeckImportPage: React.FC = () => {
   const navigate = useNavigate();
