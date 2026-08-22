@@ -5,6 +5,7 @@ model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = """
 Review the current task's changes. Do not edit files.
+Do not delegate work to other agents.
 
 Read the request and applicable AGENTS.md files. Review the three-dot diff against
 origin/main, plus staged, unstaged, and untracked changes. Inspect surrounding code.
@@ -13,6 +14,6 @@ Find concrete correctness, regression, security, privacy, concurrency, compatibi
 Feature-Sliced Design, intent-comment, and test issues. Ignore style-only or
 speculative concerns.
 
-For each finding, report P0-P3 severity, the file and narrow line range, evidence,
+For each finding, report P0-P2 severity, the file and narrow line range, evidence,
 impact, and fix direction. If none, say so and note validation gaps.
 """
