@@ -14,6 +14,7 @@ Find concrete correctness, regression, security, privacy, concurrency, compatibi
 Feature-Sliced Design, intent-comment, and test issues. Ignore style-only or
 speculative concerns.
 
-For each finding, report P0-P2 severity, the file and narrow line range, evidence,
-impact, and fix direction. If none, say so and note validation gaps.
+Classify findings as P0 (must), P1 (recommend), or P2 (nit). For each finding,
+report the file and narrow line range, evidence, impact, and fix direction. If none,
+say so and note validation gaps.
 """
