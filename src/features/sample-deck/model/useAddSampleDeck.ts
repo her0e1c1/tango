@@ -14,28 +14,33 @@ const SAMPLE_VERSION = 1;
 const SAMPLE_DECK_ID: DeckId = `sample-v${String(SAMPLE_VERSION)}`;
 
 interface PreparedSampleDeck {
-  uid: string;
   destination: LocalDeckCreateInput;
   mutations: CardMutation[];
 }
 
-export const prepareSampleDeck = (uid: string): PreparedSampleDeck => ({
-  uid,
+const prepareSampleDeck = (): PreparedSampleDeck => ({
   destination: { id: SAMPLE_DECK_ID, name: SAMPLE_DECK_NAME, localMode: true },
   mutations: sampleCards.map((card, index) => ({
     kind: "create",
     card: {
       ...card,
+      // Stable IDs make retries and repeated explicit imports converge on the same local Cards.
       id: `${SAMPLE_DECK_ID}-card-${String(index + 1)}`,
       deckId: SAMPLE_DECK_ID,
     },
   })),
 });
 
-const addSampleDeck = async (uid: string) => {
-  const sample = prepareSampleDeck(uid);
+export const addSampleDeck = async (uid: string) => {
+  const sample = prepareSampleDeck();
   await createDeck(uid, sample.destination);
   if (sample.mutations.length > 0) await mutateCards(uid, sample.mutations);
+  updatePreferences({ loadSample: false });
+
+  return {
+    created: sample.mutations.length,
+    deckId: sample.destination.id,
+  };
 };
 
 export const useAddSampleDeck = () => {
@@ -47,8 +52,6 @@ export const useAddSampleDeck = () => {
     if (!loadSample || decks.length > 0) return;
 
     // Bootstrap is opportunistic and must not block the Deck list when local persistence fails.
-    void addSampleDeck(uid)
-      .then(() => updatePreferences({ loadSample: false }))
-      .catch(() => undefined);
+    void addSampleDeck(uid).catch(() => undefined);
   }, [decks, loadSample, uid]);
 };
