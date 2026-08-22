@@ -116,20 +116,20 @@ export const useDeckImportExecution = (uid: string) => {
     setState((current) => ({ ...current, ...update }));
   };
 
-  const run = async (preparedImport: PreparedDeckImport) => {
+  const run = async (prepare: () => PreparedDeckImport): Promise<DeckImportResult | undefined> => {
     updateState({ error: null });
+    let importResult: DeckImportResult | undefined;
     try {
-      const importResult = await executePreparedDeckImport(preparedImport, {
+      importResult = await executePreparedDeckImport(prepare(), {
         uid,
         createDeck: (deck) => persistDeck(uid, deck),
         mutateCards: (mutations) => persistCardMutations(uid, mutations),
       });
       updateState({ result: importResult });
-      return importResult;
     } catch (caughtError) {
       updateState({ result: undefined, error: caughtError });
-      throw caughtError;
     }
+    return importResult;
   };
 
   return {

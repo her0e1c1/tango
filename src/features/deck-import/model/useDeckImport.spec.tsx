@@ -121,8 +121,20 @@ describe("useDeckImport", () => {
         issues: [expect.objectContaining({ rowNumber: 1, message: "Expected 4 columns, found 2." })],
       },
     });
-    await expect(result.current.deckImport.importPreview()).rejects.toThrow("Fix invalid CSV rows");
+    await expect(result.current.deckImport.importPreview()).resolves.toBeUndefined();
     expect(findDeck(result.current.decks, name)).toBeUndefined();
+  });
+
+  it("exposes a file read failure without rejecting the UI operation", async () => {
+    const { result } = renderDeckImport();
+    const file = csvFile("unreadable.csv");
+    vi.spyOn(file, "text").mockRejectedValue(new Error("file read failed"));
+
+    await actAsync(async () => {
+      await expect(result.current.deckImport.selectFile(file)).resolves.toBeUndefined();
+    });
+
+    expect(result.current.deckImport.previewError).toEqual(new Error("file read failed"));
   });
 
   it("clears a prepared preview when the destination changes", async () => {
@@ -134,7 +146,7 @@ describe("useDeckImport", () => {
 
     expect(result.current.deckImport.storageMode).toBe("remote");
     expect(result.current.deckImport.preview).toBeUndefined();
-    await expect(result.current.deckImport.importPreview()).rejects.toThrow("Select a CSV file");
+    await expect(result.current.deckImport.importPreview()).resolves.toBeUndefined();
   });
 
   it("retries a failed save with the same new Deck", async () => {
@@ -146,7 +158,7 @@ describe("useDeckImport", () => {
     controls.nextMutationError = new Error("card mutation failed");
 
     await actAsync(async () => {
-      await expect(result.current.deckImport.importPreview()).rejects.toThrow("card mutation failed");
+      await expect(result.current.deckImport.importPreview()).resolves.toBeUndefined();
     });
 
     const savedDeck = findDeck(result.current.decks, name);
@@ -172,6 +184,18 @@ describe("useDeckImport", () => {
       result.current.cards.filter((card) => card.deckId === sampleDeck?.id).every((card) => !("uid" in card))
     ).toBe(true);
     expect(result.current.preferences.loadSample).toBe(false);
+  });
+
+  it("keeps the sample bootstrap enabled and exposes an add failure", async () => {
+    const { result } = renderDeckImport();
+    controls.nextMutationError = new Error("sample mutation failed");
+
+    await actAsync(async () => {
+      await expect(result.current.deckImport.addSample()).resolves.toBeUndefined();
+    });
+
+    expect(result.current.deckImport.error).toEqual(new Error("sample mutation failed"));
+    expect(result.current.preferences.loadSample).toBe(true);
   });
 
   it("keeps repeated sample imports idempotent", async () => {

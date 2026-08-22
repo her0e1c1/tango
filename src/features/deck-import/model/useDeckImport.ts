@@ -22,7 +22,7 @@ export const useDeckImport = () => {
     execution.clear();
     setStatus("validating");
     try {
-      return await preview.selectFile(file);
+      await preview.selectFile(file);
     } finally {
       setStatus("idle");
     }
@@ -33,11 +33,10 @@ export const useDeckImport = () => {
   };
 
   const runImport = async (prepare: () => PreparedDeckImport) => {
-    const preparedImport = prepare();
     preview.clearError();
     setStatus("importing");
     try {
-      return await execution.run(preparedImport);
+      return await execution.run(prepare);
     } finally {
       setStatus("idle");
     }
@@ -45,13 +44,15 @@ export const useDeckImport = () => {
 
   const importPreview = async () => {
     const result = await runImport(preview.getPreparedImport);
-    // Preserve generated IDs after a failed write so retrying cannot create another partial Deck.
+    if (result === undefined) return;
+    // Failed writes retain generated IDs so retrying cannot create another partial Deck.
     preview.completePreparedImport();
     return result;
   };
 
   const addSample = async () => {
     const result = await runImport(() => prepareSampleDeck(uid));
+    if (result === undefined) return;
     // Explicit imports remain available, but a successful one also satisfies the automatic bootstrap permanently.
     updatePreferences({ loadSample: false });
     return result;
