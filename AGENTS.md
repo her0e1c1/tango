@@ -11,6 +11,14 @@
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
 
+## Review Workflow
+
+1. Delegate a review to the `reviewer` subagent.
+2. Fix every P0 finding. P1 and P2 findings are optional.
+3. After fixes, delegate another review.
+4. Stop when there are no P0 findings or after three review rounds.
+5. Report any unresolved findings to the user.
+
 ## Architecture
 
 - Follow the current official Feature-Sliced Design guidance before repository-specific placement preferences.
