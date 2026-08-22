@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
@@ -10,6 +10,7 @@ describe("StudySession", () => {
   it("gives swipe overlays accessible names", () => {
     render(
       <StudySession
+        onExit={vi.fn()}
         showBackText
         backTextSlot={<div>Back</div>}
         swipeOverlay={{
@@ -26,5 +27,22 @@ describe("StudySession", () => {
     expect(screen.getByRole("button", { name: "Swipe up" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Swipe down" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+  });
+
+  it("reports the explicit Exit action through a plain callback", () => {
+    const onExit = vi.fn();
+    render(
+      <StudySession onExit={onExit} cardOverlaySlot={<div>Card metadata</div>} frontTextSlot={<div>Front</div>} />
+    );
+
+    const exit = screen.getByRole("button", { name: "Exit" });
+    const actions = screen.getByRole("toolbar", { name: "Study actions" });
+    expect(exit).toBeVisible();
+    expect(actions).toContainElement(exit);
+    expect(actions).not.toContainElement(screen.getByText("Card metadata"));
+
+    fireEvent.click(exit);
+
+    expect(onExit).toHaveBeenCalledOnce();
   });
 });

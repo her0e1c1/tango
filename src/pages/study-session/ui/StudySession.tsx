@@ -1,6 +1,7 @@
 import cx from "classnames";
 import type * as React from "react";
 import type { SwipeDirection } from "@/entities/preference";
+import { Button } from "@/shared/ui/button";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
@@ -14,6 +15,7 @@ const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
 };
 
 export interface StudySessionProps {
+  showHeader?: boolean;
   showBackText?: boolean;
   showSwipeButtonList?: boolean;
   showController?: boolean;
@@ -25,7 +27,24 @@ export interface StudySessionProps {
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
   feedbackSlot?: React.ReactNode;
+  onExit: () => void;
 }
+
+const ExitAction: React.FC<{ showHeader: boolean | undefined; onExit: () => void }> = ({ showHeader, onExit }) => (
+  // This row reserves space above card metadata; safe-area padding is needed only when Header does not provide it.
+  <div
+    role="toolbar"
+    aria-label="Study actions"
+    className={cx(
+      "relative z-40 flex shrink-0 pb-2 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]",
+      showHeader ? "pt-2" : "pt-[calc(0.5rem+env(safe-area-inset-top))]"
+    )}
+  >
+    <Button size="sm" variant="quiet" onClick={onExit}>
+      Exit
+    </Button>
+  </div>
+);
 
 const SwipeFeedback: React.FC<{ swipeFeedback: SwipeDirection | undefined }> = ({ swipeFeedback }) => {
   if (swipeFeedback === undefined) return null;
@@ -107,16 +126,19 @@ const Controls: React.FC<{
 };
 
 export const StudySession: React.FC<StudySessionProps> = (props) => (
-  <>
+  <div className="flex h-full min-h-0 flex-col">
     {props.feedbackSlot}
+    <ExitAction showHeader={props.showHeader} onExit={props.onExit} />
     <SwipeFeedback swipeFeedback={props.swipeFeedback} />
-    <CardContent
-      showBackText={props.showBackText}
-      backTextSlot={props.backTextSlot}
-      frontTextSlot={props.frontTextSlot}
-      cardOverlaySlot={props.cardOverlaySlot}
-      swipeOverlay={props.swipeOverlay}
-    />
+    <div className="relative min-h-0 flex-1">
+      <CardContent
+        showBackText={props.showBackText}
+        backTextSlot={props.backTextSlot}
+        frontTextSlot={props.frontTextSlot}
+        cardOverlaySlot={props.cardOverlaySlot}
+        swipeOverlay={props.swipeOverlay}
+      />
+    </div>
     <Controls
       showBackText={props.showBackText}
       showSwipeButtonList={props.showSwipeButtonList}
@@ -124,5 +146,5 @@ export const StudySession: React.FC<StudySessionProps> = (props) => (
       swipeButtonList={props.swipeButtonList}
       controller={props.controller}
     />
-  </>
+  </div>
 );

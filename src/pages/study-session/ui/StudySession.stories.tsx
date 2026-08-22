@@ -5,6 +5,7 @@
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
 import * as fixture from "@/storybook/fixture";
 
@@ -18,6 +19,7 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
+    onExit: fn(),
     showSwipeButtonList: true,
     frontTextSlot: <div>front text</div>,
   },
