@@ -7,13 +7,13 @@ import { useAuthUid } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, useDecks } from "@/entities/deck";
 import { updatePreferences, usePreferences } from "@/entities/preference";
-import sampleCards from "../../../sample/build/output.json";
+import sampleCards from "../../../../sample/build/output.json";
 
 const SAMPLE_DECK_NAME = "Sample Deck";
 const SAMPLE_VERSION = 1;
 const SAMPLE_DECK_ID: DeckId = `sample-v${String(SAMPLE_VERSION)}`;
 
-export interface PreparedSampleDeck {
+interface PreparedSampleDeck {
   uid: string;
   destination: LocalDeckCreateInput;
   mutations: CardMutation[];
