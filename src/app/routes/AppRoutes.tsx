@@ -1,40 +1,22 @@
 /**
  * @file Defines Tango's route tree.
- * Each URL is connected to a page component while unknown route recovery stays at the application
- * boundary.
+ * Each URL is connected to a dedicated page component.
  */
 
 import type React from "react";
 import { Route, Routes } from "react-router-dom";
 
-import { routes, useNavigation } from "@/features/navigate";
+import { routes } from "@/features/navigate";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
 import { DeckFormPage } from "@/pages/deck-form";
 import { DeckImportPage } from "@/pages/deck-import";
 import { DeckListPage } from "@/pages/deck-list";
+import { NotFoundPage } from "@/pages/not-found";
 import { SettingsPage } from "@/pages/settings";
 import { StudySessionPage } from "@/pages/study-session";
 import { StudySessionStartPage } from "@/pages/study-session-start";
-import { RouteFeedback } from "@/shared/ui/route-feedback";
-
-/**
- * Renders the Unknown Route user interface.
- * Shows a page-not-found message with actions to go home or return to the previous route.
- */
-const UnknownRoute = () => {
-  const navigation = useNavigation();
-
-  return (
-    <RouteFeedback
-      title="Page not found"
-      tone="not-found"
-      primaryAction={{ label: "Go home", onClick: () => void navigation.to(routes.deckList.to()) }}
-      secondaryAction={{ label: "Go back", onClick: () => void navigation.back() }}
-    />
-  );
-};
 
 /**
  * Renders Tango's route tree inside the router supplied by the caller.
@@ -51,6 +33,6 @@ export const AppRoutes: React.FC = () => (
     <Route path={routes.cardForm.path} element={<CardFormPage />} />
     <Route path={routes.settings.path} element={<SettingsPage />} />
     <Route path={routes.deckImport.path} element={<DeckImportPage />} />
-    <Route path={routes.notFound.path} element={<UnknownRoute />} />
+    <Route path={routes.notFound.path} element={<NotFoundPage />} />
   </Routes>
 );
