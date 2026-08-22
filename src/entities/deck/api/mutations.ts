@@ -3,14 +3,24 @@ import type { DeckCreateInput, DeckId, LocalDeckCreateInput } from "../model/typ
 
 import { deleteLocalCardsByDeckId, getLocalCardsByDeckId } from "@/entities/card/@x/deck";
 import { removeStudySession } from "@/entities/study-session/@x/deck";
+import { generateId } from "@/shared/lib/generateId";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
-import { createLocalDeck, deckStore, deleteLocalDeck, editLocalDeck, findDeckById } from "../model/store";
+import {
+  createLocalDeck,
+  deckStore,
+  deleteLocalDeck,
+  editLocalDeck,
+  findDeckById,
+  setLocalDeckMigration,
+} from "../model/store";
 import { authenticatedUidSchema, deckEditSchema } from "../model/schema";
 import {
+  beginDeckMigration,
   createDeck as createRemoteDeck,
-  createDeckWithCards as createRemoteDeckWithCards,
   deleteDeck as deleteRemoteDeck,
   editDeck as editRemoteDeck,
+  finalizeDeckMigration,
+  writeDeckMigrationCards,
 } from "./firestore";
 
 // Returns the current Deck or rejects a stale Deck reference.
@@ -26,47 +36,60 @@ const moveLocalDeckToRemote = async (
   edit: z.infer<typeof deckEditSchema>
 ): Promise<void> => {
   const userId = authenticatedUidSchema.parse(uid);
+  const localDeck = editLocalDeck({ ...edit, id: currentDeck.id, localMode: true });
+  const requestedMigration = localDeck.migration ?? { id: generateId(), revision: localDeck.localRevision };
+  let migrationDeck =
+    localDeck.migration === undefined ? setLocalDeckMigration(localDeck.id, requestedMigration) : localDeck;
   const {
     createdAt: _createdAt,
     updatedAt: _updatedAt,
     localMode: _localMode,
+    localRevision: _localRevision,
+    migration: _migration,
     url: _currentUrl,
     ...currentValues
-  } = currentDeck;
-  const { localMode: _requestedLocalMode, url: _editedUrl, ...editedValues } = edit;
-  const url = edit.url === null ? undefined : (edit.url ?? currentDeck.url);
+  } = migrationDeck;
   const remoteDeck = {
     ...currentValues,
-    ...omitUndefined(editedValues),
-    ...(url === undefined ? {} : { url }),
+    ...omitUndefined(migrationDeck.url === undefined ? {} : { url: migrationDeck.url }),
     uid: userId,
     localMode: false as const,
   } satisfies DeckCreateInput;
-  const localCards = getLocalCardsByDeckId(currentDeck.id);
+  const localCards = getLocalCardsByDeckId(migrationDeck.id);
   const remoteCards = localCards.map(({ createdAt: _cardCreatedAt, updatedAt: _cardUpdatedAt, ...card }) => ({
     ...card,
     uid: userId,
   }));
 
-  // The single batch is the consistency boundary: a failed attempt cannot remove or partially replace another attempt.
-  await createRemoteDeckWithCards(userId, remoteDeck, remoteCards);
+  const start = await beginDeckMigration(userId, remoteDeck, requestedMigration);
+  if (start.migration.id !== requestedMigration.id) {
+    migrationDeck = setLocalDeckMigration(migrationDeck.id, start.migration);
+  }
+  if (!start.complete) {
+    await writeDeckMigrationCards(userId, migrationDeck.id, start.migration, remoteCards);
+    await finalizeDeckMigration(userId, migrationDeck.id, start.migration);
+  }
 
-  const latestLocalDeck = deckStore.getState().localDecks.find(({ id }) => id === currentDeck.id);
-  const latestLocalCards = getLocalCardsByDeckId(currentDeck.id);
+  const latestLocalDeck = deckStore.getState().localDecks.find(({ id }) => id === migrationDeck.id);
+  const latestLocalCards = getLocalCardsByDeckId(migrationDeck.id);
   if (latestLocalDeck === undefined && latestLocalCards.length === 0) return;
 
-  // Store mutations replace objects, so identity plus length detects any edit, addition, or deletion during the async commit.
+  // The persisted marker and immutable Card objects prove local data still matches the finalized remote revision.
   const cardsUnchanged =
     latestLocalCards.length === localCards.length &&
     latestLocalCards.every((card, index) => card === localCards[index]);
-  if (latestLocalDeck !== currentDeck || !cardsUnchanged) {
+  if (
+    latestLocalDeck?.migration?.id !== start.migration.id ||
+    latestLocalDeck.migration.revision !== start.migration.revision ||
+    !cardsUnchanged
+  ) {
     throw new Error(
       "The local Deck or its Cards changed while moving to Firestore. Save again to migrate the latest data"
     );
   }
 
-  deleteLocalCardsByDeckId(currentDeck.id);
-  deleteLocalDeck(currentDeck.id);
+  deleteLocalCardsByDeckId(migrationDeck.id);
+  deleteLocalDeck(migrationDeck.id);
 };
 
 // Routes a Deck create through the payload's persistence mode.

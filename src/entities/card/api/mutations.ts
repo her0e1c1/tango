@@ -7,7 +7,7 @@ import type {
   RemoteCard,
 } from "../model/types";
 
-import { findDeckById } from "@/entities/deck/@x/card";
+import { findDeckById, markLocalDeckChanged } from "@/entities/deck/@x/card";
 import { cardCreateSchema } from "../model/schema";
 import { createLocalCard, deleteLocalCard, editLocalCard, findCardById } from "../model/store";
 import {
@@ -40,6 +40,7 @@ const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput
 // Routes a Card create through the owning Deck's persistence mode.
 const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
   if (isLocalDeck(card.deckId)) {
+    markLocalDeckChanged(card.deckId);
     createLocalCard(card);
     return;
   }
@@ -56,6 +57,7 @@ const requireRemoteCard = (card: ReturnType<typeof requireCard>): RemoteCard => 
 export const editCard = async (uid: string, card: CardEditInput): Promise<void> => {
   const currentCard = requireCard(card.id);
   if (requireLocalMode(currentCard.deckId)) {
+    markLocalDeckChanged(currentCard.deckId);
     editLocalCard(card);
     return;
   }
@@ -79,6 +81,7 @@ export const mutateCards = async (uid: string, mutations: CardMutation[]): Promi
 export const deleteCard = async (uid: string, card: { id: CardId }): Promise<void> => {
   const currentCard = requireCard(card.id);
   if (requireLocalMode(currentCard.deckId)) {
+    markLocalDeckChanged(currentCard.deckId);
     deleteLocalCard(card.id);
     return;
   }

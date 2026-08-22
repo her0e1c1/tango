@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 import { parseFirestoreDocument } from "@/shared/api";
-import type { deckCreateSchema } from "../model/schema";
+import { type deckCreateSchema, deckMigrationSchema } from "../model/schema";
 import type { Deck, DeckId } from "../model/types";
+
+const deckMigrationDocumentSchema = deckMigrationSchema.extend({ state: z.enum(["copying", "complete"]) });
 
 const deckDocumentSchema = z.object({
   // Older documents duplicate the Firestore document id in their data.
@@ -21,6 +23,7 @@ const deckDocumentSchema = z.object({
   tagAndFilter: z.boolean(),
   category: z.string(),
   convertToBr: z.boolean(),
+  migration: deckMigrationDocumentSchema.optional(),
 });
 
 /** Validated field shape stored in one physical Deck Firestore document. */
@@ -46,6 +49,9 @@ export const toDeck = (id: DeckId, document: DeckDocument): Extract<Deck, { loca
   convertToBr: document.convertToBr,
   createdAt: document.createdAt,
   updatedAt: document.updatedAt,
+  ...(document.migration === undefined
+    ? {}
+    : { migration: { id: document.migration.id, revision: document.migration.revision } }),
 });
 
 // Converts a validated create input to the Firestore representation and adds server-owned timestamps.

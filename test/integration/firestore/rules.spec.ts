@@ -60,6 +60,10 @@ describe("firestore/rule", () => {
         await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
 
+      it("should confirm that a new deck id is unused", async () => {
+        await assertSucceeds(getDoc(doc(db, "deck", uuid())));
+      });
+
       it("should create a deck", async () => {
         const id = uuid();
         await assertSucceeds(setDoc(doc(db, "deck", id), { uid: "uid" }));
@@ -189,6 +193,10 @@ describe("firestore/rule", () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid" });
         await assertFails(getDoc(doc(db, "deck", id)));
+      });
+
+      it("should not inspect an unused deck id", async () => {
+        await assertFails(getDoc(doc(db, "deck", uuid())));
       });
 
       it("should read a publick deck", async () => {

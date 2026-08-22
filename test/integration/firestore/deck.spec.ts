@@ -10,7 +10,14 @@ import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card/api/firestore";
 import { cardStore } from "@/entities/card/model/store";
-import { createDeck, createDeckWithCards, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
+import {
+  beginDeckMigration,
+  createDeck,
+  deleteDeck,
+  editDeck,
+  finalizeDeckMigration,
+  writeDeckMigrationCards,
+} from "@/entities/deck/api/firestore";
 import { editDeck as editStoredDeck } from "@/entities/deck";
 import { deckStore } from "@/entities/deck/model/store";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
@@ -100,26 +107,43 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
 
     await deleteDeck("uid", d.id);
 
-    await expect(getDoc(doc(db, "deck", d.id))).rejects.toMatchObject({ code: "permission-denied" });
+    expect((await getDoc(doc(db, "deck", d.id))).exists()).toBe(false);
     await Promise.all(
       cards.map((card) => expect(getDoc(doc(db, "card", card.id))).rejects.toMatchObject({ code: "permission-denied" }))
     );
   });
 
-  it("keeps a successful Deck graph when an overlapping atomic migration fails", async () => {
-    const deck = { ...newDeck, id: uuid() };
-    const card = createCard({ id: uuid(), deckId: deck.id, uid: deck.uid });
-    const cardWithMissingParent = createCard({ id: uuid(), deckId: uuid(), uid: deck.uid });
+  it("rejects older Card writes and finalization after a newer migration completes", async () => {
+    const deckId = uuid();
+    const cardId = uuid();
+    const oldDeck = { ...newDeck, id: deckId, name: "old snapshot" };
+    const newDeckRevision = { ...newDeck, id: deckId, name: "new snapshot" };
+    const oldMigration = { id: uuid(), revision: 0 };
+    const newMigration = { id: uuid(), revision: 1 };
 
-    const [successfulMigration, failedMigration] = await Promise.allSettled([
-      createDeckWithCards("uid", deck, [card]),
-      createDeckWithCards("uid", deck, [cardWithMissingParent]),
+    await beginDeckMigration("uid", oldDeck, oldMigration);
+    await beginDeckMigration("uid", newDeckRevision, newMigration);
+    await writeDeckMigrationCards("uid", deckId, newMigration, [
+      createCard({ id: cardId, deckId, uid: "uid", frontText: "new card" }),
     ]);
+    await finalizeDeckMigration("uid", deckId, newMigration);
 
-    expect(successfulMigration.status).toBe("fulfilled");
-    expect(failedMigration.status).toBe("rejected");
-    expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({ id: deck.id, uid: deck.uid });
-    expect((await getDoc(doc(db, "card", card.id))).data()).toMatchObject({ id: card.id, deckId: deck.id });
+    await expect(
+      writeDeckMigrationCards("uid", deckId, oldMigration, [
+        createCard({ id: cardId, deckId, uid: "uid", frontText: "old card" }),
+      ])
+    ).rejects.toMatchObject({ code: "permission-denied" });
+    await expect(finalizeDeckMigration("uid", deckId, oldMigration)).rejects.toThrow("replaced by a newer revision");
+    expect((await getDoc(doc(db, "deck", deckId))).data()).toMatchObject({
+      id: deckId,
+      name: "new snapshot",
+      migration: { ...newMigration, state: "complete" },
+    });
+    expect((await getDoc(doc(db, "card", cardId))).data()).toMatchObject({
+      id: cardId,
+      frontText: "new card",
+      migrationId: newMigration.id,
+    });
   });
 
   it("moves a local Deck and its Cards to Firestore when local mode is disabled", async () => {
@@ -150,5 +174,30 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     );
     expect(deckStore.getState().localDecks).not.toContainEqual(expect.objectContaining({ id: deck.id }));
     expect(cardStore.getState().localCards).not.toContainEqual(expect.objectContaining({ deckId: deck.id }));
+  });
+
+  it("moves a local Deck with 500 Cards through resumable chunks", async () => {
+    const deck = createLocalDeck({ id: uuid(), name: "Large local Deck" });
+    const cards = Array.from({ length: 500 }, (_, index) =>
+      createLocalCard({ id: uuid(), deckId: deck.id, frontText: `card ${String(index)}` })
+    );
+    deckStore.setState({ localDecks: [deck] });
+    cardStore.setState({ localCards: cards });
+
+    await editStoredDeck("uid", { id: deck.id, localMode: false });
+
+    expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({
+      id: deck.id,
+      migration: expect.objectContaining({ state: "complete" }),
+    });
+    const edgeCards = [cards[0], cards.at(-1)];
+    await Promise.all(
+      edgeCards.map(async (card) => {
+        if (card === undefined) throw new Error("Expected migration edge Card");
+        expect((await getDoc(doc(db, "card", card.id))).data()).toMatchObject({ deckId: deck.id });
+      })
+    );
+    expect(deckStore.getState().localDecks).toEqual([]);
+    expect(cardStore.getState().localCards).toEqual([]);
   });
 });

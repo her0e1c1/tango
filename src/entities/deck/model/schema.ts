@@ -3,6 +3,10 @@ import { z } from "zod";
 export const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
 export const deckIdSchema = z.string().min(1, "Deck id is required");
 const deckUidSchema = z.string().min(1, "Deck owner is required");
+export const deckMigrationSchema = z.object({
+  id: z.string().min(1, "Deck migration id is required"),
+  revision: z.number().int().nonnegative(),
+});
 
 const editableDeckFieldsSchema = z.object({
   name: z.string().trim().min(1, "Deck name is required."),
@@ -47,6 +51,8 @@ export const localDeckCreateSchema = deckCreateFieldsSchema.extend({ localMode: 
 export const localDeckSchema = localDeckCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
+  localRevision: z.number().int().nonnegative().default(0),
+  migration: deckMigrationSchema.optional(),
 });
 
 export const persistedDeckStateSchema = z.object({ localDecks: z.array(localDeckSchema) });

@@ -17,5 +17,6 @@ export const mapCardDocument = (id: CardId, document: CardDocumentFields): Remot
   if (document.url !== undefined) card.url = document.url;
   if (document.startLine !== undefined) card.startLine = document.startLine;
   if (document.endLine !== undefined) card.endLine = document.endLine;
+  if (document.migrationId !== undefined) card.migrationId = document.migrationId;
   return card;
 };

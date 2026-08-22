@@ -14,7 +14,10 @@ service cloud.firestore {
       function isPublic() {
         return resource.data.isPublic == true;
       }
-      allow read: if isOwner() || isPublic();
+      // Migration registration must transactionally confirm that a new Deck id is unused before creating it.
+      allow get: if (request.auth != null && !exists(/databases/$(database)/documents/deck/$(deckId))) ||
+                    isOwner() || isPublic();
+      allow list: if isOwner() || isPublic();
       allow create: if isValid();
       allow update: if isValidOwner();
       allow delete: if isOwner();
@@ -30,12 +33,21 @@ service cloud.firestore {
         return getDeck(resource.data.deckId).data.isPublic == true;
       }
       function belongsToDeck() {
-        // Card creation can share an atomic batch with its new parent Deck.
+        // Migration batches must authorize Cards against the latest parent state in the same request.
         return getDeckAfter(request.resource.data.deckId).data.uid == request.auth.uid
       }
+      function matchesDeckMigration() {
+        return (!("migrationId" in request.resource.data) &&
+                (!("migration" in getDeckAfter(request.resource.data.deckId).data) ||
+                 getDeckAfter(request.resource.data.deckId).data.migration.state == "complete")) ||
+               (("migrationId" in request.resource.data) &&
+                ("migration" in getDeckAfter(request.resource.data.deckId).data) &&
+                request.resource.data.migrationId ==
+                  getDeckAfter(request.resource.data.deckId).data.migration.id);
+      }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid() && belongsToDeck();
-      allow update: if isValidOwner() && belongsToDeck();
+      allow create: if isValid() && belongsToDeck() && matchesDeckMigration();
+      allow update: if isValidOwner() && belongsToDeck() && matchesDeckMigration();
       allow delete: if isOwner();
     }
   }

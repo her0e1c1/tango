@@ -41,6 +41,7 @@ export const localCardCreateSchema = cardCreateFieldsSchema;
 export const cardSchema = cardCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
+  migrationId: z.string().min(1).optional(),
 });
 
 export const localCardSchema = localCardCreateSchema.extend({

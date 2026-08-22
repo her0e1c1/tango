@@ -1,1 +1,1 @@
-export { findDeckById } from "../model/store";
+export { deckStore, findDeckById, markLocalDeckChanged } from "../model/store";

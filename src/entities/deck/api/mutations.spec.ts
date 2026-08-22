@@ -3,13 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createDeck as createDeckFixture, createLocalCard, createLocalDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
+  beginDeckMigration: vi.fn(),
   createRemoteDeck: vi.fn(),
-  createRemoteDeckWithCards: vi.fn(),
   deleteLocalCardsByDeckId: vi.fn(),
   deleteRemoteDeck: vi.fn(),
   editRemoteDeck: vi.fn(),
+  finalizeDeckMigration: vi.fn(),
   getLocalCardsByDeckId: vi.fn(),
   removeStudySession: vi.fn(),
+  writeDeckMigrationCards: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
@@ -19,10 +21,12 @@ vi.mock("@/entities/card/@x/deck", () => ({
 }));
 vi.mock("@/entities/study-session/@x/deck", () => ({ removeStudySession: mocks.removeStudySession }));
 vi.mock("./firestore", () => ({
+  beginDeckMigration: mocks.beginDeckMigration,
   createDeck: mocks.createRemoteDeck,
-  createDeckWithCards: mocks.createRemoteDeckWithCards,
   deleteDeck: mocks.deleteRemoteDeck,
   editDeck: mocks.editRemoteDeck,
+  finalizeDeckMigration: mocks.finalizeDeckMigration,
+  writeDeckMigrationCards: mocks.writeDeckMigrationCards,
 }));
 
 import { deleteDeck, editDeck } from "./mutations";
@@ -34,6 +38,9 @@ describe("Deck mutations", () => {
     localStorage.clear();
     vi.clearAllMocks();
     mocks.getLocalCardsByDeckId.mockReturnValue([]);
+    mocks.beginDeckMigration.mockImplementation((_uid, _deck, migration) =>
+      Promise.resolve({ migration, complete: false })
+    );
   });
 
   it("rejects edit and delete when the Deck cannot be resolved", async () => {
@@ -58,59 +65,58 @@ describe("Deck mutations", () => {
 
     await editDeck("uid", { id: deck.id, name: "Synced Deck", url: null, localMode: false });
 
-    expect(mocks.createRemoteDeckWithCards).toHaveBeenCalledExactlyOnceWith(
+    expect(mocks.beginDeckMigration).toHaveBeenCalledExactlyOnceWith(
       "uid",
       expect.objectContaining({ id: deck.id, uid: "uid", name: "Synced Deck", localMode: false }),
-      [expect.objectContaining({ id: cards[0]?.id, deckId: deck.id, uid: "uid" })]
+      expect.objectContaining({ revision: 1 })
     );
-    const remoteInput = mocks.createRemoteDeckWithCards.mock.calls[0]?.[1];
+    const remoteInput = mocks.beginDeckMigration.mock.calls[0]?.[1];
     expect(remoteInput).not.toHaveProperty("createdAt");
     expect(remoteInput).not.toHaveProperty("updatedAt");
     expect(remoteInput).not.toHaveProperty("url");
-    expect(mocks.createRemoteDeckWithCards.mock.calls[0]?.[2]?.[0]).not.toHaveProperty("createdAt");
-    expect(mocks.createRemoteDeckWithCards.mock.calls[0]?.[2]?.[0]).not.toHaveProperty("updatedAt");
+    expect(mocks.writeDeckMigrationCards).toHaveBeenCalledExactlyOnceWith(
+      "uid",
+      deck.id,
+      expect.objectContaining({ revision: 1 }),
+      [expect.objectContaining({ id: cards[0]?.id, deckId: deck.id, uid: "uid" })]
+    );
+    expect(mocks.writeDeckMigrationCards.mock.calls[0]?.[3]?.[0]).not.toHaveProperty("createdAt");
+    expect(mocks.writeDeckMigrationCards.mock.calls[0]?.[3]?.[0]).not.toHaveProperty("updatedAt");
+    expect(mocks.finalizeDeckMigration).toHaveBeenCalledExactlyOnceWith(
+      "uid",
+      deck.id,
+      expect.objectContaining({ revision: 1 })
+    );
     expect(mocks.deleteLocalCardsByDeckId).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(deckStore.getState().localDecks).toEqual([]);
   });
 
-  it("keeps the local Deck without deleting remote data when the atomic migration fails", async () => {
+  it("keeps a resumable local Deck when remote migration registration fails", async () => {
     const deck = createLocalDeck({ id: "local" });
     deckStore.setState({ localDecks: [deck] });
-    mocks.createRemoteDeckWithCards.mockRejectedValueOnce(new Error("batch failed"));
+    mocks.beginDeckMigration.mockRejectedValueOnce(new Error("transaction failed"));
 
-    await expect(editDeck("uid", { id: deck.id, localMode: false })).rejects.toThrow("batch failed");
+    await expect(editDeck("uid", { id: deck.id, localMode: false })).rejects.toThrow("transaction failed");
 
     expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
     expect(mocks.deleteLocalCardsByDeckId).not.toHaveBeenCalled();
-    expect(deckStore.getState().localDecks).toEqual([deck]);
+    expect(deckStore.getState().localDecks).toEqual([
+      expect.objectContaining({ id: deck.id, migration: expect.objectContaining({ revision: 0 }) }),
+    ]);
   });
 
-  it("does not let a failed overlapping migration undo a successful one", async () => {
+  it("finishes local cleanup when retry finds its remote revision complete", async () => {
     const deck = createLocalDeck({ id: "local" });
     deckStore.setState({ localDecks: [deck] });
-    const remoteDeckIds = new Set<string>();
-    let finishSuccessfulMigration = () => undefined;
-    mocks.createRemoteDeckWithCards
-      .mockImplementationOnce(
-        () =>
-          new Promise<void>((resolve) => {
-            finishSuccessfulMigration = () => {
-              remoteDeckIds.add(deck.id);
-              resolve();
-            };
-          })
-      )
-      .mockRejectedValueOnce(new Error("overlapping batch failed"));
+    mocks.beginDeckMigration.mockImplementation((_uid, _deck, migration) =>
+      Promise.resolve({ migration, complete: true })
+    );
 
-    const successfulMigration = editDeck("uid", { id: deck.id, localMode: false });
-    const failedMigration = editDeck("uid", { id: deck.id, localMode: false });
+    await editDeck("uid", { id: deck.id, localMode: false });
 
-    await expect(failedMigration).rejects.toThrow("overlapping batch failed");
-    finishSuccessfulMigration();
-    await successfulMigration;
-
-    expect(remoteDeckIds).toEqual(new Set([deck.id]));
-    expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
+    expect(mocks.writeDeckMigrationCards).not.toHaveBeenCalled();
+    expect(mocks.finalizeDeckMigration).not.toHaveBeenCalled();
+    expect(mocks.deleteLocalCardsByDeckId).toHaveBeenCalledWith(deck.id);
     expect(deckStore.getState().localDecks).toEqual([]);
   });
 
@@ -124,7 +130,9 @@ describe("Deck mutations", () => {
     await expect(editDeck("uid", { id: deck.id, localMode: false })).rejects.toThrow("changed while moving");
 
     expect(mocks.deleteLocalCardsByDeckId).not.toHaveBeenCalled();
-    expect(deckStore.getState().localDecks).toEqual([deck]);
+    expect(deckStore.getState().localDecks).toEqual([
+      expect.objectContaining({ id: deck.id, migration: expect.objectContaining({ revision: 0 }) }),
+    ]);
   });
 
   it("rejects moving a remote Deck into local storage", async () => {

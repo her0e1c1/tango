@@ -85,8 +85,8 @@ export const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
 };
 
 /** Builds a physical Card document with synchronized creation and update timestamps. */
-const toCardDocument = (card: CardCreate, createdAt: number): RemoteCard =>
-  omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
+const toCardDocument = (card: CardCreate, createdAt: number, migrationId?: string): RemoteCard =>
+  omitUndefined({ ...card, createdAt, updatedAt: createdAt, migrationId } satisfies RemoteCard);
 
 /** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
@@ -94,16 +94,17 @@ const createCardDocument = async (card: CardCreate): Promise<void> => {
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
 
-/** Adds validated Card creates to a caller-owned batch so a parent Deck graph can commit atomically. */
+/** Adds validated Card creates to one caller-owned migration batch. */
 export const addCardCreatesToBatch = (
   batch: WriteBatch,
-  uid: string,
-  cards: CardCreateInput[],
-  createdAt: number
+  input: { uid: string; cards: CardCreateInput[]; createdAt: number; migrationId: string }
 ): void => {
-  for (const card of cards) {
-    const input = createCardSchema.parse({ uid, card });
-    batch.set(doc(db, CARD_COLLECTION, input.card.id), toCardDocument(input.card, createdAt));
+  for (const card of input.cards) {
+    const create = createCardSchema.parse({ uid: input.uid, card });
+    batch.set(
+      doc(db, CARD_COLLECTION, create.card.id),
+      toCardDocument(create.card, input.createdAt, input.migrationId)
+    );
   }
 };
 
