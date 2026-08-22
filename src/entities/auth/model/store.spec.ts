@@ -1,35 +1,37 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { getAuthSession, replaceAuthSession } from "./store";
+import { getAuthUser, setAuthUser } from "./store";
 
-describe("authSessionStore", () => {
-  beforeEach(() => replaceAuthSession({ status: "initializing" }));
+describe("authUserStore", () => {
+  beforeEach(() => setAuthUser(null));
 
-  it("starts without an identity", () => {
-    expect(getAuthSession()).toEqual({ status: "initializing" });
-    expect("uid" in getAuthSession()).toBe(false);
+  it("starts without an authenticated user", () => {
+    expect(getAuthUser()).toBeNull();
   });
 
-  it("replaces the current session", () => {
-    replaceAuthSession({
-      status: "authenticated",
+  it("replaces the current user", () => {
+    setAuthUser({
       uid: "uid-a",
       isAnonymous: true,
       displayName: null,
     });
 
-    expect(getAuthSession()).toEqual({
-      status: "authenticated",
+    expect(getAuthUser()).toEqual({
       uid: "uid-a",
       isAnonymous: true,
       displayName: null,
     });
   });
 
-  it("represents anonymous authentication without an SDK credential", () => {
-    const attemptId = Symbol("attempt-a");
-    replaceAuthSession({ status: "authenticating", attemptId });
+  it("clears the current user", () => {
+    setAuthUser({
+      uid: "uid-a",
+      isAnonymous: false,
+      displayName: "Ada",
+    });
 
-    expect(getAuthSession()).toEqual({ status: "authenticating", attemptId });
+    setAuthUser(null);
+
+    expect(getAuthUser()).toBeNull();
   });
 });

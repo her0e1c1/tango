@@ -6,7 +6,8 @@ import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { getAuthSession, replaceAuthSession } from "@/entities/auth";
+import { setAuthUser } from "@/entities/auth";
+import { getAuthUser } from "@/entities/auth/testing";
 import { clearStudySessions } from "@/entities/study-session";
 
 const firebaseAuth = vi.hoisted(() => ({
@@ -52,7 +53,7 @@ const ReloadableApp = () => {
 describe("AuthProvider", () => {
   beforeEach(() => {
     clearStudySessions();
-    replaceAuthSession({ status: "initializing" });
+    setAuthUser(null);
     firebaseAuth.observer = undefined;
     firebaseAuth.observing = false;
     firebaseAuth.signIn = () => new Promise<UserCredential>(() => undefined);
@@ -101,6 +102,6 @@ describe("AuthProvider", () => {
     view.unmount();
     publishUser(createUser("user-b"));
 
-    expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "user-a" });
+    expect(getAuthUser()).toMatchObject({ uid: "user-a" });
   });
 });

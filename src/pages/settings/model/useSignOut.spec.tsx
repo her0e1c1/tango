@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { replaceAuthSession } from "@/entities/auth";
+import { setAuthUser } from "@/entities/auth";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
@@ -27,7 +27,7 @@ describe("useSignOut", () => {
   beforeEach(() => {
     mocks.signOutCurrentUser.mockReset();
     mocks.signOutCurrentUser.mockResolvedValue(undefined);
-    replaceAuthSession({ status: "initializing" });
+    setAuthUser(null);
   });
 
   it("reports a pending sign-out until the operation completes", async () => {
@@ -98,10 +98,9 @@ describe("useSignOut", () => {
   });
 
   it("reflects the current account identity and login state", () => {
-    replaceAuthSession({
+    setAuthUser({
       displayName: "Ada",
       isAnonymous: false,
-      status: "authenticated",
       uid: "linked-user",
     });
     const { result } = renderHook(() => useSignOut());
@@ -113,10 +112,9 @@ describe("useSignOut", () => {
     });
 
     act(() => {
-      replaceAuthSession({
+      setAuthUser({
         displayName: null,
         isAnonymous: true,
-        status: "authenticated",
         uid: "anonymous-user",
       });
     });

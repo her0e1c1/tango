@@ -1,15 +1,12 @@
 import { createStore } from "zustand/vanilla";
 
-import { initialAuthSession } from "./defaults";
-import type { AuthSessionState } from "./types";
+import type { AuthUser } from "./types";
 
-export const authSessionStore = createStore<AuthSessionState>()(() => initialAuthSession);
+export const authUserStore = createStore<AuthUser | null>()(() => null);
 
-// Returns the current authentication lifecycle state outside React.
-export const getAuthSession = (): AuthSessionState => authSessionStore.getState();
+export const getAuthUser = (): AuthUser | null => authUserStore.getState();
 
-// Replaces the authentication lifecycle state with one complete variant.
-export const replaceAuthSession = (session: AuthSessionState): void => {
-  // Replace the union variant wholesale so fields from an earlier authenticated session cannot survive a transition.
-  authSessionStore.setState(session, true);
+export const setAuthUser = (user: AuthUser | null): void => {
+  // Replace the snapshot wholesale so metadata from an earlier identity cannot survive an auth transition.
+  authUserStore.setState(user, true);
 };

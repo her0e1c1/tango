@@ -1,7 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { replaceAuthSession } from "@/entities/auth";
+import { setAuthUser } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { clearStudySessions, startStudy } from "@/entities/study-session";
@@ -34,7 +34,7 @@ const cardsForDeck = (deckId: string) => cards.filter((card) => card.deckId === 
 describe("useDeckListState", () => {
   beforeEach(async () => {
     vi.useFakeTimers();
-    replaceAuthSession({ status: "initializing" });
+    setAuthUser(null);
     clearStudySessions();
     await Promise.all(decks.map((deck) => createDeck("", deck)));
     await mutateCards(

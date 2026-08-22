@@ -1,2 +1,3 @@
-export { useAuthAccount, useAuthSession, useAuthUid } from "./model/hooks";
-export { getAuthSession, replaceAuthSession } from "./model/store";
+export { useAuthAccount, useAuthUid } from "./model/hooks";
+export { setAuthUser } from "./model/store";
+export type { AuthUser } from "./model/types";

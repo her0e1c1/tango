@@ -1,9 +1,8 @@
 import React from "react";
 
-import { useAuthSession } from "@/entities/auth";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
-import { startAuthSession } from "./lifecycle";
+import { startAuthSession, type AuthBootstrapStatus } from "./lifecycle";
 
 export interface AuthProviderProps {
   children: React.ReactNode;
@@ -11,24 +10,17 @@ export interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = () => window.location.reload() }) => {
-  const authState = useAuthSession();
+  const [status, setStatus] = React.useState<AuthBootstrapStatus>("starting");
 
-  React.useEffect(() => {
-    const stopAuthSession = startAuthSession();
-    return stopAuthSession;
-  }, []);
+  React.useEffect(() => startAuthSession(setStatus), []);
 
-  if (
-    authState.status === "initializing" ||
-    authState.status === "unauthenticated" ||
-    authState.status === "authenticating"
-  ) {
+  if (status === "starting") {
     return (
       <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />
     );
   }
 
-  if (authState.status === "error") {
+  if (status === "error") {
     return (
       <RouteFeedback
         title="Unable to start Tango"

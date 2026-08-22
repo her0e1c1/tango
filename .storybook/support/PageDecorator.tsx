@@ -12,7 +12,7 @@ import { replaceRemoteDecks } from "@/entities/deck/testing";
 import type { Decorator } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
-import { replaceAuthSession } from "@/entities/auth";
+import { setAuthUser } from "@/entities/auth";
 import { type PreferencesFixture, replacePreferences } from "@/entities/preference/testing";
 import { clearStudySessions, setStudySessionIndex, startStudy } from "@/entities/study-session";
 
@@ -47,8 +47,7 @@ const cloneCard = (card: RemoteCard): RemoteCard => ({
 export const preparePageStory = (parameters: PageStoryParameters): void => {
   clearStudySessions();
 
-  replaceAuthSession({
-    status: "authenticated",
+  setAuthUser({
     uid: PAGE_STORY_UID,
     isAnonymous: true,
     displayName: null,

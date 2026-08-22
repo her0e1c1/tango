@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { replaceAuthSession } from "@/entities/auth";
+import { setAuthUser } from "@/entities/auth";
 import { updatePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
@@ -39,7 +39,7 @@ describe("SettingsPage", () => {
     vi.mocked(linkWithPopup).mockResolvedValue({ user: {} } as never);
     vi.mocked(signOut).mockReset();
     vi.mocked(signOut).mockResolvedValue(undefined);
-    replaceAuthSession({ status: "initializing" });
+    setAuthUser(null);
     updatePreferences(createPreferences({ appearance: { darkMode: false } }));
   });
 
@@ -52,10 +52,9 @@ describe("SettingsPage", () => {
   });
 
   it("lets a signed-in user retry a failed sign-out", async () => {
-    replaceAuthSession({
+    setAuthUser({
       displayName: "Test User",
       isAnonymous: false,
-      status: "authenticated",
       uid: "test-user",
     });
     vi.mocked(signOut).mockRejectedValueOnce(new Error("Sign-out failed")).mockResolvedValueOnce(undefined);

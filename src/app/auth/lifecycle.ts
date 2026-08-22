@@ -1,46 +1,61 @@
 import { onIdTokenChanged, signInAnonymously, type User } from "firebase/auth";
 
-import { getAuthSession, replaceAuthSession } from "@/entities/auth";
+import { setAuthUser, type AuthUser } from "@/entities/auth";
 import { clearStudySessions } from "@/entities/study-session";
 import { auth } from "@/shared/firebase";
 
-const authSessionFromUser = (user: User) => ({
-  status: "authenticated" as const,
+export type AuthBootstrapStatus = "starting" | "authenticated" | "error";
+
+const authUserFromFirebase = (user: User): AuthUser => ({
   uid: user.uid,
   isAnonymous: user.isAnonymous,
   displayName: user.providerData[0]?.displayName ?? null,
 });
 
-const startAnonymousBootstrap = () => {
-  if (getAuthSession().status !== "unauthenticated") return;
+export const startAuthSession = (onStatusChange: (status: AuthBootstrapStatus) => void) => {
+  let anonymousAttempt: symbol | null = null;
+  let active = true;
 
-  // Bind failures to this attempt so a late rejection cannot overwrite a newer authenticated session.
-  const attemptId = Symbol("anonymous-auth-attempt");
-  replaceAuthSession({ status: "authenticating", attemptId });
-  void signInAnonymously(auth).catch((error: unknown) => {
-    const currentSession = getAuthSession();
-    if (currentSession.status === "authenticating" && currentSession.attemptId === attemptId) {
-      replaceAuthSession({ status: "error", error });
+  const startAnonymousBootstrap = () => {
+    if (anonymousAttempt != null) return;
+
+    setAuthUser(null);
+    onStatusChange("starting");
+
+    // A new anonymous identity must not inherit persisted study state from the identity that signed out.
+    try {
+      clearStudySessions();
+    } catch {
+      if (active) onStatusChange("error");
+      return;
     }
-  });
-};
 
-export const startAuthSession = () =>
-  onIdTokenChanged(auth, (user) => {
+    const attemptId = Symbol("anonymous-auth-attempt");
+    anonymousAttempt = attemptId;
+    void signInAnonymously(auth).catch(() => {
+      // A late failure from an older attempt must not overwrite a newer authenticated or pending session.
+      if (!active || anonymousAttempt !== attemptId) return;
+      anonymousAttempt = null;
+      onStatusChange("error");
+    });
+  };
+
+  const stopObserving = onIdTokenChanged(auth, (user) => {
+    if (!active) return;
+
     if (user) {
-      replaceAuthSession(authSessionFromUser(user));
+      anonymousAttempt = null;
+      setAuthUser(authUserFromFirebase(user));
+      onStatusChange("authenticated");
       return;
     }
 
     // Firebase may repeat the signed-out event while anonymous sign-in is pending; keep one bootstrap active.
-    if (getAuthSession().status === "authenticating") return;
-
-    replaceAuthSession({ status: "unauthenticated" });
-    // A new anonymous identity must not inherit persisted study state from the identity that signed out.
-    try {
-      clearStudySessions();
-      startAnonymousBootstrap();
-    } catch (error) {
-      if (getAuthSession().status === "unauthenticated") replaceAuthSession({ status: "error", error });
-    }
+    startAnonymousBootstrap();
   });
+
+  return () => {
+    active = false;
+    stopObserving();
+  };
+};
