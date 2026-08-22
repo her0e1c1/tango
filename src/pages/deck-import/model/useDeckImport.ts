@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAuthUid } from "@/entities/auth";
 import { usePreferences } from "@/entities/preference";
 import { addSampleDeck } from "@/features/sample-deck";
-import type { DeckImportStorageMode } from "./useDeckImportExecution";
+import type { DeckImportResult, DeckImportStorageMode } from "./useDeckImportExecution";
 import { useDeckImportExecution } from "./useDeckImportExecution";
 import { useDeckImportPreview } from "./useDeckImportPreview";
 
@@ -32,7 +32,7 @@ export const useDeckImport = () => {
     if (preview.setStorageMode(storageMode)) execution.clear();
   };
 
-  const runImport = async (operation: () => ReturnType<typeof execution.run>) => {
+  const runImport = async (operation: () => Promise<DeckImportResult | undefined>) => {
     preview.clearError();
     setStatus("importing");
     try {
