@@ -4,8 +4,8 @@ import type * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, deckFormSchema, editDeck, type DeckId, useDeck } from "@/entities/deck";
+import { useCurrentUser } from "@/entities/user";
 import type { Form, Input, Select, Switch } from "@/shared/ui/forms";
 
 interface DeckFormFields {
@@ -40,7 +40,7 @@ interface UseDeckFormStateOptions {
 }
 
 export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormStateOptions) => {
-  const uid = useAuthUid();
+  const uid = useCurrentUser()?.uid ?? "";
   const deck = useDeck(deckId);
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({

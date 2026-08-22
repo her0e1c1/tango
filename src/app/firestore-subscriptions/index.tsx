@@ -1,8 +1,8 @@
 import React from "react";
 
-import { useAuthUid } from "@/entities/auth";
 import { clearRemoteCards, subscribeCards } from "@/entities/card";
 import { clearRemoteDecks, subscribeDecks } from "@/entities/deck";
+import { useCurrentUser } from "@/entities/user";
 
 const reportSubscriptionError = (error: Error): void => {
   // biome-ignore lint/suspicious/noConsole: Subscription failures need a last-resort runtime error sink.
@@ -10,7 +10,7 @@ const reportSubscriptionError = (error: Error): void => {
 };
 
 export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const uid = useAuthUid();
+  const uid = useCurrentUser()?.uid ?? "";
 
   React.useEffect(() => {
     if (uid === "") {

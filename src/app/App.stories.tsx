@@ -7,7 +7,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect } from "storybook/test";
 
-import { routes } from "@/features/navigate";
+import { routes } from "@/shared/router";
 import { type PageStoryParameters, preparePageStory, withPageStory } from "@/storybook/PageDecorator";
 import { PAGE_STORY_CARD_ID, PAGE_STORY_DECK_ID, pageStoryState } from "@/storybook/pageFixture";
 
@@ -67,6 +67,10 @@ export const CardForm: Story = {
 
 export const Settings: Story = {
   parameters: { page: page(routes.settings.to()) },
+};
+
+export const Account: Story = {
+  parameters: { page: page(routes.account.to()) },
 };
 
 export const Import: Story = {

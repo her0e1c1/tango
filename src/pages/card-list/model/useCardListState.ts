@@ -1,11 +1,11 @@
 import * as React from "react";
 
-import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { editStudyProgress } from "@/entities/study-progress";
 import { selectStudyCards } from "@/entities/study-session";
+import { useCurrentUser } from "@/entities/user";
 
 export interface CardListItem {
   id: CardId;
@@ -47,7 +47,7 @@ const buildCardListItem = (card: Card): CardListItem => ({
 });
 
 export const useCardListState = (deck: Deck): CardListState => {
-  const uid = useAuthUid();
+  const uid = useCurrentUser()?.uid ?? "";
   const preferences = usePreferences();
   const { cards: deckCards, tags } = useCardsByDeckId(deck.id);
   const [shownCard, setShownCard] = React.useState<Card>();

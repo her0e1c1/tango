@@ -1,11 +1,11 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { setAuthUser } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
+import { setCurrentUser } from "@/entities/user";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 import { useStudySessionStartState } from "./useStudySessionStartState";
@@ -52,11 +52,7 @@ const futureCard = createLocalCard({
 
 describe("useStudySessionStartState", () => {
   beforeEach(async () => {
-    setAuthUser({
-      displayName: null,
-      isAnonymous: true,
-      uid: "local-user",
-    });
+    setCurrentUser({ displayName: null, isAnonymous: true, uid: "local-user" });
     clearStudySessions();
     updatePreferences(preferences);
     await createDeck("", deck);

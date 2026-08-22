@@ -1,61 +1,62 @@
 import { onIdTokenChanged, signInAnonymously, type User } from "firebase/auth";
 
-import { setAuthUser, type AuthUser } from "@/entities/auth";
+import type { CurrentUser } from "@/entities/user";
 import { clearStudySessions } from "@/entities/study-session";
 import { auth } from "@/shared/firebase";
 
-export type AuthBootstrapStatus = "starting" | "authenticated" | "error";
+export interface AuthSessionHandlers {
+  onUserChange: (user: CurrentUser | null) => void;
+  onError: (error: unknown) => void;
+}
 
-const authUserFromFirebase = (user: User): AuthUser => ({
+// Firebase Auth is a singleton, so the in-flight anonymous attempt must survive provider lifecycle recreation.
+let anonymousAttempt: symbol | null = null;
+let currentHandlers: AuthSessionHandlers | null = null;
+
+const currentUserFromFirebase = (user: User): CurrentUser => ({
   uid: user.uid,
   isAnonymous: user.isAnonymous,
   displayName: user.providerData[0]?.displayName ?? null,
 });
 
-export const startAuthSession = (onStatusChange: (status: AuthBootstrapStatus) => void) => {
-  let anonymousAttempt: symbol | null = null;
-  let active = true;
+const startAnonymousBootstrap = () => {
+  if (anonymousAttempt != null) return;
 
-  const startAnonymousBootstrap = () => {
-    if (anonymousAttempt != null) return;
+  // A new anonymous identity must not inherit persisted Study state from the identity that signed out.
+  try {
+    clearStudySessions();
+  } catch (error) {
+    currentHandlers?.onError(error);
+    return;
+  }
 
-    setAuthUser(null);
-    onStatusChange("starting");
+  const attemptId = Symbol("anonymous-auth-attempt");
+  anonymousAttempt = attemptId;
+  void signInAnonymously(auth).catch((error: unknown) => {
+    // A late failure from an older attempt must not overwrite a newer authenticated or pending session.
+    if (anonymousAttempt !== attemptId) return;
+    anonymousAttempt = null;
+    currentHandlers?.onError(error);
+  });
+};
 
-    // A new anonymous identity must not inherit persisted study state from the identity that signed out.
-    try {
-      clearStudySessions();
-    } catch {
-      if (active) onStatusChange("error");
-      return;
-    }
-
-    const attemptId = Symbol("anonymous-auth-attempt");
-    anonymousAttempt = attemptId;
-    void signInAnonymously(auth).catch(() => {
-      // A late failure from an older attempt must not overwrite a newer authenticated or pending session.
-      if (!active || anonymousAttempt !== attemptId) return;
-      anonymousAttempt = null;
-      onStatusChange("error");
-    });
-  };
-
+export const startAuthSession = (handlers: AuthSessionHandlers) => {
+  currentHandlers = handlers;
   const stopObserving = onIdTokenChanged(auth, (user) => {
-    if (!active) return;
+    if (currentHandlers !== handlers) return;
 
     if (user) {
       anonymousAttempt = null;
-      setAuthUser(authUserFromFirebase(user));
-      onStatusChange("authenticated");
+      handlers.onUserChange(currentUserFromFirebase(user));
       return;
     }
 
-    // Firebase may repeat the signed-out event while anonymous sign-in is pending; keep one bootstrap active.
+    handlers.onUserChange(null);
     startAnonymousBootstrap();
   });
 
   return () => {
-    active = false;
+    if (currentHandlers === handlers) currentHandlers = null;
     stopObserving();
   };
 };

@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 
-import { useAuthUid } from "@/entities/auth";
 import { type Deck, editDeck } from "@/entities/deck";
+import { useCurrentUser } from "@/entities/user";
 
 export interface DeckFilterState {
   scoreMax: number | null;
@@ -84,7 +84,7 @@ const reconcileStoredFilter = (
 };
 
 export const useDeckFilterState = (deck: Deck): DeckFilterState => {
-  const uid = useAuthUid();
+  const uid = useCurrentUser()?.uid ?? "";
   const storedFilter = toFilterValues(deck);
   const [filterState, setFilterState] = useState<FilterModelState>(() => ({
     deckId: deck.id,

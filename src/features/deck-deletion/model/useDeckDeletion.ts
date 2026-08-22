@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { useAuthUid } from "@/entities/auth";
 import { filterCardsByDeckId, useCards } from "@/entities/card";
 import { deleteDeck, mustFindDeckById, type Deck, useDecks } from "@/entities/deck";
+import { useCurrentUser } from "@/entities/user";
 
 interface DeckDeletionTarget {
   deck: Deck;
@@ -20,7 +20,7 @@ interface UseDeckDeletionOptions {
 }
 
 export const useDeckDeletion = ({ onDeleted }: UseDeckDeletionOptions = {}) => {
-  const uid = useAuthUid();
+  const uid = useCurrentUser()?.uid ?? "";
   const cards = useCards();
   const decks = useDecks();
   const [target, setTarget] = React.useState<DeckDeletionTarget>();

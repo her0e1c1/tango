@@ -48,6 +48,9 @@ describe("AppLayout", () => {
     await user.click(screen.getByRole("button", { name: "Import decks" }));
     expect(location).toHaveTextContent("/import");
 
+    await user.click(screen.getByRole("button", { name: "Open account" }));
+    expect(location).toHaveTextContent("/account");
+
     await user.click(screen.getByRole("button", { name: "Open settings" }));
     expect(location).toHaveTextContent("/settings");
   });

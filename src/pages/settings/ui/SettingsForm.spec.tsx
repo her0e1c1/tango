@@ -1,6 +1,6 @@
 import type React from "react";
 
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -40,9 +40,10 @@ describe("SettingsForm", () => {
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
     expect(screen.getByText("Changes are saved automatically")).toBeVisible();
-    for (const name of ["Account", "Appearance", "Study"]) {
+    for (const name of ["Appearance", "Study"]) {
       expect(screen.getByRole("region", { name })).toBeInTheDocument();
     }
+    expect(screen.queryByRole("region", { name: "Account" })).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Advanced" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 2, name: "Layout" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 2, name: "Autoplay" })).not.toBeInTheDocument();
@@ -51,12 +52,8 @@ describe("SettingsForm", () => {
     expect(screen.queryByText("Show Heaer")).not.toBeInTheDocument();
   });
 
-  it("preserves all switch, slider, and metadata values", () => {
-    render(
-      <SettingsForm
-        {...createProps({ identity: { uid: "user-123", displayName: "Settings User" }, isLoggedIn: true })}
-      />
-    );
+  it("preserves all switch, slider, and settings metadata values", () => {
+    render(<SettingsForm {...createProps()} />);
 
     expect(screen.getAllByRole("checkbox")).toHaveLength(7);
     expect(screen.getByRole("checkbox", { name: "Show header" })).toBeChecked();
@@ -71,7 +68,7 @@ describe("SettingsForm", () => {
     expect(details).not.toHaveAttribute("open");
     expect(details).not.toHaveTextContent("Github Access Token");
     expect(details).toHaveTextContent("1.2.3");
-    expect(details).toHaveTextContent("user-123");
+    expect(details).not.toHaveTextContent("User ID");
   });
 
   it("describes review scheduling independently from autoplay", () => {
@@ -115,58 +112,10 @@ describe("SettingsForm", () => {
         <SettingsForm {...createProps()} />
       </>
     );
-    for (const name of ["Account", "Appearance", "Study"]) {
+    for (const name of ["Appearance", "Study"]) {
       expect(screen.getAllByRole("region", { name })).toHaveLength(2);
       expect(screen.getAllByRole("heading", { level: 2, name })).toHaveLength(2);
     }
     expect(screen.getAllByRole("group", { name: "Advanced" })).toHaveLength(2);
-  });
-
-  it("preserves logged-out login and logged-in logout behavior", async () => {
-    const onLogin = vi.fn();
-    const onLogout = vi.fn();
-    const view = render(<SettingsForm {...createProps({ onLogin })} />);
-
-    expect(screen.getByText("Google Login")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Login" }));
-    expect(onLogin).toHaveBeenCalledOnce();
-
-    view.rerender(
-      <SettingsForm
-        {...createProps({
-          isLoggedIn: true,
-          identity: { uid: "user-123", displayName: "Settings User" },
-          onLogout,
-        })}
-      />
-    );
-    expect(screen.getByText("Settings User")).toBeInTheDocument();
-    expect(screen.getByText("Signed in with Google")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Logout" }));
-    expect(onLogout).toHaveBeenCalledOnce();
-  });
-
-  it("shows account feedback and disables the active account action while pending", () => {
-    const feedback = <p>Signing in…</p>;
-    const view = render(<SettingsForm {...createProps({ accountPending: true, accountFeedback: feedback })} />);
-
-    const login = screen.getByRole("button", { name: "Login" });
-    expect(login).toBeDisabled();
-    expect(login).toHaveAttribute("aria-busy", "true");
-    expect(within(screen.getByRole("region", { name: "Account" })).getByText("Signing in…")).toBeVisible();
-
-    view.rerender(
-      <SettingsForm
-        {...createProps({
-          isLoggedIn: true,
-          identity: { uid: "user-123", displayName: "Settings User" },
-          accountPending: true,
-        })}
-      />
-    );
-
-    const logout = screen.getByRole("button", { name: "Logout" });
-    expect(logout).toBeDisabled();
-    expect(logout).toHaveAttribute("aria-busy", "true");
   });
 });

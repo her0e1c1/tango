@@ -1,10 +1,10 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { setAuthUser } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { clearStudySessions, startStudy } from "@/entities/study-session";
+import { setCurrentUser } from "@/entities/user";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 import { useDeckListState } from "./useDeckListState";
@@ -34,7 +34,7 @@ const cardsForDeck = (deckId: string) => cards.filter((card) => card.deckId === 
 describe("useDeckListState", () => {
   beforeEach(async () => {
     vi.useFakeTimers();
-    setAuthUser(null);
+    setCurrentUser(null);
     clearStudySessions();
     await Promise.all(decks.map((deck) => createDeck("", deck)));
     await mutateCards(

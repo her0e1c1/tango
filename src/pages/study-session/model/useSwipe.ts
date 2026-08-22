@@ -1,9 +1,9 @@
-import { useAuthUid } from "@/entities/auth";
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preference";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getStudySession, moveStudySession, planStudySessionSwipe, removeStudySession } from "@/entities/study-session";
+import { useCurrentUser } from "@/entities/user";
 
 import * as React from "react";
 
@@ -18,7 +18,7 @@ export interface SwipeState {
 }
 
 export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: () => void): SwipeState => {
-  const uid = useAuthUid();
+  const uid = useCurrentUser()?.uid ?? "";
   const preferences = usePreferences();
   const feedback = useSwipeFeedback(preferences.appearance.showSwipeFeedback);
   const swipeState = React.useRef<{ inProgress: boolean }>({ inProgress: false });

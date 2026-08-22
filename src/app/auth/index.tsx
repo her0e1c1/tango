@@ -1,8 +1,9 @@
 import React from "react";
 
+import { setCurrentUser, useCurrentUser } from "@/entities/user";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
-import { startAuthSession, type AuthBootstrapStatus } from "./lifecycle";
+import { startAuthSession } from "./lifecycle";
 
 export interface AuthProviderProps {
   children: React.ReactNode;
@@ -10,17 +11,24 @@ export interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = () => window.location.reload() }) => {
-  const [status, setStatus] = React.useState<AuthBootstrapStatus>("starting");
+  const currentUser = useCurrentUser();
+  const [error, setError] = React.useState<unknown>(null);
 
-  React.useEffect(() => startAuthSession(setStatus), []);
+  React.useEffect(
+    () =>
+      startAuthSession({
+        onUserChange: (user) => {
+          setCurrentUser(user);
+          setError(null);
+        },
+        onError: setError,
+      }),
+    []
+  );
 
-  if (status === "starting") {
-    return (
-      <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />
-    );
-  }
+  if (currentUser != null) return children;
 
-  if (status === "error") {
+  if (error != null) {
     return (
       <RouteFeedback
         title="Unable to start Tango"
@@ -31,5 +39,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = (
     );
   }
 
-  return children;
+  return <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />;
 };

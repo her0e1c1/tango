@@ -4,9 +4,9 @@ import type * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { useAuthUid } from "@/entities/auth";
 import { cardContentSchema, editCard, type CardId, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
+import { useCurrentUser } from "@/entities/user";
 import type { Form, Option, Tag, Textarea } from "@/shared/ui/forms";
 
 interface CardFormTagField extends Option {
@@ -46,7 +46,7 @@ interface UseCardFormStateOptions {
 }
 
 export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormStateOptions) => {
-  const uid = useAuthUid();
+  const uid = useCurrentUser()?.uid ?? "";
   const card = useCard(cardId);
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<CardFormValues>({

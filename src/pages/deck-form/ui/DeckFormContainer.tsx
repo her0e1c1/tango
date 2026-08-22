@@ -1,7 +1,8 @@
 import type * as React from "react";
+import { useNavigate } from "react-router-dom";
 
 import { DeckDeletionDialog, useDeckDeletion } from "@/features/deck-deletion";
-import { routes, useNavigation } from "@/features/navigate";
+import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -9,8 +10,8 @@ import { useDeckFormState } from "../model/useDeckFormState";
 import { DeckEditor } from "./DeckEditor";
 
 export const DeckFormContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
-  const navigation = useNavigation();
-  const goToList = () => void navigation.to(routes.deckList.to(), { replace: true });
+  const navigate = useNavigate();
+  const goToList = () => void navigate(routes.deckList.to(), { replace: true });
   const editor = useDeckFormState({ deckId, onCancel: goToList, onSaved: goToList });
   const deletion = useDeckDeletion({ onDeleted: goToList });
 

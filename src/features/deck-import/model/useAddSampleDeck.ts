@@ -2,10 +2,10 @@ import type { DeckId } from "@/entities/deck";
 
 import { useEffect } from "react";
 
-import { useAuthUid } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, useDecks } from "@/entities/deck";
 import { updatePreferences, usePreferences } from "@/entities/preference";
+import { useCurrentUser } from "@/entities/user";
 import sampleCards from "../../../../sample/build/output.json";
 import { executePreparedDeckImport, prepareDeckImport } from "./useDeckImportExecution";
 
@@ -29,7 +29,7 @@ export const prepareSampleDeck = (uid: string) =>
   );
 
 export const useAddSampleDeck = () => {
-  const uid = useAuthUid();
+  const uid = useCurrentUser()?.uid ?? "";
   const decks = useDecks();
   const { loadSample } = usePreferences();
 

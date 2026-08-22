@@ -1,12 +1,12 @@
 import type { User, UserCredential } from "firebase/auth";
 
-import { act, render, renderHook, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { setAuthUser, useAuthUid } from "@/entities/auth";
+import { setCurrentUser, useCurrentUser } from "@/entities/user";
 import { clearStudySessions } from "@/entities/study-session";
 
 const firebaseAuth = vi.hoisted(() => ({
@@ -49,10 +49,12 @@ const ReloadableApp = () => {
   );
 };
 
+const CurrentUserView = () => <p>{useCurrentUser()?.uid ?? "No user"}</p>;
+
 describe("AuthProvider", () => {
   beforeEach(() => {
     clearStudySessions();
-    setAuthUser(null);
+    setCurrentUser(null);
     firebaseAuth.observer = undefined;
     firebaseAuth.observing = false;
     firebaseAuth.signIn = () => new Promise<UserCredential>(() => undefined);
@@ -74,7 +76,6 @@ describe("AuthProvider", () => {
 
     publishUser(createUser("user-a"));
     expect(screen.getByText("Authenticated content")).toBeVisible();
-    expect(screen.queryByRole("heading", { level: 1, name: "Starting Tango…" })).not.toBeInTheDocument();
   });
 
   it("shows bootstrap failure feedback and responds to reload", async () => {
@@ -96,12 +97,11 @@ describe("AuthProvider", () => {
       </AuthProvider>
     );
     publishUser(createUser("user-a"));
-    expect(screen.getByText("Authenticated content")).toBeVisible();
-
     view.unmount();
     publishUser(createUser("user-b"));
 
-    const { result } = renderHook(useAuthUid);
-    expect(result.current).toBe("user-a");
+    render(<CurrentUserView />);
+
+    expect(screen.getByText("user-a")).toBeVisible();
   });
 });
