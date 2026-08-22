@@ -18,16 +18,15 @@ export const DeckImportPage: React.FC = () => {
         storageMode={deckImport.storageMode}
         onStorageModeChange={deckImport.setStorageMode}
         onChange={(file) => {
-          void deckImport.selectFile(file).catch(() => undefined);
+          void deckImport.selectFile(file);
         }}
         onAddSample={() => {
-          void deckImport.addSample().catch(() => undefined);
+          void deckImport.addSample();
         }}
         onImport={() => {
-          void deckImport
-            .importPreview()
-            .then(() => navigate(routes.deckList.to()))
-            .catch(() => undefined);
+          void deckImport.importPreview().then((result) => {
+            if (result !== undefined) void navigate(routes.deckList.to());
+          });
         }}
         onBack={() => void navigate(-1)}
         onDownloadSample={downloadSampleCsv}
