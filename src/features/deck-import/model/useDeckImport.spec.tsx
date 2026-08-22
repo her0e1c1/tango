@@ -13,7 +13,9 @@ const controls = vi.hoisted(() => ({
   nextMutationError: undefined as unknown,
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => controls.uid }));
+vi.mock("@/entities/user", () => ({
+  useCurrentUser: () => (controls.uid === "" ? null : { uid: controls.uid, isAnonymous: true, displayName: null }),
+}));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
