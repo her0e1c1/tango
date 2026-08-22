@@ -1,9 +1,10 @@
 import type * as React from "react";
+import { useNavigate } from "react-router-dom";
 
 import { type Deck, useDeck } from "@/entities/deck";
 import { BackText } from "@/features/card-view";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
-import { routes, useNavigation } from "@/shared/router";
+import { routes } from "@/shared/router";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";
@@ -13,7 +14,7 @@ import { useCardListState } from "../model/useCardListState";
 import { CardList } from "./CardList";
 
 const AvailableCardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const navigation = useNavigation();
+  const navigate = useNavigate();
   const deckFilter = useDeckFilterState(deck);
   // Card selection must use optimistic filter values before their persistence request completes.
   const state = useCardListState({
@@ -61,7 +62,7 @@ const AvailableCardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
         card={{
           onSwipedLeft: state.onSwipedLeft,
           onSwipedRight: state.onSwipedRight,
-          goToEdit: (id) => void navigation.to(routes.cardForm.to(id)),
+          goToEdit: (id) => void navigate(routes.cardForm.to(id)),
           onDelete: state.onRequestDeletion,
         }}
         {...(state.answer != null

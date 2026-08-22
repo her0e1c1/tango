@@ -1,9 +1,10 @@
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { useKey, useLatest } from "react-use";
 
 import { useDeck } from "@/entities/deck";
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
-import { routes, useNavigation } from "@/shared/router";
+import { routes } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -80,7 +81,7 @@ const renderStudyScreen = (state: StudyState | undefined) => {
 };
 
 const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
-  const navigation = useNavigation();
+  const navigate = useNavigate();
   const study = useStudy(deckId);
   const latestStudy = useLatest(study);
   const runWhileStudying = (action: StudyShortcutAction) => () => {
@@ -100,8 +101,8 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
 
   React.useEffect(() => {
     if (study?.status !== "invalid") return;
-    void navigation.to(routes.deckList.to(), { replace: true });
-  }, [navigation, study?.status]);
+    void navigate(routes.deckList.to(), { replace: true });
+  }, [navigate, study?.status]);
 
   return renderStudyScreen(study);
 };
