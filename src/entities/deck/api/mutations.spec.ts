@@ -1,24 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createDeck as createDeckFixture, createLocalDeck } from "@/test/factories";
+import { createDeck as createDeckFixture, createLocalCard, createLocalDeck } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   createRemoteDeck: vi.fn(),
+  createRemoteDeckWithCards: vi.fn(),
   deleteLocalCardsByDeckId: vi.fn(),
   deleteRemoteDeck: vi.fn(),
   editRemoteDeck: vi.fn(),
-  moveLocalCardsToRemote: vi.fn(),
+  getLocalCardsByDeckId: vi.fn(),
   removeStudySession: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 vi.mock("@/entities/card/@x/deck", () => ({
   deleteLocalCardsByDeckId: mocks.deleteLocalCardsByDeckId,
-  moveLocalCardsToRemote: mocks.moveLocalCardsToRemote,
+  getLocalCardsByDeckId: mocks.getLocalCardsByDeckId,
 }));
 vi.mock("@/entities/study-session/@x/deck", () => ({ removeStudySession: mocks.removeStudySession }));
 vi.mock("./firestore", () => ({
   createDeck: mocks.createRemoteDeck,
+  createDeckWithCards: mocks.createRemoteDeckWithCards,
   deleteDeck: mocks.deleteRemoteDeck,
   editDeck: mocks.editRemoteDeck,
 }));
@@ -31,6 +33,7 @@ describe("Deck mutations", () => {
     deckStore.setState({ remoteDecks: [], localDecks: [] });
     localStorage.clear();
     vi.clearAllMocks();
+    mocks.getLocalCardsByDeckId.mockReturnValue([]);
   });
 
   it("rejects edit and delete when the Deck cannot be resolved", async () => {
@@ -49,33 +52,78 @@ describe("Deck mutations", () => {
 
   it("moves a local Deck and its Cards to remote persistence when local mode is disabled", async () => {
     const deck = createLocalDeck({ id: "local", name: "Local Deck", url: "https://example.com/local.csv" });
+    const cards = [createLocalCard({ id: "card", deckId: deck.id })];
     deckStore.setState({ localDecks: [deck] });
+    mocks.getLocalCardsByDeckId.mockReturnValue(cards);
 
     await editDeck("uid", { id: deck.id, name: "Synced Deck", url: null, localMode: false });
 
-    expect(mocks.createRemoteDeck).toHaveBeenCalledExactlyOnceWith(
+    expect(mocks.createRemoteDeckWithCards).toHaveBeenCalledExactlyOnceWith(
       "uid",
-      expect.objectContaining({ id: deck.id, uid: "uid", name: "Synced Deck", localMode: false })
+      expect.objectContaining({ id: deck.id, uid: "uid", name: "Synced Deck", localMode: false }),
+      [expect.objectContaining({ id: cards[0]?.id, deckId: deck.id, uid: "uid" })]
     );
-    const remoteInput = mocks.createRemoteDeck.mock.calls[0]?.[1];
+    const remoteInput = mocks.createRemoteDeckWithCards.mock.calls[0]?.[1];
     expect(remoteInput).not.toHaveProperty("createdAt");
     expect(remoteInput).not.toHaveProperty("updatedAt");
     expect(remoteInput).not.toHaveProperty("url");
-    expect(mocks.moveLocalCardsToRemote).toHaveBeenCalledExactlyOnceWith("uid", deck.id);
-    expect(mocks.createRemoteDeck.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.moveLocalCardsToRemote.mock.invocationCallOrder[0] ?? 0
-    );
+    expect(mocks.createRemoteDeckWithCards.mock.calls[0]?.[2]?.[0]).not.toHaveProperty("createdAt");
+    expect(mocks.createRemoteDeckWithCards.mock.calls[0]?.[2]?.[0]).not.toHaveProperty("updatedAt");
+    expect(mocks.deleteLocalCardsByDeckId).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(deckStore.getState().localDecks).toEqual([]);
   });
 
-  it("keeps the local Deck and rolls back Firestore when moving its Cards fails", async () => {
+  it("keeps the local Deck without deleting remote data when the atomic migration fails", async () => {
     const deck = createLocalDeck({ id: "local" });
     deckStore.setState({ localDecks: [deck] });
-    mocks.moveLocalCardsToRemote.mockRejectedValueOnce(new Error("card write failed"));
+    mocks.createRemoteDeckWithCards.mockRejectedValueOnce(new Error("batch failed"));
 
-    await expect(editDeck("uid", { id: deck.id, localMode: false })).rejects.toThrow("card write failed");
+    await expect(editDeck("uid", { id: deck.id, localMode: false })).rejects.toThrow("batch failed");
 
-    expect(mocks.deleteRemoteDeck).toHaveBeenCalledExactlyOnceWith("uid", deck.id);
+    expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
+    expect(mocks.deleteLocalCardsByDeckId).not.toHaveBeenCalled();
+    expect(deckStore.getState().localDecks).toEqual([deck]);
+  });
+
+  it("does not let a failed overlapping migration undo a successful one", async () => {
+    const deck = createLocalDeck({ id: "local" });
+    deckStore.setState({ localDecks: [deck] });
+    const remoteDeckIds = new Set<string>();
+    let finishSuccessfulMigration = () => undefined;
+    mocks.createRemoteDeckWithCards
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            finishSuccessfulMigration = () => {
+              remoteDeckIds.add(deck.id);
+              resolve();
+            };
+          })
+      )
+      .mockRejectedValueOnce(new Error("overlapping batch failed"));
+
+    const successfulMigration = editDeck("uid", { id: deck.id, localMode: false });
+    const failedMigration = editDeck("uid", { id: deck.id, localMode: false });
+
+    await expect(failedMigration).rejects.toThrow("overlapping batch failed");
+    finishSuccessfulMigration();
+    await successfulMigration;
+
+    expect(remoteDeckIds).toEqual(new Set([deck.id]));
+    expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
+    expect(deckStore.getState().localDecks).toEqual([]);
+  });
+
+  it("keeps local data when Cards change during the remote commit", async () => {
+    const deck = createLocalDeck({ id: "local" });
+    const originalCard = createLocalCard({ id: "card", deckId: deck.id, frontText: "before" });
+    const changedCard = createLocalCard({ id: originalCard.id, deckId: deck.id, frontText: "after" });
+    deckStore.setState({ localDecks: [deck] });
+    mocks.getLocalCardsByDeckId.mockReturnValueOnce([originalCard]).mockReturnValueOnce([changedCard]);
+
+    await expect(editDeck("uid", { id: deck.id, localMode: false })).rejects.toThrow("changed while moving");
+
+    expect(mocks.deleteLocalCardsByDeckId).not.toHaveBeenCalled();
     expect(deckStore.getState().localDecks).toEqual([deck]);
   });
 

@@ -23,11 +23,15 @@ service cloud.firestore {
       function getDeck(deckId) {
         return get(/databases/$(database)/documents/deck/$(deckId));
       }
+      function getDeckAfter(deckId) {
+        return getAfter(/databases/$(database)/documents/deck/$(deckId));
+      }
       function isPublic() {
         return getDeck(resource.data.deckId).data.isPublic == true;
       }
       function belongsToDeck() {
-        return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
+        // Card creation can share an atomic batch with its new parent Deck.
+        return getDeckAfter(request.resource.data.deckId).data.uid == request.auth.uid
       }
       allow read: if isOwner() || isPublic();
       allow create: if isValid() && belongsToDeck();

@@ -75,6 +75,12 @@ export const findCardById = (id: CardId): Card | undefined => {
   return state.remoteCards.find((card) => card.id === cardId) ?? state.localCards.find((card) => card.id === cardId);
 };
 
+// Returns the current local Card objects so async workflows can detect immutable store replacements before cleanup.
+export const getLocalCardsByDeckId = (deckId: string): LocalCard[] => {
+  const parsedDeckId = cardDeckIdSchema.parse(deckId);
+  return cardStore.getState().localCards.filter((card) => card.deckId === parsedDeckId);
+};
+
 // Creates and persists a local Card with Entity-owned timestamps.
 export const createLocalCard = (input: LocalCardCreateInput): LocalCard => {
   const card = localCardCreateSchema.parse(input);

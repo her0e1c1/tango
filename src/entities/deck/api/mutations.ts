@@ -1,13 +1,14 @@
 import type { z } from "zod";
 import type { DeckCreateInput, DeckId, LocalDeckCreateInput } from "../model/types";
 
-import { deleteLocalCardsByDeckId, moveLocalCardsToRemote } from "@/entities/card/@x/deck";
+import { deleteLocalCardsByDeckId, getLocalCardsByDeckId } from "@/entities/card/@x/deck";
 import { removeStudySession } from "@/entities/study-session/@x/deck";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
-import { createLocalDeck, deleteLocalDeck, editLocalDeck, findDeckById } from "../model/store";
+import { createLocalDeck, deckStore, deleteLocalDeck, editLocalDeck, findDeckById } from "../model/store";
 import { authenticatedUidSchema, deckEditSchema } from "../model/schema";
 import {
   createDeck as createRemoteDeck,
+  createDeckWithCards as createRemoteDeckWithCards,
   deleteDeck as deleteRemoteDeck,
   editDeck as editRemoteDeck,
 } from "./firestore";
@@ -41,27 +42,30 @@ const moveLocalDeckToRemote = async (
     uid: userId,
     localMode: false as const,
   } satisfies DeckCreateInput;
+  const localCards = getLocalCardsByDeckId(currentDeck.id);
+  const remoteCards = localCards.map(({ createdAt: _cardCreatedAt, updatedAt: _cardUpdatedAt, ...card }) => ({
+    ...card,
+    uid: userId,
+  }));
 
-  let remoteDeckCreated = false;
-  try {
-    // Firestore rules require the parent Deck to exist before its Cards can be created.
-    await createRemoteDeck(userId, remoteDeck);
-    remoteDeckCreated = true;
-    await moveLocalCardsToRemote(userId, currentDeck.id);
-  } catch (error) {
-    if (remoteDeckCreated) {
-      // A failed conversion keeps local data authoritative and removes any partial remote graph before retry.
-      try {
-        await deleteRemoteDeck(userId, currentDeck.id);
-      } catch (rollbackError) {
-        throw new AggregateError([error, rollbackError], "Failed to move local Deck to Firestore and roll it back", {
-          cause: rollbackError,
-        });
-      }
-    }
-    throw error;
+  // The single batch is the consistency boundary: a failed attempt cannot remove or partially replace another attempt.
+  await createRemoteDeckWithCards(userId, remoteDeck, remoteCards);
+
+  const latestLocalDeck = deckStore.getState().localDecks.find(({ id }) => id === currentDeck.id);
+  const latestLocalCards = getLocalCardsByDeckId(currentDeck.id);
+  if (latestLocalDeck === undefined && latestLocalCards.length === 0) return;
+
+  // Store mutations replace objects, so identity plus length detects any edit, addition, or deletion during the async commit.
+  const cardsUnchanged =
+    latestLocalCards.length === localCards.length &&
+    latestLocalCards.every((card, index) => card === localCards[index]);
+  if (latestLocalDeck !== currentDeck || !cardsUnchanged) {
+    throw new Error(
+      "The local Deck or its Cards changed while moving to Firestore. Save again to migrate the latest data"
+    );
   }
 
+  deleteLocalCardsByDeckId(currentDeck.id);
   deleteLocalDeck(currentDeck.id);
 };
 

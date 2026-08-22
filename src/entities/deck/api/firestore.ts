@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import type { DeckCreateInput, DeckId } from "../model/types";
 
+import { addCardCreatesToBatch, type CardCreateInput } from "@/entities/card/@x/deck";
 import {
   collection,
   deleteDoc,
@@ -12,6 +13,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 
 import { db } from "@/shared/firebase";
@@ -29,6 +31,7 @@ import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
 const CARD_COLLECTION = "card";
+const MAX_ATOMIC_DECK_CARDS = 499;
 
 // Parses an active remote Deck while omitting tombstoned documents.
 const readActiveRemoteDeck = (id: DeckId, value: unknown) => {
@@ -65,6 +68,24 @@ const createDeckDocument = async (deck: z.infer<typeof createDeckSchema>["deck"]
 export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<void> => {
   const input = createDeckSchema.parse({ uid, deck });
   await createDeckDocument(input.deck);
+};
+
+// Firestore limits a batch to 500 writes; one write is reserved for the parent Deck.
+export const createDeckWithCards = async (
+  uid: string,
+  deck: DeckCreateInput,
+  cards: CardCreateInput[]
+): Promise<void> => {
+  const input = createDeckSchema.parse({ uid, deck });
+  if (cards.length > MAX_ATOMIC_DECK_CARDS) {
+    throw new Error(`A Deck with more than ${String(MAX_ATOMIC_DECK_CARDS)} Cards cannot be moved atomically`);
+  }
+
+  const createdAt = getCurrentTimeMillis();
+  const batch = writeBatch(db);
+  batch.set(doc(db, DECK_COLLECTION, input.deck.id), toDeckDocument(input.deck, createdAt));
+  addCardCreatesToBatch(batch, uid, cards, createdAt);
+  await batch.commit();
 };
 
 // Writes editable Deck fields and advances the update timestamp.

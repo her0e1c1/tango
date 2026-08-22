@@ -10,7 +10,7 @@ import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card/api/firestore";
 import { cardStore } from "@/entities/card/model/store";
-import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
+import { createDeck, createDeckWithCards, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
 import { editDeck as editStoredDeck } from "@/entities/deck";
 import { deckStore } from "@/entities/deck/model/store";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
@@ -104,6 +104,22 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await Promise.all(
       cards.map((card) => expect(getDoc(doc(db, "card", card.id))).rejects.toMatchObject({ code: "permission-denied" }))
     );
+  });
+
+  it("keeps a successful Deck graph when an overlapping atomic migration fails", async () => {
+    const deck = { ...newDeck, id: uuid() };
+    const card = createCard({ id: uuid(), deckId: deck.id, uid: deck.uid });
+    const cardWithMissingParent = createCard({ id: uuid(), deckId: uuid(), uid: deck.uid });
+
+    const [successfulMigration, failedMigration] = await Promise.allSettled([
+      createDeckWithCards("uid", deck, [card]),
+      createDeckWithCards("uid", deck, [cardWithMissingParent]),
+    ]);
+
+    expect(successfulMigration.status).toBe("fulfilled");
+    expect(failedMigration.status).toBe("rejected");
+    expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({ id: deck.id, uid: deck.uid });
+    expect((await getDoc(doc(db, "card", card.id))).data()).toMatchObject({ id: card.id, deckId: deck.id });
   });
 
   it("moves a local Deck and its Cards to Firestore when local mode is disabled", async () => {

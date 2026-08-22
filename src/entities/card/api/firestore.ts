@@ -8,6 +8,7 @@ import type {
   RemoteCard,
   RemoteCardRead,
 } from "../model/types";
+import type { WriteBatch } from "firebase/firestore";
 
 import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
@@ -83,11 +84,27 @@ export const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
   return mapActiveCardReads(snapshot.docs);
 };
 
+/** Builds a physical Card document with synchronized creation and update timestamps. */
+const toCardDocument = (card: CardCreate, createdAt: number): RemoteCard =>
+  omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
+
 /** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
-  const createdAt = getCurrentTimeMillis();
-  const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
+  const document = toCardDocument(card, getCurrentTimeMillis());
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
+};
+
+/** Adds validated Card creates to a caller-owned batch so a parent Deck graph can commit atomically. */
+export const addCardCreatesToBatch = (
+  batch: WriteBatch,
+  uid: string,
+  cards: CardCreateInput[],
+  createdAt: number
+): void => {
+  for (const card of cards) {
+    const input = createCardSchema.parse({ uid, card });
+    batch.set(doc(db, CARD_COLLECTION, input.card.id), toCardDocument(input.card, createdAt));
+  }
 };
 
 /** Validates Card ownership before creating its Firestore document. */
