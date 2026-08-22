@@ -130,6 +130,16 @@ describe("firestore/rule", () => {
         await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
 
+      it("should not read a public deck while its migration is copying", async () => {
+        const id = uuid();
+        await createData("deck", id, {
+          uid: "uid",
+          isPublic: true,
+          migration: { id: "active", state: "copying" },
+        });
+        await assertFails(getDoc(doc(db, "deck", id)));
+      });
+
       it("should not create a deck", async () => {
         const id = uuid();
         await assertFails(setDoc(doc(db, "deck", id), { uid: "uid" }));
@@ -160,6 +170,33 @@ describe("firestore/rule", () => {
         await createData("deck", deckId, { uid: "uid", isPublic: true });
         await createData("card", id, { uid: "uid", deckId });
         await assertSucceeds(getDoc(doc(db, "card", id)));
+      });
+
+      it("should not read a migration card while its public deck is copying", async () => {
+        const [deckId, id] = [uuid(), uuid()];
+        await createData("deck", deckId, {
+          uid: "uid",
+          isPublic: true,
+          migration: { id: "active", state: "copying" },
+        });
+        await createData("card", id, { uid: "uid", deckId, migrationId: "active" });
+        await assertFails(getDoc(doc(db, "card", id)));
+      });
+
+      it("should read only Cards from the active completed public migration", async () => {
+        const [deckId, normalCardId, activeCardId, staleCardId] = [uuid(), uuid(), uuid(), uuid()];
+        await createData("deck", deckId, {
+          uid: "uid",
+          isPublic: true,
+          migration: { id: "active", state: "complete" },
+        });
+        await createData("card", normalCardId, { uid: "uid", deckId });
+        await createData("card", activeCardId, { uid: "uid", deckId, migrationId: "active" });
+        await createData("card", staleCardId, { uid: "uid", deckId, migrationId: "stale" });
+
+        await assertSucceeds(getDoc(doc(db, "card", normalCardId)));
+        await assertSucceeds(getDoc(doc(db, "card", activeCardId)));
+        await assertFails(getDoc(doc(db, "card", staleCardId)));
       });
 
       it("should not create a card", async () => {

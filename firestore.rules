@@ -12,7 +12,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /deck/{deckId} {
       function isPublic() {
-        return resource.data.isPublic == true;
+        // Public readers must never observe a Deck before all migration chunks are finalized.
+        return resource.data.isPublic == true &&
+               (!("migration" in resource.data) || resource.data.migration.state == "complete");
       }
       // Migration registration must transactionally confirm that a new Deck id is unused before creating it.
       allow get: if (request.auth != null && !exists(/databases/$(database)/documents/deck/$(deckId))) ||
@@ -30,7 +32,13 @@ service cloud.firestore {
         return getAfter(/databases/$(database)/documents/deck/$(deckId));
       }
       function isPublic() {
-        return getDeck(resource.data.deckId).data.isPublic == true;
+        // Tagged chunks are public only when they belong to the completed migration currently published by the Deck.
+        return getDeck(resource.data.deckId).data.isPublic == true &&
+               (!("migration" in getDeck(resource.data.deckId).data) ||
+                getDeck(resource.data.deckId).data.migration.state == "complete") &&
+               (!("migrationId" in resource.data) ||
+                (("migration" in getDeck(resource.data.deckId).data) &&
+                 resource.data.migrationId == getDeck(resource.data.deckId).data.migration.id));
       }
       function belongsToDeck() {
         // Migration batches must authorize Cards against the latest parent state in the same request.
