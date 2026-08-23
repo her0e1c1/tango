@@ -8,12 +8,10 @@ import { prepareDeckImport } from "./useDeckImportExecution";
 
 interface DeckImportPreviewState {
   storageMode: DeckImportStorageMode;
-  preview:
-    | {
-        deckName: string;
-        analysis: DeckImportAnalysis;
-      }
-    | undefined;
+  preview?: {
+    deckName: string;
+    analysis: DeckImportAnalysis;
+  };
   error: unknown;
 }
 
@@ -23,7 +21,6 @@ interface PreparedDeckImportState {
 
 const initialState = (): DeckImportPreviewState => ({
   storageMode: "remote",
-  preview: undefined,
   error: null,
 });
 const createPreparedImportState = (): PreparedDeckImportState => ({ preparedImport: undefined });
@@ -38,7 +35,7 @@ export const useDeckImportPreview = (uid: string) => {
   const selectFile = async (file: File) => {
     const { storageMode } = state;
     preparedImportRef.current.preparedImport = undefined;
-    updateState({ preview: undefined, error: null });
+    setState({ storageMode, error: null });
 
     try {
       const analysis = await parseCsv(await file.text());
@@ -58,7 +55,7 @@ export const useDeckImportPreview = (uid: string) => {
     if (state.storageMode === storageMode) return false;
 
     preparedImportRef.current.preparedImport = undefined;
-    updateState({ storageMode, preview: undefined, error: null });
+    setState({ storageMode, error: null });
     return true;
   };
 
