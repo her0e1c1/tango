@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 import { withThemeByClassName } from "@storybook/addon-themes";
 import type { Preview } from "@storybook/react";
 import { setupWorker } from "msw/browser";
