@@ -41,7 +41,5 @@ export const useDeckListState = () => {
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
 
-  return {
-    sections: buildDeckListSections(decks, cards, sessionsByDeckId),
-  };
+  return buildDeckListSections(decks, cards, sessionsByDeckId);
 };
