@@ -1,9 +1,6 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
 import * as tsParser from "@typescript-eslint/parser";
-import {
-  createConfig as createBoundariesConfig,
-  recommended as boundariesRecommended,
-} from "eslint-plugin-boundaries/config";
+import { createConfig as createBoundariesConfig } from "eslint-plugin-boundaries/config";
 import reactHooks from "eslint-plugin-react-hooks";
 import testingLibrary from "eslint-plugin-testing-library";
 import vitest from "@vitest/eslint-plugin";
@@ -11,36 +8,24 @@ import vitest from "@vitest/eslint-plugin";
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}"];
-const sliceLayers = ["entities", "features", "pages", "widgets"];
-const nonSliceLayers = ["app", "shared"];
+const sourceLayers = ["app", "entities", "features", "pages", "shared", "widgets"];
+const reactHooksRecommended = reactHooks.configs.flat["recommended-latest"];
 // Use only the type-aware portion so Biome remains the owner of syntax and style diagnostics.
 const strictTypeCheckedRules = tseslint.configs["flat/strict-type-checked-only"].at(-1).rules;
 
 export default [
   {
+    ...reactHooksRecommended,
     files: sourceFiles,
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        ecmaFeatures: { jsx: true },
         projectService: true,
-        sourceType: "module",
         tsconfigRootDir: import.meta.dirname,
       },
     },
-    settings: {
-      "import/resolver": {
-        typescript: { project: "./tsconfig.json" },
-      },
-    },
-  },
-  {
-    ...reactHooks.configs.flat["recommended-latest"],
-    files: sourceFiles,
-  },
-  {
-    files: sourceFiles,
     rules: {
+      ...reactHooksRecommended.rules,
       // Reserve this identifier so imports and React-qualified calls cannot bypass the compiler policy.
       "no-restricted-syntax": [
         "error",
@@ -55,34 +40,18 @@ export default [
       ],
     },
   },
+  // Steiger owns FSD import rules; boundaries only rejects files outside the supported source layers.
   createBoundariesConfig({
-    ...boundariesRecommended,
     files: sourceFiles,
     settings: {
-      ...boundariesRecommended.settings,
-      "boundaries/elements": [
-        ...sliceLayers.map((layer) => ({
-          type: layer,
-          pattern: `src/${layer}/*`,
-          mode: "folder",
-          capture: ["slice"],
-        })),
-        ...nonSliceLayers.map((layer) => ({
-          type: layer,
-          pattern: `src/${layer}/**/*`,
-          mode: "full",
-        })),
-      ],
+      "boundaries/elements": sourceLayers.map((layer) => ({
+        type: layer,
+        pattern: `src/${layer}/**/*`,
+        mode: "full",
+      })),
       "boundaries/ignore": ["src/vite-env.d.ts"],
-      "boundaries/dependency-nodes": [
-        "import",
-        "export",
-        "require",
-        "dynamic-import",
-      ],
     },
     rules: {
-      ...boundariesRecommended.rules,
       "boundaries/no-unknown-files": "error",
     },
   }),
@@ -96,13 +65,6 @@ export default [
       ...strictTypeCheckedRules,
       // Shorthand callbacks that intentionally return void are established project style, not ambiguous expressions.
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
-      // Keep the unsafe-any boundary introduced by #533 explicit as the preset expands around it.
-      "@typescript-eslint/no-unsafe-argument": "error",
-      "@typescript-eslint/no-unsafe-assignment": "error",
-      "@typescript-eslint/no-unsafe-call": "error",
-      "@typescript-eslint/no-unsafe-member-access": "error",
-      "@typescript-eslint/no-unsafe-return": "error",
-      "@typescript-eslint/only-throw-error": "error",
     },
   },
   {
