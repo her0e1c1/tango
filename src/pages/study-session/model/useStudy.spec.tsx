@@ -153,7 +153,34 @@ describe("useStudy", () => {
       status: "studying",
       card: { frontText: "card-2" },
       showBackText: false,
+      autoPlay: false,
     });
+    expect(getStudySession(deckId)).toMatchObject({ currentIndex: 1 });
+
+    act(() => vi.advanceTimersByTime(5000));
+
+    expect(getStudySession(deckId)).toMatchObject({ currentIndex: 1 });
+  });
+
+  it("stops autoplay on a one-Card session without completing or moving it", () => {
+    vi.useFakeTimers();
+    mocks.cards = cards.slice(0, 1);
+    mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
+    clearStudySessions();
+    startStudy(deckId, mocks.cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+
+    const { result } = renderHook(() => useStudy(deckId));
+
+    expect(result.current).toMatchObject({
+      status: "studying",
+      session: { currentIndex: 0, cardCount: 1 },
+      autoPlay: false,
+    });
+    expect(getStudySession(deckId)).toMatchObject({ currentIndex: 0, cardOrderIds: ["card-1"] });
+
+    act(() => vi.advanceTimersByTime(5000));
+
+    expect(getStudySession(deckId)).toMatchObject({ currentIndex: 0, cardOrderIds: ["card-1"] });
   });
 
   it("does not advance a restarted session with an old autoplay timer", () => {

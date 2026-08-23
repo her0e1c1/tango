@@ -16,13 +16,20 @@ export const useAutoPlay = (
 ) => {
   const [autoPlay, setAutoPlay] = React.useState(defaultAutoPlay);
   const onAdvanceEvent = React.useEffectEvent(onAdvance);
+  const activeAutoPlaySession =
+    sessionState.status === "studying" && autoPlay && cardInterval > 0 ? sessionState.session : undefined;
   const autoPlaySession =
-    sessionState.status === "studying" &&
-    autoPlay &&
-    cardInterval > 0 &&
-    canMoveStudySession(sessionState.session, "next")
-      ? sessionState.session
+    activeAutoPlaySession !== undefined && canMoveStudySession(activeAutoPlaySession, "next")
+      ? activeAutoPlaySession
       : undefined;
+
+  React.useEffect(() => {
+    if (activeAutoPlaySession === undefined || autoPlaySession !== undefined) return;
+
+    // A terminal Card ends playback without completing or moving the StudySession.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- The session is an external-store snapshot.
+    setAutoPlay(false);
+  }, [activeAutoPlaySession, autoPlaySession]);
 
   React.useEffect(() => {
     if (autoPlaySession === undefined) return;
