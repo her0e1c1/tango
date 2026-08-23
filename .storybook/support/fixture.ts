@@ -1,9 +1,3 @@
-/**
- * @file Provides shared Storybook support for Fixture.
- * Stories reuse this setup to display components with realistic data, providers, and viewport
- * settings.
- */
-
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
@@ -21,7 +15,6 @@ export const form = {
       { label: "item 2", value: "value 2" },
       { label: "item 3", value: "value 3" },
     ],
-    toomany: Array.from({ length: 30 }, (_, k) => ({ label: `tag ${k}`, value: `tag${k}` })),
   } as const satisfies Record<string, Option[]>,
 } as const;
 
@@ -69,6 +62,16 @@ export const decks = {
   ].map((item, index) => ({ ...item, id: `long-deck-${index + 1}` })),
 } as const satisfies Record<string, Deck[]>;
 
+const createLongCard = () =>
+  createCard({
+    frontText: "too long front text ".repeat(20),
+    backText: "back test".repeat(100),
+    score: 3,
+    numberOfSeen: 5,
+    tags: ["tag1", "tag2"],
+    lastSeenAt: timestamp,
+  });
+
 export const card = {
   default: createCard({
     frontText: "front text",
@@ -78,22 +81,8 @@ export const card = {
     tags: ["tag1", "tag2"],
     lastSeenAt: timestamp,
   }),
-  long: createCard({
-    frontText: "too long front text ".repeat(20),
-    backText: "back test".repeat(100),
-    score: 3,
-    numberOfSeen: 5,
-    tags: ["tag1", "tag2"],
-    lastSeenAt: timestamp,
-  }),
-  toolong: createCard({
-    frontText: "too long front text ".repeat(20),
-    backText: "back test".repeat(100),
-    score: 3,
-    numberOfSeen: 5,
-    tags: ["tag1", "tag2"],
-    lastSeenAt: timestamp,
-  }),
+  long: createLongCard(),
+  toolong: createLongCard(),
   longTags: createCard({
     frontText: "front text",
     backText: "back test",
@@ -127,7 +116,6 @@ export const preferences = {
     showHeader: true,
     maxNumberOfCardsToLearn: 10,
   }),
-  longUserName: createPreferences(),
 } as const satisfies Record<string, Preferences>;
 
 export const math = {

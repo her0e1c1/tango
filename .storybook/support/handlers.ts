@@ -1,5 +1,3 @@
-/** @file Defines reusable network behavior for Storybook stories. */
-
 import { HttpResponse, http } from "msw";
 
 export const STORYBOOK_DECK_IMPORT_URL = "https://storybook.tango.invalid/decks/starter.csv";

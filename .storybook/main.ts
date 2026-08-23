@@ -15,10 +15,7 @@ const config: StorybookConfig = {
     "@storybook/addon-vitest",
     "msw-storybook-addon",
   ],
-  framework: {
-    name: "@storybook/react-vite",
-    options: {},
-  },
+  framework: "@storybook/react-vite",
   viteFinal: async (viteConfig) =>
     mergeConfig(
       {
