@@ -4,13 +4,33 @@ import { AiOutlineCloudDownload } from "react-icons/ai";
 import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
 import { Upload } from "@/shared/ui/forms";
-import type { DeckImportAnalysis } from "../lib/cardCsv";
 
 type DeckImportStorageMode = "local" | "remote";
 
+interface DeckImportPreviewRow {
+  rowNumber: number;
+  card: {
+    frontText: string;
+    backText: string;
+    tags: readonly string[];
+    uniqueKey: string;
+  };
+}
+
+interface DeckImportPreviewIssue {
+  rowNumber?: number;
+  message: string;
+  context?: string;
+}
+
 interface DeckImportPreview {
   deckName: string;
-  analysis: DeckImportAnalysis;
+  analysis: {
+    rows: readonly DeckImportPreviewRow[];
+    skippedRows: readonly unknown[];
+    issues: readonly DeckImportPreviewIssue[];
+    invalidCount: number;
+  };
 }
 
 interface DeckImportResult {
