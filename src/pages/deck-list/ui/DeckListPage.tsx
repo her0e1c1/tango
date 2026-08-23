@@ -15,7 +15,7 @@ import { DeckList } from "./DeckList";
 
 export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
-  const deckList = useDeckListState();
+  const sections = useDeckListState();
   const deletion = useDeckDeletion();
   const exportDeck = useDeckExport();
 
@@ -36,7 +36,7 @@ export const DeckListPage: React.FC = () => {
         <DeckDeletionDialog target={deletion.target} onCancel={deletion.cancel} onConfirm={deletion.confirm} />
       )}
       <DeckList
-        sections={deckList.sections}
+        sections={sections}
         onCreateDeck={() => void navigate(routes.deckCreate.to())}
         deckCard={{
           onClickEdit: (id) => void navigate(routes.deckForm.to(id)),

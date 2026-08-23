@@ -56,7 +56,7 @@ describe("useDeckListState", () => {
 
   it("puts active Decks in recent order and inactive Decks in name order", () => {
     const { result } = renderHook(() => useDeckListState());
-    const { sections } = result.current;
+    const sections = result.current;
 
     expect(sections.studying.map((item) => item.deck.id)).toEqual(["active-new", "active-old"]);
     expect(sections.studying[0]?.studySession).toMatchObject({
