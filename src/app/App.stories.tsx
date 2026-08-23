@@ -1,9 +1,3 @@
-/**
- * @file Defines Storybook examples for every route-level page.
- * The stories render the production route tree with deterministic authentication, stores, routing,
- * and MSW-backed network behavior.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect } from "storybook/test";
 

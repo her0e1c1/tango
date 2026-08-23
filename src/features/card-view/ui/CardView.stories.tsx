@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as fixture from "@/storybook/fixture";
 
-import { CardView as Template } from "./CardView";
+import { CardView } from "./CardView";
 
 const meta = {
-  title: "Card/CardView",
-  component: Template,
+  title: "Features/Card View/CardView",
+  component: CardView,
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
   args: { text: fixture.card.default.backText, category: "raw", code: false, dark: false },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof CardView>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -35,5 +35,9 @@ export const LongMath: Story = {
     code: false,
   },
 };
-export const Mobile: Story = { ...LongPlainText, parameters: { viewport: { defaultViewport: "iphonex" } } };
-export const Dark: Story = { ...LongCode, globals: { theme: "dark" } };
+export const Mobile: Story = { ...LongPlainText, globals: { viewport: { value: "iphonex", isRotated: false } } };
+export const Dark: Story = {
+  ...LongCode,
+  args: { ...LongCode.args, dark: true },
+  globals: { theme: "dark" },
+};

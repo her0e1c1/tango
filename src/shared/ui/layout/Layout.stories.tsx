@@ -1,16 +1,10 @@
-/**
- * @file Defines Storybook examples for Layout.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Layout as Template } from "./Layout";
+import { Layout } from "./Layout";
 
 const meta = {
   title: "Shared/Layout/Layout",
-  component: Template,
+  component: Layout,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
@@ -18,7 +12,7 @@ const meta = {
   args: {
     showHeader: true,
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Layout>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

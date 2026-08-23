@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
-
+import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import type { DeckImportPreview } from "../model/useDeckImport";
 import { SAMPLE_CSV_TEXT } from "../lib/sampleCsv";
-import { DeckImportView as Template } from "./DeckImportView";
+import { DeckImportView } from "./DeckImportView";
 
 const preview = {
   deckName: "spanish-basics.csv",
@@ -26,20 +25,17 @@ const preview = {
 } satisfies DeckImportPreview;
 
 const meta = {
-  title: "Features/Deck Import/DeckImportView",
-  component: Template,
+  title: "Pages/Deck Import/DeckImportView",
+  component: DeckImportView,
   tags: ["autodocs"],
+  decorators: [withPageLayout],
   parameters: {
     layout: "fullscreen",
-    viewport: {
-      viewports: INITIAL_VIEWPORTS,
-      defaultViewport: "desktop",
-    },
   },
   args: {
     sampleText: SAMPLE_CSV_TEXT,
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof DeckImportView>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -102,14 +98,11 @@ export const LongSample: Story = {
 
 export const DarkReview: Story = {
   ...LongSample,
+  args: { ...LongSample.args, dark: true },
   globals: { theme: "dark" },
 };
 
 export const IphoneReview: Story = {
   ...LongSample,
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
 };

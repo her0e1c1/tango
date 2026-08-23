@@ -37,6 +37,11 @@ const preview: Preview = {
       },
     },
     msw: storybookHandlers,
+    options: {
+      storySort: {
+        order: ["Integration", "Pages", "Features", "Shared"],
+      },
+    },
     viewport: {
       options: INITIAL_VIEWPORTS,
     },

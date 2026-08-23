@@ -1,18 +1,12 @@
-/**
- * @file Defines Storybook examples for Description.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Description as Template } from "./Description";
+import { Description } from "./Description";
 
 const meta = {
   title: "Shared/Content/Description",
-  component: Template,
+  component: Description,
   tags: ["autodocs"],
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Description>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -27,7 +21,7 @@ export const Short: Story = {
 
 export const Long: Story = {
   args: { children: "this text is too long ".repeat(30) },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };
 
 export const Dark: Story = { args: { children: "Muted dark-mode description" }, globals: { theme: "dark" } };

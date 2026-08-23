@@ -1,29 +1,13 @@
-/**
- * @file Defines Storybook examples for the Deck List presentation.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn } from "storybook/test";
 
+import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import type { Deck } from "@/entities/deck";
 import * as fixture from "@/storybook/fixture";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import { DeckList as Template, type DeckListProps } from "./DeckList";
+import { DeckList, type DeckListProps } from "./DeckList";
 
-/**
- * Prepares other items data for the Storybook examples in this file.
- * The helper keeps sample setup separate from the component configuration readers are meant to
- * inspect.
- */
 const otherItems = (decks: Deck[]) => decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
-/**
- * Prepares studying items data for the Storybook examples in this file.
- * The helper keeps sample setup separate from the component configuration readers are meant to
- * inspect.
- */
 const studyingItems = (decks: Deck[]) =>
   decks.map((deck, index) => ({
     deck,
@@ -48,19 +32,16 @@ const longSections = {
 
 const meta = {
   title: "Pages/Deck List/DeckList",
-  component: Template,
+  component: DeckList,
   tags: ["autodocs"],
+  decorators: [withPageLayout],
   parameters: {
     layout: "fullscreen",
-    viewport: {
-      viewports: INITIAL_VIEWPORTS,
-      defaultViewport: "desktop",
-    },
   },
   args: {
     sections: mixed,
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof DeckList>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -97,11 +78,7 @@ export const Long: Story = {
 };
 
 export const IphoneX: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 
 export const Dark: Story = {
@@ -111,10 +88,6 @@ export const Dark: Story = {
 };
 
 export const IphoneXLong: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
   args: { sections: longSections },
 };

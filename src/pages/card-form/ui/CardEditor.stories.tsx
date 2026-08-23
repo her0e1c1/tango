@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
+import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
 import { CardEditor } from "./CardEditor";
 import type { CardFormProps } from "./CardForm";
@@ -24,17 +25,16 @@ const createForm = (card: typeof fixture.card.default): CardFormProps => ({
   },
   errors: { frontText: undefined, backText: undefined },
   isSubmitting: false,
-  onCancel: () => undefined,
-  onSubmit: () => undefined,
+  onCancel: fn(),
+  onSubmit: fn(),
 });
 
 const meta = {
   title: "Pages/Card Form/CardEditor",
   component: CardEditor,
   tags: ["autodocs"],
-  parameters: {
-    viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" },
-  },
+  decorators: [withPageLayout],
+  parameters: { layout: "fullscreen" },
   args: {
     form: createForm(fixture.card.default),
   },
@@ -60,5 +60,5 @@ export const LongValues: Story = { args: { form: createForm(longCard) } };
 export const Dark: Story = { ...LongValues, globals: { theme: "dark" } };
 export const Mobile: Story = {
   ...LongValues,
-  parameters: { viewport: { defaultViewport: "iphonex" } },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
 };

@@ -1,22 +1,16 @@
-/**
- * @file Defines Storybook examples for Overlay.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Overlay as Template } from "./Overlay";
+import { Overlay } from "./Overlay";
 
 const meta = {
   title: "Shared/Feedback/Overlay",
-  component: Template,
+  component: Overlay,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
   },
   args: { children: "Overlay content" },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Overlay>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -56,7 +50,7 @@ export const LongMobile: Story = {
     position: "center",
     children: "Long overlay content remains readable and scrollable. ".repeat(80),
   },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };
 
 export const Dark: Story = {

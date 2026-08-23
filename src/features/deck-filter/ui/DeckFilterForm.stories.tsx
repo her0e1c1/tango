@@ -1,16 +1,11 @@
-/**
- * @file Defines Storybook examples for Deck Filter Form.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
-import type { ComponentProps } from "react";
+import * as React from "react";
+import { expect, fn } from "storybook/test";
 
-import { DeckFilterForm as Template } from "./DeckFilterForm";
+import { DeckFilterForm } from "./DeckFilterForm";
 import * as fixture from "@/storybook/fixture";
 
-type DeckFilterFormProps = ComponentProps<typeof Template>;
+type DeckFilterFormProps = React.ComponentProps<typeof DeckFilterForm>;
 
 const args: DeckFilterFormProps = {
   scoreMax: 1,
@@ -18,23 +13,66 @@ const args: DeckFilterFormProps = {
   tags: [...fixture.tags.default],
   selectedTags: [],
   tagAndFilter: false,
-  setScoreMax: () => undefined,
-  setScoreMin: () => undefined,
-  setSelectedTags: () => undefined,
-  setTagAndFilter: () => undefined,
+  setScoreMax: fn(),
+  setScoreMin: fn(),
+  setSelectedTags: fn(),
+  setTagAndFilter: fn(),
+};
+
+const InteractiveDeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
+  const [scoreMax, setScoreMax] = React.useState(props.scoreMax);
+  const [scoreMin, setScoreMin] = React.useState(props.scoreMin);
+  const [selectedTags, setSelectedTags] = React.useState(props.selectedTags);
+  const [tagAndFilter, setTagAndFilter] = React.useState(props.tagAndFilter);
+
+  return (
+    <DeckFilterForm
+      {...props}
+      scoreMax={scoreMax}
+      scoreMin={scoreMin}
+      selectedTags={selectedTags}
+      tagAndFilter={tagAndFilter}
+      setScoreMax={(value) => {
+        props.setScoreMax(value);
+        setScoreMax(value);
+      }}
+      setScoreMin={(value) => {
+        props.setScoreMin(value);
+        setScoreMin(value);
+      }}
+      setSelectedTags={(value) => {
+        props.setSelectedTags(value);
+        setSelectedTags(value);
+      }}
+      setTagAndFilter={(value) => {
+        props.setTagAndFilter(value);
+        setTagAndFilter(value);
+      }}
+    />
+  );
 };
 
 const meta = {
-  title: "Deck Filter/DeckFilterForm",
-  component: Template,
+  title: "Features/Deck Filter/DeckFilterForm",
+  component: DeckFilterForm,
   tags: ["autodocs"],
   args,
-} satisfies Meta<typeof Template>;
+  render: (storyArgs) => <InteractiveDeckFilterForm {...storyArgs} />,
+} satisfies Meta<typeof DeckFilterForm>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const Interaction: Story = {
+  args: { selectedTags: ["tag 1"] },
+  play: async ({ args: storyArgs, canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Clear" }));
+    await expect(storyArgs.setSelectedTags).toHaveBeenCalledWith([]);
+    await expect(canvas.getByRole("checkbox", { name: "tag 1" })).not.toBeChecked();
+  },
+};
 
 export const ManyTagsSelected: Story = {
   args: {
@@ -53,7 +91,7 @@ export const NoMatchCompatible: Story = {
 
 export const Mobile: Story = {
   ...ManyTagsSelected,
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };
 
 export const Dark: Story = { ...ManyTagsSelected, globals: { theme: "dark" } };
