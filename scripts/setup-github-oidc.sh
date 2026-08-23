@@ -59,10 +59,9 @@ project_bindings=$(
     --format="value(bindings.role,bindings.members)"
 )
 while IFS=$'\t' read -r role member; do
-  if [[ "$member" == "serviceAccount:${SERVICE_ACCOUNT_EMAIL}" ]] &&
-    [[ "$role" == "roles/owner" || "$role" == "roles/editor" ]]; then
+  [[ "$member" == "serviceAccount:${SERVICE_ACCOUNT_EMAIL}" ]] || continue
+  [[ "$role" != "roles/owner" && "$role" != "roles/editor" ]] ||
     die "${SERVICE_ACCOUNT_EMAIL} already has ${role}; remove that broad role before retrying."
-  fi
 done <<<"$project_bindings"
 
 gcloud services enable "${REQUIRED_APIS[@]}" \
@@ -76,23 +75,22 @@ service_account_info=$(
     --format="value(email,disabled)"
 )
 IFS=$'\t' read -r existing_service_account service_account_disabled <<<"$service_account_info"
-if [[ "$existing_service_account" == "$SERVICE_ACCOUNT_EMAIL" ]]; then
-  if [[ "$service_account_disabled" == "True" || "$service_account_disabled" == "true" ]]; then
-    die "${SERVICE_ACCOUNT_EMAIL} is disabled; review and re-enable it explicitly before retrying."
-  fi
-
+[[ "$service_account_disabled" != "True" && "$service_account_disabled" != "true" ]] ||
+  die "${SERVICE_ACCOUNT_EMAIL} is disabled; review and re-enable it explicitly before retrying."
+[[ "$existing_service_account" != "$SERVICE_ACCOUNT_EMAIL" ]] ||
   gcloud iam service-accounts update "$SERVICE_ACCOUNT_EMAIL" \
     --project="$PROJECT_ID" \
     --display-name="GitHub Actions Firebase Deployer" \
     --quiet
-else
+[[ "$existing_service_account" == "$SERVICE_ACCOUNT_EMAIL" ]] ||
   gcloud iam service-accounts create "$SERVICE_ACCOUNT_ID" \
     --project="$PROJECT_ID" \
     --display-name="GitHub Actions Firebase Deployer" \
     --quiet
-fi
 
 readonly POOL_RESOURCE_NAME="projects/${project_number}/locations/${LOCATION}/workloadIdentityPools/${POOL_ID}"
+readonly PROVIDER_RESOURCE_NAME="${POOL_RESOURCE_NAME}/providers/${PROVIDER_ID}"
+
 existing_pool=$(
   gcloud iam workload-identity-pools list \
     --project="$PROJECT_ID" \
@@ -100,57 +98,37 @@ existing_pool=$(
     --filter="name=${POOL_RESOURCE_NAME}" \
     --format="value(name)"
 )
-readonly PROVIDER_RESOURCE_NAME="${POOL_RESOURCE_NAME}/providers/${PROVIDER_ID}"
-existing_provider=""
-
-if [[ "$existing_pool" == "$POOL_RESOURCE_NAME" ]]; then
-  provider_names=$(
-    gcloud iam workload-identity-pools providers list \
-      --project="$PROJECT_ID" \
-      --location="$LOCATION" \
-      --workload-identity-pool="$POOL_ID" \
-      --format="value(name)"
-  )
-
-  # Workload Identity principals are pool-scoped, so sharing this pool could bypass this provider's branch and environment checks.
-  while IFS= read -r provider_name; do
-    [[ -n "$provider_name" ]] || continue
-    if [[ "$provider_name" != "$PROVIDER_RESOURCE_NAME" ]]; then
-      die "The ${POOL_ID} pool contains another provider (${provider_name}); use a dedicated pool before retrying."
-    fi
-    existing_provider="$provider_name"
-  done <<<"$provider_names"
-
-  gcloud iam workload-identity-pools update "$POOL_ID" \
-    --project="$PROJECT_ID" \
-    --location="$LOCATION" \
-    --display-name="GitHub Actions" \
-    --description="External identities used by GitHub Actions" \
-    --no-disabled \
-    --quiet
-else
+[[ "$existing_pool" == "$POOL_RESOURCE_NAME" ]] ||
   gcloud iam workload-identity-pools create "$POOL_ID" \
     --project="$PROJECT_ID" \
     --location="$LOCATION" \
     --display-name="GitHub Actions" \
     --description="External identities used by GitHub Actions" \
     --quiet
-fi
 
-if [[ "$existing_provider" == "$PROVIDER_RESOURCE_NAME" ]]; then
-  gcloud iam workload-identity-pools providers update-oidc "$PROVIDER_ID" \
+provider_names=$(
+  gcloud iam workload-identity-pools providers list \
     --project="$PROJECT_ID" \
     --location="$LOCATION" \
     --workload-identity-pool="$POOL_ID" \
-    --display-name="Tango production" \
-    --description="GitHub OIDC for the Tango production deployment" \
-    --issuer-uri="$OIDC_ISSUER" \
-    --allowed-audiences="" \
-    --attribute-mapping="$ATTRIBUTE_MAPPING" \
-    --attribute-condition="$ATTRIBUTE_CONDITION" \
-    --no-disabled \
-    --quiet
-else
+    --format="value(name)"
+)
+
+# Workload Identity principals are pool-scoped, so sharing this pool could bypass this provider's branch and environment checks.
+while IFS= read -r provider_name; do
+  [[ -z "$provider_name" || "$provider_name" == "$PROVIDER_RESOURCE_NAME" ]] ||
+    die "The ${POOL_ID} pool contains another provider (${provider_name}); use a dedicated pool before retrying."
+done <<<"$provider_names"
+
+gcloud iam workload-identity-pools update "$POOL_ID" \
+  --project="$PROJECT_ID" \
+  --location="$LOCATION" \
+  --display-name="GitHub Actions" \
+  --description="External identities used by GitHub Actions" \
+  --no-disabled \
+  --quiet
+
+[[ "$provider_names" == "$PROVIDER_RESOURCE_NAME" ]] ||
   gcloud iam workload-identity-pools providers create-oidc "$PROVIDER_ID" \
     --project="$PROJECT_ID" \
     --location="$LOCATION" \
@@ -161,7 +139,19 @@ else
     --attribute-mapping="$ATTRIBUTE_MAPPING" \
     --attribute-condition="$ATTRIBUTE_CONDITION" \
     --quiet
-fi
+
+gcloud iam workload-identity-pools providers update-oidc "$PROVIDER_ID" \
+  --project="$PROJECT_ID" \
+  --location="$LOCATION" \
+  --workload-identity-pool="$POOL_ID" \
+  --display-name="Tango production" \
+  --description="GitHub OIDC for the Tango production deployment" \
+  --issuer-uri="$OIDC_ISSUER" \
+  --allowed-audiences="" \
+  --attribute-mapping="$ATTRIBUTE_MAPPING" \
+  --attribute-condition="$ATTRIBUTE_CONDITION" \
+  --no-disabled \
+  --quiet
 
 for role in "${DEPLOY_ROLES[@]}"; do
   gcloud projects add-iam-policy-binding "$PROJECT_ID" \
@@ -186,15 +176,10 @@ add_workload_identity_binding() {
 # A newly created service account can take time to become available to IAM policy operations.
 binding_added=false
 for attempt in 1 2 3 4 5 6 7; do
-  if add_workload_identity_binding; then
-    binding_added=true
-    break
-  fi
-
-  if [[ "$attempt" -lt 7 ]]; then
-    printf 'Waiting for service account IAM propagation (attempt %s of 7)\n' "$attempt" >&2
-    sleep 10
-  fi
+  add_workload_identity_binding && binding_added=true && break
+  [[ "$attempt" -lt 7 ]] || break
+  printf 'Waiting for service account IAM propagation (attempt %s of 7)\n' "$attempt" >&2
+  sleep 10
 done
 [[ "$binding_added" == true ]] || die "Could not grant Workload Identity User after seven attempts."
 
