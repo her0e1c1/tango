@@ -54,9 +54,11 @@ describe("DeckListCard", () => {
       <DeckListCard
         deck={deck}
         cardCount={8}
-        studyProgress={{
+        studySession={{
+          sessionId: "study-session",
+          deckId: deck.id,
+          cardOrderIds: ["card-1", "card-2", "card-3"],
           currentIndex: 1,
-          cardCount: 3,
           lastStudiedAt: new Date("2026-07-18T00:05:00Z").getTime(),
         }}
       />
@@ -97,7 +99,13 @@ describe("DeckListCard", () => {
       <ControlledDeckListCard
         deck={deck}
         cardCount={8}
-        studyProgress={{ currentIndex: 0, cardCount: 3, lastStudiedAt: Date.now() }}
+        studySession={{
+          sessionId: "study-session",
+          deckId: deck.id,
+          cardOrderIds: ["card-1", "card-2", "card-3"],
+          currentIndex: 0,
+          lastStudiedAt: Date.now(),
+        }}
         {...actions}
       />
     );

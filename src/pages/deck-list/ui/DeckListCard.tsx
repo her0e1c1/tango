@@ -8,8 +8,8 @@ import cx from "classnames";
 import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
-import type { DeckId } from "@/entities/deck";
-import type { DeckListState } from "../model/useDeckListState";
+import type { Deck, DeckId } from "@/entities/deck";
+import type { StudySession } from "@/entities/study-session";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
 
@@ -30,9 +30,11 @@ interface DeckListCardMenuState {
   onCloseMenu?: () => void;
 }
 
-export type DeckListCardProps = DeckListCardActions &
-  DeckListCardMenuState &
-  DeckListState["sections"]["other"][number];
+export interface DeckListCardProps extends DeckListCardActions, DeckListCardMenuState {
+  deck: Deck;
+  cardCount: number;
+  studySession?: StudySession;
+}
 
 /**
  * Formats a deck's last-study time for display in the deck list.
@@ -58,11 +60,11 @@ const primaryActionClassName =
 const DeckListCardStatus: React.FC<{
   deck: DeckListCardProps["deck"];
   active: boolean;
-  studyProgress: DeckListCardProps["studyProgress"];
+  studySession: DeckListCardProps["studySession"];
   progressValue: number;
   cardCount: number;
   statusId: string;
-}> = ({ deck, active, studyProgress, progressValue, cardCount, statusId }) => (
+}> = ({ deck, active, studySession, progressValue, cardCount, statusId }) => (
   <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
     {deck.category !== "" && (
       <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
@@ -70,8 +72,8 @@ const DeckListCardStatus: React.FC<{
       </span>
     )}
     <span className="truncate">
-      {active && studyProgress
-        ? `${String(progressValue)} / ${String(studyProgress.cardCount)} · ${formatLastStudied(studyProgress.lastStudiedAt)}`
+      {active && studySession
+        ? `${String(progressValue)} / ${String(studySession.cardOrderIds.length)} · ${formatLastStudied(studySession.lastStudiedAt)}`
         : `${String(cardCount)} ${cardCount === 1 ? "card" : "cards"}`}
     </span>
   </span>
@@ -105,10 +107,11 @@ const DeckListCardProgressBar: React.FC<{
  * operations.
  */
 export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
-  const { deck, studyProgress } = props;
-  const active = studyProgress != null;
-  const progressValue = active ? studyProgress.currentIndex + 1 : 0;
-  const progressPercent = active ? Math.min(100, (progressValue / studyProgress.cardCount) * 100) : 0;
+  const { deck, studySession } = props;
+  const active = studySession != null;
+  const studyCardCount = studySession?.cardOrderIds.length ?? 0;
+  const progressValue = active ? studySession.currentIndex + 1 : 0;
+  const progressPercent = active ? Math.min(100, (progressValue / studyCardCount) * 100) : 0;
   const pending = props.isPending?.(deck.id) ?? false;
   /**
    * Wraps an optional action so it receives the current item's identifier when invoked.
@@ -146,7 +149,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
         <DeckListCardStatus
           deck={deck}
           active={active}
-          studyProgress={studyProgress}
+          studySession={studySession}
           progressValue={progressValue}
           cardCount={props.cardCount}
           statusId={statusId}
@@ -156,7 +159,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           active={active}
           progressValue={progressValue}
           progressPercent={progressPercent}
-          cardCount={studyProgress?.cardCount ?? 0}
+          cardCount={studyCardCount}
           deckName={deck.name}
         />
       </div>

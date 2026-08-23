@@ -2,76 +2,271 @@
 
 ## 目的
 
-Card 管理の主要導線が、ブラウザ上で表示・編集・削除・状態更新まで破綻しないことを確認する。
+Card 管理の主要導線が、ブラウザ上で表示・編集・削除・filter・学習状態更新まで破綻しないことを確認する。
 
 ## テストケース
 
-### 1. Card 一覧を表示できる
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| CARD-01 | read | [Card 一覧に学習情報を表示できる](#card-01) |
+| CARD-02 | read | [Card の裏面 overlay を開ける](#card-02) |
+| CARD-03 | write | [Card 編集内容を保存して reload 後も確認できる](#card-03) |
+| CARD-04 | write | [Card を削除できる](#card-04) |
+| CARD-05 | write | [Card の右 swipe で score を増やせる](#card-05) |
+| CARD-06 | write | [Card の左 swipe で score を減らせる](#card-06) |
+| CARD-07 | read | [開いている Card の裏面 overlay を閉じられる](#card-07) |
+| CARD-08 | read | [Card の削除を取り消せる](#card-08) |
+| CARD-09 | write | [Card の編集失敗後に再試行できる](#card-09) |
+| CARD-10 | write | [score と tag の filter を保存して Card 一覧へ反映できる](#card-10) |
+| CARD-11 | read | [Card view を直接開ける](#card-11) |
+| CARD-12 | read | [存在しない Card から復帰できる](#card-12) |
 
-| 項目 | 内容 |
-| --- | --- |
-| カテゴリ | read |
-| 目的 | Deck 詳細画面で、対象 deck に紐づく card が一覧表示されることを確認する。 |
-| Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
-| When | 対象 deck の詳細画面を開く。 |
-| Then | card の front text が表示される。 |
-| Then | score と学習回数が表示される。 |
-| Then | browser error が発生しない。 |
+<a id="card-01"></a>
 
-### 2. Card の裏面を overlay で確認できる
+### CARD-01 Card 一覧に学習情報を表示できる
 
-| 項目 | 内容 |
-| --- | --- |
-| カテゴリ | read |
-| 目的 | Card 一覧から card の裏面を確認でき、overlay を閉じられることを確認する。 |
-| Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
-| When | 対象 deck の詳細画面を開く。 |
-| When | card の front text をクリックする。 |
-| Then | overlay に card の back text が表示される。 |
-| When | overlay をクリックする。 |
-| Then | overlay が閉じる。 |
-| Then | browser error が発生しない。 |
+カテゴリ: `read`
 
-### 3. Card 編集内容を保存して前画面に戻れる
+Given:
 
-| 項目 | 内容 |
-| --- | --- |
-| カテゴリ | write |
-| 目的 | Card の front text、back text、tags を編集し、Deck 詳細画面に反映されることを確認する。 |
-| Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
-| When | 対象 deck の詳細画面を開く。 |
-| When | card の edit icon をクリックする。 |
-| Then | card 編集画面に遷移する。 |
-| When | front text、back text、tags を別の値に変更して submit する。 |
-| Then | Deck 詳細画面に戻る。 |
-| Then | card 一覧に変更後の front text が表示される。 |
-| When | 変更後の front text をクリックする。 |
-| Then | overlay に変更後の back text が表示される。 |
-| Then | browser error が発生しない。 |
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に score、学習回数、tags を持つ Card が存在する。
 
-### 4. Card を削除できる
+When:
 
-| 項目 | 内容 |
-| --- | --- |
-| カテゴリ | write |
-| 目的 | Deck 詳細画面から Card を削除でき、削除後に一覧から消えることを確認する。 |
-| Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
-| When | 対象 deck の詳細画面を開く。 |
-| When | card の delete icon をクリックする。 |
-| When | confirm dialog で OK を選択する。 |
-| Then | card 一覧に削除した card が表示されない。 |
-| Then | browser error が発生しない。 |
+- 対象 Deck の Card 一覧を開く。
 
-### 5. Card の swipe 操作で score を更新できる
+Then:
 
-| 項目 | 内容 |
-| --- | --- |
-| カテゴリ | write |
-| 目的 | Card 一覧で swipe 操作を行うと、card の score が更新されることを確認する。 |
-| Given | `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。 |
-| When | 対象 deck の詳細画面を開く。 |
-| When | card を右方向に swipe する。 |
-| Then | card の score が増える。 |
-| When | card を左方向に swipe する。 |
-| Then | card の score が減る。 |
-| Then | browser error が発生しない。 |
+- 対象 Card の front text、score、学習回数、tags が表示される。
+- browser error が発生しない。
+
+<a id="card-02"></a>
+
+### CARD-02 Card の裏面 overlay を開ける
+
+カテゴリ: `read`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に front text と back text を持つ Card が存在する。
+
+When:
+
+- Card 一覧で対象 Card を選択する。
+
+Then:
+
+- 対象 Card の back text が overlay に表示される。
+- browser error が発生しない。
+
+<a id="card-03"></a>
+
+### CARD-03 Card 編集内容を保存して reload 後も確認できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に編集対象の Card が存在する。
+
+When:
+
+- 対象 Card の front text、back text、tags を変更して保存し、画面を reload して編集画面を再度開く。
+
+Then:
+
+- 編集画面に変更後の front text、back text、tags が表示される。
+- browser error が発生しない。
+
+<a id="card-04"></a>
+
+### CARD-04 Card を削除できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に削除対象の Card が存在する。
+
+When:
+
+- Card 一覧から対象 Card の削除を確定し、画面を reload する。
+
+Then:
+
+- Card 一覧に対象 Card が表示されない。
+- 対象 Card が active Card として保存先から読み込まれない。
+- browser error が発生しない。
+
+<a id="card-05"></a>
+
+### CARD-05 Card の右 swipe で score を増やせる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に score を持つ Card が存在する。
+
+When:
+
+- Card 一覧で対象 Card を右方向に swipe し、保存完了後に画面を reload する。
+
+Then:
+
+- 対象 Card の score が swipe 前より 1 増えて表示される。
+- browser error が発生しない。
+
+<a id="card-06"></a>
+
+### CARD-06 Card の左 swipe で score を減らせる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に score を持つ Card が存在する。
+
+When:
+
+- Card 一覧で対象 Card を左方向に swipe し、保存完了後に画面を reload する。
+
+Then:
+
+- 対象 Card の score が swipe 前より 1 減って表示される。
+- browser error が発生しない。
+
+<a id="card-07"></a>
+
+### CARD-07 開いている Card の裏面 overlay を閉じられる
+
+カテゴリ: `read`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck の Card 一覧で、対象 Card の back text overlay が開いている。
+
+When:
+
+- overlay の close action を実行する。
+
+Then:
+
+- back text overlay が閉じる。
+- Card 一覧に対象 Card の front text が表示される。
+- Card の永続データが変更されない。
+- browser error が発生しない。
+
+<a id="card-08"></a>
+
+### CARD-08 Card の削除を取り消せる
+
+カテゴリ: `read`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 削除対象 Card の action menu trigger から削除 dialog を開いている。
+- dialog に対象 Card と削除を取り消せない旨が表示されている。
+
+When:
+
+- Cancel を選択する。
+
+Then:
+
+- 削除 dialog が閉じる。
+- focus が対象 Card の action menu trigger に戻る。
+- 対象 Card の永続データが変更されない。
+- browser error が発生しない。
+
+<a id="card-09"></a>
+
+### CARD-09 Card の編集失敗後に再試行できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に編集対象の Card が存在する。
+- 編集要求の失敗が編集画面内で処理され、変更内容が維持されている。
+- 次の編集要求は成功できる。
+
+When:
+
+- 同じ変更内容の保存を再試行し、Card 一覧を reload する。
+
+Then:
+
+- Card 一覧へ戻る。
+- reload 後も対象 Card に変更内容が表示される。
+- 最初の編集失敗に伴う未処理の browser error が発生しない。
+
+<a id="card-10"></a>
+
+### CARD-10 score と tag の filter を保存して Card 一覧へ反映できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に score と tags の組み合わせが異なる複数の Card が存在する。
+
+When:
+
+- Card 一覧で score 範囲と tag filter を設定し、保存完了後に画面を reload する。
+
+Then:
+
+- reload 前に設定した score 範囲と tag filter が表示される。
+- 両方の filter 条件に一致する Card だけが一覧に表示される。
+- browser error が発生しない。
+
+<a id="card-11"></a>
+
+### CARD-11 Card view を直接開ける
+
+カテゴリ: `read`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に back text を持つ Card が存在する。
+
+When:
+
+- 対象 Card の view route を直接開く。
+
+Then:
+
+- 対象 Card の back text が Card answer として表示される。
+- application shell が表示される。
+- browser error が発生しない。
+
+<a id="card-12"></a>
+
+### CARD-12 存在しない Card から復帰できる
+
+カテゴリ: `read`
+
+Given:
+
+- 認証済みユーザーの保存先に、route が参照する Card が存在しない。
+
+When:
+
+- 存在しない Card の view route を直接開き、Card が利用できない旨の画面から home recovery action を実行する。
+
+Then:
+
+- Deck 一覧が表示される。
+- browser error が発生しない。

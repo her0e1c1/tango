@@ -1,17 +1,11 @@
-/**
- * @file Defines Storybook examples for Full Screen.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { FullScreen as Template } from "./FullScreen";
+import { FullScreen } from "./FullScreen";
 import { Container } from "@/storybook/Decorator";
 
 const meta = {
   title: "Shared/Layout/FullScreen",
-  component: Template,
+  component: FullScreen,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
@@ -19,7 +13,7 @@ const meta = {
   args: {
     className: "bg-surface-muted text-ink",
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof FullScreen>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -4,15 +4,29 @@
 
 import * as React from "react";
 
-import type { DeckId } from "@/entities/deck";
-
-import type { DeckListState } from "../model/useDeckListState";
+import type { Deck, DeckId } from "@/entities/deck";
+import type { StudySession } from "@/entities/study-session";
+import { Button } from "@/shared/ui/button";
 
 import { DeckListCard, type DeckListCardActions } from "./DeckListCard";
 
+interface DeckListItem {
+  deck: Deck;
+  cardCount: number;
+  studySession?: StudySession;
+}
+
+interface StudyingDeckListItem extends DeckListItem {
+  studySession: StudySession;
+}
+
 export interface DeckListProps {
-  sections: DeckListState["sections"];
+  sections: {
+    studying: StudyingDeckListItem[];
+    other: DeckListItem[];
+  };
   deckCard?: DeckListCardActions;
+  onCreateDeck: () => void;
 }
 
 /**
@@ -27,7 +41,7 @@ const countLabel = (count: number) => `${String(count)} ${count === 1 ? "deck" :
 const DeckListSection: React.FC<{
   title: string;
   note: string;
-  items: DeckListState["sections"]["other"];
+  items: DeckListItem[];
   actions: DeckListCardActions | undefined;
   openMenuDeckId: DeckId | undefined;
   onToggleMenu: (id: DeckId) => void;
@@ -52,7 +66,7 @@ const DeckListSection: React.FC<{
             key={item.deck.id}
             deck={item.deck}
             cardCount={item.cardCount}
-            {...(item.studyProgress != null ? { studyProgress: item.studyProgress } : {})}
+            {...(item.studySession != null ? { studySession: item.studySession } : {})}
             {...actions}
             openMenuDeckId={openMenuDeckId}
             onToggleMenu={onToggleMenu}
@@ -75,9 +89,14 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
 
   return (
     <>
-      <div className="flex items-baseline justify-between gap-3">
-        <h1 className="break-words text-title font-bold text-ink">Decks</h1>
-        <span className="shrink-0 text-caption text-ink-muted">{countLabel(total)}</span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <h1 className="break-words text-title font-bold text-ink">Decks</h1>
+          <span className="shrink-0 text-caption text-ink-muted">{countLabel(total)}</span>
+        </div>
+        <Button variant="primary" onClick={props.onCreateDeck}>
+          Create deck
+        </Button>
       </div>
       <DeckListSection
         title="Studying"

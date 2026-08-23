@@ -1,22 +1,16 @@
-/**
- * @file Defines Storybook examples for Feedback.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Feedback as Template } from "./Feedback";
+import { Feedback } from "./Feedback";
 import { AiOutlineArrowUp } from "react-icons/ai";
 
 const meta = {
   title: "Shared/Feedback/Feedback",
-  component: Template,
+  component: Feedback,
   tags: ["autodocs"],
   args: {
     children: "",
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Feedback>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

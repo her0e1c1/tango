@@ -1,19 +1,13 @@
-/**
- * @file Defines Storybook examples for Logo.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Logo as Template } from "./Logo";
+import { Logo } from "./Logo";
 
 const meta = {
   title: "Shared/Content/Logo",
-  component: Template,
+  component: Logo,
   tags: ["autodocs"],
   args: {},
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Logo>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

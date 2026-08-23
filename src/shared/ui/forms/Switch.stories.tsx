@@ -1,20 +1,14 @@
-/**
- * @file Defines Storybook examples for Switch.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn } from "storybook/test";
 
-import { Switch as Template } from "./Switch";
+import { Switch } from "./Switch";
 
 const meta = {
   title: "Shared/Forms/Switch",
-  component: Template,
+  component: Switch,
   tags: ["autodocs"],
   args: { onChange: fn() },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Switch>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -51,12 +45,12 @@ export const LightAndDark: Story = {
   render: (args) => (
     <div className="grid gap-4">
       <div className="flex gap-3 bg-canvas p-4">
-        <Template {...args} />
-        <Template {...args} checked />
+        <Switch {...args} />
+        <Switch {...args} checked />
       </div>
       <div className="dark flex gap-3 bg-canvas p-4">
-        <Template {...args} />
-        <Template {...args} checked />
+        <Switch {...args} />
+        <Switch {...args} checked />
       </div>
     </div>
   ),
@@ -64,5 +58,5 @@ export const LightAndDark: Story = {
 
 export const NarrowViewport: Story = {
   args: { checked: true },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };

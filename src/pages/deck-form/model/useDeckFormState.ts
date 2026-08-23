@@ -5,33 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
-import { CATEGORY, deckFormSchema, editDeck, type DeckId, useDeck } from "@/entities/deck";
-import type { Form, Input, Select, Switch } from "@/shared/ui/forms";
-
-interface DeckFormFields {
-  name: React.ComponentProps<typeof Input>;
-  convertToBr: React.ComponentProps<typeof Switch>;
-  localMode: React.ComponentProps<typeof Switch>;
-  url: React.ComponentProps<typeof Input>;
-  category: React.ComponentProps<typeof Select>;
-}
-
-export interface DeckFormProps {
-  deckInfo: {
-    id: DeckId;
-    createdAt?: string;
-    updatedAt?: string;
-  };
-  fields: DeckFormFields;
-  localModeHelp: string;
-  errors: {
-    name: string | undefined;
-    url: string | undefined;
-  };
-  isSubmitting: boolean;
-  onCancel: () => void;
-  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
-}
+import { CATEGORY, deckFormSchema, editDeck, useDeck } from "@/entities/deck";
 
 type DeckFormValues = z.infer<typeof deckFormSchema>;
 
@@ -78,7 +52,7 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
     void submit(event);
   };
 
-  const form: DeckFormProps = {
+  const form = {
     deckInfo: {
       id: deck.id,
       ...(deck.createdAt ? { createdAt: new Date(deck.createdAt).toLocaleDateString() } : {}),

@@ -1,21 +1,15 @@
-/**
- * @file Defines Storybook examples for Tag List.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
 import * as fixture from "@/storybook/fixture";
 
 import { Tag } from "../forms";
-import { TagList as Template } from "./TagList";
+import { TagList } from "./TagList";
 
 const meta = {
   title: "Shared/Content/TagList",
-  component: Template,
+  component: TagList,
   tags: ["autodocs"],
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof TagList>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -37,5 +31,5 @@ export const TooLongWithScroll: Story = {
     hasManyItems: true,
     children: fixture.tags.toolong.map((t) => <Tag key={t} label={t} />),
   },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };

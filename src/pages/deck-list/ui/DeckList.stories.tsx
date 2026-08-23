@@ -1,37 +1,22 @@
-/**
- * @file Defines Storybook examples for the Deck List presentation.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn } from "storybook/test";
 
+import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import type { Deck } from "@/entities/deck";
-import type { DeckListState } from "../model/useDeckListState";
 import * as fixture from "@/storybook/fixture";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import { DeckList as Template } from "./DeckList";
+import { DeckList, type DeckListProps } from "./DeckList";
 
-/**
- * Prepares other items data for the Storybook examples in this file.
- * The helper keeps sample setup separate from the component configuration readers are meant to
- * inspect.
- */
 const otherItems = (decks: Deck[]) => decks.map((deck, index) => ({ deck, cardCount: 12 + index * 4 }));
-/**
- * Prepares studying items data for the Storybook examples in this file.
- * The helper keeps sample setup separate from the component configuration readers are meant to
- * inspect.
- */
 const studyingItems = (decks: Deck[]) =>
   decks.map((deck, index) => ({
     deck,
     cardCount: 30 + index,
-    studyProgress: {
+    studySession: {
+      sessionId: `session-${deck.id}`,
+      deckId: deck.id,
+      cardOrderIds: Array.from({ length: 12 + index * 7 }, (_, cardIndex) => `${deck.id}-card-${String(cardIndex)}`),
       currentIndex: index + 1,
-      cardCount: 12 + index * 7,
       lastStudiedAt: fixture.timestamp - index * 24 * 60 * 60 * 1000,
     },
   }));
@@ -39,27 +24,25 @@ const studyingItems = (decks: Deck[]) =>
 const mixed = {
   studying: studyingItems(fixture.decks.default.slice(0, 3)),
   other: otherItems(fixture.decks.default.slice(3)),
-} satisfies DeckListState["sections"];
+} satisfies DeckListProps["sections"];
 const longSections = {
   studying: studyingItems(fixture.decks.long.slice(0, 4)),
   other: otherItems(fixture.decks.long.slice(4)),
-} satisfies DeckListState["sections"];
+} satisfies DeckListProps["sections"];
 
 const meta = {
   title: "Pages/Deck List/DeckList",
-  component: Template,
+  component: DeckList,
   tags: ["autodocs"],
+  decorators: [withPageLayout],
   parameters: {
     layout: "fullscreen",
-    viewport: {
-      viewports: INITIAL_VIEWPORTS,
-      defaultViewport: "desktop",
-    },
   },
   args: {
     sections: mixed,
+    onCreateDeck: fn(),
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof DeckList>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -96,11 +79,7 @@ export const Long: Story = {
 };
 
 export const IphoneX: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 
 export const Dark: Story = {
@@ -110,10 +89,6 @@ export const Dark: Story = {
 };
 
 export const IphoneXLong: Story = {
-  parameters: {
-    viewport: {
-      defaultViewport: "iphonex",
-    },
-  },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
   args: { sections: longSections },
 };

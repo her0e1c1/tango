@@ -58,8 +58,7 @@ export default mergeConfig(
             attachmentsDir: 'test-results/storybook/attachments',
             browser: {
               enabled: true,
-              // CI exercises every representative Storybook state with the real media preference enabled.
-              provider: playwright({ contextOptions: { colorScheme: 'light', reducedMotion: 'reduce' } }),
+              provider: playwright({ contextOptions: { colorScheme: 'light', reducedMotion: 'no-preference' } }),
               headless: true,
               instances: [{ browser: 'chromium' }],
               screenshotFailures: true,

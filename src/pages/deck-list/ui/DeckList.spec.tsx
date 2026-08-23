@@ -4,33 +4,38 @@
  * both compact sections", "omits empty sections", "opens one deck actions menu at a time".
  */
 
-import type { DeckListState } from "../model/useDeckListState";
-
 import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 
 import { createDeck } from "@/test/factories";
 
-import { DeckList } from "./DeckList";
+import { DeckList, type DeckListProps } from "./DeckList";
 
 const activeDeck = createDeck({ id: "active", name: "Active deck", category: "math" });
 const otherDeck = createDeck({ id: "other", name: "Other deck", category: "history" });
+const onCreateDeck = () => undefined;
 
 const sections = {
   studying: [
     {
       deck: activeDeck,
       cardCount: 10,
-      studyProgress: { currentIndex: 1, cardCount: 4, lastStudiedAt: Date.now() },
+      studySession: {
+        sessionId: "active-session",
+        deckId: activeDeck.id,
+        cardOrderIds: ["card-1", "card-2", "card-3", "card-4"],
+        currentIndex: 1,
+        lastStudiedAt: Date.now(),
+      },
     },
   ],
   other: [{ deck: otherDeck, cardCount: 7 }],
-} satisfies DeckListState["sections"];
+} satisfies DeckListProps["sections"];
 
 describe("DeckList", () => {
   it("renders the page count and both compact sections", () => {
-    render(<DeckList sections={sections} />);
+    render(<DeckList sections={sections} onCreateDeck={onCreateDeck} />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Decks" })).toBeInTheDocument();
     expect(screen.getByText("2 decks")).toBeInTheDocument();
@@ -45,14 +50,14 @@ describe("DeckList", () => {
   });
 
   it("omits empty sections", () => {
-    render(<DeckList sections={{ studying: [], other: sections.other }} />);
+    render(<DeckList sections={{ studying: [], other: sections.other }} onCreateDeck={onCreateDeck} />);
 
     expect(screen.queryByRole("region", { name: "Studying" })).not.toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Other decks" })).toBeInTheDocument();
   });
 
   it("opens one deck actions menu at a time", () => {
-    render(<DeckList sections={sections} />);
+    render(<DeckList sections={sections} onCreateDeck={onCreateDeck} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Active deck" }));
     expect(screen.getByRole("menu", { name: "Actions for Active deck" })).toBeInTheDocument();
@@ -63,7 +68,7 @@ describe("DeckList", () => {
   });
 
   it("does not introduce an empty-state message", () => {
-    render(<DeckList sections={{ studying: [], other: [] }} />);
+    render(<DeckList sections={{ studying: [], other: [] }} onCreateDeck={onCreateDeck} />);
 
     expect(screen.getByText("0 decks")).toBeInTheDocument();
     expect(screen.queryByRole("region")).not.toBeInTheDocument();

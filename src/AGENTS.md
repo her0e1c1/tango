@@ -8,7 +8,9 @@
 
 ## Storybook
 
-- Write component stories primarily for presentational components and co-locate each story with its component.
+- Every presentational component in Feature UI, every Page UI component except `*Page` and `*Container`, and every reusable Shared UI component must have a co-located, same-basename `*.stories.tsx` file.
+- When one module exports multiple components, cover every exported component in that module's co-located story file.
+- Cover private rendering helpers through their owner component's stories; do not export or promote a helper solely to give it standalone Storybook coverage.
 - Reproduce visual and interaction states through props, including empty, loading, error, dialog, feedback, responsive, and theme states when the component owns them.
 - Do not require ordinary component stories for `*Page` or `*Container`, and do not add a `*View` or wrapper only to make Storybook setup easier.
 - Put stories that require routes, providers, or stores under App or route-level integration/smoke stories and name them clearly as integration coverage.

@@ -9,9 +9,17 @@ import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
 import type { CardId } from "@/entities/card";
-import type { CardListItem } from "../model/useCardListState";
-import { CardActionsMenu } from "./CardActionsMenu";
 import { Score, TagLabel } from "@/shared/ui/content";
+
+import { CardActionsMenu } from "./CardActionsMenu";
+
+interface CardItem {
+  id: CardId;
+  frontText: string;
+  score: number;
+  numberOfSeen: number;
+  tags: string[];
+}
 
 export interface CardActionsProps {
   disabled?: boolean;
@@ -22,13 +30,16 @@ export interface CardActionsProps {
   goToView?: (id: CardId) => void;
 }
 
-export interface CardRowMenuProps {
+interface CardRowMenuProps {
   menuOpen?: boolean;
   onToggleMenu?: (id: CardId) => void;
   onCloseMenu?: () => void;
 }
 
-export type CardProps = CardActionsProps;
+export interface CardProps extends CardActionsProps, CardRowMenuProps {
+  className?: string;
+  card: CardItem;
+}
 
 /**
  * Formats how many times a card has been studied.
@@ -43,9 +54,7 @@ const studiedText = (count: number) => {
  * Renders the Card user interface.
  * Presents one study card's front, back, score, and tags according to its current reveal state.
  */
-export const Card: React.FC<{ className?: string; card: CardListItem } & CardActionsProps & CardRowMenuProps> = (
-  props
-) => {
+export const Card: React.FC<CardProps> = (props) => {
   const { id } = props.card;
   const disabled = Boolean(props.disabled);
   const suppressViewClick = React.useRef(false);

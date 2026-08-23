@@ -1,21 +1,15 @@
-/**
- * @file Defines Storybook examples for Header.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Header as Template } from "./Header";
+import { Header } from "./Header";
 
 const meta = {
   title: "Shared/Layout/Header",
-  component: Template,
+  component: Header,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Header>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

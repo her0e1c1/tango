@@ -7,7 +7,7 @@ import { usePreferences } from "@/entities/preference";
 import { editStudyProgress } from "@/entities/study-progress";
 import { selectStudyCards } from "@/entities/study-session";
 
-export interface CardListItem {
+interface CardListItem {
   id: CardId;
   frontText: string;
   score: number;

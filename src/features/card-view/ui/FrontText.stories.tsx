@@ -1,20 +1,14 @@
-/**
- * @file Defines Storybook examples for Front Text.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { FrontText as Template } from "./FrontText";
+import { FrontText } from "./FrontText";
 import * as fixture from "@/storybook/fixture";
 
 const meta = {
-  title: "Card/FrontText",
-  component: Template,
+  title: "Features/Card View/FrontText",
+  component: FrontText,
   tags: ["autodocs"],
   args: {},
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof FrontText>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -28,5 +22,5 @@ export const TooLong: Story = {
 };
 
 export const LongMath: Story = { args: { text: `${fixture.math.block}\n${fixture.math.block}`, category: "math" } };
-export const Mobile: Story = { ...TooLong, parameters: { viewport: { defaultViewport: "iphonex" } } };
+export const Mobile: Story = { ...TooLong, globals: { viewport: { value: "iphonex", isRotated: false } } };
 export const Dark: Story = { ...TooLong, globals: { theme: "dark" } };

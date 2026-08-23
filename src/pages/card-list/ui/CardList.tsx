@@ -10,8 +10,15 @@ import type { CardId } from "@/entities/card";
 import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
 
-import type { CardListItem } from "../model/useCardListState";
-import { Card, type CardProps } from "./Card";
+import { Card, type CardActionsProps } from "./Card";
+
+interface CardListItem {
+  id: CardId;
+  frontText: string;
+  score: number;
+  numberOfSeen: number;
+  tags: string[];
+}
 
 interface CardListOverlayProps {
   content: React.ReactNode;
@@ -28,7 +35,7 @@ export interface CardListProps {
   cards: CardListItem[];
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
-  card?: CardProps;
+  card?: CardActionsProps;
   overlay?: CardListOverlayProps;
   onShowCard?: (id: CardId) => void;
   onRemoveTag?: (tag: string) => void;

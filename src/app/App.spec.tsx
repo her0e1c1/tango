@@ -19,6 +19,7 @@ vi.mock("@/pages/account", () => ({ AccountPage: () => null }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));
+vi.mock("@/pages/deck-create", () => ({ DeckCreatePage: () => <div>Deck create</div> }));
 vi.mock("@/pages/deck-form", () => ({ DeckFormPage: () => null }));
 vi.mock("@/pages/deck-import", () => ({ DeckImportPage: () => null }));
 vi.mock("@/pages/deck-list", () => ({ DeckListPage: () => <div>Deck list</div> }));
@@ -50,6 +51,13 @@ describe("App", () => {
     render(<App />);
 
     expect(screen.getByText("Deck list")).toBeInTheDocument();
+  });
+
+  it("matches the static Deck create route instead of treating new as a Deck id", () => {
+    window.history.replaceState({}, "", "/deck/new");
+    render(<App />);
+
+    expect(screen.getByText("Deck create")).toBeInTheDocument();
   });
 
   it("recovers from unknown routes", () => {

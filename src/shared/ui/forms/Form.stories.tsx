@@ -1,40 +1,30 @@
-/**
- * @file Defines Storybook examples for Form.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
-import { Form as Template } from "./Form";
+import { Form } from "./Form";
 import { FormItem } from "./FormItem";
 import { Input } from "./Input";
 import { Switch } from "./Switch";
 
-/**
- * Prepares review form data for the Storybook examples in this file.
- * The helper keeps sample setup separate from the component configuration readers are meant to
- * inspect.
- */
 const reviewForm = () => (
-  <Template div>
+  <Form div>
     <FormItem col label="Deck name" help="Shown in your library and study history.">
       <Input defaultValue="Japanese verbs" />
     </FormItem>
     <FormItem label="Shuffle cards" extra="The existing extra copy uses the same supporting hierarchy.">
-      <Switch checked onChange={() => undefined} />
+      <Switch checked onChange={fn()} />
     </FormItem>
     <FormItem col label="Daily review target" help="Choose a value between 1 and 100." error="Enter a whole number.">
       <Input defaultValue="One hundred and twenty" />
     </FormItem>
-  </Template>
+  </Form>
 );
 
 const meta = {
   title: "Shared/Forms/Form",
-  component: Template,
+  component: Form,
   tags: ["autodocs"],
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Form>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -54,5 +44,5 @@ export const LightAndDark: Story = {
 
 export const NarrowMobile: Story = {
   render: () => reviewForm(),
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };
