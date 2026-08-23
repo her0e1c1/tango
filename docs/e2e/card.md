@@ -22,7 +22,8 @@ Card 管理の主要導線が、ブラウザ上で表示・編集・削除・状
 
 Given:
 
-- `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に未学習の Card が存在する。
 
 When:
 
@@ -42,7 +43,8 @@ Then:
 
 Given:
 
-- `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に front text と back text を持つ Card が存在する。
 
 When:
 
@@ -62,7 +64,8 @@ Then:
 
 Given:
 
-- `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に編集対象の Card が存在する。
 
 When:
 
@@ -83,7 +86,8 @@ Then:
 
 Given:
 
-- `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に削除対象の Card が存在する。
 
 When:
 
@@ -102,7 +106,8 @@ Then:
 
 Given:
 
-- `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に score を持つ Card が存在する。
 
 When:
 
