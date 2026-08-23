@@ -26,6 +26,9 @@ ps = "docker compose ps"
 [tasks.git-cleanup]
 file = "scripts/cleanup-branches.sh"
 
+[tasks.gcloud-auth-login]
+run = "gcloud auth login"
+
 [tasks.setup-github-oidc]
 file = "scripts/setup-github-oidc.sh"
 
