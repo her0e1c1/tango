@@ -23,6 +23,9 @@ import {
   editCard as editRemoteCard,
 } from "./firestore";
 
+// Bulk creates can follow a freshly written remote Deck before its authoritative subscription reaches the store.
+const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode ?? false;
+
 // Returns the current Card or rejects a stale Card reference.
 const requireCard = (id: CardId) => {
   const card = findCardById(id);
@@ -41,13 +44,18 @@ const requireLocalMode = (deckId: string): boolean => {
 const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput =>
   "uid" in card ? card : cardCreateSchema.parse(card);
 
-// Routes a Card create through the owning Deck's persistence mode.
-export const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
-  if (requireLocalMode(card.deckId)) {
+// Persists a Card through a persistence mode already resolved by its caller.
+const persistCard = async (uid: string, card: CardMutationCreateInput, localMode: boolean): Promise<void> => {
+  if (localMode) {
     createLocalCard(card);
     return;
   }
   await createRemoteCard(uid, requireRemoteCardCreate(card));
+};
+
+// Routes an interactive Card create only while its parent Deck remains available.
+export const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
+  await persistCard(uid, card, requireLocalMode(card.deckId));
 };
 
 // Copies a Deck's local Cards to remote persistence before removing the local copies.
@@ -83,7 +91,9 @@ export const mutateCards = async (uid: string, mutations: CardMutation[]): Promi
   // Bulk imports are non-transactional: let every independent write settle before surfacing the first failure.
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
-      mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
+      mutation.kind === "create"
+        ? persistCard(uid, mutation.card, isLocalDeck(mutation.card.deckId))
+        : editCard(uid, mutation.card)
     )
   );
   const failure = results.find((result) => result.status === "rejected");

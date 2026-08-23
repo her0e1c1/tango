@@ -22,7 +22,7 @@ vi.mock("./firestore", () => ({
 }));
 
 import { cardStore } from "../model/store";
-import { createCard, deleteCard, editCard, moveLocalCardsToRemote } from "./mutations";
+import { createCard, deleteCard, editCard, moveLocalCardsToRemote, mutateCards } from "./mutations";
 
 describe("Card mutations", () => {
   beforeEach(() => {
@@ -81,6 +81,14 @@ describe("Card mutations", () => {
       })
     ).rejects.toThrow('Deck "missing-deck" was not found');
     expect(mocks.createRemoteCard).not.toHaveBeenCalled();
+  });
+
+  it("creates imported remote Cards before the parent Deck subscription catches up", async () => {
+    const card = createCardFixture({ id: "imported-card", deckId: "new-remote-deck", uid: "owner" });
+
+    await mutateCards("owner", [{ kind: "create", card }]);
+
+    expect(mocks.createRemoteCard).toHaveBeenCalledExactlyOnceWith("owner", card);
   });
 
   it("rejects edit and delete when the Card cannot be resolved", async () => {
