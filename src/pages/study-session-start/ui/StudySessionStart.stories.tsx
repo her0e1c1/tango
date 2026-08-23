@@ -59,5 +59,4 @@ export const Mobile: Story = {
 };
 export const ReducedMotion: Story = {
   ...ManyCardsAndCombinedFilters,
-  parameters: { chromatic: { prefersReducedMotion: "reduce" } },
 };

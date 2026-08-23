@@ -124,6 +124,28 @@ body {
 }
 
 .markdown-body.markdown-body {
+  /* github-markdown-css follows the OS theme by default; Tango's tokens must remain the theme source of truth. */
+  --fgColor-default: var(--calm-color-ink);
+  --fgColor-muted: var(--calm-color-ink-muted);
+  --fgColor-accent: var(--calm-color-accent-primary);
+  --fgColor-attention: var(--calm-color-warning);
+  --fgColor-danger: var(--calm-color-danger);
+  --fgColor-done: var(--calm-color-accent-secondary);
+  --fgColor-success: var(--calm-color-success);
+  --bgColor-default: var(--calm-color-surface);
+  --bgColor-muted: var(--calm-color-surface-muted);
+  --bgColor-neutral-muted: var(--calm-color-surface-muted);
+  --bgColor-attention-muted: var(--calm-color-surface-muted);
+  --bgColor-danger-muted: var(--calm-color-surface-muted);
+  --borderColor-default: var(--calm-color-border);
+  --borderColor-muted: var(--calm-color-border);
+  --borderColor-neutral-muted: var(--calm-color-border);
+  --borderColor-accent-emphasis: var(--calm-color-accent-primary);
+  --borderColor-attention-emphasis: var(--calm-color-warning);
+  --borderColor-danger-emphasis: var(--calm-color-danger);
+  --borderColor-done-emphasis: var(--calm-color-accent-secondary);
+  --borderColor-success-emphasis: var(--calm-color-success);
+  --focus-outlineColor: var(--calm-color-focus);
   background-color: transparent;
   color: var(--calm-color-ink);
   font-family: var(--calm-font-sans);

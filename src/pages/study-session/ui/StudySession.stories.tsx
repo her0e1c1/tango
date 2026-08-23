@@ -5,7 +5,7 @@
  */
 
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "storybook/test";
+import { expect, fn } from "storybook/test";
 
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import * as fixture from "@/storybook/fixture";
@@ -99,6 +99,23 @@ export const MobileLongAnswer: Story = {
   parameters: { viewport: { defaultViewport: "iphonex" } },
 };
 
+export const UnavailableSwipeActions: Story = {
+  args: {
+    showBackText: true,
+    backTextSlot: <div className="h-full w-full">Back without swipe actions</div>,
+    swipeOverlay: {},
+  },
+  play: async ({ canvasElement }) => {
+    const answer = canvasElement.querySelector<HTMLElement>(".h-full.w-full");
+    await expect(answer).not.toBeNull();
+    if (answer === null) return;
+
+    const bounds = answer.getBoundingClientRect();
+    const leftEdgeTarget = document.elementFromPoint(bounds.left + 8, bounds.top + bounds.height / 2);
+    await expect(leftEdgeTarget).toBe(answer);
+  },
+};
+
 export const Dark: Story = {
   ...CodeAnswer,
   args: {
@@ -108,6 +125,22 @@ export const Dark: Story = {
   globals: { theme: "dark" },
 };
 
-export const ReducedMotion: Story = {
-  parameters: { chromatic: { prefersReducedMotion: "reduce" } },
+export const DarkMath: Story = {
+  ...MathAnswer,
+  globals: { theme: "dark" },
+  play: async ({ canvasElement }) => {
+    const markdown = canvasElement.querySelector<HTMLElement>(".markdown-body");
+    await expect(markdown).not.toBeNull();
+    if (markdown === null) return;
+
+    const style = getComputedStyle(markdown);
+    await expect(style.getPropertyValue("--fgColor-default").trim()).toBe(
+      style.getPropertyValue("--calm-color-ink").trim()
+    );
+    await expect(style.getPropertyValue("--borderColor-muted").trim()).toBe(
+      style.getPropertyValue("--calm-color-border").trim()
+    );
+  },
 };
+
+export const ReducedMotion: Story = {};

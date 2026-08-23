@@ -47,12 +47,6 @@ describe("StudySession", () => {
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
 
-  it("omits swipe actions that are unavailable", () => {
-    render(<StudySession onExit={vi.fn()} showBackText backTextSlot={<div>Back</div>} />);
-
-    expect(screen.queryByRole("button", { name: /Swipe/ })).not.toBeInTheDocument();
-  });
-
   it("reports the explicit Exit action through a plain callback", () => {
     const onExit = vi.fn();
     render(
