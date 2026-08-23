@@ -6,6 +6,7 @@ import * as React from "react";
 
 import type { Deck, DeckId } from "@/entities/deck";
 import type { StudySession } from "@/entities/study-session";
+import { Button } from "@/shared/ui/button";
 
 import { DeckListCard, type DeckListCardActions } from "./DeckListCard";
 
@@ -25,6 +26,7 @@ export interface DeckListProps {
     other: DeckListItem[];
   };
   deckCard?: DeckListCardActions;
+  onCreateDeck?: () => void;
 }
 
 /**
@@ -87,9 +89,14 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
 
   return (
     <>
-      <div className="flex items-baseline justify-between gap-3">
-        <h1 className="break-words text-title font-bold text-ink">Decks</h1>
-        <span className="shrink-0 text-caption text-ink-muted">{countLabel(total)}</span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <h1 className="break-words text-title font-bold text-ink">Decks</h1>
+          <span className="shrink-0 text-caption text-ink-muted">{countLabel(total)}</span>
+        </div>
+        <Button variant="primary" {...(props.onCreateDeck !== undefined ? { onClick: props.onCreateDeck } : {})}>
+          Create deck
+        </Button>
       </div>
       <DeckListSection
         title="Studying"

@@ -6,7 +6,9 @@ describe("routes", () => {
   it("defines every page route and builds its destination", () => {
     expect([
       [routes.deckList.path, routes.deckList.to()],
+      [routes.deckCreate.path, routes.deckCreate.to()],
       [routes.cardList.path, routes.cardList.to("deck-id")],
+      [routes.cardCreate.path, routes.cardCreate.to("deck-id")],
       [routes.deckForm.path, routes.deckForm.to("deck-id")],
       [routes.deckStudyStart.path, routes.deckStudyStart.to("deck-id")],
       [routes.deckStudy.path, routes.deckStudy.to("deck-id")],
@@ -18,7 +20,9 @@ describe("routes", () => {
       [routes.notFound.path],
     ]).toEqual([
       ["/", "/"],
+      ["/deck/new", "/deck/new"],
       ["/deck/:id", "/deck/deck-id"],
+      ["/deck/:id/card/new", "/deck/deck-id/card/new"],
       ["/deck/:id/edit", "/deck/deck-id/edit"],
       ["/deck/:id/start", "/deck/deck-id/start"],
       ["/deck/:id/study", "/deck/deck-id/study"],

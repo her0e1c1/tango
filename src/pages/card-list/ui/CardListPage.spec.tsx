@@ -47,6 +47,7 @@ describe("CardListPage", () => {
           <Route path="/" element={<h1>Deck list destination</h1>} />
           <Route path="/settings" element={<h1>Settings destination</h1>} />
           <Route path="/card/:id/edit" element={<h1>Card editor destination</h1>} />
+          <Route path="/deck/:id/card/new" element={<h1>Card creator destination</h1>} />
           <Route path="/deck/:id" element={<CardListPage />} />
         </Routes>
       </MemoryRouter>
@@ -92,6 +93,14 @@ describe("CardListPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Front one" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Card editor destination" })).toBeVisible();
+  });
+
+  it("navigates to Card creation for the current Deck", async () => {
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Add card" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Card creator destination" })).toBeVisible();
   });
 
   it("removes a selected tag from the visible filter", async () => {

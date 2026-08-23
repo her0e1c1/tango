@@ -7,6 +7,7 @@ import * as React from "react";
 import { AiOutlineDown } from "react-icons/ai";
 
 import type { CardId } from "@/entities/card";
+import { Button } from "@/shared/ui/button";
 import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
 
@@ -32,6 +33,7 @@ export interface CardListProps {
   overlay?: CardListOverlayProps;
   onShowCard?: (id: CardId) => void;
   onRemoveTag?: (tag: string) => void;
+  onAddCard?: () => void;
 }
 
 /**
@@ -121,9 +123,14 @@ export const CardList: React.FC<CardListProps> = (props) => {
         </Overlay>
       )}
 
-      <div className="flex items-baseline justify-between gap-3">
-        <h1 className="break-words text-title font-bold text-ink">Cards</h1>
-        <span className="shrink-0 text-caption text-ink-muted">{countLabel(props.cards.length)}</span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <h1 className="break-words text-title font-bold text-ink">Cards</h1>
+          <span className="shrink-0 text-caption text-ink-muted">{countLabel(props.cards.length)}</span>
+        </div>
+        <Button variant="primary" {...(props.onAddCard !== undefined ? { onClick: props.onAddCard } : {})}>
+          Add card
+        </Button>
       </div>
 
       <div className="flex flex-col gap-2">

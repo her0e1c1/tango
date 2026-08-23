@@ -55,6 +55,7 @@ describe("DeckListPage", () => {
       <MemoryRouter initialEntries={["/"]}>
         <Routes>
           <Route path="/" element={<DeckListPage />} />
+          <Route path="/deck/new" element={<h1>Deck creator destination</h1>} />
           <Route path="/settings" element={<h1>Settings destination</h1>} />
           <Route path="/import" element={<h1>Import destination</h1>} />
           <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
@@ -100,6 +101,14 @@ describe("DeckListPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Deck editor destination" })).toBeVisible();
+  });
+
+  it("navigates to Deck creation", async () => {
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck creator destination" })).toBeVisible();
   });
 
   it("deletes a local Deck and reports the visible result", async () => {

@@ -23,9 +23,6 @@ import {
   editCard as editRemoteCard,
 } from "./firestore";
 
-// The owning Deck is the source of truth for persistence mode; callers cannot route individual Cards independently.
-const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode ?? false;
-
 // Returns the current Card or rejects a stale Card reference.
 const requireCard = (id: CardId) => {
   const card = findCardById(id);
@@ -45,8 +42,8 @@ const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput
   "uid" in card ? card : cardCreateSchema.parse(card);
 
 // Routes a Card create through the owning Deck's persistence mode.
-const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
-  if (isLocalDeck(card.deckId)) {
+export const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
+  if (requireLocalMode(card.deckId)) {
     createLocalCard(card);
     return;
   }

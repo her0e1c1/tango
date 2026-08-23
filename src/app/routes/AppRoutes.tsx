@@ -7,9 +7,11 @@ import type React from "react";
 import { Route, Routes } from "react-router-dom";
 
 import { AccountPage } from "@/pages/account";
+import { CardCreatePage } from "@/pages/card-create";
 import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
+import { DeckCreatePage } from "@/pages/deck-create";
 import { DeckFormPage } from "@/pages/deck-form";
 import { DeckImportPage } from "@/pages/deck-import";
 import { DeckListPage } from "@/pages/deck-list";
@@ -26,7 +28,9 @@ import { routes } from "@/shared/router";
 export const AppRoutes: React.FC = () => (
   <Routes>
     <Route path={routes.deckList.path} element={<DeckListPage />} />
+    <Route path={routes.deckCreate.path} element={<DeckCreatePage />} />
     <Route path={routes.cardList.path} element={<CardListPage />} />
+    <Route path={routes.cardCreate.path} element={<CardCreatePage />} />
     <Route path={routes.deckForm.path} element={<DeckFormPage />} />
     <Route path={routes.deckStudyStart.path} element={<StudySessionStartPage />} />
     <Route path={routes.deckStudy.path} element={<StudySessionPage />} />

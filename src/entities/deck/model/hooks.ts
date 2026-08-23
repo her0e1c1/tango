@@ -9,6 +9,9 @@ export const useDecks = (): Deck[] => {
   return [...state.remoteDecks, ...state.localDecks];
 };
 
+// Distinguishes an absent remote Deck from a subscription whose first snapshot has not arrived yet.
+export const useRemoteDecksReady = (): boolean => useStore(deckStore, (state) => state.remoteDecksReady);
+
 // Reads one Deck by identifier without remapping its value.
 export const useDeck = (id: DeckId | undefined): Deck | undefined =>
   useStore(

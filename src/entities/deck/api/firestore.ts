@@ -24,7 +24,7 @@ import {
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
-import { replaceRemoteDecks } from "../model/store";
+import { markRemoteDecksReady, replaceRemoteDecks } from "../model/store";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
@@ -48,10 +48,14 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
         });
         replaceRemoteDecks(decks);
       } catch (cause) {
+        markRemoteDecksReady();
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
     },
-    onError
+    (error) => {
+      markRemoteDecksReady();
+      onError(error);
+    }
   );
 
 // Writes a new Deck document with synchronized creation and update timestamps.
