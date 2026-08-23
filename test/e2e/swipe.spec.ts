@@ -96,15 +96,29 @@ const persistedCard = async (cardId: string) => {
 const persistedStudyEnvelope = async (page: Page) =>
   page.evaluate(() => JSON.parse(window.localStorage.getItem("tango-study") ?? "{}"));
 
-const swipeFrontUp = async (page: Page) => {
+const swipeFrontUp = async (page: Page, button: "left" | "middle" | "right" = "left") => {
   const box = await page.getByRole("button", { name: "apple", exact: true }).boundingBox();
   if (box == null) throw new Error("Study card front is not visible");
 
   const x = box.x + box.width / 2;
   // Start near the center so responsive edge spacing cannot move the drag outside the card surface.
   await page.mouse.move(x, box.y + box.height * 0.5);
-  await page.mouse.down();
+  await page.mouse.down({ button });
   await page.mouse.move(x, box.y + box.height * 0.2, { steps: 5 });
+  await page.mouse.up({ button });
+};
+
+const selectBackText = async (page: Page) => {
+  const textRect = await page.getByText("りんご", { exact: true }).evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const rect = range.getBoundingClientRect();
+    return { left: rect.left, right: rect.right, y: rect.top + rect.height / 2 };
+  });
+
+  await page.mouse.move(textRect.left + 1, textRect.y);
+  await page.mouse.down();
+  await page.mouse.move(textRect.right - 1, textRect.y, { steps: 5 });
   await page.mouse.up();
 };
 
@@ -203,6 +217,31 @@ test.describe("mouse swipe regression", () => {
 
     await page.getByRole("button", { name: "banana", exact: true }).click();
     await expect(page.getByText("バナナ")).toBeVisible();
+    await page.evaluate(() => window.assertNoBrowserErrors());
+  });
+
+  test("ignores non-primary mouse drags", async ({ page }) => {
+    await page.goto(`/deck/${e2eDeck.id}/study`);
+
+    await expect(page.getByText("apple")).toBeVisible();
+    await swipeFrontUp(page, "right");
+    await swipeFrontUp(page, "middle");
+
+    await expect(page.getByText("apple")).toBeVisible();
+    await expect.poll(async () => persistedCard(e2eCards[0].id)).toMatchObject({ score: 0, numberOfSeen: 0 });
+    await page.evaluate(() => window.assertNoBrowserErrors());
+  });
+
+  test("keeps the back visible while selecting its text", async ({ page }) => {
+    await page.goto(`/deck/${e2eDeck.id}/study`);
+    await page.getByRole("button", { name: "apple", exact: true }).click();
+
+    await expect(page.getByText("りんご", { exact: true })).toBeVisible();
+    await selectBackText(page);
+
+    await expect(page.getByText("りんご", { exact: true })).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => window.getSelection()?.toString() ?? "")).toContain("りんご");
+    await expect.poll(async () => persistedCard(e2eCards[0].id)).toMatchObject({ score: 0, numberOfSeen: 0 });
     await page.evaluate(() => window.assertNoBrowserErrors());
   });
 });

@@ -1,6 +1,6 @@
 import cx from "classnames";
 import * as React from "react";
-import { useSwipeable } from "react-swipeable";
+import { type SwipeEventData, useSwipeable } from "react-swipeable";
 import type { SwipeDirection } from "@/entities/preference";
 import { Button } from "@/shared/ui/button";
 import { Overlay } from "@/shared/ui/feedback";
@@ -160,7 +160,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
     []
   );
 
-  const withTrailingClickSuppression = (action: () => void) => () => {
+  const suppressTrailingCardClick = () => {
     // Browsers emit a click after a mouse drag; keep that click from also flipping the study card.
     suppressCardClick.current = true;
     if (suppressCardClickTimer.current !== undefined) clearTimeout(suppressCardClickTimer.current);
@@ -168,21 +168,30 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       suppressCardClick.current = false;
       suppressCardClickTimer.current = undefined;
     }, 0);
-    action();
   };
 
-  // Desktop drags and touch gestures share these Page-owned handlers; the Back still reserves vertical drags for scrolling.
+  const runSwipeAction =
+    (action: () => void) =>
+    ({ event }: SwipeEventData) => {
+      // Back mouse drags are tracked only to suppress their trailing click; touch swipes still change progress.
+      if (!(props.showBackText && "button" in event)) action();
+    };
+
   const swipeHandlers = useSwipeable({
-    ...(props.onSwipeLeft !== undefined ? { onSwipedLeft: withTrailingClickSuppression(props.onSwipeLeft) } : {}),
-    ...(!props.showBackText && props.onSwipeUp !== undefined
-      ? { onSwipedUp: withTrailingClickSuppression(props.onSwipeUp) }
-      : {}),
-    ...(props.onSwipeRight !== undefined ? { onSwipedRight: withTrailingClickSuppression(props.onSwipeRight) } : {}),
+    onSwiped: suppressTrailingCardClick,
+    ...(props.onSwipeLeft !== undefined ? { onSwipedLeft: runSwipeAction(props.onSwipeLeft) } : {}),
+    ...(!props.showBackText && props.onSwipeUp !== undefined ? { onSwipedUp: runSwipeAction(props.onSwipeUp) } : {}),
+    ...(props.onSwipeRight !== undefined ? { onSwipedRight: runSwipeAction(props.onSwipeRight) } : {}),
     ...(!props.showBackText && props.onSwipeDown !== undefined
-      ? { onSwipedDown: withTrailingClickSuppression(props.onSwipeDown) }
+      ? { onSwipedDown: runSwipeAction(props.onSwipeDown) }
       : {}),
     trackMouse: true,
   });
+
+  const startPrimaryMouseSwipe: React.MouseEventHandler<HTMLDivElement> = (event) => {
+    // react-swipeable tracks every mouse button by default, but only the primary button may change study progress.
+    if (event.button === 0) swipeHandlers.onMouseDown?.(event);
+  };
 
   const stopTrailingCardClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
     // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
@@ -195,6 +204,12 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
     event.stopPropagation();
   };
 
+  const cardGestureHandlers = {
+    ...swipeHandlers,
+    onClickCapture: stopTrailingCardClick,
+    onMouseDown: startPrimaryMouseSwipe,
+  };
+
   return (
     <div className="relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink">
       {props.feedbackSlot}
@@ -202,8 +217,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       <SwipeFeedback showHeader={props.showHeader} swipeFeedback={props.swipeFeedback} />
       <div
         className={cx("relative min-h-0 flex-1", props.showBackText ? "overflow-y-auto" : "overflow-hidden")}
-        {...swipeHandlers}
-        onClickCapture={stopTrailingCardClick}
+        {...cardGestureHandlers}
       >
         <CardContent
           showBackText={props.showBackText}
