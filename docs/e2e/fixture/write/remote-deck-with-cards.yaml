@@ -8,8 +8,6 @@ remote:
       uid: user-1
       name: E2E Deck
       category: English
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
   cards:
     - id: card-1
       deckId: deck-1
@@ -22,8 +20,6 @@ remote:
       uniqueKey: apple
       score: 1
       numberOfSeen: 3
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
     - id: card-2
       deckId: deck-1
       uid: user-1
@@ -33,8 +29,6 @@ remote:
         - other
       uniqueKey: orange
       score: 1
-      createdAt: 1700000001000
-      updatedAt: 1700000001000
     - id: card-3
       deckId: deck-1
       uid: user-1
@@ -45,8 +39,6 @@ remote:
       uniqueKey: banana
       score: -1
       numberOfSeen: 1
-      createdAt: 1700000002000
-      updatedAt: 1700000002000
 browser:
   preferences:
     loadSample: false

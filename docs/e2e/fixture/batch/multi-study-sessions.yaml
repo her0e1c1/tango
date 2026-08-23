@@ -8,14 +8,10 @@ remote:
       uid: user-1
       name: Study Deck A
       category: English
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
     - id: deck-b
       uid: user-1
       name: Study Deck B
       category: English
-      createdAt: 1700000001000
-      updatedAt: 1700000001000
   cards:
     - id: card-a-1
       deckId: deck-a
@@ -23,32 +19,24 @@ remote:
       frontText: a-first
       backText: a first answer
       uniqueKey: a-first
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
     - id: card-a-2
       deckId: deck-a
       uid: user-1
       frontText: a-second
       backText: a second answer
       uniqueKey: a-second
-      createdAt: 1700000001000
-      updatedAt: 1700000001000
     - id: card-b-1
       deckId: deck-b
       uid: user-1
       frontText: b-first
       backText: b first answer
       uniqueKey: b-first
-      createdAt: 1700000002000
-      updatedAt: 1700000002000
     - id: card-b-2
       deckId: deck-b
       uid: user-1
       frontText: b-second
       backText: b second answer
       uniqueKey: b-second
-      createdAt: 1700000003000
-      updatedAt: 1700000003000
 browser:
   preferences:
     loadSample: false
@@ -60,7 +48,6 @@ browser:
         - card-a-1
         - card-a-2
       currentIndex: 1
-      lastStudiedAt: 1700000010000
     deck-b:
       sessionId: session-b
       deckId: deck-b
@@ -68,4 +55,3 @@ browser:
         - card-b-1
         - card-b-2
       currentIndex: 0
-      lastStudiedAt: 1700000011000

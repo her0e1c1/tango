@@ -10,20 +10,14 @@ browser:
       localMode: true
       name: Local Deck
       category: English
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
   localCards:
     - id: local-card-1
       deckId: local-deck-1
       frontText: local first
       backText: local first answer
       uniqueKey: local-first
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
     - id: local-card-2
       deckId: local-deck-1
       frontText: local second
       backText: local second answer
       uniqueKey: local-second
-      createdAt: 1700000001000
-      updatedAt: 1700000001000

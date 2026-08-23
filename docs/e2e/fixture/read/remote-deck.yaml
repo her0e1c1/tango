@@ -8,8 +8,6 @@ remote:
       uid: user-1
       name: E2E Deck
       category: English
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
 browser:
   preferences:
     loadSample: false

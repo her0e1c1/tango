@@ -8,8 +8,6 @@ remote:
       uid: user-1
       name: Study Deck
       category: English
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
   cards:
     - id: card-1
       deckId: deck-1
@@ -17,8 +15,6 @@ remote:
       frontText: first
       backText: first answer
       uniqueKey: first
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
     - id: card-2
       deckId: deck-1
       uid: user-1
@@ -27,8 +23,6 @@ remote:
       uniqueKey: second
       score: 1
       numberOfSeen: 1
-      createdAt: 1700000001000
-      updatedAt: 1700000001000
     - id: card-3
       deckId: deck-1
       uid: user-1
@@ -37,8 +31,6 @@ remote:
       uniqueKey: third
       score: -1
       numberOfSeen: 2
-      createdAt: 1700000002000
-      updatedAt: 1700000002000
 browser:
   preferences:
     loadSample: false
@@ -51,4 +43,3 @@ browser:
         - card-2
         - card-3
       currentIndex: 0
-      lastStudiedAt: 1700000010000

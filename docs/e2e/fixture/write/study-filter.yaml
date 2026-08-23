@@ -12,8 +12,6 @@ remote:
       selectedTags:
         - target
       category: English
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
   cards:
     - id: card-1
       deckId: deck-1
@@ -23,8 +21,6 @@ remote:
       tags:
         - target
       uniqueKey: match-1
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
     - id: card-2
       deckId: deck-1
       uid: user-1
@@ -34,8 +30,6 @@ remote:
         - target
       uniqueKey: match-2
       score: 1
-      createdAt: 1700000001000
-      updatedAt: 1700000001000
     - id: card-3
       deckId: deck-1
       uid: user-1
@@ -45,8 +39,6 @@ remote:
         - target
       uniqueKey: match-3
       score: 2
-      createdAt: 1700000002000
-      updatedAt: 1700000002000
     - id: card-4
       deckId: deck-1
       uid: user-1
@@ -56,8 +48,6 @@ remote:
         - target
       uniqueKey: score-miss
       score: 3
-      createdAt: 1700000003000
-      updatedAt: 1700000003000
     - id: card-5
       deckId: deck-1
       uid: user-1
@@ -67,8 +57,6 @@ remote:
         - other
       uniqueKey: tag-miss
       score: 1
-      createdAt: 1700000004000
-      updatedAt: 1700000004000
 browser:
   preferences:
     loadSample: false

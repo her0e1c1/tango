@@ -10,14 +10,10 @@ remote:
       uid: user-a
       name: User A Deck
       category: English
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
     - id: deck-b
       uid: user-b
       name: User B Deck
       category: English
-      createdAt: 1700000001000
-      updatedAt: 1700000001000
   cards:
     - id: card-a
       deckId: deck-a
@@ -25,16 +21,12 @@ remote:
       frontText: user a card
       backText: user a answer
       uniqueKey: user-a-card
-      createdAt: 1700000000000
-      updatedAt: 1700000000000
     - id: card-b
       deckId: deck-b
       uid: user-b
       frontText: user b card
       backText: user b answer
       uniqueKey: user-b-card
-      createdAt: 1700000001000
-      updatedAt: 1700000001000
 browser:
   preferences:
     loadSample: false

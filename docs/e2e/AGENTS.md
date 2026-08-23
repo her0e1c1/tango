@@ -8,6 +8,8 @@
 - fixture YAML はアプリケーションの既定状態からの差分だけを記述し、既定値と同じ `false`、`0`、`null`、空配列、空 object などは省略する。
 - 値の見た目だけで省略を判断せず、その field の既定値と一致するときだけ省略する。たとえば既定値が `null` の field に意味のある `0` を指定する場合は記述する。
 - fixture YAML で省略した field はアプリケーションの既定値、未記述の collection は空として扱う。
+- fixture の数値 timestamp field (`createdAt`、`updatedAt`、`lastStudiedAt` など) の初期値は `0` (Unix epoch milliseconds) とする。
+- timestamp の値、順序、経過時間そのものがテスト条件でない限り、fixture YAML に timestamp を記述しない。
 - fixture YAML にはアプリケーション上の永続状態を記述し、Firestore 固有の serialization は記述しない。
 - `read` fixture は共有しても変更せず、`write` / `batch` fixture はケースごとに分離した namespace へ展開する。
 - 各テストケースには、`read`、`write`、`batch` のいずれかのカテゴリを明示する。
