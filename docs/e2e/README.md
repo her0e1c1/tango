@@ -2,14 +2,12 @@
 
 ## 前提
 
-- この仕様書は、Playwright で確認する画面上の振る舞いと、永続化・認証境界で観測する結果を定義する。
-- 実行コマンドは `mise run e2e`。
-- 具体的な fixture 値はテスト実装を正とし、この仕様書には重複して記載しない。
-- Deck / Card は、選択された保存先に応じて Firestore emulator または localStorage に保存する。
-- Config / Study session は localStorage に保存する。
-- Firebase Auth API は mock し、Firebase 実環境には依存しない。
-- CSV の各 validation rule、全 Settings 項目、全入力手段の組み合わせは unit / component test で確認し、
-  E2E では代表的な利用者導線を確認する。
+- `mise run e2e` で Playwright を実行する。
+- 具体的な fixture 値はテスト実装を正とし、仕様書には記載しない。
+- Deck / Card は Firestore emulator または localStorage、Config / Study session は localStorage に保存し、
+  Firebase Auth API は mock する。
+- E2E は代表的な利用者導線を対象とし、各 validation rule や設定・入力手段の組み合わせは
+  unit / component test で確認する。
 
 ## カテゴリ
 
