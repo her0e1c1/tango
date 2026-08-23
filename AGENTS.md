@@ -11,13 +11,18 @@
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
 
-## Review Workflow
+## Mandatory Review Gate
 
-1. Delegate a review to the `reviewer` subagent.
-2. Fix every P0 finding. P1 and P2 findings are optional.
-3. After fixes, delegate another review.
-4. Stop when there are no P0 findings or after three review rounds.
-5. Report any unresolved findings to the user.
+For every task that changes repository files:
+
+1. Before finishing the task, MUST delegate a review to the custom `reviewer` subagent.
+2. The main agent's own review is not a substitute for the `reviewer` subagent.
+3. Wait for the reviewer to finish before continuing.
+4. Fix every P0 finding. P1 and P2 findings are optional.
+5. If any fixes are made after review, MUST delegate a fresh review to the `reviewer` subagent.
+6. Repeat until there are no P0 findings or three review rounds have completed.
+7. Do not finish the task without completing this review workflow.
+8. Report any unresolved findings to the user.
 
 ## Architecture
 
