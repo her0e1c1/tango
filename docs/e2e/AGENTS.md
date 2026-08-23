@@ -1,6 +1,7 @@
 # E2E Documentation Instructions
 
-- `docs/e2e/fixture/*.yaml` を具体的な E2E fixture 状態の正とする。
+- `docs/e2e/fixture/{read,write,batch}/*.yaml` を具体的な E2E fixture 状態の正とする。
+- fixture はテストケースのカテゴリと同じ `read`、`write`、`batch` ディレクトリに配置する。
 - 各テストケースの `Given` の先頭に、使用する fixture YAML へのリンクを `Fixture: ...` として明示する。
 - `Given` には fixture 参照だけでなく、テスト開始時に必要な状態を利用者視点で具体的に記述する。
 - テストケース本文には、fixture YAML に定義した具体的な値を重複して記述しない。
