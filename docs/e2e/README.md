@@ -1,13 +1,24 @@
 # E2E テスト仕様書
 
+## 前提
+
+- この仕様書は、Playwright で確認する画面上の振る舞いと、永続化・認証境界で観測する結果を定義する。
+- 実行コマンドは `mise run e2e`。
+- 具体的な fixture 値はテスト実装を正とし、この仕様書には重複して記載しない。
+- Deck / Card は、選択された保存先に応じて Firestore emulator または localStorage に保存する。
+- Config / Study session は localStorage に保存する。
+- Firebase Auth API は mock し、Firebase 実環境には依存しない。
+- CSV の各 validation rule、全 Settings 項目、全入力手段の組み合わせは unit / component test で確認し、
+  E2E では代表的な利用者導線を確認する。
+
 ## カテゴリ
 
 - `read`: テスト中に永続データを変更しない。
 - `write`: 1つの論理操作による変更を永続化する。
 - `batch`: Deck / Card 群、保存先、認証スコープなど複数のリソースを一括で変更する。
 
-並列実行時のデータ競合を避けるため、カテゴリごとにテストを分ける。`write` と `batch` は、
-テストケース間で所有ユーザーや対象データを共有しない。
+カテゴリは、永続化の変更範囲を示す。共有状態が競合する場合は、テストケースごとに一意な fixture を使うか、
+同じデータを扱うテストを serial 実行する。
 
 ## 共通の期待結果
 
@@ -107,13 +118,3 @@
 | --- | --- | --- |
 | PERSIST-01 | read | [UID ごとに remote data を分離して reload 後も表示できる](./persistence.md#persist-01) |
 | PERSIST-02 | batch | [offline cache の変更を再接続後に remote へ同期できる](./persistence.md#persist-02) |
-
-## 前提
-
-- Playwright で実行する。
-- 実行コマンドは `mise run e2e`。
-- Deck / Card は Firestore emulator または localStorage の選択された保存先に保存する。
-- Config / Study session は localStorage に保存する。
-- Firebase Auth API は mock し、Firebase 実環境には依存しない。
-- CSV の各 validation rule、全 Settings 項目、全入力手段の組み合わせは unit / component test で確認し、
-  E2E では代表的な利用者導線を確認する。
