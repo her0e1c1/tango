@@ -38,9 +38,7 @@ DEPLOY_ROLES=(
   "roles/serviceusage.apiKeysViewer"
 )
 
-# Bootstrap APIs allow the script to inspect and repair IAM resources. This
-# script does not enable token exchange or service-account impersonation APIs
-# until every existing security state has been checked and trust is configured.
+# These APIs are needed to inspect and configure the project's IAM resources.
 BOOTSTRAP_APIS=(
   "iam.googleapis.com"
   "cloudresourcemanager.googleapis.com"
@@ -81,9 +79,8 @@ gcloud services list \
 
 printf 'Configuring GitHub OIDC for project %s with account %s\n' "$PROJECT_ID" "$active_account"
 
-# API activation is the first cloud mutation. It runs before Resource Manager
-# commands so the script can recover when that API starts disabled. These
-# bootstrap APIs do not themselves exchange tokens or impersonate the deployer.
+# Enable the bootstrap APIs before using Resource Manager commands so the script
+# can recover when that API starts disabled.
 gcloud services enable "${BOOTSTRAP_APIS[@]}" \
   --project="$PROJECT_ID" \
   --quiet
@@ -122,16 +119,20 @@ IFS=$'\t' read -r existing_service_account service_account_disabled <<<"$service
 # Exactly one of these two guarded commands runs: an existing account has its
 # display name corrected, while a missing account is created. Re-running the
 # script therefore converges on the same account instead of creating duplicates.
+service_account_created=false
 [[ "$existing_service_account" != "$SERVICE_ACCOUNT_EMAIL" ]] ||
   gcloud iam service-accounts update "$SERVICE_ACCOUNT_EMAIL" \
     --project="$PROJECT_ID" \
     --display-name="GitHub Actions Firebase Deployer" \
     --quiet
 [[ "$existing_service_account" == "$SERVICE_ACCOUNT_EMAIL" ]] ||
-  gcloud iam service-accounts create "$SERVICE_ACCOUNT_ID" \
-    --project="$PROJECT_ID" \
-    --display-name="GitHub Actions Firebase Deployer" \
-    --quiet
+  {
+    gcloud iam service-accounts create "$SERVICE_ACCOUNT_ID" \
+      --project="$PROJECT_ID" \
+      --display-name="GitHub Actions Firebase Deployer" \
+      --quiet || die "Could not create ${SERVICE_ACCOUNT_EMAIL}."
+    service_account_created=true
+  }
 
 readonly POOL_RESOURCE_NAME="projects/${project_number}/locations/${LOCATION}/workloadIdentityPools/${POOL_ID}"
 readonly PROVIDER_RESOURCE_NAME="${POOL_RESOURCE_NAME}/providers/${PROVIDER_ID}"
@@ -228,50 +229,49 @@ gcloud iam workload-identity-pools providers update-oidc "$PROVIDER_ID" \
   --jwk-json-path="$empty_jwk_file" \
   --quiet
 
-# Broad roles, disabled resources, pool sharing, provider claims, and uploaded
-# JWKs are now known safe. Only at this point may token exchange and service-
-# account impersonation be enabled; enabling them earlier could undo containment.
-gcloud services enable "${FEDERATION_APIS[@]}" \
-  --project="$PROJECT_ID" \
-  --quiet
-
-# Project roles determine what the service account can deploy after successful
-# impersonation. add-iam-policy-binding is repeatable: an existing identical
-# member/role binding is retained rather than duplicated.
-for role in "${DEPLOY_ROLES[@]}"; do
-  gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
-    --role="$role" \
-    --condition=None \
-    --quiet >/dev/null
-done
-
 # Workload Identity User permits an accepted external identity to impersonate
 # this service account; it does not grant Owner or Editor access. The principal
 # set adds the immutable repository ID as a second boundary, while the provider
 # condition supplies the repository, branch, and environment checks.
 readonly WORKLOAD_IDENTITY_PRINCIPAL="principalSet://iam.googleapis.com/${POOL_RESOURCE_NAME}/attribute.repository_id/${REPOSITORY_ID}"
 
-add_workload_identity_binding() {
+# Apply every deployer binding as one repeatable operation. If a newly created
+# service account has not propagated yet, rerunning this whole function is safe:
+# Google retains existing identical bindings instead of duplicating them.
+grant_deployer_access() {
   gcloud iam service-accounts add-iam-policy-binding "$SERVICE_ACCOUNT_EMAIL" \
     --project="$PROJECT_ID" \
     --member="$WORKLOAD_IDENTITY_PRINCIPAL" \
     --role="roles/iam.workloadIdentityUser" \
     --condition=None \
-    --quiet >/dev/null
+    --quiet >/dev/null || return 1
+
+  local role
+  for role in "${DEPLOY_ROLES[@]}"; do
+    gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+      --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+      --role="$role" \
+      --condition=None \
+      --quiet >/dev/null || return 1
+  done
 }
 
-# Google IAM can need about a minute to make a newly created service account
-# visible to policy operations. Retry only this idempotent binding so a normal
-# propagation delay does not make the first setup run fail permanently.
-binding_added=false
+# Google IAM can need about a minute to make a new service account visible to
+# policy operations. Retry all bindings only after creation; failures for an
+# existing account are unlikely to be propagation and should be reported once.
 for attempt in 1 2 3 4 5 6 7; do
-  add_workload_identity_binding && binding_added=true && break
-  [[ "$attempt" -lt 7 ]] || break
+  grant_deployer_access && break
+  [[ "$service_account_created" == true && "$attempt" -lt 7 ]] ||
+    die "Could not grant deployer IAM access."
   printf 'Waiting for service account IAM propagation (attempt %s of 7)\n' "$attempt" >&2
   sleep 10
 done
-[[ "$binding_added" == true ]] || die "Could not grant Workload Identity User after seven attempts."
+
+# Enable token exchange only after the provider and every required IAM binding
+# have converged to their intended state.
+gcloud services enable "${FEDERATION_APIS[@]}" \
+  --project="$PROJECT_ID" \
+  --quiet
 
 # Read the canonical provider resource name from Google instead of rebuilding
 # the final output from assumptions. These are values to copy into the GitHub
