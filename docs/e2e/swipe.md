@@ -6,29 +6,51 @@ Deck の学習画面で swipe 操作が、表面・裏面表示、学習結果�
 
 ## テストケース
 
-### 1. Deck 学習画面で card の表面と裏面を表示できる
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| SWIPE-01 | read | [Deck 学習画面で card の表面と裏面を表示できる](#swipe-01) |
+| SWIPE-02 | write | [Deck 学習画面で mastered swipe を実行できる](#swipe-02) |
 
-| 項目     | 内容                                                                                        |
-| -------- | ------------------------------------------------------------------------------------------- |
-| カテゴリ | read                                                                                        |
-| 目的     | Deck 学習画面で現在の card の表面を表示し、裏面表示を切り替えられることを確認する。         |
-| Given    | `docs/e2e/seed.md` の Deck/Card が localStorage に保存され、Deck に学習順が設定されている。 |
-| When     | 対象 deck の学習画面を開く。                                                                |
-| Then     | 現在の card の front text が表示される。                                                    |
-| When     | 裏面表示を切り替える。                                                                      |
-| Then     | 現在の card の back text が表示される。                                                     |
-| Then     | browser error が発生しない。                                                                |
+<a id="swipe-01"></a>
 
-### 2. Deck 学習画面で mastered swipe を実行できる
+### SWIPE-01 Deck 学習画面で card の表面と裏面を表示できる
 
-| 項目     | 内容                                                                                                          |
-| -------- | ------------------------------------------------------------------------------------------------------------- |
-| カテゴリ | write                                                                                                         |
-| 目的     | mastered に対応する swipe 操作で、現在の card の score と学習回数が更新され、次の card に進むことを確認する。 |
-| Given    | `docs/e2e/seed.md` の Deck/Card が localStorage に保存され、Deck に複数 card の学習順が設定されている。       |
-| When     | 対象 deck の学習画面を開く。                                                                                  |
-| When     | mastered に対応する swipe 操作を実行する。                                                                    |
-| Then     | swipe した card の score が増える。                                                                           |
-| Then     | swipe した card の学習回数が増える。                                                                          |
-| Then     | 次の card の front text が表示される。                                                                        |
-| Then     | browser error が発生しない。                                                                                  |
+カテゴリ: `read`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck の学習セッションがあり、現在の Card に front text と back text が設定されている。
+
+When:
+
+- 対象 deck の学習画面を開き、裏面表示を切り替える。
+
+Then:
+
+- 現在の card の front text を確認できる。
+- 現在の card の back text を確認できる。
+- browser error が発生しない。
+
+<a id="swipe-02"></a>
+
+### SWIPE-02 Deck 学習画面で mastered swipe を実行できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck の学習セッションに複数の Card が学習順に含まれている。
+- 現在の Card が未学習状態である。
+
+When:
+
+- 対象 deck の学習画面で mastered に対応する swipe 操作を実行する。
+
+Then:
+
+- swipe した card の score が増える。
+- swipe した card の学習回数が増える。
+- 次の card の front text が表示される。
+- browser error が発生しない。
