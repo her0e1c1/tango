@@ -20,7 +20,7 @@ export interface DeckFormProps {
     updatedAt?: string;
   };
   fields: DeckFormFields;
-  localModeHelp: string;
+  isLocalOnly: boolean;
   errors: {
     name: string | undefined;
     url: string | undefined;
@@ -39,6 +39,9 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const nameErrorId = `${nameInputId}-error`;
   const urlInputId = `${sectionHeadingIdPrefix}-deck-url`;
   const urlErrorId = `${urlInputId}-error`;
+  const localModeHelp = props.isLocalOnly
+    ? "Turn off to save this deck and its cards to Firestore. This change cannot be undone."
+    : "This deck and its cards are saved to Firestore.";
 
   return (
     <Form onSubmit={props.onSubmit}>
@@ -52,7 +55,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">Choose whether this deck stays on this device.</p>
         </div>
-        <FormItem label="Local only" help={props.localModeHelp}>
+        <FormItem label="Local only" help={localModeHelp}>
           <Switch {...props.fields.localMode} aria-label="Local only" />
         </FormItem>
       </section>

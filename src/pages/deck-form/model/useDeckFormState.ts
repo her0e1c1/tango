@@ -40,11 +40,6 @@ const getDeckInfo = (deck: Deck) => {
   };
 };
 
-const getLocalModeHelp = (deck: Deck): string =>
-  deck.localMode
-    ? "Turn off to save this deck and its cards to Firestore. This change cannot be undone."
-    : "This deck and its cards are saved to Firestore.";
-
 interface UseDeckFormStateOptions {
   deckId: string;
   onCancel: () => void;
@@ -91,7 +86,7 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
         options: categoryOptions,
       },
     },
-    localModeHelp: getLocalModeHelp(deck),
+    isLocalOnly: deck.localMode,
     errors: {
       name: formState.errors.name?.message,
       url: formState.errors.url?.message,

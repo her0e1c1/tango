@@ -27,9 +27,7 @@ const createDeckForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
     url: { defaultValue: deck.url },
     convertToBr: { checked: deck.convertToBr, onChange: fn() },
   },
-  localModeHelp: deck.localMode
-    ? "Turn off to save this deck and its cards to Firestore. This change cannot be undone."
-    : "This deck and its cards are saved to Firestore.",
+  isLocalOnly: deck.localMode,
   errors: { name: undefined, url: undefined },
   isSubmitting: false,
   onCancel: fn(),
@@ -83,7 +81,7 @@ export const LocalDeck: Story = {
       ...defaultForm.fields,
       localMode: { checked: true, onChange: fn() },
     },
-    localModeHelp: "Turn off to save this deck and its cards to Firestore. This change cannot be undone.",
+    isLocalOnly: true,
   },
 };
 
