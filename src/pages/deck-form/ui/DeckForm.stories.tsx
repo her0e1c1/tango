@@ -5,8 +5,7 @@ import { expect, fn } from "storybook/test";
 import * as fixture from "@/storybook/fixture";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 
-import { DeckForm } from "./DeckForm";
-import type { DeckFormProps } from "../model/useDeckFormState";
+import { DeckForm, type DeckFormProps } from "./DeckForm";
 
 const createDeckForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
   deckInfo: {
