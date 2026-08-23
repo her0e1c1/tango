@@ -27,6 +27,7 @@ node_modules
 
 # firebase
 .firebase/
+gha-creds-*.json
 
 storybook-static/
 

@@ -99,14 +99,3 @@ npm run e2e:ui
 ```
 
 The initial E2E suite seeds local browser storage and does not require a real Firebase project or emulator.
-
-## Get Firebase Token
-
-get a new token if old one expired
-
-```bash
-npx firebase login:ci
-```
-
-paste the new token here
-https://github.com/her0e1c1/tango/settings/secrets/actions
