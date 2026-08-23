@@ -1,21 +1,16 @@
-/**
- * @file Defines Storybook examples for Tag.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
-import { Tag as Template } from "./Tag";
+import { Tag } from "./Tag";
 
 const meta = {
   title: "Shared/Forms/Tag",
-  component: Template,
+  component: Tag,
   tags: ["autodocs"],
   args: {
     label: "tag",
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Tag>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -40,17 +35,13 @@ export const Disabled: Story = {
 
 export const Clickable: Story = {
   args: {
-    onChange: () => {
-      /* intentional no-op */
-    },
+    onChange: fn(),
   },
 };
 
 export const ClickableChecked: Story = {
   args: {
-    onChange: () => {
-      /* intentional no-op */
-    },
+    onChange: fn(),
     checked: true,
   },
 };
@@ -70,12 +61,12 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="flex gap-3 bg-canvas p-4 text-ink">
-        <Template label="Light" />
-        <Template checked label="Selected" />
+        <Tag label="Light" />
+        <Tag checked label="Selected" />
       </div>
       <div className="dark flex gap-3 bg-canvas p-4 text-ink">
-        <Template label="Dark" />
-        <Template checked label="Selected" />
+        <Tag label="Dark" />
+        <Tag checked label="Selected" />
       </div>
     </div>
   ),
@@ -83,5 +74,5 @@ export const LightAndDark: Story = {
 
 export const NarrowViewport: Story = {
   args: { checked: true, label: "Selected on mobile", round: true },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };

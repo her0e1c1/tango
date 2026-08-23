@@ -1,21 +1,15 @@
-/**
- * @file Defines Storybook examples for Input.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Input as Template } from "./Input";
+import { Input } from "./Input";
 
 const meta = {
   title: "Shared/Forms/Input",
-  component: Template,
+  component: Input,
   tags: ["autodocs"],
   args: {
     defaultValue: "this is a value",
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Input>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -25,9 +19,9 @@ export const Default: Story = {};
 export const States: Story = {
   render: () => (
     <div className="grid gap-4">
-      <Template placeholder="Placeholder value" />
-      <Template defaultValue="Read-only value" readOnly />
-      <Template defaultValue="Disabled value" disabled />
+      <Input placeholder="Placeholder value" />
+      <Input defaultValue="Read-only value" readOnly />
+      <Input defaultValue="Disabled value" disabled />
     </div>
   ),
 };
@@ -47,10 +41,10 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4 text-ink">
-        <Template defaultValue="Light surface" />
+        <Input defaultValue="Light surface" />
       </div>
       <div className="dark bg-canvas p-4 text-ink">
-        <Template defaultValue="Dark surface" />
+        <Input defaultValue="Dark surface" />
       </div>
     </div>
   ),
@@ -58,5 +52,5 @@ export const LightAndDark: Story = {
 
 export const NarrowViewport: Story = {
   args: { defaultValue: "A long value on a narrow mobile viewport" },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };

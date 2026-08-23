@@ -1,26 +1,21 @@
-/**
- * @file Defines Storybook examples for the Study Session presentation.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn } from "storybook/test";
 
 import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import * as fixture from "@/storybook/fixture";
+import { Layout } from "@/shared/ui/layout";
 
-import { StudySession as Template } from "./StudySession";
+import { StudySession } from "./StudySession";
 
 const meta = {
   title: "Pages/Study Session/StudySession",
-  component: Template,
+  component: StudySession,
   tags: ["autodocs"],
   decorators: [
     (Story) => (
-      <div className="flex h-dvh flex-col bg-canvas">
+      <Layout fullscreen>
         <Story />
-      </div>
+      </Layout>
     ),
   ],
   parameters: {
@@ -47,7 +42,7 @@ const meta = {
       onClickDown: fn(),
     },
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof StudySession>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -91,12 +86,12 @@ export const AutoPlay: Story = {
 };
 
 export const Mobile: Story = {
-  parameters: { viewport: { defaultViewport: "iphonex" } },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 
 export const MobileLongAnswer: Story = {
   ...LongAnswer,
-  parameters: { viewport: { defaultViewport: "iphonex" } },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 
 export const UnavailableSwipeActions: Story = {
@@ -142,5 +137,3 @@ export const DarkMath: Story = {
     );
   },
 };
-
-export const ReducedMotion: Story = {};

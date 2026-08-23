@@ -1,13 +1,7 @@
-/**
- * @file Defines Storybook examples for Form Item.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { Button } from "../button";
-import { FormItem as Template } from "./FormItem";
+import { FormItem } from "./FormItem";
 import { Input } from "./Input";
 import { Select } from "./Select";
 import { Slider } from "./Slider";
@@ -15,14 +9,14 @@ import { Switch } from "./Switch";
 
 const meta = {
   title: "Shared/Forms/FormItem",
-  component: Template,
+  component: FormItem,
   tags: ["autodocs"],
   args: {
     label: "Deck owner",
     help: "This supporting text explains the displayed value.",
     children: "Alex Morgan",
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof FormItem>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -80,14 +74,14 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4 text-ink">
-        <Template label="Light surface" help="Supporting copy remains quiet.">
+        <FormItem label="Light surface" help="Supporting copy remains quiet.">
           Value
-        </Template>
+        </FormItem>
       </div>
       <div className="dark bg-canvas p-4 text-ink">
-        <Template label="Dark surface" help="Supporting copy remains quiet." error="Error copy stays distinct.">
+        <FormItem label="Dark surface" help="Supporting copy remains quiet." error="Error copy stays distinct.">
           Value
-        </Template>
+        </FormItem>
       </div>
     </div>
   ),
@@ -100,5 +94,5 @@ export const NarrowMobile: Story = {
     help: "The item stacks at narrow widths.",
     children: <Input defaultValue="Compact value" />,
   },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };

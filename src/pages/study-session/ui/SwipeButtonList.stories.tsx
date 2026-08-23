@@ -1,18 +1,15 @@
-/**
- * @file Defines Storybook examples for Swipe Button List.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { SwipeButtonList as Template } from "./SwipeButtonList";
+import { withPageLayout } from "@/storybook/PageLayoutDecorator";
+import { SwipeButtonList } from "./SwipeButtonList";
 
 const meta = {
   title: "Pages/Study Session/SwipeButtonList",
-  component: Template,
+  component: SwipeButtonList,
   tags: ["autodocs"],
-} satisfies Meta<typeof Template>;
+  decorators: [withPageLayout],
+  parameters: { layout: "fullscreen" },
+} satisfies Meta<typeof SwipeButtonList>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

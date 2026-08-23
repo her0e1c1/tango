@@ -1,21 +1,15 @@
-/**
- * @file Defines Storybook examples for Outer.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Outer as Template } from "./Outer";
+import { Outer } from "./Outer";
 
 const meta = {
   title: "Shared/Layout/Outer",
-  component: Template,
+  component: Outer,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Outer>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -1,10 +1,5 @@
-/**
- * @file Defines Storybook examples for Tag Label.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
 import { RemovableTag } from "./RemovableTag";
 import { TagLabel } from "./TagLabel";
@@ -37,7 +32,7 @@ export const LongLabel: Story = {
 };
 
 export const Removable: Story = {
-  render: () => <RemovableTag label="TypeScript" onRemove={() => undefined} />,
+  render: () => <RemovableTag label="TypeScript" onRemove={fn()} />,
 };
 
 export const LightAndDark: Story = {

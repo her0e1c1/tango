@@ -1,38 +1,28 @@
-/**
- * @file Defines Storybook examples for Tag Filter.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { expect, fn } from "storybook/test";
 
-import { TagFilter as Template } from "./TagFilter";
+import { TagFilter } from "./TagFilter";
 
 const meta = {
-  title: "Deck Filter/TagFilter",
-  component: Template,
+  title: "Features/Deck Filter/TagFilter",
+  component: TagFilter,
   tags: ["autodocs"],
   args: {
     tags: ["tag1", "tag2", "tag3", "tag4"],
     selectedTags: [],
     tagAndFilter: false,
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof TagFilter>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/**
- * Renders the Interactive Tag Filter Storybook example with local interactive state.
- * Local state lets readers try the component without connecting it to the full application.
- */
-const InteractiveTagFilter: React.FC<React.ComponentProps<typeof Template>> = (props) => {
+const InteractiveTagFilter: React.FC<React.ComponentProps<typeof TagFilter>> = (props) => {
   const [selectedTags, setSelectedTags] = React.useState(props.selectedTags ?? []);
 
   return (
-    <Template
+    <TagFilter
       {...props}
       selectedTags={selectedTags}
       onClickTag={(tags) => {
@@ -76,11 +66,11 @@ export const NoMatchCompatible: Story = {
   args: { tags: ["advanced", "review"], selectedTags: ["advanced", "review"], tagAndFilter: true },
 };
 
-export const Mobile: Story = { ...ManyTags, parameters: { viewport: { defaultViewport: "iphone5" } } };
+export const Mobile: Story = { ...ManyTags, globals: { viewport: { value: "iphone5", isRotated: false } } };
 
 export const LongTagMobile: Story = {
   args: { tags: ["averylongunbrokentag".repeat(12)] },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };
 
 export const Dark: Story = { ...Selected, globals: { theme: "dark" } };

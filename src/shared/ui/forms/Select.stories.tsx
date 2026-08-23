@@ -1,23 +1,17 @@
-/**
- * @file Defines Storybook examples for Select.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
 import * as fixture from "@/storybook/fixture";
 
-import { Select as Template } from "./Select";
+import { Select } from "./Select";
 
 const meta = {
   title: "Shared/Forms/Select",
-  component: Template,
+  component: Select,
   tags: ["autodocs"],
   args: {
     options: fixture.form.options.default,
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Select>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -35,9 +29,9 @@ export const Invalid: Story = {
 export const States: Story = {
   render: () => (
     <div className="grid gap-4">
-      <Template options={fixture.form.options.default} />
-      <Template options={fixture.form.options.default} empty />
-      <Template options={fixture.form.options.default} disabled />
+      <Select options={fixture.form.options.default} />
+      <Select options={fixture.form.options.default} empty />
+      <Select options={fixture.form.options.default} disabled />
     </div>
   ),
 };
@@ -58,10 +52,10 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4 text-ink">
-        <Template options={fixture.form.options.default} />
+        <Select options={fixture.form.options.default} />
       </div>
       <div className="dark bg-canvas p-4 text-ink">
-        <Template options={fixture.form.options.default} />
+        <Select options={fixture.form.options.default} />
       </div>
     </div>
   ),
@@ -72,5 +66,5 @@ export const NarrowViewport: Story = {
     options: [{ label: "A long option in a narrow mobile viewport", value: "mobile" }],
     defaultValue: "mobile",
   },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };

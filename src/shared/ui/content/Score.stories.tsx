@@ -1,19 +1,13 @@
-/**
- * @file Defines Storybook examples for Score.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Score as Template } from "./Score";
+import { Score } from "./Score";
 
 const meta = {
   title: "Shared/Content/Score",
-  component: Template,
+  component: Score,
   tags: ["autodocs"],
   args: {},
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Score>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
