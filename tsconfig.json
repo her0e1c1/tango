@@ -1,58 +1,60 @@
 {
+  // Control how TypeScript checks this project.
   "compilerOptions": {
-    // Set the JavaScript level `tsc` would emit; keep the newest syntax because Vite owns the actual output.
+    // Set the JavaScript language level to ESNext. TypeScript checks types here; Vite controls the built output.
     "target": "ESNext",
-    // Provide types for the latest JavaScript APIs, browser DOM APIs, and iterable browser collections.
+    // Let TypeScript understand the latest JavaScript and browser APIs, including iterable collections like `NodeList`.
+    // These are types only; the browser or a polyfill must provide each API at runtime.
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    // Model imports and exports with the latest ESM output semantics; Vite performs the actual bundling.
+    // Keep modern `import` and `export` syntax for Vite to bundle.
     "module": "ESNext",
-    // Resolve packages and extensionless imports the same way a modern bundler such as Vite does.
+    // Find imports using bundler-friendly rules, including package exports and paths without file extensions.
     "moduleResolution": "bundler",
-    // Require type-only imports and exports to use `type`, leaving all value module syntax unchanged for Vite.
+    // Require `import type` for types and leave all other imports unchanged for Vite.
     "verbatimModuleSyntax": true,
-    // Use React's automatic JSX runtime so files do not need to import React solely to use JSX.
+    // Use React's modern JSX transform, so JSX files do not need `import React`.
     "jsx": "react-jsx",
-    // Enable TypeScript's complete family of strict type-safety checks.
+    // Turn on TypeScript's main strict checks to catch unsafe types.
     "strict": true,
-    // Distinguish a missing optional property from a property explicitly set to `undefined`.
+    // For `name?: string`, allow a missing property but not `name: undefined` unless the type says so.
     "exactOptionalPropertyTypes": true,
-    // Require the `override` keyword when a class member replaces a member inherited from its base class.
+    // Require `override` on a class member that replaces a member from its parent class.
     "noImplicitOverride": true,
-    // Report functions in which some reachable code paths return a value and others return nothing.
+    // Report a function that returns a value on some paths but not on others.
     "noImplicitReturns": true,
-    // Treat indexed access as possibly `undefined` unless the key is known to exist.
+    // Treat unchecked lookups such as `items[index]` as possibly `undefined`.
     "noUncheckedIndexedAccess": true,
-    // Report side-effect-only imports when TypeScript cannot resolve the imported module.
+    // Report a missing module even when it is imported only to run code, such as `import "./setup"`.
     "noUncheckedSideEffectImports": true,
-    // Report local declarations that are never read.
+    // Report local variables, functions, and imports that are never used.
     "noUnusedLocals": true,
-    // Report function parameters that are never read.
+    // Report unused function parameters, except names that start with `_`.
     "noUnusedParameters": true,
-    // Prevent non-empty `switch` cases from accidentally falling through to the next case.
+    // Require each non-empty `switch` case to stop before the next case.
     "noFallthroughCasesInSwitch": true,
-    // Skip internal consistency checks for all `.d.ts` files while still checking their types as used here.
+    // Skip type-checking inside `.d.ts` files, but still check their exposed types where this project uses them.
     "skipLibCheck": true,
-    // Use `tsc` only for type-checking; Vite is responsible for producing JavaScript output.
+    // Do not create JavaScript files; use `tsc` only to find type errors because Vite builds the app.
     "noEmit": true,
-    // Define stable absolute-style import aliases that Vite also reads from this configuration.
+    // Allow short `@/...` imports instead of long relative paths. Vite reads these mappings too.
     "paths": {
-      // Resolve Storybook support imports from the hidden Storybook configuration directory.
+      // Map `@/storybook/...` to Storybook helper files.
       "@/storybook/*": ["./.storybook/support/*"],
-      // Resolve shared test helpers from the repository-level test directory.
+      // Map `@/test/...` to shared test helpers.
       "@/test/*": ["./test/*"],
-      // Resolve application imports from the source directory.
+      // Map all other `@/...` imports to application source files.
       "@/*": ["./src/*"]
     }
   },
-  // Limit this TypeScript project to application code, tests, and the configuration or support code they use.
+  // Tell TypeScript which files to check.
   "include": [
-    // Application source files, including colocated tests and stories.
+    // Check application code, including tests and stories kept next to it.
     "src",
-    // Repository-level integration and end-to-end tests, plus shared test helpers.
+    // Check integration tests, end-to-end tests, and shared test helpers.
     "test",
-    // TypeScript configuration files located at the repository root.
+    // Check root configuration files such as `vite.config.ts` and `vitest.config.ts`.
     "*.ts",
-    // Storybook configuration and support files.
+    // Check all Storybook configuration and helper files.
     ".storybook/**/*"
   ]
 }
