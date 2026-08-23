@@ -4,6 +4,7 @@ monorepo_root = true
 config_roots = ["sample"]
 
 [tools]
+gcloud = "581.0.0"
 hadolint = "2.15.0"
 node = "24.15.0"
 npm = "12.0.1"
@@ -24,6 +25,9 @@ ps = "docker compose ps"
 
 [tasks.git-cleanup]
 file = "scripts/cleanup-branches.sh"
+
+[tasks.gcloud-auth-login]
+run = "gcloud auth login"
 
 [tasks.setup-github-oidc]
 file = "scripts/setup-github-oidc.sh"
