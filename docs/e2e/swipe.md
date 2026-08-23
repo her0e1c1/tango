@@ -19,7 +19,8 @@ Deck の学習画面で swipe 操作が、表面・裏面表示、学習結果�
 
 Given:
 
-- `docs/e2e/seed.md` の Deck/Card が localStorage に保存され、Deck に学習順が設定されている。
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck の学習セッションがあり、現在の Card に front text と back text が設定されている。
 
 When:
 
@@ -39,7 +40,9 @@ Then:
 
 Given:
 
-- `docs/e2e/seed.md` の Deck/Card が localStorage に保存され、Deck に複数 card の学習順が設定されている。
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck の学習セッションに複数の Card が学習順に含まれている。
+- 現在の Card が未学習状態である。
 
 When:
 
