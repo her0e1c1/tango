@@ -1,27 +1,58 @@
 {
   "compilerOptions": {
+    // Set the JavaScript level `tsc` would emit; keep the newest syntax because Vite owns the actual output.
     "target": "ESNext",
+    // Provide types for the latest JavaScript APIs, browser DOM APIs, and iterable browser collections.
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    // Model imports and exports with the latest ESM output semantics; Vite performs the actual bundling.
     "module": "ESNext",
+    // Resolve packages and extensionless imports the same way a modern bundler such as Vite does.
     "moduleResolution": "bundler",
+    // Require type-only imports and exports to use `type`, leaving all value module syntax unchanged for Vite.
     "verbatimModuleSyntax": true,
+    // Use React's automatic JSX runtime so files do not need to import React solely to use JSX.
     "jsx": "react-jsx",
+    // Enable TypeScript's complete family of strict type-safety checks.
     "strict": true,
+    // Distinguish a missing optional property from a property explicitly set to `undefined`.
     "exactOptionalPropertyTypes": true,
+    // Require the `override` keyword when a class member replaces a member inherited from its base class.
     "noImplicitOverride": true,
+    // Report functions in which some reachable code paths return a value and others return nothing.
     "noImplicitReturns": true,
+    // Treat indexed access as possibly `undefined` unless the key is known to exist.
     "noUncheckedIndexedAccess": true,
+    // Report side-effect-only imports when TypeScript cannot resolve the imported module.
     "noUncheckedSideEffectImports": true,
+    // Report local declarations that are never read.
     "noUnusedLocals": true,
+    // Report function parameters that are never read.
     "noUnusedParameters": true,
+    // Prevent non-empty `switch` cases from accidentally falling through to the next case.
     "noFallthroughCasesInSwitch": true,
+    // Skip internal consistency checks for all `.d.ts` files while still checking their types as used here.
     "skipLibCheck": true,
+    // Use `tsc` only for type-checking; Vite is responsible for producing JavaScript output.
     "noEmit": true,
+    // Define stable absolute-style import aliases that Vite also reads from this configuration.
     "paths": {
+      // Resolve Storybook support imports from the hidden Storybook configuration directory.
       "@/storybook/*": ["./.storybook/support/*"],
+      // Resolve shared test helpers from the repository-level test directory.
       "@/test/*": ["./test/*"],
+      // Resolve application imports from the source directory.
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "test", "*.ts", ".storybook/**/*"]
+  // Limit this TypeScript project to application code, tests, and the configuration or support code they use.
+  "include": [
+    // Application source files, including colocated tests and stories.
+    "src",
+    // Repository-level integration and end-to-end tests, plus shared test helpers.
+    "test",
+    // TypeScript configuration files located at the repository root.
+    "*.ts",
+    // Storybook configuration and support files.
+    ".storybook/**/*"
+  ]
 }
