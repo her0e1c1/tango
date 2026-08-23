@@ -1,23 +1,17 @@
-/**
- * @file Defines Storybook examples for Code.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
 import * as fixture from "@/storybook/fixture";
 
-import { Code as Template } from "./Code";
+import { Code } from "./Code";
 
 const meta = {
   title: "Shared/Content/Code",
-  component: Template,
+  component: Code,
   tags: ["autodocs"],
   args: {
     text: fixture.code.default,
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Code>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -31,7 +25,7 @@ export const WideMobile: Story = {
     category: "typescript",
     text: "const veryWideValue = createValueWithManyArguments(firstArgument, secondArgument, thirdArgument);",
   },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };
 
 export const Dark: Story = {

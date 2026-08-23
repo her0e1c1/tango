@@ -1,19 +1,13 @@
-/**
- * @file Defines Storybook examples for Textarea.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Textarea as Template } from "./Textarea";
+import { Textarea } from "./Textarea";
 
 const meta = {
   title: "Shared/Forms/Textarea",
-  component: Template,
+  component: Textarea,
   tags: ["autodocs"],
   args: { rows: 4 },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Textarea>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -27,9 +21,9 @@ export const Invalid: Story = {
 export const States: Story = {
   render: () => (
     <div className="grid gap-4">
-      <Template rows={3} placeholder="Placeholder content" />
-      <Template rows={3} defaultValue="Read-only content" readOnly />
-      <Template rows={3} defaultValue="Disabled content" disabled />
+      <Textarea rows={3} placeholder="Placeholder content" />
+      <Textarea rows={3} defaultValue="Read-only content" readOnly />
+      <Textarea rows={3} defaultValue="Disabled content" disabled />
     </div>
   ),
 };
@@ -45,10 +39,10 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4 text-ink">
-        <Template rows={3} defaultValue="Light surface" />
+        <Textarea rows={3} defaultValue="Light surface" />
       </div>
       <div className="dark bg-canvas p-4 text-ink">
-        <Template rows={3} defaultValue="Dark surface" />
+        <Textarea rows={3} defaultValue="Dark surface" />
       </div>
     </div>
   ),
@@ -59,5 +53,5 @@ export const NarrowViewport: Story = {
     defaultValue:
       "A longer textarea value demonstrates readable wrapping and comfortable editing on a narrow mobile viewport.",
   },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };

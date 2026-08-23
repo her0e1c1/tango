@@ -1,25 +1,18 @@
-/**
- * @file Defines Storybook examples for Remote Mutation Notice.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
-import { RemoteMutationNotice as Template } from "./RemoteMutationNotice";
+import { RemoteMutationNotice } from "./RemoteMutationNotice";
 
 const meta = {
   title: "Shared/Feedback/RemoteMutationNotice",
-  component: Template,
+  component: RemoteMutationNotice,
   tags: ["autodocs"],
   args: {
     pending: true,
     error: null,
-    onRetry: () => {
-      // Story action placeholder.
-    },
+    onRetry: fn(),
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof RemoteMutationNotice>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

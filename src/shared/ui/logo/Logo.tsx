@@ -9,6 +9,9 @@ import type * as React from "react";
 
 import { useButtonInteraction } from "../button-interaction";
 
+// Respect Vite's deployment base so public assets stay inside the GitHub Pages subpath.
+const publicAssetUrl = (filename: string) => `${import.meta.env.BASE_URL}${filename}`;
+
 /**
  * Renders the Logo user interface.
  * Shows the Tango mark or full wordmark and makes it keyboard-accessible when an onClick handler
@@ -19,11 +22,18 @@ export const Logo: React.FC<{ onClick?: () => void; className?: string; markOnly
   return (
     <div {...clickInteraction} className={cx("inline-flex items-center", props.className)}>
       {props.markOnly ? (
-        <img src="/tango-mark.svg" alt="" aria-hidden="true" width={32} height={32} className="size-8" />
+        <img
+          src={publicAssetUrl("tango-mark.svg")}
+          alt=""
+          aria-hidden="true"
+          width={32}
+          height={32}
+          className="size-8"
+        />
       ) : (
         <>
           <img
-            src="/tango-logo.svg"
+            src={publicAssetUrl("tango-logo.svg")}
             alt=""
             aria-hidden="true"
             width={108}
@@ -31,7 +41,7 @@ export const Logo: React.FC<{ onClick?: () => void; className?: string; markOnly
             className="h-8 w-[108px] dark:hidden"
           />
           <img
-            src="/tango-logo-dark.svg"
+            src={publicAssetUrl("tango-logo-dark.svg")}
             alt=""
             aria-hidden="true"
             width={108}

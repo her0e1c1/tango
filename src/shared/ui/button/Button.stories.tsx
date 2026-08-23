@@ -1,22 +1,17 @@
-/**
- * @file Defines Storybook examples for Button.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
-import { Button as Template } from "./Button";
+import { Button } from "./Button";
 
 const meta = {
   title: "Shared/Forms/Button",
-  component: Template,
+  component: Button,
   tags: ["autodocs"],
-  argTypes: { onClick: { action: "onClick" } },
   args: {
     label: "Continue",
+    onClick: fn(),
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Button>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -27,7 +22,7 @@ export const VariantAndSize: Story = {
       {(["primary", "secondary", "quiet", "destructive"] as const).map((variant) => (
         <div key={variant} className="flex flex-wrap items-center gap-3">
           {(["sm", "md", "lg"] as const).map((size) => (
-            <Template key={size} variant={variant} size={size} label={`${variant} ${size}`} />
+            <Button key={size} variant={variant} size={size} label={`${variant} ${size}`} />
           ))}
         </div>
       ))}
@@ -47,10 +42,10 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4 text-ink">
-        <Template variant="quiet">Light surface</Template>
+        <Button variant="quiet">Light surface</Button>
       </div>
       <div className="dark bg-canvas p-4 text-ink">
-        <Template variant="quiet">Dark surface</Template>
+        <Button variant="quiet">Dark surface</Button>
       </div>
     </div>
   ),
@@ -58,5 +53,5 @@ export const LightAndDark: Story = {
 
 export const NarrowViewport: Story = {
   args: { variant: "primary", className: "w-full" },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };

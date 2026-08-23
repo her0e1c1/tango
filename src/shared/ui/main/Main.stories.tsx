@@ -1,21 +1,15 @@
-/**
- * @file Defines Storybook examples for Main.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Main as Template } from "./Main";
+import { Main } from "./Main";
 
 const meta = {
   title: "Shared/Layout/Main",
-  component: Template,
+  component: Main,
   parameters: {
     layout: "fullscreen",
   },
   tags: ["autodocs"],
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Main>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

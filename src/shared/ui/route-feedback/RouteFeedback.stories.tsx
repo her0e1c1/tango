@@ -1,19 +1,14 @@
-/**
- * @file Defines Storybook examples for Route Feedback.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
-import { RouteFeedback as Template } from "./RouteFeedback";
+import { RouteFeedback } from "./RouteFeedback";
 
 const meta = {
   title: "Shared/Feedback/RouteFeedback",
-  component: Template,
+  component: RouteFeedback,
   tags: ["autodocs"],
   args: { title: "Starting Tango…", tone: "loading" },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof RouteFeedback>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -27,9 +22,7 @@ export const ErrorState: Story = {
     tone: "error",
     primaryAction: {
       label: "Reload",
-      onClick: () => {
-        // Story action placeholder.
-      },
+      onClick: fn(),
     },
   },
 };
@@ -40,15 +33,11 @@ export const NotFound: Story = {
     tone: "not-found",
     primaryAction: {
       label: "Go home",
-      onClick: () => {
-        // Story action placeholder.
-      },
+      onClick: fn(),
     },
     secondaryAction: {
       label: "Go back",
-      onClick: () => {
-        // Story action placeholder.
-      },
+      onClick: fn(),
     },
   },
 };

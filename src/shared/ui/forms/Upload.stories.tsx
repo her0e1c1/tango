@@ -1,22 +1,14 @@
-/**
- * @file Defines Storybook examples for Upload.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
-import { Upload as Template } from "./Upload";
+import { Upload } from "./Upload";
 
 const meta = {
   title: "Shared/Forms/Upload",
-  component: Template,
+  component: Upload,
   tags: ["autodocs"],
-  argTypes: {
-    onChange: { action: "onChange" },
-  },
-  args: {},
-} satisfies Meta<typeof Template>;
+  args: { onChange: fn() },
+} satisfies Meta<typeof Upload>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -35,10 +27,10 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4">
-        <Template fileName="light-cards.csv" />
+        <Upload fileName="light-cards.csv" />
       </div>
       <div className="dark bg-canvas p-4">
-        <Template fileName="dark-cards.csv" />
+        <Upload fileName="dark-cards.csv" />
       </div>
     </div>
   ),
@@ -46,5 +38,5 @@ export const LightAndDark: Story = {
 
 export const NarrowViewport: Story = {
   args: { fileName: "a-long-file-name-on-a-narrow-mobile-viewport.csv" },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };

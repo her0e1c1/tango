@@ -1,21 +1,16 @@
-/**
- * @file Defines Storybook examples for Title.
- * These isolated scenarios show developers how the component looks, which props it accepts, and
- * how it responds to interaction.
- */
-
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 
-import { Title as Template } from "./Title";
+import { Title } from "./Title";
 
 const meta = {
   title: "Shared/Content/Title",
-  component: Template,
+  component: Title,
   tags: ["autodocs"],
   args: {
     children: "this is a title",
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof Title>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -24,9 +19,7 @@ export const Default: Story = {};
 
 export const Clickable: Story = {
   args: {
-    onClick: () => {
-      /* intentional no-op */
-    },
+    onClick: fn(),
   },
 };
 
@@ -36,7 +29,7 @@ export const Short: Story = {
 
 export const Long: Story = {
   args: { children: "one-continuous-title-that-remains-readable-on-a-narrow-mobile-screen" },
-  parameters: { viewport: { defaultViewport: "iphone5" } },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
 };
 
 export const Dark: Story = {

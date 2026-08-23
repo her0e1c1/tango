@@ -1,16 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { fn } from "storybook/test";
 
-import { DestructiveActionDialog as Template } from "./DestructiveActionDialog";
-import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
+import { DestructiveActionDialog } from "./DestructiveActionDialog";
 
 const meta = {
   title: "Shared/Feedback/DestructiveActionDialog",
-  component: Template,
+  component: DestructiveActionDialog,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
-    viewport: { viewports: INITIAL_VIEWPORTS, defaultViewport: "desktop" },
   },
   args: {
     title: "Delete deck?",
@@ -26,7 +24,7 @@ const meta = {
     onCancel: fn(),
     onConfirm: fn(),
   },
-} satisfies Meta<typeof Template>;
+} satisfies Meta<typeof DestructiveActionDialog>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -52,7 +50,7 @@ export const Failure: Story = {
 
 export const Mobile: Story = {
   ...Card,
-  parameters: { viewport: { defaultViewport: "iphonex" } },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 
 export const Dark: Story = { globals: { theme: "dark" } };
