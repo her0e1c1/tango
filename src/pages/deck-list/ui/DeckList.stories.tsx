@@ -8,11 +8,10 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn } from "storybook/test";
 
 import type { Deck } from "@/entities/deck";
-import type { DeckListState } from "../model/useDeckListState";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import { DeckList as Template } from "./DeckList";
+import { DeckList as Template, type DeckListProps } from "./DeckList";
 
 /**
  * Prepares other items data for the Storybook examples in this file.
@@ -41,11 +40,11 @@ const studyingItems = (decks: Deck[]) =>
 const mixed = {
   studying: studyingItems(fixture.decks.default.slice(0, 3)),
   other: otherItems(fixture.decks.default.slice(3)),
-} satisfies DeckListState["sections"];
+} satisfies DeckListProps["sections"];
 const longSections = {
   studying: studyingItems(fixture.decks.long.slice(0, 4)),
   other: otherItems(fixture.decks.long.slice(4)),
-} satisfies DeckListState["sections"];
+} satisfies DeckListProps["sections"];
 
 const meta = {
   title: "Pages/Deck List/DeckList",

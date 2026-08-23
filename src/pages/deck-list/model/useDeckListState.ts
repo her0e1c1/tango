@@ -45,5 +45,3 @@ export const useDeckListState = () => {
     sections: buildDeckListSections(decks, cards, sessionsByDeckId),
   };
 };
-
-export type DeckListState = ReturnType<typeof useDeckListState>;

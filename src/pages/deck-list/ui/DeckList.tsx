@@ -4,14 +4,26 @@
 
 import * as React from "react";
 
-import type { DeckId } from "@/entities/deck";
-
-import type { DeckListState } from "../model/useDeckListState";
+import type { Deck, DeckId } from "@/entities/deck";
+import type { StudySession } from "@/entities/study-session";
 
 import { DeckListCard, type DeckListCardActions } from "./DeckListCard";
 
+interface DeckListItem {
+  deck: Deck;
+  cardCount: number;
+  studySession?: StudySession;
+}
+
+interface StudyingDeckListItem extends DeckListItem {
+  studySession: StudySession;
+}
+
 export interface DeckListProps {
-  sections: DeckListState["sections"];
+  sections: {
+    studying: StudyingDeckListItem[];
+    other: DeckListItem[];
+  };
   deckCard?: DeckListCardActions;
 }
 
@@ -27,7 +39,7 @@ const countLabel = (count: number) => `${String(count)} ${count === 1 ? "deck" :
 const DeckListSection: React.FC<{
   title: string;
   note: string;
-  items: DeckListState["sections"]["other"];
+  items: DeckListItem[];
   actions: DeckListCardActions | undefined;
   openMenuDeckId: DeckId | undefined;
   onToggleMenu: (id: DeckId) => void;

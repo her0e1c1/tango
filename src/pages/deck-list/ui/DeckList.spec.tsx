@@ -4,15 +4,13 @@
  * both compact sections", "omits empty sections", "opens one deck actions menu at a time".
  */
 
-import type { DeckListState } from "../model/useDeckListState";
-
 import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 
 import { createDeck } from "@/test/factories";
 
-import { DeckList } from "./DeckList";
+import { DeckList, type DeckListProps } from "./DeckList";
 
 const activeDeck = createDeck({ id: "active", name: "Active deck", category: "math" });
 const otherDeck = createDeck({ id: "other", name: "Other deck", category: "history" });
@@ -32,7 +30,7 @@ const sections = {
     },
   ],
   other: [{ deck: otherDeck, cardCount: 7 }],
-} satisfies DeckListState["sections"];
+} satisfies DeckListProps["sections"];
 
 describe("DeckList", () => {
   it("renders the page count and both compact sections", () => {

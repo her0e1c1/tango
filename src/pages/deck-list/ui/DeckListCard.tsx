@@ -8,8 +8,8 @@ import cx from "classnames";
 import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
 
-import type { DeckId } from "@/entities/deck";
-import type { DeckListState } from "../model/useDeckListState";
+import type { Deck, DeckId } from "@/entities/deck";
+import type { StudySession } from "@/entities/study-session";
 
 import { DeckActionsMenu } from "./DeckActionsMenu";
 
@@ -30,9 +30,11 @@ interface DeckListCardMenuState {
   onCloseMenu?: () => void;
 }
 
-export type DeckListCardProps = DeckListCardActions &
-  DeckListCardMenuState &
-  DeckListState["sections"]["other"][number];
+export interface DeckListCardProps extends DeckListCardActions, DeckListCardMenuState {
+  deck: Deck;
+  cardCount: number;
+  studySession?: StudySession;
+}
 
 /**
  * Formats a deck's last-study time for display in the deck list.
