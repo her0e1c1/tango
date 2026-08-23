@@ -12,6 +12,7 @@ import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   createDeck: vi.fn(),
+  generateDeckId: vi.fn(),
   preferences: null as unknown as Preferences,
   setDarkMode: vi.fn(),
 }));
@@ -19,7 +20,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/deck")>();
-  return { ...original, createDeck: mocks.createDeck, generateDeckId: () => "new-deck" };
+  return { ...original, createDeck: mocks.createDeck, generateDeckId: mocks.generateDeckId };
 });
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
@@ -54,6 +55,7 @@ describe("DeckCreatePage", () => {
 
   beforeEach(() => {
     mocks.createDeck.mockReset().mockResolvedValue(undefined);
+    mocks.generateDeckId.mockReset().mockReturnValue("new-deck");
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
   });
@@ -91,7 +93,7 @@ describe("DeckCreatePage", () => {
     });
   });
 
-  it("keeps entered values after failure and allows retry", async () => {
+  it("keeps entered values, Deck ID, and persistence mode across retries", async () => {
     mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
     renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });
@@ -101,8 +103,28 @@ describe("DeckCreatePage", () => {
 
     expect(await screen.findByText("Unable to create this deck. Try again.")).toBeVisible();
     expect(name).toHaveValue("Retry deck");
+    const localMode = screen.getByRole("checkbox", { name: "Local only" });
+    expect(localMode).toBeDisabled();
+    expect(localMode).not.toBeChecked();
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
     expect(mocks.createDeck).toHaveBeenCalledTimes(2);
+    expect(mocks.generateDeckId).toHaveBeenCalledOnce();
+    expect(mocks.createDeck).toHaveBeenNthCalledWith(1, "user-id", {
+      id: "new-deck",
+      uid: "user-id",
+      localMode: false,
+      name: "Retry deck",
+      category: "",
+      convertToBr: false,
+    });
+    expect(mocks.createDeck).toHaveBeenNthCalledWith(2, "user-id", {
+      id: "new-deck",
+      uid: "user-id",
+      localMode: false,
+      name: "Retry deck",
+      category: "",
+      convertToBr: false,
+    });
   });
 
   it("suppresses a second submit while creation is pending", async () => {

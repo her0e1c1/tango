@@ -26,7 +26,7 @@ export interface DeckListProps {
     other: DeckListItem[];
   };
   deckCard?: DeckListCardActions;
-  onCreateDeck?: () => void;
+  onCreateDeck: () => void;
 }
 
 /**
@@ -94,7 +94,7 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
           <h1 className="break-words text-title font-bold text-ink">Decks</h1>
           <span className="shrink-0 text-caption text-ink-muted">{countLabel(total)}</span>
         </div>
-        <Button variant="primary" {...(props.onCreateDeck !== undefined ? { onClick: props.onCreateDeck } : {})}>
+        <Button variant="primary" onClick={props.onCreateDeck}>
           Create deck
         </Button>
       </div>

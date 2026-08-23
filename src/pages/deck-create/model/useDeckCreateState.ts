@@ -17,8 +17,9 @@ interface UseDeckCreateStateOptions {
 
 export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOptions) => {
   const uid = useAuthUid();
-  // Retries reuse one ID so an ambiguous write failure cannot create duplicate Decks.
+  // A failed response may hide a successful write, so retries must reuse both identity and storage mode.
   const [deckId] = React.useState(generateDeckId);
+  const [fixedLocalMode, setFixedLocalMode] = React.useState<boolean>();
   const isMounted = useMountedGuard();
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<DeckCreateFormValues>({
@@ -28,6 +29,8 @@ export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOp
 
   const submit = handleSubmit(async (values) => {
     setSaveError(null);
+    const localMode = fixedLocalMode ?? values.localMode ?? false;
+    if (fixedLocalMode === undefined) setFixedLocalMode(localMode);
     try {
       const deck = {
         id: deckId,
@@ -35,11 +38,11 @@ export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOp
         category: values.category,
         convertToBr: values.convertToBr,
       };
-      await createDeck(uid, values.localMode ? { ...deck, localMode: true } : { ...deck, uid, localMode: false });
-      // The write may finish after browser navigation unmounts this Page; never redirect from that stale completion.
+      await createDeck(uid, localMode ? { ...deck, localMode: true } : { ...deck, uid, localMode: false });
+      // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.
       if (isMounted()) onCreated(deckId);
     } catch (error) {
-      if (isMounted()) setSaveError(error);
+      setSaveError(error);
     }
   });
   const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
@@ -53,7 +56,7 @@ export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOp
         ...register("category"),
         options: CATEGORY.map((category) => ({ label: category, value: category })),
       },
-      localMode: register("localMode"),
+      localMode: { ...register("localMode"), disabled: fixedLocalMode !== undefined },
     },
     errors: { name: formState.errors.name?.message },
     isSubmitting: formState.isSubmitting,
