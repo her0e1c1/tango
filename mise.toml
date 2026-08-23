@@ -4,6 +4,7 @@ monorepo_root = true
 config_roots = ["sample"]
 
 [tools]
+gcloud = "581.0.0"
 hadolint = "2.15.0"
 node = "24.15.0"
 npm = "12.0.1"
