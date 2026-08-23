@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { getDocument, routeAnonymousAuth, seedConfig, seedDeckAndCards } from "./fixtures";
+import { e2eConfig, getDocument, routeAnonymousAuth, seedConfig, seedDeckAndCards } from "./fixtures";
 
 type SeedCard = Record<string, unknown> & { id: string };
 
@@ -67,9 +67,14 @@ const persistedStudy = {
   version: 4,
 };
 
-const seedSwipeSession = async (page: Page) => {
+const keepBodyAfterCardChangedConfig = {
+  ...e2eConfig,
+  appearance: { ...e2eConfig.appearance, hideBodyWhenCardChanged: false },
+};
+
+const seedSwipeSession = async (page: Page, config = e2eConfig) => {
   await routeAnonymousAuth(page, e2eDeck.uid);
-  await seedConfig(page);
+  await seedConfig(page, config);
   await seedDeckAndCards(e2eDeck, e2eCards);
   await page.goto("/");
   await expect(page.getByText(e2eDeck.name)).toBeVisible();
@@ -91,6 +96,18 @@ const persistedCard = async (cardId: string) => {
 const persistedStudyEnvelope = async (page: Page) =>
   page.evaluate(() => JSON.parse(window.localStorage.getItem("tango-study") ?? "{}"));
 
+const swipeFrontUp = async (page: Page) => {
+  const box = await page.getByRole("button", { name: "apple", exact: true }).boundingBox();
+  if (box == null) throw new Error("Study card front is not visible");
+
+  const x = box.x + box.width / 2;
+  // Start near the center so responsive edge spacing cannot move the drag outside the card surface.
+  await page.mouse.move(x, box.y + box.height * 0.5);
+  await page.mouse.down();
+  await page.mouse.move(x, box.y + box.height * 0.2, { steps: 5 });
+  await page.mouse.up();
+};
+
 const persistedStateBoundaries = async (page: Page) =>
   page.evaluate(() => {
     const root = JSON.parse(window.localStorage.getItem("tango-config") ?? "{}");
@@ -106,59 +123,86 @@ const persistedStateBoundaries = async (page: Page) =>
     };
   });
 
-test.describe.configure({ mode: "serial" });
-
-test.beforeEach(async ({ page }) => {
+const prepareSwipeSession = async (page: Page, config = e2eConfig) => {
   const errors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
 
-  await seedSwipeSession(page);
+  await seedSwipeSession(page, config);
   await page.exposeFunction("assertNoBrowserErrors", () => expect(errors).toEqual([]));
-});
+};
 
-test("shows the front and back text in the deck study screen", async ({ page }) => {
-  await page.goto(`/deck/${e2eDeck.id}/study`);
+test.describe.configure({ mode: "serial" });
 
-  await expect(page.getByText("apple")).toBeVisible();
-  await page.keyboard.press("Enter");
+test.describe("study session", () => {
+  test.beforeEach(async ({ page }) => {
+    await prepareSwipeSession(page);
+  });
 
-  await expect(page.getByText("りんご")).toBeVisible();
-  await page.evaluate(() => window.assertNoBrowserErrors());
-});
+  test("shows the front and back text in the deck study screen", async ({ page }) => {
+    await page.goto(`/deck/${e2eDeck.id}/study`);
 
-test("updates study progress with a mastered deck swipe", async ({ page }) => {
-  await page.goto(`/deck/${e2eDeck.id}/study`);
+    await expect(page.getByText("apple")).toBeVisible();
+    await page.keyboard.press("Enter");
 
-  await expect(page.getByText("apple")).toBeVisible();
-  await page.getByRole("button", { name: "Swipe up" }).click();
+    await expect(page.getByText("りんご")).toBeVisible();
+    await page.evaluate(() => window.assertNoBrowserErrors());
+  });
 
-  await expect(page.getByText("banana")).toBeVisible();
-  await expect.poll(async () => persistedCard(e2eCards[0].id)).toMatchObject({ score: 1, numberOfSeen: 1 });
-  await expect
-    .poll(async () => persistedStudyEnvelope(page))
-    .toMatchObject({
-      state: {
-        sessionsByDeckId: {
-          [e2eDeck.id]: {
-            deckId: e2eDeck.id,
-            cardOrderIds: e2eCards.map((card) => card.id),
-            currentIndex: 1,
+  test("updates study progress with a mastered deck swipe", async ({ page }) => {
+    await page.goto(`/deck/${e2eDeck.id}/study`);
+
+    await expect(page.getByText("apple")).toBeVisible();
+    await page.getByRole("button", { name: "Swipe up" }).click();
+
+    await expect(page.getByText("banana")).toBeVisible();
+    await expect.poll(async () => persistedCard(e2eCards[0].id)).toMatchObject({ score: 1, numberOfSeen: 1 });
+    await expect
+      .poll(async () => persistedStudyEnvelope(page))
+      .toMatchObject({
+        state: {
+          sessionsByDeckId: {
+            [e2eDeck.id]: {
+              deckId: e2eDeck.id,
+              cardOrderIds: e2eCards.map((card) => card.id),
+              currentIndex: 1,
+            },
           },
         },
-      },
-      version: 4,
-    });
-  await expect
-    .poll(async () => persistedStateBoundaries(page))
-    .toEqual({
-      rootDeck: false,
-      rootCard: false,
-      preferencesShowBackText: false,
-      preferencesAutoPlay: false,
-      preferencesLastSwipe: false,
-    });
-  await page.evaluate(() => window.assertNoBrowserErrors());
+        version: 4,
+      });
+    await expect
+      .poll(async () => persistedStateBoundaries(page))
+      .toEqual({
+        rootDeck: false,
+        rootCard: false,
+        preferencesShowBackText: false,
+        preferencesAutoPlay: false,
+        preferencesLastSwipe: false,
+      });
+    await page.evaluate(() => window.assertNoBrowserErrors());
+  });
+});
+
+test.describe("mouse swipe regression", () => {
+  test.beforeEach(async ({ page }) => {
+    await prepareSwipeSession(page, keepBodyAfterCardChangedConfig);
+  });
+
+  test("advances with an upward drag without flipping the next card", async ({ page }) => {
+    await page.goto(`/deck/${e2eDeck.id}/study`);
+
+    await expect(page.getByText("apple")).toBeVisible();
+    await swipeFrontUp(page);
+
+    await expect(page.getByText("banana")).toBeVisible();
+    await expect(page.getByText("バナナ")).toBeHidden();
+    await expect.poll(async () => persistedCard(e2eCards[0].id)).toMatchObject({ score: 1, numberOfSeen: 1 });
+
+    await page.getByRole("button", { name: "banana", exact: true }).click();
+    await expect(page.getByText("バナナ")).toBeVisible();
+    await page.evaluate(() => window.assertNoBrowserErrors());
+  });
 });

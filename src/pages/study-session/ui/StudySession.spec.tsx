@@ -1,8 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
+
+afterEach(() => vi.useRealTimers());
 
 import { StudySession } from "./StudySession";
 
@@ -22,6 +24,12 @@ const swipeUp = (target: HTMLElement) => {
   fireEvent.touchStart(target, { touches: [start], targetTouches: [start], changedTouches: [start] });
   fireEvent.touchMove(target, { touches: [end], targetTouches: [end], changedTouches: [end] });
   fireEvent.touchEnd(target, { touches: [], targetTouches: [], changedTouches: [end] });
+};
+
+const swipeUpWithMouse = (target: HTMLElement) => {
+  fireEvent.mouseDown(target, { clientX: 24, clientY: 200 });
+  fireEvent.mouseMove(document, { clientX: 24, clientY: 20 });
+  fireEvent.mouseUp(document, { clientX: 24, clientY: 20 });
 };
 
 describe("StudySession", () => {
@@ -89,5 +97,33 @@ describe("StudySession", () => {
     swipeUp(screen.getByText("Front"));
 
     expect(onSwipeUp).toHaveBeenCalledOnce();
+  });
+
+  it("treats a mouse swipe as only a swipe and allows a later card click", () => {
+    vi.useFakeTimers();
+    const onSwipeUp = vi.fn();
+    const onFrontClick = vi.fn();
+    render(
+      <StudySession
+        onExit={vi.fn()}
+        frontTextSlot={
+          <button type="button" onClick={onFrontClick}>
+            Front
+          </button>
+        }
+        onSwipeUp={onSwipeUp}
+      />
+    );
+    const front = screen.getByRole("button", { name: "Front" });
+
+    swipeUpWithMouse(front);
+    fireEvent.click(front);
+
+    expect(onSwipeUp).toHaveBeenCalledOnce();
+    expect(onFrontClick).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+    fireEvent.click(front);
+    expect(onFrontClick).toHaveBeenCalledOnce();
   });
 });
