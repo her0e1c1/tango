@@ -32,7 +32,7 @@ const studyingItems = (decks: Deck[]) =>
     studyProgress: {
       currentIndex: index + 1,
       cardCount: 12 + index * 7,
-      lastStudiedAt: Date.now() - index * 24 * 60 * 60 * 1000,
+      lastStudiedAt: fixture.timestamp - index * 24 * 60 * 60 * 1000,
     },
   }));
 
@@ -87,13 +87,9 @@ export const WithStudyProgress: Story = {
   args: { sections: { studying: studyingItems(fixture.decks.default), other: [] } },
 };
 
-export const Active: Story = WithStudyProgress;
-
 export const Empty: Story = {
   args: { sections: { studying: [], other: [] } },
 };
-
-export const EmptyComposition: Story = Empty;
 
 export const Long: Story = {
   args: { sections: longSections },
@@ -106,8 +102,6 @@ export const IphoneX: Story = {
     },
   },
 };
-
-export const MobileLight: Story = IphoneX;
 
 export const Dark: Story = {
   globals: {

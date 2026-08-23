@@ -6,6 +6,8 @@
 
 import type { Meta, StoryObj } from "@storybook/react";
 
+import * as fixture from "@/storybook/fixture";
+
 import { CardOverlay as Template } from "./CardOverlay";
 
 const meta = {
@@ -18,7 +20,7 @@ const meta = {
   args: {
     score: 1,
     numberOfSeen: 4,
-    lastSeenAt: Date.now(),
+    lastSeenAt: fixture.timestamp,
   },
 } satisfies Meta<typeof Template>;
 
