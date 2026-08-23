@@ -2,9 +2,6 @@ auth:
   users:
     - uid: user-1
       provider: anonymous
-remote:
-  decks: []
-  cards: []
 browser:
   preferences:
     loadSample: false
@@ -17,4 +14,3 @@ browser:
       source: sample/build/output.json
       idTemplate: sample-v1-card-{index}
       deckId: sample-v1
-  studySessions: {}

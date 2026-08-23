@@ -6,15 +6,8 @@ remote:
   decks:
     - id: deck-1
       uid: user-1
-      localMode: false
       name: Study Deck
-      isPublic: false
-      scoreMax: null
-      scoreMin: null
-      selectedTags: []
-      tagAndFilter: false
       category: English
-      convertToBr: false
       createdAt: 1700000000000
       updatedAt: 1700000000000
   cards:
@@ -23,12 +16,7 @@ remote:
       uid: user-1
       frontText: first
       backText: first answer
-      tags: []
       uniqueKey: first
-      deletedAt: null
-      score: 0
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000000000
       updatedAt: 1700000000000
     - id: card-2
@@ -36,12 +24,9 @@ remote:
       uid: user-1
       frontText: second
       backText: second answer
-      tags: []
       uniqueKey: second
-      deletedAt: null
       score: 1
       numberOfSeen: 1
-      interval: 0
       createdAt: 1700000001000
       updatedAt: 1700000001000
     - id: card-3
@@ -49,22 +34,14 @@ remote:
       uid: user-1
       frontText: third
       backText: third answer
-      tags: []
       uniqueKey: third
-      deletedAt: null
       score: -1
       numberOfSeen: 2
-      interval: 0
       createdAt: 1700000002000
       updatedAt: 1700000002000
 browser:
   preferences:
     loadSample: false
-    study:
-      maxNumberOfCardsToLearn: 10
-      shuffled: false
-  localDecks: []
-  localCards: []
   studySessions:
     deck-1:
       sessionId: session-1

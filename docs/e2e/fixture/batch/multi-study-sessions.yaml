@@ -6,28 +6,14 @@ remote:
   decks:
     - id: deck-a
       uid: user-1
-      localMode: false
       name: Study Deck A
-      isPublic: false
-      scoreMax: null
-      scoreMin: null
-      selectedTags: []
-      tagAndFilter: false
       category: English
-      convertToBr: false
       createdAt: 1700000000000
       updatedAt: 1700000000000
     - id: deck-b
       uid: user-1
-      localMode: false
       name: Study Deck B
-      isPublic: false
-      scoreMax: null
-      scoreMin: null
-      selectedTags: []
-      tagAndFilter: false
       category: English
-      convertToBr: false
       createdAt: 1700000001000
       updatedAt: 1700000001000
   cards:
@@ -36,12 +22,7 @@ remote:
       uid: user-1
       frontText: a-first
       backText: a first answer
-      tags: []
       uniqueKey: a-first
-      deletedAt: null
-      score: 0
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000000000
       updatedAt: 1700000000000
     - id: card-a-2
@@ -49,12 +30,7 @@ remote:
       uid: user-1
       frontText: a-second
       backText: a second answer
-      tags: []
       uniqueKey: a-second
-      deletedAt: null
-      score: 0
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000001000
       updatedAt: 1700000001000
     - id: card-b-1
@@ -62,12 +38,7 @@ remote:
       uid: user-1
       frontText: b-first
       backText: b first answer
-      tags: []
       uniqueKey: b-first
-      deletedAt: null
-      score: 0
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000002000
       updatedAt: 1700000002000
     - id: card-b-2
@@ -75,19 +46,12 @@ remote:
       uid: user-1
       frontText: b-second
       backText: b second answer
-      tags: []
       uniqueKey: b-second
-      deletedAt: null
-      score: 0
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000003000
       updatedAt: 1700000003000
 browser:
   preferences:
     loadSample: false
-  localDecks: []
-  localCards: []
   studySessions:
     deck-a:
       sessionId: session-a

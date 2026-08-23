@@ -2,9 +2,6 @@ auth:
   users:
     - uid: user-1
       provider: anonymous
-remote:
-  decks: []
-  cards: []
 browser:
   preferences:
     loadSample: false
@@ -12,13 +9,7 @@ browser:
     - id: local-deck-1
       localMode: true
       name: Local Deck
-      isPublic: false
-      scoreMax: null
-      scoreMin: null
-      selectedTags: []
-      tagAndFilter: false
       category: English
-      convertToBr: false
       createdAt: 1700000000000
       updatedAt: 1700000000000
   localCards:
@@ -26,24 +17,13 @@ browser:
       deckId: local-deck-1
       frontText: local first
       backText: local first answer
-      tags: []
       uniqueKey: local-first
-      deletedAt: null
-      score: 0
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000000000
       updatedAt: 1700000000000
     - id: local-card-2
       deckId: local-deck-1
       frontText: local second
       backText: local second answer
-      tags: []
       uniqueKey: local-second
-      deletedAt: null
-      score: 0
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000001000
       updatedAt: 1700000001000
-  studySessions: {}

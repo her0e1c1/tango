@@ -2,12 +2,3 @@ auth:
   users:
     - uid: user-1
       provider: anonymous
-remote:
-  decks: []
-  cards: []
-browser:
-  preferences:
-    loadSample: true
-  localDecks: []
-  localCards: []
-  studySessions: {}

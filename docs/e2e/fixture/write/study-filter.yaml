@@ -6,16 +6,12 @@ remote:
   decks:
     - id: deck-1
       uid: user-1
-      localMode: false
       name: Filtered Study Deck
-      isPublic: false
       scoreMax: 2
       scoreMin: 0
       selectedTags:
         - target
-      tagAndFilter: false
       category: English
-      convertToBr: false
       createdAt: 1700000000000
       updatedAt: 1700000000000
   cards:
@@ -27,10 +23,6 @@ remote:
       tags:
         - target
       uniqueKey: match-1
-      deletedAt: null
-      score: 0
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000000000
       updatedAt: 1700000000000
     - id: card-2
@@ -41,10 +33,7 @@ remote:
       tags:
         - target
       uniqueKey: match-2
-      deletedAt: null
       score: 1
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000001000
       updatedAt: 1700000001000
     - id: card-3
@@ -55,10 +44,7 @@ remote:
       tags:
         - target
       uniqueKey: match-3
-      deletedAt: null
       score: 2
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000002000
       updatedAt: 1700000002000
     - id: card-4
@@ -69,10 +55,7 @@ remote:
       tags:
         - target
       uniqueKey: score-miss
-      deletedAt: null
       score: 3
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000003000
       updatedAt: 1700000003000
     - id: card-5
@@ -83,10 +66,7 @@ remote:
       tags:
         - other
       uniqueKey: tag-miss
-      deletedAt: null
       score: 1
-      numberOfSeen: 0
-      interval: 0
       createdAt: 1700000004000
       updatedAt: 1700000004000
 browser:
@@ -94,7 +74,3 @@ browser:
     loadSample: false
     study:
       maxNumberOfCardsToLearn: 2
-      shuffled: false
-  localDecks: []
-  localCards: []
-  studySessions: {}
