@@ -1,0 +1,77 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+remote:
+  decks:
+    - id: deck-1
+      uid: user-1
+      localMode: false
+      name: Study Deck
+      isPublic: false
+      scoreMax: null
+      scoreMin: null
+      selectedTags: []
+      tagAndFilter: false
+      category: English
+      convertToBr: false
+      createdAt: 1700000000000
+      updatedAt: 1700000000000
+  cards:
+    - id: card-1
+      deckId: deck-1
+      uid: user-1
+      frontText: first
+      backText: first answer
+      tags: []
+      uniqueKey: first
+      deletedAt: null
+      score: 0
+      numberOfSeen: 0
+      interval: 0
+      createdAt: 1700000000000
+      updatedAt: 1700000000000
+    - id: card-2
+      deckId: deck-1
+      uid: user-1
+      frontText: second
+      backText: second answer
+      tags: []
+      uniqueKey: second
+      deletedAt: null
+      score: 1
+      numberOfSeen: 1
+      interval: 0
+      createdAt: 1700000001000
+      updatedAt: 1700000001000
+    - id: card-3
+      deckId: deck-1
+      uid: user-1
+      frontText: last
+      backText: last answer
+      tags: []
+      uniqueKey: last
+      deletedAt: null
+      score: -1
+      numberOfSeen: 2
+      interval: 0
+      createdAt: 1700000002000
+      updatedAt: 1700000002000
+browser:
+  preferences:
+    loadSample: false
+    study:
+      maxNumberOfCardsToLearn: 10
+      shuffled: false
+  localDecks: []
+  localCards: []
+  studySessions:
+    deck-1:
+      sessionId: session-1
+      deckId: deck-1
+      cardOrderIds:
+        - card-1
+        - card-2
+        - card-3
+      currentIndex: 2
+      lastStudiedAt: 1700000010000
