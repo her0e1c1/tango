@@ -9,28 +9,13 @@ import {
 
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
-type StudyProgress = {
-  currentIndex: number;
-  cardCount: number;
-  lastStudiedAt: StudySession["lastStudiedAt"];
-};
-
 type DeckListItem = {
-  deck: Pick<Deck, "id" | "name" | "category" | "isPublic">;
+  deck: Deck;
   cardCount: number;
-  studyProgress?: StudyProgress;
+  studyProgress?: Pick<StudySession, "currentIndex" | "lastStudiedAt"> & { cardCount: number };
 };
 
-type StudyingDeckListItem = DeckListItem & {
-  studyProgress: StudyProgress;
-};
-
-type DeckListSections = {
-  studying: StudyingDeckListItem[];
-  other: DeckListItem[];
-};
-
-const toStudyProgress = (session: StudySession): StudyProgress => ({
+const toStudyProgress = (session: StudySession) => ({
   currentIndex: session.currentIndex,
   cardCount: session.cardOrderIds.length,
   lastStudiedAt: session.lastStudiedAt,
@@ -40,7 +25,7 @@ const buildDeckListSections = (
   decks: Deck[],
   cards: Card[],
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>
-): DeckListSections => {
+) => {
   const cardCounts = countCardsByDeckId(cards);
   const { active, inactive } = groupDecksByStudyStatus(decks, sessionsByDeckId);
 
@@ -49,7 +34,7 @@ const buildDeckListSections = (
     cardCount: cardCounts.get(deck.id) ?? 0,
     studyProgress: toStudyProgress(session),
   }));
-  const other = inactive.sort(compareDeckNames).map((deck) => ({
+  const other: DeckListItem[] = inactive.sort(compareDeckNames).map((deck) => ({
     deck,
     cardCount: cardCounts.get(deck.id) ?? 0,
   }));
