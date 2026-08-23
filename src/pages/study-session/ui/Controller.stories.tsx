@@ -16,6 +16,11 @@ const meta = {
     onChange: { action: "onChange" },
     onToggleAutoPlay: { action: "onToggleAutoPlay" },
   },
+  args: {
+    autoPlay: false,
+    index: 3,
+    numberOfCards: 24,
+  },
 } satisfies Meta<typeof Template>;
 
 export default meta;
@@ -25,7 +30,12 @@ export const Default: Story = {};
 
 export const AutoPlay: Story = {
   args: {
-    numberOfCards: 10,
     autoPlay: true,
+  },
+};
+
+export const Complete: Story = {
+  args: {
+    index: 24,
   },
 };

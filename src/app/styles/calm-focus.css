@@ -32,6 +32,7 @@
   --calm-leading-caption: 1.45;
   --calm-spacing-shell-gutter: clamp(1rem, 3vw, 2rem);
   --calm-spacing-section-gap: clamp(1.5rem, 4vw, 3rem);
+  --calm-spacing-study-inline: clamp(1rem, 6vw, 6rem);
   --calm-spacing-touch: 2.75rem;
   --calm-container-content: 72rem;
   --calm-container-reading: 42rem;
@@ -94,6 +95,7 @@
   --text-caption--line-height: var(--calm-leading-caption);
   --spacing-shell-gutter: var(--calm-spacing-shell-gutter);
   --spacing-section-gap: var(--calm-spacing-section-gap);
+  --spacing-study-inline: var(--calm-spacing-study-inline);
   --spacing-touch: var(--calm-spacing-touch);
   --container-content: var(--calm-container-content);
   --container-reading: var(--calm-container-reading);
@@ -119,6 +121,58 @@ body {
   font-family: var(--calm-font-sans);
   font-size: var(--calm-text-body);
   line-height: var(--calm-leading-body);
+}
+
+.markdown-body.markdown-body {
+  /* github-markdown-css follows the OS theme by default; Tango's tokens must remain the theme source of truth. */
+  --fgColor-default: var(--calm-color-ink);
+  --fgColor-muted: var(--calm-color-ink-muted);
+  --fgColor-accent: var(--calm-color-accent-primary);
+  --fgColor-attention: var(--calm-color-warning);
+  --fgColor-danger: var(--calm-color-danger);
+  --fgColor-done: var(--calm-color-accent-secondary);
+  --fgColor-success: var(--calm-color-success);
+  --bgColor-default: var(--calm-color-surface);
+  --bgColor-muted: var(--calm-color-surface-muted);
+  --bgColor-neutral-muted: var(--calm-color-surface-muted);
+  --bgColor-attention-muted: var(--calm-color-surface-muted);
+  --bgColor-danger-muted: var(--calm-color-surface-muted);
+  --borderColor-default: var(--calm-color-border);
+  --borderColor-muted: var(--calm-color-border);
+  --borderColor-neutral-muted: var(--calm-color-border);
+  --borderColor-accent-emphasis: var(--calm-color-accent-primary);
+  --borderColor-attention-emphasis: var(--calm-color-warning);
+  --borderColor-danger-emphasis: var(--calm-color-danger);
+  --borderColor-done-emphasis: var(--calm-color-accent-secondary);
+  --borderColor-success-emphasis: var(--calm-color-success);
+  --focus-outlineColor: var(--calm-color-focus);
+  background-color: transparent;
+  color: var(--calm-color-ink);
+  font-family: var(--calm-font-sans);
+  line-height: var(--calm-leading-body);
+}
+
+.markdown-body.markdown-body a {
+  color: var(--calm-color-accent-primary);
+}
+
+.markdown-body.markdown-body blockquote {
+  border-left-color: var(--calm-color-border);
+  color: var(--calm-color-ink-muted);
+}
+
+.markdown-body.markdown-body :is(code, pre, table, tr) {
+  border-color: var(--calm-color-border);
+}
+
+.markdown-body.markdown-body :is(code, pre, tr) {
+  background-color: var(--calm-color-surface-muted);
+}
+
+.markdown-body.markdown-body .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.25rem;
 }
 
 :focus-visible {

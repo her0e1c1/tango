@@ -25,13 +25,14 @@ export interface SwipeButtonListProps {
 }
 
 export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => (
-  <div className="flex">
+  <fieldset className="mx-auto grid w-full max-w-content grid-cols-4 gap-2 border-0 p-0">
+    <legend className="sr-only">Swipe actions</legend>
     {directions.map((d) => (
       <button
         type="button"
         aria-label={labels[d]}
         key={d}
-        className="flex-1 items-center content-center hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-transparent text-ink-muted transition-colors duration-fast ease-calm hover:border-border hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
         disabled={props.disabled}
         onClick={() => {
           if (d === "cardSwipeUp") {
@@ -45,13 +46,13 @@ export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => (
           }
         }}
       >
-        <span className="flex justify-center text-4xl lg:text-6xl">
+        <span className="flex justify-center text-2xl sm:text-3xl">
           {(() => {
             const Icon = icons[d];
-            return <Icon />;
+            return <Icon aria-hidden="true" />;
           })()}
         </span>
       </button>
     ))}
-  </div>
+  </fieldset>
 );

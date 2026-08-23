@@ -26,7 +26,7 @@ export const FrontText: React.FC<FrontTextProps> = (props) => {
     <div
       id="frontText"
       className={cx(
-        "mx-auto flex h-full w-full min-w-0 items-center justify-center break-words p-section-gap text-ink"
+        "mx-auto flex h-full w-full min-w-0 max-w-content items-center justify-center break-words py-section-gap pl-[calc(var(--spacing-study-inline)+env(safe-area-inset-left))] pr-[calc(var(--spacing-study-inline)+env(safe-area-inset-right))] text-ink"
       )}
       {...clickInteraction}
     >
