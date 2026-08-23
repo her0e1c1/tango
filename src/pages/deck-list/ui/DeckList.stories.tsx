@@ -40,6 +40,7 @@ const meta = {
   },
   args: {
     sections: mixed,
+    onCreateDeck: fn(),
   },
 } satisfies Meta<typeof DeckList>;
 
