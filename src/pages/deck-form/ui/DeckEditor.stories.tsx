@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import type { DeckFormProps } from "../model/useDeckFormState";
 import { DeckEditor } from "./DeckEditor";
+import type { DeckFormProps } from "./DeckForm";
 
 const longDeck = {
   ...fixture.deck.tooLongName,

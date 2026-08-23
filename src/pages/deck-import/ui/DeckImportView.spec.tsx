@@ -3,10 +3,10 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 
-import type { DeckImportPreview } from "../model/useDeckImport";
-import type { DeckImportResult } from "../model/useDeckImportExecution";
+import { DeckImportView, type DeckImportViewProps } from "./DeckImportView";
 
-import { DeckImportView } from "./DeckImportView";
+type DeckImportPreview = NonNullable<DeckImportViewProps["preview"]>;
+type DeckImportResult = NonNullable<DeckImportViewProps["result"]>;
 
 const preview = {
   deckName: "deck.csv",
@@ -164,7 +164,6 @@ describe("DeckImportView", () => {
     const onBack = vi.fn();
     const success = {
       created: 2,
-      deckId: "deck",
     } satisfies DeckImportResult;
     const view = render(<DeckImportView sampleText="front,back,,key" result={success} onBack={onBack} />);
 

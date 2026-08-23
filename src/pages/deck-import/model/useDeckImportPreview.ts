@@ -6,7 +6,7 @@ import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { prepareDeckImport } from "./useDeckImportExecution";
 
-export interface DeckImportPreview {
+interface DeckImportPreview {
   deckName: string;
   analysis: DeckImportAnalysis;
 }

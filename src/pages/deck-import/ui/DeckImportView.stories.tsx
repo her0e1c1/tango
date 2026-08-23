@@ -2,9 +2,10 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import type { DeckImportPreview } from "../model/useDeckImport";
 import { SAMPLE_CSV_TEXT } from "../lib/sampleCsv";
-import { DeckImportView as Template } from "./DeckImportView";
+import { DeckImportView as Template, type DeckImportViewProps } from "./DeckImportView";
+
+type DeckImportPreview = NonNullable<DeckImportViewProps["preview"]>;
 
 const preview = {
   deckName: "spanish-basics.csv",
@@ -80,7 +81,7 @@ export const Pending: Story = {
 export const Success: Story = {
   args: {
     preview,
-    result: { created: 2, deckId: "spanish-basics" },
+    result: { created: 2 },
   },
 };
 

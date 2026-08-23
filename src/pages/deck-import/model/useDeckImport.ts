@@ -7,8 +7,6 @@ import type { DeckImportResult, DeckImportStorageMode } from "./useDeckImportExe
 import { useDeckImportExecution } from "./useDeckImportExecution";
 import { useDeckImportPreview } from "./useDeckImportPreview";
 
-export type { DeckImportPreview } from "./useDeckImportPreview";
-
 type DeckImportStatus = "idle" | "validating" | "importing";
 
 export const useDeckImport = () => {
