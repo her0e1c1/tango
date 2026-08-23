@@ -5,36 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
-import { cardContentSchema, editCard, type CardId, useCard } from "@/entities/card";
+import { cardContentSchema, editCard, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
-import type { Form, Option, Tag, Textarea } from "@/shared/ui/forms";
-
-interface CardFormTagField extends Option {
-  input: React.ComponentProps<typeof Tag>;
-}
-
-interface CardFormFields {
-  frontText: React.ComponentProps<typeof Textarea>;
-  backText: React.ComponentProps<typeof Textarea>;
-  tags: CardFormTagField[];
-}
-
-export interface CardFormProps {
-  cardInfo: {
-    uniqueKey: string;
-    id: CardId;
-    createdAt?: string;
-    lastSeenAt?: string;
-  };
-  fields: CardFormFields;
-  errors: {
-    frontText: string | undefined;
-    backText: string | undefined;
-  };
-  isSubmitting: boolean;
-  onCancel: () => void;
-  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
-}
 
 const cardFormSchema = cardContentSchema.omit({ uniqueKey: true });
 type CardFormValues = z.infer<typeof cardFormSchema>;
@@ -75,7 +47,7 @@ export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormState
     void submit(event);
   };
 
-  const form: CardFormProps = {
+  const form = {
     cardInfo: {
       id: card.id,
       uniqueKey: card.uniqueKey,

@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import * as fixture from "@/storybook/fixture";
 import { INITIAL_VIEWPORTS } from "@/storybook/storybookViewports";
 
-import type { CardFormProps } from "../model/useCardFormState";
 import { CardEditor } from "./CardEditor";
+import type { CardFormProps } from "./CardForm";
 
 const longCard = {
   ...fixture.card.long,
