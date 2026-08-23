@@ -2,7 +2,7 @@ import * as React from "react";
 import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, createDeck, deckFormSchema, generateDeckId, type DeckId } from "@/entities/deck";
@@ -17,20 +17,18 @@ interface UseDeckCreateStateOptions {
 
 export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOptions) => {
   const uid = useAuthUid();
-  // A failed response may hide a successful write, so retries must reuse both identity and storage mode.
+  // A failed response may hide a successful write, so retries must reuse this Deck identity.
   const [deckId] = React.useState(generateDeckId);
-  const [fixedLocalMode, setFixedLocalMode] = React.useState<boolean>();
   const isMounted = useMountedGuard();
   const [saveError, setSaveError] = React.useState<unknown>(null);
-  const { formState, handleSubmit, register } = useForm<DeckCreateFormValues>({
+  const { control, formState, handleSubmit, register } = useForm<DeckCreateFormValues>({
     defaultValues: { name: "", category: "", convertToBr: false, localMode: false },
     resolver: zodResolver(deckFormSchema),
   });
+  const localMode = useWatch({ control, name: "localMode" }) ?? false;
 
   const submit = handleSubmit(async (values) => {
     setSaveError(null);
-    const localMode = fixedLocalMode ?? values.localMode ?? false;
-    if (fixedLocalMode === undefined) setFixedLocalMode(localMode);
     try {
       const deck = {
         id: deckId,
@@ -56,7 +54,8 @@ export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOp
         ...register("category"),
         options: CATEGORY.map((category) => ({ label: category, value: category })),
       },
-      localMode: { ...register("localMode"), disabled: fixedLocalMode !== undefined },
+      // A retry must keep using react-hook-form's original persistence mode after a failed write.
+      localMode: { ...register("localMode"), disabled: formState.isSubmitting || saveError !== null },
     },
     errors: { name: formState.errors.name?.message },
     isSubmitting: formState.isSubmitting,
