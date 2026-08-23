@@ -1,0 +1,26 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+remote:
+  decks:
+    - id: deck-1
+      uid: user-1
+      localMode: false
+      name: E2E Deck
+      isPublic: false
+      scoreMax: null
+      scoreMin: null
+      selectedTags: []
+      tagAndFilter: false
+      category: English
+      convertToBr: false
+      createdAt: 1700000000000
+      updatedAt: 1700000000000
+  cards: []
+browser:
+  preferences:
+    loadSample: false
+  localDecks: []
+  localCards: []
+  studySessions: {}
