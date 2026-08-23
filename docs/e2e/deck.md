@@ -25,7 +25,7 @@ Deck 管理の主要導線が、ブラウザ上で表示・編集・削除・保
 
 Given:
 
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/read/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に Card が存在する。
 
@@ -47,7 +47,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck`](./fixture/remote-deck.yaml)
+- Fixture: [`remote-deck`](./fixture/write/remote-deck.yaml)
 - 認証済みユーザーが所有する編集対象の Deck が存在する。
 
 When:
@@ -67,7 +67,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Fixture: [`study-session-middle`](./fixture/batch/study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に複数の Card と再開可能な学習 session が存在する。
 
@@ -90,7 +90,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Fixture: [`study-session-middle`](./fixture/read/study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck の action menu trigger から削除 dialog を開いている。
 - dialog に対象 Deck、関連 Card と学習 session への影響、削除を取り消せない旨が表示されている。
@@ -114,7 +114,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Fixture: [`study-session-middle`](./fixture/batch/study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に Card と再開可能な学習 session が存在する。
 - 削除要求の失敗が dialog 内で処理され、同じ削除対象が維持されている。
@@ -139,7 +139,7 @@ Then:
 
 Given:
 
-- Fixture: [`empty`](./fixture/empty.yaml)
+- Fixture: [`empty`](./fixture/read/empty.yaml)
 - 認証済みユーザーの保存先に、route が参照する Deck が存在しない。
 
 When:
@@ -159,7 +159,7 @@ Then:
 
 Given:
 
-- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- Fixture: [`local-deck-with-cards`](./fixture/batch/local-deck-with-cards.yaml)
 - 認証済みユーザーの browser storage に local-only Deck が存在する。
 - 対象 Deck に複数の local-only Card が存在する。
 
@@ -181,7 +181,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/read/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に front text、back text、tags、unique key を持つ Card が複数存在する。
 
