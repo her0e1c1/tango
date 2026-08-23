@@ -25,6 +25,9 @@ ps = "docker compose ps"
 [tasks.git-cleanup]
 file = "scripts/cleanup-branches.sh"
 
+[tasks.test-git-cleanup]
+run = "bash scripts/cleanup-branches.test.sh"
+
 [tasks.init]
 depends = ["init-deps"]
 run = "test -f .env || cp .env.example .env"
@@ -118,7 +121,7 @@ docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 
 [tasks.check]
 depends = ["init"]
-run = [{ tasks = ["fmt", "lint", "lint-docker", "test-unit"] }]
+run = [{ tasks = ["fmt", "lint", "lint-docker", "test-git-cleanup", "test-unit"] }]
 
 [tasks.fix]
 depends = ["init"]
