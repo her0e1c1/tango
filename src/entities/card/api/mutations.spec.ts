@@ -1,11 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  createCard as createCardFixture,
-  createDeck as createDeckFixture,
-  createLocalCard,
-  createLocalDeck,
-} from "@/test/factories";
+import { createCard as createCardFixture, createLocalCard } from "@/test/factories";
 const mocks = vi.hoisted(() => ({
   deck: undefined as { id: string; localMode: boolean } | undefined,
   createRemoteCard: vi.fn(),
@@ -32,13 +27,10 @@ describe("Card mutations", () => {
     vi.clearAllMocks();
   });
 
-  it("routes create through the current parent Deck persistence mode", async () => {
-    const localDeck = createLocalDeck({ id: "local-deck" });
-    mocks.deck = localDeck;
-
+  it("routes create through its payload shape", async () => {
     await createCard("", {
       id: "local-card",
-      deckId: localDeck.id,
+      deckId: "local-deck",
       frontText: "Local front",
       backText: "Local back",
       tags: [],
@@ -46,41 +38,14 @@ describe("Card mutations", () => {
     });
 
     expect(cardStore.getState().localCards).toContainEqual(
-      expect.objectContaining({ id: "local-card", deckId: localDeck.id })
+      expect.objectContaining({ id: "local-card", deckId: "local-deck" })
     );
     expect(mocks.createRemoteCard).not.toHaveBeenCalled();
 
-    const remoteDeck = createDeckFixture({ id: "remote-deck", uid: "owner" });
-    mocks.deck = remoteDeck;
-    await createCard("owner", {
-      id: "remote-card",
-      deckId: remoteDeck.id,
-      uid: remoteDeck.uid,
-      frontText: "Remote front",
-      backText: "Remote back",
-      tags: [],
-      uniqueKey: "remote-card",
-    });
+    const remoteCard = createCardFixture({ id: "remote-card", deckId: "remote-deck", uid: "owner" });
+    await createCard("owner", remoteCard);
 
-    expect(mocks.createRemoteCard).toHaveBeenCalledExactlyOnceWith(
-      "owner",
-      expect.objectContaining({ id: "remote-card", deckId: remoteDeck.id, uid: remoteDeck.uid })
-    );
-  });
-
-  it("rejects create when the parent Deck is missing or stale", async () => {
-    await expect(
-      createCard("owner", {
-        id: "orphan-card",
-        deckId: "missing-deck",
-        uid: "owner",
-        frontText: "Front",
-        backText: "Back",
-        tags: [],
-        uniqueKey: "orphan-card",
-      })
-    ).rejects.toThrow('Deck "missing-deck" was not found');
-    expect(mocks.createRemoteCard).not.toHaveBeenCalled();
+    expect(mocks.createRemoteCard).toHaveBeenCalledExactlyOnceWith("owner", remoteCard);
   });
 
   it("creates imported remote Cards before the parent Deck subscription catches up", async () => {

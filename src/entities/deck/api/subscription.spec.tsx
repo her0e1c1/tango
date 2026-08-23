@@ -50,7 +50,7 @@ const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Err
 
 describe("Deck Firestore subscription", () => {
   beforeEach(() => {
-    deckStore.setState({ remoteDecks: [], remoteDecksReady: false, localDecks: [] });
+    deckStore.setState({ remoteDecks: [], remoteDecksStatus: "loading", localDecks: [] });
     vi.clearAllMocks();
     mocks.onSnapshot.mockReturnValue(vi.fn());
   });
@@ -71,6 +71,7 @@ describe("Deck Firestore subscription", () => {
       expect.objectContaining({ id: "active", url: "https://example.com", localMode: false }),
       localDeck,
     ]);
+    expect(deckStore.getState().remoteDecksStatus).toBe("ready");
   });
 
   it("reports invalid Firestore documents", () => {
@@ -82,7 +83,7 @@ describe("Deck Firestore subscription", () => {
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ name: "FirestoreDocumentValidationError", documentId: "invalid" })
     );
-    expect(deckStore.getState().remoteDecksReady).toBe(true);
+    expect(deckStore.getState().remoteDecksStatus).toBe("error");
   });
 
   it("reports Firestore subscription errors", () => {
@@ -93,6 +94,6 @@ describe("Deck Firestore subscription", () => {
     getErrorHandler()(error);
 
     expect(onError).toHaveBeenCalledWith(error);
-    expect(deckStore.getState().remoteDecksReady).toBe(true);
+    expect(deckStore.getState().remoteDecksStatus).toBe("error");
   });
 });

@@ -14,7 +14,7 @@ import { actAsync } from "@/test/act";
 const mocks = vi.hoisted(() => ({
   createCard: vi.fn(),
   deck: undefined as Deck | undefined,
-  remoteDecksReady: true,
+  remoteDecksStatus: "ready" as "loading" | "ready" | "error",
   preferences: null as unknown as Preferences,
   setDarkMode: vi.fn(),
 }));
@@ -29,7 +29,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...original,
     useDeck: () => mocks.deck,
-    useRemoteDecksReady: () => mocks.remoteDecksReady,
+    useRemoteDecksStatus: () => mocks.remoteDecksStatus,
   };
 });
 vi.mock("@/entities/preference", () => ({
@@ -67,7 +67,7 @@ describe("CardCreatePage", () => {
   beforeEach(() => {
     mocks.createCard.mockReset().mockResolvedValue(undefined);
     mocks.deck = localDeck;
-    mocks.remoteDecksReady = true;
+    mocks.remoteDecksStatus = "ready";
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
   });
@@ -116,16 +116,26 @@ describe("CardCreatePage", () => {
 
   it("waits for the first remote snapshot before classifying the target Deck", () => {
     mocks.deck = undefined;
-    mocks.remoteDecksReady = false;
+    mocks.remoteDecksStatus = "loading";
     const view = renderPage("delayed-deck");
 
     expect(screen.getByRole("heading", { level: 1, name: "Loading deck…" })).toBeVisible();
 
     mocks.deck = createDeckFixture({ id: "delayed-deck", name: "Delayed deck" });
-    mocks.remoteDecksReady = true;
+    mocks.remoteDecksStatus = "ready";
     view.rerender(page("delayed-deck", "snapshot-ready"));
 
     expect(screen.getByRole("heading", { level: 1, name: "Add card" })).toBeVisible();
+  });
+
+  it("does not classify a subscription failure as a missing Deck", () => {
+    mocks.deck = undefined;
+    mocks.remoteDecksStatus = "error";
+    renderPage("remote-deck");
+
+    expect(screen.getByRole("heading", { level: 1, name: "Unable to load deck" })).toBeVisible();
+    expect(screen.queryByRole("heading", { level: 1, name: "Deck not found" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add card" })).not.toBeInTheDocument();
   });
 
   it("keeps entered values after failure and allows retry", async () => {

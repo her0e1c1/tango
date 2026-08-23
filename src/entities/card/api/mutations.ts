@@ -1,14 +1,6 @@
-import type {
-  CardCreateInput,
-  CardEditInput,
-  CardId,
-  CardMutation,
-  CardMutationCreateInput,
-  RemoteCard,
-} from "../model/types";
+import type { CardEditInput, CardId, CardMutation, CardMutationCreateInput, RemoteCard } from "../model/types";
 
 import { findDeckById } from "@/entities/deck/@x/card";
-import { cardCreateSchema } from "../model/schema";
 import {
   cardStore,
   createLocalCard,
@@ -22,9 +14,6 @@ import {
   deleteCard as deleteRemoteCard,
   editCard as editRemoteCard,
 } from "./firestore";
-
-// Bulk creates can follow a freshly written remote Deck before its authoritative subscription reaches the store.
-const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode ?? false;
 
 // Returns the current Card or rejects a stale Card reference.
 const requireCard = (id: CardId) => {
@@ -40,22 +29,13 @@ const requireLocalMode = (deckId: string): boolean => {
   return deck.localMode;
 };
 
-// Validates the owner-bearing payload required for a remote Card create.
-const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput =>
-  "uid" in card ? card : cardCreateSchema.parse(card);
-
-// Persists a Card through a persistence mode already resolved by its caller.
-const persistCard = async (uid: string, card: CardMutationCreateInput, localMode: boolean): Promise<void> => {
-  if (localMode) {
-    createLocalCard(card);
+// The create payload already carries the persistence mode selected by its Page or import flow.
+export const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
+  if ("uid" in card) {
+    await createRemoteCard(uid, card);
     return;
   }
-  await createRemoteCard(uid, requireRemoteCardCreate(card));
-};
-
-// Routes an interactive Card create only while its parent Deck remains available.
-export const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
-  await persistCard(uid, card, requireLocalMode(card.deckId));
+  createLocalCard(card);
 };
 
 // Copies a Deck's local Cards to remote persistence before removing the local copies.
@@ -91,9 +71,7 @@ export const mutateCards = async (uid: string, mutations: CardMutation[]): Promi
   // Bulk imports are non-transactional: let every independent write settle before surfacing the first failure.
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
-      mutation.kind === "create"
-        ? persistCard(uid, mutation.card, isLocalDeck(mutation.card.deckId))
-        : editCard(uid, mutation.card)
+      mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
     )
   );
   const failure = results.find((result) => result.status === "rejected");

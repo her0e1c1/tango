@@ -24,7 +24,7 @@ import {
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
-import { markRemoteDecksReady, replaceRemoteDecks } from "../model/store";
+import { markRemoteDecksFailed, replaceRemoteDecks } from "../model/store";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
@@ -48,12 +48,12 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
         });
         replaceRemoteDecks(decks);
       } catch (cause) {
-        markRemoteDecksReady();
+        markRemoteDecksFailed();
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
     },
     (error) => {
-      markRemoteDecksReady();
+      markRemoteDecksFailed();
       onError(error);
     }
   );

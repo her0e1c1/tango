@@ -15,7 +15,7 @@ import type { Deck, DeckId, LocalDeckCreateInput } from "./types";
 /** Live Deck collections separated by remote and local persistence ownership. */
 interface DeckState {
   remoteDecks: Extract<Deck, { localMode: false }>[];
-  remoteDecksReady: boolean;
+  remoteDecksStatus: "loading" | "ready" | "error";
   localDecks: Extract<Deck, { localMode: true }>[];
 }
 
@@ -36,7 +36,7 @@ const createDeckStore = ({ storage, skipHydration }: CreateDeckStoreOptions = {}
   const persistStorage = createJSONStorage<z.infer<typeof persistedDeckStateSchema>>(() => storage ?? localStorage);
   return createStore<DeckState>()(
     persist<DeckState, [], [], z.infer<typeof persistedDeckStateSchema>>(
-      () => ({ remoteDecks: [], remoteDecksReady: false, localDecks: [] }),
+      () => ({ remoteDecks: [], remoteDecksStatus: "loading", localDecks: [] }),
       {
         name: "tango-local-decks",
         version: 1,
@@ -57,17 +57,17 @@ export const deckStore = createDeckStore();
 
 // Replaces the remote Deck snapshot published by the active subscription.
 export const replaceRemoteDecks = (remoteDecks: Extract<Deck, { localMode: false }>[]): void => {
-  deckStore.setState({ remoteDecks, remoteDecksReady: true });
+  deckStore.setState({ remoteDecks, remoteDecksStatus: "ready" });
 };
 
-// Ends the initial loading state even when the subscription settles without a usable snapshot.
-export const markRemoteDecksReady = (): void => {
-  deckStore.setState({ remoteDecksReady: true });
+// Keeps subscription failures distinct from a successful snapshot that contains no matching Deck.
+export const markRemoteDecksFailed = (): void => {
+  deckStore.setState({ remoteDecksStatus: "error" });
 };
 
 // Clears all remote Decks when their authentication scope ends.
 export const clearRemoteDecks = (): void => {
-  deckStore.setState({ remoteDecks: [], remoteDecksReady: false });
+  deckStore.setState({ remoteDecks: [], remoteDecksStatus: "loading" });
 };
 
 // Finds one Deck across remote and local collections after validating its identifier.
