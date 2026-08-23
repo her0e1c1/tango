@@ -20,7 +20,8 @@ Deck 管理の主要導線が、ブラウザ上で画面遷移・状態更新ま
 
 Given:
 
-- `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
+- 認証済みユーザーが所有する Deck が存在する。
+- 対象 Deck に Card が存在する。
 
 When:
 
@@ -41,7 +42,7 @@ Then:
 
 Given:
 
-- `docs/e2e/seed.md` の Deck が localStorage に保存されている。
+- 認証済みユーザーが所有する編集対象の Deck が存在する。
 
 When:
 
@@ -61,7 +62,7 @@ Then:
 
 Given:
 
-- `docs/e2e/seed.md` の Deck が localStorage に保存されている。
+- 認証済みユーザーが所有する削除対象の Deck が存在する。
 
 When:
 
