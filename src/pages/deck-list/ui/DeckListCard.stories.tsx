@@ -33,9 +33,11 @@ export const Default: Story = {};
 
 export const WithStudyProgress: Story = {
   args: {
-    studyProgress: {
+    studySession: {
+      sessionId: "study-session",
+      deckId: fixture.deck.default.id,
+      cardOrderIds: ["card-1", "card-2", "card-3"],
       currentIndex: 0,
-      cardCount: 3,
       lastStudiedAt: fixture.timestamp - 5 * 60 * 1000,
     },
   },

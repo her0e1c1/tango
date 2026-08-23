@@ -22,7 +22,13 @@ const sections = {
     {
       deck: activeDeck,
       cardCount: 10,
-      studyProgress: { currentIndex: 1, cardCount: 4, lastStudiedAt: Date.now() },
+      studySession: {
+        sessionId: "active-session",
+        deckId: activeDeck.id,
+        cardOrderIds: ["card-1", "card-2", "card-3", "card-4"],
+        currentIndex: 1,
+        lastStudiedAt: Date.now(),
+      },
     },
   ],
   other: [{ deck: otherDeck, cardCount: 7 }],

@@ -59,9 +59,10 @@ describe("useDeckListState", () => {
     const { sections } = result.current;
 
     expect(sections.studying.map((item) => item.deck.id)).toEqual(["active-new", "active-old"]);
-    expect(sections.studying[0]?.studyProgress).toEqual({
+    expect(sections.studying[0]?.studySession).toMatchObject({
+      deckId: "active-new",
       currentIndex: 0,
-      cardCount: 3,
+      cardOrderIds: cardsForDeck("active-new").map((card) => card.id),
       lastStudiedAt: 200,
     });
     expect(sections.other.map((item) => item.deck.id)).toEqual(["other-a", "other-z"]);

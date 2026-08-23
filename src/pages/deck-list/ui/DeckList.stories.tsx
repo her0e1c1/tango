@@ -29,9 +29,11 @@ const studyingItems = (decks: Deck[]) =>
   decks.map((deck, index) => ({
     deck,
     cardCount: 30 + index,
-    studyProgress: {
+    studySession: {
+      sessionId: `session-${deck.id}`,
+      deckId: deck.id,
+      cardOrderIds: Array.from({ length: 12 + index * 7 }, (_, cardIndex) => `${deck.id}-card-${String(cardIndex)}`),
       currentIndex: index + 1,
-      cardCount: 12 + index * 7,
       lastStudiedAt: fixture.timestamp - index * 24 * 60 * 60 * 1000,
     },
   }));
