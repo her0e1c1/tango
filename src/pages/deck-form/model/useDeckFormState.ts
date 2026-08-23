@@ -27,18 +27,11 @@ const getDeckEditInput = (deck: Deck, values: DeckFormValues): Parameters<typeof
   url: values.url ?? null,
 });
 
-const getFormattedDate = (timestamp: number): string | undefined =>
-  timestamp ? new Date(timestamp).toLocaleDateString() : undefined;
-
-const getDeckInfo = (deck: Deck) => {
-  const createdAt = getFormattedDate(deck.createdAt);
-  const updatedAt = getFormattedDate(deck.updatedAt);
-  return {
-    id: deck.id,
-    ...(createdAt ? { createdAt } : {}),
-    ...(updatedAt ? { updatedAt } : {}),
-  };
-};
+const getDeckInfo = (deck: Deck) => ({
+  id: deck.id,
+  createdAt: new Date(deck.createdAt).toLocaleDateString(),
+  updatedAt: new Date(deck.updatedAt).toLocaleDateString(),
+});
 
 interface UseDeckFormStateOptions {
   deckId: string;

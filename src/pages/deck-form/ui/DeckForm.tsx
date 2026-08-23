@@ -16,8 +16,8 @@ interface DeckFormFields {
 export interface DeckFormProps {
   deckInfo: {
     id: DeckId;
-    createdAt?: string;
-    updatedAt?: string;
+    createdAt: string;
+    updatedAt: string;
   };
   fields: DeckFormFields;
   isLocalOnly: boolean;
@@ -124,18 +124,14 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
             <dt className="font-medium text-ink-muted">ID</dt>
             <dd className="break-all text-ink">{props.deckInfo.id}</dd>
           </div>
-          {props.deckInfo.createdAt !== undefined && (
-            <div>
-              <dt className="font-medium text-ink-muted">Created</dt>
-              <dd className="text-ink">{props.deckInfo.createdAt}</dd>
-            </div>
-          )}
-          {props.deckInfo.updatedAt !== undefined && (
-            <div>
-              <dt className="font-medium text-ink-muted">Updated</dt>
-              <dd className="text-ink">{props.deckInfo.updatedAt}</dd>
-            </div>
-          )}
+          <div>
+            <dt className="font-medium text-ink-muted">Created</dt>
+            <dd className="text-ink">{props.deckInfo.createdAt}</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-ink-muted">Updated</dt>
+            <dd className="text-ink">{props.deckInfo.updatedAt}</dd>
+          </div>
         </dl>
       </details>
       <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
