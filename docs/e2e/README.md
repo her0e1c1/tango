@@ -5,6 +5,7 @@
 - `mise run e2e` で Playwright を実行する。
 - Deck / Card は Firestore emulator または localStorage、Config / Study session は localStorage に保存し、
   Firebase Auth API は mock する。
+- Google など外部 identity provider の画面操作は対象外とし、Account E2E ではアプリ内の認証状態とデータ境界を確認する。
 - E2E は代表的な利用者導線を対象とし、各 validation rule や設定・入力手段の組み合わせは
   unit / component test で確認する。
 
@@ -35,7 +36,7 @@
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
 | ACCOUNT-01 | batch | [匿名アカウントを Google アカウントに連携してデータを維持できる](./account.md#account-01) |
-| ACCOUNT-02 | write | [Google sign-in 失敗後に再試行できる](./account.md#account-02) |
+| ACCOUNT-02 | write | [Google sign-in のエラー表示から再試行できる](./account.md#account-02) |
 | ACCOUNT-03 | batch | [sign-out 後に新しい匿名アカウントへ切り替えられる](./account.md#account-03) |
 
 ### Settings
