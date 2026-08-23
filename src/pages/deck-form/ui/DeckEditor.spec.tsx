@@ -133,6 +133,28 @@ describe("DeckEditor", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
   });
 
+  it("does not navigate when saving finishes after leaving the editor", async () => {
+    let finishSave: () => void = () => undefined;
+    writeControls.beforeWrite = () =>
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      });
+    const onSaved = vi.fn();
+    const view = renderForm(onSaved);
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Saved after leaving");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    view.unmount();
+    finishSave();
+    renderForm();
+
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Saved after leaving" })).toBeVisible());
+    expect(onSaved).not.toHaveBeenCalled();
+  });
+
   it("removes a cleared optional URL from the stored Deck", async () => {
     await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", url: "https://example.com/deck.csv" }));
     const onSaved = vi.fn();
