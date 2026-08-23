@@ -3,7 +3,6 @@
 ## 前提
 
 - `mise run e2e` で Playwright を実行する。
-- 具体的な fixture 値はテスト実装を正とし、仕様書には記載しない。
 - Deck / Card は Firestore emulator または localStorage、Config / Study session は localStorage に保存し、
   Firebase Auth API は mock する。
 - E2E は代表的な利用者導線を対象とし、各 validation rule や設定・入力手段の組み合わせは
@@ -11,12 +10,9 @@
 
 ## カテゴリ
 
-- `read`: テスト中に永続データを変更しない。
-- `write`: 1つの論理操作による変更を永続化する。
+- `read`: 永続データを変更せず、並列実行の対象とする。
+- `write`: ケースごとに分離したデータへ1つの論理操作を永続化し、並列実行の対象とする。
 - `batch`: Deck / Card 群、保存先、認証スコープなど複数のリソースを一括で変更する。
-
-カテゴリは、永続化の変更範囲を示す。共有状態が競合する場合は、テストケースごとに一意な fixture を使うか、
-同じデータを扱うテストを serial 実行する。
 
 ## 共通の期待結果
 
