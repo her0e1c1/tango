@@ -25,6 +25,9 @@ ps = "docker compose ps"
 [tasks.git-cleanup]
 file = "scripts/cleanup-branches.sh"
 
+[tasks.setup-github-oidc]
+file = "scripts/setup-github-oidc.sh"
+
 [tasks.init]
 depends = ["init-deps"]
 run = "test -f .env || cp .env.example .env"
