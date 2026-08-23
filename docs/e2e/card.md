@@ -15,130 +15,101 @@ Card 管理の主要導線が、ブラウザ上で表示・編集・削除・状
 | CARD-05 | write | [Card の swipe 操作で score を更新できる](#card-05) |
 
 <a id="card-01"></a>
+
 ### CARD-01 Card 一覧を表示できる
 
-**カテゴリ:** `read`
+カテゴリ: `read`
 
-**Given**
+Given:
 
 - `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
 
-**When**
+When:
 
 - 対象 deck の詳細画面を開く。
 
-**Then**
+Then:
 
 - card の front text が表示される。
 - score と学習回数が表示される。
 - browser error が発生しない。
 
 <a id="card-02"></a>
+
 ### CARD-02 Card の裏面を overlay で確認できる
 
-**カテゴリ:** `read`
+カテゴリ: `read`
 
-**Given**
+Given:
 
 - `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
 
-**When**
+When:
 
-- 対象 deck の詳細画面を開く。
-- card の front text をクリックする。
+- 対象 deck の詳細画面を開き、card の裏面を表示して閉じる。
 
-**Then**
+Then:
 
-- overlay に card の back text が表示される。
-
-**When**
-
-- overlay をクリックする。
-
-**Then**
-
-- overlay が閉じる。
+- overlay で card の back text を確認できる。
+- overlay を閉じられる。
 - browser error が発生しない。
 
 <a id="card-03"></a>
+
 ### CARD-03 Card 編集内容を保存して前画面に戻れる
 
-**カテゴリ:** `write`
+カテゴリ: `write`
 
-**Given**
+Given:
 
 - `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
 
-**When**
+When:
 
-- 対象 deck の詳細画面を開く。
-- card の edit icon をクリックする。
+- Card の front text、back text、tags を編集して保存し、変更後の裏面を確認する。
 
-**Then**
-
-- card 編集画面に遷移する。
-
-**When**
-
-- front text、back text、tags を別の値に変更して submit する。
-
-**Then**
+Then:
 
 - Deck 詳細画面に戻る。
 - card 一覧に変更後の front text が表示される。
-
-**When**
-
-- 変更後の front text をクリックする。
-
-**Then**
-
 - overlay に変更後の back text が表示される。
 - browser error が発生しない。
 
 <a id="card-04"></a>
+
 ### CARD-04 Card を削除できる
 
-**カテゴリ:** `write`
+カテゴリ: `write`
 
-**Given**
+Given:
 
 - `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
 
-**When**
+When:
 
-- 対象 deck の詳細画面を開く。
-- card の delete icon をクリックする。
-- confirm dialog で OK を選択する。
+- 対象 deck の詳細画面から card を削除する。
 
-**Then**
+Then:
 
 - card 一覧に削除した card が表示されない。
 - browser error が発生しない。
 
 <a id="card-05"></a>
+
 ### CARD-05 Card の swipe 操作で score を更新できる
 
-**カテゴリ:** `write`
+カテゴリ: `write`
 
-**Given**
+Given:
 
 - `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
 
-**When**
+When:
 
-- 対象 deck の詳細画面を開く。
-- card を右方向に swipe する。
+- 対象 deck の詳細画面で card を右方向に swipe した後、左方向に swipe する。
 
-**Then**
+Then:
 
-- card の score が増える。
-
-**When**
-
-- card を左方向に swipe する。
-
-**Then**
-
-- card の score が減る。
+- 右方向の swipe で card の score が増える。
+- 左方向の swipe で card の score が減る。
 - browser error が発生しない。
