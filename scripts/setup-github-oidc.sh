@@ -195,6 +195,13 @@ gcloud iam workload-identity-pools update "$POOL_ID" \
     --attribute-condition="$ATTRIBUTE_CONDITION" \
     --quiet
 
+# Self-uploaded JWKs override the public keys discovered from GitHub's issuer.
+# Google documents that passing an empty file removes every uploaded JWK and
+# returns validation to the issuer's discovery endpoint. The temporary file is
+# removed automatically whether this script succeeds or fails.
+empty_jwk_file=$(mktemp)
+trap 'rm -f "$empty_jwk_file"' EXIT
+
 gcloud iam workload-identity-pools providers update-oidc "$PROVIDER_ID" \
   --project="$PROJECT_ID" \
   --location="$LOCATION" \
@@ -205,6 +212,7 @@ gcloud iam workload-identity-pools providers update-oidc "$PROVIDER_ID" \
   --allowed-audiences="" \
   --attribute-mapping="$ATTRIBUTE_MAPPING" \
   --attribute-condition="$ATTRIBUTE_CONDITION" \
+  --jwk-json-path="$empty_jwk_file" \
   --quiet
 
 # Project roles determine what the service account can deploy after successful
