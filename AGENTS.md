@@ -37,5 +37,6 @@
 
 ## Testing
 
+- Do not add test code for non-application code.
 - Write tests against observable behavior so they remain stable under refactoring.
 - Do not write tests that depend on implementation details.
