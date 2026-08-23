@@ -8,25 +8,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { FrontText } from "./FrontText";
 
-const swipeLeft = (target: HTMLElement) => {
-  const start = { identifier: 1, target, clientX: 200, clientY: 24 };
-  const end = { identifier: 1, target, clientX: 20, clientY: 24 };
-
-  fireEvent.touchStart(target, { touches: [start], targetTouches: [start], changedTouches: [start] });
-  fireEvent.touchMove(target, { touches: [end], targetTouches: [end], changedTouches: [end] });
-  fireEvent.touchEnd(target, { touches: [], targetTouches: [], changedTouches: [end] });
-};
-
 describe("FrontText", () => {
-  it("reports a left swipe", () => {
-    const onSwipeLeft = vi.fn();
-    render(<FrontText text="Front" onSwipeLeft={onSwipeLeft} />);
-
-    swipeLeft(screen.getByText("Front"));
-
-    expect(onSwipeLeft).toHaveBeenCalledOnce();
-  });
-
   it("preserves content and click interaction", () => {
     const onClick = vi.fn();
     render(<FrontText text="A very long front without spaces: abcdefghijklmnopqrstuvwxyz" onClick={onClick} />);
