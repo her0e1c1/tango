@@ -48,17 +48,13 @@ const renderStudyScreen = (state: StudyState | undefined, onExit: () => void) =>
         showController={state.showController}
         showBackText={state.showBackText}
         showSwipeButtonList={state.showSwipeButtonList}
+        onSwipeUp={swipeActions.onClickUp}
+        onSwipeDown={swipeActions.onClickDown}
+        onSwipeLeft={swipeActions.onClickLeft}
+        onSwipeRight={swipeActions.onClickRight}
         {...(state.swipeFeedback !== undefined ? { swipeFeedback: state.swipeFeedback } : {})}
         frontTextSlot={
-          <FrontText
-            category={state.card.category}
-            text={state.card.frontText}
-            onSwipeUp={swipeActions.onClickUp}
-            onSwipeDown={swipeActions.onClickDown}
-            onSwipeLeft={swipeActions.onClickLeft}
-            onSwipeRight={swipeActions.onClickRight}
-            onClick={state.toggleBackText}
-          />
+          <FrontText category={state.card.category} text={state.card.frontText} onClick={state.toggleBackText} />
         }
         cardOverlaySlot={
           <CardOverlay

@@ -6,6 +6,24 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { StudySession } from "./StudySession";
 
+const swipeLeft = (target: HTMLElement) => {
+  const start = { identifier: 1, target, clientX: 200, clientY: 24 };
+  const end = { identifier: 1, target, clientX: 20, clientY: 24 };
+
+  fireEvent.touchStart(target, { touches: [start], targetTouches: [start], changedTouches: [start] });
+  fireEvent.touchMove(target, { touches: [end], targetTouches: [end], changedTouches: [end] });
+  fireEvent.touchEnd(target, { touches: [], targetTouches: [], changedTouches: [end] });
+};
+
+const swipeUp = (target: HTMLElement) => {
+  const start = { identifier: 1, target, clientX: 24, clientY: 200 };
+  const end = { identifier: 1, target, clientX: 24, clientY: 20 };
+
+  fireEvent.touchStart(target, { touches: [start], targetTouches: [start], changedTouches: [start] });
+  fireEvent.touchMove(target, { touches: [end], targetTouches: [end], changedTouches: [end] });
+  fireEvent.touchEnd(target, { touches: [], targetTouches: [], changedTouches: [end] });
+};
+
 describe("StudySession", () => {
   it("gives swipe overlays accessible names", () => {
     render(
@@ -50,5 +68,32 @@ describe("StudySession", () => {
     fireEvent.click(exit);
 
     expect(onExit).toHaveBeenCalledOnce();
+  });
+
+  it("reports a swipe performed on the back text", () => {
+    const onSwipeLeft = vi.fn();
+    render(<StudySession onExit={vi.fn()} showBackText backTextSlot={<div>Back</div>} onSwipeLeft={onSwipeLeft} />);
+
+    swipeLeft(screen.getByText("Back"));
+
+    expect(onSwipeLeft).toHaveBeenCalledOnce();
+  });
+
+  it("reserves vertical drags on the back text for scrolling", () => {
+    const onSwipeUp = vi.fn();
+    render(<StudySession onExit={vi.fn()} showBackText backTextSlot={<div>Long back</div>} onSwipeUp={onSwipeUp} />);
+
+    swipeUp(screen.getByText("Long back"));
+
+    expect(onSwipeUp).not.toHaveBeenCalled();
+  });
+
+  it("reports a vertical swipe performed on the front text", () => {
+    const onSwipeUp = vi.fn();
+    render(<StudySession onExit={vi.fn()} frontTextSlot={<div>Front</div>} onSwipeUp={onSwipeUp} />);
+
+    swipeUp(screen.getByText("Front"));
+
+    expect(onSwipeUp).toHaveBeenCalledOnce();
   });
 });

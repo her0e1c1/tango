@@ -40,10 +40,7 @@ const cloneCard = (card: RemoteCard): RemoteCard => ({
   ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(card.nextSeeingAt.getTime()) }),
 });
 
-/**
- * Rehydrates persisted stores and replaces their values with one story's deterministic fixture.
- * Running this in a Storybook loader guarantees study hydration is complete before the route renders.
- */
+// Reset every store before seeding it so navigation between stories cannot leak state.
 export const preparePageStory = (parameters: PageStoryParameters): void => {
   clearStudySessions();
 
@@ -76,7 +73,6 @@ export const preparePageStory = (parameters: PageStoryParameters): void => {
   replaceRemoteCards(cards);
 };
 
-/** Wraps a page story with the providers normally supplied by the application entry point. */
 export const withPageStory: Decorator = (Story, context) => {
   const parameters = context.parameters.page as PageStoryParameters | undefined;
   if (parameters == null) throw new Error("Page stories require parameters.page");
