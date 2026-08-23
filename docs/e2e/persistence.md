@@ -19,7 +19,7 @@ remote data が認証 UID ごとに分離され、永続 cache と queued write 
 
 Given:
 
-- Fixture: [`two-users`](./fixture/two-users.yaml)
+- Fixture: [`two-users`](./fixture/read/two-users.yaml)
 - 異なる UID の認証済みユーザーが、それぞれ固有の remote Deck と Card を所有している。
 - 各ユーザーで認証した独立した browser context がある。
 - 各 browser context で Sample Deck の自動生成が無効であり、local-only Deck と Card は存在しない。
@@ -42,7 +42,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-card`](./fixture/batch/remote-deck-with-card.yaml)
 - 認証済みユーザーが remote の Deck と Card を所有している。
 - primary browser は対象の Deck と Card を永続 cache に読み込み、offline で reload した後も対象 Card を表示している。
 - 同じ UID で認証した online の verification browser context がある。
