@@ -31,27 +31,21 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const Inactive: Story = {};
-
 export const WithStudyProgress: Story = {
   args: {
     studyProgress: {
       currentIndex: 0,
       cardCount: 3,
-      lastStudiedAt: Date.now() - 5 * 60 * 1000,
+      lastStudiedAt: fixture.timestamp - 5 * 60 * 1000,
     },
   },
 };
-
-export const Active: Story = WithStudyProgress;
 
 export const TooLongName: Story = {
   args: {
     deck: fixture.deck.tooLongName,
   },
 };
-
-export const LongTitle: Story = TooLongName;
 
 export const IphoneX: Story = {
   parameters: {
@@ -60,8 +54,6 @@ export const IphoneX: Story = {
     },
   },
 };
-
-export const MobileLight: Story = IphoneX;
 
 export const Dark: Story = {
   globals: {

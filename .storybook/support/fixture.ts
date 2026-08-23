@@ -11,6 +11,9 @@ import type { Preferences } from "@/entities/preference";
 import type { Option } from "@/shared/ui/forms/Select";
 import { createCard, createDeck, createPreferences } from "@/test/factories";
 
+// Keeps time-based Storybook inputs stable without coupling production code to a Storybook clock.
+export const timestamp = Date.UTC(2026, 6, 1, 12, 0, 0);
+
 export const form = {
   options: {
     default: [
@@ -73,7 +76,7 @@ export const card = {
     score: 3,
     numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: Date.now(),
+    lastSeenAt: timestamp,
   }),
   long: createCard({
     frontText: "too long front text ".repeat(20),
@@ -81,7 +84,7 @@ export const card = {
     score: 3,
     numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: Date.now(),
+    lastSeenAt: timestamp,
   }),
   toolong: createCard({
     frontText: "too long front text ".repeat(20),
@@ -89,7 +92,7 @@ export const card = {
     score: 3,
     numberOfSeen: 5,
     tags: ["tag1", "tag2"],
-    lastSeenAt: Date.now(),
+    lastSeenAt: timestamp,
   }),
   longTags: createCard({
     frontText: "front text",
@@ -97,7 +100,7 @@ export const card = {
     score: 3,
     numberOfSeen: 5,
     tags: tags.toolong,
-    lastSeenAt: Date.now(),
+    lastSeenAt: timestamp,
   }),
 } as const satisfies Record<string, Card>;
 
