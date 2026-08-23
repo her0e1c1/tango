@@ -13,11 +13,13 @@ interface DeckFormFields {
   category: React.ComponentProps<typeof Select>;
 }
 
+const formatDate = (timestamp: number): string => new Date(timestamp).toLocaleDateString();
+
 export interface DeckFormProps {
   deckInfo: {
     id: DeckId;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: number;
+    updatedAt: number;
   };
   fields: DeckFormFields;
   isLocalOnly: boolean;
@@ -126,11 +128,11 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           </div>
           <div>
             <dt className="font-medium text-ink-muted">Created</dt>
-            <dd className="text-ink">{props.deckInfo.createdAt}</dd>
+            <dd className="text-ink">{formatDate(props.deckInfo.createdAt)}</dd>
           </div>
           <div>
             <dt className="font-medium text-ink-muted">Updated</dt>
-            <dd className="text-ink">{props.deckInfo.updatedAt}</dd>
+            <dd className="text-ink">{formatDate(props.deckInfo.updatedAt)}</dd>
           </div>
         </dl>
       </details>

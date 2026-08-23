@@ -17,8 +17,8 @@ const longDeck = {
 const createForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
   deckInfo: {
     id: deck.id,
-    createdAt: new Date(deck.createdAt).toLocaleDateString(),
-    updatedAt: new Date(deck.updatedAt).toLocaleDateString(),
+    createdAt: deck.createdAt,
+    updatedAt: deck.updatedAt,
   },
   fields: {
     name: { defaultValue: deck.name },

@@ -10,8 +10,8 @@ import { DeckForm, type DeckFormProps } from "./DeckForm";
 const createDeckForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
   deckInfo: {
     id: deck.id,
-    createdAt: "July 1, 2026",
-    updatedAt: "July 14, 2026",
+    createdAt: deck.createdAt,
+    updatedAt: deck.updatedAt,
   },
   fields: {
     name: { defaultValue: deck.name },

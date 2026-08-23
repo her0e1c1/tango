@@ -27,12 +27,6 @@ const getDeckEditInput = (deck: Deck, values: DeckFormValues): Parameters<typeof
   url: values.url ?? null,
 });
 
-const getDeckInfo = (deck: Deck) => ({
-  id: deck.id,
-  createdAt: new Date(deck.createdAt).toLocaleDateString(),
-  updatedAt: new Date(deck.updatedAt).toLocaleDateString(),
-});
-
 interface UseDeckFormStateOptions {
   deckId: string;
   onCancel: () => void;
@@ -66,7 +60,11 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
   };
 
   const form = {
-    deckInfo: getDeckInfo(deck),
+    deckInfo: {
+      id: deck.id,
+      createdAt: deck.createdAt,
+      updatedAt: deck.updatedAt,
+    },
     fields: {
       name: register("name"),
       convertToBr: register("convertToBr"),
