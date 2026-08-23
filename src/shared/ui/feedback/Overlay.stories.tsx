@@ -45,6 +45,14 @@ export const Bottom: Story = {
   },
 };
 
+export const Transparent: Story = {
+  args: {
+    position: "center",
+    variant: "transparent",
+    children: "Content remains visible beneath this overlay",
+  },
+};
+
 export const LongMobile: Story = {
   args: {
     position: "center",

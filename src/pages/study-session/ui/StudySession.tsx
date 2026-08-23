@@ -73,35 +73,19 @@ const SwipeFeedback: React.FC<{
 
 const BackTextOverlays: React.FC<{ swipeOverlay: SwipeButtonListProps | undefined }> = ({ swipeOverlay }) => {
   // Gesture hit zones must remain visually neutral so the full-width answer stays readable beneath them.
-  const overlayClassName = "bg-transparent shadow-none";
   return (
     <>
       {swipeOverlay?.onClickLeft !== undefined ? (
-        <Overlay
-          position="left"
-          ariaLabel="Swipe left"
-          className={overlayClassName}
-          onClick={swipeOverlay.onClickLeft}
-        />
+        <Overlay position="left" variant="transparent" ariaLabel="Swipe left" onClick={swipeOverlay.onClickLeft} />
       ) : null}
       {swipeOverlay?.onClickRight !== undefined ? (
-        <Overlay
-          position="right"
-          ariaLabel="Swipe right"
-          className={overlayClassName}
-          onClick={swipeOverlay.onClickRight}
-        />
+        <Overlay position="right" variant="transparent" ariaLabel="Swipe right" onClick={swipeOverlay.onClickRight} />
       ) : null}
       {swipeOverlay?.onClickUp !== undefined ? (
-        <Overlay position="top" ariaLabel="Swipe up" className={overlayClassName} onClick={swipeOverlay.onClickUp} />
+        <Overlay position="top" variant="transparent" ariaLabel="Swipe up" onClick={swipeOverlay.onClickUp} />
       ) : null}
       {swipeOverlay?.onClickDown !== undefined ? (
-        <Overlay
-          position="bottom"
-          ariaLabel="Swipe down"
-          className={overlayClassName}
-          onClick={swipeOverlay.onClickDown}
-        />
+        <Overlay position="bottom" variant="transparent" ariaLabel="Swipe down" onClick={swipeOverlay.onClickDown} />
       ) : null}
     </>
   );

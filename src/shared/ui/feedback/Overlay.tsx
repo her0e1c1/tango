@@ -17,6 +17,7 @@ import { useButtonInteraction } from "../button-interaction";
 export const Overlay: React.FC<{
   className?: string;
   position: "left" | "right" | "top" | "bottom" | "center";
+  variant?: "surface" | "transparent";
   onClick?: () => void;
   ariaLabel?: string;
   children?: React.ReactNode;
@@ -27,8 +28,10 @@ export const Overlay: React.FC<{
       {...clickInteraction}
       {...(props.onClick !== undefined && props.ariaLabel !== undefined ? { "aria-label": props.ariaLabel } : {})}
       className={cx(
-        "absolute z-30 max-h-full max-w-full overflow-x-hidden overflow-y-auto rounded-control bg-surface-elevated text-ink shadow-elevated",
-        props.position === "center" &&
+        "absolute z-30 max-h-full max-w-full overflow-x-hidden overflow-y-auto rounded-control text-ink",
+        props.variant !== "transparent" && "bg-surface-elevated shadow-elevated",
+        props.variant !== "transparent" &&
+          props.position === "center" &&
           "before:pointer-events-none before:fixed before:inset-0 before:-z-10 before:bg-canvas/70",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2",
         ["left", "right"].includes(props.position) && "w-20",
