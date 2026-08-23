@@ -1,0 +1,67 @@
+auth:
+  users:
+    - uid: user-a
+      provider: anonymous
+    - uid: user-b
+      provider: anonymous
+remote:
+  decks:
+    - id: deck-a
+      uid: user-a
+      localMode: false
+      name: User A Deck
+      isPublic: false
+      scoreMax: null
+      scoreMin: null
+      selectedTags: []
+      tagAndFilter: false
+      category: English
+      convertToBr: false
+      createdAt: 1700000000000
+      updatedAt: 1700000000000
+    - id: deck-b
+      uid: user-b
+      localMode: false
+      name: User B Deck
+      isPublic: false
+      scoreMax: null
+      scoreMin: null
+      selectedTags: []
+      tagAndFilter: false
+      category: English
+      convertToBr: false
+      createdAt: 1700000001000
+      updatedAt: 1700000001000
+  cards:
+    - id: card-a
+      deckId: deck-a
+      uid: user-a
+      frontText: user a card
+      backText: user a answer
+      tags: []
+      uniqueKey: user-a-card
+      deletedAt: null
+      score: 0
+      numberOfSeen: 0
+      interval: 0
+      createdAt: 1700000000000
+      updatedAt: 1700000000000
+    - id: card-b
+      deckId: deck-b
+      uid: user-b
+      frontText: user b card
+      backText: user b answer
+      tags: []
+      uniqueKey: user-b-card
+      deletedAt: null
+      score: 0
+      numberOfSeen: 0
+      interval: 0
+      createdAt: 1700000001000
+      updatedAt: 1700000001000
+browser:
+  preferences:
+    loadSample: false
+  localDecks: []
+  localCards: []
+  studySessions: {}
