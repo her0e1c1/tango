@@ -7,15 +7,14 @@ readonly PROVIDER_ID="tango"
 readonly SERVICE_ACCOUNT_ID="firebase-deployer"
 readonly SERVICE_ACCOUNT_EMAIL="${SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
 readonly REPOSITORY_ID="118316857"
-readonly REPOSITORY="her0e1c1/tango"
 readonly BRANCH_REF="refs/heads/main"
 readonly ENVIRONMENT="production"
 readonly LOCATION="global"
 readonly OIDC_ISSUER="https://token.actions.githubusercontent.com"
 
-readonly ATTRIBUTE_MAPPING="google.subject=assertion.sub,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref"
+readonly ATTRIBUTE_MAPPING="google.subject=assertion.sub,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref,attribute.environment=assertion.environment"
 # The immutable repository ID prevents a renamed or recreated repository from inheriting production access.
-readonly ATTRIBUTE_CONDITION="attribute.repository_id == '${REPOSITORY_ID}' && attribute.ref == '${BRANCH_REF}' && assertion.sub == 'repo:${REPOSITORY}:environment:${ENVIRONMENT}'"
+readonly ATTRIBUTE_CONDITION="attribute.repository_id == '${REPOSITORY_ID}' && attribute.ref == '${BRANCH_REF}' && attribute.environment == '${ENVIRONMENT}'"
 
 DEPLOY_ROLES=(
   "roles/firebasehosting.admin"
@@ -91,13 +90,16 @@ IFS=$'\t' read -r existing_service_account service_account_disabled <<<"$service
 readonly POOL_RESOURCE_NAME="projects/${project_number}/locations/${LOCATION}/workloadIdentityPools/${POOL_ID}"
 readonly PROVIDER_RESOURCE_NAME="${POOL_RESOURCE_NAME}/providers/${PROVIDER_ID}"
 
-existing_pool=$(
+pool_info=$(
   gcloud iam workload-identity-pools list \
     --project="$PROJECT_ID" \
     --location="$LOCATION" \
     --filter="name=${POOL_RESOURCE_NAME}" \
-    --format="value(name)"
+    --format="value(name,disabled)"
 )
+IFS=$'\t' read -r existing_pool pool_disabled <<<"$pool_info"
+[[ "$pool_disabled" != "True" && "$pool_disabled" != "true" ]] ||
+  die "The ${POOL_ID} pool is disabled; review and re-enable it explicitly before retrying."
 [[ "$existing_pool" == "$POOL_RESOURCE_NAME" ]] ||
   gcloud iam workload-identity-pools create "$POOL_ID" \
     --project="$PROJECT_ID" \
@@ -106,29 +108,32 @@ existing_pool=$(
     --description="External identities used by GitHub Actions" \
     --quiet
 
-provider_names=$(
+provider_info=$(
   gcloud iam workload-identity-pools providers list \
     --project="$PROJECT_ID" \
     --location="$LOCATION" \
     --workload-identity-pool="$POOL_ID" \
-    --format="value(name)"
+    --format="value(name,disabled)"
 )
 
 # Workload Identity principals are pool-scoped, so sharing this pool could bypass this provider's branch and environment checks.
-while IFS= read -r provider_name; do
+existing_provider=""
+while IFS=$'\t' read -r provider_name provider_disabled; do
   [[ -z "$provider_name" || "$provider_name" == "$PROVIDER_RESOURCE_NAME" ]] ||
     die "The ${POOL_ID} pool contains another provider (${provider_name}); use a dedicated pool before retrying."
-done <<<"$provider_names"
+  [[ "$provider_disabled" != "True" && "$provider_disabled" != "true" ]] ||
+    die "The ${PROVIDER_ID} provider is disabled; review and re-enable it explicitly before retrying."
+  [[ "$provider_name" != "$PROVIDER_RESOURCE_NAME" ]] || existing_provider="$provider_name"
+done <<<"$provider_info"
 
 gcloud iam workload-identity-pools update "$POOL_ID" \
   --project="$PROJECT_ID" \
   --location="$LOCATION" \
   --display-name="GitHub Actions" \
   --description="External identities used by GitHub Actions" \
-  --no-disabled \
   --quiet
 
-[[ "$provider_names" == "$PROVIDER_RESOURCE_NAME" ]] ||
+[[ "$existing_provider" == "$PROVIDER_RESOURCE_NAME" ]] ||
   gcloud iam workload-identity-pools providers create-oidc "$PROVIDER_ID" \
     --project="$PROJECT_ID" \
     --location="$LOCATION" \
@@ -150,7 +155,6 @@ gcloud iam workload-identity-pools providers update-oidc "$PROVIDER_ID" \
   --allowed-audiences="" \
   --attribute-mapping="$ATTRIBUTE_MAPPING" \
   --attribute-condition="$ATTRIBUTE_CONDITION" \
-  --no-disabled \
   --quiet
 
 for role in "${DEPLOY_ROLES[@]}"; do
