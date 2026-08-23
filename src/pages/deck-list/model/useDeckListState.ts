@@ -9,33 +9,52 @@ import {
 
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
+type StudyProgress = {
+  currentIndex: number;
+  cardCount: number;
+  lastStudiedAt: StudySession["lastStudiedAt"];
+};
+
+type DeckListItem = {
+  deck: Pick<Deck, "id" | "name" | "category" | "isPublic">;
+  cardCount: number;
+  studyProgress?: StudyProgress;
+};
+
+type StudyingDeckListItem = DeckListItem & {
+  studyProgress: StudyProgress;
+};
+
+type DeckListSections = {
+  studying: StudyingDeckListItem[];
+  other: DeckListItem[];
+};
+
+const toStudyProgress = (session: StudySession): StudyProgress => ({
+  currentIndex: session.currentIndex,
+  cardCount: session.cardOrderIds.length,
+  lastStudiedAt: session.lastStudiedAt,
+});
+
 const buildDeckListSections = (
   decks: Deck[],
   cards: Card[],
   sessionsByDeckId: Partial<Record<DeckId, StudySession>>
-) => {
+): DeckListSections => {
   const cardCounts = countCardsByDeckId(cards);
-  const createItem = (deck: Pick<Deck, "id" | "name" | "category" | "isPublic">, session?: StudySession) => ({
+  const { active, inactive } = groupDecksByStudyStatus(decks, sessionsByDeckId);
+
+  const studying = active.sort(compareActiveDecks).map(({ deck, session }) => ({
     deck,
     cardCount: cardCounts.get(deck.id) ?? 0,
-    ...(session == null
-      ? {}
-      : {
-          studyProgress: {
-            currentIndex: session.currentIndex,
-            cardCount: session.cardOrderIds.length,
-            lastStudiedAt: session.lastStudiedAt,
-          },
-        }),
-  });
-  const { active: studyingDecks, inactive: otherDecks } = groupDecksByStudyStatus(decks, sessionsByDeckId);
-  studyingDecks.sort(compareActiveDecks);
-  otherDecks.sort(compareDeckNames);
+    studyProgress: toStudyProgress(session),
+  }));
+  const other = inactive.sort(compareDeckNames).map((deck) => ({
+    deck,
+    cardCount: cardCounts.get(deck.id) ?? 0,
+  }));
 
-  return {
-    studying: studyingDecks.map(({ deck, session }) => createItem(deck, session)),
-    other: otherDecks.map((deck) => createItem(deck)),
-  };
+  return { studying, other };
 };
 
 export const useDeckListState = () => {
