@@ -17,11 +17,12 @@
 
 ## Fixture
 
-- `fixture/*.yaml` を E2E 開始時の論理的な永続状態の仕様とする。
+- `fixture/read/*.yaml`、`fixture/write/*.yaml`、`fixture/batch/*.yaml` を E2E 開始時の論理的な永続状態の仕様とする。
+- fixture はテストケースのカテゴリと同じディレクトリから選択する。
 - 各テストケースは `Given` の先頭で使用する fixture を明示する。
 - `auth.users` は mock する認証 identity、`remote` は Firestore emulator、`browser` は localStorage に保存する状態を表す。
 - fixture 内の ID と UID は論理 ID とし、`write` / `batch` ではテストケースごとの namespace に展開して他ケースと共有しない。
-- `read` では共有 fixture を利用できるが、fixture の永続状態を変更してはならない。
+- `read` では `fixture/read/` の共有 fixture を利用できるが、fixture の永続状態を変更してはならない。
 - fixture に記述していない preference は E2E の既定値を利用する。
 - 認証失敗、network failure、dialog の表示状態など永続状態ではない前提は fixture に含めず、各ケースの `Given` に記述する。
 
