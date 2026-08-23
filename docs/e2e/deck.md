@@ -13,68 +13,61 @@ Deck 管理の主要導線が、ブラウザ上で画面遷移・状態更新ま
 | DECK-03 | write | [Deck を削除できる](#deck-03) |
 
 <a id="deck-01"></a>
+
 ### DECK-01 Deck 一覧から詳細へ遷移できる
 
-**カテゴリ:** `read`
+カテゴリ: `read`
 
-**Given**
+Given:
 
 - `docs/e2e/seed.md` の Deck/Card が localStorage に保存されている。
 
-**When**
+When:
 
-- `/` を開く。
+- Deck 一覧を開き、deck 名を選択する。
 
-**Then**
+Then:
 
 - 一覧に deck 名が表示される。
-
-**When**
-
-- deck 名をクリックする。
-
-**Then**
-
 - deck 詳細画面に遷移する。
 - card 一覧に card が表示される。
 - browser error が発生しない。
 
 <a id="deck-02"></a>
+
 ### DECK-02 Deck 編集内容を保存して一覧に戻れる
 
-**カテゴリ:** `write`
+カテゴリ: `write`
 
-**Given**
+Given:
 
 - `docs/e2e/seed.md` の Deck が localStorage に保存されている。
 
-**When**
+When:
 
-- deck 編集画面を開く。
-- deck name を別の値に変更して submit する。
+- deck name を編集して保存する。
 
-**Then**
+Then:
 
-- URL が `/` になる。
+- Deck 一覧に戻る。
 - 一覧に変更後の deck 名が表示される。
 - browser error が発生しない。
 
 <a id="deck-03"></a>
+
 ### DECK-03 Deck を削除できる
 
-**カテゴリ:** `write`
+カテゴリ: `write`
 
-**Given**
+Given:
 
 - `docs/e2e/seed.md` の Deck が localStorage に保存されている。
 
-**When**
+When:
 
-- `/` を開く。
-- deck の delete icon をクリックする。
-- confirm dialog で OK を選択する。
+- Deck 一覧から deck を削除する。
 
-**Then**
+Then:
 
 - 一覧に deck が表示されない。
 - browser error が発生しない。
