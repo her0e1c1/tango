@@ -6,14 +6,14 @@ import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { prepareDeckImport } from "./useDeckImportExecution";
 
-interface DeckImportPreview {
-  deckName: string;
-  analysis: DeckImportAnalysis;
-}
-
 interface DeckImportPreviewState {
   storageMode: DeckImportStorageMode;
-  preview: DeckImportPreview | undefined;
+  preview:
+    | {
+        deckName: string;
+        analysis: DeckImportAnalysis;
+      }
+    | undefined;
   error: unknown;
 }
 
