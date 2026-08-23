@@ -1,5 +1,5 @@
 import { matchesDeckTagSelection } from "./domain";
-import type { Category, Deck, DeckId } from "./types";
+import type { Category, DeckId } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -52,14 +52,15 @@ export const getCategory = (category: Category, tags: string[]): Category => {
   return tagCategory ?? category;
 };
 
-// Converts the public filter projection into the domain rule input before matching Card tags.
+// Applies the Deck's all-or-any tag mode through the canonical domain rule.
 export const isDeckTagSelectionMatching = (
   candidateTags: readonly string[],
-  deck: Pick<Deck, "selectedTags" | "tagAndFilter">
+  selectedTags: readonly string[],
+  tagAndFilter: boolean
 ): boolean =>
   matchesDeckTagSelection(candidateTags, {
-    selectedTags: deck.selectedTags,
-    tagAndFilter: deck.tagAndFilter,
+    selectedTags,
+    tagAndFilter,
   });
 
 // Returns the requested Deck-like value or throws when its stable identity no longer resolves.

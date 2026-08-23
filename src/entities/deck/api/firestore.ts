@@ -1,4 +1,4 @@
-import type { Deck, DeckCreateInput, DeckId, EditDeckInput, RemoteDeck } from "../model/types";
+import type { DeckCreateInput, DeckId, EditDeckInput, RemoteDeck } from "../model/types";
 
 import {
   collection,
@@ -6,7 +6,6 @@ import {
   deleteField,
   doc,
   getDocs,
-  getDocsFromServer,
   onSnapshot,
   query,
   setDoc,
@@ -24,7 +23,6 @@ import {
   toDeckDomainFromCreate,
   toDeckDomainFromDocument,
   toDeckDomainFromStore,
-  toDeckView,
   toRemoteDeckStore,
 } from "../model/dto";
 import { createDeckSchema, deleteDeckSchema, editDeckSchema } from "../model/schema";
@@ -62,15 +60,6 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
     },
     onError
   );
-
-// Fetches an authoritative snapshot of active Deck views owned by one user.
-export const fetchDecks = async (uid: string): Promise<Deck[]> => {
-  const snapshot = await getDocsFromServer(query(collection(db, DECK_COLLECTION), where("uid", "==", uid)));
-  return snapshot.docs.flatMap((document) => {
-    const deck = readActiveRemoteDeckDomain(document.id, document.data());
-    return deck === undefined ? [] : [toDeckView(deck, false)];
-  });
-};
 
 // Validates a remote creation command, creates canonical domain state, and writes its Firestore document.
 export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<void> => {

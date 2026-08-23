@@ -5,7 +5,7 @@
  */
 
 import type { LocalCard, RemoteCard } from "@/entities/card/testing";
-import type { Deck } from "@/entities/deck";
+import type { LocalDeck, RemoteDeck } from "@/entities/deck/testing";
 import type { Preferences } from "@/entities/preference";
 
 type AppearancePreferences = Preferences["appearance"];
@@ -17,9 +17,7 @@ type SwipeAction = ControlPreferences["cardSwipeUp"];
  * Builds a complete test deck with predictable defaults and optional field overrides.
  * Tests can describe only the deck fields relevant to their scenario.
  */
-export const createDeck = (
-  overrides: Partial<Extract<Deck, { localMode: false }>> = {}
-): Extract<Deck, { localMode: false }> => ({
+export const createDeck = (overrides: Partial<RemoteDeck> = {}): RemoteDeck => ({
   id: "deck-id",
   uid: "user-id",
   localMode: false,
@@ -36,9 +34,7 @@ export const createDeck = (
   ...overrides,
 });
 
-export const createLocalDeck = (
-  overrides: Partial<Extract<Deck, { localMode: true }>> = {}
-): Extract<Deck, { localMode: true }> => ({
+export const createLocalDeck = (overrides: Partial<LocalDeck> = {}): LocalDeck => ({
   id: "local-deck-id",
   localMode: true,
   name: "Local Deck",

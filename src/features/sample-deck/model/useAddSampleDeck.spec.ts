@@ -1,5 +1,5 @@
 import type { Card, CardMutation } from "@/entities/card";
-import type { Deck, DeckCreateInput, LocalDeckCreateInput } from "@/entities/deck";
+import type { Deck, DeckCreateInput } from "@/entities/deck";
 
 import { renderHook, waitFor } from "@testing-library/react";
 import React, { type ReactNode } from "react";
@@ -33,7 +33,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
-    createDeck: (_uid: string, deck: DeckCreateInput | LocalDeckCreateInput) => {
+    createDeck: (_uid: string, deck: DeckCreateInput) => {
       const fields = {
         id: deck.id,
         name: deck.name,
@@ -47,9 +47,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         createdAt: 0,
         updatedAt: 0,
       };
-      const savedDeck: Deck = deck.localMode
-        ? { ...fields, localMode: true }
-        : { ...fields, uid: deck.uid, localMode: false };
+      const savedDeck: Deck = { ...fields, localMode: deck.localMode ?? false };
       repository.decks = [...repository.decks.filter(({ id }) => id !== savedDeck.id), savedDeck];
       return Promise.resolve();
     },

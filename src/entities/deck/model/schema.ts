@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
+export const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
 export const deckIdSchema = z.string().min(1, "Deck id is required");
 
 const editableDeckFieldsSchema = z.object({
@@ -15,12 +15,14 @@ const editableDeckFieldsSchema = z.object({
   convertToBr: z.boolean(),
 });
 
-export const deckFormSchema = editableDeckFieldsSchema.pick({
-  name: true,
-  category: true,
-  url: true,
-  convertToBr: true,
-});
+export const deckFormSchema = editableDeckFieldsSchema
+  .pick({
+    name: true,
+    category: true,
+    url: true,
+    convertToBr: true,
+  })
+  .extend({ localMode: z.boolean().optional() });
 
 const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
@@ -47,6 +49,7 @@ export const persistedDeckStateSchema = z.object({ localDecks: z.array(localDeck
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   id: deckIdSchema,
   url: editableDeckFieldsSchema.shape.url.nullable(),
+  localMode: z.boolean().optional(),
 });
 
 // Rejects local commands at the remote persistence boundary.

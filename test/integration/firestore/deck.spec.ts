@@ -3,7 +3,8 @@
  * The examples cover creating, updating, checking, and deleting Deck documents.
  */
 
-import type { Deck, DeckCreateInput } from "@/entities/deck";
+import type { DeckCreateInput } from "@/entities/deck";
+import type { RemoteDeck } from "@/entities/deck/testing";
 
 import "@/test/initializeTestFirestore";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
@@ -19,7 +20,7 @@ import { createCard, createDeck as createDeckFixture, createLocalCard, createLoc
 
 const uuid = Uuid.v4;
 
-const toFirestoreDeck = ({ localMode: _localMode, ...deck }: Extract<Deck, { localMode: false }>) => ({
+const toFirestoreDeck = ({ localMode: _localMode, ...deck }: RemoteDeck) => ({
   ...deck,
   deletedAt: null,
 });
@@ -68,7 +69,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       name: "updated",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies RemoteDeck & { currentIndex: number; cardOrderIds: string[] };
     await editDeck("uid", d, n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...toFirestoreDeck(d), name: "updated" });
@@ -97,7 +98,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await createDeck("uid", d);
     await Promise.all(cards.map((card) => createCardCommand("uid", card)));
 
-    await deleteDeck("uid", d.id);
+    await deleteDeck("uid", d);
 
     await expect(getDoc(doc(db, "deck", d.id))).rejects.toMatchObject({ code: "permission-denied" });
     await Promise.all(
