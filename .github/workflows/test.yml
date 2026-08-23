@@ -3,14 +3,39 @@ name: Test
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      upload-hosting-artifact:
+        description: Upload the production Hosting build for the calling workflow
+        type: boolean
+        default: false
+    secrets:
+      VITE_PROJECT_ID:
+        required: false
+      VITE_WEB_API_KEY:
+        required: false
   pull_request:
     branches:
       - "**"
+
+# Only superseded runs for the same PR share a group. Reusable and manual runs remain unique.
+concurrency:
+  group: test-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
+  dependency-review:
+    name: Dependency Review
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+
   e2e:
     name: E2E
     uses: ./.github/workflows/e2e.yaml
@@ -58,7 +83,35 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run ${{ matrix.name }}
+        env:
+          VITE_PROJECT_ID: ${{ matrix.name == 'Build' && inputs.upload-hosting-artifact && secrets.VITE_PROJECT_ID || '' }}
+          VITE_WEB_API_KEY: ${{ matrix.name == 'Build' && inputs.upload-hosting-artifact && secrets.VITE_WEB_API_KEY || '' }}
         run: ${{ matrix.command }}
+
+      - name: Validate production Hosting build
+        if: ${{ matrix.name == 'Build' && inputs.upload-hosting-artifact }}
+        env:
+          VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+          VITE_WEB_API_KEY: ${{ secrets.VITE_WEB_API_KEY }}
+        run: |
+          test -n "$VITE_PROJECT_ID"
+          test -n "$VITE_WEB_API_KEY"
+          test -s build/index.html
+          test -n "$(find build/assets -type f -print -quit)"
+          printf '%s\n' "$GITHUB_SHA" > hosting-source-sha
+          find build -type f -print0 | sort -z | xargs -0 sha256sum > hosting-files.sha256
+
+      - name: Upload production Hosting build
+        if: ${{ matrix.name == 'Build' && inputs.upload-hosting-artifact }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: firebase-hosting-${{ github.sha }}
+          path: |
+            build/
+            hosting-source-sha
+            hosting-files.sha256
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Upload Vitest coverage report
         id: coverage
@@ -99,10 +152,22 @@ jobs:
   test:
     name: Test
     if: ${{ always() }}
-    needs: checks
+    needs: [checks, dependency-review, e2e, integration]
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
         env:
-          RESULT: ${{ needs.checks.result }}
-        run: test "$RESULT" = success
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          DEPENDENCY_REVIEW_RESULT: ${{ needs.dependency-review.result }}
+          E2E_RESULT: ${{ needs.e2e.result }}
+          EVENT_NAME: ${{ github.event_name }}
+          INTEGRATION_RESULT: ${{ needs.integration.result }}
+        run: |
+          test "$CHECKS_RESULT" = success
+          test "$E2E_RESULT" = success
+          test "$INTEGRATION_RESULT" = success
+          if [ "$EVENT_NAME" = pull_request ]; then
+            test "$DEPENDENCY_REVIEW_RESULT" = success
+          else
+            test "$DEPENDENCY_REVIEW_RESULT" = skipped
+          fi

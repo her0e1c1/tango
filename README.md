@@ -100,13 +100,32 @@ npm run e2e:ui
 
 The initial E2E suite seeds local browser storage and does not require a real Firebase project or emulator.
 
-## Get Firebase Token
+## Production deployment identity
 
-get a new token if old one expired
+The production workflow deploys with short-lived Google Application Default Credentials from GitHub OIDC. It
+does not use a Firebase CLI token or a service account key.
 
-```bash
-npx firebase login:ci
+Configure a Google Cloud Workload Identity Provider with this attribute mapping:
+
+```text
+google.subject=assertion.sub,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref
 ```
 
-paste the new token here
-https://github.com/her0e1c1/tango/settings/secrets/actions
+Restrict the provider to this repository's immutable numeric ID, the main branch, and the production environment:
+
+```text
+attribute.repository_id=='118316857' && attribute.ref=='refs/heads/main' && assertion.sub=='repo:her0e1c1/tango:environment:production'
+```
+
+Grant that principal `roles/iam.workloadIdentityUser` on a dedicated deploy service account. The deploy account
+needs `roles/firebasehosting.admin`, `roles/firebaserules.admin`, and `roles/serviceusage.serviceUsageConsumer`;
+do not grant Owner or Editor.
+
+Create a GitHub `production` environment restricted to the `main` branch and add these environment variables:
+
+- `GCP_WORKLOAD_IDENTITY_PROVIDER`: full provider resource name, including the numeric Google Cloud project number
+- `GCP_DEPLOY_SERVICE_ACCOUNT`: dedicated deploy service account email
+
+After the first successful OIDC deployment, delete the repository `FIREBASE_TOKEN` secret and revoke the old
+Firebase CLI token at its issuing account. Keep `VITE_PROJECT_ID` and `VITE_WEB_API_KEY` as repository secrets;
+the reusable Test workflow consumes them only while producing the tested Hosting artifact for a main deployment.

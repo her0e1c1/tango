@@ -8,25 +8,124 @@ on:
 permissions:
   contents: read
 
+# Serialize production candidates; the freshness job below rejects a stale candidate before deployment.
+concurrency:
+  group: production
+  cancel-in-progress: false
+
 jobs:
   test:
     name: Test
     uses: ./.github/workflows/test.yml
+    with:
+      upload-hosting-artifact: true
+    secrets:
+      VITE_PROJECT_ID: ${{ secrets.VITE_PROJECT_ID }}
+      VITE_WEB_API_KEY: ${{ secrets.VITE_WEB_API_KEY }}
+
+  freshness:
+    needs: [test]
+    name: Check Production Freshness
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      current: ${{ steps.main.outputs.current }}
+    steps:
+      - name: Compare candidate with current main
+        id: main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          current_sha="$(
+            curl --fail --silent --show-error --retry 3 --retry-all-errors \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/main" |
+              jq --exit-status --raw-output '.sha | select(type == "string" and test("^[0-9a-f]{40}$"))'
+          )"
+          if [ "$current_sha" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping stale deployment candidate $GITHUB_SHA; main is $current_sha."
+          fi
 
   deploy:
-    needs: [test]
+    needs: [test, freshness]
+    if: ${{ needs.freshness.outputs.current == 'true' }}
     name: Deploy To Firebase
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://tango-ts.web.app
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
 
-      - run: echo VITE_PROJECT_ID="${{ secrets.VITE_PROJECT_ID }}" >> .env
-      - run: echo VITE_WEB_API_KEY="${{ secrets.VITE_WEB_API_KEY }}" >> .env
-
       - run: mise run init
 
-      - run: mise run build
+      - name: Download tested Hosting build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: firebase-hosting-${{ github.sha }}
 
-      - run: npx firebase deploy --token "${{ secrets.FIREBASE_TOKEN }}" --only hosting,firestore:rules
+      - name: Verify Hosting build identity and contents
+        run: |
+          test "$(cat hosting-source-sha)" = "$GITHUB_SHA"
+          test -s build/index.html
+          test -n "$(find build/assets -type f -print -quit)"
+          sha256sum --check hosting-files.sha256
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          project_id: tango-ts
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Deploy tested Hosting build and Firestore Rules
+        run: npx firebase deploy --project tango-ts --non-interactive --only hosting,firestore:rules
+
+  smoke:
+    needs: [deploy]
+    name: Production Smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.15.0
+          cache: npm
+
+      - name: Install npm
+        run: npm install --global npm@12.0.1
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run production smoke
+        env:
+          PLAYWRIGHT_BASE_URL: https://tango-ts.web.app
+        run: npm run e2e:production
+
+      - name: Upload production smoke diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-smoke-${{ github.sha }}
+          path: |
+            playwright-report/production/
+            test-results/production/
+          if-no-files-found: warn
+          retention-days: 7

@@ -14,6 +14,7 @@
     "ci": "npm run build:sample && npm run build && npm run build:storybook && npm run fmt && npm run fmt:sample && npm run lint && npm run test:coverage && npm run test:sample",
     "db": "firebase emulators:start",
     "e2e": "playwright test",
+    "e2e:production": "playwright test --config playwright.production.config.ts",
     "e2e:ui": "playwright test --ui",
     "test": "npm run test:unit",
     "test:coverage": "vitest run --project=unit --coverage",
