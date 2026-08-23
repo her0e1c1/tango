@@ -12,14 +12,8 @@ const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCo
 type DeckListItem = {
   deck: Deck;
   cardCount: number;
-  studyProgress?: Pick<StudySession, "currentIndex" | "lastStudiedAt"> & { cardCount: number };
+  studySession?: StudySession;
 };
-
-const toStudyProgress = (session: StudySession) => ({
-  currentIndex: session.currentIndex,
-  cardCount: session.cardOrderIds.length,
-  lastStudiedAt: session.lastStudiedAt,
-});
 
 const buildDeckListSections = (
   decks: Deck[],
@@ -32,7 +26,7 @@ const buildDeckListSections = (
   const studying = active.sort(compareActiveDecks).map(({ deck, session }) => ({
     deck,
     cardCount: cardCounts.get(deck.id) ?? 0,
-    studyProgress: toStudyProgress(session),
+    studySession: session,
   }));
   const other: DeckListItem[] = inactive.sort(compareDeckNames).map((deck) => ({
     deck,

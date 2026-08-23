@@ -52,7 +52,7 @@ const DeckListSection: React.FC<{
             key={item.deck.id}
             deck={item.deck}
             cardCount={item.cardCount}
-            {...(item.studyProgress != null ? { studyProgress: item.studyProgress } : {})}
+            {...(item.studySession != null ? { studySession: item.studySession } : {})}
             {...actions}
             openMenuDeckId={openMenuDeckId}
             onToggleMenu={onToggleMenu}
