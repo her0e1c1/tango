@@ -3,8 +3,7 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 
 import { Feedback } from "@/shared/ui/feedback";
 
-import type { CardFormProps } from "../model/useCardFormState";
-import { CardForm } from "./CardForm";
+import { CardForm, type CardFormProps } from "./CardForm";
 
 export interface CardEditorProps {
   form: CardFormProps;
