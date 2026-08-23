@@ -38,12 +38,15 @@ DEPLOY_ROLES=(
   "roles/serviceusage.apiKeysViewer"
 )
 
-# Workload Identity Federation depends on these APIs for IAM resource changes,
-# project metadata, service-account impersonation, and OIDC token exchange.
-# Enabling an already enabled API is safe, which makes this step repeatable.
-REQUIRED_APIS=(
+# Bootstrap APIs allow the script to inspect and repair IAM resources. This
+# script does not enable token exchange or service-account impersonation APIs
+# until every existing security state has been checked and trust is configured.
+BOOTSTRAP_APIS=(
   "iam.googleapis.com"
   "cloudresourcemanager.googleapis.com"
+)
+
+FEDERATION_APIS=(
   "iamcredentials.googleapis.com"
   "sts.googleapis.com"
 )
@@ -67,10 +70,26 @@ active_account=$(
 )
 [[ -n "$active_account" ]] || die "No active gcloud account was found. Run 'gcloud auth login' before retrying."
 
-project_number=$(gcloud projects describe "$PROJECT_ID" --format="value(projectNumber)")
-[[ "$project_number" =~ ^[0-9]+$ ]] || die "Could not resolve the numeric project number for ${PROJECT_ID}."
+# Service Usage can verify access to the fixed project without depending on the
+# Cloud Resource Manager API. The output is irrelevant; a successful read proves
+# that the active account can inspect the target before the first mutation.
+gcloud services list \
+  --enabled \
+  --project="$PROJECT_ID" \
+  --limit=1 \
+  --format="value(config.name)" >/dev/null
 
 printf 'Configuring GitHub OIDC for project %s with account %s\n' "$PROJECT_ID" "$active_account"
+
+# API activation is the first cloud mutation. It runs before Resource Manager
+# commands so the script can recover when that API starts disabled. These
+# bootstrap APIs do not themselves exchange tokens or impersonate the deployer.
+gcloud services enable "${BOOTSTRAP_APIS[@]}" \
+  --project="$PROJECT_ID" \
+  --quiet
+
+project_number=$(gcloud projects describe "$PROJECT_ID" --format="value(projectNumber)")
+[[ "$project_number" =~ ^[0-9]+$ ]] || die "Could not resolve the numeric project number for ${PROJECT_ID}."
 
 # Read the existing project policy before changing IAM. If this service account
 # already has Owner or Editor, the script stops instead of silently accepting
@@ -85,12 +104,6 @@ while IFS=$'\t' read -r role member; do
   [[ "$role" != "roles/owner" && "$role" != "roles/editor" ]] ||
     die "${SERVICE_ACCOUNT_EMAIL} already has ${role}; remove that broad role before retrying."
 done <<<"$project_bindings"
-
-# API activation is the first cloud mutation. It happens only after the account,
-# project access, and broad-role safety checks above have all succeeded.
-gcloud services enable "${REQUIRED_APIS[@]}" \
-  --project="$PROJECT_ID" \
-  --quiet
 
 # gcloud has no single "create or update" command for service accounts. The
 # list call first determines whether the account exists and whether an operator
@@ -213,6 +226,13 @@ gcloud iam workload-identity-pools providers update-oidc "$PROVIDER_ID" \
   --attribute-mapping="$ATTRIBUTE_MAPPING" \
   --attribute-condition="$ATTRIBUTE_CONDITION" \
   --jwk-json-path="$empty_jwk_file" \
+  --quiet
+
+# Broad roles, disabled resources, pool sharing, provider claims, and uploaded
+# JWKs are now known safe. Only at this point may token exchange and service-
+# account impersonation be enabled; enabling them earlier could undo containment.
+gcloud services enable "${FEDERATION_APIS[@]}" \
+  --project="$PROJECT_ID" \
   --quiet
 
 # Project roles determine what the service account can deploy after successful
