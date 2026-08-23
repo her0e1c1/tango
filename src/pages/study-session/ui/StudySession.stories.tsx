@@ -65,6 +65,20 @@ export const LongAnswer: Story = {
     showBackText: true,
     backTextSlot: <CardView text={fixture.card.long.backText.repeat(4)} variant="bare" />,
   },
+  play: async ({ canvasElement }) => {
+    const answer = canvasElement.querySelector<HTMLElement>("pre");
+    const swipeOverlays = canvasElement.querySelectorAll<HTMLElement>("[aria-label^='Swipe ']");
+    const swipeOverlayStyles = Array.from(swipeOverlays, (overlay) => {
+      const style = getComputedStyle(overlay);
+      return { backgroundColor: style.backgroundColor, boxShadow: style.boxShadow };
+    });
+
+    await expect(answer).toBeVisible();
+    await expect(swipeOverlays).toHaveLength(4);
+    await expect(swipeOverlayStyles).toEqual(
+      Array.from({ length: 4 }, () => ({ backgroundColor: "rgba(0, 0, 0, 0)", boxShadow: "none" }))
+    );
+  },
 };
 
 export const CodeAnswer: Story = {
