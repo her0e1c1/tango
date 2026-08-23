@@ -31,5 +31,7 @@
 
 - Playwright で実行する。
 - 実行コマンドは `mise run e2e`。
-- テストデータは localStorage に seed し、Firebase 実環境には依存しない。
+- Deck / Card は Firestore emulator に保存する。
+- Config / Study session は必要に応じて localStorage に保存する。
+- Firebase Auth API は mock し、Firebase 実環境には依存しない。
 - 並列実行時のデータ競合を避けるため、read のテストと write のテストは分ける。
