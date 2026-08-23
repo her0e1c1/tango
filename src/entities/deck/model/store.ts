@@ -15,7 +15,6 @@ import type { Deck, DeckId, LocalDeckCreateInput } from "./types";
 /** Live Deck collections separated by remote and local persistence ownership. */
 interface DeckState {
   remoteDecks: Extract<Deck, { localMode: false }>[];
-  remoteDecksStatus: "loading" | "ready" | "error";
   localDecks: Extract<Deck, { localMode: true }>[];
 }
 
@@ -35,21 +34,18 @@ const parsePersistedDeckState = (value: unknown): z.infer<typeof persistedDeckSt
 const createDeckStore = ({ storage, skipHydration }: CreateDeckStoreOptions = {}) => {
   const persistStorage = createJSONStorage<z.infer<typeof persistedDeckStateSchema>>(() => storage ?? localStorage);
   return createStore<DeckState>()(
-    persist<DeckState, [], [], z.infer<typeof persistedDeckStateSchema>>(
-      () => ({ remoteDecks: [], remoteDecksStatus: "loading", localDecks: [] }),
-      {
-        name: "tango-local-decks",
-        version: 1,
-        ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
-        ...(skipHydration !== undefined ? { skipHydration } : {}),
-        merge: (persistedState, currentState) => ({
-          ...currentState,
-          ...parsePersistedDeckState(persistedState),
-        }),
-        // Remote Decks belong to the active subscription and must not survive authentication changes in browser storage.
-        partialize: ({ localDecks }) => ({ localDecks }),
-      }
-    )
+    persist<DeckState, [], [], z.infer<typeof persistedDeckStateSchema>>(() => ({ remoteDecks: [], localDecks: [] }), {
+      name: "tango-local-decks",
+      version: 1,
+      ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
+      ...(skipHydration !== undefined ? { skipHydration } : {}),
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...parsePersistedDeckState(persistedState),
+      }),
+      // Remote Decks belong to the active subscription and must not survive authentication changes in browser storage.
+      partialize: ({ localDecks }) => ({ localDecks }),
+    })
   );
 };
 
@@ -57,17 +53,12 @@ export const deckStore = createDeckStore();
 
 // Replaces the remote Deck snapshot published by the active subscription.
 export const replaceRemoteDecks = (remoteDecks: Extract<Deck, { localMode: false }>[]): void => {
-  deckStore.setState({ remoteDecks, remoteDecksStatus: "ready" });
-};
-
-// Keeps subscription failures distinct from a successful snapshot that contains no matching Deck.
-export const markRemoteDecksFailed = (): void => {
-  deckStore.setState({ remoteDecksStatus: "error" });
+  deckStore.setState({ remoteDecks });
 };
 
 // Clears all remote Decks when their authentication scope ends.
 export const clearRemoteDecks = (): void => {
-  deckStore.setState({ remoteDecks: [], remoteDecksStatus: "loading" });
+  deckStore.setState({ remoteDecks: [] });
 };
 
 // Finds one Deck across remote and local collections after validating its identifier.

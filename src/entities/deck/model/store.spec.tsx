@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { createDeck, createLocalDeck as createLocalDeckFixture } from "@/test/factories";
-import { useDeck, useDecks, useRemoteDecksStatus } from "./hooks";
+import { useDeck, useDecks } from "./hooks";
 import {
   clearRemoteDecks,
   createLocalDeck,
@@ -33,7 +33,7 @@ const useMemoryStorage = (initial: Record<string, string> = {}): StateStorage =>
 describe("Deck store", () => {
   beforeEach(() => {
     useMemoryStorage();
-    deckStore.setState({ remoteDecks: [], remoteDecksStatus: "loading", localDecks: [] });
+    deckStore.setState({ remoteDecks: [], localDecks: [] });
     vi.useRealTimers();
   });
 
@@ -43,19 +43,10 @@ describe("Deck store", () => {
     deckStore.setState({ localDecks: [localDeck] });
 
     replaceRemoteDecks([remoteDeck]);
-    expect(deckStore.getState()).toEqual({
-      remoteDecks: [remoteDeck],
-      remoteDecksStatus: "ready",
-      localDecks: [localDeck],
-    });
-    expect(renderHook(useRemoteDecksStatus).result.current).toBe("ready");
+    expect(deckStore.getState()).toEqual({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
 
     clearRemoteDecks();
-    expect(deckStore.getState()).toEqual({
-      remoteDecks: [],
-      remoteDecksStatus: "loading",
-      localDecks: [localDeck],
-    });
+    expect(deckStore.getState()).toEqual({ remoteDecks: [], localDecks: [localDeck] });
   });
 
   it("exposes combined collection and individual Deck selectors", () => {
@@ -84,11 +75,7 @@ describe("Deck store", () => {
     deckStore.setState({ remoteDecks: [], localDecks: [] });
     useMemoryStorage({ "tango-local-decks": persistedValue });
     await deckStore.persist.rehydrate();
-    expect(deckStore.getState()).toEqual({
-      remoteDecks: [],
-      remoteDecksStatus: "loading",
-      localDecks: [localDeck],
-    });
+    expect(deckStore.getState()).toEqual({ remoteDecks: [], localDecks: [localDeck] });
   });
 
   it("hydrates version 1 local Decks without retaining a UID", async () => {

@@ -9,9 +9,6 @@ export const useDecks = (): Deck[] => {
   return [...state.remoteDecks, ...state.localDecks];
 };
 
-// Distinguishes a missing remote Deck from a subscription that is loading or failed.
-export const useRemoteDecksStatus = () => useStore(deckStore, (state) => state.remoteDecksStatus);
-
 // Reads one Deck by identifier without remapping its value.
 export const useDeck = (id: DeckId | undefined): Deck | undefined =>
   useStore(

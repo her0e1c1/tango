@@ -1,6 +1,14 @@
-import type { CardEditInput, CardId, CardMutation, CardMutationCreateInput, RemoteCard } from "../model/types";
+import type {
+  CardCreateInput,
+  CardEditInput,
+  CardId,
+  CardMutation,
+  CardMutationCreateInput,
+  RemoteCard,
+} from "../model/types";
 
 import { findDeckById } from "@/entities/deck/@x/card";
+import { cardCreateSchema } from "../model/schema";
 import {
   cardStore,
   createLocalCard,
@@ -14,6 +22,9 @@ import {
   deleteCard as deleteRemoteCard,
   editCard as editRemoteCard,
 } from "./firestore";
+
+// The owning Deck is the source of truth for persistence mode; callers cannot route individual Cards independently.
+const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode ?? false;
 
 // Returns the current Card or rejects a stale Card reference.
 const requireCard = (id: CardId) => {
@@ -29,13 +40,17 @@ const requireLocalMode = (deckId: string): boolean => {
   return deck.localMode;
 };
 
-// The create payload already carries the persistence mode selected by its Page or import flow.
-export const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
-  if ("uid" in card) {
-    await createRemoteCard(uid, card);
+// Validates the owner-bearing payload required for a remote Card create.
+const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput =>
+  "uid" in card ? card : cardCreateSchema.parse(card);
+
+// Routes a Card create through the owning Deck's persistence mode.
+const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
+  if (isLocalDeck(card.deckId)) {
+    createLocalCard(card);
     return;
   }
-  createLocalCard(card);
+  await createRemoteCard(uid, requireRemoteCardCreate(card));
 };
 
 // Copies a Deck's local Cards to remote persistence before removing the local copies.

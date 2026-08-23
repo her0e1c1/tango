@@ -32,7 +32,7 @@ export const DeckCreateView: React.FC<DeckCreateViewProps> = ({ form, saveError 
         </button>
         <p className="text-caption font-bold uppercase tracking-wider text-accent-primary">Deck creator</p>
         <h1 className="mt-1 break-words text-display font-bold text-ink">Create deck</h1>
-        <p className="mt-2 text-body text-ink-muted">Start with an empty deck and add cards when you are ready.</p>
+        <p className="mt-2 text-body text-ink-muted">Start with an empty deck.</p>
       </header>
       <Feedback tone="error">{saveError == null ? null : "Unable to create this deck. Try again."}</Feedback>
       <Form onSubmit={form.onSubmit}>

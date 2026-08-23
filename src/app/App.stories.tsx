@@ -49,10 +49,6 @@ export const CardList: Story = {
   parameters: { page: page(routes.cardList.to(PAGE_STORY_DECK_ID)) },
 };
 
-export const CardCreate: Story = {
-  parameters: { page: page(routes.cardCreate.to(PAGE_STORY_DECK_ID)) },
-};
-
 export const DeckForm: Story = {
   parameters: { page: page(routes.deckForm.to(PAGE_STORY_DECK_ID)) },
 };
