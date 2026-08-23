@@ -31,12 +31,12 @@ export interface StudySessionProps {
 }
 
 const ExitAction: React.FC<{ showHeader: boolean | undefined; onExit: () => void }> = ({ showHeader, onExit }) => (
-  // This row reserves space above card metadata; safe-area padding is needed only when Header does not provide it.
+  // The action stays in flow so card content starts below it; Header owns the top safe area when visible.
   <div
     role="toolbar"
     aria-label="Study actions"
     className={cx(
-      "relative z-40 flex shrink-0 pb-2 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]",
+      "relative z-40 flex shrink-0 border-b border-border bg-surface-elevated pb-2 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]",
       showHeader ? "pt-2" : "pt-[calc(0.5rem+env(safe-area-inset-top))]"
     )}
   >
@@ -46,42 +46,61 @@ const ExitAction: React.FC<{ showHeader: boolean | undefined; onExit: () => void
   </div>
 );
 
-const SwipeFeedback: React.FC<{ swipeFeedback: SwipeDirection | undefined }> = ({ swipeFeedback }) => {
+const SwipeFeedback: React.FC<{
+  showHeader: boolean | undefined;
+  swipeFeedback: SwipeDirection | undefined;
+}> = ({ showHeader, swipeFeedback }) => {
   if (swipeFeedback === undefined) return null;
   return (
     <div
       role="status"
-      className="pointer-events-none fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-control bg-surface px-4 py-2 text-body font-bold text-ink shadow-surface"
+      className={cx(
+        "pointer-events-none absolute left-1/2 z-50 -translate-x-1/2 rounded-control border border-border bg-surface-elevated px-4 py-2 text-body font-bold text-ink shadow-elevated",
+        showHeader
+          ? "top-[calc(var(--spacing-touch)+1rem)]"
+          : "top-[calc(var(--spacing-touch)+1rem+env(safe-area-inset-top))]"
+      )}
     >
       {SWIPE_FEEDBACK_LABEL[swipeFeedback]}
     </div>
   );
 };
 
-const BackTextOverlays: React.FC<{ swipeOverlay: SwipeButtonListProps | undefined }> = ({ swipeOverlay }) => (
-  <>
-    <Overlay
-      position="left"
-      ariaLabel="Swipe left"
-      {...(swipeOverlay?.onClickLeft !== undefined ? { onClick: swipeOverlay.onClickLeft } : {})}
-    />
-    <Overlay
-      position="right"
-      ariaLabel="Swipe right"
-      {...(swipeOverlay?.onClickRight !== undefined ? { onClick: swipeOverlay.onClickRight } : {})}
-    />
-    <Overlay
-      position="top"
-      ariaLabel="Swipe up"
-      {...(swipeOverlay?.onClickUp !== undefined ? { onClick: swipeOverlay.onClickUp } : {})}
-    />
-    <Overlay
-      position="bottom"
-      ariaLabel="Swipe down"
-      {...(swipeOverlay?.onClickDown !== undefined ? { onClick: swipeOverlay.onClickDown } : {})}
-    />
-  </>
-);
+const BackTextOverlays: React.FC<{ swipeOverlay: SwipeButtonListProps | undefined }> = ({ swipeOverlay }) => {
+  // Gesture hit zones must remain visually neutral so the full-width answer stays readable beneath them.
+  const overlayClassName = "bg-transparent shadow-none";
+  return (
+    <>
+      {swipeOverlay?.onClickLeft !== undefined ? (
+        <Overlay
+          position="left"
+          ariaLabel="Swipe left"
+          className={overlayClassName}
+          onClick={swipeOverlay.onClickLeft}
+        />
+      ) : null}
+      {swipeOverlay?.onClickRight !== undefined ? (
+        <Overlay
+          position="right"
+          ariaLabel="Swipe right"
+          className={overlayClassName}
+          onClick={swipeOverlay.onClickRight}
+        />
+      ) : null}
+      {swipeOverlay?.onClickUp !== undefined ? (
+        <Overlay position="top" ariaLabel="Swipe up" className={overlayClassName} onClick={swipeOverlay.onClickUp} />
+      ) : null}
+      {swipeOverlay?.onClickDown !== undefined ? (
+        <Overlay
+          position="bottom"
+          ariaLabel="Swipe down"
+          className={overlayClassName}
+          onClick={swipeOverlay.onClickDown}
+        />
+      ) : null}
+    </>
+  );
+};
 
 const CardContent: React.FC<{
   showBackText: boolean | undefined;
@@ -94,13 +113,13 @@ const CardContent: React.FC<{
     return (
       <>
         <BackTextOverlays swipeOverlay={swipeOverlay} />
-        <div className="h-full flex pb-8">{backTextSlot}</div>
+        <div className="flex min-h-full w-full">{backTextSlot}</div>
       </>
     );
   }
   if (frontTextSlot != null) {
     return (
-      <div className="h-full flex flex-col relative">
+      <div className="relative flex h-full min-h-0 flex-col pt-touch">
         {cardOverlaySlot}
         {frontTextSlot}
       </div>
@@ -116,9 +135,9 @@ const Controls: React.FC<{
   swipeButtonList: SwipeButtonListProps | undefined;
   controller: ControllerProps | undefined;
 }> = ({ showBackText, showSwipeButtonList, showController, swipeButtonList, controller }) => {
-  if (!(showSwipeButtonList || showController)) return null;
+  if (showBackText || !(showSwipeButtonList || showController)) return null;
   return (
-    <div className={cx("fixed w-full bottom-2", "pb-5", showBackText && "invisible")}>
+    <div className="relative z-40 shrink-0 space-y-2 border-t border-border bg-surface-elevated pb-[calc(0.5rem+env(safe-area-inset-bottom))] pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] pt-2">
       {showSwipeButtonList ? <SwipeButtonList {...swipeButtonList} /> : null}
       {showController ? <Controller {...controller} /> : null}
     </div>
@@ -126,11 +145,11 @@ const Controls: React.FC<{
 };
 
 export const StudySession: React.FC<StudySessionProps> = (props) => (
-  <div className="flex h-full min-h-0 flex-col">
+  <div className="relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink">
     {props.feedbackSlot}
     <ExitAction showHeader={props.showHeader} onExit={props.onExit} />
-    <SwipeFeedback swipeFeedback={props.swipeFeedback} />
-    <div className="relative min-h-0 flex-1">
+    <SwipeFeedback showHeader={props.showHeader} swipeFeedback={props.swipeFeedback} />
+    <div className={cx("relative min-h-0 flex-1", props.showBackText ? "overflow-y-auto" : "overflow-hidden")}>
       <CardContent
         showBackText={props.showBackText}
         backTextSlot={props.backTextSlot}

@@ -23,16 +23,18 @@ export interface BackTextProps {
 export const BackText: React.FC<BackTextProps> = (props) => (
   <Style
     div
-    className="mx-auto h-full w-full overflow-x-hidden p-section-gap"
+    className="mx-auto min-h-full w-full overflow-x-hidden"
     {...(props.onClick !== undefined ? { onClick: props.onClick } : {})}
   >
-    {props.category === "math" ? (
-      <MathContent text={props.text} />
-    ) : props.code ? (
-      <Code text={props.text} category={props.category ?? ""} dark={props.dark ?? false} />
-    ) : (
-      <pre className="whitespace-pre-wrap break-words font-sans">{props.text}</pre>
-    )}
-    <div className="h-10" />
+    <div className="mx-auto min-h-full w-full max-w-content py-section-gap pl-[calc(var(--spacing-study-inline)+env(safe-area-inset-left))] pr-[calc(var(--spacing-study-inline)+env(safe-area-inset-right))]">
+      {props.category === "math" ? (
+        <MathContent text={props.text} />
+      ) : props.code ? (
+        <Code text={props.text} category={props.category ?? ""} dark={props.dark ?? false} />
+      ) : (
+        <pre className="whitespace-pre-wrap break-words font-sans text-body">{props.text}</pre>
+      )}
+      <div className="h-[calc(var(--spacing-section-gap)+env(safe-area-inset-bottom))]" />
+    </div>
   </Style>
 );

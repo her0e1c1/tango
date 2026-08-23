@@ -43,6 +43,7 @@ export const Layout: React.FC<LayoutProps> = (props) => {
   if (props.fullscreen) {
     return (
       <FullScreen
+        flex
         {...(fixedHeader ? { className: fixedHeaderOffsetClass } : {})}
         {...(props.scroll !== undefined ? { scroll: props.scroll } : {})}
         {...(props.onClick !== undefined ? { onClick: props.onClick } : {})}

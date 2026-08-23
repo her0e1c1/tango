@@ -41,7 +41,7 @@ const renderStudyScreen = (state: StudyState | undefined, onExit: () => void) =>
   };
 
   return (
-    <AppLayout fullscreen scroll={state.showBackText} showHeader={state.showHeader}>
+    <AppLayout fullscreen showHeader={state.showHeader}>
       <StudySession
         onExit={onExit}
         showHeader={state.showHeader}

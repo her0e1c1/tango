@@ -21,7 +21,7 @@ export interface CardOverlayProps {
 
 export const CardOverlay: React.FC<CardOverlayProps> = (props) => (
   <Overlay position="top">
-    <div className="mx-auto flex max-w-reading flex-row items-center gap-2 bg-surface-elevated p-2 text-ink">
+    <div className="mx-auto flex max-w-content flex-row items-center gap-2 bg-surface-elevated py-2 pl-[calc(var(--spacing-study-inline)+env(safe-area-inset-left))] pr-[calc(var(--spacing-study-inline)+env(safe-area-inset-right))] text-ink">
       <Score score={props.score ?? 0} />
       <Description>
         {props.numberOfSeen != null && `${String(props.numberOfSeen)} times`}
