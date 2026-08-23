@@ -1,5 +1,6 @@
 import cx from "classnames";
 import type * as React from "react";
+import { useSwipeable } from "react-swipeable";
 import type { SwipeDirection } from "@/entities/preference";
 import { Button } from "@/shared/ui/button";
 import { Overlay } from "@/shared/ui/feedback";
@@ -27,6 +28,10 @@ export interface StudySessionProps {
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
   feedbackSlot?: React.ReactNode;
+  onSwipeLeft?: () => void;
+  onSwipeUp?: () => void;
+  onSwipeRight?: () => void;
+  onSwipeDown?: () => void;
   onExit: () => void;
 }
 
@@ -125,26 +130,36 @@ const Controls: React.FC<{
   );
 };
 
-export const StudySession: React.FC<StudySessionProps> = (props) => (
-  <div className="flex h-full min-h-0 flex-col">
-    {props.feedbackSlot}
-    <ExitAction showHeader={props.showHeader} onExit={props.onExit} />
-    <SwipeFeedback swipeFeedback={props.swipeFeedback} />
-    <div className="relative min-h-0 flex-1">
-      <CardContent
+export const StudySession: React.FC<StudySessionProps> = (props) => {
+  // Keep horizontal gestures above face-specific content, but reserve vertical drags on the Back for scrolling.
+  const swipeHandlers = useSwipeable({
+    ...(props.onSwipeLeft !== undefined ? { onSwipedLeft: props.onSwipeLeft } : {}),
+    ...(!props.showBackText && props.onSwipeUp !== undefined ? { onSwipedUp: props.onSwipeUp } : {}),
+    ...(props.onSwipeRight !== undefined ? { onSwipedRight: props.onSwipeRight } : {}),
+    ...(!props.showBackText && props.onSwipeDown !== undefined ? { onSwipedDown: props.onSwipeDown } : {}),
+  });
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      {props.feedbackSlot}
+      <ExitAction showHeader={props.showHeader} onExit={props.onExit} />
+      <SwipeFeedback swipeFeedback={props.swipeFeedback} />
+      <div className="relative min-h-0 flex-1" {...swipeHandlers}>
+        <CardContent
+          showBackText={props.showBackText}
+          backTextSlot={props.backTextSlot}
+          frontTextSlot={props.frontTextSlot}
+          cardOverlaySlot={props.cardOverlaySlot}
+          swipeOverlay={props.swipeOverlay}
+        />
+      </div>
+      <Controls
         showBackText={props.showBackText}
-        backTextSlot={props.backTextSlot}
-        frontTextSlot={props.frontTextSlot}
-        cardOverlaySlot={props.cardOverlaySlot}
-        swipeOverlay={props.swipeOverlay}
+        showSwipeButtonList={props.showSwipeButtonList}
+        showController={props.showController}
+        swipeButtonList={props.swipeButtonList}
+        controller={props.controller}
       />
     </div>
-    <Controls
-      showBackText={props.showBackText}
-      showSwipeButtonList={props.showSwipeButtonList}
-      showController={props.showController}
-      swipeButtonList={props.swipeButtonList}
-      controller={props.controller}
-    />
-  </div>
-);
+  );
+};

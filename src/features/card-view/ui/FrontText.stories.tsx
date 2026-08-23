@@ -13,12 +13,6 @@ const meta = {
   title: "Card/FrontText",
   component: Template,
   tags: ["autodocs"],
-  argTypes: {
-    onSwipeUp: { action: "onSwipeUp" },
-    onSwipeDown: { action: "onSwipeDown" },
-    onSwipeLeft: { action: "onSwipeLeft" },
-    onSwipeRight: { action: "onSwipeRight" },
-  },
   args: {},
 } satisfies Meta<typeof Template>;
 
