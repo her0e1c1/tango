@@ -2,55 +2,350 @@
 
 ## 目的
 
-Deck の学習画面で swipe 操作が、表面・裏面表示、学習結果の保存、次 card への遷移まで破綻しないことを確認する。
+Deck の学習画面で、Card の表示、学習結果の保存、session の移動・再開・完了、各入力操作が破綻しないことを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-01 | read | [Deck 学習画面で card の表面と裏面を表示できる](#swipe-01) |
-| SWIPE-02 | write | [Deck 学習画面で mastered swipe を実行できる](#swipe-02) |
+| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](#swipe-01) |
+| SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](#swipe-02) |
+| SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](#swipe-03) |
+| SWIPE-04 | write | [next-card action で次の Card へ進める](#swipe-04) |
+| SWIPE-05 | write | [previous-card action で前の Card へ戻れる](#swipe-05) |
+| SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](#swipe-06) |
+| SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](#swipe-07) |
+| SWIPE-08 | write | [Exit 後に同じ位置から Continue できる](#swipe-08) |
+| SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](#swipe-09) |
+| SWIPE-10 | write | [最後の Card を完了して session を終了できる](#swipe-10) |
+| SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](#swipe-11) |
+| SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](#swipe-12) |
+| SWIPE-13 | write | [primary mouse の上方向 drag で次の Card へ進める](#swipe-13) |
+| SWIPE-14 | read | [non-primary mouse の drag を無視できる](#swipe-14) |
+| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](#swipe-15) |
 
 <a id="swipe-01"></a>
 
-### SWIPE-01 Deck 学習画面で card の表面と裏面を表示できる
+### SWIPE-01 学習中の Card を表面から裏面へ切り替えられる
 
 カテゴリ: `read`
 
 Given:
 
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck の学習セッションがあり、現在の Card に front text と back text が設定されている。
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- 現在の Card に front text と back text が設定されている。
 
 When:
 
-- 対象 deck の学習画面を開き、裏面表示を切り替える。
+- 学習画面に表示された現在の Card の front text を選択して裏面へ切り替える。
 
 Then:
 
-- 現在の card の front text を確認できる。
-- 現在の card の back text を確認できる。
+- 現在の Card の back text が表示される。
+- Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
 <a id="swipe-02"></a>
 
-### SWIPE-02 Deck 学習画面で mastered swipe を実行できる
+### SWIPE-02 mastered action で学習結果を保存して次の Card へ進める
 
 カテゴリ: `write`
 
 Given:
 
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck の学習セッションに複数の Card が学習順に含まれている。
-- 現在の Card が未学習状態である。
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- 現在の Card の次に別の Card がある。
 
 When:
 
-- 対象 deck の学習画面で mastered に対応する swipe 操作を実行する。
+- 現在の Card に mastered action を実行する。
 
 Then:
 
-- swipe した card の score が増える。
-- swipe した card の学習回数が増える。
-- 次の card の front text が表示される。
+- 現在だった Card の score が mastered rule に従って増加し、学習回数が 1 増えて保存される。
+- session の位置が次の Card へ進む。
+- 次の Card の front text が表示される。
+- browser error が発生しない。
+
+<a id="swipe-03"></a>
+
+### SWIPE-03 non-mastered action で学習結果を保存して次の Card へ進める
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- 現在の Card の次に別の Card がある。
+
+When:
+
+- 現在の Card に non-mastered action を実行する。
+
+Then:
+
+- 現在だった Card の score が non-mastered rule に従って減少し、学習回数が 1 増えて保存される。
+- session の位置が次の Card へ進む。
+- 次の Card の front text が表示される。
+- browser error が発生しない。
+
+<a id="swipe-04"></a>
+
+### SWIPE-04 next-card action で次の Card へ進める
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- 現在の Card の次に別の Card がある。
+
+When:
+
+- 現在の Card に next-card action を実行する。
+
+Then:
+
+- 現在だった Card の score は変わらず、学習回数が 1 増えて保存される。
+- session の位置が次の Card へ進む。
+- 次の Card の front text が表示される。
+- browser error が発生しない。
+
+<a id="swipe-05"></a>
+
+### SWIPE-05 previous-card action で前の Card へ戻れる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- 現在の Card の前に別の Card がある。
+
+When:
+
+- 現在の Card に previous-card action を実行する。
+
+Then:
+
+- 現在だった Card の score は変わらず、学習回数が 1 増えて保存される。
+- session の位置が前の Card へ戻る。
+- 前の Card の front text が表示される。
+- browser error が発生しない。
+
+<a id="swipe-06"></a>
+
+### SWIPE-06 filter と学習上限を反映して session を開始できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に、score と tags の組み合わせが異なる複数の Card が存在する。
+- 対象 Deck に score と tag の filter が保存されている。
+- 設定済みの学習上限より多くの Card が保存済み filter に一致する。
+
+When:
+
+- 対象 Deck の学習開始画面から session を開始する。
+
+Then:
+
+- session には保存済み filter に一致する Card だけが含まれる。
+- session の Card 数が設定済みの学習上限を超えない。
+- session の先頭 Card の front text が表示される。
+- browser error が発生しない。
+
+<a id="swipe-07"></a>
+
+### SWIPE-07 filter に一致する Card がない場合は session を開始できない
+
+カテゴリ: `read`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に Card が存在する。
+- 学習開始画面の score と tag の filter に一致する Card が存在しない。
+
+When:
+
+- 対象 Deck の学習開始画面を開く。
+
+Then:
+
+- filter に一致する Card がないことが表示される。
+- session の start action が無効になる。
+- 対象 Deck の学習 session が作成されない。
+- browser error が発生しない。
+
+<a id="swipe-08"></a>
+
+### SWIPE-08 Exit 後に同じ位置から Continue できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に、先頭より後の Card まで進んだ学習 session が存在する。
+
+When:
+
+- 学習画面で Exit を実行し、Deck 一覧から同じ Deck の Continue を実行する。
+
+Then:
+
+- Exit 前と同じ学習 session が維持される。
+- Exit 前に表示されていた Card の front text が表示される。
+- browser error が発生しない。
+
+<a id="swipe-09"></a>
+
+### SWIPE-09 Restart で新しい session を先頭から開始できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に、先頭より後の Card まで進んだ学習 session が存在する。
+
+When:
+
+- Deck 一覧から対象 Deck の Restart を選択し、学習開始画面で session を開始する。
+
+Then:
+
+- 以前とは異なる新しい学習 session が保存される。
+- 新しい session の位置が先頭になる。
+- 新しい session の先頭 Card の front text が表示される。
+- browser error が発生しない。
+
+<a id="swipe-10"></a>
+
+### SWIPE-10 最後の Card を完了して session を終了できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck の学習 session で、最後の Card が表示されている。
+
+When:
+
+- 最後の Card に学習結果を保存する action を実行する。
+
+Then:
+
+- 最後の Card の学習結果が保存される。
+- 対象 Deck の学習 session が削除される。
+- Deck 一覧へ戻り、対象 Deck に Continue action が表示されない。
+- browser error が発生しない。
+
+<a id="swipe-11"></a>
+
+### SWIPE-11 複数 Deck の学習 session を独立して維持できる
+
+カテゴリ: `batch`
+
+Given:
+
+- 認証済みユーザーが所有する複数の Deck に、それぞれ異なる位置の学習 session が存在する。
+
+When:
+
+- 一方の Deck で学習 action を実行して Exit し、もう一方の Deck を Continue する。
+
+Then:
+
+- 最初の Deck の学習結果と session の位置が保存される。
+- もう一方の Deck は操作前の session と位置から再開する。
+- 各 Deck の Card と session が混在しない。
+- browser error が発生しない。
+
+<a id="swipe-12"></a>
+
+### SWIPE-12 学習結果の保存失敗後に同じ Card から再試行できる
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- 前回の学習結果の保存要求が失敗し、同じ Card と session の位置が維持されている。
+- 次の学習結果の保存要求は成功できる。
+
+When:
+
+- 現在の Card に同じ学習 action を再度実行する。
+
+Then:
+
+- 再試行した学習結果が一度だけ保存される。
+- session の位置が次の Card へ一度だけ進む。
+- 次の Card の front text が表示される。
+- 最初の保存失敗に伴う未処理の browser error が発生しない。
+
+<a id="swipe-13"></a>
+
+### SWIPE-13 primary mouse の上方向 drag で次の Card へ進める
+
+カテゴリ: `write`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- 現在の Card の表面が表示されている。
+- 上方向の drag は mastered action に設定されている。
+
+When:
+
+- primary mouse button で現在の Card を上方向へ drag する。
+
+Then:
+
+- 現在だった Card の mastered 学習結果が保存される。
+- 次の Card の front text が表示され、back text は表示されない。
+- drag 後の click によって次の Card が裏面へ切り替わらない。
+- browser error が発生しない。
+
+<a id="swipe-14"></a>
+
+### SWIPE-14 non-primary mouse の drag を無視できる
+
+カテゴリ: `read`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- 現在の Card の表面が表示されている。
+
+When:
+
+- non-primary mouse button で現在の Card を swipe action に対応する方向へ drag する。
+
+Then:
+
+- 現在の Card の front text が引き続き表示される。
+- Card の学習結果と session の位置が変更されない。
+- browser error が発生しない。
+
+<a id="swipe-15"></a>
+
+### SWIPE-15 裏面 text を選択しても Card の状態を維持できる
+
+カテゴリ: `read`
+
+Given:
+
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- 現在の Card の selectable な back text が表示されている。
+
+When:
+
+- primary mouse button の drag で back text を選択する。
+
+Then:
+
+- 選択範囲に対象 Card の back text が含まれる。
+- 対象 Card の back text が引き続き表示される。
+- Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
