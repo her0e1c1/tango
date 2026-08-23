@@ -5,9 +5,27 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
-import { CATEGORY, deckFormSchema, editDeck, useDeck } from "@/entities/deck";
+import { CATEGORY, type Deck, deckFormSchema, editDeck, useDeck } from "@/entities/deck";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
 type DeckFormValues = z.infer<typeof deckFormSchema>;
+
+const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
+
+const getDeckFormValues = (deck: Deck): DeckFormValues => ({
+  name: deck.name,
+  category: deck.category,
+  url: deck.url || undefined,
+  convertToBr: deck.convertToBr,
+  localMode: deck.localMode,
+});
+
+const getDeckEditInput = (deck: Deck, values: DeckFormValues): Parameters<typeof editDeck>[1] => ({
+  id: deck.id,
+  ...values,
+  localMode: values.localMode ?? deck.localMode,
+  url: values.url ?? null,
+});
 
 interface UseDeckFormStateOptions {
   deckId: string;
@@ -18,17 +36,10 @@ interface UseDeckFormStateOptions {
 export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormStateOptions) => {
   const uid = useAuthUid();
   const deck = useDeck(deckId);
+  const isMounted = useMountedGuard();
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<DeckFormValues>({
-    ...(deck && {
-      values: {
-        name: deck.name,
-        category: deck.category,
-        url: deck.url || undefined,
-        convertToBr: deck.convertToBr,
-        localMode: deck.localMode,
-      },
-    }),
+    ...(deck && { values: getDeckFormValues(deck) }),
     resolver: zodResolver(deckFormSchema),
   });
 
@@ -37,15 +48,11 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
   const submit = handleSubmit(async (values) => {
     setSaveError(null);
     try {
-      await editDeck(uid, {
-        id: deck.id,
-        ...values,
-        localMode: values.localMode ?? deck.localMode,
-        url: values.url ?? null,
-      });
-      onSaved();
+      await editDeck(uid, getDeckEditInput(deck, values));
+      // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.
+      if (isMounted()) onSaved();
     } catch (error) {
-      setSaveError(error);
+      if (isMounted()) setSaveError(error);
     }
   });
   const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
@@ -55,8 +62,8 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
   const form = {
     deckInfo: {
       id: deck.id,
-      ...(deck.createdAt ? { createdAt: new Date(deck.createdAt).toLocaleDateString() } : {}),
-      ...(deck.updatedAt ? { updatedAt: new Date(deck.updatedAt).toLocaleDateString() } : {}),
+      createdAt: deck.createdAt,
+      updatedAt: deck.updatedAt,
     },
     fields: {
       name: register("name"),
@@ -67,12 +74,10 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
       url: register("url", { setValueAs: (value: unknown) => (value === "" ? undefined : value) }),
       category: {
         ...register("category"),
-        options: CATEGORY.map((category) => ({ label: category, value: category })),
+        options: categoryOptions,
       },
     },
-    localModeHelp: deck.localMode
-      ? "Turn off to save this deck and its cards to Firestore. This change cannot be undone."
-      : "This deck and its cards are saved to Firestore.",
+    isLocalOnly: deck.localMode,
     errors: {
       name: formState.errors.name?.message,
       url: formState.errors.url?.message,

@@ -13,14 +13,16 @@ interface DeckFormFields {
   category: React.ComponentProps<typeof Select>;
 }
 
+const formatDate = (timestamp: number): string => new Date(timestamp).toLocaleDateString();
+
 export interface DeckFormProps {
   deckInfo: {
     id: DeckId;
-    createdAt?: string;
-    updatedAt?: string;
+    createdAt: number;
+    updatedAt: number;
   };
   fields: DeckFormFields;
-  localModeHelp: string;
+  isLocalOnly: boolean;
   errors: {
     name: string | undefined;
     url: string | undefined;
@@ -39,6 +41,9 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const nameErrorId = `${nameInputId}-error`;
   const urlInputId = `${sectionHeadingIdPrefix}-deck-url`;
   const urlErrorId = `${urlInputId}-error`;
+  const localModeHelp = props.isLocalOnly
+    ? "Turn off to save this deck and its cards to Firestore. This change cannot be undone."
+    : "This deck and its cards are saved to Firestore.";
 
   return (
     <Form onSubmit={props.onSubmit}>
@@ -52,7 +57,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           </h2>
           <p className="mt-1 text-caption text-ink-muted">Choose whether this deck stays on this device.</p>
         </div>
-        <FormItem label="Local only" help={props.localModeHelp}>
+        <FormItem label="Local only" help={localModeHelp}>
           <Switch {...props.fields.localMode} aria-label="Local only" />
         </FormItem>
       </section>
@@ -121,18 +126,14 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
             <dt className="font-medium text-ink-muted">ID</dt>
             <dd className="break-all text-ink">{props.deckInfo.id}</dd>
           </div>
-          {props.deckInfo.createdAt !== undefined && (
-            <div>
-              <dt className="font-medium text-ink-muted">Created</dt>
-              <dd className="text-ink">{props.deckInfo.createdAt}</dd>
-            </div>
-          )}
-          {props.deckInfo.updatedAt !== undefined && (
-            <div>
-              <dt className="font-medium text-ink-muted">Updated</dt>
-              <dd className="text-ink">{props.deckInfo.updatedAt}</dd>
-            </div>
-          )}
+          <div>
+            <dt className="font-medium text-ink-muted">Created</dt>
+            <dd className="text-ink">{formatDate(props.deckInfo.createdAt)}</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-ink-muted">Updated</dt>
+            <dd className="text-ink">{formatDate(props.deckInfo.updatedAt)}</dd>
+          </div>
         </dl>
       </details>
       <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">

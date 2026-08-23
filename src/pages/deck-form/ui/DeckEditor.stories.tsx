@@ -17,8 +17,8 @@ const longDeck = {
 const createForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
   deckInfo: {
     id: deck.id,
-    createdAt: new Date(deck.createdAt).toLocaleDateString(),
-    updatedAt: new Date(deck.updatedAt).toLocaleDateString(),
+    createdAt: deck.createdAt,
+    updatedAt: deck.updatedAt,
   },
   fields: {
     name: { defaultValue: deck.name },
@@ -27,9 +27,7 @@ const createForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
     url: { defaultValue: deck.url },
     category: { defaultValue: deck.category, options: [{ label: deck.category, value: deck.category }] },
   },
-  localModeHelp: deck.localMode
-    ? "Turn off to save this deck and its cards to Firestore. This change cannot be undone."
-    : "This deck and its cards are saved to Firestore.",
+  isLocalOnly: deck.localMode,
   errors: { name: undefined, url: undefined },
   isSubmitting: false,
   onCancel: fn(),
