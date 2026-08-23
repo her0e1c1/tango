@@ -4,10 +4,40 @@ import { AiOutlineCloudDownload } from "react-icons/ai";
 import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
 import { Upload } from "@/shared/ui/forms";
-import type { DeckImportPreview } from "../model/useDeckImport";
-import type { DeckImportResult, DeckImportStorageMode } from "../model/useDeckImportExecution";
 
-interface DeckImportViewProps {
+type DeckImportStorageMode = "local" | "remote";
+
+interface DeckImportPreviewRow {
+  rowNumber: number;
+  card: {
+    frontText: string;
+    backText: string;
+    tags: readonly string[];
+    uniqueKey: string;
+  };
+}
+
+interface DeckImportPreviewIssue {
+  rowNumber?: number;
+  message: string;
+  context?: string;
+}
+
+interface DeckImportPreview {
+  deckName: string;
+  analysis: {
+    rows: readonly DeckImportPreviewRow[];
+    skippedRows: readonly unknown[];
+    issues: readonly DeckImportPreviewIssue[];
+    invalidCount: number;
+  };
+}
+
+interface DeckImportResult {
+  created: number;
+}
+
+export interface DeckImportViewProps {
   onChange?: (file: File) => void;
   onStorageModeChange?: (storageMode: DeckImportStorageMode) => void;
   onAddSample?: () => void;

@@ -5,8 +5,8 @@ import { expect, fn } from "storybook/test";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
 
-import type { DeckFormProps } from "../model/useDeckFormState";
 import { DeckEditor } from "./DeckEditor";
+import type { DeckFormProps } from "./DeckForm";
 
 const longDeck = {
   ...fixture.deck.tooLongName,
