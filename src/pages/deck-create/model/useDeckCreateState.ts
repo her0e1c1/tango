@@ -7,21 +7,6 @@ import { useForm } from "react-hook-form";
 import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, createDeck, deckFormSchema, generateDeckId, type DeckId } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
-import type { Form, Input, Select, Switch } from "@/shared/ui/forms";
-
-interface DeckCreateFields {
-  name: React.ComponentProps<typeof Input>;
-  category: React.ComponentProps<typeof Select>;
-  localMode: React.ComponentProps<typeof Switch>;
-}
-
-export interface DeckCreateFormProps {
-  fields: DeckCreateFields;
-  errors: { name: string | undefined };
-  isSubmitting: boolean;
-  onCancel: () => void;
-  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
-}
 
 type DeckCreateFormValues = z.infer<typeof deckFormSchema>;
 
@@ -61,7 +46,7 @@ export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOp
     void submit(event);
   };
 
-  const form: DeckCreateFormProps = {
+  const form = {
     fields: {
       name: register("name"),
       category: {

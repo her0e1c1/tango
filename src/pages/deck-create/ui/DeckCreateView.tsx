@@ -6,7 +6,19 @@ import { Button } from "@/shared/ui/button";
 import { Feedback } from "@/shared/ui/feedback";
 import { Form, FormItem, Input, Select, Switch } from "@/shared/ui/forms";
 
-import type { DeckCreateFormProps } from "../model/useDeckCreateState";
+interface DeckCreateFields {
+  name: React.ComponentProps<typeof Input>;
+  category: React.ComponentProps<typeof Select>;
+  localMode: React.ComponentProps<typeof Switch>;
+}
+
+interface DeckCreateFormProps {
+  fields: DeckCreateFields;
+  errors: { name: string | undefined };
+  isSubmitting: boolean;
+  onCancel: () => void;
+  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
+}
 
 export interface DeckCreateViewProps {
   form: DeckCreateFormProps;
