@@ -2,7 +2,7 @@
 
 ## 目的
 
-Deck 管理の主要導線が、ブラウザ上で表示・編集・削除・保存先の移行・export まで破綻しないことを確認する。
+Deck 管理の主要導線が、ブラウザ上で表示・作成・編集・削除・保存先の移行・export まで破綻しないことを確認する。
 
 ## テストケース
 
@@ -14,8 +14,10 @@ Deck 管理の主要導線が、ブラウザ上で表示・編集・削除・保
 | DECK-04 | read | [Deck の削除を取り消せる](#deck-04) |
 | DECK-05 | batch | [Deck の削除失敗後に再試行できる](#deck-05) |
 | DECK-06 | read | [存在しない Deck から復帰できる](#deck-06) |
-| DECK-07 | batch | [local-only Deck と Card を remote storage へ移行できる](#deck-07) |
+| DECK-07 | batch | [local-only Deck と Card を remote へ移行できる](#deck-07) |
 | DECK-08 | read | [Deck の Card を CSV で export できる](#deck-08) |
+| DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-09) |
+| DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](#deck-10) |
 
 <a id="deck-01"></a>
 
@@ -147,7 +149,7 @@ Then:
 
 <a id="deck-07"></a>
 
-### DECK-07 local-only Deck と Card を remote storage へ移行できる
+### DECK-07 local-only Deck と Card を remote へ移行できる
 
 カテゴリ: `batch`
 
@@ -162,7 +164,7 @@ When:
 
 Then:
 
-- 対象 Deck とすべての Card が remote storage から読み込まれて表示される。
+- 対象 Deck とすべての Card が remote から読み込まれて表示される。
 - browser storage に移行前の Deck と Card の duplicate が残らない。
 - browser error が発生しない。
 
@@ -186,3 +188,49 @@ Then:
 - 対象 Deck の name に対応する CSV file が download される。
 - CSV に各 Card の front text、back text、tags、unique key が Card ごとの row として含まれる。
 - browser error が発生しない。
+
+<a id="deck-09"></a>
+
+### DECK-09 空の remote Deck を作成して reload 後も確認できる
+
+カテゴリ: `write`
+
+Given:
+
+- ユーザーとして認証されている。
+- 作成対象の Deck は現在の UID の remote data と local-only data のどちらにも存在しない。
+
+When:
+
+- Deck の作成画面で name と category を入力し、local-only を無効にして保存した後、Deck 一覧を reload する。
+
+Then:
+
+- 作成した空の Deck が reload 後も Deck 一覧に表示される。
+- 作成した Deck は現在の UID の remote data に一つだけ存在する。
+- browser storage に同じ Deck の local-only duplicate が存在しない。
+- browser error が発生しない。
+
+<a id="deck-10"></a>
+
+### DECK-10 remote Deck の作成失敗後に重複なく再試行できる
+
+カテゴリ: `write`
+
+Given:
+
+- ユーザーとして認証されている。
+- remote Deck の最初の作成要求が失敗している。
+- 作成失敗が画面内で処理され、入力した name と category、remote の保存先、作成対象の Deck ID が維持されている。
+- 次の作成要求は成功できる。
+
+When:
+
+- 入力と保存先を変更せずに同じ Deck の作成を再試行し、Deck 一覧を reload する。
+
+Then:
+
+- 維持されていた Deck ID の Deck が現在の UID の remote data に一つだけ存在する。
+- 作成した Deck の name、category、remote の保存先が最初の作成要求から維持されている。
+- browser storage に同じ Deck の local-only duplicate が存在しない。
+- 最初の作成失敗に伴う未処理の browser error が発生しない。

@@ -4,6 +4,19 @@
 services:
   auth:
     pull_policy: never
+    command:
+      - firebase
+      - emulators:start
+      - --only
+      - auth
+      - --project
+      - tango-e2e
+      - --config
+      - firebase.json
+    networks:
+      default:
+        aliases:
+          - auth.app.test
 
   app:
     env_file:
@@ -14,7 +27,11 @@ services:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
     init: true
     user: pwuser
-    command: npx -y playwright@1.61.1 run-server --port 3000 --host 0.0.0.0
+    # --unsafe forwards the scoped Chromium origin flag; override its artifact path so remote downloads never inherit
+    # the runner-only /workspace path.
+    command: >-
+      npx -y playwright@1.61.1 run-server --port 3000 --host 0.0.0.0 --unsafe
+      --artifacts-dir /tmp/playwright-artifacts
     depends_on:
       app:
         condition: service_healthy

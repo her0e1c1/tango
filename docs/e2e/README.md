@@ -1,19 +1,32 @@
 # E2E テスト仕様書
 
+## 目的
+
+ブラウザ上の主要な利用者導線を、永続化、認証、失敗後の復旧を含む acceptance test として確認する。
+このディレクトリの仕様を E2E test case の single source of truth とし、各 ID をちょうど一つの Playwright test に対応させる。
+
 ## 前提
 
 - `mise run e2e` で Playwright を実行する。
-- Deck / Card は Firestore emulator または localStorage、Config / Study session は localStorage に保存し、
-  Firebase Auth API は mock する。
-- Google など外部 identity provider の画面操作は対象外とし、Account E2E ではアプリ内の認証状態とデータ境界を確認する。
+- Deck / Card の remote data は Firestore emulator、認証は Firebase Auth emulator を使用する。
+- Google account 連携は Auth emulator の local popup flow で確認し、実際の外部 identity provider には接続しない。
+- Config / Study session と local-only data は browser storage に保存する。
 - E2E は代表的な利用者導線を対象とし、各 validation rule や設定・入力手段の組み合わせは
   unit / component test で確認する。
+
+## 保存先の用語
+
+- `local-only`: Deck / Card を remote に作成せず、現在の browser storage だけに保存する状態を指す。
+- `remote`: 現在の認証 UID に属する Deck / Card を Firestore emulator に保存する状態を指す。
+- `offline cache`: remote data の browser 上の cache と、offline 中に remote へ反映待ちとなった変更を指す。local-only data とは区別する。
 
 ## カテゴリ
 
 - `read`: 永続データを変更せず、並列実行の対象とする。
 - `write`: ケースごとに分離したデータへ1つの論理操作を永続化し、並列実行の対象とする。
 - `batch`: Deck / Card 群、保存先、認証スコープなど複数のリソースを一括で変更する。
+- すべてのカテゴリで UID、document ID、browser storage、学習 session をケースごとに分離し、test と retry の間でも識別子を共有しない。
+- すべての test case は並列実行でき、同時に実行された別の test case のデータや認証状態に依存しない。
 
 ## 共通の期待結果
 
@@ -67,8 +80,10 @@
 | DECK-04 | read | [Deck の削除を取り消せる](./deck.md#deck-04) |
 | DECK-05 | batch | [Deck の削除失敗後に再試行できる](./deck.md#deck-05) |
 | DECK-06 | read | [存在しない Deck から復帰できる](./deck.md#deck-06) |
-| DECK-07 | batch | [local-only Deck と Card を remote storage へ移行できる](./deck.md#deck-07) |
+| DECK-07 | batch | [local-only Deck と Card を remote へ移行できる](./deck.md#deck-07) |
 | DECK-08 | read | [Deck の Card を CSV で export できる](./deck.md#deck-08) |
+| DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](./deck.md#deck-09) |
+| DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](./deck.md#deck-10) |
 
 ### Card
 

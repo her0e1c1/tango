@@ -29,6 +29,8 @@ export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormState
         tags: card.tags,
       },
     }),
+    // Firestore can roll an optimistic snapshot back after a rejected write; that refresh must not erase the retry payload.
+    resetOptions: { keepDirtyValues: true },
     resolver: zodResolver(cardFormSchema),
   });
 
