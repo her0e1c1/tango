@@ -1,17 +1,5 @@
 import type { Page, Route } from "@playwright/test";
-import {
-  collectBrowserErrors,
-  createRemoteCardFixture,
-  createRemoteDeckFixture,
-  documentId,
-  expect,
-  listDocuments,
-  requireDocument,
-  routeAnonymousAuth,
-  seedConfig,
-  seedDeckAndCards,
-  test,
-} from "./fixtures";
+import { collectBrowserErrors, documentId, expect, listDocuments, requireDocument, test } from "./fixtures";
 
 const installApplicationCacheForOfflineReload = async (page: Page, baseURL: string | undefined) => {
   if (baseURL === undefined) throw new Error("Playwright baseURL is required for an offline reload");
@@ -97,40 +85,20 @@ const installApplicationCacheForOfflineReload = async (page: Page, baseURL: stri
 test("PERSIST-01 keeps remote Decks and Cards isolated by UID across reloads", async ({
   baseURL,
   browser,
-  namespace,
+  fixture,
   page,
 }) => {
-  const uidA = `${namespace.uid}-a`;
-  const uidB = `${namespace.uid}-b`;
-  const deckA = createRemoteDeckFixture(namespace, {
-    id: namespace.id("deck-a"),
-    uid: uidA,
-    name: "UID A Deck",
-  });
-  const deckB = createRemoteDeckFixture(namespace, {
-    id: namespace.id("deck-b"),
-    uid: uidB,
-    name: "UID B Deck",
-  });
-  const cardA = createRemoteCardFixture(namespace, deckA.id, {
-    id: namespace.id("card-a"),
-    uid: uidA,
-    frontText: "UID A Card",
-  });
-  const cardB = createRemoteCardFixture(namespace, deckB.id, {
-    id: namespace.id("card-b"),
-    uid: uidB,
-    frontText: "UID B Card",
-  });
-  await Promise.all([seedDeckAndCards(deckA, [cardA]), seedDeckAndCards(deckB, [cardB])]);
+  const deckA = fixture.deck("deck-a");
+  const deckB = fixture.deck("deck-b");
+  const cardA = fixture.card("card-a");
+  const cardB = fixture.card("card-b");
+  await fixture.seedRemote();
+  await fixture.seedPage(page, { user: "user-a" });
 
-  await routeAnonymousAuth(page, uidA);
-  await seedConfig(page);
   const contextB = await browser.newContext();
   const errorsB = collectBrowserErrors(contextB, baseURL);
   const pageB = await contextB.newPage();
-  await routeAnonymousAuth(pageB, uidB);
-  await seedConfig(pageB);
+  await fixture.seedPage(pageB, { user: "user-b" });
 
   await Promise.all([page.goto("/"), pageB.goto("/")]);
   await Promise.all([
@@ -167,17 +135,13 @@ test("PERSIST-02 syncs an offline cached Card edit after reconnecting", async ({
   browser,
   browserErrors,
   context,
-  namespace,
+  fixture,
   page,
 }) => {
-  const deck = createRemoteDeckFixture(namespace, { name: "Offline Deck" });
-  const card = createRemoteCardFixture(namespace, deck.id, {
-    frontText: "offline front",
-    backText: "offline back",
-  });
-  await seedDeckAndCards(deck, [card]);
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
+  const deck = fixture.deck();
+  const card = fixture.card();
+  const { uid } = fixture.user();
+  await fixture.apply(page);
 
   await page.goto("/");
   await expect(page.getByText(deck.name)).toBeVisible();
@@ -218,8 +182,7 @@ test("PERSIST-02 syncs an offline cached Card edit after reconnecting", async ({
   const verificationContext = await browser.newContext();
   const verificationErrors = collectBrowserErrors(verificationContext, baseURL);
   const verificationPage = await verificationContext.newPage();
-  await routeAnonymousAuth(verificationPage, namespace.uid);
-  await seedConfig(verificationPage);
+  await fixture.seedPage(verificationPage);
   await verificationPage.goto(`/deck/${deck.id}`);
   await expect(verificationPage.getByText(card.frontText)).toBeVisible();
 
@@ -233,15 +196,12 @@ test("PERSIST-02 syncs an offline cached Card edit after reconnecting", async ({
     .toBe("updated offline front");
 
   const deckIds = (await listDocuments("deck"))
-    .filter(
-      (document) =>
-        document.fields.uid?.stringValue === namespace.uid && document.fields.name?.stringValue === deck.name
-    )
+    .filter((document) => document.fields.uid?.stringValue === uid && document.fields.name?.stringValue === deck.name)
     .map(documentId);
   const cardIds = (await listDocuments("card"))
     .filter(
       (document) =>
-        document.fields.uid?.stringValue === namespace.uid &&
+        document.fields.uid?.stringValue === uid &&
         document.fields.deckId?.stringValue === deck.id &&
         document.fields.uniqueKey?.stringValue === card.uniqueKey
     )

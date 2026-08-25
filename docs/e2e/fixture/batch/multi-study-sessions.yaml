@@ -1,0 +1,57 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+remote:
+  decks:
+    - id: deck-a
+      uid: user-1
+      name: Study Deck A
+      category: English
+    - id: deck-b
+      uid: user-1
+      name: Study Deck B
+      category: English
+  cards:
+    - id: card-a-1
+      deckId: deck-a
+      uid: user-1
+      frontText: a-first
+      backText: a first answer
+      uniqueKey: a-first
+    - id: card-a-2
+      deckId: deck-a
+      uid: user-1
+      frontText: a-second
+      backText: a second answer
+      uniqueKey: a-second
+    - id: card-b-1
+      deckId: deck-b
+      uid: user-1
+      frontText: b-first
+      backText: b first answer
+      uniqueKey: b-first
+    - id: card-b-2
+      deckId: deck-b
+      uid: user-1
+      frontText: b-second
+      backText: b second answer
+      uniqueKey: b-second
+browser:
+  preferences:
+    loadSample: false
+  studySessions:
+    deck-a:
+      sessionId: session-a
+      deckId: deck-a
+      cardOrderIds:
+        - card-a-1
+        - card-a-2
+      currentIndex: 0
+    deck-b:
+      sessionId: session-b
+      deckId: deck-b
+      cardOrderIds:
+        - card-b-1
+        - card-b-2
+      currentIndex: 1

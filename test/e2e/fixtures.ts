@@ -8,6 +8,28 @@ import {
   type Route,
 } from "@playwright/test";
 
+import {
+  type FixtureCard,
+  type FixtureCategory,
+  type FixtureDeck,
+  type FixtureSource,
+  type FixtureState,
+  type FixtureStudySession,
+  type FixtureUser,
+  loadFixtureSource,
+  namespaceFixture,
+} from "./yaml-fixture";
+
+export type {
+  FixtureCard,
+  FixtureCategory,
+  FixtureDeck,
+  FixturePreferences,
+  FixtureState,
+  FixtureStudySession,
+  FixtureUser,
+} from "./yaml-fixture";
+
 const projectId = "tango-e2e";
 const firestorePort = process.env.VITE_DB_PORT ?? "8080";
 const firestoreBase = `http://db:${firestorePort}/v1/projects/${projectId}/databases/(default)/documents`;
@@ -30,6 +52,7 @@ export const expectedFirestoreWriteBrowserError =
 
 interface E2EFixtures {
   namespace: TestNamespace;
+  fixture: E2EFixture;
   browserErrors: BrowserErrorCollector;
 }
 
@@ -101,6 +124,9 @@ export const test = playwrightTest.extend<E2EFixtures>({
       )
     );
   },
+  fixture: async ({ namespace }, use) => {
+    await use(createE2EFixture(loadFixtureSource(namespace.caseId), namespace));
+  },
   browserErrors: [
     async ({ baseURL, context }, use) => {
       const errors = collectBrowserErrors(context, baseURL);
@@ -153,7 +179,7 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
           users: [
             {
               localId: activeUid,
-              ...(normalizedOptions.linked
+              ...(normalizedOptions.linked && activeUid === uid
                 ? {
                     providerUserInfo: [{ providerId: "google.com", rawId: activeUid, displayName: "E2E User" }],
                   }
@@ -286,16 +312,21 @@ export const seedLocalData = async (page: Page, fixture: LocalDataFixture) => {
   }, fixture);
 };
 
-export const seedStudySessions = async (page: Page, sessionsByDeckId: Record<string, StudySessionFixture>) => {
-  if (page.url() === "about:blank") {
-    await page.goto("/");
-    await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
-  }
+export const seedStudySessions = async (
+  page: Page,
+  sessionsByDeckId: Record<string, StudySessionFixture>,
+  deckNames: readonly string[] = []
+) => {
+  // Loading the Deck list first settles Auth and warms Firestore's local cache before a study route consumes both.
+  await page.goto("/");
+  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
+  await Promise.all(deckNames.map((name) => page.getByRole("button", { name: `View ${name}`, exact: true }).waitFor()));
   await page.evaluate((sessions) => {
     window.localStorage.setItem("tango-study", JSON.stringify({ state: { sessionsByDeckId: sessions }, version: 4 }));
   }, sessionsByDeckId);
   // Initial anonymous bootstrap clears study state at the identity boundary, so hydrate only after auth has settled.
   await page.reload();
+  await Promise.all(deckNames.map((name) => page.getByRole("button", { name: `View ${name}`, exact: true }).waitFor()));
 };
 
 export const readLocalData = async (page: Page) =>
@@ -305,61 +336,177 @@ export const readLocalData = async (page: Page) =>
     sessionsByDeckId: JSON.parse(window.localStorage.getItem("tango-study") ?? "{}").state?.sessionsByDeckId ?? {},
   }));
 
-export const createRemoteDeckFixture = (namespace: TestNamespace, overrides: Record<string, unknown> = {}) => ({
-  id: namespace.id("deck"),
-  name: `${namespace.caseId} Deck`,
-  category: "English",
-  uid: namespace.uid,
-  createdAt: 0,
-  updatedAt: 0,
-  deletedAt: null,
-  scoreMax: null,
-  scoreMin: null,
-  isPublic: false,
-  selectedTags: [] as string[],
-  tagAndFilter: false,
-  convertToBr: false,
-  ...overrides,
-});
+export interface FixtureAuthSeedOptions extends AnonymousAuthOptions {
+  /** Logical UID of the anonymous user created after a linked user signs out. */
+  nextUser?: string;
+}
 
-export const createRemoteCardFixture = (
+export interface FixturePageSeedOptions {
+  /** Logical UID from the YAML fixture. The first documented user is used by default. */
+  user?: string;
+  /** Set to false only when a test intentionally uses the real Auth emulator. */
+  auth?: FixtureAuthSeedOptions | false;
+  /** Additional per-test preferences layered over the normalized YAML state. */
+  preferences?: E2EConfigOverrides | false;
+  localData?: boolean;
+  studySessions?: boolean;
+}
+
+export interface FixtureApplyOptions extends FixturePageSeedOptions {
+  remote?: boolean;
+}
+
+export interface E2EFixture {
+  caseId: string;
+  category: FixtureCategory;
+  /** Repository-relative path to the YAML file selected by the documented test case. */
+  path: string;
+  state: FixtureState;
+  user: (logicalUid?: string) => FixtureUser;
+  deck: (logicalId?: string) => FixtureDeck;
+  card: (logicalId?: string) => FixtureCard;
+  session: (logicalDeckId?: string) => FixtureStudySession;
+  uid: (logicalUid: string) => string;
+  id: (logicalId: string) => string;
+  /** Returns an independent view with selected logical users mapped to caller-provided runtime UIDs. */
+  remapUsers: (users: Readonly<Record<string, string>>) => E2EFixture;
+  seedRemote: () => Promise<void>;
+  seedPage: (page: Page, options?: FixturePageSeedOptions) => Promise<void>;
+  apply: (page: Page, options?: FixtureApplyOptions) => Promise<void>;
+}
+
+const requireLogicalValue = <Value>(values: ReadonlyMap<string, Value>, kind: string, logicalId?: string): Value => {
+  const value = logicalId === undefined ? values.values().next().value : values.get(logicalId);
+  if (value === undefined) {
+    throw new Error(
+      logicalId === undefined ? `YAML fixture has no ${kind}` : `YAML fixture has no ${kind} named ${logicalId}`
+    );
+  }
+  return value;
+};
+
+const resolveNextAuthUser = (
+  users: ReadonlyMap<string, FixtureUser>,
+  selectedUser: FixtureUser,
+  authOptions: FixtureAuthSeedOptions
+) => {
+  if (authOptions.nextUser !== undefined && authOptions.nextUid !== undefined) {
+    throw new Error("Fixture auth accepts nextUser or nextUid, not both");
+  }
+  if (authOptions.nextUser !== undefined) {
+    return requireLogicalValue(users, "auth user", authOptions.nextUser);
+  }
+  return [...users.values()].find(
+    (candidate) => candidate.provider === "anonymous" && candidate.uid !== selectedUser.uid
+  );
+};
+
+const seedFixturePreferences = async (
+  page: Page,
+  preferences: FixtureState["browser"]["preferences"],
+  overrides: FixturePageSeedOptions["preferences"]
+) => {
+  if (overrides === false) return;
+  await seedConfig(page, {
+    ...preferences,
+    ...overrides,
+    appearance: { ...preferences.appearance, ...overrides?.appearance },
+    study: { ...preferences.study, ...overrides?.study },
+    controls: { ...preferences.controls, ...overrides?.controls },
+  });
+};
+
+const seedFixtureLocalData = async (page: Page, state: FixtureState, shouldSeed: boolean | undefined) => {
+  if (shouldSeed === false) return;
+  await seedLocalData(page, {
+    decks: state.browser.localDecks.map((deck) => ({ ...deck })),
+    cards: state.browser.localCards.map((card) => ({ ...card })),
+  });
+};
+
+const seedFixtureAuth = async (
+  page: Page,
+  fixture: {
+    users: ReadonlyMap<string, FixtureUser>;
+    selectedUser: FixtureUser;
+    options: FixturePageSeedOptions["auth"];
+    namespace: TestNamespace;
+  }
+) => {
+  if (fixture.options === false) return;
+  const options = fixture.options ?? {};
+  const nextUser = resolveNextAuthUser(fixture.users, fixture.selectedUser, options);
+  const { nextUser: _nextUser, ...overrides } = options;
+  const inferredNextUid =
+    nextUser?.uid ?? (fixture.selectedUser.provider === "google" ? fixture.namespace.id("signed-out-user") : undefined);
+  await routeAnonymousAuth(page, fixture.selectedUser.uid, {
+    ...overrides,
+    linked: overrides.linked ?? fixture.selectedUser.provider === "google",
+    ...(overrides.nextUid === undefined && inferredNextUid !== undefined ? { nextUid: inferredNextUid } : {}),
+  });
+};
+
+const seedFixtureStudySessions = async (page: Page, state: FixtureState, shouldSeed: boolean | undefined) => {
+  const { studySessions } = state.browser;
+  if (shouldSeed === false || Object.keys(studySessions).length === 0) return;
+  const sessionDeckIds = new Set(Object.keys(studySessions));
+  const deckNames = [...state.remote.decks, ...state.browser.localDecks]
+    .filter(({ id }) => sessionDeckIds.has(id))
+    .map(({ name }) => name);
+  // Auth initialization clears the previous identity's study state, so sessions must be written after it settles.
+  await seedStudySessions(page, studySessions, deckNames);
+};
+
+function createE2EFixture(
+  source: FixtureSource,
   namespace: TestNamespace,
-  deckId: string,
-  overrides: Record<string, unknown> = {}
-) => ({
-  id: namespace.id("card"),
-  deckId,
-  uid: namespace.uid,
-  frontText: `${namespace.caseId} front`,
-  backText: `${namespace.caseId} back`,
-  tags: [] as string[],
-  uniqueKey: namespace.id("key"),
-  score: 0,
-  numberOfSeen: 0,
-  interval: 0,
-  createdAt: 0,
-  updatedAt: 0,
-  deletedAt: null,
-  ...overrides,
-});
+  userOverrides: Readonly<Record<string, string>> = {}
+): E2EFixture {
+  const namespaced = namespaceFixture(source, namespace, userOverrides);
+  const seedRemote = async () => {
+    // Seed parent Decks first so every observable intermediate state preserves Card references.
+    await Promise.all(namespaced.state.remote.decks.map((deck) => setDocument("deck", deck.id, { ...deck })));
+    await Promise.all(namespaced.state.remote.cards.map((card) => setDocument("card", card.id, { ...card })));
+  };
 
-export const createLocalDeckFixture = (namespace: TestNamespace, overrides: Record<string, unknown> = {}) => ({
-  ...createRemoteDeckFixture(namespace, overrides),
-  uid: undefined,
-  localMode: true,
-});
+  const seedPage = async (page: Page, options: FixturePageSeedOptions = {}) => {
+    const selectedUser = requireLogicalValue(namespaced.users, "auth user", options.user);
+    await seedFixturePreferences(page, namespaced.state.browser.preferences, options.preferences);
+    await seedFixtureLocalData(page, namespaced.state, options.localData);
+    await seedFixtureAuth(page, {
+      users: namespaced.users,
+      selectedUser,
+      options: options.auth,
+      namespace,
+    });
+    await seedFixtureStudySessions(page, namespaced.state, options.studySessions);
+  };
 
-export const createLocalCardFixture = (
-  namespace: TestNamespace,
-  deckId: string,
-  overrides: Record<string, unknown> = {}
-) => ({
-  ...createRemoteCardFixture(namespace, deckId, overrides),
-  uid: undefined,
-});
+  const fixture: E2EFixture = {
+    caseId: source.caseId,
+    category: source.category,
+    path: source.path,
+    state: namespaced.state,
+    user: (logicalUid) => requireLogicalValue(namespaced.users, "auth user", logicalUid),
+    deck: (logicalId) => requireLogicalValue(namespaced.decks, "Deck", logicalId),
+    card: (logicalId) => requireLogicalValue(namespaced.cards, "Card", logicalId),
+    session: (logicalDeckId) => requireLogicalValue(namespaced.sessions, "Study session", logicalDeckId),
+    uid: namespaced.uid,
+    id: namespaced.id,
+    remapUsers: (users) => createE2EFixture(source, namespace, { ...userOverrides, ...users }),
+    seedRemote,
+    seedPage,
+    apply: async (page, options = {}) => {
+      if (options.remote !== false) await seedRemote();
+      await seedPage(page, options);
+    },
+  };
+  return fixture;
+}
 
 const firestoreValue = (value: unknown): object => {
   if (value === null) return { nullValue: null };
+  if (value instanceof Date) return { timestampValue: value.toISOString() };
   if (typeof value === "string") return { stringValue: value };
   if (typeof value === "boolean") return { booleanValue: value };
   if (typeof value === "number") {
@@ -381,6 +528,7 @@ export interface FirestoreDocument {
         integerValue?: string;
         nullValue?: null;
         stringValue?: string;
+        timestampValue?: string;
       }
     >
   >;
@@ -426,14 +574,6 @@ export const listDocuments = async (collection: FirestoreCollection): Promise<Fi
 };
 
 export const documentId = (document: FirestoreDocument) => document.name.split("/").at(-1) ?? "";
-
-export const seedDeckAndCards = async (
-  deck: Record<string, unknown> & { id: string },
-  cards: (Record<string, unknown> & { id: string })[]
-) => {
-  await setDocument("deck", deck.id, deck);
-  await Promise.all(cards.map((card) => setDocument("card", card.id, card)));
-};
 
 export interface FirestoreFault {
   dispose: () => Promise<void>;
