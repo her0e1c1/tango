@@ -1,6 +1,6 @@
 import type { CardId } from "@/entities/card";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -141,6 +141,45 @@ describe("CardEditor", () => {
     view.unmount();
     renderForm();
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Retry front");
+  });
+
+  it("keeps dirty fields when the Card Entity rolls back after a failed save", async () => {
+    writeControls.nextError = new Error("write failed");
+    const onSaved = vi.fn();
+    const view = renderForm(onSaved);
+    const frontText = screen.getByRole("textbox", { name: "Front text" });
+    const backText = screen.getByRole("textbox", { name: "Back text" });
+    await userEvent.clear(frontText);
+    await userEvent.type(frontText, "Retry front");
+    await userEvent.clear(backText);
+    await userEvent.type(backText, "Retry back");
+    await userEvent.click(screen.getByRole("checkbox", { name: "math" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+
+    act(() => {
+      void mutateCards("", [
+        {
+          kind: "edit",
+          card: { id: cardId, frontText: "Front text", backText: "Back text", tags: ["language"] },
+        },
+      ]);
+    });
+
+    expect(frontText).toHaveValue("Retry front");
+    expect(backText).toHaveValue("Retry back");
+    expect(screen.getByRole("checkbox", { name: "language" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "math" })).toBeChecked();
+
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    view.unmount();
+    renderForm();
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Retry front");
+    expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Retry back");
+    expect(screen.getByRole("checkbox", { name: "language" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "math" })).toBeChecked();
   });
 
   it("forwards cancellation from both navigation actions", async () => {

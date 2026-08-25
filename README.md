@@ -83,19 +83,19 @@ pytest, and browser behavior is tested separately with Playwright.
 
 ### E2E Test
 
-Playwright is used for browser-level smoke tests. `mise run e2e` starts the official Playwright Docker image as a
-remote browser server, starts a healthy Vite dev server service from the project image, and runs the tests
-against it.
+Playwright runs the browser-level acceptance suite documented in `docs/e2e/`. `mise run e2e` starts isolated
+Firestore and Firebase Auth emulators, a healthy Vite dev server from the project image, and the official Playwright
+Docker image as a remote browser server before running the complete suite. The tests use emulator-backed remote data,
+local-only browser data, offline cache behavior, and the Auth emulator's local identity-provider flow; they do not
+connect to a real Firebase project or external identity provider.
 
 ```bash
 mise run e2e
 ```
 
-For interactive debugging, run:
+`npm run e2e:ui` only opens Playwright's UI and does not start the required app and emulators. Use the
+compose-backed `mise run e2e` task for the acceptance suite. Failed local runs retain screenshots under
+`test-results/`; CI also writes an HTML report and captures a trace on the first retry.
 
-```bash
-npx playwright install chromium
-npm run e2e:ui
-```
-
-The initial E2E suite seeds local browser storage and does not require a real Firebase project or emulator.
+Each test and retry uses isolated identifiers and storage, so the suite can run fully in parallel locally. CI runs the
+same acceptance suite with its configured worker and retry limits.

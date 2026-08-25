@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./test/e2e",
   testMatch: "**/*.spec.ts",
+  globalSetup: "./test/e2e/global-setup.ts",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
@@ -16,7 +17,13 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Full headless Chromium honors the scoped secure-origin override; headless shell does not. The isolated Vite
+        // origin needs it so PERSIST-02 can cache the app shell before a real context-level offline reload.
+        channel: "chromium",
+        launchOptions: { args: ["--unsafely-treat-insecure-origin-as-secure=http://app.test:4173"] },
+      },
     },
   ],
 });
