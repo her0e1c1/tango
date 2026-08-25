@@ -205,6 +205,7 @@ Then:
 
 Given:
 
+- Fixture: [`empty`](./fixture/write/empty.yaml)
 - ユーザーとして認証されている。
 - 作成対象の Deck は現在の UID の remote data と local-only data のどちらにも存在しない。
 
@@ -227,6 +228,7 @@ Then:
 
 Given:
 
+- Fixture: [`empty`](./fixture/write/empty.yaml)
 - ユーザーとして認証されている。
 - remote Deck の最初の作成要求が失敗している。
 - 作成失敗が画面内で処理され、入力した name と category、remote の保存先、作成対象の Deck ID が維持されている。

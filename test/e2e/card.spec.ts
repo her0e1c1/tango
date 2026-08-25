@@ -1,29 +1,12 @@
 import type { Page } from "@playwright/test";
 import {
-  createRemoteCardFixture,
-  createRemoteDeckFixture,
   expect,
   expectedFirestoreWriteBrowserError,
   failNextFirestoreWrite,
   getDocument,
   requireDocument,
-  routeAnonymousAuth,
-  seedConfig,
-  seedDeckAndCards,
   test,
-  type TestNamespace,
 } from "./fixtures";
-
-const prepareRemote = async (
-  page: Page,
-  namespace: TestNamespace,
-  deck: ReturnType<typeof createRemoteDeckFixture>,
-  cards: ReturnType<typeof createRemoteCardFixture>[]
-) => {
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
-  await seedDeckAndCards(deck, cards);
-};
 
 const cardArticle = (page: Page, frontText: string) =>
   page.getByRole("button", { name: `View ${frontText}`, exact: true }).locator("xpath=ancestor::article[1]");
@@ -61,28 +44,24 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("CARD-01 shows front text, score, study count, and tags", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id, {
-    score: 3,
-    numberOfSeen: 4,
-    tags: ["typescript", "accessibility"],
-  });
-  await prepareRemote(page, namespace, deck, [card]);
+test("CARD-01 shows front text, score, study count, and tags", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
 
   const article = cardArticle(page, card.frontText);
   await expect(article.getByText(card.frontText)).toBeVisible();
-  await expectScore(page, card.frontText, 3);
-  await expect(article.getByText("studied 4 times")).toBeVisible();
-  await expect(article.getByRole("group", { name: "Tags: typescript, accessibility" })).toBeVisible();
+  await expectScore(page, card.frontText, card.score);
+  await expect(article.getByText(`studied ${String(card.numberOfSeen)} times`)).toBeVisible();
+  await expect(article.getByRole("group", { name: `Tags: ${card.tags.join(", ")}` })).toBeVisible();
 });
 
-test("CARD-02 opens the selected Card back-text overlay", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id);
-  await prepareRemote(page, namespace, deck, [card]);
+test("CARD-02 opens the selected Card back-text overlay", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: `View ${card.frontText}` }).click();
@@ -90,14 +69,14 @@ test("CARD-02 opens the selected Card back-text overlay", async ({ page, namespa
   await expect(page.getByRole("button", { name: "Close card" })).toContainText(card.backText);
 });
 
-test("CARD-03 persists edited front, back, and tags across reload", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id, { tags: ["math", "typescript"] });
+test("CARD-03 persists edited front, back, and tags across reload", async ({ fixture, page, namespace }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
   const changed = {
     frontText: `${namespace.caseId} changed front`,
     backText: `${namespace.caseId} changed back`,
   };
-  await prepareRemote(page, namespace, deck, [card]);
+  await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
@@ -118,10 +97,10 @@ test("CARD-03 persists edited front, back, and tags across reload", async ({ pag
   await expect(page.getByRole("checkbox", { name: "typescript" })).toBeChecked();
   await expect(page.getByRole("checkbox", { name: "python" })).toBeChecked();
 });
-test("CARD-04 deletes a Card and does not reload it as active", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id);
-  await prepareRemote(page, namespace, deck, [card]);
+test("CARD-04 deletes a Card and does not reload it as active", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   const dialog = await openCardDeleteDialog(page, card.frontText);
@@ -135,36 +114,42 @@ test("CARD-04 deletes a Card and does not reload it as active", async ({ page, n
     .not.toBeUndefined();
 });
 
-test("CARD-05 increases score by one after a right swipe and reload", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id, { score: 2 });
-  await prepareRemote(page, namespace, deck, [card]);
+test("CARD-05 increases score by one after a right swipe and reload", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  const expectedScore = card.score + 1;
+  await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await swipe(page, card.frontText, "right");
-  await expect.poll(async () => (await requireDocument("card", card.id)).fields.score?.integerValue).toBe("3");
+  await expect
+    .poll(async () => (await requireDocument("card", card.id)).fields.score?.integerValue)
+    .toBe(String(expectedScore));
   await page.reload();
 
-  await expectScore(page, card.frontText, 3);
+  await expectScore(page, card.frontText, expectedScore);
 });
 
-test("CARD-06 decreases score by one after a left swipe and reload", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id, { score: 2 });
-  await prepareRemote(page, namespace, deck, [card]);
+test("CARD-06 decreases score by one after a left swipe and reload", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  const expectedScore = card.score - 1;
+  await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await swipe(page, card.frontText, "left");
-  await expect.poll(async () => (await requireDocument("card", card.id)).fields.score?.integerValue).toBe("1");
+  await expect
+    .poll(async () => (await requireDocument("card", card.id)).fields.score?.integerValue)
+    .toBe(String(expectedScore));
   await page.reload();
 
-  await expectScore(page, card.frontText, 1);
+  await expectScore(page, card.frontText, expectedScore);
 });
 
-test("CARD-07 closes the back-text overlay without changing persistent Card data", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id);
-  await prepareRemote(page, namespace, deck, [card]);
+test("CARD-07 closes the back-text overlay without changing persistent Card data", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  await fixture.apply(page);
   const before = await requireDocument("card", card.id);
 
   await page.goto(`/deck/${deck.id}`);
@@ -178,10 +163,10 @@ test("CARD-07 closes the back-text overlay without changing persistent Card data
   expect(await requireDocument("card", card.id)).toEqual(before);
 });
 
-test("CARD-08 cancels deletion, restores focus, and preserves persistent data", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id);
-  await prepareRemote(page, namespace, deck, [card]);
+test("CARD-08 cancels deletion, restores focus, and preserves persistent data", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  await fixture.apply(page);
   const before = await requireDocument("card", card.id);
 
   await page.goto(`/deck/${deck.id}`);
@@ -196,12 +181,17 @@ test("CARD-08 cancels deletion, restores focus, and preserves persistent data", 
   expect(await requireDocument("card", card.id)).toEqual(before);
 });
 
-test("CARD-09 retries the same Card edit after a handled failure", async ({ page, browserErrors, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id);
+test("CARD-09 retries the same Card edit after a handled failure", async ({
+  fixture,
+  page,
+  browserErrors,
+  namespace,
+}) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
   const changedFront = `${namespace.caseId} retry front`;
   const changedBack = `${namespace.caseId} retry back`;
-  await prepareRemote(page, namespace, deck, [card]);
+  await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
@@ -230,33 +220,20 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({ page
   await expect(page.getByRole("button", { name: "Close card" })).toContainText(changedBack);
 });
 
-test("CARD-10 persists score and tag filters and applies both after reload", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const matching = createRemoteCardFixture(namespace, deck.id, {
-    id: namespace.id("matching"),
-    frontText: "matching card",
-    score: 2,
-    tags: ["alpha"],
-  });
-  const lowScore = createRemoteCardFixture(namespace, deck.id, {
-    id: namespace.id("low-score"),
-    frontText: "low score card",
-    score: 0,
-    tags: ["alpha"],
-  });
-  const wrongTag = createRemoteCardFixture(namespace, deck.id, {
-    id: namespace.id("wrong-tag"),
-    frontText: "wrong tag card",
-    score: 2,
-    tags: ["beta"],
-  });
-  await prepareRemote(page, namespace, deck, [matching, lowScore, wrongTag]);
+test("CARD-10 persists score and tag filters and applies both after reload", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const matching = fixture.card("card-1");
+  const wrongTag = fixture.card("card-2");
+  const lowScore = fixture.card("card-3");
+  const [selectedTag] = matching.tags;
+  if (selectedTag === undefined) throw new Error("CARD-10 fixture requires a matching Card tag");
+  await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByText("Filters", { exact: true }).click();
   await clickCheckboxLabel(page, "Enable minimum score");
   await page.getByRole("slider", { name: "Minimum score value" }).fill("1");
-  await clickCheckboxLabel(page, "alpha");
+  await clickCheckboxLabel(page, selectedTag);
   await expect.poll(async () => (await requireDocument("deck", deck.id)).fields.scoreMin?.integerValue).toBe("1");
   await expect
     .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values?.length)
@@ -267,18 +244,17 @@ test("CARD-10 persists score and tag filters and applies both after reload", asy
   await page.getByText("Filters", { exact: true }).click();
   await expect(page.getByRole("checkbox", { name: "Enable minimum score" })).toBeChecked();
   await expect(page.getByRole("slider", { name: "Minimum score value" })).toHaveValue("1");
-  await expect(page.getByRole("checkbox", { name: "alpha" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: selectedTag })).toBeChecked();
   await expect(page.getByRole("button", { name: `View ${matching.frontText}` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${lowScore.frontText}` })).toHaveCount(0);
   await expect(page.getByRole("button", { name: `View ${wrongTag.frontText}` })).toHaveCount(0);
   const persisted = await requireDocument("deck", deck.id);
-  expect(persisted.fields.selectedTags?.arrayValue?.values).toEqual([{ stringValue: "alpha" }]);
+  expect(persisted.fields.selectedTags?.arrayValue?.values).toEqual([{ stringValue: selectedTag }]);
 });
 
-test("CARD-11 opens a Card view route inside the application shell", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id);
-  await prepareRemote(page, namespace, deck, [card]);
+test("CARD-11 opens a Card view route inside the application shell", async ({ fixture, page }) => {
+  const card = fixture.card();
+  await fixture.apply(page);
 
   await page.goto(`/card/${card.id}`);
 
@@ -286,9 +262,8 @@ test("CARD-11 opens a Card view route inside the application shell", async ({ pa
   await expect(page.getByRole("button", { name: "tango" })).toBeVisible();
 });
 
-test("CARD-12 recovers home from a missing Card route", async ({ page, namespace }) => {
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
+test("CARD-12 recovers home from a missing Card route", async ({ fixture, page, namespace }) => {
+  await fixture.apply(page);
 
   await page.goto(`/card/${namespace.id("missing")}`);
   await expect(page.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();

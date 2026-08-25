@@ -1,13 +1,5 @@
 import type { Page } from "@playwright/test";
-import {
-  createRemoteCardFixture,
-  createRemoteDeckFixture,
-  expect,
-  seedConfig,
-  seedDeckAndCards,
-  test,
-  type TestNamespace,
-} from "./fixtures";
+import { expect, test } from "./fixtures";
 
 const accountUid = async (page: Page) => {
   const value = await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent();
@@ -58,35 +50,21 @@ const closeGooglePopup = async (page: Page) => {
   await popup.close();
 };
 
-const seedAccountData = async (page: Page, namespace: TestNamespace, uid: string) => {
-  const deck = createRemoteDeckFixture(namespace, { uid });
-  const card = createRemoteCardFixture(namespace, deck.id, { uid });
-  await seedDeckAndCards(deck, [card]);
-  await page.evaluate(
-    ({ deckId, cardId, sessionId }) => {
-      localStorage.setItem(
-        "tango-study",
-        JSON.stringify({
-          state: {
-            sessionsByDeckId: {
-              [deckId]: { sessionId, deckId, cardOrderIds: [cardId], currentIndex: 0, lastStudiedAt: 1 },
-            },
-          },
-          version: 4,
-        })
-      );
-    },
-    { deckId: deck.id, cardId: card.id, sessionId: namespace.id("session") }
-  );
-  return { deck, card };
-};
-
-test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", async ({ page, namespace }) => {
-  await seedConfig(page);
+test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
+  await fixture.seedPage(page, { auth: false, studySessions: false });
   await page.goto("/account");
   await expect(page.getByText("Anonymous account")).toBeVisible();
   const anonymousUid = await accountUid(page);
-  const { deck, card } = await seedAccountData(page, namespace, anonymousUid);
+  const runtimeFixture = fixture.remapUsers({ "user-1": anonymousUid });
+  const deck = runtimeFixture.deck();
+  const card = runtimeFixture.card("card-2");
+  await runtimeFixture.seedRemote();
+  await runtimeFixture.seedPage(page, { auth: false, preferences: false, localData: false });
+  await page.goto("/account");
 
   await completeGooglePopup(page, namespace.uid);
   await expect(page.getByText("Signed in with Google")).toBeVisible();
@@ -102,8 +80,8 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
   await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
 });
 
-test("ACCOUNT-02 A closed Google popup can be retried successfully", async ({ page, namespace }) => {
-  await seedConfig(page);
+test("ACCOUNT-02 A closed Google popup can be retried successfully", async ({ fixture, page, namespace }) => {
+  await fixture.apply(page, { auth: false });
   await page.goto("/account");
 
   await closeGooglePopup(page);
@@ -116,13 +94,15 @@ test("ACCOUNT-02 A closed Google popup can be retried successfully", async ({ pa
   await expect(page.getByText("Signed in with Google")).toBeVisible();
 });
 
-test("ACCOUNT-03 Sign-out switches to a new anonymous identity boundary", async ({ page, namespace }) => {
-  await seedConfig(page);
+test("ACCOUNT-03 Sign-out switches to a new anonymous identity boundary", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card("card-2");
+  const { uid } = fixture.user();
+  await fixture.apply(page);
   await page.goto("/account");
-  const originalUid = await accountUid(page);
-  const { deck, card } = await seedAccountData(page, namespace, originalUid);
-  await completeGooglePopup(page, namespace.uid);
   await expect(page.getByText("Signed in with Google")).toBeVisible();
+  const originalUid = await accountUid(page);
+  expect(originalUid).toBe(uid);
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByText("Anonymous account")).toBeVisible();

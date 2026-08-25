@@ -115,7 +115,7 @@ Then:
 
 Given:
 
-- Fixture: [`import-partial`](./fixture/batch/import-partial.yaml)
+- Fixture: [`empty`](./fixture/batch/empty.yaml)
 - 有効な CSV の最初の import で、保存先の Deck を作成した後に Card の保存が失敗している。
 - import の失敗が画面内で処理され、同じ preview と保存先が維持されている。
 - 次の import では Card を保存できる。

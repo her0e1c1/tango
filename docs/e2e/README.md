@@ -34,9 +34,14 @@
 - fixture はテストケースのカテゴリと同じディレクトリから選択する。
 - 各テストケースは `Given` の先頭で使用する fixture を明示する。
 - `auth.users` は mock する認証 identity、`remote` は Firestore emulator、`browser` は localStorage に保存する状態を表す。
-- fixture 内の ID と UID は論理 ID とし、`write` / `batch` ではテストケースごとの namespace に展開して他ケースと共有しない。
-- `read` では `fixture/read/` の共有 fixture を利用できるが、fixture の永続状態を変更してはならない。
-- fixture に記述していない preference は E2E の既定値を利用する。
+- fixture 内の ID と UID は論理 ID とし、すべてのカテゴリで test case と retry ごとの namespace に展開して他ケースと共有しない。
+- UID、Deck / Card / session ID、Card の `deckId`、`studySessions` の map key と `cardOrderIds` は同じ対応表で展開する。
+- application-defined stable ID である `sample-v1` と `sample-v1-card-*` は namespace に展開せず、そのまま利用する。
+- Deck の省略 field は `isPublic: false`、`scoreMax: null`、`scoreMin: null`、`selectedTags: []`、`tagAndFilter: false`、`category: ""`、`convertToBr: false`、`createdAt: 0`、`updatedAt: 0` として正規化し、remote Deck の `deletedAt` は `null` とする。
+- Card の省略 field は `tags: []`、`score: 0`、`numberOfSeen: 0`、`deletedAt: null`、`createdAt: 0`、`updatedAt: 0` として正規化する。
+- Study session の省略された `lastStudiedAt` は `0` として正規化する。
+- fixture に記述していない preference はアプリケーションの既定値を利用し、`loadSample` の既定値は `true` とする。
+- fixture に記述していない collection は空として扱う。
 - 認証失敗、network failure、dialog の表示状態など永続状態ではない前提は fixture に含めず、各ケースの `Given` に記述する。
 
 ## 共通の期待結果

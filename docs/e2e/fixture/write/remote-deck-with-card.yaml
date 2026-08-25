@@ -15,8 +15,8 @@ remote:
       frontText: apple
       backText: りんご
       tags:
-        - target
-        - noun
+        - math
+        - typescript
       uniqueKey: apple
       score: 1
       numberOfSeen: 3

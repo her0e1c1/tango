@@ -170,7 +170,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-cards`](./fixture/read/remote-deck-with-cards.yaml)
+- Fixture: [`study-filter-no-matches`](./fixture/read/study-filter-no-matches.yaml)
 - 認証済みユーザーが所有する Deck に Card が存在する。
 - 学習開始画面の score と tag の filter に一致する Card が存在しない。
 
@@ -304,7 +304,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start`](./fixture/write/study-session-start.yaml)
+- Fixture: [`study-session-start-drag`](./fixture/write/study-session-start-drag.yaml)
 - 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
 - 上方向の drag は mastered action に設定されている。

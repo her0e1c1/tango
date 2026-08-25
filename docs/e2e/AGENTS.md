@@ -11,7 +11,8 @@
 - fixture の数値 timestamp field (`createdAt`、`updatedAt`、`lastStudiedAt` など) の初期値は `0` (Unix epoch milliseconds) とする。
 - timestamp の値、順序、経過時間そのものがテスト条件でない限り、fixture YAML に timestamp を記述しない。
 - fixture YAML にはアプリケーション上の永続状態を記述し、Firestore 固有の serialization は記述しない。
-- `read` fixture は共有しても変更せず、`write` / `batch` fixture はケースごとに分離した namespace へ展開する。
+- すべてのカテゴリで fixture の論理 ID と UID を test case と retry ごとに分離した namespace へ展開する。
+- application-defined stable ID である `sample-v1` と `sample-v1-card-*` は namespace へ展開しない。
 - 各テストケースには、`read`、`write`、`batch` のいずれかのカテゴリを明示する。
 - テストケースは `Given` / `When` / `Then` で記述し、それぞれ原則1ブロックとする。
 - `When` → `Then` → `When` のように、操作と期待結果を交互に繰り返さない。

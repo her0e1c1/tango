@@ -1,53 +1,50 @@
-import {
-  createRemoteCardFixture,
-  createRemoteDeckFixture,
-  expect,
-  routeAnonymousAuth,
-  seedConfig,
-  seedDeckAndCards,
-  test,
-} from "./fixtures";
+import { expect, test } from "./fixtures";
 
-test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ page, namespace }) => {
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
+test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page }) => {
+  const initialDarkMode = fixture.state.browser.preferences.appearance.darkMode;
+  const expectedDarkMode = !initialDarkMode;
+  await fixture.apply(page);
   await page.goto("/settings");
 
   const darkMode = page.getByRole("checkbox", { name: "Dark mode" });
-  await expect(darkMode).not.toBeChecked();
+  if (initialDarkMode) await expect(darkMode).toBeChecked();
+  else await expect(darkMode).not.toBeChecked();
   await darkMode.locator("xpath=parent::label").click();
-  await expect(darkMode).toBeChecked();
+  if (expectedDarkMode) await expect(darkMode).toBeChecked();
+  else await expect(darkMode).not.toBeChecked();
   await expect
     .poll(() =>
       page.evaluate(
         () => JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.appearance?.darkMode
       )
     )
-    .toBe(true);
+    .toBe(expectedDarkMode);
 
   await page.reload();
-  await expect(darkMode).toBeChecked();
-  await expect(page.locator("html")).toHaveClass(/dark/);
+  if (expectedDarkMode) {
+    await expect(darkMode).toBeChecked();
+    await expect(page.locator("html")).toHaveClass(/dark/);
+  } else {
+    await expect(darkMode).not.toBeChecked();
+    await expect(page.locator("html")).not.toHaveClass(/dark/);
+  }
 });
 
-test("SETTINGS-02 Maximum cards limits the next study session", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const cards = Array.from({ length: 4 }, (_, index) =>
-    createRemoteCardFixture(namespace, deck.id, {
-      id: namespace.id(`card-${String(index)}`),
-      frontText: `${namespace.caseId} front ${String(index)}`,
-      backText: `${namespace.caseId} back ${String(index)}`,
-      uniqueKey: namespace.id(`key-${String(index)}`),
-    })
-  );
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
-  await seedDeckAndCards(deck, cards);
+test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const numberOfCards = fixture.state.remote.cards.length;
+  const expectedMaximum = numberOfCards - 1;
+  if (expectedMaximum < 1) throw new Error("SETTINGS-02 fixture requires at least two Cards");
+  if (expectedMaximum === fixture.state.browser.preferences.study.maxNumberOfCardsToLearn) {
+    throw new Error("SETTINGS-02 fixture requires the changed maximum to differ from its initial preference");
+  }
+  const cardLabel = expectedMaximum === 1 ? "card" : "cards";
+  await fixture.apply(page);
   await page.goto("/settings");
 
   const maximumCards = page.getByRole("slider", { name: "Maximum cards" });
-  await maximumCards.fill("2");
-  await expect(maximumCards).toHaveValue("2");
+  await maximumCards.fill(String(expectedMaximum));
+  await expect(maximumCards).toHaveValue(String(expectedMaximum));
   await expect
     .poll(() =>
       page.evaluate(
@@ -55,11 +52,13 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ page, n
           JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study?.maxNumberOfCardsToLearn
       )
     )
-    .toBe(2);
+    .toBe(expectedMaximum);
 
   await page.reload();
-  await expect(maximumCards).toHaveValue("2");
+  await expect(maximumCards).toHaveValue(String(expectedMaximum));
   await page.goto(`/deck/${deck.id}/start`);
-  await expect(page.getByRole("heading", { level: 2, name: "2 cards in this session" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Start 2 cards" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: `${String(expectedMaximum)} ${cardLabel} in this session` })
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: `Start ${String(expectedMaximum)} ${cardLabel}` })).toBeVisible();
 });

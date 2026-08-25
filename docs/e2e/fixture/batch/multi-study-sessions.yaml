@@ -47,11 +47,11 @@ browser:
       cardOrderIds:
         - card-a-1
         - card-a-2
-      currentIndex: 1
+      currentIndex: 0
     deck-b:
       sessionId: session-b
       deckId: deck-b
       cardOrderIds:
         - card-b-1
         - card-b-2
-      currentIndex: 0
+      currentIndex: 1

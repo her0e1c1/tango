@@ -67,7 +67,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/batch/study-session-middle.yaml)
+- Fixture: [`google-study-session-middle`](./fixture/batch/google-study-session-middle.yaml)
 - Google アカウントに連携したユーザーに Deck と Card が存在する。
 - 対象ユーザーに進行中の学習 session が存在する。
 

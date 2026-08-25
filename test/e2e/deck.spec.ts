@@ -1,10 +1,6 @@
 import { readFile } from "node:fs/promises";
 import type { Page } from "@playwright/test";
 import {
-  createLocalCardFixture,
-  createLocalDeckFixture,
-  createRemoteCardFixture,
-  createRemoteDeckFixture,
   documentId,
   expect,
   expectedFirestoreWriteBrowserError,
@@ -12,44 +8,13 @@ import {
   getDocument,
   listDocuments,
   readLocalData,
-  routeAnonymousAuth,
-  seedConfig,
-  seedDeckAndCards,
-  seedLocalData,
   test,
-  type TestNamespace,
 } from "./fixtures";
-
-const prepareRemote = async (
-  page: Page,
-  namespace: TestNamespace,
-  deck: ReturnType<typeof createRemoteDeckFixture>,
-  cards: ReturnType<typeof createRemoteCardFixture>[] = []
-) => {
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
-  await seedDeckAndCards(deck, cards);
-};
 
 const openDeckDeleteDialog = async (page: Page, deckName: string) => {
   await page.getByRole("button", { name: `Open actions for ${deckName}` }).click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
   return page.getByRole("alertdialog", { name: "Delete deck?" });
-};
-
-const startResumableStudy = async (page: Page, deckId: string, deckName: string, cardCount: number) => {
-  const cardsLabel = `${String(cardCount)} ${cardCount === 1 ? "card" : "cards"}`;
-  await page.goto(`/deck/${deckId}/start`);
-  await page.getByRole("button", { name: `Start ${cardsLabel}` }).click();
-  await expect(page).toHaveURL(new RegExp(`/deck/${deckId}/study$`));
-  await page.getByRole("button", { name: "Exit" }).click();
-  await expect(page).toHaveURL(new RegExp(`/deck/${deckId}$`));
-  await page.getByRole("button", { name: "tango" }).click();
-  await expect(page.getByRole("button", { name: `Continue ${deckName}` })).toBeVisible();
-
-  const session = (await readLocalData(page)).sessionsByDeckId[deckId];
-  if (session === undefined) throw new Error(`Study session was not persisted for ${deckId}`);
-  return session;
 };
 
 const clickCheckboxLabel = async (page: Page, name: string) => {
@@ -58,10 +23,10 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("DECK-01 navigates from the Deck list to its Card list", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id);
-  await prepareRemote(page, namespace, deck, [card]);
+test("DECK-01 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  await fixture.apply(page);
 
   await page.goto("/");
   await page.getByRole("button", { name: `View ${deck.name}` }).click();
@@ -70,9 +35,9 @@ test("DECK-01 navigates from the Deck list to its Card list", async ({ page, nam
   await expect(page.getByText(card.frontText)).toBeVisible();
 });
 
-test("DECK-02 persists edited name and category across reload", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace, { name: `${namespace.caseId} original` });
-  await prepareRemote(page, namespace, deck);
+test("DECK-02 persists edited name and category across reload", async ({ fixture, page, namespace }) => {
+  const deck = fixture.deck();
+  await fixture.apply(page);
   const updatedName = `${namespace.caseId} updated`;
 
   await page.goto("/");
@@ -90,14 +55,11 @@ test("DECK-02 persists edited name and category across reload", async ({ page, n
   await expect(page.getByRole("combobox")).toHaveValue("typescript");
 });
 
-test("DECK-03 deletes a Deck, all Cards, and its resumable session", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const cards = [
-    createRemoteCardFixture(namespace, deck.id, { id: namespace.id("card-a"), frontText: "DECK-03 front a" }),
-    createRemoteCardFixture(namespace, deck.id, { id: namespace.id("card-b"), frontText: "DECK-03 front b" }),
-  ];
-  await prepareRemote(page, namespace, deck, cards);
-  await startResumableStudy(page, deck.id, deck.name, cards.length);
+test("DECK-03 deletes a Deck, all Cards, and its resumable session", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const { cards } = fixture.state.remote;
+  await fixture.apply(page);
+  await page.goto("/");
 
   const dialog = await openDeckDeleteDialog(page, deck.name);
   await dialog.getByRole("button", { name: "Delete deck" }).click();
@@ -111,16 +73,17 @@ test("DECK-03 deletes a Deck, all Cards, and its resumable session", async ({ pa
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toHaveCount(0);
 });
 
-test("DECK-04 cancels Deck deletion and preserves all related data", async ({ page, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id);
-  await prepareRemote(page, namespace, deck, [card]);
-  const session = await startResumableStudy(page, deck.id, deck.name, 1);
+test("DECK-04 cancels Deck deletion and preserves all related data", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const { cards } = fixture.state.remote;
+  const session = fixture.session();
+  await fixture.apply(page);
+  await page.goto("/");
 
   const trigger = page.getByRole("button", { name: `Open actions for ${deck.name}` });
   const dialog = await openDeckDeleteDialog(page, deck.name);
   await expect(dialog).toContainText(deck.name);
-  await expect(dialog).toContainText("1 card");
+  await expect(dialog).toContainText(`${String(cards.length)} cards`);
   await expect(dialog).toContainText("in-progress study session");
   await expect(dialog).toContainText("cannot be undone");
   await dialog.getByRole("button", { name: "Cancel" }).click();
@@ -128,15 +91,16 @@ test("DECK-04 cancels Deck deletion and preserves all related data", async ({ pa
   await expect(dialog).not.toBeVisible();
   await expect(trigger).toBeFocused();
   expect(await getDocument("deck", deck.id)).toBeDefined();
-  expect(await getDocument("card", card.id)).toBeDefined();
+  expect((await Promise.all(cards.map((card) => getDocument("card", card.id)))).every(Boolean)).toBe(true);
   expect((await readLocalData(page)).sessionsByDeckId).toHaveProperty(deck.id, session);
 });
 
-test("DECK-05 retries the same Deck deletion after a handled failure", async ({ page, browserErrors, namespace }) => {
-  const deck = createRemoteDeckFixture(namespace);
-  const card = createRemoteCardFixture(namespace, deck.id);
-  await prepareRemote(page, namespace, deck, [card]);
-  await startResumableStudy(page, deck.id, deck.name, 1);
+test("DECK-05 retries the same Deck deletion after a handled failure", async ({ fixture, page, browserErrors }) => {
+  const deck = fixture.deck();
+  const { cards } = fixture.state.remote;
+  const card = fixture.card();
+  await fixture.apply(page);
+  await page.goto("/");
   const fault = await failNextFirestoreWrite(page, { collection: "card", id: card.id });
   browserErrors.allow(expectedFirestoreWriteBrowserError);
 
@@ -151,13 +115,12 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
   await expect(dialog).not.toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("button", { name: `View ${deck.name}` })).toHaveCount(0);
   await expect.poll(() => getDocument("deck", deck.id)).toBeUndefined();
-  await expect.poll(() => getDocument("card", card.id)).toBeUndefined();
+  await Promise.all(cards.map((candidate) => expect.poll(() => getDocument("card", candidate.id)).toBeUndefined()));
   expect((await readLocalData(page)).sessionsByDeckId).not.toHaveProperty(deck.id);
 });
 
-test("DECK-06 recovers home from a missing Deck route", async ({ page, namespace }) => {
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
+test("DECK-06 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
+  await fixture.apply(page);
 
   await page.goto(`/deck/${namespace.id("missing")}`);
   await expect(page.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
@@ -167,15 +130,10 @@ test("DECK-06 recovers home from a missing Deck route", async ({ page, namespace
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
 });
 
-test("DECK-07 migrates a local-only Deck and every Card to remote storage", async ({ page, namespace }) => {
-  const deck = createLocalDeckFixture(namespace);
-  const cards = [
-    createLocalCardFixture(namespace, deck.id, { id: namespace.id("card-a"), frontText: "DECK-07 front a" }),
-    createLocalCardFixture(namespace, deck.id, { id: namespace.id("card-b"), frontText: "DECK-07 front b" }),
-  ];
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
-  await seedLocalData(page, { decks: [deck], cards });
+test("DECK-07 migrates a local-only Deck and every Card to remote storage", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const { localCards: cards } = fixture.state.browser;
+  await fixture.apply(page);
 
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
@@ -194,25 +152,10 @@ test("DECK-07 migrates a local-only Deck and every Card to remote storage", asyn
   expect(await readLocalData(page)).toEqual({ decks: [], cards: [], sessionsByDeckId: {} });
 });
 
-test("DECK-08 downloads every Card field as one CSV row", async ({ page, namespace }, testInfo) => {
-  const deck = createRemoteDeckFixture(namespace, { name: `${namespace.caseId} export` });
-  const cards = [
-    createRemoteCardFixture(namespace, deck.id, {
-      id: namespace.id("card-a"),
-      frontText: "front one",
-      backText: "back one",
-      tags: ["alpha", "beta"],
-      uniqueKey: "key-one",
-    }),
-    createRemoteCardFixture(namespace, deck.id, {
-      id: namespace.id("card-b"),
-      frontText: "front two",
-      backText: "back two",
-      tags: ["gamma"],
-      uniqueKey: "key-two",
-    }),
-  ];
-  await prepareRemote(page, namespace, deck, cards);
+test("DECK-08 downloads every Card field as one CSV row", async ({ fixture, page }, testInfo) => {
+  const deck = fixture.deck();
+  const { cards } = fixture.state.remote;
+  await fixture.apply(page);
   await page.goto("/");
 
   const downloadPromise = page.waitForEvent("download");
@@ -224,16 +167,18 @@ test("DECK-08 downloads every Card field as one CSV row", async ({ page, namespa
   const csv = await readFile(path, "utf8");
 
   expect(download.suggestedFilename()).toBe(`${deck.name}.csv`);
-  expect(csv).toContain('front one,back one,"alpha,beta",key-one');
-  expect(csv).toContain("front two,back two,gamma,key-two");
-  expect(csv.trim().split("\n")).toHaveLength(2);
+  const csvCell = (value: string) => (value.includes(",") ? `"${value.replaceAll('"', '""')}"` : value);
+  for (const card of cards) {
+    expect(csv).toContain([card.frontText, card.backText, card.tags.join(","), card.uniqueKey].map(csvCell).join(","));
+  }
+  expect(csv.trim().split("\n")).toHaveLength(cards.length);
 });
 
-test("DECK-09 creates one empty remote Deck without a local duplicate", async ({ page, namespace }) => {
+test("DECK-09 creates one empty remote Deck without a local duplicate", async ({ fixture, page, namespace }) => {
   const name = `${namespace.caseId} created`;
   const category = "typescript";
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
+  const { uid } = fixture.user();
+  await fixture.apply(page);
 
   await page.goto("/");
   await page.getByRole("button", { name: "Create deck" }).click();
@@ -253,13 +198,12 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   const remote = await listDocuments("deck");
   const owned = remote.filter(
     ({ fields }) =>
-      fields.uid?.stringValue === namespace.uid &&
-      (fields.name as { stringValue?: string } | undefined)?.stringValue === name
+      fields.uid?.stringValue === uid && (fields.name as { stringValue?: string } | undefined)?.stringValue === name
   );
   expect(owned.map(documentId)).toEqual([deckId]);
   expect(owned.map(({ fields }) => fields.category?.stringValue)).toEqual([category]);
   const ownedCardsForDeck = (await listDocuments("card")).filter(
-    ({ fields }) => fields.uid?.stringValue === namespace.uid && fields.deckId?.stringValue === deckId
+    ({ fields }) => fields.uid?.stringValue === uid && fields.deckId?.stringValue === deckId
   );
   expect(ownedCardsForDeck).toEqual([]);
   const local = await readLocalData(page);
@@ -268,14 +212,15 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
 });
 
 test("DECK-10 retries a failed remote create with the same ID and no duplicate", async ({
+  fixture,
   page,
   browserErrors,
   namespace,
 }) => {
   const name = `${namespace.caseId} retry deck`;
   const category = "typescript";
-  await routeAnonymousAuth(page, namespace.uid);
-  await seedConfig(page);
+  const { uid } = fixture.user();
+  await fixture.apply(page);
   await page.goto("/");
   await page.getByRole("button", { name: "Create deck" }).click();
   let attemptedDeckId: string | undefined;
@@ -310,8 +255,7 @@ test("DECK-10 retries a failed remote create with the same ID and no duplicate",
   const remote = await listDocuments("deck");
   const owned = remote.filter(
     ({ fields }) =>
-      fields.uid?.stringValue === namespace.uid &&
-      (fields.name as { stringValue?: string } | undefined)?.stringValue === name
+      fields.uid?.stringValue === uid && (fields.name as { stringValue?: string } | undefined)?.stringValue === name
   );
   expect(owned.map(documentId)).toEqual([deckId]);
   expect(owned.map(({ fields }) => fields.category?.stringValue)).toEqual([category]);
