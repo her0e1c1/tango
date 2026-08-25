@@ -1,0 +1,23 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+browser:
+  preferences:
+    loadSample: false
+  localDecks:
+    - id: local-deck-1
+      localMode: true
+      name: Local Deck
+      category: English
+  localCards:
+    - id: local-card-1
+      deckId: local-deck-1
+      frontText: local first
+      backText: local first answer
+      uniqueKey: local-first
+    - id: local-card-2
+      deckId: local-deck-1
+      frontText: local second
+      backText: local second answer
+      uniqueKey: local-second

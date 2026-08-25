@@ -20,6 +20,7 @@
 
 Given:
 
+- Fixture: [`study-session-middle`](./fixture/batch/study-session-middle.yaml)
 - 匿名アカウントに Deck と Card が存在する。
 - 対象 Deck に進行中の学習 session が存在する。
 - Google アカウントへ連携できる。
@@ -43,6 +44,7 @@ Then:
 
 Given:
 
+- Fixture: [`empty`](./fixture/write/empty.yaml)
 - 匿名アカウントで Account 画面を開いている。
 - Google sign-in の失敗が画面内で処理され、`Retry` が表示されている。
 - 再試行では Google sign-in に成功できる。
@@ -65,6 +67,7 @@ Then:
 
 Given:
 
+- Fixture: [`study-session-middle`](./fixture/batch/study-session-middle.yaml)
 - Google アカウントに連携したユーザーに Deck と Card が存在する。
 - 対象ユーザーに進行中の学習 session が存在する。
 

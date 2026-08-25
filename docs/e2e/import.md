@@ -23,6 +23,7 @@ CSV の検証から保存先別の import、失敗後の再試行、Sample Deck 
 
 Given:
 
+- Fixture: [`empty`](./fixture/read/empty.yaml)
 - 必須の列と一意な uniqueKey を持つ有効な CSV がある。
 - CSV に対応する Deck と Card は選択する保存先に存在しない。
 
@@ -45,6 +46,7 @@ Then:
 
 Given:
 
+- Fixture: [`empty`](./fixture/read/empty.yaml)
 - 必須の uniqueKey が空の行を含む CSV がある。
 - CSV に対応する Deck と Card は選択する保存先に存在しない。
 
@@ -67,6 +69,7 @@ Then:
 
 Given:
 
+- Fixture: [`empty`](./fixture/batch/empty.yaml)
 - ユーザーとして認証されている。
 - 学習可能な Card を含む有効な CSV がある。
 - CSV に対応する remote の Deck と Card は現在の UID に存在しない。
@@ -89,6 +92,7 @@ Then:
 
 Given:
 
+- Fixture: [`empty`](./fixture/batch/empty.yaml)
 - 学習可能な Card を含む有効な CSV がある。
 - CSV に対応する Deck と Card は local storage に存在しない。
 
@@ -111,6 +115,7 @@ Then:
 
 Given:
 
+- Fixture: [`import-partial`](./fixture/batch/import-partial.yaml)
 - 有効な CSV の最初の import で、保存先の Deck を作成した後に Card の保存が失敗している。
 - import の失敗が画面内で処理され、同じ preview と保存先が維持されている。
 - 次の import では Card を保存できる。
@@ -133,6 +138,7 @@ Then:
 
 Given:
 
+- Fixture: [`sample-deck-present`](./fixture/batch/sample-deck-present.yaml)
 - Sample Deck が明示的な追加操作によって local storage に保存されている。
 - Sample Deck とその Card の識別子および件数が記録されている。
 - Deck 一覧から Import 画面を開いている。

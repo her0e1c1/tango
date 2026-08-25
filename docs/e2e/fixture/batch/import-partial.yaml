@@ -1,0 +1,13 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+remote:
+  decks:
+    - id: import-deck
+      uid: user-1
+      name: Imported Deck
+      category: English
+browser:
+  preferences:
+    loadSample: false

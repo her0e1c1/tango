@@ -1,0 +1,32 @@
+auth:
+  users:
+    - uid: user-a
+      provider: anonymous
+    - uid: user-b
+      provider: anonymous
+remote:
+  decks:
+    - id: deck-a
+      uid: user-a
+      name: User A Deck
+      category: English
+    - id: deck-b
+      uid: user-b
+      name: User B Deck
+      category: English
+  cards:
+    - id: card-a
+      deckId: deck-a
+      uid: user-a
+      frontText: user a card
+      backText: user a answer
+      uniqueKey: user-a-card
+    - id: card-b
+      deckId: deck-b
+      uid: user-b
+      frontText: user b card
+      backText: user b answer
+      uniqueKey: user-b-card
+browser:
+  preferences:
+    loadSample: false

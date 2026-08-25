@@ -1,0 +1,64 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+remote:
+  decks:
+    - id: deck-1
+      uid: user-1
+      name: Filtered Study Deck
+      scoreMax: 2
+      scoreMin: 0
+      selectedTags:
+        - target
+      category: English
+  cards:
+    - id: card-1
+      deckId: deck-1
+      uid: user-1
+      frontText: match-1
+      backText: match answer 1
+      tags:
+        - target
+      uniqueKey: match-1
+    - id: card-2
+      deckId: deck-1
+      uid: user-1
+      frontText: match-2
+      backText: match answer 2
+      tags:
+        - target
+      uniqueKey: match-2
+      score: 1
+    - id: card-3
+      deckId: deck-1
+      uid: user-1
+      frontText: match-3
+      backText: match answer 3
+      tags:
+        - target
+      uniqueKey: match-3
+      score: 2
+    - id: card-4
+      deckId: deck-1
+      uid: user-1
+      frontText: score-miss
+      backText: score miss answer
+      tags:
+        - target
+      uniqueKey: score-miss
+      score: 3
+    - id: card-5
+      deckId: deck-1
+      uid: user-1
+      frontText: tag-miss
+      backText: tag miss answer
+      tags:
+        - other
+      uniqueKey: tag-miss
+      score: 1
+browser:
+  preferences:
+    loadSample: false
+    study:
+      maxNumberOfCardsToLearn: 2
