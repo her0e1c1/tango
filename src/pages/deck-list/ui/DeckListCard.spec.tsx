@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as React from "react";
 
 import { DeckListCard, type DeckListCardProps } from "./DeckListCard";
-import { createDeck } from "@/test/factories";
+import { createDeck, createLocalDeck } from "@/test/factories";
 
 /**
  * Renders the test-only Controlled Deck Card component with controlled state or providers.
@@ -36,7 +36,6 @@ const deck = createDeck({
   id: "deck-id",
   name: "Deck name",
   category: "math",
-  isPublic: true,
 });
 
 describe("DeckListCard", () => {
@@ -65,13 +64,19 @@ describe("DeckListCard", () => {
     );
 
     expect(screen.getByText("math")).toBeInTheDocument();
-    expect(screen.getByLabelText("Public deck")).toBeInTheDocument();
+    expect(screen.getByLabelText("Remote deck")).toBeInTheDocument();
     const viewButton = screen.getByRole("button", { name: "View Deck name" });
     const progressbar = screen.getByRole("progressbar", { name: "Progress for Deck name" });
     expect(viewButton).toHaveAccessibleDescription("math2 / 3 · 5m ago");
     expect(viewButton).not.toContainElement(progressbar);
     expect(progressbar).toHaveAttribute("aria-valuenow", "2");
     expect(screen.getByRole("button", { name: "Continue Deck name" })).toBeInTheDocument();
+  });
+
+  it("does not show the remote mode icon for a local deck", () => {
+    render(<DeckListCard deck={createLocalDeck()} cardCount={0} />);
+
+    expect(screen.queryByLabelText("Remote deck")).not.toBeInTheDocument();
   });
 
   it("renders the card count and Study action for an inactive deck", () => {
