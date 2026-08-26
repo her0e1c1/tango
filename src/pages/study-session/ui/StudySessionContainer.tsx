@@ -17,11 +17,16 @@ type StudyShortcutAction =
   | "swipeLeft"
   | "swipeRight"
   | "toggleBackText"
-  | "toggleHeader"
   | "toggleSwipeButtonList"
   | "toggleAutoPlay";
 
-const renderStudyScreen = (state: StudyState | undefined, onExit: () => void) => {
+const studyShortcutInteractiveTarget =
+  "a[href], button, input, select, textarea, summary, [contenteditable]:not([contenteditable='false']), [role='button'], [role='link'], [role='slider'], [role='switch'], [role='checkbox'], [role='radio'], [role='tab'], [tabindex]:not([tabindex='-1'])";
+
+const isInteractiveTarget = (target: EventTarget | null): boolean =>
+  target instanceof Element && target.closest(studyShortcutInteractiveTarget) !== null;
+
+const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) => {
   if (state == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
 
   if (state.status !== "studying") {
@@ -41,13 +46,15 @@ const renderStudyScreen = (state: StudyState | undefined, onExit: () => void) =>
   };
 
   return (
-    <AppLayout fullscreen showHeader={state.showHeader}>
+    <AppLayout fullscreen showHeader={false}>
       <StudySession
-        onExit={onExit}
-        showHeader={state.showHeader}
-        showController={state.showController}
+        onBack={onBack}
+        onToggleSwipeControls={state.toggleSwipeButtonList}
+        onTogglePlaybackControls={state.toggleShowPlaybackControls}
         showBackText={state.showBackText}
-        showSwipeButtonList={state.showSwipeButtonList}
+        showSwipeControls={state.showSwipeButtonList}
+        showPlaybackControls={state.showPlaybackControls}
+        playbackControlsAvailable={state.playbackControlsAvailable}
         onSwipeUp={swipeActions.onClickUp}
         onSwipeDown={swipeActions.onClickDown}
         onSwipeLeft={swipeActions.onClickLeft}
@@ -82,8 +89,10 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
   const navigate = useNavigate();
   const study = useStudy(deckId);
   const latestStudy = useLatest(study);
-  const exit = () => void navigate(routes.cardList.to(deckId));
-  const runWhileStudying = (action: StudyShortcutAction) => () => {
+  const goBack = () => void navigate(routes.cardList.to(deckId));
+  const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
+    // Study shortcuts must not compete with native keyboard behavior on toolbar and controller controls.
+    if (isInteractiveTarget(event.target)) return;
     const currentStudy = latestStudy.current;
     if (currentStudy?.status === "studying") void currentStudy[action]();
   };
@@ -94,7 +103,6 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
   useKey("ArrowLeft", runWhileStudying("swipeLeft"));
   useKey("ArrowRight", runWhileStudying("swipeRight"));
   useKey("Enter", runWhileStudying("toggleBackText"));
-  useKey("h", runWhileStudying("toggleHeader"));
   useKey("b", runWhileStudying("toggleSwipeButtonList"));
   useKey(" ", runWhileStudying("toggleAutoPlay"));
 
@@ -103,7 +111,7 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
     void navigate(routes.deckList.to(), { replace: true });
   }, [navigate, study?.status]);
 
-  return renderStudyScreen(study, exit);
+  return renderStudyScreen(study, goBack);
 };
 
 export const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {

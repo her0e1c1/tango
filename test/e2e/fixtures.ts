@@ -227,7 +227,6 @@ export const e2eConfig = {
   loadSample: false,
   appearance: {
     darkMode: false,
-    showHeader: true,
     fullscreen: false,
     sizeBackText: 0,
     hideBodyWhenCardChanged: true,
@@ -244,6 +243,7 @@ export const e2eConfig = {
   },
   controls: {
     showSwipeButtonList: true,
+    showPlaybackControls: true,
     showScoreSlider: false,
     cardSwipeUp: "GoToNextCardMastered",
     cardSwipeDown: "GoToNextCardNotMastered",

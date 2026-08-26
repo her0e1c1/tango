@@ -15,7 +15,7 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 | SWIPE-05 | write | [previous-card action で前の Card へ戻れる](#swipe-05) |
 | SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](#swipe-06) |
 | SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](#swipe-07) |
-| SWIPE-08 | write | [Exit 後に同じ位置から Continue できる](#swipe-08) |
+| SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](#swipe-08) |
 | SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](#swipe-09) |
 | SWIPE-10 | write | [最後の Card を完了して session を終了できる](#swipe-10) |
 | SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](#swipe-11) |
@@ -187,7 +187,7 @@ Then:
 
 <a id="swipe-08"></a>
 
-### SWIPE-08 Exit 後に同じ位置から Continue できる
+### SWIPE-08 学習画面から戻った後に同じ位置から Continue できる
 
 カテゴリ: `write`
 
@@ -198,12 +198,12 @@ Given:
 
 When:
 
-- 学習画面で Exit を実行し、Deck 一覧から同じ Deck の Continue を実行する。
+- 学習画面から Card 一覧へ戻り、Deck 一覧から同じ Deck の Continue を実行する。
 
 Then:
 
-- Exit 前と同じ学習 session が維持される。
-- Exit 前に表示されていた Card の front text が表示される。
+- Card 一覧へ戻る前と同じ学習 session が維持される。
+- Card 一覧へ戻る前に表示されていた Card の front text が表示される。
 - browser error が発生しない。
 
 <a id="swipe-09"></a>
@@ -263,7 +263,7 @@ Given:
 
 When:
 
-- 一方の Deck で学習 action を実行して Exit し、もう一方の Deck を Continue する。
+- 一方の Deck で学習 action を実行して Card 一覧へ戻り、もう一方の Deck を Continue する。
 
 Then:
 

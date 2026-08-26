@@ -6,8 +6,8 @@ import { SettingsRow, SettingsSection } from "./SettingsSection";
 import { Slider, Switch } from "@/shared/ui/forms";
 
 interface SettingsFields {
-  showHeader: React.ComponentProps<typeof Switch>;
   showSwipeButtonList: React.ComponentProps<typeof Switch>;
+  showPlaybackControls: React.ComponentProps<typeof Switch>;
   showSwipeFeedback: React.ComponentProps<typeof Switch>;
   darkMode: React.ComponentProps<typeof Switch>;
   shuffled: React.ComponentProps<typeof Switch>;
@@ -27,8 +27,8 @@ export interface SettingsFormProps {
 export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
   const idPrefix = useId();
   const inputIds = {
-    showHeader: `${idPrefix}-show-header`,
-    showSwipeButtonList: `${idPrefix}-show-study-buttons`,
+    showSwipeButtonList: `${idPrefix}-show-swipe-controls`,
+    showPlaybackControls: `${idPrefix}-show-playback-controls`,
     showSwipeFeedback: `${idPrefix}-show-swipe-feedback`,
     darkMode: `${idPrefix}-dark-mode`,
     shuffled: `${idPrefix}-shuffle-cards`,
@@ -52,23 +52,27 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         <p className="text-caption text-ink-muted">Changes are saved automatically</p>
       </div>
       <div className="space-y-4">
-        <SettingsSection title="Appearance" description="Navigation and visual feedback" icon={<AiOutlineEye />}>
-          <SettingsRow inputId={inputIds.showHeader} label="Show header" description="Keep app navigation visible">
-            <Switch
-              {...props.fields.showHeader}
-              id={inputIds.showHeader}
-              aria-describedby={descriptionId(inputIds.showHeader)}
-            />
-          </SettingsRow>
+        <SettingsSection title="Appearance" description="Study controls and visual feedback" icon={<AiOutlineEye />}>
           <SettingsRow
             inputId={inputIds.showSwipeButtonList}
-            label="Show study buttons"
-            description="Display study action controls"
+            label="Show swipe controls"
+            description="Display study swipe action controls"
           >
             <Switch
               {...props.fields.showSwipeButtonList}
               id={inputIds.showSwipeButtonList}
               aria-describedby={descriptionId(inputIds.showSwipeButtonList)}
+            />
+          </SettingsRow>
+          <SettingsRow
+            inputId={inputIds.showPlaybackControls}
+            label="Show playback controls"
+            description="Display autoplay and progress controls"
+          >
+            <Switch
+              {...props.fields.showPlaybackControls}
+              id={inputIds.showPlaybackControls}
+              aria-describedby={descriptionId(inputIds.showPlaybackControls)}
             />
           </SettingsRow>
           <SettingsRow

@@ -68,7 +68,6 @@ export interface FixturePreferences {
   loadSample: boolean;
   appearance: {
     darkMode: boolean;
-    showHeader: boolean;
     fullscreen: boolean;
     sizeBackText: number;
     hideBodyWhenCardChanged: boolean;
@@ -85,6 +84,7 @@ export interface FixturePreferences {
   };
   controls: {
     showSwipeButtonList: boolean;
+    showPlaybackControls: boolean;
     showScoreSlider: boolean;
     cardSwipeUp: SwipeAction;
     cardSwipeDown: SwipeAction;
@@ -250,7 +250,6 @@ const preferencesSchema = z.strictObject({
   appearance: z
     .strictObject({
       darkMode: z.boolean().optional(),
-      showHeader: z.boolean().optional(),
       fullscreen: z.boolean().optional(),
       sizeBackText: z.number().min(0).optional(),
       hideBodyWhenCardChanged: z.boolean().optional(),
@@ -271,6 +270,7 @@ const preferencesSchema = z.strictObject({
   controls: z
     .strictObject({
       showSwipeButtonList: z.boolean().optional(),
+      showPlaybackControls: z.boolean().optional(),
       showScoreSlider: z.boolean().optional(),
       cardSwipeUp: swipeActionSchema.optional(),
       cardSwipeDown: swipeActionSchema.optional(),
@@ -470,7 +470,6 @@ const applicationPreferences: FixturePreferences = {
   loadSample: true,
   appearance: {
     darkMode: false,
-    showHeader: true,
     fullscreen: false,
     sizeBackText: 0,
     hideBodyWhenCardChanged: true,
@@ -487,6 +486,7 @@ const applicationPreferences: FixturePreferences = {
   },
   controls: {
     showSwipeButtonList: true,
+    showPlaybackControls: true,
     showScoreSlider: false,
     cardSwipeUp: "GoToNextCardMastered",
     cardSwipeDown: "GoToNextCardNotMastered",

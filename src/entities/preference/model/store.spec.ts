@@ -2,7 +2,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { defaultPreferences } from "./defaults";
-import { preferencesStore, setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, updatePreferences } from "./store";
+import {
+  preferencesStore,
+  setDarkMode,
+  toggleShowPlaybackControls,
+  toggleShowSwipeButtonList,
+  updatePreferences,
+} from "./store";
 
 /** Synchronous storage contract used by preferences persistence scenarios. */
 type MemoryStorage = Omit<StateStorage, "getItem"> & {
@@ -41,16 +47,20 @@ describe("preferences store", () => {
       study: { cardInterval: 15 },
       controls: { showScoreSlider: true },
     });
-    store.getState().updatePreferences({ appearance: { showHeader: false } });
-    store.getState().updatePreferences({ appearance: { showHeader: true } });
     store.getState().updatePreferences({ controls: { showSwipeButtonList: false } });
+    store.getState().updatePreferences({ controls: { showPlaybackControls: false } });
 
     expect(store.getState().preferences).toEqual({
       ...defaultPreferences,
       loadSample: false,
       study: { ...defaultPreferences.study, cardInterval: 15 },
-      appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: true },
-      controls: { ...defaultPreferences.controls, showScoreSlider: true, showSwipeButtonList: false },
+      appearance: { ...defaultPreferences.appearance, darkMode: true },
+      controls: {
+        ...defaultPreferences.controls,
+        showScoreSlider: true,
+        showSwipeButtonList: false,
+        showPlaybackControls: false,
+      },
     });
   });
 
@@ -72,15 +82,15 @@ describe("preferences store", () => {
   it("updates preferences through the public helpers", () => {
     setDarkMode(true);
     updatePreferences({ loadSample: false, study: { cardInterval: 15 } });
-    toggleShowHeader();
     toggleShowSwipeButtonList();
+    toggleShowPlaybackControls();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
       loadSample: false,
-      appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: false },
+      appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, cardInterval: 15 },
-      controls: { ...defaultPreferences.controls, showSwipeButtonList: false },
+      controls: { ...defaultPreferences.controls, showSwipeButtonList: false, showPlaybackControls: false },
     });
   });
 
@@ -117,10 +127,33 @@ describe("preferences store", () => {
     expect(preferencesStore.getState().preferences).toEqual(persistedPreferences);
   });
 
+  it("ignores the retired header preference and defaults playback controls when hydrating older preferences", async () => {
+    const { showPlaybackControls: _showPlaybackControls, ...legacyControls } = defaultPreferences.controls;
+    useMemoryStorage({
+      "tango-config": JSON.stringify({
+        state: {
+          preferences: {
+            ...defaultPreferences,
+            appearance: { ...defaultPreferences.appearance, showHeader: false },
+            controls: legacyControls,
+          },
+        },
+        version: 0,
+      }),
+    });
+
+    await preferencesStore.persist.rehydrate();
+
+    const hydratedPreferences = preferencesStore.getState().preferences;
+    expect(hydratedPreferences).toEqual(defaultPreferences);
+    expect(hydratedPreferences.appearance).not.toHaveProperty("showHeader");
+    expect(hydratedPreferences.controls.showPlaybackControls).toBe(true);
+  });
+
   it.each([
     ["malformed JSON", "not-json"],
     ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 0 })],
-    ["legacy envelope", JSON.stringify({ state: { config: { darkMode: true, showHeader: false } }, version: 0 })],
+    ["legacy envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 0 })],
   ])("uses current defaults for %s", async (_case, persistedValue) => {
     useMemoryStorage({ "tango-config": persistedValue });
 

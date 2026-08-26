@@ -22,9 +22,12 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
-    onExit: fn(),
-    showSwipeButtonList: true,
-    showController: true,
+    onBack: fn(),
+    onToggleSwipeControls: fn(),
+    onTogglePlaybackControls: fn(),
+    showSwipeControls: true,
+    showPlaybackControls: true,
+    playbackControlsAvailable: true,
     frontTextSlot: <FrontText text={fixture.card.default.frontText} />,
     cardOverlaySlot: (
       <CardOverlay
@@ -53,11 +56,23 @@ export const SwipeFeedback: Story = {
   args: { swipeFeedback: "cardSwipeRight" },
 };
 
+export const SwipeControlsHidden: Story = {
+  args: { showSwipeControls: false },
+};
+
+export const PlaybackControlsHidden: Story = {
+  args: { showPlaybackControls: false },
+};
+
 export const ControlsHidden: Story = {
   args: {
-    showSwipeButtonList: false,
-    showController: false,
+    showSwipeControls: false,
+    showPlaybackControls: false,
   },
+};
+
+export const PlaybackUnavailable: Story = {
+  args: { playbackControlsAvailable: false },
 };
 
 export const LongAnswer: Story = {
@@ -126,6 +141,10 @@ export const UnavailableSwipeActions: Story = {
 };
 
 export const Dark: Story = {
+  globals: { theme: "dark" },
+};
+
+export const DarkCodeAnswer: Story = {
   ...CodeAnswer,
   args: {
     ...CodeAnswer.args,

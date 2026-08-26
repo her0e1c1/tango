@@ -113,7 +113,6 @@ export const cards = {
 
 export const preferences = {
   default: createPreferences({
-    showHeader: true,
     maxNumberOfCardsToLearn: 10,
   }),
 } as const satisfies Record<string, Preferences>;

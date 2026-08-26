@@ -8,22 +8,22 @@ import { Switch } from "@/shared/ui/forms";
 
 import { SettingsRow, SettingsSection, type SettingsSectionProps } from "./SettingsSection";
 
-const inputId = "storybook-show-header";
-const onShowHeaderChange = fn();
+const inputId = "storybook-show-swipe-controls";
+const onShowSwipeControlsChange = fn();
 
 const SettingsSectionStory = (args: SettingsSectionProps) => {
-  const [showHeader, setShowHeader] = useState(true);
+  const [showSwipeControls, setShowSwipeControls] = useState(true);
 
   return (
     <SettingsSection {...args}>
-      <SettingsRow inputId={inputId} label="Show header" description="Keep app navigation visible">
+      <SettingsRow inputId={inputId} label="Show swipe controls" description="Display study swipe action controls">
         <Switch
           id={inputId}
-          checked={showHeader}
+          checked={showSwipeControls}
           aria-describedby={`${inputId}-description`}
           onChange={(event) => {
-            onShowHeaderChange(event);
-            setShowHeader(event.target.checked);
+            onShowSwipeControlsChange(event);
+            setShowSwipeControls(event.target.checked);
           }}
         />
       </SettingsRow>
@@ -46,10 +46,10 @@ const meta = {
   decorators: [withPageLayout],
   args: {
     title: "Appearance",
-    description: "Navigation and visual feedback",
+    description: "Study controls and visual feedback",
     icon: <AiOutlineEye />,
     children: (
-      <SettingsRow inputId={inputId} label="Show header" description="Keep app navigation visible">
+      <SettingsRow inputId={inputId} label="Show swipe controls" description="Display study swipe action controls">
         <Switch id={inputId} checked onChange={fn()} />
       </SettingsRow>
     ),
@@ -76,10 +76,10 @@ export const Row: Story = {
 export const Interaction: Story = {
   render: (args) => <SettingsSectionStory {...args} />,
   play: async ({ canvas, userEvent }) => {
-    const control = canvas.getByRole("checkbox", { name: "Show header" });
+    const control = canvas.getByRole("checkbox", { name: "Show swipe controls" });
     await userEvent.click(control);
     await expect(control).not.toBeChecked();
-    await expect(onShowHeaderChange).toHaveBeenCalledOnce();
+    await expect(onShowSwipeControlsChange).toHaveBeenCalledOnce();
   },
 };
 

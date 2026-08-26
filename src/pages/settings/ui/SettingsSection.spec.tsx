@@ -7,13 +7,13 @@ import { SettingsRow, SettingsSection } from "./SettingsSection";
 describe("settings presentation", () => {
   it("relates a settings section to its unique heading", () => {
     render(
-      <SettingsSection title="Appearance" description="Navigation and visual feedback" icon="icon">
+      <SettingsSection title="Appearance" description="Study controls and visual feedback" icon="icon">
         <div>content</div>
       </SettingsSection>
     );
 
     expect(screen.getByRole("region", { name: "Appearance" })).toBeInTheDocument();
-    expect(screen.getByText("Navigation and visual feedback")).toBeInTheDocument();
+    expect(screen.getByText("Study controls and visual feedback")).toBeInTheDocument();
     expect(screen.getByText("icon", { selector: "[aria-hidden='true']" })).toHaveAttribute("aria-hidden", "true");
   });
 

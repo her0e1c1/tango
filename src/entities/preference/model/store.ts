@@ -82,14 +82,14 @@ export const replacePreferences = (input: PartialPreferences): void => {
 // Sets the appearance color mode preference explicitly.
 export const setDarkMode = (darkMode: boolean): void => updatePreferences({ appearance: { darkMode } });
 
-// Toggles whether the application header is shown.
-export const toggleShowHeader = (): void => {
-  const { showHeader } = preferencesStore.getState().preferences.appearance;
-  updatePreferences({ appearance: { showHeader: !showHeader } });
-};
-
 // Toggles whether study swipe controls are shown.
 export const toggleShowSwipeButtonList = (): void => {
   const { showSwipeButtonList } = preferencesStore.getState().preferences.controls;
   updatePreferences({ controls: { showSwipeButtonList: !showSwipeButtonList } });
+};
+
+// Toggles whether study playback controls are shown.
+export const toggleShowPlaybackControls = (): void => {
+  const { showPlaybackControls } = preferencesStore.getState().preferences.controls;
+  updatePreferences({ controls: { showPlaybackControls: !showPlaybackControls } });
 };
