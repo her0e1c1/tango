@@ -1,0 +1,44 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+remote:
+  decks:
+    - id: deck-1
+      uid: user-1
+      name: E2E Deck
+      category: English
+  cards:
+    - id: card-1
+      deckId: deck-1
+      uid: user-1
+      frontText: apple
+      backText: りんご
+      tags:
+        - target
+        - noun
+      uniqueKey: apple
+      score: 1
+      numberOfSeen: 3
+    - id: card-2
+      deckId: deck-1
+      uid: user-1
+      frontText: orange
+      backText: オレンジ
+      tags:
+        - other
+      uniqueKey: orange
+      score: 1
+    - id: card-3
+      deckId: deck-1
+      uid: user-1
+      frontText: banana
+      backText: バナナ
+      tags:
+        - target
+      uniqueKey: banana
+      score: -1
+      numberOfSeen: 1
+browser:
+  preferences:
+    loadSample: false

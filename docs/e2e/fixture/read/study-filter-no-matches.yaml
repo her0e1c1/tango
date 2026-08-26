@@ -1,0 +1,32 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+remote:
+  decks:
+    - id: deck-1
+      uid: user-1
+      name: Filtered Study Deck
+      selectedTags:
+        - missing
+      category: English
+  cards:
+    - id: card-1
+      deckId: deck-1
+      uid: user-1
+      frontText: first
+      backText: first answer
+      tags:
+        - target
+      uniqueKey: first
+    - id: card-2
+      deckId: deck-1
+      uid: user-1
+      frontText: second
+      backText: second answer
+      tags:
+        - target
+      uniqueKey: second
+browser:
+  preferences:
+    loadSample: false

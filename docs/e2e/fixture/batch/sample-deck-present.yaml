@@ -1,0 +1,16 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+browser:
+  preferences:
+    loadSample: false
+  sampleDeck:
+    deck:
+      id: sample-v1
+      localMode: true
+      name: Sample Deck
+    cards:
+      source: sample/build/output.json
+      idTemplate: sample-v1-card-{index}
+      deckId: sample-v1

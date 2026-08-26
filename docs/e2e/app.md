@@ -20,6 +20,7 @@
 
 Given:
 
+- Fixture: [`sample-bootstrap`](./fixture/batch/sample-bootstrap.yaml)
 - 認証済みユーザーに Deck がなく、Sample Deck の初期生成が有効である。
 
 When:
@@ -40,6 +41,7 @@ Then:
 
 Given:
 
+- Fixture: [`empty`](./fixture/read/empty.yaml)
 - 認証済みユーザーがアプリケーションにアクセスできる。
 - Sample Deck の自動生成が無効である。
 
@@ -61,6 +63,7 @@ Then:
 
 Given:
 
+- Fixture: [`empty`](./fixture/read/empty.yaml)
 - 認証初期化失敗が画面内で処理され、認証初期化失敗画面に `Reload` が表示されている。
 - 次の認証初期化は成功でき、Sample Deck の自動生成は無効である。
 

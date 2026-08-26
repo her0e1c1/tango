@@ -19,6 +19,9 @@ services:
           - auth.app.test
 
   app:
+    # Parallel browsers consume the production bundle; serving source modules from Vite dev causes avoidable transform
+    # and network contention that can stall navigation before application behavior is exercised.
+    command: -lc "npm run build && npx vite preview --host 0.0.0.0 --port 4173"
     env_file:
       - ../.env.e2e
     pull_policy: never
@@ -26,6 +29,8 @@ services:
   browser:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
     init: true
+    # Chromium workers need the host IPC namespace so parallel runs do not exhaust Docker's 64 MB /dev/shm default.
+    ipc: host
     user: pwuser
     # --unsafe forwards the scoped Chromium origin flag; override its artifact path so remote downloads never inherit
     # the runner-only /workspace path.
