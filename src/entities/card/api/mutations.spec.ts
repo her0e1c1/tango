@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createLocalStudyProgress, deleteLocalStudyProgresses } from "@/entities/study-progress/@x/card";
 import { createCard as createCardFixture, createLocalCard } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -18,9 +19,18 @@ vi.mock("./firestore", () => ({
 import { cardStore } from "../model/store";
 import { deleteCard, editCard, moveLocalCardsToRemote } from "./mutations";
 
+// Reads persisted progress IDs so lifecycle assertions do not depend on another Entity's internal store.
+const persistedProgressIds = (): string[] => {
+  const persisted = JSON.parse(localStorage.getItem("tango-local-study-progresses") ?? "null") as {
+    state?: { localProgresses?: { cardId: string }[] };
+  } | null;
+  return persisted?.state?.localProgresses?.map(({ cardId }) => cardId) ?? [];
+};
+
 describe("Card mutations", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
+    deleteLocalStudyProgresses(["first", "second", "other"]);
     localStorage.clear();
     vi.clearAllMocks();
   });
@@ -51,6 +61,9 @@ describe("Card mutations", () => {
       createLocalCard({ id: "other", deckId: "other-deck" }),
     ];
     cardStore.setState({ localCards: cards });
+    cards.forEach(({ id }) => {
+      createLocalStudyProgress({ cardId: id, score: 0, numberOfSeen: 0 });
+    });
 
     await moveLocalCardsToRemote("uid", "deck");
 
@@ -62,5 +75,20 @@ describe("Card mutations", () => {
     expect(mocks.createRemoteCard.mock.calls[0]?.[1]).not.toHaveProperty("createdAt");
     expect(mocks.createRemoteCard.mock.calls[0]?.[1]).not.toHaveProperty("updatedAt");
     expect(cardStore.getState().localCards).toEqual([cards[2]]);
+    expect(persistedProgressIds()).toEqual(["other"]);
+  });
+
+  it("keeps local Cards and progress when remote migration fails", async () => {
+    const cards = [createLocalCard({ id: "first", deckId: "deck" }), createLocalCard({ id: "second", deckId: "deck" })];
+    cardStore.setState({ localCards: cards });
+    cards.forEach(({ id }) => {
+      createLocalStudyProgress({ cardId: id, score: 0, numberOfSeen: 0 });
+    });
+    mocks.createRemoteCard.mockRejectedValueOnce(new Error("write failed"));
+
+    await expect(moveLocalCardsToRemote("uid", "deck")).rejects.toThrow("write failed");
+
+    expect(cardStore.getState().localCards).toEqual(cards);
+    expect(persistedProgressIds()).toEqual(["first", "second"]);
   });
 });

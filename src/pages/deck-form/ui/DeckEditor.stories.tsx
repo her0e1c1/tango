@@ -28,6 +28,7 @@ const createForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
     category: { defaultValue: deck.category, options: [{ label: deck.category, value: deck.category }] },
   },
   isLocalOnly: deck.localMode,
+  remoteStorageAvailable: true,
   errors: { name: undefined, url: undefined },
   isSubmitting: false,
   onCancel: fn(),
@@ -85,6 +86,19 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const AnonymousLocalOnly: Story = {
+  args: {
+    form: {
+      ...createForm(fixture.deck.default),
+      fields: {
+        ...createForm(fixture.deck.default).fields,
+        localMode: { checked: true, disabled: true, onChange: fn() },
+      },
+      isLocalOnly: true,
+      remoteStorageAvailable: false,
+    },
+  },
+};
 export const Interaction: Story = {
   play: async ({ args, canvas, userEvent }) => {
     const checkbox = canvas.getByRole<HTMLInputElement>("checkbox", { name: "Convert line breaks" });

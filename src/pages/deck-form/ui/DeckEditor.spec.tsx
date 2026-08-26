@@ -14,10 +14,11 @@ const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,
   nextError: undefined as unknown,
   writes: [] as { uid: string; deck: Record<string, unknown> }[],
+  uid: "user-id",
 }));
 
 vi.mock("@/entities/auth", () => ({
-  useAuthUid: () => "user-id",
+  useGoogleAccountUid: () => writeControls.uid,
 }));
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 vi.mock("@/entities/deck", async (importOriginal) => {
@@ -68,6 +69,7 @@ describe("DeckEditor", () => {
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
     writeControls.writes = [];
+    writeControls.uid = "user-id";
     await createDeck(
       "",
       createLocalDeck({
@@ -116,6 +118,38 @@ describe("DeckEditor", () => {
       uid: "user-id",
       deck: expect.objectContaining({ id: deckId, localMode: false }),
     });
+  });
+
+  it("keeps a local Deck local when Google is not linked", async () => {
+    writeControls.uid = "";
+    const onSaved = vi.fn();
+    renderForm(onSaved);
+    const localOnly = screen.getByRole("checkbox", { name: "Local only" });
+
+    expect(localOnly).toBeChecked();
+    expect(localOnly).toBeDisabled();
+    expect(screen.getByText(/Sign in with Google to sync this deck/)).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(writeControls.writes.at(-1)).toEqual({
+      uid: "",
+      deck: expect.objectContaining({ id: deckId, localMode: true }),
+    });
+  });
+
+  it("restores the local-only switch when Google disconnects before saving", async () => {
+    const view = renderForm();
+    const localOnly = screen.getByRole("checkbox", { name: "Local only" });
+    await userEvent.click(localOnly);
+    expect(localOnly).not.toBeChecked();
+
+    writeControls.uid = "";
+    view.rerender(<StoredDeckEditorHarness deckId={deckId} onCancel={() => undefined} onSaved={() => undefined} />);
+
+    expect(screen.getByRole("checkbox", { name: "Local only" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Local only" })).toBeDisabled();
+    expect(screen.getByText(/Sign in with Google to sync this deck/)).toBeVisible();
   });
 
   it("uses the form submit state while saving", async () => {

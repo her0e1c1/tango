@@ -1,2 +1,1 @@
-export { moveLocalCardsToRemote } from "../api/mutations";
-export { deleteLocalCardsByDeckId } from "../model/store";
+export { deleteLocalCardsByDeckId, moveLocalCardsToRemote } from "../api/mutations";

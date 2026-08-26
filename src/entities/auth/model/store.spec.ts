@@ -15,14 +15,14 @@ describe("authSessionStore", () => {
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: true,
-      displayName: null,
+      googleAccount: null,
     });
 
     expect(getAuthSession()).toEqual({
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: true,
-      displayName: null,
+      googleAccount: null,
     });
   });
 

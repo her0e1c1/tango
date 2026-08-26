@@ -8,12 +8,18 @@ import type {
 } from "../model/types";
 
 import { findDeckById } from "@/entities/deck/@x/card";
+import {
+  createLocalStudyProgress,
+  createStudyProgressFromCard,
+  deleteLocalStudyProgress,
+  deleteLocalStudyProgresses,
+} from "@/entities/study-progress/@x/card";
 import { cardCreateSchema } from "../model/schema";
 import {
   cardStore,
   createLocalCard,
   deleteLocalCard,
-  deleteLocalCardsByDeckId,
+  deleteLocalCardsByDeckId as deleteLocalCardRecordsByDeckId,
   editLocalCard,
   findCardById,
 } from "../model/store";
@@ -47,7 +53,8 @@ const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput
 // Routes a Card create through the owning Deck's persistence mode.
 const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
   if (isLocalDeck(card.deckId)) {
-    createLocalCard(card);
+    const createdCard = createLocalCard(card);
+    createLocalStudyProgress(createStudyProgressFromCard(createdCard));
     return;
   }
   await createRemoteCard(uid, requireRemoteCardCreate(card));
@@ -61,6 +68,7 @@ export const moveLocalCardsToRemote = async (uid: string, deckId: string): Promi
       createRemoteCard(uid, { ...card, uid })
     )
   );
+  // Local Card and progress remain retryable until every remote Card has been persisted.
   deleteLocalCardsByDeckId(deckId);
 };
 
@@ -98,7 +106,14 @@ export const deleteCard = async (uid: string, card: { id: CardId }): Promise<voi
   const currentCard = requireCard(card.id);
   if (requireLocalMode(currentCard.deckId)) {
     deleteLocalCard(card.id);
+    deleteLocalStudyProgress(card.id);
     return;
   }
   await deleteRemoteCard(uid, { id: card.id, uid: requireRemoteCard(currentCard).uid });
+};
+
+// Deletes local Cards and their progress together so Deck removal cannot leave orphaned learning state.
+export const deleteLocalCardsByDeckId = (deckId: string): void => {
+  const deletedCardIds = deleteLocalCardRecordsByDeckId(deckId);
+  deleteLocalStudyProgresses(deletedCardIds);
 };

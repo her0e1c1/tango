@@ -17,6 +17,7 @@ const firebaseAuth = vi.hoisted(() => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 vi.mock("firebase/auth", () => ({
+  GoogleAuthProvider: { PROVIDER_ID: "google.com" },
   onIdTokenChanged: (_auth: unknown, observer: (user: User | null) => void) => {
     firebaseAuth.observer = observer;
     firebaseAuth.observing = true;

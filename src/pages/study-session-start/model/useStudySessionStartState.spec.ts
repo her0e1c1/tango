@@ -53,7 +53,7 @@ const futureCard = createLocalCard({
 describe("useStudySessionStartState", () => {
   beforeEach(async () => {
     replaceAuthSession({
-      displayName: null,
+      googleAccount: null,
       isAnonymous: true,
       status: "authenticated",
       uid: "local-user",

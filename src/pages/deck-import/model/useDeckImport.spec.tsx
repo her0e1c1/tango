@@ -13,7 +13,7 @@ const controls = vi.hoisted(() => ({
   nextMutationError: undefined as unknown,
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => controls.uid }));
+vi.mock("@/entities/auth", () => ({ useGoogleAccountUid: () => controls.uid }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
@@ -81,6 +81,15 @@ describe("useDeckImport", () => {
     expect(result.current.deckImport.result).toMatchObject({ created: 1 });
   });
 
+  it("defaults anonymous imports to local and rejects a remote selection", () => {
+    const { result } = renderDeckImport();
+
+    expect(result.current.deckImport.storageMode).toBe("local");
+    expect(result.current.deckImport.remoteStorageAvailable).toBe(false);
+    act(() => result.current.deckImport.setStorageMode("remote"));
+    expect(result.current.deckImport.storageMode).toBe("local");
+  });
+
   it("creates a new local Deck without changing a same-name Deck or its Cards", async () => {
     const name = "behavior-reimport.csv";
     const { result } = renderDeckImport();
@@ -138,6 +147,7 @@ describe("useDeckImport", () => {
   });
 
   it("clears a prepared preview when the destination changes", async () => {
+    controls.uid = "user-id";
     const { result } = renderDeckImport();
     act(() => result.current.deckImport.setStorageMode("local"));
     await actAsync(async () => result.current.deckImport.selectFile(csvFile("behavior-mode.csv")));
@@ -147,6 +157,46 @@ describe("useDeckImport", () => {
     expect(result.current.deckImport.storageMode).toBe("remote");
     expect(result.current.deckImport.preview).toBeUndefined();
     await expect(result.current.deckImport.importPreview()).resolves.toBeUndefined();
+  });
+
+  it("resets a prepared remote import when Google access is removed", async () => {
+    controls.uid = "user-id";
+    const view = renderDeckImport();
+    await actAsync(async () => view.result.current.deckImport.selectFile(csvFile("remote-preview.csv")));
+    expect(view.result.current.deckImport.storageMode).toBe("remote");
+    expect(view.result.current.deckImport.preview).toBeDefined();
+
+    controls.uid = "";
+    view.rerender();
+
+    expect(view.result.current.deckImport.storageMode).toBe("local");
+    expect(view.result.current.deckImport.preview).toBeUndefined();
+  });
+
+  it("discards a remote preview that finishes parsing after Google access is removed", async () => {
+    controls.uid = "user-id";
+    const view = renderDeckImport();
+    const file = csvFile("delayed-remote.csv");
+    let resolveText: (text: string) => void = () => undefined;
+    const text = new Promise<string>((resolve) => {
+      resolveText = resolve;
+    });
+    vi.spyOn(file, "text").mockReturnValue(text);
+    let selection: Promise<void> = Promise.resolve();
+    act(() => {
+      selection = view.result.current.deckImport.selectFile(file);
+    });
+
+    controls.uid = "";
+    view.rerender();
+    await actAsync(async () => {
+      resolveText('"front","back","tag","key"');
+      await selection;
+    });
+
+    expect(view.result.current.deckImport.storageMode).toBe("local");
+    expect(view.result.current.deckImport.preview).toBeUndefined();
+    expect(view.result.current.deckImport.previewError).toBeNull();
   });
 
   it("retries a failed save with the same new Deck", async () => {

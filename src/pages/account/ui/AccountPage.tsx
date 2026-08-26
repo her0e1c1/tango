@@ -3,7 +3,7 @@ import { AiOutlineUser } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useAuthAccount, useAuthUid } from "@/entities/auth";
+import { useFirebaseUid, useGoogleAccount } from "@/entities/auth";
 import { routes } from "@/shared/router";
 import { Button } from "@/shared/ui/button";
 import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
@@ -14,8 +14,8 @@ import { useSignOut } from "../model/useSignOut";
 
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
-  const account = useAuthAccount();
-  const uid = useAuthUid();
+  const account = useGoogleAccount();
+  const uid = useFirebaseUid();
   const signIn = useSignIn();
   const signOut = useSignOut();
   const isLoggedIn = account != null;

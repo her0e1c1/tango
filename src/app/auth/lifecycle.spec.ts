@@ -9,18 +9,26 @@ const singletonMocks = vi.hoisted(() => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: singletonMocks.auth }));
 vi.mock("firebase/auth", () => ({
+  GoogleAuthProvider: { PROVIDER_ID: "google.com" },
   onIdTokenChanged: singletonMocks.onIdTokenChanged,
   signInAnonymously: singletonMocks.signInAnonymously,
 }));
 
 const createUser = (
   uid: string,
-  { isAnonymous = true, displayName = null }: { isAnonymous?: boolean; displayName?: string | null } = {}
+  {
+    isAnonymous = true,
+    googleDisplayName,
+    otherDisplayName,
+  }: { isAnonymous?: boolean; googleDisplayName?: string | null; otherDisplayName?: string | null } = {}
 ) =>
   ({
     uid,
     isAnonymous,
-    providerData: displayName == null ? [] : [{ displayName }],
+    providerData: [
+      ...(otherDisplayName === undefined ? [] : [{ providerId: "password", displayName: otherDisplayName }]),
+      ...(googleDisplayName === undefined ? [] : [{ providerId: "google.com", displayName: googleDisplayName }]),
+    ],
   }) as User;
 
 const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined))) => {
@@ -65,13 +73,13 @@ describe("lifecycle", () => {
   it("maps Firebase users to a Firebase-independent session snapshot", async () => {
     const { getAuthSession, publishUser } = await createHarness();
 
-    publishUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
+    publishUser(createUser("uid-a", { isAnonymous: false, googleDisplayName: "Ada" }));
 
     expect(getAuthSession()).toEqual({
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: false,
-      displayName: "Ada",
+      googleAccount: { displayName: "Ada" },
     });
   });
 
@@ -79,13 +87,26 @@ describe("lifecycle", () => {
     const { getAuthSession, publishUser } = await createHarness();
     publishUser(createUser("uid-a"));
 
-    publishUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
+    publishUser(createUser("uid-a", { isAnonymous: false, googleDisplayName: "Ada" }));
 
     expect(getAuthSession()).toEqual({
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: false,
-      displayName: "Ada",
+      googleAccount: { displayName: "Ada" },
+    });
+  });
+
+  it("does not grant Google access from another linked provider", async () => {
+    const { getAuthSession, publishUser } = await createHarness();
+
+    publishUser(createUser("uid-a", { isAnonymous: false, otherDisplayName: "Password User" }));
+
+    expect(getAuthSession()).toEqual({
+      status: "authenticated",
+      uid: "uid-a",
+      isAnonymous: false,
+      googleAccount: null,
     });
   });
 

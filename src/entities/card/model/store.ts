@@ -25,6 +25,10 @@ interface CardState {
   localCards: LocalCard[];
 }
 
+/** Progress-only edit retained until Card consumers move to the separated StudyProgress store. */
+type LocalCardStudyProgressEdit = Pick<LocalCard, "id"> &
+  Partial<Pick<LocalCard, "score" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval">>;
+
 /** Injectable persistence controls used to create an isolated Card store. */
 interface CreateCardStoreOptions {
   storage?: StateStorage;
@@ -72,7 +76,8 @@ export const clearRemoteCards = (): void => {
 export const findCardById = (id: CardId): Card | undefined => {
   const cardId = cardIdSchema.parse(id);
   const state = cardStore.getState();
-  return state.remoteCards.find((card) => card.id === cardId) ?? state.localCards.find((card) => card.id === cardId);
+  // A failed migration can leave a remote duplicate; local remains authoritative until a retry succeeds.
+  return state.localCards.find((card) => card.id === cardId) ?? state.remoteCards.find((card) => card.id === cardId);
 };
 
 // Creates and persists a local Card with Entity-owned timestamps.
@@ -98,14 +103,31 @@ export const editLocalCard = (input: LocalCardEdit): LocalCard => {
   return updatedCard;
 };
 
+// Mirrors local progress into the compatibility Card view until #604 removes these fields.
+export const editLocalCardStudyProgress = (input: LocalCardStudyProgressEdit): LocalCard => {
+  const cardId = cardIdSchema.parse(input.id);
+  const { localCards } = cardStore.getState();
+  const currentCard = localCards.find(({ id }) => id === cardId);
+  if (currentCard === undefined) throw new Error(`Local Card "${cardId}" was not found`);
+
+  const updatedCard = localCardSchema.parse({ ...currentCard, ...input, updatedAt: Date.now() });
+  cardStore.setState({ localCards: localCards.map((card) => (card.id === cardId ? updatedCard : card)) });
+  return updatedCard;
+};
+
 // Removes one local Card after validating its identifier.
 export const deleteLocalCard = (input: CardId): void => {
   const cardId = cardIdSchema.parse(input);
   cardStore.setState({ localCards: cardStore.getState().localCards.filter(({ id }) => id !== cardId) });
 };
 
-// Removes every local Card owned by a deleted Deck.
-export const deleteLocalCardsByDeckId = (deckId: string): void => {
+// Removes every local Card owned by a deleted Deck and returns their identifiers for dependent cleanup.
+export const deleteLocalCardsByDeckId = (deckId: string): CardId[] => {
   const parsedDeckId = cardDeckIdSchema.parse(deckId);
+  const deletedCardIds = cardStore
+    .getState()
+    .localCards.filter((card) => card.deckId === parsedDeckId)
+    .map((card) => card.id);
   cardStore.setState({ localCards: cardStore.getState().localCards.filter((card) => card.deckId !== parsedDeckId) });
+  return deletedCardIds;
 };

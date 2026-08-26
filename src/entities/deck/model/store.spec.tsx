@@ -10,6 +10,7 @@ import {
   deckStore,
   deleteLocalDeck,
   editLocalDeck,
+  findDeckById,
   replaceRemoteDecks,
 } from "./store";
 
@@ -58,6 +59,37 @@ describe("Deck store", () => {
     expect(renderHook(() => useDeck("remote")).result.current).toBe(remoteDeck);
     expect(renderHook(() => useDeck("local")).result.current).toBe(localDeck);
     expect(renderHook(() => useDeck("missing")).result.current).toBeUndefined();
+  });
+
+  it("keeps a local Deck authoritative over a matching remote snapshot", () => {
+    const remoteDeck = createDeck({ id: "shared", name: "Remote" });
+    const localDeck = createLocalDeckFixture({ id: "shared", name: "Local" });
+    deckStore.setState({ remoteDecks: [remoteDeck], localDecks: [localDeck] });
+
+    expect(renderHook(useDecks).result.current).toEqual([localDeck]);
+    expect(renderHook(() => useDeck("shared")).result.current).toBe(localDeck);
+    expect(findDeckById("shared")).toEqual(localDeck);
+  });
+
+  it("restores an authoritative local Deck over a matching remote snapshot during hydration", async () => {
+    const remoteDeck = createDeck({ id: "shared", name: "Remote" });
+    const localDeck = createLocalDeckFixture({ id: "shared", name: "Local" });
+    deckStore.setState({ remoteDecks: [remoteDeck], localDecks: [] });
+    useMemoryStorage({
+      "tango-local-decks": JSON.stringify({ state: { localDecks: [localDeck] }, version: 1 }),
+    });
+
+    await deckStore.persist.rehydrate();
+
+    expect(renderHook(useDecks).result.current).toEqual([localDeck]);
+    expect(findDeckById("shared")).toEqual(localDeck);
+
+    const editedLocalDeck = editLocalDeck({ id: localDeck.id, name: "Retryable" });
+    expect(renderHook(() => useDeck("shared")).result.current).toBe(editedLocalDeck);
+
+    deleteLocalDeck(localDeck.id);
+    expect(renderHook(useDecks).result.current).toEqual([remoteDeck]);
+    expect(findDeckById("shared")).toBe(remoteDeck);
   });
 
   it("persists only local Decks and restores them after hydration", async () => {

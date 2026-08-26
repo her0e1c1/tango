@@ -18,6 +18,7 @@ Deck 管理の主要導線が、ブラウザ上で表示・作成・編集・削
 | DECK-08 | read | [Deck の Card を CSV で export できる](#deck-08) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](#deck-10) |
+| DECK-11 | write | [匿名時の Deck を local-only に作成して reload 後も確認できる](#deck-11) |
 
 <a id="deck-01"></a>
 
@@ -69,7 +70,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/batch/study-session-middle.yaml)
+- Fixture: [`google-study-session-middle`](./fixture/batch/google-study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に複数の Card と再開可能な学習 session が存在する。
 
@@ -116,7 +117,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/batch/study-session-middle.yaml)
+- Fixture: [`google-study-session-middle`](./fixture/batch/google-study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に Card と再開可能な学習 session が存在する。
 - 削除要求の失敗が dialog 内で処理され、同じ削除対象が維持されている。
@@ -244,3 +245,26 @@ Then:
 - 作成した Deck の name、category、remote の保存先が最初の作成要求から維持されている。
 - browser storage に同じ Deck の local-only duplicate が存在しない。
 - 最初の作成失敗に伴う未処理の browser error が発生しない。
+
+<a id="deck-11"></a>
+
+### DECK-11 匿名時の Deck を local-only に作成して reload 後も確認できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`empty`](./fixture/write/empty.yaml)
+- Google アカウントに連携していない匿名ユーザーである。
+- 作成対象の Deck は browser storage と remote data のどちらにも存在しない。
+
+When:
+
+- Deck の作成画面で name と category を入力して保存し、Deck 一覧を reload する。
+
+Then:
+
+- Local only は選択されたまま無効化され、remote の保存先を選択できない。
+- 作成した Deck は local-only data として reload 後も Deck 一覧に表示される。
+- 対応する Deck は Firestore に作成されない。
+- browser error が発生しない。

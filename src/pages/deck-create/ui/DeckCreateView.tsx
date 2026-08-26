@@ -16,6 +16,7 @@ interface DeckCreateFormProps {
   fields: DeckCreateFields;
   errors: { name: string | undefined };
   isSubmitting: boolean;
+  remoteStorageAvailable: boolean;
   onCancel: () => void;
   onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
 }
@@ -67,7 +68,14 @@ export const DeckCreateView: React.FC<DeckCreateViewProps> = ({ form, saveError 
           <FormItem col label="Category">
             <Select empty {...form.fields.category} />
           </FormItem>
-          <FormItem label="Local only" help="Keep this deck and its cards on this device.">
+          <FormItem
+            label="Local only"
+            help={
+              form.remoteStorageAvailable
+                ? "Keep this deck and its cards on this device."
+                : "Sign in with Google to sync decks across devices. This deck will stay on this device."
+            }
+          >
             <Switch {...form.fields.localMode} aria-label="Local only" />
           </FormItem>
         </section>

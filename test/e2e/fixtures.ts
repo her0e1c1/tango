@@ -142,14 +142,16 @@ export const expect = playwrightExpect;
 
 const encodeTokenPart = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
 
-const emulatorToken = (uid: string) => {
+const emulatorToken = (uid: string, hasGoogleIdentity: boolean) => {
   const now = Math.floor(Date.now() / 1000);
   const header = encodeTokenPart({ alg: "none", typ: "JWT" });
   const payload = encodeTokenPart({
     aud: projectId,
     auth_time: now,
     exp: now + 3600,
-    firebase: { identities: {}, sign_in_provider: "anonymous" },
+    firebase: hasGoogleIdentity
+      ? { identities: { "google.com": [uid] }, sign_in_provider: "google.com" }
+      : { identities: {}, sign_in_provider: "anonymous" },
     iat: now,
     iss: `https://securetoken.google.com/${projectId}`,
     sub: uid,
@@ -164,9 +166,13 @@ export interface AnonymousAuthOptions {
   failSignUpOnce?: boolean;
 }
 
+const isInitialGoogleIdentity = (signInCount: number, linked: boolean | undefined) =>
+  signInCount === 0 && linked === true;
+
 export const routeAnonymousAuth = async (page: Page, uid: string, options: AnonymousAuthOptions | string = {}) => {
   const normalizedOptions = typeof options === "string" ? { nextUid: options } : options;
   let activeUid = uid;
+  let hasGoogleIdentity = normalizedOptions.linked ?? false;
   let signInCount = 0;
   let shouldFailSignUp = normalizedOptions.failSignUpOnce ?? false;
   await page.route("**/identitytoolkit.googleapis.com/**", async (route) => {
@@ -180,7 +186,7 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
           users: [
             {
               localId: activeUid,
-              ...(normalizedOptions.linked && activeUid === uid
+              ...(hasGoogleIdentity
                 ? {
                     providerUserInfo: [{ providerId: "google.com", rawId: activeUid, displayName: "E2E User" }],
                   }
@@ -204,14 +210,16 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
       return;
     }
     if (url.includes("accounts:signUp")) {
-      activeUid = signInCount === 0 ? uid : (normalizedOptions.nextUid ?? uid);
+      const isInitialIdentity = signInCount === 0;
+      activeUid = isInitialIdentity ? uid : (normalizedOptions.nextUid ?? uid);
+      hasGoogleIdentity = isInitialGoogleIdentity(signInCount, normalizedOptions.linked);
       signInCount += 1;
       await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
           kind: "identitytoolkit#SignupNewUserResponse",
-          idToken: emulatorToken(activeUid),
+          idToken: emulatorToken(activeUid, hasGoogleIdentity),
           refreshToken: "e2e-refresh-token",
           expiresIn: "3600",
           localId: activeUid,
@@ -336,6 +344,11 @@ export const readLocalData = async (page: Page) =>
     cards: JSON.parse(window.localStorage.getItem("tango-local-cards") ?? "{}").state?.localCards ?? [],
     sessionsByDeckId: JSON.parse(window.localStorage.getItem("tango-study") ?? "{}").state?.sessionsByDeckId ?? {},
   }));
+
+export const readLocalStudyProgresses = async (page: Page) =>
+  page.evaluate(
+    () => JSON.parse(window.localStorage.getItem("tango-local-study-progresses") ?? "{}").state?.localProgresses ?? []
+  );
 
 export interface FixtureAuthSeedOptions extends AnonymousAuthOptions {
   /** Logical UID of the anonymous user created after a linked user signs out. */

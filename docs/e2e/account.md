@@ -21,7 +21,7 @@
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/batch/study-session-middle.yaml)
-- 匿名アカウントに Deck と Card が存在する。
+- 匿名アカウントの browser storage に local-only Deck と Card が存在する。
 - 対象 Deck に進行中の学習 session が存在する。
 - Google アカウントへ連携できる。
 
@@ -33,7 +33,7 @@ Then:
 
 - Account 画面に Google アカウントとの連携状態が表示される。
 - 匿名アカウントと同じ UID が表示される。
-- 連携前の Deck、Card、学習 session を引き続き利用できる。
+- 連携前の local-only Deck、Card、学習 session を引き続き利用できる。
 - browser error が発生しない。
 
 <a id="account-02"></a>

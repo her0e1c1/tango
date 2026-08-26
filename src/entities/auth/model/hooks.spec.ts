@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { useAuthAccount, useAuthSession, useAuthUid } from "./hooks";
+import { useAuthSession, useFirebaseUid, useGoogleAccount, useGoogleAccountUid } from "./hooks";
 import { replaceAuthSession } from "./store";
 
 describe("useAuthSession", () => {
@@ -15,7 +15,7 @@ describe("useAuthSession", () => {
         status: "authenticated",
         uid: "uid-a",
         isAnonymous: true,
-        displayName: null,
+        googleAccount: null,
       })
     );
 
@@ -23,12 +23,12 @@ describe("useAuthSession", () => {
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: true,
-      displayName: null,
+      googleAccount: null,
     });
   });
 });
 
-describe("useAuthUid", () => {
+describe("useFirebaseUid", () => {
   beforeEach(() => replaceAuthSession({ status: "initializing" }));
 
   it("returns the authenticated user UID", () => {
@@ -36,10 +36,10 @@ describe("useAuthUid", () => {
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: true,
-      displayName: null,
+      googleAccount: null,
     });
 
-    const { result } = renderHook(useAuthUid);
+    const { result } = renderHook(useFirebaseUid);
 
     expect(result.current).toBe("uid-a");
   });
@@ -52,13 +52,13 @@ describe("useAuthUid", () => {
   ])("returns an empty string when the session is $status", (session) => {
     replaceAuthSession(session);
 
-    const { result } = renderHook(useAuthUid);
+    const { result } = renderHook(useFirebaseUid);
 
     expect(result.current).toBe("");
   });
 });
 
-describe("useAuthAccount", () => {
+describe("useGoogleAccount", () => {
   beforeEach(() => replaceAuthSession({ status: "initializing" }));
 
   it("returns a linked account", () => {
@@ -66,30 +66,60 @@ describe("useAuthAccount", () => {
       status: "authenticated",
       uid: "uid-a",
       isAnonymous: false,
-      displayName: "Test User",
+      googleAccount: { displayName: "Test User" },
     });
 
-    const { result } = renderHook(useAuthAccount);
+    const { result } = renderHook(useGoogleAccount);
 
     expect(result.current).toEqual({ uid: "uid-a", displayName: "Test User" });
   });
 
-  it("does not return an anonymous user as an account", () => {
+  it("does not infer Google access from a non-anonymous Firebase user", () => {
     replaceAuthSession({
       status: "authenticated",
-      uid: "anonymous-uid",
-      isAnonymous: true,
-      displayName: null,
+      uid: "password-user",
+      isAnonymous: false,
+      googleAccount: null,
     });
 
-    const { result } = renderHook(useAuthAccount);
+    const { result } = renderHook(useGoogleAccount);
 
     expect(result.current).toBeUndefined();
   });
 
   it("returns no account before authentication", () => {
-    const { result } = renderHook(useAuthAccount);
+    const { result } = renderHook(useGoogleAccount);
 
     expect(result.current).toBeUndefined();
+  });
+});
+
+describe("useGoogleAccountUid", () => {
+  beforeEach(() => replaceAuthSession({ status: "initializing" }));
+
+  it("returns the Firebase uid only when Google is linked", () => {
+    replaceAuthSession({
+      status: "authenticated",
+      uid: "uid-a",
+      isAnonymous: false,
+      googleAccount: { displayName: null },
+    });
+
+    const { result } = renderHook(useGoogleAccountUid);
+
+    expect(result.current).toBe("uid-a");
+  });
+
+  it("returns an empty string for a Firebase user without Google", () => {
+    replaceAuthSession({
+      status: "authenticated",
+      uid: "uid-a",
+      isAnonymous: true,
+      googleAccount: null,
+    });
+
+    const { result } = renderHook(useGoogleAccountUid);
+
+    expect(result.current).toBe("");
   });
 });

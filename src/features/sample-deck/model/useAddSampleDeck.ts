@@ -3,7 +3,7 @@ import type { DeckId, LocalDeckCreateInput } from "@/entities/deck";
 
 import { useEffect } from "react";
 
-import { useAuthUid } from "@/entities/auth";
+import { useGoogleAccountUid } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, useDecks } from "@/entities/deck";
 import { updatePreferences, usePreferences } from "@/entities/preference";
@@ -44,7 +44,7 @@ export const addSampleDeck = async (uid: string) => {
 };
 
 export const useAddSampleDeck = () => {
-  const uid = useAuthUid();
+  const uid = useGoogleAccountUid();
   const decks = useDecks();
   const { loadSample } = usePreferences();
 

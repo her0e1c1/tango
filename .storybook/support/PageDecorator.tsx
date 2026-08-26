@@ -47,8 +47,8 @@ export const preparePageStory = (parameters: PageStoryParameters): void => {
   replaceAuthSession({
     status: "authenticated",
     uid: PAGE_STORY_UID,
-    isAnonymous: true,
-    displayName: null,
+    isAnonymous: false,
+    googleAccount: { displayName: "Storybook User" },
   });
 
   const decks = (parameters.decks ?? []).map(cloneDeck);

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { useAuthUid } from "@/entities/auth";
+import { useGoogleAccountUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
@@ -47,7 +47,7 @@ const buildCardListItem = (card: Card): CardListItem => ({
 });
 
 export const useCardListState = (deck: Deck): CardListState => {
-  const uid = useAuthUid();
+  const uid = useGoogleAccountUid();
   const preferences = usePreferences();
   const { cards: deckCards, tags } = useCardsByDeckId(deck.id);
   const [shownCard, setShownCard] = React.useState<Card>();

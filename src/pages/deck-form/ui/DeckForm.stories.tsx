@@ -28,6 +28,7 @@ const createDeckForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
     convertToBr: { checked: deck.convertToBr, onChange: fn() },
   },
   isLocalOnly: deck.localMode,
+  remoteStorageAvailable: true,
   errors: { name: undefined, url: undefined },
   isSubmitting: false,
   onCancel: fn(),
@@ -82,6 +83,17 @@ export const LocalDeck: Story = {
       localMode: { checked: true, onChange: fn() },
     },
     isLocalOnly: true,
+  },
+};
+
+export const AnonymousLocalDeck: Story = {
+  args: {
+    fields: {
+      ...defaultForm.fields,
+      localMode: { checked: true, disabled: true, onChange: fn() },
+    },
+    isLocalOnly: true,
+    remoteStorageAvailable: false,
   },
 };
 

@@ -100,6 +100,7 @@
 | DECK-08 | read | [Deck の Card を CSV で export できる](./deck.md#deck-08) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](./deck.md#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](./deck.md#deck-10) |
+| DECK-11 | write | [匿名時の Deck を local-only に作成して reload 後も確認できる](./deck.md#deck-11) |
 
 ### Card
 

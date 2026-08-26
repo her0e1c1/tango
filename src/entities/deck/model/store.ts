@@ -65,7 +65,8 @@ export const clearRemoteDecks = (): void => {
 export const findDeckById = (id: DeckId): Deck | undefined => {
   const deckId = deckIdSchema.parse(id);
   const state = deckStore.getState();
-  return state.remoteDecks.find((deck) => deck.id === deckId) ?? state.localDecks.find((deck) => deck.id === deckId);
+  // A failed migration can leave a remote duplicate; local remains authoritative until a retry succeeds.
+  return state.localDecks.find((deck) => deck.id === deckId) ?? state.remoteDecks.find((deck) => deck.id === deckId);
 };
 
 // Creates and persists a local Deck with Entity-owned timestamps.
