@@ -18,6 +18,8 @@ import {
   type FixtureUser,
   loadFixtureSource,
   namespaceFixture,
+  normalizeFixtureIdSegment,
+  requireE2ECaseId,
 } from "./yaml-fixture";
 
 export type {
@@ -103,14 +105,13 @@ export const collectBrowserErrors = (context: BrowserContext, baseURL?: string) 
 };
 
 const createNamespace = (title: string, testId: string, retry: number): TestNamespace => {
-  const caseId = /^([A-Z]+-[0-9]{2})\b/.exec(title)?.[1];
-  if (caseId === undefined) throw new Error(`E2E test title must start with a documented case ID: ${title}`);
+  const caseId = requireE2ECaseId(title);
   const digest = createHash("sha256").update(`${testId}:${retry}`).digest("hex").slice(0, 10);
   const stem = `${caseId.toLowerCase()}-${digest}`;
   return {
     caseId,
     uid: `${stem}-user`,
-    id: (label) => `${stem}-${label.replaceAll(/[^a-zA-Z0-9-]/g, "-").toLowerCase()}`,
+    id: (label) => `${stem}-${normalizeFixtureIdSegment(label)}`,
   };
 };
 
@@ -565,12 +566,24 @@ export const requireDocument = async (collection: FirestoreCollection, id: strin
 };
 
 export const listDocuments = async (collection: FirestoreCollection): Promise<FirestoreDocument[]> => {
-  const response = await fetch(`${firestoreBase}/${collection}?pageSize=1000`, {
-    headers: { Authorization: "Bearer owner" },
-  });
-  if (!response.ok) throw new Error(`Firestore list failed: ${response.status} ${await response.text()}`);
-  const body = (await response.json()) as { documents?: FirestoreDocument[] };
-  return body.documents ?? [];
+  const documents: FirestoreDocument[] = [];
+  const appendPage = async (pageToken?: string): Promise<void> => {
+    const url = new URL(`${firestoreBase}/${collection}`);
+    url.searchParams.set("pageSize", "1000");
+    if (pageToken !== undefined) url.searchParams.set("pageToken", pageToken);
+    const response = await fetch(url, { headers: { Authorization: "Bearer owner" } });
+    if (!response.ok) throw new Error(`Firestore list failed: ${response.status} ${await response.text()}`);
+    const body = (await response.json()) as {
+      documents?: FirestoreDocument[];
+      nextPageToken?: string;
+    };
+    documents.push(...(body.documents ?? []));
+    if (body.nextPageToken !== undefined && body.nextPageToken !== "") await appendPage(body.nextPageToken);
+  };
+
+  // All workers share emulator collections, so isolation assertions must include documents beyond Firestore's page cap.
+  await appendPage();
+  return documents;
 };
 
 export const documentId = (document: FirestoreDocument) => document.name.split("/").at(-1) ?? "";

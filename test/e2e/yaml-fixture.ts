@@ -121,6 +121,16 @@ export interface NamespacedFixture {
   id: (logicalId: string) => string;
 }
 
+const caseIdFromTestTitle = (title: string) => /^([A-Z]+-[0-9]{2}) /u.exec(title)?.[1];
+
+export const requireE2ECaseId = (title: string): string => {
+  const caseId = caseIdFromTestTitle(title);
+  if (caseId === undefined) throw new Error(`E2E test title must start with a documented case ID: ${title}`);
+  return caseId;
+};
+
+export const normalizeFixtureIdSegment = (label: string) => label.replaceAll(/[^a-zA-Z0-9-]/g, "-").toLowerCase();
+
 const looksLikeRepositoryRoot = (candidate: string) =>
   existsSync(path.join(candidate, "package.json")) && existsSync(path.join(candidate, "docs/e2e/fixture"));
 
@@ -945,4 +955,53 @@ export const namespaceFixture = (
     uid: identifiers.uidFor,
     id: identifiers.idFor,
   };
+};
+
+const contractNamespace = (caseId: string): FixtureNamespace => {
+  const stem = `contract-${caseId.toLowerCase()}`;
+  return {
+    uid: `${stem}-user`,
+    // Mirror the lossy runtime mapping so preflight validation also catches IDs that collide after normalization.
+    id: (label) => `${stem}-${normalizeFixtureIdSegment(label)}`,
+  };
+};
+
+export const validateE2EContract = (testTitles: readonly string[]) => {
+  fixtureIndex ??= buildFixtureIndex();
+  const documentedCaseIds = [...fixtureIndex.keys()].sort((left, right) => left.localeCompare(right));
+
+  // Validate every documented source before any browser or emulator setup can create persistent state.
+  for (const caseId of documentedCaseIds) {
+    namespaceFixture(loadFixtureSource(caseId), contractNamespace(caseId));
+  }
+
+  const titlesWithoutCaseId: string[] = [];
+  const testCounts = new Map<string, number>();
+  for (const title of testTitles) {
+    const caseId = caseIdFromTestTitle(title);
+    if (caseId === undefined) {
+      titlesWithoutCaseId.push(title);
+    } else {
+      testCounts.set(caseId, (testCounts.get(caseId) ?? 0) + 1);
+    }
+  }
+
+  const documentedCaseIdSet = new Set(documentedCaseIds);
+  const missing = documentedCaseIds.filter((caseId) => !testCounts.has(caseId));
+  const duplicates = [...testCounts.entries()]
+    .filter(([, count]) => count > 1)
+    .map(([caseId, count]) => `${caseId} (${String(count)})`)
+    .sort((left, right) => left.localeCompare(right));
+  const undocumented = [...testCounts.keys()]
+    .filter((caseId) => !documentedCaseIdSet.has(caseId))
+    .sort((left, right) => left.localeCompare(right));
+  const problems = [
+    ...(titlesWithoutCaseId.length === 0
+      ? []
+      : [`test titles without a case ID: ${titlesWithoutCaseId.map((title) => JSON.stringify(title)).join(", ")}`]),
+    ...(missing.length === 0 ? [] : [`missing Playwright tests: ${missing.join(", ")}`]),
+    ...(duplicates.length === 0 ? [] : [`duplicate Playwright case IDs: ${duplicates.join(", ")}`]),
+    ...(undocumented.length === 0 ? [] : [`undocumented Playwright case IDs: ${undocumented.join(", ")}`]),
+  ];
+  if (problems.length > 0) throw new Error(`Invalid E2E contract: ${problems.join("; ")}`);
 };

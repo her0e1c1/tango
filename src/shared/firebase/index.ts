@@ -23,14 +23,16 @@ export const db = initializeFirestore(app, {
   localCache: persistentLocalCache(),
 });
 
+// E2E serves a production bundle for parallel-run performance, but its isolated build must still target emulators.
+const useFirebaseEmulators = import.meta.env.DEV || import.meta.env.VITE_USE_FIREBASE_EMULATORS === "true";
 const authHost = import.meta.env.VITE_AUTH_HOST;
 const authPort = import.meta.env.VITE_AUTH_PORT;
-if (import.meta.env.DEV && authHost && authPort) {
+if (useFirebaseEmulators && authHost && authPort) {
   connectAuthEmulator(auth, `http://${authHost}:${authPort}`);
 }
 
 const dbHost = import.meta.env.VITE_DB_HOST;
 const dbPort = import.meta.env.VITE_DB_PORT;
-if (import.meta.env.DEV && dbHost && dbPort) {
+if (useFirebaseEmulators && dbHost && dbPort) {
   connectFirestoreEmulator(db, dbHost, Number.parseInt(dbPort, 10));
 }
