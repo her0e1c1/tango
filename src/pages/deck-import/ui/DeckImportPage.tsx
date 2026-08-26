@@ -18,6 +18,7 @@ export const DeckImportPage: React.FC = () => {
     <AppLayout showHeader>
       <DeckImportView
         storageMode={deckImport.storageMode}
+        remoteStorageAvailable={deckImport.remoteStorageAvailable}
         onStorageModeChange={deckImport.setStorageMode}
         onChange={(file) => {
           void deckImport.selectFile(file);

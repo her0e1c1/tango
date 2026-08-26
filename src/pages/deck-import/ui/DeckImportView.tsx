@@ -53,6 +53,7 @@ export interface DeckImportViewProps {
   error?: unknown;
   previewError?: unknown;
   storageMode?: DeckImportStorageMode;
+  remoteStorageAvailable?: boolean;
 }
 
 const resultCounts = (result: DeckImportResult) => (
@@ -213,6 +214,7 @@ const ImportPreview = (props: ImportPreviewProps) => {
 export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
   const busy = Boolean(props.pending || props.validating);
   const storageMode = props.storageMode ?? "remote";
+  const remoteStorageAvailable = props.remoteStorageAvailable ?? true;
 
   return (
     <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
@@ -252,11 +254,16 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
                 name="deck-import-storage-mode"
                 value="remote"
                 checked={storageMode === "remote"}
+                disabled={busy || !remoteStorageAvailable}
                 onChange={() => props.onStorageModeChange?.("remote")}
               />
               <span>
                 <span className="block font-semibold">Sync with account</span>
-                <span className="block text-caption text-ink-muted">Save to your account and sync across devices.</span>
+                <span className="block text-caption text-ink-muted">
+                  {remoteStorageAvailable
+                    ? "Save to your account and sync across devices."
+                    : "Sign in with Google to sync across devices."}
+                </span>
               </span>
             </label>
           </fieldset>

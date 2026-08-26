@@ -37,7 +37,7 @@ describe("AccountPage", () => {
     vi.mocked(signOut).mockReset();
     vi.mocked(signOut).mockResolvedValue(undefined);
     replaceAuthSession({
-      displayName: null,
+      googleAccount: null,
       isAnonymous: true,
       status: "authenticated",
       uid: "anonymous-user",
@@ -57,7 +57,7 @@ describe("AccountPage", () => {
 
   it("shows the linked identity and offers sign-out", () => {
     replaceAuthSession({
-      displayName: "Test User",
+      googleAccount: { displayName: "Test User" },
       isAnonymous: false,
       status: "authenticated",
       uid: "linked-user",
@@ -94,7 +94,7 @@ describe("AccountPage", () => {
 
   it("lets the user retry a failed sign-out", async () => {
     replaceAuthSession({
-      displayName: "Test User",
+      googleAccount: { displayName: "Test User" },
       isAnonymous: false,
       status: "authenticated",
       uid: "linked-user",

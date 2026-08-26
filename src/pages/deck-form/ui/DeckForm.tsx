@@ -23,6 +23,7 @@ export interface DeckFormProps {
   };
   fields: DeckFormFields;
   isLocalOnly: boolean;
+  remoteStorageAvailable: boolean;
   errors: {
     name: string | undefined;
     url: string | undefined;
@@ -42,7 +43,9 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const urlInputId = `${sectionHeadingIdPrefix}-deck-url`;
   const urlErrorId = `${urlInputId}-error`;
   const localModeHelp = props.isLocalOnly
-    ? "Turn off to save this deck and its cards to Firestore. This change cannot be undone."
+    ? props.remoteStorageAvailable
+      ? "Turn off to save this deck and its cards to Firestore. This change cannot be undone."
+      : "Sign in with Google to sync this deck across devices. It will stay on this device until then."
     : "This deck and its cards are saved to Firestore.";
 
   return (

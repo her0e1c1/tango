@@ -4,17 +4,18 @@ import { filterCardsByDeckId, filterTagsByDeckId } from "./rules";
 import { cardStore } from "./store";
 import type { Card, CardId } from "./types";
 
-// Reads remote and local Cards as one ordered collection.
+// Hides remote duplicates left by a partial migration while their retryable local Cards still exist.
 export const useCards = (): Card[] => {
   const state = useStore(cardStore);
-  return [...state.remoteCards, ...state.localCards];
+  const localIds = new Set(state.localCards.map((card) => card.id));
+  return [...state.remoteCards.filter((card) => !localIds.has(card.id)), ...state.localCards];
 };
 
-// Reads one Card by identifier across both persistence modes.
+// Reads one Card with the retryable local record taking precedence over a partial remote copy.
 export const useCard = (id: CardId | undefined): Card | undefined =>
   useStore(
     cardStore,
-    (state) => state.remoteCards.find((card) => card.id === id) ?? state.localCards.find((card) => card.id === id)
+    (state) => state.localCards.find((card) => card.id === id) ?? state.remoteCards.find((card) => card.id === id)
   );
 
 // Reads the Cards and available tags owned by one Deck.

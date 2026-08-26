@@ -11,6 +11,8 @@ import {
   deleteLocalCard,
   deleteLocalCardsByDeckId,
   editLocalCard,
+  editLocalCardStudyProgress,
+  findCardById,
   replaceRemoteCards,
 } from "./store";
 
@@ -69,6 +71,38 @@ describe("Card store", () => {
     expect(renderHook(() => useCard("remote")).result.current).toEqual(remoteCard);
     expect(renderHook(() => useCard("local")).result.current).toEqual(localCard);
     expect(renderHook(() => useCard("missing")).result.current).toBeUndefined();
+  });
+
+  it("keeps a local Card authoritative over a matching remote snapshot", () => {
+    const remoteCard = createCard({ id: "shared", deckId: "deck", frontText: "Remote" });
+    const localCard = createLocalCardFixture({ id: "shared", deckId: "deck", frontText: "Local" });
+    cardStore.setState({ remoteCards: [remoteCard], localCards: [localCard] });
+
+    expect(renderHook(useCards).result.current).toEqual([localCard]);
+    expect(renderHook(() => useCard("shared")).result.current).toEqual(localCard);
+    expect(renderHook(() => useCardsByDeckId("deck")).result.current.cards).toEqual([localCard]);
+    expect(findCardById("shared")).toEqual(localCard);
+  });
+
+  it("restores an authoritative local Card over a matching remote snapshot during hydration", async () => {
+    const remoteCard = createCard({ id: "shared", deckId: "deck", frontText: "Remote" });
+    const localCard = createLocalCardFixture({ id: "shared", deckId: "deck", frontText: "Local" });
+    cardStore.setState({ remoteCards: [remoteCard], localCards: [] });
+    useMemoryStorage({
+      "tango-local-cards": JSON.stringify({ state: { localCards: [localCard] }, version: 1 }),
+    });
+
+    await cardStore.persist.rehydrate();
+
+    expect(renderHook(useCards).result.current).toEqual([localCard]);
+    expect(findCardById("shared")).toEqual(localCard);
+
+    const editedLocalCard = editLocalCard({ id: localCard.id, frontText: "Retryable" });
+    expect(renderHook(() => useCard("shared")).result.current).toEqual(editedLocalCard);
+
+    deleteLocalCard(localCard.id);
+    expect(renderHook(useCards).result.current).toEqual([remoteCard]);
+    expect(findCardById("shared")).toBe(remoteCard);
   });
 
   it("selects cards and tags for a deck", () => {
@@ -142,6 +176,10 @@ describe("Card store", () => {
     const updatedCard = editLocalCard({ id: "local", frontText: "updated" });
     expect(updatedCard).toEqual(expect.objectContaining({ frontText: "updated", createdAt: 10, updatedAt: 20 }));
 
+    vi.mocked(Date.now).mockReturnValueOnce(30);
+    const updatedProgress = editLocalCardStudyProgress({ id: "local", score: 2, numberOfSeen: 3 });
+    expect(updatedProgress).toEqual(expect.objectContaining({ score: 2, numberOfSeen: 3, updatedAt: 30 }));
+
     deleteLocalCard("local");
     expect(cardStore.getState().localCards).toEqual([]);
   });
@@ -150,7 +188,7 @@ describe("Card store", () => {
     createLocalCard(cardInput("first", "deck-a"));
     createLocalCard(cardInput("second", "deck-b"));
 
-    deleteLocalCardsByDeckId("deck-a");
+    expect(deleteLocalCardsByDeckId("deck-a")).toEqual(["first"]);
 
     expect(cardStore.getState().localCards.map(({ id }) => id)).toEqual(["second"]);
   });

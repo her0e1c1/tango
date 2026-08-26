@@ -59,11 +59,9 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
   await page.goto("/account");
   await expect(page.getByText("Anonymous account")).toBeVisible();
   const anonymousUid = await accountUid(page);
-  const runtimeFixture = fixture.remapUsers({ "user-1": anonymousUid });
-  const deck = runtimeFixture.deck();
-  const card = runtimeFixture.card("card-2");
-  await runtimeFixture.seedRemote();
-  await runtimeFixture.seedPage(page, { auth: false, preferences: false, localData: false });
+  const deck = fixture.deck();
+  const card = fixture.card("card-2");
+  await fixture.seedPage(page, { auth: false, preferences: false, localData: false });
   await page.goto("/account");
 
   await completeGooglePopup(page, namespace.uid);

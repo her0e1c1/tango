@@ -14,7 +14,7 @@ import { createCard as createCardCommand, deleteCard, editCard } from "@/entitie
 import { createDeck as createDeckCommand } from "@/entities/deck/api/firestore";
 import { replaceRemoteCards } from "@/entities/card/model/store";
 import { replaceRemoteDecks } from "@/entities/deck/model/store";
-import { editStudyProgress } from "@/entities/study-progress";
+import { editRemoteStudyProgress } from "@/entities/study-progress/api/firestore";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import * as Uuid from "uuid";
 import { createCard, createDeck } from "@/test/factories";
@@ -98,9 +98,9 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
       deckId: "other-deck",
       uid: "other-user",
       deletedAt: 1,
-    } as unknown as Parameters<typeof editStudyProgress>[1];
+    } as unknown as Parameters<typeof editRemoteStudyProgress>[1];
 
-    await editStudyProgress("uid", untrustedProgress);
+    await editRemoteStudyProgress("uid", untrustedProgress);
 
     expect((await getDoc(doc(db, "card", card.id))).data()).toEqual({ ...card, score: 2, numberOfSeen: 3 });
   });

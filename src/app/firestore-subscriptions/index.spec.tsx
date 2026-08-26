@@ -7,6 +7,8 @@ interface FirestoreSnapshot {
   docs: { id: string; data: () => Record<string, unknown> }[];
 }
 
+const firestoreMocks = vi.hoisted(() => ({ queries: [] as FirestoreQuery[] }));
+
 import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -31,6 +33,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
       publishSnapshot: (snapshot: FirestoreSnapshot) => void,
       _onError: (error: Error) => void
     ) => {
+      firestoreMocks.queries.push(request);
       const deckId = `deck-${request.uid}`;
       const document =
         request.collectionName === "deck"
@@ -75,11 +78,18 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 
 import { FirestoreSubscriptionsProvider } from ".";
 
-const authenticatedSession = (uid: string) => ({
+const googleSession = (uid: string) => ({
+  status: "authenticated" as const,
+  uid,
+  isAnonymous: false,
+  googleAccount: { displayName: null },
+});
+
+const anonymousSession = (uid: string) => ({
   status: "authenticated" as const,
   uid,
   isAnonymous: true,
-  displayName: null,
+  googleAccount: null,
 });
 
 const RepositoryView = () => {
@@ -105,6 +115,7 @@ describe("FirestoreSubscriptionsProvider", () => {
   beforeEach(() => {
     clearRemoteCards();
     clearRemoteDecks();
+    firestoreMocks.queries = [];
     replaceAuthSession({ status: "initializing" });
   });
 
@@ -116,8 +127,18 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(screen.getByText("No remote Cards")).toBeVisible();
   });
 
-  it("shows remote data for the authenticated identity", () => {
-    act(() => replaceAuthSession(authenticatedSession("user-a")));
+  it("does not subscribe for an anonymous Firebase identity", () => {
+    act(() => replaceAuthSession(anonymousSession("anonymous-user")));
+
+    renderProvider();
+
+    expect(firestoreMocks.queries).toEqual([]);
+    expect(screen.getByText("No remote Decks")).toBeVisible();
+    expect(screen.getByText("No remote Cards")).toBeVisible();
+  });
+
+  it("shows remote data for the linked Google identity", () => {
+    act(() => replaceAuthSession(googleSession("user-a")));
 
     renderProvider();
 
@@ -125,12 +146,23 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(screen.getByText("Front for user-a")).toBeVisible();
   });
 
+  it("starts remote subscriptions after the same Firebase identity links Google", () => {
+    act(() => replaceAuthSession(anonymousSession("user-a")));
+    renderProvider();
+    expect(screen.getByText("No remote Decks")).toBeVisible();
+
+    act(() => replaceAuthSession(googleSession("user-a")));
+
+    expect(screen.getByText("Deck for user-a")).toBeVisible();
+    expect(screen.getByText("Front for user-a")).toBeVisible();
+  });
+
   it("replaces visible remote data when the authenticated identity changes", () => {
-    act(() => replaceAuthSession(authenticatedSession("user-a")));
+    act(() => replaceAuthSession(googleSession("user-a")));
     renderProvider();
     expect(screen.getByText("Deck for user-a")).toBeVisible();
 
-    act(() => replaceAuthSession(authenticatedSession("user-b")));
+    act(() => replaceAuthSession(googleSession("user-b")));
 
     expect(screen.getByText("Deck for user-b")).toBeVisible();
     expect(screen.getByText("Front for user-b")).toBeVisible();
@@ -138,8 +170,20 @@ describe("FirestoreSubscriptionsProvider", () => {
     expect(screen.queryByText("Front for user-a")).not.toBeInTheDocument();
   });
 
+  it("clears visible remote data when Google is unlinked from the same Firebase user", () => {
+    act(() => replaceAuthSession(googleSession("user-a")));
+    renderProvider();
+    expect(screen.getByText("Deck for user-a")).toBeVisible();
+
+    act(() => replaceAuthSession(anonymousSession("user-a")));
+
+    expect(screen.getByText("Application content")).toBeVisible();
+    expect(screen.getByText("No remote Decks")).toBeVisible();
+    expect(screen.getByText("No remote Cards")).toBeVisible();
+  });
+
   it("clears visible remote data on logout while preserving application content", () => {
-    act(() => replaceAuthSession(authenticatedSession("user-a")));
+    act(() => replaceAuthSession(googleSession("user-a")));
     renderProvider();
     expect(screen.getByText("Deck for user-a")).toBeVisible();
 
@@ -151,7 +195,7 @@ describe("FirestoreSubscriptionsProvider", () => {
   });
 
   it("clears remote data when the provider unmounts", () => {
-    act(() => replaceAuthSession(authenticatedSession("user-a")));
+    act(() => replaceAuthSession(googleSession("user-a")));
     const view = renderProvider();
     expect(screen.getByText("Deck for user-a")).toBeVisible();
 

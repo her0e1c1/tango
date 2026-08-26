@@ -1,9 +1,9 @@
 auth:
   users:
     - uid: user-a
-      provider: anonymous
+      provider: google
     - uid: user-b
-      provider: anonymous
+      provider: google
 remote:
   decks:
     - id: deck-a

@@ -177,8 +177,8 @@ test("DECK-08 downloads every Card field as one CSV row", async ({ fixture, page
 test("DECK-09 creates one empty remote Deck without a local duplicate", async ({ fixture, page, namespace }) => {
   const name = `${namespace.caseId} created`;
   const category = "typescript";
-  const { uid } = fixture.user();
-  await fixture.apply(page);
+  const { uid } = fixture.user("google-user");
+  await fixture.apply(page, { user: "google-user" });
 
   await page.goto("/");
   await page.getByRole("button", { name: "Create deck" }).click();
@@ -219,8 +219,8 @@ test("DECK-10 retries a failed remote create with the same ID and no duplicate",
 }) => {
   const name = `${namespace.caseId} retry deck`;
   const category = "typescript";
-  const { uid } = fixture.user();
-  await fixture.apply(page);
+  const { uid } = fixture.user("google-user");
+  await fixture.apply(page, { user: "google-user" });
   await page.goto("/");
   await page.getByRole("button", { name: "Create deck" }).click();
   let attemptedDeckId: string | undefined;
@@ -234,8 +234,9 @@ test("DECK-10 retries a failed remote create with the same ID and no duplicate",
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await page.getByRole("button", { name: "Create deck" }).click();
+  await expect.poll(fault.wasTriggered).toBe(true);
+  await fault.waitForFailure();
   await expect(page.getByRole("status")).toContainText("Unable to create this deck");
-  expect(fault.wasTriggered()).toBe(true);
   await fault.dispose();
   expect(attemptedDeckId).toBeDefined();
 
@@ -262,4 +263,35 @@ test("DECK-10 retries a failed remote create with the same ID and no duplicate",
   const local = await readLocalData(page);
   expect(local.decks).toEqual([]);
   expect(local.cards).toEqual([]);
+});
+
+test("DECK-11 creates anonymous Decks locally and preserves them across reload", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
+  const name = `${namespace.caseId} local`;
+  const category = "typescript";
+  await fixture.apply(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Create deck" }).click();
+
+  const localOnly = page.getByRole("checkbox", { name: "Local only" });
+  await expect(localOnly).toBeChecked();
+  await expect(localOnly).toBeDisabled();
+  await page.getByRole("textbox", { name: "Name" }).fill(name);
+  await page.getByRole("combobox").selectOption(category);
+  await page.getByRole("button", { name: "Create deck" }).click();
+  await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
+
+  await page.reload();
+  await page.getByRole("button", { name: "tango" }).click();
+  await expect(page.getByRole("button", { name: `View ${name}` })).toBeVisible();
+
+  const stored = await readLocalData(page);
+  const localDecks = stored.decks.filter(({ name: candidate }: { name?: string }) => candidate === name);
+  expect(localDecks).toHaveLength(1);
+  expect(localDecks[0]).toMatchObject({ category, localMode: true });
+  const remoteDecks = (await listDocuments("deck")).filter(({ fields }) => fields.name?.stringValue === name);
+  expect(remoteDecks).toEqual([]);
 });

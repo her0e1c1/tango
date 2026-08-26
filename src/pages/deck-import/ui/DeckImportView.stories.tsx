@@ -35,6 +35,7 @@ const meta = {
   },
   args: {
     sampleText: SAMPLE_CSV_TEXT,
+    remoteStorageAvailable: true,
   },
 } satisfies Meta<typeof DeckImportView>;
 
@@ -42,6 +43,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const AnonymousLocalOnly: Story = {
+  args: { storageMode: "local", remoteStorageAvailable: false },
+};
 
 export const Preview: Story = {
   args: { preview },

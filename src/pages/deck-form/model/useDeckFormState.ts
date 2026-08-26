@@ -4,7 +4,7 @@ import type * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { useAuthUid } from "@/entities/auth";
+import { useGoogleAccountUid } from "@/entities/auth";
 import { CATEGORY, type Deck, deckFormSchema, editDeck, useDeck } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
@@ -20,10 +20,14 @@ const getDeckFormValues = (deck: Deck): DeckFormValues => ({
   localMode: deck.localMode,
 });
 
-const getDeckEditInput = (deck: Deck, values: DeckFormValues): Parameters<typeof editDeck>[1] => ({
+const getDeckEditInput = (
+  deck: Deck,
+  values: DeckFormValues,
+  remoteStorageAvailable: boolean
+): Parameters<typeof editDeck>[1] => ({
   id: deck.id,
   ...values,
-  localMode: values.localMode ?? deck.localMode,
+  localMode: deck.localMode && !remoteStorageAvailable ? true : (values.localMode ?? deck.localMode),
   url: values.url ?? null,
 });
 
@@ -34,21 +38,26 @@ interface UseDeckFormStateOptions {
 }
 
 export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormStateOptions) => {
-  const uid = useAuthUid();
+  const uid = useGoogleAccountUid();
+  const remoteStorageAvailable = uid !== "";
   const deck = useDeck(deckId);
   const isMounted = useMountedGuard();
   const [saveError, setSaveError] = React.useState<unknown>(null);
-  const { formState, handleSubmit, register } = useForm<DeckFormValues>({
+  const { formState, handleSubmit, register, setValue } = useForm<DeckFormValues>({
     ...(deck && { values: getDeckFormValues(deck) }),
     resolver: zodResolver(deckFormSchema),
   });
+
+  React.useLayoutEffect(() => {
+    if (deck?.localMode === true && !remoteStorageAvailable) setValue("localMode", true);
+  }, [deck?.localMode, remoteStorageAvailable, setValue]);
 
   if (deck == null) return;
 
   const submit = handleSubmit(async (values) => {
     setSaveError(null);
     try {
-      await editDeck(uid, getDeckEditInput(deck, values));
+      await editDeck(uid, getDeckEditInput(deck, values, remoteStorageAvailable));
       // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.
       if (isMounted()) onSaved();
     } catch (error) {
@@ -69,7 +78,7 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
       name: register("name"),
       convertToBr: register("convertToBr"),
       // Moving Firestore data back into browser-only storage needs a separate copy-and-delete workflow.
-      localMode: { ...register("localMode"), disabled: !deck.localMode },
+      localMode: { ...register("localMode"), disabled: !(deck.localMode && remoteStorageAvailable) },
       // Keep optional Deck URLs absent even though an empty HTML input reports an empty string.
       url: register("url", { setValueAs: (value: unknown) => (value === "" ? undefined : value) }),
       category: {
@@ -78,6 +87,7 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
       },
     },
     isLocalOnly: deck.localMode,
+    remoteStorageAvailable,
     errors: {
       name: formState.errors.name?.message,
       url: formState.errors.url?.message,

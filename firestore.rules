@@ -1,4 +1,9 @@
 service cloud.firestore {
+  // The current sign-in provider may differ, so remote access depends on the account's linked identities.
+  function hasGoogleIdentity() {
+    return request.auth != null &&
+           request.auth.token.get(["firebase", "identities", "google.com"], []).size() > 0;
+  }
   function isOwner() {
     return request.auth.uid == resource.data.uid;
   }
@@ -14,10 +19,10 @@ service cloud.firestore {
       function isPublic() {
         return resource.data.isPublic == true;
       }
-      allow read: if isOwner() || isPublic();
-      allow create: if isValid();
-      allow update: if isValidOwner();
-      allow delete: if isOwner();
+      allow read: if hasGoogleIdentity() && (isOwner() || isPublic());
+      allow create: if hasGoogleIdentity() && isValid();
+      allow update: if hasGoogleIdentity() && isValidOwner();
+      allow delete: if hasGoogleIdentity() && isOwner();
     }
     match /card/{cardId} {
       function getDeck(deckId) {
@@ -29,10 +34,10 @@ service cloud.firestore {
       function belongsToDeck() {
         return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
       }
-      allow read: if isOwner() || isPublic();
-      allow create: if isValid() && belongsToDeck();
-      allow update: if isValidOwner() && belongsToDeck();
-      allow delete: if isOwner();
+      allow read: if hasGoogleIdentity() && (isOwner() || isPublic());
+      allow create: if hasGoogleIdentity() && isValid() && belongsToDeck();
+      allow update: if hasGoogleIdentity() && isValidOwner() && belongsToDeck();
+      allow delete: if hasGoogleIdentity() && isOwner();
     }
   }
 }

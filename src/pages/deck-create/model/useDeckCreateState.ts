@@ -2,9 +2,9 @@ import * as React from "react";
 import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
-import { useAuthUid } from "@/entities/auth";
+import { useGoogleAccountUid } from "@/entities/auth";
 import { CATEGORY, createDeck, deckFormSchema, generateDeckId, type DeckId } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
@@ -16,16 +16,20 @@ interface UseDeckCreateStateOptions {
 }
 
 export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOptions) => {
-  const uid = useAuthUid();
+  const uid = useGoogleAccountUid();
+  const remoteStorageAvailable = uid !== "";
   // A failed response may hide a successful write, so retries must reuse this Deck identity.
   const [deckId] = React.useState(generateDeckId);
   const isMounted = useMountedGuard();
   const [saveError, setSaveError] = React.useState<unknown>(null);
-  const { control, formState, handleSubmit, register } = useForm<DeckCreateFormValues>({
-    defaultValues: { name: "", category: "", convertToBr: false, localMode: false },
+  const { formState, handleSubmit, register, setValue } = useForm<DeckCreateFormValues>({
+    defaultValues: { name: "", category: "", convertToBr: false, localMode: !remoteStorageAvailable },
     resolver: zodResolver(deckFormSchema),
   });
-  const localMode = useWatch({ control, name: "localMode" }) ?? false;
+
+  React.useEffect(() => {
+    if (!remoteStorageAvailable) setValue("localMode", true);
+  }, [remoteStorageAvailable, setValue]);
 
   const submit = handleSubmit(async (values) => {
     setSaveError(null);
@@ -36,6 +40,7 @@ export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOp
         category: values.category,
         convertToBr: values.convertToBr,
       };
+      const localMode = !remoteStorageAvailable || values.localMode === true;
       await createDeck(uid, localMode ? { ...deck, localMode: true } : { ...deck, uid, localMode: false });
       // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.
       if (isMounted()) onCreated(deckId);
@@ -55,10 +60,14 @@ export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOp
         options: CATEGORY.map((category) => ({ label: category, value: category })),
       },
       // A retry must keep using react-hook-form's original persistence mode after a failed write.
-      localMode: { ...register("localMode"), disabled: formState.isSubmitting || saveError !== null },
+      localMode: {
+        ...register("localMode"),
+        disabled: !remoteStorageAvailable || formState.isSubmitting || saveError !== null,
+      },
     },
     errors: { name: formState.errors.name?.message },
     isSubmitting: formState.isSubmitting,
+    remoteStorageAvailable,
     onCancel,
     onSubmit: onFormSubmit,
   };

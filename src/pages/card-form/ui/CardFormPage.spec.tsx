@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ useGoogleAccountUid: () => "user-id" }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,

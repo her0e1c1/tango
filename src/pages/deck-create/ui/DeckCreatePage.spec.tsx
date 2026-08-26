@@ -15,9 +15,10 @@ const mocks = vi.hoisted(() => ({
   generateDeckId: vi.fn(),
   preferences: null as unknown as Preferences,
   setDarkMode: vi.fn(),
+  uid: "user-id",
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ useGoogleAccountUid: () => mocks.uid }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/deck")>();
   return { ...original, createDeck: mocks.createDeck, generateDeckId: mocks.generateDeckId };
@@ -56,6 +57,7 @@ describe("DeckCreatePage", () => {
   beforeEach(() => {
     mocks.createDeck.mockReset().mockResolvedValue(undefined);
     mocks.generateDeckId.mockReset().mockReturnValue("new-deck");
+    mocks.uid = "user-id";
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
   });
@@ -91,6 +93,37 @@ describe("DeckCreatePage", () => {
       category: "",
       convertToBr: false,
     });
+  });
+
+  it("forces anonymous creation into local storage", async () => {
+    mocks.uid = "";
+    renderPage();
+
+    const localMode = screen.getByRole("checkbox", { name: "Local only" });
+    expect(localMode).toBeChecked();
+    expect(localMode).toBeDisabled();
+    expect(screen.getByText(/Sign in with Google to sync decks/)).toBeVisible();
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Anonymous deck");
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("", {
+      id: "new-deck",
+      localMode: true,
+      name: "Anonymous deck",
+      category: "",
+      convertToBr: false,
+    });
+  });
+
+  it("forces an unsubmitted remote choice back to local when Google disconnects", () => {
+    const view = renderPage();
+    expect(screen.getByRole("checkbox", { name: "Local only" })).not.toBeChecked();
+
+    mocks.uid = "";
+    view.rerender(page());
+
+    expect(screen.getByRole("checkbox", { name: "Local only" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Local only" })).toBeDisabled();
   });
 
   it("keeps entered values, Deck ID, and persistence mode across retries", async () => {

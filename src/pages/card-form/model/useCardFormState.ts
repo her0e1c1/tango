@@ -4,7 +4,7 @@ import type * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { useAuthUid } from "@/entities/auth";
+import { useGoogleAccountUid } from "@/entities/auth";
 import { cardContentSchema, editCard, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 
@@ -18,7 +18,7 @@ interface UseCardFormStateOptions {
 }
 
 export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormStateOptions) => {
-  const uid = useAuthUid();
+  const uid = useGoogleAccountUid();
   const card = useCard(cardId);
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const { formState, handleSubmit, register } = useForm<CardFormValues>({

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useAuthUid } from "@/entities/auth";
+import { useGoogleAccountUid } from "@/entities/auth";
 import { clearRemoteCards, subscribeCards } from "@/entities/card";
 import { clearRemoteDecks, subscribeDecks } from "@/entities/deck";
 
@@ -10,10 +10,12 @@ const reportSubscriptionError = (error: Error): void => {
 };
 
 export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const uid = useAuthUid();
+  const uid = useGoogleAccountUid();
 
   React.useEffect(() => {
     if (uid === "") {
+      clearRemoteCards();
+      clearRemoteDecks();
       return;
     }
 

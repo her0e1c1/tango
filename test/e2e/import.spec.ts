@@ -5,6 +5,7 @@ import {
   failNextFirestoreWrite,
   listDocuments,
   readLocalData,
+  readLocalStudyProgresses,
   test,
 } from "./fixtures";
 
@@ -63,8 +64,8 @@ test("IMPORT-02 Invalid CSV rows block persistence", async ({ fixture, page, nam
 });
 
 test("IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, namespace }) => {
-  const { uid } = fixture.user();
-  await fixture.apply(page);
+  const { uid } = fixture.user("google-user");
+  await fixture.apply(page, { user: "google-user" });
   await page.goto("/import");
   const csvNamespace = namespace.id("remote");
   const file = validCsv(csvNamespace);
@@ -110,13 +111,36 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   expect(decks).toHaveLength(1);
   const localDeck = decks[0] as { id: string; localMode: boolean };
   expect(localDeck.localMode).toBe(true);
-  expect(stored.cards.filter(({ deckId }: { deckId?: string }) => deckId === localDeck.id)).toHaveLength(2);
+  const localCards = stored.cards.filter(({ deckId }: { deckId?: string }) => deckId === localDeck.id) as {
+    id: string;
+    frontText: string;
+  }[];
+  expect(localCards).toHaveLength(2);
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
 
   await page.getByRole("button", { name: `Study ${file.name}` }).click();
   await page.getByRole("button", { name: "Start 2 cards" }).click();
-  await expect(page.getByText(new RegExp(`^front ${csvNamespace} (one|two)$`))).toBeVisible();
+  const visibleFront = page.getByRole("button", { name: new RegExp(`^front ${csvNamespace} (one|two)$`) });
+  await expect(visibleFront).toBeVisible();
+  const frontText = await visibleFront.textContent();
+  const firstCard = localCards.find(({ frontText: candidate }) => candidate === frontText);
+  if (firstCard === undefined) throw new Error("The displayed imported local Card was not found");
+  await page.getByRole("button", { name: "Swipe up" }).click();
+  await expect
+    .poll(async () =>
+      (await readLocalStudyProgresses(page)).find(({ cardId }: { cardId?: string }) => cardId === firstCard.id)
+    )
+    .toMatchObject({ cardId: firstCard.id, score: 1, numberOfSeen: 1 });
+
+  await page.reload();
+  await expect
+    .poll(async () =>
+      (await readLocalStudyProgresses(page)).find(({ cardId }: { cardId?: string }) => cardId === firstCard.id)
+    )
+    .toMatchObject({ cardId: firstCard.id, score: 1, numberOfSeen: 1 });
+  expect(await documentsForUid("deck", uid)).toEqual([]);
+  expect(await documentsForUid("card", uid)).toEqual([]);
 });
 
 test("IMPORT-05 A partial remote import retries without duplicates", async ({
@@ -126,8 +150,8 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   page,
 }) => {
   browserErrors.allow(expectedFirestoreWriteBrowserError);
-  const { uid } = fixture.user();
-  await fixture.apply(page);
+  const { uid } = fixture.user("google-user");
+  await fixture.apply(page, { user: "google-user" });
   await page.goto("/import");
   const file = csvFile(`${namespace.id("retry")}.csv`, [
     `"retry front ${namespace.caseId}","retry back ${namespace.caseId}","","${namespace.id("retry-key")}"`,

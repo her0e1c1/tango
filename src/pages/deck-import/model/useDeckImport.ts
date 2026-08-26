@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useAuthUid } from "@/entities/auth";
+import { useGoogleAccountUid } from "@/entities/auth";
 import { usePreferences } from "@/entities/preference";
 import { addSampleDeck } from "@/features/sample-deck";
 import type { DeckImportResult, DeckImportStorageMode } from "./useDeckImportExecution";
@@ -10,7 +10,7 @@ import { useDeckImportPreview } from "./useDeckImportPreview";
 type DeckImportStatus = "idle" | "validating" | "importing";
 
 export const useDeckImport = () => {
-  const uid = useAuthUid();
+  const uid = useGoogleAccountUid();
   const preferences = usePreferences();
   const execution = useDeckImportExecution(uid);
   const preview = useDeckImportPreview(uid);
@@ -55,6 +55,7 @@ export const useDeckImport = () => {
     setStorageMode,
     importPreview,
     addSample,
+    remoteStorageAvailable: uid !== "",
     storageMode: preview.storageMode,
     preview: preview.preview,
     validating: status === "validating",

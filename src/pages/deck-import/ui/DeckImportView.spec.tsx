@@ -78,6 +78,14 @@ describe("DeckImportView", () => {
     expect(screen.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
   });
 
+  it("keeps the remote option visible but unavailable without Google", () => {
+    render(<DeckImportView sampleText="front,back,,key" storageMode="local" remoteStorageAvailable={false} />);
+
+    expect(screen.getByRole("radio", { name: /Local only/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
+    expect(screen.getByText("Sign in with Google to sync across devices.")).toBeVisible();
+  });
+
   it("documents uniqueKey and exposes sample add, download, and code controls", async () => {
     const onAddSample = vi.fn();
     const onDownloadSample = vi.fn();

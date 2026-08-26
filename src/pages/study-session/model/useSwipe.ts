@@ -1,4 +1,4 @@
-import { useAuthUid } from "@/entities/auth";
+import { useGoogleAccountUid } from "@/entities/auth";
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preference";
@@ -18,7 +18,7 @@ export interface SwipeState {
 }
 
 export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: () => void): SwipeState => {
-  const uid = useAuthUid();
+  const uid = useGoogleAccountUid();
   const preferences = usePreferences();
   const feedback = useSwipeFeedback(preferences.appearance.showSwipeFeedback);
   const swipeState = React.useRef<{ inProgress: boolean }>({ inProgress: false });

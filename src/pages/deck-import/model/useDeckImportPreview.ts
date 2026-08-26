@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { generateCardId } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
@@ -19,26 +19,41 @@ interface PreparedDeckImportState {
   preparedImport: PreparedDeckImport | undefined;
 }
 
-const initialState = (): DeckImportPreviewState => ({
-  storageMode: "remote",
+const initialState = (uid: string): DeckImportPreviewState => ({
+  storageMode: uid === "" ? "local" : "remote",
   error: null,
 });
 const createPreparedImportState = (): PreparedDeckImportState => ({ preparedImport: undefined });
 
 export const useDeckImportPreview = (uid: string) => {
   const preparedImportRef = useRef<PreparedDeckImportState>(createPreparedImportState());
-  const [state, setState] = useState<DeckImportPreviewState>(initialState);
+  const operationRevisionRef = useRef(0);
+  const previousUidRef = useRef(uid);
+  const [state, setState] = useState<DeckImportPreviewState>(() => initialState(uid));
   const updateState = (update: Partial<DeckImportPreviewState>) => {
     setState((current) => ({ ...current, ...update }));
   };
 
+  useLayoutEffect(() => {
+    if (previousUidRef.current === uid) return;
+
+    // A prepared remote import must never execute after account access changes.
+    previousUidRef.current = uid;
+    operationRevisionRef.current += 1;
+    preparedImportRef.current.preparedImport = undefined;
+    setState(initialState(uid));
+  }, [uid]);
+
   const selectFile = async (file: File) => {
+    operationRevisionRef.current += 1;
+    const operationRevision = operationRevisionRef.current;
     const { storageMode } = state;
     preparedImportRef.current.preparedImport = undefined;
     setState({ storageMode, error: null });
 
     try {
       const analysis = await parseCsv(await file.text());
+      if (operationRevisionRef.current !== operationRevision) return;
       const preparedImport = prepareDeckImport(
         { name: file.name, rows: analysis.rows, storageMode },
         { uid, generateDeckId, generateCardId }
@@ -47,13 +62,16 @@ export const useDeckImportPreview = (uid: string) => {
       preparedImportRef.current.preparedImport = preparedImport;
       updateState({ preview });
     } catch (caughtError) {
+      if (operationRevisionRef.current !== operationRevision) return;
       updateState({ error: caughtError });
     }
   };
 
   const setStorageMode = (storageMode: DeckImportStorageMode) => {
+    if (storageMode === "remote" && uid === "") return false;
     if (state.storageMode === storageMode) return false;
 
+    operationRevisionRef.current += 1;
     preparedImportRef.current.preparedImport = undefined;
     setState({ storageMode, error: null });
     return true;

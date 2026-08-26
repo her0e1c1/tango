@@ -2,6 +2,8 @@ auth:
   users:
     - uid: user-1
       provider: anonymous
+    - uid: google-user
+      provider: google
 browser:
   preferences:
     loadSample: false

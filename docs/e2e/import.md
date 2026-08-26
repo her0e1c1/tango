@@ -99,12 +99,14 @@ Given:
 When:
 
 - Import 画面で local-only の保存先を選択し、CSV の preview を確認して import した後、reload して import した Deck の学習を開始する。
+- 最初の Card に mastered action を実行し、画面を reload する。
 
 Then:
 
 - import した Deck とすべての Card が local storage に維持される。
 - 対応する Deck と Card は remote data に作成されない。
-- 学習画面に import した Card が表示される。
+- 学習画面に import した Card が表示され、mastered progress が専用の local storage に保存される。
+- reload 後も保存した score と学習回数が復元される。
 - 未処理の browser error が発生しない。
 
 <a id="import-05"></a>

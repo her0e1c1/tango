@@ -1,15 +1,19 @@
-import { onIdTokenChanged, signInAnonymously, type User } from "firebase/auth";
+import { GoogleAuthProvider, onIdTokenChanged, signInAnonymously, type User } from "firebase/auth";
 
 import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 import { clearStudySessions } from "@/entities/study-session";
 import { auth } from "@/shared/firebase";
 
-const authSessionFromUser = (user: User) => ({
-  status: "authenticated" as const,
-  uid: user.uid,
-  isAnonymous: user.isAnonymous,
-  displayName: user.providerData[0]?.displayName ?? null,
-});
+const authSessionFromUser = (user: User) => {
+  const googleProvider = user.providerData.find((provider) => provider.providerId === GoogleAuthProvider.PROVIDER_ID);
+
+  return {
+    status: "authenticated" as const,
+    uid: user.uid,
+    isAnonymous: user.isAnonymous,
+    googleAccount: googleProvider == null ? null : { displayName: googleProvider.displayName },
+  };
+};
 
 const startAnonymousBootstrap = () => {
   if (getAuthSession().status !== "unauthenticated") return;

@@ -1,20 +1,23 @@
 import { useStore } from "zustand";
 
 import { authSessionStore } from "./store";
-import type { AuthAccount, AuthSessionState } from "./types";
+import type { AuthSessionState, GoogleAccount } from "./types";
 
 // Reads the complete authentication lifecycle state.
 export const useAuthSession = (): AuthSessionState => useStore(authSessionStore);
 
-// Pre-authentication renders use a stable sentinel that remote command schemas reject as an unauthenticated uid.
-export const useAuthUid = (): string =>
+// This raw Firebase identity is for display and authentication diagnostics, never remote authorization.
+export const useFirebaseUid = (): string =>
   useStore(authSessionStore, (auth) => (auth.status === "authenticated" ? auth.uid : ""));
 
-// Reads the linked account identity while excluding anonymous sessions.
-export const useAuthAccount = (): AuthAccount | undefined => {
+// Reads the linked Google identity that grants remote persistence access.
+export const useGoogleAccount = (): GoogleAccount | undefined => {
   const auth = useAuthSession();
 
-  return auth.status === "authenticated" && !auth.isAnonymous
-    ? { uid: auth.uid, displayName: auth.displayName }
+  return auth.status === "authenticated" && auth.googleAccount != null
+    ? { uid: auth.uid, displayName: auth.googleAccount.displayName }
     : undefined;
 };
+
+// Pre-authentication and non-Google sessions use a sentinel that remote command schemas reject.
+export const useGoogleAccountUid = (): string => useGoogleAccount()?.uid ?? "";

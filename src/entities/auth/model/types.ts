@@ -1,12 +1,14 @@
-/** Linked Firebase account details exposed to authenticated consumers. */
-export interface AuthAccount {
+/** Linked Google account details exposed to remote-capable consumers. */
+export interface GoogleAccount {
   uid: string;
   displayName: string | null;
 }
 
 /** Authenticated Firebase session details shared by anonymous and linked users. */
-interface AuthenticatedSession extends AuthAccount {
+interface AuthenticatedSession {
+  uid: string;
   isAnonymous: boolean;
+  googleAccount: Omit<GoogleAccount, "uid"> | null;
 }
 
 /**
@@ -15,8 +17,8 @@ interface AuthenticatedSession extends AuthAccount {
  * A typical anonymous startup follows:
  * `initializing` -> `unauthenticated` -> `authenticating` -> `authenticated`.
  *
- * `authenticated` represents any Firebase user. Use `isAnonymous` to distinguish
- * an anonymous user from a linked account.
+ * `authenticated` represents any Firebase user. Remote access depends on
+ * `googleAccount`, not on the provider used for the latest sign-in.
  */
 export type AuthSessionState =
   /** Waiting for Firebase to publish the initial authentication snapshot. */
@@ -39,8 +41,8 @@ export type AuthSessionState =
   /**
    * Firebase has an active user.
    *
-   * Both anonymous and linked users use this state. `isAnonymous` indicates
-   * which kind of authenticated user is active.
+   * Both anonymous and linked users use this state. `googleAccount` is present
+   * only when Google is among the identities linked to the Firebase user.
    */
   | ({ status: "authenticated" } & AuthenticatedSession)
   /**

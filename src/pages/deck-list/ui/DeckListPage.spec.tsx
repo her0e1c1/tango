@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ useGoogleAccountUid: () => "user-id" }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/deck")>();
   mocks.deleteDeck.mockImplementation(original.deleteDeck);

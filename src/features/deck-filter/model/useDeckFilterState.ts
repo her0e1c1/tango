@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-import { useAuthUid } from "@/entities/auth";
+import { useGoogleAccountUid } from "@/entities/auth";
 import { type Deck, editDeck } from "@/entities/deck";
 
 export interface DeckFilterState {
@@ -84,7 +84,7 @@ const reconcileStoredFilter = (
 };
 
 export const useDeckFilterState = (deck: Deck): DeckFilterState => {
-  const uid = useAuthUid();
+  const uid = useGoogleAccountUid();
   const storedFilter = toFilterValues(deck);
   const [filterState, setFilterState] = useState<FilterModelState>(() => ({
     deckId: deck.id,
