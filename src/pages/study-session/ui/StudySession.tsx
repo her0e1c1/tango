@@ -1,8 +1,9 @@
 import cx from "classnames";
 import * as React from "react";
+import { AiOutlineLeft, AiOutlinePlayCircle } from "react-icons/ai";
+import { MdSwipe } from "react-icons/md";
 import { type SwipeEventData, useSwipeable } from "react-swipeable";
 import type { SwipeDirection } from "@/entities/preference";
-import { Button } from "@/shared/ui/button";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
@@ -15,11 +16,26 @@ const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
   cardSwipeRight: "Swiped right",
 };
 
+const PLAYBACK_UNAVAILABLE_DESCRIPTION = "Playback controls unavailable because the card interval is set to 0";
+
+type StudyLayoutStyles = React.CSSProperties & {
+  "--study-toolbar-top": string;
+  "--study-card-top": string;
+  "--study-feedback-top": string;
+};
+
+const studyLayoutStyles: StudyLayoutStyles = {
+  "--study-toolbar-top": "calc(0.75rem + env(safe-area-inset-top))",
+  "--study-card-top": "calc(var(--study-toolbar-top) + var(--spacing-touch) + 0.75rem)",
+  // Card metadata is fixed at h-10; feedback starts immediately after it so neither surface overlaps.
+  "--study-feedback-top": "calc(var(--study-card-top) + 2.5rem)",
+};
+
 export interface StudySessionProps {
-  showHeader?: boolean;
   showBackText?: boolean;
-  showSwipeButtonList?: boolean;
-  showController?: boolean;
+  showSwipeControls: boolean;
+  showPlaybackControls: boolean;
+  playbackControlsAvailable: boolean;
   swipeFeedback?: SwipeDirection;
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
@@ -32,39 +48,90 @@ export interface StudySessionProps {
   onSwipeUp?: () => void;
   onSwipeRight?: () => void;
   onSwipeDown?: () => void;
-  onExit: () => void;
+  onBack: () => void;
+  onToggleSwipeControls: () => void;
+  onTogglePlaybackControls: () => void;
 }
 
-const ExitAction: React.FC<{ showHeader: boolean | undefined; onExit: () => void }> = ({ showHeader, onExit }) => (
-  // The action stays in flow so card content starts below it; Header owns the top safe area when visible.
-  <div
-    role="toolbar"
-    aria-label="Study actions"
-    className={cx(
-      "relative z-40 flex shrink-0 border-b border-border bg-surface-elevated pb-2 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]",
-      showHeader ? "pt-2" : "pt-[calc(0.5rem+env(safe-area-inset-top))]"
-    )}
-  >
-    <Button size="sm" variant="quiet" onClick={onExit}>
-      Exit
-    </Button>
-  </div>
-);
+const toolbarButtonClass =
+  "pointer-events-auto inline-flex size-touch shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
-const SwipeFeedback: React.FC<{
-  showHeader: boolean | undefined;
-  swipeFeedback: SwipeDirection | undefined;
-}> = ({ showHeader, swipeFeedback }) => {
+const StudyToolbar: React.FC<{
+  showSwipeControls: boolean;
+  showPlaybackControls: boolean;
+  playbackControlsAvailable: boolean;
+  onBack: () => void;
+  onToggleSwipeControls: () => void;
+  onTogglePlaybackControls: () => void;
+}> = (props) => {
+  const playbackDescriptionId = React.useId();
+  const swipeTitle = props.showSwipeControls ? "Hide swipe controls" : "Show swipe controls";
+  const playbackTitle = props.playbackControlsAvailable
+    ? props.showPlaybackControls
+      ? "Hide playback controls"
+      : "Show playback controls"
+    : PLAYBACK_UNAVAILABLE_DESCRIPTION;
+
+  return (
+    <fieldset
+      aria-label="Study actions"
+      className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 m-0 flex min-w-0 items-center justify-between border-0 p-0 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+    >
+      <button
+        type="button"
+        aria-label="Back to cards"
+        className={cx(
+          toolbarButtonClass,
+          "border border-border bg-surface-elevated/90 shadow-elevated backdrop-blur-md"
+        )}
+        onClick={props.onBack}
+      >
+        <AiOutlineLeft aria-hidden="true" className="text-xl" />
+      </button>
+      <div className="pointer-events-auto flex items-center rounded-pill border border-border bg-surface-elevated/90 p-0.5 shadow-elevated backdrop-blur-md">
+        <button
+          type="button"
+          aria-label="Swipe controls"
+          aria-pressed={props.showSwipeControls}
+          title={swipeTitle}
+          className={cx(toolbarButtonClass, props.showSwipeControls && "bg-surface-muted text-accent-primary")}
+          onClick={props.onToggleSwipeControls}
+        >
+          <MdSwipe aria-hidden="true" className="text-xl" />
+        </button>
+        <span aria-hidden="true" className="h-6 w-px bg-border" />
+        <button
+          type="button"
+          aria-label="Playback controls"
+          aria-pressed={props.showPlaybackControls}
+          aria-disabled={!props.playbackControlsAvailable}
+          aria-describedby={!props.playbackControlsAvailable ? playbackDescriptionId : undefined}
+          title={playbackTitle}
+          className={cx(
+            toolbarButtonClass,
+            props.showPlaybackControls && "bg-surface-muted text-accent-primary",
+            !props.playbackControlsAvailable && "cursor-not-allowed opacity-50"
+          )}
+          onClick={props.playbackControlsAvailable ? props.onTogglePlaybackControls : undefined}
+        >
+          <AiOutlinePlayCircle aria-hidden="true" className="text-xl" />
+        </button>
+        {!props.playbackControlsAvailable ? (
+          <span id={playbackDescriptionId} className="sr-only">
+            {PLAYBACK_UNAVAILABLE_DESCRIPTION}
+          </span>
+        ) : null}
+      </div>
+    </fieldset>
+  );
+};
+
+const SwipeFeedback: React.FC<{ swipeFeedback: SwipeDirection | undefined }> = ({ swipeFeedback }) => {
   if (swipeFeedback === undefined) return null;
   return (
     <div
       role="status"
-      className={cx(
-        "pointer-events-none absolute left-1/2 z-50 -translate-x-1/2 rounded-control border border-border bg-surface-elevated px-4 py-2 text-body font-bold text-ink shadow-elevated",
-        showHeader
-          ? "top-[calc(var(--spacing-touch)+1rem)]"
-          : "top-[calc(var(--spacing-touch)+1rem+env(safe-area-inset-top))]"
-      )}
+      className="pointer-events-none absolute left-1/2 top-[var(--study-feedback-top)] z-50 -translate-x-1/2 rounded-pill border border-border bg-surface-elevated/90 px-4 py-2 text-body font-bold text-ink shadow-elevated backdrop-blur-md"
     >
       {SWIPE_FEEDBACK_LABEL[swipeFeedback]}
     </div>
@@ -119,16 +186,27 @@ const CardContent: React.FC<{
 
 const Controls: React.FC<{
   showBackText: boolean | undefined;
-  showSwipeButtonList: boolean | undefined;
-  showController: boolean | undefined;
+  showSwipeControls: boolean;
+  showPlaybackControls: boolean;
+  playbackControlsAvailable: boolean;
   swipeButtonList: SwipeButtonListProps | undefined;
   controller: ControllerProps | undefined;
-}> = ({ showBackText, showSwipeButtonList, showController, swipeButtonList, controller }) => {
-  if (showBackText || !(showSwipeButtonList || showController)) return null;
+}> = ({
+  showBackText,
+  showSwipeControls,
+  showPlaybackControls,
+  playbackControlsAvailable,
+  swipeButtonList,
+  controller,
+}) => {
+  const showController = showPlaybackControls && playbackControlsAvailable;
+  if (showBackText || !(showSwipeControls || showController)) return null;
   return (
-    <div className="relative z-40 shrink-0 space-y-2 border-t border-border bg-surface-elevated pb-[calc(0.5rem+env(safe-area-inset-bottom))] pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] pt-2">
-      {showSwipeButtonList ? <SwipeButtonList {...swipeButtonList} /> : null}
-      {showController ? <Controller {...controller} /> : null}
+    <div className="relative z-40 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] pt-2">
+      <div className="mx-auto w-full max-w-content space-y-2 rounded-surface border border-border bg-surface-elevated/90 p-2 shadow-elevated backdrop-blur-md">
+        {showSwipeControls ? <SwipeButtonList {...swipeButtonList} /> : null}
+        {showController ? <Controller {...controller} /> : null}
+      </div>
     </div>
   );
 };
@@ -195,12 +273,22 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
   };
 
   return (
-    <div className="relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink">
+    <div className="relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink" style={studyLayoutStyles}>
       {props.feedbackSlot}
-      <ExitAction showHeader={props.showHeader} onExit={props.onExit} />
-      <SwipeFeedback showHeader={props.showHeader} swipeFeedback={props.swipeFeedback} />
+      <StudyToolbar
+        showSwipeControls={props.showSwipeControls}
+        showPlaybackControls={props.showPlaybackControls}
+        playbackControlsAvailable={props.playbackControlsAvailable}
+        onBack={props.onBack}
+        onToggleSwipeControls={props.onToggleSwipeControls}
+        onTogglePlaybackControls={props.onTogglePlaybackControls}
+      />
+      <SwipeFeedback swipeFeedback={props.swipeFeedback} />
       <div
-        className={cx("relative min-h-0 flex-1", props.showBackText ? "overflow-y-auto" : "overflow-hidden")}
+        className={cx(
+          "relative min-h-0 flex-1 pt-[var(--study-card-top)]",
+          props.showBackText ? "overflow-y-auto" : "overflow-hidden"
+        )}
         {...cardGestureHandlers}
       >
         <CardContent
@@ -213,8 +301,9 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       </div>
       <Controls
         showBackText={props.showBackText}
-        showSwipeButtonList={props.showSwipeButtonList}
-        showController={props.showController}
+        showSwipeControls={props.showSwipeControls}
+        showPlaybackControls={props.showPlaybackControls}
+        playbackControlsAvailable={props.playbackControlsAvailable}
         swipeButtonList={props.swipeButtonList}
         controller={props.controller}
       />

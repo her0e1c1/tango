@@ -91,7 +91,6 @@ describe("useStudy", () => {
     mocks.preferences = createPreferences({
       cardInterval: 1,
       defaultAutoPlay: false,
-      showHeader: true,
       showSwipeFeedback: true,
       cardSwipeRight: "GoToNextCardMastered",
     });
@@ -110,6 +109,8 @@ describe("useStudy", () => {
       session: { currentIndex: 0, cardCount: 2 },
       card: { frontText: "card-1" },
       showBackText: false,
+      showPlaybackControls: true,
+      playbackControlsAvailable: true,
     });
     expect(result.current).not.toHaveProperty("index");
     expect(result.current).not.toHaveProperty("numberOfCards");
@@ -128,6 +129,21 @@ describe("useStudy", () => {
     mocks.cards = [];
     const { result } = renderHook(() => useStudy(deckId));
     expect(result.current.status).toBe("preparing");
+  });
+
+  it("reports persisted control visibility and playback availability", () => {
+    mocks.preferences = createPreferences({
+      cardInterval: 0,
+      controls: { showSwipeButtonList: false, showPlaybackControls: false },
+    });
+
+    const { result } = renderHook(() => useStudy(deckId));
+
+    expect(result.current).toMatchObject({
+      showSwipeButtonList: false,
+      showPlaybackControls: false,
+      playbackControlsAvailable: false,
+    });
   });
 
   it("reports invalid when the session has no current card", async () => {

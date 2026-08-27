@@ -129,7 +129,7 @@
 | SWIPE-05 | write | [previous-card action で前の Card へ戻れる](./study.md#swipe-05) |
 | SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](./study.md#swipe-06) |
 | SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](./study.md#swipe-07) |
-| SWIPE-08 | write | [Exit 後に同じ位置から Continue できる](./study.md#swipe-08) |
+| SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](./study.md#swipe-08) |
 | SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](./study.md#swipe-09) |
 | SWIPE-10 | write | [最後の Card を完了して session を終了できる](./study.md#swipe-10) |
 | SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](./study.md#swipe-11) |

@@ -17,11 +17,27 @@ type StudyShortcutAction =
   | "swipeLeft"
   | "swipeRight"
   | "toggleBackText"
-  | "toggleHeader"
   | "toggleSwipeButtonList"
   | "toggleAutoPlay";
 
-const renderStudyScreen = (state: StudyState | undefined, onExit: () => void) => {
+const studyShortcutTextEntryTarget =
+  "input:not([type]), input[type='text'], input[type='search'], input[type='email'], input[type='url'], input[type='tel'], input[type='password'], input[type='number'], input[type='date'], input[type='datetime-local'], input[type='month'], input[type='time'], input[type='week'], textarea, select";
+const studyShortcutButtonTarget =
+  "a[href], button, summary, input[type='button'], input[type='submit'], input[type='reset'], input[type='checkbox'], input[type='radio'], [role='button'], [role='link'], [role='switch'], [role='checkbox'], [role='radio'], [role='tab']";
+const studyShortcutSliderTarget = "input[type='range'], [role='slider']";
+
+const shouldIgnoreStudyShortcut = (event: KeyboardEvent): boolean => {
+  if (!(event.target instanceof Element)) return false;
+  if (event.target.closest(studyShortcutTextEntryTarget) !== null) return true;
+  const editableTarget = event.target.closest("[contenteditable]");
+  if (editableTarget !== null && editableTarget.getAttribute("contenteditable") !== "false") return true;
+  if ((event.key === "Enter" || event.key === " ") && event.target.closest(studyShortcutButtonTarget) !== null) {
+    return true;
+  }
+  return event.key.startsWith("Arrow") && event.target.closest(studyShortcutSliderTarget) !== null;
+};
+
+const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) => {
   if (state == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
 
   if (state.status !== "studying") {
@@ -41,13 +57,15 @@ const renderStudyScreen = (state: StudyState | undefined, onExit: () => void) =>
   };
 
   return (
-    <AppLayout fullscreen showHeader={state.showHeader}>
+    <AppLayout fullscreen showHeader={false}>
       <StudySession
-        onExit={onExit}
-        showHeader={state.showHeader}
-        showController={state.showController}
+        onBack={onBack}
+        onToggleSwipeControls={state.toggleSwipeButtonList}
+        onTogglePlaybackControls={state.toggleShowPlaybackControls}
         showBackText={state.showBackText}
-        showSwipeButtonList={state.showSwipeButtonList}
+        showSwipeControls={state.showSwipeButtonList}
+        showPlaybackControls={state.showPlaybackControls}
+        playbackControlsAvailable={state.playbackControlsAvailable}
         onSwipeUp={swipeActions.onClickUp}
         onSwipeDown={swipeActions.onClickDown}
         onSwipeLeft={swipeActions.onClickLeft}
@@ -82,8 +100,11 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
   const navigate = useNavigate();
   const study = useStudy(deckId);
   const latestStudy = useLatest(study);
-  const exit = () => void navigate(routes.cardList.to(deckId));
-  const runWhileStudying = (action: StudyShortcutAction) => () => {
+  const goBack = () => void navigate(routes.cardList.to(deckId));
+  const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
+    // Native editing and activation keys take precedence, while unrelated Study shortcuts remain
+    // available after a user moves focus into the card or floating controls.
+    if (shouldIgnoreStudyShortcut(event)) return;
     const currentStudy = latestStudy.current;
     if (currentStudy?.status === "studying") void currentStudy[action]();
   };
@@ -94,7 +115,6 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
   useKey("ArrowLeft", runWhileStudying("swipeLeft"));
   useKey("ArrowRight", runWhileStudying("swipeRight"));
   useKey("Enter", runWhileStudying("toggleBackText"));
-  useKey("h", runWhileStudying("toggleHeader"));
   useKey("b", runWhileStudying("toggleSwipeButtonList"));
   useKey(" ", runWhileStudying("toggleAutoPlay"));
 
@@ -103,7 +123,7 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
     void navigate(routes.deckList.to(), { replace: true });
   }, [navigate, study?.status]);
 
-  return renderStudyScreen(study, exit);
+  return renderStudyScreen(study, goBack);
 };
 
 export const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {

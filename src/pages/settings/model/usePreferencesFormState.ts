@@ -25,8 +25,8 @@ export const usePreferencesFormState = () => {
   }, [preferences.appearance.darkMode, setValue]);
 
   const fields = {
-    showHeader: register("appearance.showHeader"),
     showSwipeButtonList: register("controls.showSwipeButtonList"),
+    showPlaybackControls: register("controls.showPlaybackControls"),
     showSwipeFeedback: register("appearance.showSwipeFeedback"),
     darkMode: register("appearance.darkMode"),
     shuffled: register("study.shuffled"),

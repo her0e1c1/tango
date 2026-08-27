@@ -11,8 +11,8 @@ type SettingsFields = React.ComponentProps<typeof SettingsForm>["fields"];
 
 function createFields(): SettingsFields {
   return {
-    showHeader: { name: "showHeader", checked: true, onChange: vi.fn() },
     showSwipeButtonList: { name: "showSwipeButtonList", checked: false, onChange: vi.fn() },
+    showPlaybackControls: { name: "showPlaybackControls", checked: true, onChange: vi.fn() },
     showSwipeFeedback: { name: "showSwipeFeedback", checked: true, onChange: vi.fn() },
     darkMode: { name: "darkMode", checked: false, onChange: vi.fn() },
     shuffled: { name: "shuffled", checked: false, onChange: vi.fn() },
@@ -48,15 +48,16 @@ describe("SettingsForm", () => {
     expect(screen.queryByRole("heading", { level: 2, name: "Layout" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 2, name: "Autoplay" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 2, name: "Metadata" })).not.toBeInTheDocument();
-    expect(screen.getByText("Show header")).toBeInTheDocument();
-    expect(screen.queryByText("Show Heaer")).not.toBeInTheDocument();
+    expect(screen.getByText("Show swipe controls")).toBeInTheDocument();
+    expect(screen.getByText("Show playback controls")).toBeInTheDocument();
+    expect(screen.queryByText("Show header")).not.toBeInTheDocument();
   });
 
   it("preserves all switch, slider, and settings metadata values", () => {
     render(<SettingsForm {...createProps()} />);
 
     expect(screen.getAllByRole("checkbox")).toHaveLength(7);
-    expect(screen.getByRole("checkbox", { name: "Show header" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Show playback controls" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
     expect(screen.getByRole("slider", { name: "Maximum cards" })).toHaveValue("24");
     expect(screen.getByRole("slider", { name: "Autoplay interval" })).toHaveValue("7");
@@ -83,24 +84,24 @@ describe("SettingsForm", () => {
   it("forwards switch and slider changes to their field callbacks", async () => {
     let switchArguments: { name: string; checked: boolean } | undefined;
     let sliderArguments: { name: string; value: string } | undefined;
-    const showHeader = vi.fn((event: React.ChangeEvent<HTMLInputElement>) => {
+    const showPlaybackControls = vi.fn((event: React.ChangeEvent<HTMLInputElement>) => {
       switchArguments = { name: event.target.name, checked: event.target.checked };
     });
     const maxNumberOfCardsToLearn = vi.fn((event: React.ChangeEvent<HTMLInputElement>) => {
       sliderArguments = { name: event.target.name, value: event.target.value };
     });
     const fields = createFields();
-    fields.showHeader.onChange = showHeader;
+    fields.showPlaybackControls.onChange = showPlaybackControls;
     fields.maxNumberOfCardsToLearn.onChange = maxNumberOfCardsToLearn;
     render(<SettingsForm {...createProps({ fields })} />);
 
-    await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Show playback controls" }));
     fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
       target: { value: "31" },
     });
 
-    expect(showHeader).toHaveBeenCalledOnce();
-    expect(switchArguments).toEqual({ name: "showHeader", checked: false });
+    expect(showPlaybackControls).toHaveBeenCalledOnce();
+    expect(switchArguments).toEqual({ name: "showPlaybackControls", checked: false });
     expect(maxNumberOfCardsToLearn).toHaveBeenCalledOnce();
     expect(sliderArguments).toEqual({ name: "maxNumberOfCardsToLearn", value: "31" });
   });

@@ -2,10 +2,9 @@ import * as z from "zod";
 
 import { studyPreferencesLimits } from "./rules";
 
-// Preferences outlive releases in localStorage; field-level fallbacks preserve valid settings around obsolete values.
+// Current-version runtime input recovers malformed fields; breaking persisted shapes are rejected by store versioning.
 const DEFAULT_APPEARANCE = {
   darkMode: false,
-  showHeader: true,
   fullscreen: false,
   sizeBackText: 0,
   hideBodyWhenCardChanged: true,
@@ -24,6 +23,7 @@ const DEFAULT_STUDY = {
 
 const DEFAULT_CONTROLS = {
   showSwipeButtonList: true,
+  showPlaybackControls: true,
   showScoreSlider: false,
   cardSwipeUp: "GoToNextCardMastered" as const,
   cardSwipeDown: "GoToNextCardNotMastered" as const,
@@ -46,7 +46,6 @@ export const swipeActionSchema = z.enum([
 const appearancePreferencesSchema = z
   .object({
     darkMode: z.boolean().catch(DEFAULT_APPEARANCE.darkMode),
-    showHeader: z.boolean().catch(DEFAULT_APPEARANCE.showHeader),
     fullscreen: z.boolean().catch(DEFAULT_APPEARANCE.fullscreen),
     sizeBackText: z.number().min(0).catch(DEFAULT_APPEARANCE.sizeBackText),
     hideBodyWhenCardChanged: z.boolean().catch(DEFAULT_APPEARANCE.hideBodyWhenCardChanged),
@@ -78,6 +77,7 @@ const studyPreferencesSchema = z
 export const controlPreferencesSchema = z
   .object({
     showSwipeButtonList: z.boolean().catch(DEFAULT_CONTROLS.showSwipeButtonList),
+    showPlaybackControls: z.boolean().catch(DEFAULT_CONTROLS.showPlaybackControls),
     showScoreSlider: z.boolean().catch(DEFAULT_CONTROLS.showScoreSlider),
     cardSwipeUp: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeUp),
     cardSwipeDown: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeDown),

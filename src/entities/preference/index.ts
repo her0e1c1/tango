@@ -4,4 +4,4 @@ export type {
   Preferences,
   SwipeDirection,
 } from "./model/types";
-export { setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, updatePreferences } from "./model/store";
+export { setDarkMode, toggleShowPlaybackControls, toggleShowSwipeButtonList, updatePreferences } from "./model/store";

@@ -1,6 +1,7 @@
 import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useParams } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -16,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   removeStudySession: vi.fn(),
   setDarkMode: vi.fn(),
   touchStudySession: vi.fn(),
-  toggleShowHeader: vi.fn(),
+  toggleShowPlaybackControls: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
 }));
 
@@ -24,7 +25,7 @@ vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
-  toggleShowHeader: mocks.toggleShowHeader,
+  toggleShowPlaybackControls: mocks.toggleShowPlaybackControls,
   toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
 }));
 vi.mock("@/entities/study-session", async (importOriginal) => {
@@ -91,7 +92,7 @@ describe("StudySessionPage", () => {
     mocks.removeStudySession.mockReset();
     mocks.setDarkMode.mockReset();
     mocks.touchStudySession.mockReset();
-    mocks.toggleShowHeader.mockReset();
+    mocks.toggleShowPlaybackControls.mockReset();
     mocks.toggleShowSwipeButtonList.mockReset();
     await createDeck("", deck);
     await mutateCards("", [
@@ -104,8 +105,9 @@ describe("StudySessionPage", () => {
   it("renders the active session from stored Entity state", () => {
     renderPage();
 
-    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
-    expect(screen.getByRole("toolbar", { name: "Study actions" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Study actions" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Back to cards" })).toBeVisible();
     expect(screen.getByText("Front one")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
@@ -118,36 +120,129 @@ describe("StudySessionPage", () => {
     expect(screen.getByText("Back one")).toBeVisible();
   });
 
-  it("shows the next stored card after the ArrowRight shortcut", async () => {
+  it("keeps the ArrowRight shortcut active while the front card is focused", async () => {
+    const user = userEvent.setup();
     renderPage();
 
-    fireEvent.keyDown(window, { key: "ArrowRight" });
+    const front = screen.getByRole("button", { name: "Front one" });
+    front.focus();
+    await user.keyboard("{ArrowRight}");
 
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
+    expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
   });
 
-  it("exits a deep-linked Study to the same Deck without changing the resumable session", () => {
+  it("returns from a deep-linked Study to the same Deck without changing the resumable session", () => {
     renderPage();
     const sessionBeforeExit = getStudySession(deckId);
 
-    fireEvent.click(screen.getByRole("button", { name: "Exit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back to cards" }));
 
     expect(screen.getByRole("heading", { level: 1, name: `Cards for ${deckId}` })).toBeVisible();
     expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
     expect(mocks.removeStudySession).not.toHaveBeenCalled();
   });
 
-  it("keeps Exit available when the Header is hidden", () => {
-    mocks.preferences = createPreferences({ appearance: { darkMode: false, showHeader: false } });
+  it("keeps study actions available while the Header stays hidden", () => {
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
 
     renderPage();
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-    expect(screen.getByRole("toolbar", { name: "Study actions" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Exit" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Study actions" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Back to cards" })).toBeVisible();
     expect(screen.getByLabelText("Score 2, positive")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
+  });
+
+  it("delegates visibility toggles to persisted preference actions", () => {
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Swipe controls" }));
+    fireEvent.click(screen.getByRole("button", { name: "Playback controls" }));
+
+    expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
+    expect(mocks.toggleShowPlaybackControls).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["swipe", "Swipe controls", "{Enter}"],
+    ["swipe", "Swipe controls", " "],
+    ["playback", "Playback controls", "{Enter}"],
+    ["playback", "Playback controls", " "],
+  ] as const)("uses %s visibility with %s without running a Study shortcut", async (control, label, key) => {
+    const user = userEvent.setup();
+    renderPage();
+
+    screen.getByRole("button", { name: label }).focus();
+    await user.keyboard(key);
+
+    expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledTimes(control === "swipe" ? 1 : 0);
+    expect(mocks.toggleShowPlaybackControls).toHaveBeenCalledTimes(control === "playback" ? 1 : 0);
+    expect(screen.queryByText("Back one")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
+  });
+
+  it("keeps the swipe visibility shortcut active while a toolbar button is focused", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
+    swipeToggle.focus();
+    await user.keyboard("b");
+
+    expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
+    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+  });
+
+  it.each(["{ArrowUp}", "{ArrowDown}", "{ArrowLeft}", "{ArrowRight}"])(
+    "keeps %s native to the focused progress slider",
+    async (key) => {
+      mocks.preferences = createPreferences({
+        controls: {
+          cardSwipeUp: "GoToNextCard",
+          cardSwipeDown: "GoToNextCard",
+          cardSwipeLeft: "GoToNextCard",
+          cardSwipeRight: "GoToNextCard",
+        },
+      });
+      const user = userEvent.setup();
+      renderPage();
+
+      const progress = screen.getByRole("slider", { name: "Study progress" });
+      progress.focus();
+      await user.keyboard(key);
+
+      expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    }
+  );
+
+  it("renders the selected visibility combination", () => {
+    mocks.preferences = createPreferences({
+      controls: { showSwipeButtonList: false, showPlaybackControls: false },
+    });
+
+    renderPage();
+
+    expect(screen.getByRole("button", { name: "Swipe controls" })).not.toBePressed();
+    expect(screen.getByRole("button", { name: "Playback controls" })).not.toBePressed();
+    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+  });
+
+  it("disables playback visibility when the card interval is zero", () => {
+    mocks.preferences = createPreferences({ cardInterval: 0 });
+
+    renderPage();
+
+    const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
+    expect(playbackToggle).toHaveAttribute("aria-disabled", "true");
+    expect(playbackToggle).not.toBeDisabled();
+    expect(playbackToggle).toHaveAccessibleDescription(
+      "Playback controls unavailable because the card interval is set to 0"
+    );
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
 
   it("shows loading feedback while active session cards are unavailable", async () => {

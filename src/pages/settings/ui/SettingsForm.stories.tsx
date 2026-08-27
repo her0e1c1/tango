@@ -10,8 +10,8 @@ import { SettingsForm } from "./SettingsForm";
 type SettingsFields = React.ComponentProps<typeof SettingsForm>["fields"];
 
 const fields: SettingsFields = {
-  showHeader: { checked: fixture.preferences.default.appearance.showHeader, onChange: fn() },
   showSwipeButtonList: { checked: fixture.preferences.default.controls.showSwipeButtonList, onChange: fn() },
+  showPlaybackControls: { checked: fixture.preferences.default.controls.showPlaybackControls, onChange: fn() },
   showSwipeFeedback: { checked: fixture.preferences.default.appearance.showSwipeFeedback, onChange: fn() },
   darkMode: { checked: fixture.preferences.default.appearance.darkMode, onChange: fn() },
   shuffled: { checked: fixture.preferences.default.study.shuffled, onChange: fn() },
@@ -39,8 +39,8 @@ const settingsFormProps = {
 };
 
 type SwitchFieldName =
-  | "showHeader"
   | "showSwipeButtonList"
+  | "showPlaybackControls"
   | "showSwipeFeedback"
   | "darkMode"
   | "shuffled"
@@ -50,8 +50,8 @@ type SliderFieldName = "maxNumberOfCardsToLearn" | "cardInterval";
 
 const InteractiveSettingsForm: React.FC<React.ComponentProps<typeof SettingsForm>> = (props) => {
   const [values, setValues] = React.useState({
-    showHeader: Boolean(props.fields.showHeader.checked),
     showSwipeButtonList: Boolean(props.fields.showSwipeButtonList.checked),
+    showPlaybackControls: Boolean(props.fields.showPlaybackControls.checked),
     showSwipeFeedback: Boolean(props.fields.showSwipeFeedback.checked),
     darkMode: Boolean(props.fields.darkMode.checked),
     shuffled: Boolean(props.fields.shuffled.checked),
@@ -83,8 +83,8 @@ const InteractiveSettingsForm: React.FC<React.ComponentProps<typeof SettingsForm
       maxNumberOfCardsToLearn={values.maxNumberOfCardsToLearn}
       cardInterval={values.cardInterval}
       fields={{
-        showHeader: switchField("showHeader"),
         showSwipeButtonList: switchField("showSwipeButtonList"),
+        showPlaybackControls: switchField("showPlaybackControls"),
         showSwipeFeedback: switchField("showSwipeFeedback"),
         darkMode: switchField("darkMode"),
         shuffled: switchField("shuffled"),
@@ -114,13 +114,13 @@ export const Default: Story = {};
 
 export const Interaction: Story = {
   play: async ({ args, canvas, userEvent }) => {
-    const showHeader = canvas.getByRole<HTMLInputElement>("checkbox", { name: "Show header" });
-    const initialValue = Boolean(args.fields.showHeader.checked);
+    const showPlaybackControls = canvas.getByRole<HTMLInputElement>("checkbox", { name: "Show playback controls" });
+    const initialValue = Boolean(args.fields.showPlaybackControls.checked);
 
-    await userEvent.click(showHeader);
+    await userEvent.click(showPlaybackControls);
 
-    await expect(args.fields.showHeader.onChange).toHaveBeenCalledOnce();
-    await expect(showHeader.checked).toBe(!initialValue);
+    await expect(args.fields.showPlaybackControls.onChange).toHaveBeenCalledOnce();
+    await expect(showPlaybackControls.checked).toBe(!initialValue);
   },
 };
 export const LongContent: Story = {
