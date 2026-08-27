@@ -2,7 +2,7 @@ import * as z from "zod";
 
 import { studyPreferencesLimits } from "./rules";
 
-// Preferences outlive releases in localStorage; field-level fallbacks preserve valid settings around obsolete values.
+// Current-version runtime input recovers malformed fields; breaking persisted shapes are rejected by store versioning.
 const DEFAULT_APPEARANCE = {
   darkMode: false,
   fullscreen: false,

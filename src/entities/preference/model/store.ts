@@ -6,6 +6,10 @@ import { defaultPreferences } from "./defaults";
 import { preferencesSchema } from "./schema";
 import type { Preferences } from "./types";
 
+const PREFERENCES_STORAGE_KEY = "tango-config";
+// No migration is registered: changing this version deliberately invalidates older state shapes.
+const PREFERENCES_STORAGE_VERSION = 1;
+
 /** @internal Partial updates for each top-level preference field. */
 export type PartialPreferences = {
   loadSample?: Preferences["loadSample"];
@@ -46,9 +50,10 @@ const createPreferencesStore = () =>
           }),
       })),
       {
-        name: "tango-config",
+        name: PREFERENCES_STORAGE_KEY,
+        version: PREFERENCES_STORAGE_VERSION,
         merge: (persistedState, currentState) => {
-          // Revalidate untrusted storage; the schema recovers fields independently and current defaults remain the fallback.
+          // Version-mismatched state is rejected before merge; validate only current-version state before replacing defaults.
           const result = preferencesSchema.safeParse(
             (persistedState as Partial<PersistedPreferencesState> | undefined)?.preferences
           );

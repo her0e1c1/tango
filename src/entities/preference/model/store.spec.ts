@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { defaultPreferences } from "./defaults";
@@ -107,7 +107,7 @@ describe("preferences store", () => {
           appearance: { ...defaultPreferences.appearance, darkMode: true },
         },
       },
-      version: 0,
+      version: 1,
     });
   });
 
@@ -119,7 +119,7 @@ describe("preferences store", () => {
       study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
     };
     useMemoryStorage({
-      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 0 }),
+      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 1 }),
     });
 
     await preferencesStore.persist.rehydrate();
@@ -127,33 +127,38 @@ describe("preferences store", () => {
     expect(preferencesStore.getState().preferences).toEqual(persistedPreferences);
   });
 
-  it("ignores the retired header preference and defaults playback controls when hydrating older preferences", async () => {
+  it("discards version 0 preferences after the persisted shape changes", async () => {
     const { showPlaybackControls: _showPlaybackControls, ...legacyControls } = defaultPreferences.controls;
     useMemoryStorage({
       "tango-config": JSON.stringify({
         state: {
           preferences: {
             ...defaultPreferences,
-            appearance: { ...defaultPreferences.appearance, showHeader: false },
-            controls: legacyControls,
+            loadSample: false,
+            appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: false },
+            study: { ...defaultPreferences.study, cardInterval: 15, selectedTags: ["legacy"] },
+            controls: { ...legacyControls, showSwipeButtonList: false },
           },
         },
         version: 0,
       }),
     });
 
-    await preferencesStore.persist.rehydrate();
+    // A rejected version is expected to be reported by Zustand; keep intentional invalidation quiet in test output.
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      await preferencesStore.persist.rehydrate();
+    } finally {
+      consoleError.mockRestore();
+    }
 
-    const hydratedPreferences = preferencesStore.getState().preferences;
-    expect(hydratedPreferences).toEqual(defaultPreferences);
-    expect(hydratedPreferences.appearance).not.toHaveProperty("showHeader");
-    expect(hydratedPreferences.controls.showPlaybackControls).toBe(true);
+    expect(preferencesStore.getState().preferences).toEqual(defaultPreferences);
   });
 
   it.each([
     ["malformed JSON", "not-json"],
-    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 0 })],
-    ["legacy envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 0 })],
+    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 1 })],
+    ["incompatible envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 1 })],
   ])("uses current defaults for %s", async (_case, persistedValue) => {
     useMemoryStorage({ "tango-config": persistedValue });
 
