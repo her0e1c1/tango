@@ -118,25 +118,27 @@
 | CARD-11 | read | [Card view を直接開ける](./card.md#card-11) |
 | CARD-12 | read | [存在しない Card から復帰できる](./card.md#card-12) |
 
-### Swipe
+### Study
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](./swipe.md#swipe-01) |
-| SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](./swipe.md#swipe-02) |
-| SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](./swipe.md#swipe-03) |
-| SWIPE-04 | write | [next-card action で次の Card へ進める](./swipe.md#swipe-04) |
-| SWIPE-05 | write | [previous-card action で前の Card へ戻れる](./swipe.md#swipe-05) |
-| SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](./swipe.md#swipe-06) |
-| SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](./swipe.md#swipe-07) |
-| SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](./swipe.md#swipe-08) |
-| SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](./swipe.md#swipe-09) |
-| SWIPE-10 | write | [最後の Card を完了して session を終了できる](./swipe.md#swipe-10) |
-| SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](./swipe.md#swipe-11) |
-| SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](./swipe.md#swipe-12) |
-| SWIPE-13 | write | [primary mouse の上方向 drag で次の Card へ進める](./swipe.md#swipe-13) |
-| SWIPE-14 | read | [non-primary mouse の drag を無視できる](./swipe.md#swipe-14) |
-| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](./swipe.md#swipe-15) |
+| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](./study.md#swipe-01) |
+| SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](./study.md#swipe-02) |
+| SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](./study.md#swipe-03) |
+| SWIPE-04 | write | [next-card action で次の Card へ進める](./study.md#swipe-04) |
+| SWIPE-05 | write | [previous-card action で前の Card へ戻れる](./study.md#swipe-05) |
+| SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](./study.md#swipe-06) |
+| SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](./study.md#swipe-07) |
+| SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](./study.md#swipe-08) |
+| SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](./study.md#swipe-09) |
+| SWIPE-10 | write | [最後の Card を完了して session を終了できる](./study.md#swipe-10) |
+| SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](./study.md#swipe-11) |
+| SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](./study.md#swipe-12) |
+| SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-13) |
+| SWIPE-14 | read | [non-primary mouse の drag を無視できる](./study.md#swipe-14) |
+| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](./study.md#swipe-15) |
+| SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-16) |
+| SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](./study.md#swipe-17) |
 
 ### Persistence
 

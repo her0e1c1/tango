@@ -29,6 +29,16 @@ const readProgress = async (cardId: string) => {
   };
 };
 
+const readLocalProgress = async (page: Page, cardId: string) => {
+  const { cards } = await readLocalData(page);
+  const card = cards.find((candidate: Record<string, unknown>) => candidate.id === cardId);
+  if (card === undefined) throw new Error(`Missing local Card ${cardId}`);
+  return {
+    score: Number(card.score),
+    numberOfSeen: Number(card.numberOfSeen),
+  };
+};
+
 const readSession = async (page: Page, deckId: string) => {
   const { sessionsByDeckId } = await readLocalData(page);
   return sessionsByDeckId[deckId] as StudySessionFixture | undefined;
@@ -297,7 +307,10 @@ test("SWIPE-12 retries a failed progress write from the same Card once", async (
   await fault.dispose();
 });
 
-test("SWIPE-13 advances on a primary upward mouse drag without flipping", async ({ fixture, page }) => {
+test("SWIPE-13 advances a remote session on a primary upward mouse drag without flipping", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
@@ -347,4 +360,49 @@ test("SWIPE-15 selects answer text without changing the Card state", async ({ fi
     .toContain(currentCard.backText);
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+});
+
+test("SWIPE-16 saves local-only progress and advances on a primary upward mouse drag", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const currentCard = fixture.card("card-1");
+  const nextCard = fixture.card("card-2");
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  await swipeFrontUp(page, currentCard.frontText);
+
+  await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
+  await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
+  await expect
+    .poll(() => readLocalProgress(page, currentCard.id))
+    .toEqual({
+      score: currentCard.score + 1,
+      numberOfSeen: currentCard.numberOfSeen + 1,
+    });
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+});
+
+test("SWIPE-17 preserves local-only progress and session position across reload", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const currentCard = fixture.card("card-1");
+  const nextCard = fixture.card("card-2");
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  await swipeFrontUp(page, currentCard.frontText);
+  await page.getByText(nextCard.frontText, { exact: true }).waitFor();
+
+  await page.reload();
+
+  await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
+  await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
+  await expect
+    .poll(() => readLocalProgress(page, currentCard.id))
+    .toEqual({
+      score: currentCard.score + 1,
+      numberOfSeen: currentCard.numberOfSeen + 1,
+    });
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });

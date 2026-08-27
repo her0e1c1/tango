@@ -1,4 +1,4 @@
-# Swipe E2E テスト仕様書
+# Study E2E テスト仕様書
 
 ## 目的
 
@@ -20,9 +20,11 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 | SWIPE-10 | write | [最後の Card を完了して session を終了できる](#swipe-10) |
 | SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](#swipe-11) |
 | SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](#swipe-12) |
-| SWIPE-13 | write | [primary mouse の上方向 drag で次の Card へ進める](#swipe-13) |
+| SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-13) |
 | SWIPE-14 | read | [non-primary mouse の drag を無視できる](#swipe-14) |
 | SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](#swipe-15) |
+| SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-16) |
+| SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#swipe-17) |
 
 <a id="swipe-01"></a>
 
@@ -298,14 +300,14 @@ Then:
 
 <a id="swipe-13"></a>
 
-### SWIPE-13 primary mouse の上方向 drag で次の Card へ進める
+### SWIPE-13 remote Deck で primary mouse の上方向 drag により次の Card へ進める
 
 カテゴリ: `write`
 
 Given:
 
 - Fixture: [`study-session-start-drag`](./fixture/write/study-session-start-drag.yaml)
-- 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- 認証済みユーザーが所有する remote Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
 - 上方向の drag は mastered action に設定されている。
 
@@ -363,4 +365,52 @@ Then:
 - 選択範囲に対象 Card の back text が含まれる。
 - 対象 Card の back text が引き続き表示される。
 - Card の学習結果と session の位置が変更されない。
+- browser error が発生しない。
+
+<a id="swipe-16"></a>
+
+### SWIPE-16 local-only Deck で primary mouse の上方向 drag により次の Card へ進める
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`study-session-start-local`](./fixture/write/study-session-start-local.yaml)
+- browser storage に、複数の Card を含む local-only Deck と進行中の学習 session が存在する。
+- 現在の Card の表面が表示されている。
+- 上方向の drag は mastered action に設定されている。
+
+When:
+
+- primary mouse button で現在の Card を上方向へ drag する。
+
+Then:
+
+- 現在だった Card の mastered 学習結果が browser storage に保存される。
+- session の位置が次の Card へ進む。
+- 次の Card の front text が表示され、back text は表示されない。
+- browser error が発生しない。
+
+<a id="swipe-17"></a>
+
+### SWIPE-17 local-only Deck の学習結果と session を reload 後も維持できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`study-session-start-local`](./fixture/write/study-session-start-local.yaml)
+- browser storage に、複数の Card を含む local-only Deck と進行中の学習 session が存在する。
+- 現在の Card の表面が表示されている。
+- 上方向の drag は mastered action に設定されている。
+
+When:
+
+- primary mouse button で現在の Card を上方向へ drag し、次の Card への遷移完了後にページを reload する。
+
+Then:
+
+- 現在だった Card の mastered 学習結果が browser storage に維持されている。
+- session の位置が次の Card に維持されている。
+- 次の Card の front text が表示され、back text は表示されない。
 - browser error が発生しない。
