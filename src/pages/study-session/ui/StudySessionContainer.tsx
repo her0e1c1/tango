@@ -90,7 +90,6 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
           onToggleAutoPlay: state.toggleAutoPlay,
         }}
         swipeButtonList={swipeActions}
-        swipeOverlay={swipeActions}
       />
     </AppLayout>
   );

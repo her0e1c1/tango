@@ -21,7 +21,8 @@ export const useStudy = (deckId: string) => {
     cardInterval: preferences.study.cardInterval,
     onAdvance: hideBackText,
   });
-  const swipe = useSwipe(deckId, cards, hideBackText);
+  // The answer is a reading surface; directional study actions resume after returning to the front.
+  const swipe = useSwipe(deckId, cards, hideBackText, !showBackText);
 
   const updateIndex = (currentIndex: number): void => {
     if (!setStudySessionIndex(deckId, currentIndex)) return;

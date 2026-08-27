@@ -119,6 +119,15 @@ describe("useStudy", () => {
     act(() => result.current.toggleBackText());
     expect(result.current).toMatchObject({ status: "studying", showBackText: true });
     await actAsync(() => result.current.swipeRight());
+    expect(result.current).toMatchObject({
+      status: "studying",
+      card: { frontText: "card-1" },
+      showBackText: true,
+    });
+    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+
+    act(() => result.current.toggleBackText());
+    await actAsync(() => result.current.swipeRight());
 
     await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { frontText: "card-2" } }));
     expect(result.current).toMatchObject({ showBackText: false, swipeFeedback: "cardSwipeRight" });
