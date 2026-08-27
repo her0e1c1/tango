@@ -1,0 +1,33 @@
+auth:
+  users:
+    - uid: user-1
+      provider: anonymous
+browser:
+  preferences:
+    loadSample: false
+  localDecks:
+    - id: deck-1
+      localMode: true
+      name: Local Study Deck
+      category: English
+  localCards:
+    - id: card-1
+      deckId: deck-1
+      frontText: local first
+      backText: local first answer
+      uniqueKey: local-first
+    - id: card-2
+      deckId: deck-1
+      frontText: local second
+      backText: local second answer
+      uniqueKey: local-second
+      score: 1
+      numberOfSeen: 1
+  studySessions:
+    deck-1:
+      sessionId: session-1
+      deckId: deck-1
+      cardOrderIds:
+        - card-1
+        - card-2
+      currentIndex: 0

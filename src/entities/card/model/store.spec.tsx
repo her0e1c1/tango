@@ -11,6 +11,7 @@ import {
   deleteLocalCard,
   deleteLocalCardsByDeckId,
   editLocalCard,
+  editLocalCardStudyProgress,
   replaceRemoteCards,
 } from "./store";
 
@@ -132,7 +133,7 @@ describe("Card store", () => {
   });
 
   it("creates, edits, and deletes a local Card synchronously", () => {
-    vi.spyOn(Date, "now").mockReturnValueOnce(10).mockReturnValueOnce(20);
+    vi.spyOn(Date, "now").mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValueOnce(30);
     const createdCard = createLocalCard(cardInput("local"));
 
     expect(createdCard).toEqual(expect.objectContaining({ id: "local", createdAt: 10, updatedAt: 10 }));
@@ -142,8 +143,50 @@ describe("Card store", () => {
     const updatedCard = editLocalCard({ id: "local", frontText: "updated" });
     expect(updatedCard).toEqual(expect.objectContaining({ frontText: "updated", createdAt: 10, updatedAt: 20 }));
 
+    const updatedProgress = editLocalCardStudyProgress({ id: "local", score: 2, numberOfSeen: 3 });
+    expect(updatedProgress).toEqual(
+      expect.objectContaining({ frontText: "updated", score: 2, numberOfSeen: 3, createdAt: 10, updatedAt: 30 })
+    );
+
     deleteLocalCard("local");
     expect(cardStore.getState().localCards).toEqual([]);
+  });
+
+  it("restores local progress after a failed storage write before retrying", async () => {
+    const storage = useMemoryStorage();
+    createLocalCard(cardInput("local"));
+    const failingStorage: StateStorage = {
+      ...storage,
+      setItem: vi
+        .fn()
+        .mockImplementationOnce(() => {
+          throw new Error("storage write failed");
+        })
+        .mockImplementation((name, value) => storage.setItem(name, value)),
+    };
+    cardStore.persist.setOptions({ storage: createJSONStorage(() => failingStorage) });
+
+    const recordInteraction = () => {
+      const card = cardStore.getState().localCards.find(({ id }) => id === "local");
+      if (card === undefined) throw new Error("Missing local Card");
+      return editLocalCardStudyProgress({
+        id: card.id,
+        score: card.score + 1,
+        numberOfSeen: card.numberOfSeen + 1,
+      });
+    };
+    const readPersistedCard = async () => {
+      const value = (await storage.getItem("tango-local-cards")) ?? "{}";
+      return JSON.parse(value).state.localCards[0];
+    };
+
+    expect(recordInteraction).toThrow("storage write failed");
+    expect(cardStore.getState().localCards[0]).toEqual(expect.objectContaining({ score: 0, numberOfSeen: 0 }));
+    await expect(readPersistedCard()).resolves.toEqual(expect.objectContaining({ score: 0, numberOfSeen: 0 }));
+
+    expect(recordInteraction()).toEqual(expect.objectContaining({ score: 1, numberOfSeen: 1 }));
+    expect(cardStore.getState().localCards[0]).toEqual(expect.objectContaining({ score: 1, numberOfSeen: 1 }));
+    await expect(readPersistedCard()).resolves.toEqual(expect.objectContaining({ score: 1, numberOfSeen: 1 }));
   });
 
   it("deletes local Cards by Deck", () => {
