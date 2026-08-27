@@ -22,9 +22,12 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
-    onExit: fn(),
-    showSwipeButtonList: true,
-    showController: true,
+    onBack: fn(),
+    onToggleSwipeControls: fn(),
+    onTogglePlaybackControls: fn(),
+    showSwipeControls: true,
+    showPlaybackControls: true,
+    playbackControlsAvailable: true,
     frontTextSlot: <FrontText text={fixture.card.default.frontText} />,
     cardOverlaySlot: (
       <CardOverlay
@@ -53,11 +56,23 @@ export const SwipeFeedback: Story = {
   args: { swipeFeedback: "cardSwipeRight" },
 };
 
+export const SwipeControlsHidden: Story = {
+  args: { showSwipeControls: false },
+};
+
+export const PlaybackControlsHidden: Story = {
+  args: { showPlaybackControls: false },
+};
+
 export const ControlsHidden: Story = {
   args: {
-    showSwipeButtonList: false,
-    showController: false,
+    showSwipeControls: false,
+    showPlaybackControls: false,
   },
+};
+
+export const PlaybackUnavailable: Story = {
+  args: { playbackControlsAvailable: false },
 };
 
 export const LongAnswer: Story = {
@@ -67,7 +82,9 @@ export const LongAnswer: Story = {
   },
   play: async ({ canvasElement }) => {
     const answer = canvasElement.querySelector<HTMLElement>("pre");
-    const swipeOverlays = canvasElement.querySelectorAll<HTMLElement>("[aria-label^='Swipe ']");
+    const swipeOverlays = canvasElement.querySelectorAll<HTMLElement>(
+      "[aria-label='Swipe left'], [aria-label='Swipe right'], [aria-label='Swipe up'], [aria-label='Swipe down']"
+    );
     const swipeOverlayStyles = Array.from(swipeOverlays, (overlay) => {
       const style = getComputedStyle(overlay);
       return { backgroundColor: style.backgroundColor, boxShadow: style.boxShadow };
@@ -126,6 +143,10 @@ export const UnavailableSwipeActions: Story = {
 };
 
 export const Dark: Story = {
+  globals: { theme: "dark" },
+};
+
+export const DarkCodeAnswer: Story = {
   ...CodeAnswer,
   args: {
     ...CodeAnswer.args,

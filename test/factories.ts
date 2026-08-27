@@ -95,7 +95,6 @@ export type PreferencesOverrides = {
   study?: Partial<StudyPreferences>;
   controls?: Partial<ControlPreferences>;
   darkMode?: boolean;
-  showHeader?: boolean;
   fullscreen?: boolean;
   sizeBackText?: number;
   hideBodyWhenCardChanged?: boolean;
@@ -108,6 +107,7 @@ export type PreferencesOverrides = {
   defaultAutoPlay?: boolean;
   selectedTags?: string[];
   showSwipeButtonList?: boolean;
+  showPlaybackControls?: boolean;
   showScoreSlider?: boolean;
   cardSwipeUp?: SwipeAction;
   cardSwipeDown?: SwipeAction;
@@ -120,7 +120,6 @@ const createAppearance = (
   flat?: Partial<PreferencesOverrides>
 ): AppearancePreferences => ({
   darkMode: appearance?.darkMode ?? flat?.darkMode ?? false,
-  showHeader: appearance?.showHeader ?? flat?.showHeader ?? true,
   fullscreen: appearance?.fullscreen ?? flat?.fullscreen ?? false,
   sizeBackText: appearance?.sizeBackText ?? flat?.sizeBackText ?? 0,
   hideBodyWhenCardChanged: appearance?.hideBodyWhenCardChanged ?? flat?.hideBodyWhenCardChanged ?? true,
@@ -142,6 +141,7 @@ const createControls = (
   flat?: Partial<PreferencesOverrides>
 ): ControlPreferences => ({
   showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,
+  showPlaybackControls: controls?.showPlaybackControls ?? flat?.showPlaybackControls ?? true,
   showScoreSlider: controls?.showScoreSlider ?? flat?.showScoreSlider ?? false,
   cardSwipeUp: controls?.cardSwipeUp ?? flat?.cardSwipeUp ?? "GoToNextCardMastered",
   cardSwipeDown: controls?.cardSwipeDown ?? flat?.cardSwipeDown ?? "GoToNextCardNotMastered",

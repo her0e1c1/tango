@@ -1,8 +1,14 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { defaultPreferences } from "./defaults";
-import { preferencesStore, setDarkMode, toggleShowHeader, toggleShowSwipeButtonList, updatePreferences } from "./store";
+import {
+  preferencesStore,
+  setDarkMode,
+  toggleShowPlaybackControls,
+  toggleShowSwipeButtonList,
+  updatePreferences,
+} from "./store";
 
 /** Synchronous storage contract used by preferences persistence scenarios. */
 type MemoryStorage = Omit<StateStorage, "getItem"> & {
@@ -41,16 +47,20 @@ describe("preferences store", () => {
       study: { cardInterval: 15 },
       controls: { showScoreSlider: true },
     });
-    store.getState().updatePreferences({ appearance: { showHeader: false } });
-    store.getState().updatePreferences({ appearance: { showHeader: true } });
     store.getState().updatePreferences({ controls: { showSwipeButtonList: false } });
+    store.getState().updatePreferences({ controls: { showPlaybackControls: false } });
 
     expect(store.getState().preferences).toEqual({
       ...defaultPreferences,
       loadSample: false,
       study: { ...defaultPreferences.study, cardInterval: 15 },
-      appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: true },
-      controls: { ...defaultPreferences.controls, showScoreSlider: true, showSwipeButtonList: false },
+      appearance: { ...defaultPreferences.appearance, darkMode: true },
+      controls: {
+        ...defaultPreferences.controls,
+        showScoreSlider: true,
+        showSwipeButtonList: false,
+        showPlaybackControls: false,
+      },
     });
   });
 
@@ -72,15 +82,15 @@ describe("preferences store", () => {
   it("updates preferences through the public helpers", () => {
     setDarkMode(true);
     updatePreferences({ loadSample: false, study: { cardInterval: 15 } });
-    toggleShowHeader();
     toggleShowSwipeButtonList();
+    toggleShowPlaybackControls();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
       loadSample: false,
-      appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: false },
+      appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, cardInterval: 15 },
-      controls: { ...defaultPreferences.controls, showSwipeButtonList: false },
+      controls: { ...defaultPreferences.controls, showSwipeButtonList: false, showPlaybackControls: false },
     });
   });
 
@@ -97,7 +107,7 @@ describe("preferences store", () => {
           appearance: { ...defaultPreferences.appearance, darkMode: true },
         },
       },
-      version: 0,
+      version: 1,
     });
   });
 
@@ -109,7 +119,7 @@ describe("preferences store", () => {
       study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
     };
     useMemoryStorage({
-      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 0 }),
+      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 1 }),
     });
 
     await preferencesStore.persist.rehydrate();
@@ -117,10 +127,38 @@ describe("preferences store", () => {
     expect(preferencesStore.getState().preferences).toEqual(persistedPreferences);
   });
 
+  it("discards version 0 preferences after the persisted shape changes", async () => {
+    const { showPlaybackControls: _showPlaybackControls, ...legacyControls } = defaultPreferences.controls;
+    useMemoryStorage({
+      "tango-config": JSON.stringify({
+        state: {
+          preferences: {
+            ...defaultPreferences,
+            loadSample: false,
+            appearance: { ...defaultPreferences.appearance, darkMode: true, showHeader: false },
+            study: { ...defaultPreferences.study, cardInterval: 15, selectedTags: ["legacy"] },
+            controls: { ...legacyControls, showSwipeButtonList: false },
+          },
+        },
+        version: 0,
+      }),
+    });
+
+    // A rejected version is expected to be reported by Zustand; keep intentional invalidation quiet in test output.
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      await preferencesStore.persist.rehydrate();
+    } finally {
+      consoleError.mockRestore();
+    }
+
+    expect(preferencesStore.getState().preferences).toEqual(defaultPreferences);
+  });
+
   it.each([
     ["malformed JSON", "not-json"],
-    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 0 })],
-    ["legacy envelope", JSON.stringify({ state: { config: { darkMode: true, showHeader: false } }, version: 0 })],
+    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 1 })],
+    ["incompatible envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 1 })],
   ])("uses current defaults for %s", async (_case, persistedValue) => {
     useMemoryStorage({ "tango-config": persistedValue });
 

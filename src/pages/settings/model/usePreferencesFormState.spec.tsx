@@ -11,8 +11,8 @@ import { createPreferences } from "@/test/factories";
 import { usePreferencesFormState } from "./usePreferencesFormState";
 
 const preferences = createPreferences({
-  showHeader: false,
   showSwipeButtonList: false,
+  showPlaybackControls: false,
   showSwipeFeedback: false,
   fullscreen: false,
   darkMode: false,
@@ -29,11 +29,13 @@ const PreferencesFormHarness: React.FC = () => {
 
   return (
     <>
-      <input aria-label="Show header" type="checkbox" {...formState.fields.showHeader} />
+      <input aria-label="Show playback controls" type="checkbox" {...formState.fields.showPlaybackControls} />
       <input aria-label="Dark mode" type="checkbox" {...formState.fields.darkMode} />
       <input aria-label="Maximum cards" type="range" {...formState.fields.maxNumberOfCardsToLearn} />
       <input aria-label="Autoplay interval" type="range" {...formState.fields.cardInterval} />
-      <output aria-label="Saved header preference">{String(savedPreferences.appearance.showHeader)}</output>
+      <output aria-label="Saved playback controls preference">
+        {String(savedPreferences.controls.showPlaybackControls)}
+      </output>
       <output aria-label="Saved maximum cards">{savedPreferences.study.maxNumberOfCardsToLearn}</output>
       <output aria-label="Saved autoplay interval">{savedPreferences.study.cardInterval}</output>
     </>
@@ -48,7 +50,7 @@ describe("usePreferencesFormState", () => {
   it("saves boolean and numeric changes as the user edits them", async () => {
     render(<PreferencesFormHarness />);
 
-    await userEvent.click(screen.getByRole("checkbox", { name: "Show header" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Show playback controls" }));
     fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
       target: { value: 10 },
     });
@@ -57,7 +59,7 @@ describe("usePreferencesFormState", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByLabelText("Saved header preference")).toHaveTextContent("true");
+      expect(screen.getByLabelText("Saved playback controls preference")).toHaveTextContent("true");
       expect(screen.getByLabelText("Saved maximum cards")).toHaveTextContent("10");
       expect(screen.getByLabelText("Saved autoplay interval")).toHaveTextContent("10");
     });

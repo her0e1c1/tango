@@ -236,7 +236,6 @@ export const e2eConfig = {
   loadSample: false,
   appearance: {
     darkMode: false,
-    showHeader: true,
     fullscreen: false,
     sizeBackText: 0,
     hideBodyWhenCardChanged: true,
@@ -253,6 +252,7 @@ export const e2eConfig = {
   },
   controls: {
     showSwipeButtonList: true,
+    showPlaybackControls: true,
     showScoreSlider: false,
     cardSwipeUp: "GoToNextCardMastered",
     cardSwipeDown: "GoToNextCardNotMastered",
@@ -282,7 +282,7 @@ export const seedConfig = async (page: Page, overrides: E2EConfigOverrides = {})
     // Seed only the first app document so reload assertions observe mutations made by the application.
     if (!window.location.origin.startsWith("http")) return;
     if (window.sessionStorage.getItem("tango-e2e-config-seeded") !== null) return;
-    window.localStorage.setItem("tango-config", JSON.stringify({ state: { preferences: value }, version: 0 }));
+    window.localStorage.setItem("tango-config", JSON.stringify({ state: { preferences: value }, version: 1 }));
     window.sessionStorage.setItem("tango-e2e-config-seeded", "true");
   }, config);
 };

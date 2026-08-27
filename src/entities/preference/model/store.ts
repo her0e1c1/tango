@@ -6,6 +6,10 @@ import { defaultPreferences } from "./defaults";
 import { preferencesSchema } from "./schema";
 import type { Preferences } from "./types";
 
+const PREFERENCES_STORAGE_KEY = "tango-config";
+// No migration is registered: changing this version deliberately invalidates older state shapes.
+const PREFERENCES_STORAGE_VERSION = 1;
+
 /** @internal Partial updates for each top-level preference field. */
 export type PartialPreferences = {
   loadSample?: Preferences["loadSample"];
@@ -46,9 +50,10 @@ const createPreferencesStore = () =>
           }),
       })),
       {
-        name: "tango-config",
+        name: PREFERENCES_STORAGE_KEY,
+        version: PREFERENCES_STORAGE_VERSION,
         merge: (persistedState, currentState) => {
-          // Revalidate untrusted storage; the schema recovers fields independently and current defaults remain the fallback.
+          // Version-mismatched state is rejected before merge; validate only current-version state before replacing defaults.
           const result = preferencesSchema.safeParse(
             (persistedState as Partial<PersistedPreferencesState> | undefined)?.preferences
           );
@@ -82,14 +87,14 @@ export const replacePreferences = (input: PartialPreferences): void => {
 // Sets the appearance color mode preference explicitly.
 export const setDarkMode = (darkMode: boolean): void => updatePreferences({ appearance: { darkMode } });
 
-// Toggles whether the application header is shown.
-export const toggleShowHeader = (): void => {
-  const { showHeader } = preferencesStore.getState().preferences.appearance;
-  updatePreferences({ appearance: { showHeader: !showHeader } });
-};
-
 // Toggles whether study swipe controls are shown.
 export const toggleShowSwipeButtonList = (): void => {
   const { showSwipeButtonList } = preferencesStore.getState().preferences.controls;
   updatePreferences({ controls: { showSwipeButtonList: !showSwipeButtonList } });
+};
+
+// Toggles whether study playback controls are shown.
+export const toggleShowPlaybackControls = (): void => {
+  const { showPlaybackControls } = preferencesStore.getState().preferences.controls;
+  updatePreferences({ controls: { showPlaybackControls: !showPlaybackControls } });
 };

@@ -6,6 +6,17 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { StudySession } from "./StudySession";
 
+const playbackUnavailableDescription = "Playback controls unavailable because the card interval is set to 0";
+
+const toolbarProps = () => ({
+  showSwipeControls: true,
+  showPlaybackControls: true,
+  playbackControlsAvailable: true,
+  onBack: vi.fn(),
+  onToggleSwipeControls: vi.fn(),
+  onTogglePlaybackControls: vi.fn(),
+});
+
 const swipeLeft = (target: HTMLElement) => {
   const start = { identifier: 1, target, clientX: 200, clientY: 24 };
   const end = { identifier: 1, target, clientX: 20, clientY: 24 };
@@ -39,7 +50,7 @@ describe("StudySession", () => {
   it("gives swipe overlays accessible names", () => {
     render(
       <StudySession
-        onExit={vi.fn()}
+        {...toolbarProps()}
         showBackText
         backTextSlot={<div>Back</div>}
         swipeOverlay={{
@@ -58,26 +69,119 @@ describe("StudySession", () => {
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
   });
 
-  it("reports the explicit Exit action through a plain callback", () => {
-    const onExit = vi.fn();
+  it("reports toolbar actions through accessible controls", () => {
+    const onBack = vi.fn();
+    const onToggleSwipeControls = vi.fn();
+    const onTogglePlaybackControls = vi.fn();
     render(
-      <StudySession onExit={onExit} cardOverlaySlot={<div>Card metadata</div>} frontTextSlot={<div>Front</div>} />
+      <StudySession
+        {...toolbarProps()}
+        onBack={onBack}
+        onToggleSwipeControls={onToggleSwipeControls}
+        onTogglePlaybackControls={onTogglePlaybackControls}
+        cardOverlaySlot={<div>Card metadata</div>}
+        frontTextSlot={<div>Front</div>}
+      />
     );
 
-    const exit = screen.getByRole("button", { name: "Exit" });
-    const actions = screen.getByRole("toolbar", { name: "Study actions" });
-    expect(exit).toBeVisible();
-    expect(actions).toContainElement(exit);
+    const back = screen.getByRole("button", { name: "Back to cards" });
+    const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
+    const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
+    const actions = screen.getByRole("group", { name: "Study actions" });
+    expect(back).toBeVisible();
+    expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
+    expect(playbackToggle).toHaveAttribute("aria-pressed", "true");
+    expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
+    expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
+    expect(actions).toContainElement(back);
     expect(actions).not.toContainElement(screen.getByText("Card metadata"));
 
-    fireEvent.click(exit);
+    fireEvent.click(back);
+    fireEvent.click(swipeToggle);
+    fireEvent.click(playbackToggle);
 
-    expect(onExit).toHaveBeenCalledOnce();
+    expect(onBack).toHaveBeenCalledOnce();
+    expect(onToggleSwipeControls).toHaveBeenCalledOnce();
+    expect(onTogglePlaybackControls).toHaveBeenCalledOnce();
+  });
+
+  it("describes hidden controls and keeps the unavailable playback toggle disabled", () => {
+    const onTogglePlaybackControls = vi.fn();
+    render(
+      <StudySession
+        {...toolbarProps()}
+        showSwipeControls={false}
+        showPlaybackControls={false}
+        playbackControlsAvailable={false}
+        onTogglePlaybackControls={onTogglePlaybackControls}
+        frontTextSlot={<div>Front</div>}
+      />
+    );
+
+    const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
+    expect(swipeToggle).toHaveAttribute("aria-pressed", "false");
+    expect(swipeToggle).toHaveAttribute("title", "Show swipe controls");
+    const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
+    expect(playbackToggle).toHaveAttribute("aria-disabled", "true");
+    expect(playbackToggle).not.toBeDisabled();
+    expect(playbackToggle).toHaveAttribute("title", playbackUnavailableDescription);
+    expect(playbackToggle).toHaveAccessibleDescription(playbackUnavailableDescription);
+
+    playbackToggle.focus();
+    expect(playbackToggle).toHaveFocus();
+
+    fireEvent.click(playbackToggle);
+    expect(onTogglePlaybackControls).not.toHaveBeenCalled();
+  });
+
+  it("shows only the selected bottom control groups", () => {
+    const { rerender } = render(
+      <StudySession
+        {...toolbarProps()}
+        showSwipeControls={false}
+        controller={{ autoPlay: false, index: 0, numberOfCards: 2 }}
+        swipeButtonList={{ onClickLeft: vi.fn() }}
+        frontTextSlot={<div>Front</div>}
+      />
+    );
+
+    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
+
+    rerender(
+      <StudySession
+        {...toolbarProps()}
+        showPlaybackControls={false}
+        controller={{ autoPlay: false, index: 0, numberOfCards: 2 }}
+        swipeButtonList={{ onClickLeft: vi.fn() }}
+        frontTextSlot={<div>Front</div>}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "Swipe left" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+  });
+
+  it("hides the bottom dock for the answer while keeping the toolbar", () => {
+    render(
+      <StudySession
+        {...toolbarProps()}
+        showBackText
+        backTextSlot={<div>Back</div>}
+        controller={{ autoPlay: false, index: 0, numberOfCards: 2 }}
+        swipeButtonList={{ onClickLeft: vi.fn() }}
+      />
+    );
+
+    expect(screen.getByRole("group", { name: "Study actions" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Back to cards" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
   });
 
   it("reports a swipe performed on the back text", () => {
     const onSwipeLeft = vi.fn();
-    render(<StudySession onExit={vi.fn()} showBackText backTextSlot={<div>Back</div>} onSwipeLeft={onSwipeLeft} />);
+    render(<StudySession {...toolbarProps()} showBackText backTextSlot={<div>Back</div>} onSwipeLeft={onSwipeLeft} />);
 
     swipeLeft(screen.getByText("Back"));
 
@@ -86,7 +190,7 @@ describe("StudySession", () => {
 
   it("reserves vertical drags on the back text for scrolling", () => {
     const onSwipeUp = vi.fn();
-    render(<StudySession onExit={vi.fn()} showBackText backTextSlot={<div>Long back</div>} onSwipeUp={onSwipeUp} />);
+    render(<StudySession {...toolbarProps()} showBackText backTextSlot={<div>Long back</div>} onSwipeUp={onSwipeUp} />);
 
     swipeUp(screen.getByText("Long back"));
 
@@ -95,7 +199,14 @@ describe("StudySession", () => {
 
   it("reports a vertical swipe performed on the front text", () => {
     const onSwipeUp = vi.fn();
-    render(<StudySession onExit={vi.fn()} frontTextSlot={<div>Front</div>} onSwipeUp={onSwipeUp} />);
+    render(
+      <StudySession
+        {...toolbarProps()}
+        showSwipeControls={false}
+        frontTextSlot={<div>Front</div>}
+        onSwipeUp={onSwipeUp}
+      />
+    );
 
     swipeUp(screen.getByText("Front"));
 
@@ -107,7 +218,7 @@ describe("StudySession", () => {
     const onFrontClick = vi.fn();
     render(
       <StudySession
-        onExit={vi.fn()}
+        {...toolbarProps()}
         frontTextSlot={
           <button type="button" onClick={onFrontClick}>
             Front
@@ -127,7 +238,7 @@ describe("StudySession", () => {
 
   it("ignores non-primary mouse drags on the front text", () => {
     const onSwipeUp = vi.fn();
-    render(<StudySession onExit={vi.fn()} frontTextSlot={<div>Front</div>} onSwipeUp={onSwipeUp} />);
+    render(<StudySession {...toolbarProps()} frontTextSlot={<div>Front</div>} onSwipeUp={onSwipeUp} />);
     const front = screen.getByText("Front");
 
     swipeWithMouse(front, { clientX: 24, clientY: 200 }, { clientX: 24, clientY: 20 }, 1);
@@ -141,7 +252,7 @@ describe("StudySession", () => {
     const onBackClick = vi.fn();
     render(
       <StudySession
-        onExit={vi.fn()}
+        {...toolbarProps()}
         showBackText
         backTextSlot={
           <button type="button" onClick={onBackClick}>
