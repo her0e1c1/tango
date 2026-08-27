@@ -82,7 +82,9 @@ export const LongAnswer: Story = {
   },
   play: async ({ canvasElement }) => {
     const answer = canvasElement.querySelector<HTMLElement>("pre");
-    const swipeOverlays = canvasElement.querySelectorAll<HTMLElement>("[aria-label^='Swipe ']");
+    const swipeOverlays = canvasElement.querySelectorAll<HTMLElement>(
+      "[aria-label='Swipe left'], [aria-label='Swipe right'], [aria-label='Swipe up'], [aria-label='Swipe down']"
+    );
     const swipeOverlayStyles = Array.from(swipeOverlays, (overlay) => {
       const style = getComputedStyle(overlay);
       return { backgroundColor: style.backgroundColor, boxShadow: style.boxShadow };

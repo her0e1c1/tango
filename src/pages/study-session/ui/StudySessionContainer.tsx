@@ -20,11 +20,22 @@ type StudyShortcutAction =
   | "toggleSwipeButtonList"
   | "toggleAutoPlay";
 
-const studyShortcutInteractiveTarget =
-  "a[href], button, input, select, textarea, summary, [contenteditable]:not([contenteditable='false']), [role='button'], [role='link'], [role='slider'], [role='switch'], [role='checkbox'], [role='radio'], [role='tab'], [tabindex]:not([tabindex='-1'])";
+const studyShortcutTextEntryTarget =
+  "input:not([type]), input[type='text'], input[type='search'], input[type='email'], input[type='url'], input[type='tel'], input[type='password'], input[type='number'], input[type='date'], input[type='datetime-local'], input[type='month'], input[type='time'], input[type='week'], textarea, select";
+const studyShortcutButtonTarget =
+  "a[href], button, summary, input[type='button'], input[type='submit'], input[type='reset'], input[type='checkbox'], input[type='radio'], [role='button'], [role='link'], [role='switch'], [role='checkbox'], [role='radio'], [role='tab']";
+const studyShortcutSliderTarget = "input[type='range'], [role='slider']";
 
-const isInteractiveTarget = (target: EventTarget | null): boolean =>
-  target instanceof Element && target.closest(studyShortcutInteractiveTarget) !== null;
+const shouldIgnoreStudyShortcut = (event: KeyboardEvent): boolean => {
+  if (!(event.target instanceof Element)) return false;
+  if (event.target.closest(studyShortcutTextEntryTarget) !== null) return true;
+  const editableTarget = event.target.closest("[contenteditable]");
+  if (editableTarget !== null && editableTarget.getAttribute("contenteditable") !== "false") return true;
+  if ((event.key === "Enter" || event.key === " ") && event.target.closest(studyShortcutButtonTarget) !== null) {
+    return true;
+  }
+  return event.key.startsWith("Arrow") && event.target.closest(studyShortcutSliderTarget) !== null;
+};
 
 const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) => {
   if (state == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
@@ -91,8 +102,9 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
   const latestStudy = useLatest(study);
   const goBack = () => void navigate(routes.cardList.to(deckId));
   const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
-    // Study shortcuts must not compete with native keyboard behavior on toolbar and controller controls.
-    if (isInteractiveTarget(event.target)) return;
+    // Native editing and activation keys take precedence, while unrelated Study shortcuts remain
+    // available after a user moves focus into the card or floating controls.
+    if (shouldIgnoreStudyShortcut(event)) return;
     const currentStudy = latestStudy.current;
     if (currentStudy?.status === "studying") void currentStudy[action]();
   };

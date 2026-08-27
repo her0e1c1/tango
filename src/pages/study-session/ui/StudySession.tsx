@@ -16,6 +16,8 @@ const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
   cardSwipeRight: "Swiped right",
 };
 
+const PLAYBACK_UNAVAILABLE_DESCRIPTION = "Playback controls unavailable because the card interval is set to 0";
+
 type StudyLayoutStyles = React.CSSProperties & {
   "--study-toolbar-top": string;
   "--study-card-top": string;
@@ -62,18 +64,18 @@ const StudyToolbar: React.FC<{
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
 }> = (props) => {
-  const swipeLabel = props.showSwipeControls ? "Hide swipe controls" : "Show swipe controls";
-  const playbackLabel = props.playbackControlsAvailable
+  const playbackDescriptionId = React.useId();
+  const swipeTitle = props.showSwipeControls ? "Hide swipe controls" : "Show swipe controls";
+  const playbackTitle = props.playbackControlsAvailable
     ? props.showPlaybackControls
       ? "Hide playback controls"
       : "Show playback controls"
-    : "Playback controls unavailable because the card interval is set to 0";
+    : PLAYBACK_UNAVAILABLE_DESCRIPTION;
 
   return (
-    <div
-      role="toolbar"
+    <fieldset
       aria-label="Study actions"
-      className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 flex items-center justify-between pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+      className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 m-0 flex min-w-0 items-center justify-between border-0 p-0 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
     >
       <button
         type="button"
@@ -89,8 +91,9 @@ const StudyToolbar: React.FC<{
       <div className="pointer-events-auto flex items-center rounded-pill border border-border bg-surface-elevated/90 p-0.5 shadow-elevated backdrop-blur-md">
         <button
           type="button"
-          aria-label={swipeLabel}
+          aria-label="Swipe controls"
           aria-pressed={props.showSwipeControls}
+          title={swipeTitle}
           className={cx(toolbarButtonClass, props.showSwipeControls && "bg-surface-muted text-accent-primary")}
           onClick={props.onToggleSwipeControls}
         >
@@ -99,10 +102,11 @@ const StudyToolbar: React.FC<{
         <span aria-hidden="true" className="h-6 w-px bg-border" />
         <button
           type="button"
-          aria-label={playbackLabel}
+          aria-label="Playback controls"
           aria-pressed={props.showPlaybackControls}
           aria-disabled={!props.playbackControlsAvailable}
-          title={!props.playbackControlsAvailable ? playbackLabel : undefined}
+          aria-describedby={!props.playbackControlsAvailable ? playbackDescriptionId : undefined}
+          title={playbackTitle}
           className={cx(
             toolbarButtonClass,
             props.showPlaybackControls && "bg-surface-muted text-accent-primary",
@@ -112,8 +116,13 @@ const StudyToolbar: React.FC<{
         >
           <AiOutlinePlayCircle aria-hidden="true" className="text-xl" />
         </button>
+        {!props.playbackControlsAvailable ? (
+          <span id={playbackDescriptionId} className="sr-only">
+            {PLAYBACK_UNAVAILABLE_DESCRIPTION}
+          </span>
+        ) : null}
       </div>
-    </div>
+    </fieldset>
   );
 };
 

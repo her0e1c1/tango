@@ -6,6 +6,8 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { StudySession } from "./StudySession";
 
+const playbackUnavailableDescription = "Playback controls unavailable because the card interval is set to 0";
+
 const toolbarProps = () => ({
   showSwipeControls: true,
   showPlaybackControls: true,
@@ -83,12 +85,14 @@ describe("StudySession", () => {
     );
 
     const back = screen.getByRole("button", { name: "Back to cards" });
-    const swipeToggle = screen.getByRole("button", { name: "Hide swipe controls" });
-    const playbackToggle = screen.getByRole("button", { name: "Hide playback controls" });
-    const actions = screen.getByRole("toolbar", { name: "Study actions" });
+    const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
+    const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
+    const actions = screen.getByRole("group", { name: "Study actions" });
     expect(back).toBeVisible();
     expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
     expect(playbackToggle).toHaveAttribute("aria-pressed", "true");
+    expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
+    expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
     expect(actions).toContainElement(back);
     expect(actions).not.toContainElement(screen.getByText("Card metadata"));
 
@@ -114,16 +118,14 @@ describe("StudySession", () => {
       />
     );
 
-    expect(screen.getByRole("button", { name: "Show swipe controls" })).toHaveAttribute("aria-pressed", "false");
-    const playbackToggle = screen.getByRole("button", {
-      name: "Playback controls unavailable because the card interval is set to 0",
-    });
+    const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
+    expect(swipeToggle).toHaveAttribute("aria-pressed", "false");
+    expect(swipeToggle).toHaveAttribute("title", "Show swipe controls");
+    const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
     expect(playbackToggle).toHaveAttribute("aria-disabled", "true");
     expect(playbackToggle).not.toBeDisabled();
-    expect(playbackToggle).toHaveAttribute(
-      "title",
-      "Playback controls unavailable because the card interval is set to 0"
-    );
+    expect(playbackToggle).toHaveAttribute("title", playbackUnavailableDescription);
+    expect(playbackToggle).toHaveAccessibleDescription(playbackUnavailableDescription);
 
     playbackToggle.focus();
     expect(playbackToggle).toHaveFocus();
@@ -171,7 +173,7 @@ describe("StudySession", () => {
       />
     );
 
-    expect(screen.getByRole("toolbar", { name: "Study actions" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Study actions" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Back to cards" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
