@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import type { Page } from "@playwright/test";
 import {
+  allowExpectedFirestoreWriteFailure,
   documentId,
   expect,
-  expectedFirestoreWriteBrowserError,
   failNextFirestoreWrite,
   getDocument,
   listDocuments,
@@ -102,12 +102,13 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
   await fixture.apply(page);
   await page.goto("/");
   const fault = await failNextFirestoreWrite(page, { collection: "card", id: card.id });
-  browserErrors.allow(expectedFirestoreWriteBrowserError);
+  allowExpectedFirestoreWriteFailure(browserErrors);
 
   const dialog = await openDeckDeleteDialog(page, deck.name);
   await dialog.getByRole("button", { name: "Delete deck" }).click();
   await expect(dialog.getByRole("alert")).toBeVisible();
-  expect(fault.wasTriggered()).toBe(true);
+  await expect.poll(fault.wasTriggered).toBe(true);
+  await fault.waitForFailure();
   await fault.dispose();
   await dialog.getByRole("button", { name: "Delete deck" }).click();
 
@@ -230,12 +231,13 @@ test("DECK-10 retries a failed remote create with the same ID and no duplicate",
     attemptedDeckId ??= /\/documents\/deck\/([a-zA-Z0-9-]+)/.exec(body)?.[1];
   });
   const fault = await failNextFirestoreWrite(page, { collection: "deck" });
-  browserErrors.allow(expectedFirestoreWriteBrowserError);
+  allowExpectedFirestoreWriteFailure(browserErrors);
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page.getByRole("status")).toContainText("Unable to create this deck");
-  expect(fault.wasTriggered()).toBe(true);
+  await expect.poll(fault.wasTriggered).toBe(true);
+  await fault.waitForFailure();
   await fault.dispose();
   expect(attemptedDeckId).toBeDefined();
 

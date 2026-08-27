@@ -96,7 +96,10 @@ const deleteDeckDocuments = async (uid: string, deckId: string): Promise<void> =
   const snapshot = await getDocs(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid), where("deckId", "==", deckId))
   );
-  await Promise.all(snapshot.docs.map((document) => deleteDoc(document.ref)));
+  // A retry must not overlap Card deletions still running from the previous attempt.
+  const cardDeletions = await Promise.allSettled(snapshot.docs.map((document) => deleteDoc(document.ref)));
+  const failure = cardDeletions.find((result): result is PromiseRejectedResult => result.status === "rejected");
+  if (failure !== undefined) throw failure.reason;
   await deleteDoc(doc(db, DECK_COLLECTION, deckId));
 };
 

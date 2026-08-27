@@ -1,8 +1,8 @@
 import type { Page } from "@playwright/test";
 
 import {
+  allowExpectedFirestoreWriteFailure,
   expect,
-  expectedFirestoreWriteBrowserError,
   failNextFirestoreWrite,
   readLocalData,
   requireDocument,
@@ -285,7 +285,7 @@ test("SWIPE-12 retries a failed progress write from the same Card once", async (
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
-  browserErrors.allow(expectedFirestoreWriteBrowserError);
+  allowExpectedFirestoreWriteFailure(browserErrors);
   const fault = await failNextFirestoreWrite(page, { collection: "card", id: currentCard.id });
   await page.getByRole("button", { name: "Swipe up" }).click();
   await expect.poll(fault.wasTriggered).toBe(true);
