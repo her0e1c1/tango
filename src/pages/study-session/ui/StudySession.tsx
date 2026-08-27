@@ -2,9 +2,8 @@ import cx from "classnames";
 import * as React from "react";
 import { AiOutlineLeft, AiOutlinePlayCircle } from "react-icons/ai";
 import { MdSwipe } from "react-icons/md";
-import { type SwipeEventData, useSwipeable } from "react-swipeable";
+import { useSwipeable } from "react-swipeable";
 import type { SwipeDirection } from "@/entities/preference";
-import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
 import { SwipeButtonList, type SwipeButtonListProps } from "./SwipeButtonList";
@@ -40,7 +39,6 @@ export interface StudySessionProps {
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
   frontTextSlot?: React.ReactNode;
-  swipeOverlay?: SwipeButtonListProps;
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
   feedbackSlot?: React.ReactNode;
@@ -138,40 +136,14 @@ const SwipeFeedback: React.FC<{ swipeFeedback: SwipeDirection | undefined }> = (
   );
 };
 
-const BackTextOverlays: React.FC<{ swipeOverlay: SwipeButtonListProps | undefined }> = ({ swipeOverlay }) => {
-  // Gesture hit zones must remain visually neutral so the full-width answer stays readable beneath them.
-  return (
-    <>
-      {swipeOverlay?.onClickLeft !== undefined ? (
-        <Overlay position="left" variant="transparent" ariaLabel="Swipe left" onClick={swipeOverlay.onClickLeft} />
-      ) : null}
-      {swipeOverlay?.onClickRight !== undefined ? (
-        <Overlay position="right" variant="transparent" ariaLabel="Swipe right" onClick={swipeOverlay.onClickRight} />
-      ) : null}
-      {swipeOverlay?.onClickUp !== undefined ? (
-        <Overlay position="top" variant="transparent" ariaLabel="Swipe up" onClick={swipeOverlay.onClickUp} />
-      ) : null}
-      {swipeOverlay?.onClickDown !== undefined ? (
-        <Overlay position="bottom" variant="transparent" ariaLabel="Swipe down" onClick={swipeOverlay.onClickDown} />
-      ) : null}
-    </>
-  );
-};
-
 const CardContent: React.FC<{
   showBackText: boolean | undefined;
   backTextSlot: React.ReactNode | undefined;
   frontTextSlot: React.ReactNode | undefined;
   cardOverlaySlot: React.ReactNode | undefined;
-  swipeOverlay: SwipeButtonListProps | undefined;
-}> = ({ showBackText, backTextSlot, frontTextSlot, cardOverlaySlot, swipeOverlay }) => {
+}> = ({ showBackText, backTextSlot, frontTextSlot, cardOverlaySlot }) => {
   if (showBackText && backTextSlot != null) {
-    return (
-      <>
-        <BackTextOverlays swipeOverlay={swipeOverlay} />
-        <div className="flex min-h-full w-full">{backTextSlot}</div>
-      </>
-    );
+    return <div className="flex min-h-full w-full">{backTextSlot}</div>;
   }
   if (frontTextSlot != null) {
     return (
@@ -232,21 +204,12 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
     }, 0);
   };
 
-  const runSwipeAction =
-    (action: () => void) =>
-    ({ event }: SwipeEventData) => {
-      // Back mouse drags are tracked only to suppress their trailing click; touch swipes still change progress.
-      if (!(props.showBackText && "button" in event)) action();
-    };
-
   const swipeHandlers = useSwipeable({
     onSwiped: suppressTrailingCardClick,
-    ...(props.onSwipeLeft !== undefined ? { onSwipedLeft: runSwipeAction(props.onSwipeLeft) } : {}),
-    ...(!props.showBackText && props.onSwipeUp !== undefined ? { onSwipedUp: runSwipeAction(props.onSwipeUp) } : {}),
-    ...(props.onSwipeRight !== undefined ? { onSwipedRight: runSwipeAction(props.onSwipeRight) } : {}),
-    ...(!props.showBackText && props.onSwipeDown !== undefined
-      ? { onSwipedDown: runSwipeAction(props.onSwipeDown) }
-      : {}),
+    ...(!props.showBackText && props.onSwipeLeft !== undefined ? { onSwipedLeft: props.onSwipeLeft } : {}),
+    ...(!props.showBackText && props.onSwipeUp !== undefined ? { onSwipedUp: props.onSwipeUp } : {}),
+    ...(!props.showBackText && props.onSwipeRight !== undefined ? { onSwipedRight: props.onSwipeRight } : {}),
+    ...(!props.showBackText && props.onSwipeDown !== undefined ? { onSwipedDown: props.onSwipeDown } : {}),
     trackMouse: true,
   });
 
@@ -271,23 +234,29 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
     onClickCapture: stopTrailingCardClick,
     onMouseDown: startPrimaryMouseSwipe,
   };
+  // The answer owns the reading surface, so session chrome stays unmounted until the front returns.
+  const showStudyChrome = !props.showBackText;
 
   return (
     <div className="relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink" style={studyLayoutStyles}>
-      {props.feedbackSlot}
-      <StudyToolbar
-        showSwipeControls={props.showSwipeControls}
-        showPlaybackControls={props.showPlaybackControls}
-        playbackControlsAvailable={props.playbackControlsAvailable}
-        onBack={props.onBack}
-        onToggleSwipeControls={props.onToggleSwipeControls}
-        onTogglePlaybackControls={props.onTogglePlaybackControls}
-      />
-      <SwipeFeedback swipeFeedback={props.swipeFeedback} />
+      {showStudyChrome ? props.feedbackSlot : null}
+      {showStudyChrome ? (
+        <StudyToolbar
+          showSwipeControls={props.showSwipeControls}
+          showPlaybackControls={props.showPlaybackControls}
+          playbackControlsAvailable={props.playbackControlsAvailable}
+          onBack={props.onBack}
+          onToggleSwipeControls={props.onToggleSwipeControls}
+          onTogglePlaybackControls={props.onTogglePlaybackControls}
+        />
+      ) : null}
+      {showStudyChrome ? <SwipeFeedback swipeFeedback={props.swipeFeedback} /> : null}
       <div
         className={cx(
-          "relative min-h-0 flex-1 pt-[var(--study-card-top)]",
-          props.showBackText ? "overflow-y-auto" : "overflow-hidden"
+          "relative min-h-0 flex-1",
+          props.showBackText
+            ? "overflow-y-auto pt-[env(safe-area-inset-top)]"
+            : "overflow-hidden pt-[var(--study-card-top)]"
         )}
         {...cardGestureHandlers}
       >
@@ -296,7 +265,6 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           backTextSlot={props.backTextSlot}
           frontTextSlot={props.frontTextSlot}
           cardOverlaySlot={props.cardOverlaySlot}
-          swipeOverlay={props.swipeOverlay}
         />
       </div>
       <Controls

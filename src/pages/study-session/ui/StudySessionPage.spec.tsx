@@ -118,6 +118,35 @@ describe("StudySessionPage", () => {
     fireEvent.keyDown(window, { key: "Enter" });
 
     expect(screen.getByText("Back one")).toBeVisible();
+    expect(screen.queryByText("Front one")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Score 2, positive")).not.toBeInTheDocument();
+    expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Back to cards" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe controls" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+  });
+
+  it("ignores directional shortcuts while showing the answer", async () => {
+    mocks.preferences = createPreferences({
+      controls: {
+        cardSwipeUp: "GoToNextCard",
+        cardSwipeDown: "GoToNextCard",
+        cardSwipeLeft: "GoToNextCard",
+        cardSwipeRight: "GoToNextCard",
+      },
+    });
+    const user = userEvent.setup();
+    renderPage();
+    await user.keyboard("{Enter}");
+
+    await user.keyboard("{ArrowUp}{ArrowDown}{ArrowLeft}{ArrowRight}");
+
+    expect(screen.getByText("Back one")).toBeVisible();
+    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(getStudySession(deckId)?.currentIndex).toBe(0);
   });
 
   it("keeps the ArrowRight shortcut active while the front card is focused", async () => {

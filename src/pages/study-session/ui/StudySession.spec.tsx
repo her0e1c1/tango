@@ -47,26 +47,32 @@ const swipeWithMouse = (
 };
 
 describe("StudySession", () => {
-  it("gives swipe overlays accessible names", () => {
+  it("shows only the answer on the back", () => {
     render(
       <StudySession
         {...toolbarProps()}
         showBackText
         backTextSlot={<div>Back</div>}
-        swipeOverlay={{
-          onClickLeft: vi.fn(),
-          onClickRight: vi.fn(),
-          onClickUp: vi.fn(),
-          onClickDown: vi.fn(),
-        }}
+        cardOverlaySlot={<div>Card metadata</div>}
+        frontTextSlot={<div>Front</div>}
+        feedbackSlot={<div>Save failed</div>}
+        swipeFeedback="cardSwipeRight"
+        controller={{ autoPlay: false, index: 0, numberOfCards: 2 }}
+        swipeButtonList={{ onClickLeft: vi.fn() }}
       />
     );
 
-    expect(screen.getByRole("button", { name: "Swipe left" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Swipe right" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Swipe up" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Swipe down" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    expect(screen.getByText("Back")).toBeVisible();
+    expect(screen.queryByText("Front")).not.toBeInTheDocument();
+    expect(screen.queryByText("Card metadata")).not.toBeInTheDocument();
+    expect(screen.queryByText("Save failed")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Back to cards" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe controls" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
 
   it("reports toolbar actions through accessible controls", () => {
@@ -162,38 +168,24 @@ describe("StudySession", () => {
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
 
-  it("hides the bottom dock for the answer while keeping the toolbar", () => {
+  it("ignores horizontal and vertical swipes on the back text", () => {
+    const onSwipeLeft = vi.fn();
+    const onSwipeUp = vi.fn();
     render(
       <StudySession
         {...toolbarProps()}
         showBackText
         backTextSlot={<div>Back</div>}
-        controller={{ autoPlay: false, index: 0, numberOfCards: 2 }}
-        swipeButtonList={{ onClickLeft: vi.fn() }}
+        onSwipeLeft={onSwipeLeft}
+        onSwipeUp={onSwipeUp}
       />
     );
+    const back = screen.getByText("Back");
 
-    expect(screen.getByRole("group", { name: "Study actions" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Back to cards" })).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
-  });
+    swipeLeft(back);
+    swipeUp(back);
 
-  it("reports a swipe performed on the back text", () => {
-    const onSwipeLeft = vi.fn();
-    render(<StudySession {...toolbarProps()} showBackText backTextSlot={<div>Back</div>} onSwipeLeft={onSwipeLeft} />);
-
-    swipeLeft(screen.getByText("Back"));
-
-    expect(onSwipeLeft).toHaveBeenCalledOnce();
-  });
-
-  it("reserves vertical drags on the back text for scrolling", () => {
-    const onSwipeUp = vi.fn();
-    render(<StudySession {...toolbarProps()} showBackText backTextSlot={<div>Long back</div>} onSwipeUp={onSwipeUp} />);
-
-    swipeUp(screen.getByText("Long back"));
-
+    expect(onSwipeLeft).not.toHaveBeenCalled();
     expect(onSwipeUp).not.toHaveBeenCalled();
   });
 

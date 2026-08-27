@@ -38,12 +38,6 @@ const meta = {
     ),
     controller: { autoPlay: false, index: 3, numberOfCards: 24 },
     swipeButtonList: {},
-    swipeOverlay: {
-      onClickLeft: fn(),
-      onClickRight: fn(),
-      onClickUp: fn(),
-      onClickDown: fn(),
-    },
   },
 } satisfies Meta<typeof StudySession>;
 
@@ -85,16 +79,11 @@ export const LongAnswer: Story = {
     const swipeOverlays = canvasElement.querySelectorAll<HTMLElement>(
       "[aria-label='Swipe left'], [aria-label='Swipe right'], [aria-label='Swipe up'], [aria-label='Swipe down']"
     );
-    const swipeOverlayStyles = Array.from(swipeOverlays, (overlay) => {
-      const style = getComputedStyle(overlay);
-      return { backgroundColor: style.backgroundColor, boxShadow: style.boxShadow };
-    });
+    const studyActions = canvasElement.querySelector<HTMLElement>("[aria-label='Study actions']");
 
     await expect(answer).toBeVisible();
-    await expect(swipeOverlays).toHaveLength(4);
-    await expect(swipeOverlayStyles).toEqual(
-      Array.from({ length: 4 }, () => ({ backgroundColor: "rgba(0, 0, 0, 0)", boxShadow: "none" }))
-    );
+    await expect(swipeOverlays).toHaveLength(0);
+    await expect(studyActions).toBeNull();
   },
 };
 
@@ -123,23 +112,6 @@ export const Mobile: Story = {
 export const MobileLongAnswer: Story = {
   ...LongAnswer,
   globals: { viewport: { value: "iphonex", isRotated: false } },
-};
-
-export const UnavailableSwipeActions: Story = {
-  args: {
-    showBackText: true,
-    backTextSlot: <div className="h-full w-full">Back without swipe actions</div>,
-    swipeOverlay: {},
-  },
-  play: async ({ canvasElement }) => {
-    const answer = canvasElement.querySelector<HTMLElement>(".h-full.w-full");
-    await expect(answer).not.toBeNull();
-    if (answer === null) return;
-
-    const bounds = answer.getBoundingClientRect();
-    const leftEdgeTarget = document.elementFromPoint(bounds.left + 8, bounds.top + bounds.height / 2);
-    await expect(leftEdgeTarget).toBe(answer);
-  },
 };
 
 export const Dark: Story = {
