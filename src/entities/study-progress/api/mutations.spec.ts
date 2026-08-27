@@ -19,9 +19,20 @@ describe("StudyProgress mutations", () => {
 
   it("updates local Card progress without writing to Firestore", async () => {
     mocks.findCardById.mockReturnValue({ id: "local", deckId: "deck" });
+    const untrustedProgress = {
+      cardId: "local",
+      score: 2,
+      numberOfSeen: 3,
+      id: "other-local",
+      frontText: "unexpected",
+      deckId: "other-deck",
+      uid: "other-user",
+      deletedAt: 1,
+    } as unknown as Parameters<typeof editStudyProgress>[1];
 
-    await editStudyProgress("", { cardId: "local", score: 2, numberOfSeen: 3 });
+    await editStudyProgress("", untrustedProgress);
 
+    expect(mocks.findCardById).toHaveBeenCalledExactlyOnceWith("local");
     expect(mocks.editLocalCardStudyProgress).toHaveBeenCalledExactlyOnceWith({
       id: "local",
       score: 2,
