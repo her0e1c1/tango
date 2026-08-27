@@ -1,7 +1,7 @@
 import {
+  allowExpectedFirestoreWriteFailure,
   documentId,
   expect,
-  expectedFirestoreWriteBrowserError,
   failNextFirestoreWrite,
   listDocuments,
   readLocalData,
@@ -125,7 +125,7 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   namespace,
   page,
 }) => {
-  browserErrors.allow(expectedFirestoreWriteBrowserError);
+  allowExpectedFirestoreWriteFailure(browserErrors);
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
@@ -142,7 +142,8 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   await expect(page.getByText(file.name, { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("radio", { name: /Sync with account/ })).toBeChecked();
   await expect.poll(async () => (await documentsForUid("deck", uid)).length).toBe(1);
-  expect(fault.wasTriggered()).toBe(true);
+  await expect.poll(fault.wasTriggered).toBe(true);
+  await fault.waitForFailure();
   await fault.dispose();
   expect(await documentsForUid("card", uid)).toEqual([]);
   const [partialDeck] = await documentsForUid("deck", uid);

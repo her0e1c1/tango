@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import {
+  allowExpectedFirestoreWriteFailure,
   expect,
-  expectedFirestoreWriteBrowserError,
   failNextFirestoreWrite,
   getDocument,
   requireDocument,
@@ -198,12 +198,13 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
   await page.getByRole("menuitem", { name: "Edit" }).click();
   await expect(page).toHaveURL(new RegExp(`/card/${card.id}/edit$`));
   const fault = await failNextFirestoreWrite(page, { collection: "card", id: card.id });
-  browserErrors.allow(expectedFirestoreWriteBrowserError);
+  allowExpectedFirestoreWriteFailure(browserErrors);
   await page.getByRole("textbox", { name: "Front text" }).fill(changedFront);
   await page.getByRole("textbox", { name: "Back text" }).fill(changedBack);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByRole("status")).toContainText("Unable to save changes");
-  expect(fault.wasTriggered()).toBe(true);
+  await expect.poll(fault.wasTriggered).toBe(true);
+  await fault.waitForFailure();
   await fault.dispose();
   await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(changedFront);
   await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue(changedBack);

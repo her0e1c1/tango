@@ -49,8 +49,17 @@ export interface BrowserErrorCollector {
   errors: () => readonly string[];
 }
 
-export const expectedFirestoreWriteBrowserError =
+const expectedFirestoreWritePermissionBrowserError =
   /^console error: Failed to load resource: the server responded with a status of 403(?: \([^\]]*\))? \[http:\/\/(?:db|127\.0\.0\.1|localhost):[0-9]+\/google\.firestore\.v1\.Firestore\/Write\/channel(?:\?[^\]]*)?:[0-9]+:[0-9]+\]$/iu;
+
+const expectedFirestoreWriteTerminationBrowserError =
+  /^console error: Failed to load resource: the server responded with a status of 400(?: \([^\]]*\))? \[http:\/\/(?:db|127\.0\.0\.1|localhost):[0-9]+\/google\.firestore\.v1\.Firestore\/Write\/channel\?(?=[^\]]*SID=)(?![^\]]*AID=)(?=[^\]]*TYPE=terminate(?:&|:))[^\]]*:[0-9]+:[0-9]+\]$/iu;
+
+export const allowExpectedFirestoreWriteFailure = (collector: BrowserErrorCollector) => {
+  collector.allow(expectedFirestoreWritePermissionBrowserError);
+  // The injected 403 can invalidate the stream ID before the SDK's best-effort terminate request reaches the emulator.
+  collector.allow(expectedFirestoreWriteTerminationBrowserError);
+};
 
 interface E2EFixtures {
   namespace: TestNamespace;
