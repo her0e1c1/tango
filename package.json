@@ -67,7 +67,7 @@
     "sass": "^1.102.0",
     "vite": "^8.1.3",
     "zod": "^4.4.3",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
