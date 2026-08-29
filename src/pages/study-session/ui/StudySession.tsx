@@ -147,8 +147,11 @@ const CardContent: React.FC<{
   }
   if (frontTextSlot != null) {
     return (
-      <div className="relative flex h-full min-h-0 flex-col pt-touch">
-        {cardOverlaySlot}
+      <div className="relative h-full min-h-0">
+        {cardOverlaySlot != null ? (
+          // Metadata stays below the toolbar without reserving space in the centered prompt surface.
+          <div className="absolute inset-x-0 top-[var(--study-card-top)] h-touch">{cardOverlaySlot}</div>
+        ) : null}
         {frontTextSlot}
       </div>
     );
@@ -174,8 +177,9 @@ const Controls: React.FC<{
   const showController = showPlaybackControls && playbackControlsAvailable;
   if (showBackText || !(showSwipeControls || showController)) return null;
   return (
-    <div className="relative z-40 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] pt-2">
-      <div className="mx-auto w-full max-w-content space-y-2 rounded-surface border border-border bg-surface-elevated/90 p-2 shadow-elevated backdrop-blur-md">
+    // The dock floats so toggling either control group cannot move the prompt away from screen center.
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-40 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] pt-2">
+      <div className="pointer-events-auto mx-auto w-full max-w-content space-y-2 rounded-surface border border-border bg-surface-elevated/90 p-2 shadow-elevated backdrop-blur-md">
         {showSwipeControls ? <SwipeButtonList {...swipeButtonList} /> : null}
         {showController ? <Controller {...controller} /> : null}
       </div>
@@ -254,9 +258,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       <div
         className={cx(
           "relative min-h-0 flex-1",
-          props.showBackText
-            ? "overflow-y-auto pt-[env(safe-area-inset-top)]"
-            : "overflow-hidden pt-[var(--study-card-top)]"
+          props.showBackText ? "overflow-y-auto pt-[env(safe-area-inset-top)]" : "overflow-hidden"
         )}
         {...cardGestureHandlers}
       >
