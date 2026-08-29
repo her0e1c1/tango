@@ -2,10 +2,12 @@ import type * as React from "react";
 
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 
-import type { DeckDeletionTargetView } from "../model/useDeckDeletion";
-
 interface DeckDeletionDialogProps {
-  target: DeckDeletionTargetView;
+  target: {
+    deckName: string;
+    cardCount: number;
+    hasError: boolean;
+  };
   onCancel: () => void;
   onConfirm: () => Promise<void>;
 }
