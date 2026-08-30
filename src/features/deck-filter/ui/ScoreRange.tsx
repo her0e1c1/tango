@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/button";
 import { Select } from "@/shared/ui/forms";
 
 const NO_LIMIT_VALUE = "";
+const NO_LIMIT_LABEL = "-";
 const MINIMUM_STANDARD_SCORE = -10;
 const MAXIMUM_STANDARD_SCORE = 10;
 const STANDARD_SCORES = Array.from(
@@ -77,7 +78,7 @@ const ScoreSelect = ({
       aria-describedby={props.describedBy}
       aria-invalid={props.invalid || undefined}
       options={[
-        { label: "No limit", value: NO_LIMIT_VALUE },
+        { label: NO_LIMIT_LABEL, value: NO_LIMIT_VALUE },
         ...props.scores.map((score) => ({ label: displayScore(score), value: String(score) })),
       ]}
       onChange={(event) =>
@@ -85,6 +86,7 @@ const ScoreSelect = ({
       }
     />
     <p id={`${props.id}-description`} className="sr-only">
+      {props.value == null ? `No ${props.label.toLowerCase()} score. ` : ""}
       {props.description}
     </p>
   </div>

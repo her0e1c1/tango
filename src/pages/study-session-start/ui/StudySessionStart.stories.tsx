@@ -2,10 +2,10 @@ import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { fn } from "storybook/test";
 
-import { withPageLayout } from "@/storybook/PageLayoutDecorator";
-import { DeckFilterForm } from "@/features/deck-filter";
 import * as fixture from "@/storybook/fixture";
+import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 
+import { StudySessionFilters } from "./StudySessionFilters";
 import { StudySessionStart } from "./StudySessionStart";
 
 const Filters: React.FC<{
@@ -19,7 +19,7 @@ const Filters: React.FC<{
   const [tagAndFilter, setTagAndFilter] = React.useState(props.initialTagAndFilter);
 
   return (
-    <DeckFilterForm
+    <StudySessionFilters
       scoreMax={scoreMax}
       scoreMin={scoreMin}
       tags={[...props.tags]}

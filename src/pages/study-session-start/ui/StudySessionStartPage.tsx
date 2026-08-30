@@ -4,12 +4,13 @@ import { useKey } from "react-use";
 
 import type { Deck } from "@/entities/deck";
 import { useDeck } from "@/entities/deck";
-import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
+import { useDeckFilterState } from "@/features/deck-filter";
 import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useStudySessionStartState } from "../model/useStudySessionStartState";
+import { StudySessionFilters } from "./StudySessionFilters";
 import { StudySessionStart } from "./StudySessionStart";
 
 // The Enter shortcut listens at the window level, so interactive controls must own the event.
@@ -44,7 +45,7 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
         maxNumberOfCardsToLearn={state.maxNumberOfCardsToLearn}
         cardsLength={state.cardsLength}
         onClickStart={start}
-        filterSlot={<DeckFilterForm {...filter} tags={state.tags} />}
+        filterSlot={<StudySessionFilters {...filter} tags={state.tags} />}
       />
     </AppLayout>
   );

@@ -17,7 +17,7 @@ const numericOptionValues = (select: HTMLElement): string[] =>
     .filter(Boolean);
 
 describe("ScoreRange", () => {
-  it("offers No limit and scores from −10 through 10 with accessible labels", () => {
+  it("shows a dash for an unrestricted boundary and explains its meaning accessibly", () => {
     render(
       <ScoreRange maximum={null} minimum={null} onClear={vi.fn()} onMaximumChange={vi.fn()} onMinimumChange={vi.fn()} />
     );
@@ -27,12 +27,12 @@ describe("ScoreRange", () => {
 
     expect(minimum).toHaveValue("");
     expect(maximum).toHaveValue("");
-    expect(within(minimum).getByRole("option", { name: "No limit" })).toHaveValue("");
-    expect(within(maximum).getByRole("option", { name: "No limit" })).toHaveValue("");
+    expect(within(minimum).getByRole("option", { name: "-" })).toHaveValue("");
+    expect(within(maximum).getByRole("option", { name: "-" })).toHaveValue("");
     expect(numericOptionValues(minimum)).toEqual(Array.from({ length: 21 }, (_, index) => String(index - 10)));
     expect(numericOptionValues(maximum)).toEqual(Array.from({ length: 21 }, (_, index) => String(index - 10)));
-    expect(minimum).toHaveAccessibleDescription("Include cards at or above this score.");
-    expect(maximum).toHaveAccessibleDescription("Include cards at or below this score.");
+    expect(minimum).toHaveAccessibleDescription("No minimum score. Include cards at or above this score.");
+    expect(maximum).toHaveAccessibleDescription("No maximum score. Include cards at or below this score.");
     expect(screen.queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
   });
 

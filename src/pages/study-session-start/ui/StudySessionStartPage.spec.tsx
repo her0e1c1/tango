@@ -15,12 +15,13 @@ const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
   deck: null as Deck | null,
   cards: [] as Card[],
+  tags: [] as string[],
   setDarkMode: vi.fn(),
   editDeck: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock("@/entities/card", () => ({
-  useCardsByDeckId: () => ({ cards: mocks.cards, tags: [] }),
+  useCardsByDeckId: () => ({ cards: mocks.cards, tags: mocks.tags }),
 }));
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/deck", () => ({
@@ -67,6 +68,7 @@ describe("StudySessionStartPage", () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
     mocks.deck = createDeck({ id: deckId, name: "Japanese vocabulary" });
     mocks.cards = [createCard({ id: cardId, deckId })];
+    mocks.tags = [];
     vi.clearAllMocks();
   });
 
@@ -108,6 +110,17 @@ describe("StudySessionStartPage", () => {
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
     expect(screen.getByText("1 card matches your filters.")).toBeVisible();
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", { id: deckId, scoreMin: 1 });
+  });
+
+  it("reveals additional tags and persists a newly selected tag", async () => {
+    mocks.tags = Array.from({ length: 12 }, (_, index) => `tag-${index + 1}`);
+    renderPage();
+
+    expect(screen.queryByRole("checkbox", { name: "tag-12" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Show 4 more tags" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "tag-12" }));
+
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", { id: deckId, selectedTags: ["tag-12"] });
   });
 
   it("creates a study session before navigating to it", async () => {
