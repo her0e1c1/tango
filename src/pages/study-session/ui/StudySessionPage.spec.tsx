@@ -2,7 +2,7 @@ import type { Preferences } from "@/entities/preference";
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -50,6 +50,18 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionPage } from "./StudySessionPage";
 
+const DeckListDestination = () => {
+  const navigate = useNavigate();
+  return (
+    <>
+      <h1>Deck list destination</h1>
+      <button type="button" onClick={() => void navigate(-1)}>
+        Browser back
+      </button>
+    </>
+  );
+};
+
 describe("StudySessionPage", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
@@ -71,15 +83,18 @@ describe("StudySessionPage", () => {
     score: 1,
     numberOfSeen: 4,
   });
-  const renderPage = (path = `/deck/${deckId}/study`) =>
-    render(
-      <MemoryRouter initialEntries={[path]}>
+  const renderPage = (path = `/deck/${deckId}/study`, previousPath?: string) => {
+    const initialEntries = previousPath === undefined ? [path] : [previousPath, path];
+    return render(
+      <MemoryRouter initialEntries={initialEntries} initialIndex={initialEntries.length - 1}>
         <Routes>
-          <Route path="/" element={<h1>Deck list destination</h1>} />
+          <Route path="/" element={<DeckListDestination />} />
+          <Route path="/previous" element={<h1>Previous destination</h1>} />
           <Route path="/deck/:id/study" element={<StudySessionPage />} />
         </Routes>
       </MemoryRouter>
     );
+  };
   const openStudyActions = () => {
     fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
     return screen.getByRole("group", { name: "Study actions" });
@@ -294,7 +309,7 @@ describe("StudySessionPage", () => {
 
   it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
     setStudySessionIndex(deckId, 1);
-    renderPage();
+    renderPage(`/deck/${deckId}/study`, "/previous");
 
     fireEvent.click(screen.getByRole("button", { name: "Swipe up" }));
 
@@ -305,6 +320,13 @@ describe("StudySessionPage", () => {
 
     fireEvent.keyDown(window, { key: "ArrowUp" });
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Browser back" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Previous destination" })).toBeVisible();
+    expect(screen.queryByRole("heading", { level: 1, name: "Study complete" })).not.toBeInTheDocument();
   });
 
   it("keeps study actions available while the Header stays hidden", () => {

@@ -9,9 +9,9 @@ describe("StudyCompletion", () => {
     const onClickBack = vi.fn();
     render(<StudyCompletion cardCount={1} onClickBack={onClickBack} />);
 
-    expect(screen.getByRole("heading", { name: "Study complete" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Study complete" })).toHaveFocus();
     expect(screen.getByText("You studied 1 card.")).toBeVisible();
-    expect(screen.getByRole("status")).toHaveFocus();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
     expect(onClickBack).toHaveBeenCalledOnce();
