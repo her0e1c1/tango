@@ -69,6 +69,7 @@
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](./deck-management.md#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](./deck-management.md#deck-10) |
 | DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](./deck-management.md#deck-11) |
+| DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](./deck-management.md#deck-12) |
 
 ### Card
 

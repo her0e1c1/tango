@@ -1,6 +1,7 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { routes, useNavigationGuard } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -9,8 +10,18 @@ import { CardEditor } from "./CardEditor";
 
 const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
   const navigate = useNavigate();
-  const goBack = () => void navigate(-1);
-  const editor = useCardForm({ cardId, onSaved: goBack });
+  const goBack = () => navigate(-1);
+  const cancel = () => void goBack();
+  const editor = useCardForm({
+    cardId,
+    onSaved: (deckId) => {
+      const cardListPath = routes.cardList.to(deckId);
+      void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
+        navigate(cardListPath, { replace: true })
+      );
+    },
+  });
+  const guard = useNavigationGuard(editor != null && (editor.isDirty || editor.isSaving));
 
   if (editor == null) {
     return (
@@ -20,11 +31,13 @@ const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
 
   return (
     <AppLayout showHeader>
+      {guard.element}
       <CardEditor
         cardInfo={editor.cardInfo}
         categories={editor.categories}
         form={editor.form}
-        onCancel={goBack}
+        isSaving={editor.isSaving}
+        onCancel={cancel}
         onSubmit={editor.onSubmit}
         saveError={editor.saveError}
       />

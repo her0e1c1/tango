@@ -33,8 +33,7 @@ const DeckFormStory = ({ deck, isSaving, validationError, onCancel }: DeckFormSt
       form.setError("name", { message: "Deck name is required." });
       form.setError("url", { message: "Enter a valid URL." });
     }
-    if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
-  }, [form, isSaving, validationError]);
+  }, [form, validationError]);
 
   return (
     <DeckForm
@@ -42,6 +41,7 @@ const DeckFormStory = ({ deck, isSaving, validationError, onCancel }: DeckFormSt
       deckInfo={{ id: deck.id, createdAt: deck.createdAt, updatedAt: deck.updatedAt }}
       form={form}
       isLocalOnly={deck.localMode}
+      isSaving={isSaving}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(() => undefined)}
     />

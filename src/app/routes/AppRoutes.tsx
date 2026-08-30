@@ -3,8 +3,7 @@
  * Each URL is connected to a dedicated page component.
  */
 
-import type React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Outlet, type RouteObject } from "react-router-dom";
 
 import { AccountPage } from "@/pages/account";
 import { CardCreatePage } from "@/pages/card-create";
@@ -21,24 +20,26 @@ import { StudySessionPage } from "@/pages/study-session";
 import { StudySessionStartPage } from "@/pages/study-session-start";
 import { routes } from "@/shared/router";
 
-/**
- * Renders Tango's route tree inside the router supplied by the caller.
- * Production uses BrowserRouter while Storybook can provide MemoryRouter for isolated page stories.
- */
-export const AppRoutes: React.FC = () => (
-  <Routes>
-    <Route path={routes.deckList.path} element={<DeckListPage />} />
-    <Route path={routes.deckCreate.path} element={<DeckCreatePage />} />
-    <Route path={routes.cardList.path} element={<CardListPage />} />
-    <Route path={routes.cardCreate.path} element={<CardCreatePage />} />
-    <Route path={routes.deckForm.path} element={<DeckFormPage />} />
-    <Route path={routes.deckStudyStart.path} element={<StudySessionStartPage />} />
-    <Route path={routes.deckStudy.path} element={<StudySessionPage />} />
-    <Route path={routes.cardView.path} element={<CardViewPage />} />
-    <Route path={routes.cardForm.path} element={<CardFormPage />} />
-    <Route path={routes.account.path} element={<AccountPage />} />
-    <Route path={routes.settings.path} element={<SettingsPage />} />
-    <Route path={routes.deckImport.path} element={<DeckImportPage />} />
-    <Route path={routes.notFound.path} element={<NotFoundPage />} />
-  </Routes>
-);
+import { AppErrorFallback } from "../error-boundary";
+
+export const appRoutes = [
+  {
+    element: <Outlet />,
+    errorElement: <AppErrorFallback />,
+    children: [
+      { path: routes.deckList.path, element: <DeckListPage /> },
+      { path: routes.deckCreate.path, element: <DeckCreatePage /> },
+      { path: routes.cardList.path, element: <CardListPage /> },
+      { path: routes.cardCreate.path, element: <CardCreatePage /> },
+      { path: routes.deckForm.path, element: <DeckFormPage /> },
+      { path: routes.deckStudyStart.path, element: <StudySessionStartPage /> },
+      { path: routes.deckStudy.path, element: <StudySessionPage /> },
+      { path: routes.cardView.path, element: <CardViewPage /> },
+      { path: routes.cardForm.path, element: <CardFormPage /> },
+      { path: routes.account.path, element: <AccountPage /> },
+      { path: routes.settings.path, element: <SettingsPage /> },
+      { path: routes.deckImport.path, element: <DeckImportPage /> },
+      { path: routes.notFound.path, element: <NotFoundPage /> },
+    ],
+  },
+] satisfies RouteObject[];
