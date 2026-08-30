@@ -1,15 +1,13 @@
 import * as React from "react";
-import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, createDeck, deckFormSchema, generateDeckId, type DeckId } from "@/entities/deck";
+import type { DeckFormFields } from "@/features/deck-form";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
-
-export type DeckCreateFormValues = z.infer<typeof deckFormSchema>;
 
 interface UseDeckCreateFormOptions {
   onCreated: (deckId: DeckId) => void;
@@ -29,7 +27,7 @@ export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
   const isMounted = useMountedGuard();
   const [hasSaveError, setHasSaveError] = React.useState(false);
   const saveErrorToastId = React.useRef<ToastId | undefined>(undefined);
-  const form = useForm<DeckCreateFormValues>({
+  const form = useForm<DeckFormFields>({
     defaultValues: { name: "", category: "", convertToBr: false, localMode: false },
     resolver: zodResolver(deckFormSchema),
   });
@@ -38,7 +36,7 @@ export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
 
   React.useEffect(() => () => dismissOwnedToast(saveErrorToastId), []);
 
-  const submit = async (values: DeckCreateFormValues) => {
+  const submit = async (values: DeckFormFields) => {
     dismissSaveError();
     setHasSaveError(false);
     try {
@@ -47,6 +45,7 @@ export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
         name: values.name,
         category: values.category,
         convertToBr: values.convertToBr,
+        ...(values.url === undefined ? {} : { url: values.url }),
       };
       await createDeck(uid, values.localMode ? { ...deck, localMode: true } : { ...deck, localMode: false });
       // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.

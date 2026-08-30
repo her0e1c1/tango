@@ -6,10 +6,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck, useDeck } from "@/entities/deck";
+import { DeckForm } from "@/features/deck-form";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { actAsync } from "@/test/act";
 import { createLocalDeck } from "@/test/factories";
 
-import { useDeckForm } from "../model/useDeckForm";
+import { useDeckForm } from "./useDeckForm";
 
 const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,
@@ -53,14 +55,13 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 
-import { DeckEditor } from "./DeckEditor";
-
-const DeckEditorHarness = (props: { deckId: string; onCancel: () => void; onSaved: () => void }) => {
+const DeckFormHarness = (props: { deckId: string; onCancel: () => void; onSaved: () => void }) => {
   const editor = useDeckForm({ deckId: props.deckId, onSaved: props.onSaved });
 
   if (editor == null) return null;
   return (
-    <DeckEditor
+    <DeckForm
+      mode="edit"
       categories={editor.categories}
       deckInfo={editor.deckInfo}
       deckName={editor.deckName}
@@ -68,26 +69,25 @@ const DeckEditorHarness = (props: { deckId: string; onCancel: () => void; onSave
       isLocalOnly={editor.isLocalOnly}
       isSaving={editor.isSaving}
       onCancel={props.onCancel}
-      onDelete={() => undefined}
       onSubmit={editor.onSubmit}
     />
   );
 };
 
 // A fresh Entity read after remount proves that the form displays the last successful edit.
-const StoredDeckEditorHarness = (props: { deckId: DeckId; onCancel: () => void; onSaved: () => void }) => {
+const StoredDeckFormHarness = (props: { deckId: DeckId; onCancel: () => void; onSaved: () => void }) => {
   const deck = useDeck(props.deckId);
   return deck === undefined ? null : (
-    <DeckEditorHarness deckId={deck.id} onCancel={props.onCancel} onSaved={props.onSaved} />
+    <DeckFormHarness deckId={deck.id} onCancel={props.onCancel} onSaved={props.onSaved} />
   );
 };
 
-describe("DeckEditor", () => {
+describe("useDeckForm (DECK-02)", () => {
   const deckId = "deck-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
     render(
       <>
-        <StoredDeckEditorHarness deckId={deckId} onCancel={onCancel} onSaved={onSaved} />
+        <StoredDeckFormHarness deckId={deckId} onCancel={onCancel} onSaved={onSaved} />
         <ToastViewport />
       </>
     );
@@ -242,6 +242,55 @@ describe("DeckEditor", () => {
 
     expect(name).toHaveValue("Unsaved deck");
     expect(screen.getByRole("combobox")).toHaveValue("science");
+  });
+
+  it("restores the confirmed baseline after an optimistic snapshot fails", async () => {
+    let rejectWrite: (error: Error) => void = () => undefined;
+    writeControls.beforeWrite = () =>
+      new Promise<void>((_resolve, reject) => {
+        rejectWrite = reject;
+      });
+    const onSaved = vi.fn();
+    renderForm(onSaved);
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Retry deck");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await createDeck("", createLocalDeck({ id: deckId, name: "Retry deck", category: "language" }));
+    await actAsync(async () => rejectWrite(new Error("write failed")));
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+
+    await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", category: "language" }));
+    expect(name).toHaveValue("Retry deck");
+    writeControls.beforeWrite = undefined;
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(writeControls.writes.at(-1)?.deck).toEqual(expect.objectContaining({ name: "Retry deck" }));
+  });
+
+  it("keeps edits made after submission when the pending save succeeds", async () => {
+    let finishSave: () => void = () => undefined;
+    writeControls.beforeWrite = () =>
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      });
+    const onSaved = vi.fn();
+    renderForm(onSaved);
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Submitted deck");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await createDeck("", createLocalDeck({ id: deckId, name: "Submitted deck", category: "language" }));
+    await userEvent.clear(name);
+    await userEvent.type(name, "Later deck");
+    await actAsync(async () => finishSave());
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
+    expect(name).toHaveValue("Later deck");
+    expect(onSaved).not.toHaveBeenCalled();
   });
 
   it("keeps stored values unchanged when validation rejects the form", async () => {

@@ -1,17 +1,15 @@
 import * as React from "react";
-import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, type Deck, deckFormSchema, editDeck, useDeck } from "@/entities/deck";
+import type { DeckFormFields } from "@/features/deck-form";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
 
-export type DeckFormValues = z.infer<typeof deckFormSchema>;
-
-const getDeckFormValues = (deck: Deck): DeckFormValues => ({
+const getDeckFormValues = (deck: Deck): DeckFormFields => ({
   name: deck.name,
   category: deck.category,
   url: deck.url || undefined,
@@ -19,14 +17,14 @@ const getDeckFormValues = (deck: Deck): DeckFormValues => ({
   localMode: deck.localMode,
 });
 
-const getDeckEditInput = (deck: Deck, values: DeckFormValues): Parameters<typeof editDeck>[1] => ({
+const getDeckEditInput = (deck: Deck, values: DeckFormFields): Parameters<typeof editDeck>[1] => ({
   id: deck.id,
   ...values,
   localMode: values.localMode ?? deck.localMode,
   url: values.url ?? null,
 });
 
-const areDeckFormValuesEqual = (left: DeckFormValues, right: DeckFormValues): boolean =>
+const areDeckFormValuesEqual = (left: DeckFormFields, right: DeckFormFields): boolean =>
   left.name === right.name &&
   left.category === right.category &&
   left.url === right.url &&
@@ -50,9 +48,10 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
   const deck = useDeck(deckId);
   const isMounted = useMountedGuard();
   const saveErrorToastId = React.useRef<ToastId | undefined>(undefined);
+  // Reactive Deck snapshots can reset RHF state mid-write, so this lock must span the persistence request itself.
   const [isSaving, setIsSaving] = React.useState(false);
-  const [failedBaseline, setFailedBaseline] = React.useState<DeckFormValues | null>(null);
-  const form = useForm<DeckFormValues>({
+  const [failedBaseline, setFailedBaseline] = React.useState<DeckFormFields | null>(null);
+  const form = useForm<DeckFormFields>({
     ...(deck && { values: getDeckFormValues(deck) }),
     // Subscription refreshes may update clean fields, but must not erase the user's retry payload.
     resetOptions: { keepDirtyValues: true },
@@ -65,7 +64,7 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
 
   if (deck == null) return;
 
-  const submit = async (values: DeckFormValues) => {
+  const submit = async (values: DeckFormFields) => {
     const savedInput = { ...values };
     const submittedInput = form.getValues();
     // A failed attempt keeps its pre-optimistic baseline for retries that start before Firestore rolls back.
