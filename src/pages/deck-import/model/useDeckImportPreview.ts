@@ -15,18 +15,13 @@ interface DeckImportPreviewState {
   error: unknown;
 }
 
-interface PreparedDeckImportState {
-  preparedImport: PreparedDeckImport | undefined;
-}
-
 const initialState = (): DeckImportPreviewState => ({
   storageMode: "remote",
   error: null,
 });
-const createPreparedImportState = (): PreparedDeckImportState => ({ preparedImport: undefined });
 
 export const useDeckImportPreview = (uid: string) => {
-  const preparedImportRef = useRef<PreparedDeckImportState>(createPreparedImportState());
+  const preparedImportRef = useRef<PreparedDeckImport | undefined>(undefined);
   const [state, setState] = useState<DeckImportPreviewState>(initialState);
   const updateState = (update: Partial<DeckImportPreviewState>) => {
     setState((current) => ({ ...current, ...update }));
@@ -34,7 +29,7 @@ export const useDeckImportPreview = (uid: string) => {
 
   const selectFile = async (file: File) => {
     const { storageMode } = state;
-    preparedImportRef.current.preparedImport = undefined;
+    preparedImportRef.current = undefined;
     setState({ storageMode, error: null });
 
     try {
@@ -44,7 +39,7 @@ export const useDeckImportPreview = (uid: string) => {
         { uid, generateDeckId, generateCardId }
       );
       const preview = { deckName: file.name, analysis };
-      preparedImportRef.current.preparedImport = preparedImport;
+      preparedImportRef.current = preparedImport;
       updateState({ preview });
     } catch (caughtError) {
       updateState({ error: caughtError });
@@ -54,7 +49,7 @@ export const useDeckImportPreview = (uid: string) => {
   const setStorageMode = (storageMode: DeckImportStorageMode) => {
     if (state.storageMode === storageMode) return false;
 
-    preparedImportRef.current.preparedImport = undefined;
+    preparedImportRef.current = undefined;
     setState({ storageMode, error: null });
     return true;
   };
@@ -64,11 +59,12 @@ export const useDeckImportPreview = (uid: string) => {
     if (preview == null) throw new Error("Select a CSV file before importing");
     if (preview.analysis.invalidCount > 0) throw new Error("Fix invalid CSV rows before importing");
     if (preview.analysis.rows.length === 0) throw new Error("The CSV file has no valid rows");
-    if (preparedImportRef.current.preparedImport == null) {
+    const preparedImport = preparedImportRef.current;
+    if (preparedImport === undefined) {
       throw new Error("The prepared Deck import is not available");
     }
 
-    return preparedImportRef.current.preparedImport;
+    return preparedImport;
   };
 
   return {
@@ -76,7 +72,7 @@ export const useDeckImportPreview = (uid: string) => {
     setStorageMode,
     getPreparedImport,
     completePreparedImport: () => {
-      preparedImportRef.current.preparedImport = undefined;
+      preparedImportRef.current = undefined;
     },
     clearError: () => updateState({ error: null }),
     storageMode: state.storageMode,
