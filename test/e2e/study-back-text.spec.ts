@@ -141,7 +141,7 @@ test("SWIPE-21 runs the mapped right overlay action once and shows the next Card
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-22 selects edge answer text beside overlays on a narrow viewport", async ({ fixture, page }) => {
+test("SWIPE-22 keeps the full answer width beneath overlays on a narrow viewport", async ({ fixture, page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   const deck = fixture.deck();
   const session = fixture.session();
@@ -149,28 +149,33 @@ test("SWIPE-22 selects edge answer text beside overlays on a narrow viewport", a
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
-  await revealAnswer(page, currentCard.frontText);
+  const answerRegion = await revealAnswer(page, currentCard.frontText);
+  const answerContent = page.locator("[data-study-answer-content]");
+  const backTextSurface = answerContent.locator(":scope > *").first();
   const leftOverlayButton = page.getByRole("button", { name: "Swipe left" });
   const rightOverlayButton = page.getByRole("button", { name: "Swipe right" });
   const answerText = page.getByText(currentCard.backText, { exact: true });
-  const leftOverlay = await leftOverlayButton.boundingBox();
-  const rightOverlay = await rightOverlayButton.boundingBox();
-  const answerTextBounds = await answerText.boundingBox();
-  if (leftOverlay == null || rightOverlay == null || answerTextBounds == null) {
-    throw new Error("Expected visible answer text and back text overlays");
+  const answerRegionBounds = await answerRegion.boundingBox();
+  const backTextSurfaceBounds = await backTextSurface.boundingBox();
+  const leftOverlayBounds = await leftOverlayButton.boundingBox();
+  const rightOverlayBounds = await rightOverlayButton.boundingBox();
+  if (
+    answerRegionBounds == null ||
+    backTextSurfaceBounds == null ||
+    leftOverlayBounds == null ||
+    rightOverlayBounds == null
+  ) {
+    throw new Error("Expected visible answer region, back text, and overlays");
   }
 
-  expect(answerTextBounds.x).toBeGreaterThanOrEqual(leftOverlay.x + leftOverlay.width);
-  expect(answerTextBounds.x + answerTextBounds.width).toBeLessThanOrEqual(rightOverlay.x);
-
-  await selectBackText(page, currentCard.backText);
+  expect(backTextSurfaceBounds.x).toBe(answerRegionBounds.x);
+  expect(backTextSurfaceBounds.width).toBe(answerRegionBounds.width);
+  expect(leftOverlayBounds.x + leftOverlayBounds.width).toBeGreaterThan(backTextSurfaceBounds.x);
+  expect(rightOverlayBounds.x).toBeLessThan(backTextSurfaceBounds.x + backTextSurfaceBounds.width);
 
   await expect(answerText).toBeVisible();
   await expect(leftOverlayButton).toBeVisible();
   await expect(rightOverlayButton).toBeVisible();
-  await expect
-    .poll(async () => page.evaluate(() => window.getSelection()?.toString() ?? ""))
-    .toContain(currentCard.backText);
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });

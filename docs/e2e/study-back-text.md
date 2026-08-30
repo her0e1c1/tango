@@ -160,7 +160,7 @@ Then:
 
 <a id="swipe-22"></a>
 
-### SWIPE-22 狭い画面で overlay と重ならずに端の裏面 text を選択できる
+### SWIPE-22 狭い画面でも overlay の下で裏面を全幅表示できる
 
 カテゴリ: `read`
 
@@ -173,13 +173,13 @@ Given:
 
 When:
 
-- 現在の Card を裏面へ切り替え、左端から始まる back text を primary mouse button の drag で選択する。
+- 現在の Card を裏面へ切り替える。
 
 Then:
 
-- back text の表示領域が左右 overlay と重ならない。
-- 選択範囲に対象 Card の back text が含まれる。
-- 対象 Card の back text と左右 overlay が引き続き表示される。
+- back text の表示領域が answer region と同じ幅を維持する。
+- 左右 overlay が back text の上に浮いた状態で表示される。
+- 対象 Card の back text が表示される。
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
