@@ -6,7 +6,7 @@
 
 import type { LocalCard, RemoteCard } from "@/entities/card/testing";
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
-import type { Preferences } from "@/entities/preference";
+import type { LanguagePreference, Preferences } from "@/entities/preference";
 
 type AppearancePreferences = Preferences["appearance"];
 type StudyPreferences = Preferences["study"];
@@ -99,6 +99,7 @@ export const createLocalCard = (overrides: Partial<LocalCard> = {}): LocalCard =
 
 export type PreferencesOverrides = {
   loadSample?: boolean;
+  language?: LanguagePreference;
   appearance?: Partial<AppearancePreferences>;
   study?: Partial<StudyPreferences>;
   controls?: Partial<ControlPreferences>;
@@ -164,9 +165,10 @@ const createControls = (
  * Tests can change one setting without repeating every required preference field.
  */
 export const createPreferences = (overrides: PreferencesOverrides = {}): Preferences => {
-  const { loadSample = true, appearance, study, controls, ...flat } = overrides;
+  const { loadSample = true, language = "system", appearance, study, controls, ...flat } = overrides;
   return {
     loadSample,
+    language,
     appearance: createAppearance(appearance, flat),
     study: createStudy(study, flat),
     controls: createControls(controls, flat),

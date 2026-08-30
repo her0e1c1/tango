@@ -1,11 +1,12 @@
 import type * as React from "react";
 import { useId } from "react";
-import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool } from "react-icons/ai";
+import { AiOutlineDown, AiOutlineEye, AiOutlineGlobal, AiOutlinePlayCircle, AiOutlineTool } from "react-icons/ai";
 import { type UseFormReturn, useWatch } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import type { Preferences } from "@/entities/preference";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
-import { Slider, Switch } from "@/shared/ui/forms";
+import { Select, Slider, Switch } from "@/shared/ui/forms";
 
 const repositoryUrl = "https://github.com/her0e1c1/tango";
 
@@ -20,6 +21,7 @@ export interface SettingsFormProps {
 }
 
 export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
+  const { t } = useTranslation();
   const shortCommitHash = props.commitHash?.slice(0, 7);
   const commitUrl =
     props.commitHash && props.commitHash !== "unknown" ? `${repositoryUrl}/commit/${props.commitHash}` : undefined;
@@ -30,6 +32,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
   const cardInterval = useWatch({ control: props.form.control, name: "study.cardInterval" });
   const idPrefix = useId();
   const inputIds = {
+    language: `${idPrefix}-language`,
     showSwipeButtonList: `${idPrefix}-show-swipe-controls`,
     showPlaybackControls: `${idPrefix}-show-playback-controls`,
     showCardDetails: `${idPrefix}-show-card-details`,
@@ -52,15 +55,42 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
   return (
     <section className="mx-auto flex w-full max-w-reading flex-col gap-4 text-ink">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-        <h1 className="break-words text-title font-bold text-ink">Settings</h1>
-        <p className="text-caption text-ink-muted">Changes are saved automatically</p>
+        <h1 className="break-words text-title font-bold text-ink">{t("settings.title")}</h1>
+        <p className="text-caption text-ink-muted">{t("settings.autoSave")}</p>
       </div>
       <div className="space-y-4">
-        <SettingsSection title="Appearance" description="Study controls and visual feedback" icon={<AiOutlineEye />}>
+        <SettingsSection
+          title={t("settings.language.title")}
+          description={t("settings.language.description")}
+          icon={<AiOutlineGlobal />}
+        >
+          <SettingsRow
+            inputId={inputIds.language}
+            label={t("settings.language.label")}
+            description={t("settings.language.help")}
+          >
+            <Select
+              {...props.form.register("language")}
+              id={inputIds.language}
+              aria-describedby={descriptionId(inputIds.language)}
+              options={[
+                { label: t("settings.language.system"), value: "system" },
+                { label: t("settings.language.english"), value: "en" },
+                { label: t("settings.language.japanese"), value: "ja" },
+              ]}
+            />
+          </SettingsRow>
+        </SettingsSection>
+
+        <SettingsSection
+          title={t("settings.appearance.title")}
+          description={t("settings.appearance.description")}
+          icon={<AiOutlineEye />}
+        >
           <SettingsRow
             inputId={inputIds.showSwipeButtonList}
-            label="Show swipe controls"
-            description="Display study swipe action controls"
+            label={t("settings.appearance.showSwipeControls.label")}
+            description={t("settings.appearance.showSwipeControls.help")}
           >
             <Switch
               {...props.form.register("controls.showSwipeButtonList")}
@@ -70,8 +100,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           </SettingsRow>
           <SettingsRow
             inputId={inputIds.showPlaybackControls}
-            label="Show playback controls"
-            description="Display autoplay and progress controls"
+            label={t("settings.appearance.showPlaybackControls.label")}
+            description={t("settings.appearance.showPlaybackControls.help")}
           >
             <Switch
               {...props.form.register("controls.showPlaybackControls")}
@@ -81,8 +111,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           </SettingsRow>
           <SettingsRow
             inputId={inputIds.showCardDetails}
-            label="Show card details"
-            description="Display score and study history during a session"
+            label={t("settings.appearance.showCardDetails.label")}
+            description={t("settings.appearance.showCardDetails.help")}
           >
             <Switch
               {...props.form.register("controls.showCardDetails")}
@@ -92,8 +122,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           </SettingsRow>
           <SettingsRow
             inputId={inputIds.showSwipeFeedback}
-            label="Show swipe feedback"
-            description="Confirm each study action on screen"
+            label={t("settings.appearance.showSwipeFeedback.label")}
+            description={t("settings.appearance.showSwipeFeedback.help")}
           >
             <Switch
               {...props.form.register("appearance.showSwipeFeedback")}
@@ -101,7 +131,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
               aria-describedby={descriptionId(inputIds.showSwipeFeedback)}
             />
           </SettingsRow>
-          <SettingsRow inputId={inputIds.darkMode} label="Dark mode" description="Use the darker Calm Focus palette">
+          <SettingsRow
+            inputId={inputIds.darkMode}
+            label={t("settings.appearance.darkMode.label")}
+            description={t("settings.appearance.darkMode.help")}
+          >
             <Switch
               {...props.form.register("appearance.darkMode")}
               id={inputIds.darkMode}
@@ -111,11 +145,15 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         </SettingsSection>
 
         <SettingsSection
-          title="Study"
-          description="Card order, session size, and autoplay"
+          title={t("settings.study.title")}
+          description={t("settings.study.description")}
           icon={<AiOutlinePlayCircle />}
         >
-          <SettingsRow inputId={inputIds.shuffled} label="Shuffle cards" description="Randomize each study session">
+          <SettingsRow
+            inputId={inputIds.shuffled}
+            label={t("settings.study.shuffleCards.label")}
+            description={t("settings.study.shuffleCards.help")}
+          >
             <Switch
               {...props.form.register("study.shuffled")}
               id={inputIds.shuffled}
@@ -124,8 +162,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           </SettingsRow>
           <SettingsRow
             inputId={inputIds.maxNumberOfCardsToLearn}
-            label="Maximum cards"
-            description="Limit the size of a study session"
+            label={t("settings.study.maximumCards.label")}
+            description={t("settings.study.maximumCards.help")}
             controlPosition="second-row"
           >
             <div className="flex w-full items-center gap-2">
@@ -135,7 +173,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 max={props.studyPreferencesLimits.maxNumberOfCardsToLearn.max}
                 id={inputIds.maxNumberOfCardsToLearn}
                 aria-describedby={descriptionId(inputIds.maxNumberOfCardsToLearn)}
-                aria-valuetext={`${String(maxNumberOfCardsToLearn)} cards`}
+                aria-valuetext={t("settings.study.maximumCards.value", { count: maxNumberOfCardsToLearn })}
               />
               <span className="min-w-10 rounded-control bg-surface-muted px-2 py-1 text-center text-caption font-bold text-accent-primary">
                 {maxNumberOfCardsToLearn}
@@ -144,8 +182,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           </SettingsRow>
           <SettingsRow
             inputId={inputIds.useCardInterval}
-            label="Respect review schedule"
-            description="Hide cards until their next review time"
+            label={t("settings.study.respectReviewSchedule.label")}
+            description={t("settings.study.respectReviewSchedule.help")}
           >
             <Switch
               {...props.form.register("study.useCardInterval")}
@@ -155,8 +193,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           </SettingsRow>
           <SettingsRow
             inputId={inputIds.defaultAutoPlay}
-            label="Start autoplay"
-            description="Begin playback when study opens"
+            label={t("settings.study.startAutoplay.label")}
+            description={t("settings.study.startAutoplay.help")}
           >
             <Switch
               {...props.form.register("study.defaultAutoPlay")}
@@ -166,8 +204,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           </SettingsRow>
           <SettingsRow
             inputId={inputIds.cardInterval}
-            label="Autoplay interval"
-            description="Seconds between cards"
+            label={t("settings.study.autoplayInterval.label")}
+            description={t("settings.study.autoplayInterval.help")}
             controlPosition="second-row"
           >
             <div className="flex w-full items-center gap-2">
@@ -177,10 +215,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 max={props.studyPreferencesLimits.cardInterval.max}
                 id={inputIds.cardInterval}
                 aria-describedby={descriptionId(inputIds.cardInterval)}
-                aria-valuetext={`${String(cardInterval)} seconds`}
+                aria-valuetext={t("settings.study.autoplayInterval.value", { count: cardInterval })}
               />
               <span className="min-w-10 rounded-control bg-surface-muted px-2 py-1 text-center text-caption font-bold text-accent-primary">
-                {cardInterval}s
+                {t("settings.study.autoplayInterval.shortValue", { count: cardInterval })}
               </span>
             </div>
           </SettingsRow>
@@ -199,9 +237,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             </span>
             <span className="min-w-0 flex-1">
               <h2 id={advancedHeadingId} className="text-body font-bold text-ink">
-                Advanced
+                {t("settings.advanced.title")}
               </h2>
-              <span className="block text-caption text-ink-muted">Application version and commit</span>
+              <span className="block text-caption text-ink-muted">{t("settings.advanced.description")}</span>
             </span>
             <AiOutlineDown
               aria-hidden="true"
@@ -210,11 +248,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           </summary>
           <div className="border-t border-border">
             <div className="flex min-h-touch items-center justify-between gap-4 px-4 py-3">
-              <span className="text-body font-medium text-ink">Version</span>
+              <span className="text-body font-medium text-ink">{t("settings.advanced.version")}</span>
               <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.version}</span>
             </div>
             <div className="flex min-h-touch items-center justify-between gap-4 border-t border-border px-4 py-3">
-              <span className="text-body font-medium text-ink">Commit hash</span>
+              <span className="text-body font-medium text-ink">{t("settings.advanced.commitHash")}</span>
               {commitUrl ? (
                 <a
                   className="min-w-0 break-all text-right text-caption text-accent-primary underline underline-offset-2"

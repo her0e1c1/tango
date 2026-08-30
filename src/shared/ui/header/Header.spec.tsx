@@ -38,4 +38,22 @@ describe("Header", () => {
 
     expect(events).toEqual(["logo", "dark:true", "import", "account", "settings", "dark:false"]);
   });
+
+  it("uses prepared localized labels without changing action behavior", () => {
+    render(
+      <Header
+        labels={{
+          switchToDarkMode: "ダークモードに切り替え",
+          importDecks: "デッキをインポート",
+          openAccount: "アカウントを開く",
+          openSettings: "設定を開く",
+        }}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "ダークモードに切り替え" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "デッキをインポート" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "アカウントを開く" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "設定を開く" })).toBeVisible();
+  });
 });

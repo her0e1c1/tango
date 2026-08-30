@@ -33,6 +33,9 @@ const DEFAULT_CONTROLS = {
 };
 
 const DEFAULT_LOAD_SAMPLE = true;
+const DEFAULT_LANGUAGE = "system" as const;
+
+export const languagePreferenceSchema = z.enum(["system", "en", "ja"]);
 
 export const swipeActionSchema = z.enum([
   "DoNothing",
@@ -91,12 +94,15 @@ export const controlPreferencesSchema = z
 export const preferencesSchema = z
   .object({
     loadSample: z.boolean().catch(DEFAULT_LOAD_SAMPLE),
+    // Storage version 2 predates this field, so recover it locally without discarding the rest of the snapshot.
+    language: languagePreferenceSchema.catch(DEFAULT_LANGUAGE),
     appearance: appearancePreferencesSchema,
     study: studyPreferencesSchema,
     controls: controlPreferencesSchema,
   })
   .catch({
     loadSample: DEFAULT_LOAD_SAMPLE,
+    language: DEFAULT_LANGUAGE,
     appearance: DEFAULT_APPEARANCE,
     study: DEFAULT_STUDY,
     controls: DEFAULT_CONTROLS,

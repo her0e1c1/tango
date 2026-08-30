@@ -3,6 +3,7 @@ import type React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useForm } from "react-hook-form";
+import { getI18n } from "react-i18next";
 import { describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -32,7 +33,9 @@ describe("SettingsForm", () => {
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
     expect(screen.getByText("Changes are saved automatically")).toBeVisible();
-    for (const name of ["Appearance", "Study"]) expect(screen.getByRole("region", { name })).toBeInTheDocument();
+    for (const name of ["Language", "Appearance", "Study"]) {
+      expect(screen.getByRole("region", { name })).toBeInTheDocument();
+    }
     expect(screen.queryByRole("region", { name: "Account" })).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Advanced" })).toBeInTheDocument();
   });
@@ -41,17 +44,23 @@ describe("SettingsForm", () => {
     render(<SettingsFormHarness />);
     const playback = screen.getByRole("checkbox", { name: "Show playback controls" });
     const cardDetails = screen.getByRole("checkbox", { name: "Show card details" });
+    const language = screen.getByRole("combobox", { name: "Language" });
     const maximumCards = screen.getByRole("slider", { name: "Maximum cards" });
     expect(playback).toBeChecked();
     expect(cardDetails).toBeChecked();
+    expect(language).toHaveValue("system");
+    expect(language).toHaveDisplayValue("System");
     expect(maximumCards).toHaveValue("24");
 
+    await userEvent.selectOptions(language, "ja");
     await userEvent.click(playback);
     await userEvent.click(cardDetails);
     fireEvent.change(maximumCards, { target: { value: "31" } });
 
     expect(playback).not.toBeChecked();
     expect(cardDetails).not.toBeChecked();
+    expect(language).toHaveValue("ja");
+    expect(language).toHaveDisplayValue("日本語");
     expect(maximumCards).toHaveValue("31");
     expect(maximumCards).toHaveAttribute("aria-valuetext", "31 cards");
     expect(screen.getByText("31")).toBeInTheDocument();
@@ -80,9 +89,21 @@ describe("SettingsForm", () => {
         <SettingsFormHarness />
       </>
     );
-    for (const name of ["Appearance", "Study"]) {
+    for (const name of ["Language", "Appearance", "Study"]) {
       expect(screen.getAllByRole("region", { name })).toHaveLength(2);
       expect(screen.getAllByRole("heading", { level: 2, name })).toHaveLength(2);
     }
+  });
+
+  it("renders Japanese presentation and accessible value text from the active locale", async () => {
+    await getI18n().changeLanguage("ja");
+
+    render(<SettingsFormHarness />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
+    expect(screen.getByRole("checkbox", { name: "ダークモード" })).toBeVisible();
+    expect(screen.getByRole("slider", { name: "最大カード数" })).toHaveAttribute("aria-valuetext", "24枚");
+    expect(screen.getByRole("slider", { name: "自動再生の間隔" })).toHaveAttribute("aria-valuetext", "7秒");
   });
 });
