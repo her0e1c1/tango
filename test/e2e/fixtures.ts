@@ -12,6 +12,7 @@ import {
   type FixtureCard,
   type FixtureCategory,
   type FixtureDeck,
+  type FixturePreferences,
   type FixtureSource,
   type FixtureState,
   type FixtureStudySession,
@@ -232,7 +233,10 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
   });
 };
 
-export const e2eConfig = {
+export type E2EConfig = FixturePreferences;
+
+export const e2eConfig: E2EConfig = {
+  language: "en",
   loadSample: false,
   appearance: {
     darkMode: false,
@@ -263,7 +267,6 @@ export const e2eConfig = {
   },
 };
 
-export type E2EConfig = typeof e2eConfig;
 export type E2EConfigOverrides = Partial<Omit<E2EConfig, "appearance" | "study" | "controls">> & {
   appearance?: Partial<E2EConfig["appearance"]>;
   study?: Partial<E2EConfig["study"]>;

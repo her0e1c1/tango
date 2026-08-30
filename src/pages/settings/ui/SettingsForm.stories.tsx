@@ -43,6 +43,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const Japanese: Story = {
+  parameters: { locale: "ja" },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+    await expect(canvas.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
+  },
+};
 export const Interaction: Story = {
   play: async ({ canvas, userEvent }) => {
     const playback = canvas.getByRole<HTMLInputElement>("checkbox", { name: "Show playback controls" });

@@ -31,6 +31,11 @@ const PreferencesFormHarness: React.FC = () => {
     <>
       <input aria-label="Show playback controls" type="checkbox" {...form.register("controls.showPlaybackControls")} />
       <input aria-label="Dark mode" type="checkbox" {...form.register("appearance.darkMode")} />
+      <select aria-label="Language" {...form.register("language")}>
+        <option value="system">System</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+      </select>
       <input
         aria-label="Maximum cards"
         type="range"
@@ -46,6 +51,7 @@ const PreferencesFormHarness: React.FC = () => {
       </output>
       <output aria-label="Saved maximum cards">{savedPreferences.study.maxNumberOfCardsToLearn}</output>
       <output aria-label="Saved autoplay interval">{savedPreferences.study.cardInterval}</output>
+      <output aria-label="Saved language preference">{savedPreferences.language}</output>
     </>
   );
 };
@@ -59,6 +65,7 @@ describe("usePreferencesForm", () => {
     render(<PreferencesFormHarness />);
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Show playback controls" }));
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Language" }), "ja");
     fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
       target: { value: 10 },
     });
@@ -70,6 +77,7 @@ describe("usePreferencesForm", () => {
       expect(screen.getByLabelText("Saved playback controls preference")).toHaveTextContent("true");
       expect(screen.getByLabelText("Saved maximum cards")).toHaveTextContent("10");
       expect(screen.getByLabelText("Saved autoplay interval")).toHaveTextContent("10");
+      expect(screen.getByLabelText("Saved language preference")).toHaveTextContent("ja");
     });
   });
 
