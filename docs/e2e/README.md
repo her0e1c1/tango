@@ -43,7 +43,10 @@
 - Deck の省略 field は `isPublic: false`、`scoreMax: null`、`scoreMin: null`、`selectedTags: []`、`tagAndFilter: false`、`category: ""`、`convertToBr: false`、`createdAt: 0`、`updatedAt: 0` として正規化し、remote Deck の `deletedAt` は `null` とする。
 - Card の省略 field は `tags: []`、`score: 0`、`numberOfSeen: 0`、`deletedAt: null`、`createdAt: 0`、`updatedAt: 0` として正規化する。
 - Study session の省略された `lastStudiedAt` は `0` として正規化する。
-- fixture に記述していない preference はアプリケーションの既定値を利用し、`loadSample` の既定値は `true` とする。
+- fixture に記述していない preference は、`language` を除いてアプリケーションの既定値を利用し、`loadSample` の既定値は `true` とする。
+- `browser.preferences.language` は `system`、`en`、`ja` のいずれかを指定する。
+- E2E に限り、省略された `language` は共通の `en` として正規化する。各 fixture へ同じ設定を重複させず、既存ケースの English UI と accessible name を実行環境の browser locale に依存しない baseline として維持する。
+- System locale を確認する focused case だけ、scoped browser context で locale を上書きする。
 - 継承を materialize した結果に存在しない collection は空として扱う。
 - 認証失敗、network failure、dialog の表示状態など永続状態ではない前提は fixture に含めず、各ケースの `Given` に記述する。
 
@@ -77,6 +80,8 @@
 | SETTINGS-01 | write | [Dark mode を自動保存して reload 後も反映できる](./settings.md#settings-01) |
 | SETTINGS-02 | write | [Maximum cards 設定を学習開始画面に反映できる](./settings.md#settings-02) |
 | SETTINGS-03 | batch | [Respect review schedule を次の学習 session に反映できる](./settings.md#settings-03) |
+| SETTINGS-04 | write | [日本語設定を自動保存して reload 後も反映できる](./settings.md#settings-04) |
+| SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](./settings.md#settings-05) |
 
 ### Import
 
