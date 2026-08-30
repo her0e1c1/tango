@@ -108,7 +108,8 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
 
   const dialog = await openDeckDeleteDialog(page, deck.name);
   await dialog.getByRole("button", { name: "Delete deck" }).click();
-  await expect(dialog.getByRole("alert")).toContainText(
+  await expect(dialog.getByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText(
     "Unable to delete this deck. Check your connection and try again."
   );
   await expect(dialog).toBeVisible();

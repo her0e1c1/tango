@@ -72,7 +72,7 @@ test("CARD-15 retries a failed remote Card create with the same ID and no duplic
   await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
   await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
-  await expect(page.getByText("Unable to create this card. Try again.")).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("Unable to create this card. Try again.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();

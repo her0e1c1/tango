@@ -159,7 +159,10 @@ describe("DeckListPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
     const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
-    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+    expect(
+      await within(dialog).findByText("Unable to delete this deck. Check your connection and try again.")
+    ).toBeVisible();
+    expect(screen.getByRole("alert")).toHaveTextContent(
       "Unable to delete this deck. Check your connection and try again."
     );
     expect(within(dialog).queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
