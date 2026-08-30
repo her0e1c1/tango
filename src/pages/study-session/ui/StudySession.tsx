@@ -77,7 +77,7 @@ const StudyToolbar: React.FC<{
     >
       <button
         type="button"
-        aria-label="Back to cards"
+        aria-label="Back to deck list"
         className={cx(
           toolbarButtonClass,
           "border border-border bg-surface-elevated/90 shadow-elevated backdrop-blur-md"
