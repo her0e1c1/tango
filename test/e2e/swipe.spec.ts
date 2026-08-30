@@ -349,6 +349,8 @@ test("SWIPE-24 shows configured Study controls without changing the active sessi
 
   await page.goto(`/deck/${deck.id}/study`);
   const progressBeforeHelp = await readProgress(currentCard.id);
+  await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Open study actions" }).click();
   await page.getByRole("button", { name: "Open study help" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Study controls" });

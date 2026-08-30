@@ -96,7 +96,7 @@ export const controlPreferencesSchema = z
 export const preferencesSchema = z
   .object({
     loadSample: z.boolean().catch(DEFAULT_LOAD_SAMPLE),
-    // Storage version 2 predates this field, so recover it locally without discarding the rest of the snapshot.
+    // Language is additive within persistence version 1, so recover it without discarding the rest of the snapshot.
     language: languagePreferenceSchema.catch(DEFAULT_LANGUAGE),
     appearance: appearancePreferencesSchema,
     study: studyPreferencesSchema,
