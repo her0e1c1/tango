@@ -11,19 +11,11 @@ import {
 } from "react-icons/ai";
 import { MdSwipe } from "react-icons/md";
 import { useSwipeable } from "react-swipeable";
-import type { SwipeDirection } from "@/entities/preference";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
 import { StudyHelpDialog, type StudyHelpDialogProps } from "./StudyHelpDialog";
 import { SwipeButtonList, type SwipeButtonListProps } from "./SwipeButtonList";
-
-const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
-  cardSwipeUp: "Swiped up",
-  cardSwipeDown: "Swiped down",
-  cardSwipeLeft: "Swiped left",
-  cardSwipeRight: "Swiped right",
-};
 
 const PLAYBACK_UNAVAILABLE_DESCRIPTION = "Playback controls unavailable because the card interval is set to 0";
 
@@ -32,7 +24,6 @@ type StudyLayoutStyles = React.CSSProperties & {
   "--study-safe-area-bottom": string;
   "--study-toolbar-top": string;
   "--study-card-top": string;
-  "--study-feedback-top": string;
 };
 
 const studyLayoutStyles: StudyLayoutStyles = {
@@ -40,8 +31,6 @@ const studyLayoutStyles: StudyLayoutStyles = {
   "--study-safe-area-bottom": "env(safe-area-inset-bottom)",
   "--study-toolbar-top": "calc(0.75rem + var(--study-safe-area-top))",
   "--study-card-top": "calc(var(--study-toolbar-top) + var(--spacing-touch) + 0.75rem)",
-  // Card metadata is fixed at h-10; feedback starts immediately after it so neither surface overlaps.
-  "--study-feedback-top": "calc(var(--study-card-top) + 2.5rem)",
 };
 
 // The marker reserves Space for answer scrolling, while the named region makes the focus target discoverable.
@@ -58,7 +47,6 @@ export interface StudySessionProps {
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
   playbackControlsAvailable: boolean;
-  swipeFeedback?: SwipeDirection;
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
   frontTextSlot?: React.ReactNode;
@@ -68,7 +56,6 @@ export interface StudySessionProps {
   };
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
-  feedbackSlot?: React.ReactNode;
   help: Omit<StudyHelpDialogProps, "onClose" | "restoreTriggerFocus"> & {
     open: boolean;
     triggerLabel: string;
@@ -257,18 +244,6 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           {PLAYBACK_UNAVAILABLE_DESCRIPTION}
         </span>
       ) : null}
-    </div>
-  );
-};
-
-const SwipeFeedback: React.FC<{ swipeFeedback: SwipeDirection | undefined }> = ({ swipeFeedback }) => {
-  if (swipeFeedback === undefined) return null;
-  return (
-    <div
-      role="status"
-      className="pointer-events-none absolute left-1/2 top-[var(--study-feedback-top)] z-50 -translate-x-1/2 rounded-pill border border-border bg-surface-elevated/90 px-4 py-2 text-body font-bold text-ink shadow-elevated backdrop-blur-md"
-    >
-      {SWIPE_FEEDBACK_LABEL[swipeFeedback]}
     </div>
   );
 };
@@ -473,7 +448,6 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
 
   return (
     <div className="relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink" style={studyLayoutStyles}>
-      {showStudyChrome ? props.feedbackSlot : null}
       {showStudyChrome ? (
         <StudyToolbar
           ref={helpTriggerRef}
@@ -491,7 +465,6 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           onTogglePlaybackControls={props.onTogglePlaybackControls}
         />
       ) : null}
-      {showStudyChrome ? <SwipeFeedback swipeFeedback={props.swipeFeedback} /> : null}
       <div
         {...(props.showBackText ? answerSurfaceProps : {})}
         className={cx(

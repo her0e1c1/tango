@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck } from "@/entities/deck";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -28,16 +29,20 @@ describe("DeckFormPage", () => {
   const deckId = "deck-id";
   const renderPage = (path = `/deck/${deckId}/edit`) =>
     render(
-      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
-        <Routes>
-          <Route path="/previous" element={<h1>Previous page</h1>} />
-          <Route path="/" element={<h1>Deck list</h1>} />
-          <Route path="/deck/:id/edit" element={<DeckFormPage />} />
-        </Routes>
-      </MemoryRouter>
+      <>
+        <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+          <Routes>
+            <Route path="/previous" element={<h1>Previous page</h1>} />
+            <Route path="/" element={<h1>Deck list</h1>} />
+            <Route path="/deck/:id/edit" element={<DeckFormPage />} />
+          </Routes>
+        </MemoryRouter>
+        <ToastViewport />
+      </>
     );
 
   beforeEach(async () => {
+    dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
     await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr: false }));
@@ -90,6 +95,7 @@ describe("DeckFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    expect(screen.getByText("Updated deck “Deck name”.")).toBeVisible();
   });
 
   it("navigates to the deck list after cancellation", async () => {
@@ -117,6 +123,7 @@ describe("DeckFormPage", () => {
     );
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    expect(screen.getByText("Deleted deck “Deck name”.")).toBeVisible();
   });
 
   it("navigates with both recovery actions when the deck is unavailable", async () => {

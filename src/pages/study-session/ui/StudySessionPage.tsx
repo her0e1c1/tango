@@ -96,7 +96,6 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
               },
             }
           : {})}
-        {...(state.swipeFeedback !== undefined ? { swipeFeedback: state.swipeFeedback } : {})}
         frontTextSlot={
           <FrontText category={state.card.category} text={state.card.frontText} onClick={state.toggleBackText} />
         }

@@ -3,6 +3,8 @@ import * as React from "react";
 import { useAuthUid } from "@/entities/auth";
 import { filterCardsByDeckId, useCards } from "@/entities/card";
 import { deleteDeck, mustFindDeckById, type Deck, useDecks } from "@/entities/deck";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
 
 interface DeckDeletionTarget {
   deck: Deck;
@@ -13,35 +15,66 @@ interface UseDeckDeletionOptions {
   onDeleted?: () => void;
 }
 
+const dismissOwnedToast = (toastId: React.RefObject<ToastId | undefined>) => {
+  const id = toastId.current;
+  if (id === undefined) return;
+  dismissToast(id);
+  toastId.current = undefined;
+};
+
 export const useDeckDeletion = ({ onDeleted }: UseDeckDeletionOptions = {}) => {
   const uid = useAuthUid();
   const cards = useCards();
   const decks = useDecks();
+  const isMounted = useMountedGuard();
   const [target, setTarget] = React.useState<DeckDeletionTarget>();
-  const [hasError, setHasError] = React.useState(false);
-  const [successMessage, setSuccessMessage] = React.useState<string>();
+  const [pending, setPending] = React.useState(false);
+  const pendingRef = React.useRef(false);
+  const errorToastId = React.useRef<ToastId | undefined>(undefined);
+
+  const dismissErrorToast = () => dismissOwnedToast(errorToastId);
+
+  React.useEffect(() => () => dismissOwnedToast(errorToastId), []);
 
   const request = (id: Deck["id"]) => {
     const deck = mustFindDeckById(decks, id);
-    setSuccessMessage(undefined);
-    setHasError(false);
+    dismissErrorToast();
     setTarget({ deck, cardCount: filterCardsByDeckId(cards, id).length });
   };
 
-  const cancel = () => setTarget(undefined);
+  const cancel = () => {
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Cancel may run after confirm mutates this React ref.
+    if (pendingRef.current) return;
+    dismissErrorToast();
+    setTarget(undefined);
+  };
 
   const confirm = async () => {
-    if (target == null) return;
+    if (target == null || pendingRef.current) return;
+    const { deck } = target;
 
-    setHasError(false);
+    dismissErrorToast();
+    // Once persistence starts, Cancel cannot imply that an already-issued destructive write was withdrawn.
+    pendingRef.current = true;
+    setPending(true);
     try {
-      await deleteDeck(uid, target.deck.id);
+      await deleteDeck(uid, deck.id);
+      if (!isMounted()) return;
       setTarget(undefined);
-      setSuccessMessage(`Deleted deck “${target.deck.name}”.`);
+      showToast({ message: `Deleted deck “${deck.name}”.`, tone: "success" });
       onDeleted?.();
     } catch {
       // Keep the target open so a transient write failure can be retried without losing user intent.
-      setHasError(true);
+      if (isMounted()) {
+        errorToastId.current = showToast({
+          message: "Unable to delete this deck. Check your connection and try again.",
+          tone: "error",
+          dismissible: false,
+        });
+      }
+    } finally {
+      pendingRef.current = false;
+      if (isMounted()) setPending(false);
     }
   };
 
@@ -52,11 +85,10 @@ export const useDeckDeletion = ({ onDeleted }: UseDeckDeletionOptions = {}) => {
         : {
             deckName: target.deck.name,
             cardCount: target.cardCount,
-            hasError,
           },
-    successMessage,
     request,
     cancel,
     confirm,
+    pending,
   };
 };

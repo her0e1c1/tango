@@ -44,6 +44,9 @@ test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ 
   await page.goto(`/deck/${deck.id}/study`);
   await page.getByRole("button", { name: "Swipe up" }).click();
 
+  const feedback = page.getByRole("status").filter({ hasText: "Swiped up" });
+  await expect(feedback).toBeVisible();
+  await expect(page.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect
     .poll(() => readProgress(currentCard.id))
@@ -52,6 +55,7 @@ test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ 
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  await expect(feedback).toHaveCount(0, { timeout: 2000 });
 });
 
 test("SWIPE-03 saves non-mastered progress and advances to the next Card", async ({ fixture, page }) => {
@@ -243,11 +247,13 @@ test("SWIPE-12 retries a failed progress write from the same Card once", async (
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Swiped up" })).toHaveCount(0);
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 
   await page.getByRole("button", { name: "Swipe up" }).click();
 
+  await expect(page.getByRole("status").filter({ hasText: "Swiped up" })).toBeVisible();
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect
     .poll(() => readProgress(currentCard.id))

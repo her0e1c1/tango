@@ -8,6 +8,7 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 
 import { usePreferences } from "@/entities/preference";
+import { ToastViewport } from "@/shared/ui/toast";
 
 import { AuthProvider } from "./auth";
 import { FirestoreSubscriptionsProvider } from "./firestore-subscriptions";
@@ -25,13 +26,16 @@ const App: React.FC = () => {
   }, [darkMode]);
 
   return (
-    <AuthProvider>
-      <FirestoreSubscriptionsProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </FirestoreSubscriptionsProvider>
-    </AuthProvider>
+    <>
+      <AuthProvider>
+        <FirestoreSubscriptionsProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </FirestoreSubscriptionsProvider>
+      </AuthProvider>
+      <ToastViewport />
+    </>
   );
 };
 

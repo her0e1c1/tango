@@ -18,15 +18,19 @@ const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
     );
   }
 
+  const cancel = () => {
+    editor.dismissSaveError();
+    goBack();
+  };
+
   return (
     <AppLayout showHeader>
       <CardEditor
         cardInfo={editor.cardInfo}
         categories={editor.categories}
         form={editor.form}
-        onCancel={goBack}
+        onCancel={cancel}
         onSubmit={editor.onSubmit}
-        saveError={editor.saveError}
       />
     </AppLayout>
   );

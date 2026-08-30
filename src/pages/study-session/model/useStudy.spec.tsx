@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   deck: undefined as Deck | undefined,
   editStudyProgress: vi.fn(),
+  showToast: vi.fn(),
   touchStudySession: vi.fn(),
 }));
 
@@ -44,6 +45,7 @@ vi.mock("@/entities/study-progress", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/study-progress")>()),
   editStudyProgress: mocks.editStudyProgress,
 }));
+vi.mock("@/shared/ui/toast", () => ({ showToast: mocks.showToast }));
 vi.mock("@/entities/study-session", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/study-session")>();
   return {
@@ -122,7 +124,14 @@ describe("useStudy", () => {
     await actAsync(() => result.current.swipeRight());
 
     await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { frontText: "card-2" } }));
-    expect(result.current).toMatchObject({ showBackText: false, swipeFeedback: "cardSwipeRight" });
+    expect(result.current).toMatchObject({ showBackText: false });
+    expect(result.current).not.toHaveProperty("swipeFeedback");
+    expect(mocks.showToast).toHaveBeenCalledExactlyOnceWith({
+      message: "Swiped right",
+      tone: "neutral",
+      durationMs: 900,
+      dismissible: false,
+    });
     expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }));
   });
 
@@ -211,7 +220,7 @@ describe("useStudy", () => {
     await actAsync(() => result.current.swipeRight());
 
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
-    expect(result.current).not.toHaveProperty("swipeFeedback");
+    expect(mocks.showToast).not.toHaveBeenCalled();
   });
 
   it("blocks a second swipe while the first write is unresolved", async () => {
@@ -233,6 +242,22 @@ describe("useStudy", () => {
     });
   });
 
+  it("does not publish route-owned swipe feedback after unmount", async () => {
+    const request = Promise.withResolvers<void>();
+    mocks.editStudyProgress.mockReturnValueOnce(request.promise);
+    const { result, unmount } = renderHook(() => useStudy(deckId));
+
+    const swipe = result.current.swipeRight();
+    unmount();
+    await actAsync(async () => {
+      request.resolve();
+      await swipe;
+    });
+
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+    expect(mocks.showToast).not.toHaveBeenCalled();
+  });
+
   it("does not advance a session changed by the controller during the write", async () => {
     let finishWrite: () => void = () => undefined;
     mocks.editStudyProgress.mockReturnValueOnce(
@@ -250,7 +275,7 @@ describe("useStudy", () => {
     });
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(result.current).not.toHaveProperty("swipeFeedback");
+    expect(mocks.showToast).not.toHaveBeenCalled();
   });
 
   it("advances after a timestamp-only session touch during the write", async () => {
@@ -272,19 +297,48 @@ describe("useStudy", () => {
     });
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(result.current).toMatchObject({ swipeFeedback: "cardSwipeRight" });
+    expect(mocks.showToast).toHaveBeenCalledExactlyOnceWith({
+      message: "Swiped right",
+      tone: "neutral",
+      durationMs: 900,
+      dismissible: false,
+    });
   });
 
   it("handles DoNothing and GoBack without writing progress", async () => {
-    mocks.preferences = createPreferences({ cardSwipeDown: "DoNothing", cardSwipeLeft: "GoBack" });
+    mocks.preferences = createPreferences({
+      showSwipeFeedback: true,
+      cardSwipeDown: "DoNothing",
+      cardSwipeLeft: "GoBack",
+    });
     const { result } = renderHook(() => useStudy(deckId));
 
     await actAsync(() => result.current.swipeDown());
     expect(getStudySession(deckId)).toBeDefined();
+    expect(mocks.showToast).not.toHaveBeenCalled();
     await actAsync(() => result.current.swipeLeft());
 
     expect(mocks.editStudyProgress).not.toHaveBeenCalled();
     expect(getStudySession(deckId)).toBeUndefined();
+    expect(mocks.showToast).toHaveBeenCalledExactlyOnceWith({
+      message: "Swiped left",
+      tone: "neutral",
+      durationMs: 900,
+      dismissible: false,
+    });
+  });
+
+  it("does not show swipe feedback when the preference is disabled", async () => {
+    mocks.preferences = createPreferences({
+      showSwipeFeedback: false,
+      cardSwipeRight: "GoToNextCardMastered",
+    });
+    const { result } = renderHook(() => useStudy(deckId));
+
+    await actAsync(() => result.current.swipeRight());
+
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+    expect(mocks.showToast).not.toHaveBeenCalled();
   });
 
   it("removes the session after the final card is persisted", async () => {

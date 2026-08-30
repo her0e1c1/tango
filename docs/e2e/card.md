@@ -83,6 +83,7 @@ When:
 
 Then:
 
+- Card の更新成功が共通 toast で表示される。
 - 編集画面に変更後の front text、back text、tags が表示される。
 - browser error が発生しない。
 
@@ -104,6 +105,7 @@ When:
 
 Then:
 
+- Card の削除成功が共通 toast で表示される。
 - Card 一覧に対象 Card が表示されない。
 - 対象 Card が active Card として保存先から読み込まれない。
 - browser error が発生しない。
@@ -208,7 +210,7 @@ Given:
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に編集対象の Card が存在する。
-- 編集要求の失敗が編集画面内で処理され、変更内容が維持されている。
+- 編集要求の失敗が共通 toast で処理され、変更内容が維持されている。
 - 次の編集要求は成功できる。
 
 When:
@@ -218,6 +220,7 @@ When:
 Then:
 
 - Card 一覧へ戻る。
+- Card の更新成功が共通 toast で表示される。
 - reload 後も対象 Card に変更内容が表示される。
 - 最初の編集失敗に伴う未処理の browser error が発生しない。
 
@@ -302,6 +305,7 @@ When:
 
 Then:
 
+- Card の作成成功が共通 toast で表示される。
 - 作成した Card が reload 後も同じ Deck の Card 一覧に表示される。
 - Card は remote 保存先だけに1件存在し、owner は対象 Deck と一致する。
 - browser error が発生しない。
@@ -323,6 +327,7 @@ When:
 
 Then:
 
+- Card の作成成功が共通 toast で表示される。
 - 作成した Card が reload 後も同じ Deck の Card 一覧に表示される。
 - Card は browser 保存先だけに1件存在し、remote 保存先には存在しない。
 - browser error が発生しない。

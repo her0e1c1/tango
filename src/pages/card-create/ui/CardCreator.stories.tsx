@@ -11,12 +11,11 @@ import { CardCreator } from "./CardCreator";
 
 interface CardCreatorStoryProps {
   isSaving: boolean;
-  saveError?: unknown;
   onCancel: () => void;
   onSubmit: () => void;
 }
 
-const CardCreatorStory = ({ isSaving, saveError, onCancel, onSubmit }: CardCreatorStoryProps) => {
+const CardCreatorStory = ({ isSaving, onCancel, onSubmit }: CardCreatorStoryProps) => {
   const form = useForm<CardFormFields>({ defaultValues: { frontText: "", backText: "", tags: [] } });
 
   useEffect(() => {
@@ -30,7 +29,6 @@ const CardCreatorStory = ({ isSaving, saveError, onCancel, onSubmit }: CardCreat
       form={form}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(onSubmit)}
-      saveError={saveError}
     />
   );
 };
@@ -48,7 +46,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-export const Failure: Story = { args: { saveError: new globalThis.Error("write failed") } };
 export const Saving: Story = { args: { isSaving: true } };
 export const Interaction: Story = {
   play: async ({ args, canvas, userEvent }) => {

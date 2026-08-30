@@ -6,7 +6,6 @@ import { useKey } from "react-use";
 import { useAuthAccount, useAuthUid } from "@/entities/auth";
 import { routes } from "@/shared/router";
 import { Button } from "@/shared/ui/button";
-import { RemoteMutationNotice } from "@/shared/ui/remote-mutation-notice";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { useSignIn } from "../model/useSignIn";
@@ -74,23 +73,6 @@ export const AccountPage: React.FC = () => {
               <dd className="min-w-0 break-all text-right text-caption text-ink-muted">{uid}</dd>
             </div>
           </dl>
-          {isLoggedIn ? (
-            <RemoteMutationNotice
-              pending={signOut.pending}
-              error={signOut.error}
-              onRetry={runSignOut}
-              pendingLabel="Signing out…"
-              errorLabel="Unable to sign out."
-            />
-          ) : (
-            <RemoteMutationNotice
-              pending={signIn.pending}
-              error={signIn.error}
-              onRetry={runSignIn}
-              pendingLabel="Signing in…"
-              errorLabel="Unable to sign in."
-            />
-          )}
         </section>
       </section>
     </AppLayout>

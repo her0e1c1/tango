@@ -4,35 +4,55 @@ import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preference";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getStudySession, moveStudySession, planStudySessionSwipe, removeStudySession } from "@/entities/study-session";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { showToast, type ToastTone } from "@/shared/ui/toast";
 
 import * as React from "react";
 
-import { useSwipeFeedback } from "./useSwipeFeedback";
+const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
+  cardSwipeUp: "Swiped up",
+  cardSwipeDown: "Swiped down",
+  cardSwipeLeft: "Swiped left",
+  cardSwipeRight: "Swiped right",
+};
+
+const SWIPE_FEEDBACK_DURATION_MS = 900;
+const SWIPE_FEEDBACK_TONE = "neutral" satisfies ToastTone;
 
 export interface SwipeState {
   swipeUp: () => Promise<void>;
   swipeDown: () => Promise<void>;
   swipeLeft: () => Promise<void>;
   swipeRight: () => Promise<void>;
-  swipeFeedback?: SwipeDirection;
 }
 
 export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: () => void): SwipeState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
-  const feedback = useSwipeFeedback(preferences.appearance.showSwipeFeedback);
+  const isMounted = useMountedGuard();
   const swipeState = React.useRef<{ inProgress: boolean }>({ inProgress: false });
 
+  const showSwipeToast = (direction: SwipeDirection): void => {
+    if (!preferences.appearance.showSwipeFeedback) return;
+    showToast({
+      message: SWIPE_FEEDBACK_LABEL[direction],
+      tone: SWIPE_FEEDBACK_TONE,
+      durationMs: SWIPE_FEEDBACK_DURATION_MS,
+      dismissible: false,
+    });
+  };
+
   const swipe = async (direction: SwipeDirection): Promise<void> => {
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: The awaited write lets another event enter this closure.
+    // A pending write yields to later input events, so only one swipe may plan and persist at a time.
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: later input events observe mutations through this React ref.
     if (swipeState.current.inProgress) return;
 
     const swipeAction = preferences.controls[direction];
     const swipePlan = planStudySessionSwipe(getStudySession(deckId), cards, swipeAction, Date.now());
     if (swipePlan.effect === "none") return;
     if (swipePlan.effect === "exit") {
-      feedback.showSwipe(direction);
       removeStudySession(deckId);
+      showSwipeToast(direction);
       return;
     }
 
@@ -47,7 +67,9 @@ export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: 
 
     if (!moveStudySession(swipePlan.session, swipePlan.effect)) return;
 
-    feedback.showSwipe(direction);
+    // Session persistence still completes after navigation, but route-owned feedback and UI callbacks must not leak.
+    if (!isMounted()) return;
+    showSwipeToast(direction);
     if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged();
   };
 
@@ -56,6 +78,5 @@ export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: 
     swipeDown: () => swipe("cardSwipeDown"),
     swipeLeft: () => swipe("cardSwipeLeft"),
     swipeRight: () => swipe("cardSwipeRight"),
-    ...(feedback.lastSwipe !== undefined ? { swipeFeedback: feedback.lastSwipe } : {}),
   };
 };

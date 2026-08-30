@@ -67,6 +67,10 @@ export const Invalid: Story = {
   },
 };
 
+export const PreviewError: Story = {
+  args: { previewError: new Error("The selected CSV file could not be read.") },
+};
+
 export const Pending: Story = {
   args: {
     pending: true,
@@ -78,20 +82,6 @@ export const AddingSample: Story = {
   args: {
     addingSample: true,
     preview,
-  },
-};
-
-export const Success: Story = {
-  args: {
-    preview,
-    result: { created: 2 },
-  },
-};
-
-export const Failure: Story = {
-  args: {
-    preview,
-    error: new Error("Card writes failed"),
   },
 };
 
