@@ -44,18 +44,37 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+const expectFrontTextCentered = async (canvasElement: HTMLElement) => {
+  const frontText = canvasElement.querySelector<HTMLElement>("#frontText > *");
+  await expect(frontText).not.toBeNull();
+  if (frontText === null) return;
+
+  const frontTextBounds = frontText.getBoundingClientRect();
+  const frontTextCenter = frontTextBounds.top + frontTextBounds.height / 2;
+  await expect(Math.abs(frontTextCenter - window.innerHeight / 2)).toBeLessThan(1);
+};
+
+const centeredFrontTextPlay: Story["play"] = async ({ canvasElement }) => {
+  await expectFrontTextCentered(canvasElement);
+};
+
+export const Default: Story = {
+  play: centeredFrontTextPlay,
+};
 
 export const SwipeFeedback: Story = {
   args: { swipeFeedback: "cardSwipeRight" },
+  play: centeredFrontTextPlay,
 };
 
 export const SwipeControlsHidden: Story = {
   args: { showSwipeControls: false },
+  play: centeredFrontTextPlay,
 };
 
 export const PlaybackControlsHidden: Story = {
   args: { showPlaybackControls: false },
+  play: centeredFrontTextPlay,
 };
 
 export const ControlsHidden: Story = {
@@ -63,10 +82,12 @@ export const ControlsHidden: Story = {
     showSwipeControls: false,
     showPlaybackControls: false,
   },
+  play: centeredFrontTextPlay,
 };
 
 export const PlaybackUnavailable: Story = {
   args: { playbackControlsAvailable: false },
+  play: centeredFrontTextPlay,
 };
 
 export const LongAnswer: Story = {
@@ -107,6 +128,7 @@ export const AutoPlay: Story = {
 
 export const Mobile: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
+  play: centeredFrontTextPlay,
 };
 
 export const MobileLongAnswer: Story = {
