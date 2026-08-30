@@ -1,13 +1,67 @@
 import type * as React from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useKey } from "react-use";
 
-import { StudySessionStartContainer } from "./StudySessionStartContainer";
+import type { Deck } from "@/entities/deck";
+import { useDeck } from "@/entities/deck";
+import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
+import { routes } from "@/shared/router";
+import { AppLayout } from "@/widgets/app-layout";
+import { RouteNotFound } from "@/widgets/route-not-found";
+
+import { useStudySessionStartState } from "../model/useStudySessionStartState";
+import { StudySessionStart } from "./StudySessionStart";
+
+// The Enter shortcut listens at the window level, so interactive controls must own the event.
+const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
+  target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
+
+const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
+  const navigate = useNavigate();
+  const filter = useDeckFilterState(deck);
+  // Session selection must see optimistic filter state before its persistence request completes.
+  const state = useStudySessionStartState({
+    ...deck,
+    scoreMax: filter.scoreMax,
+    scoreMin: filter.scoreMin,
+    selectedTags: filter.selectedTags,
+    tagAndFilter: filter.tagAndFilter,
+  });
+  const start = () => {
+    state.onStart();
+    void navigate(routes.deckStudy.to(deck.id), { replace: true });
+  };
+  const startFromEnter = (event: KeyboardEvent) => {
+    if (state.cardsLength === 0 || hasInteractiveShortcutTarget(event.target)) return;
+    start();
+  };
+  useKey("Enter", startFromEnter, {}, [startFromEnter]);
+
+  return (
+    <AppLayout showHeader>
+      <StudySessionStart
+        deckName={state.deckName}
+        maxNumberOfCardsToLearn={state.maxNumberOfCardsToLearn}
+        cardsLength={state.cardsLength}
+        onClickStart={start}
+        filterSlot={<DeckFilterForm {...filter} tags={state.tags} />}
+      />
+    </AppLayout>
+  );
+};
 
 export const StudySessionStartPage: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
+  const deck = useDeck(deckId);
+
+  if (deck == null) {
+    return (
+      <RouteNotFound title="Deck not found" description="The requested deck is unavailable or has been removed." />
+    );
+  }
 
   // Session setup state belongs to one route Deck and must reset when the id changes.
-  return <StudySessionStartContainer key={deckId} deckId={deckId} />;
+  return <AvailableStudySessionStartPage key={deckId} deck={deck} />;
 };
