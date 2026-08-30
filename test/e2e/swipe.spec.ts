@@ -340,3 +340,45 @@ test("SWIPE-17 preserves local-only progress and session position across reload"
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
+
+test("SWIPE-24 shows configured Study controls without changing the active session", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const currentCard = fixture.card("card-1");
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  const progressBeforeHelp = await readProgress(currentCard.id);
+  await page.getByRole("button", { name: "Open study help" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Study controls" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("Arrow Up / Swipe UpEnd the current session and return to the deck list");
+  await expect(dialog).toContainText("Arrow Down / Swipe DownNo action");
+  await expect(dialog).toContainText("Arrow Left / Swipe LeftToggle mastered and go to the next card");
+  await expect(dialog).toContainText("Arrow Right / Swipe RightGo to the previous card");
+  await expect(dialog).toContainText("Enter / Select CardFlip or reveal the current card");
+  await expect(dialog).toContainText("Space / Play or Pause buttonPlay or pause autoplay");
+  await expect(dialog).toContainText("B / Swipe controls buttonShow the currently hidden swipe buttons");
+  await expect(dialog).toContainText("Playback controls buttonShow the currently hidden playback controls");
+  await expect(dialog).toContainText("Card details buttonShow or hide score and study history");
+  await expect(dialog).toContainText("Back to deck list buttonExit without ending the current study session");
+
+  const close = dialog.getByRole("button", { name: "Close help" });
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.press("b");
+
+  await expect(dialog).toContainText("B / Swipe controls buttonShow the currently hidden swipe buttons");
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressBeforeHelp);
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+
+  await page.keyboard.press("Escape");
+
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Open study help" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
+});

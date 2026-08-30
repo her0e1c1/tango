@@ -11,6 +11,7 @@ import {
 import { setStudySessionIndex } from "@/entities/study-session";
 
 import { useAutoPlay } from "./useAutoPlay";
+import { buildStudyHelpContent } from "./studyHelp";
 import { useStudySessionState } from "./useStudySessionState";
 import { useSwipe } from "./useSwipe";
 
@@ -20,10 +21,13 @@ export const useStudy = (deckId: string) => {
   const preferences = usePreferences();
   const sessionState = useStudySessionState(deckId, cards);
   const [showBackText, setShowBackText] = React.useState(false);
+  const [helpOpen, setHelpOpen] = React.useState(false);
   const hideBackText = () => setShowBackText(false);
   const { autoPlay, toggleAutoPlay } = useAutoPlay(sessionState, {
     defaultAutoPlay: preferences.study.defaultAutoPlay,
     cardInterval: preferences.study.cardInterval,
+    // Keep the user's explicit play/pause state while preventing a modal from advancing the hidden Card.
+    paused: helpOpen,
     onAdvance: hideBackText,
   });
   const swipe = useSwipe(deckId, cards, hideBackText);
@@ -47,6 +51,12 @@ export const useStudy = (deckId: string) => {
     showBackTextSwipeOverlays: preferences.controls.showBackTextSwipeOverlays,
     autoPlay,
     updateIndex,
+    help: {
+      ...buildStudyHelpContent(preferences, document.documentElement.lang),
+      open: helpOpen,
+      openHelp: () => setHelpOpen(true),
+      closeHelp: () => setHelpOpen(false),
+    },
   };
 
   if (deck == null) return;

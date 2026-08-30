@@ -2,7 +2,7 @@
 
 ## 目的
 
-匿名アカウントと Google アカウントの切り替えで、アカウント状態、UID、ユーザーデータ、学習 session の境界が保たれることを確認する。
+認証の初期化失敗から復旧でき、匿名アカウントと Google アカウントの切り替えで、アカウント状態、UID、ユーザーデータ、学習 session の境界が保たれることを確認する。
 
 ## テストケース
 
@@ -11,6 +11,7 @@
 | ACCOUNT-01 | batch | [匿名アカウントを Google アカウントに連携してデータを維持できる](#account-01) |
 | ACCOUNT-02 | write | [Google sign-in のエラー表示から再試行できる](#account-02) |
 | ACCOUNT-03 | batch | [sign-out 後に新しい匿名アカウントへ切り替えられる](#account-03) |
+| ACCOUNT-04 | read | [認証初期化失敗から Reload で復帰できる](#account-04) |
 
 <a id="account-01"></a>
 
@@ -82,3 +83,24 @@ Then:
 - sign-out 前のアカウントに属する Deck と Card が表示されない。
 - sign-out 前のアカウントで開始した学習 session を利用できない。
 - browser error が発生しない。
+
+<a id="account-04"></a>
+
+### ACCOUNT-04 認証初期化失敗から Reload で復帰できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 認証初期化失敗が画面内で処理され、認証初期化失敗画面に `Reload` が表示されている。
+- 次の認証初期化は成功でき、Sample Deck の自動生成は無効である。
+
+When:
+
+- 認証初期化失敗画面に表示された `Reload` を選択する。
+
+Then:
+
+- 再初期化が完了し、Deck 一覧を利用できる。
+- 未処理の browser error が発生しない。

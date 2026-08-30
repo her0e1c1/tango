@@ -2,28 +2,21 @@ import type * as React from "react";
 import { useId } from "react";
 import { type UseFormReturn, useFormState } from "react-hook-form";
 
-import type { CardId } from "@/entities/card";
-import { Button } from "@/shared/ui/button";
 import { TagList } from "@/shared/ui/content";
-import { Form, FormItem, Tag, Textarea } from "@/shared/ui/forms";
-import type { CardFormValues } from "../model/useCardForm";
+import { FormItem, Tag, Textarea } from "@/shared/ui/forms";
 
-export interface CardFormProps {
-  cardInfo: {
-    uniqueKey: string;
-    id: CardId;
-    createdAt?: number;
-    lastSeenAt?: number;
-  };
-  categories: readonly string[];
-  form: UseFormReturn<CardFormValues>;
-  onCancel: () => void;
-  onSubmit: React.SubmitEventHandler<HTMLFormElement>;
+export interface CardFormFields {
+  frontText: string;
+  backText: string;
+  tags: string[];
 }
 
-const formatDate = (timestamp: number): string => new Date(timestamp).toLocaleDateString();
+export interface CardFieldsProps {
+  categories: readonly string[];
+  form: UseFormReturn<CardFormFields>;
+}
 
-export const CardForm: React.FC<CardFormProps> = (props) => {
+export const CardFields: React.FC<CardFieldsProps> = (props) => {
   const formState = useFormState({ control: props.form.control });
   const sectionHeadingIdPrefix = useId();
   const frontHeadingId = `${sectionHeadingIdPrefix}-card-front-heading`;
@@ -35,7 +28,7 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
   const backErrorId = `${backInputId}-error`;
 
   return (
-    <Form onSubmit={props.onSubmit}>
+    <>
       <section
         aria-labelledby={frontHeadingId}
         className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5"
@@ -112,41 +105,6 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           ))}
         </TagList>
       </section>
-      <details className="rounded-surface border border-border bg-surface-muted p-4">
-        <summary className="flex min-h-touch cursor-pointer items-center font-semibold text-ink">
-          Card information
-        </summary>
-        <dl className="mt-4 grid gap-3 text-caption">
-          <div className="min-w-0">
-            <dt className="font-medium text-ink-muted">Unique key</dt>
-            <dd className="break-all text-ink">{props.cardInfo.uniqueKey}</dd>
-          </div>
-          <div className="min-w-0">
-            <dt className="font-medium text-ink-muted">ID</dt>
-            <dd className="break-all text-ink">{props.cardInfo.id}</dd>
-          </div>
-          {props.cardInfo.createdAt !== undefined && (
-            <div>
-              <dt className="font-medium text-ink-muted">Created</dt>
-              <dd className="text-ink">{formatDate(props.cardInfo.createdAt)}</dd>
-            </div>
-          )}
-          {props.cardInfo.lastSeenAt !== undefined && (
-            <div>
-              <dt className="font-medium text-ink-muted">Last seen</dt>
-              <dd className="text-ink">{formatDate(props.cardInfo.lastSeenAt)}</dd>
-            </div>
-          )}
-        </dl>
-      </details>
-      <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-        <Button variant="quiet" type="button" onClick={props.onCancel}>
-          Cancel
-        </Button>
-        <Button variant="primary" type="submit" disabled={formState.isSubmitting}>
-          {formState.isSubmitting ? "Saving…" : "Save changes"}
-        </Button>
-      </div>
-    </Form>
+    </>
   );
 };
