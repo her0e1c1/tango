@@ -8,14 +8,24 @@ import { Switch } from "./Switch";
 
 const reviewForm = () => (
   <Form div>
-    <FormItem col label="Deck name" help="Shown in your library and study history.">
-      <Input defaultValue="Japanese verbs" />
+    <FormItem col label="Deck name" inputId="storybook-form-name" help="Shown in your library and study history.">
+      <Input id="storybook-form-name" defaultValue="Japanese verbs" />
     </FormItem>
-    <FormItem label="Shuffle cards" extra="The existing extra copy uses the same supporting hierarchy.">
-      <Switch checked onChange={fn()} />
+    <FormItem
+      label="Shuffle cards"
+      inputId="storybook-form-shuffle"
+      extra="The existing extra copy uses the same supporting hierarchy."
+    >
+      <Switch id="storybook-form-shuffle" checked onChange={fn()} />
     </FormItem>
-    <FormItem col label="Daily review target" help="Choose a value between 1 and 100." error="Enter a whole number.">
-      <Input defaultValue="One hundred and twenty" />
+    <FormItem
+      col
+      label="Daily review target"
+      inputId="storybook-form-target"
+      help="Choose a value between 1 and 100."
+      error="Enter a whole number."
+    >
+      <Input id="storybook-form-target" defaultValue="One hundred and twenty" />
     </FormItem>
   </Form>
 );

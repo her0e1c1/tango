@@ -32,6 +32,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
   const importHeadingId = `${sectionHeadingIdPrefix}-deck-import-heading`;
   const nameInputId = `${sectionHeadingIdPrefix}-deck-name`;
   const nameErrorId = `${nameInputId}-error`;
+  const categoryInputId = `${sectionHeadingIdPrefix}-deck-category`;
   const urlInputId = `${sectionHeadingIdPrefix}-deck-url`;
   const urlErrorId = `${urlInputId}-error`;
   const localModeHelp = props.isLocalOnly
@@ -78,8 +79,8 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
             aria-describedby={formState.errors.name !== undefined ? nameErrorId : undefined}
           />
         </FormItem>
-        <FormItem col label="Category">
-          <Select empty {...props.form.register("category")} options={categoryOptions} />
+        <FormItem col label="Category" inputId={categoryInputId}>
+          <Select id={categoryInputId} empty {...props.form.register("category")} options={categoryOptions} />
         </FormItem>
       </section>
       <section

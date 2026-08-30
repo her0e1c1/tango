@@ -9,6 +9,7 @@ const meta = {
   component: Select,
   tags: ["autodocs"],
   args: {
+    "aria-label": "Option selector",
     options: fixture.form.options.default,
   },
 } satisfies Meta<typeof Select>;
@@ -29,9 +30,9 @@ export const Invalid: Story = {
 export const States: Story = {
   render: () => (
     <div className="grid gap-4">
-      <Select options={fixture.form.options.default} />
-      <Select options={fixture.form.options.default} empty />
-      <Select options={fixture.form.options.default} disabled />
+      <Select aria-label="Default selector" options={fixture.form.options.default} />
+      <Select aria-label="Empty selector" options={fixture.form.options.default} empty />
+      <Select aria-label="Disabled selector" options={fixture.form.options.default} disabled />
     </div>
   ),
 };
@@ -52,10 +53,10 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4 text-ink">
-        <Select options={fixture.form.options.default} />
+        <Select aria-label="Light surface selector" options={fixture.form.options.default} />
       </div>
       <div className="dark bg-canvas p-4 text-ink">
-        <Select options={fixture.form.options.default} />
+        <Select aria-label="Dark surface selector" options={fixture.form.options.default} />
       </div>
     </div>
   ),

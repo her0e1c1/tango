@@ -7,6 +7,7 @@ const meta = {
   component: Input,
   tags: ["autodocs"],
   args: {
+    "aria-label": "Text input",
     defaultValue: "this is a value",
   },
 } satisfies Meta<typeof Input>;
@@ -19,9 +20,9 @@ export const Default: Story = {};
 export const States: Story = {
   render: () => (
     <div className="grid gap-4">
-      <Input placeholder="Placeholder value" />
-      <Input defaultValue="Read-only value" readOnly />
-      <Input defaultValue="Disabled value" disabled />
+      <Input aria-label="Placeholder input" placeholder="Placeholder value" />
+      <Input aria-label="Read-only input" defaultValue="Read-only value" readOnly />
+      <Input aria-label="Disabled input" defaultValue="Disabled value" disabled />
     </div>
   ),
 };
@@ -41,10 +42,10 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4 text-ink">
-        <Input defaultValue="Light surface" />
+        <Input aria-label="Light surface input" defaultValue="Light surface" />
       </div>
       <div className="dark bg-canvas p-4 text-ink">
-        <Input defaultValue="Dark surface" />
+        <Input aria-label="Dark surface input" defaultValue="Dark surface" />
       </div>
     </div>
   ),

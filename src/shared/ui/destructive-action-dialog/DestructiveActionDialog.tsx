@@ -107,7 +107,10 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
           <span className="block text-caption font-bold uppercase tracking-wide text-ink-muted">
             {props.targetLabel}
           </span>
-          <span className="mt-1 block max-h-24 overflow-y-auto break-words font-semibold">{props.targetName}</span>
+          {/* biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users must be able to reach a long scrolling target name. */}
+          <span tabIndex={0} className="mt-1 block max-h-24 overflow-y-auto break-words font-semibold">
+            {props.targetName}
+          </span>
         </div>
         <div id={descriptionId} className="mt-4 space-y-2 text-body text-ink-muted">
           {props.description}

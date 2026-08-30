@@ -6,7 +6,7 @@ const meta = {
   title: "Shared/Forms/Textarea",
   component: Textarea,
   tags: ["autodocs"],
-  args: { rows: 4 },
+  args: { "aria-label": "Text area", rows: 4 },
 } satisfies Meta<typeof Textarea>;
 
 export default meta;
@@ -21,9 +21,9 @@ export const Invalid: Story = {
 export const States: Story = {
   render: () => (
     <div className="grid gap-4">
-      <Textarea rows={3} placeholder="Placeholder content" />
-      <Textarea rows={3} defaultValue="Read-only content" readOnly />
-      <Textarea rows={3} defaultValue="Disabled content" disabled />
+      <Textarea aria-label="Placeholder text area" rows={3} placeholder="Placeholder content" />
+      <Textarea aria-label="Read-only text area" rows={3} defaultValue="Read-only content" readOnly />
+      <Textarea aria-label="Disabled text area" rows={3} defaultValue="Disabled content" disabled />
     </div>
   ),
 };
@@ -39,10 +39,10 @@ export const LightAndDark: Story = {
   render: () => (
     <div className="grid gap-4">
       <div className="bg-canvas p-4 text-ink">
-        <Textarea rows={3} defaultValue="Light surface" />
+        <Textarea aria-label="Light surface text area" rows={3} defaultValue="Light surface" />
       </div>
       <div className="dark bg-canvas p-4 text-ink">
-        <Textarea rows={3} defaultValue="Dark surface" />
+        <Textarea aria-label="Dark surface text area" rows={3} defaultValue="Dark surface" />
       </div>
     </div>
   ),
