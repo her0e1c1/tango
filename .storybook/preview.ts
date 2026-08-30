@@ -8,8 +8,10 @@ import { INITIAL_VIEWPORTS } from "./support/storybookViewports";
 import "../src/app/styles/index.css";
 
 const withI18n: Decorator = (Story, context) => {
-  // Every story starts from English unless it explicitly demonstrates another locale.
-  void appI18n.changeLanguage(context.parameters.locale === "ja" ? "ja" : "en");
+  // Keep visible copy and document metadata deterministic unless a story explicitly demonstrates Japanese.
+  const language = context.parameters.locale === "ja" ? "ja" : "en";
+  document.documentElement.lang = language;
+  void appI18n.changeLanguage(language);
   return createElement(I18nextProvider, { i18n: appI18n }, createElement(Story));
 };
 
