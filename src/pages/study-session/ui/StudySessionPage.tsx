@@ -71,6 +71,16 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
         showSwipeControls={state.showSwipeButtonList}
         showPlaybackControls={state.showPlaybackControls}
         playbackControlsAvailable={state.playbackControlsAvailable}
+        help={{
+          open: state.help.open,
+          triggerLabel: state.help.triggerLabel,
+          title: state.help.title,
+          description: state.help.description,
+          closeLabel: state.help.closeLabel,
+          rows: state.help.rows,
+          onOpen: state.help.openHelp,
+          onClose: state.help.closeHelp,
+        }}
         onSwipeUp={swipeActions.onClickUp}
         onSwipeDown={swipeActions.onClickDown}
         onSwipeLeft={swipeActions.onClickLeft}
@@ -108,9 +118,10 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
     // Native editing and activation keys take precedence, while unrelated Study shortcuts remain
     // available after a user moves focus into the card or floating controls.
-    if (shouldIgnoreStudyShortcut(event)) return;
     const currentStudy = latestStudy.current;
-    if (currentStudy?.status === "studying") void currentStudy[action]();
+    // A modal Help surface owns every key while open, including keys without native dialog behavior.
+    if (currentStudy?.status !== "studying" || currentStudy.help.open || shouldIgnoreStudyShortcut(event)) return;
+    void currentStudy[action]();
   };
 
   // useKey retains its initial handler, so that handler reads current Page state through one stable ref.

@@ -1,6 +1,6 @@
 import type { Preferences } from "@/entities/preference";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -86,6 +86,7 @@ describe("StudySessionPage", () => {
   };
 
   beforeEach(async () => {
+    document.documentElement.lang = "en";
     clearStudySessions();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.editStudyProgress.mockReset().mockResolvedValue(undefined);
@@ -175,6 +176,86 @@ describe("StudySessionPage", () => {
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
+  });
+
+  it("shows configured Help rows without letting dialog keys change Study state", () => {
+    mocks.preferences = createPreferences({
+      controls: {
+        cardSwipeUp: "GoBack",
+        cardSwipeDown: "DoNothing",
+        cardSwipeLeft: "GoToNextCardToggleMastered",
+        cardSwipeRight: "GoToPrevCard",
+      },
+    });
+    clearStudySessions();
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    renderPage();
+    const sessionBeforeHelp = getStudySession(deckId);
+
+    const trigger = screen.getByRole("button", { name: "Open study help" });
+    trigger.focus();
+    fireEvent.click(trigger);
+
+    const dialog = screen.getByRole("dialog", { name: "Study controls" });
+    expect(dialog).toHaveTextContent("Arrow Up / Swipe UpEnd the current session and return to the deck list");
+    expect(dialog).toHaveTextContent("Arrow Down / Swipe DownNo action");
+    expect(dialog).toHaveTextContent("Arrow Left / Swipe LeftToggle mastered and go to the next card");
+    expect(dialog).toHaveTextContent("Enter / Select CardFlip or reveal the current card");
+    expect(dialog).toHaveTextContent("Space / Play or Pause buttonPlay or pause autoplay");
+    expect(dialog).toHaveTextContent("B / Swipe controls buttonHide the currently visible swipe buttons");
+    expect(dialog).toHaveTextContent("Card details buttonShow or hide score and study history");
+    expect(dialog).toHaveTextContent("Back to deck list buttonExit without ending the current study session");
+    expect(screen.getByRole("button", { name: "Close help" })).toHaveFocus();
+
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    fireEvent.keyDown(window, { key: "Enter" });
+    fireEvent.keyDown(window, { key: "b" });
+    fireEvent.keyDown(window, { key: " " });
+
+    expect(screen.getByText("Front one")).toBeVisible();
+    expect(getStudySession(deckId)).toEqual(sessionBeforeHelp);
+    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.toggleShowSwipeButtonList).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Close help" }), { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("uses the current document locale for semantic Help labels", () => {
+    document.documentElement.lang = "ja-JP";
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: "学習ヘルプを開く" }));
+
+    expect(screen.getByRole("dialog", { name: "学習画面の操作" })).toHaveTextContent(
+      "上矢印 / 上へスワイプ習得済みにして次のカードへ移動"
+    );
+  });
+
+  it("pauses autoplay while Help is open and resumes without changing its explicit state", () => {
+    mocks.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 1 });
+    clearStudySessions();
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    vi.useFakeTimers();
+
+    try {
+      renderPage();
+      fireEvent.click(screen.getByRole("button", { name: "Open study help" }));
+
+      act(() => vi.advanceTimersByTime(1000));
+
+      expect(screen.getByText("Front one")).toBeVisible();
+      expect(screen.getByRole("button", { name: "Pause" })).toBePressed();
+
+      fireEvent.click(screen.getByRole("button", { name: "Close help" }));
+      act(() => vi.advanceTimersByTime(1000));
+
+      expect(screen.getByText("Front two")).toBeVisible();
+      expect(screen.getByRole("button", { name: "Pause" })).toBePressed();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("returns from a deep-linked Study to the Deck list without changing the resumable session", () => {

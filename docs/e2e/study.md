@@ -25,6 +25,7 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 | SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](#swipe-15) |
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-16) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#swipe-17) |
+| SWIPE-18 | read | [Help dialog に現在の操作 mapping を表示できる](#swipe-18) |
 
 <a id="swipe-01"></a>
 
@@ -413,4 +414,32 @@ Then:
 - 現在だった Card の mastered 学習結果が browser storage に維持されている。
 - session の位置が次の Card に維持されている。
 - 次の Card の front text が表示され、back text は表示されない。
+- browser error が発生しない。
+
+<a id="swipe-18"></a>
+
+### SWIPE-18 Help dialog に現在の操作 mapping を表示できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-session-help`](./fixture/study-session-help.yaml)
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- 方向操作には既定値と異なる action が設定され、操作ボタンの一部は非表示に設定されている。
+- document locale は English に設定されている。
+
+When:
+
+- 学習画面から Help dialog を開く。
+- dialog 内で方向キーと操作ボタン表示切り替えキーを入力し、focus を移動する。
+- Escape で Help dialog を閉じる。
+
+Then:
+
+- Help dialog に現在設定されている方向操作の意味が semantic label で表示される。
+- Card の表示、autoplay、操作ボタン表示、Card details、Deck 一覧へ戻る操作が表示される。
+- 非表示の操作ボタンは現在の設定と一致する説明で表示される。
+- dialog 内のキー入力で Card、学習結果、session の位置が変更されない。
+- focus が dialog 内に維持され、閉じた後は Help trigger へ戻る。
 - browser error が発生しない。

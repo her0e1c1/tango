@@ -7,12 +7,14 @@ import {
   AiOutlineEyeInvisible,
   AiOutlineLeft,
   AiOutlinePlayCircle,
+  AiOutlineQuestionCircle,
 } from "react-icons/ai";
 import { MdSwipe } from "react-icons/md";
 import { useSwipeable } from "react-swipeable";
 import type { SwipeDirection } from "@/entities/preference";
 
 import { Controller, type ControllerProps } from "./Controller";
+import { StudyHelpDialog, type StudyHelpDialogProps } from "./StudyHelpDialog";
 import { SwipeButtonList, type SwipeButtonListProps } from "./SwipeButtonList";
 
 const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
@@ -62,6 +64,12 @@ export interface StudySessionProps {
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
   feedbackSlot?: React.ReactNode;
+  help: Omit<StudyHelpDialogProps, "onClose"> & {
+    open: boolean;
+    triggerLabel: string;
+    onOpen: () => void;
+    onClose: () => void;
+  };
   onSwipeLeft?: () => void;
   onSwipeUp?: () => void;
   onSwipeRight?: () => void;
@@ -151,6 +159,8 @@ const StudyToolbar: React.FC<{
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
   playbackControlsAvailable: boolean;
+  helpTriggerLabel: string;
+  onOpenHelp: () => void;
   onToggleOpen: () => void;
   onToggleCardDetails: () => void;
   onBack: () => void;
@@ -170,6 +180,17 @@ const StudyToolbar: React.FC<{
 
   return (
     <div className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 h-touch">
+      <button
+        type="button"
+        aria-label={props.helpTriggerLabel}
+        className={cx(
+          toolbarButtonClass,
+          "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0"
+        )}
+        onClick={props.onOpenHelp}
+      >
+        <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
+      </button>
       <button
         ref={triggerRef}
         type="button"
@@ -194,7 +215,7 @@ const StudyToolbar: React.FC<{
         <fieldset
           id={actionsId}
           aria-label="Study actions"
-          className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-between border-0 p-0 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)]"
+          className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-between border-0 p-0 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]"
         >
           <button
             type="button"
@@ -358,6 +379,8 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           showSwipeControls={props.showSwipeControls}
           showPlaybackControls={props.showPlaybackControls}
           playbackControlsAvailable={props.playbackControlsAvailable}
+          helpTriggerLabel={props.help.triggerLabel}
+          onOpenHelp={props.help.onOpen}
           onToggleOpen={() => setStudyActionsOpen((open) => !open)}
           onToggleCardDetails={props.onToggleCardDetails}
           onBack={props.onBack}
@@ -389,6 +412,15 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
         swipeButtonList={props.swipeButtonList}
         controller={props.controller}
       />
+      {props.help.open ? (
+        <StudyHelpDialog
+          title={props.help.title}
+          description={props.help.description}
+          closeLabel={props.help.closeLabel}
+          rows={props.help.rows}
+          onClose={props.help.onClose}
+        />
+      ) : null}
     </div>
   );
 };
