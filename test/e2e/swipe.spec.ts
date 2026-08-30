@@ -67,6 +67,11 @@ const selectBackText = async (page: Page, backText: string) => {
   await page.mouse.up();
 };
 
+const returnToDeckList = async (page: Page) => {
+  await page.getByRole("button", { name: "Open study actions" }).click();
+  await page.getByRole("button", { name: "Back to deck list" }).click();
+};
+
 test("SWIPE-01 reveals the current Card answer without changing progress", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
@@ -203,7 +208,7 @@ test("SWIPE-08 returns and continues from the same Card", async ({ fixture, page
 
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Back to deck list" }).click();
+  await returnToDeckList(page);
   await expect(page).toHaveURL(/\/$/);
   await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
 
@@ -261,7 +266,7 @@ test("SWIPE-11 keeps multiple Deck sessions independent", async ({ fixture, page
 
   await page.goto(`/deck/${deckA.id}/study`);
   await page.getByRole("button", { name: "Swipe up" }).click();
-  await page.getByRole("button", { name: "Back to deck list" }).click();
+  await returnToDeckList(page);
   await expect(page).toHaveURL(/\/$/);
   await page.getByRole("button", { name: `Continue ${deckB.name}` }).click();
 
