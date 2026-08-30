@@ -28,6 +28,13 @@ export interface ToastState {
 
 interface ToastStoreState {
   current: ToastState | undefined;
+  modalTargets: readonly ToastModalTarget[];
+}
+
+interface ToastModalTarget {
+  id: number;
+  element: HTMLElement;
+  restoreFocus: () => void;
 }
 
 const DEFAULT_DURATION_MS: Record<ToastTone, number | null> = {
@@ -38,10 +45,32 @@ const DEFAULT_DURATION_MS: Record<ToastTone, number | null> = {
 };
 
 let nextToastId = 0;
+let nextModalTargetId = 0;
 
-export const toastStore = createStore<ToastStoreState>()(() => ({ current: undefined }));
+export const toastStore = createStore<ToastStoreState>()(() => ({ current: undefined, modalTargets: [] }));
+
+export const registerToastModalTarget = (element: HTMLElement, restoreFocus: () => void): (() => void) => {
+  nextModalTargetId += 1;
+  const id = nextModalTargetId;
+  toastStore.setState((state) => ({ modalTargets: [...state.modalTargets, { id, element, restoreFocus }] }));
+
+  // A stale cleanup must not unregister a newer or nested modal outlet.
+  return () => {
+    toastStore.setState((state) => ({ modalTargets: state.modalTargets.filter((target) => target.id !== id) }));
+  };
+};
+
+const restoreModalFocus = (): void => {
+  const modalTarget = toastStore.getState().modalTargets.at(-1);
+  if (modalTarget === undefined || typeof document === "undefined") return;
+  const { activeElement } = document;
+  if (activeElement instanceof HTMLElement && modalTarget.element.contains(activeElement)) {
+    modalTarget.restoreFocus();
+  }
+};
 
 export const showToast = (input: ShowToastInput): ToastId => {
+  if (toastStore.getState().current !== undefined) restoreModalFocus();
   const tone = input.tone ?? "neutral";
   nextToastId += 1;
   const id = nextToastId;
@@ -63,5 +92,6 @@ export const showToast = (input: ShowToastInput): ToastId => {
 export const dismissToast = (id?: ToastId): void => {
   const { current } = toastStore.getState();
   if (current === undefined || (id !== undefined && current.id !== id)) return;
+  restoreModalFocus();
   toastStore.setState({ current: undefined });
 };

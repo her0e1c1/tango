@@ -21,11 +21,51 @@ describe("Toast", () => {
     dismissToast();
   });
 
-  it("renders nothing while no notification is active", () => {
+  it("primes an empty polite live region before a notification is active", () => {
     render(<ToastViewport />);
 
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("publishes non-error content into the already-mounted polite live region", () => {
+    render(<ToastViewport />);
+    const primedStatus = screen.getByRole("status");
+
+    displayToast({ message: "Saved", tone: "success", durationMs: null });
+
+    expect(screen.getByRole("status")).toBe(primedStatus);
+    expect(primedStatus).toHaveTextContent("Success: Saved");
+  });
+
+  it("announces errors only through a sibling assertive region", () => {
+    render(<ToastViewport />);
+    const primedStatus = screen.getByRole("status");
+
+    displayToast({ message: "Save failed", tone: "error" });
+
+    expect(primedStatus).toBeEmptyDOMElement();
+    expect(screen.getByRole("alert")).toHaveTextContent("Error: Save failed");
+    expect(screen.getAllByText("Save failed")).toHaveLength(1);
+
+    displayToast({ message: "Saved", tone: "success", durationMs: null });
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toBe(primedStatus);
+    expect(primedStatus).toHaveTextContent("Success: Saved");
+  });
+
+  it("replaces the announced content when the same message is shown again", () => {
+    render(<ToastViewport />);
+    const status = screen.getByRole("status");
+    displayToast({ message: "Saved", tone: "success", durationMs: null });
+    const firstContent = screen.getByText("Saved");
+
+    displayToast({ message: "Saved", tone: "success", durationMs: null });
+
+    expect(screen.getByRole("status")).toBe(status);
+    expect(screen.getByText("Saved")).not.toBe(firstContent);
   });
 
   it.each([
