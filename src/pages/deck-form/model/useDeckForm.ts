@@ -23,6 +23,13 @@ const getDeckEditInput = (deck: Deck, values: DeckFormFields): Parameters<typeof
   url: values.url ?? null,
 });
 
+const areDeckFormValuesEqual = (left: DeckFormFields, right: DeckFormFields): boolean =>
+  left.name === right.name &&
+  left.category === right.category &&
+  left.url === right.url &&
+  left.convertToBr === right.convertToBr &&
+  left.localMode === right.localMode;
+
 interface UseDeckFormOptions {
   deckId: string;
   onSaved: () => void;
@@ -35,22 +42,41 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
   const [saveError, setSaveError] = React.useState<unknown>(null);
   // Reactive Deck snapshots can reset RHF state mid-write, so this lock must span the persistence request itself.
   const [isSaving, setIsSaving] = React.useState(false);
+  const [failedBaseline, setFailedBaseline] = React.useState<DeckFormFields | null>(null);
   const form = useForm<DeckFormFields>({
     ...(deck && { values: getDeckFormValues(deck) }),
+    // Subscription refreshes may update clean fields, but must not erase the user's retry payload.
+    resetOptions: { keepDirtyValues: true },
     resolver: zodResolver(deckFormSchema),
   });
 
   if (deck == null) return;
 
   const submit = form.handleSubmit(async (values) => {
+    const submittedInput = form.getValues();
+    // A failed attempt keeps its pre-optimistic baseline for retries that start before Firestore rolls back.
+    const retryBaseline = failedBaseline ?? getDeckFormValues(deck);
     setIsSaving(true);
     setSaveError(null);
     try {
       await editDeck(uid, getDeckEditInput(deck, values));
-      // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.
-      if (isMounted()) onSaved();
+      if (isMounted()) {
+        const savedBaseline = { ...values };
+        setFailedBaseline(null);
+        if (areDeckFormValuesEqual(form.getValues(), submittedInput)) {
+          onSaved();
+        } else {
+          // A successful write may finish after another edit; preserve that edit against the payload just saved.
+          form.reset(savedBaseline, { keepValues: true });
+        }
+      }
     } catch (error) {
-      if (isMounted()) setSaveError(error);
+      if (isMounted()) {
+        // Optimistic snapshots may replace RHF's baseline while pending; restore it without erasing the retry payload.
+        form.reset(retryBaseline, { keepValues: true });
+        setFailedBaseline(retryBaseline);
+        setSaveError(error);
+      }
     } finally {
       if (isMounted()) setIsSaving(false);
     }
@@ -74,6 +100,7 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
     deckInfo,
     deckName: deck.name,
     form,
+    isDirty: form.formState.isDirty,
     isLocalOnly: deck.localMode,
     isSaving,
     onSubmit: onFormSubmit,

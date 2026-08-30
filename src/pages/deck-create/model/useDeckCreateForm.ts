@@ -47,5 +47,12 @@ export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
   // A retry must keep using react-hook-form's original persistence mode after a failed write.
   const isLocalModeLocked = form.formState.isSubmitting || saveError !== null;
 
-  return { categories: CATEGORY, form, isLocalModeLocked, onSubmit: onFormSubmit, saveError };
+  return {
+    categories: CATEGORY,
+    form,
+    isDirty: form.formState.isDirty,
+    isLocalModeLocked,
+    onSubmit: onFormSubmit,
+    saveError,
+  };
 };
