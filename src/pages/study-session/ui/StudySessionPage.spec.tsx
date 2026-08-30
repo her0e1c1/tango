@@ -78,6 +78,10 @@ describe("StudySessionPage", () => {
         </Routes>
       </MemoryRouter>
     );
+  const openStudyActions = () => {
+    fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
+    return screen.getByRole("group", { name: "Study actions" });
+  };
 
   beforeEach(async () => {
     clearStudySessions();
@@ -100,8 +104,9 @@ describe("StudySessionPage", () => {
     renderPage();
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Study actions" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Open study actions" })).toBeVisible();
+    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
     expect(screen.getByText("Front one")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
@@ -159,6 +164,7 @@ describe("StudySessionPage", () => {
   it("returns from a deep-linked Study to the Deck list without changing the resumable session", () => {
     renderPage();
     const sessionBeforeExit = getStudySession(deckId);
+    openStudyActions();
 
     fireEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
 
@@ -171,9 +177,10 @@ describe("StudySessionPage", () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
 
     renderPage();
+    const actions = openStudyActions();
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Study actions" })).toBeVisible();
+    expect(actions).toBeVisible();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
     expect(screen.getByLabelText("Score 2, positive")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
@@ -181,6 +188,7 @@ describe("StudySessionPage", () => {
 
   it("delegates visibility toggles to persisted preference actions", () => {
     renderPage();
+    openStudyActions();
 
     fireEvent.click(screen.getByRole("button", { name: "Swipe controls" }));
     fireEvent.click(screen.getByRole("button", { name: "Playback controls" }));
@@ -197,6 +205,7 @@ describe("StudySessionPage", () => {
   ] as const)("uses %s visibility with %s without running a Study shortcut", async (control, label, key) => {
     const user = userEvent.setup();
     renderPage();
+    openStudyActions();
 
     screen.getByRole("button", { name: label }).focus();
     await user.keyboard(key);
@@ -210,6 +219,7 @@ describe("StudySessionPage", () => {
   it("keeps the swipe visibility shortcut active while a toolbar button is focused", async () => {
     const user = userEvent.setup();
     renderPage();
+    openStudyActions();
 
     const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
     swipeToggle.focus();
@@ -247,6 +257,7 @@ describe("StudySessionPage", () => {
     });
 
     renderPage();
+    openStudyActions();
 
     expect(screen.getByRole("button", { name: "Swipe controls" })).not.toBePressed();
     expect(screen.getByRole("button", { name: "Playback controls" })).not.toBePressed();
@@ -258,6 +269,7 @@ describe("StudySessionPage", () => {
     mocks.preferences = createPreferences({ cardInterval: 0 });
 
     renderPage();
+    openStudyActions();
 
     const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
     expect(playbackToggle).toHaveAttribute("aria-disabled", "true");
