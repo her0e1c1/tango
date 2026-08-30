@@ -97,7 +97,7 @@ const swipe = (article: HTMLElement, from: number, to: number) => {
   fireEvent.mouseUp(document, { clientX: to, clientY: 0 });
 };
 
-describe("CardListPage interactions", () => {
+describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.deleteCard.mockResolvedValue(undefined);

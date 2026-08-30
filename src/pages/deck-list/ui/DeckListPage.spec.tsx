@@ -35,7 +35,7 @@ vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.downloadTextFile }));
 
 import { DeckListPage } from "./DeckListPage";
 
-describe("DeckListPage", () => {
+describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 DeckListPage", () => {
   const activeDeck = createLocalDeck({ id: "active-deck", name: "Active deck" });
   const freshDeck = createLocalDeck({ id: "fresh-deck", name: "Fresh deck" });
   const activeCard = createLocalCard({
