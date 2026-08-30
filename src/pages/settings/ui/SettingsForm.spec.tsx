@@ -29,6 +29,7 @@ function createProps(overrides: Partial<SettingsFormProps> = {}): SettingsFormPr
     maxNumberOfCardsToLearn: 24,
     cardInterval: 7,
     version: "1.2.3",
+    commitHash: "0123456789abcdef0123456789abcdef01234567",
     ...overrides,
   };
 }
@@ -69,6 +70,7 @@ describe("SettingsForm", () => {
     expect(details).not.toHaveAttribute("open");
     expect(details).not.toHaveTextContent("Github Access Token");
     expect(details).toHaveTextContent("1.2.3");
+    expect(details).toHaveTextContent("0123456789abcdef0123456789abcdef01234567");
     expect(details).not.toHaveTextContent("User ID");
   });
 
