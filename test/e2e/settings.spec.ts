@@ -62,3 +62,55 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
   ).toBeVisible();
   await expect(page.getByRole("button", { name: `Start ${String(expectedMaximum)} ${cardLabel}` })).toBeVisible();
 });
+
+test("SETTINGS-03 Explicit Japanese language is auto-saved across reload", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  await page.goto("/settings");
+
+  const language = page.getByRole("combobox", { name: "Language" });
+  await expect(language).toHaveValue("en");
+  await language.selectOption("ja");
+
+  const japaneseLanguage = page.getByRole("combobox", { name: "言語" });
+  await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+  await expect(japaneseLanguage).toHaveValue("ja");
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await expect
+    .poll(() =>
+      page.evaluate(() => JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.language)
+    )
+    .toBe("ja");
+
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+  await expect(japaneseLanguage).toHaveValue("ja");
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+});
+
+test.describe("ja-JP browser locale", () => {
+  test.use({ locale: "ja-JP" });
+
+  test("SETTINGS-04 System language resolves the browser locale across reload", async ({ fixture, page }) => {
+    await fixture.apply(page);
+    await page.goto("/settings");
+
+    const language = page.getByRole("combobox", { name: "Language" });
+    await expect(language).toHaveValue("en");
+    await language.selectOption("system");
+
+    const systemLanguage = page.getByRole("combobox", { name: "言語" });
+    await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+    await expect(systemLanguage).toHaveValue("system");
+    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+    await expect
+      .poll(() =>
+        page.evaluate(() => JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.language)
+      )
+      .toBe("system");
+
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+    await expect(systemLanguage).toHaveValue("system");
+    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  });
+});

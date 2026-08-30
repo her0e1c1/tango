@@ -2,7 +2,7 @@
 
 ## 目的
 
-Settings の自動保存が reload を越えて維持され、保存した学習設定が次の学習 session に反映されることを確認する。
+Settings の自動保存が reload を越えて維持され、保存した学習設定と言語設定がアプリケーションへ反映されることを確認する。
 
 ## テストケース
 
@@ -10,6 +10,8 @@ Settings の自動保存が reload を越えて維持され、保存した学習
 | --- | --- | --- |
 | SETTINGS-01 | write | [Dark mode を自動保存して reload 後も反映できる](#settings-01) |
 | SETTINGS-02 | write | [Maximum cards 設定を次の学習 session に反映できる](#settings-02) |
+| SETTINGS-03 | write | [日本語設定を自動保存して reload 後も反映できる](#settings-03) |
+| SETTINGS-04 | write | [System 設定で browser locale を解決して reload 後も反映できる](#settings-04) |
 
 <a id="settings-01"></a>
 
@@ -52,4 +54,51 @@ Then:
 
 - 学習開始画面に表示される session の Card 数が変更後の上限と一致する。
 - start action に変更後の上限と同じ Card 数が表示される。
+- browser error が発生しない。
+
+<a id="settings-03"></a>
+
+### SETTINGS-03 日本語設定を自動保存して reload 後も反映できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 認証済みユーザーが、E2E 共通の English language 設定で Settings 画面を開いている。
+
+When:
+
+- Language selector で `日本語` を選択し、自動保存後にページを reload する。
+
+Then:
+
+- Settings heading と language selector の accessible name が日本語で表示される。
+- browser storage の language preference が `ja` として保存される。
+- `html[lang]` が `ja` になる。
+- reload 後も日本語 UI、language preference、`html[lang]` が維持される。
+- browser error が発生しない。
+
+<a id="settings-04"></a>
+
+### SETTINGS-04 System 設定で browser locale を解決して reload 後も反映できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- browser context の locale がこのケースだけ `ja-JP` に設定されている。
+- 認証済みユーザーが、E2E 共通の English language 設定で Settings 画面を開いている。
+
+When:
+
+- Language selector で `System` を選択し、自動保存後にページを reload する。
+
+Then:
+
+- Settings heading と language selector の accessible name が日本語で表示される。
+- browser storage の language preference が `system` として保存される。
+- `ja-JP` が有効な locale の `ja` に解決され、`html[lang]` が `ja` になる。
+- reload 後も日本語 UI、language preference、`html[lang]` が維持される。
 - browser error が発生しない。
