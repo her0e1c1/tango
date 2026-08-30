@@ -1,0 +1,78 @@
+extends: empty.yaml
+remote:
+  decks:
+    - id: deck-1
+      uid: user-1
+      name: Tag Study Deck
+      category: English
+  cards:
+    - id: card-01
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 01
+      backText: answer 01
+      tags: [tag-01]
+      uniqueKey: card-tag-01
+    - id: card-02
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 02
+      backText: answer 02
+      tags: [tag-02]
+      uniqueKey: card-tag-02
+    - id: card-03
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 03
+      backText: answer 03
+      tags: [tag-03]
+      uniqueKey: card-tag-03
+    - id: card-04
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 04
+      backText: answer 04
+      tags: [tag-04]
+      uniqueKey: card-tag-04
+    - id: card-05
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 05
+      backText: answer 05
+      tags: [tag-05]
+      uniqueKey: card-tag-05
+    - id: card-06
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 06
+      backText: answer 06
+      tags: [tag-06]
+      uniqueKey: card-tag-06
+    - id: card-07
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 07
+      backText: answer 07
+      tags: [tag-07]
+      uniqueKey: card-tag-07
+    - id: card-08
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 08
+      backText: answer 08
+      tags: [tag-08]
+      uniqueKey: card-tag-08
+    - id: card-09
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 09
+      backText: answer 09
+      tags: [tag-09]
+      uniqueKey: card-tag-09
+    - id: card-10
+      deckId: deck-1
+      uid: user-1
+      frontText: card tag 10
+      backText: answer 10
+      tags: [tag-10]
+      uniqueKey: card-tag-10
