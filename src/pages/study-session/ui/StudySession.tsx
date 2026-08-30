@@ -201,18 +201,6 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
         <AiOutlineLeft aria-hidden="true" className="text-xl" />
       </button>
       <button
-        ref={helpTriggerRef}
-        type="button"
-        aria-label={props.helpTriggerLabel}
-        className={cx(
-          toolbarButtonClass,
-          "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0"
-        )}
-        onClick={props.onOpenHelp}
-      >
-        <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
-      </button>
-      <button
         ref={triggerRef}
         type="button"
         aria-label={props.open ? "Close study actions" : "Open study actions"}
@@ -238,6 +226,19 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           aria-label="Study actions"
           className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0 pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]"
         >
+          <button
+            ref={helpTriggerRef}
+            type="button"
+            aria-label={props.helpTriggerLabel}
+            className={cx(
+              toolbarButtonClass,
+              "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0"
+            )}
+            onClick={props.onOpenHelp}
+            onKeyDown={closeOnEscape}
+          >
+            <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
+          </button>
           <StudyModeActions
             showCardDetails={props.showCardDetails}
             showSwipeControls={props.showSwipeControls}
