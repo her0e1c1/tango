@@ -137,11 +137,12 @@ describe("DestructiveActionDialog", () => {
     render(<Harness />);
 
     const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
-    const alert = within(dialog).getByRole("alert");
+    const alert = screen.getByRole("alert");
     const dismiss = within(dialog).getByRole("button", { name: "Dismiss notification" });
     const retry = within(dialog).getByRole("button", { name: "Retry" });
     const target = screen.getByText("Japanese verbs");
     expect(alert).toHaveTextContent("Error: Try again");
+    expect(within(dialog).getByText("Try again")).toBeVisible();
     expect(retry).toBeVisible();
 
     dismiss.focus();
@@ -160,7 +161,8 @@ describe("DestructiveActionDialog", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 
     act(() => showToast({ message: "Persistent failure", tone: "error" }));
-    expect(within(dialog).getByRole("alert")).toHaveTextContent("Persistent failure");
+    expect(screen.getByRole("alert")).toHaveTextContent("Persistent failure");
+    expect(within(dialog).getByText("Persistent failure")).toBeVisible();
 
     await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
 

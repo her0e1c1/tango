@@ -1,8 +1,9 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import * as React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastViewport } from "./Toast";
+import { ToastModalOutlet, ToastViewport } from "./Toast";
 import { dismissToast, showToast, type ShowToastInput } from "./model";
 
 const displayToast = (input: ShowToastInput) => {
@@ -24,7 +25,7 @@ describe("Toast", () => {
   it("primes an empty polite live region before a notification is active", () => {
     render(<ToastViewport />);
 
-    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+    expect(screen.getByRole("status", { name: "Toast notifications" })).toBeEmptyDOMElement();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
@@ -41,31 +42,69 @@ describe("Toast", () => {
 
   it("announces errors only through a sibling assertive region", () => {
     render(<ToastViewport />);
-    const primedStatus = screen.getByRole("status");
+    const primedStatus = screen.getByRole("status", { name: "Toast notifications" });
 
     displayToast({ message: "Save failed", tone: "error" });
 
+    const assertiveAnnouncer = screen.getByRole("alert");
     expect(primedStatus).toBeEmptyDOMElement();
-    expect(screen.getByRole("alert")).toHaveTextContent("Error: Save failed");
+    expect(assertiveAnnouncer).toHaveTextContent("Error: Save failed");
     expect(screen.getAllByText("Save failed")).toHaveLength(1);
 
     displayToast({ message: "Saved", tone: "success", durationMs: null });
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(assertiveAnnouncer).toBeEmptyDOMElement();
     expect(screen.getByRole("status")).toBe(primedStatus);
     expect(primedStatus).toHaveTextContent("Success: Saved");
   });
 
   it("replaces the announced content when the same message is shown again", () => {
     render(<ToastViewport />);
-    const status = screen.getByRole("status");
+    const status = screen.getByRole("status", { name: "Toast notifications" });
     displayToast({ message: "Saved", tone: "success", durationMs: null });
-    const firstContent = screen.getByText("Saved");
+    const firstAnnouncement = within(status).getByText("Success: Saved");
 
     displayToast({ message: "Saved", tone: "success", durationMs: null });
 
-    expect(screen.getByRole("status")).toBe(status);
-    expect(screen.getByText("Saved")).not.toBe(firstContent);
+    expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
+    expect(within(status).getByText("Success: Saved")).not.toBe(firstAnnouncement);
+  });
+
+  it("keeps global announcers mounted while the visual Toast moves through a modal outlet", () => {
+    const Harness = () => {
+      const [open, setOpen] = React.useState(false);
+      const fallbackRef = React.useRef<HTMLButtonElement>(null);
+      return (
+        <>
+          <button ref={fallbackRef} type="button" onClick={() => setOpen((value) => !value)}>
+            {open ? "Close modal" : "Open modal"}
+          </button>
+          {open ? (
+            <div role="dialog" aria-label="Example modal">
+              <ToastModalOutlet focusFallbackRef={fallbackRef} />
+            </div>
+          ) : null}
+          <ToastViewport />
+        </>
+      );
+    };
+    render(<Harness />);
+    const status = screen.getByRole("status", { name: "Toast notifications" });
+    displayToast({ message: "Saved", tone: "success", durationMs: null });
+    const announcement = within(status).getByText("Success: Saved");
+
+    fireEvent.click(screen.getByRole("button", { name: "Open modal" }));
+
+    expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
+    expect(within(status).getByText("Success: Saved")).toBe(announcement);
+    expect(within(screen.getByRole("dialog", { name: "Example modal" })).getByText("Saved")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Close modal" }));
+
+    expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
+    expect(within(status).getByText("Success: Saved")).toBe(announcement);
+    expect(screen.getByText("Saved")).toBeVisible();
   });
 
   it.each([
