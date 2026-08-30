@@ -112,8 +112,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             inputId={inputIds.maxNumberOfCardsToLearn}
             label="Maximum cards"
             description="Limit the size of a study session"
+            controlPosition="second-row"
           >
-            <div className="flex w-32 items-center gap-2 sm:w-52">
+            <div className="flex w-full items-center gap-2">
               <Slider
                 {...props.fields.maxNumberOfCardsToLearn}
                 id={inputIds.maxNumberOfCardsToLearn}
@@ -147,8 +148,13 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
               aria-describedby={descriptionId(inputIds.defaultAutoPlay)}
             />
           </SettingsRow>
-          <SettingsRow inputId={inputIds.cardInterval} label="Autoplay interval" description="Seconds between cards">
-            <div className="flex w-32 items-center gap-2 sm:w-52">
+          <SettingsRow
+            inputId={inputIds.cardInterval}
+            label="Autoplay interval"
+            description="Seconds between cards"
+            controlPosition="second-row"
+          >
+            <div className="flex w-full items-center gap-2">
               <Slider
                 {...props.fields.cardInterval}
                 id={inputIds.cardInterval}
