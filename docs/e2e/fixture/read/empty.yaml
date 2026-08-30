@@ -1,7 +1,0 @@
-auth:
-  users:
-    - uid: user-1
-      provider: anonymous
-browser:
-  preferences:
-    loadSample: false

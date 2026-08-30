@@ -1,7 +1,4 @@
-auth:
-  users:
-    - uid: user-1
-      provider: anonymous
+extends: empty.yaml
 remote:
   decks:
     - id: deck-a
@@ -38,20 +35,14 @@ remote:
       backText: b second answer
       uniqueKey: b-second
 browser:
-  preferences:
-    loadSample: false
   studySessions:
     deck-a:
       sessionId: session-a
       deckId: deck-a
-      cardOrderIds:
-        - card-a-1
-        - card-a-2
+      cardOrderIds: [card-a-1, card-a-2]
       currentIndex: 0
     deck-b:
       sessionId: session-b
       deckId: deck-b
-      cardOrderIds:
-        - card-b-1
-        - card-b-2
+      cardOrderIds: [card-b-1, card-b-2]
       currentIndex: 1

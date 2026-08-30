@@ -34,7 +34,7 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 
 Given:
 
-- Fixture: [`study-session-start`](./fixture/read/study-session-start.yaml)
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
 - 現在の Card に front text と back text が設定されている。
 
@@ -56,7 +56,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start`](./fixture/write/study-session-start.yaml)
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の次に別の Card がある。
 
@@ -79,7 +79,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start`](./fixture/write/study-session-start.yaml)
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の次に別の Card がある。
 
@@ -102,7 +102,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start`](./fixture/write/study-session-start.yaml)
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の次に別の Card がある。
 
@@ -125,7 +125,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/write/study-session-middle.yaml)
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の前に別の Card がある。
 
@@ -148,7 +148,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-filter`](./fixture/write/study-filter.yaml)
+- Fixture: [`study-filter`](./fixture/study-filter.yaml)
 - 認証済みユーザーが所有する Deck に、score と tags の組み合わせが異なる複数の Card が存在する。
 - 対象 Deck に score と tag の filter が保存されている。
 - 設定済みの学習上限より多くの Card が保存済み filter に一致する。
@@ -172,7 +172,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-filter-no-matches`](./fixture/read/study-filter-no-matches.yaml)
+- Fixture: [`study-filter-no-matches`](./fixture/study-filter-no-matches.yaml)
 - 認証済みユーザーが所有する Deck に Card が存在する。
 - 学習開始画面の score と tag の filter に一致する Card が存在しない。
 
@@ -195,7 +195,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/write/study-session-middle.yaml)
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 認証済みユーザーが所有する Deck に、先頭より後の Card まで進んだ学習 session が存在する。
 
 When:
@@ -216,7 +216,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/write/study-session-middle.yaml)
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 認証済みユーザーが所有する Deck に、先頭より後の Card まで進んだ学習 session が存在する。
 
 When:
@@ -238,7 +238,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-last`](./fixture/write/study-session-last.yaml)
+- Fixture: [`study-session-last`](./fixture/study-session-last.yaml)
 - 認証済みユーザーが所有する Deck の学習 session で、最後の Card が表示されている。
 
 When:
@@ -260,7 +260,7 @@ Then:
 
 Given:
 
-- Fixture: [`multi-study-sessions`](./fixture/batch/multi-study-sessions.yaml)
+- Fixture: [`multi-study-sessions`](./fixture/multi-study-sessions.yaml)
 - 認証済みユーザーが所有する複数の Deck に、それぞれ異なる位置の学習 session が存在する。
 
 When:
@@ -282,7 +282,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start`](./fixture/write/study-session-start.yaml)
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 前回の学習結果の保存要求が失敗し、同じ Card と session の位置が維持されている。
 - 次の学習結果の保存要求は成功できる。
@@ -306,7 +306,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start-drag`](./fixture/write/study-session-start-drag.yaml)
+- Fixture: [`study-session-start-drag`](./fixture/study-session-start-drag.yaml)
 - 認証済みユーザーが所有する remote Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
 - 上方向の drag は mastered action に設定されている。
@@ -330,7 +330,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start`](./fixture/read/study-session-start.yaml)
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
 
@@ -352,7 +352,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start`](./fixture/read/study-session-start.yaml)
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
 - 現在の Card の selectable な back text が表示されている。
 
@@ -375,7 +375,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start-local`](./fixture/write/study-session-start-local.yaml)
+- Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
 - browser storage に、複数の Card を含む local-only Deck と進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
 - 上方向の drag は mastered action に設定されている。
@@ -399,7 +399,7 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-start-local`](./fixture/write/study-session-start-local.yaml)
+- Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
 - browser storage に、複数の Card を含む local-only Deck と進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
 - 上方向の drag は mastered action に設定されている。

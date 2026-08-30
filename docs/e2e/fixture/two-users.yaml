@@ -1,3 +1,4 @@
+extends: empty.yaml
 auth:
   users:
     - uid: user-a
@@ -27,6 +28,3 @@ remote:
       frontText: user b card
       backText: user b answer
       uniqueKey: user-b-card
-browser:
-  preferences:
-    loadSample: false

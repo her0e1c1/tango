@@ -29,7 +29,7 @@ Card 管理の主要導線が、ブラウザ上で表示・編集・削除・fil
 
 Given:
 
-- Fixture: [`remote-deck-with-cards`](./fixture/read/remote-deck-with-cards.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に score、学習回数、tags を持つ Card が存在する。
 
@@ -50,7 +50,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/read/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に front text と back text を持つ Card が存在する。
 
@@ -71,7 +71,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/write/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に編集対象の Card が存在する。
 
@@ -92,9 +92,9 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/write/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に削除対象の Card が存在する。
+- 対象 Deck の Card は削除対象の1件だけである。
 
 When:
 
@@ -114,7 +114,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/write/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に score を持つ Card が存在する。
 
@@ -135,7 +135,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/write/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に score を持つ Card が存在する。
 
@@ -156,7 +156,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/read/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck の Card 一覧で、対象 Card の back text overlay が開いている。
 
@@ -179,7 +179,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/read/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 削除対象 Card の action menu trigger から削除 dialog を開いている。
 - dialog に対象 Card と削除を取り消せない旨が表示されている。
@@ -203,7 +203,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/write/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に編集対象の Card が存在する。
 - 編集要求の失敗が編集画面内で処理され、変更内容が維持されている。
@@ -227,7 +227,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-cards`](./fixture/write/remote-deck-with-cards.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に score と tags の組み合わせが異なる複数の Card が存在する。
 
@@ -249,7 +249,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-card`](./fixture/read/remote-deck-with-card.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に back text を持つ Card が存在する。
 
@@ -271,7 +271,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck`](./fixture/read/remote-deck.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーの保存先に、route が参照する Card が存在しない。
 
 When:

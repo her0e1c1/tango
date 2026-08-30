@@ -19,7 +19,7 @@ Settings の自動保存が reload を越えて維持され、保存した学習
 
 Given:
 
-- Fixture: [`empty`](./fixture/write/empty.yaml)
+- Fixture: [`empty`](./fixture/empty.yaml)
 - 認証済みユーザーが Settings 画面を開き、変更前の Dark mode 設定が画面に反映されている。
 
 When:
@@ -40,7 +40,7 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-cards`](./fixture/write/remote-deck-with-cards.yaml)
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck に、変更後の上限より多くの学習対象 Card が存在する。
 - 対象 Deck に進行中の学習 session が存在しない。
 

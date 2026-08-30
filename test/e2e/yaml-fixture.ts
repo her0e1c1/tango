@@ -332,7 +332,58 @@ type RawSampleCard = z.infer<typeof sampleCardSchema>;
 const formatIssues = (error: z.ZodError) =>
   error.issues.map((issue) => `${issue.path.join(".") || "<root>"}: ${issue.message}`).join("; ");
 
-const parseYaml = (fixturePath: string): FixtureDocument => {
+const isWithin = (candidate: string, parent: string) => {
+  const relative = path.relative(parent, candidate);
+  return relative !== "" && !relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative);
+};
+
+type PlainObject = Record<string, unknown>;
+
+const dangerousObjectKeys = new Set(["__proto__", "constructor", "prototype"]);
+// Cycle detection alone does not bound recursive I/O for a valid but unexpectedly long inheritance chain.
+const maxFixtureInheritanceDepth = 8;
+const materializedFixtureCache = new Map<string, MaterializedFixture>();
+const realFixtureRoot = realpathSync(fixtureRoot);
+
+interface MaterializedFixture {
+  document: FixtureDocument;
+  // Retaining the full chain lets cached parents participate in cycle and depth checks for a new leaf.
+  inheritanceChain: readonly string[];
+}
+
+const displayFixtureChain = (fixturePaths: readonly string[]) =>
+  fixturePaths.map((fixturePath) => path.relative(repositoryRoot, fixturePath)).join(" -> ");
+
+const isPlainObject = (value: unknown): value is PlainObject => {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+};
+
+const assertSafeFixtureValue = (value: unknown, fixturePath: string, objectPath: readonly string[] = []): void => {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => {
+      assertSafeFixtureValue(item, fixturePath, [...objectPath, String(index)]);
+    });
+    return;
+  }
+  if (value === null || typeof value !== "object") return;
+  if (!isPlainObject(value)) {
+    throw new Error(
+      `Invalid YAML fixture ${path.relative(repositoryRoot, fixturePath)}: ${objectPath.join(".") || "<root>"} must be a plain object`
+    );
+  }
+  for (const key of Object.getOwnPropertyNames(value)) {
+    if (dangerousObjectKeys.has(key)) {
+      throw new Error(
+        `Invalid YAML fixture ${path.relative(repositoryRoot, fixturePath)}: unsafe object key ${[...objectPath, key].join(".")}`
+      );
+    }
+    assertSafeFixtureValue(value[key], fixturePath, [...objectPath, key]);
+  }
+};
+
+const parseYamlValue = (fixturePath: string): unknown => {
   const document = parseDocument(readFileSync(fixturePath, "utf8"), { strict: true, uniqueKeys: true });
   if (document.errors.length > 0) {
     throw new Error(
@@ -352,18 +403,111 @@ const parseYaml = (fixturePath: string): FixtureDocument => {
     });
   }
 
-  const parsed = fixtureDocumentSchema.safeParse(value);
-  if (!parsed.success) {
-    throw new Error(
-      `Invalid YAML fixture ${path.relative(repositoryRoot, fixturePath)}: ${formatIssues(parsed.error)}`
-    );
-  }
-  return parsed.data;
+  // Merge only data objects with inert prototypes and keys; this must remain true even if YAML parsing changes.
+  assertSafeFixtureValue(value, fixturePath);
+  return value;
 };
 
-const isWithin = (candidate: string, parent: string) => {
-  const relative = path.relative(parent, candidate);
-  return relative !== "" && !relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative);
+const isBareYamlFilename = (value: string) =>
+  value.length > ".yaml".length &&
+  value.endsWith(".yaml") &&
+  path.posix.basename(value) === value &&
+  path.win32.basename(value) === value;
+
+const withoutExtends = (value: PlainObject): PlainObject =>
+  Object.fromEntries(Object.entries(value).filter(([key]) => key !== "extends"));
+
+const mergeFixtureObjects = (parent: PlainObject, child: PlainObject): PlainObject => {
+  const merged: PlainObject = { ...parent };
+  for (const [key, childValue] of Object.entries(child)) {
+    const parentValue = parent[key];
+    // Arrays and scalars are atomic fixture declarations; only two objects recursively inherit fields.
+    merged[key] =
+      isPlainObject(parentValue) && isPlainObject(childValue)
+        ? mergeFixtureObjects(parentValue, childValue)
+        : childValue;
+  }
+  return merged;
+};
+
+const resolveParentFixturePath = (parentName: string, childPath: string): string => {
+  if (!isBareYamlFilename(parentName)) {
+    throw new Error(
+      `Invalid YAML fixture ${path.relative(repositoryRoot, childPath)}: extends must be a bare .yaml filename`
+    );
+  }
+  const candidate = path.resolve(fixtureRoot, parentName);
+  if (path.dirname(candidate) !== fixtureRoot || !existsSync(candidate)) {
+    throw new Error(
+      `Invalid YAML fixture ${path.relative(repositoryRoot, childPath)}: parent fixture does not exist: ${parentName}`
+    );
+  }
+  const realParentPath = realpathSync(candidate);
+  // A bare filename is not sufficient when the directory entry itself is a symlink outside the fixture root.
+  if (!isWithin(realParentPath, realFixtureRoot)) {
+    throw new Error(
+      `Invalid YAML fixture ${path.relative(repositoryRoot, childPath)}: parent fixture resolves outside docs/e2e/fixture`
+    );
+  }
+  return realParentPath;
+};
+
+const assertInheritanceDepth = (depth: number, chain: readonly string[]) => {
+  if (depth <= maxFixtureInheritanceDepth) return;
+  throw new Error(
+    `Fixture inheritance exceeds maximum depth ${String(maxFixtureInheritanceDepth)}: ${displayFixtureChain(chain)}`
+  );
+};
+
+const materializeFixture = (fixturePath: string, ancestors: readonly string[] = []): MaterializedFixture => {
+  const realFixturePath = realpathSync(fixturePath);
+  if (!isWithin(realFixturePath, realFixtureRoot)) {
+    throw new Error(`Fixture resolves outside docs/e2e/fixture: ${path.relative(repositoryRoot, fixturePath)}`);
+  }
+  if (ancestors.includes(realFixturePath)) {
+    throw new Error(`Fixture inheritance cycle: ${displayFixtureChain([...ancestors, realFixturePath])}`);
+  }
+  assertInheritanceDepth(ancestors.length, [...ancestors, realFixturePath]);
+
+  const cached = materializedFixtureCache.get(realFixturePath);
+  if (cached !== undefined) {
+    const cachedAncestor = cached.inheritanceChain.find((candidate) => ancestors.includes(candidate));
+    if (cachedAncestor !== undefined) {
+      throw new Error(`Fixture inheritance cycle: ${displayFixtureChain([...ancestors, ...cached.inheritanceChain])}`);
+    }
+    assertInheritanceDepth(ancestors.length + cached.inheritanceChain.length - 1, [
+      ...ancestors,
+      ...cached.inheritanceChain,
+    ]);
+    return cached;
+  }
+
+  const rawValue = parseYamlValue(realFixturePath);
+  let materializedValue: unknown = rawValue;
+  let inheritanceChain: readonly string[] = [realFixturePath];
+
+  if (isPlainObject(rawValue) && Object.hasOwn(rawValue, "extends")) {
+    const parentName = rawValue.extends;
+    if (typeof parentName !== "string") {
+      throw new Error(
+        `Invalid YAML fixture ${path.relative(repositoryRoot, realFixturePath)}: extends must be a bare .yaml filename`
+      );
+    }
+    const parentPath = resolveParentFixturePath(parentName, realFixturePath);
+    const parent = materializeFixture(parentPath, [...ancestors, realFixturePath]);
+    materializedValue = mergeFixtureObjects(parent.document, withoutExtends(rawValue));
+    inheritanceChain = [realFixturePath, ...parent.inheritanceChain];
+  }
+
+  const parsed = fixtureDocumentSchema.safeParse(materializedValue);
+  if (!parsed.success) {
+    throw new Error(
+      `Invalid YAML fixture ${path.relative(repositoryRoot, realFixturePath)}: ${formatIssues(parsed.error)}`
+    );
+  }
+  const materialized = { document: parsed.data, inheritanceChain };
+  materializedFixtureCache.set(realFixturePath, materialized);
+  return materialized;
 };
 
 interface FixtureIndexEntry {
@@ -409,19 +553,18 @@ const readDocumentedCases = (markdownPath: string): DocumentedCase[] => {
   });
 };
 
-const resolveFixturePath = (documentedCase: DocumentedCase, fixtureLink: string, category: FixtureCategory) => {
+const resolveFixturePath = (documentedCase: DocumentedCase, fixtureLink: string) => {
   const { caseId, markdownPath } = documentedCase;
   const resolvedPath = path.resolve(path.dirname(markdownPath), fixtureLink);
-  const categoryRoot = path.join(fixtureRoot, category);
-  if (!isWithin(resolvedPath, categoryRoot)) {
-    throw new Error(`${caseId} Fixture must stay inside docs/e2e/fixture/${category}`);
+  if (path.dirname(resolvedPath) !== fixtureRoot) {
+    throw new Error(`${caseId} Fixture must be a direct child of docs/e2e/fixture`);
   }
   if (!existsSync(resolvedPath)) {
     throw new Error(`${caseId} Fixture does not exist: ${path.relative(repositoryRoot, resolvedPath)}`);
   }
   const realPath = realpathSync(resolvedPath);
-  if (!isWithin(realPath, realpathSync(categoryRoot))) {
-    throw new Error(`${caseId} Fixture resolves outside docs/e2e/fixture/${category}`);
+  if (!isWithin(realPath, realFixtureRoot)) {
+    throw new Error(`${caseId} Fixture resolves outside docs/e2e/fixture`);
   }
   return realPath;
 };
@@ -433,7 +576,7 @@ const readFixtureIndexEntry = (documentedCase: DocumentedCase): FixtureIndexEntr
   const fixtureLinks = [...section.matchAll(/^- Fixture: \[[^\]]+\]\(([^)]+)\)$/gmu)].map(requiredCapture);
   const fixtureLink = requireSingle(fixtureLinks, `${caseId} must declare exactly one Fixture link`);
   if (!fixtureLink.endsWith(".yaml")) throw new Error(`${caseId} Fixture link must reference a YAML file`);
-  return { category, path: resolveFixturePath(documentedCase, fixtureLink, category) };
+  return { category, path: resolveFixturePath(documentedCase, fixtureLink) };
 };
 
 const listE2eMarkdownFiles = () =>
@@ -462,7 +605,7 @@ export const loadFixtureSource = (caseId: string): FixtureSource => {
     caseId,
     category: entry.category,
     path: path.relative(repositoryRoot, entry.path),
-    document: parseYaml(entry.path),
+    document: materializeFixture(entry.path).document,
   };
 };
 

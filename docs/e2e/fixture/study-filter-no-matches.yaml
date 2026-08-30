@@ -1,0 +1,8 @@
+extends: remote-deck-with-cards.yaml
+remote:
+  decks:
+    - id: deck-1
+      uid: user-1
+      name: Filtered Study Deck
+      selectedTags: [missing]
+      category: English

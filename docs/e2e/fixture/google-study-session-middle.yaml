@@ -1,0 +1,5 @@
+extends: study-session-middle.yaml
+auth:
+  users:
+    - uid: user-1
+      provider: google

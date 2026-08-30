@@ -1,0 +1,5 @@
+extends: study-session-start.yaml
+browser:
+  preferences:
+    appearance:
+      hideBodyWhenCardChanged: false
