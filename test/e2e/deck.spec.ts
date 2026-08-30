@@ -35,16 +35,18 @@ test("DECK-01 navigates from the Deck list to its Card list", async ({ fixture, 
   await expect(page.getByText(card.frontText)).toBeVisible();
 });
 
-test("DECK-02 persists edited name and category across reload", async ({ fixture, page, namespace }) => {
+test("DECK-02 persists edited name, category, and source URL across reload", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   const updatedName = `${namespace.caseId} updated`;
+  const updatedSourceUrl = "https://example.com/updated-deck.csv";
 
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
   await page.getByRole("textbox", { name: "Name" }).fill(updatedName);
   await page.getByRole("combobox").selectOption("typescript");
+  await page.getByRole("textbox", { name: "Source URL" }).fill(updatedSourceUrl);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Updated deck “${updatedName}”.` })).toBeVisible();
@@ -54,11 +56,15 @@ test("DECK-02 persists edited name and category across reload", async ({ fixture
 
   await expect(page.getByRole("textbox", { name: "Name" })).toHaveValue(updatedName);
   await expect(page.getByRole("combobox")).toHaveValue("typescript");
+  await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(updatedSourceUrl);
 });
 
-test("DECK-03 deletes a Deck, all Cards, and its resumable session", async ({ fixture, page }) => {
-  const deck = fixture.deck();
-  const { cards } = fixture.state.remote;
+test("DECK-03 deletes one Deck and preserves unrelated Deck data", async ({ fixture, page }) => {
+  const deck = fixture.deck("deck-a");
+  const otherDeck = fixture.deck("deck-b");
+  const cards = fixture.state.remote.cards.filter((card) => card.deckId === deck.id);
+  const otherCards = fixture.state.remote.cards.filter((card) => card.deckId === otherDeck.id);
+  const otherSession = fixture.session("deck-b");
   await fixture.apply(page);
   await page.goto("/");
 
@@ -71,8 +77,15 @@ test("DECK-03 deletes a Deck, all Cards, and its resumable session", async ({ fi
   await expect(page.getByRole("button", { name: `View ${deck.name}` })).toHaveCount(0);
   await expect.poll(() => getDocument("deck", deck.id)).toBeUndefined();
   await Promise.all(cards.map((card) => expect.poll(() => getDocument("card", card.id)).toBeUndefined()));
-  expect((await readLocalData(page)).sessionsByDeckId).not.toHaveProperty(deck.id);
+
+  expect(await getDocument("deck", otherDeck.id)).toBeDefined();
+  expect((await Promise.all(otherCards.map((card) => getDocument("card", card.id)))).every(Boolean)).toBe(true);
+  const sessionsByDeckId = (await readLocalData(page)).sessionsByDeckId;
+  expect(sessionsByDeckId).not.toHaveProperty(deck.id);
+  expect(sessionsByDeckId).toHaveProperty(otherDeck.id, otherSession);
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: `View ${otherDeck.name}` })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Continue ${otherDeck.name}` })).toBeVisible();
 });
 
 test("DECK-04 cancels Deck deletion and preserves all related data", async ({ fixture, page }) => {
