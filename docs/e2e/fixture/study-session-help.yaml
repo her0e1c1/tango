@@ -1,0 +1,10 @@
+extends: study-session-start.yaml
+browser:
+  preferences:
+    controls:
+      showSwipeButtonList: false
+      showPlaybackControls: false
+      cardSwipeUp: GoBack
+      cardSwipeDown: DoNothing
+      cardSwipeLeft: GoToNextCardToggleMastered
+      cardSwipeRight: GoToPrevCard

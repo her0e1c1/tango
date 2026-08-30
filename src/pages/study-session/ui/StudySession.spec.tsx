@@ -17,6 +17,16 @@ const toolbarProps = () => ({
   onToggleCardDetails: vi.fn(),
   onToggleSwipeControls: vi.fn(),
   onTogglePlaybackControls: vi.fn(),
+  help: {
+    open: false,
+    triggerLabel: "Open study help",
+    title: "Study controls",
+    description: "Review the current controls.",
+    closeLabel: "Close help",
+    rows: [{ control: "Arrow Up / Swipe Up", action: "Go to the next card" }],
+    onOpen: vi.fn(),
+    onClose: vi.fn(),
+  },
 });
 
 const swipeLeft = (target: HTMLElement) => {

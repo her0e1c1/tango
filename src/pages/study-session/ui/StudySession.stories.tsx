@@ -31,6 +31,16 @@ const meta = {
     showPlaybackControls: true,
     showCardDetails: true,
     playbackControlsAvailable: true,
+    help: {
+      open: false,
+      triggerLabel: "Open study help",
+      title: "Study controls",
+      description: "Review the current controls.",
+      closeLabel: "Close help",
+      rows: [{ control: "Arrow Up / Swipe Up", action: "Mark mastered and go to the next card" }],
+      onOpen: fn(),
+      onClose: fn(),
+    },
     frontTextSlot: <FrontText text={fixture.card.default.frontText} />,
     cardOverlaySlot: (
       <CardOverlay
@@ -63,6 +73,10 @@ const centeredFrontTextPlay: Story["play"] = async ({ canvasElement }) => {
 
 export const Default: Story = {
   play: centeredFrontTextPlay,
+};
+
+export const HelpOpen: Story = {
+  args: { help: { ...meta.args.help, open: true } },
 };
 
 export const SwipeFeedback: Story = {
