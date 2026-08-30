@@ -6,19 +6,26 @@ import type { CardId } from "@/entities/card";
 import { Button } from "@/shared/ui/button";
 import { TagList } from "@/shared/ui/content";
 import { Form, FormItem, Tag, Textarea } from "@/shared/ui/forms";
-import type { CardFormValues } from "../model/useCardForm";
+
+export interface CardFormFields {
+  frontText: string;
+  backText: string;
+  tags: string[];
+}
 
 export interface CardFormProps {
-  cardInfo: {
+  cardInfo?: {
     uniqueKey: string;
     id: CardId;
     createdAt?: number;
     lastSeenAt?: number;
   };
   categories: readonly string[];
-  form: UseFormReturn<CardFormValues>;
+  form: UseFormReturn<CardFormFields>;
   onCancel: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
+  submitLabel?: string;
+  submittingLabel?: string;
 }
 
 const formatDate = (timestamp: number): string => new Date(timestamp).toLocaleDateString();
@@ -33,6 +40,9 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
   const frontErrorId = `${frontInputId}-error`;
   const backInputId = `${sectionHeadingIdPrefix}-card-back-text`;
   const backErrorId = `${backInputId}-error`;
+  const submitLabel = props.submitLabel ?? "Save changes";
+  const submittingLabel = props.submittingLabel ?? "Saving…";
+  const submitContent = formState.isSubmitting ? <span>{submittingLabel}</span> : <span>{submitLabel}</span>;
 
   return (
     <Form onSubmit={props.onSubmit}>
@@ -112,39 +122,41 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           ))}
         </TagList>
       </section>
-      <details className="rounded-surface border border-border bg-surface-muted p-4">
-        <summary className="flex min-h-touch cursor-pointer items-center font-semibold text-ink">
-          Card information
-        </summary>
-        <dl className="mt-4 grid gap-3 text-caption">
-          <div className="min-w-0">
-            <dt className="font-medium text-ink-muted">Unique key</dt>
-            <dd className="break-all text-ink">{props.cardInfo.uniqueKey}</dd>
-          </div>
-          <div className="min-w-0">
-            <dt className="font-medium text-ink-muted">ID</dt>
-            <dd className="break-all text-ink">{props.cardInfo.id}</dd>
-          </div>
-          {props.cardInfo.createdAt !== undefined && (
-            <div>
-              <dt className="font-medium text-ink-muted">Created</dt>
-              <dd className="text-ink">{formatDate(props.cardInfo.createdAt)}</dd>
+      {props.cardInfo !== undefined && (
+        <details className="rounded-surface border border-border bg-surface-muted p-4">
+          <summary className="flex min-h-touch cursor-pointer items-center font-semibold text-ink">
+            Card information
+          </summary>
+          <dl className="mt-4 grid gap-3 text-caption">
+            <div className="min-w-0">
+              <dt className="font-medium text-ink-muted">Unique key</dt>
+              <dd className="break-all text-ink">{props.cardInfo.uniqueKey}</dd>
             </div>
-          )}
-          {props.cardInfo.lastSeenAt !== undefined && (
-            <div>
-              <dt className="font-medium text-ink-muted">Last seen</dt>
-              <dd className="text-ink">{formatDate(props.cardInfo.lastSeenAt)}</dd>
+            <div className="min-w-0">
+              <dt className="font-medium text-ink-muted">ID</dt>
+              <dd className="break-all text-ink">{props.cardInfo.id}</dd>
             </div>
-          )}
-        </dl>
-      </details>
+            {props.cardInfo.createdAt !== undefined && (
+              <div>
+                <dt className="font-medium text-ink-muted">Created</dt>
+                <dd className="text-ink">{formatDate(props.cardInfo.createdAt)}</dd>
+              </div>
+            )}
+            {props.cardInfo.lastSeenAt !== undefined && (
+              <div>
+                <dt className="font-medium text-ink-muted">Last seen</dt>
+                <dd className="text-ink">{formatDate(props.cardInfo.lastSeenAt)}</dd>
+              </div>
+            )}
+          </dl>
+        </details>
+      )}
       <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
         <Button variant="quiet" type="button" onClick={props.onCancel}>
           Cancel
         </Button>
         <Button variant="primary" type="submit" disabled={formState.isSubmitting}>
-          {formState.isSubmitting ? "Saving…" : "Save changes"}
+          {submitContent}
         </Button>
       </div>
     </Form>

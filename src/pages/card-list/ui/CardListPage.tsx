@@ -51,6 +51,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
       ) : null}
       <CardList
         cards={state.cards}
+        onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
         filter={{
           scoreMax: deckFilter.scoreMax,
           scoreMin: deckFilter.scoreMin,

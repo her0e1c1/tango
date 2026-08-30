@@ -76,6 +76,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const AddCard: Story = {
+  args: { onAddCard: fn() },
+  play: async ({ args, canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Add card" }));
+    await expect(args.onAddCard).toHaveBeenCalledOnce();
+  },
+};
+
 export const Empty: Story = {
   args: {
     cards: [],

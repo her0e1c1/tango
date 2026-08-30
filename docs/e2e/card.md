@@ -20,6 +20,8 @@ Card 管理の主要導線が、ブラウザ上で表示・編集・削除・fil
 | CARD-10 | write | [score と tag の filter を保存して Card 一覧へ反映できる](#card-10) |
 | CARD-11 | read | [Card view を直接開ける](#card-11) |
 | CARD-12 | read | [存在しない Card から復帰できる](#card-12) |
+| CARD-13 | write | [remote Deck に Card を作成できる](#card-13) |
+| CARD-14 | write | [local-only Deck に Card を作成できる](#card-14) |
 
 <a id="card-01"></a>
 
@@ -281,4 +283,46 @@ When:
 Then:
 
 - Deck 一覧が表示される。
+- browser error が発生しない。
+
+<a id="card-13"></a>
+
+### CARD-13 remote Deck に Card を作成できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する remote Deck が存在する。
+
+When:
+
+- Card 一覧の Add card から front text と back text を入力して Card を作成し、画面を reload する。
+
+Then:
+
+- 作成した Card が reload 後も同じ Deck の Card 一覧に表示される。
+- Card は remote 保存先だけに1件存在し、owner は対象 Deck と一致する。
+- browser error が発生しない。
+
+<a id="card-14"></a>
+
+### CARD-14 local-only Deck に Card を作成できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- local-only Deck が存在する。
+
+When:
+
+- Card 一覧の Add card から front text と back text を入力して Card を作成し、画面を reload する。
+
+Then:
+
+- 作成した Card が reload 後も同じ Deck の Card 一覧に表示される。
+- Card は browser 保存先だけに1件存在し、remote 保存先には存在しない。
 - browser error が発生しない。
