@@ -12,9 +12,10 @@ interface SettingsFormStoryProps {
   preferences: Preferences;
   version: string;
   commitHash: string;
+  repositoryUrl: string;
 }
 
-const SettingsFormStory = ({ preferences, version, commitHash }: SettingsFormStoryProps) => {
+const SettingsFormStory = ({ preferences, version, commitHash, repositoryUrl }: SettingsFormStoryProps) => {
   const form = useForm<Preferences>({ defaultValues: preferences });
   return (
     <SettingsForm
@@ -22,6 +23,7 @@ const SettingsFormStory = ({ preferences, version, commitHash }: SettingsFormSto
       studyPreferencesLimits={studyPreferencesLimits}
       version={version}
       commitHash={commitHash}
+      repositoryUrl={repositoryUrl}
     />
   );
 };
@@ -36,6 +38,7 @@ const meta = {
     preferences: fixture.preferences.default,
     version: "1.2.3",
     commitHash: "0123456789abcdef0123456789abcdef01234567",
+    repositoryUrl: "https://github.com/her0e1c1/tango",
   },
 } satisfies Meta<typeof SettingsFormStory>;
 

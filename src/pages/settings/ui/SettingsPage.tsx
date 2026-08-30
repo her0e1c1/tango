@@ -20,6 +20,7 @@ export const SettingsPage: React.FC = () => {
         studyPreferencesLimits={state.studyPreferencesLimits}
         version={__APP_VERSION__}
         commitHash={__COMMIT_HASH__}
+        repositoryUrl={import.meta.env.VITE_REPOSITORY_URL}
       />
     </AppLayout>
   );

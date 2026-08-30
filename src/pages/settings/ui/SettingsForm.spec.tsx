@@ -12,6 +12,7 @@ import { createPreferences } from "@/test/factories";
 import { SettingsForm } from "./SettingsForm";
 
 const commitHash = "0123456789abcdef0123456789abcdef01234567";
+const repositoryUrl = "https://github.com/her0e1c1/tango";
 const defaultValues = createPreferences({
   showPlaybackControls: true,
   useCardInterval: true,
@@ -22,7 +23,13 @@ const defaultValues = createPreferences({
 const SettingsFormHarness: React.FC<{ values?: Preferences }> = ({ values = defaultValues }) => {
   const form = useForm<Preferences>({ defaultValues: values });
   return (
-    <SettingsForm form={form} studyPreferencesLimits={studyPreferencesLimits} version="1.2.3" commitHash={commitHash} />
+    <SettingsForm
+      form={form}
+      studyPreferencesLimits={studyPreferencesLimits}
+      version="1.2.3"
+      commitHash={commitHash}
+      repositoryUrl={repositoryUrl}
+    />
   );
 };
 
@@ -68,7 +75,7 @@ describe("SettingsForm", () => {
     expect(details).not.toHaveTextContent("01234567");
     expect(screen.getByRole("link", { name: "0123456" })).toHaveAttribute(
       "href",
-      `https://github.com/her0e1c1/tango/commit/${commitHash}`
+      `${repositoryUrl}/commit/${commitHash}`
     );
     expect(details).not.toHaveTextContent("Main branch");
   });

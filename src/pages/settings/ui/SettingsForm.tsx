@@ -7,8 +7,6 @@ import type { Preferences } from "@/entities/preference";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 import { Slider, Switch } from "@/shared/ui/forms";
 
-const repositoryUrl = "https://github.com/her0e1c1/tango";
-
 export interface SettingsFormProps {
   form: UseFormReturn<Preferences>;
   studyPreferencesLimits: {
@@ -17,12 +15,15 @@ export interface SettingsFormProps {
   };
   version?: string;
   commitHash?: string;
+  repositoryUrl?: string;
 }
 
 export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
   const shortCommitHash = props.commitHash?.slice(0, 7);
   const commitUrl =
-    props.commitHash && props.commitHash !== "unknown" ? `${repositoryUrl}/commit/${props.commitHash}` : undefined;
+    props.repositoryUrl && props.commitHash && props.commitHash !== "unknown"
+      ? `${props.repositoryUrl.replace(/\/+$/, "")}/commit/${props.commitHash}`
+      : undefined;
   const maxNumberOfCardsToLearn = useWatch({
     control: props.form.control,
     name: "study.maxNumberOfCardsToLearn",

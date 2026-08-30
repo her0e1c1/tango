@@ -28,6 +28,7 @@ jobs:
 
       - run: echo VITE_PROJECT_ID="${{ secrets.VITE_PROJECT_ID }}" >> .env
       - run: echo VITE_WEB_API_KEY="${{ secrets.VITE_WEB_API_KEY }}" >> .env
+      - run: echo VITE_REPOSITORY_URL="https://github.com/her0e1c1/tango" >> .env
 
       - run: mise run init
 
