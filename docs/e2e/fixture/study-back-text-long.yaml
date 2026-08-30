@@ -1,0 +1,53 @@
+extends: study-session-start.yaml
+remote:
+  cards:
+    - id: card-1
+      deckId: deck-1
+      uid: user-1
+      frontText: long answer
+      backText: |-
+        Answer line 01 explains the first detail of the study material.
+        Answer line 02 continues with another detail for the learner.
+        Answer line 03 keeps the response taller than the visible region.
+        Answer line 04 provides enough content for meaningful scrolling.
+        Answer line 05 explains the first detail of the study material.
+        Answer line 06 continues with another detail for the learner.
+        Answer line 07 keeps the response taller than the visible region.
+        Answer line 08 provides enough content for meaningful scrolling.
+        Answer line 09 explains the first detail of the study material.
+        Answer line 10 continues with another detail for the learner.
+        Answer line 11 keeps the response taller than the visible region.
+        Answer line 12 provides enough content for meaningful scrolling.
+        Answer line 13 explains the first detail of the study material.
+        Answer line 14 continues with another detail for the learner.
+        Answer line 15 keeps the response taller than the visible region.
+        Answer line 16 provides enough content for meaningful scrolling.
+        Answer line 17 explains the first detail of the study material.
+        Answer line 18 continues with another detail for the learner.
+        Answer line 19 keeps the response taller than the visible region.
+        Answer line 20 provides enough content for meaningful scrolling.
+        Answer line 21 explains the first detail of the study material.
+        Answer line 22 continues with another detail for the learner.
+        Answer line 23 keeps the response taller than the visible region.
+        Answer line 24 provides enough content for meaningful scrolling.
+        Answer line 25 explains the first detail of the study material.
+        Answer line 26 continues with another detail for the learner.
+        Answer line 27 keeps the response taller than the visible region.
+        Answer line 28 provides enough content for meaningful scrolling.
+        Answer line 29 explains the first detail of the study material.
+        Answer line 30 continues with another detail for the learner.
+        Answer line 31 keeps the response taller than the visible region.
+        Answer line 32 provides enough content for meaningful scrolling.
+        Answer line 33 explains the first detail of the study material.
+        Answer line 34 continues with another detail for the learner.
+        Answer line 35 keeps the response taller than the visible region.
+        Answer line 36 provides enough content for meaningful scrolling.
+        Answer line 37 explains the first detail of the study material.
+        Answer line 38 continues with another detail for the learner.
+        Answer line 39 keeps the response taller than the visible region.
+        Answer line 40 provides enough content for meaningful scrolling.
+      uniqueKey: long-answer
+browser:
+  studySessions:
+    deck-1:
+      cardOrderIds: [card-1]

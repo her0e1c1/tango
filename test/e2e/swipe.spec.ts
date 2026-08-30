@@ -1,32 +1,12 @@
 import type { Page } from "@playwright/test";
 
-import {
-  allowExpectedFirestoreWriteFailure,
-  expect,
-  failNextFirestoreWrite,
-  readLocalData,
-  requireDocument,
-  test,
-  type StudySessionFixture,
-} from "./fixtures";
+import { allowExpectedFirestoreWriteFailure, expect, failNextFirestoreWrite, readLocalData, test } from "./fixtures";
+import { progressOf, readProgress, readSession } from "./study-helpers";
 
 const cardAt = <T>(cards: readonly T[], index: number) => {
   const card = cards[index];
   if (card === undefined) throw new Error(`Missing Card fixture at index ${String(index)}`);
   return card;
-};
-
-const progressOf = (card: { score: number; numberOfSeen: number }) => ({
-  score: card.score,
-  numberOfSeen: card.numberOfSeen,
-});
-
-const readProgress = async (cardId: string) => {
-  const document = await requireDocument("card", cardId);
-  return {
-    score: Number(document.fields.score?.integerValue),
-    numberOfSeen: Number(document.fields.numberOfSeen?.integerValue),
-  };
 };
 
 const readLocalProgress = async (page: Page, cardId: string) => {
@@ -39,11 +19,6 @@ const readLocalProgress = async (page: Page, cardId: string) => {
   };
 };
 
-const readSession = async (page: Page, deckId: string) => {
-  const { sessionsByDeckId } = await readLocalData(page);
-  return sessionsByDeckId[deckId] as StudySessionFixture | undefined;
-};
-
 const swipeFrontUp = async (page: Page, frontText: string, button: "left" | "middle" | "right" = "left") => {
   const box = await page.getByRole("button", { name: frontText, exact: true }).boundingBox();
   if (box == null) throw new Error("Study card front is not visible");
@@ -54,38 +29,10 @@ const swipeFrontUp = async (page: Page, frontText: string, button: "left" | "mid
   await page.mouse.up({ button });
 };
 
-const selectBackText = async (page: Page, backText: string) => {
-  const textRect = await page.getByText(backText, { exact: true }).evaluate((element) => {
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    const rect = range.getBoundingClientRect();
-    return { left: rect.left, right: rect.right, y: rect.top + rect.height / 2 };
-  });
-  await page.mouse.move(textRect.left + 1, textRect.y);
-  await page.mouse.down();
-  await page.mouse.move(textRect.right - 1, textRect.y, { steps: 5 });
-  await page.mouse.up();
-};
-
 const returnToDeckList = async (page: Page) => {
   await page.getByRole("button", { name: "Open study actions" }).click();
   await page.getByRole("button", { name: "Back to deck list" }).click();
 };
-
-test("SWIPE-01 reveals the current Card answer without changing progress", async ({ fixture, page }) => {
-  const deck = fixture.deck();
-  const session = fixture.session();
-  const currentCard = fixture.card("card-1");
-  await fixture.apply(page);
-
-  await page.goto(`/deck/${deck.id}/study`);
-  const before = await readProgress(currentCard.id);
-  await page.getByRole("button", { name: currentCard.frontText, exact: true }).click();
-
-  await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual(before);
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
-});
 
 test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
@@ -349,24 +296,6 @@ test("SWIPE-14 ignores non-primary mouse drags", async ({ fixture, page }) => {
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
-test("SWIPE-15 selects answer text without changing the Card state", async ({ fixture, page }) => {
-  const deck = fixture.deck();
-  const session = fixture.session();
-  const currentCard = fixture.card("card-1");
-  await fixture.apply(page);
-
-  await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: currentCard.frontText, exact: true }).click();
-  await selectBackText(page, currentCard.backText);
-
-  await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
-  await expect
-    .poll(async () => page.evaluate(() => window.getSelection()?.toString() ?? ""))
-    .toContain(currentCard.backText);
-  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
-});
-
 test("SWIPE-16 saves local-only progress and advances on a primary upward mouse drag", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
@@ -412,7 +341,7 @@ test("SWIPE-17 preserves local-only progress and session position across reload"
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-18 shows configured Study controls without changing the active session", async ({ fixture, page }) => {
+test("SWIPE-24 shows configured Study controls without changing the active session", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");

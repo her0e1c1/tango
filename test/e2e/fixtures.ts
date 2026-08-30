@@ -259,6 +259,7 @@ export const e2eConfig: E2EConfig = {
     showPlaybackControls: true,
     showCardDetails: true,
     showScoreSlider: false,
+    showBackTextSwipeOverlays: false,
     cardSwipeUp: "GoToNextCardMastered",
     cardSwipeDown: "GoToNextCardNotMastered",
     cardSwipeLeft: "GoToPrevCard",

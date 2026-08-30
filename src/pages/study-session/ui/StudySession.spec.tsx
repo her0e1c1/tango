@@ -75,6 +75,10 @@ describe("StudySession", () => {
     );
 
     expect(screen.getByText("Back")).toBeVisible();
+    const answerSurface = screen.getByRole("region", { name: "Study answer" });
+    expect(answerSurface).toBeVisible();
+    expect(answerSurface).toHaveAttribute("data-study-answer-scroll");
+    expect(answerSurface).toHaveAttribute("tabindex", "0");
     expect(screen.queryByText("Front")).not.toBeInTheDocument();
     expect(screen.queryByText("Card metadata")).not.toBeInTheDocument();
     expect(screen.queryByText("Save failed")).not.toBeInTheDocument();
@@ -86,6 +90,65 @@ describe("StudySession", () => {
     expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+  });
+
+  it("runs configured back-text edge actions without clicking the answer", () => {
+    const onBackClick = vi.fn();
+    const onClickLeft = vi.fn();
+    const onClickRight = vi.fn();
+    const { rerender } = render(
+      <StudySession
+        {...toolbarProps()}
+        showBackText
+        backTextSlot={
+          <button type="button" onClick={onBackClick}>
+            Back
+          </button>
+        }
+        backTextOverlay={{ onClickLeft, onClickRight }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Swipe left" }));
+    fireEvent.click(screen.getByRole("button", { name: "Swipe right" }));
+
+    expect(onClickLeft).toHaveBeenCalledOnce();
+    expect(onClickRight).toHaveBeenCalledOnce();
+    expect(onBackClick).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Swipe up" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe down" })).not.toBeInTheDocument();
+
+    rerender(
+      <StudySession
+        {...toolbarProps()}
+        showSwipeControls={false}
+        frontTextSlot={<div>Front</div>}
+        backTextOverlay={{ onClickLeft, onClickRight }}
+      />
+    );
+    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe right" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Study answer" })).not.toBeInTheDocument();
+  });
+
+  it("forwards edge wheel input to answer scrolling without running the action", () => {
+    const onClickLeft = vi.fn();
+    render(
+      <StudySession
+        {...toolbarProps()}
+        showBackText
+        backTextSlot={<div>Long back text</div>}
+        backTextOverlay={{ onClickLeft }}
+      />
+    );
+    const answerSurface = screen.getByRole("region", { name: "Study answer" });
+    const leftOverlay = screen.getByRole("button", { name: "Swipe left" });
+
+    expect(fireEvent.wheel(leftOverlay, { deltaY: 64, deltaMode: 0 })).toBe(false);
+
+    expect(answerSurface.scrollTop).toBe(64);
+    expect(leftOverlay).toHaveClass("touch-pan-y");
+    expect(onClickLeft).not.toHaveBeenCalled();
   });
 
   it("keeps the back action visible and opens the remaining study actions", () => {

@@ -28,6 +28,10 @@ export const resources = {
             label: "Show swipe controls",
             help: "Display study swipe action controls",
           },
+          showBackTextSwipeOverlays: {
+            label: "Show back text swipe overlays",
+            help: "Display left and right study actions while viewing an answer",
+          },
           showPlaybackControls: {
             label: "Show playback controls",
             help: "Display autoplay and progress controls",
@@ -110,6 +114,10 @@ export const resources = {
           showSwipeControls: {
             label: "スワイプ操作を表示",
             help: "学習時のスワイプ操作ボタンを表示します",
+          },
+          showBackTextSwipeOverlays: {
+            label: "裏面のスワイプ操作を表示",
+            help: "回答の表示中に左右の学習操作を表示します",
           },
           showPlaybackControls: {
             label: "再生コントロールを表示",

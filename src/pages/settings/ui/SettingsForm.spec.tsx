@@ -43,21 +43,26 @@ describe("SettingsForm", () => {
   it("renders and updates switches and numeric sliders through RHF registration", async () => {
     render(<SettingsFormHarness />);
     const playback = screen.getByRole("checkbox", { name: "Show playback controls" });
+    const backTextSwipeOverlays = screen.getByRole("checkbox", { name: "Show back text swipe overlays" });
     const cardDetails = screen.getByRole("checkbox", { name: "Show card details" });
     const language = screen.getByRole("combobox", { name: "Language" });
     const maximumCards = screen.getByRole("slider", { name: "Maximum cards" });
     expect(playback).toBeChecked();
+    expect(backTextSwipeOverlays).not.toBeChecked();
     expect(cardDetails).toBeChecked();
     expect(language).toHaveValue("system");
     expect(language).toHaveDisplayValue("System");
+    expect(screen.getByText("Display left and right study actions while viewing an answer")).toBeInTheDocument();
     expect(maximumCards).toHaveValue("24");
 
     await userEvent.selectOptions(language, "ja");
     await userEvent.click(playback);
+    await userEvent.click(backTextSwipeOverlays);
     await userEvent.click(cardDetails);
     fireEvent.change(maximumCards, { target: { value: "31" } });
 
     expect(playback).not.toBeChecked();
+    expect(backTextSwipeOverlays).toBeChecked();
     expect(cardDetails).not.toBeChecked();
     expect(language).toHaveValue("ja");
     expect(language).toHaveDisplayValue("日本語");
@@ -102,6 +107,7 @@ describe("SettingsForm", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
     expect(screen.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
+    expect(screen.getByRole("checkbox", { name: "裏面のスワイプ操作を表示" })).toBeVisible();
     expect(screen.getByRole("checkbox", { name: "ダークモード" })).toBeVisible();
     expect(screen.getByRole("slider", { name: "最大カード数" })).toHaveAttribute("aria-valuetext", "24枚");
     expect(screen.getByRole("slider", { name: "自動再生の間隔" })).toHaveAttribute("aria-valuetext", "7秒");
