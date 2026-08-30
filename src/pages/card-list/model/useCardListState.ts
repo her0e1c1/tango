@@ -119,6 +119,9 @@ export const useCardListState = (deck: Deck): CardListState => {
   };
 
   const requestDeletion = (id: CardId) => {
+    // A closed pending dialog must not let another Card replace the target captured by the issued write.
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: The pending write mutates this ref outside the request callback's render.
+    if (deletionPendingRef.current) return;
     const card = mustFindCardById(cards, id);
     dismissDeletionErrorToast();
     setDeletionTarget(card);
@@ -128,14 +131,14 @@ export const useCardListState = (deck: Deck): CardListState => {
     if (deletionTarget == null || deletionPendingRef.current) return;
     const card = deletionTarget;
     dismissDeletionErrorToast();
-    // Deletion invalidates only writes for the removed Card; unrelated failures must still surface.
-    nextScoreMutationSequence(card.id);
-    dismissScoreErrorToast(card.id);
     deletionPendingRef.current = true;
     setDeletionPending(true);
     try {
       await deleteCard(uid, card);
       if (!isMounted()) return;
+      // Only a committed deletion supersedes pending score writes for that Card; a failed deletion leaves them actionable.
+      nextScoreMutationSequence(card.id);
+      dismissScoreErrorToast(card.id);
       setDeletionTarget(undefined);
       showToast({ message: `Deleted card “${card.frontText}”.`, tone: "success" });
     } catch {
@@ -143,7 +146,6 @@ export const useCardListState = (deck: Deck): CardListState => {
         deletionErrorToastId.current = showToast({
           message: "Unable to delete this card. Check your connection and try again.",
           tone: "error",
-          dismissible: false,
         });
       }
     } finally {
@@ -180,8 +182,7 @@ export const useCardListState = (deck: Deck): CardListState => {
     onSwipedRight: (id: CardId) => changeScore(id, 1),
     onRequestDeletion: requestDeletion,
     onCancelDeletion: () => {
-      // biome-ignore lint/suspicious/noUnnecessaryConditions: Cancel may run after confirm mutates this React ref.
-      if (deletionPendingRef.current) return;
+      // Closing the dialog only dismisses its UI; an already-issued deletion owns its eventual global Toast.
       dismissDeletionErrorToast();
       setDeletionTarget(undefined);
     },

@@ -141,6 +141,39 @@ describe("Toast", () => {
     expect(trigger).toHaveFocus();
   });
 
+  it("uses a connected application fallback when navigation removes the original focus target", () => {
+    const Harness = () => {
+      const [sourceRoute, setSourceRoute] = React.useState(true);
+      const focusFallbackRef = React.useRef<HTMLElement>(null);
+      return (
+        <>
+          <main ref={focusFallbackRef} tabIndex={-1}>
+            {sourceRoute ? (
+              <button type="button" onClick={() => setSourceRoute(false)}>
+                Leave source route
+              </button>
+            ) : (
+              <h1>Destination route</h1>
+            )}
+          </main>
+          <ToastViewport focusFallbackRef={focusFallbackRef} />
+        </>
+      );
+    };
+    render(<Harness />);
+    const sourceAction = screen.getByRole("button", { name: "Leave source route" });
+    sourceAction.focus();
+    displayToast({ message: "Saved", tone: "success", durationMs: null });
+
+    fireEvent.click(sourceAction);
+    expect(sourceAction).not.toBeInTheDocument();
+    const dismissButton = screen.getByRole("button", { name: "Dismiss notification" });
+    dismissButton.focus();
+    fireEvent.click(dismissButton);
+
+    expect(screen.getByRole("main")).toHaveFocus();
+  });
+
   it("dismisses before running its action", () => {
     const onClick = vi.fn(() => {
       expect(screen.getByRole("button", { name: "Show notification" })).toHaveFocus();

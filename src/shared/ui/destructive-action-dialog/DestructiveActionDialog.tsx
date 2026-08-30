@@ -56,9 +56,10 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   };
 
   const handleCancel = () => {
-    if (props.pending) return;
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: Cancel may run after confirm mutates this React ref.
-    if (confirmingRef.current) return;
+    // Before pending reaches the UI, Cancel would misleadingly imply that the issued write was withdrawn.
+    // Once pending is visible, Close only releases the modal while the caller keeps the write alive.
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Confirm can mutate this ref before pending props reach this render.
+    if (confirmingRef.current && !props.pending) return;
     props.onCancel();
   };
 
@@ -134,11 +135,10 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
           <button
             ref={cancelRef}
             type="button"
-            disabled={props.pending}
-            className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-border bg-transparent px-4 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-border bg-transparent px-4 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             onClick={handleCancel}
           >
-            Cancel
+            {props.pending ? "Close" : "Cancel"}
           </button>
           <Button variant="destructive" loading={Boolean(props.pending)} onClick={handleConfirm}>
             {props.confirmLabel}

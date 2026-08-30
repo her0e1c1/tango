@@ -193,13 +193,13 @@ describe("CardListPage interactions", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Unable to delete this card. Check your connection and try again."
     );
-    expect(within(dialog).queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Dismiss notification" })).toBeEnabled();
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument());
   });
 
-  it("locks cancellation while card deletion is pending", async () => {
+  it("allows closing a pending deletion and reports its eventual failure", async () => {
     const request = Promise.withResolvers<void>();
     mocks.deleteCard.mockReturnValueOnce(request.promise);
     renderCardList();
@@ -210,15 +210,19 @@ describe("CardListPage interactions", () => {
 
     const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
     expect(dialog).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Close" })).toBeEnabled();
     fireEvent.keyDown(dialog, { key: "Escape" });
-    expect(dialog).toBeVisible();
+    expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
+    expect(mocks.deleteCard).toHaveBeenCalledExactlyOnceWith("user-id", card);
 
     await actAsync(async () => {
-      request.resolve();
-      await request.promise;
+      request.reject(new Error("delete failed after closing"));
+      await request.promise.catch(() => undefined);
     });
-    await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument());
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Unable to delete this card. Check your connection and try again."
+    );
   });
 
   it("dismisses a deletion error when the dialog is cancelled", async () => {
@@ -269,6 +273,35 @@ describe("CardListPage interactions", () => {
 
     expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
     expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
+  });
+
+  it("reports a pending score failure when deletion of the same Card fails", async () => {
+    const scoreWrite = Promise.withResolvers<void>();
+    const deletionWrite = Promise.withResolvers<void>();
+    mocks.editStudyProgress.mockReturnValueOnce(scoreWrite.promise);
+    mocks.deleteCard.mockReturnValueOnce(deletionWrite.promise);
+    renderCardList();
+
+    swipe(screen.getByRole("article"), 0, 100);
+    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
+
+    await actAsync(async () => {
+      deletionWrite.reject(new Error("delete failed"));
+      await deletionWrite.promise.catch(() => undefined);
+    });
+    expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
+    expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeVisible();
+
+    await actAsync(async () => {
+      scoreWrite.reject(new Error("late score failure"));
+      await scoreWrite.promise.catch(() => undefined);
+    });
+
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+    expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeVisible();
   });
 
   it("reports a pending score failure after another Card's score write succeeds", async () => {

@@ -172,19 +172,20 @@ describe("DestructiveActionDialog", () => {
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
-  it("announces pending work and prevents duplicate confirmation", async () => {
+  it("announces pending work, prevents confirmation, and allows Close or Escape", async () => {
     const onConfirm = vi.fn();
     const onCancel = vi.fn();
     render(<DestructiveActionDialog {...defaultProps} pending onCancel={onCancel} onConfirm={onConfirm} />);
 
     const dialog = screen.getByRole("alertdialog");
     expect(dialog).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Close" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Delete deck" })).toBeDisabled();
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
     fireEvent.keyDown(dialog, { key: "Escape" });
     expect(onConfirm).not.toHaveBeenCalled();
-    expect(onCancel).not.toHaveBeenCalled();
+    expect(onCancel).toHaveBeenCalledTimes(2);
   });
 
   it("prevents duplicate confirmation before pending props update", () => {

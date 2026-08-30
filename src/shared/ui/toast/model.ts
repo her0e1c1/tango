@@ -29,8 +29,14 @@ export interface ToastState {
 
 interface ToastStoreState {
   current: ToastState | undefined;
+  focusFallbackTargets: readonly ToastFocusFallbackTarget[];
   modalTargets: readonly ToastModalTarget[];
   visualTarget: ToastVisualTarget | undefined;
+}
+
+interface ToastFocusFallbackTarget {
+  id: number;
+  element: HTMLElement;
 }
 
 interface ToastModalTarget {
@@ -52,13 +58,30 @@ const DEFAULT_DURATION_MS: Record<ToastTone, number | null> = {
 };
 
 let nextToastId = 0;
+let nextFocusFallbackTargetId = 0;
 let nextModalTargetId = 0;
 
 export const toastStore = createStore<ToastStoreState>()(() => ({
   current: undefined,
+  focusFallbackTargets: [],
   modalTargets: [],
   visualTarget: undefined,
 }));
+
+export const registerToastFocusFallbackTarget = (element: HTMLElement): (() => void) => {
+  nextFocusFallbackTargetId += 1;
+  const id = nextFocusFallbackTargetId;
+  toastStore.setState((state) => ({
+    focusFallbackTargets: [...state.focusFallbackTargets, { id, element }],
+  }));
+
+  // Strict Mode and remounts can run an older cleanup after a newer application fallback registered.
+  return () => {
+    toastStore.setState((state) => ({
+      focusFallbackTargets: state.focusFallbackTargets.filter((target) => target.id !== id),
+    }));
+  };
+};
 
 export const registerToastModalTarget = (element: HTMLElement, restoreFocus: () => void): (() => void) => {
   nextModalTargetId += 1;
@@ -96,18 +119,25 @@ const getFocusedElement = (): HTMLElement | undefined => {
 const restoreToastFocus = (toast: ToastState): void => {
   const focusedElement = getFocusedElement();
   if (focusedElement === undefined) return;
-  const { modalTargets, visualTarget } = toastStore.getState();
+  const { focusFallbackTargets, modalTargets, visualTarget } = toastStore.getState();
   const modalTarget = modalTargets.at(-1);
   if (modalTarget?.element.contains(focusedElement)) {
     modalTarget.restoreFocus();
     return;
   }
-  if (
-    visualTarget?.toastId === toast.id &&
-    visualTarget.element.contains(focusedElement) &&
-    toast.returnFocusTarget?.isConnected
-  ) {
+  if (visualTarget?.toastId !== toast.id || !visualTarget.element.contains(focusedElement)) return;
+  if (toast.returnFocusTarget?.isConnected) {
     toast.returnFocusTarget.focus();
+    return;
+  }
+
+  // CRUD success can replace the route immediately after publishing a Toast, disconnecting its original trigger.
+  for (let index = focusFallbackTargets.length - 1; index >= 0; index -= 1) {
+    const fallbackTarget = focusFallbackTargets[index];
+    if (fallbackTarget?.element.isConnected) {
+      fallbackTarget.element.focus();
+      return;
+    }
   }
 };
 

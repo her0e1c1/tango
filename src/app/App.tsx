@@ -21,6 +21,7 @@ import { AppRoutes } from "./routes";
  */
 const AppShell: React.FC = () => {
   const { darkMode } = usePreferences().appearance;
+  const focusFallbackRef = React.useRef<HTMLElement>(null);
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -28,14 +29,20 @@ const AppShell: React.FC = () => {
 
   return (
     <>
-      <AuthProvider>
-        <FirestoreSubscriptionsProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </FirestoreSubscriptionsProvider>
-      </AuthProvider>
-      <ToastViewport />
+      <main
+        ref={focusFallbackRef}
+        // This landmark survives route replacement so removing a focused Toast never leaves focus on the document body.
+        tabIndex={-1}
+      >
+        <AuthProvider>
+          <FirestoreSubscriptionsProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </FirestoreSubscriptionsProvider>
+        </AuthProvider>
+      </main>
+      <ToastViewport focusFallbackRef={focusFallbackRef} />
     </>
   );
 };

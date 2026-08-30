@@ -66,6 +66,25 @@ describe("App", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Success: Saved");
   });
 
+  it("restores focus to the application shell when a notification outlives its source route", () => {
+    window.history.replaceState({}, "", "/unknown");
+    render(<App />);
+    const sourceAction = screen.getByRole("button", { name: "Go home" });
+    sourceAction.focus();
+    act(() => {
+      showToast({ message: "Saved", tone: "success", durationMs: null });
+    });
+
+    fireEvent.click(sourceAction);
+    expect(sourceAction).not.toBeInTheDocument();
+    expect(screen.getByText("Deck list")).toBeInTheDocument();
+    const dismissButton = screen.getByRole("button", { name: "Dismiss notification" });
+    dismissButton.focus();
+    fireEvent.click(dismissButton);
+
+    expect(screen.getByRole("main")).toHaveFocus();
+  });
+
   it("matches the static Deck create route instead of treating new as a Deck id", () => {
     window.history.replaceState({}, "", "/deck/new");
     render(<App />);

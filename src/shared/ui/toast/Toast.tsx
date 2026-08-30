@@ -6,6 +6,7 @@ import { useStore } from "zustand";
 
 import {
   dismissToast,
+  registerToastFocusFallbackTarget,
   registerToastModalTarget,
   registerToastVisualTarget,
   toastStore,
@@ -77,6 +78,10 @@ interface ToastModalOutletProps<T extends HTMLElement> {
   focusFallbackRef: React.RefObject<T | null>;
 }
 
+interface ToastViewportProps<T extends HTMLElement> {
+  focusFallbackRef?: React.RefObject<T | null>;
+}
+
 /** Hosts the application Toast inside an active modal's DOM and focus boundary. */
 export const ToastModalOutlet = <T extends HTMLElement>({ focusFallbackRef }: ToastModalOutletProps<T>) => {
   const outletRef = React.useRef<HTMLDivElement>(null);
@@ -92,11 +97,19 @@ export const ToastModalOutlet = <T extends HTMLElement>({ focusFallbackRef }: To
 };
 
 /** Renders the one application-wide Toast without coupling callers to the active route. */
-export const ToastViewport = () => {
+export const ToastViewport = <T extends HTMLElement = HTMLElement>({
+  focusFallbackRef,
+}: ToastViewportProps<T> = {}) => {
   const toast = useStore(toastStore, (state) => state.current);
   const modalTarget = useStore(toastStore, (state) => state.modalTargets.at(-1)?.element);
   const visualTargetRef = React.useRef<HTMLDivElement>(null);
   useAutoDismiss(toast);
+
+  React.useLayoutEffect(() => {
+    const focusFallbackTarget = focusFallbackRef?.current;
+    if (focusFallbackTarget === undefined || focusFallbackTarget === null) return;
+    return registerToastFocusFallbackTarget(focusFallbackTarget);
+  }, [focusFallbackRef]);
 
   React.useLayoutEffect(() => {
     const visualTarget = visualTargetRef.current;

@@ -37,14 +37,15 @@ export const useDeckDeletion = ({ onDeleted }: UseDeckDeletionOptions = {}) => {
   React.useEffect(() => () => dismissOwnedToast(errorToastId), []);
 
   const request = (id: Deck["id"]) => {
+    // One issued deletion owns this model until it settles; a hidden dialog must not be retargeted meanwhile.
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: The pending write mutates this ref outside the request callback's render.
+    if (pendingRef.current) return;
     const deck = mustFindDeckById(decks, id);
     dismissErrorToast();
     setTarget({ deck, cardCount: filterCardsByDeckId(cards, id).length });
   };
 
   const cancel = () => {
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: Cancel may run after confirm mutates this React ref.
-    if (pendingRef.current) return;
     dismissErrorToast();
     setTarget(undefined);
   };
@@ -54,7 +55,7 @@ export const useDeckDeletion = ({ onDeleted }: UseDeckDeletionOptions = {}) => {
     const { deck } = target;
 
     dismissErrorToast();
-    // Once persistence starts, Cancel cannot imply that an already-issued destructive write was withdrawn.
+    // The captured Deck keeps the issued write and its Toast outcome alive if Close releases the modal.
     pendingRef.current = true;
     setPending(true);
     try {
@@ -64,12 +65,11 @@ export const useDeckDeletion = ({ onDeleted }: UseDeckDeletionOptions = {}) => {
       showToast({ message: `Deleted deck “${deck.name}”.`, tone: "success" });
       onDeleted?.();
     } catch {
-      // Keep the target open so a transient write failure can be retried without losing user intent.
+      // Preserve a still-open target for retry; after Close, the same failure remains visible globally.
       if (isMounted()) {
         errorToastId.current = showToast({
           message: "Unable to delete this deck. Check your connection and try again.",
           tone: "error",
-          dismissible: false,
         });
       }
     } finally {
