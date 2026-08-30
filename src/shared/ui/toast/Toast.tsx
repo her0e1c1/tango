@@ -96,6 +96,10 @@ export const ToastViewport = () => {
   const modalTarget = useStore(toastStore, (state) => state.modalTargets.at(-1)?.element);
   useAutoDismiss(toast);
 
+  const renderAnnouncement = (activeToast: ToastState) => (
+    <span key={activeToast.id}>{`${tonePresentation[activeToast.tone].label}: ${activeToast.message}`}</span>
+  );
+
   const renderToast = (activeToast: ToastState) => {
     const runAction = () => {
       const { action } = activeToast;
@@ -116,19 +120,30 @@ export const ToastViewport = () => {
     );
   };
 
-  const viewport = (
-    <div className="pointer-events-none fixed inset-x-0 bottom-36 z-[70] flex justify-center px-shell-gutter">
-      {/* Polite live regions must exist before their content changes or assistive technology may stay silent. */}
-      <div role="status" aria-live="polite" aria-atomic="true">
-        {toast !== undefined && toast.tone !== "error" ? renderToast(toast) : null}
+  const visualViewport =
+    toast === undefined ? null : (
+      <div className="pointer-events-none fixed inset-x-0 bottom-36 z-[70] flex justify-center px-shell-gutter">
+        {renderToast(toast)}
       </div>
-      {toast?.tone === "error" ? (
-        <div key={toast.id} role="alert" aria-live="assertive" aria-atomic="true">
-          {renderToast(toast)}
-        </div>
-      ) : null}
-    </div>
-  );
+    );
 
-  return modalTarget === undefined ? viewport : createPortal(viewport, modalTarget);
+  return (
+    <>
+      {/* Announcers stay global and mounted while only the visual controls move into an active modal. */}
+      <div role="status" aria-label="Toast notifications" aria-live="polite" aria-atomic="true" className="sr-only">
+        {toast !== undefined && toast.tone !== "error" ? renderAnnouncement(toast) : null}
+      </div>
+      <div
+        role={toast?.tone === "error" ? "alert" : undefined}
+        aria-live="assertive"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {toast?.tone === "error" ? renderAnnouncement(toast) : null}
+      </div>
+      {visualViewport === null || modalTarget === undefined
+        ? visualViewport
+        : createPortal(visualViewport, modalTarget)}
+    </>
+  );
 };
