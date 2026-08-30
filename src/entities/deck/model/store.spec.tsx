@@ -155,4 +155,14 @@ describe("Deck store", () => {
     deleteLocalDeck("local");
     expect(deckStore.getState().localDecks).toEqual([]);
   });
+
+  it("retries a local Deck create by appending the latest value without duplicates", () => {
+    vi.spyOn(Date, "now").mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValueOnce(30);
+    createLocalDeck({ id: "target", name: "Initial", localMode: true });
+    const otherDeck = createLocalDeck({ id: "other", name: "Other", localMode: true });
+    const retriedDeck = createLocalDeck({ id: "target", name: "Latest", localMode: true });
+
+    expect(deckStore.getState().localDecks).toEqual([otherDeck, retriedDeck]);
+    expect(retriedDeck).toEqual(expect.objectContaining({ name: "Latest", createdAt: 30, updatedAt: 30 }));
+  });
 });

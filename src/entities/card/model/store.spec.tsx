@@ -152,6 +152,16 @@ describe("Card store", () => {
     expect(cardStore.getState().localCards).toEqual([]);
   });
 
+  it("retries a local Card create by appending the latest value without duplicates", () => {
+    vi.spyOn(Date, "now").mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValueOnce(30);
+    createLocalCard({ ...cardInput("target"), backText: "initial" });
+    const otherCard = createLocalCard(cardInput("other"));
+    const retriedCard = createLocalCard({ ...cardInput("target"), backText: "latest" });
+
+    expect(cardStore.getState().localCards).toEqual([otherCard, retriedCard]);
+    expect(retriedCard).toEqual(expect.objectContaining({ backText: "latest", createdAt: 30, updatedAt: 30 }));
+  });
+
   it("restores local progress after a failed storage write before retrying", async () => {
     const storage = useMemoryStorage();
     createLocalCard(cardInput("local"));

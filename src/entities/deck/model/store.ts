@@ -3,6 +3,7 @@ import { createStore } from "zustand/vanilla";
 import type { z } from "zod";
 
 import { omitUndefined } from "@/shared/lib/omitUndefined";
+import { upsertById } from "@/shared/lib/upsertById";
 import {
   deckEditSchema,
   deckIdSchema,
@@ -74,8 +75,7 @@ export const createLocalDeck = (input: LocalDeckCreateInput): Extract<Deck, { lo
   const timestamp = Date.now();
   const createdDeck = localDeckSchema.parse({ ...deck, createdAt: timestamp, updatedAt: timestamp });
   // Treat a retried create as an upsert by id so persisted local data cannot accumulate duplicate Decks.
-  const localDecks = deckStore.getState().localDecks.filter(({ id }) => id !== createdDeck.id);
-  deckStore.setState({ localDecks: [...localDecks, createdDeck] });
+  deckStore.setState({ localDecks: upsertById(deckStore.getState().localDecks, createdDeck) });
   return createdDeck;
 };
 

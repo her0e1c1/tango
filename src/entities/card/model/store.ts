@@ -1,6 +1,7 @@
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 
+import { upsertById } from "@/shared/lib/upsertById";
 import {
   cardDeckIdSchema,
   cardIdSchema,
@@ -85,8 +86,7 @@ export const createLocalCard = (input: LocalCardCreateInput): LocalCard => {
   const timestamp = Date.now();
   const createdCard = localCardSchema.parse({ ...card, createdAt: timestamp, updatedAt: timestamp });
   // Treat a retried create as an upsert by id so persisted local data cannot accumulate duplicate Cards.
-  const localCards = cardStore.getState().localCards.filter(({ id }) => id !== createdCard.id);
-  cardStore.setState({ localCards: [...localCards, createdCard] });
+  cardStore.setState({ localCards: upsertById(cardStore.getState().localCards, createdCard) });
   return createdCard;
 };
 
