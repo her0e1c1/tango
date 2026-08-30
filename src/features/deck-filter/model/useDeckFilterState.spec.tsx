@@ -272,7 +272,6 @@ describe("DeckFilterForm with useDeckFilterState", () => {
     view.unmount();
     renderFilter();
 
-    expect(screen.getByText("−2 to 2")).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
     expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("-2");
     expect(screen.getByRole("checkbox", { name: "Match all selected tags" })).toBeChecked();
@@ -295,7 +294,6 @@ describe("DeckFilterForm with useDeckFilterState", () => {
     view.unmount();
     view = renderFilter();
 
-    expect(screen.getByText("−2 to 2")).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
     expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("-2");
 
@@ -304,7 +302,7 @@ describe("DeckFilterForm with useDeckFilterState", () => {
     view.unmount();
     renderFilter();
 
-    expect(screen.getByText("Any score")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("");
     expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("");
   });

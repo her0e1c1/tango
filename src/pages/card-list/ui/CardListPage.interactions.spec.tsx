@@ -108,6 +108,7 @@ describe("CardListPage interactions", () => {
   it("builds the list presentation and coordinates filter, view, and edit interactions", async () => {
     renderCardList();
 
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     expect(screen.getByText("score -2–4 · 2 tags")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
     expect(screen.queryByRole("button", { name: "Remove typescript filter" })).not.toBeInTheDocument();
@@ -115,8 +116,10 @@ describe("CardListPage interactions", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
     expect(screen.getByText("Back")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Close card" }));
     expect(screen.queryByText("Back")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
