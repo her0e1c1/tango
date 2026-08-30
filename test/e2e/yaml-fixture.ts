@@ -65,6 +65,7 @@ export interface FixtureStudySession {
 }
 
 export interface FixturePreferences {
+  language: "system" | "en" | "ja";
   loadSample: boolean;
   appearance: {
     darkMode: boolean;
@@ -83,6 +84,7 @@ export interface FixturePreferences {
     selectedTags: string[];
   };
   controls: {
+    showHelp: boolean;
     showSwipeButtonList: boolean;
     showPlaybackControls: boolean;
     showCardDetails: boolean;
@@ -248,6 +250,7 @@ const swipeActionSchema = z.enum([
 type SwipeAction = z.infer<typeof swipeActionSchema>;
 
 const preferencesSchema = z.strictObject({
+  language: z.enum(["system", "en", "ja"]).optional(),
   loadSample: z.boolean().optional(),
   appearance: z
     .strictObject({
@@ -271,6 +274,7 @@ const preferencesSchema = z.strictObject({
     .optional(),
   controls: z
     .strictObject({
+      showHelp: z.boolean().optional(),
       showSwipeButtonList: z.boolean().optional(),
       showPlaybackControls: z.boolean().optional(),
       showCardDetails: z.boolean().optional(),
@@ -613,7 +617,9 @@ export const loadFixtureSource = (caseId: string): FixtureSource => {
   };
 };
 
-const applicationPreferences: FixturePreferences = {
+const fixturePreferenceDefaults: FixturePreferences = {
+  // The product defaults to system; E2E uses English so existing accessible-name assertions are host-independent.
+  language: "en",
   loadSample: true,
   appearance: {
     darkMode: false,
@@ -632,6 +638,7 @@ const applicationPreferences: FixturePreferences = {
     selectedTags: [],
   },
   controls: {
+    showHelp: true,
     showSwipeButtonList: true,
     showPlaybackControls: true,
     showCardDetails: true,
@@ -652,13 +659,14 @@ const withDefaults = <Value extends object>(
 ): Value => ({ ...defaults, ...overrides });
 
 const normalizePreferences = (raw: RawPreferences | undefined): FixturePreferences => {
-  const appearance = withDefaults(applicationPreferences.appearance, raw?.appearance);
-  const study = withDefaults(applicationPreferences.study, raw?.study);
+  const appearance = withDefaults(fixturePreferenceDefaults.appearance, raw?.appearance);
+  const study = withDefaults(fixturePreferenceDefaults.study, raw?.study);
   return {
-    loadSample: raw?.loadSample ?? applicationPreferences.loadSample,
+    language: raw?.language ?? fixturePreferenceDefaults.language,
+    loadSample: raw?.loadSample ?? fixturePreferenceDefaults.loadSample,
     appearance,
     study: { ...study, selectedTags: [...study.selectedTags] },
-    controls: withDefaults(applicationPreferences.controls, raw?.controls),
+    controls: withDefaults(fixturePreferenceDefaults.controls, raw?.controls),
   };
 };
 

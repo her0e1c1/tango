@@ -54,6 +54,7 @@ const answerSurfaceProps = {
 
 export interface StudySessionProps {
   showBackText?: boolean;
+  showHelp: boolean;
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
@@ -81,6 +82,7 @@ export interface StudySessionProps {
   onSwipeDown?: () => void;
   onBack: () => void;
   onToggleCardDetails: () => void;
+  onToggleHelp: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
 }
@@ -89,18 +91,21 @@ const toolbarButtonClass =
   "pointer-events-auto inline-flex size-touch shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 interface StudyModeActionsProps {
+  showHelp: boolean;
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
   playbackControlsAvailable: boolean;
   playbackDescriptionId: string;
   onEscape: React.KeyboardEventHandler<HTMLButtonElement>;
+  onToggleHelp: () => void;
   onToggleCardDetails: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
 }
 
 const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
+  const helpTitle = props.showHelp ? "Hide help button" : "Show help button";
   const swipeTitle = props.showSwipeControls ? "Hide swipe controls" : "Show swipe controls";
   const playbackTitle = props.playbackControlsAvailable
     ? props.showPlaybackControls
@@ -111,6 +116,17 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
 
   return (
     <div className="flex items-center gap-1">
+      <button
+        type="button"
+        aria-label="Help button"
+        aria-pressed={props.showHelp}
+        title={helpTitle}
+        className={cx(toolbarButtonClass, props.showHelp && "bg-surface-muted text-accent-primary")}
+        onClick={props.onToggleHelp}
+        onKeyDown={props.onEscape}
+      >
+        <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
+      </button>
       <button
         type="button"
         aria-label="Swipe controls"
@@ -161,12 +177,14 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
 interface StudyToolbarProps {
   ref?: React.RefObject<HTMLButtonElement | null>;
   open: boolean;
+  showHelp: boolean;
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
   playbackControlsAvailable: boolean;
   helpTriggerLabel: string;
   onOpenHelp: () => void;
+  onToggleHelp: () => void;
   onToggleOpen: () => void;
   onToggleCardDetails: () => void;
   onBack: () => void;
@@ -219,33 +237,43 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
         )}
       </button>
+      {props.showHelp ? (
+        <button
+          ref={helpTriggerRef}
+          type="button"
+          aria-label={props.helpTriggerLabel}
+          className={cx(
+            toolbarButtonClass,
+            "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0"
+          )}
+          onClick={props.onOpenHelp}
+          onKeyDown={closeOnEscape}
+        >
+          <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
+        </button>
+      ) : null}
       {props.open ? (
-        // The overlay stays out of document flow so opening it cannot move the centered prompt.
+        // Four actions cannot share a 320px row with Back and the two right-side triggers. Below 360px,
+        // keep them on a second row and hide metadata there so both interactive surfaces remain unobstructed.
         <fieldset
           id={actionsId}
           aria-label="Study actions"
-          className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0 pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]"
+          className={cx(
+            "pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0 max-[359px]:absolute max-[359px]:inset-x-0 max-[359px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[359px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]",
+            props.showHelp
+              ? "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]"
+              : "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)]"
+          )}
         >
-          <button
-            ref={helpTriggerRef}
-            type="button"
-            aria-label={props.helpTriggerLabel}
-            className={cx(
-              toolbarButtonClass,
-              "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0"
-            )}
-            onClick={props.onOpenHelp}
-            onKeyDown={closeOnEscape}
-          >
-            <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
-          </button>
           <StudyModeActions
+            showHelp={props.showHelp}
             showCardDetails={props.showCardDetails}
             showSwipeControls={props.showSwipeControls}
             showPlaybackControls={props.showPlaybackControls}
             playbackControlsAvailable={props.playbackControlsAvailable}
             playbackDescriptionId={playbackDescriptionId}
             onEscape={closeOnEscape}
+            onToggleHelp={props.onToggleHelp}
             onToggleCardDetails={props.onToggleCardDetails}
             onToggleSwipeControls={props.onToggleSwipeControls}
             onTogglePlaybackControls={props.onTogglePlaybackControls}
@@ -343,11 +371,19 @@ const BackTextOverlays: React.FC<{
 
 const CardContent: React.FC<{
   showBackText: boolean | undefined;
+  hideCardOverlayOnNarrowScreen: boolean;
   backTextSlot: React.ReactNode | undefined;
   frontTextSlot: React.ReactNode | undefined;
   cardOverlaySlot: React.ReactNode | undefined;
   backTextOverlay: StudySessionProps["backTextOverlay"];
-}> = ({ showBackText, backTextSlot, frontTextSlot, cardOverlaySlot, backTextOverlay }) => {
+}> = ({
+  showBackText,
+  hideCardOverlayOnNarrowScreen,
+  backTextSlot,
+  frontTextSlot,
+  cardOverlaySlot,
+  backTextOverlay,
+}) => {
   if (showBackText && backTextSlot != null) {
     return (
       <>
@@ -364,7 +400,15 @@ const CardContent: React.FC<{
       <div className="relative h-full min-h-0">
         {cardOverlaySlot != null ? (
           // Metadata stays below the toolbar without reserving space in the centered prompt surface.
-          <div className="absolute inset-x-0 top-[var(--study-card-top)] h-touch">{cardOverlaySlot}</div>
+          <div
+            data-study-card-overlay=""
+            className={cx(
+              "absolute inset-x-0 top-[var(--study-card-top)] h-touch",
+              hideCardOverlayOnNarrowScreen && "max-[359px]:hidden"
+            )}
+          >
+            {cardOverlaySlot}
+          </div>
         ) : null}
         {/* Reversed vertical insets optically center the prompt when iPhone safe areas are asymmetric. */}
         <div className="h-full min-h-0 pb-[var(--study-safe-area-top)] pt-[var(--study-safe-area-bottom)]">
@@ -472,12 +516,14 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
         <StudyToolbar
           ref={helpTriggerRef}
           open={studyActionsOpen}
+          showHelp={props.showHelp}
           showCardDetails={props.showCardDetails}
           showSwipeControls={props.showSwipeControls}
           showPlaybackControls={props.showPlaybackControls}
           playbackControlsAvailable={props.playbackControlsAvailable}
           helpTriggerLabel={props.help.triggerLabel}
           onOpenHelp={props.help.onOpen}
+          onToggleHelp={props.onToggleHelp}
           onToggleOpen={() => setStudyActionsOpen((open) => !open)}
           onToggleCardDetails={props.onToggleCardDetails}
           onBack={props.onBack}
@@ -496,6 +542,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       >
         <CardContent
           showBackText={props.showBackText}
+          hideCardOverlayOnNarrowScreen={studyActionsOpen}
           backTextSlot={props.backTextSlot}
           frontTextSlot={props.frontTextSlot}
           cardOverlaySlot={props.showCardDetails ? props.cardOverlaySlot : undefined}

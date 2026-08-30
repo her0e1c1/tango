@@ -6,7 +6,7 @@
 
 import type { LocalCard, RemoteCard } from "@/entities/card/testing";
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
-import type { Preferences } from "@/entities/preference";
+import type { LanguagePreference, Preferences } from "@/entities/preference";
 
 type AppearancePreferences = Preferences["appearance"];
 type StudyPreferences = Preferences["study"];
@@ -99,6 +99,7 @@ export const createLocalCard = (overrides: Partial<LocalCard> = {}): LocalCard =
 
 export type PreferencesOverrides = {
   loadSample?: boolean;
+  language?: LanguagePreference;
   appearance?: Partial<AppearancePreferences>;
   study?: Partial<StudyPreferences>;
   controls?: Partial<ControlPreferences>;
@@ -114,6 +115,7 @@ export type PreferencesOverrides = {
   keepBackTextViewed?: boolean;
   defaultAutoPlay?: boolean;
   selectedTags?: string[];
+  showHelp?: boolean;
   showSwipeButtonList?: boolean;
   showPlaybackControls?: boolean;
   showCardDetails?: boolean;
@@ -150,6 +152,7 @@ const createControls = (
   controls?: Partial<ControlPreferences>,
   flat?: Partial<PreferencesOverrides>
 ): ControlPreferences => ({
+  showHelp: controls?.showHelp ?? flat?.showHelp ?? true,
   showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,
   showPlaybackControls: controls?.showPlaybackControls ?? flat?.showPlaybackControls ?? true,
   showCardDetails: controls?.showCardDetails ?? flat?.showCardDetails ?? true,
@@ -166,9 +169,10 @@ const createControls = (
  * Tests can change one setting without repeating every required preference field.
  */
 export const createPreferences = (overrides: PreferencesOverrides = {}): Preferences => {
-  const { loadSample = true, appearance, study, controls, ...flat } = overrides;
+  const { loadSample = true, language = "system", appearance, study, controls, ...flat } = overrides;
   return {
     loadSample,
+    language,
     appearance: createAppearance(appearance, flat),
     study: createStudy(study, flat),
     controls: createControls(controls, flat),

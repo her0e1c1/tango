@@ -59,6 +59,13 @@
 
 省略された `lastStudiedAt` は `0` として正規化する。
 
+### Language
+
+- `browser.preferences.language` に指定できる値は `"system"`、`"en"`、`"ja"` だけとする。
+- `language` を省略した場合は `"system"` として正規化し、既定動作を条件にする fixture では省略する。
+- locale 依存の表示や期待結果を持つケースは fixture で `language` を明示する。`"system"` 自体を確認するケースだけ、実行環境の locale を `Given` に記述する。
+- E2E の document locale は標準で English とする。
+
 ## Timestamp
 
 - 数値 timestamp field (`createdAt`、`updatedAt`、`lastStudiedAt` など) の初期値は `0` (Unix epoch milliseconds) とする。
