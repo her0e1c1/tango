@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import {
   allowExpectedFirestoreWriteFailure,
   documentId,
@@ -7,6 +8,18 @@ import {
   readLocalData,
   test,
 } from "./fixtures";
+
+const readSampleState = async (page: Page, sampleDeckId: string) => {
+  const { decks, cards } = await readLocalData(page);
+  const sampleDecks = decks.filter((candidate: { id?: string }) => candidate.id === sampleDeckId);
+  return {
+    deckIds: sampleDecks.map(({ id }: { id: string }) => id),
+    cardIds: cards
+      .filter(({ deckId }: { deckId?: string }) => deckId === sampleDeckId)
+      .map(({ id }: { id: string }) => id)
+      .sort(),
+  };
+};
 
 const documentsForUid = async (collection: "deck" | "card", uid: string) =>
   (await listDocuments(collection)).filter((document) => document.fields.uid?.stringValue === uid);
@@ -211,4 +224,21 @@ test("IMPORT-06 Adding Sample Deck saves it, returns to the list, and remains id
       .map(({ id }: { id: string }) => id)
       .sort()
   ).toEqual(firstCardIds);
+});
+
+test("IMPORT-07 Sample Deck is initialized once", async ({ fixture, page }) => {
+  const sampleDeckId = fixture.id("sample-v1");
+  expect(fixture.state.browser.preferences.loadSample).toBe(true);
+  await fixture.apply(page);
+
+  await page.goto("/");
+  await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();
+  const initialSample = await readSampleState(page, sampleDeckId);
+  expect(initialSample.deckIds).toHaveLength(1);
+  expect(initialSample.cardIds.length).toBeGreaterThan(0);
+
+  await page.reload();
+  await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();
+  const reloadedSample = await readSampleState(page, sampleDeckId);
+  expect(reloadedSample).toEqual(initialSample);
 });

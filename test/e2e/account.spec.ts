@@ -121,3 +121,18 @@ test("ACCOUNT-03 Sign-out switches to a new anonymous identity boundary", async 
   );
   expect(sessions).not.toHaveProperty(deck.id);
 });
+
+test("ACCOUNT-04 Authentication initialization recovers after Reload", async ({ browserErrors, fixture, page }) => {
+  browserErrors.allow(/console error: .*E2E_AUTH_BOOTSTRAP_FAILURE/u);
+  browserErrors.allow(
+    /console error: Failed to load resource: .*\[http:\/\/auth\.app\.test:9099\/identitytoolkit\.googleapis\.com\/v1\/accounts:signUp/iu
+  );
+  await fixture.apply(page, { auth: { failSignUpOnce: true } });
+
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1, name: "Unable to start Tango" })).toBeVisible();
+  await expect(page.getByText("Authentication could not be initialized.")).toBeVisible();
+  await page.getByRole("button", { name: "Reload" }).click();
+
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+});
