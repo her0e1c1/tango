@@ -2,7 +2,7 @@ import type { Preferences } from "@/entities/preference";
 
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -61,6 +61,27 @@ describe("DeckFormPage", () => {
     });
 
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Delayed deck");
+  });
+
+  it("resets page-owned state when navigating to a different Deck", async () => {
+    const nextDeckId = "next-deck";
+    await createDeck("", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
+    render(
+      <MemoryRouter initialEntries={[`/deck/${deckId}/edit`]}>
+        <Link to={`/deck/${nextDeckId}/edit`}>Next deck</Link>
+        <Routes>
+          <Route path="/deck/:id/edit" element={<DeckFormPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    expect(screen.getByRole("alertdialog", { name: "Delete deck?" })).toHaveTextContent("Deck name");
+
+    await userEvent.click(screen.getByRole("link", { name: "Next deck" }));
+
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Next deck");
+    expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
   });
 
   it("navigates to the deck list after saving", async () => {
