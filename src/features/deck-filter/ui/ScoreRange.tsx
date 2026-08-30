@@ -129,7 +129,7 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
           />
         </div>
       </header>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3">
         <ScoreSelect
           id={minimumId}
           label="Minimum"
