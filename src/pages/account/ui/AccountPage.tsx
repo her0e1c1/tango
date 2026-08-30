@@ -16,6 +16,7 @@ export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
   const account = useAuthAccount();
   const uid = useAuthUid();
+  // Keep operation state separate so an auth transition cannot expose feedback from the action that just finished.
   const signIn = useSignIn();
   const signOut = useSignOut();
   const isLoggedIn = account != null;

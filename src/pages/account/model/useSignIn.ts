@@ -1,23 +1,8 @@
-import { useState } from "react";
-
 import { loginGoogle } from "./signIn";
+import { useAccountAction } from "./useAccountAction";
 
 export const useSignIn = () => {
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<unknown>(null);
+  const action = useAccountAction(loginGoogle);
 
-  const run = async () => {
-    setPending(true);
-    setError(null);
-    try {
-      await loginGoogle();
-    } catch (nextError) {
-      setError(nextError);
-      throw nextError;
-    } finally {
-      setPending(false);
-    }
-  };
-
-  return { pending, error, signIn: run };
+  return { pending: action.pending, error: action.error, signIn: action.run };
 };
