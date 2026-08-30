@@ -45,7 +45,7 @@ vi.mock("@/entities/study-progress", async (importOriginal) => ({
   editStudyProgress: mocks.editStudyProgress,
 }));
 
-import { CardListContainer } from "./CardListContainer";
+import { CardListPage } from "./CardListPage";
 
 const deck = createDeck({
   id: "deck-id",
@@ -84,7 +84,7 @@ const renderCardList = (overrides: Partial<RenderCardListOptions> = {}) => {
   return render(
     <MemoryRouter initialEntries={[`/deck/${options.deck.id}`]}>
       <Routes>
-        <Route path="/deck/:id" element={<CardListContainer deckId={options.deck.id} />} />
+        <Route path="/deck/:id" element={<CardListPage />} />
         <Route path="/card/:id/edit" element={<h1>Card editor destination</h1>} />
       </Routes>
     </MemoryRouter>
@@ -97,7 +97,7 @@ const swipe = (article: HTMLElement, from: number, to: number) => {
   fireEvent.mouseUp(document, { clientX: to, clientY: 0 });
 };
 
-describe("CardListContainer", () => {
+describe("CardListPage interactions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.deleteCard.mockResolvedValue(undefined);
