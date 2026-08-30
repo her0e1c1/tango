@@ -7,7 +7,8 @@ import type { DeckImportResult, DeckImportStorageMode } from "./useDeckImportExe
 import { useDeckImportExecution } from "./useDeckImportExecution";
 import { useDeckImportPreview } from "./useDeckImportPreview";
 
-type DeckImportStatus = "idle" | "validating" | "importing";
+type DeckImportStatus = "idle" | "validating" | "importing" | "adding-sample";
+type DeckImportSaveStatus = Extract<DeckImportStatus, "importing" | "adding-sample">;
 
 export const useDeckImport = () => {
   const uid = useAuthUid();
@@ -30,9 +31,9 @@ export const useDeckImport = () => {
     if (preview.setStorageMode(storageMode)) execution.clear();
   };
 
-  const runImport = async (operation: () => Promise<DeckImportResult | undefined>) => {
+  const runSave = async (nextStatus: DeckImportSaveStatus, operation: () => Promise<DeckImportResult | undefined>) => {
     preview.clearError();
-    setStatus("importing");
+    setStatus(nextStatus);
     try {
       return await operation();
     } finally {
@@ -41,14 +42,14 @@ export const useDeckImport = () => {
   };
 
   const importPreview = async () => {
-    const result = await runImport(() => execution.runPrepared(preview.getPreparedImport));
+    const result = await runSave("importing", () => execution.runPrepared(preview.getPreparedImport));
     if (result === undefined) return;
     // Failed writes retain generated IDs so retrying cannot create another partial Deck.
     preview.completePreparedImport();
     return result;
   };
 
-  const addSample = () => runImport(() => execution.run(() => addSampleDeck(uid)));
+  const addSample = () => runSave("adding-sample", () => execution.run(() => addSampleDeck(uid)));
 
   return {
     selectFile,
@@ -59,6 +60,7 @@ export const useDeckImport = () => {
     preview: preview.preview,
     validating: status === "validating",
     pending: status === "importing",
+    addingSample: status === "adding-sample",
     error: execution.error,
     previewError: preview.error,
     result: execution.result,

@@ -87,7 +87,7 @@
 | IMPORT-03 | batch | [CSV を remote に import して reload 後も利用できる](./import.md#import-03) |
 | IMPORT-04 | batch | [CSV を local-only に import して reload 後に学習できる](./import.md#import-04) |
 | IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](./import.md#import-05) |
-| IMPORT-06 | batch | [Sample Deck を繰り返し追加しても重複しない](./import.md#import-06) |
+| IMPORT-06 | batch | [Sample Deck を保存して一覧へ戻り、再追加しても重複しない](./import.md#import-06) |
 
 ### Deck
 

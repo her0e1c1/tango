@@ -161,41 +161,54 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   expect(cardsAfterRetry[0]?.fields.deckId?.stringValue).toBe(partialDeckId);
 });
 
-test("IMPORT-06 Adding Sample Deck repeatedly remains idempotent", async ({ fixture, page }) => {
-  const sampleDeck = fixture.deck("sample-v1");
-  const expectedCardIds = fixture.state.browser.localCards
-    .filter(({ deckId }) => deckId === sampleDeck.id)
-    .map(({ id }) => id)
-    .sort();
-  expect(expectedCardIds.length).toBeGreaterThan(0);
-
+test("IMPORT-06 Adding Sample Deck saves it, returns to the list, and remains idempotent", async ({
+  fixture,
+  page,
+}) => {
   await fixture.apply(page);
-  await page.goto("/");
-  const before = await readLocalData(page);
-  const beforeDecks = before.decks.filter(({ name }: { name?: string }) => name === sampleDeck.name);
-  expect(beforeDecks).toHaveLength(1);
-  expect((beforeDecks[0] as { id: string }).id).toBe(sampleDeck.id);
-  expect(
-    before.cards
-      .filter(({ deckId }: { deckId?: string }) => deckId === sampleDeck.id)
-      .map(({ id }: { id: string }) => id)
-      .sort()
-  ).toEqual(expectedCardIds);
+  await page.goto("/import");
+  const addSample = page.getByRole("button", { name: "Add sample deck" });
+  // Local persistence can finish before Playwright polls again, so observe loading before clicking.
+  await addSample.evaluate((element) => {
+    if (!(element instanceof HTMLButtonElement)) throw new Error("Add sample deck control is not a button");
+    const { documentElement } = element.ownerDocument;
+    documentElement.dataset.sampleDeckLoadingObserved = "false";
+    const observer = new MutationObserver(() => {
+      if (element.getAttribute("aria-busy") === "true" && element.disabled) {
+        documentElement.dataset.sampleDeckLoadingObserved = "true";
+        observer.disconnect();
+      }
+    });
+    observer.observe(element, { attributeFilter: ["aria-busy", "disabled"], attributes: true });
+  });
+
+  await addSample.click();
+  await expect(page).toHaveURL(/\/$/);
+  expect(await page.locator("html").getAttribute("data-sample-deck-loading-observed")).toBe("true");
+  await expect(page.getByRole("button", { name: "View Sample Deck" })).toBeVisible();
+
+  const first = await readLocalData(page);
+  const firstDecks = first.decks.filter(({ id }: { id: string }) => id === "sample-v1");
+  const firstCardIds = first.cards
+    .filter(({ deckId }: { deckId?: string }) => deckId === "sample-v1")
+    .map(({ id }: { id: string }) => id)
+    .sort();
+  expect(firstDecks).toHaveLength(1);
+  expect(firstCardIds.length).toBeGreaterThan(0);
 
   await page.getByRole("button", { name: "Import decks" }).click();
   await page.getByRole("button", { name: "Add sample deck" }).click();
-  await page.getByRole("button", { name: "Back to decks" }).click();
+  await expect(page).toHaveURL(/\/$/);
   await page.reload();
-  await page.getByRole("button", { name: `View ${sampleDeck.name}` }).click();
+  await page.getByRole("button", { name: "View Sample Deck" }).click();
 
   const after = await readLocalData(page);
-  const afterDecks = after.decks.filter(({ name }: { name?: string }) => name === sampleDeck.name);
+  const afterDecks = after.decks.filter(({ id }: { id: string }) => id === "sample-v1");
   expect(afterDecks).toHaveLength(1);
-  expect((afterDecks[0] as { id: string }).id).toBe(sampleDeck.id);
   expect(
     after.cards
-      .filter(({ deckId }: { deckId?: string }) => deckId === sampleDeck.id)
+      .filter(({ deckId }: { deckId?: string }) => deckId === "sample-v1")
       .map(({ id }: { id: string }) => id)
       .sort()
-  ).toEqual(expectedCardIds);
+  ).toEqual(firstCardIds);
 });

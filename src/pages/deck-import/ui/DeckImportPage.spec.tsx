@@ -9,6 +9,7 @@ import { useDecks } from "@/entities/deck";
 
 const controls = vi.hoisted(() => ({
   nextMutationError: undefined as unknown,
+  nextMutationWait: undefined as Promise<void> | undefined,
   setDarkMode: vi.fn(),
 }));
 
@@ -17,20 +18,27 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    mutateCards: (...arguments_: Parameters<typeof actual.mutateCards>) => {
+    mutateCards: async (...arguments_: Parameters<typeof actual.mutateCards>) => {
+      const wait = controls.nextMutationWait;
+      controls.nextMutationWait = undefined;
+      if (wait !== undefined) await wait;
       if (controls.nextMutationError !== undefined) {
         const error = controls.nextMutationError;
         controls.nextMutationError = undefined;
-        return Promise.reject(error);
+        throw error;
       }
       return actual.mutateCards(...arguments_);
     },
   };
 });
-vi.mock("@/entities/preference", () => ({
-  usePreferences: () => ({ appearance: { darkMode: false } }),
-  setDarkMode: controls.setDarkMode,
-}));
+vi.mock("@/entities/preference", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/preference")>();
+  return {
+    ...actual,
+    usePreferences: () => ({ appearance: { darkMode: false } }),
+    setDarkMode: controls.setDarkMode,
+  };
+});
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { DeckImportPage } from "./DeckImportPage";
@@ -76,6 +84,7 @@ const selectLocalFile = async (name: string, backText = "back") => {
 describe("DeckImportPage", () => {
   beforeEach(() => {
     controls.nextMutationError = undefined;
+    controls.nextMutationWait = undefined;
     controls.setDarkMode.mockReset();
   });
 
@@ -131,6 +140,26 @@ describe("DeckImportPage", () => {
     expect(screen.getByText("front: retry back")).toBeVisible();
   });
 
+  it("loads the sample action, saves the Sample Deck, and navigates without a preview", async () => {
+    const request = Promise.withResolvers<void>();
+    controls.nextMutationWait = request.promise;
+    renderPage();
+
+    const addSample = screen.getByRole("button", { name: "Add sample deck" });
+    await userEvent.click(addSample);
+
+    expect(addSample).toBeDisabled();
+    expect(addSample).toHaveAttribute("aria-busy", "true");
+    expect(screen.queryByRole("heading", { level: 2, name: "Review import" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
+
+    request.resolve();
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+    expect(screen.getByText("Sample Deck")).toBeVisible();
+    expect(screen.getAllByText(/: /u).length).toBeGreaterThan(0);
+  });
+
   it("shows a failed sample add in place", async () => {
     renderPage();
     controls.nextMutationError = new Error("sample mutation failed");
@@ -140,5 +169,7 @@ describe("DeckImportPage", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Import failed");
     expect(screen.getByRole("alert")).toHaveTextContent("sample mutation failed");
     expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Add sample deck" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Add sample deck" })).not.toHaveAttribute("aria-busy");
   });
 });

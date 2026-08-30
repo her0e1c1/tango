@@ -95,6 +95,20 @@ describe("DeckImportView", () => {
     expect(onDownloadSample).toHaveBeenCalledOnce();
   });
 
+  it("loads only the sample action while a Sample Deck is being added", () => {
+    render(<DeckImportView sampleText="front,back,,key" preview={preview} addingSample />);
+
+    const addSample = screen.getByRole("button", { name: "Add sample deck" });
+    const importDeck = screen.getByRole("button", { name: "Import" });
+
+    expect(addSample).toBeDisabled();
+    expect(addSample).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("status")).toHaveTextContent("Loading Add sample deck");
+    expect(importDeck).toBeDisabled();
+    expect(importDeck).not.toHaveAttribute("aria-busy");
+    expect(screen.getByLabelText(/Upload a csv file/u)).toBeDisabled();
+  });
+
   it("activates the CSV sample download with Enter", async () => {
     const onDownloadSample = vi.fn();
     const user = userEvent.setup();
