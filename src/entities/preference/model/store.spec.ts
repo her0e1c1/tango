@@ -6,6 +6,7 @@ import {
   preferencesStore,
   setDarkMode,
   toggleShowCardDetails,
+  toggleShowHelp,
   toggleShowPlaybackControls,
   toggleShowSwipeButtonList,
   updatePreferences,
@@ -43,6 +44,10 @@ describe("preferences store", () => {
     expect(defaultPreferences.controls.showBackTextSwipeOverlays).toBe(false);
   });
 
+  it("shows the study Help shortcut by default", () => {
+    expect(defaultPreferences.controls.showHelp).toBe(true);
+  });
+
   it("updates each preference group without resetting other settings", () => {
     const store = preferencesStore;
 
@@ -71,6 +76,27 @@ describe("preferences store", () => {
     });
   });
 
+  it.each(["system", "en", "ja"] as const)(
+    "updates and persists the %s language without resetting other preferences",
+    (language) => {
+      const storage = useMemoryStorage();
+      preferencesStore.getState().updatePreferences({ appearance: { darkMode: true } });
+
+      preferencesStore.getState().updatePreferences({ language });
+
+      const expectedPreferences = {
+        ...defaultPreferences,
+        language,
+        appearance: { ...defaultPreferences.appearance, darkMode: true },
+      };
+      expect(preferencesStore.getState().preferences).toEqual(expectedPreferences);
+      expect(JSON.parse(storage.getItem("tango-config") ?? "{}")).toEqual({
+        state: { preferences: expectedPreferences },
+        version: 1,
+      });
+    }
+  );
+
   it("validates numeric ranges during updates", () => {
     const store = preferencesStore;
 
@@ -92,6 +118,7 @@ describe("preferences store", () => {
     toggleShowSwipeButtonList();
     toggleShowPlaybackControls();
     toggleShowCardDetails();
+    toggleShowHelp();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
@@ -103,6 +130,7 @@ describe("preferences store", () => {
         showSwipeButtonList: false,
         showPlaybackControls: false,
         showCardDetails: false,
+        showHelp: false,
       },
     });
   });
@@ -134,14 +162,21 @@ describe("preferences store", () => {
   });
 
   it("hydrates version 1 preferences with defaults for additive fields", async () => {
-    const { showBackTextSwipeOverlays: _showBackTextSwipeOverlays, ...controlsBeforeSwipeOverlays } =
-      defaultPreferences.controls;
+    const {
+      language: _language,
+      controls: {
+        showHelp: _showHelp,
+        showBackTextSwipeOverlays: _showBackTextSwipeOverlays,
+        ...controlsBeforeAdditiveFields
+      },
+      ...preferencesBeforeAdditiveFields
+    } = defaultPreferences;
     const persistedPreferences = {
-      ...defaultPreferences,
+      ...preferencesBeforeAdditiveFields,
       loadSample: false,
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
-      controls: { ...controlsBeforeSwipeOverlays, showSwipeButtonList: false },
+      controls: { ...controlsBeforeAdditiveFields, showSwipeButtonList: false },
     };
     useMemoryStorage({
       "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 1 }),
@@ -151,7 +186,8 @@ describe("preferences store", () => {
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...persistedPreferences,
-      controls: { ...persistedPreferences.controls, showBackTextSwipeOverlays: false },
+      language: "system",
+      controls: { ...persistedPreferences.controls, showHelp: true, showBackTextSwipeOverlays: false },
     });
   });
 

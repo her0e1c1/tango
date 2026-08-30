@@ -13,6 +13,7 @@ const PREFERENCES_STORAGE_VERSION = 1;
 /** @internal Partial updates for each top-level preference field. */
 export type PartialPreferences = {
   loadSample?: Preferences["loadSample"];
+  language?: Preferences["language"];
   appearance?: Partial<Preferences["appearance"]>;
   study?: Partial<Preferences["study"]>;
   controls?: Partial<Preferences["controls"]>;
@@ -39,6 +40,7 @@ const createPreferencesStore = () =>
           set((state) => {
             const { selectedTags, ...study } = preferencesInput.study ?? {};
             if (preferencesInput.loadSample !== undefined) state.preferences.loadSample = preferencesInput.loadSample;
+            if (preferencesInput.language !== undefined) state.preferences.language = preferencesInput.language;
             Object.assign(state.preferences.appearance, preferencesInput.appearance);
             Object.assign(state.preferences.study, study);
             Object.assign(state.preferences.controls, preferencesInput.controls);
@@ -86,6 +88,12 @@ export const replacePreferences = (input: PartialPreferences): void => {
 
 // Sets the appearance color mode preference explicitly.
 export const setDarkMode = (darkMode: boolean): void => updatePreferences({ appearance: { darkMode } });
+
+// Toggles whether the study Help shortcut is shown.
+export const toggleShowHelp = (): void => {
+  const { showHelp } = preferencesStore.getState().preferences.controls;
+  updatePreferences({ controls: { showHelp: !showHelp } });
+};
 
 // Toggles whether study swipe controls are shown.
 export const toggleShowSwipeButtonList = (): void => {

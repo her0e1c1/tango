@@ -27,7 +27,7 @@
 - `false`、`0`、`null`、空配列、空 object という見た目だけで省略せず、その field の既定値と一致するときだけ省略する。
 - 既定値が `null` の field に意味のある `0` を指定する場合など、値が既定値と異なるときは明示する。
 - 継承を materialize した結果で省略された field はアプリケーションの既定値、存在しない collection は空として扱う。
-- fixture に記述していない preference はアプリケーションの既定値を利用し、`loadSample` の既定値は `true` とする。
+- fixture に記述していない preference は、`language` を除いてアプリケーションの既定値を利用し、`loadSample` の既定値は `true` とする。
 
 ### Deck
 
@@ -58,6 +58,12 @@
 ### Study session
 
 省略された `lastStudiedAt` は `0` として正規化する。
+
+### Language
+
+- `browser.preferences.language` は `system`、`en`、`ja` のいずれかを指定する。
+- E2E に限り、省略された `language` は共通の `en` として正規化する。各 fixture へ同じ設定を重複させず、既存ケースの English UI と accessible name を実行環境の browser locale に依存しない baseline として維持する。
+- System locale を確認する focused case だけ、scoped browser context で locale を上書きする。
 
 ## Timestamp
 

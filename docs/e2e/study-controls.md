@@ -12,6 +12,7 @@
 | SWIPE-14 | read | [non-primary mouse の drag を無視できる](#swipe-14) |
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-16) |
 | SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](#swipe-24) |
+| SWIPE-25 | write | [Help button の表示設定を reload 後も維持できる](#swipe-25) |
 
 <a id="swipe-13"></a>
 
@@ -109,4 +110,28 @@ Then:
 - 非表示の操作ボタンは現在の設定と一致する説明で表示される。
 - dialog 内のキー入力で Card、学習結果、session の位置が変更されない。
 - focus が dialog 内に維持され、閉じた後は Help trigger へ戻る。
+- browser error が発生しない。
+
+<a id="swipe-25"></a>
+
+### SWIPE-25 Help button の表示設定を reload 後も維持できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`study-session-help`](./fixture/study-session-help.yaml)
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- Help button の表示設定は既定値の ON である。
+
+When:
+
+- 学習画面の Study actions から Help button の表示を OFF にする。
+- 学習画面を reload する。
+
+Then:
+
+- Help button は既定で省略ボタンの左側に表示される。
+- 表示を OFF にすると Help button は非表示になる。
+- reload 後も Help button の表示設定は OFF のまま維持される。
 - browser error が発生しない。
