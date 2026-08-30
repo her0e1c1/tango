@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { DeckCreateInput, DeckId } from "../model/types";
+import type { DeckId, RemoteDeckCreateInput } from "../model/types";
 
 import {
   collection,
@@ -55,16 +55,16 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
   );
 
 // Writes a new Deck document with synchronized creation and update timestamps.
-const createDeckDocument = async (deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {
+const createDeckDocument = async (uid: string, deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {
   const createdAt = getCurrentTimeMillis();
-  const document = toDeckDocument(deck, createdAt);
+  const document = toDeckDocument(uid, deck, createdAt);
   await setDoc(doc(db, DECK_COLLECTION, deck.id), document);
 };
 
-// Validates Deck ownership before creating its Firestore document.
-export const createDeck = async (uid: string, deck: DeckCreateInput): Promise<void> => {
+// Validates the actor and owner-free command before creating an actor-owned Firestore document.
+export const createDeck = async (uid: string, deck: RemoteDeckCreateInput): Promise<void> => {
   const input = createDeckSchema.parse({ uid, deck });
-  await createDeckDocument(input.deck);
+  await createDeckDocument(input.uid, input.deck);
 };
 
 // Writes editable Deck fields and advances the update timestamp.

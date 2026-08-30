@@ -8,7 +8,7 @@ const meta = {
   title: "Shared/Forms/Slider",
   component: Slider,
   tags: ["autodocs"],
-  args: { onChange: fn() },
+  args: { "aria-label": "Slider", onChange: fn() },
 } satisfies Meta<typeof Slider>;
 
 export default meta;

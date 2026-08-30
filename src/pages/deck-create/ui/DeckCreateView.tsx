@@ -31,6 +31,7 @@ export const DeckCreateView: React.FC<DeckCreateViewProps> = ({
   const idPrefix = useId();
   const nameInputId = `${idPrefix}-deck-name`;
   const nameErrorId = `${nameInputId}-error`;
+  const categoryInputId = `${idPrefix}-deck-category`;
 
   return (
     <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
@@ -66,8 +67,8 @@ export const DeckCreateView: React.FC<DeckCreateViewProps> = ({
               autoFocus
             />
           </FormItem>
-          <FormItem col label="Category">
-            <Select empty {...form.register("category")} options={categoryOptions} />
+          <FormItem col label="Category" inputId={categoryInputId}>
+            <Select id={categoryInputId} empty {...form.register("category")} options={categoryOptions} />
           </FormItem>
           <FormItem label="Local only" help="Keep this deck and its cards on this device.">
             <Switch {...form.register("localMode")} aria-label="Local only" disabled={isLocalModeLocked} />

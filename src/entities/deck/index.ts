@@ -7,7 +7,7 @@ export { deckFormSchema } from "./model/schema";
 export { clearRemoteDecks } from "./model/store";
 export type {
   Deck,
-  DeckCreateInput,
   DeckId,
   LocalDeckCreateInput,
+  RemoteDeckCreateInput,
 } from "./model/types";

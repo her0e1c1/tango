@@ -48,10 +48,14 @@ export const toDeck = (id: DeckId, document: DeckDocument): Extract<Deck, { loca
   updatedAt: document.updatedAt,
 });
 
-// Converts a validated create input to the Firestore representation and adds server-owned timestamps.
-export const toDeckDocument = (deck: z.infer<typeof deckCreateSchema>, timestamp: number): DeckDocument => ({
+// Adds the authenticated actor as physical owner only when crossing the Firestore persistence boundary.
+export const toDeckDocument = (
+  uid: string,
+  deck: z.infer<typeof deckCreateSchema>,
+  timestamp: number
+): DeckDocument => ({
   id: deck.id,
-  uid: deck.uid,
+  uid,
   name: deck.name,
   ...(deck.url === undefined ? {} : { url: deck.url }),
   isPublic: deck.isPublic,

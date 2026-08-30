@@ -39,6 +39,8 @@ const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = (
 
   return (
     <pre
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users must be able to reach horizontally scrolling code.
+      tabIndex={0}
       className={cx(
         "max-w-full overflow-x-auto rounded-control border border-border bg-surface-muted p-3 text-ink dark:bg-black",
         category

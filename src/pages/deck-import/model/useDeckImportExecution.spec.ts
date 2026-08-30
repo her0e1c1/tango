@@ -21,7 +21,7 @@ describe("prepareDeckImport", () => {
       }
     );
 
-    expect(preparedImport.destination).toEqual({ id: "deck", uid: "uid", name: "deck.csv" });
+    expect(preparedImport.destination).toEqual({ id: "deck", name: "deck.csv", localMode: false });
     expect(preparedImport.mutations).toEqual([
       {
         kind: "create",

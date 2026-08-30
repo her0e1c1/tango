@@ -34,18 +34,21 @@ describe("DestructiveActionDialog", () => {
     render(<DestructiveActionDialog {...defaultProps} onCancel={onCancel} />);
     const cancel = screen.getByRole("button", { name: "Cancel" });
     const confirm = screen.getByRole("button", { name: "Delete deck" });
+    const target = screen.getByText("Japanese verbs");
 
     expect(cancel).toHaveFocus();
     await userEvent.tab({ shift: true });
+    expect(target).toHaveFocus();
+    await userEvent.tab({ shift: true });
     expect(confirm).toHaveFocus();
     await userEvent.tab();
-    expect(cancel).toHaveFocus();
+    expect(target).toHaveFocus();
 
     fireEvent.keyDown(cancel, { key: "Escape" });
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it("excludes disabled controls and includes explicit tab stops in the focus trap", () => {
+  it("excludes disabled controls and includes explicit tab stops in the focus trap", async () => {
     render(
       <DestructiveActionDialog
         {...defaultProps}
@@ -61,11 +64,17 @@ describe("DestructiveActionDialog", () => {
         }
       />
     );
+    const cancel = screen.getByRole("button", { name: "Cancel" });
     const detail = screen.getByText("Focusable detail");
     const confirm = screen.getByRole("button", { name: "Delete deck" });
-    detail.focus();
+    const target = screen.getByText("Japanese verbs");
 
-    expect(fireEvent.keyDown(detail, { key: "Tab", shiftKey: true })).toBe(false);
+    expect(cancel).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    expect(detail).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    expect(target).toHaveFocus();
+    await userEvent.tab({ shift: true });
     expect(confirm).toHaveFocus();
   });
 

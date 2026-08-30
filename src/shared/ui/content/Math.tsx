@@ -7,12 +7,25 @@
 import "github-markdown-css/github-markdown.css";
 import "katex/dist/katex.min.css";
 import type * as React from "react";
-import Markdown from "react-markdown";
+import Markdown, { type Components } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 
 import { Style } from "./Style";
+
+const MarkdownLink: NonNullable<Components["a"]> = ({ node: _node, style, ...props }) => (
+  <a {...props} style={{ ...style, textDecoration: "underline" }} />
+);
+
+const MarkdownInput: NonNullable<Components["input"]> = ({ node: _node, ...props }) => (
+  <input {...props} aria-label={props["aria-label"] ?? (props.type === "checkbox" ? "Task status" : undefined)} />
+);
+
+const markdownComponents = {
+  a: MarkdownLink,
+  input: MarkdownInput,
+} satisfies Components;
 
 /**
  * Renders the Math Content user interface.
@@ -21,7 +34,7 @@ import { Style } from "./Style";
  */
 export const MathContent: React.FC<{ text: string }> = (props) => (
   <Style className="markdown-body max-w-full overflow-x-auto rounded-control bg-surface p-1 text-ink">
-    <Markdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+    <Markdown components={markdownComponents} remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
       {props.text}
     </Markdown>
   </Style>

@@ -26,6 +26,7 @@ const studyShortcutTextEntryTarget =
 const studyShortcutButtonTarget =
   "a[href], button, summary, input[type='button'], input[type='submit'], input[type='reset'], input[type='checkbox'], input[type='radio'], [role='button'], [role='link'], [role='switch'], [role='checkbox'], [role='radio'], [role='tab']";
 const studyShortcutSliderTarget = "input[type='range'], [role='slider']";
+const studyShortcutAnswerScrollTarget = "[data-study-answer-scroll]";
 
 const shouldIgnoreStudyShortcut = (event: KeyboardEvent): boolean => {
   if (!(event.target instanceof Element)) return false;
@@ -35,6 +36,7 @@ const shouldIgnoreStudyShortcut = (event: KeyboardEvent): boolean => {
   if ((event.key === "Enter" || event.key === " ") && event.target.closest(studyShortcutButtonTarget) !== null) {
     return true;
   }
+  if (event.key === " " && event.target.closest(studyShortcutAnswerScrollTarget) !== null) return true;
   return event.key.startsWith("Arrow") && event.target.closest(studyShortcutSliderTarget) !== null;
 };
 
