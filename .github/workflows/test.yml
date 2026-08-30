@@ -7,6 +7,11 @@ on:
     branches:
       - "**"
 
+# Only superseded runs for the same PR share a group. Reusable and manual runs remain unique.
+concurrency:
+  group: test-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -96,13 +101,19 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
+  # Run after every dependency conclusion and fail closed unless every canonical job succeeded.
   test:
     name: Test
     if: ${{ always() }}
-    needs: checks
+    needs: [checks, e2e, integration]
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
         env:
-          RESULT: ${{ needs.checks.result }}
-        run: test "$RESULT" = success
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          E2E_RESULT: ${{ needs.e2e.result }}
+          INTEGRATION_RESULT: ${{ needs.integration.result }}
+        run: |
+          test "$CHECKS_RESULT" = success
+          test "$E2E_RESULT" = success
+          test "$INTEGRATION_RESULT" = success
