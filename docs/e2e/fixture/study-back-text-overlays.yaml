@@ -1,0 +1,7 @@
+extends: study-session-start.yaml
+browser:
+  preferences:
+    controls:
+      showBackTextSwipeOverlays: true
+      cardSwipeLeft: GoToNextCardMastered
+      cardSwipeRight: GoToNextCardNotMastered

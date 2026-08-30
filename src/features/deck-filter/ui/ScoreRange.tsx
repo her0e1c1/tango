@@ -2,7 +2,7 @@
  * @file Defines the deck filter's score range presentation component.
  */
 
-import { useId } from "react";
+import { useId, useRef } from "react";
 import type * as React from "react";
 
 import { Button } from "@/shared/ui/button";
@@ -37,11 +37,11 @@ interface ScoreSelectProps {
 
 const displayScore = (value: number): string => String(value).replace("-", "−");
 
-const scoreRangeLabel = (minimum: number | null, maximum: number | null): string => {
-  if (minimum != null && maximum != null) return `${displayScore(minimum)} to ${displayScore(maximum)}`;
-  if (minimum != null) return `${displayScore(minimum)} and above`;
-  if (maximum != null) return `${displayScore(maximum)} and below`;
-  return "Any score";
+const scoreRangeStatus = (minimum: number | null, maximum: number | null): string => {
+  if (minimum != null && maximum != null) return `Score range: ${displayScore(minimum)} to ${displayScore(maximum)}.`;
+  if (minimum != null) return `Minimum score: ${displayScore(minimum)}. No maximum score.`;
+  if (maximum != null) return `Maximum score: ${displayScore(maximum)}. No minimum score.`;
+  return "No score limits.";
 };
 
 const scoreOptions = (
@@ -60,14 +60,18 @@ const scoreOptions = (
     .sort((left, right) => left - right);
 };
 
-const ScoreSelect: React.FC<ScoreSelectProps> = (props) => (
-  <div className="rounded-control bg-surface-muted p-3">
-    <label htmlFor={props.id} className="text-body font-medium text-ink">
+const ScoreSelect = ({
+  ref: selectRef,
+  ...props
+}: ScoreSelectProps & { ref?: React.RefObject<HTMLSelectElement | null> }) => (
+  <div className="min-w-0">
+    <label htmlFor={props.id} className="text-caption font-medium text-ink-muted">
       {props.label}
     </label>
     <Select
+      ref={selectRef}
       id={props.id}
-      className="mt-2"
+      className="mt-1"
       value={props.value == null ? NO_LIMIT_VALUE : String(props.value)}
       aria-label={`${props.label} score`}
       aria-describedby={props.describedBy}
@@ -80,7 +84,7 @@ const ScoreSelect: React.FC<ScoreSelectProps> = (props) => (
         props.onChange(event.currentTarget.value === NO_LIMIT_VALUE ? null : Number(event.currentTarget.value))
       }
     />
-    <p id={`${props.id}-description`} className="mt-1 text-caption text-ink-muted">
+    <p id={`${props.id}-description`} className="sr-only">
       {props.description}
     </p>
   </div>
@@ -91,6 +95,7 @@ const ScoreSelect: React.FC<ScoreSelectProps> = (props) => (
  */
 export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
   const idPrefix = useId();
+  const minimumSelectRef = useRef<HTMLSelectElement>(null);
   const headingId = `${idPrefix}-score-heading`;
   const minimumId = `${idPrefix}-minimum-score`;
   const maximumId = `${idPrefix}-maximum-score`;
@@ -104,33 +109,30 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
   return (
     <section
       aria-labelledby={headingId}
-      className="space-y-4 rounded-surface border border-border bg-surface p-4 shadow-surface md:p-5"
+      className="space-y-3 rounded-surface border border-border bg-surface p-4 shadow-surface md:p-5"
     >
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id={headingId} className="text-title font-semibold text-ink">
-            Score range
-          </h2>
-          <p className="mt-1 text-caption text-ink-muted">Limit cards by their current score.</p>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <span
-            aria-live="polite"
-            className="rounded-control bg-surface-muted px-2 py-1 text-caption font-bold text-accent-primary"
-          >
-            {scoreRangeLabel(props.minimum, props.maximum)}
-          </span>
-          <Button
-            variant="quiet"
-            size="sm"
-            label="Clear limits"
-            disabled={props.minimum == null && props.maximum == null}
-            onClick={props.onClear}
-          />
-        </div>
+      <header className="flex items-center justify-between gap-3">
+        <h2 id={headingId} className="text-title font-semibold text-ink">
+          Score range
+        </h2>
+        <Button
+          variant="quiet"
+          size="sm"
+          className="border-0 text-accent-primary"
+          hidden={props.minimum == null && props.maximum == null}
+          onClick={() => {
+            props.onClear();
+            // The clear action hides its own button on the next render, so keyboard focus must move
+            // to a stable control before that render commits.
+            minimumSelectRef.current?.focus();
+          }}
+        >
+          Clear <span className="sr-only">limits</span>
+        </Button>
       </header>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2 sm:gap-3">
         <ScoreSelect
+          ref={minimumSelectRef}
           id={minimumId}
           label="Minimum"
           value={props.minimum}
@@ -140,6 +142,9 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
           description="Include cards at or above this score."
           onChange={props.onMinimumChange}
         />
+        <span aria-hidden="true" className="flex min-h-touch items-center text-caption text-ink-muted">
+          to
+        </span>
         <ScoreSelect
           id={maximumId}
           label="Maximum"
@@ -151,6 +156,9 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
           onChange={props.onMaximumChange}
         />
       </div>
+      <p role="status" aria-live="polite" className="sr-only">
+        {scoreRangeStatus(props.minimum, props.maximum)}
+      </p>
       {invalid ? (
         <p id={warningId} role="alert" className="rounded-control border border-danger p-3 text-caption text-danger">
           Minimum score must not be greater than maximum score.

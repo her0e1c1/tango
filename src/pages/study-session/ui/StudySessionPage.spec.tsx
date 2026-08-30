@@ -2,13 +2,13 @@ import type { Preferences } from "@/entities/preference";
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
-import { clearStudySessions, getStudySession, startStudy } from "@/entities/study-session";
+import { clearStudySessions, getStudySession, setStudySessionIndex, startStudy } from "@/entities/study-session";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -50,6 +50,18 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionPage } from "./StudySessionPage";
 
+const DeckListDestination = () => {
+  const navigate = useNavigate();
+  return (
+    <>
+      <h1>Deck list destination</h1>
+      <button type="button" onClick={() => void navigate(-1)}>
+        Browser back
+      </button>
+    </>
+  );
+};
+
 describe("StudySessionPage", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
@@ -71,15 +83,18 @@ describe("StudySessionPage", () => {
     score: 1,
     numberOfSeen: 4,
   });
-  const renderPage = (path = `/deck/${deckId}/study`) =>
-    render(
-      <MemoryRouter initialEntries={[path]}>
+  const renderPage = (path = `/deck/${deckId}/study`, previousPath?: string) => {
+    const initialEntries = previousPath === undefined ? [path] : [previousPath, path];
+    return render(
+      <MemoryRouter initialEntries={initialEntries} initialIndex={initialEntries.length - 1}>
         <Routes>
-          <Route path="/" element={<h1>Deck list destination</h1>} />
+          <Route path="/" element={<DeckListDestination />} />
+          <Route path="/previous" element={<h1>Previous destination</h1>} />
           <Route path="/deck/:id/study" element={<StudySessionPage />} />
         </Routes>
       </MemoryRouter>
     );
+  };
   const openStudyActions = () => {
     fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
     return screen.getByRole("group", { name: "Study actions" });
@@ -152,11 +167,33 @@ describe("StudySessionPage", () => {
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
   });
 
+  it("runs a configured back-text edge action and shows the next card front", async () => {
+    mocks.preferences = createPreferences({
+      controls: {
+        showBackTextSwipeOverlays: true,
+        cardSwipeLeft: "GoToNextCardMastered",
+      },
+    });
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: "Front one" }));
+
+    await user.click(screen.getByRole("button", { name: "Swipe left" }));
+
+    await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
+    expect(screen.queryByText("Back two")).not.toBeInTheDocument();
+    expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith(
+      "user-id",
+      expect.objectContaining({ cardId: "first-card", score: 3, numberOfSeen: 4 })
+    );
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+  });
+
   it("keeps Space native while the answer scrolling surface is focused", async () => {
     const user = userEvent.setup();
     renderPage();
     await user.keyboard("{Enter}");
-    const answerSurface = screen.getByRole("region", { name: "Card answer" });
+    const answerSurface = screen.getByRole("region", { name: "Study answer" });
     answerSurface.focus();
 
     await user.keyboard(" ");
@@ -192,6 +229,8 @@ describe("StudySessionPage", () => {
     renderPage();
     const sessionBeforeHelp = getStudySession(deckId);
 
+    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
+    openStudyActions();
     const trigger = screen.getByRole("button", { name: "Open study help" });
     fireEvent.click(trigger);
     expect(trigger).not.toHaveFocus();
@@ -226,6 +265,7 @@ describe("StudySessionPage", () => {
     document.documentElement.lang = "ja-JP";
     renderPage();
 
+    openStudyActions();
     fireEvent.click(screen.getByRole("button", { name: "学習ヘルプを開く" }));
 
     expect(screen.getByRole("dialog", { name: "学習画面の操作" })).toHaveTextContent(
@@ -241,6 +281,7 @@ describe("StudySessionPage", () => {
 
     try {
       renderPage();
+      openStudyActions();
       fireEvent.click(screen.getByRole("button", { name: "Open study help" }));
 
       act(() => vi.advanceTimersByTime(1000));
@@ -268,6 +309,28 @@ describe("StudySessionPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
     expect(mocks.removeStudySession).not.toHaveBeenCalled();
+  });
+
+  it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
+    setStudySessionIndex(deckId, 1);
+    renderPage(`/deck/${deckId}/study`, "/previous");
+
+    fireEvent.click(screen.getByRole("button", { name: "Swipe up" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Study complete" })).toBeVisible();
+    expect(screen.getByText("You studied 2 cards.")).toBeVisible();
+    expect(screen.queryByRole("heading", { level: 1, name: "Deck list destination" })).not.toBeInTheDocument();
+    expect(getStudySession(deckId)).toBeUndefined();
+
+    fireEvent.keyDown(window, { key: "ArrowUp" });
+    expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Browser back" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Previous destination" })).toBeVisible();
+    expect(screen.queryByRole("heading", { level: 1, name: "Study complete" })).not.toBeInTheDocument();
   });
 
   it("keeps study actions available while the Header stays hidden", () => {

@@ -19,4 +19,9 @@
 
 - The product is under active development. Do not preserve backward compatibility for store state unless explicitly requested.
 - Breaking changes to store state shape and behavior are allowed. Prefer the simplest current design over compatibility layers.
-- In particular, do not add migrations or retain legacy state formats for Zustand `persist`. Invalidate or discard incompatible persisted state instead.
+- Do not add migrations or retain legacy Zustand `persist` formats unless explicitly requested.
+- Keep the Preferences persist version at 1 unless a dedicated task explicitly changes it.
+- Do not bump a persist version solely because an additive field was introduced.
+- Additive fields that the current schema can safely default must remain compatible with the current version.
+- If existing state must be invalidated, document the reason and impact in a dedicated Issue.
+- Invalidate or discard persisted state that is genuinely incompatible with the current schema.

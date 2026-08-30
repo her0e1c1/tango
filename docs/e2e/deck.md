@@ -18,7 +18,7 @@ Deck 管理の主要導線が、ブラウザ上で表示・作成・編集・削
 | DECK-08 | read | [Deck の Card を CSV で export できる](#deck-08) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](#deck-10) |
-| DECK-11 | read | [未保存の Deck 編集内容を離脱前に確認できる](#deck-11) |
+| DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](#deck-12) |
 
 <a id="deck-01"></a>
 
@@ -246,9 +246,9 @@ Then:
 - browser storage に同じ Deck の local-only duplicate が存在しない。
 - 最初の作成失敗に伴う未処理の browser error が発生しない。
 
-<a id="deck-11"></a>
+<a id="deck-12"></a>
 
-### DECK-11 未保存の Deck 編集内容を離脱前に確認できる
+### DECK-12 未保存の Deck 編集内容を離脱前に確認できる
 
 カテゴリ: `read`
 
