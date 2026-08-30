@@ -10,6 +10,7 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { type StudyState, useStudy } from "../model/useStudy";
 import { CardOverlay } from "./CardOverlay";
+import { StudyCompletion } from "./StudyCompletion";
 import { StudySession } from "./StudySession";
 
 type StudyShortcutAction =
@@ -150,6 +151,19 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
     if (study?.status !== "invalid") return;
     void navigate(routes.deckList.to(), { replace: true });
   }, [navigate, study?.status]);
+
+  if (study?.status === "completed") {
+    return (
+      <AppLayout showHeader>
+        <StudyCompletion
+          cardCount={study.completion.cardCount}
+          onClickBack={() => {
+            void navigate(routes.deckList.to(), { replace: true });
+          }}
+        />
+      </AppLayout>
+    );
+  }
 
   return renderStudyScreen(study, goBack);
 };
