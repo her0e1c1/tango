@@ -16,6 +16,7 @@ vi.mock("@/app/firestore-subscriptions", () => ({
   FirestoreSubscriptionsProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 vi.mock("@/pages/account", () => ({ AccountPage: () => null }));
+vi.mock("@/pages/card-create", () => ({ CardCreatePage: () => <div>Card create</div> }));
 vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));
@@ -58,6 +59,13 @@ describe("App", () => {
     render(<App />);
 
     expect(screen.getByText("Deck create")).toBeInTheDocument();
+  });
+
+  it("matches the Card create route within its target Deck", () => {
+    window.history.replaceState({}, "", "/deck/deck-id/card/new");
+    render(<App />);
+
+    expect(screen.getByText("Card create")).toBeInTheDocument();
   });
 
   it("recovers from unknown routes", () => {

@@ -1,5 +1,6 @@
 import type {
   CardCreateInput,
+  CardCreateCommand,
   CardEditInput,
   CardId,
   CardMutation,
@@ -45,12 +46,24 @@ const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput
   "uid" in card ? card : cardCreateSchema.parse(card);
 
 // Routes a Card create through the owning Deck's persistence mode.
-const createCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
+const createMutationCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
   if (isLocalDeck(card.deckId)) {
     createLocalCard(card);
     return;
   }
   await createRemoteCard(uid, requireRemoteCardCreate(card));
+};
+
+// Creates one Card without letting presentation code choose a persisted owner or persistence mode.
+export const createCard = async (uid: string, card: CardCreateCommand): Promise<void> => {
+  const deck = findDeckById(card.deckId);
+  if (deck === undefined) throw new Error(`Deck "${card.deckId}" was not found`);
+  if (deck.localMode) {
+    createLocalCard(card);
+    return;
+  }
+  if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
+  await createRemoteCard(uid, { ...card, uid: deck.uid });
 };
 
 // Copies a Deck's local Cards to remote persistence before removing the local copies.
@@ -86,7 +99,7 @@ export const mutateCards = async (uid: string, mutations: CardMutation[]): Promi
   // Bulk imports are non-transactional: let every independent write settle before surfacing the first failure.
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
-      mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
+      mutation.kind === "create" ? createMutationCard(uid, mutation.card) : editCard(uid, mutation.card)
     )
   );
   const failure = results.find((result) => result.status === "rejected");

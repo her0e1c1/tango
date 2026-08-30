@@ -4,6 +4,9 @@ import {
   expect,
   failNextFirestoreWrite,
   getDocument,
+  documentId,
+  listDocuments,
+  readLocalData,
   requireDocument,
   test,
 } from "./fixtures";
@@ -271,4 +274,66 @@ test("CARD-12 recovers home from a missing Card route", async ({ fixture, page, 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
   expect(await getDocument("card", namespace.id("missing"))).toBeUndefined();
+});
+
+test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixture, page, namespace }) => {
+  const deck = fixture.deck();
+  const frontText = `${namespace.caseId} remote front`;
+  const backText = `${namespace.caseId} remote back`;
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}`);
+  await page.getByRole("button", { name: "Add card" }).click();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
+  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
+  await page.getByRole("textbox", { name: "Back text" }).fill(backText);
+  await page.getByRole("button", { name: "Create card" }).click();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
+  await page.reload();
+
+  await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
+  const created = (await listDocuments("card")).filter(
+    (document) =>
+      document.fields.deckId?.stringValue === deck.id &&
+      document.fields.uid?.stringValue === deck.uid &&
+      document.fields.frontText?.stringValue === frontText
+  );
+  expect(created).toHaveLength(1);
+  const [createdCard] = created;
+  if (createdCard === undefined) throw new Error("Created remote Card was not found");
+  expect(createdCard.fields.deckId?.stringValue).toBe(deck.id);
+  expect(createdCard.fields.uid?.stringValue).toBe(deck.uid);
+  expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
+  expect((await readLocalData(page)).cards).not.toEqual(
+    expect.arrayContaining([expect.objectContaining({ frontText })])
+  );
+});
+
+test("CARD-14 creates one local Card and keeps it across reload", async ({ fixture, page, namespace }) => {
+  const deck = fixture.deck();
+  const frontText = `${namespace.caseId} local front`;
+  const backText = `${namespace.caseId} local back`;
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}`);
+  await page.getByRole("button", { name: "Add card" }).click();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
+  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
+  await page.getByRole("textbox", { name: "Back text" }).fill(backText);
+  await page.getByRole("button", { name: "Create card" }).click();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
+  await page.reload();
+
+  await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
+  const localCards = (await readLocalData(page)).cards.filter(
+    (card: { deckId?: string; frontText?: string }) => card.deckId === deck.id && card.frontText === frontText
+  );
+  expect(localCards).toHaveLength(1);
+  expect(localCards[0]).toEqual(expect.objectContaining({ deckId: deck.id, uniqueKey: localCards[0]?.id }));
+  expect(
+    (await listDocuments("card")).filter(
+      (document) =>
+        document.fields.deckId?.stringValue === deck.id && document.fields.frontText?.stringValue === frontText
+    )
+  ).toEqual([]);
 });

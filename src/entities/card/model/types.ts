@@ -33,6 +33,11 @@ export type CardCreate = z.infer<typeof cardCreateSchema>;
 export type CardCreateInput = z.input<typeof cardCreateSchema>;
 /** Input accepted at the local Card creation boundary. */
 export type LocalCardCreateInput = z.input<typeof localCardCreateSchema>;
+/** Owner-free fields accepted by the single-Card creation workflow. */
+export type CardCreateCommand = Pick<
+  LocalCardCreateInput,
+  "id" | "deckId" | "frontText" | "backText" | "tags" | "uniqueKey"
+>;
 /** Validated stable identifier for a Card. */
 export type CardId = z.infer<typeof cardIdSchema>;
 /** Validated editable fields for a remote Card. */
