@@ -13,7 +13,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
-import { createDeck, createLocalDeck, createPreferences } from "@/test/factories";
+import { createDeck, createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   preferences: null as Preferences | null,
@@ -129,7 +129,10 @@ describe("useStudy", () => {
 
     await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { frontText: "card-2" } }));
     expect(result.current).toMatchObject({ showBackText: false, swipeFeedback: "cardSwipeRight" });
-    expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }));
+    expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }), {
+      persistence: "remote",
+      cardId: "card-1",
+    });
   });
 
   it("reports unavailable after the server confirms a missing remote target", async () => {
@@ -157,10 +160,27 @@ describe("useStudy", () => {
     expect(getStudySession(deckId)).toBeDefined();
   });
 
-  it("uses an active server result while the Card subscription catches up", async () => {
+  it("writes the displayed local Card while a same-ID remote copy overlaps migration", async () => {
+    const localCard = createLocalCard({ id: "card-1", deckId, frontText: "local card" });
+    mocks.deck = createLocalDeck({ id: deckId });
+    mocks.cards = [cards[0] as Card, localCard];
+    clearStudySessions();
+    startStudy(deckId, [localCard], { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    const { result } = renderHook(() => useStudy(deckId));
+
+    expect(result.current).toMatchObject({ status: "studying", card: { frontText: "local card" } });
+    await actAsync(() => result.current.swipeRight());
+
+    expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }), {
+      persistence: "local",
+      cardId: "card-1",
+    });
+  });
+
+  it("writes the verified remote Card while a same-ID local copy overlaps subscription catch-up", async () => {
     const [currentCard] = cards;
     if (currentCard == null || !("uid" in currentCard)) throw new Error("Expected a remote Card");
-    mocks.cards = [];
+    mocks.cards = [createLocalCard({ id: currentCard.id, deckId, frontText: "same-ID local copy" })];
     mocks.fetchRemoteCardRead.mockResolvedValue({
       status: "active",
       read: {

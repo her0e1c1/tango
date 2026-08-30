@@ -169,7 +169,8 @@ describe("StudySessionPage", () => {
     expect(screen.queryByText("Back two")).not.toBeInTheDocument();
     expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith(
       "user-id",
-      expect.objectContaining({ cardId: "first-card", score: 3, numberOfSeen: 4 })
+      expect.objectContaining({ cardId: "first-card", score: 3, numberOfSeen: 4 }),
+      { persistence: "local", cardId: "first-card" }
     );
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });

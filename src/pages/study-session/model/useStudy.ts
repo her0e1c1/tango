@@ -31,17 +31,16 @@ export const useStudy = (deckId: string) => {
     paused: helpOpen,
     onAdvance: hideBackText,
   });
-  const swipeCards =
-    sessionState.status === "studying" && !cards.some(({ id }) => id === sessionState.card.id)
-      ? [...cards, sessionState.card]
-      : cards;
-  const verifiedRemoteCardId =
-    sessionState.status === "studying" &&
-    "uid" in sessionState.card &&
-    !cards.some(({ id }) => id === sessionState.card.id)
-      ? sessionState.card.id
+  // Use the exact displayed Card because local-to-remote migration can temporarily leave both persistence modes
+  // with the same ID; swipe planning and writes must follow the Deck-scoped Card selected above.
+  const swipeCards = sessionState.status === "studying" ? [sessionState.card] : [];
+  const persistenceTarget =
+    sessionState.status === "studying"
+      ? "uid" in sessionState.card
+        ? { persistence: "remote" as const, cardId: sessionState.card.id }
+        : { persistence: "local" as const, cardId: sessionState.card.id }
       : undefined;
-  const swipe = useSwipe(deckId, swipeCards, hideBackText, verifiedRemoteCardId);
+  const swipe = useSwipe(deckId, swipeCards, hideBackText, persistenceTarget);
 
   const updateIndex = (currentIndex: number): void => {
     if (!setStudySessionIndex(deckId, currentIndex)) return;
