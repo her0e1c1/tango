@@ -1,22 +1,36 @@
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
+import type { UseFormReturn } from "react-hook-form";
 
+import type { CardId } from "@/entities/card";
 import { Feedback } from "@/shared/ui/feedback";
 
-import { CardForm, type CardFormProps } from "./CardForm";
+import type { CardFormValues } from "../model/useCardForm";
+import { CardForm } from "./CardForm";
 
 export interface CardEditorProps {
-  form: CardFormProps;
+  cardInfo: { uniqueKey: string; id: CardId; createdAt?: number; lastSeenAt?: number };
+  categories: readonly string[];
+  form: UseFormReturn<CardFormValues>;
+  onCancel: () => void;
+  onSubmit: React.SubmitEventHandler<HTMLFormElement>;
   saveError?: unknown;
 }
 
-export const CardEditor: React.FC<CardEditorProps> = ({ form, saveError }) => (
+export const CardEditor: React.FC<CardEditorProps> = ({
+  cardInfo,
+  categories,
+  form,
+  onCancel,
+  onSubmit,
+  saveError,
+}) => (
   <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
     <header className="mb-section-gap">
       <button
         type="button"
         className="mb-4 inline-flex min-h-touch items-center gap-2 rounded-control px-2 text-caption font-semibold text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted"
-        onClick={form.onCancel}
+        onClick={onCancel}
       >
         <AiOutlineArrowLeft aria-hidden="true" />
         Back to cards
@@ -26,6 +40,6 @@ export const CardEditor: React.FC<CardEditorProps> = ({ form, saveError }) => (
       <p className="mt-2 text-body text-ink-muted">Update the prompt, answer, and organization for this card.</p>
     </header>
     <Feedback tone="error">{saveError == null ? null : "Unable to save changes. Try again."}</Feedback>
-    <CardForm {...form} />
+    <CardForm cardInfo={cardInfo} categories={categories} form={form} onCancel={onCancel} onSubmit={onSubmit} />
   </section>
 );

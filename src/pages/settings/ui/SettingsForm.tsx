@@ -1,31 +1,28 @@
 import type * as React from "react";
 import { useId } from "react";
 import { AiOutlineDown, AiOutlineEye, AiOutlinePlayCircle, AiOutlineTool } from "react-icons/ai";
+import { type UseFormReturn, useWatch } from "react-hook-form";
 
+import type { Preferences } from "@/entities/preference";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 import { Slider, Switch } from "@/shared/ui/forms";
 
-interface SettingsFields {
-  showSwipeButtonList: React.ComponentProps<typeof Switch>;
-  showPlaybackControls: React.ComponentProps<typeof Switch>;
-  showSwipeFeedback: React.ComponentProps<typeof Switch>;
-  darkMode: React.ComponentProps<typeof Switch>;
-  shuffled: React.ComponentProps<typeof Switch>;
-  useCardInterval: React.ComponentProps<typeof Switch>;
-  maxNumberOfCardsToLearn: React.ComponentProps<typeof Slider>;
-  defaultAutoPlay: React.ComponentProps<typeof Switch>;
-  cardInterval: React.ComponentProps<typeof Slider>;
-}
-
 export interface SettingsFormProps {
-  fields: SettingsFields;
-  maxNumberOfCardsToLearn: number;
-  cardInterval: number;
+  form: UseFormReturn<Preferences>;
+  studyPreferencesLimits: {
+    maxNumberOfCardsToLearn: { min: number; max: number };
+    cardInterval: { min: number; max: number };
+  };
   version?: string;
   commitHash?: string;
 }
 
 export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
+  const maxNumberOfCardsToLearn = useWatch({
+    control: props.form.control,
+    name: "study.maxNumberOfCardsToLearn",
+  });
+  const cardInterval = useWatch({ control: props.form.control, name: "study.cardInterval" });
   const idPrefix = useId();
   const inputIds = {
     showSwipeButtonList: `${idPrefix}-show-swipe-controls`,
@@ -60,7 +57,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             description="Display study swipe action controls"
           >
             <Switch
-              {...props.fields.showSwipeButtonList}
+              {...props.form.register("controls.showSwipeButtonList")}
               id={inputIds.showSwipeButtonList}
               aria-describedby={descriptionId(inputIds.showSwipeButtonList)}
             />
@@ -71,7 +68,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             description="Display autoplay and progress controls"
           >
             <Switch
-              {...props.fields.showPlaybackControls}
+              {...props.form.register("controls.showPlaybackControls")}
               id={inputIds.showPlaybackControls}
               aria-describedby={descriptionId(inputIds.showPlaybackControls)}
             />
@@ -82,14 +79,14 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             description="Confirm each study action on screen"
           >
             <Switch
-              {...props.fields.showSwipeFeedback}
+              {...props.form.register("appearance.showSwipeFeedback")}
               id={inputIds.showSwipeFeedback}
               aria-describedby={descriptionId(inputIds.showSwipeFeedback)}
             />
           </SettingsRow>
           <SettingsRow inputId={inputIds.darkMode} label="Dark mode" description="Use the darker Calm Focus palette">
             <Switch
-              {...props.fields.darkMode}
+              {...props.form.register("appearance.darkMode")}
               id={inputIds.darkMode}
               aria-describedby={descriptionId(inputIds.darkMode)}
             />
@@ -103,7 +100,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
         >
           <SettingsRow inputId={inputIds.shuffled} label="Shuffle cards" description="Randomize each study session">
             <Switch
-              {...props.fields.shuffled}
+              {...props.form.register("study.shuffled")}
               id={inputIds.shuffled}
               aria-describedby={descriptionId(inputIds.shuffled)}
             />
@@ -116,13 +113,15 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           >
             <div className="flex w-full items-center gap-2">
               <Slider
-                {...props.fields.maxNumberOfCardsToLearn}
+                {...props.form.register("study.maxNumberOfCardsToLearn", { valueAsNumber: true })}
+                min={props.studyPreferencesLimits.maxNumberOfCardsToLearn.min}
+                max={props.studyPreferencesLimits.maxNumberOfCardsToLearn.max}
                 id={inputIds.maxNumberOfCardsToLearn}
                 aria-describedby={descriptionId(inputIds.maxNumberOfCardsToLearn)}
-                aria-valuetext={`${String(props.maxNumberOfCardsToLearn)} cards`}
+                aria-valuetext={`${String(maxNumberOfCardsToLearn)} cards`}
               />
               <span className="min-w-10 rounded-control bg-surface-muted px-2 py-1 text-center text-caption font-bold text-accent-primary">
-                {props.maxNumberOfCardsToLearn}
+                {maxNumberOfCardsToLearn}
               </span>
             </div>
           </SettingsRow>
@@ -132,7 +131,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             description="Hide cards until their next review time"
           >
             <Switch
-              {...props.fields.useCardInterval}
+              {...props.form.register("study.useCardInterval")}
               id={inputIds.useCardInterval}
               aria-describedby={descriptionId(inputIds.useCardInterval)}
             />
@@ -143,7 +142,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             description="Begin playback when study opens"
           >
             <Switch
-              {...props.fields.defaultAutoPlay}
+              {...props.form.register("study.defaultAutoPlay")}
               id={inputIds.defaultAutoPlay}
               aria-describedby={descriptionId(inputIds.defaultAutoPlay)}
             />
@@ -156,13 +155,15 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           >
             <div className="flex w-full items-center gap-2">
               <Slider
-                {...props.fields.cardInterval}
+                {...props.form.register("study.cardInterval", { valueAsNumber: true })}
+                min={props.studyPreferencesLimits.cardInterval.min}
+                max={props.studyPreferencesLimits.cardInterval.max}
                 id={inputIds.cardInterval}
                 aria-describedby={descriptionId(inputIds.cardInterval)}
-                aria-valuetext={`${String(props.cardInterval)} seconds`}
+                aria-valuetext={`${String(cardInterval)} seconds`}
               />
               <span className="min-w-10 rounded-control bg-surface-muted px-2 py-1 text-center text-caption font-bold text-accent-primary">
-                {props.cardInterval}s
+                {cardInterval}s
               </span>
             </div>
           </SettingsRow>

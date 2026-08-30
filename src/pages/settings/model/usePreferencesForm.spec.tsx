@@ -8,7 +8,7 @@ import "@testing-library/jest-dom/vitest";
 import { setDarkMode, updatePreferences, usePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
-import { usePreferencesFormState } from "./usePreferencesFormState";
+import { usePreferencesForm } from "./usePreferencesForm";
 
 const preferences = createPreferences({
   showSwipeButtonList: false,
@@ -24,15 +24,23 @@ const preferences = createPreferences({
 });
 
 const PreferencesFormHarness: React.FC = () => {
-  const formState = usePreferencesFormState();
+  const { form } = usePreferencesForm();
   const savedPreferences = usePreferences();
 
   return (
     <>
-      <input aria-label="Show playback controls" type="checkbox" {...formState.fields.showPlaybackControls} />
-      <input aria-label="Dark mode" type="checkbox" {...formState.fields.darkMode} />
-      <input aria-label="Maximum cards" type="range" {...formState.fields.maxNumberOfCardsToLearn} />
-      <input aria-label="Autoplay interval" type="range" {...formState.fields.cardInterval} />
+      <input aria-label="Show playback controls" type="checkbox" {...form.register("controls.showPlaybackControls")} />
+      <input aria-label="Dark mode" type="checkbox" {...form.register("appearance.darkMode")} />
+      <input
+        aria-label="Maximum cards"
+        type="range"
+        {...form.register("study.maxNumberOfCardsToLearn", { valueAsNumber: true })}
+      />
+      <input
+        aria-label="Autoplay interval"
+        type="range"
+        {...form.register("study.cardInterval", { valueAsNumber: true })}
+      />
       <output aria-label="Saved playback controls preference">
         {String(savedPreferences.controls.showPlaybackControls)}
       </output>
@@ -42,7 +50,7 @@ const PreferencesFormHarness: React.FC = () => {
   );
 };
 
-describe("usePreferencesFormState", () => {
+describe("usePreferencesForm", () => {
   beforeEach(() => {
     updatePreferences(preferences);
   });

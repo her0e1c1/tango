@@ -1,25 +1,43 @@
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
+import type { UseFormReturn } from "react-hook-form";
 
+import type { DeckId } from "@/entities/deck";
 import { Button } from "@/shared/ui/button";
 import { Feedback } from "@/shared/ui/feedback";
 
-import { DeckForm, type DeckFormProps } from "./DeckForm";
+import type { DeckFormValues } from "../model/useDeckForm";
+import { DeckForm } from "./DeckForm";
 
 export interface DeckEditorProps {
+  categories: readonly string[];
   deckName: string;
-  form: DeckFormProps;
+  deckInfo: { id: DeckId; createdAt: number; updatedAt: number };
+  form: UseFormReturn<DeckFormValues>;
+  isLocalOnly: boolean;
+  onCancel: () => void;
   saveError?: unknown;
   onDelete: () => void;
+  onSubmit: React.SubmitEventHandler<HTMLFormElement>;
 }
 
-export const DeckEditor: React.FC<DeckEditorProps> = ({ deckName, form, saveError, onDelete }) => (
+export const DeckEditor: React.FC<DeckEditorProps> = ({
+  categories,
+  deckInfo,
+  deckName,
+  form,
+  isLocalOnly,
+  onCancel,
+  onDelete,
+  onSubmit,
+  saveError,
+}) => (
   <section className="mx-auto w-full max-w-reading overflow-hidden rounded-surface border border-border bg-surface p-4 md:p-6">
     <header className="mb-section-gap">
       <button
         type="button"
         className="mb-4 inline-flex min-h-touch items-center gap-2 rounded-control px-2 text-caption font-semibold text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted"
-        onClick={form.onCancel}
+        onClick={onCancel}
       >
         <AiOutlineArrowLeft aria-hidden="true" />
         Back to decks
@@ -29,7 +47,14 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckName, form, saveErro
       <p className="mt-2 text-body text-ink-muted">Manage this deck’s information, import source, and formatting.</p>
     </header>
     <Feedback tone="error">{saveError == null ? null : "Unable to save changes. Try again."}</Feedback>
-    <DeckForm {...form} />
+    <DeckForm
+      categories={categories}
+      deckInfo={deckInfo}
+      form={form}
+      isLocalOnly={isLocalOnly}
+      onCancel={onCancel}
+      onSubmit={onSubmit}
+    />
     <section
       aria-labelledby="delete-deck-heading"
       className="mt-section-gap rounded-surface border border-danger p-4 md:p-5"

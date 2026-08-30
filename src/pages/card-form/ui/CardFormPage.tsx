@@ -4,13 +4,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardFormState } from "../model/useCardFormState";
+import { useCardForm } from "../model/useCardForm";
 import { CardEditor } from "./CardEditor";
 
 const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
   const navigate = useNavigate();
   const goBack = () => void navigate(-1);
-  const editor = useCardFormState({ cardId, onCancel: goBack, onSaved: goBack });
+  const editor = useCardForm({ cardId, onSaved: goBack });
 
   if (editor == null) {
     return (
@@ -20,7 +20,14 @@ const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
 
   return (
     <AppLayout showHeader>
-      <CardEditor form={editor.form} saveError={editor.saveError} />
+      <CardEditor
+        cardInfo={editor.cardInfo}
+        categories={editor.categories}
+        form={editor.form}
+        onCancel={goBack}
+        onSubmit={editor.onSubmit}
+        saveError={editor.saveError}
+      />
     </AppLayout>
   );
 };

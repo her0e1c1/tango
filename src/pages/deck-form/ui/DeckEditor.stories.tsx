@@ -1,116 +1,93 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import * as React from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { expect, fn } from "storybook/test";
 
+import { CATEGORY, type Deck } from "@/entities/deck";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
 
+import type { DeckFormValues } from "../model/useDeckForm";
 import { DeckEditor } from "./DeckEditor";
-import type { DeckFormProps } from "./DeckForm";
 
-const longDeck = {
-  ...fixture.deck.tooLongName,
-  url: `https://example.com/${"deeply-nested/".repeat(12)}deck.csv`,
-  category: "value 3",
-};
+interface DeckEditorStoryProps {
+  deck: Deck;
+  isSaving: boolean;
+  validationError: boolean;
+  saveError?: Error;
+  onCancel: () => void;
+  onDelete: () => void;
+}
 
-const createForm = (deck: typeof fixture.deck.default): DeckFormProps => ({
-  deckInfo: {
-    id: deck.id,
-    createdAt: deck.createdAt,
-    updatedAt: deck.updatedAt,
-  },
-  fields: {
-    name: { defaultValue: deck.name },
-    convertToBr: { checked: deck.convertToBr, onChange: fn() },
-    localMode: { checked: deck.localMode, disabled: !deck.localMode, onChange: fn() },
-    url: { defaultValue: deck.url },
-    category: { defaultValue: deck.category, options: [{ label: deck.category, value: deck.category }] },
-  },
-  isLocalOnly: deck.localMode,
-  errors: { name: undefined, url: undefined },
-  isSubmitting: false,
-  onCancel: fn(),
-  onSubmit: fn(),
-});
+const DeckEditorStory = ({ deck, isSaving, validationError, saveError, onCancel, onDelete }: DeckEditorStoryProps) => {
+  const form = useForm<DeckFormValues>({
+    defaultValues: {
+      name: deck.name,
+      category: deck.category,
+      url: deck.url ?? undefined,
+      convertToBr: deck.convertToBr,
+      localMode: deck.localMode,
+    },
+  });
 
-const InteractiveDeckEditor: React.FC<React.ComponentProps<typeof DeckEditor>> = (props) => {
-  const [convertToBr, setConvertToBr] = React.useState(Boolean(props.form.fields.convertToBr.checked));
-  const [localMode, setLocalMode] = React.useState(Boolean(props.form.fields.localMode.checked));
+  useEffect(() => {
+    if (validationError) {
+      form.setError("name", { message: "Deck name is required." });
+      form.setError("url", { message: "Enter a valid URL." });
+    }
+    if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
+  }, [form, isSaving, validationError]);
 
   return (
     <DeckEditor
-      {...props}
-      form={{
-        ...props.form,
-        fields: {
-          ...props.form.fields,
-          convertToBr: {
-            ...props.form.fields.convertToBr,
-            checked: convertToBr,
-            onChange: (event) => {
-              props.form.fields.convertToBr.onChange?.(event);
-              setConvertToBr(event.currentTarget.checked);
-            },
-          },
-          localMode: {
-            ...props.form.fields.localMode,
-            checked: localMode,
-            onChange: (event) => {
-              props.form.fields.localMode.onChange?.(event);
-              setLocalMode(event.currentTarget.checked);
-            },
-          },
-        },
-      }}
+      categories={CATEGORY}
+      deckInfo={{ id: deck.id, createdAt: deck.createdAt, updatedAt: deck.updatedAt }}
+      deckName={deck.name}
+      form={form}
+      isLocalOnly={deck.localMode}
+      onCancel={onCancel}
+      onDelete={onDelete}
+      onSubmit={form.handleSubmit(() => undefined)}
+      saveError={saveError}
     />
   );
 };
 
+const longDeck = {
+  ...fixture.deck.tooLongName,
+  url: `https://example.com/${"deeply-nested/".repeat(12)}deck.csv`,
+};
+
 const meta = {
   title: "Pages/Deck Form/DeckEditor",
-  component: DeckEditor,
+  component: DeckEditorStory,
   tags: ["autodocs"],
   decorators: [withPageLayout],
   parameters: { layout: "fullscreen" },
   args: {
-    deckName: fixture.deck.default.name,
-    form: createForm(fixture.deck.default),
+    deck: fixture.deck.default,
+    isSaving: false,
+    validationError: false,
+    onCancel: fn(),
     onDelete: fn(),
   },
-  render: (args) => <InteractiveDeckEditor {...args} />,
-} satisfies Meta<typeof DeckEditor>;
+} satisfies Meta<typeof DeckEditorStory>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 export const Interaction: Story = {
-  play: async ({ args, canvas, userEvent }) => {
+  play: async ({ canvas, userEvent }) => {
     const checkbox = canvas.getByRole<HTMLInputElement>("checkbox", { name: "Convert line breaks" });
-    const initialValue = Boolean(args.form.fields.convertToBr.checked);
-
+    const initialValue = checkbox.checked;
     await userEvent.click(checkbox);
-
-    await expect(args.form.fields.convertToBr.onChange).toHaveBeenCalledOnce();
     await expect(checkbox.checked).toBe(!initialValue);
   },
 };
-export const Saving: Story = {
-  args: { form: { ...createForm(fixture.deck.default), isSubmitting: true } },
-};
-export const ValidationError: Story = {
-  args: {
-    form: {
-      ...createForm(fixture.deck.default),
-      errors: { name: "Deck name is required.", url: "Enter a valid URL." },
-    },
-  },
-};
+export const Saving: Story = { args: { isSaving: true } };
+export const ValidationError: Story = { args: { validationError: true } };
 export const SaveError: Story = { args: { saveError: new Error("Deck write failed") } };
-export const LongValues: Story = { args: { deckName: longDeck.name, form: createForm(longDeck) } };
+export const LongValues: Story = { args: { deck: longDeck } };
 export const Dark: Story = { ...LongValues, globals: { theme: "dark" } };
-export const Mobile: Story = {
-  ...LongValues,
-  globals: { viewport: { value: "iphonex", isRotated: false } },
-};
+export const Mobile: Story = { ...LongValues, globals: { viewport: { value: "iphonex", isRotated: false } } };

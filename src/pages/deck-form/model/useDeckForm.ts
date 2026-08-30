@@ -8,9 +8,7 @@ import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, type Deck, deckFormSchema, editDeck, useDeck } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
-type DeckFormValues = z.infer<typeof deckFormSchema>;
-
-const categoryOptions = CATEGORY.map((category) => ({ label: category, value: category }));
+export type DeckFormValues = z.infer<typeof deckFormSchema>;
 
 const getDeckFormValues = (deck: Deck): DeckFormValues => ({
   name: deck.name,
@@ -27,25 +25,24 @@ const getDeckEditInput = (deck: Deck, values: DeckFormValues): Parameters<typeof
   url: values.url ?? null,
 });
 
-interface UseDeckFormStateOptions {
+interface UseDeckFormOptions {
   deckId: string;
-  onCancel: () => void;
   onSaved: () => void;
 }
 
-export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormStateOptions) => {
+export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
   const uid = useAuthUid();
   const deck = useDeck(deckId);
   const isMounted = useMountedGuard();
   const [saveError, setSaveError] = React.useState<unknown>(null);
-  const { formState, handleSubmit, register } = useForm<DeckFormValues>({
+  const form = useForm<DeckFormValues>({
     ...(deck && { values: getDeckFormValues(deck) }),
     resolver: zodResolver(deckFormSchema),
   });
 
   if (deck == null) return;
 
-  const submit = handleSubmit(async (values) => {
+  const submit = form.handleSubmit(async (values) => {
     setSaveError(null);
     try {
       await editDeck(uid, getDeckEditInput(deck, values));
@@ -59,33 +56,19 @@ export const useDeckFormState = ({ deckId, onCancel, onSaved }: UseDeckFormState
     void submit(event);
   };
 
-  const form = {
-    deckInfo: {
-      id: deck.id,
-      createdAt: deck.createdAt,
-      updatedAt: deck.updatedAt,
-    },
-    fields: {
-      name: register("name"),
-      convertToBr: register("convertToBr"),
-      // Moving Firestore data back into browser-only storage needs a separate copy-and-delete workflow.
-      localMode: { ...register("localMode"), disabled: !deck.localMode },
-      // Keep optional Deck URLs absent even though an empty HTML input reports an empty string.
-      url: register("url", { setValueAs: (value: unknown) => (value === "" ? undefined : value) }),
-      category: {
-        ...register("category"),
-        options: categoryOptions,
-      },
-    },
-    isLocalOnly: deck.localMode,
-    errors: {
-      name: formState.errors.name?.message,
-      url: formState.errors.url?.message,
-    },
-    isSubmitting: formState.isSubmitting,
-    onCancel,
-    onSubmit: onFormSubmit,
+  const deckInfo = {
+    id: deck.id,
+    createdAt: deck.createdAt,
+    updatedAt: deck.updatedAt,
   };
 
-  return { deckName: deck.name, form, saveError };
+  return {
+    categories: CATEGORY,
+    deckInfo,
+    deckName: deck.name,
+    form,
+    isLocalOnly: deck.localMode,
+    onSubmit: onFormSubmit,
+    saveError,
+  };
 };

@@ -1,40 +1,30 @@
 import type * as React from "react";
 import { useId } from "react";
+import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import type { CardId } from "@/entities/card";
 import { Button } from "@/shared/ui/button";
 import { TagList } from "@/shared/ui/content";
 import { Form, FormItem, Tag, Textarea } from "@/shared/ui/forms";
-import type { Option } from "@/shared/ui/forms";
-
-interface CardFormTagField extends Option {
-  input: React.ComponentProps<typeof Tag>;
-}
-
-interface CardFormFields {
-  frontText: React.ComponentProps<typeof Textarea>;
-  backText: React.ComponentProps<typeof Textarea>;
-  tags: CardFormTagField[];
-}
+import type { CardFormValues } from "../model/useCardForm";
 
 export interface CardFormProps {
   cardInfo: {
     uniqueKey: string;
     id: CardId;
-    createdAt?: string;
-    lastSeenAt?: string;
+    createdAt?: number;
+    lastSeenAt?: number;
   };
-  fields: CardFormFields;
-  errors: {
-    frontText: string | undefined;
-    backText: string | undefined;
-  };
-  isSubmitting: boolean;
+  categories: readonly string[];
+  form: UseFormReturn<CardFormValues>;
   onCancel: () => void;
-  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
+  onSubmit: React.SubmitEventHandler<HTMLFormElement>;
 }
 
+const formatDate = (timestamp: number): string => new Date(timestamp).toLocaleDateString();
+
 export const CardForm: React.FC<CardFormProps> = (props) => {
+  const formState = useFormState({ control: props.form.control });
   const sectionHeadingIdPrefix = useId();
   const frontHeadingId = `${sectionHeadingIdPrefix}-card-front-heading`;
   const backHeadingId = `${sectionHeadingIdPrefix}-card-back-heading`;
@@ -61,14 +51,14 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           label="Front text"
           inputId={frontInputId}
           errorId={frontErrorId}
-          {...(props.errors.frontText !== undefined ? { error: props.errors.frontText } : {})}
+          {...(formState.errors.frontText?.message !== undefined ? { error: formState.errors.frontText.message } : {})}
         >
           <Textarea
             rows={8}
-            {...props.fields.frontText}
+            {...props.form.register("frontText")}
             id={frontInputId}
-            aria-invalid={props.errors.frontText != null || undefined}
-            aria-describedby={props.errors.frontText !== undefined ? frontErrorId : undefined}
+            aria-invalid={formState.errors.frontText != null || undefined}
+            aria-describedby={formState.errors.frontText !== undefined ? frontErrorId : undefined}
           />
         </FormItem>
       </section>
@@ -87,14 +77,14 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           label="Back text"
           inputId={backInputId}
           errorId={backErrorId}
-          {...(props.errors.backText !== undefined ? { error: props.errors.backText } : {})}
+          {...(formState.errors.backText?.message !== undefined ? { error: formState.errors.backText.message } : {})}
         >
           <Textarea
             rows={8}
-            {...props.fields.backText}
+            {...props.form.register("backText")}
             id={backInputId}
-            aria-invalid={props.errors.backText != null || undefined}
-            aria-describedby={props.errors.backText !== undefined ? backErrorId : undefined}
+            aria-invalid={formState.errors.backText != null || undefined}
+            aria-describedby={formState.errors.backText !== undefined ? backErrorId : undefined}
           />
         </FormItem>
       </section>
@@ -109,8 +99,16 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           <p className="mt-1 text-caption text-ink-muted">Organize this card for filtering and study sessions.</p>
         </div>
         <TagList>
-          {props.fields.tags.map(({ label, value, input }) => (
-            <Tag className="mr-1 mb-1" primary small key={value} label={label} {...input} value={value} />
+          {props.categories.map((category) => (
+            <Tag
+              className="mr-1 mb-1"
+              primary
+              small
+              key={category}
+              label={category}
+              {...props.form.register("tags")}
+              value={category}
+            />
           ))}
         </TagList>
       </section>
@@ -130,13 +128,13 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
           {props.cardInfo.createdAt !== undefined && (
             <div>
               <dt className="font-medium text-ink-muted">Created</dt>
-              <dd className="text-ink">{props.cardInfo.createdAt}</dd>
+              <dd className="text-ink">{formatDate(props.cardInfo.createdAt)}</dd>
             </div>
           )}
           {props.cardInfo.lastSeenAt !== undefined && (
             <div>
               <dt className="font-medium text-ink-muted">Last seen</dt>
-              <dd className="text-ink">{props.cardInfo.lastSeenAt}</dd>
+              <dd className="text-ink">{formatDate(props.cardInfo.lastSeenAt)}</dd>
             </div>
           )}
         </dl>
@@ -145,8 +143,8 @@ export const CardForm: React.FC<CardFormProps> = (props) => {
         <Button variant="quiet" type="button" onClick={props.onCancel}>
           Cancel
         </Button>
-        <Button variant="primary" type="submit" disabled={props.isSubmitting}>
-          {props.isSubmitting ? "Saving…" : "Save changes"}
+        <Button variant="primary" type="submit" disabled={formState.isSubmitting}>
+          {formState.isSubmitting ? "Saving…" : "Save changes"}
         </Button>
       </div>
     </Form>
