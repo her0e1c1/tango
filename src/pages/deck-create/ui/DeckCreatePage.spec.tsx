@@ -68,10 +68,12 @@ describe("DeckCreatePage", () => {
     mocks.setDarkMode.mockReset();
   });
 
-  it("creates a remote empty Deck and opens its Card list under Strict Mode", async () => {
+  it("creates a remote empty Deck with source settings and opens its Card list under Strict Mode", async () => {
     renderPage(true);
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "New deck");
+    await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "https://example.com/deck.csv");
+    await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
@@ -79,7 +81,8 @@ describe("DeckCreatePage", () => {
       localMode: false,
       name: "New deck",
       category: "",
-      convertToBr: false,
+      convertToBr: true,
+      url: "https://example.com/deck.csv",
     });
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
   });
@@ -88,6 +91,8 @@ describe("DeckCreatePage", () => {
     renderPage();
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Local deck");
+    await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "https://example.com/local.csv");
+    await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "Local only" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
@@ -95,6 +100,22 @@ describe("DeckCreatePage", () => {
       id: "new-deck",
       localMode: true,
       name: "Local deck",
+      category: "",
+      convertToBr: true,
+      url: "https://example.com/local.csv",
+    });
+  });
+
+  it("omits an empty optional source URL from the create input", async () => {
+    renderPage();
+
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "No source deck");
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
+      id: "new-deck",
+      localMode: false,
+      name: "No source deck",
       category: "",
       convertToBr: false,
     });
@@ -104,12 +125,18 @@ describe("DeckCreatePage", () => {
     mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
     renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });
+    const sourceUrl = screen.getByRole("textbox", { name: "Source URL" });
+    const convertLineBreaks = screen.getByRole("checkbox", { name: "Convert line breaks" });
 
     await userEvent.type(name, "Retry deck");
+    await userEvent.type(sourceUrl, "https://example.com/retry.csv");
+    await userEvent.click(convertLineBreaks);
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
     expect(await screen.findByText("Unable to create this deck. Try again.")).toBeVisible();
     expect(name).toHaveValue("Retry deck");
+    expect(sourceUrl).toHaveValue("https://example.com/retry.csv");
+    expect(convertLineBreaks).toBeChecked();
     const localMode = screen.getByRole("checkbox", { name: "Local only" });
     expect(localMode).toBeDisabled();
     expect(localMode).not.toBeChecked();
@@ -121,14 +148,16 @@ describe("DeckCreatePage", () => {
       localMode: false,
       name: "Retry deck",
       category: "",
-      convertToBr: false,
+      convertToBr: true,
+      url: "https://example.com/retry.csv",
     });
     expect(mocks.createDeck).toHaveBeenNthCalledWith(2, "user-id", {
       id: "new-deck",
       localMode: false,
       name: "Retry deck",
       category: "",
-      convertToBr: false,
+      convertToBr: true,
+      url: "https://example.com/retry.csv",
     });
   });
 

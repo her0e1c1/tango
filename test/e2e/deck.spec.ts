@@ -178,6 +178,7 @@ test("DECK-08 downloads every Card field as one CSV row", async ({ fixture, page
 test("DECK-09 creates one empty remote Deck without a local duplicate", async ({ fixture, page, namespace }) => {
   const name = `${namespace.caseId} created`;
   const category = "typescript";
+  const sourceUrl = "https://example.com/created-deck.csv";
   const { uid } = fixture.user();
   await fixture.apply(page);
 
@@ -185,6 +186,8 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   await page.getByRole("button", { name: "Create deck" }).click();
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
+  await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
+  await clickCheckboxLabel(page, "Convert line breaks");
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
   const deckId = new URL(page.url()).pathname.split("/").at(-1);
@@ -203,6 +206,8 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   );
   expect(owned.map(documentId)).toEqual([deckId]);
   expect(owned.map(({ fields }) => fields.category?.stringValue)).toEqual([category]);
+  expect(owned.map(({ fields }) => fields.url?.stringValue)).toEqual([sourceUrl]);
+  expect(owned.map(({ fields }) => fields.convertToBr?.booleanValue)).toEqual([true]);
   const ownedCardsForDeck = (await listDocuments("card")).filter(
     ({ fields }) => fields.uid?.stringValue === uid && fields.deckId?.stringValue === deckId
   );
