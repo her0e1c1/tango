@@ -7,7 +7,8 @@ import type React from "react";
 import { Route, Routes } from "react-router-dom";
 
 import { AccountPage } from "@/pages/account";
-import { CardCreatePage, CardFormPage } from "@/pages/card-form";
+import { CardCreatePage } from "@/pages/card-create";
+import { CardFormPage } from "@/pages/card-form";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
 import { DeckCreatePage } from "@/pages/deck-create";

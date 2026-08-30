@@ -4,9 +4,9 @@ import { useForm } from "react-hook-form";
 import { expect, fn } from "storybook/test";
 
 import { CATEGORY } from "@/entities/deck";
+import type { CardFormFields } from "@/features/card-form";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 
-import type { CardFormFields } from "./CardForm";
 import { CardCreator } from "./CardCreator";
 
 interface CardCreatorStoryProps {
@@ -36,7 +36,7 @@ const CardCreatorStory = ({ isSaving, saveError, onCancel, onSubmit }: CardCreat
 };
 
 const meta = {
-  title: "Pages/Card Form/CardCreator",
+  title: "Pages/Card Create/CardCreator",
   component: CardCreatorStory,
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },

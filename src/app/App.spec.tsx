@@ -16,10 +16,8 @@ vi.mock("@/app/firestore-subscriptions", () => ({
   FirestoreSubscriptionsProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 vi.mock("@/pages/account", () => ({ AccountPage: () => null }));
-vi.mock("@/pages/card-form", () => ({
-  CardCreatePage: () => <div>Card create</div>,
-  CardFormPage: () => null,
-}));
+vi.mock("@/pages/card-create", () => ({ CardCreatePage: () => <div>Card create</div> }));
+vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));
 vi.mock("@/pages/deck-create", () => ({ DeckCreatePage: () => <div>Deck create</div> }));
