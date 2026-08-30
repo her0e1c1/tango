@@ -98,7 +98,7 @@
     "eslint-plugin-boundaries": "^6.0.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-testing-library": "^7.16.2",
-    "firebase-tools": "^15.22.4",
+    "firebase-tools": "^15.28.1",
     "jsdom": "^29.1.1",
     "knip": "^6.32.1",
     "markdownlint-cli2": "^0.23.1",
