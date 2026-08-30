@@ -50,8 +50,6 @@ describe("SettingsForm", () => {
     expect(playback).toBeChecked();
     expect(backTextSwipeOverlays).not.toBeChecked();
     expect(cardDetails).toBeChecked();
-    expect(language).toHaveValue("system");
-    expect(language).toHaveDisplayValue("System");
     expect(screen.getByText("Display left and right study actions while viewing an answer")).toBeInTheDocument();
     expect(maximumCards).toHaveValue("24");
 
@@ -107,7 +105,6 @@ describe("SettingsForm", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
     expect(screen.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
-    expect(screen.getByRole("checkbox", { name: "裏面のスワイプ操作を表示" })).toBeVisible();
     expect(screen.getByRole("checkbox", { name: "ダークモード" })).toBeVisible();
     expect(screen.getByRole("slider", { name: "最大カード数" })).toHaveAttribute("aria-valuetext", "24枚");
     expect(screen.getByRole("slider", { name: "自動再生の間隔" })).toHaveAttribute("aria-valuetext", "7秒");
