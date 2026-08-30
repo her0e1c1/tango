@@ -26,6 +26,8 @@ export const FullScreen: React.FC<{
   return (
     <div
       {...clickInteraction}
+      // A scrolling full-screen surface must remain keyboard reachable when it has no focusable children.
+      tabIndex={props.scroll ? 0 : clickInteraction.tabIndex}
       className={cx([
         "bg-canvas",
         "text-ink",

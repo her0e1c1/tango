@@ -2,13 +2,14 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey, useLatest } from "react-use";
 
+import { CardView, FrontText } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
-import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { routes } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { type StudyState, useStudy } from "../model/useStudy";
+import { CardOverlay } from "./CardOverlay";
 import { StudySession } from "./StudySession";
 
 type StudyShortcutAction =
@@ -28,6 +29,7 @@ const studyShortcutTextEntryTarget =
 const studyShortcutButtonTarget =
   "a[href], button, summary, input[type='button'], input[type='submit'], input[type='reset'], input[type='checkbox'], input[type='radio'], [role='button'], [role='link'], [role='switch'], [role='checkbox'], [role='radio'], [role='tab']";
 const studyShortcutSliderTarget = "input[type='range'], [role='slider']";
+const studyShortcutAnswerScrollTarget = "[data-study-answer-scroll]";
 
 const shouldIgnoreStudyShortcut = (event: KeyboardEvent): boolean => {
   if (!(event.target instanceof Element)) return false;
@@ -37,6 +39,7 @@ const shouldIgnoreStudyShortcut = (event: KeyboardEvent): boolean => {
   if ((event.key === "Enter" || event.key === " ") && event.target.closest(studyShortcutButtonTarget) !== null) {
     return true;
   }
+  if (event.key === " " && event.target.closest(studyShortcutAnswerScrollTarget) !== null) return true;
   return event.key.startsWith("Arrow") && event.target.closest(studyShortcutSliderTarget) !== null;
 };
 

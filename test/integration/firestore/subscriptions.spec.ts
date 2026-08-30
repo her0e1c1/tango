@@ -12,7 +12,7 @@ import { deleteCard, editCard, fetchCardReads, mutateCards, subscribeCards } fro
 import { createDeck, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
-import { createCard, createDeck as createDeckFixture } from "@/test/factories";
+import { createCard, createDeck as createDeckFixture, createRemoteDeckInput } from "@/test/factories";
 
 vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn(() => 100) }));
 vi.mock("@/shared/firebase", async () => ({
@@ -40,7 +40,7 @@ describe("Query realtime subscriptions", () => {
       score: 2,
       numberOfSeen: 3,
     });
-    await createDeck(uid, deck);
+    await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
     await mutateCards(uid, [{ kind: "create", card }]);
 
     const reads = await fetchCardReads(uid);
@@ -60,7 +60,7 @@ describe("Query realtime subscriptions", () => {
     try {
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
       const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid });
-      await createDeck(uid, deck);
+      await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
       await mutateCards(uid, [{ kind: "create", card }]);
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(expect.objectContaining({ id: deck.id }));
@@ -99,7 +99,7 @@ describe("Query realtime subscriptions", () => {
     const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Before stop" });
     const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid, frontText: "Before stop" });
 
-    await createDeck(uid, deck);
+    await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
     await mutateCards(uid, [{ kind: "create", card }]);
     await vi.waitFor(() => {
       expect(deckStore.getState().remoteDecks).toContainEqual(

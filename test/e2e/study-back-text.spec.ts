@@ -19,6 +19,7 @@ const selectBackText = async (page: Page, backText: string) => {
   await page.mouse.down();
   await page.mouse.move(textRect.right - 1, textRect.y, { steps: 5 });
   await page.mouse.up();
+  return textRect;
 };
 
 test("SWIPE-01 reveals the current Card answer without changing progress", async ({ fixture, page }) => {
@@ -139,4 +140,29 @@ test("SWIPE-21 runs the mapped right overlay action once and shows the next Card
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+});
+
+test("SWIPE-22 selects edge answer text beside overlays on a narrow viewport", async ({ fixture, page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const currentCard = fixture.card("card-1");
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  await revealAnswer(page, currentCard.frontText);
+  const leftOverlay = await page.getByRole("button", { name: "Swipe left" }).boundingBox();
+  const rightOverlay = await page.getByRole("button", { name: "Swipe right" }).boundingBox();
+  if (leftOverlay == null || rightOverlay == null) throw new Error("Expected visible back text overlays");
+
+  const textRect = await selectBackText(page, currentCard.backText);
+
+  expect(textRect.left).toBeGreaterThanOrEqual(leftOverlay.x + leftOverlay.width);
+  expect(textRect.right).toBeLessThanOrEqual(rightOverlay.x);
+  await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
+  await expect
+    .poll(async () => page.evaluate(() => window.getSelection()?.toString() ?? ""))
+    .toContain(currentCard.backText);
+  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });

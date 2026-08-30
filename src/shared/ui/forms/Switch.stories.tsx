@@ -7,7 +7,7 @@ const meta = {
   title: "Shared/Forms/Switch",
   component: Switch,
   tags: ["autodocs"],
-  args: { onChange: fn() },
+  args: { "aria-label": "Switch", onChange: fn() },
 } satisfies Meta<typeof Switch>;
 
 export default meta;

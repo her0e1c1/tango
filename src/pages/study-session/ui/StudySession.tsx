@@ -38,6 +38,14 @@ const studyLayoutStyles: StudyLayoutStyles = {
   "--study-feedback-top": "calc(var(--study-card-top) + 2.5rem)",
 };
 
+// The marker reserves Space for answer scrolling, while the named region makes the focus target discoverable.
+const answerSurfaceProps = {
+  role: "region",
+  "aria-label": "Study answer",
+  "data-study-answer-scroll": "",
+  tabIndex: 0,
+} as const;
+
 export interface StudySessionProps {
   showBackText?: boolean;
   showSwipeControls: boolean;
@@ -272,7 +280,16 @@ const CardContent: React.FC<{
     return (
       <>
         <BackTextOverlays overlay={backTextOverlay} />
-        <div className="flex min-h-full w-full">{backTextSlot}</div>
+        <div
+          className={cx(
+            "flex min-h-full w-full",
+            // Each active w-20 hit area needs matching space so it never covers selectable answer content.
+            backTextOverlay?.onClickLeft !== undefined && "pl-20",
+            backTextOverlay?.onClickRight !== undefined && "pr-20"
+          )}
+        >
+          {backTextSlot}
+        </div>
       </>
     );
   }
@@ -393,7 +410,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       ) : null}
       {showStudyChrome ? <SwipeFeedback swipeFeedback={props.swipeFeedback} /> : null}
       <div
-        {...(props.showBackText ? { role: "region", "aria-label": "Study answer" } : {})}
+        {...(props.showBackText ? answerSurfaceProps : {})}
         className={cx(
           "relative min-h-0 flex-1",
           props.showBackText ? "overflow-y-auto pt-[env(safe-area-inset-top)]" : "overflow-hidden"

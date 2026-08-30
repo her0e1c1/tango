@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
 export const deckIdSchema = z.string().min(1, "Deck id is required");
-const deckUidSchema = z.string().min(1, "Deck owner is required");
 
 const editableDeckFieldsSchema = z.object({
   name: z.string().trim().min(1, "Deck name is required."),
@@ -37,7 +36,6 @@ const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
 });
 
 export const deckCreateSchema = deckCreateFieldsSchema.extend({
-  uid: deckUidSchema,
   localMode: z.literal(false).default(false),
 });
 
@@ -57,20 +55,7 @@ export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   localMode: z.boolean().optional(),
 });
 
-// Rejects remote Deck commands whose stored owner differs from the authenticated user.
-const validateDeckOwner = (input: { uid: string; deck: { uid: string } }, context: z.RefinementCtx): void => {
-  if (input.deck.uid !== input.uid) {
-    context.addIssue({
-      code: "custom",
-      message: "Deck owner does not match the authenticated user",
-      path: ["deck", "uid"],
-    });
-  }
-};
-
-export const createDeckSchema = z
-  .object({ uid: authenticatedUidSchema, deck: deckCreateSchema })
-  .superRefine(validateDeckOwner);
+export const createDeckSchema = z.object({ uid: authenticatedUidSchema, deck: deckCreateSchema });
 
 export const editDeckSchema = z.object({
   uid: authenticatedUidSchema,

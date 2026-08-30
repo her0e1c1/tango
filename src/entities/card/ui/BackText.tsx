@@ -1,7 +1,7 @@
 /**
- * @file Defines the card view feature's Back Text presentation component.
- * The component renders props and reports user intent through callbacks while data access stays
- * outside the view.
+ * @file Defines the Card Entity's Back Text presentation component.
+ * The component renders prepared Card content and reports user intent through callbacks while data
+ * access stays outside the view.
  */
 
 import type * as React from "react";

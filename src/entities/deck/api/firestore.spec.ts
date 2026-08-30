@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createDeck as createDeckFixture } from "@/test/factories";
+import { createDeck as createDeckFixture, createRemoteDeckInput } from "@/test/factories";
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 
@@ -9,9 +9,8 @@ import { createDeck, deleteDeck, editDeck } from "./firestore";
 describe("Deck Firestore persistence", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
-  it("rejects create requests without a confirmed matching owner", async () => {
-    await expect(createDeck("", deck)).rejects.toThrow("confirmed user");
-    await expect(createDeck("uid-b", deck)).rejects.toThrow("owner does not match");
+  it("rejects create requests without a confirmed actor", async () => {
+    await expect(createDeck("", createRemoteDeckInput({ id: deck.id }))).rejects.toThrow("confirmed user");
   });
 
   it("rejects edit requests without a confirmed user", async () => {

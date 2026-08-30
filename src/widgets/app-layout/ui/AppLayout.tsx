@@ -10,10 +10,13 @@ type AppLayoutProps = Omit<React.ComponentProps<typeof Layout>, "headerProps">;
 export const AppLayout: React.FC<AppLayoutProps> = (props) => {
   const navigate = useNavigate();
   const preferences = usePreferences();
+  // Application navigation must remain available while the page-owned shell scrolls.
+  const { fixedHeader = true, ...layoutProps } = props;
 
   return (
     <Layout
-      {...props}
+      {...layoutProps}
+      fixedHeader={fixedHeader}
       headerProps={{
         dark: preferences.appearance.darkMode,
         onClickDarkMode: setDarkMode,

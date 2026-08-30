@@ -35,7 +35,7 @@ export type Deck = {
   updatedAt: number;
 } & ({ localMode: true } | { uid: string; localMode: false });
 
-/** Input accepted at the remote Deck creation boundary. */
-export type DeckCreateInput = z.input<typeof deckCreateSchema>;
+/** Owner-free input accepted at the remote Deck creation boundary. */
+export type RemoteDeckCreateInput = z.input<typeof deckCreateSchema>;
 /** Input accepted at the local Deck creation boundary. */
 export type LocalDeckCreateInput = z.input<typeof localDeckCreateSchema>;

@@ -170,6 +170,19 @@ describe("StudySessionPage", () => {
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
 
+  it("keeps Space native while the answer scrolling surface is focused", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.keyboard("{Enter}");
+    const answerSurface = screen.getByRole("region", { name: "Study answer" });
+    answerSurface.focus();
+
+    await user.keyboard(" ");
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
+  });
+
   it("keeps the ArrowRight shortcut active while the front card is focused", async () => {
     const user = userEvent.setup();
     renderPage();

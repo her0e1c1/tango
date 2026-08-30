@@ -1,22 +1,24 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
 import * as tsParser from "@typescript-eslint/parser";
+import { defineConfig } from "eslint/config";
 import { createConfig as createBoundariesConfig } from "eslint-plugin-boundaries/config";
 import reactHooks from "eslint-plugin-react-hooks";
 import testingLibrary from "eslint-plugin-testing-library";
 import vitest from "@vitest/eslint-plugin";
 
 const sourceFiles = ["src/**/*.{ts,tsx}"];
-const testFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
+const nonProductionFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}"];
-const sourceLayers = ["app", "entities", "features", "pages", "shared", "widgets"];
-const reactHooksRecommended = reactHooks.configs.flat["recommended-latest"];
-// Use only the type-aware portion so Biome remains the owner of syntax and style diagnostics.
-const strictTypeCheckedRules = tseslint.configs["flat/strict-type-checked-only"].at(-1).rules;
+// Steiger enforces FSD layer and slice boundaries, but it does not protect presentational UI from same-slice model imports.
+// Runtime imports are restricted so Pages and Containers connect state and workflows, then pass prepared values through props.
+// Type-only imports remain allowed so presentational prop types can refer to model-owned types.
+// This gitignore-style directory pattern covers model and its descendants at any relative depth.
+const sameSliceModelImports = ["../**/model"];
 
-export default [
+export default defineConfig(
   {
-    ...reactHooksRecommended,
     files: sourceFiles,
+    extends: [reactHooks.configs.flat["recommended-latest"]],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -25,7 +27,6 @@ export default [
       },
     },
     rules: {
-      ...reactHooksRecommended.rules,
       // Reserve this identifier so imports and React-qualified calls cannot bypass the compiler policy.
       "no-restricted-syntax": [
         "error",
@@ -44,11 +45,13 @@ export default [
   createBoundariesConfig({
     files: sourceFiles,
     settings: {
-      "boundaries/elements": sourceLayers.map((layer) => ({
-        type: layer,
-        pattern: `src/${layer}/**/*`,
-        mode: "full",
-      })),
+      "boundaries/elements": [
+        {
+          type: "source",
+          pattern: "src/{app,entities,features,pages,shared,widgets}/**",
+          partialMatch: false,
+        },
+      ],
       "boundaries/ignore": ["src/vite-env.d.ts"],
     },
     rules: {
@@ -57,19 +60,20 @@ export default [
   }),
   {
     files: sourceFiles,
-    ignores: testFiles,
+    ignores: nonProductionFiles,
     plugins: {
       "@typescript-eslint": tseslint,
     },
+    // Use only the type-aware portion so Biome remains the owner of syntax and style diagnostics.
+    extends: [tseslint.configs["flat/strict-type-checked-only"].at(-1)],
     rules: {
-      ...strictTypeCheckedRules,
       // Shorthand callbacks that intentionally return void are established project style, not ambiguous expressions.
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
     },
   },
   {
     files: ["src/features/*/ui/**/*.{ts,tsx}"],
-    ignores: testFiles,
+    ignores: nonProductionFiles,
     rules: {
       "no-restricted-imports": [
         "error",
@@ -81,7 +85,7 @@ export default [
               message: "Feature UI must receive Entity data through presentational props.",
             },
             {
-              group: ["../hooks/*", "../model/*", "../../hooks/*", "../../model/*"],
+              group: sameSliceModelImports,
               allowTypeImports: true,
               message: "Feature UI must receive Feature state and workflows through props.",
             },
@@ -94,7 +98,7 @@ export default [
   {
     files: ["src/pages/*/ui/**/*.{ts,tsx}"],
     ignores: [
-      ...testFiles,
+      ...nonProductionFiles,
       "src/pages/*/ui/**/*Page.{ts,tsx}",
       "src/pages/*/ui/**/*Container.{ts,tsx}",
     ],
@@ -115,20 +119,7 @@ export default [
               message: "Only a Page or Container may connect to a Feature hook.",
             },
             {
-              group: [
-                "../hooks",
-                "../hooks/*",
-                "../model",
-                "../model/*",
-                "../../hooks",
-                "../../hooks/*",
-                "../../model",
-                "../../model/*",
-                "../../../hooks",
-                "../../../hooks/*",
-                "../../../model",
-                "../../../model/*",
-              ],
+              group: sameSliceModelImports,
               allowTypeImports: true,
               message: "Presentational Page UI must receive Page state and workflows through props.",
             },
@@ -138,11 +129,7 @@ export default [
     },
   },
   {
-    ...testingLibrary.configs["flat/react"],
     files: vitestFiles,
+    extends: [testingLibrary.configs["flat/react"], vitest.configs.recommended],
   },
-  {
-    ...vitest.configs.recommended,
-    files: vitestFiles,
-  },
-];
+);

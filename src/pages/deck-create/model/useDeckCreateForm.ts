@@ -34,7 +34,7 @@ export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
         category: values.category,
         convertToBr: values.convertToBr,
       };
-      await createDeck(uid, values.localMode ? { ...deck, localMode: true } : { ...deck, uid, localMode: false });
+      await createDeck(uid, values.localMode ? { ...deck, localMode: true } : { ...deck, localMode: false });
       // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.
       if (isMounted()) onCreated(deckId);
     } catch (error) {

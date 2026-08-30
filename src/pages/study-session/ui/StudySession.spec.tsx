@@ -63,7 +63,10 @@ describe("StudySession", () => {
     );
 
     expect(screen.getByText("Back")).toBeVisible();
-    expect(screen.getByRole("region", { name: "Study answer" })).toBeVisible();
+    const answerSurface = screen.getByRole("region", { name: "Study answer" });
+    expect(answerSurface).toBeVisible();
+    expect(answerSurface).toHaveAttribute("data-study-answer-scroll");
+    expect(answerSurface).toHaveAttribute("tabindex", "0");
     expect(screen.queryByText("Front")).not.toBeInTheDocument();
     expect(screen.queryByText("Card metadata")).not.toBeInTheDocument();
     expect(screen.queryByText("Save failed")).not.toBeInTheDocument();

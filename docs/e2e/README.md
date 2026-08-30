@@ -151,6 +151,7 @@
 | SWIPE-19 | read | [長い裏面 text を scroll しても Card の状態を維持できる](./study-back-text.md#swipe-19) |
 | SWIPE-20 | write | [左 overlay から設定済み action を実行できる](./study-back-text.md#swipe-20) |
 | SWIPE-21 | write | [右 overlay から設定済み action を実行できる](./study-back-text.md#swipe-21) |
+| SWIPE-22 | read | [狭い画面で overlay と重ならずに端の裏面 text を選択できる](./study-back-text.md#swipe-22) |
 
 ### Persistence
 

@@ -14,6 +14,7 @@
 | SWIPE-19 | read | [長い裏面 text を scroll しても Card の状態を維持できる](#swipe-19) |
 | SWIPE-20 | write | [左 overlay から設定済み action を実行できる](#swipe-20) |
 | SWIPE-21 | write | [右 overlay から設定済み action を実行できる](#swipe-21) |
+| SWIPE-22 | read | [狭い画面で overlay と重ならずに端の裏面 text を選択できる](#swipe-22) |
 
 <a id="swipe-01"></a>
 
@@ -154,4 +155,29 @@ Then:
 - session の位置が次の Card へ一つ進む。
 - 次の Card の front text が表示され、back text は表示されない。
 - overlay の tap によって通常の裏面 tap は実行されない。
+- browser error が発生しない。
+
+<a id="swipe-22"></a>
+
+### SWIPE-22 狭い画面で overlay と重ならずに端の裏面 text を選択できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-back-text-overlays`](./fixture/study-back-text-overlays.yaml)
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- back text swipe overlay の表示設定が有効になっている。
+- viewport の幅が 320px になっている。
+
+When:
+
+- 現在の Card を裏面へ切り替え、左端から始まる back text を primary mouse button の drag で選択する。
+
+Then:
+
+- back text の表示領域が左右 overlay と重ならない。
+- 選択範囲に対象 Card の back text が含まれる。
+- 対象 Card の back text と左右 overlay が引き続き表示される。
+- Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
