@@ -150,7 +150,7 @@ describe("StudySession", () => {
     expect(onClickLeft).not.toHaveBeenCalled();
   });
 
-  it("keeps the back action visible and opens the remaining study actions", async () => {
+  it("SWIPE-25 keeps the Help slot fixed while opening the remaining study actions", async () => {
     const user = userEvent.setup();
     const onBack = vi.fn();
     const onToggleCardDetails = vi.fn();
@@ -169,9 +169,10 @@ describe("StudySession", () => {
     );
 
     const openActions = screen.getByRole("button", { name: "Open study actions" });
+    const helpTrigger = screen.getByRole("button", { name: "Open study help" });
     expect(openActions).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
+    expect(helpTrigger).toBeVisible();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
 
     fireEvent.click(openActions);
@@ -182,11 +183,11 @@ describe("StudySession", () => {
     const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
     const detailsToggle = screen.getByRole("button", { name: "Card details" });
     const helpToggle = screen.getByRole("button", { name: "Help button" });
-    const help = screen.getByRole("button", { name: "Open study help" });
     const actions = screen.getByRole("group", { name: "Study actions" });
     expect(closeActions).toHaveAttribute("aria-expanded", "true");
     expect(back).toBeVisible();
-    expect(help).toBeVisible();
+    expect(helpToggle).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
     expect(helpToggle).toHaveAttribute("aria-pressed", "true");
     expect(helpToggle).toHaveAttribute("title", "Hide help button");
     expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
@@ -195,14 +196,13 @@ describe("StudySession", () => {
     expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
     expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
     expect(detailsToggle).toHaveAttribute("title", "Hide card details");
-    expect(actions).toContainElement(helpToggle);
-    expect(actions).not.toContainElement(help);
+    expect(actions).not.toContainElement(helpToggle);
     expect(actions).not.toContainElement(back);
     expect(actions).not.toContainElement(screen.getByText("Card metadata"));
 
     closeActions.focus();
     await user.tab();
-    expect(help).toHaveFocus();
+    expect(helpToggle).toHaveFocus();
 
     fireEvent.click(back);
     fireEvent.click(swipeToggle);
@@ -214,13 +214,13 @@ describe("StudySession", () => {
     expect(onTogglePlaybackControls).toHaveBeenCalledOnce();
     expect(onToggleCardDetails).toHaveBeenCalledOnce();
 
-    fireEvent.keyDown(help, { key: "Escape" });
+    fireEvent.keyDown(helpToggle, { key: "Escape" });
     expect(screen.getByRole("button", { name: "Open study actions" })).toHaveFocus();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
   });
 
-  it("hides the Help shortcut while keeping its Header toggle available", () => {
+  it("SWIPE-25 restores the fixed Help visibility toggle while actions are open", () => {
     const onToggleHelp = vi.fn();
     render(
       <StudySession {...toolbarProps()} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />
@@ -229,7 +229,9 @@ describe("StudySession", () => {
     expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
 
+    const actions = screen.getByRole("group", { name: "Study actions" });
     const helpToggle = screen.getByRole("button", { name: "Help button" });
+    expect(actions).not.toContainElement(helpToggle);
     expect(helpToggle).toHaveAttribute("aria-pressed", "false");
     expect(helpToggle).toHaveAttribute("title", "Show help button");
     fireEvent.click(helpToggle);
