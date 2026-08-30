@@ -24,17 +24,24 @@ export interface ToastState {
   action: ToastAction | undefined;
   durationMs: number | null;
   dismissible: boolean;
+  returnFocusTarget: HTMLElement | undefined;
 }
 
 interface ToastStoreState {
   current: ToastState | undefined;
   modalTargets: readonly ToastModalTarget[];
+  visualTarget: ToastVisualTarget | undefined;
 }
 
 interface ToastModalTarget {
   id: number;
   element: HTMLElement;
   restoreFocus: () => void;
+}
+
+interface ToastVisualTarget {
+  toastId: ToastId;
+  element: HTMLElement;
 }
 
 const DEFAULT_DURATION_MS: Record<ToastTone, number | null> = {
@@ -47,7 +54,11 @@ const DEFAULT_DURATION_MS: Record<ToastTone, number | null> = {
 let nextToastId = 0;
 let nextModalTargetId = 0;
 
-export const toastStore = createStore<ToastStoreState>()(() => ({ current: undefined, modalTargets: [] }));
+export const toastStore = createStore<ToastStoreState>()(() => ({
+  current: undefined,
+  modalTargets: [],
+  visualTarget: undefined,
+}));
 
 export const registerToastModalTarget = (element: HTMLElement, restoreFocus: () => void): (() => void) => {
   nextModalTargetId += 1;
@@ -60,17 +71,49 @@ export const registerToastModalTarget = (element: HTMLElement, restoreFocus: () 
   };
 };
 
-const restoreModalFocus = (): void => {
-  const modalTarget = toastStore.getState().modalTargets.at(-1);
-  if (modalTarget === undefined || typeof document === "undefined") return;
+export const registerToastVisualTarget = (toastId: ToastId, element: HTMLElement): (() => void) => {
+  if (toastStore.getState().current?.id !== toastId) return () => undefined;
+  toastStore.setState({ visualTarget: { toastId, element } });
+
+  // Portal moves and replacements can clean up after a newer visual target has registered.
+  return () => {
+    toastStore.setState((state) =>
+      state.visualTarget?.toastId === toastId && state.visualTarget.element === element
+        ? { visualTarget: undefined }
+        : state
+    );
+  };
+};
+
+const getFocusedElement = (): HTMLElement | undefined => {
+  if (typeof document === "undefined") return;
   const { activeElement } = document;
-  if (activeElement instanceof HTMLElement && modalTarget.element.contains(activeElement)) {
+  return activeElement instanceof HTMLElement && activeElement !== document.body && activeElement.isConnected
+    ? activeElement
+    : undefined;
+};
+
+const restoreToastFocus = (toast: ToastState): void => {
+  const focusedElement = getFocusedElement();
+  if (focusedElement === undefined) return;
+  const { modalTargets, visualTarget } = toastStore.getState();
+  const modalTarget = modalTargets.at(-1);
+  if (modalTarget?.element.contains(focusedElement)) {
     modalTarget.restoreFocus();
+    return;
+  }
+  if (
+    visualTarget?.toastId === toast.id &&
+    visualTarget.element.contains(focusedElement) &&
+    toast.returnFocusTarget?.isConnected
+  ) {
+    toast.returnFocusTarget.focus();
   }
 };
 
 export const showToast = (input: ShowToastInput): ToastId => {
-  if (toastStore.getState().current !== undefined) restoreModalFocus();
+  const { current } = toastStore.getState();
+  if (current !== undefined) restoreToastFocus(current);
   const tone = input.tone ?? "neutral";
   nextToastId += 1;
   const id = nextToastId;
@@ -83,7 +126,9 @@ export const showToast = (input: ShowToastInput): ToastId => {
       action: input.action,
       durationMs: input.durationMs === undefined ? DEFAULT_DURATION_MS[tone] : input.durationMs,
       dismissible: input.dismissible ?? true,
+      returnFocusTarget: getFocusedElement(),
     },
+    visualTarget: undefined,
   });
 
   return id;
@@ -92,6 +137,9 @@ export const showToast = (input: ShowToastInput): ToastId => {
 export const dismissToast = (id?: ToastId): void => {
   const { current } = toastStore.getState();
   if (current === undefined || (id !== undefined && current.id !== id)) return;
-  restoreModalFocus();
-  toastStore.setState({ current: undefined });
+  restoreToastFocus(current);
+  // Focus restoration may synchronously publish another Toast; never clear that newer notification.
+  toastStore.setState((state) =>
+    state.current?.id === current.id ? { current: undefined, visualTarget: undefined } : state
+  );
 };

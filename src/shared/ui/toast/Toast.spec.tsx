@@ -123,24 +123,47 @@ describe("Toast", () => {
   });
 
   it("dismisses the active notification from its close button", () => {
-    render(<ToastViewport />);
+    render(
+      <>
+        <button type="button">Show notification</button>
+        <ToastViewport />
+      </>
+    );
+    const trigger = screen.getByRole("button", { name: "Show notification" });
+    trigger.focus();
     displayToast({ message: "Saved", tone: "success" });
+    const dismissButton = screen.getByRole("button", { name: "Dismiss notification" });
+    dismissButton.focus();
 
-    fireEvent.click(screen.getByRole("button", { name: "Dismiss notification" }));
+    fireEvent.click(dismissButton);
 
     expect(screen.queryByText("Saved")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
   });
 
   it("dismisses before running its action", () => {
-    const onClick = vi.fn(() => showToast({ message: "Replacement", tone: "success" }));
-    render(<ToastViewport />);
+    const onClick = vi.fn(() => {
+      expect(screen.getByRole("button", { name: "Show notification" })).toHaveFocus();
+      showToast({ message: "Replacement", tone: "success" });
+    });
+    render(
+      <>
+        <button type="button">Show notification</button>
+        <ToastViewport />
+      </>
+    );
+    const trigger = screen.getByRole("button", { name: "Show notification" });
+    trigger.focus();
     displayToast({ message: "Try again", tone: "error", action: { label: "Retry", onClick } });
+    const retryButton = screen.getByRole("button", { name: "Retry" });
+    retryButton.focus();
 
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    fireEvent.click(retryButton);
 
     expect(onClick).toHaveBeenCalledOnce();
     expect(screen.queryByText("Try again")).not.toBeInTheDocument();
     expect(screen.getByText("Replacement")).toBeVisible();
+    expect(trigger).toHaveFocus();
   });
 
   it("supports non-interactive notifications", () => {
@@ -183,15 +206,77 @@ describe("Toast", () => {
     expect(screen.queryByText("Swiped up")).not.toBeInTheDocument();
   });
 
+  it("restores focus before replacing a global notification", () => {
+    render(
+      <>
+        <button type="button">Show notification</button>
+        <ToastViewport />
+      </>
+    );
+    const trigger = screen.getByRole("button", { name: "Show notification" });
+    trigger.focus();
+    displayToast({ message: "First", durationMs: null });
+    screen.getByRole("button", { name: "Dismiss notification" }).focus();
+
+    displayToast({ message: "Second", durationMs: null });
+
+    expect(trigger).toHaveFocus();
+    const secondDismissButton = screen.getByRole("button", { name: "Dismiss notification" });
+    secondDismissButton.focus();
+    fireEvent.click(secondDismissButton);
+    expect(trigger).toHaveFocus();
+  });
+
+  it("restores focus when a focused global notification times out", () => {
+    vi.useFakeTimers();
+    render(
+      <>
+        <button type="button">Show notification</button>
+        <ToastViewport />
+      </>
+    );
+    const trigger = screen.getByRole("button", { name: "Show notification" });
+    trigger.focus();
+    displayToast({ message: "Saved", durationMs: 1000 });
+    screen.getByRole("button", { name: "Dismiss notification" }).focus();
+
+    act(() => vi.advanceTimersByTime(1000));
+
+    expect(screen.queryByText("Saved")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("does not take focus back when focus has moved outside the global notification", () => {
+    render(
+      <>
+        <button type="button">Show notification</button>
+        <button type="button">Continue editing</button>
+        <ToastViewport />
+      </>
+    );
+    const trigger = screen.getByRole("button", { name: "Show notification" });
+    const nextControl = screen.getByRole("button", { name: "Continue editing" });
+    trigger.focus();
+    const id = displayToast({ message: "Saved", durationMs: null });
+    nextControl.focus();
+
+    act(() => dismissToast(id));
+
+    expect(nextControl).toHaveFocus();
+  });
+
   it("shows only the latest notification and ignores an older id", () => {
     render(<ToastViewport />);
     const firstId = displayToast({ message: "First" });
     const secondId = displayToast({ message: "Second" });
+    const secondDismissButton = screen.getByRole("button", { name: "Dismiss notification" });
+    secondDismissButton.focus();
 
     expect(secondId).not.toBe(firstId);
     expect(screen.queryByText("First")).not.toBeInTheDocument();
     act(() => dismissToast(firstId));
     expect(screen.getByText("Second")).toBeVisible();
+    expect(secondDismissButton).toHaveFocus();
   });
 
   it("does not let an older timer dismiss a replacement", () => {

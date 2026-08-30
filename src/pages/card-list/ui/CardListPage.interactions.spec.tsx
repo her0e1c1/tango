@@ -102,6 +102,14 @@ const swipe = (article: HTMLElement, from: number, to: number) => {
   fireEvent.mouseUp(document, { clientX: to, clientY: 0 });
 };
 
+const getCardArticle = (frontText: string) => {
+  const article = screen
+    .getAllByRole("article")
+    .find((candidate) => within(candidate).queryByRole("button", { name: `View ${frontText}` }) !== null);
+  if (article === undefined) throw new Error(`Card article not found for ${frontText}`);
+  return article;
+};
+
 describe("CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
@@ -261,5 +269,60 @@ describe("CardListPage interactions", () => {
 
     expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
     expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
+  });
+
+  it("reports a pending score failure after another Card's score write succeeds", async () => {
+    const firstWrite = Promise.withResolvers<void>();
+    const secondWrite = Promise.withResolvers<void>();
+    const secondCard = createCard({
+      id: "second-card-id",
+      deckId: deck.id,
+      frontText: "Second",
+      score: 0,
+      tags: ["typescript", "react"],
+    });
+    mocks.editStudyProgress.mockReturnValueOnce(firstWrite.promise).mockReturnValueOnce(secondWrite.promise);
+    renderCardList({ cards: [card, secondCard] });
+
+    swipe(getCardArticle("Front"), 0, 100);
+    swipe(getCardArticle("Second"), 0, 100);
+    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
+    await actAsync(async () => {
+      secondWrite.resolve();
+      await secondWrite.promise;
+    });
+    await actAsync(async () => {
+      firstWrite.reject(new Error("late score failure"));
+      await firstWrite.promise.catch(() => undefined);
+    });
+
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+  });
+
+  it("reports a pending score failure after another Card is deleted", async () => {
+    const firstWrite = Promise.withResolvers<void>();
+    const secondCard = createCard({
+      id: "second-card-id",
+      deckId: deck.id,
+      frontText: "Second",
+      score: 0,
+      tags: ["typescript", "react"],
+    });
+    mocks.editStudyProgress.mockReturnValueOnce(firstWrite.promise);
+    renderCardList({ cards: [card, secondCard] });
+
+    swipe(getCardArticle("Front"), 0, 100);
+    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Second" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
+    expect(await screen.findByText("Deleted card “Second”.")).toBeVisible();
+
+    await actAsync(async () => {
+      firstWrite.reject(new Error("late score failure"));
+      await firstWrite.promise.catch(() => undefined);
+    });
+
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
   });
 });

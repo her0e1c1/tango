@@ -54,6 +54,11 @@ const dismissOwnedToast = (toastId: React.RefObject<ToastId | undefined>) => {
   toastId.current = undefined;
 };
 
+interface ScoreErrorToast {
+  cardId: CardId;
+  toastId: ToastId;
+}
+
 export const useCardListState = (deck: Deck): CardListState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
@@ -64,35 +69,51 @@ export const useCardListState = (deck: Deck): CardListState => {
   const [deletionPending, setDeletionPending] = React.useState(false);
   const deletionPendingRef = React.useRef(false);
   const deletionErrorToastId = React.useRef<ToastId | undefined>(undefined);
-  const scoreErrorToastId = React.useRef<ToastId | undefined>(undefined);
-  const scoreMutationSequence = React.useRef(0);
+  const scoreErrorToast = React.useRef<ScoreErrorToast | undefined>(undefined);
+  const scoreMutationSequences = React.useRef(new Map<CardId, number>());
 
   const cards = selectStudyCards(deckCards, deck, preferences.study.useCardInterval);
 
   const dismissDeletionErrorToast = () => dismissOwnedToast(deletionErrorToastId);
-  const dismissScoreErrorToast = () => dismissOwnedToast(scoreErrorToastId);
+  const dismissScoreErrorToast = (cardId?: CardId) => {
+    const ownedToast = scoreErrorToast.current;
+    if (ownedToast === undefined || (cardId !== undefined && ownedToast.cardId !== cardId)) return;
+    dismissToast(ownedToast.toastId);
+    scoreErrorToast.current = undefined;
+  };
+
+  const nextScoreMutationSequence = (cardId: CardId) => {
+    const sequence = (scoreMutationSequences.current.get(cardId) ?? 0) + 1;
+    scoreMutationSequences.current.set(cardId, sequence);
+    return sequence;
+  };
+
+  const isLatestScoreMutation = (cardId: CardId, sequence: number) =>
+    scoreMutationSequences.current.get(cardId) === sequence;
 
   React.useEffect(
     () => () => {
       dismissOwnedToast(deletionErrorToastId);
-      dismissOwnedToast(scoreErrorToastId);
+      dismissScoreErrorToast();
     },
     []
   );
 
   const changeScore = (id: CardId, offset: number) => {
     const card = mustFindCardById(cards, id);
-    // Overlapping swipes can settle out of order; only the latest write may own application-wide feedback.
-    scoreMutationSequence.current += 1;
-    const sequence = scoreMutationSequence.current;
-    dismissScoreErrorToast();
+    // Writes for one Card supersede only that Card so another Card's late failure remains actionable.
+    const sequence = nextScoreMutationSequence(card.id);
+    dismissScoreErrorToast(card.id);
     void editStudyProgress(uid, { cardId: card.id, score: card.score + offset })
       .then(() => {
-        if (isMounted() && sequence === scoreMutationSequence.current) dismissScoreErrorToast();
+        if (isMounted() && isLatestScoreMutation(card.id, sequence)) dismissScoreErrorToast(card.id);
       })
       .catch(() => {
-        if (isMounted() && sequence === scoreMutationSequence.current) {
-          scoreErrorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
+        if (isMounted() && isLatestScoreMutation(card.id, sequence)) {
+          scoreErrorToast.current = {
+            cardId: card.id,
+            toastId: showToast({ message: "Unable to save changes. Try again.", tone: "error" }),
+          };
         }
       });
   };
@@ -107,9 +128,9 @@ export const useCardListState = (deck: Deck): CardListState => {
     if (deletionTarget == null || deletionPendingRef.current) return;
     const card = deletionTarget;
     dismissDeletionErrorToast();
-    // A later delete result owns feedback over any older score write for the same list.
-    scoreMutationSequence.current += 1;
-    dismissScoreErrorToast();
+    // Deletion invalidates only writes for the removed Card; unrelated failures must still surface.
+    nextScoreMutationSequence(card.id);
+    dismissScoreErrorToast(card.id);
     deletionPendingRef.current = true;
     setDeletionPending(true);
     try {

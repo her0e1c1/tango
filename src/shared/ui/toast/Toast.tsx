@@ -7,6 +7,7 @@ import { useStore } from "zustand";
 import {
   dismissToast,
   registerToastModalTarget,
+  registerToastVisualTarget,
   toastStore,
   type ToastAction,
   type ToastState,
@@ -94,7 +95,14 @@ export const ToastModalOutlet = <T extends HTMLElement>({ focusFallbackRef }: To
 export const ToastViewport = () => {
   const toast = useStore(toastStore, (state) => state.current);
   const modalTarget = useStore(toastStore, (state) => state.modalTargets.at(-1)?.element);
+  const visualTargetRef = React.useRef<HTMLDivElement>(null);
   useAutoDismiss(toast);
+
+  React.useLayoutEffect(() => {
+    const visualTarget = visualTargetRef.current;
+    if (toast === undefined || visualTarget === null) return;
+    return registerToastVisualTarget(toast.id, visualTarget);
+  }, [toast, modalTarget]);
 
   const renderAnnouncement = (activeToast: ToastState) => (
     <span key={activeToast.id}>{`${tonePresentation[activeToast.tone].label}: ${activeToast.message}`}</span>
@@ -122,7 +130,10 @@ export const ToastViewport = () => {
 
   const visualViewport =
     toast === undefined ? null : (
-      <div className="pointer-events-none fixed inset-x-0 bottom-36 z-[70] flex justify-center px-shell-gutter">
+      <div
+        ref={visualTargetRef}
+        className="pointer-events-none fixed inset-x-0 bottom-36 z-[70] flex justify-center px-shell-gutter"
+      >
         {renderToast(toast)}
       </div>
     );
