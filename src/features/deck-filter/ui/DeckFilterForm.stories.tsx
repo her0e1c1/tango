@@ -89,6 +89,14 @@ export const NoMatchCompatible: Story = {
   },
 };
 
+export const SavedOutsideStandardScoreRange: Story = {
+  args: { scoreMax: 14.25, scoreMin: -12.5 },
+};
+
+export const InvalidSavedScoreRange: Story = {
+  args: { scoreMax: 3, scoreMin: 5 },
+};
+
 export const Mobile: Story = {
   ...ManyTagsSelected,
   globals: { viewport: { value: "iphone5", isRotated: false } },

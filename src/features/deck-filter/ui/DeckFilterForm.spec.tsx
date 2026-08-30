@@ -1,10 +1,9 @@
 /**
  * @file Verifies the "DeckFilterForm" contract with automated examples.
- * The examples make the expected behavior concrete with cases such as "labels score controls and
- * preserves values and callbacks", "shows unrestricted disabled limits".
+ * The examples make the expected behavior concrete for score controls, callbacks, and unrestricted limits.
  */
 
-import { fireEvent, render, within, screen } from "@testing-library/react";
+import { render, within, screen } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -31,36 +30,29 @@ const createProps = (): DeckFilterFormProps => ({
 });
 
 describe("DeckFilterForm", () => {
-  it("labels score controls and preserves values and callbacks", async () => {
+  it("composes score and tag filters and preserves callbacks", async () => {
     const props = createProps();
     render(<DeckFilterForm {...props} />);
     const scoreRegion = screen.getByRole("region", { name: "Score range" });
-    const maxSwitch = within(scoreRegion).getByRole("checkbox", { name: "Enable maximum score" });
-    const minSwitch = within(scoreRegion).getByRole("checkbox", { name: "Enable minimum score" });
-    const maxSlider = within(scoreRegion).getByRole("slider", { name: "Maximum score value" });
-    const minSlider = within(scoreRegion).getByRole("slider", { name: "Minimum score value" });
+    const maximum = within(scoreRegion).getByRole("combobox", { name: "Maximum score" });
+    const minimum = within(scoreRegion).getByRole("combobox", { name: "Minimum score" });
 
     expect(within(scoreRegion).getByText("−2 to 4")).toBeInTheDocument();
-    expect(maxSwitch).toBeChecked();
-    expect(minSwitch).toBeChecked();
-    expect(maxSlider).toHaveValue("4");
-    expect(minSlider).toHaveValue("-2");
+    expect(maximum).toHaveValue("4");
+    expect(minimum).toHaveValue("-2");
 
-    await userEvent.click(maxSwitch);
-    await userEvent.click(minSwitch);
-    fireEvent.change(maxSlider, { target: { value: "5" } });
-    fireEvent.change(minSlider, { target: { value: "-3" } });
+    await userEvent.selectOptions(maximum, "5");
+    await userEvent.selectOptions(minimum, "-3");
 
-    expect(props.setScoreMax).toHaveBeenNthCalledWith(1, null);
-    expect(props.setScoreMin).toHaveBeenNthCalledWith(1, null);
-    expect(props.setScoreMax).toHaveBeenNthCalledWith(2, 5);
-    expect(props.setScoreMin).toHaveBeenNthCalledWith(2, -3);
+    expect(props.setScoreMax).toHaveBeenCalledWith(5);
+    expect(props.setScoreMin).toHaveBeenCalledWith(-3);
+    expect(screen.getByRole("region", { name: "Tags" })).toBeInTheDocument();
   });
 
-  it("shows unrestricted disabled limits", () => {
+  it("shows unrestricted limits", () => {
     render(<DeckFilterForm {...createProps()} scoreMax={null} scoreMin={null} />);
     expect(screen.getByText("Any score")).toBeInTheDocument();
-    expect(screen.getByText("No upper limit")).toBeInTheDocument();
-    expect(screen.getByText("No lower limit")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("");
   });
 });

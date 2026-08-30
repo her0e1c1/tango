@@ -8,7 +8,11 @@ import * as fixture from "@/storybook/fixture";
 
 import { StudySessionStart } from "./StudySessionStart";
 
-const Filters: React.FC<{ initialSelectedTags: string[]; initialTagAndFilter: boolean }> = (props) => {
+const Filters: React.FC<{
+  initialSelectedTags: string[];
+  initialTagAndFilter: boolean;
+  tags: readonly string[];
+}> = (props) => {
   const [scoreMax, setScoreMax] = React.useState<number | null>(1);
   const [scoreMin, setScoreMin] = React.useState<number | null>(-1);
   const [selectedTags, setSelectedTags] = React.useState(props.initialSelectedTags);
@@ -18,7 +22,7 @@ const Filters: React.FC<{ initialSelectedTags: string[]; initialTagAndFilter: bo
     <DeckFilterForm
       scoreMax={scoreMax}
       scoreMin={scoreMin}
-      tags={[...fixture.tags.default]}
+      tags={[...props.tags]}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
       setScoreMax={setScoreMax}
@@ -29,8 +33,8 @@ const Filters: React.FC<{ initialSelectedTags: string[]; initialTagAndFilter: bo
   );
 };
 
-const filters = (selectedTags: string[] = [], tagAndFilter = false) => (
-  <Filters initialSelectedTags={selectedTags} initialTagAndFilter={tagAndFilter} />
+const filters = (selectedTags: string[] = [], tagAndFilter = false, tags: readonly string[] = fixture.tags.default) => (
+  <Filters initialSelectedTags={selectedTags} initialTagAndFilter={tagAndFilter} tags={tags} />
 );
 
 const meta = {
@@ -59,14 +63,29 @@ export const ManyCardsAndCombinedFilters: Story = {
   args: {
     cardsLength: 1247,
     maxNumberOfCardsToLearn: 0,
-    filterSlot: filters(["tag 1", "tag 3"], true),
+    filterSlot: filters([...fixture.tags.toolong.slice(0, 12)], true, fixture.tags.toolong),
   },
 };
 export const DisabledStart: Story = {
   args: { cardsLength: 0, filterSlot: filters(["tag 1", "tag 3"], true) },
 };
 export const Dark: Story = { ...ManyCardsAndCombinedFilters, globals: { theme: "dark" } };
-export const Mobile: Story = {
-  ...Long,
+export const Mobile320LongDeck: Story = {
+  args: {
+    deckName: fixture.deck.tooLongName.name,
+    filterSlot: filters([...fixture.tags.toolong.slice(0, 12)], true, fixture.tags.toolong),
+  },
+  globals: { viewport: { value: "iphone5", isRotated: false } },
+};
+export const Mobile375SafeArea: Story = {
+  ...ManyCardsAndCombinedFilters,
   globals: { viewport: { value: "iphonex", isRotated: false } },
+};
+export const Mobile375DarkEmpty: Story = {
+  args: {
+    cardsLength: 0,
+    deckName: fixture.deck.tooLongName.name,
+    filterSlot: filters([...fixture.tags.toolong.slice(0, 12)], true, fixture.tags.toolong),
+  },
+  globals: { theme: "dark", viewport: { value: "iphonex", isRotated: false } },
 };
