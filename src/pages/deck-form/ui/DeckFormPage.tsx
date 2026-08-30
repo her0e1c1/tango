@@ -21,10 +21,20 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
     );
   }
 
+  const cancel = () => {
+    editor.dismissSaveError();
+    goToList();
+  };
+
   return (
     <AppLayout showHeader>
       {deletion.target != null && (
-        <DeckDeletionDialog target={deletion.target} onCancel={deletion.cancel} onConfirm={deletion.confirm} />
+        <DeckDeletionDialog
+          target={deletion.target}
+          pending={deletion.pending}
+          onCancel={deletion.cancel}
+          onConfirm={deletion.confirm}
+        />
       )}
       <DeckEditor
         categories={editor.categories}
@@ -32,8 +42,7 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
         deckName={editor.deckName}
         form={editor.form}
         isLocalOnly={editor.isLocalOnly}
-        onCancel={goToList}
-        saveError={editor.saveError}
+        onCancel={cancel}
         onDelete={() => deletion.request(editor.deckInfo.id)}
         onSubmit={editor.onSubmit}
       />

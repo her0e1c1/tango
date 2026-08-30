@@ -10,7 +10,6 @@ export interface DestructiveActionDialogProps {
   description: React.ReactNode;
   confirmLabel: string;
   pending?: boolean;
-  errorMessage?: string;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
 }
@@ -22,7 +21,6 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   const titleId = React.useId();
   const targetId = React.useId();
   const descriptionId = React.useId();
-  const errorId = React.useId();
 
   React.useEffect(() => {
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -55,10 +53,17 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     }
   };
 
+  const handleCancel = () => {
+    if (props.pending) return;
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Cancel may run after confirm mutates this React ref.
+    if (confirmingRef.current) return;
+    props.onCancel();
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
       event.preventDefault();
-      props.onCancel();
+      handleCancel();
       return;
     }
     if (event.key === "Tab") {
@@ -66,9 +71,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     }
   };
 
-  const describedBy = [targetId, descriptionId, props.errorMessage != null ? errorId : null]
-    .filter((id) => id != null)
-    .join(" ");
+  const describedBy = `${targetId} ${descriptionId}`;
 
   const handleConfirm = () => {
     if (props.pending || confirmingRef.current) return;
@@ -76,7 +79,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     try {
       void Promise.resolve(props.onConfirm())
         .catch(() => {
-          // Prevent unhandled floating promise rejections. Callers manage error state via props.
+          // Prevent unhandled floating promise rejections. Callers own failure reporting and retry state.
         })
         .finally(() => {
           confirmingRef.current = false;
@@ -115,17 +118,13 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
         <div id={descriptionId} className="mt-4 space-y-2 text-body text-ink-muted">
           {props.description}
         </div>
-        {props.errorMessage != null && (
-          <p id={errorId} role="alert" className="mt-4 rounded-control border border-danger p-3 text-body text-danger">
-            {props.errorMessage}
-          </p>
-        )}
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             ref={cancelRef}
             type="button"
-            className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-border bg-transparent px-4 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            onClick={props.onCancel}
+            disabled={props.pending}
+            className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-border bg-transparent px-4 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={handleCancel}
           >
             Cancel
           </button>

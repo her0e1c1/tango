@@ -12,6 +12,10 @@ export const DeckCreatePage: React.FC = () => {
   const state = useDeckCreateForm({
     onCreated: (deckId) => void navigate(routes.cardList.to(deckId), { replace: true }),
   });
+  const cancel = () => {
+    state.dismissSaveError();
+    void navigate(routes.deckList.to());
+  };
 
   return (
     <AppLayout showHeader>
@@ -19,9 +23,8 @@ export const DeckCreatePage: React.FC = () => {
         categories={state.categories}
         form={state.form}
         isLocalModeLocked={state.isLocalModeLocked}
-        onCancel={() => void navigate(routes.deckList.to())}
+        onCancel={cancel}
         onSubmit={state.onSubmit}
-        saveError={state.saveError}
       />
     </AppLayout>
   );

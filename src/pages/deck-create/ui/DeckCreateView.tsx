@@ -4,7 +4,6 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import { Button } from "@/shared/ui/button";
-import { Feedback } from "@/shared/ui/feedback";
 import { Form, FormItem, Input, Select, Switch } from "@/shared/ui/forms";
 
 import type { DeckCreateFormValues } from "../model/useDeckCreateForm";
@@ -15,7 +14,6 @@ export interface DeckCreateViewProps {
   isLocalModeLocked: boolean;
   onCancel: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
-  saveError?: unknown;
 }
 
 export const DeckCreateView: React.FC<DeckCreateViewProps> = ({
@@ -24,7 +22,6 @@ export const DeckCreateView: React.FC<DeckCreateViewProps> = ({
   isLocalModeLocked,
   onCancel,
   onSubmit,
-  saveError,
 }) => {
   const formState = useFormState({ control: form.control });
   const categoryOptions = categories.map((category) => ({ label: category, value: category }));
@@ -49,7 +46,6 @@ export const DeckCreateView: React.FC<DeckCreateViewProps> = ({
         <h1 className="mt-1 break-words text-display font-bold text-ink">Create deck</h1>
         <p className="mt-2 text-body text-ink-muted">Start with an empty deck.</p>
       </header>
-      <Feedback tone="error">{saveError == null ? null : "Unable to create this deck. Try again."}</Feedback>
       <Form onSubmit={onSubmit}>
         <section className="space-y-4 rounded-surface border border-border bg-surface p-4 md:p-5">
           <FormItem

@@ -32,14 +32,11 @@ export const DeckImportPage: React.FC = () => {
             if (result !== undefined) void navigate(routes.deckList.to());
           });
         }}
-        onBack={() => void navigate(-1)}
         onDownloadSample={downloadSampleCsv}
         validating={deckImport.validating}
         pending={deckImport.pending}
         addingSample={deckImport.addingSample}
         preview={deckImport.preview}
-        result={deckImport.result}
-        error={deckImport.error}
         previewError={deckImport.previewError}
         dark={deckImport.dark}
         sampleText={SAMPLE_CSV_TEXT}

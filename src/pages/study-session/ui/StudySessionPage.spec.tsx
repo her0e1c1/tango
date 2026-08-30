@@ -9,6 +9,7 @@ import "@testing-library/jest-dom/vitest";
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession, setStudySessionIndex, startStudy } from "@/entities/study-session";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -88,13 +89,16 @@ describe("StudySessionPage", () => {
   const renderPage = (path = `/deck/${deckId}/study`, previousPath?: string) => {
     const initialEntries = previousPath === undefined ? [path] : [previousPath, path];
     return render(
-      <MemoryRouter initialEntries={initialEntries} initialIndex={initialEntries.length - 1}>
-        <Routes>
-          <Route path="/" element={<DeckListDestination />} />
-          <Route path="/previous" element={<h1>Previous destination</h1>} />
-          <Route path="/deck/:id/study" element={<StudySessionPage />} />
-        </Routes>
-      </MemoryRouter>
+      <>
+        <MemoryRouter initialEntries={initialEntries} initialIndex={initialEntries.length - 1}>
+          <Routes>
+            <Route path="/" element={<DeckListDestination />} />
+            <Route path="/previous" element={<h1>Previous destination</h1>} />
+            <Route path="/deck/:id/study" element={<StudySessionPage />} />
+          </Routes>
+        </MemoryRouter>
+        <ToastViewport />
+      </>
     );
   };
   const openStudyActions = () => {
@@ -105,6 +109,7 @@ describe("StudySessionPage", () => {
   beforeEach(async () => {
     document.documentElement.lang = "en";
     clearStudySessions();
+    dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.editStudyProgress.mockReset().mockResolvedValue(undefined);
     mocks.removeStudySession.mockReset();
@@ -216,6 +221,21 @@ describe("StudySessionPage", () => {
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
+  });
+
+  it("shows successful swipe feedback through the shared Toast viewport", async () => {
+    mocks.preferences = createPreferences({
+      appearance: { darkMode: false, showSwipeFeedback: true },
+      cardSwipeRight: "GoToNextCardMastered",
+    });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.keyboard("{ArrowRight}");
+
+    await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
+    expect(screen.getByText("Swiped right")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
   });
 
   it("shows configured Help rows without letting dialog keys change Study state", () => {

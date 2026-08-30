@@ -9,6 +9,8 @@ import "@testing-library/jest-dom/vitest";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { clearStudySessions, startStudy } from "@/entities/study-session";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { actAsync } from "@/test/act";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -52,21 +54,25 @@ describe("DeckListPage", () => {
   });
   const renderPage = () =>
     render(
-      <MemoryRouter initialEntries={["/"]}>
-        <Routes>
-          <Route path="/" element={<DeckListPage />} />
-          <Route path="/deck/new" element={<h1>Deck creator destination</h1>} />
-          <Route path="/settings" element={<h1>Settings destination</h1>} />
-          <Route path="/import" element={<h1>Import destination</h1>} />
-          <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
-          <Route path="/deck/:id/study" element={<h1>Study destination</h1>} />
-          <Route path="/deck/:id/start" element={<h1>Study start destination</h1>} />
-          <Route path="/deck/:id/edit" element={<h1>Deck editor destination</h1>} />
-        </Routes>
-      </MemoryRouter>
+      <>
+        <MemoryRouter initialEntries={["/"]}>
+          <Routes>
+            <Route path="/" element={<DeckListPage />} />
+            <Route path="/deck/new" element={<h1>Deck creator destination</h1>} />
+            <Route path="/settings" element={<h1>Settings destination</h1>} />
+            <Route path="/import" element={<h1>Import destination</h1>} />
+            <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
+            <Route path="/deck/:id/study" element={<h1>Study destination</h1>} />
+            <Route path="/deck/:id/start" element={<h1>Study start destination</h1>} />
+            <Route path="/deck/:id/edit" element={<h1>Deck editor destination</h1>} />
+          </Routes>
+        </MemoryRouter>
+        <ToastViewport />
+      </>
     );
 
   beforeEach(async () => {
+    dismissToast();
     clearStudySessions();
     mocks.deleteDeck.mockClear();
     mocks.downloadTextFile.mockReset();
@@ -153,10 +159,50 @@ describe("DeckListPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
     expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
     expect(mocks.deleteDeck).toHaveBeenCalledTimes(2);
+  });
+
+  it("locks cancellation while deletion persistence is pending", async () => {
+    const request = Promise.withResolvers<void>();
+    mocks.deleteDeck.mockReturnValueOnce(request.promise);
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+
+    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
+    expect(dialog).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(dialog).toBeVisible();
+
+    await actAsync(async () => {
+      request.resolve();
+      await request.promise;
+    });
+    await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
+  });
+
+  it("dismisses a deletion error when the dialog is cancelled", async () => {
+    mocks.deleteDeck.mockRejectedValueOnce(new Error("delete failed"));
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Unable to delete this deck. Check your connection and try again.")
+    ).not.toBeInTheDocument();
   });
 
   it("navigates from both route shortcuts", async () => {

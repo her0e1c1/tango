@@ -1,8 +1,6 @@
 import type { CardMutation } from "@/entities/card";
 import type { DeckId, LocalDeckCreateInput, RemoteDeckCreateInput } from "@/entities/deck";
 
-import { useState } from "react";
-
 import { mutateCards as persistCardMutations } from "@/entities/card";
 import { createDeck as persistDeck } from "@/entities/deck";
 
@@ -104,30 +102,8 @@ const executePreparedDeckImport = async (
 
 export type DeckImportResult = Awaited<ReturnType<typeof executePreparedDeckImport>>;
 
-interface DeckImportExecutionState {
-  error: unknown;
-  result: DeckImportResult | undefined;
-}
-
-const initialState = (): DeckImportExecutionState => ({ error: null, result: undefined });
-
 export const useDeckImportExecution = (uid: string) => {
-  const [state, setState] = useState<DeckImportExecutionState>(initialState);
-  const updateState = (update: Partial<DeckImportExecutionState>) => {
-    setState((current) => ({ ...current, ...update }));
-  };
-
-  const run = async (operation: () => Promise<DeckImportResult>): Promise<DeckImportResult | undefined> => {
-    updateState({ error: null });
-    let importResult: DeckImportResult | undefined;
-    try {
-      importResult = await operation();
-      updateState({ result: importResult });
-    } catch (caughtError) {
-      updateState({ result: undefined, error: caughtError });
-    }
-    return importResult;
-  };
+  const run = (operation: () => Promise<DeckImportResult>): Promise<DeckImportResult> => operation();
 
   const runPrepared = (prepare: () => PreparedDeckImport) =>
     run(() =>
@@ -141,8 +117,5 @@ export const useDeckImportExecution = (uid: string) => {
   return {
     run,
     runPrepared,
-    clear: () => updateState({ error: null, result: undefined }),
-    error: state.error,
-    result: state.result,
   };
 };

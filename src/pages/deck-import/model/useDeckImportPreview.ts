@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 
 import { generateCardId } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { type DeckImportAnalysis, parseCsv } from "../lib/cardCsv";
 import type { DeckImportStorageMode, PreparedDeckImport } from "./useDeckImportExecution";
 import { prepareDeckImport } from "./useDeckImportExecution";
@@ -21,6 +22,7 @@ const initialState = (): DeckImportPreviewState => ({
 });
 
 export const useDeckImportPreview = (uid: string) => {
+  const isMounted = useMountedGuard();
   const preparedImportRef = useRef<PreparedDeckImport | undefined>(undefined);
   const [state, setState] = useState<DeckImportPreviewState>(initialState);
   const updateState = (update: Partial<DeckImportPreviewState>) => {
@@ -34,6 +36,8 @@ export const useDeckImportPreview = (uid: string) => {
 
     try {
       const analysis = await parseCsv(await file.text());
+      // File reads can finish after navigation, so their prepared IDs and preview state must remain route-owned.
+      if (!isMounted()) return;
       const preparedImport = prepareDeckImport(
         { name: file.name, rows: analysis.rows, storageMode },
         { uid, generateDeckId, generateCardId }
@@ -42,7 +46,7 @@ export const useDeckImportPreview = (uid: string) => {
       preparedImportRef.current = preparedImport;
       updateState({ preview });
     } catch (caughtError) {
-      updateState({ error: caughtError });
+      if (isMounted()) updateState({ error: caughtError });
     }
   };
 
