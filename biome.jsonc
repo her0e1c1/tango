@@ -15,7 +15,7 @@
     "lineWidth": 120
   },
   "javascript": {
-    "globals": ["__APP_VERSION__"],
+    "globals": ["__APP_VERSION__", "__COMMIT_HASH__"],
     "formatter": {
       "trailingCommas": "es5"
     }
