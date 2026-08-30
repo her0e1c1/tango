@@ -52,6 +52,7 @@ const CardEditorHarness = (props: { cardId: string; onCancel: () => void; onSave
       cardInfo={editor.cardInfo}
       categories={editor.categories}
       form={editor.form}
+      isSaving={editor.isSaving}
       onCancel={props.onCancel}
       onSubmit={editor.onSubmit}
       saveError={editor.saveError}

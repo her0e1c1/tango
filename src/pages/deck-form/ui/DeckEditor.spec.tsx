@@ -53,6 +53,7 @@ const DeckEditorHarness = (props: { deckId: string; onCancel: () => void; onSave
       deckName={editor.deckName}
       form={editor.form}
       isLocalOnly={editor.isLocalOnly}
+      isSaving={editor.isSaving}
       onCancel={props.onCancel}
       onDelete={() => undefined}
       onSubmit={editor.onSubmit}

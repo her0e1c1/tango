@@ -1,7 +1,20 @@
 import * as React from "react";
-import { useBeforeUnload, useBlocker } from "react-router-dom";
+import { NavigationType, useBeforeUnload, useBlocker } from "react-router-dom";
 
 import { NavigationGuardDialog } from "../ui/navigation-guard-dialog";
+
+type AllowedNavigationIntent = { historyAction: "PUSH" | "REPLACE"; to: string };
+
+const getLocationPath = (location: { pathname: string; search: string; hash: string }): string =>
+  `${location.pathname}${location.search}${location.hash}`;
+
+const matchesHistoryAction = (
+  intendedAction: AllowedNavigationIntent["historyAction"],
+  actualAction: NavigationType
+): boolean => {
+  if (intendedAction === "PUSH") return actualAction === NavigationType.Push;
+  return actualAction === NavigationType.Replace;
+};
 
 const BeforeUnloadGuard = () => {
   useBeforeUnload(
@@ -17,23 +30,41 @@ const BeforeUnloadGuard = () => {
 };
 
 export const useNavigationGuard = (isDirty: boolean) => {
-  const bypassNextNavigation = React.useRef<boolean>(false);
-  const blocker = useBlocker(() => {
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: Imperative success navigation sets this ref synchronously.
-    if (bypassNextNavigation.current) {
-      bypassNextNavigation.current = false;
+  const allowedNavigation = React.useRef<{
+    intent: AllowedNavigationIntent;
+    token: symbol;
+  } | null>(null);
+  const blocker = useBlocker(({ historyAction, nextLocation }) => {
+    const pending = allowedNavigation.current;
+    const matchesIntent =
+      // biome-ignore lint/suspicious/noUnnecessaryConditions: Imperative navigation arms this ref outside render.
+      pending != null &&
+      matchesHistoryAction(pending.intent.historyAction, historyAction) &&
+      pending.intent.to === getLocationPath(nextLocation);
+    if (matchesIntent) {
+      allowedNavigation.current = null;
       return false;
     }
     return isDirty;
   });
 
-  const allowNavigation = (navigate: () => void) => {
-    bypassNextNavigation.current = true;
+  const allowNavigation = (intent: AllowedNavigationIntent, navigate: () => void | Promise<void>) => {
+    const navigationToken = Symbol("allowed-navigation");
+    allowedNavigation.current = { intent, token: navigationToken };
+    const clearAllowedNavigation = () => {
+      if (allowedNavigation.current?.token === navigationToken) allowedNavigation.current = null;
+    };
     try {
-      navigate();
-    } finally {
-      // A no-op or failed navigation must not let a later unrelated navigation escape the guard.
-      bypassNextNavigation.current = false;
+      const result = navigate();
+      if (result === undefined) {
+        // Synchronous no-ops must not expose even a microtask-sized bypass window.
+        clearAllowedNavigation();
+        return;
+      }
+      return result.finally(clearAllowedNavigation);
+    } catch (error) {
+      clearAllowedNavigation();
+      throw error;
     }
   };
 

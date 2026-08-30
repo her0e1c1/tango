@@ -1,3 +1,4 @@
+import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
 
 import { render, screen, within } from "@testing-library/react";
@@ -8,11 +9,14 @@ import "@testing-library/jest-dom/vitest";
 
 import { createDeck } from "@/entities/deck";
 import { actAsync } from "@/test/act";
-import { createLocalDeck, createPreferences } from "@/test/factories";
+import { createDeck as createRemoteDeck, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
   setDarkMode: vi.fn(),
+  beforeDeckWrite: undefined as (() => Promise<void>) | undefined,
+  skipDeckWrite: false,
+  remoteDeck: undefined as Deck | undefined,
 }));
 
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
@@ -20,6 +24,21 @@ vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
+vi.mock("@/entities/deck", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/entities/deck")>();
+  return {
+    ...actual,
+    useDeck(id: Parameters<typeof actual.useDeck>[0]) {
+      const storedDeck = actual.useDeck(id);
+      return mocks.remoteDeck?.id === id ? mocks.remoteDeck : storedDeck;
+    },
+    editDeck: async (...args: Parameters<typeof actual.editDeck>) => {
+      await mocks.beforeDeckWrite?.();
+      if (mocks.skipDeckWrite) return;
+      return actual.editDeck(...args);
+    },
+  };
+});
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { DeckFormPage } from "./DeckFormPage";
@@ -41,6 +60,9 @@ describe("DeckFormPage", () => {
   beforeEach(async () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
+    mocks.beforeDeckWrite = undefined;
+    mocks.skipDeckWrite = false;
+    mocks.remoteDeck = undefined;
     await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr: false }));
   });
 
@@ -122,6 +144,110 @@ describe("DeckFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
 
     expect(name).toHaveValue("Unsaved deck");
+  });
+
+  it("keeps a remote Deck protected and non-submittable across a pending optimistic snapshot", async () => {
+    let rejectWrite: (error: Error) => void = () => undefined;
+    mocks.beforeDeckWrite = () =>
+      new Promise<void>((_resolve, reject) => {
+        rejectWrite = reject;
+      });
+    mocks.skipDeckWrite = true;
+    mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Deck name" });
+    const view = renderPage();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Retry deck");
+
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
+    mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Retry deck" });
+    view.rerender(<RouterProvider router={view.router} />);
+
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+
+    await actAsync(async () => rejectWrite(new Error("write failed")));
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+    mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Deck name" });
+    view.rerender(<RouterProvider router={view.router} />);
+
+    expect(name).toHaveValue("Retry deck");
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+  });
+
+  it("keeps the confirmed Deck baseline when a retry fails before the delayed rollback", async () => {
+    const rejectWrites: Array<(error: Error) => void> = [];
+    const rejectWrite = (index: number) => {
+      const reject = rejectWrites[index];
+      if (reject === undefined) throw new Error(`missing write ${index}`);
+      reject(new Error("write failed"));
+    };
+    mocks.beforeDeckWrite = () =>
+      new Promise<void>((_resolve, reject) => {
+        rejectWrites.push(reject);
+      });
+    mocks.skipDeckWrite = true;
+    mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Deck name" });
+    const view = renderPage();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Retry deck");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
+    mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Retry deck" });
+    view.rerender(<RouterProvider router={view.router} />);
+
+    await actAsync(async () => {
+      rejectWrite(0);
+      await Promise.resolve();
+    });
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
+    await actAsync(async () => {
+      rejectWrite(1);
+      await Promise.resolve();
+    });
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+
+    mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Deck name" });
+    view.rerender(<RouterProvider router={view.router} />);
+    expect(name).toHaveValue("Retry deck");
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+  });
+
+  it("keeps edits made after a remote Deck submission when that submission succeeds", async () => {
+    let resolveWrite: () => void = () => undefined;
+    mocks.beforeDeckWrite = () =>
+      new Promise<void>((resolve) => {
+        resolveWrite = resolve;
+      });
+    mocks.skipDeckWrite = true;
+    mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Deck name" });
+    const view = renderPage();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Submitted deck");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
+    mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Submitted deck" });
+    view.rerender(<RouterProvider router={view.router} />);
+
+    await userEvent.clear(name);
+    await userEvent.type(name, "Later deck");
+    await actAsync(async () => resolveWrite());
+
+    expect(await screen.findByRole("button", { name: "Save changes" })).toBeEnabled();
+    expect(screen.getByRole("heading", { level: 1, name: "Submitted deck" })).toBeVisible();
+    expect(name).toHaveValue("Later deck");
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
   });
 
   it("shows navigation confirmation above an open deletion dialog", async () => {

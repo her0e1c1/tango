@@ -19,6 +19,7 @@ export interface DeckFormProps {
   };
   form: UseFormReturn<DeckFormValues>;
   isLocalOnly: boolean;
+  isSaving: boolean;
   onCancel: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
 }
@@ -137,8 +138,8 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
         <Button variant="quiet" type="button" onClick={props.onCancel}>
           Cancel
         </Button>
-        <Button variant="primary" type="submit" disabled={formState.isSubmitting}>
-          {formState.isSubmitting ? "Saving…" : "Save changes"}
+        <Button variant="primary" type="submit" disabled={props.isSaving}>
+          {props.isSaving ? "Saving…" : "Save changes"}
         </Button>
       </div>
     </Form>

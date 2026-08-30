@@ -11,10 +11,17 @@ import { DeckEditor } from "./DeckEditor";
 
 const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
   const navigate = useNavigate();
-  const goToList = () => void navigate(routes.deckList.to(), { replace: true });
-  const editor = useDeckForm({ deckId, onSaved: () => guard.allowNavigation(goToList) });
-  const guard = useNavigationGuard(editor?.isDirty ?? false);
-  const deletion = useDeckDeletion({ onDeleted: () => guard.allowNavigation(goToList) });
+  const deckListPath = routes.deckList.to();
+  const goToList = () => navigate(deckListPath, { replace: true });
+  const cancel = () => void goToList();
+  const editor = useDeckForm({
+    deckId,
+    onSaved: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
+  });
+  const guard = useNavigationGuard(editor != null && (editor.isDirty || editor.isSaving));
+  const deletion = useDeckDeletion({
+    onDeleted: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
+  });
 
   if (editor == null) {
     return (
@@ -34,7 +41,8 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
         deckName={editor.deckName}
         form={editor.form}
         isLocalOnly={editor.isLocalOnly}
-        onCancel={goToList}
+        isSaving={editor.isSaving}
+        onCancel={cancel}
         saveError={editor.saveError}
         onDelete={() => deletion.request(editor.deckInfo.id)}
         onSubmit={editor.onSubmit}

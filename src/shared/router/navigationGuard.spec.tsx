@@ -21,11 +21,29 @@ const GuardedRoute = () => {
         Reset
       </button>
       <Link to="/next">Leave</Link>
-      <button type="button" onClick={() => guard.allowNavigation(() => void navigate("/next"))}>
+      <button
+        type="button"
+        onClick={() => void guard.allowNavigation({ historyAction: "PUSH", to: "/next" }, () => navigate("/next"))}
+      >
         Save successfully
       </button>
-      <button type="button" onClick={() => guard.allowNavigation(() => undefined)}>
-        No-op success
+      <button
+        type="button"
+        onClick={() => {
+          void guard.allowNavigation({ historyAction: "PUSH", to: "/next" }, () => undefined);
+          void navigate("/unrelated");
+        }}
+      >
+        No-op then unrelated
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          void guard.allowNavigation({ historyAction: "PUSH", to: "/next" }, () => new Promise(() => undefined));
+          void navigate(-1);
+        }}
+      >
+        Pending save then Back
       </button>
       {guard.element}
     </>
@@ -36,9 +54,11 @@ const renderGuard = () => {
   const router = createMemoryRouter(
     [
       { path: "/form", element: <GuardedRoute /> },
+      { path: "/previous", element: <h1>Previous page</h1> },
       { path: "/next", element: <h1>Next page</h1> },
+      { path: "/unrelated", element: <h1>Unrelated page</h1> },
     ],
-    { initialEntries: ["/form"] }
+    { initialEntries: ["/previous", "/form"], initialIndex: 1 }
   );
   return render(<RouterProvider router={router} />);
 };
@@ -73,13 +93,22 @@ describe("useNavigationGuard", () => {
     expect(await screen.findByRole("heading", { name: "Next page" })).toBeVisible();
   });
 
-  it("does not retain a bypass after a no-op navigation", async () => {
+  it("clears a synchronous no-op before a same-turn unrelated navigation", async () => {
     renderGuard();
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
-    await userEvent.click(screen.getByRole("button", { name: "No-op success" }));
-    await userEvent.click(screen.getByRole("link", { name: "Leave" }));
+    await userEvent.click(screen.getByRole("button", { name: "No-op then unrelated" }));
 
     expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Unrelated page" })).not.toBeInTheDocument();
+  });
+
+  it("does not spend a pending save bypass on an unrelated Back navigation", async () => {
+    renderGuard();
+    await userEvent.click(screen.getByRole("button", { name: "Edit" }));
+    await userEvent.click(screen.getByRole("button", { name: "Pending save then Back" }));
+
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Previous page" })).not.toBeInTheDocument();
   });
 
   it("requests browser-native confirmation only while dirty", async () => {
