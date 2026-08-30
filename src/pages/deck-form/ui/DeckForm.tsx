@@ -1,38 +1,31 @@
 import type * as React from "react";
 import { useId } from "react";
+import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import type { DeckId } from "@/entities/deck";
 import { Button } from "@/shared/ui/button";
 import { Form, FormItem, Input, Select, Switch } from "@/shared/ui/forms";
 
-interface DeckFormFields {
-  name: React.ComponentProps<typeof Input>;
-  convertToBr: React.ComponentProps<typeof Switch>;
-  localMode: React.ComponentProps<typeof Switch>;
-  url: React.ComponentProps<typeof Input>;
-  category: React.ComponentProps<typeof Select>;
-}
+import type { DeckFormValues } from "../model/useDeckForm";
 
 const formatDate = (timestamp: number): string => new Date(timestamp).toLocaleDateString();
 
 export interface DeckFormProps {
+  categories: readonly string[];
   deckInfo: {
     id: DeckId;
     createdAt: number;
     updatedAt: number;
   };
-  fields: DeckFormFields;
+  form: UseFormReturn<DeckFormValues>;
   isLocalOnly: boolean;
-  errors: {
-    name: string | undefined;
-    url: string | undefined;
-  };
-  isSubmitting: boolean;
   onCancel: () => void;
-  onSubmit: NonNullable<React.ComponentProps<typeof Form>["onSubmit"]>;
+  onSubmit: React.SubmitEventHandler<HTMLFormElement>;
 }
 
 export const DeckForm: React.FC<DeckFormProps> = (props) => {
+  const formState = useFormState({ control: props.form.control });
+  const categoryOptions = props.categories.map((category) => ({ label: category, value: category }));
   const sectionHeadingIdPrefix = useId();
   const basicHeadingId = `${sectionHeadingIdPrefix}-deck-basic-heading`;
   const storageHeadingId = `${sectionHeadingIdPrefix}-deck-storage-heading`;
@@ -58,7 +51,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           <p className="mt-1 text-caption text-ink-muted">Choose whether this deck stays on this device.</p>
         </div>
         <FormItem label="Local only" help={localModeHelp}>
-          <Switch {...props.fields.localMode} aria-label="Local only" />
+          <Switch {...props.form.register("localMode")} aria-label="Local only" disabled={!props.isLocalOnly} />
         </FormItem>
       </section>
       <section
@@ -76,17 +69,17 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           label="Name"
           inputId={nameInputId}
           errorId={nameErrorId}
-          {...(props.errors.name !== undefined ? { error: props.errors.name } : {})}
+          {...(formState.errors.name?.message !== undefined ? { error: formState.errors.name.message } : {})}
         >
           <Input
-            {...props.fields.name}
+            {...props.form.register("name")}
             id={nameInputId}
-            aria-invalid={props.errors.name != null || undefined}
-            aria-describedby={props.errors.name !== undefined ? nameErrorId : undefined}
+            aria-invalid={formState.errors.name != null || undefined}
+            aria-describedby={formState.errors.name !== undefined ? nameErrorId : undefined}
           />
         </FormItem>
         <FormItem col label="Category">
-          <Select empty {...props.fields.category} />
+          <Select empty {...props.form.register("category")} options={categoryOptions} />
         </FormItem>
       </section>
       <section
@@ -104,17 +97,20 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           label="Source URL"
           inputId={urlInputId}
           errorId={urlErrorId}
-          {...(props.errors.url !== undefined ? { error: props.errors.url } : {})}
+          {...(formState.errors.url?.message !== undefined ? { error: formState.errors.url.message } : {})}
         >
           <Input
-            {...props.fields.url}
+            {...props.form.register("url", {
+              // Keep optional Deck URLs absent even though an empty HTML input reports an empty string.
+              setValueAs: (value: unknown) => (value === "" ? undefined : value),
+            })}
             id={urlInputId}
-            aria-invalid={props.errors.url != null || undefined}
-            aria-describedby={props.errors.url !== undefined ? urlErrorId : undefined}
+            aria-invalid={formState.errors.url != null || undefined}
+            aria-describedby={formState.errors.url !== undefined ? urlErrorId : undefined}
           />
         </FormItem>
         <FormItem label="Convert line breaks" help="Convert two line breaks to one <br />.">
-          <Switch {...props.fields.convertToBr} aria-label="Convert line breaks" />
+          <Switch {...props.form.register("convertToBr")} aria-label="Convert line breaks" />
         </FormItem>
       </section>
       <details className="rounded-surface border border-border bg-surface-muted p-4">
@@ -140,8 +136,8 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
         <Button variant="quiet" type="button" onClick={props.onCancel}>
           Cancel
         </Button>
-        <Button variant="primary" type="submit" disabled={props.isSubmitting}>
-          {props.isSubmitting ? "Saving…" : "Save changes"}
+        <Button variant="primary" type="submit" disabled={formState.isSubmitting}>
+          {formState.isSubmitting ? "Saving…" : "Save changes"}
         </Button>
       </div>
     </Form>

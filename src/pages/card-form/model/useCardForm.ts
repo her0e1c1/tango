@@ -9,19 +9,18 @@ import { cardContentSchema, editCard, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 
 const cardFormSchema = cardContentSchema.omit({ uniqueKey: true });
-type CardFormValues = z.infer<typeof cardFormSchema>;
+export type CardFormValues = z.infer<typeof cardFormSchema>;
 
-interface UseCardFormStateOptions {
+interface UseCardFormOptions {
   cardId: string;
-  onCancel: () => void;
   onSaved: () => void;
 }
 
-export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormStateOptions) => {
+export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
   const uid = useAuthUid();
   const card = useCard(cardId);
   const [saveError, setSaveError] = React.useState<unknown>(null);
-  const { formState, handleSubmit, register } = useForm<CardFormValues>({
+  const form = useForm<CardFormValues>({
     ...(card && {
       values: {
         frontText: card.frontText,
@@ -36,7 +35,7 @@ export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormState
 
   if (card == null) return;
 
-  const submit = handleSubmit(async (values) => {
+  const submit = form.handleSubmit(async (values) => {
     setSaveError(null);
     try {
       await editCard(uid, { id: card.id, ...values });
@@ -49,30 +48,12 @@ export const useCardFormState = ({ cardId, onCancel, onSaved }: UseCardFormState
     void submit(event);
   };
 
-  const form = {
-    cardInfo: {
-      id: card.id,
-      uniqueKey: card.uniqueKey,
-      ...(card.createdAt ? { createdAt: new Date(card.createdAt).toLocaleDateString() } : {}),
-      ...(card.lastSeenAt != null ? { lastSeenAt: new Date(card.lastSeenAt).toLocaleDateString() } : {}),
-    },
-    fields: {
-      frontText: register("frontText"),
-      backText: register("backText"),
-      tags: CATEGORY.map((category) => ({
-        label: category,
-        value: category,
-        input: { ...register("tags"), value: category },
-      })),
-    },
-    errors: {
-      frontText: formState.errors.frontText?.message,
-      backText: formState.errors.backText?.message,
-    },
-    isSubmitting: formState.isSubmitting,
-    onCancel,
-    onSubmit: onFormSubmit,
+  const cardInfo = {
+    id: card.id,
+    uniqueKey: card.uniqueKey,
+    ...(card.createdAt ? { createdAt: card.createdAt } : {}),
+    ...(card.lastSeenAt != null ? { lastSeenAt: card.lastSeenAt } : {}),
   };
 
-  return { form, saveError };
+  return { cardInfo, categories: CATEGORY, form, onSubmit: onFormSubmit, saveError };
 };

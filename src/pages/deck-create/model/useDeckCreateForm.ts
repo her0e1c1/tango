@@ -2,32 +2,30 @@ import * as React from "react";
 import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, createDeck, deckFormSchema, generateDeckId, type DeckId } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
-type DeckCreateFormValues = z.infer<typeof deckFormSchema>;
+export type DeckCreateFormValues = z.infer<typeof deckFormSchema>;
 
-interface UseDeckCreateStateOptions {
-  onCancel: () => void;
+interface UseDeckCreateFormOptions {
   onCreated: (deckId: DeckId) => void;
 }
 
-export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOptions) => {
+export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
   const uid = useAuthUid();
   // A failed response may hide a successful write, so retries must reuse this Deck identity.
   const [deckId] = React.useState(generateDeckId);
   const isMounted = useMountedGuard();
   const [saveError, setSaveError] = React.useState<unknown>(null);
-  const { control, formState, handleSubmit, register } = useForm<DeckCreateFormValues>({
+  const form = useForm<DeckCreateFormValues>({
     defaultValues: { name: "", category: "", convertToBr: false, localMode: false },
     resolver: zodResolver(deckFormSchema),
   });
-  const localMode = useWatch({ control, name: "localMode" }) ?? false;
 
-  const submit = handleSubmit(async (values) => {
+  const submit = form.handleSubmit(async (values) => {
     setSaveError(null);
     try {
       const deck = {
@@ -36,7 +34,7 @@ export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOp
         category: values.category,
         convertToBr: values.convertToBr,
       };
-      await createDeck(uid, localMode ? { ...deck, localMode: true } : { ...deck, uid, localMode: false });
+      await createDeck(uid, values.localMode ? { ...deck, localMode: true } : { ...deck, uid, localMode: false });
       // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.
       if (isMounted()) onCreated(deckId);
     } catch (error) {
@@ -47,21 +45,8 @@ export const useDeckCreateState = ({ onCancel, onCreated }: UseDeckCreateStateOp
     void submit(event);
   };
 
-  const form = {
-    fields: {
-      name: register("name"),
-      category: {
-        ...register("category"),
-        options: CATEGORY.map((category) => ({ label: category, value: category })),
-      },
-      // A retry must keep using react-hook-form's original persistence mode after a failed write.
-      localMode: { ...register("localMode"), disabled: formState.isSubmitting || saveError !== null },
-    },
-    errors: { name: formState.errors.name?.message },
-    isSubmitting: formState.isSubmitting,
-    onCancel,
-    onSubmit: onFormSubmit,
-  };
+  // A retry must keep using react-hook-form's original persistence mode after a failed write.
+  const isLocalModeLocked = form.formState.isSubmitting || saveError !== null;
 
-  return { form, saveError };
+  return { categories: CATEGORY, form, isLocalModeLocked, onSubmit: onFormSubmit, saveError };
 };

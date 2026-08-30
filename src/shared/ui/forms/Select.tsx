@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 
 import { textControlClassName } from "./textControlStyles";
 
-export interface Option {
+interface Option {
   label: string;
   value: string;
 }

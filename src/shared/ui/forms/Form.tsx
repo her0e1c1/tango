@@ -11,8 +11,17 @@ import type React from "react";
  * Provides shared form spacing and renders either a real form with submit handling or a non-form
  * div wrapper.
  */
-export const Form: React.FC<{ div?: boolean; onSubmit?: () => void; children?: React.ReactNode }> = (props) => {
-  const { div, ...rest } = props;
-  const Tag = div ? "div" : "form";
-  return <Tag className="w-full space-y-4 px-3 text-ink" {...rest} />;
+export const Form: React.FC<{
+  div?: boolean;
+  onSubmit?: React.SubmitEventHandler<HTMLFormElement>;
+  children?: React.ReactNode;
+}> = (props) => {
+  const { children, div, onSubmit } = props;
+  const className = "w-full space-y-4 px-3 text-ink";
+  if (div) return <div className={className}>{children}</div>;
+  return (
+    <form className={className} onSubmit={onSubmit}>
+      {children}
+    </form>
+  );
 };

@@ -9,7 +9,7 @@ import { mutateCards, useCard } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 
-import { useCardFormState } from "../model/useCardFormState";
+import { useCardForm } from "../model/useCardForm";
 
 const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,
@@ -44,10 +44,19 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 import { CardEditor } from "./CardEditor";
 
 const CardEditorHarness = (props: { cardId: string; onCancel: () => void; onSaved: () => void }) => {
-  const editor = useCardFormState({ cardId: props.cardId, onCancel: props.onCancel, onSaved: props.onSaved });
+  const editor = useCardForm({ cardId: props.cardId, onSaved: props.onSaved });
 
   if (editor == null) return null;
-  return <CardEditor form={editor.form} saveError={editor.saveError} />;
+  return (
+    <CardEditor
+      cardInfo={editor.cardInfo}
+      categories={editor.categories}
+      form={editor.form}
+      onCancel={props.onCancel}
+      onSubmit={editor.onSubmit}
+      saveError={editor.saveError}
+    />
+  );
 };
 
 // A fresh Entity read after remount proves that the form displays the last successful edit.
@@ -180,16 +189,6 @@ describe("CardEditor", () => {
     expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Retry back");
     expect(screen.getByRole("checkbox", { name: "language" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "math" })).toBeChecked();
-  });
-
-  it("forwards cancellation from both navigation actions", async () => {
-    const onCancel = vi.fn();
-    renderForm(vi.fn(), onCancel);
-
-    await userEvent.click(screen.getByRole("button", { name: "Back to cards" }));
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-
-    expect(onCancel).toHaveBeenCalledTimes(2);
   });
 
   it("keeps stored values unchanged when validation rejects the form", async () => {

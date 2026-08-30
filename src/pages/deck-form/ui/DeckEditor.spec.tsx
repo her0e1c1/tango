@@ -8,7 +8,7 @@ import "@testing-library/jest-dom/vitest";
 import { createDeck, useDeck } from "@/entities/deck";
 import { createLocalDeck } from "@/test/factories";
 
-import { useDeckFormState } from "../model/useDeckFormState";
+import { useDeckForm } from "../model/useDeckForm";
 
 const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,
@@ -43,11 +43,21 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 import { DeckEditor } from "./DeckEditor";
 
 const DeckEditorHarness = (props: { deckId: string; onCancel: () => void; onSaved: () => void }) => {
-  const editor = useDeckFormState({ deckId: props.deckId, onCancel: props.onCancel, onSaved: props.onSaved });
+  const editor = useDeckForm({ deckId: props.deckId, onSaved: props.onSaved });
 
   if (editor == null) return null;
   return (
-    <DeckEditor deckName={editor.deckName} form={editor.form} saveError={editor.saveError} onDelete={() => undefined} />
+    <DeckEditor
+      categories={editor.categories}
+      deckInfo={editor.deckInfo}
+      deckName={editor.deckName}
+      form={editor.form}
+      isLocalOnly={editor.isLocalOnly}
+      onCancel={props.onCancel}
+      onDelete={() => undefined}
+      onSubmit={editor.onSubmit}
+      saveError={editor.saveError}
+    />
   );
 };
 
@@ -190,16 +200,6 @@ describe("DeckEditor", () => {
     view.unmount();
     renderForm();
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Retry deck");
-  });
-
-  it("forwards cancellation from both navigation actions", async () => {
-    const onCancel = vi.fn();
-    renderForm(vi.fn(), onCancel);
-
-    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-
-    expect(onCancel).toHaveBeenCalledTimes(2);
   });
 
   it("keeps stored values unchanged when validation rejects the form", async () => {

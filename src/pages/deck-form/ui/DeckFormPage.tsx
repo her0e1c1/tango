@@ -6,13 +6,13 @@ import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useDeckFormState } from "../model/useDeckFormState";
+import { useDeckForm } from "../model/useDeckForm";
 import { DeckEditor } from "./DeckEditor";
 
 const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
   const navigate = useNavigate();
   const goToList = () => void navigate(routes.deckList.to(), { replace: true });
-  const editor = useDeckFormState({ deckId, onCancel: goToList, onSaved: goToList });
+  const editor = useDeckForm({ deckId, onSaved: goToList });
   const deletion = useDeckDeletion({ onDeleted: goToList });
 
   if (editor == null) {
@@ -27,10 +27,15 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
         <DeckDeletionDialog target={deletion.target} onCancel={deletion.cancel} onConfirm={deletion.confirm} />
       )}
       <DeckEditor
+        categories={editor.categories}
+        deckInfo={editor.deckInfo}
         deckName={editor.deckName}
         form={editor.form}
+        isLocalOnly={editor.isLocalOnly}
+        onCancel={goToList}
         saveError={editor.saveError}
-        onDelete={() => deletion.request(editor.form.deckInfo.id)}
+        onDelete={() => deletion.request(editor.deckInfo.id)}
+        onSubmit={editor.onSubmit}
       />
     </AppLayout>
   );

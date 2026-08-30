@@ -1,64 +1,72 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { fn } from "storybook/test";
 
+import type { Card } from "@/entities/card";
+import { CATEGORY } from "@/entities/deck";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
 
+import type { CardFormValues } from "../model/useCardForm";
 import { CardEditor } from "./CardEditor";
-import type { CardFormProps } from "./CardForm";
 
-const longCard = {
-  ...fixture.card.long,
-  tags: [...fixture.tags.toolong],
+interface CardEditorStoryProps {
+  card: Card;
+  isSaving: boolean;
+  validationError: boolean;
+  saveError?: Error;
+  onCancel: () => void;
+}
+
+const CardEditorStory = ({ card, isSaving, validationError, saveError, onCancel }: CardEditorStoryProps) => {
+  const form = useForm<CardFormValues>({
+    defaultValues: { frontText: card.frontText, backText: card.backText, tags: card.tags },
+  });
+
+  useEffect(() => {
+    if (validationError) {
+      form.setError("frontText", { message: "Front text is required." });
+      form.setError("backText", { message: "Back text is required." });
+    }
+    if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
+  }, [form, isSaving, validationError]);
+
+  return (
+    <CardEditor
+      cardInfo={{
+        id: card.id,
+        uniqueKey: card.uniqueKey,
+        ...(card.createdAt ? { createdAt: card.createdAt } : {}),
+        ...(card.lastSeenAt != null ? { lastSeenAt: card.lastSeenAt } : {}),
+      }}
+      categories={CATEGORY}
+      form={form}
+      onCancel={onCancel}
+      onSubmit={form.handleSubmit(() => undefined)}
+      saveError={saveError}
+    />
+  );
 };
 
-const createForm = (card: typeof fixture.card.default): CardFormProps => ({
-  cardInfo: {
-    id: card.id,
-    uniqueKey: card.uniqueKey,
-    createdAt: new Date(card.createdAt).toLocaleDateString(),
-  },
-  fields: {
-    frontText: { defaultValue: card.frontText },
-    backText: { defaultValue: card.backText },
-    tags: card.tags.map((tag) => ({ label: tag, value: tag, input: { checked: true } })),
-  },
-  errors: { frontText: undefined, backText: undefined },
-  isSubmitting: false,
-  onCancel: fn(),
-  onSubmit: fn(),
-});
+const longCard = { ...fixture.card.long, tags: [...fixture.tags.toolong] };
 
 const meta = {
   title: "Pages/Card Form/CardEditor",
-  component: CardEditor,
+  component: CardEditorStory,
   tags: ["autodocs"],
   decorators: [withPageLayout],
   parameters: { layout: "fullscreen" },
-  args: {
-    form: createForm(fixture.card.default),
-  },
-} satisfies Meta<typeof CardEditor>;
+  args: { card: fixture.card.default, isSaving: false, validationError: false, onCancel: fn() },
+} satisfies Meta<typeof CardEditorStory>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-export const Saving: Story = {
-  args: { form: { ...createForm(fixture.card.default), isSubmitting: true } },
-};
-export const ValidationError: Story = {
-  args: {
-    form: {
-      ...createForm(fixture.card.default),
-      errors: { frontText: "Front text is required.", backText: "Back text is required." },
-    },
-  },
-};
+export const Saving: Story = { args: { isSaving: true } };
+export const ValidationError: Story = { args: { validationError: true } };
 export const SaveError: Story = { args: { saveError: new Error("Card write failed") } };
-export const LongValues: Story = { args: { form: createForm(longCard) } };
+export const LongValues: Story = { args: { card: longCard } };
 export const Dark: Story = { ...LongValues, globals: { theme: "dark" } };
-export const Mobile: Story = {
-  ...LongValues,
-  globals: { viewport: { value: "iphonex", isRotated: false } },
-};
+export const Mobile: Story = { ...LongValues, globals: { viewport: { value: "iphonex", isRotated: false } } };
