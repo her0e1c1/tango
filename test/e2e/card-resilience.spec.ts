@@ -1,12 +1,6 @@
 import type { Page } from "@playwright/test";
 
-import {
-  allowExpectedFirestoreWriteFailure,
-  expect,
-  failNextFirestoreWrite,
-  requireDocument,
-  test,
-} from "./fixtures";
+import { allowExpectedFirestoreWriteFailure, expect, failNextFirestoreWrite, requireDocument, test } from "./fixtures";
 
 const cardArticle = (page: Page, frontText: string) =>
   page.getByRole("button", { name: `View ${frontText}`, exact: true }).locator("xpath=ancestor::article[1]");
@@ -36,11 +30,7 @@ const openCardDeleteDialog = async (page: Page, frontText: string) => {
   return page.getByRole("alertdialog", { name: "Delete card?" });
 };
 
-test("CARD-16 retries the same Card deletion after a handled failure", async ({
-  fixture,
-  page,
-  browserErrors,
-}) => {
+test("CARD-16 retries the same Card deletion after a handled failure", async ({ fixture, page, browserErrors }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
