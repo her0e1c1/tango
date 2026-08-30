@@ -49,7 +49,7 @@
     "firebase": "^12.18.0",
     "github-markdown-css": "^5.9.0",
     "highlight.js": "^11.12.0",
-    "immer": "^10.2.0",
+    "immer": "^11.1.18",
     "katex": "^0.16.47",
     "lodash": "^4.18.1",
     "papaparse": "^5.5.4",
