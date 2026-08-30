@@ -29,11 +29,8 @@ export interface StudyProgressDocumentFields {
 /** Firestore patch shape: cardId selects the document and every progress field is independently optional. */
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;
 
-/** Server-verified remote identity that permits a write before the Card subscription publishes its snapshot. */
-export interface RemoteStudyProgressTarget {
-  persistence: "remote";
-  cardId: CardId;
-}
+/** Persistence identity already resolved by the consuming model, independent of ambiguous same-ID store entries. */
+export type StudyProgressTarget = { persistence: "local"; cardId: CardId } | { persistence: "remote"; cardId: CardId };
 
 /** Learning outcome derived from one study interaction. */
 export type StudyRating = "mastered" | "not-mastered" | "unrated";

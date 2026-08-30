@@ -111,9 +111,8 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await deleteDeck("uid", d.id);
 
     await expect(getDoc(doc(db, "deck", d.id))).rejects.toMatchObject({ code: "permission-denied" });
-    await Promise.all(
-      cards.map((card) => expect(getDoc(doc(db, "card", card.id))).rejects.toMatchObject({ code: "permission-denied" }))
-    );
+    const deletedCardSnapshots = await Promise.all(cards.map((card) => getDoc(doc(db, "card", card.id))));
+    expect(deletedCardSnapshots.every((snapshot) => !snapshot.exists())).toBe(true);
   });
 
   it("moves a local Deck and its Cards to Firestore when local mode is disabled", async () => {

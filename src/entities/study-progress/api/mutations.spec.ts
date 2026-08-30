@@ -64,10 +64,20 @@ describe("StudyProgress mutations", () => {
     expect(mocks.editLocalCardStudyProgress).not.toHaveBeenCalled();
   });
 
-  it("rejects a verified remote identity for another Card", async () => {
+  it("writes progress for a resolved local Card despite an ambiguous global lookup", async () => {
+    mocks.findCardById.mockReturnValue({ id: "local", deckId: "deck", uid: "user" });
+
+    await editStudyProgress("user", { cardId: "local", score: 2 }, { persistence: "local", cardId: "local" });
+
+    expect(mocks.findCardById).not.toHaveBeenCalled();
+    expect(mocks.editLocalCardStudyProgress).toHaveBeenCalledExactlyOnceWith({ id: "local", score: 2 });
+    expect(mocks.editRemoteStudyProgress).not.toHaveBeenCalled();
+  });
+
+  it("rejects a resolved persistence identity for another Card", async () => {
     await expect(
       editStudyProgress("user", { cardId: "remote", score: 2 }, { persistence: "remote", cardId: "other-card" })
-    ).rejects.toThrow("Verified Card identity does not match progress");
+    ).rejects.toThrow("Resolved Card identity does not match progress");
 
     expect(mocks.editRemoteStudyProgress).not.toHaveBeenCalled();
   });

@@ -1,2 +1,2 @@
 export { editStudyProgress } from "./api/mutations";
-export type { StudyProgressEdit } from "./model/types";
+export type { StudyProgressEdit, StudyProgressTarget } from "./model/types";
