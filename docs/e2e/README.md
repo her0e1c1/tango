@@ -41,6 +41,7 @@
 | SETTINGS-03 | batch | [Respect review schedule を次の学習 session に反映できる](./settings.md#settings-03) |
 | SETTINGS-04 | write | [日本語設定を自動保存して reload 後も反映できる](./settings.md#settings-04) |
 | SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](./settings.md#settings-05) |
+| SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](./settings.md#settings-06) |
 
 ### Import
 
@@ -112,6 +113,7 @@
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](./study-session.md#swipe-17) |
 | SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](./study-controls.md#swipe-24) |
 | SWIPE-25 | write | [Help button の表示設定を reload 後も維持できる](./study-controls.md#swipe-25) |
+| SWIPE-26 | batch | [展開した tag filter を保存して学習 session に適用できる](./study-session.md#swipe-26) |
 
 ### Study Back Text
 
@@ -132,3 +134,4 @@
 | --- | --- | --- |
 | PERSIST-01 | read | [UID ごとに remote data を分離して reload 後も表示できる](./persistence.md#persist-01) |
 | PERSIST-02 | batch | [offline cache の変更を再接続後に remote へ同期できる](./persistence.md#persist-02) |
+| PERSIST-03 | write | [別の open client に remote Card の変更を即時反映できる](./persistence.md#persist-03) |
