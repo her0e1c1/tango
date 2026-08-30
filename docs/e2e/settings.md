@@ -2,14 +2,15 @@
 
 ## 目的
 
-Settings の自動保存が reload を越えて維持され、保存した学習設定が次の学習 session に反映されることを確認する。
+Settings の自動保存が reload を越えて維持され、保存した学習設定が学習開始画面や次の学習 session に反映されることを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
 | SETTINGS-01 | write | [Dark mode を自動保存して reload 後も反映できる](#settings-01) |
-| SETTINGS-02 | write | [Maximum cards 設定を次の学習 session に反映できる](#settings-02) |
+| SETTINGS-02 | write | [Maximum cards 設定を学習開始画面に反映できる](#settings-02) |
+| SETTINGS-03 | batch | [Respect review schedule を次の学習 session に反映できる](#settings-03) |
 
 <a id="settings-01"></a>
 
@@ -34,7 +35,7 @@ Then:
 
 <a id="settings-02"></a>
 
-### SETTINGS-02 Maximum cards 設定を次の学習 session に反映できる
+### SETTINGS-02 Maximum cards 設定を学習開始画面に反映できる
 
 カテゴリ: `write`
 
@@ -50,6 +51,31 @@ When:
 
 Then:
 
-- 学習開始画面に表示される session の Card 数が変更後の上限と一致する。
+- 学習開始画面に表示される対象 Card 数が変更後の上限と一致する。
 - start action に変更後の上限と同じ Card 数が表示される。
+- browser error が発生しない。
+
+<a id="settings-03"></a>
+
+### SETTINGS-03 Respect review schedule を次の学習 session に反映できる
+
+カテゴリ: `batch`
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- 認証済みユーザーが所有する Deck に、過去または将来の next seeing time を持つ Card と、next seeing time を持たない Card が存在する。
+- `Respect review schedule` は無効である。
+- 対象 Deck に進行中の学習 session が存在しない。
+
+When:
+
+- Settings 画面で `Respect review schedule` を有効にし、自動保存後にページを reload する。
+- 対象 Deck の学習開始画面から session を開始する。
+
+Then:
+
+- `Respect review schedule` が reload 後も有効である。
+- 過去の next seeing time を持つ Card と、next seeing time を持たない Card が session に含まれる。
+- 将来の next seeing time を持つ Card は session に含まれない。
 - browser error が発生しない。

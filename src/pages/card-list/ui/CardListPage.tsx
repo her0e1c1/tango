@@ -27,7 +27,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   });
 
   return (
-    <AppLayout showHeader>
+    <AppLayout showHeader={state.answer == null}>
       <Feedback tone="error">{state.mutationError == null ? null : "Unable to save changes. Try again."}</Feedback>
       <Feedback tone="success">{state.successMessage}</Feedback>
       {state.deletionTarget != null ? (

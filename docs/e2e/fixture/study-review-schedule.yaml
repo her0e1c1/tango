@@ -1,0 +1,23 @@
+extends: remote-deck-with-cards.yaml
+remote:
+  cards:
+    - id: card-due
+      deckId: deck-1
+      uid: user-1
+      frontText: due card
+      backText: due answer
+      uniqueKey: due-card
+      nextSeeingAt: "2000-01-01T00:00:00.000Z"
+    - id: card-future
+      deckId: deck-1
+      uid: user-1
+      frontText: future card
+      backText: future answer
+      uniqueKey: future-card
+      nextSeeingAt: "2999-01-01T00:00:00.000Z"
+    - id: card-unscheduled
+      deckId: deck-1
+      uid: user-1
+      frontText: unscheduled card
+      backText: unscheduled answer
+      uniqueKey: unscheduled-card

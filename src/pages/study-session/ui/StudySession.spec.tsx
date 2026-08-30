@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -151,7 +152,8 @@ describe("StudySession", () => {
     expect(onClickLeft).not.toHaveBeenCalled();
   });
 
-  it("keeps the back action visible and opens the remaining study actions", () => {
+  it("keeps the back action visible and opens the remaining study actions", async () => {
+    const user = userEvent.setup();
     const onBack = vi.fn();
     const onToggleCardDetails = vi.fn();
     const onToggleSwipeControls = vi.fn();
@@ -171,6 +173,7 @@ describe("StudySession", () => {
     const openActions = screen.getByRole("button", { name: "Open study actions" });
     expect(openActions).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
 
     fireEvent.click(openActions);
@@ -180,17 +183,24 @@ describe("StudySession", () => {
     const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
     const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
     const detailsToggle = screen.getByRole("button", { name: "Card details" });
+    const help = screen.getByRole("button", { name: "Open study help" });
     const actions = screen.getByRole("group", { name: "Study actions" });
     expect(closeActions).toHaveAttribute("aria-expanded", "true");
     expect(back).toBeVisible();
+    expect(help).toBeVisible();
     expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
     expect(playbackToggle).toHaveAttribute("aria-pressed", "true");
     expect(detailsToggle).toHaveAttribute("aria-pressed", "true");
     expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
     expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
     expect(detailsToggle).toHaveAttribute("title", "Hide card details");
+    expect(actions).toContainElement(help);
     expect(actions).not.toContainElement(back);
     expect(actions).not.toContainElement(screen.getByText("Card metadata"));
+
+    closeActions.focus();
+    await user.tab();
+    expect(help).toHaveFocus();
 
     fireEvent.click(back);
     fireEvent.click(swipeToggle);
@@ -202,9 +212,10 @@ describe("StudySession", () => {
     expect(onTogglePlaybackControls).toHaveBeenCalledOnce();
     expect(onToggleCardDetails).toHaveBeenCalledOnce();
 
-    fireEvent.keyDown(closeActions, { key: "Escape" });
+    fireEvent.keyDown(help, { key: "Escape" });
     expect(screen.getByRole("button", { name: "Open study actions" })).toHaveFocus();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
   });
 
   it("shows and hides all card details from the persisted preference value", () => {
