@@ -147,9 +147,8 @@ describe("StudySessionPage", () => {
     const user = userEvent.setup();
     renderPage();
     await user.keyboard("{Enter}");
-    const answerSurface = screen.getByText("Back one").closest<HTMLElement>("[data-study-answer-scroll]");
-    expect(answerSurface).not.toBeNull();
-    answerSurface?.focus();
+    const answerSurface = screen.getByRole("region", { name: "Card answer" });
+    answerSurface.focus();
 
     await user.keyboard(" ");
     await user.keyboard("{Enter}");
