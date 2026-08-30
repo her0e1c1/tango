@@ -1,7 +1,7 @@
 # Entities Instructions
 
 - Treat `src/entities` as the FSD Entities layer and each `src/entities/<entity>` directory as an Entity slice.
-- Keep Entity domain code in `model/` and expose the slice through `index.ts`.
+- Keep Entity domain code in `model/`, reusable visual representations in `ui/`, and expose the slice through `index.ts`.
 
 ## Simplicity
 
@@ -60,6 +60,13 @@
 - Keep persistence-only transformations beside the read or write boundary that needs them.
 - Firestore SDK access is allowed here, not in `model/`.
 
+## `ui/`
+
+- Define reusable visual representations of this Entity.
+- Keep Entity UI presentational: accept prepared data through props and report user intent through callbacks or slots.
+- Do not access stores, Entity hooks, APIs, routing, or cross-Entity workflows from `ui/`.
+- Keep locale-dependent presentation formatting in UI rather than model code.
+
 ## `@x/`
 
 - Use `@x/` only for explicit cross-slice contracts.
@@ -73,4 +80,3 @@
 
 - Colocate tests as `*.spec.ts` or `*.spec.tsx` next to the file they cover.
 - Do not create implementation files outside the roles defined above.
-- Do not place UI in `entities`.

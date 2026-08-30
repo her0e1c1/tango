@@ -4,7 +4,7 @@ import * as fixture from "@/storybook/fixture";
 import { CardView } from "./CardView";
 
 const meta = {
-  title: "Features/Card View/CardView",
+  title: "Entities/Card/CardView",
   component: CardView,
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
