@@ -1,0 +1,12 @@
+extends: remote-deck-with-cards.yaml
+remote:
+  cards:
+    - id: card-1
+      deckId: deck-1
+      uid: user-1
+      frontText: apple
+      backText: りんご
+      tags: [math, typescript]
+      uniqueKey: apple
+      score: 1
+      numberOfSeen: 3

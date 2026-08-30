@@ -92,9 +92,9 @@ Then:
 
 Given:
 
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に削除対象の Card が存在する。
+- 対象 Deck の Card は削除対象の1件だけである。
 
 When:
 

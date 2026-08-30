@@ -23,7 +23,6 @@ remote:
       tags: [other]
       uniqueKey: orange
       score: 1
-      numberOfSeen: 4
     - id: card-3
       deckId: deck-1
       uid: user-1
@@ -32,4 +31,4 @@ remote:
       tags: [math]
       uniqueKey: banana
       score: -1
-      numberOfSeen: 5
+      numberOfSeen: 1

@@ -34,6 +34,7 @@
 - 各テストケースは `Given` の先頭で使用する fixture を明示する。
 - fixture はトップレベルの `extends` に同じディレクトリの bare filename を1つ指定して継承でき、継承 chain も利用できる。
 - 継承では object を再帰的に merge し、array と scalar は子の値で全置換する。
+- object map は key 単位で再帰的に merge し、同じ entry の field は子が上書きする。子で省略した親の entry は保持され、空 object や削除 sentinel では削除できない。空の map が必要な fixture はその map を持たない親から継承する。
 - YAML alias は使用しない。
 - `auth.users` は mock する認証 identity、`remote` は Firestore emulator、`browser` は localStorage に保存する状態を表す。
 - fixture 内の ID と UID は論理 ID とし、すべてのカテゴリで test case と retry ごとの namespace に展開して他ケースと共有しない。
@@ -43,7 +44,7 @@
 - Card の省略 field は `tags: []`、`score: 0`、`numberOfSeen: 0`、`deletedAt: null`、`createdAt: 0`、`updatedAt: 0` として正規化する。
 - Study session の省略された `lastStudiedAt` は `0` として正規化する。
 - fixture に記述していない preference はアプリケーションの既定値を利用し、`loadSample` の既定値は `true` とする。
-- fixture に記述していない collection は空として扱う。
+- 継承を materialize した結果に存在しない collection は空として扱う。
 - 認証失敗、network failure、dialog の表示状態など永続状態ではない前提は fixture に含めず、各ケースの `Given` に記述する。
 
 ## 共通の期待結果

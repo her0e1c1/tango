@@ -4,12 +4,13 @@
 - 各テストケースは `Given` の先頭で、共有 fixture YAML を必ず1つ `Fixture: ...` として指定する。
 - fixture はトップレベルの `extends` に同じディレクトリの bare filename を1つだけ指定して継承でき、継承 chain も利用できる。
 - 継承では object を再帰的に merge し、array と scalar は子の値で全置換する。
+- object map は key 単位で再帰的に merge し、同じ entry の field は子が上書きする。子で省略した親の entry は保持され、空 object や削除 sentinel では削除できない。空の map が必要な fixture はその map を持たない親から継承する。
 - fixture YAML では alias を使用しない。
 - `Given` には fixture 参照だけでなく、テスト開始時に必要な状態を利用者視点で具体的に記述する。
 - テストケース本文には、fixture YAML に定義した具体的な値を重複して記述しない。
 - fixture YAML はアプリケーションの既定状態からの差分だけを記述し、既定値と同じ `false`、`0`、`null`、空配列、空 object などは省略する。
 - 値の見た目だけで省略を判断せず、その field の既定値と一致するときだけ省略する。たとえば既定値が `null` の field に意味のある `0` を指定する場合は記述する。
-- fixture YAML で省略した field はアプリケーションの既定値、未記述の collection は空として扱う。
+- 継承を materialize した結果で省略した field はアプリケーションの既定値、存在しない collection は空として扱う。
 - fixture の数値 timestamp field (`createdAt`、`updatedAt`、`lastStudiedAt` など) の初期値は `0` (Unix epoch milliseconds) とする。
 - timestamp の値、順序、経過時間そのものがテスト条件でない限り、fixture YAML に timestamp を記述しない。
 - fixture YAML にはアプリケーション上の永続状態を記述し、Firestore 固有の serialization は記述しない。
