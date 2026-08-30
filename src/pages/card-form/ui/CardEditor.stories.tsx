@@ -29,8 +29,7 @@ const CardEditorStory = ({ card, isSaving, validationError, saveError, onCancel 
       form.setError("frontText", { message: "Front text is required." });
       form.setError("backText", { message: "Back text is required." });
     }
-    if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
-  }, [form, isSaving, validationError]);
+  }, [form, validationError]);
 
   return (
     <CardEditor
@@ -42,6 +41,7 @@ const CardEditorStory = ({ card, isSaving, validationError, saveError, onCancel 
       }}
       categories={CATEGORY}
       form={form}
+      isSaving={isSaving}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(() => undefined)}
       saveError={saveError}
