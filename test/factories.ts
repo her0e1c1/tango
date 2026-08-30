@@ -115,6 +115,7 @@ export type PreferencesOverrides = {
   keepBackTextViewed?: boolean;
   defaultAutoPlay?: boolean;
   selectedTags?: string[];
+  showHelp?: boolean;
   showSwipeButtonList?: boolean;
   showPlaybackControls?: boolean;
   showCardDetails?: boolean;
@@ -151,6 +152,7 @@ const createControls = (
   controls?: Partial<ControlPreferences>,
   flat?: Partial<PreferencesOverrides>
 ): ControlPreferences => ({
+  showHelp: controls?.showHelp ?? flat?.showHelp ?? true,
   showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,
   showPlaybackControls: controls?.showPlaybackControls ?? flat?.showPlaybackControls ?? true,
   showCardDetails: controls?.showCardDetails ?? flat?.showCardDetails ?? true,

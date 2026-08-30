@@ -6,6 +6,7 @@ import {
   preferencesStore,
   setDarkMode,
   toggleShowCardDetails,
+  toggleShowHelp,
   toggleShowPlaybackControls,
   toggleShowSwipeButtonList,
   updatePreferences,
@@ -41,6 +42,10 @@ describe("preferences store", () => {
 
   it("keeps back text swipe overlays off by default", () => {
     expect(defaultPreferences.controls.showBackTextSwipeOverlays).toBe(false);
+  });
+
+  it("shows the study Help shortcut by default", () => {
+    expect(defaultPreferences.controls.showHelp).toBe(true);
   });
 
   it("updates each preference group without resetting other settings", () => {
@@ -113,6 +118,7 @@ describe("preferences store", () => {
     toggleShowSwipeButtonList();
     toggleShowPlaybackControls();
     toggleShowCardDetails();
+    toggleShowHelp();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
@@ -124,6 +130,7 @@ describe("preferences store", () => {
         showSwipeButtonList: false,
         showPlaybackControls: false,
         showCardDetails: false,
+        showHelp: false,
       },
     });
   });
@@ -157,7 +164,11 @@ describe("preferences store", () => {
   it("hydrates version 1 preferences with defaults for additive fields", async () => {
     const {
       language: _language,
-      controls: { showBackTextSwipeOverlays: _showBackTextSwipeOverlays, ...controlsBeforeSwipeOverlays },
+      controls: {
+        showHelp: _showHelp,
+        showBackTextSwipeOverlays: _showBackTextSwipeOverlays,
+        ...controlsBeforeAdditiveFields
+      },
       ...preferencesBeforeAdditiveFields
     } = defaultPreferences;
     const persistedPreferences = {
@@ -165,7 +176,7 @@ describe("preferences store", () => {
       loadSample: false,
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
-      controls: { ...controlsBeforeSwipeOverlays, showSwipeButtonList: false },
+      controls: { ...controlsBeforeAdditiveFields, showSwipeButtonList: false },
     };
     useMemoryStorage({
       "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 1 }),
@@ -176,7 +187,7 @@ describe("preferences store", () => {
     expect(preferencesStore.getState().preferences).toEqual({
       ...persistedPreferences,
       language: "system",
-      controls: { ...persistedPreferences.controls, showBackTextSwipeOverlays: false },
+      controls: { ...persistedPreferences.controls, showHelp: true, showBackTextSwipeOverlays: false },
     });
   });
 

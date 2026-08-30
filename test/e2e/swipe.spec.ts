@@ -356,8 +356,7 @@ test("SWIPE-24 shows configured Study controls without changing the active sessi
 
   await page.goto(`/deck/${deck.id}/study`);
   const progressBeforeHelp = await readProgress(currentCard.id);
-  await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Open study actions" }).click();
+  await expect(page.getByRole("button", { name: "Open study help" })).toBeVisible();
   await page.getByRole("button", { name: "Open study help" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Study controls" });
@@ -390,4 +389,30 @@ test("SWIPE-24 shows configured Study controls without changing the active sessi
   await expect(dialog).not.toBeVisible();
   await expect(page.getByRole("button", { name: "Open study help" })).toBeFocused();
   await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
+});
+
+test("SWIPE-25 toggles and persists the Study Help button", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  const help = page.getByRole("button", { name: "Open study help" });
+  const actions = page.getByRole("button", { name: "Open study actions" });
+  await expect(help).toBeVisible();
+  await expect(actions).toBeVisible();
+  const helpBounds = await help.boundingBox();
+  const actionsBounds = await actions.boundingBox();
+  expect(helpBounds).not.toBeNull();
+  expect(actionsBounds).not.toBeNull();
+  if (helpBounds !== null && actionsBounds !== null)
+    expect(helpBounds.x + helpBounds.width).toBeLessThanOrEqual(actionsBounds.x);
+
+  await actions.click();
+  await page.getByRole("button", { name: "Help button" }).click();
+  await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
+
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Open study actions" }).click();
+  await expect(page.getByRole("button", { name: "Help button" })).toHaveAttribute("aria-pressed", "false");
 });

@@ -1,62 +1,21 @@
 # E2E テスト仕様書
 
-## 目的
-
 ブラウザ上の主要な利用者導線を、永続化、認証、失敗後の復旧を含む acceptance test として確認する。
 このディレクトリの仕様を E2E test case の single source of truth とし、各 ID をちょうど一つの Playwright test に対応させる。
 
-## 前提
+## ドキュメント構成
 
-- `mise run e2e` で Playwright を実行する。
-- Deck / Card の remote data は Firestore emulator、認証は Firebase Auth emulator を使用する。
-- Google account 連携は Auth emulator の local popup flow で確認し、実際の外部 identity provider には接続しない。
-- Config / Study session と local-only data は browser storage に保存する。
-- E2E は代表的な利用者導線を対象とし、各 validation rule や設定・入力手段の組み合わせは
-  unit / component test で確認する。
+| 文書 | 責務 |
+| --- | --- |
+| [E2E テスト規約](./conventions.md) | 実行前提、保存先の用語、カテゴリ、テストケースの書式、共通の期待結果 |
+| [Fixture 規約](./fixture/README.md) | fixture の構造、継承、既定値、namespace |
+| この README | 全テストケースの索引。E2E contract check が各 ID の過不足を検証する |
+| 機能別の仕様書 | 各テストケースの Given / When / Then |
 
-## 保存先の用語
+機能別の仕様書は `docs/e2e` 直下に置き、対象領域と振る舞いが分かる名前にする。
+大きくなった領域は、Card の表示・管理・一覧操作、Study の session・controls のように利用者の振る舞いで分割する。
 
-- `local-only`: Deck / Card を remote に作成せず、現在の browser storage だけに保存する状態を指す。
-- `remote`: 現在の認証 UID に属する Deck / Card を Firestore emulator に保存する状態を指す。
-- `offline cache`: remote data の browser 上の cache と、offline 中に remote へ反映待ちとなった変更を指す。local-only data とは区別する。
-
-## カテゴリ
-
-- `read`: 永続データを変更せず、並列実行の対象とする。
-- `write`: ケースごとに分離したデータへ1つの論理操作を永続化し、並列実行の対象とする。
-- `batch`: Deck / Card 群、保存先、認証スコープなど複数のリソースを一括で変更する。
-- すべてのカテゴリで UID、document ID、browser storage、学習 session をケースごとに分離し、test と retry の間でも識別子を共有しない。
-- すべての test case は並列実行でき、同時に実行された別の test case のデータや認証状態に依存しない。
-
-## Fixture
-
-- `fixture/*.yaml` を E2E 開始時の論理的な永続状態の仕様とし、すべてのカテゴリで共有する。
-- 各テストケースは `Given` の先頭で使用する fixture を明示する。
-- fixture はトップレベルの `extends` に同じディレクトリの bare filename を1つ指定して継承でき、継承 chain も利用できる。
-- 継承では object を再帰的に merge し、array と scalar は子の値で全置換する。
-- object map は key 単位で再帰的に merge し、同じ entry の field は子が上書きする。子で省略した親の entry は保持され、空 object や削除 sentinel では削除できない。空の map が必要な fixture はその map を持たない親から継承する。
-- YAML alias は使用しない。
-- `auth.users` は mock する認証 identity、`remote` は Firestore emulator、`browser` は localStorage に保存する状態を表す。
-- fixture 内の ID と UID は論理 ID とし、すべてのカテゴリで test case と retry ごとの namespace に展開して他ケースと共有しない。
-- UID、Deck / Card / session ID、Card の `deckId`、`studySessions` の map key と `cardOrderIds` は同じ対応表で展開する。
-- application-defined stable ID である `sample-v1` と `sample-v1-card-*` は namespace に展開せず、そのまま利用する。
-- Deck の省略 field は `isPublic: false`、`scoreMax: null`、`scoreMin: null`、`selectedTags: []`、`tagAndFilter: false`、`category: ""`、`convertToBr: false`、`createdAt: 0`、`updatedAt: 0` として正規化し、remote Deck の `deletedAt` は `null` とする。
-- Card の省略 field は `tags: []`、`score: 0`、`numberOfSeen: 0`、`deletedAt: null`、`createdAt: 0`、`updatedAt: 0` として正規化する。
-- Study session の省略された `lastStudiedAt` は `0` として正規化する。
-- fixture に記述していない preference は、`language` を除いてアプリケーションの既定値を利用し、`loadSample` の既定値は `true` とする。
-- `browser.preferences.language` は `system`、`en`、`ja` のいずれかを指定する。
-- E2E に限り、省略された `language` は共通の `en` として正規化する。各 fixture へ同じ設定を重複させず、既存ケースの English UI と accessible name を実行環境の browser locale に依存しない baseline として維持する。
-- System locale を確認する focused case だけ、scoped browser context で locale を上書きする。
-- 継承を materialize した結果に存在しない collection は空として扱う。
-- 認証失敗、network failure、dialog の表示状態など永続状態ではない前提は fixture に含めず、各ケースの `Given` に記述する。
-
-## 共通の期待結果
-
-- `browser error` は、処理されていない page error または予期しない console error を指す。
-- 正常系では browser error が発生しないことを確認する。
-- 異常系では想定したエラーが画面上で処理され、browser error として残らないことを確認する。
-
-## テストケース
+## テストケース索引
 
 ### Navigation
 
@@ -99,59 +58,60 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| DECK-01 | read | [Deck 一覧から Card 一覧へ遷移できる](./deck.md#deck-01) |
-| DECK-02 | write | [Deck 編集内容を保存して reload 後も確認できる](./deck.md#deck-02) |
-| DECK-03 | batch | [Deck と関連データをまとめて削除できる](./deck.md#deck-03) |
-| DECK-04 | read | [Deck の削除を取り消せる](./deck.md#deck-04) |
-| DECK-05 | batch | [Deck の削除失敗後に再試行できる](./deck.md#deck-05) |
-| DECK-06 | read | [存在しない Deck から復帰できる](./deck.md#deck-06) |
-| DECK-07 | batch | [local-only Deck と Card を remote へ移行できる](./deck.md#deck-07) |
-| DECK-08 | read | [Deck の Card を CSV で export できる](./deck.md#deck-08) |
-| DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](./deck.md#deck-09) |
-| DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](./deck.md#deck-10) |
-| DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](./creation.md#deck-11) |
-| DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](./deck.md#deck-12) |
+| DECK-01 | read | [Deck 一覧から Card 一覧へ遷移できる](./deck-navigation.md#deck-01) |
+| DECK-02 | write | [Deck 編集内容を保存して reload 後も確認できる](./deck-management.md#deck-02) |
+| DECK-03 | batch | [Deck と関連データをまとめて削除できる](./deck-management.md#deck-03) |
+| DECK-04 | read | [Deck の削除を取り消せる](./deck-management.md#deck-04) |
+| DECK-05 | batch | [Deck の削除失敗後に再試行できる](./deck-management.md#deck-05) |
+| DECK-06 | read | [存在しない Deck から復帰できる](./deck-navigation.md#deck-06) |
+| DECK-07 | batch | [local-only Deck と Card を remote へ移行できる](./deck-transfer.md#deck-07) |
+| DECK-08 | read | [Deck の Card を CSV で export できる](./deck-transfer.md#deck-08) |
+| DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](./deck-management.md#deck-09) |
+| DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](./deck-management.md#deck-10) |
+| DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](./deck-management.md#deck-11) |
+| DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](./deck-management.md#deck-12) |
 
 ### Card
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| CARD-01 | read | [Card 一覧に学習情報を表示できる](./card.md#card-01) |
-| CARD-02 | read | [Card の裏面 overlay を開ける](./card.md#card-02) |
-| CARD-03 | write | [Card 編集内容を保存して reload 後も確認できる](./card.md#card-03) |
-| CARD-04 | write | [Card を削除できる](./card.md#card-04) |
-| CARD-05 | write | [Card の右 swipe で score を増やせる](./card.md#card-05) |
-| CARD-06 | write | [Card の左 swipe で score を減らせる](./card.md#card-06) |
-| CARD-07 | read | [開いている Card の裏面 overlay を閉じられる](./card.md#card-07) |
-| CARD-08 | read | [Card の削除を取り消せる](./card.md#card-08) |
-| CARD-09 | write | [Card の編集失敗後に再試行できる](./card.md#card-09) |
-| CARD-10 | write | [score と tag の filter を保存して Card 一覧へ反映できる](./card.md#card-10) |
-| CARD-11 | read | [Card view を直接開ける](./card.md#card-11) |
-| CARD-12 | read | [存在しない Card から復帰できる](./card.md#card-12) |
-| CARD-13 | write | [remote Deck に Card を作成できる](./card.md#card-13) |
-| CARD-14 | write | [local-only Deck に Card を作成できる](./card.md#card-14) |
-| CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](./creation.md#card-15) |
+| CARD-01 | read | [Card 一覧に学習情報を表示できる](./card-view.md#card-01) |
+| CARD-02 | read | [Card の裏面 overlay を開ける](./card-view.md#card-02) |
+| CARD-03 | write | [Card 編集内容を保存して reload 後も確認できる](./card-management.md#card-03) |
+| CARD-04 | write | [Card を削除できる](./card-management.md#card-04) |
+| CARD-05 | write | [Card の右 swipe で score を増やせる](./card-list-actions.md#card-05) |
+| CARD-06 | write | [Card の左 swipe で score を減らせる](./card-list-actions.md#card-06) |
+| CARD-07 | read | [開いている Card の裏面 overlay を閉じられる](./card-view.md#card-07) |
+| CARD-08 | read | [Card の削除を取り消せる](./card-management.md#card-08) |
+| CARD-09 | write | [Card の編集失敗後に再試行できる](./card-management.md#card-09) |
+| CARD-10 | write | [score と tag の filter を保存して Card 一覧へ反映できる](./card-list-actions.md#card-10) |
+| CARD-11 | read | [Card view を直接開ける](./card-view.md#card-11) |
+| CARD-12 | read | [存在しない Card から復帰できる](./card-view.md#card-12) |
+| CARD-13 | write | [remote Deck に Card を作成できる](./card-management.md#card-13) |
+| CARD-14 | write | [local-only Deck に Card を作成できる](./card-management.md#card-14) |
+| CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](./card-management.md#card-15) |
 
 ### Study
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](./study.md#swipe-02) |
-| SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](./study.md#swipe-03) |
-| SWIPE-04 | write | [next-card action で次の Card へ進める](./study.md#swipe-04) |
-| SWIPE-05 | write | [previous-card action で前の Card へ戻れる](./study.md#swipe-05) |
-| SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](./study.md#swipe-06) |
-| SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](./study.md#swipe-07) |
-| SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](./study.md#swipe-08) |
-| SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](./study.md#swipe-09) |
-| SWIPE-10 | write | [最後の Card を完了して completion screen を表示できる](./study.md#swipe-10) |
-| SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](./study.md#swipe-11) |
-| SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](./study.md#swipe-12) |
-| SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-13) |
-| SWIPE-14 | read | [non-primary mouse の drag を無視できる](./study.md#swipe-14) |
-| SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-16) |
-| SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](./study.md#swipe-17) |
-| SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](./study.md#swipe-24) |
+| SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](./study-actions.md#swipe-02) |
+| SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](./study-actions.md#swipe-03) |
+| SWIPE-04 | write | [next-card action で次の Card へ進める](./study-actions.md#swipe-04) |
+| SWIPE-05 | write | [previous-card action で前の Card へ戻れる](./study-actions.md#swipe-05) |
+| SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](./study-session.md#swipe-06) |
+| SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](./study-session.md#swipe-07) |
+| SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](./study-session.md#swipe-08) |
+| SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](./study-session.md#swipe-09) |
+| SWIPE-10 | write | [最後の Card を完了して completion screen を表示できる](./study-session.md#swipe-10) |
+| SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](./study-session.md#swipe-11) |
+| SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](./study-actions.md#swipe-12) |
+| SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](./study-controls.md#swipe-13) |
+| SWIPE-14 | read | [non-primary mouse の drag を無視できる](./study-controls.md#swipe-14) |
+| SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study-controls.md#swipe-16) |
+| SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](./study-session.md#swipe-17) |
+| SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](./study-controls.md#swipe-24) |
+| SWIPE-25 | write | [Help button の表示設定を reload 後も維持できる](./study-controls.md#swipe-25) |
 
 ### Study Back Text
 
@@ -164,7 +124,7 @@
 | SWIPE-20 | write | [左 overlay から設定済み action を実行できる](./study-back-text.md#swipe-20) |
 | SWIPE-21 | write | [右 overlay から設定済み action を実行できる](./study-back-text.md#swipe-21) |
 | SWIPE-22 | read | [狭い画面でも overlay の下で裏面を全幅表示できる](./study-back-text.md#swipe-22) |
-| SWIPE-23 | read | [overlay 上から長い裏面 text を scroll できる](./study-back-text.md#swipe-23) |
+| SWIPE-23 | read | [overlay 上の wheel と touch で長い裏面 text を scroll できる](./study-back-text.md#swipe-23) |
 
 ### Persistence
 

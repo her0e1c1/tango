@@ -89,6 +89,12 @@ export const replacePreferences = (input: PartialPreferences): void => {
 // Sets the appearance color mode preference explicitly.
 export const setDarkMode = (darkMode: boolean): void => updatePreferences({ appearance: { darkMode } });
 
+// Toggles whether the study Help shortcut is shown.
+export const toggleShowHelp = (): void => {
+  const { showHelp } = preferencesStore.getState().preferences.controls;
+  updatePreferences({ controls: { showHelp: !showHelp } });
+};
+
 // Toggles whether study swipe controls are shown.
 export const toggleShowSwipeButtonList = (): void => {
   const { showSwipeButtonList } = preferencesStore.getState().preferences.controls;

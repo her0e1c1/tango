@@ -77,5 +77,13 @@ export const Interaction: Story = {
     await expect(convertLineBreaks).toBeChecked();
   },
 };
-export const Mobile: Story = { ...LongContent, globals: { viewport: { value: "iphonex", isRotated: false } } };
+export const Mobile: Story = {
+  ...LongContent,
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+  play: async ({ canvas }) => {
+    const storageSection = canvas.getByRole("region", { name: "Storage" });
+
+    await expect(storageSection.scrollWidth).toBeLessThanOrEqual(storageSection.clientWidth);
+  },
+};
 export const Dark: Story = { ...LongContent, globals: { theme: "dark" } };
