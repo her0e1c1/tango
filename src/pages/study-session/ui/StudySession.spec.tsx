@@ -68,6 +68,7 @@ describe("StudySession", () => {
     expect(screen.queryByText("Save failed")).not.toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open study actions" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();
@@ -75,7 +76,7 @@ describe("StudySession", () => {
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
 
-  it("reports toolbar actions through accessible controls", () => {
+  it("opens the study actions overlay and reports its controls", () => {
     const onBack = vi.fn();
     const onToggleSwipeControls = vi.fn();
     const onTogglePlaybackControls = vi.fn();
@@ -90,15 +91,27 @@ describe("StudySession", () => {
       />
     );
 
+    const openActions = screen.getByRole("button", { name: "Open study actions" });
+    expect(openActions).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
+
+    fireEvent.click(openActions);
+
+    const closeActions = screen.getByRole("button", { name: "Close study actions" });
     const back = screen.getByRole("button", { name: "Back to deck list" });
     const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
     const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
+    const detailsToggle = screen.getByRole("button", { name: "Card details" });
     const actions = screen.getByRole("group", { name: "Study actions" });
+    expect(closeActions).toHaveAttribute("aria-expanded", "true");
     expect(back).toBeVisible();
     expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
     expect(playbackToggle).toHaveAttribute("aria-pressed", "true");
+    expect(detailsToggle).toHaveAttribute("aria-pressed", "true");
     expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
     expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
+    expect(detailsToggle).toHaveAttribute("title", "Hide card details");
     expect(actions).toContainElement(back);
     expect(actions).not.toContainElement(screen.getByText("Card metadata"));
 
@@ -109,6 +122,34 @@ describe("StudySession", () => {
     expect(onBack).toHaveBeenCalledOnce();
     expect(onToggleSwipeControls).toHaveBeenCalledOnce();
     expect(onTogglePlaybackControls).toHaveBeenCalledOnce();
+
+    fireEvent.keyDown(closeActions, { key: "Escape" });
+    expect(screen.getByRole("button", { name: "Open study actions" })).toHaveFocus();
+    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+  });
+
+  it("shows and hides all card details with one overlay control", () => {
+    render(
+      <StudySession
+        {...toolbarProps()}
+        cardOverlaySlot={<div>Score, seen count, and last seen</div>}
+        frontTextSlot={<div>Front</div>}
+      />
+    );
+
+    expect(screen.getByText("Score, seen count, and last seen")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
+
+    const detailsToggle = screen.getByRole("button", { name: "Card details" });
+    fireEvent.click(detailsToggle);
+    expect(detailsToggle).toHaveAttribute("aria-pressed", "false");
+    expect(detailsToggle).toHaveAttribute("title", "Show card details");
+    expect(screen.queryByText("Score, seen count, and last seen")).not.toBeInTheDocument();
+
+    fireEvent.click(detailsToggle);
+    expect(detailsToggle).toHaveAttribute("aria-pressed", "true");
+    expect(detailsToggle).toHaveAttribute("title", "Hide card details");
+    expect(screen.getByText("Score, seen count, and last seen")).toBeVisible();
   });
 
   it("describes hidden controls and keeps the unavailable playback toggle disabled", () => {
@@ -123,6 +164,8 @@ describe("StudySession", () => {
         frontTextSlot={<div>Front</div>}
       />
     );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
 
     const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
     expect(swipeToggle).toHaveAttribute("aria-pressed", "false");
