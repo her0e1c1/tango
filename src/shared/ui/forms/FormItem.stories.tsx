@@ -26,9 +26,11 @@ export const Default: Story = {};
 export const HelpAndError: Story = {
   args: {
     label: "Deck name",
+    inputId: "storybook-deck-name",
+    errorId: "storybook-deck-name-error",
     help: "Shown in your library and study history.",
     error: "A deck name is required.",
-    children: <Input defaultValue="" />,
+    children: <Input id="storybook-deck-name" aria-describedby="storybook-deck-name-error" defaultValue="" />,
     col: true,
   },
 };
@@ -42,13 +44,15 @@ export const LongLabelAndValue: Story = {
 
 export const ItemSwitch: Story = {
   args: {
-    children: <Switch />,
+    inputId: "storybook-item-switch",
+    children: <Switch id="storybook-item-switch" />,
   },
 };
 
 export const ItemSelect: Story = {
   args: {
-    children: <Select />,
+    inputId: "storybook-item-select",
+    children: <Select id="storybook-item-select" />,
   },
 };
 
@@ -60,13 +64,15 @@ export const ItemButton: Story = {
 
 export const ItemSlider: Story = {
   args: {
-    children: <Slider />,
+    inputId: "storybook-item-slider",
+    children: <Slider id="storybook-item-slider" />,
   },
 };
 
 export const ItemInput: Story = {
   args: {
-    children: <Input defaultValue="value" />,
+    inputId: "storybook-item-input",
+    children: <Input id="storybook-item-input" defaultValue="value" />,
   },
 };
 
@@ -91,8 +97,9 @@ export const NarrowMobile: Story = {
   args: {
     col: true,
     label: "A long mobile label that wraps before the control",
+    inputId: "storybook-mobile-input",
     help: "The item stacks at narrow widths.",
-    children: <Input defaultValue="Compact value" />,
+    children: <Input id="storybook-mobile-input" defaultValue="Compact value" />,
   },
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };

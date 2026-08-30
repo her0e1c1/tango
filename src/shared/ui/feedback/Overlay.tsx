@@ -26,6 +26,8 @@ export const Overlay: React.FC<{
   return (
     <div
       {...clickInteraction}
+      // Overlays own their overflow, so they must remain keyboard reachable even without a click action.
+      tabIndex={clickInteraction.tabIndex ?? 0}
       {...(props.onClick !== undefined && props.ariaLabel !== undefined ? { "aria-label": props.ariaLabel } : {})}
       className={cx(
         "absolute z-30 max-h-full max-w-full overflow-x-hidden overflow-y-auto rounded-control text-ink",

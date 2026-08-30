@@ -37,6 +37,14 @@ const studyLayoutStyles: StudyLayoutStyles = {
   "--study-feedback-top": "calc(var(--study-card-top) + 2.5rem)",
 };
 
+// The marker reserves Space for answer scrolling, while the named region makes the focus target discoverable.
+const answerSurfaceProps = {
+  role: "region",
+  "aria-label": "Card answer",
+  "data-study-answer-scroll": "",
+  tabIndex: 0,
+} as const;
+
 export interface StudySessionProps {
   showBackText?: boolean;
   showSwipeControls: boolean;
@@ -351,6 +359,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       ) : null}
       {showStudyChrome ? <SwipeFeedback swipeFeedback={props.swipeFeedback} /> : null}
       <div
+        {...(props.showBackText ? answerSurfaceProps : {})}
         className={cx(
           "relative min-h-0 flex-1",
           props.showBackText ? "overflow-y-auto pt-[env(safe-area-inset-top)]" : "overflow-hidden"

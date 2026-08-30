@@ -76,6 +76,7 @@
     "@firebase/rules-unit-testing": "^5.0.1",
     "@playwright/test": "^1.61.1",
     "@rolldown/plugin-babel": "^0.2.3",
+    "@storybook/addon-a11y": "^10.5.10",
     "@storybook/addon-docs": "^10.5.10",
     "@storybook/addon-themes": "^10.5.10",
     "@storybook/addon-vitest": "^10.5.10",

@@ -15,6 +15,8 @@ import type * as React from "react";
 export const Outer: React.FC<{ children?: React.ReactNode; className?: string }> = (props) => (
   <section
     aria-label="Application shell"
+    // biome-ignore lint/a11y/noNoninteractiveTabindex: The application shell owns viewport scrolling and must be keyboard reachable.
+    tabIndex={0}
     className={cx(
       "bg-canvas",
       "text-ink",
