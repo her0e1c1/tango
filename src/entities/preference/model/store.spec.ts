@@ -71,6 +71,27 @@ describe("preferences store", () => {
     });
   });
 
+  it.each(["system", "en", "ja"] as const)(
+    "updates and persists the %s language without resetting other preferences",
+    (language) => {
+      const storage = useMemoryStorage();
+      preferencesStore.getState().updatePreferences({ appearance: { darkMode: true } });
+
+      preferencesStore.getState().updatePreferences({ language });
+
+      const expectedPreferences = {
+        ...defaultPreferences,
+        language,
+        appearance: { ...defaultPreferences.appearance, darkMode: true },
+      };
+      expect(preferencesStore.getState().preferences).toEqual(expectedPreferences);
+      expect(JSON.parse(storage.getItem("tango-config") ?? "{}")).toEqual({
+        state: { preferences: expectedPreferences },
+        version: 1,
+      });
+    }
+  );
+
   it("validates numeric ranges during updates", () => {
     const store = preferencesStore;
 
@@ -134,10 +155,13 @@ describe("preferences store", () => {
   });
 
   it("hydrates version 1 preferences with defaults for additive fields", async () => {
-    const { showBackTextSwipeOverlays: _showBackTextSwipeOverlays, ...controlsBeforeSwipeOverlays } =
-      defaultPreferences.controls;
+    const {
+      language: _language,
+      controls: { showBackTextSwipeOverlays: _showBackTextSwipeOverlays, ...controlsBeforeSwipeOverlays },
+      ...preferencesBeforeAdditiveFields
+    } = defaultPreferences;
     const persistedPreferences = {
-      ...defaultPreferences,
+      ...preferencesBeforeAdditiveFields,
       loadSample: false,
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
@@ -151,6 +175,7 @@ describe("preferences store", () => {
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...persistedPreferences,
+      language: "system",
       controls: { ...persistedPreferences.controls, showBackTextSwipeOverlays: false },
     });
   });
