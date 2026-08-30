@@ -22,6 +22,7 @@ const DEFAULT_STUDY = {
 };
 
 const DEFAULT_CONTROLS = {
+  showHelp: true,
   showSwipeButtonList: true,
   showPlaybackControls: true,
   showCardDetails: true,
@@ -81,6 +82,7 @@ const studyPreferencesSchema = z
 
 export const controlPreferencesSchema = z
   .object({
+    showHelp: z.boolean().catch(DEFAULT_CONTROLS.showHelp),
     showSwipeButtonList: z.boolean().catch(DEFAULT_CONTROLS.showSwipeButtonList),
     showPlaybackControls: z.boolean().catch(DEFAULT_CONTROLS.showPlaybackControls),
     showCardDetails: z.boolean().catch(DEFAULT_CONTROLS.showCardDetails),

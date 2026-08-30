@@ -255,6 +255,7 @@ export const e2eConfig: E2EConfig = {
     selectedTags: [] as string[],
   },
   controls: {
+    showHelp: true,
     showSwipeButtonList: true,
     showPlaybackControls: true,
     showCardDetails: true,
