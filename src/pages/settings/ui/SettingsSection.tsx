@@ -38,11 +38,22 @@ export interface SettingsRowProps {
   inputId: string;
   label: string;
   description: string;
+  controlPosition?: "inline" | "second-row";
   children: React.ReactNode;
 }
 
-export const SettingsRow: React.FC<SettingsRowProps> = ({ inputId, label, description, children }) => (
-  <div className="flex min-h-touch items-center justify-between gap-4 px-4 py-3">
+export const SettingsRow: React.FC<SettingsRowProps> = ({
+  inputId,
+  label,
+  description,
+  controlPosition = "inline",
+  children,
+}) => (
+  <div
+    className={`flex min-h-touch gap-4 px-4 py-3 ${
+      controlPosition === "second-row" ? "flex-col" : "items-center justify-between"
+    }`}
+  >
     <div className="min-w-0">
       <label htmlFor={inputId} className="block break-words text-body font-medium text-ink">
         {label}
@@ -51,6 +62,8 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({ inputId, label, descri
         {description}
       </p>
     </div>
-    <div className="flex shrink-0 items-center justify-end">{children}</div>
+    <div className={`flex items-center justify-end ${controlPosition === "second-row" ? "w-full" : "shrink-0"}`}>
+      {children}
+    </div>
   </div>
 );
