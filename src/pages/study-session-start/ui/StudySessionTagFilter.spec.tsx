@@ -116,6 +116,30 @@ describe("StudySessionTagFilter", () => {
     expect(screen.getByRole("button", { name: "Show 2 more tags" })).toHaveAttribute("aria-expanded", "false");
   });
 
+  it("moves keyboard focus through newly revealed tags and keeps it on the disclosure when collapsing", async () => {
+    const user = userEvent.setup();
+    const tags = Array.from({ length: 12 }, (_, index) => `tag-${String(index + 1)}`);
+    render(<ControlledTagFilter tags={tags} />);
+
+    const showMore = screen.getByRole("button", { name: "Show 4 more tags" });
+    showMore.focus();
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByRole("checkbox", { name: "tag-9" })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("checkbox", { name: "tag-10" })).toHaveFocus();
+    await user.tab();
+    await user.tab();
+    await user.tab();
+
+    const showFewer = screen.getByRole("button", { name: "Show fewer tags" });
+    expect(showFewer).toHaveFocus();
+    await user.keyboard(" ");
+
+    expect(screen.getByRole("button", { name: "Show 4 more tags" })).toHaveFocus();
+    expect(screen.queryByRole("checkbox", { name: "tag-9" })).not.toBeInTheDocument();
+  });
+
   it("moves focus to a remaining tag when deselection removes a collapsed chip", async () => {
     const user = userEvent.setup();
     const tags = Array.from({ length: 12 }, (_, index) => `tag-${String(index + 1)}`);
@@ -181,6 +205,25 @@ describe("StudySessionTagFilter", () => {
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Show/ })).not.toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "All" })).toBeChecked();
+  });
+
+  it("bounds a large all-selected tag list while keeping every selection available", () => {
+    const tags = Array.from({ length: 120 }, (_, index) => `tag-${String(index + 1)}`);
+    render(
+      <StudySessionTagFilter
+        tags={tags}
+        selectedTags={tags}
+        matchAll={false}
+        onSelectedTagsChange={vi.fn()}
+        onMatchAllChange={vi.fn()}
+      />
+    );
+
+    const tagChoices = screen.getByRole("group", { name: "Tag choices" });
+    expect(within(tagChoices).getAllByRole("checkbox")).toHaveLength(120);
+    expect(tagChoices).toHaveClass("max-h-64", "overflow-y-auto");
+    expect(screen.getByText("120 selected")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Show/ })).not.toBeInTheDocument();
   });
 
   it("keeps a long tag available through its native checkbox", () => {

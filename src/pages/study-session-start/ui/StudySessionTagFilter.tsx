@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type * as React from "react";
 
 import { Button } from "@/shared/ui/button";
@@ -22,6 +22,7 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
   const [expanded, setExpanded] = useState(false);
   const matchAnyRef = useRef<HTMLInputElement>(null);
   const tagRefs = useRef(new Map<string, HTMLInputElement>());
+  const pendingExpandedTagFocusRef = useRef<string | null>(null);
   const headingId = `${idPrefix}-study-session-tags-heading`;
   const tagListId = `${idPrefix}-study-session-tags-list`;
   const tagInputName = `${idPrefix}-study-session-tags`;
@@ -35,6 +36,13 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
   // the user can still understand and remove that filter.
   const visibleTags = [...selectedTags, ...visibleUnselectedTags];
   const status = selectedTags.length === 0 ? "No filter" : `${String(selectedTags.length)} selected`;
+
+  useEffect(() => {
+    if (!expanded || pendingExpandedTagFocusRef.current === null) return;
+
+    tagRefs.current.get(pendingExpandedTagFocusRef.current)?.focus();
+    pendingExpandedTagFocusRef.current = null;
+  }, [expanded]);
 
   const toggleTag = (tag: string) => {
     if (!selectedTagSet.has(tag)) {
@@ -119,7 +127,11 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
         </div>
       </fieldset>
 
-      <div id={tagListId}>
+      <fieldset
+        id={tagListId}
+        aria-label="Tag choices"
+        className={visibleTags.length > 30 ? "max-h-64 overflow-y-auto" : undefined}
+      >
         {visibleTags.length === 0 ? (
           <p className="text-caption text-ink-muted">No tags available.</p>
         ) : (
@@ -142,7 +154,7 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
             ))}
           </TagList>
         )}
-      </div>
+      </fieldset>
 
       {hiddenTagCount > 0 ? (
         <button
@@ -150,7 +162,14 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
           aria-expanded={expanded}
           aria-controls={tagListId}
           className="min-h-touch rounded-control px-1 text-caption font-semibold text-accent-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          onClick={() => setExpanded((current) => !current)}
+          onClick={(event) => {
+            if (!expanded && event.detail === 0) {
+              // Keyboard activation inserts the revealed tags before this button. Move focus to
+              // the first new tag so forward Tab reaches the newly available choices.
+              pendingExpandedTagFocusRef.current = unselectedTags[COLLAPSED_UNSELECTED_TAG_LIMIT] ?? null;
+            }
+            setExpanded((current) => !current);
+          }}
         >
           {expanded ? "Show fewer tags" : `Show ${String(hiddenTagCount)} more tags`}
         </button>

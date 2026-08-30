@@ -86,8 +86,7 @@ const ScoreSelect = ({
       }
     />
     <p id={`${props.id}-description`} className="sr-only">
-      {props.value == null ? `No ${props.label.toLowerCase()} score. ` : ""}
-      {props.description}
+      A dash means no {props.label.toLowerCase()} score. {props.description}
     </p>
   </div>
 );

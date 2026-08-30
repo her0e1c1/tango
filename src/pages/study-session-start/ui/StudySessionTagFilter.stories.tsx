@@ -7,6 +7,7 @@ import { StudySessionTagFilter } from "./StudySessionTagFilter";
 type StudySessionTagFilterProps = React.ComponentProps<typeof StudySessionTagFilter>;
 
 const tags = Array.from({ length: 12 }, (_, index) => `tag-${String(index + 1)}`);
+const manyTags = Array.from({ length: 120 }, (_, index) => `tag-${String(index + 1)}`);
 
 const InteractiveStudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (props) => {
   const [matchAll, setMatchAll] = React.useState(props.matchAll);
@@ -60,6 +61,10 @@ export const Expanded: Story = {
 
 export const Selected: Story = {
   args: { selectedTags: ["tag-12", "tag-3"], matchAll: true },
+};
+
+export const AllSelectedManyTags: Story = {
+  args: { tags: manyTags, selectedTags: manyTags, matchAll: true },
 };
 
 export const Empty: Story = {
