@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { expect } from "storybook/test";
 
 import { Layout } from "./Layout";
 
@@ -35,6 +36,25 @@ export const FixedHeaderLongContent: Story = {
         <p className="mt-2 text-ink-muted">Scroll to observe the elevated header remain fixed above long content.</p>
       </section>
     )),
+  },
+  play: async ({ canvas }) => {
+    const shell = canvas.getByRole("region", { name: "Application shell" });
+    const header = canvas.getByRole("banner");
+    const firstSection = canvas.getByRole("heading", { name: "Section 1" }).closest("section");
+
+    await expect(firstSection).not.toBeNull();
+    if (firstSection === null) return;
+
+    const initialHeaderTop = header.getBoundingClientRect().top;
+    await expect(firstSection.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      header.getBoundingClientRect().bottom
+    );
+
+    shell.scrollTop = shell.scrollHeight;
+
+    await expect(shell.scrollTop).toBeGreaterThan(0);
+    await expect(header.getBoundingClientRect().top).toBe(initialHeaderTop);
+    shell.scrollTop = 0;
   },
 };
 
