@@ -6,7 +6,7 @@ import { createDeck, deleteDeck } from "@/entities/deck";
 import { setDarkMode, updatePreferences } from "@/entities/preference";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
-import { useCardViewContent } from "./useCardViewContent";
+import { useCardViewState } from "./useCardViewState";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
@@ -19,7 +19,7 @@ const card = createLocalCard({
   uniqueKey: "card-view-card",
 });
 
-describe("useCardViewContent", () => {
+describe("useCardViewState", () => {
   beforeEach(async () => {
     updatePreferences(createPreferences({ appearance: { darkMode: true } }));
     await createDeck("", deck);
@@ -31,7 +31,7 @@ describe("useCardViewContent", () => {
   });
 
   it("shows stored Card content with its Deck category and current theme", () => {
-    const { result } = renderHook(() => useCardViewContent(card.id));
+    const { result } = renderHook(() => useCardViewState(card.id));
 
     expect(result.current).toEqual({
       text: "const answer = 42;",
@@ -48,7 +48,7 @@ describe("useCardViewContent", () => {
   });
 
   it("does not expose content for an unavailable Card", () => {
-    const { result } = renderHook(() => useCardViewContent("missing-card"));
+    const { result } = renderHook(() => useCardViewState("missing-card"));
 
     expect(result.current).toBeUndefined();
   });
