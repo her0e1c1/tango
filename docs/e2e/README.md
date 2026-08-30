@@ -22,6 +22,7 @@
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
 | NAVIGATION-01 | read | [存在しない route から Deck 一覧へ復帰できる](./navigation.md#navigation-01) |
+| NAVIGATION-02 | read | [画面の keyboard shortcut で主要 route へ遷移できる](./navigation.md#navigation-02) |
 
 ### Account
 
@@ -90,6 +91,9 @@
 | CARD-13 | write | [remote Deck に Card を作成できる](./card-management.md#card-13) |
 | CARD-14 | write | [local-only Deck に Card を作成できる](./card-management.md#card-14) |
 | CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](./card-management.md#card-15) |
+| CARD-16 | write | [Card の削除失敗後に再試行できる](./card-management.md#card-16) |
+| CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](./card-management.md#card-17) |
+| CARD-18 | write | [Card 一覧の score 保存失敗後に再試行できる](./card-list-actions.md#card-18) |
 
 ### Study
 
