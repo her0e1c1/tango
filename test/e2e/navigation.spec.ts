@@ -21,18 +21,22 @@ test("NAVIGATION-02 Screen shortcuts navigate to their configured routes", async
   const cardBefore = await requireDocument("card", card.id);
 
   await page.goto("/");
+  await expect(page.getByRole("button", { name: `View ${deck.name}` })).toBeVisible();
   await page.keyboard.press("s");
   await expect(page).toHaveURL(/\/settings$/);
 
   await page.goto("/");
+  await expect(page.getByRole("button", { name: `View ${deck.name}` })).toBeVisible();
   await page.keyboard.press("i");
   await expect(page).toHaveURL(/\/import$/);
 
   await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
   await page.keyboard.press("t");
   await expect(page).toHaveURL(/\/$/);
 
   await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
   await page.keyboard.press("s");
   await expect(page).toHaveURL(/\/settings$/);
 
