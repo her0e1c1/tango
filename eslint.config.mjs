@@ -9,6 +9,11 @@ import vitest from "@vitest/eslint-plugin";
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 const nonProductionFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}"];
+// Steiger enforces FSD layer and slice boundaries, but it does not protect presentational UI from same-slice model imports.
+// Runtime imports are restricted so Pages and Containers connect state and workflows, then pass prepared values through props.
+// Type-only imports remain allowed so presentational prop types can refer to model-owned types.
+// This gitignore-style directory pattern covers model and its descendants at any relative depth.
+const sameSliceModelImports = ["../**/model"];
 
 export default defineConfig(
   {
@@ -80,7 +85,7 @@ export default defineConfig(
               message: "Feature UI must receive Entity data through presentational props.",
             },
             {
-              group: ["../hooks/*", "../model/*", "../../hooks/*", "../../model/*"],
+              group: sameSliceModelImports,
               allowTypeImports: true,
               message: "Feature UI must receive Feature state and workflows through props.",
             },
@@ -114,8 +119,7 @@ export default defineConfig(
               message: "Only a Page or Container may connect to a Feature hook.",
             },
             {
-              // Gitignore directory patterns cover the directory and its descendants at any relative depth.
-              group: ["../**/hooks", "../**/model"],
+              group: sameSliceModelImports,
               allowTypeImports: true,
               message: "Presentational Page UI must receive Page state and workflows through props.",
             },
