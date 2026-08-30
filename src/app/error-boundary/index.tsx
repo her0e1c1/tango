@@ -4,7 +4,6 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
-  reload?: (() => void) | undefined;
 }
 
 interface AppErrorBoundaryState {
@@ -35,7 +34,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
         title="Something went wrong"
         description="Tango encountered an unexpected error. Reload the app to try again."
         tone="error"
-        primaryAction={{ label: "Reload", onClick: this.props.reload ?? reloadPage }}
+        primaryAction={{ label: "Reload", onClick: reloadPage }}
       />
     );
   }

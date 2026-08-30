@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -22,13 +21,11 @@ describe("AppErrorBoundary", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("replaces crashed content with reload feedback", async () => {
-    const reload = vi.fn();
+  it("replaces crashed content with reload feedback", () => {
     const onCaughtError = vi.fn();
-    const user = userEvent.setup();
 
     const view = render(
-      <AppErrorBoundary reload={reload}>
+      <AppErrorBoundary>
         <ApplicationContent />
       </AppErrorBoundary>,
       { onCaughtError }
@@ -36,7 +33,7 @@ describe("AppErrorBoundary", () => {
     expect(screen.getByText("Application content")).toBeVisible();
 
     view.rerender(
-      <AppErrorBoundary reload={reload}>
+      <AppErrorBoundary>
         <ApplicationContent crash />
       </AppErrorBoundary>
     );
@@ -46,8 +43,6 @@ describe("AppErrorBoundary", () => {
     expect(screen.getByText("Tango encountered an unexpected error. Reload the app to try again.")).toBeVisible();
     expect(screen.queryByText("Application content")).not.toBeInTheDocument();
     expect(onCaughtError).toHaveBeenCalledOnce();
-
-    await user.click(screen.getByRole("button", { name: "Reload" }));
-    expect(reload).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
   });
 });
