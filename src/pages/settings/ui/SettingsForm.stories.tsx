@@ -46,6 +46,7 @@ export const Default: Story = {};
 export const Japanese: Story = {
   parameters: { locale: "ja" },
   play: async ({ canvas }) => {
+    await expect(document.documentElement).toHaveAttribute("lang", "ja");
     await expect(canvas.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
     await expect(canvas.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
   },
