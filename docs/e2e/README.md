@@ -130,7 +130,6 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](./study.md#swipe-01) |
 | SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](./study.md#swipe-02) |
 | SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](./study.md#swipe-03) |
 | SWIPE-04 | write | [next-card action で次の Card へ進める](./study.md#swipe-04) |
@@ -144,9 +143,22 @@
 | SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](./study.md#swipe-12) |
 | SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-13) |
 | SWIPE-14 | read | [non-primary mouse の drag を無視できる](./study.md#swipe-14) |
-| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](./study.md#swipe-15) |
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-16) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](./study.md#swipe-17) |
+| SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](./study.md#swipe-24) |
+
+### Study Back Text
+
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](./study-back-text.md#swipe-01) |
+| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](./study-back-text.md#swipe-15) |
+| SWIPE-18 | read | [overlay 設定 OFF の裏面 tap で同じ Card の表面へ戻れる](./study-back-text.md#swipe-18) |
+| SWIPE-19 | read | [長い裏面 text を scroll しても Card の状態を維持できる](./study-back-text.md#swipe-19) |
+| SWIPE-20 | write | [左 overlay から設定済み action を実行できる](./study-back-text.md#swipe-20) |
+| SWIPE-21 | write | [右 overlay から設定済み action を実行できる](./study-back-text.md#swipe-21) |
+| SWIPE-22 | read | [狭い画面で overlay と重ならずに端の裏面 text を選択できる](./study-back-text.md#swipe-22) |
+| SWIPE-23 | read | [overlay 上から長い裏面 text を scroll できる](./study-back-text.md#swipe-23) |
 
 ### Persistence
 

@@ -34,6 +34,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
   const inputIds = {
     language: `${idPrefix}-language`,
     showSwipeButtonList: `${idPrefix}-show-swipe-controls`,
+    showBackTextSwipeOverlays: `${idPrefix}-show-back-text-swipe-overlays`,
     showPlaybackControls: `${idPrefix}-show-playback-controls`,
     showCardDetails: `${idPrefix}-show-card-details`,
     showSwipeFeedback: `${idPrefix}-show-swipe-feedback`,
@@ -96,6 +97,17 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
               {...props.form.register("controls.showSwipeButtonList")}
               id={inputIds.showSwipeButtonList}
               aria-describedby={descriptionId(inputIds.showSwipeButtonList)}
+            />
+          </SettingsRow>
+          <SettingsRow
+            inputId={inputIds.showBackTextSwipeOverlays}
+            label={t("settings.appearance.showBackTextSwipeOverlays.label")}
+            description={t("settings.appearance.showBackTextSwipeOverlays.help")}
+          >
+            <Switch
+              {...props.form.register("controls.showBackTextSwipeOverlays")}
+              id={inputIds.showBackTextSwipeOverlays}
+              aria-describedby={descriptionId(inputIds.showBackTextSwipeOverlays)}
             />
           </SettingsRow>
           <SettingsRow

@@ -120,15 +120,6 @@ describe("useStudy", () => {
     act(() => result.current.toggleBackText());
     expect(result.current).toMatchObject({ status: "studying", showBackText: true });
     await actAsync(() => result.current.swipeRight());
-    expect(result.current).toMatchObject({
-      status: "studying",
-      card: { frontText: "card-1" },
-      showBackText: true,
-    });
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
-
-    act(() => result.current.toggleBackText());
-    await actAsync(() => result.current.swipeRight());
 
     await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { frontText: "card-2" } }));
     expect(result.current).toMatchObject({ showBackText: false, swipeFeedback: "cardSwipeRight" });
@@ -144,7 +135,12 @@ describe("useStudy", () => {
   it("reports persisted control visibility and playback availability", () => {
     mocks.preferences = createPreferences({
       cardInterval: 0,
-      controls: { showCardDetails: false, showSwipeButtonList: false, showPlaybackControls: false },
+      controls: {
+        showCardDetails: false,
+        showSwipeButtonList: false,
+        showPlaybackControls: false,
+        showBackTextSwipeOverlays: true,
+      },
     });
 
     const { result } = renderHook(() => useStudy(deckId));
@@ -152,6 +148,7 @@ describe("useStudy", () => {
     expect(result.current).toMatchObject({
       showSwipeButtonList: false,
       showPlaybackControls: false,
+      showBackTextSwipeOverlays: true,
       showCardDetails: false,
       playbackControlsAvailable: false,
     });
