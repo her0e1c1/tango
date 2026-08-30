@@ -8,6 +8,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -30,16 +31,20 @@ describe("CardFormPage", () => {
   const cardId = "card-id";
   const renderPage = (path = `/card/${cardId}/edit`) =>
     render(
-      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
-        <Routes>
-          <Route path="/previous" element={<h1>Previous page</h1>} />
-          <Route path="/" element={<h1>Deck list</h1>} />
-          <Route path="/card/:id/edit" element={<CardFormPage />} />
-        </Routes>
-      </MemoryRouter>
+      <>
+        <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+          <Routes>
+            <Route path="/previous" element={<h1>Previous page</h1>} />
+            <Route path="/" element={<h1>Deck list</h1>} />
+            <Route path="/card/:id/edit" element={<CardFormPage />} />
+          </Routes>
+        </MemoryRouter>
+        <ToastViewport />
+      </>
     );
 
   beforeEach(async () => {
+    dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
     await createDeck("", createLocalDeck({ id: deckId }));
@@ -83,6 +88,7 @@ describe("CardFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
+    expect(screen.getByText("Updated card “Front text”.")).toBeVisible();
   });
 
   it("returns to the previous page after cancellation", async () => {

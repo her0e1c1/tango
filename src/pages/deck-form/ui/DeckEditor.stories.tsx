@@ -14,12 +14,11 @@ interface DeckEditorStoryProps {
   deck: Deck;
   isSaving: boolean;
   validationError: boolean;
-  saveError?: Error;
   onCancel: () => void;
   onDelete: () => void;
 }
 
-const DeckEditorStory = ({ deck, isSaving, validationError, saveError, onCancel, onDelete }: DeckEditorStoryProps) => {
+const DeckEditorStory = ({ deck, isSaving, validationError, onCancel, onDelete }: DeckEditorStoryProps) => {
   const form = useForm<DeckFormValues>({
     defaultValues: {
       name: deck.name,
@@ -48,7 +47,6 @@ const DeckEditorStory = ({ deck, isSaving, validationError, saveError, onCancel,
       onCancel={onCancel}
       onDelete={onDelete}
       onSubmit={form.handleSubmit(() => undefined)}
-      saveError={saveError}
     />
   );
 };
@@ -87,7 +85,6 @@ export const Interaction: Story = {
 };
 export const Saving: Story = { args: { isSaving: true } };
 export const ValidationError: Story = { args: { validationError: true } };
-export const SaveError: Story = { args: { saveError: new Error("Deck write failed") } };
 export const LongValues: Story = { args: { deck: longDeck } };
 export const Dark: Story = { ...LongValues, globals: { theme: "dark" } };
 export const Mobile: Story = { ...LongValues, globals: { viewport: { value: "iphonex", isRotated: false } } };

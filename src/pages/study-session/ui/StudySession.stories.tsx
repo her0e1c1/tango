@@ -79,11 +79,6 @@ export const HelpOpen: Story = {
   args: { help: { ...meta.args.help, open: true } },
 };
 
-export const SwipeFeedback: Story = {
-  args: { swipeFeedback: "cardSwipeRight" },
-  play: centeredFrontTextPlay,
-};
-
 export const SwipeControlsHidden: Story = {
   args: { showSwipeControls: false },
   play: centeredFrontTextPlay,

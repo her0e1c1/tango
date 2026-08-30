@@ -2,7 +2,7 @@ import { loginGoogle } from "./signIn";
 import { useAccountAction } from "./useAccountAction";
 
 export const useSignIn = () => {
-  const action = useAccountAction(loginGoogle);
+  const action = useAccountAction(loginGoogle, { success: "Signed in.", failure: "Unable to sign in." });
 
-  return { pending: action.pending, error: action.error, signIn: action.run };
+  return { pending: action.pending, signIn: action.run };
 };
