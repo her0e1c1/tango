@@ -74,6 +74,13 @@ export const Pending: Story = {
   },
 };
 
+export const AddingSample: Story = {
+  args: {
+    addingSample: true,
+    preview,
+  },
+};
+
 export const Success: Story = {
   args: {
     preview,

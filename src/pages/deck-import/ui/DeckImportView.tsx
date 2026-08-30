@@ -48,6 +48,7 @@ export interface DeckImportViewProps {
   dark?: boolean;
   validating?: boolean;
   pending?: boolean;
+  addingSample?: boolean;
   preview?: DeckImportPreview | undefined;
   result?: DeckImportResult | undefined;
   error?: unknown;
@@ -108,8 +109,8 @@ const PreviewError = ({ error }: { error: unknown }) => {
 
 interface ImportPreviewProps {
   preview: DeckImportPreview | undefined;
+  busy: boolean;
   pending: boolean | undefined;
-  validating: boolean | undefined;
   onImport: (() => void) | undefined;
 }
 
@@ -117,8 +118,7 @@ const ImportPreview = (props: ImportPreviewProps) => {
   const { preview } = props;
   if (preview == null) return null;
 
-  const busy = Boolean(props.pending || props.validating);
-  const canImport = preview.analysis.rows.length > 0 && preview.analysis.invalidCount === 0 && !busy;
+  const canImport = preview.analysis.rows.length > 0 && preview.analysis.invalidCount === 0 && !props.busy;
   const visibleRows = preview.analysis.rows.slice(0, 10);
   const hiddenRowCount = preview.analysis.rows.length - visibleRows.length;
 
@@ -211,7 +211,7 @@ const ImportPreview = (props: ImportPreviewProps) => {
 };
 
 export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
-  const busy = Boolean(props.pending || props.validating);
+  const busy = Boolean(props.pending || props.validating || props.addingSample);
   const storageMode = props.storageMode ?? "remote";
 
   return (
@@ -266,12 +266,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
             {...(props.onChange !== undefined ? { onChange: props.onChange } : {})}
           />
         </section>
-        <ImportPreview
-          preview={props.preview}
-          pending={props.pending}
-          validating={props.validating}
-          onImport={props.onImport}
-        />
+        <ImportPreview preview={props.preview} busy={busy} pending={props.pending} onImport={props.onImport} />
         <section>
           <h2 className="mb-2 break-words text-title font-bold text-ink">CSV format</h2>
           <div className="space-y-2">
@@ -288,6 +283,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
               <Button
                 size="sm"
                 disabled={busy}
+                loading={props.addingSample ?? false}
                 {...(props.onAddSample !== undefined ? { onClick: props.onAddSample } : {})}
               >
                 Add sample deck
