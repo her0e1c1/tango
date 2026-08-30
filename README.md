@@ -48,7 +48,7 @@ You can go to web UI and see data in firestore: http://localhost:4000/
 
 ## Test
 
-The test task starts the Firestore emulator and runs the application and sample test suites:
+The test task runs the application unit tests and sample Python tests:
 
 ```bash
 mise run test
@@ -56,7 +56,7 @@ mise run test
 mise run test-unit -- ./src/entities/card/model/card.spec.ts
 ```
 
-Run a specific suite with:
+Run a specific suite with the commands below. The integration task starts the Firestore emulator automatically:
 
 ```bash
 mise run test-unit
@@ -66,7 +66,7 @@ mise run test-sample
 
 ### Vitest Coverage
 
-Run every TypeScript and React spec, including the Firestore emulator specs, in one Vitest invocation:
+Run the TypeScript and React unit specs in one Vitest invocation:
 
 ```bash
 mise run coverage

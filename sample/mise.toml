@@ -8,6 +8,6 @@ fmt = "docker compose run --rm --remove-orphans --entrypoint 'ruff format --chec
 fmt-fix = "docker compose run --rm --remove-orphans --entrypoint 'ruff format' base"
 
 [tasks.build]
-sources = ["generate.py", "test/**/*"]
+sources = ["Dockerfile", "Pipfile", "Pipfile.lock", "docker-compose.yml", "generate.py", "test/**/*"]
 outputs = ["build/output.json"]
 run = "docker compose run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base"

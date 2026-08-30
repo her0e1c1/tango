@@ -1,3 +1,4 @@
+min_version = "2026.4.8"
 monorepo_root = true
 
 [monorepo]
@@ -18,7 +19,6 @@ COMPOSE_ENV_FILES = ".env"
 [tasks]
 up = "docker compose up --wait --wait-timeout 120 --remove-orphans -d db"
 dev-up = "docker compose --env-file .env.dev up --wait --wait-timeout 120 --remove-orphans -d db auth"
-test-sample = "mise run //sample:test"
 lint-docker = "hadolint --failure-threshold warning Dockerfile sample/Dockerfile"
 down = "docker compose down --remove-orphans"
 ps = "docker compose ps"
@@ -26,7 +26,11 @@ ps = "docker compose ps"
 [tasks.git-cleanup]
 file = "scripts/cleanup-branches.sh"
 
+[tasks.test-sample]
+run = [{ task = "//sample:test" }]
+
 [tasks.gcloud-auth-login]
+interactive = true
 run = "gcloud auth login"
 
 [tasks.setup-github-oidc]
@@ -42,74 +46,65 @@ outputs = ["node_modules/.package-lock.json"]
 run = "npm ci"
 
 [tasks.dev]
-depends = ["build-sample", "dev-up"]
+depends = ["//sample:build", "dev-up"]
 run = "npm start -- --open --mode dev"
 
 [tasks.storybook]
-depends = ["build-sample"]
+depends = ["//sample:build"]
 run = "npm run storybook"
 
 [tasks.test]
-depends = ["build-sample", "up"]
-run = [
-  "npm test",
-  { task = "test-sample" },
-]
+depends = ["//sample:build"]
+# Full-suite file concurrency can exhaust local CPU enough to trip existing five-second test timeouts.
+run = ["npm run test:unit -- --no-file-parallelism", { task = "//sample:test" }]
 
 [tasks.test-unit]
-depends = ["build-sample"]
-run = "npm run test:unit"
+depends = ["//sample:build"]
+run = "npm run test:unit -- --no-file-parallelism"
 
 [tasks.test-integration]
 depends = ["up"]
 run = "npm run test:integration"
 
 [tasks.test-storybook]
-depends = ["build-sample"]
+depends = ["//sample:build"]
 run = "npm run test:storybook"
 
 [tasks.coverage]
-depends = ["build-sample", "up"]
-run = "npm run test:coverage"
+depends = ["//sample:build"]
+run = "npm run test:coverage -- --no-file-parallelism"
 
 [tasks.fmt]
-run = [
-  "npm run fmt",
-  "mise run //sample:fmt",
-]
+depends = ["//sample:build"]
+run = ["npm run fmt", { task = "//sample:fmt" }]
 
 [tasks.fmt-fix]
 run = [
+  { task = "//sample:fmt-fix" },
+  { task = "//sample:build" },
   "npm run fmt:fix",
-  "mise run //sample:fmt-fix",
 ]
 
 [tasks.lint]
-depends = ["build-sample"]
+depends = ["//sample:build"]
 run = "npm run lint"
 
 [tasks.lint-fix]
-depends = ["build-sample"]
+depends = ["//sample:build"]
 run = "npm run lint:fix"
 
-[tasks.build-sample]
-run = "mise run //sample:build"
-
 [tasks.build]
-depends = ["build-sample"]
-run = [
-  "npm run build",
-  "npm run build:storybook",
-]
+depends = ["//sample:build"]
+run = ["npm run build", "npm run build:storybook"]
 
 [tasks.build-storybook]
-depends = ["build-sample"]
+depends = ["//sample:build"]
 run = "npm run build:storybook"
 
 [tasks.e2e]
-depends = ["build-sample"]
+depends = ["//sample:build"]
+env = { COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml" }
 run = """
-export COMPOSE_FILE=.devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml
 export COMPOSE_PROJECT_NAME="tango-e2e-$$"
 
 cleanup() {
@@ -125,15 +120,12 @@ docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 
 [tasks.check]
 depends = ["init"]
-run = [{ tasks = ["fmt", "lint", "lint-docker", "test-unit"] }]
+# Keep unit tests out of the static-check concurrency so CPU contention cannot turn their short timeouts into flakes.
+run = [{ tasks = ["fmt", "lint", "lint-docker"] }, { task = "test-unit" }]
 
 [tasks.fix]
 depends = ["init"]
-run = [{ tasks = ["fmt-fix", "lint-fix"] }]
-
-[tasks.ci]
-depends = ["init"]
-run = "npm run ci"
+run = [{ task = "fmt-fix" }, { task = "lint-fix" }]
 
 [tasks.clean]
 confirm = "削除してよいですか？"
