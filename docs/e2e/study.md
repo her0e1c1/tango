@@ -16,7 +16,7 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 | SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](#swipe-07) |
 | SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](#swipe-08) |
 | SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](#swipe-09) |
-| SWIPE-10 | write | [最後の Card を完了して session を終了できる](#swipe-10) |
+| SWIPE-10 | write | [最後の Card を完了して completion screen を表示できる](#swipe-10) |
 | SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](#swipe-11) |
 | SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](#swipe-12) |
 | SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-13) |
@@ -212,7 +212,7 @@ Then:
 
 <a id="swipe-10"></a>
 
-### SWIPE-10 最後の Card を完了して session を終了できる
+### SWIPE-10 最後の Card を完了して completion screen を表示できる
 
 カテゴリ: `write`
 
@@ -229,7 +229,9 @@ Then:
 
 - 最後の Card の学習結果が保存される。
 - 対象 Deck の学習 session が削除される。
-- Deck 一覧へ戻り、対象 Deck に Continue action が表示されない。
+- Study completion screen に完了 message と学習した Card 数が表示される。
+- Deck 一覧へ automatic redirect せず、Deck 一覧へ戻る action が利用できる。
+- Deck 一覧へ戻った後、対象 Deck に Continue action が表示されない。
 - browser error が発生しない。
 
 <a id="swipe-11"></a>

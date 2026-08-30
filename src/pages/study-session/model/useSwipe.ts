@@ -23,11 +23,20 @@ const persistStudyProgress = (
   target: StudyProgressTarget | undefined
 ): Promise<void> => editStudyProgress(uid, progress, target);
 
+export interface StudyCompletion {
+  cardCount: number;
+}
+
+interface UseSwipeOptions {
+  onCardChanged: () => void;
+  onCompleted: (completion: StudyCompletion) => void;
+  target: StudyProgressTarget | undefined;
+}
+
 export const useSwipe = (
   deckId: DeckId,
   cards: readonly Card[],
-  onCardChanged: () => void,
-  target?: StudyProgressTarget
+  { onCardChanged, onCompleted, target }: UseSwipeOptions
 ): SwipeState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
@@ -47,6 +56,11 @@ export const useSwipe = (
       return;
     }
 
+    // Completion is derived from the pre-write snapshot because a successful boundary move removes the session.
+    const completesSession =
+      swipePlan.effect === "next" && swipePlan.session.currentIndex === swipePlan.session.cardOrderIds.length - 1;
+    const cardCount = swipePlan.session.cardOrderIds.length;
+
     swipeState.current.inProgress = true;
     // The visible card advances only after persistence succeeds, so failed writes need no session rollback.
     const saveProgress = persistStudyProgress(uid, swipePlan.progress, target);
@@ -60,6 +74,10 @@ export const useSwipe = (
     if (!moveStudySession(swipePlan.session, swipePlan.effect)) return;
 
     feedback.showSwipe(direction);
+    if (completesSession) {
+      onCompleted({ cardCount });
+      return;
+    }
     if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged();
   };
 

@@ -13,7 +13,7 @@ import { setStudySessionIndex } from "@/entities/study-session";
 import { useAutoPlay } from "./useAutoPlay";
 import { buildStudyHelpContent } from "./studyHelp";
 import { useStudySessionState } from "./useStudySessionState";
-import { useSwipe } from "./useSwipe";
+import { type StudyCompletion, useSwipe } from "./useSwipe";
 
 export const useStudy = (deckId: string) => {
   const cards = useCards();
@@ -21,6 +21,7 @@ export const useStudy = (deckId: string) => {
   const deck = useDeck(deckId);
   const preferences = usePreferences();
   const sessionState = useStudySessionState(deck, cards, localCardsHydrated);
+  const [completion, setCompletion] = React.useState<StudyCompletion>();
   const [showBackText, setShowBackText] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
   const hideBackText = () => setShowBackText(false);
@@ -40,7 +41,11 @@ export const useStudy = (deckId: string) => {
         ? { persistence: "remote" as const, cardId: sessionState.card.id }
         : { persistence: "local" as const, cardId: sessionState.card.id }
       : undefined;
-  const swipe = useSwipe(deckId, swipeCards, hideBackText, persistenceTarget);
+  const swipe = useSwipe(deckId, swipeCards, {
+    onCardChanged: hideBackText,
+    onCompleted: setCompletion,
+    target: persistenceTarget,
+  });
 
   const updateIndex = (currentIndex: number): void => {
     if (!setStudySessionIndex(deckId, currentIndex)) return;
@@ -70,6 +75,7 @@ export const useStudy = (deckId: string) => {
   };
 
   if (deck == null) return;
+  if (completion != null) return { status: "completed" as const, completion };
   if (sessionState.status !== "studying") return { ...controls, status: sessionState.status };
 
   const category = getCategory(deck.category, sessionState.card.tags);
