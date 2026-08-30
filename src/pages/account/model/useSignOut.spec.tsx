@@ -1,13 +1,17 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { dismissToast, showToast } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   signOutCurrentUser: vi.fn<() => Promise<void>>(),
+  dismissToast: vi.fn(),
+  showToast: vi.fn(),
 }));
 
 vi.mock("./signOut", () => ({ signOutCurrentUser: mocks.signOutCurrentUser }));
+vi.mock("@/shared/ui/toast", () => ({ dismissToast: mocks.dismissToast, showToast: mocks.showToast }));
 
 import { useSignOut } from "./useSignOut";
 
@@ -26,6 +30,9 @@ describe("useSignOut", () => {
   beforeEach(() => {
     mocks.signOutCurrentUser.mockReset();
     mocks.signOutCurrentUser.mockResolvedValue(undefined);
+    vi.mocked(dismissToast).mockReset();
+    vi.mocked(showToast).mockReset();
+    vi.mocked(showToast).mockReturnValue(1);
   });
 
   it("reports a pending sign-out until the operation completes", async () => {
@@ -39,7 +46,6 @@ describe("useSignOut", () => {
     });
 
     expect(result.current.pending).toBe(true);
-    expect(result.current.error).toBeNull();
 
     await actAsync(async () => {
       request.resolve();
@@ -47,10 +53,10 @@ describe("useSignOut", () => {
     });
 
     expect(result.current.pending).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(showToast).toHaveBeenCalledWith({ message: "Signed out.", tone: "success" });
   });
 
-  it("clears a failed sign-out when the user retries", async () => {
+  it("offers a Toast action that dismisses and retries a failed sign-out", async () => {
     const failure = new Error("Sign-out failed");
     const retry = deferred<void>();
     mocks.signOutCurrentUser.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
@@ -59,26 +65,27 @@ describe("useSignOut", () => {
     await actAsync(async () => {
       await expect(result.current.signOut()).rejects.toThrow("Sign-out failed");
     });
-    expect(result.current.error).toBe(failure);
+    const failureToast = vi.mocked(showToast).mock.calls[0]?.[0];
+    if (failureToast === undefined) throw new Error("Sign-out failure Toast was not shown");
+    expect(failureToast).toMatchObject({ message: "Unable to sign out.", tone: "error", action: { label: "Retry" } });
 
-    let operation!: Promise<void>;
     act(() => {
-      operation = result.current.signOut();
+      failureToast.action?.onClick();
     });
 
+    expect(dismissToast).toHaveBeenCalledWith(1);
     expect(result.current.pending).toBe(true);
-    expect(result.current.error).toBeNull();
 
     await actAsync(async () => {
       retry.resolve();
-      await operation;
+      await retry.promise;
     });
 
     expect(result.current.pending).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(showToast).toHaveBeenLastCalledWith({ message: "Signed out.", tone: "success" });
   });
 
-  it("does not carry a failed sign-out into a later mount", async () => {
+  it("dismisses its failed sign-out Toast when its owner unmounts", async () => {
     const failure = new Error("Sign-out failed");
     mocks.signOutCurrentUser.mockRejectedValue(failure);
     const { result: firstResult, unmount } = renderHook(() => useSignOut());
@@ -86,12 +93,26 @@ describe("useSignOut", () => {
     await actAsync(async () => {
       await expect(firstResult.current.signOut()).rejects.toThrow("Sign-out failed");
     });
-    expect(firstResult.current.error).toBe(failure);
     unmount();
 
-    const { result: secondResult } = renderHook(() => useSignOut());
+    expect(dismissToast).toHaveBeenCalledWith(1);
+  });
 
-    expect(secondResult.current.pending).toBe(false);
-    expect(secondResult.current.error).toBeNull();
+  it("publishes a completed sign-out after its auth transition unmounts the owner", async () => {
+    const request = deferred<void>();
+    mocks.signOutCurrentUser.mockReturnValue(request.promise);
+    const { result, unmount } = renderHook(() => useSignOut());
+    let operation!: Promise<void>;
+
+    act(() => {
+      operation = result.current.signOut();
+    });
+    unmount();
+    await actAsync(async () => {
+      request.resolve();
+      await operation;
+    });
+
+    expect(showToast).toHaveBeenCalledExactlyOnceWith({ message: "Signed out.", tone: "success" });
   });
 });

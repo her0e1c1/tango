@@ -7,7 +7,6 @@ import { type Deck, useDeck } from "@/entities/deck";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { routes } from "@/shared/router";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
-import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -28,8 +27,6 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 
   return (
     <AppLayout showHeader={state.answer == null}>
-      <Feedback tone="error">{state.mutationError == null ? null : "Unable to save changes. Try again."}</Feedback>
-      <Feedback tone="success">{state.successMessage}</Feedback>
       {state.deletionTarget != null ? (
         <DestructiveActionDialog
           title="Delete card?"
@@ -42,9 +39,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
             </>
           }
           confirmLabel="Delete card"
-          {...(state.deletionTarget.hasError
-            ? { errorMessage: "Unable to delete this card. Check your connection and try again." }
-            : {})}
+          pending={state.deletionPending}
           onCancel={state.onCancelDeletion}
           onConfirm={state.onConfirmDeletion}
         />

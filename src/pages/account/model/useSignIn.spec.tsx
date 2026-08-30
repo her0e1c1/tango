@@ -1,13 +1,17 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { dismissToast, showToast } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   loginGoogle: vi.fn<() => Promise<unknown>>(),
+  dismissToast: vi.fn(),
+  showToast: vi.fn(),
 }));
 
 vi.mock("./signIn", () => ({ loginGoogle: mocks.loginGoogle }));
+vi.mock("@/shared/ui/toast", () => ({ dismissToast: mocks.dismissToast, showToast: mocks.showToast }));
 
 import { useSignIn } from "./useSignIn";
 
@@ -26,6 +30,9 @@ describe("useSignIn", () => {
   beforeEach(() => {
     mocks.loginGoogle.mockReset();
     mocks.loginGoogle.mockResolvedValue(undefined);
+    vi.mocked(dismissToast).mockReset();
+    vi.mocked(showToast).mockReset();
+    vi.mocked(showToast).mockReturnValue(1);
   });
 
   it("reports a pending sign-in until the operation completes", async () => {
@@ -39,7 +46,6 @@ describe("useSignIn", () => {
     });
 
     expect(result.current.pending).toBe(true);
-    expect(result.current.error).toBeNull();
 
     await actAsync(async () => {
       request.resolve();
@@ -47,10 +53,10 @@ describe("useSignIn", () => {
     });
 
     expect(result.current.pending).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(showToast).toHaveBeenCalledWith({ message: "Signed in.", tone: "success" });
   });
 
-  it("clears a failed sign-in when the user retries", async () => {
+  it("offers a Toast action that dismisses and retries a failed sign-in", async () => {
     const failure = new Error("Sign-in failed");
     const retry = deferred<void>();
     mocks.loginGoogle.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
@@ -59,26 +65,30 @@ describe("useSignIn", () => {
     await actAsync(async () => {
       await expect(result.current.signIn()).rejects.toThrow("Sign-in failed");
     });
-    expect(result.current.error).toBe(failure);
+    const failureToast = vi.mocked(showToast).mock.calls[0]?.[0];
+    if (failureToast === undefined) throw new Error("Sign-in failure Toast was not shown");
+    expect(failureToast).toMatchObject({ message: "Unable to sign in.", tone: "error", action: { label: "Retry" } });
 
-    let operation!: Promise<void>;
     act(() => {
-      operation = result.current.signIn();
+      failureToast.action?.onClick();
     });
 
+    expect(dismissToast).toHaveBeenCalledWith(1);
+    expect(vi.mocked(dismissToast).mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.loginGoogle.mock.invocationCallOrder[1] ?? Number.POSITIVE_INFINITY
+    );
     expect(result.current.pending).toBe(true);
-    expect(result.current.error).toBeNull();
 
     await actAsync(async () => {
       retry.resolve();
-      await operation;
+      await retry.promise;
     });
 
     expect(result.current.pending).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(showToast).toHaveBeenLastCalledWith({ message: "Signed in.", tone: "success" });
   });
 
-  it("does not carry a failed sign-in into a later mount", async () => {
+  it("dismisses its failed sign-in Toast when its owner unmounts", async () => {
     const failure = new Error("Sign-in failed");
     mocks.loginGoogle.mockRejectedValue(failure);
     const { result: firstResult, unmount } = renderHook(() => useSignIn());
@@ -86,12 +96,26 @@ describe("useSignIn", () => {
     await actAsync(async () => {
       await expect(firstResult.current.signIn()).rejects.toThrow("Sign-in failed");
     });
-    expect(firstResult.current.error).toBe(failure);
     unmount();
 
-    const { result: secondResult } = renderHook(() => useSignIn());
+    expect(dismissToast).toHaveBeenCalledWith(1);
+  });
 
-    expect(secondResult.current.pending).toBe(false);
-    expect(secondResult.current.error).toBeNull();
+  it("does not show a failure Toast when sign-in rejects after unmount", async () => {
+    const request = deferred<void>();
+    mocks.loginGoogle.mockReturnValue(request.promise);
+    const { result, unmount } = renderHook(() => useSignIn());
+    let operation!: Promise<void>;
+
+    act(() => {
+      operation = result.current.signIn();
+    });
+    unmount();
+    await actAsync(async () => {
+      request.reject(new Error("Late sign-in failure"));
+      await expect(operation).rejects.toThrow("Late sign-in failure");
+    });
+
+    expect(showToast).not.toHaveBeenCalled();
   });
 });

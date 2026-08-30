@@ -122,12 +122,17 @@ describe("DestructiveActionDialog", () => {
 
   it("announces pending work and prevents duplicate confirmation", async () => {
     const onConfirm = vi.fn();
-    render(<DestructiveActionDialog {...defaultProps} pending onConfirm={onConfirm} />);
+    const onCancel = vi.fn();
+    render(<DestructiveActionDialog {...defaultProps} pending onCancel={onCancel} onConfirm={onConfirm} />);
 
-    expect(screen.getByRole("alertdialog")).toHaveAttribute("aria-busy", "true");
+    const dialog = screen.getByRole("alertdialog");
+    expect(dialog).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Delete deck" })).toBeDisabled();
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    fireEvent.keyDown(dialog, { key: "Escape" });
     expect(onConfirm).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
   });
 
   it("prevents duplicate confirmation before pending props update", () => {
@@ -137,13 +142,17 @@ describe("DestructiveActionDialog", () => {
           // This promise intentionally remains pending to exercise duplicate-submit protection.
         })
     );
-    render(<DestructiveActionDialog {...defaultProps} onConfirm={onConfirm} />);
+    const onCancel = vi.fn();
+    render(<DestructiveActionDialog {...defaultProps} onCancel={onCancel} onConfirm={onConfirm} />);
     const confirm = screen.getByRole("button", { name: "Delete deck" });
 
     fireEvent.click(confirm);
     fireEvent.click(confirm);
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    fireEvent.keyDown(screen.getByRole("alertdialog"), { key: "Escape" });
 
     expect(onConfirm).toHaveBeenCalledOnce();
+    expect(onCancel).not.toHaveBeenCalled();
   });
 
   it("supports synchronous onConfirm callbacks", () => {

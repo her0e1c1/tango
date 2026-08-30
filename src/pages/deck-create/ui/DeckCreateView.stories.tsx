@@ -12,18 +12,11 @@ import { DeckCreateView } from "./DeckCreateView";
 interface DeckCreateViewStoryProps {
   isLocalModeLocked: boolean;
   isSaving: boolean;
-  saveError?: Error;
   validationError: boolean;
   onCancel: () => void;
 }
 
-const DeckCreateViewStory = ({
-  isLocalModeLocked,
-  isSaving,
-  saveError,
-  validationError,
-  onCancel,
-}: DeckCreateViewStoryProps) => {
+const DeckCreateViewStory = ({ isLocalModeLocked, isSaving, validationError, onCancel }: DeckCreateViewStoryProps) => {
   const form = useForm<DeckCreateFormValues>({
     defaultValues: { name: "", category: "", convertToBr: false, localMode: false },
   });
@@ -40,7 +33,6 @@ const DeckCreateViewStory = ({
       isLocalModeLocked={isLocalModeLocked}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(() => undefined)}
-      saveError={saveError}
     />
   );
 };
@@ -65,7 +57,6 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const ValidationError: Story = { args: { validationError: true } };
 export const Saving: Story = { args: { isSaving: true } };
-export const SaveError: Story = { args: { saveError: new Error("Deck write failed") } };
 export const LocalModeLocked: Story = { args: { isLocalModeLocked: true } };
 export const Interaction: Story = {
   play: async ({ canvas, userEvent }) => {

@@ -47,6 +47,7 @@ test("DECK-02 persists edited name and category across reload", async ({ fixture
   await page.getByRole("combobox").selectOption("typescript");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("status").filter({ hasText: `Updated deck “${updatedName}”.` })).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: `Open actions for ${updatedName}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
@@ -64,6 +65,7 @@ test("DECK-03 deletes a Deck, all Cards, and its resumable session", async ({ fi
   const dialog = await openDeckDeleteDialog(page, deck.name);
   await dialog.getByRole("button", { name: "Delete deck" }).click();
   await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: `Deleted deck “${deck.name}”.` })).toBeVisible();
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${deck.name}` })).toHaveCount(0);
@@ -106,7 +108,10 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
 
   const dialog = await openDeckDeleteDialog(page, deck.name);
   await dialog.getByRole("button", { name: "Delete deck" }).click();
-  await expect(dialog.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText(
+    "Unable to delete this deck. Check your connection and try again."
+  );
+  await expect(dialog).toBeVisible();
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
@@ -114,6 +119,8 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
 
   // Firestore reopens its write stream after the injected non-retryable error before accepting this retry.
   await expect(dialog).not.toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: `Deleted deck “${deck.name}”.` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${deck.name}` })).toHaveCount(0);
   await expect.poll(() => getDocument("deck", deck.id)).toBeUndefined();
   await Promise.all(cards.map((candidate) => expect.poll(() => getDocument("card", candidate.id)).toBeUndefined()));
@@ -143,6 +150,7 @@ test("DECK-07 migrates a local-only Deck and every Card to remote storage", asyn
   await expect(localOnly).not.toBeChecked();
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("status").filter({ hasText: `Updated deck “${deck.name}”.` })).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: `View ${deck.name}` }).click();
 
@@ -187,6 +195,7 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   await page.getByRole("combobox").selectOption(category);
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
+  await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
   const deckId = new URL(page.url()).pathname.split("/").at(-1);
   if (deckId === undefined) throw new Error("Created Deck ID is missing");
   await expect(page.getByText("0 cards")).toBeVisible();
@@ -235,7 +244,7 @@ test("DECK-10 retries a failed remote create with the same ID and no duplicate",
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await page.getByRole("button", { name: "Create deck" }).click();
-  await expect(page.getByRole("status")).toContainText("Unable to create this deck");
+  await expect(page.getByRole("alert")).toContainText("Unable to create this deck. Try again.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
@@ -246,6 +255,8 @@ test("DECK-10 retries a failed remote create with the same ID and no duplicate",
   await expect(page.getByRole("checkbox", { name: "Local only" })).not.toBeChecked();
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
   const deckId = new URL(page.url()).pathname.split("/").at(-1);
   if (deckId === undefined) throw new Error("Created Deck ID is missing");
   expect(deckId).toBe(attemptedDeckId);

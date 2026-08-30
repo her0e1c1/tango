@@ -11,19 +11,26 @@ import { actAsync } from "@/test/act";
 const controls = vi.hoisted(() => ({
   uid: "",
   nextMutationError: undefined as unknown,
+  nextMutationWait: undefined as Promise<void> | undefined,
+  dismissToast: vi.fn(),
+  showToast: vi.fn(),
 }));
 
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => controls.uid }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/ui/toast", () => ({ dismissToast: controls.dismissToast, showToast: controls.showToast }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    mutateCards: (...arguments_: Parameters<typeof actual.mutateCards>) => {
+    mutateCards: async (...arguments_: Parameters<typeof actual.mutateCards>) => {
+      const wait = controls.nextMutationWait;
+      controls.nextMutationWait = undefined;
+      if (wait !== undefined) await wait;
       if (controls.nextMutationError !== undefined) {
         const error = controls.nextMutationError;
         controls.nextMutationError = undefined;
-        return Promise.reject(error);
+        throw error;
       }
       return actual.mutateCards(...arguments_);
     },
@@ -31,6 +38,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
 });
 
 import { useDeckImport } from "./useDeckImport";
+import type { DeckImportResult } from "./useDeckImportExecution";
 
 const csvFile = (name: string, backText = "back") =>
   new File([`"front","${backText}","tag","key"`], name, { type: "text/csv" });
@@ -49,6 +57,10 @@ describe("useDeckImport", () => {
   beforeEach(() => {
     controls.uid = "";
     controls.nextMutationError = undefined;
+    controls.nextMutationWait = undefined;
+    controls.dismissToast.mockReset();
+    controls.showToast.mockReset();
+    controls.showToast.mockReturnValue(1);
     updatePreferences({ loadSample: true });
   });
 
@@ -65,7 +77,7 @@ describe("useDeckImport", () => {
     });
     expect(findDeck(result.current.decks, name)).toBeUndefined();
 
-    await actAsync(async () => result.current.deckImport.importPreview());
+    const importResult = await actAsync(async () => result.current.deckImport.importPreview());
 
     const savedDeck = findDeck(result.current.decks, name);
     expect(savedDeck).toMatchObject({ name, localMode: true });
@@ -78,7 +90,8 @@ describe("useDeckImport", () => {
       }),
     ]);
     expect(result.current.cards.find((card) => card.deckId === savedDeck?.id)).not.toHaveProperty("uid");
-    expect(result.current.deckImport.result).toMatchObject({ created: 1 });
+    expect(importResult).toMatchObject({ created: 1 });
+    expect(controls.showToast).toHaveBeenCalledWith({ message: "Imported 1 card.", tone: "success" });
   });
 
   it("creates a new local Deck without changing a same-name Deck or its Cards", async () => {
@@ -164,10 +177,15 @@ describe("useDeckImport", () => {
     const savedDeck = findDeck(result.current.decks, name);
     expect(savedDeck).toBeDefined();
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toEqual([]);
-    expect(result.current.deckImport.error).toEqual(new Error("card mutation failed"));
-    await actAsync(async () => result.current.deckImport.importPreview());
+    expect(controls.showToast).toHaveBeenCalledWith({
+      message: "Import failed. card mutation failed",
+      tone: "error",
+    });
+    const retryResult = await actAsync(async () => result.current.deckImport.importPreview());
 
-    expect(result.current.deckImport.result).toMatchObject({ created: 1 });
+    expect(retryResult).toMatchObject({ created: 1 });
+    expect(controls.dismissToast).toHaveBeenCalledWith(1);
+    expect(controls.showToast).toHaveBeenLastCalledWith({ message: "Imported 1 card.", tone: "success" });
     expect(result.current.decks.filter((deck) => deck.name === name)).toHaveLength(1);
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toHaveLength(1);
   });
@@ -175,7 +193,7 @@ describe("useDeckImport", () => {
   it("adds the sample to local storage and disables its automatic bootstrap", async () => {
     const { result } = renderDeckImport();
 
-    await actAsync(async () => result.current.deckImport.addSample());
+    const addResult = await actAsync(async () => result.current.deckImport.addSample());
 
     const sampleDeck = findDeck(result.current.decks, "Sample Deck");
     expect(sampleDeck).toMatchObject({ id: "sample-v1", localMode: true });
@@ -184,18 +202,49 @@ describe("useDeckImport", () => {
       result.current.cards.filter((card) => card.deckId === sampleDeck?.id).every((card) => !("uid" in card))
     ).toBe(true);
     expect(result.current.preferences.loadSample).toBe(false);
+    expect(controls.showToast).toHaveBeenCalledWith({
+      message: `Added sample deck with ${String(addResult?.created)} cards.`,
+      tone: "success",
+    });
   });
 
-  it("keeps the sample bootstrap enabled and exposes an add failure", async () => {
-    const { result } = renderDeckImport();
+  it("keeps the sample bootstrap enabled and dismisses its add failure on unmount", async () => {
+    const { result, unmount } = renderDeckImport();
     controls.nextMutationError = new Error("sample mutation failed");
 
     await actAsync(async () => {
       await expect(result.current.deckImport.addSample()).resolves.toBeUndefined();
     });
 
-    expect(result.current.deckImport.error).toEqual(new Error("sample mutation failed"));
+    expect(controls.showToast).toHaveBeenCalledWith({
+      message: "Unable to add sample deck. sample mutation failed",
+      tone: "error",
+    });
     expect(result.current.preferences.loadSample).toBe(true);
+
+    unmount();
+    expect(controls.dismissToast).toHaveBeenCalledWith(1);
+  });
+
+  it("does not show an import failure that arrives after unmount", async () => {
+    const request = Promise.withResolvers<void>();
+    const { result, unmount } = renderDeckImport();
+    act(() => result.current.deckImport.setStorageMode("local"));
+    await actAsync(async () => result.current.deckImport.selectFile(csvFile("behavior-late-failure.csv")));
+    controls.nextMutationWait = request.promise;
+    controls.nextMutationError = new Error("late card mutation failure");
+    let operation!: Promise<DeckImportResult | undefined>;
+
+    act(() => {
+      operation = result.current.deckImport.importPreview();
+    });
+    unmount();
+    await actAsync(async () => {
+      request.resolve();
+      await operation;
+    });
+
+    expect(controls.showToast).not.toHaveBeenCalled();
   });
 
   it("keeps repeated sample imports idempotent", async () => {

@@ -4,7 +4,6 @@ import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import { CardFields, type CardFormFields } from "@/features/card-form";
 import { Button } from "@/shared/ui/button";
-import { Feedback } from "@/shared/ui/feedback";
 import { Form } from "@/shared/ui/forms";
 
 export interface CardCreatorProps {
@@ -13,17 +12,9 @@ export interface CardCreatorProps {
   form: UseFormReturn<CardFormFields>;
   onCancel: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
-  saveError?: unknown;
 }
 
-export const CardCreator: React.FC<CardCreatorProps> = ({
-  categories,
-  deckName,
-  form,
-  onCancel,
-  onSubmit,
-  saveError,
-}) => {
+export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, form, onCancel, onSubmit }) => {
   const formState = useFormState({ control: form.control });
 
   return (
@@ -42,7 +33,6 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
         <h1 className="mt-1 break-words text-display font-bold text-ink">Create card</h1>
         <p className="mt-2 text-body text-ink-muted">Add a card to {deckName}.</p>
       </header>
-      <Feedback tone="error">{saveError == null ? null : "Unable to create this card. Try again."}</Feedback>
       <Form onSubmit={onSubmit}>
         <CardFields categories={categories} form={form} />
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">

@@ -188,9 +188,9 @@ test("PERSIST-02 syncs an offline cached Card edit after reconnecting", async ({
 
   await context.setOffline(false);
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
-  await expect(page.getByText("updated offline front")).toBeVisible();
+  await expect(page.getByText("updated offline front", { exact: true })).toBeVisible();
   await verificationPage.reload();
-  await expect(verificationPage.getByText("updated offline front")).toBeVisible();
+  await expect(verificationPage.getByText("updated offline front", { exact: true })).toBeVisible();
   await expect
     .poll(async () => (await requireDocument("card", card.id)).fields.frontText?.stringValue)
     .toBe("updated offline front");

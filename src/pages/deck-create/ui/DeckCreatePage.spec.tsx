@@ -9,6 +9,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { createPreferences } from "@/test/factories";
 import { actAsync } from "@/test/act";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 
 const mocks = vi.hoisted(() => ({
   createDeck: vi.fn(),
@@ -41,19 +42,23 @@ const LeaveRouteButton = () => {
 
 describe("DeckCreatePage", () => {
   const page = () => (
-    <MemoryRouter initialEntries={["/deck/new"]}>
-      <LeaveRouteButton />
-      <Routes>
-        <Route path="/" element={<h1>Deck list destination</h1>} />
-        <Route path="/deck/new" element={<DeckCreatePage />} />
-        <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
-      </Routes>
-    </MemoryRouter>
+    <>
+      <MemoryRouter initialEntries={["/deck/new"]}>
+        <LeaveRouteButton />
+        <Routes>
+          <Route path="/" element={<h1>Deck list destination</h1>} />
+          <Route path="/deck/new" element={<DeckCreatePage />} />
+          <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
+        </Routes>
+      </MemoryRouter>
+      <ToastViewport />
+    </>
   );
   const renderPage = (strictMode = false) =>
     render(strictMode ? <React.StrictMode>{page()}</React.StrictMode> : page());
 
   beforeEach(() => {
+    dismissToast();
     mocks.createDeck.mockReset().mockResolvedValue(undefined);
     mocks.generateDeckId.mockReset().mockReturnValue("new-deck");
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
@@ -74,6 +79,7 @@ describe("DeckCreatePage", () => {
       convertToBr: false,
     });
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
+    expect(screen.getByText("Created deck “New deck”.")).toBeVisible();
   });
 
   it("creates a local empty Deck without remote ownership fields", async () => {
@@ -124,6 +130,20 @@ describe("DeckCreatePage", () => {
     });
   });
 
+  it("dismisses a failed creation notification when cancelled", async () => {
+    mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
+    renderPage();
+
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Cancelled deck");
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+    expect(await screen.findByText("Unable to create this deck. Try again.")).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(screen.queryByText("Unable to create this deck. Try again.")).not.toBeInTheDocument();
+  });
+
   it("suppresses a second submit while creation is pending", async () => {
     let resolveCreate: (() => void) | undefined;
     mocks.createDeck.mockReturnValue(
@@ -162,6 +182,7 @@ describe("DeckCreatePage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
     await userEvent.click(screen.getByRole("button", { name: "Leave route" }));
     expect(screen.getByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(screen.queryByText("Created deck “Slow deck”.")).not.toBeInTheDocument();
 
     await actAsync(async () => {
       resolveCreate?.();

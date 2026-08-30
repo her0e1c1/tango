@@ -6,7 +6,6 @@ import { touchStudySession } from "@/entities/study-session";
 import { DeckDeletionDialog, useDeckDeletion } from "@/features/deck-deletion";
 import { useAddSampleDeck } from "@/features/sample-import";
 import { routes } from "@/shared/router";
-import { Feedback } from "@/shared/ui/feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { useDeckExport } from "../model/useDeckExport";
@@ -31,9 +30,13 @@ export const DeckListPage: React.FC = () => {
 
   return (
     <AppLayout showHeader>
-      <Feedback tone="success">{deletion.successMessage}</Feedback>
       {deletion.target != null && (
-        <DeckDeletionDialog target={deletion.target} onCancel={deletion.cancel} onConfirm={deletion.confirm} />
+        <DeckDeletionDialog
+          target={deletion.target}
+          pending={deletion.pending}
+          onCancel={deletion.cancel}
+          onConfirm={deletion.confirm}
+        />
       )}
       <DeckList
         sections={sections}
