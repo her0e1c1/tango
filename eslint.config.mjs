@@ -114,20 +114,8 @@ export default defineConfig(
               message: "Only a Page or Container may connect to a Feature hook.",
             },
             {
-              group: [
-                "../hooks",
-                "../hooks/*",
-                "../model",
-                "../model/*",
-                "../../hooks",
-                "../../hooks/*",
-                "../../model",
-                "../../model/*",
-                "../../../hooks",
-                "../../../hooks/*",
-                "../../../model",
-                "../../../model/*",
-              ],
+              // Gitignore directory patterns cover the directory and its descendants at any relative depth.
+              group: ["../**/hooks", "../**/model"],
               allowTypeImports: true,
               message: "Presentational Page UI must receive Page state and workflows through props.",
             },
