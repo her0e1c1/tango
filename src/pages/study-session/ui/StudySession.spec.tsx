@@ -70,8 +70,6 @@ describe("StudySession", () => {
         backTextSlot={<div>Back</div>}
         cardOverlaySlot={<div>Card metadata</div>}
         frontTextSlot={<div>Front</div>}
-        feedbackSlot={<div>Save failed</div>}
-        swipeFeedback="cardSwipeRight"
         controller={{ autoPlay: false, index: 0, numberOfCards: 2 }}
         swipeButtonList={{ onClickLeft: vi.fn() }}
       />
@@ -84,8 +82,6 @@ describe("StudySession", () => {
     expect(answerSurface).toHaveAttribute("tabindex", "0");
     expect(screen.queryByText("Front")).not.toBeInTheDocument();
     expect(screen.queryByText("Card metadata")).not.toBeInTheDocument();
-    expect(screen.queryByText("Save failed")).not.toBeInTheDocument();
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Open study actions" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();

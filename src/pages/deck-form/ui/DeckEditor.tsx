@@ -4,7 +4,6 @@ import type { UseFormReturn } from "react-hook-form";
 
 import type { DeckId } from "@/entities/deck";
 import { Button } from "@/shared/ui/button";
-import { Feedback } from "@/shared/ui/feedback";
 
 import type { DeckFormValues } from "../model/useDeckForm";
 import { DeckForm } from "./DeckForm";
@@ -16,7 +15,6 @@ export interface DeckEditorProps {
   form: UseFormReturn<DeckFormValues>;
   isLocalOnly: boolean;
   onCancel: () => void;
-  saveError?: unknown;
   onDelete: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
 }
@@ -30,7 +28,6 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({
   onCancel,
   onDelete,
   onSubmit,
-  saveError,
 }) => (
   <section className="mx-auto w-full max-w-reading overflow-hidden rounded-surface border border-border bg-surface p-4 md:p-6">
     <header className="mb-section-gap">
@@ -46,7 +43,6 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({
       <h1 className="mt-1 line-clamp-3 break-words text-display font-bold text-ink">{deckName}</h1>
       <p className="mt-2 text-body text-ink-muted">Manage this deck’s information, import source, and formatting.</p>
     </header>
-    <Feedback tone="error">{saveError == null ? null : "Unable to save changes. Try again."}</Feedback>
     <DeckForm
       categories={categories}
       deckInfo={deckInfo}

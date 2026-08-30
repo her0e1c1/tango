@@ -9,6 +9,8 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCard, createDeck, createPreferences } from "@/test/factories";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   deleteCard: vi.fn(),
@@ -82,12 +84,15 @@ const renderCardList = (overrides: Partial<RenderCardListOptions> = {}) => {
   mocks.preferences = options.preferences;
 
   return render(
-    <MemoryRouter initialEntries={[`/deck/${options.deck.id}`]}>
-      <Routes>
-        <Route path="/deck/:id" element={<CardListPage />} />
-        <Route path="/card/:id/edit" element={<h1>Card editor destination</h1>} />
-      </Routes>
-    </MemoryRouter>
+    <>
+      <MemoryRouter initialEntries={[`/deck/${options.deck.id}`]}>
+        <Routes>
+          <Route path="/deck/:id" element={<CardListPage />} />
+          <Route path="/card/:id/edit" element={<h1>Card editor destination</h1>} />
+        </Routes>
+      </MemoryRouter>
+      <ToastViewport />
+    </>
   );
 };
 
@@ -99,6 +104,7 @@ const swipe = (article: HTMLElement, from: number, to: number) => {
 
 describe("CardListPage interactions", () => {
   beforeEach(() => {
+    dismissToast();
     vi.clearAllMocks();
     mocks.deleteCard.mockResolvedValue(undefined);
     mocks.editDeck.mockResolvedValue(undefined);
@@ -170,9 +176,49 @@ describe("CardListPage interactions", () => {
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
     expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument());
+  });
+
+  it("locks cancellation while card deletion is pending", async () => {
+    const request = Promise.withResolvers<void>();
+    mocks.deleteCard.mockReturnValueOnce(request.promise);
+    renderCardList();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
+
+    const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
+    expect(dialog).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(dialog).toBeVisible();
+
+    await actAsync(async () => {
+      request.resolve();
+      await request.promise;
+    });
+    await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument());
+  });
+
+  it("dismisses a deletion error when the dialog is cancelled", async () => {
+    mocks.deleteCard.mockRejectedValueOnce(new Error("delete failed"));
+    renderCardList();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
+    expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Unable to delete this card. Check your connection and try again.")
+    ).not.toBeInTheDocument();
   });
 
   it("keeps score mutation feedback retryable", async () => {
@@ -185,5 +231,26 @@ describe("CardListPage interactions", () => {
     swipe(article, 0, 100);
 
     await waitFor(() => expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument());
+  });
+
+  it("does not let an older score failure replace deletion success", async () => {
+    const scoreWrite = Promise.withResolvers<void>();
+    mocks.editStudyProgress.mockReturnValueOnce(scoreWrite.promise);
+    renderCardList();
+
+    swipe(screen.getByRole("article"), 0, 100);
+    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
+    expect(await screen.findByText("Deleted card “Front”.")).toBeVisible();
+
+    await actAsync(async () => {
+      scoreWrite.reject(new Error("late score failure"));
+      await scoreWrite.promise.catch(() => undefined);
+    });
+
+    expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
+    expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
   });
 });

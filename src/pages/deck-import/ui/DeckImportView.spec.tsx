@@ -6,7 +6,6 @@ import { describe, expect, it, vi } from "vitest";
 import { DeckImportView, type DeckImportViewProps } from "./DeckImportView";
 
 type DeckImportPreview = NonNullable<DeckImportViewProps["preview"]>;
-type DeckImportResult = NonNullable<DeckImportViewProps["result"]>;
 
 const preview = {
   deckName: "deck.csv",
@@ -171,29 +170,6 @@ describe("DeckImportView", () => {
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent("Unable to prepare preview");
     expect(alert).toHaveTextContent("server read failed");
-    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
-  });
-
-  it("shows success and failure results without a retry action", async () => {
-    const onBack = vi.fn();
-    const success = {
-      created: 2,
-    } satisfies DeckImportResult;
-    const view = render(<DeckImportView sampleText="front,back,,key" result={success} onBack={onBack} />);
-
-    expect(screen.getByRole("status")).toHaveTextContent("Import complete");
-    expect(screen.getByRole("status")).toHaveTextContent("2 created");
-    expect(screen.getByRole("status")).not.toHaveTextContent("updated");
-    expect(screen.getByRole("status")).not.toHaveTextContent("skipped");
-    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
-    expect(onBack).toHaveBeenCalledOnce();
-
-    view.rerender(
-      <DeckImportView sampleText="front,back,,key" error={new Error("Card writes failed")} onBack={onBack} />
-    );
-    const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("Import failed");
-    expect(alert).toHaveTextContent("Card writes failed");
     expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 });

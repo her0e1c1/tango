@@ -29,6 +29,7 @@ When:
 
 Then:
 
+- Deck の更新成功が共通 toast で表示される。
 - 対象 Deck とすべての Card が remote から読み込まれて表示される。
 - browser storage に移行前の Deck と Card の duplicate が残らない。
 - browser error が発生しない。

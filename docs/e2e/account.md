@@ -32,6 +32,7 @@ When:
 
 Then:
 
+- sign-in 成功が共通 toast で表示される。
 - Account 画面に Google アカウントとの連携状態が表示される。
 - 匿名アカウントと同じ UID が表示される。
 - 連携前の Deck、Card、学習 session を引き続き利用できる。
@@ -47,7 +48,7 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - 匿名アカウントで Account 画面を開いている。
-- Google sign-in の失敗が画面内で処理され、`Retry` が表示されている。
+- Google sign-in の失敗が共通 toast で処理され、toast に `Retry` が表示されている。
 - 再試行では Google sign-in に成功できる。
 
 When:
@@ -57,6 +58,7 @@ When:
 Then:
 
 - 再試行後にエラー表示が残らない。
+- sign-in 成功が共通 toast で表示される。
 - Account 画面に Google アカウントとの連携状態が表示される。
 - browser error が発生しない。
 
@@ -78,6 +80,7 @@ When:
 
 Then:
 
+- sign-out 成功が共通 toast で表示される。
 - Account 画面に匿名アカウントが表示される。
 - sign-out 前とは異なる UID が表示される。
 - sign-out 前のアカウントに属する Deck と Card が表示されない。

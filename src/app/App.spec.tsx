@@ -7,6 +7,7 @@ import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { setDarkMode, updatePreferences } from "@/entities/preference";
+import { dismissToast, showToast } from "@/shared/ui/toast";
 import { createPreferences } from "@/test/factories";
 
 vi.mock("@/app/auth", () => ({
@@ -32,6 +33,7 @@ import App from "./App";
 
 describe("App", () => {
   beforeEach(() => {
+    dismissToast();
     updatePreferences(createPreferences({ appearance: { darkMode: false } }));
     document.documentElement.classList.remove("dark");
     window.history.replaceState({}, "", "/");
@@ -52,6 +54,16 @@ describe("App", () => {
     render(<App />);
 
     expect(screen.getByText("Deck list")).toBeInTheDocument();
+  });
+
+  it("hosts notifications outside the route tree", () => {
+    render(<App />);
+
+    act(() => {
+      showToast({ message: "Saved", tone: "success" });
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent("Success: Saved");
   });
 
   it("matches the static Deck create route instead of treating new as a Deck id", () => {

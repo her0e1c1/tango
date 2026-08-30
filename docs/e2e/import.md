@@ -81,6 +81,7 @@ When:
 
 Then:
 
+- import 件数を含む成功結果が共通 toast で表示される。
 - preview に含まれていた Deck とすべての Card が現在の UID の remote data として表示される。
 - reload 後も Deck と Card の内容が維持される。
 - 未処理の browser error が発生しない。
@@ -103,6 +104,7 @@ When:
 
 Then:
 
+- import 件数を含む成功結果が共通 toast で表示される。
 - import した Deck とすべての Card が local storage に維持される。
 - 対応する Deck と Card は remote data に作成されない。
 - 学習画面に import した Card が表示される。
@@ -118,7 +120,7 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - 有効な CSV の最初の import で、保存先の Deck を作成した後に Card の保存が失敗している。
-- import の失敗が画面内で処理され、同じ preview と保存先が維持されている。
+- import の失敗と詳細が共通 toast で処理され、同じ preview と保存先が維持されている。
 - 次の import では Card を保存できる。
 
 When:
@@ -128,6 +130,7 @@ When:
 Then:
 
 - 再試行は最初の試行で作成された Deck を保存先として完了する。
+- import 件数を含む成功結果が共通 toast で表示され、失敗 toast は残らない。
 - 選択した保存先には Deck が一つだけ存在し、preview に含まれていた Card が重複なく保存される。
 - 未処理の browser error が発生しない。
 
@@ -152,6 +155,7 @@ Then:
 
 - Sample Deck の保存中は `Add sample deck` が loading 表示になり、競合する操作が無効になる。
 - Sample Deck の追加では CSV の preview や完了確認を表示せず、保存完了後に Deck 一覧へ自動的に戻る。
+- 追加した Card 件数を含む成功結果が共通 toast で表示される。
 - local storage に存在する Sample Deck は一つだけである。
 - Sample Deck に Card が保存され、再追加後もその識別子と件数は変わらず重複していない。
 - 未処理の browser error が発生しない。

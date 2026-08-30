@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck } from "@/entities/deck";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalDeck } from "@/test/factories";
 
 const writes = vi.hoisted(() => ({ createCard: vi.fn(), generateCardId: vi.fn(() => "generated-card-id") }));
@@ -24,14 +25,16 @@ const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
 const CardCreatorHarness = ({ onCreated = vi.fn() }: { onCreated?: (cardId: string) => void }) => {
   const state = useCardCreateForm({ deck, onCreated });
   return (
-    <CardCreator
-      categories={state.categories}
-      deckName={state.deckName}
-      form={state.form}
-      onCancel={vi.fn()}
-      onSubmit={state.onSubmit}
-      saveError={state.saveError}
-    />
+    <>
+      <CardCreator
+        categories={state.categories}
+        deckName={state.deckName}
+        form={state.form}
+        onCancel={vi.fn()}
+        onSubmit={state.onSubmit}
+      />
+      <ToastViewport />
+    </>
   );
 };
 
@@ -42,6 +45,7 @@ const enterRequiredValues = async () => {
 
 describe("CardCreator", () => {
   beforeEach(async () => {
+    dismissToast();
     await createDeck("", deck);
     writes.createCard.mockReset();
     writes.createCard.mockResolvedValue(undefined);
@@ -56,6 +60,7 @@ describe("CardCreator", () => {
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith("generated-card-id"));
+    expect(screen.getByText("Created card “Front value”.")).toBeVisible();
     expect(writes.generateCardId).toHaveBeenCalledOnce();
     expect(writes.createCard).toHaveBeenCalledWith("user-id", {
       id: "generated-card-id",
@@ -121,5 +126,6 @@ describe("CardCreator", () => {
     await Promise.resolve(act(async () => finishWrite()));
 
     expect(onCreated).not.toHaveBeenCalled();
+    expect(screen.queryByText("Created card “Front value”.")).not.toBeInTheDocument();
   });
 });

@@ -33,67 +33,21 @@ interface DeckImportPreview {
   };
 }
 
-interface DeckImportResult {
-  created: number;
-}
-
 export interface DeckImportViewProps {
   onChange?: (file: File) => void;
   onStorageModeChange?: (storageMode: DeckImportStorageMode) => void;
   onAddSample?: () => void;
   onDownloadSample?: () => void;
   onImport?: () => void;
-  onBack?: () => void;
   sampleText: string;
   dark?: boolean;
   validating?: boolean;
   pending?: boolean;
   addingSample?: boolean;
   preview?: DeckImportPreview | undefined;
-  result?: DeckImportResult | undefined;
-  error?: unknown;
   previewError?: unknown;
   storageMode?: DeckImportStorageMode;
 }
-
-const resultCounts = (result: DeckImportResult) => (
-  <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption">
-    <li>{result.created} created</li>
-  </ul>
-);
-
-interface ImportResultProps {
-  result: DeckImportResult | undefined;
-  error: unknown;
-  onBack: (() => void) | undefined;
-}
-
-const ImportResult = (props: ImportResultProps) => {
-  if (props.error != null) {
-    const message = props.error instanceof Error ? props.error.message : "The import could not be completed.";
-    return (
-      <section role="alert" className="rounded-surface border border-danger bg-surface-muted p-4 text-ink">
-        <h2 className="font-bold">Import failed</h2>
-        <p className="mt-1 break-words text-caption text-ink-muted">{message}</p>
-      </section>
-    );
-  }
-  if (props.result == null) return null;
-  return (
-    <section role="status" className="rounded-surface border border-success bg-surface-muted p-4 text-ink">
-      <h2 className="font-bold">Import complete</h2>
-      {resultCounts(props.result)}
-      <Button
-        className="mt-3"
-        variant="quiet"
-        size="sm"
-        {...(props.onBack !== undefined ? { onClick: props.onBack } : {})}
-      >
-        Back to decks
-      </Button>
-    </section>
-  );
-};
 
 const PreviewError = ({ error }: { error: unknown }) => {
   if (error == null) return null;
@@ -227,7 +181,6 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
             Importing…
           </p>
         ) : null}
-        <ImportResult result={props.result} error={props.error} onBack={props.onBack} />
         <PreviewError error={props.previewError} />
         <section className="space-y-4">
           <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>

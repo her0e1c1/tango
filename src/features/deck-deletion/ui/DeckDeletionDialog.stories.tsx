@@ -12,8 +12,8 @@ const meta = {
     target: {
       deckName: "Japanese verbs",
       cardCount: 24,
-      hasError: false,
     },
+    pending: false,
     onCancel: fn(),
     onConfirm: fn(async () => undefined),
   },
@@ -29,17 +29,6 @@ export const SingleCard: Story = {
     target: {
       deckName: "Quick reminder",
       cardCount: 1,
-      hasError: false,
-    },
-  },
-};
-
-export const Failure: Story = {
-  args: {
-    target: {
-      deckName: "Japanese verbs",
-      cardCount: 24,
-      hasError: true,
     },
   },
 };
@@ -52,7 +41,6 @@ export const LongDeckName: Story = {
           3
         ),
       cardCount: 128,
-      hasError: false,
     },
   },
 };
@@ -64,12 +52,14 @@ export const Confirm: Story = {
   },
 };
 
+export const Pending: Story = { args: { pending: true } };
+
 export const Mobile: Story = {
   ...LongDeckName,
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 
 export const Dark: Story = {
-  ...Failure,
+  ...LongDeckName,
   globals: { theme: "dark" },
 };

@@ -86,6 +86,7 @@ test("IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, na
   await expect(page.getByText("2 valid")).toBeVisible();
   await page.getByRole("button", { name: "Import", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("status").filter({ hasText: "Imported 2 cards." })).toBeVisible();
 
   await expect.poll(async () => (await documentsForUid("deck", uid)).length).toBe(1);
   await expect.poll(async () => (await documentsForUid("card", uid)).length).toBe(2);
@@ -115,6 +116,7 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   await expect(page.getByText("2 valid")).toBeVisible();
   await page.getByRole("button", { name: "Import", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("status").filter({ hasText: "Imported 2 cards." })).toBeVisible();
 
   await page.reload();
   await expect(page.getByRole("button", { name: `View ${file.name}` })).toBeVisible();
@@ -151,7 +153,7 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   const fault = await failNextFirestoreWrite(page, { collection: "card" });
 
   await page.getByRole("button", { name: "Import", exact: true }).click();
-  await expect(page.getByRole("heading", { level: 2, name: "Import failed" })).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("Import failed.");
   await expect(page.getByText(file.name, { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("radio", { name: /Sync with account/ })).toBeChecked();
   await expect.poll(async () => (await documentsForUid("deck", uid)).length).toBe(1);
@@ -166,6 +168,8 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
 
   await page.getByRole("button", { name: "Import", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Imported 1 card." })).toBeVisible();
   await expect.poll(async () => (await documentsForUid("card", uid)).length).toBe(1);
   const decksAfterRetry = await documentsForUid("deck", uid);
   const cardsAfterRetry = await documentsForUid("card", uid);
@@ -197,6 +201,7 @@ test("IMPORT-06 Adding Sample Deck saves it, returns to the list, and remains id
 
   await addSample.click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("status").filter({ hasText: /Added sample deck with \d+ cards?\./u })).toBeVisible();
   expect(await page.locator("html").getAttribute("data-sample-deck-loading-observed")).toBe("true");
   await expect(page.getByRole("button", { name: "View Sample Deck" })).toBeVisible();
 
@@ -212,6 +217,7 @@ test("IMPORT-06 Adding Sample Deck saves it, returns to the list, and remains id
   await page.getByRole("button", { name: "Import decks" }).click();
   await page.getByRole("button", { name: "Add sample deck" }).click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("status").filter({ hasText: /Added sample deck with \d+ cards?\./u })).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "View Sample Deck" }).click();
 

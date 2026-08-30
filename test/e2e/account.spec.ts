@@ -67,6 +67,7 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
   await page.goto("/account");
 
   await completeGooglePopup(page, namespace.uid);
+  await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
   await expect(page.getByText("Signed in with Google")).toBeVisible();
   await expect(page.getByText(anonymousUid, { exact: true })).toBeVisible();
 
@@ -86,11 +87,12 @@ test("ACCOUNT-02 A closed Google popup can be retried successfully", async ({ fi
 
   await closeGooglePopup(page);
   // Firebase polls for user-closed popups with a randomized delay of up to ten seconds.
-  await expect(page.getByText("Unable to sign in.")).toBeVisible({ timeout: 12_000 });
+  await expect(page.getByRole("alert")).toContainText("Unable to sign in.", { timeout: 12_000 });
   await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
 
   await completeGooglePopup(page, namespace.uid, "Retry");
-  await expect(page.getByText("Unable to sign in.")).toHaveCount(0);
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
   await expect(page.getByText("Signed in with Google")).toBeVisible();
 });
 
@@ -105,6 +107,7 @@ test("ACCOUNT-03 Sign-out switches to a new anonymous identity boundary", async 
   expect(originalUid).toBe(uid);
 
   await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Signed out." })).toBeVisible();
   await expect(page.getByText("Anonymous account")).toBeVisible();
   const nextUid = await accountUid(page);
   expect(nextUid).not.toBe(originalUid);

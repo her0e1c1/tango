@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { useAuthUid } from "@/entities/auth";
 import { cardContentSchema, editCard, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
 
 const cardFormSchema = cardContentSchema.omit({ uniqueKey: true });
 export type CardFormValues = z.infer<typeof cardFormSchema>;
@@ -16,10 +18,18 @@ interface UseCardFormOptions {
   onSaved: () => void;
 }
 
+const dismissOwnedToast = (toastId: React.RefObject<ToastId | undefined>) => {
+  const id = toastId.current;
+  if (id === undefined) return;
+  dismissToast(id);
+  toastId.current = undefined;
+};
+
 export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
   const uid = useAuthUid();
   const card = useCard(cardId);
-  const [saveError, setSaveError] = React.useState<unknown>(null);
+  const isMounted = useMountedGuard();
+  const saveErrorToastId = React.useRef<ToastId | undefined>(undefined);
   const form = useForm<CardFormValues>({
     ...(card && {
       values: {
@@ -33,19 +43,28 @@ export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
     resolver: zodResolver(cardFormSchema),
   });
 
+  const dismissSaveError = () => dismissOwnedToast(saveErrorToastId);
+
+  React.useEffect(() => () => dismissOwnedToast(saveErrorToastId), []);
+
   if (card == null) return;
 
-  const submit = form.handleSubmit(async (values) => {
-    setSaveError(null);
+  const submit = async (values: CardFormValues) => {
+    dismissSaveError();
     try {
       await editCard(uid, { id: card.id, ...values });
-      onSaved();
-    } catch (error) {
-      setSaveError(error);
+      if (isMounted()) {
+        showToast({ message: `Updated card “${values.frontText}”.`, tone: "success" });
+        onSaved();
+      }
+    } catch {
+      if (isMounted()) {
+        saveErrorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
+      }
     }
-  });
-  const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
-    void submit(event);
+  };
+  const onFormSubmit = (event?: React.BaseSyntheticEvent) => {
+    void form.handleSubmit(submit)(event);
   };
 
   const cardInfo = {
@@ -55,5 +74,5 @@ export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
     ...(card.lastSeenAt != null ? { lastSeenAt: card.lastSeenAt } : {}),
   };
 
-  return { cardInfo, categories: CATEGORY, form, onSubmit: onFormSubmit, saveError };
+  return { cardInfo, categories: CATEGORY, dismissSaveError, form, onSubmit: onFormSubmit };
 };
