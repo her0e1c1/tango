@@ -51,4 +51,15 @@ describe("StudySessionStart", () => {
     expect(screen.getByText("No cards match your filters.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Start 0 cards" })).toBeDisabled();
   });
+
+  it("places filter controls before the start action in keyboard order", async () => {
+    const user = userEvent.setup();
+    renderView({ filterSlot: <button type="button">Filter control</button> });
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Filter control" })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Start 24 cards" })).toHaveFocus();
+  });
 });

@@ -232,8 +232,7 @@ test("CARD-10 persists score and tag filters and applies both after reload", asy
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByText("Filters", { exact: true }).click();
-  await clickCheckboxLabel(page, "Enable minimum score");
-  await page.getByRole("slider", { name: "Minimum score value" }).fill("1");
+  await page.getByRole("combobox", { name: "Minimum score" }).selectOption("1");
   await clickCheckboxLabel(page, selectedTag);
   await expect.poll(async () => (await requireDocument("deck", deck.id)).fields.scoreMin?.integerValue).toBe("1");
   await expect
@@ -243,8 +242,7 @@ test("CARD-10 persists score and tag filters and applies both after reload", asy
 
   await expect(page.getByText("score ≥ 1 · 1 tag")).toBeVisible();
   await page.getByText("Filters", { exact: true }).click();
-  await expect(page.getByRole("checkbox", { name: "Enable minimum score" })).toBeChecked();
-  await expect(page.getByRole("slider", { name: "Minimum score value" })).toHaveValue("1");
+  await expect(page.getByRole("combobox", { name: "Minimum score" })).toHaveValue("1");
   await expect(page.getByRole("checkbox", { name: selectedTag })).toBeChecked();
   await expect(page.getByRole("button", { name: `View ${matching.frontText}` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${lowScore.frontText}` })).toHaveCount(0);

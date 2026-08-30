@@ -1,6 +1,13 @@
 import cx from "classnames";
 import * as React from "react";
-import { AiOutlineLeft, AiOutlinePlayCircle } from "react-icons/ai";
+import {
+  AiOutlineClose,
+  AiOutlineEllipsis,
+  AiOutlineEye,
+  AiOutlineEyeInvisible,
+  AiOutlineLeft,
+  AiOutlinePlayCircle,
+} from "react-icons/ai";
 import { MdSwipe } from "react-icons/md";
 import { useSwipeable } from "react-swipeable";
 import type { SwipeDirection } from "@/entities/preference";
@@ -62,73 +69,155 @@ export interface StudySessionProps {
 const toolbarButtonClass =
   "pointer-events-auto inline-flex size-touch shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
-const StudyToolbar: React.FC<{
+interface StudyModeActionsProps {
+  showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
   playbackControlsAvailable: boolean;
-  onBack: () => void;
+  playbackDescriptionId: string;
+  onEscape: React.KeyboardEventHandler<HTMLButtonElement>;
+  onToggleCardDetails: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
-}> = (props) => {
-  const playbackDescriptionId = React.useId();
+}
+
+const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
   const swipeTitle = props.showSwipeControls ? "Hide swipe controls" : "Show swipe controls";
   const playbackTitle = props.playbackControlsAvailable
     ? props.showPlaybackControls
       ? "Hide playback controls"
       : "Show playback controls"
     : PLAYBACK_UNAVAILABLE_DESCRIPTION;
+  const cardDetailsTitle = props.showCardDetails ? "Hide card details" : "Show card details";
 
   return (
-    <fieldset
-      aria-label="Study actions"
-      className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 m-0 flex min-w-0 items-center justify-between border-0 p-0 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
-    >
+    <div className="flex items-center gap-1">
       <button
         type="button"
-        aria-label="Back to deck list"
+        aria-label="Swipe controls"
+        aria-pressed={props.showSwipeControls}
+        title={swipeTitle}
+        className={cx(toolbarButtonClass, props.showSwipeControls && "bg-surface-muted text-accent-primary")}
+        onClick={props.onToggleSwipeControls}
+        onKeyDown={props.onEscape}
+      >
+        <MdSwipe aria-hidden="true" className="text-xl" />
+      </button>
+      <button
+        type="button"
+        aria-label="Playback controls"
+        aria-pressed={props.showPlaybackControls}
+        aria-disabled={!props.playbackControlsAvailable}
+        aria-describedby={!props.playbackControlsAvailable ? props.playbackDescriptionId : undefined}
+        title={playbackTitle}
         className={cx(
           toolbarButtonClass,
-          "border border-border bg-surface-elevated/90 shadow-elevated backdrop-blur-md"
+          props.showPlaybackControls && "bg-surface-muted text-accent-primary",
+          !props.playbackControlsAvailable && "cursor-not-allowed opacity-50"
         )}
-        onClick={props.onBack}
+        onClick={props.playbackControlsAvailable ? props.onTogglePlaybackControls : undefined}
+        onKeyDown={props.onEscape}
       >
-        <AiOutlineLeft aria-hidden="true" className="text-xl" />
+        <AiOutlinePlayCircle aria-hidden="true" className="text-xl" />
       </button>
-      <div className="pointer-events-auto flex items-center rounded-pill border border-border bg-surface-elevated/90 p-0.5 shadow-elevated backdrop-blur-md">
-        <button
-          type="button"
-          aria-label="Swipe controls"
-          aria-pressed={props.showSwipeControls}
-          title={swipeTitle}
-          className={cx(toolbarButtonClass, props.showSwipeControls && "bg-surface-muted text-accent-primary")}
-          onClick={props.onToggleSwipeControls}
+      <button
+        type="button"
+        aria-label="Card details"
+        aria-pressed={props.showCardDetails}
+        title={cardDetailsTitle}
+        className={cx(toolbarButtonClass, props.showCardDetails && "bg-surface-muted text-accent-primary")}
+        onClick={props.onToggleCardDetails}
+        onKeyDown={props.onEscape}
+      >
+        {props.showCardDetails ? (
+          <AiOutlineEye aria-hidden="true" className="text-xl" />
+        ) : (
+          <AiOutlineEyeInvisible aria-hidden="true" className="text-xl" />
+        )}
+      </button>
+    </div>
+  );
+};
+
+const StudyToolbar: React.FC<{
+  open: boolean;
+  showCardDetails: boolean;
+  showSwipeControls: boolean;
+  showPlaybackControls: boolean;
+  playbackControlsAvailable: boolean;
+  onToggleOpen: () => void;
+  onToggleCardDetails: () => void;
+  onBack: () => void;
+  onToggleSwipeControls: () => void;
+  onTogglePlaybackControls: () => void;
+}> = (props) => {
+  const actionsId = React.useId();
+  const playbackDescriptionId = React.useId();
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+
+  const closeOnEscape: React.KeyboardEventHandler<HTMLButtonElement> = (event) => {
+    if (event.key !== "Escape" || !props.open) return;
+    event.preventDefault();
+    props.onToggleOpen();
+    triggerRef.current?.focus();
+  };
+
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 h-touch">
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-label={props.open ? "Close study actions" : "Open study actions"}
+        aria-expanded={props.open}
+        aria-controls={actionsId}
+        className={cx(
+          toolbarButtonClass,
+          "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] top-0"
+        )}
+        onClick={props.onToggleOpen}
+        onKeyDown={closeOnEscape}
+      >
+        {props.open ? (
+          <AiOutlineClose aria-hidden="true" className="text-xl" />
+        ) : (
+          <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
+        )}
+      </button>
+      {props.open ? (
+        // The overlay stays out of document flow so opening it cannot move the centered prompt.
+        <fieldset
+          id={actionsId}
+          aria-label="Study actions"
+          className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-between border-0 p-0 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)]"
         >
-          <MdSwipe aria-hidden="true" className="text-xl" />
-        </button>
-        <span aria-hidden="true" className="h-6 w-px bg-border" />
-        <button
-          type="button"
-          aria-label="Playback controls"
-          aria-pressed={props.showPlaybackControls}
-          aria-disabled={!props.playbackControlsAvailable}
-          aria-describedby={!props.playbackControlsAvailable ? playbackDescriptionId : undefined}
-          title={playbackTitle}
-          className={cx(
-            toolbarButtonClass,
-            props.showPlaybackControls && "bg-surface-muted text-accent-primary",
-            !props.playbackControlsAvailable && "cursor-not-allowed opacity-50"
-          )}
-          onClick={props.playbackControlsAvailable ? props.onTogglePlaybackControls : undefined}
-        >
-          <AiOutlinePlayCircle aria-hidden="true" className="text-xl" />
-        </button>
-        {!props.playbackControlsAvailable ? (
-          <span id={playbackDescriptionId} className="sr-only">
-            {PLAYBACK_UNAVAILABLE_DESCRIPTION}
-          </span>
-        ) : null}
-      </div>
-    </fieldset>
+          <button
+            type="button"
+            aria-label="Back to deck list"
+            className={toolbarButtonClass}
+            onClick={props.onBack}
+            onKeyDown={closeOnEscape}
+          >
+            <AiOutlineLeft aria-hidden="true" className="text-xl" />
+          </button>
+          <StudyModeActions
+            showCardDetails={props.showCardDetails}
+            showSwipeControls={props.showSwipeControls}
+            showPlaybackControls={props.showPlaybackControls}
+            playbackControlsAvailable={props.playbackControlsAvailable}
+            playbackDescriptionId={playbackDescriptionId}
+            onEscape={closeOnEscape}
+            onToggleCardDetails={props.onToggleCardDetails}
+            onToggleSwipeControls={props.onToggleSwipeControls}
+            onTogglePlaybackControls={props.onTogglePlaybackControls}
+          />
+        </fieldset>
+      ) : null}
+      {!props.playbackControlsAvailable ? (
+        <span id={playbackDescriptionId} className="sr-only">
+          {PLAYBACK_UNAVAILABLE_DESCRIPTION}
+        </span>
+      ) : null}
+    </div>
   );
 };
 
@@ -196,6 +285,8 @@ const Controls: React.FC<{
 };
 
 export const StudySession: React.FC<StudySessionProps> = (props) => {
+  const [studyActionsOpen, setStudyActionsOpen] = React.useState(false);
+  const [showCardDetails, setShowCardDetails] = React.useState(true);
   const suppressCardClick = React.useRef(false);
   const suppressCardClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -254,9 +345,13 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       {showStudyChrome ? props.feedbackSlot : null}
       {showStudyChrome ? (
         <StudyToolbar
+          open={studyActionsOpen}
+          showCardDetails={showCardDetails}
           showSwipeControls={props.showSwipeControls}
           showPlaybackControls={props.showPlaybackControls}
           playbackControlsAvailable={props.playbackControlsAvailable}
+          onToggleOpen={() => setStudyActionsOpen((open) => !open)}
+          onToggleCardDetails={() => setShowCardDetails((visible) => !visible)}
           onBack={props.onBack}
           onToggleSwipeControls={props.onToggleSwipeControls}
           onTogglePlaybackControls={props.onTogglePlaybackControls}
@@ -275,7 +370,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           showBackText={props.showBackText}
           backTextSlot={props.backTextSlot}
           frontTextSlot={props.frontTextSlot}
-          cardOverlaySlot={props.cardOverlaySlot}
+          cardOverlaySlot={showCardDetails ? props.cardOverlaySlot : undefined}
         />
       </div>
       <Controls
