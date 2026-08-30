@@ -1,61 +1,112 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-current_worktree=$(git rev-parse --show-toplevel)
-worktrees=$(git worktree list --porcelain)
+# The sentinel preserves trailing newlines that may be part of the worktree path.
+if ! current_worktree=$(
+  set +e
+  git rev-parse --show-toplevel
+  status=$?
+  printf x
+  exit "$status"
+); then
+  printf 'Failed to identify the current worktree\n' >&2
+  exit 1
+fi
+current_worktree=${current_worktree%x}
+current_worktree=${current_worktree%$'\n'}
 
-worktree_for_branch() {
-  awk -v target="refs/heads/$1" '
-    /^worktree / { path = substr($0, 10) }
-    $1 == "branch" && $2 == target { matched_path = path }
-    END { if (matched_path != "") print matched_path }
-  ' <<<"$worktrees"
+worktree_paths=()
+worktree_branches=()
+main_worktree=""
+record_path=""
+record_branch=""
+# A file preserves NUL delimiters and confirms inventory succeeded before any deletion begins.
+worktree_list_file=$(mktemp /tmp/cleanup-branches.XXXXXX)
+
+cleanup_worktree_list() {
+  rm -f -- "$worktree_list_file"
 }
 
-worktree_is_locked() {
-  awk -v target="refs/heads/$1" '
-    /^worktree / { branch = "" }
-    $1 == "branch" { branch = $2 }
-    $1 == "locked" && branch == target { found = 1 }
-    END { exit !found }
-  ' <<<"$worktrees"
-}
+trap cleanup_worktree_list EXIT
 
-gh pr list --state all --limit 1000 \
+if ! git worktree list --porcelain -z >"$worktree_list_file"; then
+  printf 'Failed to list worktrees\n' >&2
+  exit 1
+fi
+
+# NUL-delimited parsing keeps destructive cleanup safe for every valid worktree path.
+while IFS= read -r -d '' field; do
+  if [[ -z "$field" ]]; then
+    if [[ -n "$record_branch" ]]; then
+      worktree_paths+=("$record_path")
+      worktree_branches+=("$record_branch")
+    fi
+    record_path=""
+    record_branch=""
+  elif [[ "$field" == "worktree "* ]]; then
+    record_path=${field#worktree }
+    [[ -z "$main_worktree" ]] && main_worktree=$record_path
+  elif [[ "$field" == "branch refs/heads/"* ]]; then
+    record_branch=${field#branch refs/heads/}
+  fi
+done <"$worktree_list_file"
+
+cleanup_worktree_list
+trap - EXIT
+
+branches=$(gh pr list --state all --limit 1000 \
   --json headRefName,state,isCrossRepository \
-  --jq '[.[] | select(.isCrossRepository == false)] | group_by(.headRefName)[] | select(all(.state != "OPEN")) | .[0].headRefName' |
-  while IFS= read -r branch; do
-    if git show-ref --verify --quiet "refs/heads/$branch"; then
-      worktree=$(worktree_for_branch "$branch")
+  --jq '[.[] | select(.isCrossRepository == false)] | group_by(.headRefName)[] | select(all(.state != "OPEN")) | .[0].headRefName')
 
-      if [[ "$worktree" == "$current_worktree" ]]; then
-        printf 'Skipping %s: checked out in the current worktree\n' "$branch" >&2
-        continue
-      fi
+failed=0
 
-      if [[ -n "$worktree" ]]; then
-        if worktree_is_locked "$branch"; then
-          printf 'Skipping %s: worktree is locked (%s)\n' "$branch" "$worktree" >&2
-          continue
-        fi
+while IFS= read -r branch; do
+  if [[ -z "$branch" ]] || ! git show-ref --verify --quiet "refs/heads/$branch"; then
+    continue
+  fi
 
-        if ! worktree_status=$(git -C "$worktree" status --porcelain --untracked-files=all); then
-          printf 'Skipping %s: worktree status could not be read (%s)\n' "$branch" "$worktree" >&2
-          continue
-        fi
+  branch_worktrees=()
+  protected_worktree=""
 
-        if [[ -n "$worktree_status" ]]; then
-          printf 'Skipping %s: worktree contains uncommitted changes (%s)\n' "$branch" "$worktree" >&2
-          continue
-        fi
-
-        # Detaching preserves the worktree and ignored local files while releasing the branch.
-        if ! git -C "$worktree" switch --detach --quiet; then
-          printf 'Skipping %s: worktree could not be detached (%s)\n' "$branch" "$worktree" >&2
-          continue
-        fi
-      fi
-
-      git branch -D -- "$branch"
+  for ((index = 0; index < ${#worktree_paths[@]}; index++)); do
+    if [[ "${worktree_branches[index]}" == "$branch" ]]; then
+      branch_worktrees+=("${worktree_paths[index]}")
     fi
   done
+
+  for ((index = 0; index < ${#branch_worktrees[@]}; index++)); do
+    worktree=${branch_worktrees[index]}
+    if [[ "$worktree" == "$current_worktree" || "$worktree" == "$main_worktree" ]]; then
+      protected_worktree=$worktree
+      break
+    fi
+  done
+
+  if [[ -n "$protected_worktree" ]]; then
+    printf 'Skipping %s: cannot remove the main or current worktree (%s)\n' "$branch" "$protected_worktree" >&2
+    failed=1
+    continue
+  fi
+
+  branch_failed=0
+  for ((index = 0; index < ${#branch_worktrees[@]}; index++)); do
+    worktree=${branch_worktrees[index]}
+    # Locked worktrees require two force flags; closed PR cleanup intentionally discards all local changes.
+    if ! git worktree remove --force --force -- "$worktree"; then
+      printf 'Failed to remove worktree for %s (%s)\n' "$branch" "$worktree" >&2
+      branch_failed=1
+    fi
+  done
+
+  if ((branch_failed)); then
+    failed=1
+    continue
+  fi
+
+  if ! git branch -D -- "$branch"; then
+    printf 'Failed to delete branch %s\n' "$branch" >&2
+    failed=1
+  fi
+done <<<"$branches"
+
+exit "$failed"
