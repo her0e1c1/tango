@@ -6,9 +6,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck, useDeck } from "@/entities/deck";
+import { DeckForm } from "@/features/deck-form";
 import { createLocalDeck } from "@/test/factories";
 
-import { useDeckForm } from "../model/useDeckForm";
+import { useDeckForm } from "./useDeckForm";
 
 const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,
@@ -40,21 +41,20 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 
-import { DeckEditor } from "./DeckEditor";
-
-const DeckEditorHarness = (props: { deckId: string; onCancel: () => void; onSaved: () => void }) => {
+const DeckFormHarness = (props: { deckId: string; onCancel: () => void; onSaved: () => void }) => {
   const editor = useDeckForm({ deckId: props.deckId, onSaved: props.onSaved });
 
   if (editor == null) return null;
   return (
-    <DeckEditor
+    <DeckForm
+      mode="edit"
       categories={editor.categories}
       deckInfo={editor.deckInfo}
       deckName={editor.deckName}
       form={editor.form}
       isLocalOnly={editor.isLocalOnly}
+      isSaving={editor.isSaving}
       onCancel={props.onCancel}
-      onDelete={() => undefined}
       onSubmit={editor.onSubmit}
       saveError={editor.saveError}
     />
@@ -62,17 +62,17 @@ const DeckEditorHarness = (props: { deckId: string; onCancel: () => void; onSave
 };
 
 // A fresh Entity read after remount proves that the form displays the last successful edit.
-const StoredDeckEditorHarness = (props: { deckId: DeckId; onCancel: () => void; onSaved: () => void }) => {
+const StoredDeckFormHarness = (props: { deckId: DeckId; onCancel: () => void; onSaved: () => void }) => {
   const deck = useDeck(props.deckId);
   return deck === undefined ? null : (
-    <DeckEditorHarness deckId={deck.id} onCancel={props.onCancel} onSaved={props.onSaved} />
+    <DeckFormHarness deckId={deck.id} onCancel={props.onCancel} onSaved={props.onSaved} />
   );
 };
 
-describe("DeckEditor", () => {
+describe("useDeckForm", () => {
   const deckId = "deck-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
-    render(<StoredDeckEditorHarness deckId={deckId} onCancel={onCancel} onSaved={onSaved} />);
+    render(<StoredDeckFormHarness deckId={deckId} onCancel={onCancel} onSaved={onSaved} />);
 
   beforeEach(async () => {
     writeControls.beforeWrite = undefined;

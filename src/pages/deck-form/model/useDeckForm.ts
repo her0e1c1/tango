@@ -1,16 +1,14 @@
 import * as React from "react";
-import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, type Deck, deckFormSchema, editDeck, useDeck } from "@/entities/deck";
+import type { DeckFormFields } from "@/features/deck-form";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
-export type DeckFormValues = z.infer<typeof deckFormSchema>;
-
-const getDeckFormValues = (deck: Deck): DeckFormValues => ({
+const getDeckFormValues = (deck: Deck): DeckFormFields => ({
   name: deck.name,
   category: deck.category,
   url: deck.url || undefined,
@@ -18,7 +16,7 @@ const getDeckFormValues = (deck: Deck): DeckFormValues => ({
   localMode: deck.localMode,
 });
 
-const getDeckEditInput = (deck: Deck, values: DeckFormValues): Parameters<typeof editDeck>[1] => ({
+const getDeckEditInput = (deck: Deck, values: DeckFormFields): Parameters<typeof editDeck>[1] => ({
   id: deck.id,
   ...values,
   localMode: values.localMode ?? deck.localMode,
@@ -35,7 +33,9 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
   const deck = useDeck(deckId);
   const isMounted = useMountedGuard();
   const [saveError, setSaveError] = React.useState<unknown>(null);
-  const form = useForm<DeckFormValues>({
+  // Reactive Deck snapshots can reset RHF state mid-write, so this lock must span the persistence request itself.
+  const [isSaving, setIsSaving] = React.useState(false);
+  const form = useForm<DeckFormFields>({
     ...(deck && { values: getDeckFormValues(deck) }),
     resolver: zodResolver(deckFormSchema),
   });
@@ -43,6 +43,7 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
   if (deck == null) return;
 
   const submit = form.handleSubmit(async (values) => {
+    setIsSaving(true);
     setSaveError(null);
     try {
       await editDeck(uid, getDeckEditInput(deck, values));
@@ -50,9 +51,15 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
       if (isMounted()) onSaved();
     } catch (error) {
       if (isMounted()) setSaveError(error);
+    } finally {
+      if (isMounted()) setIsSaving(false);
     }
   });
   const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
+    if (isSaving) {
+      event?.preventDefault();
+      return;
+    }
     void submit(event);
   };
 
@@ -68,6 +75,7 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
     deckName: deck.name,
     form,
     isLocalOnly: deck.localMode,
+    isSaving,
     onSubmit: onFormSubmit,
     saveError,
   };

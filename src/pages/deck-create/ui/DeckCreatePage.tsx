@@ -1,11 +1,11 @@
 import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 
+import { DeckForm } from "@/features/deck-form";
 import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { useDeckCreateForm } from "../model/useDeckCreateForm";
-import { DeckCreateView } from "./DeckCreateView";
 
 export const DeckCreatePage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,7 +15,8 @@ export const DeckCreatePage: React.FC = () => {
 
   return (
     <AppLayout showHeader>
-      <DeckCreateView
+      <DeckForm
+        mode="create"
         categories={state.categories}
         form={state.form}
         isLocalModeLocked={state.isLocalModeLocked}
