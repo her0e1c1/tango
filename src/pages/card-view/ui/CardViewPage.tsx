@@ -1,9 +1,11 @@
 import type * as React from "react";
 import { useParams } from "react-router-dom";
 
-import { CardView, useCardViewContent } from "@/features/card-view";
+import { CardView } from "@/features/card-view";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
+
+import { useCardViewContent } from "../model/useCardViewContent";
 
 export const CardViewPage: React.FC = () => {
   const params = useParams();
