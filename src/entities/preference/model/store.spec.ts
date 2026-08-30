@@ -5,6 +5,7 @@ import { defaultPreferences } from "./defaults";
 import {
   preferencesStore,
   setDarkMode,
+  toggleShowCardDetails,
   toggleShowPlaybackControls,
   toggleShowSwipeButtonList,
   updatePreferences,
@@ -45,7 +46,7 @@ describe("preferences store", () => {
       loadSample: false,
       appearance: { darkMode: true },
       study: { cardInterval: 15 },
-      controls: { showScoreSlider: true },
+      controls: { showCardDetails: false, showScoreSlider: true },
     });
     store.getState().updatePreferences({ controls: { showSwipeButtonList: false } });
     store.getState().updatePreferences({ controls: { showPlaybackControls: false } });
@@ -57,6 +58,7 @@ describe("preferences store", () => {
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       controls: {
         ...defaultPreferences.controls,
+        showCardDetails: false,
         showScoreSlider: true,
         showSwipeButtonList: false,
         showPlaybackControls: false,
@@ -84,20 +86,30 @@ describe("preferences store", () => {
     updatePreferences({ loadSample: false, study: { cardInterval: 15 } });
     toggleShowSwipeButtonList();
     toggleShowPlaybackControls();
+    toggleShowCardDetails();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
       loadSample: false,
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, cardInterval: 15 },
-      controls: { ...defaultPreferences.controls, showSwipeButtonList: false, showPlaybackControls: false },
+      controls: {
+        ...defaultPreferences.controls,
+        showSwipeButtonList: false,
+        showPlaybackControls: false,
+        showCardDetails: false,
+      },
     });
   });
 
   it("persists preference changes", () => {
     const storage = useMemoryStorage();
 
-    preferencesStore.getState().updatePreferences({ loadSample: false, appearance: { darkMode: true } });
+    preferencesStore.getState().updatePreferences({
+      loadSample: false,
+      appearance: { darkMode: true },
+      controls: { showCardDetails: false },
+    });
 
     expect(JSON.parse(storage.getItem("tango-config") ?? "{}")).toEqual({
       state: {
@@ -105,9 +117,10 @@ describe("preferences store", () => {
           ...defaultPreferences,
           loadSample: false,
           appearance: { ...defaultPreferences.appearance, darkMode: true },
+          controls: { ...defaultPreferences.controls, showCardDetails: false },
         },
       },
-      version: 1,
+      version: 2,
     });
   });
 
@@ -119,7 +132,7 @@ describe("preferences store", () => {
       study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
     };
     useMemoryStorage({
-      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 1 }),
+      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 2 }),
     });
 
     await preferencesStore.persist.rehydrate();
@@ -127,8 +140,8 @@ describe("preferences store", () => {
     expect(preferencesStore.getState().preferences).toEqual(persistedPreferences);
   });
 
-  it("discards version 0 preferences after the persisted shape changes", async () => {
-    const { showPlaybackControls: _showPlaybackControls, ...legacyControls } = defaultPreferences.controls;
+  it("discards version 1 preferences after the persisted shape changes", async () => {
+    const { showCardDetails: _showCardDetails, ...legacyControls } = defaultPreferences.controls;
     useMemoryStorage({
       "tango-config": JSON.stringify({
         state: {
@@ -140,7 +153,7 @@ describe("preferences store", () => {
             controls: { ...legacyControls, showSwipeButtonList: false },
           },
         },
-        version: 0,
+        version: 1,
       }),
     });
 
@@ -157,8 +170,8 @@ describe("preferences store", () => {
 
   it.each([
     ["malformed JSON", "not-json"],
-    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 1 })],
-    ["incompatible envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 1 })],
+    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 2 })],
+    ["incompatible envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 2 })],
   ])("uses current defaults for %s", async (_case, persistedValue) => {
     useMemoryStorage({ "tango-config": persistedValue });
 

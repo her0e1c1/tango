@@ -24,10 +24,12 @@ const meta = {
   },
   args: {
     onBack: fn(),
+    onToggleCardDetails: fn(),
     onToggleSwipeControls: fn(),
     onTogglePlaybackControls: fn(),
     showSwipeControls: true,
     showPlaybackControls: true,
+    showCardDetails: true,
     playbackControlsAvailable: true,
     frontTextSlot: <FrontText text={fixture.card.default.frontText} />,
     cardOverlaySlot: (
@@ -75,6 +77,11 @@ export const SwipeControlsHidden: Story = {
 
 export const PlaybackControlsHidden: Story = {
   args: { showPlaybackControls: false },
+  play: centeredFrontTextPlay,
+};
+
+export const CardDetailsHidden: Story = {
+  args: { showCardDetails: false },
   play: centeredFrontTextPlay,
 };
 

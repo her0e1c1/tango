@@ -85,6 +85,7 @@ export interface FixturePreferences {
   controls: {
     showSwipeButtonList: boolean;
     showPlaybackControls: boolean;
+    showCardDetails: boolean;
     showScoreSlider: boolean;
     cardSwipeUp: SwipeAction;
     cardSwipeDown: SwipeAction;
@@ -271,6 +272,7 @@ const preferencesSchema = z.strictObject({
     .strictObject({
       showSwipeButtonList: z.boolean().optional(),
       showPlaybackControls: z.boolean().optional(),
+      showCardDetails: z.boolean().optional(),
       showScoreSlider: z.boolean().optional(),
       cardSwipeUp: swipeActionSchema.optional(),
       cardSwipeDown: swipeActionSchema.optional(),
@@ -630,6 +632,7 @@ const applicationPreferences: FixturePreferences = {
   controls: {
     showSwipeButtonList: true,
     showPlaybackControls: true,
+    showCardDetails: true,
     showScoreSlider: false,
     cardSwipeUp: "GoToNextCardMastered",
     cardSwipeDown: "GoToNextCardNotMastered",

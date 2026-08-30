@@ -109,6 +109,7 @@ describe("useStudy", () => {
       session: { currentIndex: 0, cardCount: 2 },
       card: { frontText: "card-1" },
       showBackText: false,
+      showCardDetails: true,
       showPlaybackControls: true,
       playbackControlsAvailable: true,
     });
@@ -143,7 +144,7 @@ describe("useStudy", () => {
   it("reports persisted control visibility and playback availability", () => {
     mocks.preferences = createPreferences({
       cardInterval: 0,
-      controls: { showSwipeButtonList: false, showPlaybackControls: false },
+      controls: { showCardDetails: false, showSwipeButtonList: false, showPlaybackControls: false },
     });
 
     const { result } = renderHook(() => useStudy(deckId));
@@ -151,6 +152,7 @@ describe("useStudy", () => {
     expect(result.current).toMatchObject({
       showSwipeButtonList: false,
       showPlaybackControls: false,
+      showCardDetails: false,
       playbackControlsAvailable: false,
     });
   });
