@@ -158,7 +158,7 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
         <StudyCompletion
           cardCount={study.completion.cardCount}
           onClickBack={() => {
-            void navigate(routes.deckList.to());
+            void navigate(routes.deckList.to(), { replace: true });
           }}
         />
       </AppLayout>
