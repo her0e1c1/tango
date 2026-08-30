@@ -200,12 +200,12 @@ Given:
 
 When:
 
-- 学習画面から Card 一覧へ戻り、Deck 一覧から同じ Deck の Continue を実行する。
+- 学習画面から Deck 一覧へ戻り、同じ Deck の Continue を実行する。
 
 Then:
 
-- Card 一覧へ戻る前と同じ学習 session が維持される。
-- Card 一覧へ戻る前に表示されていた Card の front text が表示される。
+- Deck 一覧へ戻る前と同じ学習 session が維持される。
+- Deck 一覧へ戻る前に表示されていた Card の front text が表示される。
 - browser error が発生しない。
 
 <a id="swipe-09"></a>
@@ -265,7 +265,7 @@ Given:
 
 When:
 
-- 一方の Deck で学習 action を実行して Card 一覧へ戻り、もう一方の Deck を Continue する。
+- 一方の Deck で学習 action を実行して Deck 一覧へ戻り、もう一方の Deck を Continue する。
 
 Then:
 

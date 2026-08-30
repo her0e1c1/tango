@@ -203,8 +203,8 @@ test("SWIPE-08 returns and continues from the same Card", async ({ fixture, page
 
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Back to cards" }).click();
-  await page.getByRole("button", { name: "tango" }).click();
+  await page.getByRole("button", { name: "Back to deck list" }).click();
+  await expect(page).toHaveURL(/\/$/);
   await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
 
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
@@ -261,8 +261,8 @@ test("SWIPE-11 keeps multiple Deck sessions independent", async ({ fixture, page
 
   await page.goto(`/deck/${deckA.id}/study`);
   await page.getByRole("button", { name: "Swipe up" }).click();
-  await page.getByRole("button", { name: "Back to cards" }).click();
-  await page.getByRole("button", { name: "tango" }).click();
+  await page.getByRole("button", { name: "Back to deck list" }).click();
+  await expect(page).toHaveURL(/\/$/);
   await page.getByRole("button", { name: `Continue ${deckB.name}` }).click();
 
   await expect(page.getByText(currentCardB.frontText, { exact: true })).toBeVisible();

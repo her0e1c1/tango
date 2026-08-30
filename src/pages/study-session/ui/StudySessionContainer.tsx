@@ -99,7 +99,7 @@ const ActiveStudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) =
   const navigate = useNavigate();
   const study = useStudy(deckId);
   const latestStudy = useLatest(study);
-  const goBack = () => void navigate(routes.cardList.to(deckId));
+  const goBack = () => void navigate(routes.deckList.to());
   const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
     // Native editing and activation keys take precedence, while unrelated Study shortcuts remain
     // available after a user moves focus into the card or floating controls.
