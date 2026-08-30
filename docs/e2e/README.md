@@ -133,7 +133,7 @@
 | SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](./study.md#swipe-07) |
 | SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](./study.md#swipe-08) |
 | SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](./study.md#swipe-09) |
-| SWIPE-10 | write | [最後の Card を完了して session を終了できる](./study.md#swipe-10) |
+| SWIPE-10 | write | [最後の Card を完了して completion screen を表示できる](./study.md#swipe-10) |
 | SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](./study.md#swipe-11) |
 | SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](./study.md#swipe-12) |
 | SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-13) |

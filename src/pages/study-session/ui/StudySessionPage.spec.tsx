@@ -8,7 +8,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
-import { clearStudySessions, getStudySession, startStudy } from "@/entities/study-session";
+import { clearStudySessions, getStudySession, setStudySessionIndex, startStudy } from "@/entities/study-session";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -290,6 +290,21 @@ describe("StudySessionPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
     expect(mocks.removeStudySession).not.toHaveBeenCalled();
+  });
+
+  it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
+    setStudySessionIndex(deckId, 1);
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Swipe up" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Study complete" })).toBeVisible();
+    expect(screen.getByText("You studied 2 cards.")).toBeVisible();
+    expect(screen.queryByRole("heading", { level: 1, name: "Deck list destination" })).not.toBeInTheDocument();
+    expect(getStudySession(deckId)).toBeUndefined();
+
+    fireEvent.keyDown(window, { key: "ArrowUp" });
+    expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
   });
 
   it("keeps study actions available while the Header stays hidden", () => {

@@ -1,4 +1,4 @@
-extends: study-session-start.yaml
+extends: study-session-middle.yaml
 browser:
   studySessions:
     deck-1:

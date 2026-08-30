@@ -181,7 +181,7 @@ test("SWIPE-09 restarts an in-progress Deck from a new session", async ({ fixtur
   expect(restarted?.currentIndex).toBe(0);
 });
 
-test("SWIPE-10 finishes the final Card and removes the session", async ({ fixture, page }) => {
+test("SWIPE-10 finishes the final Card and shows the completion screen", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const finalCard = fixture.card("card-3");
@@ -189,6 +189,13 @@ test("SWIPE-10 finishes the final Card and removes the session", async ({ fixtur
 
   await page.goto(`/deck/${deck.id}/study`);
   await page.getByRole("button", { name: "Swipe up" }).click();
+
+  await expect(page).toHaveURL(`/deck/${deck.id}/study`);
+  await expect(page.getByRole("heading", { name: "Study complete" })).toBeVisible();
+  await expect(page.getByText(`You studied ${String(session.cardOrderIds.length)} cards.`)).toBeVisible();
+  const backToDeckList = page.getByRole("button", { name: "Back to deck list" });
+  await expect(backToDeckList).toBeVisible();
+  await backToDeckList.click();
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toHaveCount(0);
