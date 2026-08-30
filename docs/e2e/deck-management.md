@@ -1,45 +1,20 @@
-# Deck E2E テスト仕様書
+# Deck Management E2E テスト仕様書
 
 ## 目的
 
-Deck 管理の主要導線が、ブラウザ上で表示・作成・編集・削除・保存先の移行・export まで破綻しないことを確認する。
+Deck の作成・編集・削除が保存先の境界を守り、失敗後の再試行でも identity と関連データの整合性を維持できることを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| DECK-01 | read | [Deck 一覧から Card 一覧へ遷移できる](#deck-01) |
 | DECK-02 | write | [Deck 編集内容を保存して reload 後も確認できる](#deck-02) |
 | DECK-03 | batch | [Deck と関連データをまとめて削除できる](#deck-03) |
 | DECK-04 | read | [Deck の削除を取り消せる](#deck-04) |
 | DECK-05 | batch | [Deck の削除失敗後に再試行できる](#deck-05) |
-| DECK-06 | read | [存在しない Deck から復帰できる](#deck-06) |
-| DECK-07 | batch | [local-only Deck と Card を remote へ移行できる](#deck-07) |
-| DECK-08 | read | [Deck の Card を CSV で export できる](#deck-08) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](#deck-10) |
-
-<a id="deck-01"></a>
-
-### DECK-01 Deck 一覧から Card 一覧へ遷移できる
-
-カテゴリ: `read`
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に Card が存在する。
-
-When:
-
-- Deck 一覧を開き、対象 Deck を選択する。
-
-Then:
-
-- 対象 Deck の Card 一覧へ遷移する。
-- 対象 Card の front text が表示される。
-- browser error が発生しない。
+| DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](#deck-11) |
 
 <a id="deck-02"></a>
 
@@ -133,70 +108,6 @@ Then:
 - 対象 Deck と関連する Card および学習 session が削除される。
 - 最初の削除失敗に伴う未処理の browser error が発生しない。
 
-<a id="deck-06"></a>
-
-### DECK-06 存在しない Deck から復帰できる
-
-カテゴリ: `read`
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 認証済みユーザーの保存先に、route が参照する Deck が存在しない。
-
-When:
-
-- 存在しない Deck の Card 一覧を直接開き、Deck が利用できない旨の画面から home recovery action を実行する。
-
-Then:
-
-- Deck 一覧が表示される。
-- browser error が発生しない。
-
-<a id="deck-07"></a>
-
-### DECK-07 local-only Deck と Card を remote へ移行できる
-
-カテゴリ: `batch`
-
-Given:
-
-- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- 認証済みユーザーの browser storage に local-only Deck が存在する。
-- 対象 Deck に複数の local-only Card が存在する。
-
-When:
-
-- 対象 Deck の Local only を無効にして保存し、画面を reload する。
-
-Then:
-
-- 対象 Deck とすべての Card が remote から読み込まれて表示される。
-- browser storage に移行前の Deck と Card の duplicate が残らない。
-- browser error が発生しない。
-
-<a id="deck-08"></a>
-
-### DECK-08 Deck の Card を CSV で export できる
-
-カテゴリ: `read`
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に front text、back text、tags、unique key を持つ Card が複数存在する。
-
-When:
-
-- Deck 一覧から対象 Deck の CSV download を実行する。
-
-Then:
-
-- 対象 Deck の name に対応する CSV file が download される。
-- CSV に各 Card の front text、back text、tags、unique key が Card ごとの row として含まれる。
-- browser error が発生しない。
-
 <a id="deck-09"></a>
 
 ### DECK-09 空の remote Deck を作成して reload 後も確認できる
@@ -244,3 +155,27 @@ Then:
 - 作成した Deck の name、category、remote の保存先が最初の作成要求から維持されている。
 - browser storage に同じ Deck の local-only duplicate が存在しない。
 - 最初の作成失敗に伴う未処理の browser error が発生しない。
+
+<a id="deck-11"></a>
+
+### DECK-11 空の local-only Deck を作成して reload 後も確認できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- ユーザーとして認証されている。
+- 作成対象の Deck は現在の UID の remote data と local-only data のどちらにも存在しない。
+
+When:
+
+- Deck の作成画面で name と category を入力し、Local only を有効にして保存した後、Deck 一覧を reload する。
+
+Then:
+
+- 作成した空の Deck が reload 後も Deck 一覧に表示される。
+- 作成した Deck は browser storage に一つだけ存在する。
+- remote data に同じ Deck が存在しない。
+- 対象 Deck に Card が存在しない。
+- browser error が発生しない。

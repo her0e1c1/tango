@@ -1,22 +1,14 @@
 # E2E Documentation Instructions
 
-- `docs/e2e/fixture/*.yaml` を具体的な E2E fixture 状態の正とし、すべてのカテゴリで共有する。
-- 各テストケースは `Given` の先頭で、共有 fixture YAML を必ず1つ `Fixture: ...` として指定する。
-- fixture はトップレベルの `extends` に同じディレクトリの bare filename を1つだけ指定して継承でき、継承 chain も利用できる。
-- 継承では object を再帰的に merge し、array と scalar は子の値で全置換する。
-- object map は key 単位で再帰的に merge し、同じ entry の field は子が上書きする。子で省略した親の entry は保持され、空 object や削除 sentinel では削除できない。空の map が必要な fixture はその map を持たない親から継承する。
-- fixture YAML では alias を使用しない。
+- 最初に [`conventions.md`](./conventions.md) と [`fixture/README.md`](./fixture/README.md) を読む。
+- `docs/e2e/README.md` を全 E2E case ID の索引とし、各 ID をちょうど一つの Playwright test と詳細仕様に対応させる。
+- 詳細仕様の Markdown は E2E contract check が読み取れるように `docs/e2e` 直下へ置く。
+- 大きな仕様書は、対象 entity だけでなく、表示・管理・一覧操作や session・controls のような利用者の振る舞いで分割する。
+- 各テストケースには `read`、`write`、`batch` のいずれかを明示する。
+- 各テストケースは `Given` / `When` / `Then` を原則1ブロックずつ記述する。
+- `Given` の先頭で、共有 fixture YAML を必ず1つ `Fixture: ...` として指定する。
 - `Given` には fixture 参照だけでなく、テスト開始時に必要な状態を利用者視点で具体的に記述する。
-- テストケース本文には、fixture YAML に定義した具体的な値を重複して記述しない。
-- fixture YAML はアプリケーションの既定状態からの差分だけを記述し、既定値と同じ `false`、`0`、`null`、空配列、空 object などは省略する。
-- 値の見た目だけで省略を判断せず、その field の既定値と一致するときだけ省略する。たとえば既定値が `null` の field に意味のある `0` を指定する場合は記述する。
-- 継承を materialize した結果で省略した field はアプリケーションの既定値、存在しない collection は空として扱う。
-- fixture の数値 timestamp field (`createdAt`、`updatedAt`、`lastStudiedAt` など) の初期値は `0` (Unix epoch milliseconds) とする。
-- timestamp の値、順序、経過時間そのものがテスト条件でない限り、fixture YAML に timestamp を記述しない。
-- fixture YAML にはアプリケーション上の永続状態を記述し、Firestore 固有の serialization は記述しない。
-- すべてのカテゴリで fixture の論理 ID と UID を test case と retry ごとに分離した namespace へ展開する。
-- application-defined stable ID である `sample-v1` と `sample-v1-card-*` は namespace へ展開しない。
-- 各テストケースには、`read`、`write`、`batch` のいずれかのカテゴリを明示する。
-- テストケースは `Given` / `When` / `Then` で記述し、それぞれ原則1ブロックとする。
-- `When` → `Then` → `When` のように、操作と期待結果を交互に繰り返さない。
-- 複数の独立した振る舞いを確認する場合は、テストケースを分割する。
+- テストケース本文には fixture YAML に定義した具体的な値を重複して記述しない。
+- `When` → `Then` → `When` のように操作と期待結果を交互に繰り返さず、独立した振る舞いは別ケースに分割する。
+- fixture の構造、継承、既定値、timestamp、namespace は [`fixture/README.md`](./fixture/README.md) を正とし、別文書へ重複定義しない。
+- ケースを追加・移動・削除したときは README の索引も同じ変更で更新する。
