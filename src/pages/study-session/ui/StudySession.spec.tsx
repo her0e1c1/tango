@@ -121,6 +121,26 @@ describe("StudySession", () => {
     expect(screen.queryByRole("region", { name: "Study answer" })).not.toBeInTheDocument();
   });
 
+  it("forwards edge wheel input to answer scrolling without running the action", () => {
+    const onClickLeft = vi.fn();
+    render(
+      <StudySession
+        {...toolbarProps()}
+        showBackText
+        backTextSlot={<div>Long back text</div>}
+        backTextOverlay={{ onClickLeft }}
+      />
+    );
+    const answerSurface = screen.getByRole("region", { name: "Study answer" });
+    const leftOverlay = screen.getByRole("button", { name: "Swipe left" });
+
+    expect(fireEvent.wheel(leftOverlay, { deltaY: 64, deltaMode: 0 })).toBe(false);
+
+    expect(answerSurface.scrollTop).toBe(64);
+    expect(leftOverlay).toHaveClass("touch-pan-y");
+    expect(onClickLeft).not.toHaveBeenCalled();
+  });
+
   it("opens the study actions overlay and reports its controls", () => {
     const onBack = vi.fn();
     const onToggleCardDetails = vi.fn();

@@ -244,6 +244,50 @@ const SwipeFeedback: React.FC<{ swipeFeedback: SwipeDirection | undefined }> = (
   );
 };
 
+const scrollAnswerFromOverlay = (event: WheelEvent) => {
+  const answerSurface = (event.currentTarget as HTMLElement).closest<HTMLDivElement>("[data-study-answer-scroll]");
+  if (answerSurface === null || event.deltaY === 0) return;
+
+  // React delegates wheel events passively, so this native listener must remain cancelable to avoid a second native scroll.
+  const multiplier =
+    event.deltaMode === WheelEvent.DOM_DELTA_LINE
+      ? 16
+      : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+        ? answerSurface.clientHeight
+        : 1;
+  answerSurface.scrollTop += event.deltaY * multiplier;
+  event.preventDefault();
+  event.stopPropagation();
+};
+
+const BackTextEdgeOverlay: React.FC<{
+  ariaLabel: string;
+  className: string;
+  onClick: () => void;
+}> = ({ ariaLabel, className, onClick }) => {
+  const wheelTargetRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const wheelTarget = wheelTargetRef.current;
+    if (wheelTarget === null) return;
+
+    wheelTarget.addEventListener("wheel", scrollAnswerFromOverlay, { passive: false });
+    return () => wheelTarget.removeEventListener("wheel", scrollAnswerFromOverlay);
+  }, []);
+
+  return (
+    <div ref={wheelTargetRef} className={cx("pointer-events-auto absolute inset-y-0 touch-pan-y", className)}>
+      <Overlay
+        className="pointer-events-auto inset-0 size-full touch-pan-y"
+        position="center"
+        variant="transparent"
+        ariaLabel={ariaLabel}
+        onClick={onClick}
+      />
+    </div>
+  );
+};
+
 const BackTextOverlays: React.FC<{
   overlay: StudySessionProps["backTextOverlay"];
 }> = ({ overlay }) => {
@@ -252,21 +296,14 @@ const BackTextOverlays: React.FC<{
   return (
     // The fixed wrapper stays nested under the answer so scroll drags still suppress their trailing click.
     <div className="pointer-events-none fixed inset-0 z-30">
-      {/* Horizontal edge taps are explicit actions; vertical edges stay free for answer scrolling. */}
+      {/* Edge taps stay explicit actions, while vertical touch pans remain native answer scrolling gestures. */}
       {overlay.onClickLeft !== undefined ? (
-        <Overlay
-          className="pointer-events-auto"
-          position="left"
-          variant="transparent"
-          ariaLabel="Swipe left"
-          onClick={overlay.onClickLeft}
-        />
+        <BackTextEdgeOverlay className="left-0 w-20" ariaLabel="Swipe left" onClick={overlay.onClickLeft} />
       ) : null}
       {overlay.onClickRight !== undefined ? (
-        <Overlay
-          className="pointer-events-auto"
-          position="right"
-          variant="transparent"
+        <BackTextEdgeOverlay
+          // Keep the hit area inside the reserved w-20 while leaving a pointer-free scrollbar gutter.
+          className="right-5 w-[calc(5rem-1.25rem)]"
           ariaLabel="Swipe right"
           onClick={overlay.onClickRight}
         />
@@ -289,7 +326,7 @@ const CardContent: React.FC<{
         <div
           className={cx(
             "flex min-h-full w-full",
-            // Each active w-20 hit area needs matching space so it never covers selectable answer content.
+            // Reserve w-20 per edge; the right reservation includes its pointer-free scrollbar gutter.
             backTextOverlay?.onClickLeft !== undefined && "pl-20",
             backTextOverlay?.onClickRight !== undefined && "pr-20"
           )}
@@ -396,6 +433,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
     onClickCapture: stopTrailingCardClick,
     onMouseDown: startPrimaryMouseSwipe,
   };
+
   // The answer owns the reading surface, so session chrome stays unmounted until the front returns.
   const showStudyChrome = !props.showBackText;
 

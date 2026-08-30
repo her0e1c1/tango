@@ -174,3 +174,56 @@ test("SWIPE-22 selects edge answer text beside overlays on a narrow viewport", a
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
+
+test("SWIPE-23 scrolls a long answer with wheel and touch from edge overlays", async ({ fixture, page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const currentCard = fixture.card("card-1");
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  const answerRegion = await revealAnswer(page, currentCard.frontText);
+  const initialScroll = await answerRegion.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    scrollTop: element.scrollTop,
+  }));
+  expect(initialScroll.scrollHeight).toBeGreaterThan(initialScroll.clientHeight);
+  expect(initialScroll.scrollTop).toBe(0);
+
+  const leftOverlay = page.getByRole("button", { name: "Swipe left" });
+  const rightOverlay = page.getByRole("button", { name: "Swipe right" });
+  const rightOverlayBounds = await rightOverlay.boundingBox();
+  if (rightOverlayBounds == null) throw new Error("Expected a visible right back text overlay");
+  expect(rightOverlayBounds.x + rightOverlayBounds.width).toBeLessThan(page.viewportSize()?.width ?? 0);
+  await leftOverlay.hover();
+  await page.mouse.wheel(0, initialScroll.clientHeight);
+
+  await expect.poll(async () => answerRegion.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await answerRegion.evaluate((element) => {
+    element.scrollTop = 0;
+  });
+
+  const touchSession = await page.context().newCDPSession(page);
+  const touchX = rightOverlayBounds.x + rightOverlayBounds.width / 2;
+  const touchStartY = rightOverlayBounds.y + rightOverlayBounds.height * 0.75;
+  const touchEndY = rightOverlayBounds.y + rightOverlayBounds.height * 0.25;
+  await touchSession.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
+  await touchSession.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ id: 0, x: touchX, y: touchStartY }],
+  });
+  await touchSession.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ id: 0, x: touchX, y: touchEndY }],
+  });
+  await touchSession.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  await expect.poll(async () => answerRegion.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await expect(leftOverlay).toBeVisible();
+  await expect(rightOverlay).toBeVisible();
+  await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
+  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+});

@@ -15,6 +15,7 @@
 | SWIPE-20 | write | [左 overlay から設定済み action を実行できる](#swipe-20) |
 | SWIPE-21 | write | [右 overlay から設定済み action を実行できる](#swipe-21) |
 | SWIPE-22 | read | [狭い画面で overlay と重ならずに端の裏面 text を選択できる](#swipe-22) |
+| SWIPE-23 | read | [overlay 上から長い裏面 text を scroll できる](#swipe-23) |
 
 <a id="swipe-01"></a>
 
@@ -179,5 +180,33 @@ Then:
 - back text の表示領域が左右 overlay と重ならない。
 - 選択範囲に対象 Card の back text が含まれる。
 - 対象 Card の back text と左右 overlay が引き続き表示される。
+- Card の学習結果と session の位置が変更されない。
+- browser error が発生しない。
+
+<a id="swipe-23"></a>
+
+### SWIPE-23 overlay 上の wheel と touch で長い裏面 text を scroll できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-back-text-overlays-long`](./fixture/study-back-text-overlays-long.yaml)
+- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
+- 現在の Card に表示領域を超える長さの back text が設定されている。
+- back text swipe overlay の表示設定が有効になっている。
+- viewport の幅が 320px になっている。
+
+When:
+
+- 現在の Card を裏面へ切り替え、左 overlay 上から下方向へ wheel scroll する。
+- answer の scroll 位置を先頭へ戻し、右 overlay 上から上方向へ touch 操作する。
+
+Then:
+
+- wheel と touch のどちらでも answer の scroll 位置が下方向へ移動する。
+- 対象 Card の back text と左右 overlay が引き続き表示される。
+- 右 overlay と viewport 右端の間に scrollbar を直接操作できる領域が残る。
+- overlay の action は実行されない。
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。

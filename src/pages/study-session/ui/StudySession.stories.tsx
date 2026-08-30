@@ -137,7 +137,7 @@ export const AnswerSwipeOverlays: Story = {
     await expect(canvas.queryByRole("button", { name: "Swipe up" })).not.toBeInTheDocument();
     await expect(canvas.queryByRole("button", { name: "Swipe down" })).not.toBeInTheDocument();
 
-    answer.scrollTop = answer.scrollHeight;
+    swipeLeft.dispatchEvent(new WheelEvent("wheel", { bubbles: true, cancelable: true, deltaY: answer.clientHeight }));
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     await expect(answer.scrollTop).toBeGreaterThan(0);
