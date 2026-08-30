@@ -25,9 +25,11 @@ const meta = {
   args: {
     onBack: fn(),
     onToggleCardDetails: fn(),
+    onToggleHelp: fn(),
     onToggleSwipeControls: fn(),
     onTogglePlaybackControls: fn(),
     showSwipeControls: true,
+    showHelp: true,
     showPlaybackControls: true,
     showCardDetails: true,
     playbackControlsAvailable: true,
@@ -182,6 +184,22 @@ export const AutoPlay: Story = {
 export const Mobile: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
   play: centeredFrontTextPlay,
+};
+
+export const Mobile320ActionsOpen: Story = {
+  globals: { viewport: { value: "iphone5", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Open study actions" }));
+
+    const backBounds = canvas.getByRole("button", { name: "Back to deck list" }).getBoundingClientRect();
+    const actionsBounds = canvas.getByRole("group", { name: "Study actions" }).getBoundingClientRect();
+    const cardOverlay = canvasElement.querySelector<HTMLElement>("[data-study-card-overlay]");
+    await expect(cardOverlay).not.toBeNull();
+    await expect(actionsBounds.top).toBeGreaterThanOrEqual(backBounds.bottom);
+    await expect(actionsBounds.right).toBeLessThanOrEqual(canvasElement.getBoundingClientRect().right);
+    if (cardOverlay !== null) await expect(cardOverlay).not.toBeVisible();
+  },
 };
 
 export const MobileSafeArea: Story = {

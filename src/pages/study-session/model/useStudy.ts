@@ -4,6 +4,7 @@ import { useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import {
   toggleShowCardDetails,
+  toggleShowHelp,
   toggleShowPlaybackControls,
   toggleShowSwipeButtonList,
   usePreferences,
@@ -41,10 +42,12 @@ export const useStudy = (deckId: string) => {
     ...swipe,
     toggleBackText: () => setShowBackText((visible) => !visible),
     toggleAutoPlay,
+    toggleShowHelp,
     toggleShowCardDetails,
     toggleShowPlaybackControls,
     toggleSwipeButtonList: toggleShowSwipeButtonList,
     showBackText,
+    showHelp: preferences.controls.showHelp,
     playbackControlsAvailable: preferences.study.cardInterval > 0,
     showCardDetails: preferences.controls.showCardDetails,
     showPlaybackControls: preferences.controls.showPlaybackControls,

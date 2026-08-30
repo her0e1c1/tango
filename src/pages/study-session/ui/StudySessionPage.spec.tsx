@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
   touchStudySession: vi.fn(),
   toggleShowCardDetails: vi.fn(),
+  toggleShowHelp: vi.fn(),
   toggleShowPlaybackControls: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
 }));
@@ -27,6 +28,7 @@ vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
   toggleShowCardDetails: mocks.toggleShowCardDetails,
+  toggleShowHelp: mocks.toggleShowHelp,
   toggleShowPlaybackControls: mocks.toggleShowPlaybackControls,
   toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
 }));
@@ -109,6 +111,7 @@ describe("StudySessionPage", () => {
     mocks.setDarkMode.mockReset();
     mocks.touchStudySession.mockReset();
     mocks.toggleShowCardDetails.mockReset();
+    mocks.toggleShowHelp.mockReset();
     mocks.toggleShowPlaybackControls.mockReset();
     mocks.toggleShowSwipeButtonList.mockReset();
     await createDeck("", deck);
@@ -229,8 +232,6 @@ describe("StudySessionPage", () => {
     renderPage();
     const sessionBeforeHelp = getStudySession(deckId);
 
-    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
-    openStudyActions();
     const trigger = screen.getByRole("button", { name: "Open study help" });
     fireEvent.click(trigger);
     expect(trigger).not.toHaveFocus();
@@ -350,10 +351,12 @@ describe("StudySessionPage", () => {
     renderPage();
     openStudyActions();
 
+    fireEvent.click(screen.getByRole("button", { name: "Help button" }));
     fireEvent.click(screen.getByRole("button", { name: "Swipe controls" }));
     fireEvent.click(screen.getByRole("button", { name: "Playback controls" }));
     fireEvent.click(screen.getByRole("button", { name: "Card details" }));
 
+    expect(mocks.toggleShowHelp).toHaveBeenCalledOnce();
     expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
     expect(mocks.toggleShowPlaybackControls).toHaveBeenCalledOnce();
     expect(mocks.toggleShowCardDetails).toHaveBeenCalledOnce();

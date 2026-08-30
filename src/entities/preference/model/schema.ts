@@ -22,6 +22,7 @@ const DEFAULT_STUDY = {
 };
 
 const DEFAULT_CONTROLS = {
+  showHelp: true,
   showSwipeButtonList: true,
   showPlaybackControls: true,
   showCardDetails: true,
@@ -34,6 +35,9 @@ const DEFAULT_CONTROLS = {
 };
 
 const DEFAULT_LOAD_SAMPLE = true;
+const DEFAULT_LANGUAGE = "system" as const;
+
+export const languagePreferenceSchema = z.enum(["system", "en", "ja"]);
 
 export const swipeActionSchema = z.enum([
   "DoNothing",
@@ -78,6 +82,7 @@ const studyPreferencesSchema = z
 
 export const controlPreferencesSchema = z
   .object({
+    showHelp: z.boolean().catch(DEFAULT_CONTROLS.showHelp),
     showSwipeButtonList: z.boolean().catch(DEFAULT_CONTROLS.showSwipeButtonList),
     showPlaybackControls: z.boolean().catch(DEFAULT_CONTROLS.showPlaybackControls),
     showCardDetails: z.boolean().catch(DEFAULT_CONTROLS.showCardDetails),
@@ -93,12 +98,15 @@ export const controlPreferencesSchema = z
 export const preferencesSchema = z
   .object({
     loadSample: z.boolean().catch(DEFAULT_LOAD_SAMPLE),
+    // Language is additive within persistence version 1, so recover it without discarding the rest of the snapshot.
+    language: languagePreferenceSchema.catch(DEFAULT_LANGUAGE),
     appearance: appearancePreferencesSchema,
     study: studyPreferencesSchema,
     controls: controlPreferencesSchema,
   })
   .catch({
     loadSample: DEFAULT_LOAD_SAMPLE,
+    language: DEFAULT_LANGUAGE,
     appearance: DEFAULT_APPEARANCE,
     study: DEFAULT_STUDY,
     controls: DEFAULT_CONTROLS,

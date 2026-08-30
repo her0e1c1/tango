@@ -39,6 +39,8 @@
 | SETTINGS-01 | write | [Dark mode を自動保存して reload 後も反映できる](./settings.md#settings-01) |
 | SETTINGS-02 | write | [Maximum cards 設定を学習開始画面に反映できる](./settings.md#settings-02) |
 | SETTINGS-03 | batch | [Respect review schedule を次の学習 session に反映できる](./settings.md#settings-03) |
+| SETTINGS-04 | write | [日本語設定を自動保存して reload 後も反映できる](./settings.md#settings-04) |
+| SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](./settings.md#settings-05) |
 
 ### Import
 
@@ -108,6 +110,7 @@
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study-controls.md#swipe-16) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](./study-session.md#swipe-17) |
 | SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](./study-controls.md#swipe-24) |
+| SWIPE-25 | write | [Help button の表示設定を reload 後も維持できる](./study-controls.md#swipe-25) |
 
 ### Study Back Text
 
