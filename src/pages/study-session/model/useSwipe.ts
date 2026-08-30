@@ -17,19 +17,13 @@ export interface SwipeState {
   swipeFeedback?: SwipeDirection;
 }
 
-export const useSwipe = (
-  deckId: DeckId,
-  cards: readonly Card[],
-  onCardChanged: () => void,
-  enabled: boolean
-): SwipeState => {
+export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: () => void): SwipeState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
   const feedback = useSwipeFeedback(preferences.appearance.showSwipeFeedback);
   const swipeState = React.useRef<{ inProgress: boolean }>({ inProgress: false });
 
   const swipe = async (direction: SwipeDirection): Promise<void> => {
-    if (!enabled) return;
     // biome-ignore lint/suspicious/noUnnecessaryConditions: The awaited write lets another event enter this closure.
     if (swipeState.current.inProgress) return;
 
