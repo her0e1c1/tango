@@ -184,6 +184,18 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
   return (
     <div className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 h-touch">
       <button
+        type="button"
+        aria-label="Back to deck list"
+        className={cx(
+          toolbarButtonClass,
+          "absolute left-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] top-0"
+        )}
+        onClick={props.onBack}
+        onKeyDown={closeOnEscape}
+      >
+        <AiOutlineLeft aria-hidden="true" className="text-xl" />
+      </button>
+      <button
         ref={helpTriggerRef}
         type="button"
         aria-label={props.helpTriggerLabel}
@@ -219,17 +231,8 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
         <fieldset
           id={actionsId}
           aria-label="Study actions"
-          className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-between border-0 p-0 pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]"
+          className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0 pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]"
         >
-          <button
-            type="button"
-            aria-label="Back to deck list"
-            className={toolbarButtonClass}
-            onClick={props.onBack}
-            onKeyDown={closeOnEscape}
-          >
-            <AiOutlineLeft aria-hidden="true" className="text-xl" />
-          </button>
           <StudyModeActions
             showCardDetails={props.showCardDetails}
             showSwipeControls={props.showSwipeControls}

@@ -88,7 +88,7 @@ describe("StudySession", () => {
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
 
-  it("opens the study actions overlay and reports its controls", () => {
+  it("keeps the back action visible and opens the remaining study actions", () => {
     const onBack = vi.fn();
     const onToggleCardDetails = vi.fn();
     const onToggleSwipeControls = vi.fn();
@@ -108,7 +108,7 @@ describe("StudySession", () => {
     const openActions = screen.getByRole("button", { name: "Open study actions" });
     expect(openActions).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
 
     fireEvent.click(openActions);
 
@@ -126,7 +126,7 @@ describe("StudySession", () => {
     expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
     expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
     expect(detailsToggle).toHaveAttribute("title", "Hide card details");
-    expect(actions).toContainElement(back);
+    expect(actions).not.toContainElement(back);
     expect(actions).not.toContainElement(screen.getByText("Card metadata"));
 
     fireEvent.click(back);
