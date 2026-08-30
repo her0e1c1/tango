@@ -152,6 +152,7 @@ describe("CardListPage interactions", () => {
   it("owns deletion confirmation and success feedback", async () => {
     renderCardList();
     const trigger = screen.getByRole("button", { name: "Open actions for Front" });
+    const status = screen.getByRole("status", { name: "Toast notifications" });
 
     await userEvent.click(trigger);
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
@@ -164,6 +165,8 @@ describe("CardListPage interactions", () => {
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
     await waitFor(() => expect(mocks.deleteCard).toHaveBeenCalledExactlyOnceWith("user-id", card));
+    expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
+    expect(status).toHaveTextContent("Success: Deleted card “Front”.");
     expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
   });
 
@@ -176,7 +179,10 @@ describe("CardListPage interactions", () => {
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
     const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
-    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+    expect(
+      await within(dialog).findByText("Unable to delete this card. Check your connection and try again.")
+    ).toBeVisible();
+    expect(screen.getByRole("alert")).toHaveTextContent(
       "Unable to delete this card. Check your connection and try again."
     );
     expect(within(dialog).queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();

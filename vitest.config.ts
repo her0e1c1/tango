@@ -30,6 +30,7 @@ export default mergeConfig(
           test: {
             name: 'unit',
             globals: true,
+            setupFiles: ['./test/setup.ts'],
             include: ['src/**/*.spec.{ts,tsx}', '*.spec.{ts,tsx}'],
             environment: 'jsdom',
           },
@@ -39,6 +40,7 @@ export default mergeConfig(
           test: {
             name: 'integration',
             globals: true,
+            setupFiles: ['./test/setup.ts'],
             include: ['test/integration/**/*.spec.{ts,tsx}'],
             environment: 'jsdom',
           },

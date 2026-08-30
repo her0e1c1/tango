@@ -1,9 +1,16 @@
 import type { z } from "zod";
 
-import type { controlPreferencesSchema, preferencesSchema, swipeActionSchema } from "./schema";
+import type {
+  controlPreferencesSchema,
+  languagePreferenceSchema,
+  preferencesSchema,
+  swipeActionSchema,
+} from "./schema";
 
 /** Control action assigned to a swipe direction. */
 export type SwipeAction = z.infer<typeof swipeActionSchema>;
+/** User-selected source for the application language. */
+export type LanguagePreference = z.infer<typeof languagePreferenceSchema>;
 /** Validated study control preferences. */
 type ControlPreferences = z.infer<typeof controlPreferencesSchema>;
 /** Complete validated user preferences. */

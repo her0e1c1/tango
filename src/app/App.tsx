@@ -12,13 +12,14 @@ import { ToastViewport } from "@/shared/ui/toast";
 
 import { AuthProvider } from "./auth";
 import { FirestoreSubscriptionsProvider } from "./firestore-subscriptions";
+import { I18nProvider } from "./i18n";
 import { AppRoutes } from "./routes";
 
 /**
  * Renders the App user interface.
  * Reads display settings and installs the application routes.
  */
-const App: React.FC = () => {
+const AppShell: React.FC = () => {
   const { darkMode } = usePreferences().appearance;
 
   React.useEffect(() => {
@@ -38,5 +39,12 @@ const App: React.FC = () => {
     </>
   );
 };
+
+const App: React.FC = () => (
+  // The provider remains above the router so a locale update rerenders translations without replacing route state.
+  <I18nProvider>
+    <AppShell />
+  </I18nProvider>
+);
 
 export default App;

@@ -2,7 +2,7 @@
 
 ## 目的
 
-Settings の自動保存が reload を越えて維持され、保存した学習設定が学習開始画面や次の学習 session に反映されることを確認する。
+Settings の自動保存が reload を越えて維持され、保存した学習設定が学習開始画面や次の学習 session に反映され、言語設定がアプリケーションへ反映されることを確認する。
 
 ## テストケース
 
@@ -11,6 +11,8 @@ Settings の自動保存が reload を越えて維持され、保存した学習
 | SETTINGS-01 | write | [Dark mode を自動保存して reload 後も反映できる](#settings-01) |
 | SETTINGS-02 | write | [Maximum cards 設定を学習開始画面に反映できる](#settings-02) |
 | SETTINGS-03 | batch | [Respect review schedule を次の学習 session に反映できる](#settings-03) |
+| SETTINGS-04 | write | [日本語設定を自動保存して reload 後も反映できる](#settings-04) |
+| SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](#settings-05) |
 
 <a id="settings-01"></a>
 
@@ -78,4 +80,51 @@ Then:
 - `Respect review schedule` が reload 後も有効である。
 - 過去の next seeing time を持つ Card と、next seeing time を持たない Card が session に含まれる。
 - 将来の next seeing time を持つ Card は session に含まれない。
+- browser error が発生しない。
+
+<a id="settings-04"></a>
+
+### SETTINGS-04 日本語設定を自動保存して reload 後も反映できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 認証済みユーザーが、E2E 共通の English language 設定で Settings 画面を開いている。
+
+When:
+
+- Language selector で `日本語` を選択し、自動保存後にページを reload する。
+
+Then:
+
+- Settings heading と language selector の accessible name が日本語で表示される。
+- browser storage の language preference が `ja` として保存される。
+- `html[lang]` が `ja` になる。
+- reload 後も日本語 UI、language preference、`html[lang]` が維持される。
+- browser error が発生しない。
+
+<a id="settings-05"></a>
+
+### SETTINGS-05 System 設定で browser locale を解決して reload 後も反映できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- browser context の locale がこのケースだけ `ja-JP` に設定されている。
+- 認証済みユーザーが、E2E 共通の English language 設定で Settings 画面を開いている。
+
+When:
+
+- Language selector で `System` を選択し、自動保存後にページを reload する。
+
+Then:
+
+- Settings heading と language selector の accessible name が日本語で表示される。
+- browser storage の language preference が `system` として保存される。
+- `ja-JP` が有効な locale の `ja` に解決され、`html[lang]` が `ja` になる。
+- reload 後も日本語 UI、language preference、`html[lang]` が維持される。
 - browser error が発生しない。
