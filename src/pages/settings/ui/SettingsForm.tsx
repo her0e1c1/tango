@@ -7,6 +7,8 @@ import type { Preferences } from "@/entities/preference";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 import { Slider, Switch } from "@/shared/ui/forms";
 
+const repositoryUrl = "https://github.com/her0e1c1/tango";
+
 export interface SettingsFormProps {
   form: UseFormReturn<Preferences>;
   studyPreferencesLimits: {
@@ -18,6 +20,9 @@ export interface SettingsFormProps {
 }
 
 export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
+  const shortCommitHash = props.commitHash?.slice(0, 7);
+  const commitUrl =
+    props.commitHash && props.commitHash !== "unknown" ? `${repositoryUrl}/commit/${props.commitHash}` : undefined;
   const maxNumberOfCardsToLearn = useWatch({
     control: props.form.control,
     name: "study.maxNumberOfCardsToLearn",
@@ -210,7 +215,18 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             </div>
             <div className="flex min-h-touch items-center justify-between gap-4 border-t border-border px-4 py-3">
               <span className="text-body font-medium text-ink">Commit hash</span>
-              <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.commitHash}</span>
+              {commitUrl ? (
+                <a
+                  className="min-w-0 break-all text-right text-caption text-accent-primary underline underline-offset-2"
+                  href={commitUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {shortCommitHash}
+                </a>
+              ) : (
+                <span className="min-w-0 break-all text-right text-caption text-ink-muted">{shortCommitHash}</span>
+              )}
             </div>
           </div>
         </details>
