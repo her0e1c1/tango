@@ -11,6 +11,7 @@ import { createPreferences } from "@/test/factories";
 
 import { SettingsForm } from "./SettingsForm";
 
+const commitHash = "0123456789abcdef0123456789abcdef01234567";
 const defaultValues = createPreferences({
   showPlaybackControls: true,
   useCardInterval: true,
@@ -21,12 +22,7 @@ const defaultValues = createPreferences({
 const SettingsFormHarness: React.FC<{ values?: Preferences }> = ({ values = defaultValues }) => {
   const form = useForm<Preferences>({ defaultValues: values });
   return (
-    <SettingsForm
-      form={form}
-      studyPreferencesLimits={studyPreferencesLimits}
-      version="1.2.3"
-      commitHash="0123456789abcdef0123456789abcdef01234567"
-    />
+    <SettingsForm form={form} studyPreferencesLimits={studyPreferencesLimits} version="1.2.3" commitHash={commitHash} />
   );
 };
 
@@ -70,10 +66,11 @@ describe("SettingsForm", () => {
     expect(details).toHaveTextContent("1.2.3");
     expect(details).toHaveTextContent("0123456");
     expect(details).not.toHaveTextContent("01234567");
-    expect(screen.getByRole("link", { name: "main" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "0123456" })).toHaveAttribute(
       "href",
-      "https://github.com/her0e1c1/tango/tree/main"
+      `https://github.com/her0e1c1/tango/commit/${commitHash}`
     );
+    expect(details).not.toHaveTextContent("Main branch");
   });
 
   it("keeps section heading relationships unique across multiple instances", () => {
