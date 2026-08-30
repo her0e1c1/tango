@@ -1,11 +1,4 @@
-import {
-  collectBrowserErrors,
-  documentId,
-  expect,
-  listDocuments,
-  requireDocument,
-  test,
-} from "./fixtures";
+import { collectBrowserErrors, documentId, expect, listDocuments, requireDocument, test } from "./fixtures";
 
 test("PERSIST-03 reflects a remote Card edit in another open client without reload", async ({
   baseURL,
