@@ -23,7 +23,9 @@ export const DeckImportPage: React.FC = () => {
           void deckImport.selectFile(file);
         }}
         onAddSample={() => {
-          void deckImport.addSample();
+          void deckImport.addSample().then((result) => {
+            if (result !== undefined) void navigate(routes.deckList.to());
+          });
         }}
         onImport={() => {
           void deckImport.importPreview().then((result) => {
@@ -34,6 +36,7 @@ export const DeckImportPage: React.FC = () => {
         onDownloadSample={downloadSampleCsv}
         validating={deckImport.validating}
         pending={deckImport.pending}
+        addingSample={deckImport.addingSample}
         preview={deckImport.preview}
         result={deckImport.result}
         error={deckImport.error}

@@ -13,7 +13,7 @@ CSV の検証から保存先別の import、失敗後の再試行、Sample Deck 
 | IMPORT-03 | batch | [CSV を remote に import して reload 後も利用できる](#import-03) |
 | IMPORT-04 | batch | [CSV を local-only に import して reload 後に学習できる](#import-04) |
 | IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](#import-05) |
-| IMPORT-06 | batch | [Sample Deck を繰り返し追加しても重複しない](#import-06) |
+| IMPORT-06 | batch | [Sample Deck を保存して一覧へ戻り、再追加しても重複しない](#import-06) |
 
 <a id="import-01"></a>
 
@@ -132,23 +132,25 @@ Then:
 
 <a id="import-06"></a>
 
-### IMPORT-06 Sample Deck を繰り返し追加しても重複しない
+### IMPORT-06 Sample Deck を保存して一覧へ戻り、再追加しても重複しない
 
 カテゴリ: `batch`
 
 Given:
 
-- Fixture: [`sample-deck-present`](./fixture/sample-deck-present.yaml)
-- Sample Deck が明示的な追加操作によって local storage に保存されている。
-- Sample Deck とその Card の識別子および件数が記録されている。
-- Deck 一覧から Import 画面を開いている。
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Sample Deck とその Card は local storage に存在しない。
+- Import 画面を開いている。
 
 When:
 
-- Import 画面から Sample Deck を再度追加し、`Back to decks` で Deck 一覧へ戻った後、画面を reload して Sample Deck を開く。
+- `Add sample deck` を実行し、Deck 一覧へ戻った後に Sample Deck と Card の識別子および件数を記録する。
+- Import 画面を再度開いて Sample Deck を追加し、Deck 一覧を reload して Sample Deck を開く。
 
 Then:
 
+- Sample Deck の保存中は `Add sample deck` が loading 表示になり、競合する操作が無効になる。
+- Sample Deck の追加では CSV の preview や完了確認を表示せず、保存完了後に Deck 一覧へ自動的に戻る。
 - local storage に存在する Sample Deck は一つだけである。
-- Sample Deck の Card の識別子と件数は追加前から変わらず、重複していない。
+- Sample Deck に Card が保存され、再追加後もその識別子と件数は変わらず重複していない。
 - 未処理の browser error が発生しない。
