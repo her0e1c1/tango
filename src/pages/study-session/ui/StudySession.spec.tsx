@@ -63,6 +63,7 @@ describe("StudySession", () => {
     );
 
     expect(screen.getByText("Back")).toBeVisible();
+    expect(screen.getByRole("region", { name: "Study answer" })).toBeVisible();
     expect(screen.queryByText("Front")).not.toBeInTheDocument();
     expect(screen.queryByText("Card metadata")).not.toBeInTheDocument();
     expect(screen.queryByText("Save failed")).not.toBeInTheDocument();
@@ -74,6 +75,45 @@ describe("StudySession", () => {
     expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+  });
+
+  it("runs configured back-text edge actions without clicking the answer", () => {
+    const onBackClick = vi.fn();
+    const onClickLeft = vi.fn();
+    const onClickRight = vi.fn();
+    const { rerender } = render(
+      <StudySession
+        {...toolbarProps()}
+        showBackText
+        backTextSlot={
+          <button type="button" onClick={onBackClick}>
+            Back
+          </button>
+        }
+        backTextOverlay={{ onClickLeft, onClickRight }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Swipe left" }));
+    fireEvent.click(screen.getByRole("button", { name: "Swipe right" }));
+
+    expect(onClickLeft).toHaveBeenCalledOnce();
+    expect(onClickRight).toHaveBeenCalledOnce();
+    expect(onBackClick).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Swipe up" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe down" })).not.toBeInTheDocument();
+
+    rerender(
+      <StudySession
+        {...toolbarProps()}
+        showSwipeControls={false}
+        frontTextSlot={<div>Front</div>}
+        backTextOverlay={{ onClickLeft, onClickRight }}
+      />
+    );
+    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe right" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Study answer" })).not.toBeInTheDocument();
   });
 
   it("opens the study actions overlay and reports its controls", () => {

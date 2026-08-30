@@ -20,6 +20,9 @@ type StudyShortcutAction =
   | "toggleSwipeButtonList"
   | "toggleAutoPlay";
 
+const isDirectionalStudyAction = (action: StudyShortcutAction): boolean =>
+  action === "swipeUp" || action === "swipeDown" || action === "swipeLeft" || action === "swipeRight";
+
 const studyShortcutTextEntryTarget =
   "input:not([type]), input[type='text'], input[type='search'], input[type='email'], input[type='url'], input[type='tel'], input[type='password'], input[type='number'], input[type='date'], input[type='datetime-local'], input[type='month'], input[type='time'], input[type='week'], textarea, select";
 const studyShortcutButtonTarget =
@@ -70,6 +73,14 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
         onSwipeDown={swipeActions.onClickDown}
         onSwipeLeft={swipeActions.onClickLeft}
         onSwipeRight={swipeActions.onClickRight}
+        {...(state.showBackTextSwipeOverlays
+          ? {
+              backTextOverlay: {
+                onClickLeft: swipeActions.onClickLeft,
+                onClickRight: swipeActions.onClickRight,
+              },
+            }
+          : {})}
         {...(state.swipeFeedback !== undefined ? { swipeFeedback: state.swipeFeedback } : {})}
         frontTextSlot={
           <FrontText category={state.card.category} text={state.card.frontText} onClick={state.toggleBackText} />
@@ -105,7 +116,10 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
     // available after a user moves focus into the card or floating controls.
     if (shouldIgnoreStudyShortcut(event)) return;
     const currentStudy = latestStudy.current;
-    if (currentStudy?.status === "studying") void currentStudy[action]();
+    if (currentStudy?.status !== "studying") return;
+    // Directional keys are an input gesture, so the answer keeps them inert even though edge overlays can act.
+    if (currentStudy.showBackText && isDirectionalStudyAction(action)) return;
+    void currentStudy[action]();
   };
 
   // useKey retains its initial handler, so that handler reads current Page state through one stable ref.

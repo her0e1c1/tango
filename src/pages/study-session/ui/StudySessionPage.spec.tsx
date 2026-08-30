@@ -148,6 +148,28 @@ describe("StudySessionPage", () => {
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
   });
 
+  it("runs a configured back-text edge action and shows the next card front", async () => {
+    mocks.preferences = createPreferences({
+      controls: {
+        showBackTextSwipeOverlays: true,
+        cardSwipeLeft: "GoToNextCardMastered",
+      },
+    });
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: "Front one" }));
+
+    await user.click(screen.getByRole("button", { name: "Swipe left" }));
+
+    await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
+    expect(screen.queryByText("Back two")).not.toBeInTheDocument();
+    expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith(
+      "user-id",
+      expect.objectContaining({ cardId: "first-card", score: 3, numberOfSeen: 4 })
+    );
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+  });
+
   it("keeps the ArrowRight shortcut active while the front card is focused", async () => {
     const user = userEvent.setup();
     renderPage();

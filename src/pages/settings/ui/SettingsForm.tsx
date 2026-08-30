@@ -26,6 +26,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
   const idPrefix = useId();
   const inputIds = {
     showSwipeButtonList: `${idPrefix}-show-swipe-controls`,
+    showBackTextSwipeOverlays: `${idPrefix}-show-back-text-swipe-overlays`,
     showPlaybackControls: `${idPrefix}-show-playback-controls`,
     showSwipeFeedback: `${idPrefix}-show-swipe-feedback`,
     darkMode: `${idPrefix}-dark-mode`,
@@ -60,6 +61,17 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
               {...props.form.register("controls.showSwipeButtonList")}
               id={inputIds.showSwipeButtonList}
               aria-describedby={descriptionId(inputIds.showSwipeButtonList)}
+            />
+          </SettingsRow>
+          <SettingsRow
+            inputId={inputIds.showBackTextSwipeOverlays}
+            label="Show back text swipe overlays"
+            description="Display left and right study actions while viewing an answer"
+          >
+            <Switch
+              {...props.form.register("controls.showBackTextSwipeOverlays")}
+              id={inputIds.showBackTextSwipeOverlays}
+              aria-describedby={descriptionId(inputIds.showBackTextSwipeOverlays)}
             />
           </SettingsRow>
           <SettingsRow

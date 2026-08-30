@@ -8,7 +8,7 @@ import type { Preferences } from "./types";
 
 const PREFERENCES_STORAGE_KEY = "tango-config";
 // No migration is registered: changing this version deliberately invalidates older state shapes.
-const PREFERENCES_STORAGE_VERSION = 1;
+const PREFERENCES_STORAGE_VERSION = 2;
 
 /** @internal Partial updates for each top-level preference field. */
 export type PartialPreferences = {

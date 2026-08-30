@@ -11,6 +11,7 @@ import {
 import { MdSwipe } from "react-icons/md";
 import { useSwipeable } from "react-swipeable";
 import type { SwipeDirection } from "@/entities/preference";
+import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
 import { SwipeButtonList, type SwipeButtonListProps } from "./SwipeButtonList";
@@ -46,6 +47,10 @@ export interface StudySessionProps {
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
   frontTextSlot?: React.ReactNode;
+  backTextOverlay?: {
+    onClickLeft?: () => void;
+    onClickRight?: () => void;
+  };
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
   feedbackSlot?: React.ReactNode;
@@ -225,14 +230,51 @@ const SwipeFeedback: React.FC<{ swipeFeedback: SwipeDirection | undefined }> = (
   );
 };
 
+const BackTextOverlays: React.FC<{
+  overlay: StudySessionProps["backTextOverlay"];
+}> = ({ overlay }) => {
+  if (overlay?.onClickLeft === undefined && overlay?.onClickRight === undefined) return null;
+
+  return (
+    // The fixed wrapper stays nested under the answer so scroll drags still suppress their trailing click.
+    <div className="pointer-events-none fixed inset-0 z-30">
+      {/* Horizontal edge taps are explicit actions; vertical edges stay free for answer scrolling. */}
+      {overlay.onClickLeft !== undefined ? (
+        <Overlay
+          className="pointer-events-auto"
+          position="left"
+          variant="transparent"
+          ariaLabel="Swipe left"
+          onClick={overlay.onClickLeft}
+        />
+      ) : null}
+      {overlay.onClickRight !== undefined ? (
+        <Overlay
+          className="pointer-events-auto"
+          position="right"
+          variant="transparent"
+          ariaLabel="Swipe right"
+          onClick={overlay.onClickRight}
+        />
+      ) : null}
+    </div>
+  );
+};
+
 const CardContent: React.FC<{
   showBackText: boolean | undefined;
   backTextSlot: React.ReactNode | undefined;
   frontTextSlot: React.ReactNode | undefined;
   cardOverlaySlot: React.ReactNode | undefined;
-}> = ({ showBackText, backTextSlot, frontTextSlot, cardOverlaySlot }) => {
+  backTextOverlay: StudySessionProps["backTextOverlay"];
+}> = ({ showBackText, backTextSlot, frontTextSlot, cardOverlaySlot, backTextOverlay }) => {
   if (showBackText && backTextSlot != null) {
-    return <div className="flex min-h-full w-full">{backTextSlot}</div>;
+    return (
+      <>
+        <BackTextOverlays overlay={backTextOverlay} />
+        <div className="flex min-h-full w-full">{backTextSlot}</div>
+      </>
+    );
   }
   if (frontTextSlot != null) {
     return (
@@ -351,6 +393,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       ) : null}
       {showStudyChrome ? <SwipeFeedback swipeFeedback={props.swipeFeedback} /> : null}
       <div
+        {...(props.showBackText ? { role: "region", "aria-label": "Study answer" } : {})}
         className={cx(
           "relative min-h-0 flex-1",
           props.showBackText ? "overflow-y-auto pt-[env(safe-area-inset-top)]" : "overflow-hidden"
@@ -362,6 +405,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           backTextSlot={props.backTextSlot}
           frontTextSlot={props.frontTextSlot}
           cardOverlaySlot={showCardDetails ? props.cardOverlaySlot : undefined}
+          backTextOverlay={props.backTextOverlay}
         />
       </div>
       <Controls

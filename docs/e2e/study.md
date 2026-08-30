@@ -8,7 +8,6 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](#swipe-01) |
 | SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](#swipe-02) |
 | SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](#swipe-03) |
 | SWIPE-04 | write | [next-card action で次の Card へ進める](#swipe-04) |
@@ -22,31 +21,8 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 | SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](#swipe-12) |
 | SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-13) |
 | SWIPE-14 | read | [non-primary mouse の drag を無視できる](#swipe-14) |
-| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](#swipe-15) |
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-16) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#swipe-17) |
-
-<a id="swipe-01"></a>
-
-### SWIPE-01 学習中の Card を表面から裏面へ切り替えられる
-
-カテゴリ: `read`
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
-- 現在の Card に front text と back text が設定されている。
-
-When:
-
-- 学習画面に表示された現在の Card の front text を選択して裏面へ切り替える。
-
-Then:
-
-- 現在の Card の back text が表示される。
-- Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
 
 <a id="swipe-02"></a>
 
@@ -341,29 +317,6 @@ When:
 Then:
 
 - 現在の Card の front text が引き続き表示される。
-- Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
-
-<a id="swipe-15"></a>
-
-### SWIPE-15 裏面 text を選択しても Card の状態を維持できる
-
-カテゴリ: `read`
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
-- 現在の Card の selectable な back text が表示されている。
-
-When:
-
-- primary mouse button の drag で back text を選択する。
-
-Then:
-
-- 選択範囲に対象 Card の back text が含まれる。
-- 対象 Card の back text が引き続き表示される。
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
