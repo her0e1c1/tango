@@ -15,7 +15,7 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <AppLayout showHeader>
-      <SettingsForm {...formState} version={__APP_VERSION__} />
+      <SettingsForm {...formState} version={__APP_VERSION__} commitHash={__COMMIT_HASH__} />
     </AppLayout>
   );
 };

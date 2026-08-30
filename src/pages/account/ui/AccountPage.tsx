@@ -20,22 +20,8 @@ export const AccountPage: React.FC = () => {
   const signIn = useSignIn();
   const signOut = useSignOut();
   const isLoggedIn = account != null;
-  const operation = isLoggedIn
-    ? {
-        run: signOut.signOut,
-        pending: signOut.pending,
-        error: signOut.error,
-        pendingLabel: "Signing out…",
-        errorLabel: "Unable to sign out.",
-      }
-    : {
-        run: signIn.signIn,
-        pending: signIn.pending,
-        error: signIn.error,
-        pendingLabel: "Signing in…",
-        errorLabel: "Unable to sign in.",
-      };
-  const runOperation = () => void operation.run().catch(() => undefined);
+  const runSignIn = () => void signIn.signIn().catch(() => undefined);
+  const runSignOut = () => void signOut.signOut().catch(() => undefined);
 
   useKey("t", () => void navigate(routes.deckList.to()));
 
@@ -60,14 +46,15 @@ export const AccountPage: React.FC = () => {
               </h2>
               <p className="text-caption text-ink-muted">Identity and Google sign-in</p>
             </div>
-            <Button
-              variant={isLoggedIn ? "quiet" : "primary"}
-              size="sm"
-              loading={operation.pending}
-              onClick={runOperation}
-            >
-              {isLoggedIn ? "Sign out" : "Sign in with Google"}
-            </Button>
+            {isLoggedIn ? (
+              <Button variant="quiet" size="sm" loading={signOut.pending} onClick={runSignOut}>
+                Sign out
+              </Button>
+            ) : (
+              <Button variant="primary" size="sm" loading={signIn.pending} onClick={runSignIn}>
+                Sign in with Google
+              </Button>
+            )}
           </div>
           <dl className="divide-y divide-border">
             <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
@@ -87,13 +74,23 @@ export const AccountPage: React.FC = () => {
               <dd className="min-w-0 break-all text-right text-caption text-ink-muted">{uid}</dd>
             </div>
           </dl>
-          <RemoteMutationNotice
-            pending={operation.pending}
-            error={operation.error}
-            onRetry={runOperation}
-            pendingLabel={operation.pendingLabel}
-            errorLabel={operation.errorLabel}
-          />
+          {isLoggedIn ? (
+            <RemoteMutationNotice
+              pending={signOut.pending}
+              error={signOut.error}
+              onRetry={runSignOut}
+              pendingLabel="Signing out…"
+              errorLabel="Unable to sign out."
+            />
+          ) : (
+            <RemoteMutationNotice
+              pending={signIn.pending}
+              error={signIn.error}
+              onRetry={runSignIn}
+              pendingLabel="Signing in…"
+              errorLabel="Unable to sign in."
+            />
+          )}
         </section>
       </section>
     </AppLayout>

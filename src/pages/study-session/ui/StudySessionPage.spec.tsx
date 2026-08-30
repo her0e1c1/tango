@@ -2,7 +2,7 @@ import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes, useParams } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -48,11 +48,6 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionPage } from "./StudySessionPage";
 
-const CardListDestination = () => {
-  const { id } = useParams();
-  return <h1>Cards for {id}</h1>;
-};
-
 describe("StudySessionPage", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
@@ -79,7 +74,6 @@ describe("StudySessionPage", () => {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path="/" element={<h1>Deck list destination</h1>} />
-          <Route path="/deck/:id" element={<CardListDestination />} />
           <Route path="/deck/:id/study" element={<StudySessionPage />} />
         </Routes>
       </MemoryRouter>
@@ -107,7 +101,7 @@ describe("StudySessionPage", () => {
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Study actions" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Back to cards" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
     expect(screen.getByText("Front one")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
@@ -122,7 +116,7 @@ describe("StudySessionPage", () => {
     expect(screen.queryByLabelText("Score 2, positive")).not.toBeInTheDocument();
     expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Back to cards" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
@@ -162,13 +156,13 @@ describe("StudySessionPage", () => {
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
   });
 
-  it("returns from a deep-linked Study to the same Deck without changing the resumable session", () => {
+  it("returns from a deep-linked Study to the Deck list without changing the resumable session", () => {
     renderPage();
     const sessionBeforeExit = getStudySession(deckId);
 
-    fireEvent.click(screen.getByRole("button", { name: "Back to cards" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
 
-    expect(screen.getByRole("heading", { level: 1, name: `Cards for ${deckId}` })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
     expect(mocks.removeStudySession).not.toHaveBeenCalled();
   });
@@ -180,7 +174,7 @@ describe("StudySessionPage", () => {
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Study actions" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Back to cards" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
     expect(screen.getByLabelText("Score 2, positive")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });

@@ -22,6 +22,7 @@ export interface SettingsFormProps {
   maxNumberOfCardsToLearn: number;
   cardInterval: number;
   version?: string;
+  commitHash?: string;
 }
 
 export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
@@ -176,7 +177,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
               <h2 id={advancedHeadingId} className="text-body font-bold text-ink">
                 Advanced
               </h2>
-              <span className="block text-caption text-ink-muted">Application version</span>
+              <span className="block text-caption text-ink-muted">Application version and commit</span>
             </span>
             <AiOutlineDown
               aria-hidden="true"
@@ -187,6 +188,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             <div className="flex min-h-touch items-center justify-between gap-4 px-4 py-3">
               <span className="text-body font-medium text-ink">Version</span>
               <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.version}</span>
+            </div>
+            <div className="flex min-h-touch items-center justify-between gap-4 border-t border-border px-4 py-3">
+              <span className="text-body font-medium text-ink">Commit hash</span>
+              <span className="min-w-0 break-all text-right text-caption text-ink-muted">{props.commitHash}</span>
             </div>
           </div>
         </details>

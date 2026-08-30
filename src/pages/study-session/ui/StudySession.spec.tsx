@@ -68,7 +68,7 @@ describe("StudySession", () => {
     expect(screen.queryByText("Save failed")).not.toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Back to cards" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
@@ -90,7 +90,7 @@ describe("StudySession", () => {
       />
     );
 
-    const back = screen.getByRole("button", { name: "Back to cards" });
+    const back = screen.getByRole("button", { name: "Back to deck list" });
     const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
     const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
     const actions = screen.getByRole("group", { name: "Study actions" });
