@@ -64,7 +64,7 @@ export interface StudySessionProps {
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
   feedbackSlot?: React.ReactNode;
-  help: Omit<StudyHelpDialogProps, "onClose"> & {
+  help: Omit<StudyHelpDialogProps, "onClose" | "restoreTriggerFocus"> & {
     open: boolean;
     triggerLabel: string;
     onOpen: () => void;
@@ -153,7 +153,8 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
   );
 };
 
-const StudyToolbar: React.FC<{
+interface StudyToolbarProps {
+  ref?: React.RefObject<HTMLButtonElement | null>;
   open: boolean;
   showCardDetails: boolean;
   showSwipeControls: boolean;
@@ -166,7 +167,9 @@ const StudyToolbar: React.FC<{
   onBack: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
-}> = (props) => {
+}
+
+const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...props }) => {
   const actionsId = React.useId();
   const playbackDescriptionId = React.useId();
   const triggerRef = React.useRef<HTMLButtonElement>(null);
@@ -181,6 +184,7 @@ const StudyToolbar: React.FC<{
   return (
     <div className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 h-touch">
       <button
+        ref={helpTriggerRef}
         type="button"
         aria-label={props.helpTriggerLabel}
         className={cx(
@@ -316,6 +320,11 @@ const Controls: React.FC<{
 
 export const StudySession: React.FC<StudySessionProps> = (props) => {
   const [studyActionsOpen, setStudyActionsOpen] = React.useState(false);
+  // Safari does not focus pointer-activated buttons by default, so Help must restore this explicit trigger.
+  const helpTriggerRef = React.useRef<HTMLButtonElement>(null);
+  const restoreHelpTriggerFocus = () => {
+    if (helpTriggerRef.current?.isConnected) helpTriggerRef.current.focus();
+  };
   const suppressCardClick = React.useRef(false);
   const suppressCardClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -374,6 +383,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       {showStudyChrome ? props.feedbackSlot : null}
       {showStudyChrome ? (
         <StudyToolbar
+          ref={helpTriggerRef}
           open={studyActionsOpen}
           showCardDetails={props.showCardDetails}
           showSwipeControls={props.showSwipeControls}
@@ -418,6 +428,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           description={props.help.description}
           closeLabel={props.help.closeLabel}
           rows={props.help.rows}
+          restoreTriggerFocus={restoreHelpTriggerFocus}
           onClose={props.help.onClose}
         />
       ) : null}

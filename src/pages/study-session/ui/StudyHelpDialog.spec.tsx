@@ -18,12 +18,19 @@ const dialogProps = {
 
 const Harness: React.FC = () => {
   const [open, setOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)}>
+      <button ref={triggerRef} type="button" onClick={() => setOpen(true)}>
         Open study help
       </button>
-      {open ? <StudyHelpDialog {...dialogProps} onClose={() => setOpen(false)} /> : null}
+      {open ? (
+        <StudyHelpDialog
+          {...dialogProps}
+          restoreTriggerFocus={() => triggerRef.current?.focus()}
+          onClose={() => setOpen(false)}
+        />
+      ) : null}
     </>
   );
 };
@@ -42,11 +49,11 @@ describe("StudyHelpDialog", () => {
     expect(screen.getByRole("button", { name: "Close help" })).toHaveFocus();
   });
 
-  it("traps focus, closes on Escape, and returns focus to the Help trigger", async () => {
-    const user = userEvent.setup();
+  it("traps focus, closes on Escape, and returns focus to the Help trigger after a pointer click", async () => {
     render(<Harness />);
     const trigger = screen.getByRole("button", { name: "Open study help" });
-    await user.click(trigger);
+    fireEvent.click(trigger);
+    expect(trigger).not.toHaveFocus();
 
     const close = screen.getByRole("button", { name: "Close help" });
     expect(fireEvent.keyDown(close, { key: "Tab" })).toBe(false);

@@ -12,26 +12,27 @@ export interface StudyHelpDialogProps {
   description: string;
   closeLabel: string;
   rows: readonly StudyHelpDialogRow[];
+  restoreTriggerFocus: () => void;
   onClose: () => void;
 }
 
 export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
+  const { restoreTriggerFocus } = props;
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const titleId = React.useId();
   const descriptionId = React.useId();
 
   React.useEffect(() => {
-    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      restoreTriggerFocus();
     };
-  }, []);
+  }, [restoreTriggerFocus]);
 
   const trapFocus = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);

@@ -193,8 +193,8 @@ describe("StudySessionPage", () => {
     const sessionBeforeHelp = getStudySession(deckId);
 
     const trigger = screen.getByRole("button", { name: "Open study help" });
-    trigger.focus();
     fireEvent.click(trigger);
+    expect(trigger).not.toHaveFocus();
 
     const dialog = screen.getByRole("dialog", { name: "Study controls" });
     expect(dialog).toHaveTextContent("Arrow Up / Swipe UpEnd the current session and return to the deck list");

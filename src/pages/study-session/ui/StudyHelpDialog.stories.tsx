@@ -26,6 +26,7 @@ const meta = {
     description: "Review the controls available for this study session and their current actions.",
     closeLabel: "Close help",
     rows: englishRows,
+    restoreTriggerFocus: fn(),
     onClose: fn(),
   },
 } satisfies Meta<typeof StudyHelpDialog>;
