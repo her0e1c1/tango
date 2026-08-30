@@ -256,7 +256,9 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       ) : null}
       {showStudyChrome ? <SwipeFeedback swipeFeedback={props.swipeFeedback} /> : null}
       <div
-        // The answer surface owns vertical scrolling and must remain reachable when its content has no focusable elements.
+        // The marker lets Page shortcuts leave Space to this scrolling surface and its focusable descendants.
+        data-study-answer-scroll={props.showBackText ? "" : undefined}
+        // The answer surface must remain reachable when its content has no focusable elements.
         tabIndex={props.showBackText ? 0 : undefined}
         className={cx(
           "relative min-h-0 flex-1",
