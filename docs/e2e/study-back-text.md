@@ -14,8 +14,8 @@
 | SWIPE-19 | read | [長い裏面 text を scroll しても Card の状態を維持できる](#swipe-19) |
 | SWIPE-20 | write | [左 overlay から設定済み action を実行できる](#swipe-20) |
 | SWIPE-21 | write | [右 overlay から設定済み action を実行できる](#swipe-21) |
-| SWIPE-22 | read | [狭い画面で overlay と重ならずに端の裏面 text を選択できる](#swipe-22) |
-| SWIPE-23 | read | [overlay 上から長い裏面 text を scroll できる](#swipe-23) |
+| SWIPE-22 | read | [狭い画面でも overlay の下で裏面を全幅表示できる](#swipe-22) |
+| SWIPE-23 | read | [overlay 上の wheel と touch で長い裏面 text を scroll できる](#swipe-23) |
 
 <a id="swipe-01"></a>
 
