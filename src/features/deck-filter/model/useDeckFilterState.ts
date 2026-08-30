@@ -8,6 +8,7 @@ export interface DeckFilterState {
   scoreMin: number | null;
   selectedTags: string[];
   tagAndFilter: boolean;
+  clearScoreRange: () => void;
   setScoreMax: (value: number | null) => void;
   setScoreMin: (value: number | null) => void;
   setSelectedTags: (value: string[]) => void;
@@ -17,6 +18,7 @@ export interface DeckFilterState {
 type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
 type DeckFilterKey = keyof DeckFilterValues;
 type DeckFilterValue = DeckFilterValues[DeckFilterKey];
+type DeckFilterPatch = Partial<DeckFilterValues>;
 
 interface OptimisticUpdate {
   revision: number;
@@ -69,11 +71,21 @@ const reconcileStoredFilter = (
   previousFilter: DeckFilterValues,
   storedFilter: DeckFilterValues
 ): FilterModelState["optimisticUpdates"] => {
+  const changedRevisions = new Set<number>();
+
+  for (const key of FILTER_KEYS) {
+    const update = updates[key];
+    if (update !== undefined && !areFilterValuesEqual(previousFilter[key], storedFilter[key])) {
+      changedRevisions.add(update.revision);
+    }
+  }
+
   let nextUpdates = updates;
 
   for (const key of FILTER_KEYS) {
     const update = nextUpdates[key];
-    if (update !== undefined && !areFilterValuesEqual(previousFilter[key], storedFilter[key])) {
+    // All fields written by one action must observe the same subscription confirmation or supersession.
+    if (update !== undefined && changedRevisions.has(update.revision)) {
       nextUpdates = update.writeSucceeded
         ? removeOptimisticUpdate(nextUpdates, key)
         : { ...nextUpdates, [key]: { ...update, sourceChanged: true } };
@@ -81,6 +93,31 @@ const reconcileStoredFilter = (
   }
 
   return nextUpdates;
+};
+
+const settleOptimisticUpdate = (
+  updates: FilterModelState["optimisticUpdates"],
+  key: DeckFilterKey,
+  removeTransaction: boolean
+): FilterModelState["optimisticUpdates"] => {
+  const update = updates[key];
+  if (update === undefined) return updates;
+  if (removeTransaction) return removeOptimisticUpdate(updates, key);
+  return { ...updates, [key]: { ...update, writeSucceeded: true } };
+};
+
+const settleOptimisticTransaction = (
+  updates: FilterModelState["optimisticUpdates"],
+  revision: number,
+  succeeded: boolean
+): FilterModelState["optimisticUpdates"] => {
+  // A later field revision leaves this transaction before an older response can settle it.
+  const activeKeys = FILTER_KEYS.filter((key) => updates[key]?.revision === revision);
+  const removeTransaction = !succeeded || activeKeys.some((key) => updates[key]?.sourceChanged === true);
+  return activeKeys.reduce(
+    (currentUpdates, key) => settleOptimisticUpdate(currentUpdates, key, removeTransaction),
+    updates
+  );
 };
 
 export const useDeckFilterState = (deck: Deck): DeckFilterState => {
@@ -96,7 +133,7 @@ export const useDeckFilterState = (deck: Deck): DeckFilterState => {
   if (filterState.deckId !== deck.id) {
     setFilterState({ deckId: deck.id, optimisticUpdates: {}, storedFilter });
   } else if (!areStoredFiltersEqual(filterState.storedFilter, storedFilter)) {
-    // Only the changed field confirms or supersedes its optimistic write; unrelated Entity updates must keep it intact.
+    // A stored change settles its whole user action while unrelated revisions remain optimistic.
     setFilterState((current) => ({
       ...current,
       optimisticUpdates: reconcileStoredFilter(current.optimisticUpdates, current.storedFilter, storedFilter),
@@ -104,37 +141,34 @@ export const useDeckFilterState = (deck: Deck): DeckFilterState => {
     }));
   }
 
-  const settleUpdate = (key: DeckFilterKey, revision: number, succeeded: boolean) => {
+  const settleTransaction = (revision: number, succeeded: boolean) => {
     setFilterState((current) => {
-      const update = current.optimisticUpdates[key];
-      // A slower response from an older write must not replace the user's newer choice.
-      if (update?.revision !== revision) return current;
-      if (!succeeded || update.sourceChanged) {
-        return { ...current, optimisticUpdates: removeOptimisticUpdate(current.optimisticUpdates, key) };
-      }
-      return {
-        ...current,
-        optimisticUpdates: {
-          ...current.optimisticUpdates,
-          [key]: { ...update, writeSucceeded: true },
-        },
-      };
+      const optimisticUpdates = settleOptimisticTransaction(current.optimisticUpdates, revision, succeeded);
+      return optimisticUpdates === current.optimisticUpdates ? current : { ...current, optimisticUpdates };
     });
   };
 
-  const updateFilter = <Key extends DeckFilterKey>(key: Key, value: DeckFilterValues[Key]) => {
+  const updateFilter = (patch: DeckFilterPatch) => {
+    const keys = FILTER_KEYS.filter((key) => patch[key] !== undefined);
+    if (keys.length === 0) return;
     const revision = nextRevision.current + 1;
     nextRevision.current = revision;
-    setFilterState((current) => ({
-      ...current,
-      optimisticUpdates: {
-        ...current.optimisticUpdates,
-        [key]: { revision, sourceChanged: false, value, writeSucceeded: false },
-      },
-    }));
-    void editDeck(uid, { id: deck.id, [key]: value }).then(
-      () => settleUpdate(key, revision, true),
-      () => settleUpdate(key, revision, false)
+    setFilterState((current) => {
+      const optimisticUpdates = { ...current.optimisticUpdates };
+      // Every field in one user action shares a revision so it is persisted and settled as one patch.
+      for (const key of keys) {
+        optimisticUpdates[key] = {
+          revision,
+          sourceChanged: false,
+          value: patch[key] as DeckFilterValue,
+          writeSucceeded: false,
+        };
+      }
+      return { ...current, optimisticUpdates };
+    });
+    void editDeck(uid, { id: deck.id, ...patch }).then(
+      () => settleTransaction(revision, true),
+      () => settleTransaction(revision, false)
     );
   };
 
@@ -148,9 +182,10 @@ export const useDeckFilterState = (deck: Deck): DeckFilterState => {
     scoreMin: getFilterValue("scoreMin"),
     selectedTags: getFilterValue("selectedTags"),
     tagAndFilter: getFilterValue("tagAndFilter"),
-    setScoreMax: (value) => updateFilter("scoreMax", value),
-    setScoreMin: (value) => updateFilter("scoreMin", value),
-    setSelectedTags: (value) => updateFilter("selectedTags", value),
-    setTagAndFilter: (value) => updateFilter("tagAndFilter", value),
+    clearScoreRange: () => updateFilter({ scoreMax: null, scoreMin: null }),
+    setScoreMax: (value) => updateFilter({ scoreMax: value }),
+    setScoreMin: (value) => updateFilter({ scoreMin: value }),
+    setSelectedTags: (value) => updateFilter({ selectedTags: value }),
+    setTagAndFilter: (value) => updateFilter({ tagAndFilter: value }),
   };
 };

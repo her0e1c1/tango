@@ -13,6 +13,7 @@ const args: DeckFilterFormProps = {
   tags: [...fixture.tags.default],
   selectedTags: [],
   tagAndFilter: false,
+  clearScoreRange: fn(),
   setScoreMax: fn(),
   setScoreMin: fn(),
   setSelectedTags: fn(),
@@ -32,6 +33,11 @@ const InteractiveDeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
       scoreMin={scoreMin}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
+      clearScoreRange={() => {
+        props.clearScoreRange();
+        setScoreMax(null);
+        setScoreMin(null);
+      }}
       setScoreMax={(value) => {
         props.setScoreMax(value);
         setScoreMax(value);
@@ -87,6 +93,14 @@ export const NoMatchCompatible: Story = {
     selectedTags: ["advanced", "review"],
     tagAndFilter: true,
   },
+};
+
+export const SavedOutsideStandardScoreRange: Story = {
+  args: { scoreMax: 14.25, scoreMin: -12.5 },
+};
+
+export const InvalidSavedScoreRange: Story = {
+  args: { scoreMax: 3, scoreMin: 5 },
 };
 
 export const Mobile: Story = {

@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   deck: null as Deck | null,
   cards: [] as Card[],
   setDarkMode: vi.fn(),
+  editDeck: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock("@/entities/card", () => ({
@@ -23,7 +24,7 @@ vi.mock("@/entities/card", () => ({
 }));
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/deck", () => ({
-  editDeck: vi.fn(),
+  editDeck: mocks.editDeck,
   isDeckTagSelectionMatching: () => true,
   useDeck: () => mocks.deck ?? undefined,
 }));
@@ -80,12 +81,33 @@ describe("StudySessionStartPage", () => {
   it("starts from Enter only outside interactive controls", () => {
     renderPage();
 
-    fireEvent.keyDown(screen.getByRole("slider", { name: "Maximum score value" }), { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("combobox", { name: "Maximum score" }), { key: "Enter" });
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
     fireEvent.keyDown(document.body, { key: "Enter" });
     expect(screen.getByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
+  });
+
+  it("updates the session size immediately when a score limit changes", async () => {
+    mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 0 } });
+    mocks.cards = [
+      createCard({ id: "low-score-card", deckId, score: 0 }),
+      createCard({ id: "high-score-card", deckId, score: 2 }),
+    ];
+    renderPage();
+
+    expect(screen.getByRole("button", { name: "Start 2 cards" })).toBeVisible();
+    const minimumScore = screen.getByRole("combobox", { name: "Minimum score" });
+
+    fireEvent.keyDown(minimumScore, { key: "Enter" });
+    expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
+
+    await userEvent.selectOptions(minimumScore, "1");
+
+    expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
+    expect(screen.getByText("1 card matches your filters.")).toBeVisible();
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", { id: deckId, scoreMin: 1 });
   });
 
   it("creates a study session before navigating to it", async () => {
