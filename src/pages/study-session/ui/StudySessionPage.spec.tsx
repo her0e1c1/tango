@@ -110,7 +110,7 @@ describe("StudySessionPage", () => {
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open study actions" })).toBeVisible();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
     expect(screen.getByText("Front one")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
