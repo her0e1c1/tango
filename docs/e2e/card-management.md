@@ -15,6 +15,8 @@ Card の作成・編集・削除が保存先の境界を守り、失敗後の再
 | CARD-13 | write | [remote Deck に Card を作成できる](#card-13) |
 | CARD-14 | write | [local-only Deck に Card を作成できる](#card-14) |
 | CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](#card-15) |
+| CARD-16 | write | [Card の削除失敗後に再試行できる](#card-16) |
+| CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](#card-17) |
 
 <a id="card-03"></a>
 
@@ -174,3 +176,50 @@ Then:
 - Card の front text、back text、deck ID、owner、unique key が最初の作成要求から維持されている。
 - browser storage に同じ Card の local-only duplicate が存在しない。
 - 最初の作成失敗に伴う未処理の browser error が発生しない。
+
+<a id="card-16"></a>
+
+### CARD-16 Card の削除失敗後に再試行できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
+- 認証済みユーザーが所有する Deck と削除対象の Card が存在する。
+- 最初の削除要求の失敗が dialog 内で処理され、同じ削除対象が維持されている。
+- 次の削除要求は成功できる。
+
+When:
+
+- dialog から同じ Card の削除を再試行し、Card 一覧を reload する。
+
+Then:
+
+- 削除 dialog が閉じる。
+- Card 一覧に対象 Card が表示されない。
+- 対象 Card が active Card として保存先から読み込まれない。
+- 最初の削除失敗に伴う未処理の browser error が発生しない。
+
+<a id="card-17"></a>
+
+### CARD-17 未保存の Card 編集内容を離脱前に確認できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する編集対象の Card が存在する。
+- Card 編集画面で front text を変更し、まだ保存していない。
+
+When:
+
+- Header から Deck 一覧への離脱を試み、Keep editing を選択した後、再度離脱して Discard changes を選択する。
+
+Then:
+
+- 最初の離脱は取り消され、変更した front text が編集画面に維持される。
+- 2回目の離脱では Deck 一覧へ1回だけ遷移する。
+- 永続化された Card の front text は変更されない。
+- browser error が発生しない。
