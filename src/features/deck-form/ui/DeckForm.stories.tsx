@@ -155,5 +155,10 @@ export const Interaction: Story = {
 export const Mobile: Story = {
   args: { mode: "edit", deck: longDeck },
   globals: { viewport: { value: "iphonex", isRotated: false } },
+  play: async ({ canvas }) => {
+    const storageSection = canvas.getByRole("region", { name: "Storage" });
+
+    await expect(storageSection.scrollWidth).toBeLessThanOrEqual(storageSection.clientWidth);
+  },
 };
 export const Dark: Story = { args: { mode: "edit", deck: longDeck }, globals: { theme: "dark" } };
