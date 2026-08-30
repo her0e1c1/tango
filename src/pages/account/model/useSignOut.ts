@@ -1,23 +1,8 @@
-import { useState } from "react";
-
 import { signOutCurrentUser } from "./signOut";
+import { useAccountAction } from "./useAccountAction";
 
 export const useSignOut = () => {
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<unknown>(null);
+  const action = useAccountAction(signOutCurrentUser);
 
-  const run = async () => {
-    setPending(true);
-    setError(null);
-    try {
-      await signOutCurrentUser();
-    } catch (nextError) {
-      setError(nextError);
-      throw nextError;
-    } finally {
-      setPending(false);
-    }
-  };
-
-  return { pending, error, signOut: run };
+  return { pending: action.pending, error: action.error, signOut: action.run };
 };
