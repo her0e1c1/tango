@@ -71,27 +71,6 @@ describe("preferences store", () => {
     });
   });
 
-  it.each(["system", "en", "ja"] as const)(
-    "updates and persists the %s language without resetting other preferences",
-    (language) => {
-      const storage = useMemoryStorage();
-      preferencesStore.getState().updatePreferences({ appearance: { darkMode: true } });
-
-      preferencesStore.getState().updatePreferences({ language });
-
-      const expectedPreferences = {
-        ...defaultPreferences,
-        language,
-        appearance: { ...defaultPreferences.appearance, darkMode: true },
-      };
-      expect(preferencesStore.getState().preferences).toEqual(expectedPreferences);
-      expect(JSON.parse(storage.getItem("tango-config") ?? "{}")).toEqual({
-        state: { preferences: expectedPreferences },
-        version: 2,
-      });
-    }
-  );
-
   it("validates numeric ranges during updates", () => {
     const store = preferencesStore;
 
@@ -150,51 +129,33 @@ describe("preferences store", () => {
           },
         },
       },
-      version: 2,
+      version: 1,
     });
   });
 
-  it("hydrates persisted preferences", async () => {
+  it("hydrates version 1 preferences with defaults for additive fields", async () => {
+    const { showBackTextSwipeOverlays: _showBackTextSwipeOverlays, ...controlsBeforeSwipeOverlays } =
+      defaultPreferences.controls;
     const persistedPreferences = {
       ...defaultPreferences,
       loadSample: false,
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
+      controls: { ...controlsBeforeSwipeOverlays, showSwipeButtonList: false },
     };
     useMemoryStorage({
-      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 2 }),
-    });
-
-    await preferencesStore.persist.rehydrate();
-
-    expect(preferencesStore.getState().preferences).toEqual(persistedPreferences);
-  });
-
-  it("recovers a missing language in an older version 2 snapshot without resetting other preferences", async () => {
-    const { language: _language, ...persistedPreferences } = {
-      ...defaultPreferences,
-      loadSample: false,
-      appearance: { ...defaultPreferences.appearance, darkMode: true },
-      study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
-    };
-    useMemoryStorage({
-      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 2 }),
+      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 1 }),
     });
 
     await preferencesStore.persist.rehydrate();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...persistedPreferences,
-      language: "system",
+      controls: { ...persistedPreferences.controls, showBackTextSwipeOverlays: false },
     });
   });
 
-  it("discards version 1 preferences after the persisted shape changes", async () => {
-    const {
-      showCardDetails: _showCardDetails,
-      showBackTextSwipeOverlays: _showBackTextSwipeOverlays,
-      ...legacyControls
-    } = defaultPreferences.controls;
+  it("discards version 2 preferences without migration", async () => {
     useMemoryStorage({
       "tango-config": JSON.stringify({
         state: {
@@ -203,10 +164,10 @@ describe("preferences store", () => {
             loadSample: false,
             appearance: { ...defaultPreferences.appearance, darkMode: true },
             study: { ...defaultPreferences.study, cardInterval: 15, selectedTags: ["legacy"] },
-            controls: { ...legacyControls, showSwipeButtonList: false },
+            controls: { ...defaultPreferences.controls, showSwipeButtonList: false },
           },
         },
-        version: 1,
+        version: 2,
       }),
     });
 
@@ -223,8 +184,8 @@ describe("preferences store", () => {
 
   it.each([
     ["malformed JSON", "not-json"],
-    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 2 })],
-    ["incompatible envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 2 })],
+    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 1 })],
+    ["incompatible envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 1 })],
   ])("uses current defaults for %s", async (_case, persistedValue) => {
     useMemoryStorage({ "tango-config": persistedValue });
 
