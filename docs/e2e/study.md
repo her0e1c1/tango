@@ -8,7 +8,6 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](#swipe-01) |
 | SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](#swipe-02) |
 | SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](#swipe-03) |
 | SWIPE-04 | write | [next-card action で次の Card へ進める](#swipe-04) |
@@ -17,37 +16,14 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 | SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](#swipe-07) |
 | SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](#swipe-08) |
 | SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](#swipe-09) |
-| SWIPE-10 | write | [最後の Card を完了して session を終了できる](#swipe-10) |
+| SWIPE-10 | write | [最後の Card を完了して completion screen を表示できる](#swipe-10) |
 | SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](#swipe-11) |
 | SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](#swipe-12) |
 | SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-13) |
 | SWIPE-14 | read | [non-primary mouse の drag を無視できる](#swipe-14) |
-| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](#swipe-15) |
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-16) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#swipe-17) |
-| SWIPE-18 | read | [Help dialog に現在の操作 mapping を表示できる](#swipe-18) |
-
-<a id="swipe-01"></a>
-
-### SWIPE-01 学習中の Card を表面から裏面へ切り替えられる
-
-カテゴリ: `read`
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
-- 現在の Card に front text と back text が設定されている。
-
-When:
-
-- 学習画面に表示された現在の Card の front text を選択して裏面へ切り替える。
-
-Then:
-
-- 現在の Card の back text が表示される。
-- Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
+| SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](#swipe-24) |
 
 <a id="swipe-02"></a>
 
@@ -233,7 +209,7 @@ Then:
 
 <a id="swipe-10"></a>
 
-### SWIPE-10 最後の Card を完了して session を終了できる
+### SWIPE-10 最後の Card を完了して completion screen を表示できる
 
 カテゴリ: `write`
 
@@ -250,7 +226,9 @@ Then:
 
 - 最後の Card の学習結果が保存される。
 - 対象 Deck の学習 session が削除される。
-- Deck 一覧へ戻り、対象 Deck に Continue action が表示されない。
+- Study completion screen に完了 message と学習した Card 数が表示される。
+- Deck 一覧へ automatic redirect せず、Deck 一覧へ戻る action が利用できる。
+- Deck 一覧へ戻った後、対象 Deck に Continue action が表示されない。
 - browser error が発生しない。
 
 <a id="swipe-11"></a>
@@ -345,29 +323,6 @@ Then:
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
-<a id="swipe-15"></a>
-
-### SWIPE-15 裏面 text を選択しても Card の状態を維持できる
-
-カテゴリ: `read`
-
-Given:
-
-- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
-- 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
-- 現在の Card の selectable な back text が表示されている。
-
-When:
-
-- primary mouse button の drag で back text を選択する。
-
-Then:
-
-- 選択範囲に対象 Card の back text が含まれる。
-- 対象 Card の back text が引き続き表示される。
-- Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
-
 <a id="swipe-16"></a>
 
 ### SWIPE-16 local-only Deck で primary mouse の上方向 drag により次の Card へ進める
@@ -416,9 +371,9 @@ Then:
 - 次の Card の front text が表示され、back text は表示されない。
 - browser error が発生しない。
 
-<a id="swipe-18"></a>
+<a id="swipe-24"></a>
 
-### SWIPE-18 Help dialog に現在の操作 mapping を表示できる
+### SWIPE-24 Help dialog に現在の操作 mapping を表示できる
 
 カテゴリ: `read`
 

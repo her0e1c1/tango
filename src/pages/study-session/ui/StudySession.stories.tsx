@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { expect, fn } from "storybook/test";
+import { expect, fn, userEvent, within } from "storybook/test";
 
 import { CardView, FrontText } from "@/entities/card";
 import * as fixture from "@/storybook/fixture";
@@ -127,6 +127,37 @@ export const LongAnswer: Story = {
     await expect(answer).toBeVisible();
     await expect(swipeOverlays).toHaveLength(0);
     await expect(studyActions).toBeNull();
+  },
+};
+
+export const AnswerSwipeOverlays: Story = {
+  args: {
+    showBackText: true,
+    backTextSlot: <CardView text={fixture.card.long.backText.repeat(20)} variant="bare" />,
+    backTextOverlay: { onClickLeft: fn(), onClickRight: fn() },
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const answer = canvas.getByRole("region", { name: "Study answer" });
+    const swipeLeft = canvas.getByRole("button", { name: "Swipe left" });
+    const swipeRight = canvas.getByRole("button", { name: "Swipe right" });
+    const swipeLeftTop = swipeLeft.getBoundingClientRect().top;
+    const onClickLeft = args.backTextOverlay?.onClickLeft;
+    if (onClickLeft === undefined) throw new Error("Expected the left answer overlay action");
+
+    await expect(answer).toBeVisible();
+    await expect(swipeLeft).toBeVisible();
+    await expect(swipeRight).toBeVisible();
+    await expect(canvas.queryByRole("button", { name: "Swipe up" })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole("button", { name: "Swipe down" })).not.toBeInTheDocument();
+
+    swipeLeft.dispatchEvent(new WheelEvent("wheel", { bubbles: true, cancelable: true, deltaY: answer.clientHeight }));
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    await expect(answer.scrollTop).toBeGreaterThan(0);
+    await expect(swipeLeft.getBoundingClientRect().top).toBe(swipeLeftTop);
+    await userEvent.click(swipeLeft);
+    await expect(onClickLeft).toHaveBeenCalledOnce();
   },
 };
 

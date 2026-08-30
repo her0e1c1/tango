@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
@@ -75,6 +76,10 @@ describe("StudySession", () => {
     );
 
     expect(screen.getByText("Back")).toBeVisible();
+    const answerSurface = screen.getByRole("region", { name: "Study answer" });
+    expect(answerSurface).toBeVisible();
+    expect(answerSurface).toHaveAttribute("data-study-answer-scroll");
+    expect(answerSurface).toHaveAttribute("tabindex", "0");
     expect(screen.queryByText("Front")).not.toBeInTheDocument();
     expect(screen.queryByText("Card metadata")).not.toBeInTheDocument();
     expect(screen.queryByText("Save failed")).not.toBeInTheDocument();
@@ -88,7 +93,67 @@ describe("StudySession", () => {
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
 
-  it("keeps the back action visible and opens the remaining study actions", () => {
+  it("runs configured back-text edge actions without clicking the answer", () => {
+    const onBackClick = vi.fn();
+    const onClickLeft = vi.fn();
+    const onClickRight = vi.fn();
+    const { rerender } = render(
+      <StudySession
+        {...toolbarProps()}
+        showBackText
+        backTextSlot={
+          <button type="button" onClick={onBackClick}>
+            Back
+          </button>
+        }
+        backTextOverlay={{ onClickLeft, onClickRight }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Swipe left" }));
+    fireEvent.click(screen.getByRole("button", { name: "Swipe right" }));
+
+    expect(onClickLeft).toHaveBeenCalledOnce();
+    expect(onClickRight).toHaveBeenCalledOnce();
+    expect(onBackClick).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Swipe up" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe down" })).not.toBeInTheDocument();
+
+    rerender(
+      <StudySession
+        {...toolbarProps()}
+        showSwipeControls={false}
+        frontTextSlot={<div>Front</div>}
+        backTextOverlay={{ onClickLeft, onClickRight }}
+      />
+    );
+    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe right" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Study answer" })).not.toBeInTheDocument();
+  });
+
+  it("forwards edge wheel input to answer scrolling without running the action", () => {
+    const onClickLeft = vi.fn();
+    render(
+      <StudySession
+        {...toolbarProps()}
+        showBackText
+        backTextSlot={<div>Long back text</div>}
+        backTextOverlay={{ onClickLeft }}
+      />
+    );
+    const answerSurface = screen.getByRole("region", { name: "Study answer" });
+    const leftOverlay = screen.getByRole("button", { name: "Swipe left" });
+
+    expect(fireEvent.wheel(leftOverlay, { deltaY: 64, deltaMode: 0 })).toBe(false);
+
+    expect(answerSurface.scrollTop).toBe(64);
+    expect(leftOverlay).toHaveClass("touch-pan-y");
+    expect(onClickLeft).not.toHaveBeenCalled();
+  });
+
+  it("keeps the back action visible and opens the remaining study actions", async () => {
+    const user = userEvent.setup();
     const onBack = vi.fn();
     const onToggleCardDetails = vi.fn();
     const onToggleSwipeControls = vi.fn();
@@ -108,6 +173,7 @@ describe("StudySession", () => {
     const openActions = screen.getByRole("button", { name: "Open study actions" });
     expect(openActions).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
 
     fireEvent.click(openActions);
@@ -117,17 +183,24 @@ describe("StudySession", () => {
     const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
     const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
     const detailsToggle = screen.getByRole("button", { name: "Card details" });
+    const help = screen.getByRole("button", { name: "Open study help" });
     const actions = screen.getByRole("group", { name: "Study actions" });
     expect(closeActions).toHaveAttribute("aria-expanded", "true");
     expect(back).toBeVisible();
+    expect(help).toBeVisible();
     expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
     expect(playbackToggle).toHaveAttribute("aria-pressed", "true");
     expect(detailsToggle).toHaveAttribute("aria-pressed", "true");
     expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
     expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
     expect(detailsToggle).toHaveAttribute("title", "Hide card details");
+    expect(actions).toContainElement(help);
     expect(actions).not.toContainElement(back);
     expect(actions).not.toContainElement(screen.getByText("Card metadata"));
+
+    closeActions.focus();
+    await user.tab();
+    expect(help).toHaveFocus();
 
     fireEvent.click(back);
     fireEvent.click(swipeToggle);
@@ -139,9 +212,10 @@ describe("StudySession", () => {
     expect(onTogglePlaybackControls).toHaveBeenCalledOnce();
     expect(onToggleCardDetails).toHaveBeenCalledOnce();
 
-    fireEvent.keyDown(closeActions, { key: "Escape" });
+    fireEvent.keyDown(help, { key: "Escape" });
     expect(screen.getByRole("button", { name: "Open study actions" })).toHaveFocus();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
   });
 
   it("shows and hides all card details from the persisted preference value", () => {

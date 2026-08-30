@@ -10,6 +10,7 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { type StudyState, useStudy } from "../model/useStudy";
 import { CardOverlay } from "./CardOverlay";
+import { StudyCompletion } from "./StudyCompletion";
 import { StudySession } from "./StudySession";
 
 type StudyShortcutAction =
@@ -20,6 +21,9 @@ type StudyShortcutAction =
   | "toggleBackText"
   | "toggleSwipeButtonList"
   | "toggleAutoPlay";
+
+const isDirectionalStudyAction = (action: StudyShortcutAction): boolean =>
+  action === "swipeUp" || action === "swipeDown" || action === "swipeLeft" || action === "swipeRight";
 
 const studyShortcutTextEntryTarget =
   "input:not([type]), input[type='text'], input[type='search'], input[type='email'], input[type='url'], input[type='tel'], input[type='password'], input[type='number'], input[type='date'], input[type='datetime-local'], input[type='month'], input[type='time'], input[type='week'], textarea, select";
@@ -85,6 +89,14 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
         onSwipeDown={swipeActions.onClickDown}
         onSwipeLeft={swipeActions.onClickLeft}
         onSwipeRight={swipeActions.onClickRight}
+        {...(state.showBackTextSwipeOverlays
+          ? {
+              backTextOverlay: {
+                onClickLeft: swipeActions.onClickLeft,
+                onClickRight: swipeActions.onClickRight,
+              },
+            }
+          : {})}
         {...(state.swipeFeedback !== undefined ? { swipeFeedback: state.swipeFeedback } : {})}
         frontTextSlot={
           <FrontText category={state.card.category} text={state.card.frontText} onClick={state.toggleBackText} />
@@ -121,6 +133,8 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
     const currentStudy = latestStudy.current;
     // A modal Help surface owns every key while open, including keys without native dialog behavior.
     if (currentStudy?.status !== "studying" || currentStudy.help.open || shouldIgnoreStudyShortcut(event)) return;
+    // Directional keys are an input gesture, so the answer keeps them inert even though edge overlays can act.
+    if (currentStudy.showBackText && isDirectionalStudyAction(action)) return;
     void currentStudy[action]();
   };
 
@@ -137,6 +151,19 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
     if (study?.status !== "invalid") return;
     void navigate(routes.deckList.to(), { replace: true });
   }, [navigate, study?.status]);
+
+  if (study?.status === "completed") {
+    return (
+      <AppLayout showHeader>
+        <StudyCompletion
+          cardCount={study.completion.cardCount}
+          onClickBack={() => {
+            void navigate(routes.deckList.to(), { replace: true });
+          }}
+        />
+      </AppLayout>
+    );
+  }
 
   return renderStudyScreen(study, goBack);
 };

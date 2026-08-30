@@ -57,9 +57,15 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
 
 import { useStudy as useStudyState } from "./useStudy";
 
-const useStudy = (routeDeckId: string) => {
+const useAnyStudy = (routeDeckId: string) => {
   const study = useStudyState(routeDeckId);
   if (study == null) throw new Error("Expected the test Deck to exist");
+  return study;
+};
+
+const useStudy = (routeDeckId: string) => {
+  const study = useAnyStudy(routeDeckId);
+  if (study.status === "completed") throw new Error("Expected an active Study state");
   return study;
 };
 
@@ -120,15 +126,6 @@ describe("useStudy", () => {
     act(() => result.current.toggleBackText());
     expect(result.current).toMatchObject({ status: "studying", showBackText: true });
     await actAsync(() => result.current.swipeRight());
-    expect(result.current).toMatchObject({
-      status: "studying",
-      card: { frontText: "card-1" },
-      showBackText: true,
-    });
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
-
-    act(() => result.current.toggleBackText());
-    await actAsync(() => result.current.swipeRight());
 
     await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { frontText: "card-2" } }));
     expect(result.current).toMatchObject({ showBackText: false, swipeFeedback: "cardSwipeRight" });
@@ -144,7 +141,12 @@ describe("useStudy", () => {
   it("reports persisted control visibility and playback availability", () => {
     mocks.preferences = createPreferences({
       cardInterval: 0,
-      controls: { showCardDetails: false, showSwipeButtonList: false, showPlaybackControls: false },
+      controls: {
+        showCardDetails: false,
+        showSwipeButtonList: false,
+        showPlaybackControls: false,
+        showBackTextSwipeOverlays: true,
+      },
     });
 
     const { result } = renderHook(() => useStudy(deckId));
@@ -152,6 +154,7 @@ describe("useStudy", () => {
     expect(result.current).toMatchObject({
       showSwipeButtonList: false,
       showPlaybackControls: false,
+      showBackTextSwipeOverlays: true,
       showCardDetails: false,
       playbackControlsAvailable: false,
     });
@@ -217,6 +220,17 @@ describe("useStudy", () => {
     expect(result.current).not.toHaveProperty("swipeFeedback");
   });
 
+  it("does not complete the final Card when persistence fails", async () => {
+    setStudySessionIndex(deckId, 1);
+    mocks.editStudyProgress.mockRejectedValueOnce(new Error("write failed"));
+    const { result } = renderHook(() => useStudy(deckId));
+
+    await actAsync(() => result.current.swipeRight());
+
+    expect(result.current.status).toBe("studying");
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+  });
+
   it("blocks a second swipe while the first write is unresolved", async () => {
     let finishWrite: () => void = () => undefined;
     mocks.editStudyProgress.mockReturnValueOnce(
@@ -256,6 +270,29 @@ describe("useStudy", () => {
     expect(result.current).not.toHaveProperty("swipeFeedback");
   });
 
+  it("does not complete a final Card when the active session is replaced during the write", async () => {
+    clearStudySessions();
+    startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    mocks.cards = cards.slice(0, 1);
+    let finishWrite: () => void = () => undefined;
+    mocks.editStudyProgress.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishWrite = resolve;
+      })
+    );
+    const { result } = renderHook(() => useStudy(deckId));
+
+    const swipe = result.current.swipeRight();
+    act(() => startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+    await actAsync(async () => {
+      finishWrite();
+      await swipe;
+    });
+
+    expect(result.current.status).toBe("studying");
+    expect(getStudySession(deckId)).toBeDefined();
+  });
+
   it("advances after a timestamp-only session touch during the write", async () => {
     vi.spyOn(Date, "now").mockReturnValue(946_684_800_000);
     let finishWrite: () => void = () => undefined;
@@ -290,15 +327,26 @@ describe("useStudy", () => {
     expect(getStudySession(deckId)).toBeUndefined();
   });
 
-  it("removes the session after the final card is persisted", async () => {
-    clearStudySessions();
-    startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 });
-    mocks.cards = cards.slice(0, 1);
+  it("does not complete when previous crosses the first Card boundary", async () => {
+    mocks.preferences = createPreferences({ cardSwipeLeft: "GoToPrevCard" });
     const { result } = renderHook(() => useStudy(deckId));
 
-    await actAsync(() => result.current.swipeRight());
+    await actAsync(() => result.current.swipeLeft());
+
+    expect(result.current.status).toBe("invalid");
+    expect(getStudySession(deckId)).toBeUndefined();
+  });
+
+  it("completes after the final Card is persisted and preserves the session Card count", async () => {
+    setStudySessionIndex(deckId, 1);
+    const { result } = renderHook(() => useAnyStudy(deckId));
+
+    if (result.current.status !== "studying") throw new Error("Expected an active Study state");
+    const { swipeRight } = result.current;
+    await actAsync(swipeRight);
 
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
     expect(getStudySession(deckId)).toBeUndefined();
+    expect(result.current).toEqual({ status: "completed", completion: { cardCount: 2 } });
   });
 });

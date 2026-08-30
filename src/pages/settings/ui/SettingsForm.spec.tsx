@@ -40,17 +40,22 @@ describe("SettingsForm", () => {
   it("renders and updates switches and numeric sliders through RHF registration", async () => {
     render(<SettingsFormHarness />);
     const playback = screen.getByRole("checkbox", { name: "Show playback controls" });
+    const backTextSwipeOverlays = screen.getByRole("checkbox", { name: "Show back text swipe overlays" });
     const cardDetails = screen.getByRole("checkbox", { name: "Show card details" });
     const maximumCards = screen.getByRole("slider", { name: "Maximum cards" });
     expect(playback).toBeChecked();
+    expect(backTextSwipeOverlays).not.toBeChecked();
     expect(cardDetails).toBeChecked();
+    expect(screen.getByText("Display left and right study actions while viewing an answer")).toBeInTheDocument();
     expect(maximumCards).toHaveValue("24");
 
     await userEvent.click(playback);
+    await userEvent.click(backTextSwipeOverlays);
     await userEvent.click(cardDetails);
     fireEvent.change(maximumCards, { target: { value: "31" } });
 
     expect(playback).not.toBeChecked();
+    expect(backTextSwipeOverlays).toBeChecked();
     expect(cardDetails).not.toBeChecked();
     expect(maximumCards).toHaveValue("31");
     expect(maximumCards).toHaveAttribute("aria-valuetext", "31 cards");

@@ -17,11 +17,15 @@ export interface SwipeState {
   swipeFeedback?: SwipeDirection;
 }
 
+export interface StudyCompletion {
+  cardCount: number;
+}
+
 export const useSwipe = (
   deckId: DeckId,
   cards: readonly Card[],
   onCardChanged: () => void,
-  enabled: boolean
+  onCompleted: (completion: StudyCompletion) => void
 ): SwipeState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
@@ -29,7 +33,6 @@ export const useSwipe = (
   const swipeState = React.useRef<{ inProgress: boolean }>({ inProgress: false });
 
   const swipe = async (direction: SwipeDirection): Promise<void> => {
-    if (!enabled) return;
     // biome-ignore lint/suspicious/noUnnecessaryConditions: The awaited write lets another event enter this closure.
     if (swipeState.current.inProgress) return;
 
@@ -41,6 +44,11 @@ export const useSwipe = (
       removeStudySession(deckId);
       return;
     }
+
+    // Completion is derived from the pre-write snapshot because a successful boundary move removes the session.
+    const completesSession =
+      swipePlan.effect === "next" && swipePlan.session.currentIndex === swipePlan.session.cardOrderIds.length - 1;
+    const cardCount = swipePlan.session.cardOrderIds.length;
 
     swipeState.current.inProgress = true;
     // The visible card advances only after persistence succeeds, so failed writes need no session rollback.
@@ -54,6 +62,10 @@ export const useSwipe = (
     if (!moveStudySession(swipePlan.session, swipePlan.effect)) return;
 
     feedback.showSwipe(direction);
+    if (completesSession) {
+      onCompleted({ cardCount });
+      return;
+    }
     if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged();
   };
 

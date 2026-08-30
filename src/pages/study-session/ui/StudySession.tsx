@@ -12,6 +12,7 @@ import {
 import { MdSwipe } from "react-icons/md";
 import { useSwipeable } from "react-swipeable";
 import type { SwipeDirection } from "@/entities/preference";
+import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
 import { StudyHelpDialog, type StudyHelpDialogProps } from "./StudyHelpDialog";
@@ -46,7 +47,7 @@ const studyLayoutStyles: StudyLayoutStyles = {
 // The marker reserves Space for answer scrolling, while the named region makes the focus target discoverable.
 const answerSurfaceProps = {
   role: "region",
-  "aria-label": "Card answer",
+  "aria-label": "Study answer",
   "data-study-answer-scroll": "",
   tabIndex: 0,
 } as const;
@@ -61,6 +62,10 @@ export interface StudySessionProps {
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
   frontTextSlot?: React.ReactNode;
+  backTextOverlay?: {
+    onClickLeft?: () => void;
+    onClickRight?: () => void;
+  };
   controller?: ControllerProps;
   swipeButtonList?: SwipeButtonListProps;
   feedbackSlot?: React.ReactNode;
@@ -196,18 +201,6 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
         <AiOutlineLeft aria-hidden="true" className="text-xl" />
       </button>
       <button
-        ref={helpTriggerRef}
-        type="button"
-        aria-label={props.helpTriggerLabel}
-        className={cx(
-          toolbarButtonClass,
-          "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0"
-        )}
-        onClick={props.onOpenHelp}
-      >
-        <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
-      </button>
-      <button
         ref={triggerRef}
         type="button"
         aria-label={props.open ? "Close study actions" : "Open study actions"}
@@ -233,6 +226,19 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           aria-label="Study actions"
           className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0 pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]"
         >
+          <button
+            ref={helpTriggerRef}
+            type="button"
+            aria-label={props.helpTriggerLabel}
+            className={cx(
+              toolbarButtonClass,
+              "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0"
+            )}
+            onClick={props.onOpenHelp}
+            onKeyDown={closeOnEscape}
+          >
+            <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
+          </button>
           <StudyModeActions
             showCardDetails={props.showCardDetails}
             showSwipeControls={props.showSwipeControls}
@@ -267,14 +273,91 @@ const SwipeFeedback: React.FC<{ swipeFeedback: SwipeDirection | undefined }> = (
   );
 };
 
+const scrollAnswerFromOverlay = (event: WheelEvent) => {
+  const answerSurface = (event.currentTarget as HTMLElement).closest<HTMLDivElement>("[data-study-answer-scroll]");
+  if (answerSurface === null || event.deltaY === 0) return;
+
+  // React delegates wheel events passively, so this native listener must remain cancelable to avoid a second native scroll.
+  const multiplier =
+    event.deltaMode === WheelEvent.DOM_DELTA_LINE
+      ? 16
+      : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+        ? answerSurface.clientHeight
+        : 1;
+  answerSurface.scrollTop += event.deltaY * multiplier;
+  event.preventDefault();
+  event.stopPropagation();
+};
+
+const BackTextEdgeOverlay: React.FC<{
+  ariaLabel: string;
+  className: string;
+  onClick: () => void;
+}> = ({ ariaLabel, className, onClick }) => {
+  const wheelTargetRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const wheelTarget = wheelTargetRef.current;
+    if (wheelTarget === null) return;
+
+    wheelTarget.addEventListener("wheel", scrollAnswerFromOverlay, { passive: false });
+    return () => wheelTarget.removeEventListener("wheel", scrollAnswerFromOverlay);
+  }, []);
+
+  return (
+    <div ref={wheelTargetRef} className={cx("pointer-events-auto absolute inset-y-0 touch-pan-y", className)}>
+      <Overlay
+        className="pointer-events-auto inset-0 size-full touch-pan-y"
+        position="center"
+        variant="transparent"
+        ariaLabel={ariaLabel}
+        onClick={onClick}
+      />
+    </div>
+  );
+};
+
+const BackTextOverlays: React.FC<{
+  overlay: StudySessionProps["backTextOverlay"];
+}> = ({ overlay }) => {
+  if (overlay?.onClickLeft === undefined && overlay?.onClickRight === undefined) return null;
+
+  return (
+    // The fixed wrapper stays nested under the answer so scroll drags still suppress their trailing click.
+    <div className="pointer-events-none fixed inset-0 z-30">
+      {/* Edge taps stay explicit actions, while vertical touch pans remain native answer scrolling gestures. */}
+      {overlay.onClickLeft !== undefined ? (
+        <BackTextEdgeOverlay className="left-0 w-20" ariaLabel="Swipe left" onClick={overlay.onClickLeft} />
+      ) : null}
+      {overlay.onClickRight !== undefined ? (
+        <BackTextEdgeOverlay
+          // Leave a pointer-free scrollbar gutter while the hit area floats over the answer.
+          className="right-5 w-[calc(5rem-1.25rem)]"
+          ariaLabel="Swipe right"
+          onClick={overlay.onClickRight}
+        />
+      ) : null}
+    </div>
+  );
+};
+
 const CardContent: React.FC<{
   showBackText: boolean | undefined;
   backTextSlot: React.ReactNode | undefined;
   frontTextSlot: React.ReactNode | undefined;
   cardOverlaySlot: React.ReactNode | undefined;
-}> = ({ showBackText, backTextSlot, frontTextSlot, cardOverlaySlot }) => {
+  backTextOverlay: StudySessionProps["backTextOverlay"];
+}> = ({ showBackText, backTextSlot, frontTextSlot, cardOverlaySlot, backTextOverlay }) => {
   if (showBackText && backTextSlot != null) {
-    return <div className="flex min-h-full w-full">{backTextSlot}</div>;
+    return (
+      <>
+        <BackTextOverlays overlay={backTextOverlay} />
+        {/* Edge actions float above the full-width answer so enabling them never changes the Card layout. */}
+        <div data-study-answer-content="" className="flex min-h-full w-full">
+          {backTextSlot}
+        </div>
+      </>
+    );
   }
   if (frontTextSlot != null) {
     return (
@@ -378,6 +461,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
     onClickCapture: stopTrailingCardClick,
     onMouseDown: startPrimaryMouseSwipe,
   };
+
   // The answer owns the reading surface, so session chrome stays unmounted until the front returns.
   const showStudyChrome = !props.showBackText;
 
@@ -415,6 +499,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           backTextSlot={props.backTextSlot}
           frontTextSlot={props.frontTextSlot}
           cardOverlaySlot={props.showCardDetails ? props.cardOverlaySlot : undefined}
+          backTextOverlay={props.backTextOverlay}
         />
       </div>
       <Controls

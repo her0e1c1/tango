@@ -266,7 +266,7 @@ test("DECK-10 retries a failed remote create with the same ID and no duplicate",
   expect(local.cards).toEqual([]);
 });
 
-test("DECK-11 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {
+test("DECK-12 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const unsavedName = `${namespace.caseId} unsaved`;
   await fixture.apply(page);

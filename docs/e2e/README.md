@@ -75,7 +75,8 @@
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
 | SETTINGS-01 | write | [Dark mode を自動保存して reload 後も反映できる](./settings.md#settings-01) |
-| SETTINGS-02 | write | [Maximum cards 設定を次の学習 session に反映できる](./settings.md#settings-02) |
+| SETTINGS-02 | write | [Maximum cards 設定を学習開始画面に反映できる](./settings.md#settings-02) |
+| SETTINGS-03 | batch | [Respect review schedule を次の学習 session に反映できる](./settings.md#settings-03) |
 
 ### Import
 
@@ -103,7 +104,8 @@
 | DECK-08 | read | [Deck の Card を CSV で export できる](./deck.md#deck-08) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](./deck.md#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](./deck.md#deck-10) |
-| DECK-11 | read | [未保存の Deck 編集内容を離脱前に確認できる](./deck.md#deck-11) |
+| DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](./creation.md#deck-11) |
+| DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](./deck.md#deck-12) |
 
 ### Card
 
@@ -121,12 +123,14 @@
 | CARD-10 | write | [score と tag の filter を保存して Card 一覧へ反映できる](./card.md#card-10) |
 | CARD-11 | read | [Card view を直接開ける](./card.md#card-11) |
 | CARD-12 | read | [存在しない Card から復帰できる](./card.md#card-12) |
+| CARD-13 | write | [remote Deck に Card を作成できる](./card.md#card-13) |
+| CARD-14 | write | [local-only Deck に Card を作成できる](./card.md#card-14) |
+| CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](./creation.md#card-15) |
 
 ### Study
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](./study.md#swipe-01) |
 | SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](./study.md#swipe-02) |
 | SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](./study.md#swipe-03) |
 | SWIPE-04 | write | [next-card action で次の Card へ進める](./study.md#swipe-04) |
@@ -135,14 +139,27 @@
 | SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](./study.md#swipe-07) |
 | SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](./study.md#swipe-08) |
 | SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](./study.md#swipe-09) |
-| SWIPE-10 | write | [最後の Card を完了して session を終了できる](./study.md#swipe-10) |
+| SWIPE-10 | write | [最後の Card を完了して completion screen を表示できる](./study.md#swipe-10) |
 | SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](./study.md#swipe-11) |
 | SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](./study.md#swipe-12) |
 | SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-13) |
 | SWIPE-14 | read | [non-primary mouse の drag を無視できる](./study.md#swipe-14) |
-| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](./study.md#swipe-15) |
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-16) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](./study.md#swipe-17) |
+| SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](./study.md#swipe-24) |
+
+### Study Back Text
+
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](./study-back-text.md#swipe-01) |
+| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](./study-back-text.md#swipe-15) |
+| SWIPE-18 | read | [overlay 設定 OFF の裏面 tap で同じ Card の表面へ戻れる](./study-back-text.md#swipe-18) |
+| SWIPE-19 | read | [長い裏面 text を scroll しても Card の状態を維持できる](./study-back-text.md#swipe-19) |
+| SWIPE-20 | write | [左 overlay から設定済み action を実行できる](./study-back-text.md#swipe-20) |
+| SWIPE-21 | write | [右 overlay から設定済み action を実行できる](./study-back-text.md#swipe-21) |
+| SWIPE-22 | read | [狭い画面でも overlay の下で裏面を全幅表示できる](./study-back-text.md#swipe-22) |
+| SWIPE-23 | read | [overlay 上から長い裏面 text を scroll できる](./study-back-text.md#swipe-23) |
 
 ### Persistence
 

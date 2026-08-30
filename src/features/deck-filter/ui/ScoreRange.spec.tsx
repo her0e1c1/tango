@@ -3,6 +3,7 @@
  */
 
 import { render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -32,14 +33,13 @@ describe("ScoreRange", () => {
     expect(numericOptionValues(maximum)).toEqual(Array.from({ length: 21 }, (_, index) => String(index - 10)));
     expect(minimum).toHaveAccessibleDescription("Include cards at or above this score.");
     expect(maximum).toHaveAccessibleDescription("Include cards at or below this score.");
-    expect(screen.getByText("Any score")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Clear limits" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
   });
 
-  it("reports native selections and summarizes two-sided and one-sided limits", async () => {
+  it("reports native selections", async () => {
     const onMinimumChange = vi.fn();
     const onMaximumChange = vi.fn();
-    const view = render(
+    render(
       <ScoreRange
         maximum={4}
         minimum={-2}
@@ -49,33 +49,10 @@ describe("ScoreRange", () => {
       />
     );
 
-    expect(screen.getByText("−2 to 4")).toBeInTheDocument();
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Minimum score" }), "-1");
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum score" }), "3");
     expect(onMinimumChange).toHaveBeenCalledWith(-1);
     expect(onMaximumChange).toHaveBeenCalledWith(3);
-
-    view.rerender(
-      <ScoreRange
-        maximum={null}
-        minimum={-2}
-        onClear={vi.fn()}
-        onMaximumChange={onMaximumChange}
-        onMinimumChange={onMinimumChange}
-      />
-    );
-    expect(screen.getByText("−2 and above")).toBeInTheDocument();
-
-    view.rerender(
-      <ScoreRange
-        maximum={4}
-        minimum={null}
-        onClear={vi.fn()}
-        onMaximumChange={onMaximumChange}
-        onMinimumChange={onMinimumChange}
-      />
-    );
-    expect(screen.getByText("4 and below")).toBeInTheDocument();
   });
 
   it("preserves saved scores outside the standard integer choices", () => {
@@ -96,7 +73,6 @@ describe("ScoreRange", () => {
     expect(maximum).toHaveValue("14.25");
     expect(within(minimum).getByRole("option", { name: "−12.5" })).toBeInTheDocument();
     expect(within(maximum).getByRole("option", { name: "14.25" })).toBeInTheDocument();
-    expect(screen.getByText("−12.5 to 14.25")).toBeInTheDocument();
   });
 
   it("limits new choices to a valid range while retaining the active choices", () => {
@@ -130,6 +106,33 @@ describe("ScoreRange", () => {
     expect(onClear).toHaveBeenCalledOnce();
     expect(onMinimumChange).not.toHaveBeenCalled();
     expect(onMaximumChange).not.toHaveBeenCalled();
+  });
+
+  it("keeps focus in the range controls and announces when limits are cleared", async () => {
+    const ControlledScoreRange = () => {
+      const [maximum, setMaximum] = useState<number | null>(4);
+      const [minimum, setMinimum] = useState<number | null>(-2);
+
+      return (
+        <ScoreRange
+          maximum={maximum}
+          minimum={minimum}
+          onClear={() => {
+            setMaximum(null);
+            setMinimum(null);
+          }}
+          onMaximumChange={setMaximum}
+          onMinimumChange={setMinimum}
+        />
+      );
+    };
+
+    render(<ControlledScoreRange />);
+    await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
+
+    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveFocus();
+    expect(screen.getByRole("status")).toHaveTextContent("No score limits.");
+    expect(screen.queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
   });
 
   it("shows an invalid saved range without mutating it and allows both recovery paths", async () => {

@@ -1,0 +1,5 @@
+extends: study-back-text-long.yaml
+browser:
+  preferences:
+    controls:
+      showBackTextSwipeOverlays: true
