@@ -17,7 +17,9 @@ const numericOptionValues = (select: HTMLElement): string[] =>
 
 describe("ScoreRange", () => {
   it("offers No limit and scores from −10 through 10 with accessible labels", () => {
-    render(<ScoreRange maximum={null} minimum={null} onMaximumChange={vi.fn()} onMinimumChange={vi.fn()} />);
+    render(
+      <ScoreRange maximum={null} minimum={null} onClear={vi.fn()} onMaximumChange={vi.fn()} onMinimumChange={vi.fn()} />
+    );
 
     const minimum = screen.getByRole("combobox", { name: "Minimum score" });
     const maximum = screen.getByRole("combobox", { name: "Maximum score" });
@@ -38,7 +40,13 @@ describe("ScoreRange", () => {
     const onMinimumChange = vi.fn();
     const onMaximumChange = vi.fn();
     const view = render(
-      <ScoreRange maximum={4} minimum={-2} onMaximumChange={onMaximumChange} onMinimumChange={onMinimumChange} />
+      <ScoreRange
+        maximum={4}
+        minimum={-2}
+        onClear={vi.fn()}
+        onMaximumChange={onMaximumChange}
+        onMinimumChange={onMinimumChange}
+      />
     );
 
     expect(screen.getByText("−2 to 4")).toBeInTheDocument();
@@ -48,18 +56,38 @@ describe("ScoreRange", () => {
     expect(onMaximumChange).toHaveBeenCalledWith(3);
 
     view.rerender(
-      <ScoreRange maximum={null} minimum={-2} onMaximumChange={onMaximumChange} onMinimumChange={onMinimumChange} />
+      <ScoreRange
+        maximum={null}
+        minimum={-2}
+        onClear={vi.fn()}
+        onMaximumChange={onMaximumChange}
+        onMinimumChange={onMinimumChange}
+      />
     );
     expect(screen.getByText("−2 and above")).toBeInTheDocument();
 
     view.rerender(
-      <ScoreRange maximum={4} minimum={null} onMaximumChange={onMaximumChange} onMinimumChange={onMinimumChange} />
+      <ScoreRange
+        maximum={4}
+        minimum={null}
+        onClear={vi.fn()}
+        onMaximumChange={onMaximumChange}
+        onMinimumChange={onMinimumChange}
+      />
     );
     expect(screen.getByText("4 and below")).toBeInTheDocument();
   });
 
   it("preserves saved scores outside the standard integer choices", () => {
-    render(<ScoreRange maximum={14.25} minimum={-12.5} onMaximumChange={vi.fn()} onMinimumChange={vi.fn()} />);
+    render(
+      <ScoreRange
+        maximum={14.25}
+        minimum={-12.5}
+        onClear={vi.fn()}
+        onMaximumChange={vi.fn()}
+        onMinimumChange={vi.fn()}
+      />
+    );
 
     const minimum = screen.getByRole("combobox", { name: "Minimum score" });
     const maximum = screen.getByRole("combobox", { name: "Maximum score" });
@@ -72,7 +100,9 @@ describe("ScoreRange", () => {
   });
 
   it("limits new choices to a valid range while retaining the active choices", () => {
-    render(<ScoreRange maximum={4} minimum={-2} onMaximumChange={vi.fn()} onMinimumChange={vi.fn()} />);
+    render(
+      <ScoreRange maximum={4} minimum={-2} onClear={vi.fn()} onMaximumChange={vi.fn()} onMinimumChange={vi.fn()} />
+    );
 
     const minimumValues = numericOptionValues(screen.getByRole("combobox", { name: "Minimum score" }));
     const maximumValues = numericOptionValues(screen.getByRole("combobox", { name: "Maximum score" }));
@@ -81,22 +111,38 @@ describe("ScoreRange", () => {
     expect(maximumValues).toEqual(Array.from({ length: 13 }, (_, index) => String(index - 2)));
   });
 
-  it("clears both limits through the existing callbacks", async () => {
+  it("reports one clear action for both limits", async () => {
+    const onClear = vi.fn();
     const onMinimumChange = vi.fn();
     const onMaximumChange = vi.fn();
-    render(<ScoreRange maximum={4} minimum={-2} onMaximumChange={onMaximumChange} onMinimumChange={onMinimumChange} />);
+    render(
+      <ScoreRange
+        maximum={4}
+        minimum={-2}
+        onClear={onClear}
+        onMaximumChange={onMaximumChange}
+        onMinimumChange={onMinimumChange}
+      />
+    );
 
     await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
 
-    expect(onMinimumChange).toHaveBeenCalledWith(null);
-    expect(onMaximumChange).toHaveBeenCalledWith(null);
+    expect(onClear).toHaveBeenCalledOnce();
+    expect(onMinimumChange).not.toHaveBeenCalled();
+    expect(onMaximumChange).not.toHaveBeenCalled();
   });
 
   it("shows an invalid saved range without mutating it and allows both recovery paths", async () => {
     const onMinimumChange = vi.fn();
     const onMaximumChange = vi.fn();
     const view = render(
-      <ScoreRange maximum={3} minimum={5} onMaximumChange={onMaximumChange} onMinimumChange={onMinimumChange} />
+      <ScoreRange
+        maximum={3}
+        minimum={5}
+        onClear={vi.fn()}
+        onMaximumChange={onMaximumChange}
+        onMinimumChange={onMinimumChange}
+      />
     );
 
     const minimum = screen.getByRole("combobox", { name: "Minimum score" });
@@ -121,7 +167,13 @@ describe("ScoreRange", () => {
     expect(onMaximumChange).toHaveBeenCalledWith(null);
 
     view.rerender(
-      <ScoreRange maximum={3} minimum={3} onMaximumChange={onMaximumChange} onMinimumChange={onMinimumChange} />
+      <ScoreRange
+        maximum={3}
+        minimum={3}
+        onClear={vi.fn()}
+        onMaximumChange={onMaximumChange}
+        onMinimumChange={onMinimumChange}
+      />
     );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });

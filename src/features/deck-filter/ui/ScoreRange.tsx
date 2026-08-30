@@ -19,6 +19,7 @@ const STANDARD_SCORES = Array.from(
 export interface ScoreRangeProps {
   maximum: number | null;
   minimum: number | null;
+  onClear: () => void;
   onMaximumChange: (value: number | null) => void;
   onMinimumChange: (value: number | null) => void;
 }
@@ -124,10 +125,7 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
             size="sm"
             label="Clear limits"
             disabled={props.minimum == null && props.maximum == null}
-            onClick={() => {
-              props.onMinimumChange(null);
-              props.onMaximumChange(null);
-            }}
+            onClick={props.onClear}
           />
         </div>
       </header>

@@ -8,6 +8,7 @@ interface DeckFilterFormProps {
   scoreMin: number | null;
   selectedTags: string[];
   tagAndFilter: boolean;
+  clearScoreRange: () => void;
   setScoreMax: (value: number | null) => void;
   setScoreMin: (value: number | null) => void;
   setSelectedTags: (value: string[]) => void;
@@ -20,6 +21,7 @@ export const DeckFilterForm: React.FC<DeckFilterFormProps> = (props) => (
     <ScoreRange
       maximum={props.scoreMax}
       minimum={props.scoreMin}
+      onClear={props.clearScoreRange}
       onMaximumChange={props.setScoreMax}
       onMinimumChange={props.setScoreMin}
     />

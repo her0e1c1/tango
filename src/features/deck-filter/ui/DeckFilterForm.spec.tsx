@@ -23,6 +23,7 @@ const createProps = (): DeckFilterFormProps => ({
   tags: ["one", "two"],
   selectedTags: ["one"],
   tagAndFilter: true,
+  clearScoreRange: vi.fn(),
   setScoreMax: vi.fn(),
   setScoreMin: vi.fn(),
   setSelectedTags: vi.fn(),
@@ -46,6 +47,8 @@ describe("DeckFilterForm", () => {
 
     expect(props.setScoreMax).toHaveBeenCalledWith(5);
     expect(props.setScoreMin).toHaveBeenCalledWith(-3);
+    await userEvent.click(within(scoreRegion).getByRole("button", { name: "Clear limits" }));
+    expect(props.clearScoreRange).toHaveBeenCalledOnce();
     expect(screen.getByRole("region", { name: "Tags" })).toBeInTheDocument();
   });
 

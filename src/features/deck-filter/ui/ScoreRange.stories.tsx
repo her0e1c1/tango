@@ -15,6 +15,11 @@ const InteractiveScoreRange: React.FC<ScoreRangeProps> = (props) => {
       {...props}
       maximum={maximum}
       minimum={minimum}
+      onClear={() => {
+        props.onClear();
+        setMaximum(null);
+        setMinimum(null);
+      }}
       onMaximumChange={(value) => {
         props.onMaximumChange(value);
         setMaximum(value);
@@ -34,6 +39,7 @@ const meta = {
   args: {
     maximum: 4,
     minimum: -2,
+    onClear: fn(),
     onMaximumChange: fn(),
     onMinimumChange: fn(),
   },

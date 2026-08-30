@@ -25,6 +25,10 @@ const Filters: React.FC<{
       tags={[...props.tags]}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
+      clearScoreRange={() => {
+        setScoreMax(null);
+        setScoreMin(null);
+      }}
       setScoreMax={setScoreMax}
       setScoreMin={setScoreMin}
       setSelectedTags={setSelectedTags}

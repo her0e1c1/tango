@@ -28,6 +28,9 @@ export const StudySessionStart: React.FC<StudySessionStartProps> = (props) => {
         <p className="mt-2 text-body text-ink-muted">Choose what to review, then begin a focused session.</p>
       </header>
       <div className="grid items-start gap-section-gap lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
+        <section aria-label="Study filters" className="min-w-0 lg:col-start-1 lg:row-start-1">
+          {props.filterSlot}
+        </section>
         {/* One responsive summary keeps live updates and keyboard focus attached to a single CTA. */}
         <section
           aria-labelledby="study-session-summary"
@@ -60,9 +63,6 @@ export const StudySessionStart: React.FC<StudySessionStartProps> = (props) => {
               Start {cardsLabel(sessionCardsLength)}
             </Button>
           </div>
-        </section>
-        <section aria-label="Study filters" className="min-w-0 lg:col-start-1 lg:row-start-1">
-          {props.filterSlot}
         </section>
       </div>
     </div>

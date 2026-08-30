@@ -13,6 +13,7 @@ const args: DeckFilterFormProps = {
   tags: [...fixture.tags.default],
   selectedTags: [],
   tagAndFilter: false,
+  clearScoreRange: fn(),
   setScoreMax: fn(),
   setScoreMin: fn(),
   setSelectedTags: fn(),
@@ -32,6 +33,11 @@ const InteractiveDeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
       scoreMin={scoreMin}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
+      clearScoreRange={() => {
+        props.clearScoreRange();
+        setScoreMax(null);
+        setScoreMin(null);
+      }}
       setScoreMax={(value) => {
         props.setScoreMax(value);
         setScoreMax(value);
