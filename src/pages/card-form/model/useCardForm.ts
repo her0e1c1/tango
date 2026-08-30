@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { useAuthUid } from "@/entities/auth";
 import { cardContentSchema, editCard, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
 const cardFormSchema = cardContentSchema.omit({ uniqueKey: true });
 export type CardFormValues = z.infer<typeof cardFormSchema>;
@@ -19,6 +20,7 @@ interface UseCardFormOptions {
 export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
   const uid = useAuthUid();
   const card = useCard(cardId);
+  const isMounted = useMountedGuard();
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const form = useForm<CardFormValues>({
     ...(card && {
@@ -39,9 +41,10 @@ export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
     setSaveError(null);
     try {
       await editCard(uid, { id: card.id, ...values });
-      onSaved();
+      // A Card write may finish after the user discards the form; do not navigate from that stale Page.
+      if (isMounted()) onSaved();
     } catch (error) {
-      setSaveError(error);
+      if (isMounted()) setSaveError(error);
     }
   });
   const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
@@ -55,5 +58,12 @@ export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
     ...(card.lastSeenAt != null ? { lastSeenAt: card.lastSeenAt } : {}),
   };
 
-  return { cardInfo, categories: CATEGORY, form, onSubmit: onFormSubmit, saveError };
+  return {
+    cardInfo,
+    categories: CATEGORY,
+    form,
+    isDirty: form.formState.isDirty,
+    onSubmit: onFormSubmit,
+    saveError,
+  };
 };

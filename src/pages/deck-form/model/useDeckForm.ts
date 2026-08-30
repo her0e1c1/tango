@@ -37,6 +37,8 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
   const [saveError, setSaveError] = React.useState<unknown>(null);
   const form = useForm<DeckFormValues>({
     ...(deck && { values: getDeckFormValues(deck) }),
+    // Subscription refreshes may update clean fields, but must not erase the user's retry payload.
+    resetOptions: { keepDirtyValues: true },
     resolver: zodResolver(deckFormSchema),
   });
 
@@ -67,6 +69,7 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
     deckInfo,
     deckName: deck.name,
     form,
+    isDirty: form.formState.isDirty,
     isLocalOnly: deck.localMode,
     onSubmit: onFormSubmit,
     saveError,

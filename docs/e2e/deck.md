@@ -18,6 +18,7 @@ Deck 管理の主要導線が、ブラウザ上で表示・作成・編集・削
 | DECK-08 | read | [Deck の Card を CSV で export できる](#deck-08) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](#deck-10) |
+| DECK-11 | read | [未保存の Deck 編集内容を離脱前に確認できる](#deck-11) |
 
 <a id="deck-01"></a>
 
@@ -244,3 +245,26 @@ Then:
 - 作成した Deck の name、category、remote の保存先が最初の作成要求から維持されている。
 - browser storage に同じ Deck の local-only duplicate が存在しない。
 - 最初の作成失敗に伴う未処理の browser error が発生しない。
+
+<a id="deck-11"></a>
+
+### DECK-11 未保存の Deck 編集内容を離脱前に確認できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
+- 認証済みユーザーが所有する編集対象の Deck が存在する。
+- Deck 編集画面で name を変更し、まだ保存していない。
+
+When:
+
+- Header から Deck 一覧への離脱を試み、Keep editing を選択した後、再度離脱して Discard changes を選択する。
+
+Then:
+
+- 最初の離脱は取り消され、変更した name が編集画面に維持される。
+- 2回目の離脱では Deck 一覧へ1回だけ遷移する。
+- 永続化された Deck の name は変更されない。
+- browser error が発生しない。

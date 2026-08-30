@@ -2,7 +2,7 @@ import type { Preferences } from "@/entities/preference";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -28,16 +28,17 @@ import { CardFormPage } from "./CardFormPage";
 describe("CardFormPage", () => {
   const deckId = "card-form-deck";
   const cardId = "card-id";
-  const renderPage = (path = `/card/${cardId}/edit`) =>
-    render(
-      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
-        <Routes>
-          <Route path="/previous" element={<h1>Previous page</h1>} />
-          <Route path="/" element={<h1>Deck list</h1>} />
-          <Route path="/card/:id/edit" element={<CardFormPage />} />
-        </Routes>
-      </MemoryRouter>
+  const renderPage = (path = `/card/${cardId}/edit`) => {
+    const router = createMemoryRouter(
+      [
+        { path: "/previous", element: <h1>Previous page</h1> },
+        { path: "/", element: <h1>Deck list</h1> },
+        { path: "/card/:id/edit", element: <CardFormPage /> },
+      ],
+      { initialEntries: ["/previous", path], initialIndex: 1 }
     );
+    return render(<RouterProvider router={router} />);
+  };
 
   beforeEach(async () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
@@ -80,6 +81,8 @@ describe("CardFormPage", () => {
   it("returns to the previous page after saving", async () => {
     renderPage();
 
+    await userEvent.clear(screen.getByRole("textbox", { name: "Front text" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Front text" }), "Saved front");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
@@ -91,6 +94,19 @@ describe("CardFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
+  });
+
+  it("protects dirty Card input when cancellation is requested", async () => {
+    renderPage();
+    const frontText = screen.getByRole("textbox", { name: "Front text" });
+    await userEvent.clear(frontText);
+    await userEvent.type(frontText, "Unsaved front");
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+
+    expect(frontText).toHaveValue("Unsaved front");
   });
 
   it("navigates with both recovery actions when the card is unavailable", async () => {

@@ -15,6 +15,15 @@ const reloadPage = () => {
   window.location.reload();
 };
 
+export const AppErrorFallback = () => (
+  <RouteFeedback
+    title="Something went wrong"
+    description="Tango encountered an unexpected error. Reload the app to try again."
+    tone="error"
+    primaryAction={{ label: "Reload", onClick: reloadPage }}
+  />
+);
+
 // biome-ignore lint/style/useReactFunctionComponents: React requires a class to define an Error Boundary without another dependency.
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
   constructor(props: AppErrorBoundaryProps) {
@@ -29,13 +38,6 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   override render(): ReactNode {
     if (!this.state.hasError) return this.props.children;
 
-    return (
-      <RouteFeedback
-        title="Something went wrong"
-        description="Tango encountered an unexpected error. Reload the app to try again."
-        tone="error"
-        primaryAction={{ label: "Reload", onClick: reloadPage }}
-      />
-    );
+    return <AppErrorFallback />;
   }
 }

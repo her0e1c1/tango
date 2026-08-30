@@ -2,7 +2,7 @@ import type { Preferences } from "@/entities/preference";
 
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
+import { createMemoryRouter, Link, MemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -26,16 +26,17 @@ import { DeckFormPage } from "./DeckFormPage";
 
 describe("DeckFormPage", () => {
   const deckId = "deck-id";
-  const renderPage = (path = `/deck/${deckId}/edit`) =>
-    render(
-      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
-        <Routes>
-          <Route path="/previous" element={<h1>Previous page</h1>} />
-          <Route path="/" element={<h1>Deck list</h1>} />
-          <Route path="/deck/:id/edit" element={<DeckFormPage />} />
-        </Routes>
-      </MemoryRouter>
+  const renderPage = (path = `/deck/${deckId}/edit`) => {
+    const router = createMemoryRouter(
+      [
+        { path: "/previous", element: <h1>Previous page</h1> },
+        { path: "/", element: <h1>Deck list</h1> },
+        { path: "/deck/:id/edit", element: <DeckFormPage /> },
+      ],
+      { initialEntries: ["/previous", path], initialIndex: 1 }
     );
+    return Object.assign(render(<RouterProvider router={router} />), { router });
+  };
 
   beforeEach(async () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
@@ -66,27 +67,37 @@ describe("DeckFormPage", () => {
   it("resets page-owned state when navigating to a different Deck", async () => {
     const nextDeckId = "next-deck";
     await createDeck("", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
-    render(
-      <MemoryRouter initialEntries={[`/deck/${deckId}/edit`]}>
-        <Link to={`/deck/${nextDeckId}/edit`}>Next deck</Link>
-        <Routes>
-          <Route path="/deck/:id/edit" element={<DeckFormPage />} />
-        </Routes>
-      </MemoryRouter>
+    const router = createMemoryRouter(
+      [
+        {
+          path: "/deck/:id/edit",
+          element: (
+            <>
+              <Link to={`/deck/${nextDeckId}/edit`}>Next deck</Link>
+              <DeckFormPage />
+            </>
+          ),
+        },
+      ],
+      { initialEntries: [`/deck/${deckId}/edit`] }
     );
+    render(<RouterProvider router={router} />);
 
-    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
-    expect(screen.getByRole("alertdialog", { name: "Delete deck?" })).toHaveTextContent("Deck name");
+    await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Unsaved name");
 
     await userEvent.click(screen.getByRole("link", { name: "Next deck" }));
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
 
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Next deck");
-    expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("alertdialog", { name: "Discard unsaved changes?" })).not.toBeInTheDocument();
   });
 
   it("navigates to the deck list after saving", async () => {
     renderPage();
 
+    await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Saved deck");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
@@ -100,6 +111,38 @@ describe("DeckFormPage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
 
+  it("blocks cancellation while the Deck form is dirty", async () => {
+    renderPage();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Unsaved deck");
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+
+    expect(name).toHaveValue("Unsaved deck");
+  });
+
+  it("shows navigation confirmation above an open deletion dialog", async () => {
+    const view = renderPage();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Unsaved deck");
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    expect(screen.getByRole("alertdialog", { name: "Delete deck?" })).toBeVisible();
+
+    await actAsync(async () => {
+      await view.router.navigate(-1);
+    });
+
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+    expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(screen.getByRole("alertdialog", { name: "Delete deck?" })).toBeVisible();
+    expect(name).toHaveValue("Unsaved deck");
+  });
+
   it("deletes the deck from its settings page after confirmation", async () => {
     renderPage();
 
@@ -111,12 +154,15 @@ describe("DeckFormPage", () => {
     await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
     expect(screen.getByRole("heading", { level: 1, name: "Deck name" })).toBeVisible();
 
+    await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Unsaved before deletion");
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
     await userEvent.click(
       within(screen.getByRole("alertdialog", { name: "Delete deck?" })).getByRole("button", { name: "Delete deck" })
     );
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    expect(screen.queryByRole("alertdialog", { name: "Discard unsaved changes?" })).not.toBeInTheDocument();
   });
 
   it("navigates with both recovery actions when the deck is unavailable", async () => {

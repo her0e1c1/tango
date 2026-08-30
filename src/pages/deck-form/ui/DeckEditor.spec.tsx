@@ -202,6 +202,26 @@ describe("DeckEditor", () => {
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Retry deck");
   });
 
+  it("keeps dirty fields when the Deck Entity refreshes", async () => {
+    renderForm();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Unsaved deck");
+
+    await createDeck(
+      "",
+      createLocalDeck({
+        id: deckId,
+        name: "Subscription name",
+        category: "science",
+        convertToBr: false,
+      })
+    );
+
+    expect(name).toHaveValue("Unsaved deck");
+    expect(screen.getByRole("combobox")).toHaveValue("science");
+  });
+
   it("keeps stored values unchanged when validation rejects the form", async () => {
     const view = renderForm();
     await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));

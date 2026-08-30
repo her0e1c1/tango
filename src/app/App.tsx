@@ -5,19 +5,22 @@
  */
 
 import React from "react";
-import { BrowserRouter } from "react-router-dom";
+import { RouterProvider } from "react-router-dom";
 
 import { usePreferences } from "@/entities/preference";
 
 import { AuthProvider } from "./auth";
 import { FirestoreSubscriptionsProvider } from "./firestore-subscriptions";
-import { AppRoutes } from "./routes";
+
+interface AppProps {
+  router: React.ComponentProps<typeof RouterProvider>["router"];
+}
 
 /**
  * Renders the App user interface.
  * Reads display settings and installs the application routes.
  */
-const App: React.FC = () => {
+const App: React.FC<AppProps> = ({ router }) => {
   const { darkMode } = usePreferences().appearance;
 
   React.useEffect(() => {
@@ -27,9 +30,7 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <FirestoreSubscriptionsProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+        <RouterProvider router={router} />
       </FirestoreSubscriptionsProvider>
     </AuthProvider>
   );

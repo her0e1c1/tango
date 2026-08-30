@@ -1,11 +1,21 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Decorator, Meta, StoryObj } from "@storybook/react";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { expect } from "storybook/test";
 
 import { routes } from "@/shared/router";
-import { type PageStoryParameters, preparePageStory, withPageStory } from "@/storybook/PageDecorator";
+import { type PageStoryParameters, preparePageStory } from "@/storybook/PageDecorator";
 import { PAGE_STORY_CARD_ID, PAGE_STORY_DECK_ID, pageStoryState } from "@/storybook/pageFixture";
 
-import { AppRoutes } from "./routes";
+import { appRoutes } from "./routes";
+
+const AppRoutes = () => null;
+
+const withAppRouter: Decorator = (_Story, context) => {
+  const parameters = context.parameters.page as PageStoryParameters | undefined;
+  if (parameters == null) throw new Error("App route stories require parameters.page");
+  const router = createMemoryRouter(appRoutes, { initialEntries: [parameters.path] });
+  return <RouterProvider key={context.id} router={router} />;
+};
 
 const page = (path: string, overrides: Partial<Omit<PageStoryParameters, "path">> = {}): PageStoryParameters => ({
   ...pageStoryState,
@@ -16,7 +26,7 @@ const page = (path: string, overrides: Partial<Omit<PageStoryParameters, "path">
 const meta = {
   title: "Integration/Routes",
   component: AppRoutes,
-  decorators: [withPageStory],
+  decorators: [withAppRouter],
   loaders: [
     ({ parameters }) => {
       preparePageStory(parameters.page as PageStoryParameters);

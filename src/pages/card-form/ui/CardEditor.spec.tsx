@@ -129,6 +129,28 @@ describe("CardEditor", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
   });
 
+  it("does not navigate when saving finishes after leaving the editor", async () => {
+    let finishSave: () => void = () => undefined;
+    writeControls.beforeWrite = () =>
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      });
+    const onSaved = vi.fn();
+    const view = renderForm(onSaved);
+    const frontText = screen.getByRole("textbox", { name: "Front text" });
+    await userEvent.clear(frontText);
+    await userEvent.type(frontText, "Saved after leaving");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    view.unmount();
+    finishSave();
+    renderForm();
+
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Saved after leaving"));
+    expect(onSaved).not.toHaveBeenCalled();
+  });
+
   it("keeps edited values and saves them after retrying a failure", async () => {
     writeControls.nextError = new Error("write failed");
     const onSaved = vi.fn();
