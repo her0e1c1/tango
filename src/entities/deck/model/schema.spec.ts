@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
+
+import type { RemoteDeckCreateInput } from "./types";
 
 import { createDeck as createDeckFixture } from "@/test/factories";
 
@@ -9,11 +11,10 @@ describe("Deck operation schemas", () => {
 
   describe("createDeckSchema", () => {
     it("applies entity defaults without adding persistence timestamps", () => {
-      expect(createDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", uid: "uid-a", name: " Deck " } })).toEqual({
+      expect(createDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", name: " Deck " } })).toEqual({
         uid: "uid-a",
         deck: {
           id: "deck",
-          uid: "uid-a",
           name: "Deck",
           localMode: false,
           isPublic: false,
@@ -25,18 +26,23 @@ describe("Deck operation schemas", () => {
           convertToBr: false,
         },
       });
+      expectTypeOf<RemoteDeckCreateInput>().not.toHaveProperty("uid");
     });
 
     it.each([
       ["authenticated uid", { uid: "", deck }, "confirmed user"],
       ["Deck id", { uid: "uid-a", deck: { ...deck, id: "" } }, "Deck id"],
-      ["Deck uid", { uid: "uid-a", deck: { ...deck, uid: "" } }, "Deck owner"],
       ["Deck name", { uid: "uid-a", deck: { ...deck, name: "   " } }, "Deck name"],
       ["Deck URL", { uid: "uid-a", deck: { ...deck, url: "not-a-url" } }, "valid URL"],
       ["local mode", { uid: "uid-a", deck: { ...deck, localMode: true } }, "Invalid input"],
-      ["owner relationship", { uid: "uid-b", deck }, "owner does not match"],
     ])("rejects an invalid %s", (_case, input, message) => {
       expect(() => createDeckSchema.parse(input)).toThrow(message);
+    });
+
+    it("drops caller-provided owner metadata from the command", () => {
+      const parsed = createDeckSchema.parse({ uid: "actor", deck: { ...deck, uid: "other-user" } });
+
+      expect(parsed.deck).not.toHaveProperty("uid");
     });
   });
 

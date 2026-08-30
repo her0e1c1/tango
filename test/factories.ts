@@ -5,7 +5,7 @@
  */
 
 import type { LocalCard, RemoteCard } from "@/entities/card/testing";
-import type { Deck } from "@/entities/deck";
+import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
 
 type AppearancePreferences = Preferences["appearance"];
@@ -33,6 +33,14 @@ export const createDeck = (
   tagAndFilter: false,
   category: "",
   convertToBr: false,
+  ...overrides,
+});
+
+/** Builds an owner-free command for creating a remote Deck. */
+export const createRemoteDeckInput = (overrides: Partial<RemoteDeckCreateInput> = {}): RemoteDeckCreateInput => ({
+  id: "deck-id",
+  name: "Deck",
+  localMode: false,
   ...overrides,
 });
 

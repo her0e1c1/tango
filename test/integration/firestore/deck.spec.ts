@@ -3,7 +3,7 @@
  * The examples cover creating, updating, checking, and deleting Deck documents.
  */
 
-import type { Deck, DeckCreateInput } from "@/entities/deck";
+import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
 import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
@@ -15,7 +15,13 @@ import { editDeck as editStoredDeck } from "@/entities/deck";
 import { deckStore } from "@/entities/deck/model/store";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import * as Uuid from "uuid";
-import { createCard, createDeck as createDeckFixture, createLocalCard, createLocalDeck } from "@/test/factories";
+import {
+  createCard,
+  createDeck as createDeckFixture,
+  createLocalCard,
+  createLocalDeck,
+  createRemoteDeckInput,
+} from "@/test/factories";
 
 const uuid = Uuid.v4;
 
@@ -47,11 +53,11 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
   it("should create a deck and check if exists", async () => {
     const d = {
       id: uuid(),
-      uid: "uid",
       name: "new deck name",
+      localMode: false,
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies DeckCreateInput & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies RemoteDeckCreateInput & { currentIndex: number; cardOrderIds: string[] };
     await createDeck("uid", d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...toFirestoreDeck(newDeck), id: d.id });
@@ -62,24 +68,28 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
   });
 
   it("should update a deck", async () => {
-    const d = { ...newDeck, id: uuid() };
+    const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
     await createDeck("uid", d);
     const n = {
       ...d,
       name: "updated",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies Deck & { currentIndex: number; cardOrderIds: string[] };
+    };
     await editDeck("uid", n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
-    expect(data).toEqual({ ...toFirestoreDeck(d), name: "updated" });
+    expect(data).toEqual({ ...toFirestoreDeck(newDeck), id: d.id, name: "updated" });
     expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
   it("preserves an omitted URL and removes a cleared URL", async () => {
-    const deck = { ...newDeck, id: uuid(), url: "https://example.com/deck" };
+    const deck = createRemoteDeckInput({
+      id: uuid(),
+      name: newDeck.name,
+      url: "https://example.com/deck",
+    });
     await createDeck("uid", deck);
 
     await editDeck("uid", { id: deck.id, name: "updated" });
@@ -90,10 +100,10 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
   });
 
   it("should delete a deck and its Cards", async () => {
-    const d = { ...newDeck, id: uuid() };
+    const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
     const cards = [
-      createCard({ id: uuid(), deckId: d.id, uid: d.uid }),
-      createCard({ id: uuid(), deckId: d.id, uid: d.uid }),
+      createCard({ id: uuid(), deckId: d.id, uid: "uid" }),
+      createCard({ id: uuid(), deckId: d.id, uid: "uid" }),
     ];
     await createDeck("uid", d);
     await Promise.all(cards.map((card) => createCardCommand("uid", card)));

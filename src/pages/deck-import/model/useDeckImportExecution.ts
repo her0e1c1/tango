@@ -1,5 +1,5 @@
 import type { CardMutation } from "@/entities/card";
-import type { DeckCreateInput, DeckId, LocalDeckCreateInput } from "@/entities/deck";
+import type { DeckId, LocalDeckCreateInput, RemoteDeckCreateInput } from "@/entities/deck";
 
 import { useState } from "react";
 
@@ -8,7 +8,7 @@ import { createDeck as persistDeck } from "@/entities/deck";
 
 import type { DeckImportRow } from "../lib/cardCsv";
 
-type DeckImportCreateInput = DeckCreateInput | LocalDeckCreateInput;
+type DeckImportCreateInput = RemoteDeckCreateInput | LocalDeckCreateInput;
 export type DeckImportStorageMode = "local" | "remote";
 
 export interface PreparedDeckImport {
@@ -37,12 +37,13 @@ interface DeckImportExecutionDependencies {
 
 const createDestination = (
   source: DeckImportSource,
-  uid: string,
   storageMode: DeckImportStorageMode,
   generateDeckId: () => DeckId
 ): DeckImportCreateInput => {
   const id = generateDeckId();
-  return storageMode === "local" ? { id, name: source.name, localMode: true } : { id, uid, name: source.name };
+  return storageMode === "local"
+    ? { id, name: source.name, localMode: true }
+    : { id, name: source.name, localMode: false };
 };
 
 const prepareCardCreations = ({
@@ -72,7 +73,7 @@ export const prepareDeckImport = (
   const storageMode = source.storageMode ?? "remote";
   if (storageMode === "remote" && uid === "") throw new Error("A confirmed user is required for remote imports");
 
-  const destination = createDestination(source, uid, storageMode, generateDeckId);
+  const destination = createDestination(source, storageMode, generateDeckId);
 
   return {
     uid,
