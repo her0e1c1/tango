@@ -49,7 +49,6 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
     resetOptions: { keepDirtyValues: true },
     resolver: zodResolver(deckFormSchema),
   });
-
   if (deck == null) return;
 
   const submit = form.handleSubmit(async (values) => {

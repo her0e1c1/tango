@@ -15,6 +15,7 @@ Deck の作成・編集・削除が保存先の境界を守り、失敗後の再
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](#deck-10) |
 | DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](#deck-11) |
+| DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](#deck-12) |
 
 <a id="deck-02"></a>
 
@@ -179,4 +180,27 @@ Then:
 - 作成した Deck は browser storage に一つだけ存在する。
 - remote data に同じ Deck が存在しない。
 - 対象 Deck に Card が存在しない。
+- browser error が発生しない。
+
+<a id="deck-12"></a>
+
+### DECK-12 未保存の Deck 編集内容を離脱前に確認できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
+- 認証済みユーザーが所有する編集対象の Deck が存在する。
+- Deck 編集画面で name を変更し、まだ保存していない。
+
+When:
+
+- Header から Deck 一覧への離脱を試み、Keep editing を選択した後、再度離脱して Discard changes を選択する。
+
+Then:
+
+- 最初の離脱は取り消され、変更した name が編集画面に維持される。
+- 2回目の離脱では Deck 一覧へ1回だけ遷移する。
+- 永続化された Deck の name は変更されない。
 - browser error が発生しない。

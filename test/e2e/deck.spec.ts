@@ -270,3 +270,24 @@ test("DECK-10 retries a failed remote create with the same ID and no duplicate",
   expect(local.decks).toEqual([]);
   expect(local.cards).toEqual([]);
 });
+
+test("DECK-12 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {
+  const deck = fixture.deck();
+  const unsavedName = `${namespace.caseId} unsaved`;
+  await fixture.apply(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  const name = page.getByRole("textbox", { name: "Name" });
+  await name.fill(unsavedName);
+
+  await page.getByRole("button", { name: "tango" }).click();
+  const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+  await dialog.getByRole("button", { name: "Keep editing" }).click();
+  await expect(name).toHaveValue(unsavedName);
+  await page.getByRole("button", { name: "tango" }).click();
+  await dialog.getByRole("button", { name: "Discard changes" }).click();
+
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("button", { name: `View ${deck.name}` })).toBeVisible();
+});

@@ -16,6 +16,19 @@ permissions:
   contents: read
 
 jobs:
+  # Non-PR callers intentionally skip this job; the aggregate validates that exact event/result pairing.
+  dependency-review:
+    name: Dependency Review
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+
   e2e:
     name: E2E
     uses: ./.github/workflows/e2e.yaml
@@ -101,19 +114,26 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Run after every dependency conclusion and fail closed unless every canonical job succeeded.
+  # Fail closed for canonical results; only Dependency Review may be skipped, and only outside PRs.
   test:
     name: Test
     if: ${{ always() }}
-    needs: [checks, e2e, integration]
+    needs: [checks, dependency-review, e2e, integration]
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
         env:
           CHECKS_RESULT: ${{ needs.checks.result }}
+          DEPENDENCY_REVIEW_RESULT: ${{ needs.dependency-review.result }}
           E2E_RESULT: ${{ needs.e2e.result }}
+          EVENT_NAME: ${{ github.event_name }}
           INTEGRATION_RESULT: ${{ needs.integration.result }}
         run: |
           test "$CHECKS_RESULT" = success
           test "$E2E_RESULT" = success
           test "$INTEGRATION_RESULT" = success
+          if [ "$EVENT_NAME" = pull_request ]; then
+            test "$DEPENDENCY_REVIEW_RESULT" = success
+          else
+            test "$DEPENDENCY_REVIEW_RESULT" = skipped
+          fi
