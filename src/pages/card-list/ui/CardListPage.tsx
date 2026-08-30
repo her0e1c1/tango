@@ -26,7 +26,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   });
 
   return (
-    <AppLayout showHeader>
+    <AppLayout showHeader={state.answer == null}>
       {state.deletionTarget != null ? (
         <DestructiveActionDialog
           title="Delete card?"

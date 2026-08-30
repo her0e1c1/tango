@@ -13,13 +13,14 @@ import { setStudySessionIndex } from "@/entities/study-session";
 import { useAutoPlay } from "./useAutoPlay";
 import { buildStudyHelpContent } from "./studyHelp";
 import { useStudySessionState } from "./useStudySessionState";
-import { useSwipe } from "./useSwipe";
+import { type StudyCompletion, useSwipe } from "./useSwipe";
 
 export const useStudy = (deckId: string) => {
   const cards = useCards();
   const deck = useDeck(deckId);
   const preferences = usePreferences();
   const sessionState = useStudySessionState(deckId, cards);
+  const [completion, setCompletion] = React.useState<StudyCompletion>();
   const [showBackText, setShowBackText] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
   const hideBackText = () => setShowBackText(false);
@@ -30,7 +31,7 @@ export const useStudy = (deckId: string) => {
     paused: helpOpen,
     onAdvance: hideBackText,
   });
-  const swipe = useSwipe(deckId, cards, hideBackText);
+  const swipe = useSwipe(deckId, cards, hideBackText, setCompletion);
 
   const updateIndex = (currentIndex: number): void => {
     if (!setStudySessionIndex(deckId, currentIndex)) return;
@@ -60,6 +61,7 @@ export const useStudy = (deckId: string) => {
   };
 
   if (deck == null) return;
+  if (completion != null) return { status: "completed" as const, completion };
   if (sessionState.status !== "studying") return { ...controls, status: sessionState.status };
 
   const category = getCategory(deck.category, sessionState.card.tags);

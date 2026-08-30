@@ -1,10 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DestructiveActionDialog } from "./DestructiveActionDialog";
+import { dismissToast, showToast, ToastViewport } from "../toast";
 
 const defaultProps = {
   title: "Delete deck?",
@@ -17,6 +18,7 @@ const defaultProps = {
 };
 
 afterEach(() => {
+  dismissToast();
   vi.clearAllMocks();
 });
 
@@ -118,6 +120,54 @@ describe("DestructiveActionDialog", () => {
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(trigger).toHaveFocus();
+  });
+
+  it("hosts existing Toast controls inside the modal interaction boundary", async () => {
+    const onRetry = vi.fn();
+    const Harness = () => {
+      const [open, setOpen] = React.useState(true);
+      return (
+        <>
+          {open ? <DestructiveActionDialog {...defaultProps} onCancel={() => setOpen(false)} /> : null}
+          <ToastViewport />
+        </>
+      );
+    };
+    act(() => showToast({ message: "Try again", tone: "error", action: { label: "Retry", onClick: onRetry } }));
+    render(<Harness />);
+
+    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
+    const alert = within(dialog).getByRole("alert");
+    const dismiss = within(dialog).getByRole("button", { name: "Dismiss notification" });
+    const retry = within(dialog).getByRole("button", { name: "Retry" });
+    const target = screen.getByText("Japanese verbs");
+    expect(alert).toHaveTextContent("Error: Try again");
+    expect(retry).toBeVisible();
+
+    dismiss.focus();
+    await userEvent.tab();
+    expect(target).toHaveFocus();
+
+    await userEvent.click(retry);
+    expect(target).toHaveFocus();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(onRetry).toHaveBeenCalledOnce();
+
+    act(() => showToast({ message: "Still failing", tone: "error" }));
+    const nextDismiss = within(dialog).getByRole("button", { name: "Dismiss notification" });
+    await userEvent.click(nextDismiss);
+    expect(target).toHaveFocus();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+    act(() => showToast({ message: "Persistent failure", tone: "error" }));
+    expect(within(dialog).getByRole("alert")).toHaveTextContent("Persistent failure");
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+    const globalAlert = screen.getByRole("alert");
+    expect(globalAlert).toHaveTextContent("Error: Persistent failure");
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(onRetry).toHaveBeenCalledOnce();
   });
 
   it("announces pending work and prevents duplicate confirmation", async () => {

@@ -306,7 +306,7 @@ const BackTextOverlays: React.FC<{
       ) : null}
       {overlay.onClickRight !== undefined ? (
         <BackTextEdgeOverlay
-          // Keep the hit area inside the reserved w-20 while leaving a pointer-free scrollbar gutter.
+          // Leave a pointer-free scrollbar gutter while the hit area floats over the answer.
           className="right-5 w-[calc(5rem-1.25rem)]"
           ariaLabel="Swipe right"
           onClick={overlay.onClickRight}
@@ -327,14 +327,8 @@ const CardContent: React.FC<{
     return (
       <>
         <BackTextOverlays overlay={backTextOverlay} />
-        <div
-          className={cx(
-            "flex min-h-full w-full",
-            // Reserve w-20 per edge; the right reservation includes its pointer-free scrollbar gutter.
-            backTextOverlay?.onClickLeft !== undefined && "pl-20",
-            backTextOverlay?.onClickRight !== undefined && "pr-20"
-          )}
-        >
+        {/* Edge actions float above the full-width answer so enabling them never changes the Card layout. */}
+        <div data-study-answer-content="" className="flex min-h-full w-full">
           {backTextSlot}
         </div>
       </>

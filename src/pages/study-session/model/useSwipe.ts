@@ -26,7 +26,16 @@ export interface SwipeState {
   swipeRight: () => Promise<void>;
 }
 
-export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: () => void): SwipeState => {
+export interface StudyCompletion {
+  cardCount: number;
+}
+
+export const useSwipe = (
+  deckId: DeckId,
+  cards: readonly Card[],
+  onCardChanged: () => void,
+  onCompleted: (completion: StudyCompletion) => void
+): SwipeState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
   const isMounted = useMountedGuard();
@@ -40,6 +49,17 @@ export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: 
       durationMs: SWIPE_FEEDBACK_DURATION_MS,
       dismissible: false,
     });
+  };
+
+  const updateVisibleSession = (direction: SwipeDirection, completesSession: boolean, cardCount: number): void => {
+    // Session persistence still completes after navigation, but route-owned feedback and UI callbacks must not leak.
+    if (!isMounted()) return;
+    showSwipeToast(direction);
+    if (completesSession) {
+      onCompleted({ cardCount });
+      return;
+    }
+    if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged();
   };
 
   const swipe = async (direction: SwipeDirection): Promise<void> => {
@@ -56,6 +76,11 @@ export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: 
       return;
     }
 
+    // Completion is derived from the pre-write snapshot because a successful boundary move removes the session.
+    const completesSession =
+      swipePlan.effect === "next" && swipePlan.session.currentIndex === swipePlan.session.cardOrderIds.length - 1;
+    const cardCount = swipePlan.session.cardOrderIds.length;
+
     swipeState.current.inProgress = true;
     // The visible card advances only after persistence succeeds, so failed writes need no session rollback.
     const saved = await editStudyProgress(uid, swipePlan.progress).then(
@@ -67,10 +92,7 @@ export const useSwipe = (deckId: DeckId, cards: readonly Card[], onCardChanged: 
 
     if (!moveStudySession(swipePlan.session, swipePlan.effect)) return;
 
-    // Session persistence still completes after navigation, but route-owned feedback and UI callbacks must not leak.
-    if (!isMounted()) return;
-    showSwipeToast(direction);
-    if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged();
+    updateVisibleSession(direction, completesSession, cardCount);
   };
 
   return {

@@ -2,7 +2,7 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -114,6 +114,7 @@ describe("CardListPage interactions", () => {
   it("builds the list presentation and coordinates filter, view, and edit interactions", async () => {
     renderCardList();
 
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
     expect(screen.getByText("score -2–4 · 2 tags")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
     expect(screen.queryByRole("button", { name: "Remove typescript filter" })).not.toBeInTheDocument();
@@ -121,8 +122,10 @@ describe("CardListPage interactions", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
     expect(screen.getByText("Back")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Close card" }));
     expect(screen.queryByText("Back")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
@@ -172,8 +175,11 @@ describe("CardListPage interactions", () => {
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
-    expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+    const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+      "Unable to delete this card. Check your connection and try again."
+    );
+    expect(within(dialog).queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument());
