@@ -47,6 +47,7 @@ const answerSurfaceProps = {
 
 export interface StudySessionProps {
   showBackText?: boolean;
+  showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
   playbackControlsAvailable: boolean;
@@ -62,6 +63,7 @@ export interface StudySessionProps {
   onSwipeRight?: () => void;
   onSwipeDown?: () => void;
   onBack: () => void;
+  onToggleCardDetails: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
 }
@@ -286,7 +288,6 @@ const Controls: React.FC<{
 
 export const StudySession: React.FC<StudySessionProps> = (props) => {
   const [studyActionsOpen, setStudyActionsOpen] = React.useState(false);
-  const [showCardDetails, setShowCardDetails] = React.useState(true);
   const suppressCardClick = React.useRef(false);
   const suppressCardClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -346,12 +347,12 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       {showStudyChrome ? (
         <StudyToolbar
           open={studyActionsOpen}
-          showCardDetails={showCardDetails}
+          showCardDetails={props.showCardDetails}
           showSwipeControls={props.showSwipeControls}
           showPlaybackControls={props.showPlaybackControls}
           playbackControlsAvailable={props.playbackControlsAvailable}
           onToggleOpen={() => setStudyActionsOpen((open) => !open)}
-          onToggleCardDetails={() => setShowCardDetails((visible) => !visible)}
+          onToggleCardDetails={props.onToggleCardDetails}
           onBack={props.onBack}
           onToggleSwipeControls={props.onToggleSwipeControls}
           onTogglePlaybackControls={props.onTogglePlaybackControls}
@@ -370,7 +371,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           showBackText={props.showBackText}
           backTextSlot={props.backTextSlot}
           frontTextSlot={props.frontTextSlot}
-          cardOverlaySlot={showCardDetails ? props.cardOverlaySlot : undefined}
+          cardOverlaySlot={props.showCardDetails ? props.cardOverlaySlot : undefined}
         />
       </div>
       <Controls

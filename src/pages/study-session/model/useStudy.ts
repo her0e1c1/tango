@@ -2,7 +2,12 @@ import * as React from "react";
 
 import { useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
-import { toggleShowPlaybackControls, toggleShowSwipeButtonList, usePreferences } from "@/entities/preference";
+import {
+  toggleShowCardDetails,
+  toggleShowPlaybackControls,
+  toggleShowSwipeButtonList,
+  usePreferences,
+} from "@/entities/preference";
 import { setStudySessionIndex } from "@/entities/study-session";
 
 import { useAutoPlay } from "./useAutoPlay";
@@ -32,10 +37,12 @@ export const useStudy = (deckId: string) => {
     ...swipe,
     toggleBackText: () => setShowBackText((visible) => !visible),
     toggleAutoPlay,
+    toggleShowCardDetails,
     toggleShowPlaybackControls,
     toggleSwipeButtonList: toggleShowSwipeButtonList,
     showBackText,
     playbackControlsAvailable: preferences.study.cardInterval > 0,
+    showCardDetails: preferences.controls.showCardDetails,
     showPlaybackControls: preferences.controls.showPlaybackControls,
     showSwipeButtonList: preferences.controls.showSwipeButtonList,
     autoPlay,

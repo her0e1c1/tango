@@ -9,10 +9,12 @@ import { StudySession } from "./StudySession";
 const playbackUnavailableDescription = "Playback controls unavailable because the card interval is set to 0";
 
 const toolbarProps = () => ({
+  showCardDetails: true,
   showSwipeControls: true,
   showPlaybackControls: true,
   playbackControlsAvailable: true,
   onBack: vi.fn(),
+  onToggleCardDetails: vi.fn(),
   onToggleSwipeControls: vi.fn(),
   onTogglePlaybackControls: vi.fn(),
 });
@@ -78,12 +80,14 @@ describe("StudySession", () => {
 
   it("opens the study actions overlay and reports its controls", () => {
     const onBack = vi.fn();
+    const onToggleCardDetails = vi.fn();
     const onToggleSwipeControls = vi.fn();
     const onTogglePlaybackControls = vi.fn();
     render(
       <StudySession
         {...toolbarProps()}
         onBack={onBack}
+        onToggleCardDetails={onToggleCardDetails}
         onToggleSwipeControls={onToggleSwipeControls}
         onTogglePlaybackControls={onTogglePlaybackControls}
         cardOverlaySlot={<div>Card metadata</div>}
@@ -118,18 +122,20 @@ describe("StudySession", () => {
     fireEvent.click(back);
     fireEvent.click(swipeToggle);
     fireEvent.click(playbackToggle);
+    fireEvent.click(detailsToggle);
 
     expect(onBack).toHaveBeenCalledOnce();
     expect(onToggleSwipeControls).toHaveBeenCalledOnce();
     expect(onTogglePlaybackControls).toHaveBeenCalledOnce();
+    expect(onToggleCardDetails).toHaveBeenCalledOnce();
 
     fireEvent.keyDown(closeActions, { key: "Escape" });
     expect(screen.getByRole("button", { name: "Open study actions" })).toHaveFocus();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
   });
 
-  it("shows and hides all card details with one overlay control", () => {
-    render(
+  it("shows and hides all card details from the persisted preference value", () => {
+    const { rerender } = render(
       <StudySession
         {...toolbarProps()}
         cardOverlaySlot={<div>Score, seen count, and last seen</div>}
@@ -140,15 +146,27 @@ describe("StudySession", () => {
     expect(screen.getByText("Score, seen count, and last seen")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
 
-    const detailsToggle = screen.getByRole("button", { name: "Card details" });
-    fireEvent.click(detailsToggle);
-    expect(detailsToggle).toHaveAttribute("aria-pressed", "false");
-    expect(detailsToggle).toHaveAttribute("title", "Show card details");
+    rerender(
+      <StudySession
+        {...toolbarProps()}
+        showCardDetails={false}
+        cardOverlaySlot={<div>Score, seen count, and last seen</div>}
+        frontTextSlot={<div>Front</div>}
+      />
+    );
+    expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("title", "Show card details");
     expect(screen.queryByText("Score, seen count, and last seen")).not.toBeInTheDocument();
 
-    fireEvent.click(detailsToggle);
-    expect(detailsToggle).toHaveAttribute("aria-pressed", "true");
-    expect(detailsToggle).toHaveAttribute("title", "Hide card details");
+    rerender(
+      <StudySession
+        {...toolbarProps()}
+        cardOverlaySlot={<div>Score, seen count, and last seen</div>}
+        frontTextSlot={<div>Front</div>}
+      />
+    );
+    expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("title", "Hide card details");
     expect(screen.getByText("Score, seen count, and last seen")).toBeVisible();
   });
 

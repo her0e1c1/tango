@@ -24,6 +24,7 @@ const DEFAULT_STUDY = {
 const DEFAULT_CONTROLS = {
   showSwipeButtonList: true,
   showPlaybackControls: true,
+  showCardDetails: true,
   showScoreSlider: false,
   cardSwipeUp: "GoToNextCardMastered" as const,
   cardSwipeDown: "GoToNextCardNotMastered" as const,
@@ -78,6 +79,7 @@ export const controlPreferencesSchema = z
   .object({
     showSwipeButtonList: z.boolean().catch(DEFAULT_CONTROLS.showSwipeButtonList),
     showPlaybackControls: z.boolean().catch(DEFAULT_CONTROLS.showPlaybackControls),
+    showCardDetails: z.boolean().catch(DEFAULT_CONTROLS.showCardDetails),
     showScoreSlider: z.boolean().catch(DEFAULT_CONTROLS.showScoreSlider),
     cardSwipeUp: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeUp),
     cardSwipeDown: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeDown),

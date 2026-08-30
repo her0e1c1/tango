@@ -116,6 +116,7 @@ export type PreferencesOverrides = {
   selectedTags?: string[];
   showSwipeButtonList?: boolean;
   showPlaybackControls?: boolean;
+  showCardDetails?: boolean;
   showScoreSlider?: boolean;
   cardSwipeUp?: SwipeAction;
   cardSwipeDown?: SwipeAction;
@@ -150,6 +151,7 @@ const createControls = (
 ): ControlPreferences => ({
   showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,
   showPlaybackControls: controls?.showPlaybackControls ?? flat?.showPlaybackControls ?? true,
+  showCardDetails: controls?.showCardDetails ?? flat?.showCardDetails ?? true,
   showScoreSlider: controls?.showScoreSlider ?? flat?.showScoreSlider ?? false,
   cardSwipeUp: controls?.cardSwipeUp ?? flat?.cardSwipeUp ?? "GoToNextCardMastered",
   cardSwipeDown: controls?.cardSwipeDown ?? flat?.cardSwipeDown ?? "GoToNextCardNotMastered",
