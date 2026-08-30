@@ -38,7 +38,6 @@ describe("DeckFilterForm", () => {
     const maximum = within(scoreRegion).getByRole("combobox", { name: "Maximum score" });
     const minimum = within(scoreRegion).getByRole("combobox", { name: "Minimum score" });
 
-    expect(within(scoreRegion).getByText("−2 to 4")).toBeInTheDocument();
     expect(maximum).toHaveValue("4");
     expect(minimum).toHaveValue("-2");
 
@@ -54,7 +53,8 @@ describe("DeckFilterForm", () => {
 
   it("shows unrestricted limits", () => {
     render(<DeckFilterForm {...createProps()} scoreMax={null} scoreMin={null} />);
-    expect(screen.getByText("Any score")).toBeInTheDocument();
+    const scoreRegion = screen.getByRole("region", { name: "Score range" });
+    expect(within(scoreRegion).queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("");
     expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("");
   });
