@@ -151,6 +151,7 @@
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-16) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](./study.md#swipe-17) |
 | SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](./study.md#swipe-24) |
+| SWIPE-25 | write | [Help button の表示設定を reload 後も維持できる](./study.md#swipe-25) |
 
 ### Study Back Text
 

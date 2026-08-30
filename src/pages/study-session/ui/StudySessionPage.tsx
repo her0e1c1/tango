@@ -68,9 +68,11 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
       <StudySession
         onBack={onBack}
         onToggleCardDetails={state.toggleShowCardDetails}
+        onToggleHelp={state.toggleShowHelp}
         onToggleSwipeControls={state.toggleSwipeButtonList}
         onTogglePlaybackControls={state.toggleShowPlaybackControls}
         showBackText={state.showBackText}
+        showHelp={state.showHelp}
         showCardDetails={state.showCardDetails}
         showSwipeControls={state.showSwipeButtonList}
         showPlaybackControls={state.showPlaybackControls}

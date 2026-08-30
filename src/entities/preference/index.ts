@@ -8,6 +8,7 @@ export type {
 export {
   setDarkMode,
   toggleShowCardDetails,
+  toggleShowHelp,
   toggleShowPlaybackControls,
   toggleShowSwipeButtonList,
   updatePreferences,
