@@ -19,7 +19,6 @@ const selectBackText = async (page: Page, backText: string) => {
   await page.mouse.down();
   await page.mouse.move(textRect.right - 1, textRect.y, { steps: 5 });
   await page.mouse.up();
-  return textRect;
 };
 
 test("SWIPE-01 reveals the current Card answer without changing progress", async ({ fixture, page }) => {
@@ -151,15 +150,24 @@ test("SWIPE-22 selects edge answer text beside overlays on a narrow viewport", a
 
   await page.goto(`/deck/${deck.id}/study`);
   await revealAnswer(page, currentCard.frontText);
-  const leftOverlay = await page.getByRole("button", { name: "Swipe left" }).boundingBox();
-  const rightOverlay = await page.getByRole("button", { name: "Swipe right" }).boundingBox();
-  if (leftOverlay == null || rightOverlay == null) throw new Error("Expected visible back text overlays");
+  const leftOverlayButton = page.getByRole("button", { name: "Swipe left" });
+  const rightOverlayButton = page.getByRole("button", { name: "Swipe right" });
+  const answerText = page.getByText(currentCard.backText, { exact: true });
+  const leftOverlay = await leftOverlayButton.boundingBox();
+  const rightOverlay = await rightOverlayButton.boundingBox();
+  const answerTextBounds = await answerText.boundingBox();
+  if (leftOverlay == null || rightOverlay == null || answerTextBounds == null) {
+    throw new Error("Expected visible answer text and back text overlays");
+  }
 
-  const textRect = await selectBackText(page, currentCard.backText);
+  expect(answerTextBounds.x).toBeGreaterThanOrEqual(leftOverlay.x + leftOverlay.width);
+  expect(answerTextBounds.x + answerTextBounds.width).toBeLessThanOrEqual(rightOverlay.x);
 
-  expect(textRect.left).toBeGreaterThanOrEqual(leftOverlay.x + leftOverlay.width);
-  expect(textRect.right).toBeLessThanOrEqual(rightOverlay.x);
-  await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
+  await selectBackText(page, currentCard.backText);
+
+  await expect(answerText).toBeVisible();
+  await expect(leftOverlayButton).toBeVisible();
+  await expect(rightOverlayButton).toBeVisible();
   await expect
     .poll(async () => page.evaluate(() => window.getSelection()?.toString() ?? ""))
     .toContain(currentCard.backText);
