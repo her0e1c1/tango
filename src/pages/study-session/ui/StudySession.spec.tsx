@@ -220,21 +220,34 @@ describe("StudySession", () => {
     expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
   });
 
-  it("SWIPE-25 restores the fixed Help visibility toggle while actions are open", () => {
+  it("SWIPE-25 keeps the fixed Help visibility toggle mounted while visibility changes", () => {
     const onToggleHelp = vi.fn();
-    render(
-      <StudySession {...toolbarProps()} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />
+    const props = toolbarProps();
+    const { rerender } = render(
+      <StudySession {...props} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />
     );
 
-    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
 
     const actions = screen.getByRole("group", { name: "Study actions" });
     const helpToggle = screen.getByRole("button", { name: "Help button" });
     expect(actions).not.toContainElement(helpToggle);
-    expect(helpToggle).toHaveAttribute("aria-pressed", "false");
-    expect(helpToggle).toHaveAttribute("title", "Show help button");
-    fireEvent.click(helpToggle);
+    expect(helpToggle).toHaveAttribute("aria-pressed", "true");
+    expect(helpToggle).toHaveClass(
+      "absolute",
+      "right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)]",
+      "top-0"
+    );
+
+    rerender(
+      <StudySession {...props} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />
+    );
+
+    const hiddenHelpToggle = screen.getByRole("button", { name: "Help button" });
+    expect(hiddenHelpToggle).toBe(helpToggle);
+    expect(hiddenHelpToggle).toHaveAttribute("aria-pressed", "false");
+    expect(hiddenHelpToggle).toHaveAttribute("title", "Show help button");
+    fireEvent.click(hiddenHelpToggle);
     expect(onToggleHelp).toHaveBeenCalledOnce();
   });
 
