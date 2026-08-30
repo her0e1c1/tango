@@ -2,7 +2,7 @@ import { useAuthUid } from "@/entities/auth";
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preference";
-import { editStudyProgress } from "@/entities/study-progress";
+import { editStudyProgress, type StudyProgressEdit, type StudyProgressTarget } from "@/entities/study-progress";
 import { getStudySession, moveStudySession, planStudySessionSwipe, removeStudySession } from "@/entities/study-session";
 
 import * as React from "react";
@@ -17,15 +17,26 @@ export interface SwipeState {
   swipeFeedback?: SwipeDirection;
 }
 
+const persistStudyProgress = (
+  uid: string,
+  progress: StudyProgressEdit,
+  target: StudyProgressTarget | undefined
+): Promise<void> => editStudyProgress(uid, progress, target);
+
 export interface StudyCompletion {
   cardCount: number;
+}
+
+interface UseSwipeOptions {
+  onCardChanged: () => void;
+  onCompleted: (completion: StudyCompletion) => void;
+  target: StudyProgressTarget | undefined;
 }
 
 export const useSwipe = (
   deckId: DeckId,
   cards: readonly Card[],
-  onCardChanged: () => void,
-  onCompleted: (completion: StudyCompletion) => void
+  { onCardChanged, onCompleted, target }: UseSwipeOptions
 ): SwipeState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
@@ -52,7 +63,8 @@ export const useSwipe = (
 
     swipeState.current.inProgress = true;
     // The visible card advances only after persistence succeeds, so failed writes need no session rollback.
-    const saved = await editStudyProgress(uid, swipePlan.progress).then(
+    const saveProgress = persistStudyProgress(uid, swipePlan.progress, target);
+    const saved = await saveProgress.then(
       () => true,
       () => false
     );

@@ -48,8 +48,14 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
   if (state == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
 
   if (state.status !== "studying") {
-    return state.status === "preparing" ? (
-      <RouteFeedback title="Loading…" tone="loading" />
+    if (state.status === "verifying") {
+      return <RouteFeedback title="Verifying study session…" tone="loading" />;
+    }
+    if (state.status === "verification-error") {
+      return <RouteFeedback title="Could not verify the study session." tone="error" />;
+    }
+    return state.status === "unavailable" ? (
+      <RouteFeedback title="The current study card is unavailable." tone="not-found" />
     ) : (
       <RouteFeedback title="Study session unavailable." tone="not-found" />
     );

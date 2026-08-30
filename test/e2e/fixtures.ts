@@ -9,6 +9,7 @@ import {
 } from "@playwright/test";
 
 import {
+  type FixtureAbsentCard,
   type FixtureCard,
   type FixtureCategory,
   type FixtureDeck,
@@ -23,6 +24,7 @@ import {
 } from "./yaml-fixture";
 
 export type {
+  FixtureAbsentCard,
   FixtureCard,
   FixtureCategory,
   FixtureDeck,
@@ -377,6 +379,7 @@ export interface E2EFixture {
   user: (logicalUid?: string) => FixtureUser;
   deck: (logicalId?: string) => FixtureDeck;
   card: (logicalId?: string) => FixtureCard;
+  absentCard: (logicalId?: string) => FixtureAbsentCard;
   session: (logicalDeckId?: string) => FixtureStudySession;
   uid: (logicalUid: string) => string;
   id: (logicalId: string) => string;
@@ -502,6 +505,7 @@ function createE2EFixture(
     user: (logicalUid) => requireLogicalValue(namespaced.users, "auth user", logicalUid),
     deck: (logicalId) => requireLogicalValue(namespaced.decks, "Deck", logicalId),
     card: (logicalId) => requireLogicalValue(namespaced.cards, "Card", logicalId),
+    absentCard: (logicalId) => requireLogicalValue(namespaced.absentCards, "absent Card", logicalId),
     session: (logicalDeckId) => requireLogicalValue(namespaced.sessions, "Study session", logicalDeckId),
     uid: namespaced.uid,
     id: namespaced.id,
@@ -556,6 +560,27 @@ export const setDocument = async (collection: FirestoreCollection, id: string, d
     body: JSON.stringify({ fields }),
   });
   if (!response.ok) throw new Error(`Firestore seed failed: ${response.status} ${await response.text()}`);
+};
+
+/** Creates a target-specific permission failure without disrupting the Card collection subscription. */
+export const seedForeignOwnedCard = async (id: string): Promise<void> => {
+  const uid = `e2e-foreign-${randomUUID()}`;
+  const deckId = `${id}-foreign-deck`;
+  await setDocument("deck", deckId, { id: deckId, uid, name: "Foreign E2E Deck", isPublic: false });
+  await setDocument("card", id, {
+    id,
+    uid,
+    deckId,
+    frontText: "Foreign E2E Card",
+    backText: "Foreign E2E Card",
+    tags: [],
+    uniqueKey: id,
+    createdAt: 0,
+    updatedAt: 0,
+    deletedAt: null,
+    score: 0,
+    numberOfSeen: 0,
+  });
 };
 
 export const getDocument = async (

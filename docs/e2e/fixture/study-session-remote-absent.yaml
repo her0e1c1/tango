@@ -1,0 +1,11 @@
+extends: study-session-start.yaml
+remote:
+  absentCards:
+    - id: missing-card
+      uid: user-1
+      deckId: deck-1
+browser:
+  studySessions:
+    deck-1:
+      cardOrderIds: [missing-card]
+      currentIndex: 0

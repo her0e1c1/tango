@@ -1,6 +1,14 @@
 import type { Page } from "@playwright/test";
 
-import { allowExpectedFirestoreWriteFailure, expect, failNextFirestoreWrite, readLocalData, test } from "./fixtures";
+import {
+  allowExpectedFirestoreWriteFailure,
+  expect,
+  failNextFirestoreWrite,
+  getDocument,
+  readLocalData,
+  seedForeignOwnedCard,
+  test,
+} from "./fixtures";
 import { progressOf, readProgress, readSession } from "./study-helpers";
 
 const cardAt = <T>(cards: readonly T[], index: number) => {
@@ -390,4 +398,45 @@ test("SWIPE-24 shows configured Study controls without changing the active sessi
   await expect(dialog).not.toBeVisible();
   await expect(page.getByRole("button", { name: "Open study help" })).toBeFocused();
   await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
+});
+
+test("SWIPE-25 shows unavailable after the server confirms the remote target is missing", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const target = fixture.absentCard();
+  const session = fixture.session();
+  await fixture.apply(page);
+  expect(await getDocument("card", target.id)).toBeUndefined();
+
+  await page.goto(`/deck/${deck.id}/study`);
+
+  await expect(page.getByRole("heading", { name: "The current study card is unavailable." })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+  await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
+});
+
+test("SWIPE-26 preserves the remote session when target verification fails", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const target = fixture.absentCard();
+  const session = fixture.session();
+  await fixture.apply(page);
+  await seedForeignOwnedCard(target.id);
+
+  await page.goto(`/deck/${deck.id}/study`);
+
+  await expect(page.getByRole("heading", { name: "Could not verify the study session." })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+  await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+});
+
+test("SWIPE-27 shows unavailable for an authoritatively missing local target", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+
+  await expect(page.getByRole("heading", { name: "The current study card is unavailable." })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+  await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
 });
