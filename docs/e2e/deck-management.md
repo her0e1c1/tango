@@ -2,7 +2,7 @@
 
 ## 目的
 
-Deck の作成・編集・削除が保存先の境界を守り、失敗後の再試行でも identity と関連データの整合性を維持できることを確認する。
+Deck の作成・編集・削除が保存先の境界を守り、失敗後の再試行でも identity と関連データの整合性、および操作対象外の Deck の分離を維持できることを確認する。
 
 ## テストケース
 
@@ -30,12 +30,12 @@ Given:
 
 When:
 
-- 対象 Deck の name と category を変更して保存し、画面を reload して編集画面を再度開く。
+- 対象 Deck の name、category、source URL を変更して保存し、画面を reload して編集画面を再度開く。
 
 Then:
 
 - Deck の更新成功が共通 toast で表示される。
-- 編集画面に変更後の name と category が表示される。
+- 編集画面に変更後の name、category、source URL が表示される。
 - browser error が発生しない。
 
 <a id="deck-03"></a>
@@ -46,9 +46,10 @@ Then:
 
 Given:
 
-- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Fixture: [`multi-study-sessions`](./fixture/multi-study-sessions.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に複数の Card と再開可能な学習 session が存在する。
+- 同じユーザーが、操作対象ではない別の Deck、Card、学習 session を所有している。
 
 When:
 
@@ -60,6 +61,7 @@ Then:
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck と関連するすべての Card が保存先から削除されている。
 - 対象 Deck の学習 session を再開できない。
+- 操作対象ではない Deck、Card、学習 session は維持され、引き続き再開できる。
 - browser error が発生しない。
 
 <a id="deck-04"></a>
