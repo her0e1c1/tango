@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
+import { ToastModalOutlet } from "@/shared/ui/toast";
 
 interface StudyHelpDialogRow {
   control: string;
@@ -34,7 +35,7 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
     };
   }, [restoreTriggerFocus]);
 
-  const trapFocus = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const trapFocus = (event: KeyboardEvent) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
     const [first] = focusable;
     const last = focusable.at(-1);
@@ -51,18 +52,25 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDownEvent = React.useEffectEvent((event: KeyboardEvent) => {
     if (event.key === "Escape") {
       event.preventDefault();
       props.onClose();
     } else if (event.key === "Tab") {
       trapFocus(event);
     }
-  };
+  });
+
+  React.useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog === null) return;
+    // Portal events follow their React tree, so a native listener keeps portaled Toast controls in this DOM focus trap.
+    dialog.addEventListener("keydown", handleKeyDownEvent);
+    return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-canvas/75 px-shell-gutter py-6 backdrop-blur-sm">
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: The modal owns Escape and focus-trap keyboard handling. */}
       <div
         ref={dialogRef}
         role="dialog"
@@ -70,7 +78,6 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         className="max-h-full w-full max-w-reading overflow-y-auto rounded-surface border border-border bg-surface-elevated p-4 text-ink shadow-elevated sm:p-6"
-        onKeyDown={handleKeyDown}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -98,6 +105,7 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
             </div>
           ))}
         </dl>
+        <ToastModalOutlet focusFallbackRef={closeRef} />
       </div>
     </div>
   );

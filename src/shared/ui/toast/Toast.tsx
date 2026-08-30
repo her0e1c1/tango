@@ -1,9 +1,17 @@
 import cx from "classnames";
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { AiOutlineClose } from "react-icons/ai";
 import { useStore } from "zustand";
 
-import { dismissToast, toastStore, type ToastAction, type ToastState, type ToastTone } from "./model";
+import {
+  dismissToast,
+  registerToastModalTarget,
+  toastStore,
+  type ToastAction,
+  type ToastState,
+  type ToastTone,
+} from "./model";
 
 interface ToastProps {
   message: string;
@@ -23,13 +31,9 @@ const tonePresentation: Record<ToastTone, { className: string; label: string }> 
 
 const Toast = (props: ToastProps) => {
   const presentation = tonePresentation[props.tone];
-  const role = props.tone === "error" ? "alert" : "status";
 
   return (
     <div
-      role={role}
-      aria-atomic="true"
-      aria-live={props.tone === "error" ? "assertive" : "polite"}
       className={cx(
         "pointer-events-auto flex min-h-touch max-w-reading items-center justify-center gap-2 rounded-pill px-4 py-2 font-semibold shadow-elevated",
         presentation.className
@@ -68,29 +72,63 @@ const useAutoDismiss = (toast: ToastState | undefined) => {
   }, [toast]);
 };
 
+interface ToastModalOutletProps<T extends HTMLElement> {
+  focusFallbackRef: React.RefObject<T | null>;
+}
+
+/** Hosts the application Toast inside an active modal's DOM and focus boundary. */
+export const ToastModalOutlet = <T extends HTMLElement>({ focusFallbackRef }: ToastModalOutletProps<T>) => {
+  const outletRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    const outlet = outletRef.current;
+    if (outlet === null) return;
+    // Register before paint so controls never remain above and outside the newly mounted modal.
+    return registerToastModalTarget(outlet, () => focusFallbackRef.current?.focus());
+  }, [focusFallbackRef]);
+
+  return <div ref={outletRef} />;
+};
+
 /** Renders the one application-wide Toast without coupling callers to the active route. */
 export const ToastViewport = () => {
   const toast = useStore(toastStore, (state) => state.current);
+  const modalTarget = useStore(toastStore, (state) => state.modalTargets.at(-1)?.element);
   useAutoDismiss(toast);
 
-  if (toast === undefined) return null;
+  const renderToast = (activeToast: ToastState) => {
+    const runAction = () => {
+      const { action } = activeToast;
+      dismissToast(activeToast.id);
+      action?.onClick();
+    };
 
-  const runAction = () => {
-    const { action } = toast;
-    dismissToast(toast.id);
-    action?.onClick();
+    return (
+      <Toast
+        key={activeToast.id}
+        message={activeToast.message}
+        tone={activeToast.tone}
+        dismissible={activeToast.dismissible}
+        onAction={runAction}
+        onDismiss={() => dismissToast(activeToast.id)}
+        {...(activeToast.action !== undefined ? { action: activeToast.action } : {})}
+      />
+    );
   };
 
-  return (
+  const viewport = (
     <div className="pointer-events-none fixed inset-x-0 bottom-36 z-[70] flex justify-center px-shell-gutter">
-      <Toast
-        message={toast.message}
-        tone={toast.tone}
-        dismissible={toast.dismissible}
-        onAction={runAction}
-        onDismiss={() => dismissToast(toast.id)}
-        {...(toast.action !== undefined ? { action: toast.action } : {})}
-      />
+      {/* Polite live regions must exist before their content changes or assistive technology may stay silent. */}
+      <div role="status" aria-live="polite" aria-atomic="true">
+        {toast !== undefined && toast.tone !== "error" ? renderToast(toast) : null}
+      </div>
+      {toast?.tone === "error" ? (
+        <div key={toast.id} role="alert" aria-live="assertive" aria-atomic="true">
+          {renderToast(toast)}
+        </div>
+      ) : null}
     </div>
   );
+
+  return modalTarget === undefined ? viewport : createPortal(viewport, modalTarget);
 };
