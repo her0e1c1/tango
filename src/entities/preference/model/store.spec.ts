@@ -129,32 +129,33 @@ describe("preferences store", () => {
           },
         },
       },
-      version: 2,
+      version: 1,
     });
   });
 
-  it("hydrates persisted preferences", async () => {
+  it("hydrates version 1 preferences with defaults for additive fields", async () => {
+    const { showBackTextSwipeOverlays: _showBackTextSwipeOverlays, ...controlsBeforeSwipeOverlays } =
+      defaultPreferences.controls;
     const persistedPreferences = {
       ...defaultPreferences,
       loadSample: false,
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, selectedTags: ["typescript"] },
+      controls: { ...controlsBeforeSwipeOverlays, showSwipeButtonList: false },
     };
     useMemoryStorage({
-      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 2 }),
+      "tango-config": JSON.stringify({ state: { preferences: persistedPreferences }, version: 1 }),
     });
 
     await preferencesStore.persist.rehydrate();
 
-    expect(preferencesStore.getState().preferences).toEqual(persistedPreferences);
+    expect(preferencesStore.getState().preferences).toEqual({
+      ...persistedPreferences,
+      controls: { ...persistedPreferences.controls, showBackTextSwipeOverlays: false },
+    });
   });
 
-  it("discards version 1 preferences after the persisted shape changes", async () => {
-    const {
-      showCardDetails: _showCardDetails,
-      showBackTextSwipeOverlays: _showBackTextSwipeOverlays,
-      ...legacyControls
-    } = defaultPreferences.controls;
+  it("discards version 2 preferences without migration", async () => {
     useMemoryStorage({
       "tango-config": JSON.stringify({
         state: {
@@ -163,10 +164,10 @@ describe("preferences store", () => {
             loadSample: false,
             appearance: { ...defaultPreferences.appearance, darkMode: true },
             study: { ...defaultPreferences.study, cardInterval: 15, selectedTags: ["legacy"] },
-            controls: { ...legacyControls, showSwipeButtonList: false },
+            controls: { ...defaultPreferences.controls, showSwipeButtonList: false },
           },
         },
-        version: 1,
+        version: 2,
       }),
     });
 
@@ -183,8 +184,8 @@ describe("preferences store", () => {
 
   it.each([
     ["malformed JSON", "not-json"],
-    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 2 })],
-    ["incompatible envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 2 })],
+    ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 1 })],
+    ["incompatible envelope", JSON.stringify({ state: { config: { darkMode: true } }, version: 1 })],
   ])("uses current defaults for %s", async (_case, persistedValue) => {
     useMemoryStorage({ "tango-config": persistedValue });
 
