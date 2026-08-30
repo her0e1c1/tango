@@ -1,19 +1,13 @@
-# Use TanStack Query for Server State
+# サーバー状態にTanStack Queryを使用する
 
 Status: Superseded
 
 ## Context
 
-TanStack Query manages server state, so Redux selectors for Deck and Card data duplicate that responsibility.
+TanStack Queryはサーバー状態を管理するため、DeckとCardのデータにRedux selectorを併用すると責務が重複する。
 
 ## Decision
 
-Use TanStack Query for server state, access the remaining local Redux state directly, and remove `src/selector`. See [PR #278](https://github.com/her0e1c1/tango/pull/278).
+サーバー状態にはTanStack Queryを使用し、残るローカルRedux状態へは直接アクセスする。`src/selector`は削除する。[PR #278](https://github.com/her0e1c1/tango/pull/278)を参照する。
 
-This decision is superseded. Firestore subscriptions now feed an application-owned read model in
-`src/store/remoteStore.ts`. The latest metadata for each collection remains private, but the Store
-replaces it in the same atomic internal snapshot update as normalized Deck and Card data and the
-public read and sync status. React consumes the stable public state from that snapshot directly.
-Remote mutations follow one-way data flow: write through the Firestore adapter, let Firestore notify
-the `onSnapshot` listener, then let the read controller call `remoteStore.applySnapshot`. Entity
-results enter the Store only through that listener path; there is no optimistic mutation exception.
+この決定は、[Firestoreの購読をリモート状態の正とする](./20260830-use-firestore-subscriptions-as-remote-state-source.md)により置き換えられた。
