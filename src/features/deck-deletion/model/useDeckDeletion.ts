@@ -9,12 +9,6 @@ interface DeckDeletionTarget {
   cardCount: number;
 }
 
-export interface DeckDeletionTargetView {
-  deckName: string;
-  cardCount: number;
-  hasError: boolean;
-}
-
 interface UseDeckDeletionOptions {
   onDeleted?: () => void;
 }
