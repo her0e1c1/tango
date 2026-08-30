@@ -2,7 +2,7 @@
 
 ## 目的
 
-CSV の検証から保存先別の import、失敗後の再試行、Sample Deck の追加までが、重複や意図しない永続化を起こさずに完了することを確認する。
+CSV の検証から保存先別の import、失敗後の再試行、Sample Deck の明示的な追加と自動初期生成までが、重複や意図しない永続化を起こさずに完了することを確認する。
 
 ## テストケース
 
@@ -14,6 +14,7 @@ CSV の検証から保存先別の import、失敗後の再試行、Sample Deck 
 | IMPORT-04 | batch | [CSV を local-only に import して reload 後に学習できる](#import-04) |
 | IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](#import-05) |
 | IMPORT-06 | batch | [Sample Deck を保存して一覧へ戻り、再追加しても重複しない](#import-06) |
+| IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](#import-07) |
 
 <a id="import-01"></a>
 
@@ -154,3 +155,24 @@ Then:
 - local storage に存在する Sample Deck は一つだけである。
 - Sample Deck に Card が保存され、再追加後もその識別子と件数は変わらず重複していない。
 - 未処理の browser error が発生しない。
+
+<a id="import-07"></a>
+
+### IMPORT-07 Sample Deck を一度だけ初期生成できる
+
+カテゴリ: `batch`
+
+Given:
+
+- Fixture: [`sample-bootstrap`](./fixture/sample-bootstrap.yaml)
+- 認証済みユーザーに Deck がなく、Sample Deck の初期生成が有効である。
+
+When:
+
+- Deck 一覧を開いて初期生成の完了を待ち、ページを reload する。
+
+Then:
+
+- Sample Deck とその Card 群が利用できる。
+- Sample Deck とその Card 群は reload 後も重複しない。
+- browser error が発生しない。

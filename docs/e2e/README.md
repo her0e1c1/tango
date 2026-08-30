@@ -55,13 +55,11 @@
 
 ## テストケース
 
-### App
+### Navigation
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| APP-01 | batch | [Sample Deck を一度だけ初期生成できる](./app.md#app-01) |
-| APP-02 | read | [存在しない route から Deck 一覧へ復帰できる](./app.md#app-02) |
-| APP-03 | read | [認証初期化失敗から Reload で復帰できる](./app.md#app-03) |
+| NAVIGATION-01 | read | [存在しない route から Deck 一覧へ復帰できる](./navigation.md#navigation-01) |
 
 ### Account
 
@@ -70,6 +68,7 @@
 | ACCOUNT-01 | batch | [匿名アカウントを Google アカウントに連携してデータを維持できる](./account.md#account-01) |
 | ACCOUNT-02 | write | [Google sign-in のエラー表示から再試行できる](./account.md#account-02) |
 | ACCOUNT-03 | batch | [sign-out 後に新しい匿名アカウントへ切り替えられる](./account.md#account-03) |
+| ACCOUNT-04 | read | [認証初期化失敗から Reload で復帰できる](./account.md#account-04) |
 
 ### Settings
 
@@ -88,6 +87,7 @@
 | IMPORT-04 | batch | [CSV を local-only に import して reload 後に学習できる](./import.md#import-04) |
 | IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](./import.md#import-05) |
 | IMPORT-06 | batch | [Sample Deck を保存して一覧へ戻り、再追加しても重複しない](./import.md#import-06) |
+| IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](./import.md#import-07) |
 
 ### Deck
 
