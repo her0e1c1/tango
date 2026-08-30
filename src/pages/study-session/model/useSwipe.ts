@@ -51,6 +51,17 @@ export const useSwipe = (
     });
   };
 
+  const updateVisibleSession = (direction: SwipeDirection, completesSession: boolean, cardCount: number): void => {
+    // Session persistence still completes after navigation, but route-owned feedback and UI callbacks must not leak.
+    if (!isMounted()) return;
+    showSwipeToast(direction);
+    if (completesSession) {
+      onCompleted({ cardCount });
+      return;
+    }
+    if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged();
+  };
+
   const swipe = async (direction: SwipeDirection): Promise<void> => {
     // A pending write yields to later input events, so only one swipe may plan and persist at a time.
     // biome-ignore lint/suspicious/noUnnecessaryConditions: later input events observe mutations through this React ref.
@@ -81,14 +92,7 @@ export const useSwipe = (
 
     if (!moveStudySession(swipePlan.session, swipePlan.effect)) return;
 
-    // Session persistence still completes after navigation, but route-owned feedback and UI callbacks must not leak.
-    if (!isMounted()) return;
-    showSwipeToast(direction);
-    if (completesSession) {
-      onCompleted({ cardCount });
-      return;
-    }
-    if (preferences.appearance.hideBodyWhenCardChanged) onCardChanged();
+    updateVisibleSession(direction, completesSession, cardCount);
   };
 
   return {

@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { focusableElementSelector } from "../../lib/focusableElementSelector";
 import { Button } from "../button";
+import { ToastModalOutlet } from "../toast";
 
 export interface DestructiveActionDialogProps {
   title: string;
@@ -17,6 +18,7 @@ export interface DestructiveActionDialogProps {
 export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (props) => {
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const targetNameRef = React.useRef<HTMLSpanElement>(null);
   const confirmingRef = React.useRef(false);
   const titleId = React.useId();
   const targetId = React.useId();
@@ -34,7 +36,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     };
   }, []);
 
-  const handleDialogTabKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleDialogTabKey = (event: KeyboardEvent) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
     if (focusable.length === 0) {
       event.preventDefault();
@@ -60,7 +62,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     props.onCancel();
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDownEvent = React.useEffectEvent((event: KeyboardEvent) => {
     if (event.key === "Escape") {
       event.preventDefault();
       handleCancel();
@@ -69,7 +71,15 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     if (event.key === "Tab") {
       handleDialogTabKey(event);
     }
-  };
+  });
+
+  React.useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog === null) return;
+    // Portal events follow their React tree, so a native listener keeps portaled Toast controls in this DOM focus trap.
+    dialog.addEventListener("keydown", handleKeyDownEvent);
+    return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
+  }, []);
 
   const describedBy = `${targetId} ${descriptionId}`;
 
@@ -92,7 +102,6 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-canvas/70 px-shell-gutter py-6">
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: The alertdialog owns Escape and focus-trap keyboard handling. */}
       <div
         ref={dialogRef}
         role="alertdialog"
@@ -101,7 +110,6 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
         aria-describedby={describedBy}
         aria-busy={props.pending || undefined}
         className="w-full max-w-reading rounded-surface border border-border bg-surface-elevated p-4 text-ink shadow-elevated sm:p-6"
-        onKeyDown={handleKeyDown}
       >
         <h2 id={titleId} className="text-title font-bold">
           {props.title}
@@ -110,8 +118,12 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
           <span className="block text-caption font-bold uppercase tracking-wide text-ink-muted">
             {props.targetLabel}
           </span>
-          {/* biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users must be able to reach a long scrolling target name. */}
-          <span tabIndex={0} className="mt-1 block max-h-24 overflow-y-auto break-words font-semibold">
+          <span
+            // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users must be able to reach a long scrolling target name.
+            tabIndex={0}
+            ref={targetNameRef}
+            className="mt-1 block max-h-24 overflow-y-auto break-words font-semibold"
+          >
             {props.targetName}
           </span>
         </div>
@@ -132,6 +144,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
             {props.confirmLabel}
           </Button>
         </div>
+        <ToastModalOutlet focusFallbackRef={targetNameRef} />
       </div>
     </div>
   );

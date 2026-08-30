@@ -2,7 +2,7 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -175,8 +175,11 @@ describe("CardListPage interactions", () => {
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
-    expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+    const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+      "Unable to delete this card. Check your connection and try again."
+    );
+    expect(within(dialog).queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument());
