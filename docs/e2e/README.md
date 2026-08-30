@@ -75,7 +75,8 @@
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
 | SETTINGS-01 | write | [Dark mode を自動保存して reload 後も反映できる](./settings.md#settings-01) |
-| SETTINGS-02 | write | [Maximum cards 設定を次の学習 session に反映できる](./settings.md#settings-02) |
+| SETTINGS-02 | write | [Maximum cards 設定を学習開始画面に反映できる](./settings.md#settings-02) |
+| SETTINGS-03 | batch | [Respect review schedule を次の学習 session に反映できる](./settings.md#settings-03) |
 
 ### Import
 
@@ -103,6 +104,7 @@
 | DECK-08 | read | [Deck の Card を CSV で export できる](./deck.md#deck-08) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](./deck.md#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](./deck.md#deck-10) |
+| DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](./creation.md#deck-11) |
 
 ### Card
 
@@ -120,6 +122,9 @@
 | CARD-10 | write | [score と tag の filter を保存して Card 一覧へ反映できる](./card.md#card-10) |
 | CARD-11 | read | [Card view を直接開ける](./card.md#card-11) |
 | CARD-12 | read | [存在しない Card から復帰できる](./card.md#card-12) |
+| CARD-13 | write | [remote Deck に Card を作成できる](./card.md#card-13) |
+| CARD-14 | write | [local-only Deck に Card を作成できる](./card.md#card-14) |
+| CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](./creation.md#card-15) |
 
 ### Study
 
