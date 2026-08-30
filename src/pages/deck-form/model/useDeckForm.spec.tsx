@@ -7,6 +7,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { createDeck, useDeck } from "@/entities/deck";
 import { DeckForm } from "@/features/deck-form";
+import { actAsync } from "@/test/act";
 import { createLocalDeck } from "@/test/factories";
 
 import { useDeckForm } from "./useDeckForm";
@@ -200,6 +201,75 @@ describe("useDeckForm", () => {
     view.unmount();
     renderForm();
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Retry deck");
+  });
+
+  it("keeps dirty fields when the Deck Entity refreshes", async () => {
+    renderForm();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Unsaved deck");
+
+    await createDeck(
+      "",
+      createLocalDeck({
+        id: deckId,
+        name: "Subscription name",
+        category: "science",
+        convertToBr: false,
+      })
+    );
+
+    expect(name).toHaveValue("Unsaved deck");
+    expect(screen.getByRole("combobox")).toHaveValue("science");
+  });
+
+  it("restores the confirmed baseline after an optimistic snapshot fails", async () => {
+    let rejectWrite: (error: Error) => void = () => undefined;
+    writeControls.beforeWrite = () =>
+      new Promise<void>((_resolve, reject) => {
+        rejectWrite = reject;
+      });
+    const onSaved = vi.fn();
+    renderForm(onSaved);
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Retry deck");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await createDeck("", createLocalDeck({ id: deckId, name: "Retry deck", category: "language" }));
+    await actAsync(async () => rejectWrite(new Error("write failed")));
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+
+    await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", category: "language" }));
+    expect(name).toHaveValue("Retry deck");
+    writeControls.beforeWrite = undefined;
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(writeControls.writes.at(-1)?.deck).toEqual(expect.objectContaining({ name: "Retry deck" }));
+  });
+
+  it("keeps edits made after submission when the pending save succeeds", async () => {
+    let finishSave: () => void = () => undefined;
+    writeControls.beforeWrite = () =>
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      });
+    const onSaved = vi.fn();
+    renderForm(onSaved);
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Submitted deck");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await createDeck("", createLocalDeck({ id: deckId, name: "Submitted deck", category: "language" }));
+    await userEvent.clear(name);
+    await userEvent.type(name, "Later deck");
+    await actAsync(async () => finishSave());
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
+    expect(name).toHaveValue("Later deck");
+    expect(onSaved).not.toHaveBeenCalled();
   });
 
   it("keeps stored values unchanged when validation rejects the form", async () => {
