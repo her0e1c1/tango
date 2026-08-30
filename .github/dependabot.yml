@@ -5,6 +5,12 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/browser-playwright"
+          - "@vitest/coverage-v8"
     # Update Playwright manually to keep the npm package, container image,
     # and remote server versions aligned.
     ignore:
