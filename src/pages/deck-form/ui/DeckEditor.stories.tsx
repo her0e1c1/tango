@@ -34,8 +34,7 @@ const DeckEditorStory = ({ deck, isSaving, validationError, onCancel, onDelete }
       form.setError("name", { message: "Deck name is required." });
       form.setError("url", { message: "Enter a valid URL." });
     }
-    if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
-  }, [form, isSaving, validationError]);
+  }, [form, validationError]);
 
   return (
     <DeckEditor
@@ -44,6 +43,7 @@ const DeckEditorStory = ({ deck, isSaving, validationError, onCancel, onDelete }
       deckName={deck.name}
       form={form}
       isLocalOnly={deck.localMode}
+      isSaving={isSaving}
       onCancel={onCancel}
       onDelete={onDelete}
       onSubmit={form.handleSubmit(() => undefined)}

@@ -3,7 +3,7 @@ import type { Preferences } from "@/entities/preference";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as React from "react";
-import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { createMemoryRouter, RouterProvider, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -41,21 +41,31 @@ const LeaveRouteButton = () => {
 };
 
 describe("DeckCreatePage", () => {
-  const page = () => (
-    <>
-      <MemoryRouter initialEntries={["/deck/new"]}>
-        <LeaveRouteButton />
-        <Routes>
-          <Route path="/" element={<h1>Deck list destination</h1>} />
-          <Route path="/deck/new" element={<DeckCreatePage />} />
-          <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
-        </Routes>
-      </MemoryRouter>
-      <ToastViewport />
-    </>
-  );
-  const renderPage = (strictMode = false) =>
-    render(strictMode ? <React.StrictMode>{page()}</React.StrictMode> : page());
+  const renderPage = (strictMode = false) => {
+    const router = createMemoryRouter(
+      [
+        { path: "/", element: <h1>Deck list destination</h1> },
+        {
+          path: "/deck/new",
+          element: (
+            <>
+              <LeaveRouteButton />
+              <DeckCreatePage />
+            </>
+          ),
+        },
+        { path: "/deck/:id", element: <h1>Card list destination</h1> },
+      ],
+      { initialEntries: ["/deck/new"] }
+    );
+    const page = (
+      <>
+        <RouterProvider router={router} />
+        <ToastViewport />
+      </>
+    );
+    return render(strictMode ? <React.StrictMode>{page}</React.StrictMode> : page);
+  };
 
   beforeEach(() => {
     dismissToast();
@@ -140,8 +150,9 @@ describe("DeckCreatePage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
     expect(screen.queryByText("Unable to create this deck. Try again.")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
   });
 
   it("suppresses a second submit while creation is pending", async () => {
@@ -181,6 +192,7 @@ describe("DeckCreatePage", () => {
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Slow deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
     await userEvent.click(screen.getByRole("button", { name: "Leave route" }));
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(screen.getByRole("heading", { name: "Deck list destination" })).toBeVisible();
     expect(screen.queryByText("Created deck “Slow deck”.")).not.toBeInTheDocument();
 
@@ -199,5 +211,19 @@ describe("DeckCreatePage", () => {
 
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
     expect(mocks.createDeck).not.toHaveBeenCalled();
+  });
+
+  it("keeps dirty input or discards it before cancellation", async () => {
+    renderPage();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.type(name, "Unsaved deck");
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(name).toHaveValue("Unsaved deck");
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
   });
 });

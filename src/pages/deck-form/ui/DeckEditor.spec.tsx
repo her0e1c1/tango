@@ -66,6 +66,7 @@ const DeckEditorHarness = (props: { deckId: string; onCancel: () => void; onSave
       deckName={editor.deckName}
       form={editor.form}
       isLocalOnly={editor.isLocalOnly}
+      isSaving={editor.isSaving}
       onCancel={props.onCancel}
       onDelete={() => undefined}
       onSubmit={editor.onSubmit}
@@ -221,6 +222,26 @@ describe("DeckEditor", () => {
     view.unmount();
     renderForm();
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Retry deck");
+  });
+
+  it("keeps dirty fields when the Deck Entity refreshes", async () => {
+    renderForm();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.type(name, "Unsaved deck");
+
+    await createDeck(
+      "",
+      createLocalDeck({
+        id: deckId,
+        name: "Subscription name",
+        category: "science",
+        convertToBr: false,
+      })
+    );
+
+    expect(name).toHaveValue("Unsaved deck");
+    expect(screen.getByRole("combobox")).toHaveValue("science");
   });
 
   it("keeps stored values unchanged when validation rejects the form", async () => {

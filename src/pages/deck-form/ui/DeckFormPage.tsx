@@ -2,7 +2,7 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { DeckDeletionDialog, useDeckDeletion } from "@/features/deck-deletion";
-import { routes } from "@/shared/router";
+import { routes, useNavigationGuard } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -11,9 +11,16 @@ import { DeckEditor } from "./DeckEditor";
 
 const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
   const navigate = useNavigate();
-  const goToList = () => void navigate(routes.deckList.to(), { replace: true });
-  const editor = useDeckForm({ deckId, onSaved: goToList });
-  const deletion = useDeckDeletion({ onDeleted: goToList });
+  const deckListPath = routes.deckList.to();
+  const goToList = () => navigate(deckListPath, { replace: true });
+  const editor = useDeckForm({
+    deckId,
+    onSaved: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
+  });
+  const guard = useNavigationGuard(editor != null && (editor.isDirty || editor.isSaving));
+  const deletion = useDeckDeletion({
+    onDeleted: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
+  });
 
   if (editor == null) {
     return (
@@ -23,12 +30,13 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
 
   const cancel = () => {
     editor.dismissSaveError();
-    goToList();
+    void goToList();
   };
 
   return (
     <AppLayout showHeader>
-      {deletion.target != null && (
+      {guard.element}
+      {!guard.isBlocked && deletion.target != null && (
         <DeckDeletionDialog
           target={deletion.target}
           pending={deletion.pending}
@@ -42,6 +50,7 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
         deckName={editor.deckName}
         form={editor.form}
         isLocalOnly={editor.isLocalOnly}
+        isSaving={editor.isSaving}
         onCancel={cancel}
         onDelete={() => deletion.request(editor.deckInfo.id)}
         onSubmit={editor.onSubmit}

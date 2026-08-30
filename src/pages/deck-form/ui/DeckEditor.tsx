@@ -14,6 +14,7 @@ export interface DeckEditorProps {
   deckInfo: { id: DeckId; createdAt: number; updatedAt: number };
   form: UseFormReturn<DeckFormValues>;
   isLocalOnly: boolean;
+  isSaving: boolean;
   onCancel: () => void;
   onDelete: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
@@ -25,6 +26,7 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({
   deckName,
   form,
   isLocalOnly,
+  isSaving,
   onCancel,
   onDelete,
   onSubmit,
@@ -48,6 +50,7 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({
       deckInfo={deckInfo}
       form={form}
       isLocalOnly={isLocalOnly}
+      isSaving={isSaving}
       onCancel={onCancel}
       onSubmit={onSubmit}
     />
