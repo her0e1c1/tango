@@ -39,7 +39,8 @@ export const FormItem: React.FC<{
           {props.label}
         </div>
       )}
-      <div className="min-w-0 flex-1 break-words text-ink-muted md:text-right">{props.text ?? props.children}</div>
+      {/* Reserve the touch target width so controls cannot overflow when the label shrinks the row. */}
+      <div className="min-w-touch flex-1 break-words text-ink-muted md:text-right">{props.text ?? props.children}</div>
     </div>
     {props.extra != null && <Description label={props.extra} />}
     {props.help != null && <Description label={props.help} />}
