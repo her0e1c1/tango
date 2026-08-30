@@ -109,6 +109,7 @@ describe("useStudy", () => {
       session: { currentIndex: 0, cardCount: 2 },
       card: { frontText: "card-1" },
       showBackText: false,
+      showCardDetails: true,
       showPlaybackControls: true,
       playbackControlsAvailable: true,
     });
@@ -135,6 +136,7 @@ describe("useStudy", () => {
     mocks.preferences = createPreferences({
       cardInterval: 0,
       controls: {
+        showCardDetails: false,
         showSwipeButtonList: false,
         showPlaybackControls: false,
         showBackTextSwipeOverlays: true,
@@ -147,6 +149,7 @@ describe("useStudy", () => {
       showSwipeButtonList: false,
       showPlaybackControls: false,
       showBackTextSwipeOverlays: true,
+      showCardDetails: false,
       playbackControlsAvailable: false,
     });
   });

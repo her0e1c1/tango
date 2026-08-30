@@ -22,9 +22,7 @@ mise run storybook
 ```
 
 The `Page` stories render every application route with deterministic authentication, remote collections, configuration,
-and study progress. They do not require a Firebase project or emulator. Storybook initializes Mock Service Worker (MSW)
-globally, serves `public/mockServiceWorker.js`, and provides a mocked CSV response for the fixture deck's reimport URL.
-Additional network states can be defined per story with `beforeEach(({ msw }) => msw.use(...handlers))`.
+and study progress. They do not require a Firebase project or emulator.
 
 ## Development
 

@@ -5,6 +5,7 @@ import { defaultPreferences } from "./defaults";
 import {
   preferencesStore,
   setDarkMode,
+  toggleShowCardDetails,
   toggleShowPlaybackControls,
   toggleShowSwipeButtonList,
   updatePreferences,
@@ -49,7 +50,7 @@ describe("preferences store", () => {
       loadSample: false,
       appearance: { darkMode: true },
       study: { cardInterval: 15 },
-      controls: { showScoreSlider: true, showBackTextSwipeOverlays: true },
+      controls: { showCardDetails: false, showScoreSlider: true, showBackTextSwipeOverlays: true },
     });
     store.getState().updatePreferences({ controls: { showSwipeButtonList: false } });
     store.getState().updatePreferences({ controls: { showPlaybackControls: false } });
@@ -61,6 +62,7 @@ describe("preferences store", () => {
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       controls: {
         ...defaultPreferences.controls,
+        showCardDetails: false,
         showScoreSlider: true,
         showBackTextSwipeOverlays: true,
         showSwipeButtonList: false,
@@ -89,13 +91,19 @@ describe("preferences store", () => {
     updatePreferences({ loadSample: false, study: { cardInterval: 15 } });
     toggleShowSwipeButtonList();
     toggleShowPlaybackControls();
+    toggleShowCardDetails();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
       loadSample: false,
       appearance: { ...defaultPreferences.appearance, darkMode: true },
       study: { ...defaultPreferences.study, cardInterval: 15 },
-      controls: { ...defaultPreferences.controls, showSwipeButtonList: false, showPlaybackControls: false },
+      controls: {
+        ...defaultPreferences.controls,
+        showSwipeButtonList: false,
+        showPlaybackControls: false,
+        showCardDetails: false,
+      },
     });
   });
 
@@ -105,7 +113,7 @@ describe("preferences store", () => {
     preferencesStore.getState().updatePreferences({
       loadSample: false,
       appearance: { darkMode: true },
-      controls: { showBackTextSwipeOverlays: true },
+      controls: { showCardDetails: false, showBackTextSwipeOverlays: true },
     });
 
     expect(JSON.parse(storage.getItem("tango-config") ?? "{}")).toEqual({
@@ -114,7 +122,11 @@ describe("preferences store", () => {
           ...defaultPreferences,
           loadSample: false,
           appearance: { ...defaultPreferences.appearance, darkMode: true },
-          controls: { ...defaultPreferences.controls, showBackTextSwipeOverlays: true },
+          controls: {
+            ...defaultPreferences.controls,
+            showCardDetails: false,
+            showBackTextSwipeOverlays: true,
+          },
         },
       },
       version: 2,
@@ -138,7 +150,11 @@ describe("preferences store", () => {
   });
 
   it("discards version 1 preferences after the persisted shape changes", async () => {
-    const { showBackTextSwipeOverlays: _showBackTextSwipeOverlays, ...legacyControls } = defaultPreferences.controls;
+    const {
+      showCardDetails: _showCardDetails,
+      showBackTextSwipeOverlays: _showBackTextSwipeOverlays,
+      ...legacyControls
+    } = defaultPreferences.controls;
     useMemoryStorage({
       "tango-config": JSON.stringify({
         state: {

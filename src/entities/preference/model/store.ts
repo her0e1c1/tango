@@ -98,3 +98,9 @@ export const toggleShowPlaybackControls = (): void => {
   const { showPlaybackControls } = preferencesStore.getState().preferences.controls;
   updatePreferences({ controls: { showPlaybackControls: !showPlaybackControls } });
 };
+
+// Toggles whether study card details are shown.
+export const toggleShowCardDetails = (): void => {
+  const { showCardDetails } = preferencesStore.getState().preferences.controls;
+  updatePreferences({ controls: { showCardDetails: !showCardDetails } });
+};

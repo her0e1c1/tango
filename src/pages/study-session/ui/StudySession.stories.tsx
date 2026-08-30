@@ -24,10 +24,12 @@ const meta = {
   },
   args: {
     onBack: fn(),
+    onToggleCardDetails: fn(),
     onToggleSwipeControls: fn(),
     onTogglePlaybackControls: fn(),
     showSwipeControls: true,
     showPlaybackControls: true,
+    showCardDetails: true,
     playbackControlsAvailable: true,
     frontTextSlot: <FrontText text={fixture.card.default.frontText} />,
     cardOverlaySlot: (
@@ -45,14 +47,14 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const expectFrontTextCentered = async (canvasElement: HTMLElement) => {
+const expectFrontTextCentered = async (canvasElement: HTMLElement, expectedOffset = 0) => {
   const frontText = canvasElement.querySelector<HTMLElement>("#frontText > *");
   await expect(frontText).not.toBeNull();
   if (frontText === null) return;
 
   const frontTextBounds = frontText.getBoundingClientRect();
   const frontTextCenter = frontTextBounds.top + frontTextBounds.height / 2;
-  await expect(Math.abs(frontTextCenter - window.innerHeight / 2)).toBeLessThan(1);
+  await expect(Math.abs(frontTextCenter - window.innerHeight / 2 - expectedOffset)).toBeLessThan(1);
 };
 
 const centeredFrontTextPlay: Story["play"] = async ({ canvasElement }) => {
@@ -75,6 +77,11 @@ export const SwipeControlsHidden: Story = {
 
 export const PlaybackControlsHidden: Story = {
   args: { showPlaybackControls: false },
+  play: centeredFrontTextPlay,
+};
+
+export const CardDetailsHidden: Story = {
+  args: { showCardDetails: false },
   play: centeredFrontTextPlay,
 };
 
@@ -161,6 +168,19 @@ export const AutoPlay: Story = {
 export const Mobile: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
   play: centeredFrontTextPlay,
+};
+
+export const MobileSafeArea: Story = {
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    const studySession = canvasElement.querySelector<HTMLElement>("[style*='--study-safe-area-top']");
+    await expect(studySession).not.toBeNull();
+    if (studySession === null) return;
+
+    studySession.style.setProperty("--study-safe-area-top", "47px");
+    studySession.style.setProperty("--study-safe-area-bottom", "34px");
+    await expectFrontTextCentered(canvasElement, (34 - 47) / 2);
+  },
 };
 
 export const MobileLongAnswer: Story = {

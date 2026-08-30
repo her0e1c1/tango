@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   removeStudySession: vi.fn(),
   setDarkMode: vi.fn(),
   touchStudySession: vi.fn(),
+  toggleShowCardDetails: vi.fn(),
   toggleShowPlaybackControls: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
 }));
@@ -25,6 +26,7 @@ vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
+  toggleShowCardDetails: mocks.toggleShowCardDetails,
   toggleShowPlaybackControls: mocks.toggleShowPlaybackControls,
   toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
 }));
@@ -90,6 +92,7 @@ describe("StudySessionPage", () => {
     mocks.removeStudySession.mockReset();
     mocks.setDarkMode.mockReset();
     mocks.touchStudySession.mockReset();
+    mocks.toggleShowCardDetails.mockReset();
     mocks.toggleShowPlaybackControls.mockReset();
     mocks.toggleShowSwipeButtonList.mockReset();
     await createDeck("", deck);
@@ -227,9 +230,11 @@ describe("StudySessionPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Swipe controls" }));
     fireEvent.click(screen.getByRole("button", { name: "Playback controls" }));
+    fireEvent.click(screen.getByRole("button", { name: "Card details" }));
 
     expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
     expect(mocks.toggleShowPlaybackControls).toHaveBeenCalledOnce();
+    expect(mocks.toggleShowCardDetails).toHaveBeenCalledOnce();
   });
 
   it.each([
@@ -288,7 +293,7 @@ describe("StudySessionPage", () => {
 
   it("renders the selected visibility combination", () => {
     mocks.preferences = createPreferences({
-      controls: { showSwipeButtonList: false, showPlaybackControls: false },
+      controls: { showCardDetails: false, showSwipeButtonList: false, showPlaybackControls: false },
     });
 
     renderPage();
@@ -296,8 +301,11 @@ describe("StudySessionPage", () => {
 
     expect(screen.getByRole("button", { name: "Swipe controls" })).not.toBePressed();
     expect(screen.getByRole("button", { name: "Playback controls" })).not.toBePressed();
+    expect(screen.getByRole("button", { name: "Card details" })).not.toBePressed();
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Score 2, positive")).not.toBeInTheDocument();
+    expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();
   });
 
   it("disables playback visibility when the card interval is zero", () => {

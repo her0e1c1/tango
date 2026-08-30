@@ -26,13 +26,17 @@ const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
 const PLAYBACK_UNAVAILABLE_DESCRIPTION = "Playback controls unavailable because the card interval is set to 0";
 
 type StudyLayoutStyles = React.CSSProperties & {
+  "--study-safe-area-top": string;
+  "--study-safe-area-bottom": string;
   "--study-toolbar-top": string;
   "--study-card-top": string;
   "--study-feedback-top": string;
 };
 
 const studyLayoutStyles: StudyLayoutStyles = {
-  "--study-toolbar-top": "calc(0.75rem + env(safe-area-inset-top))",
+  "--study-safe-area-top": "env(safe-area-inset-top)",
+  "--study-safe-area-bottom": "env(safe-area-inset-bottom)",
+  "--study-toolbar-top": "calc(0.75rem + var(--study-safe-area-top))",
   "--study-card-top": "calc(var(--study-toolbar-top) + var(--spacing-touch) + 0.75rem)",
   // Card metadata is fixed at h-10; feedback starts immediately after it so neither surface overlaps.
   "--study-feedback-top": "calc(var(--study-card-top) + 2.5rem)",
@@ -48,6 +52,7 @@ const answerSurfaceProps = {
 
 export interface StudySessionProps {
   showBackText?: boolean;
+  showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
   playbackControlsAvailable: boolean;
@@ -67,6 +72,7 @@ export interface StudySessionProps {
   onSwipeRight?: () => void;
   onSwipeDown?: () => void;
   onBack: () => void;
+  onToggleCardDetails: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
 }
@@ -300,7 +306,10 @@ const CardContent: React.FC<{
           // Metadata stays below the toolbar without reserving space in the centered prompt surface.
           <div className="absolute inset-x-0 top-[var(--study-card-top)] h-touch">{cardOverlaySlot}</div>
         ) : null}
-        {frontTextSlot}
+        {/* Reversed vertical insets optically center the prompt when iPhone safe areas are asymmetric. */}
+        <div className="h-full min-h-0 pb-[var(--study-safe-area-top)] pt-[var(--study-safe-area-bottom)]">
+          {frontTextSlot}
+        </div>
       </div>
     );
   }
@@ -337,7 +346,6 @@ const Controls: React.FC<{
 
 export const StudySession: React.FC<StudySessionProps> = (props) => {
   const [studyActionsOpen, setStudyActionsOpen] = React.useState(false);
-  const [showCardDetails, setShowCardDetails] = React.useState(true);
   const suppressCardClick = React.useRef(false);
   const suppressCardClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -397,12 +405,12 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       {showStudyChrome ? (
         <StudyToolbar
           open={studyActionsOpen}
-          showCardDetails={showCardDetails}
+          showCardDetails={props.showCardDetails}
           showSwipeControls={props.showSwipeControls}
           showPlaybackControls={props.showPlaybackControls}
           playbackControlsAvailable={props.playbackControlsAvailable}
           onToggleOpen={() => setStudyActionsOpen((open) => !open)}
-          onToggleCardDetails={() => setShowCardDetails((visible) => !visible)}
+          onToggleCardDetails={props.onToggleCardDetails}
           onBack={props.onBack}
           onToggleSwipeControls={props.onToggleSwipeControls}
           onTogglePlaybackControls={props.onTogglePlaybackControls}
@@ -421,7 +429,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           showBackText={props.showBackText}
           backTextSlot={props.backTextSlot}
           frontTextSlot={props.frontTextSlot}
-          cardOverlaySlot={showCardDetails ? props.cardOverlaySlot : undefined}
+          cardOverlaySlot={props.showCardDetails ? props.cardOverlaySlot : undefined}
           backTextOverlay={props.backTextOverlay}
         />
       </div>

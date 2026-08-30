@@ -28,6 +28,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     showSwipeButtonList: `${idPrefix}-show-swipe-controls`,
     showBackTextSwipeOverlays: `${idPrefix}-show-back-text-swipe-overlays`,
     showPlaybackControls: `${idPrefix}-show-playback-controls`,
+    showCardDetails: `${idPrefix}-show-card-details`,
     showSwipeFeedback: `${idPrefix}-show-swipe-feedback`,
     darkMode: `${idPrefix}-dark-mode`,
     shuffled: `${idPrefix}-shuffle-cards`,
@@ -83,6 +84,17 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
               {...props.form.register("controls.showPlaybackControls")}
               id={inputIds.showPlaybackControls}
               aria-describedby={descriptionId(inputIds.showPlaybackControls)}
+            />
+          </SettingsRow>
+          <SettingsRow
+            inputId={inputIds.showCardDetails}
+            label="Show card details"
+            description="Display score and study history during a session"
+          >
+            <Switch
+              {...props.form.register("controls.showCardDetails")}
+              id={inputIds.showCardDetails}
+              aria-describedby={descriptionId(inputIds.showCardDetails)}
             />
           </SettingsRow>
           <SettingsRow
