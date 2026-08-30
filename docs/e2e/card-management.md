@@ -174,6 +174,7 @@ When:
 
 Then:
 
+- Card の作成成功が共通 toast で表示され、失敗 toast は残らない。
 - 最初の要求と再試行で同じ Card ID が使用される。
 - 作成した Card が対象 Deck の remote data に一つだけ存在する。
 - Card の front text、back text、deck ID、owner、unique key が最初の作成要求から維持されている。

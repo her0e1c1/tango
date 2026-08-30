@@ -179,6 +179,7 @@ When:
 
 Then:
 
+- Deck の作成成功が共通 toast で表示される。
 - 作成した空の Deck が reload 後も Deck 一覧に表示される。
 - 作成した Deck は browser storage に一つだけ存在する。
 - remote data に同じ Deck が存在しない。
