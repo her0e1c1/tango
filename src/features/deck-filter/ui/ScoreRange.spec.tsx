@@ -17,7 +17,7 @@ const numericOptionValues = (select: HTMLElement): string[] =>
     .filter(Boolean);
 
 describe("ScoreRange", () => {
-  it("offers No limit and scores from −10 through 10 with accessible labels", () => {
+  it("shows a dash for an unrestricted boundary and explains its meaning accessibly", () => {
     render(
       <ScoreRange maximum={null} minimum={null} onClear={vi.fn()} onMaximumChange={vi.fn()} onMinimumChange={vi.fn()} />
     );
@@ -27,16 +27,16 @@ describe("ScoreRange", () => {
 
     expect(minimum).toHaveValue("");
     expect(maximum).toHaveValue("");
-    expect(within(minimum).getByRole("option", { name: "No limit" })).toHaveValue("");
-    expect(within(maximum).getByRole("option", { name: "No limit" })).toHaveValue("");
+    expect(within(minimum).getByRole("option", { name: "-" })).toHaveValue("");
+    expect(within(maximum).getByRole("option", { name: "-" })).toHaveValue("");
     expect(numericOptionValues(minimum)).toEqual(Array.from({ length: 21 }, (_, index) => String(index - 10)));
     expect(numericOptionValues(maximum)).toEqual(Array.from({ length: 21 }, (_, index) => String(index - 10)));
-    expect(minimum).toHaveAccessibleDescription("Include cards at or above this score.");
-    expect(maximum).toHaveAccessibleDescription("Include cards at or below this score.");
+    expect(minimum).toHaveAccessibleDescription("A dash means no minimum score. Include cards at or above this score.");
+    expect(maximum).toHaveAccessibleDescription("A dash means no maximum score. Include cards at or below this score.");
     expect(screen.queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
   });
 
-  it("reports native selections", async () => {
+  it("explains the dash while numeric boundaries are selected and reports native selections", async () => {
     const onMinimumChange = vi.fn();
     const onMaximumChange = vi.fn();
     render(
@@ -49,8 +49,13 @@ describe("ScoreRange", () => {
       />
     );
 
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Minimum score" }), "-1");
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum score" }), "3");
+    const minimum = screen.getByRole("combobox", { name: "Minimum score" });
+    const maximum = screen.getByRole("combobox", { name: "Maximum score" });
+    expect(minimum).toHaveAccessibleDescription("A dash means no minimum score. Include cards at or above this score.");
+    expect(maximum).toHaveAccessibleDescription("A dash means no maximum score. Include cards at or below this score.");
+
+    await userEvent.selectOptions(minimum, "-1");
+    await userEvent.selectOptions(maximum, "3");
     expect(onMinimumChange).toHaveBeenCalledWith(-1);
     expect(onMaximumChange).toHaveBeenCalledWith(3);
   });
