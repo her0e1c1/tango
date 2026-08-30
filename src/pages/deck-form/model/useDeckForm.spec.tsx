@@ -70,7 +70,7 @@ const StoredDeckFormHarness = (props: { deckId: DeckId; onCancel: () => void; on
   );
 };
 
-describe("useDeckForm", () => {
+describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
   const deckId = "deck-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
     render(<StoredDeckFormHarness deckId={deckId} onCancel={onCancel} onSaved={onSaved} />);
