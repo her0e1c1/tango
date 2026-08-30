@@ -30,9 +30,11 @@
 
 ## Fixture
 
-- `fixture/read/*.yaml`、`fixture/write/*.yaml`、`fixture/batch/*.yaml` を E2E 開始時の論理的な永続状態の仕様とする。
-- fixture はテストケースのカテゴリと同じディレクトリから選択する。
+- `fixture/*.yaml` を E2E 開始時の論理的な永続状態の仕様とし、すべてのカテゴリで共有する。
 - 各テストケースは `Given` の先頭で使用する fixture を明示する。
+- fixture はトップレベルの `extends` に同じディレクトリの bare filename を1つ指定して継承でき、継承 chain も利用できる。
+- 継承では object を再帰的に merge し、array と scalar は子の値で全置換する。
+- YAML alias は使用しない。
 - `auth.users` は mock する認証 identity、`remote` は Firestore emulator、`browser` は localStorage に保存する状態を表す。
 - fixture 内の ID と UID は論理 ID とし、すべてのカテゴリで test case と retry ごとの namespace に展開して他ケースと共有しない。
 - UID、Deck / Card / session ID、Card の `deckId`、`studySessions` の map key と `cardOrderIds` は同じ対応表で展開する。

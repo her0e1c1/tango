@@ -1,10 +1,5 @@
-auth:
-  users:
-    - uid: user-1
-      provider: anonymous
+extends: empty.yaml
 browser:
-  preferences:
-    loadSample: false
   sampleDeck:
     deck:
       id: sample-v1

@@ -1,0 +1,5 @@
+extends: study-session-start.yaml
+browser:
+  studySessions:
+    deck-1:
+      currentIndex: 1

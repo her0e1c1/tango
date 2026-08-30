@@ -1,0 +1,8 @@
+extends: remote-deck-with-cards.yaml
+browser:
+  studySessions:
+    deck-1:
+      sessionId: session-1
+      deckId: deck-1
+      cardOrderIds: [card-1, card-2, card-3]
+      currentIndex: 0

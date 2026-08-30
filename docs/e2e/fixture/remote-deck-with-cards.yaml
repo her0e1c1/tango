@@ -1,7 +1,4 @@
-auth:
-  users:
-    - uid: user-1
-      provider: anonymous
+extends: empty.yaml
 remote:
   decks:
     - id: deck-1
@@ -14,9 +11,7 @@ remote:
       uid: user-1
       frontText: apple
       backText: りんご
-      tags:
-        - target
-        - noun
+      tags: [math, typescript]
       uniqueKey: apple
       score: 1
       numberOfSeen: 3
@@ -25,20 +20,16 @@ remote:
       uid: user-1
       frontText: orange
       backText: オレンジ
-      tags:
-        - other
+      tags: [other]
       uniqueKey: orange
       score: 1
+      numberOfSeen: 4
     - id: card-3
       deckId: deck-1
       uid: user-1
       frontText: banana
       backText: バナナ
-      tags:
-        - target
+      tags: [math]
       uniqueKey: banana
       score: -1
-      numberOfSeen: 1
-browser:
-  preferences:
-    loadSample: false
+      numberOfSeen: 5

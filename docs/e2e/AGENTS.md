@@ -1,8 +1,10 @@
 # E2E Documentation Instructions
 
-- `docs/e2e/fixture/{read,write,batch}/*.yaml` を具体的な E2E fixture 状態の正とする。
-- fixture はテストケースのカテゴリと同じ `read`、`write`、`batch` ディレクトリに配置する。
-- 各テストケースは `Given` の先頭で、そのケースと同じカテゴリ配下の fixture YAML を必ず1つ `Fixture: ...` として指定する。
+- `docs/e2e/fixture/*.yaml` を具体的な E2E fixture 状態の正とし、すべてのカテゴリで共有する。
+- 各テストケースは `Given` の先頭で、共有 fixture YAML を必ず1つ `Fixture: ...` として指定する。
+- fixture はトップレベルの `extends` に同じディレクトリの bare filename を1つだけ指定して継承でき、継承 chain も利用できる。
+- 継承では object を再帰的に merge し、array と scalar は子の値で全置換する。
+- fixture YAML では alias を使用しない。
 - `Given` には fixture 参照だけでなく、テスト開始時に必要な状態を利用者視点で具体的に記述する。
 - テストケース本文には、fixture YAML に定義した具体的な値を重複して記述しない。
 - fixture YAML はアプリケーションの既定状態からの差分だけを記述し、既定値と同じ `false`、`0`、`null`、空配列、空 object などは省略する。
