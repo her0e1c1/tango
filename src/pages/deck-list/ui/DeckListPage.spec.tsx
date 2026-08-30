@@ -1,6 +1,6 @@
 import type { Preferences } from "@/entities/preference";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -158,8 +158,11 @@ describe("DeckListPage", () => {
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+      "Unable to delete this deck. Check your connection and try again."
+    );
+    expect(within(dialog).queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
