@@ -15,11 +15,10 @@ interface CardEditorStoryProps {
   card: Card;
   isSaving: boolean;
   validationError: boolean;
-  saveError?: Error;
   onCancel: () => void;
 }
 
-const CardEditorStory = ({ card, isSaving, validationError, saveError, onCancel }: CardEditorStoryProps) => {
+const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEditorStoryProps) => {
   const form = useForm<CardFormValues>({
     defaultValues: { frontText: card.frontText, backText: card.backText, tags: card.tags },
   });
@@ -44,7 +43,6 @@ const CardEditorStory = ({ card, isSaving, validationError, saveError, onCancel 
       isSaving={isSaving}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(() => undefined)}
-      saveError={saveError}
     />
   );
 };
@@ -66,7 +64,6 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const Saving: Story = { args: { isSaving: true } };
 export const ValidationError: Story = { args: { validationError: true } };
-export const SaveError: Story = { args: { saveError: new Error("Card write failed") } };
 export const LongValues: Story = { args: { card: longCard } };
 export const Dark: Story = { ...LongValues, globals: { theme: "dark" } };
 export const Mobile: Story = { ...LongValues, globals: { viewport: { value: "iphonex", isRotated: false } } };

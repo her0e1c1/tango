@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { focusableElementSelector } from "../../lib/focusableElementSelector";
 import { Button } from "../button";
+import { ToastModalOutlet } from "../toast";
 
 export interface DestructiveActionDialogProps {
   title: string;
@@ -10,7 +11,6 @@ export interface DestructiveActionDialogProps {
   description: React.ReactNode;
   confirmLabel: string;
   pending?: boolean;
-  errorMessage?: string;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
 }
@@ -18,11 +18,11 @@ export interface DestructiveActionDialogProps {
 export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (props) => {
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const targetNameRef = React.useRef<HTMLSpanElement>(null);
   const confirmingRef = React.useRef(false);
   const titleId = React.useId();
   const targetId = React.useId();
   const descriptionId = React.useId();
-  const errorId = React.useId();
 
   React.useEffect(() => {
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -36,7 +36,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     };
   }, []);
 
-  const handleDialogTabKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleDialogTabKey = (event: KeyboardEvent) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
     if (focusable.length === 0) {
       event.preventDefault();
@@ -55,20 +55,34 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleCancel = () => {
+    // Before pending reaches the UI, Cancel would misleadingly imply that the issued write was withdrawn.
+    // Once pending is visible, Close only releases the modal while the caller keeps the write alive.
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Confirm can mutate this ref before pending props reach this render.
+    if (confirmingRef.current && !props.pending) return;
+    props.onCancel();
+  };
+
+  const handleKeyDownEvent = React.useEffectEvent((event: KeyboardEvent) => {
     if (event.key === "Escape") {
       event.preventDefault();
-      props.onCancel();
+      handleCancel();
       return;
     }
     if (event.key === "Tab") {
       handleDialogTabKey(event);
     }
-  };
+  });
 
-  const describedBy = [targetId, descriptionId, props.errorMessage != null ? errorId : null]
-    .filter((id) => id != null)
-    .join(" ");
+  React.useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog === null) return;
+    // Portal events follow their React tree, so a native listener keeps portaled Toast controls in this DOM focus trap.
+    dialog.addEventListener("keydown", handleKeyDownEvent);
+    return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
+  }, []);
+
+  const describedBy = `${targetId} ${descriptionId}`;
 
   const handleConfirm = () => {
     if (props.pending || confirmingRef.current) return;
@@ -76,7 +90,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     try {
       void Promise.resolve(props.onConfirm())
         .catch(() => {
-          // Prevent unhandled floating promise rejections. Callers manage error state via props.
+          // Prevent unhandled floating promise rejections. Callers own failure reporting and retry state.
         })
         .finally(() => {
           confirmingRef.current = false;
@@ -89,7 +103,6 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-canvas/70 px-shell-gutter py-6">
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: The alertdialog owns Escape and focus-trap keyboard handling. */}
       <div
         ref={dialogRef}
         role="alertdialog"
@@ -98,7 +111,6 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
         aria-describedby={describedBy}
         aria-busy={props.pending || undefined}
         className="w-full max-w-reading rounded-surface border border-border bg-surface-elevated p-4 text-ink shadow-elevated sm:p-6"
-        onKeyDown={handleKeyDown}
       >
         <h2 id={titleId} className="text-title font-bold">
           {props.title}
@@ -107,32 +119,32 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
           <span className="block text-caption font-bold uppercase tracking-wide text-ink-muted">
             {props.targetLabel}
           </span>
-          {/* biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users must be able to reach a long scrolling target name. */}
-          <span tabIndex={0} className="mt-1 block max-h-24 overflow-y-auto break-words font-semibold">
+          <span
+            // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users must be able to reach a long scrolling target name.
+            tabIndex={0}
+            ref={targetNameRef}
+            className="mt-1 block max-h-24 overflow-y-auto break-words font-semibold"
+          >
             {props.targetName}
           </span>
         </div>
         <div id={descriptionId} className="mt-4 space-y-2 text-body text-ink-muted">
           {props.description}
         </div>
-        {props.errorMessage != null && (
-          <p id={errorId} role="alert" className="mt-4 rounded-control border border-danger p-3 text-body text-danger">
-            {props.errorMessage}
-          </p>
-        )}
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             ref={cancelRef}
             type="button"
             className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-border bg-transparent px-4 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            onClick={props.onCancel}
+            onClick={handleCancel}
           >
-            Cancel
+            {props.pending ? "Close" : "Cancel"}
           </button>
           <Button variant="destructive" loading={Boolean(props.pending)} onClick={handleConfirm}>
             {props.confirmLabel}
           </Button>
         </div>
+        <ToastModalOutlet focusFallbackRef={targetNameRef} />
       </div>
     </div>
   );

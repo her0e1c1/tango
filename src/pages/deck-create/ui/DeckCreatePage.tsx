@@ -18,6 +18,10 @@ export const DeckCreatePage: React.FC = () => {
     },
   });
   const guard = useNavigationGuard(state.isDirty);
+  const cancel = () => {
+    state.dismissSaveError();
+    void navigate(routes.deckList.to());
+  };
 
   return (
     <AppLayout showHeader>
@@ -27,9 +31,8 @@ export const DeckCreatePage: React.FC = () => {
         categories={state.categories}
         form={state.form}
         isLocalModeLocked={state.isLocalModeLocked}
-        onCancel={() => void navigate(routes.deckList.to())}
+        onCancel={cancel}
         onSubmit={state.onSubmit}
-        saveError={state.saveError}
       />
     </AppLayout>
   );

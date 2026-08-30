@@ -9,6 +9,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createCard as createRemoteCard, createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -57,10 +58,18 @@ describe("CardFormPage", () => {
       ],
       { initialEntries: ["/previous", path], initialIndex: 1 }
     );
-    return Object.assign(render(<RouterProvider router={router} />), { router });
+    const renderRouter = () => (
+      <>
+        <RouterProvider router={router} />
+        <ToastViewport />
+      </>
+    );
+    const view = render(renderRouter());
+    return Object.assign(view, { router, rerenderRouter: () => view.rerender(renderRouter()) });
   };
 
   beforeEach(async () => {
+    dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
     mocks.beforeCardWrite = undefined;
@@ -112,6 +121,7 @@ describe("CardFormPage", () => {
     expect(view.router.state.location.pathname).toBe(`/deck/${deckId}`);
     await actAsync(async () => view.router.navigate(-1));
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
+    expect(screen.getByText("Updated card “Saved front”.")).toBeVisible();
   });
 
   it("returns to the previous page after cancellation", async () => {
@@ -151,7 +161,7 @@ describe("CardFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
     mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Retry front", backText: "Back text" });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
 
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -161,7 +171,7 @@ describe("CardFormPage", () => {
     await actAsync(async () => rejectWrite(new Error("write failed")));
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
     mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
 
     expect(frontText).toHaveValue("Retry front");
     expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
@@ -189,7 +199,7 @@ describe("CardFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
     mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Retry front", backText: "Back text" });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
 
     await actAsync(async () => {
       rejectWrite(0);
@@ -205,7 +215,7 @@ describe("CardFormPage", () => {
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
 
     mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
     expect(frontText).toHaveValue("Retry front");
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
@@ -231,7 +241,7 @@ describe("CardFormPage", () => {
       frontText: "Submitted front",
       backText: "Back text",
     });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
 
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "Later front");

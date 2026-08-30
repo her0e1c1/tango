@@ -4,7 +4,6 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import { Button } from "@/shared/ui/button";
-import { Feedback } from "@/shared/ui/feedback";
 import { Form, FormItem, Input, Select, Switch } from "@/shared/ui/forms";
 
 export interface DeckFormFields {
@@ -20,7 +19,6 @@ interface CommonDeckFormProps {
   form: UseFormReturn<DeckFormFields>;
   onCancel: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
-  saveError?: unknown;
 }
 
 interface DeckCreateFormProps extends CommonDeckFormProps {
@@ -44,7 +42,6 @@ const formatDate = (timestamp: number): string => new Date(timestamp).toLocaleDa
 interface DeckFormPresentation {
   autoFocusName: boolean;
   description: string;
-  errorMessage: string;
   eyebrow: string;
   isSaving: boolean;
   localModeDisabled: boolean;
@@ -57,7 +54,6 @@ const getDeckFormPresentation = (props: DeckFormProps, formIsSubmitting: boolean
     return {
       autoFocusName: true,
       description: "Start with an empty deck.",
-      errorMessage: "Unable to create this deck. Try again.",
       eyebrow: "Deck creator",
       isSaving: formIsSubmitting,
       localModeDisabled: props.isLocalModeLocked,
@@ -69,7 +65,6 @@ const getDeckFormPresentation = (props: DeckFormProps, formIsSubmitting: boolean
   return {
     autoFocusName: false,
     description: "Manage this deck’s information, import source, and formatting.",
-    errorMessage: "Unable to save changes. Try again.",
     eyebrow: "Deck settings",
     isSaving: props.isSaving || formIsSubmitting,
     localModeDisabled: !props.isLocalOnly,
@@ -275,7 +270,6 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
   return (
     <section className="mx-auto w-full max-w-reading overflow-hidden rounded-surface border border-border bg-surface p-4 md:p-6">
       <DeckFormHeader mode={props.mode} onCancel={props.onCancel} presentation={presentation} />
-      <Feedback tone="error">{props.saveError == null ? null : presentation.errorMessage}</Feedback>
       <Form onSubmit={props.onSubmit}>
         <StorageSection
           disabled={presentation.localModeDisabled}

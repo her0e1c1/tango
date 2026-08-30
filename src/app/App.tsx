@@ -8,6 +8,7 @@ import React from "react";
 import { RouterProvider } from "react-router-dom";
 
 import { usePreferences } from "@/entities/preference";
+import { ToastViewport } from "@/shared/ui/toast";
 
 import { AuthProvider } from "./auth";
 import { FirestoreSubscriptionsProvider } from "./firestore-subscriptions";
@@ -23,17 +24,27 @@ interface AppProps {
  */
 const AppShell: React.FC<AppProps> = ({ router }) => {
   const { darkMode } = usePreferences().appearance;
+  const focusFallbackRef = React.useRef<HTMLElement>(null);
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
   return (
-    <AuthProvider>
-      <FirestoreSubscriptionsProvider>
-        <RouterProvider router={router} />
-      </FirestoreSubscriptionsProvider>
-    </AuthProvider>
+    <>
+      <main
+        ref={focusFallbackRef}
+        // This landmark survives route replacement so removing a focused Toast never leaves focus on the document body.
+        tabIndex={-1}
+      >
+        <AuthProvider>
+          <FirestoreSubscriptionsProvider>
+            <RouterProvider router={router} />
+          </FirestoreSubscriptionsProvider>
+        </AuthProvider>
+      </main>
+      <ToastViewport focusFallbackRef={focusFallbackRef} />
+    </>
   );
 };
 

@@ -14,7 +14,6 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
   const navigate = useNavigate();
   const deckListPath = routes.deckList.to();
   const goToList = () => navigate(deckListPath, { replace: true });
-  const cancel = () => void goToList();
   const editor = useDeckForm({
     deckId,
     onSaved: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
@@ -30,11 +29,21 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
     );
   }
 
+  const cancel = () => {
+    editor.dismissSaveError();
+    void goToList();
+  };
+
   return (
     <AppLayout showHeader>
       {guard.element}
       {!guard.isBlocked && deletion.target != null && (
-        <DeckDeletionDialog target={deletion.target} onCancel={deletion.cancel} onConfirm={deletion.confirm} />
+        <DeckDeletionDialog
+          target={deletion.target}
+          pending={deletion.pending}
+          onCancel={deletion.cancel}
+          onConfirm={deletion.confirm}
+        />
       )}
       <DeckForm
         mode="edit"
@@ -45,7 +54,6 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
         isLocalOnly={editor.isLocalOnly}
         isSaving={editor.isSaving}
         onCancel={cancel}
-        saveError={editor.saveError}
         onSubmit={editor.onSubmit}
         afterForm={
           <section

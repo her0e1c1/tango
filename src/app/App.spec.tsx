@@ -8,6 +8,7 @@ import { createMemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { setDarkMode, updatePreferences } from "@/entities/preference";
+import { dismissToast, showToast } from "@/shared/ui/toast";
 import { createPreferences } from "@/test/factories";
 
 const routeMocks = vi.hoisted(() => ({ accountThrows: false }));
@@ -46,6 +47,7 @@ const renderApp = (path = "/") => {
 
 describe("App", () => {
   beforeEach(() => {
+    dismissToast();
     routeMocks.accountThrows = false;
     updatePreferences(createPreferences({ appearance: { darkMode: false } }));
     document.documentElement.classList.remove("dark");
@@ -67,6 +69,34 @@ describe("App", () => {
     renderApp();
 
     expect(screen.getByText("Deck list")).toBeInTheDocument();
+  });
+
+  it("hosts notifications outside the route tree", () => {
+    renderApp();
+
+    act(() => {
+      showToast({ message: "Saved", tone: "success" });
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent("Success: Saved");
+  });
+
+  it("restores focus to the application shell when a notification outlives its source route", () => {
+    renderApp("/unknown");
+    const sourceAction = screen.getByRole("button", { name: "Go home" });
+    sourceAction.focus();
+    act(() => {
+      showToast({ message: "Saved", tone: "success", durationMs: null });
+    });
+
+    fireEvent.click(sourceAction);
+    expect(sourceAction).not.toBeInTheDocument();
+    expect(screen.getByText("Deck list")).toBeInTheDocument();
+    const dismissButton = screen.getByRole("button", { name: "Dismiss notification" });
+    dismissButton.focus();
+    fireEvent.click(dismissButton);
+
+    expect(screen.getByRole("main")).toHaveFocus();
   });
 
   it("matches the static Deck create route instead of treating new as a Deck id", () => {

@@ -25,6 +25,7 @@ Given:
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の次に別の Card がある。
+- swipe feedback が有効である。
 
 When:
 
@@ -35,6 +36,7 @@ Then:
 - 現在だった Card の score が mastered rule に従って増加し、学習回数が 1 増えて保存される。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
+- 実行した swipe 方向が共通 toast で短時間表示される。
 - browser error が発生しない。
 
 <a id="swipe-03"></a>
@@ -116,6 +118,7 @@ Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
+- swipe feedback が有効である。
 - 前回の学習結果の保存要求が失敗し、同じ Card と session の位置が維持されている。
 - 次の学習結果の保存要求は成功できる。
 
@@ -125,6 +128,7 @@ When:
 
 Then:
 
+- 失敗した試行では swipe feedback が表示されず、成功した再試行だけ共通 toast が表示される。
 - 再試行した学習結果が一度だけ保存される。
 - session の位置が次の Card へ一度だけ進む。
 - 次の Card の front text が表示される。

@@ -6,19 +6,18 @@ interface DeckDeletionDialogProps {
   target: {
     deckName: string;
     cardCount: number;
-    hasError: boolean;
   };
+  pending: boolean;
   onCancel: () => void;
   onConfirm: () => Promise<void>;
 }
 
-export const DeckDeletionDialog: React.FC<DeckDeletionDialogProps> = ({ target, onCancel, onConfirm }) => (
+export const DeckDeletionDialog: React.FC<DeckDeletionDialogProps> = ({ target, pending, onCancel, onConfirm }) => (
   <DestructiveActionDialog
     title="Delete deck?"
     targetLabel="Deck"
     targetName={target.deckName}
     confirmLabel="Delete deck"
-    {...(target.hasError ? { errorMessage: "Unable to delete this deck. Check your connection and try again." } : {})}
     description={
       <>
         <p>
@@ -28,6 +27,7 @@ export const DeckDeletionDialog: React.FC<DeckDeletionDialogProps> = ({ target, 
         <p>This action cannot be undone.</p>
       </>
     }
+    pending={pending}
     onCancel={onCancel}
     onConfirm={onConfirm}
   />

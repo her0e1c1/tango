@@ -29,6 +29,9 @@ remote:
       score: -1
       numberOfSeen: 2
 browser:
+  preferences:
+    appearance:
+      showSwipeFeedback: true
   studySessions:
     deck-1:
       sessionId: session-1

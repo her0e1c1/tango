@@ -7,6 +7,7 @@ import { useAuthUid } from "@/entities/auth";
 import { CATEGORY, type Deck, deckFormSchema, editDeck, useDeck } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
 
 const getDeckFormValues = (deck: Deck): DeckFormFields => ({
   name: deck.name,
@@ -35,11 +36,18 @@ interface UseDeckFormOptions {
   onSaved: () => void;
 }
 
+const dismissOwnedToast = (toastId: React.RefObject<ToastId | undefined>) => {
+  const id = toastId.current;
+  if (id === undefined) return;
+  dismissToast(id);
+  toastId.current = undefined;
+};
+
 export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
   const uid = useAuthUid();
   const deck = useDeck(deckId);
   const isMounted = useMountedGuard();
-  const [saveError, setSaveError] = React.useState<unknown>(null);
+  const saveErrorToastId = React.useRef<ToastId | undefined>(undefined);
   // Reactive Deck snapshots can reset RHF state mid-write, so this lock must span the persistence request itself.
   const [isSaving, setIsSaving] = React.useState(false);
   const [failedBaseline, setFailedBaseline] = React.useState<DeckFormFields | null>(null);
@@ -49,43 +57,50 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
     resetOptions: { keepDirtyValues: true },
     resolver: zodResolver(deckFormSchema),
   });
+
+  const dismissSaveError = () => dismissOwnedToast(saveErrorToastId);
+
+  React.useEffect(() => () => dismissOwnedToast(saveErrorToastId), []);
+
   if (deck == null) return;
 
-  const submit = form.handleSubmit(async (values) => {
+  const submit = async (values: DeckFormFields) => {
+    const savedInput = { ...values };
     const submittedInput = form.getValues();
     // A failed attempt keeps its pre-optimistic baseline for retries that start before Firestore rolls back.
     const retryBaseline = failedBaseline ?? getDeckFormValues(deck);
     setIsSaving(true);
-    setSaveError(null);
+    dismissSaveError();
     try {
-      await editDeck(uid, getDeckEditInput(deck, values));
+      await editDeck(uid, getDeckEditInput(deck, savedInput));
+      // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.
       if (isMounted()) {
-        const savedBaseline = { ...values };
         setFailedBaseline(null);
+        showToast({ message: `Updated deck “${savedInput.name}”.`, tone: "success" });
         if (areDeckFormValuesEqual(form.getValues(), submittedInput)) {
           onSaved();
         } else {
           // A successful write may finish after another edit; preserve that edit against the payload just saved.
-          form.reset(savedBaseline, { keepValues: true });
+          form.reset(savedInput, { keepValues: true });
         }
       }
-    } catch (error) {
+    } catch {
       if (isMounted()) {
         // Optimistic snapshots may replace RHF's baseline while pending; restore it without erasing the retry payload.
         form.reset(retryBaseline, { keepValues: true });
         setFailedBaseline(retryBaseline);
-        setSaveError(error);
+        saveErrorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
       }
     } finally {
       if (isMounted()) setIsSaving(false);
     }
-  });
-  const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
+  };
+  const onFormSubmit = (event?: React.BaseSyntheticEvent) => {
     if (isSaving) {
       event?.preventDefault();
       return;
     }
-    void submit(event);
+    void form.handleSubmit(submit)(event);
   };
 
   const deckInfo = {
@@ -98,11 +113,11 @@ export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
     categories: CATEGORY,
     deckInfo,
     deckName: deck.name,
+    dismissSaveError,
     form,
     isDirty: form.formState.isDirty,
     isLocalOnly: deck.localMode,
     isSaving,
     onSubmit: onFormSubmit,
-    saveError,
   };
 };

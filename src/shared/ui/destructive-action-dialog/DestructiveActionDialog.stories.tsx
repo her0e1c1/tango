@@ -44,10 +44,6 @@ export const Card: Story = {
 
 export const Pending: Story = { args: { pending: true } };
 
-export const Failure: Story = {
-  args: { errorMessage: "Unable to delete this deck. Check your connection and try again." },
-};
-
 export const Mobile: Story = {
   ...Card,
   globals: { viewport: { value: "iphonex", isRotated: false } },

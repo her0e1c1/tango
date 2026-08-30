@@ -11,7 +11,6 @@ import { CardEditor } from "./CardEditor";
 const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
   const navigate = useNavigate();
   const goBack = () => navigate(-1);
-  const cancel = () => void goBack();
   const editor = useCardForm({
     cardId,
     onSaved: (deckId) => {
@@ -29,6 +28,11 @@ const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
     );
   }
 
+  const cancel = () => {
+    editor.dismissSaveError();
+    void goBack();
+  };
+
   return (
     <AppLayout showHeader>
       {guard.element}
@@ -39,7 +43,6 @@ const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
         isSaving={editor.isSaving}
         onCancel={cancel}
         onSubmit={editor.onSubmit}
-        saveError={editor.saveError}
       />
     </AppLayout>
   );

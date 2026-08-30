@@ -5,7 +5,6 @@ import type { UseFormReturn } from "react-hook-form";
 import type { CardId } from "@/entities/card";
 import { CardFields, type CardFormFields } from "@/features/card-form";
 import { Button } from "@/shared/ui/button";
-import { Feedback } from "@/shared/ui/feedback";
 import { Form } from "@/shared/ui/forms";
 
 export interface CardEditorProps {
@@ -15,20 +14,11 @@ export interface CardEditorProps {
   isSaving: boolean;
   onCancel: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
-  saveError?: unknown;
 }
 
 const formatDate = (timestamp: number): string => new Date(timestamp).toLocaleDateString();
 
-export const CardEditor: React.FC<CardEditorProps> = ({
-  cardInfo,
-  categories,
-  form,
-  isSaving,
-  onCancel,
-  onSubmit,
-  saveError,
-}) => (
+export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, form, isSaving, onCancel, onSubmit }) => (
   <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
     <header className="mb-section-gap">
       <button
@@ -43,7 +33,6 @@ export const CardEditor: React.FC<CardEditorProps> = ({
       <h1 className="mt-1 break-words text-display font-bold text-ink">Edit card</h1>
       <p className="mt-2 text-body text-ink-muted">Update the prompt, answer, and organization for this card.</p>
     </header>
-    <Feedback tone="error">{saveError == null ? null : "Unable to save changes. Try again."}</Feedback>
     <Form onSubmit={onSubmit}>
       <CardFields categories={categories} form={form} />
       <details className="rounded-surface border border-border bg-surface-muted p-4">

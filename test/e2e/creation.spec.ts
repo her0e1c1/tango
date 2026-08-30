@@ -22,6 +22,7 @@ test("DECK-11 creates one empty local-only Deck without a remote duplicate", asy
   await expect(localOnly).toBeChecked();
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
+  await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
   const deckId = new URL(page.url()).pathname.split("/").at(-1);
   if (deckId === undefined) throw new Error("Created local-only Deck ID is missing");
   await expect(page.getByText("0 cards")).toBeVisible();
@@ -72,7 +73,7 @@ test("CARD-15 retries a failed remote Card create with the same ID and no duplic
   await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
   await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
-  await expect(page.getByText("Unable to create this card. Try again.")).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("Unable to create this card. Try again.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
@@ -82,6 +83,8 @@ test("CARD-15 retries a failed remote Card create with the same ID and no duplic
   await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue(backText);
   await page.getByRole("button", { name: "Create card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();

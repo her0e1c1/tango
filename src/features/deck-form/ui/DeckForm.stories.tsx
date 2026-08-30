@@ -15,7 +15,6 @@ interface DeckFormStoryProps {
   isLocalModeLocked: boolean;
   isSaving: boolean;
   mode: "create" | "edit";
-  saveError?: Error;
   validationError: boolean;
   onCancel: () => void;
   onDelete: () => void;
@@ -41,7 +40,6 @@ const DeckFormStory = ({
   isLocalModeLocked,
   isSaving,
   mode,
-  saveError,
   validationError,
   onCancel,
   onDelete,
@@ -72,7 +70,6 @@ const DeckFormStory = ({
     form,
     onCancel,
     onSubmit: form.handleSubmit(() => undefined),
-    ...(saveError === undefined ? {} : { saveError }),
   };
 
   if (mode === "create") {
@@ -125,8 +122,6 @@ export const LocalDeck: Story = {
 export const ValidationError: Story = { args: { validationError: true } };
 export const Creating: Story = { args: { isSaving: true } };
 export const Saving: Story = { args: { mode: "edit", isSaving: true } };
-export const CreateError: Story = { args: { saveError: new Error("Deck create failed") } };
-export const EditError: Story = { args: { mode: "edit", saveError: new Error("Deck edit failed") } };
 export const LocalModeLocked: Story = { args: { isLocalModeLocked: true } };
 export const LongContent: Story = { args: { mode: "edit", deck: longDeck } };
 export const Interaction: Story = {

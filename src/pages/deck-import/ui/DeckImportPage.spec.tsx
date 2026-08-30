@@ -6,6 +6,8 @@ import "@testing-library/jest-dom/vitest";
 
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { actAsync } from "@/test/act";
 
 const controls = vi.hoisted(() => ({
   nextMutationError: undefined as unknown,
@@ -61,14 +63,17 @@ const DeckListDestination = () => {
 
 const renderPage = () =>
   render(
-    <MemoryRouter initialEntries={["/previous", "/import"]} initialIndex={1}>
-      <Routes>
-        <Route path="/previous" element={<h1>Previous page</h1>} />
-        <Route path="/" element={<DeckListDestination />} />
-        <Route path="/settings" element={<h1>Settings destination</h1>} />
-        <Route path="/import" element={<DeckImportPage />} />
-      </Routes>
-    </MemoryRouter>
+    <>
+      <MemoryRouter initialEntries={["/previous", "/import"]} initialIndex={1}>
+        <Routes>
+          <Route path="/previous" element={<h1>Previous page</h1>} />
+          <Route path="/" element={<DeckListDestination />} />
+          <Route path="/settings" element={<h1>Settings destination</h1>} />
+          <Route path="/import" element={<DeckImportPage />} />
+        </Routes>
+      </MemoryRouter>
+      <ToastViewport />
+    </>
   );
 
 const selectLocalFile = async (name: string, backText = "back") => {
@@ -83,6 +88,7 @@ const selectLocalFile = async (name: string, backText = "back") => {
 
 describe("DeckImportPage", () => {
   beforeEach(() => {
+    dismissToast();
     controls.nextMutationError = undefined;
     controls.nextMutationWait = undefined;
     controls.setDarkMode.mockReset();
@@ -119,6 +125,7 @@ describe("DeckImportPage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(screen.getByText(name)).toBeVisible();
     expect(screen.getByText("front: saved back")).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent("Imported 1 card.");
   });
 
   it("shows a failed save in place and retries the same import", async () => {
@@ -129,8 +136,7 @@ describe("DeckImportPage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed");
-    expect(screen.getByRole("alert")).toHaveTextContent("card mutation failed");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed. card mutation failed");
     expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
@@ -138,6 +144,7 @@ describe("DeckImportPage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(screen.getByText(name)).toBeVisible();
     expect(screen.getByText("front: retry back")).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent("Imported 1 card.");
   });
 
   it("loads the sample action, saves the Sample Deck, and navigates without a preview", async () => {
@@ -158,6 +165,7 @@ describe("DeckImportPage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(screen.getByText("Sample Deck")).toBeVisible();
     expect(screen.getAllByText(/: /u).length).toBeGreaterThan(0);
+    expect(screen.getByRole("status")).toHaveTextContent(/Added sample deck with \d+ cards?\./u);
   });
 
   it("shows a failed sample add in place", async () => {
@@ -166,10 +174,41 @@ describe("DeckImportPage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Add sample deck" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed");
-    expect(screen.getByRole("alert")).toHaveTextContent("sample mutation failed");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to add sample deck. sample mutation failed");
     expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Add sample deck" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Add sample deck" })).not.toHaveAttribute("aria-busy");
+  });
+
+  it("dismisses an import failure when leaving the import page", async () => {
+    renderPage();
+    await selectLocalFile("page-behavior-leave.csv");
+    controls.nextMutationError = new Error("card mutation failed");
+    await userEvent.click(screen.getByRole("button", { name: "Import" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed. card mutation failed");
+
+    fireEvent.keyDown(window, { key: "s" });
+
+    expect(screen.getByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("does not show an import failure that arrives after leaving the import page", async () => {
+    const request = Promise.withResolvers<void>();
+    renderPage();
+    await selectLocalFile("page-behavior-late-failure.csv");
+    controls.nextMutationWait = request.promise;
+    controls.nextMutationError = new Error("late card mutation failure");
+    await userEvent.click(screen.getByRole("button", { name: "Import" }));
+
+    fireEvent.keyDown(window, { key: "s" });
+    expect(screen.getByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
+    await actAsync(async () => {
+      request.resolve();
+      await request.promise;
+      await Promise.resolve();
+    });
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

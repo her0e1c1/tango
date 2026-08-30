@@ -34,6 +34,7 @@ When:
 
 Then:
 
+- Deck の更新成功が共通 toast で表示される。
 - 編集画面に変更後の name と category が表示される。
 - browser error が発生しない。
 
@@ -55,6 +56,7 @@ When:
 
 Then:
 
+- Deck の削除成功が共通 toast で表示される。
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck と関連するすべての Card が保存先から削除されている。
 - 対象 Deck の学習 session を再開できない。
@@ -95,7 +97,7 @@ Given:
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に Card と再開可能な学習 session が存在する。
-- 削除要求の失敗が dialog 内で処理され、同じ削除対象が維持されている。
+- 削除要求の失敗が共通 toast で処理され、削除 dialog に同じ削除対象が維持されている。
 - 次の削除要求は成功できる。
 
 When:
@@ -105,6 +107,7 @@ When:
 Then:
 
 - 削除 dialog が閉じる。
+- Deck の削除成功が共通 toast で表示され、失敗 toast は残らない。
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck と関連する Card および学習 session が削除される。
 - 最初の削除失敗に伴う未処理の browser error が発生しない。
@@ -127,6 +130,7 @@ When:
 
 Then:
 
+- Deck の作成成功が共通 toast で表示される。
 - 作成した空の Deck が reload 後も Deck 一覧に表示される。
 - 作成した Deck は現在の UID の remote data に一つだけ存在する。
 - 作成した Deck の source URL と改行変換が remote data に保存されている。
@@ -144,7 +148,7 @@ Given:
 - Fixture: [`empty`](./fixture/empty.yaml)
 - ユーザーとして認証されている。
 - remote Deck の最初の作成要求が失敗している。
-- 作成失敗が画面内で処理され、入力した name と category、remote の保存先、作成対象の Deck ID が維持されている。
+- 作成失敗が共通 toast で処理され、入力した name と category、remote の保存先、作成対象の Deck ID が維持されている。
 - 次の作成要求は成功できる。
 
 When:
@@ -153,6 +157,7 @@ When:
 
 Then:
 
+- Deck の作成成功が共通 toast で表示され、失敗 toast は残らない。
 - 維持されていた Deck ID の Deck が現在の UID の remote data に一つだけ存在する。
 - 作成した Deck の name、category、remote の保存先が最初の作成要求から維持されている。
 - browser storage に同じ Deck の local-only duplicate が存在しない。
@@ -176,6 +181,7 @@ When:
 
 Then:
 
+- Deck の作成成功が共通 toast で表示される。
 - 作成した空の Deck が reload 後も Deck 一覧に表示される。
 - 作成した Deck は browser storage に一つだけ存在する。
 - remote data に同じ Deck が存在しない。

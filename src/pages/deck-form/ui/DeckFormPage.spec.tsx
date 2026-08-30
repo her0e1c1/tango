@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck } from "@/entities/deck";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createDeck as createRemoteDeck, createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -54,10 +55,18 @@ describe("DeckFormPage", () => {
       ],
       { initialEntries: ["/previous", path], initialIndex: 1 }
     );
-    return Object.assign(render(<RouterProvider router={router} />), { router });
+    const renderRouter = () => (
+      <>
+        <RouterProvider router={router} />
+        <ToastViewport />
+      </>
+    );
+    const view = render(renderRouter());
+    return Object.assign(view, { router, rerenderRouter: () => view.rerender(renderRouter()) });
   };
 
   beforeEach(async () => {
+    dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
     mocks.beforeDeckWrite = undefined;
@@ -123,6 +132,7 @@ describe("DeckFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    expect(screen.getByText("Updated deck “Saved deck”.")).toBeVisible();
   });
 
   it("navigates to the deck list after cancellation", async () => {
@@ -162,7 +172,7 @@ describe("DeckFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
     mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Retry deck" });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
 
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -172,7 +182,7 @@ describe("DeckFormPage", () => {
     await actAsync(async () => rejectWrite(new Error("write failed")));
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
     mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Deck name" });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
 
     expect(name).toHaveValue("Retry deck");
     expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
@@ -200,7 +210,7 @@ describe("DeckFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
     mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Retry deck" });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
 
     await actAsync(async () => {
       rejectWrite(0);
@@ -216,7 +226,7 @@ describe("DeckFormPage", () => {
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
 
     mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Deck name" });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
     expect(name).toHaveValue("Retry deck");
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
@@ -237,7 +247,7 @@ describe("DeckFormPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
     mocks.remoteDeck = createRemoteDeck({ id: deckId, name: "Submitted deck" });
-    view.rerender(<RouterProvider router={view.router} />);
+    view.rerenderRouter();
 
     await userEvent.clear(name);
     await userEvent.type(name, "Later deck");
@@ -288,6 +298,7 @@ describe("DeckFormPage", () => {
     );
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    expect(screen.getByText("Deleted deck “Deck name”.")).toBeVisible();
     expect(screen.queryByRole("alertdialog", { name: "Discard unsaved changes?" })).not.toBeInTheDocument();
   });
 

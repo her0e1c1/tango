@@ -90,6 +90,7 @@ test("CARD-03 persists edited front, back, and tags across reload", async ({ fix
   await clickCheckboxLabel(page, "python");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
+  await expect(page.getByRole("status").filter({ hasText: `Updated card “${changed.frontText}”.` })).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: `Open actions for ${changed.frontText}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
@@ -109,6 +110,7 @@ test("CARD-04 deletes a Card and does not reload it as active", async ({ fixture
   const dialog = await openCardDeleteDialog(page, card.frontText);
   await dialog.getByRole("button", { name: "Delete card" }).click();
   await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: `Deleted card “${card.frontText}”.` })).toBeVisible();
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toHaveCount(0);
@@ -205,7 +207,7 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
   await page.getByRole("textbox", { name: "Front text" }).fill(changedFront);
   await page.getByRole("textbox", { name: "Back text" }).fill(changedBack);
   await page.getByRole("button", { name: "Save changes" }).click();
-  await expect(page.getByRole("status")).toContainText("Unable to save changes");
+  await expect(page.getByRole("alert")).toContainText("Unable to save changes. Try again.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
@@ -214,6 +216,8 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
 
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: `Updated card “${changedFront}”.` })).toBeVisible();
   await expect
     .poll(async () => (await requireDocument("card", card.id)).fields.frontText?.stringValue)
     .toBe(changedFront);
@@ -289,6 +293,7 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
+  await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
@@ -322,6 +327,7 @@ test("CARD-14 creates one local Card and keeps it across reload", async ({ fixtu
   await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
+  await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();

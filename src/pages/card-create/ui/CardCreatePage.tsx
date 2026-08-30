@@ -16,6 +16,10 @@ const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
     deck,
     onCreated: () => void navigate(destination, { replace: true }),
   });
+  const cancel = () => {
+    state.dismissSaveError();
+    void navigate(destination);
+  };
 
   return (
     <AppLayout showHeader>
@@ -23,9 +27,8 @@ const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
         categories={state.categories}
         deckName={state.deckName}
         form={state.form}
-        onCancel={() => void navigate(destination)}
+        onCancel={cancel}
         onSubmit={state.onSubmit}
-        saveError={state.saveError}
       />
     </AppLayout>
   );

@@ -8,6 +8,7 @@ import { useAuthUid } from "@/entities/auth";
 import { type Card, cardContentSchema, editCard, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
 
 const cardFormSchema = cardContentSchema.omit({ uniqueKey: true });
 export type CardFormValues = z.infer<typeof cardFormSchema>;
@@ -29,11 +30,18 @@ interface UseCardFormOptions {
   onSaved: (deckId: Card["deckId"]) => void;
 }
 
+const dismissOwnedToast = (toastId: React.RefObject<ToastId | undefined>) => {
+  const id = toastId.current;
+  if (id === undefined) return;
+  dismissToast(id);
+  toastId.current = undefined;
+};
+
 export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
   const uid = useAuthUid();
   const card = useCard(cardId);
   const isMounted = useMountedGuard();
-  const [saveError, setSaveError] = React.useState<unknown>(null);
+  const saveErrorToastId = React.useRef<ToastId | undefined>(undefined);
   const [isSaving, setIsSaving] = React.useState(false);
   const [failedBaseline, setFailedBaseline] = React.useState<CardFormValues | null>(null);
   const form = useForm<CardFormValues>({
@@ -42,43 +50,48 @@ export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
     resetOptions: { keepDirtyValues: true },
     resolver: zodResolver(cardFormSchema),
   });
+  const dismissSaveError = () => dismissOwnedToast(saveErrorToastId);
+
+  React.useEffect(() => () => dismissOwnedToast(saveErrorToastId), []);
+
   if (card == null) return;
 
-  const submit = form.handleSubmit(async (values) => {
+  const submit = async (values: CardFormValues) => {
+    const savedInput = { ...values, tags: [...values.tags] };
     const submittedInput = form.getValues();
     // A failed attempt keeps its pre-optimistic baseline for retries that start before Firestore rolls back.
     const retryBaseline = failedBaseline ?? getCardFormValues(card);
     setIsSaving(true);
-    setSaveError(null);
+    dismissSaveError();
     try {
-      await editCard(uid, { id: card.id, ...values });
+      await editCard(uid, { id: card.id, ...savedInput });
       if (isMounted()) {
-        const savedBaseline = { ...values, tags: [...values.tags] };
         setFailedBaseline(null);
+        showToast({ message: `Updated card “${savedInput.frontText}”.`, tone: "success" });
         if (areCardFormValuesEqual(form.getValues(), submittedInput)) {
           onSaved(card.deckId);
         } else {
           // A successful write may finish after another edit; preserve that edit against the payload just saved.
-          form.reset(savedBaseline, { keepValues: true });
+          form.reset(savedInput, { keepValues: true });
         }
       }
-    } catch (error) {
+    } catch {
       if (isMounted()) {
         // Optimistic snapshots may replace RHF's baseline while pending; restore it without erasing the retry payload.
         form.reset(retryBaseline, { keepValues: true });
         setFailedBaseline(retryBaseline);
-        setSaveError(error);
+        saveErrorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
       }
     } finally {
       if (isMounted()) setIsSaving(false);
     }
-  });
-  const onFormSubmit = (event?: Parameters<typeof submit>[0]) => {
+  };
+  const onFormSubmit = (event?: React.BaseSyntheticEvent) => {
     if (isSaving) {
       event?.preventDefault();
       return;
     }
-    void submit(event);
+    void form.handleSubmit(submit)(event);
   };
 
   const cardInfo = {
@@ -91,10 +104,10 @@ export const useCardForm = ({ cardId, onSaved }: UseCardFormOptions) => {
   return {
     cardInfo,
     categories: CATEGORY,
+    dismissSaveError,
     form,
     isDirty: form.formState.isDirty,
     isSaving,
     onSubmit: onFormSubmit,
-    saveError,
   };
 };

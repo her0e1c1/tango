@@ -7,6 +7,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { createDeck, useDeck } from "@/entities/deck";
 import { DeckForm } from "@/features/deck-form";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createLocalDeck } from "@/test/factories";
 
@@ -15,6 +16,7 @@ import { useDeckForm } from "./useDeckForm";
 const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,
   nextError: undefined as unknown,
+  rollbackBeforeError: false,
   writes: [] as { uid: string; deck: Record<string, unknown> }[],
 }));
 
@@ -33,6 +35,17 @@ vi.mock("@/entities/deck", async (importOriginal) => {
       if (writeControls.nextError !== undefined) {
         const error = writeControls.nextError;
         writeControls.nextError = undefined;
+        if (writeControls.rollbackBeforeError) {
+          await actual.editDeck(...args);
+          await actual.editDeck(args[0], {
+            id: args[1].id,
+            name: "Deck name",
+            category: "language",
+            convertToBr: false,
+            localMode: true,
+            url: null,
+          });
+        }
         throw error;
       }
       await writeControls.beforeWrite?.();
@@ -57,7 +70,6 @@ const DeckFormHarness = (props: { deckId: string; onCancel: () => void; onSaved:
       isSaving={editor.isSaving}
       onCancel={props.onCancel}
       onSubmit={editor.onSubmit}
-      saveError={editor.saveError}
     />
   );
 };
@@ -73,11 +85,18 @@ const StoredDeckFormHarness = (props: { deckId: DeckId; onCancel: () => void; on
 describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
   const deckId = "deck-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
-    render(<StoredDeckFormHarness deckId={deckId} onCancel={onCancel} onSaved={onSaved} />);
+    render(
+      <>
+        <StoredDeckFormHarness deckId={deckId} onCancel={onCancel} onSaved={onSaved} />
+        <ToastViewport />
+      </>
+    );
 
   beforeEach(async () => {
+    dismissToast();
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
+    writeControls.rollbackBeforeError = false;
     writeControls.writes = [];
     await createDeck(
       "",
@@ -103,6 +122,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(screen.getByText("Updated deck “Updated deck”.")).toBeVisible();
     view.unmount();
     renderForm();
 
@@ -182,6 +202,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
 
   it("keeps edited values and saves them after retrying a failure", async () => {
     writeControls.nextError = new Error("write failed");
+    writeControls.rollbackBeforeError = true;
     const onSaved = vi.fn();
     const view = renderForm(onSaved);
     const name = screen.getByRole("textbox", { name: "Name" });

@@ -7,6 +7,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { mutateCards, useCard } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 
 import { useCardForm } from "../model/useCardForm";
@@ -55,7 +56,6 @@ const CardEditorHarness = (props: { cardId: string; onCancel: () => void; onSave
       isSaving={editor.isSaving}
       onCancel={props.onCancel}
       onSubmit={editor.onSubmit}
-      saveError={editor.saveError}
     />
   );
 };
@@ -72,9 +72,15 @@ describe("CardEditor", () => {
   const deckId = "card-edit-deck";
   const cardId = "card-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
-    render(<StoredCardEditorHarness cardId={cardId} onCancel={onCancel} onSaved={onSaved} />);
+    render(
+      <>
+        <StoredCardEditorHarness cardId={cardId} onCancel={onCancel} onSaved={onSaved} />
+        <ToastViewport />
+      </>
+    );
 
   beforeEach(async () => {
+    dismissToast();
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
     await createDeck("", createLocalDeck({ id: deckId }));
@@ -106,6 +112,7 @@ describe("CardEditor", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(screen.getByText("Updated card “Updated front”.")).toBeVisible();
     view.unmount();
     renderForm();
 

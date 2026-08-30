@@ -7,6 +7,8 @@ import "@testing-library/jest-dom/vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { updatePreferences } from "@/entities/preference";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { actAsync } from "@/test/act";
 import { createPreferences } from "@/test/factories";
 
 import { AccountPage } from "./AccountPage";
@@ -27,11 +29,17 @@ const renderPage = () => {
     { initialEntries: ["/account"] }
   );
 
-  return render(<RouterProvider router={router} />);
+  return render(
+    <>
+      <RouterProvider router={router} />
+      <ToastViewport />
+    </>
+  );
 };
 
 describe("AccountPage", () => {
   beforeEach(() => {
+    dismissToast();
     vi.mocked(linkWithPopup).mockReset();
     vi.mocked(linkWithPopup).mockResolvedValue({ user: {} } as never);
     vi.mocked(signOut).mockReset();
@@ -90,6 +98,7 @@ describe("AccountPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(screen.getByRole("status")).toHaveTextContent("Signed in.");
   });
 
   it("lets the user retry a failed sign-out", async () => {
@@ -108,5 +117,36 @@ describe("AccountPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(screen.getByRole("status")).toHaveTextContent("Signed out.");
+  });
+
+  it("dismisses its sign-in failure when leaving the Account page", async () => {
+    vi.mocked(linkWithPopup).mockRejectedValueOnce(new Error("Sign-in failed"));
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign in.");
+
+    fireEvent.keyDown(window, { key: "t" });
+
+    expect(await screen.findByText("Home Page")).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("does not show a sign-in failure that arrives after leaving the Account page", async () => {
+    const request = Promise.withResolvers<never>();
+    vi.mocked(linkWithPopup).mockReturnValue(request.promise);
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
+    fireEvent.keyDown(window, { key: "t" });
+    expect(await screen.findByText("Home Page")).toBeVisible();
+
+    await actAsync(async () => {
+      request.reject(new Error("Late sign-in failure"));
+      await request.promise.catch(() => undefined);
+    });
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

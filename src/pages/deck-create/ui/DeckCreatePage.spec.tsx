@@ -9,6 +9,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { createPreferences } from "@/test/factories";
 import { actAsync } from "@/test/act";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 
 const mocks = vi.hoisted(() => ({
   createDeck: vi.fn(),
@@ -57,11 +58,17 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
       ],
       { initialEntries: ["/deck/new"] }
     );
-    const page = <RouterProvider router={router} />;
+    const page = (
+      <>
+        <RouterProvider router={router} />
+        <ToastViewport />
+      </>
+    );
     return render(strictMode ? <React.StrictMode>{page}</React.StrictMode> : page);
   };
 
   beforeEach(() => {
+    dismissToast();
     mocks.createDeck.mockReset().mockResolvedValue(undefined);
     mocks.generateDeckId.mockReset().mockReturnValue("new-deck");
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
@@ -85,6 +92,7 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
       url: "https://example.com/deck.csv",
     });
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
+    expect(screen.getByText("Created deck “New deck”.")).toBeVisible();
   });
 
   it("creates a local empty Deck without remote ownership fields", async () => {
@@ -161,6 +169,21 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     });
   });
 
+  it("dismisses a failed creation notification when cancelled", async () => {
+    mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
+    renderPage();
+
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Cancelled deck");
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+    expect(await screen.findByText("Unable to create this deck. Try again.")).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByText("Unable to create this deck. Try again.")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
+  });
+
   it("suppresses a second submit while creation is pending", async () => {
     let resolveCreate: (() => void) | undefined;
     mocks.createDeck.mockReturnValue(
@@ -200,6 +223,7 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Leave route" }));
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(screen.getByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(screen.queryByText("Created deck “Slow deck”.")).not.toBeInTheDocument();
 
     await actAsync(async () => {
       resolveCreate?.();
