@@ -13,13 +13,15 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
-import { createDeck, createPreferences } from "@/test/factories";
+import { createDeck, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   preferences: null as Preferences | null,
   cards: [] as Card[],
   deck: undefined as Deck | undefined,
   editStudyProgress: vi.fn(),
+  fetchRemoteCardRead: vi.fn(),
+  localCardsHydrated: true,
   touchStudySession: vi.fn(),
 }));
 
@@ -34,7 +36,9 @@ vi.mock("@/entities/preference", async (importOriginal) => ({
 }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
+  fetchRemoteCardRead: mocks.fetchRemoteCardRead,
   useCards: () => mocks.cards,
+  useLocalCardsHydrated: () => mocks.localCardsHydrated,
 }));
 vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
@@ -86,8 +90,10 @@ describe("useStudy", () => {
     localStorage.clear();
     vi.clearAllMocks();
     mocks.editStudyProgress.mockResolvedValue(undefined);
+    mocks.fetchRemoteCardRead.mockReset();
+    mocks.localCardsHydrated = true;
     mocks.cards = cards;
-    mocks.deck = createDeck({ id: deckId, category: "raw" });
+    mocks.deck = createDeck({ id: deckId, uid: "user-1", category: "raw" });
     mocks.preferences = createPreferences({
       cardInterval: 1,
       defaultAutoPlay: false,
@@ -126,10 +132,114 @@ describe("useStudy", () => {
     expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }));
   });
 
-  it("reports preparing while the session card is not available", () => {
+  it("reports unavailable after the server confirms a missing remote target", async () => {
     mocks.cards = [];
+    mocks.fetchRemoteCardRead.mockResolvedValue({ status: "missing" });
     const { result } = renderHook(() => useStudy(deckId));
-    expect(result.current.status).toBe("preparing");
+    expect(result.current.status).toBe("verifying");
+
+    await waitFor(() => expect(result.current.status).toBe("unavailable"));
+    expect(getStudySession(deckId)).toBeDefined();
+  });
+
+  it("waits for local hydration before treating a missing Card as authoritative", () => {
+    mocks.cards = [];
+    mocks.deck = createLocalDeck({ id: deckId });
+    mocks.localCardsHydrated = false;
+    const { result, rerender } = renderHook(() => useStudy(deckId));
+    expect(result.current.status).toBe("verifying");
+
+    mocks.localCardsHydrated = true;
+    rerender();
+
+    expect(result.current.status).toBe("unavailable");
+    expect(mocks.fetchRemoteCardRead).not.toHaveBeenCalled();
+    expect(getStudySession(deckId)).toBeDefined();
+  });
+
+  it("uses an active server result while the Card subscription catches up", async () => {
+    const [currentCard] = cards;
+    if (currentCard == null || !("uid" in currentCard)) throw new Error("Expected a remote Card");
+    mocks.cards = [];
+    mocks.fetchRemoteCardRead.mockResolvedValue({
+      status: "active",
+      read: {
+        card: {
+          id: currentCard.id,
+          deckId: currentCard.deckId,
+          uid: currentCard.uid,
+          frontText: currentCard.frontText,
+          backText: currentCard.backText,
+          tags: currentCard.tags,
+          uniqueKey: currentCard.uniqueKey,
+          createdAt: currentCard.createdAt,
+          updatedAt: currentCard.updatedAt,
+          deletedAt: currentCard.deletedAt,
+        },
+        progress: {
+          cardId: currentCard.id,
+          score: currentCard.score,
+          numberOfSeen: currentCard.numberOfSeen,
+          lastSeenAt: currentCard.lastSeenAt,
+        },
+      },
+    });
+    const { result } = renderHook(() => useStudy(deckId));
+
+    await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { frontText: "card-1" } }));
+    await actAsync(() => result.current.swipeRight());
+
+    expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }), {
+      persistence: "remote",
+      cardId: "card-1",
+    });
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+  });
+
+  it("preserves the session when remote target verification fails", async () => {
+    mocks.cards = [];
+    mocks.fetchRemoteCardRead.mockRejectedValue(new Error("network failure"));
+    const { result } = renderHook(() => useStudy(deckId));
+
+    await waitFor(() => expect(result.current.status).toBe("verification-error"));
+    expect(getStudySession(deckId)).toBeDefined();
+  });
+
+  it("does not treat another Deck's loaded Cards as proof that the target is missing", async () => {
+    const otherCard = { ...cards[0], id: "other-card", deckId: "other-deck" } as Card;
+    mocks.cards = [otherCard];
+    mocks.fetchRemoteCardRead.mockResolvedValue({ status: "missing" });
+    const { result } = renderHook(() => useStudy(deckId));
+
+    expect(result.current.status).toBe("verifying");
+    await waitFor(() => expect(result.current.status).toBe("unavailable"));
+    expect(getStudySession(deckId)).toBeDefined();
+  });
+
+  it("ignores a verification result after the session target is replaced", async () => {
+    let resolveOldVerification: (result: { status: "missing" }) => void = () => undefined;
+    mocks.cards = [];
+    mocks.fetchRemoteCardRead.mockImplementation((_uid: string, cardId: string) => {
+      if (cardId === "card-1") {
+        return new Promise((resolve) => {
+          resolveOldVerification = resolve;
+        });
+      }
+      return new Promise(() => undefined);
+    });
+    const { result } = renderHook(() => useStudy(deckId));
+    const previousSessionId = getStudySession(deckId)?.sessionId;
+
+    act(() => startStudy(deckId, cards.slice(1), { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+    await waitFor(() => expect(mocks.fetchRemoteCardRead).toHaveBeenCalledWith("user-1", "card-2"));
+    await actAsync(async () => {
+      resolveOldVerification({ status: "missing" });
+      await Promise.resolve();
+    });
+
+    expect(result.current.status).toBe("verifying");
+    expect(getStudySession(deckId)?.sessionId).not.toBe(previousSessionId);
+    expect(getStudySession(deckId)?.cardOrderIds).toEqual(["card-2"]);
   });
 
   it("reports persisted control visibility and playback availability", () => {

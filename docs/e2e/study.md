@@ -24,6 +24,9 @@ Deck の学習画面で、Card の表示、学習結果の保存、session の�
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-16) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#swipe-17) |
 | SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](#swipe-24) |
+| SWIPE-25 | read | [remote target Card の欠損を確認して unavailable と表示できる](#swipe-25) |
+| SWIPE-26 | read | [remote target Card の確認失敗時に session を維持できる](#swipe-26) |
+| SWIPE-27 | read | [local target Card の欠損を unavailable と表示できる](#swipe-27) |
 
 <a id="swipe-02"></a>
 
@@ -395,4 +398,70 @@ Then:
 - 非表示の操作ボタンは現在の設定と一致する説明で表示される。
 - dialog 内のキー入力で Card、学習結果、session の位置が変更されない。
 - focus が dialog 内に維持され、閉じた後は Help trigger へ戻る。
+- browser error が発生しない。
+
+<a id="swipe-25"></a>
+
+### SWIPE-25 remote target Card の欠損を確認して unavailable と表示できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-session-remote-absent`](./fixture/study-session-remote-absent.yaml)
+- 認証済みユーザーが所有する remote Deck に、物理 document が存在しない Card を参照する session が存在する。
+
+When:
+
+- 対象の学習画面を開く。
+
+Then:
+
+- target Card が server で missing と確認された後、現在の Card が利用できないことが表示される。
+- Deck 一覧へ自動 redirect されない。
+- recovery UI が追加されるまで active session は維持される。
+- browser error が発生しない。
+
+<a id="swipe-26"></a>
+
+### SWIPE-26 remote target Card の確認失敗時に session を維持できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-session-remote-absent`](./fixture/study-session-remote-absent.yaml)
+- 認証済みユーザーが所有する remote Deck に、target Card の server verification が permission error になる session が存在する。
+
+When:
+
+- 対象の学習画面を開く。
+
+Then:
+
+- target Card を確認できなかったことが表示される。
+- missing または unavailable として扱われず、Deck 一覧へ自動 redirect されない。
+- active session と現在位置が維持される。
+- browser error が発生しない。
+
+<a id="swipe-27"></a>
+
+### SWIPE-27 local target Card の欠損を unavailable と表示できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-session-local-absent`](./fixture/study-session-local-absent.yaml)
+- browser storage の local-only Deck に、永続 Card が存在しない target を参照する session が存在する。
+
+When:
+
+- 対象の学習画面を開く。
+
+Then:
+
+- local Card hydration 完了後、現在の Card が利用できないことが表示される。
+- remote verification を待たず、Deck 一覧へ自動 redirect されない。
+- recovery UI が追加されるまで active session は維持される。
 - browser error が発生しない。

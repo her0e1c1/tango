@@ -53,6 +53,25 @@ describe("StudyProgress mutations", () => {
     expect(mocks.editLocalCardStudyProgress).not.toHaveBeenCalled();
   });
 
+  it("writes progress for a verified remote Card before the Card store catches up", async () => {
+    await editStudyProgress("user", { cardId: "remote", score: 2 }, { persistence: "remote", cardId: "remote" });
+
+    expect(mocks.findCardById).not.toHaveBeenCalled();
+    expect(mocks.editRemoteStudyProgress).toHaveBeenCalledExactlyOnceWith("user", {
+      cardId: "remote",
+      score: 2,
+    });
+    expect(mocks.editLocalCardStudyProgress).not.toHaveBeenCalled();
+  });
+
+  it("rejects a verified remote identity for another Card", async () => {
+    await expect(
+      editStudyProgress("user", { cardId: "remote", score: 2 }, { persistence: "remote", cardId: "other-card" })
+    ).rejects.toThrow("Verified Card identity does not match progress");
+
+    expect(mocks.editRemoteStudyProgress).not.toHaveBeenCalled();
+  });
+
   it("rejects progress for an unknown Card", async () => {
     await expect(editStudyProgress("user", { cardId: "missing", score: 2 })).rejects.toThrow(
       'Card "missing" was not found'

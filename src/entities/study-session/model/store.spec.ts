@@ -11,6 +11,7 @@ import {
   getStudySession,
   moveStudySession,
   removeStudySession,
+  removeStudySessionIfCurrent,
   setStudySessionIndex,
   startStudy,
   studySessionStore,
@@ -179,6 +180,21 @@ describe("study store", () => {
     expect(store.getState().sessionsByDeckId).toEqual({
       "deck-2": expect.objectContaining({ deckId: "deck-2" }),
     });
+  });
+
+  it("removes only the session identity and position that were verified", () => {
+    startSession("deck-1", ["card-1", "card-2"]);
+    const verified = getStudySession("deck-1");
+    if (verified == null) throw new Error("Expected an active study session");
+
+    setStudySessionIndex("deck-1", 1);
+    expect(removeStudySessionIfCurrent(verified)).toBe(false);
+    expect(getStudySession("deck-1")?.currentIndex).toBe(1);
+
+    const current = getStudySession("deck-1");
+    if (current == null) throw new Error("Expected an active study session");
+    expect(removeStudySessionIfCurrent(current)).toBe(true);
+    expect(getStudySession("deck-1")).toBeUndefined();
   });
 
   it("clears both memory and persisted storage", () => {

@@ -4,7 +4,7 @@
  * "should create a deck", "should update a deck".
  */
 
-import { it, describe, beforeEach, beforeAll, afterAll } from "vitest";
+import { it, describe, beforeEach, beforeAll, afterAll, expect } from "vitest";
 import * as fs from "node:fs";
 import {
   assertFails,
@@ -85,6 +85,11 @@ describe("firestore/rule", () => {
         await assertSucceeds(getDoc(doc(db, "card", id)));
       });
 
+      it("should confirm that a card is missing", async () => {
+        const snapshot = await assertSucceeds(getDoc(doc(db, "card", uuid())));
+        expect(snapshot.exists()).toBe(false);
+      });
+
       it("should create a card", async () => {
         const [deckId, id] = [uuid(), uuid()];
         await createData("deck", deckId, { uid: "uid" });
@@ -149,6 +154,11 @@ describe("firestore/rule", () => {
         const id = uuid();
         await createData("card", id, { uid: "uid" });
         await assertFails(getDoc(doc(db, "card", id)));
+      });
+
+      it("should let an authenticated non-owner confirm that a card is missing", async () => {
+        const snapshot = await assertSucceeds(getDoc(doc(db, "card", uuid())));
+        expect(snapshot.exists()).toBe(false);
       });
 
       it("should read a public card", async () => {
@@ -220,6 +230,10 @@ describe("firestore/rule", () => {
         const id = uuid();
         await createData("card", id, { uid: "uid" });
         await assertFails(getDoc(doc(db, "card", id)));
+      });
+
+      it("should not confirm missing cards without authentication", async () => {
+        await assertFails(getDoc(doc(db, "card", uuid())));
       });
 
       it("should read a public card", async () => {

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { useCards } from "@/entities/card";
+import { useCards, useLocalCardsHydrated } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import {
   toggleShowCardDetails,
@@ -17,9 +17,10 @@ import { useSwipe } from "./useSwipe";
 
 export const useStudy = (deckId: string) => {
   const cards = useCards();
+  const localCardsHydrated = useLocalCardsHydrated();
   const deck = useDeck(deckId);
   const preferences = usePreferences();
-  const sessionState = useStudySessionState(deckId, cards);
+  const sessionState = useStudySessionState(deck, cards, localCardsHydrated);
   const [showBackText, setShowBackText] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
   const hideBackText = () => setShowBackText(false);
@@ -30,7 +31,17 @@ export const useStudy = (deckId: string) => {
     paused: helpOpen,
     onAdvance: hideBackText,
   });
-  const swipe = useSwipe(deckId, cards, hideBackText);
+  const swipeCards =
+    sessionState.status === "studying" && !cards.some(({ id }) => id === sessionState.card.id)
+      ? [...cards, sessionState.card]
+      : cards;
+  const verifiedRemoteCardId =
+    sessionState.status === "studying" &&
+    "uid" in sessionState.card &&
+    !cards.some(({ id }) => id === sessionState.card.id)
+      ? sessionState.card.id
+      : undefined;
+  const swipe = useSwipe(deckId, swipeCards, hideBackText, verifiedRemoteCardId);
 
   const updateIndex = (currentIndex: number): void => {
     if (!setStudySessionIndex(deckId, currentIndex)) return;

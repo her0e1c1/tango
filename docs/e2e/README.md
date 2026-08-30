@@ -141,6 +141,9 @@
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study.md#swipe-16) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](./study.md#swipe-17) |
 | SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](./study.md#swipe-24) |
+| SWIPE-25 | read | [remote target Card の欠損を確認して unavailable と表示できる](./study.md#swipe-25) |
+| SWIPE-26 | read | [remote target Card の確認失敗時に session を維持できる](./study.md#swipe-26) |
+| SWIPE-27 | read | [local target Card の欠損を unavailable と表示できる](./study.md#swipe-27) |
 
 ### Study Back Text
 

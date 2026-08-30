@@ -404,7 +404,7 @@ describe("StudySessionPage", () => {
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
 
-  it("shows loading feedback while active session cards are unavailable", async () => {
+  it("shows unavailable feedback without redirecting when a local target is authoritatively missing", async () => {
     await deleteCard("", firstCard);
     await deleteCard("", secondCard);
     clearStudySessions();
@@ -412,7 +412,9 @@ describe("StudySessionPage", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "The current study card is unavailable." })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
+    expect(getStudySession(deckId)).toBeDefined();
   });
 
   it("returns to the deck list when no active session exists", async () => {

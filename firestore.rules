@@ -29,7 +29,10 @@ service cloud.firestore {
       function belongsToDeck() {
         return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
       }
-      allow read: if isOwner() || isPublic();
+      // Authenticated single-document verification must distinguish an absent target from a forbidden existing Card.
+      allow get: if (request.auth != null && !exists(/databases/$(database)/documents/card/$(cardId))) ||
+                    isOwner() || isPublic();
+      allow list: if isOwner() || isPublic();
       allow create: if isValid() && belongsToDeck();
       allow update: if isValidOwner() && belongsToDeck();
       allow delete: if isOwner();
