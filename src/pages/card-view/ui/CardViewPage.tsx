@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { useParams } from "react-router-dom";
 
-import { CardView } from "@/features/card-view";
+import { CardView } from "@/entities/card";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 

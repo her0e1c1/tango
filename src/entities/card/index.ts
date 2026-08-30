@@ -20,3 +20,6 @@ export {
   getCardContentValidationErrors,
   mustFindCardById,
 } from "./model/rules";
+export { BackText } from "./ui/BackText";
+export { CardView } from "./ui/CardView";
+export { FrontText } from "./ui/FrontText";

@@ -5,7 +5,7 @@ import { BackText } from "./BackText";
 import * as fixture from "@/storybook/fixture";
 
 const meta = {
-  title: "Features/Card View/BackText",
+  title: "Entities/Card/BackText",
   component: BackText,
   tags: ["autodocs"],
   parameters: {

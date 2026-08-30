@@ -5,7 +5,7 @@ import * as fixture from "@/storybook/fixture";
 import { CardOverlay } from "./CardOverlay";
 
 const meta = {
-  title: "Features/Card View/CardOverlay",
+  title: "Pages/Study Session/CardOverlay",
   component: CardOverlay,
   tags: ["autodocs"],
   parameters: {

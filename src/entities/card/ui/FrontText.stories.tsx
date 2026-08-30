@@ -4,7 +4,7 @@ import { FrontText } from "./FrontText";
 import * as fixture from "@/storybook/fixture";
 
 const meta = {
-  title: "Features/Card View/FrontText",
+  title: "Entities/Card/FrontText",
   component: FrontText,
   tags: ["autodocs"],
   args: {},

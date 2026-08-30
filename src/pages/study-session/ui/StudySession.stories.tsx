@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn } from "storybook/test";
 
-import { CardOverlay, CardView, FrontText } from "@/features/card-view";
+import { CardView, FrontText } from "@/entities/card";
 import * as fixture from "@/storybook/fixture";
 import { Layout } from "@/shared/ui/layout";
 
+import { CardOverlay } from "./CardOverlay";
 import { StudySession } from "./StudySession";
 
 const meta = {

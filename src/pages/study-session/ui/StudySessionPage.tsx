@@ -2,13 +2,14 @@ import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey, useLatest } from "react-use";
 
+import { CardView, FrontText } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
-import { CardOverlay, CardView, FrontText } from "@/features/card-view";
 import { routes } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { type StudyState, useStudy } from "../model/useStudy";
+import { CardOverlay } from "./CardOverlay";
 import { StudySession } from "./StudySession";
 
 type StudyShortcutAction =

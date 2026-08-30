@@ -2,8 +2,8 @@ import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
+import { BackText } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
-import { BackText } from "@/features/card-view";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { routes } from "@/shared/router";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
