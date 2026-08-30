@@ -17,7 +17,7 @@ import { replaceRemoteDecks } from "@/entities/deck/model/store";
 import { editRemoteStudyProgress } from "@/entities/study-progress/api/firestore";
 import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import * as Uuid from "uuid";
-import { createCard, createDeck } from "@/test/factories";
+import { createCard, createDeck, createRemoteDeckInput } from "@/test/factories";
 
 const uuid = Uuid.v4;
 
@@ -45,7 +45,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
   // card needs to belong to its deck
   const initDeck = async () => {
     const id = uuid();
-    await createDeckCommand("uid", createDeck({ uid: "uid", id }));
+    await createDeckCommand("uid", createRemoteDeckInput({ id }));
     return id;
   };
 

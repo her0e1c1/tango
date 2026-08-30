@@ -45,6 +45,29 @@ describe("Deck mutations", () => {
     deckStore.setState({ remoteDecks: [deck] });
 
     await expect(deleteDeck("other-user", deck.id)).rejects.toThrow("owner does not match");
+    expect(mocks.deleteRemoteDeck).not.toHaveBeenCalled();
+  });
+
+  it("rejects remote edits before writing when the authenticated user does not own the Deck", async () => {
+    const deck = createDeckFixture({ id: "remote", uid: "owner" });
+    deckStore.setState({ remoteDecks: [deck] });
+
+    await expect(editDeck("other-user", { id: deck.id, name: "Renamed" })).rejects.toThrow("owner does not match");
+    expect(mocks.editRemoteDeck).not.toHaveBeenCalled();
+  });
+
+  it("routes matching-owner edits and deletes to remote persistence", async () => {
+    const deck = createDeckFixture({ id: "remote", uid: "owner" });
+    deckStore.setState({ remoteDecks: [deck] });
+
+    await editDeck("owner", { id: deck.id, name: "Renamed" });
+    await deleteDeck("owner", deck.id);
+
+    expect(mocks.editRemoteDeck).toHaveBeenCalledExactlyOnceWith("owner", {
+      id: deck.id,
+      name: "Renamed",
+    });
+    expect(mocks.deleteRemoteDeck).toHaveBeenCalledExactlyOnceWith("owner", deck.id);
   });
 
   it("moves a local Deck and its Cards to remote persistence when local mode is disabled", async () => {
@@ -55,9 +78,10 @@ describe("Deck mutations", () => {
 
     expect(mocks.createRemoteDeck).toHaveBeenCalledExactlyOnceWith(
       "uid",
-      expect.objectContaining({ id: deck.id, uid: "uid", name: "Synced Deck", localMode: false })
+      expect.objectContaining({ id: deck.id, name: "Synced Deck", localMode: false })
     );
     const remoteInput = mocks.createRemoteDeck.mock.calls[0]?.[1];
+    expect(remoteInput).not.toHaveProperty("uid");
     expect(remoteInput).not.toHaveProperty("createdAt");
     expect(remoteInput).not.toHaveProperty("updatedAt");
     expect(remoteInput).not.toHaveProperty("url");

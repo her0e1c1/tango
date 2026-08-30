@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { DeckCreateInput, DeckId, LocalDeckCreateInput } from "../model/types";
+import type { Deck, DeckId, LocalDeckCreateInput, RemoteDeckCreateInput } from "../model/types";
 
 import { deleteLocalCardsByDeckId, moveLocalCardsToRemote } from "@/entities/card/@x/deck";
 import { removeStudySession } from "@/entities/study-session/@x/deck";
@@ -18,6 +18,14 @@ const requireDeck = (id: DeckId) => {
   return deck;
 };
 
+// Remote writes must be authorized from current Entity state before reaching Firestore.
+const requireOwnedRemoteDeck = (uid: string, deck: Deck): Extract<Deck, { localMode: false }> => {
+  const userId = authenticatedUidSchema.parse(uid);
+  if (deck.localMode) throw new Error("A local Deck cannot be used for a remote write");
+  if (deck.uid !== userId) throw new Error("Deck owner does not match the authenticated user");
+  return deck;
+};
+
 const moveLocalDeckToRemote = async (
   uid: string,
   currentDeck: Extract<ReturnType<typeof requireDeck>, { localMode: true }>,
@@ -28,9 +36,8 @@ const moveLocalDeckToRemote = async (
   const { createdAt: _createdAt, updatedAt: _updatedAt, localMode: _localMode, ...remoteValues } = localDeck;
   const remoteDeck = {
     ...remoteValues,
-    uid: userId,
     localMode: false as const,
-  } satisfies DeckCreateInput;
+  } satisfies RemoteDeckCreateInput;
 
   // Firestore rules require the parent Deck to exist before its Cards can be created.
   await createRemoteDeck(userId, remoteDeck);
@@ -39,7 +46,7 @@ const moveLocalDeckToRemote = async (
 };
 
 // Routes a Deck create through the payload's persistence mode.
-export const createDeck = async (uid: string, deck: DeckCreateInput | LocalDeckCreateInput): Promise<void> => {
+export const createDeck = async (uid: string, deck: RemoteDeckCreateInput | LocalDeckCreateInput): Promise<void> => {
   if (deck.localMode) {
     createLocalDeck(deck);
     return;
@@ -60,7 +67,8 @@ export const editDeck = async (uid: string, deck: z.input<typeof deckEditSchema>
     return;
   }
   if (edit.localMode === true) throw new Error("A remote Deck cannot be moved to local storage");
-  await editRemoteDeck(uid, edit);
+  const ownedDeck = requireOwnedRemoteDeck(uid, currentDeck);
+  await editRemoteDeck(ownedDeck.uid, edit);
 };
 
 // Deletes a Deck and its owned local or remote resources before clearing its study session.
@@ -70,9 +78,8 @@ export const deleteDeck = async (uid: string, deckId: DeckId): Promise<void> => 
     deleteLocalCardsByDeckId(deckId);
     deleteLocalDeck(deckId);
   } else {
-    const userId = authenticatedUidSchema.parse(uid);
-    if (currentDeck.uid !== userId) throw new Error("Deck owner does not match the authenticated user");
-    await deleteRemoteDeck(userId, deckId);
+    const ownedDeck = requireOwnedRemoteDeck(uid, currentDeck);
+    await deleteRemoteDeck(ownedDeck.uid, deckId);
   }
 
   // A deleted Deck must not leave a resumable session behind in persisted client state.

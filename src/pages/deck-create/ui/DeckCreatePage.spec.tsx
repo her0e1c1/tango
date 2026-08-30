@@ -68,7 +68,6 @@ describe("DeckCreatePage", () => {
 
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: "new-deck",
-      uid: "user-id",
       localMode: false,
       name: "New deck",
       category: "",
@@ -111,7 +110,6 @@ describe("DeckCreatePage", () => {
     expect(mocks.generateDeckId).toHaveBeenCalledOnce();
     expect(mocks.createDeck).toHaveBeenNthCalledWith(1, "user-id", {
       id: "new-deck",
-      uid: "user-id",
       localMode: false,
       name: "Retry deck",
       category: "",
@@ -119,7 +117,6 @@ describe("DeckCreatePage", () => {
     });
     expect(mocks.createDeck).toHaveBeenNthCalledWith(2, "user-id", {
       id: "new-deck",
-      uid: "user-id",
       localMode: false,
       name: "Retry deck",
       category: "",

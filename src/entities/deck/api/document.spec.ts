@@ -39,11 +39,11 @@ describe("Deck Firestore document mapping", () => {
   });
 
   it("maps a remote create command to the Firestore boundary", () => {
-    const deck = createDeck({ id: "deck", uid: "owner" });
+    const { uid: _uid, createdAt: _createdAt, updatedAt: _updatedAt, ...deck } = createDeck({ id: "deck" });
 
-    expect(toDeckDocument(deck, 10)).toEqual({
+    expect(toDeckDocument("actor", deck, 10)).toEqual({
       id: "deck",
-      uid: "owner",
+      uid: "actor",
       name: "Deck",
       isPublic: false,
       scoreMax: null,
