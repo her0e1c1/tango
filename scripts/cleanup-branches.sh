@@ -30,82 +30,22 @@ if ! repository=$(gh repo view --json nameWithOwner --jq .nameWithOwner); then
   exit 1
 fi
 
-pr_api_file=$(mktemp /tmp/cleanup-branches.pr-api.XXXXXX)
-pr_list_file=$(mktemp /tmp/cleanup-branches.prs.XXXXXX)
-worktree_list_file=""
-branch_list_file=""
-
-cleanup_temp_files() {
-  [[ -z "$pr_api_file" ]] || rm -f -- "$pr_api_file"
-  [[ -z "$pr_list_file" ]] || rm -f -- "$pr_list_file"
-  [[ -z "$worktree_list_file" ]] || rm -f -- "$worktree_list_file"
-  [[ -z "$branch_list_file" ]] || rm -f -- "$branch_list_file"
+temp_dir=$(mktemp -d /tmp/cleanup-branches.XXXXXX)
+remove_temp_dir() {
+  rm -rf -- "$temp_dir"
 }
+trap remove_temp_dir EXIT
 
-trap cleanup_temp_files EXIT
+pr_list_file=$temp_dir/pulls.tsv
+worktree_list_file=$temp_dir/worktrees
+branch_list_file=$temp_dir/branches
 
+# Keep the repository field non-empty so Bash preserves every TSV column.
 if ! gh api --paginate "repos/$repository/pulls?state=all&per_page=100" \
-  --jq '.[] | [(.head.repo.full_name // ""), .head.ref, .head.sha, .state] | @tsv' >"$pr_api_file"; then
+  --jq '.[] | [(.head.repo.full_name // "-"), .head.ref, .head.sha, .state] | @tsv' >"$pr_list_file"; then
   printf 'Failed to list pull requests\n' >&2
   exit 1
 fi
-
-while IFS=$'\t' read -r head_repository head_branch head_oid state; do
-  if [[ "$head_repository" == "$repository" ]]; then
-    printf '%s\t%s\t%s\n' "$head_branch" "$head_oid" "$state"
-  fi
-done <"$pr_api_file" >"$pr_list_file"
-
-rm -f -- "$pr_api_file"
-pr_api_file=""
-
-branch_has_open_pr() {
-  local branch=$1
-  local pr_branch
-  local pr_oid
-  local pr_state
-
-  while IFS=$'\t' read -r pr_branch pr_oid pr_state; do
-    if [[ "$pr_branch" == "$branch" && "$pr_state" == open ]]; then
-      return 0
-    fi
-  done <"$pr_list_file"
-
-  return 1
-}
-
-tip_matches_closed_pr() {
-  local branch=$1
-  local tip=$2
-  local pr_branch
-  local pr_oid
-  local pr_state
-
-  while IFS=$'\t' read -r pr_branch pr_oid pr_state; do
-    if [[ "$pr_branch" == "$branch" && "$pr_oid" == "$tip" && "$pr_state" != open ]]; then
-      return 0
-    fi
-  done <"$pr_list_file"
-
-  return 1
-}
-
-branch_remote_exists() {
-  local branch=$1
-  local status
-
-  if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-    return 0
-  else
-    status=$?
-  fi
-
-  if ((status == 1)); then
-    return 1
-  fi
-
-  return 2
-}
 
 tip_is_on_remote() {
   local tip=$1
@@ -118,66 +58,66 @@ tip_is_on_remote() {
   [[ -n "$remote_refs" ]]
 }
 
-worktree_cleanup_reason() {
+find_cleanup_reason() {
   local branch=$1
   local tip=$2
-  local remote_status
+  local status
 
-  if [[ -n "$branch" ]]; then
-    if git merge-base --is-ancestor "$tip" origin/main; then
-      printf 'merged'
-      return 0
-    fi
-
-    if branch_remote_exists "$branch"; then
+  if [[ -z "$branch" ]]; then
+    if tip_is_on_remote "$tip"; then
       return 1
     else
-      remote_status=$?
-      if ((remote_status == 2)); then
+      status=$?
+      if ((status != 1)); then
         return 2
       fi
     fi
 
-    if ! branch_has_open_pr "$branch" && tip_matches_closed_pr "$branch" "$tip"; then
-      printf 'closed PR without remote branch'
-      return 0
-    fi
-
-    return 1
+    printf 'detached tip unreachable from remote branches'
+    return 0
   fi
-
-  if tip_is_on_remote "$tip"; then
-    return 1
-  else
-    remote_status=$?
-    if ((remote_status == 2)); then
-      return 2
-    fi
-  fi
-
-  printf 'detached tip unreachable from remote branches'
-}
-
-branch_cleanup_reason() {
-  local branch=$1
-  local tip=$2
-  local remote_status
 
   if git merge-base --is-ancestor "$tip" origin/main; then
     printf 'merged'
     return 0
-  fi
-
-  if branch_remote_exists "$branch"; then
-    return 1
   else
-    remote_status=$?
-    if ((remote_status == 2)); then
+    status=$?
+    if ((status != 1)); then
       return 2
     fi
   fi
 
-  if ! branch_has_open_pr "$branch" && tip_matches_closed_pr "$branch" "$tip"; then
+  if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+    return 1
+  else
+    status=$?
+    if ((status != 1)); then
+      return 2
+    fi
+  fi
+
+  local head_repository
+  local pr_branch
+  local pr_oid
+  local pr_state
+  local matches_closed_pr=0
+
+  # A reused branch name is safe only when no open PR exists and a closed PR records this exact tip.
+  while IFS=$'\t' read -r head_repository pr_branch pr_oid pr_state; do
+    if [[ "$head_repository" != "$repository" || "$pr_branch" != "$branch" ]]; then
+      continue
+    fi
+
+    if [[ "$pr_state" == open ]]; then
+      return 1
+    fi
+
+    if [[ "$pr_oid" == "$tip" ]]; then
+      matches_closed_pr=1
+    fi
+  done <"$pr_list_file"
+
+  if ((matches_closed_pr)); then
     printf 'closed PR without remote branch'
     return 0
   fi
@@ -192,7 +132,6 @@ main_worktree=""
 record_path=""
 record_branch=""
 record_locked=0
-worktree_list_file=$(mktemp /tmp/cleanup-branches.XXXXXX)
 
 if ! git worktree list --porcelain -z >"$worktree_list_file"; then
   printf 'Failed to list worktrees\n' >&2
@@ -219,9 +158,6 @@ while IFS= read -r -d '' field; do
     record_locked=1
   fi
 done <"$worktree_list_file"
-
-rm -f -- "$worktree_list_file"
-worktree_list_file=""
 
 branch_is_checked_out() {
   local branch=$1
@@ -257,12 +193,12 @@ for ((index = 0; index < ${#worktree_paths[@]}; index++)); do
     continue
   fi
 
-  if cleanup_reason=$(worktree_cleanup_reason "$branch" "$head_before"); then
+  if cleanup_reason=$(find_cleanup_reason "$branch" "$head_before"); then
     :
   else
     reason_status=$?
     if ((reason_status == 2)); then
-      printf 'Skipping worktree whose remote reachability could not be read: %s\n' "$worktree" >&2
+      printf 'Skipping worktree whose cleanup state could not be read: %s\n' "$worktree" >&2
       failed=1
     fi
     continue
@@ -281,7 +217,7 @@ for ((index = 0; index < ${#worktree_paths[@]}; index++)); do
 
   # Re-evaluation prevents a fetch or checkout during cleanup from invalidating the deletion reason.
   if [[ "$(git -C "$worktree" rev-parse HEAD)" != "$head_before" ]] ||
-    ! confirmed_reason=$(worktree_cleanup_reason "$branch" "$head_before"); then
+    ! confirmed_reason=$(find_cleanup_reason "$branch" "$head_before"); then
     printf 'Skipping worktree updated during cleanup: %s\n' "$worktree" >&2
     continue
   fi
@@ -294,8 +230,6 @@ for ((index = 0; index < ${#worktree_paths[@]}; index++)); do
     failed=1
   fi
 done
-
-branch_list_file=$(mktemp /tmp/cleanup-branches.refs.XXXXXX)
 
 if ! git for-each-ref --format='%(refname:short)' refs/heads >"$branch_list_file"; then
   printf 'Failed to list local branches\n' >&2
@@ -319,12 +253,12 @@ while IFS= read -r branch; do
     continue
   fi
 
-  if cleanup_reason=$(branch_cleanup_reason "$branch" "$expected_tip"); then
+  if cleanup_reason=$(find_cleanup_reason "$branch" "$expected_tip"); then
     :
   else
     reason_status=$?
     if ((reason_status == 2)); then
-      printf 'Skipping branch whose remote state could not be read: %s\n' "$branch" >&2
+      printf 'Skipping branch whose cleanup state could not be read: %s\n' "$branch" >&2
       failed=1
     fi
     continue
@@ -340,7 +274,7 @@ while IFS= read -r branch; do
     continue
   fi
   if [[ "$(git rev-parse "refs/heads/$branch")" != "$expected_tip" ]] ||
-    ! confirmed_reason=$(branch_cleanup_reason "$branch" "$expected_tip"); then
+    ! confirmed_reason=$(find_cleanup_reason "$branch" "$expected_tip"); then
     printf 'Skipping branch updated during cleanup: %s\n' "$branch" >&2
     continue
   fi
@@ -353,9 +287,6 @@ while IFS= read -r branch; do
     failed=1
   fi
 done <"$branch_list_file"
-
-rm -f -- "$branch_list_file"
-branch_list_file=""
 
 printf 'Removed %d worktree(s) and %d local branch(es)\n' "$removed_worktrees" "$removed_branches"
 
