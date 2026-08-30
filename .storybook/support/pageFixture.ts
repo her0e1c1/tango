@@ -3,7 +3,6 @@ import type { RemoteCard } from "@/entities/card/testing";
 import type { Deck, DeckId } from "@/entities/deck";
 
 import { createCard, createDeck, createPreferences } from "@/test/factories";
-import { STORYBOOK_DECK_IMPORT_URL } from "@/storybook/handlers";
 import { PAGE_STORY_UID, type PageStoryParameters } from "@/storybook/PageDecorator";
 
 export const PAGE_STORY_DECK_ID: DeckId = "storybook-japanese";
@@ -19,7 +18,7 @@ const pageStoryDecks: Extract<Deck, { localMode: false }>[] = [
     name: "Japanese starter",
     category: "markdown",
     selectedTags: ["greeting"],
-    url: STORYBOOK_DECK_IMPORT_URL,
+    url: "https://example.com/decks/starter.csv",
     createdAt: timestamp - 14 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp,
   }),

@@ -9,13 +9,7 @@ const storybookFirebase = fileURLToPath(new URL("./support/firebase.ts", import.
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.tsx"],
   staticDirs: ["../public"],
-  addons: [
-    "@storybook/addon-a11y",
-    "@storybook/addon-docs",
-    "@storybook/addon-themes",
-    "@storybook/addon-vitest",
-    "msw-storybook-addon",
-  ],
+  addons: ["@storybook/addon-a11y", "@storybook/addon-docs", "@storybook/addon-themes", "@storybook/addon-vitest"],
   framework: "@storybook/react-vite",
   viteFinal: async (viteConfig) =>
     mergeConfig(
