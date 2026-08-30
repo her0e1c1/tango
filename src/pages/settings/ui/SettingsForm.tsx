@@ -101,8 +101,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           </SettingsRow>
           <SettingsRow
             inputId={inputIds.showBackTextSwipeOverlays}
-            label={t("settings.appearance.showBackTextSwipeOverlays.label")}
-            description={t("settings.appearance.showBackTextSwipeOverlays.help")}
+            label="Show back text swipe overlays"
+            description="Display left and right study actions while viewing an answer"
           >
             <Switch
               {...props.form.register("controls.showBackTextSwipeOverlays")}
