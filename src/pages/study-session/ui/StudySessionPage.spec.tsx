@@ -65,7 +65,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage", () => {
+describe("SWIPE-24 SWIPE-25 StudySessionPage", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -286,7 +286,6 @@ describe("StudySessionPage", () => {
     document.documentElement.lang = "ja-JP";
     renderPage();
 
-    openStudyActions();
     fireEvent.click(screen.getByRole("button", { name: "学習ヘルプを開く" }));
 
     expect(screen.getByRole("dialog", { name: "学習画面の操作" })).toHaveTextContent(
@@ -302,7 +301,6 @@ describe("StudySessionPage", () => {
 
     try {
       renderPage();
-      openStudyActions();
       fireEvent.click(screen.getByRole("button", { name: "Open study help" }));
 
       act(() => vi.advanceTimersByTime(1000));
