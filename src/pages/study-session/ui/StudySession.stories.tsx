@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "storybook/test";
 
 import { CardView, FrontText } from "@/entities/card";
+import { DifficultyIndicator } from "@/entities/study-progress";
 import * as fixture from "@/storybook/fixture";
 import { Layout } from "@/shared/ui/layout";
 
@@ -46,7 +47,7 @@ const meta = {
     frontTextSlot: <FrontText text={fixture.card.default.frontText} />,
     cardOverlaySlot: (
       <CardOverlay
-        score={fixture.card.default.score}
+        difficultySlot={<DifficultyIndicator difficulty={fixture.card.default.difficulty} />}
         numberOfSeen={fixture.card.default.numberOfSeen}
         lastSeenAt={fixture.timestamp}
       />

@@ -23,8 +23,8 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   // Session selection must see optimistic filter state before its persistence request completes.
   const state = useStudySessionStartState({
     ...deck,
-    scoreMax: filter.scoreMax,
-    scoreMin: filter.scoreMin,
+    difficultyMax: filter.difficultyMax,
+    difficultyMin: filter.difficultyMin,
     selectedTags: filter.selectedTags,
     tagAndFilter: filter.tagAndFilter,
   });

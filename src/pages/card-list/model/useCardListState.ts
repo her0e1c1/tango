@@ -4,7 +4,7 @@ import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { editStudyProgress } from "@/entities/study-progress";
+import { calculateDifficulty, editStudyProgress, type StudyRating } from "@/entities/study-progress";
 import { selectStudyCards } from "@/entities/study-session";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
@@ -12,7 +12,7 @@ import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
 interface CardListItem {
   id: CardId;
   frontText: string;
-  score: number;
+  difficulty: number;
   numberOfSeen: number;
   tags: string[];
 }
@@ -42,7 +42,7 @@ export interface CardListState {
 const buildCardListItem = (card: Card): CardListItem => ({
   id: card.id,
   frontText: card.frontText,
-  score: card.score,
+  difficulty: card.difficulty,
   numberOfSeen: card.numberOfSeen,
   tags: card.tags,
 });
@@ -54,7 +54,7 @@ const dismissOwnedToast = (toastId: React.RefObject<ToastId | undefined>) => {
   toastId.current = undefined;
 };
 
-interface ScoreErrorToast {
+interface DifficultyErrorToast {
   cardId: CardId;
   toastId: ToastId;
 }
@@ -69,48 +69,51 @@ export const useCardListState = (deck: Deck): CardListState => {
   const [deletionPending, setDeletionPending] = React.useState(false);
   const deletionPendingRef = React.useRef(false);
   const deletionErrorToastId = React.useRef<ToastId | undefined>(undefined);
-  const scoreErrorToast = React.useRef<ScoreErrorToast | undefined>(undefined);
-  const scoreMutationSequences = React.useRef(new Map<CardId, number>());
+  const difficultyErrorToast = React.useRef<DifficultyErrorToast | undefined>(undefined);
+  const difficultyMutationSequences = React.useRef(new Map<CardId, number>());
 
   const cards = selectStudyCards(deckCards, deck, preferences.study.useCardInterval);
 
   const dismissDeletionErrorToast = () => dismissOwnedToast(deletionErrorToastId);
-  const dismissScoreErrorToast = (cardId?: CardId) => {
-    const ownedToast = scoreErrorToast.current;
+  const dismissDifficultyErrorToast = (cardId?: CardId) => {
+    const ownedToast = difficultyErrorToast.current;
     if (ownedToast === undefined || (cardId !== undefined && ownedToast.cardId !== cardId)) return;
     dismissToast(ownedToast.toastId);
-    scoreErrorToast.current = undefined;
+    difficultyErrorToast.current = undefined;
   };
 
-  const nextScoreMutationSequence = (cardId: CardId) => {
-    const sequence = (scoreMutationSequences.current.get(cardId) ?? 0) + 1;
-    scoreMutationSequences.current.set(cardId, sequence);
+  const nextDifficultyMutationSequence = (cardId: CardId) => {
+    const sequence = (difficultyMutationSequences.current.get(cardId) ?? 0) + 1;
+    difficultyMutationSequences.current.set(cardId, sequence);
     return sequence;
   };
 
-  const isLatestScoreMutation = (cardId: CardId, sequence: number) =>
-    scoreMutationSequences.current.get(cardId) === sequence;
+  const isLatestDifficultyMutation = (cardId: CardId, sequence: number) =>
+    difficultyMutationSequences.current.get(cardId) === sequence;
 
   React.useEffect(
     () => () => {
       dismissOwnedToast(deletionErrorToastId);
-      dismissScoreErrorToast();
+      dismissDifficultyErrorToast();
     },
     []
   );
 
-  const changeScore = (id: CardId, offset: number) => {
+  const changeDifficulty = (id: CardId, rating: StudyRating) => {
     const card = mustFindCardById(cards, id);
     // Writes for one Card supersede only that Card so another Card's late failure remains actionable.
-    const sequence = nextScoreMutationSequence(card.id);
-    dismissScoreErrorToast(card.id);
-    void editStudyProgress(uid, { cardId: card.id, score: card.score + offset })
+    const sequence = nextDifficultyMutationSequence(card.id);
+    dismissDifficultyErrorToast(card.id);
+    void editStudyProgress(uid, {
+      cardId: card.id,
+      difficulty: calculateDifficulty(card.difficulty, rating),
+    })
       .then(() => {
-        if (isMounted() && isLatestScoreMutation(card.id, sequence)) dismissScoreErrorToast(card.id);
+        if (isMounted() && isLatestDifficultyMutation(card.id, sequence)) dismissDifficultyErrorToast(card.id);
       })
       .catch(() => {
-        if (isMounted() && isLatestScoreMutation(card.id, sequence)) {
-          scoreErrorToast.current = {
+        if (isMounted() && isLatestDifficultyMutation(card.id, sequence)) {
+          difficultyErrorToast.current = {
             cardId: card.id,
             toastId: showToast({ message: "Unable to save changes. Try again.", tone: "error" }),
           };
@@ -136,9 +139,9 @@ export const useCardListState = (deck: Deck): CardListState => {
     try {
       await deleteCard(uid, card);
       if (!isMounted()) return;
-      // Only a committed deletion supersedes pending score writes for that Card; a failed deletion leaves them actionable.
-      nextScoreMutationSequence(card.id);
-      dismissScoreErrorToast(card.id);
+      // Only a committed deletion supersedes pending difficulty writes for that Card; a failed deletion leaves them actionable.
+      nextDifficultyMutationSequence(card.id);
+      dismissDifficultyErrorToast(card.id);
       setDeletionTarget(undefined);
       showToast({ message: `Deleted card “${card.frontText}”.`, tone: "success" });
     } catch {
@@ -178,8 +181,8 @@ export const useCardListState = (deck: Deck): CardListState => {
           },
     onShowCard: (id: CardId) => setShownCard(mustFindCardById(cards, id)),
     onCloseCard: () => setShownCard(undefined),
-    onSwipedLeft: (id: CardId) => changeScore(id, -1),
-    onSwipedRight: (id: CardId) => changeScore(id, 1),
+    onSwipedLeft: (id: CardId) => changeDifficulty(id, "not-mastered"),
+    onSwipedRight: (id: CardId) => changeDifficulty(id, "mastered"),
     onRequestDeletion: requestDeletion,
     onCancelDeletion: () => {
       // Closing the dialog only dismisses its UI; an already-issued deletion owns its eventual global Toast.

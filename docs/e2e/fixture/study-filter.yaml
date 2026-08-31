@@ -4,8 +4,8 @@ remote:
     - id: deck-1
       uid: user-1
       name: Filtered Study Deck
-      scoreMax: 2
-      scoreMin: 0
+      difficultyMax: 5
+      difficultyMin: 3
       selectedTags: [target]
       category: English
   cards:
@@ -23,7 +23,7 @@ remote:
       backText: match answer 2
       tags: [target]
       uniqueKey: match-2
-      score: 1
+      difficulty: 4
     - id: card-3
       deckId: deck-1
       uid: user-1
@@ -31,15 +31,15 @@ remote:
       backText: match answer 3
       tags: [target]
       uniqueKey: match-3
-      score: 2
+      difficulty: 3
     - id: card-4
       deckId: deck-1
       uid: user-1
-      frontText: score-miss
-      backText: score miss answer
+      frontText: difficulty-miss
+      backText: difficulty miss answer
       tags: [target]
-      uniqueKey: score-miss
-      score: 3
+      uniqueKey: difficulty-miss
+      difficulty: 2
     - id: card-5
       deckId: deck-1
       uid: user-1
@@ -47,7 +47,7 @@ remote:
       backText: tag miss answer
       tags: [other]
       uniqueKey: tag-miss
-      score: 1
+      difficulty: 4
 browser:
   preferences:
     study:

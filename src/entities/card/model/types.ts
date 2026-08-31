@@ -16,7 +16,7 @@ import type {
 /** Firestore-backed Card data whose ownership and deletion metadata must remain at the Entity boundary. */
 export type RemoteCard = z.infer<typeof cardSchema>;
 /** Learning-progress fields retained only by the legacy combined Card model. */
-type StudyProgressField = "score" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval";
+type StudyProgressField = "difficulty" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval";
 /** Firestore Card read model without StudyProgress-owned fields. */
 export type RemoteCardRead = Omit<RemoteCard, StudyProgressField>;
 /** Card-owned fields read from the shared physical Firestore document. */

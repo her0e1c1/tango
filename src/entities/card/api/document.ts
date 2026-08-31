@@ -1,9 +1,10 @@
 import { z } from "zod";
 
+import { difficultySchema, type StudyProgressDocumentFields } from "@/entities/study-progress/@x/card";
 import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/api";
 
 // Reads accept compatible legacy values; command schemas enforce the stricter invariants required for new writes.
-const cardDocumentSchema = z.object({
+const sharedCardDocumentSchema = z.object({
   // Older documents may duplicate the Firestore document id in their stored fields.
   id: z.string().optional(),
   frontText: z.string(),
@@ -15,7 +16,6 @@ const cardDocumentSchema = z.object({
   createdAt: z.number(),
   updatedAt: z.number(),
   deletedAt: z.number().nullable(),
-  score: z.number(),
   numberOfSeen: z.number(),
   lastSeenAt: z.number().optional(),
   nextSeeingAt: firestoreTimestampDateSchema.optional(),
@@ -25,8 +25,24 @@ const cardDocumentSchema = z.object({
   endLine: z.number().optional(),
 });
 
+type SharedCardDocument = z.infer<typeof sharedCardDocumentSchema>;
+
 /** Validated field shape stored in one physical Card Firestore document. */
-export type CardDocument = z.infer<typeof cardDocumentSchema>;
+export type CardDocument = SharedCardDocument & StudyProgressDocumentFields;
+
+const cardDocumentSchema = sharedCardDocumentSchema
+  .extend({
+    difficulty: difficultySchema.optional(),
+    score: z.number().optional(),
+  })
+  .superRefine((document, context) => {
+    // A missing difficulty is compatible only when a validated legacy score can supply it.
+    if (document.difficulty === undefined && document.score === undefined) {
+      context.addIssue({ code: "custom", message: "Difficulty or legacy score is required", path: ["difficulty"] });
+    }
+  })
+  // The refinement above establishes the discriminated StudyProgress persistence contract.
+  .transform((document): CardDocument => document as CardDocument);
 
 // Parses one Firestore payload and reports Card-specific validation context.
 export const parseCardDocument = (id: string, value: unknown): CardDocument =>

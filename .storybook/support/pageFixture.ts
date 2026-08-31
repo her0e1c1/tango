@@ -41,7 +41,7 @@ const pageStoryCards: RemoteCard[] = [
     backText: "こんにちは",
     tags: ["greeting"],
     uniqueKey: "storybook-hello",
-    score: 3,
+    difficulty: 3,
     numberOfSeen: 8,
     createdAt: timestamp - 10 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp,
@@ -54,7 +54,7 @@ const pageStoryCards: RemoteCard[] = [
     backText: "おはようございます",
     tags: ["greeting", "polite"],
     uniqueKey: "storybook-good-morning",
-    score: 1,
+    difficulty: 1,
     numberOfSeen: 4,
     createdAt: timestamp - 9 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp - 60 * 60 * 1000,
@@ -67,7 +67,7 @@ const pageStoryCards: RemoteCard[] = [
     backText: "ありがとうございます",
     tags: ["polite"],
     uniqueKey: "storybook-thank-you",
-    score: 0,
+    difficulty: 5,
     numberOfSeen: 2,
     createdAt: timestamp - 8 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp - 2 * 60 * 60 * 1000,
@@ -90,7 +90,7 @@ export const pageStoryState = {
   cards: pageStoryCards,
   preferences: createPreferences({
     maxNumberOfCardsToLearn: 20,
-    showScoreSlider: true,
+    showDifficultySlider: true,
   }),
   sessionsByDeckId: {
     [PAGE_STORY_DECK_ID]: {

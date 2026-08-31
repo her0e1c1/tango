@@ -32,8 +32,8 @@ const deckDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
     createdAt: 1,
     updatedAt: 2,
     deletedAt: null,
-    scoreMax: null,
-    scoreMin: null,
+    difficultyMax: null,
+    difficultyMin: null,
     selectedTags: [],
     tagAndFilter: false,
     category: "",
@@ -48,7 +48,7 @@ const getSnapshotHandler = () =>
 // Returns the error callback registered by the Deck subscription.
 const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
-describe("Deck Firestore subscription", () => {
+describe("Deck Firestore subscription [CARD-10]", () => {
   beforeEach(() => {
     deckStore.setState({ remoteDecks: [], localDecks: [] });
     vi.clearAllMocks();

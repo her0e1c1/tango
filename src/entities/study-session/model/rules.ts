@@ -46,8 +46,8 @@ interface StudyCardSelectionCard extends CardProgressFields {
 
 /** Deck-owned filters that define the study-session candidate set. */
 interface StudyCardSelectionDeck {
-  scoreMax: number | null;
-  scoreMin: number | null;
+  difficultyMax: number | null;
+  difficultyMin: number | null;
   selectedTags: readonly string[];
   tagAndFilter: boolean;
 }
@@ -91,8 +91,8 @@ export const selectStudyCards = <TCard extends StudyCardSelectionCard>(
       isStudyProgressEligible(
         createStudyProgressFromCard(card),
         {
-          maximumScore: deck.scoreMax,
-          minimumScore: deck.scoreMin,
+          maximumDifficulty: deck.difficultyMax,
+          minimumDifficulty: deck.difficultyMin,
           respectNextSeeingAt,
         },
         now

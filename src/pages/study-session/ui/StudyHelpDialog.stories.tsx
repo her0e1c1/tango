@@ -12,7 +12,7 @@ const englishRows = [
   { control: "Space / Play or Pause button", action: "Play or pause autoplay" },
   { control: "B / Swipe controls button", action: "Hide the currently visible swipe buttons" },
   { control: "Playback controls button", action: "Hide the currently visible playback controls" },
-  { control: "Card details button", action: "Show or hide score and study history" },
+  { control: "Card details button", action: "Show or hide difficulty and study history" },
   { control: "Back to deck list button", action: "Exit without ending the current study session" },
 ];
 

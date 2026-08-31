@@ -7,7 +7,7 @@ import * as fixture from "@/storybook/fixture";
 
 import { CardList } from "./CardList";
 
-const activeFilter = { scoreMax: 1, scoreMin: -1, selectedTags: ["tag 1", "tag 2"] };
+const activeFilter = { difficultyMax: 8, difficultyMin: 3, selectedTags: ["tag 1", "tag 2"] };
 const longUnbrokenTag =
   "tag_this_is_one_genuinely_long_unbroken_value_that_must_never_force_the_mobile_card_list_beyond_the_viewport_width_even_when_it_keeps_going_0123456789";
 const longUnbrokenCards = fixture.cards.long.map((card, index) =>
@@ -25,7 +25,7 @@ const RemovableSelectedTagsExample: React.FC<{
   return (
     <CardList
       cards={fixture.cards.default}
-      filter={{ scoreMin: null, scoreMax: null, selectedTags }}
+      filter={{ difficultyMin: null, difficultyMax: null, selectedTags }}
       onRemoveTag={(tag) => {
         props.onRemoveTag?.(tag);
         setSelectedTags((values) => values.filter((value) => value !== tag));
@@ -87,7 +87,7 @@ export const AddCard: Story = {
 export const Empty: Story = {
   args: {
     cards: [],
-    filter: { scoreMax: null, scoreMin: null, selectedTags: [] },
+    filter: { difficultyMax: null, difficultyMin: null, selectedTags: [] },
   },
 };
 
@@ -150,7 +150,7 @@ export const IphoneXLong: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
   args: {
     filterSlot: <div>Many filter controls</div>,
-    filter: { scoreMax: 1, scoreMin: -1, selectedTags: [longUnbrokenTag] },
+    filter: { difficultyMax: 8, difficultyMin: 3, selectedTags: [longUnbrokenTag] },
     cards: longUnbrokenCards,
   },
 };

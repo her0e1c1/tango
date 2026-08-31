@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createDeck } from "@/test/factories";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
-describe("Deck Firestore document mapping", () => {
+describe("Deck Firestore document mapping [CARD-10]", () => {
   it("accepts legacy strings without applying current command validation", () => {
     expect(
       parseDeckDocument("deck", {
@@ -11,8 +11,8 @@ describe("Deck Firestore document mapping", () => {
         name: "",
         url: "legacy-value",
         isPublic: false,
-        scoreMax: null,
-        scoreMin: null,
+        difficultyMax: null,
+        difficultyMin: null,
         selectedTags: [],
         tagAndFilter: false,
         category: "",
@@ -26,8 +26,8 @@ describe("Deck Firestore document mapping", () => {
       name: "",
       url: "legacy-value",
       isPublic: false,
-      scoreMax: null,
-      scoreMin: null,
+      difficultyMax: null,
+      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
       category: "",
@@ -46,8 +46,8 @@ describe("Deck Firestore document mapping", () => {
       uid: "actor",
       name: "Deck",
       isPublic: false,
-      scoreMax: null,
-      scoreMin: null,
+      difficultyMax: null,
+      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
       category: "",
@@ -64,8 +64,8 @@ describe("Deck Firestore document mapping", () => {
       uid: "owner",
       name: "Deck",
       isPublic: false,
-      scoreMax: null,
-      scoreMin: null,
+      difficultyMax: null,
+      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
       category: "",
@@ -81,8 +81,8 @@ describe("Deck Firestore document mapping", () => {
       localMode: false,
       name: "Deck",
       isPublic: false,
-      scoreMax: null,
-      scoreMin: null,
+      difficultyMax: null,
+      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
       category: "",
@@ -90,5 +90,86 @@ describe("Deck Firestore document mapping", () => {
       createdAt: 1,
       updatedAt: 2,
     });
+  });
+
+  it("adapts legacy score bounds while reversing their direction", () => {
+    const document = parseDeckDocument("deck", {
+      uid: "owner",
+      name: "Legacy filters",
+      isPublic: false,
+      scoreMax: 4,
+      scoreMin: 1,
+      selectedTags: [],
+      tagAndFilter: false,
+      category: "",
+      convertToBr: false,
+      deletedAt: null,
+      createdAt: 1,
+      updatedAt: 2,
+    });
+
+    expect(toDeck("deck", document)).toEqual(expect.objectContaining({ difficultyMin: 1, difficultyMax: 4 }));
+  });
+
+  it("uses difficulty bounds when legacy score bounds are also present", () => {
+    const document = parseDeckDocument("deck", {
+      uid: "owner",
+      name: "Current filters",
+      isPublic: false,
+      difficultyMax: 8,
+      difficultyMin: 3,
+      scoreMax: 4,
+      scoreMin: 1,
+      selectedTags: [],
+      tagAndFilter: false,
+      category: "",
+      convertToBr: false,
+      deletedAt: null,
+      createdAt: 1,
+      updatedAt: 2,
+    });
+
+    expect(toDeck("deck", document)).toEqual(expect.objectContaining({ difficultyMin: 3, difficultyMax: 8 }));
+  });
+
+  it("maps independently migrated difficulty bounds without losing the remaining legacy bound", () => {
+    const document = parseDeckDocument("deck", {
+      uid: "owner",
+      name: "Partially migrated filters",
+      isPublic: false,
+      difficultyMax: 8,
+      scoreMax: 4,
+      scoreMin: 1,
+      selectedTags: [],
+      tagAndFilter: false,
+      category: "",
+      convertToBr: false,
+      deletedAt: null,
+      createdAt: 1,
+      updatedAt: 2,
+    });
+
+    expect(toDeck("deck", document)).toEqual(expect.objectContaining({ difficultyMin: 1, difficultyMax: 8 }));
+  });
+
+  it("rejects malformed difficulty bounds instead of falling back to score bounds", () => {
+    expect(() =>
+      parseDeckDocument("deck", {
+        uid: "owner",
+        name: "Malformed filters",
+        isPublic: false,
+        difficultyMax: 11,
+        difficultyMin: 3,
+        scoreMax: 4,
+        scoreMin: 1,
+        selectedTags: [],
+        tagAndFilter: false,
+        category: "",
+        convertToBr: false,
+        deletedAt: null,
+        createdAt: 1,
+        updatedAt: 2,
+      })
+    ).toThrow();
   });
 });

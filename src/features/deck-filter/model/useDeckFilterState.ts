@@ -2,20 +2,23 @@ import { useRef, useState } from "react";
 
 import { useAuthUid } from "@/entities/auth";
 import { type Deck, editDeck } from "@/entities/deck";
+import { type Difficulty, MAX_DIFFICULTY, MIN_DIFFICULTY } from "@/entities/study-progress";
 
 export interface DeckFilterState {
-  scoreMax: number | null;
-  scoreMin: number | null;
+  difficultyLowerBound: number;
+  difficultyMax: Difficulty | null;
+  difficultyMin: Difficulty | null;
+  difficultyUpperBound: number;
   selectedTags: string[];
   tagAndFilter: boolean;
-  clearScoreRange: () => void;
-  setScoreMax: (value: number | null) => void;
-  setScoreMin: (value: number | null) => void;
+  clearDifficultyRange: () => void;
+  setDifficultyMax: (value: Difficulty | null) => void;
+  setDifficultyMin: (value: Difficulty | null) => void;
   setSelectedTags: (value: string[]) => void;
   setTagAndFilter: (value: boolean) => void;
 }
 
-type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
+type DeckFilterValues = Pick<Deck, "difficultyMax" | "difficultyMin" | "selectedTags" | "tagAndFilter">;
 type DeckFilterKey = keyof DeckFilterValues;
 type DeckFilterValue = DeckFilterValues[DeckFilterKey];
 type DeckFilterPatch = Partial<DeckFilterValues>;
@@ -33,11 +36,11 @@ interface FilterModelState {
   storedFilter: DeckFilterValues;
 }
 
-const FILTER_KEYS = ["scoreMax", "scoreMin", "selectedTags", "tagAndFilter"] as const;
+const FILTER_KEYS = ["difficultyMax", "difficultyMin", "selectedTags", "tagAndFilter"] as const;
 
 const toFilterValues = (deck: Deck): DeckFilterValues => ({
-  scoreMax: deck.scoreMax,
-  scoreMin: deck.scoreMin,
+  difficultyMax: deck.difficultyMax,
+  difficultyMin: deck.difficultyMin,
   selectedTags: deck.selectedTags,
   tagAndFilter: deck.tagAndFilter,
 });
@@ -178,13 +181,15 @@ export const useDeckFilterState = (deck: Deck): DeckFilterState => {
   };
 
   return {
-    scoreMax: getFilterValue("scoreMax"),
-    scoreMin: getFilterValue("scoreMin"),
+    difficultyLowerBound: MIN_DIFFICULTY,
+    difficultyMax: getFilterValue("difficultyMax"),
+    difficultyMin: getFilterValue("difficultyMin"),
+    difficultyUpperBound: MAX_DIFFICULTY,
     selectedTags: getFilterValue("selectedTags"),
     tagAndFilter: getFilterValue("tagAndFilter"),
-    clearScoreRange: () => updateFilter({ scoreMax: null, scoreMin: null }),
-    setScoreMax: (value) => updateFilter({ scoreMax: value }),
-    setScoreMin: (value) => updateFilter({ scoreMin: value }),
+    clearDifficultyRange: () => updateFilter({ difficultyMax: null, difficultyMin: null }),
+    setDifficultyMax: (value) => updateFilter({ difficultyMax: value }),
+    setDifficultyMin: (value) => updateFilter({ difficultyMin: value }),
     setSelectedTags: (value) => updateFilter({ selectedTags: value }),
     setTagAndFilter: (value) => updateFilter({ tagAndFilter: value }),
   };

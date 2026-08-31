@@ -26,7 +26,7 @@ vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
-describe.concurrent("firestore/card", { retry: 3 }, () => {
+describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
   const db = getFirestore();
   const timestamp = new Date(2013, 10, 9).getTime();
   const newCard = createCard({
@@ -92,7 +92,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
     await createCardCommand("uid", card);
     const untrustedProgress = {
       cardId: card.id,
-      score: 2,
+      difficulty: 5.5,
       numberOfSeen: 3,
       frontText: "unexpected",
       deckId: "other-deck",
@@ -102,7 +102,7 @@ describe.concurrent("firestore/card", { retry: 3 }, () => {
 
     await editRemoteStudyProgress("uid", untrustedProgress);
 
-    expect((await getDoc(doc(db, "card", card.id))).data()).toEqual({ ...card, score: 2, numberOfSeen: 3 });
+    expect((await getDoc(doc(db, "card", card.id))).data()).toEqual({ ...card, difficulty: 5.5, numberOfSeen: 3 });
   });
 
   it("should upsert a complete card", async () => {

@@ -27,7 +27,7 @@ interface CardState {
 
 /** Learning fields embedded in a browser-persisted Card until local StudyProgress has its own store. */
 type LocalCardStudyProgressEdit = Pick<LocalCard, "id"> &
-  Partial<Pick<LocalCard, "score" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval">>;
+  Partial<Pick<LocalCard, "difficulty" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval">>;
 
 /** Injectable persistence controls used to create an isolated Card store. */
 interface CreateCardStoreOptions {

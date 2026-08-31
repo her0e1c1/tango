@@ -30,10 +30,10 @@ export const resources = {
         goHome: "Go home",
         goBack: "Go back",
       },
-      score: {
-        aria: "Score {{score}}, {{cue}}",
-        positive: "positive",
-        negative: "negative",
+      difficulty: {
+        aria: "Difficulty {{difficulty}}, {{cue}}",
+        easy: "easy",
+        hard: "hard",
         neutral: "neutral",
       },
       tag: {
@@ -68,7 +68,7 @@ export const resources = {
           },
           showCardDetails: {
             label: "Show card details",
-            help: "Display score and study history during a session",
+            help: "Display difficulty and study history during a session",
           },
           showSwipeFeedback: {
             label: "Show swipe feedback",
@@ -147,10 +147,10 @@ export const resources = {
         goHome: "ホームへ",
         goBack: "戻る",
       },
-      score: {
-        aria: "スコア {{score}}、{{cue}}",
-        positive: "正",
-        negative: "負",
+      difficulty: {
+        aria: "難易度 {{difficulty}}、{{cue}}",
+        easy: "簡単",
+        hard: "難しい",
         neutral: "中立",
       },
       tag: {
@@ -185,7 +185,7 @@ export const resources = {
           },
           showCardDetails: {
             label: "カードの詳細を表示",
-            help: "セッション中にスコアと学習履歴を表示します",
+            help: "セッション中に難易度と学習履歴を表示します",
           },
           showSwipeFeedback: {
             label: "スワイプ結果を表示",

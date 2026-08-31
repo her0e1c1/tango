@@ -78,7 +78,7 @@ export const useStudy = (deckId: string) => {
     card: {
       frontText: sessionState.card.frontText,
       category,
-      score: sessionState.card.score,
+      difficulty: sessionState.card.difficulty,
       numberOfSeen: sessionState.card.numberOfSeen,
       ...(sessionState.card.lastSeenAt !== undefined ? { lastSeenAt: sessionState.card.lastSeenAt } : {}),
       back: {

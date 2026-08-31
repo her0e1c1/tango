@@ -17,10 +17,15 @@ const card = {
   id: "card-id",
   frontText: "A long front",
   backText: "Back",
-  score: 3,
+  difficulty: 3,
   numberOfSeen: 7,
   tags: ["one", "two"],
 } as CardEntity;
+const difficultySlot = (
+  <span role="status" aria-label="Difficulty 3, easy">
+    3
+  </span>
+);
 
 /**
  * Renders the test-only Controlled Card component with controlled state or providers.
@@ -31,6 +36,7 @@ const ControlledCard: React.FC<React.ComponentProps<typeof Card>> = (props) => {
   return (
     <Card
       {...props}
+      difficultySlot={props.difficultySlot ?? difficultySlot}
       menuOpen={menuOpen}
       onToggleMenu={(id) => {
         props.onToggleMenu?.(id);
@@ -64,7 +70,7 @@ const touchGesture = (target: HTMLElement, from: number, to: number) => {
   fireEvent.touchEnd(target, { touches: [], targetTouches: [], changedTouches: [end] });
 };
 
-describe("Card", () => {
+describe("Card [CARD-01] [CARD-02]", () => {
   it("renders compact metadata and routes view, menu actions, and swipes by card id", () => {
     const actions = {
       goToView: vi.fn(),
@@ -77,7 +83,7 @@ describe("Card", () => {
     render(<ControlledCard card={card} {...actions} />);
     const article = screen.getByRole("article");
 
-    expect(screen.getByLabelText("Score 3, positive")).toBeInTheDocument();
+    expect(screen.getByLabelText("Difficulty 3, easy")).toBeInTheDocument();
     expect(screen.getByText("studied 7 times")).toBeInTheDocument();
     expect(screen.getByLabelText("Tags: one, two")).toHaveTextContent("onetwo");
     fireEvent.click(screen.getByRole("button", { name: "View A long front" }));

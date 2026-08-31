@@ -18,14 +18,14 @@ const preferences = createPreferences({
 const deck = createLocalDeck({
   id: "study-start-deck",
   name: "Japanese vocabulary",
-  scoreMax: 1,
-  scoreMin: -1,
+  difficultyMax: 6,
+  difficultyMin: 4,
   selectedTags: ["eligible"],
 });
 const eligibleCard = createLocalCard({
   id: "eligible-card",
   deckId: deck.id,
-  score: 1,
+  difficulty: 4,
   tags: ["eligible"],
   uniqueKey: "eligible-card",
 });
@@ -35,12 +35,12 @@ const laterCard = createLocalCard({
   tags: ["later"],
   uniqueKey: "later-card",
 });
-const highScoreCard = createLocalCard({
-  id: "high-score-card",
+const highDifficultyCard = createLocalCard({
+  id: "high-difficulty-card",
   deckId: deck.id,
-  score: 2,
+  difficulty: 7,
   tags: ["eligible"],
-  uniqueKey: "high-score-card",
+  uniqueKey: "high-difficulty-card",
 });
 const futureCard = createLocalCard({
   id: "future-card",
@@ -50,7 +50,7 @@ const futureCard = createLocalCard({
   uniqueKey: "future-card",
 });
 
-describe("useStudySessionStartState", () => {
+describe("useStudySessionStartState [SWIPE-06]", () => {
   beforeEach(async () => {
     replaceAuthSession({
       displayName: null,
@@ -64,7 +64,7 @@ describe("useStudySessionStartState", () => {
     await mutateCards("", [
       { kind: "create", card: eligibleCard },
       { kind: "create", card: laterCard },
-      { kind: "create", card: highScoreCard },
+      { kind: "create", card: highDifficultyCard },
       { kind: "create", card: futureCard },
     ]);
   });

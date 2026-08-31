@@ -8,5 +8,5 @@ remote:
       backText: りんご
       tags: [math, typescript]
       uniqueKey: apple
-      score: 1
+      difficulty: 4
       numberOfSeen: 3

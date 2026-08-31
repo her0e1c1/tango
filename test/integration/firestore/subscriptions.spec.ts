@@ -7,6 +7,7 @@
 import "@/test/initializeTestFirestore";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
 
 import { deleteCard, editCard, fetchCardReads, mutateCards, subscribeCards } from "@/entities/card";
 import { createDeck, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
@@ -19,7 +20,7 @@ vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
-describe("Query realtime subscriptions", () => {
+describe("Query realtime subscriptions [CARD-01] [CARD-10]", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     deckStore.setState({ remoteDecks: [], localDecks: [] });
@@ -37,7 +38,7 @@ describe("Query realtime subscriptions", () => {
       deckId: deck.id,
       uid,
       frontText: "Fetched Card",
-      score: 2,
+      difficulty: 2,
       numberOfSeen: 3,
     });
     await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
@@ -47,8 +48,88 @@ describe("Query realtime subscriptions", () => {
 
     expect(reads).toContainEqual({
       card: expect.objectContaining({ id: card.id, frontText: "Fetched Card" }),
-      progress: expect.objectContaining({ cardId: card.id, score: 2, numberOfSeen: 3 }),
+      progress: expect.objectContaining({ cardId: card.id, difficulty: 2, numberOfSeen: 3 }),
     });
+  });
+
+  it("adapts legacy score reads and gives a present difficulty priority", async () => {
+    const uid = "uid";
+    const deckId = crypto.randomUUID();
+    await createDeck(uid, createRemoteDeckInput({ id: deckId, name: "Legacy Deck" }));
+    const baseDocument = {
+      deckId,
+      uid,
+      frontText: "Legacy Card",
+      backText: "Back",
+      tags: [],
+      uniqueKey: crypto.randomUUID(),
+      createdAt: 1,
+      updatedAt: 2,
+      deletedAt: null,
+      numberOfSeen: 3,
+    };
+    const database = getFirestore();
+    const legacyId = crypto.randomUUID();
+    const currentId = crypto.randomUUID();
+    await setDoc(doc(database, "card", legacyId), { ...baseDocument, score: -1 });
+    await setDoc(doc(database, "card", currentId), {
+      ...baseDocument,
+      uniqueKey: crypto.randomUUID(),
+      difficulty: 7.5,
+      score: 99,
+    });
+
+    const reads = await fetchCardReads(uid);
+
+    expect(reads).toContainEqual({
+      card: expect.objectContaining({ id: legacyId }),
+      progress: expect.objectContaining({ cardId: legacyId, difficulty: 6 }),
+    });
+    expect(reads).toContainEqual({
+      card: expect.objectContaining({ id: currentId }),
+      progress: expect.objectContaining({ cardId: currentId, difficulty: 7.5 }),
+    });
+  });
+
+  it("keeps a legacy Deck readable after one difficulty bound is edited", async () => {
+    const uid = "uid";
+    const deckId = crypto.randomUUID();
+    const database = getFirestore();
+    await setDoc(doc(database, "deck", deckId), {
+      uid,
+      name: "Legacy filter Deck",
+      isPublic: false,
+      scoreMax: 2,
+      scoreMin: -1,
+      selectedTags: [],
+      tagAndFilter: false,
+      category: "",
+      convertToBr: false,
+      deletedAt: null,
+      createdAt: 1,
+      updatedAt: 2,
+    });
+    const errors: Error[] = [];
+    const stop = subscribeDecks(uid, (error) => errors.push(error));
+
+    try {
+      await vi.waitFor(() => {
+        expect(deckStore.getState().remoteDecks).toContainEqual(
+          expect.objectContaining({ id: deckId, difficultyMin: 3, difficultyMax: 6 })
+        );
+      });
+
+      await editDeck(uid, { id: deckId, difficultyMax: 8 });
+
+      await vi.waitFor(() => {
+        expect(deckStore.getState().remoteDecks).toContainEqual(
+          expect.objectContaining({ id: deckId, difficultyMin: 3, difficultyMax: 8 })
+        );
+      });
+      expect(errors).toEqual([]);
+    } finally {
+      stop();
+    }
   });
 
   it("delivers initial, update, and delete snapshots without a cursor", async () => {

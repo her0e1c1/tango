@@ -16,7 +16,7 @@ import { Card, type CardActionsProps } from "./Card";
 interface CardListItem {
   id: CardId;
   frontText: string;
-  score: number;
+  difficulty: number;
   numberOfSeen: number;
   tags: string[];
 }
@@ -27,8 +27,8 @@ interface CardListOverlayProps {
 }
 
 interface CardListFilterState {
-  scoreMax: number | null;
-  scoreMin: number | null;
+  difficultyMax: number | null;
+  difficultyMin: number | null;
   selectedTags: string[];
 }
 
@@ -41,6 +41,7 @@ export interface CardListProps {
   onShowCard?: (id: CardId) => void;
   onRemoveTag?: (tag: string) => void;
   onAddCard?: () => void;
+  renderDifficulty?: (difficulty: number) => React.ReactNode;
 }
 
 /**
@@ -50,15 +51,15 @@ export interface CardListProps {
 const countLabel = (count: number) => `${String(count)} ${count === 1 ? "card" : "cards"}`;
 
 /**
- * Formats the score range label text shown to the user.
+ * Formats the difficulty range label text shown to the user.
  * The helper keeps wording and singular or plural rules consistent across the screen.
  */
-const scoreRangeLabel = (filter: CardListFilterState) => {
-  if (filter.scoreMin != null && filter.scoreMax != null) {
-    return `score ${String(filter.scoreMin)}–${String(filter.scoreMax)}`;
+const difficultyRangeLabel = (filter: CardListFilterState) => {
+  if (filter.difficultyMin != null && filter.difficultyMax != null) {
+    return `difficulty ${String(filter.difficultyMin)}–${String(filter.difficultyMax)}`;
   }
-  if (filter.scoreMin != null) return `score ≥ ${String(filter.scoreMin)}`;
-  if (filter.scoreMax != null) return `score ≤ ${String(filter.scoreMax)}`;
+  if (filter.difficultyMin != null) return `difficulty ≥ ${String(filter.difficultyMin)}`;
+  if (filter.difficultyMax != null) return `difficulty ≤ ${String(filter.difficultyMax)}`;
   return null;
 };
 
@@ -68,22 +69,22 @@ const scoreRangeLabel = (filter: CardListFilterState) => {
  */
 const filterLabel = (filter: CardListFilterState) => {
   const labels: string[] = [];
-  const score = scoreRangeLabel(filter);
-  if (score != null) labels.push(score);
+  const difficulty = difficultyRangeLabel(filter);
+  if (difficulty != null) labels.push(difficulty);
   if (filter.selectedTags.length > 0) {
     labels.push(`${String(filter.selectedTags.length)} ${filter.selectedTags.length === 1 ? "tag" : "tags"}`);
   }
   return labels.length > 0 ? labels.join(" · ") : "No filters";
 };
 
-const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selectedTags: [] };
+const emptyFilter: CardListFilterState = { difficultyMax: null, difficultyMin: null, selectedTags: [] };
 
 /**
  * Composes the complete Card List Rows screen from reusable UI components.
  * All data and callbacks arrive through props, allowing the same screen to run in tests and
  * Storybook.
  */
-const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "onShowCard">> = (props) => {
+const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "onShowCard" | "renderDifficulty">> = (props) => {
   const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
 
   return (
@@ -92,6 +93,7 @@ const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "onShowCard"
         <Card
           key={card.id}
           card={card}
+          difficultySlot={props.renderDifficulty?.(card.difficulty)}
           menuOpen={openMenuCardId === card.id}
           onToggleMenu={(id) => setOpenMenuCardId((value) => (value === id ? undefined : id))}
           onCloseMenu={() => setOpenMenuCardId(undefined)}
@@ -175,6 +177,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
           cards={props.cards}
           {...(props.card !== undefined ? { card: props.card } : {})}
           {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
+          {...(props.renderDifficulty !== undefined ? { renderDifficulty: props.renderDifficulty } : {})}
         />
       )}
     </>

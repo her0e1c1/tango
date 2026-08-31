@@ -38,8 +38,8 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         id: deck.id,
         name: deck.name,
         isPublic: deck.isPublic ?? false,
-        scoreMax: deck.scoreMax ?? null,
-        scoreMin: deck.scoreMin ?? null,
+        difficultyMax: deck.difficultyMax ?? null,
+        difficultyMin: deck.difficultyMin ?? null,
         selectedTags: deck.selectedTags ?? [],
         tagAndFilter: deck.tagAndFilter ?? false,
         category: deck.category ?? "",
@@ -67,7 +67,7 @@ import { useAddSampleDeck } from "./useAddSampleDeck";
 
 const strictMode = ({ children }: { children: ReactNode }) => React.createElement(React.StrictMode, null, children);
 
-describe("useAddSampleDeck", () => {
+describe("useAddSampleDeck [CARD-01]", () => {
   beforeEach(() => {
     repository.uid = "uid-a";
     repository.cards = [];

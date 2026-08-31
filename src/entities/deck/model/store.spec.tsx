@@ -30,7 +30,7 @@ const useMemoryStorage = (initial: Record<string, string> = {}): StateStorage =>
   return storage;
 };
 
-describe("Deck store", () => {
+describe("Deck store [CARD-10]", () => {
   beforeEach(() => {
     useMemoryStorage();
     deckStore.setState({ remoteDecks: [], localDecks: [] });
@@ -111,8 +111,8 @@ describe("Deck store", () => {
         localMode: true,
         name: "Legacy",
         isPublic: false,
-        scoreMax: null,
-        scoreMin: null,
+        difficultyMax: null,
+        difficultyMin: null,
         selectedTags: [],
         tagAndFilter: false,
         category: "",
@@ -121,6 +121,28 @@ describe("Deck store", () => {
         updatedAt: 2,
       },
     ]);
+  });
+
+  it("adapts legacy local score filters", async () => {
+    const {
+      difficultyMax: _difficultyMax,
+      difficultyMin: _difficultyMin,
+      ...legacyDeck
+    } = createLocalDeckFixture({ id: "legacy-filter" });
+    useMemoryStorage({
+      "tango-local-decks": JSON.stringify({
+        state: { localDecks: [{ ...legacyDeck, scoreMax: 4, scoreMin: 1 }] },
+        version: 1,
+      }),
+    });
+
+    await deckStore.persist.rehydrate();
+
+    expect(deckStore.getState().localDecks).toEqual([
+      expect.objectContaining({ id: "legacy-filter", difficultyMin: 1, difficultyMax: 4 }),
+    ]);
+    expect(deckStore.getState().localDecks[0]).not.toHaveProperty("scoreMin");
+    expect(deckStore.getState().localDecks[0]).not.toHaveProperty("scoreMax");
   });
 
   it("rejects invalid persisted Decks", async () => {

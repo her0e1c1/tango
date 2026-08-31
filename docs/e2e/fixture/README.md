@@ -34,8 +34,8 @@
 省略 field は次の値で正規化する。
 
 - `isPublic: false`
-- `scoreMax: null`
-- `scoreMin: null`
+- `difficultyMax: null`
+- `difficultyMin: null`
 - `selectedTags: []`
 - `tagAndFilter: false`
 - `category: ""`
@@ -49,7 +49,7 @@
 省略 field は次の値で正規化する。
 
 - `tags: []`
-- `score: 0`
+- `difficulty: 5`
 - `numberOfSeen: 0`
 - `deletedAt: null`
 - `createdAt: 0`

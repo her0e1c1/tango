@@ -4,6 +4,7 @@ import { useKey } from "react-use";
 
 import { BackText } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
+import { DifficultyIndicator } from "@/entities/study-progress";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { routes } from "@/shared/router";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
@@ -19,8 +20,8 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   // Card selection must use optimistic filter values before their persistence request completes.
   const state = useCardListState({
     ...deck,
-    scoreMax: deckFilter.scoreMax,
-    scoreMin: deckFilter.scoreMin,
+    difficultyMax: deckFilter.difficultyMax,
+    difficultyMin: deckFilter.difficultyMin,
     selectedTags: deckFilter.selectedTags,
     tagAndFilter: deckFilter.tagAndFilter,
   });
@@ -46,10 +47,11 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
       ) : null}
       <CardList
         cards={state.cards}
+        renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
         onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
         filter={{
-          scoreMax: deckFilter.scoreMax,
-          scoreMin: deckFilter.scoreMin,
+          difficultyMax: deckFilter.difficultyMax,
+          difficultyMin: deckFilter.difficultyMin,
           selectedTags: deckFilter.selectedTags,
         }}
         filterSlot={<DeckFilterForm {...deckFilter} tags={state.tags} />}

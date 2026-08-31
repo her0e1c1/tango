@@ -9,14 +9,14 @@ import * as React from "react";
 import { useSwipeable } from "react-swipeable";
 
 import type { CardId } from "@/entities/card";
-import { Score, TagLabel } from "@/shared/ui/content";
+import { TagLabel } from "@/shared/ui/content";
 
 import { CardActionsMenu } from "./CardActionsMenu";
 
 interface CardItem {
   id: CardId;
   frontText: string;
-  score: number;
+  difficulty: number;
   numberOfSeen: number;
   tags: string[];
 }
@@ -39,6 +39,7 @@ interface CardRowMenuProps {
 export interface CardProps extends CardActionsProps, CardRowMenuProps {
   className?: string;
   card: CardItem;
+  difficultySlot?: React.ReactNode;
 }
 
 /**
@@ -52,7 +53,7 @@ const studiedText = (count: number) => {
 
 /**
  * Renders the Card user interface.
- * Presents one study card's front, back, score, and tags according to its current reveal state.
+ * Presents one study card's front, back, difficulty, and tags according to its current reveal state.
  */
 export const Card: React.FC<CardProps> = (props) => {
   const { id } = props.card;
@@ -129,7 +130,7 @@ export const Card: React.FC<CardProps> = (props) => {
         props.className
       )}
     >
-      <Score className="shrink-0" score={props.card.score} />
+      {props.difficultySlot}
       <div className="relative flex min-h-touch min-w-0 flex-1 flex-col justify-center rounded-control">
         <button
           type="button"

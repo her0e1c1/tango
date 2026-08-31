@@ -34,7 +34,7 @@ const useMemoryStorage = (initial: Record<string, string> = {}): MemoryStorage =
   return storage;
 };
 
-describe("preferences store", () => {
+describe("preferences store [SETTINGS-06]", () => {
   beforeEach(() => {
     useMemoryStorage();
     preferencesStore.getState().updatePreferences(defaultPreferences);
@@ -55,7 +55,7 @@ describe("preferences store", () => {
       loadSample: false,
       appearance: { darkMode: true },
       study: { cardInterval: 15 },
-      controls: { showCardDetails: false, showScoreSlider: true, showBackTextSwipeOverlays: true },
+      controls: { showCardDetails: false, showDifficultySlider: true, showBackTextSwipeOverlays: true },
     });
     store.getState().updatePreferences({ controls: { showSwipeButtonList: false } });
     store.getState().updatePreferences({ controls: { showPlaybackControls: false } });
@@ -68,7 +68,7 @@ describe("preferences store", () => {
       controls: {
         ...defaultPreferences.controls,
         showCardDetails: false,
-        showScoreSlider: true,
+        showDifficultySlider: true,
         showBackTextSwipeOverlays: true,
         showSwipeButtonList: false,
         showPlaybackControls: false,

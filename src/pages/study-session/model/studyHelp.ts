@@ -77,7 +77,7 @@ const resources = {
       playbackControlsHidden: "Show the currently hidden playback controls",
       playbackControlsUnavailable: "Playback controls are unavailable while the card interval is 0",
       cardDetails: "Card details button",
-      cardDetailsAction: "Show or hide score and study history",
+      cardDetailsAction: "Show or hide difficulty and study history",
       exit: "Back to deck list button",
       exitAction: "Exit without ending the current study session",
     },
