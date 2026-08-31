@@ -1,4 +1,5 @@
 import cx from "classnames";
+import type { TFunction } from "i18next";
 import * as React from "react";
 import {
   AiOutlineClose,
@@ -10,14 +11,13 @@ import {
   AiOutlineQuestionCircle,
 } from "react-icons/ai";
 import { MdSwipe } from "react-icons/md";
+import { useTranslation } from "react-i18next";
 import { useSwipeable } from "react-swipeable";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Controller, type ControllerProps } from "./Controller";
 import { StudyHelpDialog, type StudyHelpDialogProps } from "./StudyHelpDialog";
 import { SwipeButtonList, type SwipeButtonListProps } from "./SwipeButtonList";
-
-const PLAYBACK_UNAVAILABLE_DESCRIPTION = "Playback controls unavailable because the card interval is set to 0";
 
 type StudyLayoutStyles = React.CSSProperties & {
   "--study-safe-area-top": string;
@@ -36,7 +36,6 @@ const studyLayoutStyles: StudyLayoutStyles = {
 // The marker reserves Space for answer scrolling, while the named region makes the focus target discoverable.
 const answerSurfaceProps = {
   role: "region",
-  "aria-label": "Study answer",
   "data-study-answer-scroll": "",
   tabIndex: 0,
 } as const;
@@ -59,7 +58,6 @@ export interface StudySessionProps {
   swipeButtonList?: SwipeButtonListProps;
   help: Omit<StudyHelpDialogProps, "onClose" | "restoreTriggerFocus"> & {
     open: boolean;
-    triggerLabel: string;
     onOpen: () => void;
     onClose: () => void;
   };
@@ -90,19 +88,24 @@ interface StudyModeActionsProps {
 }
 
 const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
-  const swipeTitle = props.showSwipeControls ? "Hide swipe controls" : "Show swipe controls";
+  const { t } = useTranslation();
+  const swipeTitle = props.showSwipeControls
+    ? t("studySession.toolbar.swipeControls.hide")
+    : t("studySession.toolbar.swipeControls.show");
   const playbackTitle = props.playbackControlsAvailable
     ? props.showPlaybackControls
-      ? "Hide playback controls"
-      : "Show playback controls"
-    : PLAYBACK_UNAVAILABLE_DESCRIPTION;
-  const cardDetailsTitle = props.showCardDetails ? "Hide card details" : "Show card details";
+      ? t("studySession.toolbar.playbackControls.hide")
+      : t("studySession.toolbar.playbackControls.show")
+    : t("studySession.toolbar.playbackUnavailable");
+  const cardDetailsTitle = props.showCardDetails
+    ? t("studySession.toolbar.cardDetails.hide")
+    : t("studySession.toolbar.cardDetails.show");
 
   return (
     <div className="flex items-center gap-1">
       <button
         type="button"
-        aria-label="Swipe controls"
+        aria-label={t("studySession.toolbar.swipeControls.label")}
         aria-pressed={props.showSwipeControls}
         title={swipeTitle}
         className={cx(toolbarButtonClass, props.showSwipeControls && "bg-surface-muted text-accent-primary")}
@@ -113,7 +116,7 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
       </button>
       <button
         type="button"
-        aria-label="Playback controls"
+        aria-label={t("studySession.toolbar.playbackControls.label")}
         aria-pressed={props.showPlaybackControls}
         aria-disabled={!props.playbackControlsAvailable}
         aria-describedby={!props.playbackControlsAvailable ? props.playbackDescriptionId : undefined}
@@ -130,7 +133,7 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
       </button>
       <button
         type="button"
-        aria-label="Card details"
+        aria-label={t("studySession.toolbar.cardDetails.label")}
         aria-pressed={props.showCardDetails}
         title={cardDetailsTitle}
         className={cx(toolbarButtonClass, props.showCardDetails && "bg-surface-muted text-accent-primary")}
@@ -155,7 +158,6 @@ interface StudyToolbarProps {
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
   playbackControlsAvailable: boolean;
-  helpTriggerLabel: string;
   onOpenHelp: () => void;
   onToggleHelp: () => void;
   onToggleOpen: () => void;
@@ -165,11 +167,21 @@ interface StudyToolbarProps {
   onTogglePlaybackControls: () => void;
 }
 
+const getStudyToolbarCopy = (
+  t: TFunction,
+  state: Pick<StudyToolbarProps, "open" | "showHelp">
+): { actionToggleLabel: string; helpButtonLabel: string; helpTitle: string } => ({
+  actionToggleLabel: state.open ? t("studySession.toolbar.actions.close") : t("studySession.toolbar.actions.open"),
+  helpButtonLabel: state.open ? t("studySession.toolbar.help.label") : t("studySession.help.trigger"),
+  helpTitle: state.showHelp ? t("studySession.toolbar.help.hide") : t("studySession.toolbar.help.show"),
+});
+
 const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...props }) => {
+  const { t } = useTranslation();
   const actionsId = React.useId();
   const playbackDescriptionId = React.useId();
   const triggerRef = React.useRef<HTMLButtonElement>(null);
-  const helpTitle = props.showHelp ? "Hide help button" : "Show help button";
+  const copy = getStudyToolbarCopy(t, props);
 
   const closeOnEscape: React.KeyboardEventHandler<HTMLButtonElement> = (event) => {
     if (event.key !== "Escape" || !props.open) return;
@@ -182,7 +194,7 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
     <div className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 h-touch">
       <button
         type="button"
-        aria-label="Back to deck list"
+        aria-label={t("studySession.toolbar.back")}
         className={cx(
           toolbarButtonClass,
           "absolute left-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] top-0"
@@ -195,7 +207,7 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
       <button
         ref={triggerRef}
         type="button"
-        aria-label={props.open ? "Close study actions" : "Open study actions"}
+        aria-label={copy.actionToggleLabel}
         aria-expanded={props.open}
         aria-controls={actionsId}
         className={cx(
@@ -216,9 +228,9 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
         <button
           ref={props.open ? undefined : helpTriggerRef}
           type="button"
-          aria-label={props.open ? "Help button" : props.helpTriggerLabel}
+          aria-label={copy.helpButtonLabel}
           aria-pressed={props.open ? props.showHelp : undefined}
-          title={props.open ? helpTitle : undefined}
+          title={props.open ? copy.helpTitle : undefined}
           className={cx(
             toolbarButtonClass,
             "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0",
@@ -234,7 +246,7 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
         // Keep the three secondary actions below 360px so the fixed Help and menu slots stay unobstructed.
         <fieldset
           id={actionsId}
-          aria-label="Study actions"
+          aria-label={t("studySession.toolbar.actions.label")}
           className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0 pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] max-[359px]:absolute max-[359px]:inset-x-0 max-[359px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[359px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
         >
           <StudyModeActions
@@ -252,7 +264,7 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
       ) : null}
       {!props.playbackControlsAvailable ? (
         <span id={playbackDescriptionId} className="sr-only">
-          {PLAYBACK_UNAVAILABLE_DESCRIPTION}
+          {t("studySession.toolbar.playbackUnavailable")}
         </span>
       ) : null}
     </div>
@@ -306,6 +318,7 @@ const BackTextEdgeOverlay: React.FC<{
 const BackTextOverlays: React.FC<{
   overlay: StudySessionProps["backTextOverlay"];
 }> = ({ overlay }) => {
+  const { t } = useTranslation();
   if (overlay?.onClickLeft === undefined && overlay?.onClickRight === undefined) return null;
 
   return (
@@ -313,13 +326,17 @@ const BackTextOverlays: React.FC<{
     <div className="pointer-events-none fixed inset-0 z-30">
       {/* Edge taps stay explicit actions, while vertical touch pans remain native answer scrolling gestures. */}
       {overlay.onClickLeft !== undefined ? (
-        <BackTextEdgeOverlay className="left-0 w-20" ariaLabel="Swipe left" onClick={overlay.onClickLeft} />
+        <BackTextEdgeOverlay
+          className="left-0 w-20"
+          ariaLabel={t("studySession.swipeActions.left")}
+          onClick={overlay.onClickLeft}
+        />
       ) : null}
       {overlay.onClickRight !== undefined ? (
         <BackTextEdgeOverlay
           // Leave a pointer-free scrollbar gutter while the hit area floats over the answer.
           className="right-5 w-[calc(5rem-1.25rem)]"
-          ariaLabel="Swipe right"
+          ariaLabel={t("studySession.swipeActions.right")}
           onClick={overlay.onClickRight}
         />
       ) : null}
@@ -407,6 +424,7 @@ const Controls: React.FC<{
 };
 
 export const StudySession: React.FC<StudySessionProps> = (props) => {
+  const { t } = useTranslation();
   const [studyActionsOpen, setStudyActionsOpen] = React.useState(false);
   // Safari does not focus pointer-activated buttons by default, so Help must restore this explicit trigger.
   const helpTriggerRef = React.useRef<HTMLButtonElement>(null);
@@ -478,7 +496,6 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
           showSwipeControls={props.showSwipeControls}
           showPlaybackControls={props.showPlaybackControls}
           playbackControlsAvailable={props.playbackControlsAvailable}
-          helpTriggerLabel={props.help.triggerLabel}
           onOpenHelp={props.help.onOpen}
           onToggleHelp={props.onToggleHelp}
           onToggleOpen={() => setStudyActionsOpen((open) => !open)}
@@ -489,7 +506,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
         />
       ) : null}
       <div
-        {...(props.showBackText ? answerSurfaceProps : {})}
+        {...(props.showBackText ? { ...answerSurfaceProps, "aria-label": t("studySession.answerAria") } : {})}
         className={cx(
           "relative min-h-0 flex-1",
           props.showBackText ? "overflow-y-auto pt-[env(safe-area-inset-top)]" : "overflow-hidden"
@@ -515,9 +532,6 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       />
       {props.help.open ? (
         <StudyHelpDialog
-          title={props.help.title}
-          description={props.help.description}
-          closeLabel={props.help.closeLabel}
           rows={props.help.rows}
           restoreTriggerFocus={restoreHelpTriggerFocus}
           onClose={props.help.onClose}

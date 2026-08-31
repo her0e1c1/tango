@@ -8,15 +8,16 @@ import {
   toggleShowPlaybackControls,
   toggleShowSwipeButtonList,
   usePreferences,
+  type SwipeDirection,
 } from "@/entities/preference";
 import { setStudySessionIndex } from "@/entities/study-session";
 
 import { useAutoPlay } from "./useAutoPlay";
-import { buildStudyHelpContent } from "./studyHelp";
+import { buildStudyHelpRows } from "./studyHelp";
 import { useStudySessionState } from "./useStudySessionState";
 import { type StudyCompletion, useSwipe } from "./useSwipe";
 
-export const useStudy = (deckId: string) => {
+export const useStudy = (deckId: string, onSwipeFeedback: (direction: SwipeDirection) => void) => {
   const cards = useCards();
   const deck = useDeck(deckId);
   const preferences = usePreferences();
@@ -32,7 +33,11 @@ export const useStudy = (deckId: string) => {
     paused: helpOpen,
     onAdvance: hideBackText,
   });
-  const swipe = useSwipe(deckId, cards, hideBackText, setCompletion);
+  const swipe = useSwipe(deckId, cards, {
+    onCardChanged: hideBackText,
+    onCompleted: setCompletion,
+    onSwipeFeedback,
+  });
 
   const updateIndex = (currentIndex: number): void => {
     if (!setStudySessionIndex(deckId, currentIndex)) return;
@@ -56,7 +61,7 @@ export const useStudy = (deckId: string) => {
     autoPlay,
     updateIndex,
     help: {
-      ...buildStudyHelpContent(preferences, document.documentElement.lang),
+      rows: buildStudyHelpRows(preferences),
       open: helpOpen,
       openHelp: () => setHelpOpen(true),
       closeHelp: () => setHelpOpen(false),

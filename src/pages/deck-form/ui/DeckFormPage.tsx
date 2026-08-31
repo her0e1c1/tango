@@ -1,4 +1,5 @@
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { DeckDeletionDialog, useDeckDeletion } from "@/features/deck-deletion";
@@ -11,6 +12,7 @@ import { RouteNotFound } from "@/widgets/route-not-found";
 import { useDeckForm } from "../model/useDeckForm";
 
 const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const deckListPath = routes.deckList.to();
   const goToList = () => navigate(deckListPath, { replace: true });
@@ -24,9 +26,7 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
   });
 
   if (editor == null) {
-    return (
-      <RouteNotFound title="Deck not found" description="The requested deck is unavailable or has been removed." />
-    );
+    return <RouteNotFound title={t("deckForm.notFound.title")} description={t("deckForm.notFound.description")} />;
   }
 
   const cancel = () => {
@@ -61,11 +61,11 @@ const DeckFormContent: React.FC<{ deckId: string }> = ({ deckId }) => {
             className="mt-section-gap rounded-surface border border-danger p-4 md:p-5"
           >
             <h2 id="delete-deck-heading" className="text-title font-semibold text-danger">
-              Danger zone
+              {t("deckDeletion.dangerTitle")}
             </h2>
-            <p className="mt-1 text-body text-ink-muted">Permanently delete this deck, its cards, and study session.</p>
+            <p className="mt-1 text-body text-ink-muted">{t("deckDeletion.dangerDescription")}</p>
             <Button className="mt-4" variant="destructive" onClick={() => deletion.request(editor.deckInfo.id)}>
-              Delete deck
+              {t("deckDeletion.confirm")}
             </Button>
           </section>
         }

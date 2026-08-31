@@ -4,6 +4,7 @@
 
 import { useId, useRef } from "react";
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/shared/ui/button";
 import { Select } from "@/shared/ui/forms";
@@ -26,24 +27,16 @@ export interface ScoreRangeProps {
 }
 
 interface ScoreSelectProps {
+  boundary: "maximum" | "minimum";
   describedBy: string;
-  description: string;
   id: string;
   invalid: boolean;
-  label: "Maximum" | "Minimum";
   onChange: (value: number | null) => void;
   scores: number[];
   value: number | null;
 }
 
 const displayScore = (value: number): string => String(value).replace("-", "−");
-
-const scoreRangeStatus = (minimum: number | null, maximum: number | null): string => {
-  if (minimum != null && maximum != null) return `Score range: ${displayScore(minimum)} to ${displayScore(maximum)}.`;
-  if (minimum != null) return `Minimum score: ${displayScore(minimum)}. No maximum score.`;
-  if (maximum != null) return `Maximum score: ${displayScore(maximum)}. No minimum score.`;
-  return "No score limits.";
-};
 
 const scoreOptions = (
   current: number | null,
@@ -64,37 +57,43 @@ const scoreOptions = (
 const ScoreSelect = ({
   ref: selectRef,
   ...props
-}: ScoreSelectProps & { ref?: React.RefObject<HTMLSelectElement | null> }) => (
-  <div className="min-w-0">
-    <label htmlFor={props.id} className="text-caption font-medium text-ink-muted">
-      {props.label}
-    </label>
-    <Select
-      ref={selectRef}
-      id={props.id}
-      className="mt-1"
-      value={props.value == null ? NO_LIMIT_VALUE : String(props.value)}
-      aria-label={`${props.label} score`}
-      aria-describedby={props.describedBy}
-      aria-invalid={props.invalid || undefined}
-      options={[
-        { label: NO_LIMIT_LABEL, value: NO_LIMIT_VALUE },
-        ...props.scores.map((score) => ({ label: displayScore(score), value: String(score) })),
-      ]}
-      onChange={(event) =>
-        props.onChange(event.currentTarget.value === NO_LIMIT_VALUE ? null : Number(event.currentTarget.value))
-      }
-    />
-    <p id={`${props.id}-description`} className="sr-only">
-      A dash means no {props.label.toLowerCase()} score. {props.description}
-    </p>
-  </div>
-);
+}: ScoreSelectProps & { ref?: React.RefObject<HTMLSelectElement | null> }) => {
+  const { t } = useTranslation();
+  const keyPrefix = `deckFilter.scoreRange.${props.boundary}` as const;
+
+  return (
+    <div className="min-w-0">
+      <label htmlFor={props.id} className="text-caption font-medium text-ink-muted">
+        {t(`${keyPrefix}.label`)}
+      </label>
+      <Select
+        ref={selectRef}
+        id={props.id}
+        className="mt-1"
+        value={props.value == null ? NO_LIMIT_VALUE : String(props.value)}
+        aria-label={t(`${keyPrefix}.aria`)}
+        aria-describedby={props.describedBy}
+        aria-invalid={props.invalid || undefined}
+        options={[
+          { label: NO_LIMIT_LABEL, value: NO_LIMIT_VALUE },
+          ...props.scores.map((score) => ({ label: displayScore(score), value: String(score) })),
+        ]}
+        onChange={(event) =>
+          props.onChange(event.currentTarget.value === NO_LIMIT_VALUE ? null : Number(event.currentTarget.value))
+        }
+      />
+      <p id={`${props.id}-description`} className="sr-only">
+        {t(`${keyPrefix}.noLimitDescription`)} {t(`${keyPrefix}.description`)}
+      </p>
+    </div>
+  );
+};
 
 /**
  * Lets the user choose independent inclusive score boundaries without changing persisted values on render.
  */
 export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
+  const { t } = useTranslation();
   const idPrefix = useId();
   const minimumSelectRef = useRef<HTMLSelectElement>(null);
   const headingId = `${idPrefix}-score-heading`;
@@ -106,6 +105,21 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
   const maximumScores = scoreOptions(props.maximum, props.minimum, (score, minimum) => score >= minimum);
   const minimumDescribedBy = `${minimumId}-description${invalid ? ` ${warningId}` : ""}`;
   const maximumDescribedBy = `${maximumId}-description${invalid ? ` ${warningId}` : ""}`;
+  const status = (() => {
+    if (props.minimum != null && props.maximum != null) {
+      return t("deckFilter.scoreRange.status.range", {
+        minimum: displayScore(props.minimum),
+        maximum: displayScore(props.maximum),
+      });
+    }
+    if (props.minimum != null) {
+      return t("deckFilter.scoreRange.status.minimumOnly", { minimum: displayScore(props.minimum) });
+    }
+    if (props.maximum != null) {
+      return t("deckFilter.scoreRange.status.maximumOnly", { maximum: displayScore(props.maximum) });
+    }
+    return t("deckFilter.scoreRange.status.noLimits");
+  })();
 
   return (
     <section
@@ -114,7 +128,7 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
     >
       <header className="flex items-center justify-between gap-3">
         <h2 id={headingId} className="text-title font-semibold text-ink">
-          Score range
+          {t("deckFilter.scoreRange.title")}
         </h2>
         <Button
           variant="quiet"
@@ -128,41 +142,39 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
             minimumSelectRef.current?.focus();
           }}
         >
-          Clear <span className="sr-only">limits</span>
+          {t("deckFilter.scoreRange.clear")} <span className="sr-only">{t("deckFilter.scoreRange.clearLimits")}</span>
         </Button>
       </header>
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2 sm:gap-3">
         <ScoreSelect
           ref={minimumSelectRef}
           id={minimumId}
-          label="Minimum"
+          boundary="minimum"
           value={props.minimum}
           scores={minimumScores}
           invalid={invalid}
           describedBy={minimumDescribedBy}
-          description="Include cards at or above this score."
           onChange={props.onMinimumChange}
         />
         <span aria-hidden="true" className="flex min-h-touch items-center text-caption text-ink-muted">
-          to
+          {t("deckFilter.scoreRange.separator")}
         </span>
         <ScoreSelect
           id={maximumId}
-          label="Maximum"
+          boundary="maximum"
           value={props.maximum}
           scores={maximumScores}
           invalid={invalid}
           describedBy={maximumDescribedBy}
-          description="Include cards at or below this score."
           onChange={props.onMaximumChange}
         />
       </div>
       <p role="status" aria-live="polite" className="sr-only">
-        {scoreRangeStatus(props.minimum, props.maximum)}
+        {status}
       </p>
       {invalid ? (
         <p id={warningId} role="alert" className="rounded-control border border-danger p-3 text-caption text-danger">
-          Minimum score must not be greater than maximum score.
+          {t("deckFilter.scoreRange.invalid")}
         </p>
       ) : null}
     </section>

@@ -7,12 +7,13 @@
 
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import { getI18n } from "react-i18next";
 import { describe, expect, it } from "vitest";
 
 import { Code } from "./Code";
 import { MathContent } from "./Math";
 
-describe("shared rich content", () => {
+describe("SETTINGS-04 shared rich content", () => {
   it("keeps code copyable, categorized, and horizontally scrollable", async () => {
     const text = "const veryWideValue = 'copy me without clipping';";
     render(<Code text={text} category="typescript" />);
@@ -56,5 +57,15 @@ describe("shared rich content", () => {
 
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByText("x^2")).toBeDefined();
+  });
+
+  it("localizes task status without changing user-authored Markdown", async () => {
+    render(<MathContent text="- [ ] Keep this task" />);
+    const checkbox = screen.getByRole("checkbox", { name: "Task status" });
+
+    await getI18n().changeLanguage("ja");
+
+    expect(screen.getByRole("checkbox", { name: "タスクの状態" })).toBe(checkbox);
+    expect(screen.getByText("Keep this task")).toBeVisible();
   });
 });

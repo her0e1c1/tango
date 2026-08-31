@@ -49,6 +49,19 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const Japanese: Story = {
+  parameters: { locale: "ja" },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "デッキを作成" })).toBeVisible();
+    const [firstDeck] = mixed.studying;
+    if (firstDeck == null) throw new Error("Japanese requires at least one Deck");
+    const [firstDeckName] = canvas.getAllByText(firstDeck.deck.name);
+    if (firstDeckName == null) throw new Error("Japanese requires the first Deck name to be visible");
+    await expect(firstDeckName).toBeVisible();
+  },
+};
+
 export const ViewDeck: Story = {
   args: { deckCard: { onClickName: fn() } },
   play: async ({ args, canvas, userEvent }) => {

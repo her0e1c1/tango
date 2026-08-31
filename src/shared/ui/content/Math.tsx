@@ -8,6 +8,7 @@ import "github-markdown-css/github-markdown.css";
 import "katex/dist/katex.min.css";
 import type * as React from "react";
 import Markdown, { type Components } from "react-markdown";
+import { useTranslation } from "react-i18next";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -18,9 +19,16 @@ const MarkdownLink: NonNullable<Components["a"]> = ({ node: _node, style, ...pro
   <a {...props} style={{ ...style, textDecoration: "underline" }} />
 );
 
-const MarkdownInput: NonNullable<Components["input"]> = ({ node: _node, ...props }) => (
-  <input {...props} aria-label={props["aria-label"] ?? (props.type === "checkbox" ? "Task status" : undefined)} />
-);
+const MarkdownInput: NonNullable<Components["input"]> = ({ node: _node, ...props }) => {
+  const { t } = useTranslation();
+
+  return (
+    <input
+      {...props}
+      aria-label={props["aria-label"] ?? (props.type === "checkbox" ? t("richContent.taskStatus") : undefined)}
+    />
+  );
+};
 
 const markdownComponents = {
   a: MarkdownLink,

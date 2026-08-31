@@ -1,4 +1,5 @@
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
@@ -14,6 +15,7 @@ import { useCardListState } from "../model/useCardListState";
 import { CardList } from "./CardList";
 
 const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const deckFilter = useDeckFilterState(deck);
   // Card selection must use optimistic filter values before their persistence request completes.
@@ -29,16 +31,16 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
     <AppLayout showHeader={state.answer == null}>
       {state.deletionTarget != null ? (
         <DestructiveActionDialog
-          title="Delete card?"
-          targetLabel="Card front"
+          title={t("cardList.deletion.title")}
+          targetLabel={t("cardList.deletion.targetLabel")}
           targetName={state.deletionTarget.frontText}
           description={
             <>
-              <p>This permanently deletes this card.</p>
-              <p>This action cannot be undone.</p>
+              <p>{t("cardList.deletion.description")}</p>
+              <p>{t("cardList.deletion.irreversible")}</p>
             </>
           }
-          confirmLabel="Delete card"
+          confirmLabel={t("cardList.deletion.confirm")}
           pending={state.deletionPending}
           onCancel={state.onCancelDeletion}
           onConfirm={state.onConfirmDeletion}
@@ -77,6 +79,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 };
 
 export const CardListPage: React.FC = () => {
+  const { t } = useTranslation();
   const params = useParams();
   const navigate = useNavigate();
   const deckId = params.id;
@@ -88,7 +91,7 @@ export const CardListPage: React.FC = () => {
   const deck = useDeck(deckId);
   if (deck == null) {
     return (
-      <RouteNotFound title="Deck not found" description="The requested deck is unavailable or has been removed." />
+      <RouteNotFound title={t("cardList.deckNotFound.title")} description={t("cardList.deckNotFound.description")} />
     );
   }
 

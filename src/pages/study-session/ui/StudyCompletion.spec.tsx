@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { StudyCompletion } from "./StudyCompletion";
 
-describe("StudyCompletion", () => {
+describe("SWIPE-10 StudyCompletion", () => {
   it("shows the completed Card count and reports the return action", () => {
     const onClickBack = vi.fn();
     render(<StudyCompletion cardCount={1} onClickBack={onClickBack} />);

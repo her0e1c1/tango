@@ -7,13 +7,10 @@ import "@testing-library/jest-dom/vitest";
 import { StudyHelpDialog } from "./StudyHelpDialog";
 
 const dialogProps = {
-  title: "Study controls",
-  description: "Current controls and actions.",
-  closeLabel: "Close help",
   rows: [
-    { control: "Arrow Up / Swipe Up", action: "Mark mastered and go to the next card" },
-    { control: "Enter / Select Card", action: "Flip or reveal the current card" },
-  ],
+    { control: "cardSwipeUp", action: "GoToNextCardMastered" },
+    { control: "flip", action: "flip" },
+  ] as const,
 };
 
 const Harness: React.FC = () => {
@@ -35,7 +32,7 @@ const Harness: React.FC = () => {
   );
 };
 
-describe("StudyHelpDialog", () => {
+describe("SWIPE-24 StudyHelpDialog", () => {
   it("provides modal semantics and focuses a safe close control", async () => {
     const user = userEvent.setup();
     render(<Harness />);
@@ -43,7 +40,9 @@ describe("StudyHelpDialog", () => {
     await user.click(screen.getByRole("button", { name: "Open study help" }));
 
     const dialog = screen.getByRole("dialog", { name: "Study controls" });
-    expect(dialog).toHaveAccessibleDescription("Current controls and actions.");
+    expect(dialog).toHaveAccessibleDescription(
+      "Review the controls available for this study session and their current actions."
+    );
     expect(dialog).toHaveAttribute("aria-modal", "true");
     expect(screen.getByText("Arrow Up / Swipe Up")).toBeVisible();
     expect(screen.getByRole("button", { name: "Close help" })).toHaveFocus();

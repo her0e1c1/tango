@@ -1,4 +1,5 @@
 import { useEffect, useRef, type FC } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/shared/ui/button";
 
@@ -7,9 +8,8 @@ export interface StudyCompletionProps {
   onClickBack: () => void;
 }
 
-const cardsLabel = (count: number) => `${String(count)} ${count === 1 ? "card" : "cards"}`;
-
 export const StudyCompletion: FC<StudyCompletionProps> = ({ cardCount, onClickBack }) => {
+  const { t } = useTranslation();
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -22,13 +22,15 @@ export const StudyCompletion: FC<StudyCompletionProps> = ({ cardCount, onClickBa
       aria-labelledby="study-completion-title"
       className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
     >
-      <p className="text-caption font-bold uppercase tracking-wider text-accent-primary">Session complete</p>
+      <p className="text-caption font-bold uppercase tracking-wider text-accent-primary">
+        {t("studySession.completion.eyebrow")}
+      </p>
       <h1 ref={titleRef} id="study-completion-title" tabIndex={-1} className="mt-1 text-display font-bold">
-        Study complete
+        {t("studySession.completion.title")}
       </h1>
-      <p className="mt-3 text-body text-ink-muted">You studied {cardsLabel(cardCount)}.</p>
+      <p className="mt-3 text-body text-ink-muted">{t("studySession.completion.summary", { count: cardCount })}</p>
       <Button className="mt-6" variant="primary" size="lg" onClick={onClickBack}>
-        Back to deck list
+        {t("studySession.completion.back")}
       </Button>
     </section>
   );

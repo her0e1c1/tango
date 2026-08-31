@@ -3,6 +3,7 @@ import type { User, UserCredential } from "firebase/auth";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
+import { getI18n } from "react-i18next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -49,7 +50,7 @@ const ReloadableApp = () => {
   );
 };
 
-describe("AuthProvider", () => {
+describe("ACCOUNT-04 SETTINGS-04 AuthProvider", () => {
   beforeEach(() => {
     clearStudySessions();
     replaceAuthSession({ status: "initializing" });
@@ -75,6 +76,21 @@ describe("AuthProvider", () => {
     publishUser(createUser("user-a"));
     expect(screen.getByText("Authenticated content")).toBeVisible();
     expect(screen.queryByRole("heading", { level: 1, name: "Starting Tango…" })).not.toBeInTheDocument();
+  });
+
+  it("updates startup copy in place when the locale changes", async () => {
+    render(
+      <AuthProvider>
+        <p>Authenticated content</p>
+      </AuthProvider>
+    );
+    const heading = screen.getByRole("heading", { level: 1, name: "Starting Tango…" });
+
+    await getI18n().changeLanguage("ja");
+
+    expect(screen.getByRole("heading", { level: 1, name: "Tangoを起動しています…" })).toBe(heading);
+    expect(screen.getByText("デッキと学習の進捗を準備しています。")).toBeVisible();
+    expect(screen.queryByText("Authenticated content")).not.toBeInTheDocument();
   });
 
   it("shows bootstrap failure feedback and responds to reload", async () => {

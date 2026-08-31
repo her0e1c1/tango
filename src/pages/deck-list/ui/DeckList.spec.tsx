@@ -6,6 +6,7 @@
 
 import { fireEvent, render, within, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import { getI18n } from "react-i18next";
 import { describe, expect, it } from "vitest";
 
 import { createDeck } from "@/test/factories";
@@ -33,7 +34,7 @@ const sections = {
   other: [{ deck: otherDeck, cardCount: 7 }],
 } satisfies DeckListProps["sections"];
 
-describe("DeckList", () => {
+describe("SETTINGS-04 DECK-01 DeckList", () => {
   it("renders the page count and both compact sections", () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} />);
 
@@ -73,5 +74,17 @@ describe("DeckList", () => {
     expect(screen.getByText("0 decks")).toBeInTheDocument();
     expect(screen.queryByRole("region")).not.toBeInTheDocument();
     expect(screen.queryByText(/no decks/i)).not.toBeInTheDocument();
+  });
+
+  it("localizes fixed copy without translating user-created deck names", async () => {
+    await getI18n().changeLanguage("ja");
+    render(<DeckList sections={sections} onCreateDeck={onCreateDeck} />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "デッキ" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "デッキを作成" })).toBeInTheDocument();
+    expect(screen.getByText("2件")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "学習中" })).toHaveTextContent(activeDeck.name);
+    expect(screen.getByRole("region", { name: "その他のデッキ" })).toHaveTextContent(otherDeck.name);
+    expect(screen.getByRole("button", { name: `${activeDeck.name}の操作を開く` })).toBeInTheDocument();
   });
 });

@@ -1,4 +1,5 @@
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { type Deck, useDeck } from "@/entities/deck";
@@ -35,12 +36,13 @@ const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
 };
 
 export const CardCreatePage: React.FC = () => {
+  const { t } = useTranslation();
   const deckId = useParams().id;
   if (deckId === undefined) throw new Error("invalid deck id");
   const deck = useDeck(deckId);
   if (deck === undefined) {
     return (
-      <RouteNotFound title="Deck not found" description="The requested deck is unavailable or has been removed." />
+      <RouteNotFound title={t("cardForm.deckNotFound.title")} description={t("cardForm.deckNotFound.description")} />
     );
   }
 
