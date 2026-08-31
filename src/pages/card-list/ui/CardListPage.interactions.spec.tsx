@@ -110,7 +110,7 @@ const getCardArticle = (frontText: string) => {
   return article;
 };
 
-describe("CardListPage interactions", () => {
+describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
     vi.clearAllMocks();
