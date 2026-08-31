@@ -7,6 +7,7 @@
 import cx from "classnames";
 import type * as React from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
+import { useTranslation } from "react-i18next";
 
 /**
  * Renders the Upload user interface.
@@ -17,35 +18,39 @@ export const Upload: React.FC<{
   disabled?: boolean;
   fileName?: string;
   onChange?: (file: File) => void;
-}> = (props) => (
-  <label
-    className={cx(
-      "flex h-48 max-w-sm rounded-surface border-2 border-border bg-surface text-ink shadow-surface transition-shadow duration-normal ease-calm",
-      props.fileName ? "border-solid shadow-elevated" : "border-dashed",
-      props.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
-      props.className
-    )}
-  >
-    <div className="relative flex-1">
-      <div className="absolute flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center">
-        <AiOutlineCloudUpload size={24} className="text-xl text-accent-primary" />
-        <span className="text-base tracking-wide text-ink-muted">Upload a csv file</span>
-        {props.fileName ? <span className="max-w-full truncate font-semibold text-ink">{props.fileName}</span> : null}
-      </div>
-      <input
-        type="file"
-        className="h-full w-full cursor-inherit opacity-0"
-        accept=".csv"
-        disabled={props.disabled}
-        onChange={(e) => {
-          if (e.target.files != null) {
-            const [file] = e.target.files;
-            if (file != null) {
-              props.onChange?.(file);
+}> = (props) => {
+  const { t } = useTranslation();
+
+  return (
+    <label
+      className={cx(
+        "flex h-48 max-w-sm rounded-surface border-2 border-border bg-surface text-ink shadow-surface transition-shadow duration-normal ease-calm",
+        props.fileName ? "border-solid shadow-elevated" : "border-dashed",
+        props.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+        props.className
+      )}
+    >
+      <div className="relative flex-1">
+        <div className="absolute flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center">
+          <AiOutlineCloudUpload size={24} className="text-xl text-accent-primary" />
+          <span className="text-base tracking-wide text-ink-muted">{t("deckImport.uploadPrompt")}</span>
+          {props.fileName ? <span className="max-w-full truncate font-semibold text-ink">{props.fileName}</span> : null}
+        </div>
+        <input
+          type="file"
+          className="h-full w-full cursor-inherit opacity-0"
+          accept=".csv"
+          disabled={props.disabled}
+          onChange={(e) => {
+            if (e.target.files != null) {
+              const [file] = e.target.files;
+              if (file != null) {
+                props.onChange?.(file);
+              }
             }
-          }
-        }}
-      />
-    </div>
-  </label>
-);
+          }}
+        />
+      </div>
+    </label>
+  );
+};

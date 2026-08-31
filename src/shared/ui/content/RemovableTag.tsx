@@ -5,6 +5,7 @@
  */
 
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import { TagMarker, tagClassName } from "./tagStyles";
 
@@ -19,21 +20,25 @@ export interface RemovableTagProps {
  * Displays a selected filter as a button and calls onRemove when the user asks to remove that
  * label.
  */
-export const RemovableTag: React.FC<RemovableTagProps> = ({ className, label, onRemove }) => (
-  <button
-    type="button"
-    aria-label={`Remove ${label} filter`}
-    className={tagClassName({
-      interactive: true,
-      selected: true,
-      ...(className !== undefined ? { className } : {}),
-    })}
-    onClick={() => onRemove(label)}
-  >
-    <TagMarker selected />
-    <span className="min-w-0 max-w-full truncate">{label}</span>
-    <span aria-hidden="true" className="ml-2 shrink-0">
-      ×
-    </span>
-  </button>
-);
+export const RemovableTag: React.FC<RemovableTagProps> = ({ className, label, onRemove }) => {
+  const { t } = useTranslation();
+
+  return (
+    <button
+      type="button"
+      aria-label={t("tag.removeFilter", { label })}
+      className={tagClassName({
+        interactive: true,
+        selected: true,
+        ...(className !== undefined ? { className } : {}),
+      })}
+      onClick={() => onRemove(label)}
+    >
+      <TagMarker selected />
+      <span className="min-w-0 max-w-full truncate">{label}</span>
+      <span aria-hidden="true" className="ml-2 shrink-0">
+        ×
+      </span>
+    </button>
+  );
+};

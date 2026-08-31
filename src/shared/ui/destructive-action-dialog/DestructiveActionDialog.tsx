@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import { focusableElementSelector } from "../../lib/focusableElementSelector";
 import { Button } from "../button";
@@ -16,6 +17,7 @@ export interface DestructiveActionDialogProps {
 }
 
 export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (props) => {
+  const { t } = useTranslation();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const cancelRef = React.useRef<HTMLButtonElement>(null);
   const targetNameRef = React.useRef<HTMLSpanElement>(null);
@@ -138,7 +140,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
             className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-border bg-transparent px-4 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             onClick={handleCancel}
           >
-            {props.pending ? "Close" : "Cancel"}
+            {props.pending ? t("destructiveDialog.close") : t("destructiveDialog.cancel")}
           </button>
           <Button variant="destructive" loading={Boolean(props.pending)} onClick={handleConfirm}>
             {props.confirmLabel}

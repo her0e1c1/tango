@@ -1,4 +1,5 @@
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import { BackText } from "./BackText";
 
@@ -12,6 +13,7 @@ export interface CardViewProps {
 }
 
 export const CardView: React.FC<CardViewProps> = ({ text, category, code, dark, onClick, variant = "surface" }) => {
+  const { t } = useTranslation();
   const content = (
     <BackText
       text={text}
@@ -26,7 +28,7 @@ export const CardView: React.FC<CardViewProps> = ({ text, category, code, dark, 
 
   return (
     <section
-      aria-label="Card answer"
+      aria-label={t("card.answerAria")}
       className="mx-auto w-full rounded-surface bg-surface-elevated text-ink shadow-surface"
     >
       {content}

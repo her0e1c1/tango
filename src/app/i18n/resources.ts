@@ -9,6 +9,36 @@ export const resources = {
         openAccount: "Open account",
         openSettings: "Open settings",
       },
+      card: {
+        answerAria: "Card answer",
+      },
+      deckImport: {
+        uploadPrompt: "Upload a csv file",
+      },
+      navigationGuard: {
+        title: "Discard unsaved changes?",
+        description: "Your changes will be lost if you leave this page.",
+        keepEditing: "Keep editing",
+        discard: "Discard changes",
+      },
+      destructiveDialog: {
+        cancel: "Cancel",
+        close: "Close",
+      },
+      notFound: {
+        page: "Page not found",
+        goHome: "Go home",
+        goBack: "Go back",
+      },
+      score: {
+        aria: "Score {{score}}, {{cue}}",
+        positive: "positive",
+        negative: "negative",
+        neutral: "neutral",
+      },
+      tag: {
+        removeFilter: "Remove {{label}} filter",
+      },
       settings: {
         title: "Settings",
         autoSave: "Changes are saved automatically",
@@ -95,6 +125,36 @@ export const resources = {
         importDecks: "デッキをインポート",
         openAccount: "アカウントを開く",
         openSettings: "設定を開く",
+      },
+      card: {
+        answerAria: "カードの回答",
+      },
+      deckImport: {
+        uploadPrompt: "CSVファイルをアップロード",
+      },
+      navigationGuard: {
+        title: "未保存の変更を破棄しますか？",
+        description: "このページを離れると変更内容は失われます。",
+        keepEditing: "編集を続ける",
+        discard: "変更を破棄",
+      },
+      destructiveDialog: {
+        cancel: "キャンセル",
+        close: "閉じる",
+      },
+      notFound: {
+        page: "ページが見つかりません",
+        goHome: "ホームへ",
+        goBack: "戻る",
+      },
+      score: {
+        aria: "スコア {{score}}、{{cue}}",
+        positive: "正",
+        negative: "負",
+        neutral: "中立",
+      },
+      tag: {
+        removeFilter: "{{label}}フィルターを削除",
       },
       settings: {
         title: "設定",
