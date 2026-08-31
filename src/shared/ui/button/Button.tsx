@@ -20,6 +20,7 @@ export type ButtonProps = {
   variant?: ButtonVariant;
   size?: ButtonSize;
   children?: React.ReactNode;
+  ref?: React.Ref<HTMLButtonElement>;
   onClick?: () => void;
 };
 
@@ -46,7 +47,7 @@ const getLoadingAnnouncement = (content: React.ReactNode) =>
  * Renders label or child content with the requested variant and size while announcing and
  * disabling loading work.
  */
-export const Button: React.FC<ButtonProps> = (props) => {
+export const Button: React.FC<ButtonProps> = ({ ref, ...props }) => {
   const variant = resolveVariant(props);
   const size = resolveSize(props);
   const inactive = props.disabled || props.loading;
@@ -56,6 +57,7 @@ export const Button: React.FC<ButtonProps> = (props) => {
   return (
     <>
       <button
+        ref={ref}
         type={props.type ?? "button"}
         hidden={props.hidden}
         className={cx(

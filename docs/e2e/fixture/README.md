@@ -8,6 +8,7 @@
 - `auth.users` は mock する認証 identity を表す。
 - `remote` は Firestore emulator に保存する Deck / Card を表す。
 - `browser` は localStorage に保存する preference、local-only data、Study session を表す。
+- `remote.absentCards` と `browser.absentCards` は Study session が参照するが persistence には存在しない Card identity を表す。
 - fixture YAML にはアプリケーション上の永続状態を記述し、Firestore 固有の serialization は記述しない。
 - 認証失敗、network failure、dialog の表示状態など永続状態ではない前提は fixture に含めず、各ケースの `Given` に記述する。
 - YAML alias は使用しない。
@@ -54,6 +55,15 @@
 - `deletedAt: null`
 - `createdAt: 0`
 - `updatedAt: 0`
+
+### Absent Card
+
+- `absentCards` は `id` と `deckId` だけを持ち、remote identity では `uid` も指定する。
+- absent Card は namespace と参照 validation の対象だが、Firestore emulator または browser storage へ document として seed しない。
+- active / tombstoned Card と同じ ID を重複して宣言できない。
+- remote absent Card の Deck と owner、local absent Card の Deck は既存の参照先と一致させる。
+- absent Card は少なくとも1つの Study session から参照されなければならない。
+- tombstone は absent Card へ変換せず、通常の Card の `deletedAt` で物理 document として表す。
 
 ### Study session
 

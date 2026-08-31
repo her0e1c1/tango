@@ -6,15 +6,24 @@ import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { deleteCard, mutateCards } from "@/entities/card";
-import { createDeck } from "@/entities/deck";
+import { clearRemoteCards, deleteCard, mutateCards, type RemoteCardReadResult } from "@/entities/card";
+import { createDeck, type Deck } from "@/entities/deck";
 import { clearStudySessions, getStudySession, setStudySessionIndex, startStudy } from "@/entities/study-session";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
-import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
+import {
+  createCard as createRemoteCard,
+  createDeck as createRemoteDeck,
+  createLocalCard,
+  createLocalDeck,
+  createPreferences,
+} from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
   editStudyProgress: vi.fn(),
+  deckOverride: undefined as Deck | undefined,
+  fetchRemoteCardRead: vi.fn(),
+  localCardsHydrated: true,
   removeStudySession: vi.fn(),
   setDarkMode: vi.fn(),
   touchStudySession: vi.fn(),
@@ -25,6 +34,24 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/card", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/entities/card")>();
+  return {
+    ...original,
+    fetchRemoteCardRead: mocks.fetchRemoteCardRead,
+    useLocalCardsHydrated: () => mocks.localCardsHydrated,
+  };
+});
+vi.mock("@/entities/deck", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/entities/deck")>();
+  return {
+    ...original,
+    useDeck: (id: string) => {
+      const deck = original.useDeck(id);
+      return mocks.deckOverride ?? deck;
+    },
+  };
+});
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
@@ -65,7 +92,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage", () => {
+describe("SWIPE-01 SWIPE-08 SWIPE-10 SWIPE-24 SWIPE-27 SWIPE-28 SWIPE-29 StudySessionPage", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -94,6 +121,7 @@ describe("StudySessionPage", () => {
           <Routes>
             <Route path="/" element={<DeckListDestination />} />
             <Route path="/previous" element={<h1>Previous destination</h1>} />
+            <Route path="/deck/:id/start" element={<h1>Study setup destination</h1>} />
             <Route path="/deck/:id/study" element={<StudySessionPage />} />
           </Routes>
         </MemoryRouter>
@@ -109,9 +137,13 @@ describe("StudySessionPage", () => {
   beforeEach(async () => {
     document.documentElement.lang = "en";
     clearStudySessions();
+    clearRemoteCards();
+    mocks.deckOverride = undefined;
     dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.editStudyProgress.mockReset().mockResolvedValue(undefined);
+    mocks.fetchRemoteCardRead.mockReset();
+    mocks.localCardsHydrated = true;
     mocks.removeStudySession.mockReset();
     mocks.setDarkMode.mockReset();
     mocks.touchStudySession.mockReset();
@@ -192,7 +224,8 @@ describe("StudySessionPage", () => {
     expect(screen.queryByText("Back two")).not.toBeInTheDocument();
     expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith(
       "user-id",
-      expect.objectContaining({ cardId: "first-card", score: 3, numberOfSeen: 4 })
+      expect.objectContaining({ cardId: "first-card", score: 3, numberOfSeen: 4 }),
+      { persistence: "local", cardId: "first-card" }
     );
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
@@ -466,30 +499,147 @@ describe("StudySessionPage", () => {
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
 
-  it("shows loading feedback while active session cards are unavailable", async () => {
+  it("keeps a local-missing reason visible until explicit recovery returns to Study setup", async () => {
     await deleteCard("", firstCard);
     await deleteCard("", secondCard);
     clearStudySessions();
     startStudy(deckId, [firstCard], mocks.preferences.study);
+    const unavailableSession = getStudySession(deckId);
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "This local study card is missing." })).toBeVisible();
+    expect(screen.getByText(/no longer stored on this device/i)).toBeVisible();
+    expect(getStudySession(deckId)).toEqual(unavailableSession);
+    const recovery = screen.getByRole("button", { name: "Back to study setup" });
+    expect(recovery).toHaveFocus();
+
+    fireEvent.click(recovery);
+
+    expect(screen.getByRole("heading", { name: "Study setup destination" })).toBeVisible();
+    expect(getStudySession(deckId)).toBeUndefined();
   });
 
-  it("returns to the deck list when no active session exists", async () => {
+  it("keeps a structurally invalid session reason visible until the user chooses a destination", () => {
     clearStudySessions();
     renderPage();
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "This study session can’t be resumed." })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to study setup" }));
+    expect(screen.getByRole("heading", { name: "Study setup destination" })).toBeVisible();
   });
 
   it("shows route feedback when the Deck Entity is unavailable", () => {
     renderPage("/deck/missing-deck/study");
 
-    expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Study deck unavailable." })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Back to deck list" })).toHaveFocus();
     expect(mocks.removeStudySession).not.toHaveBeenCalled();
     expect(mocks.touchStudySession).not.toHaveBeenCalled();
+  });
+
+  it("keeps the verifying screen resumable and offers Exit without a duplicate Retry", () => {
+    const remoteDeck = createRemoteDeck({ id: deckId, name: "Remote study deck" });
+    const remoteCard = createRemoteCard({ id: "remote-card", deckId, frontText: "Remote front" });
+    mocks.deckOverride = remoteDeck;
+    clearStudySessions();
+    startStudy(deckId, [remoteCard], mocks.preferences.study);
+    const sessionBeforeExit = getStudySession(deckId);
+    mocks.fetchRemoteCardRead.mockReturnValue(new Promise<RemoteCardReadResult>(() => undefined));
+
+    renderPage();
+
+    expect(screen.getByRole("heading", { name: "Verifying study session…" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
+    expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
+
+    fireEvent.click(screen.getByRole("button", { name: "Exit" }));
+    expect(screen.getByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
+  });
+
+  it.each([
+    [{ status: "missing" } as const, "This study card is unavailable.", /could not be found/i],
+    [{ status: "tombstoned" } as const, "This study card was deleted.", /available cards/i],
+  ])("keeps confirmed remote %s feedback visible until explicit recovery", async (result, title, description) => {
+    const remoteDeck = createRemoteDeck({ id: deckId, name: "Remote study deck" });
+    const remoteCard = createRemoteCard({ id: "remote-card", deckId, frontText: "Remote front" });
+    mocks.deckOverride = remoteDeck;
+    clearStudySessions();
+    startStudy(deckId, [remoteCard], mocks.preferences.study);
+    const unavailableSession = getStudySession(deckId);
+    mocks.fetchRemoteCardRead.mockResolvedValue(result);
+
+    renderPage();
+
+    expect(await screen.findByRole("heading", { name: title })).toBeVisible();
+    expect(screen.getByText(description)).toBeVisible();
+    expect(getStudySession(deckId)).toEqual(unavailableSession);
+    const recovery = screen.getByRole("button", { name: "Back to study setup" });
+    expect(recovery).toHaveFocus();
+
+    fireEvent.click(recovery);
+    expect(screen.getByRole("heading", { name: "Study setup destination" })).toBeVisible();
+    expect(getStudySession(deckId)).toBeUndefined();
+  });
+
+  it("disables duplicate Retry and restores focus to the same Card without losing session position", async () => {
+    const remoteDeck = createRemoteDeck({ id: deckId, name: "Remote study deck" });
+    const remoteCard = createRemoteCard({
+      id: "remote-card",
+      deckId,
+      frontText: "Recovered remote front",
+      score: 4,
+      numberOfSeen: 5,
+    });
+    mocks.deckOverride = remoteDeck;
+    clearStudySessions();
+    startStudy(deckId, [remoteCard], mocks.preferences.study);
+    const sessionBeforeRetry = getStudySession(deckId);
+    mocks.fetchRemoteCardRead.mockRejectedValueOnce(new Error("temporary verification failure"));
+
+    renderPage();
+
+    expect(await screen.findByRole("heading", { name: "We couldn’t verify this study card." })).toBeVisible();
+    const readyRetry = screen.getByRole("button", { name: "Retry" });
+    expect(readyRetry).toHaveFocus();
+    expect(getStudySession(deckId)).toEqual(sessionBeforeRetry);
+
+    let resolveRetry: ((result: RemoteCardReadResult) => void) | undefined;
+    mocks.fetchRemoteCardRead.mockImplementationOnce(
+      () =>
+        new Promise<RemoteCardReadResult>((resolve) => {
+          resolveRetry = resolve;
+        })
+    );
+    fireEvent.click(readyRetry);
+
+    const pendingRetry = screen.getByRole("button", { name: "Retry" });
+    expect(pendingRetry).toBeDisabled();
+    expect(pendingRetry).toHaveAttribute("aria-busy", "true");
+    fireEvent.click(pendingRetry);
+    expect(mocks.fetchRemoteCardRead).toHaveBeenCalledTimes(2);
+    expect(getStudySession(deckId)).toEqual(sessionBeforeRetry);
+
+    act(() => {
+      resolveRetry?.({
+        status: "active",
+        read: {
+          card: remoteCard,
+          progress: { cardId: remoteCard.id, score: remoteCard.score, numberOfSeen: remoteCard.numberOfSeen },
+        },
+      });
+    });
+
+    const recoveredCard = await screen.findByRole("button", { name: "Recovered remote front" });
+    expect(recoveredCard).toHaveFocus();
+    expect(getStudySession(deckId)).toMatchObject({
+      sessionId: sessionBeforeRetry?.sessionId,
+      cardOrderIds: sessionBeforeRetry?.cardOrderIds,
+      currentIndex: sessionBeforeRetry?.currentIndex,
+    });
   });
 
   it("rejects a route without a deck id", () => {

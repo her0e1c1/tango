@@ -27,6 +27,24 @@ export const ErrorState: Story = {
   },
 };
 
+export const RetryPending: Story = {
+  args: {
+    title: "Unable to verify the study card",
+    description: "The card might still be available.",
+    tone: "error",
+    primaryAction: {
+      label: "Retry",
+      onClick: fn(),
+      disabled: true,
+      loading: true,
+    },
+    secondaryAction: {
+      label: "Exit",
+      onClick: fn(),
+    },
+  },
+};
+
 export const NotFound: Story = {
   args: {
     title: "Page not found",

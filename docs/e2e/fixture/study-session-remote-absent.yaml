@@ -1,0 +1,19 @@
+extends: study-session-start.yaml
+remote:
+  cards:
+    - id: tombstoned-card
+      deckId: deck-1
+      uid: user-1
+      frontText: deleted
+      backText: deleted answer
+      uniqueKey: deleted
+      deletedAt: 1
+  absentCards:
+    - id: missing-card
+      uid: user-1
+      deckId: deck-1
+browser:
+  studySessions:
+    deck-1:
+      cardOrderIds: [missing-card, tombstoned-card]
+      currentIndex: 0

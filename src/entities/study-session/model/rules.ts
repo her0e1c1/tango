@@ -103,7 +103,7 @@ export const selectStudyCards = <TCard extends StudyCardSelectionCard>(
 const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
   session.cardOrderIds[session.currentIndex];
 
-// Resolves whether an active session can study now, is waiting for Cards, or is invalid.
+// Reports snapshot absence without guessing whether an external read has completed.
 export const resolveStudySession = <Card extends StudySessionCard>(
   session: StudySession | undefined,
   cards: readonly Card[]
@@ -111,13 +111,12 @@ export const resolveStudySession = <Card extends StudySessionCard>(
   if (session == null) return { status: "invalid" };
 
   const cardId = getCurrentStudySessionCardId(session);
-  if (cardId == null) return { status: "invalid" };
+  if (cardId == null) return { status: "invalid", session };
 
   const card = cards.find(({ id }) => id === cardId);
   if (card != null) return { status: "studying", session, card };
 
-  // An empty collection can still be an in-flight read; loaded Cards prove that the persisted Card is absent.
-  return { status: cards.length === 0 ? "preparing" : "invalid" };
+  return { status: "absent", session, cardId };
 };
 
 // Collapses control actions into the movement, exit, or no-op effects understood by a study session.

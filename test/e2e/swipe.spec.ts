@@ -1,6 +1,17 @@
 import type { Page } from "@playwright/test";
 
-import { allowExpectedFirestoreWriteFailure, expect, failNextFirestoreWrite, readLocalData, test } from "./fixtures";
+import {
+  allowExpectedFirestoreWriteFailure,
+  expect,
+  failNextFirestoreWrite,
+  gateNextFirestoreDocumentListen,
+  getDocument,
+  readLocalData,
+  seedForeignOwnedCard,
+  seedStudySessions,
+  setDocument,
+  test,
+} from "./fixtures";
 import { progressOf, readProgress, readSession } from "./study-helpers";
 
 const cardAt = <T>(cards: readonly T[], index: number) => {
@@ -421,4 +432,161 @@ test("SWIPE-25 toggles and persists the Study Help button", async ({ fixture, pa
   await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
   await page.getByRole("button", { name: "Open study actions" }).click();
   await expect(page.getByRole("button", { name: "Help button" })).toHaveAttribute("aria-pressed", "false");
+});
+
+test("SWIPE-27 explains missing and deleted remote targets before explicit Study recovery", async ({
+  fixture,
+  page,
+}) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const missingTarget = fixture.absentCard("missing-card");
+  const tombstonedTarget = fixture.card("tombstoned-card");
+  await fixture.apply(page);
+  expect(await getDocument("card", missingTarget.id)).toBeUndefined();
+  expect((await getDocument("card", tombstonedTarget.id))?.fields.deletedAt?.integerValue).toBe("1");
+
+  await test.step("server-confirmed missing target", async () => {
+    const pendingVerification = await gateNextFirestoreDocumentListen(page, missingTarget.id);
+    await page.goto(`/deck/${deck.id}/study`);
+    await pendingVerification.waitUntilBlocked();
+
+    await expect(page.getByRole("heading", { name: "Verifying study session…" })).toBeVisible();
+    await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
+    pendingVerification.release();
+
+    await expect(page.getByRole("heading", { name: "This study card is unavailable." })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "This study card is unavailable." })).toBeVisible();
+    await expect(
+      page.getByText("The card could not be found. Return to study setup to continue with the available cards.")
+    ).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+    await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
+    const recover = page.getByRole("button", { name: "Back to study setup" });
+    await expect(recover).toBeFocused();
+    await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(0);
+
+    await recover.click();
+
+    await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/start$`));
+    await expect.poll(() => readSession(page, deck.id)).toBeUndefined();
+    await expect(page.getByRole("heading", { name: "Study complete" })).toHaveCount(0);
+    await pendingVerification.dispose();
+  });
+
+  await test.step("server-confirmed tombstoned target", async () => {
+    const tombstonedSession = { ...session, currentIndex: 1 };
+    await seedStudySessions(page, { [deck.id]: tombstonedSession }, [deck.name]);
+    await page.goto(`/deck/${deck.id}/study`);
+
+    await expect(page.getByRole("heading", { name: "This study card was deleted." })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "This study card was deleted." })).toBeVisible();
+    await expect(page.getByText("Return to study setup to continue with the available cards.")).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+    await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
+    const recover = page.getByRole("button", { name: "Back to study setup" });
+    await expect(recover).toBeFocused();
+    await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(1);
+
+    await recover.click();
+
+    await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/start$`));
+    await expect.poll(() => readSession(page, deck.id)).toBeUndefined();
+    await expect(page.getByRole("heading", { name: "Study complete" })).toHaveCount(0);
+  });
+});
+
+test("SWIPE-28 preserves the remote session while Exit and one pending Retry recover the same Card", async ({
+  fixture,
+  page,
+}) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const target = fixture.absentCard("missing-card");
+  const recoveredFront = "Recovered study card";
+  await fixture.apply(page);
+  await seedForeignOwnedCard(target.id);
+
+  await page.goto(`/deck/${deck.id}/study`);
+
+  await expect(page.getByRole("heading", { name: "We couldn’t verify this study card." })).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("We couldn’t verify this study card.");
+  await expect(
+    page.getByText("The card might still be available. Retry, or exit without losing your place.")
+  ).toBeVisible();
+  const initialRetry = page.getByRole("button", { name: "Retry" });
+  await expect(initialRetry).toBeFocused();
+  await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+
+  await page.getByRole("button", { name: "Exit" }).click();
+
+  await expect(page).toHaveURL(/\/$/u);
+  await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
+  await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
+  await expect(page.getByRole("heading", { name: "We couldn’t verify this study card." })).toBeVisible();
+
+  const retryVerification = await gateNextFirestoreDocumentListen(page, target.id);
+  const retry = page.getByRole("button", { name: "Retry" });
+  await retry.click();
+  await retryVerification.waitUntilBlocked();
+
+  await expect(retry).toBeDisabled();
+  await expect(retry).toHaveAttribute("aria-busy", "true");
+  await expect(page.getByRole("status").filter({ hasText: "Loading Retry" })).toBeVisible();
+  await retry.evaluate((button: HTMLButtonElement) => button.click());
+  expect(retryVerification.matchingRequestCount()).toBe(1);
+  await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+
+  await setDocument("card", target.id, {
+    id: target.id,
+    uid: fixture.user().uid,
+    deckId: deck.id,
+    frontText: recoveredFront,
+    backText: "Recovered answer",
+    tags: [],
+    uniqueKey: "recovered-study-card",
+    score: 0,
+    numberOfSeen: 0,
+    deletedAt: null,
+    createdAt: 0,
+    updatedAt: 0,
+  });
+  retryVerification.release();
+
+  const recoveredCard = page.getByRole("button", { name: recoveredFront, exact: true });
+  await expect(recoveredCard).toBeVisible();
+  await expect(recoveredCard).toBeFocused();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+  await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+  await expect(page.getByRole("heading", { name: "Study complete" })).toHaveCount(0);
+  expect(retryVerification.matchingRequestCount()).toBe(1);
+  await retryVerification.dispose();
+});
+
+test("SWIPE-29 explains a missing local target before explicit Study recovery", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+
+  await expect(page.getByRole("heading", { name: "This local study card is missing." })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "This local study card is missing." })).toBeVisible();
+  await expect(
+    page.getByText("The card is no longer stored on this device. Return to study setup to continue.")
+  ).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+  await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
+  const recover = page.getByRole("button", { name: "Back to study setup" });
+  await expect(recover).toBeFocused();
+  await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
+
+  await recover.click();
+
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/start$`));
+  await expect.poll(() => readSession(page, deck.id)).toBeUndefined();
+  await expect(page.getByRole("heading", { name: "Study complete" })).toHaveCount(0);
 });

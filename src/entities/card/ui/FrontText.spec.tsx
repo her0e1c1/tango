@@ -8,7 +8,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { FrontText } from "./FrontText";
 
-describe("FrontText", () => {
+describe("SWIPE-28 FrontText", () => {
   it("preserves content and click interaction", () => {
     const onClick = vi.fn();
     render(<FrontText text="A very long front without spaces: abcdefghijklmnopqrstuvwxyz" onClick={onClick} />);
@@ -32,5 +32,11 @@ describe("FrontText", () => {
     fireEvent.keyDown(screen.getByRole("button", { name: "Front" }), { key: "Enter" });
 
     expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it("restores focus when Study resumes after verification Retry", () => {
+    render(<FrontText text="Recovered front" onClick={vi.fn()} autoFocus />);
+
+    expect(screen.getByRole("button", { name: "Recovered front" })).toHaveFocus();
   });
 });

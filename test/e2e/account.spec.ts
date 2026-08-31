@@ -118,7 +118,8 @@ test("ACCOUNT-03 Sign-out switches to a new anonymous identity boundary", async 
   await expect(page.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
   await expect(page.getByText(card.frontText, { exact: true })).toHaveCount(0);
   await page.goto(`/deck/${deck.id}/study`);
-  await expect(page.getByRole("heading", { level: 1, name: "Study session unavailable." })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Study deck unavailable." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Back to deck list" })).toBeFocused();
   const sessions = await page.evaluate(
     () => JSON.parse(localStorage.getItem("tango-study") ?? "{}").state?.sessionsByDeckId ?? {}
   );

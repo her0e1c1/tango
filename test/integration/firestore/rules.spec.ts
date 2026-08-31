@@ -4,7 +4,7 @@
  * "should create a deck", "should update a deck".
  */
 
-import { it, describe, beforeEach, beforeAll, afterAll } from "vitest";
+import { it, describe, beforeEach, beforeAll, afterAll, expect } from "vitest";
 import * as fs from "node:fs";
 import {
   assertFails,
@@ -12,12 +12,12 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { setDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import * as Uuid from "uuid";
 
 const uuid = Uuid.v4;
 
-describe("firestore/rule", () => {
+describe("SWIPE-27 SWIPE-28 firestore/rule", () => {
   let testEnv: RulesTestEnvironment;
 
   const createData = async (path: string, id: string, data: object) => {
@@ -85,6 +85,21 @@ describe("firestore/rule", () => {
         await assertSucceeds(getDoc(doc(db, "card", id)));
       });
 
+      it("should confirm that a card is missing", async () => {
+        const snapshot = await assertSucceeds(getDoc(doc(db, "card", uuid())));
+        expect(snapshot.exists()).toBe(false);
+      });
+
+      it("should keep card lists scoped to their owner", async () => {
+        const [ownedId, foreignId] = [uuid(), uuid()];
+        await createData("card", ownedId, { uid: "uid" });
+        await createData("card", foreignId, { uid: "other" });
+
+        const ownedCards = await assertSucceeds(getDocs(query(collection(db, "card"), where("uid", "==", "uid"))));
+        expect(ownedCards.docs.map(({ id }) => id)).toEqual([ownedId]);
+        await assertFails(getDocs(collection(db, "card")));
+      });
+
       it("should create a card", async () => {
         const [deckId, id] = [uuid(), uuid()];
         await createData("deck", deckId, { uid: "uid" });
@@ -145,10 +160,16 @@ describe("firestore/rule", () => {
     });
 
     describe("card", () => {
-      it("should not read a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
-        await assertFails(getDoc(doc(db, "card", id)));
+      it("should not read another owner's private card", async () => {
+        const [deckId, cardId] = [uuid(), uuid()];
+        await createData("deck", deckId, { uid: "uid", isPublic: false });
+        await createData("card", cardId, { uid: "uid", deckId });
+        await assertFails(getDoc(doc(db, "card", cardId)));
+      });
+
+      it("should let an authenticated non-owner confirm that a card is missing", async () => {
+        const snapshot = await assertSucceeds(getDoc(doc(db, "card", uuid())));
+        expect(snapshot.exists()).toBe(false);
       });
 
       it("should read a public card", async () => {
@@ -220,6 +241,10 @@ describe("firestore/rule", () => {
         const id = uuid();
         await createData("card", id, { uid: "uid" });
         await assertFails(getDoc(doc(db, "card", id)));
+      });
+
+      it("should not confirm missing cards without authentication", async () => {
+        await assertFails(getDoc(doc(db, "card", uuid())));
       });
 
       it("should read a public card", async () => {

@@ -4,7 +4,7 @@
  * and interaction rules.
  */
 
-import type * as React from "react";
+import * as React from "react";
 
 import { Button, type ButtonVariant } from "../button";
 import { Layout } from "../layout";
@@ -15,6 +15,9 @@ interface RouteFeedbackAction {
   label: string;
   onClick: () => void;
   variant?: ButtonVariant;
+  disabled?: boolean;
+  loading?: boolean;
+  autoFocus?: boolean;
 }
 
 export interface RouteFeedbackProps {
@@ -29,11 +32,25 @@ export interface RouteFeedbackProps {
  * Renders the Action Button user interface.
  * Renders the optional recovery action and calls its handler when the user activates the button.
  */
-const ActionButton = ({ action, defaultVariant }: { action: RouteFeedbackAction; defaultVariant: ButtonVariant }) => (
-  <Button variant={action.variant ?? defaultVariant} onClick={action.onClick}>
-    {action.label}
-  </Button>
-);
+const ActionButton = ({ action, defaultVariant }: { action: RouteFeedbackAction; defaultVariant: ButtonVariant }) => {
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    if (action.autoFocus && !action.disabled && !action.loading) buttonRef.current?.focus();
+  }, [action.autoFocus, action.disabled, action.loading]);
+
+  return (
+    <Button
+      ref={buttonRef}
+      variant={action.variant ?? defaultVariant}
+      {...(action.disabled !== undefined ? { disabled: action.disabled } : {})}
+      {...(action.loading !== undefined ? { loading: action.loading } : {})}
+      onClick={action.onClick}
+    >
+      {action.label}
+    </Button>
+  );
+};
 
 /**
  * Renders the Route Feedback user interface.

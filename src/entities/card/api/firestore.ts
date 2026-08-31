@@ -9,7 +9,17 @@ import type {
   RemoteCardRead,
 } from "../model/types";
 
-import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocFromServer,
+  getDocsFromServer,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 
 import { mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
 import { db } from "@/shared/firebase";
@@ -27,6 +37,12 @@ export interface CardRead {
   card: RemoteCardRead;
   progress: StudyProgress;
 }
+
+/** Server-confirmed physical state for one remote Card document. */
+export type RemoteCardReadResult =
+  | { status: "active"; read: CardRead }
+  | { status: "missing" }
+  | { status: "tombstoned" };
 
 /** Maps one physical Card document into independent Card and StudyProgress read models. */
 const mapCardRead = (id: CardId, value: unknown): CardRead => {
@@ -81,6 +97,16 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
 export const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
   const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
   return mapActiveCardReads(snapshot.docs);
+};
+
+/** Reads one Card from the server without treating a collection snapshot miss as deletion. */
+export const fetchRemoteCardRead = async (uid: string, cardId: CardId): Promise<RemoteCardReadResult> => {
+  const snapshot = await getDocFromServer(doc(db, CARD_COLLECTION, cardId));
+  if (!snapshot.exists()) return { status: "missing" };
+
+  const read = mapCardRead(cardId, snapshot.data());
+  if (read.card.uid !== uid) throw new Error("Card owner does not match the authenticated user");
+  return read.card.deletedAt === null ? { status: "active", read } : { status: "tombstoned" };
 };
 
 /** Writes a new physical Card document with synchronized creation and update timestamps. */

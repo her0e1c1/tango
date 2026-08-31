@@ -56,6 +56,12 @@ export interface FixtureCard {
   interval?: number;
 }
 
+export interface FixtureAbsentCard {
+  id: string;
+  deckId: string;
+  uid?: string;
+}
+
 export interface FixtureStudySession {
   sessionId: string;
   deckId: string;
@@ -99,11 +105,12 @@ export interface FixturePreferences {
 
 export interface FixtureState {
   auth: { users: FixtureUser[] };
-  remote: { decks: FixtureDeck[]; cards: FixtureCard[] };
+  remote: { decks: FixtureDeck[]; cards: FixtureCard[]; absentCards: FixtureAbsentCard[] };
   browser: {
     preferences: FixturePreferences;
     localDecks: FixtureDeck[];
     localCards: FixtureCard[];
+    absentCards: FixtureAbsentCard[];
     studySessions: Record<string, FixtureStudySession>;
   };
 }
@@ -120,6 +127,7 @@ export interface NamespacedFixture {
   users: ReadonlyMap<string, FixtureUser>;
   decks: ReadonlyMap<string, FixtureDeck>;
   cards: ReadonlyMap<string, FixtureCard>;
+  absentCards: ReadonlyMap<string, FixtureAbsentCard>;
   sessions: ReadonlyMap<string, FixtureStudySession>;
   uid: (logicalUid: string) => string;
   id: (logicalId: string) => string;
@@ -238,6 +246,17 @@ const localCardSchema = z.strictObject({
   ...cardStateFields,
 });
 
+const remoteAbsentCardSchema = z.strictObject({
+  id: nonEmptyString,
+  deckId: nonEmptyString,
+  uid: nonEmptyString,
+});
+
+const localAbsentCardSchema = z.strictObject({
+  id: nonEmptyString,
+  deckId: nonEmptyString,
+});
+
 const swipeActionSchema = z.enum([
   "DoNothing",
   "GoBack",
@@ -311,6 +330,7 @@ const fixtureDocumentSchema = z.strictObject({
     .strictObject({
       decks: z.array(remoteDeckSchema).optional(),
       cards: z.array(remoteCardSchema).optional(),
+      absentCards: z.array(remoteAbsentCardSchema).optional(),
     })
     .optional(),
   browser: z
@@ -318,6 +338,7 @@ const fixtureDocumentSchema = z.strictObject({
       preferences: preferencesSchema.optional(),
       localDecks: z.array(localDeckSchema).optional(),
       localCards: z.array(localCardSchema).optional(),
+      absentCards: z.array(localAbsentCardSchema).optional(),
       studySessions: z.record(nonEmptyString, studySessionSchema).optional(),
       sampleDeck: sampleDeckSchema.optional(),
     })
@@ -329,6 +350,8 @@ type RawRemoteDeck = z.infer<typeof remoteDeckSchema>;
 type RawLocalDeck = z.infer<typeof localDeckSchema>;
 type RawRemoteCard = z.infer<typeof remoteCardSchema>;
 type RawLocalCard = z.infer<typeof localCardSchema>;
+type RawRemoteAbsentCard = z.infer<typeof remoteAbsentCardSchema>;
+type RawLocalAbsentCard = z.infer<typeof localAbsentCardSchema>;
 type RawPreferences = z.infer<typeof preferencesSchema>;
 type RawUser = z.infer<typeof userSchema>;
 type RawStudySession = z.infer<typeof studySessionSchema>;
@@ -754,8 +777,10 @@ interface LogicalFixtureCollections {
   users: RawUser[];
   remoteDecks: RawRemoteDeck[];
   remoteCards: RawRemoteCard[];
+  remoteAbsentCards: RawRemoteAbsentCard[];
   localDecks: RawLocalDeck[];
   localCards: RawLocalCard[];
+  localAbsentCards: RawLocalAbsentCard[];
   studySessions: Record<string, RawStudySession>;
   sampleDeck: RawSampleDeck | undefined;
   sampleCards: RawSampleCard[];
@@ -773,8 +798,10 @@ const collectLogicalFixture = (document: FixtureDocument): LogicalFixtureCollect
   } = document;
   const remoteDecks = document.remote?.decks ?? [];
   const remoteCards = document.remote?.cards ?? [];
+  const remoteAbsentCards = document.remote?.absentCards ?? [];
   const localDecks = document.browser?.localDecks ?? [];
   const localCards = document.browser?.localCards ?? [];
+  const localAbsentCards = document.browser?.absentCards ?? [];
   const studySessions = document.browser?.studySessions ?? {};
   const sampleDeck = document.browser?.sampleDeck;
   const sampleCards = parseSampleCards(sampleDeck);
@@ -782,8 +809,10 @@ const collectLogicalFixture = (document: FixtureDocument): LogicalFixtureCollect
     users,
     remoteDecks,
     remoteCards,
+    remoteAbsentCards,
     localDecks,
     localCards,
+    localAbsentCards,
     studySessions,
     sampleDeck,
     sampleCards,
@@ -801,7 +830,12 @@ const validateUniqueLogicalIds = (fixture: LogicalFixtureCollections) => {
     [...fixture.remoteDecks, ...fixture.localDecks, ...sampleDecks].map(({ id: logicalId }) => logicalId),
     "Deck ID"
   );
-  const cardIds = [...fixture.remoteCards, ...fixture.localCards].map(({ id: logicalId }) => logicalId);
+  const cardIds = [
+    ...fixture.remoteCards,
+    ...fixture.remoteAbsentCards,
+    ...fixture.localCards,
+    ...fixture.localAbsentCards,
+  ].map(({ id: logicalId }) => logicalId);
   assertUnique(cardIds.concat(fixture.sampleCardIds), "Card ID");
   assertUnique(
     Object.values(fixture.studySessions).map(({ sessionId }) => sessionId),
@@ -813,8 +847,10 @@ const validateStableApplicationIds = (fixture: LogicalFixtureCollections) => {
   const ordinaryIds = [
     ...fixture.remoteDecks.map(({ id }) => id),
     ...fixture.remoteCards.map(({ id }) => id),
+    ...fixture.remoteAbsentCards.map(({ id }) => id),
     ...fixture.localDecks.map(({ id }) => id),
     ...fixture.localCards.map(({ id }) => id),
+    ...fixture.localAbsentCards.map(({ id }) => id),
     ...Object.values(fixture.studySessions).map(({ sessionId }) => sessionId),
   ];
   const reservedId = ordinaryIds.find(isStableApplicationId);
@@ -831,7 +867,7 @@ const validateRemoteReferences = (fixture: LogicalFixtureCollections) => {
   for (const deck of fixture.remoteDecks) {
     if (!userIds.has(deck.uid)) throw new Error(`Remote Deck ${deck.id} references unknown UID ${deck.uid}`);
   }
-  for (const card of fixture.remoteCards) {
+  for (const card of [...fixture.remoteCards, ...fixture.remoteAbsentCards]) {
     if (!userIds.has(card.uid)) throw new Error(`Remote Card ${card.id} references unknown UID ${card.uid}`);
     const deck = remoteDeckById.get(card.deckId);
     if (deck === undefined) throw new Error(`Remote Card ${card.id} references unknown remote Deck ${card.deckId}`);
@@ -847,7 +883,7 @@ const localDeckIds = (fixture: LogicalFixtureCollections) =>
 
 const validateLocalReferences = (fixture: LogicalFixtureCollections) => {
   const deckIds = localDeckIds(fixture);
-  for (const card of fixture.localCards) {
+  for (const card of [...fixture.localCards, ...fixture.localAbsentCards]) {
     if (!deckIds.has(card.deckId)) {
       throw new Error(`Local Card ${card.id} references unknown local Deck ${card.deckId}`);
     }
@@ -862,7 +898,9 @@ interface SessionCardReference {
 const buildCardLookup = (fixture: LogicalFixtureCollections) => {
   const cards: SessionCardReference[] = [
     ...fixture.remoteCards.map(({ id, deckId }) => ({ id, deckId })),
+    ...fixture.remoteAbsentCards.map(({ id, deckId }) => ({ id, deckId })),
     ...fixture.localCards.map(({ id, deckId }) => ({ id, deckId })),
+    ...fixture.localAbsentCards.map(({ id, deckId }) => ({ id, deckId })),
     ...fixture.sampleCardIds.map((id) => ({ id, deckId: "sample-v1" })),
   ];
   return new Map(cards.map((card) => [card.id, card]));
@@ -896,6 +934,13 @@ const validateStudySessions = (fixture: LogicalFixtureCollections) => {
   const cardById = buildCardLookup(fixture);
   for (const [key, session] of Object.entries(fixture.studySessions)) {
     validateSession(key, session, deckIds, cardById);
+  }
+
+  const referencedCardIds = new Set(Object.values(fixture.studySessions).flatMap(({ cardOrderIds }) => cardOrderIds));
+  for (const absentCard of [...fixture.remoteAbsentCards, ...fixture.localAbsentCards]) {
+    if (!referencedCardIds.has(absentCard.id)) {
+      throw new Error(`Absent Card ${absentCard.id} must be referenced by a Study session`);
+    }
   }
 };
 
@@ -986,11 +1031,30 @@ const normalizeRemoteCards = (
     normalizeCard(card, identifiers.idFor(card.id), identifiers.idFor(card.deckId), identifiers.uidFor(card.uid)),
   ]);
 
+const normalizeRemoteAbsentCards = (
+  cards: readonly RawRemoteAbsentCard[],
+  identifiers: FixtureIdentifierMappers
+): NormalizedCollection<FixtureAbsentCard> =>
+  buildNormalizedCollection(cards, (card) => [
+    card.id,
+    {
+      id: identifiers.idFor(card.id),
+      deckId: identifiers.idFor(card.deckId),
+      uid: identifiers.uidFor(card.uid),
+    },
+  ]);
+
 const normalizeLocalCards = (
   cards: readonly RawLocalCard[],
   idFor: FixtureIdentifierMappers["idFor"]
 ): NormalizedCollection<FixtureCard> =>
   buildNormalizedCollection(cards, (card) => [card.id, normalizeCard(card, idFor(card.id), idFor(card.deckId))]);
+
+const normalizeLocalAbsentCards = (
+  cards: readonly RawLocalAbsentCard[],
+  idFor: FixtureIdentifierMappers["idFor"]
+): NormalizedCollection<FixtureAbsentCard> =>
+  buildNormalizedCollection(cards, (card) => [card.id, { id: idFor(card.id), deckId: idFor(card.deckId) }]);
 
 const normalizeSampleDeck = (
   sampleDeck: RawSampleDeck | undefined,
@@ -1041,12 +1105,15 @@ const normalizeSessions = (
   };
 };
 
-const validateRuntimeIds = (
-  users: NormalizedCollection<FixtureUser>,
-  decks: NormalizedCollection<FixtureDeck>,
-  cards: NormalizedCollection<FixtureCard>,
-  sessions: NormalizedSessions
-) => {
+interface RuntimeFixtureCollections {
+  users: NormalizedCollection<FixtureUser>;
+  decks: NormalizedCollection<FixtureDeck>;
+  cards: NormalizedCollection<FixtureCard>;
+  absentCards: NormalizedCollection<FixtureAbsentCard>;
+  sessions: NormalizedSessions;
+}
+
+const validateRuntimeIds = ({ users, decks, cards, absentCards, sessions }: RuntimeFixtureCollections) => {
   assertUnique(
     users.values.map(({ uid: runtimeUid }) => runtimeUid),
     "runtime auth UID"
@@ -1056,7 +1123,7 @@ const validateRuntimeIds = (
     "runtime Deck ID"
   );
   assertUnique(
-    cards.values.map(({ id: runtimeId }) => runtimeId),
+    [...cards.values, ...absentCards.values].map(({ id: runtimeId }) => runtimeId),
     "runtime Card ID"
   );
   assertUnique(
@@ -1085,8 +1152,11 @@ export const namespaceFixture = (
     normalizeLocalCards(logical.localCards, identifiers.idFor),
     normalizeSampleCards(logical.sampleDeck, logical.sampleCards, identifiers.idFor)
   );
+  const remoteAbsentCards = normalizeRemoteAbsentCards(logical.remoteAbsentCards, identifiers);
+  const localAbsentCards = normalizeLocalAbsentCards(logical.localAbsentCards, identifiers.idFor);
+  const absentCards = mergeNormalizedCollections(remoteAbsentCards, localAbsentCards);
   const sessions = normalizeSessions(logical.studySessions, identifiers.idFor);
-  validateRuntimeIds(users, decks, cards, sessions);
+  validateRuntimeIds({ users, decks, cards, absentCards, sessions });
 
   const remoteDeckCount = logical.remoteDecks.length;
   const remoteCardCount = logical.remoteCards.length;
@@ -1097,17 +1167,20 @@ export const namespaceFixture = (
       remote: {
         decks: decks.values.slice(0, remoteDeckCount),
         cards: cards.values.slice(0, remoteCardCount),
+        absentCards: remoteAbsentCards.values,
       },
       browser: {
         preferences: normalizePreferences(document.browser?.preferences),
         localDecks: decks.values.slice(remoteDeckCount),
         localCards: cards.values.slice(remoteCardCount),
+        absentCards: localAbsentCards.values,
         studySessions: sessions.byDeckId,
       },
     },
     users: users.lookup,
     decks: decks.lookup,
     cards: cards.lookup,
+    absentCards: absentCards.lookup,
     sessions: sessions.lookup,
     uid: identifiers.uidFor,
     id: identifiers.idFor,
