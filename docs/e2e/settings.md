@@ -2,7 +2,7 @@
 
 ## 目的
 
-Settings の自動保存が reload を越えて維持され、保存した学習設定が学習開始画面や次の学習 session に反映され、言語設定がアプリケーションへ反映されることを確認する。
+Settings の自動保存が reload を越えて維持され、保存した学習設定が学習開始画面や次の学習 session に反映され、言語設定と無効な保存済み設定からの復旧がアプリケーションへ反映されることを確認する。
 
 ## テストケース
 
@@ -13,6 +13,7 @@ Settings の自動保存が reload を越えて維持され、保存した学習
 | SETTINGS-03 | batch | [Respect review schedule を次の学習 session に反映できる](#settings-03) |
 | SETTINGS-04 | write | [日本語設定を自動保存して reload 後も反映できる](#settings-04) |
 | SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](#settings-05) |
+| SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](#settings-06) |
 
 <a id="settings-01"></a>
 
@@ -127,4 +128,27 @@ Then:
 - browser storage の language preference が `system` として保存される。
 - `ja-JP` が有効な locale の `ja` に解決され、`html[lang]` が `ja` になる。
 - reload 後も日本語 UI、language preference、`html[lang]` が維持される。
+- browser error が発生しない。
+
+<a id="settings-06"></a>
+
+### SETTINGS-06 無効な保存済み設定から現在の既定値へ復旧できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- browser storage の現在の persistence version に、Preferences schema と一致しない snapshot が保存されている。
+
+When:
+
+- Settings 画面を reload する。
+
+Then:
+
+- Settings 画面が表示される。
+- Dark mode は現在の既定値である無効へ復旧する。
+- Maximum cards は現在の既定値である `10` へ復旧する。
+- Language は現在の既定値である `System` へ復旧する。
 - browser error が発生しない。
