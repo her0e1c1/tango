@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import { focusableElementSelector } from "../../lib/focusableElementSelector";
 import { Button } from "../button";
@@ -9,6 +10,7 @@ interface NavigationGuardDialogProps {
 }
 
 export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({ onDiscardChanges, onKeepEditing }) => {
+  const { t } = useTranslation();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const keepEditingRef = React.useRef<HTMLButtonElement>(null);
   const titleId = React.useId();
@@ -65,10 +67,10 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({ on
         onKeyDown={handleKeyDown}
       >
         <h2 id={titleId} className="text-title font-bold">
-          Discard unsaved changes?
+          {t("navigationGuard.title")}
         </h2>
         <p id={descriptionId} className="mt-4 text-body text-ink-muted">
-          Your changes will be lost if you leave this page.
+          {t("navigationGuard.description")}
         </p>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
@@ -77,10 +79,10 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({ on
             className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-border bg-transparent px-4 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             onClick={onKeepEditing}
           >
-            Keep editing
+            {t("navigationGuard.keepEditing")}
           </button>
           <Button variant="destructive" onClick={onDiscardChanges}>
-            Discard changes
+            {t("navigationGuard.discard")}
           </Button>
         </div>
       </div>

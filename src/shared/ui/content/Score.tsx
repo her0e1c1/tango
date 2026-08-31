@@ -6,6 +6,7 @@
 
 import cx from "classnames";
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 
 const scoreDisplayLimit = 99;
 
@@ -15,6 +16,7 @@ const scoreDisplayLimit = 99;
  * neutral, or negative values.
  */
 export const Score: React.FC<{ score?: number; large?: boolean; className?: string }> = (props) => {
+  const { t } = useTranslation();
   const score = props.score ?? 0;
   const displayScore =
     score > scoreDisplayLimit
@@ -23,11 +25,11 @@ export const Score: React.FC<{ score?: number; large?: boolean; className?: stri
         ? `<-${String(scoreDisplayLimit)}`
         : score;
   const isDisplayBounded = Math.abs(score) > scoreDisplayLimit;
-  const cue = score > 0 ? "positive" : score < 0 ? "negative" : "neutral";
+  const cueKey = score > 0 ? "score.positive" : score < 0 ? "score.negative" : "score.neutral";
   return (
     <div
       role="status"
-      aria-label={`Score ${String(score)}, ${cue}`}
+      aria-label={t("score.aria", { score, cue: t(cueKey) })}
       className={cx(
         "inline-flex justify-center rounded-pill font-semibold text-ink-inverse",
         {
