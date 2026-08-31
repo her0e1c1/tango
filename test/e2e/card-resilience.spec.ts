@@ -40,7 +40,9 @@ test("CARD-16 retries the same Card deletion after a handled failure", async ({ 
 
   const dialog = await openCardDeleteDialog(page, card.frontText);
   await dialog.getByRole("button", { name: "Delete card" }).click();
-  await expect(dialog.getByRole("alert")).toBeVisible();
+  await expect(
+    dialog.getByText("Unable to delete this card. Check your connection and try again.", { exact: true })
+  ).toBeVisible();
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
@@ -94,7 +96,7 @@ test("CARD-18 retries the same Card-list score change after a handled failure", 
   allowExpectedFirestoreWriteFailure(browserErrors);
 
   await swipeRight(page, card.frontText);
-  await expect(page.getByText("Unable to save changes. Try again.")).toBeVisible();
+  await expect(page.getByText("Unable to save changes. Try again.", { exact: true })).toBeVisible();
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
@@ -107,7 +109,7 @@ test("CARD-18 retries the same Card-list score change after a handled failure", 
   await expect
     .poll(async () => (await requireDocument("card", unrelatedCard.id)).fields.score?.integerValue)
     .toBe(String(unrelatedCard.score));
-  await expect(page.getByText("Unable to save changes. Try again.")).toHaveCount(0);
+  await expect(page.getByText("Unable to save changes. Try again.", { exact: true })).toHaveCount(0);
   await page.reload();
   await expectScore(page, card.frontText, expectedScore);
 });
