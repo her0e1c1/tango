@@ -53,7 +53,7 @@ describe("AccountPage", () => {
     updatePreferences(createPreferences({ appearance: { darkMode: false } }));
   });
 
-  it("shows the anonymous identity and offers Google sign-in", () => {
+  it("ACCOUNT-01 shows the anonymous identity and offers Google sign-in", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Account" })).toBeVisible();
@@ -63,7 +63,7 @@ describe("AccountPage", () => {
     expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
   });
 
-  it("shows the linked identity and offers sign-out", () => {
+  it("ACCOUNT-03 shows the linked identity and offers sign-out", () => {
     replaceAuthSession({
       displayName: "Test User",
       isAnonymous: false,
@@ -78,7 +78,7 @@ describe("AccountPage", () => {
     expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
   });
 
-  it("navigates home when the user presses the route shortcut", async () => {
+  it("NAVIGATION-02 navigates home when the user presses the route shortcut", async () => {
     renderPage();
 
     fireEvent.keyDown(window, { key: "t" });
@@ -86,7 +86,92 @@ describe("AccountPage", () => {
     expect(await screen.findByText("Home Page")).toBeVisible();
   });
 
-  it("lets the user retry a failed sign-in", async () => {
+  it("ACCOUNT-06 lets the user retry a failed sign-in without another mounted action", async () => {
+    const retry = Promise.withResolvers<{ user: Record<string, never> }>();
+    vi.mocked(linkWithPopup)
+      .mockRejectedValueOnce(new Error("Sign-in failed"))
+      .mockReturnValueOnce(retry.promise as never);
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign in.");
+
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    const signInButton = screen.getByRole("button", { name: "Sign in with Google" });
+    expect(signInButton).toBeDisabled();
+    expect(signInButton).toHaveAttribute("aria-busy", "true");
+    await userEvent.click(signInButton);
+    expect(linkWithPopup).toHaveBeenCalledTimes(2);
+
+    await actAsync(async () => {
+      retry.resolve({ user: {} });
+      await retry.promise;
+    });
+
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(screen.getByRole("status")).toHaveTextContent("Signed in.");
+    expect(signInButton).toBeEnabled();
+  });
+
+  it("ACCOUNT-07 lets the user retry a failed sign-out without another mounted action", async () => {
+    const retry = Promise.withResolvers<void>();
+    replaceAuthSession({
+      displayName: "Test User",
+      isAnonymous: false,
+      status: "authenticated",
+      uid: "linked-user",
+    });
+    vi.mocked(signOut).mockRejectedValueOnce(new Error("Sign-out failed")).mockReturnValueOnce(retry.promise);
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
+
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    const signOutButton = screen.getByRole("button", { name: "Sign out" });
+    expect(signOutButton).toBeDisabled();
+    expect(signOutButton).toHaveAttribute("aria-busy", "true");
+    await userEvent.click(signOutButton);
+    expect(signOut).toHaveBeenCalledTimes(2);
+
+    await actAsync(async () => {
+      retry.resolve();
+      await retry.promise;
+    });
+
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(screen.getByRole("status")).toHaveTextContent("Signed out.");
+    expect(signOutButton).toBeEnabled();
+  });
+
+  it("ACCOUNT-06 removes the old Retry when the normal sign-in button reruns the command", async () => {
+    const rerun = Promise.withResolvers<{ user: Record<string, never> }>();
+    vi.mocked(linkWithPopup)
+      .mockRejectedValueOnce(new Error("Sign-in failed"))
+      .mockReturnValueOnce(rerun.promise as never);
+    renderPage();
+
+    const signInButton = screen.getByRole("button", { name: "Sign in with Google" });
+    await userEvent.click(signInButton);
+    expect(await screen.findByRole("button", { name: "Retry" })).toBeVisible();
+
+    await userEvent.click(signInButton);
+
+    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
+    expect(signInButton).toBeDisabled();
+    expect(signInButton).toHaveAttribute("aria-busy", "true");
+    await userEvent.click(signInButton);
+    expect(linkWithPopup).toHaveBeenCalledTimes(2);
+
+    await actAsync(async () => {
+      rerun.resolve({ user: {} });
+      await rerun.promise;
+    });
+  });
+
+  it("ACCOUNT-08 keeps sign-in Retry available after leaving the Account page", async () => {
     vi.mocked(linkWithPopup)
       .mockRejectedValueOnce(new Error("Sign-in failed"))
       .mockResolvedValueOnce({ user: {} } as never);
@@ -95,45 +180,19 @@ describe("AccountPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign in.");
 
+    fireEvent.keyDown(window, { key: "t" });
+
+    expect(await screen.findByText("Home Page")).toBeVisible();
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to sign in.");
+
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
     expect(screen.getByRole("status")).toHaveTextContent("Signed in.");
+    expect(linkWithPopup).toHaveBeenCalledTimes(2);
   });
 
-  it("lets the user retry a failed sign-out", async () => {
-    replaceAuthSession({
-      displayName: "Test User",
-      isAnonymous: false,
-      status: "authenticated",
-      uid: "linked-user",
-    });
-    vi.mocked(signOut).mockRejectedValueOnce(new Error("Sign-out failed")).mockResolvedValueOnce(undefined);
-    renderPage();
-
-    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
-
-    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
-
-    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
-    expect(screen.getByRole("status")).toHaveTextContent("Signed out.");
-  });
-
-  it("dismisses its sign-in failure when leaving the Account page", async () => {
-    vi.mocked(linkWithPopup).mockRejectedValueOnce(new Error("Sign-in failed"));
-    renderPage();
-
-    await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign in.");
-
-    fireEvent.keyDown(window, { key: "t" });
-
-    expect(await screen.findByText("Home Page")).toBeVisible();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  });
-
-  it("does not show a sign-in failure that arrives after leaving the Account page", async () => {
+  it("ACCOUNT-02 shows a sign-in failure that arrives after leaving the Account page", async () => {
     const request = Promise.withResolvers<never>();
     vi.mocked(linkWithPopup).mockReturnValue(request.promise);
     renderPage();
@@ -147,6 +206,6 @@ describe("AccountPage", () => {
       await request.promise.catch(() => undefined);
     });
 
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign in.");
   });
 });

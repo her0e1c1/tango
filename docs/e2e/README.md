@@ -32,6 +32,13 @@
 | ACCOUNT-02 | write | [Google sign-in のエラー表示から再試行できる](./account.md#account-02) |
 | ACCOUNT-03 | batch | [sign-out 後に新しい匿名アカウントへ切り替えられる](./account.md#account-03) |
 | ACCOUNT-04 | read | [認証初期化失敗から Reload で復帰できる](./account.md#account-04) |
+| ACCOUNT-05 | batch | [画面遷移後に失敗した sign-out を再試行できる](./account.md#account-05) |
+| ACCOUNT-06 | write | [Account 画面で sign-in の再実行を重複なく完了できる](./account.md#account-06) |
+| ACCOUNT-07 | batch | [Account 画面で sign-out の再実行を重複なく完了できる](./account.md#account-07) |
+| ACCOUNT-08 | write | [表示済みの sign-in 失敗を画面遷移後も再試行できる](./account.md#account-08) |
+| ACCOUNT-09 | batch | [表示済みの sign-out 失敗を画面遷移後も再試行できる](./account.md#account-09) |
+| ACCOUNT-10 | write | [再試行に失敗した sign-in を新しい Retry で復旧できる](./account.md#account-10) |
+| ACCOUNT-11 | batch | [再試行に失敗した sign-out を新しい Retry で復旧できる](./account.md#account-11) |
 
 ### Settings
 

@@ -1,6 +1,9 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
+const signOutFailureKey = "tango-e2e-fail-sign-out-once";
+const signOutFailureReleaseEvent = "tango-e2e-release-sign-out-failure";
+
 const accountUid = async (page: Page) => {
   const value = await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent();
   if (value == null || value.trim() === "") throw new Error("Account User ID is unavailable");
@@ -29,12 +32,17 @@ const openGooglePopup = async (page: Page, buttonName: "Retry" | "Sign in with G
   return popup;
 };
 
-const completeGooglePopup = async (
-  page: Page,
-  namespace: string,
-  buttonName: "Retry" | "Sign in with Google" = "Sign in with Google"
-) => {
+const waitForGoogleFailure = (page: Page) =>
+  // Firebase detects a closed desktop popup after its polling and auth-event grace periods.
+  expect(page.getByRole("alert")).toContainText("Unable to sign in.", { timeout: 12_000 });
+
+const closeGooglePopup = async (page: Page, buttonName: "Retry" | "Sign in with Google") => {
   const popup = await openGooglePopup(page, buttonName);
+  await popup.close();
+  await waitForGoogleFailure(page);
+};
+
+const completeOpenGooglePopup = async (popup: Page, namespace: string) => {
   await popup.getByRole("button", { name: "Add new account" }).click();
   await popup.locator("#email-input").fill(`${namespace}@example.test`);
   await popup.locator("#display-name-input").fill(`E2E ${namespace}`);
@@ -44,10 +52,35 @@ const completeGooglePopup = async (
   ]);
 };
 
-const closeGooglePopup = async (page: Page) => {
-  const popup = await openGooglePopup(page, "Sign in with Google");
-  await expect(popup.getByRole("button", { name: "Add new account" })).toBeVisible();
-  await popup.close();
+const completeGooglePopup = async (
+  page: Page,
+  namespace: string,
+  buttonName: "Retry" | "Sign in with Google" = "Sign in with Google"
+) => {
+  const popup = await openGooglePopup(page, buttonName);
+  await completeOpenGooglePopup(popup, namespace);
+};
+
+const armSignOutFailure = (page: Page) =>
+  page.evaluate((failureKey) => window.sessionStorage.setItem(failureKey, "armed"), signOutFailureKey);
+
+const waitForSignOutFailureRelease = (page: Page) =>
+  expect
+    .poll(() => page.evaluate((failureKey) => window.sessionStorage.getItem(failureKey), signOutFailureKey), {
+      message: "sign-out failure hook was not reached",
+      timeout: 5000,
+    })
+    .toBe("consumed");
+
+const releaseSignOutFailure = (page: Page) =>
+  page.evaluate((eventName) => window.dispatchEvent(new Event(eventName)), signOutFailureReleaseEvent);
+
+const failSignOut = async (page: Page, buttonName: "Retry" | "Sign out") => {
+  await armSignOutFailure(page);
+  await page.getByRole("button", { name: buttonName, exact: true }).click();
+  await waitForSignOutFailureRelease(page);
+  await releaseSignOutFailure(page);
+  await expect(page.getByRole("alert")).toContainText("Unable to sign out.");
 };
 
 test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", async ({
@@ -85,14 +118,20 @@ test("ACCOUNT-02 A closed Google popup can be retried successfully", async ({ fi
   await fixture.apply(page, { auth: false });
   await page.goto("/account");
 
-  await closeGooglePopup(page);
-  // Firebase polls for user-closed popups with a randomized delay of up to ten seconds.
-  await expect(page.getByRole("alert")).toContainText("Unable to sign in.", { timeout: 12_000 });
+  const popup = await openGooglePopup(page, "Sign in with Google");
+  await page.bringToFront();
+  await page.keyboard.press("t");
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+
+  await popup.close();
+  await waitForGoogleFailure(page);
   await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
 
   await completeGooglePopup(page, namespace.uid, "Retry");
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
+  await page.goto("/account");
   await expect(page.getByText("Signed in with Google")).toBeVisible();
 });
 
@@ -138,4 +177,139 @@ test("ACCOUNT-04 Authentication initialization recovers after Reload", async ({ 
   await page.getByRole("button", { name: "Reload" }).click();
 
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+});
+
+test("ACCOUNT-05 A late sign-out failure can be retried after leaving Account", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  await page.goto("/account");
+  await expect(page.getByText("Signed in with Google")).toBeVisible();
+  const originalUid = await accountUid(page);
+
+  await armSignOutFailure(page);
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await waitForSignOutFailureRelease(page);
+  await page.keyboard.press("t");
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+
+  await releaseSignOutFailure(page);
+  await expect(page.getByRole("alert")).toContainText("Unable to sign out.");
+  await page.getByRole("button", { name: "Retry" }).click();
+
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Signed out." })).toBeVisible();
+  await page.goto("/account");
+  await expect(page.getByText("Anonymous account")).toBeVisible();
+  expect(await accountUid(page)).not.toBe(originalUid);
+});
+
+test("ACCOUNT-06 Mounted sign-in reruns prevent duplicate actions", async ({ fixture, page, namespace }) => {
+  test.slow();
+  await fixture.apply(page, { auth: false });
+  await page.goto("/account");
+  await closeGooglePopup(page, "Sign in with Google");
+
+  await page.keyboard.press("t");
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+  await page.getByRole("button", { name: "Open account" }).click();
+  await expect(page.getByRole("alert")).toContainText("Unable to sign in.");
+
+  const normalRerunPopup = await openGooglePopup(page, "Sign in with Google");
+  const signInButton = page.getByRole("button", { name: "Sign in with Google", exact: true });
+  await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
+  await expect(signInButton).toBeDisabled();
+  await expect(signInButton).toHaveAttribute("aria-busy", "true");
+  await normalRerunPopup.close();
+  await waitForGoogleFailure(page);
+
+  const retryPopup = await openGooglePopup(page, "Retry");
+  await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
+  await expect(signInButton).toBeDisabled();
+  await expect(signInButton).toHaveAttribute("aria-busy", "true");
+  await completeOpenGooglePopup(retryPopup, namespace.uid);
+
+  await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
+});
+
+test("ACCOUNT-07 A mounted sign-out Retry prevents another action", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  await page.goto("/account");
+  await failSignOut(page, "Sign out");
+
+  await page.keyboard.press("t");
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+  await page.getByRole("button", { name: "Open account" }).click();
+  await expect(page.getByRole("alert")).toContainText("Unable to sign out.");
+
+  await armSignOutFailure(page);
+  await page.getByRole("button", { name: "Retry" }).click();
+  await waitForSignOutFailureRelease(page);
+  const signOutButton = page.getByRole("button", { name: "Sign out", exact: true });
+  await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
+  await expect(signOutButton).toBeDisabled();
+  await expect(signOutButton).toHaveAttribute("aria-busy", "true");
+  await releaseSignOutFailure(page);
+  await expect(page.getByRole("alert")).toContainText("Unable to sign out.");
+
+  await signOutButton.click();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Signed out." })).toBeVisible();
+});
+
+test("ACCOUNT-08 A visible sign-in failure survives route replacement", async ({ fixture, page, namespace }) => {
+  await fixture.apply(page, { auth: false });
+  await page.goto("/account");
+  await closeGooglePopup(page, "Sign in with Google");
+
+  await page.keyboard.press("t");
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("Unable to sign in.");
+  await completeGooglePopup(page, namespace.uid, "Retry");
+
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
+});
+
+test("ACCOUNT-09 A visible sign-out failure survives route replacement", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  await page.goto("/account");
+  await failSignOut(page, "Sign out");
+
+  await page.keyboard.press("t");
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("Unable to sign out.");
+  await page.getByRole("button", { name: "Retry" }).click();
+
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Signed out." })).toBeVisible();
+});
+
+test("ACCOUNT-10 A replacement sign-in failure provides a fresh Retry", async ({ fixture, page, namespace }) => {
+  test.slow();
+  await fixture.apply(page, { auth: false });
+  await page.goto("/account");
+  await closeGooglePopup(page, "Sign in with Google");
+
+  const retryPopup = await openGooglePopup(page, "Retry");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await retryPopup.close();
+  await waitForGoogleFailure(page);
+  await expect(page.getByRole("alert")).toHaveCount(1);
+  await completeGooglePopup(page, namespace.uid, "Retry");
+
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
+});
+
+test("ACCOUNT-11 A replacement sign-out failure provides a fresh Retry", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  await page.goto("/account");
+  await failSignOut(page, "Sign out");
+
+  await failSignOut(page, "Retry");
+  await expect(page.getByRole("alert")).toHaveCount(1);
+  await page.getByRole("button", { name: "Retry" }).click();
+
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Signed out." })).toBeVisible();
 });

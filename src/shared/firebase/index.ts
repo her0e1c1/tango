@@ -5,7 +5,7 @@
  */
 
 import { initializeApp } from "firebase/app";
-import { connectAuthEmulator, getAuth } from "firebase/auth";
+import { beforeAuthStateChanged, connectAuthEmulator, getAuth } from "firebase/auth";
 import { connectFirestoreEmulator, initializeFirestore, persistentLocalCache } from "firebase/firestore";
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
@@ -29,6 +29,23 @@ const authHost = import.meta.env.VITE_AUTH_HOST;
 const authPort = import.meta.env.VITE_AUTH_PORT;
 if (useFirebaseEmulators && authHost && authPort) {
   connectAuthEmulator(auth, `http://${authHost}:${authPort}`);
+}
+
+if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === "true") {
+  beforeAuthStateChanged(auth, (nextUser) => {
+    const failureKey = "tango-e2e-fail-sign-out-once";
+    if (nextUser !== null || window.sessionStorage.getItem(failureKey) !== "armed") return;
+
+    window.sessionStorage.setItem(failureKey, "consumed");
+    // Sign-out has no emulator request to intercept, so E2E releases this public transition hook after route replacement.
+    return new Promise<void>((_resolve, reject) => {
+      window.addEventListener(
+        "tango-e2e-release-sign-out-failure",
+        () => reject(new Error("E2E_AUTH_SIGN_OUT_FAILURE")),
+        { once: true }
+      );
+    });
+  });
 }
 
 const dbHost = import.meta.env.VITE_DB_HOST;
