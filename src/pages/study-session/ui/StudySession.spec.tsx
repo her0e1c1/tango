@@ -239,9 +239,7 @@ describe("StudySession", () => {
       "top-0"
     );
 
-    rerender(
-      <StudySession {...props} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />
-    );
+    rerender(<StudySession {...props} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />);
 
     const hiddenHelpToggle = screen.getByRole("button", { name: "Help button" });
     expect(hiddenHelpToggle).toBe(helpToggle);
