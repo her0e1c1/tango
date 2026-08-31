@@ -30,6 +30,40 @@ export const resources = {
         goHome: "Go home",
         goBack: "Go back",
       },
+      studyRecovery: {
+        verifying: {
+          title: "Verifying study session…",
+          description: "Checking whether the current card is still available.",
+        },
+        remoteMissing: {
+          title: "This study card is unavailable.",
+          description: "The card could not be found. Return to study setup to continue with the available cards.",
+        },
+        remoteTombstoned: {
+          title: "This study card was deleted.",
+          description: "Return to study setup to continue with the available cards.",
+        },
+        localMissing: {
+          title: "This local study card is missing.",
+          description: "The card is no longer stored on this device. Return to study setup to continue.",
+        },
+        verificationError: {
+          title: "We couldn’t verify this study card.",
+          description: "The card might still be available. Retry, or exit without losing your place.",
+        },
+        invalid: {
+          title: "This study session can’t be resumed.",
+          description: "Its saved position is invalid. Return to study setup to start again.",
+        },
+        missingDeck: {
+          title: "Study deck unavailable.",
+          description: "This deck could not be found.",
+        },
+        retry: "Retry",
+        exit: "Exit",
+        backToSetup: "Back to study setup",
+        backToDeckList: "Back to deck list",
+      },
       score: {
         aria: "Score {{score}}, {{cue}}",
         positive: "positive",
@@ -146,6 +180,40 @@ export const resources = {
         page: "ページが見つかりません",
         goHome: "ホームへ",
         goBack: "戻る",
+      },
+      studyRecovery: {
+        verifying: {
+          title: "学習セッションを確認しています…",
+          description: "現在のカードを引き続き利用できるか確認しています。",
+        },
+        remoteMissing: {
+          title: "この学習カードは利用できません。",
+          description: "カードが見つかりませんでした。学習設定に戻り、利用可能なカードで続けてください。",
+        },
+        remoteTombstoned: {
+          title: "この学習カードは削除されました。",
+          description: "学習設定に戻り、利用可能なカードで続けてください。",
+        },
+        localMissing: {
+          title: "このローカル学習カードが見つかりません。",
+          description: "この端末にはカードが保存されていません。学習設定に戻って続けてください。",
+        },
+        verificationError: {
+          title: "この学習カードを確認できませんでした。",
+          description: "カードはまだ利用できる可能性があります。再試行するか、現在位置を残したまま終了してください。",
+        },
+        invalid: {
+          title: "この学習セッションは再開できません。",
+          description: "保存された位置が無効です。学習設定に戻ってやり直してください。",
+        },
+        missingDeck: {
+          title: "学習デッキを利用できません。",
+          description: "このデッキが見つかりませんでした。",
+        },
+        retry: "再試行",
+        exit: "終了",
+        backToSetup: "学習設定に戻る",
+        backToDeckList: "デッキ一覧に戻る",
       },
       score: {
         aria: "スコア {{score}}、{{cue}}",

@@ -11,7 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { RouteFeedback } from "./RouteFeedback";
 
-describe("RouteFeedback", () => {
+describe("SWIPE-28 RouteFeedback", () => {
   it("renders loading feedback with a heading and description", () => {
     render(
       <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />
@@ -28,13 +28,32 @@ describe("RouteFeedback", () => {
       <RouteFeedback
         title="Unable to start Tango"
         tone="error"
-        primaryAction={{ label: "Reload", onClick: onReload }}
+        primaryAction={{ label: "Reload", onClick: onReload, autoFocus: true }}
       />
     );
 
     expect(screen.getByRole("alert")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Reload" }));
+    const reload = screen.getByRole("button", { name: "Reload" });
+    expect(reload).toHaveFocus();
+    fireEvent.click(reload);
     expect(onReload).toHaveBeenCalledOnce();
+  });
+
+  it("exposes a pending action as busy and natively disabled", () => {
+    const onRetry = vi.fn();
+    render(
+      <RouteFeedback
+        title="Unable to verify"
+        tone="error"
+        primaryAction={{ label: "Retry", onClick: onRetry, loading: true, disabled: true }}
+      />
+    );
+
+    const retry = screen.getByRole("button", { name: "Retry" });
+    expect(retry).toBeDisabled();
+    expect(retry).toHaveAttribute("aria-busy", "true");
+    fireEvent.click(retry);
+    expect(onRetry).not.toHaveBeenCalled();
   });
 
   it("renders secondary action before primary action for not-found feedback", () => {

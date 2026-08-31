@@ -72,7 +72,7 @@ describe("canMoveStudySession", () => {
   });
 });
 
-describe("resolveStudySession", () => {
+describe("SWIPE-27 SWIPE-29 resolveStudySession", () => {
   const cards = [{ id: "card-1", frontText: "front" }];
 
   it("resolves the Card at the active session position", () => {
@@ -85,14 +85,15 @@ describe("resolveStudySession", () => {
     });
   });
 
-  it("waits while Cards have not loaded", () => {
-    expect(resolveStudySession(session, [])).toEqual({ status: "preparing" });
+  it("reports target absence without inferring whether the snapshot has loaded", () => {
+    expect(resolveStudySession(session, [])).toEqual({ status: "absent", session, cardId: "card-2" });
+    expect(resolveStudySession(session, cards)).toEqual({ status: "absent", session, cardId: "card-2" });
   });
 
-  it("rejects a missing session, empty position, or absent loaded Card", () => {
+  it("rejects a missing session or empty position", () => {
     expect(resolveStudySession(undefined, cards)).toEqual({ status: "invalid" });
-    expect(resolveStudySession({ ...session, cardOrderIds: [] }, [])).toEqual({ status: "invalid" });
-    expect(resolveStudySession(session, cards)).toEqual({ status: "invalid" });
+    const emptySession = { ...session, cardOrderIds: [] };
+    expect(resolveStudySession(emptySession, [])).toEqual({ status: "invalid", session: emptySession });
   });
 });
 

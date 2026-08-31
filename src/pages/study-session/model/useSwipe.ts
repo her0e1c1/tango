@@ -2,7 +2,7 @@ import { useAuthUid } from "@/entities/auth";
 import type { Card } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { type SwipeDirection, usePreferences } from "@/entities/preference";
-import { editStudyProgress } from "@/entities/study-progress";
+import { editStudyProgress, type StudyProgressTarget } from "@/entities/study-progress";
 import { getStudySession, moveStudySession, planStudySessionSwipe, removeStudySession } from "@/entities/study-session";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { showToast, type ToastTone } from "@/shared/ui/toast";
@@ -30,11 +30,16 @@ export interface StudyCompletion {
   cardCount: number;
 }
 
+interface UseSwipeOptions {
+  onCardChanged: () => void;
+  onCompleted: (completion: StudyCompletion) => void;
+  target?: StudyProgressTarget;
+}
+
 export const useSwipe = (
   deckId: DeckId,
   cards: readonly Card[],
-  onCardChanged: () => void,
-  onCompleted: (completion: StudyCompletion) => void
+  { onCardChanged, onCompleted, target }: UseSwipeOptions
 ): SwipeState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
@@ -83,7 +88,7 @@ export const useSwipe = (
 
     swipeState.current.inProgress = true;
     // The visible card advances only after persistence succeeds, so failed writes need no session rollback.
-    const saved = await editStudyProgress(uid, swipePlan.progress).then(
+    const saved = await editStudyProgress(uid, swipePlan.progress, target).then(
       () => true,
       () => false
     );

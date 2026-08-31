@@ -1,4 +1,5 @@
-import * as React from "react";
+import type * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey, useLatest } from "react-use";
 
@@ -44,16 +45,93 @@ const shouldIgnoreStudyShortcut = (event: KeyboardEvent): boolean => {
   return event.key.startsWith("Arrow") && event.target.closest(studyShortcutSliderTarget) !== null;
 };
 
-const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) => {
-  if (state == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+interface StudyRecoveryActions {
+  exit: () => void;
+  returnToSetup: (recover?: () => boolean) => void;
+}
 
-  if (state.status !== "studying") {
-    return state.status === "preparing" ? (
-      <RouteFeedback title="Loading…" tone="loading" />
-    ) : (
-      <RouteFeedback title="Study session unavailable." tone="not-found" />
+type Translate = ReturnType<typeof useTranslation>["t"];
+
+const unavailableCopyKey = {
+  "local-missing": "localMissing",
+  "remote-missing": "remoteMissing",
+  "remote-tombstoned": "remoteTombstoned",
+} as const;
+
+const renderStudyScreen = (state: StudyState | undefined, actions: StudyRecoveryActions, t: Translate) => {
+  if (state == null) {
+    return (
+      <RouteFeedback
+        title={t("studyRecovery.missingDeck.title")}
+        description={t("studyRecovery.missingDeck.description")}
+        tone="not-found"
+        primaryAction={{ label: t("studyRecovery.backToDeckList"), onClick: actions.exit, autoFocus: true }}
+      />
     );
   }
+
+  if (state.status === "verifying") {
+    return (
+      <RouteFeedback
+        title={t("studyRecovery.verifying.title")}
+        description={t("studyRecovery.verifying.description")}
+        tone="loading"
+        secondaryAction={{ label: t("studyRecovery.exit"), onClick: actions.exit }}
+      />
+    );
+  }
+
+  if (state.status === "unavailable") {
+    const copyKey = unavailableCopyKey[state.reason];
+    return (
+      <RouteFeedback
+        title={t(`studyRecovery.${copyKey}.title`)}
+        description={t(`studyRecovery.${copyKey}.description`)}
+        tone="not-found"
+        primaryAction={{
+          label: t("studyRecovery.backToSetup"),
+          onClick: () => actions.returnToSetup(state.recover),
+          autoFocus: true,
+        }}
+      />
+    );
+  }
+
+  if (state.status === "verification-error") {
+    return (
+      <RouteFeedback
+        key={state.retrying ? "retry-pending" : "retry-ready"}
+        title={t("studyRecovery.verificationError.title")}
+        description={t("studyRecovery.verificationError.description")}
+        tone="error"
+        primaryAction={{
+          label: t("studyRecovery.retry"),
+          onClick: state.retry,
+          disabled: state.retrying,
+          loading: state.retrying,
+          autoFocus: !state.retrying,
+        }}
+        secondaryAction={{ label: t("studyRecovery.exit"), onClick: actions.exit }}
+      />
+    );
+  }
+
+  if (state.status === "invalid") {
+    return (
+      <RouteFeedback
+        title={t("studyRecovery.invalid.title")}
+        description={t("studyRecovery.invalid.description")}
+        tone="not-found"
+        primaryAction={{
+          label: t("studyRecovery.backToSetup"),
+          onClick: () => actions.returnToSetup(),
+          autoFocus: true,
+        }}
+      />
+    );
+  }
+
+  if (state.status === "completed") return null;
 
   const swipeActions = {
     disabled: false,
@@ -66,7 +144,7 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
   return (
     <AppLayout fullscreen showHeader={false}>
       <StudySession
-        onBack={onBack}
+        onBack={actions.exit}
         onToggleCardDetails={state.toggleShowCardDetails}
         onToggleHelp={state.toggleShowHelp}
         onToggleSwipeControls={state.toggleSwipeButtonList}
@@ -100,7 +178,12 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
             }
           : {})}
         frontTextSlot={
-          <FrontText category={state.card.category} text={state.card.frontText} onClick={state.toggleBackText} />
+          <FrontText
+            category={state.card.category}
+            text={state.card.frontText}
+            onClick={state.toggleBackText}
+            autoFocus={state.focusCard}
+          />
         }
         cardOverlaySlot={
           <CardOverlay
@@ -125,9 +208,14 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
 
 const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const study = useStudy(deckId);
   const latestStudy = useLatest(study);
-  const goBack = () => void navigate(routes.deckList.to());
+  const exit = () => void navigate(routes.deckList.to());
+  const returnToSetup = (recover?: () => boolean) => {
+    if (recover !== undefined && !recover()) return;
+    void navigate(routes.deckStudyStart.to(deckId), { replace: true });
+  };
   const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
     // Native editing and activation keys take precedence, while unrelated Study shortcuts remain
     // available after a user moves focus into the card or floating controls.
@@ -148,11 +236,6 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   useKey("b", runWhileStudying("toggleSwipeButtonList"));
   useKey(" ", runWhileStudying("toggleAutoPlay"));
 
-  React.useEffect(() => {
-    if (study?.status !== "invalid") return;
-    void navigate(routes.deckList.to(), { replace: true });
-  }, [navigate, study?.status]);
-
   if (study?.status === "completed") {
     return (
       <AppLayout showHeader>
@@ -166,18 +249,33 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
     );
   }
 
-  return renderStudyScreen(study, goBack);
+  return renderStudyScreen(study, { exit, returnToSetup }, t);
 };
 
 export const StudySessionPage: React.FC = () => {
   const params = useParams();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
 
   const deck = useDeck(deckId);
 
   // Study lifecycle mutates session state, so an unavailable route Deck must not mount it.
-  if (deck == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+  if (deck == null) {
+    return (
+      <RouteFeedback
+        title={t("studyRecovery.missingDeck.title")}
+        description={t("studyRecovery.missingDeck.description")}
+        tone="not-found"
+        primaryAction={{
+          label: t("studyRecovery.backToDeckList"),
+          onClick: () => void navigate(routes.deckList.to(), { replace: true }),
+          autoFocus: true,
+        }}
+      />
+    );
+  }
 
   // Study state belongs to one route Deck, so id changes start a fresh Page lifecycle.
   return <ActiveStudySessionPage key={deckId} deckId={deckId} />;

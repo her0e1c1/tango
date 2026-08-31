@@ -9,6 +9,7 @@ import {
 } from "@playwright/test";
 
 import {
+  type FixtureAbsentCard,
   type FixtureCard,
   type FixtureCategory,
   type FixtureDeck,
@@ -24,6 +25,7 @@ import {
 } from "./yaml-fixture";
 
 export type {
+  FixtureAbsentCard,
   FixtureCard,
   FixtureCategory,
   FixtureDeck,
@@ -381,6 +383,7 @@ export interface E2EFixture {
   user: (logicalUid?: string) => FixtureUser;
   deck: (logicalId?: string) => FixtureDeck;
   card: (logicalId?: string) => FixtureCard;
+  absentCard: (logicalId?: string) => FixtureAbsentCard;
   session: (logicalDeckId?: string) => FixtureStudySession;
   uid: (logicalUid: string) => string;
   id: (logicalId: string) => string;
@@ -506,6 +509,7 @@ function createE2EFixture(
     user: (logicalUid) => requireLogicalValue(namespaced.users, "auth user", logicalUid),
     deck: (logicalId) => requireLogicalValue(namespaced.decks, "Deck", logicalId),
     card: (logicalId) => requireLogicalValue(namespaced.cards, "Card", logicalId),
+    absentCard: (logicalId) => requireLogicalValue(namespaced.absentCards, "absent Card", logicalId),
     session: (logicalDeckId) => requireLogicalValue(namespaced.sessions, "Study session", logicalDeckId),
     uid: namespaced.uid,
     id: namespaced.id,
@@ -560,6 +564,84 @@ export const setDocument = async (collection: FirestoreCollection, id: string, d
     body: JSON.stringify({ fields }),
   });
   if (!response.ok) throw new Error(`Firestore seed failed: ${response.status} ${await response.text()}`);
+};
+
+/** Creates a target-specific permission failure without disrupting the Card collection subscription. */
+export const seedForeignOwnedCard = async (id: string): Promise<void> => {
+  const uid = `e2e-foreign-${randomUUID()}`;
+  const deckId = `${id}-foreign-deck`;
+  await setDocument("deck", deckId, { id: deckId, uid, name: "Foreign E2E Deck", isPublic: false });
+  await setDocument("card", id, {
+    id,
+    uid,
+    deckId,
+    frontText: "Foreign E2E Card",
+    backText: "Foreign E2E answer",
+    uniqueKey: "foreign-e2e-card",
+    deletedAt: null,
+  });
+};
+
+export interface FirestoreListenGate {
+  waitUntilBlocked: () => Promise<void>;
+  release: () => void;
+  matchingRequestCount: () => number;
+  dispose: () => Promise<void>;
+}
+
+const decodeRequestPayload = (request: Request) => {
+  const encoded = `${request.url()}&${request.postData() ?? ""}`.replaceAll("+", "%20");
+  try {
+    return decodeURIComponent(encoded);
+  } catch {
+    return encoded;
+  }
+};
+
+/** Holds one exact-document Listen request so Retry pending behavior can be asserted without timing sleeps. */
+export const gateNextFirestoreDocumentListen = async (page: Page, cardId: string): Promise<FirestoreListenGate> => {
+  const pattern = "**/google.firestore.v1.Firestore/Listen/channel**";
+  const documentPath = `/documents/card/${cardId}`;
+  let matchingRequestCount = 0;
+  let released = false;
+  let resolveBlocked: () => void;
+  let resolveRelease: () => void;
+  const blocked = new Promise<void>((resolve) => {
+    resolveBlocked = resolve;
+  });
+  const release = new Promise<void>((resolve) => {
+    resolveRelease = resolve;
+  });
+  const handler = async (route: Route) => {
+    const request = route.request();
+    if (request.method() !== "POST" || !decodeRequestPayload(request).includes(documentPath)) {
+      await route.fallback();
+      return;
+    }
+
+    matchingRequestCount += 1;
+    if (matchingRequestCount === 1) {
+      resolveBlocked();
+      await release;
+    }
+    await route.fallback();
+  };
+  await page.route(pattern, handler);
+
+  const releaseRequest = () => {
+    if (released) return;
+    released = true;
+    resolveRelease();
+  };
+  return {
+    waitUntilBlocked: () => blocked,
+    release: releaseRequest,
+    matchingRequestCount: () => matchingRequestCount,
+    dispose: async () => {
+      releaseRequest();
+      await page.unroute(pattern, handler);
+    },
+  };
 };
 
 export const getDocument = async (

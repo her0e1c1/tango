@@ -118,6 +118,9 @@
 | SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](./study-controls.md#swipe-24) |
 | SWIPE-25 | write | [Help button の表示設定を reload 後も維持できる](./study-controls.md#swipe-25) |
 | SWIPE-26 | batch | [展開した tag filter を保存して学習 session に適用できる](./study-session.md#swipe-26) |
+| SWIPE-27 | read | [remote target Card の欠損理由を表示して学習設定へ復帰できる](./study-session.md#swipe-27) |
+| SWIPE-28 | read | [remote target Card の確認失敗後に Retry して同じ Card へ復帰できる](./study-session.md#swipe-28) |
+| SWIPE-29 | read | [local target Card の欠損理由を表示して学習設定へ復帰できる](./study-session.md#swipe-29) |
 
 ### Study Back Text
 

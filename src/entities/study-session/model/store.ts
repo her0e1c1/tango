@@ -140,6 +140,18 @@ export const removeStudySession = (deckId: DeckId): void => {
   });
 };
 
+// Destructive recovery must not remove a session that changed after the invalid state was observed.
+export const removeStudySessionIfCurrent = (previous: StudySession): boolean => {
+  let removed = false;
+  studySessionStore.setState((state) => {
+    const current = state.sessionsByDeckId[previous.deckId];
+    if (!isStudySessionPositionUnchanged(previous, current)) return;
+    delete state.sessionsByDeckId[previous.deckId];
+    removed = true;
+  });
+  return removed;
+};
+
 // Clears every live and persisted study session.
 export const clearStudySessions = (): void => {
   // Publish the empty state before durable cleanup so auth changes cannot expose the previous user's sessions.

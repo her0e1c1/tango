@@ -2,7 +2,7 @@
 
 ## 目的
 
-学習 session の開始・再開・再作成・完了・永続化が、filter の選択と保存、学習上限、Deck ごとの分離を維持できることを確認する。
+学習 session の開始・再開・再作成・完了・永続化と、target Card を利用できない場合の復旧が、filter の選択と保存、学習上限、Deck ごとの分離を維持できることを確認する。
 
 ## テストケース
 
@@ -16,6 +16,9 @@
 | SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](#swipe-11) |
 | SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#swipe-17) |
 | SWIPE-26 | batch | [展開した tag filter を保存して学習 session に適用できる](#swipe-26) |
+| SWIPE-27 | read | [remote target Card の欠損理由を表示して学習設定へ復帰できる](#swipe-27) |
+| SWIPE-28 | read | [remote target Card の確認失敗後に Retry して同じ Card へ復帰できる](#swipe-28) |
+| SWIPE-29 | read | [local target Card の欠損理由を表示して学習設定へ復帰できる](#swipe-29) |
 
 <a id="swipe-06"></a>
 
@@ -201,4 +204,82 @@ Then:
 - 対象 Deck の保存済み tag filter に対象 tag だけが含まれる。
 - session には対象 tag を持つ Card だけが含まれる。
 - 対象 Card の front text が表示される。
+- browser error が発生しない。
+
+<a id="swipe-27"></a>
+
+### SWIPE-27 remote target Card の欠損理由を表示して学習設定へ復帰できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-session-remote-absent`](./fixture/study-session-remote-absent.yaml)
+- 認証済みユーザーが所有する remote Deck に進行中の学習 session が存在する。
+- session の target Card は、server に存在しないか tombstone として保存されている。
+
+When:
+
+- missing target と tombstoned target の学習画面を開き、それぞれの recovery action で学習設定へ戻る。
+
+Then:
+
+- target の確認中は loading state が表示され、session は削除されない。
+- server-confirmed missing と tombstone を区別する説明が表示される。
+- Retry は表示されず、`Back to study setup` action が focus される。
+- reason screen を automatic redirect で隠さず、recovery action を実行するまでは同じ URL と session の位置を維持する。
+- recovery action 後は対象 session が削除され、同じ Deck の学習設定へ移動する。
+- recovery を Study completion として表示しない。
+- browser error が発生しない。
+
+<a id="swipe-28"></a>
+
+### SWIPE-28 remote target Card の確認失敗後に Retry して同じ Card へ復帰できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-session-remote-absent`](./fixture/study-session-remote-absent.yaml)
+- 認証済みユーザーが所有する remote Deck に進行中の学習 session が存在する。
+- target Card の single-document verification だけが permission error になる。
+
+When:
+
+- verification error 画面から session-preserving `Exit` で Deck 一覧へ戻り、同じ session を Continue する。
+- `Retry` を実行し、確認が pending の間に target Card が active として確認できる状態へ戻る。
+
+Then:
+
+- target Card が存在しないとは断定しない error explanation と `Retry`、`Exit` が表示される。
+- error 表示時は `Retry` が focus される。
+- `Exit` 後も session と current position が維持される。
+- Retry pending 中は `Retry` が loading かつ disabled になり、同じ verification を重複実行できない。
+- Retry 成功後は同じ Card の front text が表示され、Card に focus context が戻る。
+- verification error と Retry pending の間も session と current position が維持される。
+- browser error が発生しない。
+
+<a id="swipe-29"></a>
+
+### SWIPE-29 local target Card の欠損理由を表示して学習設定へ復帰できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-session-local-absent`](./fixture/study-session-local-absent.yaml)
+- browser storage に local-only Deck と進行中の学習 session が存在する。
+- session の target Card は local Card persistence に存在しない。
+
+When:
+
+- 対象 Deck の学習画面を開き、recovery action で学習設定へ戻る。
+
+Then:
+
+- local target がこの device に保存されていないことを説明する reason screen が表示される。
+- Retry は表示されず、`Back to study setup` action が focus される。
+- reason screen を automatic redirect で隠さず、recovery action を実行するまでは同じ URL と session を維持する。
+- recovery action 後は対象 session が削除され、同じ Deck の学習設定へ移動する。
+- recovery を Study completion として表示しない。
 - browser error が発生しない。

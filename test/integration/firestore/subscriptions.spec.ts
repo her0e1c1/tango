@@ -8,8 +8,16 @@ import "@/test/initializeTestFirestore";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { deleteCard, editCard, fetchCardReads, mutateCards, subscribeCards } from "@/entities/card";
+import {
+  deleteCard,
+  editCard,
+  fetchCardReads,
+  fetchRemoteCardRead,
+  mutateCards,
+  subscribeCards,
+} from "@/entities/card";
 import { createDeck, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
+import { deleteCard as deleteRemoteCard } from "@/entities/card/api/firestore";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { createCard, createDeck as createDeckFixture, createRemoteDeckInput } from "@/test/factories";
@@ -19,7 +27,7 @@ vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
-describe("Query realtime subscriptions", () => {
+describe("SWIPE-27 SWIPE-28 Query realtime subscriptions", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     deckStore.setState({ remoteDecks: [], localDecks: [] });
@@ -51,6 +59,19 @@ describe("Query realtime subscriptions", () => {
     });
   });
 
+  it("confirms missing and tombstoned Card documents through a single server read", async () => {
+    const uid = "uid";
+    const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
+    const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid });
+    await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
+
+    await expect(fetchRemoteCardRead(uid, crypto.randomUUID())).resolves.toEqual({ status: "missing" });
+
+    await mutateCards(uid, [{ kind: "create", card }]);
+    await deleteRemoteCard(uid, card);
+    await expect(fetchRemoteCardRead(uid, card.id)).resolves.toEqual({ status: "tombstoned" });
+  });
+
   it("delivers initial, update, and delete snapshots without a cursor", async () => {
     const uid = "uid";
     const errors: Error[] = [];
@@ -58,6 +79,8 @@ describe("Query realtime subscriptions", () => {
     const stopCards = subscribeCards(uid, (error) => errors.push(error));
 
     try {
+      await expect(fetchRemoteCardRead(uid, crypto.randomUUID())).resolves.toEqual({ status: "missing" });
+
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
       const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid });
       await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));

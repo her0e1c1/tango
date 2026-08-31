@@ -13,6 +13,7 @@ export {
   getStudySession,
   moveStudySession,
   removeStudySession,
+  removeStudySessionIfCurrent,
   setStudySessionIndex,
   startStudy,
   touchStudySession,
