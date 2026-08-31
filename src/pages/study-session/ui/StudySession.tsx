@@ -78,21 +78,18 @@ const toolbarButtonClass =
   "pointer-events-auto inline-flex size-touch shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 interface StudyModeActionsProps {
-  showHelp: boolean;
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
   playbackControlsAvailable: boolean;
   playbackDescriptionId: string;
   onEscape: React.KeyboardEventHandler<HTMLButtonElement>;
-  onToggleHelp: () => void;
   onToggleCardDetails: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
 }
 
 const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
-  const helpTitle = props.showHelp ? "Hide help button" : "Show help button";
   const swipeTitle = props.showSwipeControls ? "Hide swipe controls" : "Show swipe controls";
   const playbackTitle = props.playbackControlsAvailable
     ? props.showPlaybackControls
@@ -103,17 +100,6 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
 
   return (
     <div className="flex items-center gap-1">
-      <button
-        type="button"
-        aria-label="Help button"
-        aria-pressed={props.showHelp}
-        title={helpTitle}
-        className={cx(toolbarButtonClass, props.showHelp && "bg-surface-muted text-accent-primary")}
-        onClick={props.onToggleHelp}
-        onKeyDown={props.onEscape}
-      >
-        <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
-      </button>
       <button
         type="button"
         aria-label="Swipe controls"
@@ -183,6 +169,7 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
   const actionsId = React.useId();
   const playbackDescriptionId = React.useId();
   const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const helpTitle = props.showHelp ? "Hide help button" : "Show help button";
 
   const closeOnEscape: React.KeyboardEventHandler<HTMLButtonElement> = (event) => {
     if (event.key !== "Escape" || !props.open) return;
@@ -224,43 +211,41 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
         )}
       </button>
-      {props.showHelp ? (
+      {props.open || props.showHelp ? (
+        // The fixed Help slot opens the dialog while the menu is closed and toggles its own visibility while open.
+        // Keeping one element in one slot prevents the icon from moving or disappearing during that toggle.
         <button
           ref={helpTriggerRef}
           type="button"
-          aria-label={props.helpTriggerLabel}
+          aria-label={props.open ? "Help button" : props.helpTriggerLabel}
+          aria-pressed={props.open ? props.showHelp : undefined}
+          title={props.open ? helpTitle : undefined}
           className={cx(
             toolbarButtonClass,
-            "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0"
+            "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0",
+            props.open && props.showHelp && "bg-surface-muted text-accent-primary"
           )}
-          onClick={props.onOpenHelp}
+          onClick={props.open ? props.onToggleHelp : props.onOpenHelp}
           onKeyDown={closeOnEscape}
         >
           <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
         </button>
       ) : null}
       {props.open ? (
-        // Four actions cannot share a 320px row with Back and the two right-side triggers. Below 360px,
+        // Three actions cannot share a 320px row with Back and the two fixed right-side controls. Below 360px,
         // keep them on a second row and hide metadata there so both interactive surfaces remain unobstructed.
         <fieldset
           id={actionsId}
           aria-label="Study actions"
-          className={cx(
-            "pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0 max-[359px]:absolute max-[359px]:inset-x-0 max-[359px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[359px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]",
-            props.showHelp
-              ? "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]"
-              : "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)]"
-          )}
+          className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0 pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] max-[359px]:absolute max-[359px]:inset-x-0 max-[359px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[359px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
         >
           <StudyModeActions
-            showHelp={props.showHelp}
             showCardDetails={props.showCardDetails}
             showSwipeControls={props.showSwipeControls}
             showPlaybackControls={props.showPlaybackControls}
             playbackControlsAvailable={props.playbackControlsAvailable}
             playbackDescriptionId={playbackDescriptionId}
             onEscape={closeOnEscape}
-            onToggleHelp={props.onToggleHelp}
             onToggleCardDetails={props.onToggleCardDetails}
             onToggleSwipeControls={props.onToggleSwipeControls}
             onTogglePlaybackControls={props.onTogglePlaybackControls}

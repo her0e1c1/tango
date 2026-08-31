@@ -61,7 +61,7 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("StudySession", () => {
+describe("SWIPE-24 SWIPE-25 StudySession", () => {
   it("shows only the answer on the back", () => {
     render(
       <StudySession
@@ -153,6 +153,7 @@ describe("StudySession", () => {
   it("keeps the back action visible and opens the remaining study actions", async () => {
     const user = userEvent.setup();
     const onBack = vi.fn();
+    const onToggleHelp = vi.fn();
     const onToggleCardDetails = vi.fn();
     const onToggleSwipeControls = vi.fn();
     const onTogglePlaybackControls = vi.fn();
@@ -160,6 +161,7 @@ describe("StudySession", () => {
       <StudySession
         {...toolbarProps()}
         onBack={onBack}
+        onToggleHelp={onToggleHelp}
         onToggleCardDetails={onToggleCardDetails}
         onToggleSwipeControls={onToggleSwipeControls}
         onTogglePlaybackControls={onTogglePlaybackControls}
@@ -169,9 +171,10 @@ describe("StudySession", () => {
     );
 
     const openActions = screen.getByRole("button", { name: "Open study actions" });
+    const help = screen.getByRole("button", { name: "Open study help" });
     expect(openActions).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
+    expect(help).toBeVisible();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
 
     fireEvent.click(openActions);
@@ -182,11 +185,11 @@ describe("StudySession", () => {
     const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
     const detailsToggle = screen.getByRole("button", { name: "Card details" });
     const helpToggle = screen.getByRole("button", { name: "Help button" });
-    const help = screen.getByRole("button", { name: "Open study help" });
     const actions = screen.getByRole("group", { name: "Study actions" });
     expect(closeActions).toHaveAttribute("aria-expanded", "true");
     expect(back).toBeVisible();
-    expect(help).toBeVisible();
+    expect(helpToggle).toBe(help);
+    expect(helpToggle).toBeVisible();
     expect(helpToggle).toHaveAttribute("aria-pressed", "true");
     expect(helpToggle).toHaveAttribute("title", "Hide help button");
     expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
@@ -195,41 +198,76 @@ describe("StudySession", () => {
     expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
     expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
     expect(detailsToggle).toHaveAttribute("title", "Hide card details");
-    expect(actions).toContainElement(helpToggle);
-    expect(actions).not.toContainElement(help);
+    expect(actions).not.toContainElement(helpToggle);
     expect(actions).not.toContainElement(back);
     expect(actions).not.toContainElement(screen.getByText("Card metadata"));
 
     closeActions.focus();
     await user.tab();
-    expect(help).toHaveFocus();
+    expect(helpToggle).toHaveFocus();
 
     fireEvent.click(back);
+    fireEvent.click(helpToggle);
     fireEvent.click(swipeToggle);
     fireEvent.click(playbackToggle);
     fireEvent.click(detailsToggle);
 
     expect(onBack).toHaveBeenCalledOnce();
+    expect(onToggleHelp).toHaveBeenCalledOnce();
     expect(onToggleSwipeControls).toHaveBeenCalledOnce();
     expect(onTogglePlaybackControls).toHaveBeenCalledOnce();
     expect(onToggleCardDetails).toHaveBeenCalledOnce();
 
-    fireEvent.keyDown(help, { key: "Escape" });
+    fireEvent.keyDown(helpToggle, { key: "Escape" });
     expect(screen.getByRole("button", { name: "Open study actions" })).toHaveFocus();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
   });
 
-  it("hides the Help shortcut while keeping its Header toggle available", () => {
+  it("keeps the Help visibility toggle in the same toolbar slot while Study actions are open", () => {
+    const onToggleHelp = vi.fn();
+    const { rerender } = render(
+      <StudySession {...toolbarProps()} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />
+    );
+
+    const help = screen.getByRole("button", { name: "Open study help" });
+    fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
+
+    const helpToggle = screen.getByRole("button", { name: "Help button" });
+    expect(helpToggle).toBe(help);
+    expect(helpToggle).toHaveAttribute("aria-pressed", "true");
+    expect(helpToggle).toHaveAttribute("title", "Hide help button");
+
+    rerender(
+      <StudySession
+        {...toolbarProps()}
+        showHelp={false}
+        onToggleHelp={onToggleHelp}
+        frontTextSlot={<div>Front</div>}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "Help button" })).toBe(helpToggle);
+    expect(helpToggle).toBeVisible();
+    expect(helpToggle).toHaveAttribute("aria-pressed", "false");
+    expect(helpToggle).toHaveAttribute("title", "Show help button");
+
+    fireEvent.click(helpToggle);
+    expect(onToggleHelp).toHaveBeenCalledOnce();
+  });
+
+  it("hides the Help shortcut while keeping its toolbar toggle available", () => {
     const onToggleHelp = vi.fn();
     render(
       <StudySession {...toolbarProps()} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />
     );
 
     expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Help button" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
 
     const helpToggle = screen.getByRole("button", { name: "Help button" });
+    expect(helpToggle).toBeVisible();
     expect(helpToggle).toHaveAttribute("aria-pressed", "false");
     expect(helpToggle).toHaveAttribute("title", "Show help button");
     fireEvent.click(helpToggle);
