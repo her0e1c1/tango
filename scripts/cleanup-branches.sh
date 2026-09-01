@@ -15,8 +15,6 @@ is_stale() {
   ((timestamp <= cutoff))
 }
 
-removed_worktrees=0
-removed_branches=0
 failed=0
 primary_worktree=""
 worktree=""
@@ -38,7 +36,6 @@ remove_worktree() {
 
   if git worktree remove -- "$worktree"; then
     printf 'Removed stale worktree: %s\n' "$worktree"
-    removed_worktrees=$((removed_worktrees + 1))
   else
     failed=1
   fi
@@ -71,11 +68,9 @@ while IFS=$'\t' read -r timestamp branch; do
 
   if git branch -D -- "$branch"; then
     printf 'Removed stale local branch: %s\n' "$branch"
-    removed_branches=$((removed_branches + 1))
   else
     failed=1
   fi
 done < <(git for-each-ref --format='%(committerdate:unix)%09%(refname:lstrip=2)' refs/heads)
 
-printf 'Removed %d worktree(s) and %d local branch(es)\n' "$removed_worktrees" "$removed_branches"
 exit "$failed"
