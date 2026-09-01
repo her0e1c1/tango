@@ -6,6 +6,7 @@
 
 import * as React from "react";
 import { AiOutlineCloudDownload, AiOutlineDelete, AiOutlineEdit, AiOutlineReload } from "react-icons/ai";
+import { useTranslation } from "react-i18next";
 import { ActionsMenu, type ActionsMenuItem } from "@/shared/ui/actions-menu";
 
 export interface DeckActionsMenuProps {
@@ -26,6 +27,7 @@ export interface DeckActionsMenuProps {
  * dismissal to its owner.
  */
 export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
+  const { t } = useTranslation();
   const { disabled, onClose, open } = props;
   React.useEffect(() => {
     if (disabled && open) onClose();
@@ -33,23 +35,30 @@ export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
 
   const items: ActionsMenuItem[] = [
     ...(props.onRestart != null
-      ? [{ key: "restart", label: "Restart", icon: <AiOutlineReload aria-hidden="true" />, onSelect: props.onRestart }]
+      ? [
+          {
+            key: "restart",
+            label: t("deckList.actions.restart"),
+            icon: <AiOutlineReload aria-hidden="true" />,
+            onSelect: props.onRestart,
+          },
+        ]
       : []),
     {
       key: "download",
-      label: "Download",
+      label: t("deckList.actions.download"),
       icon: <AiOutlineCloudDownload aria-hidden="true" />,
       ...(props.onDownload !== undefined ? { onSelect: props.onDownload } : {}),
     },
     {
       key: "edit",
-      label: "Edit",
+      label: t("deckList.actions.edit"),
       icon: <AiOutlineEdit aria-hidden="true" />,
       ...(props.onEdit !== undefined ? { onSelect: props.onEdit } : {}),
     },
     {
       key: "delete",
-      label: "Delete",
+      label: t("deckList.actions.delete"),
       icon: <AiOutlineDelete aria-hidden="true" />,
       danger: true,
       ...(props.onDelete !== undefined ? { onSelect: props.onDelete } : {}),
@@ -58,9 +67,9 @@ export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
 
   return (
     <ActionsMenu
-      groupLabel={`Deck actions for ${props.deckName}`}
-      triggerLabel={`Open actions for ${props.deckName}`}
-      menuLabel={`Actions for ${props.deckName}`}
+      groupLabel={t("deckList.actions.group", { deckName: props.deckName })}
+      triggerLabel={t("deckList.actions.trigger", { deckName: props.deckName })}
+      menuLabel={t("deckList.actions.menu", { deckName: props.deckName })}
       open={props.open}
       {...(props.disabled !== undefined ? { disabled: props.disabled } : {})}
       onToggle={props.onToggle}

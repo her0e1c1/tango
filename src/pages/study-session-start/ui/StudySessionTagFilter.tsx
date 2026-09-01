@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/shared/ui/button";
 import { TagList } from "@/shared/ui/content";
@@ -18,6 +19,7 @@ export interface StudySessionTagFilterProps {
 }
 
 export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (props) => {
+  const { t } = useTranslation();
   const idPrefix = useId();
   const [expanded, setExpanded] = useState(false);
   const matchAnyRef = useRef<HTMLInputElement>(null);
@@ -35,7 +37,10 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
   // Persisted selections remain visible even when a tag disappeared from the current Card set, so
   // the user can still understand and remove that filter.
   const visibleTags = [...selectedTags, ...visibleUnselectedTags];
-  const status = selectedTags.length === 0 ? "No filter" : `${String(selectedTags.length)} selected`;
+  const status =
+    selectedTags.length === 0
+      ? t("studyStart.tags.noFilter")
+      : t("studyStart.tags.selected", { count: selectedTags.length });
 
   useEffect(() => {
     if (!expanded || pendingExpandedTagFocusRef.current === null) return;
@@ -77,7 +82,7 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
       <header className="flex min-w-0 items-center justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 id={headingId} className="text-title font-semibold text-ink">
-            Tags
+            {t("studyStart.tags.title")}
           </h2>
           <p aria-live="polite" className="text-caption text-ink-muted">
             {status}
@@ -94,12 +99,12 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
             props.onSelectedTagsChange([]);
           }}
         >
-          Clear
+          {t("studyStart.tags.clear")}
         </Button>
       </header>
 
       <fieldset>
-        <legend className="text-caption font-semibold text-ink">Match</legend>
+        <legend className="text-caption font-semibold text-ink">{t("studyStart.tags.match")}</legend>
         <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
           <label className="flex min-h-touch cursor-pointer items-center gap-2 text-body text-ink">
             <input
@@ -111,7 +116,7 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
               className="size-4 accent-accent-primary"
               onChange={() => props.onMatchAllChange(false)}
             />
-            Any
+            {t("studyStart.tags.any")}
           </label>
           <label className="flex min-h-touch cursor-pointer items-center gap-2 text-body text-ink">
             <input
@@ -122,18 +127,18 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
               className="size-4 accent-accent-primary"
               onChange={() => props.onMatchAllChange(true)}
             />
-            All
+            {t("studyStart.tags.all")}
           </label>
         </div>
       </fieldset>
 
       <fieldset
         id={tagListId}
-        aria-label="Tag choices"
+        aria-label={t("studyStart.tags.choicesAria")}
         className={visibleTags.length > 30 ? "max-h-64 overflow-y-auto" : undefined}
       >
         {visibleTags.length === 0 ? (
-          <p className="text-caption text-ink-muted">No tags available.</p>
+          <p className="text-caption text-ink-muted">{t("studyStart.tags.empty")}</p>
         ) : (
           <TagList>
             {visibleTags.map((tag) => (
@@ -171,7 +176,7 @@ export const StudySessionTagFilter: React.FC<StudySessionTagFilterProps> = (prop
             setExpanded((current) => !current);
           }}
         >
-          {expanded ? "Show fewer tags" : `Show ${String(hiddenTagCount)} more tags`}
+          {expanded ? t("studyStart.tags.showFewer") : t("studyStart.tags.showMore", { count: hiddenTagCount })}
         </button>
       ) : null}
     </section>

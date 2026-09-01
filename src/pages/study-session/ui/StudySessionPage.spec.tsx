@@ -2,6 +2,7 @@ import type { Preferences } from "@/entities/preference";
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { getI18n } from "react-i18next";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -10,6 +11,7 @@ import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession, setStudySessionIndex, startStudy } from "@/entities/study-session";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { actAsync } from "@/test/act";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -75,7 +77,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage [SWIPE-02] [SWIPE-03]", () => {
+describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE-24]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -248,6 +250,29 @@ describe("StudySessionPage [SWIPE-02] [SWIPE-03]", () => {
     expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
   });
 
+  it("uses the latest locale when persistence resolves after a language change", async () => {
+    mocks.preferences = createPreferences({
+      appearance: { darkMode: false, showSwipeFeedback: true },
+      cardSwipeRight: "GoToNextCardMastered",
+    });
+    const request = Promise.withResolvers<void>();
+    mocks.editStudyProgress.mockReturnValueOnce(request.promise);
+    renderPage();
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    act(() => {
+      void getI18n().changeLanguage("ja");
+    });
+    await actAsync(async () => {
+      request.resolve();
+      await request.promise;
+    });
+
+    expect(await screen.findByText("右へスワイプしました")).toBeVisible();
+    expect(screen.queryByText("Swiped right")).not.toBeInTheDocument();
+    expect(screen.getByText("Front two")).toBeVisible();
+  });
+
   it("shows configured Help rows without letting dialog keys change Study state", () => {
     mocks.preferences = createPreferences({
       controls: {
@@ -292,15 +317,28 @@ describe("StudySessionPage [SWIPE-02] [SWIPE-03]", () => {
     expect(trigger).toHaveFocus();
   });
 
-  it("uses the current document locale for semantic Help labels", () => {
-    document.documentElement.lang = "ja-JP";
+  it("updates semantic Help labels without resetting the mounted session or controls", () => {
+    mocks.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 60 });
+    clearStudySessions();
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
     renderPage();
+    const sessionBeforeLanguageChange = getStudySession(deckId);
+    const cardBeforeLanguageChange = screen.getByText("Front one");
+    const autoPlayBeforeLanguageChange = screen.getByRole("button", { name: "Pause" });
 
-    fireEvent.click(screen.getByRole("button", { name: "学習ヘルプを開く" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open study help" }));
+    const dialogBeforeLanguageChange = screen.getByRole("dialog", { name: "Study controls" });
 
-    expect(screen.getByRole("dialog", { name: "学習画面の操作" })).toHaveTextContent(
-      "上矢印 / 上へスワイプ習得済みにして次のカードへ移動"
-    );
+    act(() => {
+      void getI18n().changeLanguage("ja");
+    });
+
+    const localizedDialog = screen.getByRole("dialog", { name: "学習画面の操作" });
+    expect(localizedDialog).toBe(dialogBeforeLanguageChange);
+    expect(localizedDialog).toHaveTextContent("上矢印 / 上へスワイプ習得済みにして次のカードへ移動");
+    expect(screen.getByRole("button", { name: "一時停止" })).toBe(autoPlayBeforeLanguageChange);
+    expect(screen.getByText("Front one")).toBe(cardBeforeLanguageChange);
+    expect(getStudySession(deckId)).toEqual(sessionBeforeLanguageChange);
   });
 
   it("pauses autoplay while Help is open and resumes without changing its explicit state", () => {

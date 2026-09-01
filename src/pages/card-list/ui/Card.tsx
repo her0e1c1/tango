@@ -7,6 +7,7 @@
 import cx from "classnames";
 import * as React from "react";
 import { useSwipeable } from "react-swipeable";
+import { useTranslation } from "react-i18next";
 
 import type { CardId } from "@/entities/card";
 import { TagLabel } from "@/shared/ui/content";
@@ -46,16 +47,12 @@ export interface CardProps extends CardActionsProps, CardRowMenuProps {
  * Formats how many times a card has been studied.
  * The label handles the singular and plural forms shown in card metadata.
  */
-const studiedText = (count: number) => {
-  if (count === 0) return "not studied yet";
-  return `studied ${String(count)} ${count === 1 ? "time" : "times"}`;
-};
-
 /**
  * Renders the Card user interface.
  * Presents one study card's front, back, difficulty, and tags according to its current reveal state.
  */
 export const Card: React.FC<CardProps> = (props) => {
+  const { t } = useTranslation();
   const { id } = props.card;
   const disabled = Boolean(props.disabled);
   const suppressViewClick = React.useRef(false);
@@ -135,7 +132,7 @@ export const Card: React.FC<CardProps> = (props) => {
         <button
           type="button"
           disabled={disabled}
-          aria-label={`View ${props.card.frontText}`}
+          aria-label={t("cardList.card.view", { cardText: props.card.frontText })}
           className="absolute inset-0 z-10 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed"
           onClick={() => {
             if (!(disabled || suppressViewClick.current)) props.goToView?.(id);
@@ -143,10 +140,12 @@ export const Card: React.FC<CardProps> = (props) => {
         />
         <span className="w-full truncate px-1 text-body font-semibold text-ink">{props.card.frontText}</span>
         <div className="mt-1 flex w-full min-w-0 items-center gap-2 text-caption text-ink-muted">
-          <span className="shrink-0">{studiedText(seenCount)}</span>
+          <span className="shrink-0">
+            {seenCount === 0 ? t("cardList.card.notStudied") : t("cardList.card.studied", { count: seenCount })}
+          </span>
           {props.card.tags.length > 0 && (
             <fieldset
-              aria-label={`Tags: ${props.card.tags.join(", ")}`}
+              aria-label={t("cardList.card.tags", { tags: props.card.tags.join(", ") })}
               className="m-0 flex min-w-0 max-w-full gap-1 overflow-hidden border-0 p-0"
             >
               {props.card.tags.map((tag) => (

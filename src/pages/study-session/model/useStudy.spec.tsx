@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   cards: [] as Card[],
   deck: undefined as Deck | undefined,
   editStudyProgress: vi.fn(),
-  showToast: vi.fn(),
+  onSwipeFeedback: vi.fn(),
   touchStudySession: vi.fn(),
 }));
 
@@ -45,7 +45,6 @@ vi.mock("@/entities/study-progress", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/study-progress")>()),
   editStudyProgress: mocks.editStudyProgress,
 }));
-vi.mock("@/shared/ui/toast", () => ({ showToast: mocks.showToast }));
 vi.mock("@/entities/study-session", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/study-session")>();
   return {
@@ -60,7 +59,7 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
 import { useStudy as useStudyState } from "./useStudy";
 
 const useAnyStudy = (routeDeckId: string) => {
-  const study = useStudyState(routeDeckId);
+  const study = useStudyState(routeDeckId, mocks.onSwipeFeedback);
   if (study == null) throw new Error("Expected the test Deck to exist");
   return study;
 };
@@ -88,7 +87,7 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   lastSeenAt: 0,
 }));
 
-describe("useStudy [SWIPE-02]", () => {
+describe("useStudy [SWIPE-02] [SWIPE-10]", () => {
   beforeEach(() => {
     clearStudySessions();
     localStorage.clear();
@@ -132,12 +131,7 @@ describe("useStudy [SWIPE-02]", () => {
     await waitFor(() => expect(result.current).toMatchObject({ status: "studying", card: { frontText: "card-2" } }));
     expect(result.current).toMatchObject({ showBackText: false });
     expect(result.current).not.toHaveProperty("swipeFeedback");
-    expect(mocks.showToast).toHaveBeenCalledExactlyOnceWith({
-      message: "Swiped right",
-      tone: "neutral",
-      durationMs: 900,
-      dismissible: false,
-    });
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeRight");
     expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }));
   });
 
@@ -226,7 +220,7 @@ describe("useStudy [SWIPE-02]", () => {
     await actAsync(() => result.current.swipeRight());
 
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
-    expect(mocks.showToast).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
   it("does not complete the final Card when persistence fails", async () => {
@@ -272,7 +266,7 @@ describe("useStudy [SWIPE-02]", () => {
     });
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(mocks.showToast).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
   it("does not advance a session changed by the controller during the write", async () => {
@@ -292,7 +286,7 @@ describe("useStudy [SWIPE-02]", () => {
     });
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(mocks.showToast).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
   it("does not complete a final Card when the active session is replaced during the write", async () => {
@@ -337,12 +331,7 @@ describe("useStudy [SWIPE-02]", () => {
     });
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(mocks.showToast).toHaveBeenCalledExactlyOnceWith({
-      message: "Swiped right",
-      tone: "neutral",
-      durationMs: 900,
-      dismissible: false,
-    });
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeRight");
   });
 
   it("handles DoNothing and GoBack without writing progress", async () => {
@@ -355,17 +344,12 @@ describe("useStudy [SWIPE-02]", () => {
 
     await actAsync(() => result.current.swipeDown());
     expect(getStudySession(deckId)).toBeDefined();
-    expect(mocks.showToast).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
     await actAsync(() => result.current.swipeLeft());
 
     expect(mocks.editStudyProgress).not.toHaveBeenCalled();
     expect(getStudySession(deckId)).toBeUndefined();
-    expect(mocks.showToast).toHaveBeenCalledExactlyOnceWith({
-      message: "Swiped left",
-      tone: "neutral",
-      durationMs: 900,
-      dismissible: false,
-    });
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeLeft");
   });
 
   it("does not show swipe feedback when the preference is disabled", async () => {
@@ -378,7 +362,7 @@ describe("useStudy [SWIPE-02]", () => {
     await actAsync(() => result.current.swipeRight());
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(mocks.showToast).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
   it("does not complete when previous crosses the first Card boundary", async () => {

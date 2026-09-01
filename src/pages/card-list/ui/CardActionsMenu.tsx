@@ -6,6 +6,7 @@
 
 import type * as React from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
+import { useTranslation } from "react-i18next";
 import { ActionsMenu, type ActionsMenuItem } from "@/shared/ui/actions-menu";
 
 export interface CardActionsMenuProps {
@@ -24,16 +25,17 @@ export interface CardActionsMenuProps {
  * its owner.
  */
 export const CardActionsMenu: React.FC<CardActionsMenuProps> = (props) => {
+  const { t } = useTranslation();
   const items: ActionsMenuItem[] = [
     {
       key: "edit",
-      label: "Edit",
+      label: t("cardList.actions.edit"),
       icon: <AiOutlineEdit aria-hidden="true" />,
       ...(props.onEdit !== undefined ? { onSelect: props.onEdit } : {}),
     },
     {
       key: "delete",
-      label: "Delete",
+      label: t("cardList.actions.delete"),
       icon: <AiOutlineDelete aria-hidden="true" />,
       danger: true,
       ...(props.onDelete !== undefined ? { onSelect: props.onDelete } : {}),
@@ -42,9 +44,9 @@ export const CardActionsMenu: React.FC<CardActionsMenuProps> = (props) => {
 
   return (
     <ActionsMenu
-      groupLabel={`Card actions for ${props.cardText}`}
-      triggerLabel={`Open actions for ${props.cardText}`}
-      menuLabel={`Actions for ${props.cardText}`}
+      groupLabel={t("cardList.actions.group", { cardText: props.cardText })}
+      triggerLabel={t("cardList.actions.trigger", { cardText: props.cardText })}
+      menuLabel={t("cardList.actions.menu", { cardText: props.cardText })}
       open={props.open}
       {...(props.disabled !== undefined ? { disabled: props.disabled } : {})}
       onToggle={props.onToggle}

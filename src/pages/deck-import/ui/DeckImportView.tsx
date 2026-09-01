@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/shared/ui/button";
 import { Code, Description } from "@/shared/ui/content";
@@ -69,6 +70,7 @@ interface ImportPreviewProps {
 }
 
 const ImportPreview = (props: ImportPreviewProps) => {
+  const { t } = useTranslation();
   const { preview } = props;
   if (preview == null) return null;
 
@@ -80,32 +82,35 @@ const ImportPreview = (props: ImportPreviewProps) => {
     <section aria-labelledby="import-preview-heading" className="space-y-4">
       <div>
         <h2 id="import-preview-heading" className="text-title font-bold text-ink">
-          Review import
+          {t("deckImport.preview.title")}
         </h2>
         <p className="mt-1 break-words text-caption text-ink-muted">
-          Deck: <strong className="text-ink">{preview.deckName}</strong>
+          {t("deckImport.preview.deck")} <strong className="text-ink">{preview.deckName}</strong>
         </p>
       </div>
 
       <div>
         <div className="rounded-surface border border-border bg-surface-muted p-3">
-          <h3 className="font-semibold text-ink">Validation</h3>
+          <h3 className="font-semibold text-ink">{t("deckImport.preview.validation")}</h3>
           <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption text-ink-muted">
-            <li>{preview.analysis.rows.length} valid</li>
-            <li>{preview.analysis.skippedRows.length} skipped</li>
-            <li>{preview.analysis.invalidCount} invalid</li>
+            <li>{t("deckImport.preview.valid", { count: preview.analysis.rows.length })}</li>
+            <li>{t("deckImport.preview.skipped", { count: preview.analysis.skippedRows.length })}</li>
+            <li>{t("deckImport.preview.invalid", { count: preview.analysis.invalidCount })}</li>
           </ul>
         </div>
       </div>
 
       {preview.analysis.issues.length > 0 ? (
         <div role="alert" className="rounded-surface border border-danger bg-surface-muted p-3 text-caption text-ink">
-          <h3 className="font-semibold">Fix these CSV rows</h3>
+          <h3 className="font-semibold">{t("deckImport.preview.issuesTitle")}</h3>
           <ul className="mt-2 space-y-2">
             {preview.analysis.issues.map((issue) => (
               <li key={`${String(issue.rowNumber ?? "file")}-${issue.message}-${issue.context ?? ""}`}>
                 <span className="font-semibold">
-                  {issue.rowNumber == null ? "File" : `Row ${String(issue.rowNumber)}`}:
+                  {issue.rowNumber == null
+                    ? t("deckImport.preview.file")
+                    : t("deckImport.preview.row", { rowNumber: issue.rowNumber })}
+                  :
                 </span>{" "}
                 {issue.message}
                 {issue.context == null ? null : (
@@ -122,11 +127,11 @@ const ImportPreview = (props: ImportPreviewProps) => {
           <table className="w-full min-w-max border-collapse text-left text-caption text-ink">
             <thead className="bg-surface-muted">
               <tr>
-                <th className="px-3 py-2">Row</th>
-                <th className="px-3 py-2">Front</th>
-                <th className="px-3 py-2">Back</th>
-                <th className="px-3 py-2">Tags</th>
-                <th className="px-3 py-2">uniqueKey</th>
+                <th className="px-3 py-2">{t("deckImport.preview.table.row")}</th>
+                <th className="px-3 py-2">{t("deckImport.preview.table.front")}</th>
+                <th className="px-3 py-2">{t("deckImport.preview.table.back")}</th>
+                <th className="px-3 py-2">{t("deckImport.preview.table.tags")}</th>
+                <th className="px-3 py-2">{t("deckImport.preview.table.uniqueKey")}</th>
               </tr>
             </thead>
             <tbody>
@@ -144,7 +149,7 @@ const ImportPreview = (props: ImportPreviewProps) => {
         </div>
       ) : null}
       {hiddenRowCount > 0 ? (
-        <p className="text-caption text-ink-muted">{hiddenRowCount} more valid rows are not shown.</p>
+        <p className="text-caption text-ink-muted">{t("deckImport.preview.moreRows", { count: hiddenRowCount })}</p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
@@ -154,10 +159,10 @@ const ImportPreview = (props: ImportPreviewProps) => {
           loading={props.pending ?? false}
           {...(props.onImport !== undefined ? { onClick: props.onImport } : {})}
         >
-          Import
+          {t("deckImport.preview.import")}
         </Button>
         {preview.analysis.invalidCount > 0 ? (
-          <p className="text-caption text-ink-muted">Choose a corrected CSV file to continue.</p>
+          <p className="text-caption text-ink-muted">{t("deckImport.preview.correctedFile")}</p>
         ) : null}
       </div>
     </section>
@@ -165,27 +170,28 @@ const ImportPreview = (props: ImportPreviewProps) => {
 };
 
 export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
+  const { t } = useTranslation();
   const busy = Boolean(props.pending || props.validating || props.addingSample);
   const storageMode = props.storageMode ?? "remote";
 
   return (
     <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
-      <h1 className="mb-section-gap break-words text-display font-bold text-ink">Import decks</h1>
+      <h1 className="mb-section-gap break-words text-display font-bold text-ink">{t("deckImport.title")}</h1>
       <div className="space-y-section-gap">
         {props.validating ? (
           <p role="status" className="text-caption text-ink-muted">
-            Validating CSV…
+            {t("deckImport.status.validating")}
           </p>
         ) : props.pending ? (
           <p role="status" className="text-caption text-ink-muted">
-            Importing…
+            {t("deckImport.status.importing")}
           </p>
         ) : null}
         <PreviewError error={props.previewError} />
         <section className="space-y-4">
-          <h2 className="mb-3 break-words text-title font-bold text-ink">Choose a CSV file</h2>
+          <h2 className="mb-3 break-words text-title font-bold text-ink">{t("deckImport.file.title")}</h2>
           <fieldset className="space-y-2" disabled={busy}>
-            <legend className="mb-2 font-semibold text-ink">Save this CSV import</legend>
+            <legend className="mb-2 font-semibold text-ink">{t("deckImport.storage.legend")}</legend>
             <label className="flex cursor-pointer items-start gap-2 text-body text-ink">
               <input
                 type="radio"
@@ -195,8 +201,8 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
                 onChange={() => props.onStorageModeChange?.("local")}
               />
               <span>
-                <span className="block font-semibold">Local only</span>
-                <span className="block text-caption text-ink-muted">Keep this Deck and its Cards on this device.</span>
+                <span className="block font-semibold">{t("deckImport.storage.localLabel")}</span>
+                <span className="block text-caption text-ink-muted">{t("deckImport.storage.localHelp")}</span>
               </span>
             </label>
             <label className="flex cursor-pointer items-start gap-2 text-body text-ink">
@@ -208,8 +214,8 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
                 onChange={() => props.onStorageModeChange?.("remote")}
               />
               <span>
-                <span className="block font-semibold">Sync with account</span>
-                <span className="block text-caption text-ink-muted">Save to your account and sync across devices.</span>
+                <span className="block font-semibold">{t("deckImport.storage.remoteLabel")}</span>
+                <span className="block text-caption text-ink-muted">{t("deckImport.storage.remoteHelp")}</span>
               </span>
             </label>
           </fieldset>
@@ -221,17 +227,15 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
         </section>
         <ImportPreview preview={props.preview} busy={busy} pending={props.pending} onImport={props.onImport} />
         <section>
-          <h2 className="mb-2 break-words text-title font-bold text-ink">CSV format</h2>
+          <h2 className="mb-2 break-words text-title font-bold text-ink">{t("deckImport.format.title")}</h2>
           <div className="space-y-2">
-            <Description>
-              Four columns without a header: front text, back text, tags (optional), and uniqueKey.
-            </Description>
-            <Description>uniqueKey is required and must be unique within the CSV file.</Description>
+            <Description>{t("deckImport.format.columns")}</Description>
+            <Description>{t("deckImport.format.uniqueKey")}</Description>
           </div>
         </section>
         <section>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="break-words text-title font-bold text-ink">Sample</h2>
+            <h2 className="break-words text-title font-bold text-ink">{t("deckImport.sample.title")}</h2>
             <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
@@ -239,7 +243,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
                 loading={props.addingSample ?? false}
                 {...(props.onAddSample !== undefined ? { onClick: props.onAddSample } : {})}
               >
-                Add sample deck
+                {t("deckImport.sample.add")}
               </Button>
               <Button
                 variant="quiet"
@@ -248,9 +252,9 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
               >
                 <AiOutlineCloudDownload aria-hidden="true" className="text-xl" size={24} />
                 <span aria-hidden="true" className="text-caption text-ink-muted underline">
-                  download
+                  {t("deckImport.sample.download")}
                 </span>
-                <span className="sr-only">Download CSV sample</span>
+                <span className="sr-only">{t("deckImport.sample.downloadAria")}</span>
               </Button>
             </div>
           </div>

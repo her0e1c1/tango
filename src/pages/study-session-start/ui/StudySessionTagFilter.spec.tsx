@@ -1,7 +1,8 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import type * as React from "react";
+import { getI18n } from "react-i18next";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -26,7 +27,7 @@ const ControlledTagFilter: React.FC<{ tags: string[]; initialSelectedTags?: stri
   );
 };
 
-describe("StudySessionTagFilter", () => {
+describe("SETTINGS-04 SWIPE-26 StudySessionTagFilter", () => {
   it("reports tag, clear, and explicit match-mode changes with a deduplicated selection count", async () => {
     const user = userEvent.setup();
     const onSelectedTagsChange = vi.fn();
@@ -239,5 +240,22 @@ describe("StudySessionTagFilter", () => {
     );
 
     expect(screen.getByRole("checkbox", { name: longTag })).toBeVisible();
+  });
+
+  it("keeps the expanded filter and tag controls mounted when the locale changes", async () => {
+    const user = userEvent.setup();
+    const tags = Array.from({ length: 10 }, (_, index) => `tag-${String(index + 1)}`);
+    render(<ControlledTagFilter tags={tags} />);
+    await user.click(screen.getByRole("button", { name: "Show 2 more tags" }));
+    const disclosure = screen.getByRole("button", { name: "Show fewer tags" });
+    const revealedTag = screen.getByRole("checkbox", { name: "tag-9" });
+
+    act(() => {
+      void getI18n().changeLanguage("ja");
+    });
+
+    expect(screen.getByRole("button", { name: "表示するタグを減らす" })).toBe(disclosure);
+    expect(screen.getByRole("checkbox", { name: "tag-9" })).toBe(revealedTag);
+    expect(disclosure).toHaveAttribute("aria-expanded", "true");
   });
 });

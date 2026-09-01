@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAuthSession } from "@/entities/auth";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -11,6 +12,7 @@ export interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = () => window.location.reload() }) => {
+  const { t } = useTranslation();
   const authState = useAuthSession();
 
   React.useEffect(() => {
@@ -24,7 +26,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = (
     authState.status === "authenticating"
   ) {
     return (
-      <RouteFeedback title="Starting Tango…" description="Preparing your decks and study progress." tone="loading" />
+      <RouteFeedback title={t("auth.starting.title")} description={t("auth.starting.description")} tone="loading" />
     );
   }
 

@@ -36,11 +36,7 @@ const meta = {
     playbackControlsAvailable: true,
     help: {
       open: false,
-      triggerLabel: "Open study help",
-      title: "Study controls",
-      description: "Review the current controls.",
-      closeLabel: "Close help",
-      rows: [{ control: "Arrow Up / Swipe Up", action: "Mark mastered and go to the next card" }],
+      rows: [{ control: "cardSwipeUp", action: "GoToNextCardMastered" }],
       onOpen: fn(),
       onClose: fn(),
     },

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { linkWithPopup, signOut } from "firebase/auth";
+import { getI18n } from "react-i18next";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -37,7 +38,7 @@ const renderPage = () => {
   );
 };
 
-describe("AccountPage", () => {
+describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
   beforeEach(() => {
     dismissToast();
     vi.mocked(linkWithPopup).mockReset();
@@ -76,6 +77,30 @@ describe("AccountPage", () => {
     expect(screen.getByText("Test User")).toBeVisible();
     expect(screen.getByText("linked-user")).toBeVisible();
     expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
+  });
+
+  it("updates fixed copy in place without translating linked identity data", async () => {
+    replaceAuthSession({
+      displayName: "Test User",
+      isAnonymous: false,
+      status: "authenticated",
+      uid: "linked-user",
+    });
+    renderPage();
+    const heading = screen.getByRole("heading", { level: 1, name: "Account" });
+    const displayName = screen.getByText("Test User");
+
+    await getI18n().changeLanguage("ja");
+
+    expect(screen.getByRole("heading", { level: 1, name: "アカウント" })).toBe(heading);
+    expect(screen.getByRole("heading", { level: 2, name: "プロフィール" })).toBeVisible();
+    expect(screen.getByText("アカウント情報とGoogleログイン")).toBeVisible();
+    expect(screen.getByText("Googleでログイン済み")).toBeVisible();
+    expect(screen.getByText("表示名")).toBeVisible();
+    expect(screen.getByText("ユーザーID")).toBeVisible();
+    expect(screen.getByRole("button", { name: "ログアウト" })).toBeEnabled();
+    expect(screen.getByText("Test User")).toBe(displayName);
+    expect(screen.getByText("linked-user")).toBeVisible();
   });
 
   it("navigates home when the user presses the route shortcut", async () => {

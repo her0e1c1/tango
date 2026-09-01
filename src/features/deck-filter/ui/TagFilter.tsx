@@ -6,6 +6,7 @@
 
 import { useId } from "react";
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/ui/button";
 import { TagList } from "@/shared/ui/content";
 import { Switch, Tag } from "@/shared/ui/forms";
@@ -38,6 +39,7 @@ export interface TagFilterProps {
  * clear action.
  */
 export const TagFilter: React.FC<TagFilterProps> = (props) => {
+  const { t } = useTranslation();
   const idPrefix = useId();
   const headingId = `${idPrefix}-tags-heading`;
   const modeId = `${idPrefix}-tag-filter-mode`;
@@ -52,21 +54,21 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id={headingId} className="text-title font-semibold text-ink">
-            Tags
+            {t("deckFilter.tagFilter.title")}
           </h2>
-          <p className="mt-1 text-caption text-ink-muted">Choose which tagged cards belong in this session.</p>
+          <p className="mt-1 text-caption text-ink-muted">{t("deckFilter.tagFilter.description")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
             variant="quiet"
             size="sm"
-            label="All"
+            label={t("deckFilter.tagFilter.all")}
             {...(props.onClickAll !== undefined ? { onClick: props.onClickAll } : {})}
           />
           <Button
             variant="quiet"
             size="sm"
-            label="Clear"
+            label={t("deckFilter.tagFilter.clear")}
             {...(props.onClickClear !== undefined ? { onClick: props.onClickClear } : {})}
           />
         </div>
@@ -74,18 +76,20 @@ export const TagFilter: React.FC<TagFilterProps> = (props) => {
       <div className="flex min-h-touch items-center justify-between gap-4 rounded-control bg-surface-muted p-3">
         <div className="min-w-0">
           <label htmlFor={modeId} className="text-body font-medium text-ink">
-            Match all selected tags
+            {t("deckFilter.tagFilter.matchAll")}
           </label>
           <p id={modeDescriptionId} className="text-caption text-ink-muted">
-            {props.tagAndFilter ? "Cards must include every selected tag." : "Cards can include any selected tag."}
+            {props.tagAndFilter ? t("deckFilter.tagFilter.everySelected") : t("deckFilter.tagFilter.anySelected")}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="text-caption font-bold text-accent-primary">{props.tagAndFilter ? "AND" : "OR"}</span>
+          <span className="text-caption font-bold text-accent-primary">
+            {props.tagAndFilter ? t("deckFilter.tagFilter.conjunctionAnd") : t("deckFilter.tagFilter.conjunctionOr")}
+          </span>
           <Switch
             id={modeId}
             name="tag-filter-click-filter"
-            aria-label="Match all selected tags"
+            aria-label={t("deckFilter.tagFilter.matchAll")}
             aria-describedby={modeDescriptionId}
             {...(props.tagAndFilter !== undefined ? { checked: props.tagAndFilter } : {})}
             onChange={(event) => props.onClickFilter?.(event.target.checked)}
