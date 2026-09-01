@@ -61,23 +61,11 @@ describe("Card document [CARD-01]", () => {
     );
   });
 
-  it("accepts a legacy score only when difficulty is absent", () => {
-    const { difficulty: _difficulty, ...legacyDocument } = requiredDocument;
-
-    expect(parseCardDocument("card-a", { ...legacyDocument, score: -1 })).toEqual({
-      ...legacyDocument,
-      score: -1,
-    });
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, 0, 11])("rejects malformed difficulty %s", (difficulty) => {
+    expect(() => parseCardDocument("card-a", { ...requiredDocument, difficulty })).toThrow();
   });
 
-  it.each([Number.NaN, Number.POSITIVE_INFINITY, 0, 11])(
-    "rejects malformed present difficulty %s without falling back to score",
-    (difficulty) => {
-      expect(() => parseCardDocument("card-a", { ...requiredDocument, difficulty, score: 0 })).toThrow();
-    }
-  );
-
-  it("rejects a document that has neither difficulty nor legacy score", () => {
+  it("rejects a document without difficulty", () => {
     const { difficulty: _difficulty, ...missingProgress } = requiredDocument;
     expect(() => parseCardDocument("card-a", missingProgress)).toThrow();
   });

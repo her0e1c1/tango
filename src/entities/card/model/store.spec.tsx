@@ -119,25 +119,10 @@ describe("Card store [CARD-01]", () => {
     expect(cardStore.getState().localCards[0]).not.toHaveProperty("uid");
   });
 
-  it("adapts a legacy local score when difficulty is absent", async () => {
-    const { difficulty: _difficulty, ...legacyCard } = createLocalCardFixture({ id: "legacy-local" });
+  it("rejects malformed local difficulty", async () => {
     useMemoryStorage({
       "tango-local-cards": JSON.stringify({
-        state: { localCards: [{ ...legacyCard, score: -5 }] },
-        version: 1,
-      }),
-    });
-
-    await cardStore.persist.rehydrate();
-
-    expect(cardStore.getState().localCards).toEqual([expect.objectContaining({ id: "legacy-local", difficulty: 10 })]);
-    expect(cardStore.getState().localCards[0]).not.toHaveProperty("score");
-  });
-
-  it("rejects malformed local difficulty instead of falling back to score", async () => {
-    useMemoryStorage({
-      "tango-local-cards": JSON.stringify({
-        state: { localCards: [{ ...createLocalCardFixture(), difficulty: 11, score: 0 }] },
+        state: { localCards: [{ ...createLocalCardFixture(), difficulty: 11 }] },
         version: 1,
       }),
     });

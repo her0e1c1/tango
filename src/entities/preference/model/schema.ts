@@ -80,29 +80,19 @@ const studyPreferencesSchema = z
   })
   .catch(DEFAULT_STUDY);
 
-const adaptLegacyControlPreferences = (value: unknown): unknown => {
-  if (value === null || typeof value !== "object" || Object.hasOwn(value, "showDifficultySlider")) return value;
-  if (!Object.hasOwn(value, "showScoreSlider")) return value;
-  const preferences = value as Record<string, unknown>;
-  return { ...preferences, showDifficultySlider: preferences.showScoreSlider };
-};
-
 export const controlPreferencesSchema = z
-  .preprocess(
-    adaptLegacyControlPreferences,
-    z.object({
-      showHelp: z.boolean().catch(DEFAULT_CONTROLS.showHelp),
-      showSwipeButtonList: z.boolean().catch(DEFAULT_CONTROLS.showSwipeButtonList),
-      showPlaybackControls: z.boolean().catch(DEFAULT_CONTROLS.showPlaybackControls),
-      showCardDetails: z.boolean().catch(DEFAULT_CONTROLS.showCardDetails),
-      showDifficultySlider: z.boolean().catch(DEFAULT_CONTROLS.showDifficultySlider),
-      showBackTextSwipeOverlays: z.boolean().catch(DEFAULT_CONTROLS.showBackTextSwipeOverlays),
-      cardSwipeUp: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeUp),
-      cardSwipeDown: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeDown),
-      cardSwipeLeft: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeLeft),
-      cardSwipeRight: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeRight),
-    })
-  )
+  .object({
+    showHelp: z.boolean().catch(DEFAULT_CONTROLS.showHelp),
+    showSwipeButtonList: z.boolean().catch(DEFAULT_CONTROLS.showSwipeButtonList),
+    showPlaybackControls: z.boolean().catch(DEFAULT_CONTROLS.showPlaybackControls),
+    showCardDetails: z.boolean().catch(DEFAULT_CONTROLS.showCardDetails),
+    showDifficultySlider: z.boolean().catch(DEFAULT_CONTROLS.showDifficultySlider),
+    showBackTextSwipeOverlays: z.boolean().catch(DEFAULT_CONTROLS.showBackTextSwipeOverlays),
+    cardSwipeUp: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeUp),
+    cardSwipeDown: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeDown),
+    cardSwipeLeft: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeLeft),
+    cardSwipeRight: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeRight),
+  })
   .catch(DEFAULT_CONTROLS);
 
 export const preferencesSchema = z

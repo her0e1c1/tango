@@ -18,27 +18,14 @@ export interface StudyProgress {
 }
 
 /** StudyProgress-owned fields read from the shared physical Firestore document. */
-interface StudyProgressDocumentSharedFields {
+export interface StudyProgressDocumentFields {
+  difficulty: Difficulty;
   numberOfSeen: number;
   // Zod-inferred physical documents can retain explicit undefined values at optional keys.
   lastSeenAt?: number | undefined;
   nextSeeingAt?: Date | undefined;
   interval?: number | undefined;
 }
-
-/** Current documents may retain a physical legacy score, but difficulty is authoritative. */
-interface CurrentStudyProgressDocumentFields extends StudyProgressDocumentSharedFields {
-  difficulty: Difficulty;
-  score?: number | undefined;
-}
-
-/** Legacy documents are adapted only when the difficulty field is absent. */
-interface LegacyStudyProgressDocumentFields extends StudyProgressDocumentSharedFields {
-  difficulty?: undefined;
-  score: number;
-}
-
-export type StudyProgressDocumentFields = CurrentStudyProgressDocumentFields | LegacyStudyProgressDocumentFields;
 
 /** Firestore patch shape: cardId selects the document and every progress field is independently optional. */
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;

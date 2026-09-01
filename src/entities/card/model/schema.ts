@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { DEFAULT_DIFFICULTY, difficultySchema, legacyScoreToDifficulty } from "@/entities/study-progress/@x/card";
+import { DEFAULT_DIFFICULTY, difficultySchema } from "@/entities/study-progress/@x/card";
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
 const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Card writes");
@@ -55,20 +55,7 @@ const persistedDateSchema = z.preprocess(
   z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date")
 );
 
-const adaptLegacyPersistedCard = (value: unknown): unknown => {
-  if (value === null || typeof value !== "object" || Object.hasOwn(value, "difficulty")) return value;
-  if (!Object.hasOwn(value, "score")) return value;
-  const persistedCard = value as Record<string, unknown>;
-  const { score } = persistedCard;
-  // An explicitly malformed legacy value must make hydration fail instead of becoming a neutral Card.
-  const difficulty = typeof score === "number" && Number.isFinite(score) ? legacyScoreToDifficulty(score) : score;
-  return { ...persistedCard, difficulty };
-};
-
-const persistedCardSchema = z.preprocess(
-  adaptLegacyPersistedCard,
-  localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() })
-);
+const persistedCardSchema = localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
 export const persistedCardStateSchema = z.object({ localCards: z.array(persistedCardSchema) });
 
 export const localCardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });

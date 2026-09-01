@@ -123,28 +123,6 @@ describe("Deck store [CARD-10]", () => {
     ]);
   });
 
-  it("adapts legacy local score filters", async () => {
-    const {
-      difficultyMax: _difficultyMax,
-      difficultyMin: _difficultyMin,
-      ...legacyDeck
-    } = createLocalDeckFixture({ id: "legacy-filter" });
-    useMemoryStorage({
-      "tango-local-decks": JSON.stringify({
-        state: { localDecks: [{ ...legacyDeck, scoreMax: 4, scoreMin: 1 }] },
-        version: 1,
-      }),
-    });
-
-    await deckStore.persist.rehydrate();
-
-    expect(deckStore.getState().localDecks).toEqual([
-      expect.objectContaining({ id: "legacy-filter", difficultyMin: 1, difficultyMax: 4 }),
-    ]);
-    expect(deckStore.getState().localDecks[0]).not.toHaveProperty("scoreMin");
-    expect(deckStore.getState().localDecks[0]).not.toHaveProperty("scoreMax");
-  });
-
   it("rejects invalid persisted Decks", async () => {
     const invalidDeck = createDeck({ id: "remote-shaped", localMode: false });
     useMemoryStorage({

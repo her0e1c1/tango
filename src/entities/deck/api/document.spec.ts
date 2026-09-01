@@ -92,67 +92,7 @@ describe("Deck Firestore document mapping [CARD-10]", () => {
     });
   });
 
-  it("adapts legacy score bounds while reversing their direction", () => {
-    const document = parseDeckDocument("deck", {
-      uid: "owner",
-      name: "Legacy filters",
-      isPublic: false,
-      scoreMax: 4,
-      scoreMin: 1,
-      selectedTags: [],
-      tagAndFilter: false,
-      category: "",
-      convertToBr: false,
-      deletedAt: null,
-      createdAt: 1,
-      updatedAt: 2,
-    });
-
-    expect(toDeck("deck", document)).toEqual(expect.objectContaining({ difficultyMin: 1, difficultyMax: 4 }));
-  });
-
-  it("uses difficulty bounds when legacy score bounds are also present", () => {
-    const document = parseDeckDocument("deck", {
-      uid: "owner",
-      name: "Current filters",
-      isPublic: false,
-      difficultyMax: 8,
-      difficultyMin: 3,
-      scoreMax: 4,
-      scoreMin: 1,
-      selectedTags: [],
-      tagAndFilter: false,
-      category: "",
-      convertToBr: false,
-      deletedAt: null,
-      createdAt: 1,
-      updatedAt: 2,
-    });
-
-    expect(toDeck("deck", document)).toEqual(expect.objectContaining({ difficultyMin: 3, difficultyMax: 8 }));
-  });
-
-  it("maps independently migrated difficulty bounds without losing the remaining legacy bound", () => {
-    const document = parseDeckDocument("deck", {
-      uid: "owner",
-      name: "Partially migrated filters",
-      isPublic: false,
-      difficultyMax: 8,
-      scoreMax: 4,
-      scoreMin: 1,
-      selectedTags: [],
-      tagAndFilter: false,
-      category: "",
-      convertToBr: false,
-      deletedAt: null,
-      createdAt: 1,
-      updatedAt: 2,
-    });
-
-    expect(toDeck("deck", document)).toEqual(expect.objectContaining({ difficultyMin: 1, difficultyMax: 8 }));
-  });
-
-  it("rejects malformed difficulty bounds instead of falling back to score bounds", () => {
+  it("rejects malformed difficulty bounds", () => {
     expect(() =>
       parseDeckDocument("deck", {
         uid: "owner",
@@ -160,8 +100,6 @@ describe("Deck Firestore document mapping [CARD-10]", () => {
         isPublic: false,
         difficultyMax: 11,
         difficultyMin: 3,
-        scoreMax: 4,
-        scoreMin: 1,
         selectedTags: [],
         tagAndFilter: false,
         category: "",

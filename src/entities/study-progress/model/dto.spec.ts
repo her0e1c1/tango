@@ -22,18 +22,4 @@ describe("StudyProgress document mapping [CARD-01]", () => {
       interval: 7,
     });
   });
-
-  it.each([
-    [4, 1],
-    [1, 4],
-    [0, 5],
-    [-1, 6],
-    [-5, 10],
-  ])("adapts legacy score %s to difficulty %s", (score, difficulty) => {
-    expect(mapStudyProgressDocument("card-a", { score, numberOfSeen: 0 }).difficulty).toBe(difficulty);
-  });
-
-  it("uses difficulty when a physical legacy score is also present", () => {
-    expect(mapStudyProgressDocument("card-a", { difficulty: 7.5, score: 99, numberOfSeen: 0 }).difficulty).toBe(7.5);
-  });
 });
