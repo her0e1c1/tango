@@ -17,6 +17,7 @@ const openDeckDeleteDialog = async (page: Page, deckName: string) => {
   return page.getByRole("alertdialog", { name: "Delete deck?" });
 };
 
+// Click the visible Switch label because the Firebase emulator banner can intercept pointer events on its sr-only input.
 const clickCheckboxLabel = async (page: Page, name: string) => {
   const checkbox = page.getByRole("checkbox", { name, exact: true });
   await checkbox.locator("xpath=parent::label").click();
@@ -240,57 +241,46 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   expect(local.cards).toEqual([]);
 });
 
-test("DECK-10 retries a failed remote create with the same ID and no duplicate", async ({
+test("DECK-10 reports a failed remote create without locking the form", async ({
   fixture,
   page,
   browserErrors,
   namespace,
 }) => {
-  const name = `${namespace.caseId} retry deck`;
+  const name = `${namespace.caseId} failed deck`;
   const category = "typescript";
+  const sourceUrl = "https://example.com/failed.csv";
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/");
   await page.getByRole("button", { name: "Create deck" }).click();
-  let attemptedDeckId: string | undefined;
-  page.on("request", (request) => {
-    if (!request.url().includes("google.firestore.v1.Firestore/Write/channel")) return;
-    const body = decodeURIComponent((request.postData() ?? "").replaceAll("+", "%20"));
-    attemptedDeckId ??= /\/documents\/deck\/([a-zA-Z0-9-]+)/.exec(body)?.[1];
-  });
   const fault = await failNextFirestoreWrite(page, { collection: "deck" });
   allowExpectedFirestoreWriteFailure(browserErrors);
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
+  await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
+  await clickCheckboxLabel(page, "Convert line breaks");
   await page.getByRole("button", { name: "Create deck" }).click();
-  await expect(page.getByRole("alert")).toContainText("Unable to create this deck. Try again.");
+  await expect(page.getByRole("alert")).toContainText("Unable to create this deck.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
-  expect(attemptedDeckId).toBeDefined();
 
   await expect(page.getByRole("textbox", { name: "Name" })).toHaveValue(name);
   await expect(page.getByRole("combobox")).toHaveValue(category);
-  await expect(page.getByRole("checkbox", { name: "Local only" })).not.toBeChecked();
-  await page.getByRole("button", { name: "Create deck" }).click();
-  await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
-  await expect(page.getByRole("alert")).toHaveCount(0);
-  await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
-  const deckId = new URL(page.url()).pathname.split("/").at(-1);
-  if (deckId === undefined) throw new Error("Created Deck ID is missing");
-  expect(deckId).toBe(attemptedDeckId);
+  await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(sourceUrl);
+  await expect(page.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
+  const localMode = page.getByRole("checkbox", { name: "Local only" });
+  await expect(localMode).toBeEnabled();
+  await clickCheckboxLabel(page, "Local only");
+  await expect(localMode).toBeChecked();
 
-  await page.goto("/");
-  await page.reload();
-  const deckArticle = page.getByRole("button", { name: `View ${name}` }).locator("xpath=ancestor::article[1]");
-  await expect(deckArticle).toContainText(category);
   const remote = await listDocuments("deck");
   const owned = remote.filter(
     ({ fields }) =>
       fields.uid?.stringValue === uid && (fields.name as { stringValue?: string } | undefined)?.stringValue === name
   );
-  expect(owned.map(documentId)).toEqual([deckId]);
-  expect(owned.map(({ fields }) => fields.category?.stringValue)).toEqual([category]);
+  expect(owned).toEqual([]);
   const local = await readLocalData(page);
   expect(local.decks).toEqual([]);
   expect(local.cards).toEqual([]);

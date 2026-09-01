@@ -69,7 +69,7 @@
 | DECK-07 | batch | [local-only Deck と Card を remote へ移行できる](./deck-transfer.md#deck-07) |
 | DECK-08 | read | [Deck の Card を CSV で export できる](./deck-transfer.md#deck-08) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](./deck-management.md#deck-09) |
-| DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](./deck-management.md#deck-10) |
+| DECK-10 | write | [remote Deck の作成失敗を通知できる](./deck-management.md#deck-10) |
 | DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](./deck-management.md#deck-11) |
 | DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](./deck-management.md#deck-12) |
 

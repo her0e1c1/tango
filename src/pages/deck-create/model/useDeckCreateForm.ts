@@ -22,10 +22,7 @@ const dismissOwnedToast = (toastId: React.RefObject<ToastId | undefined>) => {
 
 export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
   const uid = useAuthUid();
-  // A failed response may hide a successful write, so retries must reuse this Deck identity.
-  const [deckId] = React.useState(generateDeckId);
   const isMounted = useMountedGuard();
-  const [hasSaveError, setHasSaveError] = React.useState(false);
   const saveErrorToastId = React.useRef<ToastId | undefined>(undefined);
   const form = useForm<DeckFormFields>({
     defaultValues: { name: "", category: "", convertToBr: false, localMode: false },
@@ -38,7 +35,7 @@ export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
 
   const submit = async (values: DeckFormFields) => {
     dismissSaveError();
-    setHasSaveError(false);
+    const deckId = generateDeckId();
     try {
       const deck = {
         id: deckId,
@@ -55,8 +52,7 @@ export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
       }
     } catch {
       if (isMounted()) {
-        setHasSaveError(true);
-        saveErrorToastId.current = showToast({ message: "Unable to create this deck. Try again.", tone: "error" });
+        saveErrorToastId.current = showToast({ message: "Unable to create this deck.", tone: "error" });
       }
     }
   };
@@ -64,15 +60,12 @@ export const useDeckCreateForm = ({ onCreated }: UseDeckCreateFormOptions) => {
     void form.handleSubmit(submit)(event);
   };
 
-  // A retry must keep using react-hook-form's original persistence mode after a failed write.
-  const isLocalModeLocked = form.formState.isSubmitting || hasSaveError;
-
   return {
     categories: CATEGORY,
     dismissSaveError,
     form,
     isDirty: form.formState.isDirty,
-    isLocalModeLocked,
+    isLocalModeLocked: form.formState.isSubmitting,
     onSubmit: onFormSubmit,
   };
 };
