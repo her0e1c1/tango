@@ -7,6 +7,7 @@ import { useKey, useLatest } from "react-use";
 import { CardView, FrontText } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
 import type { SwipeDirection } from "@/entities/preference";
+import { DifficultyIndicator } from "@/entities/study-progress";
 import { routes } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { showToast, type ToastTone } from "@/shared/ui/toast";
@@ -114,7 +115,7 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void, t:
         }
         cardOverlaySlot={
           <CardOverlay
-            score={state.card.score}
+            difficultySlot={<DifficultyIndicator difficulty={state.card.difficulty} />}
             numberOfSeen={state.card.numberOfSeen}
             {...(state.card.lastSeenAt !== undefined ? { lastSeenAt: state.card.lastSeenAt } : {})}
           />

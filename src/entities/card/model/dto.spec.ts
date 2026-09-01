@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { mapCardDocument } from "./dto";
 
-describe("Card document mapping", () => {
+describe("Card document mapping [CARD-01]", () => {
   it("maps only Card fields from a physical Card document", () => {
     const document = {
       frontText: "Front",
@@ -14,7 +14,7 @@ describe("Card document mapping", () => {
       createdAt: 1,
       updatedAt: 2,
       deletedAt: null,
-      score: 3,
+      difficulty: 3,
       numberOfSeen: 4,
       url: "https://example.com/card-a",
       startLine: 7,

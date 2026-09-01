@@ -42,7 +42,7 @@ const useMemoryStorage = (initial: Record<string, string> = {}): StateStorage =>
   return storage;
 };
 
-describe("Card store", () => {
+describe("Card store [CARD-01]", () => {
   beforeEach(() => {
     useMemoryStorage();
     cardStore.setState({ remoteCards: [], localCards: [] });
@@ -119,6 +119,19 @@ describe("Card store", () => {
     expect(cardStore.getState().localCards[0]).not.toHaveProperty("uid");
   });
 
+  it("rejects malformed local difficulty", async () => {
+    useMemoryStorage({
+      "tango-local-cards": JSON.stringify({
+        state: { localCards: [{ ...createLocalCardFixture(), difficulty: 11 }] },
+        version: 1,
+      }),
+    });
+
+    await cardStore.persist.rehydrate();
+
+    expect(cardStore.getState().localCards).toEqual([]);
+  });
+
   it("rejects invalid persisted Cards", async () => {
     useMemoryStorage({
       "tango-local-cards": JSON.stringify({
@@ -143,9 +156,9 @@ describe("Card store", () => {
     const updatedCard = editLocalCard({ id: "local", frontText: "updated" });
     expect(updatedCard).toEqual(expect.objectContaining({ frontText: "updated", createdAt: 10, updatedAt: 20 }));
 
-    const updatedProgress = editLocalCardStudyProgress({ id: "local", score: 2, numberOfSeen: 3 });
+    const updatedProgress = editLocalCardStudyProgress({ id: "local", difficulty: 2, numberOfSeen: 3 });
     expect(updatedProgress).toEqual(
-      expect.objectContaining({ frontText: "updated", score: 2, numberOfSeen: 3, createdAt: 10, updatedAt: 30 })
+      expect.objectContaining({ frontText: "updated", difficulty: 2, numberOfSeen: 3, createdAt: 10, updatedAt: 30 })
     );
 
     deleteLocalCard("local");
@@ -171,7 +184,7 @@ describe("Card store", () => {
       if (card === undefined) throw new Error("Missing local Card");
       return editLocalCardStudyProgress({
         id: card.id,
-        score: card.score + 1,
+        difficulty: card.difficulty + 1,
         numberOfSeen: card.numberOfSeen + 1,
       });
     };
@@ -181,12 +194,12 @@ describe("Card store", () => {
     };
 
     expect(recordInteraction).toThrow("storage write failed");
-    expect(cardStore.getState().localCards[0]).toEqual(expect.objectContaining({ score: 0, numberOfSeen: 0 }));
-    await expect(readPersistedCard()).resolves.toEqual(expect.objectContaining({ score: 0, numberOfSeen: 0 }));
+    expect(cardStore.getState().localCards[0]).toEqual(expect.objectContaining({ difficulty: 5, numberOfSeen: 0 }));
+    await expect(readPersistedCard()).resolves.toEqual(expect.objectContaining({ difficulty: 5, numberOfSeen: 0 }));
 
-    expect(recordInteraction()).toEqual(expect.objectContaining({ score: 1, numberOfSeen: 1 }));
-    expect(cardStore.getState().localCards[0]).toEqual(expect.objectContaining({ score: 1, numberOfSeen: 1 }));
-    await expect(readPersistedCard()).resolves.toEqual(expect.objectContaining({ score: 1, numberOfSeen: 1 }));
+    expect(recordInteraction()).toEqual(expect.objectContaining({ difficulty: 6, numberOfSeen: 1 }));
+    expect(cardStore.getState().localCards[0]).toEqual(expect.objectContaining({ difficulty: 6, numberOfSeen: 1 }));
+    await expect(readPersistedCard()).resolves.toEqual(expect.objectContaining({ difficulty: 6, numberOfSeen: 1 }));
   });
 
   it("deletes local Cards by Deck", () => {

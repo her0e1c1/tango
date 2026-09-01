@@ -16,5 +16,5 @@ browser:
       frontText: local second
       backText: local second answer
       uniqueKey: local-second
-      score: 1
+      difficulty: 4
       numberOfSeen: 1

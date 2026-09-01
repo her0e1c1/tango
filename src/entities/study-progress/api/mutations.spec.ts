@@ -14,14 +14,14 @@ vi.mock("./firestore", () => ({ editRemoteStudyProgress: mocks.editRemoteStudyPr
 
 import { editStudyProgress } from "./mutations";
 
-describe("StudyProgress mutations", () => {
+describe("StudyProgress mutations [SWIPE-02]", () => {
   beforeEach(() => vi.resetAllMocks());
 
   it("updates local Card progress without writing to Firestore", async () => {
     mocks.findCardById.mockReturnValue({ id: "local", deckId: "deck" });
     const untrustedProgress = {
       cardId: "local",
-      score: 2,
+      difficulty: 2,
       numberOfSeen: 3,
       id: "other-local",
       frontText: "unexpected",
@@ -35,7 +35,7 @@ describe("StudyProgress mutations", () => {
     expect(mocks.findCardById).toHaveBeenCalledExactlyOnceWith("local");
     expect(mocks.editLocalCardStudyProgress).toHaveBeenCalledExactlyOnceWith({
       id: "local",
-      score: 2,
+      difficulty: 2,
       numberOfSeen: 3,
     });
     expect(mocks.editRemoteStudyProgress).not.toHaveBeenCalled();
@@ -44,17 +44,17 @@ describe("StudyProgress mutations", () => {
   it("preserves remote Firestore progress writes", async () => {
     mocks.findCardById.mockReturnValue({ id: "remote", deckId: "deck", uid: "user" });
 
-    await editStudyProgress("user", { cardId: "remote", score: 2 });
+    await editStudyProgress("user", { cardId: "remote", difficulty: 2 });
 
     expect(mocks.editRemoteStudyProgress).toHaveBeenCalledExactlyOnceWith("user", {
       cardId: "remote",
-      score: 2,
+      difficulty: 2,
     });
     expect(mocks.editLocalCardStudyProgress).not.toHaveBeenCalled();
   });
 
   it("rejects progress for an unknown Card", async () => {
-    await expect(editStudyProgress("user", { cardId: "missing", score: 2 })).rejects.toThrow(
+    await expect(editStudyProgress("user", { cardId: "missing", difficulty: 2 })).rejects.toThrow(
       'Card "missing" was not found'
     );
     expect(mocks.editRemoteStudyProgress).not.toHaveBeenCalled();

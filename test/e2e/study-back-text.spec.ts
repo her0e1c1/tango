@@ -113,7 +113,7 @@ test("SWIPE-20 runs the mapped left overlay action once and shows the next Card 
   await expect
     .poll(() => readProgress(currentCard.id))
     .toEqual({
-      score: currentCard.score + 1,
+      difficulty: currentCard.difficulty - 1,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
@@ -135,7 +135,7 @@ test("SWIPE-21 runs the mapped right overlay action once and shows the next Card
   await expect
     .poll(() => readProgress(currentCard.id))
     .toEqual({
-      score: currentCard.score - 1,
+      difficulty: currentCard.difficulty + 1,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);

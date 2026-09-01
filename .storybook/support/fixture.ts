@@ -70,7 +70,7 @@ const createLongCard = () =>
   createCard({
     frontText: "too long front text ".repeat(20),
     backText: "back test".repeat(100),
-    score: 3,
+    difficulty: 3,
     numberOfSeen: 5,
     tags: ["tag1", "tag2"],
     lastSeenAt: timestamp,
@@ -80,7 +80,7 @@ export const card = {
   default: createCard({
     frontText: "front text",
     backText: "back test",
-    score: 3,
+    difficulty: 3,
     numberOfSeen: 5,
     tags: ["tag1", "tag2"],
     lastSeenAt: timestamp,
@@ -90,7 +90,7 @@ export const card = {
   longTags: createCard({
     frontText: "front text",
     backText: "back test",
-    score: 3,
+    difficulty: 3,
     numberOfSeen: 5,
     tags: tags.toolong,
     lastSeenAt: timestamp,

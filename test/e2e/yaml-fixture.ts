@@ -22,8 +22,8 @@ export interface FixtureDeck {
   name: string;
   url?: string;
   isPublic: boolean;
-  scoreMax: number | null;
-  scoreMin: number | null;
+  difficultyMax: number | null;
+  difficultyMin: number | null;
   selectedTags: string[];
   tagAndFilter: boolean;
   category: string;
@@ -42,7 +42,7 @@ export interface FixtureCard {
   backText: string;
   tags: string[];
   uniqueKey: string;
-  score: number;
+  difficulty: number;
   numberOfSeen: number;
   createdAt: number;
   updatedAt: number;
@@ -88,7 +88,7 @@ export interface FixturePreferences {
     showSwipeButtonList: boolean;
     showPlaybackControls: boolean;
     showCardDetails: boolean;
-    showScoreSlider: boolean;
+    showDifficultySlider: boolean;
     showBackTextSwipeOverlays: boolean;
     cardSwipeUp: SwipeAction;
     cardSwipeDown: SwipeAction;
@@ -155,6 +155,7 @@ const fixtureRoot = path.join(docsRoot, "fixture");
 const sampleCardsPath = path.join(repositoryRoot, "sample/build/output.json");
 
 const nonEmptyString = z.string().min(1);
+const difficultySchema = z.number().finite().min(1).max(10);
 const nonBlankString = z
   .string()
   .refine((value) => value.trim().length > 0, { message: "Expected a non-blank string" });
@@ -175,8 +176,8 @@ const remoteDeckSchema = z.strictObject({
   name: nonBlankString,
   url: z.url().optional(),
   isPublic: z.boolean().optional(),
-  scoreMax: z.number().nullable().optional(),
-  scoreMin: z.number().nullable().optional(),
+  difficultyMax: difficultySchema.nullable().optional(),
+  difficultyMin: difficultySchema.nullable().optional(),
   selectedTags: z.array(z.string()).optional(),
   tagAndFilter: z.boolean().optional(),
   category: z.string().optional(),
@@ -192,8 +193,8 @@ const localDeckSchema = z.strictObject({
   name: nonBlankString,
   url: z.url().optional(),
   isPublic: z.boolean().optional(),
-  scoreMax: z.number().nullable().optional(),
-  scoreMin: z.number().nullable().optional(),
+  difficultyMax: difficultySchema.nullable().optional(),
+  difficultyMin: difficultySchema.nullable().optional(),
   selectedTags: z.array(z.string()).optional(),
   tagAndFilter: z.boolean().optional(),
   category: z.string().optional(),
@@ -213,7 +214,7 @@ const cardContentFields = {
 } as const;
 
 const cardStateFields = {
-  score: z.number().optional(),
+  difficulty: difficultySchema.optional(),
   numberOfSeen: z.number().nonnegative().optional(),
   lastSeenAt: z.number().optional(),
   nextSeeingAt: optionalDateString,
@@ -278,7 +279,7 @@ const preferencesSchema = z.strictObject({
       showSwipeButtonList: z.boolean().optional(),
       showPlaybackControls: z.boolean().optional(),
       showCardDetails: z.boolean().optional(),
-      showScoreSlider: z.boolean().optional(),
+      showDifficultySlider: z.boolean().optional(),
       showBackTextSwipeOverlays: z.boolean().optional(),
       cardSwipeUp: swipeActionSchema.optional(),
       cardSwipeDown: swipeActionSchema.optional(),
@@ -642,7 +643,7 @@ const fixturePreferenceDefaults: FixturePreferences = {
     showSwipeButtonList: true,
     showPlaybackControls: true,
     showCardDetails: true,
-    showScoreSlider: false,
+    showDifficultySlider: false,
     showBackTextSwipeOverlays: false,
     cardSwipeUp: "GoToNextCardMastered",
     cardSwipeDown: "GoToNextCardNotMastered",
@@ -676,8 +677,8 @@ const normalizeDeck = (raw: RawRemoteDeck | RawLocalDeck, id: string, uid?: stri
     name: raw.name,
     ...(raw.url === undefined ? {} : { url: raw.url }),
     isPublic: raw.isPublic ?? false,
-    scoreMax: raw.scoreMax ?? null,
-    scoreMin: raw.scoreMin ?? null,
+    difficultyMax: raw.difficultyMax ?? null,
+    difficultyMin: raw.difficultyMin ?? null,
     selectedTags: [...(raw.selectedTags ?? [])],
     tagAndFilter: raw.tagAndFilter ?? false,
     category: raw.category ?? "",
@@ -699,7 +700,7 @@ const normalizeCard = (raw: RawRemoteCard | RawLocalCard, id: string, deckId: st
     backText: raw.backText,
     tags: [...(raw.tags ?? [])],
     uniqueKey: raw.uniqueKey,
-    score: raw.score ?? 0,
+    difficulty: raw.difficulty ?? 5,
     numberOfSeen: raw.numberOfSeen ?? 0,
     createdAt: raw.createdAt ?? 0,
     updatedAt: raw.updatedAt ?? 0,

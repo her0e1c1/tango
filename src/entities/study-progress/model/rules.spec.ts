@@ -4,27 +4,35 @@ import type { SwipeAction } from "@/entities/preference/@x/study-progress";
 
 import {
   buildStudyCardOrder,
+  calculateDifficulty,
   createStudyProgressFromCard,
   isStudyProgressEligible,
   recordCardStudyProgress,
 } from "./rules";
+import { createStudyProgress } from "./defaults";
 import type { CardProgressFields, StudyProgress } from "./types";
 
 // Builds neutral StudyProgress for eligibility scenarios.
-const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, score: 0, numberOfSeen: 0 });
+const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, difficulty: 5, numberOfSeen: 0 });
 
 // Builds the Card fields required by StudyProgress ordering rules.
 const cardProgress = (id: string, numberOfSeen = 0): CardProgressFields => ({
   id,
-  score: 0,
+  difficulty: 5,
   numberOfSeen,
 });
 
-describe("createStudyProgressFromCard", () => {
+describe("StudyProgress defaults [CARD-01]", () => {
+  it("creates unrated progress with neutral difficulty", () => {
+    expect(createStudyProgress("card-id")).toEqual({ cardId: "card-id", difficulty: 5, numberOfSeen: 0 });
+  });
+});
+
+describe("createStudyProgressFromCard [CARD-01]", () => {
   it("restores progress from a Card without copying Card content", () => {
     const card = {
       id: "card-id",
-      score: 3,
+      difficulty: 3,
       numberOfSeen: 4,
       lastSeenAt: 1_786_512_000_000,
       nextSeeingAt: new Date(1_786_598_400_000),
@@ -35,7 +43,7 @@ describe("createStudyProgressFromCard", () => {
 
     expect(progress).toEqual({
       cardId: "card-id",
-      score: 3,
+      difficulty: 3,
       numberOfSeen: 4,
       lastSeenAt: 1_786_512_000_000,
       nextSeeingAt: new Date(1_786_598_400_000),
@@ -45,46 +53,52 @@ describe("createStudyProgressFromCard", () => {
   });
 });
 
-describe("recordCardStudyProgress", () => {
+describe("recordCardStudyProgress [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", () => {
   it.each<[number, SwipeAction, number]>([
-    [0, "GoToNextCardMastered", 1],
-    [3, "GoToNextCardMastered", 4],
-    [-1, "GoToNextCardMastered", 0],
-    [0, "GoToNextCardNotMastered", -1],
-    [-2, "GoToNextCardToggleMastered", -3],
-    [2, "GoToNextCardNotMastered", 0],
+    [5, "GoToNextCardMastered", 4],
+    [7, "GoToNextCardMastered", 6],
+    [1, "GoToNextCardMastered", 1],
+    [5, "GoToNextCardNotMastered", 6],
+    [8, "GoToNextCardToggleMastered", 9],
+    [3, "GoToNextCardNotMastered", 4],
+    [10, "GoToNextCardNotMastered", 10],
     [3, "GoToNextCard", 3],
     [3, "GoToPrevCard", 3],
-  ])("records score %i for %s as %i", (score, swipeAction, expectedScore) => {
-    const card = { ...cardProgress("card-id", 2), score };
+  ])("records difficulty %i for %s as %i", (difficulty, swipeAction, expectedDifficulty) => {
+    const card = { ...cardProgress("card-id", 2), difficulty };
 
     expect(recordCardStudyProgress(card, swipeAction, 1_786_512_000_000)).toEqual({
       cardId: "card-id",
-      score: expectedScore,
+      difficulty: expectedDifficulty,
       numberOfSeen: 3,
       lastSeenAt: 1_786_512_000_000,
     });
   });
+
+  it("does not reset difficulty when the rating direction changes", () => {
+    expect(calculateDifficulty(8, "mastered")).toBe(7);
+    expect(calculateDifficulty(3, "not-mastered")).toBe(4);
+  });
 });
 
-describe("study progress selection", () => {
+describe("study progress selection [CARD-10]", () => {
   const filter = {
-    minimumScore: -1,
-    maximumScore: 2,
+    minimumDifficulty: 3,
+    maximumDifficulty: 7,
     respectNextSeeingAt: true,
   };
 
-  it("applies score bounds and the next seeing time", () => {
-    expect(isStudyProgressEligible({ ...initialStudyProgress("eligible"), score: 2 }, filter, 1000)).toBe(true);
-    expect(isStudyProgressEligible({ ...initialStudyProgress("high"), score: 3 }, filter, 1000)).toBe(false);
-    expect(isStudyProgressEligible({ ...initialStudyProgress("low"), score: -2 }, filter, 1000)).toBe(false);
+  it("applies difficulty bounds and the next seeing time", () => {
+    expect(isStudyProgressEligible({ ...initialStudyProgress("eligible"), difficulty: 7 }, filter, 1000)).toBe(true);
+    expect(isStudyProgressEligible({ ...initialStudyProgress("high"), difficulty: 8 }, filter, 1000)).toBe(false);
+    expect(isStudyProgressEligible({ ...initialStudyProgress("low"), difficulty: 2 }, filter, 1000)).toBe(false);
     expect(
       isStudyProgressEligible({ ...initialStudyProgress("future"), nextSeeingAt: new Date(1001) }, filter, 1000)
     ).toBe(false);
   });
 });
 
-describe("buildStudyCardOrder", () => {
+describe("buildStudyCardOrder [SWIPE-06]", () => {
   const cards = [cardProgress("a"), cardProgress("b"), cardProgress("c"), cardProgress("d")];
 
   it("returns the progress-based card order when shuffle and maximum are disabled", () => {

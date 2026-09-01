@@ -5,11 +5,11 @@ import { allowExpectedFirestoreWriteFailure, expect, failNextFirestoreWrite, req
 const cardArticle = (page: Page, frontText: string) =>
   page.getByRole("button", { name: `View ${frontText}`, exact: true }).locator("xpath=ancestor::article[1]");
 
-const expectScore = async (page: Page, frontText: string, score: number) => {
+const expectDifficulty = async (page: Page, frontText: string, difficulty: number) => {
   await expect(
     cardArticle(page, frontText)
       .locator("span")
-      .filter({ hasText: new RegExp(`^${String(score)}$`) })
+      .filter({ hasText: new RegExp(`^${String(difficulty)}$`) })
   ).toBeVisible();
 };
 
@@ -81,7 +81,7 @@ test("CARD-17 confirms before discarding an unsaved Card edit", async ({ fixture
     .toBe(card.frontText);
 });
 
-test("CARD-18 retries the same Card-list score change after a handled failure", async ({
+test("CARD-18 retries the same Card-list difficulty change after a handled failure", async ({
   fixture,
   page,
   browserErrors,
@@ -89,7 +89,7 @@ test("CARD-18 retries the same Card-list score change after a handled failure", 
   const deck = fixture.deck();
   const card = fixture.card("card-1");
   const unrelatedCard = fixture.card("card-2");
-  const expectedScore = card.score + 1;
+  const expectedDifficulty = card.difficulty - 1;
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}`);
   const fault = await failNextFirestoreWrite(page, { collection: "card", id: card.id });
@@ -100,16 +100,16 @@ test("CARD-18 retries the same Card-list score change after a handled failure", 
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
-  await expectScore(page, card.frontText, card.score);
+  await expectDifficulty(page, card.frontText, card.difficulty);
   await swipeRight(page, card.frontText);
 
   await expect
-    .poll(async () => (await requireDocument("card", card.id)).fields.score?.integerValue)
-    .toBe(String(expectedScore));
+    .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
+    .toBe(String(expectedDifficulty));
   await expect
-    .poll(async () => (await requireDocument("card", unrelatedCard.id)).fields.score?.integerValue)
-    .toBe(String(unrelatedCard.score));
+    .poll(async () => (await requireDocument("card", unrelatedCard.id)).fields.difficulty?.integerValue)
+    .toBe(String(unrelatedCard.difficulty));
   await expect(page.getByText("Unable to save changes. Try again.", { exact: true })).toHaveCount(0);
   await page.reload();
-  await expectScore(page, card.frontText, expectedScore);
+  await expectDifficulty(page, card.frontText, expectedDifficulty);
 });

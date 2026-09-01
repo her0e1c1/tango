@@ -19,7 +19,7 @@ vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
-describe("Query realtime subscriptions", () => {
+describe("Query realtime subscriptions [CARD-01] [CARD-10]", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     deckStore.setState({ remoteDecks: [], localDecks: [] });
@@ -37,7 +37,7 @@ describe("Query realtime subscriptions", () => {
       deckId: deck.id,
       uid,
       frontText: "Fetched Card",
-      score: 2,
+      difficulty: 2,
       numberOfSeen: 3,
     });
     await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
@@ -47,7 +47,7 @@ describe("Query realtime subscriptions", () => {
 
     expect(reads).toContainEqual({
       card: expect.objectContaining({ id: card.id, frontText: "Fetched Card" }),
-      progress: expect.objectContaining({ cardId: card.id, score: 2, numberOfSeen: 3 }),
+      progress: expect.objectContaining({ cardId: card.id, difficulty: 2, numberOfSeen: 3 }),
     });
   });
 

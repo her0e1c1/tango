@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { difficultySchema } from "@/entities/study-progress/@x/deck";
+
 export const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
 export const deckIdSchema = z.string().min(1, "Deck id is required");
 
@@ -7,8 +9,8 @@ const editableDeckFieldsSchema = z.object({
   name: z.string().trim().min(1, "Deck name is required."),
   url: z.url("Enter a valid URL.").optional(),
   isPublic: z.boolean(),
-  scoreMax: z.number().nullable(),
-  scoreMin: z.number().nullable(),
+  difficultyMax: difficultySchema.nullable(),
+  difficultyMin: difficultySchema.nullable(),
   selectedTags: z.array(z.string()),
   tagAndFilter: z.boolean(),
   category: z.string(),
@@ -27,8 +29,8 @@ export const deckFormSchema = editableDeckFieldsSchema
 const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
   isPublic: editableDeckFieldsSchema.shape.isPublic.default(false),
-  scoreMax: editableDeckFieldsSchema.shape.scoreMax.default(null),
-  scoreMin: editableDeckFieldsSchema.shape.scoreMin.default(null),
+  difficultyMax: editableDeckFieldsSchema.shape.difficultyMax.default(null),
+  difficultyMin: editableDeckFieldsSchema.shape.difficultyMin.default(null),
   selectedTags: editableDeckFieldsSchema.shape.selectedTags.default([]),
   tagAndFilter: editableDeckFieldsSchema.shape.tagAndFilter.default(false),
   category: editableDeckFieldsSchema.shape.category.default(""),
@@ -47,7 +49,8 @@ export const localDeckSchema = localDeckCreateSchema.extend({
   updatedAt: z.number(),
 });
 
-export const persistedDeckStateSchema = z.object({ localDecks: z.array(localDeckSchema) });
+const persistedDeckSchema = localDeckSchema;
+export const persistedDeckStateSchema = z.object({ localDecks: z.array(persistedDeckSchema) });
 
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   id: deckIdSchema,

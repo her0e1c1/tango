@@ -18,7 +18,7 @@ remote:
       frontText: second
       backText: second answer
       uniqueKey: second
-      score: 1
+      difficulty: 4
       numberOfSeen: 1
     - id: card-3
       deckId: deck-1
@@ -26,7 +26,7 @@ remote:
       frontText: third
       backText: third answer
       uniqueKey: third
-      score: -1
+      difficulty: 6
       numberOfSeen: 2
 browser:
   preferences:

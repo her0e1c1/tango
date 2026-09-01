@@ -57,7 +57,7 @@ const StoredDeckFilterHarness: React.FC<{ deckId: DeckId; tags: string[] }> = ({
   return deck === undefined ? null : <DeckFilterHarness deck={deck} tags={tags} />;
 };
 
-describe("DeckFilterForm with useDeckFilterState", () => {
+describe("DeckFilterForm with useDeckFilterState [CARD-10]", () => {
   const deckId = "filter-deck";
   const tags = ["tag1", "tag2", "tag3"];
 
@@ -67,14 +67,14 @@ describe("DeckFilterForm with useDeckFilterState", () => {
   });
 
   it("follows saved Deck subscription updates during the same mount", () => {
-    const remoteDeck = createRemoteDeck({ id: deckId, scoreMax: 1, updatedAt: 1 });
+    const remoteDeck = createRemoteDeck({ id: deckId, difficultyMax: 1, updatedAt: 1 });
     const view = render(<DeckFilterHarness deck={remoteDeck} tags={tags} />);
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("1");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("1");
 
-    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, scoreMax: 2, updatedAt: 2 }} tags={tags} />);
+    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, difficultyMax: 2, updatedAt: 2 }} tags={tags} />);
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("2");
   });
 
   it("keeps an optimistic value until the next subscription update arrives", async () => {
@@ -83,13 +83,13 @@ describe("DeckFilterForm with useDeckFilterState", () => {
       new Promise<void>((resolve) => {
         finishWrite = resolve;
       });
-    const remoteDeck = createRemoteDeck({ id: deckId, scoreMax: 1, updatedAt: 1 });
+    const remoteDeck = createRemoteDeck({ id: deckId, difficultyMax: 1, updatedAt: 1 });
     const view = render(<DeckFilterHarness deck={remoteDeck} tags={tags} />);
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum score" }), {
+    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), {
       target: { value: 2 },
     });
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("2");
 
     await Promise.resolve(
       act(async () => {
@@ -97,19 +97,19 @@ describe("DeckFilterForm with useDeckFilterState", () => {
         await Promise.resolve();
       })
     );
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("2");
 
     view.rerender(
       <DeckFilterHarness deck={{ ...remoteDeck, name: "Updated elsewhere", tagAndFilter: true }} tags={tags} />
     );
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("2");
 
-    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, scoreMax: 2, updatedAt: 3 }} tags={tags} />);
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
+    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, difficultyMax: 2, updatedAt: 3 }} tags={tags} />);
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("2");
 
-    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, scoreMax: 3, updatedAt: 4 }} tags={tags} />);
+    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, difficultyMax: 3, updatedAt: 4 }} tags={tags} />);
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("3");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("3");
   });
 
   it("accepts a newer authoritative value after a successful write", async () => {
@@ -118,17 +118,17 @@ describe("DeckFilterForm with useDeckFilterState", () => {
       new Promise<void>((resolve) => {
         finishWrite = resolve;
       });
-    const remoteDeck = createRemoteDeck({ id: deckId, scoreMax: 1, updatedAt: 1 });
+    const remoteDeck = createRemoteDeck({ id: deckId, difficultyMax: 1, updatedAt: 1 });
     const view = render(<DeckFilterHarness deck={remoteDeck} tags={tags} />);
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum score" }), {
+    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), {
       target: { value: 2 },
     });
     await Promise.resolve(act(async () => finishWrite()));
 
-    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, scoreMax: 3, updatedAt: 2 }} tags={tags} />);
+    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, difficultyMax: 3, updatedAt: 2 }} tags={tags} />);
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("3");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("3");
   });
 
   it("accepts an authoritative value observed before the write succeeds", async () => {
@@ -137,18 +137,18 @@ describe("DeckFilterForm with useDeckFilterState", () => {
       new Promise<void>((resolve) => {
         finishWrite = resolve;
       });
-    const remoteDeck = createRemoteDeck({ id: deckId, scoreMax: 1, updatedAt: 1 });
+    const remoteDeck = createRemoteDeck({ id: deckId, difficultyMax: 1, updatedAt: 1 });
     const view = render(<DeckFilterHarness deck={remoteDeck} tags={tags} />);
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum score" }), {
+    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), {
       target: { value: 2 },
     });
-    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, scoreMax: 3, updatedAt: 2 }} tags={tags} />);
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
+    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, difficultyMax: 3, updatedAt: 2 }} tags={tags} />);
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("2");
 
     await Promise.resolve(act(async () => finishWrite()));
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("3");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("3");
   });
 
   it("falls back to the latest saved value when an optimistic write fails", async () => {
@@ -157,76 +157,76 @@ describe("DeckFilterForm with useDeckFilterState", () => {
       new Promise<void>((_resolve, reject) => {
         failWrite = reject;
       });
-    const remoteDeck = createRemoteDeck({ id: deckId, scoreMax: 1, updatedAt: 1 });
+    const remoteDeck = createRemoteDeck({ id: deckId, difficultyMax: 1, updatedAt: 1 });
     const view = render(<DeckFilterHarness deck={remoteDeck} tags={tags} />);
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum score" }), {
+    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), {
       target: { value: 2 },
     });
-    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, scoreMax: 3, updatedAt: 2 }} tags={tags} />);
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
+    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, difficultyMax: 3, updatedAt: 2 }} tags={tags} />);
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("2");
 
     await Promise.resolve(act(async () => failWrite(new Error("write failed"))));
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("3");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("3");
   });
 
-  it("clears and rolls back both score limits as one optimistic write", async () => {
+  it("clears and rolls back both difficulty limits as one optimistic write", async () => {
     let failWrite: (error: Error) => void = () => undefined;
     writeControls.write = () =>
       new Promise<void>((_resolve, reject) => {
         failWrite = reject;
       });
-    const remoteDeck = createRemoteDeck({ id: deckId, scoreMax: 2, scoreMin: -2, updatedAt: 1 });
+    const remoteDeck = createRemoteDeck({ id: deckId, difficultyMax: 8, difficultyMin: 3, updatedAt: 1 });
     render(<DeckFilterHarness deck={remoteDeck} tags={tags} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("");
-    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("");
-    expect(writeControls.calls).toEqual([["user-id", { id: deckId, scoreMax: null, scoreMin: null }]]);
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("");
+    expect(writeControls.calls).toEqual([["user-id", { id: deckId, difficultyMax: null, difficultyMin: null }]]);
 
     await Promise.resolve(act(async () => failWrite(new Error("write failed"))));
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
-    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("-2");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("8");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("3");
   });
 
-  it("settles the whole clear action when a subscription changes one score boundary", async () => {
+  it("settles the whole clear action when a subscription changes one difficulty boundary", async () => {
     let finishWrite: () => void = () => undefined;
     writeControls.write = () =>
       new Promise<void>((resolve) => {
         finishWrite = resolve;
       });
-    const remoteDeck = createRemoteDeck({ id: deckId, scoreMax: 2, scoreMin: -2, updatedAt: 1 });
+    const remoteDeck = createRemoteDeck({ id: deckId, difficultyMax: 8, difficultyMin: 3, updatedAt: 1 });
     const view = render(<DeckFilterHarness deck={remoteDeck} tags={tags} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
-    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, scoreMax: null, updatedAt: 2 }} tags={tags} />);
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("");
-    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("");
+    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, difficultyMax: null, updatedAt: 2 }} tags={tags} />);
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("");
 
     await Promise.resolve(act(async () => finishWrite()));
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("");
-    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("-2");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("3");
   });
 
-  it("keeps a newer individual score choice when an older clear fails", async () => {
+  it("keeps a newer individual difficulty choice when an older clear fails", async () => {
     const writes: Array<{ reject: (error: Error) => void; resolve: () => void }> = [];
     writeControls.write = () =>
       new Promise<void>((resolve, reject) => {
         writes.push({ reject, resolve });
       });
-    const remoteDeck = createRemoteDeck({ id: deckId, scoreMax: 2, scoreMin: -2, updatedAt: 1 });
+    const remoteDeck = createRemoteDeck({ id: deckId, difficultyMax: 8, difficultyMin: 3, updatedAt: 1 });
     render(<DeckFilterHarness deck={remoteDeck} tags={tags} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Minimum score" }), "1");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Minimum difficulty" }), "4");
     await Promise.resolve(act(async () => writes[0]?.reject(new Error("clear failed"))));
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
-    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("1");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("8");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("4");
   });
 
   it("ignores an older response after a newer filter change", async () => {
@@ -235,36 +235,36 @@ describe("DeckFilterForm with useDeckFilterState", () => {
       new Promise<void>((resolve, reject) => {
         writes.push({ reject, resolve });
       });
-    const remoteDeck = createRemoteDeck({ id: deckId, scoreMax: 1, updatedAt: 1 });
+    const remoteDeck = createRemoteDeck({ id: deckId, difficultyMax: 1, updatedAt: 1 });
     const view = render(<DeckFilterHarness deck={remoteDeck} tags={tags} />);
 
-    const scoreMax = screen.getByRole("combobox", { name: "Maximum score" });
-    fireEvent.change(scoreMax, { target: { value: 2 } });
-    fireEvent.change(scoreMax, { target: { value: 3 } });
-    expect(scoreMax).toHaveValue("3");
+    const difficultyMax = screen.getByRole("combobox", { name: "Maximum difficulty" });
+    fireEvent.change(difficultyMax, { target: { value: 2 } });
+    fireEvent.change(difficultyMax, { target: { value: 3 } });
+    expect(difficultyMax).toHaveValue("3");
 
     await Promise.resolve(act(async () => writes[0]?.reject(new Error("older write failed"))));
-    expect(scoreMax).toHaveValue("3");
+    expect(difficultyMax).toHaveValue("3");
 
-    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, scoreMax: 2, updatedAt: 2 }} tags={tags} />);
+    view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, difficultyMax: 2, updatedAt: 2 }} tags={tags} />);
     await Promise.resolve(act(async () => writes[1]?.reject(new Error("latest write failed"))));
 
-    expect(scoreMax).toHaveValue("2");
+    expect(difficultyMax).toHaveValue("2");
   });
 
-  it("restores score and tag mode changes from the saved Deck", async () => {
+  it("restores difficulty and tag mode changes from the saved Deck", async () => {
     await createDeck(
       "",
-      createLocalDeck({ id: deckId, scoreMax: 1, scoreMin: -1, tagAndFilter: false, selectedTags: [] })
+      createLocalDeck({ id: deckId, difficultyMax: 8, difficultyMin: 3, tagAndFilter: false, selectedTags: [] })
     );
     const renderFilter = () => render(<StoredDeckFilterHarness deckId={deckId} tags={tags} />);
     const view = renderFilter();
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum score" }), {
-      target: { value: 2 },
+    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), {
+      target: { value: 7 },
     });
-    fireEvent.change(screen.getByRole("combobox", { name: "Minimum score" }), {
-      target: { value: -2 },
+    fireEvent.change(screen.getByRole("combobox", { name: "Minimum difficulty" }), {
+      target: { value: 4 },
     });
     await userEvent.click(screen.getByRole("checkbox", { name: "Match all selected tags" }));
     await userEvent.click(screen.getByRole("button", { name: /all/i }));
@@ -272,30 +272,30 @@ describe("DeckFilterForm with useDeckFilterState", () => {
     view.unmount();
     renderFilter();
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
-    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("-2");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("7");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("4");
     expect(screen.getByRole("checkbox", { name: "Match all selected tags" })).toBeChecked();
     expect(screen.getByText("AND")).toBeInTheDocument();
     for (const tag of tags) expect(screen.getByRole("checkbox", { name: tag })).toBeChecked();
   });
 
-  it("restores score limits and later restores their removal", async () => {
-    await createDeck("", createLocalDeck({ id: deckId, scoreMax: null, scoreMin: null }));
+  it("restores difficulty limits and later restores their removal", async () => {
+    await createDeck("", createLocalDeck({ id: deckId, difficultyMax: null, difficultyMin: null }));
     const renderFilter = () => render(<StoredDeckFilterHarness deckId={deckId} tags={tags} />);
     let view = renderFilter();
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum score" }), {
-      target: { value: 2 },
+    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), {
+      target: { value: 8 },
     });
-    fireEvent.change(screen.getByRole("combobox", { name: "Minimum score" }), {
-      target: { value: -2 },
+    fireEvent.change(screen.getByRole("combobox", { name: "Minimum difficulty" }), {
+      target: { value: 3 },
     });
 
     view.unmount();
     view = renderFilter();
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("2");
-    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("-2");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("8");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("3");
 
     await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
 
@@ -303,8 +303,8 @@ describe("DeckFilterForm with useDeckFilterState", () => {
     renderFilter();
 
     expect(screen.queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("");
-    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("");
   });
 
   it("restores individual, all, and cleared tag selections", async () => {

@@ -7,7 +7,7 @@ export const mapStudyProgressDocument = (
 ): StudyProgress => {
   const progress: StudyProgress = {
     cardId,
-    score: document.score,
+    difficulty: document.difficulty,
     numberOfSeen: document.numberOfSeen,
   };
   if (document.lastSeenAt !== undefined) progress.lastSeenAt = document.lastSeenAt;

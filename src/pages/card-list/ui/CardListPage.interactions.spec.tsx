@@ -52,8 +52,8 @@ import { CardListPage } from "./CardListPage";
 const deck = createDeck({
   id: "deck-id",
   category: "raw",
-  scoreMin: -2,
-  scoreMax: 4,
+  difficultyMin: 3,
+  difficultyMax: 4,
   selectedTags: ["typescript", "react"],
 });
 const card = createCard({
@@ -61,7 +61,7 @@ const card = createCard({
   deckId: deck.id,
   frontText: "Front",
   backText: "Back",
-  score: 0,
+  difficulty: 4,
   tags: ["typescript", "react"],
 });
 
@@ -110,7 +110,7 @@ const getCardArticle = (frontText: string) => {
   return article;
 };
 
-describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", () => {
+describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
     vi.clearAllMocks();
@@ -123,10 +123,10 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
     renderCardList();
 
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
-    expect(screen.getByText("score -2–4 · 2 tags")).toBeInTheDocument();
+    expect(screen.getByText("difficulty 3–4 · 2 tags")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
     expect(screen.queryByRole("button", { name: "Remove typescript filter" })).not.toBeInTheDocument();
-    expect(screen.getByText("score -2–4 · 1 tag")).toBeVisible();
+    expect(screen.getByText("difficulty 3–4 · 1 tag")).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
     expect(screen.getByText("Back")).toBeVisible();
@@ -242,7 +242,7 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
     ).not.toBeInTheDocument();
   });
 
-  it("keeps score mutation feedback retryable", async () => {
+  it("keeps difficulty mutation feedback retryable", async () => {
     mocks.editStudyProgress.mockRejectedValueOnce(new Error("edit failed"));
     renderCardList();
     const article = screen.getByRole("article");
@@ -252,11 +252,15 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
     swipe(article, 0, 100);
 
     await waitFor(() => expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument());
+    expect(mocks.editStudyProgress).toHaveBeenLastCalledWith("user-id", {
+      cardId: card.id,
+      difficulty: 3,
+    });
   });
 
-  it("does not let an older score failure replace deletion success", async () => {
-    const scoreWrite = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValueOnce(scoreWrite.promise);
+  it("does not let an older difficulty failure replace deletion success", async () => {
+    const difficultyWrite = Promise.withResolvers<void>();
+    mocks.editStudyProgress.mockReturnValueOnce(difficultyWrite.promise);
     renderCardList();
 
     swipe(screen.getByRole("article"), 0, 100);
@@ -267,18 +271,18 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
     expect(await screen.findByText("Deleted card “Front”.")).toBeVisible();
 
     await actAsync(async () => {
-      scoreWrite.reject(new Error("late score failure"));
-      await scoreWrite.promise.catch(() => undefined);
+      difficultyWrite.reject(new Error("late difficulty failure"));
+      await difficultyWrite.promise.catch(() => undefined);
     });
 
     expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
     expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
   });
 
-  it("reports a pending score failure when deletion of the same Card fails", async () => {
-    const scoreWrite = Promise.withResolvers<void>();
+  it("reports a pending difficulty failure when deletion of the same Card fails", async () => {
+    const difficultyWrite = Promise.withResolvers<void>();
     const deletionWrite = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValueOnce(scoreWrite.promise);
+    mocks.editStudyProgress.mockReturnValueOnce(difficultyWrite.promise);
     mocks.deleteCard.mockReturnValueOnce(deletionWrite.promise);
     renderCardList();
 
@@ -296,22 +300,22 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
     expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeVisible();
 
     await actAsync(async () => {
-      scoreWrite.reject(new Error("late score failure"));
-      await scoreWrite.promise.catch(() => undefined);
+      difficultyWrite.reject(new Error("late difficulty failure"));
+      await difficultyWrite.promise.catch(() => undefined);
     });
 
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
     expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeVisible();
   });
 
-  it("reports a pending score failure after another Card's score write succeeds", async () => {
+  it("reports a pending difficulty failure after another Card's difficulty write succeeds", async () => {
     const firstWrite = Promise.withResolvers<void>();
     const secondWrite = Promise.withResolvers<void>();
     const secondCard = createCard({
       id: "second-card-id",
       deckId: deck.id,
       frontText: "Second",
-      score: 0,
+      difficulty: 4,
       tags: ["typescript", "react"],
     });
     mocks.editStudyProgress.mockReturnValueOnce(firstWrite.promise).mockReturnValueOnce(secondWrite.promise);
@@ -325,20 +329,20 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
       await secondWrite.promise;
     });
     await actAsync(async () => {
-      firstWrite.reject(new Error("late score failure"));
+      firstWrite.reject(new Error("late difficulty failure"));
       await firstWrite.promise.catch(() => undefined);
     });
 
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
   });
 
-  it("reports a pending score failure after another Card is deleted", async () => {
+  it("reports a pending difficulty failure after another Card is deleted", async () => {
     const firstWrite = Promise.withResolvers<void>();
     const secondCard = createCard({
       id: "second-card-id",
       deckId: deck.id,
       frontText: "Second",
-      score: 0,
+      difficulty: 4,
       tags: ["typescript", "react"],
     });
     mocks.editStudyProgress.mockReturnValueOnce(firstWrite.promise);
@@ -352,7 +356,7 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
     expect(await screen.findByText("Deleted card “Second”.")).toBeVisible();
 
     await actAsync(async () => {
-      firstWrite.reject(new Error("late score failure"));
+      firstWrite.reject(new Error("late difficulty failure"));
       await firstWrite.promise.catch(() => undefined);
     });
 

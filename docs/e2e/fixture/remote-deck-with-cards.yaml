@@ -13,7 +13,7 @@ remote:
       backText: りんご
       tags: [math, typescript]
       uniqueKey: apple
-      score: 1
+      difficulty: 4
       numberOfSeen: 3
     - id: card-2
       deckId: deck-1
@@ -22,7 +22,7 @@ remote:
       backText: オレンジ
       tags: [other]
       uniqueKey: orange
-      score: 1
+      difficulty: 4
     - id: card-3
       deckId: deck-1
       uid: user-1
@@ -30,5 +30,5 @@ remote:
       backText: バナナ
       tags: [math]
       uniqueKey: banana
-      score: -1
+      difficulty: 6
       numberOfSeen: 1

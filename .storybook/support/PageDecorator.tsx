@@ -64,7 +64,7 @@ export const preparePageStory = (parameters: PageStoryParameters): void => {
     if (session == null) return;
     startStudy(
       deckId,
-      session.cardOrderIds.map((id, numberOfSeen) => ({ id, score: 0, numberOfSeen })),
+      session.cardOrderIds.map((id, numberOfSeen) => ({ id, difficulty: 5, numberOfSeen })),
       { shuffled: false, maxNumberOfCardsToLearn: 0 }
     );
     setStudySessionIndex(deckId, session.currentIndex);

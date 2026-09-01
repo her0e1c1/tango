@@ -12,11 +12,11 @@ const requiredDocument = {
   createdAt: 1,
   updatedAt: 2,
   deletedAt: null,
-  score: 3,
+  difficulty: 3,
   numberOfSeen: 4,
 };
 
-describe("Card document", () => {
+describe("Card document [CARD-01]", () => {
   it("parses a valid document without adding optional fields", () => {
     expect(parseCardDocument("card-a", requiredDocument)).toEqual(requiredDocument);
   });
@@ -59,5 +59,14 @@ describe("Card document", () => {
     expect(() => parseCardDocument("card-a", { ...requiredDocument, nextSeeingAt: null })).toThrowError(
       'Invalid Firestore card document "card-a": nextSeeingAt'
     );
+  });
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, 0, 11])("rejects malformed difficulty %s", (difficulty) => {
+    expect(() => parseCardDocument("card-a", { ...requiredDocument, difficulty })).toThrow();
+  });
+
+  it("rejects a document without difficulty", () => {
+    const { difficulty: _difficulty, ...missingProgress } = requiredDocument;
+    expect(() => parseCardDocument("card-a", missingProgress)).toThrow();
   });
 });

@@ -2,16 +2,16 @@ import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { fn } from "storybook/test";
 
-import { ScoreRange } from "./ScoreRange";
+import { DifficultyRange } from "./DifficultyRange";
 
-type ScoreRangeProps = React.ComponentProps<typeof ScoreRange>;
+type DifficultyRangeProps = React.ComponentProps<typeof DifficultyRange>;
 
-const InteractiveScoreRange: React.FC<ScoreRangeProps> = (props) => {
+const InteractiveDifficultyRange: React.FC<DifficultyRangeProps> = (props) => {
   const [maximum, setMaximum] = React.useState(props.maximum);
   const [minimum, setMinimum] = React.useState(props.minimum);
 
   return (
-    <ScoreRange
+    <DifficultyRange
       {...props}
       maximum={maximum}
       minimum={minimum}
@@ -33,18 +33,20 @@ const InteractiveScoreRange: React.FC<ScoreRangeProps> = (props) => {
 };
 
 const meta = {
-  title: "Features/Deck Filter/ScoreRange",
-  component: ScoreRange,
+  title: "Features/Deck Filter/DifficultyRange",
+  component: DifficultyRange,
   tags: ["autodocs"],
   args: {
-    maximum: 4,
-    minimum: -2,
+    lowerBound: 1,
+    maximum: 8,
+    minimum: 3,
     onClear: fn(),
     onMaximumChange: fn(),
     onMinimumChange: fn(),
+    upperBound: 10,
   },
-  render: (args) => <InteractiveScoreRange {...args} />,
-} satisfies Meta<typeof ScoreRange>;
+  render: (args) => <InteractiveDifficultyRange {...args} />,
+} satisfies Meta<typeof DifficultyRange>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -53,11 +55,11 @@ export const Default: Story = {};
 
 export const NoLimits: Story = { args: { maximum: null, minimum: null } };
 
-export const MinimumOnly: Story = { args: { maximum: null, minimum: -3 } };
+export const MinimumOnly: Story = { args: { maximum: null, minimum: 3 } };
 
 export const MaximumOnly: Story = { args: { maximum: 5, minimum: null } };
 
-export const SavedOutsideStandardRange: Story = { args: { maximum: 14.25, minimum: -12.5 } };
+export const SavedFractionalRange: Story = { args: { maximum: 8.25, minimum: 2.5 } };
 
 export const InvalidSavedRange: Story = { args: { maximum: 3, minimum: 5 } };
 
@@ -66,7 +68,7 @@ export const Mobile320: Story = {
 };
 
 export const Mobile375: Story = {
-  args: { maximum: 14.25, minimum: -12.5 },
+  args: { maximum: 8.25, minimum: 2.5 },
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 

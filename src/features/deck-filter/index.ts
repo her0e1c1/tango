@@ -1,3 +1,3 @@
 export { DeckFilterForm } from "./ui/DeckFilterForm";
-export { ScoreRange } from "./ui/ScoreRange";
+export { DifficultyRange } from "./ui/DifficultyRange";
 export { useDeckFilterState } from "./model/useDeckFilterState";

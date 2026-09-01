@@ -1,5 +1,5 @@
 /**
- * @file Defines the deck filter's score range presentation component.
+ * @file Defines the deck filter's difficulty range presentation component.
  */
 
 import { useId, useRef } from "react";
@@ -11,55 +11,52 @@ import { Select } from "@/shared/ui/forms";
 
 const NO_LIMIT_VALUE = "";
 const NO_LIMIT_LABEL = "-";
-const MINIMUM_STANDARD_SCORE = -10;
-const MAXIMUM_STANDARD_SCORE = 10;
-const STANDARD_SCORES = Array.from(
-  { length: MAXIMUM_STANDARD_SCORE - MINIMUM_STANDARD_SCORE + 1 },
-  (_, index) => MINIMUM_STANDARD_SCORE + index
-);
 
-export interface ScoreRangeProps {
+export interface DifficultyRangeProps {
+  lowerBound: number;
   maximum: number | null;
   minimum: number | null;
   onClear: () => void;
   onMaximumChange: (value: number | null) => void;
   onMinimumChange: (value: number | null) => void;
+  upperBound: number;
 }
 
-interface ScoreSelectProps {
+interface DifficultySelectProps {
   boundary: "maximum" | "minimum";
   describedBy: string;
+  difficulties: number[];
   id: string;
   invalid: boolean;
   onChange: (value: number | null) => void;
-  scores: number[];
   value: number | null;
 }
 
-const displayScore = (value: number): string => String(value).replace("-", "−");
+const displayDifficulty = (value: number): string => String(value).replace("-", "−");
 
-const scoreOptions = (
+const difficultyOptions = (
+  standardDifficulties: number[],
   current: number | null,
   otherBoundary: number | null,
-  isAllowed: (score: number, boundary: number) => boolean
+  isAllowed: (difficulty: number, boundary: number) => boolean
 ): number[] => {
-  const candidates = new Set(STANDARD_SCORES);
+  const candidates = new Set(standardDifficulties);
 
   // Persisted values can predate the current UI range or form an invalid pair. Keeping the active
   // value visible prevents rendering from silently normalizing saved data and leaves a recovery path.
   if (current != null) candidates.add(current);
 
   return [...candidates]
-    .filter((score) => score === current || otherBoundary == null || isAllowed(score, otherBoundary))
+    .filter((difficulty) => difficulty === current || otherBoundary == null || isAllowed(difficulty, otherBoundary))
     .sort((left, right) => left - right);
 };
 
-const ScoreSelect = ({
+const DifficultySelect = ({
   ref: selectRef,
   ...props
-}: ScoreSelectProps & { ref?: React.RefObject<HTMLSelectElement | null> }) => {
+}: DifficultySelectProps & { ref?: React.RefObject<HTMLSelectElement | null> }) => {
   const { t } = useTranslation();
-  const keyPrefix = `deckFilter.scoreRange.${props.boundary}` as const;
+  const keyPrefix = `deckFilter.difficultyRange.${props.boundary}` as const;
 
   return (
     <div className="min-w-0">
@@ -76,7 +73,10 @@ const ScoreSelect = ({
         aria-invalid={props.invalid || undefined}
         options={[
           { label: NO_LIMIT_LABEL, value: NO_LIMIT_VALUE },
-          ...props.scores.map((score) => ({ label: displayScore(score), value: String(score) })),
+          ...props.difficulties.map((difficulty) => ({
+            label: displayDifficulty(difficulty),
+            value: String(difficulty),
+          })),
         ]}
         onChange={(event) =>
           props.onChange(event.currentTarget.value === NO_LIMIT_VALUE ? null : Number(event.currentTarget.value))
@@ -90,35 +90,49 @@ const ScoreSelect = ({
 };
 
 /**
- * Lets the user choose independent inclusive score boundaries without changing persisted values on render.
+ * Lets the user choose independent inclusive difficulty boundaries without changing persisted values on render.
  */
-export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
+export const DifficultyRange: React.FC<DifficultyRangeProps> = (props) => {
   const { t } = useTranslation();
   const idPrefix = useId();
   const minimumSelectRef = useRef<HTMLSelectElement>(null);
-  const headingId = `${idPrefix}-score-heading`;
-  const minimumId = `${idPrefix}-minimum-score`;
-  const maximumId = `${idPrefix}-maximum-score`;
-  const warningId = `${idPrefix}-score-warning`;
+  const headingId = `${idPrefix}-difficulty-heading`;
+  const minimumId = `${idPrefix}-minimum-difficulty`;
+  const maximumId = `${idPrefix}-maximum-difficulty`;
+  const warningId = `${idPrefix}-difficulty-warning`;
   const invalid = props.minimum != null && props.maximum != null && props.minimum > props.maximum;
-  const minimumScores = scoreOptions(props.minimum, props.maximum, (score, maximum) => score <= maximum);
-  const maximumScores = scoreOptions(props.maximum, props.minimum, (score, minimum) => score >= minimum);
+  const standardDifficulties = Array.from(
+    { length: props.upperBound - props.lowerBound + 1 },
+    (_, index) => props.lowerBound + index
+  );
+  const minimumDifficulties = difficultyOptions(
+    standardDifficulties,
+    props.minimum,
+    props.maximum,
+    (difficulty, maximum) => difficulty <= maximum
+  );
+  const maximumDifficulties = difficultyOptions(
+    standardDifficulties,
+    props.maximum,
+    props.minimum,
+    (difficulty, minimum) => difficulty >= minimum
+  );
   const minimumDescribedBy = `${minimumId}-description${invalid ? ` ${warningId}` : ""}`;
   const maximumDescribedBy = `${maximumId}-description${invalid ? ` ${warningId}` : ""}`;
   const status = (() => {
     if (props.minimum != null && props.maximum != null) {
-      return t("deckFilter.scoreRange.status.range", {
-        minimum: displayScore(props.minimum),
-        maximum: displayScore(props.maximum),
+      return t("deckFilter.difficultyRange.status.range", {
+        minimum: displayDifficulty(props.minimum),
+        maximum: displayDifficulty(props.maximum),
       });
     }
     if (props.minimum != null) {
-      return t("deckFilter.scoreRange.status.minimumOnly", { minimum: displayScore(props.minimum) });
+      return t("deckFilter.difficultyRange.status.minimumOnly", { minimum: displayDifficulty(props.minimum) });
     }
     if (props.maximum != null) {
-      return t("deckFilter.scoreRange.status.maximumOnly", { maximum: displayScore(props.maximum) });
+      return t("deckFilter.difficultyRange.status.maximumOnly", { maximum: displayDifficulty(props.maximum) });
     }
-    return t("deckFilter.scoreRange.status.noLimits");
+    return t("deckFilter.difficultyRange.status.noLimits");
   })();
 
   return (
@@ -128,7 +142,7 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
     >
       <header className="flex items-center justify-between gap-3">
         <h2 id={headingId} className="text-title font-semibold text-ink">
-          {t("deckFilter.scoreRange.title")}
+          {t("deckFilter.difficultyRange.title")}
         </h2>
         <Button
           variant="quiet"
@@ -142,28 +156,29 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
             minimumSelectRef.current?.focus();
           }}
         >
-          {t("deckFilter.scoreRange.clear")} <span className="sr-only">{t("deckFilter.scoreRange.clearLimits")}</span>
+          {t("deckFilter.difficultyRange.clear")}{" "}
+          <span className="sr-only">{t("deckFilter.difficultyRange.clearLimits")}</span>
         </Button>
       </header>
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2 sm:gap-3">
-        <ScoreSelect
+        <DifficultySelect
           ref={minimumSelectRef}
           id={minimumId}
           boundary="minimum"
           value={props.minimum}
-          scores={minimumScores}
+          difficulties={minimumDifficulties}
           invalid={invalid}
           describedBy={minimumDescribedBy}
           onChange={props.onMinimumChange}
         />
         <span aria-hidden="true" className="flex min-h-touch items-center text-caption text-ink-muted">
-          {t("deckFilter.scoreRange.separator")}
+          {t("deckFilter.difficultyRange.separator")}
         </span>
-        <ScoreSelect
+        <DifficultySelect
           id={maximumId}
           boundary="maximum"
           value={props.maximum}
-          scores={maximumScores}
+          difficulties={maximumDifficulties}
           invalid={invalid}
           describedBy={maximumDescribedBy}
           onChange={props.onMaximumChange}
@@ -174,7 +189,7 @@ export const ScoreRange: React.FC<ScoreRangeProps> = (props) => {
       </p>
       {invalid ? (
         <p id={warningId} role="alert" className="rounded-control border border-danger p-3 text-caption text-danger">
-          {t("deckFilter.scoreRange.invalid")}
+          {t("deckFilter.difficultyRange.invalid")}
         </p>
       ) : null}
     </section>
