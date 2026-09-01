@@ -129,43 +129,38 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     });
   });
 
-  it("keeps entered values, Deck ID, and persistence mode across retries", async () => {
+  it("reports a creation failure without locking the form for a special retry flow", async () => {
     mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
     renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });
+    const category = screen.getByRole("combobox");
     const sourceUrl = screen.getByRole("textbox", { name: "Source URL" });
     const convertLineBreaks = screen.getByRole("checkbox", { name: "Convert line breaks" });
 
-    await userEvent.type(name, "Retry deck");
-    await userEvent.type(sourceUrl, "https://example.com/retry.csv");
+    await userEvent.type(name, "Failed deck");
+    await userEvent.selectOptions(category, "typescript");
+    await userEvent.type(sourceUrl, "https://example.com/failed.csv");
     await userEvent.click(convertLineBreaks);
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
-    expect(await screen.findByText("Unable to create this deck. Try again.")).toBeVisible();
-    expect(name).toHaveValue("Retry deck");
-    expect(sourceUrl).toHaveValue("https://example.com/retry.csv");
+    expect(await screen.findByText("Unable to create this deck.")).toBeVisible();
+    expect(name).toHaveValue("Failed deck");
+    expect(category).toHaveValue("typescript");
+    expect(sourceUrl).toHaveValue("https://example.com/failed.csv");
     expect(convertLineBreaks).toBeChecked();
     const localMode = screen.getByRole("checkbox", { name: "Local only" });
-    expect(localMode).toBeDisabled();
+    expect(localMode).toBeEnabled();
     expect(localMode).not.toBeChecked();
-    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
-    expect(mocks.createDeck).toHaveBeenCalledTimes(2);
+    await userEvent.click(localMode);
+    expect(localMode).toBeChecked();
     expect(mocks.generateDeckId).toHaveBeenCalledOnce();
-    expect(mocks.createDeck).toHaveBeenNthCalledWith(1, "user-id", {
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: "new-deck",
       localMode: false,
-      name: "Retry deck",
-      category: "",
+      name: "Failed deck",
+      category: "typescript",
       convertToBr: true,
-      url: "https://example.com/retry.csv",
-    });
-    expect(mocks.createDeck).toHaveBeenNthCalledWith(2, "user-id", {
-      id: "new-deck",
-      localMode: false,
-      name: "Retry deck",
-      category: "",
-      convertToBr: true,
-      url: "https://example.com/retry.csv",
+      url: "https://example.com/failed.csv",
     });
   });
 
@@ -175,11 +170,11 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Cancelled deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
-    expect(await screen.findByText("Unable to create this deck. Try again.")).toBeVisible();
+    expect(await screen.findByText("Unable to create this deck.")).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-    expect(screen.queryByText("Unable to create this deck. Try again.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Unable to create this deck.")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
   });

@@ -13,7 +13,7 @@ Deck の作成・編集・削除が保存先の境界を守り、失敗後の再
 | DECK-04 | read | [Deck の削除を取り消せる](#deck-04) |
 | DECK-05 | batch | [Deck の削除失敗後に再試行できる](#deck-05) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-09) |
-| DECK-10 | write | [remote Deck の作成失敗後に重複なく再試行できる](#deck-10) |
+| DECK-10 | write | [remote Deck の作成失敗を通知できる](#deck-10) |
 | DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](#deck-11) |
 | DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](#deck-12) |
 
@@ -141,7 +141,7 @@ Then:
 
 <a id="deck-10"></a>
 
-### DECK-10 remote Deck の作成失敗後に重複なく再試行できる
+### DECK-10 remote Deck の作成失敗を通知できる
 
 カテゴリ: `write`
 
@@ -149,21 +149,19 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - ユーザーとして認証されている。
-- remote Deck の最初の作成要求が失敗している。
-- 作成失敗が共通 toast で処理され、入力した name と category、remote の保存先、作成対象の Deck ID が維持されている。
-- 次の作成要求は成功できる。
+- remote Deck の作成要求が失敗する。
 
 When:
 
-- 入力と保存先を変更せずに同じ Deck の作成を再試行し、Deck 一覧を reload する。
+- Deck の作成画面で name、category、source URL、改行変換を入力し、local-only を無効にして保存する。
 
 Then:
 
-- Deck の作成成功が共通 toast で表示され、失敗 toast は残らない。
-- 維持されていた Deck ID の Deck が現在の UID の remote data に一つだけ存在する。
-- 作成した Deck の name、category、remote の保存先が最初の作成要求から維持されている。
-- browser storage に同じ Deck の local-only duplicate が存在しない。
-- 最初の作成失敗に伴う未処理の browser error が発生しない。
+- Deck の作成失敗が共通 toast で表示される。
+- 入力した内容がフォームに残っている。
+- local-only の選択を変更できる。
+- remote data と browser storage に Deck が作成されていない。
+- 作成失敗に伴う未処理の browser error が発生しない。
 
 <a id="deck-11"></a>
 
