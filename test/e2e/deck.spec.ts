@@ -17,6 +17,7 @@ const openDeckDeleteDialog = async (page: Page, deckName: string) => {
   return page.getByRole("alertdialog", { name: "Delete deck?" });
 };
 
+// Click the visible Switch label because the Firebase emulator banner can intercept pointer events on its sr-only input.
 const clickCheckboxLabel = async (page: Page, name: string) => {
   const checkbox = page.getByRole("checkbox", { name, exact: true });
   await checkbox.locator("xpath=parent::label").click();
@@ -258,7 +259,7 @@ test("DECK-10 reports a failed remote create without locking the form", async ({
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
-  await page.getByRole("checkbox", { name: "Convert line breaks" }).check();
+  await clickCheckboxLabel(page, "Convert line breaks");
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page.getByRole("alert")).toContainText("Unable to create this deck.");
   await expect.poll(fault.wasTriggered).toBe(true);
@@ -271,7 +272,7 @@ test("DECK-10 reports a failed remote create without locking the form", async ({
   await expect(page.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
   const localMode = page.getByRole("checkbox", { name: "Local only" });
   await expect(localMode).toBeEnabled();
-  await localMode.check();
+  await clickCheckboxLabel(page, "Local only");
   await expect(localMode).toBeChecked();
 
   const remote = await listDocuments("deck");
