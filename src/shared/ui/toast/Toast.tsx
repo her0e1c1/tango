@@ -2,6 +2,7 @@ import cx from "classnames";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { AiOutlineClose } from "react-icons/ai";
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 
 import {
@@ -24,14 +25,15 @@ interface ToastProps {
   onDismiss: () => void;
 }
 
-const tonePresentation: Record<ToastTone, { className: string; label: string }> = {
-  neutral: { className: "bg-info text-ink-inverse", label: "Information" },
-  success: { className: "bg-success text-ink-inverse", label: "Success" },
-  warning: { className: "bg-warning text-ink-inverse", label: "Warning" },
-  error: { className: "bg-danger text-ink-inverse", label: "Error" },
+const tonePresentation: Record<ToastTone, { className: string; labelKey: `toast.tone.${ToastTone}` }> = {
+  neutral: { className: "bg-info text-ink-inverse", labelKey: "toast.tone.neutral" },
+  success: { className: "bg-success text-ink-inverse", labelKey: "toast.tone.success" },
+  warning: { className: "bg-warning text-ink-inverse", labelKey: "toast.tone.warning" },
+  error: { className: "bg-danger text-ink-inverse", labelKey: "toast.tone.error" },
 };
 
 const Toast = (props: ToastProps) => {
+  const { t } = useTranslation();
   const presentation = tonePresentation[props.tone];
 
   return (
@@ -41,7 +43,7 @@ const Toast = (props: ToastProps) => {
         presentation.className
       )}
     >
-      <span className="sr-only">{presentation.label}: </span>
+      <span className="sr-only">{t(presentation.labelKey)}: </span>
       <span className="min-w-0 break-words">{props.message}</span>
       {props.action !== undefined ? (
         <button
@@ -55,7 +57,7 @@ const Toast = (props: ToastProps) => {
       {props.dismissible ? (
         <button
           type="button"
-          aria-label="Dismiss notification"
+          aria-label={t("toast.dismissNotification")}
           className="inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           onClick={props.onDismiss}
         >
@@ -100,6 +102,7 @@ export const ToastModalOutlet = <T extends HTMLElement>({ focusFallbackRef }: To
 export const ToastViewport = <T extends HTMLElement = HTMLElement>({
   focusFallbackRef,
 }: ToastViewportProps<T> = {}) => {
+  const { t } = useTranslation();
   const toast = useStore(toastStore, (state) => state.current);
   const modalTarget = useStore(toastStore, (state) => state.modalTargets.at(-1)?.element);
   const visualTargetRef = React.useRef<HTMLDivElement>(null);
@@ -118,7 +121,7 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
   }, [toast, modalTarget]);
 
   const renderAnnouncement = (activeToast: ToastState) => (
-    <span key={activeToast.id}>{`${tonePresentation[activeToast.tone].label}: ${activeToast.message}`}</span>
+    <span key={activeToast.id}>{`${t(tonePresentation[activeToast.tone].labelKey)}: ${activeToast.message}`}</span>
   );
 
   const renderToast = (activeToast: ToastState) => {
@@ -154,7 +157,13 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
   return (
     <>
       {/* Announcers stay global and mounted while only the visual controls move into an active modal. */}
-      <div role="status" aria-label="Toast notifications" aria-live="polite" aria-atomic="true" className="sr-only">
+      <div
+        role="status"
+        aria-label={t("toast.notifications")}
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
         {toast !== undefined && toast.tone !== "error" ? renderAnnouncement(toast) : null}
       </div>
       <div

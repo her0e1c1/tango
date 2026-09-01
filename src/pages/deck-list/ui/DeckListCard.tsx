@@ -4,9 +4,11 @@
  * outside the view.
  */
 
+import type { TFunction } from "i18next";
 import cx from "classnames";
 import * as React from "react";
 import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
+import { useTranslation } from "react-i18next";
 
 import type { Deck, DeckId } from "@/entities/deck";
 import type { StudySession } from "@/entities/study-session";
@@ -37,21 +39,21 @@ export interface DeckListCardProps extends DeckListCardActions, DeckListCardMenu
 }
 
 /**
- * Formats a deck's last-study time for display in the deck list.
- * Decks that have never been studied receive a clear fallback instead of an invalid date.
+ * Formats a deck's last-study time as compact locale-dependent copy.
+ * Keeping the raw timestamp at this UI boundary lets a mounted list update when the locale changes.
  */
-const formatLastStudied = (timestamp: number): string => {
+const formatLastStudied = (timestamp: number, t: TFunction): string => {
   const elapsedSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
-  if (elapsedSeconds < 60) return "just now";
+  if (elapsedSeconds < 60) return t("deckList.lastStudied.justNow");
   const elapsedMinutes = Math.floor(elapsedSeconds / 60);
-  if (elapsedMinutes < 60) return `${String(elapsedMinutes)}m ago`;
+  if (elapsedMinutes < 60) return t("deckList.lastStudied.minutes", { count: elapsedMinutes });
   const elapsedHours = Math.floor(elapsedMinutes / 60);
-  if (elapsedHours < 24) return `${String(elapsedHours)}h ago`;
+  if (elapsedHours < 24) return t("deckList.lastStudied.hours", { count: elapsedHours });
   const elapsedDays = Math.floor(elapsedHours / 24);
-  if (elapsedDays < 30) return `${String(elapsedDays)}d ago`;
+  if (elapsedDays < 30) return t("deckList.lastStudied.days", { count: elapsedDays });
   const elapsedMonths = Math.floor(elapsedDays / 30);
-  if (elapsedMonths < 12) return `${String(elapsedMonths)}mo ago`;
-  return `${String(Math.floor(elapsedMonths / 12))}y ago`;
+  if (elapsedMonths < 12) return t("deckList.lastStudied.months", { count: elapsedMonths });
+  return t("deckList.lastStudied.years", { count: Math.floor(elapsedMonths / 12) });
 };
 
 const primaryActionClassName =
@@ -64,20 +66,24 @@ const DeckListCardStatus: React.FC<{
   progressValue: number;
   cardCount: number;
   statusId: string;
-}> = ({ deck, active, studySession, progressValue, cardCount, statusId }) => (
-  <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
-    {deck.category !== "" && (
-      <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
-        {deck.category}
+}> = ({ deck, active, studySession, progressValue, cardCount, statusId }) => {
+  const { t } = useTranslation();
+
+  return (
+    <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
+      {deck.category !== "" && (
+        <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
+          {deck.category}
+        </span>
+      )}
+      <span className="truncate">
+        {active && studySession
+          ? `${String(progressValue)} / ${String(studySession.cardOrderIds.length)} · ${formatLastStudied(studySession.lastStudiedAt, t)}`
+          : t("deckList.cardCount", { count: cardCount })}
       </span>
-    )}
-    <span className="truncate">
-      {active && studySession
-        ? `${String(progressValue)} / ${String(studySession.cardOrderIds.length)} · ${formatLastStudied(studySession.lastStudiedAt)}`
-        : `${String(cardCount)} ${cardCount === 1 ? "card" : "cards"}`}
     </span>
-  </span>
-);
+  );
+};
 
 const DeckListCardProgressBar: React.FC<{
   active: boolean;
@@ -86,11 +92,12 @@ const DeckListCardProgressBar: React.FC<{
   cardCount: number;
   deckName: string;
 }> = ({ active, progressValue, progressPercent, cardCount, deckName }) => {
+  const { t } = useTranslation();
   if (!active) return null;
   return (
     <span
       role="progressbar"
-      aria-label={`Progress for ${deckName}`}
+      aria-label={t("deckList.progress", { deckName })}
       aria-valuemin={0}
       aria-valuemax={cardCount}
       aria-valuenow={progressValue}
@@ -107,6 +114,7 @@ const DeckListCardProgressBar: React.FC<{
  * operations.
  */
 export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
+  const { t } = useTranslation();
   const { deck, studySession } = props;
   const active = studySession != null;
   const studyCardCount = studySession?.cardOrderIds.length ?? 0;
@@ -132,7 +140,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
       <div className="min-w-0 flex-1 px-1 py-1">
         <button
           type="button"
-          aria-label={`View ${deck.name}`}
+          aria-label={t("deckList.view", { deckName: deck.name })}
           aria-describedby={statusId}
           className="flex w-full min-w-0 items-center gap-1.5 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           onClick={withId(props.onClickName)}
@@ -140,7 +148,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
         >
           <span className="truncate text-body font-semibold text-ink">{deck.name}</span>
           {!deck.localMode ? (
-            <span role="img" aria-label="Remote deck" className="shrink-0 text-ink-muted">
+            <span role="img" aria-label={t("deckList.remote")} className="shrink-0 text-ink-muted">
               <AiOutlineCloud aria-hidden="true" size={16} />
             </span>
           ) : null}
@@ -166,7 +174,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
 
       <button
         type="button"
-        aria-label={`${active ? "Continue" : "Study"} ${deck.name}`}
+        aria-label={t(active ? "deckList.continueDeck" : "deckList.studyDeck", { deckName: deck.name })}
         className={cx(
           primaryActionClassName,
           active
@@ -177,7 +185,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
         disabled={pending}
       >
         {active && <AiFillCaretRight aria-hidden="true" />}
-        <span>{active ? "Continue" : "Study"}</span>
+        <span>{t(active ? "deckList.continue" : "deckList.study")}</span>
       </button>
 
       <DeckActionsMenu

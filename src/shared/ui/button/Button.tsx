@@ -6,6 +6,7 @@
 
 import cx from "classnames";
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 
 export type ButtonVariant = "primary" | "secondary" | "quiet" | "destructive";
 type ButtonSize = "sm" | "md" | "lg";
@@ -38,8 +39,6 @@ const sizeClasses: Record<ButtonSize, string> = {
 
 const resolveVariant = (props: ButtonProps): ButtonVariant => props.variant ?? "secondary";
 const resolveSize = (props: ButtonProps): ButtonSize => props.size ?? "md";
-const getLoadingAnnouncement = (content: React.ReactNode) =>
-  typeof content === "string" || typeof content === "number" ? `Loading ${String(content)}` : "Loading";
 
 /**
  * Renders the Button user interface.
@@ -47,11 +46,15 @@ const getLoadingAnnouncement = (content: React.ReactNode) =>
  * disabling loading work.
  */
 export const Button: React.FC<ButtonProps> = (props) => {
+  const { t } = useTranslation();
   const variant = resolveVariant(props);
   const size = resolveSize(props);
   const inactive = props.disabled || props.loading;
   const content = props.label ?? props.children;
-  const loadingAnnouncement = getLoadingAnnouncement(content);
+  const loadingAnnouncement =
+    typeof content === "string" || typeof content === "number"
+      ? t("button.loadingWithLabel", { label: String(content) })
+      : t("button.loading");
 
   return (
     <>

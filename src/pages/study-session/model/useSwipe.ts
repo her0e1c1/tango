@@ -5,19 +5,9 @@ import { type SwipeDirection, usePreferences } from "@/entities/preference";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getStudySession, moveStudySession, planStudySessionSwipe, removeStudySession } from "@/entities/study-session";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
-import { showToast, type ToastTone } from "@/shared/ui/toast";
 
 import * as React from "react";
-
-const SWIPE_FEEDBACK_LABEL: Record<SwipeDirection, string> = {
-  cardSwipeUp: "Swiped up",
-  cardSwipeDown: "Swiped down",
-  cardSwipeLeft: "Swiped left",
-  cardSwipeRight: "Swiped right",
-};
-
-const SWIPE_FEEDBACK_DURATION_MS = 900;
-const SWIPE_FEEDBACK_TONE = "neutral" satisfies ToastTone;
+import { useLatest } from "react-use";
 
 export interface SwipeState {
   swipeUp: () => Promise<void>;
@@ -30,31 +20,33 @@ export interface StudyCompletion {
   cardCount: number;
 }
 
+interface SwipeCallbacks {
+  onCardChanged: () => void;
+  onCompleted: (completion: StudyCompletion) => void;
+  onSwipeFeedback: (direction: SwipeDirection) => void;
+}
+
 export const useSwipe = (
   deckId: DeckId,
   cards: readonly Card[],
-  onCardChanged: () => void,
-  onCompleted: (completion: StudyCompletion) => void
+  { onCardChanged, onCompleted, onSwipeFeedback }: SwipeCallbacks
 ): SwipeState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
   const isMounted = useMountedGuard();
   const swipeState = React.useRef<{ inProgress: boolean }>({ inProgress: false });
+  const latestOnSwipeFeedback = useLatest(onSwipeFeedback);
 
-  const showSwipeToast = (direction: SwipeDirection): void => {
+  const publishSwipeFeedback = (direction: SwipeDirection): void => {
     if (!preferences.appearance.showSwipeFeedback) return;
-    showToast({
-      message: SWIPE_FEEDBACK_LABEL[direction],
-      tone: SWIPE_FEEDBACK_TONE,
-      durationMs: SWIPE_FEEDBACK_DURATION_MS,
-      dismissible: false,
-    });
+    // Persistence can resolve after a locale render, so successful feedback must use the latest UI translator.
+    latestOnSwipeFeedback.current(direction);
   };
 
   const updateVisibleSession = (direction: SwipeDirection, completesSession: boolean, cardCount: number): void => {
     // Session persistence still completes after navigation, but route-owned feedback and UI callbacks must not leak.
     if (!isMounted()) return;
-    showSwipeToast(direction);
+    publishSwipeFeedback(direction);
     if (completesSession) {
       onCompleted({ cardCount });
       return;
@@ -72,7 +64,7 @@ export const useSwipe = (
     if (swipePlan.effect === "none") return;
     if (swipePlan.effect === "exit") {
       removeStudySession(deckId);
-      showSwipeToast(direction);
+      publishSwipeFeedback(direction);
       return;
     }
 

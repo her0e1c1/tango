@@ -104,6 +104,7 @@ Then:
 - browser storage の language preference が `ja` として保存される。
 - `html[lang]` が `ja` になる。
 - reload 後も日本語 UI、language preference、`html[lang]` が維持される。
+- reload 後に Deck 一覧を開くと、見出しと作成 action が日本語で表示される。
 - browser error が発生しない。
 
 <a id="settings-05"></a>

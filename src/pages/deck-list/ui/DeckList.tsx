@@ -3,6 +3,7 @@
  */
 
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import type { Deck, DeckId } from "@/entities/deck";
 import type { StudySession } from "@/entities/study-session";
@@ -30,12 +31,6 @@ export interface DeckListProps {
 }
 
 /**
- * Formats the count label text shown to the user.
- * The helper keeps wording and singular or plural rules consistent across the screen.
- */
-const countLabel = (count: number) => `${String(count)} ${count === 1 ? "deck" : "decks"}`;
-
-/**
  * Renders one labeled group of Deck List items.
  */
 const DeckListSection: React.FC<{
@@ -48,6 +43,7 @@ const DeckListSection: React.FC<{
   onCloseMenu: () => void;
 }> = ({ title, note, items, actions, openMenuDeckId, onToggleMenu, onCloseMenu }) => {
   const headingId = React.useId();
+  const { t } = useTranslation();
   if (items.length === 0) return null;
 
   return (
@@ -57,7 +53,7 @@ const DeckListSection: React.FC<{
           {title}
         </h2>
         <span className="shrink-0 text-caption text-ink-muted">
-          {countLabel(items.length)} · {note}
+          {t("deckList.count", { count: items.length })} · {note}
         </span>
       </div>
       <div className="rounded-surface border border-border bg-surface shadow-surface dark:border-black">
@@ -82,6 +78,7 @@ const DeckListSection: React.FC<{
  * Renders the Deck List presentation from prepared sections and action callbacks.
  */
 export const DeckList: React.FC<DeckListProps> = (props) => {
+  const { t } = useTranslation();
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const total = props.sections.studying.length + props.sections.other.length;
   const toggleMenu = (id: DeckId) => setOpenMenuDeckId((value) => (value === id ? undefined : id));
@@ -91,16 +88,16 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-baseline gap-3">
-          <h1 className="break-words text-title font-bold text-ink">Decks</h1>
-          <span className="shrink-0 text-caption text-ink-muted">{countLabel(total)}</span>
+          <h1 className="break-words text-title font-bold text-ink">{t("deckList.title")}</h1>
+          <span className="shrink-0 text-caption text-ink-muted">{t("deckList.count", { count: total })}</span>
         </div>
         <Button variant="primary" onClick={props.onCreateDeck}>
-          Create deck
+          {t("deckList.create")}
         </Button>
       </div>
       <DeckListSection
-        title="Studying"
-        note="recent first"
+        title={t("deckList.sections.studyingTitle")}
+        note={t("deckList.sections.studyingNote")}
         items={props.sections.studying}
         actions={props.deckCard}
         openMenuDeckId={openMenuDeckId}
@@ -108,8 +105,8 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
         onCloseMenu={closeMenu}
       />
       <DeckListSection
-        title="Other decks"
-        note="A–Z"
+        title={t("deckList.sections.otherTitle")}
+        note={t("deckList.sections.otherNote")}
         items={props.sections.other}
         actions={props.deckCard}
         openMenuDeckId={openMenuDeckId}

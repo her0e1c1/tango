@@ -1,4 +1,5 @@
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { routes, useNavigationGuard } from "@/shared/router";
@@ -9,6 +10,7 @@ import { useCardForm } from "../model/useCardForm";
 import { CardEditor } from "./CardEditor";
 
 const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const goBack = () => navigate(-1);
   const editor = useCardForm({
@@ -24,7 +26,7 @@ const CardFormContent: React.FC<{ cardId: string }> = ({ cardId }) => {
 
   if (editor == null) {
     return (
-      <RouteNotFound title="Card not found" description="The requested card is unavailable or has been removed." />
+      <RouteNotFound title={t("cardForm.cardNotFound.title")} description={t("cardForm.cardNotFound.description")} />
     );
   }
 

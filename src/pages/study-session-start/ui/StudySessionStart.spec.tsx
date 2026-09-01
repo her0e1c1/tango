@@ -1,5 +1,6 @@
 import type React from "react";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
+import { getI18n } from "react-i18next";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -21,7 +22,7 @@ const renderView = (overrides: Partial<React.ComponentProps<typeof StudySessionS
   return { ...view, onClickStart };
 };
 
-describe("StudySessionStart", () => {
+describe("SETTINGS-04 SWIPE-06 SWIPE-07 StudySessionStart", () => {
   it("shows deck context, capped session size, matching count, and filters", async () => {
     const view = renderView();
 
@@ -61,5 +62,18 @@ describe("StudySessionStart", () => {
 
     await user.tab();
     expect(screen.getByRole("button", { name: "Start 24 cards" })).toHaveFocus();
+  });
+
+  it("localizes session counts without translating the Deck name", () => {
+    renderView({ maxNumberOfCardsToLearn: 1, cardsLength: 1 });
+
+    act(() => {
+      void getI18n().changeLanguage("ja");
+    });
+
+    expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 2, name: "1枚をこのセッションで学習" })).toBeVisible();
+    expect(screen.getByText("フィルターに一致するカードは1枚です。")).toBeVisible();
+    expect(screen.getByRole("button", { name: "1枚で開始" })).toBeVisible();
   });
 });

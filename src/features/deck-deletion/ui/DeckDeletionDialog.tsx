@@ -1,4 +1,5 @@
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 
@@ -12,23 +13,25 @@ interface DeckDeletionDialogProps {
   onConfirm: () => Promise<void>;
 }
 
-export const DeckDeletionDialog: React.FC<DeckDeletionDialogProps> = ({ target, pending, onCancel, onConfirm }) => (
-  <DestructiveActionDialog
-    title="Delete deck?"
-    targetLabel="Deck"
-    targetName={target.deckName}
-    confirmLabel="Delete deck"
-    description={
-      <>
-        <p>
-          This permanently deletes {target.cardCount} {target.cardCount === 1 ? "card" : "cards"} in this deck.
-        </p>
-        <p>Any in-progress study session for this deck will also end.</p>
-        <p>This action cannot be undone.</p>
-      </>
-    }
-    pending={pending}
-    onCancel={onCancel}
-    onConfirm={onConfirm}
-  />
-);
+export const DeckDeletionDialog: React.FC<DeckDeletionDialogProps> = ({ target, pending, onCancel, onConfirm }) => {
+  const { t } = useTranslation();
+
+  return (
+    <DestructiveActionDialog
+      title={t("deckDeletion.title")}
+      targetLabel={t("deckDeletion.targetLabel")}
+      targetName={target.deckName}
+      confirmLabel={t("deckDeletion.confirm")}
+      description={
+        <>
+          <p>{t("deckDeletion.cardCount", { count: target.cardCount })}</p>
+          <p>{t("deckDeletion.activeStudy")}</p>
+          <p>{t("deckDeletion.irreversible")}</p>
+        </>
+      }
+      pending={pending}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+    />
+  );
+};

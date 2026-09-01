@@ -2,8 +2,9 @@
  * @file Verifies the ScoreRange component's native selection and compatibility behavior.
  */
 
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
+import { getI18n } from "react-i18next";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -16,7 +17,7 @@ const numericOptionValues = (select: HTMLElement): string[] =>
     .map((option) => (option as HTMLOptionElement).value)
     .filter(Boolean);
 
-describe("ScoreRange", () => {
+describe("SETTINGS-04 SWIPE-06 ScoreRange", () => {
   it("shows a dash for an unrestricted boundary and explains its meaning accessibly", () => {
     render(
       <ScoreRange maximum={null} minimum={null} onClear={vi.fn()} onMaximumChange={vi.fn()} onMinimumChange={vi.fn()} />
@@ -184,5 +185,21 @@ describe("ScoreRange", () => {
       />
     );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("uses semantic boundary identifiers when the locale changes", () => {
+    render(
+      <ScoreRange maximum={4} minimum={-2} onClear={vi.fn()} onMaximumChange={vi.fn()} onMinimumChange={vi.fn()} />
+    );
+    const minimum = screen.getByRole("combobox", { name: "Minimum score" });
+    const maximum = screen.getByRole("combobox", { name: "Maximum score" });
+
+    act(() => {
+      void getI18n().changeLanguage("ja");
+    });
+
+    expect(screen.getByRole("combobox", { name: "最小スコア" })).toBe(minimum);
+    expect(screen.getByRole("combobox", { name: "最大スコア" })).toBe(maximum);
+    expect(screen.getByRole("status")).toHaveTextContent("スコア範囲：−2〜4。");
   });
 });

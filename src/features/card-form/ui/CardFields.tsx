@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useId } from "react";
+import { useTranslation } from "react-i18next";
 import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import { TagList } from "@/shared/ui/content";
@@ -17,6 +18,7 @@ export interface CardFieldsProps {
 }
 
 export const CardFields: React.FC<CardFieldsProps> = (props) => {
+  const { t } = useTranslation();
   const formState = useFormState({ control: props.form.control });
   const sectionHeadingIdPrefix = useId();
   const frontHeadingId = `${sectionHeadingIdPrefix}-card-front-heading`;
@@ -35,13 +37,13 @@ export const CardFields: React.FC<CardFieldsProps> = (props) => {
       >
         <div>
           <h2 id={frontHeadingId} className="text-title font-semibold text-ink">
-            Front
+            {t("cardForm.front.title")}
           </h2>
-          <p className="mt-1 text-caption text-ink-muted">The prompt shown during study.</p>
+          <p className="mt-1 text-caption text-ink-muted">{t("cardForm.front.description")}</p>
         </div>
         <FormItem
           col
-          label="Front text"
+          label={t("cardForm.front.label")}
           inputId={frontInputId}
           errorId={frontErrorId}
           {...(formState.errors.frontText?.message !== undefined ? { error: formState.errors.frontText.message } : {})}
@@ -61,13 +63,13 @@ export const CardFields: React.FC<CardFieldsProps> = (props) => {
       >
         <div>
           <h2 id={backHeadingId} className="text-title font-semibold text-ink">
-            Back
+            {t("cardForm.backSide.title")}
           </h2>
-          <p className="mt-1 text-caption text-ink-muted">The answer revealed after the prompt.</p>
+          <p className="mt-1 text-caption text-ink-muted">{t("cardForm.backSide.description")}</p>
         </div>
         <FormItem
           col
-          label="Back text"
+          label={t("cardForm.backSide.label")}
           inputId={backInputId}
           errorId={backErrorId}
           {...(formState.errors.backText?.message !== undefined ? { error: formState.errors.backText.message } : {})}
@@ -87,9 +89,9 @@ export const CardFields: React.FC<CardFieldsProps> = (props) => {
       >
         <div>
           <h2 id={tagsHeadingId} className="text-title font-semibold text-ink">
-            Tags
+            {t("cardForm.tags.title")}
           </h2>
-          <p className="mt-1 text-caption text-ink-muted">Organize this card for filtering and study sessions.</p>
+          <p className="mt-1 text-caption text-ink-muted">{t("cardForm.tags.description")}</p>
         </div>
         <TagList>
           {props.categories.map((category) => (

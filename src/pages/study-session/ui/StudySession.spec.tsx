@@ -22,11 +22,7 @@ const toolbarProps = () => ({
   onTogglePlaybackControls: vi.fn(),
   help: {
     open: false,
-    triggerLabel: "Open study help",
-    title: "Study controls",
-    description: "Review the current controls.",
-    closeLabel: "Close help",
-    rows: [{ control: "Arrow Up / Swipe Up", action: "Go to the next card" }],
+    rows: [{ control: "cardSwipeUp", action: "GoToNextCard" }] as const,
     onOpen: vi.fn(),
     onClose: vi.fn(),
   },
@@ -61,7 +57,7 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("StudySession", () => {
+describe("SWIPE-02 SWIPE-24 StudySession", () => {
   it("shows only the answer on the back", () => {
     render(
       <StudySession

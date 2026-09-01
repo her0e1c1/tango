@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import * as React from "react";
+import { getI18n } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ToastModalOutlet, ToastViewport } from "./Toast";
@@ -14,7 +15,7 @@ const displayToast = (input: ShowToastInput) => {
   return id;
 };
 
-describe("Toast", () => {
+describe("SETTINGS-04 Toast", () => {
   beforeEach(() => dismissToast());
 
   afterEach(() => {
@@ -120,6 +121,20 @@ describe("Toast", () => {
     expect(toast).toHaveTextContent(`${label}: Saved`);
     expect(toast).toHaveAttribute("aria-live", live);
     expect(toast).toHaveAttribute("aria-atomic", "true");
+  });
+
+  it("updates its accessible presentation in place while leaving the message untouched", async () => {
+    render(<ToastViewport />);
+    displayToast({ message: "Saved", tone: "success", durationMs: null });
+    const status = screen.getByRole("status", { name: "Toast notifications" });
+    const dismissButton = screen.getByRole("button", { name: "Dismiss notification" });
+
+    await getI18n().changeLanguage("ja");
+
+    expect(screen.getByRole("status", { name: "トースト通知" })).toBe(status);
+    expect(status).toHaveTextContent("成功: Saved");
+    expect(screen.getByRole("button", { name: "通知を閉じる" })).toBe(dismissButton);
+    expect(screen.getAllByText("Saved")).toHaveLength(1);
   });
 
   it("dismisses the active notification from its close button", () => {

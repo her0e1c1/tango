@@ -1,6 +1,7 @@
 import cx from "classnames";
 import type * as React from "react";
 import { AiOutlinePause, AiOutlineCaretRight } from "react-icons/ai";
+import { useTranslation } from "react-i18next";
 import { Slider } from "@/shared/ui/forms";
 
 export interface ControllerProps {
@@ -12,6 +13,7 @@ export interface ControllerProps {
 }
 
 export const Controller: React.FC<ControllerProps> = (props) => {
+  const { t } = useTranslation();
   const numberOfCards = props.numberOfCards ?? 0;
   const index = props.index ?? 0;
   const autoPlay = props.autoPlay ?? false;
@@ -20,7 +22,7 @@ export const Controller: React.FC<ControllerProps> = (props) => {
     <div className="mx-auto flex w-full max-w-content items-center gap-2">
       <button
         type="button"
-        aria-label={autoPlay ? "Pause" : "Play"}
+        aria-label={autoPlay ? t("studySession.controller.pause") : t("studySession.controller.play")}
         aria-pressed={autoPlay}
         className={cx(
           "inline-flex size-touch shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
@@ -40,8 +42,11 @@ export const Controller: React.FC<ControllerProps> = (props) => {
           max={Math.max(numberOfCards - 1, 0)}
           disabled={numberOfCards === 0 || index >= numberOfCards}
           value={String(index)}
-          aria-label="Study progress"
-          aria-valuetext={`${String(Math.min(index + 1, numberOfCards))} of ${String(numberOfCards)}`}
+          aria-label={t("studySession.controller.progress")}
+          aria-valuetext={t("studySession.controller.progressValue", {
+            current: Math.min(index + 1, numberOfCards),
+            total: numberOfCards,
+          })}
           onChange={(e) => {
             props.onChange?.(Number.parseInt(e.target.value, 10));
           }}

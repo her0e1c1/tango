@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useKey } from "react-use";
 
 import type { Deck } from "@/entities/deck";
@@ -52,6 +53,7 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 };
 
 export const StudySessionStartPage: React.FC = () => {
+  const { t } = useTranslation();
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
@@ -59,7 +61,10 @@ export const StudySessionStartPage: React.FC = () => {
 
   if (deck == null) {
     return (
-      <RouteNotFound title="Deck not found" description="The requested deck is unavailable or has been removed." />
+      <RouteNotFound
+        title={t("studyStart.deckNotFound.title")}
+        description={t("studyStart.deckNotFound.description")}
+      />
     );
   }
 

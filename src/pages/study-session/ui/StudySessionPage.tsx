@@ -1,11 +1,15 @@
 import * as React from "react";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey, useLatest } from "react-use";
 
 import { CardView, FrontText } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
+import type { SwipeDirection } from "@/entities/preference";
 import { routes } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
+import { showToast, type ToastTone } from "@/shared/ui/toast";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { type StudyState, useStudy } from "../model/useStudy";
@@ -21,6 +25,16 @@ type StudyShortcutAction =
   | "toggleBackText"
   | "toggleSwipeButtonList"
   | "toggleAutoPlay";
+
+const swipeFeedbackKeys = {
+  cardSwipeUp: "studySession.feedback.swipedUp",
+  cardSwipeDown: "studySession.feedback.swipedDown",
+  cardSwipeLeft: "studySession.feedback.swipedLeft",
+  cardSwipeRight: "studySession.feedback.swipedRight",
+} as const satisfies Record<SwipeDirection, string>;
+
+const SWIPE_FEEDBACK_DURATION_MS = 900;
+const SWIPE_FEEDBACK_TONE = "neutral" satisfies ToastTone;
 
 const isDirectionalStudyAction = (action: StudyShortcutAction): boolean =>
   action === "swipeUp" || action === "swipeDown" || action === "swipeLeft" || action === "swipeRight";
@@ -44,14 +58,14 @@ const shouldIgnoreStudyShortcut = (event: KeyboardEvent): boolean => {
   return event.key.startsWith("Arrow") && event.target.closest(studyShortcutSliderTarget) !== null;
 };
 
-const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) => {
-  if (state == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+const renderStudyScreen = (state: StudyState | undefined, onBack: () => void, t: TFunction) => {
+  if (state == null) return <RouteFeedback title={t("studySession.unavailable")} tone="not-found" />;
 
   if (state.status !== "studying") {
     return state.status === "preparing" ? (
-      <RouteFeedback title="Loading…" tone="loading" />
+      <RouteFeedback title={t("studySession.loading")} tone="loading" />
     ) : (
-      <RouteFeedback title="Study session unavailable." tone="not-found" />
+      <RouteFeedback title={t("studySession.unavailable")} tone="not-found" />
     );
   }
 
@@ -79,10 +93,6 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
         playbackControlsAvailable={state.playbackControlsAvailable}
         help={{
           open: state.help.open,
-          triggerLabel: state.help.triggerLabel,
-          title: state.help.title,
-          description: state.help.description,
-          closeLabel: state.help.closeLabel,
           rows: state.help.rows,
           onOpen: state.help.openHelp,
           onClose: state.help.closeHelp,
@@ -124,8 +134,16 @@ const renderStudyScreen = (state: StudyState | undefined, onBack: () => void) =>
 };
 
 const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const study = useStudy(deckId);
+  const study = useStudy(deckId, (direction) => {
+    showToast({
+      message: t(swipeFeedbackKeys[direction]),
+      tone: SWIPE_FEEDBACK_TONE,
+      durationMs: SWIPE_FEEDBACK_DURATION_MS,
+      dismissible: false,
+    });
+  });
   const latestStudy = useLatest(study);
   const goBack = () => void navigate(routes.deckList.to());
   const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
@@ -166,10 +184,11 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
     );
   }
 
-  return renderStudyScreen(study, goBack);
+  return renderStudyScreen(study, goBack, t);
 };
 
 export const StudySessionPage: React.FC = () => {
+  const { t } = useTranslation();
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
@@ -177,7 +196,7 @@ export const StudySessionPage: React.FC = () => {
   const deck = useDeck(deckId);
 
   // Study lifecycle mutates session state, so an unavailable route Deck must not mount it.
-  if (deck == null) return <RouteFeedback title="Study session unavailable." tone="not-found" />;
+  if (deck == null) return <RouteFeedback title={t("studySession.unavailable")} tone="not-found" />;
 
   // Study state belongs to one route Deck, so id changes start a fresh Page lifecycle.
   return <ActiveStudySessionPage key={deckId} deckId={deckId} />;

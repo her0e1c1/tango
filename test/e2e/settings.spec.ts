@@ -85,6 +85,10 @@ test("SETTINGS-04 Explicit Japanese language is auto-saved across reload", async
   await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
   await expect(japaneseLanguage).toHaveValue("ja");
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "デッキを作成" })).toBeVisible();
 });
 
 test.describe("ja-JP browser locale", () => {
