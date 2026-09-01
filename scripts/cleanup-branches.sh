@@ -3,6 +3,7 @@ set -euo pipefail
 
 cutoff=$(($(date +%s) - 7 * 24 * 60 * 60))
 current_worktree=$(git rev-parse --show-toplevel)
+git fetch origin --prune
 open_pr_branches=$(gh api --paginate 'repos/{owner}/{repo}/pulls?state=open&per_page=100' --jq '.[].head.ref')
 
 has_open_pr() {
@@ -72,5 +73,18 @@ while IFS=$'\t' read -r timestamp branch; do
     failed=1
   fi
 done < <(git for-each-ref --format='%(committerdate:unix)%09%(refname:lstrip=2)' refs/heads)
+
+while IFS=$'\t' read -r timestamp tip branch; do
+  if [[ "$branch" == HEAD || "$branch" == main ]] || has_open_pr "$branch" ||
+    is_checked_out "$branch" || ((timestamp > cutoff)); then
+    continue
+  fi
+
+  if git push --force-with-lease="refs/heads/$branch:$tip" origin --delete "refs/heads/$branch"; then
+    printf 'Removed stale remote branch: %s\n' "$branch"
+  else
+    failed=1
+  fi
+done < <(git for-each-ref --format='%(committerdate:unix)%09%(objectname)%09%(refname:lstrip=3)' refs/remotes/origin)
 
 exit "$failed"
