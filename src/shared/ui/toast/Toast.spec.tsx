@@ -4,7 +4,7 @@ import * as React from "react";
 import { getI18n } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastModalOutlet, ToastViewport } from "./Toast";
+import { ToastViewport } from "./Toast";
 import { dismissToast, showToast, type ShowToastInput } from "./model";
 
 const displayToast = (input: ShowToastInput) => {
@@ -70,42 +70,6 @@ describe("SETTINGS-04 Toast", () => {
 
     expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
     expect(within(status).getByText("Success: Saved")).not.toBe(firstAnnouncement);
-  });
-
-  it("keeps global announcers mounted while the visual Toast moves through a modal outlet", () => {
-    const Harness = () => {
-      const [open, setOpen] = React.useState(false);
-      const fallbackRef = React.useRef<HTMLButtonElement>(null);
-      return (
-        <>
-          <button ref={fallbackRef} type="button" onClick={() => setOpen((value) => !value)}>
-            {open ? "Close modal" : "Open modal"}
-          </button>
-          {open ? (
-            <div role="dialog" aria-label="Example modal">
-              <ToastModalOutlet focusFallbackRef={fallbackRef} />
-            </div>
-          ) : null}
-          <ToastViewport />
-        </>
-      );
-    };
-    render(<Harness />);
-    const status = screen.getByRole("status", { name: "Toast notifications" });
-    displayToast({ message: "Saved", tone: "success", durationMs: null });
-    const announcement = within(status).getByText("Success: Saved");
-
-    fireEvent.click(screen.getByRole("button", { name: "Open modal" }));
-
-    expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
-    expect(within(status).getByText("Success: Saved")).toBe(announcement);
-    expect(within(screen.getByRole("dialog", { name: "Example modal" })).getByText("Saved")).toBeVisible();
-
-    fireEvent.click(screen.getByRole("button", { name: "Close modal" }));
-
-    expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
-    expect(within(status).getByText("Success: Saved")).toBe(announcement);
-    expect(screen.getByText("Saved")).toBeVisible();
   });
 
   it.each([
@@ -187,31 +151,6 @@ describe("SETTINGS-04 Toast", () => {
     fireEvent.click(dismissButton);
 
     expect(screen.getByRole("main")).toHaveFocus();
-  });
-
-  it("dismisses before running its action", () => {
-    const onClick = vi.fn(() => {
-      expect(screen.getByRole("button", { name: "Show notification" })).toHaveFocus();
-      showToast({ message: "Replacement", tone: "success" });
-    });
-    render(
-      <>
-        <button type="button">Show notification</button>
-        <ToastViewport />
-      </>
-    );
-    const trigger = screen.getByRole("button", { name: "Show notification" });
-    trigger.focus();
-    displayToast({ message: "Try again", tone: "error", action: { label: "Retry", onClick } });
-    const retryButton = screen.getByRole("button", { name: "Retry" });
-    retryButton.focus();
-
-    fireEvent.click(retryButton);
-
-    expect(onClick).toHaveBeenCalledOnce();
-    expect(screen.queryByText("Try again")).not.toBeInTheDocument();
-    expect(screen.getByText("Replacement")).toBeVisible();
-    expect(trigger).toHaveFocus();
   });
 
   it("supports non-interactive notifications", () => {

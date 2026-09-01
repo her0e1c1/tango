@@ -48,7 +48,7 @@ const StudySessionDestination = () => {
   );
 };
 
-describe("StudySessionStartPage", () => {
+describe("SWIPE-26 StudySessionStartPage", () => {
   const deckId = "deck-id";
   const cardId = "card-id";
   const renderPage = (path = `/deck/${deckId}/start`) =>
@@ -109,7 +109,15 @@ describe("StudySessionStartPage", () => {
 
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
     expect(screen.getByText("1 card matches your filters.")).toBeVisible();
-    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", { id: deckId, scoreMin: 1 });
+    expect(mocks.editDeck).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
+      id: deckId,
+      scoreMax: null,
+      scoreMin: 1,
+      selectedTags: [],
+      tagAndFilter: false,
+    });
   });
 
   it("reveals additional tags and persists a newly selected tag", async () => {
@@ -120,7 +128,15 @@ describe("StudySessionStartPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Show 4 more tags" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "tag-12" }));
 
-    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", { id: deckId, selectedTags: ["tag-12"] });
+    expect(mocks.editDeck).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
+      id: deckId,
+      scoreMax: null,
+      scoreMin: null,
+      selectedTags: ["tag-12"],
+      tagAndFilter: false,
+    });
   });
 
   it("creates a study session before navigating to it", async () => {

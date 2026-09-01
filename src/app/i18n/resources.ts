@@ -249,6 +249,9 @@ export const resources = {
         },
       },
       deckFilter: {
+        save: "Save filters",
+        saveSuccess: "Saved filters.",
+        saveError: "Unable to save filters. Check your connection and try again.",
         scoreRange: {
           title: "Score range",
           clear: "Clear",
@@ -830,6 +833,9 @@ export const resources = {
         },
       },
       deckFilter: {
+        save: "フィルターを保存",
+        saveSuccess: "フィルターを保存しました。",
+        saveError: "フィルターを保存できませんでした。接続を確認して、もう一度お試しください。",
         scoreRange: {
           title: "スコア範囲",
           clear: "クリア",

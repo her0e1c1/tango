@@ -122,18 +122,18 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
 
   const dialog = await openDeckDeleteDialog(page, deck.name);
   await dialog.getByRole("button", { name: "Delete deck" }).click();
-  await expect(dialog.getByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
+  await expect(dialog).not.toBeVisible();
   await expect(page.getByRole("alert")).toContainText(
     "Unable to delete this deck. Check your connection and try again."
   );
-  await expect(dialog).toBeVisible();
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
-  await dialog.getByRole("button", { name: "Delete deck" }).click();
+  const retryDialog = await openDeckDeleteDialog(page, deck.name);
+  await retryDialog.getByRole("button", { name: "Delete deck" }).click();
 
   // Firestore reopens its write stream after the injected non-retryable error before accepting this retry.
-  await expect(dialog).not.toBeVisible({ timeout: 15_000 });
+  await expect(retryDialog).not.toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByRole("status").filter({ hasText: `Deleted deck “${deck.name}”.` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${deck.name}` })).toHaveCount(0);

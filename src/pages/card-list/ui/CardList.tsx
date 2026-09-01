@@ -36,6 +36,7 @@ interface CardListFilterState {
 
 export interface CardListProps {
   cards: CardListItem[];
+  disabled?: boolean;
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
   card?: CardActionsProps;
@@ -79,7 +80,7 @@ const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selec
  * All data and callbacks arrive through props, allowing the same screen to run in tests and
  * Storybook.
  */
-const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "onShowCard">> = (props) => {
+const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" | "onShowCard">> = (props) => {
   const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
 
   return (
@@ -88,6 +89,7 @@ const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "onShowCard"
         <Card
           key={card.id}
           card={card}
+          disabled={Boolean(props.disabled || props.card?.disabled)}
           menuOpen={openMenuCardId === card.id}
           onToggleMenu={(id) => setOpenMenuCardId((value) => (value === id ? undefined : id))}
           onCloseMenu={() => setOpenMenuCardId(undefined)}
@@ -134,7 +136,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
             {t("cardList.count", { count: props.cards.length })}
           </span>
           {props.onAddCard !== undefined && (
-            <Button variant="primary" type="button" onClick={props.onAddCard}>
+            <Button variant="primary" type="button" disabled={Boolean(props.disabled)} onClick={props.onAddCard}>
               <AiOutlinePlus aria-hidden="true" />
               {t("cardList.add")}
             </Button>
@@ -142,39 +144,44 @@ export const CardList: React.FC<CardListProps> = (props) => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <details className="group rounded-surface border border-border bg-surface shadow-surface">
-          <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded-surface px-3 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden">
-            <span>{t("cardList.filters.title")}</span>
-            <span className="flex min-w-0 items-center gap-2">
-              <span className="min-w-0 truncate text-caption font-medium text-ink-muted">{filterLabel(filter, t)}</span>
-              <AiOutlineDown
-                aria-hidden="true"
-                className="shrink-0 text-ink-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
-                size={16}
-              />
-            </span>
-          </summary>
-          <div className="border-t border-border p-3">{props.filterSlot}</div>
-        </details>
-        {filter.selectedTags.length > 0 && (
-          <ul
-            aria-label={t("cardList.filters.selectedTags")}
-            className="flex min-w-0 max-w-full list-none flex-wrap gap-2 px-1"
-          >
-            {filter.selectedTags.map((tag) => (
-              <li key={tag} className="max-w-full">
-                <RemovableTag label={tag} onRemove={(value) => props.onRemoveTag?.(value)} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <fieldset className="contents" disabled={props.disabled}>
+        <div className="flex flex-col gap-2">
+          <details className="group rounded-surface border border-border bg-surface shadow-surface">
+            <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded-surface px-3 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden">
+              <span>{t("cardList.filters.title")}</span>
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="min-w-0 truncate text-caption font-medium text-ink-muted">
+                  {filterLabel(filter, t)}
+                </span>
+                <AiOutlineDown
+                  aria-hidden="true"
+                  className="shrink-0 text-ink-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                  size={16}
+                />
+              </span>
+            </summary>
+            <div className="border-t border-border p-3">{props.filterSlot}</div>
+          </details>
+          {filter.selectedTags.length > 0 && (
+            <ul
+              aria-label={t("cardList.filters.selectedTags")}
+              className="flex min-w-0 max-w-full list-none flex-wrap gap-2 px-1"
+            >
+              {filter.selectedTags.map((tag) => (
+                <li key={tag} className="max-w-full">
+                  <RemovableTag label={tag} onRemove={(value) => props.onRemoveTag?.(value)} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </fieldset>
 
       {props.cards.length > 0 && (
         <CardListRows
           key={JSON.stringify(props.cards.map((card) => card.id))}
           cards={props.cards}
+          disabled={Boolean(props.disabled)}
           {...(props.card !== undefined ? { card: props.card } : {})}
           {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
         />

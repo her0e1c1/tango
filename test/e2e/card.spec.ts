@@ -241,6 +241,7 @@ test("CARD-10 persists score and tag filters and applies both after reload", asy
   await page.getByText("Filters", { exact: true }).click();
   await page.getByRole("combobox", { name: "Minimum score" }).selectOption("1");
   await clickCheckboxLabel(page, selectedTag);
+  await page.getByRole("button", { name: "Save filters" }).click();
   await expect.poll(async () => (await requireDocument("deck", deck.id)).fields.scoreMin?.integerValue).toBe("1");
   await expect
     .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values?.length)

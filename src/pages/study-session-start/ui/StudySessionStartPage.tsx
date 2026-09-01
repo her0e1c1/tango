@@ -21,7 +21,7 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
 const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const navigate = useNavigate();
   const filter = useDeckFilterState(deck);
-  // Session selection must see optimistic filter state before its persistence request completes.
+  // Session selection previews the local filter draft before the user chooses whether to save it.
   const state = useStudySessionStartState({
     ...deck,
     scoreMax: filter.scoreMax,
@@ -34,7 +34,7 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
     void navigate(routes.deckStudy.to(deck.id), { replace: true });
   };
   const startFromEnter = (event: KeyboardEvent) => {
-    if (state.cardsLength === 0 || hasInteractiveShortcutTarget(event.target)) return;
+    if (filter.saving || state.cardsLength === 0 || hasInteractiveShortcutTarget(event.target)) return;
     start();
   };
   useKey("Enter", startFromEnter, {}, [startFromEnter]);
@@ -45,6 +45,7 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
         deckName={state.deckName}
         maxNumberOfCardsToLearn={state.maxNumberOfCardsToLearn}
         cardsLength={state.cardsLength}
+        disabled={filter.saving}
         onClickStart={start}
         filterSlot={<StudySessionFilters {...filter} tags={state.tags} />}
       />

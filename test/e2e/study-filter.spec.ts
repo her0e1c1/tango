@@ -19,6 +19,7 @@ test("SWIPE-26 reveals, persists, and applies an additional Study tag", async ({
   await targetTag.locator("xpath=parent::label").click();
   await expect(targetTag).toBeChecked();
   await expect(page.getByRole("button", { name: "Start 1 card" })).toBeEnabled();
+  await page.getByRole("button", { name: "Save filters" }).click();
   await expect.poll(() => readSelectedTags(deck.id)).toEqual(["tag-10"]);
 
   await page.reload();

@@ -193,12 +193,12 @@ Given:
 
 - Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
 - 認証済みユーザーが所有する Deck と削除対象の Card が存在する。
-- 最初の削除要求の失敗が dialog 内で処理され、同じ削除対象が維持されている。
+- 最初の削除要求の失敗が共通 toast で処理され、削除 dialog が閉じている。
 - 次の削除要求は成功できる。
 
 When:
 
-- dialog から同じ Card の削除を再試行し、Card 一覧を reload する。
+- 対象 Card の削除 dialog を開き直して削除を再試行し、Card 一覧を reload する。
 
 Then:
 

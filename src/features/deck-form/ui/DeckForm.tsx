@@ -94,7 +94,7 @@ const DeckFormHeader = ({
     <header className="mb-section-gap">
       <button
         type="button"
-        disabled={mode === "create" && presentation.isSaving}
+        disabled={presentation.isSaving}
         className="mb-4 inline-flex min-h-touch items-center gap-2 rounded-control px-2 text-caption font-semibold text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted"
         onClick={onCancel}
       >
@@ -293,7 +293,7 @@ const DeckFormActions = ({
 
   return (
     <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-      <Button variant="quiet" type="button" disabled={mode === "create" && isSaving} onClick={onCancel}>
+      <Button variant="quiet" type="button" disabled={isSaving} onClick={onCancel}>
         {t("deckForm.actions.cancel")}
       </Button>
       {mode === "create" ? (
@@ -321,30 +321,32 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
     <section className="mx-auto w-full max-w-reading overflow-hidden rounded-surface border border-border bg-surface p-4 md:p-6">
       <DeckFormHeader mode={props.mode} onCancel={props.onCancel} presentation={presentation} />
       <Form onSubmit={props.onSubmit}>
-        <StorageSection
-          disabled={presentation.localModeDisabled}
-          form={props.form}
-          headingId={`${idPrefix}-deck-storage-heading`}
-          help={presentation.localModeHelp}
-        />
-        <BasicInformationSection
-          autoFocusName={presentation.autoFocusName}
-          categories={props.categories}
-          categoryInputId={`${idPrefix}-deck-category`}
-          error={formState.errors.name?.message}
-          form={props.form}
-          headingId={`${idPrefix}-deck-basic-heading`}
-          nameErrorId={`${nameInputId}-error`}
-          nameInputId={nameInputId}
-        />
-        <ImportFormattingSection
-          error={formState.errors.url?.message}
-          form={props.form}
-          headingId={`${idPrefix}-deck-import-heading`}
-          urlErrorId={`${urlInputId}-error`}
-          urlInputId={urlInputId}
-        />
-        {props.mode === "edit" ? <DeckInformation deckInfo={props.deckInfo} /> : null}
+        <fieldset className="contents" disabled={presentation.isSaving}>
+          <StorageSection
+            disabled={presentation.localModeDisabled}
+            form={props.form}
+            headingId={`${idPrefix}-deck-storage-heading`}
+            help={presentation.localModeHelp}
+          />
+          <BasicInformationSection
+            autoFocusName={presentation.autoFocusName}
+            categories={props.categories}
+            categoryInputId={`${idPrefix}-deck-category`}
+            error={formState.errors.name?.message}
+            form={props.form}
+            headingId={`${idPrefix}-deck-basic-heading`}
+            nameErrorId={`${nameInputId}-error`}
+            nameInputId={nameInputId}
+          />
+          <ImportFormattingSection
+            error={formState.errors.url?.message}
+            form={props.form}
+            headingId={`${idPrefix}-deck-import-heading`}
+            urlErrorId={`${urlInputId}-error`}
+            urlInputId={urlInputId}
+          />
+          {props.mode === "edit" ? <DeckInformation deckInfo={props.deckInfo} /> : null}
+        </fieldset>
         <DeckFormActions isSaving={presentation.isSaving} mode={props.mode} onCancel={props.onCancel} />
       </Form>
       {props.mode === "edit" ? props.afterForm : null}

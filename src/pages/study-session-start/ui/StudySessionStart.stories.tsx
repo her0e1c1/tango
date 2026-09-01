@@ -25,6 +25,9 @@ const Filters: React.FC<{
       tags={[...props.tags]}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
+      dirty
+      saving={false}
+      save={async () => undefined}
       clearScoreRange={() => {
         setScoreMax(null);
         setScoreMin(null);

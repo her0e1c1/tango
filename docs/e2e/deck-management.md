@@ -99,12 +99,12 @@ Given:
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に Card と再開可能な学習 session が存在する。
-- 削除要求の失敗が共通 toast で処理され、削除 dialog に同じ削除対象が維持されている。
+- 削除要求の失敗が共通 toast で処理され、削除 dialog が閉じている。
 - 次の削除要求は成功できる。
 
 When:
 
-- dialog から同じ Deck の削除を再試行する。
+- 対象 Deck の削除 dialog を開き直し、削除を再試行する。
 
 Then:
 

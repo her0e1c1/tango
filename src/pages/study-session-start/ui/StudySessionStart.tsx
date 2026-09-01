@@ -7,6 +7,7 @@ export interface StudySessionStartProps {
   deckName: string;
   maxNumberOfCardsToLearn: number;
   cardsLength: number;
+  disabled?: boolean;
   filterSlot?: React.ReactNode;
   onClickStart?: () => void;
 }
@@ -58,7 +59,7 @@ export const StudySessionStart: React.FC<StudySessionStartProps> = (props) => {
               variant="primary"
               size="md"
               className="shrink-0 whitespace-nowrap md:mt-5 md:w-full md:px-6 md:py-3 md:text-lg"
-              disabled={!hasCards}
+              disabled={!hasCards || Boolean(props.disabled)}
               {...(props.onClickStart !== undefined ? { onClick: props.onClickStart } : {})}
             >
               {t("studyStart.start", { count: sessionCardsLength })}

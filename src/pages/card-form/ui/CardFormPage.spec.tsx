@@ -145,83 +145,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CardFormPage", () => {
     expect(frontText).toHaveValue("Unsaved front");
   });
 
-  it("keeps a remote Card protected and non-submittable across a pending optimistic snapshot", async () => {
-    let rejectWrite: (error: Error) => void = () => undefined;
-    mocks.beforeCardWrite = () =>
-      new Promise<void>((_resolve, reject) => {
-        rejectWrite = reject;
-      });
-    mocks.skipCardWrite = true;
-    mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" });
-    const view = renderPage();
-    const frontText = screen.getByRole("textbox", { name: "Front text" });
-    await userEvent.clear(frontText);
-    await userEvent.type(frontText, "Retry front");
-
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
-    mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Retry front", backText: "Back text" });
-    view.rerenderRouter();
-
-    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
-    await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
-
-    await actAsync(async () => rejectWrite(new Error("write failed")));
-    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-    mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" });
-    view.rerenderRouter();
-
-    expect(frontText).toHaveValue("Retry front");
-    expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
-  });
-
-  it("keeps the confirmed Card baseline when a retry fails before the delayed rollback", async () => {
-    const rejectWrites: Array<(error: Error) => void> = [];
-    const rejectWrite = (index: number) => {
-      const reject = rejectWrites[index];
-      if (reject === undefined) throw new Error(`missing write ${index}`);
-      reject(new Error("write failed"));
-    };
-    mocks.beforeCardWrite = () =>
-      new Promise<void>((_resolve, reject) => {
-        rejectWrites.push(reject);
-      });
-    mocks.skipCardWrite = true;
-    mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" });
-    const view = renderPage();
-    const frontText = screen.getByRole("textbox", { name: "Front text" });
-    await userEvent.clear(frontText);
-    await userEvent.type(frontText, "Retry front");
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
-    mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Retry front", backText: "Back text" });
-    view.rerenderRouter();
-
-    await actAsync(async () => {
-      rejectWrite(0);
-      await Promise.resolve();
-    });
-    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
-    await actAsync(async () => {
-      rejectWrite(1);
-      await Promise.resolve();
-    });
-    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-
-    mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" });
-    view.rerenderRouter();
-    expect(frontText).toHaveValue("Retry front");
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
-  });
-
-  it("keeps edits made after a remote Card submission when that submission succeeds", async () => {
+  it("keeps the opening Card snapshot and disables the editor while saving", async () => {
     let resolveWrite: () => void = () => undefined;
     mocks.beforeCardWrite = () =>
       new Promise<void>((resolve) => {
@@ -233,25 +157,18 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CardFormPage", () => {
     const frontText = screen.getByRole("textbox", { name: "Front text" });
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "Submitted front");
+
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
-    mocks.remoteCard = createRemoteCard({
-      id: cardId,
-      deckId,
-      frontText: "Submitted front",
-      backText: "Back text",
-    });
+    mocks.remoteCard = createRemoteCard({ id: cardId, deckId, frontText: "Subscription front", backText: "Back text" });
     view.rerenderRouter();
 
-    await userEvent.clear(frontText);
-    await userEvent.type(frontText, "Later front");
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    expect(frontText).toHaveValue("Submitted front");
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
     await actAsync(async () => resolveWrite());
 
-    expect(await screen.findByRole("button", { name: "Save changes" })).toBeEnabled();
-    expect(screen.getByRole("heading", { level: 1, name: "Edit card" })).toBeVisible();
-    expect(frontText).toHaveValue("Later front");
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: "Card list" })).toBeVisible();
   });
 
   it("navigates with both recovery actions when the card is unavailable", async () => {

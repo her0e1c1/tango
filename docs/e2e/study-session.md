@@ -193,6 +193,7 @@ Given:
 When:
 
 - 学習開始画面で追加の tag を展開し、対象 tag を選択する。
+- `Save filters` を選択する。
 - filter の保存完了後に画面を reload し、学習 session を開始する。
 
 Then:

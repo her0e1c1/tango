@@ -23,14 +23,17 @@ const createProps = (): DeckFilterFormProps => ({
   tags: ["one", "two"],
   selectedTags: ["one"],
   tagAndFilter: true,
+  dirty: true,
+  saving: false,
   clearScoreRange: vi.fn(),
+  save: vi.fn(),
   setScoreMax: vi.fn(),
   setScoreMin: vi.fn(),
   setSelectedTags: vi.fn(),
   setTagAndFilter: vi.fn(),
 });
 
-describe("DeckFilterForm", () => {
+describe("CARD-10 DeckFilterForm", () => {
   it("composes score and tag filters and preserves callbacks", async () => {
     const props = createProps();
     render(<DeckFilterForm {...props} />);
@@ -49,6 +52,8 @@ describe("DeckFilterForm", () => {
     await userEvent.click(within(scoreRegion).getByRole("button", { name: "Clear limits" }));
     expect(props.clearScoreRange).toHaveBeenCalledOnce();
     expect(screen.getByRole("region", { name: "Tags" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
+    expect(props.save).toHaveBeenCalledOnce();
   });
 
   it("shows unrestricted limits", () => {
@@ -57,5 +62,12 @@ describe("DeckFilterForm", () => {
     expect(within(scoreRegion).queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("");
     expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("");
+  });
+
+  it("disables editing while saving", () => {
+    render(<DeckFilterForm {...createProps()} saving />);
+
+    expect(screen.getByRole("button", { name: "Save filters" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "Maximum score" })).toBeDisabled();
   });
 });

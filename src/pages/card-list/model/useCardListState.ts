@@ -30,6 +30,7 @@ export interface CardListState {
   answer: CardListAnswer | undefined;
   deletionTarget: { frontText: string } | undefined;
   deletionPending: boolean;
+  mutationPending: boolean;
   onShowCard: (id: CardId) => void;
   onCloseCard: () => void;
   onSwipedLeft: (id: CardId) => void;
@@ -47,18 +48,6 @@ const buildCardListItem = (card: Card): CardListItem => ({
   tags: card.tags,
 });
 
-const dismissOwnedToast = (toastId: React.RefObject<ToastId | undefined>) => {
-  const id = toastId.current;
-  if (id === undefined) return;
-  dismissToast(id);
-  toastId.current = undefined;
-};
-
-interface ScoreErrorToast {
-  cardId: CardId;
-  toastId: ToastId;
-}
-
 export const useCardListState = (deck: Deck): CardListState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
@@ -66,91 +55,72 @@ export const useCardListState = (deck: Deck): CardListState => {
   const isMounted = useMountedGuard();
   const [shownCard, setShownCard] = React.useState<Card>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
-  const [deletionPending, setDeletionPending] = React.useState(false);
-  const deletionPendingRef = React.useRef(false);
-  const deletionErrorToastId = React.useRef<ToastId | undefined>(undefined);
-  const scoreErrorToast = React.useRef<ScoreErrorToast | undefined>(undefined);
-  const scoreMutationSequences = React.useRef(new Map<CardId, number>());
+  const [mutationPending, setMutationPending] = React.useState(false);
+  const mutationPendingRef = React.useRef(false);
+  const errorToastId = React.useRef<ToastId | undefined>(undefined);
 
   const cards = selectStudyCards(deckCards, deck, preferences.study.useCardInterval);
 
-  const dismissDeletionErrorToast = () => dismissOwnedToast(deletionErrorToastId);
-  const dismissScoreErrorToast = (cardId?: CardId) => {
-    const ownedToast = scoreErrorToast.current;
-    if (ownedToast === undefined || (cardId !== undefined && ownedToast.cardId !== cardId)) return;
-    dismissToast(ownedToast.toastId);
-    scoreErrorToast.current = undefined;
+  const dismissErrorToast = () => {
+    if (errorToastId.current === undefined) return;
+    dismissToast(errorToastId.current);
+    errorToastId.current = undefined;
   };
 
-  const nextScoreMutationSequence = (cardId: CardId) => {
-    const sequence = (scoreMutationSequences.current.get(cardId) ?? 0) + 1;
-    scoreMutationSequences.current.set(cardId, sequence);
-    return sequence;
+  React.useEffect(() => () => dismissErrorToast(), []);
+
+  const beginMutation = () => {
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Separate same-tick list gestures can run before React disables the rows.
+    if (mutationPendingRef.current) return false;
+    dismissErrorToast();
+    mutationPendingRef.current = true;
+    setMutationPending(true);
+    return true;
   };
 
-  const isLatestScoreMutation = (cardId: CardId, sequence: number) =>
-    scoreMutationSequences.current.get(cardId) === sequence;
+  const finishMutation = () => {
+    mutationPendingRef.current = false;
+    if (isMounted()) setMutationPending(false);
+  };
 
-  React.useEffect(
-    () => () => {
-      dismissOwnedToast(deletionErrorToastId);
-      dismissScoreErrorToast();
-    },
-    []
-  );
-
-  const changeScore = (id: CardId, offset: number) => {
+  const changeScore = async (id: CardId, offset: number) => {
+    if (!beginMutation()) return;
     const card = mustFindCardById(cards, id);
-    // Writes for one Card supersede only that Card so another Card's late failure remains actionable.
-    const sequence = nextScoreMutationSequence(card.id);
-    dismissScoreErrorToast(card.id);
-    void editStudyProgress(uid, { cardId: card.id, score: card.score + offset })
-      .then(() => {
-        if (isMounted() && isLatestScoreMutation(card.id, sequence)) dismissScoreErrorToast(card.id);
-      })
-      .catch(() => {
-        if (isMounted() && isLatestScoreMutation(card.id, sequence)) {
-          scoreErrorToast.current = {
-            cardId: card.id,
-            toastId: showToast({ message: "Unable to save changes. Try again.", tone: "error" }),
-          };
-        }
-      });
+    try {
+      await editStudyProgress(uid, { cardId: card.id, score: card.score + offset });
+    } catch {
+      if (isMounted()) {
+        errorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
+      }
+    } finally {
+      finishMutation();
+    }
   };
 
   const requestDeletion = (id: CardId) => {
-    // A closed pending dialog must not let another Card replace the target captured by the issued write.
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: The pending write mutates this ref outside the request callback's render.
-    if (deletionPendingRef.current) return;
-    const card = mustFindCardById(cards, id);
-    dismissDeletionErrorToast();
-    setDeletionTarget(card);
+    dismissErrorToast();
+    setDeletionTarget(mustFindCardById(cards, id));
   };
 
   const confirmDeletion = async () => {
-    if (deletionTarget == null || deletionPendingRef.current) return;
+    if (deletionTarget == null || !beginMutation()) return;
     const card = deletionTarget;
-    dismissDeletionErrorToast();
-    deletionPendingRef.current = true;
-    setDeletionPending(true);
     try {
       await deleteCard(uid, card);
       if (!isMounted()) return;
-      // Only a committed deletion supersedes pending score writes for that Card; a failed deletion leaves them actionable.
-      nextScoreMutationSequence(card.id);
-      dismissScoreErrorToast(card.id);
       setDeletionTarget(undefined);
       showToast({ message: `Deleted card “${card.frontText}”.`, tone: "success" });
     } catch {
       if (isMounted()) {
-        deletionErrorToastId.current = showToast({
+        // A failed attempt ends with the dialog closed; retry starts from a newly selected Card.
+        setDeletionTarget(undefined);
+        errorToastId.current = showToast({
           message: "Unable to delete this card. Check your connection and try again.",
           tone: "error",
         });
       }
     } finally {
-      deletionPendingRef.current = false;
-      if (isMounted()) setDeletionPending(false);
+      finishMutation();
     }
   };
 
@@ -169,7 +139,8 @@ export const useCardListState = (deck: Deck): CardListState => {
     tags,
     cards: cards.map(buildCardListItem),
     answer,
-    deletionPending,
+    mutationPending,
+    deletionPending: mutationPending && deletionTarget != null,
     deletionTarget:
       deletionTarget == null
         ? undefined
@@ -178,14 +149,10 @@ export const useCardListState = (deck: Deck): CardListState => {
           },
     onShowCard: (id: CardId) => setShownCard(mustFindCardById(cards, id)),
     onCloseCard: () => setShownCard(undefined),
-    onSwipedLeft: (id: CardId) => changeScore(id, -1),
-    onSwipedRight: (id: CardId) => changeScore(id, 1),
+    onSwipedLeft: (id: CardId) => void changeScore(id, -1),
+    onSwipedRight: (id: CardId) => void changeScore(id, 1),
     onRequestDeletion: requestDeletion,
-    onCancelDeletion: () => {
-      // Closing the dialog only dismisses its UI; an already-issued deletion owns its eventual global Toast.
-      dismissDeletionErrorToast();
-      setDeletionTarget(undefined);
-    },
+    onCancelDeletion: () => setDeletionTarget(undefined),
     onConfirmDeletion: confirmDeletion,
   };
 };

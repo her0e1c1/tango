@@ -18,7 +18,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const deckFilter = useDeckFilterState(deck);
-  // Card selection must use optimistic filter values before their persistence request completes.
+  // The list previews the local filter draft; persistence remains an explicit user action.
   const state = useCardListState({
     ...deck,
     scoreMax: deckFilter.scoreMax,
@@ -26,6 +26,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
     selectedTags: deckFilter.selectedTags,
     tagAndFilter: deckFilter.tagAndFilter,
   });
+  const busy = state.mutationPending || deckFilter.saving;
 
   return (
     <AppLayout showHeader={state.answer == null}>
@@ -48,17 +49,19 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
       ) : null}
       <CardList
         cards={state.cards}
+        disabled={busy}
         onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
         filter={{
           scoreMax: deckFilter.scoreMax,
           scoreMin: deckFilter.scoreMin,
           selectedTags: deckFilter.selectedTags,
         }}
-        filterSlot={<DeckFilterForm {...deckFilter} tags={state.tags} />}
+        filterSlot={<DeckFilterForm {...deckFilter} disabled={state.mutationPending} tags={state.tags} />}
         onRemoveTag={(tag) =>
           deckFilter.setSelectedTags(deckFilter.selectedTags.filter((selectedTag) => selectedTag !== tag))
         }
         card={{
+          disabled: busy,
           onSwipedLeft: state.onSwipedLeft,
           onSwipedRight: state.onSwipedRight,
           goToEdit: (id) => void navigate(routes.cardForm.to(id)),

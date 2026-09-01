@@ -7,7 +7,7 @@ const accountUid = async (page: Page) => {
   return value.trim();
 };
 
-const openGooglePopup = async (page: Page, buttonName: "Retry" | "Sign in with Google") => {
+const openGooglePopup = async (page: Page) => {
   // The emulator's identity flow is self-contained; remote styles and Material Components only decorate it and
   // must not exhaust a test's timeout before the inline form behavior can initialize.
   await Promise.all([
@@ -23,18 +23,14 @@ const openGooglePopup = async (page: Page, buttonName: "Retry" | "Sign in with G
   ]);
   const [popup] = await Promise.all([
     page.waitForEvent("popup"),
-    page.getByRole("button", { name: buttonName, exact: true }).click(),
+    page.getByRole("button", { name: "Sign in with Google", exact: true }).click(),
   ]);
   await popup.waitForFunction(() => typeof Reflect.get(window, "validateForm") === "function");
   return popup;
 };
 
-const completeGooglePopup = async (
-  page: Page,
-  namespace: string,
-  buttonName: "Retry" | "Sign in with Google" = "Sign in with Google"
-) => {
-  const popup = await openGooglePopup(page, buttonName);
+const completeGooglePopup = async (page: Page, namespace: string) => {
+  const popup = await openGooglePopup(page);
   await popup.getByRole("button", { name: "Add new account" }).click();
   await popup.locator("#email-input").fill(`${namespace}@example.test`);
   await popup.locator("#display-name-input").fill(`E2E ${namespace}`);
@@ -45,7 +41,7 @@ const completeGooglePopup = async (
 };
 
 const closeGooglePopup = async (page: Page) => {
-  const popup = await openGooglePopup(page, "Sign in with Google");
+  const popup = await openGooglePopup(page);
   await expect(popup.getByRole("button", { name: "Add new account" })).toBeVisible();
   await popup.close();
 };
@@ -88,9 +84,9 @@ test("ACCOUNT-02 A closed Google popup can be retried successfully", async ({ fi
   await closeGooglePopup(page);
   // Firebase polls for user-closed popups with a randomized delay of up to ten seconds.
   await expect(page.getByRole("alert")).toContainText("Unable to sign in.", { timeout: 12_000 });
-  await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
 
-  await completeGooglePopup(page, namespace.uid, "Retry");
+  await completeGooglePopup(page, namespace.uid);
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
   await expect(page.getByText("Signed in with Google")).toBeVisible();

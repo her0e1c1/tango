@@ -28,6 +28,7 @@ export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, fo
       <header className="mb-section-gap">
         <button
           type="button"
+          disabled={isSaving}
           className="mb-4 inline-flex min-h-touch items-center gap-2 rounded-control px-2 text-caption font-semibold text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted"
           onClick={onCancel}
         >
@@ -41,36 +42,38 @@ export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, fo
         <p className="mt-2 text-body text-ink-muted">{t("cardForm.edit.description")}</p>
       </header>
       <Form onSubmit={onSubmit}>
-        <CardFields categories={categories} form={form} />
-        <details className="rounded-surface border border-border bg-surface-muted p-4">
-          <summary className="flex min-h-touch cursor-pointer items-center font-semibold text-ink">
-            {t("cardForm.information.title")}
-          </summary>
-          <dl className="mt-4 grid gap-3 text-caption">
-            <div className="min-w-0">
-              <dt className="font-medium text-ink-muted">{t("cardForm.information.uniqueKey")}</dt>
-              <dd className="break-all text-ink">{cardInfo.uniqueKey}</dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="font-medium text-ink-muted">{t("cardForm.information.id")}</dt>
-              <dd className="break-all text-ink">{cardInfo.id}</dd>
-            </div>
-            {cardInfo.createdAt !== undefined && (
-              <div>
-                <dt className="font-medium text-ink-muted">{t("cardForm.information.created")}</dt>
-                <dd className="text-ink">{formatDate(cardInfo.createdAt, locale)}</dd>
+        <fieldset className="contents" disabled={isSaving}>
+          <CardFields categories={categories} form={form} />
+          <details className="rounded-surface border border-border bg-surface-muted p-4">
+            <summary className="flex min-h-touch cursor-pointer items-center font-semibold text-ink">
+              {t("cardForm.information.title")}
+            </summary>
+            <dl className="mt-4 grid gap-3 text-caption">
+              <div className="min-w-0">
+                <dt className="font-medium text-ink-muted">{t("cardForm.information.uniqueKey")}</dt>
+                <dd className="break-all text-ink">{cardInfo.uniqueKey}</dd>
               </div>
-            )}
-            {cardInfo.lastSeenAt !== undefined && (
-              <div>
-                <dt className="font-medium text-ink-muted">{t("cardForm.information.lastSeen")}</dt>
-                <dd className="text-ink">{formatDate(cardInfo.lastSeenAt, locale)}</dd>
+              <div className="min-w-0">
+                <dt className="font-medium text-ink-muted">{t("cardForm.information.id")}</dt>
+                <dd className="break-all text-ink">{cardInfo.id}</dd>
               </div>
-            )}
-          </dl>
-        </details>
+              {cardInfo.createdAt !== undefined && (
+                <div>
+                  <dt className="font-medium text-ink-muted">{t("cardForm.information.created")}</dt>
+                  <dd className="text-ink">{formatDate(cardInfo.createdAt, locale)}</dd>
+                </div>
+              )}
+              {cardInfo.lastSeenAt !== undefined && (
+                <div>
+                  <dt className="font-medium text-ink-muted">{t("cardForm.information.lastSeen")}</dt>
+                  <dd className="text-ink">{formatDate(cardInfo.lastSeenAt, locale)}</dd>
+                </div>
+              )}
+            </dl>
+          </details>
+        </fieldset>
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-          <Button variant="quiet" type="button" onClick={onCancel}>
+          <Button variant="quiet" type="button" disabled={isSaving} onClick={onCancel}>
             {t("cardForm.actions.cancel")}
           </Button>
           <Button variant="primary" type="submit" disabled={isSaving}>

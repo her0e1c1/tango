@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
-import { CATEGORY, type Deck, deckFormSchema, editDeck, useDeck } from "@/entities/deck";
+import { CATEGORY, type Deck, deckFormSchema, editDeck } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
@@ -24,99 +24,71 @@ const getDeckEditInput = (deck: Deck, values: DeckFormFields): Parameters<typeof
   url: values.url ?? null,
 });
 
-const areDeckFormValuesEqual = (left: DeckFormFields, right: DeckFormFields): boolean =>
-  left.name === right.name &&
-  left.category === right.category &&
-  left.url === right.url &&
-  left.convertToBr === right.convertToBr &&
-  left.localMode === right.localMode;
-
 interface UseDeckFormOptions {
-  deckId: string;
+  deck: Deck;
   onSaved: () => void;
 }
 
-const dismissOwnedToast = (toastId: React.RefObject<ToastId | undefined>) => {
-  const id = toastId.current;
-  if (id === undefined) return;
-  dismissToast(id);
-  toastId.current = undefined;
-};
-
-export const useDeckForm = ({ deckId, onSaved }: UseDeckFormOptions) => {
+export const useDeckForm = ({ deck, onSaved }: UseDeckFormOptions) => {
   const uid = useAuthUid();
-  const deck = useDeck(deckId);
   const isMounted = useMountedGuard();
+  // The edit form owns the snapshot it opened with; subscription refreshes do not merge into a user's draft.
+  const [snapshot] = React.useState(deck);
   const saveErrorToastId = React.useRef<ToastId | undefined>(undefined);
-  // Reactive Deck snapshots can reset RHF state mid-write, so this lock must span the persistence request itself.
+  const savingRef = React.useRef(false);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [failedBaseline, setFailedBaseline] = React.useState<DeckFormFields | null>(null);
   const form = useForm<DeckFormFields>({
-    ...(deck && { values: getDeckFormValues(deck) }),
-    // Subscription refreshes may update clean fields, but must not erase the user's retry payload.
-    resetOptions: { keepDirtyValues: true },
+    defaultValues: getDeckFormValues(snapshot),
     resolver: zodResolver(deckFormSchema),
   });
 
-  const dismissSaveError = () => dismissOwnedToast(saveErrorToastId);
+  const dismissSaveError = () => {
+    if (saveErrorToastId.current === undefined) return;
+    dismissToast(saveErrorToastId.current);
+    saveErrorToastId.current = undefined;
+  };
 
-  React.useEffect(() => () => dismissOwnedToast(saveErrorToastId), []);
-
-  if (deck == null) return;
+  React.useEffect(() => () => dismissSaveError(), []);
 
   const submit = async (values: DeckFormFields) => {
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: React Hook Form can validate two same-tick submits before rerendering.
+    if (savingRef.current) return;
     const savedInput = { ...values };
-    const submittedInput = form.getValues();
-    // A failed attempt keeps its pre-optimistic baseline for retries that start before Firestore rolls back.
-    const retryBaseline = failedBaseline ?? getDeckFormValues(deck);
+    savingRef.current = true;
     setIsSaving(true);
     dismissSaveError();
     try {
-      await editDeck(uid, getDeckEditInput(deck, savedInput));
-      // A Deck write may finish after the user leaves this Page; prevent that stale completion from navigating them.
+      await editDeck(uid, getDeckEditInput(snapshot, savedInput));
       if (isMounted()) {
-        setFailedBaseline(null);
         showToast({ message: `Updated deck “${savedInput.name}”.`, tone: "success" });
-        if (areDeckFormValuesEqual(form.getValues(), submittedInput)) {
-          onSaved();
-        } else {
-          // A successful write may finish after another edit; preserve that edit against the payload just saved.
-          form.reset(savedInput, { keepValues: true });
-        }
+        onSaved();
       }
     } catch {
       if (isMounted()) {
-        // Optimistic snapshots may replace RHF's baseline while pending; restore it without erasing the retry payload.
-        form.reset(retryBaseline, { keepValues: true });
-        setFailedBaseline(retryBaseline);
         saveErrorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
       }
     } finally {
+      savingRef.current = false;
       if (isMounted()) setIsSaving(false);
     }
   };
-  const onFormSubmit = (event?: React.BaseSyntheticEvent) => {
-    if (isSaving) {
-      event?.preventDefault();
-      return;
-    }
-    void form.handleSubmit(submit)(event);
-  };
 
-  const deckInfo = {
-    id: deck.id,
-    createdAt: deck.createdAt,
-    updatedAt: deck.updatedAt,
+  const onFormSubmit = (event?: React.BaseSyntheticEvent) => {
+    void form.handleSubmit(submit)(event);
   };
 
   return {
     categories: CATEGORY,
-    deckInfo,
-    deckName: deck.name,
+    deckInfo: {
+      id: snapshot.id,
+      createdAt: snapshot.createdAt,
+      updatedAt: snapshot.updatedAt,
+    },
+    deckName: snapshot.name,
     dismissSaveError,
     form,
     isDirty: form.formState.isDirty,
-    isLocalOnly: deck.localMode,
+    isLocalOnly: snapshot.localMode,
     isSaving,
     onSubmit: onFormSubmit,
   };
