@@ -23,12 +23,17 @@ export interface ToastState {
 interface ToastStoreState {
   current: ToastState | undefined;
   focusFallbackTargets: readonly ToastFocusFallbackTarget[];
+  modalFocusTargets: readonly ToastModalFocusTarget[];
   visualTarget: ToastVisualTarget | undefined;
 }
 
 interface ToastFocusFallbackTarget {
   id: number;
   element: HTMLElement;
+}
+
+interface ToastModalFocusTarget extends ToastFocusFallbackTarget {
+  fallbackElement: HTMLElement;
 }
 
 interface ToastVisualTarget {
@@ -45,10 +50,12 @@ const DEFAULT_DURATION_MS: Record<ToastTone, number | null> = {
 
 let nextToastId = 0;
 let nextFocusFallbackTargetId = 0;
+let nextModalFocusTargetId = 0;
 
 export const toastStore = createStore<ToastStoreState>()(() => ({
   current: undefined,
   focusFallbackTargets: [],
+  modalFocusTargets: [],
   visualTarget: undefined,
 }));
 
@@ -63,6 +70,20 @@ export const registerToastFocusFallbackTarget = (element: HTMLElement): (() => v
   return () => {
     toastStore.setState((state) => ({
       focusFallbackTargets: state.focusFallbackTargets.filter((target) => target.id !== id),
+    }));
+  };
+};
+
+export const registerToastModalFocusTarget = (element: HTMLElement, fallbackElement: HTMLElement): (() => void) => {
+  nextModalFocusTargetId += 1;
+  const id = nextModalFocusTargetId;
+  toastStore.setState((state) => ({
+    modalFocusTargets: [...state.modalFocusTargets, { id, element, fallbackElement }],
+  }));
+
+  return () => {
+    toastStore.setState((state) => ({
+      modalFocusTargets: state.modalFocusTargets.filter((target) => target.id !== id),
     }));
   };
 };
@@ -91,8 +112,15 @@ const getFocusedElement = (): HTMLElement | undefined => {
 
 const restoreToastFocus = (toast: ToastState): void => {
   const focusedElement = getFocusedElement();
+  const { focusFallbackTargets, modalFocusTargets, visualTarget } = toastStore.getState();
+  const activeModal = modalFocusTargets.findLast(
+    (target) => target.element.isConnected && target.fallbackElement.isConnected
+  );
+  if (activeModal !== undefined && (focusedElement === undefined || !activeModal.element.contains(focusedElement))) {
+    activeModal.fallbackElement.focus();
+    return;
+  }
   if (focusedElement === undefined) return;
-  const { focusFallbackTargets, visualTarget } = toastStore.getState();
   if (visualTarget?.toastId !== toast.id || !visualTarget.element.contains(focusedElement)) return;
   if (toast.returnFocusTarget?.isConnected) {
     toast.returnFocusTarget.focus();

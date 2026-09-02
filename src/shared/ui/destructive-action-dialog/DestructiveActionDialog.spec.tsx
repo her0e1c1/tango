@@ -1,9 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { dismissToast, showToast, ToastViewport } from "../toast";
 import { DestructiveActionDialog } from "./DestructiveActionDialog";
 
 const defaultProps = {
@@ -18,6 +19,7 @@ const defaultProps = {
 
 afterEach(() => {
   vi.clearAllMocks();
+  dismissToast();
 });
 
 describe("DECK-04 DECK-05 CARD-16 DestructiveActionDialog", () => {
@@ -134,6 +136,60 @@ describe("DECK-04 DECK-05 CARD-16 DestructiveActionDialog", () => {
     fireEvent.keyDown(dialog, { key: "Escape" });
     expect(onConfirm).not.toHaveBeenCalled();
     expect(onCancel).not.toHaveBeenCalled();
+  });
+
+  it("keeps focus inside when confirmation transitions to pending", async () => {
+    const Example = () => {
+      const [pending, setPending] = React.useState(false);
+      return <DestructiveActionDialog {...defaultProps} pending={pending} onConfirm={() => setPending(true)} />;
+    };
+    render(<Example />);
+    const dialog = screen.getByRole("alertdialog");
+    const confirm = screen.getByRole("button", { name: "Delete deck" });
+    const target = screen.getByText("Japanese verbs");
+    confirm.focus();
+
+    fireEvent.click(confirm);
+
+    expect(dialog).toContainElement(target);
+    expect(target).toHaveFocus();
+    await userEvent.tab();
+    expect(target).toHaveFocus();
+  });
+
+  it("keeps a persistent Toast non-interactive while the dialog is open", async () => {
+    const Example = () => {
+      const [open, setOpen] = React.useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            Reopen delete
+          </button>
+          {open ? <DestructiveActionDialog {...defaultProps} /> : null}
+          <ToastViewport />
+        </>
+      );
+    };
+    render(<Example />);
+    const trigger = screen.getByRole("button", { name: "Reopen delete" });
+    trigger.focus();
+    let toastId = 0;
+    act(() => {
+      toastId = showToast({ message: "Delete failed", tone: "error", durationMs: null });
+    });
+    expect(screen.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
+
+    await userEvent.click(trigger);
+
+    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+    const dialog = screen.getByRole("alertdialog");
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    expect(dialog).toContainElement(cancel);
+    expect(cancel).toHaveFocus();
+
+    trigger.focus();
+    act(() => dismissToast(toastId));
+    expect(screen.getByText("Japanese verbs")).toHaveFocus();
   });
 
   it("prevents duplicate confirmation before pending props update", () => {

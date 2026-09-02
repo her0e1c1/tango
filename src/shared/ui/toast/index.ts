@@ -1,2 +1,8 @@
 export { ToastViewport } from "./Toast";
-export { dismissToast, showToast, type ToastId, type ToastTone } from "./model";
+export {
+  dismissToast,
+  registerToastModalFocusTarget,
+  showToast,
+  type ToastId,
+  type ToastTone,
+} from "./model";

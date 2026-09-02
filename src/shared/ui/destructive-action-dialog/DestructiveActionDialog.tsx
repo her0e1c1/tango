@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { focusableElementSelector } from "../../lib/focusableElementSelector";
 import { Button } from "../button";
+import { registerToastModalFocusTarget } from "../toast";
 
 export interface DestructiveActionDialogProps {
   title: string;
@@ -19,6 +20,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   const { t } = useTranslation();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const targetNameRef = React.useRef<HTMLSpanElement>(null);
   const confirmingRef = React.useRef(false);
   const titleId = React.useId();
   const targetId = React.useId();
@@ -35,6 +37,19 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
       if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };
   }, []);
+
+  React.useLayoutEffect(() => {
+    const dialog = dialogRef.current;
+    const targetName = targetNameRef.current;
+    if (dialog === null || targetName === null) return;
+    return registerToastModalFocusTarget(dialog, targetName);
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (!props.pending) return;
+    // Both actions become disabled while pending, so focus must move before the browser can drop it outside the modal.
+    targetNameRef.current?.focus();
+  }, [props.pending]);
 
   const handleDialogTabKey = (event: KeyboardEvent) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
@@ -117,6 +132,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
             {props.targetLabel}
           </span>
           <span
+            ref={targetNameRef}
             // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users must be able to reach a long scrolling target name.
             tabIndex={0}
             className="mt-1 block max-h-24 overflow-y-auto break-words font-semibold"
