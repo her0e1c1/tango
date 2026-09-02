@@ -48,7 +48,7 @@ const StudySessionDestination = () => {
   );
 };
 
-describe("SWIPE-26 StudySessionStartPage", () => {
+describe("SWIPE-06 SWIPE-07 SWIPE-26 StudySessionStartPage", () => {
   const deckId = "deck-id";
   const cardId = "card-id";
   const renderPage = (path = `/deck/${deckId}/start`) =>
@@ -83,7 +83,7 @@ describe("SWIPE-26 StudySessionStartPage", () => {
   it("starts from Enter only outside interactive controls", () => {
     renderPage();
 
-    fireEvent.keyDown(screen.getByRole("combobox", { name: "Maximum score" }), { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("combobox", { name: "Maximum difficulty" }), { key: "Enter" });
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
     fireEvent.keyDown(document.body, { key: "Enter" });
@@ -91,21 +91,21 @@ describe("SWIPE-26 StudySessionStartPage", () => {
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
 
-  it("updates the session size immediately when a score limit changes", async () => {
+  it("updates the session size immediately when a difficulty limit changes", async () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 0 } });
     mocks.cards = [
-      createCard({ id: "low-score-card", deckId, score: 0 }),
-      createCard({ id: "high-score-card", deckId, score: 2 }),
+      createCard({ id: "easy-card", deckId, difficulty: 2 }),
+      createCard({ id: "hard-card", deckId, difficulty: 7 }),
     ];
     renderPage();
 
     expect(screen.getByRole("button", { name: "Start 2 cards" })).toBeVisible();
-    const minimumScore = screen.getByRole("combobox", { name: "Minimum score" });
+    const minimumDifficulty = screen.getByRole("combobox", { name: "Minimum difficulty" });
 
-    fireEvent.keyDown(minimumScore, { key: "Enter" });
+    fireEvent.keyDown(minimumDifficulty, { key: "Enter" });
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
-    await userEvent.selectOptions(minimumScore, "1");
+    await userEvent.selectOptions(minimumDifficulty, "5");
 
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
     expect(screen.getByText("1 card matches your filters.")).toBeVisible();
@@ -113,8 +113,8 @@ describe("SWIPE-26 StudySessionStartPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deckId,
-      scoreMax: null,
-      scoreMin: 1,
+      difficultyMax: null,
+      difficultyMin: 5,
       selectedTags: [],
       tagAndFilter: false,
     });
@@ -132,8 +132,8 @@ describe("SWIPE-26 StudySessionStartPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deckId,
-      scoreMax: null,
-      scoreMin: null,
+      difficultyMax: null,
+      difficultyMin: null,
       selectedTags: ["tag-12"],
       tagAndFilter: false,
     });

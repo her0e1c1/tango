@@ -1,7 +1,7 @@
 /**
  * @file Verifies the "CardList" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "renders the heading, zero
- * count and collapsed no-filter summary", "formats score bounds, tag count, persistent
+ * count and collapsed no-filter summary", "formats difficulty bounds, tag count, persistent
  * chips, and singular card count", "preserves a long selected tag without changing its
  * text".
  */
@@ -17,10 +17,10 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { CardList } from "./CardList";
 
-const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", score: 0, tags: [] });
+const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", difficulty: 5, tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
-describe("CardList", () => {
+describe("CardList [CARD-01] [CARD-10]", () => {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {
     render(<CardList cards={[]} filterSlot={<div>Controls</div>} />);
 
@@ -32,31 +32,31 @@ describe("CardList", () => {
     expect(screen.queryByText(/no cards/i)).not.toBeInTheDocument();
   });
 
-  it("formats score bounds, tag count, persistent chips, and singular card count", () => {
+  it("formats difficulty bounds, tag count, persistent chips, and singular card count", () => {
     const view = render(
       <CardList
         cards={[card]}
-        filter={{ scoreMin: -1, scoreMax: 3, selectedTags: ["one", "two"] }}
+        filter={{ difficultyMin: 2, difficultyMax: 8, selectedTags: ["one", "two"] }}
         filterSlot={<div>Controls</div>}
       />
     );
 
     expect(screen.getByText("1 card")).toBeInTheDocument();
-    expect(screen.getByText("score -1–3 · 2 tags")).toBeInTheDocument();
+    expect(screen.getByText("difficulty 2–8 · 2 tags")).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "Selected tags" })).toHaveTextContent("one");
     expect(screen.getByRole("list", { name: "Selected tags" })).toHaveTextContent("two");
     expect(screen.getByText("Controls")).not.toBeVisible();
 
-    view.rerender(<CardList cards={[card]} filter={{ scoreMin: -1, scoreMax: null, selectedTags: [] }} />);
-    expect(screen.getByText("score ≥ -1")).toBeInTheDocument();
+    view.rerender(<CardList cards={[card]} filter={{ difficultyMin: 2, difficultyMax: null, selectedTags: [] }} />);
+    expect(screen.getByText("difficulty ≥ 2")).toBeInTheDocument();
 
-    view.rerender(<CardList cards={[card]} filter={{ scoreMin: null, scoreMax: 3, selectedTags: [] }} />);
-    expect(screen.getByText("score ≤ 3")).toBeInTheDocument();
+    view.rerender(<CardList cards={[card]} filter={{ difficultyMin: null, difficultyMax: 8, selectedTags: [] }} />);
+    expect(screen.getByText("difficulty ≤ 8")).toBeInTheDocument();
   });
 
   it("preserves a long selected tag without changing its text", () => {
     const longTag = `tag-${"unbroken".repeat(30)}`;
-    render(<CardList cards={[card]} filter={{ scoreMin: null, scoreMax: null, selectedTags: [longTag] }} />);
+    render(<CardList cards={[card]} filter={{ difficultyMin: null, difficultyMax: null, selectedTags: [longTag] }} />);
     const chip = screen.getByText(longTag);
 
     expect(chip).toHaveTextContent(longTag);
@@ -67,7 +67,7 @@ describe("CardList", () => {
     render(
       <CardList
         cards={[card]}
-        filter={{ scoreMin: null, scoreMax: null, selectedTags: ["one", "two"] }}
+        filter={{ difficultyMin: null, difficultyMax: null, selectedTags: ["one", "two"] }}
         onRemoveTag={onRemoveTag}
       />
     );

@@ -13,27 +13,29 @@ const Filters: React.FC<{
   initialTagAndFilter: boolean;
   tags: readonly string[];
 }> = (props) => {
-  const [scoreMax, setScoreMax] = React.useState<number | null>(1);
-  const [scoreMin, setScoreMin] = React.useState<number | null>(-1);
+  const [difficultyMax, setDifficultyMax] = React.useState<number | null>(8);
+  const [difficultyMin, setDifficultyMin] = React.useState<number | null>(3);
   const [selectedTags, setSelectedTags] = React.useState(props.initialSelectedTags);
   const [tagAndFilter, setTagAndFilter] = React.useState(props.initialTagAndFilter);
 
   return (
     <StudySessionFilters
-      scoreMax={scoreMax}
-      scoreMin={scoreMin}
+      difficultyLowerBound={1}
+      difficultyMax={difficultyMax}
+      difficultyMin={difficultyMin}
+      difficultyUpperBound={10}
       tags={[...props.tags]}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
       dirty
       saving={false}
       save={async () => undefined}
-      clearScoreRange={() => {
-        setScoreMax(null);
-        setScoreMin(null);
+      clearDifficultyRange={() => {
+        setDifficultyMax(null);
+        setDifficultyMin(null);
       }}
-      setScoreMax={setScoreMax}
-      setScoreMin={setScoreMin}
+      setDifficultyMax={setDifficultyMax}
+      setDifficultyMin={setDifficultyMin}
       setSelectedTags={setSelectedTags}
       setTagAndFilter={setTagAndFilter}
     />

@@ -23,7 +23,7 @@ const STUDY_STORAGE_KEY = "tango-study";
 const startSession = (deckId: string, cardOrderIds: string[]): void => {
   startStudy(
     deckId,
-    cardOrderIds.map((id, numberOfSeen) => ({ id, score: 0, numberOfSeen })),
+    cardOrderIds.map((id, numberOfSeen) => ({ id, difficulty: 5, numberOfSeen })),
     { shuffled: false, maxNumberOfCardsToLearn: 0 }
   );
 };
@@ -34,7 +34,7 @@ const setVersionedStorage = (state: unknown, version: number): void => {
   localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify({ state, version }));
 };
 
-describe("study store", () => {
+describe("study store [SWIPE-06]", () => {
   const store = studySessionStore;
 
   beforeEach(() => {

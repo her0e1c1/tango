@@ -19,7 +19,7 @@ const session: StudySession = {
   lastStudiedAt: 0,
 };
 
-describe("compareActiveDecks", () => {
+describe("compareActiveDecks [SWIPE-11]", () => {
   it("orders recent sessions first and uses deck name as the tie breaker", () => {
     const activeDecks = [
       { deck: { name: "Bravo" }, session: { ...session, lastStudiedAt: 100 } },
@@ -31,7 +31,7 @@ describe("compareActiveDecks", () => {
   });
 });
 
-describe("groupDecksByStudyStatus", () => {
+describe("groupDecksByStudyStatus [SWIPE-11]", () => {
   it("groups decks by whether they have a study session", () => {
     const decks = [
       { id: "not-studying-z", name: "Zulu" },
@@ -51,7 +51,7 @@ describe("groupDecksByStudyStatus", () => {
   });
 });
 
-describe("calculateStudySessionIndex", () => {
+describe("calculateStudySessionIndex [SWIPE-04] [SWIPE-05]", () => {
   it("moves within the session card order", () => {
     expect(calculateStudySessionIndex(session, "previous")).toBe(0);
     expect(calculateStudySessionIndex(session, "next")).toBe(2);
@@ -63,7 +63,7 @@ describe("calculateStudySessionIndex", () => {
   });
 });
 
-describe("canMoveStudySession", () => {
+describe("canMoveStudySession [SWIPE-04] [SWIPE-05]", () => {
   it("reports whether movement stays inside the Card order", () => {
     expect(canMoveStudySession(session, "previous")).toBe(true);
     expect(canMoveStudySession(session, "next")).toBe(true);
@@ -72,7 +72,7 @@ describe("canMoveStudySession", () => {
   });
 });
 
-describe("resolveStudySession", () => {
+describe("resolveStudySession [SWIPE-04]", () => {
   const cards = [{ id: "card-1", frontText: "front" }];
 
   it("resolves the Card at the active session position", () => {
@@ -96,10 +96,10 @@ describe("resolveStudySession", () => {
   });
 });
 
-describe("planStudySessionSwipe", () => {
+describe("planStudySessionSwipe [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", () => {
   const cards = [
-    { id: "card-1", score: 0, numberOfSeen: 0 },
-    { id: "card-2", score: 2, numberOfSeen: 3 },
+    { id: "card-1", difficulty: 5, numberOfSeen: 0 },
+    { id: "card-2", difficulty: 2, numberOfSeen: 3 },
   ];
 
   it("plans the progress edit and session movement for the active card", () => {
@@ -108,7 +108,7 @@ describe("planStudySessionSwipe", () => {
       session,
       progress: {
         cardId: "card-2",
-        score: 3,
+        difficulty: 1,
         numberOfSeen: 4,
         lastSeenAt: 1_786_512_000_000,
       },
@@ -141,7 +141,7 @@ describe("planStudySessionSwipe", () => {
   });
 });
 
-describe("isStudySessionPositionUnchanged", () => {
+describe("isStudySessionPositionUnchanged [SWIPE-12]", () => {
   it("ignores timestamp-only changes", () => {
     expect(isStudySessionPositionUnchanged(session, { ...session, lastStudiedAt: 1 })).toBe(true);
   });

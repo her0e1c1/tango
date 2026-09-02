@@ -26,8 +26,8 @@
 Given:
 
 - Fixture: [`study-filter`](./fixture/study-filter.yaml)
-- 認証済みユーザーが所有する Deck に、score と tags の組み合わせが異なる複数の Card が存在する。
-- 対象 Deck に score と tag の filter が保存されている。
+- 認証済みユーザーが所有する Deck に、difficulty と tags の組み合わせが異なる複数の Card が存在する。
+- 対象 Deck に difficulty と tag の filter が保存されている。
 - 設定済みの学習上限より多くの Card が保存済み filter に一致する。
 
 When:
@@ -51,7 +51,7 @@ Given:
 
 - Fixture: [`study-filter-no-matches`](./fixture/study-filter-no-matches.yaml)
 - 認証済みユーザーが所有する Deck に Card が存在する。
-- 学習開始画面の score と tag の filter に一致する Card が存在しない。
+- 学習開始画面の difficulty と tag の filter に一致する Card が存在しない。
 
 When:
 

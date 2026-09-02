@@ -9,30 +9,30 @@ type StudySessionFiltersProps = React.ComponentProps<typeof StudySessionFilters>
 const tags = Array.from({ length: 12 }, (_, index) => `tag-${String(index + 1)}`);
 
 const InteractiveStudySessionFilters: React.FC<StudySessionFiltersProps> = (props) => {
-  const [scoreMax, setScoreMax] = React.useState(props.scoreMax);
-  const [scoreMin, setScoreMin] = React.useState(props.scoreMin);
+  const [difficultyMax, setDifficultyMax] = React.useState(props.difficultyMax);
+  const [difficultyMin, setDifficultyMin] = React.useState(props.difficultyMin);
   const [selectedTags, setSelectedTags] = React.useState(props.selectedTags);
   const [tagAndFilter, setTagAndFilter] = React.useState(props.tagAndFilter);
 
   return (
     <StudySessionFilters
       {...props}
-      scoreMax={scoreMax}
-      scoreMin={scoreMin}
+      difficultyMax={difficultyMax}
+      difficultyMin={difficultyMin}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
-      clearScoreRange={() => {
-        props.clearScoreRange();
-        setScoreMax(null);
-        setScoreMin(null);
+      clearDifficultyRange={() => {
+        props.clearDifficultyRange();
+        setDifficultyMax(null);
+        setDifficultyMin(null);
       }}
-      setScoreMax={(value) => {
-        props.setScoreMax(value);
-        setScoreMax(value);
+      setDifficultyMax={(value) => {
+        props.setDifficultyMax(value);
+        setDifficultyMax(value);
       }}
-      setScoreMin={(value) => {
-        props.setScoreMin(value);
-        setScoreMin(value);
+      setDifficultyMin={(value) => {
+        props.setDifficultyMin(value);
+        setDifficultyMin(value);
       }}
       setSelectedTags={(value) => {
         props.setSelectedTags(value);
@@ -51,17 +51,19 @@ const meta = {
   component: StudySessionFilters,
   tags: ["autodocs"],
   args: {
-    scoreMax: 1,
-    scoreMin: -1,
+    difficultyLowerBound: 1,
+    difficultyMax: 8,
+    difficultyMin: 3,
+    difficultyUpperBound: 10,
     selectedTags: ["tag-12", "tag-3"],
     tagAndFilter: false,
     tags,
     dirty: true,
     saving: false,
-    clearScoreRange: fn(),
     save: fn(async () => undefined),
-    setScoreMax: fn(),
-    setScoreMin: fn(),
+    clearDifficultyRange: fn(),
+    setDifficultyMax: fn(),
+    setDifficultyMin: fn(),
     setSelectedTags: fn(),
     setTagAndFilter: fn(),
   },
@@ -74,7 +76,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const NoFilters: Story = {
-  args: { scoreMax: null, scoreMin: null, selectedTags: [] },
+  args: { difficultyMax: null, difficultyMin: null, selectedTags: [] },
 };
 
 export const ManyTags: Story = {

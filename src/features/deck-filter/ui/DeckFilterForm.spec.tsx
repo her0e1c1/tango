@@ -1,6 +1,6 @@
 /**
  * @file Verifies the "DeckFilterForm" contract with automated examples.
- * The examples make the expected behavior concrete for score controls, callbacks, and unrestricted limits.
+ * The examples make the expected behavior concrete for difficulty controls, callbacks, and unrestricted limits.
  */
 
 import { render, within, screen } from "@testing-library/react";
@@ -18,56 +18,58 @@ type DeckFilterFormProps = ComponentProps<typeof DeckFilterForm>;
  * Keeping this setup in one function lets each test focus on the behavior it is proving.
  */
 const createProps = (): DeckFilterFormProps => ({
-  scoreMax: 4,
-  scoreMin: -2,
+  difficultyLowerBound: 1,
+  difficultyMax: 4,
+  difficultyMin: 3,
+  difficultyUpperBound: 10,
   tags: ["one", "two"],
   selectedTags: ["one"],
   tagAndFilter: true,
   dirty: true,
   saving: false,
-  clearScoreRange: vi.fn(),
   save: vi.fn(),
-  setScoreMax: vi.fn(),
-  setScoreMin: vi.fn(),
+  clearDifficultyRange: vi.fn(),
+  setDifficultyMax: vi.fn(),
+  setDifficultyMin: vi.fn(),
   setSelectedTags: vi.fn(),
   setTagAndFilter: vi.fn(),
 });
 
 describe("CARD-10 DeckFilterForm", () => {
-  it("composes score and tag filters and preserves callbacks", async () => {
+  it("composes difficulty and tag filters and preserves callbacks", async () => {
     const props = createProps();
     render(<DeckFilterForm {...props} />);
-    const scoreRegion = screen.getByRole("region", { name: "Score range" });
-    const maximum = within(scoreRegion).getByRole("combobox", { name: "Maximum score" });
-    const minimum = within(scoreRegion).getByRole("combobox", { name: "Minimum score" });
+    const difficultyRegion = screen.getByRole("region", { name: "Difficulty range" });
+    const maximum = within(difficultyRegion).getByRole("combobox", { name: "Maximum difficulty" });
+    const minimum = within(difficultyRegion).getByRole("combobox", { name: "Minimum difficulty" });
 
     expect(maximum).toHaveValue("4");
-    expect(minimum).toHaveValue("-2");
+    expect(minimum).toHaveValue("3");
 
     await userEvent.selectOptions(maximum, "5");
-    await userEvent.selectOptions(minimum, "-3");
+    await userEvent.selectOptions(minimum, "2");
 
-    expect(props.setScoreMax).toHaveBeenCalledWith(5);
-    expect(props.setScoreMin).toHaveBeenCalledWith(-3);
-    await userEvent.click(within(scoreRegion).getByRole("button", { name: "Clear limits" }));
-    expect(props.clearScoreRange).toHaveBeenCalledOnce();
+    expect(props.setDifficultyMax).toHaveBeenCalledWith(5);
+    expect(props.setDifficultyMin).toHaveBeenCalledWith(2);
+    await userEvent.click(within(difficultyRegion).getByRole("button", { name: "Clear limits" }));
+    expect(props.clearDifficultyRange).toHaveBeenCalledOnce();
     expect(screen.getByRole("region", { name: "Tags" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
     expect(props.save).toHaveBeenCalledOnce();
   });
 
   it("shows unrestricted limits", () => {
-    render(<DeckFilterForm {...createProps()} scoreMax={null} scoreMin={null} />);
-    const scoreRegion = screen.getByRole("region", { name: "Score range" });
-    expect(within(scoreRegion).queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("");
-    expect(screen.getByRole("combobox", { name: "Minimum score" })).toHaveValue("");
+    render(<DeckFilterForm {...createProps()} difficultyMax={null} difficultyMin={null} />);
+    const difficultyRegion = screen.getByRole("region", { name: "Difficulty range" });
+    expect(within(difficultyRegion).queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("");
   });
 
   it("disables editing while saving", () => {
     render(<DeckFilterForm {...createProps()} saving />);
 
     expect(screen.getByRole("button", { name: "Save filters" })).toBeDisabled();
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeDisabled();
   });
 });

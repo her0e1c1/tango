@@ -3,6 +3,7 @@ import * as lodash from "lodash";
 import type { SwipeAction } from "@/entities/preference/@x/study-progress";
 
 import { createStudyProgress } from "./defaults";
+import { clampDifficulty, type Difficulty } from "./difficulty";
 import type {
   CardProgressFields,
   StudyCardOrderOptions,
@@ -15,7 +16,7 @@ import type {
 // Converts a control action into its learning outcome; navigation-only actions remain unrated.
 const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
   if (swipeAction === "GoToNextCardMastered") return "mastered";
-  // Toggle remains a negative rating because changing this mapping would alter the existing persisted-score behavior.
+  // Toggle remains a not-mastered rating because changing this mapping would alter existing study controls.
   if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {
     return "not-mastered";
   }
@@ -25,7 +26,7 @@ const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
 // Projects a Card's learning fields into StudyProgress while preserving which optional fields are absent.
 export const createStudyProgressFromCard = (card: CardProgressFields): StudyProgress => {
   const progress = createStudyProgress(card.id);
-  progress.score = card.score;
+  progress.difficulty = card.difficulty;
   progress.numberOfSeen = card.numberOfSeen;
   if (card.lastSeenAt !== undefined) progress.lastSeenAt = card.lastSeenAt;
   if (card.nextSeeingAt !== undefined) progress.nextSeeingAt = card.nextSeeingAt;
@@ -33,17 +34,17 @@ export const createStudyProgressFromCard = (card: CardProgressFields): StudyProg
   return progress;
 };
 
-// Updates the signed rating streak; reversing direction passes through zero and an unrated action leaves it unchanged.
-const calculateScore = (score: number, rating: StudyRating): number => {
-  if (rating === "mastered") return score >= 0 ? score + 1 : 0;
-  if (rating === "not-mastered") return score <= 0 ? score - 1 : 0;
-  return score;
+// Applies at most one step per rating without resetting when the rating direction changes.
+export const calculateDifficulty = (difficulty: Difficulty, rating: StudyRating): Difficulty => {
+  if (rating === "mastered") return clampDifficulty(difficulty - 1);
+  if (rating === "not-mastered") return clampDifficulty(difficulty + 1);
+  return difficulty;
 };
 
 // Builds the persistence patch for one interaction, which always increments the seen count and records its timestamp.
 const recordStudyProgress = (progress: StudyProgress, rating: StudyRating, studiedAt: number): StudyProgressEdit => ({
   cardId: progress.cardId,
-  score: calculateScore(progress.score, rating),
+  difficulty: calculateDifficulty(progress.difficulty, rating),
   numberOfSeen: progress.numberOfSeen + 1,
   lastSeenAt: studiedAt,
 });
@@ -56,10 +57,10 @@ export const recordCardStudyProgress = (
 ): StudyProgressEdit =>
   recordStudyProgress(createStudyProgressFromCard(card), resolveStudyRating(swipeAction), studiedAt);
 
-// Accepts progress inside the inclusive score bounds and, when enabled, only after its next scheduled time.
+// Accepts progress inside the inclusive difficulty bounds and, when enabled, only after its next scheduled time.
 export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyProgressFilter, now: number): boolean => {
-  if (filter.maximumScore != null && progress.score > filter.maximumScore) return false;
-  if (filter.minimumScore != null && progress.score < filter.minimumScore) return false;
+  if (filter.maximumDifficulty != null && progress.difficulty > filter.maximumDifficulty) return false;
+  if (filter.minimumDifficulty != null && progress.difficulty < filter.minimumDifficulty) return false;
   if (filter.respectNextSeeingAt && progress.nextSeeingAt != null && progress.nextSeeingAt.getTime() > now) {
     return false;
   }

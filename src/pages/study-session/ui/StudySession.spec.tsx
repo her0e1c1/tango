@@ -57,7 +57,7 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("SWIPE-02 SWIPE-24 StudySession", () => {
+describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
   it("shows only the answer on the back", () => {
     render(
       <StudySession
@@ -249,36 +249,36 @@ describe("SWIPE-02 SWIPE-24 StudySession", () => {
     const { rerender } = render(
       <StudySession
         {...toolbarProps()}
-        cardOverlaySlot={<div>Score, seen count, and last seen</div>}
+        cardOverlaySlot={<div>Difficulty, seen count, and last seen</div>}
         frontTextSlot={<div>Front</div>}
       />
     );
 
-    expect(screen.getByText("Score, seen count, and last seen")).toBeVisible();
+    expect(screen.getByText("Difficulty, seen count, and last seen")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
 
     rerender(
       <StudySession
         {...toolbarProps()}
         showCardDetails={false}
-        cardOverlaySlot={<div>Score, seen count, and last seen</div>}
+        cardOverlaySlot={<div>Difficulty, seen count, and last seen</div>}
         frontTextSlot={<div>Front</div>}
       />
     );
     expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("title", "Show card details");
-    expect(screen.queryByText("Score, seen count, and last seen")).not.toBeInTheDocument();
+    expect(screen.queryByText("Difficulty, seen count, and last seen")).not.toBeInTheDocument();
 
     rerender(
       <StudySession
         {...toolbarProps()}
-        cardOverlaySlot={<div>Score, seen count, and last seen</div>}
+        cardOverlaySlot={<div>Difficulty, seen count, and last seen</div>}
         frontTextSlot={<div>Front</div>}
       />
     );
     expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("title", "Hide card details");
-    expect(screen.getByText("Score, seen count, and last seen")).toBeVisible();
+    expect(screen.getByText("Difficulty, seen count, and last seen")).toBeVisible();
   });
 
   it("describes hidden controls and keeps the unavailable playback toggle disabled", () => {

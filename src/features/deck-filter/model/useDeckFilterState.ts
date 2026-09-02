@@ -3,25 +3,28 @@ import { useTranslation } from "react-i18next";
 
 import { useAuthUid } from "@/entities/auth";
 import { type Deck, editDeck } from "@/entities/deck";
+import { type Difficulty, MAX_DIFFICULTY, MIN_DIFFICULTY } from "@/entities/study-progress";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { showToast } from "@/shared/ui/toast";
 
 export interface DeckFilterState {
-  scoreMax: number | null;
-  scoreMin: number | null;
+  difficultyLowerBound: number;
+  difficultyMax: Difficulty | null;
+  difficultyMin: Difficulty | null;
+  difficultyUpperBound: number;
   selectedTags: string[];
   tagAndFilter: boolean;
   dirty: boolean;
   saving: boolean;
-  clearScoreRange: () => void;
+  clearDifficultyRange: () => void;
   save: () => Promise<void>;
-  setScoreMax: (value: number | null) => void;
-  setScoreMin: (value: number | null) => void;
+  setDifficultyMax: (value: Difficulty | null) => void;
+  setDifficultyMin: (value: Difficulty | null) => void;
   setSelectedTags: (value: string[]) => void;
   setTagAndFilter: (value: boolean) => void;
 }
 
-type DeckFilterValues = Pick<Deck, "scoreMax" | "scoreMin" | "selectedTags" | "tagAndFilter">;
+type DeckFilterValues = Pick<Deck, "difficultyMax" | "difficultyMin" | "selectedTags" | "tagAndFilter">;
 
 interface FilterModelState {
   baseline: DeckFilterValues;
@@ -31,15 +34,15 @@ interface FilterModelState {
 }
 
 const toFilterValues = (deck: Deck): DeckFilterValues => ({
-  scoreMax: deck.scoreMax,
-  scoreMin: deck.scoreMin,
+  difficultyMax: deck.difficultyMax,
+  difficultyMin: deck.difficultyMin,
   selectedTags: [...deck.selectedTags],
   tagAndFilter: deck.tagAndFilter,
 });
 
 const areFiltersEqual = (left: DeckFilterValues, right: DeckFilterValues): boolean =>
-  left.scoreMax === right.scoreMax &&
-  left.scoreMin === right.scoreMin &&
+  left.difficultyMax === right.difficultyMax &&
+  left.difficultyMin === right.difficultyMin &&
   left.tagAndFilter === right.tagAndFilter &&
   left.selectedTags.length === right.selectedTags.length &&
   left.selectedTags.every((tag, index) => tag === right.selectedTags[index]);
@@ -83,13 +86,15 @@ export const useDeckFilterState = (deck: Deck): DeckFilterState => {
   };
 
   return {
+    difficultyLowerBound: MIN_DIFFICULTY,
     ...state.draft,
+    difficultyUpperBound: MAX_DIFFICULTY,
     dirty: !areFiltersEqual(state.baseline, state.draft),
     saving: state.saving,
-    clearScoreRange: () => updateDraft({ scoreMax: null, scoreMin: null }),
+    clearDifficultyRange: () => updateDraft({ difficultyMax: null, difficultyMin: null }),
     save,
-    setScoreMax: (value) => updateDraft({ scoreMax: value }),
-    setScoreMin: (value) => updateDraft({ scoreMin: value }),
+    setDifficultyMax: (value) => updateDraft({ difficultyMax: value }),
+    setDifficultyMin: (value) => updateDraft({ difficultyMin: value }),
     setSelectedTags: (value) => updateDraft({ selectedTags: value }),
     setTagAndFilter: (value) => updateDraft({ tagAndFilter: value }),
   };

@@ -50,7 +50,17 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
   };
 });
 // Persistence is outside Page behavior; successful writes let the real study workflow advance.
-vi.mock("@/entities/study-progress", () => ({ editStudyProgress: mocks.editStudyProgress }));
+vi.mock("@/entities/study-progress", () => ({
+  editStudyProgress: mocks.editStudyProgress,
+  DifficultyIndicator: ({ difficulty = 5 }: { difficulty?: number }) => {
+    const cue = difficulty < 5 ? "easy" : difficulty > 5 ? "hard" : "neutral";
+    return (
+      <span role="status" aria-label={`Difficulty ${String(difficulty)}, ${cue}`}>
+        {difficulty}
+      </span>
+    );
+  },
+}));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionPage } from "./StudySessionPage";
@@ -67,7 +77,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("SETTINGS-04 SWIPE-02 SWIPE-10 SWIPE-24 StudySessionPage", () => {
+describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE-24]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -76,7 +86,7 @@ describe("SETTINGS-04 SWIPE-02 SWIPE-10 SWIPE-24 StudySessionPage", () => {
     frontText: "Front one",
     backText: "Back one",
     uniqueKey: "first-card",
-    score: 2,
+    difficulty: 2,
     numberOfSeen: 3,
   });
   const secondCard = createLocalCard({
@@ -85,7 +95,7 @@ describe("SETTINGS-04 SWIPE-02 SWIPE-10 SWIPE-24 StudySessionPage", () => {
     frontText: "Front two",
     backText: "Back two",
     uniqueKey: "second-card",
-    score: 1,
+    difficulty: 1,
     numberOfSeen: 4,
   });
   const renderPage = (path = `/deck/${deckId}/study`, previousPath?: string) => {
@@ -147,7 +157,7 @@ describe("SETTINGS-04 SWIPE-02 SWIPE-10 SWIPE-24 StudySessionPage", () => {
 
     expect(screen.getByText("Back one")).toBeVisible();
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Score 2, positive")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Difficulty 2, easy")).not.toBeInTheDocument();
     expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
@@ -194,7 +204,7 @@ describe("SETTINGS-04 SWIPE-02 SWIPE-10 SWIPE-24 StudySessionPage", () => {
     expect(screen.queryByText("Back two")).not.toBeInTheDocument();
     expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith(
       "user-id",
-      expect.objectContaining({ cardId: "first-card", score: 3, numberOfSeen: 4 })
+      expect.objectContaining({ cardId: "first-card", difficulty: 1, numberOfSeen: 4 })
     );
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
@@ -288,7 +298,7 @@ describe("SETTINGS-04 SWIPE-02 SWIPE-10 SWIPE-24 StudySessionPage", () => {
     expect(dialog).toHaveTextContent("Enter / Select CardFlip or reveal the current card");
     expect(dialog).toHaveTextContent("Space / Play or Pause buttonPlay or pause autoplay");
     expect(dialog).toHaveTextContent("B / Swipe controls buttonHide the currently visible swipe buttons");
-    expect(dialog).toHaveTextContent("Card details buttonShow or hide score and study history");
+    expect(dialog).toHaveTextContent("Card details buttonShow or hide difficulty and study history");
     expect(dialog).toHaveTextContent("Back to deck list buttonExit without ending the current study session");
     expect(screen.getByRole("button", { name: "Close help" })).toHaveFocus();
 
@@ -399,7 +409,7 @@ describe("SETTINGS-04 SWIPE-02 SWIPE-10 SWIPE-24 StudySessionPage", () => {
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(actions).toBeVisible();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
-    expect(screen.getByLabelText("Score 2, positive")).toBeVisible();
+    expect(screen.getByLabelText("Difficulty 2, easy")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
 
@@ -485,7 +495,7 @@ describe("SETTINGS-04 SWIPE-02 SWIPE-10 SWIPE-24 StudySessionPage", () => {
     expect(screen.getByRole("button", { name: "Card details" })).not.toBePressed();
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Score 2, positive")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Difficulty 2, easy")).not.toBeInTheDocument();
     expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();
   });
 

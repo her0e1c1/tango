@@ -64,7 +64,7 @@ export const subscribeCardReads = (
 const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
   const combinedCard: RemoteCard = {
     ...card,
-    score: progress.score,
+    difficulty: progress.difficulty,
     numberOfSeen: progress.numberOfSeen,
   };
   if (progress.lastSeenAt !== undefined) combinedCard.lastSeenAt = progress.lastSeenAt;

@@ -6,7 +6,7 @@ import { createDeck as createDeckFixture } from "@/test/factories";
 
 import { createDeckSchema, editDeckSchema } from "./schema";
 
-describe("Deck operation schemas", () => {
+describe("Deck operation schemas [CARD-10]", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
   describe("createDeckSchema", () => {
@@ -18,8 +18,8 @@ describe("Deck operation schemas", () => {
           name: "Deck",
           localMode: false,
           isPublic: false,
-          scoreMax: null,
-          scoreMin: null,
+          difficultyMax: null,
+          difficultyMin: null,
           selectedTags: [],
           tagAndFilter: false,
           category: "",
@@ -67,6 +67,13 @@ describe("Deck operation schemas", () => {
         localMode: false,
       });
     });
+
+    it.each([0, 11, Number.NaN, Number.POSITIVE_INFINITY])(
+      "rejects invalid difficulty filter value %s",
+      (difficultyMin) => {
+        expect(() => editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", difficultyMin } })).toThrow();
+      }
+    );
 
     it.each([
       ["authenticated uid", { uid: "", deck: { id: "deck" } }, "confirmed user"],

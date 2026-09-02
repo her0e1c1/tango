@@ -79,7 +79,7 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   backText: `${id}-back`,
   tags: [],
   uniqueKey: id,
-  score: 0,
+  difficulty: 5,
   numberOfSeen: 0,
   createdAt: 0,
   updatedAt: 0,
@@ -87,7 +87,7 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   lastSeenAt: 0,
 }));
 
-describe("SWIPE-02 SWIPE-10 useStudy", () => {
+describe("useStudy [SWIPE-02] [SWIPE-10]", () => {
   beforeEach(() => {
     clearStudySessions();
     localStorage.clear();

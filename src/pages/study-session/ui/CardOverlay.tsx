@@ -5,16 +5,17 @@
 
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Description, Score } from "@/shared/ui/content";
+
+import { Description } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
 
 export interface CardOverlayProps {
-  score?: number;
+  difficultySlot?: React.ReactNode;
   numberOfSeen?: number;
   lastSeenAt?: number;
 }
 
-/** Shows the active Card's score and study metadata in a compact overlay. */
+/** Shows the active Card's difficulty and study metadata in a compact overlay. */
 export const CardOverlay: React.FC<CardOverlayProps> = (props) => {
   const { t, i18n } = useTranslation();
   const formattedLastSeen =
@@ -36,7 +37,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = (props) => {
   return (
     <Overlay position="top">
       <div className="mx-auto flex max-w-content flex-row items-center gap-2 bg-surface-elevated py-2 pl-[calc(var(--spacing-study-inline)+env(safe-area-inset-left))] pr-[calc(var(--spacing-study-inline)+env(safe-area-inset-right))] text-ink">
-        <Score score={props.score ?? 0} />
+        {props.difficultySlot}
         <Description>{metadata}</Description>
       </div>
     </Overlay>

@@ -4,7 +4,7 @@ import { createCard as createCardFixture } from "@/test/factories";
 
 import { cardContentSchema, createCardSchema, deleteCardSchema, editCardSchema } from "./schema";
 
-describe("Card content schema", () => {
+describe("Card content schema [CARD-01]", () => {
   it.each(["", "   ", "\n\t"])("rejects blank front text: %j", (frontText) => {
     expect(() => cardContentSchema.parse({ frontText, backText: "back", tags: [], uniqueKey: "key" })).toThrow(
       "Front text is required."
@@ -24,7 +24,7 @@ describe("Card content schema", () => {
   });
 });
 
-describe("Card operation schemas", () => {
+describe("Card operation schemas [CARD-01]", () => {
   const card = createCardFixture({ id: "card", deckId: "deck", uid: "uid-a" });
 
   it("applies entity defaults without adding persistence timestamps", () => {
@@ -52,7 +52,7 @@ describe("Card operation schemas", () => {
         tags: ["tag"],
         uniqueKey: "key",
         deletedAt: null,
-        score: 0,
+        difficulty: 5,
         numberOfSeen: 0,
       },
     });
@@ -75,7 +75,7 @@ describe("Card operation schemas", () => {
     expect(
       editCardSchema.parse({
         uid: "uid-a",
-        card: { ...card, frontText: "Updated", deckId: "other", score: 99, numberOfSeen: 99 },
+        card: { ...card, frontText: "Updated", deckId: "other", difficulty: 99, numberOfSeen: 99 },
       })
     ).toEqual({
       uid: "uid-a",

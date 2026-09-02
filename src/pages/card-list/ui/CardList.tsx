@@ -18,7 +18,7 @@ import { Card, type CardActionsProps } from "./Card";
 interface CardListItem {
   id: CardId;
   frontText: string;
-  score: number;
+  difficulty: number;
   numberOfSeen: number;
   tags: string[];
 }
@@ -29,8 +29,8 @@ interface CardListOverlayProps {
 }
 
 interface CardListFilterState {
-  scoreMax: number | null;
-  scoreMin: number | null;
+  difficultyMax: number | null;
+  difficultyMin: number | null;
   selectedTags: string[];
 }
 
@@ -44,18 +44,26 @@ export interface CardListProps {
   onShowCard?: (id: CardId) => void;
   onRemoveTag?: (tag: string) => void;
   onAddCard?: () => void;
+  renderDifficulty?: (difficulty: number) => React.ReactNode;
 }
 
 /**
- * Formats the score range label text shown to the user.
- * The helper keeps wording and singular or plural rules consistent across the screen.
+ * Formats the difficulty range label text shown to the user.
+ * The helper keeps wording consistent with the active locale across the screen.
  */
-const scoreRangeLabel = (filter: CardListFilterState, t: TFunction) => {
-  if (filter.scoreMin != null && filter.scoreMax != null) {
-    return t("cardList.filters.scoreRange", { minimum: filter.scoreMin, maximum: filter.scoreMax });
+const difficultyRangeLabel = (filter: CardListFilterState, t: TFunction) => {
+  if (filter.difficultyMin != null && filter.difficultyMax != null) {
+    return t("cardList.filters.difficultyRange", {
+      minimum: filter.difficultyMin,
+      maximum: filter.difficultyMax,
+    });
   }
-  if (filter.scoreMin != null) return t("cardList.filters.scoreMinimum", { minimum: filter.scoreMin });
-  if (filter.scoreMax != null) return t("cardList.filters.scoreMaximum", { maximum: filter.scoreMax });
+  if (filter.difficultyMin != null) {
+    return t("cardList.filters.difficultyMinimum", { minimum: filter.difficultyMin });
+  }
+  if (filter.difficultyMax != null) {
+    return t("cardList.filters.difficultyMaximum", { maximum: filter.difficultyMax });
+  }
   return null;
 };
 
@@ -65,22 +73,24 @@ const scoreRangeLabel = (filter: CardListFilterState, t: TFunction) => {
  */
 const filterLabel = (filter: CardListFilterState, t: TFunction) => {
   const labels: string[] = [];
-  const score = scoreRangeLabel(filter, t);
-  if (score != null) labels.push(score);
+  const difficulty = difficultyRangeLabel(filter, t);
+  if (difficulty != null) labels.push(difficulty);
   if (filter.selectedTags.length > 0) {
     labels.push(t("cardList.filters.tagCount", { count: filter.selectedTags.length }));
   }
   return labels.length > 0 ? labels.join(" · ") : t("cardList.filters.noFilters");
 };
 
-const emptyFilter: CardListFilterState = { scoreMax: null, scoreMin: null, selectedTags: [] };
+const emptyFilter: CardListFilterState = { difficultyMax: null, difficultyMin: null, selectedTags: [] };
 
 /**
  * Composes the complete Card List Rows screen from reusable UI components.
  * All data and callbacks arrive through props, allowing the same screen to run in tests and
  * Storybook.
  */
-const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" | "onShowCard">> = (props) => {
+const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" | "onShowCard" | "renderDifficulty">> = (
+  props
+) => {
   const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
 
   return (
@@ -90,6 +100,7 @@ const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" |
           key={card.id}
           card={card}
           disabled={Boolean(props.disabled || props.card?.disabled)}
+          difficultySlot={props.renderDifficulty?.(card.difficulty)}
           menuOpen={openMenuCardId === card.id}
           onToggleMenu={(id) => setOpenMenuCardId((value) => (value === id ? undefined : id))}
           onCloseMenu={() => setOpenMenuCardId(undefined)}
@@ -184,6 +195,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
           disabled={Boolean(props.disabled)}
           {...(props.card !== undefined ? { card: props.card } : {})}
           {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
+          {...(props.renderDifficulty !== undefined ? { renderDifficulty: props.renderDifficulty } : {})}
         />
       )}
     </>

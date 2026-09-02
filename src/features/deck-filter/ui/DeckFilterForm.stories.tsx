@@ -8,46 +8,48 @@ import * as fixture from "@/storybook/fixture";
 type DeckFilterFormProps = React.ComponentProps<typeof DeckFilterForm>;
 
 const args: DeckFilterFormProps = {
-  scoreMax: 1,
-  scoreMin: -1,
+  difficultyLowerBound: 1,
+  difficultyMax: 8,
+  difficultyMin: 3,
+  difficultyUpperBound: 10,
   tags: [...fixture.tags.default],
   selectedTags: [],
   tagAndFilter: false,
   dirty: true,
   saving: false,
-  clearScoreRange: fn(),
   save: fn(async () => undefined),
-  setScoreMax: fn(),
-  setScoreMin: fn(),
+  clearDifficultyRange: fn(),
+  setDifficultyMax: fn(),
+  setDifficultyMin: fn(),
   setSelectedTags: fn(),
   setTagAndFilter: fn(),
 };
 
 const InteractiveDeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
-  const [scoreMax, setScoreMax] = React.useState(props.scoreMax);
-  const [scoreMin, setScoreMin] = React.useState(props.scoreMin);
+  const [difficultyMax, setDifficultyMax] = React.useState(props.difficultyMax);
+  const [difficultyMin, setDifficultyMin] = React.useState(props.difficultyMin);
   const [selectedTags, setSelectedTags] = React.useState(props.selectedTags);
   const [tagAndFilter, setTagAndFilter] = React.useState(props.tagAndFilter);
 
   return (
     <DeckFilterForm
       {...props}
-      scoreMax={scoreMax}
-      scoreMin={scoreMin}
+      difficultyMax={difficultyMax}
+      difficultyMin={difficultyMin}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
-      clearScoreRange={() => {
-        props.clearScoreRange();
-        setScoreMax(null);
-        setScoreMin(null);
+      clearDifficultyRange={() => {
+        props.clearDifficultyRange();
+        setDifficultyMax(null);
+        setDifficultyMin(null);
       }}
-      setScoreMax={(value) => {
-        props.setScoreMax(value);
-        setScoreMax(value);
+      setDifficultyMax={(value) => {
+        props.setDifficultyMax(value);
+        setDifficultyMax(value);
       }}
-      setScoreMin={(value) => {
-        props.setScoreMin(value);
-        setScoreMin(value);
+      setDifficultyMin={(value) => {
+        props.setDifficultyMin(value);
+        setDifficultyMin(value);
       }}
       setSelectedTags={(value) => {
         props.setSelectedTags(value);
@@ -98,12 +100,12 @@ export const NoMatchCompatible: Story = {
   },
 };
 
-export const SavedOutsideStandardScoreRange: Story = {
-  args: { scoreMax: 14.25, scoreMin: -12.5 },
+export const SavedFractionalDifficultyRange: Story = {
+  args: { difficultyMax: 8.25, difficultyMin: 2.5 },
 };
 
-export const InvalidSavedScoreRange: Story = {
-  args: { scoreMax: 3, scoreMin: 5 },
+export const InvalidSavedDifficultyRange: Story = {
+  args: { difficultyMax: 3, difficultyMin: 5 },
 };
 
 export const Mobile: Story = {

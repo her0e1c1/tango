@@ -43,8 +43,8 @@ vi.mock("firebase/firestore", async (importOriginal) => {
                 createdAt: 1,
                 updatedAt: 2,
                 deletedAt: null,
-                scoreMax: null,
-                scoreMin: null,
+                difficultyMax: null,
+                difficultyMin: null,
                 selectedTags: [],
                 tagAndFilter: false,
                 category: "",
@@ -63,7 +63,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
                 createdAt: 1,
                 updatedAt: 2,
                 deletedAt: null,
-                score: 0,
+                difficulty: 5,
                 numberOfSeen: 0,
               }),
             };
@@ -101,7 +101,7 @@ const renderProvider = () =>
     </FirestoreSubscriptionsProvider>
   );
 
-describe("FirestoreSubscriptionsProvider", () => {
+describe("FirestoreSubscriptionsProvider [CARD-01]", () => {
   beforeEach(() => {
     clearRemoteCards();
     clearRemoteDecks();

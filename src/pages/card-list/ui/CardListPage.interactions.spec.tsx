@@ -50,8 +50,8 @@ import { CardListPage } from "./CardListPage";
 const deck = createDeck({
   id: "deck-id",
   category: "raw",
-  scoreMin: -2,
-  scoreMax: 4,
+  difficultyMin: 3,
+  difficultyMax: 4,
   selectedTags: ["typescript", "react"],
 });
 const card = createCard({
@@ -59,7 +59,7 @@ const card = createCard({
   deckId: deck.id,
   frontText: "Front",
   backText: "Back",
-  score: 0,
+  difficulty: 4,
   tags: ["typescript", "react"],
 });
 
@@ -100,7 +100,7 @@ const swipeRight = (article: HTMLElement) => {
   fireEvent.mouseUp(document, { clientX: 100, clientY: 0 });
 };
 
-describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", () => {
+describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
     vi.clearAllMocks();
@@ -113,15 +113,15 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
     renderCardList();
 
     await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
-    expect(screen.getByText("score -2–4 · 1 tag")).toBeVisible();
+    expect(screen.getByText("difficulty 3–4 · 1 tag")).toBeVisible();
     expect(mocks.editDeck).not.toHaveBeenCalled();
 
     await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
 
     expect(mocks.editDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: deck.id,
-      scoreMax: 4,
-      scoreMin: -2,
+      difficultyMax: 4,
+      difficultyMin: 3,
       selectedTags: ["react"],
       tagAndFilter: false,
     });
@@ -173,8 +173,8 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
   });
 
   it("allows only one list mutation until the active write settles", async () => {
-    const scoreWrite = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValueOnce(scoreWrite.promise);
+    const difficultyWrite = Promise.withResolvers<void>();
+    mocks.editStudyProgress.mockReturnValueOnce(difficultyWrite.promise);
     renderCardList();
     await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
     const article = screen.getByRole("article");
@@ -189,13 +189,13 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
 
     await actAsync(async () => {
-      scoreWrite.resolve();
-      await scoreWrite.promise;
+      difficultyWrite.resolve();
+      await difficultyWrite.promise;
     });
     expect(screen.getByRole("button", { name: "Save filters" })).toBeEnabled();
   });
 
-  it("retries a failed score write through the same swipe gesture", async () => {
+  it("retries a failed difficulty write through the same swipe gesture", async () => {
     mocks.editStudyProgress.mockRejectedValueOnce(new Error("edit failed"));
     renderCardList();
     const article = screen.getByRole("article");
@@ -206,5 +206,9 @@ describe("CARD-02 CARD-04 CARD-10 CARD-16 CARD-18 CardListPage interactions", ()
 
     await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
     expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
+    expect(mocks.editStudyProgress).toHaveBeenLastCalledWith("user-id", {
+      cardId: card.id,
+      difficulty: 3,
+    });
   });
 });

@@ -14,11 +14,11 @@ import {
 const cardArticle = (page: Page, frontText: string) =>
   page.getByRole("button", { name: `View ${frontText}`, exact: true }).locator("xpath=ancestor::article[1]");
 
-const expectScore = async (page: Page, frontText: string, score: number) => {
+const expectDifficulty = async (page: Page, frontText: string, difficulty: number) => {
   await expect(
     cardArticle(page, frontText)
       .locator("span")
-      .filter({ hasText: new RegExp(`^${String(score)}$`) })
+      .filter({ hasText: new RegExp(`^${String(difficulty)}$`) })
   ).toBeVisible();
 };
 
@@ -47,7 +47,7 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("CARD-01 shows front text, score, study count, and tags", async ({ fixture, page }) => {
+test("CARD-01 shows front text, difficulty, study count, and tags", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -56,7 +56,7 @@ test("CARD-01 shows front text, score, study count, and tags", async ({ fixture,
 
   const article = cardArticle(page, card.frontText);
   await expect(article.getByText(card.frontText)).toBeVisible();
-  await expectScore(page, card.frontText, card.score);
+  await expectDifficulty(page, card.frontText, card.difficulty);
   await expect(article.getByText(`studied ${String(card.numberOfSeen)} times`)).toBeVisible();
   await expect(article.getByRole("group", { name: `Tags: ${card.tags.join(", ")}` })).toBeVisible();
 });
@@ -119,36 +119,36 @@ test("CARD-04 deletes a Card and does not reload it as active", async ({ fixture
     .not.toBeUndefined();
 });
 
-test("CARD-05 increases score by one after a right swipe and reload", async ({ fixture, page }) => {
+test("CARD-05 decreases difficulty by one after a right swipe and reload", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
-  const expectedScore = card.score + 1;
+  const expectedDifficulty = card.difficulty - 1;
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await swipe(page, card.frontText, "right");
   await expect
-    .poll(async () => (await requireDocument("card", card.id)).fields.score?.integerValue)
-    .toBe(String(expectedScore));
+    .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
+    .toBe(String(expectedDifficulty));
   await page.reload();
 
-  await expectScore(page, card.frontText, expectedScore);
+  await expectDifficulty(page, card.frontText, expectedDifficulty);
 });
 
-test("CARD-06 decreases score by one after a left swipe and reload", async ({ fixture, page }) => {
+test("CARD-06 increases difficulty by one after a left swipe and reload", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
-  const expectedScore = card.score - 1;
+  const expectedDifficulty = card.difficulty + 1;
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await swipe(page, card.frontText, "left");
   await expect
-    .poll(async () => (await requireDocument("card", card.id)).fields.score?.integerValue)
-    .toBe(String(expectedScore));
+    .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
+    .toBe(String(expectedDifficulty));
   await page.reload();
 
-  await expectScore(page, card.frontText, expectedScore);
+  await expectDifficulty(page, card.frontText, expectedDifficulty);
 });
 
 test("CARD-07 closes the back-text overlay without changing persistent Card data", async ({ fixture, page }) => {
@@ -228,32 +228,32 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
   await expect(page.getByRole("button", { name: "Close card" })).toContainText(changedBack);
 });
 
-test("CARD-10 persists score and tag filters and applies both after reload", async ({ fixture, page }) => {
+test("CARD-10 persists difficulty and tag filters and applies both after reload", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const matching = fixture.card("card-1");
   const wrongTag = fixture.card("card-2");
-  const lowScore = fixture.card("card-3");
+  const difficultyMiss = fixture.card("card-3");
   const [selectedTag] = matching.tags;
   if (selectedTag === undefined) throw new Error("CARD-10 fixture requires a matching Card tag");
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByText("Filters", { exact: true }).click();
-  await page.getByRole("combobox", { name: "Minimum score" }).selectOption("1");
+  await page.getByRole("combobox", { name: "Maximum difficulty" }).selectOption("4");
   await clickCheckboxLabel(page, selectedTag);
   await page.getByRole("button", { name: "Save filters" }).click();
-  await expect.poll(async () => (await requireDocument("deck", deck.id)).fields.scoreMin?.integerValue).toBe("1");
+  await expect.poll(async () => (await requireDocument("deck", deck.id)).fields.difficultyMax?.integerValue).toBe("4");
   await expect
     .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values?.length)
     .toBe(1);
   await page.reload();
 
-  await expect(page.getByText("score ≥ 1 · 1 tag")).toBeVisible();
+  await expect(page.getByText("difficulty ≤ 4 · 1 tag")).toBeVisible();
   await page.getByText("Filters", { exact: true }).click();
-  await expect(page.getByRole("combobox", { name: "Minimum score" })).toHaveValue("1");
+  await expect(page.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("4");
   await expect(page.getByRole("checkbox", { name: selectedTag })).toBeChecked();
   await expect(page.getByRole("button", { name: `View ${matching.frontText}` })).toBeVisible();
-  await expect(page.getByRole("button", { name: `View ${lowScore.frontText}` })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: `View ${difficultyMiss.frontText}` })).toHaveCount(0);
   await expect(page.getByRole("button", { name: `View ${wrongTag.frontText}` })).toHaveCount(0);
   const persisted = await requireDocument("deck", deck.id);
   expect(persisted.fields.selectedTags?.arrayValue?.values).toEqual([{ stringValue: selectedTag }]);

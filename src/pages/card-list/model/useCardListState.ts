@@ -4,7 +4,7 @@ import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { editStudyProgress } from "@/entities/study-progress";
+import { calculateDifficulty, editStudyProgress, type StudyRating } from "@/entities/study-progress";
 import { selectStudyCards } from "@/entities/study-session";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
@@ -12,7 +12,7 @@ import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
 interface CardListItem {
   id: CardId;
   frontText: string;
-  score: number;
+  difficulty: number;
   numberOfSeen: number;
   tags: string[];
 }
@@ -43,7 +43,7 @@ export interface CardListState {
 const buildCardListItem = (card: Card): CardListItem => ({
   id: card.id,
   frontText: card.frontText,
-  score: card.score,
+  difficulty: card.difficulty,
   numberOfSeen: card.numberOfSeen,
   tags: card.tags,
 });
@@ -83,11 +83,14 @@ export const useCardListState = (deck: Deck): CardListState => {
     if (isMounted()) setMutationPending(false);
   };
 
-  const changeScore = async (id: CardId, offset: number) => {
+  const changeDifficulty = async (id: CardId, rating: StudyRating) => {
     if (!beginMutation()) return;
     const card = mustFindCardById(cards, id);
     try {
-      await editStudyProgress(uid, { cardId: card.id, score: card.score + offset });
+      await editStudyProgress(uid, {
+        cardId: card.id,
+        difficulty: calculateDifficulty(card.difficulty, rating),
+      });
     } catch {
       if (isMounted()) {
         errorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
@@ -149,8 +152,8 @@ export const useCardListState = (deck: Deck): CardListState => {
           },
     onShowCard: (id: CardId) => setShownCard(mustFindCardById(cards, id)),
     onCloseCard: () => setShownCard(undefined),
-    onSwipedLeft: (id: CardId) => void changeScore(id, -1),
-    onSwipedRight: (id: CardId) => void changeScore(id, 1),
+    onSwipedLeft: (id: CardId) => void changeDifficulty(id, "not-mastered"),
+    onSwipedRight: (id: CardId) => void changeDifficulty(id, "mastered"),
     onRequestDeletion: requestDeletion,
     onCancelDeletion: () => setDeletionTarget(undefined),
     onConfirmDeletion: confirmDeletion,

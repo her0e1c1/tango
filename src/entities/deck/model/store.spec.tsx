@@ -30,7 +30,7 @@ const useMemoryStorage = (initial: Record<string, string> = {}): StateStorage =>
   return storage;
 };
 
-describe("Deck store", () => {
+describe("Deck store [CARD-10]", () => {
   beforeEach(() => {
     useMemoryStorage();
     deckStore.setState({ remoteDecks: [], localDecks: [] });
@@ -111,8 +111,8 @@ describe("Deck store", () => {
         localMode: true,
         name: "Legacy",
         isPublic: false,
-        scoreMax: null,
-        scoreMin: null,
+        difficultyMax: null,
+        difficultyMin: null,
         selectedTags: [],
         tagAndFilter: false,
         category: "",

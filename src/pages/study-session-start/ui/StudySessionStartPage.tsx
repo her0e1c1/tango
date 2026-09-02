@@ -24,8 +24,8 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   // Session selection previews the local filter draft before the user chooses whether to save it.
   const state = useStudySessionStartState({
     ...deck,
-    scoreMax: filter.scoreMax,
-    scoreMin: filter.scoreMin,
+    difficultyMax: filter.difficultyMax,
+    difficultyMin: filter.difficultyMin,
     selectedTags: filter.selectedTags,
     tagAndFilter: filter.tagAndFilter,
   });

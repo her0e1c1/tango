@@ -27,8 +27,8 @@ export const createDeck = (
   isPublic: false,
   createdAt: 0,
   updatedAt: 0,
-  scoreMax: null,
-  scoreMin: null,
+  difficultyMax: null,
+  difficultyMin: null,
   selectedTags: [],
   tagAndFilter: false,
   category: "",
@@ -53,8 +53,8 @@ export const createLocalDeck = (
   isPublic: false,
   createdAt: 0,
   updatedAt: 0,
-  scoreMax: null,
-  scoreMin: null,
+  difficultyMax: null,
+  difficultyMin: null,
   selectedTags: [],
   tagAndFilter: false,
   category: "",
@@ -77,7 +77,7 @@ export const createCard = (overrides: Partial<RemoteCard> = {}): RemoteCard => (
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  score: 0,
+  difficulty: 5,
   numberOfSeen: 0,
   ...overrides,
 });
@@ -92,7 +92,7 @@ export const createLocalCard = (overrides: Partial<LocalCard> = {}): LocalCard =
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  score: 0,
+  difficulty: 5,
   numberOfSeen: 0,
   ...overrides,
 });
@@ -119,7 +119,7 @@ export type PreferencesOverrides = {
   showSwipeButtonList?: boolean;
   showPlaybackControls?: boolean;
   showCardDetails?: boolean;
-  showScoreSlider?: boolean;
+  showDifficultySlider?: boolean;
   showBackTextSwipeOverlays?: boolean;
   cardSwipeUp?: SwipeAction;
   cardSwipeDown?: SwipeAction;
@@ -156,7 +156,7 @@ const createControls = (
   showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,
   showPlaybackControls: controls?.showPlaybackControls ?? flat?.showPlaybackControls ?? true,
   showCardDetails: controls?.showCardDetails ?? flat?.showCardDetails ?? true,
-  showScoreSlider: controls?.showScoreSlider ?? flat?.showScoreSlider ?? false,
+  showDifficultySlider: controls?.showDifficultySlider ?? flat?.showDifficultySlider ?? false,
   showBackTextSwipeOverlays: controls?.showBackTextSwipeOverlays ?? flat?.showBackTextSwipeOverlays ?? false,
   cardSwipeUp: controls?.cardSwipeUp ?? flat?.cardSwipeUp ?? "GoToNextCardMastered",
   cardSwipeDown: controls?.cardSwipeDown ?? flat?.cardSwipeDown ?? "GoToNextCardNotMastered",

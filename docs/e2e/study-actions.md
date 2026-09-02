@@ -33,7 +33,7 @@ When:
 
 Then:
 
-- 現在だった Card の score が mastered rule に従って増加し、学習回数が 1 増えて保存される。
+- 現在だった Card の difficulty が mastered rule に従って 1 下がり、学習回数が 1 増えて保存される。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
 - 実行した swipe 方向が共通 toast で短時間表示される。
@@ -57,7 +57,7 @@ When:
 
 Then:
 
-- 現在だった Card の score が non-mastered rule に従って減少し、学習回数が 1 増えて保存される。
+- 現在だった Card の difficulty が non-mastered rule に従って 1 上がり、学習回数が 1 増えて保存される。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
 - browser error が発生しない。
@@ -80,7 +80,7 @@ When:
 
 Then:
 
-- 現在だった Card の score は変わらず、学習回数が 1 増えて保存される。
+- 現在だった Card の difficulty は変わらず、学習回数が 1 増えて保存される。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
 - browser error が発生しない。
@@ -103,7 +103,7 @@ When:
 
 Then:
 
-- 現在だった Card の score は変わらず、学習回数が 1 増えて保存される。
+- 現在だった Card の difficulty は変わらず、学習回数が 1 増えて保存される。
 - session の位置が前の Card へ戻る。
 - 前の Card の front text が表示される。
 - browser error が発生しない。

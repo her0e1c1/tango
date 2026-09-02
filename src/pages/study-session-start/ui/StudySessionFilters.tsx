@@ -1,24 +1,26 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
 
-import { ScoreRange } from "@/features/deck-filter";
 import { Button } from "@/shared/ui/button";
+import { DifficultyRange } from "@/features/deck-filter";
 
 import { StudySessionTagFilter } from "./StudySessionTagFilter";
 
 interface StudySessionFiltersProps {
-  scoreMax: number | null;
-  scoreMin: number | null;
+  difficultyLowerBound: number;
+  difficultyMax: number | null;
+  difficultyMin: number | null;
+  difficultyUpperBound: number;
   selectedTags: string[];
   tagAndFilter: boolean;
   tags: string[];
   dirty: boolean;
   disabled?: boolean;
   saving: boolean;
-  clearScoreRange: () => void;
+  clearDifficultyRange: () => void;
   save: () => Promise<void>;
-  setScoreMax: (value: number | null) => void;
-  setScoreMin: (value: number | null) => void;
+  setDifficultyMax: (value: number | null) => void;
+  setDifficultyMin: (value: number | null) => void;
   setSelectedTags: (value: string[]) => void;
   setTagAndFilter: (value: boolean) => void;
 }
@@ -30,12 +32,14 @@ export const StudySessionFilters: React.FC<StudySessionFiltersProps> = (props) =
   return (
     <div className="w-full space-y-4 text-ink">
       <fieldset className="contents" disabled={disabled}>
-        <ScoreRange
-          maximum={props.scoreMax}
-          minimum={props.scoreMin}
-          onClear={props.clearScoreRange}
-          onMaximumChange={props.setScoreMax}
-          onMinimumChange={props.setScoreMin}
+        <DifficultyRange
+          lowerBound={props.difficultyLowerBound}
+          maximum={props.difficultyMax}
+          minimum={props.difficultyMin}
+          onClear={props.clearDifficultyRange}
+          onMaximumChange={props.setDifficultyMax}
+          onMinimumChange={props.setDifficultyMin}
+          upperBound={props.difficultyUpperBound}
         />
         <StudySessionTagFilter
           tags={props.tags}

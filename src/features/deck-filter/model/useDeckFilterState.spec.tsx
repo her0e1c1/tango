@@ -43,10 +43,10 @@ describe("CARD-10 SWIPE-26 DeckFilterForm with useDeckFilterState", () => {
   });
 
   it("previews filter changes without writing until Save filters is selected", async () => {
-    const deck = createRemoteDeck({ id: "filter-deck", scoreMax: 1, scoreMin: -1, selectedTags: [] });
+    const deck = createRemoteDeck({ id: "filter-deck", difficultyMax: 8, difficultyMin: 3, selectedTags: [] });
     render(<DeckFilterHarness deck={deck} />);
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum score" }), { target: { value: 2 } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), { target: { value: 7 } });
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
 
     expect(writeControls.calls).toHaveLength(0);
@@ -57,8 +57,8 @@ describe("CARD-10 SWIPE-26 DeckFilterForm with useDeckFilterState", () => {
         "user-id",
         {
           id: "filter-deck",
-          scoreMax: 2,
-          scoreMin: -1,
+          difficultyMax: 7,
+          difficultyMin: 3,
           selectedTags: ["tag2"],
           tagAndFilter: false,
         },
@@ -72,14 +72,14 @@ describe("CARD-10 SWIPE-26 DeckFilterForm with useDeckFilterState", () => {
       new Promise<void>((resolve) => {
         finishWrite = resolve;
       });
-    render(<DeckFilterHarness deck={createRemoteDeck({ id: "filter-deck", scoreMax: 1 })} />);
+    render(<DeckFilterHarness deck={createRemoteDeck({ id: "filter-deck", difficultyMax: 8 })} />);
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum score" }), { target: { value: 2 } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), { target: { value: 7 } });
     const save = screen.getByRole("button", { name: "Save filters" });
     await userEvent.click(save);
 
     expect(save).toBeDisabled();
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeDisabled();
     fireEvent.click(save);
     expect(writeControls.calls).toHaveLength(1);
 
@@ -89,34 +89,34 @@ describe("CARD-10 SWIPE-26 DeckFilterForm with useDeckFilterState", () => {
 
   it("keeps a failed draft and saves it on the next explicit attempt", async () => {
     writeControls.write = vi.fn().mockRejectedValueOnce(new Error("failed")).mockResolvedValueOnce(undefined);
-    render(<DeckFilterHarness deck={createRemoteDeck({ id: "filter-deck", scoreMax: 1 })} />);
+    render(<DeckFilterHarness deck={createRemoteDeck({ id: "filter-deck", difficultyMax: 8 })} />);
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum score" }), { target: { value: 3 } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), { target: { value: 6 } });
     const save = screen.getByRole("button", { name: "Save filters" });
     await userEvent.click(save);
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("3");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("6");
     expect(save).toBeEnabled();
 
     await userEvent.click(save);
     expect(writeControls.calls).toHaveLength(2);
-    expect(writeControls.calls[1]?.[1]).toMatchObject({ scoreMax: 3 });
+    expect(writeControls.calls[1]?.[1]).toMatchObject({ difficultyMax: 6 });
   });
 
   it("keeps the opening snapshot when the same Deck subscription changes", () => {
-    const deck = createRemoteDeck({ id: "filter-deck", scoreMax: 1, updatedAt: 1 });
+    const deck = createRemoteDeck({ id: "filter-deck", difficultyMax: 8, updatedAt: 1 });
     const view = render(<DeckFilterHarness deck={deck} />);
 
-    view.rerender(<DeckFilterHarness deck={{ ...deck, scoreMax: 4, updatedAt: 2 }} />);
+    view.rerender(<DeckFilterHarness deck={{ ...deck, difficultyMax: 4, updatedAt: 2 }} />);
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("1");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("8");
   });
 
   it("starts from the new snapshot when the Deck id changes", () => {
-    const view = render(<DeckFilterHarness deck={createRemoteDeck({ id: "first", scoreMax: 1 })} />);
+    const view = render(<DeckFilterHarness deck={createRemoteDeck({ id: "first", difficultyMax: 8 })} />);
 
-    view.rerender(<DeckFilterHarness deck={createRemoteDeck({ id: "second", scoreMax: 4 })} />);
+    view.rerender(<DeckFilterHarness deck={createRemoteDeck({ id: "second", difficultyMax: 4 })} />);
 
-    expect(screen.getByRole("combobox", { name: "Maximum score" })).toHaveValue("4");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("4");
   });
 });

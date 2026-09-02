@@ -81,12 +81,12 @@
 | CARD-02 | read | [Card の裏面 overlay を開ける](./card-view.md#card-02) |
 | CARD-03 | write | [Card 編集内容を保存して reload 後も確認できる](./card-management.md#card-03) |
 | CARD-04 | write | [Card を削除できる](./card-management.md#card-04) |
-| CARD-05 | write | [Card の右 swipe で score を増やせる](./card-list-actions.md#card-05) |
-| CARD-06 | write | [Card の左 swipe で score を減らせる](./card-list-actions.md#card-06) |
+| CARD-05 | write | [Card の右 swipe で difficulty を下げられる](./card-list-actions.md#card-05) |
+| CARD-06 | write | [Card の左 swipe で difficulty を上げられる](./card-list-actions.md#card-06) |
 | CARD-07 | read | [開いている Card の裏面 overlay を閉じられる](./card-view.md#card-07) |
 | CARD-08 | read | [Card の削除を取り消せる](./card-management.md#card-08) |
 | CARD-09 | write | [Card の編集失敗後に再試行できる](./card-management.md#card-09) |
-| CARD-10 | write | [score と tag の filter を保存して Card 一覧へ反映できる](./card-list-actions.md#card-10) |
+| CARD-10 | write | [difficulty と tag の filter を保存して Card 一覧へ反映できる](./card-list-actions.md#card-10) |
 | CARD-11 | read | [Card view を直接開ける](./card-view.md#card-11) |
 | CARD-12 | read | [存在しない Card から復帰できる](./card-view.md#card-12) |
 | CARD-13 | write | [remote Deck に Card を作成できる](./card-management.md#card-13) |
@@ -94,7 +94,7 @@
 | CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](./card-management.md#card-15) |
 | CARD-16 | write | [Card の削除失敗後に再試行できる](./card-management.md#card-16) |
 | CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](./card-management.md#card-17) |
-| CARD-18 | write | [Card 一覧の score 保存失敗後に再試行できる](./card-list-actions.md#card-18) |
+| CARD-18 | write | [Card 一覧の difficulty 保存失敗後に再試行できる](./card-list-actions.md#card-18) |
 
 ### Study
 

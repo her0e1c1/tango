@@ -40,7 +40,7 @@ const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
     createdAt: 1,
     updatedAt: 2,
     deletedAt: null,
-    score: 3,
+    difficulty: 3,
     numberOfSeen: 4,
     ...overrides,
   }),
@@ -52,7 +52,7 @@ const getSnapshotHandler = () =>
 // Returns the error callback registered by the Card subscription.
 const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
-describe("Card Firestore subscription", () => {
+describe("Card Firestore subscription [CARD-01]", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     vi.clearAllMocks();
@@ -94,7 +94,7 @@ describe("Card Firestore subscription", () => {
         },
         progress: {
           cardId: "active",
-          score: 3,
+          difficulty: 3,
           numberOfSeen: 4,
           lastSeenAt: 50,
           nextSeeingAt: new Date(60),
