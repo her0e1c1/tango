@@ -33,7 +33,6 @@
 
 省略 field は次の値で正規化する。
 
-- `isPublic: false`
 - `difficultyMax: null`
 - `difficultyMin: null`
 - `selectedTags: []`

@@ -21,7 +21,6 @@ export interface FixtureDeck {
   id: string;
   name: string;
   url?: string;
-  isPublic: boolean;
   difficultyMax: number | null;
   difficultyMin: number | null;
   selectedTags: string[];
@@ -175,7 +174,6 @@ const remoteDeckSchema = z.strictObject({
   localMode: z.literal(false).optional(),
   name: nonBlankString,
   url: z.url().optional(),
-  isPublic: z.boolean().optional(),
   difficultyMax: difficultySchema.nullable().optional(),
   difficultyMin: difficultySchema.nullable().optional(),
   selectedTags: z.array(z.string()).optional(),
@@ -192,7 +190,6 @@ const localDeckSchema = z.strictObject({
   localMode: z.literal(true),
   name: nonBlankString,
   url: z.url().optional(),
-  isPublic: z.boolean().optional(),
   difficultyMax: difficultySchema.nullable().optional(),
   difficultyMin: difficultySchema.nullable().optional(),
   selectedTags: z.array(z.string()).optional(),
@@ -676,7 +673,6 @@ const normalizeDeck = (raw: RawRemoteDeck | RawLocalDeck, id: string, uid?: stri
     id,
     name: raw.name,
     ...(raw.url === undefined ? {} : { url: raw.url }),
-    isPublic: raw.isPublic ?? false,
     difficultyMax: raw.difficultyMax ?? null,
     difficultyMin: raw.difficultyMin ?? null,
     selectedTags: [...(raw.selectedTags ?? [])],

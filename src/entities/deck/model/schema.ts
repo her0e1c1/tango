@@ -8,7 +8,6 @@ export const deckIdSchema = z.string().min(1, "Deck id is required");
 const editableDeckFieldsSchema = z.object({
   name: z.string().trim().min(1, "Deck name is required."),
   url: z.url("Enter a valid URL.").optional(),
-  isPublic: z.boolean(),
   difficultyMax: difficultySchema.nullable(),
   difficultyMin: difficultySchema.nullable(),
   selectedTags: z.array(z.string()),
@@ -28,7 +27,6 @@ export const deckFormSchema = editableDeckFieldsSchema
 
 const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
-  isPublic: editableDeckFieldsSchema.shape.isPublic.default(false),
   difficultyMax: editableDeckFieldsSchema.shape.difficultyMax.default(null),
   difficultyMin: editableDeckFieldsSchema.shape.difficultyMin.default(null),
   selectedTags: editableDeckFieldsSchema.shape.selectedTags.default([]),
@@ -43,7 +41,8 @@ export const deckCreateSchema = deckCreateFieldsSchema.extend({
 
 export const localDeckCreateSchema = deckCreateFieldsSchema.extend({ localMode: z.literal(true) });
 
-// Persisted v1 Decks may predate defaulted filtering fields, so hydration must reuse the create defaults.
+// Hydration reuses current defaults for older v1 Decks.
+// Keep this schema non-strict so retired fields such as isPublic are stripped without discarding an otherwise valid Deck.
 export const localDeckSchema = localDeckCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),

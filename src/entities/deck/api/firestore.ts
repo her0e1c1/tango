@@ -72,7 +72,6 @@ const updateDeckDocument = async (deck: z.infer<typeof deckEditSchema>): Promise
   const document = omitUndefined({
     name: deck.name,
     url: deck.url === null ? deleteField() : deck.url,
-    isPublic: deck.isPublic,
     updatedAt: getCurrentTimeMillis(),
     difficultyMax: deck.difficultyMax,
     difficultyMin: deck.difficultyMin,

@@ -16,8 +16,6 @@ export type Deck = {
   name: string;
   /** Optional source location retained for Decks whose content originates from an external resource. */
   url?: string | undefined;
-  /** Whether the Deck is marked for public visibility; local Decks normally keep this disabled. */
-  isPublic: boolean;
   /** Inclusive upper Card-difficulty boundary, or `null` when the Deck has no upper difficulty restriction. */
   difficultyMax: Difficulty | null;
   /** Inclusive lower Card-difficulty boundary, or `null` when the Deck has no lower difficulty restriction. */

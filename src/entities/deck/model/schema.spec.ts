@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import type { RemoteDeckCreateInput } from "./types";
+import type { LocalDeckCreateInput, RemoteDeckCreateInput } from "./types";
 
 import { createDeck as createDeckFixture } from "@/test/factories";
 
@@ -17,7 +17,6 @@ describe("Deck operation schemas [CARD-10]", () => {
           id: "deck",
           name: "Deck",
           localMode: false,
-          isPublic: false,
           difficultyMax: null,
           difficultyMin: null,
           selectedTags: [],
@@ -27,6 +26,8 @@ describe("Deck operation schemas [CARD-10]", () => {
         },
       });
       expectTypeOf<RemoteDeckCreateInput>().not.toHaveProperty("uid");
+      expectTypeOf<RemoteDeckCreateInput>().not.toHaveProperty("isPublic");
+      expectTypeOf<LocalDeckCreateInput>().not.toHaveProperty("isPublic");
     });
 
     it.each([
@@ -39,10 +40,14 @@ describe("Deck operation schemas [CARD-10]", () => {
       expect(() => createDeckSchema.parse(input)).toThrow(message);
     });
 
-    it("drops caller-provided owner metadata from the command", () => {
-      const parsed = createDeckSchema.parse({ uid: "actor", deck: { ...deck, uid: "other-user" } });
+    it("drops obsolete visibility and caller-provided owner metadata from the command", () => {
+      const parsed = createDeckSchema.parse({
+        uid: "actor",
+        deck: { ...deck, uid: "other-user", isPublic: true },
+      });
 
       expect(parsed.deck).not.toHaveProperty("uid");
+      expect(parsed.deck).not.toHaveProperty("isPublic");
     });
   });
 
