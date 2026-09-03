@@ -14,7 +14,6 @@ const preferences = createPreferences({
   showSwipeButtonList: false,
   showPlaybackControls: false,
   showSwipeFeedback: false,
-  fullscreen: false,
   darkMode: false,
   shuffled: false,
   useCardInterval: false,
@@ -56,7 +55,7 @@ const PreferencesFormHarness: React.FC = () => {
   );
 };
 
-describe("usePreferencesForm", () => {
+describe("usePreferencesForm [SETTINGS-01] [SETTINGS-02] [SETTINGS-04]", () => {
   beforeEach(() => {
     updatePreferences(preferences);
   });

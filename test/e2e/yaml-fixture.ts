@@ -69,8 +69,6 @@ export interface FixturePreferences {
   loadSample: boolean;
   appearance: {
     darkMode: boolean;
-    fullscreen: boolean;
-    sizeBackText: number;
     hideBodyWhenCardChanged: boolean;
     showSwipeFeedback: boolean;
   };
@@ -79,7 +77,6 @@ export interface FixturePreferences {
     shuffled: boolean;
     useCardInterval: boolean;
     cardInterval: number;
-    keepBackTextViewed: boolean;
     defaultAutoPlay: boolean;
     selectedTags: string[];
   };
@@ -88,7 +85,6 @@ export interface FixturePreferences {
     showSwipeButtonList: boolean;
     showPlaybackControls: boolean;
     showCardDetails: boolean;
-    showDifficultySlider: boolean;
     showBackTextSwipeOverlays: boolean;
     cardSwipeUp: SwipeAction;
     cardSwipeDown: SwipeAction;
@@ -256,8 +252,6 @@ const preferencesSchema = z.strictObject({
   appearance: z
     .strictObject({
       darkMode: z.boolean().optional(),
-      fullscreen: z.boolean().optional(),
-      sizeBackText: z.number().min(0).optional(),
       hideBodyWhenCardChanged: z.boolean().optional(),
       showSwipeFeedback: z.boolean().optional(),
     })
@@ -268,7 +262,6 @@ const preferencesSchema = z.strictObject({
       shuffled: z.boolean().optional(),
       useCardInterval: z.boolean().optional(),
       cardInterval: z.number().min(0).max(60).optional(),
-      keepBackTextViewed: z.boolean().optional(),
       defaultAutoPlay: z.boolean().optional(),
       selectedTags: z.array(z.string()).optional(),
     })
@@ -279,7 +272,6 @@ const preferencesSchema = z.strictObject({
       showSwipeButtonList: z.boolean().optional(),
       showPlaybackControls: z.boolean().optional(),
       showCardDetails: z.boolean().optional(),
-      showDifficultySlider: z.boolean().optional(),
       showBackTextSwipeOverlays: z.boolean().optional(),
       cardSwipeUp: swipeActionSchema.optional(),
       cardSwipeDown: swipeActionSchema.optional(),
@@ -624,8 +616,6 @@ const fixturePreferenceDefaults: FixturePreferences = {
   loadSample: true,
   appearance: {
     darkMode: false,
-    fullscreen: false,
-    sizeBackText: 0,
     hideBodyWhenCardChanged: true,
     showSwipeFeedback: false,
   },
@@ -634,7 +624,6 @@ const fixturePreferenceDefaults: FixturePreferences = {
     shuffled: false,
     useCardInterval: false,
     cardInterval: 60,
-    keepBackTextViewed: false,
     defaultAutoPlay: false,
     selectedTags: [],
   },
@@ -643,7 +632,6 @@ const fixturePreferenceDefaults: FixturePreferences = {
     showSwipeButtonList: true,
     showPlaybackControls: true,
     showCardDetails: true,
-    showDifficultySlider: false,
     showBackTextSwipeOverlays: false,
     cardSwipeUp: "GoToNextCardMastered",
     cardSwipeDown: "GoToNextCardNotMastered",
