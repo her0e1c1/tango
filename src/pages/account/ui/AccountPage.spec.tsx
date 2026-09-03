@@ -120,7 +120,7 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign in.");
 
-    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
 
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
     expect(screen.getByRole("status")).toHaveTextContent("Signed in.");
@@ -139,13 +139,13 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to sign out.");
 
-    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
 
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
     expect(screen.getByRole("status")).toHaveTextContent("Signed out.");
   });
 
-  it("dismisses its sign-in failure when leaving the Account page", async () => {
+  it("keeps a handled sign-in failure visible globally after leaving the Account page", async () => {
     vi.mocked(linkWithPopup).mockRejectedValueOnce(new Error("Sign-in failed"));
     renderPage();
 
@@ -155,7 +155,7 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
     fireEvent.keyDown(window, { key: "t" });
 
     expect(await screen.findByText("Home Page")).toBeVisible();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to sign in.");
   });
 
   it("does not show a sign-in failure that arrives after leaving the Account page", async () => {

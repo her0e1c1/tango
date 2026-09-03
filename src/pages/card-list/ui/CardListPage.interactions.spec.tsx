@@ -8,9 +8,9 @@ import "@testing-library/jest-dom/vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   deleteCard: vi.fn(),
@@ -22,9 +22,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({
-  useAuthUid: () => "user-id",
-}));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   deleteCard: mocks.deleteCard,
@@ -96,18 +94,10 @@ const renderCardList = (overrides: Partial<RenderCardListOptions> = {}) => {
   );
 };
 
-const swipe = (article: HTMLElement, from: number, to: number) => {
-  fireEvent.mouseDown(article, { clientX: from, clientY: 0 });
-  fireEvent.mouseMove(document, { clientX: to, clientY: 0 });
-  fireEvent.mouseUp(document, { clientX: to, clientY: 0 });
-};
-
-const getCardArticle = (frontText: string) => {
-  const article = screen
-    .getAllByRole("article")
-    .find((candidate) => within(candidate).queryByRole("button", { name: `View ${frontText}` }) !== null);
-  if (article === undefined) throw new Error(`Card article not found for ${frontText}`);
-  return article;
+const swipeRight = (article: HTMLElement) => {
+  fireEvent.mouseDown(article, { clientX: 0, clientY: 0 });
+  fireEvent.mouseMove(document, { clientX: 100, clientY: 0 });
+  fireEvent.mouseUp(document, { clientX: 100, clientY: 0 });
 };
 
 describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CardListPage interactions", () => {
@@ -119,25 +109,22 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CardListPage i
     mocks.editStudyProgress.mockResolvedValue(undefined);
   });
 
-  it("builds the list presentation and coordinates filter, view, and edit interactions", async () => {
+  it("previews filters and persists the complete draft only from Save filters", async () => {
     renderCardList();
 
-    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
-    expect(screen.getByText("difficulty 3–4 · 2 tags")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
-    expect(screen.queryByRole("button", { name: "Remove typescript filter" })).not.toBeInTheDocument();
     expect(screen.getByText("difficulty 3–4 · 1 tag")).toBeVisible();
+    expect(mocks.editDeck).not.toHaveBeenCalled();
 
-    await userEvent.click(screen.getByRole("button", { name: "View Front" }));
-    expect(screen.getByText("Back")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Close card" }));
-    expect(screen.queryByText("Back")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
 
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "Card editor destination" })).toBeVisible();
+    expect(mocks.editDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
+      id: deck.id,
+      difficultyMax: 4,
+      difficultyMin: 3,
+      selectedTags: ["react"],
+      tagAndFilter: false,
+    });
   });
 
   it("does not report the full difficulty domain as an active filter", () => {
@@ -158,14 +145,22 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CardListPage i
     expect(screen.queryByText("difficulty 1–10")).not.toBeInTheDocument();
   });
 
-  it("renders a language card answer in the overlay", async () => {
-    const languageCard = createCard({
-      ...card,
-      backText: "const answer = 42;",
-      tags: ["typescript"],
-    });
+  it("coordinates Card view and edit navigation", async () => {
+    renderCardList();
 
+    await userEvent.click(screen.getByRole("button", { name: "View Front" }));
+    expect(screen.getByText("Back")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Close card" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Card editor destination" })).toBeVisible();
+  });
+
+  it("renders a language Card answer in the overlay", async () => {
+    const languageCard = createCard({ ...card, backText: "const answer = 42;", tags: ["typescript"] });
     renderCardList({
+      deck: { ...deck, selectedTags: ["typescript"] },
       cards: [languageCard],
       preferences: createPreferences({ appearance: { darkMode: true } }),
     });
@@ -175,28 +170,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CardListPage i
     expect(screen.getByLabelText("Close card")).toHaveTextContent(languageCard.backText);
   });
 
-  it("owns deletion confirmation and success feedback", async () => {
-    renderCardList();
-    const trigger = screen.getByRole("button", { name: "Open actions for Front" });
-    const status = screen.getByRole("status", { name: "Toast notifications" });
-
-    await userEvent.click(trigger);
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toHaveTextContent("Front");
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(trigger).toHaveFocus();
-
-    await userEvent.click(trigger);
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
-
-    await waitFor(() => expect(mocks.deleteCard).toHaveBeenCalledExactlyOnceWith("user-id", card));
-    expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
-    expect(status).toHaveTextContent("Success: Deleted card “Front”.");
-    expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
-  });
-
-  it("keeps the deletion target available for retry after failure", async () => {
+  it("closes a failed deletion and retries after reopening the same Card", async () => {
     mocks.deleteCard.mockRejectedValueOnce(new Error("delete failed"));
     renderCardList();
 
@@ -204,180 +178,55 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CardListPage i
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
-    const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
-    expect(
-      await within(dialog).findByText("Unable to delete this card. Check your connection and try again.")
-    ).toBeVisible();
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Unable to delete this card. Check your connection and try again."
-    );
-    expect(within(dialog).getByRole("button", { name: "Dismiss notification" })).toBeEnabled();
+    expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
+    expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument());
+    expect(mocks.deleteCard).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
   });
 
-  it("allows closing a pending deletion and reports its eventual failure", async () => {
-    const request = Promise.withResolvers<void>();
-    mocks.deleteCard.mockReturnValueOnce(request.promise);
+  it("allows only one list mutation until the active write settles", async () => {
+    const difficultyWrite = Promise.withResolvers<void>();
+    mocks.editStudyProgress.mockReturnValueOnce(difficultyWrite.promise);
     renderCardList();
+    await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
+    const article = screen.getByRole("article");
 
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
+    swipeRight(article);
 
-    const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
-    expect(dialog).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByRole("button", { name: "Close" })).toBeEnabled();
-    fireEvent.keyDown(dialog, { key: "Escape" });
-    expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
-    expect(mocks.deleteCard).toHaveBeenCalledExactlyOnceWith("user-id", card);
+    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
+    expect(screen.getByRole("button", { name: "Add card" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save filters" })).toBeDisabled();
+    expect(within(article).getByRole("button", { name: "View Front" })).toBeDisabled();
+    swipeRight(article);
+    expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
 
     await actAsync(async () => {
-      request.reject(new Error("delete failed after closing"));
-      await request.promise.catch(() => undefined);
+      difficultyWrite.resolve();
+      await difficultyWrite.promise;
     });
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Unable to delete this card. Check your connection and try again."
-    );
+    expect(screen.getByRole("button", { name: "Save filters" })).toBeEnabled();
   });
 
-  it("dismisses a deletion error when the dialog is cancelled", async () => {
-    mocks.deleteCard.mockRejectedValueOnce(new Error("delete failed"));
-    renderCardList();
-
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
-    expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
-
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-
-    expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Unable to delete this card. Check your connection and try again.")
-    ).not.toBeInTheDocument();
-  });
-
-  it("keeps difficulty mutation feedback retryable", async () => {
+  it("retries a failed difficulty write through the same swipe gesture", async () => {
     mocks.editStudyProgress.mockRejectedValueOnce(new Error("edit failed"));
     renderCardList();
     const article = screen.getByRole("article");
 
-    swipe(article, 0, 100);
+    swipeRight(article);
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-    swipe(article, 0, 100);
+    swipeRight(article);
 
-    await waitFor(() => expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument());
+    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
     expect(mocks.editStudyProgress).toHaveBeenLastCalledWith("user-id", {
       cardId: card.id,
       difficulty: 3,
     });
-  });
-
-  it("does not let an older difficulty failure replace deletion success", async () => {
-    const difficultyWrite = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValueOnce(difficultyWrite.promise);
-    renderCardList();
-
-    swipe(screen.getByRole("article"), 0, 100);
-    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
-    expect(await screen.findByText("Deleted card “Front”.")).toBeVisible();
-
-    await actAsync(async () => {
-      difficultyWrite.reject(new Error("late difficulty failure"));
-      await difficultyWrite.promise.catch(() => undefined);
-    });
-
-    expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
-    expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
-  });
-
-  it("reports a pending difficulty failure when deletion of the same Card fails", async () => {
-    const difficultyWrite = Promise.withResolvers<void>();
-    const deletionWrite = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValueOnce(difficultyWrite.promise);
-    mocks.deleteCard.mockReturnValueOnce(deletionWrite.promise);
-    renderCardList();
-
-    swipe(screen.getByRole("article"), 0, 100);
-    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
-
-    await actAsync(async () => {
-      deletionWrite.reject(new Error("delete failed"));
-      await deletionWrite.promise.catch(() => undefined);
-    });
-    expect(await screen.findByText("Unable to delete this card. Check your connection and try again.")).toBeVisible();
-    expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeVisible();
-
-    await actAsync(async () => {
-      difficultyWrite.reject(new Error("late difficulty failure"));
-      await difficultyWrite.promise.catch(() => undefined);
-    });
-
-    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-    expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeVisible();
-  });
-
-  it("reports a pending difficulty failure after another Card's difficulty write succeeds", async () => {
-    const firstWrite = Promise.withResolvers<void>();
-    const secondWrite = Promise.withResolvers<void>();
-    const secondCard = createCard({
-      id: "second-card-id",
-      deckId: deck.id,
-      frontText: "Second",
-      difficulty: 4,
-      tags: ["typescript", "react"],
-    });
-    mocks.editStudyProgress.mockReturnValueOnce(firstWrite.promise).mockReturnValueOnce(secondWrite.promise);
-    renderCardList({ cards: [card, secondCard] });
-
-    swipe(getCardArticle("Front"), 0, 100);
-    swipe(getCardArticle("Second"), 0, 100);
-    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
-    await actAsync(async () => {
-      secondWrite.resolve();
-      await secondWrite.promise;
-    });
-    await actAsync(async () => {
-      firstWrite.reject(new Error("late difficulty failure"));
-      await firstWrite.promise.catch(() => undefined);
-    });
-
-    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-  });
-
-  it("reports a pending difficulty failure after another Card is deleted", async () => {
-    const firstWrite = Promise.withResolvers<void>();
-    const secondCard = createCard({
-      id: "second-card-id",
-      deckId: deck.id,
-      frontText: "Second",
-      difficulty: 4,
-      tags: ["typescript", "react"],
-    });
-    mocks.editStudyProgress.mockReturnValueOnce(firstWrite.promise);
-    renderCardList({ cards: [card, secondCard] });
-
-    swipe(getCardArticle("Front"), 0, 100);
-    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Second" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
-    expect(await screen.findByText("Deleted card “Second”.")).toBeVisible();
-
-    await actAsync(async () => {
-      firstWrite.reject(new Error("late difficulty failure"));
-      await firstWrite.promise.catch(() => undefined);
-    });
-
-    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
   });
 });

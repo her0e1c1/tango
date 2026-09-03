@@ -4,15 +4,9 @@ export type ToastId = number;
 
 export type ToastTone = "neutral" | "success" | "warning" | "error";
 
-export interface ToastAction {
-  label: string;
-  onClick: () => void;
-}
-
 export interface ShowToastInput {
   message: string;
   tone?: ToastTone;
-  action?: ToastAction;
   durationMs?: number | null;
   dismissible?: boolean;
 }
@@ -21,7 +15,6 @@ export interface ToastState {
   id: ToastId;
   message: string;
   tone: ToastTone;
-  action: ToastAction | undefined;
   durationMs: number | null;
   dismissible: boolean;
   returnFocusTarget: HTMLElement | undefined;
@@ -30,7 +23,7 @@ export interface ToastState {
 interface ToastStoreState {
   current: ToastState | undefined;
   focusFallbackTargets: readonly ToastFocusFallbackTarget[];
-  modalTargets: readonly ToastModalTarget[];
+  modalFocusTargets: readonly ToastModalFocusTarget[];
   visualTarget: ToastVisualTarget | undefined;
 }
 
@@ -39,10 +32,8 @@ interface ToastFocusFallbackTarget {
   element: HTMLElement;
 }
 
-interface ToastModalTarget {
-  id: number;
-  element: HTMLElement;
-  restoreFocus: () => void;
+interface ToastModalFocusTarget extends ToastFocusFallbackTarget {
+  fallbackElement: HTMLElement;
 }
 
 interface ToastVisualTarget {
@@ -59,12 +50,12 @@ const DEFAULT_DURATION_MS: Record<ToastTone, number | null> = {
 
 let nextToastId = 0;
 let nextFocusFallbackTargetId = 0;
-let nextModalTargetId = 0;
+let nextModalFocusTargetId = 0;
 
 export const toastStore = createStore<ToastStoreState>()(() => ({
   current: undefined,
   focusFallbackTargets: [],
-  modalTargets: [],
+  modalFocusTargets: [],
   visualTarget: undefined,
 }));
 
@@ -83,14 +74,17 @@ export const registerToastFocusFallbackTarget = (element: HTMLElement): (() => v
   };
 };
 
-export const registerToastModalTarget = (element: HTMLElement, restoreFocus: () => void): (() => void) => {
-  nextModalTargetId += 1;
-  const id = nextModalTargetId;
-  toastStore.setState((state) => ({ modalTargets: [...state.modalTargets, { id, element, restoreFocus }] }));
+export const registerToastModalFocusTarget = (element: HTMLElement, fallbackElement: HTMLElement): (() => void) => {
+  nextModalFocusTargetId += 1;
+  const id = nextModalFocusTargetId;
+  toastStore.setState((state) => ({
+    modalFocusTargets: [...state.modalFocusTargets, { id, element, fallbackElement }],
+  }));
 
-  // A stale cleanup must not unregister a newer or nested modal outlet.
   return () => {
-    toastStore.setState((state) => ({ modalTargets: state.modalTargets.filter((target) => target.id !== id) }));
+    toastStore.setState((state) => ({
+      modalFocusTargets: state.modalFocusTargets.filter((target) => target.id !== id),
+    }));
   };
 };
 
@@ -118,13 +112,15 @@ const getFocusedElement = (): HTMLElement | undefined => {
 
 const restoreToastFocus = (toast: ToastState): void => {
   const focusedElement = getFocusedElement();
-  if (focusedElement === undefined) return;
-  const { focusFallbackTargets, modalTargets, visualTarget } = toastStore.getState();
-  const modalTarget = modalTargets.at(-1);
-  if (modalTarget?.element.contains(focusedElement)) {
-    modalTarget.restoreFocus();
+  const { focusFallbackTargets, modalFocusTargets, visualTarget } = toastStore.getState();
+  const activeModal = modalFocusTargets.findLast(
+    (target) => target.element.isConnected && target.fallbackElement.isConnected
+  );
+  if (activeModal !== undefined && (focusedElement === undefined || !activeModal.element.contains(focusedElement))) {
+    activeModal.fallbackElement.focus();
     return;
   }
+  if (focusedElement === undefined) return;
   if (visualTarget?.toastId !== toast.id || !visualTarget.element.contains(focusedElement)) return;
   if (toast.returnFocusTarget?.isConnected) {
     toast.returnFocusTarget.focus();
@@ -153,7 +149,6 @@ export const showToast = (input: ShowToastInput): ToastId => {
       id,
       message: input.message,
       tone,
-      action: input.action,
       durationMs: input.durationMs === undefined ? DEFAULT_DURATION_MS[tone] : input.durationMs,
       dismissible: input.dismissible ?? true,
       returnFocusTarget: getFocusedElement(),

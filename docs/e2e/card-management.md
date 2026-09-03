@@ -193,12 +193,12 @@ Given:
 
 - Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
 - 認証済みユーザーが所有する Deck と削除対象の Card が存在する。
-- 最初の削除要求の失敗が dialog 内で処理され、同じ削除対象が維持されている。
+- 最初の削除要求の失敗が共通 toast で処理され、削除 dialog が閉じている。
 - 次の削除要求は成功できる。
 
 When:
 
-- dialog から同じ Card の削除を再試行し、Card 一覧を reload する。
+- 対象 Card の削除 dialog を開き直して削除を再試行し、Card 一覧を reload する。
 
 Then:
 
@@ -218,6 +218,7 @@ Given:
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する編集対象の Card が存在する。
 - Card 編集画面で front text を変更し、まだ保存していない。
+- 永続する共通 toast が表示されている。
 
 When:
 
@@ -226,6 +227,8 @@ When:
 Then:
 
 - 最初の離脱は取り消され、変更した front text が編集画面に維持される。
+- 離脱確認 dialog 表示中の toast は操作 control と pointer hit target を持たない。
+- dialog 表示中に toast が消えるか置き換わっても、focus は Keep editing に維持される。
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。
 - 永続化された Card の front text は変更されない。
 - browser error が発生しない。

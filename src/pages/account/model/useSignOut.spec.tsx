@@ -1,17 +1,16 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { dismissToast, showToast } from "@/shared/ui/toast";
+import { showToast } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
   signOutCurrentUser: vi.fn<() => Promise<void>>(),
-  dismissToast: vi.fn(),
   showToast: vi.fn(),
 }));
 
 vi.mock("./signOut", () => ({ signOutCurrentUser: mocks.signOutCurrentUser }));
-vi.mock("@/shared/ui/toast", () => ({ dismissToast: mocks.dismissToast, showToast: mocks.showToast }));
+vi.mock("@/shared/ui/toast", () => ({ showToast: mocks.showToast }));
 
 import { useSignOut } from "./useSignOut";
 
@@ -26,11 +25,10 @@ const deferred = <T,>() => {
   return { promise, reject, resolve };
 };
 
-describe("useSignOut", () => {
+describe("ACCOUNT-03 useSignOut", () => {
   beforeEach(() => {
     mocks.signOutCurrentUser.mockReset();
     mocks.signOutCurrentUser.mockResolvedValue(undefined);
-    vi.mocked(dismissToast).mockReset();
     vi.mocked(showToast).mockReset();
     vi.mocked(showToast).mockReturnValue(1);
   });
@@ -56,7 +54,7 @@ describe("useSignOut", () => {
     expect(showToast).toHaveBeenCalledWith({ message: "Signed out.", tone: "success" });
   });
 
-  it("offers a Toast action that dismisses and retries a failed sign-out", async () => {
+  it("allows the primary sign-out action to retry after a handled failure", async () => {
     const failure = new Error("Sign-out failed");
     const retry = deferred<void>();
     mocks.signOutCurrentUser.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
@@ -65,37 +63,22 @@ describe("useSignOut", () => {
     await actAsync(async () => {
       await expect(result.current.signOut()).rejects.toThrow("Sign-out failed");
     });
-    const failureToast = vi.mocked(showToast).mock.calls[0]?.[0];
-    if (failureToast === undefined) throw new Error("Sign-out failure Toast was not shown");
-    expect(failureToast).toMatchObject({ message: "Unable to sign out.", tone: "error", action: { label: "Retry" } });
+    expect(showToast).toHaveBeenCalledWith({ message: "Unable to sign out.", tone: "error" });
 
+    let retryOperation!: Promise<void>;
     act(() => {
-      failureToast.action?.onClick();
+      retryOperation = result.current.signOut();
     });
 
-    expect(dismissToast).toHaveBeenCalledWith(1);
     expect(result.current.pending).toBe(true);
 
     await actAsync(async () => {
       retry.resolve();
-      await retry.promise;
+      await retryOperation;
     });
 
     expect(result.current.pending).toBe(false);
     expect(showToast).toHaveBeenLastCalledWith({ message: "Signed out.", tone: "success" });
-  });
-
-  it("dismisses its failed sign-out Toast when its owner unmounts", async () => {
-    const failure = new Error("Sign-out failed");
-    mocks.signOutCurrentUser.mockRejectedValue(failure);
-    const { result: firstResult, unmount } = renderHook(() => useSignOut());
-
-    await actAsync(async () => {
-      await expect(firstResult.current.signOut()).rejects.toThrow("Sign-out failed");
-    });
-    unmount();
-
-    expect(dismissToast).toHaveBeenCalledWith(1);
   });
 
   it("publishes a completed sign-out after its auth transition unmounts the owner", async () => {

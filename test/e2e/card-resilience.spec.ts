@@ -40,15 +40,17 @@ test("CARD-16 retries the same Card deletion after a handled failure", async ({ 
 
   const dialog = await openCardDeleteDialog(page, card.frontText);
   await dialog.getByRole("button", { name: "Delete card" }).click();
-  await expect(
-    dialog.getByText("Unable to delete this card. Check your connection and try again.", { exact: true })
-  ).toBeVisible();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("alert")).toContainText(
+    "Unable to delete this card. Check your connection and try again."
+  );
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
-  await dialog.getByRole("button", { name: "Delete card" }).click();
+  const retryDialog = await openCardDeleteDialog(page, card.frontText);
+  await retryDialog.getByRole("button", { name: "Delete card" }).click();
 
-  await expect(dialog).not.toBeVisible({ timeout: 15_000 });
+  await expect(retryDialog).not.toBeVisible({ timeout: 15_000 });
   await page.reload();
   await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toHaveCount(0);
   await expect

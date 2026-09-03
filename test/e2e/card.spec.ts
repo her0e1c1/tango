@@ -241,6 +241,7 @@ test("CARD-10 persists difficulty and tag filters and applies both after reload"
   await page.getByText("Filters", { exact: true }).click();
   await page.getByRole("combobox", { name: "Maximum difficulty" }).selectOption("4");
   await clickCheckboxLabel(page, selectedTag);
+  await page.getByRole("button", { name: "Save filters" }).click();
   await expect.poll(async () => (await requireDocument("deck", deck.id)).fields.difficultyMax?.integerValue).toBe("4");
   await expect
     .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values?.length)

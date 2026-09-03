@@ -2,7 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 
 import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
-import { ToastModalOutlet } from "@/shared/ui/toast";
+import { useToastModalFocusTarget } from "@/shared/ui/toast";
 
 type StudyHelpDialogControl =
   | "cardSwipeUp"
@@ -86,6 +86,7 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const titleId = React.useId();
   const descriptionId = React.useId();
+  useToastModalFocusTarget(dialogRef, closeRef);
 
   React.useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -127,7 +128,6 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
   React.useEffect(() => {
     const dialog = dialogRef.current;
     if (dialog === null) return;
-    // Portal events follow their React tree, so a native listener keeps portaled Toast controls in this DOM focus trap.
     dialog.addEventListener("keydown", handleKeyDownEvent);
     return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
   }, []);
@@ -168,7 +168,6 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
             </div>
           ))}
         </dl>
-        <ToastModalOutlet focusFallbackRef={closeRef} />
       </div>
     </div>
   );

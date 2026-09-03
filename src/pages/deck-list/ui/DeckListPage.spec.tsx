@@ -1,6 +1,6 @@
 import type { Preferences } from "@/entities/preference";
 
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -10,7 +10,6 @@ import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { clearStudySessions, startStudy } from "@/entities/study-session";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
-import { actAsync } from "@/test/act";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -150,7 +149,7 @@ describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 DeckListPage", (
     );
   });
 
-  it("keeps a failed deletion available for retry", async () => {
+  it("closes a failed deletion and retries after reopening the same Deck", async () => {
     mocks.deleteDeck.mockRejectedValueOnce(new Error("delete failed"));
     renderPage();
 
@@ -158,86 +157,18 @@ describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 DeckListPage", (
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
-    expect(
-      await within(dialog).findByText("Unable to delete this deck. Check your connection and try again.")
-    ).toBeVisible();
+    expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Unable to delete this deck. Check your connection and try again."
     );
-    expect(within(dialog).getByRole("button", { name: "Dismiss notification" })).toBeVisible();
+    expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
     expect(mocks.deleteDeck).toHaveBeenCalledTimes(2);
-  });
-
-  it("closes a pending deletion while persistence continues and reports success", async () => {
-    const request = Promise.withResolvers<void>();
-    mocks.deleteDeck.mockReturnValueOnce(request.promise);
-    renderPage();
-
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
-
-    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
-    expect(dialog).toHaveAttribute("aria-busy", "true");
-    await userEvent.click(screen.getByRole("button", { name: "Close" }));
-    expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Active deck" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
-    expect(mocks.deleteDeck).toHaveBeenCalledOnce();
-
-    await actAsync(async () => {
-      request.resolve();
-      await request.promise;
-    });
-    expect(await screen.findByText("Deleted deck “Fresh deck”.")).toBeVisible();
-  });
-
-  it("reports a pending deletion failure globally after Escape closes the dialog", async () => {
-    const request = Promise.withResolvers<void>();
-    mocks.deleteDeck.mockReturnValueOnce(request.promise);
-    renderPage();
-
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
-
-    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
-    expect(screen.getByRole("button", { name: "Close" })).toBeEnabled();
-    fireEvent.keyDown(dialog, { key: "Escape" });
-    expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
-
-    await actAsync(async () => {
-      request.reject(new Error("delete failed"));
-      await request.promise.catch(() => undefined);
-    });
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Unable to delete this deck. Check your connection and try again."
-    );
-    expect(screen.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
-  });
-
-  it("dismisses a deletion error when the dialog is cancelled", async () => {
-    mocks.deleteDeck.mockRejectedValueOnce(new Error("delete failed"));
-    renderPage();
-
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Fresh deck" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
-    expect(await screen.findByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
-
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-
-    expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Unable to delete this deck. Check your connection and try again.")
-    ).not.toBeInTheDocument();
   });
 
   it("navigates from both route shortcuts", async () => {

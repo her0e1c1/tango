@@ -115,6 +115,7 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;
   const card = fixture.card();
+  const failureMessage = "Unable to delete this deck. Check your connection and try again.";
   await fixture.apply(page);
   await page.goto("/");
   const fault = await failNextFirestoreWrite(page, { collection: "card", id: card.id });
@@ -122,18 +123,35 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
 
   const dialog = await openDeckDeleteDialog(page, deck.name);
   await dialog.getByRole("button", { name: "Delete deck" }).click();
-  await expect(dialog.getByText("Unable to delete this deck. Check your connection and try again.")).toBeVisible();
-  await expect(page.getByRole("alert")).toContainText(
-    "Unable to delete this deck. Check your connection and try again."
-  );
-  await expect(dialog).toBeVisible();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("alert")).toContainText(failureMessage);
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
-  await dialog.getByRole("button", { name: "Delete deck" }).click();
+  const retryDialog = await openDeckDeleteDialog(page, deck.name);
+  await expect(page.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
+  await page.setViewportSize({ width: 320, height: 480 });
+  const retry = retryDialog.getByRole("button", { name: "Delete deck" });
+  const retryBounds = await retry.boundingBox();
+  if (retryBounds === null) throw new Error("Could not measure the Deck deletion retry control");
+  const failureToast = page.getByText(failureMessage, { exact: true });
+  // Force an overlap so the browser proves a visual-only Toast cannot intercept the modal action.
+  await failureToast.evaluate((message, bounds) => {
+    const toast = message.parentElement;
+    if (!(toast instanceof HTMLElement)) throw new Error("Could not locate the visual Toast");
+    Object.assign(toast.style, {
+      position: "fixed",
+      left: `${String(bounds.x)}px`,
+      top: `${String(bounds.y)}px`,
+      width: `${String(bounds.width)}px`,
+      height: `${String(bounds.height)}px`,
+      zIndex: "100",
+    });
+  }, retryBounds);
+  await retry.click();
 
   // Firestore reopens its write stream after the injected non-retryable error before accepting this retry.
-  await expect(dialog).not.toBeVisible({ timeout: 15_000 });
+  await expect(retryDialog).not.toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByRole("status").filter({ hasText: `Deleted deck “${deck.name}”.` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${deck.name}` })).toHaveCount(0);

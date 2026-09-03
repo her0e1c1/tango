@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { focusableElementSelector } from "../../lib/focusableElementSelector";
 import { Button } from "../button";
-import { ToastModalOutlet } from "../toast";
+import { useToastModalFocusTarget } from "../toast";
 
 export interface DestructiveActionDialogProps {
   title: string;
@@ -25,6 +25,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   const titleId = React.useId();
   const targetId = React.useId();
   const descriptionId = React.useId();
+  useToastModalFocusTarget(dialogRef, targetNameRef);
 
   React.useEffect(() => {
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -37,6 +38,12 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
       if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };
   }, []);
+
+  React.useLayoutEffect(() => {
+    if (!props.pending) return;
+    // Both actions become disabled while pending, so focus must move before the browser can drop it outside the modal.
+    targetNameRef.current?.focus();
+  }, [props.pending]);
 
   const handleDialogTabKey = (event: KeyboardEvent) => {
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
@@ -58,10 +65,8 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   };
 
   const handleCancel = () => {
-    // Before pending reaches the UI, Cancel would misleadingly imply that the issued write was withdrawn.
-    // Once pending is visible, Close only releases the modal while the caller keeps the write alive.
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: Confirm can mutate this ref before pending props reach this render.
-    if (confirmingRef.current && !props.pending) return;
+    // A started deletion cannot be cancelled, even before its pending prop reaches this render.
+    if (props.pending || confirmingRef.current) return;
     props.onCancel();
   };
 
@@ -79,7 +84,6 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   React.useEffect(() => {
     const dialog = dialogRef.current;
     if (dialog === null) return;
-    // Portal events follow their React tree, so a native listener keeps portaled Toast controls in this DOM focus trap.
     dialog.addEventListener("keydown", handleKeyDownEvent);
     return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
   }, []);
@@ -122,9 +126,9 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
             {props.targetLabel}
           </span>
           <span
+            ref={targetNameRef}
             // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users must be able to reach a long scrolling target name.
             tabIndex={0}
-            ref={targetNameRef}
             className="mt-1 block max-h-24 overflow-y-auto break-words font-semibold"
           >
             {props.targetName}
@@ -137,16 +141,16 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
           <button
             ref={cancelRef}
             type="button"
+            disabled={props.pending}
             className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-border bg-transparent px-4 py-2 font-bold text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             onClick={handleCancel}
           >
-            {props.pending ? t("destructiveDialog.close") : t("destructiveDialog.cancel")}
+            {t("destructiveDialog.cancel")}
           </button>
           <Button variant="destructive" loading={Boolean(props.pending)} onClick={handleConfirm}>
             {props.confirmLabel}
           </Button>
         </div>
-        <ToastModalOutlet focusFallbackRef={targetNameRef} />
       </div>
     </div>
   );

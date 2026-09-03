@@ -25,6 +25,9 @@ const createProps = (): DeckFilterFormProps => ({
   tags: ["one", "two"],
   selectedTags: ["one"],
   tagAndFilter: true,
+  dirty: true,
+  saving: false,
+  save: vi.fn(),
   clearDifficultyRange: vi.fn(),
   setDifficultyMax: vi.fn(),
   setDifficultyMin: vi.fn(),
@@ -32,7 +35,7 @@ const createProps = (): DeckFilterFormProps => ({
   setTagAndFilter: vi.fn(),
 });
 
-describe("DeckFilterForm [CARD-10]", () => {
+describe("CARD-10 DeckFilterForm", () => {
   it("composes difficulty and tag filters and preserves callbacks", async () => {
     const props = createProps();
     render(<DeckFilterForm {...props} />);
@@ -51,6 +54,8 @@ describe("DeckFilterForm [CARD-10]", () => {
     await userEvent.click(within(difficultyRegion).getByRole("button", { name: "Clear limits" }));
     expect(props.clearDifficultyRange).toHaveBeenCalledOnce();
     expect(screen.getByRole("region", { name: "Tags" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
+    expect(props.save).toHaveBeenCalledOnce();
   });
 
   it("shows explicit domain bounds for legacy null limits", () => {
@@ -59,5 +64,12 @@ describe("DeckFilterForm [CARD-10]", () => {
     expect(within(difficultyRegion).queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("10");
     expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("1");
+  });
+
+  it("disables editing while saving", () => {
+    render(<DeckFilterForm {...createProps()} saving />);
+
+    expect(screen.getByRole("button", { name: "Save filters" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeDisabled();
   });
 });

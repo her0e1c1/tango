@@ -19,7 +19,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const deckFilter = useDeckFilterState(deck);
-  // Card selection must use optimistic filter values before their persistence request completes.
+  // The list previews the local filter draft; persistence remains an explicit user action.
   const state = useCardListState({
     ...deck,
     difficultyMax: deckFilter.difficultyMax,
@@ -31,6 +31,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   // them as an active filter even though new and cleared Decks persist those values.
   const difficultyMax = deckFilter.difficultyMax === deckFilter.difficultyUpperBound ? null : deckFilter.difficultyMax;
   const difficultyMin = deckFilter.difficultyMin === deckFilter.difficultyLowerBound ? null : deckFilter.difficultyMin;
+  const busy = state.mutationPending || deckFilter.saving;
 
   return (
     <AppLayout showHeader={state.answer == null}>
@@ -53,6 +54,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
       ) : null}
       <CardList
         cards={state.cards}
+        disabled={busy}
         renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
         onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
         filter={{
@@ -60,11 +62,12 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
           difficultyMin,
           selectedTags: deckFilter.selectedTags,
         }}
-        filterSlot={<DeckFilterForm {...deckFilter} tags={state.tags} />}
+        filterSlot={<DeckFilterForm {...deckFilter} disabled={state.mutationPending} tags={state.tags} />}
         onRemoveTag={(tag) =>
           deckFilter.setSelectedTags(deckFilter.selectedTags.filter((selectedTag) => selectedTag !== tag))
         }
         card={{
+          disabled: busy,
           onSwipedLeft: state.onSwipedLeft,
           onSwipedRight: state.onSwipedRight,
           goToEdit: (id) => void navigate(routes.cardForm.to(id)),

@@ -69,7 +69,8 @@ Given:
 
 When:
 
-- Card 一覧で difficulty 範囲と tag filter を設定し、保存完了後に画面を reload する。
+- Card 一覧で difficulty 範囲と tag filter を設定し、`Save filters` を選択する。
+- 保存完了後に画面を reload する。
 
 Then:
 

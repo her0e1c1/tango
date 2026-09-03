@@ -48,12 +48,12 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - 匿名アカウントで Account 画面を開いている。
-- Google sign-in の失敗が共通 toast で処理され、toast に `Retry` が表示されている。
+- Google sign-in の失敗が共通 toast で処理され、Account 画面から再度 sign-in できる。
 - 再試行では Google sign-in に成功できる。
 
 When:
 
-- `Retry` を選択して Google sign-in を再試行する。
+- `Sign in with Google` を選択して Google sign-in を再試行する。
 
 Then:
 
