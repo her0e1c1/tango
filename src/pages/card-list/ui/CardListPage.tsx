@@ -27,6 +27,10 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
     selectedTags: deckFilter.selectedTags,
     tagAndFilter: deckFilter.tagAndFilter,
   });
+  // The explicit domain endpoints select every Card, so the collapsed summary must not present
+  // them as an active filter even though new and cleared Decks persist those values.
+  const difficultyMax = deckFilter.difficultyMax === deckFilter.difficultyUpperBound ? null : deckFilter.difficultyMax;
+  const difficultyMin = deckFilter.difficultyMin === deckFilter.difficultyLowerBound ? null : deckFilter.difficultyMin;
 
   return (
     <AppLayout showHeader={state.answer == null}>
@@ -52,8 +56,8 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
         renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
         onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
         filter={{
-          difficultyMax: deckFilter.difficultyMax,
-          difficultyMin: deckFilter.difficultyMin,
+          difficultyMax,
+          difficultyMin,
           selectedTags: deckFilter.selectedTags,
         }}
         filterSlot={<DeckFilterForm {...deckFilter} tags={state.tags} />}
