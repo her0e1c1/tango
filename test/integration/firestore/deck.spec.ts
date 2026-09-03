@@ -35,12 +35,14 @@ vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
-describe.concurrent("firestore/deck", { retry: 3 }, () => {
+describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
   const db = getFirestore();
   const timestamp = new Date(2013, 10, 9).getTime();
   const newDeck = createDeckFixture({
     name: "new deck name",
     uid: "uid",
+    difficultyMax: 10,
+    difficultyMin: 1,
     createdAt: timestamp,
     updatedAt: timestamp,
   });

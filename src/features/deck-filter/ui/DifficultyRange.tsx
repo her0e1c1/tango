@@ -9,9 +9,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/ui/button";
 import { Select } from "@/shared/ui/forms";
 
-const NO_LIMIT_VALUE = "";
-const NO_LIMIT_LABEL = "-";
-
 export interface DifficultyRangeProps {
   lowerBound: number;
   maximum: number | null;
@@ -28,26 +25,26 @@ interface DifficultySelectProps {
   difficulties: number[];
   id: string;
   invalid: boolean;
-  onChange: (value: number | null) => void;
-  value: number | null;
+  onChange: (value: number) => void;
+  value: number;
 }
 
 const displayDifficulty = (value: number): string => String(value).replace("-", "−");
 
 const difficultyOptions = (
   standardDifficulties: number[],
-  current: number | null,
-  otherBoundary: number | null,
+  current: number,
+  otherBoundary: number,
   isAllowed: (difficulty: number, boundary: number) => boolean
 ): number[] => {
   const candidates = new Set(standardDifficulties);
 
   // Persisted values can predate the current UI range or form an invalid pair. Keeping the active
   // value visible prevents rendering from silently normalizing saved data and leaves a recovery path.
-  if (current != null) candidates.add(current);
+  candidates.add(current);
 
   return [...candidates]
-    .filter((difficulty) => difficulty === current || otherBoundary == null || isAllowed(difficulty, otherBoundary))
+    .filter((difficulty) => difficulty === current || isAllowed(difficulty, otherBoundary))
     .sort((left, right) => left - right);
 };
 
@@ -67,23 +64,18 @@ const DifficultySelect = ({
         ref={selectRef}
         id={props.id}
         className="mt-1"
-        value={props.value == null ? NO_LIMIT_VALUE : String(props.value)}
+        value={String(props.value)}
         aria-label={t(`${keyPrefix}.aria`)}
         aria-describedby={props.describedBy}
         aria-invalid={props.invalid || undefined}
-        options={[
-          { label: NO_LIMIT_LABEL, value: NO_LIMIT_VALUE },
-          ...props.difficulties.map((difficulty) => ({
-            label: displayDifficulty(difficulty),
-            value: String(difficulty),
-          })),
-        ]}
-        onChange={(event) =>
-          props.onChange(event.currentTarget.value === NO_LIMIT_VALUE ? null : Number(event.currentTarget.value))
-        }
+        options={props.difficulties.map((difficulty) => ({
+          label: displayDifficulty(difficulty),
+          value: String(difficulty),
+        }))}
+        onChange={(event) => props.onChange(Number(event.currentTarget.value))}
       />
       <p id={`${props.id}-description`} className="sr-only">
-        {t(`${keyPrefix}.noLimitDescription`)} {t(`${keyPrefix}.description`)}
+        {t(`${keyPrefix}.description`)}
       </p>
     </div>
   );
@@ -100,40 +92,33 @@ export const DifficultyRange: React.FC<DifficultyRangeProps> = (props) => {
   const minimumId = `${idPrefix}-minimum-difficulty`;
   const maximumId = `${idPrefix}-maximum-difficulty`;
   const warningId = `${idPrefix}-difficulty-warning`;
-  const invalid = props.minimum != null && props.maximum != null && props.minimum > props.maximum;
+  // Legacy Decks can still store null boundaries; within the fixed public difficulty domain those
+  // values are equivalent to the explicit endpoints shown by the controls.
+  const minimum = props.minimum ?? props.lowerBound;
+  const maximum = props.maximum ?? props.upperBound;
+  const invalid = minimum > maximum;
   const standardDifficulties = Array.from(
     { length: props.upperBound - props.lowerBound + 1 },
     (_, index) => props.lowerBound + index
   );
   const minimumDifficulties = difficultyOptions(
     standardDifficulties,
-    props.minimum,
-    props.maximum,
-    (difficulty, maximum) => difficulty <= maximum
+    minimum,
+    maximum,
+    (difficulty, upperBoundary) => difficulty <= upperBoundary
   );
   const maximumDifficulties = difficultyOptions(
     standardDifficulties,
-    props.maximum,
-    props.minimum,
-    (difficulty, minimum) => difficulty >= minimum
+    maximum,
+    minimum,
+    (difficulty, lowerBoundary) => difficulty >= lowerBoundary
   );
   const minimumDescribedBy = `${minimumId}-description${invalid ? ` ${warningId}` : ""}`;
   const maximumDescribedBy = `${maximumId}-description${invalid ? ` ${warningId}` : ""}`;
-  const status = (() => {
-    if (props.minimum != null && props.maximum != null) {
-      return t("deckFilter.difficultyRange.status.range", {
-        minimum: displayDifficulty(props.minimum),
-        maximum: displayDifficulty(props.maximum),
-      });
-    }
-    if (props.minimum != null) {
-      return t("deckFilter.difficultyRange.status.minimumOnly", { minimum: displayDifficulty(props.minimum) });
-    }
-    if (props.maximum != null) {
-      return t("deckFilter.difficultyRange.status.maximumOnly", { maximum: displayDifficulty(props.maximum) });
-    }
-    return t("deckFilter.difficultyRange.status.noLimits");
-  })();
+  const status = t("deckFilter.difficultyRange.status.range", {
+    minimum: displayDifficulty(minimum),
+    maximum: displayDifficulty(maximum),
+  });
 
   return (
     <section
@@ -148,7 +133,7 @@ export const DifficultyRange: React.FC<DifficultyRangeProps> = (props) => {
           variant="quiet"
           size="sm"
           className="border-0 text-accent-primary"
-          hidden={props.minimum == null && props.maximum == null}
+          hidden={minimum === props.lowerBound && maximum === props.upperBound}
           onClick={() => {
             props.onClear();
             // The clear action hides its own button on the next render, so keyboard focus must move
@@ -165,7 +150,7 @@ export const DifficultyRange: React.FC<DifficultyRangeProps> = (props) => {
           ref={minimumSelectRef}
           id={minimumId}
           boundary="minimum"
-          value={props.minimum}
+          value={minimum}
           difficulties={minimumDifficulties}
           invalid={invalid}
           describedBy={minimumDescribedBy}
@@ -177,7 +162,7 @@ export const DifficultyRange: React.FC<DifficultyRangeProps> = (props) => {
         <DifficultySelect
           id={maximumId}
           boundary="maximum"
-          value={props.maximum}
+          value={maximum}
           difficulties={maximumDifficulties}
           invalid={invalid}
           describedBy={maximumDescribedBy}

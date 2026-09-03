@@ -182,9 +182,9 @@ describe("DeckFilterForm with useDeckFilterState [CARD-10]", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
 
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
-    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("");
-    expect(writeControls.calls).toEqual([["user-id", { id: deckId, difficultyMax: null, difficultyMin: null }]]);
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("10");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("1");
+    expect(writeControls.calls).toEqual([["user-id", { id: deckId, difficultyMax: 10, difficultyMin: 1 }]]);
 
     await Promise.resolve(act(async () => failWrite(new Error("write failed"))));
 
@@ -203,12 +203,12 @@ describe("DeckFilterForm with useDeckFilterState [CARD-10]", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
     view.rerender(<DeckFilterHarness deck={{ ...remoteDeck, difficultyMax: null, updatedAt: 2 }} tags={tags} />);
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
-    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("10");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("1");
 
     await Promise.resolve(act(async () => finishWrite()));
 
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("10");
     expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("3");
   });
 
@@ -303,8 +303,8 @@ describe("DeckFilterForm with useDeckFilterState [CARD-10]", () => {
     renderFilter();
 
     expect(screen.queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
-    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("10");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("1");
   });
 
   it("restores individual, all, and cleared tag selections", async () => {

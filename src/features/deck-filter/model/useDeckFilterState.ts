@@ -187,7 +187,7 @@ export const useDeckFilterState = (deck: Deck): DeckFilterState => {
     difficultyUpperBound: MAX_DIFFICULTY,
     selectedTags: getFilterValue("selectedTags"),
     tagAndFilter: getFilterValue("tagAndFilter"),
-    clearDifficultyRange: () => updateFilter({ difficultyMax: null, difficultyMin: null }),
+    clearDifficultyRange: () => updateFilter({ difficultyMax: MAX_DIFFICULTY, difficultyMin: MIN_DIFFICULTY }),
     setDifficultyMax: (value) => updateFilter({ difficultyMax: value }),
     setDifficultyMin: (value) => updateFilter({ difficultyMin: value }),
     setSelectedTags: (value) => updateFilter({ selectedTags: value }),

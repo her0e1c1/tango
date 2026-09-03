@@ -257,20 +257,15 @@ export const resources = {
           minimum: {
             label: "Minimum",
             aria: "Minimum difficulty",
-            noLimitDescription: "A dash means no minimum difficulty.",
             description: "Include cards at or above this difficulty.",
           },
           maximum: {
             label: "Maximum",
             aria: "Maximum difficulty",
-            noLimitDescription: "A dash means no maximum difficulty.",
             description: "Include cards at or below this difficulty.",
           },
           status: {
             range: "Difficulty range: {{minimum}} to {{maximum}}.",
-            minimumOnly: "Minimum difficulty: {{minimum}}. No maximum difficulty.",
-            maximumOnly: "Maximum difficulty: {{maximum}}. No minimum difficulty.",
-            noLimits: "No difficulty limits.",
           },
           invalid: "Minimum difficulty must not be greater than maximum difficulty.",
         },
@@ -838,20 +833,15 @@ export const resources = {
           minimum: {
             label: "最小",
             aria: "最小難易度",
-            noLimitDescription: "ダッシュは最小難易度の制限がないことを示します。",
             description: "この難易度以上のカードを含めます。",
           },
           maximum: {
             label: "最大",
             aria: "最大難易度",
-            noLimitDescription: "ダッシュは最大難易度の制限がないことを示します。",
             description: "この難易度以下のカードを含めます。",
           },
           status: {
             range: "難易度範囲：{{minimum}}〜{{maximum}}。",
-            minimumOnly: "最小難易度：{{minimum}}。最大難易度の制限はありません。",
-            maximumOnly: "最大難易度：{{maximum}}。最小難易度の制限はありません。",
-            noLimits: "難易度の制限はありません。",
           },
           invalid: "最小難易度は最大難易度以下にしてください。",
         },
