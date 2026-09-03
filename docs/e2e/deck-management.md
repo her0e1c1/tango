@@ -36,6 +36,7 @@ Then:
 
 - Deck の更新成功が共通 toast で表示される。
 - 編集画面に変更後の name、category、source URL が表示される。
+- 保存後の remote data に廃止済みの Public visibility field が追加されない。
 - browser error が発生しない。
 
 <a id="deck-03"></a>
@@ -136,6 +137,7 @@ Then:
 - 作成した空の Deck が reload 後も Deck 一覧に表示される。
 - 作成した Deck は現在の UID の remote data に一つだけ存在する。
 - 作成した Deck の source URL と改行変換が remote data に保存されている。
+- 作成した remote data に廃止済みの Public visibility field が存在しない。
 - browser storage に同じ Deck の local-only duplicate が存在しない。
 - browser error が発生しない。
 

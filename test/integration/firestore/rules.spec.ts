@@ -12,12 +12,12 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { setDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { setDoc, doc, getDoc, updateDoc, deleteDoc, deleteField } from "firebase/firestore";
 import * as Uuid from "uuid";
 
 const uuid = Uuid.v4;
 
-describe("firestore/rule", () => {
+describe("firestore/rule [DECK-02] [DECK-09] [PERSIST-01]", () => {
   let testEnv: RulesTestEnvironment;
 
   const createData = async (path: string, id: string, data: object) => {
@@ -54,9 +54,9 @@ describe("firestore/rule", () => {
     });
 
     describe("deck", () => {
-      it("should read a deck", async () => {
+      it("should read a legacy deck as its owner", async () => {
         const id = uuid();
-        await createData("deck", id, { uid: "uid", isPublic: false });
+        await createData("deck", id, { uid: "uid", isPublic: true });
         await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
 
@@ -65,10 +65,30 @@ describe("firestore/rule", () => {
         await assertSucceeds(setDoc(doc(db, "deck", id), { uid: "uid" }));
       });
 
+      it("should reject obsolete visibility when creating a deck", async () => {
+        const id = uuid();
+        await assertFails(setDoc(doc(db, "deck", id), { uid: "uid", isPublic: false }));
+      });
+
       it("should update a deck", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid" });
         await assertSucceeds(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
+      });
+
+      it("should reject adding obsolete visibility to a deck", async () => {
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        await assertFails(updateDoc(doc(db, "deck", id), { isPublic: false }));
+      });
+
+      it("should preserve legacy visibility without allowing it to change or be deleted", async () => {
+        const id = uuid();
+        await createData("deck", id, { uid: "uid", isPublic: true, name: "legacy" });
+
+        await assertSucceeds(updateDoc(doc(db, "deck", id), { name: "update" }));
+        await assertFails(updateDoc(doc(db, "deck", id), { isPublic: false }));
+        await assertFails(updateDoc(doc(db, "deck", id), { isPublic: deleteField() }));
       });
 
       it("should delete a deck", async () => {
@@ -79,9 +99,10 @@ describe("firestore/rule", () => {
     });
 
     describe("card", () => {
-      it("should read a card", async () => {
-        const id = uuid();
-        await createData("card", id, { uid: "uid" });
+      it("should read an owned card under a legacy deck", async () => {
+        const [deckId, id] = [uuid(), uuid()];
+        await createData("deck", deckId, { uid: "uid", isPublic: true });
+        await createData("card", id, { uid: "uid", deckId });
         await assertSucceeds(getDoc(doc(db, "card", id)));
       });
 
@@ -120,10 +141,10 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "deck", id)));
       });
 
-      it("should read a publick deck", async () => {
+      it("should not read a legacy deck marked public", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
-        await assertSucceeds(getDoc(doc(db, "deck", id)));
+        await assertFails(getDoc(doc(db, "deck", id)));
       });
 
       it("should not create a deck", async () => {
@@ -151,11 +172,11 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "card", id)));
       });
 
-      it("should read a public card", async () => {
+      it("should not read a card under a legacy deck marked public", async () => {
         const [deckId, id] = [uuid(), uuid()];
         await createData("deck", deckId, { uid: "uid", isPublic: true });
         await createData("card", id, { uid: "uid", deckId });
-        await assertSucceeds(getDoc(doc(db, "card", id)));
+        await assertFails(getDoc(doc(db, "card", id)));
       });
 
       it("should not create a card", async () => {
@@ -191,10 +212,10 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "deck", id)));
       });
 
-      it("should read a publick deck", async () => {
+      it("should not read a legacy deck marked public", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
-        await assertSucceeds(getDoc(doc(db, "deck", id)));
+        await assertFails(getDoc(doc(db, "deck", id)));
       });
 
       it("should not create a deck", async () => {
@@ -222,11 +243,11 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "card", id)));
       });
 
-      it("should read a public card", async () => {
+      it("should not read a card under a legacy deck marked public", async () => {
         const [deckId, id] = [uuid(), uuid()];
         await createData("deck", deckId, { uid: "uid", isPublic: true });
         await createData("card", id, { uid: "uid", deckId });
-        await assertSucceeds(getDoc(doc(db, "card", id)));
+        await assertFails(getDoc(doc(db, "card", id)));
       });
 
       it("should not create a card", async () => {

@@ -27,7 +27,6 @@ const deckDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
   data: () => ({
     name: "Remote Deck",
-    isPublic: false,
     uid: "uid-a",
     createdAt: 1,
     updatedAt: 2,

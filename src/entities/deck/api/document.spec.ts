@@ -4,13 +4,13 @@ import { createDeck } from "@/test/factories";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 describe("Deck Firestore document mapping [CARD-10]", () => {
-  it("accepts legacy strings without applying current command validation", () => {
+  it("ignores legacy visibility while accepting persisted strings", () => {
     expect(
       parseDeckDocument("deck", {
         uid: "",
         name: "",
         url: "legacy-value",
-        isPublic: false,
+        isPublic: true,
         difficultyMax: null,
         difficultyMin: null,
         selectedTags: [],
@@ -25,7 +25,6 @@ describe("Deck Firestore document mapping [CARD-10]", () => {
       uid: "",
       name: "",
       url: "legacy-value",
-      isPublic: false,
       difficultyMax: null,
       difficultyMin: null,
       selectedTags: [],
@@ -45,7 +44,6 @@ describe("Deck Firestore document mapping [CARD-10]", () => {
       id: "deck",
       uid: "actor",
       name: "Deck",
-      isPublic: false,
       difficultyMax: null,
       difficultyMin: null,
       selectedTags: [],
@@ -63,7 +61,7 @@ describe("Deck Firestore document mapping [CARD-10]", () => {
       id: "legacy-duplicate-id",
       uid: "owner",
       name: "Deck",
-      isPublic: false,
+      isPublic: true,
       difficultyMax: null,
       difficultyMin: null,
       selectedTags: [],
@@ -80,7 +78,6 @@ describe("Deck Firestore document mapping [CARD-10]", () => {
       uid: "owner",
       localMode: false,
       name: "Deck",
-      isPublic: false,
       difficultyMax: null,
       difficultyMin: null,
       selectedTags: [],
@@ -97,7 +94,6 @@ describe("Deck Firestore document mapping [CARD-10]", () => {
       parseDeckDocument("deck", {
         uid: "owner",
         name: "Malformed filters",
-        isPublic: false,
         difficultyMax: 11,
         difficultyMin: 3,
         selectedTags: [],

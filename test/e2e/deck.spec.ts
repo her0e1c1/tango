@@ -58,6 +58,7 @@ test("DECK-02 persists edited name, category, and source URL across reload", asy
   await expect(page.getByRole("textbox", { name: "Name" })).toHaveValue(updatedName);
   await expect(page.getByRole("combobox")).toHaveValue("typescript");
   await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(updatedSourceUrl);
+  expect((await getDocument("deck", deck.id))?.fields).not.toHaveProperty("isPublic");
 });
 
 test("DECK-03 deletes one Deck and preserves unrelated Deck data", async ({ fixture, page }) => {
@@ -232,6 +233,7 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   expect(owned.map(({ fields }) => fields.category?.stringValue)).toEqual([category]);
   expect(owned.map(({ fields }) => fields.url?.stringValue)).toEqual([sourceUrl]);
   expect(owned.map(({ fields }) => fields.convertToBr?.booleanValue)).toEqual([true]);
+  expect(owned.every(({ fields }) => fields.isPublic === undefined)).toBe(true);
   const ownedCardsForDeck = (await listDocuments("card")).filter(
     ({ fields }) => fields.uid?.stringValue === uid && fields.deckId?.stringValue === deckId
   );

@@ -5,12 +5,12 @@ import { parseFirestoreDocument } from "@/shared/api";
 import type { deckCreateSchema } from "../model/schema";
 import type { Deck, DeckId } from "../model/types";
 
+// Keep this parser non-strict so retired fields such as isPublic are stripped without rejecting a legacy document.
 const sharedDeckDocumentSchema = z.object({
   // Older documents duplicate the Firestore document id in their data.
   id: z.string().optional(),
   name: z.string(),
   url: z.string().optional(),
-  isPublic: z.boolean(),
   uid: z.string(),
   createdAt: z.number(),
   updatedAt: z.number(),
@@ -40,7 +40,6 @@ export const toDeck = (id: DeckId, document: DeckDocument): Extract<Deck, { loca
   localMode: false,
   name: document.name,
   ...(document.url === undefined ? {} : { url: document.url }),
-  isPublic: document.isPublic,
   difficultyMax: document.difficultyMax,
   difficultyMin: document.difficultyMin,
   selectedTags: document.selectedTags,
@@ -61,7 +60,6 @@ export const toDeckDocument = (
   uid,
   name: deck.name,
   ...(deck.url === undefined ? {} : { url: deck.url }),
-  isPublic: deck.isPublic,
   difficultyMax: deck.difficultyMax,
   difficultyMin: deck.difficultyMin,
   selectedTags: deck.selectedTags,

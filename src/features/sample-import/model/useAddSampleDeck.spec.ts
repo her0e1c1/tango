@@ -37,7 +37,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
       const fields = {
         id: deck.id,
         name: deck.name,
-        isPublic: deck.isPublic ?? false,
         difficultyMax: deck.difficultyMax ?? null,
         difficultyMin: deck.difficultyMin ?? null,
         selectedTags: deck.selectedTags ?? [],
