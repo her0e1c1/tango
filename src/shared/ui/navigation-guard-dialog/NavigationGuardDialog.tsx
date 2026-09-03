@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { focusableElementSelector } from "../../lib/focusableElementSelector";
 import { Button } from "../button";
+import { useToastModalFocusTarget } from "../toast";
 
 interface NavigationGuardDialogProps {
   onDiscardChanges: () => void;
@@ -15,6 +16,7 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({ on
   const keepEditingRef = React.useRef<HTMLButtonElement>(null);
   const titleId = React.useId();
   const descriptionId = React.useId();
+  useToastModalFocusTarget(dialogRef, keepEditingRef);
 
   React.useEffect(() => {
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;

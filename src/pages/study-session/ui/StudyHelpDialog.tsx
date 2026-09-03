@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 
 import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
+import { useToastModalFocusTarget } from "@/shared/ui/toast";
 
 type StudyHelpDialogControl =
   | "cardSwipeUp"
@@ -85,6 +86,7 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const titleId = React.useId();
   const descriptionId = React.useId();
+  useToastModalFocusTarget(dialogRef, closeRef);
 
   React.useEffect(() => {
     const previousOverflow = document.body.style.overflow;

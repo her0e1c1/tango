@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { focusableElementSelector } from "../../lib/focusableElementSelector";
 import { Button } from "../button";
-import { registerToastModalFocusTarget } from "../toast";
+import { useToastModalFocusTarget } from "../toast";
 
 export interface DestructiveActionDialogProps {
   title: string;
@@ -25,6 +25,7 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
   const titleId = React.useId();
   const targetId = React.useId();
   const descriptionId = React.useId();
+  useToastModalFocusTarget(dialogRef, targetNameRef);
 
   React.useEffect(() => {
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -36,13 +37,6 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
       document.body.style.overflow = previousOverflow;
       if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };
-  }, []);
-
-  React.useLayoutEffect(() => {
-    const dialog = dialogRef.current;
-    const targetName = targetNameRef.current;
-    if (dialog === null || targetName === null) return;
-    return registerToastModalFocusTarget(dialog, targetName);
   }, []);
 
   React.useLayoutEffect(() => {

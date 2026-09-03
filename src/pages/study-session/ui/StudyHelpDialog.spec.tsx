@@ -1,8 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as React from "react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
+
+import { dismissToast, showToast, ToastViewport } from "@/shared/ui/toast";
 
 import { StudyHelpDialog } from "./StudyHelpDialog";
 
@@ -31,6 +33,8 @@ const Harness: React.FC = () => {
     </>
   );
 };
+
+afterEach(() => dismissToast());
 
 describe("SWIPE-24 StudyHelpDialog", () => {
   it("provides modal semantics and focuses a safe close control", async () => {
@@ -64,5 +68,53 @@ describe("SWIPE-24 StudyHelpDialog", () => {
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await waitFor(() => expect(trigger).toHaveFocus());
+  });
+
+  it("keeps a persistent Toast non-interactive and restores programmatic dismissal inside the modal", async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Harness />
+        <ToastViewport />
+      </>
+    );
+    const trigger = screen.getByRole("button", { name: "Open study help" });
+    trigger.focus();
+    let toastId = 0;
+    act(() => {
+      toastId = showToast({ message: "Save failed", tone: "error", durationMs: null });
+    });
+    expect(screen.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
+
+    await user.click(trigger);
+
+    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+    const close = screen.getByRole("button", { name: "Close help" });
+    expect(close).toHaveFocus();
+
+    trigger.focus();
+    act(() => dismissToast(toastId));
+    expect(close).toHaveFocus();
+  });
+
+  it("restores persistent Toast interaction after Strict Mode modal cleanup", async () => {
+    const user = userEvent.setup();
+    render(
+      <React.StrictMode>
+        <Harness />
+        <ToastViewport />
+      </React.StrictMode>
+    );
+    act(() => {
+      showToast({ message: "Save failed", tone: "error", durationMs: null });
+    });
+
+    await user.click(screen.getByRole("button", { name: "Open study help" }));
+    expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Close help" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
   });
 });
