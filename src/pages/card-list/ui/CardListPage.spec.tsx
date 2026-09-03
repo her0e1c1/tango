@@ -114,6 +114,33 @@ describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CardListPage", () => {
     expect(screen.getByText("No filters")).toBeVisible();
   });
 
+  it("uses the shared progressive tag filter", async () => {
+    await mutateCards(
+      "",
+      Array.from({ length: 12 }, (_, index) => {
+        const suffix = String(index + 1).padStart(2, "0");
+        return {
+          kind: "create" as const,
+          card: createLocalCard({
+            id: `tag-card-${suffix}`,
+            deckId,
+            frontText: `Tagged card ${suffix}`,
+            tags: [`tag-${suffix}`],
+            uniqueKey: `tag-card-${suffix}`,
+          }),
+        };
+      })
+    );
+    renderPage();
+
+    await userEvent.click(screen.getByText("Filters"));
+
+    expect(screen.getByRole("checkbox", { name: "typescript" })).toBeChecked();
+    expect(screen.queryByRole("checkbox", { name: "tag-12" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Show 4 more tags" }));
+    expect(screen.getByRole("checkbox", { name: "tag-12" })).toBeVisible();
+  });
+
   it("navigates from both route shortcuts", async () => {
     const view = renderPage();
     fireEvent.keyDown(window, { key: "t" });

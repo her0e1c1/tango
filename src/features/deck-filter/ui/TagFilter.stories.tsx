@@ -4,73 +4,83 @@ import { expect, fn } from "storybook/test";
 
 import { TagFilter } from "./TagFilter";
 
-const meta = {
-  title: "Features/Deck Filter/TagFilter",
-  component: TagFilter,
-  tags: ["autodocs"],
-  args: {
-    tags: ["tag1", "tag2", "tag3", "tag4"],
-    selectedTags: [],
-    tagAndFilter: false,
-  },
-} satisfies Meta<typeof TagFilter>;
+type TagFilterProps = React.ComponentProps<typeof TagFilter>;
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+const tags = Array.from({ length: 12 }, (_, index) => `tag-${String(index + 1)}`);
+const manyTags = Array.from({ length: 120 }, (_, index) => `tag-${String(index + 1)}`);
 
-const InteractiveTagFilter: React.FC<React.ComponentProps<typeof TagFilter>> = (props) => {
-  const [selectedTags, setSelectedTags] = React.useState(props.selectedTags ?? []);
+const InteractiveTagFilter: React.FC<TagFilterProps> = (props) => {
+  const [matchAll, setMatchAll] = React.useState(props.matchAll);
+  const [selectedTags, setSelectedTags] = React.useState(props.selectedTags);
 
   return (
     <TagFilter
       {...props}
+      matchAll={matchAll}
       selectedTags={selectedTags}
-      onClickTag={(tags) => {
-        props.onClickTag?.(tags);
-        setSelectedTags(tags);
+      onMatchAllChange={(value) => {
+        props.onMatchAllChange(value);
+        setMatchAll(value);
+      }}
+      onSelectedTagsChange={(value) => {
+        props.onSelectedTagsChange(value);
+        setSelectedTags(value);
       }}
     />
   );
 };
 
-export const Default: Story = {};
-
-export const Interaction: Story = {
-  args: { onClickTag: fn() },
+const meta = {
+  title: "Features/Deck Filter/TagFilter",
+  component: TagFilter,
+  tags: ["autodocs"],
+  args: {
+    tags,
+    selectedTags: [],
+    matchAll: false,
+    onSelectedTagsChange: fn(),
+    onMatchAllChange: fn(),
+  },
   render: (args) => <InteractiveTagFilter {...args} />,
-  play: async ({ args, canvas, userEvent }) => {
-    const tag = canvas.getByRole("checkbox", { name: "tag1" });
-    await userEvent.click(tag);
-    await expect(tag).toBeChecked();
-    await expect(args.onClickTag).toHaveBeenLastCalledWith(["tag1"]);
+} satisfies Meta<typeof TagFilter>;
 
-    await userEvent.click(tag);
-    await expect(tag).not.toBeChecked();
-    await expect(args.onClickTag).toHaveBeenLastCalledWith([]);
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Collapsed: Story = {};
+
+export const Expanded: Story = {
+  play: async ({ canvas, userEvent }) => {
+    const disclosure = canvas.getByRole("button", { name: "Show 4 more tags" });
+    await userEvent.click(disclosure);
+
+    await expect(canvas.getAllByRole("checkbox")).toHaveLength(12);
+    await expect(canvas.getByRole("button", { name: "Show fewer tags" })).toHaveAttribute("aria-expanded", "true");
   },
 };
 
-export const AndFilter: Story = {
-  args: { tagAndFilter: true },
-};
-
 export const Selected: Story = {
-  args: { selectedTags: ["tag1", "tag3"] },
+  args: { selectedTags: ["tag-12", "tag-3"], matchAll: true },
 };
 
-export const ManyTags: Story = {
-  args: { tags: Array.from({ length: 40 }, (_, index) => `tag-${index + 1}`) },
+export const AllSelectedManyTags: Story = {
+  args: { tags: manyTags, selectedTags: manyTags, matchAll: true },
 };
 
-export const NoMatchCompatible: Story = {
-  args: { tags: ["advanced", "review"], selectedTags: ["advanced", "review"], tagAndFilter: true },
+export const Empty: Story = {
+  args: { tags: [] },
 };
 
-export const Mobile: Story = { ...ManyTags, globals: { viewport: { value: "iphone5", isRotated: false } } };
-
-export const LongTagMobile: Story = {
+export const LongTag: Story = {
   args: { tags: ["averylongunbrokentag".repeat(12)] },
+};
+
+export const Mobile320: Story = {
+  args: { selectedTags: ["tag-12", "tag-3"] },
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };
 
-export const Dark: Story = { ...Selected, globals: { theme: "dark" } };
+export const Dark: Story = {
+  args: { selectedTags: ["tag-12", "tag-3"] },
+  globals: { theme: "dark" },
+};

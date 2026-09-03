@@ -44,11 +44,9 @@ export const DeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
         <TagFilter
           tags={props.tags}
           selectedTags={props.selectedTags}
-          tagAndFilter={props.tagAndFilter}
-          onClickFilter={props.setTagAndFilter}
-          onClickAll={() => props.setSelectedTags(props.tags)}
-          onClickClear={() => props.setSelectedTags([])}
-          onClickTag={props.setSelectedTags}
+          matchAll={props.tagAndFilter}
+          onSelectedTagsChange={props.setSelectedTags}
+          onMatchAllChange={props.setTagAndFilter}
         />
       </fieldset>
       <div className="flex justify-end">

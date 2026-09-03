@@ -4,8 +4,8 @@ import { fn } from "storybook/test";
 
 import * as fixture from "@/storybook/fixture";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
+import { DeckFilterForm } from "@/features/deck-filter";
 
-import { StudySessionFilters } from "./StudySessionFilters";
 import { StudySessionStart } from "./StudySessionStart";
 
 const Filters: React.FC<{
@@ -19,7 +19,7 @@ const Filters: React.FC<{
   const [tagAndFilter, setTagAndFilter] = React.useState(props.initialTagAndFilter);
 
   return (
-    <StudySessionFilters
+    <DeckFilterForm
       difficultyLowerBound={1}
       difficultyMax={difficultyMax}
       difficultyMin={difficultyMin}

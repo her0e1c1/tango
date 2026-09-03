@@ -1,114 +1,186 @@
-/**
- * @file Defines the deck-filter feature's Tag Filter presentation component.
- * The component renders props and reports user intent through callbacks while data access stays
- * outside the view.
- */
-
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
+
 import { Button } from "@/shared/ui/button";
 import { TagList } from "@/shared/ui/content";
-import { Switch, Tag } from "@/shared/ui/forms";
+import { Tag } from "@/shared/ui/forms";
 
-/**
- * Toggles one tag in the current selection without mutating the original array.
- * Selecting an existing tag removes it; selecting a new tag appends it for the filter callback.
- */
-const updateTags = (tags: string[], tag: string) => {
-  if (tags.includes(tag)) {
-    return tags.filter((t) => t !== tag);
-  }
-  return [...tags, tag];
-};
+const COLLAPSED_UNSELECTED_TAG_LIMIT = 8;
+
+const uniqueInOrder = (values: readonly string[]): string[] => [...new Set(values)];
 
 export interface TagFilterProps {
-  onClickTag?: (tags: string[]) => void;
-  onClickFilter?: (v: boolean) => void;
-  onClickAll?: () => void;
-  onClickClear?: () => void;
-  tagAndFilter?: boolean;
-  selectedTags?: string[];
-  tags?: string[];
-  scroll?: boolean;
+  tags: string[];
+  selectedTags: string[];
+  matchAll: boolean;
+  onSelectedTagsChange: (tags: string[]) => void;
+  onMatchAllChange: (matchAll: boolean) => void;
 }
 
-/**
- * Renders the Tag Filter user interface.
- * Lets the user choose filter mode and tag selections, then reports the resulting filter or a
- * clear action.
- */
 export const TagFilter: React.FC<TagFilterProps> = (props) => {
   const { t } = useTranslation();
   const idPrefix = useId();
+  const [expanded, setExpanded] = useState(false);
+  const matchAnyRef = useRef<HTMLInputElement>(null);
+  const tagRefs = useRef(new Map<string, HTMLInputElement>());
+  const pendingExpandedTagFocusRef = useRef<string | null>(null);
   const headingId = `${idPrefix}-tags-heading`;
-  const modeId = `${idPrefix}-tag-filter-mode`;
-  const modeDescriptionId = `${idPrefix}-tag-filter-mode-description`;
+  const tagListId = `${idPrefix}-tags-list`;
+  const tagInputName = `${idPrefix}-tags`;
+  const radioGroupName = `${idPrefix}-tag-match`;
+  const selectedTags = uniqueInOrder(props.selectedTags);
+  const selectedTagSet = new Set(selectedTags);
+  const unselectedTags = uniqueInOrder(props.tags).filter((tag) => !selectedTagSet.has(tag));
+  const hiddenTagCount = Math.max(0, unselectedTags.length - COLLAPSED_UNSELECTED_TAG_LIMIT);
+  const visibleUnselectedTags = expanded ? unselectedTags : unselectedTags.slice(0, COLLAPSED_UNSELECTED_TAG_LIMIT);
+  // Persisted selections remain visible even when a tag disappeared from the current Card set, so
+  // the user can still understand and remove that filter.
+  const visibleTags = [...selectedTags, ...visibleUnselectedTags];
+  const status =
+    selectedTags.length === 0
+      ? t("deckFilter.tagFilter.noFilter")
+      : t("deckFilter.tagFilter.selected", { count: selectedTags.length });
+
+  useEffect(() => {
+    if (!expanded || pendingExpandedTagFocusRef.current === null) return;
+
+    tagRefs.current.get(pendingExpandedTagFocusRef.current)?.focus();
+    pendingExpandedTagFocusRef.current = null;
+  }, [expanded]);
+
+  const toggleTag = (tag: string) => {
+    if (!selectedTagSet.has(tag)) {
+      props.onSelectedTagsChange([...selectedTags, tag]);
+      return;
+    }
+
+    const nextSelectedTags = selectedTags.filter((selectedTag) => selectedTag !== tag);
+    const nextSelectedTagSet = new Set(nextSelectedTags);
+    const nextUnselectedTags = uniqueInOrder(props.tags).filter(
+      (availableTag) => !nextSelectedTagSet.has(availableTag)
+    );
+    const nextVisibleTags = expanded
+      ? [...nextSelectedTags, ...nextUnselectedTags]
+      : [...nextSelectedTags, ...nextUnselectedTags.slice(0, COLLAPSED_UNSELECTED_TAG_LIMIT)];
+
+    if (!nextVisibleTags.includes(tag)) {
+      // A controlled update can remove the activated chip from the collapsed list. Move focus
+      // first so keyboard users land on a predictable control instead of the document body.
+      const nextFocusableTag = nextVisibleTags.find((visibleTag) => tagRefs.current.has(visibleTag));
+      (nextFocusableTag === undefined ? matchAnyRef.current : tagRefs.current.get(nextFocusableTag))?.focus();
+    }
+
+    props.onSelectedTagsChange(nextSelectedTags);
+  };
 
   return (
     <section
       aria-labelledby={headingId}
-      data-testid="tag-filter"
       className="min-w-0 space-y-4 rounded-surface border border-border bg-surface p-4 shadow-surface md:p-5"
     >
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+      <header className="flex min-w-0 items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 id={headingId} className="text-title font-semibold text-ink">
             {t("deckFilter.tagFilter.title")}
           </h2>
-          <p className="mt-1 text-caption text-ink-muted">{t("deckFilter.tagFilter.description")}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="quiet"
-            size="sm"
-            label={t("deckFilter.tagFilter.all")}
-            {...(props.onClickAll !== undefined ? { onClick: props.onClickAll } : {})}
-          />
-          <Button
-            variant="quiet"
-            size="sm"
-            label={t("deckFilter.tagFilter.clear")}
-            {...(props.onClickClear !== undefined ? { onClick: props.onClickClear } : {})}
-          />
-        </div>
-      </header>
-      <div className="flex min-h-touch items-center justify-between gap-4 rounded-control bg-surface-muted p-3">
-        <div className="min-w-0">
-          <label htmlFor={modeId} className="text-body font-medium text-ink">
-            {t("deckFilter.tagFilter.matchAll")}
-          </label>
-          <p id={modeDescriptionId} className="text-caption text-ink-muted">
-            {props.tagAndFilter ? t("deckFilter.tagFilter.everySelected") : t("deckFilter.tagFilter.anySelected")}
+          <p aria-live="polite" className="text-caption text-ink-muted">
+            {status}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="text-caption font-bold text-accent-primary">
-            {props.tagAndFilter ? t("deckFilter.tagFilter.conjunctionAnd") : t("deckFilter.tagFilter.conjunctionOr")}
-          </span>
-          <Switch
-            id={modeId}
-            name="tag-filter-click-filter"
-            aria-label={t("deckFilter.tagFilter.matchAll")}
-            aria-describedby={modeDescriptionId}
-            {...(props.tagAndFilter !== undefined ? { checked: props.tagAndFilter } : {})}
-            onChange={(event) => props.onClickFilter?.(event.target.checked)}
-          />
+        <Button
+          variant="quiet"
+          size="sm"
+          className="shrink-0 border-0 text-accent-primary"
+          disabled={selectedTags.length === 0}
+          onClick={() => {
+            // Clearing disables this button, so focus a control that remains operable first.
+            matchAnyRef.current?.focus();
+            props.onSelectedTagsChange([]);
+          }}
+        >
+          {t("deckFilter.tagFilter.clear")}
+        </Button>
+      </header>
+
+      <fieldset>
+        <legend className="text-caption font-semibold text-ink">{t("deckFilter.tagFilter.match")}</legend>
+        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+          <label className="flex min-h-touch cursor-pointer items-center gap-2 text-body text-ink">
+            <input
+              ref={matchAnyRef}
+              type="radio"
+              name={radioGroupName}
+              value="any"
+              checked={!props.matchAll}
+              className="size-4 accent-accent-primary"
+              onChange={() => props.onMatchAllChange(false)}
+            />
+            {t("deckFilter.tagFilter.any")}
+          </label>
+          <label className="flex min-h-touch cursor-pointer items-center gap-2 text-body text-ink">
+            <input
+              type="radio"
+              name={radioGroupName}
+              value="all"
+              checked={props.matchAll}
+              className="size-4 accent-accent-primary"
+              onChange={() => props.onMatchAllChange(true)}
+            />
+            {t("deckFilter.tagFilter.all")}
+          </label>
         </div>
-      </div>
-      <TagList hasManyItems={(props.tags?.length ?? 0) > 30}>
-        {props.tags?.map((tag) => (
-          <Tag
-            className="mr-1 mb-1"
-            small
-            wrap
-            key={tag}
-            label={tag}
-            {...(props.selectedTags !== undefined ? { checked: props.selectedTags.includes(tag) } : {})}
-            onChange={() => props.onClickTag?.(updateTags(props.selectedTags ?? [], tag))}
-          />
-        ))}
-      </TagList>
+      </fieldset>
+
+      <fieldset
+        id={tagListId}
+        aria-label={t("deckFilter.tagFilter.choicesAria")}
+        className={visibleTags.length > 30 ? "max-h-64 overflow-y-auto" : undefined}
+      >
+        {visibleTags.length === 0 ? (
+          <p className="text-caption text-ink-muted">{t("deckFilter.tagFilter.empty")}</p>
+        ) : (
+          <TagList>
+            {visibleTags.map((tag) => (
+              <Tag
+                key={tag}
+                ref={(element) => {
+                  if (element === null) tagRefs.current.delete(tag);
+                  else tagRefs.current.set(tag, element);
+                }}
+                small
+                wrap
+                label={tag}
+                name={tagInputName}
+                value={tag}
+                checked={selectedTagSet.has(tag)}
+                onChange={() => toggleTag(tag)}
+              />
+            ))}
+          </TagList>
+        )}
+      </fieldset>
+
+      {hiddenTagCount > 0 ? (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={tagListId}
+          className="min-h-touch rounded-control px-1 text-caption font-semibold text-accent-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          onClick={(event) => {
+            if (!expanded && event.detail === 0) {
+              // Keyboard activation inserts the revealed tags before this button. Move focus to
+              // the first new tag so forward Tab reaches the newly available choices.
+              pendingExpandedTagFocusRef.current = unselectedTags[COLLAPSED_UNSELECTED_TAG_LIMIT] ?? null;
+            }
+            setExpanded((current) => !current);
+          }}
+        >
+          {expanded
+            ? t("deckFilter.tagFilter.showFewer")
+            : t("deckFilter.tagFilter.showMore", { count: hiddenTagCount })}
+        </button>
+      ) : null}
     </section>
   );
 };
