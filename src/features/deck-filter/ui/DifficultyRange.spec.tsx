@@ -20,7 +20,7 @@ const numericOptionValues = (select: HTMLElement): string[] =>
     .filter(Boolean);
 
 describe("DifficultyRange [CARD-10] [SETTINGS-04] [SWIPE-06]", () => {
-  it("shows a dash for an unrestricted boundary and explains its meaning accessibly", () => {
+  it("shows explicit domain bounds for legacy null boundaries", () => {
     render(
       <DifficultyRange
         {...difficultyBounds}
@@ -35,22 +35,19 @@ describe("DifficultyRange [CARD-10] [SETTINGS-04] [SWIPE-06]", () => {
     const minimum = screen.getByRole("combobox", { name: "Minimum difficulty" });
     const maximum = screen.getByRole("combobox", { name: "Maximum difficulty" });
 
-    expect(minimum).toHaveValue("");
-    expect(maximum).toHaveValue("");
-    expect(within(minimum).getByRole("option", { name: "-" })).toHaveValue("");
-    expect(within(maximum).getByRole("option", { name: "-" })).toHaveValue("");
+    expect(minimum).toHaveValue("1");
+    expect(maximum).toHaveValue("10");
+    expect(within(minimum).queryByRole("option", { name: "-" })).not.toBeInTheDocument();
+    expect(within(maximum).queryByRole("option", { name: "-" })).not.toBeInTheDocument();
     expect(numericOptionValues(minimum)).toEqual(Array.from({ length: 10 }, (_, index) => String(index + 1)));
     expect(numericOptionValues(maximum)).toEqual(Array.from({ length: 10 }, (_, index) => String(index + 1)));
-    expect(minimum).toHaveAccessibleDescription(
-      "A dash means no minimum difficulty. Include cards at or above this difficulty."
-    );
-    expect(maximum).toHaveAccessibleDescription(
-      "A dash means no maximum difficulty. Include cards at or below this difficulty."
-    );
+    expect(minimum).toHaveAccessibleDescription("Include cards at or above this difficulty.");
+    expect(maximum).toHaveAccessibleDescription("Include cards at or below this difficulty.");
+    expect(screen.getByRole("status")).toHaveTextContent("Difficulty range: 1 to 10.");
     expect(screen.queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
   });
 
-  it("explains the dash while numeric boundaries are selected and reports native selections", async () => {
+  it("explains each boundary and reports native selections", async () => {
     const onMinimumChange = vi.fn();
     const onMaximumChange = vi.fn();
     render(
@@ -66,12 +63,8 @@ describe("DifficultyRange [CARD-10] [SETTINGS-04] [SWIPE-06]", () => {
 
     const minimum = screen.getByRole("combobox", { name: "Minimum difficulty" });
     const maximum = screen.getByRole("combobox", { name: "Maximum difficulty" });
-    expect(minimum).toHaveAccessibleDescription(
-      "A dash means no minimum difficulty. Include cards at or above this difficulty."
-    );
-    expect(maximum).toHaveAccessibleDescription(
-      "A dash means no maximum difficulty. Include cards at or below this difficulty."
-    );
+    expect(minimum).toHaveAccessibleDescription("Include cards at or above this difficulty.");
+    expect(maximum).toHaveAccessibleDescription("Include cards at or below this difficulty.");
 
     await userEvent.selectOptions(minimum, "4");
     await userEvent.selectOptions(maximum, "7");
@@ -152,8 +145,8 @@ describe("DifficultyRange [CARD-10] [SETTINGS-04] [SWIPE-06]", () => {
           maximum={maximum}
           minimum={minimum}
           onClear={() => {
-            setMaximum(null);
-            setMinimum(null);
+            setMaximum(difficultyBounds.upperBound);
+            setMinimum(difficultyBounds.lowerBound);
           }}
           onMaximumChange={setMaximum}
           onMinimumChange={setMinimum}
@@ -165,7 +158,7 @@ describe("DifficultyRange [CARD-10] [SETTINGS-04] [SWIPE-06]", () => {
     await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
 
     expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveFocus();
-    expect(screen.getByRole("status")).toHaveTextContent("No difficulty limits.");
+    expect(screen.getByRole("status")).toHaveTextContent("Difficulty range: 1 to 10.");
     expect(screen.queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
   });
 
@@ -203,8 +196,8 @@ describe("DifficultyRange [CARD-10] [SETTINGS-04] [SWIPE-06]", () => {
 
     await userEvent.selectOptions(minimum, "3");
     expect(onMinimumChange).toHaveBeenCalledWith(3);
-    await userEvent.selectOptions(maximum, "");
-    expect(onMaximumChange).toHaveBeenCalledWith(null);
+    await userEvent.selectOptions(maximum, "5");
+    expect(onMaximumChange).toHaveBeenCalledWith(5);
 
     view.rerender(
       <DifficultyRange

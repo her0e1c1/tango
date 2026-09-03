@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createDeck } from "@/test/factories";
+import { createDeckSchema } from "../model/schema";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 describe("Deck Firestore document mapping [CARD-10]", () => {
@@ -39,15 +39,15 @@ describe("Deck Firestore document mapping [CARD-10]", () => {
   });
 
   it("maps a remote create command to the Firestore boundary", () => {
-    const { uid: _uid, createdAt: _createdAt, updatedAt: _updatedAt, ...deck } = createDeck({ id: "deck" });
+    const { deck } = createDeckSchema.parse({ uid: "actor", deck: { id: "deck", name: "Deck" } });
 
     expect(toDeckDocument("actor", deck, 10)).toEqual({
       id: "deck",
       uid: "actor",
       name: "Deck",
       isPublic: false,
-      difficultyMax: null,
-      difficultyMin: null,
+      difficultyMax: 10,
+      difficultyMin: 1,
       selectedTags: [],
       tagAndFilter: false,
       category: "",

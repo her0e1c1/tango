@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { difficultySchema } from "@/entities/study-progress/@x/deck";
+import { difficultySchema, MAX_DIFFICULTY, MIN_DIFFICULTY } from "@/entities/study-progress/@x/deck";
 
 export const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
 export const deckIdSchema = z.string().min(1, "Deck id is required");
@@ -29,8 +29,8 @@ export const deckFormSchema = editableDeckFieldsSchema
 const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
   isPublic: editableDeckFieldsSchema.shape.isPublic.default(false),
-  difficultyMax: editableDeckFieldsSchema.shape.difficultyMax.default(null),
-  difficultyMin: editableDeckFieldsSchema.shape.difficultyMin.default(null),
+  difficultyMax: editableDeckFieldsSchema.shape.difficultyMax.default(MAX_DIFFICULTY),
+  difficultyMin: editableDeckFieldsSchema.shape.difficultyMin.default(MIN_DIFFICULTY),
   selectedTags: editableDeckFieldsSchema.shape.selectedTags.default([]),
   tagAndFilter: editableDeckFieldsSchema.shape.tagAndFilter.default(false),
   category: editableDeckFieldsSchema.shape.category.default(""),

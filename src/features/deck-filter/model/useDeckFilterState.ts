@@ -91,7 +91,7 @@ export const useDeckFilterState = (deck: Deck): DeckFilterState => {
     difficultyUpperBound: MAX_DIFFICULTY,
     dirty: !areFiltersEqual(state.baseline, state.draft),
     saving: state.saving,
-    clearDifficultyRange: () => updateDraft({ difficultyMax: null, difficultyMin: null }),
+    clearDifficultyRange: () => updateDraft({ difficultyMax: MAX_DIFFICULTY, difficultyMin: MIN_DIFFICULTY }),
     save,
     setDifficultyMax: (value) => updateDraft({ difficultyMax: value }),
     setDifficultyMin: (value) => updateDraft({ difficultyMin: value }),

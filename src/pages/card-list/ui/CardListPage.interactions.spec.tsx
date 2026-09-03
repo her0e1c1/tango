@@ -127,6 +127,24 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CardListPage i
     });
   });
 
+  it("does not report the full difficulty domain as an active filter", () => {
+    const fullRangeDeck = createDeck({
+      ...deck,
+      difficultyMin: 1,
+      difficultyMax: 10,
+      selectedTags: [],
+    });
+    const view = renderCardList({ deck: fullRangeDeck });
+
+    expect(screen.getByText("No filters")).toBeInTheDocument();
+    expect(screen.queryByText("difficulty 1–10")).not.toBeInTheDocument();
+
+    view.unmount();
+    renderCardList({ deck: { ...fullRangeDeck, selectedTags: ["typescript"] } });
+    expect(screen.getByText("1 tag")).toBeInTheDocument();
+    expect(screen.queryByText("difficulty 1–10")).not.toBeInTheDocument();
+  });
+
   it("coordinates Card view and edit navigation", async () => {
     renderCardList();
 

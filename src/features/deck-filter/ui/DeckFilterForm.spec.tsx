@@ -1,6 +1,6 @@
 /**
  * @file Verifies the "DeckFilterForm" contract with automated examples.
- * The examples make the expected behavior concrete for difficulty controls, callbacks, and unrestricted limits.
+ * The examples make the expected behavior concrete for difficulty controls, callbacks, and default limits.
  */
 
 import { render, within, screen } from "@testing-library/react";
@@ -58,12 +58,12 @@ describe("CARD-10 DeckFilterForm", () => {
     expect(props.save).toHaveBeenCalledOnce();
   });
 
-  it("shows unrestricted limits", () => {
+  it("shows explicit domain bounds for legacy null limits", () => {
     render(<DeckFilterForm {...createProps()} difficultyMax={null} difficultyMin={null} />);
     const difficultyRegion = screen.getByRole("region", { name: "Difficulty range" });
     expect(within(difficultyRegion).queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("");
-    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("10");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("1");
   });
 
   it("disables editing while saving", () => {

@@ -66,6 +66,31 @@ describe("CARD-10 SWIPE-26 DeckFilterForm with useDeckFilterState", () => {
     ]);
   });
 
+  it("saves explicit domain bounds when clearing difficulty filters", async () => {
+    const deck = createRemoteDeck({ id: "filter-deck", difficultyMax: 8, difficultyMin: 3, selectedTags: [] });
+    render(<DeckFilterHarness deck={deck} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
+
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("10");
+    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("1");
+    expect(writeControls.calls).toHaveLength(0);
+
+    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
+    expect(writeControls.calls).toEqual([
+      [
+        "user-id",
+        {
+          id: "filter-deck",
+          difficultyMax: 10,
+          difficultyMin: 1,
+          selectedTags: [],
+          tagAndFilter: false,
+        },
+      ],
+    ]);
+  });
+
   it("disables all filter controls and prevents a duplicate save while writing", async () => {
     let finishWrite: () => void = () => undefined;
     writeControls.write = () =>
