@@ -34,7 +34,8 @@ const Toast = (props: ToastProps) => {
   return (
     <div
       className={cx(
-        "pointer-events-auto flex min-h-touch max-w-reading items-center justify-center gap-2 rounded-pill px-4 py-2 font-semibold shadow-elevated",
+        props.dismissible ? "pointer-events-auto" : "pointer-events-none",
+        "flex min-h-touch max-w-reading items-center justify-center gap-2 rounded-pill px-4 py-2 font-semibold shadow-elevated",
         presentation.className
       )}
     >

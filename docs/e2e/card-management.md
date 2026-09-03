@@ -218,6 +218,7 @@ Given:
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する編集対象の Card が存在する。
 - Card 編集画面で front text を変更し、まだ保存していない。
+- 永続する共通 toast が表示されている。
 
 When:
 
@@ -226,6 +227,8 @@ When:
 Then:
 
 - 最初の離脱は取り消され、変更した front text が編集画面に維持される。
+- 離脱確認 dialog 表示中の toast は操作 control と pointer hit target を持たない。
+- dialog 表示中に toast が消えるか置き換わっても、focus は Keep editing に維持される。
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。
 - 永続化された Card の front text は変更されない。
 - browser error が発生しない。

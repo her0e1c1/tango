@@ -96,6 +96,7 @@ Given:
 - 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
 - 方向操作には既定値と異なる action が設定され、操作ボタンの一部は非表示に設定されている。
 - document locale は English に設定されている。
+- 永続する共通 toast が表示されている。
 
 When:
 
@@ -108,6 +109,9 @@ Then:
 - Help dialog に現在設定されている方向操作の意味が semantic label で表示される。
 - Card の表示、autoplay、操作ボタン表示、Card details、Deck 一覧へ戻る操作が表示される。
 - 非表示の操作ボタンは現在の設定と一致する説明で表示される。
+- Help dialog 表示中の toast は操作 control と pointer hit target を持たない。
+- dialog 表示中に toast が消えるか置き換わっても、focus は Close help に維持される。
+- Help dialog を閉じると、永続する toast の通常の操作 control が復元される。
 - dialog 内のキー入力で Card、学習結果、session の位置が変更されない。
 - focus が dialog 内に維持され、閉じた後は Help trigger へ戻る。
 - browser error が発生しない。

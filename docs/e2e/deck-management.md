@@ -100,15 +100,18 @@ Given:
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に Card と再開可能な学習 session が存在する。
 - 削除要求の失敗が共通 toast で処理され、削除 dialog が閉じている。
+- 永続する失敗 toast が表示されている。
 - 次の削除要求は成功できる。
 
 When:
 
-- 対象 Deck の削除 dialog を開き直し、削除を再試行する。
+- 対象 Deck の削除 dialog を開き直し、短い mobile viewport で失敗 toast が削除 action と重なる状態にして再試行する。
 
 Then:
 
 - 削除 dialog が閉じる。
+- dialog 表示中の失敗 toast は操作 control と pointer hit target を持たず、重なった削除 action を妨げない。
+- dialog 表示中に toast が消えるか置き換わっても、focus は dialog 内に維持される。
 - Deck の削除成功が共通 toast で表示され、失敗 toast は残らない。
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck と関連する Card および学習 session が削除される。
@@ -199,6 +202,7 @@ Given:
 - Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
 - 認証済みユーザーが所有する編集対象の Deck が存在する。
 - Deck 編集画面で name を変更し、まだ保存していない。
+- 永続する共通 toast が表示されている。
 
 When:
 
@@ -207,6 +211,8 @@ When:
 Then:
 
 - 最初の離脱は取り消され、変更した name が編集画面に維持される。
+- 離脱確認 dialog 表示中の toast は操作 control と pointer hit target を持たない。
+- dialog 表示中に toast が消えるか置き換わっても、focus は Keep editing に維持される。
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。
 - 永続化された Deck の name は変更されない。
 - browser error が発生しない。
