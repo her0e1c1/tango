@@ -15,7 +15,7 @@ const displayToast = (input: ShowToastInput) => {
   return id;
 };
 
-describe("SETTINGS-04 Toast", () => {
+describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
   beforeEach(() => dismissToast());
 
   afterEach(() => {
@@ -159,6 +159,20 @@ describe("SETTINGS-04 Toast", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Swiped right");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("shows visual content while announcing its textual meaning", () => {
+    render(<ToastViewport />);
+    displayToast({
+      message: "Swiped right",
+      visualContent: <span data-testid="direction-icon">→</span>,
+      dismissible: false,
+      durationMs: null,
+    });
+
+    expect(screen.getByTestId("direction-icon")).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent("Information: Swiped right");
+    expect(screen.getAllByText("Swiped right")).toHaveLength(1);
   });
 
   it.each(["neutral", "success"] as const)("automatically dismisses %s notifications after four seconds", (tone) => {

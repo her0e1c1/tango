@@ -36,7 +36,7 @@ Then:
 - 現在だった Card の difficulty が mastered rule に従って 1 下がり、学習回数が 1 増えて保存される。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
-- 実行した swipe 方向が共通 toast で短時間表示される。
+- 実行した swipe 方向が、言語に依存しないアイコンとして共通 toast で短時間表示される。
 - browser error が発生しない。
 
 <a id="swipe-03"></a>
