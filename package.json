@@ -73,7 +73,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
-    "@biomejs/biome": "2.5.7",
+    "@biomejs/biome": "2.5.11",
     "@feature-sliced/steiger-plugin": "^0.7.0",
     "@firebase/rules-unit-testing": "^5.0.1",
     "@playwright/test": "^1.61.1",
