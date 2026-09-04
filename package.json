@@ -39,7 +39,7 @@
     "storybook": "storybook dev"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.7.1",
+    "@hookform/resolvers": "^5.9.1",
     "@tailwindcss/postcss": "^4.3.2",
     "@types/file-saver": "^2.0.7",
     "@types/lodash": "^4.17.24",
