@@ -29,6 +29,9 @@ services:
   browser:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
     init: true
+    # The CLI is installed only to start this disposable server; waiting for a registry audit can keep port 3000 closed.
+    environment:
+      NPM_CONFIG_AUDIT: "false"
     # Chromium workers need the host IPC namespace so parallel runs do not exhaust Docker's 64 MB /dev/shm default.
     ipc: host
     user: pwuser
