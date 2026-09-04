@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createStore } from "zustand/vanilla";
 
 export type ToastId = number;
@@ -6,6 +7,8 @@ export type ToastTone = "neutral" | "success" | "warning" | "error";
 
 export interface ShowToastInput {
   message: string;
+  /** Replaces the visible message while keeping the text available to the live-region announcement. */
+  visualContent?: ReactNode;
   tone?: ToastTone;
   durationMs?: number | null;
   dismissible?: boolean;
@@ -14,6 +17,7 @@ export interface ShowToastInput {
 export interface ToastState {
   id: ToastId;
   message: string;
+  visualContent: ReactNode | undefined;
   tone: ToastTone;
   durationMs: number | null;
   dismissible: boolean;
@@ -148,6 +152,7 @@ export const showToast = (input: ShowToastInput): ToastId => {
     current: {
       id,
       message: input.message,
+      visualContent: input.visualContent,
       tone,
       durationMs: input.durationMs === undefined ? DEFAULT_DURATION_MS[tone] : input.durationMs,
       dismissible: input.dismissible ?? true,

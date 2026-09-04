@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { TFunction } from "i18next";
+import { AiOutlineArrowDown, AiOutlineArrowLeft, AiOutlineArrowRight, AiOutlineArrowUp } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey, useLatest } from "react-use";
@@ -27,12 +28,12 @@ type StudyShortcutAction =
   | "toggleSwipeButtonList"
   | "toggleAutoPlay";
 
-const swipeFeedbackKeys = {
-  cardSwipeUp: "studySession.feedback.swipedUp",
-  cardSwipeDown: "studySession.feedback.swipedDown",
-  cardSwipeLeft: "studySession.feedback.swipedLeft",
-  cardSwipeRight: "studySession.feedback.swipedRight",
-} as const satisfies Record<SwipeDirection, string>;
+const swipeFeedbackPresentation = {
+  cardSwipeUp: { icon: AiOutlineArrowUp, labelKey: "studySession.feedback.swipedUp" },
+  cardSwipeDown: { icon: AiOutlineArrowDown, labelKey: "studySession.feedback.swipedDown" },
+  cardSwipeLeft: { icon: AiOutlineArrowLeft, labelKey: "studySession.feedback.swipedLeft" },
+  cardSwipeRight: { icon: AiOutlineArrowRight, labelKey: "studySession.feedback.swipedRight" },
+} as const satisfies Record<SwipeDirection, { icon: typeof AiOutlineArrowUp; labelKey: string }>;
 
 const SWIPE_FEEDBACK_DURATION_MS = 900;
 const SWIPE_FEEDBACK_TONE = "neutral" satisfies ToastTone;
@@ -138,8 +139,17 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const study = useStudy(deckId, (direction) => {
+    const { icon: Icon, labelKey } = swipeFeedbackPresentation[direction];
     showToast({
-      message: t(swipeFeedbackKeys[direction]),
+      message: t(labelKey),
+      visualContent: (
+        <Icon
+          aria-hidden="true"
+          className="text-3xl"
+          data-swipe-feedback-direction={direction}
+          data-testid="swipe-feedback-direction"
+        />
+      ),
       tone: SWIPE_FEEDBACK_TONE,
       durationMs: SWIPE_FEEDBACK_DURATION_MS,
       dismissible: false,
