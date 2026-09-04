@@ -246,7 +246,12 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
     await user.keyboard("{ArrowRight}");
 
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
-    expect(screen.getByText("Swiped right")).toBeVisible();
+    expect(screen.getByTestId("swipe-feedback-direction")).toHaveAttribute(
+      "data-swipe-feedback-direction",
+      "cardSwipeRight"
+    );
+    expect(screen.getByRole("status", { name: "Toast notifications" })).toHaveTextContent("Swiped right");
+    expect(screen.getAllByText("Swiped right")).toHaveLength(1);
     expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
   });
 
@@ -268,7 +273,11 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
       await request.promise;
     });
 
-    expect(await screen.findByText("右へスワイプしました")).toBeVisible();
+    expect(await screen.findByRole("status", { name: "トースト通知" })).toHaveTextContent("右へスワイプしました");
+    expect(screen.getByTestId("swipe-feedback-direction")).toHaveAttribute(
+      "data-swipe-feedback-direction",
+      "cardSwipeRight"
+    );
     expect(screen.queryByText("Swiped right")).not.toBeInTheDocument();
     expect(screen.getByText("Front two")).toBeVisible();
   });

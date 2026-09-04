@@ -45,7 +45,10 @@ test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ 
   await page.getByRole("button", { name: "Swipe up" }).click();
 
   const feedback = page.getByRole("status").filter({ hasText: "Swiped up" });
+  const directionIcon = page.getByTestId("swipe-feedback-direction");
   await expect(feedback).toBeVisible();
+  await expect(directionIcon).toHaveAttribute("data-swipe-feedback-direction", "cardSwipeUp");
+  await expect(directionIcon).toBeVisible();
   await expect(page.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect
@@ -56,6 +59,7 @@ test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ 
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
   await expect(feedback).toHaveCount(0, { timeout: 2000 });
+  await expect(directionIcon).toHaveCount(0);
 });
 
 test("SWIPE-03 saves non-mastered progress and advances to the next Card", async ({ fixture, page }) => {

@@ -15,6 +15,7 @@ import {
 
 interface ToastProps {
   message: string;
+  visualContent: React.ReactNode | undefined;
   tone: ToastTone;
   dismissible: boolean;
   onDismiss: () => void;
@@ -40,7 +41,16 @@ const Toast = (props: ToastProps) => {
       )}
     >
       <span className="sr-only">{t(presentation.labelKey)}: </span>
-      <span className="min-w-0 break-words">{props.message}</span>
+      {props.visualContent === undefined ? (
+        <span className="min-w-0 break-words">{props.message}</span>
+      ) : (
+        <>
+          <span className="sr-only">{props.message}</span>
+          <span aria-hidden="true" className="inline-flex shrink-0 items-center justify-center">
+            {props.visualContent}
+          </span>
+        </>
+      )}
       {props.dismissible ? (
         <button
           type="button"
@@ -97,6 +107,7 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
     <Toast
       key={activeToast.id}
       message={activeToast.message}
+      visualContent={activeToast.visualContent}
       tone={activeToast.tone}
       dismissible={activeToast.dismissible && !modalActive}
       onDismiss={() => dismissToast(activeToast.id)}

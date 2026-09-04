@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
+import { AiOutlineArrowRight } from "react-icons/ai";
 
 import type { ToastTone } from ".";
 import { ToastViewport } from "./Toast";
@@ -9,6 +10,7 @@ interface ToastStoryProps {
   message: string;
   tone: ToastTone;
   dismissible?: boolean;
+  visualContent?: React.ReactNode;
 }
 
 const useStoryToast = (props: ToastStoryProps) => {
@@ -18,9 +20,10 @@ const useStoryToast = (props: ToastStoryProps) => {
       tone: props.tone,
       durationMs: null,
       dismissible: props.dismissible ?? true,
+      visualContent: props.visualContent,
     });
     return () => dismissToast(id);
-  }, [props.dismissible, props.message, props.tone]);
+  }, [props.dismissible, props.message, props.tone, props.visualContent]);
 };
 
 const ToastStory = (props: ToastStoryProps) => {
@@ -57,6 +60,13 @@ export const LongMessage: Story = {
 };
 export const NonInteractive: Story = {
   args: { dismissible: false, message: "Swiped right" },
+};
+export const DirectionIcon: Story = {
+  args: {
+    dismissible: false,
+    message: "Swiped right",
+    visualContent: <AiOutlineArrowRight aria-hidden="true" className="text-3xl" />,
+  },
 };
 export const Dark: Story = {
   args: { tone: "success", message: "Dark-mode notification" },
