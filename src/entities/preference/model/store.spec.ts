@@ -55,7 +55,7 @@ describe("preferences store [SETTINGS-06]", () => {
       loadSample: false,
       appearance: { darkMode: true },
       study: { cardInterval: 15 },
-      controls: { showCardDetails: false, showDifficultySlider: true, showBackTextSwipeOverlays: true },
+      controls: { showCardDetails: false, showBackTextSwipeOverlays: true },
     });
     store.getState().updatePreferences({ controls: { showSwipeButtonList: false } });
     store.getState().updatePreferences({ controls: { showPlaybackControls: false } });
@@ -68,7 +68,6 @@ describe("preferences store [SETTINGS-06]", () => {
       controls: {
         ...defaultPreferences.controls,
         showCardDetails: false,
-        showDifficultySlider: true,
         showBackTextSwipeOverlays: true,
         showSwipeButtonList: false,
         showPlaybackControls: false,
@@ -102,14 +101,12 @@ describe("preferences store [SETTINGS-06]", () => {
 
     store.getState().updatePreferences({
       study: { maxNumberOfCardsToLearn: 101, cardInterval: -1 },
-      appearance: { sizeBackText: -1 },
     });
 
     expect(store.getState().preferences.study.maxNumberOfCardsToLearn).toBe(
       defaultPreferences.study.maxNumberOfCardsToLearn
     );
     expect(store.getState().preferences.study.cardInterval).toBe(defaultPreferences.study.cardInterval);
-    expect(store.getState().preferences.appearance.sizeBackText).toBe(defaultPreferences.appearance.sizeBackText);
   });
 
   it("updates preferences through the public helpers", () => {

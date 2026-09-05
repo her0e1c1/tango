@@ -104,22 +104,18 @@ export type PreferencesOverrides = {
   study?: Partial<StudyPreferences>;
   controls?: Partial<ControlPreferences>;
   darkMode?: boolean;
-  fullscreen?: boolean;
-  sizeBackText?: number;
   hideBodyWhenCardChanged?: boolean;
   showSwipeFeedback?: boolean;
   maxNumberOfCardsToLearn?: number;
   shuffled?: boolean;
   useCardInterval?: boolean;
   cardInterval?: number;
-  keepBackTextViewed?: boolean;
   defaultAutoPlay?: boolean;
   selectedTags?: string[];
   showHelp?: boolean;
   showSwipeButtonList?: boolean;
   showPlaybackControls?: boolean;
   showCardDetails?: boolean;
-  showDifficultySlider?: boolean;
   showBackTextSwipeOverlays?: boolean;
   cardSwipeUp?: SwipeAction;
   cardSwipeDown?: SwipeAction;
@@ -132,8 +128,6 @@ const createAppearance = (
   flat?: Partial<PreferencesOverrides>
 ): AppearancePreferences => ({
   darkMode: appearance?.darkMode ?? flat?.darkMode ?? false,
-  fullscreen: appearance?.fullscreen ?? flat?.fullscreen ?? false,
-  sizeBackText: appearance?.sizeBackText ?? flat?.sizeBackText ?? 0,
   hideBodyWhenCardChanged: appearance?.hideBodyWhenCardChanged ?? flat?.hideBodyWhenCardChanged ?? true,
   showSwipeFeedback: appearance?.showSwipeFeedback ?? flat?.showSwipeFeedback ?? false,
 });
@@ -143,7 +137,6 @@ const createStudy = (study?: Partial<StudyPreferences>, flat?: Partial<Preferenc
   shuffled: study?.shuffled ?? flat?.shuffled ?? false,
   useCardInterval: study?.useCardInterval ?? flat?.useCardInterval ?? false,
   cardInterval: study?.cardInterval ?? flat?.cardInterval ?? 60,
-  keepBackTextViewed: study?.keepBackTextViewed ?? flat?.keepBackTextViewed ?? false,
   defaultAutoPlay: study?.defaultAutoPlay ?? flat?.defaultAutoPlay ?? false,
   selectedTags: study?.selectedTags ?? flat?.selectedTags ?? [],
 });
@@ -156,7 +149,6 @@ const createControls = (
   showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,
   showPlaybackControls: controls?.showPlaybackControls ?? flat?.showPlaybackControls ?? true,
   showCardDetails: controls?.showCardDetails ?? flat?.showCardDetails ?? true,
-  showDifficultySlider: controls?.showDifficultySlider ?? flat?.showDifficultySlider ?? false,
   showBackTextSwipeOverlays: controls?.showBackTextSwipeOverlays ?? flat?.showBackTextSwipeOverlays ?? false,
   cardSwipeUp: controls?.cardSwipeUp ?? flat?.cardSwipeUp ?? "GoToNextCardMastered",
   cardSwipeDown: controls?.cardSwipeDown ?? flat?.cardSwipeDown ?? "GoToNextCardNotMastered",

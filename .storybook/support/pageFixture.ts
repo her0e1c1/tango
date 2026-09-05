@@ -90,7 +90,6 @@ export const pageStoryState = {
   cards: pageStoryCards,
   preferences: createPreferences({
     maxNumberOfCardsToLearn: 20,
-    showDifficultySlider: true,
   }),
   sessionsByDeckId: {
     [PAGE_STORY_DECK_ID]: {

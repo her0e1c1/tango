@@ -5,8 +5,6 @@ import { studyPreferencesLimits } from "./rules";
 // Current-version runtime input recovers malformed fields; breaking persisted shapes are rejected by store versioning.
 const DEFAULT_APPEARANCE = {
   darkMode: false,
-  fullscreen: false,
-  sizeBackText: 0,
   hideBodyWhenCardChanged: true,
   showSwipeFeedback: false,
 };
@@ -16,7 +14,6 @@ const DEFAULT_STUDY = {
   shuffled: false,
   useCardInterval: false,
   cardInterval: 60,
-  keepBackTextViewed: false,
   defaultAutoPlay: false,
   selectedTags: [] as string[],
 };
@@ -26,7 +23,6 @@ const DEFAULT_CONTROLS = {
   showSwipeButtonList: true,
   showPlaybackControls: true,
   showCardDetails: true,
-  showDifficultySlider: false,
   showBackTextSwipeOverlays: false,
   cardSwipeUp: "GoToNextCardMastered" as const,
   cardSwipeDown: "GoToNextCardNotMastered" as const,
@@ -52,8 +48,6 @@ export const swipeActionSchema = z.enum([
 const appearancePreferencesSchema = z
   .object({
     darkMode: z.boolean().catch(DEFAULT_APPEARANCE.darkMode),
-    fullscreen: z.boolean().catch(DEFAULT_APPEARANCE.fullscreen),
-    sizeBackText: z.number().min(0).catch(DEFAULT_APPEARANCE.sizeBackText),
     hideBodyWhenCardChanged: z.boolean().catch(DEFAULT_APPEARANCE.hideBodyWhenCardChanged),
     showSwipeFeedback: z.boolean().catch(DEFAULT_APPEARANCE.showSwipeFeedback),
   })
@@ -74,7 +68,6 @@ const studyPreferencesSchema = z
       .min(studyPreferencesLimits.cardInterval.min)
       .max(studyPreferencesLimits.cardInterval.max)
       .catch(DEFAULT_STUDY.cardInterval),
-    keepBackTextViewed: z.boolean().catch(DEFAULT_STUDY.keepBackTextViewed),
     defaultAutoPlay: z.boolean().catch(DEFAULT_STUDY.defaultAutoPlay),
     selectedTags: z.array(z.string()).catch([...DEFAULT_STUDY.selectedTags]),
   })
@@ -86,7 +79,6 @@ export const controlPreferencesSchema = z
     showSwipeButtonList: z.boolean().catch(DEFAULT_CONTROLS.showSwipeButtonList),
     showPlaybackControls: z.boolean().catch(DEFAULT_CONTROLS.showPlaybackControls),
     showCardDetails: z.boolean().catch(DEFAULT_CONTROLS.showCardDetails),
-    showDifficultySlider: z.boolean().catch(DEFAULT_CONTROLS.showDifficultySlider),
     showBackTextSwipeOverlays: z.boolean().catch(DEFAULT_CONTROLS.showBackTextSwipeOverlays),
     cardSwipeUp: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeUp),
     cardSwipeDown: swipeActionSchema.catch(DEFAULT_CONTROLS.cardSwipeDown),
