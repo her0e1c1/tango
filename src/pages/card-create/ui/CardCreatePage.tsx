@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CATEGORY, type Deck, useDeck } from "@/entities/deck";
+import type { CardFormFields } from "@/features/card-form";
 import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
@@ -13,18 +14,22 @@ import { CardCreator } from "./CardCreator";
 const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const navigate = useNavigate();
   const destination = routes.cardList.to(deck.id);
-  const { form, onSubmit, dismissSaveError } = useCardCreatePageModel(
-    deck.id,
-    () => void navigate(destination, { replace: true })
-  );
-  const cancel = () => {
-    dismissSaveError();
-    void navigate(destination);
+  const { form, submit } = useCardCreatePageModel(deck.id);
+  const create = async (values: CardFormFields): Promise<void> => {
+    if (await submit(values)) {
+      void navigate(destination, { replace: true });
+    }
   };
 
   return (
     <AppLayout showHeader>
-      <CardCreator categories={CATEGORY} deckName={deck.name} form={form} onCancel={cancel} onSubmit={onSubmit} />
+      <CardCreator
+        categories={CATEGORY}
+        deckName={deck.name}
+        form={form}
+        onCancel={() => void navigate(destination)}
+        onSubmit={create}
+      />
     </AppLayout>
   );
 };
@@ -40,6 +45,6 @@ export const CardCreatePage: React.FC = () => {
     );
   }
 
-  // Form state and generated identity belong to one target Deck and must reset when the route changes.
+  // Form values belong to one target Deck and must reset when the route changes.
   return <AvailableCardCreatePage key={deckId} deck={deck} />;
 };

@@ -7,26 +7,46 @@ import { CATEGORY, createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalDeck } from "@/test/factories";
 
-const writes = vi.hoisted(() => ({ createCard: vi.fn(), generateCardId: vi.fn(() => "generated-card-id") }));
+const writes = vi.hoisted(() => ({
+  createCard: vi.fn<typeof import("@/entities/card").createCard>(),
+}));
+const validation = vi.hoisted(() => ({ ready: undefined as Promise<void> | undefined }));
 
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   createCard: writes.createCard,
-  generateCardId: writes.generateCardId,
 }));
+vi.mock("../model/schema", async (importOriginal) => {
+  const original = await importOriginal<typeof import("../model/schema")>();
+  return {
+    // Hold real schema validation so additional clicks can occur before the resolver finishes.
+    cardCreateFormSchema: original.cardCreateFormSchema.superRefine(async () => {
+      if (validation.ready !== undefined) await validation.ready;
+    }),
+  };
+});
 
 import { useCardCreatePageModel } from "../model/useCardCreatePageModel";
 import { CardCreator } from "./CardCreator";
 
 const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
+const savedCards: { uid: string; card: Parameters<typeof writes.createCard>[1] }[] = [];
 
-const CardCreatorHarness = ({ onCreated = vi.fn() }: { onCreated?: (cardId: string) => void }) => {
-  const { form, onSubmit } = useCardCreatePageModel(deck.id, onCreated);
+const CardCreatorHarness = () => {
+  const { form, submit } = useCardCreatePageModel(deck.id);
   return (
     <>
-      <CardCreator categories={CATEGORY} deckName={deck.name} form={form} onCancel={vi.fn()} onSubmit={onSubmit} />
+      <CardCreator
+        categories={CATEGORY}
+        deckName={deck.name}
+        form={form}
+        onCancel={vi.fn()}
+        onSubmit={async (values) => {
+          await submit(values);
+        }}
+      />
       <ToastViewport />
     </>
   );
@@ -38,63 +58,91 @@ const enterRequiredValues = async () => {
   await userEvent.type(screen.getByRole("textbox", { name: "Back text" }), "Back value");
 };
 
+const deferred = () => {
+  let resolve: () => void = () => undefined;
+  const promise = new Promise<void>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+};
+
 describe("CARD-13 CARD-14 CARD-15 CardCreator", () => {
   beforeEach(async () => {
     dismissToast();
     await createDeck("", deck);
+    savedCards.length = 0;
+    validation.ready = undefined;
     writes.createCard.mockReset();
-    writes.createCard.mockResolvedValue(undefined);
-    writes.generateCardId.mockClear();
-  });
-
-  it("creates a Card with one stable generated identity", async () => {
-    const onCreated = vi.fn();
-    render(<CardCreatorHarness onCreated={onCreated} />);
-    await enterRequiredValues();
-
-    await userEvent.click(screen.getByRole("button", { name: "Create card" }));
-
-    await waitFor(() => expect(onCreated).toHaveBeenCalledWith("generated-card-id"));
-    expect(screen.getByText("Created card “Front value”.")).toBeVisible();
-    expect(writes.generateCardId).toHaveBeenCalledOnce();
-    expect(writes.createCard).toHaveBeenCalledWith("user-id", {
-      id: "generated-card-id",
-      uniqueKey: "generated-card-id",
-      deckId: deck.id,
-      frontText: "Front value",
-      backText: "Back value",
-      tags: [],
+    writes.createCard.mockImplementation((uid, card) => {
+      savedCards.push({ uid, card });
+      return Promise.resolve();
     });
   });
 
-  it("keeps input and identity when a failed creation is retried", async () => {
-    writes.createCard.mockRejectedValueOnce(new Error("write failed")).mockResolvedValueOnce(undefined);
-    const onCreated = vi.fn();
-    render(<CardCreatorHarness onCreated={onCreated} />);
+  it("saves the entered Card and shows its success notification", async () => {
+    render(<CardCreatorHarness />);
     await enterRequiredValues();
 
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
+
+    expect(await screen.findByText("Created card “Front value”.")).toBeVisible();
+    expect(savedCards).toEqual([
+      {
+        uid: "user-id",
+        card: {
+          id: expect.any(String),
+          uniqueKey: expect.any(String),
+          deckId: deck.id,
+          frontText: "Front value",
+          backText: "Back value",
+          tags: [],
+        },
+      },
+    ]);
+    expect(savedCards[0]?.card.uniqueKey).toBe(savedCards[0]?.card.id);
+  });
+
+  it("keeps both inputs after rejection and retries with a new Card identity", async () => {
+    let rejectedCardId: string | undefined;
+    writes.createCard.mockImplementationOnce((_uid, card) => {
+      rejectedCardId = card.id;
+      return Promise.reject(new Error("write rejected"));
+    });
+    render(<CardCreatorHarness />);
+    await enterRequiredValues();
+
+    await userEvent.click(screen.getByRole("button", { name: "Create card" }));
+
     expect(await screen.findByText("Unable to create this card. Try again.")).toBeVisible();
+    expect(savedCards).toEqual([]);
+    expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Back value");
     await userEvent.click(screen.getByRole("tab", { name: "Front" }));
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front value");
 
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
-    await waitFor(() => expect(onCreated).toHaveBeenCalledOnce());
+    expect(await screen.findByText("Created card “Front value”.")).toBeVisible();
     expect(screen.queryByText("Unable to create this card. Try again.")).not.toBeInTheDocument();
-    expect(writes.createCard).toHaveBeenCalledTimes(2);
-    expect(writes.createCard.mock.calls[0]?.[1]).toEqual(writes.createCard.mock.calls[1]?.[1]);
-    expect(writes.generateCardId).toHaveBeenCalledOnce();
+    expect(savedCards).toHaveLength(1);
+    expect(rejectedCardId).toBeDefined();
+    expect(savedCards[0]?.card).toEqual({
+      id: expect.any(String),
+      uniqueKey: expect.any(String),
+      deckId: deck.id,
+      frontText: "Front value",
+      backText: "Back value",
+      tags: [],
+    });
+    expect(savedCards[0]?.card.id).not.toBe(rejectedCardId);
+    expect(savedCards[0]?.card.uniqueKey).toBe(savedCards[0]?.card.id);
   });
 
-  it("suppresses a second submit while creation is pending", async () => {
-    let finishWrite: () => void = () => undefined;
-    writes.createCard.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          finishWrite = resolve;
-        })
-    );
+  it("saves one Card for immediately repeated clicks", async () => {
+    const write = deferred();
+    writes.createCard.mockImplementation(async (uid, card) => {
+      await write.promise;
+      savedCards.push({ uid, card });
+    });
     render(<CardCreatorHarness />);
     await enterRequiredValues();
     const createButton = screen.getByRole("button", { name: "Create card" });
@@ -102,29 +150,47 @@ describe("CARD-13 CARD-14 CARD-15 CardCreator", () => {
     fireEvent.click(createButton);
     fireEvent.click(createButton);
 
-    await waitFor(() => expect(writes.createCard).toHaveBeenCalledOnce());
     expect(screen.getByRole("button", { name: "Creating…" })).toBeDisabled();
-    act(() => finishWrite());
+    act(() => write.resolve());
+
     await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
+    expect(savedCards).toHaveLength(1);
   });
 
-  it("does not navigate after an in-flight creation outlives the Page", async () => {
-    let finishWrite: () => void = () => undefined;
-    writes.createCard.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          finishWrite = resolve;
-        })
-    );
-    const onCreated = vi.fn();
-    const view = render(<CardCreatorHarness onCreated={onCreated} />);
+  it("disables repeated clicks while asynchronous validation is pending", async () => {
+    const ready = deferred();
+    validation.ready = ready.promise;
+    render(<CardCreatorHarness />);
+    await enterRequiredValues();
+
+    await userEvent.dblClick(screen.getByRole("button", { name: "Create card" }));
+
+    expect(screen.getByRole("button", { name: "Creating…" })).toBeDisabled();
+    expect(savedCards).toEqual([]);
+    act(() => ready.resolve());
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
+    expect(savedCards).toHaveLength(1);
+  });
+
+  it("disables repeated clicks until the pending save finishes", async () => {
+    const write = deferred();
+    writes.createCard.mockImplementation(async (uid, card) => {
+      await write.promise;
+      savedCards.push({ uid, card });
+    });
+    render(<CardCreatorHarness />);
     await enterRequiredValues();
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
-    view.unmount();
 
-    await Promise.resolve(act(async () => finishWrite()));
+    const createButton = screen.getByRole("button", { name: "Creating…" });
+    expect(createButton).toBeDisabled();
+    await userEvent.dblClick(createButton);
 
-    expect(onCreated).not.toHaveBeenCalled();
-    expect(screen.queryByText("Created card “Front value”.")).not.toBeInTheDocument();
+    expect(savedCards).toEqual([]);
+    act(() => write.resolve());
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
+    expect(savedCards).toHaveLength(1);
   });
 });

@@ -2,7 +2,7 @@
 
 ## 目的
 
-Card の作成・編集・削除が保存先の境界を守り、失敗後の再試行でも入力と identity を維持できることを確認する。
+Card の作成・編集・削除が保存先の境界を守り、失敗後も入力を維持して再試行できることを確認する。Card 作成の再試行には新しい ID を使用する。
 
 ## テストケース
 
@@ -14,7 +14,7 @@ Card の作成・編集・削除が保存先の境界を守り、失敗後の再
 | CARD-09 | write | [Card の編集失敗後に再試行できる](#card-09) |
 | CARD-13 | write | [remote Deck に Card を作成できる](#card-13) |
 | CARD-14 | write | [local-only Deck に Card を作成できる](#card-14) |
-| CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](#card-15) |
+| CARD-15 | write | [remote Card の作成拒否後に新しい ID で重複なく再試行できる](#card-15) |
 | CARD-16 | write | [Card の削除失敗後に再試行できる](#card-16) |
 | CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](#card-17) |
 | CARD-21 | read | [Card の未表示の面にある入力エラーを修正できる](#card-21) |
@@ -132,7 +132,7 @@ Given:
 When:
 
 - Card 一覧の Actions の Add card から作成画面を開き、Front / Back の拡大編集で本文を入力する。
-- タグ選択画面を開いて閉じ、Card を作成して画面を reload する。
+- タグ選択画面を開いて閉じ、作成ボタンを続けてクリックして Card を作成し、画面を reload する。
 
 Then:
 
@@ -141,6 +141,7 @@ Then:
 - 拡大編集とタグ選択の背景は viewport 全体を覆い、タグ選択画面は下端に隙間なく接する。
 - 作成した Card が reload 後も同じ Deck の Card 一覧に表示される。
 - Card は remote 保存先だけに1件存在し、owner は対象 Deck と一致する。
+- 入力検証中と保存中は作成ボタンが無効になり、作成処理が終わるまで追加の作成を受け付けない。
 - browser error が発生しない。
 
 <a id="card-14"></a>
@@ -167,7 +168,7 @@ Then:
 
 <a id="card-15"></a>
 
-### CARD-15 remote Card の作成失敗後に重複なく再試行できる
+### CARD-15 remote Card の作成拒否後に新しい ID で重複なく再試行できる
 
 カテゴリ: `write`
 
@@ -175,8 +176,8 @@ Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する remote Deck が存在する。
-- remote Card の最初の作成要求が失敗している。
-- 作成失敗が画面内で処理され、入力内容と作成対象の Card ID が維持されている。
+- remote Card の最初の作成要求が保存前に拒否され、Card が保存されていないことが確定している。
+- 作成失敗が共通 toast で処理され、作成画面と入力内容が維持されている。
 - 次の作成要求は成功できる。
 
 When:
@@ -186,11 +187,13 @@ When:
 Then:
 
 - Card の作成成功が共通 toast で表示され、失敗 toast は残らない。
-- 最初の要求と再試行で同じ Card ID が使用される。
+- 再試行には最初の要求と異なる新しい Card ID と、それと同じ unique key が使用される。
 - 作成した Card が対象 Deck の remote data に一つだけ存在する。
-- Card の front text、back text、deck ID、owner、unique key が最初の作成要求から維持されている。
+- Card の front text、back text、deck ID、owner が最初の作成要求から維持されている。
 - browser storage に同じ Card の local-only duplicate が存在しない。
 - 最初の作成失敗に伴う未処理の browser error が発生しない。
+
+保存結果が不明な通信失敗では、最初の要求が保存済みである可能性がある。再試行は新しい ID を使用するため、この場合の重複防止は保証しない。
 
 <a id="card-16"></a>
 

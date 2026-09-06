@@ -48,7 +48,7 @@ test("DECK-11 creates one empty local-only Deck without a remote duplicate", asy
   ).toEqual([]);
 });
 
-test("CARD-15 retries a failed remote Card create with the same ID and no duplicate", async ({
+test("CARD-15 retries a rejected remote Card create with a new ID and no duplicate", async ({
   fixture,
   page,
   browserErrors,
@@ -101,9 +101,9 @@ test("CARD-15 retries a failed remote Card create with the same ID and no duplic
   expect(created).toHaveLength(1);
   const [createdCard] = created;
   if (createdCard === undefined) throw new Error("Created remote Card was not found");
-  expect(documentId(createdCard)).toBe(attemptedCardId);
+  expect(documentId(createdCard)).not.toBe(attemptedCardId);
   expect(createdCard.fields.backText?.stringValue).toBe(backText);
-  expect(createdCard.fields.uniqueKey?.stringValue).toBe(attemptedCardId);
+  expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
   expect((await readLocalData(page)).cards).not.toEqual(
     expect.arrayContaining([expect.objectContaining({ frontText })])
   );
