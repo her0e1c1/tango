@@ -11,6 +11,7 @@
 - Write comments, commit messages, pull request titles, and pull request descriptions in English.
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
+- Always commit and push changes made in a git worktree.
 
 ## Mandatory Review Gate
 
@@ -38,8 +39,11 @@ For every task that changes repository files:
 ### Model organization
 
 - Across Pages, Features, and Entities, put state-changing operations and workflows in `model/actions/`, and read-only getters, selectors, and derived data in `model/queries/`.
-- Give each action its own file and ordinary named function. Do not combine operations into an actions object, an action factory, or a hook that returns multiple business-action callbacks.
-- Connect individual actions and queries directly in Pages or Containers. State hooks may own state, refs, forms, and resource cleanup, but must not return business-action callbacks.
+- Give each action its own file and ordinary named function. Keep action implementations out of actions objects, action factories, and hooks.
+- Provide a Page model hook under the Page's `model/` segment, such as `useAccountPageModel`, that supplies the values and functions needed by the Page or its Containers.
+- Keep Page models limited to wiring existing state hooks, queries, individual actions, and lifecycle hooks. They may bind inputs and state handles to actions, but must not implement business rules, validation, derived-data calculations, state transitions, or asynchronous workflow sequencing.
+- Page models may return multiple bound action callbacks so Pages can pass them directly to UI components, such as `onSignIn={signIn}`. Keep the action implementations in `model/actions/` and return the callbacks as named properties rather than an actions object.
+- State hooks may own state, refs, forms, and resource cleanup, but must not return business-action callbacks. Page models connect these state hooks to actions; they do not replace them.
 - Keep effects that trigger operations in dedicated lifecycle hooks, separate from read-only queries. Queries must not update state or initiate persistence.
 - Pass only the inputs and state handles each action needs; do not pass an entire model object. Preserve shared locks, save ordering, retry identities, and the lifetime of pending work when splitting operations.
 - Keep Entity stores limited to state, initialization, and persistence middleware. Preserve the roles of pure schemas, rules, and defaults, and keep persistence implementations in `api/`.

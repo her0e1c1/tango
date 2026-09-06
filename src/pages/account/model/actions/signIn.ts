@@ -1,5 +1,11 @@
+import type { AccountPageStore } from "../types";
 import { loginGoogle } from "./loginGoogle";
-import { runAccountAction, type AccountActionState } from "./runAccountAction";
+import { runAccountAction } from "./runAccountAction";
 
-export const signIn = (state: AccountActionState): Promise<void> =>
-  runAccountAction(loginGoogle, state, { success: "Signed in.", failure: "Unable to sign in." });
+export function signIn(store: AccountPageStore, isMounted: () => boolean): Promise<void> {
+  return runAccountAction(loginGoogle, store, isMounted, {
+    operation: "signIn",
+    success: "Signed in.",
+    failure: "Unable to sign in.",
+  });
+}

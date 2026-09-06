@@ -1,37 +1,33 @@
-import type { RefObject } from "react";
 import { showToast } from "@/shared/ui/toast";
 
-export interface AccountActionState {
-  pendingRef: RefObject<boolean>;
-  setPending: (pending: boolean) => void;
-  isMounted: () => boolean;
-}
+import type { AccountPageState, AccountPageStore } from "../types";
 
-interface AccountActionMessages {
+interface AccountActionOptions {
+  operation: keyof AccountPageState;
   success: string;
   failure: string;
 }
 
-export const runAccountAction = async (
+export async function runAccountAction(
   action: () => Promise<unknown>,
-  { pendingRef, setPending, isMounted }: AccountActionState,
-  messages: AccountActionMessages
-): Promise<void> => {
-  // Keep a synchronous lock because another same-tick action can run before React publishes pending state.
-  if (pendingRef.current) return;
-  pendingRef.current = true;
-  setPending(true);
+  store: AccountPageStore,
+  isMounted: () => boolean,
+  { operation, success, failure }: AccountActionOptions
+): Promise<void> {
+  // Acquire the synchronous store state before awaiting so duplicate actions cannot outrun React rendering.
+  if (store.getState()[operation].pending) return;
+  // Change only this operation so an auth transition can expose the opposite action without sharing its lock.
+  store.setState({ [operation]: { pending: true } });
   try {
     await action();
     // Auth transitions can temporarily unmount the Account route, but a completed user action still owns its result.
-    showToast({ message: messages.success, tone: "success" });
-  } catch (error) {
+    showToast({ message: success, tone: "success" });
+  } catch {
+    // This workflow handles failures, but late errors must not notify a Page the user has already left.
     if (isMounted()) {
-      showToast({ message: messages.failure, tone: "error" });
+      showToast({ message: failure, tone: "error" });
     }
-    throw error;
   } finally {
-    pendingRef.current = false;
-    if (isMounted()) setPending(false);
+    store.setState({ [operation]: { pending: false } });
   }
-};
+}

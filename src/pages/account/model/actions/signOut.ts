@@ -1,5 +1,11 @@
+import type { AccountPageStore } from "../types";
 import { signOutCurrentUser } from "./signOutCurrentUser";
-import { runAccountAction, type AccountActionState } from "./runAccountAction";
+import { runAccountAction } from "./runAccountAction";
 
-export const signOut = (state: AccountActionState): Promise<void> =>
-  runAccountAction(signOutCurrentUser, state, { success: "Signed out.", failure: "Unable to sign out." });
+export function signOut(store: AccountPageStore, isMounted: () => boolean): Promise<void> {
+  return runAccountAction(signOutCurrentUser, store, isMounted, {
+    operation: "signOut",
+    success: "Signed out.",
+    failure: "Unable to sign out.",
+  });
+}

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { linkWithPopup, signOut } from "firebase/auth";
 import { getI18n } from "react-i18next";
@@ -77,6 +77,56 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
     expect(screen.getByText("Test User")).toBeVisible();
     expect(screen.getByText("linked-user")).toBeVisible();
     expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
+  });
+
+  it("keeps sign-out pending when the earlier sign-in finishes during an auth transition", async () => {
+    const signInRequest = Promise.withResolvers<Awaited<ReturnType<typeof linkWithPopup>>>();
+    const signOutRequest = Promise.withResolvers<void>();
+    vi.mocked(linkWithPopup).mockReturnValue(signInRequest.promise);
+    vi.mocked(signOut).mockReturnValue(signOutRequest.promise);
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
+    expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeDisabled();
+
+    act(() => {
+      replaceAuthSession({
+        displayName: "Test User",
+        isAnonymous: false,
+        status: "authenticated",
+        uid: "anonymous-user",
+      });
+    });
+
+    expect(screen.getByText("Test User")).toBeVisible();
+    expect(screen.getByText("anonymous-user")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeDisabled();
+
+    await actAsync(async () => {
+      signInRequest.resolve({ user: {} } as never);
+      await signInRequest.promise;
+    });
+
+    expect(screen.getByRole("status", { name: "Toast notifications" })).toHaveTextContent("Signed in.");
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeDisabled();
+
+    await actAsync(async () => {
+      signOutRequest.resolve();
+      await signOutRequest.promise;
+      replaceAuthSession({
+        displayName: null,
+        isAnonymous: true,
+        status: "authenticated",
+        uid: "new-anonymous-user",
+      });
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent("Signed out.");
+    expect(screen.getByText("Anonymous account")).toBeVisible();
+    expect(screen.getByText("new-anonymous-user")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
   });
 
   it("updates fixed copy in place without translating linked identity data", async () => {
