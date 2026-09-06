@@ -53,7 +53,8 @@ run = "npm start -- --open --mode dev"
 
 [tasks.storybook]
 alias = "s"
-depends = ["//sample:build"]
+# Sync dependencies after pulls so preview imports resolve before the dev server starts.
+depends = ["init-deps", "//sample:build"]
 run = "npm run storybook"
 
 [tasks.test]

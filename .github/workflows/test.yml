@@ -39,6 +39,10 @@ jobs:
       contents: read
     uses: ./.github/workflows/integration.yaml
 
+  storybook:
+    name: Storybook
+    uses: ./.github/workflows/storybook.yaml
+
   checks:
     name: Test / ${{ matrix.name }}
     runs-on: ubuntu-latest
@@ -47,15 +51,12 @@ jobs:
       matrix:
         include:
           - name: Build
-            command: npm run build:sample && npm run build && npm run build:storybook
+            command: npm run build:sample && npm run build
           - name: Code quality
             command: npm run build:sample && npm run fmt && npm run lint
           - name: Unit coverage
             command: npm run build:sample && npm run test:coverage
             coverage: true
-          - name: Storybook
-            command: npm run build:sample && npm run test:storybook
-            storybook: true
           - name: Sample
             command: npm run fmt:sample && npm run test:sample
     steps:
@@ -70,10 +71,6 @@ jobs:
         run: npm install --global npm@12.0.1
 
       - run: npm ci
-
-      - name: Install Storybook Chromium
-        if: ${{ matrix.storybook }}
-        run: npx playwright install --with-deps chromium
 
       - name: Run ${{ matrix.name }}
         run: ${{ matrix.command }}
@@ -118,7 +115,7 @@ jobs:
   test:
     name: Test
     if: ${{ always() }}
-    needs: [checks, dependency-review, e2e, integration]
+    needs: [checks, dependency-review, e2e, integration, storybook]
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
@@ -128,10 +125,12 @@ jobs:
           E2E_RESULT: ${{ needs.e2e.result }}
           EVENT_NAME: ${{ github.event_name }}
           INTEGRATION_RESULT: ${{ needs.integration.result }}
+          STORYBOOK_RESULT: ${{ needs.storybook.result }}
         run: |
           test "$CHECKS_RESULT" = success
           test "$E2E_RESULT" = success
           test "$INTEGRATION_RESULT" = success
+          test "$STORYBOOK_RESULT" = success
           if [ "$EVENT_NAME" = pull_request ]; then
             test "$DEPENDENCY_REVIEW_RESULT" = success
           else
