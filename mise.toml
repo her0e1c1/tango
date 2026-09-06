@@ -37,6 +37,7 @@ run = "gcloud auth login"
 file = "scripts/setup-github-oidc.sh"
 
 [tasks.init]
+alias = "i"
 depends = ["init-deps"]
 run = "test -f .env || cp .env.example .env"
 
@@ -46,14 +47,17 @@ outputs = ["node_modules/.package-lock.json"]
 run = "npm ci"
 
 [tasks.dev]
+alias = "d"
 depends = ["//sample:build", "dev-up"]
 run = "npm start -- --open --mode dev"
 
 [tasks.storybook]
+alias = "s"
 depends = ["//sample:build"]
 run = "npm run storybook"
 
 [tasks.test]
+alias = "t"
 depends = ["//sample:build"]
 # Full-suite file concurrency can exhaust local CPU enough to trip existing five-second test timeouts.
 run = ["npm run test:unit -- --no-file-parallelism", { task = "//sample:test" }]
@@ -71,10 +75,12 @@ depends = ["//sample:build"]
 run = "npm run test:storybook"
 
 [tasks.coverage]
+alias = "v"
 depends = ["//sample:build"]
 run = "npm run test:coverage -- --no-file-parallelism"
 
 [tasks.fmt]
+alias = "m"
 depends = ["//sample:build"]
 run = ["npm run fmt", { task = "//sample:fmt" }]
 
@@ -86,6 +92,7 @@ run = [
 ]
 
 [tasks.lint]
+alias = "l"
 depends = ["//sample:build"]
 run = "npm run lint"
 
@@ -94,6 +101,7 @@ depends = ["//sample:build"]
 run = "npm run lint:fix"
 
 [tasks.build]
+alias = "b"
 depends = ["//sample:build"]
 run = ["npm run build", "npm run build:storybook"]
 
@@ -102,6 +110,7 @@ depends = ["//sample:build"]
 run = "npm run build:storybook"
 
 [tasks.e2e]
+alias = "e"
 depends = ["//sample:build"]
 env = { COMPOSE_FILE = ".devcontainer/compose.yaml:.devcontainer/compose.e2e.yaml" }
 run = """
@@ -119,11 +128,13 @@ docker compose run --rm --remove-orphans --env CI --entrypoint npm dev run e2e
 """
 
 [tasks.check]
+alias = "c"
 depends = ["init"]
 # Keep unit tests out of the static-check concurrency so CPU contention cannot turn their short timeouts into flakes.
 run = [{ tasks = ["fmt", "lint", "lint-docker"] }, { task = "test-unit" }]
 
 [tasks.fix]
+alias = "f"
 depends = ["init"]
 run = [{ task = "fmt-fix" }, { task = "lint-fix" }]
 
