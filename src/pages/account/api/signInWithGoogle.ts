@@ -13,6 +13,7 @@ export const signInWithGoogle = async (): Promise<User> => {
   } catch (error) {
     if (!(error instanceof FirebaseError)) throw error;
 
+    // Fall back to signing in directly if linking fails because the Google account is already registered.
     const credential = GoogleAuthProvider.credentialFromError(error);
     if (credential == null) throw error;
 
