@@ -1,16 +1,34 @@
-import { studyPreferencesLimits, usePreferences } from "@/entities/preference";
+import { useEffect } from "react";
+import { type UseFormReturn, useForm } from "react-hook-form";
 
-import { usePreferencesAutoSave } from "./usePreferencesAutoSave";
-import { usePreferencesDarkModeSync } from "./usePreferencesDarkModeSync";
-import { usePreferencesForm } from "./usePreferencesForm";
+import { type Preferences, studyPreferencesLimits, usePreferences } from "@/entities/preference";
+
+import { savePreferencesForm } from "./actions/savePreferencesForm";
+import { syncPreferencesDarkMode } from "./actions/syncPreferencesDarkMode";
 
 export const useSettingsPageModel = () => {
   const preferences = usePreferences();
-  const form = usePreferencesForm(preferences);
-  const { handleSubmit, setValue, subscribe } = form;
+  const form = useForm<Preferences>({ defaultValues: preferences });
 
-  usePreferencesDarkModeSync(setValue, preferences.appearance.darkMode);
-  usePreferencesAutoSave(subscribe, handleSubmit);
+  usePreferencesSync(form, preferences.appearance.darkMode);
 
   return { form, studyPreferencesLimits };
 };
+
+function usePreferencesSync(
+  { setValue, subscribe, handleSubmit }: Pick<UseFormReturn<Preferences>, "setValue" | "subscribe" | "handleSubmit">,
+  darkMode: boolean
+): void {
+  useEffect(() => {
+    syncPreferencesDarkMode(setValue, darkMode);
+  }, [setValue, darkMode]);
+
+  useEffect(
+    () =>
+      subscribe({
+        formState: { values: true },
+        callback: () => void savePreferencesForm(handleSubmit),
+      }),
+    [subscribe, handleSubmit]
+  );
+}
