@@ -1,7 +1,10 @@
-import type { RefObject } from "react";
+import type { StoreApi } from "zustand/vanilla";
+
+export interface AccountActionState {
+  pending: boolean;
+}
 
 export interface AccountActionControls {
-  pendingRef: RefObject<boolean>;
-  setPending: (pending: boolean) => void;
+  store: StoreApi<AccountActionState>;
   isMounted: () => boolean;
 }

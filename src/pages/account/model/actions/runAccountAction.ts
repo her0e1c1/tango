@@ -9,13 +9,12 @@ interface AccountActionMessages {
 
 export async function runAccountAction(
   action: () => Promise<unknown>,
-  { pendingRef, setPending, isMounted }: AccountActionControls,
+  { store, isMounted }: AccountActionControls,
   messages: AccountActionMessages
 ): Promise<void> {
-  // Keep a synchronous lock because another same-tick action can run before React publishes pending state.
-  if (pendingRef.current) return;
-  pendingRef.current = true;
-  setPending(true);
+  // Acquire the synchronous store state before awaiting so duplicate actions cannot outrun React rendering.
+  if (store.getState().pending) return;
+  store.setState({ pending: true });
   try {
     await action();
     // Auth transitions can temporarily unmount the Account route, but a completed user action still owns its result.
@@ -26,7 +25,6 @@ export async function runAccountAction(
       showToast({ message: messages.failure, tone: "error" });
     }
   } finally {
-    pendingRef.current = false;
-    if (isMounted()) setPending(false);
+    store.setState({ pending: false });
   }
 }

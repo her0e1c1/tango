@@ -4,19 +4,21 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
+import { useAuthAccount, useAuthUid } from "@/entities/auth";
 import { routes } from "@/shared/router";
 import { Button } from "@/shared/ui/button";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { signIn } from "../model/actions/signIn";
 import { signOut } from "../model/actions/signOut";
-import { useAccountQuery } from "../model/queries/useAccountQuery";
 import { useAccountActionState } from "../model/useAccountActionState";
 
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isLoggedIn, displayName, uid } = useAccountQuery();
+  const account = useAuthAccount();
+  const uid = useAuthUid();
+  const isLoggedIn = account != null;
   // Keep pending states independent so an auth transition cannot make the opposite action look busy.
   const signInState = useAccountActionState();
   const signOutState = useAccountActionState();
@@ -74,7 +76,7 @@ export const AccountPage: React.FC = () => {
             <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
               <dt className="shrink-0 text-body font-medium text-ink">{t("account.profile.displayName")}</dt>
               <dd className="min-w-0 break-words text-right text-caption text-ink-muted">
-                {isLoggedIn ? (displayName ?? t("account.profile.noName")) : t("account.profile.notAvailable")}
+                {isLoggedIn ? (account.displayName ?? t("account.profile.noName")) : t("account.profile.notAvailable")}
               </dd>
             </div>
             <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
