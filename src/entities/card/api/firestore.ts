@@ -9,7 +9,7 @@ import type {
   RemoteCardRead,
 } from "../model/types";
 
-import { collection, doc, getDocsFromServer, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
 import { mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
 import { db } from "@/shared/firebase";
@@ -22,8 +22,8 @@ import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
-/** @public Cross-Entity read contract for the two models sharing one physical Card document. */
-export interface CardRead {
+/** Cross-Entity read contract for the two models sharing one physical Card document. */
+interface CardRead {
   card: RemoteCardRead;
   progress: StudyProgress;
 }
@@ -42,8 +42,7 @@ const mapCardRead = (id: CardId, value: unknown): CardRead => {
 const mapActiveCardReads = (documents: ReadonlyArray<{ id: string; data: () => unknown }>): CardRead[] =>
   documents.map((document) => mapCardRead(document.id, document.data())).filter(({ card }) => card.deletedAt === null);
 
-/** @public Lets later consumers adopt separated reads without changing current Card state in this PR. */
-export const subscribeCardReads = (
+const subscribeCardReads = (
   uid: string,
   onReads: (reads: CardRead[]) => void,
   onError: (error: Error) => void
@@ -76,12 +75,6 @@ const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
 /** Keeps existing Card subscribers on the combined read model until #604. */
 export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
   subscribeCardReads(uid, (reads) => replaceRemoteCards(reads.map(combineCardRead)), onError);
-
-/** @public Fetch counterpart to subscribeCardReads for the separated read boundary. */
-export const fetchCardReads = async (uid: string): Promise<CardRead[]> => {
-  const snapshot = await getDocsFromServer(query(collection(db, CARD_COLLECTION), where("uid", "==", uid)));
-  return mapActiveCardReads(snapshot.docs);
-};
 
 /** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {

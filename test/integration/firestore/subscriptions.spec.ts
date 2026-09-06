@@ -8,7 +8,7 @@ import "@/test/initializeTestFirestore";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { deleteCard, editCard, fetchCardReads, mutateCards, subscribeCards } from "@/entities/card";
+import { deleteCard, editCard, mutateCards, subscribeCards } from "@/entities/card";
 import { createDeck, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
@@ -29,7 +29,7 @@ describe("Query realtime subscriptions [CARD-01] [CARD-10]", () => {
     await Promise.all(getApps().map(deleteApp));
   });
 
-  it("fetches separated Card reads through the public read API", async () => {
+  it("loads Card content and study information from the initial snapshot", async () => {
     const uid = "uid";
     const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Fetched Deck" });
     const card = createCard({
@@ -43,12 +43,18 @@ describe("Query realtime subscriptions [CARD-01] [CARD-10]", () => {
     await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
     await mutateCards(uid, [{ kind: "create", card }]);
 
-    const reads = await fetchCardReads(uid);
-
-    expect(reads).toContainEqual({
-      card: expect.objectContaining({ id: card.id, frontText: "Fetched Card" }),
-      progress: expect.objectContaining({ cardId: card.id, difficulty: 2, numberOfSeen: 3 }),
-    });
+    const onError = vi.fn();
+    const stopCards = subscribeCards(uid, onError);
+    try {
+      await vi.waitFor(() => {
+        expect(cardStore.getState().remoteCards).toContainEqual(
+          expect.objectContaining({ id: card.id, frontText: "Fetched Card", difficulty: 2, numberOfSeen: 3 })
+        );
+      });
+      expect(onError).not.toHaveBeenCalled();
+    } finally {
+      stopCards();
+    }
   });
 
   it("delivers initial, update, and delete snapshots without a cursor", async () => {
