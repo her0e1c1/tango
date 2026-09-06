@@ -41,7 +41,7 @@ describe("ACCOUNT-03 signOut", () => {
 
     let operation!: Promise<void>;
     act(() => {
-      operation = signOut(result.current);
+      operation = signOut(result.current.controls);
     });
 
     expect(result.current.pending).toBe(true);
@@ -62,13 +62,13 @@ describe("ACCOUNT-03 signOut", () => {
     const { result } = renderHook(() => useAccountActionState());
 
     await actAsync(async () => {
-      await expect(signOut(result.current)).rejects.toThrow("Sign-out failed");
+      await expect(signOut(result.current.controls)).resolves.toBeUndefined();
     });
     expect(showToast).toHaveBeenCalledWith({ message: "Unable to sign out.", tone: "error" });
 
     let retryOperation!: Promise<void>;
     act(() => {
-      retryOperation = signOut(result.current);
+      retryOperation = signOut(result.current.controls);
     });
 
     expect(result.current.pending).toBe(true);
@@ -89,7 +89,7 @@ describe("ACCOUNT-03 signOut", () => {
     let operation!: Promise<void>;
 
     act(() => {
-      operation = signOut(result.current);
+      operation = signOut(result.current.controls);
     });
     unmount();
     await actAsync(async () => {

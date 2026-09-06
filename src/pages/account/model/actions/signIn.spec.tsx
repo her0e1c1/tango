@@ -41,7 +41,7 @@ describe("ACCOUNT-02 signIn", () => {
 
     let operation!: Promise<void>;
     act(() => {
-      operation = signIn(result.current);
+      operation = signIn(result.current.controls);
     });
 
     expect(result.current.pending).toBe(true);
@@ -62,13 +62,13 @@ describe("ACCOUNT-02 signIn", () => {
     const { result } = renderHook(() => useAccountActionState());
 
     await actAsync(async () => {
-      await expect(signIn(result.current)).rejects.toThrow("Sign-in failed");
+      await expect(signIn(result.current.controls)).resolves.toBeUndefined();
     });
     expect(showToast).toHaveBeenCalledWith({ message: "Unable to sign in.", tone: "error" });
 
     let retryOperation!: Promise<void>;
     act(() => {
-      retryOperation = signIn(result.current);
+      retryOperation = signIn(result.current.controls);
     });
 
     expect(result.current.pending).toBe(true);
@@ -89,12 +89,12 @@ describe("ACCOUNT-02 signIn", () => {
     let operation!: Promise<void>;
 
     act(() => {
-      operation = signIn(result.current);
+      operation = signIn(result.current.controls);
     });
     unmount();
     await actAsync(async () => {
       request.reject(new Error("Late sign-in failure"));
-      await expect(operation).rejects.toThrow("Late sign-in failure");
+      await expect(operation).resolves.toBeUndefined();
     });
 
     expect(showToast).not.toHaveBeenCalled();

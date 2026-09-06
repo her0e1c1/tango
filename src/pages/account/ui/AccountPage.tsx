@@ -4,26 +4,22 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useAuthAccount, useAuthUid } from "@/entities/auth";
 import { routes } from "@/shared/router";
 import { Button } from "@/shared/ui/button";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { signIn } from "../model/actions/signIn";
-import { useAccountActionState } from "../model/useAccountActionState";
 import { signOut } from "../model/actions/signOut";
+import { useAccountQuery } from "../model/queries/useAccountQuery";
+import { useAccountActionState } from "../model/useAccountActionState";
 
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const account = useAuthAccount();
-  const uid = useAuthUid();
-  // Keep operation state separate so an auth transition cannot expose feedback from the action that just finished.
+  const { isLoggedIn, displayName, uid } = useAccountQuery();
+  // Keep pending states independent so an auth transition cannot make the opposite action look busy.
   const signInState = useAccountActionState();
   const signOutState = useAccountActionState();
-  const isLoggedIn = account != null;
-  const runSignIn = () => void signIn(signInState).catch(() => undefined);
-  const runSignOut = () => void signOut(signOutState).catch(() => undefined);
 
   useKey("t", () => void navigate(routes.deckList.to()));
 
@@ -49,11 +45,21 @@ export const AccountPage: React.FC = () => {
               <p className="text-caption text-ink-muted">{t("account.profile.description")}</p>
             </div>
             {isLoggedIn ? (
-              <Button variant="quiet" size="sm" loading={signOutState.pending} onClick={runSignOut}>
+              <Button
+                variant="quiet"
+                size="sm"
+                loading={signOutState.pending}
+                onClick={() => void signOut(signOutState.controls)}
+              >
                 {t("account.profile.signOut")}
               </Button>
             ) : (
-              <Button variant="primary" size="sm" loading={signInState.pending} onClick={runSignIn}>
+              <Button
+                variant="primary"
+                size="sm"
+                loading={signInState.pending}
+                onClick={() => void signIn(signInState.controls)}
+              >
                 {t("account.profile.signInWithGoogle")}
               </Button>
             )}
@@ -68,7 +74,7 @@ export const AccountPage: React.FC = () => {
             <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
               <dt className="shrink-0 text-body font-medium text-ink">{t("account.profile.displayName")}</dt>
               <dd className="min-w-0 break-words text-right text-caption text-ink-muted">
-                {isLoggedIn ? (account.displayName ?? t("account.profile.noName")) : t("account.profile.notAvailable")}
+                {isLoggedIn ? (displayName ?? t("account.profile.noName")) : t("account.profile.notAvailable")}
               </dd>
             </div>
             <div className="flex min-h-touch items-start justify-between gap-4 px-4 py-3">
