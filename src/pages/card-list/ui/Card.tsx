@@ -121,7 +121,7 @@ export const Card: React.FC<CardProps> = (props) => {
       {...handlers}
       aria-busy={disabled}
       className={cx(
-        "flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 transition-colors duration-fast ease-calm last:border-b-0 sm:gap-3 sm:px-4 dark:border-black",
+        "flex min-h-20 items-center gap-2 border-b border-border px-3 py-3 transition-colors duration-fast ease-calm last:border-b-0 sm:gap-3 sm:px-4 dark:border-black",
         disabled ? "bg-surface-muted" : "bg-surface",
         !disabled && "hover:bg-surface-muted",
         props.className
@@ -138,8 +138,10 @@ export const Card: React.FC<CardProps> = (props) => {
             if (!(disabled || suppressViewClick.current)) props.goToView?.(id);
           }}
         />
-        <span className="w-full truncate px-1 text-body font-semibold text-ink">{props.card.frontText}</span>
-        <div className="mt-1 flex w-full min-w-0 items-center gap-2 text-caption text-ink-muted">
+        <span className="line-clamp-2 w-full px-1 text-body font-semibold text-ink [overflow-wrap:anywhere]">
+          {props.card.frontText}
+        </span>
+        <div className="mt-1 flex w-full min-w-0 flex-col items-start gap-1 text-caption text-ink-muted sm:flex-row sm:items-center sm:gap-2">
           <span className="shrink-0">
             {seenCount === 0 ? t("cardList.card.notStudied") : t("cardList.card.studied", { count: seenCount })}
           </span>

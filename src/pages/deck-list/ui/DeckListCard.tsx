@@ -57,7 +57,7 @@ const formatLastStudied = (timestamp: number, t: TFunction): string => {
 };
 
 const primaryActionClassName =
-  "inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
+  "inline-flex min-h-touch shrink-0 items-center justify-center justify-self-start gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 const DeckListCardStatus: React.FC<{
   deck: DeckListCardProps["deck"];
@@ -70,13 +70,16 @@ const DeckListCardStatus: React.FC<{
   const { t } = useTranslation();
 
   return (
-    <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
+    <span
+      id={statusId}
+      className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-caption text-ink-muted"
+    >
       {deck.category !== "" && (
-        <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
+        <span className="max-w-full truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
           {deck.category}
         </span>
       )}
-      <span className="truncate">
+      <span className="min-w-0 break-words tabular-nums">
         {active && studySession
           ? `${String(progressValue)} / ${String(studySession.cardOrderIds.length)} · ${formatLastStudied(studySession.lastStudiedAt, t)}`
           : t("deckList.cardCount", { count: cardCount })}
@@ -133,11 +136,12 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
     <article
       aria-busy={pending}
       className={cx(
-        "relative flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 transition-colors duration-fast ease-calm last:border-b-0 dark:border-black",
+        "relative grid min-h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border px-3 py-3 transition-colors duration-fast ease-calm last:border-b-0 sm:flex dark:border-black",
         pending ? "bg-surface-muted" : "hover:bg-surface-muted"
       )}
     >
-      <div className="min-w-0 flex-1 px-1 py-1">
+      {/* Keep the name and study status above the actions on narrow screens so they retain the full row width. */}
+      <div className="col-span-2 min-w-0 flex-1 px-1 py-1">
         <button
           type="button"
           aria-label={t("deckList.view", { deckName: deck.name })}
@@ -146,7 +150,9 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           onClick={withId(props.onClickName)}
           disabled={pending}
         >
-          <span className="truncate text-body font-semibold text-ink">{deck.name}</span>
+          <span className="line-clamp-2 min-w-0 text-body font-semibold text-ink [overflow-wrap:anywhere]">
+            {deck.name}
+          </span>
           {!deck.localMode ? (
             <span role="img" aria-label={t("deckList.remote")} className="shrink-0 text-ink-muted">
               <AiOutlineCloud aria-hidden="true" size={16} />
