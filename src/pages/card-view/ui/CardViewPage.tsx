@@ -6,7 +6,7 @@ import { CardView } from "@/entities/card";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardViewState } from "../model/useCardViewState";
+import { useCardViewState } from "../model/queries/useCardViewState";
 
 export const CardViewPage: React.FC = () => {
   const { t } = useTranslation();

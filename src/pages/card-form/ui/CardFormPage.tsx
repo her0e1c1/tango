@@ -3,29 +3,44 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
+import { CATEGORY } from "@/entities/deck";
 import { routes, useNavigationGuard } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardForm } from "../model/useCardForm";
+import { useCardFormState } from "../model/useCardFormState";
+import { saveCard } from "../model/actions/saveCard";
+import { useAuthUid } from "@/entities/auth";
+import { dismissSaveError } from "../model/actions/dismissSaveError";
 import { CardEditor } from "./CardEditor";
 
 const CardFormContent: React.FC<{ card: Card }> = ({ card }) => {
   const navigate = useNavigate();
   const goBack = () => navigate(-1);
-  const editor = useCardForm({
-    card,
-    onSaved: (deckId) => {
-      const cardListPath = routes.cardList.to(deckId);
-      void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
-        navigate(cardListPath, { replace: true })
-      );
-    },
-  });
-  const guard = useNavigationGuard(editor.isDirty || editor.isSaving);
+  const uid = useAuthUid();
+  const editor = useCardFormState(card);
+  const onSubmit = (event?: React.BaseSyntheticEvent) => {
+    void editor.form.handleSubmit((values) =>
+      saveCard(values, {
+        uid,
+        snapshot: editor.snapshot,
+        savingRef: editor.savingRef,
+        setIsSaving: editor.setIsSaving,
+        saveErrorToastId: editor.saveErrorToastId,
+        isMounted: editor.isMounted,
+        onSaved: (deckId) => {
+          const cardListPath = routes.cardList.to(deckId);
+          void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
+            navigate(cardListPath, { replace: true })
+          );
+        },
+      })
+    )(event);
+  };
+  const guard = useNavigationGuard(editor.form.formState.isDirty || editor.isSaving);
 
   const cancel = () => {
-    editor.dismissSaveError();
+    dismissSaveError(editor.saveErrorToastId);
     void goBack();
   };
 
@@ -33,12 +48,17 @@ const CardFormContent: React.FC<{ card: Card }> = ({ card }) => {
     <AppLayout showHeader>
       {guard.element}
       <CardEditor
-        cardInfo={editor.cardInfo}
-        categories={editor.categories}
+        cardInfo={{
+          id: editor.snapshot.id,
+          uniqueKey: editor.snapshot.uniqueKey,
+          ...(editor.snapshot.createdAt ? { createdAt: editor.snapshot.createdAt } : {}),
+          ...(editor.snapshot.lastSeenAt != null ? { lastSeenAt: editor.snapshot.lastSeenAt } : {}),
+        }}
+        categories={CATEGORY}
         form={editor.form}
         isSaving={editor.isSaving}
         onCancel={cancel}
-        onSubmit={editor.onSubmit}
+        onSubmit={onSubmit}
       />
     </AppLayout>
   );

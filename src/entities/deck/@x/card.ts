@@ -1,1 +1,1 @@
-export { findDeckById } from "../model/store";
+export { findDeckById } from "../model/queries/findDeckById";

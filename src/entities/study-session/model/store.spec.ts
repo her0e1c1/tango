@@ -6,16 +6,14 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  clearStudySessions,
-  getStudySession,
-  moveStudySession,
-  removeStudySession,
-  setStudySessionIndex,
-  startStudy,
-  studySessionStore,
-  touchStudySession,
-} from "./store";
+import { clearStudySessions } from "./actions/clearStudySessions";
+import { getStudySession } from "./queries/getStudySession";
+import { moveStudySession } from "./actions/moveStudySession";
+import { removeStudySession } from "./actions/removeStudySession";
+import { setStudySessionIndex } from "./actions/setStudySessionIndex";
+import { startStudy } from "./actions/startStudy";
+import { studySessionStore } from "./store";
+import { touchStudySession } from "./actions/touchStudySession";
 
 const STUDY_STORAGE_KEY = "tango-study";
 

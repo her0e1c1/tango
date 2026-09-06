@@ -8,6 +8,7 @@ import "@testing-library/jest-dom/vitest";
 import { setDarkMode, updatePreferences, usePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
+import { usePreferencesAutoSave } from "./usePreferencesAutoSave";
 import { usePreferencesForm } from "./usePreferencesForm";
 
 const preferences = createPreferences({
@@ -24,8 +25,9 @@ const preferences = createPreferences({
 });
 
 const PreferencesFormHarness: React.FC = () => {
-  const { form } = usePreferencesForm();
   const savedPreferences = usePreferences();
+  const form = usePreferencesForm(savedPreferences);
+  usePreferencesAutoSave(form, updatePreferences);
 
   return (
     <>
@@ -56,7 +58,7 @@ const PreferencesFormHarness: React.FC = () => {
   );
 };
 
-describe("usePreferencesForm", () => {
+describe("SETTINGS-01 SETTINGS-02 preferences form", () => {
   beforeEach(() => {
     updatePreferences(preferences);
   });

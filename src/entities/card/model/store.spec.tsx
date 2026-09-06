@@ -3,17 +3,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { createCard, createLocalCard as createLocalCardFixture } from "@/test/factories";
-import { useCard, useCards, useCardsByDeckId } from "./hooks";
-import {
-  cardStore,
-  clearRemoteCards,
-  createLocalCard,
-  deleteLocalCard,
-  deleteLocalCardsByDeckId,
-  editLocalCard,
-  editLocalCardStudyProgress,
-  replaceRemoteCards,
-} from "./store";
+import { useCard } from "./queries/useCard";
+import { useCards } from "./queries/useCards";
+import { useCardsByDeckId } from "./queries/useCardsByDeckId";
+import { cardStore } from "./store";
+import { clearRemoteCards } from "./actions/clearRemoteCards";
+import { createLocalCard } from "./actions/createLocalCard";
+import { deleteLocalCard } from "./actions/deleteLocalCard";
+import { deleteLocalCardsByDeckId } from "./actions/deleteLocalCardsByDeckId";
+import { editLocalCard } from "./actions/editLocalCard";
+import { editLocalCardStudyProgress } from "./actions/editLocalCardStudyProgress";
+import { replaceRemoteCards } from "./actions/replaceRemoteCards";
 
 // Builds the minimal local Card creation input used by store scenarios.
 const cardInput = (id: string, deckId = "deck") => ({

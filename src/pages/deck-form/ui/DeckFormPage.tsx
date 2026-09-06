@@ -2,56 +2,95 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { type Deck, useDeck } from "@/entities/deck";
-import { DeckDeletionDialog, useDeckDeletion } from "@/features/deck-deletion";
+import { CATEGORY, type Deck, useDeck, useDecks } from "@/entities/deck";
+import {
+  DeckDeletionDialog,
+  useDeckDeletionState,
+  getDeckDeletionTarget,
+  requestDeckDeletion,
+  cancelDeckDeletion,
+  confirmDeckDeletion,
+} from "@/features/deck-deletion";
 import { DeckForm } from "@/features/deck-form";
 import { routes, useNavigationGuard } from "@/shared/router";
 import { Button } from "@/shared/ui/button";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useDeckForm } from "../model/useDeckForm";
+import { useDeckFormState } from "../model/useDeckFormState";
+import { saveDeck } from "../model/actions/saveDeck";
+import { useAuthUid } from "@/entities/auth";
+import { useCards } from "@/entities/card";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { dismissSaveError } from "../model/actions/dismissSaveError";
 
 const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const deckListPath = routes.deckList.to();
   const goToList = () => navigate(deckListPath, { replace: true });
-  const editor = useDeckForm({
-    deck,
-    onSaved: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
-  });
-  const guard = useNavigationGuard(editor.isDirty || editor.isSaving);
-  const deletion = useDeckDeletion({
-    onDeleted: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
-  });
+  const uid = useAuthUid();
+  const editor = useDeckFormState(deck);
+  const onSubmit = (event?: React.BaseSyntheticEvent) => {
+    void editor.form.handleSubmit((values) =>
+      saveDeck(values, {
+        uid,
+        snapshot: editor.snapshot,
+        savingRef: editor.savingRef,
+        setIsSaving: editor.setIsSaving,
+        saveErrorToastId: editor.saveErrorToastId,
+        isMounted: editor.isMounted,
+        onSaved: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
+      })
+    )(event);
+  };
+  const guard = useNavigationGuard(editor.form.formState.isDirty || editor.isSaving);
+  const deletion = useDeckDeletionState();
+  const decks = useDecks();
+  const cards = useCards();
+  const isMounted = useMountedGuard();
+  const deletionTarget = getDeckDeletionTarget(deletion.target);
 
   const cancel = () => {
-    editor.dismissSaveError();
+    dismissSaveError(editor.saveErrorToastId);
     void goToList();
   };
 
   return (
     <AppLayout showHeader>
       {guard.element}
-      {!guard.isBlocked && deletion.target != null && (
+      {!guard.isBlocked && deletionTarget != null && (
         <DeckDeletionDialog
-          target={deletion.target}
+          target={deletionTarget}
           pending={deletion.pending}
-          onCancel={deletion.cancel}
-          onConfirm={deletion.confirm}
+          onCancel={() => cancelDeckDeletion({ pending: deletion.pending, setTarget: deletion.setTarget })}
+          onConfirm={() =>
+            confirmDeckDeletion({
+              uid,
+              target: deletion.target,
+              pending: deletion.pending,
+              setTarget: deletion.setTarget,
+              setPending: deletion.setPending,
+              isMounted,
+              onDeleted: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
+            })
+          }
         />
       )}
       <DeckForm
         mode="edit"
-        categories={editor.categories}
-        deckInfo={editor.deckInfo}
-        deckName={editor.deckName}
+        categories={CATEGORY}
+        deckInfo={{
+          id: editor.snapshot.id,
+          createdAt: editor.snapshot.createdAt,
+          updatedAt: editor.snapshot.updatedAt,
+        }}
+        deckName={editor.snapshot.name}
         form={editor.form}
-        isLocalOnly={editor.isLocalOnly}
+        isLocalOnly={editor.snapshot.localMode}
         isSaving={editor.isSaving}
         onCancel={cancel}
-        onSubmit={editor.onSubmit}
+        onSubmit={onSubmit}
         afterForm={
           <section
             aria-labelledby="delete-deck-heading"
@@ -65,7 +104,14 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
               className="mt-4"
               variant="destructive"
               disabled={editor.isSaving}
-              onClick={() => deletion.request(editor.deckInfo.id)}
+              onClick={() =>
+                requestDeckDeletion(editor.snapshot.id, {
+                  pending: deletion.pending,
+                  decks,
+                  cards,
+                  setTarget: deletion.setTarget,
+                })
+              }
             >
               {t("deckDeletion.confirm")}
             </Button>

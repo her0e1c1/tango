@@ -19,3 +19,12 @@ export type Preferences = z.infer<typeof preferencesSchema>;
 type SwipeState = Pick<ControlPreferences, "cardSwipeUp" | "cardSwipeDown" | "cardSwipeLeft" | "cardSwipeRight">;
 /** Gesture direction that can be mapped to a study control action. */
 export type SwipeDirection = keyof SwipeState;
+
+/** Partial updates for each top-level preference field. */
+export type PartialPreferences = {
+  loadSample?: Preferences["loadSample"];
+  language?: Preferences["language"];
+  appearance?: Partial<Preferences["appearance"]>;
+  study?: Partial<Preferences["study"]>;
+  controls?: Partial<Preferences["controls"]>;
+};

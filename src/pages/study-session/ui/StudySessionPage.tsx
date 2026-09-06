@@ -1,5 +1,4 @@
 import * as React from "react";
-import type { TFunction } from "i18next";
 import { AiOutlineArrowDown, AiOutlineArrowLeft, AiOutlineArrowRight, AiOutlineArrowUp } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,14 +6,27 @@ import { useKey, useLatest } from "react-use";
 
 import { CardView, FrontText } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
-import type { SwipeDirection } from "@/entities/preference";
+import {
+  type SwipeDirection,
+  toggleShowHelp,
+  toggleShowCardDetails,
+  toggleShowPlaybackControls,
+  toggleShowSwipeButtonList,
+} from "@/entities/preference";
 import { DifficultyIndicator } from "@/entities/study-progress";
 import { routes } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { showToast, type ToastTone } from "@/shared/ui/toast";
 import { AppLayout } from "@/widgets/app-layout";
 
-import { type StudyState, useStudy } from "../model/useStudy";
+import { useAuthUid } from "@/entities/auth";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { useStudyQuery } from "../model/queries/useStudyQuery";
+import { useStudyState } from "../model/useStudyState";
+import { useStudySessionLifecycle } from "../model/useStudySessionLifecycle";
+import { useAutoPlay } from "../model/useAutoPlay";
+import { swipeCard } from "../model/actions/swipeCard";
+import { updateStudyIndex } from "../model/actions/updateStudyIndex";
 import { CardOverlay } from "./CardOverlay";
 import { StudyCompletion } from "./StudyCompletion";
 import { StudySession } from "./StudySession";
@@ -60,85 +72,10 @@ const shouldIgnoreStudyShortcut = (event: KeyboardEvent): boolean => {
   return event.key.startsWith("Arrow") && event.target.closest(studyShortcutSliderTarget) !== null;
 };
 
-const renderStudyScreen = (state: StudyState | undefined, onBack: () => void, t: TFunction) => {
-  if (state == null) return <RouteFeedback title={t("studySession.unavailable")} tone="not-found" />;
-
-  if (state.status !== "studying") {
-    return state.status === "preparing" ? (
-      <RouteFeedback title={t("studySession.loading")} tone="loading" />
-    ) : (
-      <RouteFeedback title={t("studySession.unavailable")} tone="not-found" />
-    );
-  }
-
-  const swipeActions = {
-    disabled: false,
-    onClickUp: () => void state.swipeUp(),
-    onClickDown: () => void state.swipeDown(),
-    onClickLeft: () => void state.swipeLeft(),
-    onClickRight: () => void state.swipeRight(),
-  };
-
-  return (
-    <AppLayout fullscreen showHeader={false}>
-      <StudySession
-        onBack={onBack}
-        onToggleCardDetails={state.toggleShowCardDetails}
-        onToggleHelp={state.toggleShowHelp}
-        onToggleSwipeControls={state.toggleSwipeButtonList}
-        onTogglePlaybackControls={state.toggleShowPlaybackControls}
-        showBackText={state.showBackText}
-        showHelp={state.showHelp}
-        showCardDetails={state.showCardDetails}
-        showSwipeControls={state.showSwipeButtonList}
-        showPlaybackControls={state.showPlaybackControls}
-        playbackControlsAvailable={state.playbackControlsAvailable}
-        help={{
-          open: state.help.open,
-          rows: state.help.rows,
-          onOpen: state.help.openHelp,
-          onClose: state.help.closeHelp,
-        }}
-        onSwipeUp={swipeActions.onClickUp}
-        onSwipeDown={swipeActions.onClickDown}
-        onSwipeLeft={swipeActions.onClickLeft}
-        onSwipeRight={swipeActions.onClickRight}
-        {...(state.showBackTextSwipeOverlays
-          ? {
-              backTextOverlay: {
-                onClickLeft: swipeActions.onClickLeft,
-                onClickRight: swipeActions.onClickRight,
-              },
-            }
-          : {})}
-        frontTextSlot={
-          <FrontText category={state.card.category} text={state.card.frontText} onClick={state.toggleBackText} />
-        }
-        cardOverlaySlot={
-          <CardOverlay
-            difficultySlot={<DifficultyIndicator difficulty={state.card.difficulty} />}
-            numberOfSeen={state.card.numberOfSeen}
-            {...(state.card.lastSeenAt !== undefined ? { lastSeenAt: state.card.lastSeenAt } : {})}
-          />
-        }
-        backTextSlot={<CardView {...state.card.back} onClick={state.toggleBackText} variant="bare" />}
-        controller={{
-          autoPlay: state.autoPlay,
-          index: state.session.currentIndex,
-          numberOfCards: state.session.cardCount,
-          onChange: state.updateIndex,
-          onToggleAutoPlay: state.toggleAutoPlay,
-        }}
-        swipeButtonList={swipeActions}
-      />
-    </AppLayout>
-  );
-};
-
 const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const study = useStudy(deckId, (direction) => {
+  const onSwipeFeedback = (direction: SwipeDirection) => {
     const { icon: Icon, labelKey } = swipeFeedbackPresentation[direction];
     showToast({
       message: t(labelKey),
@@ -154,18 +91,63 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
       durationMs: SWIPE_FEEDBACK_DURATION_MS,
       dismissible: false,
     });
+  };
+  const uid = useAuthUid();
+  const isMounted = useMountedGuard();
+  const query = useStudyQuery(deckId);
+  const local = useStudyState(query.preferences.study.defaultAutoPlay);
+  const hideBackText = () => local.setShowBackText(false);
+  // A pending persistence result must use the translator from the latest render.
+  const latestFeedback = useLatest(onSwipeFeedback);
+  useStudySessionLifecycle(deckId, query.sessionState.status);
+  useAutoPlay(query.sessionState, {
+    autoPlay: local.autoPlay,
+    cardInterval: query.preferences.study.cardInterval,
+    // Opening Help pauses the timer without changing the user's explicit play/pause choice.
+    paused: local.helpOpen,
+    onAdvance: hideBackText,
   });
-  const latestStudy = useLatest(study);
+  const swipe = (direction: SwipeDirection) =>
+    swipeCard({
+      uid,
+      deckId,
+      cards: query.cards,
+      direction,
+      swipeAction: query.preferences.controls[direction],
+      showFeedback: query.preferences.appearance.showSwipeFeedback,
+      hideBodyWhenCardChanged: query.preferences.appearance.hideBodyWhenCardChanged,
+      pendingRef: local.swipePendingRef,
+      isMounted,
+      onCardChanged: hideBackText,
+      onCompleted: local.setCompletion,
+      onSwipeFeedback: (value) => latestFeedback.current(value),
+    });
+  const toggleBackText = () => local.setShowBackText((visible) => !visible);
+  const toggleAutoPlay = () => local.setAutoPlay((playing) => !playing);
+  const latestShortcuts = useLatest({
+    status: query.status,
+    helpOpen: local.helpOpen,
+    showBackText: local.showBackText,
+    actions: {
+      swipeUp: () => swipe("cardSwipeUp"),
+      swipeDown: () => swipe("cardSwipeDown"),
+      swipeLeft: () => swipe("cardSwipeLeft"),
+      swipeRight: () => swipe("cardSwipeRight"),
+      toggleBackText,
+      toggleAutoPlay,
+      toggleSwipeButtonList: toggleShowSwipeButtonList,
+    },
+  });
   const goBack = () => void navigate(routes.deckList.to());
   const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
     // Native editing and activation keys take precedence, while unrelated Study shortcuts remain
     // available after a user moves focus into the card or floating controls.
-    const currentStudy = latestStudy.current;
+    const currentStudy = latestShortcuts.current;
     // A modal Help surface owns every key while open, including keys without native dialog behavior.
-    if (currentStudy?.status !== "studying" || currentStudy.help.open || shouldIgnoreStudyShortcut(event)) return;
+    if (currentStudy.status !== "studying" || currentStudy.helpOpen || shouldIgnoreStudyShortcut(event)) return;
     // Directional keys are an input gesture, so the answer keeps them inert even though edge overlays can act.
     if (currentStudy.showBackText && isDirectionalStudyAction(action)) return;
-    void currentStudy[action]();
+    void currentStudy.actions[action]();
   };
 
   // useKey retains its initial handler, so that handler reads current Page state through one stable ref.
@@ -178,15 +160,15 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   useKey(" ", runWhileStudying("toggleAutoPlay"));
 
   React.useEffect(() => {
-    if (study?.status !== "invalid") return;
+    if (query.status !== "invalid" || local.completion != null) return;
     void navigate(routes.deckList.to(), { replace: true });
-  }, [navigate, study?.status]);
+  }, [navigate, query.status, local.completion]);
 
-  if (study?.status === "completed") {
+  if (local.completion != null) {
     return (
       <AppLayout showHeader>
         <StudyCompletion
-          cardCount={study.completion.cardCount}
+          cardCount={local.completion.cardCount}
           onClickBack={() => {
             void navigate(routes.deckList.to(), { replace: true });
           }}
@@ -195,7 +177,76 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
     );
   }
 
-  return renderStudyScreen(study, goBack, t);
+  if (query.status !== "studying") {
+    return query.status === "preparing" ? (
+      <RouteFeedback title={t("studySession.loading")} tone="loading" />
+    ) : (
+      <RouteFeedback title={t("studySession.unavailable")} tone="not-found" />
+    );
+  }
+
+  const swipeActions = {
+    disabled: false,
+    onClickUp: () => void swipe("cardSwipeUp"),
+    onClickDown: () => void swipe("cardSwipeDown"),
+    onClickLeft: () => void swipe("cardSwipeLeft"),
+    onClickRight: () => void swipe("cardSwipeRight"),
+  };
+
+  return (
+    <AppLayout fullscreen showHeader={false}>
+      <StudySession
+        onBack={goBack}
+        onToggleCardDetails={toggleShowCardDetails}
+        onToggleHelp={toggleShowHelp}
+        onToggleSwipeControls={toggleShowSwipeButtonList}
+        onTogglePlaybackControls={toggleShowPlaybackControls}
+        showBackText={local.showBackText}
+        showHelp={query.showHelp}
+        showCardDetails={query.showCardDetails}
+        showSwipeControls={query.showSwipeButtonList}
+        showPlaybackControls={query.showPlaybackControls}
+        playbackControlsAvailable={query.playbackControlsAvailable}
+        help={{
+          open: local.helpOpen,
+          rows: query.helpRows,
+          onOpen: () => local.setHelpOpen(true),
+          onClose: () => local.setHelpOpen(false),
+        }}
+        onSwipeUp={swipeActions.onClickUp}
+        onSwipeDown={swipeActions.onClickDown}
+        onSwipeLeft={swipeActions.onClickLeft}
+        onSwipeRight={swipeActions.onClickRight}
+        {...(query.showBackTextSwipeOverlays
+          ? {
+              backTextOverlay: {
+                onClickLeft: swipeActions.onClickLeft,
+                onClickRight: swipeActions.onClickRight,
+              },
+            }
+          : {})}
+        frontTextSlot={
+          <FrontText category={query.card.category} text={query.card.frontText} onClick={toggleBackText} />
+        }
+        cardOverlaySlot={
+          <CardOverlay
+            difficultySlot={<DifficultyIndicator difficulty={query.card.difficulty} />}
+            numberOfSeen={query.card.numberOfSeen}
+            {...(query.card.lastSeenAt !== undefined ? { lastSeenAt: query.card.lastSeenAt } : {})}
+          />
+        }
+        backTextSlot={<CardView {...query.card.back} onClick={toggleBackText} variant="bare" />}
+        controller={{
+          autoPlay: local.autoPlay,
+          index: query.session.currentIndex,
+          numberOfCards: query.session.cardCount,
+          onChange: (index) => updateStudyIndex(deckId, index, hideBackText),
+          onToggleAutoPlay: toggleAutoPlay,
+        }}
+        swipeButtonList={swipeActions}
+      />
+    </AppLayout>
+  );
 };
 
 export const StudySessionPage: React.FC = () => {

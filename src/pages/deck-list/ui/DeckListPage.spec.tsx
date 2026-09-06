@@ -30,7 +30,7 @@ vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
-vi.mock("@/features/sample-import", () => ({ useAddSampleDeck: () => undefined }));
+vi.mock("@/features/sample-import", () => ({ bootstrapSampleDeck: () => undefined }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.downloadTextFile }));
 

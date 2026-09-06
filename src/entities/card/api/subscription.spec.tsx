@@ -3,7 +3,7 @@ import { Timestamp } from "firebase/firestore";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createLocalCard } from "@/test/factories";
-import { useCards } from "../model/hooks";
+import { useCards } from "../model/queries/useCards";
 import { cardStore } from "../model/store";
 
 const mocks = vi.hoisted(() => ({

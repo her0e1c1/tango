@@ -2,24 +2,35 @@ import type * as React from "react";
 import { useNavigate } from "react-router-dom";
 
 import { DeckForm } from "@/features/deck-form";
+import { CATEGORY } from "@/entities/deck";
 import { routes, useNavigationGuard } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 
-import { useDeckCreateForm } from "../model/useDeckCreateForm";
+import { useDeckCreateFormState } from "../model/useDeckCreateFormState";
+import { submitDeckCreation } from "../model/actions/submitDeckCreation";
+import { useAuthUid } from "@/entities/auth";
+import { dismissSaveError } from "../model/actions/dismissSaveError";
 
 export const DeckCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const state = useDeckCreateForm({
-    onCreated: (deckId) => {
-      const cardListPath = routes.cardList.to(deckId);
-      void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
-        navigate(cardListPath, { replace: true })
-      );
-    },
-  });
-  const guard = useNavigationGuard(state.isDirty);
+  const uid = useAuthUid();
+  const state = useDeckCreateFormState();
+  const onSubmit = (event?: React.BaseSyntheticEvent) =>
+    submitDeckCreation(event, {
+      uid,
+      form: state.form,
+      saveErrorToastId: state.saveErrorToastId,
+      isMounted: state.isMounted,
+      onCreated: (deckId) => {
+        const cardListPath = routes.cardList.to(deckId);
+        void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
+          navigate(cardListPath, { replace: true })
+        );
+      },
+    });
+  const guard = useNavigationGuard(state.form.formState.isDirty);
   const cancel = () => {
-    state.dismissSaveError();
+    dismissSaveError(state.saveErrorToastId);
     void navigate(routes.deckList.to());
   };
 
@@ -28,11 +39,11 @@ export const DeckCreatePage: React.FC = () => {
       {guard.element}
       <DeckForm
         mode="create"
-        categories={state.categories}
+        categories={CATEGORY}
         form={state.form}
-        isLocalModeLocked={state.isLocalModeLocked}
+        isLocalModeLocked={state.form.formState.isSubmitting}
         onCancel={cancel}
-        onSubmit={state.onSubmit}
+        onSubmit={onSubmit}
       />
     </AppLayout>
   );

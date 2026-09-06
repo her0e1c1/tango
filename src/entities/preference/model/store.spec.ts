@@ -2,15 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { defaultPreferences } from "./defaults";
-import {
-  preferencesStore,
-  setDarkMode,
-  toggleShowCardDetails,
-  toggleShowHelp,
-  toggleShowPlaybackControls,
-  toggleShowSwipeButtonList,
-  updatePreferences,
-} from "./store";
+import { preferencesStore } from "./store";
+import { setDarkMode } from "./actions/setDarkMode";
+import { toggleShowCardDetails } from "./actions/toggleShowCardDetails";
+import { toggleShowHelp } from "./actions/toggleShowHelp";
+import { toggleShowPlaybackControls } from "./actions/toggleShowPlaybackControls";
+import { toggleShowSwipeButtonList } from "./actions/toggleShowSwipeButtonList";
+import { updatePreferences } from "./actions/updatePreferences";
 
 /** Synchronous storage contract used by preferences persistence scenarios. */
 type MemoryStorage = Omit<StateStorage, "getItem"> & {
@@ -37,7 +35,7 @@ const useMemoryStorage = (initial: Record<string, string> = {}): MemoryStorage =
 describe("preferences store [SETTINGS-06]", () => {
   beforeEach(() => {
     useMemoryStorage();
-    preferencesStore.getState().updatePreferences(defaultPreferences);
+    updatePreferences(defaultPreferences);
   });
 
   it("keeps back text swipe overlays off by default", () => {
@@ -51,14 +49,14 @@ describe("preferences store [SETTINGS-06]", () => {
   it("updates each preference group without resetting other settings", () => {
     const store = preferencesStore;
 
-    store.getState().updatePreferences({
+    updatePreferences({
       loadSample: false,
       appearance: { darkMode: true },
       study: { cardInterval: 15 },
       controls: { showCardDetails: false, showDifficultySlider: true, showBackTextSwipeOverlays: true },
     });
-    store.getState().updatePreferences({ controls: { showSwipeButtonList: false } });
-    store.getState().updatePreferences({ controls: { showPlaybackControls: false } });
+    updatePreferences({ controls: { showSwipeButtonList: false } });
+    updatePreferences({ controls: { showPlaybackControls: false } });
 
     expect(store.getState().preferences).toEqual({
       ...defaultPreferences,
@@ -80,9 +78,9 @@ describe("preferences store [SETTINGS-06]", () => {
     "updates and persists the %s language without resetting other preferences",
     (language) => {
       const storage = useMemoryStorage();
-      preferencesStore.getState().updatePreferences({ appearance: { darkMode: true } });
+      updatePreferences({ appearance: { darkMode: true } });
 
-      preferencesStore.getState().updatePreferences({ language });
+      updatePreferences({ language });
 
       const expectedPreferences = {
         ...defaultPreferences,
@@ -100,7 +98,7 @@ describe("preferences store [SETTINGS-06]", () => {
   it("validates numeric ranges during updates", () => {
     const store = preferencesStore;
 
-    store.getState().updatePreferences({
+    updatePreferences({
       study: { maxNumberOfCardsToLearn: 101, cardInterval: -1 },
       appearance: { sizeBackText: -1 },
     });
@@ -138,7 +136,7 @@ describe("preferences store [SETTINGS-06]", () => {
   it("persists preference changes", () => {
     const storage = useMemoryStorage();
 
-    preferencesStore.getState().updatePreferences({
+    updatePreferences({
       loadSample: false,
       appearance: { darkMode: true },
       controls: { showCardDetails: false, showBackTextSwipeOverlays: true },

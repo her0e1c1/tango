@@ -9,8 +9,9 @@ import { routes } from "@/shared/router";
 import { Button } from "@/shared/ui/button";
 import { AppLayout } from "@/widgets/app-layout";
 
-import { useSignIn } from "../model/useSignIn";
-import { useSignOut } from "../model/useSignOut";
+import { signIn } from "../model/actions/signIn";
+import { useAccountActionState } from "../model/useAccountActionState";
+import { signOut } from "../model/actions/signOut";
 
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,11 +19,11 @@ export const AccountPage: React.FC = () => {
   const account = useAuthAccount();
   const uid = useAuthUid();
   // Keep operation state separate so an auth transition cannot expose feedback from the action that just finished.
-  const signIn = useSignIn();
-  const signOut = useSignOut();
+  const signInState = useAccountActionState();
+  const signOutState = useAccountActionState();
   const isLoggedIn = account != null;
-  const runSignIn = () => void signIn.signIn().catch(() => undefined);
-  const runSignOut = () => void signOut.signOut().catch(() => undefined);
+  const runSignIn = () => void signIn(signInState).catch(() => undefined);
+  const runSignOut = () => void signOut(signOutState).catch(() => undefined);
 
   useKey("t", () => void navigate(routes.deckList.to()));
 
@@ -48,11 +49,11 @@ export const AccountPage: React.FC = () => {
               <p className="text-caption text-ink-muted">{t("account.profile.description")}</p>
             </div>
             {isLoggedIn ? (
-              <Button variant="quiet" size="sm" loading={signOut.pending} onClick={runSignOut}>
+              <Button variant="quiet" size="sm" loading={signOutState.pending} onClick={runSignOut}>
                 {t("account.profile.signOut")}
               </Button>
             ) : (
-              <Button variant="primary" size="sm" loading={signIn.pending} onClick={runSignIn}>
+              <Button variant="primary" size="sm" loading={signInState.pending} onClick={runSignIn}>
                 {t("account.profile.signInWithGoogle")}
               </Button>
             )}

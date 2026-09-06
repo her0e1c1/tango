@@ -8,6 +8,8 @@ const config: KnipConfig = {
     "!src/**/*.stories.{ts,tsx}!",
     // These entry points are consumed only by Storybook, which is intentionally outside the production graph.
     "!src/entities/*/testing.ts!",
+    // This fixture reset is reachable only through the excluded Preferences testing entry point.
+    "!src/entities/preference/model/actions/replacePreferences.ts!",
   ],
   ignoreDependencies: ["@feature-sliced/steiger-plugin", "tailwindcss"],
   includeEntryExports: true,
