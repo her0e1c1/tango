@@ -7,11 +7,15 @@ import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
 import { accountPageStore as store } from "../store";
-import { runAccountAction } from "./runAccountAction";
+import { signIn } from "./signIn";
+import { signOut } from "./signOut";
 
 const mocks = vi.hoisted(() => ({
   action: vi.fn<() => Promise<unknown>>(),
 }));
+
+vi.mock("../../api/signInWithGoogle", () => ({ signInWithGoogle: mocks.action }));
+vi.mock("../../api/signOutCurrentUser", () => ({ signOutCurrentUser: mocks.action }));
 
 const deferred = <T,>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -24,7 +28,22 @@ const deferred = <T,>() => {
   return { promise, reject, resolve };
 };
 
-describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
+describe.each([
+  {
+    action: signIn,
+    name: "signIn",
+    success: "Signed in.",
+    failure: "Unable to sign in.",
+    japanese: "ログインしました。",
+  },
+  {
+    action: signOut,
+    name: "signOut",
+    success: "Signed out.",
+    failure: "Unable to sign out.",
+    japanese: "ログアウトしました。",
+  },
+] as const)("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 $name", ({ action, name, success, failure, japanese }) => {
   beforeEach(() => {
     store.setState(store.getInitialState(), true);
     mocks.action.mockReset();
@@ -42,69 +61,51 @@ describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
     let operation!: Promise<void>;
     let duplicateOperation!: Promise<void>;
     act(() => {
-      operation = runAccountAction(mocks.action, {
-        operation: "signIn",
-        successKey: "account.toast.signInSuccess",
-        failureKey: "account.toast.signInFailure",
-      });
-      duplicateOperation = runAccountAction(mocks.action, {
-        operation: "signIn",
-        successKey: "account.toast.signInSuccess",
-        failureKey: "account.toast.signInFailure",
-      });
+      operation = action();
+      duplicateOperation = action();
     });
 
     await actAsync(async () => {
       await duplicateOperation;
     });
 
-    expect(store.getState().signIn.pending).toBe(true);
+    expect(store.getState()[name].pending).toBe(true);
 
     await actAsync(async () => {
       request.resolve();
       await operation;
     });
 
-    expect(store.getState().signIn.pending).toBe(false);
-    expect(screen.getByRole("status")).toHaveTextContent("Success: Signed in.");
+    expect(store.getState()[name].pending).toBe(false);
+    expect(screen.getByRole("status")).toHaveTextContent(`Success: ${success}`);
   });
 
   it("allows the primary action to retry after a handled failure", async () => {
     render(<ToastViewport />);
-    const failure = new Error("Action failed");
+    const error = new Error("Action failed");
     const retry = deferred<void>();
-    mocks.action.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
+    mocks.action.mockRejectedValueOnce(error).mockReturnValueOnce(retry.promise);
 
     await actAsync(async () => {
-      await expect(
-        runAccountAction(mocks.action, {
-          operation: "signIn",
-          successKey: "account.toast.signInSuccess",
-          failureKey: "account.toast.signInFailure",
-        })
-      ).resolves.toBeUndefined();
+      await expect(action()).resolves.toBeUndefined();
     });
-    expect(screen.getByRole("alert")).toHaveTextContent("Error: Unable to sign in.");
+    expect(screen.getByRole("alert")).toHaveTextContent(`Error: ${failure}`);
 
     let retryOperation!: Promise<void>;
     act(() => {
-      retryOperation = runAccountAction(mocks.action, {
-        operation: "signIn",
-        successKey: "account.toast.signInSuccess",
-        failureKey: "account.toast.signInFailure",
-      });
+      retryOperation = action();
     });
 
-    expect(store.getState().signIn.pending).toBe(true);
+    expect(store.getState()[name].pending).toBe(true);
 
     await actAsync(async () => {
       retry.resolve();
       await retryOperation;
     });
 
-    expect(store.getState().signIn.pending).toBe(false);
+    expect(store.getState()[name].pending).toBe(false);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Success: Signed in.");
+    expect(screen.getByRole("status")).toHaveTextContent(`Success: ${success}`);
   });
 
   it("publishes a late failure and clears the pending state", async () => {
@@ -114,29 +115,22 @@ describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
     let operation!: Promise<void>;
 
     act(() => {
-      operation = runAccountAction(mocks.action, {
-        operation: "signIn",
-        successKey: "account.toast.signInSuccess",
-        failureKey: "account.toast.signInFailure",
-      });
+      operation = action();
     });
     await actAsync(async () => {
       request.reject(new Error("Late failure"));
       await expect(operation).resolves.toBeUndefined();
     });
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Error: Unable to sign in.");
-    expect(store.getState().signIn.pending).toBe(false);
+    expect(screen.getByRole("alert")).toHaveTextContent(`Error: ${failure}`);
+    expect(store.getState()[name].pending).toBe(false);
   });
 
   it("uses the active language when an action completes after a language change", async () => {
     render(<ToastViewport />);
     const request = deferred<void>();
-    const operation = runAccountAction(() => request.promise, {
-      operation: "signIn",
-      successKey: "account.toast.signInSuccess",
-      failureKey: "account.toast.signInFailure",
-    });
+    mocks.action.mockReturnValue(request.promise);
+    const operation = action();
 
     await actAsync(async () => {
       await getI18n().changeLanguage("ja");
@@ -144,7 +138,7 @@ describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
       await operation;
     });
 
-    expect(screen.getByRole("status")).toHaveTextContent("成功: ログインしました。");
-    expect(screen.getByText("ログインしました。")).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent(`成功: ${japanese}`);
+    expect(screen.getByText(japanese)).toBeVisible();
   });
 });
