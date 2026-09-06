@@ -17,6 +17,7 @@ Card の作成・編集・削除が保存先の境界を守り、失敗後の再
 | CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](#card-15) |
 | CARD-16 | write | [Card の削除失敗後に再試行できる](#card-16) |
 | CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](#card-17) |
+| CARD-21 | read | [Card の未表示の面にある入力エラーを修正できる](#card-21) |
 
 <a id="card-03"></a>
 
@@ -32,12 +33,16 @@ Given:
 
 When:
 
-- 対象 Card の front text、back text、tags を変更して保存し、画面を reload して編集画面を再度開く。
+- 対象 Card の front / back tab を切り替えて本文を編集し、back text を拡大画面でも変更する。
+- 拡大画面を閉じ、1行の tags 要約から選択画面を開いて tags を変更して保存し、画面を reload して編集画面を再度開く。
 
 Then:
 
 - Card の更新成功が共通 toast で表示される。
 - 編集画面に変更後の front text、back text、tags が表示される。
+- tab と拡大画面を切り替えても両面の入力内容が維持され、拡大画面を閉じると起点へ focus が戻る。
+- tags の全候補は選択画面だけに表示され、閉じた状態は最大2個と残りの件数を1行に表示する。
+- 選択画面は既存の独自 tag も扱え、閉じて開き直しても選択が維持される。
 - browser error が発生しない。
 
 <a id="card-04"></a>
@@ -122,14 +127,18 @@ Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する remote Deck が存在する。
+- モバイル幅の画面を使用している。
 
 When:
 
-- Card 一覧の Add card から front text と back text を入力して Card を作成し、画面を reload する。
+- Card 一覧の Add card から作成画面を開き、Front / Back の拡大編集で本文を入力する。
+- タグ選択画面を開いて閉じ、Card を作成して画面を reload する。
 
 Then:
 
 - Card の作成成功が共通 toast で表示される。
+- 両面の拡大編集画面は viewport の上端から下端まで表示され、見出しや完了ボタンが欠けない。
+- 拡大編集とタグ選択の背景は viewport 全体を覆い、タグ選択画面は下端に隙間なく接する。
 - 作成した Card が reload 後も同じ Deck の Card 一覧に表示される。
 - Card は remote 保存先だけに1件存在し、owner は対象 Deck と一致する。
 - browser error が発生しない。
@@ -231,4 +240,28 @@ Then:
 - dialog 表示中に toast が消えるか置き換わっても、focus は Keep editing に維持される。
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。
 - 永続化された Card の front text は変更されない。
+- browser error が発生しない。
+
+<a id="card-21"></a>
+
+### CARD-21 Card の未表示の面にある入力エラーを修正できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Card の編集画面を開いている。
+
+When:
+
+- front text と back text を空にし、Back tab を表示した状態で保存を試みる。
+- Back tab に切り替えて拡大編集画面を開き、入力エラーを確認して閉じる。
+
+Then:
+
+- 最初の入力エラーがある Front tab が選択され、対象の入力欄へ focus が移る。
+- 両面の tab にエラーが示され、Back tab を選ぶと back text の入力エラーも確認できる。
+- 拡大編集画面でも入力エラーが表示され、入力欄の accessible description として読み取れる。
+- 未入力の値は維持され、Card は保存されず元の永続データが変更されない。
 - browser error が発生しない。

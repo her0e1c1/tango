@@ -13,7 +13,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardCreatePage } from "./CardCreatePage";
 
-describe("CardCreatePage", () => {
+describe("CARD-13 CARD-14 CardCreatePage", () => {
   const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
   const renderPage = (deckId = deck.id) =>
     render(
@@ -46,6 +46,7 @@ describe("CardCreatePage", () => {
     renderPage();
 
     await userEvent.type(screen.getByRole("textbox", { name: "Front text" }), "Created front");
+    await userEvent.click(screen.getByRole("tab", { name: "Back" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Back text" }), "Created back");
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 

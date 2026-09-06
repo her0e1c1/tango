@@ -107,6 +107,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CardFormPage", () => {
     });
 
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Delayed front");
+    await userEvent.click(screen.getByRole("tab", { name: "Back" }));
     expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Delayed back");
   });
 
