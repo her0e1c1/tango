@@ -20,6 +20,7 @@ export interface ActionsMenuItem {
 export interface ActionsMenuProps {
   groupLabel: string;
   triggerLabel: string;
+  triggerContent?: React.ReactNode;
   menuLabel: string;
   open: boolean;
   disabled?: boolean;
@@ -153,14 +154,18 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
     <fieldset aria-label={props.groupLabel} className="relative min-w-0 shrink-0 border-0 p-0" onBlur={handleBlur}>
       <button
         type="button"
-        className={triggerClassName}
+        className={
+          props.triggerContent == null
+            ? triggerClassName
+            : `${triggerClassName} w-auto gap-2 border border-border px-3 font-semibold`
+        }
         aria-label={props.triggerLabel}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         disabled={props.disabled}
         onClick={handleToggle}
       >
-        <AiOutlineMore aria-hidden="true" size={24} />
+        {props.triggerContent ?? <AiOutlineMore aria-hidden="true" size={24} />}
       </button>
 
       {isOpen ? (

@@ -214,6 +214,7 @@ export const resources = {
         },
       },
       cardList: {
+        listActions: "Actions",
         title: "Cards",
         count_one: "{{count}} card",
         count_other: "{{count}} cards",
@@ -224,8 +225,6 @@ export const resources = {
           target_one: "{{count}} visible card",
           target_other: "{{count}} visible cards",
           newDifficulty: "New difficulty",
-          placeholder: "Choose difficulty",
-          request: "Change difficulty",
           success_one: "Set {{count}} card to difficulty {{difficulty}}.",
           success_other: "Set {{count}} cards to difficulty {{difficulty}}.",
           partialFailure_one:
@@ -808,6 +807,7 @@ export const resources = {
         },
       },
       cardList: {
+        listActions: "アクション",
         title: "カード",
         count_one: "{{count}}枚",
         count_other: "{{count}}枚",
@@ -818,8 +818,6 @@ export const resources = {
           target_one: "表示中のカード{{count}}枚",
           target_other: "表示中のカード{{count}}枚",
           newDifficulty: "変更後の難易度",
-          placeholder: "難易度を選択",
-          request: "難易度を変更",
           success_one: "{{count}}枚のカードを難易度{{difficulty}}に変更しました。",
           success_other: "{{count}}枚のカードを難易度{{difficulty}}に変更しました。",
           partialFailure_one:

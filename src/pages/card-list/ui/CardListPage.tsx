@@ -50,6 +50,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const deckFilter = getDeckFilterState(filterDraft.state);
   // Use the latest selection immediately, including autosaves still pending from another Page.
   const state = useCardListState();
+  const [bulkAttempted, setBulkAttempted] = React.useState(false);
   const query = useCardListQuery(
     {
       ...deck,
@@ -100,7 +101,9 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 
   const requestBulk = () => {
     dismissBulkErrorToast();
-    requestBulkDifficulty(query.cards, state.bulkDifficulty, state.mutation, state.setBulkDifficultyRequest);
+    setBulkAttempted(false);
+    state.setBulkDifficulty(null);
+    requestBulkDifficulty(query.cards, query.bulkDifficultyMinimum, state.mutation, state.setBulkDifficultyRequest);
   };
 
   const cancelBulk = () => {
@@ -109,10 +112,15 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   };
 
   const confirmBulk = async () => {
+    if (state.bulkDifficulty == null || state.bulkDifficultyRequest == null) return;
     dismissBulkErrorToast();
+    // Freeze the chosen value as well as the targets before the first persistence attempt.
+    const request = { ...state.bulkDifficultyRequest, difficulty: state.bulkDifficulty };
+    state.setBulkDifficultyRequest(request);
+    setBulkAttempted(true);
     const result = await confirmBulkDifficulty({
       uid,
-      request: state.bulkDifficultyRequest,
+      request,
       mutation: state.mutation,
       setRequest: state.setBulkDifficultyRequest,
       setDifficulty: state.setBulkDifficulty,
@@ -144,7 +152,11 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
       {state.bulkDifficultyRequest != null ? (
         <BulkDifficultyDialog
           cardCount={state.bulkDifficultyRequest.cardIds.length}
-          difficulty={state.bulkDifficultyRequest.difficulty}
+          difficulty={state.bulkDifficulty}
+          selectionDisabled={bulkAttempted}
+          difficultyLowerBound={query.bulkDifficultyMinimum}
+          difficultyUpperBound={query.bulkDifficultyMaximum}
+          onDifficultyChange={(difficulty) => changeBulkDifficulty(difficulty, state.setBulkDifficulty)}
           pending={state.mutationPending}
           onCancel={cancelBulk}
           onConfirm={confirmBulk}
@@ -166,66 +178,63 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
           onConfirm={() => confirmCardDeletion(uid, state.deletionTarget, state.mutation, state.setDeletionTarget)}
         />
       ) : null}
-      <CardList
-        cards={query.cards}
-        bulkDifficulty={{
-          difficultyLowerBound: query.bulkDifficultyMinimum,
-          difficultyUpperBound: query.bulkDifficultyMaximum,
-          selectedDifficulty: state.bulkDifficulty,
-          onDifficultyChange: (difficulty) => changeBulkDifficulty(difficulty, state.setBulkDifficulty),
-          onRequest: requestBulk,
-        }}
-        disabled={busy}
-        renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
-        onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
-        filter={{
-          difficultyMax,
-          difficultyMin,
-          selectedTags: deckFilter.selectedTags,
-        }}
-        filterSlot={
-          <DeckFilterForm
-            {...deckFilter}
-            clearDifficultyRange={() => clearDeckFilterRange(filterUpdate)}
-            setDifficultyMax={(value) => updateDeckFilterDraft({ difficultyMax: value }, filterUpdate)}
-            setDifficultyMin={(value) => updateDeckFilterDraft({ difficultyMin: value }, filterUpdate)}
-            setSelectedTags={(selectedTags) => updateDeckFilterDraft({ selectedTags }, filterUpdate)}
-            setTagAndFilter={(tagAndFilter) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate)}
-            disabled={state.mutationPending}
-            tags={query.tags}
-          />
-        }
-        onRemoveTag={(tag) =>
-          updateDeckFilterDraft(
-            { selectedTags: deckFilter.selectedTags.filter((selectedTag) => selectedTag !== tag) },
-            filterUpdate
-          )
-        }
-        card={{
-          disabled: busy,
-          onSwipedLeft: (id) =>
-            void changeCardDifficulty({
-              uid,
-              cards: query.cards,
-              id,
-              rating: "not-mastered",
-              mutation: state.mutation,
-            }),
-          onSwipedRight: (id) =>
-            void changeCardDifficulty({ uid, cards: query.cards, id, rating: "mastered", mutation: state.mutation }),
-          goToEdit: (id) => void navigate(routes.cardForm.to(id)),
-          onDelete: (id) => requestCardDeletion(query.cards, id, state.mutation.errorToastId, state.setDeletionTarget),
-        }}
-        {...(query.answer != null
-          ? {
-              overlay: {
-                content: <BackText {...query.answer} />,
-                onClose: () => state.setShownCard(undefined),
-              },
-            }
-          : {})}
-        onShowCard={(id) => showCardAnswer(query.cards, id, state.setShownCard)}
-      />
+      <div className="contents" inert={dialogOpen}>
+        <CardList
+          cards={query.cards}
+          onChangeDifficulty={requestBulk}
+          disabled={busy}
+          renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
+          onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
+          filter={{
+            difficultyMax,
+            difficultyMin,
+            selectedTags: deckFilter.selectedTags,
+          }}
+          filterSlot={
+            <DeckFilterForm
+              {...deckFilter}
+              clearDifficultyRange={() => clearDeckFilterRange(filterUpdate)}
+              setDifficultyMax={(value) => updateDeckFilterDraft({ difficultyMax: value }, filterUpdate)}
+              setDifficultyMin={(value) => updateDeckFilterDraft({ difficultyMin: value }, filterUpdate)}
+              setSelectedTags={(selectedTags) => updateDeckFilterDraft({ selectedTags }, filterUpdate)}
+              setTagAndFilter={(tagAndFilter) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate)}
+              disabled={state.mutationPending}
+              tags={query.tags}
+            />
+          }
+          onRemoveTag={(tag) =>
+            updateDeckFilterDraft(
+              { selectedTags: deckFilter.selectedTags.filter((selectedTag) => selectedTag !== tag) },
+              filterUpdate
+            )
+          }
+          card={{
+            disabled: busy,
+            onSwipedLeft: (id) =>
+              void changeCardDifficulty({
+                uid,
+                cards: query.cards,
+                id,
+                rating: "not-mastered",
+                mutation: state.mutation,
+              }),
+            onSwipedRight: (id) =>
+              void changeCardDifficulty({ uid, cards: query.cards, id, rating: "mastered", mutation: state.mutation }),
+            goToEdit: (id) => void navigate(routes.cardForm.to(id)),
+            onDelete: (id) =>
+              requestCardDeletion(query.cards, id, state.mutation.errorToastId, state.setDeletionTarget),
+          }}
+          {...(query.answer != null
+            ? {
+                overlay: {
+                  content: <BackText {...query.answer} />,
+                  onClose: () => state.setShownCard(undefined),
+                },
+              }
+            : {})}
+          onShowCard={(id) => showCardAnswer(query.cards, id, state.setShownCard)}
+        />
+      </div>
     </AppLayout>
   );
 };

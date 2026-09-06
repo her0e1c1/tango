@@ -133,9 +133,10 @@ test("CARD-20 retries a partially failed bulk difficulty change with the same ab
   const fault = await failNextFirestoreWrite(page, { collection: "card", id: failedCard.id });
   allowExpectedFirestoreWriteFailure(browserErrors);
 
-  const difficulty = page.getByRole("combobox", { name: "New difficulty" });
-  await difficulty.selectOption(String(newDifficulty));
-  await page.getByRole("button", { name: "Change difficulty" }).click();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Change difficulty" }).click();
+  const difficulty = page.getByRole("button", { name: String(newDifficulty), exact: true });
+  await difficulty.click();
   const dialog = page.getByRole("dialog", { name: "Change card difficulty?" });
   const applyChange = dialog.getByRole("button", { name: "Apply change" });
   await dialog.evaluate((element) => {
@@ -164,7 +165,8 @@ test("CARD-20 retries a partially failed bulk difficulty change with the same ab
   await fault.dispose();
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText(`Set 2 visible cards to difficulty ${String(newDifficulty)}.`);
-  await expect(difficulty).toHaveValue(String(newDifficulty));
+  await expect(difficulty).toHaveAttribute("aria-pressed", "true");
+  await expect(difficulty).toBeDisabled();
   await expect
     .poll(async () => (await requireDocument("card", failedCard.id)).fields.difficulty?.integerValue)
     .toBe(String(failedCard.difficulty));

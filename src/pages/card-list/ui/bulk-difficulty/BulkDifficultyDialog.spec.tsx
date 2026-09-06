@@ -11,6 +11,9 @@ import { BulkDifficultyDialog } from "./BulkDifficultyDialog";
 const defaultProps = {
   cardCount: 2,
   difficulty: 7,
+  difficultyLowerBound: 1,
+  difficultyUpperBound: 10,
+  onDifficultyChange: vi.fn(),
   onCancel: vi.fn(),
   onConfirm: vi.fn(),
 };
@@ -39,7 +42,8 @@ describe("BulkDifficultyDialog [CARD-19] [CARD-20]", () => {
 
     expect(cancel).toHaveFocus();
     await userEvent.tab({ shift: true });
-    expect(description).toHaveFocus();
+    expect(screen.getByRole("button", { name: "10" })).toHaveFocus();
+    description.focus();
     await userEvent.tab({ shift: true });
     expect(confirm).toHaveFocus();
     await userEvent.tab();

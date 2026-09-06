@@ -188,8 +188,9 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     });
     const view = renderCardList({ cards: [card, otherVisibleCard, hiddenCard] });
 
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "New difficulty" }), "7");
-    await userEvent.click(screen.getByRole("button", { name: "Change difficulty" }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
+    await userEvent.click(screen.getByRole("button", { name: "7" }));
     const dialog = screen.getByRole("dialog", { name: "Change card difficulty?" });
     expect(dialog).toHaveTextContent("Set 2 visible cards to difficulty 7.");
     expect(mocks.editStudyProgress).not.toHaveBeenCalled();
@@ -214,7 +215,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     await waitFor(() =>
       expect(screen.queryByRole("dialog", { name: "Change card difficulty?" })).not.toBeInTheDocument()
     );
-    expect(screen.getByRole("combobox", { name: "New difficulty" })).toHaveValue("");
+    expect(screen.queryByRole("combobox", { name: "New difficulty" })).not.toBeInTheDocument();
     expect(screen.getByText("Set 2 cards to difficulty 7.")).toBeVisible();
   });
 
@@ -231,8 +232,9 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     mocks.editStudyProgress.mockReturnValueOnce(remainingWrite.promise);
     renderCardList({ cards: [card, otherVisibleCard] });
 
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "New difficulty" }), "7");
-    await userEvent.click(screen.getByRole("button", { name: "Change difficulty" }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
+    await userEvent.click(screen.getByRole("button", { name: "7" }));
     const dialog = screen.getByRole("dialog", { name: "Change card difficulty?" });
     const confirm = within(dialog).getByRole("button", { name: "Apply change" });
     fireEvent.click(confirm);
@@ -251,7 +253,8 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     expect(screen.getByRole("dialog", { name: "Change card difficulty?" })).toHaveTextContent(
       "Set 2 visible cards to difficulty 7."
     );
-    expect(screen.getByRole("combobox", { name: "New difficulty" })).toHaveValue("7");
+    expect(screen.getByRole("button", { name: "7" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "8" })).toBeDisabled();
 
     await userEvent.click(screen.getByRole("button", { name: "Apply change" }));
 
@@ -267,8 +270,9 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     mocks.editStudyProgress.mockRejectedValueOnce(new Error("bulk write failed"));
     renderCardList();
 
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "New difficulty" }), "7");
-    await userEvent.click(screen.getByRole("button", { name: "Change difficulty" }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
+    await userEvent.click(screen.getByRole("button", { name: "7" }));
     await userEvent.click(screen.getByRole("button", { name: "Apply change" }));
 
     expect(await screen.findByText("Updated 0 of 1. 1 card could not be updated. Try again.")).toBeVisible();
@@ -279,8 +283,9 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     mocks.editStudyProgress.mockReturnValueOnce(write.promise);
     renderCardList();
 
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "New difficulty" }), "7");
-    await userEvent.click(screen.getByRole("button", { name: "Change difficulty" }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
+    await userEvent.click(screen.getByRole("button", { name: "7" }));
     const dialog = screen.getByRole("dialog", { name: "Change card difficulty?" });
 
     fireEvent.keyDown(window, { key: "s" });
@@ -332,7 +337,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     swipeRight(article);
 
     await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
-    expect(screen.getByRole("button", { name: "Add card" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Actions" })).toBeDisabled();
     expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeDisabled();
     expect(within(article).getByRole("button", { name: "View Front" })).toBeDisabled();
     swipeRight(article);

@@ -33,7 +33,7 @@ const NextDeckButton = () => {
   );
 };
 
-describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CardListPage", () => {
+describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CARD-13 CardListPage", () => {
   const deckId = "deck-id";
   const nextDeckId = "next-deck";
   const cardId = "card-id";
@@ -98,7 +98,8 @@ describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CardListPage", () => {
   it("navigates to Card creation for the current Deck", async () => {
     renderPage();
 
-    await userEvent.click(screen.getByRole("button", { name: "Add card" }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Add card" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Card creator destination" })).toBeVisible();
   });

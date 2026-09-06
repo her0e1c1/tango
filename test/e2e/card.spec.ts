@@ -304,7 +304,8 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
-  await page.getByRole("button", { name: "Add card" }).click();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Add card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
   for (const { side, value } of [
     { side: "Front", value: frontText },
@@ -358,7 +359,8 @@ test("CARD-14 creates one local Card and keeps it across reload", async ({ fixtu
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
-  await page.getByRole("button", { name: "Add card" }).click();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Add card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
   await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
   await page.getByRole("tab", { name: "Back", exact: true }).click();
@@ -397,9 +399,11 @@ test("CARD-19 changes the difficulty of only the Cards visible in the filter dra
   );
   await expect(page.getByRole("button", { name: `View ${excludedCard.frontText}` })).toHaveCount(0);
 
-  await page.getByRole("combobox", { name: "New difficulty" }).selectOption(String(newDifficulty));
-  const trigger = page.getByRole("button", { name: "Change difficulty" });
+  const trigger = page.getByRole("button", { name: "Actions", exact: true });
   await trigger.click();
+  await page.getByRole("menuitem", { name: "Change difficulty" }).click();
+  await expect(page.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await page.getByRole("button", { name: String(newDifficulty), exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Change card difficulty?" });
   const description = dialog.getByText(
     `Set ${String(matchingCards.length)} visible cards to difficulty ${String(newDifficulty)}.`
@@ -409,14 +413,15 @@ test("CARD-19 changes the difficulty of only the Cards visible in the filter dra
   await expect(dialog).toContainText(
     `Set ${String(matchingCards.length)} visible cards to difficulty ${String(newDifficulty)}.`
   );
-  await expect(cancel).toBeFocused();
+  await cancel.focus();
   await page.keyboard.press("s");
   await page.keyboard.press("t");
   await expect(dialog).toBeVisible();
   await expect(page).toHaveURL(`/deck/${deck.id}`);
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("hidden");
   await page.keyboard.press("Shift+Tab");
-  await expect(description).toBeFocused();
+  await expect(dialog.getByRole("button", { name: "10", exact: true })).toBeFocused();
+  await description.focus();
   await page.keyboard.press("Shift+Tab");
   await expect(applyChange).toBeFocused();
   await page.keyboard.press("Tab");
@@ -435,6 +440,8 @@ test("CARD-19 changes the difficulty of only the Cards visible in the filter dra
   );
 
   await trigger.click();
+  await page.getByRole("menuitem", { name: "Change difficulty" }).click();
+  await dialog.getByRole("button", { name: String(newDifficulty), exact: true }).click();
   await applyChange.click();
   await expect(dialog).not.toBeVisible();
 

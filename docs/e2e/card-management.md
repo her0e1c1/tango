@@ -131,7 +131,7 @@ Given:
 
 When:
 
-- Card 一覧の Add card から作成画面を開き、Front / Back の拡大編集で本文を入力する。
+- Card 一覧の Actions の Add card から作成画面を開き、Front / Back の拡大編集で本文を入力する。
 - タグ選択画面を開いて閉じ、Card を作成して画面を reload する。
 
 Then:
@@ -156,7 +156,7 @@ Given:
 
 When:
 
-- Card 一覧の Add card から front text と back text を入力して Card を作成し、画面を reload する。
+- Card 一覧の Actions の Add card から front text と back text を入力して Card を作成し、画面を reload する。
 
 Then:
 

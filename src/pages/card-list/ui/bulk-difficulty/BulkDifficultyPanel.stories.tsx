@@ -8,12 +8,10 @@ const meta = {
   component: BulkDifficultyPanel,
   tags: ["autodocs"],
   args: {
-    cardCount: 8,
     difficultyLowerBound: 1,
     difficultyUpperBound: 10,
     selectedDifficulty: 6,
     onDifficultyChange: fn(),
-    onRequest: fn(),
   },
 } satisfies Meta<typeof BulkDifficultyPanel>;
 
@@ -23,7 +21,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Empty: Story = {
-  args: { cardCount: 0, selectedDifficulty: null },
+  args: { disabled: true, selectedDifficulty: null },
 };
 
 export const Unselected: Story = {
