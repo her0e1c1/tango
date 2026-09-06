@@ -9,9 +9,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth");
 
-import { loginGoogle } from "./loginGoogle";
+import { signInWithGoogle } from "./signInWithGoogle";
 
-describe("ACCOUNT-01 ACCOUNT-02 loginGoogle", () => {
+describe("ACCOUNT-01 ACCOUNT-02 signInWithGoogle", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.auth.currentUser = { isAnonymous: true };
@@ -21,7 +21,7 @@ describe("ACCOUNT-01 ACCOUNT-02 loginGoogle", () => {
     const user = { uid: "uid-a" };
     vi.mocked(linkWithPopup).mockResolvedValue({ user } as never);
 
-    await expect(loginGoogle()).resolves.toBe(user);
+    await expect(signInWithGoogle()).resolves.toBe(user);
   });
 
   it("recovers a credential from a Firebase linking error", async () => {
@@ -32,7 +32,7 @@ describe("ACCOUNT-01 ACCOUNT-02 loginGoogle", () => {
     vi.mocked(GoogleAuthProvider.credentialFromError).mockReturnValue(credential as never);
     vi.mocked(signInWithCredential).mockResolvedValue({ user } as never);
 
-    await expect(loginGoogle()).resolves.toBe(user);
+    await expect(signInWithGoogle()).resolves.toBe(user);
 
     expect(signInWithCredential).toHaveBeenCalledWith(mocks.auth, credential);
   });
@@ -40,14 +40,14 @@ describe("ACCOUNT-01 ACCOUNT-02 loginGoogle", () => {
   it("rejects login without an anonymous user", async () => {
     mocks.auth.currentUser = null;
 
-    await expect(loginGoogle()).rejects.toThrow("Anonymous user is required before Google sign-in");
+    await expect(signInWithGoogle()).rejects.toThrow("Anonymous user is required before Google sign-in");
     expect(linkWithPopup).not.toHaveBeenCalled();
   });
 
   it("rejects login for a non-anonymous user", async () => {
     mocks.auth.currentUser = { isAnonymous: false };
 
-    await expect(loginGoogle()).rejects.toThrow("Anonymous user is required before Google sign-in");
+    await expect(signInWithGoogle()).rejects.toThrow("Anonymous user is required before Google sign-in");
     expect(linkWithPopup).not.toHaveBeenCalled();
   });
 
@@ -55,7 +55,7 @@ describe("ACCOUNT-01 ACCOUNT-02 loginGoogle", () => {
     const error = new Error("popup failed");
     vi.mocked(linkWithPopup).mockRejectedValue(error);
 
-    await expect(loginGoogle()).rejects.toBe(error);
+    await expect(signInWithGoogle()).rejects.toBe(error);
   });
 
   it("preserves Firebase linking errors without a credential", async () => {
@@ -63,7 +63,7 @@ describe("ACCOUNT-01 ACCOUNT-02 loginGoogle", () => {
     vi.mocked(linkWithPopup).mockRejectedValue(error);
     vi.mocked(GoogleAuthProvider.credentialFromError).mockReturnValue(null);
 
-    await expect(loginGoogle()).rejects.toBe(error);
+    await expect(signInWithGoogle()).rejects.toBe(error);
   });
 
   it("propagates credential recovery failures", async () => {
@@ -73,6 +73,6 @@ describe("ACCOUNT-01 ACCOUNT-02 loginGoogle", () => {
     vi.mocked(GoogleAuthProvider.credentialFromError).mockReturnValue({} as never);
     vi.mocked(signInWithCredential).mockRejectedValue(recoveryError);
 
-    await expect(loginGoogle()).rejects.toBe(recoveryError);
+    await expect(signInWithGoogle()).rejects.toBe(recoveryError);
   });
 });

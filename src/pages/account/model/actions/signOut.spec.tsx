@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   showToast: vi.fn(),
 }));
 
-vi.mock("./signOutCurrentUser", () => ({ signOutCurrentUser: mocks.signOutCurrentUser }));
+vi.mock("../../api/signOutCurrentUser", () => ({ signOutCurrentUser: mocks.signOutCurrentUser }));
 vi.mock("@/shared/ui/toast", () => ({ showToast: mocks.showToast }));
 
 import { signOut } from "./signOut";

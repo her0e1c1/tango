@@ -6,11 +6,11 @@ import { showToast } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
 const mocks = vi.hoisted(() => ({
-  loginGoogle: vi.fn<() => Promise<unknown>>(),
+  signInWithGoogle: vi.fn<() => Promise<unknown>>(),
   showToast: vi.fn(),
 }));
 
-vi.mock("./loginGoogle", () => ({ loginGoogle: mocks.loginGoogle }));
+vi.mock("../../api/signInWithGoogle", () => ({ signInWithGoogle: mocks.signInWithGoogle }));
 vi.mock("@/shared/ui/toast", () => ({ showToast: mocks.showToast }));
 
 import { signIn } from "./signIn";
@@ -29,15 +29,15 @@ const deferred = <T,>() => {
 
 describe("ACCOUNT-02 signIn", () => {
   beforeEach(() => {
-    mocks.loginGoogle.mockReset();
-    mocks.loginGoogle.mockResolvedValue(undefined);
+    mocks.signInWithGoogle.mockReset();
+    mocks.signInWithGoogle.mockResolvedValue(undefined);
     vi.mocked(showToast).mockReset();
     vi.mocked(showToast).mockReturnValue(1);
   });
 
   it("keeps sign-in pending when requested again before completion", async () => {
     const request = deferred<void>();
-    mocks.loginGoogle.mockReturnValue(request.promise);
+    mocks.signInWithGoogle.mockReturnValue(request.promise);
     const store = createAccountPageStore();
     const { result } = renderHook(useMountedGuard);
 
@@ -66,7 +66,7 @@ describe("ACCOUNT-02 signIn", () => {
   it("allows the primary sign-in action to retry after a handled failure", async () => {
     const failure = new Error("Sign-in failed");
     const retry = deferred<void>();
-    mocks.loginGoogle.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
+    mocks.signInWithGoogle.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
     const store = createAccountPageStore();
     const { result } = renderHook(useMountedGuard);
 
@@ -93,7 +93,7 @@ describe("ACCOUNT-02 signIn", () => {
 
   it("does not show a failure Toast when sign-in rejects after unmount", async () => {
     const request = deferred<void>();
-    mocks.loginGoogle.mockReturnValue(request.promise);
+    mocks.signInWithGoogle.mockReturnValue(request.promise);
     const store = createAccountPageStore();
     const { result, unmount } = renderHook(useMountedGuard);
     let operation!: Promise<void>;

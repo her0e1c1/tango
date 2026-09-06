@@ -1,5 +1,5 @@
 import type { AccountPageStore } from "../types";
-import { signOutCurrentUser } from "./signOutCurrentUser";
+import { signOutCurrentUser } from "../../api/signOutCurrentUser";
 import { runAccountAction } from "./runAccountAction";
 
 export function signOut(store: AccountPageStore, isMounted: () => boolean): Promise<void> {
