@@ -6,8 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
+import { accountPageStore as store } from "../store";
 import { runAccountAction } from "./runAccountAction";
-import { createAccountPageStore } from "../store";
 
 const mocks = vi.hoisted(() => ({
   action: vi.fn<() => Promise<unknown>>(),
@@ -26,6 +26,7 @@ const deferred = <T,>() => {
 
 describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
   beforeEach(() => {
+    store.setState(store.getInitialState(), true);
     mocks.action.mockReset();
     mocks.action.mockResolvedValue(undefined);
     dismissToast();
@@ -37,17 +38,16 @@ describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
     render(<ToastViewport />);
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
-    const store = createAccountPageStore();
 
     let operation!: Promise<void>;
     let duplicateOperation!: Promise<void>;
     act(() => {
-      operation = runAccountAction(mocks.action, store, {
+      operation = runAccountAction(mocks.action, {
         operation: "signIn",
         successKey: "account.toast.signInSuccess",
         failureKey: "account.toast.signInFailure",
       });
-      duplicateOperation = runAccountAction(mocks.action, store, {
+      duplicateOperation = runAccountAction(mocks.action, {
         operation: "signIn",
         successKey: "account.toast.signInSuccess",
         failureKey: "account.toast.signInFailure",
@@ -74,11 +74,10 @@ describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
     const failure = new Error("Action failed");
     const retry = deferred<void>();
     mocks.action.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
-    const store = createAccountPageStore();
 
     await actAsync(async () => {
       await expect(
-        runAccountAction(mocks.action, store, {
+        runAccountAction(mocks.action, {
           operation: "signIn",
           successKey: "account.toast.signInSuccess",
           failureKey: "account.toast.signInFailure",
@@ -89,7 +88,7 @@ describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
 
     let retryOperation!: Promise<void>;
     act(() => {
-      retryOperation = runAccountAction(mocks.action, store, {
+      retryOperation = runAccountAction(mocks.action, {
         operation: "signIn",
         successKey: "account.toast.signInSuccess",
         failureKey: "account.toast.signInFailure",
@@ -112,11 +111,10 @@ describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
     render(<ToastViewport />);
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
-    const store = createAccountPageStore();
     let operation!: Promise<void>;
 
     act(() => {
-      operation = runAccountAction(mocks.action, store, {
+      operation = runAccountAction(mocks.action, {
         operation: "signIn",
         successKey: "account.toast.signInSuccess",
         failureKey: "account.toast.signInFailure",
@@ -134,8 +132,7 @@ describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
   it("uses the active language when an action completes after a language change", async () => {
     render(<ToastViewport />);
     const request = deferred<void>();
-    const store = createAccountPageStore();
-    const operation = runAccountAction(() => request.promise, store, {
+    const operation = runAccountAction(() => request.promise, {
       operation: "signIn",
       successKey: "account.toast.signInSuccess",
       failureKey: "account.toast.signInFailure",

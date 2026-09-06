@@ -1,6 +1,7 @@
 import { showToast } from "@/shared/ui/toast";
 
-import type { AccountPageState, AccountPageStore } from "../types";
+import { accountPageStore as store } from "../store";
+import type { AccountPageState } from "../types";
 
 interface AccountActionOptions {
   operation: keyof AccountPageState;
@@ -10,7 +11,6 @@ interface AccountActionOptions {
 
 export async function runAccountAction(
   action: () => Promise<unknown>,
-  store: AccountPageStore,
   { operation, successKey, failureKey }: AccountActionOptions
 ): Promise<void> {
   // Acquire the synchronous store state before awaiting so duplicate actions cannot outrun React rendering.

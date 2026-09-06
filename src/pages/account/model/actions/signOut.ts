@@ -1,5 +1,10 @@
 import { signOutCurrentUser } from "../../api/signOutCurrentUser";
+import { runAccountAction } from "./runAccountAction";
 
-export function signOut(): Promise<unknown> {
-  return signOutCurrentUser();
+export function signOut(): Promise<void> {
+  return runAccountAction(signOutCurrentUser, {
+    operation: "signOut",
+    successKey: "account.toast.signOutSuccess",
+    failureKey: "account.toast.signOutFailure",
+  });
 }
