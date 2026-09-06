@@ -1,6 +1,7 @@
 # Repository Instructions
 
 - Be simple.
+- Do not suppress Knip findings with `@public`; remove unused code instead.
 - Before editing files, fetch `origin/main`, then create a `git worktree` at `.worktrees/$BRANCH` from it.
 - Do not work directly on `main`.
 - Do not commit files ignored by `.gitignore`.
