@@ -83,6 +83,7 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
 }: ToastViewportProps<T> = {}) => {
   const { t } = useTranslation();
   const toast = useStore(toastStore, (state) => state.current);
+  const message = toast === undefined ? "" : t(toast.messageKey, toast.messageParams ?? {});
   const modalActive = useStore(toastStore, (state) => state.modalFocusTargets.length > 0);
   const visualTargetRef = React.useRef<HTMLDivElement>(null);
   useAutoDismiss(toast);
@@ -100,13 +101,13 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
   }, [toast]);
 
   const renderAnnouncement = (activeToast: ToastState) => (
-    <span key={activeToast.id}>{`${t(tonePresentation[activeToast.tone].labelKey)}: ${activeToast.message}`}</span>
+    <span key={activeToast.id}>{`${t(tonePresentation[activeToast.tone].labelKey)}: ${message}`}</span>
   );
 
   const renderToast = (activeToast: ToastState) => (
     <Toast
       key={activeToast.id}
-      message={activeToast.message}
+      message={message}
       visualContent={activeToast.visualContent}
       tone={activeToast.tone}
       dismissible={activeToast.dismissible && !modalActive}

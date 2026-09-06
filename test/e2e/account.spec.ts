@@ -29,8 +29,8 @@ const openGooglePopup = async (page: Page) => {
   return popup;
 };
 
-const completeGooglePopup = async (page: Page, namespace: string) => {
-  const popup = await openGooglePopup(page);
+const completeGooglePopup = async (page: Page, namespace: string, openedPopup?: Page) => {
+  const popup = openedPopup ?? (await openGooglePopup(page));
   await popup.getByRole("button", { name: "Add new account" }).click();
   await popup.locator("#email-input").fill(`${namespace}@example.test`);
   await popup.locator("#display-name-input").fill(`E2E ${namespace}`);
@@ -134,4 +134,33 @@ test("ACCOUNT-04 Authentication initialization recovers after Reload", async ({ 
   await page.getByRole("button", { name: "Reload" }).click();
 
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+});
+
+test("ACCOUNT-05 Pending and visible notifications follow language changes", async ({ fixture, page, namespace }) => {
+  await page.clock.install();
+  await fixture.apply(page, { auth: false });
+  await page.goto("/account");
+  const popup = await openGooglePopup(page);
+
+  await page.getByRole("button", { name: "Open settings" }).click();
+  await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
+  await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+  await completeGooglePopup(page, namespace.uid, popup);
+
+  await expect(page.getByRole("status", { name: "トースト通知" })).toHaveText("成功: ログインしました。");
+  await expect(page.getByText("ログインしました。", { exact: true })).toBeVisible();
+  // Pause after real authentication completes so the notification's remaining lifetime can be checked deterministically.
+  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
+  await page.clock.runFor(2000);
+  await page.getByRole("button", { name: "通知を閉じる" }).focus();
+  await page.getByRole("combobox", { name: "言語" }).selectOption("en");
+
+  const status = page.getByRole("status", { name: "Toast notifications" });
+  await expect(status).toHaveText("Success: Signed in.");
+  await expect(page.getByText("Signed in.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Dismiss notification" })).toBeFocused();
+
+  await page.clock.runFor(2000);
+  await expect(status).toBeEmpty();
+  await expect(page.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
 });

@@ -147,7 +147,7 @@ describe("BulkDifficultyDialog [CARD-19] [CARD-20]", () => {
     const trigger = screen.getByRole("button", { name: "Reopen bulk change" });
     let toastId = 0;
     act(() => {
-      toastId = showToast({ message: "Bulk change failed", tone: "error", durationMs: null });
+      toastId = showToast({ messageKey: "toast.saveFailure", tone: "error", durationMs: null });
     });
 
     await userEvent.click(trigger);

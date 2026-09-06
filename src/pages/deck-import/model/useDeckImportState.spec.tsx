@@ -126,7 +126,11 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-04 IMPORT-05 IMPORT
     ]);
     expect(result.current.cards.find((card) => card.deckId === savedDeck?.id)).not.toHaveProperty("uid");
     expect(importResult).toMatchObject({ created: 1 });
-    expect(controls.showToast).toHaveBeenCalledWith({ message: "Imported 1 card.", tone: "success" });
+    expect(controls.showToast).toHaveBeenCalledWith({
+      messageKey: "deckImport.toast.imported",
+      messageParams: { count: 1 },
+      tone: "success",
+    });
   });
 
   it("creates a new local Deck without changing a same-name Deck or its Cards", async () => {
@@ -213,14 +217,19 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-04 IMPORT-05 IMPORT
     expect(savedDeck).toBeDefined();
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toEqual([]);
     expect(controls.showToast).toHaveBeenCalledWith({
-      message: "Import failed. card mutation failed",
+      messageKey: "deckImport.toast.failureWithReason",
+      messageParams: { reason: "card mutation failed" },
       tone: "error",
     });
     const retryResult = await actAsync(async () => result.current.deckImport.importPreview());
 
     expect(retryResult).toMatchObject({ created: 1 });
     expect(controls.dismissToast).toHaveBeenCalledWith(1);
-    expect(controls.showToast).toHaveBeenLastCalledWith({ message: "Imported 1 card.", tone: "success" });
+    expect(controls.showToast).toHaveBeenLastCalledWith({
+      messageKey: "deckImport.toast.imported",
+      messageParams: { count: 1 },
+      tone: "success",
+    });
     expect(result.current.decks.filter((deck) => deck.name === name)).toHaveLength(1);
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toHaveLength(1);
   });
@@ -238,7 +247,8 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-04 IMPORT-05 IMPORT
     ).toBe(true);
     expect(result.current.preferences.loadSample).toBe(false);
     expect(controls.showToast).toHaveBeenCalledWith({
-      message: `Added sample deck with ${String(addResult?.created)} cards.`,
+      messageKey: "deckImport.toast.sampleAdded",
+      messageParams: { count: addResult?.created },
       tone: "success",
     });
   });
@@ -252,7 +262,8 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-04 IMPORT-05 IMPORT
     });
 
     expect(controls.showToast).toHaveBeenCalledWith({
-      message: "Unable to add sample deck. sample mutation failed",
+      messageKey: "deckImport.toast.sampleFailureWithReason",
+      messageParams: { reason: "sample mutation failed" },
       tone: "error",
     });
     expect(result.current.preferences.loadSample).toBe(true);

@@ -175,7 +175,7 @@ describe("DECK-04 DECK-05 CARD-16 DestructiveActionDialog", () => {
     trigger.focus();
     let toastId = 0;
     act(() => {
-      toastId = showToast({ message: "Delete failed", tone: "error", durationMs: null });
+      toastId = showToast({ messageKey: "deckDeletion.toast.failure", tone: "error", durationMs: null });
     });
     expect(screen.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
 

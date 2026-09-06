@@ -45,7 +45,6 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
     deckId: deck.id,
     draft: filterDraft.state.draft,
     setState: filterDraft.setState,
-    errorMessage: t("deckFilter.saveError"),
   };
   const deckFilter = getDeckFilterState(filterDraft.state);
   // Use the latest selection immediately, including autosaves still pending from another Page.
@@ -128,21 +127,23 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
     if (result === undefined) return;
     if (result.outcome === "success") {
       showToast({
-        message: t("cardList.bulkDifficulty.success", {
+        messageKey: "cardList.bulkDifficulty.success",
+        messageParams: {
           count: result.cardCount,
           difficulty: result.difficulty,
-        }),
+        },
         tone: "success",
       });
       return;
     }
 
     bulkErrorToastId.current = showToast({
-      message: t("cardList.bulkDifficulty.partialFailure", {
+      messageKey: "cardList.bulkDifficulty.partialFailure",
+      messageParams: {
         count: result.failureCount,
         successCount: result.successCount,
         totalCount: result.totalCount,
-      }),
+      },
       tone: "error",
     });
   };

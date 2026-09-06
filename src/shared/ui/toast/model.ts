@@ -5,8 +5,12 @@ export type ToastId = number;
 
 export type ToastTone = "neutral" | "success" | "warning" | "error";
 
-export interface ShowToastInput {
-  message: string;
+export interface ToastMessage {
+  messageKey: string;
+  messageParams?: Readonly<Record<string, string | number>> | undefined;
+}
+
+export interface ShowToastInput extends ToastMessage {
   /** Replaces the visible message while keeping the text available to the live-region announcement. */
   visualContent?: ReactNode;
   tone?: ToastTone;
@@ -16,7 +20,8 @@ export interface ShowToastInput {
 
 export interface ToastState {
   id: ToastId;
-  message: string;
+  messageKey: string;
+  messageParams: ToastMessage["messageParams"];
   visualContent: ReactNode | undefined;
   tone: ToastTone;
   durationMs: number | null;
@@ -151,7 +156,9 @@ export const showToast = (input: ShowToastInput): ToastId => {
   toastStore.setState({
     current: {
       id,
-      message: input.message,
+      // Resolve copy in the viewport so pending work and visible Toasts follow the active language.
+      messageKey: input.messageKey,
+      messageParams: input.messageParams,
       visualContent: input.visualContent,
       tone,
       durationMs: input.durationMs === undefined ? DEFAULT_DURATION_MS[tone] : input.durationMs,

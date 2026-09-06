@@ -35,11 +35,12 @@ export const submitDeckCreation = (
       await createDeck(uid, values.localMode ? { ...deck, localMode: true } : { ...deck, localMode: false });
       // Stale persistence completion must not navigate a route that has already unmounted.
       if (isMounted()) {
-        showToast({ message: `Created deck “${values.name}”.`, tone: "success" });
+        showToast({ messageKey: "deckForm.toast.created", messageParams: { name: values.name }, tone: "success" });
         onCreated(deckId);
       }
     } catch {
-      if (isMounted()) saveErrorToastId.current = showToast({ message: "Unable to create this deck.", tone: "error" });
+      if (isMounted())
+        saveErrorToastId.current = showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" });
     }
   })(event);
 };

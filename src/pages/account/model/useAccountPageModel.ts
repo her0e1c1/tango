@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 
 import { useAuth } from "@/entities/auth";
@@ -17,7 +16,6 @@ const useAccountPageState = () => {
 };
 
 export const useAccountPageModel = () => {
-  const { t } = useTranslation();
   const auth = useAuth();
   const { pageState, store } = useAccountPageState();
 
@@ -28,15 +26,15 @@ export const useAccountPageModel = () => {
     signIn: () =>
       void runAccountAction(signInAction, store, {
         operation: "signIn",
-        success: t("account.toast.signInSuccess"),
-        failure: t("account.toast.signInFailure"),
+        successKey: "account.toast.signInSuccess",
+        failureKey: "account.toast.signInFailure",
       }),
 
     signOut: () =>
       void runAccountAction(signOutAction, store, {
         operation: "signOut",
-        success: t("account.toast.signOutSuccess"),
-        failure: t("account.toast.signOutFailure"),
+        successKey: "account.toast.signOutSuccess",
+        failureKey: "account.toast.signOutFailure",
       }),
   };
 };

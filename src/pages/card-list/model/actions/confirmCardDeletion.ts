@@ -15,13 +15,13 @@ export const confirmCardDeletion = async (
     await deleteCard(uid, card);
     if (!mutation.isMounted()) return;
     setTarget(undefined);
-    showToast({ message: `Deleted card “${card.frontText}”.`, tone: "success" });
+    showToast({ messageKey: "cardList.toast.deleted", messageParams: { name: card.frontText }, tone: "success" });
   } catch {
     if (mutation.isMounted()) {
       // Retry starts from a newly selected Card after a failed deletion.
       setTarget(undefined);
       mutation.errorToastId.current = showToast({
-        message: "Unable to delete this card. Check your connection and try again.",
+        messageKey: "cardList.toast.deleteFailure",
         tone: "error",
       });
     }

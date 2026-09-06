@@ -14,12 +14,15 @@ export const importDeckPreview = async (
   const result = await runDeckImportSave(
     "importing",
     () => executePreparedDeckImport(uid, getPreparedDeckImport(preview, preparedImportRef.current)),
-    (error) => `Import failed. ${error instanceof Error ? error.message : "The import could not be completed."}`,
+    (error) =>
+      error instanceof Error
+        ? { messageKey: "deckImport.toast.failureWithReason", messageParams: { reason: error.message } }
+        : { messageKey: "deckImport.toast.failure" },
     feedback
   );
   if (result === undefined || !feedback.isMounted()) return;
   // Failed writes retain generated IDs so retrying cannot create another partial Deck.
   preparedImportRef.current = undefined;
-  showToast({ message: `Imported ${String(result.created)} card${result.created === 1 ? "" : "s"}.`, tone: "success" });
+  showToast({ messageKey: "deckImport.toast.imported", messageParams: { count: result.created }, tone: "success" });
   return result;
 };

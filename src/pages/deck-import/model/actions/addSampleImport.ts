@@ -11,12 +11,15 @@ export const addSampleImport = async (
     "adding-sample",
     () => addSampleDeck(uid),
     (error) =>
-      `Unable to add sample deck. ${error instanceof Error ? error.message : "The sample deck could not be added."}`,
+      error instanceof Error
+        ? { messageKey: "deckImport.toast.sampleFailureWithReason", messageParams: { reason: error.message } }
+        : { messageKey: "deckImport.toast.sampleFailure" },
     feedback
   );
   if (result === undefined || !feedback.isMounted()) return;
   showToast({
-    message: `Added sample deck with ${String(result.created)} card${result.created === 1 ? "" : "s"}.`,
+    messageKey: "deckImport.toast.sampleAdded",
+    messageParams: { count: result.created },
     tone: "success",
   });
   return result;

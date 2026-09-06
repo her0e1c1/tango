@@ -17,7 +17,6 @@ import { getDeckFilterState } from "./queries/getDeckFilterState";
 import { clearDeckFilterRange } from "./actions/clearDeckFilterRange";
 import { useDeckFilterSaveLifecycle } from "./useDeckFilterSaveLifecycle";
 import { updateDeckFilterDraft } from "./actions/updateDeckFilterDraft";
-import { useTranslation } from "react-i18next";
 
 type EditDeck = typeof import("@/entities/deck").editDeck;
 
@@ -40,7 +39,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 
 const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[] }> = ({ deck, tags = ["tag1", "tag2"] }) => {
-  const { t } = useTranslation();
   const uid = useAuthUid();
   const filterDraft = useDeckFilterDraft(uid, deck);
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
@@ -49,7 +47,6 @@ const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[] }> = ({ deck, ta
     deckId: deck.id,
     draft: filterDraft.state.draft,
     setState: filterDraft.setState,
-    errorMessage: t("deckFilter.saveError"),
   };
   const filter = getDeckFilterState(filterDraft.state);
   return (

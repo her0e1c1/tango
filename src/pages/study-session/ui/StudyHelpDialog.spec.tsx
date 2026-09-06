@@ -82,7 +82,7 @@ describe("SWIPE-24 StudyHelpDialog", () => {
     trigger.focus();
     let toastId = 0;
     act(() => {
-      toastId = showToast({ message: "Save failed", tone: "error", durationMs: null });
+      toastId = showToast({ messageKey: "toast.saveFailure", tone: "error", durationMs: null });
     });
     expect(screen.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
 
@@ -106,7 +106,7 @@ describe("SWIPE-24 StudyHelpDialog", () => {
       </React.StrictMode>
     );
     act(() => {
-      showToast({ message: "Save failed", tone: "error", durationMs: null });
+      showToast({ messageKey: "toast.saveFailure", tone: "error", durationMs: null });
     });
 
     await user.click(screen.getByRole("button", { name: "Open study help" }));

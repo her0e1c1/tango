@@ -34,12 +34,15 @@ export const saveCard = async (
     await editCard(uid, { id: snapshot.id, ...savedInput });
     // The initiating route owns feedback and navigation even when persistence outlives it.
     if (isMounted()) {
-      showToast({ message: `Updated card “${savedInput.frontText}”.`, tone: "success" });
+      showToast({
+        messageKey: "cardForm.toast.updated",
+        messageParams: { name: savedInput.frontText },
+        tone: "success",
+      });
       onSaved(snapshot.deckId);
     }
   } catch {
-    if (isMounted())
-      saveErrorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
+    if (isMounted()) saveErrorToastId.current = showToast({ messageKey: "toast.saveFailure", tone: "error" });
   } finally {
     savingRef.current = false;
     if (isMounted()) setIsSaving(false);

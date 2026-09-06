@@ -40,12 +40,16 @@ export const submitCardCreation = (
         await createCard(uid, { id: cardId, uniqueKey: cardId, deckId, ...values });
         // Stale persistence completion must not navigate a route that has already unmounted.
         if (isMounted()) {
-          showToast({ message: `Created card “${values.frontText}”.`, tone: "success" });
+          showToast({
+            messageKey: "cardForm.toast.created",
+            messageParams: { name: values.frontText },
+            tone: "success",
+          });
           onCreated(cardId);
         }
       } catch {
         if (isMounted())
-          saveErrorToastId.current = showToast({ message: "Unable to create this card. Try again.", tone: "error" });
+          saveErrorToastId.current = showToast({ messageKey: "cardForm.toast.createFailure", tone: "error" });
       }
     })(event)
     .finally(() => {

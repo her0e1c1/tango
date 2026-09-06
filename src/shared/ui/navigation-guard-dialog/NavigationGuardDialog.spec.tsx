@@ -28,7 +28,7 @@ describe("CARD-17 DECK-12 NavigationGuardDialog", () => {
     const trigger = screen.getByRole("button", { name: "Leave editor" });
     trigger.focus();
     act(() => {
-      showToast({ message: "Save failed", tone: "error", durationMs: null });
+      showToast({ messageKey: "toast.saveFailure", tone: "error", durationMs: null });
     });
     expect(screen.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
 
@@ -40,10 +40,10 @@ describe("CARD-17 DECK-12 NavigationGuardDialog", () => {
 
     trigger.focus();
     act(() => {
-      showToast({ message: "Still unavailable", tone: "error", durationMs: null });
+      showToast({ messageKey: "cardForm.toast.createFailure", tone: "error", durationMs: null });
     });
     expect(keepEditing).toHaveFocus();
-    expect(screen.getByText("Still unavailable")).toBeVisible();
+    expect(screen.getByText("Unable to create this card. Try again.")).toBeVisible();
     expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
   });
 });
