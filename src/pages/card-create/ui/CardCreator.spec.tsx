@@ -17,34 +17,16 @@ vi.mock("@/entities/card", async (importOriginal) => ({
   generateCardId: writes.generateCardId,
 }));
 
-import { useCardCreateFormState } from "../model/useCardCreateFormState";
-import { submitCardCreation } from "../model/actions/submitCardCreation";
+import { useCardCreatePageModel } from "../model/useCardCreatePageModel";
 import { CardCreator } from "./CardCreator";
 
 const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
 
 const CardCreatorHarness = ({ onCreated = vi.fn() }: { onCreated?: (cardId: string) => void }) => {
-  const state = useCardCreateFormState();
+  const { form, onSubmit } = useCardCreatePageModel(deck.id, onCreated);
   return (
     <>
-      <CardCreator
-        categories={CATEGORY}
-        deckName={deck.name}
-        form={state.form}
-        onCancel={vi.fn()}
-        onSubmit={(event) =>
-          submitCardCreation(event, {
-            uid: "user-id",
-            form: state.form,
-            cardId: state.cardId,
-            deckId: deck.id,
-            pending: state.pending,
-            saveErrorToastId: state.saveErrorToastId,
-            isMounted: state.isMounted,
-            onCreated,
-          })
-        }
-      />
+      <CardCreator categories={CATEGORY} deckName={deck.name} form={form} onCancel={vi.fn()} onSubmit={onSubmit} />
       <ToastViewport />
     </>
   );
@@ -99,6 +81,7 @@ describe("CARD-13 CARD-14 CARD-15 CardCreator", () => {
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledOnce());
+    expect(screen.queryByText("Unable to create this card. Try again.")).not.toBeInTheDocument();
     expect(writes.createCard).toHaveBeenCalledTimes(2);
     expect(writes.createCard.mock.calls[0]?.[1]).toEqual(writes.createCard.mock.calls[1]?.[1]);
     expect(writes.generateCardId).toHaveBeenCalledOnce();
@@ -120,7 +103,9 @@ describe("CARD-13 CARD-14 CARD-15 CardCreator", () => {
     fireEvent.click(createButton);
 
     await waitFor(() => expect(writes.createCard).toHaveBeenCalledOnce());
+    expect(screen.getByRole("button", { name: "Creating…" })).toBeDisabled();
     act(() => finishWrite());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
   });
 
   it("does not navigate after an in-flight creation outlives the Page", async () => {
