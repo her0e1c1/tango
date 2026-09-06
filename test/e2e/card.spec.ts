@@ -344,3 +344,75 @@ test("CARD-14 creates one local Card and keeps it across reload", async ({ fixtu
     )
   ).toEqual([]);
 });
+
+test("CARD-19 changes the difficulty of only the Cards visible in the filter draft", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const matchingCards = [fixture.card("card-1"), fixture.card("card-2")];
+  const excludedCard = fixture.card("card-3");
+  const newDifficulty = 7;
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}`);
+  await page.getByText("Filters", { exact: true }).click();
+  await page.getByRole("combobox", { name: "Maximum difficulty" }).selectOption("4");
+  await Promise.all(
+    matchingCards.map((card) => expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible())
+  );
+  await expect(page.getByRole("button", { name: `View ${excludedCard.frontText}` })).toHaveCount(0);
+
+  await page.getByRole("combobox", { name: "New difficulty" }).selectOption(String(newDifficulty));
+  const trigger = page.getByRole("button", { name: "Change difficulty" });
+  await trigger.click();
+  const dialog = page.getByRole("dialog", { name: "Change card difficulty?" });
+  const description = dialog.getByText(
+    `Set ${String(matchingCards.length)} visible cards to difficulty ${String(newDifficulty)}.`
+  );
+  const cancel = dialog.getByRole("button", { name: "Cancel" });
+  const applyChange = dialog.getByRole("button", { name: "Apply change" });
+  await expect(dialog).toContainText(
+    `Set ${String(matchingCards.length)} visible cards to difficulty ${String(newDifficulty)}.`
+  );
+  await expect(cancel).toBeFocused();
+  await page.keyboard.press("s");
+  await page.keyboard.press("t");
+  await expect(dialog).toBeVisible();
+  await expect(page).toHaveURL(`/deck/${deck.id}`);
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("hidden");
+  await page.keyboard.press("Shift+Tab");
+  await expect(description).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(applyChange).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(description).toBeFocused();
+  await page.keyboard.press("Escape");
+
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
+  await Promise.all(
+    matchingCards.map((card) =>
+      expect
+        .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
+        .toBe(String(card.difficulty))
+    )
+  );
+
+  await trigger.click();
+  await applyChange.click();
+  await expect(dialog).not.toBeVisible();
+
+  await Promise.all(
+    matchingCards.map((card) =>
+      expect
+        .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
+        .toBe(String(newDifficulty))
+    )
+  );
+  await expect
+    .poll(async () => (await requireDocument("card", excludedCard.id)).fields.difficulty?.integerValue)
+    .toBe(String(excludedCard.difficulty));
+  await page.reload();
+
+  await Promise.all(matchingCards.map((card) => expectDifficulty(page, card.frontText, newDifficulty)));
+  await expectDifficulty(page, excludedCard.frontText, excludedCard.difficulty);
+});

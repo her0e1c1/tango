@@ -115,3 +115,79 @@ test("CARD-18 retries the same Card-list difficulty change after a handled failu
   await page.reload();
   await expectDifficulty(page, card.frontText, expectedDifficulty);
 });
+
+test("CARD-20 retries a partially failed bulk difficulty change with the same absolute value", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
+  const deck = fixture.deck();
+  const failedCard = fixture.card("card-1");
+  const successfulCard = fixture.card("card-2");
+  const excludedCard = fixture.card("card-3");
+  const newDifficulty = 7;
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}`);
+  await page.getByText("Filters", { exact: true }).click();
+  await page.getByRole("combobox", { name: "Maximum difficulty" }).selectOption("4");
+  const fault = await failNextFirestoreWrite(page, { collection: "card", id: failedCard.id });
+  allowExpectedFirestoreWriteFailure(browserErrors);
+
+  const difficulty = page.getByRole("combobox", { name: "New difficulty" });
+  await difficulty.selectOption(String(newDifficulty));
+  await page.getByRole("button", { name: "Change difficulty" }).click();
+  const dialog = page.getByRole("dialog", { name: "Change card difficulty?" });
+  const applyChange = dialog.getByRole("button", { name: "Apply change" });
+  await dialog.evaluate((element) => {
+    const { documentElement } = element.ownerDocument;
+    documentElement.dataset.bulkDifficultyPendingObserved = "false";
+    const observer = new MutationObserver(() => {
+      const buttons = [...element.querySelectorAll("button")];
+      if (
+        element.getAttribute("aria-busy") === "true" &&
+        buttons.length > 0 &&
+        buttons.every((button) => button.disabled) &&
+        element.contains(element.ownerDocument.activeElement)
+      ) {
+        documentElement.dataset.bulkDifficultyPendingObserved = "true";
+        observer.disconnect();
+      }
+    });
+    observer.observe(element, { attributeFilter: ["aria-busy", "disabled"], attributes: true, subtree: true });
+  });
+  await applyChange.click();
+
+  await expect(page.getByRole("alert")).toContainText("Updated 1 of 2. 1 card could not be updated. Try again.");
+  expect(await page.locator("html").getAttribute("data-bulk-difficulty-pending-observed")).toBe("true");
+  await expect.poll(fault.wasTriggered).toBe(true);
+  await fault.waitForFailure();
+  await fault.dispose();
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText(`Set 2 visible cards to difficulty ${String(newDifficulty)}.`);
+  await expect(difficulty).toHaveValue(String(newDifficulty));
+  await expect
+    .poll(async () => (await requireDocument("card", failedCard.id)).fields.difficulty?.integerValue)
+    .toBe(String(failedCard.difficulty));
+  await expect
+    .poll(async () => (await requireDocument("card", successfulCard.id)).fields.difficulty?.integerValue)
+    .toBe(String(newDifficulty));
+
+  await applyChange.click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await Promise.all(
+    [failedCard, successfulCard].map((card) =>
+      expect
+        .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
+        .toBe(String(newDifficulty))
+    )
+  );
+  await expect
+    .poll(async () => (await requireDocument("card", excludedCard.id)).fields.difficulty?.integerValue)
+    .toBe(String(excludedCard.difficulty));
+  await page.reload();
+
+  await expectDifficulty(page, failedCard.frontText, newDifficulty);
+  await expectDifficulty(page, successfulCard.frontText, newDifficulty);
+  await expectDifficulty(page, excludedCard.frontText, excludedCard.difficulty);
+});

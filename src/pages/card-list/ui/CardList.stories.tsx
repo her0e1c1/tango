@@ -66,6 +66,13 @@ const meta = {
   },
   args: {
     cards: fixture.cards.default,
+    bulkDifficulty: {
+      difficultyLowerBound: 1,
+      difficultyUpperBound: 10,
+      selectedDifficulty: null,
+      onDifficultyChange: fn(),
+      onRequest: fn(),
+    },
     filter: activeFilter,
     filterSlot: <div>Filter controls</div>,
   },
@@ -81,6 +88,22 @@ export const AddCard: Story = {
   play: async ({ args, canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Add card" }));
     await expect(args.onAddCard).toHaveBeenCalledOnce();
+  },
+};
+
+export const BulkDifficulty: Story = {
+  args: {
+    bulkDifficulty: {
+      difficultyLowerBound: 1,
+      difficultyUpperBound: 10,
+      selectedDifficulty: 7,
+      onDifficultyChange: fn(),
+      onRequest: fn(),
+    },
+  },
+  play: async ({ args, canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Change difficulty" }));
+    await expect(args.bulkDifficulty?.onRequest).toHaveBeenCalledOnce();
   },
 };
 

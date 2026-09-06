@@ -212,6 +212,27 @@ export const resources = {
         count_other: "{{count}} cards",
         add: "Add card",
         closeCard: "Close card",
+        bulkDifficulty: {
+          title: "Change difficulty",
+          target_one: "{{count}} visible card",
+          target_other: "{{count}} visible cards",
+          newDifficulty: "New difficulty",
+          placeholder: "Choose difficulty",
+          request: "Change difficulty",
+          success_one: "Set {{count}} card to difficulty {{difficulty}}.",
+          success_other: "Set {{count}} cards to difficulty {{difficulty}}.",
+          partialFailure_one:
+            "Updated {{successCount}} of {{totalCount}}. {{count}} card could not be updated. Try again.",
+          partialFailure_other:
+            "Updated {{successCount}} of {{totalCount}}. {{count}} cards could not be updated. Try again.",
+          dialog: {
+            title: "Change card difficulty?",
+            description_one: "Set {{count}} visible card to difficulty {{difficulty}}.",
+            description_other: "Set {{count}} visible cards to difficulty {{difficulty}}.",
+            cancel: "Cancel",
+            confirm: "Apply change",
+          },
+        },
         filters: {
           title: "Filters",
           noFilters: "No filters",
@@ -780,6 +801,27 @@ export const resources = {
         count_other: "{{count}}枚",
         add: "カードを追加",
         closeCard: "カードを閉じる",
+        bulkDifficulty: {
+          title: "難易度をまとめて変更",
+          target_one: "表示中のカード{{count}}枚",
+          target_other: "表示中のカード{{count}}枚",
+          newDifficulty: "変更後の難易度",
+          placeholder: "難易度を選択",
+          request: "難易度を変更",
+          success_one: "{{count}}枚のカードを難易度{{difficulty}}に変更しました。",
+          success_other: "{{count}}枚のカードを難易度{{difficulty}}に変更しました。",
+          partialFailure_one:
+            "{{totalCount}}枚中{{successCount}}枚を更新しました。{{count}}枚を更新できませんでした。もう一度お試しください。",
+          partialFailure_other:
+            "{{totalCount}}枚中{{successCount}}枚を更新しました。{{count}}枚を更新できませんでした。もう一度お試しください。",
+          dialog: {
+            title: "カードの難易度を変更しますか？",
+            description_one: "表示中のカード{{count}}枚を難易度{{difficulty}}に変更します。",
+            description_other: "表示中のカード{{count}}枚を難易度{{difficulty}}に変更します。",
+            cancel: "キャンセル",
+            confirm: "変更を適用",
+          },
+        },
         filters: {
           title: "フィルター",
           noFilters: "フィルターなし",
