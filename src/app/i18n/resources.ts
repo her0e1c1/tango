@@ -270,9 +270,7 @@ export const resources = {
         },
       },
       deckFilter: {
-        save: "Save filters",
-        saveSuccess: "Saved filters.",
-        saveError: "Unable to save filters. Check your connection and try again.",
+        saveError: "Unable to save filters. Check your connection and change a filter to try again.",
         difficultyRange: {
           title: "Difficulty range",
           clear: "Clear",
@@ -859,9 +857,7 @@ export const resources = {
         },
       },
       deckFilter: {
-        save: "フィルターを保存",
-        saveSuccess: "フィルターを保存しました。",
-        saveError: "フィルターを保存できませんでした。接続を確認して、もう一度お試しください。",
+        saveError: "フィルターを保存できませんでした。接続を確認し、フィルターを変更して再試行してください。",
         difficultyRange: {
           title: "難易度範囲",
           clear: "クリア",

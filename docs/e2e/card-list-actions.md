@@ -71,12 +71,15 @@ Given:
 
 When:
 
-- Card 一覧で difficulty 範囲と tag filter を設定し、`Save filters` を選択する。
+- Card 一覧で difficulty 範囲と tag filter を続けて変更する。
 - 保存完了後に画面を reload する。
 
 Then:
 
-- reload 前に設定した difficulty 範囲と tag filter が表示される。
+- 各変更が操作順に自動保存され、保存ボタンは表示されない。
+- 保存中も filter を変更でき、別画面への移動時も最新条件と保存順序を維持する。
+- reload 前に設定した最後の difficulty 範囲と tag filter が表示される。
+- 保存失敗時はエラーを通知して選択を維持し、次の変更で全条件を再保存する。
 - 両方の filter 条件に一致する Card だけが一覧に表示される。
 - browser error が発生しない。
 

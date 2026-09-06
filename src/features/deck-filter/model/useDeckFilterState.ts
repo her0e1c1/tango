@@ -1,10 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAuthUid } from "@/entities/auth";
 import { type Deck, editDeck } from "@/entities/deck";
 import { type Difficulty, MAX_DIFFICULTY, MIN_DIFFICULTY } from "@/entities/study-progress";
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { showToast } from "@/shared/ui/toast";
 
 export interface DeckFilterState {
@@ -14,10 +13,8 @@ export interface DeckFilterState {
   difficultyUpperBound: number;
   selectedTags: string[];
   tagAndFilter: boolean;
-  dirty: boolean;
   saving: boolean;
   clearDifficultyRange: () => void;
-  save: () => Promise<void>;
   setDifficultyMax: (value: Difficulty | null) => void;
   setDifficultyMin: (value: Difficulty | null) => void;
   setSelectedTags: (value: string[]) => void;
@@ -27,11 +24,14 @@ export interface DeckFilterState {
 type DeckFilterValues = Pick<Deck, "difficultyMax" | "difficultyMin" | "selectedTags" | "tagAndFilter">;
 
 interface FilterModelState {
-  baseline: DeckFilterValues;
-  deckId: Deck["id"];
+  key: string;
   draft: DeckFilterValues;
-  saving: boolean;
+  pending?: Promise<void> | undefined;
 }
+
+// Pending drafts and writes outlive a Page so navigation cannot restore an older filter or reorder saves.
+// Keep failed drafts for retry; successful writes return ownership to the Deck repository.
+const pendingFilters = new Map<string, FilterModelState>();
 
 const toFilterValues = (deck: Deck): DeckFilterValues => ({
   difficultyMax: deck.difficultyMax,
@@ -50,49 +50,54 @@ const areFiltersEqual = (left: DeckFilterValues, right: DeckFilterValues): boole
 export const useDeckFilterState = (deck: Deck): DeckFilterState => {
   const { t } = useTranslation();
   const uid = useAuthUid();
-  const isMounted = useMountedGuard();
-  const [state, setState] = useState<FilterModelState>(() => {
-    const filter = toFilterValues(deck);
-    return { baseline: filter, deckId: deck.id, draft: filter, saving: false };
-  });
-  const savingRef = useRef(false);
+  const key = JSON.stringify([uid, deck.id]);
+  const [state, setState] = useState<FilterModelState>(
+    () => pendingFilters.get(key) ?? { key, draft: toFilterValues(deck) }
+  );
 
-  if (state.deckId !== deck.id) {
-    const filter = toFilterValues(deck);
-    setState({ baseline: filter, deckId: deck.id, draft: filter, saving: false });
+  if (state.key !== key) {
+    setState(pendingFilters.get(key) ?? { key, draft: toFilterValues(deck) });
   }
 
-  const updateDraft = (patch: Partial<DeckFilterValues>) => {
-    setState((current) => ({ ...current, draft: { ...current.draft, ...patch } }));
-  };
+  useEffect(() => {
+    let active = true;
+    void state.pending?.then(() => {
+      if (active) {
+        setState((current) => (current.pending === state.pending ? { ...current, pending: undefined } : current));
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [state.pending]);
 
-  const save = async () => {
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: Another same-tick Save can observe this ref before React rerenders.
-    if (savingRef.current || areFiltersEqual(state.baseline, state.draft)) return;
-    const submitted = { ...state.draft, selectedTags: [...state.draft.selectedTags] };
-    savingRef.current = true;
-    setState((current) => ({ ...current, saving: true }));
-    try {
-      await editDeck(uid, { id: deck.id, ...submitted });
-      if (!isMounted()) return;
-      setState((current) => ({ ...current, baseline: submitted }));
-      showToast({ message: t("deckFilter.saveSuccess"), tone: "success" });
-    } catch {
-      if (isMounted()) showToast({ message: t("deckFilter.saveError"), tone: "error" });
-    } finally {
-      savingRef.current = false;
-      if (isMounted()) setState((current) => ({ ...current, saving: false }));
-    }
+  const updateDraft = (patch: Partial<DeckFilterValues>) => {
+    const queued = pendingFilters.get(key);
+    const previous = queued?.draft ?? state.draft;
+    const submitted = { ...previous, ...patch };
+    if (areFiltersEqual(previous, submitted)) return;
+
+    // Submit full selections in order so the next change also retries any failed fields.
+    const pending = (queued?.pending ?? Promise.resolve()).then(async () => {
+      try {
+        await editDeck(uid, { id: deck.id, ...submitted });
+        if (pendingFilters.get(key)?.pending === pending) pendingFilters.delete(key);
+      } catch {
+        if (pendingFilters.get(key)?.pending === pending) pendingFilters.set(key, { key, draft: submitted });
+        showToast({ message: t("deckFilter.saveError"), tone: "error" });
+      }
+    });
+    const next = { key, draft: submitted, pending };
+    pendingFilters.set(key, next);
+    setState(next);
   };
 
   return {
     difficultyLowerBound: MIN_DIFFICULTY,
     ...state.draft,
     difficultyUpperBound: MAX_DIFFICULTY,
-    dirty: !areFiltersEqual(state.baseline, state.draft),
-    saving: state.saving,
+    saving: state.pending !== undefined,
     clearDifficultyRange: () => updateDraft({ difficultyMax: MAX_DIFFICULTY, difficultyMin: MIN_DIFFICULTY }),
-    save,
     setDifficultyMax: (value) => updateDraft({ difficultyMax: value }),
     setDifficultyMin: (value) => updateDraft({ difficultyMin: value }),
     setSelectedTags: (value) => updateDraft({ selectedTags: value }),

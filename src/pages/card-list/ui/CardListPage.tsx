@@ -21,7 +21,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const deckFilter = useDeckFilterState(deck);
-  // The list previews the local filter draft; persistence remains an explicit user action.
+  // Use the latest selection immediately, including autosaves still pending from another Page.
   const state = useCardListState({
     ...deck,
     difficultyMax: deckFilter.difficultyMax,
