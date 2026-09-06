@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { type UseFormReturn, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import { type Preferences, studyPreferencesLimits, usePreferences } from "@/entities/preference";
 
@@ -10,15 +10,8 @@ export const useSettingsPageModel = () => {
   const preferences = usePreferences();
   const form = useForm<Preferences>({ defaultValues: preferences });
 
-  usePreferencesSync(form, preferences.appearance.darkMode);
-
-  return { form, studyPreferencesLimits };
-};
-
-function usePreferencesSync(
-  { setValue, subscribe, handleSubmit }: Pick<UseFormReturn<Preferences>, "setValue" | "subscribe" | "handleSubmit">,
-  darkMode: boolean
-): void {
+  const { setValue, subscribe, handleSubmit } = form;
+  const darkMode = preferences.appearance.darkMode;
   useEffect(() => {
     syncPreferencesDarkMode(setValue, darkMode);
   }, [setValue, darkMode]);
@@ -31,4 +24,6 @@ function usePreferencesSync(
       }),
     [subscribe, handleSubmit]
   );
-}
+
+  return { form, studyPreferencesLimits };
+};
