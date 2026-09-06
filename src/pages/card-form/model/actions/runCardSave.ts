@@ -1,26 +1,28 @@
-import { saveCard } from "./saveCard";
-import { dismissSaveError } from "./dismissSaveError";
 import type { RefObject } from "react";
-import type { Card } from "@/entities/card";
-import type { CardFormValues } from "../useCardFormState";
+
+import type { CardId } from "@/entities/card";
 import { showToast, type ToastId } from "@/shared/ui/toast";
+
+import type { CardFormValues } from "../cardFormSchema";
+import { dismissSaveError } from "./dismissSaveError";
+import { saveCard } from "./saveCard";
 
 export async function runCardSave(
   values: CardFormValues,
   {
-    snapshot,
+    cardId,
     savingRef,
     setIsSaving,
     saveErrorToastId,
     isMounted,
     onSaved,
   }: {
-    snapshot: Card;
+    cardId: CardId;
     savingRef: RefObject<boolean>;
     setIsSaving: (saving: boolean) => void;
     saveErrorToastId: RefObject<ToastId | undefined>;
     isMounted: () => boolean;
-    onSaved: (deckId: Card["deckId"]) => void;
+    onSaved: () => void;
   }
 ): Promise<void> {
   // Validation can finish for two same-tick submits before React publishes pending state.
@@ -30,7 +32,7 @@ export async function runCardSave(
   setIsSaving(true);
   dismissSaveError(saveErrorToastId);
   try {
-    await saveCard({ id: snapshot.id, ...savedInput });
+    await saveCard({ id: cardId, ...savedInput });
     // The initiating route owns feedback and navigation even when persistence outlives it.
     if (isMounted()) {
       showToast({
@@ -38,7 +40,7 @@ export async function runCardSave(
         messageParams: { name: savedInput.frontText },
         tone: "success",
       });
-      onSaved(snapshot.deckId);
+      onSaved();
     }
   } catch {
     if (isMounted()) saveErrorToastId.current = showToast({ messageKey: "toast.saveFailure", tone: "error" });

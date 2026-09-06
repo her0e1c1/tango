@@ -10,8 +10,7 @@ import { CATEGORY, createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 
-import { useCardFormState } from "../model/useCardFormState";
-import { runCardSave } from "../model/actions/runCardSave";
+import { useCardFormPageModel } from "../model/useCardFormPageModel";
 import { CardEditor } from "./CardEditor";
 
 const writeControls = vi.hoisted(() => ({
@@ -44,31 +43,15 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 }));
 
 const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; onSaved: () => void }) => {
-  const editor = useCardFormState(props.card);
+  const { cardInfo, form, isSaving, submitForm } = useCardFormPageModel(props.card);
   return (
     <CardEditor
-      cardInfo={{
-        id: editor.snapshot.id,
-        uniqueKey: editor.snapshot.uniqueKey,
-        ...(editor.snapshot.createdAt ? { createdAt: editor.snapshot.createdAt } : {}),
-        ...(editor.snapshot.lastSeenAt != null ? { lastSeenAt: editor.snapshot.lastSeenAt } : {}),
-      }}
+      cardInfo={cardInfo}
       categories={CATEGORY}
-      form={editor.form}
-      isSaving={editor.isSaving}
+      form={form}
+      isSaving={isSaving}
       onCancel={props.onCancel}
-      onSubmit={(event) => {
-        void editor.form.handleSubmit((values) =>
-          runCardSave(values, {
-            snapshot: editor.snapshot,
-            savingRef: editor.savingRef,
-            setIsSaving: editor.setIsSaving,
-            saveErrorToastId: editor.saveErrorToastId,
-            isMounted: editor.isMounted,
-            onSaved: props.onSaved,
-          })
-        )(event);
-      }}
+      onSubmit={(event) => submitForm(props.onSaved, event)}
     />
   );
 };
@@ -184,6 +167,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-21 CardEditor", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
     view.unmount();
     renderForm();
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Retry front");

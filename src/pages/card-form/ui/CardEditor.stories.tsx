@@ -5,10 +5,10 @@ import { fn } from "storybook/test";
 
 import type { Card } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
+import type { CardFormFields } from "@/features/card-form";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
 
-import type { CardFormValues } from "../model/useCardFormState";
 import { CardEditor } from "./CardEditor";
 
 interface CardEditorStoryProps {
@@ -19,7 +19,7 @@ interface CardEditorStoryProps {
 }
 
 const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEditorStoryProps) => {
-  const form = useForm<CardFormValues>({
+  const form = useForm<CardFormFields>({
     defaultValues: { frontText: card.frontText, backText: card.backText, tags: card.tags },
   });
 

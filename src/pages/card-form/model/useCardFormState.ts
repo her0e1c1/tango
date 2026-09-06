@@ -1,21 +1,14 @@
 import * as React from "react";
-import type * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { type Card, cardContentSchema } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { dismissToast, type ToastId } from "@/shared/ui/toast";
 
-const cardFormSchema = cardContentSchema.omit({ uniqueKey: true });
-export type CardFormValues = z.infer<typeof cardFormSchema>;
-
-const getCardFormValues = (card: Card): CardFormValues => ({
-  frontText: card.frontText,
-  backText: card.backText,
-  tags: [...card.tags],
-});
+import { cardFormSchema, type CardFormValues } from "./cardFormSchema";
+import { getCardFormValues } from "./queries/getCardFormValues";
 
 export const useCardFormState = (card: Card) => {
   const isMounted = useMountedGuard();
