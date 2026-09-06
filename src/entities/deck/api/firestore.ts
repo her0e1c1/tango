@@ -24,7 +24,7 @@ import {
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
-import { replaceRemoteDecks } from "../model/store";
+import { replaceRemoteDecks } from "../model/actions/replaceRemoteDecks";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";

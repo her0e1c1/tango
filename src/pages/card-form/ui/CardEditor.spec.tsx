@@ -6,11 +6,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { mutateCards, useCard } from "@/entities/card";
-import { createDeck } from "@/entities/deck";
+import { CATEGORY, createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 
-import { useCardForm } from "../model/useCardForm";
+import { useCardFormState } from "../model/useCardFormState";
+import { saveCard } from "../model/actions/saveCard";
 import { CardEditor } from "./CardEditor";
 
 const writeControls = vi.hoisted(() => ({
@@ -41,15 +42,32 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 }));
 
 const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; onSaved: () => void }) => {
-  const editor = useCardForm({ card: props.card, onSaved: props.onSaved });
+  const editor = useCardFormState(props.card);
   return (
     <CardEditor
-      cardInfo={editor.cardInfo}
-      categories={editor.categories}
+      cardInfo={{
+        id: editor.snapshot.id,
+        uniqueKey: editor.snapshot.uniqueKey,
+        ...(editor.snapshot.createdAt ? { createdAt: editor.snapshot.createdAt } : {}),
+        ...(editor.snapshot.lastSeenAt != null ? { lastSeenAt: editor.snapshot.lastSeenAt } : {}),
+      }}
+      categories={CATEGORY}
       form={editor.form}
       isSaving={editor.isSaving}
       onCancel={props.onCancel}
-      onSubmit={editor.onSubmit}
+      onSubmit={(event) => {
+        void editor.form.handleSubmit((values) =>
+          saveCard(values, {
+            uid: "user-id",
+            snapshot: editor.snapshot,
+            savingRef: editor.savingRef,
+            setIsSaving: editor.setIsSaving,
+            saveErrorToastId: editor.saveErrorToastId,
+            isMounted: editor.isMounted,
+            onSaved: props.onSaved,
+          })
+        )(event);
+      }}
     />
   );
 };

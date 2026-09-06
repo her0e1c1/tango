@@ -17,7 +17,7 @@ import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument } from "../model/dto";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
-import { replaceRemoteCards } from "../model/store";
+import { replaceRemoteCards } from "../model/actions/replaceRemoteCards";
 import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";

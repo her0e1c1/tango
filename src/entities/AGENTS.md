@@ -42,14 +42,24 @@
 
 ## `model/store.ts`
 
-- Define the global Entity store with Zustand and synchronous state mutations.
+- Define the global Entity store with Zustand state, initialization, and hydration.
+- Keep application read and update operations in `queries/` and `actions/`.
 - Do not perform external access, subscriptions, or asynchronous workflows.
 - Treat persistence middleware as an explicit exception for storage access, state hydration, and persistence subscriptions.
 
-## `model/hooks.ts`
+## `model/actions/`
 
-- Define thin React hooks for reading or selecting Entity state.
-- Do not place business logic or external access here.
+- Define each synchronous Entity state operation in its own file with an individual named export.
+- Apply validation and preserve state invariants at the operation boundary.
+- Keep operations outside Zustand state; do not bundle them in an action object or factory.
+- Do not perform external access or asynchronous persistence workflows here.
+
+## `model/queries/`
+
+- Define each state getter or thin React selector hook in its own file.
+- Read, select, or derive Entity state without updating it or performing external access.
+- Keep pure domain calculations in `rules.ts`.
+- Import individual modules directly within the slice; do not add internal barrel files.
 
 ## `api/`
 

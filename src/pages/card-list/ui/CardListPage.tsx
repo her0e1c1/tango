@@ -1,3 +1,13 @@
+import { useCardListQuery } from "../model/queries/useCardListQuery";
+import { requestBulkDifficulty } from "../model/actions/requestBulkDifficulty";
+import { cancelBulkDifficulty } from "../model/actions/cancelBulkDifficulty";
+import { confirmBulkDifficulty } from "../model/actions/confirmBulkDifficulty";
+import { confirmCardDeletion } from "../model/actions/confirmCardDeletion";
+import { changeBulkDifficulty } from "../model/actions/changeBulkDifficulty";
+import { changeCardDifficulty } from "../model/actions/changeCardDifficulty";
+import { requestCardDeletion } from "../model/actions/requestCardDeletion";
+import { showCardAnswer } from "../model/actions/showCardAnswer";
+import { useAuthUid } from "@/entities/auth";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -6,7 +16,14 @@ import { useKey } from "react-use";
 import { BackText } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import { DifficultyIndicator } from "@/entities/study-progress";
-import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
+import {
+  DeckFilterForm,
+  useDeckFilterDraft,
+  getDeckFilterState,
+  clearDeckFilterRange,
+  useDeckFilterSaveLifecycle,
+  updateDeckFilterDraft,
+} from "@/features/deck-filter";
 import { routes } from "@/shared/router";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
@@ -20,21 +37,35 @@ import { BulkDifficultyDialog } from "./bulk-difficulty";
 const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const deckFilter = useDeckFilterState(deck);
+  const uid = useAuthUid();
+  const filterDraft = useDeckFilterDraft(uid, deck);
+  useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
+  const filterUpdate = {
+    uid,
+    deckId: deck.id,
+    draft: filterDraft.state.draft,
+    setState: filterDraft.setState,
+    errorMessage: t("deckFilter.saveError"),
+  };
+  const deckFilter = getDeckFilterState(filterDraft.state);
   // Use the latest selection immediately, including autosaves still pending from another Page.
-  const state = useCardListState({
-    ...deck,
-    difficultyMax: deckFilter.difficultyMax,
-    difficultyMin: deckFilter.difficultyMin,
-    selectedTags: deckFilter.selectedTags,
-    tagAndFilter: deckFilter.tagAndFilter,
-  });
+  const state = useCardListState();
+  const query = useCardListQuery(
+    {
+      ...deck,
+      difficultyMax: deckFilter.difficultyMax,
+      difficultyMin: deckFilter.difficultyMin,
+      selectedTags: deckFilter.selectedTags,
+      tagAndFilter: deckFilter.tagAndFilter,
+    },
+    state.shownCard
+  );
   // The explicit domain endpoints select every Card, so the collapsed summary must not present
   // them as an active filter even though new and cleared Decks persist those values.
   const difficultyMax = deckFilter.difficultyMax === deckFilter.difficultyUpperBound ? null : deckFilter.difficultyMax;
   const difficultyMin = deckFilter.difficultyMin === deckFilter.difficultyLowerBound ? null : deckFilter.difficultyMin;
   const busy = state.mutationPending || deckFilter.saving;
-  const dialogOpen = state.bulkDifficultyTarget != null || state.deletionTarget != null;
+  const dialogOpen = state.bulkDifficultyRequest != null || state.deletionTarget != null;
   const bulkErrorToastId = React.useRef<ToastId | undefined>(undefined);
 
   useKey(
@@ -67,19 +98,25 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
     []
   );
 
-  const requestBulkDifficulty = () => {
+  const requestBulk = () => {
     dismissBulkErrorToast();
-    state.onRequestBulkDifficulty();
+    requestBulkDifficulty(query.cards, state.bulkDifficulty, state.mutation, state.setBulkDifficultyRequest);
   };
 
-  const cancelBulkDifficulty = () => {
+  const cancelBulk = () => {
     dismissBulkErrorToast();
-    state.onCancelBulkDifficulty();
+    cancelBulkDifficulty(state.mutation, state.setBulkDifficultyRequest);
   };
 
-  const confirmBulkDifficulty = async () => {
+  const confirmBulk = async () => {
     dismissBulkErrorToast();
-    const result = await state.onConfirmBulkDifficulty();
+    const result = await confirmBulkDifficulty({
+      uid,
+      request: state.bulkDifficultyRequest,
+      mutation: state.mutation,
+      setRequest: state.setBulkDifficultyRequest,
+      setDifficulty: state.setBulkDifficulty,
+    });
     if (result === undefined) return;
     if (result.outcome === "success") {
       showToast({
@@ -103,14 +140,14 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   };
 
   return (
-    <AppLayout showHeader={state.answer == null}>
-      {state.bulkDifficultyTarget != null ? (
+    <AppLayout showHeader={query.answer == null}>
+      {state.bulkDifficultyRequest != null ? (
         <BulkDifficultyDialog
-          cardCount={state.bulkDifficultyTarget.cardCount}
-          difficulty={state.bulkDifficultyTarget.difficulty}
-          pending={state.bulkDifficultyPending}
-          onCancel={cancelBulkDifficulty}
-          onConfirm={confirmBulkDifficulty}
+          cardCount={state.bulkDifficultyRequest.cardIds.length}
+          difficulty={state.bulkDifficultyRequest.difficulty}
+          pending={state.mutationPending}
+          onCancel={cancelBulk}
+          onConfirm={confirmBulk}
         />
       ) : state.deletionTarget != null ? (
         <DestructiveActionDialog
@@ -124,19 +161,19 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
             </>
           }
           confirmLabel={t("cardList.deletion.confirm")}
-          pending={state.deletionPending}
-          onCancel={state.onCancelDeletion}
-          onConfirm={state.onConfirmDeletion}
+          pending={state.mutationPending}
+          onCancel={() => state.setDeletionTarget(undefined)}
+          onConfirm={() => confirmCardDeletion(uid, state.deletionTarget, state.mutation, state.setDeletionTarget)}
         />
       ) : null}
       <CardList
-        cards={state.cards}
+        cards={query.cards}
         bulkDifficulty={{
-          difficultyLowerBound: state.bulkDifficultyMinimum,
-          difficultyUpperBound: state.bulkDifficultyMaximum,
+          difficultyLowerBound: query.bulkDifficultyMinimum,
+          difficultyUpperBound: query.bulkDifficultyMaximum,
           selectedDifficulty: state.bulkDifficulty,
-          onDifficultyChange: state.onChangeBulkDifficulty,
-          onRequest: requestBulkDifficulty,
+          onDifficultyChange: (difficulty) => changeBulkDifficulty(difficulty, state.setBulkDifficulty),
+          onRequest: requestBulk,
         }}
         disabled={busy}
         renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
@@ -146,26 +183,48 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
           difficultyMin,
           selectedTags: deckFilter.selectedTags,
         }}
-        filterSlot={<DeckFilterForm {...deckFilter} disabled={state.mutationPending} tags={state.tags} />}
+        filterSlot={
+          <DeckFilterForm
+            {...deckFilter}
+            clearDifficultyRange={() => clearDeckFilterRange(filterUpdate)}
+            setDifficultyMax={(value) => updateDeckFilterDraft({ difficultyMax: value }, filterUpdate)}
+            setDifficultyMin={(value) => updateDeckFilterDraft({ difficultyMin: value }, filterUpdate)}
+            setSelectedTags={(selectedTags) => updateDeckFilterDraft({ selectedTags }, filterUpdate)}
+            setTagAndFilter={(tagAndFilter) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate)}
+            disabled={state.mutationPending}
+            tags={query.tags}
+          />
+        }
         onRemoveTag={(tag) =>
-          deckFilter.setSelectedTags(deckFilter.selectedTags.filter((selectedTag) => selectedTag !== tag))
+          updateDeckFilterDraft(
+            { selectedTags: deckFilter.selectedTags.filter((selectedTag) => selectedTag !== tag) },
+            filterUpdate
+          )
         }
         card={{
           disabled: busy,
-          onSwipedLeft: state.onSwipedLeft,
-          onSwipedRight: state.onSwipedRight,
+          onSwipedLeft: (id) =>
+            void changeCardDifficulty({
+              uid,
+              cards: query.cards,
+              id,
+              rating: "not-mastered",
+              mutation: state.mutation,
+            }),
+          onSwipedRight: (id) =>
+            void changeCardDifficulty({ uid, cards: query.cards, id, rating: "mastered", mutation: state.mutation }),
           goToEdit: (id) => void navigate(routes.cardForm.to(id)),
-          onDelete: state.onRequestDeletion,
+          onDelete: (id) => requestCardDeletion(query.cards, id, state.mutation.errorToastId, state.setDeletionTarget),
         }}
-        {...(state.answer != null
+        {...(query.answer != null
           ? {
               overlay: {
-                content: <BackText {...state.answer} />,
-                onClose: state.onCloseCard,
+                content: <BackText {...query.answer} />,
+                onClose: () => state.setShownCard(undefined),
               },
             }
           : {})}
-        onShowCard={state.onShowCard}
+        onShowCard={(id) => showCardAnswer(query.cards, id, state.setShownCard)}
       />
     </AppLayout>
   );

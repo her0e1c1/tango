@@ -1,1 +1,2 @@
-export { addSampleDeck, useAddSampleDeck } from "./model/useAddSampleDeck";
+export { addSampleDeck } from "./model/actions/addSampleDeck";
+export { bootstrapSampleDeck } from "./model/actions/bootstrapSampleDeck";

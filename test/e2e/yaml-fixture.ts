@@ -5,7 +5,7 @@ import { parseDocument } from "yaml";
 import { z } from "zod";
 
 export type FixtureCategory = "read" | "write" | "batch";
-export type FixtureAuthProvider = "anonymous" | "google";
+type FixtureAuthProvider = "anonymous" | "google";
 
 export interface FixtureNamespace {
   uid: string;

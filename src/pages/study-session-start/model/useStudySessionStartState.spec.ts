@@ -5,10 +5,10 @@ import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
-import { clearStudySessions, getStudySession } from "@/entities/study-session";
+import { clearStudySessions, getStudySession, startStudy } from "@/entities/study-session";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
-import { useStudySessionStartState } from "./useStudySessionStartState";
+import { useStudySessionStartState } from "./queries/useStudySessionStartState";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
@@ -85,7 +85,7 @@ describe("useStudySessionStartState [SWIPE-06]", () => {
     });
 
     act(() => {
-      result.current.onStart();
+      startStudy(deck.id, result.current.cards, result.current.studyPreferences);
     });
 
     expect(getStudySession(deck.id)).toMatchObject({
@@ -101,7 +101,7 @@ describe("useStudySessionStartState [SWIPE-06]", () => {
     expect(result.current.cardsLength).toBe(1);
 
     act(() => {
-      result.current.onStart();
+      startStudy(deck.id, result.current.cards, result.current.studyPreferences);
     });
 
     expect(getStudySession(deck.id)?.cardOrderIds).toEqual([laterCard.id]);

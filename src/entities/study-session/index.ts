@@ -1,4 +1,5 @@
-export { useStudySession, useStudySessions } from "./model/hooks";
+export { useStudySession } from "./model/queries/useStudySession";
+export { useStudySessions } from "./model/queries/useStudySessions";
 export {
   canMoveStudySession,
   compareActiveDecks,
@@ -8,12 +9,10 @@ export {
   selectStudyCards,
 } from "./model/rules";
 export type { StudySession } from "./model/types";
-export {
-  clearStudySessions,
-  getStudySession,
-  moveStudySession,
-  removeStudySession,
-  setStudySessionIndex,
-  startStudy,
-  touchStudySession,
-} from "./model/store";
+export { clearStudySessions } from "./model/actions/clearStudySessions";
+export { getStudySession } from "./model/queries/getStudySession";
+export { moveStudySession } from "./model/actions/moveStudySession";
+export { removeStudySession } from "./model/actions/removeStudySession";
+export { setStudySessionIndex } from "./model/actions/setStudySessionIndex";
+export { startStudy } from "./model/actions/startStudy";
+export { touchStudySession } from "./model/actions/touchStudySession";

@@ -8,7 +8,7 @@ import { CATEGORY } from "@/entities/deck";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
 
-import type { CardFormValues } from "../model/useCardForm";
+import type { CardFormValues } from "../model/useCardFormState";
 import { CardEditor } from "./CardEditor";
 
 interface CardEditorStoryProps {

@@ -3,7 +3,10 @@ import type { Deck, DeckId, LocalDeckCreateInput, RemoteDeckCreateInput } from "
 
 import { deleteLocalCardsByDeckId, moveLocalCardsToRemote } from "@/entities/card/@x/deck";
 import { removeStudySession } from "@/entities/study-session/@x/deck";
-import { createLocalDeck, deleteLocalDeck, editLocalDeck, findDeckById } from "../model/store";
+import { createLocalDeck } from "../model/actions/createLocalDeck";
+import { deleteLocalDeck } from "../model/actions/deleteLocalDeck";
+import { editLocalDeck } from "../model/actions/editLocalDeck";
+import { findDeckById } from "../model/queries/findDeckById";
 import { authenticatedUidSchema, deckEditSchema } from "../model/schema";
 import {
   createDeck as createRemoteDeck,

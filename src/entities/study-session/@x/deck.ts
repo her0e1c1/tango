@@ -1,1 +1,1 @@
-export { removeStudySession } from "../model/store";
+export { removeStudySession } from "../model/actions/removeStudySession";

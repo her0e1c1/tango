@@ -1,7 +1,7 @@
 # Repository Instructions
 
 - Be simple.
-- Do not suppress Knip findings with `@public`; remove unused code instead.
+- Do not suppress Knip findings with `@public`, `@ignore`, `ignore*` settings, or exclusion patterns. Remove unused code or dependencies, and configure actual application and tooling entry points instead.
 - Before editing files, fetch `origin/main`, then create a `git worktree` at `.worktrees/$BRANCH` from it.
 - Do not work directly on `main`.
 - Do not commit files ignored by `.gitignore`.
@@ -34,6 +34,16 @@ For every task that changes repository files:
 - Move reusable cross-Page workflows to Features, reusable domain concepts, rules, and visual representations to Entities, and broadly reusable technical or UI primitives to Shared.
 - UI components must define their own props instead of reusing model return types.
 - Keep locale-dependent presentation formatting, such as dates and numbers, in UI components rather than model hooks.
+
+### Model organization
+
+- Across Pages, Features, and Entities, put state-changing operations and workflows in `model/actions/`, and read-only getters, selectors, and derived data in `model/queries/`.
+- Give each action its own file and ordinary named function. Do not combine operations into an actions object, an action factory, or a hook that returns multiple business-action callbacks.
+- Connect individual actions and queries directly in Pages or Containers. State hooks may own state, refs, forms, and resource cleanup, but must not return business-action callbacks.
+- Keep effects that trigger operations in dedicated lifecycle hooks, separate from read-only queries. Queries must not update state or initiate persistence.
+- Pass only the inputs and state handles each action needs; do not pass an entire model object. Preserve shared locks, save ordering, retry identities, and the lifetime of pending work when splitting operations.
+- Keep Entity stores limited to state, initialization, and persistence middleware. Preserve the roles of pure schemas, rules, and defaults, and keep persistence implementations in `api/`.
+- Export reusable operations through the slice public API. Within a slice, import individual modules directly and do not add internal barrel files.
 
 ## Coding Style
 

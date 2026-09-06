@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createDeck } from "@/entities/deck";
+import { CATEGORY, createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalDeck } from "@/test/factories";
 
@@ -17,21 +17,33 @@ vi.mock("@/entities/card", async (importOriginal) => ({
   generateCardId: writes.generateCardId,
 }));
 
-import { useCardCreateForm } from "../model/useCardCreateForm";
+import { useCardCreateFormState } from "../model/useCardCreateFormState";
+import { submitCardCreation } from "../model/actions/submitCardCreation";
 import { CardCreator } from "./CardCreator";
 
 const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
 
 const CardCreatorHarness = ({ onCreated = vi.fn() }: { onCreated?: (cardId: string) => void }) => {
-  const state = useCardCreateForm({ deck, onCreated });
+  const state = useCardCreateFormState();
   return (
     <>
       <CardCreator
-        categories={state.categories}
-        deckName={state.deckName}
+        categories={CATEGORY}
+        deckName={deck.name}
         form={state.form}
         onCancel={vi.fn()}
-        onSubmit={state.onSubmit}
+        onSubmit={(event) =>
+          submitCardCreation(event, {
+            uid: "user-id",
+            form: state.form,
+            cardId: state.cardId,
+            deckId: deck.id,
+            pending: state.pending,
+            saveErrorToastId: state.saveErrorToastId,
+            isMounted: state.isMounted,
+            onCreated,
+          })
+        }
       />
       <ToastViewport />
     </>
@@ -43,7 +55,7 @@ const enterRequiredValues = async () => {
   await userEvent.type(screen.getByRole("textbox", { name: "Back text" }), "Back value");
 };
 
-describe("CardCreator", () => {
+describe("CardCreator [CARD-14 CARD-15]", () => {
   beforeEach(async () => {
     dismissToast();
     await createDeck("", deck);

@@ -3,15 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { createDeck, createLocalDeck as createLocalDeckFixture } from "@/test/factories";
-import { useDeck, useDecks } from "./hooks";
-import {
-  clearRemoteDecks,
-  createLocalDeck,
-  deckStore,
-  deleteLocalDeck,
-  editLocalDeck,
-  replaceRemoteDecks,
-} from "./store";
+import { useDeck } from "./queries/useDeck";
+import { useDecks } from "./queries/useDecks";
+import { clearRemoteDecks } from "./actions/clearRemoteDecks";
+import { createLocalDeck } from "./actions/createLocalDeck";
+import { deckStore } from "./store";
+import { deleteLocalDeck } from "./actions/deleteLocalDeck";
+import { editLocalDeck } from "./actions/editLocalDeck";
+import { replaceRemoteDecks } from "./actions/replaceRemoteDecks";
 
 // Creates a synchronous in-memory implementation of Zustand storage.
 const createMemoryStorage = (initial: Record<string, string> = {}): StateStorage => {

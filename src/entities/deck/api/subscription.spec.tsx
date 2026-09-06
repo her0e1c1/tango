@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createLocalDeck } from "@/test/factories";
-import { useDecks } from "../model/hooks";
+import { useDecks } from "../model/queries/useDecks";
 import { deckStore } from "../model/store";
 
 const mocks = vi.hoisted(() => ({

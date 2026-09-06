@@ -10,14 +10,12 @@ import type {
 
 import { findDeckById } from "@/entities/deck/@x/card";
 import { cardCreateSchema } from "../model/schema";
-import {
-  cardStore,
-  createLocalCard,
-  deleteLocalCard,
-  deleteLocalCardsByDeckId,
-  editLocalCard,
-  findCardById,
-} from "../model/store";
+import { cardStore } from "../model/store";
+import { createLocalCard } from "../model/actions/createLocalCard";
+import { deleteLocalCard } from "../model/actions/deleteLocalCard";
+import { deleteLocalCardsByDeckId } from "../model/actions/deleteLocalCardsByDeckId";
+import { editLocalCard } from "../model/actions/editLocalCard";
+import { findCardById } from "../model/queries/findCardById";
 import {
   createCard as createRemoteCard,
   deleteCard as deleteRemoteCard,

@@ -10,19 +10,9 @@ const PREFERENCES_STORAGE_KEY = "tango-config";
 // Keep this stable for safely defaultable additions; a dedicated task must justify invalidating existing preferences.
 const PREFERENCES_STORAGE_VERSION = 1;
 
-/** @internal Partial updates for each top-level preference field. */
-export type PartialPreferences = {
-  loadSample?: Preferences["loadSample"];
-  language?: Preferences["language"];
-  appearance?: Partial<Preferences["appearance"]>;
-  study?: Partial<Preferences["study"]>;
-  controls?: Partial<Preferences["controls"]>;
-};
-
-/** Live preferences state and its validated update operation. */
+/** Live validated preferences state. */
 interface PreferencesStoreState {
   preferences: Preferences;
-  updatePreferences: (preferences: PartialPreferences) => void;
 }
 
 /** Browser-persisted subset of preferences state. */
@@ -30,27 +20,11 @@ interface PersistedPreferencesState {
   preferences: Preferences;
 }
 
-// Creates a persisted preferences store that validates updates and hydrated data.
+// Creates a persisted preferences store that validates hydrated data.
 const createPreferencesStore = () =>
   createStore<PreferencesStoreState>()(
     persist<PreferencesStoreState, [], [["zustand/immer", never]], PersistedPreferencesState>(
-      immer((set) => ({
-        preferences: defaultPreferences,
-        updatePreferences: (preferencesInput) =>
-          set((state) => {
-            const { selectedTags, ...study } = preferencesInput.study ?? {};
-            if (preferencesInput.loadSample !== undefined) state.preferences.loadSample = preferencesInput.loadSample;
-            if (preferencesInput.language !== undefined) state.preferences.language = preferencesInput.language;
-            Object.assign(state.preferences.appearance, preferencesInput.appearance);
-            Object.assign(state.preferences.study, study);
-            Object.assign(state.preferences.controls, preferencesInput.controls);
-            if (selectedTags != null) {
-              // Do not retain a caller-owned mutable array inside persisted state.
-              state.preferences.study.selectedTags = [...selectedTags];
-            }
-            state.preferences = preferencesSchema.parse(state.preferences);
-          }),
-      })),
+      immer(() => ({ preferences: defaultPreferences })),
       {
         name: PREFERENCES_STORAGE_KEY,
         version: PREFERENCES_STORAGE_VERSION,
@@ -67,48 +41,3 @@ const createPreferencesStore = () =>
   );
 
 export const preferencesStore = createPreferencesStore();
-
-// Applies a partial preferences update through the store's validation boundary.
-export const updatePreferences: PreferencesStoreState["updatePreferences"] = (preferences) =>
-  preferencesStore.getState().updatePreferences(preferences);
-
-/** @internal Replaces the whole snapshot so deterministic fixtures never inherit earlier store state. */
-export const replacePreferences = (input: PartialPreferences): void => {
-  const preferences = preferencesSchema.parse(input);
-  preferencesStore.setState({
-    preferences: {
-      ...preferences,
-      study: {
-        ...preferences.study,
-        selectedTags: [...preferences.study.selectedTags],
-      },
-    },
-  });
-};
-
-// Sets the appearance color mode preference explicitly.
-export const setDarkMode = (darkMode: boolean): void => updatePreferences({ appearance: { darkMode } });
-
-// Toggles whether the study Help shortcut is shown.
-export const toggleShowHelp = (): void => {
-  const { showHelp } = preferencesStore.getState().preferences.controls;
-  updatePreferences({ controls: { showHelp: !showHelp } });
-};
-
-// Toggles whether study swipe controls are shown.
-export const toggleShowSwipeButtonList = (): void => {
-  const { showSwipeButtonList } = preferencesStore.getState().preferences.controls;
-  updatePreferences({ controls: { showSwipeButtonList: !showSwipeButtonList } });
-};
-
-// Toggles whether study playback controls are shown.
-export const toggleShowPlaybackControls = (): void => {
-  const { showPlaybackControls } = preferencesStore.getState().preferences.controls;
-  updatePreferences({ controls: { showPlaybackControls: !showPlaybackControls } });
-};
-
-// Toggles whether study card details are shown.
-export const toggleShowCardDetails = (): void => {
-  const { showCardDetails } = preferencesStore.getState().preferences.controls;
-  updatePreferences({ controls: { showCardDetails: !showCardDetails } });
-};

@@ -2,35 +2,41 @@ import type * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { type Deck, useDeck } from "@/entities/deck";
+import { CATEGORY, type Deck, useDeck } from "@/entities/deck";
 import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardCreateForm } from "../model/useCardCreateForm";
+import { useCardCreateFormState } from "../model/useCardCreateFormState";
+import { submitCardCreation } from "../model/actions/submitCardCreation";
+import { useAuthUid } from "@/entities/auth";
+import { dismissSaveError } from "../model/actions/dismissSaveError";
 import { CardCreator } from "./CardCreator";
 
 const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const navigate = useNavigate();
   const destination = routes.cardList.to(deck.id);
-  const state = useCardCreateForm({
-    deck,
-    onCreated: () => void navigate(destination, { replace: true }),
-  });
+  const uid = useAuthUid();
+  const state = useCardCreateFormState();
+  const onSubmit = (event?: React.BaseSyntheticEvent) =>
+    submitCardCreation(event, {
+      uid,
+      form: state.form,
+      saveErrorToastId: state.saveErrorToastId,
+      isMounted: state.isMounted,
+      cardId: state.cardId,
+      deckId: deck.id,
+      pending: state.pending,
+      onCreated: () => void navigate(destination, { replace: true }),
+    });
   const cancel = () => {
-    state.dismissSaveError();
+    dismissSaveError(state.saveErrorToastId);
     void navigate(destination);
   };
 
   return (
     <AppLayout showHeader>
-      <CardCreator
-        categories={state.categories}
-        deckName={state.deckName}
-        form={state.form}
-        onCancel={cancel}
-        onSubmit={state.onSubmit}
-      />
+      <CardCreator categories={CATEGORY} deckName={deck.name} form={state.form} onCancel={cancel} onSubmit={onSubmit} />
     </AppLayout>
   );
 };
