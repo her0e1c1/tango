@@ -9,20 +9,17 @@ import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useCardFormState } from "../model/useCardFormState";
-import { saveCard } from "../model/actions/saveCard";
-import { useAuthUid } from "@/entities/auth";
+import { runCardSave } from "../model/actions/runCardSave";
 import { dismissSaveError } from "../model/actions/dismissSaveError";
 import { CardEditor } from "./CardEditor";
 
 const CardFormContent: React.FC<{ card: Card }> = ({ card }) => {
   const navigate = useNavigate();
   const goBack = () => navigate(-1);
-  const uid = useAuthUid();
   const editor = useCardFormState(card);
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     void editor.form.handleSubmit((values) =>
-      saveCard(values, {
-        uid,
+      runCardSave(values, {
         snapshot: editor.snapshot,
         savingRef: editor.savingRef,
         setIsSaving: editor.setIsSaving,
