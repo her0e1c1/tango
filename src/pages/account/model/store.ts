@@ -1,5 +1,9 @@
 import { createStore } from "zustand/vanilla";
 
-import type { AccountActionState } from "./types";
+import type { AccountPageState } from "./types";
 
-export const createAccountActionStore = () => createStore<AccountActionState>()(() => ({ pending: false }));
+export const createAccountPageStore = () =>
+  createStore<AccountPageState>()(() => ({
+    signIn: { pending: false },
+    signOut: { pending: false },
+  }));

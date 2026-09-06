@@ -13,7 +13,7 @@ vi.mock("./signOutCurrentUser", () => ({ signOutCurrentUser: mocks.signOutCurren
 vi.mock("@/shared/ui/toast", () => ({ showToast: mocks.showToast }));
 
 import { signOut } from "./signOut";
-import { useAccountActionState } from "../useAccountActionState";
+import { useAccountPageState } from "../useAccountPageState";
 
 const deferred = <T,>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -34,62 +34,68 @@ describe("ACCOUNT-03 signOut", () => {
     vi.mocked(showToast).mockReturnValue(1);
   });
 
-  it("reports a pending sign-out until the operation completes", async () => {
+  it("keeps sign-out pending when requested again before completion", async () => {
     const request = deferred<void>();
     mocks.signOutCurrentUser.mockReturnValue(request.promise);
-    const { result } = renderHook(() => useAccountActionState());
+    const { result } = renderHook(() => useAccountPageState());
 
     let operation!: Promise<void>;
+    let duplicateOperation!: Promise<void>;
     act(() => {
-      operation = signOut(result.current.controls);
+      operation = signOut(result.current.store, result.current.isMounted);
+      duplicateOperation = signOut(result.current.store, result.current.isMounted);
     });
 
-    expect(result.current.pending).toBe(true);
+    await actAsync(async () => {
+      await duplicateOperation;
+    });
+
+    expect(result.current.pageState.signOut.pending).toBe(true);
 
     await actAsync(async () => {
       request.resolve();
       await operation;
     });
 
-    expect(result.current.pending).toBe(false);
-    expect(showToast).toHaveBeenCalledWith({ message: "Signed out.", tone: "success" });
+    expect(result.current.pageState.signOut.pending).toBe(false);
+    expect(showToast).toHaveBeenCalledExactlyOnceWith({ message: "Signed out.", tone: "success" });
   });
 
   it("allows the primary sign-out action to retry after a handled failure", async () => {
     const failure = new Error("Sign-out failed");
     const retry = deferred<void>();
     mocks.signOutCurrentUser.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
-    const { result } = renderHook(() => useAccountActionState());
+    const { result } = renderHook(() => useAccountPageState());
 
     await actAsync(async () => {
-      await expect(signOut(result.current.controls)).resolves.toBeUndefined();
+      await expect(signOut(result.current.store, result.current.isMounted)).resolves.toBeUndefined();
     });
     expect(showToast).toHaveBeenCalledWith({ message: "Unable to sign out.", tone: "error" });
 
     let retryOperation!: Promise<void>;
     act(() => {
-      retryOperation = signOut(result.current.controls);
+      retryOperation = signOut(result.current.store, result.current.isMounted);
     });
 
-    expect(result.current.pending).toBe(true);
+    expect(result.current.pageState.signOut.pending).toBe(true);
 
     await actAsync(async () => {
       retry.resolve();
       await retryOperation;
     });
 
-    expect(result.current.pending).toBe(false);
+    expect(result.current.pageState.signOut.pending).toBe(false);
     expect(showToast).toHaveBeenLastCalledWith({ message: "Signed out.", tone: "success" });
   });
 
   it("publishes a completed sign-out after its auth transition unmounts the owner", async () => {
     const request = deferred<void>();
     mocks.signOutCurrentUser.mockReturnValue(request.promise);
-    const { result, unmount } = renderHook(() => useAccountActionState());
+    const { result, unmount } = renderHook(() => useAccountPageState());
     let operation!: Promise<void>;
 
     act(() => {
-      operation = signOut(result.current.controls);
+      operation = signOut(result.current.store, result.current.isMounted);
     });
     unmount();
     await actAsync(async () => {

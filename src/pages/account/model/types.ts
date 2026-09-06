@@ -1,10 +1,8 @@
 import type { StoreApi } from "zustand/vanilla";
 
-export interface AccountActionState {
-  pending: boolean;
+export interface AccountPageState {
+  signIn: { pending: boolean };
+  signOut: { pending: boolean };
 }
 
-export interface AccountActionControls {
-  store: StoreApi<AccountActionState>;
-  isMounted: () => boolean;
-}
+export type AccountPageStore = StoreApi<AccountPageState>;
