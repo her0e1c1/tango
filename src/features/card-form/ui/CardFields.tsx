@@ -1,4 +1,3 @@
-import { useBodyScrollLock } from "@/shared/lib/useBodyScrollLock";
 import * as React from "react";
 import cx from "classnames";
 import { useTranslation } from "react-i18next";
@@ -34,13 +33,15 @@ const CardFieldsDialog = ({ title, expanded = false, onClose, children }: CardFi
   const titleId = React.useId();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
-  useBodyScrollLock();
   useToastModalFocusTarget(dialogRef, closeRef);
 
   React.useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     closeRef.current?.focus();
     return () => {
+      document.body.style.overflow = previousOverflow;
       if (previousFocus?.isConnected) previousFocus.focus();
     };
   }, []);

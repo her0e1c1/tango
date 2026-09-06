@@ -7,10 +7,10 @@ import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardCreateFormState } from "@/features/card-form";
-import { submitCardCreation } from "@/features/card-form";
+import { useCardCreateFormState } from "../model/useCardCreateFormState";
+import { submitCardCreation } from "../model/actions/submitCardCreation";
 import { useAuthUid } from "@/entities/auth";
-import { cancelCardCreation } from "@/features/card-form";
+import { dismissSaveError } from "../model/actions/dismissSaveError";
 import { CardCreator } from "./CardCreator";
 
 const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
@@ -29,7 +29,10 @@ const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
       pending: state.pending,
       onCreated: () => void navigate(destination, { replace: true }),
     });
-  const cancel = () => cancelCardCreation(state.pending, state.saveErrorToastId, () => void navigate(destination));
+  const cancel = () => {
+    dismissSaveError(state.saveErrorToastId);
+    void navigate(destination);
+  };
 
   return (
     <AppLayout showHeader>

@@ -96,7 +96,6 @@ test("CARD-03 persists edited front, back, and tags across reload", async ({ fix
   await clickCheckboxLabel(page, "python");
   await page.getByRole("button", { name: "Done" }).click();
   await page.getByRole("button", { name: "Save changes" }).click();
-  await expect(page.getByRole("dialog", { name: "Create card" })).toHaveCount(0);
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByRole("status").filter({ hasText: `Updated card “${changed.frontText}”.` })).toBeVisible();
   await page.reload();
@@ -307,7 +306,7 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   await page.getByRole("menuitem", { name: "Add card" }).click();
-  await expect(page.getByRole("dialog", { name: "Create card" })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
   for (const { side, value } of [
     { side: "Front", value: frontText },
     { side: "Back", value: backText },
@@ -331,7 +330,6 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   expect(tagsBounds.y + tagsBounds.height).toBe(viewport.height);
   await tagsDialog.getByRole("button", { name: "Done" }).click();
   await page.getByRole("button", { name: "Create card" }).click();
-  await expect(page.getByRole("dialog", { name: "Create card" })).toHaveCount(0);
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
   await page.reload();
@@ -363,12 +361,11 @@ test("CARD-14 creates one local Card and keeps it across reload", async ({ fixtu
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   await page.getByRole("menuitem", { name: "Add card" }).click();
-  await expect(page.getByRole("dialog", { name: "Create card" })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
   await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
   await page.getByRole("tab", { name: "Back", exact: true }).click();
   await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
-  await expect(page.getByRole("dialog", { name: "Create card" })).toHaveCount(0);
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
   await page.reload();

@@ -32,7 +32,6 @@ import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useCardListState } from "../model/useCardListState";
 import { CardList } from "./CardList";
-import { CardCreateContainer } from "./CardCreateContainer";
 import { BulkDifficultyDialog } from "./bulk-difficulty";
 
 const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
@@ -51,7 +50,6 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const deckFilter = getDeckFilterState(filterDraft.state);
   // Use the latest selection immediately, including autosaves still pending from another Page.
   const state = useCardListState();
-  const [creating, setCreating] = React.useState(false);
   const [bulkAttempted, setBulkAttempted] = React.useState(false);
   const query = useCardListQuery(
     {
@@ -68,7 +66,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const difficultyMax = deckFilter.difficultyMax === deckFilter.difficultyUpperBound ? null : deckFilter.difficultyMax;
   const difficultyMin = deckFilter.difficultyMin === deckFilter.difficultyLowerBound ? null : deckFilter.difficultyMin;
   const busy = state.mutationPending || deckFilter.saving;
-  const dialogOpen = creating || state.bulkDifficultyRequest != null || state.deletionTarget != null;
+  const dialogOpen = state.bulkDifficultyRequest != null || state.deletionTarget != null;
   const bulkErrorToastId = React.useRef<ToastId | undefined>(undefined);
 
   useKey(
@@ -151,9 +149,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 
   return (
     <AppLayout showHeader={query.answer == null}>
-      {creating ? (
-        <CardCreateContainer deck={deck} onClose={() => setCreating(false)} />
-      ) : state.bulkDifficultyRequest != null ? (
+      {state.bulkDifficultyRequest != null ? (
         <BulkDifficultyDialog
           cardCount={state.bulkDifficultyRequest.cardIds.length}
           difficulty={state.bulkDifficulty}
@@ -188,7 +184,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
           onChangeDifficulty={requestBulk}
           disabled={busy}
           renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
-          onAddCard={() => setCreating(true)}
+          onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
           filter={{
             difficultyMax,
             difficultyMin,

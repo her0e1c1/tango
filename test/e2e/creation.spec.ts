@@ -61,7 +61,7 @@ test("CARD-15 retries a failed remote Card create with the same ID and no duplic
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   await page.getByRole("menuitem", { name: "Add card" }).click();
-  await expect(page.getByRole("dialog", { name: "Create card" })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
 
   let attemptedCardId: string | undefined;
   page.on("request", (request) => {

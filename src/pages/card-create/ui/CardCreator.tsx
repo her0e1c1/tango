@@ -37,7 +37,7 @@ export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, 
       <form className="flex w-full flex-col gap-4" onSubmit={onSubmit}>
         <CardFields categories={categories} form={form} />
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-          <Button variant="quiet" type="button" disabled={formState.isSubmitting} onClick={onCancel}>
+          <Button variant="quiet" type="button" onClick={onCancel}>
             {t("cardForm.actions.cancel")}
           </Button>
           <Button variant="primary" type="submit" disabled={formState.isSubmitting}>
