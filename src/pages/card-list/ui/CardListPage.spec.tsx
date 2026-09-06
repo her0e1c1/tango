@@ -33,7 +33,7 @@ const NextDeckButton = () => {
   );
 };
 
-describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CardListPage", () => {
+describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CARD-13 CARD-14 CardListPage", () => {
   const deckId = "deck-id";
   const nextDeckId = "next-deck";
   const cardId = "card-id";
@@ -95,12 +95,47 @@ describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CardListPage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Card editor destination" })).toBeVisible();
   });
 
-  it("navigates to Card creation for the current Deck", async () => {
+  it("opens and cancels Card creation without leaving the current Deck", async () => {
     renderPage();
 
-    await userEvent.click(screen.getByRole("button", { name: "Add card" }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Add card" }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Card creator destination" })).toBeVisible();
+    expect(screen.getByRole("dialog", { name: "Create card" })).toBeVisible();
+    fireEvent.keyDown(window, { key: "s" });
+    expect(screen.queryByRole("heading", { name: "Settings destination" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Actions" })).toHaveFocus();
+  });
+
+  it("creates a local card in the dialog and starts the next form empty", async () => {
+    renderPage(`/deck/${nextDeckId}`);
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Add card" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Front text" }), "New front");
+    await userEvent.click(screen.getByRole("tab", { name: "Back" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Back text" }), "New back");
+    await userEvent.click(screen.getByRole("button", { name: "Create card" }));
+    expect(await screen.findByRole("button", { name: "View New front" })).toBeVisible();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Add card" }));
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("");
+  });
+
+  it("keeps the creation dialog open after closing an expanded editor and restores scrolling on route change", async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Add card" }));
+    await userEvent.click(screen.getByRole("button", { name: "Expand Front" }));
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("dialog", { name: "Create card" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Expand Front" })).toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "Expand Front" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open next deck" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(document.body.style.overflow).toBe("");
   });
 
   it("removes a selected tag from the visible filter", async () => {

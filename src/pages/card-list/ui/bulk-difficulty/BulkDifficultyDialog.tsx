@@ -1,3 +1,4 @@
+import { BulkDifficultyPanel } from "./BulkDifficultyPanel";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,7 +8,11 @@ import { useToastModalFocusTarget } from "@/shared/ui/toast";
 
 export interface BulkDifficultyDialogProps {
   cardCount: number;
-  difficulty: number;
+  difficulty: number | null;
+  difficultyLowerBound: number;
+  difficultyUpperBound: number;
+  selectionDisabled?: boolean;
+  onDifficultyChange: (difficulty: number) => void;
   pending?: boolean;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
@@ -119,11 +124,20 @@ export const BulkDifficultyDialog: React.FC<BulkDifficultyDialogProps> = (props)
           tabIndex={0}
           className="mt-4 rounded-control bg-surface-muted p-3 text-body text-ink-muted outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
-          {t("cardList.bulkDifficulty.dialog.description", {
-            count: props.cardCount,
-            difficulty: props.difficulty,
-          })}
+          {props.difficulty == null
+            ? t("cardList.bulkDifficulty.target", { count: props.cardCount })
+            : t("cardList.bulkDifficulty.dialog.description", {
+                count: props.cardCount,
+                difficulty: props.difficulty,
+              })}
         </p>
+        <BulkDifficultyPanel
+          difficultyLowerBound={props.difficultyLowerBound}
+          difficultyUpperBound={props.difficultyUpperBound}
+          selectedDifficulty={props.difficulty}
+          disabled={props.pending || props.selectionDisabled}
+          onDifficultyChange={props.onDifficultyChange}
+        />
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             ref={cancelRef}
@@ -134,7 +148,12 @@ export const BulkDifficultyDialog: React.FC<BulkDifficultyDialogProps> = (props)
           >
             {t("cardList.bulkDifficulty.dialog.cancel")}
           </button>
-          <Button variant="primary" loading={Boolean(props.pending)} onClick={handleConfirm}>
+          <Button
+            variant="primary"
+            disabled={props.difficulty == null || props.cardCount === 0}
+            loading={Boolean(props.pending)}
+            onClick={handleConfirm}
+          >
             {t("cardList.bulkDifficulty.dialog.confirm")}
           </Button>
         </div>

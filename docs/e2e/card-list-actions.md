@@ -123,13 +123,14 @@ Given:
 When:
 
 - Card 一覧で difficulty filter draft を変更し、一致する Card だけを表示する。
-- 表示中の Card に適用する新しい difficulty を選択し、確認 dialog を開く。
+- Actions の Change difficulty から dialog を開き、10個すべて表示されたボタンで新しい difficulty を選択する。
 - keyboard で dialog 内を移動した後、Escape で一度キャンセルし、再度開いて一括変更を実行する。
 - 保存完了後に画面を reload する。
 
 Then:
 
 - 確認画面は非破壊操作の dialog として、表示中の Card 件数と選択した新しい difficulty を表示する。
+- 通常時は Actions に Add card と Change difficulty の選択肢だけを表示し、難易度選択は dialog を開くまで表示しない。
 - dialog を開くとキャンセルへ focus し、Tab と Shift+Tab で focus が dialog 外へ移動せず、背景の scroll を抑止する。
 - Escape では変更せずに dialog を閉じ、focus と背景の scroll を一括変更の起点へ復元する。
 - 確認中と保存中は画面 shortcut でほかの route へ移動しない。
@@ -152,14 +153,14 @@ Given:
 
 When:
 
-- 表示中の Card に適用する新しい difficulty を選択し、確認 dialog から一括変更を実行する。
+- Actions の Change difficulty から dialog を開き、10個すべて表示されたボタンで新しい difficulty を選択して、同じ dialog から一括変更を実行する。
 - 部分失敗後も保持された対象と difficulty のまま、確認 dialog から一括変更を再試行する。
 - 保存完了後に画面を reload する。
 
 Then:
 
 - 保存中は dialog が pending 状態を示し、確認とキャンセルを無効化して focus を dialog 内に保つ。
-- 最初の試行後に成功件数と失敗件数が通知され、確認 dialog は同じ対象件数と difficulty を保持する。
+- 最初の試行後に成功件数と失敗件数が通知され、確認 dialog は同じ対象件数と difficulty を保持し、difficulty の再選択を無効化する。
 - 最初の試行で成功した Card の difficulty は保持される。
 - 再試行後は対象となったすべての Card の difficulty が、最初に選択した値へ変更される。
 - 変更対象ではない Card の difficulty は変更されない。

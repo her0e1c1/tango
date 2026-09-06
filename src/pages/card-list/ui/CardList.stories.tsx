@@ -66,13 +66,7 @@ const meta = {
   },
   args: {
     cards: fixture.cards.default,
-    bulkDifficulty: {
-      difficultyLowerBound: 1,
-      difficultyUpperBound: 10,
-      selectedDifficulty: null,
-      onDifficultyChange: fn(),
-      onRequest: fn(),
-    },
+    onChangeDifficulty: fn(),
     filter: activeFilter,
     filterSlot: <div>Filter controls</div>,
   },
@@ -86,24 +80,20 @@ export const Default: Story = {};
 export const AddCard: Story = {
   args: { onAddCard: fn() },
   play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Add card" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
+    await userEvent.click(canvas.getByRole("menuitem", { name: "Add card" }));
     await expect(args.onAddCard).toHaveBeenCalledOnce();
   },
 };
 
 export const BulkDifficulty: Story = {
   args: {
-    bulkDifficulty: {
-      difficultyLowerBound: 1,
-      difficultyUpperBound: 10,
-      selectedDifficulty: 7,
-      onDifficultyChange: fn(),
-      onRequest: fn(),
-    },
+    onChangeDifficulty: fn(),
   },
   play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Change difficulty" }));
-    await expect(args.bulkDifficulty?.onRequest).toHaveBeenCalledOnce();
+    await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
+    await userEvent.click(canvas.getByRole("menuitem", { name: "Change difficulty" }));
+    await expect(args.onChangeDifficulty).toHaveBeenCalledOnce();
   },
 };
 

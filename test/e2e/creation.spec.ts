@@ -59,8 +59,9 @@ test("CARD-15 retries a failed remote Card create with the same ID and no duplic
   const backText = `${namespace.caseId} retry back`;
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}`);
-  await page.getByRole("button", { name: "Add card" }).click();
-  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Add card" }).click();
+  await expect(page.getByRole("dialog", { name: "Create card" })).toBeVisible();
 
   let attemptedCardId: string | undefined;
   page.on("request", (request) => {

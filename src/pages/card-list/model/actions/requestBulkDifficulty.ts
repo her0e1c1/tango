@@ -9,7 +9,7 @@ export const requestBulkDifficulty = (
   mutation: ListMutationControl,
   setRequest: (request: BulkDifficultyRequest) => void
 ): void => {
-  if (difficulty == null || cards.length === 0 || mutation.pendingRef.current) return;
+  if (difficulty == null || mutation.pendingRef.current) return;
   dismissListError(mutation.errorToastId);
   // Freeze the visible result set so filter updates cannot change the approved targets.
   setRequest({ cardIds: cards.map(({ id }) => id), difficulty });

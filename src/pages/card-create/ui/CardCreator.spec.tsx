@@ -17,8 +17,8 @@ vi.mock("@/entities/card", async (importOriginal) => ({
   generateCardId: writes.generateCardId,
 }));
 
-import { useCardCreateFormState } from "../model/useCardCreateFormState";
-import { submitCardCreation } from "../model/actions/submitCardCreation";
+import { useCardCreateFormState } from "@/features/card-form";
+import { submitCardCreation } from "@/features/card-form";
 import { CardCreator } from "./CardCreator";
 
 const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });

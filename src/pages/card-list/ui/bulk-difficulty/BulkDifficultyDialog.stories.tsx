@@ -11,6 +11,9 @@ const meta = {
   args: {
     cardCount: 4,
     difficulty: 7,
+    difficultyLowerBound: 1,
+    difficultyUpperBound: 10,
+    onDifficultyChange: fn(),
     onCancel: fn(),
     onConfirm: fn(),
   },

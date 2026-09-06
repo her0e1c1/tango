@@ -5,16 +5,15 @@
 
 import type { TFunction } from "i18next";
 import * as React from "react";
-import { AiOutlineDown, AiOutlinePlus } from "react-icons/ai";
+import { AiOutlineDown, AiOutlinePlus, AiOutlineSliders } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 
 import type { CardId } from "@/entities/card";
-import { Button } from "@/shared/ui/button";
+import { ActionsMenu } from "@/shared/ui/actions-menu";
 import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Card, type CardActionsProps } from "./Card";
-import { BulkDifficultyPanel } from "./bulk-difficulty";
 
 interface CardListItem {
   id: CardId;
@@ -35,17 +34,9 @@ interface CardListFilterState {
   selectedTags: string[];
 }
 
-interface CardListBulkDifficultyProps {
-  difficultyLowerBound: number;
-  difficultyUpperBound: number;
-  selectedDifficulty: number | null;
-  onDifficultyChange: (difficulty: number | null) => void;
-  onRequest: () => void;
-}
-
 export interface CardListProps {
   cards: CardListItem[];
-  bulkDifficulty?: CardListBulkDifficultyProps;
+  onChangeDifficulty?: () => void;
   disabled?: boolean;
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
@@ -136,6 +127,7 @@ const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" |
 export const CardList: React.FC<CardListProps> = (props) => {
   const { t } = useTranslation();
   const filter = props.filter ?? emptyFilter;
+  const [actionsOpen, setActionsOpen] = React.useState(false);
 
   return (
     <>
@@ -156,11 +148,36 @@ export const CardList: React.FC<CardListProps> = (props) => {
           <span className="shrink-0 text-caption text-ink-muted">
             {t("cardList.count", { count: props.cards.length })}
           </span>
-          {props.onAddCard !== undefined && (
-            <Button variant="primary" type="button" disabled={Boolean(props.disabled)} onClick={props.onAddCard}>
-              <AiOutlinePlus aria-hidden="true" />
-              {t("cardList.add")}
-            </Button>
+          {(props.onAddCard !== undefined || props.onChangeDifficulty !== undefined) && (
+            <ActionsMenu
+              groupLabel={t("cardList.listActions")}
+              triggerLabel={t("cardList.listActions")}
+              menuLabel={t("cardList.listActions")}
+              triggerContent={
+                <>
+                  {t("cardList.listActions")}
+                  <AiOutlineDown aria-hidden="true" />
+                </>
+              }
+              open={actionsOpen}
+              disabled={Boolean(props.disabled)}
+              onToggle={() => setActionsOpen((open) => !open)}
+              onClose={() => setActionsOpen(false)}
+              items={[
+                {
+                  key: "add",
+                  label: t("cardList.add"),
+                  icon: <AiOutlinePlus aria-hidden="true" />,
+                  onSelect: () => props.onAddCard?.(),
+                },
+                {
+                  key: "difficulty",
+                  label: t("cardList.bulkDifficulty.title"),
+                  icon: <AiOutlineSliders aria-hidden="true" />,
+                  onSelect: () => props.onChangeDifficulty?.(),
+                },
+              ]}
+            />
           )}
         </div>
       </div>
@@ -197,18 +214,6 @@ export const CardList: React.FC<CardListProps> = (props) => {
           )}
         </div>
       </fieldset>
-
-      {props.bulkDifficulty != null ? (
-        <BulkDifficultyPanel
-          cardCount={props.cards.length}
-          difficultyLowerBound={props.bulkDifficulty.difficultyLowerBound}
-          difficultyUpperBound={props.bulkDifficulty.difficultyUpperBound}
-          selectedDifficulty={props.bulkDifficulty.selectedDifficulty}
-          disabled={props.disabled}
-          onDifficultyChange={props.bulkDifficulty.onDifficultyChange}
-          onRequest={props.bulkDifficulty.onRequest}
-        />
-      ) : null}
 
       {props.cards.length > 0 && (
         <CardListRows

@@ -131,11 +131,12 @@ Given:
 
 When:
 
-- Card 一覧の Add card から作成画面を開き、Front / Back の拡大編集で本文を入力する。
+- Card 一覧の Actions の Add card から作成 dialog を開き、Front / Back の拡大編集で本文を入力する。
 - タグ選択画面を開いて閉じ、Card を作成して画面を reload する。
 
 Then:
 
+- 作成 dialog は一覧から離れずに開き、入力中の画面 shortcut を無効化する。キャンセル時は Actions に focus を戻す。
 - Card の作成成功が共通 toast で表示される。
 - 両面の拡大編集画面は viewport の上端から下端まで表示され、見出しや完了ボタンが欠けない。
 - 拡大編集とタグ選択の背景は viewport 全体を覆い、タグ選択画面は下端に隙間なく接する。
@@ -156,7 +157,7 @@ Given:
 
 When:
 
-- Card 一覧の Add card から front text と back text を入力して Card を作成し、画面を reload する。
+- Card 一覧の Actions の Add card から front text と back text を入力して Card を作成し、画面を reload する。
 
 Then:
 

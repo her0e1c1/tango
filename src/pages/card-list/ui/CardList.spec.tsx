@@ -81,58 +81,20 @@ describe("CardList [CARD-01] [CARD-10] [CARD-19]", () => {
     expect(screen.getByText("Filters")).toBeVisible();
   });
 
-  it("presents the visible Card count and delegates a bulk difficulty request", async () => {
-    const onDifficultyChange = vi.fn();
-    const onRequest = vi.fn();
-    const view = render(
-      <CardList
-        cards={[card, otherCard]}
-        bulkDifficulty={{
-          difficultyLowerBound: 1,
-          difficultyUpperBound: 10,
-          selectedDifficulty: null,
-          onDifficultyChange,
-          onRequest,
-        }}
-      />
-    );
-
-    expect(screen.getByRole("heading", { level: 2, name: "Change difficulty" })).toBeVisible();
-    expect(screen.getByText("2 visible cards")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Change difficulty" })).toBeDisabled();
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "New difficulty" }), "7");
-    expect(onDifficultyChange).toHaveBeenCalledExactlyOnceWith(7);
-
-    view.rerender(
-      <CardList
-        cards={[card, otherCard]}
-        bulkDifficulty={{
-          difficultyLowerBound: 1,
-          difficultyUpperBound: 10,
-          selectedDifficulty: 7,
-          onDifficultyChange,
-          onRequest,
-        }}
-      />
-    );
-    await userEvent.click(screen.getByRole("button", { name: "Change difficulty" }));
-    expect(onRequest).toHaveBeenCalledOnce();
-
-    view.rerender(
-      <CardList
-        cards={[]}
-        bulkDifficulty={{
-          difficultyLowerBound: 1,
-          difficultyUpperBound: 10,
-          selectedDifficulty: 7,
-          onDifficultyChange,
-          onRequest,
-        }}
-      />
-    );
-    expect(screen.getByText("0 visible cards")).toBeVisible();
-    expect(screen.getByRole("combobox", { name: "New difficulty" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Change difficulty" })).toBeDisabled();
+  it("keeps controls hidden until Actions opens and delegates the two choices", async () => {
+    const onChangeDifficulty = vi.fn();
+    const onAddCard = vi.fn();
+    render(<CardList cards={[card, otherCard]} onChangeDifficulty={onChangeDifficulty} onAddCard={onAddCard} />);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "New difficulty" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    expect(screen.getAllByRole("menuitem")).toHaveLength(2);
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
+    expect(onChangeDifficulty).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Add card" }));
+    expect(onAddCard).toHaveBeenCalledOnce();
   });
 
   it("keeps only one menu open and removes it with a missing row", async () => {
