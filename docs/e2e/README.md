@@ -92,7 +92,7 @@
 | CARD-12 | read | [存在しない Card から復帰できる](./card-view.md#card-12) |
 | CARD-13 | write | [remote Deck に Card を作成できる](./card-management.md#card-13) |
 | CARD-14 | write | [local-only Deck に Card を作成できる](./card-management.md#card-14) |
-| CARD-15 | write | [remote Card の作成失敗後に重複なく再試行できる](./card-management.md#card-15) |
+| CARD-15 | write | [remote Card の作成拒否後に新しい ID で重複なく再試行できる](./card-management.md#card-15) |
 | CARD-16 | write | [Card の削除失敗後に再試行できる](./card-management.md#card-16) |
 | CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](./card-management.md#card-17) |
 | CARD-18 | write | [Card 一覧の difficulty 保存失敗後に再試行できる](./card-list-actions.md#card-18) |

@@ -1,23 +1,21 @@
-import type { BaseSyntheticEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
-import type { CardId } from "@/entities/card";
 
-import { dismissSaveError } from "./actions/dismissSaveError";
-import { submitCardCreateForm } from "./actions/submitCardCreateForm";
-import { submitCardCreation } from "./actions/submitCardCreation";
-import { useCardCreateFormState } from "./useCardCreateFormState";
+import { submit as submitAction } from "./actions/submit";
+import { cardCreateFormSchema } from "./schema";
+import type { CardCreateFormValues } from "./types";
 
-export const useCardCreatePageModel = (deckId: string, onCreated: (id: CardId) => void) => {
+export function useCardCreatePageModel(deckId: string) {
   const uid = useAuthUid();
-  const { form, pending, cardId, saveErrorToastId, isMounted } = useCardCreateFormState();
+  const form = useForm<CardCreateFormValues>({
+    defaultValues: { frontText: "", backText: "", tags: [] },
+    resolver: zodResolver(cardCreateFormSchema),
+  });
 
   return {
     form,
-    onSubmit: (event?: BaseSyntheticEvent) =>
-      void submitCardCreateForm(event, form.handleSubmit, pending, (values) =>
-        submitCardCreation(values, { uid, cardId, deckId, saveErrorToastId, isMounted, onCreated })
-      ),
-    dismissSaveError: () => dismissSaveError(saveErrorToastId),
+    submit: (values: CardCreateFormValues) => submitAction({ uid, deckId, values }),
   };
-};
+}

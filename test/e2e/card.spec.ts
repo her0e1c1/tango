@@ -329,7 +329,7 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   if (tagsBounds === null) throw new Error("Tag selection dialog bounding box is unavailable");
   expect(tagsBounds.y + tagsBounds.height).toBe(viewport.height);
   await tagsDialog.getByRole("button", { name: "Done" }).click();
-  await page.getByRole("button", { name: "Create card" }).click();
+  await page.getByRole("button", { name: "Create card" }).dblclick();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
   await page.reload();

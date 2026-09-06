@@ -11,7 +11,7 @@ export interface CardCreatorProps {
   deckName: string;
   form: UseFormReturn<CardFormFields>;
   onCancel: () => void;
-  onSubmit: React.SubmitEventHandler<HTMLFormElement>;
+  onSubmit: (values: CardFormFields) => Promise<void>;
 }
 
 export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, form, onCancel, onSubmit }) => {
@@ -34,7 +34,8 @@ export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, 
         <p className="mt-2 text-caption text-ink-muted">{t("cardForm.create.description", { deckName })}</p>
       </header>
       {/* Fixed dialogs from CardFields must not receive the sibling margins added by space-y utilities. */}
-      <form className="flex w-full flex-col gap-4" onSubmit={onSubmit}>
+      {/* Keep the DOM callback void for no-misused-promises; RHF still awaits the validated save callback. */}
+      <form className="flex w-full flex-col gap-4" onSubmit={(event) => void form.handleSubmit(onSubmit)(event)}>
         <CardFields categories={categories} form={form} />
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
           <Button variant="quiet" type="button" onClick={onCancel}>

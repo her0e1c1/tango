@@ -12,7 +12,7 @@ import { CardCreator } from "./CardCreator";
 interface CardCreatorStoryProps {
   isSaving: boolean;
   onCancel: () => void;
-  onSubmit: () => void;
+  onSubmit: (values: CardFormFields) => Promise<void>;
 }
 
 const CardCreatorStory = ({ isSaving, onCancel, onSubmit }: CardCreatorStoryProps) => {
@@ -28,7 +28,7 @@ const CardCreatorStory = ({ isSaving, onCancel, onSubmit }: CardCreatorStoryProp
       deckName="Spanish vocabulary"
       form={form}
       onCancel={onCancel}
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={onSubmit}
     />
   );
 };
