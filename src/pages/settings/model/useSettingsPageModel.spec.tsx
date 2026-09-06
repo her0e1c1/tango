@@ -8,8 +8,7 @@ import "@testing-library/jest-dom/vitest";
 import { setDarkMode, updatePreferences, usePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
-import { usePreferencesAutoSave } from "./usePreferencesAutoSave";
-import { usePreferencesForm } from "./usePreferencesForm";
+import { useSettingsPageModel } from "./useSettingsPageModel";
 
 const preferences = createPreferences({
   showSwipeButtonList: false,
@@ -26,8 +25,7 @@ const preferences = createPreferences({
 
 const PreferencesFormHarness: React.FC = () => {
   const savedPreferences = usePreferences();
-  const form = usePreferencesForm(savedPreferences);
-  usePreferencesAutoSave(form, updatePreferences);
+  const { form } = useSettingsPageModel();
 
   return (
     <>
@@ -54,11 +52,12 @@ const PreferencesFormHarness: React.FC = () => {
       <output aria-label="Saved maximum cards">{savedPreferences.study.maxNumberOfCardsToLearn}</output>
       <output aria-label="Saved autoplay interval">{savedPreferences.study.cardInterval}</output>
       <output aria-label="Saved language preference">{savedPreferences.language}</output>
+      <output aria-label="Saved dark mode preference">{String(savedPreferences.appearance.darkMode)}</output>
     </>
   );
 };
 
-describe("SETTINGS-01 SETTINGS-02 preferences form", () => {
+describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
   beforeEach(() => {
     updatePreferences(preferences);
   });
@@ -67,6 +66,7 @@ describe("SETTINGS-01 SETTINGS-02 preferences form", () => {
     render(<PreferencesFormHarness />);
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Show playback controls" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Dark mode" }));
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Language" }), "ja");
     fireEvent.change(screen.getByRole("slider", { name: "Maximum cards" }), {
       target: { value: 10 },
@@ -80,6 +80,7 @@ describe("SETTINGS-01 SETTINGS-02 preferences form", () => {
       expect(screen.getByLabelText("Saved maximum cards")).toHaveTextContent("10");
       expect(screen.getByLabelText("Saved autoplay interval")).toHaveTextContent("10");
       expect(screen.getByLabelText("Saved language preference")).toHaveTextContent("ja");
+      expect(screen.getByLabelText("Saved dark mode preference")).toHaveTextContent("true");
     });
   });
 
