@@ -1,54 +1,37 @@
 import { dismissSaveError } from "./dismissSaveError";
-import type { BaseSyntheticEvent, RefObject } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import type { RefObject } from "react";
 import { createCard, type CardId } from "@/entities/card";
 import type { CardCreateFormValues } from "../useCardCreateFormState";
 import { showToast, type ToastId } from "@/shared/ui/toast";
 
-export const submitCardCreation = (
-  event: BaseSyntheticEvent | undefined,
+export async function submitCardCreation(
+  values: CardCreateFormValues,
   {
-    form,
     uid,
     saveErrorToastId,
     isMounted,
     onCreated,
     cardId,
     deckId,
-    pending,
   }: {
-    form: UseFormReturn<CardCreateFormValues>;
     uid: string;
     saveErrorToastId: RefObject<ToastId | undefined>;
     isMounted: () => boolean;
     onCreated: (id: CardId) => void;
     cardId: CardId;
     deckId: string;
-    pending: RefObject<boolean>;
   }
-): void => {
-  // RHF supplies presentation state; this lock closes the gap before validation resolves.
-  if (pending.current) {
-    event?.preventDefault();
-    return;
+): Promise<void> {
+  dismissSaveError(saveErrorToastId);
+  try {
+    await createCard(uid, { id: cardId, uniqueKey: cardId, deckId, ...values });
+    // Stale persistence completion must not navigate a route that has already unmounted.
+    if (isMounted()) {
+      showToast({ message: `Created card “${values.frontText}”.`, tone: "success" });
+      onCreated(cardId);
+    }
+  } catch {
+    if (isMounted())
+      saveErrorToastId.current = showToast({ message: "Unable to create this card. Try again.", tone: "error" });
   }
-  pending.current = true;
-  void form
-    .handleSubmit(async (values) => {
-      dismissSaveError(saveErrorToastId);
-      try {
-        await createCard(uid, { id: cardId, uniqueKey: cardId, deckId, ...values });
-        // Stale persistence completion must not navigate a route that has already unmounted.
-        if (isMounted()) {
-          showToast({ message: `Created card “${values.frontText}”.`, tone: "success" });
-          onCreated(cardId);
-        }
-      } catch {
-        if (isMounted())
-          saveErrorToastId.current = showToast({ message: "Unable to create this card. Try again.", tone: "error" });
-      }
-    })(event)
-    .finally(() => {
-      pending.current = false;
-    });
-};
+}

@@ -7,36 +7,24 @@ import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardCreateFormState } from "../model/useCardCreateFormState";
-import { submitCardCreation } from "../model/actions/submitCardCreation";
-import { useAuthUid } from "@/entities/auth";
-import { dismissSaveError } from "../model/actions/dismissSaveError";
+import { useCardCreatePageModel } from "../model/useCardCreatePageModel";
 import { CardCreator } from "./CardCreator";
 
 const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const navigate = useNavigate();
   const destination = routes.cardList.to(deck.id);
-  const uid = useAuthUid();
-  const state = useCardCreateFormState();
-  const onSubmit = (event?: React.BaseSyntheticEvent) =>
-    submitCardCreation(event, {
-      uid,
-      form: state.form,
-      saveErrorToastId: state.saveErrorToastId,
-      isMounted: state.isMounted,
-      cardId: state.cardId,
-      deckId: deck.id,
-      pending: state.pending,
-      onCreated: () => void navigate(destination, { replace: true }),
-    });
+  const { form, onSubmit, dismissSaveError } = useCardCreatePageModel(
+    deck.id,
+    () => void navigate(destination, { replace: true })
+  );
   const cancel = () => {
-    dismissSaveError(state.saveErrorToastId);
+    dismissSaveError();
     void navigate(destination);
   };
 
   return (
     <AppLayout showHeader>
-      <CardCreator categories={CATEGORY} deckName={deck.name} form={state.form} onCancel={cancel} onSubmit={onSubmit} />
+      <CardCreator categories={CATEGORY} deckName={deck.name} form={form} onCancel={cancel} onSubmit={onSubmit} />
     </AppLayout>
   );
 };
