@@ -1,9 +1,12 @@
 import { createStore } from "zustand/vanilla";
 
-import type { AccountPageState } from "./types";
+import type { AccountStoreState } from "./types";
 
-export const createAccountPageStore = () =>
-  createStore<AccountPageState>()(() => ({
+// The router displays one Account page at a time; ownership separates successive mounts of that page.
+export const accountPageStore = createStore<AccountStoreState>()(() => ({
+  ownerId: null,
+  pageState: {
     signIn: { pending: false },
     signOut: { pending: false },
-  }));
+  },
+}));

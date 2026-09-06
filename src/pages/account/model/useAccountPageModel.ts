@@ -1,29 +1,22 @@
-import { useState } from "react";
 import { useStore } from "zustand";
 
 import { useAuthSession } from "@/entities/auth";
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
-import { signIn as signInAction } from "./actions/signIn";
-import { signOut as signOutAction } from "./actions/signOut";
-import { createAccountPageStore } from "./store";
+import { runAccountAction } from "./actions/runAccountAction";
+import { accountPageStore } from "./store";
+import { useAccountPageLifecycle } from "./useAccountPageLifecycle";
 
-const useAccountPageState = () => {
-  // Scope pending work to this Page mount so late completions cannot update a newly mounted Page.
-  const [store] = useState(createAccountPageStore);
-  const pageState = useStore(store);
-  const isMounted = useMountedGuard();
-  return { pageState, store, isMounted };
-};
+const useAccountPageState = () => useStore(accountPageStore, (state) => state.pageState);
 
 export const useAccountPageModel = () => {
+  useAccountPageLifecycle();
   const authSession = useAuthSession();
-  const { pageState, store, isMounted } = useAccountPageState();
+  const pageState = useAccountPageState();
 
   return {
     authSession,
     pageState,
-    signIn: () => void signInAction(store, isMounted),
-    signOut: () => void signOutAction(store, isMounted),
+    signIn: () => void runAccountAction("signIn"),
+    signOut: () => void runAccountAction("signOut"),
   };
 };

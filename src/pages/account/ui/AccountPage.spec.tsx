@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { linkWithPopup, signOut } from "firebase/auth";
+import * as React from "react";
 import { getI18n } from "react-i18next";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,10 +32,10 @@ const renderPage = () => {
   );
 
   return render(
-    <>
+    <React.StrictMode>
       <RouterProvider router={router} />
       <ToastViewport />
-    </>
+    </React.StrictMode>
   );
 };
 
@@ -54,7 +55,7 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
     updatePreferences(createPreferences({ appearance: { darkMode: false } }));
   });
 
-  it("shows the anonymous identity and offers Google sign-in", () => {
+  it("shows the anonymous identity and offers Google sign-in under StrictMode", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Account" })).toBeVisible();
@@ -224,4 +225,39 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
+
+  it.each(["success", "failure"] as const)(
+    "keeps a new sign-in pending when the previous page's sign-in completes with %s",
+    async (outcome) => {
+      const previousRequest = Promise.withResolvers<Awaited<ReturnType<typeof linkWithPopup>>>();
+      const currentRequest = Promise.withResolvers<Awaited<ReturnType<typeof linkWithPopup>>>();
+      vi.mocked(linkWithPopup).mockReturnValueOnce(previousRequest.promise).mockReturnValueOnce(currentRequest.promise);
+      const { unmount } = renderPage();
+
+      await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
+      expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeDisabled();
+      unmount();
+      renderPage();
+
+      expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
+      await userEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
+
+      await actAsync(async () => {
+        if (outcome === "success") previousRequest.resolve({ user: {} } as never);
+        else previousRequest.reject(new Error("Previous page sign-in failed"));
+        await previousRequest.promise.catch(() => undefined);
+      });
+
+      expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeDisabled();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+      await actAsync(async () => {
+        currentRequest.resolve({ user: {} } as never);
+        await currentRequest.promise;
+      });
+
+      expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
+      expect(screen.getByRole("status", { name: "Toast notifications" })).toHaveTextContent("Signed in.");
+    }
+  );
 });
