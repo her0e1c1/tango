@@ -39,12 +39,11 @@ export const saveDeck = async (
     });
     // The initiating route owns feedback and navigation even when persistence outlives it.
     if (isMounted()) {
-      showToast({ message: `Updated deck “${savedInput.name}”.`, tone: "success" });
+      showToast({ messageKey: "deckForm.toast.updated", messageParams: { name: savedInput.name }, tone: "success" });
       onSaved();
     }
   } catch {
-    if (isMounted())
-      saveErrorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
+    if (isMounted()) saveErrorToastId.current = showToast({ messageKey: "toast.saveFailure", tone: "error" });
   } finally {
     savingRef.current = false;
     if (isMounted()) setIsSaving(false);

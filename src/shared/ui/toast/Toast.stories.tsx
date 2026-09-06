@@ -7,7 +7,8 @@ import { ToastViewport } from "./Toast";
 import { dismissToast, showToast } from "./model";
 
 interface ToastStoryProps {
-  message: string;
+  messageKey: string;
+  messageParams?: Readonly<Record<string, string | number>>;
   tone: ToastTone;
   dismissible?: boolean;
   visualContent?: React.ReactNode;
@@ -16,14 +17,15 @@ interface ToastStoryProps {
 const useStoryToast = (props: ToastStoryProps) => {
   React.useEffect(() => {
     const id = showToast({
-      message: props.message,
+      messageKey: props.messageKey,
+      messageParams: props.messageParams,
       tone: props.tone,
       durationMs: null,
       dismissible: props.dismissible ?? true,
       visualContent: props.visualContent,
     });
     return () => dismissToast(id);
-  }, [props.dismissible, props.message, props.tone, props.visualContent]);
+  }, [props.dismissible, props.messageKey, props.messageParams, props.tone, props.visualContent]);
 };
 
 const ToastStory = (props: ToastStoryProps) => {
@@ -36,7 +38,7 @@ const meta = {
   component: ToastStory,
   tags: ["autodocs"],
   args: {
-    message: "Changes saved",
+    messageKey: "account.toast.signInSuccess",
     tone: "neutral",
   },
   parameters: { layout: "fullscreen" },
@@ -47,28 +49,34 @@ type Story = StoryObj<typeof meta>;
 
 export const Neutral: Story = {};
 export const Success: Story = { args: { tone: "success" } };
-export const Warning: Story = { args: { tone: "warning", message: "Connection is unstable" } };
+export const Warning: Story = { args: { tone: "warning", messageKey: "deckFilter.saveError" } };
 export const ErrorState: Story = {
-  args: { tone: "error", message: "Unable to save changes." },
+  args: { tone: "error", messageKey: "toast.saveFailure" },
 };
 export const LongMessage: Story = {
   args: {
     tone: "error",
-    message:
-      "The operation could not be completed because the connection was interrupted. Check your connection and try again.",
+    messageKey: "deckImport.toast.failureWithReason",
+    messageParams: {
+      reason: "The connection was interrupted before all cards could be saved. Check your connection and try again.",
+    },
   },
 };
 export const NonInteractive: Story = {
-  args: { dismissible: false, message: "Swiped right" },
+  args: { dismissible: false, messageKey: "studySession.feedback.swipedRight" },
 };
 export const DirectionIcon: Story = {
   args: {
     dismissible: false,
-    message: "Swiped right",
+    messageKey: "studySession.feedback.swipedRight",
     visualContent: <AiOutlineArrowRight aria-hidden="true" className="text-3xl" />,
   },
 };
 export const Dark: Story = {
-  args: { tone: "success", message: "Dark-mode notification" },
+  args: { tone: "success" },
   globals: { theme: "dark" },
+};
+
+export const WithParameters: Story = {
+  args: { tone: "success", messageKey: "deckImport.toast.imported", messageParams: { count: 3 } },
 };

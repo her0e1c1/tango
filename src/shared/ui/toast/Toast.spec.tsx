@@ -4,6 +4,8 @@ import * as React from "react";
 import { getI18n } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { actAsync } from "@/test/act";
+
 import { ToastViewport } from "./Toast";
 import { dismissToast, showToast, type ShowToastInput } from "./model";
 
@@ -15,7 +17,7 @@ const displayToast = (input: ShowToastInput) => {
   return id;
 };
 
-describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
+describe("Toast [ACCOUNT-05] [SWIPE-02] [ACCOUNT-02] [IMPORT-04] [IMPORT-05]", () => {
   beforeEach(() => dismissToast());
 
   afterEach(() => {
@@ -35,41 +37,41 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
     render(<ToastViewport />);
     const primedStatus = screen.getByRole("status");
 
-    displayToast({ message: "Saved", tone: "success", durationMs: null });
+    displayToast({ messageKey: "account.toast.signInSuccess", tone: "success", durationMs: null });
 
     expect(screen.getByRole("status")).toBe(primedStatus);
-    expect(primedStatus).toHaveTextContent("Success: Saved");
+    expect(primedStatus).toHaveTextContent("Success: Signed in.");
   });
 
   it("announces errors only through a sibling assertive region", () => {
     render(<ToastViewport />);
     const primedStatus = screen.getByRole("status", { name: "Toast notifications" });
 
-    displayToast({ message: "Save failed", tone: "error" });
+    displayToast({ messageKey: "toast.saveFailure", tone: "error" });
 
     const assertiveAnnouncer = screen.getByRole("alert");
     expect(primedStatus).toBeEmptyDOMElement();
-    expect(assertiveAnnouncer).toHaveTextContent("Error: Save failed");
-    expect(screen.getAllByText("Save failed")).toHaveLength(1);
+    expect(assertiveAnnouncer).toHaveTextContent("Error: Unable to save changes. Try again.");
+    expect(screen.getAllByText("Unable to save changes. Try again.")).toHaveLength(1);
 
-    displayToast({ message: "Saved", tone: "success", durationMs: null });
+    displayToast({ messageKey: "account.toast.signInSuccess", tone: "success", durationMs: null });
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(assertiveAnnouncer).toBeEmptyDOMElement();
     expect(screen.getByRole("status")).toBe(primedStatus);
-    expect(primedStatus).toHaveTextContent("Success: Saved");
+    expect(primedStatus).toHaveTextContent("Success: Signed in.");
   });
 
   it("replaces the announced content when the same message is shown again", () => {
     render(<ToastViewport />);
     const status = screen.getByRole("status", { name: "Toast notifications" });
-    displayToast({ message: "Saved", tone: "success", durationMs: null });
-    const firstAnnouncement = within(status).getByText("Success: Saved");
+    displayToast({ messageKey: "account.toast.signInSuccess", tone: "success", durationMs: null });
+    const firstAnnouncement = within(status).getByText("Success: Signed in.");
 
-    displayToast({ message: "Saved", tone: "success", durationMs: null });
+    displayToast({ messageKey: "account.toast.signInSuccess", tone: "success", durationMs: null });
 
     expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
-    expect(within(status).getByText("Success: Saved")).not.toBe(firstAnnouncement);
+    expect(within(status).getByText("Success: Signed in.")).not.toBe(firstAnnouncement);
   });
 
   it.each([
@@ -79,26 +81,67 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
     ["error", "Error", "alert", "assertive"],
   ] as const)("announces %s notifications with a non-color cue", (tone, label, role, live) => {
     render(<ToastViewport />);
-    displayToast({ message: "Saved", tone, durationMs: null });
+    displayToast({ messageKey: "account.toast.signInSuccess", tone, durationMs: null });
 
     const toast = screen.getByRole(role);
-    expect(toast).toHaveTextContent(`${label}: Saved`);
+    expect(toast).toHaveTextContent(`${label}: Signed in.`);
     expect(toast).toHaveAttribute("aria-live", live);
     expect(toast).toHaveAttribute("aria-atomic", "true");
   });
 
-  it("updates its accessible presentation in place while leaving the message untouched", async () => {
+  it("translates the visible message and accessible presentation in place when the language changes", async () => {
+    vi.useFakeTimers();
     render(<ToastViewport />);
-    displayToast({ message: "Saved", tone: "success", durationMs: null });
+    displayToast({ messageKey: "deckImport.toast.imported", messageParams: { count: 2 }, tone: "success" });
     const status = screen.getByRole("status", { name: "Toast notifications" });
     const dismissButton = screen.getByRole("button", { name: "Dismiss notification" });
+    dismissButton.focus();
+    expect(status).toHaveTextContent("Success: Imported 2 cards.");
+    act(() => vi.advanceTimersByTime(2000));
 
-    await getI18n().changeLanguage("ja");
+    await actAsync(async () => {
+      await getI18n().changeLanguage("ja");
+    });
 
     expect(screen.getByRole("status", { name: "トースト通知" })).toBe(status);
-    expect(status).toHaveTextContent("成功: Saved");
+    expect(status).toHaveTextContent("成功: 2枚のカードをインポートしました。");
     expect(screen.getByRole("button", { name: "通知を閉じる" })).toBe(dismissButton);
-    expect(screen.getAllByText("Saved")).toHaveLength(1);
+    expect(dismissButton).toHaveFocus();
+    expect(screen.getByText("2枚のカードをインポートしました。")).toBeVisible();
+
+    act(() => vi.advanceTimersByTime(1999));
+    expect(screen.getByText("2枚のカードをインポートしました。")).toBeVisible();
+    act(() => vi.advanceTimersByTime(1));
+    expect(status).toBeEmptyDOMElement();
+    expect(screen.queryByText("2枚のカードをインポートしました。")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["en", 1, "Imported 1 card."],
+    ["en", 2, "Imported 2 cards."],
+    ["en", 0, "Imported 0 cards."],
+    ["ja", 2, "2枚のカードをインポートしました。"],
+  ] as const)("displays and announces an import count in %s for %s cards", async (language, count, expected) => {
+    await getI18n().changeLanguage(language);
+    render(<ToastViewport />);
+
+    displayToast({ messageKey: "deckImport.toast.imported", messageParams: { count }, tone: "success" });
+
+    expect(screen.getByText(expected)).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent(expected);
+  });
+
+  it("includes error details in both the visible message and its announcement", () => {
+    render(<ToastViewport />);
+
+    displayToast({
+      messageKey: "deckImport.toast.failureWithReason",
+      messageParams: { reason: "Card storage is unavailable." },
+      tone: "error",
+    });
+
+    expect(screen.getByText("Import failed. Card storage is unavailable.")).toBeVisible();
+    expect(screen.getByRole("alert")).toHaveTextContent("Error: Import failed. Card storage is unavailable.");
   });
 
   it("dismisses the active notification from its close button", () => {
@@ -110,13 +153,13 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
     );
     const trigger = screen.getByRole("button", { name: "Show notification" });
     trigger.focus();
-    displayToast({ message: "Saved", tone: "success" });
+    displayToast({ messageKey: "account.toast.signInSuccess", tone: "success" });
     const dismissButton = screen.getByRole("button", { name: "Dismiss notification" });
     dismissButton.focus();
 
     fireEvent.click(dismissButton);
 
-    expect(screen.queryByText("Saved")).not.toBeInTheDocument();
+    expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
 
@@ -142,7 +185,7 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
     render(<Harness />);
     const sourceAction = screen.getByRole("button", { name: "Leave source route" });
     sourceAction.focus();
-    displayToast({ message: "Saved", tone: "success", durationMs: null });
+    displayToast({ messageKey: "account.toast.signInSuccess", tone: "success", durationMs: null });
 
     fireEvent.click(sourceAction);
     expect(sourceAction).not.toBeInTheDocument();
@@ -155,7 +198,7 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
 
   it("supports non-interactive notifications", () => {
     render(<ToastViewport />);
-    displayToast({ message: "Swiped right", dismissible: false, durationMs: 900 });
+    displayToast({ messageKey: "studySession.feedback.swipedRight", dismissible: false, durationMs: 900 });
 
     expect(screen.getByRole("status")).toHaveTextContent("Swiped right");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
@@ -164,7 +207,7 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
   it("shows visual content while announcing its textual meaning", () => {
     render(<ToastViewport />);
     displayToast({
-      message: "Swiped right",
+      messageKey: "studySession.feedback.swipedRight",
       visualContent: <span data-testid="direction-icon">→</span>,
       dismissible: false,
       durationMs: null,
@@ -178,28 +221,28 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
   it.each(["neutral", "success"] as const)("automatically dismisses %s notifications after four seconds", (tone) => {
     vi.useFakeTimers();
     render(<ToastViewport />);
-    displayToast({ message: "Saved", tone });
+    displayToast({ messageKey: "account.toast.signInSuccess", tone });
 
     act(() => vi.advanceTimersByTime(3999));
-    expect(screen.getByText("Saved")).toBeVisible();
+    expect(screen.getByText("Signed in.")).toBeVisible();
     act(() => vi.advanceTimersByTime(1));
-    expect(screen.queryByText("Saved")).not.toBeInTheDocument();
+    expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
   });
 
   it.each(["warning", "error"] as const)("keeps %s notifications until the user dismisses or replaces them", (tone) => {
     vi.useFakeTimers();
     render(<ToastViewport />);
-    displayToast({ message: "Save failed", tone });
+    displayToast({ messageKey: "toast.saveFailure", tone });
 
     act(() => vi.advanceTimersByTime(60_000));
 
-    expect(screen.getByText("Save failed")).toBeVisible();
+    expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
   });
 
   it("uses an explicit duration override", () => {
     vi.useFakeTimers();
     render(<ToastViewport />);
-    displayToast({ message: "Swiped up", durationMs: 900, dismissible: false });
+    displayToast({ messageKey: "studySession.feedback.swipedUp", durationMs: 900, dismissible: false });
 
     act(() => vi.advanceTimersByTime(899));
     expect(screen.getByText("Swiped up")).toBeVisible();
@@ -216,10 +259,10 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
     );
     const trigger = screen.getByRole("button", { name: "Show notification" });
     trigger.focus();
-    displayToast({ message: "First", durationMs: null });
+    displayToast({ messageKey: "account.toast.signInSuccess", durationMs: null });
     screen.getByRole("button", { name: "Dismiss notification" }).focus();
 
-    displayToast({ message: "Second", durationMs: null });
+    displayToast({ messageKey: "account.toast.signOutSuccess", durationMs: null });
 
     expect(trigger).toHaveFocus();
     const secondDismissButton = screen.getByRole("button", { name: "Dismiss notification" });
@@ -238,12 +281,12 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
     );
     const trigger = screen.getByRole("button", { name: "Show notification" });
     trigger.focus();
-    displayToast({ message: "Saved", durationMs: 1000 });
+    displayToast({ messageKey: "account.toast.signInSuccess", durationMs: 1000 });
     screen.getByRole("button", { name: "Dismiss notification" }).focus();
 
     act(() => vi.advanceTimersByTime(1000));
 
-    expect(screen.queryByText("Saved")).not.toBeInTheDocument();
+    expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
 
@@ -258,7 +301,7 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
     const trigger = screen.getByRole("button", { name: "Show notification" });
     const nextControl = screen.getByRole("button", { name: "Continue editing" });
     trigger.focus();
-    const id = displayToast({ message: "Saved", durationMs: null });
+    const id = displayToast({ messageKey: "account.toast.signInSuccess", durationMs: null });
     nextControl.focus();
 
     act(() => dismissToast(id));
@@ -268,28 +311,28 @@ describe("Toast [SETTINGS-04] [SWIPE-02]", () => {
 
   it("shows only the latest notification and ignores an older id", () => {
     render(<ToastViewport />);
-    const firstId = displayToast({ message: "First" });
-    const secondId = displayToast({ message: "Second" });
+    const firstId = displayToast({ messageKey: "account.toast.signInSuccess" });
+    const secondId = displayToast({ messageKey: "account.toast.signOutSuccess" });
     const secondDismissButton = screen.getByRole("button", { name: "Dismiss notification" });
     secondDismissButton.focus();
 
     expect(secondId).not.toBe(firstId);
-    expect(screen.queryByText("First")).not.toBeInTheDocument();
+    expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
     act(() => dismissToast(firstId));
-    expect(screen.getByText("Second")).toBeVisible();
+    expect(screen.getByText("Signed out.")).toBeVisible();
     expect(secondDismissButton).toHaveFocus();
   });
 
   it("does not let an older timer dismiss a replacement", () => {
     vi.useFakeTimers();
     render(<ToastViewport />);
-    displayToast({ message: "Repeated", durationMs: 1000 });
+    displayToast({ messageKey: "account.toast.signInSuccess", durationMs: 1000 });
     act(() => vi.advanceTimersByTime(500));
-    displayToast({ message: "Repeated", durationMs: 1000 });
+    displayToast({ messageKey: "account.toast.signInSuccess", durationMs: 1000 });
 
     act(() => vi.advanceTimersByTime(500));
-    expect(screen.getByText("Repeated")).toBeVisible();
+    expect(screen.getByText("Signed in.")).toBeVisible();
     act(() => vi.advanceTimersByTime(500));
-    expect(screen.queryByText("Repeated")).not.toBeInTheDocument();
+    expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
   });
 });

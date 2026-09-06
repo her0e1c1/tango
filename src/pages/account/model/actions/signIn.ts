@@ -1,12 +1,10 @@
-import type { TFunction } from "i18next";
-
 import { signInWithGoogle } from "../../api/signInWithGoogle";
 import { runAccountAction } from "./runAccountAction";
 
-export function signIn(t: TFunction): Promise<void> {
+export function signIn(): Promise<void> {
   return runAccountAction(signInWithGoogle, {
     operation: "signIn",
-    success: t("account.toast.signInSuccess"),
-    failure: t("account.toast.signInFailure"),
+    successKey: "account.toast.signInSuccess",
+    failureKey: "account.toast.signInFailure",
   });
 }

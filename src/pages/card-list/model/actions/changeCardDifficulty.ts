@@ -26,7 +26,7 @@ export const changeCardDifficulty = async ({
     await editStudyProgress(uid, { cardId: card.id, difficulty: calculateDifficulty(card.difficulty, rating) });
   } catch {
     if (mutation.isMounted())
-      mutation.errorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
+      mutation.errorToastId.current = showToast({ messageKey: "toast.saveFailure", tone: "error" });
   } finally {
     finishListMutation(mutation);
   }

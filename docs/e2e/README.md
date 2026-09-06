@@ -32,6 +32,7 @@
 | ACCOUNT-02 | write | [Google sign-in のエラー表示から再試行できる](./account.md#account-02) |
 | ACCOUNT-03 | batch | [sign-out 後に新しい匿名アカウントへ切り替えられる](./account.md#account-03) |
 | ACCOUNT-04 | read | [認証初期化失敗から Reload で復帰できる](./account.md#account-04) |
+| ACCOUNT-05 | batch | [処理中と通知表示中の言語変更を共通 toast に反映できる](./account.md#account-05) |
 
 ### Settings
 

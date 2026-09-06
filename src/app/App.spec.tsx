@@ -45,7 +45,7 @@ const renderApp = (path = "/") => {
   return { router, view: render(<App router={router} />) };
 };
 
-describe("App", () => {
+describe("App [ACCOUNT-02]", () => {
   beforeEach(() => {
     dismissToast();
     routeMocks.accountThrows = false;
@@ -75,10 +75,10 @@ describe("App", () => {
     renderApp();
 
     act(() => {
-      showToast({ message: "Saved", tone: "success" });
+      showToast({ messageKey: "account.toast.signInSuccess", tone: "success" });
     });
 
-    expect(screen.getByRole("status")).toHaveTextContent("Success: Saved");
+    expect(screen.getByRole("status")).toHaveTextContent("Success: Signed in.");
   });
 
   it("restores focus to the application shell when a notification outlives its source route", () => {
@@ -86,7 +86,7 @@ describe("App", () => {
     const sourceAction = screen.getByRole("button", { name: "Go home" });
     sourceAction.focus();
     act(() => {
-      showToast({ message: "Saved", tone: "success", durationMs: null });
+      showToast({ messageKey: "account.toast.signInSuccess", tone: "success", durationMs: null });
     });
 
     fireEvent.click(sourceAction);

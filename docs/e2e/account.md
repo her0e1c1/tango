@@ -21,6 +21,7 @@
 | ACCOUNT-02 | write | [Google sign-in のエラー表示から再試行できる](#account-02) |
 | ACCOUNT-03 | batch | [sign-out 後に新しい匿名アカウントへ切り替えられる](#account-03) |
 | ACCOUNT-04 | read | [認証初期化失敗から Reload で復帰できる](#account-04) |
+| ACCOUNT-05 | batch | [処理中と通知表示中の言語変更を共通 toast に反映できる](#account-05) |
 
 <a id="account-01"></a>
 
@@ -116,3 +117,28 @@ Then:
 
 - 再初期化が完了し、Deck 一覧を利用できる。
 - 未処理の browser error が発生しない。
+
+<a id="account-05"></a>
+
+### ACCOUNT-05 処理中と通知表示中の言語変更を共通 toast に反映できる
+
+カテゴリ: `batch`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 匿名アカウントで English language の Account 画面を開いている。
+- Google sign-in を開始し、認証 popup での操作を待っている。
+
+When:
+
+- 認証の完了前に Settings 画面へ移動し、Language を `日本語` に変更してから Google sign-in を完了する。
+- 成功 toast が表示されている間に通知の閉じる control へ focus を移し、Language を `English` に戻す。
+
+Then:
+
+- 処理完了時の成功 toast は、その時点の言語である日本語で表示・読み上げされる。
+- 表示中の toast の本文、tone、閉じる control の accessible name、読み上げ内容が English へ更新される。
+- 言語変更そのものでは閉じる control の focus や、toast の元の表示時間はリセットされない。
+- toast は最初の表示から4秒後に消え、言語変更によって通知が重複しない。
+- browser error が発生しない。

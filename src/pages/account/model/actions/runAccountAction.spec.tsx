@@ -1,7 +1,9 @@
-import { act } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { getI18n } from "react-i18next";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { showToast } from "@/shared/ui/toast";
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
 import { accountPageStore as store } from "../store";
@@ -9,10 +11,7 @@ import { runAccountAction } from "./runAccountAction";
 
 const mocks = vi.hoisted(() => ({
   action: vi.fn<() => Promise<unknown>>(),
-  showToast: vi.fn(),
 }));
-
-vi.mock("@/shared/ui/toast", () => ({ showToast: mocks.showToast }));
 
 const deferred = <T,>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -25,16 +24,18 @@ const deferred = <T,>() => {
   return { promise, reject, resolve };
 };
 
-describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
+describe("ACCOUNT-02 ACCOUNT-03 ACCOUNT-05 runAccountAction", () => {
   beforeEach(() => {
     store.setState(store.getInitialState(), true);
     mocks.action.mockReset();
     mocks.action.mockResolvedValue(undefined);
-    vi.mocked(showToast).mockReset();
-    vi.mocked(showToast).mockReturnValue(1);
+    dismissToast();
   });
 
+  afterEach(() => dismissToast());
+
   it("keeps operation pending when requested again before completion", async () => {
+    render(<ToastViewport />);
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
 
@@ -43,13 +44,13 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     act(() => {
       operation = runAccountAction(mocks.action, {
         operation: "signIn",
-        success: "Signed in.",
-        failure: "Unable to sign in.",
+        successKey: "account.toast.signInSuccess",
+        failureKey: "account.toast.signInFailure",
       });
       duplicateOperation = runAccountAction(mocks.action, {
         operation: "signIn",
-        success: "Signed in.",
-        failure: "Unable to sign in.",
+        successKey: "account.toast.signInSuccess",
+        failureKey: "account.toast.signInFailure",
       });
     });
 
@@ -65,10 +66,11 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     });
 
     expect(store.getState().signIn.pending).toBe(false);
-    expect(showToast).toHaveBeenCalledExactlyOnceWith({ message: "Signed in.", tone: "success" });
+    expect(screen.getByRole("status")).toHaveTextContent("Success: Signed in.");
   });
 
   it("allows the primary action to retry after a handled failure", async () => {
+    render(<ToastViewport />);
     const failure = new Error("Action failed");
     const retry = deferred<void>();
     mocks.action.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
@@ -77,19 +79,19 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
       await expect(
         runAccountAction(mocks.action, {
           operation: "signIn",
-          success: "Signed in.",
-          failure: "Unable to sign in.",
+          successKey: "account.toast.signInSuccess",
+          failureKey: "account.toast.signInFailure",
         })
       ).resolves.toBeUndefined();
     });
-    expect(showToast).toHaveBeenCalledWith({ message: "Unable to sign in.", tone: "error" });
+    expect(screen.getByRole("alert")).toHaveTextContent("Error: Unable to sign in.");
 
     let retryOperation!: Promise<void>;
     act(() => {
       retryOperation = runAccountAction(mocks.action, {
         operation: "signIn",
-        success: "Signed in.",
-        failure: "Unable to sign in.",
+        successKey: "account.toast.signInSuccess",
+        failureKey: "account.toast.signInFailure",
       });
     });
 
@@ -101,10 +103,12 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     });
 
     expect(store.getState().signIn.pending).toBe(false);
-    expect(showToast).toHaveBeenLastCalledWith({ message: "Signed in.", tone: "success" });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Success: Signed in.");
   });
 
-  it("publishes a failure Toast when action rejects after unmount", async () => {
+  it("publishes a late failure and clears the pending state", async () => {
+    render(<ToastViewport />);
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
     let operation!: Promise<void>;
@@ -112,8 +116,8 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     act(() => {
       operation = runAccountAction(mocks.action, {
         operation: "signIn",
-        success: "Signed in.",
-        failure: "Unable to sign in.",
+        successKey: "account.toast.signInSuccess",
+        failureKey: "account.toast.signInFailure",
       });
     });
     await actAsync(async () => {
@@ -121,7 +125,26 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
       await expect(operation).resolves.toBeUndefined();
     });
 
-    expect(showToast).toHaveBeenCalledWith({ message: "Unable to sign in.", tone: "error" });
+    expect(screen.getByRole("alert")).toHaveTextContent("Error: Unable to sign in.");
     expect(store.getState().signIn.pending).toBe(false);
+  });
+
+  it("uses the active language when an action completes after a language change", async () => {
+    render(<ToastViewport />);
+    const request = deferred<void>();
+    const operation = runAccountAction(() => request.promise, {
+      operation: "signIn",
+      successKey: "account.toast.signInSuccess",
+      failureKey: "account.toast.signInFailure",
+    });
+
+    await actAsync(async () => {
+      await getI18n().changeLanguage("ja");
+      request.resolve();
+      await operation;
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent("成功: ログインしました。");
+    expect(screen.getByText("ログインしました。")).toBeVisible();
   });
 });

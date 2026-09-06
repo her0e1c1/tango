@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import { getI18n } from "react-i18next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -27,7 +26,7 @@ describe("ACCOUNT-01 ACCOUNT-02 signIn", () => {
     render(<ToastViewport />);
 
     await actAsync(async () => {
-      await signIn(getI18n().t);
+      await signIn();
     });
 
     expect(screen.getByRole("status", { name: "Toast notifications" })).toHaveTextContent("Signed in.");
@@ -38,13 +37,13 @@ describe("ACCOUNT-01 ACCOUNT-02 signIn", () => {
     render(<ToastViewport />);
 
     await actAsync(async () => {
-      await signIn(getI18n().t);
+      await signIn();
     });
 
     expect(screen.getByRole("alert")).toHaveTextContent("Unable to sign in.");
 
     await actAsync(async () => {
-      await signIn(getI18n().t);
+      await signIn();
     });
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();

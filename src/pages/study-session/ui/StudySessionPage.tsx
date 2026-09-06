@@ -78,7 +78,7 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   const onSwipeFeedback = (direction: SwipeDirection) => {
     const { icon: Icon, labelKey } = swipeFeedbackPresentation[direction];
     showToast({
-      message: t(labelKey),
+      messageKey: labelKey,
       visualContent: (
         <Icon
           aria-hidden="true"
@@ -97,8 +97,6 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   const query = useStudyQuery(deckId);
   const local = useStudyState(query.preferences.study.defaultAutoPlay);
   const hideBackText = () => local.setShowBackText(false);
-  // A pending persistence result must use the translator from the latest render.
-  const latestFeedback = useLatest(onSwipeFeedback);
   useStudySessionLifecycle(deckId, query.sessionState.status);
   useAutoPlay(query.sessionState, {
     autoPlay: local.autoPlay,
@@ -120,7 +118,7 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
       isMounted,
       onCardChanged: hideBackText,
       onCompleted: local.setCompletion,
-      onSwipeFeedback: (value) => latestFeedback.current(value),
+      onSwipeFeedback,
     });
   const toggleBackText = () => local.setShowBackText((visible) => !visible);
   const toggleAutoPlay = () => local.setAutoPlay((playing) => !playing);

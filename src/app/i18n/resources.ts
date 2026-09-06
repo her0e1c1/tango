@@ -13,6 +13,7 @@ export const resources = {
         loadingWithLabel: "Loading {{label}}",
       },
       toast: {
+        saveFailure: "Unable to save changes. Try again.",
         tone: {
           neutral: "Information",
           success: "Success",
@@ -104,6 +105,11 @@ export const resources = {
         },
       },
       deckForm: {
+        toast: {
+          created: "Created deck “{{name}}”.",
+          updated: "Updated deck “{{name}}”.",
+          createFailure: "Unable to create this deck.",
+        },
         back: "Back to decks",
         create: {
           eyebrow: "Deck creator",
@@ -153,6 +159,10 @@ export const resources = {
         },
       },
       deckDeletion: {
+        toast: {
+          deleted: "Deleted deck “{{name}}”.",
+          failure: "Unable to delete this deck. Check your connection and try again.",
+        },
         title: "Delete deck?",
         targetLabel: "Deck",
         confirm: "Delete deck",
@@ -164,6 +174,11 @@ export const resources = {
         dangerDescription: "Permanently delete this deck, its cards, and study session.",
       },
       cardForm: {
+        toast: {
+          created: "Created card “{{name}}”.",
+          updated: "Updated card “{{name}}”.",
+          createFailure: "Unable to create this card. Try again.",
+        },
         back: "Back to cards",
         content: "Card content",
         expand: "Expand",
@@ -220,6 +235,10 @@ export const resources = {
         },
       },
       cardList: {
+        toast: {
+          deleted: "Deleted card “{{name}}”.",
+          deleteFailure: "Unable to delete this card. Check your connection and try again.",
+        },
         listActions: "Actions",
         title: "Cards",
         count_one: "{{count}} card",
@@ -444,6 +463,16 @@ export const resources = {
         },
       },
       deckImport: {
+        toast: {
+          imported_one: "Imported {{count}} card.",
+          imported_other: "Imported {{count}} cards.",
+          sampleAdded_one: "Added sample deck with {{count}} card.",
+          sampleAdded_other: "Added sample deck with {{count}} cards.",
+          failure: "Import failed. The import could not be completed.",
+          failureWithReason: "Import failed. {{reason}}",
+          sampleFailure: "Unable to add sample deck. The sample deck could not be added.",
+          sampleFailureWithReason: "Unable to add sample deck. {{reason}}",
+        },
         uploadPrompt: "Upload a csv file",
         title: "Import decks",
         status: {
@@ -612,6 +641,7 @@ export const resources = {
         loadingWithLabel: "処理中：{{label}}",
       },
       toast: {
+        saveFailure: "変更を保存できませんでした。再試行してください。",
         tone: {
           neutral: "情報",
           success: "成功",
@@ -703,6 +733,11 @@ export const resources = {
         },
       },
       deckForm: {
+        toast: {
+          created: "デッキ「{{name}}」を作成しました。",
+          updated: "デッキ「{{name}}」を更新しました。",
+          createFailure: "デッキを作成できませんでした。",
+        },
         back: "デッキ一覧に戻る",
         create: {
           eyebrow: "デッキ作成",
@@ -752,6 +787,10 @@ export const resources = {
         },
       },
       deckDeletion: {
+        toast: {
+          deleted: "デッキ「{{name}}」を削除しました。",
+          failure: "デッキを削除できませんでした。接続を確認して再試行してください。",
+        },
         title: "デッキを削除しますか？",
         targetLabel: "デッキ",
         confirm: "デッキを削除",
@@ -763,6 +802,11 @@ export const resources = {
         dangerDescription: "このデッキ、カード、学習セッションを完全に削除します。",
       },
       cardForm: {
+        toast: {
+          created: "カード「{{name}}」を作成しました。",
+          updated: "カード「{{name}}」を更新しました。",
+          createFailure: "カードを作成できませんでした。再試行してください。",
+        },
         back: "カード一覧に戻る",
         content: "カードの内容",
         expand: "拡大",
@@ -819,6 +863,10 @@ export const resources = {
         },
       },
       cardList: {
+        toast: {
+          deleted: "カード「{{name}}」を削除しました。",
+          deleteFailure: "カードを削除できませんでした。接続を確認して再試行してください。",
+        },
         listActions: "アクション",
         title: "カード",
         count_one: "{{count}}枚",
@@ -1043,6 +1091,16 @@ export const resources = {
         },
       },
       deckImport: {
+        toast: {
+          imported_one: "{{count}}枚のカードをインポートしました。",
+          imported_other: "{{count}}枚のカードをインポートしました。",
+          sampleAdded_one: "{{count}}枚のカードを含むサンプルデッキを追加しました。",
+          sampleAdded_other: "{{count}}枚のカードを含むサンプルデッキを追加しました。",
+          failure: "インポートに失敗しました。インポートを完了できませんでした。",
+          failureWithReason: "インポートに失敗しました。{{reason}}",
+          sampleFailure: "サンプルデッキを追加できませんでした。",
+          sampleFailureWithReason: "サンプルデッキを追加できませんでした。{{reason}}",
+        },
         uploadPrompt: "CSVファイルをアップロード",
         title: "デッキをインポート",
         status: {

@@ -27,7 +27,6 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
   target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
 
 const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const uid = useAuthUid();
   const filterDraft = useDeckFilterDraft(uid, deck);
@@ -37,7 +36,6 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
     deckId: deck.id,
     draft: filterDraft.state.draft,
     setState: filterDraft.setState,
-    errorMessage: t("deckFilter.saveError"),
   };
   const filter = getDeckFilterState(filterDraft.state);
   // Build the session from the latest selection, even while its autosave is still pending.

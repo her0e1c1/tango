@@ -14,5 +14,4 @@ export interface UpdateDeckFilterOptions {
   deckId: Deck["id"];
   draft: DeckFilterValues;
   setState: SetDeckFilterDraft;
-  errorMessage: string;
 }
