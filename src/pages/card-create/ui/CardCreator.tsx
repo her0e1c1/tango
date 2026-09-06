@@ -5,7 +5,6 @@ import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import { CardFields, type CardFormFields } from "@/features/card-form";
 import { Button } from "@/shared/ui/button";
-import { Form } from "@/shared/ui/forms";
 
 export interface CardCreatorProps {
   categories: readonly string[];
@@ -21,23 +20,20 @@ export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, 
 
   return (
     <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
-      <header className="mb-section-gap">
+      <header className="mb-5">
         <button
           type="button"
           disabled={formState.isSubmitting}
-          className="mb-4 inline-flex min-h-touch items-center gap-2 rounded-control px-2 text-caption font-semibold text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted"
+          className="mb-1 inline-flex min-h-touch items-center gap-2 rounded-control px-2 text-caption font-semibold text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted"
           onClick={onCancel}
         >
           <AiOutlineArrowLeft aria-hidden="true" />
           {t("cardForm.back")}
         </button>
-        <p className="text-caption font-bold uppercase tracking-wider text-accent-primary">
-          {t("cardForm.create.eyebrow")}
-        </p>
-        <h1 className="mt-1 break-words text-display font-bold text-ink">{t("cardForm.create.title")}</h1>
-        <p className="mt-2 text-body text-ink-muted">{t("cardForm.create.description", { deckName })}</p>
+        <h1 className="mt-1 break-words text-title font-bold text-ink">{t("cardForm.create.title")}</h1>
+        <p className="mt-2 text-caption text-ink-muted">{t("cardForm.create.description", { deckName })}</p>
       </header>
-      <Form onSubmit={onSubmit}>
+      <form className="w-full space-y-4" onSubmit={onSubmit}>
         <CardFields categories={categories} form={form} />
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
           <Button variant="quiet" type="button" onClick={onCancel}>
@@ -47,7 +43,7 @@ export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, 
             <span>{t(formState.isSubmitting ? "cardForm.actions.creating" : "cardForm.actions.create")}</span>
           </Button>
         </div>
-      </Form>
+      </form>
     </section>
   );
 };

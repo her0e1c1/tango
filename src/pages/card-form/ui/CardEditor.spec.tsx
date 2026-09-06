@@ -61,7 +61,7 @@ const StoredCardEditorHarness = (props: { cardId: CardId; onCancel: () => void; 
   );
 };
 
-describe("CARD-03 CARD-09 CARD-12 CardEditor", () => {
+describe("CARD-03 CARD-09 CARD-12 CARD-21 CardEditor", () => {
   const deckId = "card-edit-deck";
   const cardId = "card-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
@@ -95,12 +95,15 @@ describe("CARD-03 CARD-09 CARD-12 CardEditor", () => {
     const onSaved = vi.fn();
     const view = renderForm(onSaved);
     const frontText = screen.getByRole("textbox", { name: "Front text" });
-    const backText = screen.getByRole("textbox", { name: "Back text" });
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "Updated front");
+    await userEvent.click(screen.getByRole("tab", { name: "Back" }));
+    const backText = screen.getByRole("textbox", { name: "Back text" });
     await userEvent.clear(backText);
     await userEvent.type(backText, "Updated back");
+    await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "math" }));
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
@@ -108,7 +111,9 @@ describe("CARD-03 CARD-09 CARD-12 CardEditor", () => {
     renderForm();
 
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Updated front");
+    await userEvent.click(screen.getByRole("tab", { name: "Back" }));
     expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Updated back");
+    await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
     expect(screen.getByRole("checkbox", { name: "math" })).toBeChecked();
   });
 
@@ -179,16 +184,20 @@ describe("CARD-03 CARD-09 CARD-12 CardEditor", () => {
     ]);
 
     expect(frontText).toHaveValue("Unsaved front");
+    await userEvent.click(screen.getByRole("tab", { name: "Back" }));
     expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Back text");
   });
 
   it("keeps stored values unchanged when validation rejects the form", async () => {
     const view = renderForm();
     await userEvent.clear(screen.getByRole("textbox", { name: "Front text" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Back" }));
     await userEvent.clear(screen.getByRole("textbox", { name: "Back text" }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByText("Front text is required.")).toBeVisible();
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveFocus();
+    await userEvent.click(screen.getByRole("tab", { name: "Back" }));
     expect(screen.getByText("Back text is required.")).toBeVisible();
     view.unmount();
     renderForm();

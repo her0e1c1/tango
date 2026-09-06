@@ -71,6 +71,7 @@ test("CARD-15 retries a failed remote Card create with the same ID and no duplic
   const fault = await failNextFirestoreWrite(page, { collection: "card" });
   allowExpectedFirestoreWriteFailure(browserErrors);
   await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
   await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
   await expect(page.getByRole("alert")).toContainText("Unable to create this card. Try again.");
@@ -79,7 +80,9 @@ test("CARD-15 retries a failed remote Card create with the same ID and no duplic
   await fault.dispose();
   expect(attemptedCardId).toBeDefined();
 
+  await page.getByRole("tab", { name: "Front", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(frontText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue(backText);
   await page.getByRole("button", { name: "Create card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));

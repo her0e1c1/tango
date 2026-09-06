@@ -40,10 +40,11 @@ const CardCreatorHarness = ({ onCreated = vi.fn() }: { onCreated?: (cardId: stri
 
 const enterRequiredValues = async () => {
   await userEvent.type(screen.getByRole("textbox", { name: "Front text" }), "Front value");
+  await userEvent.click(screen.getByRole("tab", { name: "Back" }));
   await userEvent.type(screen.getByRole("textbox", { name: "Back text" }), "Back value");
 };
 
-describe("CardCreator", () => {
+describe("CARD-13 CARD-14 CARD-15 CardCreator", () => {
   beforeEach(async () => {
     dismissToast();
     await createDeck("", deck);
@@ -80,6 +81,7 @@ describe("CardCreator", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
     expect(await screen.findByText("Unable to create this card. Try again.")).toBeVisible();
+    await userEvent.click(screen.getByRole("tab", { name: "Front" }));
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front value");
 
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));

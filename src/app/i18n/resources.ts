@@ -159,6 +159,10 @@ export const resources = {
       },
       cardForm: {
         back: "Back to cards",
+        content: "Card content",
+        expand: "Expand",
+        expandSide: "Expand {{side}}",
+        done: "Done",
         create: {
           eyebrow: "Card creator",
           title: "Create card",
@@ -182,6 +186,9 @@ export const resources = {
         tags: {
           title: "Tags",
           description: "Organize this card for filtering and study sessions.",
+          edit: "Edit tags",
+          select: "Select tags",
+          empty: "No tags",
         },
         information: {
           title: "Card information",
@@ -746,6 +753,10 @@ export const resources = {
       },
       cardForm: {
         back: "カード一覧に戻る",
+        content: "カードの内容",
+        expand: "拡大",
+        expandSide: "{{side}}を拡大",
+        done: "完了",
         create: {
           eyebrow: "カード作成",
           title: "カードを作成",
@@ -769,6 +780,9 @@ export const resources = {
         tags: {
           title: "タグ",
           description: "フィルターや学習セッション用にカードを分類します。",
+          edit: "タグを編集",
+          select: "タグを選択",
+          empty: "未選択",
         },
         information: {
           title: "カード情報",
