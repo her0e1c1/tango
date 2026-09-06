@@ -11,7 +11,7 @@
 - Write comments, commit messages, pull request titles, and pull request descriptions in English.
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
-- For tasks that change repository files, complete the required checks and review, then commit the task's changes and push the working branch to `origin` before finishing, unless the user explicitly asks otherwise. Do not wait for a separate commit or push request.
+- Always commit and push changes made in a git worktree.
 
 ## Mandatory Review Gate
 
