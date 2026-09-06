@@ -1,14 +1,16 @@
-import { dismissSaveError } from "./dismissSaveError";
 import type { BaseSyntheticEvent, RefObject } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import type { UseFormHandleSubmit } from "react-hook-form";
+
 import { createCard, type CardId } from "@/entities/card";
-import type { CardCreateFormValues } from "../useCardCreateFormState";
 import { showToast, type ToastId } from "@/shared/ui/toast";
 
-export const submitCardCreation = (
+import type { CardCreateFormValues } from "../schema";
+import { dismissSaveError } from "./dismissSaveError";
+
+export async function submitCardCreation(
   event: BaseSyntheticEvent | undefined,
   {
-    form,
+    handleSubmit,
     uid,
     saveErrorToastId,
     isMounted,
@@ -17,7 +19,7 @@ export const submitCardCreation = (
     deckId,
     pending,
   }: {
-    form: UseFormReturn<CardCreateFormValues>;
+    handleSubmit: UseFormHandleSubmit<CardCreateFormValues>;
     uid: string;
     saveErrorToastId: RefObject<ToastId | undefined>;
     isMounted: () => boolean;
@@ -26,15 +28,15 @@ export const submitCardCreation = (
     deckId: string;
     pending: RefObject<boolean>;
   }
-): void => {
+): Promise<void> {
   // RHF supplies presentation state; this lock closes the gap before validation resolves.
   if (pending.current) {
     event?.preventDefault();
     return;
   }
   pending.current = true;
-  void form
-    .handleSubmit(async (values) => {
+  try {
+    await handleSubmit(async (values) => {
       dismissSaveError(saveErrorToastId);
       try {
         await createCard(uid, { id: cardId, uniqueKey: cardId, deckId, ...values });
@@ -47,8 +49,8 @@ export const submitCardCreation = (
         if (isMounted())
           saveErrorToastId.current = showToast({ message: "Unable to create this card. Try again.", tone: "error" });
       }
-    })(event)
-    .finally(() => {
-      pending.current = false;
-    });
-};
+    })(event);
+  } finally {
+    pending.current = false;
+  }
+}

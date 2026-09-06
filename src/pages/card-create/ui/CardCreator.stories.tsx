@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { expect, fn } from "storybook/test";
 
@@ -10,23 +9,20 @@ import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import { CardCreator } from "./CardCreator";
 
 interface CardCreatorStoryProps {
-  isSaving: boolean;
+  isSubmitting: boolean;
   onCancel: () => void;
   onSubmit: () => void;
 }
 
-const CardCreatorStory = ({ isSaving, onCancel, onSubmit }: CardCreatorStoryProps) => {
+const CardCreatorStory = ({ isSubmitting, onCancel, onSubmit }: CardCreatorStoryProps) => {
   const form = useForm<CardFormFields>({ defaultValues: { frontText: "", backText: "", tags: [] } });
-
-  useEffect(() => {
-    if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
-  }, [form, isSaving]);
 
   return (
     <CardCreator
       categories={CATEGORY}
       deckName="Spanish vocabulary"
       form={form}
+      isSubmitting={isSubmitting}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(onSubmit)}
     />
@@ -39,14 +35,21 @@ const meta = {
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
   decorators: [withPageLayout],
-  args: { isSaving: false, onCancel: fn(), onSubmit: fn() },
+  args: { isSubmitting: false, onCancel: fn(), onSubmit: fn() },
 } satisfies Meta<typeof CardCreatorStory>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-export const Saving: Story = { args: { isSaving: true } };
+export const Saving: Story = {
+  args: { isSubmitting: true },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("button", { name: "Creating…" })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: "Back to cards" })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: "Cancel" })).toBeEnabled();
+  },
+};
 export const Interaction: Story = {
   play: async ({ args, canvas, userEvent }) => {
     await userEvent.type(canvas.getByRole("textbox", { name: "Front text" }), "Hello");

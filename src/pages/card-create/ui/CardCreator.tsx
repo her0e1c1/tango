@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
-import { type UseFormReturn, useFormState } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 
 import { CardFields, type CardFormFields } from "@/features/card-form";
 import { Button } from "@/shared/ui/button";
@@ -10,20 +10,27 @@ export interface CardCreatorProps {
   categories: readonly string[];
   deckName: string;
   form: UseFormReturn<CardFormFields>;
+  isSubmitting: boolean;
   onCancel: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
 }
 
-export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, form, onCancel, onSubmit }) => {
+export const CardCreator: React.FC<CardCreatorProps> = ({
+  categories,
+  deckName,
+  form,
+  isSubmitting,
+  onCancel,
+  onSubmit,
+}) => {
   const { t } = useTranslation();
-  const formState = useFormState({ control: form.control });
 
   return (
     <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
       <header className="mb-5">
         <button
           type="button"
-          disabled={formState.isSubmitting}
+          disabled={isSubmitting}
           className="mb-1 inline-flex min-h-touch items-center gap-2 rounded-control px-2 text-caption font-semibold text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted"
           onClick={onCancel}
         >
@@ -40,8 +47,8 @@ export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, 
           <Button variant="quiet" type="button" onClick={onCancel}>
             {t("cardForm.actions.cancel")}
           </Button>
-          <Button variant="primary" type="submit" disabled={formState.isSubmitting}>
-            <span>{t(formState.isSubmitting ? "cardForm.actions.creating" : "cardForm.actions.create")}</span>
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            <span>{t(isSubmitting ? "cardForm.actions.creating" : "cardForm.actions.create")}</span>
           </Button>
         </div>
       </form>
