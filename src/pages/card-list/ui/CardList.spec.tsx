@@ -20,7 +20,7 @@ import { CardList } from "./CardList";
 const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", difficulty: 5, tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
-describe("CardList [CARD-01] [CARD-10]", () => {
+describe("CardList [CARD-01] [CARD-10] [CARD-19]", () => {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {
     render(<CardList cards={[]} filterSlot={<div>Controls</div>} />);
 
@@ -79,6 +79,60 @@ describe("CardList [CARD-01] [CARD-10]", () => {
   it("shows filter disclosure state", () => {
     render(<CardList cards={[card]} />);
     expect(screen.getByText("Filters")).toBeVisible();
+  });
+
+  it("presents the visible Card count and delegates a bulk difficulty request", async () => {
+    const onDifficultyChange = vi.fn();
+    const onRequest = vi.fn();
+    const view = render(
+      <CardList
+        cards={[card, otherCard]}
+        bulkDifficulty={{
+          difficultyLowerBound: 1,
+          difficultyUpperBound: 10,
+          selectedDifficulty: null,
+          onDifficultyChange,
+          onRequest,
+        }}
+      />
+    );
+
+    expect(screen.getByRole("heading", { level: 2, name: "Change difficulty" })).toBeVisible();
+    expect(screen.getByText("2 visible cards")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Change difficulty" })).toBeDisabled();
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "New difficulty" }), "7");
+    expect(onDifficultyChange).toHaveBeenCalledExactlyOnceWith(7);
+
+    view.rerender(
+      <CardList
+        cards={[card, otherCard]}
+        bulkDifficulty={{
+          difficultyLowerBound: 1,
+          difficultyUpperBound: 10,
+          selectedDifficulty: 7,
+          onDifficultyChange,
+          onRequest,
+        }}
+      />
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Change difficulty" }));
+    expect(onRequest).toHaveBeenCalledOnce();
+
+    view.rerender(
+      <CardList
+        cards={[]}
+        bulkDifficulty={{
+          difficultyLowerBound: 1,
+          difficultyUpperBound: 10,
+          selectedDifficulty: 7,
+          onDifficultyChange,
+          onRequest,
+        }}
+      />
+    );
+    expect(screen.getByText("0 visible cards")).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "New difficulty" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Change difficulty" })).toBeDisabled();
   });
 
   it("keeps only one menu open and removes it with a missing row", async () => {

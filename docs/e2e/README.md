@@ -95,6 +95,8 @@
 | CARD-16 | write | [Card の削除失敗後に再試行できる](./card-management.md#card-16) |
 | CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](./card-management.md#card-17) |
 | CARD-18 | write | [Card 一覧の difficulty 保存失敗後に再試行できる](./card-list-actions.md#card-18) |
+| CARD-19 | batch | [表示中の Card の difficulty をまとめて変更できる](./card-list-actions.md#card-19) |
+| CARD-20 | batch | [Card の一括 difficulty 変更を部分失敗後に再試行できる](./card-list-actions.md#card-20) |
 
 ### Study
 

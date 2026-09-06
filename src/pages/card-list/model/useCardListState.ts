@@ -4,7 +4,14 @@ import { useAuthUid } from "@/entities/auth";
 import { deleteCard, mustFindCardById, type Card, type CardId, useCardsByDeckId } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { calculateDifficulty, editStudyProgress, type StudyRating } from "@/entities/study-progress";
+import {
+  calculateDifficulty,
+  type Difficulty,
+  editStudyProgress,
+  MAX_DIFFICULTY,
+  MIN_DIFFICULTY,
+  type StudyRating,
+} from "@/entities/study-progress";
 import { selectStudyCards } from "@/entities/study-session";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
@@ -24,13 +31,31 @@ interface CardListAnswer {
   dark: boolean;
 }
 
+interface BulkDifficultyRequest {
+  cardIds: CardId[];
+  difficulty: Difficulty;
+}
+
+type BulkDifficultySaveResult =
+  | { outcome: "success"; cardCount: number; difficulty: Difficulty }
+  | { outcome: "partial-failure"; failureCount: number; successCount: number; totalCount: number };
+
 export interface CardListState {
   tags: string[];
   cards: CardListItem[];
   answer: CardListAnswer | undefined;
+  bulkDifficulty: Difficulty | null;
+  bulkDifficultyMaximum: number;
+  bulkDifficultyMinimum: number;
+  bulkDifficultyPending: boolean;
+  bulkDifficultyTarget: { cardCount: number; difficulty: number } | undefined;
   deletionTarget: { frontText: string } | undefined;
   deletionPending: boolean;
   mutationPending: boolean;
+  onChangeBulkDifficulty: (difficulty: Difficulty | null) => void;
+  onRequestBulkDifficulty: () => void;
+  onCancelBulkDifficulty: () => void;
+  onConfirmBulkDifficulty: () => Promise<BulkDifficultySaveResult | undefined>;
   onShowCard: (id: CardId) => void;
   onCloseCard: () => void;
   onSwipedLeft: (id: CardId) => void;
@@ -48,12 +73,17 @@ const buildCardListItem = (card: Card): CardListItem => ({
   tags: card.tags,
 });
 
+const isBulkDifficultyOption = (difficulty: Difficulty): boolean =>
+  Number.isInteger(difficulty) && difficulty >= MIN_DIFFICULTY && difficulty <= MAX_DIFFICULTY;
+
 export const useCardListState = (deck: Deck): CardListState => {
   const uid = useAuthUid();
   const preferences = usePreferences();
   const { cards: deckCards, tags } = useCardsByDeckId(deck.id);
   const isMounted = useMountedGuard();
   const [shownCard, setShownCard] = React.useState<Card>();
+  const [bulkDifficulty, setBulkDifficulty] = React.useState<Difficulty | null>(null);
+  const [bulkDifficultyRequest, setBulkDifficultyRequest] = React.useState<BulkDifficultyRequest>();
   const [deletionTarget, setDeletionTarget] = React.useState<Card>();
   const [mutationPending, setMutationPending] = React.useState(false);
   const mutationPendingRef = React.useRef(false);
@@ -95,6 +125,56 @@ export const useCardListState = (deck: Deck): CardListState => {
       if (isMounted()) {
         errorToastId.current = showToast({ message: "Unable to save changes. Try again.", tone: "error" });
       }
+    } finally {
+      finishMutation();
+    }
+  };
+
+  const requestBulkDifficulty = () => {
+    if (bulkDifficulty == null || cards.length === 0 || mutationPendingRef.current) return;
+    dismissErrorToast();
+    // Freeze the visible result set before confirmation so filter/subscription changes cannot
+    // silently alter which Cards the approved operation targets.
+    setBulkDifficultyRequest({
+      cardIds: cards.map(({ id }) => id),
+      difficulty: bulkDifficulty,
+    });
+  };
+
+  const cancelBulkDifficulty = () => {
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: Escape or Cancel can arrive before React publishes the pending state.
+    if (mutationPendingRef.current) return;
+    dismissErrorToast();
+    setBulkDifficultyRequest(undefined);
+  };
+
+  const confirmBulkDifficulty = async () => {
+    if (bulkDifficultyRequest == null || !beginMutation()) return;
+    const request = bulkDifficultyRequest;
+    try {
+      // Absolute-value retries are intentionally idempotent. Let every independent write settle
+      // before unlocking the list so a partial failure cannot overlap the user's retry.
+      const results = await Promise.allSettled(
+        request.cardIds.map((cardId) => editStudyProgress(uid, { cardId, difficulty: request.difficulty }))
+      );
+      if (!isMounted()) return;
+      const failureCount = results.filter(({ status }) => status === "rejected").length;
+      if (failureCount === 0) {
+        setBulkDifficultyRequest(undefined);
+        setBulkDifficulty(null);
+        return {
+          outcome: "success" as const,
+          cardCount: request.cardIds.length,
+          difficulty: request.difficulty,
+        };
+      }
+
+      return {
+        outcome: "partial-failure" as const,
+        failureCount,
+        successCount: request.cardIds.length - failureCount,
+        totalCount: request.cardIds.length,
+      };
     } finally {
       finishMutation();
     }
@@ -142,6 +222,17 @@ export const useCardListState = (deck: Deck): CardListState => {
     tags,
     cards: cards.map(buildCardListItem),
     answer,
+    bulkDifficulty,
+    bulkDifficultyMaximum: MAX_DIFFICULTY,
+    bulkDifficultyMinimum: MIN_DIFFICULTY,
+    bulkDifficultyPending: mutationPending && bulkDifficultyRequest != null,
+    bulkDifficultyTarget:
+      bulkDifficultyRequest == null
+        ? undefined
+        : {
+            cardCount: bulkDifficultyRequest.cardIds.length,
+            difficulty: bulkDifficultyRequest.difficulty,
+          },
     mutationPending,
     deletionPending: mutationPending && deletionTarget != null,
     deletionTarget:
@@ -150,6 +241,12 @@ export const useCardListState = (deck: Deck): CardListState => {
         : {
             frontText: deletionTarget.frontText,
           },
+    onChangeBulkDifficulty: (difficulty) => {
+      if (difficulty == null || isBulkDifficultyOption(difficulty)) setBulkDifficulty(difficulty);
+    },
+    onRequestBulkDifficulty: requestBulkDifficulty,
+    onCancelBulkDifficulty: cancelBulkDifficulty,
+    onConfirmBulkDifficulty: confirmBulkDifficulty,
     onShowCard: (id: CardId) => setShownCard(mustFindCardById(cards, id)),
     onCloseCard: () => setShownCard(undefined),
     onSwipedLeft: (id: CardId) => void changeDifficulty(id, "not-mastered"),

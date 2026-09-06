@@ -1,4 +1,4 @@
-import type * as React from "react";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
@@ -9,11 +9,13 @@ import { DifficultyIndicator } from "@/entities/study-progress";
 import { DeckFilterForm, useDeckFilterState } from "@/features/deck-filter";
 import { routes } from "@/shared/router";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
+import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useCardListState } from "../model/useCardListState";
 import { CardList } from "./CardList";
+import { BulkDifficultyDialog } from "./bulk-difficulty";
 
 const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
@@ -32,10 +34,85 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const difficultyMax = deckFilter.difficultyMax === deckFilter.difficultyUpperBound ? null : deckFilter.difficultyMax;
   const difficultyMin = deckFilter.difficultyMin === deckFilter.difficultyLowerBound ? null : deckFilter.difficultyMin;
   const busy = state.mutationPending || deckFilter.saving;
+  const dialogOpen = state.bulkDifficultyTarget != null || state.deletionTarget != null;
+  const bulkErrorToastId = React.useRef<ToastId | undefined>(undefined);
+
+  useKey(
+    "t",
+    () => {
+      if (!dialogOpen) void navigate(routes.deckList.to());
+    },
+    undefined,
+    [dialogOpen, navigate]
+  );
+  useKey(
+    "s",
+    () => {
+      if (!dialogOpen) void navigate(routes.settings.to());
+    },
+    undefined,
+    [dialogOpen, navigate]
+  );
+
+  const dismissBulkErrorToast = () => {
+    if (bulkErrorToastId.current === undefined) return;
+    dismissToast(bulkErrorToastId.current);
+    bulkErrorToastId.current = undefined;
+  };
+
+  React.useEffect(
+    () => () => {
+      if (bulkErrorToastId.current !== undefined) dismissToast(bulkErrorToastId.current);
+    },
+    []
+  );
+
+  const requestBulkDifficulty = () => {
+    dismissBulkErrorToast();
+    state.onRequestBulkDifficulty();
+  };
+
+  const cancelBulkDifficulty = () => {
+    dismissBulkErrorToast();
+    state.onCancelBulkDifficulty();
+  };
+
+  const confirmBulkDifficulty = async () => {
+    dismissBulkErrorToast();
+    const result = await state.onConfirmBulkDifficulty();
+    if (result === undefined) return;
+    if (result.outcome === "success") {
+      showToast({
+        message: t("cardList.bulkDifficulty.success", {
+          count: result.cardCount,
+          difficulty: result.difficulty,
+        }),
+        tone: "success",
+      });
+      return;
+    }
+
+    bulkErrorToastId.current = showToast({
+      message: t("cardList.bulkDifficulty.partialFailure", {
+        count: result.failureCount,
+        successCount: result.successCount,
+        totalCount: result.totalCount,
+      }),
+      tone: "error",
+    });
+  };
 
   return (
     <AppLayout showHeader={state.answer == null}>
-      {state.deletionTarget != null ? (
+      {state.bulkDifficultyTarget != null ? (
+        <BulkDifficultyDialog
+          cardCount={state.bulkDifficultyTarget.cardCount}
+          difficulty={state.bulkDifficultyTarget.difficulty}
+          pending={state.bulkDifficultyPending}
+          onCancel={cancelBulkDifficulty}
+          onConfirm={confirmBulkDifficulty}
+        />
+      ) : state.deletionTarget != null ? (
         <DestructiveActionDialog
           title={t("cardList.deletion.title")}
           targetLabel={t("cardList.deletion.targetLabel")}
@@ -54,6 +131,13 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
       ) : null}
       <CardList
         cards={state.cards}
+        bulkDifficulty={{
+          difficultyLowerBound: state.bulkDifficultyMinimum,
+          difficultyUpperBound: state.bulkDifficultyMaximum,
+          selectedDifficulty: state.bulkDifficulty,
+          onDifficultyChange: state.onChangeBulkDifficulty,
+          onRequest: requestBulkDifficulty,
+        }}
         disabled={busy}
         renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
         onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
@@ -90,12 +174,8 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 export const CardListPage: React.FC = () => {
   const { t } = useTranslation();
   const params = useParams();
-  const navigate = useNavigate();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
-
-  useKey("t", () => void navigate(routes.deckList.to()));
-  useKey("s", () => void navigate(routes.settings.to()));
 
   const deck = useDeck(deckId);
   if (deck == null) {

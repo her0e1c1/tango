@@ -14,6 +14,7 @@ import { RemovableTag } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Card, type CardActionsProps } from "./Card";
+import { BulkDifficultyPanel } from "./bulk-difficulty";
 
 interface CardListItem {
   id: CardId;
@@ -34,8 +35,17 @@ interface CardListFilterState {
   selectedTags: string[];
 }
 
+interface CardListBulkDifficultyProps {
+  difficultyLowerBound: number;
+  difficultyUpperBound: number;
+  selectedDifficulty: number | null;
+  onDifficultyChange: (difficulty: number | null) => void;
+  onRequest: () => void;
+}
+
 export interface CardListProps {
   cards: CardListItem[];
+  bulkDifficulty?: CardListBulkDifficultyProps;
   disabled?: boolean;
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
@@ -187,6 +197,18 @@ export const CardList: React.FC<CardListProps> = (props) => {
           )}
         </div>
       </fieldset>
+
+      {props.bulkDifficulty != null ? (
+        <BulkDifficultyPanel
+          cardCount={props.cards.length}
+          difficultyLowerBound={props.bulkDifficulty.difficultyLowerBound}
+          difficultyUpperBound={props.bulkDifficulty.difficultyUpperBound}
+          selectedDifficulty={props.bulkDifficulty.selectedDifficulty}
+          disabled={props.disabled}
+          onDifficultyChange={props.bulkDifficulty.onDifficultyChange}
+          onRequest={props.bulkDifficulty.onRequest}
+        />
+      ) : null}
 
       {props.cards.length > 0 && (
         <CardListRows
