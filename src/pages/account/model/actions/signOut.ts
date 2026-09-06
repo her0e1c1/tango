@@ -1,7 +1,11 @@
-import { signOut as firebaseSignOut } from "firebase/auth";
+import type { AccountPageStore } from "../types";
+import { signOutCurrentUser } from "./signOutCurrentUser";
+import { runAccountAction } from "./runAccountAction";
 
-import { auth } from "@/shared/firebase";
-
-export function signOut(): Promise<void> {
-  return firebaseSignOut(auth);
+export function signOut(store: AccountPageStore, isMounted: () => boolean): Promise<void> {
+  return runAccountAction(signOutCurrentUser, store, isMounted, {
+    operation: "signOut",
+    success: "Signed out.",
+    failure: "Unable to sign out.",
+  });
 }

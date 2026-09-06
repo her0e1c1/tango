@@ -1,11 +1,8 @@
-interface AccountPageState {
+import type { StoreApi } from "zustand/vanilla";
+
+export interface AccountPageState {
   signIn: { pending: boolean };
   signOut: { pending: boolean };
 }
 
-export type AccountOperation = keyof AccountPageState;
-
-export interface AccountStoreState {
-  pageState: AccountPageState;
-  ownerId: symbol | null;
-}
+export type AccountPageStore = StoreApi<AccountPageState>;

@@ -1,20 +1,11 @@
-import { FirebaseError } from "firebase/app";
-import { GoogleAuthProvider, linkWithPopup, signInWithCredential } from "firebase/auth";
+import type { AccountPageStore } from "../types";
+import { loginGoogle } from "./loginGoogle";
+import { runAccountAction } from "./runAccountAction";
 
-import { auth } from "@/shared/firebase";
-
-export async function signIn(): Promise<void> {
-  const { currentUser } = auth;
-  if (!currentUser?.isAnonymous) throw new Error("Anonymous user is required before Google sign-in");
-
-  try {
-    await linkWithPopup(currentUser, new GoogleAuthProvider());
-  } catch (error) {
-    if (!(error instanceof FirebaseError)) throw error;
-
-    const credential = GoogleAuthProvider.credentialFromError(error);
-    if (credential == null) throw error;
-
-    await signInWithCredential(auth, credential);
-  }
+export function signIn(store: AccountPageStore, isMounted: () => boolean): Promise<void> {
+  return runAccountAction(loginGoogle, store, isMounted, {
+    operation: "signIn",
+    success: "Signed in.",
+    failure: "Unable to sign in.",
+  });
 }
