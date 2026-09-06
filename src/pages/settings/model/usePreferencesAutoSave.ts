@@ -1,17 +1,19 @@
 import { useEffect } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import type { UseFormHandleSubmit, UseFormSubscribe } from "react-hook-form";
 import type { Preferences } from "@/entities/preference";
 
+import { savePreferencesForm } from "./actions/savePreferencesForm";
+
 export const usePreferencesAutoSave = (
-  { subscribe, handleSubmit }: UseFormReturn<Preferences>,
-  save: (preferences: Preferences) => void
+  subscribe: UseFormSubscribe<Preferences>,
+  handleSubmit: UseFormHandleSubmit<Preferences>
 ): void => {
   useEffect(
     () =>
       subscribe({
         formState: { values: true },
-        callback: () => void handleSubmit(save)(),
+        callback: () => void savePreferencesForm(handleSubmit),
       }),
-    [subscribe, handleSubmit, save]
+    [subscribe, handleSubmit]
   );
 };
