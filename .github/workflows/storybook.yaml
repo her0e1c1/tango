@@ -1,0 +1,46 @@
+name: Storybook
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storybook:
+    name: Storybook
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      STORYBOOK_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+
+      - run: mise run init
+
+      - name: Install Storybook Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Exercise the mise task's CLI startup path explicitly; smoke-test exits after successful startup.
+      - name: Check Storybook startup
+        timeout-minutes: 5
+        run: mise run storybook -- -- --ci --smoke-test --host 127.0.0.1 --port 6006 --exact-port
+
+      - name: Build Storybook
+        run: mise run build-storybook
+
+      - name: Run Storybook tests
+        run: mise run test-storybook
+
+      - name: Upload Storybook diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: storybook-diagnostics
+          path: |
+            debug-storybook.log
+            test-results/storybook/
+          if-no-files-found: ignore
