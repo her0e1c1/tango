@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useStore } from "zustand";
 
-import { useAuthSession } from "@/entities/auth";
+import { useAuth } from "@/entities/auth";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
 import { signIn as signInAction } from "./actions/signIn";
@@ -17,11 +17,11 @@ const useAccountPageState = () => {
 };
 
 export const useAccountPageModel = () => {
-  const authSession = useAuthSession();
+  const auth = useAuth();
   const { pageState, store, isMounted } = useAccountPageState();
 
   return {
-    authSession,
+    auth,
     pageState,
     signIn: () => void signInAction(store, isMounted),
     signOut: () => void signOutAction(store, isMounted),
