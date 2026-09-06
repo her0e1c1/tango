@@ -54,11 +54,43 @@ export const Interaction: Story = {
     await userEvent.type(frontText, "Updated prompt");
     await expect(frontText).toHaveValue("Updated prompt");
 
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+    await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
+    await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveValue("Updated prompt");
+    await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
     const firstTag = canvas.getByRole("checkbox", { name: "raw" });
     await expect(firstTag).not.toBeChecked();
     await userEvent.click(firstTag);
     await expect(firstTag).toBeChecked();
+    await userEvent.click(canvas.getByRole("button", { name: "Done" }));
   },
 };
 export const Mobile: Story = { ...LongContent, globals: { viewport: { value: "iphonex", isRotated: false } } };
 export const Dark: Story = { ...LongContent, globals: { theme: "dark" } };
+
+export const Empty: Story = { args: { card: { ...fixture.card.default, frontText: "", backText: "", tags: [] } } };
+export const Back: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+  },
+};
+export const Expanded: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Expand Back" }));
+  },
+};
+export const ExpandedValidationError: Story = {
+  ...Expanded,
+  args: { card: { ...fixture.card.default, frontText: "", backText: "" }, validationError: true },
+};
+export const TagSelection: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
+  },
+};
+export const MobileBack: Story = {
+  ...Back,
+  ...LongContent,
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+};

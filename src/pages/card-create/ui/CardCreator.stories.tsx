@@ -50,6 +50,7 @@ export const Saving: Story = { args: { isSaving: true } };
 export const Interaction: Story = {
   play: async ({ args, canvas, userEvent }) => {
     await userEvent.type(canvas.getByRole("textbox", { name: "Front text" }), "Hello");
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
     await userEvent.type(canvas.getByRole("textbox", { name: "Back text" }), "Hola");
     await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
     await expect(args.onSubmit).toHaveBeenCalledOnce();

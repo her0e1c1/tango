@@ -85,9 +85,16 @@ test("CARD-03 persists edited front, back, and tags across reload", async ({ fix
   await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
   await page.getByRole("textbox", { name: "Front text" }).fill(changed.frontText);
-  await page.getByRole("textbox", { name: "Back text" }).fill(changed.backText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
+  await page.getByRole("button", { name: "Expand Back" }).click();
+  const expandedEditor = page.getByRole("dialog", { name: "Back text" });
+  await expandedEditor.getByRole("textbox", { name: "Back text" }).fill(changed.backText);
+  await expandedEditor.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByRole("button", { name: "Expand Back" })).toBeFocused();
+  await page.getByRole("button", { name: "Edit tags" }).click();
   await clickCheckboxLabel(page, "math");
   await clickCheckboxLabel(page, "python");
+  await page.getByRole("button", { name: "Done" }).click();
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByRole("status").filter({ hasText: `Updated card “${changed.frontText}”.` })).toBeVisible();
@@ -95,8 +102,11 @@ test("CARD-03 persists edited front, back, and tags across reload", async ({ fix
   await page.getByRole("button", { name: `Open actions for ${changed.frontText}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
 
+  await page.getByRole("tab", { name: "Front", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(changed.frontText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue(changed.backText);
+  await page.getByRole("button", { name: "Edit tags" }).click();
   await expect(page.getByRole("checkbox", { name: "math" })).not.toBeChecked();
   await expect(page.getByRole("checkbox", { name: "typescript" })).toBeChecked();
   await expect(page.getByRole("checkbox", { name: "python" })).toBeChecked();
@@ -205,13 +215,16 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
   const fault = await failNextFirestoreWrite(page, { collection: "card", id: card.id });
   allowExpectedFirestoreWriteFailure(browserErrors);
   await page.getByRole("textbox", { name: "Front text" }).fill(changedFront);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
   await page.getByRole("textbox", { name: "Back text" }).fill(changedBack);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByRole("alert")).toContainText("Unable to save changes. Try again.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
+  await page.getByRole("tab", { name: "Front", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(changedFront);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue(changedBack);
 
   await page.getByRole("button", { name: "Save changes" }).click();
@@ -285,13 +298,36 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   const deck = fixture.deck();
   const frontText = `${namespace.caseId} remote front`;
   const backText = `${namespace.caseId} remote back`;
+  const viewport = { width: 390, height: 844 };
+  const viewportBounds = { x: 0, y: 0, ...viewport };
+  await page.setViewportSize(viewport);
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: "Add card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
-  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
-  await page.getByRole("textbox", { name: "Back text" }).fill(backText);
+  for (const { side, value } of [
+    { side: "Front", value: frontText },
+    { side: "Back", value: backText },
+  ]) {
+    await page.getByRole("tab", { name: side, exact: true }).click();
+    await page.getByRole("button", { name: `Expand ${side}` }).click();
+    const editor = page.getByRole("dialog", { name: `${side} text` });
+    await expect(editor).toBeVisible();
+    expect(await editor.boundingBox()).toEqual(viewportBounds);
+    expect(await page.getByTestId("card-fields-backdrop").boundingBox()).toEqual(viewportBounds);
+    await editor.getByRole("textbox", { name: `${side} text` }).fill(value);
+    await editor.getByRole("button", { name: "Done" }).click();
+    await expect(page.getByRole("textbox", { name: `${side} text` })).toHaveValue(value);
+  }
+  await page.getByRole("button", { name: "Edit tags" }).click();
+  const tagsDialog = page.getByRole("dialog", { name: "Select tags" });
+  await expect(tagsDialog).toBeVisible();
+  expect(await page.getByTestId("card-fields-backdrop").boundingBox()).toEqual(viewportBounds);
+  const tagsBounds = await tagsDialog.boundingBox();
+  if (tagsBounds === null) throw new Error("Tag selection dialog bounding box is unavailable");
+  expect(tagsBounds.y + tagsBounds.height).toBe(viewport.height);
+  await tagsDialog.getByRole("button", { name: "Done" }).click();
   await page.getByRole("button", { name: "Create card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
@@ -325,6 +361,7 @@ test("CARD-14 creates one local Card and keeps it across reload", async ({ fixtu
   await page.getByRole("button", { name: "Add card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
   await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
   await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
@@ -418,4 +455,34 @@ test("CARD-19 changes the difficulty of only the Cards visible in the filter dra
   await page.getByRole("button", { name: "Clear limits" }).click();
   await Promise.all(matchingCards.map((card) => expectDifficulty(page, card.frontText, newDifficulty)));
   await expectDifficulty(page, excludedCard.frontText, excludedCard.difficulty);
+});
+
+test("CARD-21 reveals the first invalid side without saving empty text", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  await fixture.apply(page);
+  const before = await requireDocument("card", card.id);
+  await page.goto(`/deck/${deck.id}`);
+  await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  await page.getByRole("textbox", { name: "Front text" }).fill("");
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
+  await page.getByRole("textbox", { name: "Back text" }).fill("");
+  await page.getByRole("button", { name: "Save changes" }).click();
+
+  await expect(page.getByRole("tab", { name: "Front", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("textbox", { name: "Front text" })).toBeFocused();
+  await expect(page.getByText("Front text is required.")).toBeVisible();
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
+  await expect(page.getByText("Back text is required.")).toBeVisible();
+  await page.getByRole("button", { name: "Expand Back" }).click();
+  const expandedEditor = page.getByRole("dialog", { name: "Back text" });
+  await expect(expandedEditor.getByRole("textbox", { name: "Back text" })).toHaveAttribute("aria-invalid", "true");
+  await expect(expandedEditor.getByRole("textbox", { name: "Back text" })).toHaveAccessibleDescription(
+    "Back text is required."
+  );
+  await expect(expandedEditor.getByText("Back text is required.")).toBeVisible();
+  await expandedEditor.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("");
+  expect(await requireDocument("card", card.id)).toEqual(before);
 });
