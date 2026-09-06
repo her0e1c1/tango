@@ -413,6 +413,9 @@ test("CARD-19 changes the difficulty of only the Cards visible in the filter dra
     .toBe(String(excludedCard.difficulty));
   await page.reload();
 
+  // The auto-saved filter still excludes the updated cards after reload.
+  await page.getByText("Filters", { exact: true }).click();
+  await page.getByRole("button", { name: "Clear limits" }).click();
   await Promise.all(matchingCards.map((card) => expectDifficulty(page, card.frontText, newDifficulty)));
   await expectDifficulty(page, excludedCard.frontText, excludedCard.difficulty);
 });
