@@ -20,7 +20,7 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
 const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const navigate = useNavigate();
   const filter = useDeckFilterState(deck);
-  // Session selection previews the local filter draft before the user chooses whether to save it.
+  // Build the session from the latest selection, even while its autosave is still pending.
   const state = useStudySessionStartState({
     ...deck,
     difficultyMax: filter.difficultyMax,

@@ -113,14 +113,11 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     mocks.editStudyProgress.mockResolvedValue(undefined);
   });
 
-  it("previews filters and persists the complete draft only from Save filters", async () => {
+  it("updates filters and automatically persists the complete selection", async () => {
     renderCardList();
 
     await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
     expect(screen.getByText("difficulty 3–4 · 1 tag")).toBeVisible();
-    expect(mocks.editDeck).not.toHaveBeenCalled();
-
-    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
 
     expect(mocks.editDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: deck.id,
@@ -336,7 +333,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
 
     await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
     expect(screen.getByRole("button", { name: "Add card" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Save filters" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeDisabled();
     expect(within(article).getByRole("button", { name: "View Front" })).toBeDisabled();
     swipeRight(article);
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
@@ -345,7 +342,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
       difficultyWrite.resolve();
       await difficultyWrite.promise;
     });
-    expect(screen.getByRole("button", { name: "Save filters" })).toBeEnabled();
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeEnabled();
   });
 
   it("retries a failed difficulty write through the same swipe gesture", async () => {

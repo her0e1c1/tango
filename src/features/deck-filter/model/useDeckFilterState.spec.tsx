@@ -1,9 +1,11 @@
 import type React from "react";
 
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
+
+import { actAsync } from "@/test/act";
 
 import type { Deck } from "@/entities/deck";
 import { createDeck as createRemoteDeck } from "@/test/factories";
@@ -42,90 +44,85 @@ describe("CARD-10 SWIPE-26 DeckFilterForm with useDeckFilterState", () => {
     writeControls.write = undefined;
   });
 
-  it("previews filter changes without writing until Save filters is selected", async () => {
+  it("automatically saves each change without a save button", async () => {
     const deck = createRemoteDeck({ id: "filter-deck", difficultyMax: 8, difficultyMin: 3, selectedTags: [] });
     render(<DeckFilterHarness deck={deck} />);
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), { target: { value: 7 } });
+    expect(writeControls.calls).toEqual([]);
+    expect(screen.queryByRole("button", { name: "Save filters" })).not.toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "7");
+    expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ difficultyMax: 7, selectedTags: [] });
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
-
-    expect(writeControls.calls).toHaveLength(0);
-    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
-
-    expect(writeControls.calls).toEqual([
-      [
-        "user-id",
-        {
-          id: "filter-deck",
-          difficultyMax: 7,
-          difficultyMin: 3,
-          selectedTags: ["tag2"],
-          tagAndFilter: false,
-        },
-      ],
-    ]);
+    expect(writeControls.calls.at(-1)?.[1]).toEqual({
+      id: "filter-deck",
+      difficultyMax: 7,
+      difficultyMin: 3,
+      selectedTags: ["tag2"],
+      tagAndFilter: false,
+    });
   });
 
-  it("saves explicit domain bounds when clearing difficulty filters", async () => {
-    const deck = createRemoteDeck({ id: "filter-deck", difficultyMax: 8, difficultyMin: 3, selectedTags: [] });
-    render(<DeckFilterHarness deck={deck} />);
-
+  it("automatically saves explicit domain bounds when clearing difficulty filters", async () => {
+    render(<DeckFilterHarness deck={createRemoteDeck({ id: "filter-deck", difficultyMax: 8, difficultyMin: 3 })} />);
     await userEvent.click(screen.getByRole("button", { name: "Clear limits" }));
-
     expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("10");
     expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("1");
-    expect(writeControls.calls).toHaveLength(0);
-
-    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
-    expect(writeControls.calls).toEqual([
-      [
-        "user-id",
-        {
-          id: "filter-deck",
-          difficultyMax: 10,
-          difficultyMin: 1,
-          selectedTags: [],
-          tagAndFilter: false,
-        },
-      ],
-    ]);
+    expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ difficultyMax: 10, difficultyMin: 1 });
   });
 
-  it("disables all filter controls and prevents a duplicate save while writing", async () => {
-    let finishWrite: () => void = () => undefined;
-    writeControls.write = () =>
-      new Promise<void>((resolve) => {
-        finishWrite = resolve;
-      });
-    render(<DeckFilterHarness deck={createRemoteDeck({ id: "filter-deck", difficultyMax: 8 })} />);
-
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), { target: { value: 7 } });
-    const save = screen.getByRole("button", { name: "Save filters" });
-    await userEvent.click(save);
-
-    expect(save).toBeDisabled();
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeDisabled();
-    fireEvent.click(save);
-    expect(writeControls.calls).toHaveLength(1);
-
-    act(() => finishWrite());
-    await waitFor(() => expect(save).toBeDisabled());
+  it("keeps controls editable and persists rapid changes in order", async () => {
+    const firstWrite = Promise.withResolvers<void>();
+    let persisted: Parameters<EditDeck>[1] | undefined;
+    writeControls.write = async (_uid, value) => {
+      if (value.difficultyMax === 7 && value.selectedTags?.length === 0) await firstWrite.promise;
+      persisted = value;
+    };
+    render(<DeckFilterHarness deck={createRemoteDeck({ id: "filter-deck", difficultyMax: 8, selectedTags: [] })} />);
+    const maximum = screen.getByRole("combobox", { name: "Maximum difficulty" });
+    await userEvent.selectOptions(maximum, "7");
+    expect(maximum).toBeEnabled();
+    await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
+    await userEvent.selectOptions(maximum, "6");
+    expect(maximum).toHaveValue("6");
+    expect(persisted).toBeUndefined();
+    await actAsync(async () => firstWrite.resolve());
+    await waitFor(() => expect(persisted).toMatchObject({ difficultyMax: 6, selectedTags: ["tag2"] }));
   });
 
-  it("keeps a failed draft and saves it on the next explicit attempt", async () => {
-    writeControls.write = vi.fn().mockRejectedValueOnce(new Error("failed")).mockResolvedValueOnce(undefined);
-    render(<DeckFilterHarness deck={createRemoteDeck({ id: "filter-deck", difficultyMax: 8 })} />);
+  it("preserves pending selections and write order when moving to another Page", async () => {
+    const firstWrite = Promise.withResolvers<void>();
+    let persisted: Parameters<EditDeck>[1] | undefined;
+    writeControls.write = async (_uid, value) => {
+      await firstWrite.promise;
+      persisted = value;
+    };
+    const deck = createRemoteDeck({ id: "navigation-deck", difficultyMax: 8, selectedTags: [] });
+    const view = render(<DeckFilterHarness deck={deck} />);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "7");
+    await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
+    view.unmount();
 
-    fireEvent.change(screen.getByRole("combobox", { name: "Maximum difficulty" }), { target: { value: 6 } });
-    const save = screen.getByRole("button", { name: "Save filters" });
-    await userEvent.click(save);
+    render(<DeckFilterHarness deck={deck} />);
+    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("7");
+    expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "6");
+    await actAsync(async () => firstWrite.resolve());
+    await waitFor(() => expect(persisted).toMatchObject({ difficultyMax: 6, selectedTags: ["tag2"] }));
+  });
 
+  it("retains a save that fails after leaving the Page and retries all filters on the next visit", async () => {
+    const failedWrite = Promise.withResolvers<void>();
+    writeControls.write = vi.fn().mockReturnValueOnce(failedWrite.promise).mockResolvedValueOnce(undefined);
+    const deck = createRemoteDeck({ id: "failed-navigation-deck", difficultyMax: 8 });
+    const view = render(<DeckFilterHarness deck={deck} />);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "6");
+    view.unmount();
+    await actAsync(async () => failedWrite.reject(new Error("failed")));
+
+    render(<DeckFilterHarness deck={deck} />);
     expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("6");
-    expect(save).toBeEnabled();
-
-    await userEvent.click(save);
-    expect(writeControls.calls).toHaveLength(2);
-    expect(writeControls.calls[1]?.[1]).toMatchObject({ difficultyMax: 6 });
+    await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
+    expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ difficultyMax: 6, selectedTags: ["tag2"] });
   });
 
   it("keeps the opening snapshot when the same Deck subscription changes", () => {

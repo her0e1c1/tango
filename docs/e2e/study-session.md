@@ -193,11 +193,11 @@ Given:
 When:
 
 - 学習開始画面で追加の tag を展開し、対象 tag を選択する。
-- `Save filters` を選択する。
 - filter の保存完了後に画面を reload し、学習 session を開始する。
 
 Then:
 
+- tag の変更が自動保存され、保存ボタンは表示されない。
 - reload 後も対象 tag が表示され、選択状態を維持する。
 - 対象 Deck の保存済み tag filter に対象 tag だけが含まれる。
 - session には対象 tag を持つ Card だけが含まれる。

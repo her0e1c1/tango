@@ -109,8 +109,6 @@ describe("SWIPE-06 SWIPE-07 SWIPE-26 StudySessionStartPage", () => {
 
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
     expect(screen.getByText("1 card matches your filters.")).toBeVisible();
-    expect(mocks.editDeck).not.toHaveBeenCalled();
-    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deckId,
       difficultyMax: null,
@@ -128,8 +126,6 @@ describe("SWIPE-06 SWIPE-07 SWIPE-26 StudySessionStartPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Show 4 more tags" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "tag-12" }));
 
-    expect(mocks.editDeck).not.toHaveBeenCalled();
-    await userEvent.click(screen.getByRole("button", { name: "Save filters" }));
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deckId,
       difficultyMax: null,

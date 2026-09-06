@@ -187,6 +187,9 @@ test("CARD-20 retries a partially failed bulk difficulty change with the same ab
     .toBe(String(excludedCard.difficulty));
   await page.reload();
 
+  // The auto-saved filter still excludes the updated cards after reload.
+  await page.getByText("Filters", { exact: true }).click();
+  await page.getByRole("button", { name: "Clear limits" }).click();
   await expectDifficulty(page, failedCard.frontText, newDifficulty);
   await expectDifficulty(page, successfulCard.frontText, newDifficulty);
   await expectDifficulty(page, excludedCard.frontText, excludedCard.difficulty);

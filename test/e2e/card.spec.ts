@@ -241,7 +241,7 @@ test("CARD-10 persists difficulty and tag filters and applies both after reload"
   await page.getByText("Filters", { exact: true }).click();
   await page.getByRole("combobox", { name: "Maximum difficulty" }).selectOption("4");
   await clickCheckboxLabel(page, selectedTag);
-  await page.getByRole("button", { name: "Save filters" }).click();
+  await expect(page.getByRole("button", { name: "Save filters" })).toHaveCount(0);
   await expect.poll(async () => (await requireDocument("deck", deck.id)).fields.difficultyMax?.integerValue).toBe("4");
   await expect
     .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values?.length)
@@ -413,6 +413,9 @@ test("CARD-19 changes the difficulty of only the Cards visible in the filter dra
     .toBe(String(excludedCard.difficulty));
   await page.reload();
 
+  // The auto-saved filter still excludes the updated cards after reload.
+  await page.getByText("Filters", { exact: true }).click();
+  await page.getByRole("button", { name: "Clear limits" }).click();
   await Promise.all(matchingCards.map((card) => expectDifficulty(page, card.frontText, newDifficulty)));
   await expectDifficulty(page, excludedCard.frontText, excludedCard.difficulty);
 });
