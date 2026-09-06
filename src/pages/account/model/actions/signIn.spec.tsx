@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { signInWithGoogle } from "../../api/signInWithGoogle";
 import { signIn } from "./signIn";
 
 const mocks = vi.hoisted(() => ({
