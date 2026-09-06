@@ -10,17 +10,16 @@ import { AccountView } from "./AccountView";
 
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
-  const { authSession, pageState, signIn, signOut } = useAccountPageModel();
-  const session = authSession.status === "authenticated" ? authSession : undefined;
+  const { auth, pageState, signIn, signOut } = useAccountPageModel();
 
   useKey("t", () => void navigate(routes.deckList.to()));
 
   return (
     <AppLayout showHeader>
       <AccountView
-        isLoggedIn={session != null && !session.isAnonymous}
-        displayName={session?.displayName ?? null}
-        uid={session?.uid ?? ""}
+        isLoggedIn={!auth.isAnonymous}
+        displayName={auth.displayName}
+        uid={auth.uid}
         signInPending={pageState.signIn.pending}
         signOutPending={pageState.signOut.pending}
         onSignIn={signIn}
