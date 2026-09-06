@@ -11,7 +11,7 @@ import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 
 import { useCardFormState } from "../model/useCardFormState";
-import { saveCard } from "../model/actions/saveCard";
+import { runCardSave } from "../model/actions/runCardSave";
 import { CardEditor } from "./CardEditor";
 
 const writeControls = vi.hoisted(() => ({
@@ -19,7 +19,9 @@ const writeControls = vi.hoisted(() => ({
   nextError: undefined as unknown,
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({
+  getAuthSession: () => ({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: false }),
+}));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
@@ -57,8 +59,7 @@ const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; o
       onCancel={props.onCancel}
       onSubmit={(event) => {
         void editor.form.handleSubmit((values) =>
-          saveCard(values, {
-            uid: "user-id",
+          runCardSave(values, {
             snapshot: editor.snapshot,
             savingRef: editor.savingRef,
             setIsSaving: editor.setIsSaving,

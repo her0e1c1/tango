@@ -21,7 +21,9 @@ const mocks = vi.hoisted(() => ({
   remoteCard: undefined as Card | undefined,
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({
+  getAuthSession: () => ({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: false }),
+}));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
