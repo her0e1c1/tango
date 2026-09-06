@@ -1,12 +1,11 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { showToast } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
 import { runAccountAction } from "./runAccountAction";
-import { createAccountPageStore } from "../store";
+import { useAccountPageState } from "../useAccountPageState";
 
 const mocks = vi.hoisted(() => ({
   action: vi.fn<() => Promise<unknown>>(),
@@ -37,18 +36,17 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
   it("keeps operation pending when requested again before completion", async () => {
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
-    const store = createAccountPageStore();
-    const { result } = renderHook(useMountedGuard);
+    const { result } = renderHook(useAccountPageState);
 
     let operation!: Promise<void>;
     let duplicateOperation!: Promise<void>;
     act(() => {
-      operation = runAccountAction(mocks.action, store, result.current, {
+      operation = runAccountAction(mocks.action, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
       });
-      duplicateOperation = runAccountAction(mocks.action, store, result.current, {
+      duplicateOperation = runAccountAction(mocks.action, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
@@ -59,14 +57,14 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
       await duplicateOperation;
     });
 
-    expect(store.getState().signIn.pending).toBe(true);
+    expect(result.current.signIn.pending).toBe(true);
 
     await actAsync(async () => {
       request.resolve();
       await operation;
     });
 
-    expect(store.getState().signIn.pending).toBe(false);
+    expect(result.current.signIn.pending).toBe(false);
     expect(showToast).toHaveBeenCalledExactlyOnceWith({ message: "Signed in.", tone: "success" });
   });
 
@@ -74,12 +72,11 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     const failure = new Error("Action failed");
     const retry = deferred<void>();
     mocks.action.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
-    const store = createAccountPageStore();
-    const { result } = renderHook(useMountedGuard);
+    const { result } = renderHook(useAccountPageState);
 
     await actAsync(async () => {
       await expect(
-        runAccountAction(mocks.action, store, result.current, {
+        runAccountAction(mocks.action, {
           operation: "signIn",
           success: "Signed in.",
           failure: "Unable to sign in.",
@@ -90,33 +87,32 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
 
     let retryOperation!: Promise<void>;
     act(() => {
-      retryOperation = runAccountAction(mocks.action, store, result.current, {
+      retryOperation = runAccountAction(mocks.action, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
       });
     });
 
-    expect(store.getState().signIn.pending).toBe(true);
+    expect(result.current.signIn.pending).toBe(true);
 
     await actAsync(async () => {
       retry.resolve();
       await retryOperation;
     });
 
-    expect(store.getState().signIn.pending).toBe(false);
+    expect(result.current.signIn.pending).toBe(false);
     expect(showToast).toHaveBeenLastCalledWith({ message: "Signed in.", tone: "success" });
   });
 
   it("does not show a failure Toast when action rejects after unmount", async () => {
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
-    const store = createAccountPageStore();
-    const { result, unmount } = renderHook(useMountedGuard);
+    const { unmount } = renderHook(useAccountPageState);
     let operation!: Promise<void>;
 
     act(() => {
-      operation = runAccountAction(mocks.action, store, result.current, {
+      operation = runAccountAction(mocks.action, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
@@ -129,5 +125,45 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     });
 
     expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it.each(["success", "failure"])("keeps a new visit pending after an old %s", async (outcome) => {
+    const oldRequest = deferred<void>();
+    const newRequest = deferred<void>();
+    mocks.action.mockReturnValueOnce(oldRequest.promise).mockReturnValueOnce(newRequest.promise);
+    const { unmount } = renderHook(useAccountPageState);
+    const options = { operation: "signIn", success: "Signed in.", failure: "Unable to sign in." } as const;
+    let oldOperation!: Promise<void>;
+    act(() => {
+      oldOperation = runAccountAction(mocks.action, options);
+    });
+    unmount();
+    const pendingSnapshots: boolean[] = [];
+    const { result } = renderHook(() => {
+      const state = useAccountPageState();
+      pendingSnapshots.push(state.signIn.pending);
+      return state;
+    });
+    // Capture the initial render too, before effects can hide a stale loading state.
+    expect(pendingSnapshots).not.toContain(true);
+    expect(result.current.signIn.pending).toBe(false);
+    let newOperation!: Promise<void>;
+    act(() => {
+      newOperation = runAccountAction(mocks.action, options);
+    });
+
+    await actAsync(async () => {
+      if (outcome === "success") oldRequest.resolve();
+      else oldRequest.reject(new Error("Late failure"));
+      await oldOperation;
+    });
+
+    expect(result.current.signIn.pending).toBe(true);
+    expect(showToast).toHaveBeenCalledTimes(outcome === "success" ? 1 : 0);
+    await actAsync(async () => {
+      newRequest.resolve();
+      await newOperation;
+    });
+    expect(result.current.signIn.pending).toBe(false);
   });
 });

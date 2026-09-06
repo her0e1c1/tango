@@ -1,6 +1,7 @@
 import { showToast } from "@/shared/ui/toast";
 
-import type { AccountPageState, AccountPageStore } from "../types";
+import { accountPageStore as store } from "../store";
+import type { AccountPageState } from "../types";
 
 interface AccountActionOptions {
   operation: keyof AccountPageState;
@@ -10,10 +11,9 @@ interface AccountActionOptions {
 
 export async function runAccountAction(
   action: () => Promise<unknown>,
-  store: AccountPageStore,
-  isMounted: () => boolean,
   { operation, success, failure }: AccountActionOptions
 ): Promise<void> {
+  const { mount } = store.getState();
   // Acquire the synchronous store state before awaiting so duplicate actions cannot outrun React rendering.
   if (store.getState()[operation].pending) return;
   // Change only this operation so an auth transition can expose the opposite action without sharing its lock.
@@ -24,10 +24,13 @@ export async function runAccountAction(
     showToast({ message: success, tone: "success" });
   } catch {
     // This workflow handles failures, but late errors must not notify a Page the user has already left.
-    if (isMounted()) {
+    if (mount !== null && store.getState().mount === mount) {
       showToast({ message: failure, tone: "error" });
     }
   } finally {
-    store.setState({ [operation]: { pending: false } });
+    // A previous visit must not release the lock of an action started after remount.
+    if (store.getState().mount === mount) {
+      store.setState({ [operation]: { pending: false } });
+    }
   }
 }
