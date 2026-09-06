@@ -1,18 +1,14 @@
 import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
-  entry: ["src/app/main.tsx!"],
+  // These files are loaded externally; plugins discover the application, test, and other tooling entry points.
+  entry: ["steiger.config.ts", "test/e2e/e2e-contract-reporter.ts"],
   project: [
-    "src/**/*.{ts,tsx}!",
-    "!src/**/*.{spec,test}.{ts,tsx}!",
-    "!src/**/*.stories.{ts,tsx}!",
-    // These entry points are consumed only by Storybook, which is intentionally outside the production graph.
-    "!src/entities/*/testing.ts!",
-    // This fixture reset is reachable only through the excluded Preferences testing entry point.
-    "!src/entities/preference/model/actions/replacePreferences.ts!",
+    "src/**/*.{ts,tsx,css,scss,sass,mdx}!",
+    "test/**/*.{ts,tsx}",
+    ".storybook/**/*.{ts,tsx}",
+    "*.{ts,js}",
   ],
-  ignoreDependencies: ["@feature-sliced/steiger-plugin", "tailwindcss"],
-  includeEntryExports: true,
 };
 
 export default config;

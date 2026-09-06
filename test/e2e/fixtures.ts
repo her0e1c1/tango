@@ -23,16 +23,6 @@ import {
   requireE2ECaseId,
 } from "./yaml-fixture";
 
-export type {
-  FixtureCard,
-  FixtureCategory,
-  FixtureDeck,
-  FixturePreferences,
-  FixtureState,
-  FixtureStudySession,
-  FixtureUser,
-} from "./yaml-fixture";
-
 const projectId = "tango-e2e";
 const firestorePort = process.env.VITE_DB_PORT ?? "8080";
 const firestoreBase = `http://db:${firestorePort}/v1/projects/${projectId}/databases/(default)/documents`;
@@ -235,7 +225,7 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
 
 export type E2EConfig = FixturePreferences;
 
-export const e2eConfig: E2EConfig = {
+const e2eConfig: E2EConfig = {
   language: "en",
   loadSample: false,
   appearance: {
@@ -274,7 +264,7 @@ export type E2EConfigOverrides = Partial<Omit<E2EConfig, "appearance" | "study" 
   controls?: Partial<E2EConfig["controls"]>;
 };
 
-export const createE2EConfig = (overrides: E2EConfigOverrides = {}): E2EConfig => ({
+const createE2EConfig = (overrides: E2EConfigOverrides = {}): E2EConfig => ({
   ...e2eConfig,
   ...overrides,
   appearance: { ...e2eConfig.appearance, ...overrides.appearance },
@@ -301,13 +291,13 @@ export interface StudySessionFixture {
   lastStudiedAt: number;
 }
 
-export interface LocalDataFixture {
+interface LocalDataFixture {
   decks?: Record<string, unknown>[];
   cards?: Record<string, unknown>[];
   sessionsByDeckId?: Record<string, StudySessionFixture>;
 }
 
-export const seedLocalData = async (page: Page, fixture: LocalDataFixture) => {
+const seedLocalData = async (page: Page, fixture: LocalDataFixture) => {
   await page.addInitScript((value) => {
     // Keep the fixture stable for initial hydration without resurrecting data after navigation or reload.
     if (!window.location.origin.startsWith("http")) return;
@@ -328,7 +318,7 @@ export const seedLocalData = async (page: Page, fixture: LocalDataFixture) => {
   }, fixture);
 };
 
-export const seedStudySessions = async (
+const seedStudySessions = async (
   page: Page,
   sessionsByDeckId: Record<string, StudySessionFixture>,
   deckNames: readonly string[] = []
@@ -352,12 +342,12 @@ export const readLocalData = async (page: Page) =>
     sessionsByDeckId: JSON.parse(window.localStorage.getItem("tango-study") ?? "{}").state?.sessionsByDeckId ?? {},
   }));
 
-export interface FixtureAuthSeedOptions extends AnonymousAuthOptions {
+interface FixtureAuthSeedOptions extends AnonymousAuthOptions {
   /** Logical UID of the anonymous user created after a linked user signs out. */
   nextUser?: string;
 }
 
-export interface FixturePageSeedOptions {
+interface FixturePageSeedOptions {
   /** Logical UID from the YAML fixture. The first documented user is used by default. */
   user?: string;
   /** Set to false only when a test intentionally uses the real Auth emulator. */
@@ -368,7 +358,7 @@ export interface FixturePageSeedOptions {
   studySessions?: boolean;
 }
 
-export interface FixtureApplyOptions extends FixturePageSeedOptions {
+interface FixtureApplyOptions extends FixturePageSeedOptions {
   remote?: boolean;
 }
 
@@ -550,7 +540,7 @@ export interface FirestoreDocument {
   >;
 }
 
-export const setDocument = async (collection: FirestoreCollection, id: string, document: Record<string, unknown>) => {
+const setDocument = async (collection: FirestoreCollection, id: string, document: Record<string, unknown>) => {
   const fields = Object.fromEntries(
     Object.entries(document).flatMap(([key, value]) => (value === undefined ? [] : [[key, firestoreValue(value)]]))
   );
