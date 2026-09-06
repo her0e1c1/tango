@@ -43,6 +43,12 @@ export const resources = {
           notAvailable: "Not available",
           userId: "User ID",
         },
+        toast: {
+          signInSuccess: "Signed in.",
+          signInFailure: "Unable to sign in.",
+          signOutSuccess: "Signed out.",
+          signOutFailure: "Unable to sign out.",
+        },
       },
       header: {
         switchToLightMode: "Switch to light mode",
@@ -635,6 +641,12 @@ export const resources = {
           noName: "名前がありません",
           notAvailable: "利用できません",
           userId: "ユーザーID",
+        },
+        toast: {
+          signInSuccess: "ログインしました。",
+          signInFailure: "ログインできません。",
+          signOutSuccess: "ログアウトしました。",
+          signOutFailure: "ログアウトできません。",
         },
       },
       header: {

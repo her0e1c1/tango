@@ -1,11 +1,5 @@
-import type { AccountPageStore } from "../types";
 import { signOutCurrentUser } from "../../api/signOutCurrentUser";
-import { runAccountAction } from "./runAccountAction";
 
-export function signOut(store: AccountPageStore, isMounted: () => boolean): Promise<void> {
-  return runAccountAction(signOutCurrentUser, store, isMounted, {
-    operation: "signOut",
-    success: "Signed out.",
-    failure: "Unable to sign out.",
-  });
+export function signOut(): Promise<unknown> {
+  return signOutCurrentUser();
 }

@@ -40,6 +40,7 @@ const renderPage = () => {
 
 describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
   beforeEach(() => {
+    void getI18n().changeLanguage("en");
     dismissToast();
     vi.mocked(linkWithPopup).mockReset();
     vi.mocked(linkWithPopup).mockResolvedValue({ user: {} } as never);
@@ -223,5 +224,13 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
     });
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("shows localized Japanese toast messages when active language is set to ja", async () => {
+    await getI18n().changeLanguage("ja");
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Googleでログイン" }));
+    expect(screen.getByRole("status", { name: "トースト通知" })).toHaveTextContent("ログインしました。");
   });
 });
