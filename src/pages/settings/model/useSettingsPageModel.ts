@@ -1,10 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
-import { type Preferences, studyPreferencesLimits, usePreferences } from "@/entities/preference";
-
-import { savePreferencesForm } from "./actions/savePreferencesForm";
-import { syncPreferencesDarkMode } from "./actions/syncPreferencesDarkMode";
+import { type Preferences, studyPreferencesLimits, updatePreferences, usePreferences } from "@/entities/preference";
 
 export const useSettingsPageModel = () => {
   const preferences = usePreferences();
@@ -13,14 +10,15 @@ export const useSettingsPageModel = () => {
   const { setValue, subscribe, handleSubmit } = form;
   const darkMode = preferences.appearance.darkMode;
   useEffect(() => {
-    syncPreferencesDarkMode(setValue, darkMode);
+    // The header can change the theme while Settings is open; preserve the other form values.
+    setValue("appearance.darkMode", darkMode);
   }, [setValue, darkMode]);
 
   useEffect(
     () =>
       subscribe({
         formState: { values: true },
-        callback: () => void savePreferencesForm(handleSubmit),
+        callback: () => void handleSubmit(updatePreferences)(),
       }),
     [subscribe, handleSubmit]
   );
