@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 
 import { useAuth } from "@/entities/auth";
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
 import { runAccountAction } from "./actions/runAccountAction";
 import { signIn as signInAction } from "./actions/signIn";
@@ -14,28 +13,27 @@ const useAccountPageState = () => {
   // Scope pending work to this Page mount so late completions cannot update a newly mounted Page.
   const [store] = useState(createAccountPageStore);
   const pageState = useStore(store);
-  const isMounted = useMountedGuard();
-  return { pageState, store, isMounted };
+  return { pageState, store };
 };
 
 export const useAccountPageModel = () => {
   const { t } = useTranslation();
   const auth = useAuth();
-  const { pageState, store, isMounted } = useAccountPageState();
+  const { pageState, store } = useAccountPageState();
 
   return {
     auth,
     pageState,
 
     signIn: () =>
-      void runAccountAction(signInAction, store, isMounted, {
+      void runAccountAction(signInAction, store, {
         operation: "signIn",
         success: t("account.toast.signInSuccess"),
         failure: t("account.toast.signInFailure"),
       }),
 
     signOut: () =>
-      void runAccountAction(signOutAction, store, isMounted, {
+      void runAccountAction(signOutAction, store, {
         operation: "signOut",
         success: t("account.toast.signOutSuccess"),
         failure: t("account.toast.signOutFailure"),

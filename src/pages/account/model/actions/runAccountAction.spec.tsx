@@ -1,7 +1,6 @@
-import { act, renderHook } from "@testing-library/react";
+import { act } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { showToast } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
@@ -38,17 +37,16 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
     const store = createAccountPageStore();
-    const { result } = renderHook(useMountedGuard);
 
     let operation!: Promise<void>;
     let duplicateOperation!: Promise<void>;
     act(() => {
-      operation = runAccountAction(mocks.action, store, result.current, {
+      operation = runAccountAction(mocks.action, store, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
       });
-      duplicateOperation = runAccountAction(mocks.action, store, result.current, {
+      duplicateOperation = runAccountAction(mocks.action, store, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
@@ -75,11 +73,10 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     const retry = deferred<void>();
     mocks.action.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
     const store = createAccountPageStore();
-    const { result } = renderHook(useMountedGuard);
 
     await actAsync(async () => {
       await expect(
-        runAccountAction(mocks.action, store, result.current, {
+        runAccountAction(mocks.action, store, {
           operation: "signIn",
           success: "Signed in.",
           failure: "Unable to sign in.",
@@ -90,7 +87,7 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
 
     let retryOperation!: Promise<void>;
     act(() => {
-      retryOperation = runAccountAction(mocks.action, store, result.current, {
+      retryOperation = runAccountAction(mocks.action, store, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
@@ -108,26 +105,25 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     expect(showToast).toHaveBeenLastCalledWith({ message: "Signed in.", tone: "success" });
   });
 
-  it("does not show a failure Toast when action rejects after unmount", async () => {
+  it("publishes a failure Toast when action rejects after unmount", async () => {
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
     const store = createAccountPageStore();
-    const { result, unmount } = renderHook(useMountedGuard);
     let operation!: Promise<void>;
 
     act(() => {
-      operation = runAccountAction(mocks.action, store, result.current, {
+      operation = runAccountAction(mocks.action, store, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
       });
     });
-    unmount();
     await actAsync(async () => {
       request.reject(new Error("Late failure"));
       await expect(operation).resolves.toBeUndefined();
     });
 
-    expect(showToast).not.toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith({ message: "Unable to sign in.", tone: "error" });
+    expect(store.getState().signIn.pending).toBe(false);
   });
 });

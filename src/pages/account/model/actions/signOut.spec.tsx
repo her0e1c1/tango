@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { signOutCurrentUser } from "../../api/signOutCurrentUser";
 import { signOut } from "./signOut";
 
 const mocks = vi.hoisted(() => ({

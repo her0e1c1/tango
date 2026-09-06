@@ -209,7 +209,7 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Unable to sign in.");
   });
 
-  it("does not show a sign-in failure that arrives after leaving the Account page", async () => {
+  it("shows a sign-in failure that arrives after leaving the Account page", async () => {
     const request = Promise.withResolvers<never>();
     vi.mocked(linkWithPopup).mockReturnValue(request.promise);
     renderPage();
@@ -223,7 +223,30 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
       await request.promise.catch(() => undefined);
     });
 
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to sign in.");
+  });
+
+  it("shows a sign-out failure that arrives after leaving the Account page", async () => {
+    replaceAuthSession({
+      displayName: "Test User",
+      isAnonymous: false,
+      status: "authenticated",
+      uid: "linked-user",
+    });
+    const request = Promise.withResolvers<void>();
+    vi.mocked(signOut).mockReturnValue(request.promise);
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    fireEvent.keyDown(window, { key: "t" });
+    expect(await screen.findByText("Home Page")).toBeVisible();
+
+    await actAsync(async () => {
+      request.reject(new Error("Late sign-out failure"));
+      await request.promise.catch(() => undefined);
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to sign out.");
   });
 
   it("shows localized Japanese toast messages when active language is set to ja", async () => {
