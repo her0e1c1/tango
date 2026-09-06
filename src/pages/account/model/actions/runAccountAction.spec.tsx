@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { showToast } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
+import { accountPageStore as store } from "../store";
 import { runAccountAction } from "./runAccountAction";
-import { createAccountPageStore } from "../store";
 
 const mocks = vi.hoisted(() => ({
   action: vi.fn<() => Promise<unknown>>(),
@@ -27,6 +27,7 @@ const deferred = <T,>() => {
 
 describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
   beforeEach(() => {
+    store.setState(store.getInitialState(), true);
     mocks.action.mockReset();
     mocks.action.mockResolvedValue(undefined);
     vi.mocked(showToast).mockReset();
@@ -36,17 +37,16 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
   it("keeps operation pending when requested again before completion", async () => {
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
-    const store = createAccountPageStore();
 
     let operation!: Promise<void>;
     let duplicateOperation!: Promise<void>;
     act(() => {
-      operation = runAccountAction(mocks.action, store, {
+      operation = runAccountAction(mocks.action, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
       });
-      duplicateOperation = runAccountAction(mocks.action, store, {
+      duplicateOperation = runAccountAction(mocks.action, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
@@ -72,11 +72,10 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
     const failure = new Error("Action failed");
     const retry = deferred<void>();
     mocks.action.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
-    const store = createAccountPageStore();
 
     await actAsync(async () => {
       await expect(
-        runAccountAction(mocks.action, store, {
+        runAccountAction(mocks.action, {
           operation: "signIn",
           success: "Signed in.",
           failure: "Unable to sign in.",
@@ -87,7 +86,7 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
 
     let retryOperation!: Promise<void>;
     act(() => {
-      retryOperation = runAccountAction(mocks.action, store, {
+      retryOperation = runAccountAction(mocks.action, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
@@ -108,11 +107,10 @@ describe("ACCOUNT-02 ACCOUNT-03 runAccountAction", () => {
   it("publishes a failure Toast when action rejects after unmount", async () => {
     const request = deferred<void>();
     mocks.action.mockReturnValue(request.promise);
-    const store = createAccountPageStore();
     let operation!: Promise<void>;
 
     act(() => {
-      operation = runAccountAction(mocks.action, store, {
+      operation = runAccountAction(mocks.action, {
         operation: "signIn",
         success: "Signed in.",
         failure: "Unable to sign in.",
