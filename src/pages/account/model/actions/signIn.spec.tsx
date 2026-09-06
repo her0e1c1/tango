@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { showToast } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 
@@ -13,7 +14,7 @@ vi.mock("./loginGoogle", () => ({ loginGoogle: mocks.loginGoogle }));
 vi.mock("@/shared/ui/toast", () => ({ showToast: mocks.showToast }));
 
 import { signIn } from "./signIn";
-import { useAccountPageState } from "../useAccountPageState";
+import { createAccountPageStore } from "../store";
 
 const deferred = <T,>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -37,27 +38,28 @@ describe("ACCOUNT-02 signIn", () => {
   it("keeps sign-in pending when requested again before completion", async () => {
     const request = deferred<void>();
     mocks.loginGoogle.mockReturnValue(request.promise);
-    const { result } = renderHook(() => useAccountPageState());
+    const store = createAccountPageStore();
+    const { result } = renderHook(useMountedGuard);
 
     let operation!: Promise<void>;
     let duplicateOperation!: Promise<void>;
     act(() => {
-      operation = signIn(result.current.store, result.current.isMounted);
-      duplicateOperation = signIn(result.current.store, result.current.isMounted);
+      operation = signIn(store, result.current);
+      duplicateOperation = signIn(store, result.current);
     });
 
     await actAsync(async () => {
       await duplicateOperation;
     });
 
-    expect(result.current.pageState.signIn.pending).toBe(true);
+    expect(store.getState().signIn.pending).toBe(true);
 
     await actAsync(async () => {
       request.resolve();
       await operation;
     });
 
-    expect(result.current.pageState.signIn.pending).toBe(false);
+    expect(store.getState().signIn.pending).toBe(false);
     expect(showToast).toHaveBeenCalledExactlyOnceWith({ message: "Signed in.", tone: "success" });
   });
 
@@ -65,37 +67,39 @@ describe("ACCOUNT-02 signIn", () => {
     const failure = new Error("Sign-in failed");
     const retry = deferred<void>();
     mocks.loginGoogle.mockRejectedValueOnce(failure).mockReturnValueOnce(retry.promise);
-    const { result } = renderHook(() => useAccountPageState());
+    const store = createAccountPageStore();
+    const { result } = renderHook(useMountedGuard);
 
     await actAsync(async () => {
-      await expect(signIn(result.current.store, result.current.isMounted)).resolves.toBeUndefined();
+      await expect(signIn(store, result.current)).resolves.toBeUndefined();
     });
     expect(showToast).toHaveBeenCalledWith({ message: "Unable to sign in.", tone: "error" });
 
     let retryOperation!: Promise<void>;
     act(() => {
-      retryOperation = signIn(result.current.store, result.current.isMounted);
+      retryOperation = signIn(store, result.current);
     });
 
-    expect(result.current.pageState.signIn.pending).toBe(true);
+    expect(store.getState().signIn.pending).toBe(true);
 
     await actAsync(async () => {
       retry.resolve();
       await retryOperation;
     });
 
-    expect(result.current.pageState.signIn.pending).toBe(false);
+    expect(store.getState().signIn.pending).toBe(false);
     expect(showToast).toHaveBeenLastCalledWith({ message: "Signed in.", tone: "success" });
   });
 
   it("does not show a failure Toast when sign-in rejects after unmount", async () => {
     const request = deferred<void>();
     mocks.loginGoogle.mockReturnValue(request.promise);
-    const { result, unmount } = renderHook(() => useAccountPageState());
+    const store = createAccountPageStore();
+    const { result, unmount } = renderHook(useMountedGuard);
     let operation!: Promise<void>;
 
     act(() => {
-      operation = signIn(result.current.store, result.current.isMounted);
+      operation = signIn(store, result.current);
     });
     unmount();
     await actAsync(async () => {
