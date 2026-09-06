@@ -1,11 +1,7 @@
-/** Linked Firebase account details exposed to authenticated consumers. */
-export interface AuthAccount {
+/** Authenticated Firebase session details shared by anonymous and linked users. */
+interface AuthenticatedSession {
   uid: string;
   displayName: string | null;
-}
-
-/** Authenticated Firebase session details shared by anonymous and linked users. */
-interface AuthenticatedSession extends AuthAccount {
   isAnonymous: boolean;
 }
 
