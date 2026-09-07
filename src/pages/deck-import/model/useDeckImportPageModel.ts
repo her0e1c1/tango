@@ -1,6 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useStore } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 
 import { usePreferences } from "@/entities/preference";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
@@ -10,21 +8,10 @@ import { addSampleImport as addSampleImportAction } from "./actions/addSampleImp
 import { changeDeckImportStorageMode } from "./actions/changeDeckImportStorageMode";
 import { importDeckPreview as importDeckPreviewAction } from "./actions/importDeckPreview";
 import { selectDeckImportFile } from "./actions/selectDeckImportFile";
-import { deckImportStore, type DeckImportState } from "./store";
-
-function selectDeckImportView(state: DeckImportState) {
-  return {
-    storageMode: state.storageMode,
-    preview: state.source.kind === "selected" ? state.source.preview : undefined,
-    previewError: state.source.kind === "error" ? state.source.error : undefined,
-    validating: state.status === "validating",
-    pending: state.status === "importing",
-    addingSample: state.status === "adding-sample",
-  };
-}
+import { useDeckImportState } from "./queries/useDeckImportState";
 
 export function useDeckImportPageModel() {
-  const view = useStore(deckImportStore, useShallow(selectDeckImportView));
+  const view = useDeckImportState();
   const preferences = usePreferences();
   const navigate = useNavigate();
   const isMounted = useMountedGuard();
