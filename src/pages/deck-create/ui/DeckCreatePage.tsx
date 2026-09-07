@@ -8,12 +8,12 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { useDeckCreateFormState } from "../model/useDeckCreateFormState";
 import { submitDeckCreation } from "../model/actions/submitDeckCreation";
-import { useAuthUid } from "@/entities/auth";
+import { getAuthUid } from "@/entities/auth";
 import { dismissSaveError } from "../model/actions/dismissSaveError";
 
 export const DeckCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const uid = useAuthUid();
+  const uid = getAuthUid();
   const state = useDeckCreateFormState();
   const onSubmit = (event?: React.BaseSyntheticEvent) =>
     submitDeckCreation(event, {
