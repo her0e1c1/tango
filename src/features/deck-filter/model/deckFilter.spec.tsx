@@ -1,4 +1,4 @@
-import { useAuthUid } from "@/entities/auth";
+import { getAuthUid } from "@/entities/auth";
 import type React from "react";
 
 import { render, screen, waitFor } from "@testing-library/react";
@@ -25,7 +25,7 @@ const writeControls = vi.hoisted(() => ({
   write: undefined as ((...args: Parameters<EditDeck>) => Promise<void>) | undefined,
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ getAuthUid: () => "user-id" }));
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
@@ -39,7 +39,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 
 const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[] }> = ({ deck, tags = ["tag1", "tag2"] }) => {
-  const uid = useAuthUid();
+  const uid = getAuthUid();
   const filterDraft = useDeckFilterDraft(uid, deck);
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
   const filterUpdate = {

@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   remoteDeck: undefined as Deck | undefined,
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ getAuthUid: () => "user-id" }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,

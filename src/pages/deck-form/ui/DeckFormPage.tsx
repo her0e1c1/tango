@@ -19,7 +19,7 @@ import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useDeckFormState } from "../model/useDeckFormState";
 import { saveDeck } from "../model/actions/saveDeck";
-import { useAuthUid } from "@/entities/auth";
+import { getAuthUid } from "@/entities/auth";
 import { useCards } from "@/entities/card";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { dismissSaveError } from "../model/actions/dismissSaveError";
@@ -29,12 +29,11 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
   const navigate = useNavigate();
   const deckListPath = routes.deckList.to();
   const goToList = () => navigate(deckListPath, { replace: true });
-  const uid = useAuthUid();
   const editor = useDeckFormState(deck);
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     void editor.form.handleSubmit((values) =>
       saveDeck(values, {
-        uid,
+        uid: getAuthUid(),
         snapshot: editor.snapshot,
         savingRef: editor.savingRef,
         setIsSaving: editor.setIsSaving,
@@ -66,7 +65,7 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
           onCancel={() => cancelDeckDeletion({ pending: deletion.pending, setTarget: deletion.setTarget })}
           onConfirm={() =>
             confirmDeckDeletion({
-              uid,
+              uid: getAuthUid(),
               target: deletion.target,
               pending: deletion.pending,
               setTarget: deletion.setTarget,

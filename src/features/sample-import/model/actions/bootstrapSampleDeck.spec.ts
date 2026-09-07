@@ -13,7 +13,7 @@ const repository = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => repository.uid }));
+vi.mock("@/entities/auth", () => ({ getAuthUid: () => repository.uid }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {

@@ -10,7 +10,7 @@ import { createLocalDeck } from "@/test/factories";
 
 const writes = vi.hoisted(() => ({ rejected: false }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ getAuthUid: () => "user-id" }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/card")>();

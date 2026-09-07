@@ -1,7 +1,10 @@
-import { authSessionStore } from "../store";
+import { getAuthSession } from "./getAuthSession";
 
-// Pre-authentication callers use a stable sentinel that remote command schemas reject as an unauthenticated uid.
+// Read the current identity when an action runs, not a snapshot captured during render.
+// Do not define a UID-specific `use` hook: reactive consumers already have `useAuth` / `useAuthSession`.
+// This getter does not subscribe; render values and effect dependencies must keep using those hooks.
+// Before authentication, the empty sentinel is rejected by remote command schemas.
 export function getAuthUid(): string {
-  const session = authSessionStore.getState();
+  const session = getAuthSession();
   return session.status === "authenticated" ? session.uid : "";
 }

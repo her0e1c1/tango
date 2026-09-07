@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useAuthUid } from "@/entities/auth";
+import { useAuthSession } from "@/entities/auth";
 import { clearRemoteCards, subscribeCards } from "@/entities/card";
 import { clearRemoteDecks, subscribeDecks } from "@/entities/deck";
 
@@ -10,7 +10,8 @@ const reportSubscriptionError = (error: Error): void => {
 };
 
 export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const uid = useAuthUid();
+  const session = useAuthSession();
+  const uid = session.status === "authenticated" ? session.uid : "";
 
   React.useEffect(() => {
     if (uid === "") {
