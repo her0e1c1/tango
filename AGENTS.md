@@ -49,6 +49,12 @@ For every task that changes repository files:
 - Keep Entity stores limited to state, initialization, and persistence middleware. Preserve the roles of pure schemas, rules, and defaults, and keep persistence implementations in `api/`.
 - Export reusable operations through the slice public API. Within a slice, import individual modules directly and do not add internal barrel files.
 
+### Form values
+
+- Form values and form schemas must contain only fields the user can edit or select in that form. Default values, existing saved values, and programmatic updates to those fields are allowed.
+- Keep non-editable context and system-managed data, such as authenticated user IDs, fixed route parameters, generated IDs, and system timestamps, outside form values.
+- Combine validated form values with the required context and metadata in submit actions instead of adding them to the form.
+
 ## Coding Style
 
 - Prefer clear names and small functions; use comments to preserve intent that the code cannot express on its own.
