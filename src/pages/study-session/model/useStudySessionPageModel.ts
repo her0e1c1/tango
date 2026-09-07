@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useAuthUid } from "@/entities/auth";
+import { getAuthUid } from "@/entities/auth";
 import type { DeckId } from "@/entities/deck";
 import { closeHelp } from "./actions/closeHelp";
 import { enterStudySessionPage } from "./actions/enterStudySessionPage";
@@ -14,7 +14,7 @@ import { useStudyQuery } from "./queries/useStudyQuery";
 import { useStudySessionPageState } from "./queries/useStudySessionPageState";
 
 export function useStudySessionPageModel(deckId: DeckId) {
-  const uid = useAuthUid();
+  const uid = getAuthUid();
   const query = useStudyQuery(deckId);
   const pageState = useStudySessionPageState(uid, deckId);
   useEffect(() => enterStudySessionPage(uid, deckId), [uid, deckId]);
