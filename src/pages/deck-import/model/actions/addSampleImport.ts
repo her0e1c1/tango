@@ -1,12 +1,12 @@
+import { getAuthUid } from "@/entities/auth";
 import { addSampleDeck } from "@/features/sample-import";
 import { showToast } from "@/shared/ui/toast";
-import { getDeckImportUid } from "../queries/getDeckImportUid";
 import { beginSampleImport, completeSampleImport, failSampleImport } from "../store";
 
 export async function addSampleImport(): Promise<boolean> {
   if (!beginSampleImport()) return false;
   try {
-    const result = await addSampleDeck(getDeckImportUid());
+    const result = await addSampleDeck(getAuthUid());
     // Results belong to the App even when the initiating Page has unmounted.
     showToast({
       messageKey: "deckImport.toast.sampleAdded",
