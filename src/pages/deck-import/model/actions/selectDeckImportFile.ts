@@ -1,48 +1,33 @@
-import type { Dispatch, RefObject, SetStateAction } from "react";
 import { generateCardId } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
-import type { ToastId } from "@/shared/ui/toast";
 import { parseCsv } from "../../lib/cardCsv";
-import type { DeckImportPreviewState, DeckImportStatus, DeckImportStorageMode, PreparedDeckImport } from "../types";
-import { dismissImportError } from "./dismissImportError";
+import { getDeckImportUid } from "../queries/getDeckImportUid";
+import { beginFileSelection, cancelFileSelection, completeFileSelection, failFileSelection } from "../store";
 import { prepareDeckImport } from "./prepareDeckImport";
 
-export const selectDeckImportFile = async (
-  file: File,
-  {
-    uid,
-    storageMode,
-    preparedImportRef,
-    setPreviewState,
-    setStatus,
-    errorToastId,
-    isMounted,
-  }: {
-    uid: string;
-    storageMode: DeckImportStorageMode;
-    preparedImportRef: RefObject<PreparedDeckImport | undefined>;
-    setPreviewState: Dispatch<SetStateAction<DeckImportPreviewState>>;
-    setStatus: (status: DeckImportStatus) => void;
-    errorToastId: RefObject<ToastId | undefined>;
-    isMounted: () => boolean;
-  }
-): Promise<void> => {
-  dismissImportError(errorToastId);
-  setStatus("validating");
-  preparedImportRef.current = undefined;
-  setPreviewState({ storageMode, error: null });
+export async function selectDeckImportFile(file: File): Promise<void> {
+  const selection = beginFileSelection(getDeckImportUid());
+  if (selection === undefined) return;
   try {
     const analysis = await parseCsv(await file.text());
-    // File reads can finish after navigation; preview and identities belong to the initiating route.
-    if (!isMounted()) return;
-    preparedImportRef.current = prepareDeckImport(
-      { name: file.name, rows: analysis.rows, storageMode },
-      { uid, generateDeckId, generateCardId }
-    );
-    setPreviewState((current) => ({ ...current, preview: { deckName: file.name, analysis } }));
-  } catch (error) {
-    if (isMounted()) setPreviewState((current) => ({ ...current, error }));
-  } finally {
-    if (isMounted()) setStatus("idle");
+    // A read may outlive the session that selected it; never prepare it for a different account.
+    if (getDeckImportUid() !== selection.uid) {
+      cancelFileSelection();
+      return;
+    }
+    const preparedImport =
+      analysis.invalidCount === 0 && analysis.rows.length > 0
+        ? prepareDeckImport(
+            { name: file.name, rows: analysis.rows, storageMode: selection.storageMode },
+            { uid: selection.uid, generateDeckId, generateCardId }
+          )
+        : undefined;
+    completeFileSelection({ kind: "selected", preview: { deckName: file.name, analysis }, preparedImport });
+  } catch (error: unknown) {
+    if (getDeckImportUid() !== selection.uid) {
+      cancelFileSelection();
+      return;
+    }
+    failFileSelection(error);
   }
-};
+}

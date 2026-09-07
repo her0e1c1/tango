@@ -15,7 +15,7 @@ const controls = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "" }));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "", getAuthSession: () => ({ status: "anonymous" }) }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
@@ -42,6 +42,8 @@ vi.mock("@/entities/preference", async (importOriginal) => {
   };
 });
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+
+import { deckImportStore } from "../model/store";
 
 import { DeckImportPage } from "./DeckImportPage";
 
@@ -86,8 +88,9 @@ const selectLocalFile = async (name: string, backText = "back") => {
   await screen.findByRole("heading", { level: 2, name: "Review import" });
 };
 
-describe("DeckImportPage", () => {
+describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06]", () => {
   beforeEach(() => {
+    deckImportStore.setState(deckImportStore.getInitialState(), true);
     dismissToast();
     controls.nextMutationError = undefined;
     controls.nextMutationWait = undefined;
@@ -180,7 +183,7 @@ describe("DeckImportPage", () => {
     expect(screen.getByRole("button", { name: "Add sample deck" })).not.toHaveAttribute("aria-busy");
   });
 
-  it("dismisses an import failure when leaving the import page", async () => {
+  it("preserves an App-owned import failure when leaving the import page", async () => {
     renderPage();
     await selectLocalFile("page-behavior-leave.csv");
     controls.nextMutationError = new Error("card mutation failed");
@@ -190,10 +193,10 @@ describe("DeckImportPage", () => {
     fireEvent.keyDown(window, { key: "s" });
 
     expect(screen.getByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Import failed.");
   });
 
-  it("does not show an import failure that arrives after leaving the import page", async () => {
+  it("shows an App-owned import failure that arrives after leaving the import page", async () => {
     const request = Promise.withResolvers<void>();
     renderPage();
     await selectLocalFile("page-behavior-late-failure.csv");
@@ -209,6 +212,6 @@ describe("DeckImportPage", () => {
       await Promise.resolve();
     });
 
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Import failed.");
   });
 });

@@ -15,8 +15,12 @@ export interface DeckImportResult {
   deckId: string;
 }
 export type DeckImportStatus = "idle" | "validating" | "importing" | "adding-sample";
-export interface DeckImportPreviewState {
-  storageMode: DeckImportStorageMode;
-  preview?: { deckName: string; analysis: DeckImportAnalysis };
-  error: unknown;
+interface DeckImportPreview {
+  deckName: string;
+  analysis: DeckImportAnalysis;
 }
+
+export type DeckImportSourceState =
+  | { kind: "empty" }
+  | { kind: "error"; error: unknown }
+  | { kind: "selected"; preview: DeckImportPreview; preparedImport: PreparedDeckImport | undefined };
