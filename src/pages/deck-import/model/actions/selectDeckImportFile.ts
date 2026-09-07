@@ -1,17 +1,22 @@
-import { getAuthUid } from "@/entities/auth";
+import { getAuthSession } from "@/entities/auth";
 import { generateCardId } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
 import { parseCsv } from "../../lib/cardCsv";
 import { beginFileSelection, cancelFileSelection, completeFileSelection, failFileSelection } from "../store";
 import { prepareDeckImport } from "./prepareDeckImport";
 
+const getCurrentUid = (): string => {
+  const session = getAuthSession();
+  return session.status === "authenticated" ? session.uid : "";
+};
+
 export async function selectDeckImportFile(file: File): Promise<void> {
-  const selection = beginFileSelection(getAuthUid());
+  const selection = beginFileSelection(getCurrentUid());
   if (selection === undefined) return;
   try {
     const analysis = await parseCsv(await file.text());
     // A read may outlive the session that selected it; never prepare it for a different account.
-    if (getAuthUid() !== selection.uid) {
+    if (getCurrentUid() !== selection.uid) {
       cancelFileSelection();
       return;
     }
@@ -24,7 +29,7 @@ export async function selectDeckImportFile(file: File): Promise<void> {
         : undefined;
     completeFileSelection({ kind: "selected", preview: { deckName: file.name, analysis }, preparedImport });
   } catch (error: unknown) {
-    if (getAuthUid() !== selection.uid) {
+    if (getCurrentUid() !== selection.uid) {
       cancelFileSelection();
       return;
     }

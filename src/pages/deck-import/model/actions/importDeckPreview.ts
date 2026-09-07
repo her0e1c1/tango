@@ -1,10 +1,12 @@
-import { getAuthUid } from "@/entities/auth";
+import { getAuthSession } from "@/entities/auth";
 import { executePreparedDeckImport } from "./executePreparedDeckImport";
 import { showToast } from "@/shared/ui/toast";
 import { beginImport, completeImport, failImport } from "../store";
 
 export async function importDeckPreview(): Promise<boolean> {
-  const execution = beginImport(getAuthUid());
+  const session = getAuthSession();
+  const uid = session.status === "authenticated" ? session.uid : "";
+  const execution = beginImport(uid);
   if (execution === undefined) return false;
   try {
     const result = await executePreparedDeckImport(execution.uid, execution.preparedImport);

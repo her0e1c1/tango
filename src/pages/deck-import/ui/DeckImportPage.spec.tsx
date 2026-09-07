@@ -15,11 +15,7 @@ const controls = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({
-  useAuthUid: () => "",
-  getAuthSession: () => ({ status: "anonymous" }),
-  getAuthUid: () => "",
-}));
+vi.mock("@/entities/auth", () => ({ useAuthUid: () => "", getAuthSession: () => ({ status: "anonymous" }) }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {

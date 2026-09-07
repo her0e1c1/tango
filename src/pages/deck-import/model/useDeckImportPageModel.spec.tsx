@@ -22,7 +22,6 @@ const controls = vi.hoisted(() => ({
 
 vi.mock("@/entities/auth", () => ({
   getAuthSession: () => (controls.uid ? { status: "authenticated", uid: controls.uid } : { status: "anonymous" }),
-  getAuthUid: () => controls.uid ?? "",
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => controls.navigate }));
 vi.mock("@/entities/deck/api/firestore", () => ({ createDeck: controls.remoteDeck }));
