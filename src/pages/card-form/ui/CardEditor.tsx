@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
-import type { UseFormReturn } from "react-hook-form";
+import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import type { CardId } from "@/entities/card";
 import { CardFields, type CardFormFields } from "@/features/card-form";
@@ -11,14 +11,14 @@ export interface CardEditorProps {
   cardInfo: { uniqueKey: string; id: CardId; createdAt?: number; lastSeenAt?: number };
   categories: readonly string[];
   form: UseFormReturn<CardFormFields>;
-  isSaving: boolean;
   onCancel: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
 }
 
 const formatDate = (timestamp: number, locale: string): string => new Date(timestamp).toLocaleDateString(locale);
 
-export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, form, isSaving, onCancel, onSubmit }) => {
+export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, form, onCancel, onSubmit }) => {
+  const { isSubmitting: isSaving } = useFormState({ control: form.control });
   const { i18n, t } = useTranslation();
   const locale = i18n.resolvedLanguage ?? i18n.language;
 

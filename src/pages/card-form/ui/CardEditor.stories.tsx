@@ -8,7 +8,7 @@ import { CATEGORY } from "@/entities/deck";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
 
-import type { CardFormValues } from "../model/useCardFormState";
+import type { CardFormValues } from "../model/types";
 import { CardEditor } from "./CardEditor";
 
 interface CardEditorStoryProps {
@@ -30,6 +30,14 @@ const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEdit
     }
   }, [form, validationError]);
 
+  useEffect(() => {
+    if (!isSaving) return;
+    const pending = Promise.withResolvers<void>();
+    // Drive the saving preview through RHF, just as a pending persistence request does.
+    void form.handleSubmit(() => pending.promise)();
+    return () => pending.resolve();
+  }, [form, isSaving]);
+
   return (
     <CardEditor
       cardInfo={{
@@ -40,7 +48,6 @@ const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEdit
       }}
       categories={CATEGORY}
       form={form}
-      isSaving={isSaving}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(() => undefined)}
     />

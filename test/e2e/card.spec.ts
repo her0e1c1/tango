@@ -80,6 +80,7 @@ test("CARD-03 persists edited front, back, and tags across reload", async ({ fix
     backText: `${namespace.caseId} changed back`,
   };
   await fixture.apply(page);
+  const before = await requireDocument("card", card.id);
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
@@ -110,6 +111,11 @@ test("CARD-03 persists edited front, back, and tags across reload", async ({ fix
   await expect(page.getByRole("checkbox", { name: "math" })).not.toBeChecked();
   await expect(page.getByRole("checkbox", { name: "typescript" })).toBeChecked();
   await expect(page.getByRole("checkbox", { name: "python" })).toBeChecked();
+  const after = await requireDocument("card", card.id);
+  // Content edits must not overwrite identity or newer learning progress from the opening form snapshot.
+  const { frontText: _front, backText: _back, tags: _tags, updatedAt: _updatedAt, ...preservedFields } = before.fields;
+  expect(after.fields).toMatchObject(preservedFields);
+  expect(documentId(after)).toBe(card.id);
 });
 test("CARD-04 deletes a Card and does not reload it as active", async ({ fixture, page }) => {
   const deck = fixture.deck();
@@ -207,6 +213,7 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
   const changedFront = `${namespace.caseId} retry front`;
   const changedBack = `${namespace.caseId} retry back`;
   await fixture.apply(page);
+  const before = await requireDocument("card", card.id);
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
@@ -239,6 +246,10 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
   await expect(page.getByText(changedFront)).toBeVisible();
   await page.getByRole("button", { name: `View ${changedFront}` }).click();
   await expect(page.getByRole("button", { name: "Close card" })).toContainText(changedBack);
+  const after = await requireDocument("card", card.id);
+  const { frontText: _front, backText: _back, updatedAt: _updatedAt, ...preservedFields } = before.fields;
+  expect(after.fields).toMatchObject(preservedFields);
+  expect(documentId(after)).toBe(card.id);
 });
 
 test("CARD-10 persists difficulty and tag filters and applies both after reload", async ({ fixture, page }) => {
