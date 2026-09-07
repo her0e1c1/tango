@@ -48,7 +48,7 @@ const DeckListSection: React.FC<{
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
+      <div className="flex items-baseline justify-between gap-3 px-1">
         <h2 id={headingId} className="text-caption font-bold uppercase tracking-wide text-ink-muted">
           {title}
         </h2>
