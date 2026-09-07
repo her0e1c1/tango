@@ -138,7 +138,7 @@ describe("DeckFormPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
   it("navigates to the deck list after cancellation", async () => {
     renderPage();
 
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
@@ -149,7 +149,7 @@ describe("DeckFormPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
     await userEvent.clear(name);
     await userEvent.type(name, "Unsaved deck");
 
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
     expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
 
@@ -176,7 +176,7 @@ describe("DeckFormPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
 
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(name).toHaveValue("Submitted deck");
-    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Back to decks" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Delete deck" })).toBeDisabled();
     await actAsync(async () => resolveWrite());
 

@@ -115,11 +115,24 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Create: Story = {};
-export const Edit: Story = { args: { mode: "edit" } };
+export const Edit: Story = {
+  args: { mode: "edit" },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("radio", { name: "Cloud" })).toBeChecked();
+    await expect(canvas.getByRole("radio", { name: "Cloud" })).toBeDisabled();
+    await expect(canvas.getByRole("radio", { name: "Local only" })).toBeDisabled();
+  },
+};
 export const LocalDeck: Story = {
   args: { mode: "edit", deck: { ...fixture.deck.default, localMode: true } },
 };
-export const ValidationError: Story = { args: { validationError: true } };
+export const ValidationError: Story = {
+  args: { validationError: true },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("textbox", { name: "Source URL" })).toBeVisible();
+    await expect(canvas.getByText("Enter a valid URL.")).toBeVisible();
+  },
+};
 export const Creating: Story = { args: { isSaving: true } };
 export const Saving: Story = { args: { mode: "edit", isSaving: true } };
 export const LocalModeLocked: Story = { args: { isLocalModeLocked: true } };
@@ -134,6 +147,7 @@ export const Interaction: Story = {
     await userEvent.selectOptions(category, "math");
     await expect(category).toHaveValue("math");
 
+    await userEvent.click(canvas.getByText("More settings"));
     const sourceUrl = canvas.getByRole("textbox", { name: "Source URL" });
     await userEvent.type(sourceUrl, "https://example.com/deck.csv");
     await expect(sourceUrl).toHaveValue("https://example.com/deck.csv");
@@ -142,18 +156,39 @@ export const Interaction: Story = {
     await userEvent.click(convertLineBreaks);
     await expect(convertLineBreaks).toBeChecked();
 
-    const localOnly = canvas.getByRole("checkbox", { name: "Local only" });
+    const localOnly = canvas.getByRole("radio", { name: "Local only" });
     await userEvent.click(localOnly);
     await expect(localOnly).toBeChecked();
+    await userEvent.click(canvas.getByRole("radio", { name: "Cloud" }));
+    await expect(localOnly).not.toBeChecked();
+    await expect(canvas.getByRole("radio", { name: "Cloud" })).toBeChecked();
+    await userEvent.click(canvas.getByText("More settings"));
+    await expect(sourceUrl).not.toBeVisible();
+    await userEvent.click(canvas.getByText("More settings"));
+    await expect(sourceUrl).toHaveValue("https://example.com/deck.csv");
+    await expect(convertLineBreaks).toBeChecked();
   },
 };
 export const Mobile: Story = {
   args: { mode: "edit", deck: longDeck },
   globals: { viewport: { value: "iphonex", isRotated: false } },
   play: async ({ canvas }) => {
-    const storageSection = canvas.getByRole("region", { name: "Storage" });
+    const storageSection = canvas.getByRole("group", { name: "Storage" });
 
     await expect(storageSection.scrollWidth).toBeLessThanOrEqual(storageSection.clientWidth);
   },
 };
 export const Dark: Story = { args: { mode: "edit", deck: longDeck }, globals: { theme: "dark" } };
+
+export const MobileCreate: Story = {
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+};
+export const ExpandedSettings: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByText("More settings"));
+  },
+};
+export const JapaneseMobileCreate: Story = {
+  parameters: { locale: "ja" },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+};

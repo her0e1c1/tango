@@ -47,6 +47,7 @@ test("DECK-02 persists edited name, category, and source URL across reload", asy
   await page.getByRole("menuitem", { name: "Edit" }).click();
   await page.getByRole("textbox", { name: "Name" }).fill(updatedName);
   await page.getByRole("combobox").selectOption("typescript");
+  await page.getByText("More settings").click();
   await page.getByRole("textbox", { name: "Source URL" }).fill(updatedSourceUrl);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -57,6 +58,7 @@ test("DECK-02 persists edited name, category, and source URL across reload", asy
 
   await expect(page.getByRole("textbox", { name: "Name" })).toHaveValue(updatedName);
   await expect(page.getByRole("combobox")).toHaveValue("typescript");
+  await page.getByText("More settings").click();
   await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(updatedSourceUrl);
 });
 
@@ -179,7 +181,8 @@ test("DECK-07 migrates a local-only Deck and every Card to remote storage", asyn
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  const localOnly = await clickCheckboxLabel(page, "Local only");
+  await page.getByRole("radio", { name: "Cloud", exact: true }).check();
+  const localOnly = page.getByRole("radio", { name: "Local only", exact: true });
   await expect(localOnly).not.toBeChecked();
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -227,6 +230,7 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   await page.getByRole("button", { name: "Create deck" }).click();
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
+  await page.getByText("More settings").click();
   await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
   await clickCheckboxLabel(page, "Convert line breaks");
   await page.getByRole("button", { name: "Create deck" }).click();
@@ -276,6 +280,7 @@ test("DECK-10 reports a failed remote create without locking the form", async ({
   allowExpectedFirestoreWriteFailure(browserErrors);
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
+  await page.getByText("More settings").click();
   await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
   await clickCheckboxLabel(page, "Convert line breaks");
   await page.getByRole("button", { name: "Create deck" }).click();
@@ -288,9 +293,9 @@ test("DECK-10 reports a failed remote create without locking the form", async ({
   await expect(page.getByRole("combobox")).toHaveValue(category);
   await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(sourceUrl);
   await expect(page.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
-  const localMode = page.getByRole("checkbox", { name: "Local only" });
+  const localMode = page.getByRole("radio", { name: "Local only" });
   await expect(localMode).toBeEnabled();
-  await clickCheckboxLabel(page, "Local only");
+  await localMode.check();
   await expect(localMode).toBeChecked();
 
   const remote = await listDocuments("deck");
