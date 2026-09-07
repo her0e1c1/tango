@@ -170,12 +170,12 @@ describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CARD-13 CardListPage", () => {
 
     expect(screen.getByRole("heading", { name: "Deck not found" })).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
-    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
 
     view.unmount();
     renderPage("/deck/missing-deck");
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
-    expect(await screen.findByRole("heading", { name: "Previous page" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
   it("rejects a route without a deck id", () => {

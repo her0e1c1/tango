@@ -383,7 +383,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
 
     fireEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
 
-    expect(screen.getByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
     expect(mocks.removeStudySession).not.toHaveBeenCalled();
   });
