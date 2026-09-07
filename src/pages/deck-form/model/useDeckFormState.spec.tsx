@@ -72,7 +72,7 @@ const AvailableDeckFormHarness = (props: { deck: Deck; onCancel: () => void; onS
 const StoredDeckFormHarness = (props: { deckId: DeckId; onCancel: () => void; onSaved: () => void }) => {
   const deck = useDeck(props.deckId);
   return deck === undefined ? null : (
-    <AvailableDeckFormHarness deck={deck} onCancel={onCancel} onSaved={onSaved} />
+    <AvailableDeckFormHarness deck={deck} onCancel={props.onCancel} onSaved={props.onSaved} />
   );
 };
 
