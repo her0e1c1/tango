@@ -69,6 +69,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
             inputId={inputIds.language}
             label={t("settings.language.label")}
             description={t("settings.language.help")}
+            controlPosition="second-row"
           >
             <Select
               {...props.form.register("language")}
@@ -251,7 +252,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
               <h2 id={advancedHeadingId} className="text-body font-bold text-ink">
                 {t("settings.advanced.title")}
               </h2>
-              <span className="block text-caption text-ink-muted">{t("settings.advanced.description")}</span>
+              <span className="mt-1 block text-caption leading-relaxed text-ink-muted">
+                {t("settings.advanced.description")}
+              </span>
             </span>
             <AiOutlineDown
               aria-hidden="true"

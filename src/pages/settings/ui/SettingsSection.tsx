@@ -26,7 +26,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({ title, descrip
           <h2 id={headingId} className="text-body font-bold text-ink">
             {title}
           </h2>
-          <p className="text-caption text-ink-muted">{description}</p>
+          <p className="mt-1 text-caption leading-relaxed text-ink-muted">{description}</p>
         </div>
       </div>
       <div className="divide-y divide-border border-t border-border">{children}</div>
@@ -58,7 +58,7 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
       <label htmlFor={inputId} className="block break-words text-body font-medium text-ink">
         {label}
       </label>
-      <p id={`${inputId}-description`} className="break-words text-caption text-ink-muted">
+      <p id={`${inputId}-description`} className="mt-1 break-words text-caption leading-relaxed text-ink-muted">
         {description}
       </p>
     </div>
