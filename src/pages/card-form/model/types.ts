@@ -1,10 +1,6 @@
-import type { z } from "zod";
-import type { CardId } from "@/entities/card";
-import type { cardFormSchema } from "./schema";
-
-export type CardFormValues = z.infer<typeof cardFormSchema>;
+import type { CardContentInput, CardId } from "@/entities/card";
 
 export interface SubmitCardFormInput {
   cardId: CardId;
-  values: CardFormValues;
+  values: CardContentInput;
 }

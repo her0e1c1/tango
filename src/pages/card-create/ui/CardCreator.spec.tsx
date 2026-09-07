@@ -14,15 +14,13 @@ const validation = vi.hoisted(() => ({ ready: undefined as Promise<void> | undef
 
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/card", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/card")>()),
-  createCard: writes.createCard,
-}));
-vi.mock("../model/schema", async (importOriginal) => {
-  const original = await importOriginal<typeof import("../model/schema")>();
+vi.mock("@/entities/card", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/entities/card")>();
   return {
+    ...original,
+    createCard: writes.createCard,
     // Hold real schema validation so additional clicks can occur before the resolver finishes.
-    cardCreateFormSchema: original.cardCreateFormSchema.superRefine(async () => {
+    cardContentInputSchema: original.cardContentInputSchema.superRefine(async () => {
       if (validation.ready !== undefined) await validation.ready;
     }),
   };

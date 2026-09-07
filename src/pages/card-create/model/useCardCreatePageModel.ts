@@ -2,20 +2,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { useAuthUid } from "@/entities/auth";
+import { type CardContentInput, cardContentInputSchema } from "@/entities/card";
 
 import { submit as submitAction } from "./actions/submit";
-import { cardCreateFormSchema } from "./schema";
-import type { CardCreateFormValues } from "./types";
 
 export function useCardCreatePageModel(deckId: string) {
   const uid = useAuthUid();
-  const form = useForm<CardCreateFormValues>({
+  const form = useForm<CardContentInput>({
     defaultValues: { frontText: "", backText: "", tags: [] },
-    resolver: zodResolver(cardCreateFormSchema),
+    resolver: zodResolver(cardContentInputSchema),
   });
 
   return {
     form,
-    submit: (values: CardCreateFormValues) => submitAction({ uid, deckId, values }),
+    submit: (values: CardContentInput) => submitAction({ uid, deckId, values }),
   };
 }
