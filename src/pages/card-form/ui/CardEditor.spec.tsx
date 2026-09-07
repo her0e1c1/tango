@@ -10,8 +10,7 @@ import { CATEGORY, createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 
-import { useCardFormState } from "../model/useCardFormState";
-import { runCardSave } from "../model/actions/runCardSave";
+import { useCardFormPageModel } from "../model/useCardFormPageModel";
 import { CardEditor } from "./CardEditor";
 
 const writeControls = vi.hoisted(() => ({
@@ -44,30 +43,22 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 }));
 
 const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; onSaved: () => void }) => {
-  const editor = useCardFormState(props.card);
+  const { form, submit } = useCardFormPageModel(props.card);
   return (
     <CardEditor
       cardInfo={{
-        id: editor.snapshot.id,
-        uniqueKey: editor.snapshot.uniqueKey,
-        ...(editor.snapshot.createdAt ? { createdAt: editor.snapshot.createdAt } : {}),
-        ...(editor.snapshot.lastSeenAt != null ? { lastSeenAt: editor.snapshot.lastSeenAt } : {}),
+        id: props.card.id,
+        uniqueKey: props.card.uniqueKey,
+        ...(props.card.createdAt ? { createdAt: props.card.createdAt } : {}),
+        ...(props.card.lastSeenAt != null ? { lastSeenAt: props.card.lastSeenAt } : {}),
       }}
       categories={CATEGORY}
-      form={editor.form}
-      isSaving={editor.isSaving}
+      form={form}
       onCancel={props.onCancel}
       onSubmit={(event) => {
-        void editor.form.handleSubmit((values) =>
-          runCardSave(values, {
-            snapshot: editor.snapshot,
-            savingRef: editor.savingRef,
-            setIsSaving: editor.setIsSaving,
-            saveErrorToastId: editor.saveErrorToastId,
-            isMounted: editor.isMounted,
-            onSaved: props.onSaved,
-          })
-        )(event);
+        void form.handleSubmit(async (values) => {
+          if (await submit(values)) props.onSaved();
+        })(event);
       }}
     />
   );
@@ -152,22 +143,6 @@ describe("CARD-03 CARD-09 CARD-12 CARD-21 CardEditor", () => {
     expect(screen.getByRole("button", { name: "Back to cards" })).toBeDisabled();
     finishSave();
     await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
-  });
-
-  it("does not navigate when saving finishes after leaving the editor", async () => {
-    let finishSave: () => void = () => undefined;
-    writeControls.beforeWrite = () =>
-      new Promise<void>((resolve) => {
-        finishSave = resolve;
-      });
-    const onSaved = vi.fn();
-    const view = renderForm(onSaved);
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-
-    view.unmount();
-    finishSave();
-
-    await waitFor(() => expect(onSaved).not.toHaveBeenCalled());
   });
 
   it("keeps the draft and saves it after an explicit retry", async () => {

@@ -1,44 +1,57 @@
-import type * as React from "react";
+import * as React from "react";
+import { useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes, useNavigationGuard } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardFormState } from "../model/useCardFormState";
-import { runCardSave } from "../model/actions/runCardSave";
-import { dismissSaveError } from "../model/actions/dismissSaveError";
+import { useCardFormPageModel } from "../model/useCardFormPageModel";
+import type { CardFormValues } from "../model/types";
 import { CardEditor } from "./CardEditor";
 
 const CardFormContent: React.FC<{ card: Card }> = ({ card }) => {
   const navigate = useNavigate();
-  const goBack = () => navigate(-1);
-  const editor = useCardFormState(card);
-  const onSubmit = (event?: React.BaseSyntheticEvent) => {
-    void editor.form.handleSubmit((values) =>
-      runCardSave(values, {
-        snapshot: editor.snapshot,
-        savingRef: editor.savingRef,
-        setIsSaving: editor.setIsSaving,
-        saveErrorToastId: editor.saveErrorToastId,
-        isMounted: editor.isMounted,
-        onSaved: (deckId) => {
-          const cardListPath = routes.cardList.to(deckId);
-          void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
-            navigate(cardListPath, { replace: true })
-          );
-        },
-      })
-    )(event);
-  };
-  const guard = useNavigationGuard(editor.form.formState.isDirty || editor.isSaving);
+  // Keep one opening snapshot; subscription refreshes must not replace the draft.
+  const [snapshot] = React.useState(card);
+  const { form, submit } = useCardFormPageModel(snapshot);
+  const { isDirty, isSubmitting } = useFormState({ control: form.control });
+  const guard = useNavigationGuard(isDirty || isSubmitting);
+  const isMounted = useMountedGuard();
+  const cardListPath = routes.cardList.to(snapshot.deckId);
 
-  const cancel = () => {
-    dismissSaveError(editor.saveErrorToastId);
-    void goBack();
+  const save = async (values: CardFormValues): Promise<void> => {
+    if (!isMounted()) return;
+    if (!(await submit(values))) return;
+    if (!isMounted()) return;
+
+    void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
+      navigate(cardListPath, { replace: true })
+    );
+  };
+
+  const pending: React.RefObject<boolean> = React.useRef(false);
+  const handleSubmit = form.handleSubmit(save);
+  const onSubmit: React.SubmitEventHandler<HTMLFormElement> = (event) => {
+    if (pending.current) {
+      // RHF must not start duplicate validation that could outlive the first save.
+      event.preventDefault();
+      return;
+    }
+
+    pending.current = true;
+    void handleSubmit(event)
+      .catch((error: unknown) => {
+        // biome-ignore lint/suspicious/noConsole: Unexpected validation/callback errors need a runtime sink, not a persistence-failure toast.
+        console.error("Card edit form callback failed.", error);
+      })
+      .finally(() => {
+        pending.current = false;
+      });
   };
 
   return (
@@ -46,15 +59,14 @@ const CardFormContent: React.FC<{ card: Card }> = ({ card }) => {
       {guard.element}
       <CardEditor
         cardInfo={{
-          id: editor.snapshot.id,
-          uniqueKey: editor.snapshot.uniqueKey,
-          ...(editor.snapshot.createdAt ? { createdAt: editor.snapshot.createdAt } : {}),
-          ...(editor.snapshot.lastSeenAt != null ? { lastSeenAt: editor.snapshot.lastSeenAt } : {}),
+          id: snapshot.id,
+          uniqueKey: snapshot.uniqueKey,
+          ...(snapshot.createdAt ? { createdAt: snapshot.createdAt } : {}),
+          ...(snapshot.lastSeenAt != null ? { lastSeenAt: snapshot.lastSeenAt } : {}),
         }}
         categories={CATEGORY}
-        form={editor.form}
-        isSaving={editor.isSaving}
-        onCancel={cancel}
+        form={form}
+        onCancel={() => void navigate(-1)}
         onSubmit={onSubmit}
       />
     </AppLayout>
