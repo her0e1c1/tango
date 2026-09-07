@@ -1,3 +1,4 @@
+export { getCards } from "./model/queries/getCards";
 export { subscribeCards } from "./api/firestore";
 export { generateCardId } from "./api/id";
 export { createCard, deleteCard, editCard, mutateCards } from "./api/mutations";

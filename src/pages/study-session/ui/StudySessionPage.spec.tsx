@@ -29,6 +29,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
+  getPreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
   toggleShowCardDetails: mocks.toggleShowCardDetails,
   toggleShowHelp: mocks.toggleShowHelp,

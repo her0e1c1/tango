@@ -2,7 +2,7 @@ import { useCards } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { resolveStudySession, useStudySession } from "@/entities/study-session";
-import { buildStudyHelpRows } from "../studyHelp";
+import { buildStudyHelpRows } from "./buildStudyHelpRows";
 
 export const useStudyQuery = (deckId: string) => {
   const cards = useCards();

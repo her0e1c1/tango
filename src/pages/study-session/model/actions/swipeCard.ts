@@ -1,67 +1,57 @@
-import type { RefObject } from "react";
-import type { Card } from "@/entities/card";
+import { getCards } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import type { Preferences, SwipeDirection } from "@/entities/preference";
+import { getPreferences, type SwipeDirection } from "@/entities/preference";
 import { editStudyProgress } from "@/entities/study-progress";
 import { getStudySession, moveStudySession, planStudySessionSwipe, removeStudySession } from "@/entities/study-session";
-import type { StudyCompletion } from "../types";
+import { showSwipeFeedback } from "../../lib/showSwipeFeedback";
+import { studySessionPageStore } from "../store";
+import { hideBackText } from "./hideBackText";
 
-interface SwipeCardOptions {
-  uid: string;
-  deckId: DeckId;
-  cards: readonly Card[];
-  direction: SwipeDirection;
-  swipeAction: Preferences["controls"][SwipeDirection];
-  showFeedback: boolean;
-  hideBodyWhenCardChanged: boolean;
-  pendingRef: RefObject<boolean>;
-  isMounted: () => boolean;
-  onCardChanged: () => void;
-  onCompleted: (completion: StudyCompletion) => void;
-  onSwipeFeedback: (direction: SwipeDirection) => void;
-}
-
-export const swipeCard = async ({
-  uid,
-  deckId,
-  cards,
-  direction,
-  swipeAction,
-  showFeedback,
-  hideBodyWhenCardChanged,
-  pendingRef,
-  isMounted,
-  onCardChanged,
-  onCompleted,
-  onSwipeFeedback,
-}: SwipeCardOptions): Promise<void> => {
-  // Persistence yields to later gestures; every direction must share this synchronous lock.
-  if (pendingRef.current) return;
-  const plan = planStudySessionSwipe(getStudySession(deckId), cards, swipeAction, Date.now());
+export async function swipeCard(uid: string, deckId: DeckId, direction: SwipeDirection): Promise<void> {
+  const { owner, pendingWork } = studySessionPageStore.getState();
+  // All directions and subsequent visits share the lock until persistence settles.
+  if (pendingWork !== undefined || owner?.uid !== uid || owner.deckId !== deckId) return;
+  const preferences = getPreferences();
+  const plan = planStudySessionSwipe(getStudySession(deckId), getCards(), preferences.controls[direction], Date.now());
   if (plan.effect === "none") return;
   if (plan.effect === "exit") {
     removeStudySession(deckId);
-    if (showFeedback && isMounted()) onSwipeFeedback(direction);
+    if (preferences.appearance.showSwipeFeedback && studySessionPageStore.getState().owner === owner) {
+      showSwipeFeedback(direction);
+    }
     return;
   }
   // A boundary move removes the session, so completion uses the pre-write snapshot.
   const completesSession = plan.effect === "next" && plan.session.currentIndex === plan.session.cardOrderIds.length - 1;
-  const cardCount = plan.session.cardOrderIds.length;
-  pendingRef.current = true;
-  // Advance only after persistence succeeds; failed writes leave the visible session unchanged.
-  const saved = await editStudyProgress(uid, plan.progress).then(
-    () => true,
-    () => false
-  );
-  pendingRef.current = false;
-  if (!saved) return;
-  if (!moveStudySession(plan.session, plan.effect)) return;
-  // Persistence may finish after navigation, but feedback and route-owned state must not leak.
-  if (!isMounted()) return;
-  if (showFeedback) onSwipeFeedback(direction);
-  if (completesSession) {
-    onCompleted({ cardCount });
-    return;
+  const work = Symbol();
+  studySessionPageStore.setState((state) => ({
+    pendingWork: work,
+    pageState: { ...state.pageState, swipePending: true },
+  }));
+  try {
+    // Save even after departure, then apply only a position- and identity-checked movement.
+    const saved = await editStudyProgress(uid, plan.progress).then(
+      () => true,
+      () => false
+    );
+    if (!saved || !moveStudySession(plan.session, plan.effect)) return;
+    if (studySessionPageStore.getState().owner !== owner) return;
+    if (preferences.appearance.showSwipeFeedback) showSwipeFeedback(direction);
+    if (completesSession) {
+      studySessionPageStore.setState((state) => ({
+        pageState: { ...state.pageState, completion: { cardCount: plan.session.cardOrderIds.length } },
+      }));
+    } else if (preferences.appearance.hideBodyWhenCardChanged) {
+      hideBackText();
+    }
+  } finally {
+    // An old completion may release only its own work and update only its own visit.
+    const state = studySessionPageStore.getState();
+    if (state.pendingWork === work) {
+      studySessionPageStore.setState({
+        pendingWork: undefined,
+        ...(state.owner === owner ? { pageState: { ...state.pageState, swipePending: false } } : {}),
+      });
+    }
   }
-  if (hideBodyWhenCardChanged) onCardChanged();
-};
+}
