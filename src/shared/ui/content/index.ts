@@ -4,6 +4,5 @@ export { MathContent } from "./Math";
 export { RemovableTag } from "./RemovableTag";
 export { Style } from "./Style";
 export { TagLabel } from "./TagLabel";
-export { TagList } from "./TagList";
 export { tagClassName } from "./tagStyles";
 export { Title } from "./Title";

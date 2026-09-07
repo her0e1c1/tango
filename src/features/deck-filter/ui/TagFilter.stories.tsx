@@ -84,3 +84,35 @@ export const Dark: Story = {
   args: { selectedTags: ["tag-12", "tag-3"] },
   globals: { theme: "dark" },
 };
+
+export const Japanese: Story = {
+  parameters: { locale: "ja" },
+  args: {
+    tags: [
+      "基礎",
+      "動詞",
+      "名詞",
+      "形容詞",
+      "日常会話",
+      "旅行",
+      "ビジネス",
+      "リスニング",
+      "熟語",
+      "前置詞",
+      "発音",
+      "復習",
+    ],
+    selectedTags: ["基礎", "動詞"],
+  },
+};
+
+export const NarrowContainer: Story = {
+  ...Japanese,
+  decorators: [
+    (Story) => (
+      <div className="max-w-sm">
+        <Story />
+      </div>
+    ),
+  ],
+};
