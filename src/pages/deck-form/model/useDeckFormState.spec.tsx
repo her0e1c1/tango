@@ -98,6 +98,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
   it("restores successfully saved form values from the Deck Entity", async () => {
     const onSaved = vi.fn();
     const view = renderForm(onSaved);
+    await userEvent.click(screen.getByText("More settings"));
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
     await userEvent.type(name, " Updated deck ");
@@ -109,6 +110,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
     view.unmount();
     renderForm();
+    await userEvent.click(screen.getByText("More settings"));
 
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Updated deck");
     expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveValue("https://example.com/deck.csv");
@@ -116,10 +118,10 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
     expect(screen.getByRole("combobox")).toHaveValue("science");
   });
 
-  it("requests Firestore persistence when local-only storage is turned off", async () => {
+  it("requests cloud persistence when Cloud is selected", async () => {
     const onSaved = vi.fn();
     renderForm(onSaved);
-    await userEvent.click(screen.getByRole("checkbox", { name: "Local only" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Cloud" }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
@@ -141,7 +143,6 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
 
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(screen.getByRole("textbox", { name: "Name" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Back to decks" })).toBeDisabled();
     finishSave();
     await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
@@ -167,12 +168,14 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
     await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", url: "https://example.com/deck.csv" }));
     const onSaved = vi.fn();
     const view = renderForm(onSaved);
+    await userEvent.click(screen.getByText("More settings"));
     await userEvent.clear(screen.getByRole("textbox", { name: "Source URL" }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
     view.unmount();
     renderForm();
+    await userEvent.click(screen.getByText("More settings"));
     expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveValue("");
   });
 
@@ -209,14 +212,25 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
 
   it("keeps stored values unchanged when validation rejects the form", async () => {
     const view = renderForm();
+    await userEvent.click(screen.getByText("More settings"));
     await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "not-a-url");
+    await userEvent.click(screen.getByText("More settings"));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByText("Deck name is required.")).toBeVisible();
     expect(screen.getByText("Enter a valid URL.")).toBeVisible();
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.type(name, "Corrected name");
+    expect(name).toHaveValue("Corrected name");
+    expect(name).toHaveFocus();
+    await userEvent.click(screen.getByText("More settings"));
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(screen.getByRole("textbox", { name: "Source URL" })).toBeVisible();
+    expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveFocus();
     view.unmount();
     renderForm();
+    await userEvent.click(screen.getByText("More settings"));
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
   });
 });

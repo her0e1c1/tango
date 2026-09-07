@@ -77,6 +77,7 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
 
   it("creates a remote empty Deck with source settings and opens its Card list under Strict Mode", async () => {
     renderPage(true);
+    await userEvent.click(screen.getByText("More settings"));
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "New deck");
     await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "https://example.com/deck.csv");
@@ -97,11 +98,12 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
 
   it("creates a local empty Deck without remote ownership fields", async () => {
     renderPage();
+    await userEvent.click(screen.getByText("More settings"));
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Local deck");
     await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "https://example.com/local.csv");
     await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
-    await userEvent.click(screen.getByRole("checkbox", { name: "Local only" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Local only" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
@@ -132,6 +134,7 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
   it("reports a creation failure without locking the form for a special retry flow", async () => {
     mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
     renderPage();
+    await userEvent.click(screen.getByText("More settings"));
     const name = screen.getByRole("textbox", { name: "Name" });
     const category = screen.getByRole("combobox");
     const sourceUrl = screen.getByRole("textbox", { name: "Source URL" });
@@ -148,7 +151,7 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     expect(category).toHaveValue("typescript");
     expect(sourceUrl).toHaveValue("https://example.com/failed.csv");
     expect(convertLineBreaks).toBeChecked();
-    const localMode = screen.getByRole("checkbox", { name: "Local only" });
+    const localMode = screen.getByRole("radio", { name: "Local only" });
     expect(localMode).toBeEnabled();
     expect(localMode).not.toBeChecked();
     await userEvent.click(localMode);
@@ -172,7 +175,7 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
     expect(await screen.findByText("Unable to create this deck.")).toBeVisible();
 
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
 
     expect(screen.queryByText("Unable to create this deck.")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
@@ -192,7 +195,6 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     const createButton = screen.getByRole("button", { name: "Create deck" });
     await userEvent.click(createButton);
     expect(createButton).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Back to decks" })).toBeDisabled();
     fireEvent.click(createButton);
 
@@ -231,7 +233,7 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
   it("returns to the Deck list without creating", async () => {
     renderPage();
 
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
 
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
     expect(mocks.createDeck).not.toHaveBeenCalled();
@@ -242,11 +244,11 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.type(name, "Unsaved deck");
 
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
     await userEvent.click(screen.getByRole("button", { name: "Keep editing" }));
     expect(name).toHaveValue("Unsaved deck");
 
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
   });

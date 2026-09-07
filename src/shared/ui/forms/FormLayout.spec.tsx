@@ -4,7 +4,6 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 
-import { Form } from "./Form";
 import { FormItem } from "./FormItem";
 
 const appearsBefore = (first: Node, second: Node): boolean => {
@@ -12,14 +11,14 @@ const appearsBefore = (first: Node, second: Node): boolean => {
   return Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
 };
 
-describe("shared form layout", () => {
+describe("DECK-02 shared form layout", () => {
   it("presents label, value, help, and error with a clear visual hierarchy", () => {
     render(
-      <Form>
+      <form>
         <FormItem label="Deck name" help="Shown in your library" error="A deck name is required">
           Current deck
         </FormItem>
-      </Form>
+      </form>
     );
 
     const label = screen.getByText("Deck name");
