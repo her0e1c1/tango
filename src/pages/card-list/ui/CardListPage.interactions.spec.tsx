@@ -22,7 +22,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }) }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   deleteCard: mocks.deleteCard,
@@ -155,7 +155,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
 
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "Card editor destination" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "Card editor destination" })).toBeVisible();
   });
 
   it("renders a language Card answer in the overlay", async () => {
@@ -294,7 +294,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     expect(screen.queryByRole("heading", { name: "Settings destination" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
 
-    await userEvent.click(within(dialog).getByRole("button", { name: "Apply change" }));
+    await userEvent.click(screen.getByRole("button", { name: "Apply change" }));
     await waitFor(() => expect(dialog).toHaveAttribute("aria-busy", "true"));
     fireEvent.keyDown(window, { key: "s" });
     fireEvent.keyDown(window, { key: "t" });

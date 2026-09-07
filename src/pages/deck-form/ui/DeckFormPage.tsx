@@ -29,12 +29,11 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
   const navigate = useNavigate();
   const deckListPath = routes.deckList.to();
   const goToList = () => navigate(deckListPath, { replace: true });
-  const uid = getAuthUid();
   const editor = useDeckFormState(deck);
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     void editor.form.handleSubmit((values) =>
       saveDeck(values, {
-        uid,
+        uid: getAuthUid(),
         snapshot: editor.snapshot,
         savingRef: editor.savingRef,
         setIsSaving: editor.setIsSaving,
@@ -66,7 +65,7 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
           onCancel={() => cancelDeckDeletion({ pending: deletion.pending, setTarget: deletion.setTarget })}
           onConfirm={() =>
             confirmDeckDeletion({
-              uid,
+              uid: getAuthUid(),
               target: deletion.target,
               pending: deletion.pending,
               setTarget: deletion.setTarget,

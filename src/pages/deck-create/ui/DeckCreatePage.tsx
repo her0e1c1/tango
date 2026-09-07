@@ -13,11 +13,10 @@ import { dismissSaveError } from "../model/actions/dismissSaveError";
 
 export const DeckCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const uid = getAuthUid();
   const state = useDeckCreateFormState();
   const onSubmit = (event?: React.BaseSyntheticEvent) =>
     submitDeckCreation(event, {
-      uid,
+      uid: getAuthUid(),
       form: state.form,
       saveErrorToastId: state.saveErrorToastId,
       isMounted: state.isMounted,

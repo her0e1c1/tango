@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { touchStudySession } from "@/entities/study-session";
-import { getAuthUid } from "@/entities/auth";
+import { useAuth } from "@/entities/auth";
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
@@ -27,7 +27,7 @@ import { DeckList } from "./DeckList";
 export const DeckListPage: React.FC = () => {
   const navigate = useNavigate();
   const sections = useDeckListState();
-  const uid = getAuthUid();
+  const { uid } = useAuth();
   const cards = useCards();
   const decks = useDecks();
   const { loadSample } = usePreferences();

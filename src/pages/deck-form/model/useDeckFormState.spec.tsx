@@ -20,7 +20,6 @@ const writeControls = vi.hoisted(() => ({
   writes: [] as { uid: string; deck: Record<string, unknown> }[],
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
@@ -73,7 +72,7 @@ const AvailableDeckFormHarness = (props: { deck: Deck; onCancel: () => void; onS
 const StoredDeckFormHarness = (props: { deckId: DeckId; onCancel: () => void; onSaved: () => void }) => {
   const deck = useDeck(props.deckId);
   return deck === undefined ? null : (
-    <AvailableDeckFormHarness deck={deck} onCancel={props.onCancel} onSaved={props.onSaved} />
+    <AvailableDeckFormHarness deck={deck} onCancel={onCancel} onSaved={onSaved} />
   );
 };
 

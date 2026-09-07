@@ -7,7 +7,6 @@ import { type CardContentInput, cardContentInputSchema } from "@/entities/card";
 import { submit as submitAction } from "./actions/submit";
 
 export function useCardCreatePageModel(deckId: string) {
-  const uid = getAuthUid();
   const form = useForm<CardContentInput>({
     defaultValues: { frontText: "", backText: "", tags: [] },
     resolver: zodResolver(cardContentInputSchema),
@@ -15,6 +14,6 @@ export function useCardCreatePageModel(deckId: string) {
 
   return {
     form,
-    submit: (values: CardContentInput) => submitAction({ uid, deckId, values }),
+    submit: (values: CardContentInput) => submitAction({ uid: getAuthUid(), deckId, values }),
   };
 }

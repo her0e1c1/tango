@@ -23,7 +23,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/card", () => ({
   useCardsByDeckId: () => ({ cards: mocks.cards, tags: mocks.tags }),
 }));
-vi.mock("@/entities/auth", () => ({ useAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }) }));
 vi.mock("@/entities/deck", () => ({
   editDeck: mocks.editDeck,
   isDeckTagSelectionMatching: () => true,

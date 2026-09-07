@@ -26,7 +26,7 @@ const mocks = vi.hoisted(() => ({
   toggleShowSwipeButtonList: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({ getAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }) }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   getPreferences: () => mocks.preferences,
@@ -202,6 +202,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
     await user.click(screen.getByRole("button", { name: "Swipe left" }));
 
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
+    expect(screen.queryByText("Back two")).not.toBeInTheDocument();
     expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith(
       "user-id",
       expect.objectContaining({ cardId: "first-card", difficulty: 1, numberOfSeen: 4 })
@@ -382,7 +383,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
 
     fireEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
 
-    expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Deck list destination" })).toBeVisible();
     expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
     expect(mocks.removeStudySession).not.toHaveBeenCalled();
   });

@@ -1,9 +1,10 @@
-import { authSessionStore } from "../store";
+import { getAuthSession } from "./getAuthSession";
 
-// Pre-authentication callers use a stable sentinel that remote command schemas reject as an unauthenticated uid.
-// Do not add a `useAuthUid` hook: React code that must react to auth lifecycle changes should subscribe with
-// `useAuthSession`, while code that only needs the current uid should read it directly through this query.
+// Read the current identity when an action runs, not a snapshot captured during render.
+// Do not define a UID-specific `use` hook: reactive consumers already have `useAuth` / `useAuthSession`.
+// This getter does not subscribe; render values and effect dependencies must keep using those hooks.
+// Before authentication, the empty sentinel is rejected by remote command schemas.
 export function getAuthUid(): string {
-  const session = authSessionStore.getState();
+  const session = getAuthSession();
   return session.status === "authenticated" ? session.uid : "";
 }

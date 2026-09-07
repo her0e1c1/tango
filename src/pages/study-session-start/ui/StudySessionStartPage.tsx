@@ -1,5 +1,5 @@
 import { startStudy } from "@/entities/study-session";
-import { getAuthUid } from "@/entities/auth";
+import { useAuth } from "@/entities/auth";
 import type * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -28,7 +28,7 @@ const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
 
 const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const navigate = useNavigate();
-  const uid = getAuthUid();
+  const { uid } = useAuth();
   const filterDraft = useDeckFilterDraft(uid, deck);
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
   const filterUpdate = {
