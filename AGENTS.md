@@ -41,7 +41,6 @@ For every task that changes repository files:
 - Across Pages, Features, and Entities, put state-changing operations and workflows in `model/actions/`, and read-only getters, selectors, and derived data in `model/queries/`.
 - Give each action its own file and ordinary named function. Keep action implementations out of actions objects, action factories, and hooks.
 - Provide a Page model hook under the Page's `model/` segment, such as `useAccountPageModel`, that supplies the values and functions needed by the Page or its Containers.
-- Page models may initialize React Hook Form with a separate schema and opening defaults.
 - Keep Page models limited to wiring existing state hooks, queries, individual actions, and lifecycle hooks. They may bind inputs and state handles to actions, but must not implement business rules, validation, derived-data calculations, state transitions, or asynchronous workflow sequencing.
 - Page models may return multiple bound action callbacks so Pages can pass them directly to UI components, such as `onSignIn={signIn}`. Keep the action implementations in `model/actions/` and return the callbacks as named properties rather than an actions object.
 - State hooks may own state, refs, forms, and resource cleanup, but must not return business-action callbacks. Page models connect these state hooks to actions; they do not replace them.
