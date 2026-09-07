@@ -7,7 +7,7 @@ import { changeBulkDifficulty } from "../model/actions/changeBulkDifficulty";
 import { changeCardDifficulty } from "../model/actions/changeCardDifficulty";
 import { requestCardDeletion } from "../model/actions/requestCardDeletion";
 import { showCardAnswer } from "../model/actions/showCardAnswer";
-import { useAuthUid } from "@/entities/auth";
+import { getAuthUid } from "@/entities/auth";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -37,7 +37,7 @@ import { BulkDifficultyDialog } from "./bulk-difficulty";
 const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const uid = useAuthUid();
+  const uid = getAuthUid();
   const filterDraft = useDeckFilterDraft(uid, deck);
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
   const filterUpdate = {
