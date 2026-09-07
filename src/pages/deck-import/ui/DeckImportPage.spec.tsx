@@ -16,7 +16,6 @@ const controls = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/auth", () => ({
-  useAuthUid: () => "",
   getAuthSession: () => ({ status: "anonymous" }),
   getAuthUid: () => "",
 }));
