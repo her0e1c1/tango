@@ -46,10 +46,10 @@ const prepareCardCreations = ({
     return { kind: "create", card };
   });
 
-export const prepareDeckImport = (
+export function prepareDeckImport(
   source: DeckImportSource,
   { uid, generateDeckId, generateCardId }: DeckImportPreparationDependencies
-): PreparedDeckImport => {
+): PreparedDeckImport {
   const storageMode = source.storageMode ?? "remote";
   if (storageMode === "remote" && uid === "") throw new Error("A confirmed user is required for remote imports");
 
@@ -66,4 +66,4 @@ export const prepareDeckImport = (
       generateCardId,
     }),
   };
-};
+}

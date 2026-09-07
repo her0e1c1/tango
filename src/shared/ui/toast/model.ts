@@ -5,7 +5,7 @@ export type ToastId = number;
 
 export type ToastTone = "neutral" | "success" | "warning" | "error";
 
-export interface ToastMessage {
+interface ToastMessage {
   messageKey: string;
   messageParams?: Readonly<Record<string, string | number>> | undefined;
 }

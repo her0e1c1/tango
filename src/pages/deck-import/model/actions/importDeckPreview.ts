@@ -1,28 +1,25 @@
-import type { RefObject } from "react";
-import { showToast } from "@/shared/ui/toast";
-import { getPreparedDeckImport } from "../queries/getPreparedDeckImport";
-import type { DeckImportPreviewState, DeckImportResult, PreparedDeckImport } from "../types";
 import { executePreparedDeckImport } from "./executePreparedDeckImport";
-import { runDeckImportSave, type DeckImportSaveFeedback } from "./runDeckImportSave";
+import { showToast } from "@/shared/ui/toast";
+import { getDeckImportUid } from "../queries/getDeckImportUid";
+import { beginImport, completeImport, failImport } from "../store";
 
-export const importDeckPreview = async (
-  uid: string,
-  preview: DeckImportPreviewState["preview"],
-  preparedImportRef: RefObject<PreparedDeckImport | undefined>,
-  feedback: DeckImportSaveFeedback
-): Promise<DeckImportResult | undefined> => {
-  const result = await runDeckImportSave(
-    "importing",
-    () => executePreparedDeckImport(uid, getPreparedDeckImport(preview, preparedImportRef.current)),
-    (error) =>
-      error instanceof Error
-        ? { messageKey: "deckImport.toast.failureWithReason", messageParams: { reason: error.message } }
-        : { messageKey: "deckImport.toast.failure" },
-    feedback
-  );
-  if (result === undefined || !feedback.isMounted()) return;
-  // Failed writes retain generated IDs so retrying cannot create another partial Deck.
-  preparedImportRef.current = undefined;
-  showToast({ messageKey: "deckImport.toast.imported", messageParams: { count: result.created }, tone: "success" });
-  return result;
-};
+export async function importDeckPreview(): Promise<boolean> {
+  const execution = beginImport(getDeckImportUid());
+  if (execution === undefined) return false;
+  try {
+    const result = await executePreparedDeckImport(execution.uid, execution.preparedImport);
+    // Results belong to the App even when the initiating Page has unmounted.
+    showToast({ messageKey: "deckImport.toast.imported", messageParams: { count: result.created }, tone: "success" });
+    completeImport();
+    return true;
+  } catch (error: unknown) {
+    showToast({
+      ...(error instanceof Error
+        ? { messageKey: "deckImport.toast.failureWithReason" as const, messageParams: { reason: error.message } }
+        : { messageKey: "deckImport.toast.failure" as const }),
+      tone: "error",
+    });
+    failImport();
+    return false;
+  }
+}
