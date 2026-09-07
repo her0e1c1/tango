@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createPreferences } from "@/test/factories";
 
-import { buildStudyHelpRows } from "./studyHelp";
+import { buildStudyHelpRows } from "./buildStudyHelpRows";
 
 describe("SWIPE-24 buildStudyHelpRows", () => {
   it("maps configured directions to semantic control and action identifiers", () => {
