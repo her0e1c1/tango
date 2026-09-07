@@ -5,10 +5,11 @@ export { createCard, deleteCard, editCard, mutateCards } from "./api/mutations";
 export { useCard } from "./model/queries/useCard";
 export { useCards } from "./model/queries/useCards";
 export { useCardsByDeckId } from "./model/queries/useCardsByDeckId";
-export { cardContentSchema } from "./model/schema";
+export { cardContentInputSchema } from "./model/schema";
 export { clearRemoteCards } from "./model/actions/clearRemoteCards";
 export type {
   Card,
+  CardContentInput,
   CardId,
   CardMutation,
   CardRaw,

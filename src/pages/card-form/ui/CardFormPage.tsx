@@ -3,7 +3,7 @@ import { useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { type Card, useCard } from "@/entities/card";
+import { type Card, type CardContentInput, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes, useNavigationGuard } from "@/shared/router";
@@ -11,7 +11,6 @@ import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useCardFormPageModel } from "../model/useCardFormPageModel";
-import type { CardFormValues } from "../model/types";
 import { CardEditor } from "./CardEditor";
 
 const CardFormContent: React.FC<{ card: Card }> = ({ card }) => {
@@ -24,7 +23,7 @@ const CardFormContent: React.FC<{ card: Card }> = ({ card }) => {
   const isMounted = useMountedGuard();
   const cardListPath = routes.cardList.to(snapshot.deckId);
 
-  const save = async (values: CardFormValues): Promise<void> => {
+  const save = async (values: CardContentInput): Promise<void> => {
     if (!isMounted()) return;
     if (!(await submit(values))) return;
     if (!isMounted()) return;

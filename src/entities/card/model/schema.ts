@@ -19,6 +19,9 @@ export const cardContentSchema = z.object({
   uniqueKey: cardUniqueKeySchema,
 });
 
+// Creation assigns the identity and editing preserves it; neither asks for it as content input.
+export const cardContentInputSchema = cardContentSchema.omit({ uniqueKey: true });
+
 const editableCardFieldsSchema = cardContentSchema.extend({
   url: z.string().optional(),
   startLine: z.number().optional(),

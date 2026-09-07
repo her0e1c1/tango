@@ -2,7 +2,33 @@ import { describe, expect, it } from "vitest";
 
 import { createCard as createCardFixture } from "@/test/factories";
 
-import { cardContentSchema, createCardSchema, deleteCardSchema, editCardSchema } from "./schema";
+import {
+  cardContentInputSchema,
+  cardContentSchema,
+  createCardSchema,
+  deleteCardSchema,
+  editCardSchema,
+} from "./schema";
+
+describe("Card content input schema [CARD-13 CARD-21]", () => {
+  it("accepts content without asking for an identity", () => {
+    const content = { frontText: "Front", backText: "Back", tags: ["custom"] };
+
+    expect(cardContentInputSchema.parse(content)).toEqual(content);
+  });
+
+  it("reports the required fields when both sides are empty", () => {
+    expect(cardContentInputSchema.safeParse({ frontText: "", backText: "", tags: [] })).toMatchObject({
+      success: false,
+      error: {
+        issues: [
+          { path: ["frontText"], message: "Front text is required." },
+          { path: ["backText"], message: "Back text is required." },
+        ],
+      },
+    });
+  });
+});
 
 describe("Card content schema [CARD-01]", () => {
   it.each(["", "   ", "\n\t"])("rejects blank front text: %j", (frontText) => {

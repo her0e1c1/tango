@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { cardContentSchema } from "@/entities/card";
+import { cardContentInputSchema } from "@/entities/card";
 
 import { CardFields, type CardFormFields } from "./CardFields";
 
@@ -16,7 +16,7 @@ const initialValues: CardFormFields = { frontText: "Front", backText: "Back", ta
 const FormHarness = ({ onSubmit = vi.fn() }: { onSubmit?: (values: CardFormFields) => void }) => {
   const form = useForm<CardFormFields>({
     defaultValues: initialValues,
-    resolver: zodResolver(cardContentSchema.omit({ uniqueKey: true })),
+    resolver: zodResolver(cardContentInputSchema),
   });
   return (
     <form onSubmit={form.handleSubmit((values) => onSubmit(values))}>

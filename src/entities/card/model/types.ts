@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import type {
+  cardContentInputSchema,
   cardCreateSchema,
   cardEditSchema,
   cardIdSchema,
@@ -27,6 +28,8 @@ export type LocalCard = z.infer<typeof localCardSchema>;
 export type PersistedCardState = z.infer<typeof persistedCardStateSchema>;
 /** Entity read model spanning both persistence modes; mutations route through the owning Deck. */
 export type Card = RemoteCard | LocalCard;
+/** Shared create/edit content without identity or persistence metadata. */
+export type CardContentInput = z.infer<typeof cardContentInputSchema>;
 /** Validated payload used to create a remote Card document. */
 export type CardCreate = z.infer<typeof cardCreateSchema>;
 /** Input accepted at the remote Card creation boundary. */
