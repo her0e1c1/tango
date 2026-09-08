@@ -1,6 +1,7 @@
 import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -35,6 +36,15 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { DeckFormPage } from "./DeckFormPage";
 
+const createDeckFormRouter = (deckId: string) =>
+  createMemoryRouter(
+    [
+      { path: "/", element: <h1>Deck list</h1> },
+      { path: "/deck/:id/edit", element: <DeckFormPage /> },
+    ],
+    { initialEntries: [`/deck/${deckId}/edit`] }
+  );
+
 describe("DeckFormPage submit entrance [DECK-02]", () => {
   const deckId = "deck-form-submit-deck";
 
@@ -52,13 +62,7 @@ describe("DeckFormPage submit entrance [DECK-02]", () => {
       new Promise<void>((resolve) => {
         finishSave = resolve;
       });
-    const router = createMemoryRouter(
-      [
-        { path: "/", element: <h1>Deck list</h1> },
-        { path: "/deck/:id/edit", element: <DeckFormPage /> },
-      ],
-      { initialEntries: [`/deck/${deckId}/edit`] }
-    );
+    const router = createDeckFormRouter(deckId);
     render(
       <>
         <RouterProvider router={router} />
@@ -75,5 +79,25 @@ describe("DeckFormPage submit entrance [DECK-02]", () => {
     await waitFor(() => expect(mocks.editCalls).toBe(1));
     await actAsync(async () => finishSave());
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+  });
+
+  it("publishes success after Page unmount without navigating the old visit", async () => {
+    let finishSave: () => void = () => undefined;
+    mocks.beforeDeckWrite = () =>
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      });
+    const router = createDeckFormRouter(deckId);
+    const page = render(<RouterProvider router={router} />);
+    render(<ToastViewport />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
+    const openingPath = router.state.location.pathname;
+    page.unmount();
+    await actAsync(async () => finishSave());
+
+    expect(router.state.location.pathname).toBe(openingPath);
+    expect(await screen.findByText("Updated deck “Deck name”.")).toBeVisible();
   });
 });
