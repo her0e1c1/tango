@@ -14,4 +14,6 @@ FSD v2.1のPage-first方針を採用し、画面固有の表示、状態接続�
 
 Page UIでアプリケーション、Feature、Entityの状態へ接続できる境界は`*Page`と`*Container`に限定し、それ以外のUIコンポーネントはprops-drivenとする。
 
-FSDの依存方向はSteigerの推奨ルールで検証する。[PR #1199](https://github.com/her0e1c1/tango/pull/1199)と[PR #1200](https://github.com/her0e1c1/tango/pull/1200)を参照する。
+Page modelは状態と処理をまとめ直すFacadeではなく、Pageのcomposition boundaryとする。更新と非同期workflowは個別のaction、read-onlyな参照はquery、React state、form、ref、cleanupはstate hookが所有し、PageまたはContainerが接続する。
+
+FSDの依存方向はSteigerの推奨ルールで検証する。[PR #1199](https://github.com/her0e1c1/tango/pull/1199)、[PR #1200](https://github.com/her0e1c1/tango/pull/1200)、[PR #1435](https://github.com/her0e1c1/tango/pull/1435)を参照する。
