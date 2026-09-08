@@ -12,7 +12,7 @@ Local only dataとaccount-synced Remote dataを別のpersistence identityとし�
 
 Deck自身の保存済みpersistence modeを、Deckとその子Cardの保存先の正とする。presentation codeは個別Cardの保存先やRemote ownerを選択しない。
 
-ownerはuser-editable inputに含めない。Remote Deck createはauthenticated actorからownerを導出し、単一Cardのcreate workflowはauthenticated actorと所有Deckからownerを導出する。prepared importはretry identityとしてvalidated UIDを保持できるが、実行時のactorが変わっていれば拒否し、Remote API境界でもownerを検証する。
+ownerはuser-editable inputに含めない。Remote Deck createはauthenticated actorからownerを導出し、単一Cardのcreate workflowはauthenticated actorと所有Deckからownerを導出する。prepared importは選択時のUIDをretry identityの一部として保持できるが、実行時のactorが変わっていれば拒否し、Remote API境界でもownerを検証する。
 
 Remote DeckおよびRemote Cardのeditとdeleteは、Entity ownerとauthenticated actorの不一致をwrite開始前に拒否する。このownership検証を、同じphysical documentを共有する別Entityのwriteへ暗黙に一般化しない。
 

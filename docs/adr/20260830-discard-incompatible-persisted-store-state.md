@@ -10,7 +10,7 @@ Status: Accepted
 
 プロダクトがactive development中である間、互換性のないclient-side persisted Store stateを維持するためのmigrationやlegacy readerを原則追加しない。
 
-current-versionのhydrated stateはschemaでvalidateし、malformedな値はvalidated default stateへ戻す。安全なschema defaultを持つadditive fieldなど、既存stateと互換な変更ではpersist versionを更新しない。
+current-versionのhydrated stateはschemaでvalidateする。malformedなstateはStoreの境界に応じて、invalid entryだけを独立して破棄するか、validated default stateへ戻す。安全なschema defaultを持つadditive fieldなど、既存stateと互換な変更ではpersist versionを更新しない。
 
 互換性のない変更ではpersist versionを更新し、古いstateを破棄してvalidated default stateへ戻す。特定の永続データについて互換性維持が明示的に要求された場合だけmigrationを追加する。
 
