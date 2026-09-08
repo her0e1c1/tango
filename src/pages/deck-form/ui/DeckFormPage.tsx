@@ -35,12 +35,31 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
   const decks = useDecks();
   const cards = useCards();
   const isMounted = useMountedGuard();
+  const submissionPending = React.useRef(false);
   const deletionTarget = getDeckDeletionTarget(deletion.target);
 
   const save = async (values: DeckFormFields): Promise<void> => {
     if (!(await submit(values)) || !isMounted()) return;
 
     await guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
+  };
+  const handleSubmit = form.handleSubmit(save);
+  const onSubmit: React.SubmitEventHandler<HTMLFormElement> = (event) => {
+    if (submissionPending.current) {
+      // RHF validation is asynchronous, so guard the entrance before isSubmitting can rerender the form.
+      event.preventDefault();
+      return;
+    }
+
+    submissionPending.current = true;
+    void handleSubmit(event)
+      .catch((error: unknown) => {
+        // biome-ignore lint/suspicious/noConsole: Unexpected validation/navigation errors are not persistence failures.
+        console.error("Deck edit form callback failed.", error);
+      })
+      .finally(() => {
+        submissionPending.current = false;
+      });
   };
 
   return (
@@ -76,7 +95,7 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
         form={form}
         isLocalOnly={deck.localMode}
         onCancel={() => void goToList()}
-        onSubmit={form.handleSubmit(save)}
+        onSubmit={onSubmit}
         afterForm={
           <section
             aria-labelledby="delete-deck-heading"
