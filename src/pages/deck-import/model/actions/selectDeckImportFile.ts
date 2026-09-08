@@ -15,10 +15,7 @@ export async function selectDeckImportFile(file: File): Promise<void> {
     }
     const preparedImport =
       analysis.invalidCount === 0 && analysis.rows.length > 0
-        ? prepareDeckImport(
-            { name: file.name, rows: analysis.rows, storageMode: selection.storageMode },
-            selection.uid
-          )
+        ? prepareDeckImport({ name: file.name, rows: analysis.rows, storageMode: selection.storageMode }, selection.uid)
         : undefined;
     completeFileSelection({ kind: "selected", preview: { deckName: file.name, analysis }, preparedImport });
   } catch (error: unknown) {
