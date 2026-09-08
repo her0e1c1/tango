@@ -1,8 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { generateCardId } from "@/entities/card";
+import { generateDeckId } from "@/entities/deck";
 import { prepareDeckImport } from "./prepareDeckImport";
+
+vi.mock("@/entities/card", () => ({ generateCardId: vi.fn() }));
+vi.mock("@/entities/deck", () => ({ generateDeckId: vi.fn() }));
 
 describe("prepareDeckImport [IMPORT-01]", () => {
   const row = {
@@ -11,15 +13,13 @@ describe("prepareDeckImport [IMPORT-01]", () => {
   };
   const rows = [row];
 
+  beforeEach(() => {
+    vi.mocked(generateDeckId).mockReset().mockReturnValue("deck");
+    vi.mocked(generateCardId).mockReset().mockReturnValue("card");
+  });
+
   it("prepares a new remote Deck and Card creations", () => {
-    const preparedImport = prepareDeckImport(
-      { name: "deck.csv", rows },
-      {
-        uid: "uid",
-        generateDeckId: vi.fn(() => "deck"),
-        generateCardId: vi.fn(() => "card"),
-      }
-    );
+    const preparedImport = prepareDeckImport({ name: "deck.csv", rows }, "uid");
 
     expect(preparedImport.destination).toEqual({ id: "deck", name: "deck.csv", localMode: false });
     expect(preparedImport.mutations).toEqual([
@@ -31,15 +31,11 @@ describe("prepareDeckImport [IMPORT-01]", () => {
   });
 
   it("generates a new destination for every preparation", () => {
-    const generateDeckId = vi.fn().mockReturnValueOnce("deck-1").mockReturnValueOnce("deck-2");
-    const dependencies = {
-      uid: "uid",
-      generateDeckId,
-      generateCardId: vi.fn().mockReturnValueOnce("card-1").mockReturnValueOnce("card-2"),
-    };
+    vi.mocked(generateDeckId).mockReturnValueOnce("deck-1").mockReturnValueOnce("deck-2");
+    vi.mocked(generateCardId).mockReturnValueOnce("card-1").mockReturnValueOnce("card-2");
 
-    const first = prepareDeckImport({ name: "same.csv", rows }, dependencies);
-    const second = prepareDeckImport({ name: "same.csv", rows }, dependencies);
+    const first = prepareDeckImport({ name: "same.csv", rows }, "uid");
+    const second = prepareDeckImport({ name: "same.csv", rows }, "uid");
 
     expect(first.destination.id).toBe("deck-1");
     expect(second.destination.id).toBe("deck-2");
@@ -48,14 +44,10 @@ describe("prepareDeckImport [IMPORT-01]", () => {
   });
 
   it("prepares local Deck and Card creation without an account owner", () => {
-    const preparedImport = prepareDeckImport(
-      { name: "local.csv", rows, storageMode: "local" },
-      {
-        uid: "",
-        generateDeckId: vi.fn(() => "local-deck"),
-        generateCardId: vi.fn(() => "local-card"),
-      }
-    );
+    vi.mocked(generateDeckId).mockReturnValue("local-deck");
+    vi.mocked(generateCardId).mockReturnValue("local-card");
+
+    const preparedImport = prepareDeckImport({ name: "local.csv", rows, storageMode: "local" }, "");
 
     expect(preparedImport.destination).toEqual({ id: "local-deck", name: "local.csv", localMode: true });
     expect(preparedImport.mutations).toEqual([
@@ -67,11 +59,8 @@ describe("prepareDeckImport [IMPORT-01]", () => {
   });
 
   it("requires a confirmed user for a remote import", () => {
-    expect(() =>
-      prepareDeckImport(
-        { name: "remote.csv", rows },
-        { uid: "", generateDeckId: vi.fn(() => "deck"), generateCardId: vi.fn(() => "card") }
-      )
-    ).toThrow("A confirmed user is required for remote imports");
+    expect(() => prepareDeckImport({ name: "remote.csv", rows }, "")).toThrow(
+      "A confirmed user is required for remote imports"
+    );
   });
 });

@@ -1,6 +1,4 @@
 import { getAuthUid } from "@/entities/auth";
-import { generateCardId } from "@/entities/card";
-import { generateDeckId } from "@/entities/deck";
 import { parseCsv } from "../../lib/cardCsv";
 import { beginFileSelection, cancelFileSelection, completeFileSelection, failFileSelection } from "../store";
 import { prepareDeckImport } from "./prepareDeckImport";
@@ -19,7 +17,7 @@ export async function selectDeckImportFile(file: File): Promise<void> {
       analysis.invalidCount === 0 && analysis.rows.length > 0
         ? prepareDeckImport(
             { name: file.name, rows: analysis.rows, storageMode: selection.storageMode },
-            { uid: selection.uid, generateDeckId, generateCardId }
+            selection.uid
           )
         : undefined;
     completeFileSelection({ kind: "selected", preview: { deckName: file.name, analysis }, preparedImport });
