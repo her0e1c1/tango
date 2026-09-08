@@ -8,7 +8,7 @@ Status: Accepted
 
 ## Decision
 
-swipe時は現在のStudySession、Card、Preferencesからdomain planを先に導出し、そのplanが持つStudyProgressを保存してからStudySessionを進める。
+Card移動を伴うswipeでは、現在のStudySession、Card、Preferencesからdomain planを先に導出し、そのplanが持つStudyProgressを保存してからStudySessionを進める。no-opとStudy終了のeffectはStudyProgress updateを生成しない。
 
 StudyProgressの保存先は対象Cardのpersistence identityに従う。保存に失敗した場合は現在位置を維持し、optimisticなSession移動とrollbackを行わない。
 
