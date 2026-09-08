@@ -12,4 +12,4 @@ Calm Focusをapplication-wideなvisual systemとし、共通の色、typography�
 
 Dark themeはcomponentごとに別paletteを組み立てず、semantic tokenのoverrideとして表現する。Markdownなどthird-party contentのtheme variableもCalm Focus tokenへmapする。
 
-focus-visible、reduced motion、safe area、dynamic viewport、およびtouch targetの共通baselineはapplication styleとShared UIが所有する。個別interactionと状態遷移はCSSへ移さずcomponent codeが所有する。[PR #256](https://github.com/her0e1c1/tango/pull/256)、[PR #291](https://github.com/her0e1c1/tango/pull/291)、[PR #1231](https://github.com/her0e1c1/tango/pull/1231)を参照する。
+focus-visible、reduced motion、safe area、dynamic viewport、およびtouch targetの共通baselineはapplication styleとShared UIが所有する。interaction stateとbehaviorはcomponent codeが所有し、CSSはsemantic tokenを使ってそのvisual stateとtransitionを表現する。[PR #256](https://github.com/her0e1c1/tango/pull/256)、[PR #291](https://github.com/her0e1c1/tango/pull/291)、[PR #1231](https://github.com/her0e1c1/tango/pull/1231)を参照する。

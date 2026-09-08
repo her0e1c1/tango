@@ -14,4 +14,6 @@ Studyの開始または再開始では新しいSession identityを発行し、�
 
 StudySession Storeはschemaでsanitizeしたbrowser-persisted client stateとし、Firestoreへaccount syncしない。consumerにはPublic APIから個別のquery、action、type、およびpure ruleを公開し、Zustand Storeまたはpersist middlewareを公開しない。
 
-StudySession Entityは現在位置のCard解決と`preparing`、`invalid`、`studying`のdomain resolutionを所有する。Page queryはその結果をDeckやPreferencesとcomposeし、Page workflowはautoplay、answer visibility、help、completionなどのtransient presentation stateを所有する。StudyProgressの永続化とSession advancementの順序は別のDecisionに従う。[PR #990](https://github.com/her0e1c1/tango/pull/990)、[PR #1067](https://github.com/her0e1c1/tango/pull/1067)、[PR #1132](https://github.com/her0e1c1/tango/pull/1132)、[PR #1435](https://github.com/her0e1c1/tango/pull/1435)を参照する。
+Deck削除は`deleteDeck`の一部として同じDeck IDのStudySessionをremoveし、Page callerごとのcleanupに委ねない。Remote persistenceの削除が失敗した場合はSessionを維持し、成功後にだけ再開状態を消す。
+
+StudySession Entityのpure ruleは現在位置をavailable Cardsへ解決し、`preparing`、`invalid`、`studying`を返す。Page queryはその結果をDeckやPreferencesとcomposeし、Page workflowはautoplay、answer visibility、help、completionなどのtransient presentation stateを所有する。StudyProgressの永続化とSession advancementの順序は別のDecisionに従う。[PR #990](https://github.com/her0e1c1/tango/pull/990)、[PR #1067](https://github.com/her0e1c1/tango/pull/1067)、[PR #1113](https://github.com/her0e1c1/tango/pull/1113)、[PR #1132](https://github.com/her0e1c1/tango/pull/1132)、[PR #1435](https://github.com/her0e1c1/tango/pull/1435)を参照する。
