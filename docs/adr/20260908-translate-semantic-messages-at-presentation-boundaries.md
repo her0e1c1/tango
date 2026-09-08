@@ -12,4 +12,4 @@ i18n Provider配下のapplication固定文言とOperation feedbackは、semantic
 
 非同期Operationの完了通知は完了時点のlocaleを使用する。表示中の通知はlocale変更に追従して再翻訳するが、notification identity、focus、timeoutは作り直さない。
 
-user-authored contentとraw persisted valueは翻訳しない。日付、数値などlocale依存のformatはpresentation境界で行う。application Providerの外側にあるcatastrophic error fallbackは、i18n failureから独立して表示できるself-containedなdefault copyを使用できる。[PR #1410](https://github.com/her0e1c1/tango/pull/1410)、[PR #1446](https://github.com/her0e1c1/tango/pull/1446)を参照する。
+user-authored contentとraw persisted valueは翻訳しない。日付、数値などlocale依存のformatはpresentation境界で行う。root errorとroute errorで共用するcatastrophic fallbackは、同じcomponentがi18n Provider外でも動作できるようself-containedなdefault copyを使用できる。[PR #1410](https://github.com/her0e1c1/tango/pull/1410)、[PR #1446](https://github.com/her0e1c1/tango/pull/1446)を参照する。
