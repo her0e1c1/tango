@@ -68,6 +68,8 @@ For every task that changes repository files:
 - Do not add test code for non-application code.
 - Write tests against observable behavior so they remain stable under refactoring.
 - Do not write tests that depend on implementation details.
+- Design production interfaces around production requirements. Do not add or change parameters, dependency objects, callbacks, factories, optional overrides, or exports solely to make code testable or mockable.
+- Adapt tests to existing production interfaces. Replace dependencies with test-side module mocks or spies instead of adding injection points to production code.
 
 ### Unit and Integration Tests
 
