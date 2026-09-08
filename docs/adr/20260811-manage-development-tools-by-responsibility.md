@@ -15,4 +15,6 @@ Manage tools according to their responsibility and distribution model:
 - Manage tools used only inside containers within the container environment, rather than duplicating them in npm or mise.
 - Do not add optional, interactive, developer-specific tools to project dependencies. Tools such as React Developer Tools should be installed individually when needed.
 
-Prefer the tool's official distribution channel and avoid managing the same tool in multiple places unless reproducibility requires it.
+Use npm scripts as the canonical executable entrypoints for repository checks. CI installs the pinned Node.js and npm versions and invokes those npm scripts without requiring mise. Local mise tasks may compose or delegate to the same scripts. Workflow-specific external service setup, such as starting the Firestore emulator, remains in the owning workflow or container environment.
+
+Prefer the tool's official distribution channel and avoid managing the same tool in multiple places unless reproducibility requires it. See [PR #449](https://github.com/her0e1c1/tango/pull/449) and [PR #662](https://github.com/her0e1c1/tango/pull/662).
