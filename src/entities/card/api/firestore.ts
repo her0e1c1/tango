@@ -13,7 +13,6 @@ import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "fi
 
 import { mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
 import { db } from "@/shared/firebase";
-import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument } from "../model/dto";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
@@ -78,7 +77,7 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void): ((
 
 /** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
-  const createdAt = getCurrentTimeMillis();
+  const createdAt = Date.now();
   const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
   await setDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
@@ -99,7 +98,7 @@ const updateCardDocument = async (card: CardEdit): Promise<void> => {
     url: card.url,
     startLine: card.startLine,
     endLine: card.endLine,
-    updatedAt: getCurrentTimeMillis(),
+    updatedAt: Date.now(),
   });
   await updateDoc(doc(db, CARD_COLLECTION, card.id), document);
 };
@@ -112,7 +111,7 @@ export const editCard = async (uid: string, card: EditCardInput["card"]): Promis
 
 /** Tombstones a Card so synchronized readers can converge before hiding it. */
 const removeCardDocument = async (id: string): Promise<void> => {
-  const updatedAt = getCurrentTimeMillis();
+  const updatedAt = Date.now();
   await updateDoc(doc(db, CARD_COLLECTION, id), { updatedAt, deletedAt: updatedAt });
 };
 

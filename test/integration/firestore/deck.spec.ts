@@ -6,14 +6,13 @@
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
-import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card/api/firestore";
 import { cardStore } from "@/entities/card/model/store";
 import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
 import { editDeck as editStoredDeck } from "@/entities/deck";
 import { deckStore } from "@/entities/deck/model/store";
-import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import * as Uuid from "uuid";
 import {
   createCard,
@@ -30,26 +29,19 @@ const toFirestoreDeck = ({ localMode: _localMode, ...deck }: Extract<Deck, { loc
   deletedAt: null,
 });
 
-vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn() }));
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
 describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
   const db = getFirestore();
-  const timestamp = new Date(2013, 10, 9).getTime();
   const newDeck = createDeckFixture({
     name: "new deck name",
     uid: "uid",
     difficultyMax: 10,
     difficultyMin: 1,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  });
-
-  beforeEach(() => {
-    // must return the same value (no need to reset mock in parallel)
-    (getCurrentTimeMillis as Mock).mockReturnValue(timestamp);
+    createdAt: 0,
+    updatedAt: 0,
   });
 
   it("should create a deck and check if exists", async () => {
@@ -62,7 +54,13 @@ describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
     } satisfies RemoteDeckCreateInput & { currentIndex: number; cardOrderIds: string[] };
     await createDeck("uid", d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
-    expect(data).toEqual({ ...toFirestoreDeck(newDeck), id: d.id });
+    expect(data).toEqual({
+      ...toFirestoreDeck(newDeck),
+      id: d.id,
+      createdAt: expect.any(Number),
+      updatedAt: expect.any(Number),
+    });
+    expect(data?.createdAt).toBe(data?.updatedAt);
     expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
@@ -72,6 +70,8 @@ describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
   it("should update a deck", async () => {
     const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
     await createDeck("uid", d);
+    const created = (await getDoc(doc(db, "deck", d.id))).data();
+    if (created === undefined) throw new Error("Created Deck was not found");
     const n = {
       ...d,
       name: "updated",
@@ -80,7 +80,8 @@ describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
     };
     await editDeck("uid", n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
-    expect(data).toEqual({ ...toFirestoreDeck(newDeck), id: d.id, name: "updated" });
+    expect(data).toEqual({ ...created, name: "updated", updatedAt: expect.any(Number) });
+    expect(data?.createdAt).toBe(created.createdAt);
     expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");

@@ -15,7 +15,6 @@ import {
 } from "firebase/firestore";
 
 import { db } from "@/shared/firebase";
-import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
   authenticatedUidSchema,
@@ -56,7 +55,7 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
 
 // Writes a new Deck document with synchronized creation and update timestamps.
 const createDeckDocument = async (uid: string, deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {
-  const createdAt = getCurrentTimeMillis();
+  const createdAt = Date.now();
   const document = toDeckDocument(uid, deck, createdAt);
   await setDoc(doc(db, DECK_COLLECTION, deck.id), document);
 };
@@ -73,7 +72,7 @@ const updateDeckDocument = async (deck: z.infer<typeof deckEditSchema>): Promise
     name: deck.name,
     url: deck.url === null ? deleteField() : deck.url,
     isPublic: deck.isPublic,
-    updatedAt: getCurrentTimeMillis(),
+    updatedAt: Date.now(),
     difficultyMax: deck.difficultyMax,
     difficultyMin: deck.difficultyMin,
     selectedTags: deck.selectedTags,

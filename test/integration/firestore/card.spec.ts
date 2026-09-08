@@ -8,38 +8,31 @@ import { mutateCards, type Card } from "@/entities/card";
 import type { CardCreateInput, RemoteCard } from "@/entities/card/model/types";
 
 import "@/test/initializeTestFirestore";
-import { expect, it, describe, vi, beforeEach, type Mock } from "vitest";
-import { collection, deleteDoc, getDocs, getFirestore, doc, getDoc, query, where } from "firebase/firestore";
+import { describe, expect, it, vi } from "vitest";
+import { collection, deleteDoc, doc, getDoc, getDocs, getFirestore, query, where } from "firebase/firestore";
 import { createCard as createCardCommand, deleteCard, editCard } from "@/entities/card/api/firestore";
 import { createDeck as createDeckCommand } from "@/entities/deck/api/firestore";
 import { replaceRemoteCards } from "@/entities/card/model/actions/replaceRemoteCards";
 import { replaceRemoteDecks } from "@/entities/deck/model/actions/replaceRemoteDecks";
 import { editRemoteStudyProgress } from "@/entities/study-progress/api/firestore";
-import { getCurrentTimeMillis } from "@/shared/lib/currentTime";
 import * as Uuid from "uuid";
 import { createCard, createDeck, createRemoteDeckInput } from "@/test/factories";
 
 const uuid = Uuid.v4;
 
-vi.mock("@/shared/lib/currentTime", () => ({ getCurrentTimeMillis: vi.fn() }));
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
 describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
   const db = getFirestore();
-  const timestamp = new Date(2013, 10, 9).getTime();
   const newCard = createCard({
     frontText: "front text",
     backText: "back text",
     uid: "uid",
-    createdAt: timestamp,
-    updatedAt: timestamp,
+    createdAt: 0,
+    updatedAt: 0,
     deletedAt: null,
-  });
-
-  beforeEach(() => {
-    (getCurrentTimeMillis as Mock).mockReturnValue(timestamp);
   });
 
   // card needs to belong to its deck
@@ -64,7 +57,14 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
     } satisfies CardCreateInput & { currentIndex: number; cardOrderIds: string[] };
     await createCardCommand("uid", c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
-    expect(data).toEqual({ ...newCard, deckId, id: c.id });
+    expect(data).toEqual({
+      ...newCard,
+      deckId,
+      id: c.id,
+      createdAt: expect.any(Number),
+      updatedAt: expect.any(Number),
+    });
+    expect(data?.createdAt).toBe(data?.updatedAt);
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });
@@ -73,6 +73,8 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);
+    const created = (await getDoc(doc(db, "card", c.id))).data();
+    if (created === undefined) throw new Error("Created Card was not found");
     const n = {
       ...c,
       frontText: "updated",
@@ -81,7 +83,8 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
     await editCard("uid", n);
     const data = (await getDoc(doc(db, "card", n.id))).data();
-    expect(data).toEqual({ ...c, frontText: "updated" });
+    expect(data).toEqual({ ...created, frontText: "updated", updatedAt: expect.any(Number) });
+    expect(data?.createdAt).toBe(created.createdAt);
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });
@@ -90,6 +93,8 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
     const deckId = await initDeck();
     const card = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", card);
+    const created = (await getDoc(doc(db, "card", card.id))).data();
+    if (created === undefined) throw new Error("Created Card was not found");
     const untrustedProgress = {
       cardId: card.id,
       difficulty: 5.5,
@@ -102,7 +107,9 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
 
     await editRemoteStudyProgress("uid", untrustedProgress);
 
-    expect((await getDoc(doc(db, "card", card.id))).data()).toEqual({ ...card, difficulty: 5.5, numberOfSeen: 3 });
+    const data = (await getDoc(doc(db, "card", card.id))).data();
+    expect(data).toEqual({ ...created, difficulty: 5.5, numberOfSeen: 3, updatedAt: expect.any(Number) });
+    expect(data?.createdAt).toBe(created.createdAt);
   });
 
   it("should upsert a complete card", async () => {
@@ -111,7 +118,9 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
 
     await mutateCards("uid", [{ kind: "create", card: c }]);
 
-    expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(c);
+    const data = (await getDoc(doc(db, "card", c.id))).data();
+    expect(data).toEqual({ ...c, createdAt: expect.any(Number), updatedAt: expect.any(Number) });
+    expect(data?.createdAt).toBe(data?.updatedAt);
   });
 
   it("reports failed imported Cards while persisting valid Cards", async () => {
@@ -126,7 +135,9 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
       ])
     ).rejects.toThrow();
 
-    expect((await getDoc(doc(db, "card", valid.id))).data()).toEqual(valid);
+    const data = (await getDoc(doc(db, "card", valid.id))).data();
+    expect(data).toEqual({ ...valid, createdAt: expect.any(Number), updatedAt: expect.any(Number) });
+    expect(data?.createdAt).toBe(data?.updatedAt);
   });
 
   it("does not recreate an existing Card deleted after import planning", async () => {
@@ -146,9 +157,12 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);
+    const created = (await getDoc(doc(db, "card", c.id))).data();
+    if (created === undefined) throw new Error("Created Card was not found");
     await deleteCard("uid", c);
-    const d = { ...c, deckId, deletedAt: timestamp } as Card;
-    expect((await getDoc(doc(db, "card", c.id))).data()).toEqual(d);
+    const data = (await getDoc(doc(db, "card", c.id))).data();
+    expect(data).toEqual({ ...created, updatedAt: expect.any(Number), deletedAt: expect.any(Number) });
+    expect(data?.deletedAt).toBe(data?.updatedAt);
   });
 
   it("should exists a card", async () => {
