@@ -183,6 +183,24 @@ describe("DeckFormPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
 
+  it("does not navigate when saving finishes after the Page unmounts", async () => {
+    let resolveWrite: () => void = () => undefined;
+    mocks.beforeDeckWrite = () =>
+      new Promise<void>((resolve) => {
+        resolveWrite = resolve;
+      });
+    mocks.skipDeckWrite = true;
+    const view = renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
+    const openingPath = view.router.state.location.pathname;
+    view.unmount();
+    await actAsync(async () => resolveWrite());
+
+    expect(view.router.state.location.pathname).toBe(openingPath);
+  });
+
   it("shows navigation confirmation above an open deletion dialog", async () => {
     const view = renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });

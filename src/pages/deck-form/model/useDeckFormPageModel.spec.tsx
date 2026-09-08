@@ -5,15 +5,14 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createDeck, useDeck } from "@/entities/deck";
+import { CATEGORY, createDeck, useDeck } from "@/entities/deck";
 import { DeckForm } from "@/features/deck-form";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalDeck } from "@/test/factories";
 
-import { useDeckFormState } from "./useDeckFormState";
-import { saveDeck } from "./actions/saveDeck";
-import { CATEGORY } from "@/entities/deck";
+import { useDeckFormPageModel } from "./useDeckFormPageModel";
 
+const authControls = vi.hoisted(() => ({ uid: "user-id" }));
 const writeControls = vi.hoisted(() => ({
   beforeWrite: undefined as (() => Promise<void>) | undefined,
   nextError: undefined as unknown,
@@ -21,6 +20,7 @@ const writeControls = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
+vi.mock("@/entities/auth", () => ({ getAuthUid: () => authControls.uid }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
@@ -41,30 +41,19 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 
 const AvailableDeckFormHarness = (props: { deck: Deck; onCancel: () => void; onSaved: () => void }) => {
-  const editor = useDeckFormState(props.deck);
+  const { form, submit } = useDeckFormPageModel(props.deck);
   return (
     <DeckForm
       mode="edit"
       categories={CATEGORY}
-      deckInfo={{ id: editor.snapshot.id, createdAt: editor.snapshot.createdAt, updatedAt: editor.snapshot.updatedAt }}
-      deckName={editor.snapshot.name}
-      form={editor.form}
-      isLocalOnly={editor.snapshot.localMode}
-      isSaving={editor.isSaving}
+      deckInfo={{ id: props.deck.id, createdAt: props.deck.createdAt, updatedAt: props.deck.updatedAt }}
+      deckName={props.deck.name}
+      form={form}
+      isLocalOnly={props.deck.localMode}
       onCancel={props.onCancel}
-      onSubmit={(event) => {
-        void editor.form.handleSubmit((values) =>
-          saveDeck(values, {
-            uid: "user-id",
-            snapshot: editor.snapshot,
-            savingRef: editor.savingRef,
-            setIsSaving: editor.setIsSaving,
-            saveErrorToastId: editor.saveErrorToastId,
-            isMounted: editor.isMounted,
-            onSaved: props.onSaved,
-          })
-        )(event);
-      }}
+      onSubmit={form.handleSubmit(async (values) => {
+        if (await submit(values)) props.onSaved();
+      })}
     />
   );
 };
@@ -76,7 +65,7 @@ const StoredDeckFormHarness = (props: { deckId: DeckId; onCancel: () => void; on
   );
 };
 
-describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
+describe("DECK-02 DECK-07 DECK-12 useDeckFormPageModel", () => {
   const deckId = "deck-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
     render(
@@ -88,6 +77,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
 
   beforeEach(async () => {
     dismissToast();
+    authControls.uid = "user-id";
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
     writeControls.writes = [];
@@ -115,6 +105,17 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
     expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveValue("https://example.com/deck.csv");
     expect(screen.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
     expect(screen.getByRole("combobox")).toHaveValue("science");
+  });
+
+  it("reads the current authenticated user when submission starts", async () => {
+    const onSaved = vi.fn();
+    renderForm(onSaved);
+    authControls.uid = "latest-user";
+
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(writeControls.writes.at(-1)?.uid).toBe("latest-user");
   });
 
   it("requests cloud persistence when Cloud is selected", async () => {
@@ -145,22 +146,6 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
     expect(screen.getByRole("button", { name: "Back to decks" })).toBeDisabled();
     finishSave();
     await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
-  });
-
-  it("does not navigate when saving finishes after leaving the editor", async () => {
-    let finishSave: () => void = () => undefined;
-    writeControls.beforeWrite = () =>
-      new Promise<void>((resolve) => {
-        finishSave = resolve;
-      });
-    const onSaved = vi.fn();
-    const view = renderForm(onSaved);
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-
-    view.unmount();
-    finishSave();
-
-    await waitFor(() => expect(onSaved).not.toHaveBeenCalled());
   });
 
   it("removes a cleared optional URL from the stored Deck", async () => {
@@ -197,7 +182,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckForm", () => {
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Retry deck");
   });
 
-  it("keeps the opening snapshot when the Deck Entity refreshes", async () => {
+  it("keeps the opening form values when the Deck Entity refreshes", async () => {
     renderForm();
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);

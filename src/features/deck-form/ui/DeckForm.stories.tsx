@@ -62,8 +62,8 @@ const DeckFormStory = ({
       form.setError("name", { message: "Deck name is required." });
       form.setError("url", { message: "Enter a valid URL." });
     }
-    if (mode === "create" && isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
-  }, [form, isSaving, mode, validationError]);
+    if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
+  }, [form, isSaving, validationError]);
 
   const commonProps = {
     categories: CATEGORY,
@@ -83,7 +83,6 @@ const DeckFormStory = ({
       deckInfo={{ id: deck.id, createdAt: deck.createdAt, updatedAt: deck.updatedAt }}
       deckName={deck.name}
       isLocalOnly={deck.localMode}
-      isSaving={isSaving}
       afterForm={<DangerZone onDelete={onDelete} />}
     />
   );
