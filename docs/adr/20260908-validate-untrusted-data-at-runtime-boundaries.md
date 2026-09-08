@@ -4,11 +4,11 @@ Status: Accepted
 
 ## Context
 
-TypeScriptの型はruntime dataを検証しない。Firestore document、browser storage、CSV、URL、file、form inputをcastだけでdomainやStoreへ入れると、malformed dataがmapperやUIの内部で失敗し、partial stateや不明確なerrorを生む。
+TypeScriptの型はruntime dataを検証しない。Firestore document、browser persisted state、CSVなどのimport data、およびdomain dataになるform inputをcastだけで受け入れると、malformed dataがmapperやUIの内部で失敗し、partial stateや不明確なerrorを生む。
 
 ## Decision
 
-application外部または永続化境界から入る値は、domain operationまたはStoreへ渡す前にZod schemaでruntime validationする。`unknown`を型assertionだけでtrusted application dataへ変換しない。
+externalまたはpersistence境界からdomain operationやStoreへ入るstructured dataは、Zod schemaを標準としてruntime validationする。format固有のsyntax parserやprimitiveなpresence checkは、その境界のcontractに応じて使用できる。`unknown`を型assertionだけでtrusted application dataへ変換しない。
 
 Entityのuser inputとdomain invariantは`model/schema.ts`、raw persistence documentはparserに隣接する`api/document.ts`、CSVなどformat固有のsyntaxとerror contextはそのimport境界が所有する。schemaから型を推論し、同じ意味のvalidationをPage、Feature、Entityへ複製しない。
 
