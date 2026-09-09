@@ -33,7 +33,6 @@ interface DeckEditFormProps extends CommonDeckFormProps {
   deckName: string;
   deckInfo: { id: string; createdAt: number; updatedAt: number };
   isLocalOnly: boolean;
-  isSaving: boolean;
   afterForm?: React.ReactNode;
 }
 
@@ -63,7 +62,7 @@ const getDeckFormPresentation = (
   }
 
   return {
-    isSaving: props.isSaving || formIsSubmitting,
+    isSaving: formIsSubmitting,
     localModeDisabled: !props.isLocalOnly,
     localModeHelp: props.isLocalOnly ? t("deckForm.edit.localModeHelp") : t("deckForm.edit.remoteModeHelp"),
     title: props.deckName,
