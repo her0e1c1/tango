@@ -70,11 +70,9 @@ describe("DeckFormPage submit entrance [DECK-02]", () => {
       </>
     );
     const submitButton = screen.getByRole("button", { name: "Save changes" });
-    const form = submitButton.closest("form");
-    if (form === null) throw new Error("Deck form was not found");
 
-    fireEvent.submit(form);
-    fireEvent.submit(form);
+    fireEvent.submit(submitButton);
+    fireEvent.submit(submitButton);
 
     await waitFor(() => expect(mocks.editCalls).toBe(1));
     await actAsync(async () => finishSave());
@@ -88,13 +86,13 @@ describe("DeckFormPage submit entrance [DECK-02]", () => {
         finishSave = resolve;
       });
     const router = createDeckFormRouter(deckId);
-    const page = render(<RouterProvider router={router} />);
+    const { unmount } = render(<RouterProvider router={router} />);
     render(<ToastViewport />);
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
     const openingPath = router.state.location.pathname;
-    page.unmount();
+    unmount();
     await actAsync(async () => finishSave());
 
     expect(router.state.location.pathname).toBe(openingPath);

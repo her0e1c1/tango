@@ -35,7 +35,7 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
   const decks = useDecks();
   const cards = useCards();
   const isMounted = useMountedGuard();
-  const submissionPending = React.useRef(false);
+  const submissionPending: React.RefObject<boolean> = React.useRef(false);
   const deletionTarget = getDeckDeletionTarget(deletion.target);
 
   const save = async (values: DeckFormFields): Promise<void> => {
