@@ -20,6 +20,6 @@ export function useDeckFormPageModel(deck: Deck) {
 
   return {
     form,
-    submit: (values: DeckFormFields) => submitAction({ deck, values }),
+    submit: (values: DeckFormFields) => submitAction(deck.id, values),
   };
 }
