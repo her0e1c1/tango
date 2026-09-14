@@ -1,25 +1,44 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import type { SubmitEvent } from "react";
+import { useFormState } from "react-hook-form";
+import { useStore } from "zustand";
 
-import { type Deck, deckFormSchema } from "@/entities/deck";
-import type { DeckFormFields } from "@/features/deck-form";
+import { useCards } from "@/entities/card";
+import { type Deck, useDecks } from "@/entities/deck";
+import { getDeckDeletionTarget } from "@/features/deck-deletion";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
-import { submit as submitAction } from "./actions/submit";
+import { cancelDeletion } from "./actions/cancelDeletion";
+import { confirmDeletion } from "./actions/confirmDeletion";
+import { requestDeletion } from "./actions/requestDeletion";
+import { submitDeckForm } from "./actions/submitDeckForm";
+import { useDeckFormState } from "./useDeckFormState";
 
 export function useDeckFormPageModel(deck: Deck) {
-  const form = useForm<DeckFormFields>({
-    defaultValues: {
-      name: deck.name,
-      category: deck.category,
-      url: deck.url || undefined,
-      convertToBr: deck.convertToBr,
-      localMode: deck.localMode,
-    },
-    resolver: zodResolver(deckFormSchema),
-  });
+  const { form, store } = useDeckFormState(deck);
+  const { isDirty, isSubmitting } = useFormState({ control: form.control });
+  const deletionTarget = useStore(store, (state) => state.deletionTarget);
+  const deletionPending = useStore(store, (state) => state.deletionPending);
+  const decks = useDecks();
+  const cards = useCards();
+  const isMounted = useMountedGuard();
 
   return {
     form,
-    submit: (values: DeckFormFields) => submitAction({ deck, values }),
+    isDirty,
+    isSubmitting,
+    deletionTarget: getDeckDeletionTarget(deletionTarget),
+    deletionPending,
+    onSubmit: (event: SubmitEvent<HTMLFormElement>, onSaved: () => void | Promise<void>) =>
+      submitDeckForm(event, {
+        deckId: deck.id,
+        localMode: deck.localMode,
+        handleSubmit: form.handleSubmit,
+        store,
+        isMounted,
+        onSaved,
+      }),
+    requestDeletion: () => requestDeletion({ deckId: deck.id, decks, cards, store }),
+    cancelDeletion: () => cancelDeletion(store),
+    confirmDeletion: (onDeleted: () => void | Promise<void>) => confirmDeletion({ store, isMounted, onDeleted }),
   };
 }

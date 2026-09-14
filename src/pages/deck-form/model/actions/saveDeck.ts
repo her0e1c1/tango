@@ -1,15 +1,20 @@
 import { getAuthUid } from "@/entities/auth";
-import { editDeck } from "@/entities/deck";
+import { type Deck, editDeck } from "@/entities/deck";
+import type { DeckFormFields } from "@/features/deck-form";
 import { showToast } from "@/shared/ui/toast";
 
-import type { SubmitDeckFormInput } from "../types";
+interface SaveDeckInput {
+  deckId: Deck["id"];
+  localMode: Deck["localMode"];
+  values: DeckFormFields;
+}
 
-export async function submit({ deck, values }: SubmitDeckFormInput): Promise<boolean> {
+export async function saveDeck({ deckId, localMode, values }: SaveDeckInput): Promise<boolean> {
   // Capture the submitted values so persistence and feedback cannot observe a later draft.
   const input = {
     ...values,
-    id: deck.id,
-    localMode: values.localMode ?? deck.localMode,
+    id: deckId,
+    localMode: values.localMode ?? localMode,
     url: values.url ?? null,
   };
 

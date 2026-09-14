@@ -1,66 +1,36 @@
-import * as React from "react";
-import { useFormState } from "react-hook-form";
+import type * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getAuthUid } from "@/entities/auth";
-import { useCards } from "@/entities/card";
-import { CATEGORY, type Deck, useDeck, useDecks } from "@/entities/deck";
-import {
-  cancelDeckDeletion,
-  confirmDeckDeletion,
-  DeckDeletionDialog,
-  getDeckDeletionTarget,
-  requestDeckDeletion,
-  useDeckDeletionState,
-} from "@/features/deck-deletion";
-import { DeckForm, type DeckFormFields } from "@/features/deck-form";
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { CATEGORY, type Deck } from "@/entities/deck";
+import { DeckDeletionDialog } from "@/features/deck-deletion";
+import { DeckForm } from "@/features/deck-form";
 import { routes, useNavigationGuard } from "@/shared/router";
 import { Button } from "@/shared/ui/button";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useDeckFormPageModel } from "../model/useDeckFormPageModel";
+import { useOpeningDeck } from "../model/useOpeningDeck";
 
-const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
+const DeckFormContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const deckListPath = routes.deckList.to();
   const goToList = () => navigate(deckListPath, { replace: true });
-  const { form, submit } = useDeckFormPageModel(deck);
-  const { isDirty, isSubmitting } = useFormState({ control: form.control });
+  const {
+    form,
+    isDirty,
+    isSubmitting,
+    deletionTarget,
+    deletionPending,
+    onSubmit,
+    requestDeletion,
+    cancelDeletion,
+    confirmDeletion,
+  } = useDeckFormPageModel(deck);
   const guard = useNavigationGuard(isDirty || isSubmitting);
-  const deletion = useDeckDeletionState();
-  const decks = useDecks();
-  const cards = useCards();
-  const isMounted = useMountedGuard();
-  const submissionPending: React.RefObject<boolean> = React.useRef(false);
-  const deletionTarget = getDeckDeletionTarget(deletion.target);
-
-  const save = async (values: DeckFormFields): Promise<void> => {
-    if (!(await submit(values)) || !isMounted()) return;
-
-    await guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
-  };
-  const handleSubmit = form.handleSubmit(save);
-  const onSubmit: React.SubmitEventHandler<HTMLFormElement> = (event) => {
-    if (submissionPending.current) {
-      // RHF validation is asynchronous, so guard the entrance before isSubmitting can rerender the form.
-      event.preventDefault();
-      return;
-    }
-
-    submissionPending.current = true;
-    void handleSubmit(event)
-      .catch((error: unknown) => {
-        // biome-ignore lint/suspicious/noConsole: Unexpected validation/navigation errors are not persistence failures.
-        console.error("Deck edit form callback failed.", error);
-      })
-      .finally(() => {
-        submissionPending.current = false;
-      });
-  };
+  const onCompleted = () => guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
 
   return (
     <AppLayout showHeader>
@@ -68,19 +38,9 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
       {!guard.isBlocked && deletionTarget != null && (
         <DeckDeletionDialog
           target={deletionTarget}
-          pending={deletion.pending}
-          onCancel={() => cancelDeckDeletion({ pending: deletion.pending, setTarget: deletion.setTarget })}
-          onConfirm={() =>
-            confirmDeckDeletion({
-              uid: getAuthUid(),
-              target: deletion.target,
-              pending: deletion.pending,
-              setTarget: deletion.setTarget,
-              setPending: deletion.setPending,
-              isMounted,
-              onDeleted: () => void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList),
-            })
-          }
+          pending={deletionPending}
+          onCancel={cancelDeletion}
+          onConfirm={() => confirmDeletion(onCompleted)}
         />
       )}
       <DeckForm
@@ -95,7 +55,7 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
         form={form}
         isLocalOnly={deck.localMode}
         onCancel={() => void goToList()}
-        onSubmit={onSubmit}
+        onSubmit={(event) => void onSubmit(event, onCompleted)}
         afterForm={
           <section
             aria-labelledby="delete-deck-heading"
@@ -105,19 +65,7 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
               {t("deckDeletion.dangerTitle")}
             </h2>
             <p className="mt-1 text-body text-ink-muted">{t("deckDeletion.dangerDescription")}</p>
-            <Button
-              className="mt-4"
-              variant="destructive"
-              disabled={isSubmitting}
-              onClick={() =>
-                requestDeckDeletion(deck.id, {
-                  pending: deletion.pending,
-                  decks,
-                  cards,
-                  setTarget: deletion.setTarget,
-                })
-              }
-            >
+            <Button className="mt-4" variant="destructive" disabled={isSubmitting} onClick={requestDeletion}>
               {t("deckDeletion.confirm")}
             </Button>
           </section>
@@ -127,19 +75,15 @@ const DeckFormContent: React.FC<{ deck: Deck }> = ({ deck }) => {
   );
 };
 
-const DeckFormRoutePage: React.FC<{ deckId: Deck["id"] }> = ({ deckId }) => {
+const DeckFormRouteContainer: React.FC<{ deckId: Deck["id"] }> = ({ deckId }) => {
   const { t } = useTranslation();
-  const deck = useDeck(deckId);
-  const [openingDeck, setOpeningDeck] = React.useState(deck);
-
-  if (openingDeck === undefined && deck !== undefined) setOpeningDeck(deck);
+  const openingDeck = useOpeningDeck(deckId);
 
   if (openingDeck == null) {
     return <RouteNotFound title={t("deckForm.notFound.title")} description={t("deckForm.notFound.description")} />;
   }
 
-  // Keep the opening snapshot mounted until this route ends so its own successful deletion can finish navigation.
-  return <DeckFormContent deck={openingDeck} />;
+  return <DeckFormContainer deck={openingDeck} />;
 };
 
 export const DeckFormPage: React.FC = () => {
@@ -148,5 +92,5 @@ export const DeckFormPage: React.FC = () => {
   if (deckId == null) throw new Error("invalid deck id");
 
   // Page-owned form and deletion state must not survive navigation to a different Deck.
-  return <DeckFormRoutePage key={deckId} deckId={deckId} />;
+  return <DeckFormRouteContainer key={deckId} deckId={deckId} />;
 };

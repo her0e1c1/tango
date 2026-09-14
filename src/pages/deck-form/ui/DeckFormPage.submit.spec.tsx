@@ -79,6 +79,26 @@ describe("DeckFormPage submit entrance [DECK-02]", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
 
+  it("saves a corrected draft after validation rejects the first submission", async () => {
+    const router = createDeckFormRouter(deckId);
+    render(
+      <>
+        <RouterProvider router={router} />
+        <ToastViewport />
+      </>
+    );
+    const name = screen.getByRole("textbox", { name: "Name" });
+    await userEvent.clear(name);
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(await screen.findByText("Deck name is required.")).toBeVisible();
+    await userEvent.type(name, "Corrected deck");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    expect(screen.getByText("Updated deck “Corrected deck”.")).toBeVisible();
+  });
+
   it("publishes success after Page unmount without navigating the old visit", async () => {
     let finishSave: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>
