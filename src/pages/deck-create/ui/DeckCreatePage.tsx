@@ -6,30 +6,23 @@ import { CATEGORY } from "@/entities/deck";
 import { routes, useNavigationGuard } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 
-import { useDeckCreateFormState } from "../model/useDeckCreateFormState";
-import { submitDeckCreation } from "../model/actions/submitDeckCreation";
-import { getAuthUid } from "@/entities/auth";
-import { dismissSaveError } from "../model/actions/dismissSaveError";
+import { useDeckCreatePageModel } from "../model/useDeckCreatePageModel";
 
 export const DeckCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const state = useDeckCreateFormState();
-  const onSubmit = (event?: React.BaseSyntheticEvent) =>
-    submitDeckCreation(event, {
-      uid: getAuthUid(),
-      form: state.form,
-      saveErrorToastId: state.saveErrorToastId,
-      isMounted: state.isMounted,
-      onCreated: (deckId) => {
-        const cardListPath = routes.cardList.to(deckId);
-        void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
-          navigate(cardListPath, { replace: true })
-        );
-      },
-    });
-  const guard = useNavigationGuard(state.form.formState.isDirty);
+  const model = useDeckCreatePageModel();
+  const guard = useNavigationGuard(model.form.formState.isDirty);
+  const onSubmit = model.form.handleSubmit(async (values) => {
+    const deckId = await model.submit(values);
+    // The Page may unmount between the action resolving and this continuation.
+    if (deckId === undefined || !model.isMounted()) return;
+    const cardListPath = routes.cardList.to(deckId);
+    void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
+      navigate(cardListPath, { replace: true })
+    );
+  });
   const cancel = () => {
-    dismissSaveError(state.saveErrorToastId);
+    model.dismissSaveError();
     void navigate(routes.deckList.to());
   };
 
@@ -39,10 +32,10 @@ export const DeckCreatePage: React.FC = () => {
       <DeckForm
         mode="create"
         categories={CATEGORY}
-        form={state.form}
-        isLocalModeLocked={state.form.formState.isSubmitting}
+        form={model.form}
+        isLocalModeLocked={model.pending}
         onCancel={cancel}
-        onSubmit={onSubmit}
+        onSubmit={(event) => void onSubmit(event)}
       />
     </AppLayout>
   );

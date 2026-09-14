@@ -1,8 +1,9 @@
-import type { RefObject } from "react";
-import { dismissToast, type ToastId } from "@/shared/ui/toast";
+import { dismissToast } from "@/shared/ui/toast";
+import { deckCreatePageStore as store } from "../store";
 
-export const dismissSaveError = (toastId: RefObject<ToastId | undefined>): void => {
-  if (toastId.current === undefined) return;
-  dismissToast(toastId.current);
-  toastId.current = undefined;
-};
+export function dismissSaveError(): void {
+  const { saveErrorToastId } = store.getState();
+  if (saveErrorToastId === undefined) return;
+  dismissToast(saveErrorToastId);
+  store.setState({ saveErrorToastId: undefined });
+}
