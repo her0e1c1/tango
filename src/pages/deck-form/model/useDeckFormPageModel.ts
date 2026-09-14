@@ -1,26 +1,25 @@
-import type { SubmitEvent } from "react";
+import { type SubmitEvent, useLayoutEffect } from "react";
 import { useFormState } from "react-hook-form";
 import { useStore } from "zustand";
 
-import { useCards } from "@/entities/card";
-import { type Deck, useDecks } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 import { getDeckDeletionTarget } from "@/features/deck-deletion";
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
 import { cancelDeletion } from "./actions/cancelDeletion";
 import { confirmDeletion } from "./actions/confirmDeletion";
+import { enterDeckFormPage } from "./actions/enterDeckFormPage";
 import { requestDeletion } from "./actions/requestDeletion";
 import { submitDeckForm } from "./actions/submitDeckForm";
+import { deckFormPageStore } from "./store";
 import { useDeckFormState } from "./useDeckFormState";
 
 export function useDeckFormPageModel(deck: Deck) {
-  const { form, store } = useDeckFormState(deck);
+  const { form } = useDeckFormState(deck);
   const { isDirty, isSubmitting } = useFormState({ control: form.control });
-  const deletionTarget = useStore(store, (state) => state.deletionTarget);
-  const deletionPending = useStore(store, (state) => state.deletionPending);
-  const decks = useDecks();
-  const cards = useCards();
-  const isMounted = useMountedGuard();
+  const deletionTarget = useStore(deckFormPageStore, (state) => state.deletionTarget);
+  const deletionPending = useStore(deckFormPageStore, (state) => state.deletionPending);
+  // Clear the previous visit before its dialog can paint or accept input on the new route.
+  useLayoutEffect(enterDeckFormPage, []);
 
   return {
     form,
@@ -33,12 +32,10 @@ export function useDeckFormPageModel(deck: Deck) {
         deckId: deck.id,
         localMode: deck.localMode,
         handleSubmit: form.handleSubmit,
-        store,
-        isMounted,
         onSaved,
       }),
-    requestDeletion: () => requestDeletion({ deckId: deck.id, decks, cards, store }),
-    cancelDeletion: () => cancelDeletion(store),
-    confirmDeletion: (onDeleted: () => void | Promise<void>) => confirmDeletion({ store, isMounted, onDeleted }),
+    requestDeletion: () => requestDeletion(deck.id),
+    cancelDeletion,
+    confirmDeletion,
   };
 }

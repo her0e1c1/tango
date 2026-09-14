@@ -1,23 +1,20 @@
 import { getAuthUid } from "@/entities/auth";
 import { confirmDeckDeletion } from "@/features/deck-deletion";
 
-import type { DeckFormPageStore } from "../store";
+import { deckFormPageStore } from "../store";
 
-interface ConfirmDeletionInput {
-  store: DeckFormPageStore;
-  isMounted: () => boolean;
-  onDeleted: () => void | Promise<void>;
-}
+export function confirmDeletion(onDeleted: () => void | Promise<void>): Promise<void> {
+  const { owner, deletionTarget, deletionPending } = deckFormPageStore.getState();
+  if (owner === undefined) return Promise.resolve();
 
-export function confirmDeletion({ store, isMounted, onDeleted }: ConfirmDeletionInput): Promise<void> {
-  const { deletionTarget, deletionPending } = store.getState();
   return confirmDeckDeletion({
     uid: getAuthUid(),
     target: deletionTarget,
     pending: deletionPending,
-    setTarget: (target) => store.setState({ deletionTarget: target }),
-    setPending: (pending) => store.setState({ deletionPending: pending }),
-    isMounted,
+    setTarget: (target) => deckFormPageStore.setState({ deletionTarget: target }),
+    setPending: (pending) => deckFormPageStore.setState({ deletionPending: pending }),
+    // Shared deletion checks this before publishing completion or changing the current dialog.
+    isMounted: () => deckFormPageStore.getState().owner === owner,
     onDeleted: () => void onDeleted(),
   });
 }

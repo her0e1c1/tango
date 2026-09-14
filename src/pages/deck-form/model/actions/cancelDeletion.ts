@@ -1,10 +1,10 @@
 import { cancelDeckDeletion } from "@/features/deck-deletion";
 
-import type { DeckFormPageStore } from "../store";
+import { deckFormPageStore } from "../store";
 
-export function cancelDeletion(store: DeckFormPageStore): void {
+export function cancelDeletion(): void {
   cancelDeckDeletion({
-    pending: store.getState().deletionPending,
-    setTarget: (deletionTarget) => store.setState({ deletionTarget }),
+    pending: deckFormPageStore.getState().deletionPending,
+    setTarget: (deletionTarget) => deckFormPageStore.setState({ deletionTarget }),
   });
 }

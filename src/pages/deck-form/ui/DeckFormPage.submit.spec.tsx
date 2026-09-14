@@ -1,3 +1,4 @@
+import * as React from "react";
 import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -98,6 +99,48 @@ describe("DeckFormPage submit entrance [DECK-02]", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Updated deck “Corrected deck”.")).toBeVisible();
   });
+
+  it.each(["deck-form-submit-deck", "another-deck"])(
+    "keeps the new editor submission pending when an earlier visit finishes (%s)",
+    async (nextDeckId) => {
+      await createDeck("", createLocalDeck({ id: nextDeckId, name: "Deck name" }));
+      let finishOldSave: () => void = () => undefined;
+      mocks.beforeDeckWrite = () =>
+        new Promise<void>((resolve) => {
+          finishOldSave = resolve;
+        });
+      const oldRouter = createDeckFormRouter(deckId);
+      const view = render(<RouterProvider router={oldRouter} />);
+      await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+      expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
+      view.unmount();
+
+      let finishNewSave: () => void = () => undefined;
+      mocks.beforeDeckWrite = () =>
+        new Promise<void>((resolve) => {
+          finishNewSave = resolve;
+        });
+      const router = createDeckFormRouter(nextDeckId);
+      render(
+        <React.StrictMode>
+          <RouterProvider router={router} />
+        </React.StrictMode>
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+      const saving = await screen.findByRole("button", { name: "Saving…" });
+      expect(saving).toBeDisabled();
+
+      await actAsync(async () => finishOldSave());
+      expect(router.state.location.pathname).toBe(`/deck/${nextDeckId}/edit`);
+      expect(saving).toBeDisabled();
+      fireEvent.submit(saving);
+      await actAsync(async () => undefined);
+      expect(mocks.editCalls).toBe(2);
+
+      await actAsync(async () => finishNewSave());
+      expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    }
+  );
 
   it("publishes success after Page unmount without navigating the old visit", async () => {
     let finishSave: () => void = () => undefined;

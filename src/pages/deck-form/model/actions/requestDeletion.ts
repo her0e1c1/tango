@@ -1,21 +1,14 @@
-import type { Card } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import { getCards } from "@/entities/card";
+import { type Deck, getDecks } from "@/entities/deck";
 import { requestDeckDeletion } from "@/features/deck-deletion";
 
-import type { DeckFormPageStore } from "../store";
+import { deckFormPageStore } from "../store";
 
-interface RequestDeletionInput {
-  deckId: Deck["id"];
-  decks: Deck[];
-  cards: Card[];
-  store: DeckFormPageStore;
-}
-
-export function requestDeletion({ deckId, decks, cards, store }: RequestDeletionInput): void {
+export function requestDeletion(deckId: Deck["id"]): void {
   requestDeckDeletion(deckId, {
-    pending: store.getState().deletionPending,
-    decks,
-    cards,
-    setTarget: (deletionTarget) => store.setState({ deletionTarget }),
+    pending: deckFormPageStore.getState().deletionPending,
+    decks: getDecks(),
+    cards: getCards(),
+    setTarget: (deletionTarget) => deckFormPageStore.setState({ deletionTarget }),
   });
 }
