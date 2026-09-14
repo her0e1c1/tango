@@ -1,31 +1,30 @@
-import { type Card, deleteCard } from "@/entities/card";
+import { deleteCard } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
-import type { ListMutationControl } from "../types";
-import { beginListMutation } from "./beginListMutation";
-import { finishListMutation } from "./finishListMutation";
+import type { CardListStore } from "../store";
+import { dismissListError } from "./dismissListError";
 
-export const confirmCardDeletion = async (
-  uid: string,
-  card: Card | undefined,
-  mutation: ListMutationControl,
-  setTarget: (card: undefined) => void
-): Promise<void> => {
-  if (card == null || !beginListMutation(mutation)) return;
+export async function confirmCardDeletion(store: CardListStore, uid: string): Promise<void> {
+  const { deletionTarget: card, mutationPending } = store.getState();
+  if (card == null || mutationPending) return;
+  dismissListError(store);
+  store.setState({ mutationPending: true });
   try {
     await deleteCard(uid, card);
-    if (!mutation.isMounted()) return;
-    setTarget(undefined);
+    if (!store.getState().active) return;
+    store.setState({ deletionTarget: undefined });
     showToast({ messageKey: "cardList.toast.deleted", messageParams: { name: card.frontText }, tone: "success" });
   } catch {
-    if (mutation.isMounted()) {
+    if (store.getState().active) {
       // Retry starts from a newly selected Card after a failed deletion.
-      setTarget(undefined);
-      mutation.errorToastId.current = showToast({
-        messageKey: "cardList.toast.deleteFailure",
-        tone: "error",
+      store.setState({
+        deletionTarget: undefined,
+        errorToastId: showToast({
+          messageKey: "cardList.toast.deleteFailure",
+          tone: "error",
+        }),
       });
     }
   } finally {
-    finishListMutation(mutation);
+    store.setState({ mutationPending: false });
   }
-};
+}

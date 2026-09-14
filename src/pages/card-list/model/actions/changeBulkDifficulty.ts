@@ -1,12 +1,11 @@
 import { type Difficulty, MAX_DIFFICULTY, MIN_DIFFICULTY } from "@/entities/study-progress";
+import type { CardListStore } from "../store";
 
-export const changeBulkDifficulty = (
-  difficulty: Difficulty | null,
-  setDifficulty: (difficulty: Difficulty | null) => void
-): void => {
+export function changeBulkDifficulty(store: CardListStore, difficulty: Difficulty | null): void {
+  if (store.getState().bulkAttempted) return;
   if (
     difficulty == null ||
     (Number.isInteger(difficulty) && difficulty >= MIN_DIFFICULTY && difficulty <= MAX_DIFFICULTY)
   )
-    setDifficulty(difficulty);
-};
+    store.setState({ bulkDifficulty: difficulty });
+}

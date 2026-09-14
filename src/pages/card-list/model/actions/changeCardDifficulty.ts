@@ -1,33 +1,24 @@
-import { type Card, type CardId, mustFindCardById } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import { calculateDifficulty, editStudyProgress, type StudyRating } from "@/entities/study-progress";
 import { showToast } from "@/shared/ui/toast";
-import type { ListMutationControl } from "../types";
-import { beginListMutation } from "./beginListMutation";
-import { finishListMutation } from "./finishListMutation";
+import type { CardListStore } from "../store";
+import { dismissListError } from "./dismissListError";
 
-interface ChangeCardDifficultyOptions {
-  uid: string;
-  cards: readonly Card[];
-  id: CardId;
-  rating: StudyRating;
-  mutation: ListMutationControl;
-}
-
-export const changeCardDifficulty = async ({
-  uid,
-  cards,
-  id,
-  rating,
-  mutation,
-}: ChangeCardDifficultyOptions): Promise<void> => {
-  if (!beginListMutation(mutation)) return;
+export async function changeCardDifficulty(
+  store: CardListStore,
+  uid: string,
+  card: Card,
+  rating: StudyRating
+): Promise<void> {
+  if (store.getState().mutationPending) return;
+  dismissListError(store);
+  store.setState({ mutationPending: true });
   try {
-    const card = mustFindCardById(cards, id);
     await editStudyProgress(uid, { cardId: card.id, difficulty: calculateDifficulty(card.difficulty, rating) });
   } catch {
-    if (mutation.isMounted())
-      mutation.errorToastId.current = showToast({ messageKey: "toast.saveFailure", tone: "error" });
+    if (store.getState().active)
+      store.setState({ errorToastId: showToast({ messageKey: "toast.saveFailure", tone: "error" }) });
   } finally {
-    finishListMutation(mutation);
+    store.setState({ mutationPending: false });
   }
-};
+}
