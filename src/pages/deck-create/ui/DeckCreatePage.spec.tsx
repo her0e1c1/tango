@@ -230,6 +230,39 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     expect(screen.getByRole("heading", { name: "Deck list destination" })).toBeVisible();
   });
 
+  it.each(["success", "failure"] as const)("isolates an old %s after re-entering the Page", async (outcome) => {
+    const oldWrite = Promise.withResolvers<void>();
+    const newWrite = Promise.withResolvers<void>();
+    mocks.createDeck.mockReturnValueOnce(oldWrite.promise).mockReturnValueOnce(newWrite.promise);
+    const { unmount } = renderPage(true);
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Old deck");
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+    unmount();
+
+    renderPage(true);
+    await userEvent.click(screen.getByText("More settings"));
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Current deck");
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+    await actAsync(async () => {
+      if (outcome === "success") oldWrite.resolve();
+      else oldWrite.reject(new Error("old write failed"));
+      await Promise.resolve();
+    });
+
+    expect(screen.queryByText("Created deck “Old deck”.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Unable to create this deck.")).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Current deck");
+    expect(screen.getByRole("button", { name: "Create deck" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "Local only" })).toBeDisabled();
+
+    await actAsync(async () => {
+      newWrite.resolve();
+      await Promise.resolve();
+    });
+    expect(await screen.findByRole("heading", { name: "Card list destination" })).toBeVisible();
+    expect(screen.getByText("Created deck “Current deck”.")).toBeVisible();
+  });
+
   it("returns to the Deck list without creating", async () => {
     renderPage();
 
