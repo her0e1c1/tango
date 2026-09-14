@@ -46,7 +46,7 @@ const createDeckFormRouter = (deckId: string) =>
     { initialEntries: [`/deck/${deckId}/edit`] }
   );
 
-describe("DeckFormPage submit entrance [DECK-02]", () => {
+describe("DeckFormPage submission [DECK-02]", () => {
   const deckId = "deck-form-submit-deck";
 
   beforeEach(async () => {
@@ -76,6 +76,7 @@ describe("DeckFormPage submit entrance [DECK-02]", () => {
     fireEvent.submit(submitButton);
 
     await waitFor(() => expect(mocks.editCalls).toBe(1));
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     await actAsync(async () => finishSave());
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });

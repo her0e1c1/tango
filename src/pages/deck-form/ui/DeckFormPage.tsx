@@ -12,7 +12,6 @@ import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useDeckFormPageModel } from "../model/useDeckFormPageModel";
 import { useOpeningDeck } from "../model/useOpeningDeck";
-import { useDeckFormSubmit } from "./useDeckFormSubmit";
 
 const DeckFormContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
@@ -32,7 +31,6 @@ const DeckFormContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   } = useDeckFormPageModel(deck);
   const guard = useNavigationGuard(isDirty || isSubmitting);
   const onCompleted = () => guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
-  const onSubmit = useDeckFormSubmit(form.handleSubmit, (values) => submit(values, onCompleted));
 
   return (
     <AppLayout showHeader>
@@ -57,7 +55,7 @@ const DeckFormContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
         form={form}
         isLocalOnly={deck.localMode}
         onCancel={() => void goToList()}
-        onSubmit={onSubmit}
+        onSubmit={form.handleSubmit((values) => submit(values, onCompleted))}
         afterForm={
           <section
             aria-labelledby="delete-deck-heading"

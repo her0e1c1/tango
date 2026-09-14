@@ -17,6 +17,7 @@ import { useDeckFormState } from "./useDeckFormState";
 export function useDeckFormPageModel(deck: Deck) {
   const { form } = useDeckFormState(deck);
   const { isDirty, isSubmitting } = useFormState({ control: form.control });
+  const owner = useStore(deckFormPageStore, (state) => state.owner);
   const deletionTarget = useStore(deckFormPageStore, (state) => state.deletionTarget);
   const deletionPending = useStore(deckFormPageStore, (state) => state.deletionPending);
   // Clear the previous visit before its dialog can paint or accept input on the new route.
@@ -30,6 +31,7 @@ export function useDeckFormPageModel(deck: Deck) {
     deletionPending,
     submit: (values: DeckFormFields, onSaved: () => void | Promise<void>) =>
       submitDeckForm({
+        owner,
         deckId: deck.id,
         localMode: deck.localMode,
         values,
