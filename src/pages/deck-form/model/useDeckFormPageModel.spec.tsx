@@ -41,7 +41,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 
 const AvailableDeckFormHarness = (props: { deck: Deck; onCancel: () => void; onSaved: () => void }) => {
-  const { form, onSubmit } = useDeckFormPageModel(props.deck);
+  const { form, submit } = useDeckFormPageModel(props.deck);
   return (
     <DeckForm
       mode="edit"
@@ -51,7 +51,7 @@ const AvailableDeckFormHarness = (props: { deck: Deck; onCancel: () => void; onS
       form={form}
       isLocalOnly={props.deck.localMode}
       onCancel={props.onCancel}
-      onSubmit={(event) => void onSubmit(event, props.onSaved)}
+      onSubmit={(event) => void form.handleSubmit((values) => submit(values, props.onSaved))(event)}
     />
   );
 };

@@ -142,6 +142,23 @@ describe("DeckFormPage submit entrance [DECK-02]", () => {
     }
   );
 
+  it("does not submit a replaced form when its asynchronous validation finishes", async () => {
+    const oldRouter = createDeckFormRouter(deckId);
+    const view = render(<RouterProvider router={oldRouter} />);
+    fireEvent.submit(screen.getByRole("button", { name: "Save changes" }));
+    view.unmount();
+
+    const router = createDeckFormRouter(deckId);
+    render(<RouterProvider router={router} />);
+    await actAsync(async () => undefined);
+
+    expect(mocks.editCalls).toBe(0);
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    expect(mocks.editCalls).toBe(1);
+  });
+
   it("publishes success after Page unmount without navigating the old visit", async () => {
     let finishSave: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>

@@ -1,9 +1,10 @@
-import { type SubmitEvent, useLayoutEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useFormState } from "react-hook-form";
 import { useStore } from "zustand";
 
 import type { Deck } from "@/entities/deck";
 import { getDeckDeletionTarget } from "@/features/deck-deletion";
+import type { DeckFormFields } from "@/features/deck-form";
 
 import { cancelDeletion } from "./actions/cancelDeletion";
 import { confirmDeletion } from "./actions/confirmDeletion";
@@ -27,11 +28,11 @@ export function useDeckFormPageModel(deck: Deck) {
     isSubmitting,
     deletionTarget: getDeckDeletionTarget(deletionTarget),
     deletionPending,
-    onSubmit: (event: SubmitEvent<HTMLFormElement>, onSaved: () => void | Promise<void>) =>
-      submitDeckForm(event, {
+    submit: (values: DeckFormFields, onSaved: () => void | Promise<void>) =>
+      submitDeckForm({
         deckId: deck.id,
         localMode: deck.localMode,
-        handleSubmit: form.handleSubmit,
+        values,
         onSaved,
       }),
     requestDeletion: () => requestDeletion(deck.id),
