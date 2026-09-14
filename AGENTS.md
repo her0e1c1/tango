@@ -55,6 +55,12 @@ For every task that changes repository files:
 - Keep non-editable context and system-managed data, such as authenticated user IDs, fixed route parameters, generated IDs, and system timestamps, outside form values.
 - Combine validated form values with the required context and metadata in submit actions instead of adding them to the form.
 
+### Form submission
+
+- Prefer library-provided APIs directly. Do not introduce custom hooks or wrappers for submission, validation, or form state already handled by React Hook Form.
+- Keep application-specific submission rules, concurrency control, and asynchronous lifetime management in model actions. Do not move these responsibilities into UI hooks merely to remove DOM dependencies from the model.
+- Connect React Hook Form's `handleSubmit` directly to actions that accept validated values. Submit actions must not receive DOM events or `handleSubmit` itself.
+
 ## Coding Style
 
 - Prefer clear names and small functions; use comments to preserve intent that the code cannot express on its own.
