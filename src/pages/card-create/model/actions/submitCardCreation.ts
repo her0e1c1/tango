@@ -3,7 +3,7 @@ import { showToast } from "@/shared/ui/toast";
 
 import type { SubmitCardCreateInput } from "../types";
 
-export async function submit({ uid, deckId, values }: SubmitCardCreateInput): Promise<boolean> {
+export async function submitCardCreation({ uid, deckId, values }: SubmitCardCreateInput): Promise<boolean> {
   // Each attempt has a new identity; retries intentionally do not reuse an uncertain previous write.
   const cardId = generateCardId();
 

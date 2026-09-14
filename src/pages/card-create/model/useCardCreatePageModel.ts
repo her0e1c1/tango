@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { getAuthUid } from "@/entities/auth";
 import { type CardContentInput, cardContentInputSchema } from "@/entities/card";
 
-import { submit as submitAction } from "./actions/submit";
+import { submitCardCreation } from "./actions/submitCardCreation";
 
 export function useCardCreatePageModel(deckId: string) {
   const form = useForm<CardContentInput>({
@@ -14,6 +14,6 @@ export function useCardCreatePageModel(deckId: string) {
 
   return {
     form,
-    submit: (values: CardContentInput) => submitAction({ uid: getAuthUid(), deckId, values }),
+    submit: (values: CardContentInput) => submitCardCreation({ uid: getAuthUid(), deckId, values }),
   };
 }
