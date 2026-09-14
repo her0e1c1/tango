@@ -123,7 +123,11 @@ const ImportPreview = (props: ImportPreviewProps) => {
       ) : null}
 
       {visibleRows.length > 0 ? (
-        <div className="overflow-x-auto rounded-surface border border-border">
+        <div
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users need to focus this overflow container to scroll the preview table.
+          tabIndex={0}
+          className="overflow-x-auto rounded-surface border border-border"
+        >
           <table className="w-full min-w-max border-collapse text-left text-caption text-ink">
             <thead className="bg-surface-muted">
               <tr>

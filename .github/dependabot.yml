@@ -15,6 +15,13 @@ updates:
     # and remote server versions aligned.
     ignore:
       - dependency-name: "@playwright/test"
+      # Storybook addon-vitest only supports Vitest 3 and 4; upgrade together once supported.
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/browser-playwright"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/coverage-v8"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
