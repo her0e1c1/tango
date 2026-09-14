@@ -1,22 +1,22 @@
 import { deleteCard } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
-import type { CardListStore } from "../store";
+import { cardListStore } from "../store";
 import { dismissListError } from "./dismissListError";
 
-export async function confirmCardDeletion(store: CardListStore, uid: string): Promise<void> {
-  const { deletionTarget: card, mutationPending } = store.getState();
-  if (card == null || mutationPending) return;
-  dismissListError(store);
-  store.setState({ mutationPending: true });
+export async function confirmCardDeletion(uid: string): Promise<void> {
+  const { deletionTarget: card, mutationPending, owner } = cardListStore.getState();
+  if (card == null || mutationPending || owner === undefined) return;
+  dismissListError();
+  cardListStore.setState({ mutationPending: true });
   try {
     await deleteCard(uid, card);
-    if (!store.getState().active) return;
-    store.setState({ deletionTarget: undefined });
+    if (cardListStore.getState().owner !== owner) return;
+    cardListStore.setState({ deletionTarget: undefined });
     showToast({ messageKey: "cardList.toast.deleted", messageParams: { name: card.frontText }, tone: "success" });
   } catch {
-    if (store.getState().active) {
+    if (cardListStore.getState().owner === owner) {
       // Retry starts from a newly selected Card after a failed deletion.
-      store.setState({
+      cardListStore.setState({
         deletionTarget: undefined,
         errorToastId: showToast({
           messageKey: "cardList.toast.deleteFailure",
@@ -25,6 +25,7 @@ export async function confirmCardDeletion(store: CardListStore, uid: string): Pr
       });
     }
   } finally {
-    store.setState({ mutationPending: false });
+    // A previous visit must never release the current visit's mutation lock.
+    if (cardListStore.getState().owner === owner) cardListStore.setState({ mutationPending: false });
   }
 }

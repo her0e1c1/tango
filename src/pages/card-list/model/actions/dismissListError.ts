@@ -1,9 +1,9 @@
 import { dismissToast } from "@/shared/ui/toast";
-import type { CardListStore } from "../store";
+import { cardListStore } from "../store";
 
-export function dismissListError(store: CardListStore): void {
-  const { errorToastId } = store.getState();
+export function dismissListError(): void {
+  const { errorToastId } = cardListStore.getState();
   if (errorToastId === undefined) return;
   dismissToast(errorToastId);
-  store.setState({ errorToastId: undefined });
+  cardListStore.setState({ errorToastId: undefined });
 }

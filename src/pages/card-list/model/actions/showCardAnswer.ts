@@ -1,6 +1,6 @@
 import type { Card } from "@/entities/card";
-import type { CardListStore } from "../store";
+import { cardListStore } from "../store";
 
-export function showCardAnswer(store: CardListStore, card: Card | undefined): void {
-  store.setState({ shownCard: card });
+export function showCardAnswer(card: Card | undefined): void {
+  cardListStore.setState({ shownCard: card });
 }

@@ -1,9 +1,9 @@
 import type { Card } from "@/entities/card";
-import type { CardListStore } from "../store";
+import { cardListStore } from "../store";
 import { dismissListError } from "./dismissListError";
 
-export function requestCardDeletion(store: CardListStore, card: Card): void {
-  if (store.getState().mutationPending) return;
-  dismissListError(store);
-  store.setState({ deletionTarget: card });
+export function requestCardDeletion(card: Card): void {
+  if (cardListStore.getState().mutationPending) return;
+  dismissListError();
+  cardListStore.setState({ deletionTarget: card });
 }

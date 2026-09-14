@@ -1,6 +1,6 @@
-import type { CardListStore } from "../store";
+import { cardListStore } from "../store";
 
-export function cancelCardDeletion(store: CardListStore): void {
-  if (store.getState().mutationPending) return;
-  store.setState({ deletionTarget: undefined });
+export function cancelCardDeletion(): void {
+  if (cardListStore.getState().mutationPending) return;
+  cardListStore.setState({ deletionTarget: undefined });
 }
