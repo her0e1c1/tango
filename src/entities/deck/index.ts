@@ -1,3 +1,4 @@
+export { getDecks } from "./model/queries/getDecks";
 export { subscribeDecks } from "./api/firestore";
 export { generateDeckId } from "./api/id";
 export { createDeck, deleteDeck, editDeck } from "./api/mutations";

@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   setDarkMode: vi.fn(),
   beforeDeckWrite: undefined as (() => Promise<void>) | undefined,
   skipDeckWrite: false,
+  beforeDeckDelete: undefined as (() => Promise<void>) | undefined,
   remoteDeck: undefined as Deck | undefined,
 }));
 
@@ -32,6 +33,10 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     useDeck(id: Parameters<typeof actual.useDeck>[0]) {
       const storedDeck = actual.useDeck(id);
       return mocks.remoteDeck?.id === id ? mocks.remoteDeck : storedDeck;
+    },
+    deleteDeck: async (...args: Parameters<typeof actual.deleteDeck>) => {
+      await mocks.beforeDeckDelete?.();
+      return actual.deleteDeck(...args);
     },
     editDeck: async (...args: Parameters<typeof actual.editDeck>) => {
       await mocks.beforeDeckWrite?.();
@@ -71,6 +76,7 @@ describe("DeckFormPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
     mocks.setDarkMode.mockReset();
     mocks.beforeDeckWrite = undefined;
     mocks.skipDeckWrite = false;
+    mocks.beforeDeckDelete = undefined;
     mocks.remoteDeck = undefined;
     await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr: false }));
   });
@@ -241,6 +247,43 @@ describe("DeckFormPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Deleted deck “Deck name”.")).toBeVisible();
     expect(screen.queryByRole("alertdialog", { name: "Discard unsaved changes?" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the new deletion dialog pending when an earlier visit finishes", async () => {
+    const nextDeckId = "next-deletion-deck";
+    await createDeck("", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
+    let finishOldDelete: () => void = () => undefined;
+    mocks.beforeDeckDelete = () =>
+      new Promise<void>((resolve) => {
+        finishOldDelete = resolve;
+      });
+    const view = renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    await userEvent.click(
+      within(screen.getByRole("alertdialog", { name: "Delete deck?" })).getByRole("button", { name: "Delete deck" })
+    );
+    view.unmount();
+
+    let finishNewDelete: () => void = () => undefined;
+    mocks.beforeDeckDelete = () =>
+      new Promise<void>((resolve) => {
+        finishNewDelete = resolve;
+      });
+    renderPage(`/deck/${nextDeckId}/edit`);
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
+    const dialog = screen.getByRole("alertdialog", { name: "Delete deck?" });
+    expect(dialog).toHaveTextContent("Next deck");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Delete deck" }));
+
+    await actAsync(async () => finishOldDelete());
+    expect(dialog).toBeVisible();
+    expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();
+    expect(screen.queryByText("Deleted deck “Deck name”.")).not.toBeInTheDocument();
+
+    await actAsync(async () => finishNewDelete());
+    expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
+    expect(screen.getByText("Deleted deck “Next deck”.")).toBeVisible();
   });
 
   it("navigates with both recovery actions when the deck is unavailable", async () => {

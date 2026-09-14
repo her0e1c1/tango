@@ -51,9 +51,7 @@ const AvailableDeckFormHarness = (props: { deck: Deck; onCancel: () => void; onS
       form={form}
       isLocalOnly={props.deck.localMode}
       onCancel={props.onCancel}
-      onSubmit={form.handleSubmit(async (values) => {
-        if (await submit(values)) props.onSaved();
-      })}
+      onSubmit={(event) => void form.handleSubmit((values) => submit(values, props.onSaved))(event)}
     />
   );
 };
