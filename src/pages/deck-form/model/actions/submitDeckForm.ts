@@ -7,19 +7,18 @@ import { saveDeck } from "./saveDeck";
 interface SubmitDeckFormInput {
   owner: symbol | undefined;
   deckId: Deck["id"];
-  localMode: Deck["localMode"];
   values: DeckFormFields;
   onSaved: () => void | Promise<void>;
 }
 
-export function submitDeckForm({ owner, deckId, localMode, values, onSaved }: SubmitDeckFormInput): Promise<void> {
+export function submitDeckForm({ owner, deckId, values, onSaved }: SubmitDeckFormInput): Promise<void> {
   const state = deckFormPageStore.getState();
   // Validation can finish after the originating form was replaced, including by the same Deck.
   if (owner === undefined || state.owner !== owner) return Promise.resolve();
   // Every concurrent caller must await the same save so its form stays pending until completion.
   if (state.submission !== undefined) return state.submission;
 
-  const submission = saveDeck({ deckId, localMode, values })
+  const submission = saveDeck({ deckId, values })
     .then(async (saved) => {
       if (saved && deckFormPageStore.getState().owner === owner) await onSaved();
     })

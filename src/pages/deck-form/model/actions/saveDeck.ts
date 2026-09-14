@@ -5,16 +5,14 @@ import { showToast } from "@/shared/ui/toast";
 
 interface SaveDeckInput {
   deckId: Deck["id"];
-  localMode: Deck["localMode"];
   values: DeckFormFields;
 }
 
-export async function saveDeck({ deckId, localMode, values }: SaveDeckInput): Promise<boolean> {
+export async function saveDeck({ deckId, values }: SaveDeckInput): Promise<boolean> {
   // Capture the submitted values so persistence and feedback cannot observe a later draft.
   const input = {
     ...values,
     id: deckId,
-    localMode: values.localMode ?? localMode,
     url: values.url ?? null,
   };
 

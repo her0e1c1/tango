@@ -33,7 +33,6 @@ export function useDeckFormPageModel(deck: Deck) {
       submitDeckForm({
         owner,
         deckId: deck.id,
-        localMode: deck.localMode,
         values,
         onSaved,
       }),
