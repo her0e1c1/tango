@@ -20,7 +20,7 @@ interface CommonDeckFormProps {
   categories: readonly string[];
   form: UseFormReturn<DeckFormFields>;
   onCancel: () => void;
-  onSubmit: React.SubmitEventHandler<HTMLFormElement>;
+  onSubmit: (event: React.SubmitEvent<HTMLFormElement>) => void | Promise<void>;
 }
 
 interface DeckCreateFormProps extends CommonDeckFormProps {
@@ -326,7 +326,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
         </button>
         <h1 className="line-clamp-2 min-w-0 break-words text-base font-medium text-ink">{presentation.title}</h1>
       </header>
-      <form noValidate onSubmit={props.onSubmit}>
+      <form noValidate onSubmit={(event) => void props.onSubmit(event)}>
         <fieldset className="min-w-0 space-y-7 p-5 md:p-6" disabled={presentation.isSaving}>
           <BasicInformationSection
             categories={props.categories}
