@@ -11,7 +11,7 @@
 - Write comments, commit messages, pull request titles, and pull request descriptions in English.
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
-- Always commit and push changes made in a git worktree.
+- Always commit and push changes made in a git worktree, then create a pull request.
 
 ## Mandatory Review Gate
 
