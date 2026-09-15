@@ -1,12 +1,10 @@
 import { editStudyProgress } from "@/entities/study-progress";
 import { showToast } from "@/shared/ui/toast";
 import { cardListStore } from "../store";
-import { dismissListError } from "./dismissListError";
 
 export async function confirmBulkDifficulty(uid: string): Promise<void> {
   const { bulkCardIds: cardIds, bulkDifficulty: difficulty, mutationPending, owner } = cardListStore.getState();
   if (cardIds == null || difficulty == null || mutationPending || owner === undefined) return;
-  dismissListError();
   // Lock both the targets and chosen value through partial failure and retries.
   cardListStore.setState({ mutationPending: true, bulkAttempted: true });
   try {
@@ -22,16 +20,14 @@ export async function confirmBulkDifficulty(uid: string): Promise<void> {
         tone: "success",
       });
     } else {
-      cardListStore.setState({
-        errorToastId: showToast({
-          messageKey: "cardList.bulkDifficulty.partialFailure",
-          messageParams: {
-            count: failureCount,
-            successCount: cardIds.length - failureCount,
-            totalCount: cardIds.length,
-          },
-          tone: "error",
-        }),
+      showToast({
+        messageKey: "cardList.bulkDifficulty.partialFailure",
+        messageParams: {
+          count: failureCount,
+          successCount: cardIds.length - failureCount,
+          totalCount: cardIds.length,
+        },
+        tone: "error",
       });
     }
   } finally {

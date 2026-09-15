@@ -218,21 +218,26 @@ describe("Toast [ACCOUNT-05] [SWIPE-02] [ACCOUNT-02] [IMPORT-04] [IMPORT-05]", (
     expect(screen.getAllByText("Swiped right")).toHaveLength(1);
   });
 
-  it.each(["neutral", "success"] as const)("automatically dismisses %s notifications after four seconds", (tone) => {
+  it.each(["neutral", "success", "error"] as const)(
+    "automatically dismisses %s notifications after four seconds",
+    (tone) => {
+      vi.useFakeTimers();
+      render(<ToastViewport />);
+      const messageKey = tone === "error" ? "toast.saveFailure" : "account.toast.signInSuccess";
+      const message = tone === "error" ? "Unable to save changes. Try again." : "Signed in.";
+      displayToast({ messageKey, tone });
+
+      act(() => vi.advanceTimersByTime(3999));
+      expect(screen.getByText(message)).toBeVisible();
+      act(() => vi.advanceTimersByTime(1));
+      expect(screen.queryByText(message)).not.toBeInTheDocument();
+    }
+  );
+
+  it("keeps warning notifications until the user dismisses or replaces them", () => {
     vi.useFakeTimers();
     render(<ToastViewport />);
-    displayToast({ messageKey: "account.toast.signInSuccess", tone });
-
-    act(() => vi.advanceTimersByTime(3999));
-    expect(screen.getByText("Signed in.")).toBeVisible();
-    act(() => vi.advanceTimersByTime(1));
-    expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
-  });
-
-  it.each(["warning", "error"] as const)("keeps %s notifications until the user dismisses or replaces them", (tone) => {
-    vi.useFakeTimers();
-    render(<ToastViewport />);
-    displayToast({ messageKey: "toast.saveFailure", tone });
+    displayToast({ messageKey: "toast.saveFailure", tone: "warning" });
 
     act(() => vi.advanceTimersByTime(60_000));
 

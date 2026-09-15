@@ -360,10 +360,14 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     swipeRight(article);
 
     await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText("Unable to save changes. Try again.")).not.toBeInTheDocument();
+    expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
     expect(mocks.editStudyProgress).toHaveBeenLastCalledWith("user-id", {
       cardId: card.id,
       difficulty: 3,
     });
+
+    fireEvent.keyDown(window, { key: "t" });
+    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
   });
 });

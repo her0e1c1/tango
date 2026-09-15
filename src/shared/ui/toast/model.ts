@@ -54,7 +54,7 @@ const DEFAULT_DURATION_MS: Record<ToastTone, number | null> = {
   neutral: 4000,
   success: 4000,
   warning: null,
-  error: null,
+  error: 4000,
 };
 
 let nextToastId = 0;
