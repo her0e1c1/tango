@@ -1,14 +1,5 @@
-import { useCardListQuery } from "../model/queries/useCardListQuery";
-import { requestBulkDifficulty } from "../model/actions/requestBulkDifficulty";
-import { cancelBulkDifficulty } from "../model/actions/cancelBulkDifficulty";
-import { confirmBulkDifficulty } from "../model/actions/confirmBulkDifficulty";
-import { confirmCardDeletion } from "../model/actions/confirmCardDeletion";
-import { changeBulkDifficulty } from "../model/actions/changeBulkDifficulty";
-import { changeCardDifficulty } from "../model/actions/changeCardDifficulty";
-import { requestCardDeletion } from "../model/actions/requestCardDeletion";
-import { showCardAnswer } from "../model/actions/showCardAnswer";
 import { useAuth } from "@/entities/auth";
-import * as React from "react";
+import type * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKey } from "react-use";
@@ -26,11 +17,10 @@ import {
 } from "@/features/deck-filter";
 import { routes } from "@/shared/router";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
-import { dismissToast, showToast, type ToastId } from "@/shared/ui/toast";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardListState } from "../model/useCardListState";
+import { useCardListPageModel } from "../model/useCardListPageModel";
 import { CardList } from "./CardList";
 import { BulkDifficultyDialog } from "./bulk-difficulty";
 
@@ -48,25 +38,19 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   };
   const deckFilter = getDeckFilterState(filterDraft.state);
   // Use the latest selection immediately, including autosaves still pending from another Page.
-  const state = useCardListState();
-  const [bulkAttempted, setBulkAttempted] = React.useState(false);
-  const query = useCardListQuery(
-    {
-      ...deck,
-      difficultyMax: deckFilter.difficultyMax,
-      difficultyMin: deckFilter.difficultyMin,
-      selectedTags: deckFilter.selectedTags,
-      tagAndFilter: deckFilter.tagAndFilter,
-    },
-    state.shownCard
-  );
+  const model = useCardListPageModel({
+    ...deck,
+    difficultyMax: deckFilter.difficultyMax,
+    difficultyMin: deckFilter.difficultyMin,
+    selectedTags: deckFilter.selectedTags,
+    tagAndFilter: deckFilter.tagAndFilter,
+  });
   // The explicit domain endpoints select every Card, so the collapsed summary must not present
   // them as an active filter even though new and cleared Decks persist those values.
   const difficultyMax = deckFilter.difficultyMax === deckFilter.difficultyUpperBound ? null : deckFilter.difficultyMax;
   const difficultyMin = deckFilter.difficultyMin === deckFilter.difficultyLowerBound ? null : deckFilter.difficultyMin;
-  const busy = state.mutationPending || deckFilter.saving;
-  const dialogOpen = state.bulkDifficultyRequest != null || state.deletionTarget != null;
-  const bulkErrorToastId = React.useRef<ToastId | undefined>(undefined);
+  const busy = model.mutationPending || deckFilter.saving;
+  const dialogOpen = model.bulkCardIds != null || model.deletionTarget != null;
 
   useKey(
     "t",
@@ -85,88 +69,25 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
     [dialogOpen, navigate]
   );
 
-  const dismissBulkErrorToast = () => {
-    if (bulkErrorToastId.current === undefined) return;
-    dismissToast(bulkErrorToastId.current);
-    bulkErrorToastId.current = undefined;
-  };
-
-  React.useEffect(
-    () => () => {
-      if (bulkErrorToastId.current !== undefined) dismissToast(bulkErrorToastId.current);
-    },
-    []
-  );
-
-  const requestBulk = () => {
-    dismissBulkErrorToast();
-    setBulkAttempted(false);
-    state.setBulkDifficulty(null);
-    requestBulkDifficulty(query.cards, query.bulkDifficultyMinimum, state.mutation, state.setBulkDifficultyRequest);
-  };
-
-  const cancelBulk = () => {
-    dismissBulkErrorToast();
-    cancelBulkDifficulty(state.mutation, state.setBulkDifficultyRequest);
-  };
-
-  const confirmBulk = async () => {
-    if (state.bulkDifficulty == null || state.bulkDifficultyRequest == null) return;
-    dismissBulkErrorToast();
-    // Freeze the chosen value as well as the targets before the first persistence attempt.
-    const request = { ...state.bulkDifficultyRequest, difficulty: state.bulkDifficulty };
-    state.setBulkDifficultyRequest(request);
-    setBulkAttempted(true);
-    const result = await confirmBulkDifficulty({
-      uid,
-      request,
-      mutation: state.mutation,
-      setRequest: state.setBulkDifficultyRequest,
-      setDifficulty: state.setBulkDifficulty,
-    });
-    if (result === undefined) return;
-    if (result.outcome === "success") {
-      showToast({
-        messageKey: "cardList.bulkDifficulty.success",
-        messageParams: {
-          count: result.cardCount,
-          difficulty: result.difficulty,
-        },
-        tone: "success",
-      });
-      return;
-    }
-
-    bulkErrorToastId.current = showToast({
-      messageKey: "cardList.bulkDifficulty.partialFailure",
-      messageParams: {
-        count: result.failureCount,
-        successCount: result.successCount,
-        totalCount: result.totalCount,
-      },
-      tone: "error",
-    });
-  };
-
   return (
-    <AppLayout showHeader={query.answer == null}>
-      {state.bulkDifficultyRequest != null ? (
+    <AppLayout showHeader={model.answer == null}>
+      {model.bulkCardIds != null ? (
         <BulkDifficultyDialog
-          cardCount={state.bulkDifficultyRequest.cardIds.length}
-          difficulty={state.bulkDifficulty}
-          selectionDisabled={bulkAttempted}
-          difficultyLowerBound={query.bulkDifficultyMinimum}
-          difficultyUpperBound={query.bulkDifficultyMaximum}
-          onDifficultyChange={(difficulty) => changeBulkDifficulty(difficulty, state.setBulkDifficulty)}
-          pending={state.mutationPending}
-          onCancel={cancelBulk}
-          onConfirm={confirmBulk}
+          cardCount={model.bulkCardIds.length}
+          difficulty={model.bulkDifficulty}
+          selectionDisabled={model.bulkAttempted}
+          difficultyLowerBound={model.bulkDifficultyMinimum}
+          difficultyUpperBound={model.bulkDifficultyMaximum}
+          onDifficultyChange={model.changeBulkDifficulty}
+          pending={model.mutationPending}
+          onCancel={model.cancelBulk}
+          onConfirm={model.confirmBulk}
         />
-      ) : state.deletionTarget != null ? (
+      ) : model.deletionTarget != null ? (
         <DestructiveActionDialog
           title={t("cardList.deletion.title")}
           targetLabel={t("cardList.deletion.targetLabel")}
-          targetName={state.deletionTarget.frontText}
+          targetName={model.deletionTarget.frontText}
           description={
             <>
               <p>{t("cardList.deletion.description")}</p>
@@ -174,15 +95,15 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
             </>
           }
           confirmLabel={t("cardList.deletion.confirm")}
-          pending={state.mutationPending}
-          onCancel={() => state.setDeletionTarget(undefined)}
-          onConfirm={() => confirmCardDeletion(uid, state.deletionTarget, state.mutation, state.setDeletionTarget)}
+          pending={model.mutationPending}
+          onCancel={model.cancelDeletion}
+          onConfirm={model.confirmDeletion}
         />
       ) : null}
       <div className="contents" inert={dialogOpen}>
         <CardList
-          cards={query.cards}
-          onChangeDifficulty={requestBulk}
+          cards={model.cards}
+          onChangeDifficulty={model.requestBulk}
           disabled={busy}
           renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
           onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
@@ -199,8 +120,8 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
               setDifficultyMin={(value) => updateDeckFilterDraft({ difficultyMin: value }, filterUpdate)}
               setSelectedTags={(selectedTags) => updateDeckFilterDraft({ selectedTags }, filterUpdate)}
               setTagAndFilter={(tagAndFilter) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate)}
-              disabled={state.mutationPending}
-              tags={query.tags}
+              disabled={model.mutationPending}
+              tags={model.tags}
             />
           }
           onRemoveTag={(tag) =>
@@ -211,29 +132,20 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
           }
           card={{
             disabled: busy,
-            onSwipedLeft: (id) =>
-              void changeCardDifficulty({
-                uid,
-                cards: query.cards,
-                id,
-                rating: "not-mastered",
-                mutation: state.mutation,
-              }),
-            onSwipedRight: (id) =>
-              void changeCardDifficulty({ uid, cards: query.cards, id, rating: "mastered", mutation: state.mutation }),
+            onSwipedLeft: model.swipeLeft,
+            onSwipedRight: model.swipeRight,
             goToEdit: (id) => void navigate(routes.cardForm.to(id)),
-            onDelete: (id) =>
-              requestCardDeletion(query.cards, id, state.mutation.errorToastId, state.setDeletionTarget),
+            onDelete: model.requestDeletion,
           }}
-          {...(query.answer != null
+          {...(model.answer != null
             ? {
                 overlay: {
-                  content: <BackText {...query.answer} />,
-                  onClose: () => state.setShownCard(undefined),
+                  content: <BackText {...model.answer} />,
+                  onClose: model.closeAnswer,
                 },
               }
             : {})}
-          onShowCard={(id) => showCardAnswer(query.cards, id, state.setShownCard)}
+          onShowCard={model.showAnswer}
         />
       </div>
     </AppLayout>

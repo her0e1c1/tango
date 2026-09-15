@@ -1,31 +1,31 @@
-import { type Card, deleteCard } from "@/entities/card";
+import { deleteCard } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
-import type { ListMutationControl } from "../types";
-import { beginListMutation } from "./beginListMutation";
-import { finishListMutation } from "./finishListMutation";
+import { cardListStore } from "../store";
+import { dismissListError } from "./dismissListError";
 
-export const confirmCardDeletion = async (
-  uid: string,
-  card: Card | undefined,
-  mutation: ListMutationControl,
-  setTarget: (card: undefined) => void
-): Promise<void> => {
-  if (card == null || !beginListMutation(mutation)) return;
+export async function confirmCardDeletion(uid: string): Promise<void> {
+  const { deletionTarget: card, mutationPending, owner } = cardListStore.getState();
+  if (card == null || mutationPending || owner === undefined) return;
+  dismissListError();
+  cardListStore.setState({ mutationPending: true });
   try {
     await deleteCard(uid, card);
-    if (!mutation.isMounted()) return;
-    setTarget(undefined);
+    if (cardListStore.getState().owner !== owner) return;
+    cardListStore.setState({ deletionTarget: undefined });
     showToast({ messageKey: "cardList.toast.deleted", messageParams: { name: card.frontText }, tone: "success" });
   } catch {
-    if (mutation.isMounted()) {
+    if (cardListStore.getState().owner === owner) {
       // Retry starts from a newly selected Card after a failed deletion.
-      setTarget(undefined);
-      mutation.errorToastId.current = showToast({
-        messageKey: "cardList.toast.deleteFailure",
-        tone: "error",
+      cardListStore.setState({
+        deletionTarget: undefined,
+        errorToastId: showToast({
+          messageKey: "cardList.toast.deleteFailure",
+          tone: "error",
+        }),
       });
     }
   } finally {
-    finishListMutation(mutation);
+    // A previous visit must never release the current visit's mutation lock.
+    if (cardListStore.getState().owner === owner) cardListStore.setState({ mutationPending: false });
   }
-};
+}

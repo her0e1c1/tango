@@ -1,8 +1,8 @@
-import type { ListMutationControl } from "../types";
+import { cardListStore } from "../store";
 import { dismissListError } from "./dismissListError";
 
-export const cancelBulkDifficulty = (mutation: ListMutationControl, setRequest: (request: undefined) => void): void => {
-  if (mutation.pendingRef.current) return;
-  dismissListError(mutation.errorToastId);
-  setRequest(undefined);
-};
+export function cancelBulkDifficulty(): void {
+  if (cardListStore.getState().mutationPending) return;
+  dismissListError();
+  cardListStore.setState({ bulkCardIds: undefined });
+}

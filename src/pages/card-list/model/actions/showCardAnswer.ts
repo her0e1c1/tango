@@ -1,5 +1,6 @@
-import { type Card, type CardId, mustFindCardById } from "@/entities/card";
+import type { Card } from "@/entities/card";
+import { cardListStore } from "../store";
 
-export const showCardAnswer = (cards: readonly Card[], id: CardId, setShownCard: (card: Card) => void): void => {
-  setShownCard(mustFindCardById(cards, id));
-};
+export function showCardAnswer(card: Card | undefined): void {
+  cardListStore.setState({ shownCard: card });
+}

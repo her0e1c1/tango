@@ -1,8 +1,9 @@
-import type { RefObject } from "react";
-import { dismissToast, type ToastId } from "@/shared/ui/toast";
+import { dismissToast } from "@/shared/ui/toast";
+import { cardListStore } from "../store";
 
-export const dismissListError = (errorToastId: RefObject<ToastId | undefined>): void => {
-  if (errorToastId.current === undefined) return;
-  dismissToast(errorToastId.current);
-  errorToastId.current = undefined;
-};
+export function dismissListError(): void {
+  const { errorToastId } = cardListStore.getState();
+  if (errorToastId === undefined) return;
+  dismissToast(errorToastId);
+  cardListStore.setState({ errorToastId: undefined });
+}
