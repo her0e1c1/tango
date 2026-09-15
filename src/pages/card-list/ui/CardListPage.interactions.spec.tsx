@@ -130,7 +130,7 @@ const staleMutationCases = [
   { mutation: "bulk", outcome: "failure" },
 ] as const;
 
-describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-20 CardListPage interactions", () => {
+describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-20 CARD-22 CARD-23 CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
     vi.clearAllMocks();

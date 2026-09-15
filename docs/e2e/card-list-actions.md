@@ -14,6 +14,8 @@ Card 一覧上の swipe、filter、一括変更が、Card の学習状態と一�
 | CARD-18 | write | [Card 一覧の difficulty 保存失敗後に再試行できる](#card-18) |
 | CARD-19 | batch | [表示中の Card の difficulty をまとめて変更できる](#card-19) |
 | CARD-20 | batch | [Card の一括 difficulty 変更を部分失敗後に再試行できる](#card-20) |
+| CARD-22 | write | [退出後に古い Card 更新が完了しても通知しない](#card-22) |
+| CARD-23 | write | [再訪後の Card 更新を古い更新の完了から保護する](#card-23) |
 
 <a id="card-05"></a>
 
@@ -103,10 +105,6 @@ When:
 
 Then:
 
-- 更新中の連続操作は追加の更新を開始せず、現在の更新が完了すると再び操作できる。
-- 更新中に一覧を退出しても開始済みの保存は継続するが、その成功・失敗は退出後の画面状態や toast を変更しない。
-- 同じ Deck の一覧に戻って新しい更新を開始した場合、古い更新の完了は新しい dialog を変更せず、新しい更新の操作ロックも解除しない。
-
 - 保存失敗の toast は再操作・画面遷移・アンマウントでは消去せず、最初の表示から4秒後に自動非表示になる。画面遷移後も残りの表示時間だけ表示される。
 - 対象 Card の difficulty が最初の操作前より 1 下がって表示される。
 - 変更対象ではない Card の difficulty は変更されない。
@@ -163,13 +161,64 @@ When:
 
 Then:
 
-- 更新中の連続操作は追加の更新を開始せず、現在の更新が完了すると再び操作できる。
-- 更新中に一覧を退出しても開始済みの保存は継続するが、その成功・失敗は退出後の画面状態や toast を変更しない。
-- 同じ Deck の一覧に戻って新しい更新を開始した場合、古い更新の完了は新しい dialog を変更せず、新しい更新の操作ロックも解除しない。
-
 - 保存中は dialog が pending 状態を示し、確認とキャンセルを無効化して focus を dialog 内に保つ。
 - 最初の試行後に成功件数と失敗件数が通知され、確認 dialog は同じ対象件数と difficulty を保持し、difficulty の再選択を無効化する。
 - 最初の試行で成功した Card の difficulty は保持される。
 - 再試行後は対象となったすべての Card の difficulty が、最初に選択した値へ変更される。
 - 変更対象ではない Card の difficulty は変更されない。
 - 最初の保存失敗に伴う未処理の browser error が発生しない。
+
+<a id="card-22"></a>
+
+### CARD-22 退出後に古い Card 更新が完了しても通知しない
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 一覧を開いている。
+- 対象 Card の次の保存要求は、テスト側で応答を保留した後に失敗させられる。
+
+When:
+
+- 対象 Card を右 swipe して更新Aを開始し、応答を保留したまま同じ操作を繰り返す。
+- ヘッダーから Deck 一覧へ退出し、その後Aを失敗させる。
+- 同じ Deck の Card 一覧へ戻る。
+
+Then:
+
+- 更新中の連続操作は追加の更新を開始しない。
+- 退出は開始済みの保存を中断しないが、退出後の失敗は画面状態を変更せず、新しい toast を表示しない。
+- 再訪時に古い dialog や更新中状態は残らず、操作できる。
+- 未処理の browser error が発生しない。
+
+成功する保存、および削除・一括 difficulty 変更でも、退出後の完了は画面状態や toast を変更しない。同じ不変条件の境界値として component test で確認する。
+
+<a id="card-23"></a>
+
+### CARD-23 再訪後の Card 更新を古い更新の完了から保護する
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 一覧を開いている。
+- ある Card の difficulty 保存Aと、別の Card の削除Bの応答を個別に保留できる。Aは失敗し、Bは成功できる。
+
+When:
+
+- Card を右 swipe してAを開始し、応答を保留したままヘッダーから Deck 一覧へ退出する。
+- 同じ Deck の Card 一覧へ戻り、別の Card の削除 dialog を開いてBを開始する。
+- Bが更新中の間にAを失敗させ、Bの確認・キャンセルを再度試みる。
+- Bを成功させる。
+
+Then:
+
+- Aの完了は新しい削除 dialog を閉じず、Bの更新中状態を解除せず、toast も表示しない。
+- Bの完了前は確認とキャンセルが無効で、二重実行しない。
+- Bの成功時にだけ削除 dialog が閉じ、成功通知が表示され、操作可能になる。
+- 未処理の browser error が発生しない。
+
+Aが成功する場合、およびAが削除・一括 difficulty 変更の場合も同じ保護を行う。一括変更のBでは新しい一括変更 dialog を保持する。これらは同じ不変条件の境界値として component test で確認する。
