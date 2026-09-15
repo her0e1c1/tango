@@ -31,7 +31,7 @@ export function useCardListPageModel(deck: Deck) {
     changeBulkDifficulty,
     confirmDeletion: () => confirmCardDeletion(uid),
     cancelDeletion: cancelCardDeletion,
-    requestDeletion: (id: CardId) => requestCardDeletion(mustFindCardById(query.cards, id)),
+    requestDeletion: (id: CardId) => requestCardDeletion(query.cards, id),
     swipeLeft: (id: CardId) => void changeCardDifficulty(uid, mustFindCardById(query.cards, id), "not-mastered"),
     swipeRight: (id: CardId) => void changeCardDifficulty(uid, mustFindCardById(query.cards, id), "mastered"),
     showAnswer: (id: CardId) => showCardAnswer(mustFindCardById(query.cards, id)),
