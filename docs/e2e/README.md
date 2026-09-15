@@ -99,6 +99,8 @@
 | CARD-19 | batch | [表示中の Card の difficulty をまとめて変更できる](./card-list-actions.md#card-19) |
 | CARD-20 | batch | [Card の一括 difficulty 変更を部分失敗後に再試行できる](./card-list-actions.md#card-20) |
 | CARD-21 | read | [Card の未表示の面にある入力エラーを修正できる](./card-management.md#card-21) |
+| CARD-22 | write | [退出後に古い Card 更新が完了しても通知しない](./card-list-actions.md#card-22) |
+| CARD-23 | write | [再訪後の Card 更新を古い更新の完了から保護する](./card-list-actions.md#card-23) |
 
 ### Study
 

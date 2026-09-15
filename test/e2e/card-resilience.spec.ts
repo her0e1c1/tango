@@ -196,3 +196,86 @@ test("CARD-20 retries a partially failed bulk difficulty change with the same ab
   await expectDifficulty(page, successfulCard.frontText, newDifficulty);
   await expectDifficulty(page, excludedCard.frontText, excludedCard.difficulty);
 });
+
+// Hold the outgoing write without cancelling it; the SDK must still settle it after SPA navigation.
+const holdCardWrite = async (page: Page, cardId: string) => {
+  const arrived = Promise.withResolvers<void>();
+  const released = Promise.withResolvers<void>();
+  let held = false;
+  await page.route("**/google.firestore.v1.Firestore/Write/channel**", async (route) => {
+    const body = decodeURIComponent((route.request().postData() ?? "").replaceAll("+", "%20"));
+    if (!held && body.includes(`/documents/card/${cardId}`)) {
+      held = true;
+      arrived.resolve();
+      await released.promise;
+    }
+    await route.fallback();
+  });
+  return { arrived: arrived.promise, release: () => released.resolve() };
+};
+
+test("CARD-22 ignores a Card write failure after leaving the list", async ({ fixture, page, browserErrors }) => {
+  const deck = fixture.deck();
+  const card = fixture.card("card-1");
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}`);
+  const fault = await failNextFirestoreWrite(page, { collection: "card", id: card.id });
+  allowExpectedFirestoreWriteFailure(browserErrors);
+  const write = await holdCardWrite(page, card.id);
+
+  await swipeRight(page, card.frontText);
+  await write.arrived;
+  await swipeRight(page, card.frontText);
+  await expect(page.getByRole("button", { name: "Actions", exact: true })).toBeDisabled();
+  await page.getByRole("button", { name: "tango", exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  write.release();
+  await fault.waitForFailure();
+
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status", { name: "Toast notifications" })).toBeEmpty();
+  await page.getByRole("button", { name: `View ${deck.name}`, exact: true }).click();
+  await expect(page.getByRole("button", { name: "Actions", exact: true })).toBeEnabled();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  await expectDifficulty(page, card.frontText, card.difficulty);
+  await fault.dispose();
+});
+
+test("CARD-23 keeps a new Card deletion pending after an old write fails", async ({ fixture, page, browserErrors }) => {
+  const deck = fixture.deck();
+  const oldCard = fixture.card("card-1");
+  const newCard = fixture.card("card-2");
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}`);
+  const fault = await failNextFirestoreWrite(page, { collection: "card", id: oldCard.id });
+  allowExpectedFirestoreWriteFailure(browserErrors);
+  const oldWrite = await holdCardWrite(page, oldCard.id);
+  const newWrite = await holdCardWrite(page, newCard.id);
+
+  await swipeRight(page, oldCard.frontText);
+  await oldWrite.arrived;
+  await page.getByRole("button", { name: "tango", exact: true }).click();
+  await page.getByRole("button", { name: `View ${deck.name}`, exact: true }).click();
+  const dialog = await openCardDeleteDialog(page, newCard.frontText);
+  const confirm = dialog.getByRole("button", { name: "Delete card" });
+  await confirm.click();
+  oldWrite.release();
+  await fault.waitForFailure();
+  await newWrite.arrived;
+
+  await expect(dialog).toBeVisible();
+  await expect(confirm).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "Cancel" })).toBeDisabled();
+  await confirm.dispatchEvent("click");
+  await dialog.getByRole("button", { name: "Cancel" }).dispatchEvent("click");
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status", { name: "Toast notifications" })).toBeEmpty();
+  newWrite.release();
+
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("status", { name: "Toast notifications" })).toContainText("Deleted card");
+  await expect(page.getByRole("button", { name: "Actions", exact: true })).toBeEnabled();
+  await fault.dispose();
+});
