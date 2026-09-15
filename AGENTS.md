@@ -61,6 +61,14 @@ For every task that changes repository files:
 - Keep application-specific submission rules, concurrency control, and asynchronous lifetime management in model actions. Do not move these responsibilities into UI hooks merely to remove DOM dependencies from the model.
 - Connect React Hook Form's `handleSubmit` directly to actions that accept validated values. Submit actions must not receive DOM events or `handleSubmit` itself.
 
+### Transient operation result Toasts
+
+- `shared/ui/toast` owns the duration and dismissal of transient operation results, including success and failure. Error notifications also dismiss automatically after the shared default duration.
+- Pages and Features call `showToast` when a notification is needed. Do not retain a `ToastId` in a store, state, or ref solely to dismiss it later.
+- Do not add dismissal on retries, navigation, or unmount, or page-specific auto-dismiss timers. Notifications may remain after navigation until their default duration expires.
+- Keep guards that prevent stale asynchronous operations from publishing new notifications; they are a separate responsibility.
+- This rule covers transient operation results. Persistent warnings and progress displays have separate requirements.
+
 ## Coding Style
 
 - Prefer clear names and small functions; use comments to preserve intent that the code cannot express on its own.
