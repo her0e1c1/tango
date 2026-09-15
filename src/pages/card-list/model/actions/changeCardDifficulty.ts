@@ -4,15 +4,18 @@ import { showToast } from "@/shared/ui/toast";
 import { cardListStore } from "../store";
 
 export async function changeCardDifficulty(uid: string, card: Card, rating: StudyRating): Promise<void> {
-  const { owner, mutationPending } = cardListStore.getState();
-  if (owner === undefined || mutationPending) return;
-  cardListStore.setState({ mutationPending: true });
+  if (cardListStore.getState().mutationId !== undefined) return;
+  const mutationId = Symbol();
+  cardListStore.setState({ mutationId });
   try {
     await editStudyProgress(uid, { cardId: card.id, difficulty: calculateDifficulty(card.difficulty, rating) });
   } catch {
-    if (cardListStore.getState().owner === owner) showToast({ messageKey: "toast.saveFailure", tone: "error" });
+    if (cardListStore.getState().mutationId === mutationId)
+      showToast({ messageKey: "toast.saveFailure", tone: "error" });
   } finally {
-    // A previous visit must never release the current visit's mutation lock.
-    if (cardListStore.getState().owner === owner) cardListStore.setState({ mutationPending: false });
+    // A reset detaches pending writes; their completion must not unlock a newer mutation.
+    if (cardListStore.getState().mutationId === mutationId) {
+      cardListStore.setState({ mutationId: undefined });
+    }
   }
 }

@@ -25,6 +25,7 @@ export function useCardListPageModel(deck: Deck) {
   return {
     ...state,
     ...query,
+    mutationPending: state.mutationId !== undefined,
     requestBulk: () => requestBulkDifficulty(query.cards),
     cancelBulk: cancelBulkDifficulty,
     confirmBulk: () => confirmBulkDifficulty(uid),

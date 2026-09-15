@@ -3,14 +3,15 @@ import { showToast } from "@/shared/ui/toast";
 import { cardListStore } from "../store";
 
 export async function confirmBulkDifficulty(uid: string): Promise<void> {
-  const { bulkCardIds: cardIds, bulkDifficulty: difficulty, mutationPending, owner } = cardListStore.getState();
-  if (cardIds == null || difficulty == null || mutationPending || owner === undefined) return;
+  const { bulkCardIds: cardIds, bulkDifficulty: difficulty, mutationId: pendingMutationId } = cardListStore.getState();
+  if (cardIds == null || difficulty == null || pendingMutationId !== undefined) return;
+  const mutationId = Symbol();
   // Lock both the targets and chosen value through partial failure and retries.
-  cardListStore.setState({ mutationPending: true, bulkAttempted: true });
+  cardListStore.setState({ mutationId, bulkAttempted: true });
   try {
     // Absolute-value retries are idempotent. All writes must settle before another list operation can start.
     const results = await Promise.allSettled(cardIds.map((cardId) => editStudyProgress(uid, { cardId, difficulty })));
-    if (cardListStore.getState().owner !== owner) return;
+    if (cardListStore.getState().mutationId !== mutationId) return;
     const failureCount = results.filter(({ status }) => status === "rejected").length;
     if (failureCount === 0) {
       cardListStore.setState({ bulkCardIds: undefined, bulkDifficulty: null });
@@ -31,7 +32,9 @@ export async function confirmBulkDifficulty(uid: string): Promise<void> {
       });
     }
   } finally {
-    // A previous visit must never release the current visit's mutation lock.
-    if (cardListStore.getState().owner === owner) cardListStore.setState({ mutationPending: false });
+    // A reset detaches pending writes; their completion must not unlock a newer mutation.
+    if (cardListStore.getState().mutationId === mutationId) {
+      cardListStore.setState({ mutationId: undefined });
+    }
   }
 }

@@ -104,6 +104,32 @@ const swipeRight = (article: HTMLElement) => {
   fireEvent.mouseUp(document, { clientX: 100, clientY: 0 });
 };
 
+type ListMutation = "swipe" | "deletion" | "bulk";
+
+const startListMutation = async (mutation: ListMutation) => {
+  if (mutation === "swipe") {
+    swipeRight(screen.getByRole("article"));
+  } else if (mutation === "deletion") {
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete card" }));
+  } else {
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
+    await userEvent.click(screen.getByRole("button", { name: "7" }));
+    fireEvent.click(screen.getByRole("button", { name: "Apply change" }));
+  }
+};
+
+const staleMutationCases = [
+  { mutation: "swipe", outcome: "success" },
+  { mutation: "swipe", outcome: "failure" },
+  { mutation: "deletion", outcome: "success" },
+  { mutation: "deletion", outcome: "failure" },
+  { mutation: "bulk", outcome: "success" },
+  { mutation: "bulk", outcome: "failure" },
+] as const;
+
 describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-20 CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
@@ -349,6 +375,81 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     });
     expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeEnabled();
   });
+
+  it.each(staleMutationCases)("ignores $mutation $outcome after leaving the page", async ({ mutation, outcome }) => {
+    const write = Promise.withResolvers<void>();
+    const save = mutation === "deletion" ? mocks.deleteCard : mocks.editStudyProgress;
+    save.mockReturnValueOnce(write.promise);
+    const view = renderCardList();
+    await startListMutation(mutation);
+    expect(save).toHaveBeenCalledOnce();
+
+    view.unmount();
+    render(<ToastViewport />);
+    await actAsync(async () => {
+      if (outcome === "success") write.resolve();
+      else write.reject(new Error("late write failure"));
+      await write.promise.catch(() => undefined);
+    });
+
+    expect(screen.getByRole("status", { name: "Toast notifications" })).toBeEmptyDOMElement();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    renderCardList();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Actions" })).toBeEnabled();
+  });
+
+  it.each(staleMutationCases)(
+    "keeps the new mutation and dialog pending when an old $mutation ends in $outcome after revisiting",
+    async ({ mutation, outcome }) => {
+      const oldWrite = Promise.withResolvers<void>();
+      const newWrite = Promise.withResolvers<void>();
+      const oldSave = mutation === "deletion" ? mocks.deleteCard : mocks.editStudyProgress;
+      oldSave.mockReturnValueOnce(oldWrite.promise);
+      const view = renderCardList();
+      await startListMutation(mutation);
+      expect(oldSave).toHaveBeenCalledOnce();
+      view.unmount();
+
+      // Keep B's dialog open so A cannot silently close it or release B's lock.
+      const newMutation = mutation === "bulk" ? "bulk" : "deletion";
+      const newSave = newMutation === "bulk" ? mocks.editStudyProgress : mocks.deleteCard;
+      newSave.mockReturnValueOnce(newWrite.promise);
+      renderCardList();
+      await startListMutation(newMutation);
+      const dialog = screen.getByRole(newMutation === "bulk" ? "dialog" : "alertdialog");
+      const confirm = within(dialog).getByRole("button", {
+        name: newMutation === "bulk" ? "Apply change" : "Delete card",
+      });
+      const callsBeforeCompletion = newSave.mock.calls.length;
+      expect(confirm).toBeDisabled();
+
+      await actAsync(async () => {
+        if (outcome === "success") oldWrite.resolve();
+        else oldWrite.reject(new Error("late write failure"));
+        await oldWrite.promise.catch(() => undefined);
+      });
+
+      expect(dialog).toBeVisible();
+      expect(confirm).toBeDisabled();
+      expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();
+      expect(screen.getByRole("status", { name: "Toast notifications" })).toBeEmptyDOMElement();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      fireEvent.click(confirm);
+      expect(newSave).toHaveBeenCalledTimes(callsBeforeCompletion);
+
+      await actAsync(async () => {
+        newWrite.resolve();
+        await newWrite.promise;
+      });
+      expect(dialog).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Actions" })).toBeEnabled();
+      expect(
+        screen.getByText(newMutation === "bulk" ? "Set 1 card to difficulty 7." : "Deleted card “Front”.")
+      ).toBeVisible();
+    }
+  );
 
   it("retries a failed difficulty write through the same swipe gesture", async () => {
     mocks.editStudyProgress.mockRejectedValueOnce(new Error("edit failed"));
