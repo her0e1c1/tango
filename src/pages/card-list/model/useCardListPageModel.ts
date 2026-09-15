@@ -27,7 +27,7 @@ export function useCardListPageModel(deck: Deck) {
     ...query,
     requestBulk: () => requestBulkDifficulty(query.cards),
     cancelBulk: cancelBulkDifficulty,
-    confirmBulk: () => confirmBulkDifficulty(uid),
+    confirmBulk: confirmBulkDifficulty,
     changeBulkDifficulty,
     confirmDeletion: () => confirmCardDeletion(uid),
     cancelDeletion: cancelCardDeletion,
