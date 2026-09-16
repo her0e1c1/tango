@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => ({
   deleteCard: vi.fn(),
   editDeck: vi.fn(),
   editStudyProgress: vi.fn(),
+  getAuthUid: vi.fn<() => string>(),
+  getCards: vi.fn<() => Card[]>(),
   deck: undefined as Deck | undefined,
   cards: [] as Card[],
   preferences: undefined as Preferences | undefined,
@@ -24,12 +26,12 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({
   useAuth: () => ({ uid: "user-id" }),
-  getAuthUid: () => "user-id",
+  getAuthUid: mocks.getAuthUid,
 }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   deleteCard: mocks.deleteCard,
-  getCards: () => mocks.cards,
+  getCards: mocks.getCards,
   useCardsByDeckId: () => ({
     cards: mocks.cards,
     tags: [...new Set(mocks.cards.flatMap((candidate) => candidate.tags))],
@@ -138,6 +140,8 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
   beforeEach(() => {
     dismissToast();
     vi.clearAllMocks();
+    mocks.getAuthUid.mockReturnValue("user-id");
+    mocks.getCards.mockImplementation(() => mocks.cards);
     mocks.deleteCard.mockResolvedValue(undefined);
     mocks.editDeck.mockResolvedValue(undefined);
     mocks.editStudyProgress.mockResolvedValue(undefined);
@@ -389,6 +393,24 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument());
     expect(mocks.deleteCard).toHaveBeenCalledTimes(2);
     expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
+  });
+
+  it("CARD-05 uses the latest identity and Card difficulty when swiping after render", async () => {
+    renderCardList();
+    const article = screen.getByRole("article");
+
+    // Keep render snapshots unchanged to catch actions that capture identity or difficulty before the gesture.
+    mocks.getAuthUid.mockReturnValue("latest-user-id");
+    mocks.getCards.mockReturnValue([createCard({ ...card, difficulty: 3 })]);
+
+    swipeRight(article);
+
+    await waitFor(() =>
+      expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith("latest-user-id", {
+        cardId: card.id,
+        difficulty: 2,
+      })
+    );
   });
 
   it("allows only one list mutation until the active write settles", async () => {
