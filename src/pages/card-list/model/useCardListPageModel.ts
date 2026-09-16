@@ -1,8 +1,8 @@
-import { useLayoutEffect } from "react";
 import { useStore } from "zustand";
 import { useAuth } from "@/entities/auth";
 import { type CardId, mustFindCardById } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
+import { useResetStoreOnMount } from "@/shared/lib/useResetStoreOnMount";
 import { cancelCardDeletion } from "./actions/cancelCardDeletion";
 import { showCardAnswer } from "./actions/showCardAnswer";
 import { cancelBulkDifficulty } from "./actions/cancelBulkDifficulty";
@@ -14,13 +14,11 @@ import { requestBulkDifficulty } from "./actions/requestBulkDifficulty";
 import { requestCardDeletion } from "./actions/requestCardDeletion";
 import { useCardListQuery } from "./queries/useCardListQuery";
 import { cardListStore } from "./store";
-import { enterCardListPage } from "./actions/enterCardListPage";
 
 export function useCardListPageModel(deck: Deck) {
   const { uid } = useAuth();
   const state = useStore(cardListStore);
-  // Reset the previous visit before its dialogs can paint or accept input.
-  useLayoutEffect(enterCardListPage, []);
+  useResetStoreOnMount(cardListStore);
   const query = useCardListQuery(deck, state.shownCard, state.deletionTarget);
   return {
     ...state,
