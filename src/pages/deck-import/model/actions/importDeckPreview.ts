@@ -1,16 +1,20 @@
 import { getAuthUid } from "@/entities/auth";
 import { executePreparedDeckImport } from "./executePreparedDeckImport";
 import { showToast } from "@/shared/ui/toast";
-import { beginImport, completeImport, failImport } from "../store";
+import { deckImportStore } from "../store";
 
 export async function importDeckPreview(): Promise<boolean> {
-  const execution = beginImport(getAuthUid());
-  if (execution === undefined) return false;
+  const uid = getAuthUid();
+  const { status, source } = deckImportStore.getState();
+  if (status !== "idle" || source.kind !== "selected" || source.preparedImport === undefined) return false;
+
+  // Acquire the shared lock before asynchronous persistence can yield to another action.
+  deckImportStore.setState({ status: "importing" });
   try {
-    const result = await executePreparedDeckImport(execution.uid, execution.preparedImport);
+    const result = await executePreparedDeckImport(uid, source.preparedImport);
     // Results belong to the App even when the initiating Page has unmounted.
     showToast({ messageKey: "deckImport.toast.imported", messageParams: { count: result.created }, tone: "success" });
-    completeImport();
+    deckImportStore.setState({ status: "idle", source: { kind: "empty" } });
     return true;
   } catch (error: unknown) {
     showToast({
@@ -19,7 +23,8 @@ export async function importDeckPreview(): Promise<boolean> {
         : { messageKey: "deckImport.toast.failure" as const }),
       tone: "error",
     });
-    failImport();
+    // Keep the prepared Deck/Card IDs so retries are safe after partial writes.
+    deckImportStore.setState({ status: "idle" });
     return false;
   }
 }

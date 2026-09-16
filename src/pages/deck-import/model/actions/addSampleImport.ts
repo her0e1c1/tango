@@ -1,10 +1,12 @@
 import { getAuthUid } from "@/entities/auth";
 import { addSampleDeck } from "@/features/sample-import";
 import { showToast } from "@/shared/ui/toast";
-import { beginSampleImport, completeSampleImport, failSampleImport } from "../store";
+import { deckImportStore } from "../store";
 
 export async function addSampleImport(): Promise<boolean> {
-  if (!beginSampleImport()) return false;
+  if (deckImportStore.getState().status !== "idle") return false;
+  // All import actions share this lock, including after Page re-entry.
+  deckImportStore.setState({ status: "adding-sample" });
   try {
     const result = await addSampleDeck(getAuthUid());
     // Results belong to the App even when the initiating Page has unmounted.
@@ -13,7 +15,6 @@ export async function addSampleImport(): Promise<boolean> {
       messageParams: { count: result.created },
       tone: "success",
     });
-    completeSampleImport();
     return true;
   } catch (error: unknown) {
     showToast({
@@ -22,7 +23,8 @@ export async function addSampleImport(): Promise<boolean> {
         : { messageKey: "deckImport.toast.sampleFailure" as const }),
       tone: "error",
     });
-    failSampleImport();
     return false;
+  } finally {
+    deckImportStore.setState({ status: "idle" });
   }
 }
