@@ -24,7 +24,7 @@ vi.mock("./firestore", () => ({
 import { cardStore } from "../model/store";
 import { createCard, deleteCard, editCard, moveLocalCardsToRemote } from "./mutations";
 
-describe("Card mutations", () => {
+describe("CARD-04 Card mutations", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     localStorage.clear();
@@ -91,7 +91,7 @@ describe("Card mutations", () => {
     await expect(editCard("uid", { id: card.id, frontText: "Updated" })).rejects.toThrow(
       'Card "missing" was not found'
     );
-    await expect(deleteCard("uid", card)).rejects.toThrow('Card "missing" was not found');
+    await expect(deleteCard("uid", card.id)).rejects.toThrow('Card "missing" was not found');
   });
 
   it("rejects edit and delete when the Card parent Deck cannot be resolved", async () => {
@@ -101,7 +101,7 @@ describe("Card mutations", () => {
     await expect(editCard("uid", { id: card.id, frontText: "Updated" })).rejects.toThrow(
       'Deck "missing-deck" was not found'
     );
-    await expect(deleteCard("uid", card)).rejects.toThrow('Deck "missing-deck" was not found');
+    await expect(deleteCard("uid", card.id)).rejects.toThrow('Deck "missing-deck" was not found');
   });
 
   it("moves every local Card for a Deck to remote persistence before deleting local copies", async () => {

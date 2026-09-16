@@ -21,7 +21,7 @@ export function useCardListPageModel(deck: Deck) {
   const state = useStore(cardListStore);
   // Reset the previous visit before its dialogs can paint or accept input.
   useLayoutEffect(enterCardListPage, []);
-  const query = useCardListQuery(deck, state.shownCard);
+  const query = useCardListQuery(deck, state.shownCard, state.deletionTarget);
   return {
     ...state,
     ...query,
@@ -32,7 +32,7 @@ export function useCardListPageModel(deck: Deck) {
     changeBulkDifficulty,
     confirmDeletion: () => confirmCardDeletion(uid),
     cancelDeletion: cancelCardDeletion,
-    requestDeletion: (id: CardId) => requestCardDeletion(query.cards, id),
+    requestDeletion: requestCardDeletion,
     swipeLeft: (id: CardId) => void changeCardDifficulty(uid, mustFindCardById(query.cards, id), "not-mastered"),
     swipeRight: (id: CardId) => void changeCardDifficulty(uid, mustFindCardById(query.cards, id), "mastered"),
     showAnswer: (id: CardId) => showCardAnswer(mustFindCardById(query.cards, id)),

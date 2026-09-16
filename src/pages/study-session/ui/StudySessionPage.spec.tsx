@@ -525,8 +525,8 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
   });
 
   it("shows loading feedback while active session cards are unavailable", async () => {
-    await deleteCard("", firstCard);
-    await deleteCard("", secondCard);
+    await deleteCard("", firstCard.id);
+    await deleteCard("", secondCard.id);
     clearStudySessions();
     startStudy(deckId, [firstCard], mocks.preferences.study);
 
