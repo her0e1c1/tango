@@ -1,8 +1,8 @@
-import { type Card, type CardId, mustFindCardById } from "@/entities/card";
+import { type CardId, getCards, mustFindCardById } from "@/entities/card";
 import { cardListStore } from "../store";
 
-export function requestCardDeletion(cards: readonly Card[], id: CardId): void {
-  const card = mustFindCardById(cards, id);
+export function requestCardDeletion(id: CardId): void {
   if (cardListStore.getState().mutationId !== undefined) return;
+  const card = mustFindCardById(getCards(), id);
   cardListStore.setState({ deletionTarget: card });
 }

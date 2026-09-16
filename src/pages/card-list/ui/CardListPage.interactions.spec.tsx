@@ -26,6 +26,7 @@ vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }) }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   deleteCard: mocks.deleteCard,
+  getCards: () => mocks.cards,
   useCardsByDeckId: () => ({
     cards: mocks.cards,
     tags: [...new Set(mocks.cards.flatMap((candidate) => candidate.tags))],
