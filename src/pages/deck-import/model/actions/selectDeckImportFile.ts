@@ -1,7 +1,34 @@
 import { getAuthUid } from "@/entities/auth";
-import { parseCsv } from "../../lib/cardCsv";
+import { generateCardId, type CardMutation } from "@/entities/card";
+import { generateDeckId } from "@/entities/deck";
+import { parseCsv, type DeckImportRow } from "../../lib/cardCsv";
 import { deckImportStore } from "../store";
-import { prepareDeckImport } from "./prepareDeckImport";
+import type { DeckImportStorageMode, PreparedDeckImport } from "../types";
+
+interface DeckImportSource {
+  name: string;
+  rows: DeckImportRow[];
+  storageMode?: DeckImportStorageMode;
+}
+
+function prepareDeckImport({ name, rows, storageMode = "remote" }: DeckImportSource, uid: string): PreparedDeckImport {
+  const localMode = storageMode === "local";
+  if (!localMode && uid === "") throw new Error("A confirmed user is required for remote imports");
+
+  const deckId = generateDeckId();
+  const mutations = rows.map((row): CardMutation => {
+    const cardFields = { ...row.card, id: generateCardId(), deckId };
+    // Local persistence stays account-agnostic; Card mutation routing follows the parent Deck's localMode.
+    const card = localMode ? cardFields : { ...cardFields, uid };
+    return { kind: "create", card };
+  });
+
+  return {
+    uid,
+    destination: { id: deckId, name, localMode },
+    mutations,
+  };
+}
 
 export async function selectDeckImportFile(file: File): Promise<void> {
   const uid = getAuthUid();

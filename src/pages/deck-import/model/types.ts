@@ -10,10 +10,6 @@ export interface PreparedDeckImport {
   mutations: CardMutation[];
 }
 
-export interface DeckImportResult {
-  created: number;
-  deckId: string;
-}
 export type DeckImportStatus = "idle" | "validating" | "importing" | "adding-sample";
 interface DeckImportPreview {
   deckName: string;

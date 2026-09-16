@@ -11,9 +11,14 @@ export async function importDeckPreview(): Promise<boolean> {
   // Acquire the shared lock before asynchronous persistence can yield to another action.
   deckImportStore.setState({ status: "importing" });
   try {
-    const result = await executePreparedDeckImport(uid, source.preparedImport);
+    const prepared = source.preparedImport;
+    await executePreparedDeckImport(uid, prepared);
     // Results belong to the App even when the initiating Page has unmounted.
-    showToast({ messageKey: "deckImport.toast.imported", messageParams: { count: result.created }, tone: "success" });
+    showToast({
+      messageKey: "deckImport.toast.imported",
+      messageParams: { count: prepared.mutations.length },
+      tone: "success",
+    });
     deckImportStore.setState({ status: "idle", source: { kind: "empty" } });
     return true;
   } catch (error: unknown) {
