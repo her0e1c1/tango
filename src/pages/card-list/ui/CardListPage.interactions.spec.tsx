@@ -334,32 +334,39 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
     await waitFor(() => expect(dialog).not.toBeInTheDocument());
   });
 
-  it.each([true, false])("closes confirmation when the Card disappears (confirmed: %s)", async (confirmed) => {
-    const write = Promise.withResolvers<void>();
-    if (confirmed) mocks.deleteCard.mockReturnValueOnce(write.promise);
-    const { rerender } = renderCardList();
+  it.each([true, false])(
+    "keeps only pending confirmation when the Card disappears (confirmed: %s)",
+    async (confirmed) => {
+      const write = Promise.withResolvers<void>();
+      if (confirmed) mocks.deleteCard.mockReturnValueOnce(write.promise);
+      const { rerender } = renderCardList();
 
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeVisible();
-    if (confirmed) await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
+      await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+      await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+      expect(screen.getByRole("alertdialog", { name: "Delete card?" })).toBeVisible();
+      if (confirmed) await userEvent.click(screen.getByRole("button", { name: "Delete card" }));
 
-    mocks.cards = [];
-    rerender(createCardListPage(deck.id));
-    expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("article")).not.toBeInTheDocument();
+      mocks.cards = [];
+      rerender(createCardListPage(deck.id));
+      expect(screen.queryAllByRole("alertdialog", { name: "Delete card?" })).toHaveLength(confirmed ? 1 : 0);
+      expect(
+        screen.queryAllByRole("button", { name: "Delete card" }).map((button) => button.hasAttribute("disabled"))
+      ).toEqual(confirmed ? [true] : []);
+      expect(screen.queryByRole("article")).not.toBeInTheDocument();
 
-    await actAsync(async () => {
-      write.resolve();
-      await write.promise;
-    });
-    expect(screen.queryAllByText("Deleted card “Front”.")).toHaveLength(confirmed ? 1 : 0);
-    expect(
-      screen.queryByText("Unable to delete this card. Check your connection and try again.")
-    ).not.toBeInTheDocument();
-    fireEvent.keyDown(window, { key: "t" });
-    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
-  });
+      await actAsync(async () => {
+        write.resolve();
+        await write.promise;
+      });
+      expect(screen.queryByRole("alertdialog", { name: "Delete card?" })).not.toBeInTheDocument();
+      expect(screen.queryAllByText("Deleted card “Front”.")).toHaveLength(confirmed ? 1 : 0);
+      expect(
+        screen.queryByText("Unable to delete this card. Check your connection and try again.")
+      ).not.toBeInTheDocument();
+      fireEvent.keyDown(window, { key: "t" });
+      expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    }
+  );
 
   it("closes a failed deletion and retries after reopening the same Card", async () => {
     mocks.deleteCard.mockRejectedValueOnce(new Error("delete failed"));

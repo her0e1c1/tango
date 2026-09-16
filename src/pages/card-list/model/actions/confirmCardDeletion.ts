@@ -8,8 +8,9 @@ export async function confirmCardDeletion(uid: string): Promise<void> {
   const mutationId = Symbol();
   cardListStore.setState({ mutationId });
   try {
-    // Keep the notification name before deletion removes the Card from the Entity store.
+    // Firestore hides optimistic deletions before the write settles; keep the pending dialog and notification named.
     const { frontText } = mustFindCardById(getCards(), cardId);
+    cardListStore.setState({ pendingDeletionName: frontText });
     await deleteCard(uid, cardId);
     if (cardListStore.getState().mutationId !== mutationId) return;
     cardListStore.setState({ deletionTarget: undefined });
@@ -26,7 +27,7 @@ export async function confirmCardDeletion(uid: string): Promise<void> {
   } finally {
     // A reset detaches pending writes; their completion must not unlock a newer mutation.
     if (cardListStore.getState().mutationId === mutationId) {
-      cardListStore.setState({ mutationId: undefined });
+      cardListStore.setState({ mutationId: undefined, pendingDeletionName: undefined });
     }
   }
 }
