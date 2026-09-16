@@ -7,7 +7,7 @@ interface CardListState {
   bulkCardIds: CardId[] | undefined;
   bulkDifficulty: Difficulty | null;
   bulkAttempted: boolean;
-  deletionTarget: Card | undefined;
+  deletionTarget: CardId | undefined;
   mutationId: symbol | undefined;
 }
 

@@ -10,7 +10,7 @@ vi.mock("@/shared/firebase", () => ({ db: {} }));
 
 const studyOptions = { shuffled: false, maxNumberOfCardsToLearn: 0 };
 
-describe("local Entity mutations", () => {
+describe("CARD-04 local Entity mutations", () => {
   afterEach(() => {
     clearStudySessions();
     localStorage.clear();
@@ -28,7 +28,7 @@ describe("local Entity mutations", () => {
     expect(editedCards.result.current).toContainEqual(expect.objectContaining({ id: card.id, frontText: "Updated" }));
     editedCards.unmount();
 
-    await deleteCard("", card);
+    await deleteCard("", card.id);
 
     const remainingCards = renderHook(() => useCards());
     expect(remainingCards.result.current.find(({ id }) => id === card.id)).toBeUndefined();

@@ -83,7 +83,7 @@ describe("Query realtime subscriptions [CARD-01] [CARD-10]", () => {
         );
       });
 
-      await deleteCard(uid, card);
+      await deleteCard(uid, card.id);
       await deleteDeck(uid, deck.id);
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks.find((candidate) => candidate.id === deck.id)).toBeUndefined();

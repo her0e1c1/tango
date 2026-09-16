@@ -50,7 +50,8 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const difficultyMax = deckFilter.difficultyMax === deckFilter.difficultyUpperBound ? null : deckFilter.difficultyMax;
   const difficultyMin = deckFilter.difficultyMin === deckFilter.difficultyLowerBound ? null : deckFilter.difficultyMin;
   const busy = model.mutationPending || deckFilter.saving;
-  const dialogOpen = model.bulkCardIds != null || model.deletionTarget != null;
+  // A synchronized removal must also release the missing Card's confirmation dialog.
+  const dialogOpen = model.bulkCardIds != null || model.deletionTargetName != null;
 
   useKey(
     "t",
@@ -83,11 +84,11 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
           onCancel={model.cancelBulk}
           onConfirm={model.confirmBulk}
         />
-      ) : model.deletionTarget != null ? (
+      ) : model.deletionTargetName != null ? (
         <DestructiveActionDialog
           title={t("cardList.deletion.title")}
           targetLabel={t("cardList.deletion.targetLabel")}
-          targetName={model.deletionTarget.frontText}
+          targetName={model.deletionTargetName}
           description={
             <>
               <p>{t("cardList.deletion.description")}</p>

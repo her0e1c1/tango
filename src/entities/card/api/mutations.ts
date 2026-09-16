@@ -105,11 +105,11 @@ export const mutateCards = async (uid: string, mutations: CardMutation[]): Promi
 };
 
 // Routes a Card deletion through the owning Deck's persistence mode.
-export const deleteCard = async (uid: string, card: { id: CardId }): Promise<void> => {
-  const currentCard = requireCard(card.id);
+export const deleteCard = async (uid: string, cardId: CardId): Promise<void> => {
+  const currentCard = requireCard(cardId);
   if (requireLocalMode(currentCard.deckId)) {
-    deleteLocalCard(card.id);
+    deleteLocalCard(cardId);
     return;
   }
-  await deleteRemoteCard(uid, { id: card.id, uid: requireRemoteCard(currentCard).uid });
+  await deleteRemoteCard(uid, { id: cardId, uid: requireRemoteCard(currentCard).uid });
 };
