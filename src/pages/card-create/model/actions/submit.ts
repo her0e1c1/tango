@@ -1,7 +1,11 @@
-import { createCard, generateCardId } from "@/entities/card";
+import { createCard, generateCardId, type CardContentInput } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
 
-import type { SubmitCardCreateInput } from "../types";
+interface SubmitCardCreateInput {
+  uid: string;
+  deckId: string;
+  values: CardContentInput;
+}
 
 export async function submit({ uid, deckId, values }: SubmitCardCreateInput): Promise<boolean> {
   // Each attempt has a new identity; retries intentionally do not reuse an uncertain previous write.

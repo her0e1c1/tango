@@ -3,7 +3,7 @@ import { useStore } from "zustand";
 import { usePreferences } from "@/entities/preference";
 import { canMoveStudySession } from "@/entities/study-session";
 import { studySessionPageStore } from "../store";
-import type { StudySessionState } from "../types";
+import type { StudySessionState } from "../queries/useStudyQuery";
 import { advanceStudySession } from "./advanceStudySession";
 
 export function useAutoPlay(sessionState: StudySessionState): void {
