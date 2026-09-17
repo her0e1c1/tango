@@ -10,7 +10,11 @@ export async function confirmCardDeletion(uid: string): Promise<void> {
   try {
     await deleteCard(uid, deletionTarget.id);
     if (cardListStore.getState().mutationId !== mutationId) return;
-    showToast({ messageKey: "cardList.toast.deleted", messageParams: { name: deletionTarget.frontText }, tone: "success" });
+    showToast({
+      messageKey: "cardList.toast.deleted",
+      messageParams: { name: deletionTarget.frontText },
+      tone: "success",
+    });
   } catch {
     if (cardListStore.getState().mutationId !== mutationId) return;
     showToast({ messageKey: "cardList.toast.deleteFailure", tone: "error" });
