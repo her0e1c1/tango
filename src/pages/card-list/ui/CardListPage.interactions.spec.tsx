@@ -136,7 +136,7 @@ const staleMutationCases = [
   { mutation: "bulk", outcome: "failure" },
 ] as const;
 
-describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-20 CARD-22 CARD-23 CardListPage interactions", () => {
+describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-19 CARD-20 CARD-22 CARD-23 CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
     vi.clearAllMocks();
@@ -342,7 +342,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
   });
 
   it.each([true, false])(
-    "keeps only pending confirmation when the Card disappears (confirmed: %s)",
+    "keeps the confirmation snapshot when the Card disappears (confirmed: %s)",
     async (confirmed) => {
       const write = Promise.withResolvers<void>();
       if (confirmed) mocks.deleteCard.mockReturnValueOnce(write.promise);
@@ -355,11 +355,19 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-10 CARD-16 CARD-18 CARD-19 CARD-2
 
       mocks.cards = [];
       rerender(createCardListPage(deck.id));
-      expect(screen.queryAllByRole("alertdialog", { name: "Delete card?" })).toHaveLength(confirmed ? 1 : 0);
+      const dialog = screen.getByRole("alertdialog", { name: "Delete card?" });
+      expect(dialog).toBeVisible();
+      expect(within(dialog).getByText("Front")).toBeVisible();
       expect(
         screen.queryAllByRole("button", { name: "Delete card" }).map((button) => button.hasAttribute("disabled"))
-      ).toEqual(confirmed ? [true] : []);
+      ).toEqual([confirmed]);
+      expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveProperty("disabled", confirmed);
       expect(screen.queryByRole("article")).not.toBeInTheDocument();
+
+      if (!confirmed) {
+        await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+        expect(mocks.deleteCard).not.toHaveBeenCalled();
+      }
 
       await actAsync(async () => {
         write.resolve();
