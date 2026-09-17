@@ -10,3 +10,4 @@
 - Move reusable cross-Page workflows to Features and reusable domain concepts, rules, or visual representations to Entities. Do not keep lower-layer slices solely to preserve an architectural label when Steiger identifies them as insignificant.
 - Own screen-level keyboard shortcut mappings and registration in `src/pages`. Use `useKey` directly and delegate shortcut actions to lower layers when such lower-layer behavior is reusable.
 - Organize `ui/` subdirectories by UI meaning, such as `toolbar`, rather than technical categories such as `component` or `container`.
+- Do not create `types.ts` files under `src/pages`. Define types in the action, query, store, or UI module that owns them, and export them only when another module needs them.
