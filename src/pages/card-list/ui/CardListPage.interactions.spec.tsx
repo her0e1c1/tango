@@ -480,7 +480,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-1
 
       // Keep B's dialog open so A cannot silently close it or release B's lock.
       const newMutation = mutation === "bulk" ? "bulk" : "deletion";
-      const newSave = newMutation === "bulk" ? mocks.deleteCard : mocks.deleteCard;
+      const newSave = newMutation === "bulk" ? mocks.editStudyProgress : mocks.deleteCard;
       newSave.mockReturnValueOnce(newWrite.promise);
       renderCardList();
       await startListMutation(newMutation);
