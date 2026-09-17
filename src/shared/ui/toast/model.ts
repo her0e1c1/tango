@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { createStore } from "zustand/vanilla";
 
-export type ToastId = number;
+type ToastId = number;
 
 export type ToastTone = "neutral" | "success" | "warning" | "error";
 

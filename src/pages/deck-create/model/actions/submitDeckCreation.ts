@@ -4,14 +4,12 @@ import type { DeckFormFields } from "@/features/deck-form";
 import { showToast } from "@/shared/ui/toast";
 
 import { deckCreatePageStore as store } from "../store";
-import { dismissSaveError } from "./dismissSaveError";
 
 export async function submitDeckCreation(values: DeckFormFields): Promise<DeckId | undefined> {
   const { session, pending } = store.getState();
   if (session === undefined || pending) return;
   // Lock synchronously so submissions cannot outrun the form's next render.
   store.setState({ pending: true });
-  dismissSaveError();
   try {
     const uid = getAuthUid();
     const deckId = generateDeckId();
@@ -29,7 +27,7 @@ export async function submitDeckCreation(values: DeckFormFields): Promise<DeckId
     return deckId;
   } catch {
     if (store.getState().session === session) {
-      store.setState({ saveErrorToastId: showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" }) });
+      showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" });
     }
     return undefined;
   } finally {

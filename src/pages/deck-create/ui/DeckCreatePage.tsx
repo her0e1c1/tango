@@ -21,10 +21,6 @@ export const DeckCreatePage: React.FC = () => {
       navigate(cardListPath, { replace: true })
     );
   });
-  const cancel = () => {
-    model.dismissSaveError();
-    void navigate(routes.deckList.to());
-  };
 
   return (
     <AppLayout showHeader>
@@ -34,7 +30,7 @@ export const DeckCreatePage: React.FC = () => {
         categories={CATEGORY}
         form={model.form}
         isLocalModeLocked={model.pending}
-        onCancel={cancel}
+        onCancel={() => void navigate(routes.deckList.to())}
         onSubmit={(event) => void onSubmit(event)}
       />
     </AppLayout>
