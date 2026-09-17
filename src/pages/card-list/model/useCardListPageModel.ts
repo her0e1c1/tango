@@ -19,7 +19,7 @@ export function useCardListPageModel(deck: Deck) {
   const { uid } = useAuth();
   const state = useStore(cardListStore);
   useResetStoreOnMount(cardListStore);
-  const query = useCardListQuery(deck, state.shownCard, state.deletionTarget);
+  const query = useCardListQuery(deck, state.shownCard);
   return {
     ...state,
     ...query,

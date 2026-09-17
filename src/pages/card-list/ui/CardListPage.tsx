@@ -50,8 +50,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const difficultyMax = deckFilter.difficultyMax === deckFilter.difficultyUpperBound ? null : deckFilter.difficultyMax;
   const difficultyMin = deckFilter.difficultyMin === deckFilter.difficultyLowerBound ? null : deckFilter.difficultyMin;
   const busy = model.mutationPending || deckFilter.saving;
-  const deletionTargetName = model.pendingDeletionName ?? model.deletionTargetName;
-  const dialogOpen = model.bulkCardIds != null || deletionTargetName != null;
+  const dialogOpen = model.bulkCardIds != null || model.deletionTarget != null;
 
   useKey(
     "t",
@@ -84,11 +83,11 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
           onCancel={model.cancelBulk}
           onConfirm={model.confirmBulk}
         />
-      ) : deletionTargetName != null ? (
+      ) : model.deletionTarget != null ? (
         <DestructiveActionDialog
           title={t("cardList.deletion.title")}
           targetLabel={t("cardList.deletion.targetLabel")}
-          targetName={deletionTargetName}
+          targetName={model.deletionTarget.frontText}
           description={
             <>
               <p>{t("cardList.deletion.description")}</p>
