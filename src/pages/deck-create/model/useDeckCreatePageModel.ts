@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useStore } from "zustand";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 
-import { dismissSaveError } from "./actions/dismissSaveError";
 import { enterDeckCreation } from "./actions/enterDeckCreation";
 import { leaveDeckCreation } from "./actions/leaveDeckCreation";
 import { submitDeckCreation } from "./actions/submitDeckCreation";
@@ -17,5 +16,5 @@ export function useDeckCreatePageModel() {
     const session = enterDeckCreation();
     return () => leaveDeckCreation(session);
   }, []);
-  return { form, pending, isMounted, submit: submitDeckCreation, dismissSaveError };
+  return { form, pending, isMounted, submit: submitDeckCreation };
 }
