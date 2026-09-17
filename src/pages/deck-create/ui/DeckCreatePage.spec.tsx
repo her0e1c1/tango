@@ -64,7 +64,7 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
         <ToastViewport />
       </>
     );
-    return render(strictMode ? <React.StrictMode>{page}</React.StrictMode> : page);
+    return { ...render(strictMode ? <React.StrictMode>{page}</React.StrictMode> : page), router };
   };
 
   beforeEach(() => {
@@ -167,20 +167,52 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     });
   });
 
-  it("dismisses a failed creation notification when cancelled", async () => {
-    mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
+  it("keeps a failed creation notification during retry and replaces it on success", async () => {
+    const retry = Promise.withResolvers<void>();
+    mocks.createDeck.mockRejectedValueOnce(new Error("write failed")).mockReturnValueOnce(retry.promise);
     renderPage();
 
-    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Cancelled deck");
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Retried deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
     expect(await screen.findByText("Unable to create this deck.")).toBeVisible();
 
-    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+    expect(screen.getByRole("button", { name: "Create deck" })).toBeDisabled();
+    expect(screen.getByText("Unable to create this deck.")).toBeVisible();
 
+    await actAsync(async () => {
+      retry.resolve();
+      await Promise.resolve();
+    });
+
+    expect(await screen.findByRole("heading", { name: "Card list destination" })).toBeVisible();
+    expect(screen.getByText("Created deck “Retried deck”.")).toBeVisible();
     expect(screen.queryByText("Unable to create this deck.")).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
-    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
   });
+
+  it.each(["Back to decks", "Leave route"])(
+    "keeps a failed creation notification when leaving via %s and re-entering",
+    async (leaveButton) => {
+      mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
+      const { router } = renderPage();
+
+      await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Cancelled deck");
+      await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+      expect(await screen.findByText("Unable to create this deck.")).toBeVisible();
+
+      await userEvent.click(screen.getByRole("button", { name: leaveButton }));
+      expect(screen.getByText("Unable to create this deck.")).toBeVisible();
+      await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+      expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
+      expect(screen.getByText("Unable to create this deck.")).toBeVisible();
+
+      await actAsync(async () => {
+        await router.navigate("/deck/new");
+      });
+      expect(screen.getByRole("button", { name: "Create deck" })).toBeVisible();
+      expect(screen.getByText("Unable to create this deck.")).toBeVisible();
+    }
+  );
 
   it("suppresses a second submit while creation is pending", async () => {
     let resolveCreate: (() => void) | undefined;
