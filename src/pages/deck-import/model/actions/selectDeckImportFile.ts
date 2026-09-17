@@ -2,8 +2,8 @@ import { getAuthUid } from "@/entities/auth";
 import { generateCardId, type CardMutation } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
 import { parseCsv, type DeckImportRow } from "../../lib/cardCsv";
-import { deckImportStore } from "../store";
-import type { DeckImportStorageMode, PreparedDeckImport } from "../types";
+import { deckImportStore, type DeckImportStorageMode } from "../store";
+import type { PreparedDeckImport } from "./executePreparedDeckImport";
 
 interface DeckImportSource {
   name: string;

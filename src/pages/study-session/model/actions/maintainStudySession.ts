@@ -1,6 +1,6 @@
 import type { DeckId } from "@/entities/deck";
 import { removeStudySession, touchStudySession } from "@/entities/study-session";
-import type { StudySessionState } from "../types";
+import type { StudySessionState } from "../queries/useStudyQuery";
 
 export const maintainStudySession = (deckId: DeckId, status: StudySessionState["status"]): void => {
   if (status === "studying") {

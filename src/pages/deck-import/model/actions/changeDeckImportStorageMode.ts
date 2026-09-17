@@ -1,5 +1,4 @@
-import { deckImportStore } from "../store";
-import type { DeckImportStorageMode } from "../types";
+import { deckImportStore, type DeckImportStorageMode } from "../store";
 
 export function changeDeckImportStorageMode(storageMode: DeckImportStorageMode): void {
   const state = deckImportStore.getState();

@@ -1,6 +1,11 @@
-import { mutateCards } from "@/entities/card";
-import { createDeck } from "@/entities/deck";
-import type { PreparedDeckImport } from "../types";
+import { mutateCards, type CardMutation } from "@/entities/card";
+import { createDeck, type LocalDeckCreateInput, type RemoteDeckCreateInput } from "@/entities/deck";
+
+export interface PreparedDeckImport {
+  uid: string;
+  destination: RemoteDeckCreateInput | LocalDeckCreateInput;
+  mutations: CardMutation[];
+}
 
 export async function executePreparedDeckImport(uid: string, prepared: PreparedDeckImport): Promise<void> {
   if (prepared.uid !== uid) throw new Error("The prepared Deck import belongs to a different user");

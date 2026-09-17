@@ -1,6 +1,9 @@
 import { createStore } from "zustand/vanilla";
 import type { DeckId } from "@/entities/deck";
-import type { StudyCompletion } from "./types";
+
+interface StudyCompletion {
+  cardCount: number;
+}
 
 export interface StudySessionPageState {
   completion: StudyCompletion | undefined;

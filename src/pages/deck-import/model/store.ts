@@ -1,5 +1,19 @@
 import { createStore } from "zustand/vanilla";
-import type { DeckImportSourceState, DeckImportStatus, DeckImportStorageMode } from "./types";
+import type { DeckImportAnalysis } from "../lib/cardCsv";
+import type { PreparedDeckImport } from "./actions/executePreparedDeckImport";
+
+export type DeckImportStorageMode = "local" | "remote";
+
+type DeckImportStatus = "idle" | "validating" | "importing" | "adding-sample";
+interface DeckImportPreview {
+  deckName: string;
+  analysis: DeckImportAnalysis;
+}
+
+type DeckImportSourceState =
+  | { kind: "empty" }
+  | { kind: "error"; error: unknown }
+  | { kind: "selected"; preview: DeckImportPreview; preparedImport: PreparedDeckImport | undefined };
 
 export interface DeckImportState {
   storageMode: DeckImportStorageMode;
