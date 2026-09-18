@@ -6,10 +6,10 @@ import { showToast } from "@/shared/ui/toast";
 import { deckCreatePageStore as store } from "../store";
 
 export async function submitDeckCreation(values: DeckFormFields): Promise<DeckId | undefined> {
-  const { session, pending } = store.getState();
-  if (session === undefined || pending) return;
+  if (store.getState().mutationId !== undefined) return;
   // Lock synchronously so submissions cannot outrun the form's next render.
-  store.setState({ pending: true });
+  const mutationId = Symbol();
+  store.setState({ mutationId });
   try {
     const uid = getAuthUid();
     const deckId = generateDeckId();
@@ -21,17 +21,17 @@ export async function submitDeckCreation(values: DeckFormFields): Promise<DeckId
       ...(values.url === undefined ? {} : { url: values.url }),
     };
     await createDeck(uid, values.localMode ? { ...deck, localMode: true } : { ...deck, localMode: false });
-    // Writes survive navigation, but their results belong only to the originating session.
-    if (store.getState().session !== session) return;
+    // Writes survive navigation, but resetting the store detaches their results.
+    if (store.getState().mutationId !== mutationId) return;
     showToast({ messageKey: "deckForm.toast.created", messageParams: { name: values.name }, tone: "success" });
     return deckId;
   } catch {
-    if (store.getState().session === session) {
+    if (store.getState().mutationId === mutationId) {
       showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" });
     }
     return undefined;
   } finally {
-    // An old write must not unlock a new session's pending creation.
-    if (store.getState().session === session) store.setState({ pending: false });
+    // A detached write must not unlock a newer creation after re-entry.
+    if (store.getState().mutationId === mutationId) store.setState({ mutationId: undefined });
   }
 }

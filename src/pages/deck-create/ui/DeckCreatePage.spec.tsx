@@ -238,28 +238,26 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Card list destination" })).toBeVisible());
   });
 
-  it("does not navigate from a write that finishes after the Page unmounts", async () => {
-    let resolveCreate: (() => void) | undefined;
-    mocks.createDeck.mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolveCreate = resolve;
-      })
-    );
-    renderPage();
+  it.each(["success", "failure"] as const)("does not publish a late %s after leaving the Page", async (outcome) => {
+    const write = Promise.withResolvers<void>();
+    mocks.createDeck.mockReturnValueOnce(write.promise);
+    renderPage(true);
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Slow deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
     await userEvent.click(screen.getByRole("button", { name: "Leave route" }));
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(screen.getByRole("heading", { name: "Deck list destination" })).toBeVisible();
-    expect(screen.queryByText("Created deck “Slow deck”.")).not.toBeInTheDocument();
 
     await actAsync(async () => {
-      resolveCreate?.();
+      if (outcome === "success") write.resolve();
+      else write.reject(new Error("write failed"));
       await Promise.resolve();
     });
 
     expect(screen.getByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(screen.queryByText("Created deck “Slow deck”.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Unable to create this deck.")).not.toBeInTheDocument();
   });
 
   it.each(["success", "failure"] as const)("isolates an old %s after re-entering the Page", async (outcome) => {
