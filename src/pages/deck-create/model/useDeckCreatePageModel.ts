@@ -17,14 +17,15 @@ export function useDeckCreatePageModel() {
   const guard = useNavigationGuard(form.formState.isDirty);
   useResetStoreOnMount(deckCreatePageStore);
 
-  const onSubmit = form.handleSubmit((values) =>
-    submitDeckCreation(values, isMounted, (deckId) => {
-      const cardListPath = routes.cardList.to(deckId);
-      void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
-        navigate(cardListPath, { replace: true })
-      );
-    })
-  );
+  const onSubmit = form.handleSubmit(async (values) => {
+    const deckId = await submitDeckCreation(values);
+    // The Page may unmount between the action resolving and this continuation.
+    if (deckId === undefined || !isMounted()) return;
+    const cardListPath = routes.cardList.to(deckId);
+    void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
+      navigate(cardListPath, { replace: true })
+    );
+  });
 
   return {
     form,
