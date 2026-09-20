@@ -10,7 +10,7 @@ import { CATEGORY, createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 
-import { useCardFormPageModel } from "../model/useCardFormPageModel";
+import { useCardEditPageModel } from "../model/useCardEditPageModel";
 import { CardEditor } from "./CardEditor";
 
 const writeControls = vi.hoisted(() => ({
@@ -43,7 +43,7 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 }));
 
 const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; onSaved: () => void }) => {
-  const { form, submit } = useCardFormPageModel(props.card);
+  const { form, submit } = useCardEditPageModel(props.card);
   return (
     <CardEditor
       cardInfo={{

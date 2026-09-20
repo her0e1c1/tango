@@ -2,12 +2,12 @@ import { getAuthSession } from "@/entities/auth";
 import { editCard, type CardContentInput, type CardId } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
 
-interface SubmitCardFormInput {
+interface SubmitCardEditInput {
   cardId: CardId;
   values: CardContentInput;
 }
 
-export async function submit({ cardId, values }: SubmitCardFormInput): Promise<boolean> {
+export async function submit({ cardId, values }: SubmitCardEditInput): Promise<boolean> {
   // Snapshot only editable content, including tags outside the visible categories.
   const input = {
     id: cardId,

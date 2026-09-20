@@ -8,20 +8,20 @@ import type { DeckFormFields } from "@/features/deck-form";
 
 import { cancelDeletion } from "./actions/cancelDeletion";
 import { confirmDeletion } from "./actions/confirmDeletion";
-import { enterDeckFormPage } from "./actions/enterDeckFormPage";
+import { enterDeckEditPage } from "./actions/enterDeckEditPage";
 import { requestDeletion } from "./actions/requestDeletion";
-import { submitDeckForm } from "./actions/submitDeckForm";
-import { deckFormPageStore } from "./store";
-import { useDeckFormState } from "./useDeckFormState";
+import { submitDeckEdit } from "./actions/submitDeckEdit";
+import { deckEditPageStore } from "./store";
+import { useDeckEditFormState } from "./useDeckEditFormState";
 
-export function useDeckFormPageModel(deck: Deck) {
-  const { form } = useDeckFormState(deck);
+export function useDeckEditPageModel(deck: Deck) {
+  const { form } = useDeckEditFormState(deck);
   const { isDirty, isSubmitting } = useFormState({ control: form.control });
-  const owner = useStore(deckFormPageStore, (state) => state.owner);
-  const deletionTarget = useStore(deckFormPageStore, (state) => state.deletionTarget);
-  const deletionPending = useStore(deckFormPageStore, (state) => state.deletionPending);
+  const owner = useStore(deckEditPageStore, (state) => state.owner);
+  const deletionTarget = useStore(deckEditPageStore, (state) => state.deletionTarget);
+  const deletionPending = useStore(deckEditPageStore, (state) => state.deletionPending);
   // Clear the previous visit before its dialog can paint or accept input on the new route.
-  useLayoutEffect(enterDeckFormPage, []);
+  useLayoutEffect(enterDeckEditPage, []);
 
   return {
     form,
@@ -30,7 +30,7 @@ export function useDeckFormPageModel(deck: Deck) {
     deletionTarget: getDeckDeletionTarget(deletionTarget),
     deletionPending,
     submit: (values: DeckFormFields, onSaved: () => void | Promise<void>) =>
-      submitDeckForm({
+      submitDeckEdit({
         owner,
         deckId: deck.id,
         values,

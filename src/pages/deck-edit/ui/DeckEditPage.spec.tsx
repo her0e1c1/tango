@@ -47,16 +47,16 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { DeckFormPage } from "./DeckFormPage";
+import { DeckEditPage } from "./DeckEditPage";
 
-describe("DeckFormPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () => {
+describe("DeckEditPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () => {
   const deckId = "deck-id";
   const renderPage = (path = `/deck/${deckId}/edit`) => {
     const router = createMemoryRouter(
       [
         { path: "/previous", element: <h1>Previous page</h1> },
         { path: "/", element: <h1>Deck list</h1> },
-        { path: "/deck/:id/edit", element: <DeckFormPage /> },
+        { path: "/deck/:id/edit", element: <DeckEditPage /> },
       ],
       { initialEntries: ["/previous", path], initialIndex: 1 }
     );
@@ -111,7 +111,7 @@ describe("DeckFormPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
           element: (
             <>
               <Link to={`/deck/${nextDeckId}/edit`}>Next deck</Link>
-              <DeckFormPage />
+              <DeckEditPage />
             </>
           ),
         },
@@ -304,7 +304,7 @@ describe("DeckFormPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
     expect(() =>
       render(
         <MemoryRouter>
-          <DeckFormPage />
+          <DeckEditPage />
         </MemoryRouter>
       )
     ).toThrowError("invalid deck id");

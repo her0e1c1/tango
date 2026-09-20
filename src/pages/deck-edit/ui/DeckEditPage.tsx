@@ -10,10 +10,10 @@ import { Button } from "@/shared/ui/button";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useDeckFormPageModel } from "../model/useDeckFormPageModel";
+import { useDeckEditPageModel } from "../model/useDeckEditPageModel";
 import { useOpeningDeck } from "../model/useOpeningDeck";
 
-const DeckFormContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
+const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const deckListPath = routes.deckList.to();
@@ -28,7 +28,7 @@ const DeckFormContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
     requestDeletion,
     cancelDeletion,
     confirmDeletion,
-  } = useDeckFormPageModel(deck);
+  } = useDeckEditPageModel(deck);
   const guard = useNavigationGuard(isDirty || isSubmitting);
   const onCompleted = () => guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
 
@@ -75,7 +75,7 @@ const DeckFormContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   );
 };
 
-const DeckFormRouteContainer: React.FC<{ deckId: Deck["id"] }> = ({ deckId }) => {
+const DeckEditRouteContainer: React.FC<{ deckId: Deck["id"] }> = ({ deckId }) => {
   const { t } = useTranslation();
   const openingDeck = useOpeningDeck(deckId);
 
@@ -83,14 +83,14 @@ const DeckFormRouteContainer: React.FC<{ deckId: Deck["id"] }> = ({ deckId }) =>
     return <RouteNotFound title={t("deckForm.notFound.title")} description={t("deckForm.notFound.description")} />;
   }
 
-  return <DeckFormContainer deck={openingDeck} />;
+  return <DeckEditContainer deck={openingDeck} />;
 };
 
-export const DeckFormPage: React.FC = () => {
+export const DeckEditPage: React.FC = () => {
   const params = useParams();
   const deckId = params.id;
   if (deckId == null) throw new Error("invalid deck id");
 
   // Page-owned form and deletion state must not survive navigation to a different Deck.
-  return <DeckFormRouteContainer key={deckId} deckId={deckId} />;
+  return <DeckEditRouteContainer key={deckId} deckId={deckId} />;
 };

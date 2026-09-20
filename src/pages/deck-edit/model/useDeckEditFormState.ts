@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { type Deck, deckFormSchema } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
 
-export function useDeckFormState(deck: Deck) {
+export function useDeckEditFormState(deck: Deck) {
   const form = useForm<DeckFormFields>({
     defaultValues: {
       name: deck.name,
