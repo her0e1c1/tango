@@ -53,22 +53,18 @@ describe("groupDecksByStudyStatus [SWIPE-11]", () => {
 
 describe("calculateStudySessionIndex [SWIPE-04] [SWIPE-05]", () => {
   it("moves within the session card order", () => {
-    expect(calculateStudySessionIndex(session, "previous")).toBe(0);
-    expect(calculateStudySessionIndex(session, "next")).toBe(2);
+    expect(calculateStudySessionIndex(session)).toBe(2);
   });
 
   it("returns no index when movement completes the session", () => {
-    expect(calculateStudySessionIndex({ ...session, currentIndex: 0 }, "previous")).toBeUndefined();
-    expect(calculateStudySessionIndex({ ...session, currentIndex: 2 }, "next")).toBeUndefined();
+    expect(calculateStudySessionIndex({ ...session, currentIndex: 2 })).toBeUndefined();
   });
 });
 
 describe("canMoveStudySession [SWIPE-04] [SWIPE-05]", () => {
   it("reports whether movement stays inside the Card order", () => {
-    expect(canMoveStudySession(session, "previous")).toBe(true);
-    expect(canMoveStudySession(session, "next")).toBe(true);
-    expect(canMoveStudySession({ ...session, currentIndex: 0 }, "previous")).toBe(false);
-    expect(canMoveStudySession({ ...session, currentIndex: 2 }, "next")).toBe(false);
+    expect(canMoveStudySession(session)).toBe(true);
+    expect(canMoveStudySession({ ...session, currentIndex: 2 })).toBe(false);
   });
 });
 
@@ -116,7 +112,6 @@ describe("planStudySessionSwipe [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", ()
   });
 
   it.each([
-    ["GoToPrevCard", "previous"],
     ["GoToNextCard", "next"],
     ["GoToNextCardMastered", "next"],
     ["GoToNextCardNotMastered", "next"],
@@ -127,6 +122,7 @@ describe("planStudySessionSwipe [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", ()
 
   it.each([
     ["DoNothing", "none"],
+    ["GoToPrevCard", "none"],
     ["GoBack", "exit"],
   ] as const)("plans %s as %s without a progress edit", (swipeAction, effect) => {
     expect(planStudySessionSwipe(session, cards, swipeAction, 0)).toEqual({ effect });

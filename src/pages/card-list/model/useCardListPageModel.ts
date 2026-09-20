@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 import { useStore } from "zustand";
 import { useAuth } from "@/entities/auth";
@@ -28,8 +28,7 @@ import { getCardListControls } from "./queries/getCardListControls";
 import { useCardListQuery } from "./queries/useCardListQuery";
 import { cardListStore } from "./store";
 
-export function useCardListRouteModel() {
-  const { id: deckId } = useParams();
+export function useCardListRouteModel(deckId: string | undefined) {
   if (deckId == null) throw new Error("invalid deck id");
   const deck = useDeck(deckId);
   return { deckId, deck };

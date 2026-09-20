@@ -21,6 +21,11 @@ const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}"];
 // Type-only imports remain allowed so presentational prop types can refer to model-owned types.
 // This gitignore-style directory pattern covers model and its descendants at any relative depth.
 const sameSliceModelImports = ["../**/model"];
+const pageRouteImports = ["react-router", "react-router-dom"].map((name) => ({
+  name,
+  importNames: ["useParams"],
+  message: "Import useParams only in *Page components under src/pages/*/ui/.",
+}));
 
 // Flat config composes every matching block. Shared React and parsing checks come first, followed by narrower policies.
 export default defineConfig(
@@ -97,6 +102,13 @@ export default defineConfig(
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
     },
   },
+  {
+    files: sourceFiles,
+    ignores: ["src/pages/*/ui/**/*Page.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", { paths: pageRouteImports }],
+    },
+  },
   // FSD permits Feature-to-Entity dependencies, but Feature UI stays props-driven under this project's stricter policy.
   // State and workflows are connected outside presentational UI and passed in as prepared values and callbacks.
   {
@@ -106,6 +118,7 @@ export default defineConfig(
       "no-restricted-imports": [
         "error",
         {
+          paths: pageRouteImports,
           patterns: [
             {
               // Cover the Entity layer barrel and every slice public API; prop contracts may still import their types.
@@ -137,6 +150,7 @@ export default defineConfig(
       "no-restricted-imports": [
         "error",
         {
+          paths: pageRouteImports,
           patterns: [
             {
               // Entity data and actions are prepared by the Page or Container; type-only prop contracts remain safe.

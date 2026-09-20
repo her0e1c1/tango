@@ -49,7 +49,7 @@ const StudyDestination = () => {
   );
 };
 
-describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 SWIPE-08 DeckListPage", () => {
+describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 DECK-13 SWIPE-08 DeckListPage", () => {
   const activeDeck = createLocalDeck({ id: "active-deck", name: "Active deck" });
   const freshDeck = createLocalDeck({ id: "fresh-deck", name: "Fresh deck" });
   const activeCard = createLocalCard({
@@ -76,6 +76,7 @@ describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 SWIPE-08 DeckLis
             <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
             <Route path="/deck/:id/study" element={<h1>Study destination</h1>} />
             <Route path="/deck/:id/start" element={<h1>Study start destination</h1>} />
+            <Route path="/deck/:id/view" element={<h1>Deck view destination</h1>} />
             <Route path="/deck/:id/edit" element={<h1>Deck editor destination</h1>} />
           </Routes>
         </MemoryRouter>
@@ -127,13 +128,19 @@ describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 SWIPE-08 DeckLis
   });
 
   it.each([
+    ["View cards in Active deck", "Deck view destination"],
+    ["View cards in Fresh deck", "Deck view destination"],
     ["Create deck", "Deck creator destination"],
     ["Import decks", "Import destination"],
   ])("navigates from the %s list action", async (label, destination) => {
     renderPage();
 
-    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: label }));
+    if (label.startsWith("View cards")) {
+      await userEvent.click(screen.getByRole("button", { name: label }));
+    } else {
+      await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+      await userEvent.click(screen.getByRole("menuitem", { name: label }));
+    }
 
     expect(await screen.findByRole("heading", { level: 1, name: destination })).toBeVisible();
   });
