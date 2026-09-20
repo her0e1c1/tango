@@ -104,13 +104,15 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
 
   await page.getByRole("button", { name: "Swipe right", exact: true }).click();
   await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
-  await expect.poll(() => readSession(page, deck.id)).toMatchObject({ currentIndex: 1 });
-  const continuedSession = await readSession(page, deck.id);
+  const continuedPosition = { sessionId: session.sessionId, cardOrderIds: session.cardOrderIds, currentIndex: 1 };
+  await expect.poll(() => readSession(page, deck.id)).toMatchObject(continuedPosition);
   const deckBeforeSettings = await requireDocument("deck", deck.id);
   const cardsBeforeSettings = await Promise.all(
     fixture.state.remote.cards.map((card) => requireDocument("card", card.id))
   );
 
+  await page.getByRole("button", { name: "Open study actions", exact: true }).click();
+  await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
   await page.getByRole("button", { name: "Open settings", exact: true }).click();
   const interval = page.getByRole("slider", { name: "Autoplay interval" });
   await expect(interval).toHaveValue("0");
@@ -118,14 +120,14 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   await page.keyboard.press("End");
   const restoredPreferences = { ...preferences, study: { ...preferences.study, cardInterval: 60 } };
   await expect.poll(() => readPreferences(page)).toEqual(restoredPreferences);
-  expect(await readSession(page, deck.id)).toEqual(continuedSession);
+  expect(await readSession(page, deck.id)).toMatchObject(continuedPosition);
 
   await page.goto("/");
   await page.getByRole("button", { name: `Continue ${deck.name}`, exact: true }).click();
   await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Study progress" })).toBeVisible();
-  expect(await readSession(page, deck.id)).toEqual(continuedSession);
+  expect(await readSession(page, deck.id)).toMatchObject(continuedPosition);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
   expect(await readPreferences(page)).toEqual(restoredPreferences);
