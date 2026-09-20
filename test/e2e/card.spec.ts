@@ -381,8 +381,13 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
 
 test("CARD-14 creates one local Card and keeps it across reload", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
-  const frontText = `${namespace.caseId} local front`;
+  const frontText =
+    `${namespace.caseId} local front. ${"This paragraph explains a useful idea with enough detail to study later. ".repeat(26)}`.slice(
+      0,
+      1748
+    );
   const backText = `${namespace.caseId} local back`;
+  await page.setViewportSize({ width: 360, height: 640 });
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
@@ -395,6 +400,47 @@ test("CARD-14 creates one local Card and keeps it across reload", async ({ fixtu
   await page.getByRole("button", { name: "Create card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
+  const dismiss = page.getByRole("button", { name: "Dismiss notification" });
+  const toast = dismiss.locator("..");
+  const message = toast.getByText(`Created card “${frontText}”.`, { exact: true });
+  for (const target of [toast, message, dismiss]) {
+    const box = await target.boundingBox();
+    if (box === null) throw new Error("Toast content has no rendered bounds");
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(360);
+    expect(box.y + box.height).toBeLessThanOrEqual(640);
+  }
+  const preview = await message.evaluate((element) => {
+    const text = element.firstChild;
+    if (text === null) throw new Error("Toast message is empty");
+    const range = document.createRange();
+    range.setStart(text, 0);
+    range.setEnd(text, "Created card “CARD-14 local front.".length);
+    const prefix = range.getBoundingClientRect();
+    const bounds = element.getBoundingClientRect();
+    return {
+      height: bounds.height,
+      lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
+      prefixTop: prefix.top,
+      prefixBottom: prefix.bottom,
+      top: bounds.top,
+      bottom: bounds.bottom,
+    };
+  });
+  expect(preview.height).toBeLessThanOrEqual(preview.lineHeight * 3);
+  expect(preview.prefixTop).toBeGreaterThanOrEqual(preview.top);
+  expect(preview.prefixBottom).toBeLessThanOrEqual(preview.bottom);
+  await dismiss.click({ trial: true });
+  await dismiss.focus();
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  await expect(dismiss).toBeFocused();
+  expect(await dismiss.evaluate((element) => element.matches(":focus-visible"))).toBe(true);
+  await expect(dismiss).not.toHaveCSS("box-shadow", "none");
+  await page.keyboard.press("Enter");
+  await expect(dismiss).toHaveCount(0);
+  await expect(page.getByRole("main")).toBeFocused();
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
@@ -402,7 +448,9 @@ test("CARD-14 creates one local Card and keeps it across reload", async ({ fixtu
     (card: { deckId?: string; frontText?: string }) => card.deckId === deck.id && card.frontText === frontText
   );
   expect(localCards).toHaveLength(1);
-  expect(localCards[0]).toEqual(expect.objectContaining({ deckId: deck.id, uniqueKey: localCards[0]?.id }));
+  expect(localCards[0]).toEqual(
+    expect.objectContaining({ deckId: deck.id, uniqueKey: localCards[0]?.id, frontText, backText })
+  );
   expect(
     (await listDocuments("card")).filter(
       (document) =>

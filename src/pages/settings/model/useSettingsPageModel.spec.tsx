@@ -1,4 +1,5 @@
 import type React from "react";
+import { MemoryRouter } from "react-router-dom";
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -63,7 +64,7 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
   });
 
   it("saves boolean and numeric changes as the user edits them", async () => {
-    render(<PreferencesFormHarness />);
+    render(<PreferencesFormHarness />, { wrapper: MemoryRouter });
 
     await userEvent.click(screen.getByRole("checkbox", { name: "Show playback controls" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "Dark mode" }));
@@ -85,7 +86,7 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
   });
 
   it("reflects a theme change saved elsewhere in the application", async () => {
-    render(<PreferencesFormHarness />);
+    render(<PreferencesFormHarness />, { wrapper: MemoryRouter });
     expect(screen.getByRole("checkbox", { name: "Dark mode" })).not.toBeChecked();
 
     act(() => {
