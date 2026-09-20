@@ -5,12 +5,13 @@
  */
 
 import cx from "classnames";
-import type * as React from "react";
+import * as React from "react";
 import { useButtonInteraction } from "@/shared/ui/button-interaction";
 import { MathContent, Title } from "@/shared/ui/content";
 
 export interface FrontTextProps {
   text: string;
+  ariaLabel?: string;
   category?: string;
   onClick?: () => void;
 }
@@ -21,7 +22,15 @@ export interface FrontTextProps {
  * notation.
  */
 export const FrontText: React.FC<FrontTextProps> = (props) => {
-  const clickInteraction = useButtonInteraction<HTMLDivElement>(props.onClick);
+  const contentId = React.useId();
+  const content = props.category === "math" ? <MathContent text={props.text} /> : <Title>{props.text}</Title>;
+  const buttonInteraction = useButtonInteraction<HTMLDivElement>(props.onClick);
+  const clickInteraction = {
+    ...buttonInteraction,
+    ...(props.onClick !== undefined && props.ariaLabel !== undefined
+      ? { "aria-label": props.ariaLabel, "aria-describedby": contentId }
+      : {}),
+  };
   return (
     <div
       id="frontText"
@@ -30,7 +39,13 @@ export const FrontText: React.FC<FrontTextProps> = (props) => {
       )}
       {...clickInteraction}
     >
-      {props.category === "math" ? <MathContent text={props.text} /> : <Title>{props.text}</Title>}
+      {props.ariaLabel === undefined ? (
+        content
+      ) : (
+        <div id={contentId} className="min-w-0">
+          {content}
+        </div>
+      )}
     </div>
   );
 };

@@ -12,5 +12,9 @@ export function moveCard(cards: readonly Card[], direction: -1 | 1, navigate: Na
     void navigate(routes.deckList.to());
     return;
   }
-  deckViewStore.setState({ cardId: nextCard.id, showBackText: false });
+  deckViewStore.setState((state) => ({
+    cardId: nextCard.id,
+    showBackText: false,
+    positionRevision: state.positionRevision + 1,
+  }));
 }

@@ -30,7 +30,7 @@ const swipeFrontUp = async (page: Page, frontText: string, button: "left" | "mid
 };
 
 const returnToDeckList = async (page: Page) => {
-  await page.getByRole("button", { name: "Open study actions" }).click();
+  await page.getByRole("button", { name: "Open card actions" }).click();
   await page.getByRole("button", { name: "Back to deck list" }).click();
 };
 
@@ -442,7 +442,7 @@ test("SWIPE-25 toggles and persists the Study Help button", async ({ fixture, pa
 
   await page.goto(`/deck/${deck.id}/study`);
   const help = page.getByRole("button", { name: "Open study help" });
-  const actions = page.getByRole("button", { name: "Open study actions" });
+  const actions = page.getByRole("button", { name: "Open card actions" });
   await expect(help).toBeVisible();
   await expect(actions).toBeVisible();
   const helpBounds = await help.boundingBox();
@@ -458,6 +458,6 @@ test("SWIPE-25 toggles and persists the Study Help button", async ({ fixture, pa
 
   await page.reload();
   await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Open study actions" }).click();
+  await page.getByRole("button", { name: "Open card actions" }).click();
   await expect(page.getByRole("button", { name: "Help button" })).toHaveAttribute("aria-pressed", "false");
 });

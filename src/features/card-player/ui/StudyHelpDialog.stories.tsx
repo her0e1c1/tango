@@ -17,7 +17,7 @@ const rows: StudyHelpDialogProps["rows"] = [
 ];
 
 const meta = {
-  title: "Pages/Study Session/StudyHelpDialog",
+  title: "Features/Card Player/StudyHelpDialog",
   component: StudyHelpDialog,
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },

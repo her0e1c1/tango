@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { createPreferences } from "@/test/factories";
 
-import { buildStudyHelpRows } from "./buildStudyHelpRows";
+import { buildCardPlayerHelpRows } from "./buildCardPlayerHelpRows";
 
-describe("SWIPE-24 buildStudyHelpRows", () => {
+describe("SWIPE-24 buildCardPlayerHelpRows", () => {
   it("maps configured directions to semantic control and action identifiers", () => {
     const preferences = createPreferences({
       controls: {
@@ -15,7 +15,7 @@ describe("SWIPE-24 buildStudyHelpRows", () => {
       },
     });
 
-    const rows = buildStudyHelpRows(preferences);
+    const rows = buildCardPlayerHelpRows(preferences);
 
     expect(rows.slice(0, 4)).toEqual([
       { control: "cardSwipeUp", action: "GoBack" },
@@ -31,7 +31,7 @@ describe("SWIPE-24 buildStudyHelpRows", () => {
       controls: { showSwipeButtonList: false, showPlaybackControls: false },
     });
 
-    const rows = buildStudyHelpRows(preferences);
+    const rows = buildCardPlayerHelpRows(preferences);
 
     expect(rows).toEqual(
       expect.arrayContaining([
@@ -45,7 +45,7 @@ describe("SWIPE-24 buildStudyHelpRows", () => {
   it("keeps mapping identity independent from presentation locale", () => {
     const preferences = createPreferences({ controls: { cardSwipeRight: "GoToNextCardMastered" } });
 
-    const rows = buildStudyHelpRows(preferences);
+    const rows = buildCardPlayerHelpRows(preferences);
 
     expect(rows).toContainEqual({ control: "cardSwipeRight", action: "GoToNextCardMastered" });
   });

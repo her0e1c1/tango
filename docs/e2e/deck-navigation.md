@@ -16,6 +16,9 @@ Deck と Card 一覧の主要な route を開き、存在しない Deck から�
 | DECK-16 | read | [復習期日の設定を閲覧対象へ反映できる](#deck-16) |
 | DECK-17 | read | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](#deck-17) |
 | DECK-18 | read | [1件の Card の長い解答を touch で閲覧して終了できる](#deck-18) |
+| DECK-19 | write | [閲覧と学習で表示設定と操作ヘルプを共有できる](#deck-19) |
+| DECK-20 | read | [学習データを保存せずに閲覧を自動再生できる](#deck-20) |
+| DECK-21 | read | [閲覧の進捗スライダーで前後へ移動できる](#deck-21) |
 
 <a id="deck-01"></a>
 
@@ -82,21 +85,23 @@ Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - remote Deck に複数の Card と途中の学習 session が存在する。
-- 学習の swipe mapping、裏面維持、自動再生の設定が有効でも、閲覧には適用しない。
+- 学習の swipe mapping、裏面維持、自動再生で開始の設定が有効でも、閲覧には適用しない。
 
 When:
 
 - Deck 一覧の Continue の横にある View を選択する。
-- Card をクリックして表裏を切り替え、両面で左右の primary mouse drag、左右キー、前後ボタンを使う。
+- Card をクリックして表裏を切り替え、両面で左右の primary mouse drag と左右キー、表面で前後ボタンを使う。
 - non-primary mouse drag、上下の drag と上下キーを操作する。
 - 先頭から前、末尾から次へ移動し、再入場も行う。
 
 Then:
 
-- 専用の閲覧 route で Deck 名と現在位置／総数を表示し、最初の Card の表面から開始する。
+- 専用の閲覧 route で学習画面と共通の UI と現在位置／総数を表示し、最初の Card の表面から停止状態で開始する。表面の読み上げには Card 本文も含める。
 - 左は前、右は次へ移動し、移動先は常に表面を表示する。drag 直後の click で誤反転しない。
 - non-primary mouse と上下操作は Card を移動せず、表裏も変更しない。
-- 両端を越えると Deck 一覧へ戻る。rating と自動再生の操作は表示しない。
+- 裏面にリンクや入力部品が含まれる場合、その操作では Card を反転せず、部品本来の動作を維持する。
+- 両端を越えると Deck 一覧へ戻る。上下の操作ボタンは無効で、rating は行わない。再生操作を表示するが、自動では開始しない。
+- 裏面では本文だけを表示し、ツールバー・詳細・操作パネルを隠す。左右の drag と左右キーは引き続き利用でき、前後ボタンは表面で利用する。
 - 閲覧、退出、再入場によって保存済み Deck、Card、学習履歴、学習 session、設定は変化しない。
 - browser error が発生しない。
 
@@ -219,4 +224,80 @@ Then:
 - 長い裏面が縦スクロールでき、縦操作で Card の移動や誤反転は起きない。
 - 1件中1件の位置を表示し、左右どちらの端を越えても一覧へ戻る。
 - Deck、Card、学習履歴、学習 session、設定は変化しない。
+- browser error が発生しない。
+
+<a id="deck-19"></a>
+
+### DECK-19 閲覧と学習で表示設定と操作ヘルプを共有できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- Card の詳細、Help、方向ボタン、再生操作を表示する設定である。
+
+When:
+
+- Deck の View を開き、Help の操作説明を確認する。
+- 操作メニューから表示設定を切り替え、reload してから同じ Deck の学習を Continue する。
+
+Then:
+
+- 閲覧の Help は左右を前後移動、上下を無効として説明し、反転・再生・表示切替・退出の操作を示す。
+- Help を閉じると起動ボタンに focus が戻り、開いている間は背景の shortcut を実行しない。
+- 変更した表示設定は reload 後と学習画面で共通に反映される。
+- 明示的に変更した表示設定だけを保存し、Deck、Card、学習履歴と閲覧前の学習再開位置を変更しない。
+- browser error が発生しない。
+
+<a id="deck-20"></a>
+
+### DECK-20 学習データを保存せずに閲覧を自動再生できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
+- 自動再生で開始が有効で、再生間隔は正の値である。
+- 追加ケースとして、間隔0、local-only、退出と再入場も確認する。
+
+When:
+
+- View を開いて待ち、再生ボタンまたは Space で再生を開始する。
+- Help を開閉し、再生の停止と再開、手動移動、最後の Card の自動送りを行う。
+
+Then:
+
+- 閲覧は常に停止状態で開始し、明示的に再生するまで移動しない。
+- 再生間隔ごとに次の Card の表面へ移動し、最後の次では Deck 一覧へ戻る。
+- Help 中はタイマーだけが停止し、閉じると選択済みの再生状態に従って新しい待ち時間を開始する。
+- 手動移動後は待ち時間を更新する。退出した閲覧のタイマーは再入場後に作用しない。
+- 間隔0では再生操作とスライダーを表示せず、自動送りしない。Help には利用不可の説明を表示する。
+- Deck、Card、学習履歴、学習 session、設定を変更しない。
+- browser error が発生しない。
+
+<a id="deck-21"></a>
+
+### DECK-21 閲覧の進捗スライダーで前後へ移動できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
+- 閲覧対象の Card が複数あり、再生操作を表示する設定である。
+
+When:
+
+- View の進捗スライダーを pointer または keyboard で前方と後方へ動かす。
+- Card を反転し、左右キーで移動する。再入場する。
+
+Then:
+
+- スライダーで前後の任意の Card へ移動でき、位置表示と本文が一致する。
+- 移動先と再入場後は表面を表示し、再入場後は先頭に戻る。
+- スライダーに focus がある間はその標準キー操作を優先し、Card 移動を二重に実行しない。
+- 本文上の Enter は反転、Space は再生切替、b は方向ボタンの表示切替として働く。入力欄やボタンの標準キー操作を妨げず、裏面のスクロール領域に focus がある場合の Space はスクロールを優先する。
+- Deck、Card、学習履歴、学習 session、設定を変更しない。表示設定を明示的に切り替えた場合のみ、その設定を保存する。
 - browser error が発生しない。

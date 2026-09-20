@@ -2,7 +2,7 @@ import { useCards, type Card } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { resolveStudySession, useStudySession } from "@/entities/study-session";
-import { buildStudyHelpRows } from "./buildStudyHelpRows";
+import { buildCardPlayerHelpRows } from "@/features/card-player";
 
 export type StudySessionState = ReturnType<typeof resolveStudySession<Card>>;
 
@@ -24,7 +24,7 @@ export const useStudyQuery = (deckId: string) => {
     showPlaybackControls: preferences.controls.showPlaybackControls,
     showSwipeButtonList: preferences.controls.showSwipeButtonList,
     showBackTextSwipeOverlays: preferences.controls.showBackTextSwipeOverlays,
-    helpRows: buildStudyHelpRows(preferences),
+    helpRows: buildCardPlayerHelpRows(preferences),
   };
   const query = { cards, preferences, sessionState, ...controls };
   if (deck == null || sessionState.status !== "studying")

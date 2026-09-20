@@ -6,6 +6,7 @@ import { Slider } from "@/shared/ui/forms";
 
 export interface ControllerProps {
   autoPlay?: boolean;
+  progressLabel?: string;
   index?: number;
   numberOfCards?: number;
   onToggleAutoPlay?: () => void;
@@ -42,7 +43,7 @@ export const Controller: React.FC<ControllerProps> = (props) => {
           max={Math.max(numberOfCards - 1, 0)}
           disabled={numberOfCards === 0 || index >= numberOfCards}
           value={String(index)}
-          aria-label={t("studySession.controller.progress")}
+          aria-label={props.progressLabel ?? t("studySession.controller.progress")}
           aria-valuetext={t("studySession.controller.progressValue", {
             current: Math.min(index + 1, numberOfCards),
             total: numberOfCards,
