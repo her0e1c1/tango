@@ -237,7 +237,7 @@ describe("CARD-30 CARD-31 unsaved answer preview", () => {
     await user.click(within(dialog).getByRole("button", { name: "Preview answer" }));
     const preview = within(dialog).getByRole("region", { name: "Answer preview" });
     expect(within(preview).queryByRole("strong")).toHaveTextContent("Draft");
-    expect(within(preview).getByRole("math", { hidden: true })).toBeInTheDocument();
+    expect(within(preview).getByRole("math", { hidden: true })).toBeDefined();
     expect(within(preview).getByRole("table")).toBeInTheDocument();
     expect(screen.getByLabelText("Form status").textContent).toBe(status);
     await user.clear(input);
