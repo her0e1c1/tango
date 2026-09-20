@@ -72,7 +72,7 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   lastSeenAt: 0,
 }));
 
-describe("Study Page model [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10] [SWIPE-11] [SWIPE-12] [SWIPE-24]", () => {
+describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10] [SWIPE-11] [SWIPE-12] [SWIPE-24]", () => {
   beforeEach(() => {
     mocks.uid = "user-1";
     clearStudySessions();
@@ -331,14 +331,22 @@ describe("Study Page model [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10] [SWIPE-11
     expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
-  it("does not complete when previous crosses the first Card boundary", async () => {
-    mocks.preferences = createPreferences({ cardSwipeLeft: "GoToPrevCard" });
+  it.each([1, 0])("ignores previous-card actions at index %s without saving or hiding the answer", async (index) => {
+    mocks.preferences = createPreferences({ cardSwipeLeft: "GoToPrevCard", showSwipeFeedback: true });
+    setStudySessionIndex(deckId, index);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
+    act(result.current.toggleBackText);
+    const session = getStudySession(deckId);
 
     await actAsync(async () => result.current.swipeLeft());
+    act(() => result.current.changeIndex(0));
 
-    expect(result.current.query.status).toBe("invalid");
-    expect(getStudySession(deckId)).toBeUndefined();
+    expect(result.current.query.status).toBe("studying");
+    expect(getStudySession(deckId)).toEqual(session);
+    expect(result.current.pageState.showBackText).toBe(true);
+    expect(result.current.pageState.completion).toBeUndefined();
+    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
   it("completes after the final Card is persisted and preserves the session Card count", async () => {

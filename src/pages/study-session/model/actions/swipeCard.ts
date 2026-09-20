@@ -22,7 +22,7 @@ export async function swipeCard(uid: string, deckId: DeckId, direction: SwipeDir
     return;
   }
   // A boundary move removes the session, so completion uses the pre-write snapshot.
-  const completesSession = plan.effect === "next" && plan.session.currentIndex === plan.session.cardOrderIds.length - 1;
+  const completesSession = plan.session.currentIndex === plan.session.cardOrderIds.length - 1;
   const work = Symbol();
   studySessionPageStore.setState((state) => ({
     pendingWork: work,
@@ -34,7 +34,7 @@ export async function swipeCard(uid: string, deckId: DeckId, direction: SwipeDir
       () => true,
       () => false
     );
-    if (!saved || !moveStudySession(plan.session, plan.effect)) return;
+    if (!saved || !moveStudySession(plan.session)) return;
     if (studySessionPageStore.getState().owner !== owner) return;
     if (preferences.appearance.showSwipeFeedback) showSwipeFeedback(direction);
     if (completesSession) {

@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -8,7 +9,8 @@ import { StudySessionContainer } from "./StudySessionContainer";
 
 export const StudySessionPage: React.FC = () => {
   const { t } = useTranslation();
-  const { deckId, deck } = useStudySessionRouteModel();
+  const params = useParams();
+  const { deckId, deck } = useStudySessionRouteModel(params.id);
 
   // Study lifecycle mutates session state, so an unavailable route Deck must not mount it.
   if (deck == null) return <RouteFeedback title={t("studySession.unavailable")} tone="not-found" />;

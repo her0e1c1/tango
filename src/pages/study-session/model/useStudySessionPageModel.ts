@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/entities/auth";
 import { type DeckId, useDeck } from "@/entities/deck";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useKey, useLatest } from "react-use";
 import { routes } from "@/shared/router";
 import {
@@ -25,8 +25,7 @@ import { useStudySessionPageState } from "./queries/useStudySessionPageState";
 import { runStudyShortcut } from "./actions/runStudyShortcut";
 import type { StudyShortcutAction } from "./queries/canRunStudyShortcut";
 
-export function useStudySessionRouteModel() {
-  const { id: deckId } = useParams();
+export function useStudySessionRouteModel(deckId: string | undefined) {
   if (deckId == null) throw new Error("invalid deck id");
   const deck = useDeck(deckId);
   return { deckId, deck };

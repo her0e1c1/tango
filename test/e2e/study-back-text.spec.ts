@@ -199,6 +199,8 @@ test("SWIPE-23 scrolls a long answer with wheel and touch from edge overlays", a
 
   const leftOverlay = page.getByRole("button", { name: "Swipe left" });
   const rightOverlay = page.getByRole("button", { name: "Swipe right" });
+  await expect(leftOverlay).toBeVisible();
+  await expect(rightOverlay).toBeVisible();
   const rightOverlayBounds = await rightOverlay.boundingBox();
   if (rightOverlayBounds == null) throw new Error("Expected a visible right back text overlay");
   expect(rightOverlayBounds.x + rightOverlayBounds.width).toBeLessThan(page.viewportSize()?.width ?? 0);
