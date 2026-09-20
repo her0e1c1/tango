@@ -1,3 +1,5 @@
+import { BackText } from "@/entities/card";
+import { useCardPreviewContent } from "@/features/card-form";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -37,6 +39,8 @@ const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEdit
     return () => pending.resolve();
   }, [form, isSaving]);
 
+  const preview = useCardPreviewContent(form.control, "raw", false);
+
   return (
     <CardEditor
       cardInfo={{
@@ -46,6 +50,7 @@ const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEdit
         ...(card.lastSeenAt != null ? { lastSeenAt: card.lastSeenAt } : {}),
       }}
       categories={CATEGORY}
+      preview={<BackText {...preview} />}
       form={form}
       onCancel={onCancel}
       onSubmit={form.handleSubmit(() => undefined)}

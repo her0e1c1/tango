@@ -1,8 +1,9 @@
+import { useCardPreviewContent } from "../model/queries/useCardPreviewContent";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useForm } from "react-hook-form";
-import { expect } from "storybook/test";
+import { expect, within } from "storybook/test";
 
-import type { Card } from "@/entities/card";
+import { BackText, type Card } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
@@ -12,17 +13,19 @@ import { CardFields, type CardFormFields } from "./CardFields";
 interface CardFieldsStoryProps {
   card: Card;
   validationError: boolean;
+  dark: boolean;
 }
 
 const validationErrors = { frontText: { type: "custom" }, backText: { type: "custom" } };
 
-const CardFieldsStory = ({ card, validationError }: CardFieldsStoryProps) => {
+const CardFieldsStory = ({ card, validationError, dark }: CardFieldsStoryProps) => {
   const form = useForm<CardFormFields>({
     defaultValues: { frontText: card.frontText, backText: card.backText, tags: card.tags },
     ...(validationError ? { errors: validationErrors } : {}),
   });
 
-  return <CardFields categories={CATEGORY} form={form} />;
+  const preview = useCardPreviewContent(form.control, "raw", dark);
+  return <CardFields categories={CATEGORY} preview={<BackText {...preview} />} form={form} />;
 };
 
 const longCard = { ...fixture.card.long, tags: [...fixture.tags.toolong] };
@@ -33,7 +36,7 @@ const meta = {
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
   decorators: [withPageLayout],
-  args: { card: fixture.card.default, validationError: false },
+  args: { card: fixture.card.default, validationError: false, dark: false },
 } satisfies Meta<typeof CardFieldsStory>;
 
 export default meta;
@@ -99,5 +102,28 @@ export const JapaneseValidation: Story = {
       "表面のテキストは必須です。"
     );
     await expect(document.documentElement).toHaveAttribute("lang", "ja");
+  },
+};
+
+export const Preview: Story = {
+  args: { card: { ...fixture.card.default, backText: "**Draft answer**\n\n$x^2$", tags: ["math"] } },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
+    await expect(canvas.getByRole("region", { name: "Answer preview" })).toBeVisible();
+  },
+};
+export const MobilePreview: Story = { ...Preview, globals: { viewport: { value: "iphonex", isRotated: false } } };
+export const DarkCodePreview: Story = {
+  ...Preview,
+  args: { dark: true, card: { ...fixture.card.default, backText: "const answer = 42;", tags: ["typescript"] } },
+  globals: { theme: "dark" },
+};
+export const ExpandedPreview: Story = {
+  ...Preview,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Expand Back" }));
+    await userEvent.click(within(canvas.getByRole("dialog")).getByRole("button", { name: "Preview answer" }));
   },
 };

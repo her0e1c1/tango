@@ -2,6 +2,7 @@ import type * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { BackText } from "@/entities/card";
 import { CATEGORY, type Deck, useDeck } from "@/entities/deck";
 import type { CardFormFields } from "@/features/card-form";
 import { routes } from "@/shared/router";
@@ -14,7 +15,7 @@ import { CardCreator } from "./CardCreator";
 const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const navigate = useNavigate();
   const destination = routes.cardList.to(deck.id);
-  const { form, submit } = useCardCreatePageModel(deck.id);
+  const { form, submit, preview } = useCardCreatePageModel(deck.id);
   const create = async (values: CardFormFields): Promise<void> => {
     if (await submit(values)) {
       void navigate(destination, { replace: true });
@@ -25,6 +26,7 @@ const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
     <AppLayout showHeader>
       <CardCreator
         categories={CATEGORY}
+        preview={<BackText {...preview} />}
         deckName={deck.name}
         form={form}
         onCancel={() => void navigate(destination)}

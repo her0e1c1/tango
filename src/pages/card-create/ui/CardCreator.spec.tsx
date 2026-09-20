@@ -1,3 +1,4 @@
+import { BackText } from "@/entities/card";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -33,11 +34,12 @@ const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
 const savedCards: { uid: string; card: Parameters<typeof writes.createCard>[1] }[] = [];
 
 const CardCreatorHarness = () => {
-  const { form, submit } = useCardCreatePageModel(deck.id);
+  const { form, submit, preview } = useCardCreatePageModel(deck.id);
   return (
     <>
       <CardCreator
         categories={CATEGORY}
+        preview={<BackText {...preview} />}
         deckName={deck.name}
         form={form}
         onCancel={vi.fn()}

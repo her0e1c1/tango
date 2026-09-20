@@ -199,6 +199,7 @@ export const resources = {
         expand: "Expand",
         expandSide: "Expand {{side}}",
         done: "Done",
+        preview: { show: "Preview answer", hide: "Hide preview", title: "Answer preview" },
         create: {
           eyebrow: "Card creator",
           title: "Create card",
@@ -881,6 +882,7 @@ export const resources = {
         expand: "拡大",
         expandSide: "{{side}}を拡大",
         done: "完了",
+        preview: { show: "解答をプレビュー", hide: "プレビューを閉じる", title: "解答プレビュー" },
         create: {
           eyebrow: "カード作成",
           title: "カードを作成",

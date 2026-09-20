@@ -272,3 +272,54 @@ Then:
 - 拡大編集画面でも入力エラーが表示され、入力欄の accessible description として読み取れる。
 - 未入力の値は維持され、Card は保存されず元の永続データが変更されない。
 - browser error が発生しない。
+
+<a id="card-26"></a>
+
+### CARD-26 作成中の未保存の解答をプレビューできる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- local-only Deck の Card 作成画面を開いており、Front は未入力である。
+
+When:
+
+- Back に未保存の本文を入力し、プレビューをキーボードで開閉する。
+- math タグを選択し、強調、表、数式を含む本文をプレビューする。
+- 拡大入力でも本文を変更してプレビューを確認し、通常入力へ戻る。
+
+Then:
+
+- 最新の下書きが Deck category と最初の対応タグに従って描画される。
+- plain text は改行を保持し、math は Markdown の強調・表と数式を描画する。
+- Front の検証や送信が始まらず、本文とタグを維持して入力へ戻れる。
+- プレビュー開閉で入力欄が置き換わらず、追加の Undo 履歴喪失がない。
+- 狭い画面でもプレビュー操作と入力欄を利用できる。
+- Card、Deck、Progress、学習 session の保存値と URL が変更されず、browser error が発生しない。
+
+<a id="card-27"></a>
+
+### CARD-27 編集中の未保存の解答と表示形式をプレビューできる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- local-only Card の編集画面を開いている。
+
+When:
+
+- 保存済みと異なる Back を入力し、タグを変更してプレビューを開閉する。
+- コードの言語を切り替え、拡大入力で下書きを更新して通常入力へ戻る。
+
+Then:
+
+- 最新の下書き、タグの優先順、Deck category、現在のテーマが描画に反映される。
+- 対応言語は構文ハイライトを使用し、markdown / md を math として描画しない。
+- プレビューだけで既存の検証状態、dirty 状態、本文、タグが変更されない。
+- プレビュー開閉で通常・拡大入力の入力欄が置き換わらず、キーボードで入力へ戻れる。
+- 未保存変更の離脱確認は維持される。
+- Card、Deck、Progress、学習 session の保存値と URL が変更されず、browser error が発生しない。

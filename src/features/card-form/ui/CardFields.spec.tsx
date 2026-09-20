@@ -1,3 +1,4 @@
+import { useCardPreviewContent } from "../model/queries/useCardPreviewContent";
 import { actAsync } from "@/test/act";
 import { getI18n } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +8,7 @@ import { type FieldErrors, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { cardContentInputSchema } from "@/entities/card";
+import { BackText, cardContentInputSchema } from "@/entities/card";
 
 import { CardFields, type CardFormFields } from "./CardFields";
 
@@ -18,19 +19,37 @@ const initialValues: CardFormFields = { frontText: "Front", backText: "Back", ta
 const FormHarness = ({
   onSubmit = vi.fn(),
   errors,
+  values = initialValues,
+  deckCategory = "raw",
+  dark = false,
 }: {
   onSubmit?: (values: CardFormFields) => void;
   errors?: FieldErrors<CardFormFields>;
+  values?: CardFormFields;
+  deckCategory?: string;
+  dark?: boolean;
 }) => {
   const form = useForm<CardFormFields>({
-    defaultValues: initialValues,
+    defaultValues: values,
     resolver: zodResolver(cardContentInputSchema),
     ...(errors === undefined ? {} : { errors }),
   });
+  const preview = useCardPreviewContent(form.control, deckCategory, dark);
   return (
-    <form onSubmit={form.handleSubmit((values) => onSubmit(values))}>
-      <CardFields categories={["language", "math"]} form={form} />
+    <form onSubmit={form.handleSubmit((validatedValues) => onSubmit(validatedValues))}>
+      <CardFields
+        categories={["language", "math", "python", "typescript", "md", "raw"]}
+        preview={<BackText {...preview} />}
+        form={form}
+      />
       <button type="submit">Save</button>
+      <output aria-label="Form status">
+        {JSON.stringify({
+          dirty: form.formState.isDirty,
+          errors: form.formState.errors,
+          submits: form.formState.submitCount,
+        })}
+      </output>
     </form>
   );
 };
@@ -179,5 +198,96 @@ describe("SETTINGS-08 Card validation language changes", () => {
       backText: "未保存の回答",
       tags: ["language", "custom"],
     });
+  });
+});
+
+describe("CARD-26 CARD-27 unsaved answer preview", () => {
+  it("previews an incomplete draft without submitting, validating, or replacing the input", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<FormHarness onSubmit={onSubmit} values={{ frontText: "", backText: "First\nSecond", tags: [] }} />);
+    await user.click(screen.getByRole("tab", { name: "Back" }));
+    const input = screen.getByRole("textbox", { name: "Back text" });
+    const status = screen.getByLabelText("Form status").textContent;
+    const trigger = screen.getByRole("button", { name: "Preview answer" });
+    await user.click(trigger);
+    expect(
+      within(screen.getByRole("region", { name: "Answer preview" })).getByText("First Second", { selector: "pre" })
+    ).toHaveTextContent("First Second");
+    expect(screen.getByLabelText("Form status").textContent).toBe(status);
+    await user.keyboard("{Enter}");
+    expect(screen.queryByRole("region", { name: "Answer preview" })).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+    expect(screen.getByRole("textbox", { name: "Back text" })).toBe(input);
+    expect(screen.getByLabelText("Form status").textContent).toBe(status);
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("renders live math drafts and preserves validation, dirty state, and expanded input identity", async () => {
+    const user = userEvent.setup();
+    render(<FormHarness deckCategory="math" errors={{ frontText: { type: "custom" } }} />);
+    await user.click(screen.getByRole("tab", { name: "Back" }));
+    await user.click(screen.getByRole("button", { name: "Expand Back" }));
+    const dialog = screen.getByRole("dialog");
+    const input = within(dialog).getByRole("textbox");
+    await user.clear(input);
+    await user.type(input, "**Draft**\n\n$x^2$\n\n| A | B |\n| - | - |\n| 1 | 2 |");
+    const status = screen.getByLabelText("Form status").textContent;
+    await user.click(within(dialog).getByRole("button", { name: "Preview answer" }));
+    const preview = within(dialog).getByRole("region", { name: "Answer preview" });
+    expect(within(preview).queryByRole("strong")).toHaveTextContent("Draft");
+    expect(within(preview).getByRole("math", { hidden: true })).toBeInTheDocument();
+    expect(within(preview).getByRole("table")).toBeInTheDocument();
+    expect(screen.getByLabelText("Form status").textContent).toBe(status);
+    await user.clear(input);
+    await user.type(input, "**Changed**");
+    expect(within(preview).queryByRole("strong")).toHaveTextContent("Changed");
+    await user.click(within(dialog).getByRole("button", { name: "Hide preview" }));
+    expect(within(dialog).getByRole("textbox")).toBe(input);
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("**Changed**");
+    await user.click(screen.getByRole("tab", { name: "Front" }));
+    expect(screen.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription("Front text is required.");
+  });
+
+  it.each([
+    { deckCategory: "python", tags: [], language: "python", dark: false },
+    { deckCategory: "math", tags: ["custom", "typescript", "python"], language: "typescript", dark: true },
+    { deckCategory: "math", tags: ["md"], language: "md", dark: false },
+  ])("uses $language and dark=$dark from current rendering context", async ({ deckCategory, tags, language, dark }) => {
+    const user = userEvent.setup();
+    const values = { frontText: "", backText: "const answer = 42;", tags };
+    const { rerender } = render(<FormHarness values={values} deckCategory={deckCategory} dark={dark} />);
+    await user.click(screen.getByRole("tab", { name: "Back" }));
+    await user.click(screen.getByRole("button", { name: "Preview answer" }));
+    const preview = screen.getByRole("region", { name: "Answer preview" });
+    expect(within(preview).getByRole("code")).toHaveAttribute("data-language", language);
+    expect(within(preview).getByRole("code")).toHaveClass("hljs");
+    expect(within(preview).getByRole("code")).toHaveAttribute("data-theme", dark ? "dark" : "light");
+    expect(within(preview).queryByRole("math", { hidden: true })).toBeNull();
+    rerender(<FormHarness values={values} deckCategory={deckCategory} dark={!dark} />);
+    expect(within(preview).getByRole("code")).toHaveAttribute("data-theme", dark ? "light" : "dark");
+  });
+
+  it("updates an open preview when tags change and falls back to the Deck category", async () => {
+    const user = userEvent.setup();
+    render(<FormHarness deckCategory="math" values={{ frontText: "", backText: "**Draft**", tags: ["python"] }} />);
+    await user.click(screen.getByRole("tab", { name: "Back" }));
+    await user.click(screen.getByRole("button", { name: "Preview answer" }));
+    const preview = screen.getByRole("region", { name: "Answer preview" });
+    expect(within(preview).getByRole("code")).toHaveAttribute("data-language", "python");
+    await user.click(screen.getByRole("button", { name: "Edit tags" }));
+    await user.click(screen.getByRole("checkbox", { name: "python" }));
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    expect(within(preview).queryByRole("strong")).toHaveTextContent("Draft");
+    await user.click(screen.getByRole("button", { name: "Edit tags" }));
+    await user.click(screen.getByRole("checkbox", { name: "raw" }));
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    expect(within(preview).queryByRole("strong")).toBeNull();
+    expect(within(preview).getByText("**Draft**", { selector: "pre" })).toHaveTextContent("**Draft**");
+    await actAsync(() => getI18n().changeLanguage("ja"));
+    expect(screen.getByRole("button", { name: "プレビューを閉じる" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("region", { name: "解答プレビュー" })).toBeInTheDocument();
   });
 });

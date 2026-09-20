@@ -1,10 +1,11 @@
+import { BackText } from "@/entities/card";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { expect, fn } from "storybook/test";
 
 import { CATEGORY } from "@/entities/deck";
-import type { CardFormFields } from "@/features/card-form";
+import { useCardPreviewContent, type CardFormFields } from "@/features/card-form";
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 
 import { CardCreator } from "./CardCreator";
@@ -22,9 +23,12 @@ const CardCreatorStory = ({ isSaving, onCancel, onSubmit }: CardCreatorStoryProp
     if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
   }, [form, isSaving]);
 
+  const preview = useCardPreviewContent(form.control, "raw", false);
+
   return (
     <CardCreator
       categories={CATEGORY}
+      preview={<BackText {...preview} />}
       deckName="Spanish vocabulary"
       form={form}
       onCancel={onCancel}

@@ -107,6 +107,8 @@
 | CARD-23 | write | [再訪後の Card 更新を古い更新の完了から保護する](./card-list-actions.md#card-23) |
 | CARD-24 | read | [Card を追加が新しい順に表示できる](./card-list-actions.md#card-24) |
 | CARD-25 | read | [Card の表示順を標準へ戻せる](./card-list-actions.md#card-25) |
+| CARD-26 | read | [作成中の未保存の解答をプレビューできる](./card-management.md#card-26) |
+| CARD-27 | read | [編集中の未保存の解答と表示形式をプレビューできる](./card-management.md#card-27) |
 
 ### Study
 

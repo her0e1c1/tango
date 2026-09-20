@@ -1,3 +1,4 @@
+import { BackText } from "@/entities/card";
 import type { Card, CardId } from "@/entities/card";
 
 import { render, screen, waitFor } from "@testing-library/react";
@@ -43,7 +44,7 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 }));
 
 const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; onSaved: () => void }) => {
-  const { form, submit } = useCardEditPageModel(props.card);
+  const { form, submit, preview } = useCardEditPageModel(props.card);
   return (
     <CardEditor
       cardInfo={{
@@ -53,6 +54,7 @@ const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; o
         ...(props.card.lastSeenAt != null ? { lastSeenAt: props.card.lastSeenAt } : {}),
       }}
       categories={CATEGORY}
+      preview={<BackText {...preview} />}
       form={form}
       onCancel={props.onCancel}
       onSubmit={(event) => {
