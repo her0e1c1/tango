@@ -3,7 +3,7 @@ import { createStore } from "zustand/vanilla";
 import type { Deck } from "@/entities/deck";
 
 interface DeckEditPageState {
-  submission: Promise<void> | undefined;
+  submission: Promise<boolean> | undefined;
   deletionTarget: { deck: Deck; cardCount: number } | undefined;
   deletionPending: boolean;
 }

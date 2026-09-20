@@ -1,11 +1,10 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { CATEGORY, type Deck } from "@/entities/deck";
 import { DeckDeletionDialog } from "@/features/deck-deletion";
 import { DeckForm } from "@/features/deck-form";
-import { routes, useNavigationGuard } from "@/shared/router";
 import { Button } from "@/shared/ui/button";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
@@ -15,32 +14,17 @@ import { useOpeningDeck } from "../model/useOpeningDeck";
 
 const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const deckListPath = routes.deckList.to();
-  const goToList = () => navigate(deckListPath, { replace: true });
-  const {
-    form,
-    isDirty,
-    isSubmitting,
-    deletionTarget,
-    deletionPending,
-    submit,
-    requestDeletion,
-    cancelDeletion,
-    confirmDeletion,
-  } = useDeckEditPageModel(deck);
-  const guard = useNavigationGuard(isDirty || isSubmitting);
-  const onCompleted = () => guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
+  const model = useDeckEditPageModel(deck);
 
   return (
     <AppLayout showHeader>
-      {guard.element}
-      {!guard.isBlocked && deletionTarget != null && (
+      {model.navigationGuard}
+      {model.deletionTarget != null && (
         <DeckDeletionDialog
-          target={deletionTarget}
-          pending={deletionPending}
-          onCancel={cancelDeletion}
-          onConfirm={() => confirmDeletion(onCompleted)}
+          target={model.deletionTarget}
+          pending={model.deletionPending}
+          onCancel={model.cancelDeletion}
+          onConfirm={model.confirmDeletion}
         />
       )}
       <DeckForm
@@ -52,10 +36,10 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
           updatedAt: deck.updatedAt,
         }}
         deckName={deck.name}
-        form={form}
+        form={model.form}
         isLocalOnly={deck.localMode}
-        onCancel={() => void goToList()}
-        onSubmit={form.handleSubmit((values) => submit(values, onCompleted))}
+        onCancel={model.onCancel}
+        onSubmit={(event) => void model.onSubmit(event)}
         afterForm={
           <section
             aria-labelledby="delete-deck-heading"
@@ -65,7 +49,12 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
               {t("deckDeletion.dangerTitle")}
             </h2>
             <p className="mt-1 text-body text-ink-muted">{t("deckDeletion.dangerDescription")}</p>
-            <Button className="mt-4" variant="destructive" disabled={isSubmitting} onClick={requestDeletion}>
+            <Button
+              className="mt-4"
+              variant="destructive"
+              disabled={model.isSubmitting}
+              onClick={model.requestDeletion}
+            >
               {t("deckDeletion.confirm")}
             </Button>
           </section>

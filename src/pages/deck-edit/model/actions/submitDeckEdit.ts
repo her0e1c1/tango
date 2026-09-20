@@ -1,35 +1,44 @@
-import type { Deck } from "@/entities/deck";
+import { getAuthUid } from "@/entities/auth";
+import { type Deck, editDeck } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
+import { showToast } from "@/shared/ui/toast";
 
-import { deckEditPageStore } from "../store";
-import { saveDeck } from "./saveDeck";
+import { deckEditPageStore as store } from "../store";
 
 interface SubmitDeckEditInput {
   isMounted: () => boolean;
   deckId: Deck["id"];
   values: DeckFormFields;
-  onSaved: () => void | Promise<void>;
 }
 
-export function submitDeckEdit({ isMounted, deckId, values, onSaved }: SubmitDeckEditInput): Promise<void> {
-  const state = deckEditPageStore.getState();
-  // Validation can finish after the originating form was replaced, including by the same Deck.
-  if (!isMounted()) return Promise.resolve();
-  // Every concurrent caller must await the same save so its form stays pending until completion.
-  if (state.submission !== undefined) return state.submission;
+export async function submitDeckEdit({ isMounted, deckId, values }: SubmitDeckEditInput): Promise<boolean> {
+  // Validation can finish after the originating form was replaced.
+  if (!isMounted()) return false;
+  const pending = store.getState().submission;
+  if (pending !== undefined) {
+    // Keep concurrent submissions pending, but let only the original caller navigate.
+    await pending;
+    return false;
+  }
 
-  const submission = saveDeck({ deckId, values })
-    .then(async (saved) => {
-      if (saved && isMounted() && deckEditPageStore.getState().submission === submission) await onSaved();
+  const input = { ...values, id: deckId, url: values.url ?? null };
+  const submission = editDeck(getAuthUid(), input)
+    .then(() => {
+      // Shared Toast lifetime covers persistence that finishes after the editor unmounts.
+      showToast({ messageKey: "deckForm.toast.updated", messageParams: { name: input.name }, tone: "success" });
+      return true;
     })
-    .catch((error: unknown) => {
-      // biome-ignore lint/suspicious/noConsole: Completion callback errors are not persistence failures.
-      console.error("Deck edit submission failed.", error);
-    })
-    .finally(() => {
-      // An earlier visit must never release the current editor's save.
-      if (deckEditPageStore.getState().submission === submission) deckEditPageStore.setState({ submission: undefined });
+    .catch(() => {
+      showToast({ messageKey: "toast.saveFailure", tone: "error" });
+      return false;
     });
-  deckEditPageStore.setState({ submission });
-  return submission;
+  store.setState({ submission });
+
+  try {
+    const saved = await submission;
+    return saved && store.getState().submission === submission;
+  } finally {
+    // An earlier visit must never release the current editor's save.
+    if (store.getState().submission === submission) store.setState({ submission: undefined });
+  }
 }
