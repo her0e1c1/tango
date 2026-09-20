@@ -10,7 +10,7 @@ import {
   recordCardStudyProgress,
 } from "./rules";
 import { createStudyProgress } from "./defaults";
-import type { CardProgressFields, StudyProgress } from "./types";
+import type { CardProgressFields, StudyProgress, StudyRating } from "./types";
 
 // Builds neutral StudyProgress for eligibility scenarios.
 const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, difficulty: 5, numberOfSeen: 0 });
@@ -76,8 +76,24 @@ describe("recordCardStudyProgress [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", 
   });
 
   it("does not reset difficulty when the rating direction changes", () => {
-    expect(calculateDifficulty(8, "mastered")).toBe(7);
-    expect(calculateDifficulty(3, "not-mastered")).toBe(4);
+    expect(calculateDifficulty(8, "good")).toBe(7);
+    expect(calculateDifficulty(3, "again")).toBe(4);
+  });
+});
+
+describe("calculateDifficulty [SWIPE-02] [SWIPE-03] [SWIPE-04]", () => {
+  it.each<[number, StudyRating | undefined, number]>([
+    [5, "good", 4],
+    [5, "again", 6],
+    [5, undefined, 5],
+    [5, "hard", 4],
+    [5, "easy", 4],
+    [1, "good", 1],
+    [1, "hard", 1],
+    [1, "easy", 1],
+    [10, "again", 10],
+  ])("adjusts difficulty %i for %s to %i", (difficulty, rating, expectedDifficulty) => {
+    expect(calculateDifficulty(difficulty, rating)).toBe(expectedDifficulty);
   });
 });
 
