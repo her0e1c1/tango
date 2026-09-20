@@ -78,7 +78,7 @@ import { FirestoreSubscriptionsProvider } from ".";
 const authenticatedSession = (uid: string) => ({
   status: "authenticated" as const,
   uid,
-  isAnonymous: true,
+  isAnonymous: false,
   displayName: null,
 });
 
@@ -101,7 +101,7 @@ const renderProvider = () =>
     </FirestoreSubscriptionsProvider>
   );
 
-describe("FirestoreSubscriptionsProvider [CARD-01]", () => {
+describe("FirestoreSubscriptionsProvider [CARD-01] [ACCOUNT-01] [ACCOUNT-03] [PERSIST-04]", () => {
   beforeEach(() => {
     clearRemoteCards();
     clearRemoteDecks();
@@ -123,6 +123,25 @@ describe("FirestoreSubscriptionsProvider [CARD-01]", () => {
 
     expect(screen.getByText("Deck for user-a")).toBeVisible();
     expect(screen.getByText("Front for user-a")).toBeVisible();
+  });
+
+  it("keeps guest cloud data unavailable until the same identity signs in", () => {
+    replaceAuthSession({ ...authenticatedSession("user-a"), isAnonymous: true });
+    renderProvider();
+
+    expect(screen.getByText("Application content")).toBeVisible();
+    expect(screen.getByText("No remote Decks")).toBeVisible();
+    expect(screen.getByText("No remote Cards")).toBeVisible();
+
+    act(() => replaceAuthSession(authenticatedSession("user-a")));
+
+    expect(screen.getByText("Deck for user-a")).toBeVisible();
+    expect(screen.getByText("Front for user-a")).toBeVisible();
+
+    act(() => replaceAuthSession({ ...authenticatedSession("user-a"), isAnonymous: true }));
+
+    expect(screen.getByText("No remote Decks")).toBeVisible();
+    expect(screen.getByText("No remote Cards")).toBeVisible();
   });
 
   it("replaces visible remote data when the authenticated identity changes", () => {

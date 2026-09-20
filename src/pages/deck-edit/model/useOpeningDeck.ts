@@ -4,10 +4,12 @@ import { type Deck, useDeck } from "@/entities/deck";
 
 export function useOpeningDeck(deckId: Deck["id"]) {
   const deck = useDeck(deckId);
-  const [openingDeck, setOpeningDeck] = useState(deck);
+  const [opening, setOpening] = useState({ deckId, deck });
 
   // Accept a late arrival once, then preserve the draft and stay mounted through our own deletion.
-  if (openingDeck === undefined && deck !== undefined) setOpeningDeck(deck);
+  if (opening.deckId !== deckId || (opening.deck === undefined && deck !== undefined)) {
+    setOpening({ deckId, deck });
+  }
 
-  return openingDeck;
+  return opening.deckId === deckId ? opening.deck : deck;
 }

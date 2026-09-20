@@ -162,15 +162,19 @@ Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
 - local-only Deck が存在する。
+- viewport は 360 x 640 である。
 
 When:
 
-- Card 一覧の Actions の Add card から front text と back text を入力して Card を作成し、画面を reload する。
+- Card 一覧の Actions の Add card から約1,748文字の通常の段落の front text と有効な back text を入力して Card を作成する。
+- 成功通知の Dismiss にポインターで到達できることを確認し、Tab でフォーカスを移して Enter で閉じ、画面を reload する。
 
 Then:
 
-- Card の作成成功が共通 toast で表示される。
-- 作成した Card が reload 後も同じ Deck の Card 一覧に表示される。
+- Card の作成成功が共通 toast で表示され、翻訳された成功メッセージと Card 本文の冒頭を含む最大3行のプレビューが viewport 内に収まる。
+- Dismiss の描画範囲とキーボードのフォーカス表示が viewport 内に収まり、操作できる。閉じた後はページにフォーカスが復元される。
+- アクセシブルな通知は Card の文脈を維持する。
+- 作成した Card が reload 後も同じ Deck の Card 一覧に表示され、front text の全文と back text が切り詰められずに保存される。
 - Card は browser 保存先だけに1件存在し、remote 保存先には存在しない。
 - browser error が発生しない。
 

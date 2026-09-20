@@ -141,14 +141,14 @@ export const expect = playwrightExpect;
 
 const encodeTokenPart = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
 
-const emulatorToken = (uid: string) => {
+const emulatorToken = (uid: string, linked = false) => {
   const now = Math.floor(Date.now() / 1000);
   const header = encodeTokenPart({ alg: "none", typ: "JWT" });
   const payload = encodeTokenPart({
     aud: projectId,
     auth_time: now,
     exp: now + 3600,
-    firebase: { identities: {}, sign_in_provider: "anonymous" },
+    firebase: { identities: {}, sign_in_provider: linked ? "google.com" : "anonymous" },
     iat: now,
     iss: `https://securetoken.google.com/${projectId}`,
     sub: uid,
@@ -210,7 +210,7 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
         contentType: "application/json",
         body: JSON.stringify({
           kind: "identitytoolkit#SignupNewUserResponse",
-          idToken: emulatorToken(activeUid),
+          idToken: emulatorToken(activeUid, normalizedOptions.linked && activeUid === uid),
           refreshToken: "e2e-refresh-token",
           expiresIn: "3600",
           localId: activeUid,
@@ -539,7 +539,7 @@ export interface FirestoreDocument {
   >;
 }
 
-const setDocument = async (collection: FirestoreCollection, id: string, document: Record<string, unknown>) => {
+export const setDocument = async (collection: FirestoreCollection, id: string, document: Record<string, unknown>) => {
   const fields = Object.fromEntries(
     Object.entries(document).flatMap(([key, value]) => (value === undefined ? [] : [[key, firestoreValue(value)]]))
   );
@@ -550,6 +550,31 @@ const setDocument = async (collection: FirestoreCollection, id: string, document
   });
   if (!response.ok) throw new Error(`Firestore seed failed: ${response.status} ${await response.text()}`);
 };
+
+export const requestFirestoreAsGuest = async ({
+  uid,
+  collection,
+  id,
+  method,
+  document,
+}: {
+  uid: string;
+  collection: FirestoreCollection;
+  id: string;
+  method: "PATCH" | "DELETE";
+  document?: Record<string, unknown>;
+}) =>
+  fetch(`${firestoreBase}/${collection}/${id}`, {
+    method,
+    headers: { Authorization: `Bearer ${emulatorToken(uid)}`, "Content-Type": "application/json" },
+    ...(document === undefined
+      ? {}
+      : {
+          body: JSON.stringify({
+            fields: Object.fromEntries(Object.entries(document).map(([key, value]) => [key, firestoreValue(value)])),
+          }),
+        }),
+  });
 
 export const getDocument = async (
   collection: FirestoreCollection,

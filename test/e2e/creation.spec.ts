@@ -19,8 +19,8 @@ test("DECK-11 creates one empty local-only Deck without a remote duplicate", asy
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   const localOnly = page.getByRole("radio", { name: "Local only" });
-  await localOnly.check();
   await expect(localOnly).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Cloud", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
   await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
