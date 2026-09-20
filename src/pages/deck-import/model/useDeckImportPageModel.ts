@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useKey } from "react-use";
 
 import { useAuth } from "@/entities/auth";
 import { usePreferences } from "@/entities/preference";
@@ -24,6 +25,8 @@ export function useDeckImportPageModel() {
   const preferences = usePreferences();
   const navigate = useNavigate();
   const isMounted = useMountedGuard();
+  useKey("t", () => void navigate(routes.deckList.to()));
+  useKey("s", () => void navigate(routes.settings.to()));
 
   useEffect(() => {
     if (isAnonymous) changeDeckImportStorageMode("local");

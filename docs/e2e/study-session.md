@@ -84,6 +84,7 @@ When:
 Then:
 
 - Deck 一覧へ戻る前と同じ学習 session が維持される。
+- Continue は遷移前に対象 session の最終学習時刻を更新する。
 - Deck 一覧へ戻る前に表示されていた Card の front text が表示される。
 - browser error が発生しない。
 
