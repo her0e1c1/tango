@@ -51,6 +51,8 @@ test("IMPORT-08 A local Sample deck preserves every card and can be studied afte
   await confirmSample(page);
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `View ${sampleName}`, exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: `View ${sampleName}`, exact: true }).click();
   await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
@@ -100,6 +102,8 @@ test("IMPORT-09 A failed remote Sample deck import retries without losing or dup
   await confirmSample(page);
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `View ${sampleName}`, exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: `View ${sampleName}`, exact: true }).click();
   await expect(page.getByRole("article")).toHaveCount(sampleCards.length);

@@ -228,6 +228,7 @@ Then:
 
 - preview を開くだけでは Deck と Card は保存されない。
 - 件数を含む成功通知が表示される。
+- 追加成功後は reload を待たずに Deck 一覧へ遷移し、取り込んだ Deck が表示される。
 - 生成済み sample の全 Card の表裏、複数タグ、uniqueKey、引用符と改行が reload 後も完全に維持される。
 - Deck と Card は local-only に保存され、remote には作成されない。
 - Card 一覧と学習画面で取り込んだ内容を利用でき、解答を表示できる。
@@ -253,6 +254,7 @@ Then:
 
 - 失敗は権限の案内で通知され、preview と保存先を維持する。
 - 再試行は最初に作成した一つの Deck に全 Card を重複なく保存する。
+- 再試行成功後は reload を待たずに Deck 一覧へ遷移し、取り込んだ Deck が表示される。
 - 成功通知の件数と Card 一覧の件数が sample の全件数と一致する。
 - 現在の UID の remote data に sample の表裏、タグ、uniqueKey、引用符と改行が完全に維持され、local-only data は作成されない。
 - 未処理の browser error が発生しない。
