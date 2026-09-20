@@ -9,7 +9,7 @@ import { studyAnswerDocumentSchema, type AnswerType, type StudyAnswerDocument } 
 export async function saveStudyOperation(input: StudyOperation) {
   const operation = studyOperationSchema.parse(input);
   if (operation.uid === "" || getAuthUid() !== operation.uid) throw new Error("Study user changed");
-  if (globalThis.navigator?.onLine === false) throw new Error("Study answers require a connection");
+  if (!navigator.onLine) throw new Error("Study answers require a connection");
   const reference = doc(db, "studyAnswer", operation.id);
   return await runTransaction(db, async (transaction) => {
     // Firebase may rerun this callback. Identity, time and payload were fixed before entering it.
