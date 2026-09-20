@@ -1,4 +1,3 @@
-import { getAuthUid } from "@/entities/auth";
 import { confirmDeckDeletion } from "@/features/deck-deletion";
 
 import { deckEditPageStore as store } from "../store";
@@ -9,7 +8,6 @@ export async function confirmDeletion(): Promise<boolean> {
   let deleted = false;
 
   await confirmDeckDeletion({
-    uid: getAuthUid(),
     target: deletionTarget,
     pending: deletionId !== undefined,
     setTarget: (target) => store.setState({ deletionTarget: target }),
