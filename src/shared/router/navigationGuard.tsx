@@ -5,17 +5,6 @@ import { NavigationGuardDialog } from "../ui/navigation-guard-dialog";
 
 type AllowedNavigationIntent = { historyAction: "PUSH" | "REPLACE"; to: string };
 
-const getLocationPath = (location: { pathname: string; search: string; hash: string }): string =>
-  `${location.pathname}${location.search}${location.hash}`;
-
-const matchesHistoryAction = (
-  intendedAction: AllowedNavigationIntent["historyAction"],
-  actualAction: NavigationType
-): boolean => {
-  if (intendedAction === "PUSH") return actualAction === NavigationType.Push;
-  return actualAction === NavigationType.Replace;
-};
-
 const BeforeUnloadGuard = () => {
   useBeforeUnload(
     (event) => {
@@ -30,17 +19,15 @@ const BeforeUnloadGuard = () => {
 };
 
 export const useNavigationGuard = (isDirty: boolean) => {
-  const allowedNavigation = React.useRef<{
-    intent: AllowedNavigationIntent;
-    token: symbol;
-  } | null>(null);
+  const allowedNavigation = React.useRef<AllowedNavigationIntent | null>(null);
   const blocker = useBlocker(({ historyAction, nextLocation }) => {
+    const historyActions = { PUSH: NavigationType.Push, REPLACE: NavigationType.Replace };
     const pending = allowedNavigation.current;
     const matchesIntent =
       // biome-ignore lint/suspicious/noUnnecessaryConditions: Imperative navigation arms this ref outside render.
       pending != null &&
-      matchesHistoryAction(pending.intent.historyAction, historyAction) &&
-      pending.intent.to === getLocationPath(nextLocation);
+      historyActions[pending.historyAction] === historyAction &&
+      pending.to === `${nextLocation.pathname}${nextLocation.search}${nextLocation.hash}`;
     if (matchesIntent) {
       allowedNavigation.current = null;
       return false;
@@ -49,10 +36,11 @@ export const useNavigationGuard = (isDirty: boolean) => {
   });
 
   const allowNavigation = (intent: AllowedNavigationIntent, navigate: () => void | Promise<void>) => {
-    const navigationToken = Symbol("allowed-navigation");
-    allowedNavigation.current = { intent, token: navigationToken };
+    // Each call owns its cleanup, even if an older navigation settles after a newer one starts.
+    const pending = { ...intent };
+    allowedNavigation.current = pending;
     const clearAllowedNavigation = () => {
-      if (allowedNavigation.current?.token === navigationToken) allowedNavigation.current = null;
+      if (allowedNavigation.current === pending) allowedNavigation.current = null;
     };
     try {
       const result = navigate();
@@ -68,21 +56,14 @@ export const useNavigationGuard = (isDirty: boolean) => {
     }
   };
 
-  const keepEditing = () => {
-    if (blocker.state === "blocked") blocker.reset();
-  };
-  const discardChanges = () => {
-    // React Router owns the requested destination, including Back/Forward history entries.
-    if (blocker.state === "blocked") blocker.proceed();
-  };
-
   return {
     allowNavigation,
     element: (
       <>
         {isDirty ? <BeforeUnloadGuard /> : null}
         {blocker.state === "blocked" && (
-          <NavigationGuardDialog onDiscardChanges={discardChanges} onKeepEditing={keepEditing} />
+          // React Router resumes the exact destination, including Back/Forward history entries.
+          <NavigationGuardDialog onDiscardChanges={blocker.proceed} onKeepEditing={blocker.reset} />
         )}
       </>
     ),
