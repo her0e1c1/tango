@@ -43,10 +43,13 @@ Given:
 
 When:
 
-- Import 画面で CSV を選択し、Import を実行せずに検証の完了を待つ。
+- Import 画面で保存先から Tab でファイル選択欄、次の操作へ進み、Shift+Tab でファイル選択欄、保存先へ戻る。
+- CSV を選択し、Import を実行せずに検証の完了を待つ。
 
 Then:
 
+- Tab／Shift+Tab でファイル選択欄に移動すると、可視のアップロード領域に共通フォーカストークンの枠が表示され、前後の操作へ移動すると消える。広い画面・狭い画面と明暗両テーマで位置を判別できる。
+- native file input の通常の Tab 順序と CSV 選択を維持する。
 - Deck 名、検証件数、Card の内容を含む preview が表示される。
 - Import 操作が有効になる。
 - 選択した保存先に Deck と Card は作成されない。
