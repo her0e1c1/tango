@@ -1,6 +1,7 @@
 import type { CardMutation } from "@/entities/card";
 import type { DeckId, LocalDeckCreateInput } from "@/entities/deck";
 
+import { getAuthUid } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
@@ -28,7 +29,9 @@ const prepareSampleDeck = (): PreparedSampleDeck => ({
   })),
 });
 
-export const addSampleDeck = async (uid: string) => {
+export const addSampleDeck = async () => {
+  // Read the current identity when the action runs rather than capturing a caller snapshot.
+  const uid = getAuthUid();
   const sample = prepareSampleDeck();
   await createDeck(uid, sample.destination);
   if (sample.mutations.length > 0) await mutateCards(uid, sample.mutations);

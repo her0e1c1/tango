@@ -54,8 +54,8 @@ export const DeckListPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    void bootstrapSampleDeck(uid, decks, loadSample);
-  }, [uid, decks, loadSample]);
+    void bootstrapSampleDeck(decks, loadSample);
+  }, [decks, loadSample]);
   useKey("s", () => void navigate(routes.settings.to()));
   useKey("i", () => void navigate(routes.deckImport.to()));
 
