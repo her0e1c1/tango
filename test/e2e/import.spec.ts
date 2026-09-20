@@ -218,28 +218,28 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
       file: "basic-sample.csv",
       count: 3,
       local: true,
-      firstRow: ["apple", "りんご", "果物", "apple-001"],
+      representativeRow: ["apple", "りんご", "果物", "apple-001"],
     },
     {
       label: "Math",
       file: "math-sample.csv",
       count: 2,
       local: false,
-      firstRow: ["半径 $r$ の円の面積は？", "$\\pi r^2$", "math", "circle-area"],
+      representativeRow: ["半径 $r$ の円の面積は？", "$\\pi r^2$", "math", "circle-area"],
     },
     {
       label: "Markdown",
       file: "markdown-sample.csv",
       count: 2,
       local: true,
-      firstRow: ["Markdownで強調するには？", "**重要**な語句を強調します。", "md", "markdown-source"],
+      representativeRow: ["Markdownで強調するには？", "**重要**な語句を強調します。", "md", "markdown-source"],
     },
     {
       label: "Sample deck",
       file: "deck-sample.csv",
       count: 11,
       local: false,
-      firstRow: [
+      representativeRow: [
         "What is bisect_left?",
         expect.stringContaining("def my_bisect_left(sl, a):\n    lo, hi = 0, len(sl)"),
         "py,binarysearch",
@@ -264,7 +264,8 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
     expect(displayedCsv?.replaceAll("\r\n", "\n")).toBe(csv.replaceAll("\r\n", "\n"));
     const parsed = Papa.parse<string[]>(csv);
     expect(parsed.errors).toEqual([]);
-    expect(parsed.data[0]).toEqual(example.firstRow);
+    // Generated sample cards follow filesystem traversal order; their contents must match regardless of position.
+    expect(parsed.data).toContainEqual(example.representativeRow);
     expect(parsed.data).toHaveLength(example.count);
     expect(parsed.data.every((row) => row.length === 4 && row[3] !== "")).toBe(true);
 
