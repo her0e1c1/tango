@@ -24,7 +24,6 @@ export const useNavigationGuard = (isDirty: boolean) => {
     const historyActions = { PUSH: NavigationType.Push, REPLACE: NavigationType.Replace };
     const pending = allowedNavigation.current;
     const matchesIntent =
-      // biome-ignore lint/suspicious/noUnnecessaryConditions: Imperative navigation arms this ref outside render.
       pending != null &&
       historyActions[pending.historyAction] === historyAction &&
       pending.to === `${nextLocation.pathname}${nextLocation.search}${nextLocation.hash}`;

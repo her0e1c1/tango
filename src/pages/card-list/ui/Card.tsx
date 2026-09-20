@@ -68,7 +68,6 @@ export const Card: React.FC<CardProps> = (props) => {
 
   React.useEffect(() => {
     const boundary = menuBoundary.current;
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
     if (boundary == null) return;
 
     /**
