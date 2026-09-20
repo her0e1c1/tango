@@ -25,6 +25,8 @@ export const Upload: React.FC<{
     <label
       className={cx(
         "flex h-48 max-w-sm rounded-surface border-2 border-border bg-surface text-ink shadow-surface transition-shadow duration-normal ease-calm",
+        // The transparent native input keeps focus; paint its keyboard indicator on the visible label.
+        "has-[:focus-visible]:outline-[length:var(--calm-focus-ring-width)] has-[:focus-visible]:outline-solid has-[:focus-visible]:outline-focus has-[:focus-visible]:outline-offset-[var(--calm-focus-ring-offset)]",
         props.fileName ? "border-solid shadow-elevated" : "border-dashed",
         props.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
         props.className

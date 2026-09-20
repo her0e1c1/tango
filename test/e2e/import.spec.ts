@@ -40,6 +40,27 @@ test("IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture,
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
+  const upload = page.getByLabel("Upload a csv file");
+  const uploadArea = page.locator("label").filter({ has: upload });
+  const destination = page.getByRole("radio", { name: /Local only/ });
+  await destination.check();
+  await destination.focus();
+  await page.keyboard.press("Tab");
+  await expect(upload).toBeFocused();
+  await expect(uploadArea).toHaveCSS("outline-style", "solid");
+  await expect(uploadArea).toHaveCSS("outline-width", "2px");
+  await expect(uploadArea).toHaveCSS("outline-offset", "3px");
+  await expect(uploadArea).toHaveCSS("opacity", "1");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Add sample deck" })).toBeFocused();
+  await expect(uploadArea).toHaveCSS("outline-style", "none");
+  await page.keyboard.press("Shift+Tab");
+  await expect(upload).toBeFocused();
+  await expect(uploadArea).toHaveCSS("outline-style", "solid");
+  await page.keyboard.press("Shift+Tab");
+  await expect(destination).toBeFocused();
+  await expect(uploadArea).toHaveCSS("outline-style", "none");
+
   const file = validCsv(namespace.id("preview"));
   await page.getByLabel("Upload a csv file").setInputFiles(file);
 
