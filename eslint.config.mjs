@@ -24,7 +24,7 @@ const sameSliceModelImports = ["../**/model"];
 const pageRouteImports = ["react-router", "react-router-dom"].map((name) => ({
   name,
   importNames: ["useParams"],
-  message: "Import useParams only in Page UI under src/pages/*/ui/.",
+  message: "Import useParams only in *Page components under src/pages/*/ui/.",
 }));
 
 // Flat config composes every matching block. Shared React and parsing checks come first, followed by narrower policies.
@@ -104,7 +104,7 @@ export default defineConfig(
   },
   {
     files: sourceFiles,
-    ignores: ["src/pages/*/ui/**"],
+    ignores: ["src/pages/*/ui/**/*Page.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", { paths: pageRouteImports }],
     },
@@ -150,6 +150,7 @@ export default defineConfig(
       "no-restricted-imports": [
         "error",
         {
+          paths: pageRouteImports,
           patterns: [
             {
               // Entity data and actions are prepared by the Page or Container; type-only prop contracts remain safe.
