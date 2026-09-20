@@ -37,7 +37,6 @@ export const useNavigationGuard = (isDirty: boolean) => {
   const blocker = useBlocker(({ historyAction, nextLocation }) => {
     const pending = allowedNavigation.current;
     const matchesIntent =
-      // biome-ignore lint/suspicious/noUnnecessaryConditions: Imperative navigation arms this ref outside render.
       pending != null &&
       matchesHistoryAction(pending.intent.historyAction, historyAction) &&
       pending.intent.to === getLocationPath(nextLocation);
