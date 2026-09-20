@@ -6,7 +6,7 @@ import { deckEditPageStore } from "../store";
 
 export function requestDeletion(deckId: Deck["id"]): void {
   requestDeckDeletion(deckId, {
-    pending: deckEditPageStore.getState().deletionPending,
+    pending: deckEditPageStore.getState().deletionId !== undefined,
     decks: getDecks(),
     cards: getCards(),
     setTarget: (deletionTarget) => deckEditPageStore.setState({ deletionTarget }),

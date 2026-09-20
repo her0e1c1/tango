@@ -1,7 +1,8 @@
 import type { Deck, DeckId } from "@/entities/deck";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -40,8 +41,8 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 
-const AvailableDeckFormHarness = (props: { deck: Deck; onCancel: () => void; onSaved: () => void }) => {
-  const { form, submit } = useDeckEditPageModel(props.deck);
+const AvailableDeckFormHarness = (props: { deck: Deck }) => {
+  const { form, onCancel, onSubmit } = useDeckEditPageModel(props.deck);
   return (
     <DeckForm
       mode="edit"
@@ -50,28 +51,34 @@ const AvailableDeckFormHarness = (props: { deck: Deck; onCancel: () => void; onS
       deckName={props.deck.name}
       form={form}
       isLocalOnly={props.deck.localMode}
-      onCancel={props.onCancel}
-      onSubmit={(event) => void form.handleSubmit((values) => submit(values, props.onSaved))(event)}
+      onCancel={onCancel}
+      onSubmit={(event) => void onSubmit(event)}
     />
   );
 };
 
-const StoredDeckFormHarness = (props: { deckId: DeckId; onCancel: () => void; onSaved: () => void }) => {
+const StoredDeckFormHarness = (props: { deckId: DeckId }) => {
   const deck = useDeck(props.deckId);
-  return deck === undefined ? null : (
-    <AvailableDeckFormHarness deck={deck} onCancel={props.onCancel} onSaved={props.onSaved} />
-  );
+  return deck === undefined ? null : <AvailableDeckFormHarness deck={deck} />;
 };
 
 describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
   const deckId = "deck-id";
-  const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
-    render(
+  const renderForm = () => {
+    const router = createMemoryRouter(
+      [
+        { path: "/", element: <h1>Deck list</h1> },
+        { path: "/edit", element: <StoredDeckFormHarness deckId={deckId} /> },
+      ],
+      { initialEntries: ["/edit"] }
+    );
+    return render(
       <>
-        <StoredDeckFormHarness deckId={deckId} onCancel={onCancel} onSaved={onSaved} />
+        <RouterProvider router={router} />
         <ToastViewport />
       </>
     );
+  };
 
   beforeEach(async () => {
     dismissToast();
@@ -83,8 +90,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
   });
 
   it("restores successfully saved form values from the Deck Entity", async () => {
-    const onSaved = vi.fn();
-    const view = renderForm(onSaved);
+    const view = renderForm();
     await userEvent.click(screen.getByText("More settings"));
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
@@ -94,7 +100,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
     await userEvent.selectOptions(screen.getByRole("combobox"), "science");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
     view.unmount();
     renderForm();
     await userEvent.click(screen.getByText("More settings"));
@@ -106,23 +112,21 @@ describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
   });
 
   it("reads the current authenticated user when submission starts", async () => {
-    const onSaved = vi.fn();
-    renderForm(onSaved);
+    renderForm();
     authControls.uid = "latest-user";
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
     expect(writeControls.writes.at(-1)?.uid).toBe("latest-user");
   });
 
   it("requests cloud persistence when Cloud is selected", async () => {
-    const onSaved = vi.fn();
-    renderForm(onSaved);
+    renderForm();
     await userEvent.click(screen.getByRole("radio", { name: "Cloud" }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
     expect(writeControls.writes.at(-1)).toEqual({
       uid: "user-id",
       deck: expect.objectContaining({ id: deckId, localMode: false }),
@@ -143,18 +147,17 @@ describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
     expect(screen.getByRole("textbox", { name: "Name" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Back to decks" })).toBeDisabled();
     finishSave();
-    await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
+    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
   });
 
   it("removes a cleared optional URL from the stored Deck", async () => {
     await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", url: "https://example.com/deck.csv" }));
-    const onSaved = vi.fn();
-    const view = renderForm(onSaved);
+    const view = renderForm();
     await userEvent.click(screen.getByText("More settings"));
     await userEvent.clear(screen.getByRole("textbox", { name: "Source URL" }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
     view.unmount();
     renderForm();
     await userEvent.click(screen.getByText("More settings"));
@@ -163,8 +166,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
 
   it("keeps the draft and saves it after an explicit retry", async () => {
     writeControls.nextError = new Error("write failed");
-    const onSaved = vi.fn();
-    const view = renderForm(onSaved);
+    const view = renderForm();
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
     await userEvent.type(name, "Retry deck");
@@ -174,7 +176,7 @@ describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
     expect(name).toHaveValue("Retry deck");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
     view.unmount();
     renderForm();
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Retry deck");

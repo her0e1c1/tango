@@ -3,13 +3,13 @@ import { createStore } from "zustand/vanilla";
 import type { Deck } from "@/entities/deck";
 
 interface DeckEditPageState {
-  submission: Promise<void> | undefined;
+  submission: Promise<boolean> | undefined;
   deletionTarget: { deck: Deck; cardCount: number } | undefined;
-  deletionPending: boolean;
+  deletionId: symbol | undefined;
 }
 
 export const deckEditPageStore = createStore<DeckEditPageState>()(() => ({
   submission: undefined,
   deletionTarget: undefined,
-  deletionPending: false,
+  deletionId: undefined,
 }));
