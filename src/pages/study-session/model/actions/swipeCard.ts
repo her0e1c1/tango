@@ -2,7 +2,12 @@ import { getCards } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import { getPreferences, type SwipeDirection } from "@/entities/preference";
 import { editStudyProgress } from "@/entities/study-progress";
-import { getStudySession, moveStudySession, planStudySessionSwipe, removeStudySession } from "@/entities/study-session";
+import {
+  abandonStudySession,
+  getStudySession,
+  moveStudySession,
+  planStudySessionSwipe,
+} from "@/entities/study-session";
 import { showSwipeFeedback } from "../../lib/showSwipeFeedback";
 import { studySessionPageStore } from "../store";
 import { hideBackText } from "./hideBackText";
@@ -15,7 +20,7 @@ export async function swipeCard(uid: string, deckId: DeckId, direction: SwipeDir
   const plan = planStudySessionSwipe(getStudySession(deckId), getCards(), preferences.controls[direction], Date.now());
   if (plan.effect === "none") return;
   if (plan.effect === "exit") {
-    removeStudySession(deckId);
+    abandonStudySession(deckId);
     if (preferences.appearance.showSwipeFeedback && studySessionPageStore.getState().owner === owner) {
       showSwipeFeedback(direction);
     }

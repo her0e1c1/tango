@@ -163,3 +163,10 @@ export const calculateStudySessionIndex = (session: StudySession): number | unde
 // Reports whether another Card remains after the current position.
 export const canMoveStudySession = (session: StudySession): boolean =>
   calculateStudySessionIndex(session) !== undefined;
+
+// Server creation time orders runs across devices without confusing it with domain or recent-study time.
+export function compareStudySessionCreation(left: StudySession, right: StudySession): number {
+  return (
+    (left.remote?.createdAt ?? 0) - (right.remote?.createdAt ?? 0) || left.sessionId.localeCompare(right.sessionId)
+  );
+}

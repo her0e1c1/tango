@@ -12,10 +12,11 @@ const STUDY_STORAGE_VERSION = 4;
 /** Persisted study sessions indexed by their owning Deck. */
 interface StudySessionState {
   sessionsByDeckId: StudySessions;
+  remoteLoading: boolean;
 }
 
 // Restores only independently valid sessions whose Deck key matches their payload.
-const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
+const sanitizePersistedState = (persistedState: unknown): Pick<StudySessionState, "sessionsByDeckId"> => {
   const parsedState = persistedStudySessionStateSchema.safeParse(persistedState);
   if (!parsedState.success) return { sessionsByDeckId: {} };
 
@@ -31,10 +32,11 @@ const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
 
 export const studySessionStore = createStore<StudySessionState>()(
   persist(
-    immer(() => ({ sessionsByDeckId: {} })),
+    immer(() => ({ sessionsByDeckId: {}, remoteLoading: false })),
     {
       name: STUDY_STORAGE_KEY,
       version: STUDY_STORAGE_VERSION,
+      partialize: ({ sessionsByDeckId }) => ({ sessionsByDeckId }),
       // Only sanitized fields enter live state; incompatible shapes and unknown metadata are intentionally discarded.
       merge: (persistedState, currentState) => ({
         ...currentState,

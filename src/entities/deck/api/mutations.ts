@@ -2,7 +2,7 @@ import type { z } from "zod";
 import type { Deck, DeckId, LocalDeckCreateInput, RemoteDeckCreateInput } from "../model/types";
 
 import { deleteLocalCardsByDeckId, moveLocalCardsToRemote } from "@/entities/card/@x/deck";
-import { removeStudySession } from "@/entities/study-session/@x/deck";
+import { abandonStudySession } from "@/entities/study-session/@x/deck";
 import { createLocalDeck } from "../model/actions/createLocalDeck";
 import { deleteLocalDeck } from "../model/actions/deleteLocalDeck";
 import { editLocalDeck } from "../model/actions/editLocalDeck";
@@ -86,5 +86,5 @@ export const deleteDeck = async (uid: string, deckId: DeckId): Promise<void> => 
   }
 
   // A deleted Deck must not leave a resumable session behind in persisted client state.
-  removeStudySession(deckId);
+  abandonStudySession(deckId);
 };

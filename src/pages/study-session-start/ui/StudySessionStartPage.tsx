@@ -1,18 +1,15 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-
 import type { Deck } from "@/entities/deck";
 import { DeckFilterForm } from "@/features/deck-filter";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
-
 import { useStudySessionStartPageModel, useStudySessionStartRouteModel } from "../model/useStudySessionStartPageModel";
 import { StudySessionStart } from "./StudySessionStart";
 
-const StudySessionStartContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
+const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const model = useStudySessionStartPageModel(deck);
-
   return (
     <AppLayout showHeader>
       <StudySessionStart
@@ -39,10 +36,10 @@ const StudySessionStartContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
 
 export const StudySessionStartPage: React.FC = () => {
   const { t } = useTranslation();
-  const params = useParams();
-  const { deckId, deck } = useStudySessionStartRouteModel(params.id);
-
-  if (deck == null) {
+  const { id } = useParams();
+  if (id === undefined) throw new Error("invalid deck id");
+  const { deckId, deck } = useStudySessionStartRouteModel(id);
+  if (deck === undefined) {
     return (
       <RouteNotFound
         title={t("studyStart.deckNotFound.title")}
@@ -50,7 +47,5 @@ export const StudySessionStartPage: React.FC = () => {
       />
     );
   }
-
-  // Session setup state belongs to one route Deck and must reset when the id changes.
-  return <StudySessionStartContainer key={deckId} deck={deck} />;
+  return <AvailableStudySessionStartPage key={deckId} deck={deck} />;
 };
