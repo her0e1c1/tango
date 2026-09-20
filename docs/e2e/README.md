@@ -46,8 +46,8 @@
 | SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](./settings.md#settings-05) |
 | SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](./settings.md#settings-06) |
 | SETTINGS-07 | read | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](./settings.md#settings-07) |
-| SETTINGS-09 | read | [CSV の検証結果が再読み込みなしで言語変更に追随する](./settings.md#settings-09) |
-| SETTINGS-08 | read | [Card の検証エラーが言語変更に追随し入力を保持する](./settings.md#settings-08) |
+| SETTINGS-09 | write | [CSV の検証結果が再読み込みなしで言語変更に追随する](./settings.md#settings-09) |
+| SETTINGS-08 | write | [Card の検証エラーが言語変更に追随し入力を保持する](./settings.md#settings-08) |
 
 ### Import
 

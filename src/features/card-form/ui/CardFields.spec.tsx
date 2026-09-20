@@ -3,7 +3,7 @@ import { getI18n } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useForm } from "react-hook-form";
+import { type FieldErrors, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -15,10 +15,17 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 const initialValues: CardFormFields = { frontText: "Front", backText: "Back", tags: ["language", "custom"] };
 
-const FormHarness = ({ onSubmit = vi.fn() }: { onSubmit?: (values: CardFormFields) => void }) => {
+const FormHarness = ({
+  onSubmit = vi.fn(),
+  errors,
+}: {
+  onSubmit?: (values: CardFormFields) => void;
+  errors?: FieldErrors<CardFormFields>;
+}) => {
   const form = useForm<CardFormFields>({
     defaultValues: initialValues,
     resolver: zodResolver(cardContentInputSchema),
+    ...(errors === undefined ? {} : { errors }),
   });
   return (
     <form onSubmit={form.handleSubmit((values) => onSubmit(values))}>
@@ -119,6 +126,27 @@ describe("CARD-21 CardFields validation", () => {
 });
 
 describe("SETTINGS-08 Card validation language changes", () => {
+  it("translates unknown validation errors in place, including the expanded editor", async () => {
+    const user = userEvent.setup();
+    render(<FormHarness errors={{ frontText: { type: "server", message: "Internal validation details" } }} />);
+    const front = screen.getByRole("textbox", { name: "Front text" });
+    expect(front).toHaveAccessibleDescription("The value is invalid.");
+    expect(screen.getByRole("alert")).toHaveTextContent("The value is invalid.");
+    await user.click(screen.getByRole("button", { name: "Expand Front" }));
+    const expanded = within(screen.getByRole("dialog")).getByRole("textbox");
+    expect(expanded).toHaveAccessibleDescription("The value is invalid.");
+
+    await actAsync(() => getI18n().changeLanguage("ja"));
+
+    expect(front).toHaveAccessibleDescription("入力内容が正しくありません。");
+    expect(within(screen.getByRole("dialog")).getByRole("textbox")).toBe(expanded);
+    expect(expanded).toHaveAccessibleDescription("入力内容が正しくありません。");
+    expect(within(screen.getByRole("dialog")).getByRole("alert")).toHaveTextContent("入力内容が正しくありません。");
+    expect(screen.queryByText("Internal validation details")).not.toBeInTheDocument();
+    expect(front).toHaveValue("Front");
+    expect(expanded).toHaveValue("Front");
+  });
+
   it("updates an existing error without losing the other draft or custom tags", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();

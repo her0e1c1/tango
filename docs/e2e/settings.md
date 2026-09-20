@@ -15,8 +15,8 @@ Settings の自動保存が reload を越えて維持され、保存した学習
 | SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](#settings-05) |
 | SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](#settings-06) |
 | SETTINGS-07 | read | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](#settings-07) |
-| SETTINGS-08 | read | [Card の検証エラーが言語変更に追随し入力を保持する](#settings-08) |
-| SETTINGS-09 | read | [CSV の検証結果が再読み込みなしで言語変更に追随する](#settings-09) |
+| SETTINGS-08 | write | [Card の検証エラーが言語変更に追随し入力を保持する](#settings-08) |
+| SETTINGS-09 | write | [CSV の検証結果が再読み込みなしで言語変更に追随する](#settings-09) |
 
 <a id="settings-01"></a>
 
@@ -187,7 +187,7 @@ Then:
 
 ### SETTINGS-08 Card の検証エラーが言語変更に追随し入力を保持する
 
-カテゴリ: `read`
+カテゴリ: `write`
 
 Given:
 
@@ -209,7 +209,7 @@ Then:
 
 ### SETTINGS-09 CSV の検証結果が再読み込みなしで言語変更に追随する
 
-カテゴリ: `read`
+カテゴリ: `write`
 
 Given:
 
