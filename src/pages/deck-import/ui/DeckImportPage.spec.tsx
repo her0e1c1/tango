@@ -20,6 +20,7 @@ const controls = vi.hoisted(() => ({
 vi.mock("@/entities/auth", () => ({
   getAuthSession: () => ({ status: "anonymous" }),
   getAuthUid: () => "",
+  useAuth: () => ({ isAnonymous: true }),
 }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
@@ -101,6 +102,21 @@ describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06 SETTINGS-09]",
     controls.nextMutationError = undefined;
     controls.nextMutationWait = undefined;
     controls.setDarkMode.mockReset();
+  });
+
+  it("offers local storage by default and requires sign-in for cloud imports", async () => {
+    renderPage();
+    expect(screen.getByText(/Sign in to save to the cloud/)).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Change" }));
+    expect(screen.getByRole("radio", { name: /Local only/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Upload a csv file"), {
+      target: { files: [new File(["guest front,guest back,tag,key"], "guest-default.csv")] },
+    });
+    await userEvent.click(await screen.findByRole("button", { name: "Add 1 card" }));
+    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(screen.getByText("guest-default.csv")).toBeVisible();
+    expect(screen.getByText("guest front: guest back")).toBeVisible();
   });
 
   it("translates cached CSV diagnostics without reading again or changing the selected source", async () => {

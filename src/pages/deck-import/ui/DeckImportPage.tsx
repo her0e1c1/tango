@@ -11,6 +11,7 @@ export const DeckImportPage: React.FC = () => {
     <AppLayout showHeader>
       <DeckImportView
         {...model.view}
+        cloudStorageAvailable={model.cloudStorageAvailable}
         onStorageModeChange={model.changeStorageMode}
         onChange={model.selectFile}
         onChooseAgain={model.chooseAgain}

@@ -59,6 +59,18 @@ export const LongMessage: Story = {
     messageKey: "deckImport.errors.storage",
   },
 };
+export const LongCardCreated: Story = {
+  args: {
+    tone: "success",
+    messageKey: "cardForm.toast.created",
+    messageParams: { name: "A long card with useful context and a detailed explanation. ".repeat(32) },
+  },
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+};
+export const LongCardCreatedJapanese: Story = {
+  ...LongCardCreated,
+  parameters: { locale: "ja" },
+};
 export const NonInteractive: Story = {
   args: { dismissible: false, messageKey: "studySession.feedback.swipedRight" },
 };

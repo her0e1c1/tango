@@ -226,7 +226,7 @@ test("DECK-06 recovers home from a missing Deck route", async ({ fixture, page, 
 test("DECK-07 migrates a local-only Deck and every Card to remote storage", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const { localCards: cards } = fixture.state.browser;
-  await fixture.apply(page);
+  await fixture.apply(page, { auth: { linked: true } });
 
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
@@ -274,7 +274,7 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   const category = "typescript";
   const sourceUrl = "https://example.com/created-deck.csv";
   const { uid } = fixture.user();
-  await fixture.apply(page);
+  await fixture.apply(page, { auth: { linked: true } });
 
   await page.goto("/");
   await page.getByRole("button", { name: "Actions", exact: true }).click();
@@ -324,7 +324,7 @@ test("DECK-10 reports a failed remote create without locking the form", async ({
   const category = "typescript";
   const sourceUrl = "https://example.com/failed.csv";
   const { uid } = fixture.user();
-  await fixture.apply(page);
+  await fixture.apply(page, { auth: { linked: true } });
   await page.goto("/");
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   await page.getByRole("menuitem", { name: "Create deck" }).click();

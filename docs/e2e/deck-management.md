@@ -126,7 +126,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- ユーザーとして認証されている。
+- Google アカウントにログインしている。
 - 作成対象の Deck は現在の UID の remote data と local-only data のどちらにも存在しない。
 
 When:
@@ -151,7 +151,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- ユーザーとして認証されている。
+- Google アカウントにログインしている。
 - remote Deck の作成要求が失敗する。
 
 When:
@@ -177,15 +177,16 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- ユーザーとして認証されている。
+- Google アカウントにログインしていない匿名ユーザーである。
 - 作成対象の Deck は現在の UID の remote data と local-only data のどちらにも存在しない。
 
 When:
 
-- Deck の作成画面で name と category を入力し、Local only を有効にして保存した後、Deck 一覧を reload する。
+- Deck の作成画面で name と category を入力し、既定の Local only のまま保存した後、Deck 一覧を reload する。
 
 Then:
 
+- 作成画面では Local only が既定で選択され、Cloud は無効で、ログインが必要なことを案内する。
 - Deck の作成成功が共通 toast で表示される。
 - 作成した空の Deck が reload 後も Deck 一覧に表示される。
 - 作成した Deck は browser storage に一つだけ存在する。
