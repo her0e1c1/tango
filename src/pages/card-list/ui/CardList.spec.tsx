@@ -20,7 +20,7 @@ import { CardList } from "./CardList";
 const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", difficulty: 5, tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
-describe("CardList [CARD-01] [CARD-10] [CARD-19]", () => {
+describe("CardList [CARD-01] [CARD-10] [CARD-19] [CARD-24]", () => {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {
     render(<CardList cards={[]} filterSlot={<div>Controls</div>} />);
 
@@ -108,7 +108,31 @@ describe("CardList [CARD-01] [CARD-10] [CARD-19]", () => {
 
     view.rerender(<CardList cards={[card]} />);
     await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
+    view.rerender(<CardList cards={[card, otherCard]} />);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
+
+  it.each(["view", "edit"])(
+    "preserves the %s target and focus across reorder and other row changes",
+    async (target) => {
+      const onShowCard = vi.fn();
+      const goToEdit = vi.fn();
+      const props = { onShowCard, card: { goToEdit } };
+      const view = render(<CardList cards={[card, otherCard]} {...props} />);
+      if (target === "edit") await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+      const focused =
+        target === "view"
+          ? screen.getByRole("button", { name: "View Front" })
+          : screen.getByRole("menuitem", { name: "Edit" });
+      focused.focus();
+      view.rerender(<CardList cards={[otherCard, card, createCard({ id: "added", frontText: "Added" })]} {...props} />);
+      expect(focused).toHaveFocus();
+      view.rerender(<CardList cards={[card]} {...props} />);
+      expect(focused).toHaveFocus();
+      await userEvent.keyboard("{Enter}");
+      expect(target === "view" ? onShowCard : goToEdit).toHaveBeenCalledExactlyOnceWith(card.id);
+    }
+  );
 
   it("preserves card display and overlay close callbacks", () => {
     const onShowCard = vi.fn();

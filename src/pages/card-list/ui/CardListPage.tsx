@@ -103,6 +103,9 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
       <div className="contents" inert={dialogOpen}>
         <CardList
           cards={model.cards}
+          sortOrder={model.sortOrder}
+          onSortOrderChange={model.changeSortOrder}
+          sortDisabled={model.mutationPending}
           onChangeDifficulty={model.requestBulk}
           disabled={busy}
           renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}

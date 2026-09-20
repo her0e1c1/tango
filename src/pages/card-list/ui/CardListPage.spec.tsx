@@ -33,7 +33,7 @@ const NextDeckButton = () => {
   );
 };
 
-describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CARD-13 CardListPage", () => {
+describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CARD-13 CARD-25 CardListPage", () => {
   const deckId = "deck-id";
   const nextDeckId = "next-deck";
   const cardId = "card-id";
@@ -140,6 +140,17 @@ describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CARD-13 CardListPage", () => {
     expect(screen.queryByRole("checkbox", { name: "tag-12" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Show 4 more tags" }));
     expect(screen.getByRole("checkbox", { name: "tag-12" })).toBeVisible();
+  });
+
+  it("resets sorting on a Deck change and after leaving the Page", async () => {
+    const view = renderPage();
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "newest");
+    await userEvent.click(screen.getByRole("button", { name: "Open next deck" }));
+    expect(screen.getByRole("combobox", { name: "Sort order" })).toHaveValue("standard");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "newest");
+    view.unmount();
+    renderPage();
+    expect(screen.getByRole("combobox", { name: "Sort order" })).toHaveValue("standard");
   });
 
   it("navigates from both route shortcuts", async () => {

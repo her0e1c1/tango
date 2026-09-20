@@ -3,6 +3,7 @@ import { useAuth } from "@/entities/auth";
 import { type CardId, mustFindCardById } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { useResetStoreOnMount } from "@/shared/lib/useResetStoreOnMount";
+import { changeCardSortOrder } from "./actions/changeCardSortOrder";
 import { cancelCardDeletion } from "./actions/cancelCardDeletion";
 import { showCardAnswer } from "./actions/showCardAnswer";
 import { cancelBulkDifficulty } from "./actions/cancelBulkDifficulty";
@@ -19,10 +20,11 @@ export function useCardListPageModel(deck: Deck) {
   const { uid } = useAuth();
   const state = useStore(cardListStore);
   useResetStoreOnMount(cardListStore);
-  const query = useCardListQuery(deck, state.shownCard);
+  const query = useCardListQuery(deck, state.shownCard, state.sortOrder);
   return {
     ...state,
     ...query,
+    changeSortOrder: changeCardSortOrder,
     mutationPending: state.mutationId !== undefined,
     requestBulk: () => requestBulkDifficulty(query.cards),
     cancelBulk: cancelBulkDifficulty,

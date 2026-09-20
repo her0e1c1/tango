@@ -65,6 +65,8 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
+    sortOrder: "standard",
+    onSortOrderChange: fn(),
     cards: fixture.cards.default,
     onChangeDifficulty: fn(),
     filter: activeFilter,
@@ -167,3 +169,14 @@ export const IphoneXLong: Story = {
     cards: longUnbrokenCards,
   },
 };
+
+export const NewestAdded: Story = {
+  args: { sortOrder: "newest" },
+  play: async ({ args, canvas, userEvent }) => {
+    await userEvent.selectOptions(canvas.getByRole("combobox", { name: "Sort order" }), "standard");
+    await expect(args.onSortOrderChange).toHaveBeenCalledWith("standard");
+  },
+};
+
+export const FilterSaving: Story = { args: { disabled: true, sortOrder: "newest" } };
+export const CardSaving: Story = { args: { disabled: true, sortDisabled: true } };

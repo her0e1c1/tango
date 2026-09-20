@@ -136,7 +136,7 @@ const staleMutationCases = [
   { mutation: "bulk", outcome: "failure" },
 ] as const;
 
-describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-19 CARD-20 CARD-22 CARD-23 CardListPage interactions", () => {
+describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-19 CARD-20 CARD-22 CARD-23 CARD-24 CARD-25 CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
     vi.clearAllMocks();
@@ -145,6 +145,81 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-1
     mocks.deleteCard.mockResolvedValue(undefined);
     mocks.editDeck.mockResolvedValue(undefined);
     mocks.editStudyProgress.mockResolvedValue(undefined);
+  });
+
+  it("sorts by creation time with stable ties and restores the live standard order without writes", async () => {
+    const oldest = createCard({ ...card, createdAt: 1000, updatedAt: 9000 });
+    const newest = createCard({ ...card, id: "new", frontText: "New", createdAt: 3000 });
+    const tied = createCard({ ...card, id: "tie", frontText: "Tie", createdAt: 3000 });
+    const source = [oldest, newest, tied];
+    const view = renderCardList({ cards: source });
+    const names = () =>
+      screen
+        .getAllByRole("button", { name: /^View / })
+        .map((button) => button.getAttribute("aria-label")?.replace(/^View /, ""));
+    expect(names()).toEqual(["Front", "New", "Tie"]);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "newest");
+    expect(names()).toEqual(["New", "Tie", "Front"]);
+    expect(source.map(({ id }) => id)).toEqual([oldest.id, newest.id, tied.id]);
+    expect(screen.getByText("3 cards")).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "View Front" }));
+    expect(screen.getByRole("button", { name: "Close card" })).toHaveTextContent(oldest.backText);
+    await userEvent.click(screen.getByRole("button", { name: "Close card" }));
+    expect(screen.getByRole("combobox", { name: "Sort order" })).toHaveValue("newest");
+
+    mocks.cards = [
+      oldest,
+      { ...tied, frontText: "Updated tie" },
+      createCard({ ...card, id: "added", frontText: "Added", createdAt: 4000 }),
+    ];
+    view.rerender(createCardListPage(deck.id));
+    expect(names()).toEqual(["Added", "Updated tie", "Front"]);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "standard");
+    expect(names()).toEqual(["Front", "Updated tie", "Added"]);
+    expect(mocks.editDeck).not.toHaveBeenCalled();
+    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.deleteCard).not.toHaveBeenCalled();
+  });
+
+  it("retains sorting for empty filtered results and permits sorting during filter autosave", async () => {
+    const saving = Promise.withResolvers<void>();
+    mocks.editDeck.mockReturnValue(saving.promise);
+    renderCardList();
+    await userEvent.click(screen.getByText("Filters"));
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "3");
+    expect(screen.getByText("0 cards")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Actions" })).toBeDisabled();
+    const sort = screen.getByRole("combobox", { name: "Sort order" });
+    expect(sort).toBeEnabled();
+    await userEvent.selectOptions(sort, "newest");
+    await actAsync(async () => {
+      saving.resolve();
+      await saving.promise;
+    });
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "4");
+    expect(await screen.findByRole("button", { name: "View Front" })).toBeVisible();
+    expect(sort).toHaveValue("newest");
+    expect(screen.getByRole("checkbox", { name: "typescript" })).toBeVisible();
+    expect(screen.getByRole("checkbox", { name: "react" })).toBeVisible();
+  });
+
+  it("locks sorting during Card writes and ignores changes through a dialog background", async () => {
+    const saving = Promise.withResolvers<void>();
+    mocks.editStudyProgress.mockReturnValue(saving.promise);
+    renderCardList();
+    const sort = screen.getByRole("combobox", { name: "Sort order" });
+    await userEvent.selectOptions(sort, "newest");
+    swipeRight(screen.getByRole("article"));
+    expect(sort).toBeDisabled();
+    await actAsync(async () => {
+      saving.resolve();
+      await saving.promise;
+    });
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
+    fireEvent.change(sort, { target: { value: "standard" } });
+    expect(sort).toHaveValue("newest");
   });
 
   it("updates filters and automatically persists the complete selection", async () => {
@@ -264,7 +339,8 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-1
     const remainingWrite = Promise.withResolvers<void>();
     mocks.editStudyProgress.mockRejectedValueOnce(new Error("first bulk write failed"));
     mocks.editStudyProgress.mockReturnValueOnce(remainingWrite.promise);
-    renderCardList({ cards: [card, otherVisibleCard] });
+    const view = renderCardList({ cards: [card, otherVisibleCard] });
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "newest");
 
     await userEvent.click(screen.getByRole("button", { name: "Actions" }));
     await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
@@ -275,6 +351,8 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-1
     fireEvent.click(confirm);
 
     await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
+    mocks.cards = [createCard({ ...card, id: "unapproved", frontText: "Unapproved", createdAt: 9000 })];
+    view.rerender(createCardListPage(deck.id));
     expect(dialog).toHaveAttribute("aria-busy", "true");
     expect(screen.queryByText(/could not be updated/)).not.toBeInTheDocument();
 
@@ -293,6 +371,12 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-1
     await userEvent.click(screen.getByRole("button", { name: "Apply change" }));
 
     await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(4));
+    expect(mocks.editStudyProgress.mock.calls.map(([, update]) => update)).toEqual([
+      { cardId: card.id, difficulty: 7 },
+      { cardId: otherVisibleCard.id, difficulty: 7 },
+      { cardId: card.id, difficulty: 7 },
+      { cardId: otherVisibleCard.id, difficulty: 7 },
+    ]);
     await waitFor(() =>
       expect(screen.queryByRole("dialog", { name: "Change card difficulty?" })).not.toBeInTheDocument()
     );

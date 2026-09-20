@@ -1,0 +1,31 @@
+extends: local-deck-with-cards.yaml
+browser:
+  localCards:
+    - id: card-1
+      deckId: deck-1
+      frontText: oldest question
+      backText: oldest answer
+      uniqueKey: oldest
+      tags: [shared]
+      createdAt: 1000
+      updatedAt: 9000
+    - id: card-2
+      deckId: deck-1
+      frontText: newest question
+      backText: newest answer
+      uniqueKey: newest
+      tags: [shared]
+      createdAt: 3000
+    - id: card-3
+      deckId: deck-1
+      frontText: tied question
+      backText: tied answer
+      uniqueKey: tied
+      tags: [other]
+      createdAt: 3000
+  studySessions:
+    deck-1:
+      sessionId: session-1
+      deckId: deck-1
+      cardOrderIds: [card-1, card-3, card-2]
+      currentIndex: 1

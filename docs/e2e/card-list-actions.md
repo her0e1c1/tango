@@ -16,6 +16,8 @@ Card 一覧上の swipe、filter、一括変更が、Card の学習状態と一�
 | CARD-20 | batch | [Card の一括 difficulty 変更を部分失敗後に再試行できる](#card-20) |
 | CARD-22 | write | [退出後に古い Card 更新が完了しても通知しない](#card-22) |
 | CARD-23 | write | [再訪後の Card 更新を古い更新の完了から保護する](#card-23) |
+| CARD-24 | read | [Card を追加が新しい順に表示できる](#card-24) |
+| CARD-25 | read | [Card の表示順を標準へ戻せる](#card-25) |
 
 <a id="card-05"></a>
 
@@ -222,3 +224,51 @@ Then:
 - 未処理の browser error が発生しない。
 
 Aが成功する場合、およびAが削除・一括 difficulty 変更の場合も同じ保護を行う。一括変更のBでは新しい一括変更 dialog を保持する。これらは同じ不変条件の境界値として component test で確認する。
+
+<a id="card-24"></a>
+
+### CARD-24 Card を追加が新しい順に表示できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
+- local-only Deck に追加日時が異なる Card と、追加日時が同じ Card が存在する。
+- Card 一覧は標準の順序で表示され、既存の Study session がある。
+
+When:
+
+- キーボードで並び順の「追加が新しい順」を選択する。
+- 対象 Card の解答プレビューを開いて閉じる。
+
+Then:
+
+- `createdAt` の降順に表示され、同値では標準の相対順序を維持する。編集日時は順序に影響しない。
+- 件数と tag 選択肢、フィルターの一致集合は変わらない。
+- プレビューと各行の操作は同じ Card ID を対象とし、表示順や別 Card の追加・更新・削除でも、残る操作可能な行のフォーカスとメニューを維持する。対象行が消えたらメニューを閉じる。
+- 並び順はプレビュー・言語・フィルター変更や結果0件でも保持する。フィルター自動保存中も選択でき、Card 変更中のロックと dialog 背景の制限は維持する。
+- 並び替え自体は永続化せず、Card・Deck と既存 Study session の ID・順序・位置を変更しない。新規 Study の選定・順序にも影響しない。
+- 一括変更の承認済み Card ID と difficulty は一覧の変化や部分失敗後の再試行でも維持する（CARD-19/20）。
+- browser error が発生しない。
+
+<a id="card-25"></a>
+
+### CARD-25 Card の表示順を標準へ戻せる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
+- local-only Deck の Card 一覧で「追加が新しい順」を選択している。
+
+When:
+
+- キーボードで並び順の「標準」を選択する。
+
+Then:
+
+- その時点の標準の順序へ戻り、件数・Card・Deck・Study session は変更されない。
+- Page から離脱して戻った場合や Deck を変更した場合も、並び順は標準に戻る。
+- browser error が発生しない。
