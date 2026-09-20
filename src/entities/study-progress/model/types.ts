@@ -30,8 +30,8 @@ export interface StudyProgressDocumentFields {
 /** Firestore patch shape: cardId selects the document and every progress field is independently optional. */
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;
 
-/** Learning outcome derived from one study interaction. */
-export type StudyRating = "mastered" | "not-mastered" | "unrated";
+/** FSRS recall rating; navigation-only interactions have no rating. */
+export type StudyRating = "again" | "hard" | "good" | "easy";
 
 /** Inclusive difficulty and due-time constraints for Card eligibility. */
 export interface StudyProgressFilter {

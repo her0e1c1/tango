@@ -13,14 +13,14 @@ import type {
   StudyRating,
 } from "./types";
 
-// Converts a control action into its learning outcome; navigation-only actions remain unrated.
-const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
-  if (swipeAction === "GoToNextCardMastered") return "mastered";
-  // Toggle remains a not-mastered rating because changing this mapping would alter existing study controls.
+// Existing controls use Again/Good; navigation-only actions have no recall rating.
+const resolveStudyRating = (swipeAction: SwipeAction): StudyRating | undefined => {
+  if (swipeAction === "GoToNextCardMastered") return "good";
+  // Preserve the existing toggle behavior as a failed recall.
   if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {
-    return "not-mastered";
+    return "again";
   }
-  return "unrated";
+  return undefined;
 };
 
 // Projects a Card's learning fields into StudyProgress while preserving which optional fields are absent.
@@ -34,15 +34,18 @@ export const createStudyProgressFromCard = (card: CardProgressFields): StudyProg
   return progress;
 };
 
-// Applies at most one step per rating without resetting when the rating direction changes.
-export const calculateDifficulty = (difficulty: Difficulty, rating: StudyRating): Difficulty => {
-  if (rating === "mastered") return clampDifficulty(difficulty - 1);
-  if (rating === "not-mastered") return clampDifficulty(difficulty + 1);
-  return difficulty;
+// Keep the existing binary difficulty rule, not FSRS scheduling; Hard/Good/Easy all indicate successful recall.
+export const calculateDifficulty = (difficulty: Difficulty, rating: StudyRating | undefined): Difficulty => {
+  if (rating === undefined) return difficulty;
+  return clampDifficulty(difficulty + (rating === "again" ? 1 : -1));
 };
 
 // Builds the persistence patch for one interaction, which always increments the seen count and records its timestamp.
-const recordStudyProgress = (progress: StudyProgress, rating: StudyRating, studiedAt: number): StudyProgressEdit => ({
+const recordStudyProgress = (
+  progress: StudyProgress,
+  rating: StudyRating | undefined,
+  studiedAt: number
+): StudyProgressEdit => ({
   cardId: progress.cardId,
   difficulty: calculateDifficulty(progress.difficulty, rating),
   numberOfSeen: progress.numberOfSeen + 1,
