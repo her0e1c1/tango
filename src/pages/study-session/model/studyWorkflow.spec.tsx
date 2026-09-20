@@ -9,8 +9,13 @@ import {
   touchStudySession,
 } from "@/entities/study-session";
 
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook as renderReactHook, waitFor, type RenderHookOptions } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
+
+function renderHook<Result, Props>(callback: (props: Props) => Result, options?: RenderHookOptions<Props>) {
+  return renderReactHook(callback, { wrapper: MemoryRouter, ...options });
+}
 
 import { actAsync } from "@/test/act";
 import { createDeck, createPreferences } from "@/test/factories";
