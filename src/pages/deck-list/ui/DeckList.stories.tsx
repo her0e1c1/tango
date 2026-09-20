@@ -41,6 +41,7 @@ const meta = {
   args: {
     sections: mixed,
     onCreateDeck: fn(),
+    onImportDeck: fn(),
   },
 } satisfies Meta<typeof DeckList>;
 
@@ -49,11 +50,28 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const ListActions: Story = {
+  play: async ({ args, canvas, userEvent }) => {
+    const trigger = canvas.getByRole("button", { name: "Actions", exact: true });
+    await userEvent.click(trigger);
+    await userEvent.click(canvas.getByRole("menuitem", { name: "Create deck" }));
+    await expect(args.onCreateDeck).toHaveBeenCalled();
+    await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+
+    await userEvent.click(trigger);
+    await userEvent.click(canvas.getByRole("menuitem", { name: "Import decks" }));
+    await expect(args.onImportDeck).toHaveBeenCalled();
+    await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+  },
+};
+
 export const Japanese: Story = {
   parameters: { locale: "ja" },
-  play: async ({ canvas }) => {
+  play: async ({ canvas, userEvent }) => {
     await expect(canvas.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
-    await expect(canvas.getByRole("button", { name: "デッキを作成" })).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "アクション", exact: true }));
+    await expect(canvas.getByRole("menuitem", { name: "デッキを作成" })).toBeVisible();
+    await expect(canvas.getByRole("menuitem", { name: "デッキをインポート" })).toBeVisible();
     const [firstDeck] = mixed.studying;
     if (firstDeck == null) throw new Error("Japanese requires at least one Deck");
     const [firstDeckName] = canvas.getAllByText(firstDeck.deck.name);
@@ -85,6 +103,12 @@ export const WithStudyProgress: Story = {
 
 export const Empty: Story = {
   args: { sections: { studying: [], other: [] } },
+  play: async ({ canvas, userEvent }) => {
+    await expect(canvas.getByText("0 decks")).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Actions", exact: true }));
+    await expect(canvas.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
+    await expect(canvas.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
+  },
 };
 
 export const Long: Story = {

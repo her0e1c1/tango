@@ -30,6 +30,32 @@ test("DECK-01 navigates from the Deck list to its Card list", async ({ fixture, 
   await fixture.apply(page);
 
   await page.goto("/");
+  const actions = page.getByRole("button", { name: "Actions", exact: true });
+  await actions.focus();
+  await actions.press("Enter");
+  await expect(page.getByRole("menuitem", { name: "Create deck" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("menuitem", { name: "Import decks" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(actions).toBeFocused();
+
+  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
+  await actions.click();
+  await expect(page.getByRole("menu")).toHaveCount(1);
+  await expect(page.getByRole("menu", { name: "Actions", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
+  await expect(page.getByRole("menu")).toHaveCount(1);
+  await expect(page.getByRole("menu", { name: `Actions for ${deck.name}` })).toBeVisible();
+
+  await actions.click();
+  await page.getByRole("menuitem", { name: "Create deck" }).click();
+  await expect(page).toHaveURL(/\/deck\/new$/);
+  await page.goto("/");
+  await actions.click();
+  await page.getByRole("menuitem", { name: "Import decks" }).click();
+  await expect(page).toHaveURL(/\/import$/);
+  await page.goto("/");
   await page.getByRole("button", { name: `View ${deck.name}` }).click();
 
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
@@ -227,7 +253,8 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   await fixture.apply(page);
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Create deck" }).click();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Create deck" }).click();
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await page.getByText("More settings").click();
@@ -275,7 +302,8 @@ test("DECK-10 reports a failed remote create without locking the form", async ({
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/");
-  await page.getByRole("button", { name: "Create deck" }).click();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Create deck" }).click();
   const fault = await failNextFirestoreWrite(page, { collection: "deck" });
   allowExpectedFirestoreWriteFailure(browserErrors);
   await page.getByRole("textbox", { name: "Name" }).fill(name);

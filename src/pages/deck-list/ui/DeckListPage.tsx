@@ -72,6 +72,7 @@ export const DeckListPage: React.FC = () => {
       <DeckList
         sections={sections}
         onCreateDeck={() => void navigate(routes.deckCreate.to())}
+        onImportDeck={() => void navigate(routes.deckImport.to())}
         deckCard={{
           onClickEdit: (id) => void navigate(routes.deckForm.to(id)),
           onClickName: (id) => void navigate(routes.cardList.to(id)),
