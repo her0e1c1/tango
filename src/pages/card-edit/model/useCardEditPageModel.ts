@@ -1,7 +1,7 @@
 import { useFormState } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
-import { type Card, type CardContentInput, useCard } from "@/entities/card";
+import { type Card, useCard } from "@/entities/card";
 import { CATEGORY, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { useCardPreviewContent } from "@/features/card-form";
@@ -9,7 +9,6 @@ import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes, useNavigationGuard } from "@/shared/router";
 
 import { submit } from "./actions/submit";
-import { useCardEditSubmission } from "./actions/useCardEditSubmission";
 import { getCardEditInfo } from "./queries/getCardEditInfo";
 import { useCardEditFormState } from "./useCardEditFormState";
 
@@ -29,7 +28,7 @@ export function useCardEditPageModel(card: Card) {
   const isMounted = useMountedGuard();
   const cardListPath = routes.cardList.to(snapshot.deckId);
 
-  const save = async (values: CardContentInput): Promise<void> => {
+  const onSubmit = form.handleSubmit(async (values) => {
     if (!isMounted()) return;
     if (!(await submit({ cardId: snapshot.id, values }))) return;
     if (!isMounted()) return;
@@ -37,8 +36,7 @@ export function useCardEditPageModel(card: Card) {
     void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
       navigate(cardListPath, { replace: true })
     );
-  };
-  const onSubmit = useCardEditSubmission(form, save);
+  });
   const preview = useCardPreviewContent(form.control, deck?.category ?? "", preferences.appearance.darkMode);
 
   return {

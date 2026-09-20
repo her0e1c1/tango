@@ -13,7 +13,7 @@ export interface CardEditorProps {
   preview: React.ReactNode;
   form: UseFormReturn<CardFormFields>;
   onCancel: () => void;
-  onSubmit: React.SubmitEventHandler<HTMLFormElement>;
+  onSubmit: (event: React.SubmitEvent<HTMLFormElement>) => void | Promise<void>;
 }
 
 const formatDate = (timestamp: number, locale: string): string => new Date(timestamp).toLocaleDateString(locale);
@@ -37,7 +37,7 @@ export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, pr
         </button>
         <h1 className="mt-1 break-words text-title font-bold text-ink">{t("cardForm.edit.title")}</h1>
       </header>
-      <form className="w-full space-y-4" onSubmit={onSubmit}>
+      <form className="w-full space-y-4" onSubmit={(event) => void onSubmit(event)}>
         <fieldset className="contents" disabled={isSaving}>
           <CardFields categories={categories} preview={preview} form={form} />
           <details className="border-t border-border text-caption">

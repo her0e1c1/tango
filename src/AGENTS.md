@@ -5,6 +5,7 @@
 - Keep screen-specific presentation, state connections, and composition in the corresponding `pages` slice.
 - Keep a `features` slice only when it represents an independently meaningful user action or workflow. Do not create Features merely to host presentational components.
 - Keep reusable domain state, rules, and visual representations in `entities`, and preserve FSD dependency direction and slice public APIs when Pages consume lower layers.
+- Call `useParams()` in the Page component under `ui/`. Check that required route parameters exist and handle missing or invalid parameters as errors in that Page component before passing them to the Page model hook. Do not delegate these checks or their error handling to the model.
 
 ## Storybook
 

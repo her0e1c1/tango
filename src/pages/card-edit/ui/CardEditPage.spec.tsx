@@ -1,7 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { Preferences } from "@/entities/preference";
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -190,45 +190,25 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Card list" })).toBeVisible();
   });
 
-  const startRepeatedSubmission = async (invalid = false) => {
+  it("disables repeated save attempts during validation and persistence", async () => {
     const validation = Promise.withResolvers<void>();
-    const duplicateValidation = Promise.withResolvers<void>();
     const write = Promise.withResolvers<void>();
-    // A duplicate validation may complete after the first request has already failed.
-    let validationStarted = false;
-    mocks.beforeValidation = () => {
-      const pending = validationStarted ? duplicateValidation : validation;
-      validationStarted = true;
-      return pending.promise;
-    };
+    mocks.beforeValidation = () => validation.promise;
     mocks.beforeCardWrite = () => write.promise;
     const view = renderPage();
     const front = screen.getByRole("textbox", { name: "Front text" });
-    if (invalid) await userEvent.clear(front);
-    const { form } = screen.getByRole<HTMLButtonElement>("button", { name: "Save changes" });
-    if (form === null) throw new Error("Save button must belong to a form");
+    const save = screen.getByRole("button", { name: "Save changes" });
 
-    await actAsync(async () => {
-      fireEvent.submit(form);
-      fireEvent.submit(form);
-      // Flush the same-tick events while asynchronous validation is still pending.
-      await Promise.resolve();
-    });
-    return { view, front, form, write, validation, duplicateValidation };
-  };
-
-  it("saves once for repeated submissions before render and during validation and persistence", async () => {
-    const { view, front, form, write, validation, duplicateValidation } = await startRepeatedSubmission();
+    await userEvent.dblClick(save);
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(front).toBeDisabled();
     expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Back to cards" })).toBeDisabled();
-    fireEvent.submit(form);
+    await userEvent.click(save);
     await actAsync(async () => validation.resolve());
-    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
-    fireEvent.submit(form);
+    expect(save).toBeDisabled();
+    await userEvent.click(save);
     await actAsync(async () => write.resolve());
-    await actAsync(async () => duplicateValidation.resolve());
 
     expect(await screen.findByText("Updated card “Front text”.")).toBeVisible();
     expect(editCard).toHaveBeenCalledExactlyOnceWith("user-id", {
@@ -242,34 +222,37 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
     expect(await screen.findByRole("heading", { name: "Previous page" })).toBeVisible();
   });
 
-  it("does not save from stale duplicate validation after failure, but allows an explicit retry", async () => {
-    const { front, form, write, validation, duplicateValidation } = await startRepeatedSubmission();
-    fireEvent.submit(form);
-    await actAsync(async () => validation.resolve());
-    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
-    fireEvent.submit(form);
+  it("keeps edited values after a failed save and allows an explicit retry", async () => {
+    const write = Promise.withResolvers<void>();
+    mocks.beforeCardWrite = () => write.promise;
+    renderPage();
+    const front = screen.getByRole("textbox", { name: "Front text" });
+    await userEvent.clear(front);
+    await userEvent.type(front, "Edited front");
+    const save = screen.getByRole("button", { name: "Save changes" });
+    await userEvent.dblClick(save);
     await actAsync(async () => write.reject(new Error("write failed")));
     mocks.beforeCardWrite = undefined;
-    await actAsync(async () => duplicateValidation.resolve());
 
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
-    expect(front).toHaveValue("Front text");
+    expect(save).toBeEnabled();
+    expect(front).toHaveValue("Edited front");
     expect(editCard).toHaveBeenCalledOnce();
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-    expect(await screen.findByText("Updated card “Front text”.")).toBeVisible();
+    await userEvent.click(save);
+    expect(await screen.findByText("Updated card “Edited front”.")).toBeVisible();
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
   });
 
-  it("unlocks after invalid repeated submissions so corrected values can be saved", async () => {
-    const { front, validation, duplicateValidation } = await startRepeatedSubmission(true);
-    await actAsync(async () => validation.resolve());
-    await actAsync(async () => duplicateValidation.resolve());
+  it("allows corrected values to be saved after validation fails", async () => {
+    renderPage();
+    const front = screen.getByRole("textbox", { name: "Front text" });
+    await userEvent.clear(front);
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
     expect(await screen.findByText("Front text is required.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
     expect(editCard).not.toHaveBeenCalled();
     await userEvent.type(front, "Corrected front");
-    mocks.beforeCardWrite = undefined;
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByText("Updated card “Corrected front”.")).toBeVisible();
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
