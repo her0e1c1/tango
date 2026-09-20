@@ -2,7 +2,7 @@ import type { Preferences } from "@/entities/preference";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
@@ -23,7 +23,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardViewPage } from "./CardViewPage";
 
-describe("CardViewPage", () => {
+describe("CARD-11 CARD-12 CardViewPage", () => {
   const deckId = "card-view-deck";
   const cardId = "card-id";
   const renderPage = (path = `/card/${cardId}`) =>
@@ -54,6 +54,30 @@ describe("CardViewPage", () => {
 
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Back text");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
+  });
+
+  it("updates the answer when the route selects another card without remounting", async () => {
+    await mutateCards("", [
+      {
+        kind: "create",
+        card: createLocalCard({ id: "second-card", deckId, backText: "Second answer" }),
+      },
+    ]);
+    render(
+      <MemoryRouter initialEntries={[`/card/${cardId}`]}>
+        <Link to="/card/second-card">View second card</Link>
+        <Routes>
+          <Route path="/card/:id" element={<CardViewPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Back text");
+
+    await userEvent.click(screen.getByRole("link", { name: "View second card" }));
+
+    expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Second answer");
+    expect(screen.getByRole("region", { name: "Card answer" })).not.toHaveTextContent("Back text");
   });
 
   it("navigates with both recovery actions when the card is unavailable", async () => {

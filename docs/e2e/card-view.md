@@ -94,10 +94,12 @@ Given:
 When:
 
 - 対象 Card の view route を直接開く。
+- 同じ画面を開いたまま別の Card の view route へ遷移する。
 
 Then:
 
 - 対象 Card の back text が Card answer として表示される。
+- URL の Card ID が変わると、遷移先の Card の back text に表示が更新される。
 - application shell が表示される。
 - browser error が発生しない。
 

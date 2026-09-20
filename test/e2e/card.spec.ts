@@ -301,11 +301,23 @@ test("CARD-10 persists difficulty and tag filters and applies both after reload"
 
 test("CARD-11 opens a Card view route inside the application shell", async ({ fixture, page }) => {
   const card = fixture.card();
+  const nextCard = fixture.card("card-2");
   await fixture.apply(page);
 
   await page.goto(`/card/${card.id}`);
 
   await expect(page.getByRole("region", { name: "Card answer" })).toContainText(card.backText);
+  await expect(page.getByRole("button", { name: "tango" })).toBeVisible();
+
+  // Exercise a same-document history transition so the Page must consume the new route parameter.
+  await page.evaluate((cardId) => {
+    window.history.pushState(window.history.state, "", `/card/${encodeURIComponent(cardId)}`);
+    window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state }));
+  }, nextCard.id);
+
+  await expect(page).toHaveURL(`/card/${nextCard.id}`);
+  await expect(page.getByRole("region", { name: "Card answer" })).toContainText(nextCard.backText);
+  await expect(page.getByRole("region", { name: "Card answer" })).not.toContainText(card.backText);
   await expect(page.getByRole("button", { name: "tango" })).toBeVisible();
 });
 
