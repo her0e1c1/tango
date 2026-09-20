@@ -1,3 +1,6 @@
+import type { CsvDiagnostic } from "../lib/cardCsv";
+import { importFailureKey } from "../lib/importFailure";
+import { formatCsvDiagnostic } from "./formatCsvDiagnostic";
 import type * as React from "react";
 import { AiOutlineCloudDownload } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
@@ -20,7 +23,7 @@ interface DeckImportPreviewRow {
 
 interface DeckImportPreviewIssue {
   rowNumber?: number;
-  message: string;
+  diagnostic: CsvDiagnostic;
   context?: string;
 }
 
@@ -51,13 +54,14 @@ export interface DeckImportViewProps {
 }
 
 const PreviewError = ({ error }: { error: unknown }) => {
+  const { t } = useTranslation();
   if (error == null) return null;
-  const message = error instanceof Error ? error.message : "The import preview could not be prepared.";
+  const message = t(importFailureKey(error) ?? "deckImport.errors.previewFailure");
   return (
     <section role="alert" className="rounded-surface border border-danger bg-surface-muted p-4 text-ink">
-      <h2 className="font-bold">Unable to prepare preview</h2>
+      <h2 className="font-bold">{t("deckImport.errors.previewTitle")}</h2>
       <p className="mt-1 break-words text-caption text-ink-muted">{message}</p>
-      <p className="mt-2 text-caption text-ink-muted">Choose the CSV file again to retry.</p>
+      <p className="mt-2 text-caption text-ink-muted">{t("deckImport.errors.retry")}</p>
     </section>
   );
 };
@@ -105,14 +109,16 @@ const ImportPreview = (props: ImportPreviewProps) => {
           <h3 className="font-semibold">{t("deckImport.preview.issuesTitle")}</h3>
           <ul className="mt-2 space-y-2">
             {preview.analysis.issues.map((issue) => (
-              <li key={`${String(issue.rowNumber ?? "file")}-${issue.message}-${issue.context ?? ""}`}>
+              <li
+                key={`${String(issue.rowNumber ?? "file")}-${JSON.stringify(issue.diagnostic)}-${issue.context ?? ""}`}
+              >
                 <span className="font-semibold">
                   {issue.rowNumber == null
                     ? t("deckImport.preview.file")
                     : t("deckImport.preview.row", { rowNumber: issue.rowNumber })}
                   :
                 </span>{" "}
-                {issue.message}
+                {formatCsvDiagnostic(issue.diagnostic, t)}
                 {issue.context == null ? null : (
                   <code className="mt-1 block overflow-x-auto whitespace-pre-wrap text-ink-muted">{issue.context}</code>
                 )}

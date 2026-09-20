@@ -245,9 +245,9 @@ export const CardFields = ({ categories, form }: CardFieldsProps) => {
                 aria-invalid={error != null || undefined}
                 aria-describedby={error ? errorId : undefined}
               />
-              {error?.message !== undefined && (
+              {error !== undefined && (
                 <p id={errorId} role="alert" className="text-caption font-medium text-danger">
-                  {error.message}
+                  {t(error.type === "custom" ? `validation.required.${side.name}` : "validation.invalid")}
                 </p>
               )}
             </div>
@@ -318,9 +318,9 @@ export const CardFields = ({ categories, form }: CardFieldsProps) => {
               aria-describedby={activeError ? expandedErrorId : undefined}
               className="min-h-48 flex-1 resize-none text-xl leading-relaxed"
             />
-            {activeError?.message !== undefined && (
+            {activeError !== undefined && (
               <p id={expandedErrorId} role="alert" className="shrink-0 text-caption font-medium text-danger">
-                {activeError.message}
+                {t(activeError.type === "custom" ? `validation.required.${activeSide}` : "validation.invalid")}
               </p>
             )}
           </div>

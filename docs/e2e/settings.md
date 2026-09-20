@@ -15,6 +15,8 @@ Settings の自動保存が reload を越えて維持され、保存した学習
 | SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](#settings-05) |
 | SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](#settings-06) |
 | SETTINGS-07 | read | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](#settings-07) |
+| SETTINGS-08 | read | [Card の検証エラーが言語変更に追随し入力を保持する](#settings-08) |
+| SETTINGS-09 | read | [CSV の検証結果が再読み込みなしで言語変更に追随する](#settings-09) |
 
 <a id="settings-01"></a>
 
@@ -180,3 +182,49 @@ Then:
 - 見出しの名前、開いたときのバージョン・コミット表示が維持される。コミット情報があるビルドではリンク、ないビルドでは既存の `unknown` 表示を維持する。
 - 設定、認証、Deck、Card、学習 session とその保存内容が操作前後で変わらず、reload 後は詳細設定が閉じている。
 - browser error が発生しない。
+
+<a id="settings-08"></a>
+
+### SETTINGS-08 Card の検証エラーが言語変更に追随し入力を保持する
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
+- Language を System に設定し、英語の browser locale で Card 編集画面を開いている。
+- 裏面に未保存の入力があり、表面を空にして送信した検証エラーが表示されている。
+
+When:
+
+- 画面を開いたまま browser locale を日本語へ変更し、languagechange を発生させる。
+
+Then:
+
+- 表示中の必須エラー、フィールドの accessible name、html[lang] が日本語へ更新される。
+- ルート、空の表面、裏面の入力、タグと未保存状態を保持する。保存や再送信を行わず、Deck、Card と StudySession の保存内容を変更しない。
+- 未知の検証エラーは現在の言語の汎用メッセージで表示する。
+
+<a id="settings-09"></a>
+
+### SETTINGS-09 CSV の検証結果が再読み込みなしで言語変更に追随する
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- Language を System に設定し、英語の browser locale で CSV import 画面を開いている。
+- 日本語を含む有効行、必須項目が空の行、閉じ引用符がない行を含む CSV の検証結果が表示されている。
+
+When:
+
+- 画面を開いたまま browser locale を日本語へ変更し、languagechange を発生させる。
+
+Then:
+
+- 必須項目、重複キー、列数、空ファイル、既知の解析エラーは現在の言語で表示し、未知の解析エラーは翻訳済みの汎用メッセージを表示する。
+- 代表 CSV の有効1件・無効2件・診断3件と元の行の文脈、日本語のユーザー入力を保持し、import は無効のままとする。
+- ファイルを読み直さず、解析結果と選択済み source を保持する。有効な preview でも準備済み Deck/Card ID を変更しない。
+- プレビュー準備や import の既知の認証・権限・接続・容量不足は現在の言語で案内し、未知の例外の生のメッセージは表示しない。
+- 再試行 ID と共通 toast の寿命を維持する。

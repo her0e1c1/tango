@@ -26,12 +26,12 @@ describe("countCardsByDeckId", () => {
   });
 });
 
-describe("getCardContentValidationErrors", () => {
+describe("IMPORT-02 getCardContentValidationErrors", () => {
   it("returns field errors from the Card content schema", () => {
     expect(getCardContentValidationErrors({ frontText: " ", backText: "\n", tags: [], uniqueKey: "\t" })).toEqual({
-      frontText: "Front text is required.",
-      backText: "Back text is required.",
-      uniqueKey: "Unique key is required.",
+      frontText: { field: "frontText", reason: "required" },
+      backText: { field: "backText", reason: "required" },
+      uniqueKey: { field: "uniqueKey", reason: "required" },
     });
   });
 

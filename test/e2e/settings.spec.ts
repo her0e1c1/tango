@@ -1,4 +1,4 @@
-import { collectBrowserErrors, expect, test } from "./fixtures";
+import { collectBrowserErrors, expect, requireDocument, test } from "./fixtures";
 
 test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page }) => {
   const initialDarkMode = fixture.state.browser.preferences.appearance.darkMode;
@@ -214,4 +214,83 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
       }
     }
   }
+});
+
+test("SETTINGS-08 Existing Card errors follow language changes without losing drafts", async ({ fixture, page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, "language", { configurable: true, get: () => "en-US" })
+  );
+  await fixture.apply(page);
+  await page.goto("/settings");
+  await page.getByRole("combobox", { name: "Language" }).selectOption("system");
+  const deck = fixture.deck();
+  const card = fixture.card();
+  const before = await requireDocument("card", card.id);
+  const deckBefore = await requireDocument("deck", deck.id);
+  await page.goto(`/deck/${deck.id}`);
+  await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
+  await page.getByRole("textbox", { name: "Back text" }).fill("未保存の回答");
+  await page.getByRole("tab", { name: "Front", exact: true }).click();
+  await page.getByRole("textbox", { name: "Front text" }).fill("");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription(
+    "Front text is required."
+  );
+  const url = page.url();
+  const session = await page.evaluate(() => localStorage.getItem("tango-study"));
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "language", { configurable: true, get: () => "ja-JP" });
+    window.dispatchEvent(new Event("languagechange"));
+  });
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await expect(page.getByRole("textbox", { name: "表面のテキスト" })).toHaveAccessibleDescription(
+    "表面のテキストは必須です。"
+  );
+  await expect(page.getByRole("textbox", { name: "表面のテキスト" })).toHaveValue("");
+  await page.getByRole("tab", { name: "裏面", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "裏面のテキスト" })).toHaveValue("未保存の回答");
+  await expect(page).toHaveURL(url);
+  expect(await requireDocument("card", card.id)).toEqual(before);
+  expect(await requireDocument("deck", deck.id)).toEqual(deckBefore);
+  expect(await page.evaluate(() => localStorage.getItem("tango-study"))).toBe(session);
+  // Dirty state must still guard navigation after changing the language.
+  await page.getByRole("button", { name: "設定を開く" }).click();
+  await expect(page.getByRole("alertdialog", { name: "未保存の変更を破棄しますか？" })).toBeVisible();
+});
+
+test("SETTINGS-09 Cached CSV diagnostics follow the current language", async ({ fixture, page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, "language", { configurable: true, get: () => "en-US" })
+  );
+  await fixture.apply(page);
+  await page.goto("/settings");
+  await page.getByRole("combobox", { name: "Language" }).selectOption("system");
+  await page.goto("/import");
+  await page.getByLabel("Upload a csv file").setInputFiles({
+    name: "日本語.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from('問題,回答,個人タグ,key-1\n,,,key-2\n"unterminated'),
+  });
+  await expect(page.getByRole("alert")).toContainText("Front text is required.");
+  const context = await page.getByRole("alert").locator("code").allTextContents();
+  // Any accidental file read during the locale update now fails the preview.
+  await page.evaluate(() => {
+    File.prototype.text = () => Promise.reject(new Error("Unexpected file reread"));
+    Object.defineProperty(navigator, "language", { configurable: true, get: () => "ja-JP" });
+    window.dispatchEvent(new Event("languagechange"));
+  });
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  const alert = page.getByRole("alert");
+  await expect(alert).toContainText("表面のテキストは必須です。");
+  await expect(alert).toContainText("裏面のテキストは必須です。");
+  await expect(alert).toContainText("引用符で囲まれたフィールドが閉じられていません。");
+  await expect(alert.getByRole("listitem")).toHaveCount(3);
+  expect(await alert.locator("code").allTextContents()).toEqual(context);
+  await expect(page.getByText("有効: 1件")).toBeVisible();
+  await expect(page.getByText("無効: 2件")).toBeVisible();
+  await expect(page.getByRole("cell", { name: "問題", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "インポート", exact: true })).toBeDisabled();
+  await expect(page).toHaveURL(/\/import$/);
 });

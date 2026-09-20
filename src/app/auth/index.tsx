@@ -33,10 +33,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = (
   if (authState.status === "error") {
     return (
       <RouteFeedback
-        title="Unable to start Tango"
-        description="Authentication could not be initialized."
+        title={t("auth.failure.title")}
+        description={t("auth.failure.description")}
         tone="error"
-        primaryAction={{ label: "Reload", onClick: reload }}
+        primaryAction={{ label: t("recovery.reload"), onClick: reload }}
       />
     );
   }

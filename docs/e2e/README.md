@@ -23,6 +23,7 @@
 | --- | --- | --- |
 | NAVIGATION-01 | read | [存在しない route から Deck 一覧へ復帰できる](./navigation.md#navigation-01) |
 | NAVIGATION-02 | read | [画面の keyboard shortcut で主要 route へ遷移できる](./navigation.md#navigation-02) |
+| NAVIGATION-03 | write | [共通エラー画面が現在の言語で表示され Reload で復旧する](./navigation.md#navigation-03) |
 
 ### Account
 
@@ -45,6 +46,8 @@
 | SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](./settings.md#settings-05) |
 | SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](./settings.md#settings-06) |
 | SETTINGS-07 | read | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](./settings.md#settings-07) |
+| SETTINGS-09 | read | [CSV の検証結果が再読み込みなしで言語変更に追随する](./settings.md#settings-09) |
+| SETTINGS-08 | read | [Card の検証エラーが言語変更に追随し入力を保持する](./settings.md#settings-08) |
 
 ### Import
 

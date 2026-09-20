@@ -2,7 +2,22 @@
 export const resources = {
   en: {
     translation: {
+      validation: {
+        required: {
+          frontText: "Front text is required.",
+          backText: "Back text is required.",
+          uniqueKey: "Unique key is required.",
+          tags: "Tags are required.",
+        },
+        invalid: "The value is invalid.",
+      },
+      recovery: {
+        title: "Something went wrong",
+        description: "Tango encountered an unexpected error. Reload the app to try again.",
+        reload: "Reload",
+      },
       auth: {
+        failure: { title: "Unable to start Tango", description: "Authentication could not be initialized." },
         starting: {
           title: "Starting Tango…",
           description: "Preparing your decks and study progress.",
@@ -465,15 +480,32 @@ export const resources = {
         },
       },
       deckImport: {
+        errors: {
+          previewTitle: "Unable to prepare preview",
+          previewFailure: "The import preview could not be prepared.",
+          retry: "Choose the CSV file again to retry.",
+          authentication: "A confirmed user is required for remote imports.",
+          accountChanged: "The account has changed. Choose the CSV file again.",
+          permission: "You do not have permission to import this data.",
+          network: "Unable to connect. Check your connection and try again.",
+          storage: "The data could not be saved. Free some storage space and try again.",
+        },
+        diagnostics: {
+          duplicate: 'uniqueKey "{{uniqueKey}}" is duplicated in this file.',
+          columns: "Expected 4 columns, found {{count}}.",
+          empty: "The CSV file is empty.",
+          missingQuotes: "Quoted field unterminated",
+          invalidQuotes: "Trailing quote on quoted field is malformed",
+          parser: "The CSV could not be parsed. Check its format.",
+        },
+
         toast: {
           imported_one: "Imported {{count}} card.",
           imported_other: "Imported {{count}} cards.",
           sampleAdded_one: "Added sample deck with {{count}} card.",
           sampleAdded_other: "Added sample deck with {{count}} cards.",
           failure: "Import failed. The import could not be completed.",
-          failureWithReason: "Import failed. {{reason}}",
           sampleFailure: "Unable to add sample deck. The sample deck could not be added.",
-          sampleFailureWithReason: "Unable to add sample deck. {{reason}}",
         },
         uploadPrompt: "Upload a csv file",
         title: "Import decks",
@@ -632,7 +664,22 @@ export const resources = {
   },
   ja: {
     translation: {
+      validation: {
+        required: {
+          frontText: "表面のテキストは必須です。",
+          backText: "裏面のテキストは必須です。",
+          uniqueKey: "一意キーは必須です。",
+          tags: "タグは必須です。",
+        },
+        invalid: "入力内容が正しくありません。",
+      },
+      recovery: {
+        title: "問題が発生しました",
+        description: "予期しないエラーが発生しました。再読み込みしてもう一度お試しください。",
+        reload: "再読み込み",
+      },
       auth: {
+        failure: { title: "Tango を起動できません", description: "認証を初期化できませんでした。" },
         starting: {
           title: "Tangoを起動しています…",
           description: "デッキと学習の進捗を準備しています。",
@@ -1095,15 +1142,32 @@ export const resources = {
         },
       },
       deckImport: {
+        errors: {
+          previewTitle: "プレビューを準備できません",
+          previewFailure: "インポートのプレビューを準備できませんでした。",
+          retry: "CSVファイルを選び直して再試行してください。",
+          authentication: "アカウントへのインポートには認証済みユーザーが必要です。",
+          accountChanged: "アカウントが変わりました。CSVファイルを選び直してください。",
+          permission: "このデータをインポートする権限がありません。",
+          network: "接続できませんでした。接続を確認して再試行してください。",
+          storage: "データを保存できませんでした。ストレージの空き容量を確保して再試行してください。",
+        },
+        diagnostics: {
+          duplicate: "一意キー「{{uniqueKey}}」がファイル内で重複しています。",
+          columns: "列数は4列である必要があります（現在は{{count}}列）。",
+          empty: "CSVファイルが空です。",
+          missingQuotes: "引用符で囲まれたフィールドが閉じられていません。",
+          invalidQuotes: "フィールドの閉じ引用符の形式が正しくありません。",
+          parser: "CSVを解析できませんでした。形式を確認してください。",
+        },
+
         toast: {
           imported_one: "{{count}}枚のカードをインポートしました。",
           imported_other: "{{count}}枚のカードをインポートしました。",
           sampleAdded_one: "{{count}}枚のカードを含むサンプルデッキを追加しました。",
           sampleAdded_other: "{{count}}枚のカードを含むサンプルデッキを追加しました。",
           failure: "インポートに失敗しました。インポートを完了できませんでした。",
-          failureWithReason: "インポートに失敗しました。{{reason}}",
           sampleFailure: "サンプルデッキを追加できませんでした。",
-          sampleFailureWithReason: "サンプルデッキを追加できませんでした。{{reason}}",
         },
         uploadPrompt: "CSVファイルをアップロード",
         title: "デッキをインポート",

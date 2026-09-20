@@ -7,10 +7,17 @@ export interface DeckImportRow {
   card: CardRaw;
 }
 
+export type CsvDiagnostic =
+  | { kind: "card"; field: keyof CardRaw; reason: "required" | "invalid" }
+  | { kind: "duplicate"; uniqueKey: string }
+  | { kind: "columns"; count: number }
+  | { kind: "parser"; type: string; code: string }
+  | { kind: "empty" };
+
 export interface DeckImportAnalysis {
   rows: DeckImportRow[];
   skippedRows: number[];
-  issues: { rowNumber?: number; message: string; context?: string }[];
+  issues: { rowNumber?: number; diagnostic: CsvDiagnostic; context?: string }[];
   invalidCount: number;
 }
 
@@ -34,15 +41,15 @@ const validateCard = (columns: string[], rowNumber: number, uniqueKeys: Set<stri
   const card = fromRow(columns);
   const context = rowContext(columns);
   const validationErrors = getCardContentValidationErrors(card);
-  const issues: DeckImportAnalysis["issues"] = Object.values(validationErrors).map((message) => ({
+  const issues: DeckImportAnalysis["issues"] = Object.values(validationErrors).map((error) => ({
     rowNumber,
-    message,
+    diagnostic: { kind: "card", ...error },
     context,
   }));
 
   const uniqueKeyIsValid = validationErrors.uniqueKey === undefined;
   if (uniqueKeyIsValid && uniqueKeys.has(card.uniqueKey)) {
-    issues.push({ rowNumber, message: `uniqueKey "${card.uniqueKey}" is duplicated in this file.`, context });
+    issues.push({ rowNumber, diagnostic: { kind: "duplicate", uniqueKey: card.uniqueKey }, context });
   } else if (uniqueKeyIsValid) {
     uniqueKeys.add(card.uniqueKey);
   }
@@ -63,12 +70,16 @@ export const parseCsv = async (content: string): Promise<DeckImportAnalysis> => 
 
   parsed.errors.forEach((error) => {
     if (error.row == null) {
-      issues.push({ message: error.message });
+      issues.push({ diagnostic: { kind: "parser", type: error.type, code: error.code } });
       return;
     }
     const rowNumber = error.row + 1;
     invalidRows.add(rowNumber);
-    issues.push({ rowNumber, message: error.message, context: rowContext(parsed.data[error.row] ?? []) });
+    issues.push({
+      rowNumber,
+      diagnostic: { kind: "parser", type: error.type, code: error.code },
+      context: rowContext(parsed.data[error.row] ?? []),
+    });
   });
 
   parsed.data.forEach((columns, index) => {
@@ -82,7 +93,7 @@ export const parseCsv = async (content: string): Promise<DeckImportAnalysis> => 
       invalidRows.add(rowNumber);
       issues.push({
         rowNumber,
-        message: `Expected 4 columns, found ${String(columns.length)}.`,
+        diagnostic: { kind: "columns", count: columns.length },
         context: rowContext(columns),
       });
       return;
@@ -99,7 +110,7 @@ export const parseCsv = async (content: string): Promise<DeckImportAnalysis> => 
   });
 
   if (rows.length === 0 && issues.length === 0) {
-    issues.push({ message: "The CSV file is empty." });
+    issues.push({ diagnostic: { kind: "empty" } });
   }
 
   const fileIssueCount = issues.filter((issue) => issue.rowNumber === undefined).length;

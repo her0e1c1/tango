@@ -1,3 +1,4 @@
+import { importFailureKey } from "../../lib/importFailure";
 import { addSampleDeck } from "@/features/sample-import";
 import { showToast } from "@/shared/ui/toast";
 import { deckImportStore } from "../store";
@@ -17,9 +18,7 @@ export async function addSampleImport(): Promise<boolean> {
     return true;
   } catch (error: unknown) {
     showToast({
-      ...(error instanceof Error
-        ? { messageKey: "deckImport.toast.sampleFailureWithReason" as const, messageParams: { reason: error.message } }
-        : { messageKey: "deckImport.toast.sampleFailure" as const }),
+      messageKey: importFailureKey(error) ?? "deckImport.toast.sampleFailure",
       tone: "error",
     });
     return false;

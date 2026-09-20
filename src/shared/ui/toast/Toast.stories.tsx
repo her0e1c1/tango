@@ -56,10 +56,7 @@ export const ErrorState: Story = {
 export const LongMessage: Story = {
   args: {
     tone: "error",
-    messageKey: "deckImport.toast.failureWithReason",
-    messageParams: {
-      reason: "The connection was interrupted before all cards could be saved. Check your connection and try again.",
-    },
+    messageKey: "deckImport.errors.storage",
   },
 };
 export const NonInteractive: Story = {

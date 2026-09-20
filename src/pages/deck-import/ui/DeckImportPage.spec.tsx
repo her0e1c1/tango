@@ -1,4 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { getI18n } from "react-i18next";
+import { selectDeckImportFile } from "../model/actions/selectDeckImportFile";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -91,13 +93,48 @@ const selectLocalFile = async (name: string, backText = "back") => {
   await screen.findByRole("heading", { level: 2, name: "Review import" });
 };
 
-describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06]", () => {
+describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06 SETTINGS-09]", () => {
   beforeEach(() => {
     deckImportStore.setState(deckImportStore.getInitialState(), true);
     dismissToast();
     controls.nextMutationError = undefined;
     controls.nextMutationWait = undefined;
     controls.setDarkMode.mockReset();
+  });
+
+  it("translates cached CSV diagnostics without reading again or changing the selected source", async () => {
+    renderPage();
+    const file = new File([], "日本語.csv", { type: "text/csv" });
+    Object.defineProperty(file, "text", {
+      value: vi.fn().mockResolvedValue('問題,回答,個人タグ,key-1\n,,,key-2\n"unterminated'),
+    });
+    await actAsync(() => selectDeckImportFile(file));
+    expect(screen.getByRole("alert")).toHaveTextContent("Front text is required.");
+    const source = deckImportStore.getState().source;
+    await actAsync(() => getI18n().changeLanguage("ja"));
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("表面のテキストは必須です。");
+    expect(alert).toHaveTextContent("裏面のテキストは必須です。");
+    expect(alert).toHaveTextContent("引用符で囲まれたフィールドが閉じられていません。");
+    expect(within(alert).getAllByRole("listitem")).toHaveLength(3);
+    expect(screen.getByText("有効: 1件")).toBeVisible();
+    expect(screen.getByText("無効: 2件")).toBeVisible();
+    expect(screen.getByRole("cell", { name: "問題" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "インポート" })).toBeDisabled();
+    expect(deckImportStore.getState().source).toBe(source);
+    expect(file.text).toHaveBeenCalledOnce();
+  });
+
+  it("retains prepared import identities when the preview language changes", async () => {
+    renderPage();
+    await selectLocalFile("language.csv", "回答");
+    const source = deckImportStore.getState().source;
+    await actAsync(() => getI18n().changeLanguage("ja"));
+    expect(deckImportStore.getState().source).toBe(source);
+    expect(screen.getByRole("button", { name: "インポート" })).toBeEnabled();
+    await userEvent.click(screen.getByRole("button", { name: "インポート" }));
+    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
+    expect(screen.getByText("front: 回答")).toBeVisible();
   });
 
   it("renders the import screen in the application shell", () => {
@@ -142,7 +179,7 @@ describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06]", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed. card mutation failed");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed. The import could not be completed.");
     expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
@@ -180,7 +217,7 @@ describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06]", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Add sample deck" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to add sample deck. sample mutation failed");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to add sample deck.");
     expect(screen.getByRole("heading", { level: 1, name: "Import decks" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Add sample deck" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Add sample deck" })).not.toHaveAttribute("aria-busy");
@@ -191,7 +228,7 @@ describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06]", () => {
     await selectLocalFile("page-behavior-leave.csv");
     controls.nextMutationError = new Error("card mutation failed");
     await userEvent.click(screen.getByRole("button", { name: "Import" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed. card mutation failed");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Import failed. The import could not be completed.");
 
     fireEvent.keyDown(window, { key: "s" });
 

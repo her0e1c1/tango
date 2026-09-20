@@ -1,3 +1,5 @@
+import { actAsync } from "@/test/act";
+import { getI18n } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -113,5 +115,41 @@ describe("CARD-21 CardFields validation", () => {
     await user.click(within(editor).getByRole("button", { name: "Done" }));
     await user.click(screen.getByRole("tab", { name: "Front" }));
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front");
+  });
+});
+
+describe("SETTINGS-08 Card validation language changes", () => {
+  it("updates an existing error without losing the other draft or custom tags", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<FormHarness onSubmit={onSubmit} />);
+    await user.click(screen.getByRole("tab", { name: "Back" }));
+    await user.clear(screen.getByRole("textbox", { name: "Back text" }));
+    await user.type(screen.getByRole("textbox", { name: "Back text" }), "未保存の回答");
+    await user.click(screen.getByRole("tab", { name: "Front" }));
+    const front = screen.getByRole("textbox", { name: "Front text" });
+    await user.clear(front);
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(front).toHaveAccessibleDescription("Front text is required.");
+    await actAsync(() => getI18n().changeLanguage("ja"));
+    expect(screen.getByRole("textbox", { name: "表面のテキスト" })).toBe(front);
+    expect(front).toHaveValue("");
+    expect(front).toHaveAccessibleDescription("表面のテキストは必須です。");
+    expect(screen.getByRole("button", { name: "タグを編集" })).toHaveAccessibleDescription("language, custom");
+    expect(onSubmit).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "表面を拡大" }));
+    expect(within(screen.getByRole("dialog")).getByRole("textbox")).toHaveAccessibleDescription(
+      "表面のテキストは必須です。"
+    );
+    await user.keyboard("{Escape}");
+    await user.type(front, "修正した問題");
+    await user.click(screen.getByRole("tab", { name: "裏面" }));
+    expect(screen.getByRole("textbox", { name: "裏面のテキスト" })).toHaveValue("未保存の回答");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).toHaveBeenCalledWith({
+      frontText: "修正した問題",
+      backText: "未保存の回答",
+      tags: ["language", "custom"],
+    });
   });
 });

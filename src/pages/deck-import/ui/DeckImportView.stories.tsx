@@ -1,3 +1,4 @@
+import { expect } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
@@ -58,7 +59,7 @@ export const Invalid: Story = {
         issues: [
           {
             rowNumber: 2,
-            message: "Expected 4 columns, found 3.",
+            diagnostic: { kind: "columns", count: 3 },
             context: '["goodbye","adiós","greeting"]',
           },
         ],
@@ -103,4 +104,14 @@ export const DarkReview: Story = {
 export const IphoneReview: Story = {
   ...LongSample,
   globals: { viewport: { value: "iphonex", isRotated: false } },
+};
+
+export const JapaneseDiagnostics: Story = {
+  ...Invalid,
+  parameters: { locale: "ja" },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("alert")).toHaveTextContent("列数は4列である必要があります（現在は3列）。");
+    await expect(canvas.getByRole("button", { name: /^インポート$/ })).toBeDisabled();
+    await expect(document.documentElement).toHaveAttribute("lang", "ja");
+  },
 };

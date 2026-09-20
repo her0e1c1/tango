@@ -13,16 +13,19 @@ export const countCardsByDeckId = (cards: readonly Card[]): Map<string, number> 
   return counts;
 };
 
+type CardContentErrors = Partial<Record<keyof CardRaw, { field: keyof CardRaw; reason: "required" | "invalid" }>>;
+
 // Validates Card content and returns at most the first error for each recognized field.
-export const getCardContentValidationErrors = (card: CardRaw): Partial<Record<keyof CardRaw, string>> => {
+export const getCardContentValidationErrors = (card: CardRaw): CardContentErrors => {
   const validation = cardContentSchema.safeParse(card);
   if (validation.success) return {};
 
   // Keep Zod issue paths inside the Entity boundary so feature adapters only handle Card fields.
-  const errors: Partial<Record<keyof CardRaw, string>> = {};
+  const errors: CardContentErrors = {};
   for (const issue of validation.error.issues) {
     const [field] = issue.path;
-    if (isCardContentField(field) && errors[field] === undefined) errors[field] = issue.message;
+    if (isCardContentField(field) && errors[field] === undefined)
+      errors[field] = { field, reason: issue.code === "custom" ? "required" : "invalid" };
   }
   return errors;
 };
