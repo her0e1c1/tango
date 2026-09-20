@@ -1,18 +1,12 @@
 import type * as React from "react";
-import { useNavigate } from "react-router-dom";
-import { useKey } from "react-use";
 
-import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 
 import { useAccountPageModel } from "../model/useAccountPageModel";
 import { AccountView } from "./AccountView";
 
 export const AccountPage: React.FC = () => {
-  const navigate = useNavigate();
   const { auth, pageState, signIn, signOut } = useAccountPageModel();
-
-  useKey("t", () => void navigate(routes.deckList.to()));
 
   return (
     <AppLayout showHeader>
