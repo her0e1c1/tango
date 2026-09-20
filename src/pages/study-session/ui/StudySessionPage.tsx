@@ -117,7 +117,10 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
 export const StudySessionPage: React.FC = () => {
   const { t } = useTranslation();
   const params = useParams();
-  const { deckId, deck } = useStudySessionRouteModel(params.id);
+  const deckId = params.id;
+  if (deckId == null) throw new Error("invalid deck id");
+
+  const deck = useStudySessionRouteModel(deckId);
 
   // Study lifecycle mutates session state, so an unavailable route Deck must not mount it.
   if (deck == null) return <RouteFeedback title={t("studySession.unavailable")} tone="not-found" />;
