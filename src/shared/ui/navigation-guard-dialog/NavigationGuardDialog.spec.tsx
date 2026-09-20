@@ -9,7 +9,20 @@ import { NavigationGuardDialog } from "./NavigationGuardDialog";
 
 afterEach(() => dismissToast());
 
-describe("CARD-17 DECK-12 NavigationGuardDialog", () => {
+describe("CARD-17 DECK-12 CARD-26 NavigationGuardDialog", () => {
+  it("renders a custom description when provided", () => {
+    render(
+      <NavigationGuardDialog
+        description="Custom in-progress explanation"
+        onDiscardChanges={vi.fn()}
+        onKeepEditing={vi.fn()}
+      />
+    );
+    expect(screen.getByText("Custom in-progress explanation")).toBeVisible();
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toHaveAccessibleDescription(
+      "Custom in-progress explanation"
+    );
+  });
   it("keeps a persistent Toast non-interactive and restores replacement focus inside the modal", async () => {
     const user = userEvent.setup();
     const Harness = () => {

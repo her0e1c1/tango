@@ -18,6 +18,7 @@ Card の作成・編集・削除が保存先の境界を守り、失敗後も入
 | CARD-16 | write | [Card の削除失敗後に再試行できる](#card-16) |
 | CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](#card-17) |
 | CARD-21 | read | [Card の未表示の面にある入力エラーを修正できる](#card-21) |
+| CARD-26 | read | [未保存の Card 作成内容と保存処理中の離脱を確認できる](#card-26) |
 
 <a id="card-03"></a>
 
@@ -271,4 +272,33 @@ Then:
 - 両面の tab にエラーが示され、Back tab を選ぶと back text の入力エラーも確認できる。
 - 拡大編集画面でも入力エラーが表示され、入力欄の accessible description として読み取れる。
 - 未入力の値は維持され、Card は保存されず元の永続データが変更されない。
+- browser error が発生しない。
+
+<a id="card-26"></a>
+
+### CARD-26 未保存の Card 作成内容と保存処理中の離脱を確認できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck が存在する。
+- Card 作成画面を開いている。
+
+When:
+
+- 未変更の状態で Cancel を選択して所属 Deck の Card 一覧へ戻る。
+- 再度作成画面を開き、front text や back text、tags を入力した状態で Cancel や Header による離脱を試みる。
+- 離脱確認で Keep editing を選択し、その後保存処理を開始して保存処理中にも離脱を試みる。
+- 保存処理中の離脱確認で Discard changes または保存完了との競合を検証する。
+
+Then:
+
+- 未変更の新規作成画面では離脱確認を表示せず、要求された遷移先へ移動する。
+- 未保存の入力がある場合は離脱前に確認 dialog が表示され、Keep editing では入力内容を保持して遷移を取り消す。
+- 保存処理中の離脱確認では、作成処理が続行されることと完了時の挙動についての説明が表示される。
+- 保存処理中の未回答の確認と保存成功が競合した場合は、所属 Deck の Card 一覧への replace 遷移を優先し、古い要求先へ移動しない。
+- Discard changes を選択した場合は要求された遷移先へ一度だけ移動し、その後の保存成功時は Card 一覧へ replace 遷移する。
+- 失敗時は入力内容を保持して再試行できる。
 - browser error が発生しない。

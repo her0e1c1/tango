@@ -63,7 +63,7 @@ const renderGuard = () => {
   return render(<RouterProvider router={router} />);
 };
 
-describe("DECK-12 CARD-17 useNavigationGuard", () => {
+describe("DECK-12 CARD-17 CARD-26 useNavigationGuard", () => {
   it("allows clean navigation and intentional successful navigation", async () => {
     const view = renderGuard();
     await userEvent.click(screen.getByRole("link", { name: "Leave" }));
@@ -100,6 +100,18 @@ describe("DECK-12 CARD-17 useNavigationGuard", () => {
 
     expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
     expect(screen.queryByRole("heading", { name: "Unrelated page" })).not.toBeInTheDocument();
+  });
+
+  it("resets a blocked state and prioritizes allowed navigation over an unanswered prompt", async () => {
+    renderGuard();
+    await userEvent.click(screen.getByRole("button", { name: "Edit" }));
+    await userEvent.click(screen.getByRole("button", { name: "Pending save then Back" }));
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "Save successfully" }));
+    expect(await screen.findByRole("heading", { name: "Next page" })).toBeVisible();
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Previous page" })).not.toBeInTheDocument();
   });
 
   it("does not spend a pending save bypass on an unrelated Back navigation", async () => {

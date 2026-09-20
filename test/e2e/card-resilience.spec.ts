@@ -83,6 +83,35 @@ test("CARD-17 confirms before discarding an unsaved Card edit", async ({ fixture
     .toBe(card.frontText);
 });
 
+test("CARD-26 confirms before discarding an unsaved Card create", async ({ fixture, page, namespace }) => {
+  const deck = fixture.deck();
+  const unsavedFrontText = `${namespace.caseId} unsaved front`;
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}`);
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Add card" }).click();
+
+  // Clean exit has no confirmation
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page).toHaveURL(`/deck/${deck.id}`);
+
+  // Dirty exit prompts confirmation
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Add card" }).click();
+  const frontText = page.getByRole("textbox", { name: "Front text" });
+  await frontText.fill(unsavedFrontText);
+
+  await page.getByRole("button", { name: "Cancel" }).click();
+  const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+  await dialog.getByRole("button", { name: "Keep editing" }).click();
+  await expect(frontText).toHaveValue(unsavedFrontText);
+
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await dialog.getByRole("button", { name: "Discard changes" }).click();
+  await expect(page).toHaveURL(`/deck/${deck.id}`);
+  await expect(page.getByRole("button", { name: `View ${unsavedFrontText}` })).toHaveCount(0);
+});
+
 test("CARD-18 retries the same Card-list difficulty change after a handled failure", async ({
   fixture,
   page,

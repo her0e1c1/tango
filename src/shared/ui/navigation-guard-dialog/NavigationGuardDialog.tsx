@@ -6,11 +6,16 @@ import { Button } from "../button";
 import { useToastModalFocusTarget } from "../toast";
 
 interface NavigationGuardDialogProps {
+  description?: React.ReactNode;
   onDiscardChanges: () => void;
   onKeepEditing: () => void;
 }
 
-export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({ onDiscardChanges, onKeepEditing }) => {
+export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
+  description,
+  onDiscardChanges,
+  onKeepEditing,
+}) => {
   const { t } = useTranslation();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const keepEditingRef = React.useRef<HTMLButtonElement>(null);
@@ -72,7 +77,7 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({ on
           {t("navigationGuard.title")}
         </h2>
         <p id={descriptionId} className="mt-4 text-body text-ink-muted">
-          {t("navigationGuard.description")}
+          {description ?? t("navigationGuard.description")}
         </p>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
