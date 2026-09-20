@@ -2,7 +2,31 @@ import { describe, expect, it } from "vitest";
 
 import { routes } from "./routes";
 
-describe("routes", () => {
+describe("DECK-01 routes", () => {
+  it.each([
+    ["plan", "plan"],
+    ["plan?draft=1", "plan%3Fdraft%3D1"],
+    ["plan#draft", "plan%23draft"],
+  ])("keeps %s inside one path parameter for every ID route", (id, encodedId) => {
+    expect([
+      routes.cardList.to(id),
+      routes.cardCreate.to(id),
+      routes.deckForm.to(id),
+      routes.deckStudyStart.to(id),
+      routes.deckStudy.to(id),
+      routes.cardView.to(id),
+      routes.cardForm.to(id),
+    ]).toEqual([
+      `/deck/${encodedId}`,
+      `/deck/${encodedId}/card/new`,
+      `/deck/${encodedId}/edit`,
+      `/deck/${encodedId}/start`,
+      `/deck/${encodedId}/study`,
+      `/card/${encodedId}`,
+      `/card/${encodedId}/edit`,
+    ]);
+  });
+
   it("defines every page route and builds its destination", () => {
     expect([
       [routes.deckList.path, routes.deckList.to()],

@@ -61,6 +61,29 @@ test("DECK-01 navigates from the Deck list to its Card list", async ({ fixture, 
 
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByText(card.frontText)).toBeVisible();
+
+  const { localDecks, localCards } = fixture.state.browser;
+  const before = await readLocalData(page);
+  for (const selected of localDecks) {
+    await page.goto("/");
+    await page.getByRole("button", { name: `View ${selected.name}`, exact: true }).click();
+    const destination = new URL(page.url());
+    expect(destination.pathname).toBe(`/deck/${encodeURIComponent(selected.id)}`);
+    expect(destination.search).toBe("");
+    expect(destination.hash).toBe("");
+    for (const entry of ["navigation", "direct", "reload"]) {
+      if (entry === "direct") await page.goto(destination.href);
+      if (entry === "reload") await page.reload();
+      await expect(page).toHaveURL(destination.href);
+      for (const candidate of localCards) {
+        const button = page.getByRole("button", { name: `View ${candidate.frontText}`, exact: true });
+        if (candidate.deckId === selected.id) await expect(button).toBeVisible();
+        else await expect(button).toHaveCount(0);
+      }
+      await expect(page.getByText(card.frontText, { exact: true })).toHaveCount(0);
+      expect(await readLocalData(page)).toEqual(before);
+    }
+  }
 });
 
 test("DECK-02 persists edited name, category, and source URL across reload", async ({ fixture, page, namespace }) => {

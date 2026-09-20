@@ -1,0 +1,28 @@
+extends: remote-deck-with-cards.yaml
+browser:
+  localDecks:
+    - id: plan
+      localMode: true
+      name: Plain Deck
+    - id: plan?draft=1
+      localMode: true
+      name: Question mark Deck
+    - id: plan#draft
+      localMode: true
+      name: Hash Deck
+  localCards:
+    - id: plain-card
+      deckId: plan
+      frontText: Plain Card
+      backText: Plain answer
+      uniqueKey: plain
+    - id: question-card
+      deckId: plan?draft=1
+      frontText: Question mark Card
+      backText: Question mark answer
+      uniqueKey: question
+    - id: hash-card
+      deckId: plan#draft
+      frontText: Hash Card
+      backText: Hash answer
+      uniqueKey: hash
