@@ -68,7 +68,7 @@ depends = ["//sample:build"]
 run = "npm run test:unit -- --no-file-parallelism"
 
 [tasks.test-integration]
-depends = ["up"]
+depends = ["//sample:build", "up"]
 run = "npm run test:integration"
 
 [tasks.test-storybook]
