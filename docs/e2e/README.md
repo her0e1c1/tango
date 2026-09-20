@@ -57,7 +57,7 @@
 | --- | --- | --- |
 | IMPORT-01 | read | [有効な CSV を永続化せずに preview できる](./import.md#import-01) |
 | IMPORT-02 | read | [不正な行を含む CSV の import を阻止できる](./import.md#import-02) |
-| IMPORT-03 | batch | [CSV を remote に import して reload 後に利用できる](./import.md#import-03) |
+| IMPORT-03 | batch | [CSV を remote に import して reload 後も利用できる](./import.md#import-03) |
 | IMPORT-04 | batch | [CSV を local-only に import して reload 後に学習できる](./import.md#import-04) |
 | IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](./import.md#import-05) |
 | IMPORT-06 | batch | [4種類の例を同じ確認・保存フローで追加できる](./import.md#import-06) |
