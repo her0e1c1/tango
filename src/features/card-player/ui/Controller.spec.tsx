@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { Controller } from "./Controller";
 
-describe("Controller", () => {
+describe("DECK-20 DECK-21 Controller", () => {
   it("delegates autoplay toggles", () => {
     const onToggleAutoPlay = vi.fn();
     render(<Controller autoPlay={false} onToggleAutoPlay={onToggleAutoPlay} />);

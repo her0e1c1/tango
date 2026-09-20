@@ -4,7 +4,7 @@ import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import { SwipeButtonList } from "./SwipeButtonList";
 
 const meta = {
-  title: "Pages/Study Session/SwipeButtonList",
+  title: "Features/Card Player/SwipeButtonList",
   component: SwipeButtonList,
   tags: ["autodocs"],
   decorators: [withPageLayout],

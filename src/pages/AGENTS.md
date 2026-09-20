@@ -13,7 +13,7 @@
 
 ## Page and UI
 
-- A Page or Container may only:
+- A Page and its private composition helpers may only:
   - call its Page model,
   - compose UI,
   - pass prepared values and callbacks to components through props.
@@ -23,7 +23,8 @@
 - Read application and domain data, constants, and behavior through the Page model. UI must not access stores, queries, actions, APIs, or application/domain hooks directly.
 - Keep rendering concerns in UI. This includes JSX, display conditions, translations, locale-dependent formatting, `Link` / `NavLink`, and guard UI.
 - UI may import reusable components, types, and presentation helpers from lower layers through their public APIs. Do not create a Feature only to avoid such imports.
-- Name a Page-internal composition boundary `*Container.tsx`. Add one only when it makes UI composition clearer.
+- Do not create separate `*Container.tsx` files. Keep a single Page as the composition boundary for each route.
+- If composition helpers are needed, define them as non-exported components at module scope in the same `*Page.tsx` file. Preserve keyed component boundaries when they control Page model state lifetimes.
 - Other components under `ui/` are presentational by default. They receive prepared data through props and report user intent through callbacks.
 - UI-only local state and React or library hooks used only for presentation are allowed.
 

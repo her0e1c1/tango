@@ -74,11 +74,10 @@ test("DECK-13 browses remote Cards without changing learning data or preferences
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
   await expect(page).toHaveURL(`/deck/${deck.id}/view`);
-  await expect(page.getByRole("heading", { name: deck.name, exact: true })).toBeVisible();
   await expectFront(page, first.frontText);
-  await expect(page.getByLabel("Viewing progress")).toContainText("1 / 3");
-  await expect(page.getByRole("button", { name: "Swipe up" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Play", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 3");
+  await expect(page.getByRole("button", { name: "Swipe up" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
 
   const front = page.getByRole("button", { name: "Card front", exact: true });
   const answer = page.getByRole("region", { name: "Card answer", exact: true });
@@ -114,7 +113,6 @@ test("DECK-13 browses remote Cards without changing learning data or preferences
   await expectFront(page, second.frontText);
   await page.getByRole("button", { name: "Next card", exact: true }).click();
   await expectFront(page, third.frontText);
-  await front.getByText(third.frontText, { exact: true }).click();
   await page.getByRole("button", { name: "Previous card", exact: true }).click();
   await expectFront(page, second.frontText);
   await front.getByText(second.frontText, { exact: true }).click();
@@ -140,7 +138,7 @@ test("DECK-14 resets local-only viewing position on reload and reentry without s
   await openView(page, deck.name);
   await page.getByText(first.frontText, { exact: true }).click();
   await expect(page.getByRole("region", { name: "Card answer", exact: true })).toContainText(first.backText);
-  await page.getByRole("button", { name: "Next card", exact: true }).click();
+  await page.keyboard.press("ArrowRight");
   await expectFront(page, second.frontText);
   await page.getByText(second.frontText, { exact: true }).click();
   await expect(page.getByRole("region", { name: "Card answer", exact: true })).toContainText(second.backText);
@@ -148,7 +146,7 @@ test("DECK-14 resets local-only viewing position on reload and reentry without s
   await expectFront(page, first.frontText);
   await page.getByRole("button", { name: "Next card", exact: true }).click();
   await expectFront(page, second.frontText);
-  await page.getByRole("button", { name: "Back to decks", exact: true }).first().click();
+  await page.getByRole("button", { name: "Back to deck list", exact: true }).first().click();
   await expect(page).toHaveURL(/\/$/);
   await openView(page, deck.name);
   await expectFront(page, first.frontText);
@@ -175,7 +173,7 @@ test("DECK-15 views all difficulty and tag matches in standard order without the
   await openView(page, deck.name);
   for (const [index, card] of matching.entries()) {
     await expectFront(page, card.frontText);
-    await expect(page.getByLabel("Viewing progress")).toContainText(`${String(index + 1)} / 3`);
+    await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", `${String(index + 1)} of 3`);
     await page.getByRole("button", { name: "Next card", exact: true }).click();
   }
   await expect(page).toHaveURL(/\/$/);
@@ -210,7 +208,7 @@ test("DECK-15 views all difficulty and tag matches in standard order without the
     await expect(page).toHaveURL(/\/$/);
     await openView(page, deck.name);
     await expectFront(page, queuedMatch.frontText);
-    await expect(page.getByLabel("Viewing progress")).toContainText("1 / 1");
+    await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
     await page.getByRole("button", { name: "Next card", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     expect(await readSavedData(page, fixture)).toEqual(before);
@@ -242,7 +240,7 @@ test("DECK-16 applies review scheduling to read-only viewing", async ({ fixture,
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
   await expectFront(page, due.frontText);
-  await expect(page.getByLabel("Viewing progress")).toContainText("1 / 2");
+  await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 2");
   await page.getByRole("button", { name: "Next card", exact: true }).click();
   await expectFront(page, unscheduled.frontText);
   await page.getByRole("button", { name: "Next card", exact: true }).click();
@@ -259,7 +257,7 @@ test("DECK-17 recovers from empty and missing Deck views without saving", async 
   await openView(page, deck.name);
   await expect(page.getByText("No cards match the current filters.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Next card", exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "Back to decks", exact: true }).first().click();
+  await page.getByRole("button", { name: "Back to deck list", exact: true }).first().click();
   await expect(page).toHaveURL(/\/$/);
   await page.goto(`/deck/${namespace.id("missing")}/view`);
   await expect(page.getByRole("heading", { name: "Deck not found", exact: true })).toBeVisible();
@@ -281,7 +279,7 @@ test("DECK-18 scrolls one long answer with touch and exits at either horizontal 
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
   await expectFront(page, card.frontText);
-  await expect(page.getByLabel("Viewing progress")).toContainText("1 / 1");
+  await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
   await touchGesture(page, page.getByRole("button", { name: "Card front", exact: true }));
   const answer = page.getByRole("region", { name: "Card answer", exact: true });
   await expect(answer).toBeVisible();
@@ -302,5 +300,116 @@ test("DECK-18 scrolls one long answer with touch and exits at either horizontal 
   await expectFront(page, card.frontText);
   await touchGesture(page, page.getByRole("button", { name: "Card front", exact: true }), "right");
   await expect(page).toHaveURL(/\/$/);
+  expect(await readSavedData(page, fixture)).toEqual(before);
+});
+
+test("DECK-19 shares display preferences with Study and explains viewing actions", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  await fixture.apply(page);
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
+  const before = await readSavedData(page, fixture);
+  await openView(page, deck.name);
+  await page.getByRole("button", { name: "Open viewing help" }).click();
+  const dialog = page.getByRole("dialog", { name: "Viewing controls" });
+  await expect(dialog).toContainText("Go to the previous card");
+  await expect(dialog.getByText("No action", { exact: true })).toHaveCount(2);
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Open viewing help" })).toBeFocused();
+  await expectFront(page, fixture.card("card-1").frontText);
+  await page.getByRole("button", { name: "Open card actions" }).click();
+  for (const name of ["Card details", "Swipe controls", "Playback controls", "Help button"]) {
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(page.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "false");
+  }
+  await page.reload();
+  await expectFront(page, fixture.card("card-1").frontText);
+  await expect(page.getByRole("button", { name: "Open viewing help" })).toHaveCount(0);
+  await expect(page.getByRole("slider")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Next card" })).toHaveCount(0);
+  const after = await readSavedData(page, fixture);
+  expect({ ...after, preferences: before.preferences }).toEqual(before);
+  expect(after.preferences).toEqual({
+    ...before.preferences,
+    state: {
+      ...before.preferences.state,
+      preferences: {
+        ...before.preferences.state.preferences,
+        controls: {
+          ...before.preferences.state.preferences.controls,
+          showHelp: false,
+          showCardDetails: false,
+          showSwipeButtonList: false,
+          showPlaybackControls: false,
+        },
+      },
+    },
+  });
+  await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
+  await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
+  await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Open card actions" }).click();
+  for (const name of ["Card details", "Swipe controls", "Playback controls", "Help button"]) {
+    await expect(page.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "false");
+  }
+});
+
+test("DECK-20 starts viewing stopped and autoplays without persisting learning data", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  await fixture.apply(page, { preferences: { study: { defaultAutoPlay: true, cardInterval: 1 } } });
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
+  const before = await readSavedData(page, fixture);
+  await page.clock.install();
+  await openView(page, deck.name);
+  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
+  await page.clock.runFor(2000);
+  await expectFront(page, fixture.card("card-1").frontText);
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await page.getByRole("button", { name: "Open viewing help" }).click();
+  await page.clock.runFor(2000);
+  await page.getByRole("button", { name: "Close help" }).click();
+  await expectFront(page, fixture.card("card-1").frontText);
+  await page.clock.runFor(1000);
+  await expectFront(page, fixture.card("card-2").frontText);
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await page.clock.runFor(2000);
+  await expectFront(page, fixture.card("card-2").frontText);
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await page.clock.runFor(1000);
+  await expectFront(page, fixture.card("card-3").frontText);
+  await page.clock.runFor(1000);
+  await expect(page).toHaveURL(/\/$/);
+  await openView(page, deck.name);
+  await page.clock.runFor(2000);
+  await expectFront(page, fixture.card("card-1").frontText);
+  expect(await readSavedData(page, fixture)).toEqual(before);
+});
+
+test("DECK-21 browses forward and backward with the progress slider without saving", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  await fixture.apply(page);
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
+  const before = await readSavedData(page, fixture);
+  await openView(page, deck.name);
+  const slider = page.getByRole("slider", { name: "Viewing progress" });
+  await slider.focus();
+  await page.keyboard.press("End");
+  await expectFront(page, fixture.card("card-2").frontText);
+  await expect(slider).toHaveAttribute("aria-valuetext", "2 of 2");
+  await page.keyboard.press("ArrowLeft");
+  await expectFront(page, fixture.card("card-1").frontText);
+  await expect(slider).toHaveAttribute("aria-valuetext", "1 of 2");
+  await page.getByRole("button", { name: "Card front", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Card answer" })).toBeVisible();
+  await expect(slider).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Back to deck list", exact: true })).toHaveCount(0);
+  await page.keyboard.press("ArrowRight");
+  await expectFront(page, fixture.card("card-2").frontText);
+  await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
+  await openView(page, deck.name);
+  await expectFront(page, fixture.card("card-1").frontText);
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
