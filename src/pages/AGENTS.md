@@ -19,7 +19,7 @@
   - pass prepared values and callbacks to components through props.
 - Keep route inputs, screen shortcuts and `useKey` registration, application-state connections, form submission wiring, and page-specific navigation in `model/`.
 - Reuse Shared guard primitives for navigation guards.
-- Read application and domain data through the Page model. UI must not access stores, queries, actions, APIs, or application/domain hooks directly.
+- Read application and domain data, constants, and behavior through the Page model. UI must not access stores, queries, actions, APIs, or application/domain hooks directly.
 - Keep rendering concerns in UI. This includes JSX, display conditions, translations, locale-dependent formatting, `Link` / `NavLink`, and guard UI.
 - UI may import reusable components, types, and presentation helpers from lower layers through their public APIs. Do not create a Feature only to avoid such imports.
 - Name a Page-internal composition boundary `*Container.tsx`. Add one only when it makes UI composition clearer.
@@ -28,7 +28,8 @@
 
 ## Page model
 
-- A Page model connects route inputs, shortcuts, stores, state hooks, queries, actions, forms, and navigation.
+- Use the Page model only for wiring route inputs, shortcuts, stores, state hooks, queries, actions, forms, and navigation.
+- Do not put business rules, validation, derived-data calculations, state transitions, or async workflow sequencing in the Page model.
 - Put derived-data calculations in `model/queries/`.
 - Put state-changing operations and workflows in `model/actions/`.
 - Actions may read and update Page-owned store state directly. Do not pass that store's snapshots, pending flags, or setters through the Page model or UI.
