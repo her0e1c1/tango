@@ -26,10 +26,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({
-  useAuth: () => ({ uid: mocks.uid }),
-  getAuthSession: () => ({ status: "authenticated", uid: mocks.uid, isAnonymous: false, displayName: null }),
-}));
+vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: mocks.uid }) }));
 vi.mock("@/entities/preference", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preference")>()),
   getPreferences: () => mocks.preferences,
@@ -46,7 +43,6 @@ vi.mock("@/entities/card", async (importOriginal) => ({
 vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
   useDeck: () => mocks.deck,
-  getDecks: () => (mocks.deck === undefined ? [] : [mocks.deck]),
 }));
 vi.mock("@/entities/study-progress", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/study-progress")>()),
