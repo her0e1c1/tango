@@ -1,73 +1,26 @@
-import * as React from "react";
-import { useFormState } from "react-hook-form";
+import type * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
 
-import { BackText, type Card, type CardContentInput, useCard } from "@/entities/card";
-import { CATEGORY } from "@/entities/deck";
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
-import { routes, useNavigationGuard } from "@/shared/router";
+import { BackText, type Card } from "@/entities/card";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardEditPageModel } from "../model/useCardEditPageModel";
+import { useCardEditPageModel, useCardEditRouteModel } from "../model/useCardEditPageModel";
 import { CardEditor } from "./CardEditor";
 
-const CardEditContent: React.FC<{ card: Card }> = ({ card }) => {
-  const navigate = useNavigate();
-  // Keep one opening snapshot; subscription refreshes must not replace the draft.
-  const [snapshot] = React.useState(card);
-  const { form, submit, preview } = useCardEditPageModel(snapshot);
-  const { isDirty, isSubmitting } = useFormState({ control: form.control });
-  const guard = useNavigationGuard(isDirty || isSubmitting);
-  const isMounted = useMountedGuard();
-  const cardListPath = routes.cardList.to(snapshot.deckId);
-
-  const save = async (values: CardContentInput): Promise<void> => {
-    if (!isMounted()) return;
-    if (!(await submit(values))) return;
-    if (!isMounted()) return;
-
-    void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
-      navigate(cardListPath, { replace: true })
-    );
-  };
-
-  const pending: React.RefObject<boolean> = React.useRef(false);
-  const handleSubmit = form.handleSubmit(save);
-  const onSubmit: React.SubmitEventHandler<HTMLFormElement> = (event) => {
-    if (pending.current) {
-      // RHF must not start duplicate validation that could outlive the first save.
-      event.preventDefault();
-      return;
-    }
-
-    pending.current = true;
-    void handleSubmit(event)
-      .catch((error: unknown) => {
-        // biome-ignore lint/suspicious/noConsole: Unexpected validation/callback errors need a runtime sink, not a persistence-failure toast.
-        console.error("Card edit form callback failed.", error);
-      })
-      .finally(() => {
-        pending.current = false;
-      });
-  };
+const CardEditContainer: React.FC<{ card: Card }> = ({ card }) => {
+  const model = useCardEditPageModel(card);
 
   return (
     <AppLayout showHeader>
-      {guard.element}
+      {model.navigationGuard}
       <CardEditor
-        cardInfo={{
-          id: snapshot.id,
-          uniqueKey: snapshot.uniqueKey,
-          ...(snapshot.createdAt ? { createdAt: snapshot.createdAt } : {}),
-          ...(snapshot.lastSeenAt != null ? { lastSeenAt: snapshot.lastSeenAt } : {}),
-        }}
-        categories={CATEGORY}
-        preview={<BackText {...preview} />}
-        form={form}
-        onCancel={() => void navigate(-1)}
-        onSubmit={onSubmit}
+        cardInfo={model.cardInfo}
+        categories={model.categories}
+        preview={<BackText {...model.preview} />}
+        form={model.form}
+        onCancel={model.onCancel}
+        onSubmit={model.onSubmit}
       />
     </AppLayout>
   );
@@ -75,10 +28,7 @@ const CardEditContent: React.FC<{ card: Card }> = ({ card }) => {
 
 export const CardEditPage: React.FC = () => {
   const { t } = useTranslation();
-  const params = useParams();
-  const cardId = params.id;
-  if (cardId == null) throw new Error("invalid card id");
-  const card = useCard(cardId);
+  const { cardId, card } = useCardEditRouteModel();
 
   if (card == null) {
     return (
@@ -87,5 +37,5 @@ export const CardEditPage: React.FC = () => {
   }
 
   // Form state belongs to one route Card and must reset when the id changes.
-  return <CardEditContent key={cardId} card={card} />;
+  return <CardEditContainer key={cardId} card={card} />;
 };
