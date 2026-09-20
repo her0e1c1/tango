@@ -14,6 +14,7 @@ import { DeckCreatePage } from "@/pages/deck-create";
 import { DeckEditPage } from "@/pages/deck-edit";
 import { DeckImportPage } from "@/pages/deck-import";
 import { DeckListPage } from "@/pages/deck-list";
+import { DeckViewPage } from "@/pages/deck-view";
 import { NotFoundPage } from "@/pages/not-found";
 import { SettingsPage } from "@/pages/settings";
 import { StudySessionPage } from "@/pages/study-session";
@@ -34,6 +35,7 @@ export const appRoutes = [
       { path: routes.deckForm.path, element: <DeckEditPage /> },
       { path: routes.deckStudyStart.path, element: <StudySessionStartPage /> },
       { path: routes.deckStudy.path, element: <StudySessionPage /> },
+      { path: routes.deckView.path, element: <DeckViewPage /> },
       { path: routes.cardView.path, element: <CardViewPage /> },
       { path: routes.cardForm.path, element: <CardEditPage /> },
       { path: routes.account.path, element: <AccountPage /> },
