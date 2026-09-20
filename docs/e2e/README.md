@@ -44,6 +44,7 @@
 | SETTINGS-04 | write | [日本語設定を自動保存して reload 後も反映できる](./settings.md#settings-04) |
 | SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](./settings.md#settings-05) |
 | SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](./settings.md#settings-06) |
+| SETTINGS-07 | read | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](./settings.md#settings-07) |
 
 ### Import
 

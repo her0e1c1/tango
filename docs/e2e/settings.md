@@ -14,6 +14,7 @@ Settings の自動保存が reload を越えて維持され、保存した学習
 | SETTINGS-04 | write | [日本語設定を自動保存して reload 後も反映できる](#settings-04) |
 | SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](#settings-05) |
 | SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](#settings-06) |
+| SETTINGS-07 | read | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](#settings-07) |
 
 <a id="settings-01"></a>
 
@@ -152,4 +153,30 @@ Then:
 - Dark mode は現在の既定値である無効へ復旧する。
 - Maximum cards は現在の既定値である `10` へ復旧する。
 - Language は現在の既定値である `System` へ復旧する。
+- browser error が発生しない。
+
+<a id="settings-07"></a>
+
+### SETTINGS-07 詳細設定をキーボードで開閉してフォーカス位置を確認できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 認証済みユーザーが Deck 一覧から Settings を開き、詳細設定が閉じている。
+- 広い画面と狭い画面、明色と暗色のそれぞれで確認する。
+
+When:
+
+- Tab と Shift+Tab で自動再生の間隔スライダーと詳細設定の見出しを往復する。
+- Enter と Space で詳細設定を開閉する。コミット情報があるビルドでは Tab でコミットリンクへ進み、Shift+Tab で見出しへ戻る。
+- 開いた状態でページを reload する。
+
+Then:
+
+- 開閉どちらの状態でも見出しの可視領域に明確なフォーカス枠があり、別の操作要素へ移動すると表示も移る。ブラウザー画像でも四辺の枠を確認する。
+- native な開閉操作と通常の Tab 順序を維持し、余分な停止位置がない。
+- 見出しの名前、開いたときのバージョン・コミット表示が維持される。コミット情報があるビルドではリンク、ないビルドでは既存の `unknown` 表示を維持する。
+- 設定、認証、Deck、Card、学習 session とその保存内容が操作前後で変わらず、reload 後は詳細設定が閉じている。
 - browser error が発生しない。

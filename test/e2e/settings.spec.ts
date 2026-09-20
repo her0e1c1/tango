@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { collectBrowserErrors, expect, test } from "./fixtures";
 
 test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page }) => {
   const initialDarkMode = fixture.state.browser.preferences.appearance.darkMode;
@@ -118,4 +118,100 @@ test.describe("ja-JP browser locale", () => {
     await expect(systemLanguage).toHaveValue("system");
     await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   });
+});
+
+test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without changing saved data", async ({
+  browser,
+  baseURL,
+  fixture,
+}, testInfo) => {
+  for (const viewport of [
+    { width: 1100, height: 900 },
+    { width: 360, height: 640 },
+  ]) {
+    for (const darkMode of [false, true]) {
+      const page = await browser.newPage({ viewport, ...(baseURL === undefined ? {} : { baseURL }) });
+      const errors = collectBrowserErrors(page.context(), baseURL);
+      try {
+        await fixture.apply(page, { preferences: { appearance: { darkMode } } });
+        await page.goto("/");
+        await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
+        await page.getByRole("button", { name: "Open settings", exact: true }).click();
+        const summary = page.locator("summary");
+        const details = page.locator("details");
+        const interval = page.getByRole("slider", { name: "Autoplay interval" });
+        const readSavedData = () =>
+          page.evaluate(() =>
+            Object.fromEntries(
+              ["tango-config", "tango-local-decks", "tango-local-cards", "tango-study"].map((key) => [
+                key,
+                localStorage.getItem(key),
+              ])
+            )
+          );
+        const saved = await readSavedData();
+        await expect(summary).toContainText("Advanced");
+        await expect(details).not.toHaveAttribute("open");
+        await interval.focus();
+        await page.keyboard.press("Tab");
+        await expect(summary).toBeFocused();
+        const captureFocus = async (state: string) => {
+          await expect(summary).toBeInViewport();
+          const ring = await summary.evaluate((element) => {
+            const style = getComputedStyle(element);
+            return {
+              visible: element.matches(":focus-visible"),
+              width: Number.parseFloat(style.outlineWidth),
+              offset: Number.parseFloat(style.outlineOffset),
+            };
+          });
+          expect(ring.visible).toBe(true);
+          expect(ring.width).toBeGreaterThan(0);
+          // An inset ring must fit inside the clipping disclosure in both open states.
+          expect(ring.offset + ring.width).toBeLessThanOrEqual(0);
+          await testInfo.attach(`${viewport.width}-${darkMode ? "dark" : "light"}-${state}`, {
+            body: await details.screenshot(),
+            contentType: "image/png",
+          });
+        };
+        await captureFocus("closed");
+        await page.keyboard.press("Shift+Tab");
+        await expect(interval).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(summary).toBeFocused();
+        await page.keyboard.press("Enter");
+        await expect(details).toHaveAttribute("open");
+        await captureFocus("open");
+        await expect(details.getByText("Version", { exact: true })).toBeVisible();
+        const commit = details.getByRole("link");
+        if ((await commit.count()) > 0) {
+          await expect(commit).toHaveAttribute("href", /\/commit\/[a-f0-9]+$/);
+          await page.keyboard.press("Tab");
+          await expect(commit).toBeFocused();
+          await expect(summary).not.toBeFocused();
+          await page.keyboard.press("Shift+Tab");
+          await expect(summary).toBeFocused();
+        } else {
+          // Source archives can render the supported unknown-commit fallback without a link.
+          await expect(details.getByText("unknown", { exact: true })).toBeVisible();
+        }
+        await page.keyboard.press("Enter");
+        await expect(details).not.toHaveAttribute("open");
+        await page.keyboard.press("Space");
+        await expect(details).toHaveAttribute("open");
+        await page.keyboard.press("Space");
+        await expect(details).not.toHaveAttribute("open");
+        await page.keyboard.press("Space");
+        await expect(details).toHaveAttribute("open");
+        expect(await readSavedData()).toEqual(saved);
+        await page.reload();
+        await expect(summary).toBeVisible();
+        await expect(details).not.toHaveAttribute("open");
+        expect(await readSavedData()).toEqual(saved);
+        errors.assert();
+      } finally {
+        await page.close();
+      }
+    }
+  }
 });

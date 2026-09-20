@@ -240,7 +240,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
           aria-labelledby={advancedHeadingId}
           className="group overflow-hidden rounded-surface border border-border bg-surface shadow-surface"
         >
-          <summary className="flex min-h-touch cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+          <summary
+            className="flex min-h-touch cursor-pointer list-none items-center gap-3 rounded-[inherit] px-4 py-3 [&::-webkit-details-marker]:hidden"
+            style={{ outlineOffset: "calc(-1 * var(--calm-focus-ring-offset))" }}
+          >
             <span
               aria-hidden="true"
               className="flex size-8 shrink-0 items-center justify-center rounded-control bg-surface-muted text-accent-primary"
