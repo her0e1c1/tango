@@ -17,6 +17,7 @@ import { DeckActionsMenu } from "./DeckActionsMenu";
 
 export interface DeckListCardActions {
   onClickName?: (id: DeckId) => void;
+  onClickView?: (id: DeckId) => void;
   onClickContinue?: (id: DeckId) => void;
   onClickStudy?: (id: DeckId) => void;
   onClickRestart?: (id: DeckId) => void;
@@ -186,6 +187,16 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
       >
         {active && <AiFillCaretRight aria-hidden="true" />}
         <span>{t(active ? "deckList.continue" : "deckList.study")}</span>
+      </button>
+
+      <button
+        type="button"
+        aria-label={t("deckList.viewCards", { deckName: deck.name })}
+        className={cx(primaryActionClassName, "border border-border bg-transparent text-ink hover:bg-surface-muted")}
+        onClick={withId(props.onClickView)}
+        disabled={pending}
+      >
+        {t("deckView.title")}
       </button>
 
       <DeckActionsMenu

@@ -82,6 +82,12 @@
 | DECK-10 | write | [remote Deck の作成失敗を通知できる](./deck-management.md#deck-10) |
 | DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](./deck-management.md#deck-11) |
 | DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](./deck-management.md#deck-12) |
+| DECK-13 | read | [remote Deck を学習データを変更せずに閲覧できる](./deck-navigation.md#deck-13) |
+| DECK-14 | read | [local-only Deck の閲覧位置を保存せずに再入場できる](./deck-navigation.md#deck-14) |
+| DECK-15 | write | [現在の難易度と tag filter に一致する全 Card を標準順で閲覧できる](./deck-navigation.md#deck-15) |
+| DECK-16 | read | [復習期日の設定を閲覧対象へ反映できる](./deck-navigation.md#deck-16) |
+| DECK-17 | read | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](./deck-navigation.md#deck-17) |
+| DECK-18 | read | [1件の Card の長い解答を touch で閲覧して終了できる](./deck-navigation.md#deck-18) |
 
 ### Card
 
