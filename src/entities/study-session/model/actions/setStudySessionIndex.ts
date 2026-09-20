@@ -3,15 +3,15 @@ import type { DeckId } from "@/entities/deck/@x/study-session";
 import { studySessionStore } from "../store";
 
 // Moves one session to an explicit valid Card index and reports whether it changed.
-export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): boolean => {
+export function setStudySessionIndex(deckId: DeckId, currentIndex: number): boolean {
   let updated = false;
   studySessionStore.setState((state) => {
     const session = state.sessionsByDeckId[deckId];
-    // Never persist a resume point that cannot identify an active card.
+    // A running session can only advance, including when a slider submits a stale position.
     if (
       session == null ||
       !Number.isInteger(currentIndex) ||
-      currentIndex < 0 ||
+      currentIndex <= session.currentIndex ||
       currentIndex >= session.cardOrderIds.length
     ) {
       return;
@@ -21,4 +21,4 @@ export const setStudySessionIndex = (deckId: DeckId, currentIndex: number): bool
     updated = true;
   });
   return updated;
-};
+}

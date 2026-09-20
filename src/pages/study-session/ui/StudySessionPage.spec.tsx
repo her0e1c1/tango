@@ -78,7 +78,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE-24]", () => {
+describe("StudySessionPage [SWIPE-05] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE-24]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -150,6 +150,70 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
     expect(screen.getByText("Front one")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
+
+  it("disables backward controls and keeps the slider and Card at the current position", () => {
+    mocks.preferences = createPreferences({ controls: { showBackTextSwipeOverlays: true } });
+    setStudySessionIndex(deckId, 1);
+    renderPage();
+    const session = getStudySession(deckId);
+
+    const previous = screen.getByRole("button", { name: "Swipe left" });
+    expect(previous).toBeDisabled();
+    fireEvent.click(previous);
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    const slider = screen.getByRole("slider", { name: "Study progress" });
+    fireEvent.change(slider, { target: { value: "0" } });
+
+    expect(slider).toHaveValue("1");
+    expect(screen.getByText("Front two")).toBeVisible();
+    expect(getStudySession(deckId)).toEqual(session);
+    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("swipe-feedback-direction")).not.toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(screen.getByText("Back two")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Swipe right" })).toBeVisible();
+  });
+
+  it("allows the progress slider to advance and prevents returning to the skipped Card", () => {
+    renderPage();
+    const slider = screen.getByRole("slider", { name: "Study progress" });
+    fireEvent.change(slider, { target: { value: "1" } });
+
+    expect(screen.getByText("Front two")).toBeVisible();
+    expect(slider).toHaveValue("1");
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+
+    fireEvent.change(slider, { target: { value: "0" } });
+    expect(screen.getByText("Front two")).toBeVisible();
+    expect(slider).toHaveValue("1");
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["cardSwipeUp", "Swipe up", "ArrowUp"],
+    ["cardSwipeDown", "Swipe down", "ArrowDown"],
+    ["cardSwipeRight", "Swipe right", "ArrowRight"],
+  ] as const)(
+    "disables the remapped previous action on %s and allows forward actions on the left",
+    async (direction, label, key) => {
+      mocks.preferences = createPreferences({
+        controls: { cardSwipeLeft: "GoToNextCard", [direction]: "GoToPrevCard" },
+      });
+      renderPage();
+      expect(screen.getByRole("button", { name: label })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Swipe left" })).toBeEnabled();
+      fireEvent.keyDown(window, { key });
+      expect(screen.getByText("Front one")).toBeVisible();
+      expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole("button", { name: "Swipe left" }));
+      expect(await screen.findByText("Front two")).toBeVisible();
+      expect(getStudySession(deckId)?.currentIndex).toBe(1);
+    }
+  );
 
   it("reveals the current answer from the Enter shortcut", () => {
     renderPage();
@@ -304,6 +368,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
     const dialog = screen.getByRole("dialog", { name: "Study controls" });
     expect(dialog).toHaveTextContent("Arrow Up / Swipe UpEnd the current session and return to the deck list");
     expect(dialog).toHaveTextContent("Arrow Down / Swipe DownNo action");
+    expect(dialog).toHaveTextContent("Arrow Right / Swipe RightGoing to the previous card is disabled");
     expect(dialog).toHaveTextContent("Arrow Left / Swipe LeftToggle mastered and go to the next card");
     expect(dialog).toHaveTextContent("Enter / Select CardFlip or reveal the current card");
     expect(dialog).toHaveTextContent("Space / Play or Pause buttonPlay or pause autoplay");
