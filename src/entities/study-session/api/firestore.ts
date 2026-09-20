@@ -1,8 +1,9 @@
 import { collection, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
 import { db } from "@/shared/firebase";
-import { receiveStudySessions } from "../model/actions/receiveStudySessions";
+import { replaceRemoteStudySessions } from "../model/actions/replaceRemoteStudySessions";
+import { compareStudySessionCreation } from "../model/rules";
+import { finishStudySessionLoading } from "../model/actions/finishStudySessionLoading";
 import { setStudySessionOwner } from "../model/actions/setStudySessionOwner";
-import { setStudySessionSyncStatus } from "../model/actions/setStudySessionSyncStatus";
 import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionWrite } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
@@ -39,18 +40,24 @@ export function subscribeStudySessions(uid: string, onError: (error: Error) => v
     query(collection(db, "studySession"), where("uid", "==", uid)),
     { includeMetadataChanges: true },
     (snapshot) => {
-      // Wait for complete server data before allowing a start that could replace an unknown run.
+      // Pending timestamps are incomplete; keep locally saved progress until the SDK confirms the snapshot.
       if (snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return;
-      const sessions: StudySessionWrite[] = [];
+      const latest = new Map<string, StudySessionWrite>();
       for (const item of snapshot.docs) {
         const parsed = parseStudySessionDocument(item.data());
-        if (parsed !== undefined) sessions.push(toStudySessionWrite(item.id, parsed));
+        if (parsed === undefined) continue;
+        const write = toStudySessionWrite(item.id, parsed);
+        const previous = latest.get(parsed.deckId);
+        if (previous === undefined || compareStudySessionCreation(write.session, previous.session) > 0) {
+          latest.set(parsed.deckId, write);
+        }
       }
-      receiveStudySessions(sessions);
-      setStudySessionSyncStatus("ready");
+      replaceRemoteStudySessions(
+        [...latest.values()].filter(({ endReason }) => endReason === null).map(({ session }) => session)
+      );
     },
     (error) => {
-      setStudySessionSyncStatus("error");
+      finishStudySessionLoading();
       onError(error);
     }
   );

@@ -1,7 +1,7 @@
 import { useCards, type Card } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { resolveStudySession, useStudySession, useStudySessionSyncStatus } from "@/entities/study-session";
+import { resolveStudySession, useStudySession, useRemoteStudySessionsLoading } from "@/entities/study-session";
 import { buildCardPlayerHelpRows } from "@/features/card-player";
 
 export type StudySessionState = ReturnType<typeof resolveStudySession<Card>>;
@@ -11,7 +11,7 @@ export const useStudyQuery = (deckId: string) => {
   const deck = useDeck(deckId);
   const preferences = usePreferences();
   const session = useStudySession(deckId);
-  const remoteLoading = useStudySessionSyncStatus() === "loading";
+  const remoteLoading = useRemoteStudySessionsLoading();
   const sessionState: StudySessionState =
     session === undefined && remoteLoading ? { status: "preparing" } : resolveStudySession(session, cards);
   const controls = {

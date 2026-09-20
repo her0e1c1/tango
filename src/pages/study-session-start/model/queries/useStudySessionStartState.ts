@@ -2,17 +2,7 @@ import { useCardsByDeckId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { DeckFilterValues } from "@/features/deck-filter";
 import { usePreferences } from "@/entities/preference";
-import { selectStudyCards, type getStudySessionSyncStatus } from "@/entities/study-session";
-
-export function getStudyStartAvailability(
-  localMode: boolean,
-  isAnonymous: boolean,
-  syncStatus: ReturnType<typeof getStudySessionSyncStatus>,
-  saving: boolean
-) {
-  const remote = !localMode && !isAnonymous;
-  return { disabled: saving || (remote && syncStatus !== "ready"), syncError: remote && syncStatus === "error" };
-}
+import { selectStudyCards } from "@/entities/study-session";
 
 export const useStudySessionStartState = (deckId: DeckId, filter: DeckFilterValues) => {
   const preferences = usePreferences();

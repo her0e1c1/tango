@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 import type { Preferences } from "@/entities/preference";
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -9,12 +10,24 @@ import "@testing-library/jest-dom/vitest";
 
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
-import { clearStudySessions, getStudySession, setStudySessionIndex, startStudy } from "@/entities/study-session";
+import {
+  clearStudySessions,
+  getStudySession,
+  setStudySessionIndex,
+  startStudy,
+  subscribeStudySessions,
+} from "@/entities/study-session";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
+  receiveSnapshot: undefined as
+    | ((snapshot: {
+        docs: { id: string; data: () => Record<string, unknown> }[];
+        metadata: { fromCache: boolean; hasPendingWrites: boolean };
+      }) => void)
+    | undefined,
   preferences: null as unknown as Preferences,
   editStudyProgress: vi.fn(),
   removeStudySession: vi.fn(),
@@ -24,6 +37,19 @@ const mocks = vi.hoisted(() => ({
   toggleShowHelp: vi.fn(),
   toggleShowPlaybackControls: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
+}));
+
+vi.mock("firebase/firestore", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("firebase/firestore")>()),
+  collection: vi.fn(),
+  where: vi.fn(),
+  query: vi.fn(),
+  onSnapshot: (_query: unknown, _options: unknown, receive: typeof mocks.receiveSnapshot) => {
+    mocks.receiveSnapshot = receive;
+    return () => {
+      mocks.receiveSnapshot = undefined;
+    };
+  },
 }));
 
 vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }) }));
@@ -78,7 +104,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage [SWIPE-05] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE-24]", () => {
+describe("StudySessionPage [SWIPE-05] [SWIPE-08] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE-24]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -598,6 +624,39 @@ describe("StudySessionPage [SWIPE-05] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE
     renderPage();
 
     expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
+  });
+
+  it("stays on a direct study route until the saved session arrives", () => {
+    const saved = getStudySession(deckId);
+    if (saved === undefined) throw new Error("Expected a saved session");
+    clearStudySessions();
+    const stop = subscribeStudySessions("user-id", vi.fn());
+    renderPage();
+    expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
+    act(() =>
+      mocks.receiveSnapshot?.({
+        metadata: { fromCache: false, hasPendingWrites: false },
+        docs: [
+          {
+            id: saved.sessionId,
+            data: () => ({
+              uid: "user-id",
+              deckId,
+              cardOrderIds: saved.cardOrderIds,
+              currentIndex: saved.currentIndex,
+              startedAt: Timestamp.fromMillis(1),
+              createdAt: Timestamp.fromMillis(1),
+              updatedAt: Timestamp.fromMillis(1),
+              endedAt: null,
+              endReason: null,
+            }),
+          },
+        ],
+      })
+    );
+    expect(screen.getByText("Front one")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
+    stop();
   });
 
   it("returns to the deck list when no active session exists", async () => {

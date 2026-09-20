@@ -30,8 +30,6 @@ export interface StudySessionWrite {
   endReason: "completed" | "abandoned" | null;
 }
 
-export type StudySessionSyncStatus = "idle" | "loading" | "ready" | "error";
-
 /**
  * Active study sessions indexed by deck identifier.
  *

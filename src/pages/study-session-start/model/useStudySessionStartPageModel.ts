@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/entities/auth";
 import { type Deck, useDeck } from "@/entities/deck";
-import { useStudySessionSyncStatus } from "@/entities/study-session";
 import { routes } from "@/shared/router";
 import {
   useDeckFilterDraft,
@@ -14,7 +13,7 @@ import {
 
 import { startDeckStudy } from "./actions/startDeckStudy";
 import { useStudyStartShortcut } from "./actions/useStudyStartShortcut";
-import { getStudyStartAvailability, useStudySessionStartState } from "./queries/useStudySessionStartState";
+import { useStudySessionStartState } from "./queries/useStudySessionStartState";
 
 export function useStudySessionStartRouteModel(deckId: string) {
   const deck = useDeck(deckId);
@@ -23,8 +22,7 @@ export function useStudySessionStartRouteModel(deckId: string) {
 
 export function useStudySessionStartPageModel(deck: Deck) {
   const navigate = useNavigate();
-  const { uid, isAnonymous } = useAuth();
-  const syncStatus = useStudySessionSyncStatus();
+  const { uid } = useAuth();
   const filterDraft = useDeckFilterDraft(uid, deck);
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
   const filterUpdate = {
@@ -36,9 +34,8 @@ export function useStudySessionStartPageModel(deck: Deck) {
   const filter = getDeckFilterState(filterDraft.state);
   // Build the session from the latest selection, even while its autosave is still pending.
   const state = useStudySessionStartState(deck.id, filterDraft.state.draft);
-  const availability = getStudyStartAvailability(deck.localMode, isAnonymous, syncStatus, filter.saving);
   const start = () => {
-    if (availability.disabled) return;
+    if (filter.saving) return;
     if (startDeckStudy(deck, state.cards, state.studyPreferences)) {
       void navigate(routes.deckStudy.to(deck.id), { replace: true });
     }
@@ -46,7 +43,6 @@ export function useStudySessionStartPageModel(deck: Deck) {
   useStudyStartShortcut(start, { saving: filter.saving, cardCount: state.cardsLength });
 
   return {
-    ...availability,
     deckName: deck.name,
     maxNumberOfCardsToLearn: state.maxNumberOfCardsToLearn,
     cardsLength: state.cardsLength,

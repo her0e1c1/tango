@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearStudySessions } from "../model/actions/clearStudySessions";
-import { getStudySessionSyncStatus } from "../model/queries/getStudySessionSyncStatus";
+import { startStudy } from "../model/actions/startStudy";
+import { getStudySession } from "../model/queries/getStudySession";
 import { subscribeStudySessions } from "./firestore";
 
 const mocks = vi.hoisted(() => ({
@@ -24,7 +25,7 @@ vi.mock("firebase/firestore", async (importOriginal) => ({
   onSnapshot: mocks.subscribe,
 }));
 
-describe("Study session synchronization [SWIPE-06] [SWIPE-08]", () => {
+describe("Study session synchronization [SWIPE-06] [SWIPE-08] [SWIPE-17] [PERSIST-04]", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     clearStudySessions();
@@ -32,29 +33,28 @@ describe("Study session synchronization [SWIPE-06] [SWIPE-08]", () => {
   });
   afterEach(() => clearStudySessions());
 
-  it("leaves loading on subscription failure and delegates departure to the SDK", () => {
+  it("reports subscription failure and delegates departure to the SDK", () => {
     const onError = vi.fn();
     const stop = subscribeStudySessions("uid", onError);
-    expect(getStudySessionSyncStatus("uid")).toBe("loading");
     const error = new Error("permission denied");
     mocks.subscribe.mock.calls[0]?.[3](error);
-    expect(getStudySessionSyncStatus("uid")).toBe("error");
     expect(onError).toHaveBeenCalledWith(error);
     stop();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
-
-  it("waits for confirmed data and does not share readiness with another account", () => {
-    const stop = subscribeStudySessions("previous", vi.fn());
-    const receive = mocks.subscribe.mock.calls[0]?.[2];
-    if (receive === undefined) throw new Error("Expected a subscription");
-    receive({ docs: [], metadata: { fromCache: true, hasPendingWrites: false } });
-    expect(getStudySessionSyncStatus("previous")).toBe("loading");
-    receive({ docs: [], metadata: { fromCache: false, hasPendingWrites: true } });
-    expect(getStudySessionSyncStatus("previous")).toBe("loading");
-    receive({ docs: [], metadata: { fromCache: false, hasPendingWrites: false } });
-    expect(getStudySessionSyncStatus("previous")).toBe("ready");
-    expect(getStudySessionSyncStatus("current")).toBe("loading");
+  it("clears the previous account's cloud sessions while retaining local study", () => {
+    const cards = [{ id: "card", numberOfSeen: 0, difficulty: 5 }];
+    const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
+    startStudy("remote", cards, preferences, "previous");
+    startStudy("local", cards, preferences);
+    const local = getStudySession("local");
+    const stop = subscribeStudySessions("current", vi.fn());
+    expect(getStudySession("remote")).toBeUndefined();
+    mocks.subscribe.mock.calls[0]?.[2]({
+      docs: [],
+      metadata: { fromCache: false, hasPendingWrites: false },
+    });
+    expect(getStudySession("local")).toEqual(local);
     stop();
   });
 });

@@ -15,6 +15,5 @@ export { removeStudySession } from "./model/actions/removeStudySession";
 export { touchStudySession } from "./model/actions/touchStudySession";
 export { subscribeStudySessions } from "./api/firestore";
 export { setStudySessionOwner } from "./model/actions/setStudySessionOwner";
-export { useStudySessionSyncStatus } from "./model/queries/useStudySessionSyncStatus";
-export { getStudySessionSyncStatus } from "./model/queries/getStudySessionSyncStatus";
 export { startStudy, moveStudySession, setStudySessionIndex, abandonStudySession } from "./api/mutations";
+export { useRemoteStudySessionsLoading } from "./model/queries/useRemoteStudySessionsLoading";

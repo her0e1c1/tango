@@ -1,6 +1,6 @@
 import { getAuthUid } from "@/entities/auth";
 import type { Deck } from "@/entities/deck";
-import { getStudySessionSyncStatus, startStudy } from "@/entities/study-session";
+import { startStudy } from "@/entities/study-session";
 
 export function startDeckStudy(
   deck: Deck,
@@ -9,7 +9,7 @@ export function startDeckStudy(
 ): boolean {
   const uid = getAuthUid();
   const remote = uid !== "" && !deck.localMode;
-  if (cards.length === 0 || (remote && getStudySessionSyncStatus(uid) !== "ready")) return false;
+  if (cards.length === 0) return false;
   startStudy(deck.id, cards, preferences, remote ? uid : undefined);
   return true;
 }

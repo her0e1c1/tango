@@ -3,7 +3,7 @@ import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
 import { persistedStudySessionStateSchema, studySessionSchema } from "./schema";
-import type { StudySessions, StudySessionSyncStatus } from "./types";
+import type { StudySessions } from "./types";
 
 const STUDY_STORAGE_KEY = "tango-study";
 // No migration is registered: changing this version deliberately invalidates older state shapes.
@@ -12,8 +12,7 @@ const STUDY_STORAGE_VERSION = 4;
 /** Persisted study sessions indexed by their owning Deck. */
 interface StudySessionState {
   sessionsByDeckId: StudySessions;
-  syncUid: string | undefined;
-  syncStatus: StudySessionSyncStatus;
+  remoteLoading: boolean;
 }
 
 // Restores only independently valid sessions whose Deck key matches their payload.
@@ -33,7 +32,7 @@ const sanitizePersistedState = (persistedState: unknown): Pick<StudySessionState
 
 export const studySessionStore = createStore<StudySessionState>()(
   persist(
-    immer(() => ({ sessionsByDeckId: {}, syncUid: undefined, syncStatus: "idle" })),
+    immer(() => ({ sessionsByDeckId: {}, remoteLoading: false })),
     {
       name: STUDY_STORAGE_KEY,
       version: STUDY_STORAGE_VERSION,

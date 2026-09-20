@@ -20,7 +20,6 @@ import {
   abandonStudySession,
   clearStudySessions,
   getStudySession,
-  getStudySessionSyncStatus,
   moveStudySession,
   setStudySessionIndex,
   startStudy,
@@ -98,7 +97,11 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     );
     expect(getStudySession(deckId)?.lastStudiedAt).toBe(0);
     touchStudySession(deckId);
-    expect(getStudySession(deckId)?.lastStudiedAt).toBeGreaterThan(0);
+    const lastStudiedAt = getStudySession(deckId)?.lastStudiedAt;
+    expect(lastStudiedAt).toBeGreaterThan(0);
+    await updateStudySession({ ...started, currentIndex: 2 }, null);
+    await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(2));
+    expect(getStudySession(deckId)?.lastStudiedAt).toBe(lastStudiedAt);
     expect(onError).not.toHaveBeenCalled();
   });
 
@@ -163,9 +166,8 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     ]);
   });
 
-  it("blocks Start and Restart after an offline reload until the server confirms sessions", async () => {
+  it("starts and restarts after offline rehydration while another Deck has pending writes", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
-    await waitForCloud(() => expect(getStudySessionSyncStatus("uid")).toBe("ready"));
     const deck = createDeck({ id: deckId });
     expect(startDeckStudy(deck, cards, preferences)).toBe(true);
     setStudySessionIndex(deckId, 1);
@@ -182,18 +184,10 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     localStorage.setItem(storageKey, persisted);
     await studySessionStore.persist.rehydrate();
     stop = subscribeStudySessions("uid", vi.fn());
-    expect(startDeckStudy(deck, cards, preferences)).toBe(false);
-    const otherDeck = createDeck({ id: crypto.randomUUID() });
-    expect(startDeckStudy(otherDeck, cards, preferences)).toBe(false);
-    expect(getStudySession(otherDeck.id)).toBeUndefined();
     expect(getStudySession(deckId)).toEqual(previous);
-    // Progress in the restored session still uses the SDK queue during initial sync.
-    setStudySessionIndex(deckId, 2);
-    expect(getStudySession(deckId)?.currentIndex).toBe(2);
-    await enableNetwork(testDb);
-    await waitForPendingWrites(testDb);
-    await waitForCloud(() => expect(getStudySessionSyncStatus("uid")).toBe("ready"));
-    await disableNetwork(testDb);
+    const otherDeck = createDeck({ id: crypto.randomUUID() });
+    expect(startDeckStudy(otherDeck, cards, preferences)).toBe(true);
+    expect(getStudySession(otherDeck.id)?.cardOrderIds).toEqual(cards.map(({ id }) => id));
     expect(startDeckStudy(deck, cards, preferences)).toBe(true);
     const restarted = getStudySession(deckId);
     expect(restarted?.sessionId).not.toBe(previous?.sessionId);
@@ -238,7 +232,6 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     const onError = vi.fn();
     stop = subscribeStudySessions("uid", onError);
     await waitForCloud(() => expect(getStudySession(deckId)?.sessionId).toBe(valid.sessionId));
-    expect(getStudySessionSyncStatus("uid")).toBe("ready");
     const next = startRemote();
     await waitForPendingWrites(testDb);
     expect((await readSession(next.sessionId)).data()?.endReason).toBeNull();

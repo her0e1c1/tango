@@ -4,12 +4,6 @@ import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import { createCard, createDeck, createLocalDeck } from "@/test/factories";
 import { startDeckStudy } from "./startDeckStudy";
 
-const mocks = vi.hoisted(() => ({ syncStatus: "ready" as "idle" | "loading" | "ready" | "error" }));
-vi.mock("@/entities/study-session", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/study-session")>()),
-  getStudySessionSyncStatus: () => mocks.syncStatus,
-}));
-
 vi.mock("@/entities/study-session/api/firestore", () => ({
   createStudySession: vi.fn(() => Promise.resolve()),
   updateStudySession: vi.fn(() => Promise.resolve()),
@@ -20,24 +14,8 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 describe("Study start persistence mode [SWIPE-06] [SWIPE-17] [PERSIST-04]", () => {
   beforeEach(() => {
     clearStudySessions();
-    mocks.syncStatus = "ready";
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null });
   });
-
-  it.each(["idle", "loading", "error"] as const)(
-    "does not replace an unknown cloud session while synchronization is %s",
-    (status) => {
-      mocks.syncStatus = status;
-      const deck = createDeck({ id: "deck" });
-      expect(
-        startDeckStudy(deck, [createCard({ id: "card" })], {
-          shuffled: false,
-          maxNumberOfCardsToLearn: 0,
-        })
-      ).toBe(false);
-      expect(getStudySession(deck.id)).toBeUndefined();
-    }
-  );
 
   it.each([
     { label: "signed-in remote Deck", isAnonymous: false, deck: createDeck({ id: "deck" }), remote: true },
