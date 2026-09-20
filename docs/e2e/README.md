@@ -57,7 +57,7 @@
 | --- | --- | --- |
 | IMPORT-01 | read | [有効な CSV を永続化せずに preview できる](./import.md#import-01) |
 | IMPORT-02 | read | [不正な行を含む CSV の import を阻止できる](./import.md#import-02) |
-| IMPORT-03 | batch | [CSV を remote に import して reload 後も利用できる](./import.md#import-03) |
+| IMPORT-03 | batch | [CSV を remote に import して reload 後に利用できる](./import.md#import-03) |
 | IMPORT-04 | batch | [CSV を local-only に import して reload 後に学習できる](./import.md#import-04) |
 | IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](./import.md#import-05) |
 | IMPORT-06 | batch | [4種類の例を同じ確認・保存フローで追加できる](./import.md#import-06) |
@@ -91,7 +91,7 @@
 | CARD-05 | write | [Card の右 swipe で difficulty を下げられる](./card-list-actions.md#card-05) |
 | CARD-06 | write | [Card の左 swipe で difficulty を上げられる](./card-list-actions.md#card-06) |
 | CARD-07 | read | [開いている Card の裏面 overlay を閉じられる](./card-view.md#card-07) |
-| CARD-08 | read | [Card の削除を取り消せる](./card-view.md#card-08) |
+| CARD-08 | read | [Card の削除を取り消せる](./card-management.md#card-08) |
 | CARD-09 | write | [Card の編集失敗後に再試行できる](./card-management.md#card-09) |
 | CARD-10 | write | [difficulty と tag の filter を保存して Card 一覧へ反映できる](./card-list-actions.md#card-10) |
 | CARD-11 | read | [Card view を直接開ける](./card-view.md#card-11) |
