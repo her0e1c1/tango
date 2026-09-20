@@ -1,78 +1,34 @@
-import { startStudy } from "@/entities/study-session";
-import { useAuth } from "@/entities/auth";
 import type * as React from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useKey } from "react-use";
 
 import type { Deck } from "@/entities/deck";
-import { useDeck } from "@/entities/deck";
-import {
-  DeckFilterForm,
-  useDeckFilterDraft,
-  getDeckFilterState,
-  clearDeckFilterRange,
-  useDeckFilterSaveLifecycle,
-  updateDeckFilterDraft,
-} from "@/features/deck-filter";
-import { routes } from "@/shared/router";
+import { DeckFilterForm } from "@/features/deck-filter";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useStudySessionStartState } from "../model/queries/useStudySessionStartState";
+import { useStudySessionStartPageModel, useStudySessionStartRouteModel } from "../model/useStudySessionStartPageModel";
 import { StudySessionStart } from "./StudySessionStart";
 
-// The Enter shortcut listens at the window level, so interactive controls must own the event.
-const hasInteractiveShortcutTarget = (target: EventTarget | null): boolean =>
-  target instanceof Element && target.closest("a[href], button, input, select, textarea") != null;
-
-const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const navigate = useNavigate();
-  const { uid } = useAuth();
-  const filterDraft = useDeckFilterDraft(uid, deck);
-  useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
-  const filterUpdate = {
-    uid,
-    deckId: deck.id,
-    draft: filterDraft.state.draft,
-    setState: filterDraft.setState,
-  };
-  const filter = getDeckFilterState(filterDraft.state);
-  // Build the session from the latest selection, even while its autosave is still pending.
-  const state = useStudySessionStartState({
-    ...deck,
-    difficultyMax: filter.difficultyMax,
-    difficultyMin: filter.difficultyMin,
-    selectedTags: filter.selectedTags,
-    tagAndFilter: filter.tagAndFilter,
-  });
-  const start = () => {
-    startStudy(deck.id, state.cards, state.studyPreferences);
-    void navigate(routes.deckStudy.to(deck.id), { replace: true });
-  };
-  const startFromEnter = (event: KeyboardEvent) => {
-    if (filter.saving || state.cardsLength === 0 || hasInteractiveShortcutTarget(event.target)) return;
-    start();
-  };
-  useKey("Enter", startFromEnter, {}, [startFromEnter]);
+const StudySessionStartContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
+  const model = useStudySessionStartPageModel(deck);
 
   return (
     <AppLayout showHeader>
       <StudySessionStart
-        deckName={state.deckName}
-        maxNumberOfCardsToLearn={state.maxNumberOfCardsToLearn}
-        cardsLength={state.cardsLength}
-        disabled={filter.saving}
-        onClickStart={start}
+        deckName={model.deckName}
+        maxNumberOfCardsToLearn={model.maxNumberOfCardsToLearn}
+        cardsLength={model.cardsLength}
+        disabled={model.filter.saving}
+        onClickStart={model.start}
         filterSlot={
           <DeckFilterForm
-            {...filter}
-            clearDifficultyRange={() => clearDeckFilterRange(filterUpdate)}
-            setDifficultyMax={(difficultyMax) => updateDeckFilterDraft({ difficultyMax }, filterUpdate)}
-            setDifficultyMin={(difficultyMin) => updateDeckFilterDraft({ difficultyMin }, filterUpdate)}
-            setSelectedTags={(selectedTags) => updateDeckFilterDraft({ selectedTags }, filterUpdate)}
-            setTagAndFilter={(tagAndFilter) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate)}
-            tags={state.tags}
+            {...model.filter}
+            clearDifficultyRange={model.clearDifficultyRange}
+            setDifficultyMax={model.setDifficultyMax}
+            setDifficultyMin={model.setDifficultyMin}
+            setSelectedTags={model.setSelectedTags}
+            setTagAndFilter={model.setTagAndFilter}
+            tags={model.tags}
           />
         }
       />
@@ -82,10 +38,7 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 
 export const StudySessionStartPage: React.FC = () => {
   const { t } = useTranslation();
-  const params = useParams();
-  const deckId = params.id;
-  if (deckId == null) throw new Error("invalid deck id");
-  const deck = useDeck(deckId);
+  const { deckId, deck } = useStudySessionStartRouteModel();
 
   if (deck == null) {
     return (
@@ -97,5 +50,5 @@ export const StudySessionStartPage: React.FC = () => {
   }
 
   // Session setup state belongs to one route Deck and must reset when the id changes.
-  return <AvailableStudySessionStartPage key={deckId} deck={deck} />;
+  return <StudySessionStartContainer key={deckId} deck={deck} />;
 };

@@ -75,7 +75,7 @@ describe("useStudySessionStartState [SWIPE-06]", () => {
   });
 
   it("starts the stored Deck with its eligible Cards and Study preferences", () => {
-    const { result } = renderHook(() => useStudySessionStartState(deck));
+    const { result } = renderHook(() => useStudySessionStartState(deck, deck));
 
     expect(result.current).toMatchObject({
       deckName: "Japanese vocabulary",
@@ -96,7 +96,7 @@ describe("useStudySessionStartState [SWIPE-06]", () => {
   });
 
   it("starts with Cards matching the Page-composed filter", () => {
-    const { result } = renderHook(() => useStudySessionStartState({ ...deck, selectedTags: ["later"] }));
+    const { result } = renderHook(() => useStudySessionStartState(deck, { ...deck, selectedTags: ["later"] }));
 
     expect(result.current.cardsLength).toBe(1);
 
