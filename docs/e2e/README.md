@@ -60,6 +60,8 @@
 | IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](./import.md#import-05) |
 | IMPORT-06 | batch | [4種類の例を同じ確認・保存フローで追加できる](./import.md#import-06) |
 | IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](./import.md#import-07) |
+| IMPORT-08 | batch | [Sample deck の全内容を local-only に取り込んで学習できる](./import.md#import-08) |
+| IMPORT-09 | batch | [Sample deck の remote 保存失敗から重複なく回復できる](./import.md#import-09) |
 
 ### Deck
 
