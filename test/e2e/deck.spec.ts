@@ -44,7 +44,8 @@ test("DECK-01 navigates from the Deck list to its Card list", async ({ fixture, 
   await actions.click();
   await expect(page.getByRole("menu")).toHaveCount(1);
   await expect(page.getByRole("menu", { name: "Actions", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
+  // Use the keyboard to reach the Deck trigger while the list menu may cover it.
+  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).press("Enter");
   await expect(page.getByRole("menu")).toHaveCount(1);
   await expect(page.getByRole("menu", { name: `Actions for ${deck.name}` })).toBeVisible();
 
