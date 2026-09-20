@@ -3,7 +3,8 @@
 - Follow FSD v2.1 page-first: keep route-specific and single-consumer presentation, state connections, workflows, and composition in the corresponding Page slice.
 - Keep a workflow in the Page when that Page is its only consumer, even when it represents a meaningful user action; move it to Features only after actual cross-Page reuse appears.
 - Keep URL routes and exported Page components one-to-one: each route renders one dedicated Page, and each Page serves one route.
-- Name the route entry and composition boundary `*Page.tsx`. Keep route params, navigation, and screen shortcuts in Pages or Containers, and obtain application state and bound action callbacks from the Page model.
+- Name the route entry and composition boundary `*Page.tsx`. Keep route params and screen shortcuts in Pages or Containers, and obtain application state and bound action callbacks from the Page model.
+- Keep page-specific navigation control in `model/`, reusing Shared guard primitives; keep `Link` / `NavLink` and guard UI rendering in `ui/`.
 - Name a Page-internal composition boundary `*Container.tsx`. Add a Container only when splitting the Page makes the composition clearer; it consumes the Page model rather than duplicating state and action wiring. A small Page may pass the Page model's values and callbacks directly to presentational components.
 - Keep every other component under `ui/` presentational by default. It receives prepared data through props, reports user intent through callbacks, and must not connect to application or domain hooks, stores, mutations, or workflows. UI-only local state and presentation-supporting React or library hooks are allowed.
 - Pages and their Containers may import lower FSD layers, including Entities, through public APIs. Do not introduce a Feature solely to detour around a lower-layer import.
