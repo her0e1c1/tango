@@ -41,6 +41,9 @@ Then:
 - 上限 0 では枚数を制限せず、filter と適用される復習条件に一致するすべての Card を含む。上限 1 ではそのうち先頭の Card だけを含む。
 - 学習開始画面と start action の件数が新しい session の件数と一致する。
 - session の先頭 Card の front text が表示される。
+- ログイン済みユーザーの remote Deck では、session ID を document ID として Firestore の `studySession` に所有者、Deck、出題順、現在位置、開始時刻を保存する。回答情報は含めない。
+- `createdAt` / `updatedAt` は server timestamp の技術メタ情報であり、開始・終了時刻や最近学習した時刻とは分ける。
+- remote session の初回取得が完了するまで開始操作を無効にし、取得失敗時は読み込み中のままにせず再読み込みを案内する。
 - browser error が発生しない。
 
 <a id="swipe-07"></a>
@@ -84,6 +87,9 @@ When:
 Then:
 
 - Deck 一覧へ戻る前と同じ学習 session が維持される。
+- ページ移動、アプリ終了、時間経過だけでは終了しない。remote session は browser storage がない同一ユーザーの client でも同じ ID・出題順・位置から再開できる。
+- 端末間の時計ずれによって古い終了済み session を最新と誤認しない。session 間の作成順には server の `createdAt` を使い、最近学習した時刻の代用にはしない。
+- 別端末から復元して最近学習した時刻が不明な場合は、一覧に架空の経過時間を表示しない。
 - Deck 一覧へ戻る前に表示されていた Card の front text が表示される。
 - browser error が発生しない。
 
@@ -105,6 +111,8 @@ When:
 Then:
 
 - 以前とは異なる新しい学習 session が保存される。
+- 以前の remote session は `endReason: abandoned` と server timestamp の終了時刻を保持する。明示的な session 終了操作や Deck 削除も破棄として扱う。
+- 複数端末が同時に新規開始しても、作成後の調停で最新の session だけが進行中として残る。
 - 新しい session の位置が先頭になる。
 - 新しい session の先頭 Card の front text が表示される。
 - browser error が発生しない。
@@ -127,7 +135,8 @@ When:
 Then:
 
 - 最後の Card の学習結果が保存される。
-- 対象 Deck の学習 session が削除される。
+- 対象 Deck の学習 session がローカルの進行中一覧から削除され、remote document は `endReason: completed` と server timestamp の終了時刻を保持する。
+- 保存再試行や別 client の古い保存が終了済み session を active に戻さず、表示位置も後退しない。
 - Study completion screen に完了 message と学習した Card 数が表示される。
 - Deck 一覧へ automatic redirect せず、Deck 一覧へ戻る action が利用できる。
 - Deck 一覧へ戻った後、対象 Deck に Continue action が表示されない。
@@ -177,6 +186,7 @@ Then:
 - 現在だった Card の mastered 学習結果が browser storage に維持されている。
 - session の位置が次の Card に維持されている。
 - 次の Card の front text が表示され、back text は表示されない。
+- local-only Deck と匿名ユーザーの session は Firestore へ書き込まない。
 - browser error が発生しない。
 
 <a id="swipe-26"></a>

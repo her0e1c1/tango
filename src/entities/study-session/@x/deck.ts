@@ -1,1 +1,1 @@
-export { removeStudySession } from "../model/actions/removeStudySession";
+export { abandonStudySession } from "../model/actions/abandonStudySession";

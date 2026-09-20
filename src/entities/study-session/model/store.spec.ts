@@ -214,7 +214,7 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
     expect(() => clearStudySessions()).toThrow(failure);
   });
 
-  it("persists exactly the session map in a v4 envelope", async () => {
+  it("persists sessions and their pending writes in a v4 envelope", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
     startSession("deck-1", ["card-1"]);
@@ -223,6 +223,7 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
     const persistedSession = localStorage.getItem(STUDY_STORAGE_KEY);
     expect(JSON.parse(persistedSession ?? "{}")).toEqual({
       state: {
+        pendingWrites: {},
         sessionsByDeckId: {
           "deck-1": { sessionId, deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
         },
