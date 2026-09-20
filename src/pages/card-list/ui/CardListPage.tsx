@@ -24,11 +24,11 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 
   return (
     <AppLayout showHeader={model.answer == null}>
-      {model.bulkCardIds != null ? (
+      {model.bulk != null ? (
         <BulkDifficultyDialog
-          cardCount={model.bulkCardIds.length}
-          difficulty={model.bulkDifficulty}
-          selectionDisabled={model.bulkAttempted}
+          cardCount={model.bulk.cardIds.length}
+          difficulty={model.bulk.difficulty}
+          selectionDisabled={model.bulk.attempted}
           difficultyLowerBound={model.bulkDifficultyMinimum}
           difficultyUpperBound={model.bulkDifficultyMaximum}
           onDifficultyChange={model.changeBulkDifficulty}

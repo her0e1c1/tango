@@ -1,4 +1,4 @@
-import { type Card, useCardsByDeckId } from "@/entities/card";
+import { useCardsByDeckId } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { MAX_DIFFICULTY, MIN_DIFFICULTY } from "@/entities/study-progress";
@@ -6,12 +6,12 @@ import { selectStudyCards } from "@/entities/study-session";
 
 import type { DeckFilterValues } from "@/features/deck-filter";
 
-import type { CardListSortOrder } from "../store";
+import type { CardListSortOrder, CardListState } from "../store";
 
 interface CardListQueryOptions {
   deck: Deck;
   filter: DeckFilterValues;
-  shownCard: Card | undefined;
+  shownCard: CardListState["shownCard"];
   sortOrder: CardListSortOrder;
 }
 

@@ -4,12 +4,16 @@ import type { Difficulty } from "@/entities/study-progress";
 
 export type CardListSortOrder = "standard" | "newest";
 
+interface BulkDifficultyState {
+  cardIds: CardId[];
+  difficulty: Difficulty | null;
+  attempted: boolean;
+}
+
 export interface CardListState {
   sortOrder: CardListSortOrder;
-  shownCard: Card | undefined;
-  bulkCardIds: CardId[] | undefined;
-  bulkDifficulty: Difficulty | null;
-  bulkAttempted: boolean;
+  shownCard: Pick<Card, "backText" | "tags"> | undefined;
+  bulk: BulkDifficultyState | undefined;
   deletionTarget: Pick<Card, "id" | "frontText"> | undefined;
   mutationId: symbol | undefined;
 }
@@ -17,10 +21,8 @@ export interface CardListState {
 export const cardListStore = createStore<CardListState>()(() => ({
   sortOrder: "standard",
   shownCard: undefined,
-  bulkCardIds: undefined,
+  bulk: undefined,
   deletionTarget: undefined,
-  bulkDifficulty: null,
-  bulkAttempted: false,
   // Synchronous Zustand updates also lock gestures arriving before React renders.
   mutationId: undefined,
 }));
