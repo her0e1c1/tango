@@ -18,7 +18,7 @@ Settings の自動保存が reload を越えて維持され、保存した学習
 | SETTINGS-08 | write | [Card の検証エラーが言語変更に追随し入力を保持する](#settings-08) |
 | SETTINGS-09 | write | [CSV の検証結果が再読み込みなしで言語変更に追随する](#settings-09) |
 | SETTINGS-10 | write | [自動再生の間隔の0の意味を表示して数値のまま保存できる](#settings-10) |
-| SETTINGS-11 | write | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](#settings-11) |
+| SETTINGS-11 | batch | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](#settings-11) |
 
 <a id="settings-01"></a>
 
@@ -259,7 +259,7 @@ Then:
 
 ### SETTINGS-11 間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる
 
-カテゴリ: `write`
+カテゴリ: `batch`
 
 Given:
 
