@@ -10,8 +10,8 @@
 
 ## Page composition
 
-- Limit Pages and Containers to calling their Page model, composing UI, and passing prepared values and callbacks to components through props.
-- Keep route input reading, screen shortcut mappings and registration (`useKey`), application state connections, form submission wiring, and page-specific navigation control in `model/`, reusing Shared guard primitives.
+- Limit Pages and Containers to calling their Page model, composing UI, and passing prepared values and callbacks to components through props. When a Page needs route parameters, import and call `useParams()` in the Page component under `ui/`, and pass the required parameters to its Page model.
+- Keep other route input reading, screen shortcut mappings and registration (`useKey`), application state connections, form submission wiring, and page-specific navigation control in `model/`, reusing Shared guard primitives.
 - Obtain application and domain data, constants, and behavior through the Page model. Do not access stores, queries, actions, APIs, or application/domain hooks directly from UI.
 - Keep rendering concerns in UI, including JSX, display conditionals, translations, locale-dependent formatting, `Link` / `NavLink`, and guard UI rendering. UI components, types, and presentation helpers may be imported from lower layers through public APIs; do not introduce a Feature solely to detour around these imports.
 - Name a Page-internal composition boundary `*Container.tsx`. Add one only when it clarifies UI composition, not to bypass the Page model boundary.
