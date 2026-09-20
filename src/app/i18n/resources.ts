@@ -881,7 +881,7 @@ export const resources = {
       },
       cardForm: {
         toast: {
-          created: "カード「{{name}}」を作成しました。",
+          created: "カードを作成しました：「{{name}}」",
           updated: "カード「{{name}}」を更新しました。",
           createFailure: "カードを作成できませんでした。再試行してください。",
         },

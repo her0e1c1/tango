@@ -42,7 +42,7 @@ const Toast = (props: ToastProps) => {
     >
       <span className="sr-only">{t(presentation.labelKey)}: </span>
       {props.visualContent === undefined ? (
-        <span className="min-w-0 break-words">{props.message}</span>
+        <span className="line-clamp-3 min-w-0 break-words">{props.message}</span>
       ) : (
         <>
           <span className="sr-only">{props.message}</span>
