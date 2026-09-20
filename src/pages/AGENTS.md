@@ -12,3 +12,11 @@
 - Own screen-level keyboard shortcut mappings and registration in `src/pages`. Use `useKey` directly and delegate shortcut actions to lower layers when such lower-layer behavior is reusable.
 - Organize `ui/` subdirectories by UI meaning, such as `toolbar`, rather than technical categories such as `component` or `container`.
 - Do not create `types.ts` files under `src/pages`. Define types in the action, query, store, or UI module that owns them, and export them only when another module needs them.
+
+## Page model boundaries
+
+- Pages and Containers handle route inputs, screen shortcuts, and UI composition. Obtain application state and ready-to-use callbacks from the Page model; do not assemble workflows in UI.
+- Keep Page model hooks limited to connecting stores, state hooks, queries, actions, forms, and navigation. Put derived-data calculations in `model/queries/` and state-changing operations and workflows in `model/actions/`.
+- Actions read and update page-owned store state directly. Do not pass snapshots, pending flags, or setters for that store state through Page models or UI.
+- Expose bound callbacks as named Page model properties, not an actions object. Connect form submission and action-result-based navigation in the Page model rather than passing completion callbacks from UI.
+- Add stores, hooks, and modules only when their responsibilities are needed; do not create them solely to match another Page's structure.
