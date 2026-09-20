@@ -5,11 +5,16 @@ import { useNavigate } from "react-router-dom";
 
 import { getAuthUid } from "@/entities/auth";
 import { type CardContentInput, cardContentInputSchema } from "@/entities/card";
+import { useDeck } from "@/entities/deck";
+import { usePreferences } from "@/entities/preference";
+import { useCardPreviewContent } from "@/features/card-form";
 import { routes, useNavigationGuard } from "@/shared/router";
 
 import { submit as submitAction } from "./actions/submit";
 
 export function useCardCreatePageModel(deckId: string) {
+  const deck = useDeck(deckId);
+  const preferences = usePreferences();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const destination = routes.cardList.to(deckId);
@@ -30,8 +35,11 @@ export function useCardCreatePageModel(deckId: string) {
     }
   }
 
+  const preview = useCardPreviewContent(form.control, deck?.category ?? "", preferences.appearance.darkMode);
+
   return {
     form,
+    preview,
     navigationGuard: guard.element,
     onCancel: () => void navigate(destination),
     onSubmit,

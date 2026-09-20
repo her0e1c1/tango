@@ -16,6 +16,7 @@ export interface CardFormFields {
 
 export interface CardFieldsProps {
   categories: readonly string[];
+  preview: React.ReactNode;
   form: UseFormReturn<CardFormFields>;
 }
 
@@ -114,7 +115,35 @@ const CardFieldsDialog = ({ title, expanded = false, onClose, children }: CardFi
   );
 };
 
-export const CardFields = ({ categories, form }: CardFieldsProps) => {
+// Preview disclosure never replaces either textarea, preserving its native editing history.
+const BackPreview = ({ children }: { children: React.ReactNode }) => {
+  const { t } = useTranslation();
+  const [open, setOpen] = React.useState(false);
+  const id = React.useId();
+  return (
+    <div className="min-w-0 shrink-0">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        className="min-h-touch rounded-control px-3 text-caption font-semibold text-accent-primary hover:bg-surface-muted"
+        onClick={() => setOpen(!open)}
+      >
+        {t(open ? "cardForm.preview.hide" : "cardForm.preview.show")}
+      </button>
+      <section
+        id={id}
+        hidden={!open}
+        aria-label={t("cardForm.preview.title")}
+        className="max-h-[45dvh] overflow-auto rounded-control border border-border"
+      >
+        {open ? children : null}
+      </section>
+    </div>
+  );
+};
+
+export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
   const { t } = useTranslation();
   const formState = useFormState({ control: form.control });
   const { field: frontField } = useController({ name: "frontText", control: form.control });
@@ -245,6 +274,7 @@ export const CardFields = ({ categories, form }: CardFieldsProps) => {
                 aria-invalid={error != null || undefined}
                 aria-describedby={error ? errorId : undefined}
               />
+              {side.name === "backText" && <BackPreview>{preview}</BackPreview>}
               {error !== undefined && (
                 <p id={errorId} role="alert" className="text-caption font-medium text-danger">
                   {t(error.type === "custom" ? `validation.required.${side.name}` : "validation.invalid")}
@@ -318,6 +348,7 @@ export const CardFields = ({ categories, form }: CardFieldsProps) => {
               aria-describedby={activeError ? expandedErrorId : undefined}
               className="min-h-48 flex-1 resize-none text-xl leading-relaxed"
             />
+            {activeSide === "backText" && <BackPreview>{preview}</BackPreview>}
             {activeError !== undefined && (
               <p id={expandedErrorId} role="alert" className="shrink-0 text-caption font-medium text-danger">
                 {t(activeError.type === "custom" ? `validation.required.${activeSide}` : "validation.invalid")}

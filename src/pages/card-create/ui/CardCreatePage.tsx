@@ -2,6 +2,7 @@ import type * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
+import { BackText } from "@/entities/card";
 import { CATEGORY, type Deck, useDeck } from "@/entities/deck";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
@@ -10,11 +11,18 @@ import { useCardCreatePageModel } from "../model/useCardCreatePageModel";
 import { CardCreator } from "./CardCreator";
 
 const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const { form, navigationGuard, onCancel, onSubmit } = useCardCreatePageModel(deck.id);
+  const { form, preview, navigationGuard, onCancel, onSubmit } = useCardCreatePageModel(deck.id);
 
   return (
     <AppLayout showHeader>
-      <CardCreator categories={CATEGORY} deckName={deck.name} form={form} onCancel={onCancel} onSubmit={onSubmit} />
+      <CardCreator
+        preview={<BackText {...preview} />}
+        categories={CATEGORY}
+        deckName={deck.name}
+        form={form}
+        onCancel={onCancel}
+        onSubmit={onSubmit}
+      />
       {navigationGuard}
     </AppLayout>
   );

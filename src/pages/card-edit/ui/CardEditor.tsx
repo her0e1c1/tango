@@ -10,6 +10,7 @@ import { Button } from "@/shared/ui/button";
 export interface CardEditorProps {
   cardInfo: { uniqueKey: string; id: CardId; createdAt?: number; lastSeenAt?: number };
   categories: readonly string[];
+  preview: React.ReactNode;
   form: UseFormReturn<CardFormFields>;
   onCancel: () => void;
   onSubmit: React.SubmitEventHandler<HTMLFormElement>;
@@ -17,7 +18,7 @@ export interface CardEditorProps {
 
 const formatDate = (timestamp: number, locale: string): string => new Date(timestamp).toLocaleDateString(locale);
 
-export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, form, onCancel, onSubmit }) => {
+export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, preview, form, onCancel, onSubmit }) => {
   const { isSubmitting: isSaving } = useFormState({ control: form.control });
   const { i18n, t } = useTranslation();
   const locale = i18n.resolvedLanguage ?? i18n.language;
@@ -38,7 +39,7 @@ export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, fo
       </header>
       <form className="w-full space-y-4" onSubmit={onSubmit}>
         <fieldset className="contents" disabled={isSaving}>
-          <CardFields categories={categories} form={form} />
+          <CardFields categories={categories} preview={preview} form={form} />
           <details className="border-t border-border text-caption">
             <summary className="flex min-h-touch cursor-pointer items-center font-semibold text-ink">
               {t("cardForm.information.title")}

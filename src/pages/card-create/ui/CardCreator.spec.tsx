@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { type CardContentInput, cardContentInputSchema } from "@/entities/card";
+import { BackText, type CardContentInput, cardContentInputSchema } from "@/entities/card";
+import { useCardPreviewContent } from "@/features/card-form";
 import { CATEGORY, createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalDeck } from "@/test/factories";
@@ -40,10 +41,12 @@ const CardCreatorHarness = () => {
     defaultValues: { frontText: "", backText: "", tags: [] },
     resolver: zodResolver(cardContentInputSchema),
   });
+  const preview = useCardPreviewContent(form.control, deck.category, false);
   return (
     <>
       <CardCreator
         categories={CATEGORY}
+        preview={<BackText {...preview} />}
         deckName={deck.name}
         form={form}
         onCancel={vi.fn()}

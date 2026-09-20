@@ -8,13 +8,21 @@ import { Button } from "@/shared/ui/button";
 
 export interface CardCreatorProps {
   categories: readonly string[];
+  preview: React.ReactNode;
   deckName: string;
   form: UseFormReturn<CardFormFields>;
   onCancel: () => void;
   onSubmit: (values: CardFormFields) => Promise<void>;
 }
 
-export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, form, onCancel, onSubmit }) => {
+export const CardCreator: React.FC<CardCreatorProps> = ({
+  categories,
+  preview,
+  deckName,
+  form,
+  onCancel,
+  onSubmit,
+}) => {
   const { t } = useTranslation();
   const formState = useFormState({ control: form.control });
 
@@ -36,7 +44,7 @@ export const CardCreator: React.FC<CardCreatorProps> = ({ categories, deckName, 
       {/* Fixed dialogs from CardFields must not receive the sibling margins added by space-y utilities. */}
       {/* Keep the DOM callback void for no-misused-promises; RHF still awaits the validated save callback. */}
       <form className="flex w-full flex-col gap-4" onSubmit={(event) => void form.handleSubmit(onSubmit)(event)}>
-        <CardFields categories={categories} form={form} />
+        <CardFields categories={categories} preview={preview} form={form} />
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
           <Button variant="quiet" type="button" onClick={onCancel}>
             {t("cardForm.actions.cancel")}

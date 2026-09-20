@@ -3,7 +3,7 @@ import { useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { type Card, type CardContentInput, useCard } from "@/entities/card";
+import { BackText, type Card, type CardContentInput, useCard } from "@/entities/card";
 import { CATEGORY } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes, useNavigationGuard } from "@/shared/router";
@@ -17,7 +17,7 @@ const CardEditContent: React.FC<{ card: Card }> = ({ card }) => {
   const navigate = useNavigate();
   // Keep one opening snapshot; subscription refreshes must not replace the draft.
   const [snapshot] = React.useState(card);
-  const { form, submit } = useCardEditPageModel(snapshot);
+  const { form, submit, preview } = useCardEditPageModel(snapshot);
   const { isDirty, isSubmitting } = useFormState({ control: form.control });
   const guard = useNavigationGuard(isDirty || isSubmitting);
   const isMounted = useMountedGuard();
@@ -64,6 +64,7 @@ const CardEditContent: React.FC<{ card: Card }> = ({ card }) => {
           ...(snapshot.lastSeenAt != null ? { lastSeenAt: snapshot.lastSeenAt } : {}),
         }}
         categories={CATEGORY}
+        preview={<BackText {...preview} />}
         form={form}
         onCancel={() => void navigate(-1)}
         onSubmit={onSubmit}
