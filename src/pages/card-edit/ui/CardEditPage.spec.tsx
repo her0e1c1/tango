@@ -36,7 +36,7 @@ vi.mock("@hookform/resolvers/zod", async (importOriginal) => {
 });
 
 vi.mock("@/entities/auth", () => ({
-  getAuthSession: () => ({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: false }),
+  getAuthUid: () => "user-id",
 }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,

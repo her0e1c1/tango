@@ -11,6 +11,7 @@ import { Button } from "@/shared/ui/button";
 import { DeckForm, type DeckFormFields } from "./DeckForm";
 
 interface DeckFormStoryProps {
+  cloudStorageAvailable: boolean;
   deck: Deck;
   isLocalModeLocked: boolean;
   isSaving: boolean;
@@ -36,6 +37,7 @@ const DangerZone = ({ onDelete }: { onDelete: () => void }) => (
 );
 
 const DeckFormStory = ({
+  cloudStorageAvailable,
   deck,
   isLocalModeLocked,
   isSaving,
@@ -66,6 +68,7 @@ const DeckFormStory = ({
   }, [form, isSaving, validationError]);
 
   const commonProps = {
+    cloudStorageAvailable,
     categories: CATEGORY,
     form,
     onCancel,
@@ -100,6 +103,7 @@ const meta = {
   decorators: [withPageLayout],
   parameters: { layout: "fullscreen" },
   args: {
+    cloudStorageAvailable: true,
     deck: fixture.deck.default,
     isLocalModeLocked: false,
     isSaving: false,
@@ -114,6 +118,17 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Create: Story = {};
+export const GuestCreate: Story = {
+  args: { cloudStorageAvailable: false },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("radio", { name: "Local only" })).toBeChecked();
+    await expect(canvas.getByRole("radio", { name: "Cloud" })).toBeDisabled();
+    await expect(canvas.getByText(/Sign in to save to the cloud/)).toBeVisible();
+  },
+};
+export const GuestLocalDeck: Story = {
+  args: { mode: "edit", cloudStorageAvailable: false, deck: { ...fixture.deck.default, localMode: true } },
+};
 export const Edit: Story = {
   args: { mode: "edit" },
   play: async ({ canvas }) => {

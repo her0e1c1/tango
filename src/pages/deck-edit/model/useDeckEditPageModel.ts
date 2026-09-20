@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useStore } from "zustand";
 
+import { useAuth } from "@/entities/auth";
 import { CATEGORY, type Deck } from "@/entities/deck";
 import { getDeckDeletionTarget } from "@/features/deck-deletion";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
@@ -24,6 +25,7 @@ export function useDeckEditRouteModel() {
 
 export function useDeckEditPageModel(deck: Deck) {
   const navigate = useNavigate();
+  const { isAnonymous } = useAuth();
   const { form } = useDeckEditFormState(deck);
   const { isDirty, isSubmitting } = form.formState;
   const isMounted = useMountedGuard();
@@ -47,6 +49,7 @@ export function useDeckEditPageModel(deck: Deck) {
   return {
     form,
     categories: CATEGORY,
+    cloudStorageAvailable: !isAnonymous,
     isSubmitting,
     navigationGuard: guard.element,
     deletionTarget: guard.isBlocked ? undefined : getDeckDeletionTarget(deletionTarget),

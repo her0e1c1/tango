@@ -18,7 +18,7 @@ export async function submitDeckCreation(values: DeckFormFields): Promise<DeckId
       name: values.name,
       category: values.category,
       convertToBr: values.convertToBr,
-      localMode: values.localMode ?? false,
+      localMode: uid === "" || (values.localMode ?? false),
       ...(values.url === undefined ? {} : { url: values.url }),
     });
     // Writes survive navigation, but resetting the store detaches their results.
