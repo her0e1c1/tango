@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-import { expect, requireDocument, test } from "./fixtures";
+import { expect, readLocalData, requireDocument, test } from "./fixtures";
 import { readSession } from "./study-helpers";
 
 const readPreferences = (page: Page) =>
@@ -22,9 +22,7 @@ test("SETTINGS-10 Zero autoplay interval is explained and saved without resettin
   await expect(interval).toHaveAttribute("min", "0");
   await expect(interval).toHaveAttribute("max", "60");
   const preferences = await readPreferences(page);
-  const savedData = await page.evaluate(() =>
-    ["tango-local-decks", "tango-local-cards", "tango-study"].map((key) => localStorage.getItem(key))
-  );
+  const savedData = await readLocalData(page);
 
   await interval.focus();
   await page.keyboard.press("Home");
@@ -51,11 +49,7 @@ test("SETTINGS-10 Zero autoplay interval is explained and saved without resettin
   await expect(interval).toHaveAttribute("aria-valuetext", "60 seconds");
   await expect(page.getByText("60s", { exact: true })).toBeVisible();
   await expect.poll(() => readPreferences(page)).toEqual(preferences);
-  expect(
-    await page.evaluate(() =>
-      ["tango-local-decks", "tango-local-cards", "tango-study"].map((key) => localStorage.getItem(key))
-    )
-  ).toEqual(savedData);
+  expect(await readLocalData(page)).toEqual(savedData);
 });
 
 test("SETTINGS-11 Restoring a positive interval preserves the active study session and playback preferences", async ({
