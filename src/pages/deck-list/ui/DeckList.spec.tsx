@@ -15,7 +15,7 @@ import { createDeck } from "@/test/factories";
 import { DeckList, type DeckListProps } from "./DeckList";
 
 const activeDeck = createDeck({ id: "active", name: "Active deck", category: "math" });
-const otherDeck = createDeck({ id: "other", name: "other", category: "history" });
+const otherDeck = createDeck({ id: "other", name: "Other deck", category: "history" });
 const onCreateDeck = () => undefined;
 const onImportDeck = () => undefined;
 
