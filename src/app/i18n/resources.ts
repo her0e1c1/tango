@@ -105,6 +105,7 @@ export const resources = {
           years_other: "{{count}}y ago",
         },
         view: "View {{deckName}}",
+        viewCards: "View cards in {{deckName}}",
         remote: "Remote deck",
         progress: "Progress for {{deckName}}",
         continueDeck: "Continue {{deckName}}",
@@ -120,6 +121,18 @@ export const resources = {
           edit: "Edit",
           delete: "Delete",
         },
+      },
+      deckView: {
+        title: "View",
+        back: "Back to decks",
+        previous: "Previous card",
+        next: "Next card",
+        flip: "Flip card",
+        position: "{{current}} / {{total}}",
+        progress: "Viewing progress",
+        empty: "No cards match the current filters.",
+        answerAria: "Card answer",
+        frontAria: "Card front",
       },
       deckForm: {
         toast: {
@@ -794,6 +807,7 @@ export const resources = {
           years_other: "{{count}}年前",
         },
         view: "{{deckName}}を表示",
+        viewCards: "{{deckName}}のカードを閲覧",
         remote: "リモートデッキ",
         progress: "{{deckName}}の進捗",
         continueDeck: "{{deckName}}の学習を続ける",
@@ -809,6 +823,18 @@ export const resources = {
           edit: "編集",
           delete: "削除",
         },
+      },
+      deckView: {
+        title: "閲覧",
+        back: "デッキ一覧に戻る",
+        previous: "前のカード",
+        next: "次のカード",
+        flip: "カードを裏返す",
+        position: "{{current}} / {{total}}",
+        progress: "閲覧位置",
+        empty: "現在の絞り込みに一致するカードはありません。",
+        answerAria: "カードの回答",
+        frontAria: "カードの表面",
       },
       deckForm: {
         toast: {
