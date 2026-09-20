@@ -1,4 +1,3 @@
-import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
 import {
   buildStudyCardOrder,
@@ -11,7 +10,13 @@ import { studySessionStore } from "../store";
 const createStudySessionId = (): string => crypto.getRandomValues(new Uint32Array(4)).join("-");
 
 // Replaces one Deck's study session with a new identity and owned Card order.
-const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
+export function startStudy(
+  deckId: DeckId,
+  cards: CardProgressFields[],
+  studyPreferences: StudyCardOrderOptions,
+  uid?: string
+): void {
+  const cardOrderIds = buildStudyCardOrder(cards, studyPreferences);
   studySessionStore.setState((state) => {
     state.sessionsByDeckId[deckId] = {
       // A fresh identity distinguishes a restarted deck even when it begins on the same card and index.
@@ -21,15 +26,7 @@ const startStudySession = (deckId: DeckId, cardOrderIds: CardId[]): void => {
       cardOrderIds: [...cardOrderIds],
       currentIndex: 0,
       lastStudiedAt: Date.now(),
+      ...(uid ? { remote: { uid, startedAt: Date.now() } } : {}),
     };
   });
-};
-
-// Session start owns the state mutation while study-progress owns how the card order is derived.
-export const startStudy = (
-  deckId: DeckId,
-  cards: CardProgressFields[],
-  studyPreferences: StudyCardOrderOptions
-): void => {
-  startStudySession(deckId, buildStudyCardOrder(cards, studyPreferences));
-};
+}

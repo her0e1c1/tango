@@ -41,6 +41,11 @@ Then:
 - 上限 0 では枚数を制限せず、filter と適用される復習条件に一致するすべての Card を含む。上限 1 ではそのうち先頭の Card だけを含む。
 - 学習開始画面と start action の件数が新しい session の件数と一致する。
 - session の先頭 Card の front text が表示される。
+- 開始操作は実行時点の認証を使い、別アカウントへの切替後に以前の UID で保存しない。
+- ログイン済みユーザーの remote Deck では、session ID を document ID として Firestore の `studySession` に所有者、Deck、出題順、現在位置、開始時刻を保存する。回答情報は含めない。
+- `createdAt` / `updatedAt` は server timestamp の技術メタ情報であり、開始・終了時刻や最近学習した時刻とは分ける。
+- remote session の初回取得が完了するまで開始操作を無効にし、取得失敗時は読み込み中のままにせず再読み込みを案内する。
+- Start / Restart は購読開始ごとに server の初回確定を待つ。オフラインで再読み込みした場合や、別 Deck を含む未送信の session 更新がある場合も、初回確定までは既存 session を置き換えない。初回確定後の切断では Start / Restart と保存に SDK のオフラインキューを使える。
 - browser error が発生しない。
 
 <a id="swipe-07"></a>
@@ -85,6 +90,11 @@ Then:
 
 - Deck 一覧へ戻る前と同じ学習 session が維持される。
 - Continue は遷移前に対象 session の最終学習時刻を更新する。
+- browser storage に残る同一ユーザーの session は、オフライン再読み込み後も初回同期を待たずに Continue できる。server 未確認の session を新規作成・置換する Start / Restart とは区別する。
+- ページ移動、アプリ終了、時間経過だけでは終了しない。remote session は browser storage がない同一ユーザーの client でも同じ ID・出題順・位置から再開できる。
+- 端末間の時計ずれによって古い終了済み session を最新と誤認しない。session 間の作成順には server の `createdAt` を使い、最近学習した時刻の代用にはしない。
+- 別端末から復元して最近学習した時刻が不明な場合は、一覧に架空の経過時間を表示しない。
+- 不正または旧形式の remote document が混在しても、有効な session の同期・再開を妨げない。
 - Deck 一覧へ戻る前に表示されていた Card の front text が表示される。
 - browser error が発生しない。
 
@@ -106,6 +116,8 @@ When:
 Then:
 
 - 以前とは異なる新しい学習 session が保存される。
+- 以前の remote session は `endReason: abandoned` と server timestamp の終了時刻を保持する。明示的な session 終了操作や Deck 削除も破棄として扱う。
+- 複数の remote session がある場合は、読み込み時に最新の作成時刻の session を採用する。同時開始した session の1件への収束は別 Issue #1658 で扱う。
 - 新しい session の位置が先頭になる。
 - 新しい session の先頭 Card の front text が表示される。
 - browser error が発生しない。
@@ -128,7 +140,8 @@ When:
 Then:
 
 - 最後の Card の学習結果が保存される。
-- 対象 Deck の学習 session が削除される。
+- 対象 Deck の学習 session がローカルの進行中一覧から削除され、remote document は `endReason: completed` と server timestamp の終了時刻を保持する。
+- 進捗更新では終了状態を変更しない。Firestore Rules は認証と所有者を検証し、位置や終了理由の状態遷移は制約しない。
 - Study completion screen に完了 message と学習した Card 数が表示される。
 - Deck 一覧へ automatic redirect せず、Deck 一覧へ戻る action が利用できる。
 - Deck 一覧へ戻った後、対象 Deck に Continue action が表示されない。
@@ -178,6 +191,7 @@ Then:
 - 現在だった Card の mastered 学習結果が browser storage に維持されている。
 - session の位置が次の Card に維持されている。
 - 次の Card の front text が表示され、back text は表示されない。
+- local-only Deck と匿名ユーザーの session は Firestore へ書き込まない。
 - browser error が発生しない。
 
 <a id="swipe-26"></a>

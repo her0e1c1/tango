@@ -14,6 +14,11 @@ service cloud.firestore {
     return request.auth.uid == request.resource.data.uid;
   }
   match /databases/{database}/documents {
+    match /studySession/{sessionId} {
+      allow read: if isSignedIn() && isOwner();
+      allow create: if isSignedIn() && isValid();
+      allow update: if isSignedIn() && isValidOwner();
+    }
     match /deck/{deckId} {
       function isPublic() {
         return resource.data.isPublic == true;

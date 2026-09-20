@@ -21,7 +21,16 @@ export interface StudySession {
   currentIndex: number;
   /** Drives recent-deck ordering and advances only when the session is started or used. */
   lastStudiedAt: number;
+  /** Present only for a linked user's cloud session; start time never changes on resume. */
+  remote?: { uid: string; startedAt: number; createdAt?: number | undefined } | undefined;
 }
+
+export interface StudySessionWrite {
+  session: StudySession;
+  endReason: "completed" | "abandoned" | null;
+}
+
+export type StudySessionSyncStatus = "idle" | "loading" | "ready" | "error";
 
 /**
  * Active study sessions indexed by deck identifier.

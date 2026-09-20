@@ -1,5 +1,5 @@
 interface FirestoreQuery {
-  collectionName: "card" | "deck";
+  collectionName: "card" | "deck" | "studySession";
   uid: string;
 }
 
@@ -28,9 +28,19 @@ vi.mock("firebase/firestore", async (importOriginal) => {
     }),
     onSnapshot: (
       request: FirestoreQuery,
-      publishSnapshot: (snapshot: FirestoreSnapshot) => void,
-      _onError: (error: Error) => void
+      publishOrOptions: ((snapshot: FirestoreSnapshot) => void) | { includeMetadataChanges: boolean },
+      onSnapshotOrError:
+        | ((snapshot: FirestoreSnapshot & { metadata: { fromCache: boolean; hasPendingWrites: boolean } }) => void)
+        | ((error: Error) => void)
     ) => {
+      if (request.collectionName === "studySession") {
+        (onSnapshotOrError as (snapshot: unknown) => void)({
+          docs: [],
+          metadata: { fromCache: false, hasPendingWrites: false },
+        });
+        return () => undefined;
+      }
+      const publishSnapshot = publishOrOptions as (snapshot: FirestoreSnapshot) => void;
       const deckId = `deck-${request.uid}`;
       const document =
         request.collectionName === "deck"

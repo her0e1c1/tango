@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   deleteRemoteDeck: vi.fn(),
   editRemoteDeck: vi.fn(),
   moveLocalCardsToRemote: vi.fn(),
-  removeStudySession: vi.fn(),
+  abandonStudySession: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
@@ -16,7 +16,7 @@ vi.mock("@/entities/card/@x/deck", () => ({
   deleteLocalCardsByDeckId: mocks.deleteLocalCardsByDeckId,
   moveLocalCardsToRemote: mocks.moveLocalCardsToRemote,
 }));
-vi.mock("@/entities/study-session/@x/deck", () => ({ removeStudySession: mocks.removeStudySession }));
+vi.mock("@/entities/study-session/@x/deck", () => ({ abandonStudySession: mocks.abandonStudySession }));
 vi.mock("./firestore", () => ({
   createDeck: mocks.createRemoteDeck,
   deleteDeck: mocks.deleteRemoteDeck,
@@ -26,7 +26,7 @@ vi.mock("./firestore", () => ({
 import { deleteDeck, editDeck } from "./mutations";
 import { deckStore } from "../model/store";
 
-describe("Deck mutations", () => {
+describe("Deck mutations [DECK-02] [DECK-03]", () => {
   beforeEach(() => {
     deckStore.setState({ remoteDecks: [], localDecks: [] });
     localStorage.clear();

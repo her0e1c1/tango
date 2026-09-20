@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/entities/auth";
 import { type Deck, useDeck } from "@/entities/deck";
-import { startStudy } from "@/entities/study-session";
+import { useStudySessionSyncStatus } from "@/entities/study-session";
 import { routes } from "@/shared/router";
 import {
   useDeckFilterDraft,
@@ -12,18 +12,19 @@ import {
   updateDeckFilterDraft,
 } from "@/features/deck-filter";
 
+import { startDeckStudy } from "./actions/startDeckStudy";
 import { useStudyStartShortcut } from "./actions/useStudyStartShortcut";
-import { useStudySessionStartState } from "./queries/useStudySessionStartState";
+import { getStudyStartAvailability, useStudySessionStartState } from "./queries/useStudySessionStartState";
 
-export function useStudySessionStartRouteModel(deckId: string | undefined) {
-  if (deckId == null) throw new Error("invalid deck id");
+export function useStudySessionStartRouteModel(deckId: string) {
   const deck = useDeck(deckId);
   return { deckId, deck };
 }
 
 export function useStudySessionStartPageModel(deck: Deck) {
   const navigate = useNavigate();
-  const { uid } = useAuth();
+  const { uid, isAnonymous } = useAuth();
+  const syncStatus = useStudySessionSyncStatus();
   const filterDraft = useDeckFilterDraft(uid, deck);
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
   const filterUpdate = {
@@ -35,13 +36,17 @@ export function useStudySessionStartPageModel(deck: Deck) {
   const filter = getDeckFilterState(filterDraft.state);
   // Build the session from the latest selection, even while its autosave is still pending.
   const state = useStudySessionStartState(deck.id, filterDraft.state.draft);
+  const availability = getStudyStartAvailability(deck.localMode, isAnonymous, syncStatus, filter.saving);
   const start = () => {
-    startStudy(deck.id, state.cards, state.studyPreferences);
-    void navigate(routes.deckStudy.to(deck.id), { replace: true });
+    if (availability.disabled) return;
+    if (startDeckStudy(deck, state.cards, state.studyPreferences)) {
+      void navigate(routes.deckStudy.to(deck.id), { replace: true });
+    }
   };
   useStudyStartShortcut(start, { saving: filter.saving, cardCount: state.cardsLength });
 
   return {
+    ...availability,
     deckName: deck.name,
     maxNumberOfCardsToLearn: state.maxNumberOfCardsToLearn,
     cardsLength: state.cardsLength,
