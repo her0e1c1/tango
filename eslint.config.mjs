@@ -6,6 +6,8 @@ import reactHooks from "eslint-plugin-react-hooks";
 import testingLibrary from "eslint-plugin-testing-library";
 import vitest from "@vitest/eslint-plugin";
 
+// lint:tsc invokes TypeScript 7 through @typescript/native directly to avoid the two tsc binaries colliding.
+// Keep TypeScript 5 for the compiler API used by this parser and other tools, including Steiger's TS 5 peers.
 // Keep ESLint focused on application-owned TypeScript.
 // TypeScript and Biome cover repository tooling and tests outside src.
 const sourceFiles = ["src/**/*.{ts,tsx}"];
