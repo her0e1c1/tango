@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useKey } from "react-use";
 
 import { usePreferences } from "@/entities/preference";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
@@ -21,6 +22,8 @@ export function useDeckImportPageModel() {
   const preferences = usePreferences();
   const navigate = useNavigate();
   const isMounted = useMountedGuard();
+  useKey("t", () => void navigate(routes.deckList.to()));
+  useKey("s", () => void navigate(routes.settings.to()));
 
   const importPreview = async (): Promise<void> => {
     if (!(await importDeckPreviewAction())) return;
