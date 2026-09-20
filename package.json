@@ -35,7 +35,7 @@
     "lint:knip": "knip && knip --strict --dependencies",
     "lint:markdown": "markdownlint-cli2",
     "lint:markdown:fix": "markdownlint-cli2 --fix",
-    "lint:tsc": "tsc",
+    "lint:tsc": "node node_modules/@typescript/native/bin/tsc",
     "storybook": "storybook dev"
   },
   "dependencies": {
@@ -93,6 +93,7 @@
     "@types/react-dom": "^19.2.4",
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "@typescript-eslint/parser": "^8.67.0",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.0.3",
     "@vitest/browser-playwright": "^4.1.11",
     "@vitest/coverage-v8": "4.1.11",
@@ -109,7 +110,7 @@
     "postcss": "^8.5.26",
     "steiger": "^0.6.0",
     "storybook": "^10.5.10",
-    "typescript": "^7.0.2",
+    "typescript": "^5.9.3",
     "uuid": "^14.0.1",
     "vite-plugin-pwa": "^1.3.0",
     "vitest": "4.1.11",
