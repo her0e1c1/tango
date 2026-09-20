@@ -10,6 +10,9 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "@/shared/firebase";
+import { receiveStudySessions } from "../model/actions/receiveStudySessions";
+import { setStudySessionOwner } from "../model/actions/setStudySessionOwner";
+import { setStudySessionSyncStatus } from "../model/actions/setStudySessionSyncStatus";
 import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionWrite } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
@@ -49,11 +52,8 @@ export async function updateStudySession(
   }
 }
 
-export function subscribeStudySessions(
-  uid: string,
-  onChange: (sessions: StudySessionWrite[]) => void,
-  onError: (error: Error) => void
-): () => void {
+export function subscribeStudySessions(uid: string, onError: (error: Error) => void): () => void {
+  setStudySessionOwner(uid);
   return onSnapshot(
     query(collection(db, "studySession"), where("uid", "==", uid)),
     { includeMetadataChanges: true },
@@ -65,8 +65,12 @@ export function subscribeStudySessions(
         const parsed = parseStudySessionDocument(item.data());
         if (parsed !== undefined) sessions.push(toStudySessionWrite(item.id, parsed));
       }
-      onChange(sessions);
+      receiveStudySessions(uid, sessions);
+      setStudySessionSyncStatus("ready");
     },
-    onError
+    (error) => {
+      setStudySessionSyncStatus("error");
+      onError(error);
+    }
   );
 }

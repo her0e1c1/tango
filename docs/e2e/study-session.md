@@ -45,6 +45,7 @@ Then:
 - ログイン済みユーザーの remote Deck では、session ID を document ID として Firestore の `studySession` に所有者、Deck、出題順、現在位置、開始時刻を保存する。回答情報は含めない。
 - `createdAt` / `updatedAt` は server timestamp の技術メタ情報であり、開始・終了時刻や最近学習した時刻とは分ける。
 - remote session の初回取得が完了するまで開始操作を無効にし、取得失敗時は読み込み中のままにせず再読み込みを案内する。
+- Start / Restart は購読開始ごとに server の初回確定を待つ。オフラインで再読み込みした場合や、別 Deck を含む未送信の session 更新がある場合も、初回確定までは既存 session を置き換えない。初回確定後の切断では Start / Restart と保存に SDK のオフラインキューを使える。
 - browser error が発生しない。
 
 <a id="swipe-07"></a>
@@ -89,6 +90,7 @@ Then:
 
 - Deck 一覧へ戻る前と同じ学習 session が維持される。
 - Continue は遷移前に対象 session の最終学習時刻を更新する。
+- browser storage に残る同一ユーザーの session は、オフライン再読み込み後も初回同期を待たずに Continue できる。server 未確認の session を新規作成・置換する Start / Restart とは区別する。
 - ページ移動、アプリ終了、時間経過だけでは終了しない。remote session は browser storage がない同一ユーザーの client でも同じ ID・出題順・位置から再開できる。
 - 端末間の時計ずれによって古い終了済み session を最新と誤認しない。session 間の作成順には server の `createdAt` を使い、最近学習した時刻の代用にはしない。
 - 別端末から復元して最近学習した時刻が不明な場合は、一覧に架空の経過時間を表示しない。

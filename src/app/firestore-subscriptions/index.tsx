@@ -3,7 +3,7 @@ import React from "react";
 import { useAuthSession } from "@/entities/auth";
 import { clearRemoteCards, subscribeCards } from "@/entities/card";
 import { clearRemoteDecks, subscribeDecks } from "@/entities/deck";
-import { setStudySessionOwner, syncStudySessions } from "@/entities/study-session";
+import { setStudySessionOwner, subscribeStudySessions } from "@/entities/study-session";
 import { showToast } from "@/shared/ui/toast";
 
 const reportSubscriptionError = (error: Error): void => {
@@ -23,7 +23,7 @@ export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> =
 
     const stopCards = subscribeCards(uid, reportSubscriptionError);
     const stopDecks = subscribeDecks(uid, reportSubscriptionError);
-    const stopStudySessions = syncStudySessions(uid, () => {
+    const stopStudySessions = subscribeStudySessions(uid, () => {
       showToast({ messageKey: "studySession.syncFailure", tone: "error" });
     });
 

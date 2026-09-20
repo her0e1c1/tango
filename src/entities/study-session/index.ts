@@ -13,7 +13,7 @@ export { clearStudySessions } from "./model/actions/clearStudySessions";
 export { getStudySession } from "./model/queries/getStudySession";
 export { removeStudySession } from "./model/actions/removeStudySession";
 export { touchStudySession } from "./model/actions/touchStudySession";
-export { syncStudySessions } from "./api/sync";
+export { subscribeStudySessions } from "./api/firestore";
 export { setStudySessionOwner } from "./model/actions/setStudySessionOwner";
 export { useStudySessionSyncStatus } from "./model/queries/useStudySessionSyncStatus";
 export { getStudySessionSyncStatus } from "./model/queries/getStudySessionSyncStatus";

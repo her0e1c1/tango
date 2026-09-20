@@ -24,11 +24,14 @@ import {
   moveStudySession,
   setStudySessionIndex,
   startStudy,
-  syncStudySessions,
+  subscribeStudySessions,
   touchStudySession,
 } from "@/entities/study-session";
 import { createStudySession, updateStudySession } from "@/entities/study-session/api/firestore";
+import { studySessionStore } from "@/entities/study-session/model/store";
 import type { StudySession } from "@/entities/study-session/model/types";
+import { startDeckStudy } from "@/pages/study-session-start/model/actions/startDeckStudy";
+import { createDeck } from "@/test/factories";
 import { testDb } from "@/test/initializeTestFirestore";
 
 vi.mock("@/shared/firebase", async () => ({ db: (await import("@/test/initializeTestFirestore")).testDb }));
@@ -68,7 +71,7 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
 
   it("saves the fixed order and cursor without answers and restores it on a fresh client", async () => {
     const onError = vi.fn();
-    stop = syncStudySessions("uid", onError);
+    stop = subscribeStudySessions("uid", onError);
     const started = startRemote();
     setStudySessionIndex(deckId, 1);
     await waitForPendingWrites(testDb);
@@ -85,7 +88,7 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     });
     stop();
     clearStudySessions();
-    stop = syncStudySessions("uid", onError);
+    stop = subscribeStudySessions("uid", onError);
     await waitForCloud(() =>
       expect(getStudySession(deckId)).toMatchObject({
         sessionId: started.sessionId,
@@ -100,7 +103,7 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
   });
 
   it("keeps a departed session active and abandons the known session only on explicit restart", async () => {
-    stop = syncStudySessions("uid", vi.fn());
+    stop = subscribeStudySessions("uid", vi.fn());
     const previous = startRemote();
     setStudySessionIndex(deckId, 1);
     await waitForPendingWrites(testDb);
@@ -153,7 +156,7 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
   });
 
   it("uses the SDK offline queue for creation, progress and abandonment after leaving", async () => {
-    stop = syncStudySessions("uid", vi.fn());
+    stop = subscribeStudySessions("uid", vi.fn());
     await disableNetwork(testDb);
     const session = startRemote();
     setStudySessionIndex(deckId, 1);
@@ -173,8 +176,49 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     ]);
   });
 
+  it("blocks Start and Restart after an offline reload until the server confirms sessions", async () => {
+    stop = subscribeStudySessions("uid", vi.fn());
+    await waitForCloud(() => expect(getStudySessionSyncStatus("uid")).toBe("ready"));
+    const deck = createDeck({ id: deckId });
+    expect(startDeckStudy(deck, cards, preferences)).toBe(true);
+    setStudySessionIndex(deckId, 1);
+    await waitForPendingWrites(testDb);
+    const previous = getStudySession(deckId);
+    stop();
+    await disableNetwork(testDb);
+    const storageKey = studySessionStore.persist.getOptions().name;
+    if (storageKey === undefined) throw new Error("Expected a storage key");
+    const persisted = localStorage.getItem(storageKey);
+    if (persisted === null) throw new Error("Expected a persisted study session");
+    clearStudySessions();
+    expect(getStudySession(deckId)).toBeUndefined();
+    localStorage.setItem(storageKey, persisted);
+    await studySessionStore.persist.rehydrate();
+    stop = subscribeStudySessions("uid", vi.fn());
+    expect(startDeckStudy(deck, cards, preferences)).toBe(false);
+    const otherDeck = createDeck({ id: crypto.randomUUID() });
+    expect(startDeckStudy(otherDeck, cards, preferences)).toBe(false);
+    expect(getStudySession(otherDeck.id)).toBeUndefined();
+    expect(getStudySession(deckId)).toEqual(previous);
+    // Progress in the restored session still uses the SDK queue during initial sync.
+    setStudySessionIndex(deckId, 2);
+    expect(getStudySession(deckId)?.currentIndex).toBe(2);
+    await enableNetwork(testDb);
+    await waitForPendingWrites(testDb);
+    await waitForCloud(() => expect(getStudySessionSyncStatus("uid")).toBe("ready"));
+    await disableNetwork(testDb);
+    expect(startDeckStudy(deck, cards, preferences)).toBe(true);
+    const restarted = getStudySession(deckId);
+    expect(restarted?.sessionId).not.toBe(previous?.sessionId);
+    expect(restarted?.currentIndex).toBe(0);
+    await enableNetwork(testDb);
+    await waitForPendingWrites(testDb);
+    expect((await readSession(restarted?.sessionId ?? "missing")).data()?.endReason).toBeNull();
+    expect((await readSession(previous?.sessionId ?? "missing")).data()?.endReason).toBe("abandoned");
+  });
+
   it("never uploads a local-only session while cloud synchronization is running", async () => {
-    stop = syncStudySessions("uid", vi.fn());
+    stop = subscribeStudySessions("uid", vi.fn());
     startStudy(deckId, cards, preferences);
     const session = getStudySession(deckId);
     if (session === undefined) throw new Error("Expected a local session");
@@ -193,7 +237,7 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     // Another client starts a run before this client receives its own creation timestamp.
     const current = { ...old, sessionId: crypto.randomUUID(), remote: { uid: "uid", startedAt: Date.now() } };
     await createStudySession(current);
-    stop = syncStudySessions("uid", vi.fn());
+    stop = subscribeStudySessions("uid", vi.fn());
     await waitForCloud(() => expect(getStudySession(deckId)?.sessionId).toBe(current.sessionId));
     expect((await readSession(old.sessionId)).data()?.endReason).toBeNull();
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
@@ -205,7 +249,7 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     await setDoc(doc(testDb, "studySession", crypto.randomUUID()), { uid: "uid", answers: [] });
     clearStudySessions();
     const onError = vi.fn();
-    stop = syncStudySessions("uid", onError);
+    stop = subscribeStudySessions("uid", onError);
     await waitForCloud(() => expect(getStudySession(deckId)?.sessionId).toBe(valid.sessionId));
     expect(getStudySessionSyncStatus("uid")).toBe("ready");
     const next = startRemote();
