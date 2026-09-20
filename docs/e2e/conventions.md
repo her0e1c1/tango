@@ -5,7 +5,7 @@
 - `mise run e2e` で Playwright を実行する。
 - Deck / Card の remote data は Firestore emulator、認証は Firebase Auth emulator を使用する。
 - Google account 連携は Auth emulator の local popup flow で確認し、実際の外部 identity provider には接続しない。
-- Config / Study session と local-only data は browser storage に保存する。
+- Config と local-only data は browser storage に保存する。Study session は browser storage に保持し、ログイン済みユーザーの remote Deck では Firestore にも同期する。
 - E2E は代表的な利用者導線を対象とし、各 validation rule や設定・入力手段の組み合わせは unit / component test で確認する。
 
 ## 保存先の用語

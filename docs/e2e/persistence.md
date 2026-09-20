@@ -34,6 +34,7 @@ Then:
 
 - 各 browser context には現在の UID が所有する remote Deck と Card だけが表示される。
 - 別の UID が所有する remote Deck と Card は reload の前後で表示されない。
+- remote StudySession も本人だけが読み書きでき、所有者の変更は拒否される。対象 Deck が公開されていても session は公開されない。
 - 未処理の browser error が発生しない。
 
 <a id="persist-02"></a>
@@ -58,6 +59,7 @@ Then:
 - 編集内容が primary browser の画面に維持される。
 - verification browser context に編集内容が remote data として表示される。
 - queued write による重複した Deck や Card は作成されない。
+- 学習 session の保留保存も Firestore SDK の永続 offline queue に維持され、再接続時に同じ ID を使う。出題順、現在位置、明示的な終了状態が再接続後に同期される。
 - 未処理の browser error が発生しない。
 
 <a id="persist-03"></a>

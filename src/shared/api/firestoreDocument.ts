@@ -26,7 +26,10 @@ const isFirestoreTimestamp = (value: unknown): value is FirestoreTimestamp => {
 };
 
 const javascriptDateSchema = z.date();
-const firestoreTimestampSchema = z.custom<FirestoreTimestamp>(isFirestoreTimestamp, "Expected a Firestore Timestamp");
+export const firestoreTimestampSchema = z.custom<FirestoreTimestamp>(
+  isFirestoreTimestamp,
+  "Expected a Firestore Timestamp"
+);
 
 export const firestoreTimestampDateSchema = z
   .union([javascriptDateSchema, firestoreTimestampSchema])

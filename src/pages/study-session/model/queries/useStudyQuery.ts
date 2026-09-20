@@ -1,7 +1,7 @@
 import { useCards, type Card } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { resolveStudySession, useStudySession } from "@/entities/study-session";
+import { resolveStudySession, useStudySession, useStudySessionSyncStatus } from "@/entities/study-session";
 import { buildCardPlayerHelpRows } from "@/features/card-player";
 
 export type StudySessionState = ReturnType<typeof resolveStudySession<Card>>;
@@ -10,7 +10,10 @@ export const useStudyQuery = (deckId: string) => {
   const cards = useCards();
   const deck = useDeck(deckId);
   const preferences = usePreferences();
-  const sessionState = resolveStudySession(useStudySession(deckId), cards);
+  const session = useStudySession(deckId);
+  const remoteLoading = useStudySessionSyncStatus() === "loading";
+  const sessionState: StudySessionState =
+    session === undefined && remoteLoading ? { status: "preparing" } : resolveStudySession(session, cards);
   const controls = {
     disabledSwipeDirections: {
       cardSwipeUp: preferences.controls.cardSwipeUp === "GoToPrevCard",
