@@ -12,8 +12,7 @@ import { submit } from "./submit";
 
 const session = vi.hoisted(() => ({ uid: "opening-user" as string | undefined }));
 vi.mock("@/entities/auth", () => ({
-  getAuthSession: () =>
-    session.uid === undefined ? { status: "unauthenticated" } : { status: "authenticated", uid: session.uid },
+  getAuthUid: () => session.uid ?? "",
 }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),

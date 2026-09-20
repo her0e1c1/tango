@@ -1,40 +1,10 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
 
-import type { Deck } from "@/entities/deck";
-import { DeckFilterForm } from "@/features/deck-filter";
-import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useStudySessionStartPageModel, useStudySessionStartRouteModel } from "../model/useStudySessionStartPageModel";
-import { StudySessionStart } from "./StudySessionStart";
-
-const StudySessionStartContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const model = useStudySessionStartPageModel(deck);
-
-  return (
-    <AppLayout showHeader>
-      <StudySessionStart
-        deckName={model.deckName}
-        maxNumberOfCardsToLearn={model.maxNumberOfCardsToLearn}
-        cardsLength={model.cardsLength}
-        disabled={model.filter.saving}
-        onClickStart={model.start}
-        filterSlot={
-          <DeckFilterForm
-            {...model.filter}
-            clearDifficultyRange={model.clearDifficultyRange}
-            setDifficultyMax={model.setDifficultyMax}
-            setDifficultyMin={model.setDifficultyMin}
-            setSelectedTags={model.setSelectedTags}
-            setTagAndFilter={model.setTagAndFilter}
-            tags={model.tags}
-          />
-        }
-      />
-    </AppLayout>
-  );
-};
+import { useStudySessionStartRouteModel } from "../model/useStudySessionStartPageModel";
+import { StudySessionStartContainer } from "./StudySessionStartContainer";
 
 export const StudySessionStartPage: React.FC = () => {
   const { t } = useTranslation();

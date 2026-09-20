@@ -23,6 +23,7 @@ const controls = vi.hoisted(() => ({
 vi.mock("@/entities/auth", () => ({
   getAuthSession: () => (controls.uid ? { status: "authenticated", uid: controls.uid } : { status: "anonymous" }),
   getAuthUid: () => controls.uid ?? "",
+  useAuth: () => ({ isAnonymous: controls.uid === "" }),
 }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => controls.navigate }));
 vi.mock("@/entities/deck/api/firestore", () => ({ createDeck: controls.remoteDeck }));
@@ -102,11 +103,12 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     updatePreferences({ loadSample: true });
   });
 
-  it("previews a local CSV before saving its Deck and Cards", async () => {
+  it("defaults guest CSV imports to local storage before saving its Deck and Cards", async () => {
     const name = "behavior-preview.csv";
     const { result } = renderDeckImport();
 
-    act(() => result.current.deckImport.setStorageMode("local"));
+    expect(result.current.deckImport.storageMode).toBe("local");
+    expect(result.current.model.cloudStorageAvailable).toBe(false);
     await actAsync(async () => result.current.deckImport.selectFile(csvFile(name)));
 
     expect(result.current.deckImport.preview).toMatchObject({
@@ -204,6 +206,7 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
   });
 
   it("clears a prepared preview when the destination changes", async () => {
+    controls.uid = "owner";
     const { result } = renderDeckImport();
     act(() => result.current.deckImport.setStorageMode("local"));
     await actAsync(async () => result.current.deckImport.selectFile(csvFile("behavior-mode.csv")));
@@ -213,6 +216,18 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     expect(result.current.deckImport.storageMode).toBe("remote");
     expect(result.current.deckImport.preview).toBeUndefined();
     await expect(result.current.deckImport.importPreview()).resolves.toBe(false);
+  });
+
+  it("prevents a guest from changing a local preview to cloud storage", async () => {
+    const { result } = renderDeckImport();
+    await actAsync(async () => selectDeckImportFile(csvFile("guest.csv")));
+    act(() => result.current.model.changeStorageMode("remote"));
+    expect(result.current.model.view.storageMode).toBe("local");
+    expect(result.current.model.view.preview?.deckName).toBe("guest.csv");
+    await actAsync(async () => expect(importDeckPreview()).resolves.toBe(true));
+    expect(findDeck(result.current.decks, "guest.csv")?.localMode).toBe(true);
+    expect(controls.remoteDeck).not.toHaveBeenCalled();
+    expect(controls.remoteCard).not.toHaveBeenCalled();
   });
 
   it("retries a failed save with the same new Deck", async () => {
@@ -415,11 +430,11 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     }
   );
 
-  it("refuses to save another account's prepared preview", async () => {
+  it.each(["second", ""])("refuses a prepared cloud preview after the account changes to %s", async (nextUid) => {
     controls.uid = "first";
     renderDeckImport();
     await actAsync(async () => selectDeckImportFile(csvFile("other-account.csv")));
-    controls.uid = "second";
+    controls.uid = nextUid;
     await actAsync(async () => expect(importDeckPreview()).resolves.toBe(false));
     expect(controls.remoteDeck).not.toHaveBeenCalled();
     expect(controls.remoteCard).not.toHaveBeenCalled();

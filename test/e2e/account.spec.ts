@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
+import { expect, listDocuments, readLocalData, test } from "./fixtures";
 
 const accountUid = async (page: Page) => {
   const value = await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent();
@@ -51,30 +51,35 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
   page,
   namespace,
 }) => {
-  await fixture.seedPage(page, { auth: false, studySessions: false });
+  const deck = fixture.deck();
+  const card = fixture.card();
+  const session = fixture.session();
+  await fixture.apply(page, { auth: false });
   await page.goto("/account");
   await expect(page.getByText("Anonymous account")).toBeVisible();
   const anonymousUid = await accountUid(page);
-  const runtimeFixture = fixture.remapUsers({ "user-1": anonymousUid });
-  const deck = runtimeFixture.deck();
-  const card = runtimeFixture.card("card-2");
-  await runtimeFixture.seedRemote();
-  await runtimeFixture.seedPage(page, { auth: false, preferences: false, localData: false });
-  await page.goto("/account");
 
   await completeGooglePopup(page, namespace.uid);
   await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
   await expect(page.getByText("Signed in with Google")).toBeVisible();
   await expect(page.getByText(anonymousUid, { exact: true })).toBeVisible();
 
-  // The persisted session was added after the store's initial hydration; reload only after linking so it is restored.
   await page.reload();
   await page.goto("/");
   await expect(page.getByText(deck.name, { exact: true })).toBeVisible();
   await page.goto(`/deck/${deck.id}`);
   await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
+  const stored = await readLocalData(page);
+  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id, localMode: true }));
+  expect(stored.cards).toContainEqual(expect.objectContaining({ id: card.id, deckId: deck.id }));
+  expect(stored.sessionsByDeckId).toHaveProperty(deck.id, session);
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
+  for (const collection of ["deck", "card"] as const) {
+    expect((await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === anonymousUid)).toEqual(
+      []
+    );
+  }
 });
 
 test("ACCOUNT-02 A closed Google popup can be retried successfully", async ({ fixture, page, namespace }) => {
