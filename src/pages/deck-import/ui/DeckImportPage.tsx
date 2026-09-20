@@ -4,7 +4,6 @@ import { useKey } from "react-use";
 
 import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
-import { downloadSampleCsv, SAMPLE_CSV_TEXT } from "../lib/sampleCsv";
 import { useDeckImportPageModel } from "../model/useDeckImportPageModel";
 import { DeckImportView } from "./DeckImportView";
 
@@ -20,11 +19,12 @@ export const DeckImportPage: React.FC = () => {
         {...model.view}
         onStorageModeChange={model.changeStorageMode}
         onChange={model.selectFile}
-        onAddSample={model.addSample}
+        onChooseAgain={model.chooseAgain}
+        onSelectExample={model.selectExample}
         onImport={model.importPreview}
-        onDownloadSample={downloadSampleCsv}
+        onDownloadExample={model.downloadExample}
         dark={model.dark}
-        sampleText={SAMPLE_CSV_TEXT}
+        examples={model.examples}
       />
     </AppLayout>
   );

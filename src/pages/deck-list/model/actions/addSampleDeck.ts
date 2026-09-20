@@ -22,14 +22,14 @@ const prepareSampleDeck = (): PreparedSampleDeck => ({
     kind: "create",
     card: {
       ...card,
-      // Stable IDs make retries and repeated explicit imports converge on the same local Cards.
+      // Stable IDs make concurrent bootstrap attempts converge on the same local Cards.
       id: `${SAMPLE_DECK_ID}-card-${String(index + 1)}`,
       deckId: SAMPLE_DECK_ID,
     },
   })),
 });
 
-export const addSampleDeck = async () => {
+export async function addSampleDeck() {
   // Read the current identity when the action runs rather than capturing a caller snapshot.
   const uid = getAuthUid();
   const sample = prepareSampleDeck();
@@ -41,4 +41,4 @@ export const addSampleDeck = async () => {
     created: sample.mutations.length,
     deckId: sample.destination.id,
   };
-};
+}

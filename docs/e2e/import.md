@@ -6,7 +6,7 @@ CSV の検証から保存先別の import、失敗後の再試行、Sample Deck 
 
 ## 共通の操作・結果契約（IMPORT-01〜IMPORT-06）
 
-- CSV の検証、import、Sample 追加は同時に一つだけ実行でき、処理中は保存先変更や競合する操作を受け付けない。
+- CSV の検証、import、例の選択は同時に一つだけ実行でき、処理中は保存先変更や競合する操作を受け付けない。
 - 処理中に画面を離れて再入場しても処理中の表示と排他は維持され、完了後に操作可能になる。
 - 保存の成功・失敗は一回の処理につき一つの App 所有の共通 toast で通知する。画面離脱を理由に結果を抑止・消去しない。
 - 完了時に開始元の画面が離脱済みなら、自動的に Deck 一覧へ移動しない。
@@ -15,7 +15,11 @@ CSV の検証から保存先別の import、失敗後の再試行、Sample Deck 
 - 認証ユーザーが読み取り中に変わった場合は選択を破棄し、preview の準備後に変わった場合は別ユーザーの import を実行しない。
 - 同名の Deck が存在しても新しい CSV の import は既存の Deck・Card を上書きしない。
 - import 成功後は preview を破棄し、失敗後は同じ Deck・Card の識別子で再試行できる。
-- Sample 追加の成功・失敗は CSV の preview を変更しない。失敗時は自動初期生成の設定を維持する。
+- 基本・数式・マークダウン・サンプルデッキは同じ preview と保存先のフローを利用し、選択だけでは保存しない。
+- 確認画面から保存先を維持したままファイル・例の選択へ戻れる。処理中は選び直せない。
+- どの例も CSV をダウンロードでき、記述・タグ・改行・識別キーが内容表示と一致する。
+- 新たに例を選んで確定すると新しい Deck を作成する。同じ処理の失敗後の再試行では識別子を維持する。
+- 例を選んで追加しても自動初期生成の設定は変更しない。
 
 ## テストケース
 
@@ -26,7 +30,7 @@ CSV の検証から保存先別の import、失敗後の再試行、Sample Deck 
 | IMPORT-03 | batch | [CSV を remote に import して reload 後も利用できる](#import-03) |
 | IMPORT-04 | batch | [CSV を local-only に import して reload 後に学習できる](#import-04) |
 | IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](#import-05) |
-| IMPORT-06 | batch | [Sample Deck を保存して一覧へ戻り、再追加しても重複しない](#import-06) |
+| IMPORT-06 | batch | [4種類の例を同じ確認・保存フローで追加できる](#import-06) |
 | IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](#import-07) |
 
 <a id="import-01"></a>
@@ -43,7 +47,7 @@ Given:
 
 When:
 
-- Import 画面で保存先から Tab でファイル選択欄、次の操作へ進み、Shift+Tab でファイル選択欄、保存先へ戻る。
+- Import 画面で `Change` から保存先を開き、保存先から Tab でファイル選択欄、次の操作へ進み、Shift+Tab でファイル選択欄、保存先へ戻る。
 - CSV を選択し、Import を実行せずに検証の完了を待つ。
 
 Then:
@@ -152,28 +156,32 @@ Then:
 
 <a id="import-06"></a>
 
-### IMPORT-06 Sample Deck を保存して一覧へ戻り、再追加しても重複しない
+### IMPORT-06 4種類の例を同じ確認・保存フローで追加できる
 
 カテゴリ: `batch`
 
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- Sample Deck とその Card は local storage に存在しない。
-- Import 画面を開いている。
+- Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
+- 例に対応する Deck と Card は選択した保存先に存在しない。
 
 When:
 
-- `Add sample deck` を実行し、Deck 一覧へ戻った後に Sample Deck と Card の識別子および件数を記録する。
-- Import 画面を再度開いて Sample Deck を追加し、Deck 一覧を reload して Sample Deck を開く。
+- 各種類の例を切り替え、表裏の表示と CSV の記述を確認し、CSV をダウンロードする。
+- 各例について local-only または remote を選択して `Try this example` を実行し、preview を確認して追加を確定する。
+- Deck 一覧を reload して追加した Deck を開く。
 
 Then:
 
-- Sample Deck の保存中は `Add sample deck` が loading 表示になり、競合する操作が無効になる。
-- Sample Deck の追加では CSV の preview や完了確認を表示せず、保存完了後に Deck 一覧へ自動的に戻る。
-- 追加した Card 件数を含む成功結果が共通 toast で表示される。
-- local storage に存在する Sample Deck は一つだけである。
-- Sample Deck に Card が保存され、再追加後もその識別子と件数は変わらず重複していない。
+- 4種類で同じ操作、確認手順、保存先選択を利用できる。
+- ダウンロードには表示した種類の全カードが含まれ、数式・Markdown・複数タグ・引用符内の改行は失われない。
+- 例の選択だけでは保存せず、件数・Deck 名・表裏の内容を preview できる。
+- 処理中は例の選択、ファイル選択、保存先変更、追加確定が排他になる。再入場後も処理状態を維持する。
+- 明示的な確定後に選択した保存先へ全カードを保存し、共通 toast で件数を通知して Deck 一覧へ戻る。
+- reload 後もカードを表示できる。local-only の例は remote に保存されない。
+- 新たに同じ例を選んで追加しても既存の Deck や Card は上書きせず、新しい Deck になる。
+- 失敗後は同じ preview と識別子で再試行できる。認証ユーザーの変更時は別ユーザーへの保存を阻止する。
 - 未処理の browser error が発生しない。
 
 <a id="import-07"></a>

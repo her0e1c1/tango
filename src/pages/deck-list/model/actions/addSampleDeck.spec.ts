@@ -61,7 +61,7 @@ vi.mock("@/entities/preference", () => ({
 
 import { addSampleDeck } from "./addSampleDeck";
 
-describe("addSampleDeck [IMPORT-06]", () => {
+describe("addSampleDeck [IMPORT-07]", () => {
   beforeEach(() => {
     repository.uid = "uid-a";
     repository.cards = [];

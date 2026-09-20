@@ -16,7 +16,7 @@ import {
   cancelDeckDeletion,
   confirmDeckDeletion,
 } from "@/features/deck-deletion";
-import { bootstrapSampleDeck } from "@/features/sample-import";
+import { bootstrapSampleDeck } from "../model/actions/bootstrapSampleDeck";
 import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 
