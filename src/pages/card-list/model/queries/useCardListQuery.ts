@@ -4,10 +4,13 @@ import { usePreferences } from "@/entities/preference";
 import { MAX_DIFFICULTY, MIN_DIFFICULTY } from "@/entities/study-progress";
 import { selectStudyCards } from "@/entities/study-session";
 
-export const useCardListQuery = (deck: Deck, shownCard: Card | undefined) => {
+import type { CardListSortOrder } from "../store";
+
+export const useCardListQuery = (deck: Deck, shownCard: Card | undefined, sortOrder: CardListSortOrder) => {
   const preferences = usePreferences();
   const { cards: deckCards, tags } = useCardsByDeckId(deck.id);
-  const cards = selectStudyCards(deckCards, deck, preferences.study.useCardInterval);
+  const matchingCards = selectStudyCards(deckCards, deck, preferences.study.useCardInterval);
+  const cards = sortOrder === "newest" ? matchingCards.toSorted((a, b) => b.createdAt - a.createdAt) : matchingCards;
   const category = shownCard == null ? undefined : getCategory(deck.category, shownCard.tags);
   const answer =
     shownCard == null || category == null

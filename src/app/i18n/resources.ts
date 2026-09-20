@@ -245,6 +245,7 @@ export const resources = {
         count_other: "{{count}} cards",
         add: "Add card",
         closeCard: "Close card",
+        sort: { label: "Sort order", standard: "Standard", newest: "Newest added" },
         bulkDifficulty: {
           title: "Change difficulty",
           target_one: "{{count}} visible card",
@@ -874,6 +875,7 @@ export const resources = {
         count_other: "{{count}}枚",
         add: "カードを追加",
         closeCard: "カードを閉じる",
+        sort: { label: "並び順", standard: "標準", newest: "追加が新しい順" },
         bulkDifficulty: {
           title: "難易度をまとめて変更",
           target_one: "表示中のカード{{count}}枚",

@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import type { CardId } from "@/entities/card";
 import { ActionsMenu } from "@/shared/ui/actions-menu";
 import { RemovableTag } from "@/shared/ui/content";
+import { Select } from "@/shared/ui/forms";
 import { Overlay } from "@/shared/ui/feedback";
 
 import { Card, type CardActionsProps } from "./Card";
@@ -36,6 +37,9 @@ interface CardListFilterState {
 
 export interface CardListProps {
   cards: CardListItem[];
+  sortOrder?: "standard" | "newest";
+  onSortOrderChange?: (value: "standard" | "newest") => void;
+  sortDisabled?: boolean;
   onChangeDifficulty?: () => void;
   disabled?: boolean;
   filter?: CardListFilterState;
@@ -93,6 +97,10 @@ const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" |
   props
 ) => {
   const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
+  // Clear a removed target without remounting surviving rows and losing keyboard focus.
+  if (openMenuCardId !== undefined && !props.cards.some((card) => card.id === openMenuCardId)) {
+    setOpenMenuCardId(undefined);
+  }
 
   return (
     <div className="overflow-visible rounded-surface border border-border bg-surface shadow-surface dark:border-black">
@@ -128,6 +136,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
   const { t } = useTranslation();
   const filter = props.filter ?? emptyFilter;
   const [actionsOpen, setActionsOpen] = React.useState(false);
+  const sortId = React.useId();
 
   return (
     <>
@@ -182,6 +191,21 @@ export const CardList: React.FC<CardListProps> = (props) => {
         </div>
       </div>
 
+      <label htmlFor={sortId} className="flex flex-wrap items-center gap-2 text-caption font-medium text-ink">
+        {t("cardList.sort.label")}
+        <Select
+          id={sortId}
+          className="w-auto"
+          value={props.sortOrder ?? "standard"}
+          disabled={props.sortDisabled}
+          onChange={(event) => props.onSortOrderChange?.(event.target.value === "newest" ? "newest" : "standard")}
+          options={[
+            { value: "standard", label: t("cardList.sort.standard") },
+            { value: "newest", label: t("cardList.sort.newest") },
+          ]}
+        />
+      </label>
+
       <fieldset className="contents" disabled={props.disabled}>
         <div className="flex flex-col gap-2">
           <details className="group rounded-surface border border-border bg-surface shadow-surface">
@@ -217,7 +241,6 @@ export const CardList: React.FC<CardListProps> = (props) => {
 
       {props.cards.length > 0 && (
         <CardListRows
-          key={JSON.stringify(props.cards.map((card) => card.id))}
           cards={props.cards}
           disabled={Boolean(props.disabled)}
           {...(props.card !== undefined ? { card: props.card } : {})}

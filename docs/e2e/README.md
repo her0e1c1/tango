@@ -101,6 +101,8 @@
 | CARD-21 | read | [Card の未表示の面にある入力エラーを修正できる](./card-management.md#card-21) |
 | CARD-22 | write | [退出後に古い Card 更新が完了しても通知しない](./card-list-actions.md#card-22) |
 | CARD-23 | write | [再訪後の Card 更新を古い更新の完了から保護する](./card-list-actions.md#card-23) |
+| CARD-24 | read | [Card を追加が新しい順に表示できる](./card-list-actions.md#card-24) |
+| CARD-25 | read | [Card の表示順を標準へ戻せる](./card-list-actions.md#card-25) |
 
 ### Study
 
