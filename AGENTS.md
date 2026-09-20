@@ -2,97 +2,72 @@
 
 - Be simple.
 - Do not suppress Knip findings with `@public`, `@ignore`, `ignore*` settings, or exclusion patterns. Remove unused code or dependencies, and configure actual application and tooling entry points instead.
-- Before editing files, fetch `origin/main`, then create a `git worktree` at `.worktrees/$BRANCH` from it.
-- Do not work directly on `main`.
+- Before editing, fetch `origin/main` and create a `git worktree` at `.worktrees/$BRANCH` from it. Never work directly on `main`.
 - Do not commit files ignored by `.gitignore`.
 - Do not add files under `docs` unless the user explicitly requests them.
 - Follow `CONTRIBUTING.md` when creating GitHub issues.
-- Include the related issue number in every pull request title. If there is no related issue, explicitly state `No issue` in the title.
+- Include the related issue number in every pull request title, or `No issue` when none exists.
 - Write comments, commit messages, pull request titles, and pull request descriptions in English.
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
-- Always commit and push changes made in a git worktree, then create a pull request.
+- Always commit and push worktree changes, then create a pull request.
 
 ## Mandatory Review Gate
 
-For every task that changes repository files:
+Every task that changes repository files must complete this workflow:
 
-1. Before finishing the task, MUST delegate a review to the custom `reviewer` subagent.
-2. The main agent's own review is not a substitute for the `reviewer` subagent.
-3. Wait for the reviewer to finish before continuing.
-4. Fix every P0 finding. P1 and P2 findings are optional.
-5. If any fixes are made after review, MUST delegate a fresh review to the `reviewer` subagent.
-6. Repeat until there are no P0 findings or three review rounds have completed.
-7. Do not finish the task without completing this review workflow.
-8. Report any unresolved findings to the user.
+1. Delegate a review to the custom `reviewer` subagent and wait for the result. Self-review is not a substitute.
+2. Fix all P0 findings; P1 and P2 fixes are optional. Re-review any fixes, with at most three review rounds in total.
+3. Stop when the latest changes have been reviewed with no P0 findings, or the three-round limit is reached. Report unresolved findings and unreviewed changes; unresolved P0 findings or unreviewed changes mean validation is incomplete.
 
 ## Architecture
 
 - Follow the current official Feature-Sliced Design guidance before repository-specific placement preferences.
-- Prefer the FSD v2.1 page-first approach: keep code in the Page that consumes it until actual reuse justifies moving it to a lower layer.
-- Treat the recommended `@feature-sliced/steiger-plugin` rules as architectural constraints. Resolve violations structurally instead of disabling a recommended rule unless the user explicitly requests an exception.
-- Do not retain a Feature or Entity slice solely because the code is conceptually a user action or domain concept when it has only one Page consumer; prefer colocating insignificant slices with that Page.
+- Prefer FSD v2.1 page-first: keep code with its consuming Page until actual reuse justifies a lower layer. A single-Page action or domain concept alone does not justify retaining a Feature or Entity slice.
+- Treat recommended `@feature-sliced/steiger-plugin` rules as constraints. Resolve violations structurally; disable a recommended rule only when the user explicitly requests an exception.
 - Move reusable cross-Page workflows to Features, reusable domain concepts, rules, and visual representations to Entities, and broadly reusable technical or UI primitives to Shared.
-- UI components must define their own props instead of reusing model return types.
-- Keep locale-dependent presentation formatting, such as dates and numbers, in UI components rather than model hooks.
+- UI components define their own props instead of reusing model return types. Keep locale-dependent formatting, such as dates and numbers, in UI rather than model hooks.
 
 ### Model organization
 
-- Across Pages, Features, and Entities, put state-changing operations and workflows in `model/actions/`, and read-only getters, selectors, and derived data in `model/queries/`.
-- Give each action its own file and ordinary named function. Keep action implementations out of actions objects, action factories, and hooks.
-- Provide a Page model hook under the Page's `model/` segment, such as `useAccountPageModel`, that supplies the values and functions needed by the Page or its Containers.
-- Keep Page models limited to wiring stores, state hooks, queries, individual actions, and simple effect connections. They may bind inputs and state handles to actions, but must not implement business rules, validation, derived-data calculations, state transitions, or asynchronous workflow sequencing.
-- Page models may return multiple bound action callbacks so Pages can pass them directly to UI components, such as `onSignIn={signIn}`. Keep the action implementations in `model/actions/` and return the callbacks as named properties rather than an actions object.
-- State hooks may own state, refs, forms, and resource cleanup, but must not return business-action callbacks. Page models connect these state hooks to actions; they do not replace them.
-- Keep purpose-named operation trigger hooks in `model/actions/`, separate from read-only queries. Page models may connect simple entry, cleanup, and existing actions with effects without a dedicated lifecycle hook. Queries must not update state or initiate persistence.
-- Pass only the inputs and state handles each action needs; do not pass an entire model object. Preserve shared locks, save ordering, retry identities, and the lifetime of pending work when splitting operations.
-- Keep Entity stores limited to state, initialization, and persistence middleware. Preserve the roles of pure schemas, rules, and defaults, and keep persistence implementations in `api/`.
-- Export reusable operations through the slice public API. Within a slice, import individual modules directly and do not add internal barrel files.
+- Across Pages, Features, and Entities, put state-changing operations and workflows in `model/actions/`, and read-only getters, selectors, and derived data in `model/queries/`. Queries must not update state or initiate persistence.
+- Give each action its own file and ordinary named function. Keep implementations out of actions objects, action factories, and hooks.
+- Provide a Page model hook in `model/` to supply Page and Container values and bound action callbacks as named properties, not an actions object. Limit it to wiring stores, state hooks, queries, actions, and simple effects; no business rules, validation, derived-data calculations, state transitions, or async workflow sequencing.
+- State hooks may own state, refs, forms, and resource cleanup, but must not return business-action callbacks. Page models connect them to actions.
+- Keep purpose-named operation trigger hooks in `model/actions/`. Page models may connect entry, cleanup, and existing actions through simple effects without a dedicated lifecycle hook.
+- Pass only each action's required inputs and state handles, not an entire model. Preserve shared locks, save ordering, retry identities, and pending-work lifetimes when splitting operations.
+- Limit Entity stores to state, initialization, and persistence middleware. Keep schemas, rules, and defaults pure, and persistence implementations in `api/`.
+- Export reusable operations through the slice public API. Within a slice, import modules directly; do not add internal barrel files.
 
-### Form values
+### Forms
 
-- Form values and form schemas must contain only fields the user can edit or select in that form. Default values, existing saved values, and programmatic updates to those fields are allowed.
-- Keep non-editable context and system-managed data, such as authenticated user IDs, fixed route parameters, generated IDs, and system timestamps, outside form values.
-- Combine validated form values with the required context and metadata in submit actions instead of adding them to the form.
+- Form values and schemas contain only fields editable or selectable in that form. Defaults, saved values, and programmatic updates to those fields are allowed.
+- Keep non-editable context and system-managed metadata outside the form; combine them with validated values in submit actions.
+- Use React Hook Form APIs directly instead of wrapping existing capabilities. Connect `handleSubmit` to actions accepting validated values, not DOM events or `handleSubmit` itself.
+- Keep application-specific submission rules, concurrency control, and async lifetime management in model actions, not UI hooks.
 
-### Form submission
+### Toasts
 
-- Prefer library-provided APIs directly. Do not introduce custom hooks or wrappers for submission, validation, or form state already handled by React Hook Form.
-- Keep application-specific submission rules, concurrency control, and asynchronous lifetime management in model actions. Do not move these responsibilities into UI hooks merely to remove DOM dependencies from the model.
-- Connect React Hook Form's `handleSubmit` directly to actions that accept validated values. Submit actions must not receive DOM events or `handleSubmit` itself.
-
-### Transient operation result Toasts
-
-- `shared/ui/toast` owns the duration and dismissal of transient operation results, including success and failure. Error notifications also dismiss automatically after the shared default duration.
-- Pages and Features call `showToast` when a notification is needed. Do not retain a `ToastId` in a store, state, or ref solely to dismiss it later.
-- Do not add dismissal on retries, navigation, or unmount, or page-specific auto-dismiss timers. Notifications may remain after navigation until their default duration expires.
-- Keep guards that prevent stale asynchronous operations from publishing new notifications; they are a separate responsibility.
-- This rule covers transient operation results. Persistent warnings and progress displays have separate requirements.
+- Pages and Features use `showToast` for transient operation results. `shared/ui/toast` owns their duration and dismissal; success and error notifications dismiss automatically after the shared default duration.
+- Do not retain toast IDs solely for later dismissal, add page-specific timers, or dismiss on retry, navigation, or unmount.
+- Preserve guards against stale async notifications. Persistent warnings and progress displays are outside this rule.
 
 ## Coding Style
 
-- Prefer clear names and small functions; use comments to preserve intent that the code cannot express on its own.
-- Add an intent comment whenever a future maintainer could understand what the code does but not why it must work that way.
-- Comments are required for non-obvious constraints and invariants, especially cross-layer decisions, asynchronous ordering, concurrency, retries, migrations, and compatibility workarounds.
-- Explain why a choice is necessary and what must remain true. Do not narrate syntax or restate names.
-- Update nearby intent comments when behavior changes, and remove stale comments and commented-out code.
+- Prefer clear names and small functions. Add comments for non-obvious intent, constraints, and invariants; explain why, not what the code does.
+- Keep comments consistent with behavior. Remove stale comments and commented-out code.
 
 ## Testing
 
-- Do not add test code for non-application code.
-- Write tests against observable behavior so they remain stable under refactoring.
-- Do not write tests that depend on implementation details.
-- Design production interfaces around production requirements. Do not add or change parameters, dependency objects, callbacks, factories, optional overrides, or exports solely to make code testable or mockable.
-- Adapt tests to existing production interfaces. Replace dependencies with test-side module mocks or spies instead of adding injection points to production code.
+- Do not add tests for non-application code. Assert observable behavior through the tested level's public boundary, not implementation details.
+- Design production interfaces for production requirements. Do not add or change parameters, dependency objects, callbacks, factories, optional overrides, or exports solely for tests or mocks; use test-side module mocks or spies instead.
 
 ### Unit and Integration Tests
 
-- Treat `docs/e2e` as the single source of truth for runtime application behavior. Do not create separate unit or integration test specification documents or identifier systems.
-- Every new or modified unit or integration test that verifies runtime application behavior must reference at least one existing E2E test case ID in its outermost `describe` title. If the test has no `describe`, include the ID in the test title.
-- If no existing E2E test case defines the expected behavior, add or update the E2E specification before writing the test.
-- Keep unit tests co-located under `src/**/*.spec.{ts,tsx}` and use them for deterministic rules, state transitions, validation, and module or component behavior without real external services.
-- Keep integration tests under `test/integration/**/*.spec.{ts,tsx}` and use them for contracts across application modules, persistence, stores, or emulators. Do not mock the boundary that the test is intended to verify.
-- For parameterized tests, include one representative row that matches the referenced E2E Given / When / Then. Additional rows may cover boundary values and equivalence classes only when they preserve the same behavior and invariants.
-- Do not derive test cases or expected results solely from implementation branches, private functions, internal state shapes, mock call counts, or coverage gaps.
-- Assert observable results through the public boundary of the tested level.
-- Enforce static constraints such as dependency direction and type correctness with lint or typecheck instead of runtime tests. These checks do not require E2E IDs.
+- Treat `docs/e2e` as the only runtime behavior specification; do not introduce separate unit/integration specification documents or ID systems. Define missing behavior there before writing tests; adding new files under `docs` still requires an explicit user request.
+- Each new or modified unit/integration test for runtime behavior must reference at least one existing E2E case ID in its outermost `describe` title, or its test title when there is no `describe`.
+- Co-locate unit tests under `src/**/*.spec.{ts,tsx}` for deterministic rules, state transitions, validation, and module or component behavior without real external services.
+- Put integration tests under `test/integration/**/*.spec.{ts,tsx}` for contracts across application modules, persistence, stores, or emulators. Do not mock the boundary being verified.
+- Parameterized tests must include a representative row matching the referenced E2E Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.
+- Do not derive cases or expected results solely from implementation details: branches, private functions, internal state shapes, mock call counts, or coverage gaps.
+- Enforce static constraints, such as dependency direction and type correctness, with lint or typecheck rather than runtime tests; these checks do not require E2E IDs.

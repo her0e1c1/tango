@@ -10,7 +10,7 @@
 
 ## Pull Request Guidelines
 
-Before submitting a Pull Request, run the local verification task:
+Before submitting a pull request with non-documentation changes, run the local verification task:
 
 ```bash
 mise run check
