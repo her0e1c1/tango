@@ -1,11 +1,9 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { BackText } from "@/entities/card";
 import { CATEGORY, type Deck, useDeck } from "@/entities/deck";
-import type { CardFormFields } from "@/features/card-form";
-import { routes } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -13,25 +11,19 @@ import { useCardCreatePageModel } from "../model/useCardCreatePageModel";
 import { CardCreator } from "./CardCreator";
 
 const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const navigate = useNavigate();
-  const destination = routes.cardList.to(deck.id);
-  const { form, submit, preview } = useCardCreatePageModel(deck.id);
-  const create = async (values: CardFormFields): Promise<void> => {
-    if (await submit(values)) {
-      void navigate(destination, { replace: true });
-    }
-  };
+  const { form, preview, navigationGuard, onCancel, onSubmit } = useCardCreatePageModel(deck.id);
 
   return (
     <AppLayout showHeader>
       <CardCreator
-        categories={CATEGORY}
         preview={<BackText {...preview} />}
+        categories={CATEGORY}
         deckName={deck.name}
         form={form}
-        onCancel={() => void navigate(destination)}
-        onSubmit={create}
+        onCancel={onCancel}
+        onSubmit={onSubmit}
       />
+      {navigationGuard}
     </AppLayout>
   );
 };

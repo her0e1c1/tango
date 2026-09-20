@@ -204,6 +204,8 @@ export const resources = {
           eyebrow: "Card creator",
           title: "Create card",
           description: "Add a card to {{deckName}}.",
+          submittingDescription:
+            "Card creation is in progress and will continue if you leave. You will be taken to the card list when it succeeds, or see a notification if it fails.",
         },
         edit: {
           eyebrow: "Card editor",
@@ -887,6 +889,8 @@ export const resources = {
           eyebrow: "カード作成",
           title: "カードを作成",
           description: "{{deckName}}にカードを追加します。",
+          submittingDescription:
+            "カードの作成処理中です。この画面を離れても作成は続行され、成功するとカード一覧へ移動し、失敗すると通知が表示されます。",
         },
         edit: {
           eyebrow: "カード編集",

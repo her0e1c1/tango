@@ -201,7 +201,7 @@ describe("SETTINGS-08 Card validation language changes", () => {
   });
 });
 
-describe("CARD-26 CARD-27 unsaved answer preview", () => {
+describe("CARD-30 CARD-31 unsaved answer preview", () => {
   it("previews an incomplete draft without submitting, validating, or replacing the input", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();

@@ -521,7 +521,7 @@ test("CARD-21 reveals the first invalid side without saving empty text", async (
   expect(await requireDocument("card", card.id)).toEqual(before);
 });
 
-test("CARD-26 previews an unsaved answer while creating an incomplete Card", async ({ fixture, page }) => {
+test("CARD-30 previews an unsaved answer while creating an incomplete Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.setViewportSize({ width: 375, height: 812 });
@@ -559,7 +559,7 @@ test("CARD-26 previews an unsaved answer while creating an incomplete Card", asy
   await page.getByRole("button", { name: "Expand Back" }).click();
   const dialog = page.getByRole("dialog", { name: "Back text" });
   await dialog.getByRole("textbox").fill("**Expanded draft**\n\n$y^2$");
-  await dialog.getByRole("button", { name: "Preview answer" }).click();
+  await dialog.getByRole("button", { name: "Preview answer" }).press("Enter");
   await expect(dialog.getByRole("region").locator("strong")).toHaveText("Expanded draft");
   await page.keyboard.press("Escape");
   await expect(input).toHaveValue("**Expanded draft**\n\n$y^2$");
@@ -569,7 +569,7 @@ test("CARD-26 previews an unsaved answer while creating an incomplete Card", asy
   expect(await readLocalData(page)).toEqual(before);
 });
 
-test("CARD-27 previews current answer tags without saving the edited Card", async ({ fixture, page }) => {
+test("CARD-31 previews current answer tags without saving the edited Card", async ({ fixture, page }) => {
   const card = fixture.card();
   await fixture.apply(page);
   await page.goto(`/card/${card.id}/edit`);
@@ -607,20 +607,20 @@ test("CARD-27 previews current answer tags without saving the edited Card", asyn
   const expandedInput = dialog.getByRole("textbox");
   await expandedInput.fill("");
   await expandedInput.press("x");
-  await dialog.getByRole("button", { name: "Preview answer" }).click();
-  await dialog.getByRole("button", { name: "Hide preview" }).click();
+  await dialog.getByRole("button", { name: "Preview answer" }).press("Enter");
+  await dialog.getByRole("button", { name: "Hide preview" }).press("Enter");
   await expandedInput.focus();
   await expandedInput.press("ControlOrMeta+z");
   await expect(expandedInput).toHaveValue("");
   await expandedInput.fill("def updated():\n    return 43");
-  await dialog.getByRole("button", { name: "Preview answer" }).click();
+  await dialog.getByRole("button", { name: "Preview answer" }).press("Enter");
   await expect(dialog.getByRole("region").locator(".hljs-title")).toHaveText("updated");
   await page.keyboard.press("Escape");
   await expect(input).toHaveValue("def updated():\n    return 43");
   await expect(preview.locator(".hljs-title")).toHaveText("updated");
   await expect(page).toHaveURL(url);
   expect(await readLocalData(page)).toEqual(before);
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "tango" }).click();
   await expect(page.getByRole("alertdialog")).toBeVisible();
   await page.getByRole("button", { name: "Keep editing" }).click();
   await expect(input).toHaveValue("def updated():\n    return 43");

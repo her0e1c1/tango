@@ -107,8 +107,12 @@
 | CARD-23 | write | [再訪後の Card 更新を古い更新の完了から保護する](./card-list-actions.md#card-23) |
 | CARD-24 | read | [Card を追加が新しい順に表示できる](./card-list-actions.md#card-24) |
 | CARD-25 | read | [Card の表示順を標準へ戻せる](./card-list-actions.md#card-25) |
-| CARD-26 | read | [作成中の未保存の解答をプレビューできる](./card-management.md#card-26) |
-| CARD-27 | read | [編集中の未保存の解答と表示形式をプレビューできる](./card-management.md#card-27) |
+| CARD-26 | read | [未保存の Card 作成内容の離脱を確認できる](./card-management.md#card-26) |
+| CARD-27 | write | [Card 作成成功が未回答の離脱確認より優先される](./card-management.md#card-27) |
+| CARD-28 | write | [Card 作成中に離脱しても保存成功時に一覧へ移動する](./card-management.md#card-28) |
+| CARD-29 | write | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](./card-management.md#card-29) |
+| CARD-30 | read | [作成中の未保存の解答をプレビューできる](./card-management.md#card-30) |
+| CARD-31 | read | [編集中の未保存の解答と表示形式をプレビューできる](./card-management.md#card-31) |
 
 ### Study
 
