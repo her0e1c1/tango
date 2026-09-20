@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useKey } from "react-use";
 
 import { useAuth } from "@/entities/auth";
 import { type Deck, useDeck } from "@/entities/deck";
@@ -13,7 +12,7 @@ import {
   updateDeckFilterDraft,
 } from "@/features/deck-filter";
 
-import { canStartStudyFromEnter } from "./queries/canStartStudyFromEnter";
+import { useStudyStartShortcut } from "./actions/useStudyStartShortcut";
 import { useStudySessionStartState } from "./queries/useStudySessionStartState";
 
 export function useStudySessionStartRouteModel(deckId: string | undefined) {
@@ -35,19 +34,18 @@ export function useStudySessionStartPageModel(deck: Deck) {
   };
   const filter = getDeckFilterState(filterDraft.state);
   // Build the session from the latest selection, even while its autosave is still pending.
-  const state = useStudySessionStartState(deck, filter);
+  const state = useStudySessionStartState(deck.id, filterDraft.state.draft);
   const start = () => {
     startStudy(deck.id, state.cards, state.studyPreferences);
     void navigate(routes.deckStudy.to(deck.id), { replace: true });
   };
-  const startFromEnter = (event: KeyboardEvent) => {
-    if (!canStartStudyFromEnter(event, filter.saving, state.cardsLength)) return;
-    start();
-  };
-  useKey("Enter", startFromEnter, {}, [startFromEnter]);
+  useStudyStartShortcut(start, { saving: filter.saving, cardCount: state.cardsLength });
 
   return {
-    ...state,
+    deckName: deck.name,
+    maxNumberOfCardsToLearn: state.maxNumberOfCardsToLearn,
+    cardsLength: state.cardsLength,
+    tags: state.tags,
     filter,
     start,
     clearDifficultyRange: () => clearDeckFilterRange(filterUpdate),

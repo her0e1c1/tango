@@ -1,17 +1,16 @@
 import { useCardsByDeckId } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import type { DeckId } from "@/entities/deck";
 import type { DeckFilterValues } from "@/features/deck-filter";
 import { usePreferences } from "@/entities/preference";
 import { selectStudyCards } from "@/entities/study-session";
 
-export const useStudySessionStartState = (deck: Deck, filter: DeckFilterValues) => {
+export const useStudySessionStartState = (deckId: DeckId, filter: DeckFilterValues) => {
   const preferences = usePreferences();
-  const { cards: deckCards, tags } = useCardsByDeckId(deck.id);
+  const { cards: deckCards, tags } = useCardsByDeckId(deckId);
 
-  const cards = selectStudyCards(deckCards, { ...deck, ...filter }, preferences.study.useCardInterval);
+  const cards = selectStudyCards(deckCards, filter, preferences.study.useCardInterval);
 
   return {
-    deckName: deck.name,
     maxNumberOfCardsToLearn: preferences.study.maxNumberOfCardsToLearn,
     cardsLength: cards.length,
     tags,
