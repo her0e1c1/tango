@@ -15,28 +15,11 @@ service cloud.firestore {
   }
   match /databases/{database}/documents {
     match /studySession/{sessionId} {
-      function validSession(data) {
-        return data.keys().hasAll(["uid", "deckId", "cardOrderIds", "currentIndex", "startedAt", "endedAt", "endReason", "createdAt", "updatedAt"]) &&
-          data.keys().hasOnly(["uid", "deckId", "cardOrderIds", "currentIndex", "startedAt", "endedAt", "endReason", "createdAt", "updatedAt"]) &&
-          data.uid is string && data.deckId is string && data.deckId.size() > 0 &&
-          data.cardOrderIds is list && data.cardOrderIds.size() > 0 &&
-          data.currentIndex is int && data.currentIndex >= 0 && data.currentIndex < data.cardOrderIds.size() &&
-          data.startedAt is timestamp && data.createdAt is timestamp && data.updatedAt == request.time &&
-          ((data.endReason == null && data.endedAt == null) ||
-            (data.endReason in ["completed", "abandoned"] && data.endedAt == request.time)) &&
-          (data.endReason != "completed" || data.currentIndex == data.cardOrderIds.size() - 1);
-      }
       // A transaction must be able to check its new id before creating a document.
       allow get: if isSignedIn() && (!exists(/databases/$(database)/documents/studySession/$(sessionId)) || isOwner());
       allow list: if isSignedIn() && isOwner();
-      allow create: if isSignedIn() && isValid() && validSession(request.resource.data) && request.resource.data.createdAt == request.time;
-      allow update: if isSignedIn() && isValidOwner() && validSession(request.resource.data) &&
-        resource.data.endReason == null &&
-        request.resource.data.deckId == resource.data.deckId &&
-        request.resource.data.cardOrderIds == resource.data.cardOrderIds &&
-        request.resource.data.startedAt == resource.data.startedAt &&
-        request.resource.data.createdAt == resource.data.createdAt &&
-        request.resource.data.currentIndex >= resource.data.currentIndex;
+      allow create: if isSignedIn() && isValid();
+      allow update: if isSignedIn() && isValidOwner();
     }
     match /deck/{deckId} {
       function isPublic() {

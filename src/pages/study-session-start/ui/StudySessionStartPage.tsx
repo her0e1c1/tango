@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 import type { Deck } from "@/entities/deck";
 import { DeckFilterForm } from "@/features/deck-filter";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -42,7 +43,8 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 
 export const StudySessionStartPage: React.FC = () => {
   const { t } = useTranslation();
-  const { deckId, deck } = useStudySessionStartRouteModel();
+  const { id } = useParams();
+  const { deckId, deck } = useStudySessionStartRouteModel(id);
   if (deck === undefined) {
     return (
       <RouteNotFound

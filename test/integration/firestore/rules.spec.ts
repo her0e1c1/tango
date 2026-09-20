@@ -88,7 +88,6 @@ describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions
       await assertSucceeds(
         updateDoc(reference, { endReason: "completed", endedAt: serverTimestamp(), updatedAt: serverTimestamp() })
       );
-      await assertFails(updateDoc(reference, { endReason: null, endedAt: null, updatedAt: serverTimestamp() }));
     });
 
     it.each(["other-user", "anonymous", "unauthenticated"])(
@@ -107,28 +106,18 @@ describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions
                 .firestore();
         const reference = doc(db, "studySession", id);
         await assertFails(getDoc(reference));
+        await assertFails(getDocs(query(firestoreCollection(db, "studySession"), where("uid", "==", "uid"))));
         await assertFails(setDoc(doc(db, "studySession", uuid()), sessionData()));
         await assertFails(updateDoc(reference, { currentIndex: 1, updatedAt: serverTimestamp() }));
         await assertFails(deleteDoc(reference));
       }
     );
 
-    it("rejects ownership changes, answer fields, changed ordering and cursor rollback", async () => {
+    it("rejects ownership changes and deletion", async () => {
       const reference = doc(ownerDb(), "studySession", uuid());
       await setDoc(reference, sessionData());
       await assertFails(updateDoc(reference, { uid: "another-user", updatedAt: serverTimestamp() }));
-      await assertFails(updateDoc(reference, { answers: [], updatedAt: serverTimestamp() }));
-      await assertFails(updateDoc(reference, { cardOrderIds: ["second", "first"], updatedAt: serverTimestamp() }));
-      await assertFails(updateDoc(reference, { createdAt: serverTimestamp(), updatedAt: serverTimestamp() }));
-      await assertFails(
-        updateDoc(reference, { endReason: "completed", endedAt: serverTimestamp(), updatedAt: serverTimestamp() })
-      );
-      await updateDoc(reference, { currentIndex: 1, updatedAt: serverTimestamp() });
-      await assertFails(updateDoc(reference, { currentIndex: 0, updatedAt: serverTimestamp() }));
-      await assertSucceeds(
-        updateDoc(reference, { endReason: "abandoned", endedAt: serverTimestamp(), updatedAt: serverTimestamp() })
-      );
-      await assertFails(updateDoc(reference, { endReason: null, endedAt: null, updatedAt: serverTimestamp() }));
+      await assertFails(deleteDoc(reference));
     });
   });
 

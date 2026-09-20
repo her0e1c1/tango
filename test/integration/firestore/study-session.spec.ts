@@ -24,15 +24,6 @@ const waitForCloud = (assertion: () => void | Promise<void>) => vi.waitFor(asser
 const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
 const readSession = (sessionId: string) => getDoc(doc(testDb, "studySession", sessionId));
 
-// Rules can reject a stale racing write before the SDK retries its transaction; mirror the durable queue's retry.
-async function saveWithRetry(write: Parameters<typeof saveStudySession>[1]) {
-  try {
-    return await saveStudySession("uid", write);
-  } catch {
-    return saveStudySession("uid", write);
-  }
-}
-
 describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-10] [SWIPE-17] [PERSIST-02]", () => {
   let stop: (() => void) | undefined;
   let deckId: string;
@@ -145,8 +136,8 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     const session = startRemote();
     await saveStudySession("uid", { session, endReason: null });
     await Promise.all([
-      saveWithRetry({ session: { ...session, currentIndex: 2 }, endReason: null }),
-      saveWithRetry({ session: { ...session, currentIndex: 1 }, endReason: null }),
+      saveStudySession("uid", { session: { ...session, currentIndex: 2 }, endReason: null }),
+      saveStudySession("uid", { session: { ...session, currentIndex: 1 }, endReason: null }),
     ]);
     expect((await readSession(session.sessionId)).data()?.currentIndex).toBe(2);
     expect((await readSession(session.sessionId)).data()).not.toHaveProperty("answers");
@@ -203,8 +194,8 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     clearStudySessions();
     const second = startRemote();
     await Promise.all([
-      saveWithRetry({ session: first, endReason: null }),
-      saveWithRetry({ session: second, endReason: null }),
+      saveStudySession("uid", { session: first, endReason: null }),
+      saveStudySession("uid", { session: second, endReason: null }),
     ]);
     const documents = await getDocs(
       query(collection(testDb, "studySession"), where("uid", "==", "uid"), where("deckId", "==", deckId))
