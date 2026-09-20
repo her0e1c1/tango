@@ -1,4 +1,4 @@
-import { getAuthSession } from "@/entities/auth";
+import { getAuthUid } from "@/entities/auth";
 import { editCard, type CardContentInput, type CardId } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
 
@@ -17,10 +17,7 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<b
   };
 
   try {
-    const session = getAuthSession();
-    // Preserve the sentinel for local edits and remote authentication validation.
-    const uid = session.status === "authenticated" ? session.uid : "";
-    await editCard(uid, input);
+    await editCard(getAuthUid(), input);
   } catch {
     showToast({ messageKey: "toast.saveFailure", tone: "error" });
     return false;

@@ -91,7 +91,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- ユーザーとして認証されている。
+- Google アカウントにログインしている。
 - 学習可能な Card を含む有効な CSV がある。
 - CSV に対応する remote の Deck と Card は現在の UID に存在しない。
 
@@ -115,15 +115,17 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしていない匿名ユーザーである。
 - 学習可能な Card を含む有効な CSV がある。
 - CSV に対応する Deck と Card は local storage に存在しない。
 
 When:
 
-- Import 画面で local-only の保存先を選択し、CSV の preview を確認して import した後、reload して import した Deck の学習を開始する。
+- Import 画面で 既定の local-only の保存先で、CSV の preview を確認して import した後、reload して import した Deck の学習を開始する。
 
 Then:
 
+- local-only が既定で選択され、Sync with account は無効で、ログインが必要なことを案内する。
 - import 件数を含む成功結果が共通 toast で表示される。
 - import した Deck とすべての Card が local storage に維持される。
 - 対応する Deck と Card は remote data に作成されない。
@@ -139,6 +141,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
 - 有効な CSV の最初の import で、保存先の Deck を作成した後に Card の保存が失敗している。
 - import の失敗と詳細が共通 toast で処理され、同じ preview と保存先が維持されている。
 - 次の import では Card を保存できる。
@@ -164,6 +167,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
 - Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
 - 例に対応する Deck と Card は選択した保存先に存在しない。
 

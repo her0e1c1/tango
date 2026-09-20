@@ -15,6 +15,7 @@ export const DeckCreatePage: React.FC = () => {
       <DeckForm
         mode="create"
         categories={CATEGORY}
+        cloudStorageAvailable={model.cloudStorageAvailable}
         form={model.form}
         isLocalModeLocked={model.pending}
         onCancel={model.onCancel}

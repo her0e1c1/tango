@@ -17,7 +17,7 @@ import * as Uuid from "uuid";
 
 const uuid = Uuid.v4;
 
-describe("firestore/rule", () => {
+describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions", () => {
   let testEnv: RulesTestEnvironment;
 
   const createData = async (path: string, id: string, data: object) => {
@@ -50,7 +50,9 @@ describe("firestore/rule", () => {
     let db: firebase.default.firestore.Firestore;
 
     beforeEach(() => {
-      db = testEnv.authenticatedContext("uid").firestore();
+      db = testEnv
+        .authenticatedContext("uid", { firebase: { sign_in_provider: "google.com", identities: {} } })
+        .firestore();
     });
 
     describe("deck", () => {
@@ -110,7 +112,9 @@ describe("firestore/rule", () => {
     let db: firebase.default.firestore.Firestore;
 
     beforeEach(() => {
-      db = testEnv.authenticatedContext("invalid").firestore();
+      db = testEnv
+        .authenticatedContext("invalid", { firebase: { sign_in_provider: "google.com", identities: {} } })
+        .firestore();
     });
 
     describe("deck", () => {
@@ -120,7 +124,7 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "deck", id)));
       });
 
-      it("should read a publick deck", async () => {
+      it("should read a public deck", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
         await assertSucceeds(getDoc(doc(db, "deck", id)));
@@ -177,6 +181,43 @@ describe("firestore/rule", () => {
     });
   });
 
+  describe("anonymous context with a matching owner UID", () => {
+    let db: firebase.default.firestore.Firestore;
+
+    beforeEach(() => {
+      db = testEnv
+        .authenticatedContext("uid", { firebase: { sign_in_provider: "anonymous", identities: {} } })
+        .firestore();
+    });
+
+    it.each(["deck", "card"])("rejects creating a %s", async (collection) => {
+      const deckId = uuid();
+      await createData("deck", deckId, { uid: "uid" });
+      await assertFails(setDoc(doc(db, collection, uuid()), { uid: "uid", deckId }));
+    });
+
+    it.each(["deck", "card"])("rejects updating an existing %s", async (collection) => {
+      const [deckId, id] = [uuid(), uuid()];
+      await createData("deck", deckId, { uid: "uid" });
+      await createData(collection, id, { uid: "uid", deckId });
+      await assertFails(updateDoc(doc(db, collection, id), { name: "guest update" }));
+    });
+
+    it.each(["deck", "card"])("rejects deleting an existing %s", async (collection) => {
+      const id = uuid();
+      await createData(collection, id, { uid: "uid" });
+      await assertFails(deleteDoc(doc(db, collection, id)));
+    });
+
+    it.each(["deck", "card"])("preserves public %s reads", async (collection) => {
+      const deckId = uuid();
+      const cardId = uuid();
+      await createData("deck", deckId, { uid: "another-user", isPublic: true });
+      await createData("card", cardId, { uid: "another-user", deckId });
+      await assertSucceeds(getDoc(doc(db, collection, collection === "deck" ? deckId : cardId)));
+    });
+  });
+
   describe("unauthenticated context", () => {
     let db: firebase.default.firestore.Firestore;
 
@@ -191,7 +232,7 @@ describe("firestore/rule", () => {
         await assertFails(getDoc(doc(db, "deck", id)));
       });
 
-      it("should read a publick deck", async () => {
+      it("should read a public deck", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid", isPublic: true });
         await assertSucceeds(getDoc(doc(db, "deck", id)));

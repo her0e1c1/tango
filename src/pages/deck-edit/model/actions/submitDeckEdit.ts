@@ -13,8 +13,9 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields): Pr
     return false;
   }
 
-  const input = { ...values, id: deckId, url: values.url ?? null };
-  const submission = editDeck(getAuthUid(), input)
+  const uid = getAuthUid();
+  const input = { ...values, id: deckId, url: values.url ?? null, localMode: uid === "" || values.localMode };
+  const submission = editDeck(uid, input)
     .then(() => {
       // Shared Toast lifetime covers persistence that finishes after the editor unmounts.
       showToast({ messageKey: "deckForm.toast.updated", messageParams: { name: input.name }, tone: "success" });
