@@ -32,12 +32,14 @@ Given:
 
 When:
 
-- 対象 Deck の学習開始画面から session を開始する。
+- fixture の正の学習上限、0、1 のそれぞれで対象 Deck の学習開始画面から新しい session を開始する。
 
 Then:
 
 - session には保存済み filter に一致する Card だけが含まれる。
-- session の Card 数が設定済みの学習上限を超えない。
+- 正の上限では session の Card 数が設定済みの学習上限と一致する。
+- 上限 0 では枚数を制限せず、filter と適用される復習条件に一致するすべての Card を含む。上限 1 ではそのうち先頭の Card だけを含む。
+- 学習開始画面と start action の件数が新しい session の件数と一致する。
 - session の先頭 Card の front text が表示される。
 - browser error が発生しない。
 

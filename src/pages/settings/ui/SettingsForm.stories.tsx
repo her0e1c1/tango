@@ -64,3 +64,17 @@ export const LongContent: Story = {
 };
 export const Dark: Story = { globals: { theme: "dark" } };
 export const Mobile: Story = { ...LongContent, globals: { viewport: { value: "iphonex", isRotated: false } } };
+
+export const AllMatchingCards: Story = {
+  args: {
+    preferences: {
+      ...fixture.preferences.default,
+      study: { ...fixture.preferences.default.study, maxNumberOfCardsToLearn: 0 },
+    },
+  },
+};
+export const AllMatchingCardsJapaneseMobile: Story = {
+  ...AllMatchingCards,
+  parameters: { locale: "ja" },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+};

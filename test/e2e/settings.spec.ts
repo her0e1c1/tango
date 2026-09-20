@@ -1,4 +1,5 @@
 import { collectBrowserErrors, expect, requireDocument, test } from "./fixtures";
+import { readSession } from "./study-helpers";
 
 test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page }) => {
   const initialDarkMode = fixture.state.browser.preferences.appearance.darkMode;
@@ -38,29 +39,76 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
   if (expectedMaximum === fixture.state.browser.preferences.study.maxNumberOfCardsToLearn) {
     throw new Error("SETTINGS-02 fixture requires the changed maximum to differ from its initial preference");
   }
-  const cardLabel = expectedMaximum === 1 ? "card" : "cards";
   await fixture.apply(page);
-  await page.goto("/settings");
 
-  const maximumCards = page.getByRole("slider", { name: "Maximum cards" });
-  await maximumCards.fill(String(expectedMaximum));
-  await expect(maximumCards).toHaveValue(String(expectedMaximum));
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study?.maxNumberOfCardsToLearn
-      )
-    )
-    .toBe(expectedMaximum);
+  for (const maximum of [expectedMaximum, 0, 1]) {
+    await test.step(`Maximum cards ${String(maximum)}`, async () => {
+      await page.goto("/settings");
+      const maximumCards = page.getByRole("slider", { name: "Maximum cards" });
+      await maximumCards.focus();
+      await maximumCards.press("Home");
+      for (let index = 0; index < maximum; index += 1) await maximumCards.press("ArrowRight");
+      await expect(maximumCards).toHaveValue(String(maximum));
+      const accessibleValue =
+        maximum === 0 ? "All matching cards" : `${String(maximum)} ${maximum === 1 ? "card" : "cards"}`;
+      await expect(maximumCards).toHaveAttribute("aria-valuetext", accessibleValue);
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () =>
+              JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study
+                ?.maxNumberOfCardsToLearn
+          )
+        )
+        .toBe(maximum);
 
-  await page.reload();
-  await expect(maximumCards).toHaveValue(String(expectedMaximum));
-  await page.goto(`/deck/${deck.id}/start`);
-  await expect(
-    page.getByRole("heading", { level: 2, name: `${String(expectedMaximum)} ${cardLabel} in this session` })
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: `Start ${String(expectedMaximum)} ${cardLabel}` })).toBeVisible();
+      await page.reload();
+      await expect(maximumCards).toHaveValue(String(maximum));
+      await expect(maximumCards).toHaveAttribute("aria-valuetext", accessibleValue);
+      if (maximum === 0) {
+        await expect(page.getByText("All matching cards", { exact: true })).toBeVisible();
+        await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
+        const japaneseSlider = page.getByRole("slider", { name: "最大カード数" });
+        await expect(japaneseSlider).toHaveAttribute("aria-valuetext", "条件に一致するすべてのカード");
+        await expect(page.getByText("条件に一致するすべてのカード", { exact: true })).toBeVisible();
+        await page.reload();
+        await expect(japaneseSlider).toHaveValue("0");
+        await expect(japaneseSlider).toHaveAttribute("aria-valuetext", "条件に一致するすべてのカード");
+        await page.getByRole("combobox", { name: "言語" }).selectOption("en");
+        await expect(maximumCards).toBeVisible();
+      }
+
+      const count = maximum === 0 ? numberOfCards : maximum;
+      const countLabel = `${String(count)} ${count === 1 ? "card" : "cards"}`;
+      await page.goto(`/deck/${deck.id}/start`);
+      await expect(page.getByRole("heading", { level: 2, name: `${countLabel} in this session` })).toBeVisible();
+      await page.getByRole("button", { name: `Start ${countLabel}` }).click();
+      await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+      await expect.poll(async () => (await readSession(page, deck.id))?.cardOrderIds.length).toBe(count);
+      const session = await readSession(page, deck.id);
+      expect(session?.cardOrderIds).toEqual(
+        [fixture.card("card-2").id, fixture.card("card-3").id, fixture.card("card-1").id].slice(0, count)
+      );
+
+      await page.goto("/settings");
+      await maximumCards.press("Home");
+      if (maximum === 0) await maximumCards.press("ArrowRight");
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () =>
+              JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study
+                ?.maxNumberOfCardsToLearn
+          )
+        )
+        .toBe(maximum === 0 ? 1 : 0);
+      await page.goto("/");
+      await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
+      await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+      expect((await readSession(page, deck.id))?.sessionId).toBe(session?.sessionId);
+      expect((await readSession(page, deck.id))?.cardOrderIds).toEqual(session?.cardOrderIds);
+    });
+  }
 });
 
 test("SETTINGS-04 Explicit Japanese language is auto-saved across reload", async ({ fixture, page }) => {

@@ -131,17 +131,35 @@ test("SWIPE-06 starts a filtered session capped by the learning limit", async ({
   const tagOnlyExcluded = fixture.card("card-5");
   await fixture.apply(page);
 
-  await page.goto(`/deck/${deck.id}/start`);
-  await expect(page.getByRole("button", { name: "Start 2 cards" })).toBeEnabled();
-  await page.getByRole("button", { name: "Start 2 cards" }).click();
+  for (const maximum of [fixture.state.browser.preferences.study.maxNumberOfCardsToLearn, 0, 1]) {
+    if (maximum !== fixture.state.browser.preferences.study.maxNumberOfCardsToLearn) {
+      await page.goto("/settings");
+      const slider = page.getByRole("slider", { name: "Maximum cards" });
+      await slider.press("Home");
+      if (maximum === 1) await slider.press("ArrowRight");
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () =>
+              JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study
+                ?.maxNumberOfCardsToLearn
+          )
+        )
+        .toBe(maximum);
+    }
+    const matchingIds = [firstCard.id, secondCard.id, eligibleBeyondLimit.id];
+    const expectedIds = maximum === 0 ? matchingIds : matchingIds.slice(0, maximum);
+    const countLabel = `${String(expectedIds.length)} ${expectedIds.length === 1 ? "card" : "cards"}`;
+    await page.goto(`/deck/${deck.id}/start`);
+    await expect(page.getByRole("heading", { level: 2, name: `${countLabel} in this session` })).toBeVisible();
+    await page.getByRole("button", { name: `Start ${countLabel}` }).click();
 
-  await expect(page.getByText(firstCard.frontText, { exact: true })).toBeVisible();
-  await expect.poll(async () => (await readSession(page, deck.id))?.cardOrderIds.length).toBe(2);
-  const stored = await readSession(page, deck.id);
-  expect(stored?.cardOrderIds).toEqual([firstCard.id, secondCard.id]);
-  expect(stored?.cardOrderIds).not.toContain(eligibleBeyondLimit.id);
-  expect(stored?.cardOrderIds).not.toContain(difficultyOnlyExcluded.id);
-  expect(stored?.cardOrderIds).not.toContain(tagOnlyExcluded.id);
+    await expect(page.getByText(firstCard.frontText, { exact: true })).toBeVisible();
+    await expect.poll(async () => (await readSession(page, deck.id))?.cardOrderIds).toEqual(expectedIds);
+    const stored = await readSession(page, deck.id);
+    expect(stored?.cardOrderIds).not.toContain(difficultyOnlyExcluded.id);
+    expect(stored?.cardOrderIds).not.toContain(tagOnlyExcluded.id);
+  }
 });
 
 test("SWIPE-07 prevents an empty filtered session from starting", async ({ fixture, page }) => {
