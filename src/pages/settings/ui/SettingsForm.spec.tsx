@@ -10,6 +10,7 @@ import "@testing-library/jest-dom/vitest";
 import { studyPreferencesLimits, type Preferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
+import { getSettingsFormValues, type SettingsFormValues } from "../model/queries/getSettingsFormValues";
 import { SettingsForm } from "./SettingsForm";
 
 const commitHash = "0123456789abcdef0123456789abcdef01234567";
@@ -21,13 +22,13 @@ const defaultValues = createPreferences({
 });
 
 const SettingsFormHarness: React.FC<{ values?: Preferences }> = ({ values = defaultValues }) => {
-  const form = useForm<Preferences>({ defaultValues: values });
+  const form = useForm<SettingsFormValues>({ defaultValues: getSettingsFormValues(values) });
   return (
     <SettingsForm form={form} studyPreferencesLimits={studyPreferencesLimits} version="1.2.3" commitHash={commitHash} />
   );
 };
 
-describe("SettingsForm", () => {
+describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
   it("groups every auto-saved setting in the unified settings list", () => {
     render(<SettingsFormHarness />);
     expect(screen.queryByRole("form")).not.toBeInTheDocument();

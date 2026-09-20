@@ -110,26 +110,6 @@ describe("BulkDifficultyDialog [CARD-19] [CARD-20]", () => {
     expect(screen.getByText("Set 2 visible cards to difficulty 7.")).toHaveFocus();
   });
 
-  it("prevents duplicate confirmation before pending props update", () => {
-    const onConfirm = vi.fn(
-      () =>
-        new Promise<void>(() => {
-          // This promise intentionally stays pending to exercise the pre-render submission lock.
-        })
-    );
-    const onCancel = vi.fn();
-    render(<BulkDifficultyDialog {...defaultProps} onCancel={onCancel} onConfirm={onConfirm} />);
-    const confirm = screen.getByRole("button", { name: "Apply change" });
-
-    fireEvent.click(confirm);
-    fireEvent.click(confirm);
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
-
-    expect(onConfirm).toHaveBeenCalledOnce();
-    expect(onCancel).not.toHaveBeenCalled();
-  });
-
   it("keeps persistent Toast interaction and focus within the active dialog", async () => {
     const Example = () => {
       const [open, setOpen] = React.useState(false);

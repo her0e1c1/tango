@@ -5,7 +5,7 @@ import { useKey } from "react-use";
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { touchStudySession } from "@/entities/study-session";
+import { continueStudy } from "./actions/continueStudy";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import {
   useDeckDeletionState,
@@ -59,10 +59,7 @@ export function useDeckListPageModel() {
     editDeck: (id: string) => void navigate(routes.deckForm.to(id)),
     openDeck: (id: string) => void navigate(routes.cardList.to(id)),
     viewDeck: (id: string) => void navigate(routes.deckView.to(id)),
-    continueStudy: (id: string) => {
-      touchStudySession(id);
-      void navigate(routes.deckStudy.to(id));
-    },
+    continueStudy: (id: string) => continueStudy(id, navigate),
     startStudy: (id: string) => void navigate(routes.deckStudyStart.to(id)),
     downloadDeck: (id: string) => exportDeck(id, decks, cards),
   };

@@ -15,7 +15,7 @@ export interface BulkDifficultyDialogProps {
   onDifficultyChange: (difficulty: number) => void;
   pending?: boolean;
   onCancel: () => void;
-  onConfirm: () => void | Promise<void>;
+  onConfirm: () => void;
 }
 
 /** Confirms a non-destructive bulk difficulty change and owns the modal accessibility behavior. */
@@ -24,7 +24,6 @@ export const BulkDifficultyDialog: React.FC<BulkDifficultyDialogProps> = (props)
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const cancelRef = React.useRef<HTMLButtonElement>(null);
   const descriptionRef = React.useRef<HTMLParagraphElement>(null);
-  const confirmingRef = React.useRef(false);
   const titleId = React.useId();
   const descriptionId = React.useId();
   useToastModalFocusTarget(dialogRef, descriptionRef);
@@ -65,8 +64,7 @@ export const BulkDifficultyDialog: React.FC<BulkDifficultyDialogProps> = (props)
   };
 
   const handleCancel = () => {
-    // Once confirmation starts, the snapshot must stay fixed until that attempt settles.
-    if (props.pending || confirmingRef.current) return;
+    if (props.pending) return;
     props.onCancel();
   };
 
@@ -85,23 +83,6 @@ export const BulkDifficultyDialog: React.FC<BulkDifficultyDialogProps> = (props)
     dialog.addEventListener("keydown", handleKeyDownEvent);
     return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
   }, []);
-
-  const handleConfirm = () => {
-    if (props.pending || confirmingRef.current) return;
-    confirmingRef.current = true;
-    try {
-      void Promise.resolve(props.onConfirm())
-        .catch(() => {
-          // Callers own the retry state and user feedback; consuming the rejection prevents an unhandled promise.
-        })
-        .finally(() => {
-          confirmingRef.current = false;
-        });
-    } catch (error) {
-      confirmingRef.current = false;
-      throw error;
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-canvas/70 px-shell-gutter py-6">
@@ -152,7 +133,7 @@ export const BulkDifficultyDialog: React.FC<BulkDifficultyDialogProps> = (props)
             variant="primary"
             disabled={props.difficulty == null || props.cardCount === 0}
             loading={Boolean(props.pending)}
-            onClick={handleConfirm}
+            onClick={props.onConfirm}
           >
             {t("cardList.bulkDifficulty.dialog.confirm")}
           </Button>

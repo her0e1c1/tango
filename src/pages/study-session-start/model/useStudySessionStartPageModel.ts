@@ -2,8 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/entities/auth";
 import { type Deck, useDeck } from "@/entities/deck";
-import { startStudy } from "@/entities/study-session";
-import { routes } from "@/shared/router";
+import { startStudySession } from "./actions/startStudySession";
 import {
   useDeckFilterDraft,
   getDeckFilterState,
@@ -35,10 +34,7 @@ export function useStudySessionStartPageModel(deck: Deck) {
   const filter = getDeckFilterState(filterDraft.state);
   // Build the session from the latest selection, even while its autosave is still pending.
   const state = useStudySessionStartState(deck.id, filterDraft.state.draft);
-  const start = () => {
-    startStudy(deck.id, state.cards, state.studyPreferences);
-    void navigate(routes.deckStudy.to(deck.id), { replace: true });
-  };
+  const start = () => startStudySession(deck.id, state.cards, state.studyPreferences, navigate);
   useStudyStartShortcut(start, { saving: filter.saving, cardCount: state.cardsLength });
 
   return {
