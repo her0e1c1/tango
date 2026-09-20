@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { editStudyProgressSchema } from "./schema";
 
-describe("StudyProgress operation schemas [SWIPE-02]", () => {
+describe("StudyProgress operation schemas [CARD-05] [CARD-06]", () => {
   it("accepts progress fields for an identified Card", () => {
     expect(
       editStudyProgressSchema.parse({

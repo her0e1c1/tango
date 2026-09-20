@@ -103,15 +103,11 @@ describe("planStudySessionSwipe [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", ()
   ];
 
   it("plans the progress edit and session movement for the active card", () => {
-    expect(planStudySessionSwipe(session, cards, "GoToNextCardMastered", 1_786_512_000_000)).toEqual({
+    expect(planStudySessionSwipe(session, cards, "GoToNextCardMastered")).toEqual({
       effect: "next",
       session,
-      progress: {
-        cardId: "card-2",
-        difficulty: 1,
-        numberOfSeen: 4,
-        lastSeenAt: 1_786_512_000_000,
-      },
+      cardId: "card-2",
+      rating: "good",
     });
   });
 
@@ -122,20 +118,20 @@ describe("planStudySessionSwipe [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", ()
     ["GoToNextCardNotMastered", "next"],
     ["GoToNextCardToggleMastered", "next"],
   ] as const)("plans %s to move %s after persistence", (swipeAction, effect) => {
-    expect(planStudySessionSwipe(session, cards, swipeAction, 0)).toMatchObject({ effect, session });
+    expect(planStudySessionSwipe(session, cards, swipeAction)).toMatchObject({ effect, session });
   });
 
   it.each([
     ["DoNothing", "none"],
     ["GoBack", "exit"],
   ] as const)("plans %s as %s without a progress edit", (swipeAction, effect) => {
-    expect(planStudySessionSwipe(session, cards, swipeAction, 0)).toEqual({ effect });
+    expect(planStudySessionSwipe(session, cards, swipeAction)).toEqual({ effect });
   });
 
   it("ignores swipes without a resolvable active session", () => {
-    expect(planStudySessionSwipe(undefined, cards, "GoToNextCard", 0)).toEqual({ effect: "none" });
-    expect(planStudySessionSwipe(session, cards.slice(0, 1), "GoToNextCard", 0)).toEqual({ effect: "none" });
-    expect(planStudySessionSwipe({ ...session, currentIndex: 3 }, cards, "GoToNextCard", 0)).toEqual({
+    expect(planStudySessionSwipe(undefined, cards, "GoToNextCard")).toEqual({ effect: "none" });
+    expect(planStudySessionSwipe(session, cards.slice(0, 1), "GoToNextCard")).toEqual({ effect: "none" });
+    expect(planStudySessionSwipe({ ...session, currentIndex: 3 }, cards, "GoToNextCard")).toEqual({
       effect: "none",
     });
   });

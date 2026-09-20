@@ -146,7 +146,7 @@ Given:
 
 When:
 
-- 一方の Deck で学習 action を実行して Deck 一覧へ戻り、もう一方の Deck を Continue する。
+- 一方の Deck で学習 action を実行し、保存完了と次の Card への遷移を待ってから Deck 一覧へ戻り、もう一方の Deck を Continue する。
 
 Then:
 

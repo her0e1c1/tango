@@ -1,10 +1,10 @@
 import { getAuthUid } from "@/entities/auth";
 import { type CardId, getCards, mustFindCardById } from "@/entities/card";
-import { calculateDifficulty, editStudyProgress, type StudyRating } from "@/entities/study-progress";
+import { calculateDifficulty, editStudyProgress } from "@/entities/study-progress";
 import { showToast } from "@/shared/ui/toast";
 import { cardListStore } from "../store";
 
-export async function changeCardDifficulty(cardId: CardId, rating: StudyRating): Promise<void> {
+export async function changeCardDifficulty(cardId: CardId, rating: "mastered" | "not-mastered"): Promise<void> {
   if (cardListStore.getState().mutationId !== undefined) return;
   const mutationId = Symbol();
   cardListStore.setState({ mutationId });

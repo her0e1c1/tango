@@ -16,7 +16,7 @@ import { createLocalCard, createLocalDeck, createPreferences } from "@/test/fact
 
 const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
-  editStudyProgress: vi.fn(),
+  recordStudy: vi.fn(),
   removeStudySession: vi.fn(),
   setDarkMode: vi.fn(),
   touchStudySession: vi.fn(),
@@ -26,7 +26,7 @@ const mocks = vi.hoisted(() => ({
   toggleShowSwipeButtonList: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }) }));
+vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }), getAuthUid: () => "user-id" }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   getPreferences: () => mocks.preferences,
@@ -51,17 +51,7 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
   };
 });
 // Persistence is outside Page behavior; successful writes let the real study workflow advance.
-vi.mock("@/entities/study-progress", () => ({
-  editStudyProgress: mocks.editStudyProgress,
-  DifficultyIndicator: ({ difficulty = 5 }: { difficulty?: number }) => {
-    const cue = difficulty < 5 ? "easy" : difficulty > 5 ? "hard" : "neutral";
-    return (
-      <span role="status" aria-label={`Difficulty ${String(difficulty)}, ${cue}`}>
-        {difficulty}
-      </span>
-    );
-  },
-}));
+vi.mock("../api/recordStudy", () => ({ recordStudy: mocks.recordStudy }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionPage } from "./StudySessionPage";
@@ -78,7 +68,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE-24]", () => {
+describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-10] [SWIPE-24]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -124,7 +114,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
     clearStudySessions();
     dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
-    mocks.editStudyProgress.mockReset().mockResolvedValue(undefined);
+    mocks.recordStudy.mockReset().mockResolvedValue(undefined);
     mocks.removeStudySession.mockReset();
     mocks.setDarkMode.mockReset();
     mocks.touchStudySession.mockReset();
@@ -184,7 +174,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
     await user.keyboard("{ArrowUp}{ArrowDown}{ArrowLeft}{ArrowRight}");
 
     expect(screen.getByText("Back one")).toBeVisible();
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.recordStudy).not.toHaveBeenCalled();
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
   });
 
@@ -203,9 +193,10 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
 
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
     expect(screen.queryByText("Back two")).not.toBeInTheDocument();
-    expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith(
+    expect(mocks.recordStudy).toHaveBeenCalledExactlyOnceWith(
       "user-id",
-      expect.objectContaining({ cardId: "first-card", difficulty: 1, numberOfSeen: 4 })
+      expect.objectContaining({ cardId: "first-card", rating: "good" }),
+      true
     );
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
@@ -232,7 +223,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
     await user.keyboard("{ArrowRight}");
 
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
-    expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
+    expect(mocks.recordStudy).not.toHaveBeenCalled();
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
   });
 
@@ -262,7 +253,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
       cardSwipeRight: "GoToNextCardMastered",
     });
     const request = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValueOnce(request.promise);
+    mocks.recordStudy.mockReturnValueOnce(request.promise);
     renderPage();
 
     fireEvent.keyDown(window, { key: "ArrowRight" });
@@ -319,7 +310,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
 
     expect(screen.getByText("Front one")).toBeVisible();
     expect(getStudySession(deckId)).toEqual(sessionBeforeHelp);
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.recordStudy).not.toHaveBeenCalled();
     expect(mocks.toggleShowSwipeButtonList).not.toHaveBeenCalled();
 
     fireEvent.keyDown(screen.getByRole("button", { name: "Close help" }), { key: "Escape" });
@@ -400,7 +391,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
     expect(getStudySession(deckId)).toBeUndefined();
 
     fireEvent.keyDown(window, { key: "ArrowUp" });
-    expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
+    expect(mocks.recordStudy).toHaveBeenCalledOnce();
 
     fireEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
     expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
@@ -467,7 +458,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
     await user.keyboard("b");
 
     expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.recordStudy).not.toHaveBeenCalled();
   });
 
   it.each(["{ArrowUp}", "{ArrowDown}", "{ArrowLeft}", "{ArrowRight}"])(
@@ -488,7 +479,7 @@ describe("StudySessionPage [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE
       progress.focus();
       await user.keyboard(key);
 
-      expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+      expect(mocks.recordStudy).not.toHaveBeenCalled();
     }
   );
 

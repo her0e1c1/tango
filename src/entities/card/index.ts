@@ -1,3 +1,4 @@
+export { recordLocalStudy } from "./model/actions/recordLocalStudy";
 export { getCards } from "./model/queries/getCards";
 export { subscribeCards } from "./api/firestore";
 export { generateCardId } from "./api/id";

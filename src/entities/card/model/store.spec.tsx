@@ -55,10 +55,10 @@ describe("Card store [CARD-01]", () => {
     cardStore.setState({ localCards: [localCard] });
 
     replaceRemoteCards([remoteCard]);
-    expect(cardStore.getState()).toEqual({ remoteCards: [remoteCard], localCards: [localCard] });
+    expect(cardStore.getState()).toEqual({ studyAttempts: [], remoteCards: [remoteCard], localCards: [localCard] });
 
     clearRemoteCards();
-    expect(cardStore.getState()).toEqual({ remoteCards: [], localCards: [localCard] });
+    expect(cardStore.getState()).toEqual({ studyAttempts: [], remoteCards: [], localCards: [localCard] });
   });
 
   it("exposes combined collection and individual Card selectors", () => {
@@ -92,14 +92,14 @@ describe("Card store [CARD-01]", () => {
 
     const persistedValue = (await storage.getItem("tango-local-cards")) ?? "{}";
     expect(JSON.parse(persistedValue)).toEqual({
-      state: { localCards: [{ ...localCard, nextSeeingAt: new Date(1000).toISOString() }] },
+      state: { studyAttempts: [], localCards: [{ ...localCard, nextSeeingAt: new Date(1000).toISOString() }] },
       version: 1,
     });
 
     cardStore.setState({ remoteCards: [], localCards: [] });
     useMemoryStorage({ "tango-local-cards": persistedValue });
     await cardStore.persist.rehydrate();
-    expect(cardStore.getState()).toEqual({ remoteCards: [], localCards: [localCard] });
+    expect(cardStore.getState()).toEqual({ studyAttempts: [], remoteCards: [], localCards: [localCard] });
   });
 
   it("hydrates version 1 local Cards without retaining a UID", async () => {

@@ -1,3 +1,4 @@
+rules_version = '2';
 service cloud.firestore {
   function isOwner() {
     return request.auth.uid == resource.data.uid;
@@ -27,12 +28,55 @@ service cloud.firestore {
         return getDeck(resource.data.deckId).data.isPublic == true;
       }
       function belongsToDeck() {
-        return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
+        return getDeck(request.resource.data.deckId).data.uid == request.auth.uid;
       }
       allow read: if isOwner() || isPublic();
       allow create: if isValid() && belongsToDeck();
-      allow update: if isValidOwner() && belongsToDeck();
+      function hasPairedReview() {
+        let id = request.resource.data.lastStudyOperationId;
+        let attempt = getAfter(/databases/$(database)/documents/studyAttempt/$(id)).data;
+        return id is string && !exists(/databases/$(database)/documents/studyAttempt/$(id)) &&
+          attempt.uid == request.auth.uid && attempt.cardId == cardId &&
+          attempt.deckId == resource.data.deckId && request.resource.data.deckId == resource.data.deckId &&
+          resource.data.get('deletedAt', null) == null && request.resource.data.get('deletedAt', null) == null &&
+          request.resource.data.numberOfSeen == resource.data.numberOfSeen + 1 &&
+          request.resource.data.lastSeenAt is number &&
+          request.resource.data.lastSeenAt >= resource.data.get('lastSeenAt', 0) &&
+          request.resource.data.difficulty is number &&
+          request.resource.data.difficulty >= 1 && request.resource.data.difficulty <= 10;
+      }
+      function validProgressUpdate() {
+        // Legacy difficulty-only controls are not review operations or FSRS parameter edits.
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'numberOfSeen', 'lastSeenAt', 'nextSeeingAt', 'interval', 'lastStudyOperationId'
+        ]) || hasPairedReview();
+      }
+      allow update: if isValidOwner() && belongsToDeck() && validProgressUpdate();
       allow delete: if isOwner();
+    }
+    match /studyAttempt/{operationId} {
+      function validAttempt() {
+        let data = request.resource.data;
+        let card = get(/databases/$(database)/documents/card/$(data.cardId)).data;
+        let after = getAfter(/databases/$(database)/documents/card/$(data.cardId)).data;
+        let deck = get(/databases/$(database)/documents/deck/$(data.deckId)).data;
+        return data.keys().hasAll(['uid', 'deckId', 'cardId', 'sessionId', 'rating', 'answeredAt', 'localDate', 'timeZone', 'schemaVersion']) &&
+          data.keys().hasOnly(['uid', 'deckId', 'cardId', 'sessionId', 'rating', 'answeredAt', 'localDate', 'timeZone', 'schemaVersion']) &&
+          data.uid == request.auth.uid && data.deckId is string && data.cardId is string &&
+          data.sessionId is string && data.sessionId.size() > 0 &&
+          data.rating in ['again', 'hard', 'good', 'easy'] && data.schemaVersion == 1 &&
+          data.answeredAt is timestamp && data.answeredAt >= timestamp.date(1970, 1, 1) &&
+          data.localDate is string && data.localDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+          data.timeZone is string && data.timeZone.size() > 0 && data.timeZone.size() <= 100 &&
+          card.uid == request.auth.uid && deck.uid == request.auth.uid && card.deckId == data.deckId &&
+          card.get('deletedAt', null) == null && deck.get('deletedAt', null) == null &&
+          after.lastStudyOperationId == operationId && after.numberOfSeen == card.numberOfSeen + 1;
+      }
+      // An authenticated absent-ID lookup is needed before creating an operation. Existing results stay owner-only.
+      allow get: if request.auth != null && (!exists(/databases/$(database)/documents/studyAttempt/$(operationId)) || isOwner());
+      allow list: if isOwner();
+      allow create: if request.auth != null && validAttempt();
+      allow update, delete: if false;
     }
   }
 }

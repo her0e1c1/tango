@@ -1,6 +1,13 @@
 import type { Page } from "@playwright/test";
 
-import { allowExpectedFirestoreWriteFailure, expect, failNextFirestoreWrite, readLocalData, test } from "./fixtures";
+import {
+  allowExpectedFirestoreWriteFailure,
+  expect,
+  failNextFirestoreWrite,
+  readLocalData,
+  listDocuments,
+  test,
+} from "./fixtures";
 import { progressOf, readProgress, readSession } from "./study-helpers";
 
 const cardAt = <T>(cards: readonly T[], index: number) => {
@@ -57,6 +64,7 @@ test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ 
       difficulty: currentCard.difficulty - 1,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
+  expect((await readAttempts(currentCard.id)).map((entry) => entry.fields.rating?.stringValue)).toEqual(["good"]);
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
   await expect(feedback).toHaveCount(0, { timeout: 2000 });
   await expect(directionIcon).toHaveCount(0);
@@ -79,10 +87,11 @@ test("SWIPE-03 saves non-mastered progress and advances to the next Card", async
       difficulty: currentCard.difficulty + 1,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
+  expect((await readAttempts(currentCard.id)).map((entry) => entry.fields.rating?.stringValue)).toEqual(["again"]);
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-04 records an unrated next action and advances", async ({ fixture, page }) => {
+test("SWIPE-04 advances without changing review state", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -97,12 +106,13 @@ test("SWIPE-04 records an unrated next action and advances", async ({ fixture, p
     .poll(() => readProgress(currentCard.id))
     .toEqual({
       difficulty: currentCard.difficulty,
-      numberOfSeen: currentCard.numberOfSeen + 1,
+      numberOfSeen: currentCard.numberOfSeen,
     });
+  expect(await readAttempts(currentCard.id)).toHaveLength(0);
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-05 records an unrated previous action and moves back", async ({ fixture, page }) => {
+test("SWIPE-05 moves back without changing review state", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-2");
@@ -117,8 +127,9 @@ test("SWIPE-05 records an unrated previous action and moves back", async ({ fixt
     .poll(() => readProgress(currentCard.id))
     .toEqual({
       difficulty: currentCard.difficulty,
-      numberOfSeen: currentCard.numberOfSeen + 1,
+      numberOfSeen: currentCard.numberOfSeen,
     });
+  expect(await readAttempts(currentCard.id)).toHaveLength(0);
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex - 1);
 });
 
@@ -246,6 +257,7 @@ test("SWIPE-11 keeps multiple Deck sessions independent", async ({ fixture, page
 
   await page.goto(`/deck/${deckA.id}/study`);
   await page.getByRole("button", { name: "Swipe up" }).click();
+  await expect.poll(async () => (await readSession(page, deckA.id))?.currentIndex).toBe(sessionA.currentIndex + 1);
   await returnToDeckList(page);
   await expect(page).toHaveURL(/\/$/);
   await page.getByRole("button", { name: `Continue ${deckB.name}` }).click();
@@ -280,7 +292,8 @@ test("SWIPE-12 retries a failed progress write from the same Card once", async (
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 
-  await page.getByRole("button", { name: "Swipe up" }).click();
+  const pending = await readPending(page);
+  await page.getByRole("button", { name: "Retry saved review" }).click();
 
   await expect(page.getByRole("status").filter({ hasText: "Swiped up" })).toBeVisible();
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
@@ -291,6 +304,9 @@ test("SWIPE-12 retries a failed progress write from the same Card once", async (
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  const attempts = await readAttempts(currentCard.id);
+  expect(attempts).toHaveLength(1);
+  expect(attempts[0]?.name).toContain(pending.input.operationId);
   await fault.dispose();
 });
 
@@ -443,4 +459,76 @@ test("SWIPE-25 toggles and persists the Study Help button", async ({ fixture, pa
   await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
   await page.getByRole("button", { name: "Open study actions" }).click();
   await expect(page.getByRole("button", { name: "Help button" })).toHaveAttribute("aria-pressed", "false");
+});
+
+const readAttempts = async (cardId: string) =>
+  (await listDocuments("studyAttempt")).filter((entry) => entry.fields.cardId?.stringValue === cardId);
+const readPending = async (page: Page) =>
+  page.evaluate(() => {
+    const key = Object.keys(sessionStorage).find((name) => name.startsWith("tango-pending-study:"));
+    if (!key) throw new Error("Missing pending study");
+    return JSON.parse(sessionStorage.getItem(key) ?? "null") as { input: { operationId: string; answeredAt: string } };
+  });
+
+test("SWIPE-27 preserves both clients' simultaneous reviews", async ({ fixture, page, browserErrors }) => {
+  await fixture.apply(page);
+  const context = page.context();
+  allowExpectedFirestoreWriteFailure(browserErrors);
+  const other = await context.newPage();
+  try {
+    await fixture.seedPage(other);
+    const route = `/deck/${fixture.deck().id}/study`;
+    await Promise.all([page.goto(route), other.goto(route)]);
+    await Promise.all([
+      page.getByRole("button", { name: "Swipe up" }).click(),
+      other.getByRole("button", { name: "Swipe up" }).click(),
+    ]);
+    for (const client of [page, other]) {
+      const next = client.getByText(fixture.card("card-2").frontText, { exact: true });
+      const retry = client.getByRole("button", { name: "Retry saved review" });
+      // Contention can be a terminal permission error in the emulator. A user confirms
+      // the retained operation explicitly, exactly as for an uncertain network result.
+      await expect
+        .poll(async () => (await next.isVisible()) || ((await retry.isVisible()) && (await retry.isEnabled())))
+        .toBe(true);
+      if (!(await next.isVisible())) await retry.click();
+      await expect(next).toBeVisible();
+    }
+    const card = fixture.card("card-1");
+    await expect
+      .poll(() => readProgress(card.id))
+      .toEqual({ difficulty: card.difficulty - 2, numberOfSeen: card.numberOfSeen + 2 });
+    await expect.poll(() => readAttempts(card.id)).toHaveLength(2);
+  } finally {
+    await other.close();
+  }
+});
+
+test("SWIPE-28 restores an offline review without automatic resubmission", async ({
+  fixture,
+  page,
+  context,
+  browserErrors,
+}) => {
+  await fixture.apply(page);
+  const card = fixture.card("card-1");
+  await page.goto(`/deck/${fixture.deck().id}/study`);
+  await expect(page.getByRole("button", { name: "Swipe up" })).toBeVisible();
+  browserErrors.allow(/^console error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED/);
+  browserErrors.allow(/^console error:.*Firestore.*Could not reach Cloud Firestore backend/);
+  await context.setOffline(true);
+  await page.getByRole("button", { name: "Swipe up" }).click();
+  await expect(page.getByRole("button", { name: "Retry saved review" })).toBeEnabled({ timeout: 20_000 });
+  const pending = await readPending(page);
+  await context.setOffline(false);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Retry saved review" })).toBeEnabled();
+  expect(await readPending(page)).toEqual(pending);
+  expect(await readProgress(card.id)).toEqual(progressOf(card));
+  expect(await readAttempts(card.id)).toHaveLength(0);
+  await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Retry saved review" }).click();
+  await expect(page.getByText(fixture.card("card-2").frontText, { exact: true })).toBeVisible();
+  expect(await readAttempts(card.id)).toHaveLength(1);
+  expect((await readAttempts(card.id))[0]?.name).toContain(pending.input.operationId);
 });

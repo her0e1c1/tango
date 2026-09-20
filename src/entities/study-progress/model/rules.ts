@@ -1,7 +1,5 @@
 import * as lodash from "lodash";
 
-import type { SwipeAction } from "@/entities/preference/@x/study-progress";
-
 import { createStudyProgress } from "./defaults";
 import { clampDifficulty, type Difficulty } from "./difficulty";
 import type {
@@ -12,16 +10,6 @@ import type {
   StudyProgressFilter,
   StudyRating,
 } from "./types";
-
-// Converts a control action into its learning outcome; navigation-only actions remain unrated.
-const resolveStudyRating = (swipeAction: SwipeAction): StudyRating => {
-  if (swipeAction === "GoToNextCardMastered") return "mastered";
-  // Toggle remains a not-mastered rating because changing this mapping would alter existing study controls.
-  if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {
-    return "not-mastered";
-  }
-  return "unrated";
-};
 
 // Projects a Card's learning fields into StudyProgress while preserving which optional fields are absent.
 export const createStudyProgressFromCard = (card: CardProgressFields): StudyProgress => {
@@ -34,28 +22,24 @@ export const createStudyProgressFromCard = (card: CardProgressFields): StudyProg
   return progress;
 };
 
-// Applies at most one step per rating without resetting when the rating direction changes.
-export const calculateDifficulty = (difficulty: Difficulty, rating: StudyRating): Difficulty => {
-  if (rating === "mastered") return clampDifficulty(difficulty - 1);
-  if (rating === "not-mastered") return clampDifficulty(difficulty + 1);
-  return difficulty;
-};
+// Legacy difficulty controls remain distinct from review ratings until the FSRS migration.
+export const calculateDifficulty = (difficulty: Difficulty, rating: "mastered" | "not-mastered"): Difficulty =>
+  clampDifficulty(difficulty + (rating === "mastered" ? -1 : 1));
 
-// Builds the persistence patch for one interaction, which always increments the seen count and records its timestamp.
-const recordStudyProgress = (progress: StudyProgress, rating: StudyRating, studiedAt: number): StudyProgressEdit => ({
-  cardId: progress.cardId,
-  difficulty: calculateDifficulty(progress.difficulty, rating),
-  numberOfSeen: progress.numberOfSeen + 1,
-  lastSeenAt: studiedAt,
-});
-
-// Translates a studied Card and its control action into the progress patch owned by the StudyProgress Entity.
-export const recordCardStudyProgress = (
-  card: CardProgressFields,
-  swipeAction: SwipeAction,
-  studiedAt: number
-): StudyProgressEdit =>
-  recordStudyProgress(createStudyProgressFromCard(card), resolveStudyRating(swipeAction), studiedAt);
+// This is the single transition boundary for a rated review; FSRS will replace this legacy adapter.
+export function applyStudyRating(progress: StudyProgress, rating: StudyRating, answeredAt: Date): StudyProgressEdit {
+  return {
+    cardId: progress.cardId,
+    difficulty:
+      rating === "again"
+        ? clampDifficulty(progress.difficulty + 1)
+        : rating === "good" || rating === "easy"
+          ? clampDifficulty(progress.difficulty - 1)
+          : progress.difficulty,
+    numberOfSeen: progress.numberOfSeen + 1,
+    lastSeenAt: Math.max(answeredAt.getTime(), progress.lastSeenAt ?? answeredAt.getTime()),
+  };
+}
 
 // Accepts progress inside the inclusive difficulty bounds and, when enabled, only after its next scheduled time.
 export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyProgressFilter, now: number): boolean => {
@@ -85,3 +69,21 @@ export const buildStudyCardOrder = (
   if (options.maxNumberOfCardsToLearn > 0) cardOrderIds = cardOrderIds.slice(0, options.maxNumberOfCardsToLearn);
   return cardOrderIds;
 };
+
+import type { StudyAttempt } from "./schema";
+
+export function assertSameStudyAttempt(existing: StudyAttempt, input: StudyAttempt): void {
+  if (
+    existing.operationId !== input.operationId ||
+    existing.uid !== input.uid ||
+    existing.deckId !== input.deckId ||
+    existing.cardId !== input.cardId ||
+    existing.sessionId !== input.sessionId ||
+    existing.rating !== input.rating ||
+    existing.answeredAt.getTime() !== input.answeredAt.getTime() ||
+    existing.localDate !== input.localDate ||
+    existing.timeZone !== input.timeZone
+  ) {
+    throw new Error("Study operation conflicts with an existing attempt");
+  }
+}

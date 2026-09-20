@@ -129,6 +129,8 @@
 | SWIPE-10 | write | [最後の Card を完了して completion screen を表示できる](./study-session.md#swipe-10) |
 | SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](./study-session.md#swipe-11) |
 | SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](./study-actions.md#swipe-12) |
+| SWIPE-28 | write | [オフラインの評価を reload 後に明示的に再試行できる](./study-actions.md#swipe-28) |
+| SWIPE-27 | batch | [同じ Card への同時評価をそれぞれ一度保存できる](./study-actions.md#swipe-27) |
 | SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](./study-controls.md#swipe-13) |
 | SWIPE-14 | read | [non-primary mouse の drag を無視できる](./study-controls.md#swipe-14) |
 | SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study-controls.md#swipe-16) |

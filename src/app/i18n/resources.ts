@@ -379,6 +379,11 @@ export const resources = {
         },
       },
       studySession: {
+        saving: "Saving review…",
+        saveFailure: "Unable to confirm this review. Retry the saved review to check its result.",
+        pendingReview: "A review is awaiting confirmation. Retry to continue.",
+        pendingUnreadable: "The saved review could not be read. Restore browser storage access and reload to continue.",
+        retryReview: "Retry saved review",
         unavailable: "Study session unavailable.",
         loading: "Loading…",
         answerAria: "Study answer",
@@ -1065,6 +1070,11 @@ export const resources = {
         },
       },
       studySession: {
+        saving: "評価を保存しています…",
+        saveFailure: "評価の保存を確認できませんでした。保存済みの操作を再試行してください。",
+        pendingReview: "保存を確認できていない評価があります。再試行して続行してください。",
+        pendingUnreadable: "保持した評価を読み取れません。ブラウザーの保存領域を確認して再読み込みしてください。",
+        retryReview: "保持した評価を再試行",
         unavailable: "学習セッションを利用できません。",
         loading: "読み込み中…",
         answerAria: "学習カードの回答",

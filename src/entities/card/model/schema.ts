@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { persistedStudyAttemptSchema } from "@/entities/study-progress/@x/card";
 
 import { DEFAULT_DIFFICULTY, difficultySchema } from "@/entities/study-progress/@x/card";
 import { isNonBlank } from "@/shared/lib/isNonBlank";
@@ -59,7 +60,10 @@ const persistedDateSchema = z.preprocess(
 );
 
 const persistedCardSchema = localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
-export const persistedCardStateSchema = z.object({ localCards: z.array(persistedCardSchema) });
+export const persistedCardStateSchema = z.object({
+  localCards: z.array(persistedCardSchema),
+  studyAttempts: z.array(persistedStudyAttemptSchema).default([]),
+});
 
 export const localCardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });
 export const cardEditSchema = localCardEditSchema.extend({ uid: cardUidSchema });

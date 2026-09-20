@@ -2,6 +2,7 @@ export { useStudySession } from "./model/queries/useStudySession";
 export { useStudySessions } from "./model/queries/useStudySessions";
 export {
   canMoveStudySession,
+  isStudySessionPositionUnchanged,
   compareActiveDecks,
   groupDecksByStudyStatus,
   planStudySessionSwipe,

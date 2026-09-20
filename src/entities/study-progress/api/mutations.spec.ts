@@ -14,7 +14,7 @@ vi.mock("./firestore", () => ({ editRemoteStudyProgress: mocks.editRemoteStudyPr
 
 import { editStudyProgress } from "./mutations";
 
-describe("StudyProgress mutations [SWIPE-02]", () => {
+describe("StudyProgress mutations [CARD-05] [CARD-06]", () => {
   beforeEach(() => vi.resetAllMocks());
 
   it("updates local Card progress without writing to Firestore", async () => {
@@ -36,7 +36,6 @@ describe("StudyProgress mutations [SWIPE-02]", () => {
     expect(mocks.editLocalCardStudyProgress).toHaveBeenCalledExactlyOnceWith({
       id: "local",
       difficulty: 2,
-      numberOfSeen: 3,
     });
     expect(mocks.editRemoteStudyProgress).not.toHaveBeenCalled();
   });

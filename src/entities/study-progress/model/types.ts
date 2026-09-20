@@ -9,7 +9,7 @@ export interface StudyProgress {
   cardId: CardId;
   /** Relative Card difficulty, where larger values are harder. */
   difficulty: Difficulty;
-  /** Number of recorded study interactions, including interactions that do not change the difficulty. */
+  /** Number of recorded reviews, including ratings that do not change the difficulty. */
   numberOfSeen: number;
   lastSeenAt?: number;
   /** Earliest time the Card is eligible when interval filtering is enabled. */
@@ -31,7 +31,7 @@ export interface StudyProgressDocumentFields {
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;
 
 /** Learning outcome derived from one study interaction. */
-export type StudyRating = "mastered" | "not-mastered" | "unrated";
+export type { StudyRating } from "./schema";
 
 /** Inclusive difficulty and due-time constraints for Card eligibility. */
 export interface StudyProgressFilter {

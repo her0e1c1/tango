@@ -1,6 +1,6 @@
 import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
-import type { StudyProgressEdit } from "@/entities/study-progress/@x/study-session";
+import type { StudyRating } from "@/entities/study-progress/@x/study-session";
 
 /**
  * Persisted progress for one deck's active study run.
@@ -37,14 +37,15 @@ export type StudySessionMovement = "previous" | "next";
 /** No-op, exit, or cursor movement produced by a study swipe. */
 export type StudySessionSwipeEffect = "none" | "exit" | StudySessionMovement;
 
-/** Pure swipe plan describing its session effect and optional progress patch. */
+/** Pure swipe plan describing its session effect and optional rating intent. */
 export type StudySessionSwipePlan =
   | { effect: "none" }
   | { effect: "exit" }
   | {
       effect: StudySessionMovement;
       session: StudySession;
-      progress: StudyProgressEdit;
+      cardId: CardId;
+      rating: StudyRating | undefined;
     };
 
 /** Minimal Card identity needed to resolve a study session position. */

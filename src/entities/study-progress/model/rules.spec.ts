@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type { SwipeAction } from "@/entities/preference/@x/study-progress";
+import type { StudyRating } from "./types";
 
 import {
   buildStudyCardOrder,
   calculateDifficulty,
   createStudyProgressFromCard,
   isStudyProgressEligible,
-  recordCardStudyProgress,
+  applyStudyRating,
 } from "./rules";
 import { createStudyProgress } from "./defaults";
 import type { CardProgressFields, StudyProgress } from "./types";
@@ -53,21 +53,21 @@ describe("createStudyProgressFromCard [CARD-01]", () => {
   });
 });
 
-describe("recordCardStudyProgress [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", () => {
-  it.each<[number, SwipeAction, number]>([
-    [5, "GoToNextCardMastered", 4],
-    [7, "GoToNextCardMastered", 6],
-    [1, "GoToNextCardMastered", 1],
-    [5, "GoToNextCardNotMastered", 6],
-    [8, "GoToNextCardToggleMastered", 9],
-    [3, "GoToNextCardNotMastered", 4],
-    [10, "GoToNextCardNotMastered", 10],
-    [3, "GoToNextCard", 3],
-    [3, "GoToPrevCard", 3],
+describe("applyStudyRating [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", () => {
+  it.each<[number, StudyRating, number]>([
+    [5, "good", 4],
+    [7, "good", 6],
+    [1, "good", 1],
+    [5, "again", 6],
+    [8, "again", 9],
+    [3, "again", 4],
+    [10, "again", 10],
+    [3, "hard", 3],
+    [3, "easy", 2],
   ])("records difficulty %i for %s as %i", (difficulty, swipeAction, expectedDifficulty) => {
     const card = { ...cardProgress("card-id", 2), difficulty };
 
-    expect(recordCardStudyProgress(card, swipeAction, 1_786_512_000_000)).toEqual({
+    expect(applyStudyRating(createStudyProgressFromCard(card), swipeAction, new Date(1_786_512_000_000))).toEqual({
       cardId: "card-id",
       difficulty: expectedDifficulty,
       numberOfSeen: 3,

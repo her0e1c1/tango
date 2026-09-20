@@ -9,6 +9,8 @@ import { advanceStudySession } from "./advanceStudySession";
 export function useAutoPlay(sessionState: StudySessionState): void {
   const {
     owner,
+    pendingOperation,
+    pendingReadFailed,
     pageState: { autoPlay, helpOpen },
   } = useStore(studySessionPageStore);
   const {
@@ -19,6 +21,8 @@ export function useAutoPlay(sessionState: StudySessionState): void {
     sessionState.status === "studying" &&
     autoPlay &&
     !helpOpen &&
+    !pendingOperation &&
+    !pendingReadFailed &&
     cardInterval > 0 &&
     owner?.deckId === sessionState.session.deckId &&
     canMoveStudySession(sessionState.session, "next")
@@ -30,7 +34,14 @@ export function useAutoPlay(sessionState: StudySessionState): void {
     const timeout = window.setTimeout(() => {
       // A departed visit must not advance a matching session in a later visit.
       const current = studySessionPageStore.getState();
-      if (current.owner !== owner || !current.pageState.autoPlay || current.pageState.helpOpen) return;
+      if (
+        current.pendingOperation ||
+        current.pendingReadFailed ||
+        current.owner !== owner ||
+        !current.pageState.autoPlay ||
+        current.pageState.helpOpen
+      )
+        return;
       advanceStudySession(session);
     }, cardInterval * 1000);
     return () => window.clearTimeout(timeout);

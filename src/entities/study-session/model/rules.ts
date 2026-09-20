@@ -4,7 +4,6 @@ import {
   type CardProgressFields,
   createStudyProgressFromCard,
   isStudyProgressEligible,
-  recordCardStudyProgress,
 } from "@/entities/study-progress/@x/study-session";
 
 import type {
@@ -127,12 +126,11 @@ const resolveStudySessionSwipeEffect = (swipeAction: SwipeAction): StudySessionS
   return swipeAction === "GoToPrevCard" ? "previous" : "next";
 };
 
-// Plans a swipe without mutation and emits progress only when the current session and Card still resolve.
+// Plans a swipe without mutation and emits a rating intent only when the current session and Card still resolve.
 export const planStudySessionSwipe = (
   session: StudySession | undefined,
   cards: readonly CardProgressFields[],
-  swipeAction: SwipeAction,
-  studiedAt: number
+  swipeAction: SwipeAction
 ): StudySessionSwipePlan => {
   if (session == null) return { effect: "none" };
 
@@ -145,7 +143,13 @@ export const planStudySessionSwipe = (
   return {
     effect,
     session,
-    progress: recordCardStudyProgress(resolvedSession.card, swipeAction, studiedAt),
+    cardId: resolvedSession.card.id,
+    rating:
+      swipeAction === "GoToNextCardMastered"
+        ? "good"
+        : swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered"
+          ? "again"
+          : undefined,
   };
 };
 

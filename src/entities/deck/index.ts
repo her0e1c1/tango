@@ -1,5 +1,5 @@
 export { getDecks } from "./model/queries/getDecks";
-export { subscribeDecks } from "./api/firestore";
+export { subscribeDecks, readOwnedDeck } from "./api/firestore";
 export { generateDeckId } from "./api/id";
 export { createDeck, deleteDeck, editDeck } from "./api/mutations";
 export { CATEGORY, getCategory, isHighlightLanguage, mustFindDeckById } from "./model/rules";

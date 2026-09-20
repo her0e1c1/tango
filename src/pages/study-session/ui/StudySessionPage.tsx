@@ -18,6 +18,7 @@ import { AppLayout } from "@/widgets/app-layout";
 
 import { useStudySessionPageModel } from "../model/useStudySessionPageModel";
 import { CardOverlay } from "./CardOverlay";
+import { StudySaveStatus } from "./StudySaveStatus";
 import { StudyCompletion } from "./StudyCompletion";
 import { StudySession } from "./StudySession";
 
@@ -58,6 +59,9 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   const {
     query,
     pageState,
+    hasPendingStudy,
+    pendingReadFailed,
+    retryStudy,
     toggleBackText,
     toggleAutoPlay,
     openHelp,
@@ -130,7 +134,7 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   }
 
   const swipeActions = {
-    disabled: false,
+    disabled: pageState.swipePending || hasPendingStudy || pendingReadFailed,
     onClickUp: swipeUp,
     onClickDown: swipeDown,
     onClickLeft: swipeLeft,
@@ -139,6 +143,9 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
 
   return (
     <AppLayout fullscreen showHeader={false}>
+      {hasPendingStudy || pendingReadFailed ? (
+        <StudySaveStatus saving={pageState.swipePending} unreadable={pendingReadFailed} onRetry={retryStudy} />
+      ) : null}
       <StudySession
         onBack={goBack}
         onToggleCardDetails={toggleShowCardDetails}
@@ -149,7 +156,7 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
         showHelp={query.showHelp}
         showCardDetails={query.showCardDetails}
         showSwipeControls={query.showSwipeButtonList}
-        showPlaybackControls={query.showPlaybackControls}
+        showPlaybackControls={query.showPlaybackControls && !hasPendingStudy && !pendingReadFailed}
         playbackControlsAvailable={query.playbackControlsAvailable}
         help={{
           open: pageState.helpOpen,

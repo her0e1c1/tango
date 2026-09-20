@@ -24,7 +24,7 @@ vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
-describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
+describe.concurrent("firestore/card [CARD-01] [CARD-05] [CARD-06]", { retry: 3 }, () => {
   const db = getFirestore();
   const newCard = createCard({
     frontText: "front text",
@@ -108,7 +108,7 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
     await editRemoteStudyProgress("uid", untrustedProgress);
 
     const data = (await getDoc(doc(db, "card", card.id))).data();
-    expect(data).toEqual({ ...created, difficulty: 5.5, numberOfSeen: 3, updatedAt: expect.any(Number) });
+    expect(data).toEqual({ ...created, difficulty: 5.5, updatedAt: expect.any(Number) });
     expect(data?.createdAt).toBe(created.createdAt);
   });
 

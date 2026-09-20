@@ -26,7 +26,7 @@ const projectId = "tango-e2e";
 const firestorePort = process.env.VITE_DB_PORT ?? "8080";
 const firestoreBase = `http://db:${firestorePort}/v1/projects/${projectId}/databases/(default)/documents`;
 
-export type FirestoreCollection = "deck" | "card";
+export type FirestoreCollection = "deck" | "card" | "studyAttempt";
 
 export interface TestNamespace {
   caseId: string;
@@ -47,6 +47,9 @@ const expectedFirestoreWriteTerminationBrowserError =
 
 export const allowExpectedFirestoreWriteFailure = (collector: BrowserErrorCollector) => {
   collector.allow(expectedFirestoreWritePermissionBrowserError);
+  collector.allow(
+    /^console error: Failed to load resource: the server responded with a status of 403.*documents:commit/
+  );
   // The injected 403 can invalidate the stream ID before the SDK's best-effort terminate request reaches the emulator.
   collector.allow(expectedFirestoreWriteTerminationBrowserError);
 };
@@ -670,11 +673,28 @@ export const failNextFirestoreWrite = async (
     const rewrittenBody = body.replaceAll(requestedId, deniedId);
     await route.continue({ postData: rewrittenBody });
   };
+  const commitPattern = "**/documents:commit**";
+  const commitHandler = async (route: Route) => {
+    const body = route.request().postData() ?? "";
+    if (triggered || !body.includes(`/documents/${target.collection}/${target.id ?? ""}`)) {
+      await route.fallback();
+      return;
+    }
+    triggered = true;
+    await route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({ error: { code: 403, status: "PERMISSION_DENIED", message: "Injected review rejection" } }),
+    });
+    resolveFailure();
+  };
+  await page.route(commitPattern, commitHandler);
   await page.route(pattern, handler);
   return {
     dispose: async () => {
       page.off("request", requestListener);
       await page.unroute(pattern, handler);
+      await page.unroute(commitPattern, commitHandler);
     },
     waitForFailure: () => failure,
     wasTriggered: () => triggered,

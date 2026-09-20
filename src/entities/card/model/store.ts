@@ -7,6 +7,7 @@ import type { LocalCard, PersistedCardState, RemoteCard } from "./types";
 /** Live Card collections separated by remote and local persistence ownership. */
 interface CardState {
   remoteCards: RemoteCard[];
+  studyAttempts: PersistedCardState["studyAttempts"];
   localCards: LocalCard[];
 }
 
@@ -19,14 +20,14 @@ interface CreateCardStoreOptions {
 // Reject the stored collection as a unit so live state never mixes validated Cards with an incompatible payload.
 const parsePersistedCardState = (value: unknown): PersistedCardState => {
   const result = persistedCardStateSchema.safeParse(value);
-  return result.success ? result.data : { localCards: [] };
+  return result.success ? result.data : { localCards: [], studyAttempts: [] };
 };
 
 // Creates a Card store whose durable state contains only validated local Cards.
 const createCardStore = ({ storage, skipHydration }: CreateCardStoreOptions = {}) => {
   const persistStorage = createJSONStorage<PersistedCardState>(() => storage ?? localStorage);
   return createStore<CardState>()(
-    persist<CardState, [], [], PersistedCardState>(() => ({ remoteCards: [], localCards: [] }), {
+    persist<CardState, [], [], PersistedCardState>(() => ({ remoteCards: [], localCards: [], studyAttempts: [] }), {
       name: "tango-local-cards",
       version: 1,
       ...(persistStorage !== undefined ? { storage: persistStorage } : {}),
@@ -36,7 +37,7 @@ const createCardStore = ({ storage, skipHydration }: CreateCardStoreOptions = {}
         ...parsePersistedCardState(persistedState),
       }),
       // Remote Cards belong to the active subscription and must not survive authentication changes in browser storage.
-      partialize: ({ localCards }) => ({ localCards }),
+      partialize: ({ localCards, studyAttempts }) => ({ localCards, studyAttempts }),
     })
   );
 };

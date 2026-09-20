@@ -12,6 +12,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  type Transaction,
 } from "firebase/firestore";
 
 import { db } from "@/shared/firebase";
@@ -108,3 +109,9 @@ export const deleteDeck = async (uid: string, deckId: DeckId): Promise<void> => 
   const id = deckIdSchema.parse(deckId);
   await deleteDeckDocuments(userId, id);
 };
+
+export async function readOwnedDeck(transaction: Transaction, uid: string, deckId: DeckId): Promise<void> {
+  const snapshot = await transaction.get(doc(db, DECK_COLLECTION, deckId));
+  const data = snapshot.data();
+  if (!data || data.uid !== uid || data.deletedAt != null) throw new Error("Deck is unavailable");
+}
