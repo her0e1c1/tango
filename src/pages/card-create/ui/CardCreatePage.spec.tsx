@@ -39,7 +39,7 @@ const LeaveRouteButton = () => {
   );
 };
 
-describe("CARD-13 CARD-14 CARD-15 CARD-26 CardCreatePage", () => {
+describe("CARD-13 CARD-14 CARD-15 CARD-26 CARD-27 CARD-28 CARD-29 CardCreatePage", () => {
   const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
   const renderPage = (deckId = deck.id) => {
     const router = createMemoryRouter(

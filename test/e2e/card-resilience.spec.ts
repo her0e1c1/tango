@@ -1,6 +1,13 @@
 import type { Page } from "@playwright/test";
 
-import { allowExpectedFirestoreWriteFailure, expect, failNextFirestoreWrite, requireDocument, test } from "./fixtures";
+import {
+  allowExpectedFirestoreWriteFailure,
+  expect,
+  failNextFirestoreWrite,
+  listDocuments,
+  requireDocument,
+  test,
+} from "./fixtures";
 
 const cardArticle = (page: Page, frontText: string) =>
   page.getByRole("button", { name: `View ${frontText}`, exact: true }).locator("xpath=ancestor::article[1]");
@@ -110,6 +117,121 @@ test("CARD-26 confirms before discarding an unsaved Card create", async ({ fixtu
   await dialog.getByRole("button", { name: "Discard changes" }).click();
   await expect(page).toHaveURL(`/deck/${deck.id}`);
   await expect(page.getByRole("button", { name: `View ${unsavedFrontText}` })).toHaveCount(0);
+});
+
+const submittingExplanation =
+  "Card creation is in progress and will continue if you leave. You will be taken to the card list when it succeeds, or see a notification if it fails.";
+
+const beginCardCreation = async (page: Page, deckId: string, frontText: string) => {
+  await page.goto(`/deck/${deckId}`);
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Add card" }).click();
+  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
+  await page.getByRole("textbox", { name: "Back text" }).fill("Pending back");
+  const write = await holdCardWrite(page);
+  await page.getByRole("button", { name: "Create card", exact: true }).click();
+  await write.arrived;
+  return write;
+};
+
+const expectCreatedCard = async (page: Page, deckId: string, frontText: string) => {
+  await expect(page).toHaveURL(`/deck/${deckId}`);
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  await expect(page.getByRole("status", { name: "Toast notifications" })).toContainText(`Created card “${frontText}”.`);
+  await expect
+    .poll(async () =>
+      (await listDocuments("card"))
+        .filter(
+          (document) =>
+            document.fields.deckId?.stringValue === deckId && document.fields.frontText?.stringValue === frontText
+        )
+        .map((document) => document.fields.backText?.stringValue)
+    )
+    .toEqual(["Pending back"]);
+  await page.reload();
+  await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
+};
+
+test("CARD-27 prioritizes creation success over an unanswered leave prompt", async ({ fixture, page, namespace }) => {
+  const deck = fixture.deck();
+  const frontText = `${namespace.caseId} pending front`;
+  await fixture.apply(page);
+  const write = await beginCardCreation(page, deck.id, frontText);
+  try {
+    await page.getByRole("button", { name: "tango", exact: true }).click();
+    const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+    await expect(dialog).toHaveAccessibleDescription(submittingExplanation);
+    await dialog.getByRole("button", { name: "Keep editing" }).click();
+    await expect(page).toHaveURL(`/deck/${deck.id}/card/new`);
+    await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("Pending back");
+    await expect(page.getByRole("button", { name: "Creating…" })).toBeDisabled();
+    await page.getByRole("button", { name: "tango", exact: true }).click();
+    await expect(dialog).toBeVisible();
+    write.release();
+    await expectCreatedCard(page, deck.id, frontText);
+    await page.goBack();
+    await expect(page).toHaveURL(`/deck/${deck.id}`);
+    await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  } finally {
+    write.release();
+  }
+});
+
+test("CARD-28 completes creation after discarding a pending leave prompt", async ({ fixture, page, namespace }) => {
+  const deck = fixture.deck();
+  const frontText = `${namespace.caseId} background front`;
+  await fixture.apply(page);
+  const write = await beginCardCreation(page, deck.id, frontText);
+  try {
+    await page.getByRole("button", { name: "tango", exact: true }).click();
+    const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+    await expect(dialog).toHaveAccessibleDescription(submittingExplanation);
+    await dialog.getByRole("button", { name: "Discard changes" }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("button", { name: `View ${deck.name}`, exact: true })).toBeVisible();
+    write.release();
+    await expectCreatedCard(page, deck.id, frontText);
+    await page.goBack();
+    await expect(page).toHaveURL(`/deck/${deck.id}/card/new`);
+    await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue("");
+  } finally {
+    write.release();
+  }
+});
+
+test("CARD-29 retains the leave prompt and inputs after creation fails, then retries", async ({
+  fixture,
+  page,
+  namespace,
+  browserErrors,
+}) => {
+  const deck = fixture.deck();
+  const frontText = `${namespace.caseId} retry front`;
+  await fixture.apply(page);
+  const fault = await failNextFirestoreWrite(page, { collection: "card" });
+  allowExpectedFirestoreWriteFailure(browserErrors);
+  const write = await beginCardCreation(page, deck.id, frontText);
+  try {
+    await page.getByRole("button", { name: "tango", exact: true }).click();
+    const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+    await expect(dialog).toHaveAccessibleDescription(submittingExplanation);
+    write.release();
+    await fault.waitForFailure();
+    await expect(page.getByRole("alert")).toContainText("Unable to create this card. Try again.");
+    await expect(dialog).toBeVisible();
+    await expect(page).toHaveURL(`/deck/${deck.id}/card/new`);
+    await dialog.getByRole("button", { name: "Keep editing" }).click();
+    await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("Pending back");
+    await page.getByRole("tab", { name: "Front", exact: true }).click();
+    await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(frontText);
+    await fault.dispose();
+    await page.getByRole("button", { name: "Create card", exact: true }).click();
+    await expectCreatedCard(page, deck.id, frontText);
+  } finally {
+    write.release();
+    await fault.dispose();
+  }
 });
 
 test("CARD-18 retries the same Card-list difficulty change after a handled failure", async ({
@@ -227,7 +349,7 @@ test("CARD-20 retries a partially failed bulk difficulty change with the same ab
 });
 
 // Hold the outgoing write without cancelling it; the SDK must still settle it after SPA navigation.
-const holdCardWrite = async (page: Page, cardId: string) => {
+const holdCardWrite = async (page: Page, cardId = "") => {
   const arrived = Promise.withResolvers<void>();
   const released = Promise.withResolvers<void>();
   let held = false;
