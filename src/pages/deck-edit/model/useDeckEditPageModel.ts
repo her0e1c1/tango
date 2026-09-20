@@ -1,7 +1,7 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useStore } from "zustand";
 
-import type { Deck } from "@/entities/deck";
+import { CATEGORY, type Deck } from "@/entities/deck";
 import { getDeckDeletionTarget } from "@/features/deck-deletion";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { useResetStoreOnMount } from "@/shared/lib/useResetStoreOnMount";
@@ -13,6 +13,14 @@ import { requestDeletion } from "./actions/requestDeletion";
 import { submitDeckEdit } from "./actions/submitDeckEdit";
 import { deckEditPageStore } from "./store";
 import { useDeckEditFormState } from "./useDeckEditFormState";
+import { useOpeningDeck } from "./useOpeningDeck";
+
+export function useDeckEditRouteModel() {
+  const { id: deckId } = useParams();
+  if (deckId == null) throw new Error("invalid deck id");
+  const openingDeck = useOpeningDeck(deckId);
+  return { deckId, openingDeck };
+}
 
 export function useDeckEditPageModel(deck: Deck) {
   const navigate = useNavigate();
@@ -38,6 +46,7 @@ export function useDeckEditPageModel(deck: Deck) {
 
   return {
     form,
+    categories: CATEGORY,
     isSubmitting,
     navigationGuard: guard.element,
     deletionTarget: guard.isBlocked ? undefined : getDeckDeletionTarget(deletionTarget),
