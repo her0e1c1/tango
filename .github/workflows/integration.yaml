@@ -30,6 +30,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Build sample data
+        run: npm run build:sample
+
       - name: Start Firestore emulator
         run: docker compose up --wait --wait-timeout 120 --remove-orphans -d db
 

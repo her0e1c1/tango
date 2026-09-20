@@ -15,7 +15,7 @@ const defineStaticRoute = (path: string): StaticRoute => ({
 
 const defineIdRoute = (path: string): IdRoute => ({
   path,
-  to: (id) => path.replace(":id", () => id),
+  to: (id) => path.replace(":id", () => encodeURIComponent(id)),
 });
 
 // Route matching and navigation across higher layers share one technical contract in Shared so

@@ -133,8 +133,6 @@ export const requireE2ECaseId = (title: string): string => {
   return caseId;
 };
 
-export const normalizeFixtureIdSegment = (label: string) => label.replaceAll(/[^a-zA-Z0-9-]/g, "-").toLowerCase();
-
 const looksLikeRepositoryRoot = (candidate: string) =>
   existsSync(path.join(candidate, "package.json")) && existsSync(path.join(candidate, "docs/e2e/fixture"));
 
@@ -1119,8 +1117,8 @@ const contractNamespace = (caseId: string): FixtureNamespace => {
   const stem = `contract-${caseId.toLowerCase()}`;
   return {
     uid: `${stem}-user`,
-    // Mirror the lossy runtime mapping so preflight validation also catches IDs that collide after normalization.
-    id: (label) => `${stem}-${normalizeFixtureIdSegment(label)}`,
+    // Preserve logical ID characters just as runtime namespacing does.
+    id: (label) => `${stem}-${label}`,
   };
 };
 

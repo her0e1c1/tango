@@ -19,7 +19,6 @@ import {
   type FixtureUser,
   loadFixtureSource,
   namespaceFixture,
-  normalizeFixtureIdSegment,
   requireE2ECaseId,
 } from "./yaml-fixture";
 
@@ -111,7 +110,7 @@ const createNamespace = (title: string, testId: string, retry: number): TestName
   return {
     caseId,
     uid: `${stem}-user`,
-    id: (label) => `${stem}-${normalizeFixtureIdSegment(label)}`,
+    id: (label) => `${stem}-${label}`,
   };
 };
 
