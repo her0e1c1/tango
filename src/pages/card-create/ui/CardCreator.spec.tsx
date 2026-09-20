@@ -50,9 +50,9 @@ const CardCreatorHarness = () => {
         deckName={deck.name}
         form={form}
         onCancel={vi.fn()}
-        onSubmit={async (values) => {
+        onSubmit={form.handleSubmit(async (values) => {
           await submit({ uid: "user-id", deckId: deck.id, values });
-        }}
+        })}
       />
       <ToastViewport />
     </>

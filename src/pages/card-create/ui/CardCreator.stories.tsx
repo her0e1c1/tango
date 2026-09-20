@@ -32,7 +32,7 @@ const CardCreatorStory = ({ isSaving, onCancel, onSubmit }: CardCreatorStoryProp
       deckName="Spanish vocabulary"
       form={form}
       onCancel={onCancel}
-      onSubmit={onSubmit}
+      onSubmit={form.handleSubmit(onSubmit)}
     />
   );
 };
