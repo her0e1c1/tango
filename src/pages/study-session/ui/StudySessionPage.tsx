@@ -7,22 +7,22 @@ import { DifficultyIndicator } from "@/entities/study-progress";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
-import { useStudySessionPageModel, useStudySessionRouteModel } from "../model/useStudySessionPageModel";
-import { CardOverlay } from "./CardOverlay";
+import { useStudySessionPageModel } from "../model/useStudySessionPageModel";
+import { CardPlayer, CardOverlay } from "@/features/card-player";
+import { useStudySessionRouteModel } from "../model/useStudySessionRouteModel";
 import { StudyCompletion } from "./StudyCompletion";
-import { StudySession } from "./StudySession";
 
 const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
   const { t } = useTranslation();
   const {
-    query,
-    pageState,
     goBack,
     finish,
     toggleShowHelp,
     toggleShowCardDetails,
     toggleShowPlaybackControls,
     toggleShowSwipeButtonList,
+    query,
+    pageState,
     toggleBackText,
     toggleAutoPlay,
     openHelp,
@@ -33,6 +33,7 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
     swipeLeft,
     swipeRight,
   } = useStudySessionPageModel(deckId);
+
   if (pageState.completion != null) {
     return (
       <AppLayout showHeader>
@@ -59,7 +60,7 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
 
   return (
     <AppLayout fullscreen showHeader={false}>
-      <StudySession
+      <CardPlayer
         onBack={goBack}
         onToggleCardDetails={toggleShowCardDetails}
         onToggleHelp={toggleShowHelp}

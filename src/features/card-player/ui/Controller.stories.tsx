@@ -27,7 +27,7 @@ const InteractiveController: React.FC<React.ComponentProps<typeof Controller>> =
 };
 
 const meta = {
-  title: "Pages/Study Session/Controller",
+  title: "Features/Card Player/Controller",
   component: Controller,
   tags: ["autodocs"],
   decorators: [withPageLayout],

@@ -88,6 +88,9 @@
 | DECK-16 | read | [復習期日の設定を閲覧対象へ反映できる](./deck-navigation.md#deck-16) |
 | DECK-17 | read | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](./deck-navigation.md#deck-17) |
 | DECK-18 | read | [1件の Card の長い解答を touch で閲覧して終了できる](./deck-navigation.md#deck-18) |
+| DECK-19 | write | [閲覧と学習で表示設定と操作ヘルプを共有できる](./deck-navigation.md#deck-19) |
+| DECK-20 | read | [学習データを保存せずに閲覧を自動再生できる](./deck-navigation.md#deck-20) |
+| DECK-21 | read | [閲覧の進捗スライダーで前後へ移動できる](./deck-navigation.md#deck-21) |
 
 ### Card
 
