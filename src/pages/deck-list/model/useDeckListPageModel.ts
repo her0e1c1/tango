@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useAuth } from "@/entities/auth";
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
+import { touchStudySession } from "@/entities/study-session";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import {
   useDeckDeletionState,
@@ -20,12 +20,9 @@ import { routes } from "@/shared/router";
 import { exportDeck } from "./actions/exportDeck";
 import { useDeckListState } from "./queries/useDeckListState";
 
-import { continueStudy } from "./actions/continueStudy";
-
 export function useDeckListPageModel() {
   const navigate = useNavigate();
   const sections = useDeckListState();
-  const { uid } = useAuth();
   const cards = useCards();
   const decks = useDecks();
   const { loadSample } = usePreferences();
@@ -37,7 +34,6 @@ export function useDeckListPageModel() {
   const cancelDeletion = () => cancelDeckDeletion({ pending: deletion.pending, setTarget: deletion.setTarget });
   const confirmDeletion = () =>
     confirmDeckDeletion({
-      uid,
       target: deletion.target,
       pending: deletion.pending,
       setTarget: deletion.setTarget,
@@ -62,7 +58,10 @@ export function useDeckListPageModel() {
     importDeck: () => void navigate(routes.deckImport.to()),
     editDeck: (id: string) => void navigate(routes.deckForm.to(id)),
     openDeck: (id: string) => void navigate(routes.cardList.to(id)),
-    continueStudy: (id: string) => continueStudy(id, navigate),
+    continueStudy: (id: string) => {
+      touchStudySession(id);
+      void navigate(routes.deckStudy.to(id));
+    },
     startStudy: (id: string) => void navigate(routes.deckStudyStart.to(id)),
     downloadDeck: (id: string) => exportDeck(id, decks, cards),
   };

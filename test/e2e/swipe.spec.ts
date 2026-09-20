@@ -183,11 +183,15 @@ test("SWIPE-08 returns and continues from the same Card", async ({ fixture, page
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await returnToDeckList(page);
   await expect(page).toHaveURL(/\/$/);
+  const beforeContinue = await readSession(page, deck.id);
   await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
 
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+  await expect
+    .poll(async () => (await readSession(page, deck.id))?.lastStudiedAt)
+    .toBeGreaterThan(beforeContinue?.lastStudiedAt ?? session.lastStudiedAt);
 });
 
 test("SWIPE-09 restarts an in-progress Deck from a new session", async ({ fixture, page }) => {
