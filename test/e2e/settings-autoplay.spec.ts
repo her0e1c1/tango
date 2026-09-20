@@ -101,6 +101,11 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
   const continuedPosition = { sessionId: session.sessionId, cardOrderIds: session.cardOrderIds, currentIndex: 1 };
   await expect.poll(() => readSession(page, deck.id)).toMatchObject(continuedPosition);
+  await page.evaluate(async () => {
+    const path = "/e2e-fixture.js";
+    const bridge = await import(/* @vite-ignore */ path);
+    await bridge.waitForCacheSync();
+  });
   const deckBeforeSettings = await requireDocument("deck", deck.id);
   const cardsBeforeSettings = await Promise.all(
     fixture.state.remote.cards.map((card) => requireDocument("card", card.id))

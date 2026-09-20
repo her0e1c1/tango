@@ -11,7 +11,6 @@ export function useDeckEditFormState(deck: Deck) {
       category: deck.category,
       url: deck.url || undefined,
       convertToBr: deck.convertToBr,
-      localMode: deck.localMode,
     },
     resolver: zodResolver(deckFormSchema),
   });

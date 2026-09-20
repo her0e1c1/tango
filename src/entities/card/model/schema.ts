@@ -5,7 +5,7 @@ import { isNonBlank } from "@/shared/lib/isNonBlank";
 
 const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Card writes");
 export const cardIdSchema = z.string().min(1, "Card id is required");
-export const cardDeckIdSchema = z.string().min(1, "Card deck is required");
+const cardDeckIdSchema = z.string().min(1, "Card deck is required");
 const cardUidSchema = z.string().min(1, "Card owner is required");
 
 const cardFrontTextSchema = z.string().refine(isNonBlank, { message: "Front text is required." });
@@ -40,29 +40,14 @@ const cardCreateFieldsSchema = editableCardFieldsSchema.extend({
 });
 
 export const cardCreateSchema = cardCreateFieldsSchema.extend({ uid: cardUidSchema });
-export const localCardCreateSchema = cardCreateFieldsSchema;
 
 export const cardSchema = cardCreateSchema.extend({
   createdAt: z.number(),
   updatedAt: z.number(),
 });
 
-export const localCardSchema = localCardCreateSchema.extend({
-  createdAt: z.number(),
-  updatedAt: z.number(),
-});
-
-// Zustand JSON storage serializes Dates as strings; hydration accepts only strings that restore to valid Dates.
-const persistedDateSchema = z.preprocess(
-  (value) => (typeof value === "string" ? new Date(value) : value),
-  z.date().refine((value) => !Number.isNaN(value.getTime()), "Invalid date")
-);
-
-const persistedCardSchema = localCardSchema.extend({ nextSeeingAt: persistedDateSchema.optional() });
-export const persistedCardStateSchema = z.object({ localCards: z.array(persistedCardSchema) });
-
-export const localCardEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });
-export const cardEditSchema = localCardEditSchema.extend({ uid: cardUidSchema });
+export const cardContentEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });
+export const cardEditSchema = cardContentEditSchema.extend({ uid: cardUidSchema });
 const cardIdentitySchema = z.object({ id: cardIdSchema, uid: cardUidSchema });
 
 // Ownership is established by the authenticated session and must never be selectable by a remote mutation payload.

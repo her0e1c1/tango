@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
 
@@ -78,7 +79,7 @@ describe("DeckEditPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
     mocks.skipDeckWrite = false;
     mocks.beforeDeckDelete = undefined;
     mocks.remoteDeck = undefined;
-    await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr: false }));
+    await createDeck("user-id", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr: false }));
   });
 
   it("renders the stored deck editor in the application shell", () => {
@@ -95,7 +96,7 @@ describe("DeckEditPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
     await actAsync(async () => {
-      await createDeck("", createLocalDeck({ id: delayedDeckId, name: "Delayed deck" }));
+      await createDeck("user-id", createLocalDeck({ id: delayedDeckId, name: "Delayed deck" }));
     });
 
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Delayed deck");
@@ -103,7 +104,7 @@ describe("DeckEditPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
 
   it("resets page-owned state when navigating to a different Deck", async () => {
     const nextDeckId = "next-deck";
-    await createDeck("", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
+    await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
     const router = createMemoryRouter(
       [
         {
@@ -251,7 +252,7 @@ describe("DeckEditPage (DECK-02 DECK-03 DECK-04 DECK-06 DECK-07 DECK-12)", () =>
 
   it("keeps the new deletion dialog pending when an earlier visit finishes", async () => {
     const nextDeckId = "next-deletion-deck";
-    await createDeck("", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
+    await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
     let finishOldDelete: () => void = () => undefined;
     mocks.beforeDeckDelete = () =>
       new Promise<void>((resolve) => {

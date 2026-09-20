@@ -11,7 +11,7 @@ export const PAGE_STORY_CARD_ID: CardId = "storybook-hello";
 
 const timestamp = Date.UTC(2026, 6, 1, 9, 0, 0);
 
-const pageStoryDecks: Extract<Deck, { localMode: false }>[] = [
+const pageStoryDecks: Deck[] = [
   createDeck({
     id: PAGE_STORY_DECK_ID,
     uid: PAGE_STORY_UID,

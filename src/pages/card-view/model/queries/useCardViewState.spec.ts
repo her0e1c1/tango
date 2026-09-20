@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -22,12 +23,12 @@ const card = createLocalCard({
 describe("CARD-11 CARD-12 useCardViewState", () => {
   beforeEach(async () => {
     updatePreferences(createPreferences({ appearance: { darkMode: true } }));
-    await createDeck("", deck);
-    await mutateCards("", [{ kind: "create", card }]);
+    await createDeck("user-id", deck);
+    await mutateCards("user-id", [{ kind: "create", card }]);
   });
 
   afterEach(async () => {
-    await deleteDeck("", deck.id);
+    await deleteDeck("user-id", deck.id);
   });
 
   it("shows stored Card content with its Deck category and current theme", () => {

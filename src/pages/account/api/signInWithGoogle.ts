@@ -11,7 +11,7 @@ export const signInWithGoogle = async (): Promise<User> => {
   try {
     result = await linkWithPopup(currentUser, new GoogleAuthProvider());
   } catch (error) {
-    if (!(error instanceof FirebaseError)) throw error;
+    if (!(error instanceof FirebaseError) || error.code !== "auth/credential-already-in-use") throw error;
 
     // Fall back to signing in directly if linking fails because the Google account is already registered.
     const credential = GoogleAuthProvider.credentialFromError(error);

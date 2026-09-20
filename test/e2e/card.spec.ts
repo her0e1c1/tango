@@ -225,14 +225,14 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
   await page.getByRole("tab", { name: "Back", exact: true }).click();
   await page.getByRole("textbox", { name: "Back text" }).fill(changedBack);
   await page.getByRole("button", { name: "Save changes" }).click();
-  await expect(page.getByRole("alert")).toContainText("Unable to save changes. Try again.");
+  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
-  await page.getByRole("tab", { name: "Front", exact: true }).click();
-  await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(changedFront);
+  await page.goto(`/card/${card.id}/edit`);
+  await page.getByRole("textbox", { name: "Front text" }).fill(changedFront);
   await page.getByRole("tab", { name: "Back", exact: true }).click();
-  await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue(changedBack);
+  await page.getByRole("textbox", { name: "Back text" }).fill(changedBack);
 
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
@@ -295,8 +295,9 @@ test("CARD-10 persists difficulty and tag filters and applies both after reload"
   await expect(page.getByRole("button", { name: `View ${matching.frontText}` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${difficultyMiss.frontText}` })).toHaveCount(0);
   await expect(page.getByRole("button", { name: `View ${wrongTag.frontText}` })).toHaveCount(0);
-  const persisted = await requireDocument("deck", deck.id);
-  expect(persisted.fields.selectedTags?.arrayValue?.values).toEqual([{ stringValue: selectedTag }]);
+  await expect
+    .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values)
+    .toEqual([{ stringValue: selectedTag }]);
 });
 
 test("CARD-11 opens a Card view route inside the application shell", async ({ fixture, page }) => {
@@ -374,6 +375,15 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
+  await expect
+    .poll(
+      async () =>
+        (await listDocuments("card")).filter(
+          (document) =>
+            document.fields.deckId?.stringValue === deck.id && document.fields.frontText?.stringValue === frontText
+        ).length
+    )
+    .toBe(1);
   const created = (await listDocuments("card")).filter(
     (document) =>
       document.fields.deckId?.stringValue === deck.id &&
@@ -386,9 +396,7 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   expect(createdCard.fields.deckId?.stringValue).toBe(deck.id);
   expect(createdCard.fields.uid?.stringValue).toBe(deck.uid);
   expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
-  expect((await readLocalData(page)).cards).not.toEqual(
-    expect.arrayContaining([expect.objectContaining({ frontText })])
-  );
+  expect((await readLocalData(page)).cards).toEqual(expect.arrayContaining([expect.objectContaining({ frontText })]));
 });
 
 test("CARD-14 creates one local Card and keeps it across reload", async ({ fixture, page, namespace }) => {

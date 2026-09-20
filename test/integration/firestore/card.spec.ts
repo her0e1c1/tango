@@ -1,3 +1,4 @@
+import { subscribeWriteErrors } from "@/shared/firestore-write";
 /**
  * @file Verifies the "card" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "should create a card",
@@ -9,7 +10,18 @@ import type { CardCreateInput, RemoteCard } from "@/entities/card/model/types";
 
 import "@/test/initializeTestFirestore";
 import { describe, expect, it, vi } from "vitest";
-import { collection, deleteDoc, doc, getDoc, getDocs, getFirestore, query, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc as readServerDoc,
+  waitForPendingWrites,
+  type DocumentReference,
+  getDocs,
+  getFirestore,
+  query,
+  where,
+} from "firebase/firestore";
 import { createCard as createCardCommand, deleteCard, editCard } from "@/entities/card/api/firestore";
 import { createDeck as createDeckCommand } from "@/entities/deck/api/firestore";
 import { replaceRemoteCards } from "@/entities/card/model/actions/replaceRemoteCards";
@@ -18,13 +30,20 @@ import { editRemoteStudyProgress } from "@/entities/study-progress/api/firestore
 import * as Uuid from "uuid";
 import { createCard, createDeck, createRemoteDeckInput } from "@/test/factories";
 
+// Adapter operations complete locally; cloud assertions wait for SDK acknowledgement.
+const getDoc = async (reference: DocumentReference) => {
+  await waitForPendingWrites(reference.firestore);
+  return readServerDoc(reference);
+};
+
 const uuid = Uuid.v4;
 
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
+  auth: { currentUser: { uid: "uid" } },
 }));
 
-describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
+describe("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
   const db = getFirestore();
   const newCard = createCard({
     frontText: "front text",
@@ -39,6 +58,7 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
   const initDeck = async () => {
     const id = uuid();
     await createDeckCommand("uid", createRemoteDeckInput({ id }));
+    replaceRemoteDecks([createDeck({ id, uid: "uid" })]);
     return id;
   };
 
@@ -144,11 +164,15 @@ describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
     const deckId = await initDeck();
     const card = { ...newCard, deckId, id: uuid(), frontText: "planned update" };
     await createCardCommand("uid", card);
-    replaceRemoteDecks([createDeck({ id: deckId, uid: "uid", localMode: false })]);
+    replaceRemoteDecks([createDeck({ id: deckId, uid: "uid" })]);
     replaceRemoteCards([card]);
     await deleteDoc(doc(db, "card", card.id));
 
-    await expect(mutateCards("uid", [{ kind: "edit", card }])).rejects.toThrow();
+    const onError = vi.fn();
+    const stopErrors = subscribeWriteErrors(onError);
+    await mutateCards("uid", [{ kind: "edit", card }]);
+    await vi.waitFor(() => expect(onError).toHaveBeenCalled());
+    stopErrors();
     const ownedCards = await getDocs(query(collection(db, "card"), where("uid", "==", "uid")));
     expect(ownedCards.docs.some((snapshot) => snapshot.id === card.id)).toBe(false);
   });

@@ -26,12 +26,6 @@ const startSession = (deckId: string, cardOrderIds: string[]): void => {
   );
 };
 
-// Writes an arbitrary versioned payload directly to study-session storage.
-const setVersionedStorage = (state: unknown, version: number): void => {
-  // Bypass store mutations so hydration tests model arbitrary browser payloads.
-  localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify({ state, version }));
-};
-
 describe("study store [SWIPE-06] [SWIPE-05]", () => {
   const store = studySessionStore;
 
@@ -192,90 +186,11 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
     });
   });
 
-  it("clears both memory and persisted storage", () => {
-    localStorage.clear();
+  it("clears the visible session without deleting the legacy backup", () => {
+    localStorage.setItem(STUDY_STORAGE_KEY, "legacy backup");
     startSession("deck-1", ["card-1"]);
-
-    expect(getStudySession("deck-1")).toBeDefined();
-    expect(localStorage.getItem(STUDY_STORAGE_KEY)).not.toBeNull();
-
     clearStudySessions();
-
     expect(getStudySession("deck-1")).toBeUndefined();
-    expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
-  });
-
-  it("throws when persisted storage cleanup fails", () => {
-    const failure = new Error("storage cleanup failed");
-    vi.spyOn(store.persist, "clearStorage").mockImplementationOnce(() => {
-      throw failure;
-    });
-
-    expect(() => clearStudySessions()).toThrow(failure);
-  });
-
-  it("persists sessions in a v4 envelope", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(1000);
-    startSession("deck-1", ["card-1"]);
-    const sessionId = getStudySession("deck-1")?.sessionId;
-
-    const persistedSession = localStorage.getItem(STUDY_STORAGE_KEY);
-    expect(JSON.parse(persistedSession ?? "{}")).toEqual({
-      state: {
-        sessionsByDeckId: {
-          "deck-1": { sessionId, deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
-        },
-      },
-      version: 4,
-    });
-
-    store.setState({ sessionsByDeckId: {} });
-    if (persistedSession != null) localStorage.setItem(STUDY_STORAGE_KEY, persistedSession);
-    await store.persist.rehydrate();
-    expect(store.getState()).toMatchObject({
-      sessionsByDeckId: {
-        "deck-1": { sessionId, deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
-      },
-    });
-    expect(store.getState()).not.toHaveProperty("session");
-  });
-
-  it("hydrates valid v4 sessions independently and drops unknown metadata", async () => {
-    setVersionedStorage(
-      {
-        sessionsByDeckId: {
-          "deck-1": {
-            sessionId: "session-1",
-            deckId: "deck-1",
-            cardOrderIds: ["card-1", "card-2"],
-            currentIndex: 1,
-            lastStudiedAt: 1000,
-            unknownSessionMetadata: "drop",
-          },
-          broken: {
-            sessionId: "session-broken",
-            deckId: "broken",
-            cardOrderIds: [],
-            currentIndex: 0,
-            lastStudiedAt: 2000,
-          },
-        },
-        unknownRootMetadata: "drop",
-      },
-      4
-    );
-    await store.persist.rehydrate();
-
-    expect(store.getState().sessionsByDeckId).toEqual({
-      "deck-1": {
-        sessionId: "session-1",
-        deckId: "deck-1",
-        cardOrderIds: ["card-1", "card-2"],
-        currentIndex: 1,
-        lastStudiedAt: 1000,
-      },
-    });
-    expect(store.getState()).not.toHaveProperty("unknownRootMetadata");
+    expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBe("legacy backup");
   });
 });

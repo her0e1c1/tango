@@ -4,6 +4,14 @@
 
 学習中の Card に対する mastered、non-mastered、移動 action が、学習結果と session 位置へ一度だけ反映されることを確認する。
 
+## 保存境界
+
+- 単一タブ・単一の学習操作元を対象とし、匿名と通常ログインで同じ Firestore batch を使う。
+- 評価回答では StudyAnswer の作成、StudyProgress 更新、StudySession の前進・完了を一つの batch にまとめる。ID と回答時刻は受付時に固定する。
+- ローカル snapshot へ反映した時点で前進し、クラウド確定や server timestamp を待たない。SDK が保留している操作を新しい ID で再発行しない。
+- 保存・同期失敗は共通通知で表示する。独自の再送・競合復旧キューは作らない。
+- これは #1653 の transaction 必須・オンライン確定後のみ前進・匿名別保存という計画を #1665 に従って置き換える。
+
 ## テストケース
 
 | ID | カテゴリ | テストケース |

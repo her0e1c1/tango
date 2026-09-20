@@ -199,11 +199,15 @@ test("DECK-15 views all difficulty and tag matches in standard order without the
     await page.getByText("Filters", { exact: true }).click();
     await page.getByRole("combobox", { name: "Minimum difficulty" }).selectOption(String(queuedMatch.difficulty));
     await writeArrived.promise;
-    // These selections remain queued behind the first save, beyond Firestore's optimistic Deck snapshot.
+    // Local filter changes are usable while cloud acknowledgement is held.
     await page.getByRole("checkbox", { name: queuedTag, exact: true }).locator("xpath=parent::label").click();
     await page.getByRole("checkbox", { name: previousTag, exact: true }).locator("xpath=parent::label").click();
     await expect(page.getByRole("checkbox", { name: queuedTag, exact: true })).toBeChecked();
     await expect(page.getByRole("checkbox", { name: previousTag, exact: true })).not.toBeChecked();
+    await expect
+      .poll(async () => (await readLocalData(page)).decks.find((value) => value.id === deck.id)?.selectedTags)
+      .toEqual([queuedTag]);
+    const beforeQueuedView = await readSavedData(page, fixture);
     await page.getByRole("button", { name: "tango", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     await openView(page, deck.name);
@@ -211,7 +215,7 @@ test("DECK-15 views all difficulty and tag matches in standard order without the
     await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
     await page.getByRole("button", { name: "Next card", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
-    expect(await readSavedData(page, fixture)).toEqual(before);
+    expect(await readSavedData(page, fixture)).toEqual(beforeQueuedView);
 
     releaseWrite.resolve();
     await expect
@@ -222,7 +226,7 @@ test("DECK-15 views all difficulty and tag matches in standard order without the
     );
     const afterFilterSave = await readSavedData(page, fixture);
     expect(afterFilterSave.cards).toEqual(before.cards);
-    expect(afterFilterSave.local).toEqual(before.local);
+    expect(afterFilterSave.local).toEqual(beforeQueuedView.local);
     expect(afterFilterSave.preferences).toEqual(before.preferences);
   } finally {
     releaseWrite.resolve();
@@ -361,7 +365,7 @@ test("DECK-20 starts viewing stopped and autoplays without persisting learning d
   await page.goto("/");
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
   const before = await readSavedData(page, fixture);
-  await page.clock.install();
+  await page.clock.install({ time: new Date() });
   await openView(page, deck.name);
   await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
   await page.clock.runFor(2000);

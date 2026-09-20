@@ -1,50 +1,74 @@
 import { getAuthUid } from "@/entities/auth/@x/study-session";
-import { showToast } from "@/shared/ui/toast";
+import { restoreStudySession } from "../model/actions/restoreStudySession";
 import { removeStudySession } from "../model/actions/removeStudySession";
-import { moveStudySession as moveLocal } from "../model/actions/moveStudySession";
-import { setStudySessionIndex as setLocalIndex } from "../model/actions/setStudySessionIndex";
 import { startStudy as startLocal } from "../model/actions/startStudy";
 import { getStudySession } from "../model/queries/getStudySession";
-import type { StudySession, StudySessionWrite } from "../model/types";
-import { createStudySession, updateStudySession } from "./firestore";
+import { isStudySessionPositionUnchanged } from "../model/rules";
+import type { StudySession } from "../model/types";
+import { createStudySession, updateStudySession, updateStudySessionRecency } from "./firestore";
 
-function persist(session: StudySession | undefined, operation: "create" | StudySessionWrite["endReason"]): void {
-  const uid = session?.remote?.uid;
-  if (session === undefined || uid === undefined || uid !== getAuthUid()) return;
-  // Enqueue immediately in Firestore's persistent cache; navigation does not own this write's lifetime.
-  const write = operation === "create" ? createStudySession(session) : updateStudySession(session, operation);
-  void write.catch(() => {
-    if (getAuthUid() === uid) showToast({ messageKey: "studySession.syncFailure", tone: "error" });
-  });
+function requireOwner(session: StudySession): void {
+  if (!session.remote?.uid || session.remote.uid !== getAuthUid()) throw new Error("Study session owner changed");
 }
 
-export function startStudy(
+export async function startStudy(
   deckId: string,
   cards: Parameters<typeof startLocal>[1],
   preferences: Parameters<typeof startLocal>[2],
-  uid?: string
-): void {
+  uid: string
+): Promise<void> {
+  if (!uid || uid !== getAuthUid()) throw new Error("Study session owner changed");
   const previous = getStudySession(deckId);
+  if (previous) requireOwner(previous);
   startLocal(deckId, cards, preferences, uid);
-  persist(previous, "abandoned");
-  persist(getStudySession(deckId), "create");
+  const session = getStudySession(deckId);
+  if (!session) throw new Error("Study session was not created");
+  try {
+    await createStudySession(session, previous);
+  } catch (error) {
+    if (getAuthUid() === uid && getStudySession(deckId)?.sessionId === session.sessionId) {
+      if (previous) restoreStudySession(previous);
+      else removeStudySession(deckId);
+    }
+    throw error;
+  }
 }
 
-export function setStudySessionIndex(deckId: string, currentIndex: number): boolean {
-  const updated = setLocalIndex(deckId, currentIndex);
-  if (updated) persist(getStudySession(deckId), null);
-  return updated;
-}
-
-export function moveStudySession(previous: StudySession): boolean {
-  if (!moveLocal(previous)) return false;
-  const current = getStudySession(previous.deckId);
-  persist(current ?? previous, current === undefined ? "completed" : null);
+export async function setStudySessionIndex(deckId: string, currentIndex: number): Promise<boolean> {
+  const session = getStudySession(deckId);
+  if (
+    !(session && Number.isInteger(currentIndex)) ||
+    currentIndex <= session.currentIndex ||
+    currentIndex >= session.cardOrderIds.length
+  )
+    return false;
+  requireOwner(session);
+  await updateStudySession({ ...session, currentIndex }, null);
   return true;
 }
 
-export function abandonStudySession(deckId: string): void {
-  const previous = getStudySession(deckId);
-  removeStudySession(deckId);
-  persist(previous, "abandoned");
+export async function moveStudySession(previous: StudySession): Promise<boolean> {
+  const current = getStudySession(previous.deckId);
+  if (!isStudySessionPositionUnchanged(previous, current)) return false;
+  requireOwner(previous);
+  const completed = previous.currentIndex + 1 === previous.cardOrderIds.length;
+  await updateStudySession(
+    { ...previous, currentIndex: completed ? previous.currentIndex : previous.currentIndex + 1 },
+    completed ? "completed" : null
+  );
+  return true;
+}
+
+export async function abandonStudySession(deckId: string): Promise<void> {
+  const session = getStudySession(deckId);
+  if (!session) return;
+  requireOwner(session);
+  await updateStudySession(session, "abandoned");
+}
+
+export async function touchStudySession(deckId: string): Promise<void> {
+  const session = getStudySession(deckId);
+  if (!session) return;
+  requireOwner(session);
+  await updateStudySessionRecency({ ...session, lastStudiedAt: Date.now() });
 }

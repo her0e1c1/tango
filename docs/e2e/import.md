@@ -2,21 +2,21 @@
 
 ## 目的
 
-CSV の検証から保存先別の import、失敗後の再試行、Sample Deck の明示的な追加と自動初期生成までが、重複や意図しない永続化を起こさずに完了することを確認する。
+CSV の検証からUID の cache への import、失敗後の再試行、Sample Deck の明示的な追加と自動初期生成までが、重複や意図しない永続化を起こさずに完了することを確認する。
 
 ## 共通の操作・結果契約（IMPORT-01〜IMPORT-06）
 
-- CSV の検証、import、例の選択は同時に一つだけ実行でき、処理中は保存先変更や競合する操作を受け付けない。
+- CSV の検証、import、例の選択は同時に一つだけ実行でき、処理中は競合する操作を受け付けない。
 - 処理中に画面を離れて再入場しても処理中の表示と排他は維持され、完了後に操作可能になる。
 - 保存の成功・失敗は一回の処理につき一つの App 所有の共通 toast で通知する。画面離脱を理由に結果を抑止・消去しない。
 - 完了時に開始元の画面が離脱済みなら、自動的に Deck 一覧へ移動しない。
 - CSV の読み取り失敗は画面内に表示され、ファイルを再選択して回復できる。空の CSV は保存しない。
-- 保存先を変更すると preview を破棄する。同じ保存先の選択では preview を維持する。
+- 保存先選択はない。匿名・通常ユーザーとも現在の UID の Firestore cache に保存する。
 - 認証ユーザーが読み取り中に変わった場合は選択を破棄し、preview の準備後に変わった場合は別ユーザーの import を実行しない。
 - 同名の Deck が存在しても新しい CSV の import は既存の Deck・Card を上書きしない。
 - import 成功後は preview を破棄し、失敗後は同じ Deck・Card の識別子で再試行できる。
-- 基本・数式・マークダウン・サンプルデッキは同じ preview と保存先のフローを利用し、選択だけでは保存しない。
-- 確認画面から保存先を維持したままファイル・例の選択へ戻れる。処理中は選び直せない。
+- 基本・数式・マークダウン・サンプルデッキは同じ preview と保存フローを利用し、選択だけでは保存しない。
+- 確認画面から選択した内容を維持したままファイル・例の選択へ戻れる。処理中は選び直せない。
 - どの例も CSV をダウンロードでき、記述・タグ・改行・識別キーが内容表示と一致する。
 - 新たに例を選んで確定すると新しい Deck を作成する。同じ処理の失敗後の再試行では識別子を維持する。
 - 例を選んで追加しても自動初期生成の設定は変更しない。
@@ -29,11 +29,11 @@ CSV の検証から保存先別の import、失敗後の再試行、Sample Deck 
 | IMPORT-02 | read | [不正な行を含む CSV の import を阻止できる](#import-02) |
 | IMPORT-03 | batch | [CSV を remote に import して reload 後も利用できる](#import-03) |
 | IMPORT-04 | batch | [CSV を local-only に import して reload 後に学習できる](#import-04) |
-| IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](#import-05) |
+| IMPORT-05 | batch | [queued import の同期拒否を通知できる](#import-05) |
 | IMPORT-06 | batch | [4種類の例を同じ確認・保存フローで追加できる](#import-06) |
 | IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](#import-07) |
 | IMPORT-08 | batch | [Sample deck の全内容を local-only に取り込んで学習できる](#import-08) |
-| IMPORT-09 | batch | [Sample deck の remote 保存失敗から重複なく回復できる](#import-09) |
+| IMPORT-09 | batch | [通常ユーザーの Sample deck を同期できる](#import-09) |
 | IMPORT-10 | batch | [Google 未ログインの Sample deck を local-only に維持できる](#import-10) |
 
 <a id="import-01"></a>
@@ -50,7 +50,7 @@ Given:
 
 When:
 
-- Import 画面で `Change` から保存先を開き、保存先から Tab でファイル選択欄、次の操作へ進み、Shift+Tab でファイル選択欄、保存先へ戻る。
+- Import 画面でファイル選択欄へフォーカスし、Tab と Shift+Tab で前後の操作へ移動する。
 - CSV を選択し、Import を実行せずに検証の完了を待つ。
 
 Then:
@@ -100,7 +100,7 @@ Given:
 
 When:
 
-- Import 画面で remote の保存先を選択し、CSV の preview を確認して import した後、Deck 一覧を reload して import した Deck を開く。
+- Import 画面で CSV の preview を確認して import した後、Deck 一覧を reload して import した Deck を開く。
 
 Then:
 
@@ -124,11 +124,11 @@ Given:
 
 When:
 
-- Import 画面で 既定の local-only の保存先で、CSV の preview を確認して import した後、reload して import した Deck の学習を開始する。
+- Import 画面で CSV の preview を確認して import した後、reload して import した Deck の学習を開始する。
 
 Then:
 
-- local-only が既定で選択され、Sync with account は無効で、ログインが必要なことを案内する。
+- 保存先選択は表示せず、匿名 UID の cache に保存し、同期は停止する。
 - import 件数を含む成功結果が共通 toast で表示される。
 - import した Deck とすべての Card が local storage に維持される。
 - 対応する Deck と Card は remote data に作成されない。
@@ -137,7 +137,7 @@ Then:
 
 <a id="import-05"></a>
 
-### IMPORT-05 失敗した import を同じ保存先へ重複なく再試行できる
+### IMPORT-05 queued import の同期拒否を通知できる
 
 カテゴリ: `batch`
 
@@ -145,21 +145,18 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
-- 有効な CSV の最初の import で、保存先の Deck を作成した後に Card の保存が失敗している。
-- import の失敗と詳細が共通 toast で処理され、同じ preview と保存先が維持されている。
-- 次の import では Card を保存できる。
+- 有効な CSV の Card 書き込みをクラウドが拒否する。
 
 When:
 
-- CSV と保存先を変更せずに Import を再度実行する。
+- CSV を確認して追加し、同期結果を待って reload する。
 
 Then:
 
-- 権限拒否は現在の言語の案内で表示し、例外の生のメッセージを表示しない。
-- 再試行は最初の試行で作成された Deck を保存先として完了する。
-- import 件数を含む成功結果が共通 toast で表示される。過去の失敗 toast の寿命は App の共通 toast に従う。
-- 選択した保存先には Deck が一つだけ存在し、preview に含まれていた Card が重複なく保存される。
-- 未処理の browser error が発生しない。
+- cache 反映で操作を完了し、後から検出した同期失敗は共通 toast で表示する。
+- 拒否された Card を成功済みとして再送しない。保存済み Deck を重複作成しない。
+- 未処理の browser error を発生させない。
+- cache 保存中の失敗では preview と固定 ID を維持し、ユーザーの明示的な再送信を受け付ける。
 
 <a id="import-06"></a>
 
@@ -177,15 +174,15 @@ Given:
 When:
 
 - 各種類の例を切り替え、表裏の表示と CSV の記述を確認し、CSV をダウンロードする。
-- 各例について local-only または remote を選択して `Try this example` を実行し、preview を確認して追加を確定する。
+- 各例について `Try this example` を実行し、preview を確認して追加を確定する。
 - Deck 一覧を reload して追加した Deck を開く。
 
 Then:
 
-- 4種類で同じ操作、確認手順、保存先選択を利用できる。
+- 4種類で同じ操作、確認手順を利用できる。
 - ダウンロードには表示した種類の全カードが含まれ、数式・Markdown・複数タグ・引用符内の改行は失われない。
 - 例の選択だけでは保存せず、件数・Deck 名・表裏の内容を preview できる。
-- 処理中は例の選択、ファイル選択、保存先変更、追加確定が排他になる。再入場後も処理状態を維持する。
+- 処理中は例の選択、ファイル選択、追加確定が排他になる。再入場後も処理状態を維持する。
 - 明示的な確定後に選択した保存先へ全カードを保存し、共通 toast で件数を通知して Deck 一覧へ戻る。
 - reload 後もカードを表示できる。local-only の例は remote に保存されない。
 - 新たに同じ例を選んで追加しても既存の Deck や Card は上書きせず、新しい Deck になる。
@@ -226,7 +223,7 @@ Given:
 
 When:
 
-- local-only を選択して Sample deck の preview を開き、追加を確定する。
+- 匿名 UID で Sample deck の preview を開き、追加を確定する。
 - reload 後に取り込んだ Deck を開き、学習を開始して解答を表示する。
 
 Then:
@@ -241,7 +238,7 @@ Then:
 
 <a id="import-09"></a>
 
-### IMPORT-09 Sample deck の remote 保存失敗から重複なく回復できる
+### IMPORT-09 通常ユーザーの Sample deck を同期できる
 
 カテゴリ: `batch`
 
@@ -249,20 +246,17 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
-- Sample deck の remote import で Deck 作成後の Card 保存が一度だけ権限拒否になる。
 
 When:
 
-- remote を選択して Sample deck の追加を確定し、失敗後に同じ preview から再試行する。
-- 成功後に reload して取り込んだ Deck を開く。
+- Sample deck の preview を開き、追加を確定して reload する。
 
 Then:
 
-- 失敗は権限の案内で通知され、preview と保存先を維持する。
-- 再試行は最初に作成した一つの Deck に全 Card を重複なく保存する。
-- 再試行成功後は reload を待たずに Deck 一覧へ遷移し、取り込んだ Deck が表示される。
-- 成功通知の件数と Card 一覧の件数が sample の全件数と一致する。
-- 現在の UID の remote data に sample の表裏、タグ、uniqueKey、引用符と改行が完全に維持され、local-only data は作成されない。
+- cache 反映後に Deck 一覧へ遷移し、件数を共通 toast で通知する。
+- 現在の UID の remote data に全 Card が一つずつ保存される。
+- sample の表裏、タグ、uniqueKey、引用符と改行を維持する。
+- cache と remote は同じ ID を使い、別の保存先を作らない。
 - 未処理の browser error が発生しない。
 
 <a id="import-10"></a>
@@ -285,7 +279,7 @@ When:
 Then:
 
 - Google ログイン操作なしで import が成功する。
-- local-only が既定で選択され、Sync with account は無効である。
+- 保存先選択は表示しない。
 - 保存成功後は reload を待たずに Deck 一覧へ遷移し、対象の Deck と成功通知が表示される。
 - Deck と全 Card は browser storage に保存され、実際に発行された匿名 UID の remote data は作成されない。
 - reload 後も対象 Deck を開いて全 Card を表示できる。

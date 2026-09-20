@@ -12,7 +12,7 @@ export function replaceRemoteStudySessions(sessions: StudySession[]): void {
       if (state.sessionsByDeckId[session.deckId] !== undefined) continue;
       state.sessionsByDeckId[session.deckId] = {
         ...session,
-        lastStudiedAt: previous[session.deckId]?.lastStudiedAt ?? 0,
+        lastStudiedAt: Math.max(previous[session.deckId]?.lastStudiedAt ?? 0, session.lastStudiedAt),
       };
     }
   });

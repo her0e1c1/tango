@@ -38,9 +38,9 @@ export function useStudySessionPageModel(deckId: DeckId) {
     showBackText: pageState.showBackText,
   });
   useEffect(() => {
-    if (query.status !== "invalid" || pageState.completion != null) return;
+    if (query.status !== "invalid" || pageState.completion != null || pageState.swipePending) return;
     void navigate(routes.deckList.to(), { replace: true });
-  }, [navigate, query.status, pageState.completion]);
+  }, [navigate, query.status, pageState.completion, pageState.swipePending]);
 
   return {
     goBack: () => void navigate(routes.deckList.to()),
@@ -55,7 +55,9 @@ export function useStudySessionPageModel(deckId: DeckId) {
     toggleAutoPlay,
     openHelp,
     closeHelp,
-    changeIndex: (index: number) => updateStudyIndex(deckId, index),
+    changeIndex: (index: number) => {
+      void updateStudyIndex(deckId, index);
+    },
     swipeUp: () => void swipeCard(uid, deckId, "cardSwipeUp"),
     swipeDown: () => void swipeCard(uid, deckId, "cardSwipeDown"),
     swipeLeft: () => void swipeCard(uid, deckId, "cardSwipeLeft"),

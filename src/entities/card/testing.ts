@@ -1,3 +1,3 @@
 /** Testing-only entry point for installing deterministic remote Card snapshots. */
 export { replaceRemoteCards } from "./model/actions/replaceRemoteCards";
-export type { LocalCard, RemoteCard } from "./model/types";
+export type { RemoteCard } from "./model/types";

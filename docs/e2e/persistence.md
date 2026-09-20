@@ -2,7 +2,14 @@
 
 ## 目的
 
-remote data が認証 UID ごとに分離され、永続 cache、queued write、realtime subscription が network 状態や複数 client を越えて正しく機能することを確認する。
+remote data が認証 UID ごとに分離され、永続 cache、queued write、realtime subscription が 単一タブで network 状態を越えて正しく機能することを確認する。
+
+## 旧保存方式からの切り替え
+
+- 初回起動で旧 Deck・Card と対応する学習 session を現在の UID の Firestore 永続 cache へ一度だけ移行し、編集は移行完了後に開始する。
+- 元の browser storage は削除しない。データ不整合・保存失敗は起動画面で案内し、完了とは扱わない。
+- 移行先 ID は UID と旧 ID から固定し、中断後の同じ移行で重複を作らない。完了印を一度だけ保存し、その後に別 UID へ旧匿名データを移行しない。
+- この互換性処理は旧アプリの独自保存だけを対象とする。Firestore の IndexedDB を直接操作・全消去しない。
 
 ## テストケース
 
@@ -35,6 +42,7 @@ Then:
 - 各 browser context には現在の UID が所有する remote Deck と Card だけが表示される。
 - 別の UID が所有する remote Deck と Card は reload の前後で表示されない。
 - remote StudySession も本人だけが読み書きでき、所有者の変更は拒否される。対象 Deck が公開されていても session は公開されない。
+- 公開 Deck と Card も、削除済みの親または Card 自体の tombstone があれば他ユーザー・匿名・未認証から読み取れない。
 - 未処理の browser error が発生しない。
 
 <a id="persist-02"></a>
@@ -101,12 +109,14 @@ Given:
 When:
 
 - Deck と Card を編集して保存し、画面を reload する。
-- 未ログインのままクラウド保存を試みる。
+- 未ログインのまま Card の作成・削除・インポートと学習を実行する。
 
 Then:
 
 - Deck と Card の編集内容は browser storage に維持され、reload 後も表示される。
-- Deck 編集画面では Cloud が無効で、ログインが必要なことを案内する。
+- Deck 作成・編集・インポート画面に保存先の選択肢はない。匿名 UID の Firestore cache を利用し、匿名の間は同期が停止する。
 - クラウドへの Deck と Card の追加・更新・削除は拒否される。匿名認証の UID と所有者が一致する場合も拒否される。
-- local-only Deck と Card はクラウドへ転送されない。
+- 起動・reload の最初の Firestore 利用から同期を停止するため、匿名の Deck、Card、回答、学習 session はクラウドへ転送されない。
+- 通信を有効にしなくても操作が完了する。回答 ID と回答時刻は受付時に固定され、回答・進捗・session の前進を一つの batch で保存する。
+- 同じ UID の reload 後も進捗と現在位置が復元される。
 - browser error が発生しない。

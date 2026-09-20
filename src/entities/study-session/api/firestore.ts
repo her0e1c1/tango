@@ -1,4 +1,5 @@
-import { collection, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, doc, onSnapshot, query, Timestamp, updateDoc, where, writeBatch } from "firebase/firestore";
+import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { replaceRemoteStudySessions } from "../model/actions/replaceRemoteStudySessions";
 import { compareStudySessionCreation } from "../model/rules";
@@ -8,15 +9,27 @@ import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionWrite } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
 
-export async function createStudySession(session: StudySession): Promise<void> {
+export async function createStudySession(session: StudySession, previous?: StudySession): Promise<void> {
   const value = studySessionSchema.parse(session);
-  await setDoc(doc(db, "studySession", value.sessionId), {
+  if (value.remote === undefined) throw new Error("A confirmed owner is required");
+  const reference = doc(db, "studySession", value.sessionId);
+  const now = Timestamp.now();
+  const batch = writeBatch(db);
+  const references = [reference];
+  batch.set(reference, {
     ...toStudySessionDocument(value),
     endedAt: null,
     endReason: null,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    createdAt: now,
+    updatedAt: now,
   });
+  if (previous) {
+    if (previous.remote?.uid !== value.remote.uid) throw new Error("Study session owner changed");
+    const previousReference = doc(db, "studySession", previous.sessionId);
+    references.push(previousReference);
+    batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: now });
+  }
+  await writeLocally(value.remote.uid, references, () => batch.commit());
 }
 
 export async function updateStudySession(
@@ -27,21 +40,29 @@ export async function updateStudySession(
   if (value.remote === undefined) throw new Error("A local study session cannot be written to Firestore");
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
-  await updateDoc(reference, {
-    ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
-    ...(endReason === null ? {} : { endReason, endedAt: serverTimestamp() }),
-    updatedAt: serverTimestamp(),
-  });
+  await writeLocally(value.remote.uid, [reference], () =>
+    updateDoc(reference, {
+      ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
+      ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
+      updatedAt: Timestamp.now(),
+    })
+  );
 }
 
-export function subscribeStudySessions(uid: string, onError: (error: Error) => void): () => void {
+export async function updateStudySessionRecency(session: StudySession): Promise<void> {
+  if (!session.remote) throw new Error("A confirmed owner is required");
+  const reference = doc(db, "studySession", session.sessionId);
+  await writeLocally(session.remote.uid, [reference], () =>
+    updateDoc(reference, { updatedAt: Timestamp.fromMillis(session.lastStudiedAt) })
+  );
+}
+
+export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
   setStudySessionOwner(uid);
   return onSnapshot(
     query(collection(db, "studySession"), where("uid", "==", uid)),
     { includeMetadataChanges: true },
     (snapshot) => {
-      // Pending timestamps are incomplete; keep locally saved progress until the SDK confirms the snapshot.
-      if (snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return;
       const latest = new Map<string, StudySessionWrite>();
       for (const item of snapshot.docs) {
         const parsed = parseStudySessionDocument(item.data());
@@ -55,6 +76,7 @@ export function subscribeStudySessions(uid: string, onError: (error: Error) => v
       replaceRemoteStudySessions(
         [...latest.values()].filter(({ endReason }) => endReason === null).map(({ session }) => session)
       );
+      onReady?.();
     },
     (error) => {
       finishStudySessionLoading();

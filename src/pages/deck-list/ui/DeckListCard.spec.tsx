@@ -64,7 +64,7 @@ describe("DeckListCard [SWIPE-08]", () => {
     );
 
     expect(screen.getByText("math")).toBeInTheDocument();
-    expect(screen.getByLabelText("Remote deck")).toBeInTheDocument();
+
     const viewButton = screen.getByRole("button", { name: "View Deck name" });
     const progressbar = screen.getByRole("progressbar", { name: "Progress for Deck name" });
     expect(viewButton).toHaveAccessibleDescription("math2 / 3 · 5m ago");

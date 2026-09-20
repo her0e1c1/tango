@@ -1,5 +1,5 @@
 import type { Card, CardMutation } from "@/entities/card";
-import type { Deck, LocalDeckCreateInput, RemoteDeckCreateInput } from "@/entities/deck";
+import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -29,7 +29,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
-    createDeck: (_uid: string, deck: RemoteDeckCreateInput | LocalDeckCreateInput) => {
+    createDeck: (_uid: string, deck: RemoteDeckCreateInput) => {
       const fields = {
         id: deck.id,
         name: deck.name,
@@ -43,9 +43,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         createdAt: 0,
         updatedAt: 0,
       };
-      const savedDeck: Deck = deck.localMode
-        ? { ...fields, localMode: true }
-        : { ...fields, uid: repository.uid, localMode: false };
+      const savedDeck: Deck = { ...fields, uid: repository.uid };
       repository.decks = [...repository.decks.filter(({ id }) => id !== savedDeck.id), savedDeck];
       return Promise.resolve();
     },
@@ -73,27 +71,29 @@ describe("addSampleDeck [IMPORT-07]", () => {
     const result = await addSampleDeck();
 
     expect(result.created).toBeGreaterThan(0);
-    expect(result.deckId).toBe("sample-v1");
+    expect(result.deckId).toBe(`${repository.uid}-sample-v1`);
     expect(repository.loadSample).toBe(false);
     expect(repository.decks).toEqual([
-      expect.objectContaining({ id: "sample-v1", name: "Sample Deck", localMode: true }),
+      expect.objectContaining({ id: `${repository.uid}-sample-v1`, name: "Sample Deck" }),
     ]);
     expect(repository.cards).toHaveLength(result.created);
-    expect(repository.cards.every((card) => card.deckId === "sample-v1")).toBe(true);
+    expect(repository.cards.every((card) => card.deckId === `${repository.uid}-sample-v1`)).toBe(true);
   });
 
   it("persists locally without a signed-in user", async () => {
-    repository.uid = "";
+    repository.uid = "anonymous-uid";
 
     const result = await addSampleDeck();
 
     expect(result.created).toBeGreaterThan(0);
-    expect(result.deckId).toBe("sample-v1");
+    expect(result.deckId).toBe(`${repository.uid}-sample-v1`);
     expect(repository.loadSample).toBe(false);
     expect(repository.decks).toEqual([
-      expect.objectContaining({ id: "sample-v1", name: "Sample Deck", localMode: true }),
+      expect.objectContaining({ id: `${repository.uid}-sample-v1`, name: "Sample Deck" }),
     ]);
     expect(repository.cards.length).toBeGreaterThan(0);
-    expect(repository.cards.every((card) => card.deckId === "sample-v1" && !("uid" in card))).toBe(true);
+    expect(repository.cards.every((card) => card.deckId === `${repository.uid}-sample-v1` && !("uid" in card))).toBe(
+      true
+    );
   });
 });

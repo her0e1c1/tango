@@ -2,6 +2,7 @@ import type { EditStudyProgressInput } from "../model/types";
 
 import { doc, updateDoc } from "firebase/firestore";
 
+import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { editStudyProgressSchema } from "../model/schema";
@@ -15,5 +16,6 @@ export const editRemoteStudyProgress = async (
   const { cardId, ...fields } = input.progress;
   // StudyProgress is embedded in its Card document; patch only progress fields so Card content remains untouched.
   const document = omitUndefined({ ...fields, updatedAt: Date.now() });
-  await updateDoc(doc(db, "card", cardId), document);
+  const reference = doc(db, "card", cardId);
+  await writeLocally(uid, [reference], () => updateDoc(reference, document));
 };

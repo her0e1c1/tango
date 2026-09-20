@@ -687,7 +687,7 @@ const normalizeDeck = (raw: RawRemoteDeck | RawLocalDeck, id: string, uid?: stri
   };
   if (uid === undefined) return normalized;
   const deletedAt = "deletedAt" in raw ? (raw.deletedAt ?? null) : null;
-  return { ...normalized, uid, localMode: false, deletedAt };
+  return { ...normalized, uid, deletedAt };
 };
 
 const normalizeCard = (raw: RawRemoteCard | RawLocalCard, id: string, deckId: string, uid?: string): FixtureCard => {

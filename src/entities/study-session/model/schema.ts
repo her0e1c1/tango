@@ -21,7 +21,3 @@ export const studySessionSchema: z.ZodType<StudySession> = z
     message: "Study session index must point to an active card",
     path: ["currentIndex"],
   });
-
-export const persistedStudySessionStateSchema = z.object({
-  sessionsByDeckId: z.record(z.string(), z.unknown()),
-});

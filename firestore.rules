@@ -1,3 +1,4 @@
+rules_version = '2';
 service cloud.firestore {
   function isSignedIn() {
     return request.auth != null &&
@@ -14,6 +15,25 @@ service cloud.firestore {
     return request.auth.uid == request.resource.data.uid;
   }
   match /databases/{database}/documents {
+    match /studyAnswer/{answerId} {
+      function validAnswer() {
+        let answer = request.resource.data;
+        let session = get(/databases/$(database)/documents/studySession/$(answer.sessionId)).data;
+        let after = getAfter(/databases/$(database)/documents/studySession/$(answer.sessionId)).data;
+        let card = getAfter(/databases/$(database)/documents/card/$(answer.cardId)).data;
+        return answer.keys().hasOnly(['uid', 'sessionId', 'deckId', 'cardId', 'answer', 'answeredAt', 'createdAt', 'updatedAt']) &&
+          answer.uid == request.auth.uid && session.uid == request.auth.uid && card.uid == request.auth.uid &&
+          answer.deckId == session.deckId && card.deckId == session.deckId &&
+          session.endReason == null && session.cardOrderIds[session.currentIndex] == answer.cardId &&
+          answer.answer.keys().hasOnly(['type', 'rating']) && answer.answer.type == 'rating' &&
+          answer.answer.rating in ['again', 'hard', 'good', 'easy'] &&
+          answer.answeredAt is timestamp && answer.createdAt is timestamp && answer.updatedAt is timestamp &&
+          ((after.currentIndex == session.currentIndex + 1 && after.endReason == null) ||
+           (session.currentIndex == session.cardOrderIds.size() - 1 && after.currentIndex == session.currentIndex && after.endReason == 'completed'));
+      }
+      allow read: if isSignedIn() && isOwner();
+      allow create: if isSignedIn() && validAnswer();
+    }
     match /studySession/{sessionId} {
       allow read: if isSignedIn() && isOwner();
       allow create: if isSignedIn() && isValid();
@@ -21,7 +41,7 @@ service cloud.firestore {
     }
     match /deck/{deckId} {
       function isPublic() {
-        return resource.data.isPublic == true;
+        return resource.data.isPublic == true && resource.data.get('deletedAt', null) == null;
       }
       allow read: if isOwner() || isPublic();
       allow create: if isSignedIn() && isValid();
@@ -33,10 +53,12 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/deck/$(deckId));
       }
       function isPublic() {
-        return getDeck(resource.data.deckId).data.isPublic == true;
+        let deck = getDeck(resource.data.deckId).data;
+        return deck.isPublic == true && deck.get('deletedAt', null) == null &&
+               resource.data.get('deletedAt', null) == null;
       }
       function belongsToDeck() {
-        return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
+        return getAfter(/databases/$(database)/documents/deck/$(request.resource.data.deckId)).data.uid == request.auth.uid;
       }
       allow read: if isOwner() || isPublic();
       allow create: if isSignedIn() && isValid() && belongsToDeck();

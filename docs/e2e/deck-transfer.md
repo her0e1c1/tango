@@ -2,37 +2,37 @@
 
 ## 目的
 
-Deck と Card の保存先を local-only から remote へ移行し、Deck の Card を外部で利用できる形式へ export できることを確認する。
+旧形式の Deck と Card を Firestore cache へ移行し、Deck の Card を外部で利用できる形式へ export できることを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| DECK-07 | batch | [local-only Deck と Card を remote へ移行できる](#deck-07) |
+| DECK-07 | batch | [旧形式の Deck と Card を一度だけ cache へ移行できる](#deck-07) |
 | DECK-08 | read | [Deck の Card を CSV で export できる](#deck-08) |
 
 <a id="deck-07"></a>
 
-### DECK-07 local-only Deck と Card を remote へ移行できる
+### DECK-07 旧形式の Deck と Card を一度だけ cache へ移行できる
 
 カテゴリ: `batch`
 
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- Google アカウントにログインしたユーザーの browser storage に local-only Deck が存在する。
-- 未ログインでは Cloud へ移行できず、ログイン後の明示的な保存によってのみ移行する。
-- 対象 Deck に複数の local-only Card が存在する。
+- 旧アプリの browser storage に Deck と複数の Card が存在する。
+- 現在の匿名 UID の Firestore cache にはまだ移行されていない。
 
 When:
 
-- 対象 Deck の Local only を無効にして保存し、画面を reload する。
+- アプリを起動して対象 Deck を開き、reload する。
 
 Then:
 
-- Deck の更新成功が共通 toast で表示される。
-- 対象 Deck とすべての Card が remote から読み込まれて表示される。
-- browser storage に移行前の Deck と Card の duplicate が残らない。
+- 現在の UID の Firestore cache に一度だけ移行し、全 Card を表示できる。
+- 移行完了前は編集を開始できない。失敗時は起動エラーを表示する。
+- 元の browser storage はバックアップとして変更せずに残る。
+- 再起動や別 UID への切り替えで重複移行しない。
 - browser error が発生しない。
 
 <a id="deck-08"></a>

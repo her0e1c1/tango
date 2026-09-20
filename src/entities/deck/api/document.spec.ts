@@ -78,7 +78,7 @@ describe("Deck Firestore document mapping [CARD-10]", () => {
     expect(toDeck("deck", document)).toEqual({
       id: "deck",
       uid: "owner",
-      localMode: false,
+
       name: "Deck",
       isPublic: false,
       difficultyMax: null,

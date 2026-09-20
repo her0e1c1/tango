@@ -11,7 +11,6 @@ import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { replaceAuthSession } from "@/entities/auth";
 import { clearRemoteCards, useCards } from "@/entities/card";
 import { clearRemoteDecks, useDecks } from "@/entities/deck";
 
@@ -83,111 +82,43 @@ vi.mock("firebase/firestore", async (importOriginal) => {
   };
 });
 
-import { FirestoreSubscriptionsProvider } from ".";
-
-const authenticatedSession = (uid: string) => ({
-  status: "authenticated" as const,
-  uid,
-  isAnonymous: false,
-  displayName: null,
-});
+import { startFirestoreSubscriptions } from ".";
 
 const RepositoryView = () => {
   const cards = useCards();
   const decks = useDecks();
   return (
     <>
-      <p>{decks.length === 0 ? "No remote Decks" : decks.map((deck) => deck.name).join(", ")}</p>
-      <p>{cards.length === 0 ? "No remote Cards" : cards.map((card) => card.frontText).join(", ")}</p>
+      <p>{decks.map((deck) => deck.name).join(", ")}</p>
+      <p>{cards.map((card) => card.frontText).join(", ")}</p>
     </>
   );
 };
 
-const renderProvider = () =>
-  render(
-    <FirestoreSubscriptionsProvider>
-      <p>Application content</p>
-      <RepositoryView />
-    </FirestoreSubscriptionsProvider>
-  );
-
-describe("FirestoreSubscriptionsProvider [CARD-01] [ACCOUNT-01] [ACCOUNT-03] [PERSIST-04]", () => {
+describe("Firestore subscriptions [PERSIST-01 PERSIST-04 ACCOUNT-03]", () => {
   beforeEach(() => {
     clearRemoteCards();
     clearRemoteDecks();
-    replaceAuthSession({ status: "initializing" });
   });
-
-  it("leaves application content available without remote data before authentication", () => {
-    renderProvider();
-
-    expect(screen.getByText("Application content")).toBeVisible();
-    expect(screen.getByText("No remote Decks")).toBeVisible();
-    expect(screen.getByText("No remote Cards")).toBeVisible();
-  });
-
-  it("shows remote data for the authenticated identity", () => {
-    act(() => replaceAuthSession(authenticatedSession("user-a")));
-
-    renderProvider();
-
-    expect(screen.getByText("Deck for user-a")).toBeVisible();
-    expect(screen.getByText("Front for user-a")).toBeVisible();
-  });
-
-  it("keeps guest cloud data unavailable until the same identity signs in", () => {
-    replaceAuthSession({ ...authenticatedSession("user-a"), isAnonymous: true });
-    renderProvider();
-
-    expect(screen.getByText("Application content")).toBeVisible();
-    expect(screen.getByText("No remote Decks")).toBeVisible();
-    expect(screen.getByText("No remote Cards")).toBeVisible();
-
-    act(() => replaceAuthSession(authenticatedSession("user-a")));
-
-    expect(screen.getByText("Deck for user-a")).toBeVisible();
-    expect(screen.getByText("Front for user-a")).toBeVisible();
-
-    act(() => replaceAuthSession({ ...authenticatedSession("user-a"), isAnonymous: true }));
-
-    expect(screen.getByText("No remote Decks")).toBeVisible();
-    expect(screen.getByText("No remote Cards")).toBeVisible();
-  });
-
-  it("replaces visible remote data when the authenticated identity changes", () => {
-    act(() => replaceAuthSession(authenticatedSession("user-a")));
-    renderProvider();
-    expect(screen.getByText("Deck for user-a")).toBeVisible();
-
-    act(() => replaceAuthSession(authenticatedSession("user-b")));
-
-    expect(screen.getByText("Deck for user-b")).toBeVisible();
-    expect(screen.getByText("Front for user-b")).toBeVisible();
-    expect(screen.queryByText("Deck for user-a")).not.toBeInTheDocument();
-    expect(screen.queryByText("Front for user-a")).not.toBeInTheDocument();
-  });
-
-  it("clears visible remote data on logout while preserving application content", () => {
-    act(() => replaceAuthSession(authenticatedSession("user-a")));
-    renderProvider();
-    expect(screen.getByText("Deck for user-a")).toBeVisible();
-
-    act(() => replaceAuthSession({ status: "unauthenticated" }));
-
-    expect(screen.getByText("Application content")).toBeVisible();
-    expect(screen.getByText("No remote Decks")).toBeVisible();
-    expect(screen.getByText("No remote Cards")).toBeVisible();
-  });
-
-  it("clears remote data when the provider unmounts", () => {
-    act(() => replaceAuthSession(authenticatedSession("user-a")));
-    const view = renderProvider();
-    expect(screen.getByText("Deck for user-a")).toBeVisible();
-
-    view.unmount();
+  it.each(["anonymous-uid", "linked-uid"])("publishes cached data for %s and clears it on cleanup", (uid) => {
+    const { stop } = startFirestoreSubscriptions(uid);
     render(<RepositoryView />);
-
-    expect(screen.getByText("No remote Decks")).toBeVisible();
-    expect(screen.getByText("No remote Cards")).toBeVisible();
+    expect(screen.getByText(`Deck for ${uid}`)).toBeVisible();
+    expect(screen.getByText(`Front for ${uid}`)).toBeVisible();
+    act(() => stop());
+    expect(screen.queryByText(`Deck for ${uid}`)).not.toBeInTheDocument();
+    expect(screen.queryByText(`Front for ${uid}`)).not.toBeInTheDocument();
+  });
+  it("replaces the visible UID after stopping the old subscriptions", () => {
+    const { stop: stopFirst } = startFirestoreSubscriptions("first");
+    render(<RepositoryView />);
+    act(() => stopFirst());
+    let stopSecond: () => void = () => undefined;
+    act(() => {
+      stopSecond = startFirestoreSubscriptions("second").stop;
+    });
+    expect(screen.queryByText("Deck for first")).not.toBeInTheDocument();
+    expect(screen.getByText("Deck for second")).toBeVisible();
+    act(() => stopSecond());
   });
 });

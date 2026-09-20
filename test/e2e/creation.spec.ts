@@ -18,9 +18,7 @@ test("DECK-11 creates one empty local-only Deck without a remote duplicate", asy
   await page.getByRole("menuitem", { name: "Create deck" }).click();
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
-  const localOnly = page.getByRole("radio", { name: "Local only" });
-  await expect(localOnly).toBeChecked();
-  await expect(page.getByRole("radio", { name: "Cloud", exact: true })).toBeDisabled();
+  await expect(page.getByRole("radio")).toHaveCount(0);
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
   await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
@@ -38,7 +36,7 @@ test("DECK-11 creates one empty local-only Deck without a remote duplicate", asy
     (deck: { id?: string; name?: string }) => deck.id === deckId && deck.name === name
   );
   expect(localDecks).toHaveLength(1);
-  expect(localDecks[0]).toEqual(expect.objectContaining({ id: deckId, name, category, localMode: true }));
+  expect(localDecks[0]).toEqual(expect.objectContaining({ id: deckId, name, category }));
   expect(local.cards.filter((card: { deckId?: string }) => card.deckId === deckId)).toEqual([]);
   expect(
     (await listDocuments("deck")).filter(
@@ -76,16 +74,16 @@ test("CARD-15 retries a rejected remote Card create with a new ID and no duplica
   await page.getByRole("tab", { name: "Back", exact: true }).click();
   await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
-  await expect(page.getByRole("alert")).toContainText("Unable to create this card. Try again.");
+  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
   expect(attemptedCardId).toBeDefined();
 
-  await page.getByRole("tab", { name: "Front", exact: true }).click();
-  await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(frontText);
+  await page.goto(`/deck/${deck.id}/card/new`);
+  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
   await page.getByRole("tab", { name: "Back", exact: true }).click();
-  await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue(backText);
+  await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByRole("alert")).toHaveCount(0);
@@ -93,6 +91,17 @@ test("CARD-15 retries a rejected remote Card create with a new ID and no duplica
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
+  await expect
+    .poll(
+      async () =>
+        (await listDocuments("card")).filter(
+          ({ fields }) =>
+            fields.deckId?.stringValue === deck.id &&
+            fields.uid?.stringValue === deck.uid &&
+            fields.frontText?.stringValue === frontText
+        ).length
+    )
+    .toBe(1);
   const created = (await listDocuments("card")).filter(
     ({ fields }) =>
       fields.deckId?.stringValue === deck.id &&
@@ -105,7 +114,5 @@ test("CARD-15 retries a rejected remote Card create with a new ID and no duplica
   expect(documentId(createdCard)).not.toBe(attemptedCardId);
   expect(createdCard.fields.backText?.stringValue).toBe(backText);
   expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
-  expect((await readLocalData(page)).cards).not.toEqual(
-    expect.arrayContaining([expect.objectContaining({ frontText })])
-  );
+  expect((await readLocalData(page)).cards).toEqual(expect.arrayContaining([expect.objectContaining({ frontText })]));
 });

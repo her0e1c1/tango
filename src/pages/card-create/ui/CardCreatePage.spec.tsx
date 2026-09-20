@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider, useNavigate } from "react-router-dom";
@@ -71,7 +72,7 @@ describe("CARD-13 CARD-14 CARD-15 CARD-26 CARD-27 CARD-28 CARD-29 CardCreatePage
     dismissToast();
     writes.rejected = false;
     writes.pending = null;
-    await createDeck("", deck);
+    await createDeck("user-id", deck);
   });
 
   it("shows the target Deck context and cancels to its Card list when clean", async () => {

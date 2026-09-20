@@ -1,13 +1,10 @@
+import { setStudySessionIndex } from "@/test/entityFixtures";
+import "@/test/mockFirestorePersistence";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
-import {
-  clearStudySessions,
-  getStudySession,
-  setStudySessionIndex,
-  startStudy,
-  touchStudySession,
-} from "@/entities/study-session";
+import { clearStudySessions, getStudySession, touchStudySession } from "@/entities/study-session";
+import { startStudy } from "@/test/entityFixtures";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,7 +23,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: mocks.uid }) }));
+vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: mocks.uid }), getAuthUid: () => mocks.uid }));
 vi.mock("@/entities/preference", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preference")>()),
   getPreferences: () => mocks.preferences,
@@ -217,7 +214,9 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
+    act(() => {
+      void result.current.swipeRight();
+    });
     await actAsync(async () => result.current.swipeLeft());
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
 
@@ -232,7 +231,9 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result, unmount } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
+    act(() => {
+      void result.current.swipeRight();
+    });
     unmount();
     await actAsync(async () => {
       request.resolve();
@@ -243,20 +244,24 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
-  it("does not advance a session changed by the controller during the write", async () => {
+  it("serializes controller movement behind the pending answer", async () => {
     const request = Promise.withResolvers<void>();
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
-    setStudySessionIndex(deckId, 1);
+    act(() => {
+      void result.current.swipeRight();
+    });
+    act(() => {
+      void result.current.changeIndex(1);
+    });
     await actAsync(async () => {
       request.resolve();
       await request.promise;
     });
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledOnce();
   });
 
   it("does not complete a final Card when the active session is replaced during the write", async () => {
@@ -267,7 +272,9 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
+    act(() => {
+      void result.current.swipeRight();
+    });
     act(() => startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 }));
     await actAsync(async () => {
       request.resolve();
@@ -284,9 +291,11 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
+    act(() => {
+      void result.current.swipeRight();
+    });
     vi.mocked(Date.now).mockReturnValue(946_684_800_100);
-    touchStudySession(deckId);
+    await touchStudySession(deckId);
     await actAsync(async () => {
       request.resolve();
       await request.promise;
@@ -331,11 +340,11 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     mocks.preferences = createPreferences({ cardSwipeLeft: "GoToPrevCard", showSwipeFeedback: true });
     setStudySessionIndex(deckId, index);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
-    act(result.current.toggleBackText);
+    await actAsync(async () => result.current.toggleBackText());
     const session = getStudySession(deckId);
 
     await actAsync(async () => result.current.swipeLeft());
-    act(() => result.current.changeIndex(0));
+    await actAsync(async () => result.current.changeIndex(0));
 
     expect(result.current.query.status).toBe("studying");
     expect(getStudySession(deckId)).toEqual(session);
@@ -515,4 +524,23 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     act(() => vi.advanceTimersByTime(500));
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
+});
+
+vi.mock("@/pages/study-session/api/saveStudyAnswer", async () => {
+  const { moveStudySession } = await import("@/test/entityFixtures");
+  const { planStudySessionSwipe } = await import("@/entities/study-session");
+  return {
+    saveStudyAnswer: async (
+      uid: string,
+      session: import("@/entities/study-session").StudySession,
+      action: import("@/entities/preference").Preferences["controls"]["cardSwipeUp"],
+      now: number
+    ) => {
+      const { getCards } = await import("@/entities/card");
+      const plan = planStudySessionSwipe(session, getCards(), action, now);
+      if (plan.effect !== "next") return;
+      await mocks.editStudyProgress(uid, plan.progress);
+      moveStudySession(session);
+    },
+  };
 });

@@ -1,214 +1,152 @@
-import type { Auth, User, UserCredential } from "firebase/auth";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { User } from "firebase/auth";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 
-const singletonMocks = vi.hoisted(() => ({
-  auth: { currentUser: null },
-  onIdTokenChanged: vi.fn((_auth: Auth, _onUser: (user: User | null) => void) => () => undefined),
-  signInAnonymously: vi.fn(),
+const control = vi.hoisted(() => ({
+  auth: { currentUser: null as User | null },
+  observe: undefined as ((user: User | null) => void) | undefined,
+  before: undefined as ((user: User | null) => Promise<void>) | undefined,
+  network: true,
+  pending: false,
+  subscribed: "",
+  ready: Promise.resolve() as Promise<void>,
+  stops: [] as string[],
+  anonymous: vi.fn(),
+  migrate: vi.fn(),
 }));
-
-vi.mock("@/shared/firebase", () => ({ auth: singletonMocks.auth }));
+vi.mock("@/shared/firebase", () => ({ auth: control.auth, db: {} }));
 vi.mock("firebase/auth", () => ({
-  onIdTokenChanged: singletonMocks.onIdTokenChanged,
-  signInAnonymously: singletonMocks.signInAnonymously,
-}));
-
-const createUser = (
-  uid: string,
-  { isAnonymous = true, displayName = null }: { isAnonymous?: boolean; displayName?: string | null } = {}
-) =>
-  ({
-    uid,
-    isAnonymous,
-    providerData: displayName == null ? [] : [{ displayName }],
-  }) as User;
-
-const createHarness = async (signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined))) => {
-  vi.resetModules();
-  let observer: (user: User | null) => void = () => undefined;
-  let observing = true;
-  singletonMocks.onIdTokenChanged.mockImplementation((_auth, onUser) => {
-    observer = onUser;
-    observing = true;
+  onIdTokenChanged: (_auth: unknown, callback: (user: User | null) => void) => {
+    control.observe = callback;
     return () => {
-      observing = false;
+      control.observe = undefined;
     };
+  },
+  beforeAuthStateChanged: (_auth: unknown, callback: (user: User | null) => Promise<void>) => {
+    control.before = callback;
+    return () => {
+      control.before = undefined;
+    };
+  },
+  signInAnonymously: control.anonymous,
+}));
+vi.mock("firebase/firestore", () => ({
+  disableNetwork: () => {
+    control.network = false;
+    return Promise.resolve();
+  },
+  enableNetwork: () => {
+    control.network = true;
+    return Promise.resolve();
+  },
+  collection: vi.fn(),
+  query: vi.fn(),
+  where: vi.fn(),
+  getDocsFromCache: async () => ({ metadata: { hasPendingWrites: control.pending } }),
+}));
+vi.mock("@/shared/firestore-write", () => ({
+  hasUnacknowledgedWrites: () => false,
+  subscribeWriteErrors: () => () => undefined,
+}));
+vi.mock("../firestore-subscriptions", () => ({
+  startFirestoreSubscriptions: (uid: string) => {
+    control.subscribed = uid;
+    return {
+      ready: control.ready,
+      stop: () => {
+        control.stops.push(uid);
+        control.subscribed = "";
+      },
+    };
+  },
+}));
+vi.mock("./migrateLegacyData", () => ({ migrateLegacyData: control.migrate }));
+
+import { startAuthSession } from "./lifecycle";
+const user = (uid: string, isAnonymous = true) => ({ uid, isAnonymous, providerData: [] }) as unknown as User;
+let stop: () => void = () => undefined;
+async function publish(value: User | null) {
+  control.auth.currentUser = value;
+  control.observe?.(value);
+  await vi.waitUntil(() => getAuthSession().status === (value ? "authenticated" : "authenticating"));
+}
+
+describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PERSIST-04]", () => {
+  beforeEach(() => {
+    control.auth.currentUser = null;
+    control.network = false;
+    control.pending = false;
+    control.ready = Promise.resolve();
+    control.subscribed = "";
+    control.stops = [];
+    control.anonymous.mockReset().mockReturnValue(new Promise(() => undefined));
+    control.migrate.mockReset().mockResolvedValue(undefined);
+    replaceAuthSession({ status: "initializing" });
+    stop = startAuthSession();
   });
-  singletonMocks.signInAnonymously.mockImplementation(signInAnonymously);
+  afterEach(() => stop());
 
-  const studySession = await import("@/entities/study-session");
-  studySession.clearStudySessions();
-  const authSession = await import("@/entities/auth");
-  const lifecycle = await import("./lifecycle");
-  authSession.replaceAuthSession({ status: "initializing" });
-  const stopAuthSession = lifecycle.startAuthSession();
-  const publishUser = (user: User | null) => {
-    if (observing) observer(user);
-  };
-
-  return { ...lifecycle, ...authSession, ...studySession, publishUser, stopAuthSession };
-};
-
-describe("lifecycle", () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it("stops observing authentication changes after cleanup", async () => {
-    const { getAuthSession, publishUser, stopAuthSession } = await createHarness();
-
-    publishUser(createUser("uid-a"));
-    stopAuthSession();
-    publishUser(createUser("uid-b"));
-
-    expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "uid-a" });
+  it("keeps anonymous startup offline before making editing available", async () => {
+    await publish(user("anonymous"));
+    expect(control.network).toBe(false);
+    expect(control.subscribed).toBe("anonymous");
+    expect(getAuthSession()).toMatchObject({ uid: "anonymous", isAnonymous: true });
   });
-
-  it("maps Firebase users to a Firebase-independent session snapshot", async () => {
-    const { getAuthSession, publishUser } = await createHarness();
-
-    publishUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
-
-    expect(getAuthSession()).toEqual({
-      status: "authenticated",
-      uid: "uid-a",
-      isAnonymous: false,
-      displayName: "Ada",
-    });
+  it("enables sync after the same UID is linked", async () => {
+    await publish(user("same"));
+    await publish(user("same", false));
+    await vi.waitFor(() => expect(control.network).toBe(true));
+    expect(getAuthSession()).toMatchObject({ uid: "same", isAnonymous: false });
   });
-
-  it("publishes linked Google metadata from the observer for the same uid", async () => {
-    const { getAuthSession, publishUser } = await createHarness();
-    publishUser(createUser("uid-a"));
-
-    publishUser(createUser("uid-a", { isAnonymous: false, displayName: "Ada" }));
-
-    expect(getAuthSession()).toEqual({
-      status: "authenticated",
-      uid: "uid-a",
-      isAnonymous: false,
-      displayName: "Ada",
-    });
+  it("blocks signout while restored cache changes are pending", async () => {
+    await publish(user("account", false));
+    control.pending = true;
+    await expect(control.before?.(null)).rejects.toThrow("Sync changes");
+    expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" });
+    expect(control.subscribed).toBe("account");
   });
-
-  it("clears persisted Study state before initial anonymous sign-in", async () => {
-    const deckId = "deck-a";
-    const { getAuthSession, getStudySession, publishUser, startStudy } = await createHarness();
-    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 });
-    const studySessionsAtSignIn: unknown[] = [];
-    singletonMocks.signInAnonymously.mockImplementation(() => {
-      studySessionsAtSignIn.push(getStudySession(deckId));
-      return new Promise<UserCredential>(() => undefined);
-    });
-
-    publishUser(null);
-
-    expect(getStudySession(deckId)).toBeUndefined();
-    expect(studySessionsAtSignIn).toEqual([undefined]);
-    expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
+  it("stops networking and old subscriptions before switching identity", async () => {
+    await publish(user("account", false));
+    await control.before?.(null);
+    expect(control.auth.currentUser?.uid).toBe("account");
+    expect(control.network).toBe(false);
+    expect(control.subscribed).toBe("");
+    expect(getAuthSession().status).toBe("initializing");
+    await publish(null);
+    expect(control.anonymous).toHaveBeenCalledOnce();
   });
-
-  it("starts a new anonymous episode after clearing an authenticated user's study state", async () => {
-    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const deckId = "deck-a";
-    const { getAuthSession, getStudySession, publishUser, startStudy } = await createHarness(signInAnonymously);
-
-    publishUser(null);
-    const firstAttempt = getAuthSession();
-    publishUser(createUser("uid-a"));
-    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 });
-    publishUser(null);
-
-    expect(getStudySession(deckId)).toBeUndefined();
-    expect(getAuthSession()).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
-    expect(getAuthSession()).not.toEqual(firstAttempt);
-    expect(signInAnonymously).toHaveBeenCalledTimes(2);
+  it("waits for cached data through a same-UID token refresh", async () => {
+    const ready = Promise.withResolvers<void>();
+    control.ready = ready.promise;
+    control.auth.currentUser = user("same");
+    control.observe?.(control.auth.currentUser);
+    await vi.waitFor(() => expect(control.subscribed).toBe("same"));
+    control.observe?.(control.auth.currentUser);
+    await Promise.resolve();
+    expect(getAuthSession().status).toBe("initializing");
+    ready.resolve();
+    await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "same" }));
   });
-
-  it("does not restart anonymous sign-in for duplicate unauthenticated events", async () => {
-    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const deckId = "deck-a";
-    const { getAuthSession, getStudySession, publishUser, startStudy } = await createHarness(signInAnonymously);
-
-    publishUser(null);
-    const attempt = getAuthSession();
-    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 });
-    publishUser(null);
-
-    expect(signInAnonymously).toHaveBeenCalledOnce();
-    expect(getStudySession(deckId)).toBeDefined();
-    expect(getAuthSession()).toEqual(attempt);
+  it("ignores an old identity's delayed startup failure", async () => {
+    const oldMigration = Promise.withResolvers<void>();
+    control.migrate.mockReturnValueOnce(oldMigration.promise);
+    control.auth.currentUser = user("old");
+    control.observe?.(control.auth.currentUser);
+    await vi.waitFor(() => expect(control.migrate).toHaveBeenCalledWith("old"));
+    await control.before?.(user("new"));
+    await publish(user("new"));
+    oldMigration.reject(new Error("old storage failure"));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "new" });
+    expect(control.subscribed).toBe("new");
   });
-
-  it("publishes Study cleanup failures before anonymous bootstrap", async () => {
-    const cleanupError = new Error("Study cleanup failed");
-    const signInAnonymously = vi.fn(() => new Promise<UserCredential>(() => undefined));
-    const deckId = "deck-a";
-    const { getAuthSession, getStudySession, publishUser, startStudy } = await createHarness(signInAnonymously);
-    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 });
-    const removeItem = vi.spyOn(Storage.prototype, "removeItem").mockImplementationOnce(() => {
-      throw cleanupError;
-    });
-
-    publishUser(createUser("uid-a"));
-    publishUser(null);
-
-    expect(getStudySession(deckId)).toBeUndefined();
-    expect(getAuthSession()).toEqual({ status: "error", error: cleanupError });
-    expect(signInAnonymously).not.toHaveBeenCalled();
-    removeItem.mockRestore();
-  });
-
-  it("publishes anonymous sign-in failures without an identity", async () => {
-    const anonymousError = new Error("anonymous sign-in failed");
-    const { getAuthSession, publishUser } = await createHarness(vi.fn().mockRejectedValue(anonymousError));
-
-    publishUser(null);
-
-    await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "error", error: anonymousError }));
-  });
-
-  it("ignores a stale anonymous sign-in failure after authentication succeeds", async () => {
-    let rejectSignIn: (error: unknown) => void = () => undefined;
-    const signInAttempt = new Promise<UserCredential>((_resolve, reject) => {
-      rejectSignIn = reject;
-    });
-    const { getAuthSession, publishUser } = await createHarness(vi.fn(() => signInAttempt));
-
-    publishUser(null);
-    await vi.waitFor(() => expect(singletonMocks.signInAnonymously).toHaveBeenCalledOnce());
-    publishUser(createUser("uid-a"));
-    rejectSignIn(new Error("late failure"));
-    await signInAttempt.catch(() => undefined);
-
-    expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "uid-a" });
-  });
-
-  it("ignores a stale failure after a later anonymous attempt starts", async () => {
-    let rejectFirstSignIn: (error: unknown) => void = () => undefined;
-    const firstSignIn = new Promise<UserCredential>((_resolve, reject) => {
-      rejectFirstSignIn = reject;
-    });
-    const secondSignIn = new Promise<UserCredential>(() => undefined);
-    const signInAnonymously = vi
-      .fn()
-      .mockImplementationOnce(() => firstSignIn)
-      .mockImplementationOnce(() => secondSignIn);
-    const { getAuthSession, publishUser } = await createHarness(signInAnonymously);
-
-    publishUser(null);
-    await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledOnce());
-    const firstAttempt = getAuthSession();
-    expect(firstAttempt).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
-
-    publishUser(createUser("uid-a"));
-    publishUser(null);
-    await vi.waitFor(() => expect(signInAnonymously).toHaveBeenCalledTimes(2));
-    const secondAttempt = getAuthSession();
-    expect(secondAttempt).toMatchObject({ status: "authenticating", attemptId: expect.any(Symbol) });
-    expect(secondAttempt).not.toEqual(firstAttempt);
-
-    rejectFirstSignIn(new Error("late failure"));
-    await firstSignIn.catch(() => undefined);
-
-    expect(getAuthSession()).toEqual(secondAttempt);
+  it("does not start editing when legacy data cannot be saved", async () => {
+    control.migrate.mockRejectedValueOnce(new Error("storage failed"));
+    control.auth.currentUser = user("anonymous");
+    control.observe?.(control.auth.currentUser);
+    await vi.waitFor(() => expect(getAuthSession().status).toBe("error"));
+    expect(control.network).toBe(false);
+    expect(control.subscribed).toBe("");
   });
 });

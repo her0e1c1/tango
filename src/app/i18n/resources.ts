@@ -51,6 +51,8 @@ export const resources = {
           description: "Identity and Google sign-in",
           signOut: "Sign out",
           signInWithGoogle: "Sign in with Google",
+          anonymousDataHelp:
+            "Anonymous data is stored only on this browser and is not synced. Registering a new account keeps your UID and syncs this data. Signing in to an existing account does not transfer anonymous data. Clearing browser data or losing the anonymous sign-in can make it unavailable.",
           status: "Status",
           signedInWithGoogle: "Signed in with Google",
           anonymous: "Anonymous account",
@@ -63,7 +65,8 @@ export const resources = {
           signInSuccess: "Signed in.",
           signInFailure: "Unable to sign in.",
           signOutSuccess: "Signed out.",
-          signOutFailure: "Unable to sign out.",
+          signOutFailure:
+            "Unable to sign out. If changes are pending, reconnect and let them sync before trying again.",
         },
       },
       header: {
@@ -146,18 +149,6 @@ export const resources = {
         back: "Back to decks",
         create: {
           title: "Create deck",
-        },
-        edit: {
-          localModeHelp: "Choose Cloud to move this deck and its cards to your account. This change cannot be undone.",
-          remoteModeHelp: "This deck and its cards are saved in the cloud. They cannot be moved to local-only storage.",
-        },
-        storage: {
-          title: "Storage",
-          cloud: "Cloud",
-          cloudHelp: "Save to your account",
-          signInHelp: "Your data stays in this browser while signed out. Sign in to save to the cloud.",
-          localHelp: "Save in this browser",
-          localOnly: "Local only",
         },
         basic: {
           name: "Name",
@@ -398,7 +389,7 @@ export const resources = {
       studySession: {
         unavailable: "Study session unavailable.",
         loading: "Loading…",
-        syncFailure: "Unable to sync study sessions. Your progress is kept on this device. Reload to retry.",
+        syncFailure: "A data save or sync failed. Check your connection and reload to review the saved data.",
         answerAria: "Study answer",
         feedback: {
           swipedUp: "Swiped up",
@@ -537,15 +528,6 @@ export const resources = {
           nameHelp: "The file name becomes the deck name.",
           replace: "Choose another CSV",
           chooseAgain: "Choose file or example",
-        },
-        storage: {
-          legend: "Save to",
-          change: "Change",
-          localLabel: "Local only",
-          localHelp: "Keep this deck and its cards on this device.",
-          remoteLabel: "Sync with account",
-          remoteHelp: "Save to your account and sync across devices.",
-          resetHelp: "Changing the destination clears the preview. Choose your file or example again.",
         },
         preview: {
           title: "Review import",
@@ -757,6 +739,8 @@ export const resources = {
           description: "アカウント情報とGoogleログイン",
           signOut: "ログアウト",
           signInWithGoogle: "Googleでログイン",
+          anonymousDataHelp:
+            "匿名のデータはこのブラウザ内だけに保存され、同期されません。新規登録では同じ UID を維持してデータを同期します。既存アカウントへのログインでは匿名データを引き継ぎません。ブラウザデータの消去や匿名認証情報の喪失後は復元できない場合があります。",
           status: "ステータス",
           signedInWithGoogle: "Googleでログイン済み",
           anonymous: "匿名アカウント",
@@ -769,7 +753,7 @@ export const resources = {
           signInSuccess: "ログインしました。",
           signInFailure: "ログインできません。",
           signOutSuccess: "ログアウトしました。",
-          signOutFailure: "ログアウトできません。",
+          signOutFailure: "ログアウトできません。未同期の変更がある場合は、再接続して同期後にもう一度お試しください。",
         },
       },
       header: {
@@ -851,19 +835,6 @@ export const resources = {
         back: "デッキ一覧に戻る",
         create: {
           title: "デッキを作成",
-        },
-        edit: {
-          localModeHelp: "クラウドを選ぶと、このデッキとカードをアカウントに移動します。この変更は元に戻せません。",
-          remoteModeHelp: "このデッキとカードはクラウドに保存されています。この端末のみの保存には変更できません。",
-        },
-        storage: {
-          title: "保存先",
-          cloud: "クラウド",
-          cloudHelp: "アカウントに保存",
-          signInHelp:
-            "未ログインの間、データはこのブラウザ内にのみ保存されます。クラウドに保存するにはログインしてください。",
-          localHelp: "ブラウザ内に保存",
-          localOnly: "この端末のみ",
         },
         basic: {
           name: "デッキ名",
@@ -1104,8 +1075,7 @@ export const resources = {
       studySession: {
         unavailable: "学習セッションを利用できません。",
         loading: "読み込み中…",
-        syncFailure:
-          "学習セッションを同期できませんでした。進行状況はこの端末に保存されています。再読み込みして再試行してください。",
+        syncFailure: "データの保存または同期に失敗しました。接続を確認し、再読み込みして保存状態を確認してください。",
         answerAria: "学習カードの回答",
         feedback: {
           swipedUp: "上へスワイプしました",
@@ -1244,15 +1214,6 @@ export const resources = {
           nameHelp: "デッキ名にはファイル名を使います。",
           replace: "CSVを選び直す",
           chooseAgain: "ファイル・例を選び直す",
-        },
-        storage: {
-          legend: "保存先",
-          change: "変更",
-          localLabel: "この端末のみ",
-          localHelp: "このデッキとカードをこの端末に保存します。",
-          remoteLabel: "アカウントと同期",
-          remoteHelp: "アカウントに保存し、端末間で同期します。",
-          resetHelp: "保存先を変えると確認内容が消去されます。ファイルや例を選び直してください。",
         },
         preview: {
           title: "内容を確認して追加",

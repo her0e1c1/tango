@@ -1,10 +1,12 @@
+import "@/test/mockFirestorePersistence";
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
-import { clearStudySessions, startStudy } from "@/entities/study-session";
+import { clearStudySessions } from "@/entities/study-session";
+import { startStudy } from "@/test/entityFixtures";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 import { useDeckListState } from "./useDeckListState";
@@ -36,9 +38,9 @@ describe("DECK-01 SWIPE-08 useDeckListState", () => {
     vi.useFakeTimers();
     replaceAuthSession({ status: "initializing" });
     clearStudySessions();
-    await Promise.all(decks.map((deck) => createDeck("", deck)));
+    await Promise.all(decks.map((deck) => createDeck("user-id", deck)));
     await mutateCards(
-      "",
+      "user-id",
       cards.map((card) => ({ kind: "create" as const, card }))
     );
 
@@ -50,7 +52,7 @@ describe("DECK-01 SWIPE-08 useDeckListState", () => {
 
   afterEach(async () => {
     clearStudySessions();
-    await Promise.all(decks.map((deck) => deleteDeck("", deck.id)));
+    await Promise.all(decks.map((deck) => deleteDeck("user-id", deck.id)));
     vi.useRealTimers();
   });
 
