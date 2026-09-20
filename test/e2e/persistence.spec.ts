@@ -1,5 +1,16 @@
 import type { Page, Route } from "@playwright/test";
-import { collectBrowserErrors, documentId, expect, listDocuments, requireDocument, test } from "./fixtures";
+import {
+  collectBrowserErrors,
+  documentId,
+  expect,
+  getDocument,
+  listDocuments,
+  readLocalData,
+  requestFirestoreAsGuest,
+  requireDocument,
+  setDocument,
+  test,
+} from "./fixtures";
 
 const installApplicationCacheForOfflineReload = async (page: Page, baseURL: string | undefined) => {
   if (baseURL === undefined) throw new Error("Playwright baseURL is required for an offline reload");
@@ -210,4 +221,59 @@ test("PERSIST-02 syncs an offline cached Card edit after reconnecting", async ({
   expect(cardIds).toEqual([card.id]);
   verificationErrors.assert();
   await verificationContext.close();
+});
+
+test("PERSIST-04 keeps guest edits local and rejects every cloud write", async ({ fixture, page, namespace }) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  const { uid } = fixture.user();
+  const updatedName = `${namespace.caseId} local deck update`;
+  const updatedFrontText = `${namespace.caseId} local card update`;
+  await fixture.apply(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  await expect(page.getByRole("radio", { name: "Local only", exact: true })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Cloud", exact: true })).toBeDisabled();
+  await page.getByRole("textbox", { name: "Name" }).fill(updatedName);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(/\/$/);
+
+  await page.getByRole("button", { name: `View ${updatedName}` }).click();
+  await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  await page.getByRole("textbox", { name: "Front text" }).fill(updatedFrontText);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
+  await page.reload();
+  await expect(page.getByRole("button", { name: `View ${updatedFrontText}` })).toBeVisible();
+  const stored = await readLocalData(page);
+  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id, name: updatedName, localMode: true }));
+  expect(stored.cards).toContainEqual(expect.objectContaining({ id: card.id, frontText: updatedFrontText }));
+  expect(await getDocument("deck", deck.id)).toBeUndefined();
+  expect(await getDocument("card", card.id)).toBeUndefined();
+
+  // Legacy records may already belong to an anonymous UID; ownership must not grant write access.
+  const legacyDeckId = namespace.id("legacy-deck");
+  const legacyCardId = namespace.id("legacy-card");
+  await setDocument("deck", legacyDeckId, { uid, name: "Legacy deck" });
+  await setDocument("card", legacyCardId, { uid, deckId: legacyDeckId, frontText: "Legacy card" });
+  for (const collection of ["deck", "card"] as const) {
+    const existingId = collection === "deck" ? legacyDeckId : legacyCardId;
+    const data = { uid, deckId: legacyDeckId, name: "Denied guest write" };
+    const create = await requestFirestoreAsGuest({
+      uid,
+      collection,
+      id: namespace.id(`denied-${collection}`),
+      method: "PATCH",
+      document: data,
+    });
+    expect(create.status).toBe(403);
+    const update = await requestFirestoreAsGuest({ uid, collection, id: existingId, method: "PATCH", document: data });
+    expect(update.status).toBe(403);
+    const remove = await requestFirestoreAsGuest({ uid, collection, id: existingId, method: "DELETE" });
+    expect(remove.status).toBe(403);
+  }
+  expect((await requireDocument("deck", legacyDeckId)).fields.name?.stringValue).toBe("Legacy deck");
+  expect((await requireDocument("card", legacyCardId)).fields.frontText?.stringValue).toBe("Legacy card");
 });

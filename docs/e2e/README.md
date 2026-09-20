@@ -48,6 +48,8 @@
 | SETTINGS-07 | read | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](./settings.md#settings-07) |
 | SETTINGS-09 | write | [CSV の検証結果が再読み込みなしで言語変更に追随する](./settings.md#settings-09) |
 | SETTINGS-08 | write | [Card の検証エラーが言語変更に追随し入力を保持する](./settings.md#settings-08) |
+| SETTINGS-10 | write | [自動再生の間隔の0の意味を表示して数値のまま保存できる](./settings.md#settings-10) |
+| SETTINGS-11 | batch | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](./settings.md#settings-11) |
 
 ### Import
 
@@ -62,7 +64,7 @@
 | IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](./import.md#import-07) |
 | IMPORT-08 | batch | [Sample deck の全内容を local-only に取り込んで学習できる](./import.md#import-08) |
 | IMPORT-09 | batch | [Sample deck の remote 保存失敗から重複なく回復できる](./import.md#import-09) |
-| IMPORT-10 | batch | [Google 未ログインでも匿名認証で Sample deck を remote に取り込める](./import.md#import-10) |
+| IMPORT-10 | batch | [Google 未ログインの Sample deck を local-only に維持できる](./import.md#import-10) |
 
 ### Deck
 
@@ -160,3 +162,4 @@
 | PERSIST-01 | read | [UID ごとに remote data を分離して reload 後も表示できる](./persistence.md#persist-01) |
 | PERSIST-02 | batch | [offline cache の変更を再接続後に remote へ同期できる](./persistence.md#persist-02) |
 | PERSIST-03 | write | [別の open client に remote Card の変更を即時反映できる](./persistence.md#persist-03) |
+| PERSIST-04 | batch | [未ログインの変更を local-only に維持できる](./persistence.md#persist-04) |

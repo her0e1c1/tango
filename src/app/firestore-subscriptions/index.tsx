@@ -11,7 +11,7 @@ const reportSubscriptionError = (error: Error): void => {
 
 export const FirestoreSubscriptionsProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const session = useAuthSession();
-  const uid = session.status === "authenticated" ? session.uid : "";
+  const uid = session.status === "authenticated" && !session.isAnonymous ? session.uid : "";
 
   React.useEffect(() => {
     if (uid === "") {
