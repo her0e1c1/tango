@@ -190,7 +190,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Card list" })).toBeVisible();
   });
 
-  it("saves once for same-tick submissions and submissions during validation and persistence", async () => {
+  it("disables controls during validation and deduplicates overlapping saves", async () => {
     const validation = Promise.withResolvers<void>();
     const write = Promise.withResolvers<void>();
     mocks.beforeValidation = () => validation.promise;
@@ -213,7 +213,10 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
     fireEvent.submit(form);
     await actAsync(async () => validation.resolve());
     expect(save).toBeDisabled();
-    fireEvent.submit(form);
+    await actAsync(async () => {
+      fireEvent.submit(form);
+      await Promise.resolve();
+    });
     await actAsync(async () => write.resolve());
 
     expect(await screen.findByText("Updated card “Front text”.")).toBeVisible();

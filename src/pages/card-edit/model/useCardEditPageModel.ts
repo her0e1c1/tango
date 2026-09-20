@@ -6,10 +6,11 @@ import { CATEGORY, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { useCardPreviewContent } from "@/features/card-form";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { useResetStoreOnMount } from "@/shared/lib/useResetStoreOnMount";
 import { routes, useNavigationGuard } from "@/shared/router";
 
 import { submit } from "./actions/submit";
-import { useCardEditSubmission } from "./actions/useCardEditSubmission";
+import { cardEditPageStore } from "./store";
 import { getCardEditInfo } from "./queries/getCardEditInfo";
 import { useCardEditFormState } from "./useCardEditFormState";
 
@@ -27,9 +28,10 @@ export function useCardEditPageModel(card: Card) {
   const { isDirty, isSubmitting } = useFormState({ control: form.control });
   const guard = useNavigationGuard(isDirty || isSubmitting);
   const isMounted = useMountedGuard();
+  useResetStoreOnMount(cardEditPageStore);
   const cardListPath = routes.cardList.to(snapshot.deckId);
 
-  const handleSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = form.handleSubmit(async (values) => {
     if (!isMounted()) return;
     if (!(await submit({ cardId: snapshot.id, values }))) return;
     if (!isMounted()) return;
@@ -38,7 +40,6 @@ export function useCardEditPageModel(card: Card) {
       navigate(cardListPath, { replace: true })
     );
   });
-  const onSubmit = useCardEditSubmission(handleSubmit);
   const preview = useCardPreviewContent(form.control, deck?.category ?? "", preferences.appearance.darkMode);
 
   return {

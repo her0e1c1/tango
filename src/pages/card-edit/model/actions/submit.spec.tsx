@@ -22,7 +22,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 describe("CARD-03 CARD-09 card edit submission", () => {
   beforeEach(() => {
     dismissToast();
-    vi.mocked(editCard).mockReset();
+    vi.mocked(editCard).mockReset().mockResolvedValue(undefined);
     session.uid = "opening-user";
   });
 
