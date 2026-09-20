@@ -1,5 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
+  function isSignedIn() {
+    return request.auth != null &&
+           request.auth.token.firebase.sign_in_provider != "anonymous";
+  }
   function isOwner() {
     return request.auth.uid == resource.data.uid;
   }
@@ -16,9 +20,9 @@ service cloud.firestore {
         return resource.data.isPublic == true;
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid();
-      allow update: if isValidOwner();
-      allow delete: if isOwner();
+      allow create: if isSignedIn() && isValid();
+      allow update: if isSignedIn() && isValidOwner();
+      allow delete: if isSignedIn() && isOwner();
     }
     match /card/{cardId} {
       function getDeck(deckId) {
@@ -31,7 +35,7 @@ service cloud.firestore {
         return getDeck(request.resource.data.deckId).data.uid == request.auth.uid;
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid() && belongsToDeck();
+      allow create: if isSignedIn() && isValid() && belongsToDeck();
       function hasPairedReview() {
         let id = request.resource.data.lastStudyOperationId;
         let attempt = getAfter(/databases/$(database)/documents/studyAttempt/$(id)).data;
@@ -52,8 +56,8 @@ service cloud.firestore {
           'numberOfSeen', 'lastSeenAt', 'nextSeeingAt', 'interval', 'lastStudyOperationId'
         ]) || hasPairedReview();
       }
-      allow update: if isValidOwner() && belongsToDeck() && validProgressUpdate();
-      allow delete: if isOwner();
+      allow update: if isSignedIn() && isValidOwner() && belongsToDeck() && validProgressUpdate();
+      allow delete: if isSignedIn() && isOwner();
     }
     match /studyAttempt/{operationId} {
       // Rules enforce shape, ownership, references, and paired writes. The operation's schema validates
@@ -79,7 +83,7 @@ service cloud.firestore {
       // An authenticated absent-ID lookup is needed before creating an operation. Existing results stay owner-only.
       allow get: if request.auth != null && (!exists(/databases/$(database)/documents/studyAttempt/$(operationId)) || isOwner());
       allow list: if isOwner();
-      allow create: if request.auth != null && validAttempt();
+      allow create: if isSignedIn() && validAttempt();
       allow update, delete: if false;
     }
   }

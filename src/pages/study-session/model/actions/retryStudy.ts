@@ -1,16 +1,16 @@
-import { getAuthUid } from "@/entities/auth";
 import { getStudySession, isStudySessionPositionUnchanged } from "@/entities/study-session";
 import { showToast } from "@/shared/ui/toast";
 import { clearPendingStudy, savePendingStudy } from "../../api/pendingStudy";
 import { recordStudy } from "../../api/recordStudy";
 import { studySessionPageStore } from "../store";
+import { isStudyActorCurrent } from "../queries/isStudyActorCurrent";
 import { completeStudyMovement } from "./completeStudyMovement";
 
 export async function retryStudy(): Promise<void> {
   const { pendingOperation: pending, owner, pendingWork } = studySessionPageStore.getState();
   if (
     !pending ||
-    getAuthUid() !== pending.uid ||
+    !isStudyActorCurrent(pending.uid, pending.localOnly) ||
     owner?.uid !== pending.uid ||
     owner.deckId !== pending.input.deckId ||
     pendingWork[pending.input.sessionId]
@@ -28,7 +28,7 @@ export async function retryStudy(): Promise<void> {
     await recordStudy(pending.uid, pending.input, pending.localOnly);
     const current = studySessionPageStore.getState();
     if (
-      getAuthUid() !== pending.uid ||
+      !isStudyActorCurrent(pending.uid, pending.localOnly) ||
       current.owner !== owner ||
       current.pendingOperation?.input.operationId !== pending.input.operationId
     )
@@ -41,7 +41,7 @@ export async function retryStudy(): Promise<void> {
   } catch {
     const current = studySessionPageStore.getState();
     if (
-      getAuthUid() === pending.uid &&
+      isStudyActorCurrent(pending.uid, pending.localOnly) &&
       current.owner === owner &&
       current.pendingOperation?.input.operationId === pending.input.operationId
     ) {

@@ -13,10 +13,11 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actAsync } from "@/test/act";
-import { createDeck, createPreferences } from "@/test/factories";
+import { createDeck, createLocalCard, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   uid: "user-1",
+  isAnonymous: false,
   preferences: null as Preferences | null,
   cards: [] as Card[],
   deck: undefined as Deck | undefined,
@@ -25,7 +26,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: mocks.uid }), getAuthUid: () => mocks.uid }));
+vi.mock("@/entities/auth", () => ({
+  useAuth: () => ({ uid: mocks.uid }),
+  getAuthSession: () => ({ status: "authenticated", uid: mocks.uid, isAnonymous: mocks.isAnonymous }),
+}));
 vi.mock("@/entities/preference", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preference")>()),
   getPreferences: () => mocks.preferences,
@@ -64,9 +68,10 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   lastSeenAt: 0,
 }));
 
-describe("Study Page model [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10] [SWIPE-11] [SWIPE-12] [SWIPE-24]", () => {
+describe("Study Page model [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10] [SWIPE-11] [SWIPE-12] [SWIPE-16] [SWIPE-24]", () => {
   beforeEach(() => {
     mocks.uid = "user-1";
+    mocks.isAnonymous = false;
     clearStudySessions();
     localStorage.clear();
     sessionStorage.clear();
@@ -109,6 +114,17 @@ describe("Study Page model [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10] [SWIPE-11
     expect(result.current.pageState.showBackText).toBe(false);
     expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeRight");
     expect(mocks.recordStudy).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }), false);
+  });
+
+  it("lets an anonymous actor review a local Card", async () => {
+    mocks.isAnonymous = true;
+    mocks.cards = cards.map(({ id, frontText, backText }) => createLocalCard({ id, deckId, frontText, backText }));
+    const { result } = renderHook(() => useStudySessionPageModel(deckId));
+
+    await actAsync(async () => result.current.swipeRight());
+
+    expect(mocks.recordStudy).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }), true);
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
 
   it("reports preparing while the session card is not available", () => {

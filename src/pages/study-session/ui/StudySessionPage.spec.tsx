@@ -26,7 +26,10 @@ const mocks = vi.hoisted(() => ({
   toggleShowSwipeButtonList: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }), getAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({
+  useAuth: () => ({ uid: "user-id" }),
+  getAuthSession: () => ({ status: "authenticated", uid: "user-id", isAnonymous: false }),
+}));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   getPreferences: () => mocks.preferences,

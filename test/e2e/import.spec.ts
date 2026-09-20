@@ -102,7 +102,7 @@ test("IMPORT-02 Invalid CSV rows block persistence", async ({ fixture, page, nam
 
 test("IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, namespace }) => {
   const { uid } = fixture.user();
-  await fixture.apply(page);
+  await fixture.apply(page, { auth: { linked: true } });
   await page.goto("/import");
   await page.getByRole("button", { name: "Change", exact: true }).click();
   const csvNamespace = namespace.id("remote");
@@ -138,7 +138,8 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   await page.getByRole("button", { name: "Change", exact: true }).click();
   const csvNamespace = namespace.id("local");
   const file = validCsv(csvNamespace);
-  await page.getByRole("radio", { name: /Local only/ }).check();
+  await expect(page.getByRole("radio", { name: /Local only/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
   await page.getByLabel("Upload a csv file").setInputFiles(file);
   await expect(page.getByText("2 valid")).toBeVisible();
   await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
@@ -169,7 +170,7 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
 }) => {
   allowExpectedFirestoreWriteFailure(browserErrors);
   const { uid } = fixture.user();
-  await fixture.apply(page);
+  await fixture.apply(page, { auth: { linked: true } });
   await page.goto("/import");
   await page.getByRole("button", { name: "Change", exact: true }).click();
   const file = csvFile(`${namespace.id("retry")}.csv`, [
@@ -211,7 +212,7 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
   page,
 }, testInfo) => {
   const { uid } = fixture.user();
-  await fixture.apply(page);
+  await fixture.apply(page, { auth: { linked: true } });
   const examples = [
     {
       label: "Basic",

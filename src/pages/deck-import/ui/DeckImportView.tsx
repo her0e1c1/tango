@@ -29,6 +29,7 @@ interface DeckImportPreview {
 }
 
 export interface DeckImportViewProps {
+  cloudStorageAvailable?: boolean;
   onChange?: (file: File) => void;
   onChooseAgain?: () => void;
   onStorageModeChange?: (storageMode: DeckImportStorageMode) => void;
@@ -235,6 +236,9 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
             </button>
           </div>
           <p className="text-caption text-ink-muted">{t(`deckImport.storage.${storageMode}Help`)}</p>
+          {props.cloudStorageAvailable === false && (
+            <p className="mt-2 text-caption text-ink-muted">{t("deckForm.storage.signInHelp")}</p>
+          )}
           <fieldset
             id="import-storage"
             hidden={!storageOpen}
@@ -253,6 +257,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
                   value={mode}
                   className="mt-1 accent-accent-primary"
                   checked={storageMode === mode}
+                  disabled={mode === "remote" && props.cloudStorageAvailable === false}
                   onChange={() => props.onStorageModeChange?.(mode)}
                 />
                 <span>
