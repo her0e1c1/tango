@@ -18,7 +18,11 @@ const BeforeUnloadGuard = () => {
   return null;
 };
 
-export const useNavigationGuard = (isDirty: boolean) => {
+export interface NavigationGuardOptions {
+  description?: React.ReactNode;
+}
+
+export const useNavigationGuard = (isDirty: boolean, options?: NavigationGuardOptions) => {
   const allowedNavigation = React.useRef<AllowedNavigationIntent | null>(null);
   const blocker = useBlocker(({ historyAction, nextLocation }) => {
     const historyActions = { PUSH: NavigationType.Push, REPLACE: NavigationType.Replace };
@@ -35,6 +39,10 @@ export const useNavigationGuard = (isDirty: boolean) => {
   });
 
   const allowNavigation = (intent: AllowedNavigationIntent, navigate: () => void | Promise<void>) => {
+    // Dismiss any unanswered confirmation prompt so intentional navigation takes precedence.
+    if (blocker.state === "blocked") {
+      blocker.reset();
+    }
     // Each call owns its cleanup, even if an older navigation settles after a newer one starts.
     const pending = { ...intent };
     allowedNavigation.current = pending;
@@ -62,7 +70,11 @@ export const useNavigationGuard = (isDirty: boolean) => {
         {isDirty ? <BeforeUnloadGuard /> : null}
         {blocker.state === "blocked" && (
           // React Router resumes the exact destination, including Back/Forward history entries.
-          <NavigationGuardDialog onDiscardChanges={blocker.proceed} onKeepEditing={blocker.reset} />
+          <NavigationGuardDialog
+            description={options?.description}
+            onDiscardChanges={blocker.proceed}
+            onKeepEditing={blocker.reset}
+          />
         )}
       </>
     ),

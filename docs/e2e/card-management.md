@@ -18,6 +18,10 @@ Card の作成・編集・削除が保存先の境界を守り、失敗後も入
 | CARD-16 | write | [Card の削除失敗後に再試行できる](#card-16) |
 | CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](#card-17) |
 | CARD-21 | read | [Card の未表示の面にある入力エラーを修正できる](#card-21) |
+| CARD-26 | read | [未保存の Card 作成内容の離脱を確認できる](#card-26) |
+| CARD-27 | write | [Card 作成成功が未回答の離脱確認より優先される](#card-27) |
+| CARD-28 | write | [Card 作成中に離脱しても保存成功時に一覧へ移動する](#card-28) |
+| CARD-29 | write | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](#card-29) |
 
 <a id="card-03"></a>
 
@@ -271,4 +275,94 @@ Then:
 - 両面の tab にエラーが示され、Back tab を選ぶと back text の入力エラーも確認できる。
 - 拡大編集画面でも入力エラーが表示され、入力欄の accessible description として読み取れる。
 - 未入力の値は維持され、Card は保存されず元の永続データが変更されない。
+- browser error が発生しない。
+
+<a id="card-26"></a>
+
+### CARD-26 未保存の Card 作成内容の離脱を確認できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 作成画面を開いている。
+
+When:
+
+- 未変更の状態で Cancel を選択し、再度作成画面を開いて front text を入力する。
+- Cancel の離脱確認で Keep editing を選択し、再度 Cancel して Discard changes を選択する。
+
+Then:
+
+- 未変更の場合は確認なしで所属 Deck の Card 一覧へ戻る。
+- 未保存の入力がある場合は確認 dialog が表示され、Keep editing では入力を保持する。
+- Discard changes では所属 Deck の Card 一覧へ移動し、Card は作成されない。
+- browser error が発生しない。
+
+<a id="card-27"></a>
+
+### CARD-27 Card 作成成功が未回答の離脱確認より優先される
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、remote 保存の完了を待っている。
+
+When:
+
+- 保存処理中に Header で離脱を試みて Keep editing を選択し、再度 Header で離脱を試みて確認を未回答のまま保存を完了する。
+
+Then:
+
+- 確認には離脱後も作成が続き、成功時に一覧へ移動し、失敗時に通知される説明が表示される。
+- Keep editing では入力と保存処理を維持し、作成画面に留まる。
+- 保存成功で確認が閉じ、所属 Deck の Card 一覧へ replace 遷移する。古い Header の要求先へ移動しない。
+- 成功通知が表示され、対象 Deck に入力した Card が1件だけ永続化され、reload 後も表示される。
+- browser error が発生しない。
+
+<a id="card-28"></a>
+
+### CARD-28 Card 作成中に離脱しても保存成功時に一覧へ移動する
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、remote 保存の完了を待っている。
+
+When:
+
+- 保存処理中に Header で離脱を試みて Discard changes を選択し、移動先で保存完了を待つ。
+
+Then:
+
+- 確認には離脱後も作成が続くことと完了時の挙動が表示される。
+- Discard changes で要求した Deck 一覧へ移動し、保存成功後は所属 Deck の Card 一覧へ replace 遷移する。
+- 成功通知が表示され、対象 Deck に入力した Card が1件だけ永続化され、reload 後も表示される。
+- browser error が発生しない。
+
+<a id="card-29"></a>
+
+### CARD-29 Card 作成失敗後も離脱確認と入力を保持して再試行できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、remote 保存の完了を待っている。
+
+When:
+
+- 保存処理中に Header で離脱を試みて確認を未回答のまま書き込みを失敗させ、Keep editing を選択して再試行する。
+
+Then:
+
+- 失敗通知が表示されても離脱確認は残り、成功時の遷移は実行されない。
+- Keep editing で前後の入力を保持し、再試行の成功後は所属 Deck の Card 一覧へ移動する。
+- 成功通知が表示され、対象 Deck に入力した Card が1件だけ永続化され、reload 後も表示される。
 - browser error が発生しない。
