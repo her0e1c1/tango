@@ -3,9 +3,9 @@ import { confirmDeckDeletion } from "@/features/deck-deletion";
 
 import { deckEditPageStore } from "../store";
 
-export function confirmDeletion(onDeleted: () => void | Promise<void>): Promise<void> {
-  const { owner, deletionTarget, deletionPending } = deckEditPageStore.getState();
-  if (owner === undefined) return Promise.resolve();
+export function confirmDeletion(isMounted: () => boolean, onDeleted: () => void | Promise<void>): Promise<void> {
+  if (!isMounted()) return Promise.resolve();
+  const { deletionTarget, deletionPending } = deckEditPageStore.getState();
 
   return confirmDeckDeletion({
     uid: getAuthUid(),
@@ -14,7 +14,7 @@ export function confirmDeletion(onDeleted: () => void | Promise<void>): Promise<
     setTarget: (target) => deckEditPageStore.setState({ deletionTarget: target }),
     setPending: (pending) => deckEditPageStore.setState({ deletionPending: pending }),
     // Shared deletion checks this before publishing completion or changing the current dialog.
-    isMounted: () => deckEditPageStore.getState().owner === owner,
+    isMounted,
     onDeleted: () => void onDeleted(),
   });
 }
