@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import * as Papa from "papaparse";
 import type { Page } from "@playwright/test";
 import {
   allowExpectedFirestoreWriteFailure,
@@ -40,6 +42,7 @@ test("IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture,
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
+  await page.getByRole("button", { name: "Change", exact: true }).click();
   const upload = page.getByLabel("Upload a csv file");
   const uploadArea = page.locator("label").filter({ has: upload });
   const destination = page.getByRole("radio", { name: /Local only/ });
@@ -52,7 +55,7 @@ test("IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture,
   await expect(uploadArea).toHaveCSS("outline-offset", "3px");
   await expect(uploadArea).toHaveCSS("opacity", "1");
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Add sample deck" })).toBeFocused();
+  await expect(page.getByText("CSV format", { exact: true })).toBeFocused();
   await expect(uploadArea).toHaveCSS("outline-style", "none");
   await page.keyboard.press("Shift+Tab");
   await expect(upload).toBeFocused();
@@ -69,7 +72,7 @@ test("IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture,
   await expect(page.getByText("2 valid")).toBeVisible();
   await expect(page.getByText(`front ${namespace.id("preview")} one`, { exact: true })).toBeVisible();
   await expect(page.getByText(`back ${namespace.id("preview")} two`, { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Import", exact: true })).toBeEnabled();
+  await expect(page.getByRole("button", { name: /^Add \d+ cards?$/u })).toBeEnabled();
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
 });
@@ -78,6 +81,7 @@ test("IMPORT-02 Invalid CSV rows block persistence", async ({ fixture, page, nam
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
+  await page.getByRole("button", { name: "Change", exact: true }).click();
   await page
     .getByLabel("Upload a csv file")
     .setInputFiles(
@@ -91,7 +95,7 @@ test("IMPORT-02 Invalid CSV rows block persistence", async ({ fixture, page, nam
   await expect(validation).toContainText("Row 2");
   await expect(validation).toContainText("Unique key is required.");
   await expect(page.getByText("1 invalid")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Import", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /^Add \d+ cards?$/u })).toBeDisabled();
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
 });
@@ -100,12 +104,13 @@ test("IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, na
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
+  await page.getByRole("button", { name: "Change", exact: true }).click();
   const csvNamespace = namespace.id("remote");
   const file = validCsv(csvNamespace);
   await page.getByRole("radio", { name: /Sync with account/ }).check();
   await page.getByLabel("Upload a csv file").setInputFiles(file);
   await expect(page.getByText("2 valid")).toBeVisible();
-  await page.getByRole("button", { name: "Import", exact: true }).click();
+  await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: "Imported 2 cards." })).toBeVisible();
 
@@ -130,12 +135,13 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
+  await page.getByRole("button", { name: "Change", exact: true }).click();
   const csvNamespace = namespace.id("local");
   const file = validCsv(csvNamespace);
   await page.getByRole("radio", { name: /Local only/ }).check();
   await page.getByLabel("Upload a csv file").setInputFiles(file);
   await expect(page.getByText("2 valid")).toBeVisible();
-  await page.getByRole("button", { name: "Import", exact: true }).click();
+  await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: "Imported 2 cards." })).toBeVisible();
 
@@ -165,6 +171,7 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
+  await page.getByRole("button", { name: "Change", exact: true }).click();
   const file = csvFile(`${namespace.id("retry")}.csv`, [
     `"retry front ${namespace.caseId}","retry back ${namespace.caseId}","","${namespace.id("retry-key")}"`,
   ]);
@@ -173,7 +180,7 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   await expect(page.getByText("1 valid")).toBeVisible();
   const fault = await failNextFirestoreWrite(page, { collection: "card" });
 
-  await page.getByRole("button", { name: "Import", exact: true }).click();
+  await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
   await expect(page.getByRole("alert")).toContainText("Import failed.");
   await expect(page.getByText(file.name, { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("radio", { name: /Sync with account/ })).toBeChecked();
@@ -187,7 +194,7 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   const partialDeckId = documentId(partialDeck);
   if (partialDeckId === "") throw new Error("Partially imported remote Deck id was not found");
 
-  await page.getByRole("button", { name: "Import", exact: true }).click();
+  await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByRole("status").filter({ hasText: "Imported 1 card." })).toBeVisible();
@@ -199,58 +206,112 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   expect(cardsAfterRetry[0]?.fields.deckId?.stringValue).toBe(partialDeckId);
 });
 
-test("IMPORT-06 Adding Sample Deck saves it, returns to the list, and remains idempotent", async ({
+test("IMPORT-06 All four examples share preview, download, and destination-aware import", async ({
   fixture,
   page,
-}) => {
+}, testInfo) => {
+  const { uid } = fixture.user();
   await fixture.apply(page);
-  await page.goto("/import");
-  const addSample = page.getByRole("button", { name: "Add sample deck" });
-  // Local persistence can finish before Playwright polls again, so observe loading before clicking.
-  await addSample.evaluate((element) => {
-    if (!(element instanceof HTMLButtonElement)) throw new Error("Add sample deck control is not a button");
-    const { documentElement } = element.ownerDocument;
-    documentElement.dataset.sampleDeckLoadingObserved = "false";
-    const observer = new MutationObserver(() => {
-      if (element.getAttribute("aria-busy") === "true" && element.disabled) {
-        documentElement.dataset.sampleDeckLoadingObserved = "true";
-        observer.disconnect();
-      }
-    });
-    observer.observe(element, { attributeFilter: ["aria-busy", "disabled"], attributes: true });
-  });
+  const examples = [
+    {
+      label: "Basic",
+      file: "basic-sample.csv",
+      count: 3,
+      local: true,
+      firstRow: ["apple", "りんご", "果物", "apple-001"],
+    },
+    {
+      label: "Math",
+      file: "math-sample.csv",
+      count: 2,
+      local: false,
+      firstRow: ["半径 $r$ の円の面積は？", "$\\pi r^2$", "math", "circle-area"],
+    },
+    {
+      label: "Markdown",
+      file: "markdown-sample.csv",
+      count: 2,
+      local: true,
+      firstRow: ["Markdownで強調するには？", "**重要**な語句を強調します。", "md", "markdown-source"],
+    },
+    {
+      label: "Sample deck",
+      file: "deck-sample.csv",
+      count: 11,
+      local: false,
+      firstRow: [
+        "What is bisect_left?",
+        expect.stringContaining("def my_bisect_left(sl, a):\n    lo, hi = 0, len(sl)"),
+        "py,binarysearch",
+        "test/binarysearch/test_bisect_left.py",
+      ],
+    },
+  ];
+  for (const example of examples) {
+    await page.goto("/import");
+    await page.getByRole("button", { name: "Change", exact: true }).click();
+    await page.getByRole("radio", { name: example.local ? /Local only/ : /Sync with account/ }).check();
+    await page.getByRole("button", { name: example.label, exact: true }).click();
+    await page.getByText("View CSV source", { exact: true }).click();
+    const downloadReady = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download CSV", exact: true }).click();
+    const download = await downloadReady;
+    expect(download.suggestedFilename()).toBe(example.file);
+    const path = testInfo.outputPath(example.file);
+    await download.saveAs(path);
+    const csv = await readFile(path, "utf8");
+    const displayedCsv = await page.locator("details[data-import-sample] code").textContent();
+    expect(displayedCsv?.replaceAll("\r\n", "\n")).toBe(csv.replaceAll("\r\n", "\n"));
+    const parsed = Papa.parse<string[]>(csv);
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.data[0]).toEqual(example.firstRow);
+    expect(parsed.data).toHaveLength(example.count);
+    expect(parsed.data.every((row) => row.length === 4 && row[3] !== "")).toBe(true);
 
-  await addSample.click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("status").filter({ hasText: /Added sample deck with \d+ cards?\./u })).toBeVisible();
-  expect(await page.locator("html").getAttribute("data-sample-deck-loading-observed")).toBe("true");
-  await expect(page.getByRole("button", { name: "View Sample Deck" })).toBeVisible();
-
-  const first = await readLocalData(page);
-  const firstDecks = first.decks.filter(({ id }: { id: string }) => id === "sample-v1");
-  const firstCardIds = first.cards
-    .filter(({ deckId }: { deckId?: string }) => deckId === "sample-v1")
-    .map(({ id }: { id: string }) => id)
-    .sort();
-  expect(firstDecks).toHaveLength(1);
-  expect(firstCardIds.length).toBeGreaterThan(0);
-
-  await page.getByRole("button", { name: "Import decks" }).click();
-  await page.getByRole("button", { name: "Add sample deck" }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("status").filter({ hasText: /Added sample deck with \d+ cards?\./u })).toBeVisible();
-  await page.reload();
-  await page.getByRole("button", { name: "View Sample Deck" }).click();
-
-  const after = await readLocalData(page);
-  const afterDecks = after.decks.filter(({ id }: { id: string }) => id === "sample-v1");
-  expect(afterDecks).toHaveLength(1);
-  expect(
-    after.cards
-      .filter(({ deckId }: { deckId?: string }) => deckId === "sample-v1")
-      .map(({ id }: { id: string }) => id)
-      .sort()
-  ).toEqual(firstCardIds);
+    await page.getByRole("button", { name: "Try this example", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Review import" })).toBeVisible();
+    await expect(page.getByText(`${example.count} valid`, { exact: true })).toBeVisible();
+    const firstRow = parsed.data[0];
+    if (firstRow === undefined) throw new Error("Example CSV has no cards");
+    await expect(page.getByText(`uniqueKey: ${firstRow[3]}`, { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Choose file or example", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Basic", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sample deck", exact: true })).toBeVisible();
+    await expect(page.getByRole("radio", { name: example.local ? /Local only/ : /Sync with account/ })).toBeChecked();
+    await page.getByRole("button", { name: example.label, exact: true }).click();
+    await page.getByRole("button", { name: "Try this example", exact: true }).click();
+    await expect(page.getByText(`uniqueKey: ${firstRow[3]}`, { exact: true })).toBeVisible();
+    const localBefore = await readLocalData(page);
+    expect(localBefore.decks.some(({ name }: { name?: string }) => name === example.file)).toBe(false);
+    expect((await documentsForUid("deck", uid)).some((deck) => deck.fields.name?.stringValue === example.file)).toBe(
+      false
+    );
+    await page.getByRole("button", { name: `Add ${example.count} cards`, exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("status").filter({ hasText: `Imported ${example.count} cards.` })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("button", { name: `View ${example.file}`, exact: true })).toBeVisible();
+    const local = await readLocalData(page);
+    const remoteDecks = await documentsForUid("deck", uid);
+    if (example.local) {
+      const deck = local.decks.find(({ name }: { name?: string }) => name === example.file);
+      expect(deck).toBeDefined();
+      const cards = local.cards.filter(({ deckId }: { deckId?: string }) => deckId === deck.id);
+      expect(cards).toHaveLength(example.count);
+      expect(remoteDecks.some((item) => item.fields.name?.stringValue === example.file)).toBe(false);
+    } else {
+      const deck = remoteDecks.find((item) => item.fields.name?.stringValue === example.file);
+      if (deck == null) throw new Error("Example deck was not saved remotely");
+      const cards = (await documentsForUid("card", uid)).filter(
+        (card) => card.fields.deckId?.stringValue === documentId(deck)
+      );
+      expect(cards).toHaveLength(example.count);
+      expect(local.decks.some(({ name }: { name?: string }) => name === example.file)).toBe(false);
+    }
+    await page.getByRole("button", { name: `View ${example.file}`, exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Cards", exact: true })).toBeVisible();
+    await expect(page.getByRole("article")).toHaveCount(example.count);
+  }
 });
 
 test("IMPORT-07 Sample Deck is initialized once", async ({ fixture, page }) => {

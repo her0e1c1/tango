@@ -2,6 +2,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
 import { deckImportStore, type DeckImportState } from "../store";
+import { getDeckImportCardPreview } from "./getDeckImportCardPreview";
 
 const selectDeckImportView = (state: DeckImportState) => ({
   storageMode: state.storageMode,
@@ -9,9 +10,18 @@ const selectDeckImportView = (state: DeckImportState) => ({
   previewError: state.source.kind === "error" ? state.source.error : undefined,
   validating: state.status === "validating",
   pending: state.status === "importing",
-  addingSample: state.status === "adding-sample",
 });
 
 export function useDeckImportState() {
-  return useStore(deckImportStore, useShallow(selectDeckImportView));
+  const view = useStore(deckImportStore, useShallow(selectDeckImportView));
+  const preview = view.preview
+    ? {
+        ...view.preview,
+        analysis: {
+          ...view.preview.analysis,
+          rows: view.preview.analysis.rows.map((row) => ({ ...row, card: getDeckImportCardPreview(row.card) })),
+        },
+      }
+    : undefined;
+  return { ...view, preview };
 }
