@@ -85,7 +85,7 @@
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
 | CARD-01 | read | [Card 一覧に学習情報を表示できる](./card-view.md#card-01) |
-| CARD-02 | read | [Card の裏面 overlay を閉じられる](./card-view.md#card-02) |
+| CARD-02 | read | [Card の裏面 overlay を開ける](./card-view.md#card-02) |
 | CARD-03 | write | [Card 編集内容を保存して reload 後も確認できる](./card-management.md#card-03) |
 | CARD-04 | write | [Card を削除できる](./card-management.md#card-04) |
 | CARD-05 | write | [Card の右 swipe で difficulty を下げられる](./card-list-actions.md#card-05) |
