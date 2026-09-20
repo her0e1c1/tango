@@ -11,7 +11,9 @@ import { CATEGORY, createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 
-import { useCardEditPageModel } from "../model/useCardEditPageModel";
+import { useCardEditFormState } from "../model/useCardEditFormState";
+import { submit } from "../model/actions/submit";
+import { useCardPreviewContent } from "@/features/card-form";
 import { CardEditor } from "./CardEditor";
 
 const writeControls = vi.hoisted(() => ({
@@ -44,7 +46,8 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 }));
 
 const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; onSaved: () => void }) => {
-  const { form, submit, preview } = useCardEditPageModel(props.card);
+  const { form } = useCardEditFormState(props.card);
+  const preview = useCardPreviewContent(form.control, "raw", false);
   return (
     <CardEditor
       cardInfo={{
@@ -59,7 +62,7 @@ const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; o
       onCancel={props.onCancel}
       onSubmit={(event) => {
         void form.handleSubmit(async (values) => {
-          if (await submit(values)) props.onSaved();
+          if (await submit({ cardId: props.card.id, values })) props.onSaved();
         })(event);
       }}
     />

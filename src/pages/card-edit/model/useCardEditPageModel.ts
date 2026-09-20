@@ -1,30 +1,53 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useFormState } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 
-import { type Card, type CardContentInput, cardContentInputSchema } from "@/entities/card";
-import { useCardPreviewContent } from "@/features/card-form";
+import { type Card, type CardContentInput, useCard } from "@/entities/card";
+import { CATEGORY, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { useDeck } from "@/entities/deck";
+import { useCardPreviewContent } from "@/features/card-form";
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
+import { routes, useNavigationGuard } from "@/shared/router";
 
-import { submit as submitAction } from "./actions/submit";
+import { submit } from "./actions/submit";
+import { useCardEditSubmission } from "./actions/useCardEditSubmission";
+import { getCardEditInfo } from "./queries/getCardEditInfo";
+import { useCardEditFormState } from "./useCardEditFormState";
+
+export function useCardEditRouteModel(cardId: string | undefined) {
+  if (cardId == null) throw new Error("invalid card id");
+  const card = useCard(cardId);
+  return { cardId, card };
+}
 
 export function useCardEditPageModel(card: Card) {
+  const { snapshot, form } = useCardEditFormState(card);
   const preferences = usePreferences();
-  const deck = useDeck(card.deckId);
-  const form = useForm<CardContentInput>({
-    defaultValues: {
-      frontText: card.frontText,
-      backText: card.backText,
-      tags: [...card.tags],
-    },
-    resolver: zodResolver(cardContentInputSchema),
-  });
+  const deck = useDeck(snapshot.deckId);
+  const navigate = useNavigate();
+  const { isDirty, isSubmitting } = useFormState({ control: form.control });
+  const guard = useNavigationGuard(isDirty || isSubmitting);
+  const isMounted = useMountedGuard();
+  const cardListPath = routes.cardList.to(snapshot.deckId);
 
+  const save = async (values: CardContentInput): Promise<void> => {
+    if (!isMounted()) return;
+    if (!(await submit({ cardId: snapshot.id, values }))) return;
+    if (!isMounted()) return;
+
+    void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
+      navigate(cardListPath, { replace: true })
+    );
+  };
+  const onSubmit = useCardEditSubmission(form, save);
   const preview = useCardPreviewContent(form.control, deck?.category ?? "", preferences.appearance.darkMode);
 
   return {
     form,
     preview,
-    submit: (values: CardContentInput) => submitAction({ cardId: card.id, values }),
+    cardInfo: getCardEditInfo(snapshot),
+    categories: CATEGORY,
+    navigationGuard: guard.element,
+    onCancel: () => void navigate(-1),
+    onSubmit,
   };
 }
