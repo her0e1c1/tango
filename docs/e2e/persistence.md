@@ -11,6 +11,7 @@ remote data が認証 UID ごとに分離され、永続 cache、queued write、
 | PERSIST-01 | read | [UID ごとに remote data を分離して reload 後も表示できる](#persist-01) |
 | PERSIST-02 | batch | [offline cache の変更を再接続後に remote へ同期できる](#persist-02) |
 | PERSIST-03 | write | [別の open client に remote Card の変更を即時反映できる](#persist-03) |
+| PERSIST-04 | batch | [未ログインの変更を local-only に維持できる](#persist-04) |
 
 <a id="persist-01"></a>
 
@@ -82,3 +83,28 @@ Then:
 - secondary browser context に変更前の front text が残らない。
 - 対象 Card の ID と unique key は維持され、remote data に重複が作成されない。
 - 未処理の browser error が発生しない。
+
+<a id="persist-04"></a>
+
+### PERSIST-04 未ログインの変更を local-only に維持できる
+
+カテゴリ: `batch`
+
+Given:
+
+- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- Google アカウントにログインしていない匿名ユーザーである。
+- browser storage に local-only Deck と複数の Card が存在する。
+
+When:
+
+- Deck と Card を編集して保存し、画面を reload する。
+- 未ログインのままクラウド保存を試みる。
+
+Then:
+
+- Deck と Card の編集内容は browser storage に維持され、reload 後も表示される。
+- Deck 編集画面では Cloud が無効で、ログインが必要なことを案内する。
+- クラウドへの Deck と Card の追加・更新・削除は拒否される。匿名認証の UID と所有者が一致する場合も拒否される。
+- local-only Deck と Card はクラウドへ転送されない。
+- browser error が発生しない。

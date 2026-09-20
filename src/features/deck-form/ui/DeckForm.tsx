@@ -17,6 +17,7 @@ export interface DeckFormFields {
 }
 
 interface CommonDeckFormProps {
+  cloudStorageAvailable: boolean;
   categories: readonly string[];
   form: UseFormReturn<DeckFormFields>;
   onCancel: () => void;
@@ -56,7 +57,7 @@ const getDeckFormPresentation = (
     return {
       isSaving: formIsSubmitting,
       localModeDisabled: props.isLocalModeLocked,
-      localModeHelp: undefined,
+      localModeHelp: props.cloudStorageAvailable ? undefined : t("deckForm.storage.signInHelp"),
       title: t("deckForm.create.title"),
     };
   }
@@ -64,17 +65,24 @@ const getDeckFormPresentation = (
   return {
     isSaving: formIsSubmitting,
     localModeDisabled: !props.isLocalOnly,
-    localModeHelp: props.isLocalOnly ? t("deckForm.edit.localModeHelp") : t("deckForm.edit.remoteModeHelp"),
+    localModeHelp:
+      !props.cloudStorageAvailable && props.isLocalOnly
+        ? t("deckForm.storage.signInHelp")
+        : props.isLocalOnly
+          ? t("deckForm.edit.localModeHelp")
+          : t("deckForm.edit.remoteModeHelp"),
     title: props.deckName,
   };
 };
 
 const StorageSection = ({
+  cloudStorageAvailable,
   disabled,
   form,
   idPrefix,
   help,
 }: {
+  cloudStorageAvailable: boolean;
   disabled: boolean;
   form: UseFormReturn<DeckFormFields>;
   idPrefix: string;
@@ -117,7 +125,8 @@ const StorageSection = ({
                     type="radio"
                     name={field.name}
                     value={String(localMode)}
-                    checked={(field.value === true) === localMode}
+                    checked={(field.value === true || !cloudStorageAvailable) === localMode}
+                    disabled={!localMode && !cloudStorageAvailable}
                     onBlur={field.onBlur}
                     onChange={() => field.onChange(localMode)}
                     aria-label={label}
@@ -335,6 +344,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
             idPrefix={idPrefix}
           />
           <StorageSection
+            cloudStorageAvailable={props.cloudStorageAvailable}
             disabled={presentation.localModeDisabled}
             form={props.form}
             idPrefix={`${idPrefix}-storage`}

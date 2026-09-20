@@ -139,6 +139,7 @@ export const resources = {
           title: "Storage",
           cloud: "Cloud",
           cloudHelp: "Save to your account",
+          signInHelp: "Your data stays in this browser while signed out. Sign in to save to the cloud.",
           localHelp: "Save in this browser",
           localOnly: "Local only",
         },
@@ -827,6 +828,8 @@ export const resources = {
           title: "保存先",
           cloud: "クラウド",
           cloudHelp: "アカウントに保存",
+          signInHelp:
+            "未ログインの間、データはこのブラウザ内にのみ保存されます。クラウドに保存するにはログインしてください。",
           localHelp: "ブラウザ内に保存",
           localOnly: "この端末のみ",
         },

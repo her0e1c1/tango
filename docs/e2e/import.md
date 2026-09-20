@@ -34,7 +34,7 @@ CSV の検証から保存先別の import、失敗後の再試行、Sample Deck 
 | IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](#import-07) |
 | IMPORT-08 | batch | [Sample deck の全内容を local-only に取り込んで学習できる](#import-08) |
 | IMPORT-09 | batch | [Sample deck の remote 保存失敗から重複なく回復できる](#import-09) |
-| IMPORT-10 | batch | [Google 未ログインでも匿名認証で Sample deck を remote に取り込める](#import-10) |
+| IMPORT-10 | batch | [Google 未ログインの Sample deck を local-only に維持できる](#import-10) |
 
 <a id="import-01"></a>
 
@@ -94,7 +94,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- ユーザーとして認証されている。
+- Google アカウントにログインしている。
 - 学習可能な Card を含む有効な CSV がある。
 - CSV に対応する remote の Deck と Card は現在の UID に存在しない。
 
@@ -118,15 +118,17 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしていない匿名ユーザーである。
 - 学習可能な Card を含む有効な CSV がある。
 - CSV に対応する Deck と Card は local storage に存在しない。
 
 When:
 
-- Import 画面で local-only の保存先を選択し、CSV の preview を確認して import した後、reload して import した Deck の学習を開始する。
+- Import 画面で 既定の local-only の保存先で、CSV の preview を確認して import した後、reload して import した Deck の学習を開始する。
 
 Then:
 
+- local-only が既定で選択され、Sync with account は無効で、ログインが必要なことを案内する。
 - import 件数を含む成功結果が共通 toast で表示される。
 - import した Deck とすべての Card が local storage に維持される。
 - 対応する Deck と Card は remote data に作成されない。
@@ -142,6 +144,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
 - 有効な CSV の最初の import で、保存先の Deck を作成した後に Card の保存が失敗している。
 - import の失敗と詳細が共通 toast で処理され、同じ preview と保存先が維持されている。
 - 次の import では Card を保存できる。
@@ -167,6 +170,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
 - Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
 - 例に対応する Deck と Card は選択した保存先に存在しない。
 
@@ -244,6 +248,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
+- Google アカウントにログインしている。
 - Sample deck の remote import で Deck 作成後の Card 保存が一度だけ権限拒否になる。
 
 When:
@@ -262,7 +267,7 @@ Then:
 
 <a id="import-10"></a>
 
-### IMPORT-10 Google 未ログインでも匿名認証で Sample deck を remote に取り込める
+### IMPORT-10 Google 未ログインの Sample deck を local-only に維持できる
 
 カテゴリ: `batch`
 
@@ -274,13 +279,14 @@ Given:
 
 When:
 
-- Import 画面を直接開き、remote の保存先で Sample deck の追加を確定する。
+- Import 画面を直接開き、既定の local-only の保存先で Sample deck の追加を確定する。
 - アカウント画面で匿名状態を確認し、Deck 一覧へ戻って reload する。
 
 Then:
 
 - Google ログイン操作なしで import が成功する。
+- local-only が既定で選択され、Sync with account は無効である。
 - 保存成功後は reload を待たずに Deck 一覧へ遷移し、対象の Deck と成功通知が表示される。
-- 全 Card は実際に発行された匿名 UID の Deck に保存され、local-only data は作成されない。
+- Deck と全 Card は browser storage に保存され、実際に発行された匿名 UID の remote data は作成されない。
 - reload 後も対象 Deck を開いて全 Card を表示できる。
 - 未処理の browser error が発生しない。

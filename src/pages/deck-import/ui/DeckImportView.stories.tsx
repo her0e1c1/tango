@@ -43,6 +43,15 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const Guest: Story = {
+  args: { storageMode: "local", cloudStorageAvailable: false },
+  play: async ({ canvas, userEvent }) => {
+    await expect(canvas.getByText(/Sign in to save to the cloud/)).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Change" }));
+    await expect(canvas.getByRole("radio", { name: /Local only/ })).toBeChecked();
+    await expect(canvas.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
+  },
+};
 
 export const Preview: Story = {
   args: { preview },

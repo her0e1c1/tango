@@ -36,12 +36,11 @@ const previewSample = async (page: Page, local: boolean) => {
 const confirmSample = (page: Page) =>
   page.getByRole("button", { name: `Add ${sampleCards.length} cards`, exact: true }).click();
 
-test("IMPORT-10 A fresh anonymous session imports a remote Sample deck without Google sign-in", async ({
-  fixture,
-  page,
-}) => {
+test("IMPORT-10 A fresh anonymous session keeps the imported Sample deck local", async ({ fixture, page }) => {
   await fixture.apply(page, { auth: false });
-  await previewSample(page, false);
+  await previewSample(page, true);
+  await expect(page.getByRole("radio", { name: /Local only/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
   await confirmSample(page);
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
@@ -55,16 +54,16 @@ test("IMPORT-10 A fresh anonymous session imports a remote Sample deck without G
     await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent()
   )?.trim();
   if (!uid) throw new Error("The anonymous account has no User ID");
-  const decks = await documentsForUid("deck", uid);
+  const { decks, cards } = await readLocalData(page);
   expect(decks).toHaveLength(1);
   const [deck] = decks;
   if (!deck) throw new Error("The anonymous account has no imported Deck");
-  expect(deck.fields.name?.stringValue).toBe(sampleName);
-  const cards = await documentsForUid("card", uid);
+  expect(deck).toMatchObject({ name: sampleName, localMode: true });
   expect(cards).toHaveLength(sampleCards.length);
-  expect(cards.every((card) => card.fields.deckId?.stringValue === documentId(deck))).toBe(true);
-  expect((await readLocalData(page)).decks).toEqual([]);
-  expect((await readLocalData(page)).cards).toEqual([]);
+  expect(cards.every((card: { deckId: string }) => card.deckId === deck.id)).toBe(true);
+  expect(cards.map(cardContent).sort(byKey)).toEqual(expectedCards);
+  expect(await documentsForUid("deck", uid)).toEqual([]);
+  expect(await documentsForUid("card", uid)).toEqual([]);
 
   await page.getByRole("button", { name: "tango", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -119,7 +118,7 @@ test("IMPORT-09 A failed remote Sample deck import retries without losing or dup
 }) => {
   allowExpectedFirestoreWriteFailure(browserErrors);
   const { uid } = fixture.user();
-  await fixture.apply(page);
+  await fixture.apply(page, { auth: { linked: true } });
   await previewSample(page, false);
   const fault = await failNextFirestoreWrite(page, { collection: "card" });
   await confirmSample(page);
