@@ -49,7 +49,7 @@
 | SETTINGS-09 | write | [CSV の検証結果が再読み込みなしで言語変更に追随する](./settings.md#settings-09) |
 | SETTINGS-08 | write | [Card の検証エラーが言語変更に追随し入力を保持する](./settings.md#settings-08) |
 | SETTINGS-10 | write | [自動再生の間隔の0の意味を表示して数値のまま保存できる](./settings.md#settings-10) |
-| SETTINGS-11 | write | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](./settings.md#settings-11) |
+| SETTINGS-11 | batch | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](./settings.md#settings-11) |
 
 ### Import
 
@@ -91,7 +91,7 @@
 | CARD-05 | write | [Card の右 swipe で difficulty を下げられる](./card-list-actions.md#card-05) |
 | CARD-06 | write | [Card の左 swipe で difficulty を上げられる](./card-list-actions.md#card-06) |
 | CARD-07 | read | [開いている Card の裏面 overlay を閉じられる](./card-view.md#card-07) |
-| CARD-08 | read | [Card の削除を取り消せる](./card-management.md#card-08) |
+| CARD-08 | write | [Card の削除を取り消せる](./card-management.md#card-08) |
 | CARD-09 | write | [Card の編集失敗後に再試行できる](./card-management.md#card-09) |
 | CARD-10 | write | [difficulty と tag の filter を保存して Card 一覧へ反映できる](./card-list-actions.md#card-10) |
 | CARD-11 | read | [Card view を直接開ける](./card-view.md#card-11) |
