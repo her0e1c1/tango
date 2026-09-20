@@ -109,6 +109,7 @@ Then:
 - Help dialog に現在設定されている方向操作の意味が semantic label で表示される。
 - Card の表示、autoplay、操作ボタン表示、Card details、Deck 一覧へ戻る操作が表示される。
 - 非表示の操作ボタンは現在の設定と一致する説明で表示される。
+- previous-card action は無効であることが表示される。
 - Help dialog 表示中の toast は操作 control と pointer hit target を持たない。
 - dialog 表示中に toast が消えるか置き換わっても、focus は Close help に維持される。
 - Help dialog を閉じると、永続する toast の通常の操作 control が復元される。

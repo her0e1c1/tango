@@ -20,7 +20,7 @@ const InteractiveController: React.FC<React.ComponentProps<typeof Controller>> =
       }}
       onChange={(value) => {
         props.onChange?.(value);
-        setIndex(value);
+        setIndex((current) => Math.max(current, value));
       }}
     />
   );

@@ -21,7 +21,7 @@ export function useAutoPlay(sessionState: StudySessionState): void {
     !helpOpen &&
     cardInterval > 0 &&
     owner?.deckId === sessionState.session.deckId &&
-    canMoveStudySession(sessionState.session, "next")
+    canMoveStudySession(sessionState.session)
       ? sessionState.session
       : undefined;
 

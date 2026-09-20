@@ -32,7 +32,7 @@ const setVersionedStorage = (state: unknown, version: number): void => {
   localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify({ state, version }));
 };
 
-describe("study store [SWIPE-06]", () => {
+describe("study store [SWIPE-06] [SWIPE-05]", () => {
   const store = studySessionStore;
 
   beforeEach(() => {
@@ -109,12 +109,12 @@ describe("study store [SWIPE-06]", () => {
     const firstCard = getStudySession("deck-1");
     if (firstCard == null) throw new Error("Expected an active study session");
 
-    expect(moveStudySession(firstCard, "next")).toBe(true);
+    expect(moveStudySession(firstCard)).toBe(true);
     expect(getStudySession("deck-1")?.currentIndex).toBe(1);
 
     const finalCard = getStudySession("deck-1");
     if (finalCard == null) throw new Error("Expected an active study session");
-    expect(moveStudySession(finalCard, "next")).toBe(true);
+    expect(moveStudySession(finalCard)).toBe(true);
     expect(getStudySession("deck-1")).toBeUndefined();
   });
 
@@ -124,10 +124,10 @@ describe("study store [SWIPE-06]", () => {
     if (previous == null) throw new Error("Expected an active study session");
 
     touchStudySession("deck-1");
-    expect(moveStudySession(previous, "next")).toBe(true);
+    expect(moveStudySession(previous)).toBe(true);
     expect(getStudySession("deck-1")?.currentIndex).toBe(1);
 
-    expect(moveStudySession(previous, "next")).toBe(false);
+    expect(moveStudySession(previous)).toBe(false);
     expect(getStudySession("deck-1")?.currentIndex).toBe(1);
   });
 
@@ -140,7 +140,7 @@ describe("study store [SWIPE-06]", () => {
     const replacement = getStudySession("deck-1");
 
     expect(replacement?.sessionId).not.toBe(previous.sessionId);
-    expect(moveStudySession(previous, "next")).toBe(false);
+    expect(moveStudySession(previous)).toBe(false);
     expect(getStudySession("deck-1")?.currentIndex).toBe(0);
   });
 
@@ -153,6 +153,19 @@ describe("study store [SWIPE-06]", () => {
     setStudySessionIndex("deck-1", currentIndex);
 
     expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({ currentIndex: 0, lastStudiedAt: 1000 });
+  });
+
+  it("keeps the current Card and persisted resume point when asked to move backward", () => {
+    startSession("deck-1", ["card-1", "card-2", "card-3"]);
+    setStudySessionIndex("deck-1", 1);
+    const session = getStudySession("deck-1");
+    const persisted = localStorage.getItem(STUDY_STORAGE_KEY);
+
+    expect(setStudySessionIndex("deck-1", 0)).toBe(false);
+    expect(getStudySession("deck-1")).toEqual(session);
+    expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBe(persisted);
+    expect(setStudySessionIndex("deck-1", 2)).toBe(true);
+    expect(getStudySession("deck-1")?.currentIndex).toBe(2);
   });
 
   it("touches only an existing requested session", () => {
