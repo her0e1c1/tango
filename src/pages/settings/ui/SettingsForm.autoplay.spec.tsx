@@ -27,7 +27,7 @@ describe.each([
     values: [
       { input: "0", visible: "No automatic advance (0s)", spoken: "No automatic advance (0 seconds)" },
       { input: "1", visible: "1s", spoken: "1 second" },
-      { input: "60", visible: "60s", spoken: "60 seconds" },
+      { input: "60", visible: "60s", spoken: "60秒" },
     ],
   },
   {
@@ -71,8 +71,10 @@ describe.each([
         expect(interval).toHaveAttribute("aria-valuetext", value.spoken);
         expect(screen.getByText(value.visible, { exact: true })).toBeVisible();
         expect(interval).toHaveAccessibleDescription(copy.description);
-        expect(screen.getByRole("checkbox", { name: copy.autoplayLabel })).toHaveProperty("checked", defaultAutoPlay);
-        expect(screen.getByRole("checkbox", { name: copy.playbackLabel })).toHaveProperty("checked", showPlaybackControls);
+        const autoplay = screen.getByRole("checkbox", { name: copy.autoplayLabel });
+        const playback = screen.getByRole("checkbox", { name: copy.playbackLabel });
+        expect(autoplay).toHaveProperty("checked", defaultAutoPlay);
+        expect(playback).toHaveProperty("checked", showPlaybackControls);
       }
     }
   );
