@@ -7,7 +7,7 @@ export const useSettingsPageModel = () => {
   const preferences = usePreferences();
   const form = useForm<Preferences>({ defaultValues: preferences });
 
-  const { setValue, subscribe, handleSubmit } = form;
+  const { setValue, subscribe } = form;
   const darkMode = preferences.appearance.darkMode;
   useEffect(() => {
     // The header can change the theme while Settings is open; preserve the other form values.
@@ -18,9 +18,9 @@ export const useSettingsPageModel = () => {
     () =>
       subscribe({
         formState: { values: true },
-        callback: () => void handleSubmit(updatePreferences)(),
+        callback: ({ values }) => updatePreferences(values),
       }),
-    [subscribe, handleSubmit]
+    [subscribe]
   );
 
   return { form, studyPreferencesLimits };
