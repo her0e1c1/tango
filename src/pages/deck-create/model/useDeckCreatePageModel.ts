@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
 
-import type { DeckId } from "@/entities/deck";
+import { CATEGORY, type DeckId } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { useResetStoreOnMount } from "@/shared/lib/useResetStoreOnMount";
 import { routes, useNavigationGuard } from "@/shared/router";
@@ -31,6 +31,7 @@ export function useDeckCreatePageModel() {
   });
 
   return {
+    categories: CATEGORY,
     form,
     pending,
     navigationGuard: guard.element,
