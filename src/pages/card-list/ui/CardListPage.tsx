@@ -106,6 +106,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
           sortOrder={model.sortOrder}
           onSortOrderChange={model.changeSortOrder}
           sortDisabled={model.mutationPending}
+          filterDisabled={model.mutationPending}
           onChangeDifficulty={model.requestBulk}
           disabled={busy}
           renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}

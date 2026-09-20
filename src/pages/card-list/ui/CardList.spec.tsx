@@ -9,6 +9,7 @@
 import { fireEvent, render, waitFor, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { createCard } from "@/test/factories";
@@ -43,6 +44,10 @@ describe("CardList [CARD-01] [CARD-10] [CARD-19] [CARD-24]", () => {
 
     expect(screen.getByText("1 card")).toBeInTheDocument();
     expect(screen.getByText("difficulty 2–8 · 2 tags")).toBeInTheDocument();
+    const summary = screen.getByText((_, element) => element?.textContent?.startsWith("Filters") === true, {
+      selector: "summary",
+    });
+    expect(summary).toHaveAccessibleName(/Filters\s*difficulty 2–8 · 2 tags/);
     expect(screen.getByRole("list", { name: "Selected tags" })).toHaveTextContent("one");
     expect(screen.getByRole("list", { name: "Selected tags" })).toHaveTextContent("two");
     expect(screen.getByText("Controls")).not.toBeVisible();
@@ -74,6 +79,88 @@ describe("CardList [CARD-01] [CARD-10] [CARD-19] [CARD-24]", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Remove one filter" }));
     expect(onRemoveTag).toHaveBeenCalledExactlyOnceWith("one");
+  });
+
+  it("removes a selected tag via keyboard and keeps visible focus on the remaining tag", async () => {
+    const user = userEvent.setup();
+    const onRemoveTag = vi.fn();
+    const ControlledCardList = () => {
+      const [selectedTags, setSelectedTags] = useState(["one", "two"]);
+      return (
+        <CardList
+          cards={[card]}
+          filter={{ difficultyMin: null, difficultyMax: null, selectedTags }}
+          onRemoveTag={(tag) => {
+            onRemoveTag(tag);
+            setSelectedTags((current) => current.filter((item) => item !== tag));
+          }}
+        />
+      );
+    };
+    render(<ControlledCardList />);
+
+    const oneChip = screen.getByRole("button", { name: "Remove one filter" });
+    oneChip.focus();
+    expect(oneChip).toHaveFocus();
+
+    await user.keyboard("{Enter}");
+    expect(onRemoveTag).toHaveBeenCalledExactlyOnceWith("one");
+
+    const twoChip = screen.getByRole("button", { name: "Remove two filter" });
+    expect(twoChip).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "View Front" })).toHaveFocus();
+  });
+
+  it("removes the final selected tag via keyboard and moves focus to the filters heading summary", async () => {
+    const user = userEvent.setup();
+    const onRemoveTag = vi.fn();
+    const ControlledCardList = () => {
+      const [selectedTags, setSelectedTags] = useState(["two"]);
+      return (
+        <CardList
+          cards={[card]}
+          filter={{ difficultyMin: null, difficultyMax: null, selectedTags }}
+          onRemoveTag={(tag) => {
+            onRemoveTag(tag);
+            setSelectedTags((current) => current.filter((item) => item !== tag));
+          }}
+        />
+      );
+    };
+    render(<ControlledCardList />);
+
+    const twoChip = screen.getByRole("button", { name: "Remove two filter" });
+    twoChip.focus();
+    expect(twoChip).toHaveFocus();
+
+    await user.keyboard(" ");
+    expect(onRemoveTag).toHaveBeenCalledExactlyOnceWith("two");
+    expect(screen.queryByRole("button", { name: "Remove two filter" })).not.toBeInTheDocument();
+
+    const summary = screen.getByText((_, element) => element?.textContent?.startsWith("Filters") === true, {
+      selector: "summary",
+    });
+    expect(summary).toHaveFocus();
+    expect(summary).toHaveAccessibleName(/Filters\s*No filters/);
+  });
+
+  it("maintains focus order through chips without altering filters during tab navigation", async () => {
+    const user = userEvent.setup();
+    render(
+      <CardList cards={[card]} filter={{ difficultyMin: null, difficultyMax: null, selectedTags: ["one", "two"] }} />
+    );
+
+    const oneChip = screen.getByRole("button", { name: "Remove one filter" });
+    oneChip.focus();
+    expect(oneChip).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Remove two filter" })).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(oneChip).toHaveFocus();
   });
 
   it("shows filter disclosure state", () => {
