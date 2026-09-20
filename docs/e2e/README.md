@@ -132,7 +132,7 @@
 | SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](./study-actions.md#swipe-02) |
 | SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](./study-actions.md#swipe-03) |
 | SWIPE-04 | write | [next-card action で次の Card へ進める](./study-actions.md#swipe-04) |
-| SWIPE-05 | write | [previous-card action で前の Card へ戻れる](./study-actions.md#swipe-05) |
+| SWIPE-05 | read | [学習中に前の Card へ戻れない](./study-actions.md#swipe-05) |
 | SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](./study-session.md#swipe-06) |
 | SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](./study-session.md#swipe-07) |
 | SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](./study-session.md#swipe-08) |

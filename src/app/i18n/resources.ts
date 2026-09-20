@@ -478,7 +478,7 @@ export const resources = {
           actions: {
             DoNothing: "No action",
             GoBack: "End the current session and return to the deck list",
-            GoToPrevCard: "Go to the previous card",
+            GoToPrevCard: "Going to the previous card is disabled",
             GoToNextCard: "Go to the next card",
             GoToNextCardMastered: "Mark mastered and go to the next card",
             GoToNextCardNotMastered: "Mark not mastered and go to the next card",
@@ -1181,7 +1181,7 @@ export const resources = {
           actions: {
             DoNothing: "何もしない",
             GoBack: "現在の学習セッションを終了してデッキ一覧へ戻る",
-            GoToPrevCard: "前のカードへ移動",
+            GoToPrevCard: "前のカードへ戻る操作は無効",
             GoToNextCard: "次のカードへ移動",
             GoToNextCardMastered: "習得済みにして次のカードへ移動",
             GoToNextCardNotMastered: "未習得にして次のカードへ移動",

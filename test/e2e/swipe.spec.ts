@@ -102,24 +102,37 @@ test("SWIPE-04 records an unrated next action and advances", async ({ fixture, p
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-05 records an unrated previous action and moves back", async ({ fixture, page }) => {
+test("SWIPE-05 prevents returning to previous Cards through study controls", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-2");
-  const previousCard = fixture.card("card-1");
   await fixture.apply(page);
-
   await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: "Swipe left" }).click();
 
-  await expect(page.getByText(previousCard.frontText, { exact: true })).toBeVisible();
-  await expect
-    .poll(() => readProgress(currentCard.id))
-    .toEqual({
-      difficulty: currentCard.difficulty,
-      numberOfSeen: currentCard.numberOfSeen + 1,
-    });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex - 1);
+  await expect(page.getByRole("button", { name: "Swipe left" })).toBeDisabled();
+  await page.keyboard.press("ArrowLeft");
+  const front = page.getByRole("button", { name: currentCard.frontText, exact: true });
+  const box = await front.boundingBox();
+  if (box === null) throw new Error("Study card front is not visible");
+  await page.mouse.move(box.x + box.width * 0.7, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2, { steps: 5 });
+  await page.mouse.up();
+
+  const slider = page.getByRole("slider", { name: "Study progress" });
+  await slider.press("Home");
+  await expect(slider).toHaveValue(String(session.currentIndex));
+  await slider.click({ position: { x: 1, y: 10 } });
+  await expect(slider).toHaveValue(String(session.currentIndex));
+  await expect(front).toBeVisible();
+  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+  await expect(page.getByTestId("swipe-feedback-direction")).toHaveCount(0);
+
+  await front.click();
+  await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Swipe right" })).toBeVisible();
 });
 
 test("SWIPE-06 starts a filtered session capped by the learning limit", async ({ fixture, page }) => {
@@ -392,7 +405,7 @@ test("SWIPE-24 shows configured Study controls without changing the active sessi
   await expect(dialog).toContainText("Arrow Up / Swipe UpEnd the current session and return to the deck list");
   await expect(dialog).toContainText("Arrow Down / Swipe DownNo action");
   await expect(dialog).toContainText("Arrow Left / Swipe LeftToggle mastered and go to the next card");
-  await expect(dialog).toContainText("Arrow Right / Swipe RightGo to the previous card");
+  await expect(dialog).toContainText("Arrow Right / Swipe RightGoing to the previous card is disabled");
   await expect(dialog).toContainText("Enter / Select CardFlip or reveal the current card");
   await expect(dialog).toContainText("Space / Play or Pause buttonPlay or pause autoplay");
   await expect(dialog).toContainText("B / Swipe controls buttonShow the currently hidden swipe buttons");

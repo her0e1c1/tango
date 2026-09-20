@@ -15,5 +15,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const PreviousDisabled: Story = { args: { disabledDirections: { cardSwipeLeft: true } } };
+export const RemappedPreviousDisabled: Story = { args: { disabledDirections: { cardSwipeRight: true } } };
 export const Disabled: Story = { args: { disabled: true } };
 export const Dark: Story = { globals: { theme: "dark" } };

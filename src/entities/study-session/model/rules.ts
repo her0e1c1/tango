@@ -11,7 +11,6 @@ import type {
   ResolvedStudySession,
   StudySession,
   StudySessionCard,
-  StudySessionMovement,
   StudySessions,
   StudySessionSwipeEffect,
   StudySessionSwipePlan,
@@ -122,9 +121,9 @@ export const resolveStudySession = <Card extends StudySessionCard>(
 
 // Collapses control actions into the movement, exit, or no-op effects understood by a study session.
 const resolveStudySessionSwipeEffect = (swipeAction: SwipeAction): StudySessionSwipeEffect => {
-  if (swipeAction === "DoNothing") return "none";
+  if (swipeAction === "DoNothing" || swipeAction === "GoToPrevCard") return "none";
   if (swipeAction === "GoBack") return "exit";
-  return swipeAction === "GoToPrevCard" ? "previous" : "next";
+  return "next";
 };
 
 // Plans a swipe without mutation and emits progress only when the current session and Card still resolve.
@@ -156,14 +155,11 @@ export const isStudySessionPositionUnchanged = (previous: StudySession, current:
   getCurrentStudySessionCardId(current) === getCurrentStudySessionCardId(previous);
 
 // Computes the next valid cursor; undefined signals that movement crossed a boundary and should end the session.
-export const calculateStudySessionIndex = (
-  session: StudySession,
-  movement: StudySessionMovement
-): number | undefined => {
-  const nextIndex = session.currentIndex + (movement === "previous" ? -1 : 1);
+export const calculateStudySessionIndex = (session: StudySession): number | undefined => {
+  const nextIndex = session.currentIndex + 1;
   return nextIndex >= 0 && nextIndex < session.cardOrderIds.length ? nextIndex : undefined;
 };
 
-// Reports whether the session can move without crossing either end of its Card order.
-export const canMoveStudySession = (session: StudySession, movement: StudySessionMovement): boolean =>
-  calculateStudySessionIndex(session, movement) !== undefined;
+// Reports whether another Card remains after the current position.
+export const canMoveStudySession = (session: StudySession): boolean =>
+  calculateStudySessionIndex(session) !== undefined;
