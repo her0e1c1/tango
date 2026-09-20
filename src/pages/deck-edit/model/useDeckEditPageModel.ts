@@ -20,7 +20,7 @@ export function useDeckEditPageModel(deck: Deck) {
   const { isDirty, isSubmitting } = form.formState;
   const isMounted = useMountedGuard();
   const deletionTarget = useStore(deckEditPageStore, (state) => state.deletionTarget);
-  const deletionPending = useStore(deckEditPageStore, (state) => state.deletionPending);
+  const deletionPending = useStore(deckEditPageStore, (state) => state.deletionId !== undefined);
   const guard = useNavigationGuard(isDirty || isSubmitting);
   useResetStoreOnMount(deckEditPageStore);
 
@@ -28,7 +28,9 @@ export function useDeckEditPageModel(deck: Deck) {
   const goToList = () => navigate(deckListPath, { replace: true });
   const onCompleted = () => guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
   const onSubmit = form.handleSubmit(async (values) => {
-    const saved = await submitDeckEdit({ isMounted, deckId: deck.id, values });
+    // Validation can finish after the originating form was replaced.
+    if (!isMounted()) return;
+    const saved = await submitDeckEdit(deck.id, values);
     // The Page may unmount between the action resolving and this continuation.
     if (!saved || !isMounted()) return;
     await onCompleted();
@@ -44,6 +46,10 @@ export function useDeckEditPageModel(deck: Deck) {
     onSubmit,
     requestDeletion: () => requestDeletion(deck.id),
     cancelDeletion,
-    confirmDeletion: () => confirmDeletion(isMounted, onCompleted),
+    confirmDeletion: async () => {
+      if (!isMounted()) return;
+      const deleted = await confirmDeletion();
+      if (deleted && isMounted()) await onCompleted();
+    },
   };
 }

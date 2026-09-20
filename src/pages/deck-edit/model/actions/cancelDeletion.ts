@@ -4,7 +4,7 @@ import { deckEditPageStore } from "../store";
 
 export function cancelDeletion(): void {
   cancelDeckDeletion({
-    pending: deckEditPageStore.getState().deletionPending,
+    pending: deckEditPageStore.getState().deletionId !== undefined,
     setTarget: (deletionTarget) => deckEditPageStore.setState({ deletionTarget }),
   });
 }

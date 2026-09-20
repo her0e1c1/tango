@@ -1,19 +1,11 @@
 import { getAuthUid } from "@/entities/auth";
-import { type Deck, editDeck } from "@/entities/deck";
+import { type DeckId, editDeck } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
 import { showToast } from "@/shared/ui/toast";
 
 import { deckEditPageStore as store } from "../store";
 
-interface SubmitDeckEditInput {
-  isMounted: () => boolean;
-  deckId: Deck["id"];
-  values: DeckFormFields;
-}
-
-export async function submitDeckEdit({ isMounted, deckId, values }: SubmitDeckEditInput): Promise<boolean> {
-  // Validation can finish after the originating form was replaced.
-  if (!isMounted()) return false;
+export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields): Promise<boolean> {
   const pending = store.getState().submission;
   if (pending !== undefined) {
     // Keep concurrent submissions pending, but let only the original caller navigate.
