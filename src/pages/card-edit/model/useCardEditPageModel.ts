@@ -9,6 +9,7 @@ import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes, useNavigationGuard } from "@/shared/router";
 
 import { submit } from "./actions/submit";
+import { useCardEditSubmission } from "./actions/useCardEditSubmission";
 import { getCardEditInfo } from "./queries/getCardEditInfo";
 import { useCardEditFormState } from "./useCardEditFormState";
 
@@ -28,7 +29,7 @@ export function useCardEditPageModel(card: Card) {
   const isMounted = useMountedGuard();
   const cardListPath = routes.cardList.to(snapshot.deckId);
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const handleSubmit = form.handleSubmit(async (values) => {
     if (!isMounted()) return;
     if (!(await submit({ cardId: snapshot.id, values }))) return;
     if (!isMounted()) return;
@@ -37,6 +38,7 @@ export function useCardEditPageModel(card: Card) {
       navigate(cardListPath, { replace: true })
     );
   });
+  const onSubmit = useCardEditSubmission(handleSubmit);
   const preview = useCardPreviewContent(form.control, deck?.category ?? "", preferences.appearance.darkMode);
 
   return {

@@ -1,7 +1,7 @@
 import type { Card } from "@/entities/card";
 import type { Preferences } from "@/entities/preference";
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -190,7 +190,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Card list" })).toBeVisible();
   });
 
-  it("disables repeated save attempts during validation and persistence", async () => {
+  it("saves once for same-tick submissions and submissions during validation and persistence", async () => {
     const validation = Promise.withResolvers<void>();
     const write = Promise.withResolvers<void>();
     mocks.beforeValidation = () => validation.promise;
@@ -199,15 +199,21 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
     const front = screen.getByRole("textbox", { name: "Front text" });
     const save = screen.getByRole("button", { name: "Save changes" });
 
-    await userEvent.dblClick(save);
+    const { form } = save as HTMLButtonElement;
+    if (form === null) throw new Error("Save button must belong to a form");
+    await actAsync(async () => {
+      fireEvent.submit(form);
+      fireEvent.submit(form);
+      await Promise.resolve();
+    });
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(front).toBeDisabled();
     expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Back to cards" })).toBeDisabled();
-    await userEvent.click(save);
+    fireEvent.submit(form);
     await actAsync(async () => validation.resolve());
     expect(save).toBeDisabled();
-    await userEvent.click(save);
+    fireEvent.submit(form);
     await actAsync(async () => write.resolve());
 
     expect(await screen.findByText("Updated card “Front text”.")).toBeVisible();
