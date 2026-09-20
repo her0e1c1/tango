@@ -290,7 +290,7 @@ test("SETTINGS-09 Cached CSV diagnostics follow the current language", async ({ 
   expect(await alert.locator("code").allTextContents()).toEqual(context);
   await expect(page.getByText("有効: 1件")).toBeVisible();
   await expect(page.getByText("無効: 2件")).toBeVisible();
-  await expect(page.getByRole("cell", { name: "問題", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "インポート", exact: true })).toBeDisabled();
+  await expect(page.getByText("問題", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "1枚のカードを追加", exact: true })).toBeDisabled();
   await expect(page).toHaveURL(/\/import$/);
 });

@@ -1,34 +1,28 @@
 import { actAsync } from "@/test/act";
 import { getI18n } from "react-i18next";
 import { ImportFailure } from "../lib/importFailure";
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
-
+import { deckImportExamples } from "../lib/examples";
 import { DeckImportView, type DeckImportViewProps } from "./DeckImportView";
-
-type DeckImportPreview = NonNullable<DeckImportViewProps["preview"]>;
 
 const preview = {
   deckName: "deck.csv",
   analysis: {
-    rows: [
-      {
-        rowNumber: 1,
-        card: { frontText: "front", backText: "back", tags: ["tag"], uniqueKey: "key-1" },
-      },
-    ],
+    rows: [{ rowNumber: 1, card: { frontText: "front", backText: "back", tags: ["tag"], uniqueKey: "key-1" } }],
     skippedRows: [2],
     issues: [],
     invalidCount: 0,
   },
-} satisfies DeckImportPreview;
+} satisfies NonNullable<DeckImportViewProps["preview"]>;
 
-describe("IMPORT-01 IMPORT-02 IMPORT-05 IMPORT-06 SETTINGS-09 DeckImportView", () => {
+describe("DeckImportView [IMPORT-01 IMPORT-02 IMPORT-06 SETTINGS-09]", () => {
   it.each([
     [new ImportFailure("authentication"), "アカウントへのインポートには認証済みユーザーが必要です。"],
-    [new ImportFailure("account-changed"), "アカウントが変わりました。CSVファイルを選び直してください。"],
+    [new ImportFailure("account-changed"), "アカウントが変わりました。CSVファイルや例をもう一度選んでください。"],
     [{ code: "permission-denied" }, "このデータをインポートする権限がありません。"],
     [{ code: "unavailable" }, "接続できませんでした。接続を確認して再試行してください。"],
     [
@@ -37,7 +31,7 @@ describe("IMPORT-01 IMPORT-02 IMPORT-05 IMPORT-06 SETTINGS-09 DeckImportView", (
     ],
     [new Error("private server details"), "インポートのプレビューを準備できませんでした。"],
   ])("localizes preview failure %s and updates it in place", async (error, message) => {
-    render(<DeckImportView sampleText="front,back,,key" previewError={error} />);
+    render(<DeckImportView examples={deckImportExamples} previewError={error} />);
     const alert = screen.getByRole("alert");
     await actAsync(() => getI18n().changeLanguage("ja"));
     expect(screen.getByRole("alert")).toBe(alert);
@@ -48,7 +42,7 @@ describe("IMPORT-01 IMPORT-02 IMPORT-05 IMPORT-06 SETTINGS-09 DeckImportView", (
   it("localizes each cached diagnostic while keeping literal user context", async () => {
     render(
       <DeckImportView
-        sampleText="front,back,,key"
+        examples={deckImportExamples}
         preview={{
           ...preview,
           analysis: {
@@ -75,154 +69,118 @@ describe("IMPORT-01 IMPORT-02 IMPORT-05 IMPORT-06 SETTINGS-09 DeckImportView", (
     expect(alert).toHaveTextContent("CSVを解析できませんでした。形式を確認してください。");
   });
 
-  it("composes a bounded semantic import route surface", () => {
-    render(<DeckImportView sampleText="front,back,,key" />);
-
-    const heading = screen.getByRole("heading", { level: 1, name: "Import decks" });
-
-    expect(heading).toBeVisible();
-    expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Upload a csv file")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Choose a CSV file" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "CSV format" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Sample" })).toBeInTheDocument();
+  it("shows file selection first and keeps format details optional", async () => {
+    render(<DeckImportView examples={deckImportExamples} />);
+    expect(screen.getByRole("heading", { level: 1, name: "Add a deck" })).toBeVisible();
+    expect(screen.getByLabelText("Upload a csv file")).toBeEnabled();
+    expect(screen.queryByRole("heading", { name: "Review import" })).not.toBeInTheDocument();
+    expect(screen.getByText(/Four columns without a header/)).not.toBeVisible();
+    await userEvent.click(screen.getByText("CSV format"));
+    expect(screen.getByText(/Four columns without a header/)).toBeVisible();
   });
 
-  it("passes a real file to the upload callback and disables upload while busy", () => {
-    const onChange = vi.fn();
-    const file = new File(["front,back,,key"], "deck.csv", { type: "text/csv" });
-    const view = render(<DeckImportView sampleText="front,back,,key" onChange={onChange} />);
-    const input = screen.getByLabelText("Upload a csv file");
-
-    fireEvent.change(input, { target: { files: [file] } });
-
-    expect(onChange).toHaveBeenCalledWith(file);
-    view.rerender(<DeckImportView sampleText="front,back,,key" onChange={onChange} pending />);
+  it("selects and locks the common destination", async () => {
+    const onStorageModeChange = vi.fn();
+    const view = render(<DeckImportView examples={deckImportExamples} onStorageModeChange={onStorageModeChange} />);
+    await userEvent.click(screen.getByRole("button", { name: "Change" }));
+    const group = screen.getByRole("group", { name: "Save to" });
+    await userEvent.click(within(group).getByRole("radio", { name: /Local only/ }));
+    expect(onStorageModeChange).toHaveBeenCalledWith("local");
+    view.rerender(<DeckImportView examples={deckImportExamples} storageMode="local" pending />);
+    expect(screen.getByRole("radio", { name: /Local only/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /Local only/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Try this example" })).toBeDisabled();
     expect(screen.getByLabelText("Upload a csv file")).toBeDisabled();
   });
 
-  it("selects whether imported Decks stay local or sync with the account", async () => {
-    const onStorageModeChange = vi.fn();
-    const view = render(
-      <DeckImportView sampleText="front,back,,key" storageMode="remote" onStorageModeChange={onStorageModeChange} />
-    );
-    const csvStorage = screen.getByRole("group", { name: "Save this CSV import" });
-    const localMode = within(csvStorage).getByRole("radio", { name: /Local only/ });
-    const remoteMode = within(csvStorage).getByRole("radio", { name: /Sync with account/ });
-
-    expect(localMode).not.toBeChecked();
-    expect(remoteMode).toBeChecked();
-
-    await userEvent.click(localMode);
-    expect(onStorageModeChange).toHaveBeenCalledExactlyOnceWith("local");
-
-    view.rerender(
+  it.each([
+    ["Basic", "basic"],
+    ["Math", "math"],
+    ["Markdown", "markdown"],
+    ["Sample deck", "deck"],
+  ])("uses the same preview and download controls for %s", async (label, id) => {
+    const onSelectExample = vi.fn();
+    const onDownloadExample = vi.fn();
+    render(
       <DeckImportView
-        sampleText="front,back,,key"
-        storageMode="local"
-        onStorageModeChange={onStorageModeChange}
-        pending
+        examples={deckImportExamples}
+        onSelectExample={onSelectExample}
+        onDownloadExample={onDownloadExample}
       />
     );
-    expect(screen.getByRole("radio", { name: /Local only/ })).toBeChecked();
-    expect(screen.getByRole("radio", { name: /Local only/ })).toBeDisabled();
-    expect(screen.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: label }));
+    expect(screen.getByRole("button", { name: label })).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(screen.getByRole("button", { name: "Try this example" }));
+    expect(onSelectExample).toHaveBeenCalledWith(id);
+    screen.getByRole("button", { name: "Download CSV" }).focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onDownloadExample).toHaveBeenCalledWith(id);
   });
 
-  it("documents uniqueKey and exposes sample add, download, and code controls", async () => {
-    const onAddSample = vi.fn();
-    const onDownloadSample = vi.fn();
-    const sampleText = "front,back,tag,key";
-    render(<DeckImportView sampleText={sampleText} onAddSample={onAddSample} onDownloadSample={onDownloadSample} />);
-
-    expect(screen.getByText(/Four columns without a header/)).toHaveTextContent("uniqueKey");
-    expect(screen.getByText(/uniqueKey is required/)).toHaveTextContent("must be unique within the CSV file");
-    expect(screen.getAllByText("front").length).toBeGreaterThan(0);
-
-    await userEvent.click(screen.getByRole("button", { name: "Add sample deck" }));
-    await userEvent.click(screen.getByRole("button", { name: "Download CSV sample" }));
-
-    expect(onAddSample).toHaveBeenCalledOnce();
-    expect(onDownloadSample).toHaveBeenCalledOnce();
+  it("forwards selected files and allows selecting a corrected file after review", () => {
+    const onChange = vi.fn();
+    const file = new File(["front,back,,key"], "deck.csv");
+    const view = render(<DeckImportView examples={deckImportExamples} onChange={onChange} />);
+    fireEvent.change(screen.getByLabelText("Upload a csv file"), { target: { files: [file] } });
+    expect(onChange).toHaveBeenCalledWith(file);
+    view.rerender(<DeckImportView examples={deckImportExamples} preview={preview} onChange={onChange} />);
+    fireEvent.change(screen.getByLabelText("Upload a csv file"), { target: { files: [file] } });
+    expect(onChange).toHaveBeenCalledTimes(2);
   });
 
-  it("loads only the sample action while a Sample Deck is being added", () => {
-    render(<DeckImportView sampleText="front,back,,key" preview={preview} addingSample />);
-
-    const addSample = screen.getByRole("button", { name: "Add sample deck" });
-    const importDeck = screen.getByRole("button", { name: "Import" });
-
-    expect(addSample).toBeDisabled();
-    expect(addSample).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByRole("status")).toHaveTextContent("Loading Add sample deck");
-    expect(importDeck).toBeDisabled();
-    expect(importDeck).not.toHaveAttribute("aria-busy");
-    expect(screen.getByLabelText(/Upload a csv file/u)).toBeDisabled();
-  });
-
-  it("activates the CSV sample download with Enter", async () => {
-    const onDownloadSample = vi.fn();
-    const user = userEvent.setup();
-    render(<DeckImportView sampleText="front,back" onDownloadSample={onDownloadSample} />);
-
-    screen.getByRole("button", { name: "Download CSV sample" }).focus();
-    await user.keyboard("{Enter}");
-
-    expect(onDownloadSample).toHaveBeenCalledOnce();
-  });
-
-  it("shows validation and row content, and waits for explicit import", async () => {
+  it("shows card contents and requires explicit confirmation", async () => {
     const onImport = vi.fn();
-    render(<DeckImportView sampleText="front,back,,key" preview={preview} onImport={onImport} />);
-
-    expect(screen.getAllByText("deck.csv")).toHaveLength(2);
-    expect(screen.getByText("1 valid")).toBeVisible();
-    expect(screen.getByText("1 skipped")).toBeVisible();
-    expect(screen.getByText("0 invalid")).toBeVisible();
-    expect(screen.queryByRole("heading", { name: "Planned changes" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("columnheader", { name: "Action" })).not.toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: "front" })).toBeVisible();
-    expect(screen.getByRole("cell", { name: "key-1" })).toBeVisible();
+    const onChooseAgain = vi.fn();
+    render(
+      <DeckImportView
+        examples={deckImportExamples}
+        preview={preview}
+        onImport={onImport}
+        onChooseAgain={onChooseAgain}
+      />
+    );
+    expect(screen.getByText("front")).toBeVisible();
+    expect(screen.getByText("back")).toBeVisible();
+    expect(screen.getByText("uniqueKey: key-1")).toBeVisible();
+    expect(screen.getByText("1 blank row skipped")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Try this example" })).not.toBeInTheDocument();
     expect(onImport).not.toHaveBeenCalled();
-
-    await userEvent.click(screen.getByRole("button", { name: "Import" }));
-
+    await userEvent.click(screen.getByRole("button", { name: "Choose file or example" }));
+    expect(onChooseAgain).toHaveBeenCalledOnce();
+    await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
     expect(onImport).toHaveBeenCalledOnce();
   });
 
-  it("shows invalid row context and requires a corrected file", () => {
-    const invalidPreview: DeckImportPreview = {
-      ...preview,
-      analysis: {
-        rows: [],
-        skippedRows: [],
-        invalidCount: 1,
-        issues: [
-          {
-            rowNumber: 3,
-            diagnostic: { kind: "columns", count: 2 },
-            context: '["front","back"]',
+  it("blocks all cards when any row is invalid and explains how to recover", () => {
+    render(
+      <DeckImportView
+        examples={deckImportExamples}
+        preview={{
+          ...preview,
+          analysis: {
+            ...preview.analysis,
+            invalidCount: 1,
+            issues: [
+              {
+                rowNumber: 3,
+                diagnostic: { kind: "card", field: "uniqueKey", reason: "required" },
+                context: '["bad","back","",""]',
+              },
+            ],
           },
-        ],
-      },
-    };
-    render(<DeckImportView sampleText="front,back,,key" preview={invalidPreview} />);
-
-    const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("Row 3");
-    expect(alert).toHaveTextContent("Expected 4 columns, found 2.");
-    expect(alert).toHaveTextContent('["front","back"]');
-    expect(screen.getByRole("button", { name: "Import" })).toBeDisabled();
-    expect(screen.getByText("Choose a corrected CSV file to continue.")).toBeVisible();
+        }}
+      />
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Row 3: Unique key is required.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Choose a corrected CSV file to continue.");
+    expect(screen.getByRole("button", { name: "Add 1 card" })).toBeDisabled();
   });
 
-  it("shows preview preparation failures without an ineffective retry action", () => {
-    render(<DeckImportView sampleText="front,back,,key" previewError={new Error("server read failed")} />);
-
-    const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("Unable to prepare preview");
-    expect(alert).toHaveTextContent("The import preview could not be prepared.");
-    expect(alert).not.toHaveTextContent("server read failed");
-    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
+  it("explains preparation failures and leaves selection available", () => {
+    render(<DeckImportView examples={deckImportExamples} previewError={new Error("file read failed")} />);
+    expect(screen.getByRole("alert")).toHaveTextContent("The import preview could not be prepared.");
+    expect(screen.getByRole("alert")).not.toHaveTextContent("file read failed");
+    expect(screen.getByLabelText("Upload a csv file")).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Try this example" })).toBeEnabled();
   });
 });

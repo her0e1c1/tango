@@ -4,7 +4,7 @@ import type { PreparedDeckImport } from "./actions/executePreparedDeckImport";
 
 export type DeckImportStorageMode = "local" | "remote";
 
-type DeckImportStatus = "idle" | "validating" | "importing" | "adding-sample";
+type DeckImportStatus = "idle" | "validating" | "importing";
 interface DeckImportPreview {
   deckName: string;
   analysis: DeckImportAnalysis;

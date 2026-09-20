@@ -90,6 +90,7 @@ export const Import: Story = {
       { type: "text/csv" }
     );
 
+    await userEvent.click(canvas.getByRole("button", { name: "Change" }));
     await userEvent.click(canvas.getByRole("radio", { name: /Local only/ }));
     await userEvent.upload(canvas.getByLabelText("Upload a csv file"), file);
 

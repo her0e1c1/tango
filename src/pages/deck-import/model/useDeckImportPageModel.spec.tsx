@@ -4,7 +4,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useCards } from "@/entities/card";
-import { useDecks } from "@/entities/deck";
+import { useDecks, getDecks, deleteDeck } from "@/entities/deck";
 import { updatePreferences, usePreferences } from "@/entities/preference";
 import { actAsync } from "@/test/act";
 
@@ -55,7 +55,8 @@ import { useDeckImportPageModel } from "./useDeckImportPageModel";
 import { deckImportStore } from "./store";
 import { selectDeckImportFile } from "./actions/selectDeckImportFile";
 import { importDeckPreview } from "./actions/importDeckPreview";
-import { addSampleImport } from "./actions/addSampleImport";
+import { selectDeckImportExample } from "./actions/selectDeckImportExample";
+import { deckImportExamples } from "../lib/examples";
 
 const csvFile = (name: string, backText = "back") =>
   new File([`"front","${backText}","tag","key"`], name, { type: "text/csv" });
@@ -70,7 +71,7 @@ const renderDeckImport = () =>
         selectFile: selectDeckImportFile,
         setStorageMode: model.changeStorageMode,
         importPreview: importDeckPreview,
-        addSample: addSampleImport,
+        selectExample: selectDeckImportExample,
       },
       decks: useDecks(),
       cards: useCards(),
@@ -81,7 +82,12 @@ const renderDeckImport = () =>
 const findDeck = (decks: Deck[], name: string) => decks.find((deck) => deck.name === name);
 
 describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT-05 IMPORT-06]", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await Promise.all(
+      getDecks()
+        .filter((deck) => deck.localMode)
+        .map((deck) => deleteDeck("", deck.id))
+    );
     deckImportStore.setState(deckImportStore.getInitialState(), true);
     controls.navigate.mockReset();
     controls.remoteDeck.mockReset();
@@ -241,44 +247,6 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toHaveLength(1);
   });
 
-  it("adds the sample to local storage and disables its automatic bootstrap", async () => {
-    const { result } = renderDeckImport();
-
-    const addResult = await actAsync(async () => result.current.deckImport.addSample());
-
-    expect(addResult).toBe(true);
-    const sampleDeck = findDeck(result.current.decks, "Sample Deck");
-    expect(sampleDeck).toMatchObject({ id: "sample-v1", localMode: true });
-    expect(result.current.cards.filter((card) => card.deckId === sampleDeck?.id)).not.toEqual([]);
-    expect(
-      result.current.cards.filter((card) => card.deckId === sampleDeck?.id).every((card) => !("uid" in card))
-    ).toBe(true);
-    expect(result.current.preferences.loadSample).toBe(false);
-    expect(controls.showToast).toHaveBeenCalledWith({
-      messageKey: "deckImport.toast.sampleAdded",
-      messageParams: { count: result.current.cards.filter((card) => card.deckId === sampleDeck?.id).length },
-      tone: "success",
-    });
-  });
-
-  it("keeps the sample bootstrap enabled and preserves its add failure on unmount", async () => {
-    const { result, unmount } = renderDeckImport();
-    controls.nextMutationError = new Error("sample mutation failed");
-
-    await actAsync(async () => {
-      await expect(result.current.deckImport.addSample()).resolves.toBe(false);
-    });
-
-    expect(controls.showToast).toHaveBeenCalledWith({
-      messageKey: "deckImport.toast.sampleFailure",
-      tone: "error",
-    });
-    expect(result.current.preferences.loadSample).toBe(true);
-
-    unmount();
-    expect(controls.dismissToast).not.toHaveBeenCalled();
-  });
-
   it("shows an App-owned import failure that arrives after unmount", async () => {
     const request = Promise.withResolvers<void>();
     const { result, unmount } = renderDeckImport();
@@ -301,20 +269,6 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
       messageKey: "deckImport.toast.failure",
       tone: "error",
     });
-  });
-
-  it("keeps repeated sample imports idempotent", async () => {
-    const { result } = renderDeckImport();
-
-    await actAsync(async () => result.current.deckImport.addSample());
-    const firstCards = result.current.cards.filter((card) => card.deckId === "sample-v1");
-    const firstCardIds = firstCards.map((card) => card.id);
-
-    await actAsync(async () => result.current.deckImport.addSample());
-    const repeatedCards = result.current.cards.filter((card) => card.deckId === "sample-v1");
-
-    expect(repeatedCards).toHaveLength(firstCards.length);
-    expect(repeatedCards.map((card) => card.id)).toEqual(firstCardIds);
   });
 
   it("routes remote CSV writes to the current account without local persistence", async () => {
@@ -360,7 +314,7 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     );
   });
 
-  it.each(["selection", "import", "sample"] as const)(
+  it.each(["selection", "import"] as const)(
     "retains the shared busy state across re-entry during %s",
     async (workflow) => {
       const { result: firstResult, unmount: unmountFirst } = renderDeckImport();
@@ -373,25 +327,22 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
       if (workflow !== "selection") controls.nextMutationWait = save.promise;
       let operation!: Promise<unknown>;
       act(() => {
-        operation =
-          workflow === "selection"
-            ? selectDeckImportFile(file)
-            : workflow === "import"
-              ? importDeckPreview()
-              : addSampleImport();
+        operation = workflow === "selection" ? selectDeckImportFile(file) : importDeckPreview();
       });
       unmountFirst();
       const { result: secondResult } = renderDeckImport();
-      const busy = workflow === "selection" ? "validating" : workflow === "import" ? "pending" : "addingSample";
+      const busy = workflow === "selection" ? "validating" : "pending";
       expect(secondResult.current.model.view[busy]).toBe(true);
       await actAsync(async () => {
         secondResult.current.model.changeStorageMode("remote");
+        secondResult.current.model.chooseAgain();
         await selectDeckImportFile(csvFile("blocked.csv"));
         expect(await importDeckPreview()).toBe(false);
-        expect(await addSampleImport()).toBe(false);
+        await selectDeckImportExample("deck");
       });
       expect(secondResult.current.model.view.storageMode).toBe("local");
       expect(secondResult.current.model.view[busy]).toBe(true);
+      expect(secondResult.current.model.view.preview?.deckName).toBe(workflow === "import" ? "busy.csv" : undefined);
       await actAsync(async () => {
         read.resolve("front,back,tag,key");
         save.resolve();
@@ -399,14 +350,12 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
       });
       expect(secondResult.current.model.view[busy]).toBe(false);
       expect(findDeck(secondResult.current.decks, "blocked.csv")).toBeUndefined();
-      expect(secondResult.current.model.view.preview?.deckName).toBe(
-        workflow === "import" ? undefined : workflow === "sample" ? "busy.csv" : "pending.csv"
-      );
+      expect(secondResult.current.model.view.preview?.deckName).toBe(workflow === "import" ? undefined : "pending.csv");
       expect(controls.showToast).toHaveBeenCalledTimes(workflow === "selection" ? 0 : 1);
     }
   );
 
-  it.each(["importPreview", "addSample"] as const)(
+  it.each(["importPreview"] as const)(
     "publishes %s success after unmount without redirecting the new Page",
     async (action) => {
       const { result: firstResult, unmount: unmountFirst } = renderDeckImport();
@@ -429,7 +378,7 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     }
   );
 
-  it.each(["importPreview", "addSample"] as const)("navigates on mounted %s success", async (action) => {
+  it.each(["importPreview"] as const)("navigates on mounted %s success", async (action) => {
     const { result } = renderDeckImport();
     act(() => result.current.model.changeStorageMode("local"));
     act(() => result.current.model.selectFile(csvFile("navigate.csv")));
@@ -480,15 +429,95 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     });
   });
 
-  it("preserves CSV preview on sample failure and on selecting the same storage mode", async () => {
+  it("preserves CSV preview on selecting the same storage mode", async () => {
     const { result } = renderDeckImport();
     act(() => result.current.model.changeStorageMode("local"));
     await actAsync(async () => selectDeckImportFile(csvFile("preserved.csv")));
-    controls.nextMutationError = new Error("sample failed");
-    await actAsync(async () => expect(addSampleImport()).resolves.toBe(false));
     act(() => result.current.model.changeStorageMode("local"));
     expect(result.current.model.view.preview?.deckName).toBe("preserved.csv");
     await actAsync(async () => expect(importDeckPreview()).resolves.toBe(true));
     expect(findDeck(result.current.decks, "preserved.csv")).toBeDefined();
+  });
+  it.each(deckImportExamples)("reviews $id before saving locally", async (example) => {
+    const { result } = renderDeckImport();
+    act(() => result.current.model.changeStorageMode("local"));
+    await actAsync(async () => selectDeckImportExample(example.id));
+    expect(
+      result.current.model.view.preview?.analysis.rows.map(({ card }) => ({
+        frontText: card.frontText,
+        backText: card.backText,
+        tags: card.tags,
+        uniqueKey: card.uniqueKey,
+      }))
+    ).toEqual(example.cards);
+    expect(result.current.decks.some((item) => item.name === example.fileName)).toBe(false);
+    await actAsync(async () => expect(importDeckPreview()).resolves.toBe(true));
+    const deck = findDeck(result.current.decks, example.fileName);
+    expect(deck?.localMode).toBe(true);
+    expect(
+      result.current.cards
+        .filter((card) => card.deckId === deck?.id)
+        .map(({ frontText, backText, tags, uniqueKey }) => ({ frontText, backText, tags, uniqueKey }))
+    ).toEqual(example.cards);
+    expect(controls.remoteDeck).not.toHaveBeenCalled();
+    expect(controls.remoteCard).not.toHaveBeenCalled();
+    expect(result.current.preferences.loadSample).toBe(true);
+  });
+
+  it.each(deckImportExamples)("reviews $id before saving remotely", async (example) => {
+    controls.uid = "example-owner";
+    const { result } = renderDeckImport();
+    await actAsync(async () => selectDeckImportExample(example.id));
+    expect(result.current.model.view.preview?.analysis.rows).toHaveLength(example.cards.length);
+    expect(controls.remoteDeck).not.toHaveBeenCalled();
+    expect(controls.remoteCard).not.toHaveBeenCalled();
+    await actAsync(async () => expect(importDeckPreview()).resolves.toBe(true));
+    expect(controls.remoteDeck).toHaveBeenCalledWith(
+      "example-owner",
+      expect.objectContaining({ name: example.fileName, localMode: false })
+    );
+    for (const card of example.cards)
+      expect(controls.remoteCard).toHaveBeenCalledWith(
+        "example-owner",
+        expect.objectContaining({ ...card, uid: "example-owner" })
+      );
+    expect(result.current.decks.some((deck) => deck.name === example.fileName)).toBe(false);
+    expect(result.current.preferences.loadSample).toBe(true);
+  });
+
+  it("selects another example before saving while retaining its destination", async () => {
+    const { result } = renderDeckImport();
+    act(() => result.current.model.changeStorageMode("local"));
+    await actAsync(async () => selectDeckImportExample("deck"));
+    act(() => result.current.model.chooseAgain());
+    expect(result.current.model.view.preview).toBeUndefined();
+    expect(result.current.model.view.storageMode).toBe("local");
+    await actAsync(async () => selectDeckImportExample("math"));
+    expect(result.current.model.view.preview?.deckName).toBe("math-sample.csv");
+    expect(result.current.decks).toEqual([]);
+    await actAsync(async () => expect(importDeckPreview()).resolves.toBe(true));
+    expect(findDeck(result.current.decks, "math-sample.csv")?.localMode).toBe(true);
+    expect(findDeck(result.current.decks, "deck-sample.csv")).toBeUndefined();
+  });
+
+  it("retries the reviewed sample deck without duplicating cards", async () => {
+    const { result } = renderDeckImport();
+    act(() => result.current.model.changeStorageMode("local"));
+    await actAsync(async () => selectDeckImportExample("deck"));
+    controls.failAfterMutation = true;
+    await actAsync(async () => expect(importDeckPreview()).resolves.toBe(false));
+    const deck = findDeck(result.current.decks, "deck-sample.csv");
+    const importedCards = () =>
+      result.current.cards
+        .filter((card) => card.deckId === deck?.id)
+        .map(({ id, frontText, backText, tags, uniqueKey }) => ({ id, frontText, backText, tags, uniqueKey }));
+    const before = importedCards();
+    expect(before.length).toBeGreaterThan(0);
+    await actAsync(async () => expect(importDeckPreview()).resolves.toBe(true));
+    expect(importedCards()).toEqual(before);
+    await actAsync(async () => selectDeckImportExample("deck"));
+    await actAsync(async () => expect(importDeckPreview()).resolves.toBe(true));
+    expect(result.current.decks.filter((item) => item.name === "deck-sample.csv")).toHaveLength(2);
+    expect(importedCards()).toEqual(before);
   });
 });

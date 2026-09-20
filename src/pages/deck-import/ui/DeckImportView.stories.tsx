@@ -2,7 +2,7 @@ import { expect } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
-import { SAMPLE_CSV_TEXT } from "../lib/sampleCsv";
+import { getDeckImportExamples } from "../model/queries/getDeckImportExamples";
 import { DeckImportView, type DeckImportViewProps } from "./DeckImportView";
 
 type DeckImportPreview = NonNullable<DeckImportViewProps["preview"]>;
@@ -35,7 +35,7 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
-    sampleText: SAMPLE_CSV_TEXT,
+    examples: getDeckImportExamples(),
   },
 } satisfies Meta<typeof DeckImportView>;
 
@@ -79,30 +79,16 @@ export const Pending: Story = {
   },
 };
 
-export const AddingSample: Story = {
-  args: {
-    addingSample: true,
-    preview,
-  },
-};
-
-export const LongSample: Story = {
-  args: {
-    sampleText: Array.from(
-      { length: 12 },
-      (_, index) => `A long front ${index + 1},A long back ${index + 1},tag-${index + 1},sample-${index + 1}`
-    ).join("\n"),
-  },
-};
-
+export const Validating: Story = { args: { validating: true } };
+export const MathExample: Story = { args: { initialExampleId: "math" } };
+export const MarkdownExample: Story = { args: { initialExampleId: "markdown" } };
+export const SampleDeckExample: Story = { args: { initialExampleId: "deck" } };
 export const DarkReview: Story = {
-  ...LongSample,
-  args: { ...LongSample.args, dark: true },
+  args: { initialExampleId: "deck", dark: true },
   globals: { theme: "dark" },
 };
-
 export const IphoneReview: Story = {
-  ...LongSample,
+  args: { initialExampleId: "deck" },
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 
@@ -111,7 +97,7 @@ export const JapaneseDiagnostics: Story = {
   parameters: { locale: "ja" },
   play: async ({ canvas }) => {
     await expect(canvas.getByRole("alert")).toHaveTextContent("列数は4列である必要があります（現在は3列）。");
-    await expect(canvas.getByRole("button", { name: /^インポート$/ })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: /^0枚のカードを追加$/ })).toBeDisabled();
     await expect(document.documentElement).toHaveAttribute("lang", "ja");
   },
 };
