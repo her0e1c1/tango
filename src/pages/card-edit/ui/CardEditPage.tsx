@@ -1,30 +1,10 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
 
-import { BackText, type Card } from "@/entities/card";
-import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardEditPageModel, useCardEditRouteModel } from "../model/useCardEditPageModel";
-import { CardEditor } from "./CardEditor";
-
-const CardEditContainer: React.FC<{ card: Card }> = ({ card }) => {
-  const model = useCardEditPageModel(card);
-
-  return (
-    <AppLayout showHeader>
-      {model.navigationGuard}
-      <CardEditor
-        cardInfo={model.cardInfo}
-        categories={model.categories}
-        preview={<BackText {...model.preview} />}
-        form={model.form}
-        onCancel={model.onCancel}
-        onSubmit={model.onSubmit}
-      />
-    </AppLayout>
-  );
-};
+import { useCardEditRouteModel } from "../model/useCardEditPageModel";
+import { CardEditContainer } from "./CardEditContainer";
 
 export const CardEditPage: React.FC = () => {
   const { t } = useTranslation();

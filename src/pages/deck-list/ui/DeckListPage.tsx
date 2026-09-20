@@ -1,86 +1,36 @@
-import * as React from "react";
-import { useNavigate } from "react-router-dom";
-import { useKey } from "react-use";
+import type * as React from "react";
 
-import { touchStudySession } from "@/entities/study-session";
-import { useAuth } from "@/entities/auth";
-import { useCards } from "@/entities/card";
-import { useDecks } from "@/entities/deck";
-import { usePreferences } from "@/entities/preference";
-import { useMountedGuard } from "@/shared/lib/useMountedGuard";
-import {
-  DeckDeletionDialog,
-  useDeckDeletionState,
-  getDeckDeletionTarget,
-  requestDeckDeletion,
-  cancelDeckDeletion,
-  confirmDeckDeletion,
-} from "@/features/deck-deletion";
-import { bootstrapSampleDeck } from "../model/actions/bootstrapSampleDeck";
-import { routes } from "@/shared/router";
+import { DeckDeletionDialog } from "@/features/deck-deletion";
 import { AppLayout } from "@/widgets/app-layout";
 
-import { exportDeck } from "../model/actions/exportDeck";
-import { useDeckListState } from "../model/queries/useDeckListState";
+import { useDeckListPageModel } from "../model/useDeckListPageModel";
 import { DeckList } from "./DeckList";
 
 export const DeckListPage: React.FC = () => {
-  const navigate = useNavigate();
-  const sections = useDeckListState();
-  const { uid } = useAuth();
-  const cards = useCards();
-  const decks = useDecks();
-  const { loadSample } = usePreferences();
-  const isMounted = useMountedGuard();
-  const deletion = useDeckDeletionState();
-  const deletionTarget = getDeckDeletionTarget(deletion.target);
-  const requestDeletion = (id: string) =>
-    requestDeckDeletion(id, { pending: deletion.pending, decks, cards, setTarget: deletion.setTarget });
-  const cancelDeletion = () => cancelDeckDeletion({ pending: deletion.pending, setTarget: deletion.setTarget });
-  const confirmDeletion = () =>
-    confirmDeckDeletion({
-      uid,
-      target: deletion.target,
-      pending: deletion.pending,
-      setTarget: deletion.setTarget,
-      setPending: deletion.setPending,
-      isMounted,
-    });
-
-  const continueStudy = (id: string) => {
-    // The Entity owns session recency while this route entry owns the destination shown afterward.
-    touchStudySession(id);
-    void navigate(routes.deckStudy.to(id));
-  };
-
-  React.useEffect(() => {
-    void bootstrapSampleDeck(decks, loadSample);
-  }, [decks, loadSample]);
-  useKey("s", () => void navigate(routes.settings.to()));
-  useKey("i", () => void navigate(routes.deckImport.to()));
+  const model = useDeckListPageModel();
 
   return (
     <AppLayout showHeader>
-      {deletionTarget != null && (
+      {model.deletionTarget != null && (
         <DeckDeletionDialog
-          target={deletionTarget}
-          pending={deletion.pending}
-          onCancel={cancelDeletion}
-          onConfirm={confirmDeletion}
+          target={model.deletionTarget}
+          pending={model.deletionPending}
+          onCancel={model.cancelDeletion}
+          onConfirm={model.confirmDeletion}
         />
       )}
       <DeckList
-        sections={sections}
-        onCreateDeck={() => void navigate(routes.deckCreate.to())}
-        onImportDeck={() => void navigate(routes.deckImport.to())}
+        sections={model.sections}
+        onCreateDeck={model.createDeck}
+        onImportDeck={model.importDeck}
         deckCard={{
-          onClickEdit: (id) => void navigate(routes.deckForm.to(id)),
-          onClickName: (id) => void navigate(routes.cardList.to(id)),
-          onClickContinue: continueStudy,
-          onClickRestart: (id) => void navigate(routes.deckStudyStart.to(id)),
-          onClickStudy: (id) => void navigate(routes.deckStudyStart.to(id)),
-          onClickDownload: (id) => exportDeck(id, decks, cards),
-          onClickDelete: requestDeletion,
+          onClickEdit: model.editDeck,
+          onClickName: model.openDeck,
+          onClickContinue: model.continueStudy,
+          onClickRestart: model.startStudy,
+          onClickStudy: model.startStudy,
+          onClickDownload: model.downloadDeck,
+          onClickDelete: model.requestDeletion,
         }}
       />
     </AppLayout>

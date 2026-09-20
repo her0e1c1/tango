@@ -1,16 +1,14 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
 
-import { CATEGORY, type Deck } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 import { DeckDeletionDialog } from "@/features/deck-deletion";
 import { DeckForm } from "@/features/deck-form";
 import { Button } from "@/shared/ui/button";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useDeckEditPageModel } from "../model/useDeckEditPageModel";
-import { useOpeningDeck } from "../model/useOpeningDeck";
+import { useDeckEditPageModel, useDeckEditRouteModel } from "../model/useDeckEditPageModel";
 
 const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
@@ -29,7 +27,8 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
       )}
       <DeckForm
         mode="edit"
-        categories={CATEGORY}
+        categories={model.categories}
+        cloudStorageAvailable={model.cloudStorageAvailable}
         deckInfo={{
           id: deck.id,
           createdAt: deck.createdAt,
@@ -64,22 +63,14 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   );
 };
 
-const DeckEditRouteContainer: React.FC<{ deckId: Deck["id"] }> = ({ deckId }) => {
+export const DeckEditPage: React.FC = () => {
   const { t } = useTranslation();
-  const openingDeck = useOpeningDeck(deckId);
+  const { deckId, openingDeck } = useDeckEditRouteModel();
 
   if (openingDeck == null) {
     return <RouteNotFound title={t("deckForm.notFound.title")} description={t("deckForm.notFound.description")} />;
   }
 
-  return <DeckEditContainer deck={openingDeck} />;
-};
-
-export const DeckEditPage: React.FC = () => {
-  const params = useParams();
-  const deckId = params.id;
-  if (deckId == null) throw new Error("invalid deck id");
-
   // Page-owned form and deletion state must not survive navigation to a different Deck.
-  return <DeckEditRouteContainer key={deckId} deckId={deckId} />;
+  return <DeckEditContainer key={deckId} deck={openingDeck} />;
 };

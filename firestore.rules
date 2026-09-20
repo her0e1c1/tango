@@ -1,4 +1,8 @@
 service cloud.firestore {
+  function isSignedIn() {
+    return request.auth != null &&
+           request.auth.token.firebase.sign_in_provider != "anonymous";
+  }
   function isOwner() {
     return request.auth.uid == resource.data.uid;
   }
@@ -15,9 +19,9 @@ service cloud.firestore {
         return resource.data.isPublic == true;
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid();
-      allow update: if isValidOwner();
-      allow delete: if isOwner();
+      allow create: if isSignedIn() && isValid();
+      allow update: if isSignedIn() && isValidOwner();
+      allow delete: if isSignedIn() && isOwner();
     }
     match /card/{cardId} {
       function getDeck(deckId) {
@@ -30,9 +34,9 @@ service cloud.firestore {
         return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isValid() && belongsToDeck();
-      allow update: if isValidOwner() && belongsToDeck();
-      allow delete: if isOwner();
+      allow create: if isSignedIn() && isValid() && belongsToDeck();
+      allow update: if isSignedIn() && isValidOwner() && belongsToDeck();
+      allow delete: if isSignedIn() && isOwner();
     }
   }
 }
