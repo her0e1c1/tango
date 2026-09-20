@@ -21,7 +21,10 @@ const writeControls = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
-vi.mock("@/entities/auth", () => ({ getAuthUid: () => authControls.uid }));
+vi.mock("@/entities/auth", () => ({
+  getAuthUid: () => authControls.uid,
+  useAuth: () => ({ isAnonymous: authControls.uid === "" }),
+}));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
@@ -42,11 +45,12 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 
 const AvailableDeckFormHarness = (props: { deck: Deck }) => {
-  const { form, onCancel, onSubmit } = useDeckEditPageModel(props.deck);
+  const { form, onCancel, onSubmit, cloudStorageAvailable } = useDeckEditPageModel(props.deck);
   return (
     <DeckForm
       mode="edit"
       categories={CATEGORY}
+      cloudStorageAvailable={cloudStorageAvailable}
       deckInfo={{ id: props.deck.id, createdAt: props.deck.createdAt, updatedAt: props.deck.updatedAt }}
       deckName={props.deck.name}
       form={form}
@@ -62,7 +66,7 @@ const StoredDeckFormHarness = (props: { deckId: DeckId }) => {
   return deck === undefined ? null : <AvailableDeckFormHarness deck={deck} />;
 };
 
-describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
+describe("DECK-02 DECK-07 DECK-12 PERSIST-04 useDeckEditPageModel", () => {
   const deckId = "deck-id";
   const renderForm = () => {
     const router = createMemoryRouter(
@@ -119,6 +123,37 @@ describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
 
     expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
     expect(writeControls.writes.at(-1)?.uid).toBe("latest-user");
+  });
+
+  it("keeps guest edits local and disables cloud promotion", async () => {
+    authControls.uid = "";
+    const view = renderForm();
+    expect(screen.getByRole("radio", { name: "Cloud" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "Local only" })).toBeChecked();
+    expect(screen.getByText(/Sign in to save to the cloud/)).toBeVisible();
+    await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Guest deck");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
+    expect(writeControls.writes.at(-1)).toEqual({
+      uid: "",
+      deck: expect.objectContaining({ name: "Guest deck", localMode: true }),
+    });
+    view.unmount();
+    renderForm();
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Guest deck");
+  });
+
+  it("keeps a local Deck local if the user signs out after selecting cloud", async () => {
+    renderForm();
+    await userEvent.click(screen.getByRole("radio", { name: "Cloud" }));
+    authControls.uid = "";
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
+    expect(writeControls.writes.at(-1)).toEqual({
+      uid: "",
+      deck: expect.objectContaining({ id: deckId, localMode: true }),
+    });
   });
 
   it("requests cloud persistence when Cloud is selected", async () => {

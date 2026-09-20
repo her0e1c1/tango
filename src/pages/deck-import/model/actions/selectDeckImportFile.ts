@@ -33,11 +33,12 @@ function prepareDeckImport({ name, rows, storageMode = "remote" }: DeckImportSou
 
 export async function selectDeckImportFile(file: File): Promise<void> {
   const uid = getAuthUid();
-  const { status, storageMode } = deckImportStore.getState();
+  const { status, storageMode: selectedStorageMode } = deckImportStore.getState();
+  const storageMode = uid === "" ? "local" : selectedStorageMode;
   if (status !== "idle") return;
 
   // Lock the selected mode until the read finishes, even if the Page unmounts.
-  deckImportStore.setState({ status: "validating", source: { kind: "empty" } });
+  deckImportStore.setState({ storageMode, status: "validating", source: { kind: "empty" } });
   try {
     const analysis = await parseCsv(await file.text());
     // A read may outlive the session that selected it; never prepare it for a different account.

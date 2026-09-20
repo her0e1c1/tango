@@ -20,7 +20,7 @@ const writeControls = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/auth", () => ({
-  getAuthSession: () => ({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: false }),
+  getAuthUid: () => "user-id",
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/card", async (importOriginal) => {

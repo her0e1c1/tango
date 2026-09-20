@@ -11,7 +11,8 @@
 ## 保存先の用語
 
 - `local-only`: Deck / Card を remote に作成せず、現在の browser storage だけに保存する状態を指す。
-- `remote`: 現在の認証 UID に属する Deck / Card を Firestore emulator に保存する状態を指す。
+- `remote`: Google アカウントにログインしたユーザーの UID に属する Deck / Card を Firestore emulator に保存する状態を指す。
+- Google アカウントへ連携していない匿名認証は未ログインとして扱い、Deck / Card は local-only に保存する。匿名 UID が発行されてもクラウドへの書き込みを許可しない。
 - `offline cache`: remote data の browser 上の cache と、offline 中に remote へ反映待ちとなった変更を指す。local-only data とは区別する。
 
 ## カテゴリと分離

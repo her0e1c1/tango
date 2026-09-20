@@ -1,26 +1,21 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
-import { useKey } from "react-use";
 
 import { BackText } from "@/entities/card";
-import { type Deck, useDeck } from "@/entities/deck";
+import type { Deck } from "@/entities/deck";
 import { DifficultyIndicator } from "@/entities/study-progress";
 import { DeckFilterForm } from "@/features/deck-filter";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardListPageModel } from "../model/useCardListPageModel";
+import { useCardListPageModel, useCardListRouteModel } from "../model/useCardListPageModel";
 import { CardList } from "./CardList";
 import { BulkDifficultyDialog } from "./bulk-difficulty";
 
-const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
+const CardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const model = useCardListPageModel(deck);
-
-  useKey("t", model.goToDeckList, undefined, [model.goToDeckList]);
-  useKey("s", model.goToSettings, undefined, [model.goToSettings]);
 
   return (
     <AppLayout showHeader={model.answer == null}>
@@ -102,11 +97,7 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
 
 export const CardListPage: React.FC = () => {
   const { t } = useTranslation();
-  const params = useParams();
-  const deckId = params.id;
-  if (deckId == null) throw new Error("invalid deck id");
-
-  const deck = useDeck(deckId);
+  const { deckId, deck } = useCardListRouteModel();
   if (deck == null) {
     return (
       <RouteNotFound title={t("cardList.deckNotFound.title")} description={t("cardList.deckNotFound.description")} />
@@ -114,5 +105,5 @@ export const CardListPage: React.FC = () => {
   }
 
   // Filter, dialog, and shown-card state belong to one Deck and must not survive a route change.
-  return <AvailableCardListPage key={deckId} deck={deck} />;
+  return <CardListContainer key={deckId} deck={deck} />;
 };
