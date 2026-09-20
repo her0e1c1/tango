@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -8,7 +9,8 @@ import { StudySessionStartContainer } from "./StudySessionStartContainer";
 
 export const StudySessionStartPage: React.FC = () => {
   const { t } = useTranslation();
-  const { deckId, deck } = useStudySessionStartRouteModel();
+  const params = useParams();
+  const { deckId, deck } = useStudySessionStartRouteModel(params.id);
 
   if (deck == null) {
     return (

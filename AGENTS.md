@@ -27,6 +27,7 @@ Every task that changes repository files must complete this workflow:
 - Treat recommended `@feature-sliced/steiger-plugin` rules as constraints. Resolve violations structurally; disable a recommended rule only when the user explicitly requests an exception.
 - Move reusable cross-Page workflows to Features, reusable domain concepts, rules, and visual representations to Entities, and broadly reusable technical or UI primitives to Shared.
 - UI components define their own props instead of reusing model return types. Keep locale-dependent formatting, such as dates and numbers, in UI rather than model hooks.
+- When a Page needs route parameters, import and call `useParams()` in the Page component under `ui/`, and pass the required parameters to the Page model hook.
 
 ### Model organization
 

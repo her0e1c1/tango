@@ -26,6 +26,7 @@ export const DeckListPage: React.FC = () => {
         deckCard={{
           onClickEdit: model.editDeck,
           onClickName: model.openDeck,
+          onClickView: model.viewDeck,
           onClickContinue: model.continueStudy,
           onClickRestart: model.startStudy,
           onClickStudy: model.startStudy,

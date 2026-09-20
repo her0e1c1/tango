@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { useAuth } from "@/entities/auth";
@@ -16,8 +16,7 @@ import {
 import { canStartStudyFromEnter } from "./queries/canStartStudyFromEnter";
 import { useStudySessionStartState } from "./queries/useStudySessionStartState";
 
-export function useStudySessionStartRouteModel() {
-  const { id: deckId } = useParams();
+export function useStudySessionStartRouteModel(deckId: string | undefined) {
   if (deckId == null) throw new Error("invalid deck id");
   const deck = useDeck(deckId);
   return { deckId, deck };

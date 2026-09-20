@@ -32,17 +32,15 @@ export interface StudySession {
  */
 export type StudySessions = Partial<Record<DeckId, StudySession>>;
 
-/** Direction of one valid study-session cursor movement. */
-export type StudySessionMovement = "previous" | "next";
 /** No-op, exit, or cursor movement produced by a study swipe. */
-export type StudySessionSwipeEffect = "none" | "exit" | StudySessionMovement;
+export type StudySessionSwipeEffect = "none" | "exit" | "next";
 
 /** Pure swipe plan describing its session effect and optional progress patch. */
 export type StudySessionSwipePlan =
   | { effect: "none" }
   | { effect: "exit" }
   | {
-      effect: StudySessionMovement;
+      effect: "next";
       session: StudySession;
       progress: StudyProgressEdit;
     };

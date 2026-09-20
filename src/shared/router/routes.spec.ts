@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { routes } from "./routes";
 
-describe("DECK-01 routes", () => {
+describe("DECK-01 DECK-13 routes", () => {
   it.each([
     ["plan", "plan"],
     ["plan?draft=1", "plan%3Fdraft%3D1"],
@@ -14,6 +14,7 @@ describe("DECK-01 routes", () => {
       routes.deckForm.to(id),
       routes.deckStudyStart.to(id),
       routes.deckStudy.to(id),
+      routes.deckView.to(id),
       routes.cardView.to(id),
       routes.cardForm.to(id),
     ]).toEqual([
@@ -22,6 +23,7 @@ describe("DECK-01 routes", () => {
       `/deck/${encodedId}/edit`,
       `/deck/${encodedId}/start`,
       `/deck/${encodedId}/study`,
+      `/deck/${encodedId}/view`,
       `/card/${encodedId}`,
       `/card/${encodedId}/edit`,
     ]);
@@ -36,6 +38,7 @@ describe("DECK-01 routes", () => {
       [routes.deckForm.path, routes.deckForm.to("deck-id")],
       [routes.deckStudyStart.path, routes.deckStudyStart.to("deck-id")],
       [routes.deckStudy.path, routes.deckStudy.to("deck-id")],
+      [routes.deckView.path, routes.deckView.to("deck-id")],
       [routes.cardView.path, routes.cardView.to("card-id")],
       [routes.cardForm.path, routes.cardForm.to("card-id")],
       [routes.account.path, routes.account.to()],
@@ -50,6 +53,7 @@ describe("DECK-01 routes", () => {
       ["/deck/:id/edit", "/deck/deck-id/edit"],
       ["/deck/:id/start", "/deck/deck-id/start"],
       ["/deck/:id/study", "/deck/deck-id/study"],
+      ["/deck/:id/view", "/deck/deck-id/view"],
       ["/card/:id", "/card/card-id"],
       ["/card/:id/edit", "/card/card-id/edit"],
       ["/account", "/account"],

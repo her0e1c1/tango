@@ -130,7 +130,7 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
   }
 
   const swipeActions = {
-    disabled: false,
+    disabledDirections: query.disabledSwipeDirections,
     onClickUp: swipeUp,
     onClickDown: swipeDown,
     onClickLeft: swipeLeft,
@@ -164,8 +164,8 @@ const ActiveStudySessionPage: React.FC<{ deckId: string }> = ({ deckId }) => {
         {...(query.showBackTextSwipeOverlays
           ? {
               backTextOverlay: {
-                onClickLeft: swipeActions.onClickLeft,
-                onClickRight: swipeActions.onClickRight,
+                ...(!query.disabledSwipeDirections.cardSwipeLeft ? { onClickLeft: swipeActions.onClickLeft } : {}),
+                ...(!query.disabledSwipeDirections.cardSwipeRight ? { onClickRight: swipeActions.onClickRight } : {}),
               },
             }
           : {})}

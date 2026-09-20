@@ -11,7 +11,7 @@
 | SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](#swipe-02) |
 | SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](#swipe-03) |
 | SWIPE-04 | write | [next-card action で次の Card へ進める](#swipe-04) |
-| SWIPE-05 | write | [previous-card action で前の Card へ戻れる](#swipe-05) |
+| SWIPE-05 | read | [学習中に前の Card へ戻れない](#swipe-05) |
 | SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](#swipe-12) |
 
 <a id="swipe-02"></a>
@@ -87,25 +87,31 @@ Then:
 
 <a id="swipe-05"></a>
 
-### SWIPE-05 previous-card action で前の Card へ戻れる
+### SWIPE-05 学習中に前の Card へ戻れない
 
-カテゴリ: `write`
+カテゴリ: `read`
 
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 認証済みユーザーが所有する Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の前に別の Card がある。
+- 左方向には previous-card action が設定され、swipe feedback と裏面の操作領域が有効である。
 
 When:
 
-- 現在の Card に previous-card action を実行する。
+- previous-card action のボタン表示を確認し、対応する方向キーと swipe を入力する。
+- 進捗スライダーを pointer と keyboard で現在位置より前へ動かそうとする。
+- 現在の Card の裏面を開き、操作領域を確認する。
 
 Then:
 
-- 現在だった Card の difficulty は変わらず、学習回数が 1 増えて保存される。
-- session の位置が前の Card へ戻る。
-- 前の Card の front text が表示される。
+- previous-card action が設定された方向ボタンは表示されたまま disabled になり、実行できない。
+- 対応する方向キーと swipe は何もせず、session の位置と Card の学習結果は変わらない。
+- スライダーの後方入力は現在位置を維持し、前方への移動は引き続き利用できる。
+- 裏面には previous-card action が設定された方向の操作領域が表示されない。
+- 無効な操作では表裏の表示状態を変更せず、swipe feedback を表示しない。
+- 方向の設定が変更された場合も previous-card action の方向だけが無効になり、別の action は利用できる。
 - browser error が発生しない。
 
 <a id="swipe-12"></a>

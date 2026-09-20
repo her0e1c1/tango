@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import type { Deck } from "@/entities/deck";
 import { DeckDeletionDialog } from "@/features/deck-deletion";
@@ -65,7 +66,8 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
 
 export const DeckEditPage: React.FC = () => {
   const { t } = useTranslation();
-  const { deckId, openingDeck } = useDeckEditRouteModel();
+  const params = useParams();
+  const { deckId, openingDeck } = useDeckEditRouteModel(params.id);
 
   if (openingDeck == null) {
     return <RouteNotFound title={t("deckForm.notFound.title")} description={t("deckForm.notFound.description")} />;

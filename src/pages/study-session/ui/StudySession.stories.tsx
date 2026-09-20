@@ -49,7 +49,7 @@ const meta = {
       />
     ),
     controller: { autoPlay: false, index: 3, numberOfCards: 24 },
-    swipeButtonList: {},
+    swipeButtonList: { disabledDirections: { cardSwipeLeft: true } },
   },
 } satisfies Meta<typeof StudySession>;
 
