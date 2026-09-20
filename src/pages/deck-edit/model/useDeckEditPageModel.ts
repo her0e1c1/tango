@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
 
 import { useAuth } from "@/entities/auth";
@@ -16,8 +16,7 @@ import { deckEditPageStore } from "./store";
 import { useDeckEditFormState } from "./useDeckEditFormState";
 import { useOpeningDeck } from "./useOpeningDeck";
 
-export function useDeckEditRouteModel() {
-  const { id: deckId } = useParams();
+export function useDeckEditRouteModel(deckId: string | undefined) {
   if (deckId == null) throw new Error("invalid deck id");
   const openingDeck = useOpeningDeck(deckId);
   return { deckId, openingDeck };

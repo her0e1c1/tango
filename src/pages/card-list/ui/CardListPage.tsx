@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import { BackText } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
@@ -97,7 +98,8 @@ const CardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
 
 export const CardListPage: React.FC = () => {
   const { t } = useTranslation();
-  const { deckId, deck } = useCardListRouteModel();
+  const params = useParams();
+  const { deckId, deck } = useCardListRouteModel(params.id);
   if (deck == null) {
     return (
       <RouteNotFound title={t("cardList.deckNotFound.title")} description={t("cardList.deckNotFound.description")} />
