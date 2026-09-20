@@ -17,7 +17,8 @@
   - call its Page model,
   - compose UI,
   - pass prepared values and callbacks to components through props.
-- Keep route inputs, screen shortcuts and `useKey` registration, application-state connections, form submission wiring, and page-specific navigation in `model/`.
+- When a Page needs route parameters, import and call `useParams()` in the Page component under `ui/`, and pass the required parameters to its Page model.
+- Keep other route inputs, screen shortcuts and `useKey` registration, application-state connections, form submission wiring, and page-specific navigation in `model/`.
 - Reuse Shared guard primitives for navigation guards.
 - Read application and domain data, constants, and behavior through the Page model. UI must not access stores, queries, actions, APIs, or application/domain hooks directly.
 - Keep rendering concerns in UI. This includes JSX, display conditions, translations, locale-dependent formatting, `Link` / `NavLink`, and guard UI.
