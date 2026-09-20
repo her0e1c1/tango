@@ -1,11 +1,9 @@
 import { importFailureKey } from "../../lib/importFailure";
-import { getAuthUid } from "@/entities/auth";
 import { executePreparedDeckImport } from "./executePreparedDeckImport";
 import { showToast } from "@/shared/ui/toast";
 import { deckImportStore } from "../store";
 
 export async function importDeckPreview(): Promise<boolean> {
-  const uid = getAuthUid();
   const { status, source } = deckImportStore.getState();
   if (status !== "idle" || source.kind !== "selected" || source.preparedImport === undefined) return false;
 
@@ -13,7 +11,7 @@ export async function importDeckPreview(): Promise<boolean> {
   deckImportStore.setState({ status: "importing" });
   try {
     const prepared = source.preparedImport;
-    await executePreparedDeckImport(uid, prepared);
+    await executePreparedDeckImport(prepared);
     // Results belong to the App even when the initiating Page has unmounted.
     showToast({
       messageKey: "deckImport.toast.imported",

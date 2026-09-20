@@ -24,7 +24,7 @@ import { confirmBulkDifficulty } from "./actions/confirmBulkDifficulty";
 import { confirmCardDeletion } from "./actions/confirmCardDeletion";
 import { requestBulkDifficulty } from "./actions/requestBulkDifficulty";
 import { requestCardDeletion } from "./actions/requestCardDeletion";
-import { removeCardListTag } from "./actions/removeCardListTag";
+import { getRemainingCardListTags } from "./queries/getRemainingCardListTags";
 import { getCardListControls } from "./queries/getCardListControls";
 import { useCardListQuery } from "./queries/useCardListQuery";
 import { cardListStore } from "./store";
@@ -77,7 +77,11 @@ export function useCardListPageModel(deck: Deck) {
     setDifficultyMin: (difficultyMin: number | null) => updateDeckFilterDraft({ difficultyMin }, filterUpdate),
     setSelectedTags: (selectedTags: string[]) => updateDeckFilterDraft({ selectedTags }, filterUpdate),
     setTagAndFilter: (tagAndFilter: boolean) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate),
-    removeTag: (tag: string) => removeCardListTag(tag, filterUpdate),
+    removeTag: (tag: string) =>
+      updateDeckFilterDraft(
+        { selectedTags: getRemainingCardListTags(filterDraft.state.draft.selectedTags, tag) },
+        filterUpdate
+      ),
 
     goToCardCreate: () => void navigate(routes.cardCreate.to(deck.id)),
     goToCardEdit: (id: CardId) => void navigate(routes.cardForm.to(id)),
@@ -85,12 +89,12 @@ export function useCardListPageModel(deck: Deck) {
     cancelBulk: cancelBulkDifficulty,
     confirmBulk: () => void confirmBulkDifficulty(),
     changeBulkDifficulty,
-    confirmDeletion: () => confirmCardDeletion(uid),
+    confirmDeletion: confirmCardDeletion,
     cancelDeletion: cancelCardDeletion,
     requestDeletion: requestCardDeletion,
     swipeLeft: (id: CardId) => void changeCardDifficulty(id, "again"),
     swipeRight: (id: CardId) => void changeCardDifficulty(id, "good"),
-    showAnswer: (id: CardId) => showCardAnswer(query.cards, id),
+    showAnswer: showCardAnswer,
     closeAnswer: closeCardAnswer,
   };
 }

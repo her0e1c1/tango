@@ -28,9 +28,9 @@ export function useStudySessionPageModel(deckId: DeckId) {
   const query = useStudyQuery(deckId);
   const pageState = useStudySessionPageState(uid, deckId);
   useEffect(() => enterStudySessionPage(uid, deckId), [uid, deckId]);
-  useEffect(() => maintainStudySession(deckId, query.sessionState.status), [deckId, query.sessionState.status]);
+  useEffect(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
   useAutoPlay(query.sessionState);
-  useStudyShortcuts(uid, deckId, query.status);
+  useStudyShortcuts(deckId);
   useEffect(() => {
     if (query.status !== "invalid" || pageState.completion != null) return;
     void navigate(routes.deckList.to(), { replace: true });

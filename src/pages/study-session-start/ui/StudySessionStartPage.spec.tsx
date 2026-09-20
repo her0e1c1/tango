@@ -20,7 +20,9 @@ const mocks = vi.hoisted(() => ({
   editDeck: vi.fn(() => Promise.resolve()),
 }));
 
-vi.mock("@/entities/card", () => ({
+vi.mock("@/entities/card", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/card")>()),
+  getCards: () => mocks.cards,
   useCardsByDeckId: () => ({ cards: mocks.cards, tags: mocks.tags }),
 }));
 vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }) }));
@@ -31,6 +33,7 @@ vi.mock("@/entities/deck", () => ({
 }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
+  getPreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -142,6 +145,18 @@ describe("SWIPE-06 SWIPE-07 SWIPE-26 StudySessionStartPage", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
+  });
+
+  it("uses current Cards and preferences when starting from the displayed filter draft", async () => {
+    renderPage();
+    const start = screen.getByRole("button", { name: "Start 1 card" });
+    mocks.cards = [createCard({ id: "latest-first", deckId }), createCard({ id: "latest-second", deckId })];
+    mocks.preferences = createPreferences({ study: { shuffled: false, maxNumberOfCardsToLearn: 0 } });
+
+    await userEvent.click(start);
+
+    expect(screen.getByRole("heading", { name: "Study session" })).toBeVisible();
+    expect(screen.getByText("Studying latest-first, latest-second")).toBeVisible();
   });
 
   it("stays on the start page when no cards match", () => {

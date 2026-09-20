@@ -1,7 +1,7 @@
-import { type Card, type CardId, mustFindCardById } from "@/entities/card";
+import { getCards, type CardId, mustFindCardById } from "@/entities/card";
 import { cardListStore } from "../store";
 
-export function showCardAnswer(cards: Card[], cardId: CardId): void {
-  const card = mustFindCardById(cards, cardId);
+export function showCardAnswer(cardId: CardId): void {
+  const card = mustFindCardById(getCards(), cardId);
   cardListStore.setState({ shownCard: { backText: card.backText, tags: card.tags } });
 }

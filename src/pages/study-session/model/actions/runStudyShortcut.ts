@@ -1,3 +1,7 @@
+import { getAuthSession } from "@/entities/auth";
+import { getDecks } from "@/entities/deck";
+import { getCards } from "@/entities/card";
+import { getStudySession, resolveStudySession } from "@/entities/study-session";
 import { toggleShowSwipeButtonList } from "@/entities/preference";
 import { shouldIgnoreCardShortcut } from "@/features/card-player";
 import { studySessionPageStore } from "../store";
@@ -5,18 +9,17 @@ import { swipeCard } from "./swipeCard";
 import { toggleBackText } from "./toggleBackText";
 import { toggleAutoPlay } from "./toggleAutoPlay";
 
-export function runStudyShortcut(
-  event: KeyboardEvent,
-  uid: string,
-  deckId: string,
-  status: "studying" | "preparing" | "invalid"
-): void {
+export function runStudyShortcut(event: KeyboardEvent, deckId: string): void {
+  const auth = getAuthSession();
+  const uid = auth.status === "authenticated" ? auth.uid : "";
+  const { status } = resolveStudySession(getStudySession(deckId), getCards());
   const { owner, pageState } = studySessionPageStore.getState();
   // The active visit owns help and answer state even before React has rendered a state change.
   if (
     owner?.uid !== uid ||
     owner.deckId !== deckId ||
     status !== "studying" ||
+    !getDecks().some((deck) => deck.id === deckId) ||
     pageState.helpOpen ||
     shouldIgnoreCardShortcut(event)
   )

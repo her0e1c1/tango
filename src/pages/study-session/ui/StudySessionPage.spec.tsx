@@ -7,6 +7,7 @@ import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
+import { replaceAuthSession } from "@/entities/auth";
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession, setStudySessionIndex, startStudy } from "@/entities/study-session";
@@ -26,7 +27,6 @@ const mocks = vi.hoisted(() => ({
   toggleShowSwipeButtonList: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }) }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   getPreferences: () => mocks.preferences,
@@ -121,6 +121,7 @@ describe("StudySessionPage [SWIPE-05] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE
 
   beforeEach(async () => {
     document.documentElement.lang = "en";
+    replaceAuthSession({ status: "authenticated", uid: "user-id", isAnonymous: false, displayName: null });
     clearStudySessions();
     dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
@@ -215,7 +216,8 @@ describe("StudySessionPage [SWIPE-05] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE
     }
   );
 
-  it("reveals the current answer from the Enter shortcut", () => {
+  it.each([false, true])("reveals the answer from Enter with anonymous=%s", (isAnonymous) => {
+    replaceAuthSession({ status: "authenticated", uid: "user-id", isAnonymous, displayName: null });
     renderPage();
 
     fireEvent.keyDown(window, { key: "Enter" });
