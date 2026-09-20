@@ -1,31 +1,10 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
 
-import { BackText } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
-import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardCreatePageModel, useCardCreateRouteModel } from "../model/useCardCreatePageModel";
-import { CardCreator } from "./CardCreator";
-
-const CardCreateContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const { form, preview, categories, navigationGuard, onCancel, onSubmit } = useCardCreatePageModel(deck.id);
-
-  return (
-    <AppLayout showHeader>
-      <CardCreator
-        preview={<BackText {...preview} />}
-        categories={categories}
-        deckName={deck.name}
-        form={form}
-        onCancel={onCancel}
-        onSubmit={onSubmit}
-      />
-      {navigationGuard}
-    </AppLayout>
-  );
-};
+import { useCardCreateRouteModel } from "../model/useCardCreatePageModel";
+import { CardCreateContainer } from "./CardCreateContainer";
 
 export const CardCreatePage: React.FC = () => {
   const { t } = useTranslation();

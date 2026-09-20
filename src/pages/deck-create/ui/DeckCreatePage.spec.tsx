@@ -12,13 +12,17 @@ import { actAsync } from "@/test/act";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 
 const mocks = vi.hoisted(() => ({
+  uid: "user-id",
   createDeck: vi.fn(),
   generateDeckId: vi.fn(),
   preferences: null as unknown as Preferences,
   setDarkMode: vi.fn(),
 }));
 
-vi.mock("@/entities/auth", () => ({ getAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({
+  getAuthUid: () => mocks.uid,
+  useAuth: () => ({ isAnonymous: mocks.uid === "" }),
+}));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/deck")>();
   return { ...original, createDeck: mocks.createDeck, generateDeckId: mocks.generateDeckId };
@@ -69,6 +73,7 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
 
   beforeEach(() => {
     dismissToast();
+    mocks.uid = "user-id";
     mocks.createDeck.mockReset().mockResolvedValue(undefined);
     mocks.generateDeckId.mockReset().mockReturnValue("new-deck");
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
@@ -96,17 +101,20 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
     expect(screen.getByText("Created deck “New deck”.")).toBeVisible();
   });
 
-  it("creates a local empty Deck without remote ownership fields", async () => {
+  it("defaults to local storage and prevents cloud creation while signed out", async () => {
+    mocks.uid = "";
     renderPage();
+    expect(screen.getByRole("radio", { name: "Local only" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Cloud" })).toBeDisabled();
+    expect(screen.getByText(/Sign in to save to the cloud/)).toBeVisible();
     await userEvent.click(screen.getByText("More settings"));
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Local deck");
     await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "https://example.com/local.csv");
     await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
-    await userEvent.click(screen.getByRole("radio", { name: "Local only" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
-    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("", {
       id: "new-deck",
       localMode: true,
       name: "Local deck",
@@ -114,6 +122,23 @@ describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
       convertToBr: true,
       url: "https://example.com/local.csv",
     });
+  });
+
+  it("keeps creation local when the user signs out after choosing cloud", async () => {
+    renderPage();
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Signed-out deck");
+    expect(screen.getByRole("radio", { name: "Cloud" })).toBeChecked();
+    mocks.uid = "";
+
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith(
+      "",
+      expect.objectContaining({
+        name: "Signed-out deck",
+        localMode: true,
+      })
+    );
   });
 
   it("omits an empty optional source URL from the create input", async () => {

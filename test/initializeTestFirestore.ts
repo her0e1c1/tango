@@ -9,5 +9,5 @@ initializeApp({
 
 export const testDb = getFirestore();
 connectFirestoreEmulator(testDb, import.meta.env.VITE_DB_HOST, Number.parseInt(import.meta.env.VITE_DB_PORT, 10), {
-  mockUserToken: { user_id: "uid" },
+  mockUserToken: { user_id: "uid", firebase: { sign_in_provider: "google.com", identities: {} } },
 });

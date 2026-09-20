@@ -3,16 +3,27 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { replaceAuthSession } from "../actions/replaceAuthSession";
 import { getAuthUid } from "./getAuthUid";
 
-describe("getAuthUid [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04]", () => {
+describe("getAuthUid [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04] [DECK-11]", () => {
   beforeEach(() => replaceAuthSession({ status: "initializing" }));
 
-  it("returns the authenticated user UID", () => {
+  it("returns the linked account UID", () => {
     replaceAuthSession({
       status: "authenticated",
       uid: "uid-a",
-      isAnonymous: true,
+      isAnonymous: false,
       displayName: null,
     });
+
+    expect(getAuthUid()).toBe("uid-a");
+  });
+
+  it("withholds the cloud identity until the anonymous account is linked", () => {
+    const session = { status: "authenticated" as const, uid: "uid-a", isAnonymous: true, displayName: null };
+    replaceAuthSession(session);
+
+    expect(getAuthUid()).toBe("");
+
+    replaceAuthSession({ ...session, isAnonymous: false });
 
     expect(getAuthUid()).toBe("uid-a");
   });

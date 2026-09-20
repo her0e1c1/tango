@@ -1,8 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useKey } from "react-use";
 import { useStore } from "zustand";
 import { useAuth } from "@/entities/auth";
 import { type CardId, mustFindCardById } from "@/entities/card";
-import type { Deck } from "@/entities/deck";
+import { type Deck, useDeck } from "@/entities/deck";
 import {
   clearDeckFilterRange,
   getDeckFilterState,
@@ -27,6 +28,13 @@ import { getCardListControls } from "./queries/getCardListControls";
 import { useCardListQuery } from "./queries/useCardListQuery";
 import { cardListStore } from "./store";
 
+export function useCardListRouteModel() {
+  const { id: deckId } = useParams();
+  if (deckId == null) throw new Error("invalid deck id");
+  const deck = useDeck(deckId);
+  return { deckId, deck };
+}
+
 export function useCardListPageModel(deck: Deck) {
   const { uid } = useAuth();
   const navigate = useNavigate();
@@ -49,6 +57,15 @@ export function useCardListPageModel(deck: Deck) {
     shownCard: state.shownCard,
     sortOrder: state.sortOrder,
   });
+  const goToDeckList = () => {
+    if (!controls.dialogOpen) void navigate(routes.deckList.to());
+  };
+  const goToSettings = () => {
+    if (!controls.dialogOpen) void navigate(routes.settings.to());
+  };
+  useKey("t", goToDeckList, undefined, [goToDeckList]);
+  useKey("s", goToSettings, undefined, [goToSettings]);
+
   return {
     ...state,
     ...query,
@@ -61,12 +78,7 @@ export function useCardListPageModel(deck: Deck) {
     setSelectedTags: (selectedTags: string[]) => updateDeckFilterDraft({ selectedTags }, filterUpdate),
     setTagAndFilter: (tagAndFilter: boolean) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate),
     removeTag: (tag: string) => removeCardListTag(tag, filterUpdate),
-    goToDeckList: () => {
-      if (!controls.dialogOpen) void navigate(routes.deckList.to());
-    },
-    goToSettings: () => {
-      if (!controls.dialogOpen) void navigate(routes.settings.to());
-    },
+
     goToCardCreate: () => void navigate(routes.cardCreate.to(deck.id)),
     goToCardEdit: (id: CardId) => void navigate(routes.cardForm.to(id)),
     requestBulk: () => requestBulkDifficulty(query.cards),

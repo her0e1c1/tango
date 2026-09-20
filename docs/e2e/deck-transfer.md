@@ -20,7 +20,8 @@ Deck と Card の保存先を local-only から remote へ移行し、Deck の C
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- 認証済みユーザーの browser storage に local-only Deck が存在する。
+- Google アカウントにログインしたユーザーの browser storage に local-only Deck が存在する。
+- 未ログインでは Cloud へ移行できず、ログイン後の明示的な保存によってのみ移行する。
 - 対象 Deck に複数の local-only Card が存在する。
 
 When:
