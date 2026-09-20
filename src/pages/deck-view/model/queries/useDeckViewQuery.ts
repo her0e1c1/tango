@@ -3,6 +3,7 @@ import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { selectStudyCards } from "@/entities/study-session";
 import type { DeckFilterValues } from "@/features/deck-filter";
+import { buildCardPlayerHelpRows } from "@/features/card-player";
 import { getDeckViewPosition } from "./getDeckViewPosition";
 
 export function useDeckViewQuery(
@@ -19,7 +20,16 @@ export function useDeckViewQuery(
   return {
     cards,
     card,
-    current: card === undefined ? 0 : index + 1,
+    index,
+    controls: preferences.controls,
+    cardInterval: preferences.study.cardInterval,
+    playbackAvailable: preferences.study.cardInterval > 0,
+    helpRows: buildCardPlayerHelpRows(preferences, {
+      cardSwipeLeft: "previousCard",
+      cardSwipeRight: "GoToNextCard",
+      cardSwipeUp: "DoNothing",
+      cardSwipeDown: "DoNothing",
+    }),
     total: cards.length,
     showBackText: card !== undefined && card.id === cardId && showBackText,
     category,

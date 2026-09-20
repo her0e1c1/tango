@@ -1,6 +1,6 @@
 /**
- * @file Defines the Study Session Page's Card metadata overlay.
- * The component renders prepared values while state and workflow ownership remain in the Page.
+ * @file Defines the Card Player's Card metadata overlay.
+ * The component renders prepared values while state and workflow ownership remain with the consuming Page.
  */
 
 import type * as React from "react";

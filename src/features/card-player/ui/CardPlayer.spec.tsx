@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
-import { StudySession } from "./StudySession";
+import { CardPlayer } from "./CardPlayer";
 
 const playbackUnavailableDescription = "Playback controls unavailable because the card interval is set to 0";
 
@@ -57,10 +57,10 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
+describe("CardPlayer [SWIPE-02] [SWIPE-24]", () => {
   it("shows only the answer on the back", () => {
     render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showBackText
         backTextSlot={<div>Back</div>}
@@ -78,8 +78,8 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     expect(answerSurface).toHaveAttribute("tabindex", "0");
     expect(screen.queryByText("Front")).not.toBeInTheDocument();
     expect(screen.queryByText("Card metadata")).not.toBeInTheDocument();
-    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Open study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Card actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open card actions" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();
@@ -92,7 +92,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     const onClickLeft = vi.fn();
     const onClickRight = vi.fn();
     const { rerender } = render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showBackText
         backTextSlot={
@@ -114,7 +114,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     expect(screen.queryByRole("button", { name: "Swipe down" })).not.toBeInTheDocument();
 
     rerender(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showSwipeControls={false}
         frontTextSlot={<div>Front</div>}
@@ -129,7 +129,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
   it("forwards edge wheel input to answer scrolling without running the action", () => {
     const onClickLeft = vi.fn();
     render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showBackText
         backTextSlot={<div>Long back text</div>}
@@ -153,7 +153,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     const onToggleSwipeControls = vi.fn();
     const onTogglePlaybackControls = vi.fn();
     render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         onBack={onBack}
         onToggleCardDetails={onToggleCardDetails}
@@ -164,22 +164,22 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
       />
     );
 
-    const openActions = screen.getByRole("button", { name: "Open study actions" });
+    const openActions = screen.getByRole("button", { name: "Open card actions" });
     const helpTrigger = screen.getByRole("button", { name: "Open study help" });
     expect(openActions).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Card actions" })).not.toBeInTheDocument();
     expect(helpTrigger).toBeVisible();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
 
     fireEvent.click(openActions);
 
-    const closeActions = screen.getByRole("button", { name: "Close study actions" });
+    const closeActions = screen.getByRole("button", { name: "Close card actions" });
     const back = screen.getByRole("button", { name: "Back to deck list" });
     const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
     const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
     const detailsToggle = screen.getByRole("button", { name: "Card details" });
     const helpToggle = screen.getByRole("button", { name: "Help button" });
-    const actions = screen.getByRole("group", { name: "Study actions" });
+    const actions = screen.getByRole("group", { name: "Card actions" });
     expect(closeActions).toHaveAttribute("aria-expanded", "true");
     expect(back).toBeVisible();
     expect(helpToggle).toBeVisible();
@@ -211,21 +211,19 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     expect(onToggleCardDetails).toHaveBeenCalledOnce();
 
     fireEvent.keyDown(helpToggle, { key: "Escape" });
-    expect(screen.getByRole("button", { name: "Open study actions" })).toHaveFocus();
-    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open card actions" })).toHaveFocus();
+    expect(screen.queryByRole("group", { name: "Card actions" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
   });
 
   it("SWIPE-25 keeps the fixed Help visibility toggle mounted while visibility changes", () => {
     const onToggleHelp = vi.fn();
     const props = toolbarProps();
-    const { rerender } = render(
-      <StudySession {...props} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />
-    );
+    const { rerender } = render(<CardPlayer {...props} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
 
-    const actions = screen.getByRole("group", { name: "Study actions" });
+    const actions = screen.getByRole("group", { name: "Card actions" });
     const helpToggle = screen.getByRole("button", { name: "Help button" });
     expect(actions).not.toContainElement(helpToggle);
     expect(helpToggle).toHaveAttribute("aria-pressed", "true");
@@ -235,7 +233,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
       "top-0"
     );
 
-    rerender(<StudySession {...props} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />);
+    rerender(<CardPlayer {...props} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />);
 
     const hiddenHelpToggle = screen.getByRole("button", { name: "Help button" });
     expect(hiddenHelpToggle).toBe(helpToggle);
@@ -247,7 +245,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
 
   it("shows and hides all card details from the persisted preference value", () => {
     const { rerender } = render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         cardOverlaySlot={<div>Difficulty, seen count, and last seen</div>}
         frontTextSlot={<div>Front</div>}
@@ -255,10 +253,10 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     );
 
     expect(screen.getByText("Difficulty, seen count, and last seen")).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
 
     rerender(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showCardDetails={false}
         cardOverlaySlot={<div>Difficulty, seen count, and last seen</div>}
@@ -270,7 +268,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     expect(screen.queryByText("Difficulty, seen count, and last seen")).not.toBeInTheDocument();
 
     rerender(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         cardOverlaySlot={<div>Difficulty, seen count, and last seen</div>}
         frontTextSlot={<div>Front</div>}
@@ -284,7 +282,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
   it("describes hidden controls and keeps the unavailable playback toggle disabled", () => {
     const onTogglePlaybackControls = vi.fn();
     render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showSwipeControls={false}
         showPlaybackControls={false}
@@ -294,7 +292,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
 
     const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
     expect(swipeToggle).toHaveAttribute("aria-pressed", "false");
@@ -314,7 +312,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
 
   it("shows only the selected bottom control groups", () => {
     const { rerender } = render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showSwipeControls={false}
         controller={{ autoPlay: false, index: 0, numberOfCards: 2 }}
@@ -327,7 +325,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
 
     rerender(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showPlaybackControls={false}
         controller={{ autoPlay: false, index: 0, numberOfCards: 2 }}
@@ -344,7 +342,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     const onSwipeLeft = vi.fn();
     const onSwipeUp = vi.fn();
     render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showBackText
         backTextSlot={<div>Back</div>}
@@ -364,7 +362,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
   it("reports a vertical swipe performed on the front text", () => {
     const onSwipeUp = vi.fn();
     render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showSwipeControls={false}
         frontTextSlot={<div>Front</div>}
@@ -381,7 +379,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     const onSwipeUp = vi.fn();
     const onFrontClick = vi.fn();
     render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         frontTextSlot={
           <button type="button" onClick={onFrontClick}>
@@ -402,7 +400,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
 
   it("ignores non-primary mouse drags on the front text", () => {
     const onSwipeUp = vi.fn();
-    render(<StudySession {...toolbarProps()} frontTextSlot={<div>Front</div>} onSwipeUp={onSwipeUp} />);
+    render(<CardPlayer {...toolbarProps()} frontTextSlot={<div>Front</div>} onSwipeUp={onSwipeUp} />);
     const front = screen.getByText("Front");
 
     swipeWithMouse(front, { clientX: 24, clientY: 200 }, { clientX: 24, clientY: 20 }, 1);
@@ -415,7 +413,7 @@ describe("StudySession [SWIPE-02] [SWIPE-24]", () => {
     const onSwipeLeft = vi.fn();
     const onBackClick = vi.fn();
     render(
-      <StudySession
+      <CardPlayer
         {...toolbarProps()}
         showBackText
         backTextSlot={

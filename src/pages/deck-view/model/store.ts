@@ -4,4 +4,7 @@ import type { CardId } from "@/entities/card";
 export const deckViewStore = createStore<{
   cardId: CardId | undefined;
   showBackText: boolean;
-}>()(() => ({ cardId: undefined, showBackText: false }));
+  autoPlay: boolean;
+  helpOpen: boolean;
+  positionRevision: number;
+}>()(() => ({ cardId: undefined, showBackText: false, autoPlay: false, helpOpen: false, positionRevision: 0 }));

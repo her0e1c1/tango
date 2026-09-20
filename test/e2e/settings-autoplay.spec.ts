@@ -105,7 +105,7 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
     fixture.state.remote.cards.map((card) => requireDocument("card", card.id))
   );
 
-  await page.getByRole("button", { name: "Open study actions", exact: true }).click();
+  await page.getByRole("button", { name: "Open card actions", exact: true }).click();
   await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
   await page.getByRole("button", { name: "Open settings", exact: true }).click();
   const interval = page.getByRole("slider", { name: "Autoplay interval" });

@@ -17,6 +17,7 @@ type StudyHelpDialogControl =
   | "exit";
 
 type StudyHelpDialogAction =
+  | "previousCard"
   | "DoNothing"
   | "GoBack"
   | "GoToPrevCard"
@@ -54,6 +55,7 @@ const controlKeys = {
 } as const satisfies Record<StudyHelpDialogControl, string>;
 
 const actionKeys = {
+  previousCard: "deckView.helpPrevious",
   DoNothing: "studySession.help.actions.DoNothing",
   GoBack: "studySession.help.actions.GoBack",
   GoToPrevCard: "studySession.help.actions.GoToPrevCard",
@@ -75,6 +77,8 @@ const actionKeys = {
 
 export interface StudyHelpDialogProps {
   rows: readonly StudyHelpDialogRow[];
+  title?: string;
+  description?: string;
   restoreTriggerFocus: () => void;
   onClose: () => void;
 }
@@ -145,10 +149,10 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 id={titleId} className="text-title font-bold">
-              {t("studySession.help.title")}
+              {props.title ?? t("studySession.help.title")}
             </h2>
             <p id={descriptionId} className="mt-2 text-body text-ink-muted">
-              {t("studySession.help.description")}
+              {props.description ?? t("studySession.help.description")}
             </p>
           </div>
           <button

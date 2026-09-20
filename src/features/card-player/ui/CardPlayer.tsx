@@ -40,8 +40,11 @@ const answerSurfaceProps = {
   tabIndex: 0,
 } as const;
 
-export interface StudySessionProps {
+export interface CardPlayerProps {
   showBackText?: boolean;
+  allowBackHorizontalSwipe?: boolean;
+  answerLabel?: string;
+  cardKey?: string;
   showHelp: boolean;
   showCardDetails: boolean;
   showSwipeControls: boolean;
@@ -58,6 +61,7 @@ export interface StudySessionProps {
   swipeButtonList?: SwipeButtonListProps;
   help: Omit<StudyHelpDialogProps, "onClose" | "restoreTriggerFocus"> & {
     open: boolean;
+    triggerLabel?: string;
     onOpen: () => void;
     onClose: () => void;
   };
@@ -66,6 +70,7 @@ export interface StudySessionProps {
   onSwipeRight?: () => void;
   onSwipeDown?: () => void;
   onBack: () => void;
+  onAnswerClick?: () => void;
   onToggleCardDetails: () => void;
   onToggleHelp: () => void;
   onToggleSwipeControls: () => void;
@@ -152,6 +157,7 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
 
 interface StudyToolbarProps {
   ref?: React.RefObject<HTMLButtonElement | null>;
+  helpTriggerLabel?: string;
   open: boolean;
   showHelp: boolean;
   showCardDetails: boolean;
@@ -169,10 +175,12 @@ interface StudyToolbarProps {
 
 const getStudyToolbarCopy = (
   t: TFunction,
-  state: Pick<StudyToolbarProps, "open" | "showHelp">
+  state: Pick<StudyToolbarProps, "open" | "showHelp" | "helpTriggerLabel">
 ): { actionToggleLabel: string; helpButtonLabel: string; helpTitle: string } => ({
   actionToggleLabel: state.open ? t("studySession.toolbar.actions.close") : t("studySession.toolbar.actions.open"),
-  helpButtonLabel: state.open ? t("studySession.toolbar.help.label") : t("studySession.help.trigger"),
+  helpButtonLabel: state.open
+    ? t("studySession.toolbar.help.label")
+    : (state.helpTriggerLabel ?? t("studySession.help.trigger")),
   helpTitle: state.showHelp ? t("studySession.toolbar.help.hide") : t("studySession.toolbar.help.show"),
 });
 
@@ -316,7 +324,7 @@ const BackTextEdgeOverlay: React.FC<{
 };
 
 const BackTextOverlays: React.FC<{
-  overlay: StudySessionProps["backTextOverlay"];
+  overlay: CardPlayerProps["backTextOverlay"];
 }> = ({ overlay }) => {
   const { t } = useTranslation();
   if (overlay?.onClickLeft === undefined && overlay?.onClickRight === undefined) return null;
@@ -350,7 +358,7 @@ const CardContent: React.FC<{
   backTextSlot: React.ReactNode | undefined;
   frontTextSlot: React.ReactNode | undefined;
   cardOverlaySlot: React.ReactNode | undefined;
-  backTextOverlay: StudySessionProps["backTextOverlay"];
+  backTextOverlay: CardPlayerProps["backTextOverlay"];
 }> = ({
   showBackText,
   hideCardOverlayOnNarrowScreen,
@@ -423,7 +431,7 @@ const Controls: React.FC<{
   );
 };
 
-export const StudySession: React.FC<StudySessionProps> = (props) => {
+export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
   const { t } = useTranslation();
   const [studyActionsOpen, setStudyActionsOpen] = React.useState(false);
   // Safari does not focus pointer-activated buttons by default, so Help must restore this explicit trigger.
@@ -431,6 +439,10 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
   const restoreHelpTriggerFocus = () => {
     if (helpTriggerRef.current?.isConnected) helpTriggerRef.current.focus();
   };
+  const surfaceRef = React.useRef<HTMLDivElement | null>(null);
+  React.useEffect(() => {
+    if (surfaceRef.current !== null) surfaceRef.current.scrollTop = 0;
+  }, [props.cardKey, props.showBackText]);
   const suppressCardClick = React.useRef(false);
   const suppressCardClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -453,9 +465,13 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
 
   const swipeHandlers = useSwipeable({
     onSwiped: suppressTrailingCardClick,
-    ...(!props.showBackText && props.onSwipeLeft !== undefined ? { onSwipedLeft: props.onSwipeLeft } : {}),
+    ...((!props.showBackText || props.allowBackHorizontalSwipe) && props.onSwipeLeft !== undefined
+      ? { onSwipedLeft: props.onSwipeLeft }
+      : {}),
     ...(!props.showBackText && props.onSwipeUp !== undefined ? { onSwipedUp: props.onSwipeUp } : {}),
-    ...(!props.showBackText && props.onSwipeRight !== undefined ? { onSwipedRight: props.onSwipeRight } : {}),
+    ...((!props.showBackText || props.allowBackHorizontalSwipe) && props.onSwipeRight !== undefined
+      ? { onSwipedRight: props.onSwipeRight }
+      : {}),
     ...(!props.showBackText && props.onSwipeDown !== undefined ? { onSwipedDown: props.onSwipeDown } : {}),
     trackMouse: true,
   });
@@ -476,9 +492,17 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
     event.stopPropagation();
   };
 
+  const clickAnswer: React.MouseEventHandler<HTMLDivElement> = (event) => {
+    if (!props.showBackText || event.button !== 0) return;
+    // Answer links and controls keep their native behavior instead of also flipping the card.
+    if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea")) return;
+    props.onAnswerClick?.();
+  };
+
   const cardGestureHandlers = {
     ...swipeHandlers,
     onClickCapture: stopTrailingCardClick,
+    onClick: clickAnswer,
     onMouseDown: startPrimaryMouseSwipe,
   };
 
@@ -490,6 +514,7 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       {showStudyChrome ? (
         <StudyToolbar
           ref={helpTriggerRef}
+          {...(props.help.triggerLabel !== undefined ? { helpTriggerLabel: props.help.triggerLabel } : {})}
           open={studyActionsOpen}
           showHelp={props.showHelp}
           showCardDetails={props.showCardDetails}
@@ -506,12 +531,18 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
         />
       ) : null}
       <div
-        {...(props.showBackText ? { ...answerSurfaceProps, "aria-label": t("studySession.answerAria") } : {})}
+        {...(props.showBackText
+          ? { ...answerSurfaceProps, "aria-label": props.answerLabel ?? t("studySession.answerAria") }
+          : {})}
         className={cx(
           "relative min-h-0 flex-1",
           props.showBackText ? "overflow-y-auto pt-[env(safe-area-inset-top)]" : "overflow-hidden"
         )}
         {...cardGestureHandlers}
+        ref={(element) => {
+          surfaceRef.current = element;
+          swipeHandlers.ref(element);
+        }}
       >
         <CardContent
           showBackText={props.showBackText}
@@ -533,6 +564,8 @@ export const StudySession: React.FC<StudySessionProps> = (props) => {
       {props.help.open ? (
         <StudyHelpDialog
           rows={props.help.rows}
+          {...(props.help.title !== undefined ? { title: props.help.title } : {})}
+          {...(props.help.description !== undefined ? { description: props.help.description } : {})}
           restoreTriggerFocus={restoreHelpTriggerFocus}
           onClose={props.help.onClose}
         />

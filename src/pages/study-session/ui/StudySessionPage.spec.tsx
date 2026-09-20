@@ -115,8 +115,8 @@ describe("StudySessionPage [SWIPE-05] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE
     );
   };
   const openStudyActions = () => {
-    fireEvent.click(screen.getByRole("button", { name: "Open study actions" }));
-    return screen.getByRole("group", { name: "Study actions" });
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    return screen.getByRole("group", { name: "Card actions" });
   };
 
   beforeEach(async () => {
@@ -144,8 +144,8 @@ describe("StudySessionPage [SWIPE-05] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE
     renderPage();
 
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open study actions" })).toBeVisible();
-    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open card actions" })).toBeVisible();
+    expect(screen.queryByRole("group", { name: "Card actions" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
     expect(screen.getByText("Front one")).toBeVisible();
     expect(screen.getByText(/3 times/)).toBeVisible();
@@ -224,7 +224,7 @@ describe("StudySessionPage [SWIPE-05] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Difficulty 2, easy")).not.toBeInTheDocument();
     expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("group", { name: "Study actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Card actions" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();

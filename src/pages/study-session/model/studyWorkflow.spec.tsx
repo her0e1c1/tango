@@ -24,6 +24,7 @@ const mocks = vi.hoisted(() => ({
   onSwipeFeedback: vi.fn(),
 }));
 
+vi.mock("react-router-dom", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: mocks.uid }) }));
 vi.mock("@/entities/preference", async (importOriginal) => ({

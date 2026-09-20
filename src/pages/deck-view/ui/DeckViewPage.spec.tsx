@@ -1,7 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
@@ -26,7 +26,14 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
   useDeck: () => data.deck,
 }));
-vi.mock("@/entities/preference", () => ({ usePreferences: () => data.preferences, setDarkMode: vi.fn() }));
+vi.mock("@/entities/preference", () => ({
+  usePreferences: () => data.preferences,
+  setDarkMode: vi.fn(),
+  toggleShowHelp: vi.fn(),
+  toggleShowCardDetails: vi.fn(),
+  toggleShowPlaybackControls: vi.fn(),
+  toggleShowSwipeButtonList: vi.fn(),
+}));
 vi.mock("@/features/deck-filter", () => ({
   useDeckFilterDraft: (_uid: string, deck: Deck) => ({ state: { draft: data.pendingFilter ?? deck } }),
 }));
@@ -43,7 +50,9 @@ const renderPage = () =>
     </MemoryRouter>
   );
 
-describe("DECK-13 DECK-14 DECK-15 DECK-16 DECK-17 DeckViewPage", () => {
+describe("DECK-13 DECK-14 DECK-15 DECK-16 DECK-17 DECK-19 DECK-20 DECK-21 DeckViewPage", () => {
+  afterEach(() => vi.useRealTimers());
+
   beforeEach(() => {
     data.deck = createLocalDeck({ id: "deck-1", name: "View deck", category: "English" });
     data.cards = [
@@ -74,17 +83,18 @@ describe("DECK-13 DECK-14 DECK-15 DECK-16 DECK-17 DeckViewPage", () => {
   it("flips either face, fixes keyboard navigation, and exits beyond either end", async () => {
     const view = renderPage();
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
-    expect(screen.getByLabelText("Viewing progress")).toHaveTextContent("1 / 2");
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveAccessibleDescription("First prompt");
+    expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 2");
     await userEvent.click(screen.getByRole("button", { name: "Card front" }));
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("First answer");
     fireEvent.keyDown(window, { key: "ArrowUp" });
     fireEvent.keyDown(window, { key: "ArrowDown" });
     expect(screen.getByRole("region", { name: "Card answer" })).toBeVisible();
-    await userEvent.click(screen.getByRole("region", { name: "Card answer" }));
+    await userEvent.click(screen.getByText("First answer"));
     expect(screen.getByRole("button", { name: "Card front" })).toBeVisible();
     fireEvent.keyDown(window, { key: "ArrowRight" });
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
-    await userEvent.click(screen.getByRole("button", { name: "Flip card" }));
+    await userEvent.click(screen.getByRole("button", { name: "Card front" }));
     fireEvent.keyDown(window, { key: "ArrowLeft" });
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
     await userEvent.click(screen.getByRole("button", { name: "Previous card" }));
@@ -99,11 +109,11 @@ describe("DECK-13 DECK-14 DECK-15 DECK-16 DECK-17 DeckViewPage", () => {
   it("starts from the first front after remounting", async () => {
     const view = renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Next card" }));
-    await userEvent.click(screen.getByRole("button", { name: "Flip card" }));
+    await userEvent.click(screen.getByRole("button", { name: "Card front" }));
     view.unmount();
     renderPage();
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
-    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
     expect(screen.getByRole("heading", { name: "Decks" })).toBeVisible();
   });
 
@@ -113,7 +123,7 @@ describe("DECK-13 DECK-14 DECK-15 DECK-16 DECK-17 DeckViewPage", () => {
       createLocalCard({ id: "excluded", deckId: "deck-1", frontText: "Excluded", difficulty: 2, tags: ["target"] })
     );
     renderPage();
-    expect(screen.getByLabelText("Viewing progress")).toHaveTextContent("1 / 1");
+    expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
   });
 
@@ -121,7 +131,7 @@ describe("DECK-13 DECK-14 DECK-15 DECK-16 DECK-17 DeckViewPage", () => {
     data.preferences = createPreferences({ useCardInterval: true });
     data.cards[0] = createLocalCard({ ...data.cards[0], nextSeeingAt: new Date(Date.now() + 86_400_000) });
     renderPage();
-    expect(screen.getByLabelText("Viewing progress")).toHaveTextContent("1 / 1");
+    expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
   });
 
@@ -138,5 +148,98 @@ describe("DECK-13 DECK-14 DECK-15 DECK-16 DECK-17 DeckViewPage", () => {
     expect(screen.getByRole("heading", { name: "Deck not found" })).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
     expect(screen.getByRole("heading", { name: "Decks" })).toBeVisible();
+  });
+
+  it("starts stopped even with default autoplay and advances without flipping until exiting after the last card", () => {
+    vi.useFakeTimers();
+    data.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 1 });
+    renderPage();
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    act(() => vi.advanceTimersByTime(1000));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
+    act(() => vi.advanceTimersByTime(1000));
+    expect(screen.getByRole("heading", { name: "Decks" })).toBeVisible();
+  });
+
+  it("pauses autoplay and background shortcuts during Help, then starts a fresh interval", () => {
+    vi.useFakeTimers();
+    data.preferences = createPreferences({ cardInterval: 1 });
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    act(() => vi.advanceTimersByTime(600));
+    fireEvent.click(screen.getByRole("button", { name: "Open viewing help" }));
+    expect(screen.getByRole("dialog", { name: "Viewing controls" })).toHaveTextContent("Go to the previous card");
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    fireEvent.keyDown(window, { key: " " });
+    fireEvent.keyDown(window, { key: "Enter" });
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
+    fireEvent.click(screen.getByRole("button", { name: "Close help" }));
+    expect(screen.getByRole("button", { name: "Open viewing help" })).toHaveFocus();
+    act(() => vi.advanceTimersByTime(999));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
+  });
+
+  it("restarts the wait after manual movement and cancels departed playback on reentry", () => {
+    vi.useFakeTimers();
+    data.preferences = createPreferences({ cardInterval: 1 });
+    const view = renderPage();
+    fireEvent.keyDown(window, { key: " " });
+    act(() => vi.advanceTimersByTime(600));
+    fireEvent.click(screen.getByRole("button", { name: "Next card" }));
+    act(() => vi.advanceTimersByTime(600));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
+    view.unmount();
+    renderPage();
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
+    expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
+  });
+
+  it("keeps interval-zero viewing manual and explains unavailable playback", () => {
+    vi.useFakeTimers();
+    data.preferences = createPreferences({ cardInterval: 0, defaultAutoPlay: true });
+    renderPage();
+    expect(screen.queryByRole("slider")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: " " });
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
+    fireEvent.click(screen.getByRole("button", { name: "Open viewing help" }));
+    expect(screen.getByRole("dialog")).toHaveTextContent("Autoplay is unavailable while the card interval is 0");
+  });
+
+  it("moves both ways with the slider, reserves its keys, and hides controls on the answer", () => {
+    renderPage();
+    const slider = screen.getByRole("slider", { name: "Viewing progress" });
+    fireEvent.change(slider, { target: { value: "1" } });
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
+    fireEvent.keyDown(slider, { key: "ArrowLeft" });
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
+    fireEvent.change(slider, { target: { value: "0" } });
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(screen.getByRole("region", { name: "Card answer" })).toBeVisible();
+    expect(screen.queryByRole("slider")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
+    expect(screen.getByRole("slider", { name: "Viewing progress" })).toHaveValue("1");
+  });
+
+  it("keeps linked answer content interactive without flipping the card", async () => {
+    data.deck = createLocalDeck({ id: "deck-1", category: "math" });
+    data.cards[0] = createLocalCard({ ...data.cards[0], backText: "[Read details](#answer-details)" });
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Card front" }));
+    const link = screen.getByRole("link", { name: "Read details" });
+    expect(link).toHaveAttribute("href", "#answer-details");
+    await userEvent.click(link);
+    expect(screen.getByRole("region", { name: "Card answer" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Card front" })).not.toBeInTheDocument();
   });
 });
