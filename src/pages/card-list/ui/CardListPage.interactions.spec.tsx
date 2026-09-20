@@ -359,6 +359,47 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-1
     expect(mocks.editDeck).not.toHaveBeenCalled();
   });
 
+  it("CARD-10 applies difficulty and tag selections before their save completes", async () => {
+    const saving = Promise.withResolvers<void>();
+    renderCardList({
+      cards: [
+        card,
+        createCard({ ...card, id: "hard", frontText: "Hard", difficulty: 6 }),
+        createCard({ ...card, id: "react-only", frontText: "React only", tags: ["react"] }),
+      ],
+    });
+
+    await userEvent.click(screen.getByText("Filters"));
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "6");
+    expect(screen.getByRole("button", { name: "View Hard" })).toBeVisible();
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Minimum difficulty" }), "5");
+    expect(screen.queryByRole("button", { name: "View Front" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Clear.*limits/i }));
+    expect(screen.getByRole("button", { name: "View Front" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "View React only" })).toBeVisible();
+    await userEvent.click(screen.getByRole("radio", { name: "All" }));
+    expect(screen.queryByRole("button", { name: "View React only" })).not.toBeInTheDocument();
+    mocks.editDeck.mockReturnValueOnce(saving.promise);
+    await userEvent.click(screen.getByRole("checkbox", { name: "typescript" }));
+    expect(screen.getByRole("button", { name: "View React only" })).toBeVisible();
+    expect(screen.getByText("1 tag")).toBeVisible();
+
+    await actAsync(async () => {
+      saving.resolve();
+      await saving.promise;
+    });
+    await waitFor(() =>
+      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", {
+        id: deck.id,
+        difficultyMax: 10,
+        difficultyMin: 1,
+        selectedTags: ["react"],
+        tagAndFilter: true,
+      })
+    );
+    expect(screen.getByRole("button", { name: "Actions" })).toBeEnabled();
+  });
+
   it("does not report the full difficulty domain as an active filter", () => {
     const fullRangeDeck = createDeck({
       ...deck,
