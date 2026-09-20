@@ -3,8 +3,6 @@ import type { Deck, LocalDeckCreateInput, RemoteDeckCreateInput } from "@/entiti
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createDeck } from "@/test/factories";
-
 const repository = vi.hoisted(() => ({
   uid: "uid-a",
   cards: [] as Card[],
@@ -61,9 +59,9 @@ vi.mock("@/entities/preference", () => ({
   usePreferences: () => ({ loadSample: repository.loadSample }),
 }));
 
-import { bootstrapSampleDeck } from "./bootstrapSampleDeck";
+import { addSampleDeck } from "./addSampleDeck";
 
-describe("bootstrapSampleDeck [IMPORT-07]", () => {
+describe("addSampleDeck [IMPORT-06]", () => {
   beforeEach(() => {
     repository.uid = "uid-a";
     repository.cards = [];
@@ -71,52 +69,31 @@ describe("bootstrapSampleDeck [IMPORT-07]", () => {
     repository.loadSample = true;
   });
 
-  it("persists the sample locally without a signed-in user", async () => {
+  it("creates a sample deck and card mutations for the current user", async () => {
+    const result = await addSampleDeck();
+
+    expect(result.created).toBeGreaterThan(0);
+    expect(result.deckId).toBe("sample-v1");
+    expect(repository.loadSample).toBe(false);
+    expect(repository.decks).toEqual([
+      expect.objectContaining({ id: "sample-v1", name: "Sample Deck", localMode: true }),
+    ]);
+    expect(repository.cards).toHaveLength(result.created);
+    expect(repository.cards.every((card) => card.deckId === "sample-v1")).toBe(true);
+  });
+
+  it("persists locally without a signed-in user", async () => {
     repository.uid = "";
 
-    await bootstrapSampleDeck(repository.decks, repository.loadSample);
+    const result = await addSampleDeck();
 
+    expect(result.created).toBeGreaterThan(0);
+    expect(result.deckId).toBe("sample-v1");
     expect(repository.loadSample).toBe(false);
-
     expect(repository.decks).toEqual([
       expect.objectContaining({ id: "sample-v1", name: "Sample Deck", localMode: true }),
     ]);
     expect(repository.cards.length).toBeGreaterThan(0);
     expect(repository.cards.every((card) => card.deckId === "sample-v1" && !("uid" in card))).toBe(true);
-  });
-
-  it("preserves existing storage without adding a sample", async () => {
-    const existingDeck = createDeck({ id: "existing-deck", uid: repository.uid, name: "Existing Deck" });
-    repository.decks = [existingDeck];
-
-    await bootstrapSampleDeck(repository.decks, repository.loadSample);
-
-    expect(repository.decks).toEqual([existingDeck]);
-    expect(repository.cards).toEqual([]);
-    expect(repository.loadSample).toBe(true);
-  });
-
-  it("does not add a sample when automatic loading is disabled", async () => {
-    repository.loadSample = false;
-
-    await bootstrapSampleDeck(repository.decks, repository.loadSample);
-
-    expect(repository.decks).toEqual([]);
-    expect(repository.cards).toEqual([]);
-  });
-
-  it("converges repeated bootstrap attempts and stays disabled after the sample is removed", async () => {
-    await Promise.all([bootstrapSampleDeck([], true), bootstrapSampleDeck([], true)]);
-
-    expect(repository.loadSample).toBe(false);
-    expect(repository.decks).toHaveLength(1);
-    expect(new Set(repository.cards.map((card) => card.uniqueKey)).size).toBe(repository.cards.length);
-
-    repository.decks = [];
-    repository.cards = [];
-    await bootstrapSampleDeck(repository.decks, repository.loadSample);
-
-    expect(repository.decks).toEqual([]);
-    expect(repository.cards).toEqual([]);
   });
 });

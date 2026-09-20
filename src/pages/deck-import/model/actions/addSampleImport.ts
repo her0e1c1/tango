@@ -1,4 +1,3 @@
-import { getAuthUid } from "@/entities/auth";
 import { addSampleDeck } from "@/features/sample-import";
 import { showToast } from "@/shared/ui/toast";
 import { deckImportStore } from "../store";
@@ -8,7 +7,7 @@ export async function addSampleImport(): Promise<boolean> {
   // All import actions share this lock, including after Page re-entry.
   deckImportStore.setState({ status: "adding-sample" });
   try {
-    const result = await addSampleDeck(getAuthUid());
+    const result = await addSampleDeck();
     // Results belong to the App even when the initiating Page has unmounted.
     showToast({
       messageKey: "deckImport.toast.sampleAdded",
