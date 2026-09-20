@@ -36,7 +36,7 @@ const meta = {
     playbackControlsAvailable: true,
     help: {
       open: false,
-      rows: [{ control: "cardSwipeUp", action: "GoToNextCardMastered" }],
+      rows: [{ control: "cardSwipeUp", action: "RateGood" }],
       onOpen: fn(),
       onClose: fn(),
     },
@@ -296,3 +296,5 @@ export const DeckViewingAnswer: Story = {
 };
 
 export const Japanese: Story = { parameters: { locale: "ja" } };
+
+export const WithActionSlot: Story = { args: { actionSlot: <button type="button">Skip</button> } };

@@ -120,8 +120,8 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     });
     expect((await readSession(next.sessionId)).data()).toMatchObject({ currentIndex: 0, endReason: null });
     expect(next.sessionId).not.toBe(previous.sessionId);
-    // A late progress patch does not write endReason or endedAt.
-    await updateStudySession({ ...previous, currentIndex: 1 }, null);
+    // Ended sessions reject late writes as well as attempts to reopen them.
+    await expect(updateStudySession({ ...previous, currentIndex: 1 }, null)).rejects.toBeDefined();
     expect((await readSession(previous.sessionId)).data()?.endReason).toBe("abandoned");
   });
 
@@ -224,10 +224,12 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
   });
 
-  it("ignores malformed documents without blocking valid sessions or new study", async () => {
+  it("rejects malformed documents without blocking valid sessions or new study", async () => {
     const valid = startRemote();
     await waitForPendingWrites(testDb);
-    await setDoc(doc(testDb, "studySession", crypto.randomUUID()), { uid: "uid", answers: [] });
+    await expect(
+      setDoc(doc(testDb, "studySession", crypto.randomUUID()), { uid: "uid", answers: [] })
+    ).rejects.toBeDefined();
     clearStudySessions();
     const onError = vi.fn();
     stop = subscribeStudySessions("uid", onError);

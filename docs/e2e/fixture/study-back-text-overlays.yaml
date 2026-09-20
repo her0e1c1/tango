@@ -3,5 +3,5 @@ browser:
   preferences:
     controls:
       showBackTextSwipeOverlays: true
-      cardSwipeLeft: GoToNextCardMastered
-      cardSwipeRight: GoToNextCardNotMastered
+      cardSwipeLeft: RateGood
+      cardSwipeRight: RateAgain

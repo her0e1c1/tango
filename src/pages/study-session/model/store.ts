@@ -1,5 +1,6 @@
 import { createStore } from "zustand/vanilla";
 import type { DeckId } from "@/entities/deck";
+import type { StudyOperation } from "./studyOperation";
 
 interface StudyCompletion {
   cardCount: number;
@@ -11,11 +12,13 @@ export interface StudySessionPageState {
   helpOpen: boolean;
   autoPlay: boolean;
   swipePending: boolean;
+  saveFailed: boolean;
 }
 
 interface StudySessionPageStore {
   owner: { uid: string; deckId: DeckId } | undefined;
   pendingWork: symbol | undefined;
+  pendingOperation: StudyOperation | undefined;
   pageState: StudySessionPageState;
 }
 
@@ -23,11 +26,13 @@ export const studySessionPageStore = createStore<StudySessionPageStore>()(() => 
   owner: undefined,
   // Saving outlives a visit. Resetting presentation must never release this lock.
   pendingWork: undefined,
+  pendingOperation: undefined,
   pageState: {
     completion: undefined,
     showBackText: false,
     helpOpen: false,
     autoPlay: false,
     swipePending: false,
+    saveFailed: false,
   },
 }));

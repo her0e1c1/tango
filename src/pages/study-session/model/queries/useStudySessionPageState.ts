@@ -11,7 +11,11 @@ export function useStudySessionPageState(uid: string, deckId: DeckId): StudySess
   const state = useStore(studySessionPageStore);
   const preferences = usePreferences();
   if (state.owner !== previousOwner && state.owner?.uid === uid && state.owner.deckId === deckId) {
-    return state.pageState;
+    return {
+      ...state.pageState,
+      swipePending: state.pendingWork !== undefined,
+      saveFailed: state.pendingOperation !== undefined && state.pendingWork === undefined,
+    };
   }
   return {
     ...studySessionPageStore.getInitialState().pageState,

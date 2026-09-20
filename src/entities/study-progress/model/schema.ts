@@ -16,3 +16,5 @@ export const editStudyProgressSchema = z.object({
   uid: authenticatedUidSchema,
   progress: studyProgressEditSchema,
 });
+
+export const studyRatingSchema = z.enum(["again", "hard", "good", "easy"]);

@@ -10,6 +10,7 @@ import { AppLayout } from "@/widgets/app-layout";
 import { useStudySessionPageModel } from "../model/useStudySessionPageModel";
 import { CardPlayer, CardOverlay } from "@/features/card-player";
 import { useStudySessionRouteModel } from "../model/useStudySessionRouteModel";
+import { StudySaveControls } from "./StudySaveControls";
 import { StudyCompletion } from "./StudyCompletion";
 
 const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
@@ -28,6 +29,8 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
     openHelp,
     closeHelp,
     changeIndex,
+    skip,
+    retrySave,
     swipeUp,
     swipeDown,
     swipeLeft,
@@ -50,8 +53,15 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
     );
   }
 
+  const blocked = pageState.swipePending || pageState.saveFailed;
   const swipeActions = {
-    disabledDirections: query.disabledSwipeDirections,
+    disabled: blocked,
+    captions: {
+      cardSwipeUp: t(`studySession.actionLabels.${query.swipeActions.cardSwipeUp}`),
+      cardSwipeDown: t(`studySession.actionLabels.${query.swipeActions.cardSwipeDown}`),
+      cardSwipeLeft: t(`studySession.actionLabels.${query.swipeActions.cardSwipeLeft}`),
+      cardSwipeRight: t(`studySession.actionLabels.${query.swipeActions.cardSwipeRight}`),
+    },
     onClickUp: swipeUp,
     onClickDown: swipeDown,
     onClickLeft: swipeLeft,
@@ -82,11 +92,11 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
         onSwipeDown={swipeActions.onClickDown}
         onSwipeLeft={swipeActions.onClickLeft}
         onSwipeRight={swipeActions.onClickRight}
-        {...(query.showBackTextSwipeOverlays
+        {...(query.showBackTextSwipeOverlays && !blocked
           ? {
               backTextOverlay: {
-                ...(!query.disabledSwipeDirections.cardSwipeLeft ? { onClickLeft: swipeActions.onClickLeft } : {}),
-                ...(!query.disabledSwipeDirections.cardSwipeRight ? { onClickRight: swipeActions.onClickRight } : {}),
+                onClickLeft: swipeActions.onClickLeft,
+                onClickRight: swipeActions.onClickRight,
               },
             }
           : {})}
@@ -101,7 +111,18 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
           />
         }
         backTextSlot={<CardView {...query.card.back} onClick={toggleBackText} variant="bare" />}
+        actionSlot={
+          !pageState.showBackText || blocked ? (
+            <StudySaveControls
+              pending={pageState.swipePending}
+              failed={pageState.saveFailed}
+              onSkip={skip}
+              onRetry={retrySave}
+            />
+          ) : undefined
+        }
         controller={{
+          disabled: blocked,
           autoPlay: pageState.autoPlay,
           index: query.session.currentIndex,
           numberOfCards: query.session.cardCount,

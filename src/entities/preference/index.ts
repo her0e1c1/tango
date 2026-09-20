@@ -5,6 +5,7 @@ export type {
   LanguagePreference,
   Preferences,
   SwipeDirection,
+  SwipeAction,
 } from "./model/types";
 export { setDarkMode } from "./model/actions/setDarkMode";
 export { toggleShowCardDetails } from "./model/actions/toggleShowCardDetails";

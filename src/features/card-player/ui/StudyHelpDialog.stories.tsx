@@ -4,9 +4,9 @@ import { fn } from "storybook/test";
 import { StudyHelpDialog, type StudyHelpDialogProps } from "./StudyHelpDialog";
 
 const rows: StudyHelpDialogProps["rows"] = [
-  { control: "cardSwipeUp", action: "GoToNextCardMastered" },
-  { control: "cardSwipeDown", action: "GoToNextCardNotMastered" },
-  { control: "cardSwipeLeft", action: "GoToPrevCard" },
+  { control: "cardSwipeUp", action: "RateGood" },
+  { control: "cardSwipeDown", action: "RateAgain" },
+  { control: "cardSwipeLeft", action: "RateEasy" },
   { control: "cardSwipeRight", action: "GoToNextCard" },
   { control: "flip", action: "flip" },
   { control: "autoPlay", action: "autoPlay" },

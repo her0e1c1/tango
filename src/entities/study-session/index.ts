@@ -17,3 +17,6 @@ export { subscribeStudySessions } from "./api/firestore";
 export { setStudySessionOwner } from "./model/actions/setStudySessionOwner";
 export { startStudy, moveStudySession, setStudySessionIndex, abandonStudySession } from "./api/mutations";
 export { useRemoteStudySessionsLoading } from "./model/queries/useRemoteStudySessionsLoading";
+
+export { readStudySession, writeStudySessionPosition } from "./api/transaction";
+export { applyStudySessionWrite } from "./model/actions/applyStudySessionWrite";

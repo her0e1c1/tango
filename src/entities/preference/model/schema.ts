@@ -28,10 +28,10 @@ const DEFAULT_CONTROLS = {
   showCardDetails: true,
   showDifficultySlider: false,
   showBackTextSwipeOverlays: false,
-  cardSwipeUp: "GoToNextCardMastered" as const,
-  cardSwipeDown: "GoToNextCardNotMastered" as const,
-  cardSwipeLeft: "GoToPrevCard" as const,
-  cardSwipeRight: "GoToNextCard" as const,
+  cardSwipeUp: "RateEasy" as const,
+  cardSwipeDown: "RateHard" as const,
+  cardSwipeLeft: "RateAgain" as const,
+  cardSwipeRight: "RateGood" as const,
 };
 
 const DEFAULT_LOAD_SAMPLE = true;
@@ -42,11 +42,11 @@ export const languagePreferenceSchema = z.enum(["system", "en", "ja"]);
 export const swipeActionSchema = z.enum([
   "DoNothing",
   "GoBack",
-  "GoToPrevCard",
   "GoToNextCard",
-  "GoToNextCardMastered",
-  "GoToNextCardNotMastered",
-  "GoToNextCardToggleMastered",
+  "RateGood",
+  "RateAgain",
+  "RateHard",
+  "RateEasy",
 ]);
 
 const appearancePreferencesSchema = z

@@ -66,7 +66,7 @@ test("DECK-13 browses remote Cards without changing learning data or preferences
   await fixture.apply(page, {
     preferences: {
       study: { keepBackTextViewed: true, defaultAutoPlay: true, cardInterval: 1 },
-      controls: { cardSwipeLeft: "GoToNextCardMastered", cardSwipeRight: "GoToPrevCard" },
+      controls: { cardSwipeLeft: "RateGood", cardSwipeRight: "RateEasy" },
     },
   });
   await page.goto("/");

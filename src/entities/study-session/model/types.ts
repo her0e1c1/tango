@@ -1,6 +1,6 @@
 import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
-import type { StudyProgressEdit } from "@/entities/study-progress/@x/study-session";
+import type { StudyProgressEdit, StudyRating } from "@/entities/study-progress/@x/study-session";
 
 /**
  * Persisted progress for one deck's active study run.
@@ -50,6 +50,7 @@ export type StudySessionSwipePlan =
       effect: "next";
       session: StudySession;
       progress: StudyProgressEdit;
+      rating: StudyRating | undefined;
     };
 
 /** Minimal Card identity needed to resolve a study session position. */

@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import type { SwipeAction } from "@/entities/preference/@x/study-progress";
-
 import {
   buildStudyCardOrder,
   calculateDifficulty,
@@ -54,16 +52,16 @@ describe("createStudyProgressFromCard [CARD-01]", () => {
 });
 
 describe("recordCardStudyProgress [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", () => {
-  it.each<[number, SwipeAction, number]>([
-    [5, "GoToNextCardMastered", 4],
-    [7, "GoToNextCardMastered", 6],
-    [1, "GoToNextCardMastered", 1],
-    [5, "GoToNextCardNotMastered", 6],
-    [8, "GoToNextCardToggleMastered", 9],
-    [3, "GoToNextCardNotMastered", 4],
-    [10, "GoToNextCardNotMastered", 10],
-    [3, "GoToNextCard", 3],
-    [3, "GoToPrevCard", 3],
+  it.each<[number, StudyRating | undefined, number]>([
+    [5, "good", 4],
+    [7, "good", 6],
+    [1, "good", 1],
+    [5, "again", 6],
+    [8, "hard", 7],
+    [8, "easy", 7],
+    [3, "again", 4],
+    [10, "again", 10],
+    [3, undefined, 3],
   ])("records difficulty %i for %s as %i", (difficulty, swipeAction, expectedDifficulty) => {
     const card = { ...cardProgress("card-id", 2), difficulty };
 

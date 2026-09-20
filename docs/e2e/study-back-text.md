@@ -127,7 +127,7 @@ When:
 
 Then:
 
-- 左に設定された mastered 学習結果が一度だけ保存される。
+- 左に設定された good 学習結果が一度だけ保存される。
 - session の位置が次の Card へ一つ進む。
 - 次の Card の front text が表示され、back text は表示されない。
 - overlay の tap によって通常の裏面 tap は実行されない。
@@ -152,7 +152,7 @@ When:
 
 Then:
 
-- 右に設定された non-mastered 学習結果が一度だけ保存される。
+- 右に設定された again 学習結果が一度だけ保存される。
 - session の位置が次の Card へ一つ進む。
 - 次の Card の front text が表示され、back text は表示されない。
 - overlay の tap によって通常の裏面 tap は実行されない。

@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-import { allowExpectedFirestoreWriteFailure, expect, failNextFirestoreWrite, readLocalData, test } from "./fixtures";
+import { expect, listDocuments, requireDocument, readLocalData, test } from "./fixtures";
 import { progressOf, readProgress, readSession } from "./study-helpers";
 
 const cardAt = <T>(cards: readonly T[], index: number) => {
@@ -34,20 +34,22 @@ const returnToDeckList = async (page: Page) => {
   await page.getByRole("button", { name: "Back to deck list" }).click();
 };
 
-test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ fixture, page }) => {
+test("SWIPE-02 saves a good answer and progress and advances to the next Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: "Swipe up" }).click();
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  const beforeAnswer = await readSession(page, deck.id);
+  await page.getByRole("button", { name: "Swipe right" }).click();
 
-  const feedback = page.getByRole("status").filter({ hasText: "Swiped up" });
+  const feedback = page.getByRole("status").filter({ hasText: "Swiped right" });
   const directionIcon = page.getByTestId("swipe-feedback-direction");
   await expect(feedback).toBeVisible();
-  await expect(directionIcon).toHaveAttribute("data-swipe-feedback-direction", "cardSwipeUp");
+  await expect(directionIcon).toHaveAttribute("data-swipe-feedback-direction", "cardSwipeRight");
   await expect(directionIcon).toBeVisible();
   await expect(page.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
@@ -58,19 +60,30 @@ test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ 
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  await expect
+    .poll(async () => (await readSession(page, deck.id))?.lastStudiedAt)
+    .toBeGreaterThan(beforeAnswer?.lastStudiedAt ?? session.lastStudiedAt);
   await expect(feedback).toHaveCount(0, { timeout: 2000 });
   await expect(directionIcon).toHaveCount(0);
+  const answers = (await listDocuments("studyAnswer")).filter(
+    (item) => item.fields.sessionId?.stringValue === session.sessionId
+  );
+  expect(answers).toHaveLength(1);
+  expect(answers[0]?.fields.answer?.mapValue?.fields).toMatchObject({
+    type: { stringValue: "rating" },
+    rating: { stringValue: "good" },
+  });
 });
 
-test("SWIPE-03 saves non-mastered progress and advances to the next Card", async ({ fixture, page }) => {
+test("SWIPE-03 saves an again answer and progress and advances to the next Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: "Swipe down" }).click();
+  await page.getByRole("button", { name: "Swipe left" }).click();
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect
@@ -82,15 +95,15 @@ test("SWIPE-03 saves non-mastered progress and advances to the next Card", async
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-04 records an unrated next action and advances", async ({ fixture, page }) => {
+test("SWIPE-04 skips without creating an answer and advances", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: "Swipe right" }).click();
+  await page.getByRole("button", { name: "Skip" }).click();
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect
@@ -100,25 +113,23 @@ test("SWIPE-04 records an unrated next action and advances", async ({ fixture, p
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  expect(
+    (await listDocuments("studyAnswer")).filter((item) => item.fields.sessionId?.stringValue === session.sessionId)
+  ).toHaveLength(0);
 });
 
 test("SWIPE-05 prevents returning to previous Cards through study controls", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
   await page.goto(`/deck/${deck.id}/study`);
 
-  await expect(page.getByRole("button", { name: "Swipe left" })).toBeDisabled();
-  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByText("Again", { exact: true })).toBeVisible();
+  await expect(page.getByText("Hard", { exact: true })).toBeVisible();
+  await expect(page.getByText("Good", { exact: true })).toBeVisible();
+  await expect(page.getByText("Easy", { exact: true })).toBeVisible();
   const front = page.getByRole("button", { name: currentCard.frontText, exact: true });
-  const box = await front.boundingBox();
-  if (box === null) throw new Error("Study card front is not visible");
-  await page.mouse.move(box.x + box.width * 0.7, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2, { steps: 5 });
-  await page.mouse.up();
-
   const slider = page.getByRole("slider", { name: "Study progress" });
   await slider.press("Home");
   await expect(slider).toHaveValue(String(session.currentIndex));
@@ -128,11 +139,6 @@ test("SWIPE-05 prevents returning to previous Cards through study controls", asy
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
   await expect(page.getByTestId("swipe-feedback-direction")).toHaveCount(0);
-
-  await front.click();
-  await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Swipe right" })).toBeVisible();
 });
 
 test("SWIPE-06 starts a filtered session capped by the learning limit", async ({ fixture, page }) => {
@@ -142,7 +148,7 @@ test("SWIPE-06 starts a filtered session capped by the learning limit", async ({
   const eligibleBeyondLimit = fixture.card("card-3");
   const difficultyOnlyExcluded = fixture.card("card-4");
   const tagOnlyExcluded = fixture.card("card-5");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   for (const maximum of [fixture.state.browser.preferences.study.maxNumberOfCardsToLearn, 0, 1]) {
     if (maximum !== fixture.state.browser.preferences.study.maxNumberOfCardsToLearn) {
@@ -177,7 +183,7 @@ test("SWIPE-06 starts a filtered session capped by the learning limit", async ({
 
 test("SWIPE-07 prevents an empty filtered session from starting", async ({ fixture, page }) => {
   const deck = fixture.deck();
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/start`);
 
@@ -190,7 +196,7 @@ test("SWIPE-08 returns and continues from the same Card", async ({ fixture, page
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
@@ -211,7 +217,7 @@ test("SWIPE-09 restarts an in-progress Deck from a new session", async ({ fixtur
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;
   const previous = fixture.session();
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
@@ -228,7 +234,7 @@ test("SWIPE-10 finishes the final Card and shows the completion screen", async (
   const deck = fixture.deck();
   const session = fixture.session();
   const finalCard = fixture.card("card-3");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
   await page.getByRole("button", { name: "Swipe up" }).click();
@@ -259,7 +265,7 @@ test("SWIPE-11 keeps multiple Deck sessions independent", async ({ fixture, page
   const sessionB = fixture.session("deck-b");
   const currentCardA = fixture.card("card-a-1");
   const currentCardB = fixture.card("card-b-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deckA.id}/study`);
   await page.getByRole("button", { name: "Swipe up" }).click();
@@ -279,36 +285,45 @@ test("SWIPE-11 keeps multiple Deck sessions independent", async ({ fixture, page
   await expect.poll(() => readProgress(currentCardB.id)).toEqual(progressOf(currentCardB));
 });
 
-test("SWIPE-12 retries a failed progress write from the same Card once", async ({ browserErrors, fixture, page }) => {
+test("SWIPE-12 retries the same answer after an offline failure and reload", async ({
+  browserErrors,
+  fixture,
+  page,
+  context,
+}) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
-  await fixture.apply(page);
-
+  await fixture.apply(page, { remoteStudySessions: true });
   await page.goto(`/deck/${deck.id}/study`);
-  allowExpectedFirestoreWriteFailure(browserErrors);
-  const fault = await failNextFirestoreWrite(page, { collection: "card", id: currentCard.id });
-  await page.getByRole("button", { name: "Swipe up" }).click();
-  await expect.poll(fault.wasTriggered).toBe(true);
-  await fault.waitForFailure();
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  await expect(page.getByRole("status").filter({ hasText: "Swiped up" })).toHaveCount(0);
+  browserErrors.allow(/^console error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED /u);
+  browserErrors.allow(/^console error: .*@firebase\/firestore: Firestore .*Could not reach Cloud Firestore backend\./u);
+  await context.setOffline(true);
+  await page.getByRole("button", { name: "Swipe up" }).click();
+  await expect(page.getByRole("button", { name: "Retry", exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "Swipe right" })).toBeDisabled();
+  await expect(page.getByRole("slider", { name: "Study progress" })).toBeDisabled();
+  const accepted = await page.evaluate(() => {
+    const key = Object.keys(sessionStorage).find((item) => item.startsWith("tango-study-operation:"));
+    return JSON.parse(sessionStorage.getItem(key ?? "") ?? "null") as { id: string; answeredAt: number };
+  });
+  expect(accepted).not.toBeNull();
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
-
-  await page.getByRole("button", { name: "Swipe up" }).click();
-
-  await expect(page.getByRole("status").filter({ hasText: "Swiped up" })).toBeVisible();
+  await context.setOffline(false);
+  await page.reload();
+  await page.getByRole("button", { name: "Retry", exact: true }).click();
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect
     .poll(() => readProgress(currentCard.id))
-    .toEqual({
-      difficulty: currentCard.difficulty - 1,
-      numberOfSeen: currentCard.numberOfSeen + 1,
-    });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
-  await fault.dispose();
+    .toEqual({ difficulty: currentCard.difficulty - 1, numberOfSeen: currentCard.numberOfSeen + 1 });
+  const saved = await requireDocument("studyAnswer", accepted.id);
+  expect(saved.fields.answeredAt?.timestampValue).toBe(new Date(accepted.answeredAt).toISOString());
+  expect(
+    (await listDocuments("studyAnswer")).filter((item) => item.fields.sessionId?.stringValue === session.sessionId)
+  ).toHaveLength(1);
 });
 
 test("SWIPE-13 advances a remote session on a primary upward mouse drag without flipping", async ({
@@ -318,7 +333,7 @@ test("SWIPE-13 advances a remote session on a primary upward mouse drag without 
   const deck = fixture.deck();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText);
@@ -337,7 +352,7 @@ test("SWIPE-14 ignores non-primary mouse drags", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText, "right");
@@ -353,7 +368,7 @@ test("SWIPE-16 saves local-only progress and advances on a primary upward mouse 
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText);
@@ -374,7 +389,7 @@ test("SWIPE-17 preserves local-only progress and session position across reload"
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText);
@@ -397,7 +412,7 @@ test("SWIPE-24 shows configured Study controls without changing the active sessi
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
   const progressBeforeHelp = await readProgress(currentCard.id);
@@ -408,8 +423,8 @@ test("SWIPE-24 shows configured Study controls without changing the active sessi
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("Arrow Up / Swipe UpEnd the current session and return to the deck list");
   await expect(dialog).toContainText("Arrow Down / Swipe DownNo action");
-  await expect(dialog).toContainText("Arrow Left / Swipe LeftToggle mastered and go to the next card");
-  await expect(dialog).toContainText("Arrow Right / Swipe RightGoing to the previous card is disabled");
+  await expect(dialog).toContainText("Arrow Left / Swipe LeftHard — answer and continue");
+  await expect(dialog).toContainText("Arrow Right / Swipe RightEasy — answer and continue");
   await expect(dialog).toContainText("Enter / Select CardFlip or reveal the current card");
   await expect(dialog).toContainText("Space / Play or Pause buttonPlay or pause autoplay");
   await expect(dialog).toContainText("B / Swipe controls buttonShow the currently hidden swipe buttons");
@@ -438,7 +453,7 @@ test("SWIPE-24 shows configured Study controls without changing the active sessi
 
 test("SWIPE-25 toggles and persists the Study Help button", async ({ fixture, page }) => {
   const deck = fixture.deck();
-  await fixture.apply(page);
+  await fixture.apply(page, { remoteStudySessions: true });
 
   await page.goto(`/deck/${deck.id}/study`);
   const help = page.getByRole("button", { name: "Open study help" });

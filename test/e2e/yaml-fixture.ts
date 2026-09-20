@@ -240,11 +240,11 @@ const localCardSchema = z.strictObject({
 const swipeActionSchema = z.enum([
   "DoNothing",
   "GoBack",
-  "GoToPrevCard",
   "GoToNextCard",
-  "GoToNextCardMastered",
-  "GoToNextCardNotMastered",
-  "GoToNextCardToggleMastered",
+  "RateGood",
+  "RateAgain",
+  "RateHard",
+  "RateEasy",
 ]);
 type SwipeAction = z.infer<typeof swipeActionSchema>;
 
@@ -643,10 +643,10 @@ const fixturePreferenceDefaults: FixturePreferences = {
     showCardDetails: true,
     showDifficultySlider: false,
     showBackTextSwipeOverlays: false,
-    cardSwipeUp: "GoToNextCardMastered",
-    cardSwipeDown: "GoToNextCardNotMastered",
-    cardSwipeLeft: "GoToPrevCard",
-    cardSwipeRight: "GoToNextCard",
+    cardSwipeUp: "RateEasy",
+    cardSwipeDown: "RateHard",
+    cardSwipeLeft: "RateAgain",
+    cardSwipeRight: "RateGood",
   },
 };
 

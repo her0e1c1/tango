@@ -1,3 +1,4 @@
+rules_version = '2';
 service cloud.firestore {
   function isSignedIn() {
     return request.auth != null &&
@@ -15,9 +16,65 @@ service cloud.firestore {
   }
   match /databases/{database}/documents {
     match /studySession/{sessionId} {
+      function validSession(data) {
+        return data.keys().hasAll(['uid', 'deckId', 'cardOrderIds', 'currentIndex', 'startedAt', 'endedAt', 'endReason', 'createdAt', 'updatedAt']) &&
+          data.keys().hasOnly(['uid', 'deckId', 'cardOrderIds', 'currentIndex', 'startedAt', 'endedAt', 'endReason', 'createdAt', 'updatedAt']) &&
+          data.uid is string && data.uid.size() > 0 && data.deckId is string && data.deckId.size() > 0 &&
+          data.cardOrderIds is list && data.cardOrderIds.size() > 0 &&
+          data.cardOrderIds.toSet().size() == data.cardOrderIds.size() &&
+          data.currentIndex is int && data.currentIndex >= 0 && data.currentIndex < data.cardOrderIds.size() &&
+          data.startedAt is timestamp && data.createdAt is timestamp && data.updatedAt == request.time &&
+          ((data.endReason == null && data.endedAt == null) ||
+           (data.endReason in ['completed', 'abandoned'] && data.endedAt is timestamp));
+      }
       allow read: if isSignedIn() && isOwner();
-      allow create: if isSignedIn() && isValid();
-      allow update: if isSignedIn() && isValidOwner();
+      allow create: if isSignedIn() && isValid() && validSession(request.resource.data) &&
+        request.resource.data.currentIndex == 0 && request.resource.data.endReason == null &&
+        request.resource.data.createdAt == request.time;
+      allow update: if isSignedIn() && isValidOwner() && validSession(request.resource.data) &&
+        resource.data.endReason == null &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentIndex', 'endedAt', 'endReason', 'updatedAt']) &&
+        request.resource.data.currentIndex >= resource.data.currentIndex &&
+        (request.resource.data.endReason == null || request.resource.data.endedAt == request.time) &&
+        (request.resource.data.endReason != 'completed' ||
+         request.resource.data.currentIndex == resource.data.cardOrderIds.size() - 1);
+    }
+    match /studyAnswer/{answerId} {
+      function validAnswer(data) {
+        return data.keys().hasAll(['uid', 'sessionId', 'deckId', 'cardId', 'answer', 'answeredAt', 'createdAt', 'updatedAt']) &&
+          data.keys().hasOnly(['uid', 'sessionId', 'deckId', 'cardId', 'answer', 'answeredAt', 'createdAt', 'updatedAt']) &&
+          data.uid is string && data.sessionId is string && data.deckId is string && data.cardId is string &&
+          data.uid.size() > 0 && data.sessionId.size() > 0 && data.deckId.size() > 0 && data.cardId.size() > 0 &&
+          data.answer is map && data.answer.keys().hasAll(['type', 'rating']) &&
+          data.answer.keys().hasOnly(['type', 'rating']) && data.answer.type == 'rating' &&
+          data.answer.rating in ['again', 'hard', 'good', 'easy'] &&
+          data.answeredAt is timestamp && data.createdAt == request.time && data.updatedAt == request.time;
+      }
+      function advancesSession(data) {
+        let before = get(/databases/$(database)/documents/studySession/$(data.sessionId)).data;
+        let after = getAfter(/databases/$(database)/documents/studySession/$(data.sessionId)).data;
+        let card = get(/databases/$(database)/documents/card/$(data.cardId)).data;
+        let nextCard = getAfter(/databases/$(database)/documents/card/$(data.cardId)).data;
+        let difficulty = data.answer.rating == 'again' ? card.difficulty + 1 : card.difficulty - 1;
+        return before.uid == request.auth.uid && before.deckId == data.deckId &&
+          before.endReason == null && before.endedAt == null &&
+          before.cardOrderIds[before.currentIndex] == data.cardId &&
+          card.uid == request.auth.uid && card.deckId == data.deckId && card.deletedAt == null &&
+          nextCard.uid == card.uid && nextCard.deckId == card.deckId && nextCard.deletedAt == null &&
+          nextCard.numberOfSeen == card.numberOfSeen + 1 &&
+          nextCard.lastSeenAt == data.answeredAt.toMillis() &&
+          nextCard.difficulty == (difficulty < 1 ? 1 : (difficulty > 10 ? 10 : difficulty)) &&
+          after.uid == before.uid && after.deckId == before.deckId &&
+          after.cardOrderIds == before.cardOrderIds && after.updatedAt == request.time &&
+          ((before.currentIndex + 1 < before.cardOrderIds.size() &&
+            after.currentIndex == before.currentIndex + 1 && after.endReason == null && after.endedAt == null) ||
+           (before.currentIndex + 1 == before.cardOrderIds.size() &&
+            after.currentIndex == before.currentIndex && after.endReason == 'completed' && after.endedAt == request.time));
+      }
+      // A transaction must be able to check its fresh random ID before creating it.
+      allow get: if isSignedIn() && (!exists(/databases/$(database)/documents/studyAnswer/$(answerId)) || isOwner());
+      allow list: if isSignedIn() && isOwner();
+      allow create: if isSignedIn() && isValid() && validAnswer(request.resource.data) && advancesSession(request.resource.data);
     }
     match /deck/{deckId} {
       function isPublic() {

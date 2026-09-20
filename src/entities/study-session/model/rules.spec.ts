@@ -99,8 +99,9 @@ describe("planStudySessionSwipe [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", ()
   ];
 
   it("plans the progress edit and session movement for the active card", () => {
-    expect(planStudySessionSwipe(session, cards, "GoToNextCardMastered", 1_786_512_000_000)).toEqual({
+    expect(planStudySessionSwipe(session, cards, "RateGood", 1_786_512_000_000)).toEqual({
       effect: "next",
+      rating: "good",
       session,
       progress: {
         cardId: "card-2",
@@ -113,16 +114,16 @@ describe("planStudySessionSwipe [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", ()
 
   it.each([
     ["GoToNextCard", "next"],
-    ["GoToNextCardMastered", "next"],
-    ["GoToNextCardNotMastered", "next"],
-    ["GoToNextCardToggleMastered", "next"],
+    ["RateGood", "next"],
+    ["RateAgain", "next"],
+    ["RateHard", "next"],
+    ["RateEasy", "next"],
   ] as const)("plans %s to move %s after persistence", (swipeAction, effect) => {
     expect(planStudySessionSwipe(session, cards, swipeAction, 0)).toMatchObject({ effect, session });
   });
 
   it.each([
     ["DoNothing", "none"],
-    ["GoToPrevCard", "none"],
     ["GoBack", "exit"],
   ] as const)("plans %s as %s without a progress edit", (swipeAction, effect) => {
     expect(planStudySessionSwipe(session, cards, swipeAction, 0)).toEqual({ effect });

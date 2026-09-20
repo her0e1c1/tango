@@ -26,7 +26,7 @@ const projectId = "tango-e2e";
 const firestorePort = process.env.VITE_DB_PORT ?? "8080";
 const firestoreBase = `http://db:${firestorePort}/v1/projects/${projectId}/databases/(default)/documents`;
 
-export type FirestoreCollection = "deck" | "card";
+export type FirestoreCollection = "deck" | "card" | "studyAnswer" | "studySession";
 
 export interface TestNamespace {
   caseId: string;
@@ -250,10 +250,10 @@ const e2eConfig: E2EConfig = {
     showCardDetails: true,
     showDifficultySlider: false,
     showBackTextSwipeOverlays: false,
-    cardSwipeUp: "GoToNextCardMastered",
-    cardSwipeDown: "GoToNextCardNotMastered",
-    cardSwipeLeft: "GoToPrevCard",
-    cardSwipeRight: "GoToNextCard",
+    cardSwipeUp: "RateEasy",
+    cardSwipeDown: "RateHard",
+    cardSwipeLeft: "RateAgain",
+    cardSwipeRight: "RateGood",
   },
 };
 
@@ -288,6 +288,7 @@ export interface StudySessionFixture {
   cardOrderIds: string[];
   currentIndex: number;
   lastStudiedAt: number;
+  remote?: { uid: string; startedAt: number; createdAt: number };
 }
 
 interface LocalDataFixture {
@@ -355,6 +356,8 @@ interface FixturePageSeedOptions {
   preferences?: E2EConfigOverrides | false;
   localData?: boolean;
   studySessions?: boolean;
+  /** Persist owned cloud sessions when verifying the transactional study workflow. */
+  remoteStudySessions?: boolean;
 }
 
 interface FixtureApplyOptions extends FixturePageSeedOptions {
@@ -451,9 +454,42 @@ const seedFixtureAuth = async (
   });
 };
 
-const seedFixtureStudySessions = async (page: Page, state: FixtureState, shouldSeed: boolean | undefined) => {
-  const { studySessions } = state.browser;
-  if (shouldSeed === false || Object.keys(studySessions).length === 0) return;
+const fixtureStudySessions = (state: FixtureState): Record<string, StudySessionFixture> =>
+  Object.fromEntries(
+    Object.entries(state.browser.studySessions).map(([deckId, session]) => {
+      const deck = state.remote.decks.find(({ id }) => id === deckId);
+      const owner = state.auth.users.find(({ uid, provider }) => uid === deck?.uid && provider === "google");
+      return [
+        deckId,
+        {
+          ...session,
+          ...(owner === undefined
+            ? {}
+            : { remote: { uid: owner.uid, startedAt: session.lastStudiedAt, createdAt: session.lastStudiedAt } }),
+        },
+      ];
+    })
+  );
+
+const seedFixtureStudySessions = async (page: Page, state: FixtureState, options: FixturePageSeedOptions) => {
+  const studySessions = options.remoteStudySessions ? fixtureStudySessions(state) : state.browser.studySessions;
+  if (options.studySessions === false || Object.keys(studySessions).length === 0) return;
+  await Promise.all(
+    Object.values(studySessions).map(async (session: StudySessionFixture) => {
+      if (session.remote === undefined) return;
+      await setDocument("studySession", session.sessionId, {
+        uid: session.remote.uid,
+        deckId: session.deckId,
+        cardOrderIds: session.cardOrderIds,
+        currentIndex: session.currentIndex,
+        startedAt: new Date(session.remote.startedAt),
+        createdAt: new Date(session.remote.createdAt),
+        updatedAt: new Date(session.lastStudiedAt),
+        endedAt: null,
+        endReason: null,
+      });
+    })
+  );
   const sessionDeckIds = new Set(Object.keys(studySessions));
   const deckNames = [...state.remote.decks, ...state.browser.localDecks]
     .filter(({ id }) => sessionDeckIds.has(id))
@@ -484,7 +520,7 @@ function createE2EFixture(
       options: options.auth,
       namespace,
     });
-    await seedFixtureStudySessions(page, namespaced.state, options.studySessions);
+    await seedFixtureStudySessions(page, namespaced.state, options);
   };
 
   const fixture: E2EFixture = {
@@ -528,6 +564,7 @@ export interface FirestoreDocument {
       string,
       {
         arrayValue?: { values?: Record<string, unknown>[] };
+        mapValue?: { fields?: FirestoreDocument["fields"] };
         booleanValue?: boolean;
         doubleValue?: number;
         integerValue?: string;
