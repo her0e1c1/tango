@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { expect } from "storybook/test";
 
@@ -15,17 +14,13 @@ interface CardFieldsStoryProps {
   validationError: boolean;
 }
 
+const validationErrors = { frontText: { type: "custom" }, backText: { type: "custom" } };
+
 const CardFieldsStory = ({ card, validationError }: CardFieldsStoryProps) => {
   const form = useForm<CardFormFields>({
     defaultValues: { frontText: card.frontText, backText: card.backText, tags: card.tags },
+    ...(validationError ? { errors: validationErrors } : {}),
   });
-
-  useEffect(() => {
-    if (validationError) {
-      form.setError("frontText", { message: "Front text is required." });
-      form.setError("backText", { message: "Back text is required." });
-    }
-  }, [form, validationError]);
 
   return <CardFields categories={CATEGORY} form={form} />;
 };
@@ -93,4 +88,16 @@ export const MobileBack: Story = {
   ...Back,
   ...LongContent,
   globals: { viewport: { value: "iphonex", isRotated: false } },
+};
+
+export const JapaneseValidation: Story = {
+  args: { validationError: true },
+  parameters: { locale: "ja" },
+  play: async ({ canvas }) => {
+    await canvas.findByText("表面のテキストは必須です。");
+    await expect(canvas.getByRole("textbox", { name: "表面のテキスト" })).toHaveAccessibleDescription(
+      "表面のテキストは必須です。"
+    );
+    await expect(document.documentElement).toHaveAttribute("lang", "ja");
+  },
 };

@@ -43,3 +43,31 @@ test("NAVIGATION-02 Screen shortcuts navigate to their configured routes", async
   expect(await requireDocument("deck", deck.id)).toEqual(deckBefore);
   expect(await requireDocument("card", card.id)).toEqual(cardBefore);
 });
+
+test("NAVIGATION-03 The outer error boundary keeps the locale and recovers on Reload", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
+  await fixture.apply(page);
+  await page.goto("/settings");
+  await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  browserErrors.allow(/E2E_RENDER_FAILURE/);
+  await page.evaluate(() => {
+    const toggle = DOMTokenList.prototype.toggle;
+    DOMTokenList.prototype.toggle = function (token, force) {
+      if (this === document.documentElement.classList && token === "dark") {
+        DOMTokenList.prototype.toggle = toggle;
+        throw new Error("E2E_RENDER_FAILURE");
+      }
+      return force === undefined ? toggle.call(this, token) : toggle.call(this, token, force);
+    };
+  });
+  await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
+  await expect(page.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
+  await expect(page.getByText("予期しないエラーが発生しました。再読み込みしてもう一度お試しください。")).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await page.getByRole("button", { name: "再読み込み" }).click();
+  await expect(page.getByRole("heading", { name: "設定", exact: true })).toBeVisible();
+});

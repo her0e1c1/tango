@@ -1,3 +1,6 @@
+import type { CsvDiagnostic } from "../lib/cardCsv";
+import { importFailureKey } from "../lib/importFailure";
+import { formatCsvDiagnostic } from "./formatCsvDiagnostic";
 import * as React from "react";
 import { AiOutlineCheckCircle, AiOutlineCloudDownload, AiOutlineFileText } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
@@ -20,7 +23,7 @@ interface DeckImportPreview {
   analysis: {
     rows: readonly { rowNumber: number; card: PreviewCard }[];
     skippedRows: readonly unknown[];
-    issues: readonly { rowNumber?: number; message: string; context?: string }[];
+    issues: readonly { rowNumber?: number; diagnostic: CsvDiagnostic; context?: string }[];
     invalidCount: number;
   };
 }
@@ -50,11 +53,11 @@ const PreviewError = ({ error }: { error: unknown }) => {
   if (error == null) return null;
   return (
     <section role="alert" className="rounded-surface border border-danger bg-surface-muted p-4 text-ink">
-      <h2 className="font-semibold">{t("deckImport.preview.errorTitle")}</h2>
+      <h2 className="font-semibold">{t("deckImport.errors.previewTitle")}</h2>
       <p className="mt-1 break-words text-caption text-ink-muted">
-        {error instanceof Error ? error.message : t("deckImport.preview.errorFallback")}
+        {t(importFailureKey(error) ?? "deckImport.errors.previewFailure")}
       </p>
-      <p className="mt-2 text-caption text-ink-muted">{t("deckImport.preview.errorRetry")}</p>
+      <p className="mt-2 text-caption text-ink-muted">{t("deckImport.errors.retry")}</p>
     </section>
   );
 };
@@ -166,7 +169,7 @@ const ImportPreview = ({
                     : t("deckImport.preview.row", { rowNumber: issue.rowNumber })}
                   :
                 </strong>{" "}
-                {issue.message}
+                {formatCsvDiagnostic(issue.diagnostic, t)}
                 {issue.context != null && (
                   <code className="mt-1 block break-words whitespace-pre-wrap text-ink-muted">{issue.context}</code>
                 )}

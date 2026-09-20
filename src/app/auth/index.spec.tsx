@@ -1,3 +1,4 @@
+import { actAsync } from "@/test/act";
 import type { User, UserCredential } from "firebase/auth";
 
 import { act, render, screen } from "@testing-library/react";
@@ -101,7 +102,10 @@ describe("ACCOUNT-04 SETTINGS-04 AuthProvider", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: "Unable to start Tango" })).toBeVisible();
     expect(screen.queryByText("Authenticated content")).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Reload" }));
+    await actAsync(() => getI18n().changeLanguage("ja"));
+    expect(screen.getByRole("heading", { name: "Tango を起動できません" })).toBeVisible();
+    expect(screen.getByText("認証を初期化できませんでした。")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "再読み込み" }));
     expect(screen.getByText("Reload requested")).toBeVisible();
   });
 

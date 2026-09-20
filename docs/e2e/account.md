@@ -115,6 +115,7 @@ When:
 
 Then:
 
+- 認証初期化の失敗の見出し・説明・Reload の accessible name は現在の言語に追随する。
 - 再初期化が完了し、Deck 一覧を利用できる。
 - 未処理の browser error が発生しない。
 

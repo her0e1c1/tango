@@ -1,3 +1,5 @@
+import { actAsync } from "@/test/act";
+import { appI18n } from "../i18n/instance";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -9,7 +11,7 @@ const ApplicationContent = ({ crash = false }: { crash?: boolean }) => {
   return <p>Application content</p>;
 };
 
-describe("AppErrorBoundary", () => {
+describe("NAVIGATION-03 AppErrorBoundary", () => {
   it("renders its children while the application is healthy", () => {
     render(
       <AppErrorBoundary>
@@ -45,4 +47,20 @@ describe("AppErrorBoundary", () => {
     expect(onCaughtError).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
   });
+});
+
+it("NAVIGATION-03 uses the initialized locale outside I18nProvider", async () => {
+  await appI18n.changeLanguage("ja");
+  render(
+    <AppErrorBoundary>
+      <ApplicationContent crash />
+    </AppErrorBoundary>,
+    { onCaughtError: vi.fn() }
+  );
+  expect(screen.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "再読み込み" })).toBeVisible();
+  expect(document.documentElement).toHaveAttribute("lang", "ja");
+  await actAsync(() => appI18n.changeLanguage("en"));
+  expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+  expect(document.documentElement).toHaveAttribute("lang", "en");
 });

@@ -1,4 +1,7 @@
-import { Component, type ReactNode } from "react";
+import { Component, type ReactNode, useLayoutEffect } from "react";
+
+import { useTranslation } from "react-i18next";
+import { appI18n } from "../i18n/instance";
 
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -15,14 +18,21 @@ const reloadPage = () => {
   window.location.reload();
 };
 
-export const AppErrorFallback = () => (
-  <RouteFeedback
-    title="Something went wrong"
-    description="Tango encountered an unexpected error. Reload the app to try again."
-    tone="error"
-    primaryAction={{ label: "Reload", onClick: reloadPage }}
-  />
-);
+export const AppErrorFallback = () => {
+  // This fallback also serves the boundary outside I18nProvider.
+  const { t, i18n } = useTranslation(undefined, { i18n: appI18n });
+  useLayoutEffect(() => {
+    document.documentElement.lang = i18n.resolvedLanguage ?? "en";
+  }, [i18n, i18n.resolvedLanguage]);
+  return (
+    <RouteFeedback
+      title={t("recovery.title")}
+      description={t("recovery.description")}
+      tone="error"
+      primaryAction={{ label: t("recovery.reload"), onClick: reloadPage }}
+    />
+  );
+};
 
 // biome-ignore lint/style/useReactFunctionComponents: React requires a class to define an Error Boundary without another dependency.
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {

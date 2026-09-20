@@ -1,3 +1,6 @@
+import { actAsync } from "@/test/act";
+import { getI18n } from "react-i18next";
+import { ImportFailure } from "../lib/importFailure";
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -16,7 +19,56 @@ const preview = {
   },
 } satisfies NonNullable<DeckImportViewProps["preview"]>;
 
-describe("DeckImportView [IMPORT-01 IMPORT-02 IMPORT-06]", () => {
+describe("DeckImportView [IMPORT-01 IMPORT-02 IMPORT-06 SETTINGS-09]", () => {
+  it.each([
+    [new ImportFailure("authentication"), "アカウントへのインポートには認証済みユーザーが必要です。"],
+    [new ImportFailure("account-changed"), "アカウントが変わりました。CSVファイルや例をもう一度選んでください。"],
+    [{ code: "permission-denied" }, "このデータをインポートする権限がありません。"],
+    [{ code: "unavailable" }, "接続できませんでした。接続を確認して再試行してください。"],
+    [
+      new DOMException("raw storage error", "QuotaExceededError"),
+      "データを保存できませんでした。ストレージの空き容量を確保して再試行してください。",
+    ],
+    [new Error("private server details"), "インポートのプレビューを準備できませんでした。"],
+  ])("localizes preview failure %s and updates it in place", async (error, message) => {
+    render(<DeckImportView examples={deckImportExamples} previewError={error} />);
+    const alert = screen.getByRole("alert");
+    await actAsync(() => getI18n().changeLanguage("ja"));
+    expect(screen.getByRole("alert")).toBe(alert);
+    expect(alert).toHaveTextContent(message);
+    expect(alert).not.toHaveTextContent("private server details");
+  });
+
+  it("localizes each cached diagnostic while keeping literal user context", async () => {
+    render(
+      <DeckImportView
+        examples={deckImportExamples}
+        preview={{
+          ...preview,
+          analysis: {
+            ...preview.analysis,
+            invalidCount: 5,
+            issues: [
+              { diagnostic: { kind: "duplicate", uniqueKey: "自作キー" }, context: "ユーザー入力" },
+              { diagnostic: { kind: "columns", count: 2 } },
+              { diagnostic: { kind: "empty" } },
+              { diagnostic: { kind: "parser", type: "Quotes", code: "InvalidQuotes" } },
+              { diagnostic: { kind: "parser", type: "Unknown", code: "Unknown" } },
+            ],
+          },
+        }}
+      />
+    );
+    await actAsync(() => getI18n().changeLanguage("ja"));
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("一意キー「自作キー」がファイル内で重複しています。");
+    expect(alert).toHaveTextContent("ユーザー入力");
+    expect(alert).toHaveTextContent("列数は4列である必要があります（現在は2列）。");
+    expect(alert).toHaveTextContent("CSVファイルが空です。");
+    expect(alert).toHaveTextContent("フィールドの閉じ引用符の形式が正しくありません。");
+    expect(alert).toHaveTextContent("CSVを解析できませんでした。形式を確認してください。");
+  });
+
   it("shows file selection first and keeps format details optional", async () => {
     render(<DeckImportView examples={deckImportExamples} />);
     expect(screen.getByRole("heading", { level: 1, name: "Add a deck" })).toBeVisible();
@@ -108,7 +160,13 @@ describe("DeckImportView [IMPORT-01 IMPORT-02 IMPORT-06]", () => {
           analysis: {
             ...preview.analysis,
             invalidCount: 1,
-            issues: [{ rowNumber: 3, message: "Unique key is required.", context: '["bad","back","",""]' }],
+            issues: [
+              {
+                rowNumber: 3,
+                diagnostic: { kind: "card", field: "uniqueKey", reason: "required" },
+                context: '["bad","back","",""]',
+              },
+            ],
           },
         }}
       />
@@ -120,7 +178,8 @@ describe("DeckImportView [IMPORT-01 IMPORT-02 IMPORT-06]", () => {
 
   it("explains preparation failures and leaves selection available", () => {
     render(<DeckImportView examples={deckImportExamples} previewError={new Error("file read failed")} />);
-    expect(screen.getByRole("alert")).toHaveTextContent("file read failed");
+    expect(screen.getByRole("alert")).toHaveTextContent("The import preview could not be prepared.");
+    expect(screen.getByRole("alert")).not.toHaveTextContent("file read failed");
     expect(screen.getByLabelText("Upload a csv file")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Try this example" })).toBeEnabled();
   });

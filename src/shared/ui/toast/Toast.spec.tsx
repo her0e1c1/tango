@@ -131,17 +131,16 @@ describe("Toast [ACCOUNT-05] [SWIPE-02] [ACCOUNT-02] [IMPORT-04] [IMPORT-05]", (
     expect(screen.getByRole("status")).toHaveTextContent(expected);
   });
 
-  it("includes error details in both the visible message and its announcement", () => {
+  it("includes localized failure guidance in both the visible message and its announcement", () => {
     render(<ToastViewport />);
 
     displayToast({
-      messageKey: "deckImport.toast.failureWithReason",
-      messageParams: { reason: "Card storage is unavailable." },
+      messageKey: "deckImport.errors.permission",
       tone: "error",
     });
 
-    expect(screen.getByText("Import failed. Card storage is unavailable.")).toBeVisible();
-    expect(screen.getByRole("alert")).toHaveTextContent("Error: Import failed. Card storage is unavailable.");
+    expect(screen.getByText("You do not have permission to import this data.")).toBeVisible();
+    expect(screen.getByRole("alert")).toHaveTextContent("Error: You do not have permission to import this data.");
   });
 
   it("dismisses the active notification from its close button", () => {

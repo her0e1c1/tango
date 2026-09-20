@@ -1,3 +1,4 @@
+import { ImportFailure } from "../../lib/importFailure";
 import { getAuthUid } from "@/entities/auth";
 import { generateCardId, type CardMutation } from "@/entities/card";
 import { generateDeckId } from "@/entities/deck";
@@ -13,7 +14,7 @@ interface DeckImportSource {
 
 function prepareDeckImport({ name, rows, storageMode = "remote" }: DeckImportSource, uid: string): PreparedDeckImport {
   const localMode = storageMode === "local";
-  if (!localMode && uid === "") throw new Error("A confirmed user is required for remote imports");
+  if (!localMode && uid === "") throw new ImportFailure("authentication");
 
   const deckId = generateDeckId();
   const mutations = rows.map((row): CardMutation => {

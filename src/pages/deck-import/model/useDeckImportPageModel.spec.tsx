@@ -175,7 +175,12 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
       analysis: {
         rows: [],
         invalidCount: 1,
-        issues: [expect.objectContaining({ rowNumber: 1, message: "Unique key is required." })],
+        issues: [
+          expect.objectContaining({
+            rowNumber: 1,
+            diagnostic: { kind: "card", field: "uniqueKey", reason: "required" },
+          }),
+        ],
       },
     });
     await expect(result.current.deckImport.importPreview()).resolves.toBe(false);
@@ -226,8 +231,7 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     expect(savedDeck).toBeDefined();
     expect(result.current.cards.filter((card) => card.deckId === savedDeck?.id)).toEqual([]);
     expect(controls.showToast).toHaveBeenCalledWith({
-      messageKey: "deckImport.toast.failureWithReason",
-      messageParams: { reason: "card mutation failed" },
+      messageKey: "deckImport.toast.failure",
       tone: "error",
     });
     const retryResult = await actAsync(async () => result.current.deckImport.importPreview());
@@ -262,8 +266,7 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     });
 
     expect(controls.showToast).toHaveBeenCalledExactlyOnceWith({
-      messageKey: "deckImport.toast.failureWithReason",
-      messageParams: { reason: "late card mutation failure" },
+      messageKey: "deckImport.toast.failure",
       tone: "error",
     });
   });
@@ -421,8 +424,7 @@ describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT
     expect(controls.remoteDeck).not.toHaveBeenCalled();
     expect(controls.remoteCard).not.toHaveBeenCalled();
     expect(controls.showToast).toHaveBeenCalledExactlyOnceWith({
-      messageKey: "deckImport.toast.failureWithReason",
-      messageParams: { reason: "The prepared Deck import belongs to a different user" },
+      messageKey: "deckImport.errors.accountChanged",
       tone: "error",
     });
   });

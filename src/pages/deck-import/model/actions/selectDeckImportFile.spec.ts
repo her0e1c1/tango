@@ -89,7 +89,7 @@ describe("Deck import selection and saving [IMPORT-01 IMPORT-03 IMPORT-04]", () 
 
     expect(deckImportStore.getState().source).toEqual({
       kind: "error",
-      error: new Error("A confirmed user is required for remote imports"),
+      error: expect.objectContaining({ code: "authentication" }),
     });
     await expect(importDeckPreview()).resolves.toBe(false);
     expect(createDeck).not.toHaveBeenCalled();

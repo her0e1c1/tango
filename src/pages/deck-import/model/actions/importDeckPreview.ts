@@ -1,3 +1,4 @@
+import { importFailureKey } from "../../lib/importFailure";
 import { getAuthUid } from "@/entities/auth";
 import { executePreparedDeckImport } from "./executePreparedDeckImport";
 import { showToast } from "@/shared/ui/toast";
@@ -23,9 +24,7 @@ export async function importDeckPreview(): Promise<boolean> {
     return true;
   } catch (error: unknown) {
     showToast({
-      ...(error instanceof Error
-        ? { messageKey: "deckImport.toast.failureWithReason" as const, messageParams: { reason: error.message } }
-        : { messageKey: "deckImport.toast.failure" as const }),
+      messageKey: importFailureKey(error) ?? "deckImport.toast.failure",
       tone: "error",
     });
     // Keep the prepared Deck/Card IDs so retries are safe after partial writes.

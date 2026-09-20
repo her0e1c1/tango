@@ -181,7 +181,7 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   const fault = await failNextFirestoreWrite(page, { collection: "card" });
 
   await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
-  await expect(page.getByRole("alert")).toContainText("Import failed.");
+  await expect(page.getByRole("alert")).toContainText("You do not have permission to import this data.");
   await expect(page.getByText(file.name, { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("radio", { name: /Sync with account/ })).toBeChecked();
   await expect.poll(async () => (await documentsForUid("deck", uid)).length).toBe(1);

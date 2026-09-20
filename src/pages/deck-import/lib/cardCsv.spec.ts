@@ -4,7 +4,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { parseCsv } from "./cardCsv";
 
-describe("card CSV import", () => {
+describe("IMPORT-01 IMPORT-02 card CSV import", () => {
   describe("parseCsv", () => {
     it("parses, normalizes, and validates string content", async () => {
       const analysis = await parseCsv('"front","back"," foo,foo, bar "," key "\n,,,');
@@ -28,11 +28,19 @@ describe("card CSV import", () => {
       expect(analysis.invalidCount).toBe(2);
       expect(analysis.rows).toEqual([]);
       expect(analysis.issues).toEqual([
-        { rowNumber: 1, message: "Front text is required.", context: '[" ","back",""," same "]' },
-        { rowNumber: 2, message: "Back text is required.", context: '["front"," ","","same"]' },
+        {
+          rowNumber: 1,
+          diagnostic: { kind: "card", field: "frontText", reason: "required" },
+          context: '[" ","back",""," same "]',
+        },
         {
           rowNumber: 2,
-          message: 'uniqueKey "same" is duplicated in this file.',
+          diagnostic: { kind: "card", field: "backText", reason: "required" },
+          context: '["front"," ","","same"]',
+        },
+        {
+          rowNumber: 2,
+          diagnostic: { kind: "duplicate", uniqueKey: "same" },
           context: '["front"," ","","same"]',
         },
       ]);
@@ -44,7 +52,13 @@ describe("card CSV import", () => {
       expect(analysis).toMatchObject({
         rows: [],
         invalidCount: 1,
-        issues: [{ rowNumber: 1, message: "Unique key is required.", context: '["front","back",""," "]' }],
+        issues: [
+          {
+            rowNumber: 1,
+            diagnostic: { kind: "card", field: "uniqueKey", reason: "required" },
+            context: '["front","back",""," "]',
+          },
+        ],
       });
     });
 
