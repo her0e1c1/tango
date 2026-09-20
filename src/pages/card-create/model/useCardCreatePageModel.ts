@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { getAuthUid } from "@/entities/auth";
 import { type CardContentInput, cardContentInputSchema } from "@/entities/card";
@@ -12,8 +12,7 @@ import { routes, useNavigationGuard } from "@/shared/router";
 
 import { submit as submitAction } from "./actions/submit";
 
-export function useCardCreateRouteModel() {
-  const { id: deckId } = useParams();
+export function useCardCreateRouteModel(deckId: string | undefined) {
   if (deckId === undefined) throw new Error("invalid deck id");
   const deck = useDeck(deckId);
   return { deckId, deck };

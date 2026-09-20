@@ -194,7 +194,7 @@ Given:
 - Fixture: [`study-back-text-overlays-long`](./fixture/study-back-text-overlays-long.yaml)
 - 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
 - 現在の Card に表示領域を超える長さの back text が設定されている。
-- back text swipe overlay の表示設定が有効になっている。
+- back text swipe overlay の表示設定が有効になり、左右とも前方へ進む action が設定されている。
 - viewport の幅が 320px になっている。
 
 When:
