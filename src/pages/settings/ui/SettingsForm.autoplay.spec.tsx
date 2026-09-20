@@ -27,7 +27,7 @@ describe.each([
     values: [
       { input: "0", visible: "No automatic advance (0s)", spoken: "No automatic advance (0 seconds)" },
       { input: "1", visible: "1s", spoken: "1 second" },
-      { input: "60", visible: "60s", spoken: "60秒" },
+      { input: "60", visible: "60s", spoken: "60 seconds" },
     ],
   },
   {
