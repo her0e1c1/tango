@@ -97,6 +97,7 @@ test("IMPORT-09 A failed remote Sample deck import retries without losing or dup
   const partialDeck = partialDecks[0];
   if (partialDeck === undefined) throw new Error("The sample destination was not created");
   const partialCards = await documentsForUid("card", uid);
+  expect(partialCards.length).toBeGreaterThan(0);
   expect(partialCards.length).toBeLessThan(sampleCards.length);
 
   await confirmSample(page);
