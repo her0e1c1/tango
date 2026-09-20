@@ -10,14 +10,14 @@ import { routes, useNavigationGuard } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
-import { useCardFormPageModel } from "../model/useCardFormPageModel";
+import { useCardEditPageModel } from "../model/useCardEditPageModel";
 import { CardEditor } from "./CardEditor";
 
-const CardFormContent: React.FC<{ card: Card }> = ({ card }) => {
+const CardEditContent: React.FC<{ card: Card }> = ({ card }) => {
   const navigate = useNavigate();
   // Keep one opening snapshot; subscription refreshes must not replace the draft.
   const [snapshot] = React.useState(card);
-  const { form, submit } = useCardFormPageModel(snapshot);
+  const { form, submit } = useCardEditPageModel(snapshot);
   const { isDirty, isSubmitting } = useFormState({ control: form.control });
   const guard = useNavigationGuard(isDirty || isSubmitting);
   const isMounted = useMountedGuard();
@@ -72,7 +72,7 @@ const CardFormContent: React.FC<{ card: Card }> = ({ card }) => {
   );
 };
 
-export const CardFormPage: React.FC = () => {
+export const CardEditPage: React.FC = () => {
   const { t } = useTranslation();
   const params = useParams();
   const cardId = params.id;
@@ -86,5 +86,5 @@ export const CardFormPage: React.FC = () => {
   }
 
   // Form state belongs to one route Card and must reset when the id changes.
-  return <CardFormContent key={cardId} card={card} />;
+  return <CardEditContent key={cardId} card={card} />;
 };

@@ -1,18 +1,18 @@
 import type { Deck } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
 
-import { deckFormPageStore } from "../store";
+import { deckEditPageStore } from "../store";
 import { saveDeck } from "./saveDeck";
 
-interface SubmitDeckFormInput {
+interface SubmitDeckEditInput {
   owner: symbol | undefined;
   deckId: Deck["id"];
   values: DeckFormFields;
   onSaved: () => void | Promise<void>;
 }
 
-export function submitDeckForm({ owner, deckId, values, onSaved }: SubmitDeckFormInput): Promise<void> {
-  const state = deckFormPageStore.getState();
+export function submitDeckEdit({ owner, deckId, values, onSaved }: SubmitDeckEditInput): Promise<void> {
+  const state = deckEditPageStore.getState();
   // Validation can finish after the originating form was replaced, including by the same Deck.
   if (owner === undefined || state.owner !== owner) return Promise.resolve();
   // Every concurrent caller must await the same save so its form stays pending until completion.
@@ -20,7 +20,7 @@ export function submitDeckForm({ owner, deckId, values, onSaved }: SubmitDeckFor
 
   const submission = saveDeck({ deckId, values })
     .then(async (saved) => {
-      if (saved && deckFormPageStore.getState().owner === owner) await onSaved();
+      if (saved && deckEditPageStore.getState().owner === owner) await onSaved();
     })
     .catch((error: unknown) => {
       // biome-ignore lint/suspicious/noConsole: Completion callback errors are not persistence failures.
@@ -28,8 +28,8 @@ export function submitDeckForm({ owner, deckId, values, onSaved }: SubmitDeckFor
     })
     .finally(() => {
       // An earlier visit must never release the current editor's save.
-      if (deckFormPageStore.getState().owner === owner) deckFormPageStore.setState({ submission: undefined });
+      if (deckEditPageStore.getState().owner === owner) deckEditPageStore.setState({ submission: undefined });
     });
-  deckFormPageStore.setState({ submission });
+  deckEditPageStore.setState({ submission });
   return submission;
 }

@@ -56,7 +56,7 @@ const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEdit
 const longCard = { ...fixture.card.long, tags: [...fixture.tags.toolong] };
 
 const meta = {
-  title: "Pages/Card Form/CardEditor",
+  title: "Pages/Card Edit/CardEditor",
   component: CardEditorStory,
   tags: ["autodocs"],
   decorators: [withPageLayout],

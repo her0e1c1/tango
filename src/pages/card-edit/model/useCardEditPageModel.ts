@@ -5,7 +5,7 @@ import { type Card, type CardContentInput, cardContentInputSchema } from "@/enti
 
 import { submit as submitAction } from "./actions/submit";
 
-export function useCardFormPageModel(card: Card) {
+export function useCardEditPageModel(card: Card) {
   const form = useForm<CardContentInput>({
     defaultValues: {
       frontText: card.frontText,

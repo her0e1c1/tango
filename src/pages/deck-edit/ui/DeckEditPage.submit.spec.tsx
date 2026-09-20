@@ -35,19 +35,19 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { DeckFormPage } from "./DeckFormPage";
+import { DeckEditPage } from "./DeckEditPage";
 
-const createDeckFormRouter = (deckId: string) =>
+const createDeckEditRouter = (deckId: string) =>
   createMemoryRouter(
     [
       { path: "/", element: <h1>Deck list</h1> },
-      { path: "/deck/:id/edit", element: <DeckFormPage /> },
+      { path: "/deck/:id/edit", element: <DeckEditPage /> },
     ],
     { initialEntries: [`/deck/${deckId}/edit`] }
   );
 
-describe("DeckFormPage submission [DECK-02]", () => {
-  const deckId = "deck-form-submit-deck";
+describe("DeckEditPage submission [DECK-02]", () => {
+  const deckId = "deck-edit-submit-deck";
 
   beforeEach(async () => {
     dismissToast();
@@ -63,7 +63,7 @@ describe("DeckFormPage submission [DECK-02]", () => {
       new Promise<void>((resolve) => {
         finishSave = resolve;
       });
-    const router = createDeckFormRouter(deckId);
+    const router = createDeckEditRouter(deckId);
     render(
       <>
         <RouterProvider router={router} />
@@ -82,7 +82,7 @@ describe("DeckFormPage submission [DECK-02]", () => {
   });
 
   it("saves a corrected draft after validation rejects the first submission", async () => {
-    const router = createDeckFormRouter(deckId);
+    const router = createDeckEditRouter(deckId);
     render(
       <>
         <RouterProvider router={router} />
@@ -101,7 +101,7 @@ describe("DeckFormPage submission [DECK-02]", () => {
     expect(screen.getByText("Updated deck “Corrected deck”.")).toBeVisible();
   });
 
-  it.each(["deck-form-submit-deck", "another-deck"])(
+  it.each(["deck-edit-submit-deck", "another-deck"])(
     "keeps the new editor submission pending when an earlier visit finishes (%s)",
     async (nextDeckId) => {
       await createDeck("", createLocalDeck({ id: nextDeckId, name: "Deck name" }));
@@ -110,7 +110,7 @@ describe("DeckFormPage submission [DECK-02]", () => {
         new Promise<void>((resolve) => {
           finishOldSave = resolve;
         });
-      const oldRouter = createDeckFormRouter(deckId);
+      const oldRouter = createDeckEditRouter(deckId);
       const view = render(<RouterProvider router={oldRouter} />);
       await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
       expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
@@ -121,7 +121,7 @@ describe("DeckFormPage submission [DECK-02]", () => {
         new Promise<void>((resolve) => {
           finishNewSave = resolve;
         });
-      const router = createDeckFormRouter(nextDeckId);
+      const router = createDeckEditRouter(nextDeckId);
       render(
         <React.StrictMode>
           <RouterProvider router={router} />
@@ -144,12 +144,12 @@ describe("DeckFormPage submission [DECK-02]", () => {
   );
 
   it("does not submit a replaced form when its asynchronous validation finishes", async () => {
-    const oldRouter = createDeckFormRouter(deckId);
+    const oldRouter = createDeckEditRouter(deckId);
     const view = render(<RouterProvider router={oldRouter} />);
     fireEvent.submit(screen.getByRole("button", { name: "Save changes" }));
     view.unmount();
 
-    const router = createDeckFormRouter(deckId);
+    const router = createDeckEditRouter(deckId);
     render(<RouterProvider router={router} />);
     await actAsync(async () => undefined);
 
@@ -166,7 +166,7 @@ describe("DeckFormPage submission [DECK-02]", () => {
       new Promise<void>((resolve) => {
         finishSave = resolve;
       });
-    const router = createDeckFormRouter(deckId);
+    const router = createDeckEditRouter(deckId);
     const { unmount } = render(<RouterProvider router={router} />);
     render(<ToastViewport />);
 

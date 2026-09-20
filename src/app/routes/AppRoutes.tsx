@@ -7,11 +7,11 @@ import { Outlet, type RouteObject } from "react-router-dom";
 
 import { AccountPage } from "@/pages/account";
 import { CardCreatePage } from "@/pages/card-create";
-import { CardFormPage } from "@/pages/card-form";
+import { CardEditPage } from "@/pages/card-edit";
 import { CardListPage } from "@/pages/card-list";
 import { CardViewPage } from "@/pages/card-view";
 import { DeckCreatePage } from "@/pages/deck-create";
-import { DeckFormPage } from "@/pages/deck-form";
+import { DeckEditPage } from "@/pages/deck-edit";
 import { DeckImportPage } from "@/pages/deck-import";
 import { DeckListPage } from "@/pages/deck-list";
 import { NotFoundPage } from "@/pages/not-found";
@@ -31,11 +31,11 @@ export const appRoutes = [
       { path: routes.deckCreate.path, element: <DeckCreatePage /> },
       { path: routes.cardList.path, element: <CardListPage /> },
       { path: routes.cardCreate.path, element: <CardCreatePage /> },
-      { path: routes.deckForm.path, element: <DeckFormPage /> },
+      { path: routes.deckForm.path, element: <DeckEditPage /> },
       { path: routes.deckStudyStart.path, element: <StudySessionStartPage /> },
       { path: routes.deckStudy.path, element: <StudySessionPage /> },
       { path: routes.cardView.path, element: <CardViewPage /> },
-      { path: routes.cardForm.path, element: <CardFormPage /> },
+      { path: routes.cardForm.path, element: <CardEditPage /> },
       { path: routes.account.path, element: <AccountPage /> },
       { path: routes.settings.path, element: <SettingsPage /> },
       { path: routes.deckImport.path, element: <DeckImportPage /> },

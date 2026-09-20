@@ -59,10 +59,10 @@ vi.mock("@/entities/card", async (importOriginal) => {
 });
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { CardFormPage } from "./CardFormPage";
+import { CardEditPage } from "./CardEditPage";
 
-describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardFormPage", () => {
-  const deckId = "card-form-deck";
+describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
+  const deckId = "card-edit-deck";
   const cardId = "card-id";
   const renderPage = (path = `/card/${cardId}/edit`) => {
     const router = createMemoryRouter(
@@ -70,7 +70,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardFormPage", () => {
         { path: "/previous", element: <h1>Previous page</h1> },
         { path: "/", element: <h1>Deck list</h1> },
         { path: "/deck/:id", element: <h1>Card list</h1> },
-        { path: "/card/:id/edit", element: <CardFormPage /> },
+        { path: "/card/:id/edit", element: <CardEditPage /> },
       ],
       { initialEntries: ["/previous", path], initialIndex: 1 }
     );
@@ -345,7 +345,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardFormPage", () => {
     expect(() =>
       render(
         <MemoryRouter>
-          <CardFormPage />
+          <CardEditPage />
         </MemoryRouter>
       )
     ).toThrowError("invalid card id");

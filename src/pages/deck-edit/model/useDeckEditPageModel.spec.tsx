@@ -10,7 +10,7 @@ import { DeckForm } from "@/features/deck-form";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalDeck } from "@/test/factories";
 
-import { useDeckFormPageModel } from "./useDeckFormPageModel";
+import { useDeckEditPageModel } from "./useDeckEditPageModel";
 
 const authControls = vi.hoisted(() => ({ uid: "user-id" }));
 const writeControls = vi.hoisted(() => ({
@@ -41,7 +41,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
 });
 
 const AvailableDeckFormHarness = (props: { deck: Deck; onCancel: () => void; onSaved: () => void }) => {
-  const { form, submit } = useDeckFormPageModel(props.deck);
+  const { form, submit } = useDeckEditPageModel(props.deck);
   return (
     <DeckForm
       mode="edit"
@@ -63,7 +63,7 @@ const StoredDeckFormHarness = (props: { deckId: DeckId; onCancel: () => void; on
   );
 };
 
-describe("DECK-02 DECK-07 DECK-12 useDeckFormPageModel", () => {
+describe("DECK-02 DECK-07 DECK-12 useDeckEditPageModel", () => {
   const deckId = "deck-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
     render(

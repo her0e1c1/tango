@@ -26,11 +26,11 @@ vi.mock("@/pages/account", () => ({
   },
 }));
 vi.mock("@/pages/card-create", () => ({ CardCreatePage: () => <div>Card create</div> }));
-vi.mock("@/pages/card-form", () => ({ CardFormPage: () => null }));
+vi.mock("@/pages/card-edit", () => ({ CardEditPage: () => null }));
 vi.mock("@/pages/card-list", () => ({ CardListPage: () => null }));
 vi.mock("@/pages/card-view", () => ({ CardViewPage: () => null }));
 vi.mock("@/pages/deck-create", () => ({ DeckCreatePage: () => <div>Deck create</div> }));
-vi.mock("@/pages/deck-form", () => ({ DeckFormPage: () => null }));
+vi.mock("@/pages/deck-edit", () => ({ DeckEditPage: () => null }));
 vi.mock("@/pages/deck-import", () => ({ DeckImportPage: () => null }));
 vi.mock("@/pages/deck-list", () => ({ DeckListPage: () => <div>Deck list</div> }));
 vi.mock("@/pages/settings", () => ({ SettingsPage: () => null }));

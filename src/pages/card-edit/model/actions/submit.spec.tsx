@@ -7,7 +7,7 @@ import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createCard } from "@/test/factories";
 
-import { useCardFormPageModel } from "../useCardFormPageModel";
+import { useCardEditPageModel } from "../useCardEditPageModel";
 import { submit } from "./submit";
 
 const session = vi.hoisted(() => ({ uid: "opening-user" as string | undefined }));
@@ -21,7 +21,7 @@ vi.mock("@/entities/card", async (importOriginal) => ({
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-describe("CARD-03 CARD-09 card form submission", () => {
+describe("CARD-03 CARD-09 card edit submission", () => {
   beforeEach(() => {
     dismissToast();
     vi.mocked(editCard).mockReset();
@@ -32,7 +32,7 @@ describe("CARD-03 CARD-09 card form submission", () => {
     "uses the session at submission (%s) and sends only editable content",
     async (uid) => {
       const card = createCard({ tags: ["custom-tag"], uid: "owner" });
-      const { result } = renderHook(() => useCardFormPageModel(card));
+      const { result } = renderHook(() => useCardEditPageModel(card));
       render(<ToastViewport />);
       session.uid = uid;
       const values = { ...result.current.form.getValues(), frontText: "Edited front", backText: "Edited back" };
