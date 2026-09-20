@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
 
+import type { DeckId } from "@/entities/deck";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { useResetStoreOnMount } from "@/shared/lib/useResetStoreOnMount";
 import { routes, useNavigationGuard } from "@/shared/router";
@@ -17,14 +18,16 @@ export function useDeckCreatePageModel() {
   const guard = useNavigationGuard(form.formState.isDirty);
   useResetStoreOnMount(deckCreatePageStore);
 
+  function openCreatedDeck(deckId: DeckId): void {
+    const to = routes.cardList.to(deckId);
+    void guard.allowNavigation({ historyAction: "REPLACE", to }, () => navigate(to, { replace: true }));
+  }
+
   const onSubmit = form.handleSubmit(async (values) => {
     const deckId = await submitDeckCreation(values);
     // The Page may unmount between the action resolving and this continuation.
     if (deckId === undefined || !isMounted()) return;
-    const cardListPath = routes.cardList.to(deckId);
-    void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
-      navigate(cardListPath, { replace: true })
-    );
+    openCreatedDeck(deckId);
   });
 
   return {

@@ -13,14 +13,14 @@ export async function submitDeckCreation(values: DeckFormFields): Promise<DeckId
   try {
     const uid = getAuthUid();
     const deckId = generateDeckId();
-    const deck = {
+    await createDeck(uid, {
       id: deckId,
       name: values.name,
       category: values.category,
       convertToBr: values.convertToBr,
+      localMode: values.localMode ?? false,
       ...(values.url === undefined ? {} : { url: values.url }),
-    };
-    await createDeck(uid, values.localMode ? { ...deck, localMode: true } : { ...deck, localMode: false });
+    });
     // Writes survive navigation, but resetting the store detaches their results.
     if (store.getState().mutationId !== mutationId) return;
     showToast({ messageKey: "deckForm.toast.created", messageParams: { name: values.name }, tone: "success" });
