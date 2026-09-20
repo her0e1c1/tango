@@ -29,6 +29,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     control: props.form.control,
     name: "study.maxNumberOfCardsToLearn",
   });
+  const maximumCardsLabel =
+    maxNumberOfCardsToLearn === 0 ? t("settings.study.maximumCards.allMatching") : maxNumberOfCardsToLearn;
   const cardInterval = useWatch({ control: props.form.control, name: "study.cardInterval" });
   const idPrefix = useId();
   const inputIds = {
@@ -185,10 +187,14 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
                 max={props.studyPreferencesLimits.maxNumberOfCardsToLearn.max}
                 id={inputIds.maxNumberOfCardsToLearn}
                 aria-describedby={descriptionId(inputIds.maxNumberOfCardsToLearn)}
-                aria-valuetext={t("settings.study.maximumCards.value", { count: maxNumberOfCardsToLearn })}
+                aria-valuetext={
+                  maxNumberOfCardsToLearn === 0
+                    ? t("settings.study.maximumCards.allMatching")
+                    : t("settings.study.maximumCards.value", { count: maxNumberOfCardsToLearn })
+                }
               />
               <span className="min-w-10 rounded-control bg-surface-muted px-2 py-1 text-center text-caption font-bold text-accent-primary">
-                {maxNumberOfCardsToLearn}
+                {maximumCardsLabel}
               </span>
             </div>
           </SettingsRow>

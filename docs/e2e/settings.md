@@ -53,12 +53,15 @@ Given:
 
 When:
 
-- Settings 画面で `Maximum cards` を現在と異なる上限に変更し、自動保存後にページを reload して対象 Deck の学習開始画面を開く。
+- 正の上限（既存 fixture の Card 数より少ない値と 1）および 0 のそれぞれで、Settings の `Maximum cards` をネイティブスライダーのキーボード操作で変更し、自動保存後に reload して新しい学習 session を開始する。
+- 0 の表示は英語・日本語で確認する。session 開始後に上限を変更して、Deck 一覧から Continue する。
 
 Then:
 
-- 学習開始画面に表示される対象 Card 数が変更後の上限と一致する。
-- start action に変更後の上限と同じ Card 数が表示される。
+- 正の上限では通常の数値表記を維持し、学習開始画面・start action・作成された session の Card 数が上限と一致する。
+- 0 の表示値とアクセシブルな値は「条件に一致するすべてのカード」（英語では `All matching cards`）となる。補足説明は 0 が枚数の制限なしを意味し、difficulty・tags・適用される復習条件による絞り込みは維持されることを説明する。
+- 0 でも数値 0 が保存され、reload 後も表示と値が維持される。学習開始画面・start action・新しい session はすべての学習対象 Card を含む。
+- 上限を変更して Continue しても、既存 session の Card ID と並び順は変わらない。
 - browser error が発生しない。
 
 <a id="settings-03"></a>

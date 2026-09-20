@@ -113,3 +113,51 @@ describe("SettingsForm", () => {
     expect(screen.getByRole("slider", { name: "自動再生の間隔" })).toHaveAttribute("aria-valuetext", "7秒");
   });
 });
+
+describe("SETTINGS-02 maximum card count presentation", () => {
+  it.each([
+    {
+      locale: "en",
+      label: "Maximum cards",
+      allMatching: "All matching cards",
+      single: "1 card",
+      plural: "2 cards",
+      help: "difficulty, tags, and any active review schedule",
+    },
+    {
+      locale: "ja",
+      label: "最大カード数",
+      allMatching: "条件に一致するすべてのカード",
+      single: "1枚",
+      plural: "2枚",
+      help: "難易度・タグ・有効な復習スケジュール",
+    },
+  ])(
+    "explains zero and preserves positive counts in $locale",
+    async ({ locale, label, allMatching, single, plural, help }) => {
+      await getI18n().changeLanguage(locale);
+      render(<SettingsFormHarness values={createPreferences({ maxNumberOfCardsToLearn: 0 })} />);
+
+      const slider = screen.getByRole("slider", { name: label });
+      expect(slider).toHaveValue("0");
+      expect(slider).toHaveAttribute("min", "0");
+      expect(slider).toHaveAttribute("max", "100");
+      expect(slider).toHaveAttribute("aria-valuetext", allMatching);
+      expect(slider).toHaveAccessibleDescription(expect.stringContaining(help));
+      expect(screen.getByText(allMatching)).toBeVisible();
+
+      fireEvent.change(slider, { target: { value: "1" } });
+      expect(slider).toHaveAttribute("aria-valuetext", single);
+      expect(screen.getByText("1")).toBeVisible();
+      expect(screen.queryByText(allMatching)).not.toBeInTheDocument();
+
+      fireEvent.change(slider, { target: { value: "2" } });
+      expect(slider).toHaveAttribute("aria-valuetext", plural);
+      expect(screen.getByText("2")).toBeVisible();
+
+      fireEvent.change(slider, { target: { value: "0" } });
+      expect(slider).toHaveAttribute("aria-valuetext", allMatching);
+      expect(screen.getByText(allMatching)).toBeVisible();
+    }
+  );
+});

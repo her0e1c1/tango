@@ -655,7 +655,8 @@ export const resources = {
           },
           maximumCards: {
             label: "Maximum cards",
-            help: "Limit the size of a study session",
+            help: "Limit new study sessions. 0 includes all cards matching difficulty, tags, and any active review schedule.",
+            allMatching: "All matching cards",
             value_one: "{{count}} card",
             value_other: "{{count}} cards",
           },
@@ -1339,7 +1340,8 @@ export const resources = {
           },
           maximumCards: {
             label: "最大カード数",
-            help: "1回の学習セッションのカード数を制限します",
+            help: "新しい学習セッションのカード数を制限します。0 は、難易度・タグ・有効な復習スケジュールの条件に一致するすべてのカードを対象にします。",
+            allMatching: "条件に一致するすべてのカード",
             value_one: "{{count}}枚",
             value_other: "{{count}}枚",
           },
