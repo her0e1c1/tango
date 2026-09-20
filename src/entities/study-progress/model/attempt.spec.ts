@@ -24,6 +24,7 @@ describe("StudyAttempt contract [SWIPE-02] [SWIPE-03] [SWIPE-27] [SWIPE-28]", ()
     { schemaVersion: 2 },
     { answeredAt: new Date(Number.NaN) },
     { timeZone: "Mars/Unknown" },
+    { timeZone: "+09:00" },
     { localDate: "2026-09-20" },
     { uid: "" },
     { cardId: "" },

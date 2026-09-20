@@ -248,6 +248,16 @@ describe("recordStudy with real transactions and owner Rules [SWIPE-02] [SWIPE-0
     }
   );
 
+  it.each([{ localDate: "2026-09-19" }, { timeZone: "Mars/Unknown" }, { timeZone: "+00:00" }])(
+    "rejects invalid reporting metadata before either write: %j",
+    async (metadata) => {
+      const operation = createStudyInput(metadata);
+      await expect(first.record(uid, operation, false)).rejects.toThrow();
+      expect(await progress()).toMatchObject({ difficulty: 5, numberOfSeen: 10 });
+      expect(await attempt(operation.operationId)).toBeUndefined();
+    }
+  );
+
   it("rejects foreign actors and invalid input without partial writes", async () => {
     const operation = createStudyInput();
     await expect(first.record("another-owner", operation, false)).rejects.toThrow();

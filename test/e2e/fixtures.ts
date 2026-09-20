@@ -310,7 +310,7 @@ const seedLocalData = async (page: Page, fixture: LocalDataFixture) => {
     );
     window.localStorage.setItem(
       "tango-local-cards",
-      JSON.stringify({ state: { localCards: value.cards ?? [] }, version: 1 })
+      JSON.stringify({ state: { localCards: value.cards ?? [], studyAttempts: [] }, version: 1 })
     );
     window.localStorage.setItem(
       "tango-study",

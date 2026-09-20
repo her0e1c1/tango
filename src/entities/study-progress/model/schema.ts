@@ -22,6 +22,8 @@ const timeZone = z
   .string()
   .min(1)
   .refine((value) => {
+    // Intl also accepts fixed UTC offsets; an Attempt records a named time zone.
+    if (value.startsWith("+") || value.startsWith("-")) return false;
     try {
       Intl.DateTimeFormat("en", { timeZone: value }).resolvedOptions();
       return true;

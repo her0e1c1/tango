@@ -46,7 +46,8 @@ service cloud.firestore {
           request.resource.data.difficulty >= 1 && request.resource.data.difficulty <= 10;
       }
       function validProgressUpdate() {
-        // Legacy difficulty-only controls are not review operations or FSRS parameter edits.
+        // The shared Card document also permits owner content edits, deletion, and manual difficulty edits.
+        // Only review count/time/schedule fields require a paired Attempt; this is not a Card-edit allowlist.
         return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'numberOfSeen', 'lastSeenAt', 'nextSeeingAt', 'interval', 'lastStudyOperationId'
         ]) || hasPairedReview();
@@ -55,6 +56,9 @@ service cloud.firestore {
       allow delete: if isOwner();
     }
     match /studyAttempt/{operationId} {
+      // Rules enforce shape, ownership, references, and paired writes. The operation's schema validates
+      // named time zones and their exact localDate; Rules have no IANA time-zone conversion database.
+      // As agreed in #367, owner-supplied reporting metadata is not protected against self-tampering.
       function validAttempt() {
         let data = request.resource.data;
         let card = get(/databases/$(database)/documents/card/$(data.cardId)).data;

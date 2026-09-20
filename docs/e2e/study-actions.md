@@ -183,4 +183,7 @@ Then:
 - 同じ ID・入力を復元し、Progress と Attempt を一度だけ保存してから一度だけ進む。
 - 応答消失後も同じ入力で結果を確認できる。保持済み Attempt は Card / Deck の削除後も所有者が確認できるが、対象不在への新規書き込みは拒否する。
 - 認証・session・Card・位置が変わった後の古い結果は現在の session を進めない。
-- 他ユーザー・未認証・不正データ・不正な参照先・Attempt の変更や削除は拒否する。
+- 他ユーザー・未認証・不正な参照先・Attempt の変更や削除は Rules で拒否する。
+- Rules は必須キー・型・rating・version・日時文字列の形式と Progress / Attempt の原子的な対応を検証する。共有 Card 文書の通常の内容編集・削除・difficulty 編集は許可し、評価の count・time・schedule の更新には Attempt を要求する。
+- 操作 API は書き込み前に IANA タイムゾーン名と answeredAt に対応する正確な localDate を検証する。不正なゾーン・固定 UTC offset・不一致の日付では両方とも保存しない。
+- Rules 自体は IANA の時差・夏時間変換を行わない。認証済み所有者が操作 API を迂回して申告する reporting metadata の意味的な正しさはサーバー保証の対象外とする（#367 の本人による改ざん防止を対象外とする方針）。
