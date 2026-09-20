@@ -1,14 +1,15 @@
+import { getAuthUid } from "@/entities/auth";
 import { deleteCard } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
 import { cardListStore } from "../store";
 
-export async function confirmCardDeletion(uid: string): Promise<void> {
+export async function confirmCardDeletion(): Promise<void> {
   const { deletionTarget, mutationId: pendingMutationId } = cardListStore.getState();
   if (deletionTarget == null || pendingMutationId !== undefined) return;
   const mutationId = Symbol();
   cardListStore.setState({ mutationId });
   try {
-    await deleteCard(uid, deletionTarget.id);
+    await deleteCard(getAuthUid(), deletionTarget.id);
     if (cardListStore.getState().mutationId !== mutationId) return;
     showToast({
       messageKey: "cardList.toast.deleted",

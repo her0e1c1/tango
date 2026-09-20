@@ -4,14 +4,14 @@ import { AiOutlineDown, AiOutlineEye, AiOutlineGlobal, AiOutlinePlayCircle, AiOu
 import { type UseFormReturn, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import type { Preferences } from "@/entities/preference";
+import type { SettingsFormValues } from "../model/queries/getSettingsFormValues";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 import { Select, Slider, Switch } from "@/shared/ui/forms";
 
 const repositoryUrl = "https://github.com/her0e1c1/tango";
 
 export interface SettingsFormProps {
-  form: UseFormReturn<Preferences>;
+  form: UseFormReturn<SettingsFormValues>;
   studyPreferencesLimits: {
     maxNumberOfCardsToLearn: { min: number; max: number };
     cardInterval: { min: number; max: number };

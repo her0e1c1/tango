@@ -39,7 +39,7 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
         form={model.form}
         isLocalOnly={deck.localMode}
         onCancel={model.onCancel}
-        onSubmit={(event) => void model.onSubmit(event)}
+        onSubmit={model.onSubmit}
         afterForm={
           <section
             aria-labelledby="delete-deck-heading"

@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 import { useStore } from "zustand";
 import { useAuth } from "@/entities/auth";
-import { type CardId, mustFindCardById } from "@/entities/card";
+import type { CardId } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import {
   clearDeckFilterRange,
@@ -15,6 +15,7 @@ import { routes } from "@/shared/router";
 import { useResetStoreOnMount } from "@/shared/lib/useResetStoreOnMount";
 import { changeCardSortOrder } from "./actions/changeCardSortOrder";
 import { cancelCardDeletion } from "./actions/cancelCardDeletion";
+import { closeCardAnswer } from "./actions/closeCardAnswer";
 import { showCardAnswer } from "./actions/showCardAnswer";
 import { cancelBulkDifficulty } from "./actions/cancelBulkDifficulty";
 import { changeBulkDifficulty } from "./actions/changeBulkDifficulty";
@@ -23,7 +24,7 @@ import { confirmBulkDifficulty } from "./actions/confirmBulkDifficulty";
 import { confirmCardDeletion } from "./actions/confirmCardDeletion";
 import { requestBulkDifficulty } from "./actions/requestBulkDifficulty";
 import { requestCardDeletion } from "./actions/requestCardDeletion";
-import { removeCardListTag } from "./actions/removeCardListTag";
+import { getRemainingCardListTags } from "./queries/getRemainingCardListTags";
 import { getCardListControls } from "./queries/getCardListControls";
 import { useCardListQuery } from "./queries/useCardListQuery";
 import { cardListStore } from "./store";
@@ -76,20 +77,24 @@ export function useCardListPageModel(deck: Deck) {
     setDifficultyMin: (difficultyMin: number | null) => updateDeckFilterDraft({ difficultyMin }, filterUpdate),
     setSelectedTags: (selectedTags: string[]) => updateDeckFilterDraft({ selectedTags }, filterUpdate),
     setTagAndFilter: (tagAndFilter: boolean) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate),
-    removeTag: (tag: string) => removeCardListTag(tag, filterUpdate),
+    removeTag: (tag: string) =>
+      updateDeckFilterDraft(
+        { selectedTags: getRemainingCardListTags(filterDraft.state.draft.selectedTags, tag) },
+        filterUpdate
+      ),
 
     goToCardCreate: () => void navigate(routes.cardCreate.to(deck.id)),
     goToCardEdit: (id: CardId) => void navigate(routes.cardForm.to(id)),
     requestBulk: () => requestBulkDifficulty(query.cards),
     cancelBulk: cancelBulkDifficulty,
-    confirmBulk: confirmBulkDifficulty,
+    confirmBulk: () => void confirmBulkDifficulty(),
     changeBulkDifficulty,
-    confirmDeletion: () => confirmCardDeletion(uid),
+    confirmDeletion: confirmCardDeletion,
     cancelDeletion: cancelCardDeletion,
     requestDeletion: requestCardDeletion,
     swipeLeft: (id: CardId) => void changeCardDifficulty(id, "again"),
     swipeRight: (id: CardId) => void changeCardDifficulty(id, "good"),
-    showAnswer: (id: CardId) => showCardAnswer(mustFindCardById(query.cards, id)),
-    closeAnswer: () => showCardAnswer(undefined),
+    showAnswer: showCardAnswer,
+    closeAnswer: closeCardAnswer,
   };
 }

@@ -42,7 +42,7 @@ export function useDeckListPageModel() {
     });
 
   useEffect(() => {
-    void bootstrapSampleDeck(decks, loadSample);
+    void bootstrapSampleDeck();
   }, [decks, loadSample]);
   useKey("s", () => void navigate(routes.settings.to()));
   useKey("i", () => void navigate(routes.deckImport.to()));
@@ -64,6 +64,6 @@ export function useDeckListPageModel() {
       void navigate(routes.deckStudy.to(id));
     },
     startStudy: (id: string) => void navigate(routes.deckStudyStart.to(id)),
-    downloadDeck: (id: string) => exportDeck(id, decks, cards),
+    downloadDeck: (id: string) => exportDeck(id),
   };
 }

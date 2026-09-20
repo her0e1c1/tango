@@ -34,6 +34,9 @@
 - Do not put business rules, validation, derived-data calculations, state transitions, or async workflow sequencing in the Page model.
 - Put derived-data calculations in `model/queries/`.
 - Put state-changing operations and workflows in `model/actions/`.
+- Keep Page-owned action interfaces simple. Do not define unnecessary parameters or make arguments complex merely because the implementation needs data or dependencies.
+- Accept only caller-selected inputs, such as target IDs, validated form values, or an intentional selection snapshot. Read other current data through existing public queries or the owning store instead of passing it through callers.
+- Do not pass navigation functions, completion callbacks, or dependency objects to ordinary Page-owned actions. Return the operation result and connect navigation in the Page model. Preserve identities and snapshots that are necessary for pending work and retries.
 - Actions may read and update Page-owned store state directly. Do not pass that store's snapshots, pending flags, or setters through the Page model or UI.
 - Expose ready-to-use callbacks as named Page model properties. Do not expose an actions object.
 - UI must not wire form submission, sequence actions, or provide workflow-completion callbacks.

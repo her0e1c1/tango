@@ -51,14 +51,14 @@ vi.mock("@/entities/deck", async (importOriginal) => {
       repository.decks = [...repository.decks.filter(({ id }) => id !== savedDeck.id), savedDeck];
       return Promise.resolve();
     },
-    useDecks: () => repository.decks,
+    getDecks: () => repository.decks,
   };
 });
 vi.mock("@/entities/preference", () => ({
   updatePreferences: (preferences: { loadSample?: boolean }) => {
     if (preferences.loadSample !== undefined) repository.loadSample = preferences.loadSample;
   },
-  usePreferences: () => ({ loadSample: repository.loadSample }),
+  getPreferences: () => ({ loadSample: repository.loadSample }),
 }));
 
 import { bootstrapSampleDeck } from "./bootstrapSampleDeck";
@@ -74,7 +74,7 @@ describe("bootstrapSampleDeck [IMPORT-07]", () => {
   it("persists the sample locally without a signed-in user", async () => {
     repository.uid = "";
 
-    await bootstrapSampleDeck(repository.decks, repository.loadSample);
+    await bootstrapSampleDeck();
 
     expect(repository.loadSample).toBe(false);
 
@@ -89,7 +89,7 @@ describe("bootstrapSampleDeck [IMPORT-07]", () => {
     const existingDeck = createDeck({ id: "existing-deck", uid: repository.uid, name: "Existing Deck" });
     repository.decks = [existingDeck];
 
-    await bootstrapSampleDeck(repository.decks, repository.loadSample);
+    await bootstrapSampleDeck();
 
     expect(repository.decks).toEqual([existingDeck]);
     expect(repository.cards).toEqual([]);
@@ -99,14 +99,14 @@ describe("bootstrapSampleDeck [IMPORT-07]", () => {
   it("does not add a sample when automatic loading is disabled", async () => {
     repository.loadSample = false;
 
-    await bootstrapSampleDeck(repository.decks, repository.loadSample);
+    await bootstrapSampleDeck();
 
     expect(repository.decks).toEqual([]);
     expect(repository.cards).toEqual([]);
   });
 
   it("converges repeated bootstrap attempts and stays disabled after the sample is removed", async () => {
-    await Promise.all([bootstrapSampleDeck([], true), bootstrapSampleDeck([], true)]);
+    await Promise.all([bootstrapSampleDeck(), bootstrapSampleDeck()]);
 
     expect(repository.loadSample).toBe(false);
     expect(repository.decks).toHaveLength(1);
@@ -114,7 +114,7 @@ describe("bootstrapSampleDeck [IMPORT-07]", () => {
 
     repository.decks = [];
     repository.cards = [];
-    await bootstrapSampleDeck(repository.decks, repository.loadSample);
+    await bootstrapSampleDeck();
 
     expect(repository.decks).toEqual([]);
     expect(repository.cards).toEqual([]);

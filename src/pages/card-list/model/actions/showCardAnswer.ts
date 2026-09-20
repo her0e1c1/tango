@@ -1,8 +1,7 @@
-import type { Card } from "@/entities/card";
+import { getCards, type CardId, mustFindCardById } from "@/entities/card";
 import { cardListStore } from "../store";
 
-export function showCardAnswer(card: Card | undefined): void {
-  cardListStore.setState({
-    shownCard: card === undefined ? undefined : { backText: card.backText, tags: card.tags },
-  });
+export function showCardAnswer(cardId: CardId): void {
+  const card = mustFindCardById(getCards(), cardId);
+  cardListStore.setState({ shownCard: { backText: card.backText, tags: card.tags } });
 }
