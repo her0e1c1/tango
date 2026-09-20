@@ -71,12 +71,8 @@ describe.each([
         expect(interval).toHaveAttribute("aria-valuetext", value.spoken);
         expect(screen.getByText(value.visible, { exact: true })).toBeVisible();
         expect(interval).toHaveAccessibleDescription(copy.description);
-        const autoplay = screen.getByRole("checkbox", { name: copy.autoplayLabel });
-        const playback = screen.getByRole("checkbox", { name: copy.playbackLabel });
-        if (defaultAutoPlay) expect(autoplay).toBeChecked();
-        else expect(autoplay).not.toBeChecked();
-        if (showPlaybackControls) expect(playback).toBeChecked();
-        else expect(playback).not.toBeChecked();
+        expect(screen.getByRole("checkbox", { name: copy.autoplayLabel })).toHaveProperty("checked", defaultAutoPlay);
+        expect(screen.getByRole("checkbox", { name: copy.playbackLabel })).toHaveProperty("checked", showPlaybackControls);
       }
     }
   );
