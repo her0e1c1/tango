@@ -3,11 +3,12 @@
  */
 
 import * as React from "react";
+import { AiOutlineDown, AiOutlinePlus, AiOutlineUpload } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 
 import type { Deck, DeckId } from "@/entities/deck";
 import type { StudySession } from "@/entities/study-session";
-import { Button } from "@/shared/ui/button";
+import { ActionsMenu } from "@/shared/ui/actions-menu";
 
 import { DeckListCard, type DeckListCardActions } from "./DeckListCard";
 
@@ -28,6 +29,7 @@ export interface DeckListProps {
   };
   deckCard?: DeckListCardActions;
   onCreateDeck: () => void;
+  onImportDeck: () => void;
 }
 
 /**
@@ -80,20 +82,52 @@ const DeckListSection: React.FC<{
 export const DeckList: React.FC<DeckListProps> = (props) => {
   const { t } = useTranslation();
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
+  const [actionsOpen, setActionsOpen] = React.useState(false);
   const total = props.sections.studying.length + props.sections.other.length;
-  const toggleMenu = (id: DeckId) => setOpenMenuDeckId((value) => (value === id ? undefined : id));
+  const toggleMenu = (id: DeckId) => {
+    setActionsOpen(false);
+    setOpenMenuDeckId((value) => (value === id ? undefined : id));
+  };
   const closeMenu = () => setOpenMenuDeckId(undefined);
 
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-baseline gap-3">
-          <h1 className="break-words text-title font-bold text-ink">{t("deckList.title")}</h1>
+        <h1 className="break-words text-title font-bold text-ink">{t("deckList.title")}</h1>
+        <div className="flex items-center gap-3">
           <span className="shrink-0 text-caption text-ink-muted">{t("deckList.count", { count: total })}</span>
+          <ActionsMenu
+            groupLabel={t("deckList.listActions")}
+            triggerLabel={t("deckList.listActions")}
+            menuLabel={t("deckList.listActions")}
+            triggerContent={
+              <>
+                {t("deckList.listActions")}
+                <AiOutlineDown aria-hidden="true" />
+              </>
+            }
+            open={actionsOpen}
+            onToggle={() => {
+              closeMenu();
+              setActionsOpen((open) => !open);
+            }}
+            onClose={() => setActionsOpen(false)}
+            items={[
+              {
+                key: "create",
+                label: t("deckList.create"),
+                icon: <AiOutlinePlus aria-hidden="true" />,
+                onSelect: props.onCreateDeck,
+              },
+              {
+                key: "import",
+                label: t("deckList.import"),
+                icon: <AiOutlineUpload aria-hidden="true" />,
+                onSelect: props.onImportDeck,
+              },
+            ]}
+          />
         </div>
-        <Button variant="primary" onClick={props.onCreateDeck}>
-          {t("deckList.create")}
-        </Button>
       </div>
       <DeckListSection
         title={t("deckList.sections.studyingTitle")}

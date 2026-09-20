@@ -108,12 +108,16 @@ describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 DeckListPage", (
     expect(await screen.findByRole("heading", { level: 1, name: "Deck editor destination" })).toBeVisible();
   });
 
-  it("navigates to Deck creation", async () => {
+  it.each([
+    ["Create deck", "Deck creator destination"],
+    ["Import decks", "Import destination"],
+  ])("navigates from the %s list action", async (label, destination) => {
     renderPage();
 
-    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: label }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Deck creator destination" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: destination })).toBeVisible();
   });
 
   it("deletes a local Deck and reports the visible result", async () => {

@@ -14,7 +14,8 @@ test("DECK-11 creates one empty local-only Deck without a remote duplicate", asy
   await fixture.apply(page);
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Create deck" }).click();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Create deck" }).click();
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   const localOnly = page.getByRole("radio", { name: "Local only" });

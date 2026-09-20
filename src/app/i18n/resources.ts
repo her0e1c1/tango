@@ -66,6 +66,8 @@ export const resources = {
         count_one: "{{count}} deck",
         count_other: "{{count}} decks",
         create: "Create deck",
+        import: "Import decks",
+        listActions: "Actions",
         sections: {
           studyingTitle: "Studying",
           studyingNote: "recent first",
@@ -693,6 +695,8 @@ export const resources = {
         count_one: "{{count}}件",
         count_other: "{{count}}件",
         create: "デッキを作成",
+        import: "デッキをインポート",
+        listActions: "アクション",
         sections: {
           studyingTitle: "学習中",
           studyingNote: "最近の順",
