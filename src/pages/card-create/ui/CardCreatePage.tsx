@@ -1,11 +1,8 @@
 import type * as React from "react";
-import { useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { CATEGORY, type Deck, useDeck } from "@/entities/deck";
-import type { CardFormFields } from "@/features/card-form";
-import { routes, useNavigationGuard } from "@/shared/router";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -13,32 +10,12 @@ import { useCardCreatePageModel } from "../model/useCardCreatePageModel";
 import { CardCreator } from "./CardCreator";
 
 const AvailableCardCreatePage: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const destination = routes.cardList.to(deck.id);
-  const { form, submit } = useCardCreatePageModel(deck.id);
-  const { isDirty, isSubmitting } = useFormState({ control: form.control });
-  const guard = useNavigationGuard(isDirty || isSubmitting, {
-    description: isSubmitting ? t("cardForm.create.submittingDescription") : undefined,
-  });
-  const create = async (values: CardFormFields): Promise<void> => {
-    if (await submit(values)) {
-      void guard.allowNavigation({ historyAction: "REPLACE", to: destination }, () =>
-        navigate(destination, { replace: true })
-      );
-    }
-  };
+  const { form, navigationGuard, onCancel, onSubmit } = useCardCreatePageModel(deck.id);
 
   return (
     <AppLayout showHeader>
-      <CardCreator
-        categories={CATEGORY}
-        deckName={deck.name}
-        form={form}
-        onCancel={() => void navigate(destination)}
-        onSubmit={create}
-      />
-      {guard.element}
+      <CardCreator categories={CATEGORY} deckName={deck.name} form={form} onCancel={onCancel} onSubmit={onSubmit} />
+      {navigationGuard}
     </AppLayout>
   );
 };

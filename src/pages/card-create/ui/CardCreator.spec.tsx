@@ -1,8 +1,11 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useForm } from "react-hook-form";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
+import { type CardContentInput, cardContentInputSchema } from "@/entities/card";
 import { CATEGORY, createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalDeck } from "@/test/factories";
@@ -26,14 +29,17 @@ vi.mock("@/entities/card", async (importOriginal) => {
   };
 });
 
-import { useCardCreatePageModel } from "../model/useCardCreatePageModel";
+import { submit } from "../model/actions/submit";
 import { CardCreator } from "./CardCreator";
 
 const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
 const savedCards: { uid: string; card: Parameters<typeof writes.createCard>[1] }[] = [];
 
 const CardCreatorHarness = () => {
-  const { form, submit } = useCardCreatePageModel(deck.id);
+  const form = useForm<CardContentInput>({
+    defaultValues: { frontText: "", backText: "", tags: [] },
+    resolver: zodResolver(cardContentInputSchema),
+  });
   return (
     <>
       <CardCreator
@@ -42,7 +48,7 @@ const CardCreatorHarness = () => {
         form={form}
         onCancel={vi.fn()}
         onSubmit={async (values) => {
-          await submit(values);
+          await submit({ uid: "user-id", deckId: deck.id, values });
         }}
       />
       <ToastViewport />
