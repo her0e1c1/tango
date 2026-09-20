@@ -34,6 +34,7 @@ CSV の検証から保存先別の import、失敗後の再試行、Sample Deck 
 | IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](#import-07) |
 | IMPORT-08 | batch | [Sample deck の全内容を local-only に取り込んで学習できる](#import-08) |
 | IMPORT-09 | batch | [Sample deck の remote 保存失敗から重複なく回復できる](#import-09) |
+| IMPORT-10 | batch | [Google 未ログインでも匿名認証で Sample deck を remote に取り込める](#import-10) |
 
 <a id="import-01"></a>
 
@@ -257,4 +258,29 @@ Then:
 - 再試行成功後は reload を待たずに Deck 一覧へ遷移し、取り込んだ Deck が表示される。
 - 成功通知の件数と Card 一覧の件数が sample の全件数と一致する。
 - 現在の UID の remote data に sample の表裏、タグ、uniqueKey、引用符と改行が完全に維持され、local-only data は作成されない。
+- 未処理の browser error が発生しない。
+
+<a id="import-10"></a>
+
+### IMPORT-10 Google 未ログインでも匿名認証で Sample deck を remote に取り込める
+
+カテゴリ: `batch`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 新しい browser context で Google にログインしていない。
+- 認証応答を模擬せず、Auth emulator によるアプリの匿名認証と Firestore emulator を利用する。
+
+When:
+
+- Import 画面を直接開き、remote の保存先で Sample deck の追加を確定する。
+- アカウント画面で匿名状態を確認し、Deck 一覧へ戻って reload する。
+
+Then:
+
+- Google ログイン操作なしで import が成功する。
+- 保存成功後は reload を待たずに Deck 一覧へ遷移し、対象の Deck と成功通知が表示される。
+- 全 Card は実際に発行された匿名 UID の Deck に保存され、local-only data は作成されない。
+- reload 後も対象 Deck を開いて全 Card を表示できる。
 - 未処理の browser error が発生しない。
