@@ -162,6 +162,110 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-1
     });
   });
 
+  it("removes a selected tag via keyboard, keeps focus on the remaining chip, and continues Tab navigation", async () => {
+    const user = userEvent.setup();
+    const otherMatchingCard = createCard({
+      id: "card-2",
+      deckId: deck.id,
+      frontText: "Second card",
+      backText: "Back 2",
+      difficulty: 4,
+      tags: ["typescript", "react"],
+    });
+    renderCardList({ cards: [card, otherMatchingCard] });
+
+    const typescriptChip = screen.getByRole("button", { name: "Remove typescript filter" });
+    typescriptChip.focus();
+    expect(typescriptChip).toHaveFocus();
+
+    await user.keyboard("{Enter}");
+
+    const reactChip = screen.getByRole("button", { name: "Remove react filter" });
+    expect(reactChip).toHaveFocus();
+    expect(screen.queryByRole("button", { name: "Remove typescript filter" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "View Front" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "View Second card" })).toBeVisible();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "View Front" })).toHaveFocus();
+
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
+      id: deck.id,
+      difficultyMax: 4,
+      difficultyMin: 3,
+      selectedTags: ["react"],
+      tagAndFilter: false,
+    });
+  });
+
+  it("removes the final selected tag via keyboard and moves focus to the closed filters summary", async () => {
+    const user = userEvent.setup();
+    renderCardList({ deck: { ...deck, selectedTags: ["react"] } });
+
+    const reactChip = screen.getByRole("button", { name: "Remove react filter" });
+    reactChip.focus();
+    expect(reactChip).toHaveFocus();
+
+    await user.keyboard(" ");
+
+    expect(screen.queryByRole("button", { name: "Remove react filter" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Filters")).toHaveFocus();
+
+    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
+      id: deck.id,
+      difficultyMax: 4,
+      difficultyMin: 3,
+      selectedTags: [],
+      tagAndFilter: false,
+    });
+  });
+
+  it("does not steal keyboard focus when the filter autosave finishes", async () => {
+    let resolveSave: () => void = vi.fn();
+    mocks.editDeck.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSave = resolve;
+        })
+    );
+    const user = userEvent.setup();
+    renderCardList({ deck: { ...deck, selectedTags: ["react"] } });
+
+    const reactChip = screen.getByRole("button", { name: "Remove react filter" });
+    reactChip.focus();
+    await user.keyboard("{Enter}");
+
+    const settingsButton = screen.getByRole("button", { name: "Open settings" });
+    settingsButton.focus();
+    expect(settingsButton).toHaveFocus();
+
+    await actAsync(async () => {
+      resolveSave();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "View Front" })).toBeEnabled());
+    expect(settingsButton).toHaveFocus();
+  });
+
+  it("preserves focus and does not alter filter state when tabbing through tags without removing them", async () => {
+    const user = userEvent.setup();
+    renderCardList();
+
+    const typescriptChip = screen.getByRole("button", { name: "Remove typescript filter" });
+    typescriptChip.focus();
+    expect(typescriptChip).toHaveFocus();
+
+    await user.tab();
+    const reactChip = screen.getByRole("button", { name: "Remove react filter" });
+    expect(reactChip).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(typescriptChip).toHaveFocus();
+
+    expect(mocks.editDeck).not.toHaveBeenCalled();
+  });
+
   it("does not report the full difficulty domain as an active filter", () => {
     const fullRangeDeck = createDeck({
       ...deck,

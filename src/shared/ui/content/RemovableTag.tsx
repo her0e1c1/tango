@@ -13,6 +13,7 @@ export interface RemovableTagProps {
   className?: string;
   label: string;
   onRemove: (label: string) => void;
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
 /**
@@ -20,11 +21,12 @@ export interface RemovableTagProps {
  * Displays a selected filter as a button and calls onRemove when the user asks to remove that
  * label.
  */
-export const RemovableTag: React.FC<RemovableTagProps> = ({ className, label, onRemove }) => {
+export const RemovableTag: React.FC<RemovableTagProps> = ({ className, label, onRemove, ref }) => {
   const { t } = useTranslation();
 
   return (
     <button
+      ref={ref}
       type="button"
       aria-label={t("tag.removeFilter", { label })}
       className={tagClassName({

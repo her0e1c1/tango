@@ -128,6 +128,28 @@ export const CardList: React.FC<CardListProps> = (props) => {
   const { t } = useTranslation();
   const filter = props.filter ?? emptyFilter;
   const [actionsOpen, setActionsOpen] = React.useState(false);
+  const summaryRef = React.useRef<HTMLElement>(null);
+  const tagRefs = React.useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const handleRemoveTag = (tag: string) => {
+    const currentIndex = filter.selectedTags.indexOf(tag);
+    const nextSelectedTags = filter.selectedTags.filter((selectedTag) => selectedTag !== tag);
+
+    if (nextSelectedTags.length === 0) {
+      // Removing the final chip unmounts the list. Move focus to the visible Filters
+      // disclosure so keyboard navigation remains unbroken on the screen.
+      summaryRef.current?.focus();
+    } else {
+      // Move focus to a neighboring chip before removing this one so keyboard focus stays
+      // visible and predictable instead of falling back to document body.
+      const targetIndex = currentIndex < nextSelectedTags.length ? currentIndex : nextSelectedTags.length - 1;
+      const targetTag = nextSelectedTags[targetIndex];
+      const targetButton = targetTag !== undefined ? tagRefs.current.get(targetTag) : undefined;
+      (targetButton ?? summaryRef.current)?.focus();
+    }
+
+    props.onRemoveTag?.(tag);
+  };
 
   return (
     <>
@@ -185,7 +207,11 @@ export const CardList: React.FC<CardListProps> = (props) => {
       <fieldset className="contents" disabled={props.disabled}>
         <div className="flex flex-col gap-2">
           <details className="group rounded-surface border border-border bg-surface shadow-surface">
-            <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded-surface px-3 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden">
+            <summary
+              ref={summaryRef}
+              aria-label={t("cardList.filters.title")}
+              className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded-surface px-3 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden"
+            >
               <span>{t("cardList.filters.title")}</span>
               <span className="flex min-w-0 items-center gap-2">
                 <span className="min-w-0 truncate text-caption font-medium text-ink-muted">
@@ -207,7 +233,17 @@ export const CardList: React.FC<CardListProps> = (props) => {
             >
               {filter.selectedTags.map((tag) => (
                 <li key={tag} className="max-w-full">
-                  <RemovableTag label={tag} onRemove={(value) => props.onRemoveTag?.(value)} />
+                  <RemovableTag
+                    ref={(element) => {
+                      if (element) {
+                        tagRefs.current.set(tag, element);
+                      } else {
+                        tagRefs.current.delete(tag);
+                      }
+                    }}
+                    label={tag}
+                    onRemove={handleRemoveTag}
+                  />
                 </li>
               ))}
             </ul>
