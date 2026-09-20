@@ -48,6 +48,8 @@
 | SETTINGS-07 | read | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](./settings.md#settings-07) |
 | SETTINGS-09 | write | [CSV の検証結果が再読み込みなしで言語変更に追随する](./settings.md#settings-09) |
 | SETTINGS-08 | write | [Card の検証エラーが言語変更に追随し入力を保持する](./settings.md#settings-08) |
+| SETTINGS-10 | write | [自動再生の間隔の0の意味を表示して数値のまま保存できる](./settings.md#settings-10) |
+| SETTINGS-11 | batch | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](./settings.md#settings-11) |
 
 ### Import
 
