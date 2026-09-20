@@ -19,6 +19,7 @@ const labelKeys = {
 
 export interface SwipeButtonListProps {
   disabled?: boolean;
+  disabledDirections?: Partial<Record<SwipeDirection, boolean>>;
   onClickUp?: () => void;
   onClickDown?: () => void;
   onClickLeft?: () => void;
@@ -37,7 +38,7 @@ export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => {
           aria-label={t(labelKeys[d])}
           key={d}
           className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-transparent text-ink-muted transition-colors duration-fast ease-calm hover:border-border hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={props.disabled}
+          disabled={props.disabled || props.disabledDirections?.[d]}
           onClick={() => {
             if (d === "cardSwipeUp") {
               props.onClickUp?.();

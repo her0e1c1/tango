@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import { CardView } from "@/entities/card";
 import { AppLayout } from "@/widgets/app-layout";
@@ -9,7 +10,8 @@ import { useCardViewPageModel } from "../model/useCardViewPageModel";
 
 export const CardViewPage: React.FC = () => {
   const { t } = useTranslation();
-  const state = useCardViewPageModel();
+  const params = useParams();
+  const state = useCardViewPageModel(params.id);
 
   if (state == null) {
     return (
