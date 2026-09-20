@@ -16,6 +16,9 @@ import {
   where,
 } from "firebase/firestore";
 import { replaceAuthSession } from "@/entities/auth";
+import { cardStore } from "@/entities/card/model/store";
+import { deckStore } from "@/entities/deck/model/store";
+import { preferencesStore } from "@/entities/preference/model/store";
 import {
   abandonStudySession,
   clearStudySessions,
@@ -29,8 +32,8 @@ import {
 import { createStudySession, updateStudySession } from "@/entities/study-session/api/firestore";
 import { studySessionStore } from "@/entities/study-session/model/store";
 import type { StudySession } from "@/entities/study-session/model/types";
-import { startDeckStudy } from "@/pages/study-session-start/model/actions/startDeckStudy";
-import { createDeck } from "@/test/factories";
+import { startStudySession } from "@/pages/study-session-start/model/actions/startStudySession";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { testDb } from "@/test/initializeTestFirestore";
 
 vi.mock("@/shared/firebase", async () => ({ db: (await import("@/test/initializeTestFirestore")).testDb }));
@@ -46,6 +49,9 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
 
   beforeEach(() => {
     clearStudySessions();
+    cardStore.setState({ remoteCards: [], localCards: [] });
+    deckStore.setState({ remoteDecks: [], localDecks: [] });
+    preferencesStore.setState({ preferences: createPreferences({ study: preferences }) });
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null });
     deckId = crypto.randomUUID();
   });
@@ -55,6 +61,8 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     await enableNetwork(testDb);
     await waitForPendingWrites(testDb);
     clearStudySessions();
+    cardStore.setState({ remoteCards: [], localCards: [] });
+    deckStore.setState({ remoteDecks: [], localDecks: [] });
     vi.restoreAllMocks();
   });
   afterAll(async () => {
@@ -169,7 +177,11 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
   it("starts and restarts after offline rehydration while another Deck has pending writes", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const deck = createDeck({ id: deckId });
-    expect(startDeckStudy(deck, cards, preferences)).toBe(true);
+    const otherDeck = createDeck({ id: crypto.randomUUID() });
+    const otherCards = cards.map((card) => createCard({ ...card, id: `other-${card.id}`, deckId: otherDeck.id }));
+    deckStore.setState({ remoteDecks: [deck, otherDeck] });
+    cardStore.setState({ remoteCards: [...cards.map((card) => createCard({ ...card, deckId })), ...otherCards] });
+    expect(startStudySession(deck.id, deck)).toBe(true);
     setStudySessionIndex(deckId, 1);
     await waitForPendingWrites(testDb);
     const previous = getStudySession(deckId);
@@ -185,10 +197,9 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     await studySessionStore.persist.rehydrate();
     stop = subscribeStudySessions("uid", vi.fn());
     expect(getStudySession(deckId)).toEqual(previous);
-    const otherDeck = createDeck({ id: crypto.randomUUID() });
-    expect(startDeckStudy(otherDeck, cards, preferences)).toBe(true);
-    expect(getStudySession(otherDeck.id)?.cardOrderIds).toEqual(cards.map(({ id }) => id));
-    expect(startDeckStudy(deck, cards, preferences)).toBe(true);
+    expect(startStudySession(otherDeck.id, otherDeck)).toBe(true);
+    expect(getStudySession(otherDeck.id)?.cardOrderIds).toEqual(otherCards.map(({ id }) => id));
+    expect(startStudySession(deck.id, deck)).toBe(true);
     const restarted = getStudySession(deckId);
     expect(restarted?.sessionId).not.toBe(previous?.sessionId);
     expect(restarted?.currentIndex).toBe(0);

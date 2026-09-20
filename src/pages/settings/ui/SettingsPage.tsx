@@ -6,15 +6,15 @@ import { useSettingsPageModel } from "../model/useSettingsPageModel";
 import { SettingsForm } from "./SettingsForm";
 
 export const SettingsPage: React.FC = () => {
-  const { form, studyPreferencesLimits } = useSettingsPageModel();
+  const { form, studyPreferencesLimits, version, commitHash } = useSettingsPageModel();
 
   return (
     <AppLayout showHeader>
       <SettingsForm
         form={form}
         studyPreferencesLimits={studyPreferencesLimits}
-        version={__APP_VERSION__}
-        commitHash={__COMMIT_HASH__}
+        version={version}
+        commitHash={commitHash}
       />
     </AppLayout>
   );

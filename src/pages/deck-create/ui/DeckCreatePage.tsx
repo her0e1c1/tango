@@ -18,7 +18,7 @@ export const DeckCreatePage: React.FC = () => {
         form={model.form}
         isLocalModeLocked={model.pending}
         onCancel={model.onCancel}
-        onSubmit={(event) => void model.onSubmit(event)}
+        onSubmit={model.onSubmit}
       />
     </AppLayout>
   );

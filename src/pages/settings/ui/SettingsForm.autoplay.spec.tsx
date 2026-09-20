@@ -9,10 +9,11 @@ import "@testing-library/jest-dom/vitest";
 import { studyPreferencesLimits, type Preferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
+import { getSettingsFormValues, type SettingsFormValues } from "../model/queries/getSettingsFormValues";
 import { SettingsForm } from "./SettingsForm";
 
 const SettingsFormHarness: React.FC<{ values: Preferences }> = ({ values }) => {
-  const form = useForm<Preferences>({ defaultValues: values });
+  const form = useForm<SettingsFormValues>({ defaultValues: getSettingsFormValues(values) });
   return <SettingsForm form={form} studyPreferencesLimits={studyPreferencesLimits} />;
 };
 

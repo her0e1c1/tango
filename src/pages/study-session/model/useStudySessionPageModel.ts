@@ -7,7 +7,7 @@ import {
   toggleShowSwipeButtonList,
 } from "@/entities/preference";
 import { routes } from "@/shared/router";
-import { useStudyShortcuts } from "./actions/useStudyShortcuts";
+import { useStudyShortcuts } from "./useStudyShortcuts";
 import { useAuth } from "@/entities/auth";
 import type { DeckId } from "@/entities/deck";
 import { closeHelp } from "./actions/closeHelp";
@@ -32,7 +32,7 @@ export function useStudySessionPageModel(deckId: DeckId) {
   const pageState = useStudySessionPageState(uid, deckId);
   useEffect(() => enterStudySessionPage(uid, deckId), [uid, deckId]);
   useEffect(() => restoreStudyOperation(uid, deckId, query.sessionId), [uid, deckId, query.sessionId]);
-  useEffect(() => maintainStudySession(deckId, query.sessionState.status), [deckId, query.sessionState.status]);
+  useEffect(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
   useAutoPlay(query.sessionState);
   useStudyShortcuts({
     uid,

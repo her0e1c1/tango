@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
+import { routes } from "@/shared/router";
 
 import { useAuth } from "@/entities/auth";
 import { type Deck, useDeck } from "@/entities/deck";
-import { routes } from "@/shared/router";
 import {
   useDeckFilterDraft,
   getDeckFilterState,
@@ -11,7 +11,7 @@ import {
   updateDeckFilterDraft,
 } from "@/features/deck-filter";
 
-import { startDeckStudy } from "./actions/startDeckStudy";
+import { startStudySession } from "./actions/startStudySession";
 import { useStudyStartShortcut } from "./actions/useStudyStartShortcut";
 import { useStudySessionStartState } from "./queries/useStudySessionStartState";
 
@@ -36,7 +36,7 @@ export function useStudySessionStartPageModel(deck: Deck) {
   const state = useStudySessionStartState(deck.id, filterDraft.state.draft);
   const start = () => {
     if (filter.saving) return;
-    if (startDeckStudy(deck, state.cards, state.studyPreferences)) {
+    if (startStudySession(deck.id, filterDraft.state.draft)) {
       void navigate(routes.deckStudy.to(deck.id), { replace: true });
     }
   };

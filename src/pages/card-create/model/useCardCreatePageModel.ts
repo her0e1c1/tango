@@ -3,7 +3,6 @@ import { useForm, useFormState } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import { getAuthUid } from "@/entities/auth";
 import { type CardContentInput, cardContentInputSchema } from "@/entities/card";
 import { CATEGORY, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
@@ -34,7 +33,7 @@ export function useCardCreatePageModel(deckId: string) {
   });
 
   async function onSubmit(values: CardContentInput): Promise<void> {
-    if (await submitAction({ uid: getAuthUid(), deckId, values })) {
+    if (await submitAction({ deckId, values })) {
       void guard.allowNavigation({ historyAction: "REPLACE", to: destination }, () =>
         navigate(destination, { replace: true })
       );

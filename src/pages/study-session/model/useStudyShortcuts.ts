@@ -1,9 +1,9 @@
 import { useKey, useLatest } from "react-use";
 import { toggleShowSwipeButtonList } from "@/entities/preference";
 import { shouldIgnoreCardShortcut } from "@/features/card-player";
-import { swipeCard } from "./swipeCard";
-import { toggleBackText } from "./toggleBackText";
-import { toggleAutoPlay } from "./toggleAutoPlay";
+import { swipeCard } from "./actions/swipeCard";
+import { toggleBackText } from "./actions/toggleBackText";
+import { toggleAutoPlay } from "./actions/toggleAutoPlay";
 
 type StudyShortcutAction =
   | "swipeUp"

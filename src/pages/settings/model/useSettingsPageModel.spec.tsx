@@ -53,6 +53,8 @@ const PreferencesFormHarness: React.FC = () => {
       <output aria-label="Saved maximum cards">{savedPreferences.study.maxNumberOfCardsToLearn}</output>
       <output aria-label="Saved autoplay interval">{savedPreferences.study.cardInterval}</output>
       <output aria-label="Saved language preference">{savedPreferences.language}</output>
+      <output aria-label="Saved sample preference">{String(savedPreferences.loadSample)}</output>
+      <output aria-label="Saved help preference">{String(savedPreferences.controls.showHelp)}</output>
       <output aria-label="Saved dark mode preference">{String(savedPreferences.appearance.darkMode)}</output>
     </>
   );
@@ -82,6 +84,21 @@ describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 settings page model", () => {
       expect(screen.getByLabelText("Saved autoplay interval")).toHaveTextContent("10");
       expect(screen.getByLabelText("Saved language preference")).toHaveTextContent("ja");
       expect(screen.getByLabelText("Saved dark mode preference")).toHaveTextContent("true");
+    });
+  });
+
+  it("preserves preferences outside the form when autosaving a changed theme", async () => {
+    render(<PreferencesFormHarness />, { wrapper: MemoryRouter });
+    act(() => {
+      updatePreferences({ loadSample: false, controls: { showHelp: false } });
+    });
+
+    await userEvent.click(screen.getByRole("checkbox", { name: "Dark mode" }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Saved dark mode preference")).toHaveTextContent("true");
+      expect(screen.getByLabelText("Saved sample preference")).toHaveTextContent("false");
+      expect(screen.getByLabelText("Saved help preference")).toHaveTextContent("false");
     });
   });
 
