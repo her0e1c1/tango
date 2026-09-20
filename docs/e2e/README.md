@@ -85,13 +85,13 @@
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
 | CARD-01 | read | [Card 一覧に学習情報を表示できる](./card-view.md#card-01) |
-| CARD-02 | read | [Card の裏面 overlay を開ける](./card-view.md#card-02) |
+| CARD-02 | read | [Card の裏面 overlay を閉じられる](./card-view.md#card-02) |
 | CARD-03 | write | [Card 編集内容を保存して reload 後も確認できる](./card-management.md#card-03) |
 | CARD-04 | write | [Card を削除できる](./card-management.md#card-04) |
 | CARD-05 | write | [Card の右 swipe で difficulty を下げられる](./card-list-actions.md#card-05) |
 | CARD-06 | write | [Card の左 swipe で difficulty を上げられる](./card-list-actions.md#card-06) |
 | CARD-07 | read | [開いている Card の裏面 overlay を閉じられる](./card-view.md#card-07) |
-| CARD-08 | write | [Card の削除を取り消せる](./card-management.md#card-08) |
+| CARD-08 | read | [Card の削除を取り消せる](./card-management.md#card-08) |
 | CARD-09 | write | [Card の編集失敗後に再試行できる](./card-management.md#card-09) |
 | CARD-10 | write | [difficulty と tag の filter を保存して Card 一覧へ反映できる](./card-list-actions.md#card-10) |
 | CARD-11 | read | [Card view を直接開ける](./card-view.md#card-11) |
