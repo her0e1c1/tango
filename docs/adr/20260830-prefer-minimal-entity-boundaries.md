@@ -12,6 +12,8 @@ Status: Accepted
 
 Domain、DTO、Store、View、Command、Repository、Value Objectなどの概念は、異なる振る舞い、制約、またはデータ形式を表現する必要がある場合だけ導入する。
 
+create、edit、importなどで意味が同じuser inputは、Entity modelのschemaと型を共有する。Form valuesにはuserが編集する値だけを含め、ID、UID、owner、timestampなどのcontextはForm外で組み合わせる。raw persistence documentのように形式が実際に異なる境界は、専用schemaを境界の近くに置く。
+
 mapperは入力と出力の形式が実際に異なる境界だけに置き、その境界の近くで管理する。FSDやDDDの役割を埋めるためだけの型、wrapper、service、directoryは追加しない。
 
-新しい抽象化を追加する前に、既存の型や処理を削除または直接再利用できないか確認する。[PR #1191](https://github.com/her0e1c1/tango/pull/1191)を参照する。
+新しい抽象化を追加する前に、既存の型や処理を削除または直接再利用できないか確認する。[PR #1047](https://github.com/her0e1c1/tango/pull/1047)、[PR #1048](https://github.com/her0e1c1/tango/pull/1048)、[PR #1191](https://github.com/her0e1c1/tango/pull/1191)、[PR #1461](https://github.com/her0e1c1/tango/pull/1461)を参照する。
