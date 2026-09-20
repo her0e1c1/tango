@@ -7,11 +7,11 @@ import * as fixture from "@/storybook/fixture";
 import { Layout } from "@/shared/ui/layout";
 
 import { CardOverlay } from "./CardOverlay";
-import { StudySession } from "./StudySession";
+import { CardPlayer } from "./CardPlayer";
 
 const meta = {
-  title: "Pages/Study Session/StudySession",
-  component: StudySession,
+  title: "Features/Card Player/CardPlayer",
+  component: CardPlayer,
   tags: ["autodocs"],
   decorators: [
     (Story) => (
@@ -51,7 +51,7 @@ const meta = {
     controller: { autoPlay: false, index: 3, numberOfCards: 24 },
     swipeButtonList: { disabledDirections: { cardSwipeLeft: true } },
   },
-} satisfies Meta<typeof StudySession>;
+} satisfies Meta<typeof CardPlayer>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -116,7 +116,7 @@ export const LongAnswer: Story = {
     const swipeOverlays = canvasElement.querySelectorAll<HTMLElement>(
       "[aria-label='Swipe left'], [aria-label='Swipe right'], [aria-label='Swipe up'], [aria-label='Swipe down']"
     );
-    const studyActions = canvasElement.querySelector<HTMLElement>("[aria-label='Study actions']");
+    const studyActions = canvasElement.querySelector<HTMLElement>("[aria-label='Card actions']");
 
     await expect(answer).toBeVisible();
     await expect(swipeOverlays).toHaveLength(0);
@@ -182,10 +182,10 @@ export const Mobile320ActionsOpen: Story = {
   globals: { viewport: { value: "iphone5", isRotated: false } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole("button", { name: "Open study actions" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Open card actions" }));
 
     const backBounds = canvas.getByRole("button", { name: "Back to deck list" }).getBoundingClientRect();
-    const actionsBounds = canvas.getByRole("group", { name: "Study actions" }).getBoundingClientRect();
+    const actionsBounds = canvas.getByRole("group", { name: "Card actions" }).getBoundingClientRect();
     const cardOverlay = canvasElement.querySelector<HTMLElement>("[data-study-card-overlay]");
     await expect(cardOverlay).not.toBeNull();
     await expect(actionsBounds.top).toBeGreaterThanOrEqual(backBounds.bottom);
@@ -242,3 +242,57 @@ export const DarkMath: Story = {
     );
   },
 };
+
+export const DeckViewing: Story = {
+  args: {
+    allowBackHorizontalSwipe: true,
+    answerLabel: "Card answer",
+    controller: { ...meta.args.controller, index: 0, progressLabel: "Viewing progress" },
+    help: {
+      ...meta.args.help,
+      title: "Viewing controls",
+      triggerLabel: "Open viewing help",
+      description: "Browse cards without changing learning progress.",
+      rows: [
+        { control: "cardSwipeLeft", action: "previousCard" },
+        { control: "cardSwipeRight", action: "GoToNextCard" },
+        { control: "cardSwipeUp", action: "DoNothing" },
+        { control: "cardSwipeDown", action: "DoNothing" },
+      ],
+    },
+    swipeButtonList: {
+      disabledDirections: { cardSwipeUp: true, cardSwipeDown: true },
+      labels: { cardSwipeLeft: "Previous card", cardSwipeRight: "Next card" },
+      onClickLeft: fn(),
+      onClickRight: fn(),
+    },
+  },
+  play: async ({ args, canvasElement }) => {
+    await expectFrontTextCentered(canvasElement);
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("button", { name: "Swipe up" })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: "Swipe down" })).toBeDisabled();
+    await userEvent.click(canvas.getByRole("button", { name: "Next card" }));
+    await expect(args.swipeButtonList?.onClickRight).toHaveBeenCalledOnce();
+    await expect(canvas.getByRole("slider", { name: "Viewing progress" })).toHaveValue("0");
+  },
+};
+
+export const DeckViewingAnswer: Story = {
+  args: {
+    ...DeckViewing.args,
+    ...LongAnswer.args,
+    backTextSlot: <CardView text={fixture.card.long.backText.repeat(20)} variant="bare" />,
+    answerLabel: "Card answer",
+    allowBackHorizontalSwipe: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const answer = canvas.getByRole("region", { name: "Card answer" });
+    await expect(answer.scrollHeight).toBeGreaterThan(answer.clientHeight);
+    await expect(canvas.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole("slider")).not.toBeInTheDocument();
+  },
+};
+
+export const Japanese: Story = { parameters: { locale: "ja" } };

@@ -13,6 +13,7 @@ type StudyHelpControlId =
 
 type StudyHelpActionId =
   | SwipeAction
+  | "previousCard"
   | "flip"
   | "autoPlay"
   | "autoPlayUnavailable"
@@ -31,11 +32,14 @@ interface StudyHelpRow {
 
 const directionOrder: readonly SwipeDirection[] = ["cardSwipeUp", "cardSwipeDown", "cardSwipeLeft", "cardSwipeRight"];
 
-export const buildStudyHelpRows = (preferences: Preferences): readonly StudyHelpRow[] => {
+export const buildCardPlayerHelpRows = (
+  preferences: Preferences,
+  mappings: Partial<Record<SwipeDirection, SwipeAction | "previousCard">> = {}
+): readonly StudyHelpRow[] => {
   const playbackAvailable = preferences.study.cardInterval > 0;
   const rows: StudyHelpRow[] = directionOrder.map((direction) => ({
     control: direction,
-    action: preferences.controls[direction],
+    action: mappings[direction] ?? preferences.controls[direction],
   }));
 
   rows.push(

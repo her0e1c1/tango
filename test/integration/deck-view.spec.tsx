@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter } from "react-router-dom";
@@ -44,7 +44,7 @@ function savedState(deckId: string) {
   });
 }
 
-describe("DECK-14 DECK-15 Deck View through App, routes, local Entities, and persistence", () => {
+describe("DECK-14 DECK-15 DECK-19 DECK-20 DECK-21 Deck View through App, routes, local Entities, and persistence", () => {
   beforeEach(() => {
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
     updatePreferences(createPreferences({ loadSample: false, language: "en" }));
@@ -52,6 +52,7 @@ describe("DECK-14 DECK-15 Deck View through App, routes, local Entities, and per
   });
 
   afterEach(async () => {
+    vi.useRealTimers();
     cleanup();
     for (const deckId of ownedDeckIds) await deleteDeck("user-id", deckId);
     ownedDeckIds.length = 0;
@@ -84,13 +85,13 @@ describe("DECK-14 DECK-15 Deck View through App, routes, local Entities, and per
     expect(screen.getByRole("button", { name: "Continue Local View Deck" })).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "View cards in Local View Deck" }));
     expect(await screen.findByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
-    expect(screen.getByRole("status", { name: "Viewing progress" })).toHaveTextContent("1 / 3");
+    expect(screen.getByRole("slider", { name: "Viewing progress" })).toHaveAttribute("aria-valuetext", "1 of 3");
 
     await userEvent.click(screen.getByRole("button", { name: "Card front" }));
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("First answer");
-    await userEvent.click(screen.getByRole("button", { name: "Next card" }));
+    await userEvent.keyboard("{ArrowRight}");
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
-    await userEvent.click(screen.getByRole("button", { name: "Flip card" }));
+    await userEvent.click(screen.getByRole("button", { name: "Card front" }));
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Second answer");
     expect(savedState(deck.id)).toEqual(before);
 
@@ -102,7 +103,7 @@ describe("DECK-14 DECK-15 Deck View through App, routes, local Entities, and per
     expect(await screen.findByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
     await userEvent.keyboard("{ArrowRight}");
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
-    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
     expect(await screen.findByRole("button", { name: "Continue Local View Deck" })).toBeVisible();
     expect(savedState(deck.id)).toEqual(before);
 
@@ -153,7 +154,10 @@ describe("DECK-14 DECK-15 Deck View through App, routes, local Entities, and per
     await userEvent.click(screen.getByRole("button", { name: "View cards in Filtered View Deck" }));
     for (const [index, prompt] of ["match-1", "match-2", "match-3"].entries()) {
       expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent(prompt);
-      expect(screen.getByRole("status", { name: "Viewing progress" })).toHaveTextContent(`${String(index + 1)} / 3`);
+      expect(screen.getByRole("slider", { name: "Viewing progress" })).toHaveAttribute(
+        "aria-valuetext",
+        `${String(index + 1)} of 3`
+      );
       expect(screen.queryByText("difficulty-miss")).not.toBeInTheDocument();
       expect(screen.queryByText("tag-miss")).not.toBeInTheDocument();
       await userEvent.click(screen.getByRole("button", { name: "Next card" }));
@@ -175,11 +179,70 @@ describe("DECK-14 DECK-15 Deck View through App, routes, local Entities, and per
     const router = createMemoryRouter(appRoutes, { initialEntries: [path] });
     const view = render(<App router={router} />);
 
-    expect(await screen.findByRole("heading", { name: "Encoded View Deck" })).toBeVisible();
+    expect(await screen.findByRole("button", { name: "Card front" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Encoded prompt");
     expect(router.state.location).toMatchObject({ pathname: path, search: "", hash: "" });
     expect(savedState(deck.id)).toEqual(before);
     view.unmount();
     router.dispose();
+  });
+
+  it("persists explicit shared display changes while preserving the saved study resume point", async () => {
+    const deck = createLocalDeck({ id: "shared-controls", name: "Shared controls" });
+    const cards = [createLocalCard({ id: "shared-card", deckId: deck.id, frontText: "Shared prompt" })];
+    await seedLocalDeck(deck, cards);
+    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    const before = savedState(deck.id);
+    let router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });
+    let view = render(<App router={router} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    await userEvent.click(screen.getByRole("button", { name: "Card details" }));
+    expect(getPreferences().controls.showCardDetails).toBe(false);
+    const after = savedState(deck.id);
+    expect({
+      ...after,
+      preferences: before.preferences,
+      persisted: { ...after.persisted, preferences: before.persisted.preferences },
+    }).toEqual(before);
+    expect(JSON.parse(localStorage.getItem("tango-config") ?? "{}").state.preferences.controls.showCardDetails).toBe(
+      false
+    );
+    view.unmount();
+    router.dispose();
+    router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/study`] });
+    view = render(<App router={router} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("aria-pressed", "false");
+    view.unmount();
+    router.dispose();
+  });
+
+  it("does not persist local viewing playback or bidirectional slider movement", async () => {
+    const deck = createLocalDeck({ id: "playback-local", name: "Playback" });
+    const cards = ["One", "Two", "Three"].map((name) =>
+      createLocalCard({ id: name, deckId: deck.id, frontText: name, uniqueKey: name })
+    );
+    await seedLocalDeck(deck, cards);
+    updatePreferences({ study: { cardInterval: 1, defaultAutoPlay: true } });
+    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    setStudySessionIndex(deck.id, 1);
+    const before = savedState(deck.id);
+    vi.useFakeTimers();
+    const router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });
+    const view = render(<App router={router} />);
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("One");
+    fireEvent.change(screen.getByRole("slider", { name: "Viewing progress" }), { target: { value: "2" } });
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Three");
+    fireEvent.change(screen.getByRole("slider", { name: "Viewing progress" }), { target: { value: "0" } });
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("One");
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    act(() => vi.advanceTimersByTime(1000));
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Two");
+    expect(savedState(deck.id)).toEqual(before);
+    view.unmount();
+    router.dispose();
+    act(() => vi.advanceTimersByTime(2000));
+    expect(savedState(deck.id)).toEqual(before);
   });
 });
