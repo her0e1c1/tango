@@ -3,6 +3,8 @@ import { useKey } from "react-use";
 
 import { useAuth } from "@/entities/auth";
 import { type Deck, useDeck } from "@/entities/deck";
+import { startStudy } from "@/entities/study-session";
+import { routes } from "@/shared/router";
 import {
   useDeckFilterDraft,
   getDeckFilterState,
@@ -11,7 +13,6 @@ import {
   updateDeckFilterDraft,
 } from "@/features/deck-filter";
 
-import { startStudySession } from "./actions/startStudySession";
 import { canStartStudyFromEnter } from "./queries/canStartStudyFromEnter";
 import { useStudySessionStartState } from "./queries/useStudySessionStartState";
 
@@ -36,7 +37,10 @@ export function useStudySessionStartPageModel(deck: Deck) {
   const filter = getDeckFilterState(filterDraft.state);
   // Build the session from the latest selection, even while its autosave is still pending.
   const state = useStudySessionStartState(deck, filter);
-  const start = () => startStudySession(deck.id, state.cards, state.studyPreferences, navigate);
+  const start = () => {
+    startStudy(deck.id, state.cards, state.studyPreferences);
+    void navigate(routes.deckStudy.to(deck.id), { replace: true });
+  };
   const startFromEnter = (event: KeyboardEvent) => {
     if (!canStartStudyFromEnter(event, filter.saving, state.cardsLength)) return;
     start();
