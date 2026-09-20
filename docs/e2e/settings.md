@@ -14,6 +14,7 @@ Settings の自動保存が reload を越えて維持され、保存した学習
 | SETTINGS-04 | write | [日本語設定を自動保存して reload 後も反映できる](#settings-04) |
 | SETTINGS-05 | write | [System 設定で browser locale を解決して reload 後も反映できる](#settings-05) |
 | SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](#settings-06) |
+| SETTINGS-07 | read | [詳細設定の見出しへキーボードで移動するとフォーカス表示を判別できる](#settings-07) |
 
 <a id="settings-01"></a>
 
@@ -153,3 +154,28 @@ Then:
 - Maximum cards は現在の既定値である `10` へ復旧する。
 - Language は現在の既定値である `System` へ復旧する。
 - browser error が発生しない。
+
+<a id="settings-07"></a>
+
+### SETTINGS-07 詳細設定の見出しへキーボードで移動するとフォーカス表示を判別できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 認証済みユーザーが Settings 画面を開き、「詳細設定」(Advanced) が閉じた状態である。
+
+When:
+
+- 「自動再生の間隔」(Autoplay interval) のスライダーへフォーカスし、Tab で「詳細設定」見出しへ移動する。
+- Enter で「詳細設定」を開き、Shift+Tab でスライダーへ戻る。
+
+Then:
+
+- 閉じた状態の「詳細設定」見出しへ Tab で到達すると、見出し自身にネイティブの `outline` の代わりに枠内側へ描かれるフォーカスリングが適用される。
+- Enter で開いたあとも「詳細設定」見出しがフォーカスされたままで、同じフォーカスリングが適用される。
+- Shift+Tab で「自動再生の間隔」のスライダーへフォーカスが戻る。
+- 「詳細設定」の開閉状態や設定値・保存内容を変更しない。
+- browser error が発生しない。
+

@@ -118,3 +118,44 @@ test.describe("ja-JP browser locale", () => {
     await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   });
 });
+
+test("SETTINGS-07 Advanced heading keeps a visible focus indicator when collapsed and expanded", async ({
+  fixture,
+  page,
+}) => {
+  await fixture.apply(page);
+  await page.goto("/settings");
+
+  const storedConfig = () => page.evaluate(() => localStorage.getItem("tango-config"));
+  const initialConfig = await storedConfig();
+
+  const interval = page.getByRole("slider", { name: "Autoplay interval" });
+  const heading = page.getByRole("heading", { level: 2, name: "Advanced" });
+  const summary = page.locator("summary").filter({ has: heading });
+  const details = page.locator("details").filter({ has: summary });
+
+  // The disclosure's parent has `overflow-hidden`, so the shared `:focus-visible` outline (drawn
+  // outside the element's box) is clipped. The summary must render its own focus indicator inside
+  // its own box instead of relying on the outline.
+  const focusIndicator = () =>
+    summary.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { outlineStyle: style.outlineStyle, hasBoxShadow: style.boxShadow !== "none" };
+    });
+
+  await interval.focus();
+  await page.keyboard.press("Tab");
+  await expect(summary).toBeFocused();
+  expect(await details.evaluate((el) => (el as HTMLDetailsElement).open)).toBe(false);
+  await expect.poll(focusIndicator).toEqual({ outlineStyle: "none", hasBoxShadow: true });
+
+  await page.keyboard.press("Enter");
+  expect(await details.evaluate((el) => (el as HTMLDetailsElement).open)).toBe(true);
+  await expect(summary).toBeFocused();
+  await expect.poll(focusIndicator).toEqual({ outlineStyle: "none", hasBoxShadow: true });
+
+  await page.keyboard.press("Shift+Tab");
+  await expect(interval).toBeFocused();
+
+  expect(await storedConfig()).toBe(initialConfig);
+});
