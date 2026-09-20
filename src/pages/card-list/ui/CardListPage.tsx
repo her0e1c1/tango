@@ -1,21 +1,12 @@
-import { useAuth } from "@/entities/auth";
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useKey } from "react-use";
 
 import { BackText } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import { DifficultyIndicator } from "@/entities/study-progress";
-import {
-  DeckFilterForm,
-  useDeckFilterDraft,
-  getDeckFilterState,
-  clearDeckFilterRange,
-  useDeckFilterSaveLifecycle,
-  updateDeckFilterDraft,
-} from "@/features/deck-filter";
-import { routes } from "@/shared/router";
+import { DeckFilterForm } from "@/features/deck-filter";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
@@ -26,48 +17,10 @@ import { BulkDifficultyDialog } from "./bulk-difficulty";
 
 const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { uid } = useAuth();
-  const filterDraft = useDeckFilterDraft(uid, deck);
-  useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
-  const filterUpdate = {
-    uid,
-    deckId: deck.id,
-    draft: filterDraft.state.draft,
-    setState: filterDraft.setState,
-  };
-  const deckFilter = getDeckFilterState(filterDraft.state);
-  // Use the latest selection immediately, including autosaves still pending from another Page.
-  const model = useCardListPageModel({
-    ...deck,
-    difficultyMax: deckFilter.difficultyMax,
-    difficultyMin: deckFilter.difficultyMin,
-    selectedTags: deckFilter.selectedTags,
-    tagAndFilter: deckFilter.tagAndFilter,
-  });
-  // The explicit domain endpoints select every Card, so the collapsed summary must not present
-  // them as an active filter even though new and cleared Decks persist those values.
-  const difficultyMax = deckFilter.difficultyMax === deckFilter.difficultyUpperBound ? null : deckFilter.difficultyMax;
-  const difficultyMin = deckFilter.difficultyMin === deckFilter.difficultyLowerBound ? null : deckFilter.difficultyMin;
-  const busy = model.mutationPending || deckFilter.saving;
-  const dialogOpen = model.bulkCardIds != null || model.deletionTarget != null;
+  const model = useCardListPageModel(deck);
 
-  useKey(
-    "t",
-    () => {
-      if (!dialogOpen) void navigate(routes.deckList.to());
-    },
-    undefined,
-    [dialogOpen, navigate]
-  );
-  useKey(
-    "s",
-    () => {
-      if (!dialogOpen) void navigate(routes.settings.to());
-    },
-    undefined,
-    [dialogOpen, navigate]
-  );
+  useKey("t", model.goToDeckList, undefined, [model.goToDeckList]);
+  useKey("s", model.goToSettings, undefined, [model.goToSettings]);
 
   return (
     <AppLayout showHeader={model.answer == null}>
@@ -100,44 +53,35 @@ const AvailableCardListPage: React.FC<{ deck: Deck }> = ({ deck }) => {
           onConfirm={model.confirmDeletion}
         />
       ) : null}
-      <div className="contents" inert={dialogOpen}>
+      <div className="contents" inert={model.dialogOpen}>
         <CardList
           cards={model.cards}
           sortOrder={model.sortOrder}
           onSortOrderChange={model.changeSortOrder}
           sortDisabled={model.mutationPending}
           onChangeDifficulty={model.requestBulk}
-          disabled={busy}
+          disabled={model.busy}
           renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
-          onAddCard={() => void navigate(routes.cardCreate.to(deck.id))}
-          filter={{
-            difficultyMax,
-            difficultyMin,
-            selectedTags: deckFilter.selectedTags,
-          }}
+          onAddCard={model.goToCardCreate}
+          filter={model.filterSummary}
           filterSlot={
             <DeckFilterForm
-              {...deckFilter}
-              clearDifficultyRange={() => clearDeckFilterRange(filterUpdate)}
-              setDifficultyMax={(value) => updateDeckFilterDraft({ difficultyMax: value }, filterUpdate)}
-              setDifficultyMin={(value) => updateDeckFilterDraft({ difficultyMin: value }, filterUpdate)}
-              setSelectedTags={(selectedTags) => updateDeckFilterDraft({ selectedTags }, filterUpdate)}
-              setTagAndFilter={(tagAndFilter) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate)}
+              {...model.deckFilter}
+              clearDifficultyRange={model.clearDifficultyRange}
+              setDifficultyMax={model.setDifficultyMax}
+              setDifficultyMin={model.setDifficultyMin}
+              setSelectedTags={model.setSelectedTags}
+              setTagAndFilter={model.setTagAndFilter}
               disabled={model.mutationPending}
               tags={model.tags}
             />
           }
-          onRemoveTag={(tag) =>
-            updateDeckFilterDraft(
-              { selectedTags: deckFilter.selectedTags.filter((selectedTag) => selectedTag !== tag) },
-              filterUpdate
-            )
-          }
+          onRemoveTag={model.removeTag}
           card={{
-            disabled: busy,
+            disabled: model.busy,
             onSwipedLeft: model.swipeLeft,
             onSwipedRight: model.swipeRight,
-            goToEdit: (id) => void navigate(routes.cardForm.to(id)),
+            goToEdit: model.goToCardEdit,
             onDelete: model.requestDeletion,
           }}
           {...(model.answer != null
