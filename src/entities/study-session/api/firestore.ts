@@ -46,7 +46,7 @@ export function subscribeStudySessions(uid: string, onError: (error: Error) => v
         const parsed = parseStudySessionDocument(item.data());
         if (parsed !== undefined) sessions.push(toStudySessionWrite(item.id, parsed));
       }
-      receiveStudySessions(uid, sessions);
+      receiveStudySessions(sessions);
       setStudySessionSyncStatus("ready");
     },
     (error) => {
