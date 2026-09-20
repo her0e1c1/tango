@@ -1,19 +1,17 @@
 import { useKey, useLatest } from "react-use";
 import type { Card } from "@/entities/card";
-import { toggleShowSwipeButtonList } from "@/entities/preference";
+import { getPreferences, toggleShowSwipeButtonList } from "@/entities/preference";
 import { shouldIgnoreCardShortcut } from "@/features/card-player";
-import type { NavigateFunction } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { routes } from "@/shared/router";
 import { deckViewStore } from "../store";
 import { flipCard } from "./flipCard";
 import { moveCard } from "./moveCard";
 import { toggleAutoPlay } from "./toggleAutoPlay";
 
-export function useDeckViewShortcuts(
-  cards: readonly Card[],
-  playbackAvailable: boolean,
-  navigate: NavigateFunction
-): void {
-  const latest = useLatest({ cards, playbackAvailable, navigate });
+export function useDeckViewShortcuts(cards: readonly Card[]): void {
+  const navigate = useNavigate();
+  const latest = useLatest({ cards, navigate });
   useKey(
     (event) => ["ArrowLeft", "ArrowRight", "Enter", " ", "b"].includes(event.key),
     (event) => {
@@ -29,11 +27,13 @@ export function useDeckViewShortcuts(
       )
         return;
       event.preventDefault();
-      if (event.key === "ArrowLeft") moveCard(current.cards, -1, current.navigate);
-      else if (event.key === "ArrowRight") moveCard(current.cards, 1, current.navigate);
-      else if (event.key === "Enter") flipCard(current.cards);
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        if (moveCard(current.cards, event.key === "ArrowLeft" ? -1 : 1) === "boundary") {
+          void current.navigate(routes.deckList.to());
+        }
+      } else if (event.key === "Enter") flipCard(current.cards);
       else if (event.key === "b") toggleShowSwipeButtonList();
-      else if (current.playbackAvailable) toggleAutoPlay();
+      else if (getPreferences().study.cardInterval > 0) toggleAutoPlay();
     }
   );
 }

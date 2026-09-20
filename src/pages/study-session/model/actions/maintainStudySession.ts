@@ -1,8 +1,9 @@
+import { getCards } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
-import { removeStudySession, touchStudySession } from "@/entities/study-session";
-import type { StudySessionState } from "../queries/useStudyQuery";
+import { getStudySession, resolveStudySession, removeStudySession, touchStudySession } from "@/entities/study-session";
 
-export const maintainStudySession = (deckId: DeckId, status: StudySessionState["status"]): void => {
+export function maintainStudySession(deckId: DeckId): void {
+  const { status } = resolveStudySession(getStudySession(deckId), getCards());
   if (status === "studying") {
     touchStudySession(deckId);
     return;
@@ -10,4 +11,4 @@ export const maintainStudySession = (deckId: DeckId, status: StudySessionState["
   if (status === "preparing") return;
   // Remove invalid progress before leaving so reopening the Deck cannot repeat the failure.
   removeStudySession(deckId);
-};
+}

@@ -29,14 +29,17 @@ export function useDeckViewPageModel(deck: Deck) {
   const state = useStore(deckViewStore);
   useResetStoreOnMount(deckViewStore);
   const query = useDeckViewQuery(deck, filter.state.draft, state.cardId, state.showBackText);
-  useDeckViewAutoPlay(query.cards, query.card?.id, query.cardInterval, navigate);
-  useDeckViewShortcuts(query.cards, query.playbackAvailable, navigate);
+  useDeckViewAutoPlay(query.cards);
+  useDeckViewShortcuts(query.cards);
+  const move = (direction: -1 | 1) => {
+    if (moveCard(query.cards, direction) === "boundary") void navigate(routes.deckList.to());
+  };
   return {
     ...query,
     autoPlay: state.autoPlay,
     helpOpen: state.helpOpen,
-    previous: () => moveCard(query.cards, -1, navigate),
-    next: () => moveCard(query.cards, 1, navigate),
+    previous: () => move(-1),
+    next: () => move(1),
     changeIndex: (index: number) => changeIndex(query.cards, index),
     flip: () => flipCard(query.cards),
     back: () => void navigate(routes.deckList.to()),

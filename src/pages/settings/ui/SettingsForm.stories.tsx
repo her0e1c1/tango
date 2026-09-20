@@ -6,6 +6,7 @@ import { studyPreferencesLimits, type Preferences } from "@/entities/preference"
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import * as fixture from "@/storybook/fixture";
 
+import { getSettingsFormValues, type SettingsFormValues } from "../model/queries/getSettingsFormValues";
 import { SettingsForm } from "./SettingsForm";
 
 interface SettingsFormStoryProps {
@@ -15,7 +16,7 @@ interface SettingsFormStoryProps {
 }
 
 const SettingsFormStory = ({ preferences, version, commitHash }: SettingsFormStoryProps) => {
-  const form = useForm<Preferences>({ defaultValues: preferences });
+  const form = useForm<SettingsFormValues>({ defaultValues: getSettingsFormValues(preferences) });
   return (
     <SettingsForm
       form={form}

@@ -4,13 +4,15 @@ import { routes } from "@/shared/router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
-import { type Preferences, studyPreferencesLimits, updatePreferences, usePreferences } from "@/entities/preference";
+import { studyPreferencesLimits, updatePreferences, usePreferences } from "@/entities/preference";
+
+import { getSettingsFormValues, type SettingsFormValues } from "./queries/getSettingsFormValues";
 
 export const useSettingsPageModel = () => {
   const navigate = useNavigate();
   useKey("t", () => void navigate(routes.deckList.to()));
   const preferences = usePreferences();
-  const form = useForm<Preferences>({ defaultValues: preferences });
+  const form = useForm<SettingsFormValues>({ defaultValues: getSettingsFormValues(preferences) });
 
   const { setValue, subscribe } = form;
   const darkMode = preferences.appearance.darkMode;
@@ -28,5 +30,5 @@ export const useSettingsPageModel = () => {
     [subscribe]
   );
 
-  return { form, studyPreferencesLimits };
+  return { form, studyPreferencesLimits, version: __APP_VERSION__, commitHash: __COMMIT_HASH__ };
 };
