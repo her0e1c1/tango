@@ -265,6 +265,21 @@ test("CARD-10 persists difficulty and tag filters and applies both after reload"
   await page.getByText("Filters", { exact: true }).click();
   await page.getByRole("combobox", { name: "Maximum difficulty" }).selectOption("4");
   await clickCheckboxLabel(page, selectedTag);
+  const extraTag = wrongTag.tags[0];
+  if (extraTag === undefined) throw new Error("CARD-10 fixture requires another Card tag");
+  await clickCheckboxLabel(page, extraTag);
+  await page.getByText("Filters", { exact: true }).click();
+  const selectedChip = page.getByRole("button", { name: `Remove ${selectedTag} filter` });
+  const extraChip = page.getByRole("button", { name: `Remove ${extraTag} filter` });
+  await extraChip.focus();
+  await page.keyboard.press("Enter");
+  await expect(selectedChip).toBeFocused();
+  await page.keyboard.press("Space");
+  const summary = page.locator("summary").filter({ hasText: "Filters" });
+  await expect(summary).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("combobox", { name: "Maximum difficulty" })).toBeVisible();
+  await clickCheckboxLabel(page, selectedTag);
   await expect(page.getByRole("button", { name: "Save filters" })).toHaveCount(0);
   await expect.poll(async () => (await requireDocument("deck", deck.id)).fields.difficultyMax?.integerValue).toBe("4");
   await expect
