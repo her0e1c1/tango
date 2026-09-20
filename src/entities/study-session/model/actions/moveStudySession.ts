@@ -1,6 +1,7 @@
 import { calculateStudySessionIndex, isStudySessionPositionUnchanged } from "../rules";
 import { studySessionStore } from "../store";
 import type { StudySession } from "../types";
+import { queueStudySessionWrite } from "./queueStudySessionWrite";
 
 // Advances only the matching position and removes a session after its final Card.
 export function moveStudySession(previous: StudySession): boolean {
@@ -12,11 +13,13 @@ export function moveStudySession(previous: StudySession): boolean {
 
     const nextIndex = calculateStudySessionIndex(current);
     if (nextIndex === undefined) {
+      queueStudySessionWrite(state.pendingWrites, current, "completed");
       // Persisted state never represents a terminal sentinel index.
       delete state.sessionsByDeckId[previous.deckId];
     } else {
       current.currentIndex = nextIndex;
       current.lastStudiedAt = Date.now();
+      queueStudySessionWrite(state.pendingWrites, current);
     }
     moved = true;
   });

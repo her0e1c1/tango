@@ -395,6 +395,7 @@ export const resources = {
       studySession: {
         unavailable: "Study session unavailable.",
         loading: "Loading…",
+        syncFailure: "Unable to sync study sessions. Your progress is kept on this device. Reload to retry.",
         answerAria: "Study answer",
         feedback: {
           swipedUp: "Swiped up",
@@ -1098,6 +1099,8 @@ export const resources = {
       studySession: {
         unavailable: "学習セッションを利用できません。",
         loading: "読み込み中…",
+        syncFailure:
+          "学習セッションを同期できませんでした。進行状況はこの端末に保存されています。再読み込みして再試行してください。",
         answerAria: "学習カードの回答",
         feedback: {
           swipedUp: "上へスワイプしました",

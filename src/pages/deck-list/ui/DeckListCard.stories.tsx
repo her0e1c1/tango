@@ -44,6 +44,18 @@ export const TooLongName: Story = {
   },
 };
 
+export const RestoredFromAnotherDevice: Story = {
+  args: {
+    studySession: {
+      sessionId: "restored-session",
+      deckId: fixture.deck.default.id,
+      cardOrderIds: ["card-1", "card-2"],
+      currentIndex: 1,
+      lastStudiedAt: 0,
+    },
+  },
+};
+
 export const IphoneX: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };

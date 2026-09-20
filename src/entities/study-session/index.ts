@@ -16,3 +16,8 @@ export { removeStudySession } from "./model/actions/removeStudySession";
 export { setStudySessionIndex } from "./model/actions/setStudySessionIndex";
 export { startStudy } from "./model/actions/startStudy";
 export { touchStudySession } from "./model/actions/touchStudySession";
+export { syncStudySessions } from "./api/sync";
+export { setStudySessionOwner } from "./model/actions/setStudySessionOwner";
+export { useStudySessionSyncStatus } from "./model/queries/useStudySessionSyncStatus";
+export { getStudySessionSyncStatus } from "./model/queries/getStudySessionSyncStatus";
+export { abandonStudySession } from "./model/actions/abandonStudySession";

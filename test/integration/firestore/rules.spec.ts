@@ -12,7 +12,19 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { setDoc, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import {
+  setDoc,
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  Timestamp,
+  collection as firestoreCollection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import * as Uuid from "uuid";
 
 const uuid = Uuid.v4;
@@ -44,6 +56,80 @@ describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions
 
   afterAll(async () => {
     await testEnv.cleanup();
+  });
+
+  describe("StudySession [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-10]", () => {
+    const sessionData = () => ({
+      uid: "uid",
+      deckId: "public-deck",
+      cardOrderIds: ["first", "second"],
+      currentIndex: 0,
+      startedAt: Timestamp.fromMillis(1000),
+      endedAt: null,
+      endReason: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    const ownerDb = () =>
+      testEnv
+        .authenticatedContext("uid", {
+          firebase: { sign_in_provider: "google.com", identities: {} },
+        })
+        .firestore();
+
+    it("allows the owner to create, resume and complete a private session", async () => {
+      const db = ownerDb();
+      const reference = doc(db, "studySession", uuid());
+      await assertSucceeds(getDoc(reference));
+      await assertSucceeds(setDoc(reference, sessionData()));
+      await assertSucceeds(getDoc(reference));
+      await assertSucceeds(getDocs(query(firestoreCollection(db, "studySession"), where("uid", "==", "uid"))));
+      await assertSucceeds(updateDoc(reference, { currentIndex: 1, updatedAt: serverTimestamp() }));
+      await assertSucceeds(
+        updateDoc(reference, { endReason: "completed", endedAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      );
+      await assertFails(updateDoc(reference, { endReason: null, endedAt: null, updatedAt: serverTimestamp() }));
+    });
+
+    it.each(["other-user", "anonymous", "unauthenticated"])(
+      "denies %s access even when the Deck is public",
+      async (actor) => {
+        const id = uuid();
+        await createData("deck", "public-deck", { uid: "uid", isPublic: true });
+        await createData("studySession", id, sessionData());
+        const db =
+          actor === "unauthenticated"
+            ? testEnv.unauthenticatedContext().firestore()
+            : testEnv
+                .authenticatedContext(actor === "anonymous" ? "uid" : actor, {
+                  firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
+                })
+                .firestore();
+        const reference = doc(db, "studySession", id);
+        await assertFails(getDoc(reference));
+        await assertFails(setDoc(doc(db, "studySession", uuid()), sessionData()));
+        await assertFails(updateDoc(reference, { currentIndex: 1, updatedAt: serverTimestamp() }));
+        await assertFails(deleteDoc(reference));
+      }
+    );
+
+    it("rejects ownership changes, answer fields, changed ordering and cursor rollback", async () => {
+      const reference = doc(ownerDb(), "studySession", uuid());
+      await setDoc(reference, sessionData());
+      await assertFails(updateDoc(reference, { uid: "another-user", updatedAt: serverTimestamp() }));
+      await assertFails(updateDoc(reference, { answers: [], updatedAt: serverTimestamp() }));
+      await assertFails(updateDoc(reference, { cardOrderIds: ["second", "first"], updatedAt: serverTimestamp() }));
+      await assertFails(updateDoc(reference, { createdAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+      await assertFails(
+        updateDoc(reference, { endReason: "completed", endedAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      );
+      await updateDoc(reference, { currentIndex: 1, updatedAt: serverTimestamp() });
+      await assertFails(updateDoc(reference, { currentIndex: 0, updatedAt: serverTimestamp() }));
+      await assertSucceeds(
+        updateDoc(reference, { endReason: "abandoned", endedAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      );
+      await assertFails(updateDoc(reference, { endReason: null, endedAt: null, updatedAt: serverTimestamp() }));
+    });
   });
 
   describe("authenticated context", () => {
