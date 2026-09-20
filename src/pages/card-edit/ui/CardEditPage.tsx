@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -8,7 +9,8 @@ import { CardEditContainer } from "./CardEditContainer";
 
 export const CardEditPage: React.FC = () => {
   const { t } = useTranslation();
-  const { cardId, card } = useCardEditRouteModel();
+  const params = useParams();
+  const { cardId, card } = useCardEditRouteModel(params.id);
 
   if (card == null) {
     return (

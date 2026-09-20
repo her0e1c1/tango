@@ -1,5 +1,5 @@
 import { useFormState } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { type Card, type CardContentInput, useCard } from "@/entities/card";
 import { CATEGORY, useDeck } from "@/entities/deck";
@@ -13,8 +13,7 @@ import { useCardEditSubmission } from "./actions/useCardEditSubmission";
 import { getCardEditInfo } from "./queries/getCardEditInfo";
 import { useCardEditFormState } from "./useCardEditFormState";
 
-export function useCardEditRouteModel() {
-  const { id: cardId } = useParams();
+export function useCardEditRouteModel(cardId: string | undefined) {
   if (cardId == null) throw new Error("invalid card id");
   const card = useCard(cardId);
   return { cardId, card };

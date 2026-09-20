@@ -12,6 +12,12 @@ export const useStudyQuery = (deckId: string) => {
   const preferences = usePreferences();
   const sessionState = resolveStudySession(useStudySession(deckId), cards);
   const controls = {
+    disabledSwipeDirections: {
+      cardSwipeUp: preferences.controls.cardSwipeUp === "GoToPrevCard",
+      cardSwipeDown: preferences.controls.cardSwipeDown === "GoToPrevCard",
+      cardSwipeLeft: preferences.controls.cardSwipeLeft === "GoToPrevCard",
+      cardSwipeRight: preferences.controls.cardSwipeRight === "GoToPrevCard",
+    },
     showHelp: preferences.controls.showHelp,
     playbackControlsAvailable: preferences.study.cardInterval > 0,
     showCardDetails: preferences.controls.showCardDetails,

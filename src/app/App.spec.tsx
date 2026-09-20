@@ -33,6 +33,7 @@ vi.mock("@/pages/deck-create", () => ({ DeckCreatePage: () => <div>Deck create</
 vi.mock("@/pages/deck-edit", () => ({ DeckEditPage: () => null }));
 vi.mock("@/pages/deck-import", () => ({ DeckImportPage: () => null }));
 vi.mock("@/pages/deck-list", () => ({ DeckListPage: () => <div>Deck list</div> }));
+vi.mock("@/pages/deck-view", () => ({ DeckViewPage: () => null }));
 vi.mock("@/pages/settings", () => ({ SettingsPage: () => null }));
 vi.mock("@/pages/study-session", () => ({ StudySessionPage: () => null }));
 vi.mock("@/pages/study-session-start", () => ({ StudySessionStartPage: () => null }));
