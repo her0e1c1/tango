@@ -1,4 +1,8 @@
 extends: empty.yaml
+auth:
+  users:
+    - uid: user-1
+      provider: google
 remote:
   decks:
     - id: deck-a

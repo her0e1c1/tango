@@ -30,6 +30,7 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
       <DeckForm
         mode="edit"
         categories={CATEGORY}
+        cloudStorageAvailable={model.cloudStorageAvailable}
         deckInfo={{
           id: deck.id,
           createdAt: deck.createdAt,

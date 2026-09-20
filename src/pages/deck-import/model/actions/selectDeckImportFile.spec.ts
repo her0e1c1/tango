@@ -83,16 +83,14 @@ describe("Deck import selection and saving [IMPORT-01 IMPORT-03 IMPORT-04]", () 
     ]);
   });
 
-  it("requires a confirmed user for a remote import", async () => {
+  it("uses local storage for guests even when the previous destination was cloud", async () => {
     vi.mocked(getAuthUid).mockReturnValue("");
-    await selectDeckImportFile(file("remote.csv"));
+    await selectDeckImportFile(file("guest.csv"));
+    await expect(importDeckPreview()).resolves.toBe(true);
 
-    expect(deckImportStore.getState().source).toEqual({
-      kind: "error",
-      error: expect.objectContaining({ code: "authentication" }),
-    });
-    await expect(importDeckPreview()).resolves.toBe(false);
-    expect(createDeck).not.toHaveBeenCalled();
-    expect(mutateCards).not.toHaveBeenCalled();
+    expect(createDeck).toHaveBeenCalledWith("", { id: "deck", name: "guest.csv", localMode: true });
+    expect(mutateCards).toHaveBeenCalledWith("", [
+      { kind: "create", card: { ...row.card, id: "card", deckId: "deck" } },
+    ]);
   });
 });
