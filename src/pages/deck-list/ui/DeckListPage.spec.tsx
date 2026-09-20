@@ -114,7 +114,7 @@ describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 DeckListPage", (
   ])("navigates from the %s list action", async (label, destination) => {
     renderPage();
 
-    await userEvent.click(screen.getByRole("button", { name: "Actions", exact: true }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
     await userEvent.click(screen.getByRole("menuitem", { name: label }));
 
     expect(await screen.findByRole("heading", { level: 1, name: destination })).toBeVisible();

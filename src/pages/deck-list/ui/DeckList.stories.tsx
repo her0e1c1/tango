@@ -52,7 +52,7 @@ export const Default: Story = {};
 
 export const ListActions: Story = {
   play: async ({ args, canvas, userEvent }) => {
-    const trigger = canvas.getByRole("button", { name: "Actions", exact: true });
+    const trigger = canvas.getByRole("button", { name: "Actions" });
     await userEvent.click(trigger);
     await userEvent.click(canvas.getByRole("menuitem", { name: "Create deck" }));
     await expect(args.onCreateDeck).toHaveBeenCalled();
@@ -69,7 +69,7 @@ export const Japanese: Story = {
   parameters: { locale: "ja" },
   play: async ({ canvas, userEvent }) => {
     await expect(canvas.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: "アクション", exact: true }));
+    await userEvent.click(canvas.getByRole("button", { name: "アクション" }));
     await expect(canvas.getByRole("menuitem", { name: "デッキを作成" })).toBeVisible();
     await expect(canvas.getByRole("menuitem", { name: "デッキをインポート" })).toBeVisible();
     const [firstDeck] = mixed.studying;
@@ -105,7 +105,7 @@ export const Empty: Story = {
   args: { sections: { studying: [], other: [] } },
   play: async ({ canvas, userEvent }) => {
     await expect(canvas.getByText("0 decks")).toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: "Actions", exact: true }));
+    await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
     await expect(canvas.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
     await expect(canvas.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
   },

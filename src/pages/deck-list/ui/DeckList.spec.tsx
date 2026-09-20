@@ -80,9 +80,9 @@ describe("SETTINGS-04 DECK-01 DeckList", () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Active deck" }));
-    await userEvent.click(screen.getByRole("button", { name: "Actions", exact: true }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
     expect(screen.getAllByRole("menu")).toHaveLength(1);
-    expect(screen.getByRole("menu", { name: "Actions", exact: true })).toBeVisible();
+    expect(screen.getByRole("menu", { name: "Actions" })).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Other deck" }));
     expect(screen.getAllByRole("menu")).toHaveLength(1);
@@ -93,7 +93,7 @@ describe("SETTINGS-04 DECK-01 DeckList", () => {
     const create = vi.fn();
     const importDeck = vi.fn();
     render(<DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} />);
-    const trigger = screen.getByRole("button", { name: "Actions", exact: true });
+    const trigger = screen.getByRole("button", { name: "Actions" });
 
     await userEvent.click(trigger);
     await userEvent.click(screen.getByRole("menuitem", { name: "Create deck" }));
@@ -113,7 +113,7 @@ describe("SETTINGS-04 DECK-01 DeckList", () => {
     const create = vi.fn();
     const importDeck = vi.fn();
     render(<DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} />);
-    const trigger = screen.getByRole("button", { name: "Actions", exact: true });
+    const trigger = screen.getByRole("button", { name: "Actions" });
     trigger.focus();
 
     await userEvent.keyboard("{Enter}");
@@ -135,7 +135,7 @@ describe("SETTINGS-04 DECK-01 DeckList", () => {
     expect(screen.queryByRole("region")).not.toBeInTheDocument();
     expect(screen.queryByText(/no decks/i)).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Actions", exact: true }));
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
     expect(screen.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
     expect(screen.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
   });
@@ -145,7 +145,7 @@ describe("SETTINGS-04 DECK-01 DeckList", () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
     expect(screen.getByRole("heading", { level: 1, name: "デッキ" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "アクション", exact: true }));
+    await userEvent.click(screen.getByRole("button", { name: "アクション" }));
     expect(screen.getByRole("menuitem", { name: "デッキを作成" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "デッキをインポート" })).toBeInTheDocument();
     expect(screen.getByText("2件")).toBeInTheDocument();
