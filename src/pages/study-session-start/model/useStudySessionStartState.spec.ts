@@ -22,6 +22,12 @@ const deck = createLocalDeck({
   difficultyMin: 4,
   selectedTags: ["eligible"],
 });
+const filter = {
+  difficultyMax: deck.difficultyMax,
+  difficultyMin: deck.difficultyMin,
+  selectedTags: deck.selectedTags,
+  tagAndFilter: deck.tagAndFilter,
+};
 const eligibleCard = createLocalCard({
   id: "eligible-card",
   deckId: deck.id,
@@ -75,10 +81,9 @@ describe("useStudySessionStartState [SWIPE-06]", () => {
   });
 
   it("starts the stored Deck with its eligible Cards and Study preferences", () => {
-    const { result } = renderHook(() => useStudySessionStartState(deck));
+    const { result } = renderHook(() => useStudySessionStartState(deck.id, filter));
 
     expect(result.current).toMatchObject({
-      deckName: "Japanese vocabulary",
       maxNumberOfCardsToLearn: 12,
       cardsLength: 1,
       tags: ["eligible", "later"],
@@ -96,7 +101,7 @@ describe("useStudySessionStartState [SWIPE-06]", () => {
   });
 
   it("starts with Cards matching the Page-composed filter", () => {
-    const { result } = renderHook(() => useStudySessionStartState({ ...deck, selectedTags: ["later"] }));
+    const { result } = renderHook(() => useStudySessionStartState(deck.id, { ...filter, selectedTags: ["later"] }));
 
     expect(result.current.cardsLength).toBe(1);
 
