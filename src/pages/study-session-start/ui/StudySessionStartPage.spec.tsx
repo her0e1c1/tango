@@ -12,6 +12,7 @@ import { clearStudySessions, useStudySession } from "@/entities/study-session";
 import { createCard, createDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
+  syncStatus: "ready" as "idle" | "loading" | "ready" | "error",
   preferences: null as unknown as Preferences,
   deck: null as Deck | null,
   cards: [] as Card[],
@@ -20,10 +21,19 @@ const mocks = vi.hoisted(() => ({
   editDeck: vi.fn(() => Promise.resolve()),
 }));
 
+vi.mock("@/entities/study-session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/study-session")>()),
+  getStudySessionSyncStatus: () => mocks.syncStatus,
+  useStudySessionSyncStatus: () => mocks.syncStatus,
+}));
+
 vi.mock("@/entities/card", () => ({
   useCardsByDeckId: () => ({ cards: mocks.cards, tags: mocks.tags }),
 }));
-vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "user-id" }) }));
+vi.mock("@/entities/auth", () => ({
+  useAuth: () => ({ uid: "user-id", isAnonymous: false }),
+  getAuthUid: () => "user-id",
+}));
 vi.mock("@/entities/deck", () => ({
   editDeck: mocks.editDeck,
   isDeckTagSelectionMatching: () => true,
@@ -65,11 +75,27 @@ describe("SWIPE-06 SWIPE-07 SWIPE-26 StudySessionStartPage", () => {
 
   beforeEach(() => {
     clearStudySessions();
+    mocks.syncStatus = "ready";
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
     mocks.deck = createDeck({ id: deckId, name: "Japanese vocabulary" });
     mocks.cards = [createCard({ id: cardId, deckId })];
     mocks.tags = [];
     vi.clearAllMocks();
+  });
+
+  it("waits for cloud sessions before enabling Start", () => {
+    mocks.syncStatus = "loading";
+    renderPage();
+    expect(screen.getByRole("button", { name: "Start 1 card" })).toBeDisabled();
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(screen.queryByRole("heading", { name: "Study session" })).not.toBeInTheDocument();
+  });
+
+  it("shows recovery guidance when cloud sessions cannot be loaded", () => {
+    mocks.syncStatus = "error";
+    renderPage();
+    expect(screen.getByText(/Reload to retry/)).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Start 1 card" })).not.toBeInTheDocument();
   });
 
   it("composes route data, the application shell, and the study view", () => {

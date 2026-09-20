@@ -38,7 +38,7 @@ const deck = createDeck({
   category: "math",
 });
 
-describe("DeckListCard", () => {
+describe("DeckListCard [SWIPE-08]", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-18T00:10:00Z"));
@@ -77,6 +77,24 @@ describe("DeckListCard", () => {
     render(<DeckListCard deck={createLocalDeck()} cardCount={0} />);
 
     expect(screen.queryByLabelText("Remote deck")).not.toBeInTheDocument();
+  });
+
+  it("shows the restored position without inventing a last-studied time", () => {
+    render(
+      <DeckListCard
+        deck={deck}
+        cardCount={2}
+        studySession={{
+          sessionId: "restored",
+          deckId: deck.id,
+          cardOrderIds: ["first", "second"],
+          currentIndex: 1,
+          lastStudiedAt: 0,
+        }}
+      />
+    );
+    expect(screen.getByRole("button", { name: "View Deck name" })).toHaveAccessibleDescription("math2 / 2");
+    expect(screen.getByRole("button", { name: "Continue Deck name" })).toBeVisible();
   });
 
   it("renders the card count and Study action for an inactive deck", () => {

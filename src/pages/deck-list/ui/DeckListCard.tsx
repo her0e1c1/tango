@@ -79,7 +79,7 @@ const DeckListCardStatus: React.FC<{
       )}
       <span className="truncate">
         {active && studySession
-          ? `${String(progressValue)} / ${String(studySession.cardOrderIds.length)} · ${formatLastStudied(studySession.lastStudiedAt, t)}`
+          ? `${String(progressValue)} / ${String(studySession.cardOrderIds.length)}${studySession.lastStudiedAt > 0 ? ` · ${formatLastStudied(studySession.lastStudiedAt, t)}` : ""}`
           : t("deckList.cardCount", { count: cardCount })}
       </span>
     </span>

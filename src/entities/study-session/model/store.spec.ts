@@ -214,7 +214,7 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
     expect(() => clearStudySessions()).toThrow(failure);
   });
 
-  it("persists exactly the session map in a v4 envelope", async () => {
+  it("persists sessions in a v4 envelope", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
     startSession("deck-1", ["card-1"]);

@@ -3,7 +3,7 @@ import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
 import { persistedStudySessionStateSchema, studySessionSchema } from "./schema";
-import type { StudySessions } from "./types";
+import type { StudySessions, StudySessionSyncStatus } from "./types";
 
 const STUDY_STORAGE_KEY = "tango-study";
 // No migration is registered: changing this version deliberately invalidates older state shapes.
@@ -12,10 +12,12 @@ const STUDY_STORAGE_VERSION = 4;
 /** Persisted study sessions indexed by their owning Deck. */
 interface StudySessionState {
   sessionsByDeckId: StudySessions;
+  syncUid: string | undefined;
+  syncStatus: StudySessionSyncStatus;
 }
 
 // Restores only independently valid sessions whose Deck key matches their payload.
-const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
+const sanitizePersistedState = (persistedState: unknown): Pick<StudySessionState, "sessionsByDeckId"> => {
   const parsedState = persistedStudySessionStateSchema.safeParse(persistedState);
   if (!parsedState.success) return { sessionsByDeckId: {} };
 
@@ -31,10 +33,11 @@ const sanitizePersistedState = (persistedState: unknown): StudySessionState => {
 
 export const studySessionStore = createStore<StudySessionState>()(
   persist(
-    immer(() => ({ sessionsByDeckId: {} })),
+    immer(() => ({ sessionsByDeckId: {}, syncUid: undefined, syncStatus: "idle" })),
     {
       name: STUDY_STORAGE_KEY,
       version: STUDY_STORAGE_VERSION,
+      partialize: ({ sessionsByDeckId }) => ({ sessionsByDeckId }),
       // Only sanitized fields enter live state; incompatible shapes and unknown metadata are intentionally discarded.
       merge: (persistedState, currentState) => ({
         ...currentState,
