@@ -15,7 +15,7 @@ import { createDeck } from "@/test/factories";
 import { DeckList, type DeckListProps } from "./DeckList";
 
 const activeDeck = createDeck({ id: "active", name: "Active deck", category: "math" });
-const otherDeck = createDeck({ id: "other", name: "Other deck", category: "history" });
+const otherDeck = createDeck({ id: "other", name: "other", category: "history" });
 const onCreateDeck = () => undefined;
 const onImportDeck = () => undefined;
 
@@ -129,9 +129,7 @@ describe("SETTINGS-04 DECK-01 DeckList", () => {
   });
 
   it("keeps list actions available without introducing an empty-state message", async () => {
-    render(
-      <DeckList sections={{ studying: [], other: [] }} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />
-    );
+    render(<DeckList sections={{ studying: [], other: [] }} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
     expect(screen.getByText("0 decks")).toBeInTheDocument();
     expect(screen.queryByRole("region")).not.toBeInTheDocument();
