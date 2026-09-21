@@ -96,12 +96,14 @@ When:
 
 - 対象 Card の view route を直接開く。
 - 同じ画面を開いたまま別の Card の view route へ遷移する。
+- 編集アイコンのリンクを選択する。
 
 Then:
 
 - 対象 Card の back text が Card answer として表示される。
 - URL の Card ID が変わると、遷移先の Card の back text に表示が更新される。
 - application shell が表示される。
+- 編集アイコンのみのリンクから、表示中の Card の既存編集画面を開ける。リンクには翻訳済みの読み上げ名がある。
 - browser error が発生しない。
 
 <a id="card-view-05"></a>

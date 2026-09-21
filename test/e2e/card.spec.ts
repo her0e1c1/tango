@@ -326,6 +326,13 @@ test("CARD-VIEW-04 opens a Card view route inside the application shell", async 
   await expect(page.getByRole("region", { name: "Card answer" })).toContainText(nextCard.backText);
   await expect(page.getByRole("region", { name: "Card answer" })).not.toContainText(card.backText);
   await expect(page.getByRole("button", { name: "tango" })).toBeVisible();
+
+  const editLink = page.getByRole("link", { name: "Edit card" });
+  await expect(editLink).toHaveText("");
+  await expect(editLink).toHaveAttribute("href", `/card/${nextCard.id}/edit`);
+  await editLink.click();
+  await expect(page).toHaveURL(`/card/${nextCard.id}/edit`);
+  await expect(page.getByRole("heading", { name: "Edit card" })).toBeVisible();
 });
 
 test("CARD-VIEW-05 recovers home from a missing Card route", async ({ fixture, page, namespace }) => {
