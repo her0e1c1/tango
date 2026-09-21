@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { recordCardStudyProgress } from "./rules";
+import { calculateDifficulty, recordCardStudyProgress } from "./rules";
 import type { CardProgressFields } from "./types";
 
 // Builds the Card fields required by StudyProgress ordering rules.
@@ -18,5 +18,16 @@ describe("recordCardStudyProgress [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-A
       numberOfSeen: 3,
       lastSeenAt: 1_786_512_000_000,
     });
+  });
+});
+
+describe("calculateDifficulty", () => {
+  it.each([
+    [5, "good", 4],
+    [5, "again", 6],
+    [1, "easy", 1],
+    [10, "again", 10],
+  ] as const)("adjusts manual difficulty %i for %s to %i", (difficulty, rating, expected) => {
+    expect(calculateDifficulty(difficulty, rating)).toBe(expected);
   });
 });
