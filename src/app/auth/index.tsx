@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useAuthSession } from "@/entities/auth";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
+import { getRecoveryMessages } from "../recovery/messages";
+import { requestApplicationReset } from "../recovery/reset";
 import { startAuthSession } from "./lifecycle";
 
 export interface AuthProviderProps {
@@ -12,7 +14,7 @@ export interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = () => window.location.reload() }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const authState = useAuthSession();
 
   React.useEffect(() => {
@@ -37,6 +39,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = (
         description={t("auth.failure.description")}
         tone="error"
         primaryAction={{ label: t("recovery.reload"), onClick: reload }}
+        secondaryAction={{
+          label: getRecoveryMessages(i18n.resolvedLanguage).reset,
+          onClick: () => requestApplicationReset(i18n.resolvedLanguage),
+        }}
       />
     );
   }

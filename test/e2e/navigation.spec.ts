@@ -1,4 +1,18 @@
+import type { Page } from "@playwright/test";
 import { expect, requireDocument, test } from "./fixtures";
+
+async function failNextThemeUpdate(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const toggle = DOMTokenList.prototype.toggle;
+    DOMTokenList.prototype.toggle = function (token, force) {
+      if (this === document.documentElement.classList && token === "dark") {
+        DOMTokenList.prototype.toggle = toggle;
+        throw new Error("E2E_RENDER_FAILURE");
+      }
+      return force === undefined ? toggle.call(this, token) : toggle.call(this, token, force);
+    };
+  });
+}
 
 test("NAVIGATION-01 An unknown route recovers to the Deck list", async ({ fixture, page, namespace }) => {
   await fixture.apply(page);
@@ -44,7 +58,7 @@ test("NAVIGATION-02 Screen shortcuts navigate to their configured routes", async
   expect(await requireDocument("card", card.id)).toEqual(cardBefore);
 });
 
-test("NAVIGATION-03 The outer error boundary keeps the locale and recovers on Reload", async ({
+test("NAVIGATION-03 The outer error boundary keeps the locale and supports reload and explicit reset", async ({
   fixture,
   page,
   browserErrors,
@@ -54,20 +68,44 @@ test("NAVIGATION-03 The outer error boundary keeps the locale and recovers on Re
   await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   browserErrors.allow(/E2E_RENDER_FAILURE/);
-  await page.evaluate(() => {
-    const toggle = DOMTokenList.prototype.toggle;
-    DOMTokenList.prototype.toggle = function (token, force) {
-      if (this === document.documentElement.classList && token === "dark") {
-        DOMTokenList.prototype.toggle = toggle;
-        throw new Error("E2E_RENDER_FAILURE");
-      }
-      return force === undefined ? toggle.call(this, token) : toggle.call(this, token, force);
-    };
-  });
+  await failNextThemeUpdate(page);
   await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
   await expect(page.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
   await expect(page.getByText("予期しないエラーが発生しました。再読み込みしてもう一度お試しください。")).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   await page.getByRole("button", { name: "再読み込み" }).click();
   await expect(page.getByRole("heading", { name: "設定", exact: true })).toBeVisible();
+
+  await page.evaluate(async () => {
+    localStorage.setItem("unrelated-reset-marker", "keep");
+    const scope = `${window.location.origin}/`;
+    await navigator.serviceWorker.ready;
+    const name = (await caches.keys()).find((key) => key.startsWith("workbox-precache-") && key.endsWith(scope));
+    if (!name) throw new Error("Expected Tango's precache");
+    const cache = await caches.open(name);
+    await cache.put("/__reset-marker__", new Response("stale"));
+    const unrelated = await caches.open("unrelated-reset-cache");
+    await unrelated.put("/__unrelated-reset-marker__", new Response("keep"));
+  });
+  await failNextThemeUpdate(page);
+  await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
+  const reset = page.getByRole("button", { name: "キャッシュを削除して初期化" });
+  await expect(reset).toBeVisible();
+  const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await reset.click();
+  await expect(reset).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await reset.click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  expect(await page.evaluate(() => localStorage.getItem("unrelated-reset-marker"))).toBe("keep");
+  expect(await page.evaluate(async () => (await caches.match("/__reset-marker__")) !== undefined)).toBe(false);
+  expect(await page.evaluate(async () => (await caches.match("/__unrelated-reset-marker__"))?.text())).toBe("keep");
+  await page.goto("/account");
+  await expect(page.getByText("Anonymous account", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
 });

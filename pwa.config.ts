@@ -1,7 +1,7 @@
 import type { VitePWAOptions } from "vite-plugin-pwa";
 
 export const pwaOptions = {
-  injectRegister: "script-defer",
+  injectRegister: false,
   manifestFilename: "manifest.json",
   includeAssets: ["favicon.ico", "apple-touch-icon.png"],
   manifest: {
