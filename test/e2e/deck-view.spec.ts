@@ -327,6 +327,21 @@ test("DECK-NAVIGATION-09 shares display preferences with Study and explains view
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
+  const edit = page.getByRole("link", { name: "Edit card", exact: true });
+  await expect(edit).toHaveAttribute("href", `/card/${fixture.card("card-1").id}/edit`);
+  await expect(edit).toHaveText("");
+  await expect(edit.locator("svg")).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(edit).toHaveAttribute("href", `/card/${fixture.card("card-2").id}/edit`);
+  await edit.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(`/card/${fixture.card("card-2").id}/edit`);
+  await expect(page.getByRole("heading", { name: "Edit card" })).toBeVisible();
+  await page.goBack();
+  await expectFront(page, fixture.card("card-1").frontText);
+  await page.getByRole("button", { name: "Card front", exact: true }).click();
+  await expect(edit).toHaveCount(0);
+  await page.getByRole("region", { name: "Card answer", exact: true }).click();
   await page.getByRole("button", { name: "Open viewing help" }).click();
   const dialog = page.getByRole("dialog", { name: "Viewing controls" });
   await expect(dialog).toContainText("Go to the previous card");
@@ -336,15 +351,18 @@ test("DECK-NAVIGATION-09 shares display preferences with Study and explains view
   await expect(page.getByRole("button", { name: "Open viewing help" })).toBeFocused();
   await expectFront(page, fixture.card("card-1").frontText);
   await page.getByRole("button", { name: "Open card actions" }).click();
-  for (const name of ["Card details", "Swipe controls", "Playback controls", "Help button"]) {
+  for (const name of ["Card details", "Swipe controls", "Playback controls", "Help button", "Edit link"]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect(page.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "false");
   }
+  await page.getByRole("button", { name: "Close card actions" }).click();
+  await expect(edit).toHaveCount(0);
   await page.reload();
   await expectFront(page, fixture.card("card-1").frontText);
   await expect(page.getByRole("button", { name: "Open viewing help" })).toHaveCount(0);
   await expect(page.getByRole("slider")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Next card" })).toHaveCount(0);
+  await expect(edit).toHaveCount(0);
   const after = await readSavedData(page, fixture);
   expect({ ...after, preferences: before.preferences }).toEqual(before);
   expect(after.preferences).toEqual({
@@ -356,6 +374,7 @@ test("DECK-NAVIGATION-09 shares display preferences with Study and explains view
         controls: {
           ...before.preferences.state.preferences.controls,
           showHelp: false,
+          showEditLink: false,
           showCardDetails: false,
           showSwipeButtonList: false,
           showPlaybackControls: false,
@@ -363,10 +382,15 @@ test("DECK-NAVIGATION-09 shares display preferences with Study and explains view
       },
     },
   });
+  await page.getByRole("button", { name: "Open card actions" }).click();
+  await page.getByRole("button", { name: "Edit link", exact: true }).click();
+  await page.getByRole("button", { name: "Close card actions" }).click();
+  await expect(edit).toBeVisible();
   await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
   await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
   await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
   await page.getByRole("button", { name: "Open card actions" }).click();
+  await expect(page.getByRole("button", { name: "Edit link", exact: true })).toHaveCount(0);
   for (const name of ["Card details", "Swipe controls", "Playback controls", "Help button"]) {
     await expect(page.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "false");
   }

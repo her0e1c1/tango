@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
@@ -57,7 +58,53 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04]", () => {
+describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]", () => {
+  it("uses the edit shortcut slot to toggle visibility only while actions are open", async () => {
+    function Player() {
+      const [visible, setVisible] = useState(true);
+      return (
+        <CardPlayer
+          {...toolbarProps()}
+          editLink={{
+            visible,
+            onToggle: () => setVisible((value) => !value),
+            element: <a href="/card/current/edit">Edit current card</a>,
+          }}
+        />
+      );
+    }
+    render(<Player />);
+    expect(screen.getByRole("link", { name: "Edit current card" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    expect(screen.queryByRole("link", { name: "Edit current card" })).not.toBeInTheDocument();
+    const toggle = screen.getByRole("button", { name: "Edit link" });
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: "Open card actions" })).toHaveFocus();
+    expect(screen.queryByRole("link", { name: "Edit current card" })).not.toBeInTheDocument();
+    await userEvent.keyboard("{Enter}");
+    await userEvent.click(screen.getByRole("button", { name: "Edit link" }));
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("link", { name: "Edit current card" })).toBeVisible();
+  });
+
+  it("hides the edit link on the answer and does not add editing to Study", () => {
+    const props = toolbarProps();
+    const view = render(
+      <CardPlayer
+        {...props}
+        showBackText
+        editLink={{ visible: true, onToggle: vi.fn(), element: <a href="/edit">Edit</a> }}
+      />
+    );
+    expect(screen.queryByRole("link", { name: "Edit" })).not.toBeInTheDocument();
+    view.rerender(<CardPlayer {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    expect(screen.queryByRole("button", { name: "Edit link" })).not.toBeInTheDocument();
+  });
+
   it("shows only the answer on the back", () => {
     render(
       <CardPlayer

@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { AiOutlineEdit } from "react-icons/ai";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "storybook/test";
 
@@ -7,7 +9,7 @@ import * as fixture from "@/storybook/fixture";
 import { Layout } from "@/shared/ui/layout";
 
 import { CardOverlay } from "./CardOverlay";
-import { CardPlayer } from "./CardPlayer";
+import { CardPlayer, type CardPlayerProps } from "./CardPlayer";
 
 const meta = {
   title: "Features/Card Player/CardPlayer",
@@ -298,3 +300,72 @@ export const DeckViewingAnswer: Story = {
 export const Japanese: Story = { parameters: { locale: "ja" } };
 
 export const WithActionSlot: Story = { args: { actionSlot: <button type="button">Skip</button> } };
+
+function ViewEditLinkStory(args: CardPlayerProps) {
+  const [visible, setVisible] = useState(true);
+  return (
+    <CardPlayer
+      {...args}
+      editLink={{
+        visible,
+        onToggle: () => setVisible((value) => !value),
+        element: (
+          <a
+            href="#edit"
+            aria-label="Edit card"
+            className="pointer-events-auto inline-flex size-touch items-center justify-center rounded-full text-ink-muted hover:bg-surface-muted hover:text-ink"
+          >
+            <AiOutlineEdit aria-hidden="true" className="text-xl" />
+          </a>
+        ),
+      }}
+    />
+  );
+}
+
+export const ViewEditLink: Story = {
+  render: (args) => <ViewEditLinkStory {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("link", { name: "Edit card" })).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Open card actions" }));
+    const overlay = canvasElement.querySelector<HTMLElement>("[data-study-card-overlay]");
+    await expect(overlay).not.toBeNull();
+    if (window.innerWidth <= 439) await expect(overlay).not.toBeVisible();
+    const toggle = canvas.getByRole("button", { name: "Edit link" });
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    const buttons = [
+      "Back to deck list",
+      "Swipe controls",
+      "Playback controls",
+      "Card details",
+      "Edit link",
+      "Help button",
+      "Close card actions",
+    ].map((name) => canvas.getByRole("button", { name }));
+    for (const [i, current] of buttons.entries()) {
+      const a = current.getBoundingClientRect();
+      for (const button of buttons.slice(i + 1)) {
+        const b = button.getBoundingClientRect();
+        await expect(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top).toBe(true);
+      }
+    }
+    await userEvent.click(toggle);
+    await userEvent.keyboard("{Escape}");
+    await expect(canvas.queryByRole("link", { name: "Edit card" })).not.toBeInTheDocument();
+    await userEvent.click(canvas.getByRole("button", { name: "Open card actions" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Edit link" }));
+    await userEvent.keyboard("{Escape}");
+    await expect(canvas.getByRole("link", { name: "Edit card" })).toBeVisible();
+  },
+};
+
+export const ViewEditLinkNarrow: Story = {
+  ...ViewEditLink,
+  globals: { viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const ViewEditLinkMobile: Story = {
+  ...ViewEditLink,
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+};

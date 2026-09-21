@@ -1,10 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { AiOutlineEdit } from "react-icons/ai";
+import { Link, useParams } from "react-router-dom";
 
 import { BackText, FrontText } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { DifficultyIndicator } from "@/entities/study-progress";
 import { CardPlayer, CardOverlay } from "@/features/card-player";
+import { routes } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
@@ -27,6 +29,20 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
         answerLabel={t("deckView.answerAria")}
         onAnswerClick={model.flip}
         showBackText={model.showBackText}
+        editLink={{
+          visible: model.controls.showEditLink,
+          onToggle: model.toggleShowEditLink,
+          element: (
+            <Link
+              to={routes.cardForm.to(model.card.id)}
+              aria-label={t("cardForm.edit.title")}
+              title={t("cardForm.edit.title")}
+              className="pointer-events-auto inline-flex size-touch shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <AiOutlineEdit aria-hidden="true" className="text-xl" />
+            </Link>
+          ),
+        }}
         showHelp={model.controls.showHelp}
         showCardDetails={model.controls.showCardDetails}
         showSwipeControls={model.controls.showSwipeButtonList}
