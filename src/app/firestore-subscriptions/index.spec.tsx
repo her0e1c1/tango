@@ -25,21 +25,11 @@ vi.mock("firebase/firestore", async (importOriginal) => {
       ...collectionReference,
       ...filter,
     }),
-    onSnapshot: (
-      request: FirestoreQuery,
-      publishOrOptions: ((snapshot: FirestoreSnapshot) => void) | { includeMetadataChanges: boolean },
-      onSnapshotOrError:
-        | ((snapshot: FirestoreSnapshot & { metadata: { fromCache: boolean; hasPendingWrites: boolean } }) => void)
-        | ((error: Error) => void)
-    ) => {
+    onSnapshot: (request: FirestoreQuery, publishSnapshot: (snapshot: FirestoreSnapshot) => void) => {
       if (request.collectionName === "studySession") {
-        (onSnapshotOrError as (snapshot: unknown) => void)({
-          docs: [],
-          metadata: { fromCache: false, hasPendingWrites: false },
-        });
+        publishSnapshot({ docs: [] });
         return () => undefined;
       }
-      const publishSnapshot = publishOrOptions as (snapshot: FirestoreSnapshot) => void;
       const deckId = `deck-${request.uid}`;
       const document =
         request.collectionName === "deck"

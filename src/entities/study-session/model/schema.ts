@@ -9,13 +9,11 @@ export const studySessionSchema: z.ZodType<StudySession> = z
     cardOrderIds: z.array(z.string().min(1)).min(1),
     currentIndex: z.number().int().nonnegative(),
     lastStudiedAt: z.number().nonnegative(),
-    remote: z
-      .object({
-        uid: z.string().min(1),
-        startedAt: z.number().nonnegative(),
-        createdAt: z.number().nonnegative().optional(),
-      })
-      .optional(),
+    remote: z.object({
+      uid: z.string().min(1),
+      startedAt: z.number().nonnegative(),
+      createdAt: z.number().nonnegative().optional(),
+    }),
   })
   .refine((session) => session.currentIndex < session.cardOrderIds.length, {
     message: "Study session index must point to an active card",

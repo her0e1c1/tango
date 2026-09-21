@@ -30,6 +30,7 @@ const sections = {
         cardOrderIds: ["card-1", "card-2", "card-3", "card-4"],
         currentIndex: 1,
         lastStudiedAt: Date.now(),
+        remote: { uid: "uid", startedAt: 0 },
       },
     },
   ],

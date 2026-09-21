@@ -22,7 +22,7 @@ export interface StudySession {
   /** Drives recent-deck ordering and advances only when the session is started or used. */
   lastStudiedAt: number;
   /** Firestore ownership for anonymous and linked sessions; start time never changes on resume. */
-  remote?: { uid: string; startedAt: number; createdAt?: number | undefined } | undefined;
+  remote: { uid: string; startedAt: number; createdAt?: number | undefined };
 }
 
 export interface StudySessionWrite {

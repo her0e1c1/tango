@@ -46,7 +46,6 @@ export function toStudySessionWrite(sessionId: string, document: StudySessionDoc
 }
 
 export function toStudySessionDocument(session: StudySession) {
-  if (session.remote === undefined) throw new Error("A local study session cannot be written to Firestore");
   return {
     uid: session.remote.uid,
     deckId: session.deckId,

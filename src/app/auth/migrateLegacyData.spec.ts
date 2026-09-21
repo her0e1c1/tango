@@ -28,6 +28,37 @@ describe("Legacy migration ownership [DECK-07]", () => {
     storage.documents.clear();
     storage.save.mockReset().mockResolvedValue(undefined);
   });
+  it("converts an owner-free legacy session into an owned Firestore session", async () => {
+    localStorage.setItem(
+      "tango-local-decks",
+      JSON.stringify({ version: 0, state: { localDecks: [createDeck({ id: "deck" })] } })
+    );
+    localStorage.setItem(
+      "tango-study",
+      JSON.stringify({
+        version: 0,
+        state: {
+          sessionsByDeckId: {
+            deck: {
+              sessionId: "session",
+              deckId: "deck",
+              cardOrderIds: ["card"],
+              currentIndex: 0,
+              lastStudiedAt: 1000,
+            },
+          },
+        },
+      })
+    );
+    await migrateLegacyData("owner");
+    expect(storage.documents.get("studySession/owner-legacy-session")).toMatchObject({
+      uid: "owner",
+      deckId: "owner-legacy-deck",
+      cardOrderIds: ["owner-legacy-card"],
+      currentIndex: 0,
+      startedAt: expect.objectContaining({ seconds: 1, nanoseconds: 0 }),
+    });
+  });
   it("keeps an interrupted migration assigned to its first UID through account switching and retry", async () => {
     const decks = Array.from({ length: 21 }, (_, index) => createDeck({ id: `deck-${String(index)}` }));
     const original = JSON.stringify({ version: 0, state: { localDecks: decks } });

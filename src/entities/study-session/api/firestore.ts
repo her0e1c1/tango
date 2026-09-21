@@ -11,7 +11,6 @@ import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite 
 
 export async function createStudySession(session: StudySession, previous?: StudySession): Promise<void> {
   const value = studySessionSchema.parse(session);
-  if (value.remote === undefined) throw new Error("A confirmed owner is required");
   const reference = doc(db, "studySession", value.sessionId);
   const now = Timestamp.now();
   const batch = writeBatch(db);
@@ -24,7 +23,7 @@ export async function createStudySession(session: StudySession, previous?: Study
     updatedAt: now,
   });
   if (previous) {
-    if (previous.remote?.uid !== value.remote.uid) throw new Error("Study session owner changed");
+    if (previous.remote.uid !== value.remote.uid) throw new Error("Study session owner changed");
     const previousReference = doc(db, "studySession", previous.sessionId);
     references.push(previousReference);
     batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: now });
@@ -37,7 +36,6 @@ export async function updateStudySession(
   endReason: StudySessionWrite["endReason"]
 ): Promise<void> {
   const value = studySessionSchema.parse(session);
-  if (value.remote === undefined) throw new Error("A local study session cannot be written to Firestore");
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
   await writeLocally(value.remote.uid, [reference], () =>
@@ -50,7 +48,6 @@ export async function updateStudySession(
 }
 
 export async function updateStudySessionRecency(session: StudySession): Promise<void> {
-  if (!session.remote) throw new Error("A confirmed owner is required");
   const reference = doc(db, "studySession", session.sessionId);
   await writeLocally(session.remote.uid, [reference], () =>
     updateDoc(reference, { updatedAt: Timestamp.fromMillis(session.lastStudiedAt) })
@@ -61,7 +58,6 @@ export function subscribeStudySessions(uid: string, onError: (error: Error) => v
   setStudySessionOwner(uid);
   return onSnapshot(
     query(collection(db, "studySession"), where("uid", "==", uid)),
-    { includeMetadataChanges: true },
     (snapshot) => {
       const latest = new Map<string, StudySessionWrite>();
       for (const item of snapshot.docs) {

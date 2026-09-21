@@ -45,9 +45,9 @@ describe("DECK-01 SWIPE-08 useDeckListState", () => {
     );
 
     vi.setSystemTime(100);
-    startStudy("active-old", cardsForDeck("active-old"), studyPreferences);
+    startStudy("active-old", cardsForDeck("active-old"), studyPreferences, "user-id");
     vi.setSystemTime(200);
-    startStudy("active-new", cardsForDeck("active-new"), studyPreferences);
+    startStudy("active-new", cardsForDeck("active-new"), studyPreferences, "user-id");
   });
 
   afterEach(async () => {

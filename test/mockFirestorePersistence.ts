@@ -60,7 +60,12 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
   const { studySessionStore } = await import("@/entities/study-session/model/store");
   return {
     ...actual,
-    createStudySession: async () => undefined,
+    createStudySession: async (session: import("@/entities/study-session").StudySession) => {
+      await Promise.resolve();
+      studySessionStore.setState((state) => {
+        state.sessionsByDeckId[session.deckId] = session;
+      });
+    },
     updateStudySession: async (session: import("@/entities/study-session").StudySession, endReason: string | null) => {
       await Promise.resolve();
       studySessionStore.setState((state) => {
@@ -73,7 +78,7 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
 
 vi.mock("@/entities/study-session/api/mutations", async () => {
   const { touchStudySession } = await import("@/entities/study-session/model/actions/touchStudySession");
-  const { startStudy } = await import("@/entities/study-session/model/actions/startStudy");
+  const { startStudy } = await import("@/test/entityFixtures");
   const { moveStudySession } = await import("@/entities/study-session/model/actions/moveStudySession");
   const { setStudySessionIndex } = await import("@/entities/study-session/model/actions/setStudySessionIndex");
   const { removeStudySession } = await import("@/entities/study-session/model/actions/removeStudySession");

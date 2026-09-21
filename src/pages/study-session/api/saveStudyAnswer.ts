@@ -27,7 +27,7 @@ export async function saveStudyAnswer(
   if (
     !uid ||
     getAuthUid() !== uid ||
-    session.remote?.uid !== uid ||
+    session.remote.uid !== uid ||
     card?.uid !== uid ||
     deck?.uid !== uid ||
     current?.sessionId !== session.sessionId ||

@@ -92,7 +92,7 @@ describe("useStudySessionStartState [SWIPE-06]", () => {
     });
 
     act(() => {
-      startStudy(deck.id, result.current.cards, result.current.studyPreferences);
+      startStudy(deck.id, result.current.cards, result.current.studyPreferences, deck.uid);
     });
 
     expect(getStudySession(deck.id)).toMatchObject({
@@ -108,7 +108,7 @@ describe("useStudySessionStartState [SWIPE-06]", () => {
     expect(result.current.cardsLength).toBe(1);
 
     act(() => {
-      startStudy(deck.id, result.current.cards, result.current.studyPreferences);
+      startStudy(deck.id, result.current.cards, result.current.studyPreferences, deck.uid);
     });
 
     expect(getStudySession(deck.id)?.cardOrderIds).toEqual([laterCard.id]);

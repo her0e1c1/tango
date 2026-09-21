@@ -18,6 +18,7 @@ const studyingItems = (decks: Deck[]) =>
       cardOrderIds: Array.from({ length: 12 + index * 7 }, (_, cardIndex) => `${deck.id}-card-${String(cardIndex)}`),
       currentIndex: index + 1,
       lastStudiedAt: fixture.timestamp - index * 24 * 60 * 60 * 1000,
+      remote: { uid: "uid", startedAt: 0 },
     },
   }));
 

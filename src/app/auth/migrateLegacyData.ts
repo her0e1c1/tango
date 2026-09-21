@@ -69,7 +69,8 @@ export async function migrateLegacyData(uid: string): Promise<void> {
   }
   for (const [deckId, raw] of Object.entries(sessions)) {
     if (!deckIds.has(deckId)) continue;
-    const session = studySessionSchema.parse(raw);
+    const legacy = z.record(z.string(), z.unknown()).parse(raw);
+    const session = studySessionSchema.parse({ ...legacy, remote: { uid, startedAt: legacy.lastStudiedAt } });
     const timestamp = Timestamp.fromMillis(session.lastStudiedAt);
     const value = {
       ...session,

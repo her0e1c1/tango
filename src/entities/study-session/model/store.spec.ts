@@ -1,7 +1,5 @@
 /**
- * @file Exercises the singleton store with its real persistence middleware.
- * Memory and localStorage are reset together because leaking either layer would
- * make hydration and mutation results depend on test order.
+ * @file Exercises visible session state and preserves the legacy browser backup.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,7 +9,7 @@ import { getStudySession } from "./queries/getStudySession";
 import { moveStudySession } from "./actions/moveStudySession";
 import { removeStudySession } from "./actions/removeStudySession";
 import { setStudySessionIndex } from "./actions/setStudySessionIndex";
-import { startStudy } from "./actions/startStudy";
+import { startStudy } from "@/test/entityFixtures";
 import { studySessionStore } from "./store";
 import { touchStudySession } from "./actions/touchStudySession";
 
@@ -22,7 +20,8 @@ const startSession = (deckId: string, cardOrderIds: string[]): void => {
   startStudy(
     deckId,
     cardOrderIds.map((id, numberOfSeen) => ({ id, difficulty: 5, numberOfSeen })),
-    { shuffled: false, maxNumberOfCardsToLearn: 0 }
+    { shuffled: false, maxNumberOfCardsToLearn: 0 },
+    "uid"
   );
 };
 
@@ -40,25 +39,6 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
     vi.unstubAllGlobals();
   });
 
-  it("starts at index zero with the configured card order", () => {
-    startSession("deck-1", ["card-1", "card-2"]);
-
-    expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({
-      cardOrderIds: ["card-1", "card-2"],
-      currentIndex: 0,
-    });
-  });
-
-  it("starts a session when randomUUID is unavailable", () => {
-    vi.stubGlobal("crypto", {
-      getRandomValues: () => new Uint32Array([1, 2, 3, 4]),
-    });
-
-    startSession("deck-1", ["card-1"]);
-
-    expect(getStudySession("deck-1")?.sessionId).toBe("1-2-3-4");
-  });
-
   it("keeps independent study sessions for multiple decks", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
@@ -74,6 +54,7 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
         cardOrderIds: ["card-1", "card-2"],
         currentIndex: 0,
         lastStudiedAt: 1000,
+        remote: { uid: "uid", startedAt: 1000 },
       },
       "deck-2": {
         sessionId: expect.any(String),
@@ -81,6 +62,7 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
         cardOrderIds: ["card-3"],
         currentIndex: 0,
         lastStudiedAt: 2000,
+        remote: { uid: "uid", startedAt: 2000 },
       },
     });
   });

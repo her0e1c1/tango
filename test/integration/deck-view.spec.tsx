@@ -13,7 +13,7 @@ import { createCard, getCards } from "@/entities/card";
 import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { getPreferences, updatePreferences } from "@/entities/preference";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
-import { startStudy } from "@/entities/study-session/model/actions/startStudy";
+import { startStudy } from "@/test/entityFixtures";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -79,7 +79,7 @@ describe("DECK-14 DECK-15 DECK-19 DECK-20 DECK-21 Deck View through App, routes,
       })
     );
     await seedLocalDeck(deck, cards);
-    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
     setStudySessionIndex(deck.id, 1);
     const before = savedState(deck.id);
     let router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
@@ -194,7 +194,7 @@ describe("DECK-14 DECK-15 DECK-19 DECK-20 DECK-21 Deck View through App, routes,
     const deck = createLocalDeck({ id: "shared-controls", name: "Shared controls" });
     const cards = [createLocalCard({ id: "shared-card", deckId: deck.id, frontText: "Shared prompt" })];
     await seedLocalDeck(deck, cards);
-    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
     const before = savedState(deck.id);
     let router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });
     let view = render(<App router={router} />);
@@ -227,7 +227,7 @@ describe("DECK-14 DECK-15 DECK-19 DECK-20 DECK-21 Deck View through App, routes,
     );
     await seedLocalDeck(deck, cards);
     updatePreferences({ study: { cardInterval: 1, defaultAutoPlay: true } });
-    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
     setStudySessionIndex(deck.id, 1);
     const before = savedState(deck.id);
     vi.useFakeTimers();

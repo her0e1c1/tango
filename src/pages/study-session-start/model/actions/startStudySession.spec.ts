@@ -4,6 +4,7 @@ import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import type { Deck } from "@/entities/deck";
 import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { startStudySession } from "./startStudySession";
+import { restoreStudySession } from "@/test/entityFixtures";
 
 const mocks = vi.hoisted(() => ({ deck: null as Deck | null }));
 
@@ -20,7 +21,10 @@ vi.mock("@/entities/preference", () => ({
 }));
 
 vi.mock("@/entities/study-session/api/firestore", () => ({
-  createStudySession: vi.fn(() => Promise.resolve()),
+  createStudySession: async (session: import("@/entities/study-session").StudySession) => {
+    await Promise.resolve();
+    restoreStudySession(session);
+  },
   updateStudySession: vi.fn(() => Promise.resolve()),
 }));
 

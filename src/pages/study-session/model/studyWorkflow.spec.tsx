@@ -80,7 +80,7 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
       showSwipeFeedback: true,
       cardSwipeRight: "GoToNextCardMastered",
     });
-    startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
   });
 
   afterEach(() => {
@@ -141,7 +141,7 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
 
   it("reports invalid when the session has no current card", async () => {
     clearStudySessions();
-    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
     mocks.cards = [];
 
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
@@ -171,7 +171,7 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     const previousSessionId = getStudySession(deckId)?.sessionId;
 
     act(() => vi.advanceTimersByTime(500));
-    act(() => startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+    act(() => startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid));
     expect(getStudySession(deckId)?.sessionId).not.toBe(previousSessionId);
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
 
@@ -266,7 +266,7 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
 
   it("does not complete a final Card when the active session is replaced during the write", async () => {
     clearStudySessions();
-    startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
     mocks.cards = cards.slice(0, 1);
     const request = Promise.withResolvers<void>();
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
@@ -275,7 +275,7 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     act(() => {
       void result.current.swipeRight();
     });
-    act(() => startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+    act(() => startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid));
     await actAsync(async () => {
       request.resolve();
       await request.promise;
@@ -444,7 +444,7 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
       expect(firstResult.current.pageState.completion).toEqual({ cardCount: 2 });
       const nextDeckId = destination === "other Deck" ? "deck-2" : deckId;
       if (destination === "other UID") mocks.uid = "user-2";
-      act(() => startStudy(nextDeckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+      act(() => startStudy(nextDeckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid));
       const presentations: unknown[] = [];
       const { result: nextResult } = renderHook(() => {
         const model = useStudySessionPageModel(nextDeckId);
@@ -493,7 +493,7 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
       firstResult.current.swipeRight();
     });
     unmountFirst();
-    startStudy("deck-2", cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy("deck-2", cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
     const { result: nextResult } = renderHook(() => useStudySessionPageModel("deck-2"));
     act(nextResult.current.openHelp);
     await actAsync(async () => {

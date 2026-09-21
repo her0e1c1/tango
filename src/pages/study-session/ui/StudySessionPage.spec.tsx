@@ -42,7 +42,7 @@ vi.mock("firebase/firestore", async (importOriginal) => ({
   collection: vi.fn(),
   where: vi.fn(),
   query: vi.fn(),
-  onSnapshot: (_query: unknown, _options: unknown, receive: typeof mocks.receiveSnapshot) => {
+  onSnapshot: (_query: unknown, receive: typeof mocks.receiveSnapshot) => {
     mocks.receiveSnapshot = receive;
     return () => {
       mocks.receiveSnapshot = undefined;
@@ -161,7 +161,7 @@ describe("StudySessionPage [SWIPE-05] [SWIPE-08] [SETTINGS-04] [SWIPE-02] [SWIPE
       { kind: "create", card: firstCard },
       { kind: "create", card: secondCard },
     ]);
-    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
   });
 
   it("renders the active session from stored Entity state", () => {
@@ -382,7 +382,7 @@ describe("StudySessionPage [SWIPE-05] [SWIPE-08] [SETTINGS-04] [SWIPE-02] [SWIPE
       },
     });
     clearStudySessions();
-    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
     renderPage();
     const sessionBeforeHelp = getStudySession(deckId);
 
@@ -420,7 +420,7 @@ describe("StudySessionPage [SWIPE-05] [SWIPE-08] [SETTINGS-04] [SWIPE-02] [SWIPE
   it("updates semantic Help labels without resetting the mounted session or controls", () => {
     mocks.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 60 });
     clearStudySessions();
-    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
     renderPage();
     const sessionBeforeLanguageChange = getStudySession(deckId);
     const cardBeforeLanguageChange = screen.getByText("Front one");
@@ -444,7 +444,7 @@ describe("StudySessionPage [SWIPE-05] [SWIPE-08] [SETTINGS-04] [SWIPE-02] [SWIPE
   it("pauses autoplay while Help is open and resumes without changing its explicit state", () => {
     mocks.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 1 });
     clearStudySessions();
-    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
     vi.useFakeTimers();
 
     try {
@@ -618,7 +618,7 @@ describe("StudySessionPage [SWIPE-05] [SWIPE-08] [SETTINGS-04] [SWIPE-02] [SWIPE
     await deleteCard("user-id", firstCard.id);
     await deleteCard("user-id", secondCard.id);
     clearStudySessions();
-    startStudy(deckId, [firstCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard], mocks.preferences.study, "user-id");
 
     renderPage();
 

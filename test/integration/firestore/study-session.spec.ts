@@ -90,7 +90,7 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
       deckId,
       cardOrderIds: ["first", "second", "third"],
       currentIndex: 1,
-      startedAt: Timestamp.fromMillis(started.remote?.startedAt ?? 0),
+      startedAt: Timestamp.fromMillis(started.remote.startedAt),
       endedAt: null,
       endReason: null,
       createdAt: expect.any(Timestamp),
@@ -123,6 +123,7 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
     await waitForPendingWrites(testDb);
     stop();
     expect((await readSession(previous.sessionId)).data()?.endReason).toBeNull();
+    stop = subscribeStudySessions("uid", vi.fn());
     const next = await startRemote();
     await waitForPendingWrites(testDb);
     expect((await readSession(previous.sessionId)).data()).toMatchObject({
@@ -212,9 +213,11 @@ describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-1
   });
 
   it("ignores malformed documents without blocking valid sessions or new study", async () => {
+    stop = subscribeStudySessions("uid", vi.fn());
     const valid = await startRemote();
     await waitForPendingWrites(testDb);
     await setDoc(doc(testDb, "studySession", crypto.randomUUID()), { uid: "uid", answers: [] });
+    stop();
     clearStudySessions();
     const onError = vi.fn();
     stop = subscribeStudySessions("uid", onError);

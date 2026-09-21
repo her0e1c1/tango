@@ -59,6 +59,7 @@ describe("DeckListCard [SWIPE-08]", () => {
           cardOrderIds: ["card-1", "card-2", "card-3"],
           currentIndex: 1,
           lastStudiedAt: new Date("2026-07-18T00:05:00Z").getTime(),
+          remote: { uid: "uid", startedAt: 0 },
         }}
       />
     );
@@ -90,6 +91,7 @@ describe("DeckListCard [SWIPE-08]", () => {
           cardOrderIds: ["first", "second"],
           currentIndex: 1,
           lastStudiedAt: 0,
+          remote: { uid: "uid", startedAt: 0 },
         }}
       />
     );
@@ -128,6 +130,7 @@ describe("DeckListCard [SWIPE-08]", () => {
           cardOrderIds: ["card-1", "card-2", "card-3"],
           currentIndex: 0,
           lastStudiedAt: Date.now(),
+          remote: { uid: "uid", startedAt: 0 },
         }}
         {...actions}
       />

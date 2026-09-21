@@ -101,7 +101,7 @@ describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 DECK-13 SWIPE-08
       { kind: "create", card: activeCard },
       { kind: "create", card: freshCard },
     ]);
-    startStudy(activeDeck.id, [activeCard], mocks.preferences.study);
+    startStudy(activeDeck.id, [activeCard], mocks.preferences.study, mocks.uid);
   });
 
   afterEach(() => {
@@ -173,10 +173,10 @@ describe("NAVIGATION-02 DECK-01 DECK-03 DECK-04 DECK-05 DECK-08 DECK-13 SWIPE-08
     const nextCard = createLocalCard({ id: "next-card", deckId: activeDeck.id, uniqueKey: "next-card" });
     await mutateCards("user-id", [{ kind: "create", card: nextCard }]);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
-    startStudy(activeDeck.id, [activeCard, nextCard], { ...mocks.preferences.study, shuffled: false });
+    startStudy(activeDeck.id, [activeCard, nextCard], { ...mocks.preferences.study, shuffled: false }, mocks.uid);
     setStudySessionIndex(activeDeck.id, 1);
     now.mockReturnValue(2000);
-    startStudy(freshDeck.id, [freshCard], mocks.preferences.study);
+    startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
     const router = createMemoryRouter([
       { path: "/", element: <DeckListPage /> },
       {
