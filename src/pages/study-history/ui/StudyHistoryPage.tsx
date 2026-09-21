@@ -3,6 +3,7 @@ import { AppLayout } from "@/widgets/app-layout";
 import { Button } from "@/shared/ui/button";
 import { Select } from "@/shared/ui/forms";
 import { useStudyHistoryPageModel } from "../model/useStudyHistoryPageModel";
+import { RecentStudySessions } from "./RecentStudySessions";
 import { StudyHistorySummary } from "./StudyHistorySummary";
 
 export function StudyHistoryPage() {
@@ -60,6 +61,7 @@ export function StudyHistoryPage() {
             started={model.summary.started}
             completed={model.summary.completed}
           />
+          <RecentStudySessions sessions={model.recentSessions} />
         </>
       )}
     </AppLayout>

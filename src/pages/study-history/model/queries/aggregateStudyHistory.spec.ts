@@ -4,7 +4,15 @@ import { aggregateStudyHistory } from "./aggregateStudyHistory";
 import { getStudyHistoryPeriod } from "./getStudyHistoryPeriod";
 
 const period = getStudyHistoryPeriod(new Date(2026, 8, 21, 15));
-const record = (occurredAt: number, deckId = "deck"): StudyHistoryRecord => ({ deckId, occurredAt });
+const record = (occurredAt: number, deckId = "deck"): StudyHistoryRecord => ({
+  deckId,
+  occurredAt,
+  sessionId: "session",
+  startedAt: occurredAt,
+  endedAt: null,
+  endReason: null,
+  cardCount: 1,
+});
 const visible = new Set(["deck"]);
 
 describe("STUDY-SESSION-09 daily study counts", () => {
