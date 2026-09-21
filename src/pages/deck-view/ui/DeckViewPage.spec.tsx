@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { getI18n } from "react-i18next";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -31,6 +32,7 @@ vi.mock("@/entities/preference", () => ({
   getPreferences: () => data.preferences,
   setDarkMode: vi.fn(),
   toggleShowHelp: vi.fn(),
+  toggleShowEditLink: vi.fn(),
   toggleShowCardDetails: vi.fn(),
   toggleShowPlaybackControls: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
@@ -47,6 +49,7 @@ const renderPage = () =>
       <Routes>
         <Route path="/deck/:id/view" element={<DeckViewPage />} />
         <Route path="/" element={<h1>Decks</h1>} />
+        <Route path="/card/:id/edit" element={<h1>Editor</h1>} />
       </Routes>
     </MemoryRouter>
   );
@@ -79,6 +82,22 @@ describe("DECK-NAVIGATION-03 DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATI
       keepBackTextViewed: true,
     });
     data.pendingFilter = undefined;
+  });
+
+  it.each([
+    ["en", "Edit card"],
+    ["ja", "カードを編集"],
+  ])("opens the current card editor with a translated icon link in %s", async (language, label) => {
+    await getI18n().changeLanguage(language);
+    renderPage();
+    expect(screen.getByRole("link", { name: label })).toHaveAttribute("href", "/card/first/edit");
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    const link = screen.getByRole("link", { name: label });
+    expect(link).toHaveAttribute("href", "/card/second/edit");
+    expect(link).toHaveTextContent("");
+    link.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("heading", { name: "Editor" })).toBeVisible();
   });
 
   it("flips either face, fixes keyboard navigation, and exits beyond either end", async () => {
