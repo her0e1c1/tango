@@ -41,7 +41,7 @@ describe("DECK-NAVIGATION-12 DECK-NAVIGATION-13 Deck review sections", () => {
     };
     const sessions = { active: session };
     const before = structuredClone({ cards, decks, sessions });
-    const result = buildDeckListSections(decks, cards, sessions, true, now);
+    const result = buildDeckListSections({ decks, cards, sessionsByDeckId: sessions, useCardInterval: true }, now);
 
     expect(result.reviewSummary).toEqual({ dueCardCount: 2, newCardCount: 3 });
     expect(result.reviewNow.map(({ deck }) => deck.id)).toEqual(["review", "new"]);
@@ -61,35 +61,33 @@ describe("DECK-NAVIGATION-12 DECK-NAVIGATION-13 Deck review sections", () => {
     const cards = decks.map(({ id }, index) =>
       createCard({ id, deckId: id, ...(index < 3 ? { nextSeeingAt: new Date(now - (index === 0 ? 2 : 1)) } : {}) })
     );
-    expect(buildDeckListSections(decks, cards, {}, true, now).reviewNow.map(({ deck }) => deck.name)).toEqual([
-      "Zulu",
-      "Alpha",
-      "Beta",
-      "New A",
-      "New Z",
-    ]);
+    const result = buildDeckListSections({ decks, cards, sessionsByDeckId: {}, useCardInterval: true }, now);
+    expect(result.reviewNow.map(({ deck }) => deck.name)).toEqual(["Zulu", "Alpha", "Beta", "New A", "New Z"]);
   });
 
   it.each([false, true])("uses saved tag matching (AND: %s) instead of redefining filters", (tagAndFilter) => {
     const deck = createDeck({ selectedTags: ["a", "b"], tagAndFilter });
     const cards = [createCard({ id: "one", tags: ["a"] }), createCard({ id: "both", tags: ["a", "b"] })];
-    expect(buildDeckListSections([deck], cards, {}, true, now).reviewSummary?.newCardCount).toBe(tagAndFilter ? 1 : 2);
+    const result = buildDeckListSections({ decks: [deck], cards, sessionsByDeckId: {}, useCardInterval: true }, now);
+    expect(result.reviewSummary?.newCardCount).toBe(tagAndFilter ? 1 : 2);
   });
 
   it("uses the FSRS schedule instead of an expired legacy deadline", () => {
     const schedule = { ...calculateStudySchedule(undefined, "good", now), dueAt: now + 1000 };
     const card = createCard({ schedule, nextSeeingAt: new Date(now - 1000), numberOfSeen: 5 });
-    const before = buildDeckListSections([createDeck()], [card], {}, true, now);
+    const inputs = { decks: [createDeck()], cards: [card], sessionsByDeckId: {}, useCardInterval: true };
+    const before = buildDeckListSections(inputs, now);
     expect(before.reviewSummary).toEqual({ dueCardCount: 0, newCardCount: 0 });
     expect(before.nextDueAt).toBe(schedule.dueAt);
-    const at = buildDeckListSections([createDeck()], [card], {}, true, schedule.dueAt);
+    const at = buildDeckListSections(inputs, schedule.dueAt);
     expect(at.reviewSummary).toEqual({ dueCardCount: 1, newCardCount: 0 });
     expect(at.nextDueAt).toBeUndefined();
   });
 
   it("does not reinterpret malformed timing as a new Card or an empty result", () => {
     const card = createCard({ nextSeeingAt: new Date(Number.NaN) });
-    expect(() => buildDeckListSections([createDeck()], [card], {}, true, now)).toThrow();
+    const inputs = { decks: [createDeck()], cards: [card], sessionsByDeckId: {}, useCardInterval: true };
+    expect(() => buildDeckListSections(inputs, now)).toThrow();
   });
 
   it("keeps a zero-due active Session and the original ordering when scheduling is disabled", () => {
@@ -106,11 +104,12 @@ describe("DECK-NAVIGATION-12 DECK-NAVIGATION-13 Deck review sections", () => {
       },
     };
     const cards = [createCard({ id: "card", deckId: "active", nextSeeingAt: new Date(now + 1000) })];
-    expect(buildDeckListSections(decks, cards, sessions, true, now).studying[0]?.review).toMatchObject({
+    const inputs = { decks, cards, sessionsByDeckId: sessions, useCardInterval: true };
+    expect(buildDeckListSections(inputs, now).studying[0]?.review).toMatchObject({
       dueCardCount: 0,
       newCardCount: 0,
     });
-    const result = buildDeckListSections(decks, cards, sessions, false, now);
+    const result = buildDeckListSections({ ...inputs, useCardInterval: false }, now);
     expect(result.studying[0]?.studySession).toEqual(sessions.active);
     expect(result.other.map(({ deck }) => deck.id)).toEqual(["a", "z"]);
     expect(result.reviewNow).toEqual([]);

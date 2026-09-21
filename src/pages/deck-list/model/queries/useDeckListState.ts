@@ -12,5 +12,7 @@ export const useDeckListState = () => {
   const sessionsByDeckId = useStudySessions();
   const { study } = usePreferences();
 
-  return useDeadlineQuery(buildDeckListSections, [decks, cards, sessionsByDeckId, study.useCardInterval]);
+  return useDeadlineQuery(buildDeckListSections, [
+    { decks, cards, sessionsByDeckId, useCardInterval: study.useCardInterval },
+  ]);
 };

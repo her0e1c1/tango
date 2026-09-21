@@ -24,11 +24,15 @@ function getDeckReview(cards: Card[], deck: Deck, now: number) {
   return { dueCardCount, newCardCount, firstDueAt, nextDueAt: selection.nextDueAt };
 }
 
+interface DeckListInputs {
+  decks: Deck[];
+  cards: Card[];
+  sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
+  useCardInterval: boolean;
+}
+
 export function buildDeckListSections(
-  decks: Deck[],
-  cards: Card[],
-  sessionsByDeckId: Partial<Record<DeckId, StudySession>>,
-  useCardInterval: boolean,
+  { decks, cards, sessionsByDeckId, useCardInterval }: DeckListInputs,
   now: number
 ) {
   const cardsByDeckId = new Map<DeckId, Card[]>();
@@ -63,7 +67,6 @@ export function buildDeckListSections(
       left.deck.name.localeCompare(right.deck.name)
   );
   other.sort((left, right) => left.deck.name.localeCompare(right.deck.name));
-
   let dueCardCount = 0;
   let newCardCount = 0;
   let nextDueAt: number | undefined;
