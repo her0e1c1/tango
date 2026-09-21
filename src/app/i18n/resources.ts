@@ -481,6 +481,11 @@ export const resources = {
           back: "Back to deck list",
         },
         toolbar: {
+          editLink: {
+            label: "Edit link",
+            show: "Show edit link",
+            hide: "Hide edit link",
+          },
           playbackUnavailable: "Playback controls unavailable because the card interval is set to 0",
           back: "Back to deck list",
           actions: {
@@ -1226,6 +1231,11 @@ export const resources = {
           back: "デッキ一覧へ戻る",
         },
         toolbar: {
+          editLink: {
+            label: "編集リンク",
+            show: "編集リンクを表示",
+            hide: "編集リンクを非表示",
+          },
           playbackUnavailable: "カードの間隔が0のため再生コントロールは利用できません",
           back: "デッキ一覧へ戻る",
           actions: {
