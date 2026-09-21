@@ -5,7 +5,6 @@ import {
   type StudyRating,
   createStudyProgressFromCard,
   isStudyProgressEligible,
-  recordCardStudyProgress,
 } from "@/entities/study-progress/@x/study-session";
 
 import type {
@@ -134,12 +133,11 @@ const ratings: Partial<Record<SwipeAction, StudyRating>> = {
   RateEasy: "easy",
 };
 
-// Plans a swipe without mutation and emits progress only when the current session and Card still resolve.
+// Resolves the action and rating only when the current session and Card still exist.
 export const planStudySessionSwipe = (
   session: StudySession | undefined,
-  cards: readonly CardProgressFields[],
-  swipeAction: SwipeAction,
-  studiedAt: number
+  cards: readonly StudySessionCard[],
+  swipeAction: SwipeAction
 ): StudySessionSwipePlan => {
   if (session == null) return { effect: "none" };
 
@@ -151,8 +149,6 @@ export const planStudySessionSwipe = (
 
   return {
     effect,
-    session,
-    progress: recordCardStudyProgress(resolvedSession.card, ratings[swipeAction], studiedAt),
     rating: ratings[swipeAction],
   };
 };

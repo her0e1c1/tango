@@ -27,7 +27,11 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: mocks.uid }), getAuthUid: () => mocks.uid }));
+vi.mock("@/entities/auth", () => ({
+  useAuth: () => ({ uid: mocks.uid }),
+  getAuthUid: () => mocks.uid,
+  getAuthSession: () => ({ status: "authenticated", uid: mocks.uid, isAnonymous: false }),
+}));
 vi.mock("../api/saveStudyOperation", () => ({ saveStudyOperation: mocks.saveStudyOperation }));
 vi.mock("@/entities/preference", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preference")>()),
@@ -192,6 +196,62 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     expect(nextResult.current.pageState.completion).toBeUndefined();
     expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
+
+  it.each([false, true])("rejects stale rendered controls after authentication changes (remote=%s)", (remote) => {
+    if (remote) startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
+    const { result } = renderHook(() => useStudySessionPageModel(deckId));
+    mocks.uid = "other-user";
+    act(() => {
+      result.current.swipeRight();
+      result.current.skip();
+      result.current.changeIndex(1);
+    });
+    expect(getStudySession(deckId)?.currentIndex).toBe(0);
+    expect(sessionStorage.length).toBe(0);
+    expect(mocks.cards).toEqual(cards);
+  });
+
+  it("moves the slider without creating an answer retry operation", () => {
+    const { result } = renderHook(() => useStudySessionPageModel(deckId));
+    act(() => result.current.changeIndex(1));
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+    expect(result.current.pageState).toMatchObject({ swipePending: false, saveFailed: false });
+    expect(sessionStorage.length).toBe(0);
+    expect(mocks.cards).toEqual(cards);
+  });
+
+  it.each(["progress save", "pending cleanup"])(
+    "does not recount local progress after a partial %s failure",
+    async (failure) => {
+      let failProgress = failure === "progress save";
+      mocks.editStudyProgress.mockImplementation((_uid, progress) => {
+        const { cardId, ...fields } = progress;
+        mocks.cards = mocks.cards.map((card) => (card.id === cardId ? { ...card, ...fields } : card));
+        if (failProgress) {
+          failProgress = false;
+          return Promise.reject(new Error("Storage unavailable after updating progress"));
+        }
+        return Promise.resolve();
+      });
+      if (failure === "pending cleanup") {
+        vi.spyOn(Storage.prototype, "removeItem").mockImplementationOnce(() => {
+          throw new Error("Storage unavailable");
+        });
+      }
+      const { result: firstResult, unmount } = renderHook(() => useStudySessionPageModel(deckId));
+      await actAsync(async () => firstResult.current.swipeRight());
+      expect(firstResult.current.pageState.saveFailed).toBe(true);
+      expect(mocks.cards[0]).toMatchObject({ difficulty: 4, numberOfSeen: 1 });
+      unmount();
+      const { result } = renderHook(() => useStudySessionPageModel(deckId));
+      await actAsync(async () => result.current.retrySave());
+      expect(mocks.cards[0]).toMatchObject({ difficulty: 4, numberOfSeen: 1 });
+      expect(mocks.cards[1]).toMatchObject({ difficulty: 5, numberOfSeen: 0 });
+      expect(getStudySession(deckId)?.currentIndex).toBe(1);
+      expect(result.current.pageState.saveFailed).toBe(false);
+      expect(sessionStorage.length).toBe(0);
+    }
+  );
 
   it("reports preparing while the session card is not available", () => {
     mocks.cards = [];

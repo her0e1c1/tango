@@ -1,32 +1,16 @@
-import { getStudySession } from "@/entities/study-session";
-import { readPendingStudyOperation } from "../../api/pendingStudyOperation";
+import { setStudySessionIndex } from "@/entities/study-session";
 import { studySessionPageStore } from "../store";
-import { executeStudyOperation } from "./executeStudyOperation";
+import { getStudyUid } from "../queries/getStudyUid";
+import { hideBackText } from "./hideBackText";
 
-export async function updateStudyIndex(deckId: string, targetIndex: number): Promise<void> {
+export function updateStudyIndex(deckId: string, targetIndex: number): void {
   const { owner, pendingWork, pendingOperation } = studySessionPageStore.getState();
-  if (owner?.deckId !== deckId || pendingWork !== undefined || pendingOperation !== undefined) return;
-  const session = getStudySession(deckId);
   if (
-    session === undefined ||
-    !Number.isInteger(targetIndex) ||
-    targetIndex <= session.currentIndex ||
-    targetIndex >= session.cardOrderIds.length ||
-    readPendingStudyOperation(owner.uid, session.sessionId) !== undefined
+    owner?.deckId !== deckId ||
+    owner.uid !== getStudyUid() ||
+    pendingWork !== undefined ||
+    pendingOperation !== undefined
   )
     return;
-  const cardId = session.cardOrderIds[session.currentIndex];
-  if (cardId === undefined) return;
-  await executeStudyOperation({
-    id: crypto.randomUUID(),
-    uid: owner.uid,
-    deckId,
-    sessionId: session.sessionId,
-    cardId,
-    currentIndex: session.currentIndex,
-    targetIndex,
-    cardCount: session.cardOrderIds.length,
-    answeredAt: Date.now(),
-    recordProgress: false,
-  });
+  if (setStudySessionIndex(deckId, targetIndex)) hideBackText();
 }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { studyRatingSchema } from "@/entities/study-progress";
+import { studyProgressEditSchema, studyRatingSchema } from "@/entities/study-progress";
 
 export const studyOperationSchema = z
   .object({
@@ -9,20 +9,20 @@ export const studyOperationSchema = z
     deckId: z.string().min(1),
     cardId: z.string().min(1),
     currentIndex: z.number().int().nonnegative(),
-    targetIndex: z.number().int().positive(),
     cardCount: z.number().int().positive(),
     answeredAt: z.number().nonnegative(),
     rating: studyRatingSchema.optional(),
-    recordProgress: z.boolean(),
+    localProgress: studyProgressEditSchema
+      .pick({ cardId: true, difficulty: true, numberOfSeen: true, lastSeenAt: true })
+      .required()
+      .optional(),
     direction: z.enum(["cardSwipeUp", "cardSwipeDown", "cardSwipeLeft", "cardSwipeRight"]).optional(),
   })
   .strict()
   .refine(
     (operation) =>
-      operation.targetIndex > operation.currentIndex &&
-      operation.targetIndex <= operation.cardCount &&
-      (operation.rating === undefined ||
-        (operation.recordProgress && operation.targetIndex === operation.currentIndex + 1))
+      operation.currentIndex < operation.cardCount &&
+      (operation.localProgress === undefined || operation.localProgress.cardId === operation.cardId)
   );
 
 export type StudyOperation = z.infer<typeof studyOperationSchema>;

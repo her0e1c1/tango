@@ -35,7 +35,6 @@ export function useStudySessionPageModel(deckId: DeckId) {
   useEffect(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
   useAutoPlay(query.sessionState);
   useStudyShortcuts({
-    uid,
     deckId,
     status: query.status,
     helpOpen: pageState.helpOpen,
@@ -59,12 +58,12 @@ export function useStudySessionPageModel(deckId: DeckId) {
     toggleAutoPlay,
     openHelp,
     closeHelp,
-    changeIndex: (index: number) => void updateStudyIndex(deckId, index),
-    skip: () => void skipCard(uid, deckId),
+    changeIndex: (index: number) => updateStudyIndex(deckId, index),
+    skip: () => void skipCard(deckId),
     retrySave: () => void retryStudyOperation(),
-    swipeUp: () => void swipeCard(uid, deckId, "cardSwipeUp"),
-    swipeDown: () => void swipeCard(uid, deckId, "cardSwipeDown"),
-    swipeLeft: () => void swipeCard(uid, deckId, "cardSwipeLeft"),
-    swipeRight: () => void swipeCard(uid, deckId, "cardSwipeRight"),
+    swipeUp: () => void swipeCard(deckId, "cardSwipeUp"),
+    swipeDown: () => void swipeCard(deckId, "cardSwipeDown"),
+    swipeLeft: () => void swipeCard(deckId, "cardSwipeLeft"),
+    swipeRight: () => void swipeCard(deckId, "cardSwipeRight"),
   };
 }

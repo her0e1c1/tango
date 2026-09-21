@@ -45,11 +45,8 @@ export async function saveStudyOperation(input: StudyOperation) {
     )
       return { status: "stale" as const, ...write };
 
-    const card = operation.recordProgress ? await readStudyProgress(transaction, operation.cardId) : undefined;
-    if (
-      card !== undefined &&
-      (card.uid !== operation.uid || card.deckId !== operation.deckId || card.deletedAt !== null)
-    ) {
+    const card = await readStudyProgress(transaction, operation.cardId);
+    if (card.uid !== operation.uid || card.deckId !== operation.deckId || card.deletedAt !== null) {
       throw new Error("Study card owner or deck does not match");
     }
     if (operation.rating !== undefined) {
@@ -65,20 +62,19 @@ export async function saveStudyOperation(input: StudyOperation) {
       };
       transaction.set(reference, { ...answer, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
     }
-    if (card !== undefined) {
-      writeStudyProgress(
-        transaction,
-        recordCardStudyProgress(card, operation.rating, operation.answeredAt),
-        operation.answeredAt
-      );
-    }
-    writeStudySessionPosition(transaction, session, operation.targetIndex);
-    const completed = operation.targetIndex === operation.cardCount;
+    writeStudyProgress(
+      transaction,
+      recordCardStudyProgress(card, operation.rating, operation.answeredAt),
+      operation.answeredAt
+    );
+    const targetIndex = operation.currentIndex + 1;
+    writeStudySessionPosition(transaction, session, targetIndex);
+    const completed = targetIndex === operation.cardCount;
     return {
       status: "saved" as const,
       session: {
         ...session,
-        currentIndex: completed ? operation.targetIndex - 1 : operation.targetIndex,
+        currentIndex: completed ? operation.currentIndex : targetIndex,
         lastStudiedAt: operation.answeredAt,
       },
       endReason: completed ? ("completed" as const) : null,

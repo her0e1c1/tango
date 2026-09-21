@@ -6,7 +6,6 @@ import type {
   CardProgressFields,
   StudyCardOrderOptions,
   StudyProgress,
-  StudyProgressEdit,
   StudyProgressFilter,
   StudyRating,
 } from "./types";
@@ -29,11 +28,7 @@ export const calculateDifficulty = (difficulty: Difficulty, rating: StudyRating 
 };
 
 // Builds the persistence patch for one interaction, which always increments the seen count and records its timestamp.
-const recordStudyProgress = (
-  progress: StudyProgress,
-  rating: StudyRating | undefined,
-  studiedAt: number
-): StudyProgressEdit => ({
+const recordStudyProgress = (progress: StudyProgress, rating: StudyRating | undefined, studiedAt: number) => ({
   cardId: progress.cardId,
   difficulty: calculateDifficulty(progress.difficulty, rating),
   numberOfSeen: progress.numberOfSeen + 1,
@@ -41,11 +36,8 @@ const recordStudyProgress = (
 });
 
 // Translates a studied Card and its rating into the progress patch owned by the StudyProgress Entity.
-export const recordCardStudyProgress = (
-  card: CardProgressFields,
-  rating: StudyRating | undefined,
-  studiedAt: number
-): StudyProgressEdit => recordStudyProgress(createStudyProgressFromCard(card), rating, studiedAt);
+export const recordCardStudyProgress = (card: CardProgressFields, rating: StudyRating | undefined, studiedAt: number) =>
+  recordStudyProgress(createStudyProgressFromCard(card), rating, studiedAt);
 
 // Accepts progress inside the inclusive difficulty bounds and, when enabled, only after its next scheduled time.
 export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyProgressFilter, now: number): boolean => {

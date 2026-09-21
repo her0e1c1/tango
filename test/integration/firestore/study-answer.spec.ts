@@ -58,11 +58,9 @@ function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
     deckId,
     cardId: "card-0",
     currentIndex: 0,
-    targetIndex: 1,
     cardCount: cardIds.length,
     answeredAt: 2000,
     rating: "good",
-    recordProgress: true,
     ...overrides,
   };
 }
@@ -173,7 +171,7 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
   it("records ten answers, completes atomically and accepts a final acknowledgement retry", async () => {
     let final = operation();
     for (const [index, cardId] of cardIds.entries()) {
-      final = operation({ cardId, currentIndex: index, targetIndex: index + 1, answeredAt: 2000 + index });
+      final = operation({ cardId, currentIndex: index, answeredAt: 2000 + index });
       await saveStudyOperation(final);
     }
     expect((await answers()).size).toBe(10);
@@ -203,21 +201,14 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     expect((await getDoc(doc(connection.db, "card", first.cardId))).data()?.numberOfSeen).toBe(2);
   });
 
-  it("advances a skip with progress and a slider move without creating answers", async () => {
-    const skip = operation({ rating: undefined });
-    await saveStudyOperation(skip);
-    const move = operation({
-      currentIndex: 1,
-      cardId: "card-1",
-      targetIndex: 3,
-      recordProgress: false,
-      rating: undefined,
-    });
-    await saveStudyOperation(move);
+  it("advances a skip with progress without creating an answer", async () => {
+    await saveStudyOperation(operation({ rating: undefined }));
     expect((await answers()).size).toBe(0);
-    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()?.numberOfSeen).toBe(1);
-    expect((await getDoc(doc(connection.db, "card", "card-1"))).data()?.numberOfSeen).toBe(0);
-    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(3);
+    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()).toMatchObject({
+      difficulty: 5,
+      numberOfSeen: 1,
+    });
+    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     expect((await saveStudyOperation(operation())).status).toBe("stale");
   });
 
@@ -293,25 +284,12 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     await assertFails(batch.commit());
   });
 
-  it.each([undefined, { numberOfSeen: 0 }, { difficulty: 5 }, { lastSeenAt: 1999 }])(
-    "rejects an answer and advance without the matching progress update %j",
-    async (progress) => {
-      const batch = writeBatch(connection.db);
-      batch.set(doc(collection(connection.db, "studyAnswer")), answerData());
-      batch.update(doc(connection.db, "studySession", sessionId), { currentIndex: 1, updatedAt: serverTimestamp() });
-      if (progress !== undefined) {
-        batch.update(doc(connection.db, "card", "card-0"), {
-          numberOfSeen: 1,
-          difficulty: 4,
-          lastSeenAt: 2000,
-          ...progress,
-        });
-      }
-      await assertFails(batch.commit());
-      expect((await answers()).size).toBe(0);
-      expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
-    }
-  );
+  it("allows a valid immutable answer while leaving progress orchestration to the application", async () => {
+    await assertSucceeds(setDoc(doc(collection(connection.db, "studyAnswer")), answerData()));
+    expect((await answers()).size).toBe(1);
+    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()?.numberOfSeen).toBe(0);
+    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
+  });
 
   it.each([
     { rating: "again" as const, difficulty: 10 },
@@ -323,8 +301,7 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     expect((await answers()).size).toBe(1);
   });
 
-  it("requires cursor advancement and prevents rewinding, changing card order, or reopening a session", async () => {
-    await assertFails(setDoc(doc(collection(connection.db, "studyAnswer")), answerData()));
+  it("prevents rewinding, changing card order, or reopening a session", async () => {
     await saveStudyOperation(operation());
     const reference = doc(connection.db, "studySession", sessionId);
     await assertFails(updateDoc(reference, { currentIndex: 0, updatedAt: serverTimestamp() }));

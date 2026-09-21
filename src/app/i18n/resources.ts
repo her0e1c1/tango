@@ -396,7 +396,7 @@ export const resources = {
         },
       },
       studySession: {
-        answerSaveFailure: "Unable to save. Retry the same answer when connected.",
+        answerSaveFailure: "Unable to save progress. Check your connection and retry.",
         savingAnswer: "Saving…",
         retryAnswer: "Retry",
         skip: "Skip",
@@ -1115,7 +1115,7 @@ export const resources = {
         },
       },
       studySession: {
-        answerSaveFailure: "保存できませんでした。接続を確認して同じ回答を再試行してください。",
+        answerSaveFailure: "学習結果を保存できませんでした。接続を確認して再試行してください。",
         savingAnswer: "保存中…",
         retryAnswer: "再試行",
         skip: "スキップ",

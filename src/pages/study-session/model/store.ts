@@ -6,13 +6,11 @@ interface StudyCompletion {
   cardCount: number;
 }
 
-export interface StudySessionPageState {
+interface StudySessionPageState {
   completion: StudyCompletion | undefined;
   showBackText: boolean;
   helpOpen: boolean;
   autoPlay: boolean;
-  swipePending: boolean;
-  saveFailed: boolean;
 }
 
 interface StudySessionPageStore {
@@ -32,7 +30,5 @@ export const studySessionPageStore = createStore<StudySessionPageStore>()(() => 
     showBackText: false,
     helpOpen: false,
     autoPlay: false,
-    swipePending: false,
-    saveFailed: false,
   },
 }));
