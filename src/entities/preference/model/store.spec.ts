@@ -5,6 +5,7 @@ import { defaultPreferences } from "./defaults";
 import { preferencesStore } from "./store";
 import { setDarkMode } from "./actions/setDarkMode";
 import { toggleShowCardDetails } from "./actions/toggleShowCardDetails";
+import { toggleShowEditLink } from "./actions/toggleShowEditLink";
 import { toggleShowHelp } from "./actions/toggleShowHelp";
 import { toggleShowPlaybackControls } from "./actions/toggleShowPlaybackControls";
 import { toggleShowSkip } from "./actions/toggleShowSkip";
@@ -33,10 +34,23 @@ const useMemoryStorage = (initial: Record<string, string> = {}): MemoryStorage =
   return storage;
 };
 
-describe("preferences store [SETTINGS-06]", () => {
+describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
   beforeEach(() => {
     useMemoryStorage();
     updatePreferences(defaultPreferences);
+  });
+
+  it("persists hiding and restoring the view edit link", async () => {
+    expect(preferencesStore.getState().preferences.controls.showEditLink).toBe(true);
+    toggleShowEditLink();
+    await preferencesStore.persist.rehydrate();
+    expect(preferencesStore.getState().preferences.controls.showEditLink).toBe(false);
+    toggleShowEditLink();
+    expect(preferencesStore.getState().preferences.controls.showEditLink).toBe(true);
+  });
+
+  it("shows the study skip control by default", () => {
+    expect(defaultPreferences.controls.showSkip).toBe(true);
   });
 
   it("keeps back text swipe overlays off by default", () => {
@@ -45,10 +59,6 @@ describe("preferences store [SETTINGS-06]", () => {
 
   it("shows the study Help shortcut by default", () => {
     expect(defaultPreferences.controls.showHelp).toBe(true);
-  });
-
-  it("shows the study skip control by default", () => {
-    expect(defaultPreferences.controls.showSkip).toBe(true);
   });
 
   it("updates each preference group without resetting other settings", () => {
@@ -173,6 +183,7 @@ describe("preferences store [SETTINGS-06]", () => {
       language: _language,
       controls: {
         showHelp: _showHelp,
+        showEditLink: _showEditLink,
         showBackTextSwipeOverlays: _showBackTextSwipeOverlays,
         showSkip: _showSkip,
         ...controlsBeforeAdditiveFields
@@ -198,6 +209,7 @@ describe("preferences store [SETTINGS-06]", () => {
       controls: {
         ...persistedPreferences.controls,
         showHelp: true,
+        showEditLink: true,
         showBackTextSwipeOverlays: false,
         showSkip: true,
       },
