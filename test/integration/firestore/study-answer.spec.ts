@@ -19,6 +19,7 @@ import {
   Timestamp,
   updateDoc,
   where,
+  waitForPendingWrites,
   writeBatch,
   type Firestore,
   type QueryConstraint,
@@ -28,8 +29,15 @@ import { saveStudyOperation as persistStudyOperation } from "@/pages/study-sessi
 import { recordCardStudyProgress } from "@/entities/study-progress";
 import type { StudyOperation } from "@/pages/study-session/model/studyOperation";
 
+import { cardStore } from "@/entities/card/model/store";
+import { deckStore } from "@/entities/deck/model/store";
+import { restoreStudySession } from "@/test/entityFixtures";
+import { createCard, createDeck } from "@/test/factories";
+import { subscribeWriteErrors } from "@/shared/firestore-write";
+
 const connection = vi.hoisted(() => ({ db: undefined as unknown as Firestore }));
 vi.mock("@/shared/firebase", () => ({
+  auth: { currentUser: { uid: "answer-owner" } },
   get db() {
     return connection.db;
   },
@@ -71,15 +79,29 @@ function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
     ...overrides,
   };
 }
-function saveStudyOperation(input: StudyOperation) {
-  return persistStudyOperation(input, {
+async function saveStudyOperation(input: StudyOperation) {
+  const saved = (await getDoc(doc(connection.db, "studySession", input.sessionId))).data();
+  const session = {
     sessionId: input.sessionId,
     deckId: input.deckId,
-    currentIndex: input.currentIndex,
+    currentIndex: saved?.currentIndex ?? 0,
     cardOrderIds: cardIds,
     lastStudiedAt: 0,
     remote: { uid: input.uid, startedAt: 1000 },
+  };
+  restoreStudySession(session);
+  let failure: unknown;
+  const stop = subscribeWriteErrors((error) => {
+    failure = error;
   });
+  try {
+    const result = await persistStudyOperation(input, session);
+    await waitForPendingWrites(connection.db);
+    if (failure) throw failure;
+    return result;
+  } finally {
+    stop();
+  }
 }
 const answerData = () => ({
   uid,
@@ -88,11 +110,11 @@ const answerData = () => ({
   cardId: cardIds[0],
   answer: { type: "rating", rating: "good" },
   answeredAt: Timestamp.fromMillis(2000),
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp(),
+  createdAt: Timestamp.fromMillis(2000),
+  updatedAt: Timestamp.fromMillis(2000),
 });
 
-describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-08] [SWIPE-09] [SWIPE-10] [SWIPE-12] [PERSIST-01] [PERSIST-04]", () => {
+describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-SESSION-03] [STUDY-SESSION-04] [STUDY-SESSION-05] [STUDY-ACTIONS-05] [PERSISTENCE-01] [PERSISTENCE-04]", () => {
   let environment: RulesTestEnvironment;
   beforeAll(async () => {
     environment = await initializeTestEnvironment({
@@ -107,6 +129,8 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
   });
   beforeEach(async () => {
     await environment.clearFirestore();
+    cardStore.setState({ remoteCards: cardIds.map((id) => createCard({ id, deckId, uid })) });
+    deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid })] });
     replaceAuthSession({ status: "authenticated", uid, isAnonymous: false, displayName: null });
     await setDoc(doc(connection.db, "deck", deckId), { uid, isPublic: true });
     await Promise.all(
@@ -156,19 +180,12 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     }
   );
 
-  it("preserves answer metadata, progress and cursor when an acknowledged operation is sent again", async () => {
+  it("rejects an operation from a stale position without another answer", async () => {
     const input = operation();
     await saveStudyOperation(input);
-    const before = await Promise.all([
-      getDoc(doc(connection.db, "studyAnswer", input.id)),
-      getDoc(doc(connection.db, "card", input.cardId)),
-      getDoc(doc(connection.db, "studySession", sessionId)),
-    ]);
-    await saveStudyOperation(input);
-    const after = await Promise.all(before.map((snapshot) => getDoc(snapshot.ref)));
-    expect(after.map((snapshot) => snapshot.data())).toEqual(before.map((snapshot) => snapshot.data()));
-    await expect(saveStudyOperation({ ...input, rating: "again" })).rejects.toThrow("different contents");
+    await expect(saveStudyOperation(input)).rejects.toThrow("session does not match");
     expect((await answers()).size).toBe(1);
+    expect((await getDoc(doc(connection.db, "card", input.cardId))).data()?.numberOfSeen).toBe(1);
   });
 
   it("uses accepted progress without rereading concurrent Card changes", async () => {
@@ -181,7 +198,7 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     });
   });
 
-  it("records ten answers, completes atomically and accepts a final acknowledgement retry", async () => {
+  it("records ten answers and completes atomically", async () => {
     let final = operation();
     for (const [index, cardId] of cardIds.entries()) {
       final = operation({ cardId, currentIndex: index, answeredAt: 2000 + index });
@@ -193,8 +210,6 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
       endReason: "completed",
       endedAt: expect.any(Timestamp),
     });
-    await saveStudyOperation(final);
-    await expect(saveStudyOperation({ ...final, id: crypto.randomUUID() })).rejects.toBeDefined();
     expect((await answers()).size).toBe(10);
   });
 
@@ -206,7 +221,6 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
       endedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-    await saveStudyOperation(first);
     const nextSessionId = "next-session";
     await setDoc(doc(connection.db, "studySession", nextSessionId), sessionData());
     await saveStudyOperation(
@@ -230,13 +244,10 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     await expect(saveStudyOperation(operation())).rejects.toBeDefined();
   });
 
-  it("confirms a final skip retry without recounting progress", async () => {
+  it("completes the final skip without creating an answer", async () => {
     await updateDoc(doc(connection.db, "studySession", sessionId), { currentIndex: 9 });
     const input = operation({ cardId: "card-9", currentIndex: 9, rating: undefined });
     await saveStudyOperation(input);
-    const before = (await getDoc(doc(connection.db, "studySession", sessionId))).data();
-    await saveStudyOperation(input);
-    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()).toEqual(before);
     expect((await answers()).size).toBe(0);
     expect((await getDoc(doc(connection.db, "card", "card-9"))).data()?.numberOfSeen).toBe(1);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.endReason).toBe("completed");
@@ -310,7 +321,7 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     { uid: "other" },
     { deckId: "other" },
     { sessionId: "other" },
-    { cardId: cardIds[1] },
+    { cardId: "missing-card" },
     { answeredAt: 2000 },
     { createdAt: Timestamp.fromMillis(0) },
     { updatedAt: Timestamp.fromMillis(0) },

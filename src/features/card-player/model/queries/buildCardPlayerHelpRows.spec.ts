@@ -4,7 +4,7 @@ import { createPreferences } from "@/test/factories";
 
 import { buildCardPlayerHelpRows } from "./buildCardPlayerHelpRows";
 
-describe("SWIPE-24 buildCardPlayerHelpRows", () => {
+describe("STUDY-CONTROLS-04 buildCardPlayerHelpRows", () => {
   it("maps configured directions to semantic control and action identifiers", () => {
     const preferences = createPreferences({
       controls: {

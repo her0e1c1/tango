@@ -2,20 +2,22 @@
 
 ## 目的
 
-remote data が認証 UID ごとに分離され、永続 cache、queued write、realtime subscription が network 状態や複数 client を越えて正しく機能することを確認する。
+remote data が認証 UID ごとに分離され、永続 cache、queued write、realtime subscription が 単一タブで network 状態を越えて正しく機能することを確認する。
+
+旧アプリの browser storage からの自動移行は行わない。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| PERSIST-01 | read | [UID ごとに remote data を分離して reload 後も表示できる](#persist-01) |
-| PERSIST-02 | batch | [offline cache の変更を再接続後に remote へ同期できる](#persist-02) |
-| PERSIST-03 | write | [別の open client に remote Card の変更を即時反映できる](#persist-03) |
-| PERSIST-04 | batch | [未ログインの変更を local-only に維持できる](#persist-04) |
+| PERSISTENCE-01 | read | [UID ごとに remote data を分離して reload 後も表示できる](#persistence-01) |
+| PERSISTENCE-02 | batch | [offline cache の変更を再接続後に remote へ同期できる](#persistence-02) |
+| PERSISTENCE-03 | write | [別の open client に remote Card の変更を即時反映できる](#persistence-03) |
+| PERSISTENCE-04 | batch | [未ログインの変更を local-only に維持できる](#persistence-04) |
 
-<a id="persist-01"></a>
+<a id="persistence-01"></a>
 
-### PERSIST-01 UID ごとに remote data を分離して reload 後も表示できる
+### PERSISTENCE-01 UID ごとに remote data を分離して reload 後も表示できる
 
 カテゴリ: `read`
 
@@ -35,11 +37,12 @@ Then:
 - 各 browser context には現在の UID が所有する remote Deck と Card だけが表示される。
 - 別の UID が所有する remote Deck と Card は reload の前後で表示されない。
 - remote StudySession も本人だけが読み書きでき、所有者の変更は拒否される。対象 Deck が公開されていても session は公開されない。
+- 公開 Deck と Card も、削除済みの親または Card 自体の tombstone があれば他ユーザー・匿名・未認証から読み取れない。
 - 未処理の browser error が発生しない。
 
-<a id="persist-02"></a>
+<a id="persistence-02"></a>
 
-### PERSIST-02 offline cache の変更を再接続後に remote へ同期できる
+### PERSISTENCE-02 offline cache の変更を再接続後に remote へ同期できる
 
 カテゴリ: `batch`
 
@@ -62,9 +65,9 @@ Then:
 - 学習 session の保留保存も Firestore SDK の永続 offline queue に維持され、再接続時に同じ ID を使う。出題順、現在位置、明示的な終了状態が再接続後に同期される。
 - 未処理の browser error が発生しない。
 
-<a id="persist-03"></a>
+<a id="persistence-03"></a>
 
-### PERSIST-03 別の open client に remote Card の変更を即時反映できる
+### PERSISTENCE-03 別の open client に remote Card の変更を即時反映できる
 
 カテゴリ: `write`
 
@@ -86,9 +89,9 @@ Then:
 - 対象 Card の ID と unique key は維持され、remote data に重複が作成されない。
 - 未処理の browser error が発生しない。
 
-<a id="persist-04"></a>
+<a id="persistence-04"></a>
 
-### PERSIST-04 未ログインの変更を local-only に維持できる
+### PERSISTENCE-04 未ログインの変更を local-only に維持できる
 
 カテゴリ: `batch`
 
@@ -101,12 +104,14 @@ Given:
 When:
 
 - Deck と Card を編集して保存し、画面を reload する。
-- 未ログインのままクラウド保存を試みる。
+- 未ログインのまま Card の作成・削除・インポートと学習を実行する。
 
 Then:
 
 - Deck と Card の編集内容は browser storage に維持され、reload 後も表示される。
-- Deck 編集画面では Cloud が無効で、ログインが必要なことを案内する。
+- Deck 作成・編集・インポート画面に保存先の選択肢はない。匿名 UID の Firestore cache を利用し、匿名の間は同期が停止する。
 - クラウドへの Deck と Card の追加・更新・削除は拒否される。匿名認証の UID と所有者が一致する場合も拒否される。
-- local-only Deck と Card はクラウドへ転送されない。
+- 起動・reload の最初の Firestore 利用から同期を停止するため、匿名の Deck、Card、回答、学習 session はクラウドへ転送されない。
+- 通信を有効にしなくても操作が完了する。回答 ID と回答時刻は受付時に固定され、回答・進捗・session の前進を一つの batch で保存する。
+- 同じ UID の reload 後も進捗と現在位置が復元される。
 - browser error が発生しない。

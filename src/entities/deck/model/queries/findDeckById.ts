@@ -6,5 +6,5 @@ import type { Deck, DeckId } from "../types";
 export const findDeckById = (id: DeckId): Deck | undefined => {
   const deckId = deckIdSchema.parse(id);
   const state = deckStore.getState();
-  return state.remoteDecks.find((deck) => deck.id === deckId) ?? state.localDecks.find((deck) => deck.id === deckId);
+  return state.remoteDecks.find((deck) => deck.id === deckId);
 };

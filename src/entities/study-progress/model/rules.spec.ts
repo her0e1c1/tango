@@ -20,13 +20,13 @@ const cardProgress = (id: string, numberOfSeen = 0): CardProgressFields => ({
   numberOfSeen,
 });
 
-describe("StudyProgress defaults [CARD-01]", () => {
+describe("StudyProgress defaults [CARD-VIEW-01]", () => {
   it("creates unrated progress with neutral difficulty", () => {
     expect(createStudyProgress("card-id")).toEqual({ cardId: "card-id", difficulty: 5, numberOfSeen: 0 });
   });
 });
 
-describe("createStudyProgressFromCard [CARD-01]", () => {
+describe("createStudyProgressFromCard [CARD-VIEW-01]", () => {
   it("restores progress from a Card without copying Card content", () => {
     const card = {
       id: "card-id",
@@ -51,7 +51,7 @@ describe("createStudyProgressFromCard [CARD-01]", () => {
   });
 });
 
-describe("recordCardStudyProgress [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", () => {
+describe("recordCardStudyProgress [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-04]", () => {
   it.each<[number, StudyRating | undefined, number]>([
     [5, "good", 4],
     [7, "good", 6],
@@ -79,7 +79,7 @@ describe("recordCardStudyProgress [SWIPE-02] [SWIPE-03] [SWIPE-04] [SWIPE-05]", 
   });
 });
 
-describe("calculateDifficulty [SWIPE-02] [SWIPE-03] [SWIPE-04]", () => {
+describe("calculateDifficulty [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03]", () => {
   it.each<[number, StudyRating | undefined, number]>([
     [5, "good", 4],
     [5, "again", 6],
@@ -95,7 +95,7 @@ describe("calculateDifficulty [SWIPE-02] [SWIPE-03] [SWIPE-04]", () => {
   });
 });
 
-describe("study progress selection [CARD-10]", () => {
+describe("study progress selection [CARD-LIST-ACTIONS-03]", () => {
   const filter = {
     minimumDifficulty: 3,
     maximumDifficulty: 7,
@@ -112,7 +112,7 @@ describe("study progress selection [CARD-10]", () => {
   });
 });
 
-describe("buildStudyCardOrder [SWIPE-06]", () => {
+describe("buildStudyCardOrder [STUDY-SESSION-01]", () => {
   const cards = [cardProgress("a"), cardProgress("b"), cardProgress("c"), cardProgress("d")];
 
   it("returns the progress-based card order when shuffle and maximum are disabled", () => {

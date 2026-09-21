@@ -12,6 +12,7 @@ import type {
 import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
 import { mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
+import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument } from "../model/dto";
@@ -72,14 +73,22 @@ const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
 };
 
 /** Keeps existing Card subscribers on the combined read model until #604. */
-export const subscribeCards = (uid: string, onError: (error: Error) => void): (() => void) =>
-  subscribeCardReads(uid, (reads) => replaceRemoteCards(reads.map(combineCardRead)), onError);
+export const subscribeCards = (uid: string, onError: (error: Error) => void, onReady?: () => void): (() => void) =>
+  subscribeCardReads(
+    uid,
+    (reads) => {
+      replaceRemoteCards(reads.map(combineCardRead));
+      onReady?.();
+    },
+    onError
+  );
 
 /** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = Date.now();
   const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
-  await setDoc(doc(db, CARD_COLLECTION, card.id), document);
+  const reference = doc(db, CARD_COLLECTION, card.id);
+  await writeLocally(card.uid, [reference], () => setDoc(reference, document));
 };
 
 /** Validates Card ownership before creating its Firestore document. */
@@ -100,7 +109,8 @@ const updateCardDocument = async (card: CardEdit): Promise<void> => {
     endLine: card.endLine,
     updatedAt: Date.now(),
   });
-  await updateDoc(doc(db, CARD_COLLECTION, card.id), document);
+  const reference = doc(db, CARD_COLLECTION, card.id);
+  await writeLocally(card.uid, [reference], () => updateDoc(reference, document));
 };
 
 /** Validates Card ownership before editing its Firestore document. */
@@ -110,13 +120,14 @@ export const editCard = async (uid: string, card: EditCardInput["card"]): Promis
 };
 
 /** Tombstones a Card so synchronized readers can converge before hiding it. */
-const removeCardDocument = async (id: string): Promise<void> => {
+const removeCardDocument = async (uid: string, id: string): Promise<void> => {
   const updatedAt = Date.now();
-  await updateDoc(doc(db, CARD_COLLECTION, id), { updatedAt, deletedAt: updatedAt });
+  const reference = doc(db, CARD_COLLECTION, id);
+  await writeLocally(uid, [reference], () => updateDoc(reference, { updatedAt, deletedAt: updatedAt }));
 };
 
 /** Validates Card ownership before tombstoning its Firestore document. */
 export const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Promise<void> => {
   const input = deleteCardSchema.parse({ uid, card });
-  await removeCardDocument(input.card.id);
+  await removeCardDocument(input.uid, input.card.id);
 };

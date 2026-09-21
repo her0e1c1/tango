@@ -10,7 +10,6 @@ import { Code, MathContent } from "@/shared/ui/content";
 import { Upload } from "@/shared/ui/forms";
 import type { DeckImportExampleId } from "../lib/examples";
 
-type DeckImportStorageMode = "local" | "remote";
 interface PreviewCard {
   frontText: string;
   backText: string;
@@ -29,10 +28,8 @@ interface DeckImportPreview {
 }
 
 export interface DeckImportViewProps {
-  cloudStorageAvailable?: boolean;
   onChange?: (file: File) => void;
   onChooseAgain?: () => void;
-  onStorageModeChange?: (storageMode: DeckImportStorageMode) => void;
   onSelectExample?: (id: DeckImportExampleId) => void;
   onDownloadExample?: (id: DeckImportExampleId) => void;
   onImport?: () => void;
@@ -43,7 +40,6 @@ export interface DeckImportViewProps {
   pending?: boolean;
   preview?: DeckImportPreview | undefined;
   previewError?: unknown;
-  storageMode?: DeckImportStorageMode;
 }
 
 const panelClass = "min-w-0 space-y-4 rounded-surface border border-border bg-surface p-4 sm:p-6";
@@ -120,14 +116,12 @@ const ImportPreview = ({
   busy,
   pending,
   dark,
-  storageMode,
   onImport,
 }: {
   preview: DeckImportPreview;
   busy: boolean;
   pending: boolean;
   dark: boolean;
-  storageMode: DeckImportStorageMode;
   onImport: (() => void) | undefined;
 }) => {
   const { t } = useTranslation();
@@ -183,7 +177,6 @@ const ImportPreview = ({
       {analysis.rows.length > 0 && <CardExamples cards={analysis.rows.map((row) => row.card)} dark={dark} limit={10} />}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
         <div>
-          <p className="font-semibold">{t(`deckImport.storage.${storageMode}Label`)}</p>
           <p className="text-caption text-ink-muted">{t("deckImport.preview.newDeck")}</p>
         </div>
         <Button
@@ -201,10 +194,8 @@ const ImportPreview = ({
 
 export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
   const { t } = useTranslation();
-  const [storageOpen, setStorageOpen] = React.useState(false);
   const [exampleId, setExampleId] = React.useState(props.initialExampleId ?? "basic");
   const busy = Boolean(props.pending || props.validating);
-  const storageMode = props.storageMode ?? "remote";
   const example = props.examples.find((candidate) => candidate.id === exampleId);
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6 text-ink">
@@ -220,57 +211,6 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
           </span>
           {t("deckImport.file.title")}
         </h2>
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-caption text-ink-muted">{t("deckImport.storage.legend")}</span>
-            <strong>{t(`deckImport.storage.${storageMode}Label`)}</strong>
-            <button
-              type="button"
-              className="ml-auto min-h-touch rounded-control px-2 text-caption text-accent-primary underline"
-              aria-expanded={storageOpen}
-              aria-controls="import-storage"
-              disabled={busy}
-              onClick={() => setStorageOpen(!storageOpen)}
-            >
-              {t("deckImport.storage.change")}
-            </button>
-          </div>
-          <p className="text-caption text-ink-muted">{t(`deckImport.storage.${storageMode}Help`)}</p>
-          {props.cloudStorageAvailable === false && (
-            <p className="mt-2 text-caption text-ink-muted">{t("deckForm.storage.signInHelp")}</p>
-          )}
-          <fieldset
-            id="import-storage"
-            hidden={!storageOpen}
-            className="mt-3 grid gap-2 sm:grid-cols-2"
-            disabled={busy}
-          >
-            <legend className="sr-only">{t("deckImport.storage.legend")}</legend>
-            {(["remote", "local"] as const).map((mode) => (
-              <label
-                key={mode}
-                className="flex cursor-pointer items-start gap-2 rounded-control border border-border p-3 has-checked:border-accent-primary has-checked:bg-surface-muted"
-              >
-                <input
-                  type="radio"
-                  name="deck-import-storage-mode"
-                  value={mode}
-                  className="mt-1 accent-accent-primary"
-                  checked={storageMode === mode}
-                  disabled={mode === "remote" && props.cloudStorageAvailable === false}
-                  onChange={() => props.onStorageModeChange?.(mode)}
-                />
-                <span>
-                  <span className="block font-semibold">{t(`deckImport.storage.${mode}Label`)}</span>
-                  <span className="block text-caption text-ink-muted">{t(`deckImport.storage.${mode}Help`)}</span>
-                </span>
-              </label>
-            ))}
-            {props.preview !== undefined && (
-              <p className="text-caption text-ink-muted sm:col-span-2">{t("deckImport.storage.resetHelp")}</p>
-            )}
-          </fieldset>
-        </div>
         {props.preview ? (
           <div className="flex flex-wrap items-center gap-3 rounded-control border border-border p-3">
             <AiOutlineFileText aria-hidden="true" className="shrink-0 text-accent-primary" />
@@ -326,7 +266,6 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
           busy={busy}
           pending={props.pending ?? false}
           dark={props.dark ?? false}
-          storageMode={storageMode}
           onImport={props.onImport}
         />
       )}

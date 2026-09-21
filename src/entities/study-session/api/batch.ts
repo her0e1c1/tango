@@ -1,4 +1,4 @@
-import { doc, serverTimestamp, type WriteBatch } from "firebase/firestore";
+import { doc, Timestamp, type WriteBatch } from "firebase/firestore";
 import { db } from "@/shared/firebase";
 import type { StudySession, StudySessionWrite } from "../model/types";
 
@@ -12,8 +12,8 @@ export function writeStudySessionPosition(
   const endReason = completed ? "completed" : null;
   batch.update(doc(db, "studySession", session.sessionId), {
     currentIndex,
-    ...(completed ? { endReason, endedAt: serverTimestamp() } : {}),
-    updatedAt: serverTimestamp(),
+    ...(completed ? { endReason, endedAt: Timestamp.fromMillis(session.lastStudiedAt) } : {}),
+    updatedAt: Timestamp.fromMillis(session.lastStudiedAt),
   });
   return { session: { ...session, currentIndex }, endReason };
 }

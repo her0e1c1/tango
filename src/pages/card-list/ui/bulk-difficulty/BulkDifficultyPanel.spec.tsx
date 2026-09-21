@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
 import { BulkDifficultyPanel } from "./BulkDifficultyPanel";
 
-describe("BulkDifficultyPanel [CARD-19] [CARD-20]", () => {
+describe("BulkDifficultyPanel [CARD-LIST-ACTIONS-05] [CARD-LIST-ACTIONS-06]", () => {
   it("shows all ten choices and reports a selected difficulty", async () => {
     const onDifficultyChange = vi.fn();
     const view = render(

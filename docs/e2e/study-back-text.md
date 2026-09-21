@@ -8,18 +8,18 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-01 | read | [学習中の Card を表面から裏面へ切り替えられる](#swipe-01) |
-| SWIPE-15 | read | [裏面 text を選択しても Card の状態を維持できる](#swipe-15) |
-| SWIPE-18 | read | [overlay 設定 OFF の裏面 tap で同じ Card の表面へ戻れる](#swipe-18) |
-| SWIPE-19 | read | [長い裏面 text を scroll しても Card の状態を維持できる](#swipe-19) |
-| SWIPE-20 | write | [左 overlay から設定済み action を実行できる](#swipe-20) |
-| SWIPE-21 | write | [右 overlay から設定済み action を実行できる](#swipe-21) |
-| SWIPE-22 | read | [狭い画面でも overlay の下で裏面を全幅表示できる](#swipe-22) |
-| SWIPE-23 | read | [overlay 上の wheel と touch で長い裏面 text を scroll できる](#swipe-23) |
+| STUDY-BACK-TEXT-01 | read | [学習中の Card を表面から裏面へ切り替えられる](#study-back-text-01) |
+| STUDY-BACK-TEXT-02 | read | [裏面 text を選択しても Card の状態を維持できる](#study-back-text-02) |
+| STUDY-BACK-TEXT-03 | read | [overlay 設定 OFF の裏面 tap で同じ Card の表面へ戻れる](#study-back-text-03) |
+| STUDY-BACK-TEXT-04 | read | [長い裏面 text を scroll しても Card の状態を維持できる](#study-back-text-04) |
+| STUDY-BACK-TEXT-05 | write | [左 overlay から設定済み action を実行できる](#study-back-text-05) |
+| STUDY-BACK-TEXT-06 | write | [右 overlay から設定済み action を実行できる](#study-back-text-06) |
+| STUDY-BACK-TEXT-07 | read | [狭い画面でも overlay の下で裏面を全幅表示できる](#study-back-text-07) |
+| STUDY-BACK-TEXT-08 | read | [overlay 上の wheel と touch で長い裏面 text を scroll できる](#study-back-text-08) |
 
-<a id="swipe-01"></a>
+<a id="study-back-text-01"></a>
 
-### SWIPE-01 学習中の Card を表面から裏面へ切り替えられる
+### STUDY-BACK-TEXT-01 学習中の Card を表面から裏面へ切り替えられる
 
 カテゴリ: `read`
 
@@ -39,9 +39,9 @@ Then:
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
-<a id="swipe-15"></a>
+<a id="study-back-text-02"></a>
 
-### SWIPE-15 裏面 text を選択しても Card の状態を維持できる
+### STUDY-BACK-TEXT-02 裏面 text を選択しても Card の状態を維持できる
 
 カテゴリ: `read`
 
@@ -62,9 +62,9 @@ Then:
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
-<a id="swipe-18"></a>
+<a id="study-back-text-03"></a>
 
-### SWIPE-18 overlay 設定 OFF の裏面 tap で同じ Card の表面へ戻れる
+### STUDY-BACK-TEXT-03 overlay 設定 OFF の裏面 tap で同じ Card の表面へ戻れる
 
 カテゴリ: `read`
 
@@ -85,9 +85,9 @@ Then:
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
-<a id="swipe-19"></a>
+<a id="study-back-text-04"></a>
 
-### SWIPE-19 長い裏面 text を scroll しても Card の状態を維持できる
+### STUDY-BACK-TEXT-04 長い裏面 text を scroll しても Card の状態を維持できる
 
 カテゴリ: `read`
 
@@ -108,9 +108,9 @@ Then:
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
-<a id="swipe-20"></a>
+<a id="study-back-text-05"></a>
 
-### SWIPE-20 左 overlay から設定済み action を実行できる
+### STUDY-BACK-TEXT-05 左 overlay から設定済み action を実行できる
 
 カテゴリ: `write`
 
@@ -133,9 +133,9 @@ Then:
 - overlay の tap によって通常の裏面 tap は実行されない。
 - browser error が発生しない。
 
-<a id="swipe-21"></a>
+<a id="study-back-text-06"></a>
 
-### SWIPE-21 右 overlay から設定済み action を実行できる
+### STUDY-BACK-TEXT-06 右 overlay から設定済み action を実行できる
 
 カテゴリ: `write`
 
@@ -158,9 +158,9 @@ Then:
 - overlay の tap によって通常の裏面 tap は実行されない。
 - browser error が発生しない。
 
-<a id="swipe-22"></a>
+<a id="study-back-text-07"></a>
 
-### SWIPE-22 狭い画面でも overlay の下で裏面を全幅表示できる
+### STUDY-BACK-TEXT-07 狭い画面でも overlay の下で裏面を全幅表示できる
 
 カテゴリ: `read`
 
@@ -183,9 +183,9 @@ Then:
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
-<a id="swipe-23"></a>
+<a id="study-back-text-08"></a>
 
-### SWIPE-23 overlay 上の wheel と touch で長い裏面 text を scroll できる
+### STUDY-BACK-TEXT-08 overlay 上の wheel と touch で長い裏面 text を scroll できる
 
 カテゴリ: `read`
 

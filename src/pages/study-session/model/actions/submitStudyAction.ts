@@ -3,33 +3,41 @@ import { getPreferences, type SwipeAction, type SwipeDirection } from "@/entitie
 import { recordCardStudyProgress } from "@/entities/study-progress";
 import { abandonStudySession, getStudySession, planStudySessionSwipe } from "@/entities/study-session";
 import { showSwipeFeedback } from "../../lib/showSwipeFeedback";
-import { readPendingStudyOperation } from "../../api/pendingStudyOperation";
 import { studySessionPageStore } from "../store";
-import { saveLocalStudyProgress } from "./saveLocalStudyProgress";
 import { executeStudyOperation } from "./executeStudyOperation";
-import { getStudyUid } from "../queries/getStudyUid";
+import { showToast } from "@/shared/ui/toast";
+import { getAuthUid } from "@/entities/auth";
 
 export async function submitStudyAction(
   deckId: string,
   action: SwipeAction,
   direction?: SwipeDirection
 ): Promise<void> {
-  const uid = getStudyUid();
-  const { owner, isSaving, pendingOperation } = studySessionPageStore.getState();
-  if (isSaving || pendingOperation !== undefined || owner?.uid !== uid || owner.deckId !== deckId) return;
+  const uid = getAuthUid();
+  const { owner, isSaving } = studySessionPageStore.getState();
+  if (isSaving || owner?.uid !== uid || owner.deckId !== deckId) return;
   const session = getStudySession(deckId);
   if (session === undefined) return;
-  if (
-    session.remote !== undefined &&
-    readPendingStudyOperation(uid, session.sessionId)?.currentIndex === session.currentIndex
-  )
-    return;
   const cards = getCards();
   const plan = planStudySessionSwipe(session, cards, action);
   if (plan.effect === "none") return;
   if (plan.effect === "exit") {
-    abandonStudySession(deckId);
-    if (direction !== undefined && getPreferences().appearance.showSwipeFeedback) showSwipeFeedback(direction);
+    studySessionPageStore.setState({ isSaving: true });
+    try {
+      await abandonStudySession(deckId);
+      if (
+        studySessionPageStore.getState().owner === owner &&
+        getAuthUid() === uid &&
+        direction !== undefined &&
+        getPreferences().appearance.showSwipeFeedback
+      )
+        showSwipeFeedback(direction);
+    } catch {
+      if (studySessionPageStore.getState().owner === owner && getAuthUid() === uid)
+        showToast({ messageKey: "toast.saveFailure", tone: "error" });
+    } finally {
+      studySessionPageStore.setState({ isSaving: false });
+    }
     return;
   }
   const cardId = session.cardOrderIds[session.currentIndex];
@@ -37,10 +45,6 @@ export async function submitStudyAction(
   if (card === undefined) return;
   const answeredAt = Date.now();
   const progress = recordCardStudyProgress(card, plan.rating, answeredAt);
-  if (session.remote === undefined) {
-    await saveLocalStudyProgress(uid, session, progress, direction);
-    return;
-  }
   await executeStudyOperation({
     id: crypto.randomUUID(),
     uid,

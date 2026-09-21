@@ -8,21 +8,21 @@ Deck と Card 一覧の主要な route を開き、存在しない Deck から�
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| DECK-01 | read | [Deck 一覧から Card 一覧へ遷移できる](#deck-01) |
-| DECK-06 | read | [存在しない Deck から復帰できる](#deck-06) |
-| DECK-13 | read | [remote Deck を学習データを変更せずに閲覧できる](#deck-13) |
-| DECK-14 | read | [local-only Deck の閲覧位置を保存せずに再入場できる](#deck-14) |
-| DECK-15 | write | [現在の難易度と tag filter に一致する全 Card を標準順で閲覧できる](#deck-15) |
-| DECK-16 | read | [復習期日の設定を閲覧対象へ反映できる](#deck-16) |
-| DECK-17 | read | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](#deck-17) |
-| DECK-18 | read | [1件の Card の長い解答を touch で閲覧して終了できる](#deck-18) |
-| DECK-19 | write | [閲覧と学習で表示設定と操作ヘルプを共有できる](#deck-19) |
-| DECK-20 | read | [学習データを保存せずに閲覧を自動再生できる](#deck-20) |
-| DECK-21 | read | [閲覧の進捗スライダーで前後へ移動できる](#deck-21) |
+| DECK-NAVIGATION-01 | read | [Deck 一覧から Card 一覧へ遷移できる](#deck-navigation-01) |
+| DECK-NAVIGATION-02 | read | [存在しない Deck から復帰できる](#deck-navigation-02) |
+| DECK-NAVIGATION-03 | read | [remote Deck を学習データを変更せずに閲覧できる](#deck-navigation-03) |
+| DECK-NAVIGATION-04 | read | [local-only Deck の閲覧位置を保存せずに再入場できる](#deck-navigation-04) |
+| DECK-NAVIGATION-05 | write | [現在の難易度と tag filter に一致する全 Card を標準順で閲覧できる](#deck-navigation-05) |
+| DECK-NAVIGATION-06 | read | [復習期日の設定を閲覧対象へ反映できる](#deck-navigation-06) |
+| DECK-NAVIGATION-07 | read | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](#deck-navigation-07) |
+| DECK-NAVIGATION-08 | read | [1件の Card の長い解答を touch で閲覧して終了できる](#deck-navigation-08) |
+| DECK-NAVIGATION-09 | write | [閲覧と学習で表示設定と操作ヘルプを共有できる](#deck-navigation-09) |
+| DECK-NAVIGATION-10 | read | [学習データを保存せずに閲覧を自動再生できる](#deck-navigation-10) |
+| DECK-NAVIGATION-11 | read | [閲覧の進捗スライダーで前後へ移動できる](#deck-navigation-11) |
 
-<a id="deck-01"></a>
+<a id="deck-navigation-01"></a>
 
-### DECK-01 Deck 一覧から Card 一覧へ遷移できる
+### DECK-NAVIGATION-01 Deck 一覧から Card 一覧へ遷移できる
 
 カテゴリ: `read`
 
@@ -55,9 +55,9 @@ Then:
 - 表示と遷移によって保存済み Deck・Card の ID や内容は変更されない。
 - browser error が発生しない。
 
-<a id="deck-06"></a>
+<a id="deck-navigation-02"></a>
 
-### DECK-06 存在しない Deck から復帰できる
+### DECK-NAVIGATION-02 存在しない Deck から復帰できる
 
 カテゴリ: `read`
 
@@ -75,9 +75,9 @@ Then:
 - Deck 一覧が表示される。
 - browser error が発生しない。
 
-<a id="deck-13"></a>
+<a id="deck-navigation-03"></a>
 
-### DECK-13 remote Deck を学習データを変更せずに閲覧できる
+### DECK-NAVIGATION-03 remote Deck を学習データを変更せずに閲覧できる
 
 カテゴリ: `read`
 
@@ -105,9 +105,9 @@ Then:
 - 閲覧、退出、再入場によって保存済み Deck、Card、学習履歴、学習 session、設定は変化しない。
 - browser error が発生しない。
 
-<a id="deck-14"></a>
+<a id="deck-navigation-04"></a>
 
-### DECK-14 local-only Deck の閲覧位置を保存せずに再入場できる
+### DECK-NAVIGATION-04 local-only Deck の閲覧位置を保存せずに再入場できる
 
 カテゴリ: `read`
 
@@ -129,9 +129,9 @@ Then:
 - local-only Deck、Card、学習履歴、学習 session、設定は変化せず、remote にも作成されない。
 - browser error が発生しない。
 
-<a id="deck-15"></a>
+<a id="deck-navigation-05"></a>
 
-### DECK-15 現在の難易度と tag filter に一致する全 Card を標準順で閲覧できる
+### DECK-NAVIGATION-05 現在の難易度と tag filter に一致する全 Card を標準順で閲覧できる
 
 カテゴリ: `write`
 
@@ -153,13 +153,13 @@ Then:
 
 - Card 一覧の標準順で条件に一致する全 Card を表示し、学習の枚数上限と shuffle は適用しない。
 - 条件から外れる Card は表示せず、最終 Card の次で一覧へ戻る。
-- 保存待ちでも最新の難易度と tag の選択条件を引き継ぎ、まだ remote に反映していない対象 Card を表示する。
+- remote 同期待ちでも cache に保存した最新の難易度と tag の選択条件を引き継ぎ、対象 Card を表示する。
 - 保存保留中の閲覧で永続データは変化しない。保留の解除後は先に行った filter 編集だけを保存し、Card、学習履歴、設定を変更せず、学習 session を作成しない。
 - browser error が発生しない。
 
-<a id="deck-16"></a>
+<a id="deck-navigation-06"></a>
 
-### DECK-16 復習期日の設定を閲覧対象へ反映できる
+### DECK-NAVIGATION-06 復習期日の設定を閲覧対象へ反映できる
 
 カテゴリ: `read`
 
@@ -179,9 +179,9 @@ Then:
 - Card の復習期日や学習履歴、設定を変更せず、学習 session を作成しない。
 - browser error が発生しない。
 
-<a id="deck-17"></a>
+<a id="deck-navigation-07"></a>
 
-### DECK-17 閲覧対象が空または Deck が存在しない場合に一覧へ戻れる
+### DECK-NAVIGATION-07 閲覧対象が空または Deck が存在しない場合に一覧へ戻れる
 
 カテゴリ: `read`
 
@@ -202,9 +202,9 @@ Then:
 - どちらも Card の操作を表示せず、保存データを変更しない。
 - browser error が発生しない。
 
-<a id="deck-18"></a>
+<a id="deck-navigation-08"></a>
 
-### DECK-18 1件の Card の長い解答を touch で閲覧して終了できる
+### DECK-NAVIGATION-08 1件の Card の長い解答を touch で閲覧して終了できる
 
 カテゴリ: `read`
 
@@ -226,9 +226,9 @@ Then:
 - Deck、Card、学習履歴、学習 session、設定は変化しない。
 - browser error が発生しない。
 
-<a id="deck-19"></a>
+<a id="deck-navigation-09"></a>
 
-### DECK-19 閲覧と学習で表示設定と操作ヘルプを共有できる
+### DECK-NAVIGATION-09 閲覧と学習で表示設定と操作ヘルプを共有できる
 
 カテゴリ: `write`
 
@@ -250,9 +250,9 @@ Then:
 - 明示的に変更した表示設定だけを保存し、Deck、Card、学習履歴と閲覧前の学習再開位置を変更しない。
 - browser error が発生しない。
 
-<a id="deck-20"></a>
+<a id="deck-navigation-10"></a>
 
-### DECK-20 学習データを保存せずに閲覧を自動再生できる
+### DECK-NAVIGATION-10 学習データを保存せずに閲覧を自動再生できる
 
 カテゴリ: `read`
 
@@ -277,9 +277,9 @@ Then:
 - Deck、Card、学習履歴、学習 session、設定を変更しない。
 - browser error が発生しない。
 
-<a id="deck-21"></a>
+<a id="deck-navigation-11"></a>
 
-### DECK-21 閲覧の進捗スライダーで前後へ移動できる
+### DECK-NAVIGATION-11 閲覧の進捗スライダーで前後へ移動できる
 
 カテゴリ: `read`
 

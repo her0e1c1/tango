@@ -7,33 +7,37 @@ import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
 import { describe, expect, it, vi } from "vitest";
-import { doc, getDoc, getFirestore } from "firebase/firestore";
-import { createCard as createCardCommand } from "@/entities/card/api/firestore";
-import { cardStore } from "@/entities/card/model/store";
-import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
-import { editDeck as editStoredDeck } from "@/entities/deck";
-import { deckStore } from "@/entities/deck/model/store";
-import * as Uuid from "uuid";
 import {
-  createCard,
-  createDeck as createDeckFixture,
-  createLocalCard,
-  createLocalDeck,
-  createRemoteDeckInput,
-} from "@/test/factories";
+  doc,
+  getDoc as readServerDoc,
+  waitForPendingWrites,
+  type DocumentReference,
+  getFirestore,
+} from "firebase/firestore";
+import { createCard as createCardCommand } from "@/entities/card/api/firestore";
+import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
+import * as Uuid from "uuid";
+import { createCard, createDeck as createDeckFixture, createRemoteDeckInput } from "@/test/factories";
+
+// Adapter operations complete locally; cloud assertions wait for SDK acknowledgement.
+const getDoc = async (reference: DocumentReference) => {
+  await waitForPendingWrites(reference.firestore);
+  return readServerDoc(reference);
+};
 
 const uuid = Uuid.v4;
 
-const toFirestoreDeck = ({ localMode: _localMode, ...deck }: Extract<Deck, { localMode: false }>) => ({
+const toFirestoreDeck = (deck: Deck) => ({
   ...deck,
   deletedAt: null,
 });
 
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
+  auth: { currentUser: { uid: "uid" } },
 }));
 
-describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
+describe.concurrent("firestore/deck [CARD-LIST-ACTIONS-03]", { retry: 3 }, () => {
   const db = getFirestore();
   const newDeck = createDeckFixture({
     name: "new deck name",
@@ -48,7 +52,7 @@ describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
     const d = {
       id: uuid(),
       name: "new deck name",
-      localMode: false,
+
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies RemoteDeckCreateInput & { currentIndex: number; cardOrderIds: string[] };
@@ -102,7 +106,7 @@ describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
     expect((await getDoc(doc(db, "deck", deck.id))).data()).not.toHaveProperty("url");
   });
 
-  it("should delete a deck and its Cards", async () => {
+  it("tombstones the parent without rewriting child documents", async () => {
     const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
     const cards = [
       createCard({ id: uuid(), deckId: d.id, uid: "uid" }),
@@ -113,39 +117,9 @@ describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
 
     await deleteDeck("uid", d.id);
 
-    await expect(getDoc(doc(db, "deck", d.id))).rejects.toMatchObject({ code: "permission-denied" });
+    expect((await getDoc(doc(db, "deck", d.id))).data()?.deletedAt).toEqual(expect.any(Number));
     await Promise.all(
-      cards.map((card) => expect(getDoc(doc(db, "card", card.id))).rejects.toMatchObject({ code: "permission-denied" }))
+      cards.map(async (card) => expect((await getDoc(doc(db, "card", card.id))).data()?.deletedAt).toBeNull())
     );
-  });
-
-  it("moves a local Deck and its Cards to Firestore when local mode is disabled", async () => {
-    const deck = createLocalDeck({ id: uuid(), name: "Local Deck" });
-    const cards = [
-      createLocalCard({ id: uuid(), deckId: deck.id, frontText: "first" }),
-      createLocalCard({ id: uuid(), deckId: deck.id, frontText: "second" }),
-    ];
-    deckStore.setState({ localDecks: [deck] });
-    cardStore.setState({ localCards: cards });
-
-    await editStoredDeck("uid", { id: deck.id, name: "Synced Deck", localMode: false });
-
-    expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({
-      id: deck.id,
-      uid: "uid",
-      name: "Synced Deck",
-    });
-    await Promise.all(
-      cards.map(async (card) => {
-        expect((await getDoc(doc(db, "card", card.id))).data()).toMatchObject({
-          id: card.id,
-          deckId: deck.id,
-          uid: "uid",
-          frontText: card.frontText,
-        });
-      })
-    );
-    expect(deckStore.getState().localDecks).not.toContainEqual(expect.objectContaining({ id: deck.id }));
-    expect(cardStore.getState().localCards).not.toContainEqual(expect.objectContaining({ deckId: deck.id }));
   });
 });

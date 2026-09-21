@@ -1,7 +1,5 @@
 /**
- * @file Exercises the singleton store with its real persistence middleware.
- * Memory and localStorage are reset together because leaking either layer would
- * make hydration and mutation results depend on test order.
+ * @file Exercises visible session state and preserves the legacy browser backup.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,7 +9,7 @@ import { getStudySession } from "./queries/getStudySession";
 import { moveStudySession } from "./actions/moveStudySession";
 import { removeStudySession } from "./actions/removeStudySession";
 import { setStudySessionIndex } from "./actions/setStudySessionIndex";
-import { startStudy } from "./actions/startStudy";
+import { startStudy } from "@/test/entityFixtures";
 import { studySessionStore } from "./store";
 import { touchStudySession } from "./actions/touchStudySession";
 
@@ -22,17 +20,12 @@ const startSession = (deckId: string, cardOrderIds: string[]): void => {
   startStudy(
     deckId,
     cardOrderIds.map((id, numberOfSeen) => ({ id, difficulty: 5, numberOfSeen })),
-    { shuffled: false, maxNumberOfCardsToLearn: 0 }
+    { shuffled: false, maxNumberOfCardsToLearn: 0 },
+    "uid"
   );
 };
 
-// Writes an arbitrary versioned payload directly to study-session storage.
-const setVersionedStorage = (state: unknown, version: number): void => {
-  // Bypass store mutations so hydration tests model arbitrary browser payloads.
-  localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify({ state, version }));
-};
-
-describe("study store [SWIPE-06] [SWIPE-05]", () => {
+describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
   const store = studySessionStore;
 
   beforeEach(() => {
@@ -44,25 +37,6 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
     vi.useRealTimers();
     clearStudySessions();
     vi.unstubAllGlobals();
-  });
-
-  it("starts at index zero with the configured card order", () => {
-    startSession("deck-1", ["card-1", "card-2"]);
-
-    expect(store.getState().sessionsByDeckId["deck-1"]).toMatchObject({
-      cardOrderIds: ["card-1", "card-2"],
-      currentIndex: 0,
-    });
-  });
-
-  it("starts a session when randomUUID is unavailable", () => {
-    vi.stubGlobal("crypto", {
-      getRandomValues: () => new Uint32Array([1, 2, 3, 4]),
-    });
-
-    startSession("deck-1", ["card-1"]);
-
-    expect(getStudySession("deck-1")?.sessionId).toBe("1-2-3-4");
   });
 
   it("keeps independent study sessions for multiple decks", () => {
@@ -80,6 +54,7 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
         cardOrderIds: ["card-1", "card-2"],
         currentIndex: 0,
         lastStudiedAt: 1000,
+        remote: { uid: "uid", startedAt: 1000 },
       },
       "deck-2": {
         sessionId: expect.any(String),
@@ -87,6 +62,7 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
         cardOrderIds: ["card-3"],
         currentIndex: 0,
         lastStudiedAt: 2000,
+        remote: { uid: "uid", startedAt: 2000 },
       },
     });
   });
@@ -192,90 +168,11 @@ describe("study store [SWIPE-06] [SWIPE-05]", () => {
     });
   });
 
-  it("clears both memory and persisted storage", () => {
-    localStorage.clear();
+  it("clears the visible session without deleting the legacy backup", () => {
+    localStorage.setItem(STUDY_STORAGE_KEY, "legacy backup");
     startSession("deck-1", ["card-1"]);
-
-    expect(getStudySession("deck-1")).toBeDefined();
-    expect(localStorage.getItem(STUDY_STORAGE_KEY)).not.toBeNull();
-
     clearStudySessions();
-
     expect(getStudySession("deck-1")).toBeUndefined();
-    expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBeNull();
-  });
-
-  it("throws when persisted storage cleanup fails", () => {
-    const failure = new Error("storage cleanup failed");
-    vi.spyOn(store.persist, "clearStorage").mockImplementationOnce(() => {
-      throw failure;
-    });
-
-    expect(() => clearStudySessions()).toThrow(failure);
-  });
-
-  it("persists sessions in a v4 envelope", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(1000);
-    startSession("deck-1", ["card-1"]);
-    const sessionId = getStudySession("deck-1")?.sessionId;
-
-    const persistedSession = localStorage.getItem(STUDY_STORAGE_KEY);
-    expect(JSON.parse(persistedSession ?? "{}")).toEqual({
-      state: {
-        sessionsByDeckId: {
-          "deck-1": { sessionId, deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
-        },
-      },
-      version: 4,
-    });
-
-    store.setState({ sessionsByDeckId: {} });
-    if (persistedSession != null) localStorage.setItem(STUDY_STORAGE_KEY, persistedSession);
-    await store.persist.rehydrate();
-    expect(store.getState()).toMatchObject({
-      sessionsByDeckId: {
-        "deck-1": { sessionId, deckId: "deck-1", cardOrderIds: ["card-1"], currentIndex: 0, lastStudiedAt: 1000 },
-      },
-    });
-    expect(store.getState()).not.toHaveProperty("session");
-  });
-
-  it("hydrates valid v4 sessions independently and drops unknown metadata", async () => {
-    setVersionedStorage(
-      {
-        sessionsByDeckId: {
-          "deck-1": {
-            sessionId: "session-1",
-            deckId: "deck-1",
-            cardOrderIds: ["card-1", "card-2"],
-            currentIndex: 1,
-            lastStudiedAt: 1000,
-            unknownSessionMetadata: "drop",
-          },
-          broken: {
-            sessionId: "session-broken",
-            deckId: "broken",
-            cardOrderIds: [],
-            currentIndex: 0,
-            lastStudiedAt: 2000,
-          },
-        },
-        unknownRootMetadata: "drop",
-      },
-      4
-    );
-    await store.persist.rehydrate();
-
-    expect(store.getState().sessionsByDeckId).toEqual({
-      "deck-1": {
-        sessionId: "session-1",
-        deckId: "deck-1",
-        cardOrderIds: ["card-1", "card-2"],
-        currentIndex: 1,
-        lastStudiedAt: 1000,
-      },
-    });
-    expect(store.getState()).not.toHaveProperty("unknownRootMetadata");
+    expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBe("legacy backup");
   });
 });

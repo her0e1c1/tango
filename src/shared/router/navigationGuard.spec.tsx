@@ -63,7 +63,7 @@ const renderGuard = () => {
   return render(<RouterProvider router={router} />);
 };
 
-describe("DECK-12 CARD-17 CARD-27 useNavigationGuard", () => {
+describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigationGuard", () => {
   it("allows clean navigation and intentional successful navigation", async () => {
     const view = renderGuard();
     await userEvent.click(screen.getByRole("link", { name: "Leave" }));

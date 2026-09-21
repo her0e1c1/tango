@@ -1,19 +1,9 @@
 import type { z } from "zod";
 import type { DeckId, RemoteDeckCreateInput } from "../model/types";
 
-import {
-  collection,
-  deleteDoc,
-  deleteField,
-  doc,
-  getDocs,
-  onSnapshot,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+import { collection, deleteField, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
+import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
@@ -27,7 +17,6 @@ import { replaceRemoteDecks } from "../model/actions/replaceRemoteDecks";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
-const CARD_COLLECTION = "card";
 
 // Parses an active remote Deck while omitting tombstoned documents.
 const readActiveRemoteDeck = (id: DeckId, value: unknown) => {
@@ -36,7 +25,7 @@ const readActiveRemoteDeck = (id: DeckId, value: unknown) => {
 };
 
 // Subscribes the remote Deck store to active documents owned by one user.
-export const subscribeDecks = (uid: string, onError: (error: Error) => void): (() => void) =>
+export const subscribeDecks = (uid: string, onError: (error: Error) => void, onReady?: () => void): (() => void) =>
   onSnapshot(
     query(collection(db, DECK_COLLECTION), where("uid", "==", uid)),
     (snapshot) => {
@@ -46,6 +35,7 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
           return deck === undefined ? [] : [deck];
         });
         replaceRemoteDecks(decks);
+        onReady?.();
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
@@ -57,7 +47,8 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void): ((
 const createDeckDocument = async (uid: string, deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {
   const createdAt = Date.now();
   const document = toDeckDocument(uid, deck, createdAt);
-  await setDoc(doc(db, DECK_COLLECTION, deck.id), document);
+  const reference = doc(db, DECK_COLLECTION, deck.id);
+  await writeLocally(uid, [reference], () => setDoc(reference, document));
 };
 
 // Validates the actor and owner-free command before creating an actor-owned Firestore document.
@@ -67,7 +58,7 @@ export const createDeck = async (uid: string, deck: RemoteDeckCreateInput): Prom
 };
 
 // Writes editable Deck fields and advances the update timestamp.
-const updateDeckDocument = async (deck: z.infer<typeof deckEditSchema>): Promise<void> => {
+const updateDeckDocument = async (uid: string, deck: z.infer<typeof deckEditSchema>): Promise<void> => {
   const document = omitUndefined({
     name: deck.name,
     url: deck.url === null ? deleteField() : deck.url,
@@ -80,26 +71,23 @@ const updateDeckDocument = async (deck: z.infer<typeof deckEditSchema>): Promise
     category: deck.category,
     convertToBr: deck.convertToBr,
   });
-  await updateDoc(doc(db, DECK_COLLECTION, deck.id), document);
+  const reference = doc(db, DECK_COLLECTION, deck.id);
+  await writeLocally(uid, [reference], () => updateDoc(reference, document));
 };
 
 // Validates an authenticated Deck edit before updating Firestore.
 export const editDeck = async (uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> => {
   const input = editDeckSchema.parse({ uid, deck });
-  await updateDeckDocument(input.deck);
+  await updateDeckDocument(input.uid, input.deck);
 };
 
-// Deletes a remote Deck and every child Card document owned by the same user.
+// Tombstones the parent; readers hide all of its child Cards.
 const deleteDeckDocuments = async (uid: string, deckId: string): Promise<void> => {
-  // Remove child Cards first so a partial failure leaves a recoverable Deck instead of orphaned Card documents.
-  const snapshot = await getDocs(
-    query(collection(db, CARD_COLLECTION), where("uid", "==", uid), where("deckId", "==", deckId))
-  );
-  // A retry must not overlap Card deletions still running from the previous attempt.
-  const cardDeletions = await Promise.allSettled(snapshot.docs.map((document) => deleteDoc(document.ref)));
-  const failure = cardDeletions.find((result): result is PromiseRejectedResult => result.status === "rejected");
-  if (failure !== undefined) throw failure.reason;
-  await deleteDoc(doc(db, DECK_COLLECTION, deckId));
+  // A parent tombstone hides all children, including Cards not yet present in this device's cache.
+  // This keeps deletion atomic and offline-capable for decks of any size.
+  const reference = doc(db, DECK_COLLECTION, deckId);
+  const deletedAt = Date.now();
+  await writeLocally(uid, [reference], () => updateDoc(reference, { deletedAt, updatedAt: deletedAt }));
 };
 
 // Validates Deck ownership before deleting its remote document graph.

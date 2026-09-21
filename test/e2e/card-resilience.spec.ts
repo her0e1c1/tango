@@ -37,7 +37,11 @@ const openCardDeleteDialog = async (page: Page, frontText: string) => {
   return page.getByRole("alertdialog", { name: "Delete card?" });
 };
 
-test("CARD-16 retries the same Card deletion after a handled failure", async ({ fixture, page, browserErrors }) => {
+test("CARD-MANAGEMENT-08 retries the same Card deletion after a handled failure", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -48,9 +52,7 @@ test("CARD-16 retries the same Card deletion after a handled failure", async ({ 
   const dialog = await openCardDeleteDialog(page, card.frontText);
   await dialog.getByRole("button", { name: "Delete card" }).click();
   await expect(dialog).not.toBeVisible();
-  await expect(page.getByRole("alert")).toContainText(
-    "Unable to delete this card. Check your connection and try again."
-  );
+  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
@@ -65,7 +67,7 @@ test("CARD-16 retries the same Card deletion after a handled failure", async ({ 
     .not.toBeUndefined();
 });
 
-test("CARD-17 confirms before discarding an unsaved Card edit", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-09 confirms before discarding an unsaved Card edit", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   const unsavedFrontText = `${namespace.caseId} unsaved front`;
@@ -90,7 +92,7 @@ test("CARD-17 confirms before discarding an unsaved Card edit", async ({ fixture
     .toBe(card.frontText);
 });
 
-test("CARD-26 confirms before discarding an unsaved Card create", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-11 confirms before discarding an unsaved Card create", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const unsavedFrontText = `${namespace.caseId} unsaved front`;
   await fixture.apply(page);
@@ -118,9 +120,6 @@ test("CARD-26 confirms before discarding an unsaved Card create", async ({ fixtu
   await expect(page).toHaveURL(`/deck/${deck.id}`);
   await expect(page.getByRole("button", { name: `View ${unsavedFrontText}` })).toHaveCount(0);
 });
-
-const submittingExplanation =
-  "Card creation is in progress and will continue if you leave. You will be taken to the card list when it succeeds, or see a notification if it fails.";
 
 const beginCardCreation = async (page: Page, deckId: string, frontText: string) => {
   await page.goto(`/deck/${deckId}`);
@@ -153,88 +152,75 @@ const expectCreatedCard = async (page: Page, deckId: string, frontText: string) 
   await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
 };
 
-test("CARD-27 prioritizes creation success over an unanswered leave prompt", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-12 completes cache creation while the cloud write is pending", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const deck = fixture.deck();
   const frontText = `${namespace.caseId} pending front`;
   await fixture.apply(page);
   const write = await beginCardCreation(page, deck.id, frontText);
   try {
-    await page.getByRole("button", { name: "tango", exact: true }).click();
-    const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
-    await expect(dialog).toHaveAccessibleDescription(submittingExplanation);
-    await dialog.getByRole("button", { name: "Keep editing" }).click();
-    await expect(page).toHaveURL(`/deck/${deck.id}/card/new`);
-    await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("Pending back");
-    await expect(page.getByRole("button", { name: "Creating…" })).toBeDisabled();
-    await page.getByRole("button", { name: "tango", exact: true }).click();
-    await expect(dialog).toBeVisible();
+    await expect(page).toHaveURL(`/deck/${deck.id}`);
+    await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
+    await expect(page.getByRole("alertdialog")).toHaveCount(0);
     write.release();
     await expectCreatedCard(page, deck.id, frontText);
-    await page.goBack();
-    await expect(page).toHaveURL(`/deck/${deck.id}`);
-    await expect(page.getByRole("alertdialog")).toHaveCount(0);
   } finally {
     write.release();
   }
 });
 
-test("CARD-28 completes creation after discarding a pending leave prompt", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-13 keeps a queued creation after navigating away", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const frontText = `${namespace.caseId} background front`;
   await fixture.apply(page);
   const write = await beginCardCreation(page, deck.id, frontText);
   try {
+    await expect(page).toHaveURL(`/deck/${deck.id}`);
     await page.getByRole("button", { name: "tango", exact: true }).click();
-    const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
-    await expect(dialog).toHaveAccessibleDescription(submittingExplanation);
-    await dialog.getByRole("button", { name: "Discard changes" }).click();
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole("button", { name: `View ${deck.name}`, exact: true })).toBeVisible();
     write.release();
-    await expectCreatedCard(page, deck.id, frontText);
-    await page.goBack();
-    await expect(page).toHaveURL(`/deck/${deck.id}/card/new`);
-    await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue("");
+    await expect
+      .poll(async () => (await listDocuments("card")).some((item) => item.fields.frontText?.stringValue === frontText))
+      .toBe(true);
+    await expect(page).toHaveURL(/\/$/);
+    await page.getByRole("button", { name: `View ${deck.name}`, exact: true }).click();
+    await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
   } finally {
     write.release();
   }
 });
 
-test("CARD-29 retains the leave prompt and inputs after creation fails, then retries", async ({
+test("CARD-MANAGEMENT-14 reports rejected queued creation after leaving the form", async ({
   fixture,
   page,
   namespace,
   browserErrors,
 }) => {
   const deck = fixture.deck();
-  const frontText = `${namespace.caseId} retry front`;
+  const frontText = `${namespace.caseId} rejected front`;
   await fixture.apply(page);
   const fault = await failNextFirestoreWrite(page, { collection: "card" });
   allowExpectedFirestoreWriteFailure(browserErrors);
   const write = await beginCardCreation(page, deck.id, frontText);
   try {
+    await expect(page).toHaveURL(`/deck/${deck.id}`);
     await page.getByRole("button", { name: "tango", exact: true }).click();
-    const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
-    await expect(dialog).toHaveAccessibleDescription(submittingExplanation);
     write.release();
     await fault.waitForFailure();
-    await expect(page.getByRole("alert")).toContainText("Unable to create this card. Try again.");
-    await expect(dialog).toBeVisible();
-    await expect(page).toHaveURL(`/deck/${deck.id}/card/new`);
-    await dialog.getByRole("button", { name: "Keep editing" }).click();
-    await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("Pending back");
-    await page.getByRole("tab", { name: "Front", exact: true }).click();
-    await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(frontText);
-    await fault.dispose();
-    await page.getByRole("button", { name: "Create card", exact: true }).click();
-    await expectCreatedCard(page, deck.id, frontText);
+    await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
+    await expect(page).toHaveURL(/\/$/);
+    await page.getByRole("button", { name: `View ${deck.name}`, exact: true }).click();
+    await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(0);
   } finally {
     write.release();
     await fault.dispose();
   }
 });
 
-test("CARD-18 retries the same Card-list difficulty change after a handled failure", async ({
+test("CARD-LIST-ACTIONS-04 retries the same Card-list difficulty change after a handled failure", async ({
   fixture,
   page,
   browserErrors,
@@ -249,7 +235,7 @@ test("CARD-18 retries the same Card-list difficulty change after a handled failu
   allowExpectedFirestoreWriteFailure(browserErrors);
 
   await swipeRight(page, card.frontText);
-  await expect(page.getByText("Unable to save changes. Try again.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("alert")).toBeVisible();
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
@@ -262,12 +248,11 @@ test("CARD-18 retries the same Card-list difficulty change after a handled failu
   await expect
     .poll(async () => (await requireDocument("card", unrelatedCard.id)).fields.difficulty?.integerValue)
     .toBe(String(unrelatedCard.difficulty));
-  await expect(page.getByText("Unable to save changes. Try again.", { exact: true })).toHaveCount(0);
   await page.reload();
   await expectDifficulty(page, card.frontText, expectedDifficulty);
 });
 
-test("CARD-20 retries a partially failed bulk difficulty change with the same absolute value", async ({
+test("CARD-LIST-ACTIONS-06 retries a partially failed bulk difficulty change with the same absolute value", async ({
   fixture,
   page,
   browserErrors,
@@ -290,34 +275,13 @@ test("CARD-20 retries a partially failed bulk difficulty change with the same ab
   await difficulty.click();
   const dialog = page.getByRole("dialog", { name: "Change card difficulty?" });
   const applyChange = dialog.getByRole("button", { name: "Apply change" });
-  await dialog.evaluate((element) => {
-    const { documentElement } = element.ownerDocument;
-    documentElement.dataset.bulkDifficultyPendingObserved = "false";
-    const observer = new MutationObserver(() => {
-      const buttons = [...element.querySelectorAll("button")];
-      if (
-        element.getAttribute("aria-busy") === "true" &&
-        buttons.length > 0 &&
-        buttons.every((button) => button.disabled) &&
-        element.contains(element.ownerDocument.activeElement)
-      ) {
-        documentElement.dataset.bulkDifficultyPendingObserved = "true";
-        observer.disconnect();
-      }
-    });
-    observer.observe(element, { attributeFilter: ["aria-busy", "disabled"], attributes: true, subtree: true });
-  });
   await applyChange.click();
 
-  await expect(page.getByRole("alert")).toContainText("Updated 1 of 2. 1 card could not be updated. Try again.");
-  expect(await page.locator("html").getAttribute("data-bulk-difficulty-pending-observed")).toBe("true");
+  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
-  await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText(`Set 2 visible cards to difficulty ${String(newDifficulty)}.`);
-  await expect(difficulty).toHaveAttribute("aria-pressed", "true");
-  await expect(difficulty).toBeDisabled();
+  await expect(dialog).not.toBeVisible();
   await expect
     .poll(async () => (await requireDocument("card", failedCard.id)).fields.difficulty?.integerValue)
     .toBe(String(failedCard.difficulty));
@@ -325,9 +289,11 @@ test("CARD-20 retries a partially failed bulk difficulty change with the same ab
     .poll(async () => (await requireDocument("card", successfulCard.id)).fields.difficulty?.integerValue)
     .toBe(String(newDifficulty));
 
-  await applyChange.click();
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Change difficulty" }).click();
+  await difficulty.click();
+  await dialog.getByRole("button", { name: "Apply change" }).click();
   await expect(dialog).not.toBeVisible();
-  await expect(page.getByRole("alert")).toHaveCount(0);
   await Promise.all(
     [failedCard, successfulCard].map((card) =>
       expect
@@ -365,7 +331,11 @@ const holdCardWrite = async (page: Page, cardId = "") => {
   return { arrived: arrived.promise, release: () => released.resolve() };
 };
 
-test("CARD-22 ignores a Card write failure after leaving the list", async ({ fixture, page, browserErrors }) => {
+test("CARD-LIST-ACTIONS-07 reports a queued Card failure after leaving the list", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
   const deck = fixture.deck();
   const card = fixture.card("card-1");
   await fixture.apply(page);
@@ -376,15 +346,13 @@ test("CARD-22 ignores a Card write failure after leaving the list", async ({ fix
 
   await swipeRight(page, card.frontText);
   await write.arrived;
-  await swipeRight(page, card.frontText);
-  await expect(page.getByRole("button", { name: "Actions", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Actions", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "tango", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   write.release();
   await fault.waitForFailure();
 
-  await expect(page.getByRole("alert")).toHaveCount(0);
-  await expect(page.getByRole("status", { name: "Toast notifications" })).toBeEmpty();
+  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await page.getByRole("button", { name: `View ${deck.name}`, exact: true }).click();
   await expect(page.getByRole("button", { name: "Actions", exact: true })).toBeEnabled();
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -393,7 +361,11 @@ test("CARD-22 ignores a Card write failure after leaving the list", async ({ fix
   await fault.dispose();
 });
 
-test("CARD-23 keeps a new Card deletion pending after an old write fails", async ({ fixture, page, browserErrors }) => {
+test("CARD-LIST-ACTIONS-08 keeps a new Card deletion pending after an old write fails", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
   const deck = fixture.deck();
   const oldCard = fixture.card("card-1");
   const newCard = fixture.card("card-2");
@@ -415,18 +387,12 @@ test("CARD-23 keeps a new Card deletion pending after an old write fails", async
   await fault.waitForFailure();
   await newWrite.arrived;
 
-  await expect(dialog).toBeVisible();
-  await expect(confirm).toBeDisabled();
-  await expect(dialog.getByRole("button", { name: "Cancel" })).toBeDisabled();
-  await confirm.dispatchEvent("click");
-  await dialog.getByRole("button", { name: "Cancel" }).dispatchEvent("click");
-  await expect(dialog).toBeVisible();
-  await expect(page.getByRole("alert")).toHaveCount(0);
-  await expect(page.getByRole("status", { name: "Toast notifications" })).toBeEmpty();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("button", { name: `View ${newCard.frontText}`, exact: true })).toHaveCount(0);
+  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   newWrite.release();
 
   await expect(dialog).not.toBeVisible();
-  await expect(page.getByRole("status", { name: "Toast notifications" })).toContainText("Deleted card");
   await expect(page.getByRole("button", { name: "Actions", exact: true })).toBeEnabled();
   await fault.dispose();
 });

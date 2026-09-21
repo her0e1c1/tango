@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
 
-import { useAuth } from "@/entities/auth";
 import { CATEGORY, type Deck } from "@/entities/deck";
 import { getDeckDeletionTarget } from "@/features/deck-deletion";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
@@ -24,7 +23,6 @@ export function useDeckEditRouteModel(deckId: string | undefined) {
 
 export function useDeckEditPageModel(deck: Deck) {
   const navigate = useNavigate();
-  const { isAnonymous } = useAuth();
   const { form } = useDeckEditFormState(deck);
   const { isDirty, isSubmitting } = form.formState;
   const isMounted = useMountedGuard();
@@ -41,14 +39,13 @@ export function useDeckEditPageModel(deck: Deck) {
     if (!isMounted()) return;
     const saved = await submitDeckEdit(deck.id, values);
     // The Page may unmount between the action resolving and this continuation.
-    if (!saved || !isMounted()) return;
+    if (!(saved && isMounted())) return;
     await onCompleted();
   });
 
   return {
     form,
     categories: CATEGORY,
-    cloudStorageAvailable: !isAnonymous,
     isSubmitting,
     navigationGuard: guard.element,
     deletionTarget: guard.isBlocked ? undefined : getDeckDeletionTarget(deletionTarget),

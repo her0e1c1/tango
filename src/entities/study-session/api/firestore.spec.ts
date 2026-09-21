@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearStudySessions } from "../model/actions/clearStudySessions";
-import { startStudy } from "../model/actions/startStudy";
+import { startStudy } from "@/test/entityFixtures";
 import { getStudySession } from "../model/queries/getStudySession";
 import { subscribeStudySessions } from "./firestore";
 
@@ -10,7 +10,6 @@ const mocks = vi.hoisted(() => ({
     vi.fn<
       (
         request: unknown,
-        options: unknown,
         receive: (snapshot: { docs: never[]; metadata: { fromCache: boolean; hasPendingWrites: boolean } }) => void,
         fail: (error: Error) => void
       ) => () => void
@@ -25,7 +24,7 @@ vi.mock("firebase/firestore", async (importOriginal) => ({
   onSnapshot: mocks.subscribe,
 }));
 
-describe("Study session synchronization [SWIPE-06] [SWIPE-08] [SWIPE-17] [PERSIST-04]", () => {
+describe("Study session synchronization [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     clearStudySessions();
@@ -37,24 +36,23 @@ describe("Study session synchronization [SWIPE-06] [SWIPE-08] [SWIPE-17] [PERSIS
     const onError = vi.fn();
     const stop = subscribeStudySessions("uid", onError);
     const error = new Error("permission denied");
-    mocks.subscribe.mock.calls[0]?.[3](error);
+    mocks.subscribe.mock.calls[0]?.[2](error);
     expect(onError).toHaveBeenCalledWith(error);
     stop();
     expect(mocks.unsubscribe).toHaveBeenCalledOnce();
   });
-  it("clears the previous account's cloud sessions while retaining local study", () => {
+  it("clears all previous account sessions and reflects the current snapshot", () => {
     const cards = [{ id: "card", numberOfSeen: 0, difficulty: 5 }];
     const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
     startStudy("remote", cards, preferences, "previous");
-    startStudy("local", cards, preferences);
-    const local = getStudySession("local");
+    startStudy("local", cards, preferences, "previous");
     const stop = subscribeStudySessions("current", vi.fn());
     expect(getStudySession("remote")).toBeUndefined();
-    mocks.subscribe.mock.calls[0]?.[2]({
+    mocks.subscribe.mock.calls[0]?.[1]({
       docs: [],
       metadata: { fromCache: false, hasPendingWrites: false },
     });
-    expect(getStudySession("local")).toEqual(local);
+    expect(getStudySession("local")).toBeUndefined();
     stop();
   });
 });

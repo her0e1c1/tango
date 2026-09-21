@@ -35,8 +35,8 @@ export function toStudySessionWrite(sessionId: string, document: StudySessionDoc
       deckId: document.deckId,
       cardOrderIds: document.cardOrderIds,
       currentIndex: document.currentIndex,
-      // Remote metadata cannot tell us when this browser last studied the Deck.
-      lastStudiedAt: 0,
+      // Client timestamps are available in local snapshots before cloud acknowledgement.
+      lastStudiedAt: document.updatedAt.toDate().getTime(),
       remote: {
         uid: document.uid,
         startedAt: document.startedAt.toDate().getTime(),
@@ -49,7 +49,6 @@ export function toStudySessionWrite(sessionId: string, document: StudySessionDoc
 }
 
 export function toStudySessionDocument(session: StudySession) {
-  if (session.remote === undefined) throw new Error("A local study session cannot be written to Firestore");
   return {
     uid: session.remote.uid,
     deckId: session.deckId,

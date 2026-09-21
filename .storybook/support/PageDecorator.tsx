@@ -14,7 +14,9 @@ import { MemoryRouter } from "react-router-dom";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { type PreferencesFixture, replacePreferences } from "@/entities/preference/testing";
-import { clearStudySessions, setStudySessionIndex, startStudy } from "@/entities/study-session";
+import { clearStudySessions } from "@/entities/study-session";
+import { startStudy } from "@/test/entityFixtures";
+import { setStudySessionIndex } from "@/entities/study-session/model/actions/setStudySessionIndex";
 
 export const PAGE_STORY_UID = "storybook-user";
 
@@ -22,14 +24,14 @@ type StudySessionFixtures = Partial<Record<DeckId, { cardOrderIds: CardId[]; cur
 
 export interface PageStoryParameters {
   path: string;
-  decks?: Extract<Deck, { localMode: false }>[];
+  decks?: Deck[];
   cards?: RemoteCard[];
   preferences?: PreferencesFixture;
   sessionsByDeckId?: StudySessionFixtures;
   autoPlay?: boolean;
 }
 
-const cloneDeck = (deck: Extract<Deck, { localMode: false }>): Extract<Deck, { localMode: false }> => ({
+const cloneDeck = (deck: Deck): Deck => ({
   ...deck,
   selectedTags: [...deck.selectedTags],
 });
@@ -65,7 +67,8 @@ export const preparePageStory = (parameters: PageStoryParameters): void => {
     startStudy(
       deckId,
       session.cardOrderIds.map((id, numberOfSeen) => ({ id, difficulty: 5, numberOfSeen })),
-      { shuffled: false, maxNumberOfCardsToLearn: 0 }
+      { shuffled: false, maxNumberOfCardsToLearn: 0 },
+      PAGE_STORY_UID
     );
     setStudySessionIndex(deckId, session.currentIndex);
   });

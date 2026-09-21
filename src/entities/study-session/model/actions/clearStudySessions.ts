@@ -4,5 +4,4 @@ import { studySessionStore } from "../store";
 export const clearStudySessions = (): void => {
   // Publish the empty state before durable cleanup so auth changes cannot expose the previous user's sessions.
   studySessionStore.setState({ sessionsByDeckId: {}, remoteLoading: false });
-  studySessionStore.persist.clearStorage();
 };

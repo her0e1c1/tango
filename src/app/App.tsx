@@ -11,7 +11,6 @@ import { usePreferences } from "@/entities/preference";
 import { ToastViewport } from "@/shared/ui/toast";
 
 import { AuthProvider } from "./auth";
-import { FirestoreSubscriptionsProvider } from "./firestore-subscriptions";
 import { I18nProvider } from "./i18n";
 
 interface AppProps {
@@ -38,9 +37,7 @@ const AppShell: React.FC<AppProps> = ({ router }) => {
         tabIndex={-1}
       >
         <AuthProvider>
-          <FirestoreSubscriptionsProvider>
-            <RouterProvider router={router} />
-          </FirestoreSubscriptionsProvider>
+          <RouterProvider router={router} />
         </AuthProvider>
       </main>
       <ToastViewport focusFallbackRef={focusFallbackRef} />

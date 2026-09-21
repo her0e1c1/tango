@@ -47,7 +47,7 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("CARD-01 shows front text, difficulty, study count, and tags", async ({ fixture, page }) => {
+test("CARD-VIEW-01 shows front text, difficulty, study count, and tags", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -61,7 +61,7 @@ test("CARD-01 shows front text, difficulty, study count, and tags", async ({ fix
   await expect(article.getByRole("group", { name: `Tags: ${card.tags.join(", ")}` })).toBeVisible();
 });
 
-test("CARD-02 opens the selected Card back-text overlay", async ({ fixture, page }) => {
+test("CARD-VIEW-02 opens the selected Card back-text overlay", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -72,7 +72,7 @@ test("CARD-02 opens the selected Card back-text overlay", async ({ fixture, page
   await expect(page.getByRole("button", { name: "Close card" })).toContainText(card.backText);
 });
 
-test("CARD-03 persists edited front, back, and tags across reload", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-01 persists edited front, back, and tags across reload", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   const changed = {
@@ -117,7 +117,7 @@ test("CARD-03 persists edited front, back, and tags across reload", async ({ fix
   expect(after.fields).toMatchObject(preservedFields);
   expect(documentId(after)).toBe(card.id);
 });
-test("CARD-04 deletes a Card and does not reload it as active", async ({ fixture, page }) => {
+test("CARD-MANAGEMENT-02 deletes a Card and does not reload it as active", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -135,7 +135,7 @@ test("CARD-04 deletes a Card and does not reload it as active", async ({ fixture
     .not.toBeUndefined();
 });
 
-test("CARD-05 decreases difficulty by one after a right swipe and reload", async ({ fixture, page }) => {
+test("CARD-LIST-ACTIONS-01 decreases difficulty by one after a right swipe and reload", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   const expectedDifficulty = card.difficulty - 1;
@@ -151,7 +151,7 @@ test("CARD-05 decreases difficulty by one after a right swipe and reload", async
   await expectDifficulty(page, card.frontText, expectedDifficulty);
 });
 
-test("CARD-06 increases difficulty by one after a left swipe and reload", async ({ fixture, page }) => {
+test("CARD-LIST-ACTIONS-02 increases difficulty by one after a left swipe and reload", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   const expectedDifficulty = card.difficulty + 1;
@@ -167,7 +167,7 @@ test("CARD-06 increases difficulty by one after a left swipe and reload", async 
   await expectDifficulty(page, card.frontText, expectedDifficulty);
 });
 
-test("CARD-07 closes the back-text overlay without changing persistent Card data", async ({ fixture, page }) => {
+test("CARD-VIEW-03 closes the back-text overlay without changing persistent Card data", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -184,7 +184,10 @@ test("CARD-07 closes the back-text overlay without changing persistent Card data
   expect(await requireDocument("card", card.id)).toEqual(before);
 });
 
-test("CARD-08 cancels deletion, restores focus, and preserves persistent data", async ({ fixture, page }) => {
+test("CARD-MANAGEMENT-03 cancels deletion, restores focus, and preserves persistent data", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -202,7 +205,7 @@ test("CARD-08 cancels deletion, restores focus, and preserves persistent data", 
   expect(await requireDocument("card", card.id)).toEqual(before);
 });
 
-test("CARD-09 retries the same Card edit after a handled failure", async ({
+test("CARD-MANAGEMENT-04 retries the same Card edit after a handled failure", async ({
   fixture,
   page,
   browserErrors,
@@ -225,14 +228,14 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
   await page.getByRole("tab", { name: "Back", exact: true }).click();
   await page.getByRole("textbox", { name: "Back text" }).fill(changedBack);
   await page.getByRole("button", { name: "Save changes" }).click();
-  await expect(page.getByRole("alert")).toContainText("Unable to save changes. Try again.");
+  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
-  await page.getByRole("tab", { name: "Front", exact: true }).click();
-  await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(changedFront);
+  await page.goto(`/card/${card.id}/edit`);
+  await page.getByRole("textbox", { name: "Front text" }).fill(changedFront);
   await page.getByRole("tab", { name: "Back", exact: true }).click();
-  await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue(changedBack);
+  await page.getByRole("textbox", { name: "Back text" }).fill(changedBack);
 
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
@@ -252,13 +255,16 @@ test("CARD-09 retries the same Card edit after a handled failure", async ({
   expect(documentId(after)).toBe(card.id);
 });
 
-test("CARD-10 persists difficulty and tag filters and applies both after reload", async ({ fixture, page }) => {
+test("CARD-LIST-ACTIONS-03 persists difficulty and tag filters and applies both after reload", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const matching = fixture.card("card-1");
   const wrongTag = fixture.card("card-2");
   const difficultyMiss = fixture.card("card-3");
   const [selectedTag] = matching.tags;
-  if (selectedTag === undefined) throw new Error("CARD-10 fixture requires a matching Card tag");
+  if (selectedTag === undefined) throw new Error("CARD-LIST-ACTIONS-03 fixture requires a matching Card tag");
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
@@ -266,7 +272,7 @@ test("CARD-10 persists difficulty and tag filters and applies both after reload"
   await page.getByRole("combobox", { name: "Maximum difficulty" }).selectOption("4");
   await clickCheckboxLabel(page, selectedTag);
   const extraTag = wrongTag.tags[0];
-  if (extraTag === undefined) throw new Error("CARD-10 fixture requires another Card tag");
+  if (extraTag === undefined) throw new Error("CARD-LIST-ACTIONS-03 fixture requires another Card tag");
   await clickCheckboxLabel(page, extraTag);
   await page.getByText("Filters", { exact: true }).click();
   const selectedChip = page.getByRole("button", { name: `Remove ${selectedTag} filter` });
@@ -295,11 +301,12 @@ test("CARD-10 persists difficulty and tag filters and applies both after reload"
   await expect(page.getByRole("button", { name: `View ${matching.frontText}` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${difficultyMiss.frontText}` })).toHaveCount(0);
   await expect(page.getByRole("button", { name: `View ${wrongTag.frontText}` })).toHaveCount(0);
-  const persisted = await requireDocument("deck", deck.id);
-  expect(persisted.fields.selectedTags?.arrayValue?.values).toEqual([{ stringValue: selectedTag }]);
+  await expect
+    .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values)
+    .toEqual([{ stringValue: selectedTag }]);
 });
 
-test("CARD-11 opens a Card view route inside the application shell", async ({ fixture, page }) => {
+test("CARD-VIEW-04 opens a Card view route inside the application shell", async ({ fixture, page }) => {
   const card = fixture.card();
   const nextCard = fixture.card("card-2");
   await fixture.apply(page);
@@ -321,7 +328,7 @@ test("CARD-11 opens a Card view route inside the application shell", async ({ fi
   await expect(page.getByRole("button", { name: "tango" })).toBeVisible();
 });
 
-test("CARD-12 recovers home from a missing Card route", async ({ fixture, page, namespace }) => {
+test("CARD-VIEW-05 recovers home from a missing Card route", async ({ fixture, page, namespace }) => {
   await fixture.apply(page);
 
   await page.goto(`/card/${namespace.id("missing")}`);
@@ -333,7 +340,7 @@ test("CARD-12 recovers home from a missing Card route", async ({ fixture, page, 
   expect(await getDocument("card", namespace.id("missing"))).toBeUndefined();
 });
 
-test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-05 creates one remote Card and keeps it across reload", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const frontText = `${namespace.caseId} remote front`;
   const backText = `${namespace.caseId} remote back`;
@@ -374,6 +381,15 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
+  await expect
+    .poll(
+      async () =>
+        (await listDocuments("card")).filter(
+          (document) =>
+            document.fields.deckId?.stringValue === deck.id && document.fields.frontText?.stringValue === frontText
+        ).length
+    )
+    .toBe(1);
   const created = (await listDocuments("card")).filter(
     (document) =>
       document.fields.deckId?.stringValue === deck.id &&
@@ -386,12 +402,10 @@ test("CARD-13 creates one remote Card and keeps it across reload", async ({ fixt
   expect(createdCard.fields.deckId?.stringValue).toBe(deck.id);
   expect(createdCard.fields.uid?.stringValue).toBe(deck.uid);
   expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
-  expect((await readLocalData(page)).cards).not.toEqual(
-    expect.arrayContaining([expect.objectContaining({ frontText })])
-  );
+  expect((await readLocalData(page)).cards).toEqual(expect.arrayContaining([expect.objectContaining({ frontText })]));
 });
 
-test("CARD-14 creates one local Card and keeps it across reload", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-06 creates one local Card and keeps it across reload", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const frontText =
     `${namespace.caseId} local front. ${"This paragraph explains a useful idea with enough detail to study later. ".repeat(26)}`.slice(
@@ -428,7 +442,7 @@ test("CARD-14 creates one local Card and keeps it across reload", async ({ fixtu
     if (text === null) throw new Error("Toast message is empty");
     const range = document.createRange();
     range.setStart(text, 0);
-    range.setEnd(text, "Created card “CARD-14 local front.".length);
+    range.setEnd(text, "Created card “CARD-MANAGEMENT-06 local front.".length);
     const prefix = range.getBoundingClientRect();
     const bounds = element.getBoundingClientRect();
     return {
@@ -471,7 +485,10 @@ test("CARD-14 creates one local Card and keeps it across reload", async ({ fixtu
   ).toEqual([]);
 });
 
-test("CARD-19 changes the difficulty of only the Cards visible in the filter draft", async ({ fixture, page }) => {
+test("CARD-LIST-ACTIONS-05 changes the difficulty of only the Cards visible in the filter draft", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const matchingCards = [fixture.card("card-1"), fixture.card("card-2")];
   const excludedCard = fixture.card("card-3");
@@ -551,7 +568,7 @@ test("CARD-19 changes the difficulty of only the Cards visible in the filter dra
   await expectDifficulty(page, excludedCard.frontText, excludedCard.difficulty);
 });
 
-test("CARD-21 reveals the first invalid side without saving empty text", async ({ fixture, page }) => {
+test("CARD-MANAGEMENT-10 reveals the first invalid side without saving empty text", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -581,7 +598,7 @@ test("CARD-21 reveals the first invalid side without saving empty text", async (
   expect(await requireDocument("card", card.id)).toEqual(before);
 });
 
-test("CARD-30 previews an unsaved answer while creating an incomplete Card", async ({ fixture, page }) => {
+test("CARD-MANAGEMENT-15 previews an unsaved answer while creating an incomplete Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.setViewportSize({ width: 375, height: 812 });
@@ -629,7 +646,7 @@ test("CARD-30 previews an unsaved answer while creating an incomplete Card", asy
   expect(await readLocalData(page)).toEqual(before);
 });
 
-test("CARD-31 previews current answer tags without saving the edited Card", async ({ fixture, page }) => {
+test("CARD-MANAGEMENT-16 previews current answer tags without saving the edited Card", async ({ fixture, page }) => {
   const card = fixture.card();
   await fixture.apply(page);
   await page.goto(`/card/${card.id}/edit`);

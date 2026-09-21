@@ -6,7 +6,7 @@ import { createDeck as createDeckFixture } from "@/test/factories";
 
 import { createDeckSchema, editDeckSchema } from "./schema";
 
-describe("Deck operation schemas [CARD-10]", () => {
+describe("Deck operation schemas [CARD-LIST-ACTIONS-03]", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
   describe("createDeckSchema", () => {
@@ -16,7 +16,7 @@ describe("Deck operation schemas [CARD-10]", () => {
         deck: {
           id: "deck",
           name: "Deck",
-          localMode: false,
+
           isPublic: false,
           difficultyMax: 10,
           difficultyMin: 1,
@@ -34,7 +34,6 @@ describe("Deck operation schemas [CARD-10]", () => {
       ["Deck id", { uid: "uid-a", deck: { ...deck, id: "" } }, "Deck id"],
       ["Deck name", { uid: "uid-a", deck: { ...deck, name: "   " } }, "Deck name"],
       ["Deck URL", { uid: "uid-a", deck: { ...deck, url: "not-a-url" } }, "valid URL"],
-      ["local mode", { uid: "uid-a", deck: { ...deck, localMode: true } }, "Invalid input"],
     ])("rejects an invalid %s", (_case, input, message) => {
       expect(() => createDeckSchema.parse(input)).toThrow(message);
     });
@@ -59,13 +58,6 @@ describe("Deck operation schemas [CARD-10]", () => {
     it("uses null to distinguish clearing a URL from leaving it unchanged", () => {
       expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck" } }).deck).not.toHaveProperty("url");
       expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", url: null } }).deck).toHaveProperty("url", null);
-    });
-
-    it("accepts disabling local mode as an edit command", () => {
-      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", localMode: false } }).deck).toEqual({
-        id: "deck",
-        localMode: false,
-      });
     });
 
     it.each([0, 11, Number.NaN, Number.POSITIVE_INFINITY])(

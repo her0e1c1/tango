@@ -5,15 +5,17 @@
 - `mise run e2e` で Playwright を実行する。
 - Deck / Card の remote data は Firestore emulator、認証は Firebase Auth emulator を使用する。
 - Google account 連携は Auth emulator の local popup flow で確認し、実際の外部 identity provider には接続しない。
-- Config と local-only data は browser storage に保存する。Study session は browser storage に保持し、ログイン済みユーザーの remote Deck では Firestore にも同期する。
+- 設定は従来どおり browser storage に保存する。Deck、Card、StudySession、StudyAnswer は匿名・通常ログインとも同じ Firestore API と永続 cache を使用する。単一タブを対象とし、同じ学習状態を複数端末から同時更新する使い方は対象外とする。
 - E2E は代表的な利用者導線を対象とし、各 validation rule や設定・入力手段の組み合わせは unit / component test で確認する。
 
 ## 保存先の用語
 
-- `local-only`: Deck / Card を remote に作成せず、現在の browser storage だけに保存する状態を指す。
-- `remote`: Google アカウントにログインしたユーザーの UID に属する Deck / Card を Firestore emulator に保存する状態を指す。
-- Google アカウントへ連携していない匿名認証は未ログインとして扱い、Deck / Card は local-only に保存する。匿名 UID が発行されてもクラウドへの書き込みを許可しない。
-- `offline cache`: remote data の browser 上の cache と、offline 中に remote へ反映待ちとなった変更を指す。local-only data とは区別する。
+- `local-only`: 匿名 UID で Firestore の永続 cache を利用し、同期を停止している状態を指す。保存先を選ぶ Deck ごとの mode は存在しない。
+- `remote`: 通常アカウントの UID で同じ永続 cache を使い、Firestore の標準同期を有効にした状態を指す。
+- 初回の匿名認証には通信が必要。同じ匿名 UID と browser 保存領域が残る場合だけ reload 後も復元する。
+- `offline cache`: Firestore SDK が管理する端末内データと保留書き込みを指す。アプリ独自の outbox や再送キューは持たない。
+- 作成・編集・削除・インポート・回答の操作完了はローカル snapshot への反映で判定する。クラウドの応答や server timestamp の確定を待たない。
+- 検出した初期化・保存・同期エラーは表示する。永続化非対応環境への別 DB による代替は提供しない。
 
 ## カテゴリと分離
 
@@ -24,6 +26,10 @@
 - すべての test case は並列実行でき、同時に実行された別の test case のデータや認証状態に依存しない。
 
 ## テストケースの書式
+
+- ID の prefix は仕様ファイル名から `.md` を除いて大文字化する（例: `card-view.md` → `CARD-VIEW`）。
+- 各ファイルのケースを記載順に `01` から欠番なく採番する。番号は最低2桁のゼロ埋めとする（例: `CARD-VIEW-01`、`CARD-VIEW-02`）。
+- ケースの追加・移動・削除時は必要に応じて振り直し、索引・anchor・Playwright のテスト名・unit / integration test の参照も同時に更新する。
 
 - 各 ID をちょうど一つの Playwright test に対応させる。
 - 詳細仕様の Markdown は `docs/e2e` 直下に置く。E2E contract check はこの階層の Markdown を読み取る。

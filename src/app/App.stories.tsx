@@ -90,8 +90,7 @@ export const Import: Story = {
       { type: "text/csv" }
     );
 
-    await userEvent.click(canvas.getByRole("button", { name: "Change" }));
-    await userEvent.click(canvas.getByRole("radio", { name: /Local only/ }));
+    await expect(canvas.queryByRole("radio")).not.toBeInTheDocument();
     await userEvent.upload(canvas.getByLabelText("Upload a csv file"), file);
 
     await expect(await canvas.findByRole("heading", { level: 2, name: "Review import" })).toBeVisible();

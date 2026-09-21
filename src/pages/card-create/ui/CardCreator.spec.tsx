@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -73,10 +74,10 @@ const deferred = () => {
   return { promise, resolve };
 };
 
-describe("CARD-13 CARD-14 CARD-15 CardCreator", () => {
+describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator", () => {
   beforeEach(async () => {
     dismissToast();
-    await createDeck("", deck);
+    await createDeck("user-id", deck);
     savedCards.length = 0;
     validation.ready = undefined;
     writes.createCard.mockReset();

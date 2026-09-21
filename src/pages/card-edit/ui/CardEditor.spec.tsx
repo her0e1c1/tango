@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import { BackText } from "@/entities/card";
 import type { Card, CardId } from "@/entities/card";
 
@@ -76,7 +77,7 @@ const StoredCardEditorHarness = (props: { cardId: CardId; onCancel: () => void; 
   );
 };
 
-describe("CARD-03 CARD-09 CARD-12 CARD-21 CardEditor", () => {
+describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 CardEditor", () => {
   const deckId = "card-edit-deck";
   const cardId = "card-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
@@ -91,8 +92,8 @@ describe("CARD-03 CARD-09 CARD-12 CARD-21 CardEditor", () => {
     dismissToast();
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
-    await createDeck("", createLocalDeck({ id: deckId }));
-    await mutateCards("", [
+    await createDeck("user-id", createLocalDeck({ id: deckId }));
+    await mutateCards("user-id", [
       {
         kind: "create",
         card: createLocalCard({
@@ -175,7 +176,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-21 CardEditor", () => {
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "Unsaved front");
 
-    await mutateCards("", [
+    await mutateCards("user-id", [
       {
         kind: "edit",
         card: { id: cardId, frontText: "Subscription front", backText: "Subscription back" },

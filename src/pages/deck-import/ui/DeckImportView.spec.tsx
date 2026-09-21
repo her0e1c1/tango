@@ -2,7 +2,7 @@ import { actAsync } from "@/test/act";
 import { getI18n } from "react-i18next";
 import { ImportFailure } from "../lib/importFailure";
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it, vi } from "vitest";
@@ -79,16 +79,9 @@ describe("DeckImportView [IMPORT-01 IMPORT-02 IMPORT-06 SETTINGS-09]", () => {
     expect(screen.getByText(/Four columns without a header/)).toBeVisible();
   });
 
-  it("selects and locks the common destination", async () => {
-    const onStorageModeChange = vi.fn();
-    const view = render(<DeckImportView examples={deckImportExamples} onStorageModeChange={onStorageModeChange} />);
-    await userEvent.click(screen.getByRole("button", { name: "Change" }));
-    const group = screen.getByRole("group", { name: "Save to" });
-    await userEvent.click(within(group).getByRole("radio", { name: /Local only/ }));
-    expect(onStorageModeChange).toHaveBeenCalledWith("local");
-    view.rerender(<DeckImportView examples={deckImportExamples} storageMode="local" pending />);
-    expect(screen.getByRole("radio", { name: /Local only/ })).toBeChecked();
-    expect(screen.getByRole("radio", { name: /Local only/ })).toBeDisabled();
+  it("locks file selection while importing and has no storage selector", () => {
+    render(<DeckImportView examples={deckImportExamples} pending />);
+    expect(screen.queryByRole("group", { name: "Save to" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try this example" })).toBeDisabled();
     expect(screen.getByLabelText("Upload a csv file")).toBeDisabled();
   });

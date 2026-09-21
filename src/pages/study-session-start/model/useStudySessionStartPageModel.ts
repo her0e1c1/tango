@@ -1,3 +1,4 @@
+import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { useNavigate } from "react-router-dom";
 import { routes } from "@/shared/router";
 
@@ -22,6 +23,7 @@ export function useStudySessionStartRouteModel(deckId: string) {
 
 export function useStudySessionStartPageModel(deck: Deck) {
   const navigate = useNavigate();
+  const isMounted = useMountedGuard();
   const { uid } = useAuth();
   const filterDraft = useDeckFilterDraft(uid, deck);
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
@@ -34,13 +36,18 @@ export function useStudySessionStartPageModel(deck: Deck) {
   const filter = getDeckFilterState(filterDraft.state);
   // Build the session from the latest selection, even while its autosave is still pending.
   const state = useStudySessionStartState(deck.id, filterDraft.state.draft);
-  const start = () => {
+  const start = async () => {
     if (filter.saving) return;
-    if (startStudySession(deck.id, filterDraft.state.draft)) {
+    if ((await startStudySession(deck.id, filterDraft.state.draft)) && isMounted()) {
       void navigate(routes.deckStudy.to(deck.id), { replace: true });
     }
   };
-  useStudyStartShortcut(start, { saving: filter.saving, cardCount: state.cardsLength });
+  useStudyStartShortcut(
+    () => {
+      void start();
+    },
+    { saving: filter.saving, cardCount: state.cardsLength }
+  );
 
   return {
     deckName: deck.name,
@@ -48,7 +55,9 @@ export function useStudySessionStartPageModel(deck: Deck) {
     cardsLength: state.cardsLength,
     tags: state.tags,
     filter,
-    start,
+    start: () => {
+      void start();
+    },
     clearDifficultyRange: () => clearDeckFilterRange(filterUpdate),
     setDifficultyMax: (difficultyMax: number | null) => updateDeckFilterDraft({ difficultyMax }, filterUpdate),
     setDifficultyMin: (difficultyMin: number | null) => updateDeckFilterDraft({ difficultyMin }, filterUpdate),

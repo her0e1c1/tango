@@ -14,6 +14,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import {
   setDoc,
+  writeBatch,
   doc,
   getDoc,
   updateDoc,
@@ -29,7 +30,7 @@ import * as Uuid from "uuid";
 
 const uuid = Uuid.v4;
 
-describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions", () => {
+describe("PERSISTENCE-01 PERSISTENCE-04 Firestore ownership and guest write restrictions", () => {
   let testEnv: RulesTestEnvironment;
 
   const createData = async (path: string, id: string, data: object) => {
@@ -58,7 +59,7 @@ describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions
     await testEnv.cleanup();
   });
 
-  describe("StudySession [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-10]", () => {
+  describe("StudySession [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-04] [STUDY-SESSION-05]", () => {
     const sessionData = () => ({
       uid: "uid",
       deckId: "public-deck",
@@ -117,6 +118,111 @@ describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions
       await setDoc(reference, sessionData());
       await assertFails(updateDoc(reference, { uid: "another-user", updatedAt: serverTimestamp() }));
       await assertFails(deleteDoc(reference));
+    });
+  });
+
+  describe("Deleted public content [DECK-MANAGEMENT-02 CARD-MANAGEMENT-02]", () => {
+    it.each(["other-user", "anonymous", "unauthenticated"])("denies %s access after deletion", async (actor) => {
+      await createData("deck", "deleted", { uid: "owner", isPublic: true, deletedAt: 1000 });
+      await createData("deck", "active", { uid: "owner", isPublic: true, deletedAt: null });
+      await createData("card", "child", { uid: "owner", deckId: "deleted", deletedAt: null });
+      await createData("card", "deleted-card", { uid: "owner", deckId: "active", deletedAt: 1000 });
+      const db =
+        actor === "unauthenticated"
+          ? testEnv.unauthenticatedContext().firestore()
+          : testEnv
+              .authenticatedContext(actor, {
+                firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
+              })
+              .firestore();
+      await assertFails(getDoc(doc(db, "deck", "deleted")));
+      await assertFails(getDoc(doc(db, "card", "child")));
+      await assertFails(getDoc(doc(db, "card", "deleted-card")));
+      await assertSucceeds(getDoc(doc(db, "deck", "active")));
+    });
+  });
+
+  describe("Rating answer batches [STUDY-ACTIONS-01 STUDY-ACTIONS-02 STUDY-SESSION-05]", () => {
+    const answer = (cardId = "first") => ({
+      uid: "owner",
+      sessionId: "session",
+      deckId: "deck",
+      cardId,
+      answer: { type: "rating", rating: "good" },
+      answeredAt: Timestamp.fromMillis(2000),
+      createdAt: Timestamp.fromMillis(2000),
+      updatedAt: Timestamp.fromMillis(2000),
+    });
+    const ownerDb = () =>
+      testEnv
+        .authenticatedContext("owner", { firebase: { sign_in_provider: "google.com", identities: {} } })
+        .firestore();
+    beforeEach(async () => {
+      await createData("deck", "deck", { uid: "owner", isPublic: false });
+      for (const id of ["first", "last"])
+        await createData("card", id, { uid: "owner", deckId: "deck", numberOfSeen: 0 });
+      await createData("studySession", "session", {
+        uid: "owner",
+        deckId: "deck",
+        cardOrderIds: ["first", "last"],
+        currentIndex: 0,
+        endReason: null,
+        endedAt: null,
+      });
+    });
+    it("accepts the first and final answer with atomic Card and session updates", async () => {
+      const db = ownerDb();
+      for (const [index, cardId] of ["first", "last"].entries()) {
+        const batch = writeBatch(db);
+        batch.set(doc(db, "studyAnswer", `session-${String(index)}`), answer(cardId));
+        batch.update(doc(db, "card", cardId), { numberOfSeen: 1, lastSeenAt: 2000, updatedAt: 2000 });
+        batch.update(doc(db, "studySession", "session"), {
+          currentIndex: 1,
+          ...(index === 1 ? { endReason: "completed", endedAt: Timestamp.fromMillis(2000) } : {}),
+          updatedAt: Timestamp.fromMillis(2000),
+        });
+        await assertSucceeds(batch.commit());
+        await assertSucceeds(getDoc(doc(db, "studyAnswer", `session-${String(index)}`)));
+      }
+    });
+    it("leaves answer identity, progress and completed-session sequencing to the application", async () => {
+      const db = ownerDb();
+      await assertSucceeds(setDoc(doc(db, "studyAnswer", "standalone"), answer("last")));
+      await updateDoc(doc(db, "studySession", "session"), { endReason: "completed" });
+      await assertSucceeds(setDoc(doc(db, "studyAnswer", "another-id"), answer("last")));
+    });
+    it.each([
+      { sessionId: "missing" },
+      { cardId: "missing" },
+      { sessionId: "foreign-session" },
+      { cardId: "foreign-card" },
+      { deckId: "another-deck" },
+      { cardId: "another-deck-card" },
+    ])("rejects an answer with inaccessible or mismatched references: %j", async (reference) => {
+      await createData("studySession", "foreign-session", { uid: "other", deckId: "deck" });
+      await createData("card", "foreign-card", { uid: "other", deckId: "deck" });
+      await createData("card", "another-deck-card", { uid: "owner", deckId: "another-deck" });
+      await assertFails(setDoc(doc(ownerDb(), "studyAnswer", "new"), { ...answer(), ...reference }));
+    });
+    it("forbids rewriting or deleting answer history", async () => {
+      const db = ownerDb();
+      await createData("studyAnswer", "saved", answer());
+      await assertFails(updateDoc(doc(db, "studyAnswer", "saved"), { answer: { type: "rating", rating: "again" } }));
+      await assertFails(deleteDoc(doc(db, "studyAnswer", "saved")));
+    });
+    it.each(["other-user", "anonymous"])("rejects %s reads and answer batches", async (actor) => {
+      await createData("studyAnswer", "saved", answer());
+      const db = testEnv
+        .authenticatedContext(actor === "anonymous" ? "owner" : actor, {
+          firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
+        })
+        .firestore();
+      await assertFails(getDoc(doc(db, "studyAnswer", "saved")));
+      const batch = writeBatch(db);
+      batch.set(doc(db, "studyAnswer", "new"), answer());
+      batch.update(doc(db, "card", "first"), { numberOfSeen: 1 });
+      batch.update(doc(db, "studySession", "session"), { currentIndex: 1 });
+      await assertFails(batch.commit());
     });
   });
 

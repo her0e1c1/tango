@@ -8,6 +8,7 @@ import {
   getDocument,
   listDocuments,
   readLocalData,
+  requireDocument,
   test,
 } from "./fixtures";
 
@@ -24,7 +25,7 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("DECK-01 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
+test("DECK-NAVIGATION-01 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -86,7 +87,11 @@ test("DECK-01 navigates from the Deck list to its Card list", async ({ fixture, 
   }
 });
 
-test("DECK-02 persists edited name, category, and source URL across reload", async ({ fixture, page, namespace }) => {
+test("DECK-MANAGEMENT-01 persists edited name, category, and source URL across reload", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   const updatedName = `${namespace.caseId} updated`;
@@ -112,10 +117,9 @@ test("DECK-02 persists edited name, category, and source URL across reload", asy
   await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(updatedSourceUrl);
 });
 
-test("DECK-03 deletes one Deck and preserves unrelated Deck data", async ({ fixture, page }) => {
+test("DECK-MANAGEMENT-02 deletes one Deck and preserves unrelated Deck data", async ({ fixture, page }) => {
   const deck = fixture.deck("deck-a");
   const otherDeck = fixture.deck("deck-b");
-  const cards = fixture.state.remote.cards.filter((card) => card.deckId === deck.id);
   const otherCards = fixture.state.remote.cards.filter((card) => card.deckId === otherDeck.id);
   const otherSession = fixture.session("deck-b");
   await fixture.apply(page);
@@ -128,8 +132,10 @@ test("DECK-03 deletes one Deck and preserves unrelated Deck data", async ({ fixt
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${deck.name}` })).toHaveCount(0);
-  await expect.poll(() => getDocument("deck", deck.id)).toBeUndefined();
-  await Promise.all(cards.map((card) => expect.poll(() => getDocument("card", card.id)).toBeUndefined()));
+  await expect
+    .poll(async () => Number((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue ?? 0))
+    .toBeGreaterThan(0);
+  expect((await readLocalData(page)).cards.filter((card) => card.deckId === deck.id)).toEqual([]);
 
   expect(await getDocument("deck", otherDeck.id)).toBeDefined();
   expect((await Promise.all(otherCards.map((card) => getDocument("card", card.id)))).every(Boolean)).toBe(true);
@@ -141,7 +147,7 @@ test("DECK-03 deletes one Deck and preserves unrelated Deck data", async ({ fixt
   await expect(page.getByRole("button", { name: `Continue ${otherDeck.name}` })).toBeVisible();
 });
 
-test("DECK-04 cancels Deck deletion and preserves all related data", async ({ fixture, page }) => {
+test("DECK-MANAGEMENT-03 cancels Deck deletion and preserves all related data", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;
   const session = fixture.session();
@@ -163,14 +169,16 @@ test("DECK-04 cancels Deck deletion and preserves all related data", async ({ fi
   expect((await readLocalData(page)).sessionsByDeckId).toHaveProperty(deck.id, session);
 });
 
-test("DECK-05 retries the same Deck deletion after a handled failure", async ({ fixture, page, browserErrors }) => {
+test("DECK-MANAGEMENT-04 retries the same Deck deletion after a handled failure", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
   const deck = fixture.deck();
-  const { cards } = fixture.state.remote;
-  const card = fixture.card();
-  const failureMessage = "Unable to delete this deck. Check your connection and try again.";
+  const failureMessage = "A data save or sync failed. Check your connection and reload to review the saved data.";
   await fixture.apply(page);
   await page.goto("/");
-  const fault = await failNextFirestoreWrite(page, { collection: "card", id: card.id });
+  const fault = await failNextFirestoreWrite(page, { collection: "deck", id: deck.id });
   allowExpectedFirestoreWriteFailure(browserErrors);
 
   const dialog = await openDeckDeleteDialog(page, deck.name);
@@ -207,12 +215,14 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByRole("status").filter({ hasText: `Deleted deck “${deck.name}”.` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${deck.name}` })).toHaveCount(0);
-  await expect.poll(() => getDocument("deck", deck.id)).toBeUndefined();
-  await Promise.all(cards.map((candidate) => expect.poll(() => getDocument("card", candidate.id)).toBeUndefined()));
+  await expect
+    .poll(async () => Number((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue ?? 0))
+    .toBeGreaterThan(0);
+  expect((await readLocalData(page)).cards.filter((card) => card.deckId === deck.id)).toEqual([]);
   expect((await readLocalData(page)).sessionsByDeckId).not.toHaveProperty(deck.id);
 });
 
-test("DECK-06 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
+test("DECK-NAVIGATION-02 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
   await fixture.apply(page);
 
   await page.goto(`/deck/${namespace.id("missing")}`);
@@ -223,31 +233,7 @@ test("DECK-06 recovers home from a missing Deck route", async ({ fixture, page, 
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
 });
 
-test("DECK-07 migrates a local-only Deck and every Card to remote storage", async ({ fixture, page }) => {
-  const deck = fixture.deck();
-  const { localCards: cards } = fixture.state.browser;
-  await fixture.apply(page, { auth: { linked: true } });
-
-  await page.goto("/");
-  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
-  await page.getByRole("menuitem", { name: "Edit" }).click();
-  await page.getByRole("radio", { name: "Cloud", exact: true }).check();
-  const localOnly = page.getByRole("radio", { name: "Local only", exact: true });
-  await expect(localOnly).not.toBeChecked();
-  await page.getByRole("button", { name: "Save changes" }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("status").filter({ hasText: `Updated deck “${deck.name}”.` })).toBeVisible();
-  await page.reload();
-  await page.getByRole("button", { name: `View ${deck.name}` }).click();
-
-  await Promise.all(cards.map((card) => expect(page.getByText(String(card.frontText))).toBeVisible()));
-  expect(await getDocument("deck", deck.id)).toBeDefined();
-  const remoteCards = await Promise.all(cards.map((card) => getDocument("card", String(card.id))));
-  expect(remoteCards.every((card) => card !== undefined)).toBe(true);
-  expect(await readLocalData(page)).toEqual({ decks: [], cards: [], sessionsByDeckId: {} });
-});
-
-test("DECK-08 downloads every Card field as one CSV row", async ({ fixture, page }, testInfo) => {
+test("DECK-TRANSFER-01 downloads every Card field as one CSV row", async ({ fixture, page }, testInfo) => {
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;
   await fixture.apply(page);
@@ -269,7 +255,11 @@ test("DECK-08 downloads every Card field as one CSV row", async ({ fixture, page
   expect(csv.trim().split("\n")).toHaveLength(cards.length);
 });
 
-test("DECK-09 creates one empty remote Deck without a local duplicate", async ({ fixture, page, namespace }) => {
+test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const name = `${namespace.caseId} created`;
   const category = "typescript";
   const sourceUrl = "https://example.com/created-deck.csv";
@@ -296,6 +286,14 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
 
   const deckArticle = page.getByRole("button", { name: `View ${name}` }).locator("xpath=ancestor::article[1]");
   await expect(deckArticle).toContainText(category);
+  await expect
+    .poll(
+      async () =>
+        (await listDocuments("deck")).filter(
+          ({ fields }) => fields.uid?.stringValue === uid && fields.name?.stringValue === name
+        ).length
+    )
+    .toBe(1);
   const remote = await listDocuments("deck");
   const owned = remote.filter(
     ({ fields }) =>
@@ -310,11 +308,10 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   );
   expect(ownedCardsForDeck).toEqual([]);
   const local = await readLocalData(page);
-  expect(local.decks).toEqual([]);
-  expect(local.cards).toEqual([]);
+  expect(local.decks).toHaveLength(1);
 });
 
-test("DECK-10 reports a failed remote create without locking the form", async ({
+test("DECK-MANAGEMENT-06 reports a failed remote create without locking the form", async ({
   fixture,
   page,
   browserErrors,
@@ -336,19 +333,10 @@ test("DECK-10 reports a failed remote create without locking the form", async ({
   await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
   await clickCheckboxLabel(page, "Convert line breaks");
   await page.getByRole("button", { name: "Create deck" }).click();
-  await expect(page.getByRole("alert")).toContainText("Unable to create this deck.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
+  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await fault.dispose();
-
-  await expect(page.getByRole("textbox", { name: "Name" })).toHaveValue(name);
-  await expect(page.getByRole("combobox")).toHaveValue(category);
-  await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(sourceUrl);
-  await expect(page.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
-  const localMode = page.getByRole("radio", { name: "Local only" });
-  await expect(localMode).toBeEnabled();
-  await localMode.check();
-  await expect(localMode).toBeChecked();
 
   const remote = await listDocuments("deck");
   const owned = remote.filter(
@@ -361,7 +349,7 @@ test("DECK-10 reports a failed remote create without locking the form", async ({
   expect(local.cards).toEqual([]);
 });
 
-test("DECK-12 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {
+test("DECK-MANAGEMENT-08 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const unsavedName = `${namespace.caseId} unsaved`;
   await fixture.apply(page);

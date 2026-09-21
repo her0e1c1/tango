@@ -1,115 +1,38 @@
-import type {
-  CardCreateInput,
-  CardCreateCommand,
-  CardEditInput,
-  CardId,
-  CardMutation,
-  CardMutationCreateInput,
-  RemoteCard,
-} from "../model/types";
-
+import type { CardCreateCommand, CardEditInput, CardId, CardMutation } from "../model/types";
 import { findDeckById } from "@/entities/deck/@x/card";
-import { cardCreateSchema } from "../model/schema";
-import { cardStore } from "../model/store";
-import { createLocalCard } from "../model/actions/createLocalCard";
-import { deleteLocalCard } from "../model/actions/deleteLocalCard";
-import { deleteLocalCardsByDeckId } from "../model/actions/deleteLocalCardsByDeckId";
-import { editLocalCard } from "../model/actions/editLocalCard";
 import { findCardById } from "../model/queries/findCardById";
-import {
-  createCard as createRemoteCard,
-  deleteCard as deleteRemoteCard,
-  editCard as editRemoteCard,
-} from "./firestore";
+import { createCard as createDocument, editCard as editDocument, deleteCard as deleteDocument } from "./firestore";
 
-// The owning Deck is the source of truth for persistence mode; callers cannot route individual Cards independently.
-const isLocalDeck = (deckId: string): boolean => findDeckById(deckId)?.localMode ?? false;
-
-// Returns the current Card or rejects a stale Card reference.
-const requireCard = (id: CardId) => {
+function requireOwnedCard(uid: string, id: CardId) {
   const card = findCardById(id);
   if (card === undefined) throw new Error(`Card "${id}" was not found`);
+  if (!uid || card.uid !== uid) throw new Error("Card owner does not match the authenticated user");
   return card;
-};
+}
 
-// Returns the owning Deck's persistence mode or rejects an unknown Deck.
-const requireLocalMode = (deckId: string): boolean => {
-  const deck = findDeckById(deckId);
-  if (deck === undefined) throw new Error(`Deck "${deckId}" was not found`);
-  return deck.localMode;
-};
-
-// Validates the owner-bearing payload required for a remote Card create.
-const requireRemoteCardCreate = (card: CardMutationCreateInput): CardCreateInput =>
-  "uid" in card ? card : cardCreateSchema.parse(card);
-
-// Routes a Card create through the owning Deck's persistence mode.
-const createMutationCard = async (uid: string, card: CardMutationCreateInput): Promise<void> => {
-  if (isLocalDeck(card.deckId)) {
-    createLocalCard(card);
-    return;
-  }
-  await createRemoteCard(uid, requireRemoteCardCreate(card));
-};
-
-// Creates one Card without letting presentation code choose a persisted owner or persistence mode.
-export const createCard = async (uid: string, card: CardCreateCommand): Promise<void> => {
+export async function createCard(uid: string, card: CardCreateCommand): Promise<void> {
   const deck = findDeckById(card.deckId);
   if (deck === undefined) throw new Error(`Deck "${card.deckId}" was not found`);
-  if (deck.localMode) {
-    createLocalCard(card);
-    return;
-  }
-  if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
-  await createRemoteCard(uid, { ...card, uid: deck.uid });
-};
+  if (!uid || deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
+  await createDocument(uid, { ...card, uid });
+}
 
-// Copies a Deck's local Cards to remote persistence before removing the local copies.
-export const moveLocalCardsToRemote = async (uid: string, deckId: string): Promise<void> => {
-  const localCards = cardStore.getState().localCards.filter((card) => card.deckId === deckId);
-  await Promise.all(
-    localCards.map(({ createdAt: _createdAt, updatedAt: _updatedAt, ...card }) =>
-      createRemoteCard(uid, { ...card, uid })
-    )
-  );
-  deleteLocalCardsByDeckId(deckId);
-};
+export async function editCard(uid: string, card: CardEditInput): Promise<void> {
+  requireOwnedCard(uid, card.id);
+  await editDocument(uid, { ...card, uid });
+}
 
-// Narrows a stored Card to the owner-bearing remote variant.
-const requireRemoteCard = (card: ReturnType<typeof requireCard>): RemoteCard => {
-  if (!("uid" in card)) throw new Error(`Card "${card.id}" is not owned by a remote Deck`);
-  return card;
-};
-
-// Routes a Card edit through the owning Deck's persistence mode.
-export const editCard = async (uid: string, card: CardEditInput): Promise<void> => {
-  const currentCard = requireCard(card.id);
-  if (requireLocalMode(currentCard.deckId)) {
-    editLocalCard(card);
-    return;
-  }
-  // Preserve the stored owner so an edit payload cannot move a remote Card between accounts.
-  await editRemoteCard(uid, { ...card, uid: requireRemoteCard(currentCard).uid });
-};
-
-// Applies independent Card mutations and reports the first failed operation after all settle.
-export const mutateCards = async (uid: string, mutations: CardMutation[]): Promise<void> => {
-  // Bulk imports are non-transactional: let every independent write settle before surfacing the first failure.
+export async function mutateCards(uid: string, mutations: CardMutation[]): Promise<void> {
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
-      mutation.kind === "create" ? createMutationCard(uid, mutation.card) : editCard(uid, mutation.card)
+      mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
     )
   );
   const failure = results.find((result) => result.status === "rejected");
   if (failure?.status === "rejected") throw failure.reason;
-};
+}
 
-// Routes a Card deletion through the owning Deck's persistence mode.
-export const deleteCard = async (uid: string, cardId: CardId): Promise<void> => {
-  const currentCard = requireCard(cardId);
-  if (requireLocalMode(currentCard.deckId)) {
-    deleteLocalCard(cardId);
-    return;
-  }
-  await deleteRemoteCard(uid, { id: cardId, uid: requireRemoteCard(currentCard).uid });
-};
+export async function deleteCard(uid: string, id: CardId): Promise<void> {
+  requireOwnedCard(uid, id);
+  await deleteDocument(uid, { id, uid });
+}

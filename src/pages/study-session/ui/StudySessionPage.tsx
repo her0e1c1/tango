@@ -30,7 +30,6 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
     closeHelp,
     changeIndex,
     skip,
-    retrySave,
     swipeUp,
     swipeDown,
     swipeLeft,
@@ -53,7 +52,7 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
     );
   }
 
-  const blocked = pageState.swipePending || pageState.saveFailed;
+  const blocked = pageState.swipePending;
   const swipeActions = {
     disabled: blocked,
     captions: {
@@ -113,12 +112,7 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
         backTextSlot={<CardView {...query.card.back} onClick={toggleBackText} variant="bare" />}
         actionSlot={
           !pageState.showBackText || blocked ? (
-            <StudySaveControls
-              pending={pageState.swipePending}
-              failed={pageState.saveFailed}
-              onSkip={skip}
-              onRetry={retrySave}
-            />
+            <StudySaveControls pending={pageState.swipePending} onSkip={skip} />
           ) : undefined
         }
         controller={{

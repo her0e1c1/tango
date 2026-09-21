@@ -10,7 +10,6 @@ export function useAutoPlay(sessionState: StudySessionState): void {
   const {
     owner,
     isSaving,
-    pendingOperation,
     pageState: { autoPlay, helpOpen },
   } = useStore(studySessionPageStore);
   const {
@@ -22,7 +21,6 @@ export function useAutoPlay(sessionState: StudySessionState): void {
     autoPlay &&
     !helpOpen &&
     !isSaving &&
-    pendingOperation === undefined &&
     cardInterval > 0 &&
     owner?.deckId === sessionState.session.deckId &&
     canMoveStudySession(sessionState.session)

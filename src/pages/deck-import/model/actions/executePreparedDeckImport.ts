@@ -1,11 +1,11 @@
 import { getAuthUid } from "@/entities/auth";
 import { ImportFailure } from "../../lib/importFailure";
 import { mutateCards, type CardMutation } from "@/entities/card";
-import { createDeck, type LocalDeckCreateInput, type RemoteDeckCreateInput } from "@/entities/deck";
+import { createDeck, type RemoteDeckCreateInput } from "@/entities/deck";
 
 export interface PreparedDeckImport {
   uid: string;
-  destination: RemoteDeckCreateInput | LocalDeckCreateInput;
+  destination: RemoteDeckCreateInput;
   mutations: CardMutation[];
 }
 

@@ -1,7 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createLocalDeck } from "@/test/factories";
 import { useDecks } from "../model/queries/useDecks";
 import { deckStore } from "../model/store";
 
@@ -48,16 +47,14 @@ const getSnapshotHandler = () =>
 // Returns the error callback registered by the Deck subscription.
 const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
-describe("Deck Firestore subscription [CARD-10]", () => {
+describe("Deck Firestore subscription [CARD-LIST-ACTIONS-03]", () => {
   beforeEach(() => {
-    deckStore.setState({ remoteDecks: [], localDecks: [] });
+    deckStore.setState({ remoteDecks: [] });
     vi.clearAllMocks();
     mocks.onSnapshot.mockReturnValue(vi.fn());
   });
 
   it("replaces the store with active Decks", () => {
-    const localDeck = createLocalDeck({ id: "local", name: "Local Deck" });
-    deckStore.setState({ localDecks: [localDeck] });
     const { result } = renderHook(useDecks);
     subscribeDecks("uid-a", vi.fn());
 
@@ -67,10 +64,7 @@ describe("Deck Firestore subscription [CARD-10]", () => {
       })
     );
 
-    expect(result.current).toEqual([
-      expect.objectContaining({ id: "active", url: "https://example.com", localMode: false }),
-      localDeck,
-    ]);
+    expect(result.current).toEqual([expect.objectContaining({ id: "active", url: "https://example.com" })]);
   });
 
   it("reports invalid Firestore documents", () => {

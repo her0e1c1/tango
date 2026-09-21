@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import { cleanup, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
@@ -26,7 +27,7 @@ const cases = [
   { id: "plan#draft", name: "Hash Deck", frontText: "Hash Card", path: "/deck/plan%23draft" },
 ];
 
-describe("DECK-01 Deck navigation through App, router, and local Entities", () => {
+describe("DECK-NAVIGATION-01 Deck navigation through App, router, and local Entities", () => {
   beforeEach(async () => {
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
     updatePreferences(createPreferences({ loadSample: false }));

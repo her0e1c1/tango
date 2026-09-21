@@ -93,7 +93,7 @@ const installApplicationCacheForOfflineReload = async (page: Page, baseURL: stri
   return async () => context.unroute(workerUrl, serveWorker);
 };
 
-test("PERSIST-01 keeps remote Decks and Cards isolated by UID across reloads", async ({
+test("PERSISTENCE-01 keeps remote Decks and Cards isolated by UID across reloads", async ({
   baseURL,
   browser,
   fixture,
@@ -141,7 +141,7 @@ test("PERSIST-01 keeps remote Decks and Cards isolated by UID across reloads", a
   await contextB.close();
 });
 
-test("PERSIST-02 syncs an offline cached Card edit after reconnecting", async ({
+test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", async ({
   baseURL,
   browser,
   browserErrors,
@@ -223,7 +223,7 @@ test("PERSIST-02 syncs an offline cached Card edit after reconnecting", async ({
   await verificationContext.close();
 });
 
-test("PERSIST-04 keeps guest edits local and rejects every cloud write", async ({ fixture, page, namespace }) => {
+test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   const { uid } = fixture.user();
@@ -233,8 +233,6 @@ test("PERSIST-04 keeps guest edits local and rejects every cloud write", async (
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  await expect(page.getByRole("radio", { name: "Local only", exact: true })).toBeChecked();
-  await expect(page.getByRole("radio", { name: "Cloud", exact: true })).toBeDisabled();
   await page.getByRole("textbox", { name: "Name" }).fill(updatedName);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -248,7 +246,7 @@ test("PERSIST-04 keeps guest edits local and rejects every cloud write", async (
   await page.reload();
   await expect(page.getByRole("button", { name: `View ${updatedFrontText}` })).toBeVisible();
   const stored = await readLocalData(page);
-  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id, name: updatedName, localMode: true }));
+  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id, name: updatedName }));
   expect(stored.cards).toContainEqual(expect.objectContaining({ id: card.id, frontText: updatedFrontText }));
   expect(await getDocument("deck", deck.id)).toBeUndefined();
   expect(await getDocument("card", card.id)).toBeUndefined();

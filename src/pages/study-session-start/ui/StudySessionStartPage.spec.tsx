@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
@@ -55,7 +56,7 @@ const StudySessionDestination = () => {
   );
 };
 
-describe("SWIPE-06 SWIPE-07 SWIPE-26 StudySessionStartPage", () => {
+describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPage", () => {
   const deckId = "deck-id";
   const cardId = "card-id";
   const renderPage = (path = `/deck/${deckId}/start`) =>
@@ -87,14 +88,14 @@ describe("SWIPE-06 SWIPE-07 SWIPE-26 StudySessionStartPage", () => {
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
-  it("starts from Enter only outside interactive controls", () => {
+  it("starts from Enter only outside interactive controls", async () => {
     renderPage();
 
     fireEvent.keyDown(screen.getByRole("combobox", { name: "Maximum difficulty" }), { key: "Enter" });
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
     fireEvent.keyDown(document.body, { key: "Enter" });
-    expect(screen.getByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
 
@@ -147,7 +148,7 @@ describe("SWIPE-06 SWIPE-07 SWIPE-26 StudySessionStartPage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Start 1 card" }));
 
-    expect(screen.getByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
 

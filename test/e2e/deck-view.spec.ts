@@ -58,7 +58,10 @@ const touchGesture = async (page: Page, surface: Locator, direction?: "left" | "
   await session.detach();
 };
 
-test("DECK-13 browses remote Cards without changing learning data or preferences", async ({ fixture, page }) => {
+test("DECK-NAVIGATION-03 browses remote Cards without changing learning data or preferences", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const first = fixture.card("card-1");
   const second = fixture.card("card-2");
@@ -127,7 +130,10 @@ test("DECK-13 browses remote Cards without changing learning data or preferences
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-14 resets local-only viewing position on reload and reentry without saving", async ({ fixture, page }) => {
+test("DECK-NAVIGATION-04 resets local-only viewing position on reload and reentry without saving", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const first = fixture.card("card-1");
   const second = fixture.card("card-2");
@@ -160,7 +166,7 @@ test("DECK-14 resets local-only viewing position on reload and reentry without s
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-15 views all difficulty and tag matches in standard order without the study limit", async ({
+test("DECK-NAVIGATION-05 views all difficulty and tag matches in standard order without the study limit", async ({
   fixture,
   page,
 }) => {
@@ -199,11 +205,15 @@ test("DECK-15 views all difficulty and tag matches in standard order without the
     await page.getByText("Filters", { exact: true }).click();
     await page.getByRole("combobox", { name: "Minimum difficulty" }).selectOption(String(queuedMatch.difficulty));
     await writeArrived.promise;
-    // These selections remain queued behind the first save, beyond Firestore's optimistic Deck snapshot.
+    // Local filter changes are usable while cloud acknowledgement is held.
     await page.getByRole("checkbox", { name: queuedTag, exact: true }).locator("xpath=parent::label").click();
     await page.getByRole("checkbox", { name: previousTag, exact: true }).locator("xpath=parent::label").click();
     await expect(page.getByRole("checkbox", { name: queuedTag, exact: true })).toBeChecked();
     await expect(page.getByRole("checkbox", { name: previousTag, exact: true })).not.toBeChecked();
+    await expect
+      .poll(async () => (await readLocalData(page)).decks.find((value) => value.id === deck.id)?.selectedTags)
+      .toEqual([queuedTag]);
+    const beforeQueuedView = await readSavedData(page, fixture);
     await page.getByRole("button", { name: "tango", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     await openView(page, deck.name);
@@ -211,7 +221,7 @@ test("DECK-15 views all difficulty and tag matches in standard order without the
     await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
     await page.getByRole("button", { name: "Next card", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
-    expect(await readSavedData(page, fixture)).toEqual(before);
+    expect(await readSavedData(page, fixture)).toEqual(beforeQueuedView);
 
     releaseWrite.resolve();
     await expect
@@ -222,7 +232,7 @@ test("DECK-15 views all difficulty and tag matches in standard order without the
     );
     const afterFilterSave = await readSavedData(page, fixture);
     expect(afterFilterSave.cards).toEqual(before.cards);
-    expect(afterFilterSave.local).toEqual(before.local);
+    expect(afterFilterSave.local).toEqual(beforeQueuedView.local);
     expect(afterFilterSave.preferences).toEqual(before.preferences);
   } finally {
     releaseWrite.resolve();
@@ -230,7 +240,7 @@ test("DECK-15 views all difficulty and tag matches in standard order without the
   }
 });
 
-test("DECK-16 applies review scheduling to read-only viewing", async ({ fixture, page }) => {
+test("DECK-NAVIGATION-06 applies review scheduling to read-only viewing", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const due = fixture.card("card-due");
   const unscheduled = fixture.card("card-unscheduled");
@@ -248,7 +258,11 @@ test("DECK-16 applies review scheduling to read-only viewing", async ({ fixture,
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-17 recovers from empty and missing Deck views without saving", async ({ fixture, page, namespace }) => {
+test("DECK-NAVIGATION-07 recovers from empty and missing Deck views without saving", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.goto("/");
@@ -267,7 +281,7 @@ test("DECK-17 recovers from empty and missing Deck views without saving", async 
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-18 scrolls one long answer with touch and exits at either horizontal boundary", async ({
+test("DECK-NAVIGATION-08 scrolls one long answer with touch and exits at either horizontal boundary", async ({
   fixture,
   page,
 }) => {
@@ -303,7 +317,10 @@ test("DECK-18 scrolls one long answer with touch and exits at either horizontal 
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-19 shares display preferences with Study and explains viewing actions", async ({ fixture, page }) => {
+test("DECK-NAVIGATION-09 shares display preferences with Study and explains viewing actions", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.goto("/");
@@ -355,13 +372,16 @@ test("DECK-19 shares display preferences with Study and explains viewing actions
   }
 });
 
-test("DECK-20 starts viewing stopped and autoplays without persisting learning data", async ({ fixture, page }) => {
+test("DECK-NAVIGATION-10 starts viewing stopped and autoplays without persisting learning data", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   await fixture.apply(page, { preferences: { study: { defaultAutoPlay: true, cardInterval: 1 } } });
   await page.goto("/");
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
   const before = await readSavedData(page, fixture);
-  await page.clock.install();
+  await page.clock.install({ time: new Date() });
   await openView(page, deck.name);
   await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
   await page.clock.runFor(2000);
@@ -387,7 +407,10 @@ test("DECK-20 starts viewing stopped and autoplays without persisting learning d
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-21 browses forward and backward with the progress slider without saving", async ({ fixture, page }) => {
+test("DECK-NAVIGATION-11 browses forward and backward with the progress slider without saving", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.goto("/");

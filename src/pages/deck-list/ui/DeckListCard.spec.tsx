@@ -38,7 +38,7 @@ const deck = createDeck({
   category: "math",
 });
 
-describe("DeckListCard [SWIPE-08]", () => {
+describe("DeckListCard [STUDY-SESSION-03]", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-18T00:10:00Z"));
@@ -59,12 +59,13 @@ describe("DeckListCard [SWIPE-08]", () => {
           cardOrderIds: ["card-1", "card-2", "card-3"],
           currentIndex: 1,
           lastStudiedAt: new Date("2026-07-18T00:05:00Z").getTime(),
+          remote: { uid: "uid", startedAt: 0 },
         }}
       />
     );
 
     expect(screen.getByText("math")).toBeInTheDocument();
-    expect(screen.getByLabelText("Remote deck")).toBeInTheDocument();
+
     const viewButton = screen.getByRole("button", { name: "View Deck name" });
     const progressbar = screen.getByRole("progressbar", { name: "Progress for Deck name" });
     expect(viewButton).toHaveAccessibleDescription("math2 / 3 · 5m ago");
@@ -90,6 +91,7 @@ describe("DeckListCard [SWIPE-08]", () => {
           cardOrderIds: ["first", "second"],
           currentIndex: 1,
           lastStudiedAt: 0,
+          remote: { uid: "uid", startedAt: 0 },
         }}
       />
     );
@@ -128,6 +130,7 @@ describe("DeckListCard [SWIPE-08]", () => {
           cardOrderIds: ["card-1", "card-2", "card-3"],
           currentIndex: 0,
           lastStudiedAt: Date.now(),
+          remote: { uid: "uid", startedAt: 0 },
         }}
         {...actions}
       />

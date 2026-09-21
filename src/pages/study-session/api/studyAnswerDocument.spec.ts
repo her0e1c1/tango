@@ -15,7 +15,7 @@ const document = {
   updatedAt: Timestamp.fromMillis(2000),
 };
 
-describe("StudyAnswer document contract [SWIPE-02] [SWIPE-03] [SWIPE-12]", () => {
+describe("StudyAnswer document contract [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-05]", () => {
   it.each(["again", "hard", "good", "easy"])(
     "preserves the accepted %s rating and separate domain and persistence timestamps",
     (rating) => {

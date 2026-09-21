@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import type { Card } from "@/entities/card";
 import type { Preferences } from "@/entities/preference";
 
@@ -61,7 +62,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardEditPage } from "./CardEditPage";
 
-describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
+describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 CARD-MANAGEMENT-10 CardEditPage", () => {
   const deckId = "card-edit-deck";
   const cardId = "card-id";
   const renderPage = (path = `/card/${cardId}/edit`) => {
@@ -93,8 +94,8 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
     mocks.skipCardWrite = false;
     mocks.beforeValidation = undefined;
     mocks.remoteCard = undefined;
-    await createDeck("", createLocalDeck({ id: deckId }));
-    await mutateCards("", [
+    await createDeck("user-id", createLocalDeck({ id: deckId }));
+    await mutateCards("user-id", [
       {
         kind: "create",
         card: createLocalCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" }),
@@ -116,7 +117,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
     await actAsync(async () => {
-      await mutateCards("", [
+      await mutateCards("user-id", [
         {
           kind: "create",
           card: createLocalCard({ id: delayedCardId, deckId, frontText: "Delayed front", backText: "Delayed back" }),
@@ -281,7 +282,7 @@ describe("CARD-03 CARD-09 CARD-12 CARD-17 CARD-21 CardEditPage", () => {
   );
 
   it("initializes a different Card and ignores navigation from the previous Card's save", async () => {
-    await mutateCards("", [
+    await mutateCards("user-id", [
       {
         kind: "create",
         card: createLocalCard({ id: "other-card", deckId, frontText: "Other front", backText: "Other back" }),

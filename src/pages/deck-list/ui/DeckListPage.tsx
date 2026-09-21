@@ -27,7 +27,9 @@ export const DeckListPage: React.FC = () => {
           onClickEdit: model.editDeck,
           onClickName: model.openDeck,
           onClickView: model.viewDeck,
-          onClickContinue: model.continueStudy,
+          onClickContinue: (id) => {
+            void model.continueStudy(id);
+          },
           onClickRestart: model.startStudy,
           onClickStudy: model.startStudy,
           onClickDownload: model.downloadDeck,

@@ -7,7 +7,7 @@
 
 - `auth.users` は mock する認証 identity を表す。
 - `remote` は Firestore emulator に保存する Deck / Card を表す。
-- `browser` は localStorage に保存する preference、local-only data、Study session を表す。
+- `browser` は localStorage の preference と、Firestore 永続 cache に準備する匿名データ・Study session を表す。旧 fixture の `localDecks` / `localCards` は匿名 cache の入力名であり、独自 CRUD の保存先ではない。
 - fixture YAML にはアプリケーション上の永続状態を記述し、Firestore 固有の serialization は記述しない。
 - 認証失敗、network failure、dialog の表示状態など永続状態ではない前提は fixture に含めず、各ケースの `Given` に記述する。
 - YAML alias は使用しない。

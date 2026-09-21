@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import type { Preferences } from "@/entities/preference";
 
 import { render, screen } from "@testing-library/react";
@@ -23,7 +24,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardViewPage } from "./CardViewPage";
 
-describe("CARD-11 CARD-12 CardViewPage", () => {
+describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
   const deckId = "card-view-deck";
   const cardId = "card-id";
   const renderPage = (path = `/card/${cardId}`) =>
@@ -40,8 +41,8 @@ describe("CARD-11 CARD-12 CardViewPage", () => {
   beforeEach(async () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
-    await createDeck("", createLocalDeck({ id: deckId, category: "raw" }));
-    await mutateCards("", [
+    await createDeck("user-id", createLocalDeck({ id: deckId, category: "raw" }));
+    await mutateCards("user-id", [
       {
         kind: "create",
         card: createLocalCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" }),
@@ -57,7 +58,7 @@ describe("CARD-11 CARD-12 CardViewPage", () => {
   });
 
   it("updates the answer when the route selects another card without remounting", async () => {
-    await mutateCards("", [
+    await mutateCards("user-id", [
       {
         kind: "create",
         card: createLocalCard({ id: "second-card", deckId, backText: "Second answer" }),

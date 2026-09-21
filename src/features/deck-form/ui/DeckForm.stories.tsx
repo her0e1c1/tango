@@ -11,9 +11,7 @@ import { Button } from "@/shared/ui/button";
 import { DeckForm, type DeckFormFields } from "./DeckForm";
 
 interface DeckFormStoryProps {
-  cloudStorageAvailable: boolean;
   deck: Deck;
-  isLocalModeLocked: boolean;
   isSaving: boolean;
   mode: "create" | "edit";
   validationError: boolean;
@@ -36,26 +34,16 @@ const DangerZone = ({ onDelete }: { onDelete: () => void }) => (
   </section>
 );
 
-const DeckFormStory = ({
-  cloudStorageAvailable,
-  deck,
-  isLocalModeLocked,
-  isSaving,
-  mode,
-  validationError,
-  onCancel,
-  onDelete,
-}: DeckFormStoryProps) => {
+const DeckFormStory = ({ deck, isSaving, mode, validationError, onCancel, onDelete }: DeckFormStoryProps) => {
   const form = useForm<DeckFormFields>({
     defaultValues:
       mode === "create"
-        ? { name: "", category: "", url: undefined, convertToBr: false, localMode: false }
+        ? { name: "", category: "", url: undefined, convertToBr: false }
         : {
             name: deck.name,
             category: deck.category,
             url: deck.url ?? undefined,
             convertToBr: deck.convertToBr,
-            localMode: deck.localMode,
           },
   });
 
@@ -68,7 +56,6 @@ const DeckFormStory = ({
   }, [form, isSaving, validationError]);
 
   const commonProps = {
-    cloudStorageAvailable,
     categories: CATEGORY,
     form,
     onCancel,
@@ -76,7 +63,7 @@ const DeckFormStory = ({
   };
 
   if (mode === "create") {
-    return <DeckForm {...commonProps} mode="create" isLocalModeLocked={isLocalModeLocked} />;
+    return <DeckForm {...commonProps} mode="create" />;
   }
 
   return (
@@ -85,7 +72,6 @@ const DeckFormStory = ({
       mode="edit"
       deckInfo={{ id: deck.id, createdAt: deck.createdAt, updatedAt: deck.updatedAt }}
       deckName={deck.name}
-      isLocalOnly={deck.localMode}
       afterForm={<DangerZone onDelete={onDelete} />}
     />
   );
@@ -103,9 +89,7 @@ const meta = {
   decorators: [withPageLayout],
   parameters: { layout: "fullscreen" },
   args: {
-    cloudStorageAvailable: true,
     deck: fixture.deck.default,
-    isLocalModeLocked: false,
     isSaving: false,
     mode: "create",
     validationError: false,
@@ -118,28 +102,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Create: Story = {};
-export const GuestCreate: Story = {
-  args: { cloudStorageAvailable: false },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("radio", { name: "Local only" })).toBeChecked();
-    await expect(canvas.getByRole("radio", { name: "Cloud" })).toBeDisabled();
-    await expect(canvas.getByText(/Sign in to save to the cloud/)).toBeVisible();
-  },
-};
-export const GuestLocalDeck: Story = {
-  args: { mode: "edit", cloudStorageAvailable: false, deck: { ...fixture.deck.default, localMode: true } },
-};
-export const Edit: Story = {
-  args: { mode: "edit" },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("radio", { name: "Cloud" })).toBeChecked();
-    await expect(canvas.getByRole("radio", { name: "Cloud" })).toBeDisabled();
-    await expect(canvas.getByRole("radio", { name: "Local only" })).toBeDisabled();
-  },
-};
-export const LocalDeck: Story = {
-  args: { mode: "edit", deck: { ...fixture.deck.default, localMode: true } },
-};
+export const Edit: Story = { args: { mode: "edit" } };
 export const ValidationError: Story = {
   args: { validationError: true },
   play: async ({ canvas }) => {
@@ -149,7 +112,6 @@ export const ValidationError: Story = {
 };
 export const Creating: Story = { args: { isSaving: true } };
 export const Saving: Story = { args: { mode: "edit", isSaving: true } };
-export const LocalModeLocked: Story = { args: { isLocalModeLocked: true } };
 export const LongContent: Story = { args: { mode: "edit", deck: longDeck } };
 export const Interaction: Story = {
   play: async ({ canvas, userEvent }) => {
@@ -170,12 +132,6 @@ export const Interaction: Story = {
     await userEvent.click(convertLineBreaks);
     await expect(convertLineBreaks).toBeChecked();
 
-    const localOnly = canvas.getByRole("radio", { name: "Local only" });
-    await userEvent.click(localOnly);
-    await expect(localOnly).toBeChecked();
-    await userEvent.click(canvas.getByRole("radio", { name: "Cloud" }));
-    await expect(localOnly).not.toBeChecked();
-    await expect(canvas.getByRole("radio", { name: "Cloud" })).toBeChecked();
     await userEvent.click(canvas.getByText("More settings"));
     await expect(sourceUrl).not.toBeVisible();
     await userEvent.click(canvas.getByText("More settings"));
@@ -186,11 +142,6 @@ export const Interaction: Story = {
 export const Mobile: Story = {
   args: { mode: "edit", deck: longDeck },
   globals: { viewport: { value: "iphonex", isRotated: false } },
-  play: async ({ canvas }) => {
-    const storageSection = canvas.getByRole("group", { name: "Storage" });
-
-    await expect(storageSection.scrollWidth).toBeLessThanOrEqual(storageSection.clientWidth);
-  },
 };
 export const Dark: Story = { args: { mode: "edit", deck: longDeck }, globals: { theme: "dark" } };
 

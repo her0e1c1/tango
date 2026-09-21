@@ -21,8 +21,6 @@ import { updateStudyIndex } from "./actions/updateStudyIndex";
 import { useAutoPlay } from "./actions/useAutoPlay";
 import { useStudyQuery } from "./queries/useStudyQuery";
 import { useStudySessionPageState } from "./queries/useStudySessionPageState";
-import { restoreStudyOperation } from "./actions/restoreStudyOperation";
-import { retryStudyOperation } from "./actions/retryStudyOperation";
 import { skipCard } from "./actions/skipCard";
 
 export function useStudySessionPageModel(deckId: DeckId) {
@@ -31,7 +29,6 @@ export function useStudySessionPageModel(deckId: DeckId) {
   const query = useStudyQuery(deckId);
   const pageState = useStudySessionPageState(uid, deckId);
   useEffect(() => enterStudySessionPage(uid, deckId), [uid, deckId]);
-  useEffect(() => restoreStudyOperation(uid, deckId, query.sessionId), [uid, deckId, query.sessionId]);
   useEffect(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
   useAutoPlay(query.sessionState);
   useStudyShortcuts({
@@ -58,9 +55,8 @@ export function useStudySessionPageModel(deckId: DeckId) {
     toggleAutoPlay,
     openHelp,
     closeHelp,
-    changeIndex: (index: number) => updateStudyIndex(deckId, index),
+    changeIndex: (index: number) => void updateStudyIndex(deckId, index),
     skip: () => void skipCard(deckId),
-    retrySave: () => void retryStudyOperation(),
     swipeUp: () => void swipeCard(deckId, "cardSwipeUp"),
     swipeDown: () => void swipeCard(deckId, "cardSwipeDown"),
     swipeLeft: () => void swipeCard(deckId, "cardSwipeLeft"),

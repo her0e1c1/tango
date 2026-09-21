@@ -8,18 +8,18 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](#swipe-06) |
-| SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](#swipe-07) |
-| SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](#swipe-08) |
-| SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](#swipe-09) |
-| SWIPE-10 | write | [最後の Card を完了して completion screen を表示できる](#swipe-10) |
-| SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](#swipe-11) |
-| SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#swipe-17) |
-| SWIPE-26 | batch | [展開した tag filter を保存して学習 session に適用できる](#swipe-26) |
+| STUDY-SESSION-01 | write | [filter と学習上限を反映して session を開始できる](#study-session-01) |
+| STUDY-SESSION-02 | read | [filter に一致する Card がない場合は session を開始できない](#study-session-02) |
+| STUDY-SESSION-03 | write | [学習画面から戻った後に同じ位置から Continue できる](#study-session-03) |
+| STUDY-SESSION-04 | write | [Restart で新しい session を先頭から開始できる](#study-session-04) |
+| STUDY-SESSION-05 | write | [最後の Card を完了して completion screen を表示できる](#study-session-05) |
+| STUDY-SESSION-06 | batch | [複数 Deck の学習 session を独立して維持できる](#study-session-06) |
+| STUDY-SESSION-07 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#study-session-07) |
+| STUDY-SESSION-08 | batch | [展開した tag filter を保存して学習 session に適用できる](#study-session-08) |
 
-<a id="swipe-06"></a>
+<a id="study-session-01"></a>
 
-### SWIPE-06 filter と学習上限を反映して session を開始できる
+### STUDY-SESSION-01 filter と学習上限を反映して session を開始できる
 
 カテゴリ: `write`
 
@@ -43,13 +43,13 @@ Then:
 - session の先頭 Card の front text が表示される。
 - 開始操作は実行時点の認証を使い、別アカウントへの切替後に以前の UID で保存しない。
 - ログイン済みユーザーの remote Deck では、session ID を document ID として Firestore の `studySession` に所有者、Deck、出題順、現在位置、開始時刻を保存する。回答情報は含めない。
-- `createdAt` / `updatedAt` は server timestamp の技術メタ情報であり、開始・終了時刻や最近学習した時刻とは分ける。
+- `createdAt` / `updatedAt` は操作時に固定した client timestamp を保存する。`startedAt` は再開で変更せず、最近学習した時刻は `updatedAt` から復元する。
 - オフライン再読み込み直後や別 Deck の保存待ちでも Start / Restart を許可し、書き込みは Firestore SDK のオフラインキューへ渡す。同期失敗は共通の通知で知らせ、開始操作を禁止しない。
 - browser error が発生しない。
 
-<a id="swipe-07"></a>
+<a id="study-session-02"></a>
 
-### SWIPE-07 filter に一致する Card がない場合は session を開始できない
+### STUDY-SESSION-02 filter に一致する Card がない場合は session を開始できない
 
 カテゴリ: `read`
 
@@ -70,9 +70,9 @@ Then:
 - 対象 Deck の学習 session が作成されない。
 - browser error が発生しない。
 
-<a id="swipe-08"></a>
+<a id="study-session-03"></a>
 
-### SWIPE-08 学習画面から戻った後に同じ位置から Continue できる
+### STUDY-SESSION-03 学習画面から戻った後に同じ位置から Continue できる
 
 カテゴリ: `write`
 
@@ -98,9 +98,9 @@ Then:
 - Deck 一覧へ戻る前に表示されていた Card の front text が表示される。
 - browser error が発生しない。
 
-<a id="swipe-09"></a>
+<a id="study-session-04"></a>
 
-### SWIPE-09 Restart で新しい session を先頭から開始できる
+### STUDY-SESSION-04 Restart で新しい session を先頭から開始できる
 
 カテゴリ: `write`
 
@@ -115,16 +115,16 @@ When:
 
 Then:
 
-- 以前とは異なる新しい学習 session が保存される。
-- この端末で既知の以前の remote session は `endReason: abandoned` と server timestamp の終了時刻を保持する。明示的な session 終了操作や Deck 削除も破棄として扱う。
+- 以前とは異なる新しい学習 session が保存される。新規作成と既知の旧 session の終了は一つの batch で cache に反映し、cache 保存が失敗した場合は旧 session の ID・Card 順序・位置を維持して再試行できる。
+- この端末で既知の以前の remote session は `endReason: abandoned` と 操作時に固定した終了時刻を保持する。明示的な session 終了操作や Deck 削除も破棄として扱う。
 - 複数の remote session がある場合は、読み込み時に最新の作成時刻の session を採用する。複数端末の同時操作・未送信状態との厳密な競合調停と、未取得の旧 session をすべて終了する保証は対象外とする。同時開始の収束は別 Issue #1658 で扱う。
 - 新しい session の位置が先頭になる。
 - 新しい session の先頭 Card の front text が表示される。
 - browser error が発生しない。
 
-<a id="swipe-10"></a>
+<a id="study-session-05"></a>
 
-### SWIPE-10 最後の Card を完了して completion screen を表示できる
+### STUDY-SESSION-05 最後の Card を完了して completion screen を表示できる
 
 カテゴリ: `write`
 
@@ -140,16 +140,16 @@ When:
 Then:
 
 - 最後の Card の学習結果が保存される。
-- 対象 Deck の学習 session がローカルの進行中一覧から削除され、remote document は `endReason: completed` と server timestamp の終了時刻を保持する。
+- 対象 Deck の学習 session がローカルの進行中一覧から削除され、remote document は `endReason: completed` と 操作時に固定した終了時刻を保持する。
 - 進捗更新では終了状態を変更しない。Firestore Rules は認証と所有者を検証し、位置や終了理由の状態遷移は制約しない。
 - Study completion screen に完了 message と学習した Card 数が表示される。
 - Deck 一覧へ automatic redirect せず、Deck 一覧へ戻る action が利用できる。
 - Deck 一覧へ戻った後、対象 Deck に Continue action が表示されない。
 - browser error が発生しない。
 
-<a id="swipe-11"></a>
+<a id="study-session-06"></a>
 
-### SWIPE-11 複数 Deck の学習 session を独立して維持できる
+### STUDY-SESSION-06 複数 Deck の学習 session を独立して維持できる
 
 カテゴリ: `batch`
 
@@ -169,9 +169,9 @@ Then:
 - 各 Deck の Card と session が混在しない。
 - browser error が発生しない。
 
-<a id="swipe-17"></a>
+<a id="study-session-07"></a>
 
-### SWIPE-17 local-only Deck の学習結果と session を reload 後も維持できる
+### STUDY-SESSION-07 local-only Deck の学習結果と session を reload 後も維持できる
 
 カテゴリ: `write`
 
@@ -191,12 +191,12 @@ Then:
 - 現在だった Card の easy 学習結果が browser storage に維持されている。
 - session の位置が次の Card に維持されている。
 - 次の Card の front text が表示され、back text は表示されない。
-- local-only Deck と匿名ユーザーの session は Firestore へ書き込まない。
+- 匿名ユーザーの session と回答は Firestore の永続 cache に保存し、クラウドへ書き込まない。
 - browser error が発生しない。
 
-<a id="swipe-26"></a>
+<a id="study-session-08"></a>
 
-### SWIPE-26 展開した tag filter を保存して学習 session に適用できる
+### STUDY-SESSION-08 展開した tag filter を保存して学習 session に適用できる
 
 カテゴリ: `batch`
 

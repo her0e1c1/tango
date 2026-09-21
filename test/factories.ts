@@ -4,7 +4,7 @@
  * objects.
  */
 
-import type { LocalCard, RemoteCard } from "@/entities/card/testing";
+import type { RemoteCard } from "@/entities/card/testing";
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 import type { LanguagePreference, Preferences } from "@/entities/preference";
 
@@ -17,12 +17,9 @@ type SwipeAction = ControlPreferences["cardSwipeUp"];
  * Builds a complete test deck with predictable defaults and optional field overrides.
  * Tests can describe only the deck fields relevant to their scenario.
  */
-export const createDeck = (
-  overrides: Partial<Extract<Deck, { localMode: false }>> = {}
-): Extract<Deck, { localMode: false }> => ({
+export const createDeck = (overrides: Partial<Deck> = {}): Deck => ({
   id: "deck-id",
   uid: "user-id",
-  localMode: false,
   name: "Deck",
   isPublic: false,
   createdAt: 0,
@@ -40,15 +37,12 @@ export const createDeck = (
 export const createRemoteDeckInput = (overrides: Partial<RemoteDeckCreateInput> = {}): RemoteDeckCreateInput => ({
   id: "deck-id",
   name: "Deck",
-  localMode: false,
   ...overrides,
 });
 
-export const createLocalDeck = (
-  overrides: Partial<Extract<Deck, { localMode: true }>> = {}
-): Extract<Deck, { localMode: true }> => ({
+export const createLocalDeck = (overrides: Partial<Deck> = {}): Deck => ({
   id: "local-deck-id",
-  localMode: true,
+  uid: "user-id",
   name: "Local Deck",
   isPublic: false,
   createdAt: 0,
@@ -82,8 +76,9 @@ export const createCard = (overrides: Partial<RemoteCard> = {}): RemoteCard => (
   ...overrides,
 });
 
-export const createLocalCard = (overrides: Partial<LocalCard> = {}): LocalCard => ({
+export const createLocalCard = (overrides: Partial<RemoteCard> = {}): RemoteCard => ({
   id: "local-card-id",
+  uid: "user-id",
   deckId: "local-deck-id",
   frontText: "front",
   backText: "back",

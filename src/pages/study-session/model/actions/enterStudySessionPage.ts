@@ -7,7 +7,6 @@ export function enterStudySessionPage(uid: string, deckId: DeckId): () => void {
   const owner = { uid, deckId };
   studySessionPageStore.setState({
     owner,
-    pendingOperation: undefined,
     pageState: {
       ...studySessionPageStore.getInitialState().pageState,
       autoPlay: getPreferences().study.defaultAutoPlay,

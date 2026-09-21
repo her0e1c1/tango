@@ -171,7 +171,5 @@ export const canMoveStudySession = (session: StudySession): boolean =>
 
 // Server creation time orders runs across devices without confusing it with domain or recent-study time.
 export function compareStudySessionCreation(left: StudySession, right: StudySession): number {
-  return (
-    (left.remote?.createdAt ?? 0) - (right.remote?.createdAt ?? 0) || left.sessionId.localeCompare(right.sessionId)
-  );
+  return (left.remote.createdAt ?? 0) - (right.remote.createdAt ?? 0) || left.sessionId.localeCompare(right.sessionId);
 }

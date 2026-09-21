@@ -288,7 +288,6 @@ export interface StudySessionFixture {
   cardOrderIds: string[];
   currentIndex: number;
   lastStudiedAt: number;
-  remote?: { uid: string; startedAt: number; createdAt: number };
 }
 
 interface LocalDataFixture {
@@ -298,23 +297,17 @@ interface LocalDataFixture {
 }
 
 const seedLocalData = async (page: Page, fixture: LocalDataFixture) => {
-  await page.addInitScript((value) => {
-    // Keep the fixture stable for initial hydration without resurrecting data after navigation or reload.
-    if (!window.location.origin.startsWith("http")) return;
-    if (window.sessionStorage.getItem("tango-e2e-local-data-seeded") !== null) return;
-    window.localStorage.setItem(
-      "tango-local-decks",
-      JSON.stringify({ state: { localDecks: value.decks ?? [] }, version: 1 })
-    );
-    window.localStorage.setItem(
-      "tango-local-cards",
-      JSON.stringify({ state: { localCards: value.cards ?? [] }, version: 1 })
-    );
-    window.localStorage.setItem(
-      "tango-study",
-      JSON.stringify({ state: { sessionsByDeckId: value.sessionsByDeckId ?? {} }, version: 4 })
-    );
-    window.sessionStorage.setItem("tango-e2e-local-data-seeded", "true");
+  if (
+    (fixture.decks?.length ?? 0) + (fixture.cards?.length ?? 0) + Object.keys(fixture.sessionsByDeckId ?? {}).length ===
+    0
+  )
+    return;
+  await page.goto("/");
+  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
+  await page.evaluate(async (value) => {
+    const modulePath = "/e2e-fixture.js";
+    const fixtureModule = (await import(/* @vite-ignore */ modulePath)) as typeof import("./browser-fixture");
+    await fixtureModule.seedCache(value);
   }, fixture);
 };
 
@@ -323,24 +316,16 @@ const seedStudySessions = async (
   sessionsByDeckId: Record<string, StudySessionFixture>,
   deckNames: readonly string[] = []
 ) => {
-  // Loading the Deck list first settles Auth and warms Firestore's local cache before a study route consumes both.
-  await page.goto("/");
-  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
-  await Promise.all(deckNames.map((name) => page.getByRole("button", { name: `View ${name}`, exact: true }).waitFor()));
-  await page.evaluate((sessions) => {
-    window.localStorage.setItem("tango-study", JSON.stringify({ state: { sessionsByDeckId: sessions }, version: 4 }));
-  }, sessionsByDeckId);
-  // Initial anonymous bootstrap clears study state at the identity boundary, so hydrate only after auth has settled.
-  await page.reload();
+  await seedLocalData(page, { sessionsByDeckId });
   await Promise.all(deckNames.map((name) => page.getByRole("button", { name: `View ${name}`, exact: true }).waitFor()));
 };
 
 export const readLocalData = async (page: Page) =>
-  page.evaluate(() => ({
-    decks: JSON.parse(window.localStorage.getItem("tango-local-decks") ?? "{}").state?.localDecks ?? [],
-    cards: JSON.parse(window.localStorage.getItem("tango-local-cards") ?? "{}").state?.localCards ?? [],
-    sessionsByDeckId: JSON.parse(window.localStorage.getItem("tango-study") ?? "{}").state?.sessionsByDeckId ?? {},
-  }));
+  page.evaluate(async () => {
+    const modulePath = "/e2e-fixture.js";
+    const fixtureModule = (await import(/* @vite-ignore */ modulePath)) as typeof import("./browser-fixture");
+    return fixtureModule.readCache();
+  });
 
 interface FixtureAuthSeedOptions extends AnonymousAuthOptions {
   /** Logical UID of the anonymous user created after a linked user signs out. */
@@ -356,8 +341,6 @@ interface FixturePageSeedOptions {
   preferences?: E2EConfigOverrides | false;
   localData?: boolean;
   studySessions?: boolean;
-  /** Persist owned cloud sessions when verifying the transactional study workflow. */
-  remoteStudySessions?: boolean;
 }
 
 interface FixtureApplyOptions extends FixturePageSeedOptions {
@@ -454,48 +437,37 @@ const seedFixtureAuth = async (
   });
 };
 
-const fixtureStudySessions = (state: FixtureState): Record<string, StudySessionFixture> =>
-  Object.fromEntries(
-    Object.entries(state.browser.studySessions).map(([deckId, session]) => {
-      const deck = state.remote.decks.find(({ id }) => id === deckId);
-      const owner = state.auth.users.find(({ uid, provider }) => uid === deck?.uid && provider === "google");
-      return [
-        deckId,
-        {
-          ...session,
-          ...(owner === undefined
-            ? {}
-            : { remote: { uid: owner.uid, startedAt: session.lastStudiedAt, createdAt: session.lastStudiedAt } }),
-        },
-      ];
-    })
-  );
-
-const seedFixtureStudySessions = async (page: Page, state: FixtureState, options: FixturePageSeedOptions) => {
-  const studySessions = options.remoteStudySessions ? fixtureStudySessions(state) : state.browser.studySessions;
-  if (options.studySessions === false || Object.keys(studySessions).length === 0) return;
-  await Promise.all(
-    Object.values(studySessions).map(async (session: StudySessionFixture) => {
-      if (session.remote === undefined) return;
-      await setDocument("studySession", session.sessionId, {
-        uid: session.remote.uid,
-        deckId: session.deckId,
-        cardOrderIds: session.cardOrderIds,
-        currentIndex: session.currentIndex,
-        startedAt: new Date(session.remote.startedAt),
-        createdAt: new Date(session.remote.createdAt),
-        updatedAt: new Date(session.lastStudiedAt),
-        endedAt: null,
-        endReason: null,
-      });
-    })
-  );
+const seedFixtureStudySessions = async (page: Page, state: FixtureState, shouldSeed: boolean | undefined) => {
+  const { studySessions } = state.browser;
+  if (shouldSeed === false || Object.keys(studySessions).length === 0) return;
   const sessionDeckIds = new Set(Object.keys(studySessions));
   const deckNames = [...state.remote.decks, ...state.browser.localDecks]
     .filter(({ id }) => sessionDeckIds.has(id))
     .map(({ name }) => name);
-  // Auth initialization clears the previous identity's study state, so sessions must be written after it settles.
-  await seedStudySessions(page, studySessions, deckNames);
+  const cachedSessions: Record<string, StudySessionFixture> = {};
+  for (const [deckId, session] of Object.entries(studySessions)) {
+    const deck = state.remote.decks.find(({ id }) => id === deckId);
+    const owner = state.auth.users.find(({ uid, provider }) => uid === deck?.uid && provider === "google");
+    if (!owner) {
+      cachedSessions[deckId] = session;
+      continue;
+    }
+    // A resumed fixture is pre-existing server state, not a client create at a nonzero position.
+    await setDocument("studySession", session.sessionId, {
+      uid: owner.uid,
+      deckId,
+      cardOrderIds: session.cardOrderIds,
+      currentIndex: session.currentIndex,
+      startedAt: new Date(session.lastStudiedAt),
+      createdAt: new Date(session.lastStudiedAt),
+      updatedAt: new Date(session.lastStudiedAt),
+      endedAt: null,
+      endReason: null,
+    });
+  }
+  await page.goto("/");
+  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
+  await seedStudySessions(page, cachedSessions, deckNames);
 };
 
 function createE2EFixture(
@@ -513,14 +485,14 @@ function createE2EFixture(
   const seedPage = async (page: Page, options: FixturePageSeedOptions = {}) => {
     const selectedUser = requireLogicalValue(namespaced.users, "auth user", options.user);
     await seedFixturePreferences(page, namespaced.state.browser.preferences, options.preferences);
-    await seedFixtureLocalData(page, namespaced.state, options.localData);
     await seedFixtureAuth(page, {
       users: namespaced.users,
       selectedUser,
       options: options.auth,
       namespace,
     });
-    await seedFixtureStudySessions(page, namespaced.state, options);
+    await seedFixtureLocalData(page, namespaced.state, options.localData);
+    await seedFixtureStudySessions(page, namespaced.state, options.studySessions);
   };
 
   const fixture: E2EFixture = {
@@ -563,8 +535,8 @@ export interface FirestoreDocument {
     Record<
       string,
       {
+        mapValue?: { fields?: Record<string, { stringValue?: string }> };
         arrayValue?: { values?: Record<string, unknown>[] };
-        mapValue?: { fields?: FirestoreDocument["fields"] };
         booleanValue?: boolean;
         doubleValue?: number;
         integerValue?: string;

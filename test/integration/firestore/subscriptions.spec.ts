@@ -16,12 +16,13 @@ import { createCard, createDeck as createDeckFixture, createRemoteDeckInput } fr
 
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
+  auth: { currentUser: { uid: "uid" } },
 }));
 
-describe("Query realtime subscriptions [CARD-01] [CARD-10]", () => {
+describe("Query realtime subscriptions [CARD-VIEW-01] [CARD-LIST-ACTIONS-03]", () => {
   beforeEach(() => {
-    cardStore.setState({ remoteCards: [], localCards: [] });
-    deckStore.setState({ remoteDecks: [], localDecks: [] });
+    cardStore.setState({ remoteCards: [] });
+    deckStore.setState({ remoteDecks: [] });
   });
 
   afterAll(async () => {
@@ -40,6 +41,7 @@ describe("Query realtime subscriptions [CARD-01] [CARD-10]", () => {
       numberOfSeen: 3,
     });
     await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
+    deckStore.setState({ remoteDecks: [deck] });
     await mutateCards(uid, [{ kind: "create", card }]);
 
     const onError = vi.fn();

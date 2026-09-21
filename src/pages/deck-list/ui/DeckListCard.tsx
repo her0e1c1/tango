@@ -7,7 +7,7 @@
 import type { TFunction } from "i18next";
 import cx from "classnames";
 import * as React from "react";
-import { AiFillCaretRight, AiOutlineCloud } from "react-icons/ai";
+import { AiFillCaretRight } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 
 import type { Deck, DeckId } from "@/entities/deck";
@@ -148,11 +148,6 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           disabled={pending}
         >
           <span className="truncate text-body font-semibold text-ink">{deck.name}</span>
-          {!deck.localMode ? (
-            <span role="img" aria-label={t("deckList.remote")} className="shrink-0 text-ink-muted">
-              <AiOutlineCloud aria-hidden="true" size={16} />
-            </span>
-          ) : null}
         </button>
 
         <DeckListCardStatus

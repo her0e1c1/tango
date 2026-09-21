@@ -12,19 +12,13 @@ export const studySessionSchema: z.ZodType<StudySession> = z
       .refine((ids) => new Set(ids).size === ids.length),
     currentIndex: z.number().int().nonnegative(),
     lastStudiedAt: z.number().nonnegative(),
-    remote: z
-      .object({
-        uid: z.string().min(1),
-        startedAt: z.number().nonnegative(),
-        createdAt: z.number().nonnegative().optional(),
-      })
-      .optional(),
+    remote: z.object({
+      uid: z.string().min(1),
+      startedAt: z.number().nonnegative(),
+      createdAt: z.number().nonnegative().optional(),
+    }),
   })
   .refine((session) => session.currentIndex < session.cardOrderIds.length, {
     message: "Study session index must point to an active card",
     path: ["currentIndex"],
   });
-
-export const persistedStudySessionStateSchema = z.object({
-  sessionsByDeckId: z.record(z.string(), z.unknown()),
-});

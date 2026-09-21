@@ -51,7 +51,7 @@ const renderPage = () =>
     </MemoryRouter>
   );
 
-describe("DECK-13 DECK-14 DECK-15 DECK-16 DECK-17 DECK-19 DECK-20 DECK-21 DeckViewPage", () => {
+describe("DECK-NAVIGATION-03 DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-06 DECK-NAVIGATION-07 DECK-NAVIGATION-09 DECK-NAVIGATION-10 DECK-NAVIGATION-11 DeckViewPage", () => {
   afterEach(() => vi.useRealTimers());
 
   beforeEach(() => {

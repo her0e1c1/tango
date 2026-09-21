@@ -70,15 +70,18 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
   await page.goto(`/deck/${deck.id}`);
   await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
   const stored = await readLocalData(page);
-  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id, localMode: true }));
+  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id }));
   expect(stored.cards).toContainEqual(expect.objectContaining({ id: card.id, deckId: deck.id }));
   expect(stored.sessionsByDeckId).toHaveProperty(deck.id, session);
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
   for (const collection of ["deck", "card"] as const) {
-    expect((await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === anonymousUid)).toEqual(
-      []
-    );
+    await expect
+      .poll(
+        async () =>
+          (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === anonymousUid).length
+      )
+      .toBeGreaterThan(0);
   }
 });
 
@@ -107,6 +110,11 @@ test("ACCOUNT-03 Sign-out switches to a new anonymous identity boundary", async 
   const originalUid = await accountUid(page);
   expect(originalUid).toBe(uid);
 
+  await page.evaluate(async () => {
+    const modulePath = "/e2e-fixture.js";
+    const fixtureModule = (await import(/* @vite-ignore */ modulePath)) as typeof import("./browser-fixture");
+    await fixtureModule.waitForCacheSync();
+  });
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Signed out." })).toBeVisible();
   await expect(page.getByText("Anonymous account")).toBeVisible();

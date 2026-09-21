@@ -1,3 +1,5 @@
+import { setStudySessionIndex } from "@/entities/study-session/model/actions/setStudySessionIndex";
+import "@/test/mockFirestorePersistence";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
@@ -10,7 +12,8 @@ import { replaceAuthSession } from "@/entities/auth";
 import { createCard, getCards } from "@/entities/card";
 import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { getPreferences, updatePreferences } from "@/entities/preference";
-import { clearStudySessions, getStudySession, setStudySessionIndex, startStudy } from "@/entities/study-session";
+import { clearStudySessions, getStudySession } from "@/entities/study-session";
+import { startStudy } from "@/test/entityFixtures";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -44,7 +47,7 @@ function savedState(deckId: string) {
   });
 }
 
-describe("DECK-14 DECK-15 DECK-19 DECK-20 DECK-21 Deck View through App, routes, local Entities, and persistence", () => {
+describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATION-10 DECK-NAVIGATION-11 Deck View through App, routes, local Entities, and persistence", () => {
   beforeEach(() => {
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
     updatePreferences(createPreferences({ loadSample: false, language: "en" }));
@@ -76,7 +79,7 @@ describe("DECK-14 DECK-15 DECK-19 DECK-20 DECK-21 Deck View through App, routes,
       })
     );
     await seedLocalDeck(deck, cards);
-    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
     setStudySessionIndex(deck.id, 1);
     const before = savedState(deck.id);
     let router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
@@ -191,7 +194,7 @@ describe("DECK-14 DECK-15 DECK-19 DECK-20 DECK-21 Deck View through App, routes,
     const deck = createLocalDeck({ id: "shared-controls", name: "Shared controls" });
     const cards = [createLocalCard({ id: "shared-card", deckId: deck.id, frontText: "Shared prompt" })];
     await seedLocalDeck(deck, cards);
-    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
     const before = savedState(deck.id);
     let router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });
     let view = render(<App router={router} />);
@@ -224,7 +227,7 @@ describe("DECK-14 DECK-15 DECK-19 DECK-20 DECK-21 Deck View through App, routes,
     );
     await seedLocalDeck(deck, cards);
     updatePreferences({ study: { cardInterval: 1, defaultAutoPlay: true } });
-    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
     setStudySessionIndex(deck.id, 1);
     const before = savedState(deck.id);
     vi.useFakeTimers();

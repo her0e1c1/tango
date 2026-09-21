@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import * as React from "react";
 import type { Preferences } from "@/entities/preference";
 
@@ -46,7 +47,7 @@ const createDeckEditRouter = (deckId: string) =>
     { initialEntries: [`/deck/${deckId}/edit`] }
   );
 
-describe("DeckEditPage submission [DECK-02]", () => {
+describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
   const deckId = "deck-edit-submit-deck";
 
   beforeEach(async () => {
@@ -54,7 +55,7 @@ describe("DeckEditPage submission [DECK-02]", () => {
     mocks.beforeDeckWrite = undefined;
     mocks.editCalls = 0;
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
-    await createDeck("", createLocalDeck({ id: deckId, name: "Deck name" }));
+    await createDeck("user-id", createLocalDeck({ id: deckId, name: "Deck name" }));
   });
 
   it("starts one save for same-tick submits while asynchronous validation is pending", async () => {
@@ -104,7 +105,7 @@ describe("DeckEditPage submission [DECK-02]", () => {
   it.each(["deck-edit-submit-deck", "another-deck"])(
     "keeps the new editor submission pending when an earlier visit finishes (%s)",
     async (nextDeckId) => {
-      await createDeck("", createLocalDeck({ id: nextDeckId, name: "Deck name" }));
+      await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Deck name" }));
       let finishOldSave: () => void = () => undefined;
       mocks.beforeDeckWrite = () =>
         new Promise<void>((resolve) => {

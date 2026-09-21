@@ -29,7 +29,6 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
       <DeckForm
         mode="edit"
         categories={model.categories}
-        cloudStorageAvailable={model.cloudStorageAvailable}
         deckInfo={{
           id: deck.id,
           createdAt: deck.createdAt,
@@ -37,7 +36,6 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
         }}
         deckName={deck.name}
         form={model.form}
-        isLocalOnly={deck.localMode}
         onCancel={model.onCancel}
         onSubmit={model.onSubmit}
         afterForm={

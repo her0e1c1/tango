@@ -1,68 +1,128 @@
-import { renderHook } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import "@/test/initializeTestFirestore";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  collection,
+  disableNetwork,
+  doc,
+  enableNetwork,
+  getDocFromCache,
+  getDocsFromCache,
+  waitForPendingWrites,
+  setDoc,
+} from "firebase/firestore";
+import { writeLocally } from "@/shared/firestore-write";
+import { replaceAuthSession } from "@/entities/auth";
+import { createCard, deleteCard, editCard, getCards } from "@/entities/card";
+import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
+import { getStudySession, startStudy } from "@/entities/study-session";
+import { saveStudyOperation } from "@/pages/study-session/api/saveStudyOperation";
+import { recordCardStudyProgress, type StudyRating } from "@/entities/study-progress";
+import type { StudySession } from "@/entities/study-session";
 
-import { deleteCard, editCard, mutateCards, useCards } from "@/entities/card";
-import { createDeck, deleteDeck, editDeck, useDecks } from "@/entities/deck";
-import { clearStudySessions, getStudySession, startStudy } from "@/entities/study-session";
-import { createLocalCard, createLocalDeck } from "@/test/factories";
+function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating, answeredAt: number) {
+  const card = getCards().find(({ id }) => id === session.cardOrderIds[session.currentIndex]);
+  if (!card) throw new Error("Missing card");
+  const { difficulty, numberOfSeen } = recordCardStudyProgress(card, rating, answeredAt);
+  return saveStudyOperation(
+    {
+      id: crypto.randomUUID(),
+      uid,
+      sessionId: session.sessionId,
+      deckId: session.deckId,
+      cardId: card.id,
+      currentIndex: session.currentIndex,
+      cardCount: session.cardOrderIds.length,
+      answeredAt,
+      rating,
+      progress: { difficulty, numberOfSeen },
+    },
+    session
+  );
+}
+import { startFirestoreSubscriptions } from "@/app/firestore-subscriptions";
+import { createCard as cardFixture } from "@/test/factories";
+import { testDb } from "@/test/initializeTestFirestore";
 
-vi.mock("@/shared/firebase", () => ({ db: {} }));
+vi.mock("@/shared/firebase", async () => ({
+  db: (await import("@/test/initializeTestFirestore")).testDb,
+  auth: { currentUser: { uid: "uid" } },
+}));
 
-const studyOptions = { shuffled: false, maxNumberOfCardsToLearn: 0 };
+let stop: () => void = () => undefined;
+let deckId: string;
+beforeEach(async () => {
+  await disableNetwork(testDb);
+  replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: true, displayName: null });
+  const subscription = startFirestoreSubscriptions("uid");
+  stop = subscription.stop;
+  await subscription.ready;
+  deckId = crypto.randomUUID();
+});
+afterEach(async () => {
+  stop();
+  await disableNetwork(testDb);
+  await enableNetwork(testDb);
+  await waitForPendingWrites(testDb);
+  localStorage.clear();
+});
 
-describe("CARD-04 local Entity mutations", () => {
-  afterEach(() => {
-    clearStudySessions();
-    localStorage.clear();
+describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTENCE-04 STUDY-SESSION-05]", () => {
+  it("completes offline writes without active listeners, including unchanged writes", async () => {
+    stop();
+    const reference = doc(testDb, "deck", deckId);
+    await createDeck("uid", { id: deckId, name: "Offline cache" });
+    const value = (await getDocFromCache(reference)).data();
+    if (!value) throw new Error("Expected a cached Deck");
+    await writeLocally("uid", [reference], () => setDoc(reference, value));
+    await writeLocally("uid", [reference], () => setDoc(reference, value));
+    expect((await getDocFromCache(reference)).data()).toEqual(value);
   });
 
-  it("creates, edits, and deletes a Card through its local Deck", async () => {
-    const deck = createLocalDeck({ id: "card-deck" });
-    const card = createLocalCard({ id: "edited-card", deckId: deck.id });
-    await createDeck("", deck);
-    await mutateCards("", [{ kind: "create", card }]);
-
-    await editCard("", { id: card.id, frontText: "Updated" });
-
-    const editedCards = renderHook(() => useCards());
-    expect(editedCards.result.current).toContainEqual(expect.objectContaining({ id: card.id, frontText: "Updated" }));
-    editedCards.unmount();
-
-    await deleteCard("", card.id);
-
-    const remainingCards = renderHook(() => useCards());
-    expect(remainingCards.result.current.find(({ id }) => id === card.id)).toBeUndefined();
-    remainingCards.unmount();
-    await deleteDeck("", deck.id);
+  it("completes offline Card writes and hides every child after deleting its Deck", async () => {
+    await createDeck("uid", { id: deckId, name: "Offline" });
+    await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
+    const first = cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" });
+    const second = cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" });
+    await createCard("uid", first);
+    await createCard("uid", second);
+    await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
+    await editCard("uid", { id: first.id, frontText: "Edited offline" });
+    expect((await getDocFromCache(doc(testDb, "card", first.id))).data()?.frontText).toBe("Edited offline");
+    await deleteCard("uid", first.id);
+    await vi.waitFor(() => expect(getCards().some((card) => card.id === first.id)).toBe(false));
+    await deleteDeck("uid", deckId);
+    await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toEqual([]));
   });
 
-  it("deletes a local Deck with its Cards and study session without affecting other Decks", async () => {
-    const deck = createLocalDeck({ id: "deleted-deck" });
-    const otherDeck = createLocalDeck({ id: "kept-deck" });
-    const card = createLocalCard({ id: "deleted-card", deckId: deck.id });
-    const otherCard = createLocalCard({ id: "kept-card", deckId: otherDeck.id });
-    await createDeck("", deck);
-    await createDeck("", otherDeck);
-    await mutateCards("", [
-      { kind: "create", card },
-      { kind: "create", card: otherCard },
-    ]);
-    startStudy(deck.id, [card], studyOptions);
-    startStudy(otherDeck.id, [otherCard], studyOptions);
-
-    await editDeck("", { id: deck.id, name: "Renamed" });
-    await deleteDeck("", deck.id);
-
-    const decks = renderHook(() => useDecks());
-    const cards = renderHook(() => useCards());
-    expect(decks.result.current.find(({ id }) => id === deck.id)).toBeUndefined();
-    expect(cards.result.current.find(({ id }) => id === card.id)).toBeUndefined();
-    expect(getStudySession(deck.id)).toBeUndefined();
-    expect(decks.result.current).toContainEqual(expect.objectContaining({ id: otherDeck.id }));
-    expect(cards.result.current).toContainEqual(expect.objectContaining({ id: otherCard.id }));
-    expect(getStudySession(otherDeck.id)).toBeDefined();
-    decks.unmount();
-    cards.unmount();
-    await deleteDeck("", otherDeck.id);
+  it("saves one answer, progress and session advancement atomically while offline", async () => {
+    await createDeck("uid", { id: deckId, name: "Study offline" });
+    const cards = [0, 1].map(() => cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid", numberOfSeen: 0 }));
+    await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
+    for (const card of cards) await createCard("uid", card);
+    await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
+    await startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "uid");
+    const session = getStudySession(deckId);
+    if (!session) throw new Error("Missing session");
+    const answeredAt = 1_800_000_000_000;
+    await saveStudyAnswer("uid", session, "good", answeredAt);
+    const answers = await getDocsFromCache(collection(testDb, "studyAnswer"));
+    const answer = answers.docs.find((item) => item.data().sessionId === session.sessionId)?.data();
+    expect(answer).toMatchObject({ cardId: cards[0]?.id, answer: { type: "rating", rating: "good" } });
+    expect(answer?.answeredAt.toMillis()).toBe(answeredAt);
+    expect((await getDocFromCache(doc(testDb, "card", cards[0]?.id ?? "missing"))).data()).toMatchObject({
+      numberOfSeen: 1,
+      lastSeenAt: answeredAt,
+    });
+    await vi.waitFor(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
+    await expect(saveStudyAnswer("uid", session, "good", answeredAt)).rejects.toThrow("session does not match");
+    const final = getStudySession(deckId);
+    if (!final) throw new Error("Missing final position");
+    await saveStudyAnswer("uid", final, "again", answeredAt + 1);
+    await vi.waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
+    expect((await getDocFromCache(doc(testDb, "studySession", session.sessionId))).data()?.endReason).toBe("completed");
+    await enableNetwork(testDb);
+    await waitForPendingWrites(testDb);
+    const synced = await getDocsFromCache(collection(testDb, "studyAnswer"));
+    expect(synced.docs.filter((item) => item.data().sessionId === session.sessionId)).toHaveLength(2);
   });
 });

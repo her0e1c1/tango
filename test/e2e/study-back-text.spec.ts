@@ -21,7 +21,7 @@ const selectBackText = async (page: Page, backText: string) => {
   await page.mouse.up();
 };
 
-test("SWIPE-01 reveals the current Card answer without changing progress", async ({ fixture, page }) => {
+test("STUDY-BACK-TEXT-01 reveals the current Card answer without changing progress", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -37,7 +37,7 @@ test("SWIPE-01 reveals the current Card answer without changing progress", async
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
-test("SWIPE-15 selects answer text without changing the Card state", async ({ fixture, page }) => {
+test("STUDY-BACK-TEXT-02 selects answer text without changing the Card state", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -55,7 +55,10 @@ test("SWIPE-15 selects answer text without changing the Card state", async ({ fi
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
-test("SWIPE-18 returns to the same Card front when answer overlays are disabled", async ({ fixture, page }) => {
+test("STUDY-BACK-TEXT-03 returns to the same Card front when answer overlays are disabled", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -73,7 +76,7 @@ test("SWIPE-18 returns to the same Card front when answer overlays are disabled"
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
-test("SWIPE-19 scrolls a long answer without changing the Card state", async ({ fixture, page }) => {
+test("STUDY-BACK-TEXT-04 scrolls a long answer without changing the Card state", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -97,7 +100,10 @@ test("SWIPE-19 scrolls a long answer without changing the Card state", async ({ 
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
-test("SWIPE-20 runs the mapped left overlay action once and shows the next Card front", async ({ fixture, page }) => {
+test("STUDY-BACK-TEXT-05 runs the mapped left overlay action once and shows the next Card front", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -119,7 +125,10 @@ test("SWIPE-20 runs the mapped left overlay action once and shows the next Card 
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-21 runs the mapped right overlay action once and shows the next Card front", async ({ fixture, page }) => {
+test("STUDY-BACK-TEXT-06 runs the mapped right overlay action once and shows the next Card front", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -141,7 +150,10 @@ test("SWIPE-21 runs the mapped right overlay action once and shows the next Card
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-22 keeps the full answer width beneath overlays on a narrow viewport", async ({ fixture, page }) => {
+test("STUDY-BACK-TEXT-07 keeps the full answer width beneath overlays on a narrow viewport", async ({
+  fixture,
+  page,
+}) => {
   await page.setViewportSize({ width: 320, height: 568 });
   const deck = fixture.deck();
   const session = fixture.session();
@@ -180,7 +192,7 @@ test("SWIPE-22 keeps the full answer width beneath overlays on a narrow viewport
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
-test("SWIPE-23 scrolls a long answer with wheel and touch from edge overlays", async ({ fixture, page }) => {
+test("STUDY-BACK-TEXT-08 scrolls a long answer with wheel and touch from edge overlays", async ({ fixture, page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   const deck = fixture.deck();
   const session = fixture.session();
