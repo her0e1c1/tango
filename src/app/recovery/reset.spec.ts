@@ -130,3 +130,25 @@ describe("NAVIGATION-03 explicit application reset", () => {
     expect(replace).not.toHaveBeenCalled();
   });
 });
+
+describe("NAVIGATION-04 startup without readable reset storage", () => {
+  it.each(["property", "getItem"])("continues startup when the sessionStorage %s throws", async (failure) => {
+    if (failure === "property") {
+      vi.spyOn(globalThis, "sessionStorage", "get").mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+    } else {
+      vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+        throw new DOMException("Storage blocked", "SecurityError");
+      });
+    }
+
+    expect(await resetApplicationIfRequested()).toBe(false);
+    expect(sdk.auth.currentUser?.uid).toBe("previous-user");
+    expect(sdk.clearPersistence).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
+    expect(cacheNames.has(ownedCache)).toBe(true);
+    vi.restoreAllMocks();
+    expect(localStorage.getItem("tango-config")).toBe("saved settings");
+  });
+});

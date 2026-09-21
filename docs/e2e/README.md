@@ -24,6 +24,7 @@
 | NAVIGATION-01 | read | [存在しない route から Deck 一覧へ復帰できる](./navigation.md#navigation-01) |
 | NAVIGATION-02 | read | [画面の keyboard shortcut で主要 route へ遷移できる](./navigation.md#navigation-02) |
 | NAVIGATION-03 | write | [共通エラー画面が現在の言語で表示され Reload で復旧する](./navigation.md#navigation-03) |
+| NAVIGATION-04 | read | [初期化リクエストを読み取れなくても通常起動できる](./navigation.md#navigation-04) |
 
 ### Account
 

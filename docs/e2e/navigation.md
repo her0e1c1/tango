@@ -11,6 +11,7 @@
 | NAVIGATION-01 | read | [存在しない route から Deck 一覧へ復帰できる](#navigation-01) |
 | NAVIGATION-02 | read | [画面の keyboard shortcut で主要 route へ遷移できる](#navigation-02) |
 | NAVIGATION-03 | write | [共通エラー画面が現在の言語で表示され Reload で復旧する](#navigation-03) |
+| NAVIGATION-04 | read | [初期化リクエストを読み取れなくても通常起動できる](#navigation-04) |
 
 <a id="navigation-01"></a>
 
@@ -83,3 +84,25 @@ Then:
 - 承認した場合だけ、次の起動で認証・購読を開始する前に Firestore のキャッシュと未同期書き込みを削除し、ログアウトして設定を既定値に戻す。
 - Tango の Service Worker 登録とその scope の Workbox キャッシュを削除し、トップ画面から新しい匿名状態で起動する。同期済みのクラウドデータと他アプリの保存データは削除しない。
 - 初期化に失敗した場合は再読み込みを繰り返さず、再試行可能なエラー画面を表示する。React の読み込み・初期化前の障害でも再読み込みと初期化の導線を表示する。
+
+<a id="navigation-04"></a>
+
+### NAVIGATION-04 初期化リクエストを読み取れなくても通常起動できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 認証済みユーザーが日本語の Settings 画面を利用している。
+- sessionStorage の初期化リクエストの読み取りで SecurityError が発生する。
+
+When:
+
+- Settings を再読み込みする。
+
+Then:
+
+- 起動失敗画面に留まらず、日本語の Settings を表示する。
+- 保存済みの設定と認証状態を維持し、データの初期化や自動再読み込みを行わない。
+- browser error が発生しない。

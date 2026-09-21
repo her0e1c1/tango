@@ -109,3 +109,32 @@ test("NAVIGATION-03 The outer error boundary keeps the locale and supports reloa
   await expect(page.getByText("Anonymous account", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
 });
+
+test("NAVIGATION-04 Unavailable reset request storage does not prevent ordinary startup", async ({ fixture, page }) => {
+  const { uid } = fixture.user();
+  await fixture.apply(page, { preferences: { language: "ja" }, auth: { nextUid: `${uid}-reset` } });
+  await page.goto("/account");
+  await expect(page.getByText(uid, { exact: true })).toBeVisible();
+  await page.goto("/settings");
+  await expect(page.getByRole("heading", { level: 1, name: "設定", exact: true })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
+  await page.addInitScript(() => {
+    const getItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (key) {
+      if (this === sessionStorage && key === "tango-startup-reset") {
+        throw new DOMException("Storage blocked", "SecurityError");
+      }
+      return getItem.call(this, key);
+    };
+  });
+
+  await page.reload();
+
+  await expect(page.getByRole("heading", { level: 1, name: "設定", exact: true })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
+  await expect(page.getByRole("heading", { name: "Tangoを起動できません" })).toHaveCount(0);
+  await page.goto("/account");
+  await expect(page.getByText(uid, { exact: true })).toBeVisible();
+});

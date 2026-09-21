@@ -16,7 +16,14 @@ export function requestApplicationReset(language?: string): void {
 }
 
 export async function resetApplicationIfRequested(): Promise<boolean> {
-  if (sessionStorage.getItem(RESET_REQUEST_KEY) !== "1") return false;
+  let requested: boolean;
+  try {
+    requested = sessionStorage.getItem(RESET_REQUEST_KEY) === "1";
+  } catch {
+    // Optional recovery storage must not prevent an ordinary application startup.
+    return false;
+  }
+  if (!requested) return false;
   // Consume the request before doing any work: a failed reset must not create an automatic retry loop.
   sessionStorage.removeItem(RESET_REQUEST_KEY);
   const root = document.getElementById("root");
