@@ -14,12 +14,7 @@ export type {
   CardMutation,
   CardRaw,
 } from "./model/types";
-export {
-  countCardsByDeckId,
-  filterCardsByDeckId,
-  getCardContentValidationErrors,
-  mustFindCardById,
-} from "./model/rules";
+export { filterCardsByDeckId, getCardContentValidationErrors, mustFindCardById } from "./model/rules";
 export { BackText } from "./ui/BackText";
 export { CardView } from "./ui/CardView";
 export { FrontText } from "./ui/FrontText";
