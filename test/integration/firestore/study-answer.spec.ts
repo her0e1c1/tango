@@ -65,7 +65,6 @@ const sessionData = () => ({
 function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
   const { difficulty, numberOfSeen } = recordCardStudyProgress(
     { id: overrides.cardId ?? "card-0", difficulty: 5, numberOfSeen: 0 },
-    "rating" in overrides ? overrides.rating : "good",
     overrides.answeredAt ?? 2000
   );
   const rating = "rating" in overrides ? overrides.rating : "good";
@@ -179,7 +178,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
       });
       expect(answer?.createdAt).toEqual(answer?.updatedAt);
       expect((await getDoc(doc(connection.db, "card", input.cardId))).data()).toMatchObject({
-        difficulty: rating === "again" ? 6 : 4,
+        difficulty: 5,
         numberOfSeen: 1,
         lastSeenAt: input.answeredAt,
         schedule: input.schedule,
@@ -202,7 +201,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await saveStudyOperation(input);
     expect((await getDoc(doc(connection.db, "card", "card-0"))).data()).toMatchObject({
       numberOfSeen: 1,
-      difficulty: 4,
+      difficulty: 5,
     });
   });
 
