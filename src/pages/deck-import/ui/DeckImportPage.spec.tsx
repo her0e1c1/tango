@@ -111,8 +111,10 @@ describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06 SETTINGS-09]",
   it("translates cached CSV diagnostics without reading again or changing the selected source", async () => {
     renderPage();
     const file = new File([], "日本語.csv", { type: "text/csv" });
-    Object.defineProperty(file, "text", {
-      value: vi.fn().mockResolvedValue('問題,回答,個人タグ,key-1\n,,,key-2\n"unterminated'),
+    Object.defineProperty(file, "arrayBuffer", {
+      value: vi
+        .fn()
+        .mockResolvedValue(new TextEncoder().encode('問題,回答,個人タグ,key-1\n,,,key-2\n"unterminated').buffer),
     });
     await actAsync(() => selectDeckImportFile(file));
     expect(screen.getByRole("alert")).toHaveTextContent("Front text is required.");
@@ -128,7 +130,29 @@ describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06 SETTINGS-09]",
     expect(screen.getByText("問題", { exact: true })).toBeVisible();
     expect(screen.getByRole("button", { name: "1枚のカードを追加" })).toBeDisabled();
     expect(deckImportStore.getState().source).toBe(source);
-    expect(file.text).toHaveBeenCalledOnce();
+    expect(file.arrayBuffer).toHaveBeenCalledOnce();
+  });
+
+  it("localizes invalid UTF-8 and recovers with a valid file", async () => {
+    renderPage();
+    await selectLocalFile("previous.csv");
+    await userEvent.click(screen.getByRole("button", { name: "Choose file or example" }));
+    fireEvent.change(screen.getByLabelText("Upload a csv file"), {
+      target: { files: [new File([new Uint8Array([0x82, 0xa0, 44, 98, 44, 44, 107])], "invalid.csv")] },
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "This CSV cannot be read as UTF-8. Save it as UTF-8 and select it again."
+    );
+    expect(screen.queryByRole("button", { name: "Add 1 card" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Upload a csv file")).toBeEnabled();
+    await actAsync(() => getI18n().changeLanguage("ja"));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "このCSVはUTF-8として読み取れません。UTF-8で保存し直して、もう一度選択してください。"
+    );
+    await actAsync(() => getI18n().changeLanguage("en"));
+    await selectLocalFile("recovered.csv", "日本語�");
+    await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
+    expect(await screen.findByText("front: 日本語�")).toBeVisible();
   });
 
   it("retains prepared import identities when the preview language changes", async () => {

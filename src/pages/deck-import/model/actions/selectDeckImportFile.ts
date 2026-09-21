@@ -35,7 +35,14 @@ export async function selectDeckImportFile(file: File): Promise<void> {
   // Keep the selection locked until the read finishes, even if the Page unmounts.
   deckImportStore.setState({ status: "validating", source: { kind: "empty" } });
   try {
-    const analysis = await parseCsv(await file.text());
+    const bytes = await file.arrayBuffer();
+    let text: string;
+    try {
+      text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } catch {
+      throw new ImportFailure("encoding");
+    }
+    const analysis = await parseCsv(text);
     // A read may outlive the session that selected it; never prepare it for a different account.
     if (getAuthUid() !== uid) {
       deckImportStore.setState({ status: "idle", source: { kind: "empty" } });

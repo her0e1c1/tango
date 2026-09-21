@@ -532,6 +532,7 @@ export const resources = {
       },
       deckImport: {
         errors: {
+          encoding: "This CSV cannot be read as UTF-8. Save it as UTF-8 and select it again.",
           previewTitle: "Unable to prepare preview",
           previewFailure: "The import preview could not be prepared.",
           retry: "Choose the CSV file or example again to retry.",
@@ -595,6 +596,7 @@ export const resources = {
         },
         format: {
           title: "CSV format",
+          encoding: "Supported encoding: UTF-8.",
           columns: "Four columns without a header: front text, back text, tags (optional), and uniqueKey.",
           uniqueKey: "uniqueKey is required and must be unique within the CSV file.",
           quoting: "Quote cells containing commas or line breaks. Separate multiple tags with commas.",
@@ -1258,6 +1260,7 @@ export const resources = {
       },
       deckImport: {
         errors: {
+          encoding: "このCSVはUTF-8として読み取れません。UTF-8で保存し直して、もう一度選択してください。",
           previewTitle: "プレビューを準備できません",
           previewFailure: "インポートのプレビューを準備できませんでした。",
           retry: "CSVファイルや例をもう一度選んでください。",
@@ -1321,6 +1324,7 @@ export const resources = {
         },
         format: {
           title: "CSVの形式を確認",
+          encoding: "対応する文字コードはUTF-8です。",
           columns: "ヘッダーなしの4列: 表面のテキスト、裏面のテキスト、タグ（任意）、uniqueKey。",
           uniqueKey: "uniqueKeyは必須で、CSVファイル内で一意である必要があります。",
           quoting: "カンマや改行を含むセルはダブルクォートで囲みます。複数のタグはカンマで区切ります。",
