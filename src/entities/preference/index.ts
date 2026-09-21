@@ -12,5 +12,6 @@ export { toggleShowCardDetails } from "./model/actions/toggleShowCardDetails";
 export { toggleShowEditLink } from "./model/actions/toggleShowEditLink";
 export { toggleShowHelp } from "./model/actions/toggleShowHelp";
 export { toggleShowPlaybackControls } from "./model/actions/toggleShowPlaybackControls";
+export { toggleShowSkip } from "./model/actions/toggleShowSkip";
 export { toggleShowSwipeButtonList } from "./model/actions/toggleShowSwipeButtonList";
 export { updatePreferences } from "./model/actions/updatePreferences";

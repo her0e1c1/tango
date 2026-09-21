@@ -15,12 +15,14 @@ const toolbarProps = () => ({
   showCardDetails: true,
   showSwipeControls: true,
   showPlaybackControls: true,
+  showSkipControls: true,
   playbackControlsAvailable: true,
   onBack: vi.fn(),
   onToggleCardDetails: vi.fn(),
   onToggleHelp: vi.fn(),
   onToggleSwipeControls: vi.fn(),
   onTogglePlaybackControls: vi.fn(),
+  onToggleSkipControls: vi.fn(),
   help: {
     open: false,
     rows: [{ control: "cardSwipeUp", action: "GoToNextCard" }] as const,
@@ -199,6 +201,7 @@ describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]
     const onToggleCardDetails = vi.fn();
     const onToggleSwipeControls = vi.fn();
     const onTogglePlaybackControls = vi.fn();
+    const onToggleSkipControls = vi.fn();
     render(
       <CardPlayer
         {...toolbarProps()}
@@ -206,6 +209,7 @@ describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]
         onToggleCardDetails={onToggleCardDetails}
         onToggleSwipeControls={onToggleSwipeControls}
         onTogglePlaybackControls={onTogglePlaybackControls}
+        onToggleSkipControls={onToggleSkipControls}
         cardOverlaySlot={<div>Card metadata</div>}
         frontTextSlot={<div>Front</div>}
       />
@@ -224,6 +228,7 @@ describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]
     const back = screen.getByRole("button", { name: "Back to deck list" });
     const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
     const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
+    const skipToggle = screen.getByRole("button", { name: "Skip control" });
     const detailsToggle = screen.getByRole("button", { name: "Card details" });
     const helpToggle = screen.getByRole("button", { name: "Help button" });
     const actions = screen.getByRole("group", { name: "Card actions" });
@@ -235,9 +240,11 @@ describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]
     expect(helpToggle).toHaveAttribute("title", "Hide help button");
     expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
     expect(playbackToggle).toHaveAttribute("aria-pressed", "true");
+    expect(skipToggle).toHaveAttribute("aria-pressed", "true");
     expect(detailsToggle).toHaveAttribute("aria-pressed", "true");
     expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
     expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
+    expect(skipToggle).toHaveAttribute("title", "Hide skip control");
     expect(detailsToggle).toHaveAttribute("title", "Hide card details");
     expect(actions).not.toContainElement(helpToggle);
     expect(actions).not.toContainElement(back);
@@ -250,11 +257,13 @@ describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]
     fireEvent.click(back);
     fireEvent.click(swipeToggle);
     fireEvent.click(playbackToggle);
+    fireEvent.click(skipToggle);
     fireEvent.click(detailsToggle);
 
     expect(onBack).toHaveBeenCalledOnce();
     expect(onToggleSwipeControls).toHaveBeenCalledOnce();
     expect(onTogglePlaybackControls).toHaveBeenCalledOnce();
+    expect(onToggleSkipControls).toHaveBeenCalledOnce();
     expect(onToggleCardDetails).toHaveBeenCalledOnce();
 
     fireEvent.keyDown(helpToggle, { key: "Escape" });

@@ -22,6 +22,7 @@ export const useStudyQuery = (deckId: string) => {
     showPlaybackControls: preferences.controls.showPlaybackControls,
     showSwipeButtonList: preferences.controls.showSwipeButtonList,
     showBackTextSwipeOverlays: preferences.controls.showBackTextSwipeOverlays,
+    showSkip: preferences.controls.showSkip,
     helpRows: buildCardPlayerHelpRows(preferences),
   };
   const query = { sessionId: session?.sessionId, cards, preferences, sessionState, ...controls };

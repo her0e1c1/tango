@@ -34,6 +34,7 @@ const mocks = vi.hoisted(() => ({
   toggleShowCardDetails: vi.fn(),
   toggleShowHelp: vi.fn(),
   toggleShowPlaybackControls: vi.fn(),
+  toggleShowSkip: vi.fn(),
   toggleShowSwipeButtonList: vi.fn(),
 }));
 
@@ -57,6 +58,7 @@ vi.mock("@/entities/preference", () => ({
   toggleShowCardDetails: mocks.toggleShowCardDetails,
   toggleShowHelp: mocks.toggleShowHelp,
   toggleShowPlaybackControls: mocks.toggleShowPlaybackControls,
+  toggleShowSkip: mocks.toggleShowSkip,
   toggleShowSwipeButtonList: mocks.toggleShowSwipeButtonList,
 }));
 vi.mock("@/entities/study-session", async (importOriginal) => {
@@ -156,6 +158,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
     mocks.toggleShowCardDetails.mockReset();
     mocks.toggleShowHelp.mockReset();
     mocks.toggleShowPlaybackControls.mockReset();
+    mocks.toggleShowSkip.mockReset();
     mocks.toggleShowSwipeButtonList.mockReset();
     await createDeck("user-id", deck);
     await mutateCards("user-id", [
@@ -487,12 +490,25 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
     fireEvent.click(screen.getByRole("button", { name: "Help button" }));
     fireEvent.click(screen.getByRole("button", { name: "Swipe controls" }));
     fireEvent.click(screen.getByRole("button", { name: "Playback controls" }));
+    fireEvent.click(screen.getByRole("button", { name: "Skip control" }));
     fireEvent.click(screen.getByRole("button", { name: "Card details" }));
 
     expect(mocks.toggleShowHelp).toHaveBeenCalledOnce();
     expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
     expect(mocks.toggleShowPlaybackControls).toHaveBeenCalledOnce();
+    expect(mocks.toggleShowSkip).toHaveBeenCalledOnce();
     expect(mocks.toggleShowCardDetails).toHaveBeenCalledOnce();
+  });
+
+  it("shows and hides the skip button from preferences", () => {
+    mocks.preferences = createPreferences({ controls: { showSkip: false } });
+    const { unmount } = renderPage();
+    expect(screen.queryByRole("button", { name: "Skip" })).not.toBeInTheDocument();
+    unmount();
+
+    mocks.preferences = createPreferences({ controls: { showSkip: true } });
+    renderPage();
+    expect(screen.getByRole("button", { name: "Skip" })).toBeVisible();
   });
 
   it.each([

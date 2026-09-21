@@ -8,6 +8,7 @@ type StudyHelpControlId =
   | "autoPlay"
   | "swipeButtons"
   | "playbackControls"
+  | "skipControls"
   | "cardDetails"
   | "exit";
 
@@ -22,6 +23,8 @@ type StudyHelpActionId =
   | "playbackControlsVisible"
   | "playbackControlsHidden"
   | "playbackControlsUnavailable"
+  | "skipControlsVisible"
+  | "skipControlsHidden"
   | "cardDetails"
   | "exit";
 
@@ -34,7 +37,8 @@ const directionOrder: readonly SwipeDirection[] = ["cardSwipeUp", "cardSwipeDown
 
 export const buildCardPlayerHelpRows = (
   preferences: Preferences,
-  mappings: Partial<Record<SwipeDirection, SwipeAction | "previousCard">> = {}
+  mappings: Partial<Record<SwipeDirection, SwipeAction | "previousCard">> = {},
+  includeSkipControl = true
 ): readonly StudyHelpRow[] => {
   const playbackAvailable = preferences.study.cardInterval > 0;
   const rows: StudyHelpRow[] = directionOrder.map((direction) => ({
@@ -59,10 +63,15 @@ export const buildCardPlayerHelpRows = (
           ? "playbackControlsVisible"
           : "playbackControlsHidden"
         : "playbackControlsUnavailable",
-    },
-    { control: "cardDetails", action: "cardDetails" },
-    { control: "exit", action: "exit" }
+    }
   );
+  if (includeSkipControl) {
+    rows.push({
+      control: "skipControls",
+      action: preferences.controls.showSkip ? "skipControlsVisible" : "skipControlsHidden",
+    });
+  }
+  rows.push({ control: "cardDetails", action: "cardDetails" }, { control: "exit", action: "exit" });
 
   return rows;
 };

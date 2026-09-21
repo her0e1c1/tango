@@ -14,6 +14,7 @@ type StudyHelpDialogControl =
   | "autoPlay"
   | "swipeButtons"
   | "playbackControls"
+  | "skipControls"
   | "cardDetails"
   | "exit";
 
@@ -31,6 +32,8 @@ type StudyHelpDialogAction =
   | "playbackControlsVisible"
   | "playbackControlsHidden"
   | "playbackControlsUnavailable"
+  | "skipControlsVisible"
+  | "skipControlsHidden"
   | "cardDetails"
   | "exit";
 
@@ -48,6 +51,7 @@ const controlKeys = {
   autoPlay: "studySession.help.controls.autoPlay",
   swipeButtons: "studySession.help.controls.swipeButtons",
   playbackControls: "studySession.help.controls.playbackControls",
+  skipControls: "studySession.help.controls.skipControls",
   cardDetails: "studySession.help.controls.cardDetails",
   exit: "studySession.help.controls.exit",
 } as const satisfies Record<StudyHelpDialogControl, string>;
@@ -69,6 +73,8 @@ const actionKeys = {
   playbackControlsVisible: "studySession.help.actions.playbackControlsVisible",
   playbackControlsHidden: "studySession.help.actions.playbackControlsHidden",
   playbackControlsUnavailable: "studySession.help.actions.playbackControlsUnavailable",
+  skipControlsVisible: "studySession.help.actions.skipControlsVisible",
+  skipControlsHidden: "studySession.help.actions.skipControlsHidden",
   cardDetails: "studySession.help.actions.cardDetails",
   exit: "studySession.help.actions.exit",
 } as const satisfies Record<StudyHelpDialogAction, string>;

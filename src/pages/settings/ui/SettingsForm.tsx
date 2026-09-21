@@ -40,6 +40,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
     showPlaybackControls: `${idPrefix}-show-playback-controls`,
     showCardDetails: `${idPrefix}-show-card-details`,
     showSwipeFeedback: `${idPrefix}-show-swipe-feedback`,
+    showSkip: `${idPrefix}-show-skip`,
     darkMode: `${idPrefix}-dark-mode`,
     shuffled: `${idPrefix}-shuffle-cards`,
     maxNumberOfCardsToLearn: `${idPrefix}-maximum-cards`,
@@ -143,6 +144,17 @@ export const SettingsForm: React.FC<SettingsFormProps> = (props) => {
               {...props.form.register("appearance.showSwipeFeedback")}
               id={inputIds.showSwipeFeedback}
               aria-describedby={descriptionId(inputIds.showSwipeFeedback)}
+            />
+          </SettingsRow>
+          <SettingsRow
+            inputId={inputIds.showSkip}
+            label={t("settings.appearance.showSkip.label")}
+            description={t("settings.appearance.showSkip.help")}
+          >
+            <Switch
+              {...props.form.register("controls.showSkip")}
+              id={inputIds.showSkip}
+              aria-describedby={descriptionId(inputIds.showSkip)}
             />
           </SettingsRow>
           <SettingsRow

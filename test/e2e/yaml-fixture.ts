@@ -91,6 +91,7 @@ export interface FixturePreferences {
     showCardDetails: boolean;
     showDifficultySlider: boolean;
     showBackTextSwipeOverlays: boolean;
+    showSkip: boolean;
     cardSwipeUp: SwipeAction;
     cardSwipeDown: SwipeAction;
     cardSwipeLeft: SwipeAction;
@@ -281,6 +282,7 @@ const preferencesSchema = z.strictObject({
       showCardDetails: z.boolean().optional(),
       showDifficultySlider: z.boolean().optional(),
       showBackTextSwipeOverlays: z.boolean().optional(),
+      showSkip: z.boolean().optional(),
       cardSwipeUp: swipeActionSchema.optional(),
       cardSwipeDown: swipeActionSchema.optional(),
       cardSwipeLeft: swipeActionSchema.optional(),
@@ -652,6 +654,7 @@ const fixturePreferenceDefaults: FixturePreferences = {
     showCardDetails: true,
     showDifficultySlider: false,
     showBackTextSwipeOverlays: false,
+    showSkip: true,
     cardSwipeUp: "RateEasy",
     cardSwipeDown: "RateHard",
     cardSwipeLeft: "RateAgain",

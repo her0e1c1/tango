@@ -21,6 +21,7 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
     toggleShowHelp,
     toggleShowCardDetails,
     toggleShowPlaybackControls,
+    toggleShowSkip,
     toggleShowSwipeButtonList,
     query,
     pageState,
@@ -75,11 +76,13 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
         onToggleHelp={toggleShowHelp}
         onToggleSwipeControls={toggleShowSwipeButtonList}
         onTogglePlaybackControls={toggleShowPlaybackControls}
+        onToggleSkipControls={toggleShowSkip}
         showBackText={pageState.showBackText}
         showHelp={query.showHelp}
         showCardDetails={query.showCardDetails}
         showSwipeControls={query.showSwipeButtonList}
         showPlaybackControls={query.showPlaybackControls}
+        showSkipControls={query.showSkip}
         playbackControlsAvailable={query.playbackControlsAvailable}
         help={{
           open: pageState.helpOpen,
@@ -111,8 +114,8 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
         }
         backTextSlot={<CardView {...query.card.back} onClick={toggleBackText} variant="bare" />}
         actionSlot={
-          !pageState.showBackText || blocked ? (
-            <StudySaveControls pending={pageState.swipePending} onSkip={skip} />
+          (!pageState.showBackText || blocked) && (pageState.swipePending || query.showSkip) ? (
+            <StudySaveControls pending={pageState.swipePending} showSkip={query.showSkip} onSkip={skip} />
           ) : undefined
         }
         controller={{

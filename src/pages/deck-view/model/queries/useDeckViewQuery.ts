@@ -29,12 +29,16 @@ export function useDeckViewQuery(
     controls: preferences.controls,
     cardInterval: preferences.study.cardInterval,
     playbackAvailable: preferences.study.cardInterval > 0,
-    helpRows: buildCardPlayerHelpRows(preferences, {
-      cardSwipeLeft: "previousCard",
-      cardSwipeRight: "GoToNextCard",
-      cardSwipeUp: "DoNothing",
-      cardSwipeDown: "DoNothing",
-    }),
+    helpRows: buildCardPlayerHelpRows(
+      preferences,
+      {
+        cardSwipeLeft: "previousCard",
+        cardSwipeRight: "GoToNextCard",
+        cardSwipeUp: "DoNothing",
+        cardSwipeDown: "DoNothing",
+      },
+      false
+    ),
     total: cards.length,
     showBackText: card !== undefined && card.id === cardId && showBackText,
     category,
