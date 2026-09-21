@@ -253,6 +253,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
           <details>
             <summary className={summaryClass}>{t("deckImport.format.title")}</summary>
             <div className="space-y-2 rounded-control bg-canvas p-3 text-caption text-ink-muted">
+              <p>{t("deckImport.format.encoding")}</p>
               <p>{t("deckImport.format.columns")}</p>
               <p>{t("deckImport.format.uniqueKey")}</p>
               <p>{t("deckImport.format.quoting")}</p>

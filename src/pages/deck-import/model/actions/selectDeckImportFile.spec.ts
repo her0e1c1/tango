@@ -25,11 +25,34 @@ describe("Deck import selection and saving [IMPORT-01 IMPORT-03 IMPORT-04]", () 
   beforeEach(() => {
     deckImportStore.setState(deckImportStore.getInitialState(), true);
     vi.mocked(getAuthUid).mockReturnValue("uid");
-    vi.mocked(parseCsv).mockResolvedValue({ rows, skippedRows: [], issues: [], invalidCount: 0 });
+    vi.mocked(parseCsv).mockReset().mockResolvedValue({ rows, skippedRows: [], issues: [], invalidCount: 0 });
     vi.mocked(createDeck).mockReset();
     vi.mocked(mutateCards).mockReset();
     vi.mocked(generateDeckId).mockReset().mockReturnValue("deck");
     vi.mocked(generateCardId).mockReset().mockReturnValue("card");
+  });
+
+  it.each([[0x82, 0xa0], [0xc3], [0xc0, 0xaf], [0xed, 0xa0, 0x80]])(
+    "rejects invalid UTF-8 bytes %j before parsing and releases the selection lock",
+    async (...bytes) => {
+      await selectDeckImportFile(file("previous.csv"));
+      vi.mocked(parseCsv).mockClear();
+      const invalid = new File([new Uint8Array([...bytes, 44, 98, 44, 44, 107])], "invalid.csv");
+      await selectDeckImportFile(invalid);
+      expect(parseCsv).not.toHaveBeenCalled();
+      expect(deckImportStore.getState()).toMatchObject({ status: "idle", source: { kind: "error" } });
+      expect(await importDeckPreview()).toBe(false);
+      expect(createDeck).not.toHaveBeenCalled();
+      expect(mutateCards).not.toHaveBeenCalled();
+      await selectDeckImportFile(file("recovered.csv"));
+      expect(await importDeckPreview()).toBe(true);
+    }
+  );
+
+  it("passes valid Japanese and literal replacement characters to the CSV parser unchanged", async () => {
+    const text = "日本語�,回答�,タグ,key";
+    await selectDeckImportFile(new File([text], "valid.csv"));
+    expect(parseCsv).toHaveBeenCalledWith(text);
   });
 
   it("previews a remote CSV before saving its Deck and Cards", async () => {

@@ -128,9 +128,30 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   await fixture.apply(page);
   await page.goto("/import");
   const csvNamespace = namespace.id("local");
-  const file = validCsv(csvNamespace);
+  const file = csvFile(`${csvNamespace}.csv`, [
+    '"日本語�","回答�","タグ","utf8-key"',
+    `"front ${csvNamespace} two","back ${csvNamespace} two","","second-key"`,
+  ]);
+  await page.getByLabel("Upload a csv file").setInputFiles(validCsv(namespace.id("previous")));
+  await expect(page.getByText("2 valid")).toBeVisible();
+  await page.getByRole("button", { name: "Choose file or example" }).click();
+  await page.getByLabel("Upload a csv file").setInputFiles({
+    name: "invalid.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from([0x82, 0xa0, 44, 98, 44, 44, 107]),
+  });
+  await expect(page.getByRole("alert")).toContainText(
+    "This CSV cannot be read as UTF-8. Save it as UTF-8 and select it again."
+  );
+  await expect(page.getByRole("button", { name: /^Add \d+ cards?$/u })).toHaveCount(0);
+  expect((await readLocalData(page)).decks).toEqual([]);
+  expect((await readLocalData(page)).cards).toEqual([]);
+  expect(await documentsForUid("deck", uid)).toEqual([]);
+  expect(await documentsForUid("card", uid)).toEqual([]);
   await page.getByLabel("Upload a csv file").setInputFiles(file);
   await expect(page.getByText("2 valid")).toBeVisible();
+  await expect(page.getByText("日本語�", { exact: true })).toBeVisible();
+  await expect(page.getByText("回答�", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: "Imported 2 cards." })).toBeVisible();
@@ -143,12 +164,15 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   const localDeck = decks[0];
   if (!localDeck) throw new Error("Imported Deck missing");
   expect(stored.cards.filter(({ deckId }: { deckId?: string }) => deckId === localDeck.id)).toHaveLength(2);
+  expect(stored.cards).toContainEqual(
+    expect.objectContaining({ frontText: "日本語�", backText: "回答�", tags: ["タグ"] })
+  );
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
 
   await page.getByRole("button", { name: `Study ${file.name}` }).click();
   await page.getByRole("button", { name: "Start 2 cards" }).click();
-  await expect(page.getByText(new RegExp(`^front ${csvNamespace} (one|two)$`))).toBeVisible();
+  await expect(page.getByText(new RegExp(`^(日本語�|front ${csvNamespace} two)$`))).toBeVisible();
 });
 
 test("IMPORT-05 A rejected queued import reports failure without automatic replay", async ({

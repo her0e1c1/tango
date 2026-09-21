@@ -1,5 +1,5 @@
 export class ImportFailure extends Error {
-  constructor(readonly code: "authentication" | "account-changed") {
+  constructor(readonly code: "authentication" | "account-changed" | "encoding") {
     super(code);
     this.name = "ImportFailure";
   }
@@ -8,6 +8,7 @@ export class ImportFailure extends Error {
 export function importFailureKey(error: unknown): string | undefined {
   const code = error != null && typeof error === "object" && "code" in error ? error.code : undefined;
   if (error instanceof ImportFailure) {
+    if (error.code === "encoding") return "deckImport.errors.encoding";
     return error.code === "authentication" ? "deckImport.errors.authentication" : "deckImport.errors.accountChanged";
   }
   if (code === "permission-denied") return "deckImport.errors.permission";
