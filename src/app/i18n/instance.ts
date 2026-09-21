@@ -1,13 +1,19 @@
 import { createInstance } from "i18next";
 import { initReactI18next } from "react-i18next";
 
+import { deckReviewResources } from "./deckReviewResources";
 import { resources } from "./resources";
 
 export const appI18n = createInstance();
 
 // Bundled resources and synchronous initialization make English available before React's first render.
 void appI18n.use(initReactI18next).init({
-  resources,
+  resources: {
+    en: { ...resources.en, deckReview: deckReviewResources.en },
+    ja: { ...resources.ja, deckReview: deckReviewResources.ja },
+  },
+  ns: ["translation", "deckReview"],
+  defaultNS: "translation",
   lng: "en",
   fallbackLng: "en",
   supportedLngs: ["en", "ja"],

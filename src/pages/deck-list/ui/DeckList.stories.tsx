@@ -130,3 +130,65 @@ export const IphoneXLong: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
   args: { sections: longSections },
 };
+
+const reviewSections: DeckListProps["sections"] = {
+  studying: studyingItems([{ ...fixture.deck.default, id: "active", name: "Active deck" }]).map((item) => ({
+    ...item,
+    review: { dueCardCount: 0, newCardCount: 0, nextDueAt: fixture.timestamp + 86_400_000 },
+  })),
+  reviewNow: [
+    {
+      deck: { ...fixture.deck.tooLongName, id: "due" },
+      cardCount: 24,
+      review: { dueCardCount: 12, newCardCount: 4, nextDueAt: undefined },
+    },
+    {
+      deck: { ...fixture.deck.default, id: "new", name: "New deck" },
+      cardCount: 2,
+      review: { dueCardCount: 0, newCardCount: 2, nextDueAt: undefined },
+    },
+  ],
+  other: [
+    {
+      deck: { ...fixture.deck.default, id: "future", name: "Future deck" },
+      cardCount: 8,
+      review: { dueCardCount: 0, newCardCount: 0, nextDueAt: fixture.timestamp + 86_400_000 },
+    },
+  ],
+  reviewSummary: { dueCardCount: 12, newCardCount: 6 },
+};
+
+export const ReviewCounts: Story = {
+  args: { sections: reviewSections, deckCard: { onClickStudy: fn(), onClickContinue: fn() } },
+  play: async ({ args, canvas, userEvent }) => {
+    await expect(canvas.getByRole("region", { name: "Review summary" })).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Study new cards in New deck" }));
+    await expect(args.deckCard?.onClickStudy).toHaveBeenCalledWith("new");
+    await userEvent.click(canvas.getByRole("button", { name: "Continue Active deck" }));
+    await expect(args.deckCard?.onClickContinue).toHaveBeenCalledWith("active");
+  },
+};
+
+export const ReviewJapanese: Story = {
+  args: { sections: reviewSections },
+  parameters: { locale: "ja" },
+};
+
+export const ReviewMobile: Story = {
+  args: { sections: reviewSections },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+};
+
+export const ReviewDark: Story = {
+  args: { sections: reviewSections },
+  globals: { theme: "dark" },
+};
+
+export const ReviewZoom: Story = {
+  args: { sections: reviewSections },
+  render: (args) => (
+    <div style={{ zoom: 2 }}>
+      <DeckList {...args} />
+    </div>
+  ),
+};

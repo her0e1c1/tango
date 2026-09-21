@@ -19,6 +19,8 @@ Deck と Card 一覧の主要な route を開き、存在しない Deck から�
 | DECK-NAVIGATION-09 | write | [閲覧と学習で表示設定と操作ヘルプを共有できる](#deck-navigation-09) |
 | DECK-NAVIGATION-10 | read | [学習データを保存せずに閲覧を自動再生できる](#deck-navigation-10) |
 | DECK-NAVIGATION-11 | read | [閲覧の進捗スライダーで前後へ移動できる](#deck-navigation-11) |
+| DECK-NAVIGATION-12 | read | [Deck 一覧の復習件数から学習開始設定へ遷移できる](#deck-navigation-12) |
+| DECK-NAVIGATION-13 | read | [開いたままの Deck 一覧が復習期日の到達を反映する](#deck-navigation-13) |
 
 <a id="deck-navigation-01"></a>
 
@@ -306,3 +308,60 @@ Then:
 - 本文上の Enter は反転、Space は再生切替、b は方向ボタンの表示切替として働く。入力欄やボタンの標準キー操作を妨げず、裏面のスクロール領域に focus がある場合の Space はスクロールを優先する。
 - Deck、Card、学習履歴、学習 session、設定を変更しない。表示設定を明示的に切り替えた場合のみ、その設定を保存する。
 - browser error が発生しない。
+
+<a id="deck-navigation-12"></a>
+
+### DECK-NAVIGATION-12 Deck 一覧の復習件数から学習開始設定へ遷移できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- 復習期日を過ぎた Card、未来に復習予定の Card、期日未設定の Card が同じ Deck に存在する。
+- Respect review schedule が有効で、Maximum cards は学習候補全体より少なく、shuffle が有効である。
+- 同じ表示契約の追加ケースとして、複数 Deck、進行中 Session、new-only、Card 0 件、difficulty / tag filter に一致しない Card、future-only、間隔反復 OFF、日本語を unit / Page / Storybook で確認する。
+
+When:
+
+- Deck 一覧を開き、合計件数と Deck 別の件数・区分を確認する。
+- keyboard で Review を実行し、学習開始設定画面を開く。Start は実行しない。
+
+Then:
+
+- 全 Card 数とは別に due / new の件数を表示し、合計に各 Deck を一度だけ加算する。
+- difficulty の上下限と保存済み tag の AND / OR 条件を適用し、Maximum cards と shuffle は件数に影響しない。
+- due は現在時刻以前の期日を指す。有効な FSRS schedule を旧 nextSeeingAt より優先し、期日がない Card は numberOfSeen に関係なく new に数える。不正な schedule を new や 0 件へ補完しない。
+- Session がある Deck は件数が 0 でも Studying と既存 Continue・進捗を維持する。それ以外で due / new がある Deck は Review now に一度だけ表示する。
+- Studying は既存の直近学習順、Review now は最も早い dueAt 順の Deck、new-only の Deck の順とし、同順位と Other decks は Deck 名順にする。空の区分の見出しは表示しない。
+- Review と new-only の Study new は既存の学習開始設定画面へ遷移し、一覧から Session を作成・置換しない。Continue は既存の再開処理へ接続する。
+- 保持中 Card 0 件、filter に一致する Card なし、future-only を区別する。future-only には filter 後の最も近い次回復習日時を表示する。
+- 件数がこの端末の保持中データと保存済み filter に基づくことを説明し、0 件から完全同期や復習完了を断定しない。間隔反復 OFF では追加の件数・区分を表示しない。
+- 英語と日本語で件数・操作・日時が読める。狭い画面・dark mode・拡大表示でも操作を維持する。
+- 学習開始設定画面に到達しても Deck、Card、Session、回答履歴は変更されない。browser error が発生しない。
+
+<a id="deck-navigation-13"></a>
+
+### DECK-NAVIGATION-13 開いたままの Deck 一覧が復習期日の到達を反映する
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- Respect review schedule が有効である。
+- browser clock はアプリの初期化前に固定する。ケース専用データの準備時に、fixture の未来の Card の復習期日を基準時刻の少し後へ設定する。
+- 同じ期限更新契約の追加ケースとして、複数 Deck、遠い期日、入力変更、UID の切替、focus / visibility 復帰、間隔反復 OFF、unmount を unit / Page で確認する。
+
+When:
+
+- Deck 一覧を表示したまま、browser clock を次の復習期日の直前、期日ちょうどへ進める。
+
+Then:
+
+- 直前までは未来の Card を due に含めず、期日ちょうどに Deck 別と合計の due 件数へ加える。new 件数は変わらない。
+- 同じ現在時刻で全 Deck を再評価し、必要な区分・順序も更新する。
+- 次の起床時刻は filter 後の全 Deck の future な期日の最小値であり、filter 外の Card には起こされない。
+- 一覧全体で timer は最大1つとし、遠い期限でも timeout の上限超過で連続実行しない。入力変更・画面復帰では現在時刻を使い、間隔反復 OFF と unmount では不要な timer を解除する。
+- 再評価のための追加 query・listener・定期 polling を作らない。保存済み Session の順序・位置、Card の schedule、Deck、回答履歴を変更しない。
+- 固定 sleep や本番コードのテスト専用 clock API を使わない。browser error が発生しない。

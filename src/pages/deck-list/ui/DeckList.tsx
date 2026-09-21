@@ -10,12 +10,13 @@ import type { Deck, DeckId } from "@/entities/deck";
 import type { StudySession } from "@/entities/study-session";
 import { ActionsMenu } from "@/shared/ui/actions-menu";
 
-import { DeckListCard, type DeckListCardActions } from "./DeckListCard";
+import { DeckListCard, type DeckListCardActions, type DeckListCardProps } from "./DeckListCard";
 
 interface DeckListItem {
   deck: Deck;
   cardCount: number;
   studySession?: StudySession;
+  review?: DeckListCardProps["review"];
 }
 
 interface StudyingDeckListItem extends DeckListItem {
@@ -25,7 +26,9 @@ interface StudyingDeckListItem extends DeckListItem {
 export interface DeckListProps {
   sections: {
     studying: StudyingDeckListItem[];
+    reviewNow?: DeckListItem[];
     other: DeckListItem[];
+    reviewSummary?: { dueCardCount: number; newCardCount: number } | undefined;
   };
   deckCard?: DeckListCardActions;
   onCreateDeck: () => void;
@@ -50,11 +53,11 @@ const DeckListSection: React.FC<{
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between gap-3 px-1">
+      <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
         <h2 id={headingId} className="text-caption font-bold uppercase tracking-wide text-ink-muted">
           {title}
         </h2>
-        <span className="shrink-0 text-caption text-ink-muted">
+        <span className="text-caption text-ink-muted">
           {t("deckList.count", { count: items.length })} · {note}
         </span>
       </div>
@@ -64,6 +67,7 @@ const DeckListSection: React.FC<{
             key={item.deck.id}
             deck={item.deck}
             cardCount={item.cardCount}
+            review={item.review}
             {...(item.studySession != null ? { studySession: item.studySession } : {})}
             {...actions}
             openMenuDeckId={openMenuDeckId}
@@ -81,9 +85,13 @@ const DeckListSection: React.FC<{
  */
 export const DeckList: React.FC<DeckListProps> = (props) => {
   const { t } = useTranslation();
+  const { t: reviewText, i18n } = useTranslation("deckReview");
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const [actionsOpen, setActionsOpen] = React.useState(false);
-  const total = props.sections.studying.length + props.sections.other.length;
+  const reviewNow = props.sections.reviewNow ?? [];
+  const summary = props.sections.reviewSummary;
+  const total = props.sections.studying.length + reviewNow.length + props.sections.other.length;
+  const numberFormat = new Intl.NumberFormat(i18n.resolvedLanguage);
   const toggleMenu = (id: DeckId) => {
     setActionsOpen(false);
     setOpenMenuDeckId((value) => (value === id ? undefined : id));
@@ -129,10 +137,28 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
           />
         </div>
       </div>
+      {summary !== undefined && (
+        <section aria-label={reviewText("summary")} className="rounded-surface border border-border bg-surface p-3">
+          <p className="flex flex-wrap gap-x-4 gap-y-1 text-body font-semibold text-ink">
+            <span>{reviewText("dueCount", { value: numberFormat.format(summary.dueCardCount) })}</span>
+            <span>{reviewText("newCount", { value: numberFormat.format(summary.newCardCount) })}</span>
+          </p>
+          <p className="mt-1 text-caption text-ink-muted">{reviewText("scope")}</p>
+        </section>
+      )}
       <DeckListSection
         title={t("deckList.sections.studyingTitle")}
         note={t("deckList.sections.studyingNote")}
         items={props.sections.studying}
+        actions={props.deckCard}
+        openMenuDeckId={openMenuDeckId}
+        onToggleMenu={toggleMenu}
+        onCloseMenu={closeMenu}
+      />
+      <DeckListSection
+        title={reviewText("title")}
+        note={reviewText("note")}
+        items={reviewNow}
         actions={props.deckCard}
         openMenuDeckId={openMenuDeckId}
         onToggleMenu={toggleMenu}

@@ -67,3 +67,27 @@ export const Dark: Story = {
     theme: "dark",
   },
 };
+
+export const ReviewDue: Story = {
+  args: { review: { dueCardCount: 12, newCardCount: 4, nextDueAt: undefined } },
+};
+
+export const StudyNew: Story = {
+  args: { review: { dueCardCount: 0, newCardCount: 24, nextDueAt: undefined } },
+};
+
+export const FutureOnly: Story = {
+  args: { review: { dueCardCount: 0, newCardCount: 0, nextDueAt: fixture.timestamp + 86_400_000 } },
+};
+
+export const NoMatchingCards: Story = {
+  args: { review: { dueCardCount: 0, newCardCount: 0, nextDueAt: undefined } },
+};
+
+export const NoCards: Story = {
+  args: { cardCount: 0, review: { dueCardCount: 0, newCardCount: 0, nextDueAt: undefined } },
+};
+
+export const ContinueWithoutDueCards: Story = {
+  args: { ...WithStudyProgress.args, ...FutureOnly.args },
+};

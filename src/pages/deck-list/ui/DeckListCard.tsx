@@ -38,6 +38,11 @@ export interface DeckListCardProps extends DeckListCardActions, DeckListCardMenu
   deck: Deck;
   cardCount: number;
   studySession?: StudySession;
+  review?: {
+    dueCardCount: number;
+    newCardCount: number;
+    nextDueAt: number | undefined;
+  } | undefined;
 }
 
 /**
@@ -61,28 +66,63 @@ const formatLastStudied = (timestamp: number, t: TFunction): string => {
 const primaryActionClassName =
   "inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
+const DeckListCardReview: React.FC<{
+  review: NonNullable<DeckListCardProps["review"]>;
+  cardCount: number;
+}> = ({ review, cardCount }) => {
+  const { t, i18n } = useTranslation("deckReview");
+  const numberFormat = new Intl.NumberFormat(i18n.resolvedLanguage);
+  const noCandidates = review.dueCardCount + review.newCardCount === 0;
+  return (
+    <span className="mt-1 flex flex-col gap-1 text-caption text-ink-muted">
+      <span className="flex flex-wrap gap-x-3 gap-y-1">
+        <span>{t("dueCount", { value: numberFormat.format(review.dueCardCount) })}</span>
+        <span>{t("newCount", { value: numberFormat.format(review.newCardCount) })}</span>
+      </span>
+      {noCandidates && (
+        <span>
+          {cardCount === 0
+            ? t("noCards")
+            : review.nextDueAt === undefined
+              ? t("noMatches")
+              : t("nextReview", {
+                time: new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }).format(review.nextDueAt),
+              })}
+        </span>
+      )}
+    </span>
+  );
+};
+
 const DeckListCardStatus: React.FC<{
   deck: DeckListCardProps["deck"];
   active: boolean;
   studySession: DeckListCardProps["studySession"];
   progressValue: number;
   cardCount: number;
+  review: DeckListCardProps["review"];
   statusId: string;
-}> = ({ deck, active, studySession, progressValue, cardCount, statusId }) => {
+}> = ({ deck, active, studySession, progressValue, cardCount, review, statusId }) => {
   const { t } = useTranslation();
 
   return (
-    <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
-      {deck.category !== "" && (
-        <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
-          {deck.category}
+    <span id={statusId} className="mt-1 block min-w-0 text-caption text-ink-muted">
+      <span className="flex min-w-0 items-center gap-2">
+        {deck.category !== "" && (
+          <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
+            {deck.category}
+          </span>
+        )}
+        <span className="truncate">
+          {active && studySession
+            ? `${String(progressValue)} / ${String(studySession.cardOrderIds.length)}${studySession.lastStudiedAt > 0 ? ` · ${formatLastStudied(studySession.lastStudiedAt, t)}` : ""}`
+            : t("deckList.cardCount", { count: cardCount })}
         </span>
-      )}
-      <span className="truncate">
-        {active && studySession
-          ? `${String(progressValue)} / ${String(studySession.cardOrderIds.length)}${studySession.lastStudiedAt > 0 ? ` · ${formatLastStudied(studySession.lastStudiedAt, t)}` : ""}`
-          : t("deckList.cardCount", { count: cardCount })}
       </span>
+      {review !== undefined && <DeckListCardReview review={review} cardCount={cardCount} />}
     </span>
   );
 };
@@ -117,12 +157,29 @@ const DeckListCardProgressBar: React.FC<{
  */
 export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
   const { t } = useTranslation();
-  const { deck, studySession } = props;
+  const { t: reviewText } = useTranslation("deckReview");
+  const { deck, studySession, review } = props;
   const active = studySession != null;
   const studyCardCount = studySession?.cardOrderIds.length ?? 0;
   const progressValue = active ? studySession.currentIndex + 1 : 0;
   const progressPercent = active ? Math.min(100, (progressValue / studyCardCount) * 100) : 0;
   const pending = props.isPending?.(deck.id) ?? false;
+  const reviewAction = review !== undefined && review.dueCardCount > 0;
+  const newAction = review !== undefined && review.newCardCount > 0;
+  const primaryLabel = active
+    ? t("deckList.continue")
+    : reviewAction
+      ? reviewText("review")
+      : newAction
+        ? reviewText("studyNew")
+        : t("deckList.study");
+  const primaryAriaLabel = active
+    ? t("deckList.continueDeck", { deckName: deck.name })
+    : reviewAction
+      ? reviewText("reviewDeck", { deckName: deck.name })
+      : newAction
+        ? reviewText("studyNewDeck", { deckName: deck.name })
+        : t("deckList.studyDeck", { deckName: deck.name });
   /**
    * Wraps an optional action so it receives the current item's identifier when invoked.
    * Presentation markup can pass a parameterless callback while domain actions still receive the
@@ -135,11 +192,11 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
     <article
       aria-busy={pending}
       className={cx(
-        "relative flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 transition-colors duration-fast ease-calm last:border-b-0 dark:border-black",
+        "relative flex min-h-20 flex-wrap items-center gap-2 border-b border-border px-3 py-2 transition-colors duration-fast ease-calm last:border-b-0 dark:border-black",
         pending ? "bg-surface-muted" : "hover:bg-surface-muted"
       )}
     >
-      <div className="min-w-0 flex-1 px-1 py-1">
+      <div className={cx("min-w-0 flex-1 px-1 py-1", review !== undefined && "basis-full sm:basis-0")}>
         <button
           type="button"
           aria-label={t("deckList.view", { deckName: deck.name })}
@@ -157,6 +214,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           studySession={studySession}
           progressValue={progressValue}
           cardCount={props.cardCount}
+          review={review}
           statusId={statusId}
         />
 
@@ -171,7 +229,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
 
       <button
         type="button"
-        aria-label={t(active ? "deckList.continueDeck" : "deckList.studyDeck", { deckName: deck.name })}
+        aria-label={primaryAriaLabel}
         className={cx(
           primaryActionClassName,
           active
@@ -182,7 +240,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
         disabled={pending}
       >
         {active && <AiFillCaretRight aria-hidden="true" />}
-        <span>{t(active ? "deckList.continue" : "deckList.study")}</span>
+        <span>{primaryLabel}</span>
       </button>
 
       <button

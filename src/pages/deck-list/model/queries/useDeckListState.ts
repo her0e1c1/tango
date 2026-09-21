@@ -1,45 +1,16 @@
-import { countCardsByDeckId, type Card, useCards } from "@/entities/card";
-import { type Deck, type DeckId, useDecks } from "@/entities/deck";
-import {
-  compareActiveDecks,
-  groupDecksByStudyStatus,
-  type StudySession,
-  useStudySessions,
-} from "@/entities/study-session";
+import { useCards } from "@/entities/card";
+import { useDecks } from "@/entities/deck";
+import { usePreferences } from "@/entities/preference";
+import { useStudySessions } from "@/entities/study-session";
+import { useDeadlineQuery } from "@/shared/lib/useDeadlineQuery";
 
-const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
-
-type DeckListItem = {
-  deck: Deck;
-  cardCount: number;
-  studySession?: StudySession;
-};
-
-const buildDeckListSections = (
-  decks: Deck[],
-  cards: Card[],
-  sessionsByDeckId: Partial<Record<DeckId, StudySession>>
-) => {
-  const cardCounts = countCardsByDeckId(cards);
-  const { active, inactive } = groupDecksByStudyStatus(decks, sessionsByDeckId);
-
-  const studying = active.sort(compareActiveDecks).map(({ deck, session }) => ({
-    deck,
-    cardCount: cardCounts.get(deck.id) ?? 0,
-    studySession: session,
-  }));
-  const other: DeckListItem[] = inactive.sort(compareDeckNames).map((deck) => ({
-    deck,
-    cardCount: cardCounts.get(deck.id) ?? 0,
-  }));
-
-  return { studying, other };
-};
+import { buildDeckListSections } from "./buildDeckListSections";
 
 export const useDeckListState = () => {
   const cards = useCards();
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
+  const { study } = usePreferences();
 
-  return buildDeckListSections(decks, cards, sessionsByDeckId);
+  return useDeadlineQuery(buildDeckListSections, [decks, cards, sessionsByDeckId, study.useCardInterval]);
 };
