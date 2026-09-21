@@ -5,7 +5,13 @@
  */
 
 import * as React from "react";
-import { AiOutlineCloudDownload, AiOutlineDelete, AiOutlineEdit, AiOutlineReload } from "react-icons/ai";
+import {
+  AiOutlineBarChart,
+  AiOutlineCloudDownload,
+  AiOutlineDelete,
+  AiOutlineEdit,
+  AiOutlineReload,
+} from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 import { ActionsMenu, type ActionsMenuItem } from "@/shared/ui/actions-menu";
 
@@ -16,6 +22,7 @@ export interface DeckActionsMenuProps {
   onToggle: () => void;
   onClose: () => void;
   onRestart?: () => void;
+  onHistory?: () => void;
   onDownload?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -55,6 +62,12 @@ export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
       label: t("deckList.actions.edit"),
       icon: <AiOutlineEdit aria-hidden="true" />,
       ...(props.onEdit !== undefined ? { onSelect: props.onEdit } : {}),
+    },
+    {
+      key: "history",
+      icon: <AiOutlineBarChart aria-hidden="true" />,
+      label: t("studyHistory.title"),
+      ...(props.onHistory !== undefined ? { onSelect: props.onHistory } : {}),
     },
     {
       key: "delete",

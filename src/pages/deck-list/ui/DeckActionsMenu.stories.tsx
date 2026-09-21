@@ -44,6 +44,7 @@ const meta = {
     onToggle: fn(),
     onClose: fn(),
     onDownload: fn(),
+    onHistory: fn(),
     onEdit: fn(),
     onDelete: fn(),
   },
@@ -93,4 +94,13 @@ export const Mobile: Story = {
 export const Dark: Story = {
   ...Open,
   globals: { theme: "dark" },
+};
+
+export const History: Story = {
+  render: (args) => <DeckActionsMenuStory {...args} />,
+  play: async ({ args, canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.deckName}` }));
+    await userEvent.click(canvas.getByRole("menuitem", { name: "Study history" }));
+    await expect(args.onHistory).toHaveBeenCalledOnce();
+  },
 };

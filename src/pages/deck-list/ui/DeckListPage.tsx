@@ -32,6 +32,7 @@ export const DeckListPage: React.FC = () => {
           },
           onClickRestart: model.startStudy,
           onClickStudy: model.startStudy,
+          onClickHistory: model.openHistory,
           onClickDownload: model.downloadDeck,
           onClickDelete: model.requestDeletion,
         }}

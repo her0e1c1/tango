@@ -7,7 +7,14 @@
 import cx from "classnames";
 import type * as React from "react";
 import { IconContext } from "react-icons";
-import { AiFillMoon, AiFillSetting, AiOutlineSun, AiOutlineUpload, AiOutlineUser } from "react-icons/ai";
+import {
+  AiOutlineBarChart,
+  AiFillMoon,
+  AiFillSetting,
+  AiOutlineSun,
+  AiOutlineUpload,
+  AiOutlineUser,
+} from "react-icons/ai";
 
 import { Logo } from "../logo";
 
@@ -17,6 +24,7 @@ interface HeaderLabels {
   importDecks: string;
   openAccount: string;
   openSettings: string;
+  studyHistory: string;
 }
 
 export interface HeaderProps {
@@ -28,6 +36,7 @@ export interface HeaderProps {
   onClickImport?: () => void;
   onClickAccount?: () => void;
   onClickSettings?: () => void;
+  onClickStudyHistory?: () => void;
 }
 
 const defaultLabels: HeaderLabels = {
@@ -36,6 +45,7 @@ const defaultLabels: HeaderLabels = {
   importDecks: "Import decks",
   openAccount: "Open account",
   openSettings: "Open settings",
+  studyHistory: "Study history",
 };
 
 /**
@@ -83,6 +93,9 @@ export const Header: React.FC<HeaderProps> = (props) => {
             <AiFillMoon />
           </button>
         )}
+        <button type="button" aria-label={labels.studyHistory} onClick={props.onClickStudyHistory}>
+          <AiOutlineBarChart />
+        </button>
         <button type="button" aria-label={labels.importDecks} onClick={props.onClickImport}>
           <AiOutlineUpload />
         </button>
