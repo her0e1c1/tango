@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { calculateStudySchedule, studyScheduleSchema } from "./schedule";
 import * as lodash from "lodash";
 
 import { createStudyProgress } from "./defaults";
@@ -18,6 +20,7 @@ export const createStudyProgressFromCard = (card: CardProgressFields): StudyProg
   if (card.lastSeenAt !== undefined) progress.lastSeenAt = card.lastSeenAt;
   if (card.nextSeeingAt !== undefined) progress.nextSeeingAt = card.nextSeeingAt;
   if (card.interval !== undefined) progress.interval = card.interval;
+  if (card.schedule !== undefined) progress.schedule = card.schedule;
   return progress;
 };
 
@@ -33,17 +36,41 @@ const recordStudyProgress = (progress: StudyProgress, rating: StudyRating | unde
   difficulty: calculateDifficulty(progress.difficulty, rating),
   numberOfSeen: progress.numberOfSeen + 1,
   lastSeenAt: studiedAt,
+  ...(rating === undefined ? {} : { schedule: calculateStudySchedule(progress.schedule, rating, studiedAt) }),
 });
 
+// A malformed state is an error, never a new card; a valid FSRS schedule supersedes legacy fields.
+export function classifyStudyProgress(
+  progress: StudyProgress,
+  now: number
+): { status: "new" } | { status: "due" | "future"; dueAt: number } {
+  const dueAt =
+    progress.schedule !== undefined
+      ? studyScheduleSchema.parse(progress.schedule).dueAt
+      : progress.nextSeeingAt === undefined
+        ? undefined
+        : z.date().parse(progress.nextSeeingAt).getTime();
+  if (dueAt === undefined) return { status: "new" };
+  return { status: dueAt <= now ? "due" : "future", dueAt };
+}
+
 // Translates a studied Card and its rating into the progress patch owned by the StudyProgress Entity.
-export const recordCardStudyProgress = (card: CardProgressFields, rating: StudyRating | undefined, studiedAt: number) =>
-  recordStudyProgress(createStudyProgressFromCard(card), rating, studiedAt);
+export const recordCardStudyProgress = (
+  card: CardProgressFields,
+  rating: StudyRating | undefined,
+  studiedAt: number
+) => {
+  const progress = createStudyProgressFromCard(card);
+  classifyStudyProgress(progress, studiedAt);
+  return recordStudyProgress(progress, rating, studiedAt);
+};
 
 // Accepts progress inside the inclusive difficulty bounds and, when enabled, only after its next scheduled time.
 export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyProgressFilter, now: number): boolean => {
   if (filter.maximumDifficulty != null && progress.difficulty > filter.maximumDifficulty) return false;
   if (filter.minimumDifficulty != null && progress.difficulty < filter.minimumDifficulty) return false;
-  if (filter.respectNextSeeingAt && progress.nextSeeingAt != null && progress.nextSeeingAt.getTime() > now) {
+  const timing = classifyStudyProgress(progress, now);
+  if (filter.respectNextSeeingAt && timing.status === "future") {
     return false;
   }
   return true;
@@ -56,8 +83,22 @@ const compareStudyProgress = (first: StudyProgress, second: StudyProgress): numb
 // Builds a least-seen-first Card order, optionally shuffling the full set before applying a positive session limit.
 export const buildStudyCardOrder = (
   cards: CardProgressFields[],
-  options: StudyCardOrderOptions
+  options: StudyCardOrderOptions,
+  now = Date.now()
 ): StudyProgress["cardId"][] => {
+  if (options.useCardInterval) {
+    const selected = cards
+      .map((card) => ({ card, timing: classifyStudyProgress(createStudyProgressFromCard(card), now) }))
+      .filter(({ timing }) => timing.status !== "future")
+      .sort((a, b) => {
+        if (a.timing.status === "new") return b.timing.status === "new" ? 0 : 1;
+        if (b.timing.status === "new") return -1;
+        return a.timing.dueAt - b.timing.dueAt;
+      })
+      .map(({ card }) => card.id);
+    const limited = options.maxNumberOfCardsToLearn > 0 ? selected.slice(0, options.maxNumberOfCardsToLearn) : selected;
+    return options.shuffled ? lodash.shuffle(limited) : limited;
+  }
   let cardOrderIds = cards
     .map(createStudyProgressFromCard)
     .sort(compareStudyProgress)

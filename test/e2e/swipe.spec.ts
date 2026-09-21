@@ -394,12 +394,15 @@ test("STUDY-SESSION-07 preserves local-only progress and session position across
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
   const nextCard = fixture.card("card-2");
-  await fixture.apply(page);
+  await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
 
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText);
   await page.getByText(nextCard.frontText, { exact: true }).waitFor();
 
+  const savedSchedule = (await readLocalData(page)).cards.find((card) => card.id === currentCard.id)?.schedule;
+  expect(savedSchedule).toMatchObject({ version: 1, reps: 1, state: "review" });
+  if (!savedSchedule) throw new Error("Expected a persisted FSRS schedule");
   await page.reload();
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
@@ -411,6 +414,19 @@ test("STUDY-SESSION-07 preserves local-only progress and session position across
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  expect((await readLocalData(page)).cards.find((card) => card.id === currentCard.id)?.schedule).toEqual(savedSchedule);
+  await page.goto(`/deck/${deck.id}/start`);
+  await expect(page.getByRole("button", { name: "Start 1 card", exact: true })).toBeEnabled();
+  await page.clock.install({ time: new Date(savedSchedule.dueAt - 1000) });
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect(page.getByRole("button", { name: "Start 1 card", exact: true })).toBeEnabled();
+  await page.clock.runFor(1000);
+  await expect(page.getByRole("button", { name: "Start 2 cards", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "Start 2 cards", exact: true }).click();
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  await expect
+    .poll(async () => (await readSession(page, deck.id))?.cardOrderIds)
+    .toEqual([currentCard.id, nextCard.id]);
 });
 
 test("STUDY-CONTROLS-04 shows configured Study controls without changing the active session", async ({

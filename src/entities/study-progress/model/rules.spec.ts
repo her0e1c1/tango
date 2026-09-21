@@ -65,7 +65,7 @@ describe("recordCardStudyProgress [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-A
   ])("records difficulty %i for %s as %i", (difficulty, swipeAction, expectedDifficulty) => {
     const card = { ...cardProgress("card-id", 2), difficulty };
 
-    expect(recordCardStudyProgress(card, swipeAction, 1_786_512_000_000)).toEqual({
+    expect(recordCardStudyProgress(card, swipeAction, 1_786_512_000_000)).toMatchObject({
       cardId: "card-id",
       difficulty: expectedDifficulty,
       numberOfSeen: 3,

@@ -11,7 +11,7 @@
 ## 共通前提
 
 project `test-study-answer` に実際の `firestore.rules` を読み込む。各ケース前に専用 project を消去し、非匿名認証の UID `answer-owner`、公開 Deck `deck`、Card `card-0`〜`card-9`、未終了の session `session` を準備する。
-Card / Deck store と認証状態も初期化する。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
+Card / Deck store と認証状態も初期化する。4評価の受理済みProgressはFSRS scheduleも含む。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
 事前データはテスト内で作成し、新しい fixture ファイルは用意しない。共通の実行方法は [README](./README.md) を参照する。
 
 ## テストケース
@@ -37,6 +37,7 @@ Card / Deck store と認証状態も初期化する。操作の ID は UUID、�
 | FIRESTORE-STUDY-ANSWER-17 | write | [本人でも保存済み回答を更新・上書き・削除できない](#firestore-study-answer-17) |
 | FIRESTORE-STUDY-ANSWER-18 | read | [存在しない回答 ID の読取を拒否する](#firestore-study-answer-18) |
 | FIRESTORE-STUDY-ANSWER-19 | batch | [公開 Deck でも第三者・匿名・未認証に回答を公開しない](#firestore-study-answer-19) |
+| FIRESTORE-STUDY-ANSWER-20 | batch | [FSRSを復元し部分更新とSkipで維持する](#firestore-study-answer-20) |
 
 <a id="firestore-study-answer-01"></a>
 
@@ -56,6 +57,7 @@ When:
 
 Then:
 
+- scheduleは同じbatchで保存され、保存済み値は入力scheduleと一致する。
 - 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt と updatedAt は等しい Timestamp になる。Card の numberOfSeen は `1`、lastSeenAt は `2000`、difficulty は again なら `6`、その他は `4` になる。戻り値と保存 session の位置は `1` になる。
 
 <a id="firestore-study-answer-02"></a>
@@ -437,3 +439,26 @@ When:
 Then:
 
 - 3通りすべてで、読取・query・作成が拒否される。
+
+<a id="firestore-study-answer-20"></a>
+
+### FIRESTORE-STUDY-ANSWER-20 FSRSを復元し部分更新とSkipで維持する
+
+カテゴリ: `batch`
+
+対応テスト: `[FIRESTORE-STUDY-ANSWER-20] restores FSRS and preserves it across partial edits and skip`
+
+Given:
+
+- 本人のCardにlegacy期限とintervalがあり、10枚のsessionの先頭から評価できる。
+
+When:
+
+- goodを保存し、Card readerとProgress mapperで復元する。難易度と本文を部分更新する。
+- 同じCardを含む新sessionでSkipする。
+
+Then:
+
+- 初回評価でlegacy nextSeeingAt/intervalを削除し、復元scheduleの全フィールドと次回の計算結果は保存前と一致する。
+- 難易度・本文編集とSkipはscheduleを維持する。Skipでは回答を増やさない。
+- 未対応versionや不正期限の保存データはCard readerの検証エラーとなり、新規として復元しない。

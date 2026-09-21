@@ -7,6 +7,7 @@ export {
   planStudySessionSwipe,
   resolveStudySession,
   selectStudyCards,
+  selectStudyCardsWithDeadline,
 } from "./model/rules";
 export type { StudySession } from "./model/types";
 export { clearStudySessions } from "./model/actions/clearStudySessions";

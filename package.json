@@ -68,6 +68,7 @@
     "remark-math": "^6.0.0",
     "sass": "^1.104.1",
     "tailwindcss": "^4.3.3",
+    "ts-fsrs": "5.4.2",
     "vite": "^8.2.2",
     "zod": "^4.5.4",
     "zustand": "^5.0.15"

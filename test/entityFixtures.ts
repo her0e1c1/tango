@@ -21,14 +21,14 @@ export function restoreStudySession(session: StudySession): void {
 export function startStudy(
   deckId: string,
   cards: CardProgressFields[],
-  preferences: StudyCardOrderOptions,
+  preferences: StudyCardOrderOptions & { now?: number },
   uid: string
 ): void {
-  const now = Date.now();
+  const now = preferences.now ?? Date.now();
   restoreStudySession({
     sessionId: crypto.randomUUID(),
     deckId,
-    cardOrderIds: buildStudyCardOrder(cards, preferences),
+    cardOrderIds: buildStudyCardOrder(cards, preferences, now),
     currentIndex: 0,
     lastStudiedAt: now,
     remote: { uid, startedAt: now },

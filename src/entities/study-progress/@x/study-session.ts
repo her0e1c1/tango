@@ -1,5 +1,6 @@
 export {
   buildStudyCardOrder,
+  classifyStudyProgress,
   createStudyProgressFromCard,
   isStudyProgressEligible,
 } from "../model/rules";

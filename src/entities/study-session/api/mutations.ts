@@ -13,24 +13,31 @@ function requireOwner(session: StudySession): void {
   if (session.remote.uid !== getAuthUid()) throw new Error("Study session owner changed");
 }
 
-export async function startStudy(
-  deckId: string,
-  cards: CardProgressFields[],
-  preferences: StudyCardOrderOptions,
-  uid: string
-): Promise<void> {
+export async function startStudy({
+  deckId,
+  cards,
+  preferences,
+  uid,
+  now = Date.now(),
+}: {
+  deckId: string;
+  cards: CardProgressFields[];
+  preferences: StudyCardOrderOptions;
+  uid: string;
+  now?: number;
+}): Promise<void> {
   if (!uid || uid !== getAuthUid()) throw new Error("Study session owner changed");
   const previous = getStudySession(deckId);
   if (previous) requireOwner(previous);
-  const now = Date.now();
   const session: StudySession = {
     sessionId: crypto.getRandomValues(new Uint32Array(4)).join("-"),
     deckId,
-    cardOrderIds: buildStudyCardOrder(cards, preferences),
+    cardOrderIds: buildStudyCardOrder(cards, preferences, now),
     currentIndex: 0,
     lastStudiedAt: now,
     remote: { uid, startedAt: now },
   };
+  if (session.cardOrderIds.length === 0) return;
   await createStudySession(session, previous);
 }
 

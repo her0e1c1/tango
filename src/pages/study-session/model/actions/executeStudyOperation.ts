@@ -1,7 +1,7 @@
 import { getAuthUid } from "@/entities/auth";
 import { getStudySession } from "@/entities/study-session";
 import { showToast } from "@/shared/ui/toast";
-import { saveStudyOperation } from "../../api/saveStudyOperation";
+import { saveStudyOperation } from "./saveStudyOperation";
 import { studySessionPageStore } from "../store";
 import type { StudyOperation } from "../studyOperation";
 import { showStudyResult } from "./showStudyResult";

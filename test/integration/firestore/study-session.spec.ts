@@ -73,7 +73,7 @@ describe("StudySession cloud lifecycle", () => {
   });
 
   async function startRemote(): Promise<StudySession> {
-    await startStudy(deckId, cards, preferences, "uid");
+    await startStudy({ deckId, cards, preferences, uid: "uid" });
     const session = getStudySession(deckId);
     if (session === undefined) throw new Error("Expected a session");
     return session;

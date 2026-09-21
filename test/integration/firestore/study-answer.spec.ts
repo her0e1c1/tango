@@ -24,10 +24,14 @@ import {
   type QueryConstraint,
 } from "firebase/firestore";
 import { replaceAuthSession } from "@/entities/auth";
-import { saveStudyOperation as persistStudyOperation } from "@/pages/study-session/api/saveStudyOperation";
+import { saveStudyOperation as persistStudyOperation } from "@/pages/study-session/model/actions/saveStudyOperation";
 import { recordCardStudyProgress } from "@/entities/study-progress";
 import type { StudyOperation } from "@/pages/study-session/model/studyOperation";
 
+import { parseCardDocument } from "@/entities/card/api/document";
+import { mapStudyProgressDocument } from "@/entities/study-progress/model/dto";
+import { editRemoteStudyProgress } from "@/entities/study-progress/api/firestore";
+import { editCard } from "@/entities/card/api/firestore";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { restoreStudySession } from "@/test/entityFixtures";
@@ -59,7 +63,7 @@ const sessionData = () => ({
   updatedAt: serverTimestamp(),
 });
 function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
-  const { difficulty, numberOfSeen } = recordCardStudyProgress(
+  const { difficulty, numberOfSeen, schedule } = recordCardStudyProgress(
     { id: overrides.cardId ?? "card-0", difficulty: 5, numberOfSeen: 0 },
     "rating" in overrides ? overrides.rating : "good",
     overrides.answeredAt ?? 2000
@@ -74,7 +78,7 @@ function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
     cardCount: cardIds.length,
     answeredAt: 2000,
     rating: "good",
-    progress: { difficulty, numberOfSeen },
+    progress: { difficulty, numberOfSeen, ...(schedule === undefined ? {} : { schedule }) },
     ...overrides,
   };
 }
@@ -174,6 +178,7 @@ describe("StudyAnswer atomic persistence and access", () => {
         difficulty: rating === "again" ? 6 : 4,
         numberOfSeen: 1,
         lastSeenAt: input.answeredAt,
+        schedule: input.progress.schedule,
       });
       expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     }
@@ -368,5 +373,43 @@ describe("StudyAnswer atomic persistence and access", () => {
     await assertFails(getDoc(doc(db, "studyAnswer", input.id)));
     await assertFails(getDocs(query(collection(db, "studyAnswer"), where("uid", "==", uid))));
     await assertFails(setDoc(doc(collection(db, "studyAnswer")), answerData()));
+  });
+  it("[FIRESTORE-STUDY-ANSWER-20] restores FSRS and preserves it across partial edits and skip", async () => {
+    const reference = doc(connection.db, "card", "card-0");
+    await setDoc(reference, {
+      ...createCard({ id: "card-0", uid, deckId }),
+      nextSeeingAt: Timestamp.fromMillis(1000),
+      interval: 12,
+    });
+    const input = operation();
+    await saveStudyOperation(input);
+    const data = (await getDoc(reference)).data();
+    expect(data).not.toHaveProperty("nextSeeingAt");
+    expect(data).not.toHaveProperty("interval");
+    const restored = mapStudyProgressDocument("card-0", parseCardDocument("card-0", data));
+    expect(restored.schedule).toEqual(input.progress.schedule);
+    expect(recordCardStudyProgress({ id: "card-0", ...restored }, "good", 602000).schedule).toEqual(
+      recordCardStudyProgress(
+        {
+          id: "card-0",
+          difficulty: input.progress.difficulty,
+          numberOfSeen: input.progress.numberOfSeen,
+          ...(input.progress.schedule === undefined ? {} : { schedule: input.progress.schedule }),
+        },
+        "good",
+        602000
+      ).schedule
+    );
+    await editRemoteStudyProgress(uid, { cardId: "card-0", difficulty: 8 });
+    await editCard(uid, { id: "card-0", uid, frontText: "Edited" });
+    expect((await getDoc(reference)).data()?.schedule).toEqual(restored.schedule);
+    await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
+    await saveStudyOperation(operation({ rating: undefined }));
+    expect((await getDoc(reference)).data()?.schedule).toEqual(restored.schedule);
+    expect((await answers()).size).toBe(1);
+    expect(() => parseCardDocument("card-0", { ...data, schedule: { ...restored.schedule, version: 2 } })).toThrow();
+    expect(() =>
+      parseCardDocument("card-0", { ...data, schedule: { ...restored.schedule, dueAt: "invalid" } })
+    ).toThrow();
   });
 });

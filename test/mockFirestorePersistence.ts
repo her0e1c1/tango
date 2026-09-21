@@ -87,9 +87,9 @@ vi.mock("@/entities/study-session/api/mutations", async () => {
       await Promise.resolve();
       touchStudySession(deckId);
     },
-    startStudy: async (...args: Parameters<typeof startStudy>) => {
+    startStudy: async (input: Parameters<typeof import("@/entities/study-session").startStudy>[0]) => {
       await Promise.resolve();
-      startStudy(...args);
+      startStudy(input.deckId, input.cards, { ...input.preferences, now: input.now ?? Date.now() }, input.uid);
     },
     moveStudySession: async (...args: Parameters<typeof moveStudySession>) => moveStudySession(...args),
     setStudySessionIndex: async (...args: Parameters<typeof setStudySessionIndex>) => setStudySessionIndex(...args),

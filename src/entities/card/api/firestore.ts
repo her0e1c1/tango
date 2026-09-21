@@ -69,6 +69,7 @@ const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
   if (progress.lastSeenAt !== undefined) combinedCard.lastSeenAt = progress.lastSeenAt;
   if (progress.nextSeeingAt !== undefined) combinedCard.nextSeeingAt = progress.nextSeeingAt;
   if (progress.interval !== undefined) combinedCard.interval = progress.interval;
+  if (progress.schedule !== undefined) combinedCard.schedule = progress.schedule;
   return combinedCard;
 };
 

@@ -36,7 +36,11 @@ When:
 
 Then:
 
-- session には保存済み filter に一致する Card だけが含まれる。
+- session には現在のfilter draftに一致する Card だけが含まれる。開始actionはクリック時点のデータ・設定・時刻で再選定する。
+- 間隔反復ONでは期限が古いdue（期限一致を含む）→期限なしのFSRS未開始の順に安定整列し、上限→選定済み集合だけのshuffleを適用する。未来期限は除外する。OFFでは閲覧回数順→全候補shuffle→上限を維持し、未来期限も含める。
+- 有効なscheduleの期限を正本とし、scheduleなしではlegacy nextSeeingAtを使う。intervalだけでは期限を作らない。不正schedule・未対応version・不正期限は検証エラーとし、新規や0件に読み替えない。
+- 開始画面・Card一覧・Deck閲覧は同じ期限ルールと各評価で一つのnowを使う。後二者にはSession専用の順序・上限を適用しない。
+- mount中に最も近い未来期限のtimerを一つだけ持ち、期限到来・foreground復帰・データ/設定変更で再評価する。未来期限なしではtimerを置かず、遠い期限は安全なcheckpointで再計算する。遅延callback、時計の前後移動、timer置換・unmountを扱う。
 - 正の上限では session の Card 数が設定済みの学習上限と一致する。
 - 上限 0 では枚数を制限せず、filter と適用される復習条件に一致するすべての Card を含む。上限 1 ではそのうち先頭の Card だけを含む。
 - 学習開始画面と start action の件数が新しい session の件数と一致する。
@@ -87,7 +91,7 @@ When:
 
 Then:
 
-- Deck 一覧へ戻る前と同じ学習 session が維持される。
+- Deck 一覧へ戻る前と同じ学習 session が維持される。評価で期限が変わっても保存済みの順序と位置は再構築しない。
 - Continue は遷移前に対象 session の最終学習時刻を更新する。
 - browser storage に残る同一ユーザーの session は、オフライン再読み込み後も初回同期を待たずに Continue できる。Start / Restart も初回同期を待たない。
 - 保存済み session の学習 URL を直接開いた場合は、初回受信前に一覧へ戻らず、受信した位置から表示する。この読込表示は Start / Restart の可否には影響しない。
@@ -188,7 +192,7 @@ When:
 
 Then:
 
-- 現在だった Card の easy 学習結果が browser storage に維持されている。
+- 現在だった Card の easy 学習結果とFSRS scheduleが browser storage に維持されている。間隔反復ONの新しい学習候補から期限前は除外し、開いたまま期限を迎えると候補に復帰する。
 - session の位置が次の Card に維持されている。
 - 次の Card の front text が表示され、back text は表示されない。
 - 匿名ユーザーの session と回答は Firestore の永続 cache に保存し、クラウドへ書き込まない。

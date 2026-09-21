@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { studyProgressEditSchema, studyRatingSchema } from "@/entities/study-progress";
+import { studyRatingSchema } from "@/entities/study-answer";
+import { studyProgressEditSchema } from "@/entities/study-progress";
 
 export const studyOperationSchema = z
   .object({
@@ -12,7 +13,9 @@ export const studyOperationSchema = z
     cardCount: z.number().int().positive(),
     answeredAt: z.number().nonnegative(),
     rating: studyRatingSchema.optional(),
-    progress: studyProgressEditSchema.pick({ difficulty: true, numberOfSeen: true }).required(),
+    progress: studyProgressEditSchema
+      .pick({ difficulty: true, numberOfSeen: true, schedule: true })
+      .required({ difficulty: true, numberOfSeen: true }),
     direction: z.enum(["cardSwipeUp", "cardSwipeDown", "cardSwipeLeft", "cardSwipeRight"]).optional(),
   })
   .strict()

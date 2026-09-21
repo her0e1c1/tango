@@ -34,18 +34,18 @@ describe("Study start and restart [STUDY-SESSION-01] [STUDY-SESSION-04]", () => 
       { id: "second", difficulty: 5, numberOfSeen: 0 },
     ];
     const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
-    await startStudy("deck", cards, preferences, "owner");
+    await startStudy({ deckId: "deck", cards, preferences, uid: "owner" });
     await setStudySessionIndex("deck", 1);
     const previous = getStudySession("deck");
     const pending = Promise.withResolvers<void>();
     persistence.create.mockReturnValueOnce(pending.promise);
-    const restart = startStudy("deck", cards, preferences, "owner");
+    const restart = startStudy({ deckId: "deck", cards, preferences, uid: "owner" });
     expect(getStudySession("deck")).toEqual(previous);
     const rejected = restart.catch((error: unknown) => error);
     pending.reject(new Error("Persistence quota exceeded"));
     expect(await rejected).toEqual(new Error("Persistence quota exceeded"));
     expect(getStudySession("deck")).toEqual(previous);
-    await startStudy("deck", cards, preferences, "owner");
+    await startStudy({ deckId: "deck", cards, preferences, uid: "owner" });
     expect(getStudySession("deck")).toMatchObject({ currentIndex: 0, cardOrderIds: ["first", "second"] });
     expect(getStudySession("deck")?.sessionId).not.toBe(previous?.sessionId);
   });
@@ -57,7 +57,7 @@ describe("Study start and restart [STUDY-SESSION-01] [STUDY-SESSION-04]", () => 
     ];
     const { study } = createPreferences({ shuffled: false, maxNumberOfCardsToLearn: 2 });
 
-    await startStudy("deck", cards, study, "owner");
+    await startStudy({ deckId: "deck", cards, preferences: study, uid: "owner" });
 
     expect(getStudySession("deck")?.currentIndex).toBe(0);
     expect(getStudySession("deck")?.cardOrderIds).toEqual(["third", "second"]);
@@ -67,7 +67,7 @@ describe("Study start and restart [STUDY-SESSION-01] [STUDY-SESSION-04]", () => 
     const cards = [createCard({ id: "first" }), createCard({ id: "second" })];
     const { study } = createPreferences({ shuffled: false, maxNumberOfCardsToLearn: 2 });
 
-    await startStudy("deck", cards, study, "owner");
+    await startStudy({ deckId: "deck", cards, preferences: study, uid: "owner" });
     cards.reverse();
 
     expect(getStudySession("deck")?.cardOrderIds).toEqual(["first", "second"]);
