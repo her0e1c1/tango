@@ -20,7 +20,7 @@ vi.mock("./firestore", () => ({
 import { deleteDeck, editDeck } from "./mutations";
 import { deckStore } from "../model/store";
 
-describe("Deck mutations [DECK-02] [DECK-03]", () => {
+describe("Deck mutations [DECK-MANAGEMENT-01] [DECK-MANAGEMENT-02]", () => {
   beforeEach(() => {
     deckStore.setState({ remoteDecks: [] });
     localStorage.clear();

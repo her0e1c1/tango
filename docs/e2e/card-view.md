@@ -8,15 +8,15 @@ Card 一覧と Card view で学習情報・裏面を表示し、overlay や存�
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| CARD-01 | read | [Card 一覧に学習情報を表示できる](#card-01) |
-| CARD-02 | read | [Card の裏面 overlay を開ける](#card-02) |
-| CARD-07 | read | [開いている Card の裏面 overlay を閉じられる](#card-07) |
-| CARD-11 | read | [Card view を直接開ける](#card-11) |
-| CARD-12 | read | [存在しない Card から復帰できる](#card-12) |
+| CARD-VIEW-01 | read | [Card 一覧に学習情報を表示できる](#card-view-01) |
+| CARD-VIEW-02 | read | [Card の裏面 overlay を開ける](#card-view-02) |
+| CARD-VIEW-03 | read | [開いている Card の裏面 overlay を閉じられる](#card-view-03) |
+| CARD-VIEW-04 | read | [Card view を直接開ける](#card-view-04) |
+| CARD-VIEW-05 | read | [存在しない Card から復帰できる](#card-view-05) |
 
-<a id="card-01"></a>
+<a id="card-view-01"></a>
 
-### CARD-01 Card 一覧に学習情報を表示できる
+### CARD-VIEW-01 Card 一覧に学習情報を表示できる
 
 カテゴリ: `read`
 
@@ -35,9 +35,9 @@ Then:
 - 対象 Card の front text、difficulty、学習回数、tags が表示される。
 - browser error が発生しない。
 
-<a id="card-02"></a>
+<a id="card-view-02"></a>
 
-### CARD-02 Card の裏面 overlay を開ける
+### CARD-VIEW-02 Card の裏面 overlay を開ける
 
 カテゴリ: `read`
 
@@ -56,9 +56,9 @@ Then:
 - 対象 Card の back text が overlay に表示される。
 - browser error が発生しない。
 
-<a id="card-07"></a>
+<a id="card-view-03"></a>
 
-### CARD-07 開いている Card の裏面 overlay を閉じられる
+### CARD-VIEW-03 開いている Card の裏面 overlay を閉じられる
 
 カテゴリ: `read`
 
@@ -79,9 +79,9 @@ Then:
 - Card の永続データが変更されない。
 - browser error が発生しない。
 
-<a id="card-11"></a>
+<a id="card-view-04"></a>
 
-### CARD-11 Card view を直接開ける
+### CARD-VIEW-04 Card view を直接開ける
 
 カテゴリ: `read`
 
@@ -103,9 +103,9 @@ Then:
 - application shell が表示される。
 - browser error が発生しない。
 
-<a id="card-12"></a>
+<a id="card-view-05"></a>
 
-### CARD-12 存在しない Card から復帰できる
+### CARD-VIEW-05 存在しない Card から復帰できる
 
 カテゴリ: `read`
 

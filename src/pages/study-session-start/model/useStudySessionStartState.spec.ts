@@ -58,7 +58,7 @@ const futureCard = createLocalCard({
   uniqueKey: "future-card",
 });
 
-describe("useStudySessionStartState [SWIPE-06]", () => {
+describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
   beforeEach(async () => {
     replaceAuthSession({
       displayName: null,

@@ -24,7 +24,7 @@ afterEach(() => {
   document.body.style.overflow = "";
 });
 
-describe("BulkDifficultyDialog [CARD-19] [CARD-20]", () => {
+describe("BulkDifficultyDialog [CARD-LIST-ACTIONS-05] [CARD-LIST-ACTIONS-06]", () => {
   it("uses a non-destructive dialog to summarize the frozen change", () => {
     render(<BulkDifficultyDialog {...defaultProps} />);
 

@@ -43,7 +43,7 @@ afterEach(async () => {
   localStorage.clear();
 });
 
-describe("Firestore cache mutations [CARD-04 PERSIST-02 PERSIST-04 SWIPE-10]", () => {
+describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTENCE-04 STUDY-SESSION-05]", () => {
   it("completes offline writes without active listeners, including unchanged writes", async () => {
     stop();
     const reference = doc(testDb, "deck", deckId);

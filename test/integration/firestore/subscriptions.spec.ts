@@ -19,7 +19,7 @@ vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "uid" } },
 }));
 
-describe("Query realtime subscriptions [CARD-01] [CARD-10]", () => {
+describe("Query realtime subscriptions [CARD-VIEW-01] [CARD-LIST-ACTIONS-03]", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [] });
     deckStore.setState({ remoteDecks: [] });

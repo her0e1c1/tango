@@ -57,7 +57,7 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("CardPlayer [SWIPE-02] [SWIPE-24]", () => {
+describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04]", () => {
   it("shows only the answer on the back", () => {
     render(
       <CardPlayer
@@ -146,7 +146,7 @@ describe("CardPlayer [SWIPE-02] [SWIPE-24]", () => {
     expect(onClickLeft).not.toHaveBeenCalled();
   });
 
-  it("SWIPE-25 keeps the Help slot fixed while opening the remaining study actions", async () => {
+  it("STUDY-CONTROLS-05 keeps the Help slot fixed while opening the remaining study actions", async () => {
     const user = userEvent.setup();
     const onBack = vi.fn();
     const onToggleCardDetails = vi.fn();
@@ -216,7 +216,7 @@ describe("CardPlayer [SWIPE-02] [SWIPE-24]", () => {
     expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
   });
 
-  it("SWIPE-25 keeps the fixed Help visibility toggle mounted while visibility changes", () => {
+  it("STUDY-CONTROLS-05 keeps the fixed Help visibility toggle mounted while visibility changes", () => {
     const onToggleHelp = vi.fn();
     const props = toolbarProps();
     const { rerender } = render(<CardPlayer {...props} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />);

@@ -34,7 +34,7 @@ const returnToDeckList = async (page: Page) => {
   await page.getByRole("button", { name: "Back to deck list" }).click();
 };
 
-test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ fixture, page }) => {
+test("STUDY-ACTIONS-01 saves mastered progress and advances to the next Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -62,7 +62,7 @@ test("SWIPE-02 saves mastered progress and advances to the next Card", async ({ 
   await expect(directionIcon).toHaveCount(0);
 });
 
-test("SWIPE-03 saves non-mastered progress and advances to the next Card", async ({ fixture, page }) => {
+test("STUDY-ACTIONS-02 saves non-mastered progress and advances to the next Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -82,7 +82,7 @@ test("SWIPE-03 saves non-mastered progress and advances to the next Card", async
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-04 records an unrated next action and advances", async ({ fixture, page }) => {
+test("STUDY-ACTIONS-03 records an unrated next action and advances", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -102,7 +102,7 @@ test("SWIPE-04 records an unrated next action and advances", async ({ fixture, p
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-05 prevents returning to previous Cards through study controls", async ({ fixture, page }) => {
+test("STUDY-ACTIONS-04 prevents returning to previous Cards through study controls", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-2");
@@ -135,7 +135,7 @@ test("SWIPE-05 prevents returning to previous Cards through study controls", asy
   await expect(page.getByRole("button", { name: "Swipe right" })).toBeVisible();
 });
 
-test("SWIPE-06 starts a filtered session capped by the learning limit", async ({ fixture, page }) => {
+test("STUDY-SESSION-01 starts a filtered session capped by the learning limit", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const firstCard = fixture.card("card-1");
   const secondCard = fixture.card("card-2");
@@ -175,7 +175,7 @@ test("SWIPE-06 starts a filtered session capped by the learning limit", async ({
   }
 });
 
-test("SWIPE-07 prevents an empty filtered session from starting", async ({ fixture, page }) => {
+test("STUDY-SESSION-02 prevents an empty filtered session from starting", async ({ fixture, page }) => {
   const deck = fixture.deck();
   await fixture.apply(page);
 
@@ -186,7 +186,7 @@ test("SWIPE-07 prevents an empty filtered session from starting", async ({ fixtu
   expect(await readSession(page, deck.id)).toBeUndefined();
 });
 
-test("SWIPE-08 returns and continues from the same Card", async ({ fixture, page }) => {
+test("STUDY-SESSION-03 returns and continues from the same Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-2");
@@ -207,7 +207,7 @@ test("SWIPE-08 returns and continues from the same Card", async ({ fixture, page
     .toBeGreaterThan(beforeContinue?.lastStudiedAt ?? session.lastStudiedAt);
 });
 
-test("SWIPE-09 restarts an in-progress Deck from a new session", async ({ fixture, page }) => {
+test("STUDY-SESSION-04 restarts an in-progress Deck from a new session", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;
   const previous = fixture.session();
@@ -224,7 +224,7 @@ test("SWIPE-09 restarts an in-progress Deck from a new session", async ({ fixtur
   expect(restarted?.currentIndex).toBe(0);
 });
 
-test("SWIPE-10 finishes the final Card and shows the completion screen", async ({ fixture, page }) => {
+test("STUDY-SESSION-05 finishes the final Card and shows the completion screen", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const finalCard = fixture.card("card-3");
@@ -252,7 +252,7 @@ test("SWIPE-10 finishes the final Card and shows the completion screen", async (
   expect(await readSession(page, deck.id)).toBeUndefined();
 });
 
-test("SWIPE-11 keeps multiple Deck sessions independent", async ({ fixture, page }) => {
+test("STUDY-SESSION-06 keeps multiple Deck sessions independent", async ({ fixture, page }) => {
   const deckA = fixture.deck("deck-a");
   const deckB = fixture.deck("deck-b");
   const sessionA = fixture.session("deck-a");
@@ -279,7 +279,11 @@ test("SWIPE-11 keeps multiple Deck sessions independent", async ({ fixture, page
   await expect.poll(() => readProgress(currentCardB.id)).toEqual(progressOf(currentCardB));
 });
 
-test("SWIPE-12 retries a failed progress write from the same Card once", async ({ browserErrors, fixture, page }) => {
+test("STUDY-ACTIONS-05 retries a failed progress write from the same Card once", async ({
+  browserErrors,
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -311,7 +315,7 @@ test("SWIPE-12 retries a failed progress write from the same Card once", async (
   await fault.dispose();
 });
 
-test("SWIPE-13 advances a remote session on a primary upward mouse drag without flipping", async ({
+test("STUDY-CONTROLS-01 advances a remote session on a primary upward mouse drag without flipping", async ({
   fixture,
   page,
 }) => {
@@ -333,7 +337,7 @@ test("SWIPE-13 advances a remote session on a primary upward mouse drag without 
     });
 });
 
-test("SWIPE-14 ignores non-primary mouse drags", async ({ fixture, page }) => {
+test("STUDY-CONTROLS-02 ignores non-primary mouse drags", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -348,7 +352,10 @@ test("SWIPE-14 ignores non-primary mouse drags", async ({ fixture, page }) => {
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
-test("SWIPE-16 saves local-only progress and advances on a primary upward mouse drag", async ({ fixture, page }) => {
+test("STUDY-CONTROLS-03 saves local-only progress and advances on a primary upward mouse drag", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -369,7 +376,7 @@ test("SWIPE-16 saves local-only progress and advances on a primary upward mouse 
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-17 preserves local-only progress and session position across reload", async ({ fixture, page }) => {
+test("STUDY-SESSION-07 preserves local-only progress and session position across reload", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -393,7 +400,10 @@ test("SWIPE-17 preserves local-only progress and session position across reload"
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("SWIPE-24 shows configured Study controls without changing the active session", async ({ fixture, page }) => {
+test("STUDY-CONTROLS-04 shows configured Study controls without changing the active session", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -436,7 +446,7 @@ test("SWIPE-24 shows configured Study controls without changing the active sessi
   await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
 });
 
-test("SWIPE-25 toggles and persists the Study Help button", async ({ fixture, page }) => {
+test("STUDY-CONTROLS-05 toggles and persists the Study Help button", async ({ fixture, page }) => {
   const deck = fixture.deck();
   await fixture.apply(page);
 

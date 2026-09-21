@@ -37,7 +37,11 @@ const openCardDeleteDialog = async (page: Page, frontText: string) => {
   return page.getByRole("alertdialog", { name: "Delete card?" });
 };
 
-test("CARD-16 retries the same Card deletion after a handled failure", async ({ fixture, page, browserErrors }) => {
+test("CARD-MANAGEMENT-08 retries the same Card deletion after a handled failure", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -63,7 +67,7 @@ test("CARD-16 retries the same Card deletion after a handled failure", async ({ 
     .not.toBeUndefined();
 });
 
-test("CARD-17 confirms before discarding an unsaved Card edit", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-09 confirms before discarding an unsaved Card edit", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   const unsavedFrontText = `${namespace.caseId} unsaved front`;
@@ -88,7 +92,7 @@ test("CARD-17 confirms before discarding an unsaved Card edit", async ({ fixture
     .toBe(card.frontText);
 });
 
-test("CARD-26 confirms before discarding an unsaved Card create", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-11 confirms before discarding an unsaved Card create", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const unsavedFrontText = `${namespace.caseId} unsaved front`;
   await fixture.apply(page);
@@ -148,7 +152,11 @@ const expectCreatedCard = async (page: Page, deckId: string, frontText: string) 
   await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
 };
 
-test("CARD-27 completes cache creation while the cloud write is pending", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-12 completes cache creation while the cloud write is pending", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const deck = fixture.deck();
   const frontText = `${namespace.caseId} pending front`;
   await fixture.apply(page);
@@ -164,7 +172,7 @@ test("CARD-27 completes cache creation while the cloud write is pending", async 
   }
 });
 
-test("CARD-28 keeps a queued creation after navigating away", async ({ fixture, page, namespace }) => {
+test("CARD-MANAGEMENT-13 keeps a queued creation after navigating away", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const frontText = `${namespace.caseId} background front`;
   await fixture.apply(page);
@@ -185,7 +193,7 @@ test("CARD-28 keeps a queued creation after navigating away", async ({ fixture, 
   }
 });
 
-test("CARD-29 reports rejected queued creation after leaving the form", async ({
+test("CARD-MANAGEMENT-14 reports rejected queued creation after leaving the form", async ({
   fixture,
   page,
   namespace,
@@ -212,7 +220,7 @@ test("CARD-29 reports rejected queued creation after leaving the form", async ({
   }
 });
 
-test("CARD-18 retries the same Card-list difficulty change after a handled failure", async ({
+test("CARD-LIST-ACTIONS-04 retries the same Card-list difficulty change after a handled failure", async ({
   fixture,
   page,
   browserErrors,
@@ -244,7 +252,7 @@ test("CARD-18 retries the same Card-list difficulty change after a handled failu
   await expectDifficulty(page, card.frontText, expectedDifficulty);
 });
 
-test("CARD-20 retries a partially failed bulk difficulty change with the same absolute value", async ({
+test("CARD-LIST-ACTIONS-06 retries a partially failed bulk difficulty change with the same absolute value", async ({
   fixture,
   page,
   browserErrors,
@@ -323,7 +331,11 @@ const holdCardWrite = async (page: Page, cardId = "") => {
   return { arrived: arrived.promise, release: () => released.resolve() };
 };
 
-test("CARD-22 reports a queued Card failure after leaving the list", async ({ fixture, page, browserErrors }) => {
+test("CARD-LIST-ACTIONS-07 reports a queued Card failure after leaving the list", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
   const deck = fixture.deck();
   const card = fixture.card("card-1");
   await fixture.apply(page);
@@ -349,7 +361,11 @@ test("CARD-22 reports a queued Card failure after leaving the list", async ({ fi
   await fault.dispose();
 });
 
-test("CARD-23 keeps a new Card deletion pending after an old write fails", async ({ fixture, page, browserErrors }) => {
+test("CARD-LIST-ACTIONS-08 keeps a new Card deletion pending after an old write fails", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
   const deck = fixture.deck();
   const oldCard = fixture.card("card-1");
   const newCard = fixture.card("card-2");

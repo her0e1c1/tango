@@ -77,7 +77,7 @@ const StoredCardEditorHarness = (props: { cardId: CardId; onCancel: () => void; 
   );
 };
 
-describe("CARD-03 CARD-09 CARD-12 CARD-21 CardEditor", () => {
+describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 CardEditor", () => {
   const deckId = "card-edit-deck";
   const cardId = "card-id";
   const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>

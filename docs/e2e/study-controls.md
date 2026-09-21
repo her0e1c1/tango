@@ -8,15 +8,15 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-13 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-13) |
-| SWIPE-14 | read | [non-primary mouse の drag を無視できる](#swipe-14) |
-| SWIPE-16 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](#swipe-16) |
-| SWIPE-24 | read | [Help dialog に現在の操作 mapping を表示できる](#swipe-24) |
-| SWIPE-25 | write | [Help button の表示設定を reload 後も維持できる](#swipe-25) |
+| STUDY-CONTROLS-01 | write | [remote Deck で primary mouse の上方向 drag により次の Card へ進める](#study-controls-01) |
+| STUDY-CONTROLS-02 | read | [non-primary mouse の drag を無視できる](#study-controls-02) |
+| STUDY-CONTROLS-03 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](#study-controls-03) |
+| STUDY-CONTROLS-04 | read | [Help dialog に現在の操作 mapping を表示できる](#study-controls-04) |
+| STUDY-CONTROLS-05 | write | [Help button の表示設定を reload 後も維持できる](#study-controls-05) |
 
-<a id="swipe-13"></a>
+<a id="study-controls-01"></a>
 
-### SWIPE-13 remote Deck で primary mouse の上方向 drag により次の Card へ進める
+### STUDY-CONTROLS-01 remote Deck で primary mouse の上方向 drag により次の Card へ進める
 
 カテゴリ: `write`
 
@@ -38,9 +38,9 @@ Then:
 - drag 後の click によって次の Card が裏面へ切り替わらない。
 - browser error が発生しない。
 
-<a id="swipe-14"></a>
+<a id="study-controls-02"></a>
 
-### SWIPE-14 non-primary mouse の drag を無視できる
+### STUDY-CONTROLS-02 non-primary mouse の drag を無視できる
 
 カテゴリ: `read`
 
@@ -60,9 +60,9 @@ Then:
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
 
-<a id="swipe-16"></a>
+<a id="study-controls-03"></a>
 
-### SWIPE-16 local-only Deck で primary mouse の上方向 drag により次の Card へ進める
+### STUDY-CONTROLS-03 local-only Deck で primary mouse の上方向 drag により次の Card へ進める
 
 カテゴリ: `write`
 
@@ -84,9 +84,9 @@ Then:
 - 次の Card の front text が表示され、back text は表示されない。
 - browser error が発生しない。
 
-<a id="swipe-24"></a>
+<a id="study-controls-04"></a>
 
-### SWIPE-24 Help dialog に現在の操作 mapping を表示できる
+### STUDY-CONTROLS-04 Help dialog に現在の操作 mapping を表示できる
 
 カテゴリ: `read`
 
@@ -117,9 +117,9 @@ Then:
 - focus が dialog 内に維持され、閉じた後は Help trigger へ戻る。
 - browser error が発生しない。
 
-<a id="swipe-25"></a>
+<a id="study-controls-05"></a>
 
-### SWIPE-25 Help button の表示設定を reload 後も維持できる
+### STUDY-CONTROLS-05 Help button の表示設定を reload 後も維持できる
 
 カテゴリ: `write`
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createDeckSchema } from "../model/schema";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
-describe("Deck Firestore document mapping [CARD-10]", () => {
+describe("Deck Firestore document mapping [CARD-LIST-ACTIONS-03]", () => {
   it("accepts legacy strings without applying current command validation", () => {
     expect(
       parseDeckDocument("deck", {

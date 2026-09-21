@@ -125,7 +125,7 @@ export interface NamespacedFixture {
   id: (logicalId: string) => string;
 }
 
-const caseIdFromTestTitle = (title: string) => /^([A-Z]+-[0-9]{2}) /u.exec(title)?.[1];
+const caseIdFromTestTitle = (title: string) => /^([A-Z]+(?:-[A-Z]+)*-[0-9]{2,}) /u.exec(title)?.[1];
 
 export const requireE2ECaseId = (title: string): string => {
   const caseId = caseIdFromTestTitle(title);
@@ -545,11 +545,17 @@ const requiredCapture = (match: RegExpMatchArray): string => {
 
 const readDocumentedCases = (markdownPath: string): DocumentedCase[] => {
   const markdown = readFileSync(markdownPath, "utf8");
-  const headings = [...markdown.matchAll(/^### ([A-Z]+-[0-9]{2})\b.*$/gmu)];
+  const headings = [...markdown.matchAll(/^### ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,})\b.*$/gmu)];
   return headings.map((heading, indexInFile) => {
     const [, caseId] = heading;
     if (caseId === undefined || heading.index === undefined) {
       throw new Error(`Could not parse an E2E case heading in ${path.relative(repositoryRoot, markdownPath)}`);
+    }
+    const expectedCaseId = `${path.basename(markdownPath, ".md").toUpperCase()}-${String(indexInFile + 1).padStart(2, "0")}`;
+    if (caseId !== expectedCaseId) {
+      throw new Error(
+        `Invalid E2E case ID in ${path.relative(repositoryRoot, markdownPath)}: expected ${expectedCaseId}, found ${caseId}`
+      );
     }
     const nextHeading = headings[indexInFile + 1];
     return {

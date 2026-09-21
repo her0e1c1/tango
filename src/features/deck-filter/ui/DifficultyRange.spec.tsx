@@ -19,7 +19,7 @@ const numericOptionValues = (select: HTMLElement): string[] =>
     .map((option) => (option as HTMLOptionElement).value)
     .filter(Boolean);
 
-describe("DifficultyRange [CARD-10] [SETTINGS-04] [SWIPE-06]", () => {
+describe("DifficultyRange [CARD-LIST-ACTIONS-03] [SETTINGS-04] [STUDY-SESSION-01]", () => {
   it("shows explicit domain bounds for legacy null boundaries", () => {
     render(
       <DifficultyRange

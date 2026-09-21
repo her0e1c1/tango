@@ -6,6 +6,7 @@ const control = vi.hoisted(() => ({
   auth: { currentUser: null as User | null },
   observe: undefined as ((user: User | null) => void) | undefined,
   before: undefined as ((user: User | null) => Promise<void>) | undefined,
+  abort: undefined as (() => void) | undefined,
   network: true,
   pending: false,
   subscribed: "",
@@ -21,10 +22,12 @@ vi.mock("firebase/auth", () => ({
       control.observe = undefined;
     };
   },
-  beforeAuthStateChanged: (_auth: unknown, callback: (user: User | null) => Promise<void>) => {
+  beforeAuthStateChanged: (_auth: unknown, callback: (user: User | null) => Promise<void>, abort: () => void) => {
     control.before = callback;
+    control.abort = abort;
     return () => {
       control.before = undefined;
+      control.abort = undefined;
     };
   },
   signInAnonymously: control.anonymous,
@@ -74,7 +77,7 @@ async function publish(value: User | null) {
   });
 }
 
-describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PERSIST-04]", () => {
+describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PERSISTENCE-04]", () => {
   beforeEach(() => {
     control.auth.currentUser = null;
     control.network = false;
@@ -143,5 +146,27 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     await Promise.resolve();
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "new" });
     expect(control.subscribed).toBe("new");
+  });
+  it("reports a shared anonymous bootstrap failure after repeated initialization notifications", async () => {
+    const bootstrap = Promise.withResolvers<void>();
+    control.anonymous.mockReturnValueOnce(bootstrap.promise);
+    await publish(null);
+    await publish(null);
+    const error = new Error("anonymous sign-in failed");
+    bootstrap.reject(error);
+    await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "error", error }));
+    expect(control.anonymous).toHaveBeenCalledOnce();
+    expect(control.network).toBe(false);
+    expect(control.subscribed).toBe("");
+  });
+  it("restores the current account after a later auth callback aborts the switch", async () => {
+    await publish(user("account", false));
+    await control.before?.(null);
+    expect(control.network).toBe(false);
+    expect(control.subscribed).toBe("");
+    control.abort?.();
+    await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" }));
+    expect(control.network).toBe(true);
+    expect(control.subscribed).toBe("account");
   });
 });

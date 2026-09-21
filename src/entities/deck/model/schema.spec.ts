@@ -6,7 +6,7 @@ import { createDeck as createDeckFixture } from "@/test/factories";
 
 import { createDeckSchema, editDeckSchema } from "./schema";
 
-describe("Deck operation schemas [CARD-10]", () => {
+describe("Deck operation schemas [CARD-LIST-ACTIONS-03]", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
   describe("createDeckSchema", () => {

@@ -20,7 +20,7 @@ const card = createLocalCard({
   uniqueKey: "card-view-card",
 });
 
-describe("CARD-11 CARD-12 useCardViewState", () => {
+describe("CARD-VIEW-04 CARD-VIEW-05 useCardViewState", () => {
   beforeEach(async () => {
     updatePreferences(createPreferences({ appearance: { darkMode: true } }));
     await createDeck("user-id", deck);

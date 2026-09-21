@@ -11,7 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { SwipeButtonList } from "./SwipeButtonList";
 
-describe("SwipeButtonList [SWIPE-05]", () => {
+describe("SwipeButtonList [STUDY-ACTIONS-04]", () => {
   it("keeps disabled directions visible and skips them during keyboard navigation", async () => {
     const user = userEvent.setup();
     const onClickLeft = vi.fn();

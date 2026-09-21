@@ -8,18 +8,18 @@ Deck の作成・編集・削除が保存先の境界を守り、失敗後の再
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| DECK-02 | write | [Deck 編集内容を保存して reload 後も確認できる](#deck-02) |
-| DECK-03 | batch | [Deck と関連データをまとめて削除できる](#deck-03) |
-| DECK-04 | read | [Deck の削除を取り消せる](#deck-04) |
-| DECK-05 | batch | [Deck の削除失敗後に再試行できる](#deck-05) |
-| DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-09) |
-| DECK-10 | write | [remote Deck の作成失敗を通知できる](#deck-10) |
-| DECK-11 | write | [空の local-only Deck を作成して reload 後も確認できる](#deck-11) |
-| DECK-12 | read | [未保存の Deck 編集内容を離脱前に確認できる](#deck-12) |
+| DECK-MANAGEMENT-01 | write | [Deck 編集内容を保存して reload 後も確認できる](#deck-management-01) |
+| DECK-MANAGEMENT-02 | batch | [Deck と関連データをまとめて削除できる](#deck-management-02) |
+| DECK-MANAGEMENT-03 | read | [Deck の削除を取り消せる](#deck-management-03) |
+| DECK-MANAGEMENT-04 | batch | [Deck の削除失敗後に再試行できる](#deck-management-04) |
+| DECK-MANAGEMENT-05 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-management-05) |
+| DECK-MANAGEMENT-06 | write | [remote Deck の作成失敗を通知できる](#deck-management-06) |
+| DECK-MANAGEMENT-07 | write | [空の local-only Deck を作成して reload 後も確認できる](#deck-management-07) |
+| DECK-MANAGEMENT-08 | read | [未保存の Deck 編集内容を離脱前に確認できる](#deck-management-08) |
 
-<a id="deck-02"></a>
+<a id="deck-management-01"></a>
 
-### DECK-02 Deck 編集内容を保存して reload 後も確認できる
+### DECK-MANAGEMENT-01 Deck 編集内容を保存して reload 後も確認できる
 
 カテゴリ: `write`
 
@@ -38,9 +38,9 @@ Then:
 - 編集画面に変更後の name、category、source URL が表示される。
 - browser error が発生しない。
 
-<a id="deck-03"></a>
+<a id="deck-management-02"></a>
 
-### DECK-03 Deck と関連データをまとめて削除できる
+### DECK-MANAGEMENT-02 Deck と関連データをまとめて削除できる
 
 カテゴリ: `batch`
 
@@ -64,9 +64,9 @@ Then:
 - 操作対象ではない Deck、Card、学習 session は維持され、引き続き再開できる。
 - browser error が発生しない。
 
-<a id="deck-04"></a>
+<a id="deck-management-03"></a>
 
-### DECK-04 Deck の削除を取り消せる
+### DECK-MANAGEMENT-03 Deck の削除を取り消せる
 
 カテゴリ: `read`
 
@@ -88,9 +88,9 @@ Then:
 - 対象 Deck と関連する Card および学習 session が変更されない。
 - browser error が発生しない。
 
-<a id="deck-05"></a>
+<a id="deck-management-04"></a>
 
-### DECK-05 Deck の削除失敗後に再試行できる
+### DECK-MANAGEMENT-04 Deck の削除失敗後に再試行できる
 
 カテゴリ: `batch`
 
@@ -117,9 +117,9 @@ Then:
 - 対象 Deck と関連する Card および学習 session が削除される。
 - 最初の削除失敗に伴う未処理の browser error が発生しない。
 
-<a id="deck-09"></a>
+<a id="deck-management-05"></a>
 
-### DECK-09 空の remote Deck を作成して reload 後も確認できる
+### DECK-MANAGEMENT-05 空の remote Deck を作成して reload 後も確認できる
 
 カテゴリ: `write`
 
@@ -142,9 +142,9 @@ Then:
 - cache と remote は同じ ID を使い、独立した local-only duplicate を作成しない。
 - browser error が発生しない。
 
-<a id="deck-10"></a>
+<a id="deck-management-06"></a>
 
-### DECK-10 remote Deck の作成失敗を通知できる
+### DECK-MANAGEMENT-06 remote Deck の作成失敗を通知できる
 
 カテゴリ: `write`
 
@@ -166,9 +166,9 @@ Then:
 - 未処理の browser error や独自の自動再試行を発生させない。
 - cache 保存自体が失敗した場合は入力を維持し、再送信できる。
 
-<a id="deck-11"></a>
+<a id="deck-management-07"></a>
 
-### DECK-11 空の local-only Deck を作成して reload 後も確認できる
+### DECK-MANAGEMENT-07 空の local-only Deck を作成して reload 後も確認できる
 
 カテゴリ: `write`
 
@@ -192,9 +192,9 @@ Then:
 - 対象 Deck に Card が存在しない。
 - browser error が発生しない。
 
-<a id="deck-12"></a>
+<a id="deck-management-08"></a>
 
-### DECK-12 未保存の Deck 編集内容を離脱前に確認できる
+### DECK-MANAGEMENT-08 未保存の Deck 編集内容を離脱前に確認できる
 
 カテゴリ: `read`
 

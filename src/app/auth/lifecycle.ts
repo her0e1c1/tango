@@ -32,15 +32,11 @@ export function startAuthSession(): () => void {
   let active = true;
   let generation = 0;
   const isCurrent = (value: number) => active && value === generation;
-  let subscribedUid: string | undefined;
-  let stopData: (() => void) | undefined;
-  let dataReady = Promise.resolve();
+  let subscription: ({ uid: string } & ReturnType<typeof startFirestoreSubscriptions>) | undefined;
   let bootstrap: Promise<unknown> | undefined;
   const stopSubscriptions = () => {
-    stopData?.();
-    stopData = undefined;
-    subscribedUid = undefined;
-    dataReady = Promise.resolve();
+    subscription?.stop();
+    subscription = undefined;
   };
   const reportError = (error: unknown) => {
     if (active) replaceAuthSession({ status: "error", error });
@@ -72,55 +68,46 @@ export function startAuthSession(): () => void {
     () => {
       // A later Firebase blocking callback may abort the change; restore the still-current identity.
       const user = auth.currentUser;
-      if (user) activateSafely(user);
+      if (user) void activate(user);
     }
   );
 
   async function activate(user: User | null): Promise<void> {
     generation += 1;
     const currentGeneration = generation;
-    await initialNetworkStopped;
-    if (!isCurrent(currentGeneration)) return;
-    if (user === null) {
-      await disableNetwork(db);
-      stopSubscriptions();
-      if (bootstrap !== undefined) return;
-      replaceAuthSession({ status: "authenticating", attemptId: Symbol("anonymous-auth") });
-      bootstrap = signInAnonymously(auth);
-      void bootstrap
-        .catch((error: unknown) => {
-          if (currentGeneration === generation) reportError(error);
-        })
-        .finally(() => {
+    try {
+      await initialNetworkStopped;
+      if (!isCurrent(currentGeneration)) return;
+      await (user && !user.isAnonymous ? enableNetwork(db) : disableNetwork(db));
+      if (!isCurrent(currentGeneration)) return;
+      if (user === null) {
+        stopSubscriptions();
+        replaceAuthSession({ status: "authenticating", attemptId: Symbol("anonymous-auth") });
+        bootstrap ??= signInAnonymously(auth).finally(() => {
           bootstrap = undefined;
         });
-      return;
+        await bootstrap;
+        return;
+      }
+      if (subscription?.uid !== user.uid) {
+        stopSubscriptions();
+        subscription = { uid: user.uid, ...startFirestoreSubscriptions(user.uid) };
+      }
+      await subscription.ready;
+      if (!isCurrent(currentGeneration)) return;
+      replaceAuthSession(authSessionFromUser(user));
+    } catch (error) {
+      if (isCurrent(currentGeneration)) reportError(error);
     }
-    await disableNetwork(db);
-    if (!isCurrent(currentGeneration)) return;
-    if (!user.isAnonymous) await enableNetwork(db);
-    if (!isCurrent(currentGeneration)) return;
-    if (subscribedUid !== user.uid) {
-      stopSubscriptions();
-      const subscription = startFirestoreSubscriptions(user.uid);
-      stopData = subscription.stop;
-      subscribedUid = user.uid;
-      dataReady = subscription.ready;
-    }
-    await dataReady;
-    if (!isCurrent(currentGeneration)) return;
-    replaceAuthSession(authSessionFromUser(user));
   }
 
-  function activateSafely(user: User | null): void {
-    const activation = activate(user);
-    const activationGeneration = generation;
-    void activation.catch((error: unknown) => {
-      if (isCurrent(activationGeneration)) reportError(error);
-    });
-  }
-
-  const stopAuth = onIdTokenChanged(auth, activateSafely, reportError);
+  const stopAuth = onIdTokenChanged(
+    auth,
+    (user) => {
+      void activate(user);
+    },
+    reportError
+  );
   return () => {
     active = false;
     generation += 1;

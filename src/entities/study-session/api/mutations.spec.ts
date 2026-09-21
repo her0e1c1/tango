@@ -18,7 +18,7 @@ vi.mock("./firestore", () => ({
   },
 }));
 
-describe("Study start and restart [SWIPE-06] [SWIPE-09]", () => {
+describe("Study start and restart [STUDY-SESSION-01] [STUDY-SESSION-04]", () => {
   beforeEach(() => {
     clearStudySessions();
     persistence.create.mockReset().mockImplementation(async (session: import("../model/types").StudySession) => {

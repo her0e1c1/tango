@@ -85,7 +85,7 @@ const RepositoryView = () => {
   );
 };
 
-describe("Firestore subscriptions [PERSIST-01 PERSIST-04 ACCOUNT-03]", () => {
+describe("Firestore subscriptions [PERSISTENCE-01 PERSISTENCE-04 ACCOUNT-03]", () => {
   beforeEach(() => {
     clearRemoteCards();
     clearRemoteDecks();

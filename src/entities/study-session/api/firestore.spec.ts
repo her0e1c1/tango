@@ -24,7 +24,7 @@ vi.mock("firebase/firestore", async (importOriginal) => ({
   onSnapshot: mocks.subscribe,
 }));
 
-describe("Study session synchronization [SWIPE-06] [SWIPE-08] [SWIPE-17] [PERSIST-04]", () => {
+describe("Study session synchronization [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     clearStudySessions();

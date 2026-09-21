@@ -56,7 +56,7 @@ const getSnapshotHandler = () =>
 // Returns the error callback registered by the Card subscription.
 const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
-describe("Card Firestore subscription [CARD-01]", () => {
+describe("Card Firestore subscription [CARD-VIEW-01]", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [] });
     vi.clearAllMocks();

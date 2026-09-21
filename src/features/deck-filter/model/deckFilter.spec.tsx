@@ -62,7 +62,7 @@ const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[] }> = ({ deck, ta
   );
 };
 
-describe("CARD-10 SWIPE-26 DeckFilterForm with individual draft and save actions", () => {
+describe("CARD-LIST-ACTIONS-03 STUDY-SESSION-08 DeckFilterForm with individual draft and save actions", () => {
   beforeEach(() => {
     writeControls.calls = [];
     writeControls.write = undefined;

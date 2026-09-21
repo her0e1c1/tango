@@ -34,7 +34,7 @@ const readControls = () =>
     saving: false,
   });
 
-describe("CARD-19 CARD-20 bulk difficulty workflow", () => {
+describe("CARD-LIST-ACTIONS-05 CARD-LIST-ACTIONS-06 bulk difficulty workflow", () => {
   beforeEach(() => {
     cardListStore.setState(cardListStore.getInitialState(), true);
     vi.resetAllMocks();

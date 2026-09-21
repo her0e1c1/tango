@@ -43,7 +43,7 @@ vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "uid" } },
 }));
 
-describe("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
+describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () => {
   const db = getFirestore();
   const newCard = createCard({
     frontText: "front text",

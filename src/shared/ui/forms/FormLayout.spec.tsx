@@ -11,7 +11,7 @@ const appearsBefore = (first: Node, second: Node): boolean => {
   return Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
 };
 
-describe("DECK-02 shared form layout", () => {
+describe("DECK-MANAGEMENT-01 shared form layout", () => {
   it("presents label, value, help, and error with a clear visual hierarchy", () => {
     render(
       <form>

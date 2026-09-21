@@ -37,7 +37,7 @@ const sections = {
   other: [{ deck: otherDeck, cardCount: 7 }],
 } satisfies DeckListProps["sections"];
 
-describe("SETTINGS-04 DECK-01 DeckList", () => {
+describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
   it("renders the page count and both compact sections", () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 

@@ -37,7 +37,7 @@ vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "uid" } },
 }));
 
-describe.concurrent("firestore/deck [CARD-10]", { retry: 3 }, () => {
+describe.concurrent("firestore/deck [CARD-LIST-ACTIONS-03]", { retry: 3 }, () => {
   const db = getFirestore();
   const newDeck = createDeckFixture({
     name: "new deck name",

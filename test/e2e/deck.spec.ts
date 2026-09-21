@@ -25,7 +25,7 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("DECK-01 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
+test("DECK-NAVIGATION-01 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -87,7 +87,11 @@ test("DECK-01 navigates from the Deck list to its Card list", async ({ fixture, 
   }
 });
 
-test("DECK-02 persists edited name, category, and source URL across reload", async ({ fixture, page, namespace }) => {
+test("DECK-MANAGEMENT-01 persists edited name, category, and source URL across reload", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   const updatedName = `${namespace.caseId} updated`;
@@ -113,7 +117,7 @@ test("DECK-02 persists edited name, category, and source URL across reload", asy
   await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(updatedSourceUrl);
 });
 
-test("DECK-03 deletes one Deck and preserves unrelated Deck data", async ({ fixture, page }) => {
+test("DECK-MANAGEMENT-02 deletes one Deck and preserves unrelated Deck data", async ({ fixture, page }) => {
   const deck = fixture.deck("deck-a");
   const otherDeck = fixture.deck("deck-b");
   const otherCards = fixture.state.remote.cards.filter((card) => card.deckId === otherDeck.id);
@@ -143,7 +147,7 @@ test("DECK-03 deletes one Deck and preserves unrelated Deck data", async ({ fixt
   await expect(page.getByRole("button", { name: `Continue ${otherDeck.name}` })).toBeVisible();
 });
 
-test("DECK-04 cancels Deck deletion and preserves all related data", async ({ fixture, page }) => {
+test("DECK-MANAGEMENT-03 cancels Deck deletion and preserves all related data", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;
   const session = fixture.session();
@@ -165,7 +169,11 @@ test("DECK-04 cancels Deck deletion and preserves all related data", async ({ fi
   expect((await readLocalData(page)).sessionsByDeckId).toHaveProperty(deck.id, session);
 });
 
-test("DECK-05 retries the same Deck deletion after a handled failure", async ({ fixture, page, browserErrors }) => {
+test("DECK-MANAGEMENT-04 retries the same Deck deletion after a handled failure", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
   const deck = fixture.deck();
   const failureMessage = "A data save or sync failed. Check your connection and reload to review the saved data.";
   await fixture.apply(page);
@@ -214,7 +222,7 @@ test("DECK-05 retries the same Deck deletion after a handled failure", async ({ 
   expect((await readLocalData(page)).sessionsByDeckId).not.toHaveProperty(deck.id);
 });
 
-test("DECK-06 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
+test("DECK-NAVIGATION-02 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
   await fixture.apply(page);
 
   await page.goto(`/deck/${namespace.id("missing")}`);
@@ -225,7 +233,7 @@ test("DECK-06 recovers home from a missing Deck route", async ({ fixture, page, 
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
 });
 
-test("DECK-08 downloads every Card field as one CSV row", async ({ fixture, page }, testInfo) => {
+test("DECK-TRANSFER-01 downloads every Card field as one CSV row", async ({ fixture, page }, testInfo) => {
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;
   await fixture.apply(page);
@@ -247,7 +255,11 @@ test("DECK-08 downloads every Card field as one CSV row", async ({ fixture, page
   expect(csv.trim().split("\n")).toHaveLength(cards.length);
 });
 
-test("DECK-09 creates one empty remote Deck without a local duplicate", async ({ fixture, page, namespace }) => {
+test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const name = `${namespace.caseId} created`;
   const category = "typescript";
   const sourceUrl = "https://example.com/created-deck.csv";
@@ -299,7 +311,7 @@ test("DECK-09 creates one empty remote Deck without a local duplicate", async ({
   expect(local.decks).toHaveLength(1);
 });
 
-test("DECK-10 reports a failed remote create without locking the form", async ({
+test("DECK-MANAGEMENT-06 reports a failed remote create without locking the form", async ({
   fixture,
   page,
   browserErrors,
@@ -337,7 +349,7 @@ test("DECK-10 reports a failed remote create without locking the form", async ({
   expect(local.cards).toEqual([]);
 });
 
-test("DECK-12 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {
+test("DECK-MANAGEMENT-08 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const unsavedName = `${namespace.caseId} unsaved`;
   await fixture.apply(page);

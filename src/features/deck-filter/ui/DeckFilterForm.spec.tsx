@@ -32,7 +32,7 @@ const createProps = (): DeckFilterFormProps => ({
   setTagAndFilter: vi.fn(),
 });
 
-describe("CARD-10 DeckFilterForm", () => {
+describe("CARD-LIST-ACTIONS-03 DeckFilterForm", () => {
   it("composes difficulty and tag filters and preserves callbacks", async () => {
     const props = createProps();
     render(<DeckFilterForm {...props} />);

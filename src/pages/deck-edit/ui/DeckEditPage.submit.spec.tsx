@@ -47,7 +47,7 @@ const createDeckEditRouter = (deckId: string) =>
     { initialEntries: [`/deck/${deckId}/edit`] }
   );
 
-describe("DeckEditPage submission [DECK-02]", () => {
+describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
   const deckId = "deck-edit-submit-deck";
 
   beforeEach(async () => {

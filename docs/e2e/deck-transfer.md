@@ -8,11 +8,11 @@ Deck の Card を外部で利用できる形式へ export できることを確�
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| DECK-08 | read | [Deck の Card を CSV で export できる](#deck-08) |
+| DECK-TRANSFER-01 | read | [Deck の Card を CSV で export できる](#deck-transfer-01) |
 
-<a id="deck-08"></a>
+<a id="deck-transfer-01"></a>
 
-### DECK-08 Deck の Card を CSV で export できる
+### DECK-TRANSFER-01 Deck の Card を CSV で export できる
 
 カテゴリ: `read`
 

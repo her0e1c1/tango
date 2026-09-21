@@ -8,24 +8,24 @@ Card の作成・編集・削除が保存先の境界を守り、失敗後も入
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| CARD-03 | write | [Card 編集内容を保存して reload 後も確認できる](#card-03) |
-| CARD-04 | write | [Card を削除できる](#card-04) |
-| CARD-08 | read | [Card の削除を取り消せる](#card-08) |
-| CARD-09 | write | [Card の編集失敗後に再試行できる](#card-09) |
-| CARD-13 | write | [remote Deck に Card を作成できる](#card-13) |
-| CARD-14 | write | [local-only Deck に Card を作成できる](#card-14) |
-| CARD-15 | write | [remote Card の作成拒否後に新しい ID で重複なく再試行できる](#card-15) |
-| CARD-16 | write | [Card の削除失敗後に再試行できる](#card-16) |
-| CARD-17 | read | [未保存の Card 編集内容を離脱前に確認できる](#card-17) |
-| CARD-21 | read | [Card の未表示の面にある入力エラーを修正できる](#card-21) |
-| CARD-26 | read | [未保存の Card 作成内容の離脱を確認できる](#card-26) |
-| CARD-27 | write | [Card 作成成功が未回答の離脱確認より優先される](#card-27) |
-| CARD-28 | write | [Card 作成中に離脱しても保存成功時に一覧へ移動する](#card-28) |
-| CARD-29 | write | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](#card-29) |
+| CARD-MANAGEMENT-01 | write | [Card 編集内容を保存して reload 後も確認できる](#card-management-01) |
+| CARD-MANAGEMENT-02 | write | [Card を削除できる](#card-management-02) |
+| CARD-MANAGEMENT-03 | read | [Card の削除を取り消せる](#card-management-03) |
+| CARD-MANAGEMENT-04 | write | [Card の編集失敗後に再試行できる](#card-management-04) |
+| CARD-MANAGEMENT-05 | write | [remote Deck に Card を作成できる](#card-management-05) |
+| CARD-MANAGEMENT-06 | write | [local-only Deck に Card を作成できる](#card-management-06) |
+| CARD-MANAGEMENT-07 | write | [remote Card の作成拒否後に新しい ID で重複なく再試行できる](#card-management-07) |
+| CARD-MANAGEMENT-08 | write | [Card の削除失敗後に再試行できる](#card-management-08) |
+| CARD-MANAGEMENT-09 | read | [未保存の Card 編集内容を離脱前に確認できる](#card-management-09) |
+| CARD-MANAGEMENT-10 | read | [Card の未表示の面にある入力エラーを修正できる](#card-management-10) |
+| CARD-MANAGEMENT-11 | read | [未保存の Card 作成内容の離脱を確認できる](#card-management-11) |
+| CARD-MANAGEMENT-12 | write | [Card 作成成功が未回答の離脱確認より優先される](#card-management-12) |
+| CARD-MANAGEMENT-13 | write | [Card 作成中に離脱しても保存成功時に一覧へ移動する](#card-management-13) |
+| CARD-MANAGEMENT-14 | write | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](#card-management-14) |
 
-<a id="card-03"></a>
+<a id="card-management-01"></a>
 
-### CARD-03 Card 編集内容を保存して reload 後も確認できる
+### CARD-MANAGEMENT-01 Card 編集内容を保存して reload 後も確認できる
 
 カテゴリ: `write`
 
@@ -52,9 +52,9 @@ Then:
 - 既存 Card の ID・uniqueKey・deckId・学習情報と未変更の独自 tags は保持され、購読更新は編集中の draft を上書きしない。
 - browser error が発生しない。
 
-<a id="card-04"></a>
+<a id="card-management-02"></a>
 
-### CARD-04 Card を削除できる
+### CARD-MANAGEMENT-02 Card を削除できる
 
 カテゴリ: `write`
 
@@ -75,9 +75,9 @@ Then:
 - 対象 Card が active Card として保存先から読み込まれない。
 - browser error が発生しない。
 
-<a id="card-08"></a>
+<a id="card-management-03"></a>
 
-### CARD-08 Card の削除を取り消せる
+### CARD-MANAGEMENT-03 Card の削除を取り消せる
 
 カテゴリ: `read`
 
@@ -99,9 +99,9 @@ Then:
 - 対象 Card の永続データが変更されない。
 - browser error が発生しない。
 
-<a id="card-09"></a>
+<a id="card-management-04"></a>
 
-### CARD-09 Card の編集失敗後に再試行できる
+### CARD-MANAGEMENT-04 Card の編集失敗後に再試行できる
 
 カテゴリ: `write`
 
@@ -125,9 +125,9 @@ Then:
 - 失敗 toast は再試行・Cancel・アンマウントによって個別に消去されず、共通 toast の寿命に従う。
 - 最初の編集失敗に伴う未処理の browser error が発生しない。
 
-<a id="card-13"></a>
+<a id="card-management-05"></a>
 
-### CARD-13 remote Deck に Card を作成できる
+### CARD-MANAGEMENT-05 remote Deck に Card を作成できる
 
 カテゴリ: `write`
 
@@ -152,9 +152,9 @@ Then:
 - 入力検証中と保存中は作成ボタンが無効になり、作成処理が終わるまで追加の作成を受け付けない。
 - browser error が発生しない。
 
-<a id="card-14"></a>
+<a id="card-management-06"></a>
 
-### CARD-14 local-only Deck に Card を作成できる
+### CARD-MANAGEMENT-06 local-only Deck に Card を作成できる
 
 カテゴリ: `write`
 
@@ -178,9 +178,9 @@ Then:
 - Card は browser 保存先だけに1件存在し、remote 保存先には存在しない。
 - browser error が発生しない。
 
-<a id="card-15"></a>
+<a id="card-management-07"></a>
 
-### CARD-15 remote Card の作成拒否後に新しい ID で重複なく再試行できる
+### CARD-MANAGEMENT-07 remote Card の作成拒否後に新しい ID で重複なく再試行できる
 
 カテゴリ: `write`
 
@@ -207,9 +207,9 @@ Then:
 
 保存結果が不明な通信失敗では、最初の要求が保存済みである可能性がある。再試行は新しい ID を使用するため、この場合の重複防止は保証しない。
 
-<a id="card-16"></a>
+<a id="card-management-08"></a>
 
-### CARD-16 Card の削除失敗後に再試行できる
+### CARD-MANAGEMENT-08 Card の削除失敗後に再試行できる
 
 カテゴリ: `write`
 
@@ -231,9 +231,9 @@ Then:
 - 対象 Card が active Card として保存先から読み込まれない。
 - 最初の削除失敗に伴う未処理の browser error が発生しない。
 
-<a id="card-17"></a>
+<a id="card-management-09"></a>
 
-### CARD-17 未保存の Card 編集内容を離脱前に確認できる
+### CARD-MANAGEMENT-09 未保存の Card 編集内容を離脱前に確認できる
 
 カテゴリ: `read`
 
@@ -257,9 +257,9 @@ Then:
 - 永続化された Card の front text は変更されない。
 - browser error が発生しない。
 
-<a id="card-21"></a>
+<a id="card-management-10"></a>
 
-### CARD-21 Card の未表示の面にある入力エラーを修正できる
+### CARD-MANAGEMENT-10 Card の未表示の面にある入力エラーを修正できる
 
 カテゴリ: `read`
 
@@ -281,9 +281,9 @@ Then:
 - 未入力の値は維持され、Card は保存されず元の永続データが変更されない。
 - browser error が発生しない。
 
-<a id="card-26"></a>
+<a id="card-management-11"></a>
 
-### CARD-26 未保存の Card 作成内容の離脱を確認できる
+### CARD-MANAGEMENT-11 未保存の Card 作成内容の離脱を確認できる
 
 カテゴリ: `read`
 
@@ -304,9 +304,9 @@ Then:
 - Discard changes では所属 Deck の Card 一覧へ移動し、Card は作成されない。
 - browser error が発生しない。
 
-<a id="card-27"></a>
+<a id="card-management-12"></a>
 
-### CARD-27 Card 作成成功が未回答の離脱確認より優先される
+### CARD-MANAGEMENT-12 Card 作成成功が未回答の離脱確認より優先される
 
 カテゴリ: `write`
 
@@ -329,9 +329,9 @@ Then:
 
 cache 反映が完了すれば remote の応答を待たずに成功して一覧へ移動する。remote 応答を保留した E2E では、この時点で Card が表示されることを確認する。
 
-<a id="card-28"></a>
+<a id="card-management-13"></a>
 
-### CARD-28 Card 作成中に離脱しても保存成功時に一覧へ移動する
+### CARD-MANAGEMENT-13 Card 作成中に離脱しても保存成功時に一覧へ移動する
 
 カテゴリ: `write`
 
@@ -353,9 +353,9 @@ Then:
 
 cache 反映後に別の画面へ移動した場合、その後の remote 同期成功は再遷移を起こさない。E2E では Deck 一覧に留まり、再度開いた Card 一覧に保存した Card があることを確認する。
 
-<a id="card-29"></a>
+<a id="card-management-14"></a>
 
-### CARD-29 Card 作成失敗後も離脱確認と入力を保持して再試行できる
+### CARD-MANAGEMENT-14 Card 作成失敗後も離脱確認と入力を保持して再試行できる
 
 カテゴリ: `write`
 
@@ -377,9 +377,9 @@ Then:
 
 cache 反映後の remote 拒否は App 共通の同期エラー通知で知らせ、移動先に留まる。SDK が拒否した Card を戻し、古い入力画面や離脱確認を復元しない。この段階を E2E で確認する。
 
-<a id="card-30"></a>
+<a id="card-management-15"></a>
 
-### CARD-30 作成中の未保存の解答をプレビューできる
+### CARD-MANAGEMENT-15 作成中の未保存の解答をプレビューできる
 
 カテゴリ: `read`
 
@@ -403,9 +403,9 @@ Then:
 - 狭い画面でもプレビュー操作と入力欄を利用できる。
 - Card、Deck、Progress、学習 session の保存値と URL が変更されず、browser error が発生しない。
 
-<a id="card-31"></a>
+<a id="card-management-16"></a>
 
-### CARD-31 編集中の未保存の解答と表示形式をプレビューできる
+### CARD-MANAGEMENT-16 編集中の未保存の解答と表示形式をプレビューできる
 
 カテゴリ: `read`
 

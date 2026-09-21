@@ -18,15 +18,15 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-02 | write | [mastered action で学習結果を保存して次の Card へ進める](#swipe-02) |
-| SWIPE-03 | write | [non-mastered action で学習結果を保存して次の Card へ進める](#swipe-03) |
-| SWIPE-04 | write | [next-card action で次の Card へ進める](#swipe-04) |
-| SWIPE-05 | read | [学習中に前の Card へ戻れない](#swipe-05) |
-| SWIPE-12 | write | [学習結果の保存失敗後に同じ Card から再試行できる](#swipe-12) |
+| STUDY-ACTIONS-01 | write | [mastered action で学習結果を保存して次の Card へ進める](#study-actions-01) |
+| STUDY-ACTIONS-02 | write | [non-mastered action で学習結果を保存して次の Card へ進める](#study-actions-02) |
+| STUDY-ACTIONS-03 | write | [next-card action で次の Card へ進める](#study-actions-03) |
+| STUDY-ACTIONS-04 | read | [学習中に前の Card へ戻れない](#study-actions-04) |
+| STUDY-ACTIONS-05 | write | [学習結果の保存失敗後に同じ Card から再試行できる](#study-actions-05) |
 
-<a id="swipe-02"></a>
+<a id="study-actions-01"></a>
 
-### SWIPE-02 mastered action で学習結果を保存して次の Card へ進める
+### STUDY-ACTIONS-01 mastered action で学習結果を保存して次の Card へ進める
 
 カテゴリ: `write`
 
@@ -50,9 +50,9 @@ Then:
 - アプリは session と回答位置に対応する回答 ID を使い、回答、Card の学習回数・回答時刻、session の更新を一つの batch にまとめ、通常の二重送信を防止する。
 - browser error が発生しない。
 
-<a id="swipe-03"></a>
+<a id="study-actions-02"></a>
 
-### SWIPE-03 non-mastered action で学習結果を保存して次の Card へ進める
+### STUDY-ACTIONS-02 non-mastered action で学習結果を保存して次の Card へ進める
 
 カテゴリ: `write`
 
@@ -73,9 +73,9 @@ Then:
 - 次の Card の front text が表示される。
 - browser error が発生しない。
 
-<a id="swipe-04"></a>
+<a id="study-actions-03"></a>
 
-### SWIPE-04 next-card action で次の Card へ進める
+### STUDY-ACTIONS-03 next-card action で次の Card へ進める
 
 カテゴリ: `write`
 
@@ -96,9 +96,9 @@ Then:
 - 次の Card の front text が表示される。
 - browser error が発生しない。
 
-<a id="swipe-05"></a>
+<a id="study-actions-04"></a>
 
-### SWIPE-05 学習中に前の Card へ戻れない
+### STUDY-ACTIONS-04 学習中に前の Card へ戻れない
 
 カテゴリ: `read`
 
@@ -125,9 +125,9 @@ Then:
 - 方向の設定が変更された場合も previous-card action の方向だけが無効になり、別の action は利用できる。
 - browser error が発生しない。
 
-<a id="swipe-12"></a>
+<a id="study-actions-05"></a>
 
-### SWIPE-12 学習結果の保存失敗後に同じ Card から再試行できる
+### STUDY-ACTIONS-05 学習結果の保存失敗後に同じ Card から再試行できる
 
 カテゴリ: `write`
 

@@ -12,7 +12,7 @@ vi.mock("./firestore", () => ({ editRemoteStudyProgress: mocks.editRemoteStudyPr
 
 import { editStudyProgress } from "./mutations";
 
-describe("StudyProgress mutations [SWIPE-02]", () => {
+describe("StudyProgress mutations [STUDY-ACTIONS-01]", () => {
   beforeEach(() => vi.resetAllMocks());
 
   it("uses Firestore for anonymous Card progress too", async () => {
