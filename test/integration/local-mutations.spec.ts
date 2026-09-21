@@ -23,7 +23,7 @@ import type { StudySession } from "@/entities/study-session";
 function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating, answeredAt: number) {
   const card = getCards().find(({ id }) => id === session.cardOrderIds[session.currentIndex]);
   if (!card) throw new Error("Missing card");
-  const { difficulty, numberOfSeen } = recordCardStudyProgress(card, rating, answeredAt);
+  const { difficulty, numberOfSeen } = recordCardStudyProgress(card, answeredAt);
   const schedule = calculateStudySchedule(card.schedule, rating, answeredAt);
   return saveStudyOperation(
     {
