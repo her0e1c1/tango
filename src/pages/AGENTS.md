@@ -2,7 +2,8 @@
 
 ## Placement
 
-- Follow FSD v2.1 page-first. Keep code in the Page while only that Page uses it.
+- Follow FSD v2.1 page-first for screen-specific code. Entity-owned API access follows the repository API placement policy even when only one Page uses it.
+- Do not create `api/` directories under `src/pages`, or put domain HTTP, Firestore, or persistence implementations in other Page segments. Consume the owning Entity through its public API instead.
 - Move a workflow to Features only when multiple Pages actually reuse it.
 - Move reusable domain concepts, rules, and visual representations to Entities.
 - Do not keep lower-layer slices only to preserve an architectural label when Steiger considers them insignificant.
@@ -34,6 +35,7 @@
 - Do not put business rules, validation, derived-data calculations, state transitions, or async workflow sequencing in the Page model.
 - Put derived-data calculations in `model/queries/`.
 - Put state-changing operations and workflows in `model/actions/`.
+- Compose Entity API operations in Page actions through `@/entities/<entity>`, never deep imports into an Entity's `api/`. Keep Page-specific workflow sequencing, state, navigation, and notifications out of Entity API modules.
 - Keep Page-owned action interfaces simple. Do not define unnecessary parameters or make arguments complex merely because the implementation needs data or dependencies.
 - Accept only caller-selected inputs, such as target IDs, validated form values, or an intentional selection snapshot. Read other current data through existing public queries or the owning store instead of passing it through callers.
 - Do not pass navigation functions, completion callbacks, or dependency objects to ordinary Page-owned actions. Return the operation result and connect navigation in the Page model. Preserve identities and snapshots that are necessary for pending work and retries.
