@@ -42,7 +42,7 @@ const useMemoryStorage = (initial: Record<string, string> = {}): StateStorage =>
   return storage;
 };
 
-describe("Card store [CARD-01]", () => {
+describe("Card store [CARD-VIEW-01]", () => {
   beforeEach(() => {
     useMemoryStorage();
     cardStore.setState({ remoteCards: [], localCards: [] });

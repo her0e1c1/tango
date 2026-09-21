@@ -93,7 +93,7 @@ const installApplicationCacheForOfflineReload = async (page: Page, baseURL: stri
   return async () => context.unroute(workerUrl, serveWorker);
 };
 
-test("PERSIST-01 keeps remote Decks and Cards isolated by UID across reloads", async ({
+test("PERSISTENCE-01 keeps remote Decks and Cards isolated by UID across reloads", async ({
   baseURL,
   browser,
   fixture,
@@ -141,7 +141,7 @@ test("PERSIST-01 keeps remote Decks and Cards isolated by UID across reloads", a
   await contextB.close();
 });
 
-test("PERSIST-02 syncs an offline cached Card edit after reconnecting", async ({
+test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", async ({
   baseURL,
   browser,
   browserErrors,
@@ -223,7 +223,7 @@ test("PERSIST-02 syncs an offline cached Card edit after reconnecting", async ({
   await verificationContext.close();
 });
 
-test("PERSIST-04 keeps guest edits local and rejects every cloud write", async ({ fixture, page, namespace }) => {
+test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", async ({ fixture, page, namespace }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   const { uid } = fixture.user();

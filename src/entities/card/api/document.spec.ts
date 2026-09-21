@@ -16,7 +16,7 @@ const requiredDocument = {
   numberOfSeen: 4,
 };
 
-describe("Card document [CARD-01]", () => {
+describe("Card document [CARD-VIEW-01]", () => {
   it("parses a valid document without adding optional fields", () => {
     expect(parseCardDocument("card-a", requiredDocument)).toEqual(requiredDocument);
   });

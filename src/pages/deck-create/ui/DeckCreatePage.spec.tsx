@@ -44,7 +44,7 @@ const LeaveRouteButton = () => {
   );
 };
 
-describe("DECK-09 DECK-10 DECK-11 DeckCreatePage", () => {
+describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePage", () => {
   const renderPage = (strictMode = false) => {
     const router = createMemoryRouter(
       [

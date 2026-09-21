@@ -8,14 +8,14 @@ remote data が認証 UID ごとに分離され、永続 cache、queued write、
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| PERSIST-01 | read | [UID ごとに remote data を分離して reload 後も表示できる](#persist-01) |
-| PERSIST-02 | batch | [offline cache の変更を再接続後に remote へ同期できる](#persist-02) |
-| PERSIST-03 | write | [別の open client に remote Card の変更を即時反映できる](#persist-03) |
-| PERSIST-04 | batch | [未ログインの変更を local-only に維持できる](#persist-04) |
+| PERSISTENCE-01 | read | [UID ごとに remote data を分離して reload 後も表示できる](#persistence-01) |
+| PERSISTENCE-02 | batch | [offline cache の変更を再接続後に remote へ同期できる](#persistence-02) |
+| PERSISTENCE-03 | write | [別の open client に remote Card の変更を即時反映できる](#persistence-03) |
+| PERSISTENCE-04 | batch | [未ログインの変更を local-only に維持できる](#persistence-04) |
 
-<a id="persist-01"></a>
+<a id="persistence-01"></a>
 
-### PERSIST-01 UID ごとに remote data を分離して reload 後も表示できる
+### PERSISTENCE-01 UID ごとに remote data を分離して reload 後も表示できる
 
 カテゴリ: `read`
 
@@ -37,9 +37,9 @@ Then:
 - remote StudySession も本人だけが読み書きでき、所有者の変更は拒否される。対象 Deck が公開されていても session は公開されない。
 - 未処理の browser error が発生しない。
 
-<a id="persist-02"></a>
+<a id="persistence-02"></a>
 
-### PERSIST-02 offline cache の変更を再接続後に remote へ同期できる
+### PERSISTENCE-02 offline cache の変更を再接続後に remote へ同期できる
 
 カテゴリ: `batch`
 
@@ -62,9 +62,9 @@ Then:
 - 学習 session の保留保存も Firestore SDK の永続 offline queue に維持され、再接続時に同じ ID を使う。出題順、現在位置、明示的な終了状態が再接続後に同期される。
 - 未処理の browser error が発生しない。
 
-<a id="persist-03"></a>
+<a id="persistence-03"></a>
 
-### PERSIST-03 別の open client に remote Card の変更を即時反映できる
+### PERSISTENCE-03 別の open client に remote Card の変更を即時反映できる
 
 カテゴリ: `write`
 
@@ -86,9 +86,9 @@ Then:
 - 対象 Card の ID と unique key は維持され、remote data に重複が作成されない。
 - 未処理の browser error が発生しない。
 
-<a id="persist-04"></a>
+<a id="persistence-04"></a>
 
-### PERSIST-04 未ログインの変更を local-only に維持できる
+### PERSISTENCE-04 未ログインの変更を local-only に維持できる
 
 カテゴリ: `batch`
 

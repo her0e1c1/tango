@@ -54,7 +54,7 @@ const FormHarness = ({
   );
 };
 
-describe("CARD-03 CardFields editing", () => {
+describe("CARD-MANAGEMENT-01 CardFields editing", () => {
   it("keeps both drafts across tabs and expanded editing, then submits the selected tags", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -118,7 +118,7 @@ describe("CARD-03 CardFields editing", () => {
   });
 });
 
-describe("CARD-21 CardFields validation", () => {
+describe("CARD-MANAGEMENT-10 CardFields validation", () => {
   it("reveals and focuses an invalid Back while preserving the valid Front", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -201,7 +201,7 @@ describe("SETTINGS-08 Card validation language changes", () => {
   });
 });
 
-describe("CARD-30 CARD-31 unsaved answer preview", () => {
+describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 unsaved answer preview", () => {
   it("previews an incomplete draft without submitting, validating, or replacing the input", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();

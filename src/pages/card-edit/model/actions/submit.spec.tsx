@@ -19,7 +19,7 @@ vi.mock("@/entities/card", async (importOriginal) => ({
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-describe("CARD-03 CARD-09 card edit submission", () => {
+describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
   beforeEach(() => {
     dismissToast();
     vi.mocked(editCard).mockReset();

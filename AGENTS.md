@@ -60,6 +60,8 @@ Every task that changes repository files must complete this workflow:
 
 ## Testing
 
+- E2E case IDs use the uppercase `docs/e2e` specification filename without `.md` as their prefix, followed by a zero-padded sequence starting at `01` in document order without gaps (for example, `CARD-VIEW-01`). Renumber all indexes, anchors, Playwright titles, and unit/integration references together.
+
 - Do not add tests for non-application code. Assert observable behavior through the tested level's public boundary, not implementation details.
 - Design production interfaces for production requirements. Do not add or change parameters, dependency objects, callbacks, factories, optional overrides, or exports solely for tests or mocks; use test-side module mocks or spies instead.
 

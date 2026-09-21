@@ -24,7 +24,7 @@ vi.mock("./firestore", () => ({
 import { cardStore } from "../model/store";
 import { createCard, deleteCard, editCard, moveLocalCardsToRemote } from "./mutations";
 
-describe("CARD-04 Card mutations", () => {
+describe("CARD-MANAGEMENT-02 Card mutations", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     localStorage.clear();

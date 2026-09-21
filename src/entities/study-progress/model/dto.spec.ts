@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { mapStudyProgressDocument } from "./dto";
 import type { StudyProgressDocumentFields } from "./types";
 
-describe("StudyProgress document mapping [CARD-01]", () => {
+describe("StudyProgress document mapping [CARD-VIEW-01]", () => {
   it("depends only on the physical document fields owned by StudyProgress", () => {
     const document: StudyProgressDocumentFields = {
       difficulty: 3,

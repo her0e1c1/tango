@@ -111,7 +111,7 @@ const renderProvider = () =>
     </FirestoreSubscriptionsProvider>
   );
 
-describe("FirestoreSubscriptionsProvider [CARD-01] [ACCOUNT-01] [ACCOUNT-03] [PERSIST-04]", () => {
+describe("FirestoreSubscriptionsProvider [CARD-VIEW-01] [ACCOUNT-01] [ACCOUNT-03] [PERSISTENCE-04]", () => {
   beforeEach(() => {
     clearRemoteCards();
     clearRemoteDecks();

@@ -24,7 +24,7 @@ vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
-describe.concurrent("firestore/card [CARD-01] [SWIPE-02]", { retry: 3 }, () => {
+describe.concurrent("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () => {
   const db = getFirestore();
   const newCard = createCard({
     frontText: "front text",

@@ -70,7 +70,7 @@ const touchGesture = (target: HTMLElement, from: number, to: number) => {
   fireEvent.touchEnd(target, { touches: [], targetTouches: [], changedTouches: [end] });
 };
 
-describe("Card [CARD-01] [CARD-02]", () => {
+describe("Card [CARD-VIEW-01] [CARD-VIEW-02]", () => {
   it("renders compact metadata and routes view, menu actions, and swipes by card id", () => {
     const actions = {
       goToView: vi.fn(),

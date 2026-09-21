@@ -9,7 +9,7 @@ import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 import { CardOverlay } from "./CardOverlay";
 
-describe("CardOverlay [CARD-01]", () => {
+describe("CardOverlay [CARD-VIEW-01]", () => {
   it("preserves difficulty and seen metadata", () => {
     render(
       <CardOverlay

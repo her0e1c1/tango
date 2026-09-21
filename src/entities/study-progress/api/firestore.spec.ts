@@ -4,7 +4,7 @@ vi.mock("@/shared/firebase", () => ({ db: {} }));
 
 import { editRemoteStudyProgress } from "./firestore";
 
-describe("StudyProgress Firestore persistence [SWIPE-02]", () => {
+describe("StudyProgress Firestore persistence [STUDY-ACTIONS-01]", () => {
   it("rejects edit requests without a confirmed user identity", async () => {
     await expect(editRemoteStudyProgress("", { cardId: "card-a", difficulty: 1 })).rejects.toThrow("confirmed user");
   });

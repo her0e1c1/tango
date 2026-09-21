@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { replaceAuthSession } from "../actions/replaceAuthSession";
 import { getAuthUid } from "./getAuthUid";
 
-describe("getAuthUid [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04] [DECK-11]", () => {
+describe("getAuthUid [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04] [DECK-MANAGEMENT-07]", () => {
   beforeEach(() => replaceAuthSession({ status: "initializing" }));
 
   it("returns the linked account UID", () => {

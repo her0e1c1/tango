@@ -1,6 +1,6 @@
 import { collectBrowserErrors, documentId, expect, listDocuments, requireDocument, test } from "./fixtures";
 
-test("PERSIST-03 reflects a remote Card edit in another open client without reload", async ({
+test("PERSISTENCE-03 reflects a remote Card edit in another open client without reload", async ({
   baseURL,
   browser,
   fixture,

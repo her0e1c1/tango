@@ -29,7 +29,7 @@ import * as Uuid from "uuid";
 
 const uuid = Uuid.v4;
 
-describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions", () => {
+describe("PERSISTENCE-01 PERSISTENCE-04 Firestore ownership and guest write restrictions", () => {
   let testEnv: RulesTestEnvironment;
 
   const createData = async (path: string, id: string, data: object) => {
@@ -58,7 +58,7 @@ describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions
     await testEnv.cleanup();
   });
 
-  describe("StudySession [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-10]", () => {
+  describe("StudySession [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-04] [STUDY-SESSION-05]", () => {
     const sessionData = () => ({
       uid: "uid",
       deckId: "public-deck",

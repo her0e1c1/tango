@@ -32,7 +32,7 @@ const setVersionedStorage = (state: unknown, version: number): void => {
   localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify({ state, version }));
 };
 
-describe("study store [SWIPE-06] [SWIPE-05]", () => {
+describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
   const store = studySessionStore;
 
   beforeEach(() => {

@@ -66,7 +66,7 @@ const StoredDeckFormHarness = (props: { deckId: DeckId }) => {
   return deck === undefined ? null : <AvailableDeckFormHarness deck={deck} />;
 };
 
-describe("DECK-02 DECK-07 DECK-12 PERSIST-04 useDeckEditPageModel", () => {
+describe("DECK-MANAGEMENT-01 DECK-TRANSFER-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageModel", () => {
   const deckId = "deck-id";
   const renderForm = () => {
     const router = createMemoryRouter(

@@ -7,7 +7,7 @@ import { requireE2ECaseId, validateE2EContract } from "./yaml-fixture";
 
 const readReadmeCaseIds = (): string[] => {
   const markdown = readFileSync(path.join(process.cwd(), "docs/e2e/README.md"), "utf8");
-  return [...markdown.matchAll(/^\| ([A-Z]+-[0-9]{2}) \|/gmu)].map((match) => {
+  return [...markdown.matchAll(/^\| ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,}) \|/gmu)].map((match) => {
     const caseId = match[1];
     if (caseId === undefined) throw new Error(`Could not parse an E2E case ID from README row: ${match[0]}`);
     return caseId;

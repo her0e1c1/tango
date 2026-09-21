@@ -1,5 +1,8 @@
 # E2E Documentation Instructions
 
+- Use the uppercase specification filename without `.md` as the case ID prefix (for example, `card-view.md` uses `CARD-VIEW`).
+- Number cases in document order from `01`, with at least two digits and no gaps. When adding, moving, or removing cases, update the sequence, indexes, anchors, Playwright titles, and unit/integration references in the same change.
+
 - 最初に [`conventions.md`](./conventions.md) と [`fixture/README.md`](./fixture/README.md) を読む。
 - `docs/e2e/README.md` を全 E2E case ID の索引とし、各 ID をちょうど一つの Playwright test と詳細仕様に対応させる。
 - 詳細仕様の Markdown は E2E contract check が読み取れるように `docs/e2e` 直下へ置く。

@@ -9,7 +9,7 @@ import { NavigationGuardDialog } from "./NavigationGuardDialog";
 
 afterEach(() => dismissToast());
 
-describe("CARD-17 DECK-12 CARD-27 NavigationGuardDialog", () => {
+describe("CARD-MANAGEMENT-09 DECK-MANAGEMENT-08 CARD-MANAGEMENT-12 NavigationGuardDialog", () => {
   it("renders a custom description when provided", () => {
     render(
       <NavigationGuardDialog
