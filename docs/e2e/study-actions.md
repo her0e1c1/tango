@@ -48,7 +48,7 @@ Then:
 - 独立した `studyAnswer/{answerId}` に `{ type: "rating", rating: "good" }` を保存する。
 - `again` / `hard` / `good` / `easy` は受け付けた値のまま保存し、FSRS schedule の計算だけに使用する。StudyProgress の相対 difficulty は評価回答では変更しない。
 - good / hard / easyの各評価からFSRS scheduleを生成する。既存scheduleがあればその記憶状態を更新し、なければ閲覧履歴や相対difficultyから推測せず空の初期状態から計算する。初回保存時にlegacy nextSeeingAt/intervalを削除する。
-- 現在だった Card の difficulty が good rule に従って 1 下がり、学習回数が 1 増えて保存される。
+- 現在だった Card の相対 difficulty は変わらず、学習回数が 1 増えて保存される。
 - 回答・Card の学習結果・session の前進はすべて保存されるか、いずれも保存されない。
 - session の位置が次の Card へ進む。
 - 保存成功後に最近の学習時刻を更新し、Deck 一覧の学習順と経過表示へ反映する。
@@ -77,7 +77,7 @@ Then:
 
 - 独立した `studyAnswer/{answerId}` に `{ type: "rating", rating: "again" }` を保存する。
 - againでFSRS scheduleを更新し、短い期限を保存する。同じsessionへの再投入は行わない。
-- 現在だった Card の difficulty が again rule に従って 1 上がり、学習回数が 1 増えて保存される。
+- 現在だった Card の相対 difficulty は変わらず、学習回数が 1 増えて保存される。
 - 回答・Card の学習結果・session の前進はすべて保存されるか、いずれも保存されない。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
