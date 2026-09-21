@@ -43,7 +43,7 @@ vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "uid" } },
 }));
 
-describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () => {
+describe("firestore/card", { retry: 3 }, () => {
   const db = getFirestore();
   const newCard = createCard({
     frontText: "front text",
@@ -62,7 +62,7 @@ describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () =>
     return id;
   };
 
-  it("should create a card", async () => {
+  it("[FIRESTORE-CARD-01] should create a card", async () => {
     const deckId = await initDeck();
     const c = {
       id: uuid(),
@@ -89,7 +89,7 @@ describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () =>
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
-  it("should update a card", async () => {
+  it("[FIRESTORE-CARD-02] should update a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);
@@ -109,7 +109,7 @@ describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () =>
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
-  it("updates StudyProgress without changing Card-owned fields", async () => {
+  it("[FIRESTORE-CARD-03] updates StudyProgress without changing Card-owned fields", async () => {
     const deckId = await initDeck();
     const card = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", card);
@@ -132,7 +132,7 @@ describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () =>
     expect(data?.createdAt).toBe(created.createdAt);
   });
 
-  it("should upsert a complete card", async () => {
+  it("[FIRESTORE-CARD-04] should upsert a complete card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
 
@@ -143,7 +143,7 @@ describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () =>
     expect(data?.createdAt).toBe(data?.updatedAt);
   });
 
-  it("reports failed imported Cards while persisting valid Cards", async () => {
+  it("[FIRESTORE-CARD-05] reports failed imported Cards while persisting valid Cards", async () => {
     const deckId = await initDeck();
     const valid = { ...newCard, deckId, id: uuid(), frontText: "valid" };
     const invalid = { ...newCard, deckId, id: uuid(), frontText: 42 } as unknown as RemoteCard;
@@ -160,7 +160,7 @@ describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () =>
     expect(data?.createdAt).toBe(data?.updatedAt);
   });
 
-  it("does not recreate an existing Card deleted after import planning", async () => {
+  it("[FIRESTORE-CARD-06] does not recreate an existing Card deleted after import planning", async () => {
     const deckId = await initDeck();
     const card = { ...newCard, deckId, id: uuid(), frontText: "planned update" };
     await createCardCommand("uid", card);
@@ -177,7 +177,7 @@ describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () =>
     expect(ownedCards.docs.some((snapshot) => snapshot.id === card.id)).toBe(false);
   });
 
-  it("should logical-remove a card", async () => {
+  it("[FIRESTORE-CARD-07] should logical-remove a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);
@@ -189,7 +189,7 @@ describe("firestore/card [CARD-VIEW-01] [STUDY-ACTIONS-01]", { retry: 3 }, () =>
     expect(data?.deletedAt).toBe(data?.updatedAt);
   });
 
-  it("should exists a card", async () => {
+  it("[FIRESTORE-CARD-08] should exists a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);

@@ -37,7 +37,7 @@ vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "uid" } },
 }));
 
-describe.concurrent("firestore/deck [CARD-LIST-ACTIONS-03]", { retry: 3 }, () => {
+describe.concurrent("firestore/deck", { retry: 3 }, () => {
   const db = getFirestore();
   const newDeck = createDeckFixture({
     name: "new deck name",
@@ -48,7 +48,7 @@ describe.concurrent("firestore/deck [CARD-LIST-ACTIONS-03]", { retry: 3 }, () =>
     updatedAt: 0,
   });
 
-  it("should create a deck and check if exists", async () => {
+  it("[FIRESTORE-DECK-01] should create a deck and check if exists", async () => {
     const d = {
       id: uuid(),
       name: "new deck name",
@@ -71,7 +71,7 @@ describe.concurrent("firestore/deck [CARD-LIST-ACTIONS-03]", { retry: 3 }, () =>
     expect((await getDoc(doc(db, "deck", d.id))).exists()).toBe(true);
   });
 
-  it("should update a deck", async () => {
+  it("[FIRESTORE-DECK-02] should update a deck", async () => {
     const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
     await createDeck("uid", d);
     const created = (await getDoc(doc(db, "deck", d.id))).data();
@@ -91,7 +91,7 @@ describe.concurrent("firestore/deck [CARD-LIST-ACTIONS-03]", { retry: 3 }, () =>
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
-  it("preserves an omitted URL and removes a cleared URL", async () => {
+  it("[FIRESTORE-DECK-03] preserves an omitted URL and removes a cleared URL", async () => {
     const deck = createRemoteDeckInput({
       id: uuid(),
       name: newDeck.name,
@@ -106,7 +106,7 @@ describe.concurrent("firestore/deck [CARD-LIST-ACTIONS-03]", { retry: 3 }, () =>
     expect((await getDoc(doc(db, "deck", deck.id))).data()).not.toHaveProperty("url");
   });
 
-  it("tombstones the parent without rewriting child documents", async () => {
+  it("[FIRESTORE-DECK-04] tombstones the parent without rewriting child documents", async () => {
     const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
     const cards = [
       createCard({ id: uuid(), deckId: d.id, uid: "uid" }),

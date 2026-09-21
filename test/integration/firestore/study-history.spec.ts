@@ -7,12 +7,12 @@ import { testDb } from "@/test/initializeTestFirestore";
 
 vi.mock("@/shared/firebase", async () => ({ db: (await import("@/test/initializeTestFirestore")).testDb }));
 
-describe("STUDY-SESSION-09 STUDY-SESSION-12 Firestore history reads", () => {
+describe("Firestore history reads", () => {
   afterAll(async () => {
     await Promise.all(getApps().map(deleteApp));
   });
 
-  it("reads the entire period with both optional Deck constraints and delivers offline cache snapshots", async () => {
+  it("[FIRESTORE-STUDY-HISTORY-01] reads period and Deck filters online and from cache", async () => {
     // A unique narrow interval isolates this query from other emulator tests without limiting record count.
     const start = Date.now() + 1_000_000_000;
     const period = { start, end: start + 1 };

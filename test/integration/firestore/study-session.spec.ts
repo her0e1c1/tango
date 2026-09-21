@@ -45,7 +45,7 @@ const waitForCloud = (assertion: () => void | Promise<void>) => vi.waitFor(asser
 const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
 const readSession = (sessionId: string) => getDoc(doc(testDb, "studySession", sessionId));
 
-describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-04] [STUDY-SESSION-05] [STUDY-SESSION-07] [PERSISTENCE-02]", () => {
+describe("StudySession cloud lifecycle", () => {
   let stop: (() => void) | undefined;
   let deckId: string;
 
@@ -79,7 +79,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     return session;
   }
 
-  it("saves the fixed order and cursor without answers and restores it on a fresh client", async () => {
+  it("[FIRESTORE-STUDY-SESSION-01] restores saved order and cursor after resubscribing", async () => {
     const onError = vi.fn();
     stop = subscribeStudySessions("uid", onError);
     const started = await startRemote();
@@ -116,7 +116,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it("keeps a departed session active and abandons the known session only on explicit restart", async () => {
+  it("[FIRESTORE-STUDY-SESSION-02] abandons the previous session only on explicit restart", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const previous = await startRemote();
     await setStudySessionIndex(deckId, 1);
@@ -138,7 +138,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect((await readSession(previous.sessionId)).data()?.endReason).toBe("abandoned");
   });
 
-  it("completes the final Card once and preserves lifecycle metadata", async () => {
+  it("[FIRESTORE-STUDY-SESSION-03] completes the final Card once and preserves lifecycle metadata", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const started = await startRemote();
     await waitForPendingWrites(testDb);
@@ -159,7 +159,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     });
   });
 
-  it("uses the SDK offline queue for creation, progress and abandonment after leaving", async () => {
+  it("[FIRESTORE-STUDY-SESSION-04] syncs offline creation, progress and abandonment", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     await disableNetwork(testDb);
     const session = await startRemote();
@@ -180,7 +180,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     ]);
   });
 
-  it("starts and restarts after offline rehydration while another Deck has pending writes", async () => {
+  it("[FIRESTORE-STUDY-SESSION-05] restarts offline while another Deck has pending writes", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const deck = createDeck({ id: deckId, uid: "uid" });
     const otherDeck = createDeck({ id: crypto.randomUUID(), uid: "uid" });
@@ -213,7 +213,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect((await readSession(previous?.sessionId ?? "missing")).data()?.endReason).toBe("abandoned");
   });
 
-  it("ignores malformed documents without blocking valid sessions or new study", async () => {
+  it("[FIRESTORE-STUDY-SESSION-06] ignores malformed documents without blocking study", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const valid = await startRemote();
     await waitForPendingWrites(testDb);
