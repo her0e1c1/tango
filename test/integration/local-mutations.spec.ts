@@ -17,8 +17,7 @@ import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { getStudySession, startStudy } from "@/entities/study-session";
 import { saveStudyAnswer } from "@/pages/study-session/api/saveStudyAnswer";
 import { startFirestoreSubscriptions } from "@/app/firestore-subscriptions";
-import { migrateLegacyData } from "@/app/auth/migrateLegacyData";
-import { createCard as cardFixture, createDeck as deckFixture } from "@/test/factories";
+import { createCard as cardFixture } from "@/test/factories";
 import { testDb } from "@/test/initializeTestFirestore";
 
 vi.mock("@/shared/firebase", async () => ({
@@ -104,18 +103,5 @@ describe("Firestore cache mutations [CARD-04 PERSIST-02 PERSIST-04 SWIPE-10]", (
     await waitForPendingWrites(testDb);
     const synced = await getDocsFromCache(collection(testDb, "studyAnswer"));
     expect(synced.docs.filter((item) => item.data().sessionId === session.sessionId)).toHaveLength(2);
-  });
-
-  it("imports legacy data once and preserves its original backup", async () => {
-    const deck = deckFixture({ id: deckId });
-    const card = cardFixture({ id: crypto.randomUUID(), deckId });
-    const original = JSON.stringify({ version: 0, state: { localDecks: [deck] } });
-    localStorage.setItem("tango-local-decks", original);
-    localStorage.setItem("tango-local-cards", JSON.stringify({ version: 0, state: { localCards: [card] } }));
-    await migrateLegacyData("uid");
-    await migrateLegacyData("another-user");
-    expect(localStorage.getItem("tango-local-decks")).toBe(original);
-    expect((await getDocFromCache(doc(testDb, "deck", `uid-legacy-${deckId}`))).data()?.uid).toBe("uid");
-    expect(localStorage.getItem("tango-firestore-migrated")).toBe("uid");
   });
 });

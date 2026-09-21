@@ -5,7 +5,6 @@ import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 import { hasUnacknowledgedWrites, subscribeWriteErrors } from "@/shared/firestore-write";
 import { auth, db } from "@/shared/firebase";
 import { showToast } from "@/shared/ui/toast";
-import { migrateLegacyData } from "./migrateLegacyData";
 import { startFirestoreSubscriptions } from "../firestore-subscriptions";
 
 // This is the first operation on the Firestore client, before any reads or restored writes can start networking.
@@ -98,7 +97,6 @@ export function startAuthSession(): () => void {
       return;
     }
     await disableNetwork(db);
-    await migrateLegacyData(user.uid);
     if (!isCurrent(currentGeneration)) return;
     if (!user.isAnonymous) await enableNetwork(db);
     if (!isCurrent(currentGeneration)) return;

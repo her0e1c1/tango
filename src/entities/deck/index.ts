@@ -12,5 +12,3 @@ export type {
   DeckId,
   RemoteDeckCreateInput,
 } from "./model/types";
-export { deckCreateSchema } from "./model/schema";
-export { toDeckDocument } from "./api/document";

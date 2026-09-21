@@ -12,7 +12,6 @@ const control = vi.hoisted(() => ({
   ready: Promise.resolve() as Promise<void>,
   stops: [] as string[],
   anonymous: vi.fn(),
-  migrate: vi.fn(),
 }));
 vi.mock("@/shared/firebase", () => ({ auth: control.auth, db: {} }));
 vi.mock("firebase/auth", () => ({
@@ -60,7 +59,6 @@ vi.mock("../firestore-subscriptions", () => ({
     };
   },
 }));
-vi.mock("./migrateLegacyData", () => ({ migrateLegacyData: control.migrate }));
 
 import { startAuthSession } from "./lifecycle";
 const user = (uid: string, isAnonymous = true) => ({ uid, isAnonymous, providerData: [] }) as unknown as User;
@@ -68,7 +66,12 @@ let stop: () => void = () => undefined;
 async function publish(value: User | null) {
   control.auth.currentUser = value;
   control.observe?.(value);
-  await vi.waitUntil(() => getAuthSession().status === (value ? "authenticated" : "authenticating"));
+  await vi.waitUntil(() => {
+    const session = getAuthSession();
+    return value
+      ? session.status === "authenticated" && session.uid === value.uid && session.isAnonymous === value.isAnonymous
+      : session.status === "authenticating";
+  });
 }
 
 describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PERSIST-04]", () => {
@@ -80,7 +83,6 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     control.subscribed = "";
     control.stops = [];
     control.anonymous.mockReset().mockReturnValue(new Promise(() => undefined));
-    control.migrate.mockReset().mockResolvedValue(undefined);
     replaceAuthSession({ status: "initializing" });
     stop = startAuthSession();
   });
@@ -128,25 +130,18 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "same" }));
   });
   it("ignores an old identity's delayed startup failure", async () => {
-    const oldMigration = Promise.withResolvers<void>();
-    control.migrate.mockReturnValueOnce(oldMigration.promise);
+    const oldReady = Promise.withResolvers<void>();
+    control.ready = oldReady.promise;
     control.auth.currentUser = user("old");
     control.observe?.(control.auth.currentUser);
-    await vi.waitFor(() => expect(control.migrate).toHaveBeenCalledWith("old"));
+    await vi.waitFor(() => expect(control.subscribed).toBe("old"));
+    control.ready = Promise.resolve();
     await control.before?.(user("new"));
     await publish(user("new"));
-    oldMigration.reject(new Error("old storage failure"));
+    oldReady.reject(new Error("old subscription failure"));
     await Promise.resolve();
     await Promise.resolve();
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "new" });
     expect(control.subscribed).toBe("new");
-  });
-  it("does not start editing when legacy data cannot be saved", async () => {
-    control.migrate.mockRejectedValueOnce(new Error("storage failed"));
-    control.auth.currentUser = user("anonymous");
-    control.observe?.(control.auth.currentUser);
-    await vi.waitFor(() => expect(getAuthSession().status).toBe("error"));
-    expect(control.network).toBe(false);
-    expect(control.subscribed).toBe("");
   });
 });

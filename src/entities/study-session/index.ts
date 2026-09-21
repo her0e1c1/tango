@@ -16,5 +16,3 @@ export { touchStudySession } from "./api/mutations";
 export { subscribeStudySessions } from "./api/firestore";
 export { startStudy, moveStudySession, setStudySessionIndex, abandonStudySession } from "./api/mutations";
 export { useRemoteStudySessionsLoading } from "./model/queries/useRemoteStudySessionsLoading";
-export { studySessionSchema } from "./model/schema";
-export { toStudySessionDocument } from "./api/document";

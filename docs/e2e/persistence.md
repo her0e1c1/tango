@@ -4,12 +4,7 @@
 
 remote data が認証 UID ごとに分離され、永続 cache、queued write、realtime subscription が 単一タブで network 状態を越えて正しく機能することを確認する。
 
-## 旧保存方式からの切り替え
-
-- 初回起動で旧 Deck・Card と対応する学習 session を現在の UID の Firestore 永続 cache へ一度だけ移行し、編集は移行完了後に開始する。
-- 元の browser storage は削除しない。データ不整合・保存失敗は起動画面で案内し、完了とは扱わない。
-- 移行先 ID は UID と旧 ID から固定し、中断後の同じ移行で重複を作らない。完了印を一度だけ保存し、その後に別 UID へ旧匿名データを移行しない。
-- この互換性処理は旧アプリの独自保存だけを対象とする。Firestore の IndexedDB を直接操作・全消去しない。
+旧アプリの browser storage からの自動移行は行わない。
 
 ## テストケース
 

@@ -23,4 +23,3 @@ export {
 export { BackText } from "./ui/BackText";
 export { CardView } from "./ui/CardView";
 export { FrontText } from "./ui/FrontText";
-export { cardCreateSchema } from "./model/schema";

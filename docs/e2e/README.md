@@ -76,7 +76,6 @@
 | DECK-04 | read | [Deck の削除を取り消せる](./deck-management.md#deck-04) |
 | DECK-05 | batch | [Deck の削除失敗後に再試行できる](./deck-management.md#deck-05) |
 | DECK-06 | read | [存在しない Deck から復帰できる](./deck-navigation.md#deck-06) |
-| DECK-07 | batch | [旧形式の Deck と Card を一度だけ cache へ移行できる](./deck-transfer.md#deck-07) |
 | DECK-08 | read | [Deck の Card を CSV で export できる](./deck-transfer.md#deck-08) |
 | DECK-09 | write | [空の remote Deck を作成して reload 後も確認できる](./deck-management.md#deck-09) |
 | DECK-10 | write | [remote Deck の作成失敗を通知できる](./deck-management.md#deck-10) |

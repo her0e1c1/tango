@@ -225,29 +225,6 @@ test("DECK-06 recovers home from a missing Deck route", async ({ fixture, page, 
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
 });
 
-test("DECK-07 imports legacy Decks once and preserves their backup", async ({ fixture, page }) => {
-  const deck = fixture.deck();
-  const { localCards: cards } = fixture.state.browser;
-  // Legacy data is installed before the first app boot, without seeding the new SDK cache.
-  await fixture.apply(page, { localData: false, studySessions: false });
-  const original = JSON.stringify({ version: 0, state: { localDecks: [deck] } });
-  await page.addInitScript(
-    (legacy) => {
-      if (localStorage.getItem("tango-firestore-migrated") !== null) return;
-      localStorage.setItem("tango-local-decks", legacy.original);
-      localStorage.setItem("tango-local-cards", JSON.stringify({ version: 0, state: { localCards: legacy.cards } }));
-    },
-    { original, cards }
-  );
-  await page.goto("/");
-  await page.getByRole("button", { name: `View ${deck.name}` }).click();
-  await Promise.all(cards.map((card) => expect(page.getByText(String(card.frontText))).toBeVisible()));
-  await page.reload();
-  expect((await readLocalData(page)).decks).toHaveLength(1);
-  expect((await readLocalData(page)).cards).toHaveLength(cards.length);
-  expect(await page.evaluate(() => localStorage.getItem("tango-local-decks"))).toBe(original);
-});
-
 test("DECK-08 downloads every Card field as one CSV row", async ({ fixture, page }, testInfo) => {
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;
