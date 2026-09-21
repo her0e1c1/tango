@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
@@ -59,7 +60,53 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04]", () => {
+describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]", () => {
+  it("uses the edit shortcut slot to toggle visibility only while actions are open", async () => {
+    function Player() {
+      const [visible, setVisible] = useState(true);
+      return (
+        <CardPlayer
+          {...toolbarProps()}
+          editLink={{
+            visible,
+            onToggle: () => setVisible((value) => !value),
+            element: <a href="/card/current/edit">Edit current card</a>,
+          }}
+        />
+      );
+    }
+    render(<Player />);
+    expect(screen.getByRole("link", { name: "Edit current card" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    expect(screen.queryByRole("link", { name: "Edit current card" })).not.toBeInTheDocument();
+    const toggle = screen.getByRole("button", { name: "Edit link" });
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: "Open card actions" })).toHaveFocus();
+    expect(screen.queryByRole("link", { name: "Edit current card" })).not.toBeInTheDocument();
+    await userEvent.keyboard("{Enter}");
+    await userEvent.click(screen.getByRole("button", { name: "Edit link" }));
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("link", { name: "Edit current card" })).toBeVisible();
+  });
+
+  it("hides the edit link on the answer and does not add editing to Study", () => {
+    const props = toolbarProps();
+    const view = render(
+      <CardPlayer
+        {...props}
+        showBackText
+        editLink={{ visible: true, onToggle: vi.fn(), element: <a href="/edit">Edit</a> }}
+      />
+    );
+    expect(screen.queryByRole("link", { name: "Edit" })).not.toBeInTheDocument();
+    view.rerender(<CardPlayer {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    expect(screen.queryByRole("button", { name: "Edit link" })).not.toBeInTheDocument();
+  });
+
   it("shows only the answer on the back", () => {
     render(
       <CardPlayer
@@ -106,30 +153,26 @@ describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04]", () => {
       />
     );
 
-    const leftOverlay = screen.getByRole("button", { name: "Swipe left" });
-    const rightOverlay = screen.getByRole("button", { name: "Swipe right" });
-
-    fireEvent.click(leftOverlay);
-    fireEvent.click(rightOverlay);
+    fireEvent.click(screen.getByRole("button", { name: "Swipe left" }));
+    fireEvent.click(screen.getByRole("button", { name: "Swipe right" }));
 
     expect(onClickLeft).toHaveBeenCalledOnce();
     expect(onClickRight).toHaveBeenCalledOnce();
     expect(onBackClick).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Swipe up" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Swipe down" })).not.toBeInTheDocument();
 
     rerender(
       <CardPlayer
         {...toolbarProps()}
-        showBackText
-        backTextSlot={
-          <button type="button" onClick={onBackClick}>
-            Back
-          </button>
-        }
+        showSwipeControls={false}
+        frontTextSlot={<div>Front</div>}
+        backTextOverlay={{ onClickLeft, onClickRight }}
       />
     );
-
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe right" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Study answer" })).not.toBeInTheDocument();
   });
 
   it("forwards edge wheel input to answer scrolling without running the action", () => {
@@ -152,23 +195,21 @@ describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04]", () => {
     expect(onClickLeft).not.toHaveBeenCalled();
   });
 
-  it("toggles toolbar actions and closes on escape", async () => {
+  it("STUDY-CONTROLS-05 keeps the Help slot fixed while opening the remaining study actions", async () => {
     const user = userEvent.setup();
     const onBack = vi.fn();
+    const onToggleCardDetails = vi.fn();
     const onToggleSwipeControls = vi.fn();
     const onTogglePlaybackControls = vi.fn();
     const onToggleSkipControls = vi.fn();
-    const onToggleCardDetails = vi.fn();
-    const onToggleHelp = vi.fn();
     render(
       <CardPlayer
         {...toolbarProps()}
         onBack={onBack}
+        onToggleCardDetails={onToggleCardDetails}
         onToggleSwipeControls={onToggleSwipeControls}
         onTogglePlaybackControls={onTogglePlaybackControls}
         onToggleSkipControls={onToggleSkipControls}
-        onToggleCardDetails={onToggleCardDetails}
-        onToggleHelp={onToggleHelp}
         cardOverlaySlot={<div>Card metadata</div>}
         frontTextSlot={<div>Front</div>}
       />
