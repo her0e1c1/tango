@@ -5,6 +5,7 @@ import { abandonStudySession, getStudySession, planStudySessionSwipe } from "@/e
 import { showSwipeFeedback } from "../../lib/showSwipeFeedback";
 import { readPendingStudyOperation } from "../../api/pendingStudyOperation";
 import { studySessionPageStore } from "../store";
+import { saveLocalStudyProgress } from "./saveLocalStudyProgress";
 import { executeStudyOperation } from "./executeStudyOperation";
 import { getStudyUid } from "../queries/getStudyUid";
 
@@ -18,7 +19,12 @@ export async function submitStudyAction(
   if (pendingWork !== undefined || pendingOperation !== undefined || owner?.uid !== uid || owner.deckId !== deckId)
     return;
   const session = getStudySession(deckId);
-  if (session === undefined || readPendingStudyOperation(uid, session.sessionId) !== undefined) return;
+  if (session === undefined) return;
+  if (
+    session.remote !== undefined &&
+    readPendingStudyOperation(uid, session.sessionId)?.currentIndex === session.currentIndex
+  )
+    return;
   const cards = getCards();
   const plan = planStudySessionSwipe(session, cards, action);
   if (plan.effect === "none") return;
@@ -31,6 +37,11 @@ export async function submitStudyAction(
   const card = cards.find(({ id }) => id === cardId);
   if (card === undefined) return;
   const answeredAt = Date.now();
+  const progress = recordCardStudyProgress(card, plan.rating, answeredAt);
+  if (session.remote === undefined) {
+    await saveLocalStudyProgress(uid, session, progress, direction);
+    return;
+  }
   await executeStudyOperation({
     id: crypto.randomUUID(),
     uid,
@@ -40,7 +51,7 @@ export async function submitStudyAction(
     currentIndex: session.currentIndex,
     cardCount: session.cardOrderIds.length,
     answeredAt,
-    ...(session.remote === undefined ? { localProgress: recordCardStudyProgress(card, plan.rating, answeredAt) } : {}),
+    progress,
     ...(plan.rating === undefined ? {} : { rating: plan.rating }),
     ...(direction === undefined || !getPreferences().appearance.showSwipeFeedback ? {} : { direction }),
   });

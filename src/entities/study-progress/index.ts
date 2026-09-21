@@ -7,4 +7,4 @@ export { Difficulty as DifficultyIndicator } from "./ui/Difficulty";
 
 export { studyProgressEditSchema, studyRatingSchema } from "./model/schema";
 export { recordCardStudyProgress } from "./model/rules";
-export { readStudyProgress, writeStudyProgress } from "./api/transaction";
+export { writeStudyProgress } from "./api/batch";

@@ -1,6 +1,14 @@
 import type { Page } from "@playwright/test";
 
-import { expect, listDocuments, requireDocument, readLocalData, test } from "./fixtures";
+import {
+  allowExpectedFirestoreWriteFailure,
+  failNextFirestoreWrite,
+  expect,
+  listDocuments,
+  requireDocument,
+  readLocalData,
+  test,
+} from "./fixtures";
 import { progressOf, readProgress, readSession } from "./study-helpers";
 
 const cardAt = <T>(cards: readonly T[], index: number) => {
@@ -285,7 +293,7 @@ test("SWIPE-11 keeps multiple Deck sessions independent", async ({ fixture, page
   await expect.poll(() => readProgress(currentCardB.id)).toEqual(progressOf(currentCardB));
 });
 
-test("SWIPE-12 retries the same answer after an offline failure and reload", async ({
+test("SWIPE-12 waits offline and retries the same answer after a failed batch and reload", async ({
   browserErrors,
   fixture,
   page,
@@ -302,7 +310,7 @@ test("SWIPE-12 retries the same answer after an offline failure and reload", asy
   browserErrors.allow(/^console error: .*@firebase\/firestore: Firestore .*Could not reach Cloud Firestore backend\./u);
   await context.setOffline(true);
   await page.getByRole("button", { name: "Swipe up" }).click();
-  await expect(page.getByRole("button", { name: "Retry", exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("status").filter({ hasText: "Saving…" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Swipe right" })).toBeDisabled();
   await expect(page.getByRole("slider", { name: "Study progress" })).toBeDisabled();
   const accepted = await page.evaluate(() => {
@@ -312,9 +320,17 @@ test("SWIPE-12 retries the same answer after an offline failure and reload", asy
   expect(accepted).not.toBeNull();
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+  const fault = await failNextFirestoreWrite(page, { collection: "card", id: currentCard.id });
+  allowExpectedFirestoreWriteFailure(browserErrors);
   await context.setOffline(false);
+  await expect(page.getByRole("button", { name: "Retry", exact: true })).toBeVisible({ timeout: 15_000 });
+  await fault.waitForFailure();
+  await fault.dispose();
+  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
+  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
   await page.reload();
   await page.getByRole("button", { name: "Retry", exact: true }).click();
+
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect
     .poll(() => readProgress(currentCard.id))

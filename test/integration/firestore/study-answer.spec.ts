@@ -24,7 +24,8 @@ import {
   type QueryConstraint,
 } from "firebase/firestore";
 import { replaceAuthSession } from "@/entities/auth";
-import { saveStudyOperation } from "@/pages/study-session/api/saveStudyOperation";
+import { saveStudyOperation as persistStudyOperation } from "@/pages/study-session/api/saveStudyOperation";
+import { recordCardStudyProgress } from "@/entities/study-progress";
 import type { StudyOperation } from "@/pages/study-session/model/studyOperation";
 
 const connection = vi.hoisted(() => ({ db: undefined as unknown as Firestore }));
@@ -61,8 +62,23 @@ function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
     cardCount: cardIds.length,
     answeredAt: 2000,
     rating: "good",
+    progress: recordCardStudyProgress(
+      { id: overrides.cardId ?? "card-0", difficulty: 5, numberOfSeen: 0 },
+      "rating" in overrides ? overrides.rating : "good",
+      overrides.answeredAt ?? 2000
+    ),
     ...overrides,
   };
+}
+function saveStudyOperation(input: StudyOperation) {
+  return persistStudyOperation(input, {
+    sessionId: input.sessionId,
+    deckId: input.deckId,
+    currentIndex: input.currentIndex,
+    cardOrderIds: cardIds,
+    lastStudiedAt: 0,
+    remote: { uid: input.uid, startedAt: 1000 },
+  });
 }
 const answerData = () => ({
   uid,
@@ -154,18 +170,14 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     expect((await answers()).size).toBe(1);
   });
 
-  it("allows only one of two concurrent answers at the same position", async () => {
-    const inputs = [operation(), operation({ rating: "again" })];
-    const results = await Promise.allSettled(inputs.map(saveStudyOperation));
-    expect(results.filter((result) => result.status === "fulfilled" && result.value.status === "saved")).toHaveLength(
-      1
-    );
-    // Rules may reject the losing commit before Firestore reports its read-version conflict.
-    const retries = await Promise.all(inputs.map(saveStudyOperation));
-    expect(retries.map(({ status }) => status).sort()).toEqual(["already-saved", "stale"]);
-    expect((await answers()).size).toBe(1);
-    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()?.numberOfSeen).toBe(1);
-    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
+  it("uses accepted progress without rereading concurrent Card changes", async () => {
+    const input = operation();
+    await updateDoc(doc(connection.db, "card", "card-0"), { numberOfSeen: 20, difficulty: 9 });
+    await saveStudyOperation(input);
+    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()).toMatchObject({
+      numberOfSeen: 1,
+      difficulty: 4,
+    });
   });
 
   it("records ten answers, completes atomically and accepts a final acknowledgement retry", async () => {
@@ -181,7 +193,7 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
       endedAt: expect.any(Timestamp),
     });
     expect((await saveStudyOperation(final)).status).toBe("already-saved");
-    expect((await saveStudyOperation({ ...final, id: crypto.randomUUID() })).status).toBe("stale");
+    await expect(saveStudyOperation({ ...final, id: crypto.randomUUID() })).rejects.toBeDefined();
     expect((await answers()).size).toBe(10);
   });
 
@@ -196,7 +208,12 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     expect((await saveStudyOperation(first)).status).toBe("already-saved");
     const nextSessionId = "next-session";
     await setDoc(doc(connection.db, "studySession", nextSessionId), sessionData());
-    await saveStudyOperation(operation({ sessionId: nextSessionId }));
+    await saveStudyOperation(
+      operation({
+        sessionId: nextSessionId,
+        progress: { cardId: "card-0", difficulty: 3, numberOfSeen: 2, lastSeenAt: 2000 },
+      })
+    );
     expect((await answers()).size).toBe(2);
     expect((await getDoc(doc(connection.db, "card", first.cardId))).data()?.numberOfSeen).toBe(2);
   });
@@ -209,7 +226,27 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
       numberOfSeen: 1,
     });
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
-    expect((await saveStudyOperation(operation())).status).toBe("stale");
+    await expect(saveStudyOperation(operation())).rejects.toBeDefined();
+  });
+
+  it("confirms a final skip retry without recounting progress", async () => {
+    await updateDoc(doc(connection.db, "studySession", sessionId), { currentIndex: 9 });
+    const input = operation({ cardId: "card-9", currentIndex: 9, rating: undefined });
+    await saveStudyOperation(input);
+    expect((await saveStudyOperation(input)).status).toBe("already-saved");
+    expect((await answers()).size).toBe(0);
+    expect((await getDoc(doc(connection.db, "card", "card-9"))).data()?.numberOfSeen).toBe(1);
+    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.endReason).toBe("completed");
+  });
+
+  it("saves when the backend is reachable even if the browser reports offline", async () => {
+    const online = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+    try {
+      await saveStudyOperation(operation());
+    } finally {
+      online.mockRestore();
+    }
+    expect((await answers()).size).toBe(1);
   });
 
   it("rejects a missing session and a changed authentication scope without partial writes", async () => {
@@ -284,11 +321,15 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     await assertFails(batch.commit());
   });
 
-  it("allows a valid immutable answer while leaving progress orchestration to the application", async () => {
-    await assertSucceeds(setDoc(doc(collection(connection.db, "studyAnswer")), answerData()));
+  it("requires Session advancement but leaves progress calculation to the application", async () => {
+    await assertFails(setDoc(doc(collection(connection.db, "studyAnswer")), answerData()));
+    const batch = writeBatch(connection.db);
+    batch.set(doc(collection(connection.db, "studyAnswer")), answerData());
+    batch.update(doc(connection.db, "studySession", sessionId), { currentIndex: 1, updatedAt: serverTimestamp() });
+    await assertSucceeds(batch.commit());
     expect((await answers()).size).toBe(1);
     expect((await getDoc(doc(connection.db, "card", "card-0"))).data()?.numberOfSeen).toBe(0);
-    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
+    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
   });
 
   it.each([
@@ -296,7 +337,12 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     { rating: "easy" as const, difficulty: 1 },
   ])("keeps difficulty within its bounds for $rating", async ({ rating, difficulty }) => {
     await updateDoc(doc(connection.db, "card", "card-0"), { difficulty });
-    await saveStudyOperation(operation({ rating }));
+    await saveStudyOperation(
+      operation({
+        rating,
+        progress: recordCardStudyProgress({ id: "card-0", difficulty, numberOfSeen: 0 }, rating, 2000),
+      })
+    );
     expect((await getDoc(doc(connection.db, "card", "card-0"))).data()).toMatchObject({ difficulty, numberOfSeen: 1 });
     expect((await answers()).size).toBe(1);
   });
@@ -317,6 +363,10 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     await assertFails(updateDoc(reference, { answer: { type: "rating", rating: "again" } }));
     await assertFails(setDoc(reference, answerData()));
     await assertFails(deleteDoc(reference));
+  });
+
+  it("denies reading missing answer IDs", async () => {
+    await assertFails(getDoc(doc(connection.db, "studyAnswer", "missing-answer")));
   });
 
   it.each(["other-user", "anonymous", "unauthenticated"])("denies %s access even for a public deck", async (actor) => {

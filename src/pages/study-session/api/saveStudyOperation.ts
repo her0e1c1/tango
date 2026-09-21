@@ -1,26 +1,50 @@
-import { doc, runTransaction, serverTimestamp, Timestamp } from "firebase/firestore";
+import { doc, getDocFromServer, serverTimestamp, Timestamp, writeBatch } from "firebase/firestore";
 import { getAuthUid } from "@/entities/auth";
-import { readStudyProgress, recordCardStudyProgress, writeStudyProgress } from "@/entities/study-progress";
-import { readStudySession, writeStudySessionPosition } from "@/entities/study-session";
+import { writeStudyProgress } from "@/entities/study-progress";
+import { writeStudySessionPosition, type StudySession } from "@/entities/study-session";
 import { db } from "@/shared/firebase";
 import { studyOperationSchema, type StudyOperation } from "../model/studyOperation";
 import { studyAnswerDocumentSchema, type AnswerType, type StudyAnswerDocument } from "./studyAnswerDocument";
 
-export async function saveStudyOperation(input: StudyOperation) {
+export async function saveStudyOperation(input: StudyOperation, session: StudySession) {
   const operation = studyOperationSchema.parse(input);
   if (operation.uid === "" || getAuthUid() !== operation.uid) throw new Error("Study user changed");
-  if (!navigator.onLine) throw new Error("Study answers require a connection");
+  if (
+    session.remote?.uid !== operation.uid ||
+    session.sessionId !== operation.sessionId ||
+    session.deckId !== operation.deckId ||
+    session.cardOrderIds[operation.currentIndex] !== operation.cardId ||
+    session.cardOrderIds.length !== operation.cardCount
+  )
+    throw new Error("Study session does not match");
   const reference = doc(db, "studyAnswer", operation.id);
-  return await runTransaction(db, async (transaction) => {
-    // Firebase may rerun this callback. Identity, time and payload were fixed before entering it.
-    if (getAuthUid() !== operation.uid) throw new Error("Study user changed");
-    const existing = operation.rating === undefined ? undefined : await transaction.get(reference);
-    const write = await readStudySession(transaction, operation.sessionId);
-    const { session, endReason } = write;
-    if (session.remote?.uid !== operation.uid || session.deckId !== operation.deckId) {
-      throw new Error("Study session owner or deck does not match");
-    }
-    if (existing?.exists()) {
+  const batch = writeBatch(db);
+  if (operation.rating !== undefined) {
+    const type: AnswerType = "rating";
+    const answer: Omit<StudyAnswerDocument, "createdAt" | "updatedAt"> = {
+      uid: operation.uid,
+      sessionId: operation.sessionId,
+      deckId: operation.deckId,
+      cardId: operation.cardId,
+      answer: { type, rating: operation.rating },
+      answeredAt: Timestamp.fromMillis(operation.answeredAt),
+    };
+    batch.set(reference, { ...answer, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  }
+  writeStudyProgress(batch, operation.progress, operation.answeredAt);
+  const result = writeStudySessionPosition(
+    batch,
+    { ...session, lastStudiedAt: operation.answeredAt },
+    operation.currentIndex + 1
+  );
+  try {
+    await batch.commit();
+  } catch (error) {
+    // Only a server-confirmed matching result can acknowledge an uncertain write. Never issue a new ID.
+    if (getAuthUid() !== operation.uid) throw error;
+    if (operation.rating !== undefined) {
+      const existing = await getDocFromServer(reference);
+      if (!existing.exists()) throw error;
       const answer = studyAnswerDocumentSchema.parse(existing.data());
       if (
         answer.uid !== operation.uid ||
@@ -31,53 +55,23 @@ export async function saveStudyOperation(input: StudyOperation) {
         answer.answeredAt.toDate().getTime() !== operation.answeredAt
       )
         throw new Error("An answer with different contents already exists");
-      return {
-        status: "already-saved" as const,
-        ...write,
-        session: { ...session, lastStudiedAt: operation.answeredAt },
-      };
+    } else {
+      // Skip has no answer document. Its fixed absolute progress and position are safe to acknowledge together.
+      const [savedSession, savedCard] = await Promise.all([
+        getDocFromServer(doc(db, "studySession", operation.sessionId)),
+        getDocFromServer(doc(db, "card", operation.cardId)),
+      ]);
+      const card = savedCard.data();
+      if (
+        savedSession.data()?.currentIndex !== result.session.currentIndex ||
+        savedSession.data()?.endReason !== result.endReason ||
+        card?.numberOfSeen !== operation.progress.numberOfSeen ||
+        card.difficulty !== operation.progress.difficulty ||
+        card.lastSeenAt !== operation.answeredAt
+      )
+        throw error;
     }
-    if (
-      endReason !== null ||
-      session.currentIndex !== operation.currentIndex ||
-      session.cardOrderIds[operation.currentIndex] !== operation.cardId ||
-      session.cardOrderIds.length !== operation.cardCount
-    )
-      return { status: "stale" as const, ...write };
-
-    const card = await readStudyProgress(transaction, operation.cardId);
-    if (card.uid !== operation.uid || card.deckId !== operation.deckId || card.deletedAt !== null) {
-      throw new Error("Study card owner or deck does not match");
-    }
-    if (operation.rating !== undefined) {
-      const type: AnswerType = "rating";
-      // Server transforms are write values, not resolved document timestamps.
-      const answer: Omit<StudyAnswerDocument, "createdAt" | "updatedAt"> = {
-        uid: operation.uid,
-        sessionId: operation.sessionId,
-        deckId: operation.deckId,
-        cardId: operation.cardId,
-        answer: { type, rating: operation.rating },
-        answeredAt: Timestamp.fromMillis(operation.answeredAt),
-      };
-      transaction.set(reference, { ...answer, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-    }
-    writeStudyProgress(
-      transaction,
-      recordCardStudyProgress(card, operation.rating, operation.answeredAt),
-      operation.answeredAt
-    );
-    const targetIndex = operation.currentIndex + 1;
-    writeStudySessionPosition(transaction, session, targetIndex);
-    const completed = targetIndex === operation.cardCount;
-    return {
-      status: "saved" as const,
-      session: {
-        ...session,
-        currentIndex: completed ? operation.currentIndex : targetIndex,
-        lastStudiedAt: operation.answeredAt,
-      },
-      endReason: completed ? ("completed" as const) : null,
-    };
-  });
+    return { status: "already-saved" as const, ...result };
+  }
+  return { status: "saved" as const, ...result };
 }
