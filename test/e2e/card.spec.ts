@@ -329,6 +329,7 @@ test("CARD-VIEW-04 opens a Card view route inside the application shell", async 
 
   const editLink = page.getByRole("link", { name: "Edit card" });
   await expect(editLink).toHaveText("");
+  await expect(editLink.locator("svg")).toBeVisible();
   await expect(editLink).toHaveAttribute("href", `/card/${nextCard.id}/edit`);
   await editLink.click();
   await expect(page).toHaveURL(`/card/${nextCard.id}/edit`);
