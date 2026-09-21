@@ -69,3 +69,12 @@ export function classifyStudySchedule(
   if (dueAt === undefined) return { status: "new" };
   return { status: dueAt <= now ? "due" : "future", dueAt };
 }
+
+export const studyRetentionTarget = scheduler.parameters.request_retention;
+
+export function getStudyRetrievability(schedule: StudySchedule, at: number): number {
+  const saved = studyScheduleSchema.parse(schedule);
+  // get_retrievability rounds elapsed time to whole days in ts-fsrs 5.4.2.
+  const elapsedDays = Math.max(0, instantSchema.parse(at) - saved.lastReviewedAt) / 86_400_000;
+  return scheduler.forgetting_curve(elapsedDays, saved.stability);
+}

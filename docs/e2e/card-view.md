@@ -13,6 +13,7 @@ Card 一覧と Card view で学習情報・裏面を表示し、overlay や存�
 | CARD-VIEW-03 | read | [開いている Card の裏面 overlay を閉じられる](#card-view-03) |
 | CARD-VIEW-04 | read | [Card view を直接開ける](#card-view-04) |
 | CARD-VIEW-05 | read | [存在しない Card から復帰できる](#card-view-05) |
+| CARD-VIEW-06 | write | [評価後の記憶状態を確認できる](#card-view-06) |
 
 <a id="card-view-01"></a>
 
@@ -121,4 +122,34 @@ When:
 Then:
 
 - Deck 一覧が表示される。
+- browser error が発生しない。
+
+<a id="card-view-06"></a>
+
+### CARD-VIEW-06 評価後の記憶状態を確認できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- 匿名ユーザーの cache に、FSRS 未開始の Card がある。
+
+When:
+
+- Card view で空状態を確認し、学習画面で Card を評価してから Card view を開く。
+- 再読込し、オフラインでも同じ Card view を開く。
+
+Then:
+
+- 評価前は FSRS 未開始と表示され、旧期限や学習回数から架空の数値を作らない。
+- 評価後は「追加で復習しなかった場合の FSRS による推定」として想起率と忘却曲線を表示する。
+- 最終復習、基準時刻、保存済みの次回期限と目標保持率を区別して示す。
+- 想起率は最終復習直後に100%で、分・時間単位でも FSRS と一致して非増加となる。
+- 基準時刻の数値とマーカーは一致し、期限到来は保存期限と同じ基準時刻で判定する。
+- 同時刻のマーカーも識別でき、最大200点で短期・長期の範囲を表示する。
+- 対象変更と foreground 復帰で基準時刻を更新し、別 Card の曲線を残さない。
+- 再読込・匿名・オフラインでも取得済みの状態を使い、設定の復習間隔ON/OFFに依存しない。
+- 不正・未対応の schedule や取得エラーを未開始として扱わない。
+- en/ja、モバイル、dark modeでテキストと読み上げ名・説明を確認できる。
 - browser error が発生しない。
