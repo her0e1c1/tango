@@ -11,7 +11,7 @@
 ## 共通前提
 
 project `test-study-answer` に実際の `firestore.rules` を読み込む。各ケース前に専用 project を消去し、非匿名認証の UID `answer-owner`、公開 Deck `deck`、Card `card-0`〜`card-9`、未終了の session `session` を準備する。
-Card / Deck store と認証状態も初期化する。4評価の受理済み操作は、StudyProgress の相対難易度・閲覧記録と独立した StudySchedule の FSRS schedule を保持し、同一 batch で保存する。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
+Card / Deck store と認証状態も初期化する。4評価の受理済み操作は、StudyProgress の閲覧記録と独立した StudySchedule の FSRS schedule を保持し、同一 batch で保存する。評価によって相対 difficulty は変更しない。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
 事前データはテスト内で作成し、新しい fixture ファイルは用意しない。共通の実行方法は [README](./README.md) を参照する。
 
 ## テストケース
@@ -58,7 +58,7 @@ When:
 Then:
 
 - scheduleは同じbatchで保存され、保存済み値は入力scheduleと一致する。
-- 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt と updatedAt は等しい Timestamp になる。Card の numberOfSeen は `1`、lastSeenAt は `2000`、difficulty は again なら `6`、その他は `4` になる。戻り値と保存 session の位置は `1` になる。
+- 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt と updatedAt は等しい Timestamp になる。Card の numberOfSeen は `1`、lastSeenAt は `2000`、difficulty は元の `5` のままになる。戻り値と保存 session の位置は `1` になる。
 
 <a id="firestore-study-answer-02"></a>
 
@@ -90,7 +90,7 @@ Then:
 
 Given:
 
-- difficulty `4`・numberOfSeen `1` を含む回答操作を準備した後、保存先 Card を difficulty `9`・numberOfSeen `20` に変更している。
+- difficulty `5`・numberOfSeen `1` を含む回答操作を準備した後、保存先 Card を difficulty `9`・numberOfSeen `20` に変更している。
 
 When:
 
@@ -98,7 +98,7 @@ When:
 
 Then:
 
-- 保存後の difficulty は `4`、numberOfSeen は `1` になる。
+- 保存後の difficulty は `5`、numberOfSeen は `1` になる。
 
 複数端末の進捗を加算・マージする保証ではない。
 
