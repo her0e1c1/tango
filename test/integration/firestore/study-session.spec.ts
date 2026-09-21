@@ -40,12 +40,12 @@ vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "uid" } },
 }));
 
+const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
 const cards = ["first", "second", "third"].map((id, numberOfSeen) => ({ id, numberOfSeen, difficulty: 5 }));
 const waitForCloud = (assertion: () => void | Promise<void>) => vi.waitFor(assertion, { timeout: 10_000 });
-const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
 const readSession = (sessionId: string) => getDoc(doc(testDb, "studySession", sessionId));
 
-describe("StudySession cloud lifecycle", () => {
+describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-04]", () => {
   let stop: (() => void) | undefined;
   let deckId: string;
 
@@ -73,7 +73,7 @@ describe("StudySession cloud lifecycle", () => {
   });
 
   async function startRemote(): Promise<StudySession> {
-    await startStudy({ deckId, cards, preferences, uid: "uid" });
+    await startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
     const session = getStudySession(deckId);
     if (session === undefined) throw new Error("Expected a session");
     return session;

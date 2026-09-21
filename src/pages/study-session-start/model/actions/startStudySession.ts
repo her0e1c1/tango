@@ -1,3 +1,4 @@
+import { buildStudyCardOrder } from "../queries/buildStudyCardOrder";
 import { showToast } from "@/shared/ui/toast";
 import { getAuthUid } from "@/entities/auth";
 import { filterCardsByDeckId, getCards } from "@/entities/card";
@@ -21,7 +22,7 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   if (cards.length === 0) return false;
   starting = true;
   try {
-    await startStudy({ deckId, cards, preferences: study, uid, now });
+    await startStudy({ deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now });
     return true;
   } catch {
     showToast({ messageKey: "toast.saveFailure", tone: "error" });

@@ -1,9 +1,4 @@
 import { getAuthUid } from "@/entities/auth/@x/study-session";
-import {
-  buildStudyCardOrder,
-  type CardProgressFields,
-  type StudyCardOrderOptions,
-} from "@/entities/study-progress/@x/study-session";
 import { getStudySession } from "../model/queries/getStudySession";
 import { isStudySessionPositionUnchanged } from "../model/rules";
 import type { StudySession } from "../model/types";
@@ -15,14 +10,12 @@ function requireOwner(session: StudySession): void {
 
 export async function startStudy({
   deckId,
-  cards,
-  preferences,
+  cardOrderIds,
   uid,
   now = Date.now(),
 }: {
   deckId: string;
-  cards: CardProgressFields[];
-  preferences: StudyCardOrderOptions;
+  cardOrderIds: string[];
   uid: string;
   now?: number;
 }): Promise<void> {
@@ -32,7 +25,7 @@ export async function startStudy({
   const session: StudySession = {
     sessionId: crypto.getRandomValues(new Uint32Array(4)).join("-"),
     deckId,
-    cardOrderIds: buildStudyCardOrder(cards, preferences, now),
+    cardOrderIds: [...cardOrderIds],
     currentIndex: 0,
     lastStudiedAt: now,
     remote: { uid, startedAt: now },

@@ -1,3 +1,4 @@
+import { writeStudySchedule } from "@/entities/study-schedule";
 import { writeStudyAnswer } from "@/entities/study-answer";
 import { getCards } from "@/entities/card";
 import { getDecks } from "@/entities/deck";
@@ -38,8 +39,10 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
     operation.currentIndex + 1
   );
   const references = [progressReference, result.reference];
-  if (operation.rating !== undefined)
+  if (operation.rating !== undefined && operation.schedule !== undefined) {
+    writeStudySchedule(batch, operation.cardId, operation.schedule, operation.answeredAt);
     references.push(writeStudyAnswer(batch, { ...operation, rating: operation.rating }));
+  }
   await commit(references);
   return result;
 }

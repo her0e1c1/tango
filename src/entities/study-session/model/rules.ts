@@ -1,11 +1,7 @@
+import { classifyStudySchedule, type StudyScheduleFields } from "@/entities/study-schedule/@x/study-session";
 import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
 import type { SwipeAction } from "@/entities/preference/@x/study-session";
-import {
-  classifyStudyProgress,
-  type CardProgressFields,
-  type StudyRating,
-  createStudyProgressFromCard,
-} from "@/entities/study-progress/@x/study-session";
+import type { StudyRating } from "@/entities/study-answer/@x/study-session";
 
 import type {
   ResolvedStudySession,
@@ -39,7 +35,8 @@ interface DecksByStudyStatus<TDeck> {
 }
 
 /** Card fields needed to decide whether the Card belongs in a study session. */
-interface StudyCardSelectionCard extends CardProgressFields {
+interface StudyCardSelectionCard extends StudyScheduleFields {
+  difficulty: number;
   tags: readonly string[];
 }
 
@@ -90,7 +87,7 @@ export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCar
     if (!isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter)) continue;
     if (deck.difficultyMax !== null && card.difficulty > deck.difficultyMax) continue;
     if (deck.difficultyMin !== null && card.difficulty < deck.difficultyMin) continue;
-    const timing = classifyStudyProgress(createStudyProgressFromCard(card), now);
+    const timing = classifyStudySchedule(card, now);
     if (respectNextSeeingAt && timing.status === "future") {
       nextDueAt = nextDueAt === undefined ? timing.dueAt : Math.min(nextDueAt, timing.dueAt);
     } else selected.push(card);

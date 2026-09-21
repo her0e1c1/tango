@@ -1,4 +1,3 @@
-import { studyScheduleSchema } from "./schedule";
 import { z } from "zod";
 import { difficultySchema } from "./difficulty";
 
@@ -9,9 +8,6 @@ export const studyProgressEditSchema = z.object({
   difficulty: difficultySchema.optional(),
   numberOfSeen: z.number().optional(),
   lastSeenAt: z.number().optional(),
-  nextSeeingAt: z.date().optional(),
-  interval: z.number().optional(),
-  schedule: studyScheduleSchema.optional(),
 });
 
 export const editStudyProgressSchema = z.object({

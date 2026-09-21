@@ -9,8 +9,6 @@ describe("StudyProgress document mapping [CARD-VIEW-01]", () => {
       difficulty: 3,
       numberOfSeen: 4,
       lastSeenAt: 5,
-      nextSeeingAt: new Date(6),
-      interval: 7,
     };
 
     expect(mapStudyProgressDocument("card-a", document)).toEqual({
@@ -18,8 +16,6 @@ describe("StudyProgress document mapping [CARD-VIEW-01]", () => {
       difficulty: 3,
       numberOfSeen: 4,
       lastSeenAt: 5,
-      nextSeeingAt: new Date(6),
-      interval: 7,
     });
   });
 });

@@ -1,4 +1,3 @@
-import type { StudySchedule } from "./schedule";
 import type { z } from "zod";
 
 import type { CardId } from "@/entities/card/@x/study-progress";
@@ -13,10 +12,6 @@ export interface StudyProgress {
   /** Number of recorded study interactions, including interactions that do not change the difficulty. */
   numberOfSeen: number;
   lastSeenAt?: number;
-  /** Earliest time the Card is eligible when interval filtering is enabled. */
-  nextSeeingAt?: Date;
-  interval?: number;
-  schedule?: StudySchedule;
 }
 
 /** StudyProgress-owned fields read from the shared physical Firestore document. */
@@ -25,9 +20,6 @@ export interface StudyProgressDocumentFields {
   numberOfSeen: number;
   // Zod-inferred physical documents can retain explicit undefined values at optional keys.
   lastSeenAt?: number | undefined;
-  nextSeeingAt?: Date | undefined;
-  interval?: number | undefined;
-  schedule?: StudySchedule | undefined;
 }
 
 /** Firestore patch shape: cardId selects the document and every progress field is independently optional. */
@@ -43,16 +35,6 @@ export interface CardProgressFields {
   numberOfSeen: number;
   // Schema-derived Cards can retain explicit undefined values, so entity rules accept both optional forms.
   lastSeenAt?: number | undefined;
-  nextSeeingAt?: Date | undefined;
-  interval?: number | undefined;
-  schedule?: StudySchedule | undefined;
-}
-
-/** Ordering and size controls used when starting a study session. */
-export interface StudyCardOrderOptions {
-  useCardInterval?: boolean;
-  shuffled: boolean;
-  maxNumberOfCardsToLearn: number;
 }
 
 /** Validated authenticated command for editing persisted StudyProgress. */

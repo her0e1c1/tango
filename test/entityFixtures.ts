@@ -4,11 +4,7 @@ export { replaceRemoteDecks } from "@/entities/deck/model/actions/replaceRemoteD
 export { moveStudySession } from "@/entities/study-session/model/actions/moveStudySession";
 export { setStudySessionIndex } from "@/entities/study-session/model/actions/setStudySessionIndex";
 
-import {
-  buildStudyCardOrder,
-  type CardProgressFields,
-  type StudyCardOrderOptions,
-} from "@/entities/study-progress/@x/study-session";
+import { buildStudyCardOrder } from "@/pages/study-session-start/model/queries/buildStudyCardOrder";
 import type { StudySession } from "@/entities/study-session";
 import { studySessionStore } from "@/entities/study-session/model/store";
 
@@ -20,8 +16,8 @@ export function restoreStudySession(session: StudySession): void {
 
 export function startStudy(
   deckId: string,
-  cards: CardProgressFields[],
-  preferences: StudyCardOrderOptions & { now?: number },
+  cards: Parameters<typeof buildStudyCardOrder>[0],
+  preferences: Parameters<typeof buildStudyCardOrder>[1] & { now?: number },
   uid: string
 ): void {
   const now = preferences.now ?? Date.now();

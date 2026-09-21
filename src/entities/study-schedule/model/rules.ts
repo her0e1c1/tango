@@ -1,27 +1,9 @@
 import { z } from "zod";
 import { createEmptyCard, fsrs, Rating, State, type Card } from "ts-fsrs";
-import type { StudyRating } from "./types";
+import type { StudyRating } from "@/entities/study-answer/@x/study-schedule";
+import { instantSchema, studyScheduleSchema, type StudySchedule, type studyScheduleFieldsSchema } from "./schema";
 
-// Version 1 stores FSRS-6.0 state from pinned ts-fsrs 5.4.2; all instants are Unix milliseconds.
-const instantSchema = z.number().int().nonnegative().max(253402300799999);
-export const studyScheduleSchema = z
-  .object({
-    version: z.literal(1),
-    state: z.enum(["learning", "review", "relearning"]),
-    dueAt: instantSchema,
-    stability: z.number().positive(),
-    difficulty: z.number().min(1).max(10),
-    lastReviewedAt: instantSchema,
-    reps: z.number().int().positive(),
-    lapses: z.number().int().nonnegative(),
-    elapsedDays: z.number().nonnegative(),
-    scheduledDays: z.number().nonnegative().max(36500),
-    learningSteps: z.number().int().nonnegative(),
-  })
-  .strict()
-  .refine((schedule) => schedule.lapses <= schedule.reps, "Lapses cannot exceed reviews");
-
-export type StudySchedule = z.infer<typeof studyScheduleSchema>;
+export type StudyScheduleFields = z.infer<typeof studyScheduleFieldsSchema>;
 
 const scheduler = fsrs({
   request_retention: 0.9,
@@ -71,4 +53,19 @@ export function calculateStudySchedule(
     scheduledDays: card.scheduled_days,
     learningSteps: card.learning_steps,
   });
+}
+
+// A malformed state is an error, never a new card; a valid FSRS schedule supersedes legacy fields.
+export function classifyStudySchedule(
+  timing: StudyScheduleFields,
+  now: number
+): { status: "new" } | { status: "due" | "future"; dueAt: number } {
+  const dueAt =
+    timing.schedule !== undefined
+      ? studyScheduleSchema.parse(timing.schedule).dueAt
+      : timing.nextSeeingAt === undefined
+        ? undefined
+        : z.date().parse(timing.nextSeeingAt).getTime();
+  if (dueAt === undefined) return { status: "new" };
+  return { status: dueAt <= now ? "due" : "future", dueAt };
 }

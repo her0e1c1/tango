@@ -78,7 +78,7 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
 
 vi.mock("@/entities/study-session/api/mutations", async () => {
   const { touchStudySession } = await import("@/entities/study-session/model/actions/touchStudySession");
-  const { startStudy } = await import("@/test/entityFixtures");
+  const { restoreStudySession } = await import("@/test/entityFixtures");
   const { moveStudySession } = await import("@/entities/study-session/model/actions/moveStudySession");
   const { setStudySessionIndex } = await import("@/entities/study-session/model/actions/setStudySessionIndex");
   const { removeStudySession } = await import("@/entities/study-session/model/actions/removeStudySession");
@@ -89,7 +89,15 @@ vi.mock("@/entities/study-session/api/mutations", async () => {
     },
     startStudy: async (input: Parameters<typeof import("@/entities/study-session").startStudy>[0]) => {
       await Promise.resolve();
-      startStudy(input.deckId, input.cards, { ...input.preferences, now: input.now ?? Date.now() }, input.uid);
+      const now = input.now ?? Date.now();
+      restoreStudySession({
+        sessionId: crypto.randomUUID(),
+        deckId: input.deckId,
+        cardOrderIds: [...input.cardOrderIds],
+        currentIndex: 0,
+        lastStudiedAt: now,
+        remote: { uid: input.uid, startedAt: now },
+      });
     },
     moveStudySession: async (...args: Parameters<typeof moveStudySession>) => moveStudySession(...args),
     setStudySessionIndex: async (...args: Parameters<typeof setStudySessionIndex>) => setStudySessionIndex(...args),

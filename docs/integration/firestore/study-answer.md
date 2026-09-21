@@ -11,7 +11,7 @@
 ## 共通前提
 
 project `test-study-answer` に実際の `firestore.rules` を読み込む。各ケース前に専用 project を消去し、非匿名認証の UID `answer-owner`、公開 Deck `deck`、Card `card-0`〜`card-9`、未終了の session `session` を準備する。
-Card / Deck store と認証状態も初期化する。4評価の受理済みProgressはFSRS scheduleも含む。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
+Card / Deck store と認証状態も初期化する。4評価の受理済み操作は、StudyProgress の相対難易度・閲覧記録と独立した StudySchedule の FSRS schedule を保持し、同一 batch で保存する。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
 事前データはテスト内で作成し、新しい fixture ファイルは用意しない。共通の実行方法は [README](./README.md) を参照する。
 
 ## テストケース
