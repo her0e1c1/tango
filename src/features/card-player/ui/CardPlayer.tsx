@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   AiOutlineClose,
   AiOutlineEllipsis,
+  AiOutlineEdit,
   AiOutlineEye,
   AiOutlineEyeInvisible,
   AiOutlineForward,
@@ -42,6 +43,11 @@ const answerSurfaceProps = {
 } as const;
 
 export interface CardPlayerProps {
+  editLink?: {
+    visible: boolean;
+    onToggle: () => void;
+    element: React.ReactNode;
+  };
   showBackText?: boolean;
   allowBackHorizontalSwipe?: boolean;
   answerLabel?: string;
@@ -88,14 +94,12 @@ interface StudyModeActionsProps {
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
-  showSkipControls?: boolean;
   playbackControlsAvailable: boolean;
   playbackDescriptionId: string;
   onEscape: React.KeyboardEventHandler<HTMLButtonElement>;
   onToggleCardDetails: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
-  onToggleSkipControls?: () => void;
 }
 
 const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
@@ -179,8 +183,13 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
 };
 
 interface StudyToolbarProps {
-  ref?: React.RefObject<HTMLButtonElement | null> | undefined;
-  helpTriggerLabel?: string | undefined;
+  editLink?: {
+    visible: boolean;
+    onToggle: () => void;
+    element: React.ReactNode;
+  };
+  ref?: React.RefObject<HTMLButtonElement | null>;
+  helpTriggerLabel?: string;
   open: boolean;
   showHelp: boolean;
   showCardDetails: boolean;
@@ -256,6 +265,27 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
         )}
       </button>
+      {props.editLink !== undefined && (props.open || props.editLink.visible) ? (
+        <div className="absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] top-0">
+          {props.open ? (
+            <button
+              type="button"
+              aria-label={t("studySession.toolbar.editLink.label")}
+              aria-pressed={props.editLink.visible}
+              title={t(
+                props.editLink.visible ? "studySession.toolbar.editLink.hide" : "studySession.toolbar.editLink.show"
+              )}
+              className={cx(toolbarButtonClass, props.editLink.visible && "bg-surface-muted text-accent-primary")}
+              onClick={props.editLink.onToggle}
+              onKeyDown={closeOnEscape}
+            >
+              <AiOutlineEdit aria-hidden="true" className="text-xl" />
+            </button>
+          ) : (
+            props.editLink.element
+          )}
+        </div>
+      ) : null}
       {props.open || props.showHelp ? (
         // The fixed slot opens Help while actions are closed and controls its visibility while they are open.
         <button
@@ -276,11 +306,16 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
         </button>
       ) : null}
       {props.open ? (
-        // Keep the secondary actions below 360px so the fixed Help and menu slots stay unobstructed.
+        // Move secondary actions below the fixed shortcuts before they can overlap on narrow screens.
         <fieldset
           id={actionsId}
           aria-label={t("studySession.toolbar.actions.label")}
-          className="pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0 pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] max-[359px]:absolute max-[359px]:inset-x-0 max-[359px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[359px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+          className={cx(
+            "pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0",
+            props.editLink === undefined
+              ? "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] max-[359px]:absolute max-[359px]:inset-x-0 max-[359px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[359px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+              : "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] max-[439px]:absolute max-[439px]:inset-x-0 max-[439px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[439px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+          )}
         >
           <StudyModeActions
             showCardDetails={props.showCardDetails}
@@ -382,6 +417,7 @@ const BackTextOverlays: React.FC<{
 const CardContent: React.FC<{
   showBackText: boolean | undefined;
   hideCardOverlayOnNarrowScreen: boolean;
+  hasEditLink: boolean;
   backTextSlot: React.ReactNode | undefined;
   frontTextSlot: React.ReactNode | undefined;
   cardOverlaySlot: React.ReactNode | undefined;
@@ -389,6 +425,7 @@ const CardContent: React.FC<{
 }> = ({
   showBackText,
   hideCardOverlayOnNarrowScreen,
+  hasEditLink,
   backTextSlot,
   frontTextSlot,
   cardOverlaySlot,
@@ -414,7 +451,7 @@ const CardContent: React.FC<{
             data-study-card-overlay=""
             className={cx(
               "absolute inset-x-0 top-[var(--study-card-top)] h-touch",
-              hideCardOverlayOnNarrowScreen && "max-[359px]:hidden"
+              hideCardOverlayOnNarrowScreen && (hasEditLink ? "max-[439px]:hidden" : "max-[359px]:hidden")
             )}
           >
             {cardOverlaySlot}
@@ -544,6 +581,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
       {showStudyChrome ? (
         <StudyToolbar
           ref={helpTriggerRef}
+          {...(props.editLink !== undefined ? { editLink: props.editLink } : {})}
           {...(props.help.triggerLabel !== undefined ? { helpTriggerLabel: props.help.triggerLabel } : {})}
           open={studyActionsOpen}
           showHelp={props.showHelp}
@@ -579,6 +617,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
         <CardContent
           showBackText={props.showBackText}
           hideCardOverlayOnNarrowScreen={studyActionsOpen}
+          hasEditLink={props.editLink !== undefined}
           backTextSlot={props.backTextSlot}
           frontTextSlot={props.frontTextSlot}
           cardOverlaySlot={props.showCardDetails ? props.cardOverlaySlot : undefined}
