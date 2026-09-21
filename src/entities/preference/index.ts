@@ -9,6 +9,7 @@ export type {
 } from "./model/types";
 export { setDarkMode } from "./model/actions/setDarkMode";
 export { toggleShowCardDetails } from "./model/actions/toggleShowCardDetails";
+export { toggleShowEditLink } from "./model/actions/toggleShowEditLink";
 export { toggleShowHelp } from "./model/actions/toggleShowHelp";
 export { toggleShowPlaybackControls } from "./model/actions/toggleShowPlaybackControls";
 export { toggleShowSkip } from "./model/actions/toggleShowSkip";
