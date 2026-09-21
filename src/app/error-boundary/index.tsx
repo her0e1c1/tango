@@ -2,6 +2,8 @@ import { Component, type ReactNode, useLayoutEffect } from "react";
 
 import { useTranslation } from "react-i18next";
 import { appI18n } from "../i18n/instance";
+import { getRecoveryMessages } from "../recovery/messages";
+import { requestApplicationReset } from "../recovery/reset";
 
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -30,6 +32,10 @@ export const AppErrorFallback = () => {
       description={t("recovery.description")}
       tone="error"
       primaryAction={{ label: t("recovery.reload"), onClick: reloadPage }}
+      secondaryAction={{
+        label: getRecoveryMessages(i18n.resolvedLanguage).reset,
+        onClick: () => requestApplicationReset(i18n.resolvedLanguage),
+      }}
     />
   );
 };

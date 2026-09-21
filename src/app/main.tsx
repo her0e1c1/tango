@@ -1,27 +1,11 @@
-/**
- * @file Starts the React application in the browser.
- * It creates the root error boundary and providers, enables development diagnostics, and mounts
- * the route tree into the HTML page.
- */
-
-import "@/shared/firebase";
 import "./styles/index.css";
+import { showStartupFailure } from "./recovery/fallback";
+import { resetApplicationIfRequested } from "./recovery/reset";
 
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { createBrowserRouter } from "react-router-dom";
-import App from "./App";
-import { AppErrorBoundary } from "./error-boundary";
-import { appRoutes } from "./routes";
+async function startApplication(): Promise<void> {
+  if (await resetApplicationIfRequested()) return;
+  // Module initialization failures happen before a React Error Boundary can catch them.
+  await import("./bootstrap");
+}
 
-const root = document.getElementById("root");
-if (root == null) throw new Error("Missing root element");
-const router = createBrowserRouter(appRoutes);
-
-createRoot(root).render(
-  <React.StrictMode>
-    <AppErrorBoundary>
-      <App router={router} />
-    </AppErrorBoundary>
-  </React.StrictMode>
-);
+void startApplication().catch(showStartupFailure);
