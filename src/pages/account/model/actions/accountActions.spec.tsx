@@ -14,8 +14,10 @@ const mocks = vi.hoisted(() => ({
   action: vi.fn<() => Promise<unknown>>(),
 }));
 
-vi.mock("../../api/signInWithGoogle", () => ({ signInWithGoogle: mocks.action }));
-vi.mock("../../api/signOutCurrentUser", () => ({ signOutCurrentUser: mocks.action }));
+vi.mock("@/entities/auth", () => ({
+  signInWithGoogle: mocks.action,
+  signOutCurrentUser: mocks.action,
+}));
 
 const deferred = <T,>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;

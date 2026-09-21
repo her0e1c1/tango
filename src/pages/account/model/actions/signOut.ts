@@ -1,6 +1,6 @@
+import { signOutCurrentUser } from "@/entities/auth";
 import { showToast } from "@/shared/ui/toast";
 
-import { signOutCurrentUser } from "../../api/signOutCurrentUser";
 import { accountPageStore as store } from "../store";
 
 export async function signOut(): Promise<void> {
