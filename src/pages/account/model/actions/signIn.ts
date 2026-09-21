@@ -1,6 +1,6 @@
+import { signInWithGoogle } from "@/entities/auth";
 import { showToast } from "@/shared/ui/toast";
 
-import { signInWithGoogle } from "../../api/signInWithGoogle";
 import { accountPageStore as store } from "../store";
 
 export async function signIn(): Promise<void> {

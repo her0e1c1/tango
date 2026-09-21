@@ -1,3 +1,5 @@
+export { signInWithGoogle } from "./api/signInWithGoogle";
+export { signOutCurrentUser } from "./api/signOutCurrentUser";
 export { useAuth } from "./model/queries/useAuth";
 export { useAuthSession } from "./model/queries/useAuthSession";
 export { getAuthSession } from "./model/queries/getAuthSession";
