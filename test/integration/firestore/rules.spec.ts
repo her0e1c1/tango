@@ -191,19 +191,6 @@ describe("PERSISTENCE-01 PERSISTENCE-04 Firestore ownership and guest write rest
       await updateDoc(doc(db, "studySession", "session"), { endReason: "completed" });
       await assertSucceeds(setDoc(doc(db, "studyAnswer", "another-id"), answer("last")));
     });
-    it.each([
-      { sessionId: "missing" },
-      { cardId: "missing" },
-      { sessionId: "foreign-session" },
-      { cardId: "foreign-card" },
-      { deckId: "another-deck" },
-      { cardId: "another-deck-card" },
-    ])("rejects an answer with inaccessible or mismatched references: %j", async (reference) => {
-      await createData("studySession", "foreign-session", { uid: "other", deckId: "deck" });
-      await createData("card", "foreign-card", { uid: "other", deckId: "deck" });
-      await createData("card", "another-deck-card", { uid: "owner", deckId: "another-deck" });
-      await assertFails(setDoc(doc(ownerDb(), "studyAnswer", "new"), { ...answer(), ...reference }));
-    });
     it("forbids rewriting or deleting answer history", async () => {
       const db = ownerDb();
       await createData("studyAnswer", "saved", answer());

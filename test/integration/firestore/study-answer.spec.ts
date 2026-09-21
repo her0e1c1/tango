@@ -20,7 +20,6 @@ import {
   updateDoc,
   where,
   waitForPendingWrites,
-  writeBatch,
   type Firestore,
   type QueryConstraint,
 } from "firebase/firestore";
@@ -299,40 +298,16 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await assertFails(getDocs(query(collection(connection.db, "studyAnswer"), where(field, "==", input[field]))));
   });
 
-  it.each([
-    "good",
-    { type: "rating" },
-    { type: "choice", optionId: "a" },
-    { type: "rating", rating: "mastered" },
-    { type: "rating", rating: "not-mastered" },
-    { type: "rating", rating: "unrated" },
-    { type: "rating", rating: "invalid" },
-    { type: "rating", rating: "good", optionId: "a" },
-  ])("rejects an invalid answer payload %j", async (answer) => {
-    const batch = writeBatch(connection.db);
-    batch.set(doc(collection(connection.db, "studyAnswer")), { ...answerData(), answer });
-    batch.update(doc(connection.db, "studySession", sessionId), { currentIndex: 1, updatedAt: serverTimestamp() });
-    batch.update(doc(connection.db, "card", "card-0"), { numberOfSeen: 1, difficulty: 4, lastSeenAt: 2000 });
-    await assertFails(batch.commit());
+  it("rejects creating an answer under another UID", async () => {
+    await assertFails(setDoc(doc(collection(connection.db, "studyAnswer")), { ...answerData(), uid: "other" }));
     expect((await answers()).size).toBe(0);
   });
 
-  it.each([
-    { uid: "other" },
-    { deckId: "other" },
-    { sessionId: "other" },
-    { cardId: "missing-card" },
-    { answeredAt: 2000 },
-    { createdAt: Timestamp.fromMillis(0) },
-    { updatedAt: Timestamp.fromMillis(0) },
-    { isCorrect: null },
-    { answerId: "duplicate" },
-  ])("rejects invalid references or metadata %j", async (fields) => {
-    const batch = writeBatch(connection.db);
-    batch.set(doc(collection(connection.db, "studyAnswer")), { ...answerData(), ...fields });
-    batch.update(doc(connection.db, "studySession", sessionId), { currentIndex: 1, updatedAt: serverTimestamp() });
-    batch.update(doc(connection.db, "card", "card-0"), { numberOfSeen: 1, difficulty: 4, lastSeenAt: 2000 });
-    await assertFails(batch.commit());
+  it("leaves answer payload and reference validation to the application", async () => {
+    const reference = doc(collection(connection.db, "studyAnswer"));
+    const data = { uid, sessionId: "missing", cardId: "missing", answer: { type: "text", text: "custom" } };
+    await assertSucceeds(setDoc(reference, data));
+    expect((await getDoc(reference)).data()).toEqual(data);
   });
 
   it("allows an owner answer alone without enforcing application transitions", async () => {
@@ -357,13 +332,14 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await answers()).size).toBe(1);
   });
 
-  it("prevents rewinding, changing card order, or reopening a session", async () => {
-    await saveStudyOperation(operation());
+  it("keeps Session updates owner-only without duplicating application transitions", async () => {
     const reference = doc(connection.db, "studySession", sessionId);
-    await assertFails(updateDoc(reference, { currentIndex: 0, updatedAt: serverTimestamp() }));
-    await assertFails(updateDoc(reference, { cardOrderIds: [...cardIds].reverse(), updatedAt: serverTimestamp() }));
-    await updateDoc(reference, { endReason: "abandoned", endedAt: serverTimestamp(), updatedAt: serverTimestamp() });
-    await assertFails(updateDoc(reference, { endReason: null, endedAt: null, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(reference, { uid: "other" }));
+    await assertSucceeds(updateDoc(reference, { currentIndex: 1, endReason: "completed" }));
+    await assertSucceeds(updateDoc(reference, { currentIndex: 0, endReason: null }));
+    const otherDb = environment.authenticatedContext("other", linkedToken).firestore();
+    await assertFails(updateDoc(doc(otherDb, "studySession", sessionId), { currentIndex: 1 }));
+    await assertFails(deleteDoc(reference));
   });
 
   it("denies even the owner's updates and deletion of saved answers", async () => {
