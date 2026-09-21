@@ -11,17 +11,14 @@ const config: StorybookConfig = {
   staticDirs: ["../public"],
   addons: ["@storybook/addon-a11y", "@storybook/addon-docs", "@storybook/addon-themes", "@storybook/addon-vitest"],
   framework: "@storybook/react-vite",
-  viteFinal: async (viteConfig) =>
-    mergeConfig(
-      {
-        ...viteConfig,
-        plugins: withoutPwaPlugins(viteConfig.plugins),
+  viteFinal: async (viteConfig) => {
+    const finalConfig = mergeConfig(viteConfig, {
+      resolve: {
+        alias: [{ find: /^(?:@\/shared\/firebase|\.\.\/firebase)$/, replacement: storybookFirebase }],
       },
-      {
-        resolve: {
-          alias: [{ find: /^(?:@\/shared\/firebase|\.\.\/firebase)$/, replacement: storybookFirebase }],
-        },
-      }
-    ),
+    });
+    finalConfig.plugins = withoutPwaPlugins(finalConfig.plugins);
+    return finalConfig;
+  },
 };
 export default config;

@@ -6,13 +6,7 @@ export function withoutPwaPlugins(plugins: PluginOption[] | undefined): PluginOp
       return withoutPwaPlugins(plugin);
     }
 
-    if (
-      plugin &&
-      typeof plugin === "object" &&
-      "name" in plugin &&
-      typeof plugin.name === "string" &&
-      plugin.name.startsWith("vite-plugin-pwa")
-    ) {
+    if (plugin && "name" in plugin && plugin.name.startsWith("vite-plugin-pwa")) {
       return [];
     }
 

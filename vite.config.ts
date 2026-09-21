@@ -30,13 +30,15 @@ export default defineConfig({
   },
   build: {
     outDir: "build",
-    ...(process.env.VITE_USE_FIREBASE_EMULATORS === "true" ? {
-      rolldownOptions: {
-        preserveEntrySignatures: "strict",
-        input: { app: "index.html", "e2e-fixture": "test/e2e/browser-fixture.ts" },
-        output: { entryFileNames: (chunk) => chunk.name === "e2e-fixture" ? "e2e-fixture.js" : "assets/[name]-[hash].js" },
-      },
-    } : {}),
+    rolldownOptions: process.env.VITE_USE_FIREBASE_EMULATORS === "true"
+      ? {
+          preserveEntrySignatures: "strict",
+          input: { app: "index.html", "e2e-fixture": "test/e2e/browser-fixture.ts" },
+          output: {
+            entryFileNames: (chunk) => chunk.name === "e2e-fixture" ? "e2e-fixture.js" : "assets/[name]-[hash].js",
+          },
+        }
+      : {},
   },
   server: {
     allowedHosts: ["app.test"],
