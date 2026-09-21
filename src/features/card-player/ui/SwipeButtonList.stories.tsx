@@ -19,3 +19,7 @@ export const PreviousDisabled: Story = { args: { disabledDirections: { cardSwipe
 export const RemappedPreviousDisabled: Story = { args: { disabledDirections: { cardSwipeRight: true } } };
 export const Disabled: Story = { args: { disabled: true } };
 export const Dark: Story = { globals: { theme: "dark" } };
+
+export const Ratings: Story = {
+  args: { captions: { cardSwipeLeft: "Again", cardSwipeDown: "Hard", cardSwipeRight: "Good", cardSwipeUp: "Easy" } },
+};

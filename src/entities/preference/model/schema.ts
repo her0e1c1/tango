@@ -28,10 +28,10 @@ const DEFAULT_CONTROLS = {
   showCardDetails: true,
   showDifficultySlider: false,
   showBackTextSwipeOverlays: false,
-  cardSwipeUp: "GoToNextCardMastered" as const,
-  cardSwipeDown: "GoToNextCardNotMastered" as const,
-  cardSwipeLeft: "GoToPrevCard" as const,
-  cardSwipeRight: "GoToNextCard" as const,
+  cardSwipeUp: "RateEasy" as const,
+  cardSwipeDown: "RateHard" as const,
+  cardSwipeLeft: "RateAgain" as const,
+  cardSwipeRight: "RateGood" as const,
 };
 
 const DEFAULT_LOAD_SAMPLE = true;
@@ -42,11 +42,11 @@ export const languagePreferenceSchema = z.enum(["system", "en", "ja"]);
 export const swipeActionSchema = z.enum([
   "DoNothing",
   "GoBack",
-  "GoToPrevCard",
   "GoToNextCard",
-  "GoToNextCardMastered",
-  "GoToNextCardNotMastered",
-  "GoToNextCardToggleMastered",
+  "RateGood",
+  "RateAgain",
+  "RateHard",
+  "RateEasy",
 ]);
 
 const appearancePreferencesSchema = z
@@ -111,3 +111,28 @@ export const preferencesSchema = z
     study: DEFAULT_STUDY,
     controls: DEFAULT_CONTROLS,
   });
+
+// Recognize the complete former default before removed actions fall back individually.
+const legacyDefaultPreferencesSchema = z.looseObject({
+  controls: z.looseObject({
+    cardSwipeUp: z.literal("GoToNextCardMastered"),
+    cardSwipeDown: z.literal("GoToNextCardNotMastered"),
+    cardSwipeLeft: z.literal("GoToPrevCard"),
+    cardSwipeRight: z.literal("GoToNextCard"),
+  }),
+});
+
+export const persistedPreferencesSchema = z.preprocess((value) => {
+  const legacy = legacyDefaultPreferencesSchema.safeParse(value);
+  if (!legacy.success) return value;
+  return {
+    ...legacy.data,
+    controls: {
+      ...legacy.data.controls,
+      cardSwipeUp: DEFAULT_CONTROLS.cardSwipeUp,
+      cardSwipeDown: DEFAULT_CONTROLS.cardSwipeDown,
+      cardSwipeLeft: DEFAULT_CONTROLS.cardSwipeLeft,
+      cardSwipeRight: DEFAULT_CONTROLS.cardSwipeRight,
+    },
+  };
+}, preferencesSchema);

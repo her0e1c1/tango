@@ -6,5 +6,5 @@ browser:
       showPlaybackControls: false
       cardSwipeUp: GoBack
       cardSwipeDown: DoNothing
-      cardSwipeLeft: GoToNextCardToggleMastered
-      cardSwipeRight: GoToPrevCard
+      cardSwipeLeft: RateHard
+      cardSwipeRight: RateEasy

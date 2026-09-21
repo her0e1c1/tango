@@ -132,8 +132,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     });
     expect((await readSession(next.sessionId)).data()).toMatchObject({ currentIndex: 0, endReason: null });
     expect(next.sessionId).not.toBe(previous.sessionId);
-    // A late progress patch does not write endReason or endedAt.
+    // A delayed application position update does not reopen an ended run.
     await updateStudySession({ ...previous, currentIndex: 1 }, null);
+    await waitForPendingWrites(testDb);
     expect((await readSession(previous.sessionId)).data()?.endReason).toBe("abandoned");
   });
 

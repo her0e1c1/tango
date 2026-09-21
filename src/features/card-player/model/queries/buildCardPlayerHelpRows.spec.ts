@@ -10,8 +10,8 @@ describe("STUDY-CONTROLS-04 buildCardPlayerHelpRows", () => {
       controls: {
         cardSwipeUp: "GoBack",
         cardSwipeDown: "DoNothing",
-        cardSwipeLeft: "GoToNextCardToggleMastered",
-        cardSwipeRight: "GoToPrevCard",
+        cardSwipeLeft: "RateHard",
+        cardSwipeRight: "RateEasy",
       },
     });
 
@@ -20,8 +20,8 @@ describe("STUDY-CONTROLS-04 buildCardPlayerHelpRows", () => {
     expect(rows.slice(0, 4)).toEqual([
       { control: "cardSwipeUp", action: "GoBack" },
       { control: "cardSwipeDown", action: "DoNothing" },
-      { control: "cardSwipeLeft", action: "GoToNextCardToggleMastered" },
-      { control: "cardSwipeRight", action: "GoToPrevCard" },
+      { control: "cardSwipeLeft", action: "RateHard" },
+      { control: "cardSwipeRight", action: "RateEasy" },
     ]);
   });
 
@@ -43,10 +43,10 @@ describe("STUDY-CONTROLS-04 buildCardPlayerHelpRows", () => {
   });
 
   it("keeps mapping identity independent from presentation locale", () => {
-    const preferences = createPreferences({ controls: { cardSwipeRight: "GoToNextCardMastered" } });
+    const preferences = createPreferences({ controls: { cardSwipeRight: "RateGood" } });
 
     const rows = buildCardPlayerHelpRows(preferences);
 
-    expect(rows).toContainEqual({ control: "cardSwipeRight", action: "GoToNextCardMastered" });
+    expect(rows).toContainEqual({ control: "cardSwipeRight", action: "RateGood" });
   });
 });

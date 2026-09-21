@@ -2,7 +2,7 @@ import type { z } from "zod";
 
 import type { CardId } from "@/entities/card/@x/study-progress";
 import type { Difficulty } from "./difficulty";
-import type { editStudyProgressSchema } from "./schema";
+import type { editStudyProgressSchema, studyRatingSchema } from "./schema";
 
 /** Card-scoped learning history shared by Deck filtering, session ordering, and persistence. */
 export interface StudyProgress {
@@ -31,7 +31,7 @@ export interface StudyProgressDocumentFields {
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;
 
 /** FSRS recall rating; navigation-only interactions have no rating. */
-export type StudyRating = "again" | "hard" | "good" | "easy";
+export type StudyRating = z.infer<typeof studyRatingSchema>;
 
 /** Inclusive difficulty and due-time constraints for Card eligibility. */
 export interface StudyProgressFilter {

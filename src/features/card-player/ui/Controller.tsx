@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Slider } from "@/shared/ui/forms";
 
 export interface ControllerProps {
+  disabled?: boolean;
   autoPlay?: boolean;
   progressLabel?: string;
   index?: number;
@@ -23,6 +24,7 @@ export const Controller: React.FC<ControllerProps> = (props) => {
     <div className="mx-auto flex w-full max-w-content items-center gap-2">
       <button
         type="button"
+        disabled={props.disabled}
         aria-label={autoPlay ? t("studySession.controller.pause") : t("studySession.controller.play")}
         aria-pressed={autoPlay}
         className={cx(
@@ -41,7 +43,7 @@ export const Controller: React.FC<ControllerProps> = (props) => {
         <Slider
           min={0}
           max={Math.max(numberOfCards - 1, 0)}
-          disabled={numberOfCards === 0 || index >= numberOfCards}
+          disabled={props.disabled || numberOfCards === 0 || index >= numberOfCards}
           value={String(index)}
           aria-label={props.progressLabel ?? t("studySession.controller.progress")}
           aria-valuetext={t("studySession.controller.progressValue", {

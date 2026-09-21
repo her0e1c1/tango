@@ -1,27 +1,14 @@
 import * as lodash from "lodash";
 
-import type { SwipeAction } from "@/entities/preference/@x/study-progress";
-
 import { createStudyProgress } from "./defaults";
 import { clampDifficulty, type Difficulty } from "./difficulty";
 import type {
   CardProgressFields,
   StudyCardOrderOptions,
   StudyProgress,
-  StudyProgressEdit,
   StudyProgressFilter,
   StudyRating,
 } from "./types";
-
-// Existing controls use Again/Good; navigation-only actions have no recall rating.
-export const resolveStudyRating = (swipeAction: SwipeAction): StudyRating | undefined => {
-  if (swipeAction === "GoToNextCardMastered") return "good";
-  // Preserve the existing toggle behavior as a failed recall.
-  if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {
-    return "again";
-  }
-  return undefined;
-};
 
 // Projects a Card's learning fields into StudyProgress while preserving which optional fields are absent.
 export const createStudyProgressFromCard = (card: CardProgressFields): StudyProgress => {
@@ -41,24 +28,16 @@ export const calculateDifficulty = (difficulty: Difficulty, rating: StudyRating 
 };
 
 // Builds the persistence patch for one interaction, which always increments the seen count and records its timestamp.
-const recordStudyProgress = (
-  progress: StudyProgress,
-  rating: StudyRating | undefined,
-  studiedAt: number
-): StudyProgressEdit => ({
+const recordStudyProgress = (progress: StudyProgress, rating: StudyRating | undefined, studiedAt: number) => ({
   cardId: progress.cardId,
   difficulty: calculateDifficulty(progress.difficulty, rating),
   numberOfSeen: progress.numberOfSeen + 1,
   lastSeenAt: studiedAt,
 });
 
-// Translates a studied Card and its control action into the progress patch owned by the StudyProgress Entity.
-export const recordCardStudyProgress = (
-  card: CardProgressFields,
-  swipeAction: SwipeAction,
-  studiedAt: number
-): StudyProgressEdit =>
-  recordStudyProgress(createStudyProgressFromCard(card), resolveStudyRating(swipeAction), studiedAt);
+// Translates a studied Card and its rating into the progress patch owned by the StudyProgress Entity.
+export const recordCardStudyProgress = (card: CardProgressFields, rating: StudyRating | undefined, studiedAt: number) =>
+  recordStudyProgress(createStudyProgressFromCard(card), rating, studiedAt);
 
 // Accepts progress inside the inclusive difficulty bounds and, when enabled, only after its next scheduled time.
 export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyProgressFilter, now: number): boolean => {

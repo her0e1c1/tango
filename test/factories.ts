@@ -153,10 +153,10 @@ const createControls = (
   showCardDetails: controls?.showCardDetails ?? flat?.showCardDetails ?? true,
   showDifficultySlider: controls?.showDifficultySlider ?? flat?.showDifficultySlider ?? false,
   showBackTextSwipeOverlays: controls?.showBackTextSwipeOverlays ?? flat?.showBackTextSwipeOverlays ?? false,
-  cardSwipeUp: controls?.cardSwipeUp ?? flat?.cardSwipeUp ?? "GoToNextCardMastered",
-  cardSwipeDown: controls?.cardSwipeDown ?? flat?.cardSwipeDown ?? "GoToNextCardNotMastered",
-  cardSwipeLeft: controls?.cardSwipeLeft ?? flat?.cardSwipeLeft ?? "GoToPrevCard",
-  cardSwipeRight: controls?.cardSwipeRight ?? flat?.cardSwipeRight ?? "GoToNextCard",
+  cardSwipeUp: controls?.cardSwipeUp ?? flat?.cardSwipeUp ?? "RateEasy",
+  cardSwipeDown: controls?.cardSwipeDown ?? flat?.cardSwipeDown ?? "RateHard",
+  cardSwipeLeft: controls?.cardSwipeLeft ?? flat?.cardSwipeLeft ?? "RateAgain",
+  cardSwipeRight: controls?.cardSwipeRight ?? flat?.cardSwipeRight ?? "RateGood",
 });
 
 /**

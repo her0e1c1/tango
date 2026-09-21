@@ -20,11 +20,11 @@ type StudyHelpDialogAction =
   | "previousCard"
   | "DoNothing"
   | "GoBack"
-  | "GoToPrevCard"
   | "GoToNextCard"
-  | "GoToNextCardMastered"
-  | "GoToNextCardNotMastered"
-  | "GoToNextCardToggleMastered"
+  | "RateGood"
+  | "RateAgain"
+  | "RateHard"
+  | "RateEasy"
   | "flip"
   | "autoPlay"
   | "autoPlayUnavailable"
@@ -58,11 +58,11 @@ const actionKeys = {
   previousCard: "deckView.helpPrevious",
   DoNothing: "studySession.help.actions.DoNothing",
   GoBack: "studySession.help.actions.GoBack",
-  GoToPrevCard: "studySession.help.actions.GoToPrevCard",
   GoToNextCard: "studySession.help.actions.GoToNextCard",
-  GoToNextCardMastered: "studySession.help.actions.GoToNextCardMastered",
-  GoToNextCardNotMastered: "studySession.help.actions.GoToNextCardNotMastered",
-  GoToNextCardToggleMastered: "studySession.help.actions.GoToNextCardToggleMastered",
+  RateGood: "studySession.help.actions.RateGood",
+  RateAgain: "studySession.help.actions.RateAgain",
+  RateHard: "studySession.help.actions.RateHard",
+  RateEasy: "studySession.help.actions.RateEasy",
   flip: "studySession.help.actions.flip",
   autoPlay: "studySession.help.actions.autoPlay",
   autoPlayUnavailable: "studySession.help.actions.autoPlayUnavailable",

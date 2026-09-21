@@ -10,7 +10,7 @@ import { StudyHelpDialog } from "./StudyHelpDialog";
 
 const dialogProps = {
   rows: [
-    { control: "cardSwipeUp", action: "GoToNextCardMastered" },
+    { control: "cardSwipeUp", action: "RateGood" },
     { control: "flip", action: "flip" },
   ] as const,
 };

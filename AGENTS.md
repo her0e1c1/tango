@@ -22,12 +22,21 @@ Every task that changes repository files must complete this workflow:
 
 ## Architecture
 
-- Follow the current official Feature-Sliced Design guidance before repository-specific placement preferences.
-- Prefer FSD v2.1 page-first: keep code with its consuming Page until actual reuse justifies a lower layer. A single-Page action or domain concept alone does not justify retaining a Feature or Entity slice.
+- Follow the current official Feature-Sliced Design layer boundaries, slice isolation, and public API rules. Repository-specific placement rules must stay within those boundaries.
+- Prefer FSD v2.1 page-first for screen-specific code, except for the API placement policy below. Move other code to lower layers only when actual reuse justifies it.
 - Treat recommended `@feature-sliced/steiger-plugin` rules as constraints. Resolve violations structurally; disable a recommended rule only when the user explicitly requests an exception.
 - Move reusable cross-Page workflows to Features, reusable domain concepts, rules, and visual representations to Entities, and broadly reusable technical or UI primitives to Shared.
 - UI components define their own props instead of reusing model return types. Keep locale-dependent formatting, such as dates and numbers, in UI rather than model hooks.
 - When a Page needs route parameters, import and call `useParams()` in the Page component under `ui/`, and pass the required parameters to the Page model hook.
+
+### API placement
+
+- Do not create `api/` directories anywhere under `src/pages`. FSD permits Page API segments; this prohibition is a repository-specific placement policy.
+- Keep domain-specific request functions, Firestore reads, writes, and subscriptions, and persistence parsing and mapping in the owning `entities/<entity>/api/`, regardless of HTTP method or the number of consuming Pages.
+- Keep domain-agnostic HTTP/SDK clients and generic transport or storage helpers in Shared, such as `shared/api`. Shared must not depend on Entities.
+- Page model code consumes Entity operations through the slice public API (`@/entities/<entity>`). Do not bypass this boundary with deep imports or hide domain data access in Page `model/`, `lib/`, or `ui/`.
+- Keep Page-specific workflow sequencing in `model/actions/`, and Page-specific state, navigation, and notifications in the Page model layer. Move workflows to Features only for actual cross-Page reuse; do not move these concerns into Entities merely to remove a Page API segment.
+- Preserve Entity slice isolation and dependency direction. Do not import Pages or Features from Entities, orchestrate unrelated Entity slices there, or create Page-named Entity slices or a generic `entities/api` bucket.
 
 ### Model organization
 

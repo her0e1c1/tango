@@ -18,13 +18,11 @@ const isDirectionalStudyAction = (action: StudyShortcutAction): boolean =>
   action === "swipeUp" || action === "swipeDown" || action === "swipeLeft" || action === "swipeRight";
 
 export function useStudyShortcuts({
-  uid,
   deckId,
   status,
   helpOpen,
   showBackText,
 }: {
-  uid: string;
   deckId: string;
   status: "studying" | "preparing" | "invalid";
   helpOpen: boolean;
@@ -35,10 +33,10 @@ export function useStudyShortcuts({
     helpOpen,
     showBackText,
     actions: {
-      swipeUp: () => void swipeCard(uid, deckId, "cardSwipeUp"),
-      swipeDown: () => void swipeCard(uid, deckId, "cardSwipeDown"),
-      swipeLeft: () => void swipeCard(uid, deckId, "cardSwipeLeft"),
-      swipeRight: () => void swipeCard(uid, deckId, "cardSwipeRight"),
+      swipeUp: () => void swipeCard(deckId, "cardSwipeUp"),
+      swipeDown: () => void swipeCard(deckId, "cardSwipeDown"),
+      swipeLeft: () => void swipeCard(deckId, "cardSwipeLeft"),
+      swipeRight: () => void swipeCard(deckId, "cardSwipeRight"),
       toggleBackText,
       toggleAutoPlay,
       toggleSwipeButtonList: toggleShowSwipeButtonList,

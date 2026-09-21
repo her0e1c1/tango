@@ -180,7 +180,7 @@ Given:
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
 - browser storage に、複数の Card を含む local-only Deck と進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
-- 上方向の drag は mastered action に設定されている。
+- 上方向の drag は easy action に設定されている。
 
 When:
 
@@ -188,10 +188,10 @@ When:
 
 Then:
 
-- 現在だった Card の mastered 学習結果が browser storage に維持されている。
+- 現在だった Card の easy 学習結果が browser storage に維持されている。
 - session の位置が次の Card に維持されている。
 - 次の Card の front text が表示され、back text は表示されない。
-- local-only Deck と匿名ユーザーの session は Firestore へ書き込まない。
+- 匿名ユーザーの session と回答は Firestore の永続 cache に保存し、クラウドへ書き込まない。
 - browser error が発生しない。
 
 <a id="study-session-08"></a>

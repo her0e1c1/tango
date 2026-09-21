@@ -15,12 +15,7 @@ export const useStudyQuery = (deckId: string) => {
   const sessionState: StudySessionState =
     session === undefined && remoteLoading ? { status: "preparing" } : resolveStudySession(session, cards);
   const controls = {
-    disabledSwipeDirections: {
-      cardSwipeUp: preferences.controls.cardSwipeUp === "GoToPrevCard",
-      cardSwipeDown: preferences.controls.cardSwipeDown === "GoToPrevCard",
-      cardSwipeLeft: preferences.controls.cardSwipeLeft === "GoToPrevCard",
-      cardSwipeRight: preferences.controls.cardSwipeRight === "GoToPrevCard",
-    },
+    swipeActions: preferences.controls,
     showHelp: preferences.controls.showHelp,
     playbackControlsAvailable: preferences.study.cardInterval > 0,
     showCardDetails: preferences.controls.showCardDetails,
@@ -29,7 +24,7 @@ export const useStudyQuery = (deckId: string) => {
     showBackTextSwipeOverlays: preferences.controls.showBackTextSwipeOverlays,
     helpRows: buildCardPlayerHelpRows(preferences),
   };
-  const query = { cards, preferences, sessionState, ...controls };
+  const query = { sessionId: session?.sessionId, cards, preferences, sessionState, ...controls };
   if (deck == null || sessionState.status !== "studying")
     return {
       ...query,

@@ -28,8 +28,9 @@ beforeEach(() => {
   localStorage.setItem("another-app", "keep");
   sdk.auth.currentUser = { uid: "previous-user" };
   sdk.clearPersistence.mockReset().mockResolvedValue(undefined);
-  sdk.signOut.mockReset().mockImplementation(async () => {
+  sdk.signOut.mockReset().mockImplementation(() => {
     sdk.auth.currentUser = null;
+    return Promise.resolve();
   });
   confirm.mockReturnValue(true);
   cacheNames = new Set([ownedCache, otherScopeCache, "another-app"]);

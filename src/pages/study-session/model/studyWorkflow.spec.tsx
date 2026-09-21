@@ -78,7 +78,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       cardInterval: 1,
       defaultAutoPlay: false,
       showSwipeFeedback: true,
-      cardSwipeRight: "GoToNextCardMastered",
+      cardSwipeRight: "RateGood",
     });
     startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
   });
@@ -326,7 +326,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   it("does not show swipe feedback when the preference is disabled", async () => {
     mocks.preferences = createPreferences({
       showSwipeFeedback: false,
-      cardSwipeRight: "GoToNextCardMastered",
+      cardSwipeRight: "RateGood",
     });
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
@@ -336,8 +336,8 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
-  it.each([1, 0])("ignores previous-card actions at index %s without saving or hiding the answer", async (index) => {
-    mocks.preferences = createPreferences({ cardSwipeLeft: "GoToPrevCard", showSwipeFeedback: true });
+  it.each([1, 0])("ignores backward slider movement at index %s without saving or hiding the answer", async (index) => {
+    mocks.preferences = createPreferences({ cardSwipeLeft: "DoNothing", showSwipeFeedback: true });
     setStudySessionIndex(deckId, index);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     await actAsync(async () => result.current.toggleBackText());
@@ -398,7 +398,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     mocks.preferences = createPreferences({ cardSwipeRight: "DoNothing" });
     await actAsync(async () => swipe());
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
-    mocks.preferences = createPreferences({ cardSwipeRight: "GoToNextCardMastered" });
+    mocks.preferences = createPreferences({ cardSwipeRight: "RateGood" });
     mocks.cards = [];
     await actAsync(async () => swipe());
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
@@ -540,21 +540,23 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 });
 
-vi.mock("@/pages/study-session/api/saveStudyAnswer", async () => {
+vi.mock("@/pages/study-session/api/saveStudyOperation", async () => {
   const { moveStudySession } = await import("@/test/entityFixtures");
-  const { planStudySessionSwipe } = await import("@/entities/study-session");
   return {
-    saveStudyAnswer: async (
-      uid: string,
-      session: import("@/entities/study-session").StudySession,
-      action: import("@/entities/preference").Preferences["controls"]["cardSwipeUp"],
-      now: number
+    saveStudyOperation: async (
+      operation: import("./studyOperation").StudyOperation,
+      session: import("@/entities/study-session").StudySession
     ) => {
-      const { getCards } = await import("@/entities/card");
-      const plan = planStudySessionSwipe(session, getCards(), action, now);
-      if (plan.effect !== "next") return;
-      await mocks.editStudyProgress(uid, plan.progress);
-      moveStudySession(session);
+      await mocks.editStudyProgress(operation.uid, {
+        ...operation.progress,
+        cardId: operation.cardId,
+        lastSeenAt: operation.answeredAt,
+      });
+      moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
+      return {
+        session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
+        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,
+      };
     },
   };
 });

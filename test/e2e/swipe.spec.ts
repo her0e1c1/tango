@@ -1,6 +1,13 @@
 import type { Page } from "@playwright/test";
 
-import { allowExpectedFirestoreWriteFailure, expect, failNextFirestoreWrite, readLocalData, test } from "./fixtures";
+import {
+  allowExpectedFirestoreWriteFailure,
+  failNextFirestoreWrite,
+  expect,
+  listDocuments,
+  readLocalData,
+  test,
+} from "./fixtures";
 import { progressOf, readProgress, readSession } from "./study-helpers";
 
 const cardAt = <T>(cards: readonly T[], index: number) => {
@@ -34,7 +41,7 @@ const returnToDeckList = async (page: Page) => {
   await page.getByRole("button", { name: "Back to deck list" }).click();
 };
 
-test("STUDY-ACTIONS-01 saves mastered progress and advances to the next Card", async ({ fixture, page }) => {
+test("STUDY-ACTIONS-01 saves a good answer and progress and advances to the next Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -42,12 +49,14 @@ test("STUDY-ACTIONS-01 saves mastered progress and advances to the next Card", a
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: "Swipe up" }).click();
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  const beforeAnswer = await readSession(page, deck.id);
+  await page.getByRole("button", { name: "Swipe right" }).click();
 
-  const feedback = page.getByRole("status").filter({ hasText: "Swiped up" });
+  const feedback = page.getByRole("status").filter({ hasText: "Swiped right" });
   const directionIcon = page.getByTestId("swipe-feedback-direction");
   await expect(feedback).toBeVisible();
-  await expect(directionIcon).toHaveAttribute("data-swipe-feedback-direction", "cardSwipeUp");
+  await expect(directionIcon).toHaveAttribute("data-swipe-feedback-direction", "cardSwipeRight");
   await expect(directionIcon).toBeVisible();
   await expect(page.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
@@ -58,11 +67,22 @@ test("STUDY-ACTIONS-01 saves mastered progress and advances to the next Card", a
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  await expect
+    .poll(async () => (await readSession(page, deck.id))?.lastStudiedAt)
+    .toBeGreaterThan(beforeAnswer?.lastStudiedAt ?? session.lastStudiedAt);
   await expect(feedback).toHaveCount(0, { timeout: 2000 });
   await expect(directionIcon).toHaveCount(0);
+  const answers = (await listDocuments("studyAnswer")).filter(
+    (item) => item.fields.sessionId?.stringValue === session.sessionId
+  );
+  expect(answers).toHaveLength(1);
+  expect(answers[0]?.fields.answer?.mapValue?.fields).toMatchObject({
+    type: { stringValue: "rating" },
+    rating: { stringValue: "good" },
+  });
 });
 
-test("STUDY-ACTIONS-02 saves non-mastered progress and advances to the next Card", async ({ fixture, page }) => {
+test("STUDY-ACTIONS-02 saves an again answer and progress and advances to the next Card", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -70,7 +90,7 @@ test("STUDY-ACTIONS-02 saves non-mastered progress and advances to the next Card
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: "Swipe down" }).click();
+  await page.getByRole("button", { name: "Swipe left" }).click();
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect
@@ -82,7 +102,7 @@ test("STUDY-ACTIONS-02 saves non-mastered progress and advances to the next Card
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
-test("STUDY-ACTIONS-03 records an unrated next action and advances", async ({ fixture, page }) => {
+test("STUDY-ACTIONS-03 skips without creating an answer and advances", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const session = fixture.session();
   const currentCard = fixture.card("card-1");
@@ -90,7 +110,7 @@ test("STUDY-ACTIONS-03 records an unrated next action and advances", async ({ fi
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: "Swipe right" }).click();
+  await page.getByRole("button", { name: "Skip" }).click();
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect
@@ -100,6 +120,9 @@ test("STUDY-ACTIONS-03 records an unrated next action and advances", async ({ fi
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  expect(
+    (await listDocuments("studyAnswer")).filter((item) => item.fields.sessionId?.stringValue === session.sessionId)
+  ).toHaveLength(0);
 });
 
 test("STUDY-ACTIONS-04 prevents returning to previous Cards through study controls", async ({ fixture, page }) => {
@@ -109,16 +132,11 @@ test("STUDY-ACTIONS-04 prevents returning to previous Cards through study contro
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}/study`);
 
-  await expect(page.getByRole("button", { name: "Swipe left" })).toBeDisabled();
-  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByText("Again", { exact: true })).toBeVisible();
+  await expect(page.getByText("Hard", { exact: true })).toBeVisible();
+  await expect(page.getByText("Good", { exact: true })).toBeVisible();
+  await expect(page.getByText("Easy", { exact: true })).toBeVisible();
   const front = page.getByRole("button", { name: currentCard.frontText, exact: true });
-  const box = await front.boundingBox();
-  if (box === null) throw new Error("Study card front is not visible");
-  await page.mouse.move(box.x + box.width * 0.7, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2, { steps: 5 });
-  await page.mouse.up();
-
   const slider = page.getByRole("slider", { name: "Study progress" });
   await slider.press("Home");
   await expect(slider).toHaveValue(String(session.currentIndex));
@@ -128,11 +146,6 @@ test("STUDY-ACTIONS-04 prevents returning to previous Cards through study contro
   await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
   await expect(page.getByTestId("swipe-feedback-direction")).toHaveCount(0);
-
-  await front.click();
-  await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Swipe right" })).toBeVisible();
 });
 
 test("STUDY-SESSION-01 starts a filtered session capped by the learning limit", async ({ fixture, page }) => {
@@ -418,8 +431,8 @@ test("STUDY-CONTROLS-04 shows configured Study controls without changing the act
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("Arrow Up / Swipe UpEnd the current session and return to the deck list");
   await expect(dialog).toContainText("Arrow Down / Swipe DownNo action");
-  await expect(dialog).toContainText("Arrow Left / Swipe LeftToggle mastered and go to the next card");
-  await expect(dialog).toContainText("Arrow Right / Swipe RightGoing to the previous card is disabled");
+  await expect(dialog).toContainText("Arrow Left / Swipe LeftHard — answer and continue");
+  await expect(dialog).toContainText("Arrow Right / Swipe RightEasy — answer and continue");
   await expect(dialog).toContainText("Enter / Select CardFlip or reveal the current card");
   await expect(dialog).toContainText("Space / Play or Pause buttonPlay or pause autoplay");
   await expect(dialog).toContainText("B / Swipe controls buttonShow the currently hidden swipe buttons");

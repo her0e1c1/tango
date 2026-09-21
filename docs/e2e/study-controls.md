@@ -25,7 +25,7 @@ Given:
 - Fixture: [`study-session-start-drag`](./fixture/study-session-start-drag.yaml)
 - 認証済みユーザーが所有する remote Deck に、複数の Card を含む進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
-- 上方向の drag は mastered action に設定されている。
+- 上方向の drag は easy action に設定されている。
 
 When:
 
@@ -33,7 +33,7 @@ When:
 
 Then:
 
-- 現在だった Card の mastered 学習結果が保存される。
+- 現在だった Card の easy 学習結果が保存される。
 - 次の Card の front text が表示され、back text は表示されない。
 - drag 後の click によって次の Card が裏面へ切り替わらない。
 - browser error が発生しない。
@@ -71,7 +71,7 @@ Given:
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
 - browser storage に、複数の Card を含む local-only Deck と進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
-- 上方向の drag は mastered action に設定されている。
+- 上方向の drag は easy action に設定されている。
 
 When:
 
@@ -79,7 +79,7 @@ When:
 
 Then:
 
-- 現在だった Card の mastered 学習結果が browser storage に保存される。
+- 現在だった Card の easy 学習結果が browser storage に保存される。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示され、back text は表示されない。
 - browser error が発生しない。
@@ -109,7 +109,7 @@ Then:
 - Help dialog に現在設定されている方向操作の意味が semantic label で表示される。
 - Card の表示、autoplay、操作ボタン表示、Card details、Deck 一覧へ戻る操作が表示される。
 - 非表示の操作ボタンは現在の設定と一致する説明で表示される。
-- previous-card action は無効であることが表示される。
+- 設定された4段階評価の意味が表示され、前のCardへ戻る学習操作は存在しない。
 - Help dialog 表示中の toast は操作 control と pointer hit target を持たない。
 - dialog 表示中に toast が消えるか置き換わっても、focus は Close help に維持される。
 - Help dialog を閉じると、永続する toast の通常の操作 control が復元される。

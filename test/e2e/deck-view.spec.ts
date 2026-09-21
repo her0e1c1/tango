@@ -69,7 +69,7 @@ test("DECK-NAVIGATION-03 browses remote Cards without changing learning data or 
   await fixture.apply(page, {
     preferences: {
       study: { keepBackTextViewed: true, defaultAutoPlay: true, cardInterval: 1 },
-      controls: { cardSwipeLeft: "GoToNextCardMastered", cardSwipeRight: "GoToPrevCard" },
+      controls: { cardSwipeLeft: "RateGood", cardSwipeRight: "RateEasy" },
     },
   });
   await page.goto("/");

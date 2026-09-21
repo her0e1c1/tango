@@ -19,6 +19,7 @@ const labelKeys = {
 
 export interface SwipeButtonListProps {
   disabled?: boolean;
+  captions?: Partial<Record<SwipeDirection, string>>;
   labels?: Partial<Record<SwipeDirection, string>>;
   disabledDirections?: Partial<Record<SwipeDirection, boolean>>;
   onClickUp?: () => void;
@@ -37,6 +38,7 @@ export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => {
         <button
           type="button"
           aria-label={props.labels?.[d] ?? t(labelKeys[d])}
+          aria-description={props.captions?.[d]}
           key={d}
           className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-control border border-transparent text-ink-muted transition-colors duration-fast ease-calm hover:border-border hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
           disabled={props.disabled || props.disabledDirections?.[d]}
@@ -52,11 +54,14 @@ export const SwipeButtonList: React.FC<SwipeButtonListProps> = (props) => {
             }
           }}
         >
-          <span className="flex justify-center text-2xl sm:text-3xl">
-            {(() => {
-              const Icon = icons[d];
-              return <Icon aria-hidden="true" />;
-            })()}
+          <span className="flex flex-col items-center justify-center gap-1">
+            <span className="text-2xl sm:text-3xl">
+              {(() => {
+                const Icon = icons[d];
+                return <Icon aria-hidden="true" />;
+              })()}
+            </span>
+            {props.captions?.[d] ? <span className="text-caption">{props.captions[d]}</span> : null}
           </span>
         </button>
       ))}

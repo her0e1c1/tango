@@ -160,6 +160,7 @@ Then:
 - Dark mode は現在の既定値である無効へ復旧する。
 - Maximum cards は現在の既定値である `10` へ復旧する。
 - Language は現在の既定値である `System` へ復旧する。
+- version 1に旧既定の4方向（上＝GoToNextCardMastered、下＝GoToNextCardNotMastered、左＝GoToPrevCard、右＝GoToNextCard）が保存されている場合は、新既定の4評価へまとめて補正する。他の設定と独自の方向割り当ては保持し、persist versionは変更しない。
 - browser error が発生しない。
 
 <a id="settings-07"></a>
