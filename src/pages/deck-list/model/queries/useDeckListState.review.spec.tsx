@@ -1,4 +1,4 @@
-import { act, cleanup, renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useCards } from "@/entities/card";
@@ -30,7 +30,6 @@ describe("DECK-NAVIGATION-12 DECK-NAVIGATION-13 live Deck review counts", () => 
     vi.mocked(usePreferences).mockReturnValue(createPreferences({ useCardInterval: true }));
   });
   afterEach(() => {
-    cleanup();
     vi.restoreAllMocks();
     vi.useRealTimers();
   });

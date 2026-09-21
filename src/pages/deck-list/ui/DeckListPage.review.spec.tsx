@@ -1,7 +1,7 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { useCards } from "@/entities/card";
@@ -71,7 +71,6 @@ describe("DECK-NAVIGATION-12 Deck review navigation", () => {
     vi.mocked(usePreferences).mockReturnValue(createPreferences({ useCardInterval: true, loadSample: false }));
     vi.mocked(resumeStudy).mockReset().mockResolvedValue(true);
   });
-  afterEach(cleanup);
 
   it.each(["Review Due", "Study new cards in New"])(
     "opens existing setup from %s without resuming a Session",

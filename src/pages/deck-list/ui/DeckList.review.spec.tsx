@@ -1,6 +1,6 @@
-import { act, cleanup, render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { appI18n } from "@/app/i18n/instance";
@@ -58,8 +58,6 @@ const sections: DeckListProps["sections"] = {
 };
 
 describe("DECK-NAVIGATION-12 Deck review presentation", () => {
-  afterEach(cleanup);
-
   it("shows a scoped summary, separate session progress and distinct empty reasons", async () => {
     const onClickStudy = vi.fn();
     const onClickContinue = vi.fn();
