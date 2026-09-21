@@ -7,6 +7,7 @@ import { setDarkMode } from "./actions/setDarkMode";
 import { toggleShowCardDetails } from "./actions/toggleShowCardDetails";
 import { toggleShowHelp } from "./actions/toggleShowHelp";
 import { toggleShowPlaybackControls } from "./actions/toggleShowPlaybackControls";
+import { toggleShowSkip } from "./actions/toggleShowSkip";
 import { toggleShowSwipeButtonList } from "./actions/toggleShowSwipeButtonList";
 import { updatePreferences } from "./actions/updatePreferences";
 
@@ -46,6 +47,10 @@ describe("preferences store [SETTINGS-06]", () => {
     expect(defaultPreferences.controls.showHelp).toBe(true);
   });
 
+  it("shows the study skip control by default", () => {
+    expect(defaultPreferences.controls.showSkip).toBe(true);
+  });
+
   it("updates each preference group without resetting other settings", () => {
     const store = preferencesStore;
 
@@ -57,6 +62,7 @@ describe("preferences store [SETTINGS-06]", () => {
     });
     updatePreferences({ controls: { showSwipeButtonList: false } });
     updatePreferences({ controls: { showPlaybackControls: false } });
+    updatePreferences({ controls: { showSkip: false } });
 
     expect(store.getState().preferences).toEqual({
       ...defaultPreferences,
@@ -70,6 +76,7 @@ describe("preferences store [SETTINGS-06]", () => {
         showBackTextSwipeOverlays: true,
         showSwipeButtonList: false,
         showPlaybackControls: false,
+        showSkip: false,
       },
     });
   });
@@ -117,6 +124,7 @@ describe("preferences store [SETTINGS-06]", () => {
     toggleShowPlaybackControls();
     toggleShowCardDetails();
     toggleShowHelp();
+    toggleShowSkip();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
@@ -129,6 +137,7 @@ describe("preferences store [SETTINGS-06]", () => {
         showPlaybackControls: false,
         showCardDetails: false,
         showHelp: false,
+        showSkip: false,
       },
     });
   });
@@ -165,6 +174,7 @@ describe("preferences store [SETTINGS-06]", () => {
       controls: {
         showHelp: _showHelp,
         showBackTextSwipeOverlays: _showBackTextSwipeOverlays,
+        showSkip: _showSkip,
         ...controlsBeforeAdditiveFields
       },
       ...preferencesBeforeAdditiveFields
@@ -185,7 +195,12 @@ describe("preferences store [SETTINGS-06]", () => {
     expect(preferencesStore.getState().preferences).toEqual({
       ...persistedPreferences,
       language: "system",
-      controls: { ...persistedPreferences.controls, showHelp: true, showBackTextSwipeOverlays: false },
+      controls: {
+        ...persistedPreferences.controls,
+        showHelp: true,
+        showBackTextSwipeOverlays: false,
+        showSkip: true,
+      },
     });
   });
 

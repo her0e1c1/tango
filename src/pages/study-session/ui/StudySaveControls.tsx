@@ -2,11 +2,13 @@ import { useTranslation } from "react-i18next";
 
 export interface StudySaveControlsProps {
   pending: boolean;
+  showSkip?: boolean;
   onSkip: () => void;
 }
 
-export function StudySaveControls({ pending, onSkip }: StudySaveControlsProps) {
+export function StudySaveControls({ pending, showSkip = true, onSkip }: StudySaveControlsProps) {
   const { t } = useTranslation();
+  if (!pending && !showSkip) return null;
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 px-2">
       {pending ? (
@@ -14,14 +16,16 @@ export function StudySaveControls({ pending, onSkip }: StudySaveControlsProps) {
           {t("studySession.savingAnswer")}
         </p>
       ) : null}
-      <button
-        type="button"
-        disabled={pending}
-        onClick={onSkip}
-        className="min-h-touch rounded-control px-3 text-caption font-bold text-accent-primary hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
-      >
-        {t("studySession.skip")}
-      </button>
+      {showSkip ? (
+        <button
+          type="button"
+          disabled={pending}
+          onClick={onSkip}
+          className="min-h-touch rounded-control px-3 text-caption font-bold text-accent-primary hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
+        >
+          {t("studySession.skip")}
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -5,7 +5,7 @@ export interface SettingsFormValues {
   appearance: Pick<Preferences["appearance"], "darkMode" | "showSwipeFeedback">;
   controls: Pick<
     Preferences["controls"],
-    "showSwipeButtonList" | "showBackTextSwipeOverlays" | "showPlaybackControls" | "showCardDetails"
+    "showSwipeButtonList" | "showBackTextSwipeOverlays" | "showPlaybackControls" | "showCardDetails" | "showSkip"
   >;
   study: Pick<
     Preferences["study"],
@@ -25,6 +25,7 @@ export function getSettingsFormValues(preferences: Preferences): SettingsFormVal
       showBackTextSwipeOverlays: preferences.controls.showBackTextSwipeOverlays,
       showPlaybackControls: preferences.controls.showPlaybackControls,
       showCardDetails: preferences.controls.showCardDetails,
+      showSkip: preferences.controls.showSkip,
     },
     study: {
       shuffled: preferences.study.shuffled,

@@ -4,6 +4,7 @@ import {
   toggleShowHelp,
   toggleShowCardDetails,
   toggleShowPlaybackControls,
+  toggleShowSkip,
   toggleShowSwipeButtonList,
 } from "@/entities/preference";
 import { routes } from "@/shared/router";
@@ -48,6 +49,7 @@ export function useStudySessionPageModel(deckId: DeckId) {
     toggleShowHelp,
     toggleShowCardDetails,
     toggleShowPlaybackControls,
+    toggleShowSkip,
     toggleShowSwipeButtonList,
     query,
     pageState,

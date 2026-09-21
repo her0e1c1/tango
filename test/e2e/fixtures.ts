@@ -250,6 +250,7 @@ const e2eConfig: E2EConfig = {
     showCardDetails: true,
     showDifficultySlider: false,
     showBackTextSwipeOverlays: false,
+    showSkip: true,
     cardSwipeUp: "RateEasy",
     cardSwipeDown: "RateHard",
     cardSwipeLeft: "RateAgain",

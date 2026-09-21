@@ -6,6 +6,7 @@ import {
   AiOutlineEllipsis,
   AiOutlineEye,
   AiOutlineEyeInvisible,
+  AiOutlineForward,
   AiOutlineLeft,
   AiOutlinePlayCircle,
   AiOutlineQuestionCircle,
@@ -49,6 +50,7 @@ export interface CardPlayerProps {
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
+  showSkipControls?: boolean | undefined;
   playbackControlsAvailable: boolean;
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
@@ -76,6 +78,7 @@ export interface CardPlayerProps {
   onToggleHelp: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
+  onToggleSkipControls?: (() => void) | undefined;
 }
 
 const toolbarButtonClass =
@@ -85,12 +88,14 @@ interface StudyModeActionsProps {
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
+  showSkipControls?: boolean | undefined;
   playbackControlsAvailable: boolean;
   playbackDescriptionId: string;
   onEscape: React.KeyboardEventHandler<HTMLButtonElement>;
   onToggleCardDetails: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
+  onToggleSkipControls?: (() => void) | undefined;
 }
 
 const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
@@ -106,6 +111,9 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
   const cardDetailsTitle = props.showCardDetails
     ? t("studySession.toolbar.cardDetails.hide")
     : t("studySession.toolbar.cardDetails.show");
+  const skipTitle = props.showSkipControls
+    ? t("studySession.toolbar.skipControls.hide")
+    : t("studySession.toolbar.skipControls.show");
 
   return (
     <div className="flex items-center gap-1">
@@ -137,6 +145,19 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
       >
         <AiOutlinePlayCircle aria-hidden="true" className="text-xl" />
       </button>
+      {props.onToggleSkipControls !== undefined ? (
+        <button
+          type="button"
+          aria-label={t("studySession.toolbar.skipControls.label")}
+          aria-pressed={props.showSkipControls}
+          title={skipTitle}
+          className={cx(toolbarButtonClass, props.showSkipControls && "bg-surface-muted text-accent-primary")}
+          onClick={props.onToggleSkipControls}
+          onKeyDown={props.onEscape}
+        >
+          <AiOutlineForward aria-hidden="true" className="text-xl" />
+        </button>
+      ) : null}
       <button
         type="button"
         aria-label={t("studySession.toolbar.cardDetails.label")}
@@ -157,13 +178,14 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
 };
 
 interface StudyToolbarProps {
-  ref?: React.RefObject<HTMLButtonElement | null>;
-  helpTriggerLabel?: string;
+  ref?: React.RefObject<HTMLButtonElement | null> | undefined;
+  helpTriggerLabel?: string | undefined;
   open: boolean;
   showHelp: boolean;
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
+  showSkipControls?: boolean | undefined;
   playbackControlsAvailable: boolean;
   onOpenHelp: () => void;
   onToggleHelp: () => void;
@@ -172,6 +194,7 @@ interface StudyToolbarProps {
   onBack: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
+  onToggleSkipControls?: (() => void) | undefined;
 }
 
 const getStudyToolbarCopy = (
@@ -252,7 +275,7 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
         </button>
       ) : null}
       {props.open ? (
-        // Keep the three secondary actions below 360px so the fixed Help and menu slots stay unobstructed.
+        // Keep the secondary actions below 360px so the fixed Help and menu slots stay unobstructed.
         <fieldset
           id={actionsId}
           aria-label={t("studySession.toolbar.actions.label")}
@@ -262,12 +285,14 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
             showCardDetails={props.showCardDetails}
             showSwipeControls={props.showSwipeControls}
             showPlaybackControls={props.showPlaybackControls}
+            showSkipControls={props.showSkipControls}
             playbackControlsAvailable={props.playbackControlsAvailable}
             playbackDescriptionId={playbackDescriptionId}
             onEscape={closeOnEscape}
             onToggleCardDetails={props.onToggleCardDetails}
             onToggleSwipeControls={props.onToggleSwipeControls}
             onTogglePlaybackControls={props.onTogglePlaybackControls}
+            onToggleSkipControls={props.onToggleSkipControls}
           />
         </fieldset>
       ) : null}
@@ -524,6 +549,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           showCardDetails={props.showCardDetails}
           showSwipeControls={props.showSwipeControls}
           showPlaybackControls={props.showPlaybackControls}
+          showSkipControls={props.showSkipControls}
           playbackControlsAvailable={props.playbackControlsAvailable}
           onOpenHelp={props.help.onOpen}
           onToggleHelp={props.onToggleHelp}
@@ -532,6 +558,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           onBack={props.onBack}
           onToggleSwipeControls={props.onToggleSwipeControls}
           onTogglePlaybackControls={props.onTogglePlaybackControls}
+          onToggleSkipControls={props.onToggleSkipControls}
         />
       ) : null}
       <div

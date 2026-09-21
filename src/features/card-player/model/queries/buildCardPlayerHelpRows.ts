@@ -8,6 +8,7 @@ type StudyHelpControlId =
   | "autoPlay"
   | "swipeButtons"
   | "playbackControls"
+  | "skipControls"
   | "cardDetails"
   | "exit";
 
@@ -22,6 +23,8 @@ type StudyHelpActionId =
   | "playbackControlsVisible"
   | "playbackControlsHidden"
   | "playbackControlsUnavailable"
+  | "skipControlsVisible"
+  | "skipControlsHidden"
   | "cardDetails"
   | "exit";
 
@@ -59,6 +62,10 @@ export const buildCardPlayerHelpRows = (
           ? "playbackControlsVisible"
           : "playbackControlsHidden"
         : "playbackControlsUnavailable",
+    },
+    {
+      control: "skipControls",
+      action: preferences.controls.showSkip ? "skipControlsVisible" : "skipControlsHidden",
     },
     { control: "cardDetails", action: "cardDetails" },
     { control: "exit", action: "exit" }

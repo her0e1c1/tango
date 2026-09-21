@@ -503,6 +503,11 @@ export const resources = {
             show: "Show playback controls",
             hide: "Hide playback controls",
           },
+          skipControls: {
+            label: "Skip control",
+            show: "Show skip control",
+            hide: "Hide skip control",
+          },
           cardDetails: {
             label: "Card details",
             show: "Show card details",
@@ -523,6 +528,7 @@ export const resources = {
             autoPlay: "Space / Play or Pause button",
             swipeButtons: "B / Swipe controls button",
             playbackControls: "Playback controls button",
+            skipControls: "Skip control button",
             cardDetails: "Card details button",
             exit: "Back to deck list button",
           },
@@ -542,6 +548,8 @@ export const resources = {
             playbackControlsVisible: "Hide the currently visible playback controls",
             playbackControlsHidden: "Show the currently hidden playback controls",
             playbackControlsUnavailable: "Playback controls are unavailable while the card interval is 0",
+            skipControlsVisible: "Hide the currently visible skip control",
+            skipControlsHidden: "Show the currently hidden skip control",
             cardDetails: "Show or hide difficulty and study history",
             exit: "Exit without ending the current study session",
           },
@@ -699,6 +707,10 @@ export const resources = {
           showSwipeFeedback: {
             label: "Show swipe feedback",
             help: "Confirm each study action on screen",
+          },
+          showSkip: {
+            label: "Show skip control",
+            help: "Display skip action control",
           },
           darkMode: {
             label: "Dark mode",
@@ -1248,6 +1260,11 @@ export const resources = {
             show: "再生コントロールを表示",
             hide: "再生コントロールを非表示",
           },
+          skipControls: {
+            label: "スキップ操作",
+            show: "スキップ操作を表示",
+            hide: "スキップ操作を非表示",
+          },
           cardDetails: {
             label: "カードの詳細",
             show: "カードの詳細を表示",
@@ -1268,6 +1285,7 @@ export const resources = {
             autoPlay: "Space / 再生・一時停止ボタン",
             swipeButtons: "B / スワイプ操作ボタン",
             playbackControls: "再生コントロールボタン",
+            skipControls: "スキップ操作ボタン",
             cardDetails: "カード詳細ボタン",
             exit: "デッキ一覧へ戻るボタン",
           },
@@ -1287,6 +1305,8 @@ export const resources = {
             playbackControlsVisible: "表示中の再生コントロールを隠す",
             playbackControlsHidden: "非表示の再生コントロールを表示する",
             playbackControlsUnavailable: "カード間隔が0のため再生コントロールは利用できません",
+            skipControlsVisible: "表示中のスキップ操作ボタンを隠す",
+            skipControlsHidden: "非表示のスキップ操作ボタンを表示する",
             cardDetails: "難易度と学習履歴を表示または非表示にする",
             exit: "現在の学習セッションを終了せずに画面を離れる",
           },
@@ -1444,6 +1464,10 @@ export const resources = {
           showSwipeFeedback: {
             label: "スワイプ結果を表示",
             help: "学習操作の結果を画面上で確認します",
+          },
+          showSkip: {
+            label: "スキップ操作を表示",
+            help: "学習時のスキップボタンを表示します",
           },
           darkMode: {
             label: "ダークモード",
