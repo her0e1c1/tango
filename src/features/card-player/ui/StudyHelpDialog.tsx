@@ -1,3 +1,4 @@
+import type { StudyRating } from "@/entities/study-answer";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,10 +22,7 @@ type StudyHelpDialogAction =
   | "DoNothing"
   | "GoBack"
   | "GoToNextCard"
-  | "RateGood"
-  | "RateAgain"
-  | "RateHard"
-  | "RateEasy"
+  | `Rate${Capitalize<StudyRating>}`
   | "flip"
   | "autoPlay"
   | "autoPlayUnavailable"

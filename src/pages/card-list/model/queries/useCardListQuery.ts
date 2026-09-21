@@ -2,7 +2,8 @@ import { useCardsByDeckId } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { MAX_DIFFICULTY, MIN_DIFFICULTY } from "@/entities/study-progress";
-import { selectStudyCards } from "@/entities/study-session";
+import { useDeadlineQuery } from "@/shared/lib/useDeadlineQuery";
+import { selectStudyCardsWithDeadline } from "@/entities/study-session";
 
 import type { DeckFilterValues } from "@/features/deck-filter";
 
@@ -18,7 +19,11 @@ interface CardListQueryOptions {
 export const useCardListQuery = ({ deck, filter, shownCard, sortOrder }: CardListQueryOptions) => {
   const preferences = usePreferences();
   const { cards: deckCards, tags } = useCardsByDeckId(deck.id);
-  const matchingCards = selectStudyCards(deckCards, { ...deck, ...filter }, preferences.study.useCardInterval);
+  const { cards: matchingCards } = useDeadlineQuery(selectStudyCardsWithDeadline, [
+    deckCards,
+    filter,
+    preferences.study.useCardInterval,
+  ]);
   const cards = sortOrder === "newest" ? matchingCards.toSorted((a, b) => b.createdAt - a.createdAt) : matchingCards;
   const category = shownCard == null ? undefined : getCategory(deck.category, shownCard.tags);
   const answer =

@@ -1,8 +1,9 @@
+import type { StudySchedule } from "./schedule";
 import type { z } from "zod";
 
 import type { CardId } from "@/entities/card/@x/study-progress";
 import type { Difficulty } from "./difficulty";
-import type { editStudyProgressSchema, studyRatingSchema } from "./schema";
+import type { editStudyProgressSchema } from "./schema";
 
 /** Card-scoped learning history shared by Deck filtering, session ordering, and persistence. */
 export interface StudyProgress {
@@ -15,6 +16,7 @@ export interface StudyProgress {
   /** Earliest time the Card is eligible when interval filtering is enabled. */
   nextSeeingAt?: Date;
   interval?: number;
+  schedule?: StudySchedule;
 }
 
 /** StudyProgress-owned fields read from the shared physical Firestore document. */
@@ -25,20 +27,14 @@ export interface StudyProgressDocumentFields {
   lastSeenAt?: number | undefined;
   nextSeeingAt?: Date | undefined;
   interval?: number | undefined;
+  schedule?: StudySchedule | undefined;
 }
 
 /** Firestore patch shape: cardId selects the document and every progress field is independently optional. */
 export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "cardId">;
 
 /** FSRS recall rating; navigation-only interactions have no rating. */
-export type StudyRating = z.infer<typeof studyRatingSchema>;
-
-/** Inclusive difficulty and due-time constraints for Card eligibility. */
-export interface StudyProgressFilter {
-  minimumDifficulty: Difficulty | null;
-  maximumDifficulty: Difficulty | null;
-  respectNextSeeingAt: boolean;
-}
+export type { StudyRating } from "@/entities/study-answer/@x/study-progress";
 
 /** Card fields needed to reconstruct its StudyProgress model. */
 export interface CardProgressFields {
@@ -49,10 +45,12 @@ export interface CardProgressFields {
   lastSeenAt?: number | undefined;
   nextSeeingAt?: Date | undefined;
   interval?: number | undefined;
+  schedule?: StudySchedule | undefined;
 }
 
 /** Ordering and size controls used when starting a study session. */
 export interface StudyCardOrderOptions {
+  useCardInterval?: boolean;
   shuffled: boolean;
   maxNumberOfCardsToLearn: number;
 }

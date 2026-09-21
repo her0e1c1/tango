@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createCard, createDeck } from "@/test/factories";
 
 import {
   calculateStudySessionIndex,
@@ -8,6 +9,7 @@ import {
   isStudySessionPositionUnchanged,
   planStudySessionSwipe,
   resolveStudySession,
+  selectStudyCardsWithDeadline,
 } from "./rules";
 import type { StudySession } from "./types";
 
@@ -19,6 +21,37 @@ const session: StudySession = {
   lastStudiedAt: 0,
   remote: { uid: "uid", startedAt: 0 },
 };
+
+describe("study card selection [STUDY-SESSION-01]", () => {
+  const deck = createDeck({ difficultyMin: 3, difficultyMax: 7, selectedTags: ["selected"], tagAndFilter: false });
+  const card = createCard({ id: "due", difficulty: 7, tags: ["selected"], nextSeeingAt: new Date(1000) });
+
+  it.each([true, false])("applies inclusive difficulty and tag filters with interval=%s", (useInterval) => {
+    const cards = [
+      card,
+      { ...card, id: "lower-bound", difficulty: 3 },
+      { ...card, id: "high", difficulty: 8 },
+      { ...card, id: "low", difficulty: 2 },
+      { ...card, id: "other-tag", tags: ["other"] },
+      { ...card, id: "future", nextSeeingAt: new Date(1001) },
+      { ...card, id: "later", nextSeeingAt: new Date(2000) },
+    ];
+    const selected = selectStudyCardsWithDeadline(cards, deck, useInterval, 1000);
+    expect(selected.cards.map(({ id }) => id)).toEqual(
+      useInterval ? ["due", "lower-bound"] : ["due", "lower-bound", "future", "later"]
+    );
+    expect(selected.nextDueAt).toBe(useInterval ? 1001 : undefined);
+  });
+
+  it.each([true, false])("rejects malformed schedules and legacy dates with interval=%s", (useInterval) => {
+    expect(() =>
+      selectStudyCardsWithDeadline([{ ...card, nextSeeingAt: new Date(NaN) }], deck, useInterval, 1000)
+    ).toThrow();
+    expect(() =>
+      selectStudyCardsWithDeadline([{ ...card, schedule: {} } as typeof card], deck, useInterval, 1000)
+    ).toThrow();
+  });
+});
 
 describe("compareActiveDecks [STUDY-SESSION-06]", () => {
   it("orders recent sessions first and uses deck name as the tie breaker", () => {

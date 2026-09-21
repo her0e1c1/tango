@@ -16,11 +16,12 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   if (uid === "" || deck.uid !== uid) return false;
   const { study } = getPreferences();
   // Use the current draft even when its autosave has not reached the Deck yet.
-  const cards = selectStudyCards(filterCardsByDeckId(getCards(), deckId), filter, study.useCardInterval);
+  const now = Date.now();
+  const cards = selectStudyCards(filterCardsByDeckId(getCards(), deckId), filter, study.useCardInterval, now);
   if (cards.length === 0) return false;
   starting = true;
   try {
-    await startStudy(deckId, cards, study, uid);
+    await startStudy({ deckId, cards, preferences: study, uid, now });
     return true;
   } catch {
     showToast({ messageKey: "toast.saveFailure", tone: "error" });

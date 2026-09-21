@@ -1,9 +1,12 @@
+import { mapStudyProgressPatch } from "./document";
 import { doc, type WriteBatch } from "firebase/firestore";
 import { db } from "@/shared/firebase";
 import { studyProgressEditSchema } from "../model/schema";
-import type { StudyProgressEdit } from "../model/types";
+import type { EditStudyProgressInput } from "../model/types";
 
-export function writeStudyProgress(batch: WriteBatch, progress: StudyProgressEdit, updatedAt: number): void {
+export function writeStudyProgress(batch: WriteBatch, progress: EditStudyProgressInput["progress"], updatedAt: number) {
   const { cardId, ...fields } = studyProgressEditSchema.parse(progress);
-  batch.update(doc(db, "card", cardId), { ...fields, updatedAt });
+  const reference = doc(db, "card", cardId);
+  batch.update(reference, mapStudyProgressPatch(fields, updatedAt));
+  return reference;
 }

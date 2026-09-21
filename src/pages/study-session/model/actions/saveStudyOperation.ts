@@ -1,13 +1,11 @@
-import { doc, Timestamp, writeBatch } from "firebase/firestore";
+import { writeStudyAnswer } from "@/entities/study-answer";
 import { getCards } from "@/entities/card";
 import { getDecks } from "@/entities/deck";
-import { writeLocally } from "@/shared/firestore-write";
+import { createLocalBatch } from "@/shared/firestore-write";
 import { getAuthUid } from "@/entities/auth";
 import { writeStudyProgress } from "@/entities/study-progress";
 import { getStudySession, writeStudySessionPosition, type StudySession } from "@/entities/study-session";
-import { db } from "@/shared/firebase";
-import { studyOperationSchema, type StudyOperation } from "../model/studyOperation";
-import type { AnswerType, StudyAnswerDocument } from "./studyAnswerDocument";
+import { studyOperationSchema, type StudyOperation } from "../studyOperation";
 
 export async function saveStudyOperation(input: StudyOperation, session: StudySession) {
   const operation = studyOperationSchema.parse(input);
@@ -28,21 +26,8 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
   const deck = getDecks().find(({ id }) => id === operation.deckId);
   if (card?.uid !== operation.uid || deck?.uid !== operation.uid || card.deckId !== deck.id)
     throw new Error("Study references do not match");
-  const reference = doc(db, "studyAnswer", operation.id);
-  const batch = writeBatch(db);
-  if (operation.rating !== undefined) {
-    const type: AnswerType = "rating";
-    const answer: Omit<StudyAnswerDocument, "createdAt" | "updatedAt"> = {
-      uid: operation.uid,
-      sessionId: operation.sessionId,
-      deckId: operation.deckId,
-      cardId: operation.cardId,
-      answer: { type, rating: operation.rating },
-      answeredAt: Timestamp.fromMillis(operation.answeredAt),
-    };
-    batch.set(reference, { ...answer, createdAt: answer.answeredAt, updatedAt: answer.answeredAt });
-  }
-  writeStudyProgress(
+  const { batch, commit } = createLocalBatch(operation.uid);
+  const progressReference = writeStudyProgress(
     batch,
     { ...operation.progress, cardId: operation.cardId, lastSeenAt: operation.answeredAt },
     operation.answeredAt
@@ -52,8 +37,9 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
     { ...session, lastStudiedAt: operation.answeredAt },
     operation.currentIndex + 1
   );
-  const references = [doc(db, "card", operation.cardId), doc(db, "studySession", operation.sessionId)];
-  if (operation.rating !== undefined) references.push(reference);
-  await writeLocally(operation.uid, references, () => batch.commit());
+  const references = [progressReference, result.reference];
+  if (operation.rating !== undefined)
+    references.push(writeStudyAnswer(batch, { ...operation, rating: operation.rating }));
+  await commit(references);
   return result;
 }

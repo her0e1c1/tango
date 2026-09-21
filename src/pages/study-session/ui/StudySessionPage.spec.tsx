@@ -651,7 +651,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
   });
 });
 
-vi.mock("@/pages/study-session/api/saveStudyOperation", async () => {
+vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
   const { moveStudySession } = await import("@/test/entityFixtures");
   return {
     saveStudyOperation: async (

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { difficultySchema } from "@/entities/study-progress/@x/card";
+import { difficultySchema, studyScheduleSchema } from "@/entities/study-progress/@x/card";
 import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/api";
 
 const sharedCardDocumentSchema = z.object({
@@ -19,6 +19,7 @@ const sharedCardDocumentSchema = z.object({
   lastSeenAt: z.number().optional(),
   nextSeeingAt: firestoreTimestampDateSchema.optional(),
   interval: z.number().optional(),
+  schedule: studyScheduleSchema.optional(),
   url: z.string().optional(),
   startLine: z.number().optional(),
   endLine: z.number().optional(),

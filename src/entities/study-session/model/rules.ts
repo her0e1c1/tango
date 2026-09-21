@@ -1,10 +1,10 @@
 import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
 import type { SwipeAction } from "@/entities/preference/@x/study-session";
 import {
+  classifyStudyProgress,
   type CardProgressFields,
   type StudyRating,
   createStudyProgressFromCard,
-  isStudyProgressEligible,
 } from "@/entities/study-progress/@x/study-session";
 
 import type {
@@ -77,26 +77,35 @@ export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
   return { active, inactive };
 };
 
-// Selects the Cards allowed by the Deck's tag filters and current StudyProgress eligibility rules.
-export const selectStudyCards = <TCard extends StudyCardSelectionCard>(
+// Eligibility stays in input order; only session creation applies order, shuffle and limits.
+export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCard>(
+  cards: readonly TCard[],
+  deck: StudyCardSelectionDeck,
+  respectNextSeeingAt: boolean,
+  now: number
+): { cards: TCard[]; nextDueAt: number | undefined } {
+  const selected: TCard[] = [];
+  let nextDueAt: number | undefined;
+  for (const card of cards) {
+    if (!isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter)) continue;
+    if (deck.difficultyMax !== null && card.difficulty > deck.difficultyMax) continue;
+    if (deck.difficultyMin !== null && card.difficulty < deck.difficultyMin) continue;
+    const timing = classifyStudyProgress(createStudyProgressFromCard(card), now);
+    if (respectNextSeeingAt && timing.status === "future") {
+      nextDueAt = nextDueAt === undefined ? timing.dueAt : Math.min(nextDueAt, timing.dueAt);
+    } else selected.push(card);
+  }
+  return { cards: selected, nextDueAt };
+}
+
+export function selectStudyCards<TCard extends StudyCardSelectionCard>(
   cards: readonly TCard[],
   deck: StudyCardSelectionDeck,
   respectNextSeeingAt: boolean,
   now = Date.now()
-): TCard[] =>
-  cards.filter(
-    (card) =>
-      isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter) &&
-      isStudyProgressEligible(
-        createStudyProgressFromCard(card),
-        {
-          maximumDifficulty: deck.difficultyMax,
-          minimumDifficulty: deck.difficultyMin,
-          respectNextSeeingAt,
-        },
-        now
-      )
-  );
+): TCard[] {
+  return selectStudyCardsWithDeadline(cards, deck, respectNextSeeingAt, now).cards;
+}
 
 // Reads the Card id at the session cursor, returning undefined for an empty or out-of-range position.
 const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>

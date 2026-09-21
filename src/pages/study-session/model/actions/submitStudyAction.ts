@@ -54,7 +54,11 @@ export async function submitStudyAction(
     currentIndex: session.currentIndex,
     cardCount: session.cardOrderIds.length,
     answeredAt,
-    progress: { difficulty: progress.difficulty, numberOfSeen: progress.numberOfSeen },
+    progress: {
+      difficulty: progress.difficulty,
+      numberOfSeen: progress.numberOfSeen,
+      ...("schedule" in progress ? { schedule: progress.schedule } : {}),
+    },
     ...(plan.rating === undefined ? {} : { rating: plan.rating }),
     ...(direction === undefined || !getPreferences().appearance.showSwipeFeedback ? {} : { direction }),
   });

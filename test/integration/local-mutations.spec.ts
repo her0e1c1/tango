@@ -15,14 +15,14 @@ import { replaceAuthSession } from "@/entities/auth";
 import { createCard, deleteCard, editCard, getCards } from "@/entities/card";
 import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { getStudySession, startStudy } from "@/entities/study-session";
-import { saveStudyOperation } from "@/pages/study-session/api/saveStudyOperation";
+import { saveStudyOperation } from "@/pages/study-session/model/actions/saveStudyOperation";
 import { recordCardStudyProgress, type StudyRating } from "@/entities/study-progress";
 import type { StudySession } from "@/entities/study-session";
 
 function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating, answeredAt: number) {
   const card = getCards().find(({ id }) => id === session.cardOrderIds[session.currentIndex]);
   if (!card) throw new Error("Missing card");
-  const { difficulty, numberOfSeen } = recordCardStudyProgress(card, rating, answeredAt);
+  const { difficulty, numberOfSeen, schedule } = recordCardStudyProgress(card, rating, answeredAt);
   return saveStudyOperation(
     {
       id: crypto.randomUUID(),
@@ -34,7 +34,7 @@ function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating
       cardCount: session.cardOrderIds.length,
       answeredAt,
       rating,
-      progress: { difficulty, numberOfSeen },
+      progress: { difficulty, numberOfSeen, ...(schedule === undefined ? {} : { schedule }) },
     },
     session
   );
@@ -100,7 +100,7 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
     for (const card of cards) await createCard("uid", card);
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
-    await startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "uid");
+    await startStudy({ deckId, cards, preferences: { shuffled: false, maxNumberOfCardsToLearn: 0 }, uid: "uid" });
     const session = getStudySession(deckId);
     if (!session) throw new Error("Missing session");
     const answeredAt = 1_800_000_000_000;
@@ -112,8 +112,16 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     expect((await getDocFromCache(doc(testDb, "card", cards[0]?.id ?? "missing"))).data()).toMatchObject({
       numberOfSeen: 1,
       lastSeenAt: answeredAt,
+      schedule: { version: 1, reps: 1, lastReviewedAt: answeredAt, dueAt: answeredAt + 600_000 },
     });
     await vi.waitFor(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
+    const savedSchedule = getCards().find((card) => card.id === cards[0]?.id)?.schedule;
+    expect(savedSchedule).toBeDefined();
+    stop();
+    const subscription = startFirestoreSubscriptions("uid");
+    stop = subscription.stop;
+    await subscription.ready;
+    expect(getCards().find((card) => card.id === cards[0]?.id)?.schedule).toEqual(savedSchedule);
     await expect(saveStudyAnswer("uid", session, "good", answeredAt)).rejects.toThrow("session does not match");
     const final = getStudySession(deckId);
     if (!final) throw new Error("Missing final position");

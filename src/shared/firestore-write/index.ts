@@ -1,4 +1,4 @@
-import { type DocumentReference, getDocFromCache, onSnapshotsInSync } from "firebase/firestore";
+import { writeBatch, type DocumentReference, getDocFromCache, onSnapshotsInSync } from "firebase/firestore";
 
 import { auth, db } from "../firebase";
 
@@ -48,4 +48,10 @@ export async function writeLocally(
     if (!submitted) pendingWrites.set(uid, (pendingWrites.get(uid) ?? 1) - 1);
     stop();
   }
+}
+
+/** Build one SDK batch and retain the existing local-snapshot completion contract. */
+export function createLocalBatch(uid: string) {
+  const batch = writeBatch(db);
+  return { batch, commit: (references: DocumentReference[]) => writeLocally(uid, references, () => batch.commit()) };
 }

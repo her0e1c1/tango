@@ -11,6 +11,8 @@
 - ローカル snapshot へ反映した時点で前進し、クラウド確定や server timestamp を待たない。SDK が保留している操作を新しい ID で再発行しない。
 - Security Rules は匿名のクラウド書き込みを拒否し、本人 UID と更新時の UID 維持を確認する。StudyAnswer は本人による read／create のみ許可する。
 - 回答形式、参照先、回答 ID、Card 進捗、回答順序、Session の前進・完了はアプリとそのテストの責務とする。Rules は本人 UID の回答作成を許可し、payload や参照先の存在・整合、Session の状態遷移は制約しない。
+- FSRS-6.0（ts-fsrs 5.4.2、保持率0.9、fuzz無効、最大36500日、learning steps 1分/10分、relearning step 10分）を使用する。4評価は受付時刻で一度だけ計算し、scheduleを同じ回答batchで保存する。間隔反復OFFでも計算する。
+- scheduleには形式version、状態、期限・前回評価時刻（Unixミリ秒）、stability、FSRS difficulty、復習/失敗回数、間隔日数、learning stepを保持し、reload後の次回計算を変えない。相対difficultyとは独立させる。
 - 保存・同期失敗は共通通知で表示する。独自の再送・競合復旧キューは作らない。
 - これは #1653 の transaction 必須・オンライン確定後のみ前進・匿名別保存という計画を #1665 に従って置き換える。
 
@@ -45,6 +47,7 @@ Then:
 
 - 独立した `studyAnswer/{answerId}` に `{ type: "rating", rating: "good" }` を保存する。
 - `hard` / `easy` も受け付けた値のまま保存し、既存の成功評価と同じ difficulty rule を使う。
+- good / hard / easyの各評価からFSRS scheduleを生成する。既存scheduleがあればその記憶状態を更新し、なければ閲覧履歴や相対difficultyから推測せず空の初期状態から計算する。初回保存時にlegacy nextSeeingAt/intervalを削除する。
 - 現在だった Card の difficulty が good rule に従って 1 下がり、学習回数が 1 増えて保存される。
 - 回答・Card の学習結果・session の前進はすべて保存されるか、いずれも保存されない。
 - session の位置が次の Card へ進む。
@@ -73,6 +76,7 @@ When:
 Then:
 
 - 独立した `studyAnswer/{answerId}` に `{ type: "rating", rating: "again" }` を保存する。
+- againでFSRS scheduleを更新し、短い期限を保存する。同じsessionへの再投入は行わない。
 - 現在だった Card の difficulty が again rule に従って 1 上がり、学習回数が 1 増えて保存される。
 - 回答・Card の学習結果・session の前進はすべて保存されるか、いずれも保存されない。
 - session の位置が次の Card へ進む。
@@ -98,6 +102,7 @@ When:
 Then:
 
 - 回答Documentを作成しない。
+- FSRS scheduleを生成・変更しない。裏面表示、Help、離脱、slider、autoplayでもscheduleを更新しない。
 - 現在だった Card の difficulty は変わらず、学習回数が 1 増えて保存される。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
@@ -177,3 +182,5 @@ Then:
 将来は `choice` の `optionId`、`text` の入力文字を回答payloadとして追加する。今回の型・schema・Rules・UIには追加しない。
 
 採点導入時には回答内容と別に `isCorrect: boolean | null` を追加する。`true` は正解、`false` は不正解、`null` は未採点または対象外を表す。自己評価を正誤へ変換せず、ratingは採点対象外とする。当時の採点結果を保持し、後のカード変更で再採点しない。不正解の振り返りや復習、採点済み回答の正答率に用い、`null` は正答率の分母に含めない。今回このフィールドや採点処理は実装しない。
+
+保存拒否時にはscheduleも既存snapshotの巻き戻りに従い、再試行は復元された現在状態から計算する（STUDY-ACTIONS-05）。SDKの再同期で再計算しない。
