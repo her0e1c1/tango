@@ -39,4 +39,4 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
 
-      - run: npx firebase deploy --project tango-ts --only hosting,firestore:rules
+      - run: npx firebase deploy --project tango-ts --only hosting,firestore:rules,firestore:indexes

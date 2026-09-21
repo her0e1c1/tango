@@ -220,3 +220,99 @@ Then:
 - session には対象 tag を持つ Card だけが含まれる。
 - 対象 Card の front text が表示される。
 - browser error が発生しない。
+
+## 学習記録
+
+開始数は startedAt、完了数は endReason が completed の endedAt を表示端末の暦日で独立して数える。
+期間は今日を含む30日間（29日前の0時以上、翌日0時未満）。日またぎ、期間前開始・期間内完了を含める。
+同じ session の再開では増えず、新しい session は別件とする。abandoned は完了に含めない。
+100件超も打ち切らず、削除済み・他 UID の Deck は除外する。完了率と最近の session 一覧は表示しない。
+UID・deckId・期間の変更と離脱で購読を解除し、旧結果を混ぜない。期間は表示・条件変更・再試行で再計算する。
+2つの read が揃うまで loading とし、片方の失敗を0件として表示せず、ページ内エラーから共通の再試行を提供する。
+
+<a id="study-session-09"></a>
+
+### STUDY-SESSION-09 学習を完了すると30日分の開始・完了数を確認できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 自分の Deck を学習でき、履歴はまだない。
+
+When:
+
+- 新しい学習を開始して最後まで進め、ナビゲーションから学習記録を開く。
+
+Then:
+
+- 今日の開始と完了はそれぞれ1件で、期間合計・グラフ・日別表が一致する。
+- 記録のない日も含め30日分の値と延べ数の説明が表示される。
+- 取得に失敗した場合は部分集計を表示せず、再試行で両方の read をやり直す。
+- browser error が発生しない。
+
+<a id="study-session-10"></a>
+
+### STUDY-SESSION-10 URLとデッキ選択が再読み込み・戻る・進むでも一致する
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 自分の Deck 一覧を表示でき、学習記録はまだない。
+
+When:
+
+- Deck 操作メニューから学習記録を開く。
+- すべてのデッキを選び、戻る・進む・再読み込みを行う。
+
+Then:
+
+- URLの deckId が選択値の正本となり、メニューからは該当 Deck が選ばれる。
+- 0件のサマリー・グラフ・表と記録なしの案内を表示する。
+- browser error が発生しない。
+
+<a id="study-session-11"></a>
+
+### STUDY-SESSION-11 表示できないデッキを勝手に全件表示へ切り替えない
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 指定した Deck は自分の表示対象に存在しない。
+
+When:
+
+- 該当 deckId の学習記録へ直接アクセスする。
+
+Then:
+
+- Deck 読込完了後に対象の Deck を表示できない旨と、すべてのデッキへ戻る操作を表示する。
+- URLの deckId は維持され、集計を表示しない。
+- browser error が発生しない。
+
+<a id="study-session-12"></a>
+
+### STUDY-SESSION-12 匿名の学習記録を端末内キャッシュから再表示できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- 匿名ユーザーの Deck が Firestore の端末内キャッシュに保存され、同期は停止している。
+
+When:
+
+- 学習を開始して完了し、学習記録を開いて再読み込みする。
+
+Then:
+
+- クラウド確定を待たず、開始・完了数と端末内の未同期データの案内を表示する。
+- 同じ UID の再読み込みで件数が変わらない。
+- 通常ログインの通信断時もキャッシュを表示し、クラウドの全履歴とは断定しない。
+- browser error が発生しない。

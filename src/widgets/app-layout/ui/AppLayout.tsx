@@ -27,11 +27,13 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
           importDecks: t("header.importDecks"),
           openAccount: t("header.openAccount"),
           openSettings: t("header.openSettings"),
+          studyHistory: t("studyHistory.title"),
         },
         onClickDarkMode: setDarkMode,
         onClickLogo: () => void navigate(routes.deckList.to()),
         onClickImport: () => void navigate(routes.deckImport.to()),
         onClickAccount: () => void navigate(routes.account.to()),
+        onClickStudyHistory: () => void navigate(routes.studyHistory.to()),
         onClickSettings: () => void navigate(routes.settings.to()),
       }}
     />
