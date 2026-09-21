@@ -1,9 +1,9 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { getI18n } from "react-i18next";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { appI18n } from "@/app/i18n/instance";
 import { actAsync } from "@/test/act";
 import { createDeck } from "@/test/factories";
 
@@ -91,7 +91,7 @@ describe("DECK-NAVIGATION-12 Deck review presentation", () => {
 
   it("updates the added copy and dates when the language changes", async () => {
     render(<DeckList sections={sections} onCreateDeck={vi.fn()} onImportDeck={vi.fn()} />);
-    await actAsync(() => appI18n.changeLanguage("ja"));
+    await actAsync(() => getI18n().changeLanguage("ja"));
     const summary = within(screen.getByRole("region", { name: "復習の件数" }));
     expect(summary.getByText("復習対象: 3")).toBeVisible();
     expect(summary.getByText("新規: 3")).toBeVisible();
