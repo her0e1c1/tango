@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { Difficulty } from "./Difficulty";
 
-describe("Difficulty [CARD-01]", () => {
+describe("Difficulty [CARD-VIEW-01]", () => {
   it.each([
     [1, "easy"],
     [5, "neutral"],

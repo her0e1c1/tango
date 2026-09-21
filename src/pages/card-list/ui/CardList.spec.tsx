@@ -21,7 +21,7 @@ import { CardList } from "./CardList";
 const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", difficulty: 5, tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
-describe("CardList [CARD-01] [CARD-10] [CARD-19] [CARD-24]", () => {
+describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-03] [CARD-LIST-ACTIONS-05] [CARD-LIST-ACTIONS-09]", () => {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {
     render(<CardList cards={[]} filterSlot={<div>Controls</div>} />);
 

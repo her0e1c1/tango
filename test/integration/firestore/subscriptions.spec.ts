@@ -18,7 +18,7 @@ vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
 }));
 
-describe("Query realtime subscriptions [CARD-01] [CARD-10]", () => {
+describe("Query realtime subscriptions [CARD-VIEW-01] [CARD-LIST-ACTIONS-03]", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [], localCards: [] });
     deckStore.setState({ remoteDecks: [], localDecks: [] });

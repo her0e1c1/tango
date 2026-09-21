@@ -36,7 +36,7 @@ const Harness: React.FC = () => {
 
 afterEach(() => dismissToast());
 
-describe("SWIPE-24 StudyHelpDialog", () => {
+describe("STUDY-CONTROLS-04 StudyHelpDialog", () => {
   it("provides modal semantics and focuses a safe close control", async () => {
     const user = userEvent.setup();
     render(<Harness />);

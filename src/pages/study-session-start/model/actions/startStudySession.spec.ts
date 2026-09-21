@@ -26,7 +26,7 @@ vi.mock("@/entities/study-session/api/firestore", () => ({
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-describe("Study start persistence mode [SWIPE-06] [SWIPE-17] [PERSIST-04]", () => {
+describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
   beforeEach(() => {
     clearStudySessions();
     mocks.deck = createDeck({ id: "deck" });

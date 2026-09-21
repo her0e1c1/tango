@@ -8,20 +8,20 @@ Card 一覧上の swipe、filter、一括変更が、Card の学習状態と一�
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| CARD-05 | write | [Card の右 swipe で difficulty を下げられる](#card-05) |
-| CARD-06 | write | [Card の左 swipe で difficulty を上げられる](#card-06) |
-| CARD-10 | write | [difficulty と tag の filter を保存して Card 一覧へ反映できる](#card-10) |
-| CARD-18 | write | [Card 一覧の difficulty 保存失敗後に再試行できる](#card-18) |
-| CARD-19 | batch | [表示中の Card の difficulty をまとめて変更できる](#card-19) |
-| CARD-20 | batch | [Card の一括 difficulty 変更を部分失敗後に再試行できる](#card-20) |
-| CARD-22 | write | [退出後に古い Card 更新が完了しても通知しない](#card-22) |
-| CARD-23 | write | [再訪後の Card 更新を古い更新の完了から保護する](#card-23) |
-| CARD-24 | read | [Card を追加が新しい順に表示できる](#card-24) |
-| CARD-25 | read | [Card の表示順を標準へ戻せる](#card-25) |
+| CARD-LIST-ACTIONS-01 | write | [Card の右 swipe で difficulty を下げられる](#card-list-actions-01) |
+| CARD-LIST-ACTIONS-02 | write | [Card の左 swipe で difficulty を上げられる](#card-list-actions-02) |
+| CARD-LIST-ACTIONS-03 | write | [difficulty と tag の filter を保存して Card 一覧へ反映できる](#card-list-actions-03) |
+| CARD-LIST-ACTIONS-04 | write | [Card 一覧の difficulty 保存失敗後に再試行できる](#card-list-actions-04) |
+| CARD-LIST-ACTIONS-05 | batch | [表示中の Card の difficulty をまとめて変更できる](#card-list-actions-05) |
+| CARD-LIST-ACTIONS-06 | batch | [Card の一括 difficulty 変更を部分失敗後に再試行できる](#card-list-actions-06) |
+| CARD-LIST-ACTIONS-07 | write | [退出後に古い Card 更新が完了しても通知しない](#card-list-actions-07) |
+| CARD-LIST-ACTIONS-08 | write | [再訪後の Card 更新を古い更新の完了から保護する](#card-list-actions-08) |
+| CARD-LIST-ACTIONS-09 | read | [Card を追加が新しい順に表示できる](#card-list-actions-09) |
+| CARD-LIST-ACTIONS-10 | read | [Card の表示順を標準へ戻せる](#card-list-actions-10) |
 
-<a id="card-05"></a>
+<a id="card-list-actions-01"></a>
 
-### CARD-05 Card の右 swipe で difficulty を下げられる
+### CARD-LIST-ACTIONS-01 Card の右 swipe で difficulty を下げられる
 
 カテゴリ: `write`
 
@@ -40,9 +40,9 @@ Then:
 - 対象 Card の difficulty が swipe 前より 1 下がって表示される。
 - browser error が発生しない。
 
-<a id="card-06"></a>
+<a id="card-list-actions-02"></a>
 
-### CARD-06 Card の左 swipe で difficulty を上げられる
+### CARD-LIST-ACTIONS-02 Card の左 swipe で difficulty を上げられる
 
 カテゴリ: `write`
 
@@ -61,9 +61,9 @@ Then:
 - 対象 Card の difficulty が swipe 前より 1 上がって表示される。
 - browser error が発生しない。
 
-<a id="card-10"></a>
+<a id="card-list-actions-03"></a>
 
-### CARD-10 difficulty と tag の filter を保存して Card 一覧へ反映できる
+### CARD-LIST-ACTIONS-03 difficulty と tag の filter を保存して Card 一覧へ反映できる
 
 カテゴリ: `write`
 
@@ -89,9 +89,9 @@ Then:
 - 両方の filter 条件に一致する Card だけが一覧に表示される。
 - browser error が発生しない。
 
-<a id="card-18"></a>
+<a id="card-list-actions-04"></a>
 
-### CARD-18 Card 一覧の difficulty 保存失敗後に再試行できる
+### CARD-LIST-ACTIONS-04 Card 一覧の difficulty 保存失敗後に再試行できる
 
 カテゴリ: `write`
 
@@ -114,9 +114,9 @@ Then:
 - 変更対象ではない Card の difficulty は変更されない。
 - 最初の保存失敗に伴う未処理の browser error が発生しない。
 
-<a id="card-19"></a>
+<a id="card-list-actions-05"></a>
 
-### CARD-19 表示中の Card の difficulty をまとめて変更できる
+### CARD-LIST-ACTIONS-05 表示中の Card の difficulty をまとめて変更できる
 
 カテゴリ: `batch`
 
@@ -144,9 +144,9 @@ Then:
 - filter draft に一致しなかった Card の difficulty は変更されない。
 - browser error が発生しない。
 
-<a id="card-20"></a>
+<a id="card-list-actions-06"></a>
 
-### CARD-20 Card の一括 difficulty 変更を部分失敗後に再試行できる
+### CARD-LIST-ACTIONS-06 Card の一括 difficulty 変更を部分失敗後に再試行できる
 
 カテゴリ: `batch`
 
@@ -172,9 +172,9 @@ Then:
 - 変更対象ではない Card の difficulty は変更されない。
 - 最初の保存失敗に伴う未処理の browser error が発生しない。
 
-<a id="card-22"></a>
+<a id="card-list-actions-07"></a>
 
-### CARD-22 退出後に古い Card 更新が完了しても通知しない
+### CARD-LIST-ACTIONS-07 退出後に古い Card 更新が完了しても通知しない
 
 カテゴリ: `write`
 
@@ -199,9 +199,9 @@ Then:
 
 成功する保存、および削除・一括 difficulty 変更でも、退出後の完了は画面状態や toast を変更しない。同じ不変条件の境界値として component test で確認する。
 
-<a id="card-23"></a>
+<a id="card-list-actions-08"></a>
 
-### CARD-23 再訪後の Card 更新を古い更新の完了から保護する
+### CARD-LIST-ACTIONS-08 再訪後の Card 更新を古い更新の完了から保護する
 
 カテゴリ: `write`
 
@@ -227,9 +227,9 @@ Then:
 
 Aが成功する場合、およびAが削除・一括 difficulty 変更の場合も同じ保護を行う。一括変更のBでは新しい一括変更 dialog を保持する。これらは同じ不変条件の境界値として component test で確認する。
 
-<a id="card-24"></a>
+<a id="card-list-actions-09"></a>
 
-### CARD-24 Card を追加が新しい順に表示できる
+### CARD-LIST-ACTIONS-09 Card を追加が新しい順に表示できる
 
 カテゴリ: `read`
 
@@ -251,12 +251,12 @@ Then:
 - プレビューと各行の操作は同じ Card ID を対象とし、表示順や別 Card の追加・更新・削除でも、残る操作可能な行のフォーカスとメニューを維持する。対象行が消えたらメニューを閉じる。
 - 並び順はプレビュー・言語・フィルター変更や結果0件でも保持する。フィルター自動保存中も選択でき、Card 変更中のロックと dialog 背景の制限は維持する。
 - 並び替え自体は永続化せず、Card・Deck と既存 Study session の ID・順序・位置を変更しない。新規 Study の選定・順序にも影響しない。
-- 一括変更の承認済み Card ID と difficulty は一覧の変化や部分失敗後の再試行でも維持する（CARD-19/20）。
+- 一括変更の承認済み Card ID と difficulty は一覧の変化や部分失敗後の再試行でも維持する（CARD-LIST-ACTIONS-05/20）。
 - browser error が発生しない。
 
-<a id="card-25"></a>
+<a id="card-list-actions-10"></a>
 
-### CARD-25 Card の表示順を標準へ戻せる
+### CARD-LIST-ACTIONS-10 Card の表示順を標準へ戻せる
 
 カテゴリ: `read`
 

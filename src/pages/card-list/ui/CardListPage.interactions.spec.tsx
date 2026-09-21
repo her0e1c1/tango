@@ -136,7 +136,7 @@ const staleMutationCases = [
   { mutation: "bulk", outcome: "failure" },
 ] as const;
 
-describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-19 CARD-20 CARD-22 CARD-23 CARD-24 CARD-25 CardListPage interactions", () => {
+describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS-02 CARD-MANAGEMENT-03 CARD-LIST-ACTIONS-03 CARD-MANAGEMENT-08 CARD-LIST-ACTIONS-04 CARD-LIST-ACTIONS-05 CARD-LIST-ACTIONS-06 CARD-LIST-ACTIONS-07 CARD-LIST-ACTIONS-08 CARD-LIST-ACTIONS-09 CARD-LIST-ACTIONS-10 CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
     vi.clearAllMocks();
@@ -359,7 +359,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-1
     expect(mocks.editDeck).not.toHaveBeenCalled();
   });
 
-  it("CARD-10 applies difficulty and tag selections before their save completes", async () => {
+  it("CARD-LIST-ACTIONS-03 applies difficulty and tag selections before their save completes", async () => {
     const saving = Promise.withResolvers<void>();
     renderCardList({
       cards: [
@@ -648,7 +648,7 @@ describe("CARD-02 CARD-04 CARD-05 CARD-06 CARD-08 CARD-10 CARD-16 CARD-18 CARD-1
     expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
   });
 
-  it("CARD-05 uses the latest identity and Card difficulty when swiping after render", async () => {
+  it("CARD-LIST-ACTIONS-01 uses the latest identity and Card difficulty when swiping after render", async () => {
     renderCardList();
     const article = screen.getByRole("article");
 

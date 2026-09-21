@@ -8,12 +8,12 @@ Deck と Card の保存先を local-only から remote へ移行し、Deck の C
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| DECK-07 | batch | [local-only Deck と Card を remote へ移行できる](#deck-07) |
-| DECK-08 | read | [Deck の Card を CSV で export できる](#deck-08) |
+| DECK-TRANSFER-01 | batch | [local-only Deck と Card を remote へ移行できる](#deck-transfer-01) |
+| DECK-TRANSFER-02 | read | [Deck の Card を CSV で export できる](#deck-transfer-02) |
 
-<a id="deck-07"></a>
+<a id="deck-transfer-01"></a>
 
-### DECK-07 local-only Deck と Card を remote へ移行できる
+### DECK-TRANSFER-01 local-only Deck と Card を remote へ移行できる
 
 カテゴリ: `batch`
 
@@ -35,9 +35,9 @@ Then:
 - browser storage に移行前の Deck と Card の duplicate が残らない。
 - browser error が発生しない。
 
-<a id="deck-08"></a>
+<a id="deck-transfer-02"></a>
 
-### DECK-08 Deck の Card を CSV で export できる
+### DECK-TRANSFER-02 Deck の Card を CSV で export できる
 
 カテゴリ: `read`
 

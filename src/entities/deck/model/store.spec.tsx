@@ -29,7 +29,7 @@ const useMemoryStorage = (initial: Record<string, string> = {}): StateStorage =>
   return storage;
 };
 
-describe("Deck store [CARD-10]", () => {
+describe("Deck store [CARD-LIST-ACTIONS-03]", () => {
   beforeEach(() => {
     useMemoryStorage();
     deckStore.setState({ remoteDecks: [], localDecks: [] });

@@ -25,6 +25,10 @@
 
 ## テストケースの書式
 
+- ID の prefix は仕様ファイル名から `.md` を除いて大文字化する（例: `card-view.md` → `CARD-VIEW`）。
+- 各ファイルのケースを記載順に `01` から欠番なく採番する。番号は最低2桁のゼロ埋めとする（例: `CARD-VIEW-01`、`CARD-VIEW-02`）。
+- ケースの追加・移動・削除時は必要に応じて振り直し、索引・anchor・Playwright のテスト名・unit / integration test の参照も同時に更新する。
+
 - 各 ID をちょうど一つの Playwright test に対応させる。
 - 詳細仕様の Markdown は `docs/e2e` 直下に置く。E2E contract check はこの階層の Markdown を読み取る。
 - 各テストケースには `read`、`write`、`batch` のいずれかのカテゴリを明示する。

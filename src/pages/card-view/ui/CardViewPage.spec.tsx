@@ -23,7 +23,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardViewPage } from "./CardViewPage";
 
-describe("CARD-11 CARD-12 CardViewPage", () => {
+describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
   const deckId = "card-view-deck";
   const cardId = "card-id";
   const renderPage = (path = `/card/${cardId}`) =>

@@ -8,7 +8,11 @@ import {
   test,
 } from "./fixtures";
 
-test("DECK-11 creates one empty local-only Deck without a remote duplicate", async ({ fixture, page, namespace }) => {
+test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote duplicate", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   const name = `${namespace.caseId} local deck`;
   const category = "typescript";
   await fixture.apply(page);
@@ -49,7 +53,7 @@ test("DECK-11 creates one empty local-only Deck without a remote duplicate", asy
   ).toEqual([]);
 });
 
-test("CARD-15 retries a rejected remote Card create with a new ID and no duplicate", async ({
+test("CARD-MANAGEMENT-07 retries a rejected remote Card create with a new ID and no duplicate", async ({
   fixture,
   page,
   browserErrors,

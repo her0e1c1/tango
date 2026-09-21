@@ -8,18 +8,18 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| SWIPE-06 | write | [filter と学習上限を反映して session を開始できる](#swipe-06) |
-| SWIPE-07 | read | [filter に一致する Card がない場合は session を開始できない](#swipe-07) |
-| SWIPE-08 | write | [学習画面から戻った後に同じ位置から Continue できる](#swipe-08) |
-| SWIPE-09 | write | [Restart で新しい session を先頭から開始できる](#swipe-09) |
-| SWIPE-10 | write | [最後の Card を完了して completion screen を表示できる](#swipe-10) |
-| SWIPE-11 | batch | [複数 Deck の学習 session を独立して維持できる](#swipe-11) |
-| SWIPE-17 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#swipe-17) |
-| SWIPE-26 | batch | [展開した tag filter を保存して学習 session に適用できる](#swipe-26) |
+| STUDY-SESSION-01 | write | [filter と学習上限を反映して session を開始できる](#study-session-01) |
+| STUDY-SESSION-02 | read | [filter に一致する Card がない場合は session を開始できない](#study-session-02) |
+| STUDY-SESSION-03 | write | [学習画面から戻った後に同じ位置から Continue できる](#study-session-03) |
+| STUDY-SESSION-04 | write | [Restart で新しい session を先頭から開始できる](#study-session-04) |
+| STUDY-SESSION-05 | write | [最後の Card を完了して completion screen を表示できる](#study-session-05) |
+| STUDY-SESSION-06 | batch | [複数 Deck の学習 session を独立して維持できる](#study-session-06) |
+| STUDY-SESSION-07 | write | [local-only Deck の学習結果と session を reload 後も維持できる](#study-session-07) |
+| STUDY-SESSION-08 | batch | [展開した tag filter を保存して学習 session に適用できる](#study-session-08) |
 
-<a id="swipe-06"></a>
+<a id="study-session-01"></a>
 
-### SWIPE-06 filter と学習上限を反映して session を開始できる
+### STUDY-SESSION-01 filter と学習上限を反映して session を開始できる
 
 カテゴリ: `write`
 
@@ -47,9 +47,9 @@ Then:
 - オフライン再読み込み直後や別 Deck の保存待ちでも Start / Restart を許可し、書き込みは Firestore SDK のオフラインキューへ渡す。同期失敗は共通の通知で知らせ、開始操作を禁止しない。
 - browser error が発生しない。
 
-<a id="swipe-07"></a>
+<a id="study-session-02"></a>
 
-### SWIPE-07 filter に一致する Card がない場合は session を開始できない
+### STUDY-SESSION-02 filter に一致する Card がない場合は session を開始できない
 
 カテゴリ: `read`
 
@@ -70,9 +70,9 @@ Then:
 - 対象 Deck の学習 session が作成されない。
 - browser error が発生しない。
 
-<a id="swipe-08"></a>
+<a id="study-session-03"></a>
 
-### SWIPE-08 学習画面から戻った後に同じ位置から Continue できる
+### STUDY-SESSION-03 学習画面から戻った後に同じ位置から Continue できる
 
 カテゴリ: `write`
 
@@ -98,9 +98,9 @@ Then:
 - Deck 一覧へ戻る前に表示されていた Card の front text が表示される。
 - browser error が発生しない。
 
-<a id="swipe-09"></a>
+<a id="study-session-04"></a>
 
-### SWIPE-09 Restart で新しい session を先頭から開始できる
+### STUDY-SESSION-04 Restart で新しい session を先頭から開始できる
 
 カテゴリ: `write`
 
@@ -122,9 +122,9 @@ Then:
 - 新しい session の先頭 Card の front text が表示される。
 - browser error が発生しない。
 
-<a id="swipe-10"></a>
+<a id="study-session-05"></a>
 
-### SWIPE-10 最後の Card を完了して completion screen を表示できる
+### STUDY-SESSION-05 最後の Card を完了して completion screen を表示できる
 
 カテゴリ: `write`
 
@@ -147,9 +147,9 @@ Then:
 - Deck 一覧へ戻った後、対象 Deck に Continue action が表示されない。
 - browser error が発生しない。
 
-<a id="swipe-11"></a>
+<a id="study-session-06"></a>
 
-### SWIPE-11 複数 Deck の学習 session を独立して維持できる
+### STUDY-SESSION-06 複数 Deck の学習 session を独立して維持できる
 
 カテゴリ: `batch`
 
@@ -169,9 +169,9 @@ Then:
 - 各 Deck の Card と session が混在しない。
 - browser error が発生しない。
 
-<a id="swipe-17"></a>
+<a id="study-session-07"></a>
 
-### SWIPE-17 local-only Deck の学習結果と session を reload 後も維持できる
+### STUDY-SESSION-07 local-only Deck の学習結果と session を reload 後も維持できる
 
 カテゴリ: `write`
 
@@ -194,9 +194,9 @@ Then:
 - local-only Deck と匿名ユーザーの session は Firestore へ書き込まない。
 - browser error が発生しない。
 
-<a id="swipe-26"></a>
+<a id="study-session-08"></a>
 
-### SWIPE-26 展開した tag filter を保存して学習 session に適用できる
+### STUDY-SESSION-08 展開した tag filter を保存して学習 session に適用できる
 
 カテゴリ: `batch`
 

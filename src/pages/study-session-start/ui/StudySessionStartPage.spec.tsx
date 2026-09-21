@@ -55,7 +55,7 @@ const StudySessionDestination = () => {
   );
 };
 
-describe("SWIPE-06 SWIPE-07 SWIPE-26 StudySessionStartPage", () => {
+describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPage", () => {
   const deckId = "deck-id";
   const cardId = "card-id";
   const renderPage = (path = `/deck/${deckId}/start`) =>

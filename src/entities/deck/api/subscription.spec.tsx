@@ -48,7 +48,7 @@ const getSnapshotHandler = () =>
 // Returns the error callback registered by the Deck subscription.
 const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Error) => void;
 
-describe("Deck Firestore subscription [CARD-10]", () => {
+describe("Deck Firestore subscription [CARD-LIST-ACTIONS-03]", () => {
   beforeEach(() => {
     deckStore.setState({ remoteDecks: [], localDecks: [] });
     vi.clearAllMocks();

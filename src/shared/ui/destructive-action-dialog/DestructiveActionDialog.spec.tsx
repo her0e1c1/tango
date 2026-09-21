@@ -22,7 +22,7 @@ afterEach(() => {
   dismissToast();
 });
 
-describe("DECK-04 DECK-05 CARD-16 DestructiveActionDialog", () => {
+describe("DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 CARD-MANAGEMENT-08 DestructiveActionDialog", () => {
   it("labels the alert dialog with the target and explanation", () => {
     render(<DestructiveActionDialog {...defaultProps} />);
 

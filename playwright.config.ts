@@ -20,7 +20,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         // Full headless Chromium honors the scoped secure-origin override; headless shell does not. The isolated Vite
-        // origin needs it so PERSIST-02 can cache the app shell before a real context-level offline reload. Remote
+        // origin needs it so PERSISTENCE-02 can cache the app shell before a real context-level offline reload. Remote
         // workers must also use the browser container's shared IPC memory instead of blocking on overlay-backed /tmp.
         channel: "chromium",
         launchOptions: {

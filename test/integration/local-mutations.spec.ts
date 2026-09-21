@@ -10,7 +10,7 @@ vi.mock("@/shared/firebase", () => ({ db: {} }));
 
 const studyOptions = { shuffled: false, maxNumberOfCardsToLearn: 0 };
 
-describe("CARD-04 local Entity mutations", () => {
+describe("CARD-MANAGEMENT-02 local Entity mutations", () => {
   afterEach(() => {
     clearStudySessions();
     localStorage.clear();

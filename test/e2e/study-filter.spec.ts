@@ -6,7 +6,7 @@ const readSelectedTags = async (deckId: string): Promise<string[]> =>
     .map((value) => value.stringValue)
     .filter((value): value is string => value !== undefined);
 
-test("SWIPE-26 reveals, persists, and applies an additional Study tag", async ({ fixture, page }) => {
+test("STUDY-SESSION-08 reveals, persists, and applies an additional Study tag", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const targetCard = fixture.card("card-10");
   await fixture.apply(page);

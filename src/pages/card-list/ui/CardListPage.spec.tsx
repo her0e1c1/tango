@@ -33,7 +33,7 @@ const NextDeckButton = () => {
   );
 };
 
-describe("NAVIGATION-02 DECK-06 CARD-01 CARD-10 CARD-13 CARD-25 CardListPage", () => {
+describe("NAVIGATION-02 DECK-NAVIGATION-02 CARD-VIEW-01 CARD-LIST-ACTIONS-03 CARD-MANAGEMENT-05 CARD-LIST-ACTIONS-10 CardListPage", () => {
   const deckId = "deck-id";
   const nextDeckId = "next-deck";
   const cardId = "card-id";

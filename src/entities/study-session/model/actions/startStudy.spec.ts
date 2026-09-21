@@ -7,7 +7,7 @@ import { clearStudySessions } from "./clearStudySessions";
 import { getStudySession } from "../queries/getStudySession";
 import { startStudy } from "./startStudy";
 
-describe("startStudy [SWIPE-06]", () => {
+describe("startStudy [STUDY-SESSION-01]", () => {
   beforeEach(() => {
     clearStudySessions();
     localStorage.clear();

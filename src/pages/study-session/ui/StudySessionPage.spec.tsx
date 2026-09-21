@@ -104,7 +104,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage [SWIPE-05] [SWIPE-08] [SETTINGS-04] [SWIPE-02] [SWIPE-03] [SWIPE-10] [SWIPE-24]", () => {
+describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-SESSION-05] [STUDY-CONTROLS-04]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({

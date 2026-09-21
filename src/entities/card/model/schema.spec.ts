@@ -10,7 +10,7 @@ import {
   editCardSchema,
 } from "./schema";
 
-describe("Card content input schema [CARD-13 CARD-21]", () => {
+describe("Card content input schema [CARD-MANAGEMENT-05 CARD-MANAGEMENT-10]", () => {
   it("accepts content without asking for an identity", () => {
     const content = { frontText: "Front", backText: "Back", tags: ["custom"] };
 
@@ -30,7 +30,7 @@ describe("Card content input schema [CARD-13 CARD-21]", () => {
   });
 });
 
-describe("Card content schema [CARD-01]", () => {
+describe("Card content schema [CARD-VIEW-01]", () => {
   it.each(["", "   ", "\n\t"])("rejects blank front text: %j", (frontText) => {
     expect(() => cardContentSchema.parse({ frontText, backText: "back", tags: [], uniqueKey: "key" })).toThrow(
       "Front text is required."
@@ -50,7 +50,7 @@ describe("Card content schema [CARD-01]", () => {
   });
 });
 
-describe("Card operation schemas [CARD-01]", () => {
+describe("Card operation schemas [CARD-VIEW-01]", () => {
   const card = createCardFixture({ id: "card", deckId: "deck", uid: "uid-a" });
 
   it("applies entity defaults without adding persistence timestamps", () => {

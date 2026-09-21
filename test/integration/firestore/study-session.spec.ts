@@ -43,7 +43,7 @@ const waitForCloud = (assertion: () => void | Promise<void>) => vi.waitFor(asser
 const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
 const readSession = (sessionId: string) => getDoc(doc(testDb, "studySession", sessionId));
 
-describe("StudySession cloud lifecycle [SWIPE-06] [SWIPE-08] [SWIPE-09] [SWIPE-10] [SWIPE-17] [PERSIST-02]", () => {
+describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-04] [STUDY-SESSION-05] [STUDY-SESSION-07] [PERSISTENCE-02]", () => {
   let stop: (() => void) | undefined;
   let deckId: string;
 
