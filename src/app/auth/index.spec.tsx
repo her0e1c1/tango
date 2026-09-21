@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import { replaceAuthSession } from "@/entities/auth";
 import { AuthProvider } from "./index";
+vi.mock("@/shared/firebase", () => ({ auth: {} }));
 vi.mock("./lifecycle", () => ({ startAuthSession: () => () => undefined }));
 describe("Authentication feedback [ACCOUNT-04 SETTINGS-04]", () => {
   beforeEach(() => replaceAuthSession({ status: "initializing" }));

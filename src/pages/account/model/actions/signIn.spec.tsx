@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   signInWithGoogle: vi.fn<() => Promise<unknown>>(),
 }));
 
-vi.mock("../../api/signInWithGoogle", () => ({ signInWithGoogle: mocks.signInWithGoogle }));
+vi.mock("@/entities/auth", () => ({ signInWithGoogle: mocks.signInWithGoogle }));
 
 describe("ACCOUNT-01 ACCOUNT-02 signIn", () => {
   beforeEach(() => {
