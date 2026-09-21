@@ -5,7 +5,6 @@ import {
   type CardProgressFields,
   type StudyRating,
   createStudyProgressFromCard,
-  isStudyProgressEligible,
 } from "@/entities/study-progress/@x/study-session";
 
 import type {
@@ -89,20 +88,9 @@ export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCar
   let nextDueAt: number | undefined;
   for (const card of cards) {
     if (!isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter)) continue;
-    const progress = createStudyProgressFromCard(card);
-    if (
-      !isStudyProgressEligible(
-        progress,
-        {
-          maximumDifficulty: deck.difficultyMax,
-          minimumDifficulty: deck.difficultyMin,
-          respectNextSeeingAt: false,
-        },
-        now
-      )
-    )
-      continue;
-    const timing = classifyStudyProgress(progress, now);
+    if (deck.difficultyMax !== null && card.difficulty > deck.difficultyMax) continue;
+    if (deck.difficultyMin !== null && card.difficulty < deck.difficultyMin) continue;
+    const timing = classifyStudyProgress(createStudyProgressFromCard(card), now);
     if (respectNextSeeingAt && timing.status === "future") {
       nextDueAt = nextDueAt === undefined ? timing.dueAt : Math.min(nextDueAt, timing.dueAt);
     } else selected.push(card);

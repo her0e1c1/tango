@@ -19,17 +19,11 @@ interface CardListQueryOptions {
 export const useCardListQuery = ({ deck, filter, shownCard, sortOrder }: CardListQueryOptions) => {
   const preferences = usePreferences();
   const { cards: deckCards, tags } = useCardsByDeckId(deck.id);
-  const { cards: matchingCards } = useDeadlineQuery(
-    (now) => selectStudyCardsWithDeadline(deckCards, filter, preferences.study.useCardInterval, now),
-    [
-      deckCards,
-      filter.difficultyMin,
-      filter.difficultyMax,
-      filter.selectedTags,
-      filter.tagAndFilter,
-      preferences.study.useCardInterval,
-    ]
-  );
+  const { cards: matchingCards } = useDeadlineQuery(selectStudyCardsWithDeadline, [
+    deckCards,
+    filter,
+    preferences.study.useCardInterval,
+  ]);
   const cards = sortOrder === "newest" ? matchingCards.toSorted((a, b) => b.createdAt - a.createdAt) : matchingCards;
   const category = shownCard == null ? undefined : getCategory(deck.category, shownCard.tags);
   const answer =

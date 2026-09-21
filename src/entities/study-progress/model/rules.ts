@@ -4,13 +4,7 @@ import * as lodash from "lodash";
 
 import { createStudyProgress } from "./defaults";
 import { clampDifficulty, type Difficulty } from "./difficulty";
-import type {
-  CardProgressFields,
-  StudyCardOrderOptions,
-  StudyProgress,
-  StudyProgressFilter,
-  StudyRating,
-} from "./types";
+import type { CardProgressFields, StudyCardOrderOptions, StudyProgress, StudyRating } from "./types";
 
 // Projects a Card's learning fields into StudyProgress while preserving which optional fields are absent.
 export const createStudyProgressFromCard = (card: CardProgressFields): StudyProgress => {
@@ -63,17 +57,6 @@ export const recordCardStudyProgress = (
   const progress = createStudyProgressFromCard(card);
   classifyStudyProgress(progress, studiedAt);
   return recordStudyProgress(progress, rating, studiedAt);
-};
-
-// Accepts progress inside the inclusive difficulty bounds and, when enabled, only after its next scheduled time.
-export const isStudyProgressEligible = (progress: StudyProgress, filter: StudyProgressFilter, now: number): boolean => {
-  if (filter.maximumDifficulty != null && progress.difficulty > filter.maximumDifficulty) return false;
-  if (filter.minimumDifficulty != null && progress.difficulty < filter.minimumDifficulty) return false;
-  const timing = classifyStudyProgress(progress, now);
-  if (filter.respectNextSeeingAt && timing.status === "future") {
-    return false;
-  }
-  return true;
 };
 
 // Orders progress from least to most seen; equal counts deliberately defer to the stable input order.

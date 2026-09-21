@@ -47,8 +47,22 @@ describe("mounted deadline consumers [STUDY-SESSION-01]", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it("bounds distant timers, handles clock movement, late callbacks, replacement and cleanup", () => {
+  it("waits safely for a deadline beyond the browser timeout limit", () => {
     setDeadline(now + 2 ** 32);
+    const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
+    act(() => vi.advanceTimersByTime(2 ** 31 - 1));
+    expect(result.current.cardsLength).toBe(0);
+    expect(vi.getTimerCount()).toBe(1);
+    act(() => vi.advanceTimersByTime(2 ** 31 - 1));
+    expect(result.current.cardsLength).toBe(0);
+    act(() => vi.advanceTimersByTime(2));
+    expect(result.current.cardsLength).toBe(1);
+    expect(vi.getTimerCount()).toBe(0);
+    unmount();
+  });
+
+  it("handles clock movement, late callbacks, replacement and cleanup", () => {
+    setDeadline(now + 120_000);
     const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
     expect(result.current.cardsLength).toBe(0);
     expect(vi.getTimerCount()).toBe(1);
@@ -64,7 +78,7 @@ describe("mounted deadline consumers [STUDY-SESSION-01]", () => {
     expect(result.current.cardsLength).toBe(0);
     act(() => {
       vi.setSystemTime(now + 100_000);
-      vi.advanceTimersByTime(60_000);
+      vi.advanceTimersToNextTimer();
     });
     expect(result.current.cardsLength).toBe(1);
     expect(vi.getTimerCount()).toBe(0);

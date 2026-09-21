@@ -64,7 +64,7 @@ export function calculateStudySchedule(
     dueAt: card.due.getTime(),
     stability: card.stability,
     difficulty: card.difficulty,
-    lastReviewedAt: card.last_review?.getTime(),
+    lastReviewedAt: answeredAt,
     reps: card.reps,
     lapses: card.lapses,
     elapsedDays: z.object({ elapsed_days: z.number() }).parse(card).elapsed_days,

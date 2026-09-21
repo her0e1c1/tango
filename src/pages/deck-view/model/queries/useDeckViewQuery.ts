@@ -15,17 +15,11 @@ export function useDeckViewQuery(
 ) {
   const { cards: deckCards } = useCardsByDeckId(deck.id);
   const preferences = usePreferences();
-  const { cards } = useDeadlineQuery(
-    (now) => selectStudyCardsWithDeadline(deckCards, filter, preferences.study.useCardInterval, now),
-    [
-      deckCards,
-      filter.difficultyMin,
-      filter.difficultyMax,
-      filter.selectedTags,
-      filter.tagAndFilter,
-      preferences.study.useCardInterval,
-    ]
-  );
+  const { cards } = useDeadlineQuery(selectStudyCardsWithDeadline, [
+    deckCards,
+    filter,
+    preferences.study.useCardInterval,
+  ]);
   const { index, card } = getDeckViewPosition(cards, cardId);
   const category = getCategory(deck.category, card?.tags ?? []);
   return {

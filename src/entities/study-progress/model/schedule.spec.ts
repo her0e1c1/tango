@@ -58,6 +58,7 @@ describe("FSRS ratings [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03]"
         saved = calculateStudySchedule(saved, names[grade], at);
         saved = studyScheduleSchema.parse(JSON.parse(JSON.stringify(saved)));
         expect(saved).toMatchObject({
+          lastReviewedAt: at,
           dueAt: expected.due.getTime(),
           stability: expected.stability,
           difficulty: expected.difficulty,

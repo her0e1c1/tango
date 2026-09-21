@@ -4,14 +4,10 @@ import {
   buildStudyCardOrder,
   calculateDifficulty,
   createStudyProgressFromCard,
-  isStudyProgressEligible,
   recordCardStudyProgress,
 } from "./rules";
 import { createStudyProgress } from "./defaults";
-import type { CardProgressFields, StudyProgress, StudyRating } from "./types";
-
-// Builds neutral StudyProgress for eligibility scenarios.
-const initialStudyProgress = (cardId: string): StudyProgress => ({ cardId, difficulty: 5, numberOfSeen: 0 });
+import type { CardProgressFields, StudyRating } from "./types";
 
 // Builds the Card fields required by StudyProgress ordering rules.
 const cardProgress = (id: string, numberOfSeen = 0): CardProgressFields => ({
@@ -92,23 +88,6 @@ describe("calculateDifficulty [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIO
     [10, "again", 10],
   ])("adjusts difficulty %i for %s to %i", (difficulty, rating, expectedDifficulty) => {
     expect(calculateDifficulty(difficulty, rating)).toBe(expectedDifficulty);
-  });
-});
-
-describe("study progress selection [CARD-LIST-ACTIONS-03]", () => {
-  const filter = {
-    minimumDifficulty: 3,
-    maximumDifficulty: 7,
-    respectNextSeeingAt: true,
-  };
-
-  it("applies difficulty bounds and the next seeing time", () => {
-    expect(isStudyProgressEligible({ ...initialStudyProgress("eligible"), difficulty: 7 }, filter, 1000)).toBe(true);
-    expect(isStudyProgressEligible({ ...initialStudyProgress("high"), difficulty: 8 }, filter, 1000)).toBe(false);
-    expect(isStudyProgressEligible({ ...initialStudyProgress("low"), difficulty: 2 }, filter, 1000)).toBe(false);
-    expect(
-      isStudyProgressEligible({ ...initialStudyProgress("future"), nextSeeingAt: new Date(1001) }, filter, 1000)
-    ).toBe(false);
   });
 });
 

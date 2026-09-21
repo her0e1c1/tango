@@ -36,13 +36,6 @@ export type StudyProgressEdit = Partial<StudyProgress> & Pick<StudyProgress, "ca
 /** FSRS recall rating; navigation-only interactions have no rating. */
 export type { StudyRating } from "@/entities/study-answer/@x/study-progress";
 
-/** Inclusive difficulty and due-time constraints for Card eligibility. */
-export interface StudyProgressFilter {
-  minimumDifficulty: Difficulty | null;
-  maximumDifficulty: Difficulty | null;
-  respectNextSeeingAt: boolean;
-}
-
 /** Card fields needed to reconstruct its StudyProgress model. */
 export interface CardProgressFields {
   id: CardId;
