@@ -43,6 +43,12 @@ describe("STUDY-CONTROLS-04 buildCardPlayerHelpRows", () => {
     );
   });
 
+  it("omits skip help when the player does not provide a skip control", () => {
+    const rows = buildCardPlayerHelpRows(createPreferences(), {}, false);
+
+    expect(rows).not.toEqual(expect.arrayContaining([{ control: "skipControls", action: expect.any(String) }]));
+  });
+
   it("keeps mapping identity independent from presentation locale", () => {
     const preferences = createPreferences({ controls: { cardSwipeRight: "RateGood" } });
 
