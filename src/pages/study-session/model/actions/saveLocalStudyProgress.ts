@@ -13,8 +13,7 @@ export async function saveLocalStudyProgress(
   direction: SwipeDirection | undefined
 ): Promise<void> {
   const { owner } = studySessionPageStore.getState();
-  const work = Symbol();
-  studySessionPageStore.setState({ pendingWork: work });
+  studySessionPageStore.setState({ isSaving: true });
   try {
     try {
       await editStudyProgress(uid, progress);
@@ -27,7 +26,6 @@ export async function saveLocalStudyProgress(
     if (studySessionPageStore.getState().owner !== owner) return;
     showStudyResult(session.currentIndex + 1 === session.cardOrderIds.length, session.cardOrderIds.length, direction);
   } finally {
-    if (studySessionPageStore.getState().pendingWork === work)
-      studySessionPageStore.setState({ pendingWork: undefined });
+    studySessionPageStore.setState({ isSaving: false });
   }
 }

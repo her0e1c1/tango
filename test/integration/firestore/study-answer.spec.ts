@@ -52,6 +52,11 @@ const sessionData = () => ({
   updatedAt: serverTimestamp(),
 });
 function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
+  const { difficulty, numberOfSeen } = recordCardStudyProgress(
+    { id: overrides.cardId ?? "card-0", difficulty: 5, numberOfSeen: 0 },
+    "rating" in overrides ? overrides.rating : "good",
+    overrides.answeredAt ?? 2000
+  );
   return {
     id: crypto.randomUUID(),
     uid,
@@ -62,11 +67,7 @@ function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
     cardCount: cardIds.length,
     answeredAt: 2000,
     rating: "good",
-    progress: recordCardStudyProgress(
-      { id: overrides.cardId ?? "card-0", difficulty: 5, numberOfSeen: 0 },
-      "rating" in overrides ? overrides.rating : "good",
-      overrides.answeredAt ?? 2000
-    ),
+    progress: { difficulty, numberOfSeen },
     ...overrides,
   };
 }
@@ -133,7 +134,7 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     async (rating) => {
       const input = operation({ rating });
       const result = await saveStudyOperation(input);
-      expect(result.status).toBe("saved");
+      expect(result.session.currentIndex).toBe(1);
       const answer = (await getDoc(doc(connection.db, "studyAnswer", input.id))).data();
       expect(answer).toEqual({
         uid,
@@ -163,7 +164,7 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
       getDoc(doc(connection.db, "card", input.cardId)),
       getDoc(doc(connection.db, "studySession", sessionId)),
     ]);
-    expect((await saveStudyOperation(input)).status).toBe("already-saved");
+    await saveStudyOperation(input);
     const after = await Promise.all(before.map((snapshot) => getDoc(snapshot.ref)));
     expect(after.map((snapshot) => snapshot.data())).toEqual(before.map((snapshot) => snapshot.data()));
     await expect(saveStudyOperation({ ...input, rating: "again" })).rejects.toThrow("different contents");
@@ -192,7 +193,7 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
       endReason: "completed",
       endedAt: expect.any(Timestamp),
     });
-    expect((await saveStudyOperation(final)).status).toBe("already-saved");
+    await saveStudyOperation(final);
     await expect(saveStudyOperation({ ...final, id: crypto.randomUUID() })).rejects.toBeDefined();
     expect((await answers()).size).toBe(10);
   });
@@ -205,13 +206,13 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
       endedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-    expect((await saveStudyOperation(first)).status).toBe("already-saved");
+    await saveStudyOperation(first);
     const nextSessionId = "next-session";
     await setDoc(doc(connection.db, "studySession", nextSessionId), sessionData());
     await saveStudyOperation(
       operation({
         sessionId: nextSessionId,
-        progress: { cardId: "card-0", difficulty: 3, numberOfSeen: 2, lastSeenAt: 2000 },
+        progress: { difficulty: 3, numberOfSeen: 2 },
       })
     );
     expect((await answers()).size).toBe(2);
@@ -233,7 +234,9 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     await updateDoc(doc(connection.db, "studySession", sessionId), { currentIndex: 9 });
     const input = operation({ cardId: "card-9", currentIndex: 9, rating: undefined });
     await saveStudyOperation(input);
-    expect((await saveStudyOperation(input)).status).toBe("already-saved");
+    const before = (await getDoc(doc(connection.db, "studySession", sessionId))).data();
+    await saveStudyOperation(input);
+    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()).toEqual(before);
     expect((await answers()).size).toBe(0);
     expect((await getDoc(doc(connection.db, "card", "card-9"))).data()?.numberOfSeen).toBe(1);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.endReason).toBe("completed");
@@ -321,15 +324,11 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     await assertFails(batch.commit());
   });
 
-  it("requires Session advancement but leaves progress calculation to the application", async () => {
-    await assertFails(setDoc(doc(collection(connection.db, "studyAnswer")), answerData()));
-    const batch = writeBatch(connection.db);
-    batch.set(doc(collection(connection.db, "studyAnswer")), answerData());
-    batch.update(doc(connection.db, "studySession", sessionId), { currentIndex: 1, updatedAt: serverTimestamp() });
-    await assertSucceeds(batch.commit());
+  it("allows an owner answer alone without enforcing application transitions", async () => {
+    await assertSucceeds(setDoc(doc(collection(connection.db, "studyAnswer")), answerData()));
     expect((await answers()).size).toBe(1);
     expect((await getDoc(doc(connection.db, "card", "card-0"))).data()?.numberOfSeen).toBe(0);
-    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
+    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
   });
 
   it.each([
@@ -340,7 +339,7 @@ describe("StudyAnswer atomic persistence and access [SWIPE-02] [SWIPE-03] [SWIPE
     await saveStudyOperation(
       operation({
         rating,
-        progress: recordCardStudyProgress({ id: "card-0", difficulty, numberOfSeen: 0 }, rating, 2000),
+        progress: { difficulty, numberOfSeen: 1 },
       })
     );
     expect((await getDoc(doc(connection.db, "card", "card-0"))).data()).toMatchObject({ difficulty, numberOfSeen: 1 });

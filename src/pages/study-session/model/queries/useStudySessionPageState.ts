@@ -13,8 +13,8 @@ export function useStudySessionPageState(uid: string, deckId: DeckId) {
   if (state.owner !== previousOwner && state.owner?.uid === uid && state.owner.deckId === deckId) {
     return {
       ...state.pageState,
-      swipePending: state.pendingWork !== undefined,
-      saveFailed: state.pendingOperation !== undefined && state.pendingWork === undefined,
+      swipePending: state.isSaving,
+      saveFailed: state.pendingOperation !== undefined && !state.isSaving,
     };
   }
   return {

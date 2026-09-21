@@ -9,7 +9,7 @@ import { advanceStudySession } from "./advanceStudySession";
 export function useAutoPlay(sessionState: StudySessionState): void {
   const {
     owner,
-    pendingWork,
+    isSaving,
     pendingOperation,
     pageState: { autoPlay, helpOpen },
   } = useStore(studySessionPageStore);
@@ -21,7 +21,7 @@ export function useAutoPlay(sessionState: StudySessionState): void {
     sessionState.status === "studying" &&
     autoPlay &&
     !helpOpen &&
-    pendingWork === undefined &&
+    !isSaving &&
     pendingOperation === undefined &&
     cardInterval > 0 &&
     owner?.deckId === sessionState.session.deckId &&

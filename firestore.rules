@@ -28,15 +28,12 @@ service cloud.firestore {
     match /studyAnswer/{answerId} {
       function validAnswer(data) {
         let session = get(/databases/$(database)/documents/studySession/$(data.sessionId)).data;
-        let next = getAfter(/databases/$(database)/documents/studySession/$(data.sessionId)).data;
         return data.keys().hasOnly(['uid', 'sessionId', 'deckId', 'cardId', 'answer', 'answeredAt', 'createdAt', 'updatedAt']) &&
           data.answer.keys().hasOnly(['type', 'rating']) && data.answer.type == 'rating' &&
           data.answer.rating in ['again', 'hard', 'good', 'easy'] &&
           data.answeredAt is timestamp && data.createdAt == request.time && data.updatedAt == request.time &&
           session.uid == request.auth.uid && session.deckId == data.deckId &&
-          session.endReason == null && session.cardOrderIds[session.currentIndex] == data.cardId &&
-          ((session.currentIndex + 1 < session.cardOrderIds.size() && next.currentIndex == session.currentIndex + 1 && next.endReason == null) ||
-           (session.currentIndex + 1 == session.cardOrderIds.size() && next.currentIndex == session.currentIndex && next.endReason == 'completed'));
+          session.endReason == null && session.cardOrderIds[session.currentIndex] == data.cardId;
       }
       allow read: if isSignedIn() && isOwner();
       allow create: if isSignedIn() && isValid() && validAnswer(request.resource.data);

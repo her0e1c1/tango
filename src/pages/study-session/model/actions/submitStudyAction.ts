@@ -15,9 +15,8 @@ export async function submitStudyAction(
   direction?: SwipeDirection
 ): Promise<void> {
   const uid = getStudyUid();
-  const { owner, pendingWork, pendingOperation } = studySessionPageStore.getState();
-  if (pendingWork !== undefined || pendingOperation !== undefined || owner?.uid !== uid || owner.deckId !== deckId)
-    return;
+  const { owner, isSaving, pendingOperation } = studySessionPageStore.getState();
+  if (isSaving || pendingOperation !== undefined || owner?.uid !== uid || owner.deckId !== deckId) return;
   const session = getStudySession(deckId);
   if (session === undefined) return;
   if (
@@ -51,7 +50,7 @@ export async function submitStudyAction(
     currentIndex: session.currentIndex,
     cardCount: session.cardOrderIds.length,
     answeredAt,
-    progress,
+    progress: { difficulty: progress.difficulty, numberOfSeen: progress.numberOfSeen },
     ...(plan.rating === undefined ? {} : { rating: plan.rating }),
     ...(direction === undefined || !getPreferences().appearance.showSwipeFeedback ? {} : { direction }),
   });

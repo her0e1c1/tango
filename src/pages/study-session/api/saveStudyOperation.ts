@@ -31,7 +31,11 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
     };
     batch.set(reference, { ...answer, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   }
-  writeStudyProgress(batch, operation.progress, operation.answeredAt);
+  writeStudyProgress(
+    batch,
+    { ...operation.progress, cardId: operation.cardId, lastSeenAt: operation.answeredAt },
+    operation.answeredAt
+  );
   const result = writeStudySessionPosition(
     batch,
     { ...session, lastStudiedAt: operation.answeredAt },
@@ -71,7 +75,6 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
       )
         throw error;
     }
-    return { status: "already-saved" as const, ...result };
   }
-  return { status: "saved" as const, ...result };
+  return result;
 }

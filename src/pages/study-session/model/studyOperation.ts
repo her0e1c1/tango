@@ -12,14 +12,10 @@ export const studyOperationSchema = z
     cardCount: z.number().int().positive(),
     answeredAt: z.number().nonnegative(),
     rating: studyRatingSchema.optional(),
-    progress: studyProgressEditSchema
-      .pick({ cardId: true, difficulty: true, numberOfSeen: true, lastSeenAt: true })
-      .required(),
+    progress: studyProgressEditSchema.pick({ difficulty: true, numberOfSeen: true }).required(),
     direction: z.enum(["cardSwipeUp", "cardSwipeDown", "cardSwipeLeft", "cardSwipeRight"]).optional(),
   })
   .strict()
-  .refine(
-    (operation) => operation.currentIndex < operation.cardCount && operation.progress.cardId === operation.cardId
-  );
+  .refine((operation) => operation.currentIndex < operation.cardCount);
 
 export type StudyOperation = z.infer<typeof studyOperationSchema>;

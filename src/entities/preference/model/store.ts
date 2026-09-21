@@ -3,7 +3,7 @@ import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
 import { defaultPreferences } from "./defaults";
-import { preferencesSchema } from "./schema";
+import { persistedPreferencesSchema } from "./schema";
 import type { Preferences } from "./types";
 
 const PREFERENCES_STORAGE_KEY = "tango-config";
@@ -30,7 +30,7 @@ const createPreferencesStore = () =>
         version: PREFERENCES_STORAGE_VERSION,
         merge: (persistedState, currentState) => {
           // Version-mismatched state is rejected before merge; validate only current-version state before replacing defaults.
-          const result = preferencesSchema.safeParse(
+          const result = persistedPreferencesSchema.safeParse(
             (persistedState as Partial<PersistedPreferencesState> | undefined)?.preferences
           );
           return result.success ? { ...currentState, preferences: result.data } : currentState;

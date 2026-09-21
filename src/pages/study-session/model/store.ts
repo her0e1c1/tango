@@ -15,7 +15,7 @@ interface StudySessionPageState {
 
 interface StudySessionPageStore {
   owner: { uid: string; deckId: DeckId } | undefined;
-  pendingWork: symbol | undefined;
+  isSaving: boolean;
   pendingOperation: StudyOperation | undefined;
   pageState: StudySessionPageState;
 }
@@ -23,7 +23,7 @@ interface StudySessionPageStore {
 export const studySessionPageStore = createStore<StudySessionPageStore>()(() => ({
   owner: undefined,
   // Saving outlives a visit. Resetting presentation must never release this lock.
-  pendingWork: undefined,
+  isSaving: false,
   pendingOperation: undefined,
   pageState: {
     completion: undefined,

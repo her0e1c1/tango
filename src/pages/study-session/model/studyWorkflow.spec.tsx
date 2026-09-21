@@ -134,7 +134,6 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     expect(getStudySession(deckId)?.lastStudiedAt).toBe(1000);
     await actAsync(async () => {
       request.resolve({
-        status: "saved",
         session: { ...session, currentIndex: 1, lastStudiedAt: 2000 },
         endReason: null,
       });
@@ -166,7 +165,6 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     const { result: secondResult } = renderHook(() => useStudySessionPageModel(deckId));
     expect(secondResult.current.pageState.saveFailed).toBe(true);
     mocks.saveStudyOperation.mockResolvedValueOnce({
-      status: "saved",
       session: { ...session, currentIndex: 1 },
       endReason: null,
     });
@@ -218,7 +216,7 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
     mocks.uid = "other-user";
     const { result: nextResult } = renderHook(() => useStudySessionPageModel(deckId));
     await actAsync(async () => {
-      request.resolve({ status: "saved", session: { ...session, currentIndex: 1 }, endReason: null });
+      request.resolve({ session: { ...session, currentIndex: 1 }, endReason: null });
       await request.promise;
     });
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
