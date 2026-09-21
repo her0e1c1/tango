@@ -43,6 +43,7 @@ const meta = {
     sections: mixed,
     onCreateDeck: fn(),
     onImportDeck: fn(),
+    onStudyHistory: fn(),
   },
 } satisfies Meta<typeof DeckList>;
 
@@ -63,6 +64,11 @@ export const ListActions: Story = {
     await userEvent.click(canvas.getByRole("menuitem", { name: "Import decks" }));
     await expect(args.onImportDeck).toHaveBeenCalled();
     await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+
+    await userEvent.click(trigger);
+    await userEvent.click(canvas.getByRole("menuitem", { name: "Study history" }));
+    await expect(args.onStudyHistory).toHaveBeenCalled();
+    await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
   },
 };
 
@@ -73,6 +79,7 @@ export const Japanese: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "アクション" }));
     await expect(canvas.getByRole("menuitem", { name: "デッキを作成" })).toBeVisible();
     await expect(canvas.getByRole("menuitem", { name: "デッキをインポート" })).toBeVisible();
+    await expect(canvas.getByRole("menuitem", { name: "学習記録" })).toBeVisible();
     const [firstDeck] = mixed.studying;
     if (firstDeck == null) throw new Error("Japanese requires at least one Deck");
     const [firstDeckName] = canvas.getAllByText(firstDeck.deck.name);
@@ -109,6 +116,7 @@ export const Empty: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
     await expect(canvas.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
     await expect(canvas.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
+    await expect(canvas.getByRole("menuitem", { name: "Study history" })).toBeEnabled();
   },
 };
 

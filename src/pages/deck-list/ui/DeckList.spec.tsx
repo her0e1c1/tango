@@ -18,6 +18,7 @@ const activeDeck = createDeck({ id: "active", name: "Active deck", category: "ma
 const otherDeck = createDeck({ id: "other", name: "Other deck", category: "history" });
 const onCreateDeck = () => undefined;
 const onImportDeck = () => undefined;
+const onStudyHistory = () => undefined;
 
 const sections = {
   studying: [
@@ -39,7 +40,14 @@ const sections = {
 
 describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
   it("renders the page count and both compact sections", () => {
-    render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
+    render(
+      <DeckList
+        sections={sections}
+        onCreateDeck={onCreateDeck}
+        onImportDeck={onImportDeck}
+        onStudyHistory={onStudyHistory}
+      />
+    );
 
     expect(screen.getByRole("heading", { level: 1, name: "Decks" })).toBeInTheDocument();
     expect(screen.getByText("2 decks")).toBeInTheDocument();
@@ -59,6 +67,7 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
         sections={{ studying: [], other: sections.other }}
         onCreateDeck={onCreateDeck}
         onImportDeck={onImportDeck}
+        onStudyHistory={onStudyHistory}
       />
     );
 
@@ -67,7 +76,14 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
   });
 
   it("opens one deck actions menu at a time", () => {
-    render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
+    render(
+      <DeckList
+        sections={sections}
+        onCreateDeck={onCreateDeck}
+        onImportDeck={onImportDeck}
+        onStudyHistory={onStudyHistory}
+      />
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Active deck" }));
     expect(screen.getByRole("menu", { name: "Actions for Active deck" })).toBeInTheDocument();
@@ -78,7 +94,14 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
   });
 
   it("keeps the list and deck menus mutually exclusive", async () => {
-    render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
+    render(
+      <DeckList
+        sections={sections}
+        onCreateDeck={onCreateDeck}
+        onImportDeck={onImportDeck}
+        onStudyHistory={onStudyHistory}
+      />
+    );
 
     await userEvent.click(screen.getByRole("button", { name: "Open actions for Active deck" }));
     await userEvent.click(screen.getByRole("button", { name: "Actions" }));
@@ -90,16 +113,20 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
     expect(screen.getByRole("menu", { name: "Actions for Other deck" })).toBeVisible();
   });
 
-  it("reports create and import intents and closes the list menu", async () => {
+  it("reports create, import, and study history intents and closes the list menu", async () => {
     const create = vi.fn();
     const importDeck = vi.fn();
-    render(<DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} />);
+    const studyHistory = vi.fn();
+    render(
+      <DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} onStudyHistory={studyHistory} />
+    );
     const trigger = screen.getByRole("button", { name: "Actions" });
 
     await userEvent.click(trigger);
     await userEvent.click(screen.getByRole("menuitem", { name: "Create deck" }));
     expect(create).toHaveBeenCalledExactlyOnceWith();
     expect(importDeck).not.toHaveBeenCalled();
+    expect(studyHistory).not.toHaveBeenCalled();
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
 
@@ -107,13 +134,24 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
     await userEvent.click(screen.getByRole("menuitem", { name: "Import decks" }));
     expect(importDeck).toHaveBeenCalledExactlyOnceWith();
     expect(create).toHaveBeenCalledTimes(1);
+    expect(studyHistory).not.toHaveBeenCalled();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole("menuitem", { name: "Study history" }));
+    expect(studyHistory).toHaveBeenCalledExactlyOnceWith();
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(importDeck).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
   it("supports keyboard selection and Escape without executing an action", async () => {
     const create = vi.fn();
     const importDeck = vi.fn();
-    render(<DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} />);
+    const studyHistory = vi.fn();
+    render(
+      <DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} onStudyHistory={studyHistory} />
+    );
     const trigger = screen.getByRole("button", { name: "Actions" });
     trigger.focus();
 
@@ -121,16 +159,26 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
     expect(screen.getByRole("menuitem", { name: "Create deck" })).toHaveFocus();
     await userEvent.keyboard("{ArrowDown}");
     expect(screen.getByRole("menuitem", { name: "Import decks" })).toHaveFocus();
+    await userEvent.keyboard("{ArrowDown}");
+    expect(screen.getByRole("menuitem", { name: "Study history" })).toHaveFocus();
     await userEvent.keyboard("{Escape}");
 
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
     expect(create).not.toHaveBeenCalled();
     expect(importDeck).not.toHaveBeenCalled();
+    expect(studyHistory).not.toHaveBeenCalled();
   });
 
   it("keeps list actions available without introducing an empty-state message", async () => {
-    render(<DeckList sections={{ studying: [], other: [] }} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
+    render(
+      <DeckList
+        sections={{ studying: [], other: [] }}
+        onCreateDeck={onCreateDeck}
+        onImportDeck={onImportDeck}
+        onStudyHistory={onStudyHistory}
+      />
+    );
 
     expect(screen.getByText("0 decks")).toBeInTheDocument();
     expect(screen.queryByRole("region")).not.toBeInTheDocument();
@@ -139,16 +187,25 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
     await userEvent.click(screen.getByRole("button", { name: "Actions" }));
     expect(screen.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
     expect(screen.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
+    expect(screen.getByRole("menuitem", { name: "Study history" })).toBeEnabled();
   });
 
   it("localizes fixed copy without translating user-created deck names", async () => {
     await getI18n().changeLanguage("ja");
-    render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
+    render(
+      <DeckList
+        sections={sections}
+        onCreateDeck={onCreateDeck}
+        onImportDeck={onImportDeck}
+        onStudyHistory={onStudyHistory}
+      />
+    );
 
     expect(screen.getByRole("heading", { level: 1, name: "デッキ" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "アクション" }));
     expect(screen.getByRole("menuitem", { name: "デッキを作成" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "デッキをインポート" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "学習記録" })).toBeInTheDocument();
     expect(screen.getByText("2件")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "学習中" })).toHaveTextContent(activeDeck.name);
     expect(screen.getByRole("region", { name: "その他のデッキ" })).toHaveTextContent(otherDeck.name);

@@ -3,7 +3,7 @@
  */
 
 import * as React from "react";
-import { AiOutlineDown, AiOutlinePlus, AiOutlineUpload } from "react-icons/ai";
+import { AiOutlineBarChart, AiOutlineDown, AiOutlinePlus, AiOutlineUpload } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 
 import type { Deck, DeckId } from "@/entities/deck";
@@ -30,6 +30,7 @@ export interface DeckListProps {
   deckCard?: DeckListCardActions;
   onCreateDeck: () => void;
   onImportDeck: () => void;
+  onStudyHistory: () => void;
 }
 
 /**
@@ -124,6 +125,12 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
                 label: t("deckList.import"),
                 icon: <AiOutlineUpload aria-hidden="true" />,
                 onSelect: props.onImportDeck,
+              },
+              {
+                key: "history",
+                label: t("studyHistory.title"),
+                icon: <AiOutlineBarChart aria-hidden="true" />,
+                onSelect: props.onStudyHistory,
               },
             ]}
           />

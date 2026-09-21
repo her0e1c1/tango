@@ -76,6 +76,7 @@ describe("NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
             <Route path="/deck/new" element={<h1>Deck creator destination</h1>} />
             <Route path="/settings" element={<h1>Settings destination</h1>} />
             <Route path="/import" element={<h1>Import destination</h1>} />
+            <Route path="/study-history" element={<h1>Study history destination</h1>} />
             <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
             <Route path="/deck/:id/study" element={<h1>Study destination</h1>} />
             <Route path="/deck/:id/start" element={<h1>Study start destination</h1>} />
@@ -135,6 +136,7 @@ describe("NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     ["View cards in Fresh deck", "Deck view destination"],
     ["Create deck", "Deck creator destination"],
     ["Import decks", "Import destination"],
+    ["Study history", "Study history destination"],
   ])("navigates from the %s list action", async (label, destination) => {
     renderPage();
 

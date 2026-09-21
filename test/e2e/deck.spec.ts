@@ -37,6 +37,8 @@ test("DECK-NAVIGATION-01 navigates from the Deck list to its Card list", async (
   await expect(page.getByRole("menuitem", { name: "Create deck" })).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("menuitem", { name: "Import decks" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("menuitem", { name: "Study history" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);
   await expect(actions).toBeFocused();
@@ -57,6 +59,10 @@ test("DECK-NAVIGATION-01 navigates from the Deck list to its Card list", async (
   await actions.click();
   await page.getByRole("menuitem", { name: "Import decks" }).click();
   await expect(page).toHaveURL(/\/import$/);
+  await page.goto("/");
+  await actions.click();
+  await page.getByRole("menuitem", { name: "Study history" }).click();
+  await expect(page).toHaveURL(/\/study-history$/);
   await page.goto("/");
   await page.getByRole("button", { name: `View ${deck.name}` }).click();
 

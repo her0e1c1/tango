@@ -23,6 +23,7 @@ export const DeckListPage: React.FC = () => {
         sections={model.sections}
         onCreateDeck={model.createDeck}
         onImportDeck={model.importDeck}
+        onStudyHistory={model.openStudyHistory}
         deckCard={{
           onClickEdit: model.editDeck,
           onClickName: model.openDeck,
