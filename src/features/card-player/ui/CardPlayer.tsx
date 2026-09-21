@@ -53,6 +53,7 @@ export interface CardPlayerProps {
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
   frontTextSlot?: React.ReactNode;
+  actionSlot?: React.ReactNode;
   backTextOverlay?: {
     onClickLeft?: () => void;
     onClickRight?: () => void;
@@ -410,6 +411,7 @@ const Controls: React.FC<{
   playbackControlsAvailable: boolean;
   swipeButtonList: SwipeButtonListProps | undefined;
   controller: ControllerProps | undefined;
+  actionSlot: React.ReactNode;
 }> = ({
   showBackText,
   showSwipeControls,
@@ -417,15 +419,17 @@ const Controls: React.FC<{
   playbackControlsAvailable,
   swipeButtonList,
   controller,
+  actionSlot,
 }) => {
   const showController = showPlaybackControls && playbackControlsAvailable;
-  if (showBackText || !(showSwipeControls || showController)) return null;
+  if (showBackText ? !actionSlot : !(showSwipeControls || showController || actionSlot)) return null;
   return (
     // The dock floats so toggling either control group cannot move the prompt away from screen center.
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-40 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] pt-2">
       <div className="pointer-events-auto mx-auto w-full max-w-content space-y-2 rounded-surface border border-border bg-surface-elevated/90 p-2 shadow-elevated backdrop-blur-md">
-        {showSwipeControls ? <SwipeButtonList {...swipeButtonList} /> : null}
-        {showController ? <Controller {...controller} /> : null}
+        {!showBackText && showSwipeControls ? <SwipeButtonList {...swipeButtonList} /> : null}
+        {!showBackText && showController ? <Controller {...controller} /> : null}
+        {actionSlot}
       </div>
     </div>
   );
@@ -560,6 +564,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
         playbackControlsAvailable={props.playbackControlsAvailable}
         swipeButtonList={props.swipeButtonList}
         controller={props.controller}
+        actionSlot={props.actionSlot}
       />
       {props.help.open ? (
         <StudyHelpDialog

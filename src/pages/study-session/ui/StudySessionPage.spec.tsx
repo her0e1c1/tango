@@ -74,7 +74,8 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
   };
 });
 // Persistence is outside Page behavior; successful writes let the real study workflow advance.
-vi.mock("@/entities/study-progress", () => ({
+vi.mock("@/entities/study-progress", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/study-progress")>()),
   editStudyProgress: mocks.editStudyProgress,
   DifficultyIndicator: ({ difficulty = 5 }: { difficulty?: number }) => {
     const cue = difficulty < 5 ? "easy" : difficulty > 5 ? "hard" : "neutral";
@@ -175,29 +176,18 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
     expect(screen.getByText(/3 times/)).toBeVisible();
   });
 
-  it("disables backward controls and keeps the slider and Card at the current position", () => {
-    mocks.preferences = createPreferences({ controls: { showBackTextSwipeOverlays: true } });
+  it("shows four ratings and prevents backward slider movement", () => {
     setStudySessionIndex(deckId, 1);
     renderPage();
-    const session = getStudySession(deckId);
-
-    const previous = screen.getByRole("button", { name: "Swipe left" });
-    expect(previous).toBeDisabled();
-    fireEvent.click(previous);
-    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    expect(screen.getByText("Again")).toBeVisible();
+    expect(screen.getByText("Hard")).toBeVisible();
+    expect(screen.getByText("Good")).toBeVisible();
+    expect(screen.getByText("Easy")).toBeVisible();
     const slider = screen.getByRole("slider", { name: "Study progress" });
     fireEvent.change(slider, { target: { value: "0" } });
-
     expect(slider).toHaveValue("1");
     expect(screen.getByText("Front two")).toBeVisible();
-    expect(getStudySession(deckId)).toEqual(session);
     expect(mocks.editStudyProgress).not.toHaveBeenCalled();
-    expect(screen.queryByTestId("swipe-feedback-direction")).not.toBeInTheDocument();
-
-    fireEvent.keyDown(window, { key: "Enter" });
-    expect(screen.getByText("Back two")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Swipe right" })).toBeVisible();
   });
 
   it("allows the progress slider to advance and prevents returning to the skipped Card", () => {
@@ -215,29 +205,6 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(mocks.editStudyProgress).not.toHaveBeenCalled();
   });
-
-  it.each([
-    ["cardSwipeUp", "Swipe up", "ArrowUp"],
-    ["cardSwipeDown", "Swipe down", "ArrowDown"],
-    ["cardSwipeRight", "Swipe right", "ArrowRight"],
-  ] as const)(
-    "disables the remapped previous action on %s and allows forward actions on the left",
-    async (direction, label, key) => {
-      mocks.preferences = createPreferences({
-        controls: { cardSwipeLeft: "GoToNextCard", [direction]: "GoToPrevCard" },
-      });
-      renderPage();
-      expect(screen.getByRole("button", { name: label })).toBeDisabled();
-      expect(screen.getByRole("button", { name: "Swipe left" })).toBeEnabled();
-      fireEvent.keyDown(window, { key });
-      expect(screen.getByText("Front one")).toBeVisible();
-      expect(mocks.editStudyProgress).not.toHaveBeenCalled();
-
-      fireEvent.click(screen.getByRole("button", { name: "Swipe left" }));
-      expect(await screen.findByText("Front two")).toBeVisible();
-      expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    }
-  );
 
   it.each([false, true])("reveals the answer from Enter with anonymous=%s", (isAnonymous) => {
     replaceAuthSession({ status: "authenticated", uid: "user-id", isAnonymous, displayName: null });
@@ -281,7 +248,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
     mocks.preferences = createPreferences({
       controls: {
         showBackTextSwipeOverlays: true,
-        cardSwipeLeft: "GoToNextCardMastered",
+        cardSwipeLeft: "RateGood",
       },
     });
     const user = userEvent.setup();
@@ -328,7 +295,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
   it("shows successful swipe feedback through the shared Toast viewport", async () => {
     mocks.preferences = createPreferences({
       appearance: { darkMode: false, showSwipeFeedback: true },
-      cardSwipeRight: "GoToNextCardMastered",
+      cardSwipeRight: "RateGood",
     });
     const user = userEvent.setup();
     renderPage();
@@ -348,7 +315,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
   it("uses the latest locale when persistence resolves after a language change", async () => {
     mocks.preferences = createPreferences({
       appearance: { darkMode: false, showSwipeFeedback: true },
-      cardSwipeRight: "GoToNextCardMastered",
+      cardSwipeRight: "RateGood",
     });
     const request = Promise.withResolvers<void>();
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
@@ -377,8 +344,8 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
       controls: {
         cardSwipeUp: "GoBack",
         cardSwipeDown: "DoNothing",
-        cardSwipeLeft: "GoToNextCardToggleMastered",
-        cardSwipeRight: "GoToPrevCard",
+        cardSwipeLeft: "RateHard",
+        cardSwipeRight: "RateEasy",
       },
     });
     clearStudySessions();
@@ -393,8 +360,8 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
     const dialog = screen.getByRole("dialog", { name: "Study controls" });
     expect(dialog).toHaveTextContent("Arrow Up / Swipe UpEnd the current session and return to the deck list");
     expect(dialog).toHaveTextContent("Arrow Down / Swipe DownNo action");
-    expect(dialog).toHaveTextContent("Arrow Right / Swipe RightGoing to the previous card is disabled");
-    expect(dialog).toHaveTextContent("Arrow Left / Swipe LeftToggle mastered and go to the next card");
+    expect(dialog).toHaveTextContent("Arrow Right / Swipe RightEasy — answer and continue");
+    expect(dialog).toHaveTextContent("Arrow Left / Swipe LeftHard — answer and continue");
     expect(dialog).toHaveTextContent("Enter / Select CardFlip or reveal the current card");
     expect(dialog).toHaveTextContent("Space / Play or Pause buttonPlay or pause autoplay");
     expect(dialog).toHaveTextContent("B / Swipe controls buttonHide the currently visible swipe buttons");
@@ -435,7 +402,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
 
     const localizedDialog = screen.getByRole("dialog", { name: "学習画面の操作" });
     expect(localizedDialog).toBe(dialogBeforeLanguageChange);
-    expect(localizedDialog).toHaveTextContent("上矢印 / 上へスワイプ習得済みにして次のカードへ移動");
+    expect(localizedDialog).toHaveTextContent("上矢印 / 上へスワイプEasy（簡単）で回答して次へ");
     expect(screen.getByRole("button", { name: "一時停止" })).toBe(autoPlayBeforeLanguageChange);
     expect(screen.getByText("Front one")).toBe(cardBeforeLanguageChange);
     expect(getStudySession(deckId)).toEqual(sessionBeforeLanguageChange);
@@ -684,21 +651,23 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
   });
 });
 
-vi.mock("@/pages/study-session/api/saveStudyAnswer", async () => {
+vi.mock("@/pages/study-session/api/saveStudyOperation", async () => {
   const { moveStudySession } = await import("@/test/entityFixtures");
-  const { planStudySessionSwipe } = await import("@/entities/study-session");
   return {
-    saveStudyAnswer: async (
-      uid: string,
-      session: import("@/entities/study-session").StudySession,
-      action: import("@/entities/preference").Preferences["controls"]["cardSwipeUp"],
-      now: number
+    saveStudyOperation: async (
+      operation: import("../model/studyOperation").StudyOperation,
+      session: import("@/entities/study-session").StudySession
     ) => {
-      const { getCards } = await import("@/entities/card");
-      const plan = planStudySessionSwipe(session, getCards(), action, now);
-      if (plan.effect !== "next") return;
-      await mocks.editStudyProgress(uid, plan.progress);
-      moveStudySession(session);
+      await mocks.editStudyProgress(operation.uid, {
+        ...operation.progress,
+        cardId: operation.cardId,
+        lastSeenAt: operation.answeredAt,
+      });
+      moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
+      return {
+        session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
+        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,
+      };
     },
   };
 });

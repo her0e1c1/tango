@@ -26,7 +26,7 @@ const projectId = "tango-e2e";
 const firestorePort = process.env.VITE_DB_PORT ?? "8080";
 const firestoreBase = `http://db:${firestorePort}/v1/projects/${projectId}/databases/(default)/documents`;
 
-export type FirestoreCollection = "deck" | "card";
+export type FirestoreCollection = "deck" | "card" | "studyAnswer" | "studySession";
 
 export interface TestNamespace {
   caseId: string;
@@ -250,10 +250,10 @@ const e2eConfig: E2EConfig = {
     showCardDetails: true,
     showDifficultySlider: false,
     showBackTextSwipeOverlays: false,
-    cardSwipeUp: "GoToNextCardMastered",
-    cardSwipeDown: "GoToNextCardNotMastered",
-    cardSwipeLeft: "GoToPrevCard",
-    cardSwipeRight: "GoToNextCard",
+    cardSwipeUp: "RateEasy",
+    cardSwipeDown: "RateHard",
+    cardSwipeLeft: "RateAgain",
+    cardSwipeRight: "RateGood",
   },
 };
 
@@ -444,8 +444,30 @@ const seedFixtureStudySessions = async (page: Page, state: FixtureState, shouldS
   const deckNames = [...state.remote.decks, ...state.browser.localDecks]
     .filter(({ id }) => sessionDeckIds.has(id))
     .map(({ name }) => name);
-  // Auth initialization clears the previous identity's study state, so sessions must be written after it settles.
-  await seedStudySessions(page, studySessions, deckNames);
+  const cachedSessions: Record<string, StudySessionFixture> = {};
+  for (const [deckId, session] of Object.entries(studySessions)) {
+    const deck = state.remote.decks.find(({ id }) => id === deckId);
+    const owner = state.auth.users.find(({ uid, provider }) => uid === deck?.uid && provider === "google");
+    if (!owner) {
+      cachedSessions[deckId] = session;
+      continue;
+    }
+    // A resumed fixture is pre-existing server state, not a client create at a nonzero position.
+    await setDocument("studySession", session.sessionId, {
+      uid: owner.uid,
+      deckId,
+      cardOrderIds: session.cardOrderIds,
+      currentIndex: session.currentIndex,
+      startedAt: new Date(session.lastStudiedAt),
+      createdAt: new Date(session.lastStudiedAt),
+      updatedAt: new Date(session.lastStudiedAt),
+      endedAt: null,
+      endReason: null,
+    });
+  }
+  await page.goto("/");
+  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
+  await seedStudySessions(page, cachedSessions, deckNames);
 };
 
 function createE2EFixture(
@@ -513,6 +535,7 @@ export interface FirestoreDocument {
     Record<
       string,
       {
+        mapValue?: { fields?: Record<string, { stringValue?: string }> };
         arrayValue?: { values?: Record<string, unknown>[] };
         booleanValue?: boolean;
         doubleValue?: number;

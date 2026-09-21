@@ -189,6 +189,42 @@ describe("preferences store [SETTINGS-06]", () => {
     });
   });
 
+  it.each([
+    { up: "GoToNextCardMastered", expectedUp: "RateEasy", expectedRight: "RateGood" },
+    { up: "GoBack", expectedUp: "GoBack", expectedRight: "GoToNextCard" },
+    { up: "RateHard", expectedUp: "RateHard", expectedRight: "GoToNextCard" },
+  ])(
+    "hydrates the version-1 mapping with up=$up without resetting other preferences",
+    async ({ up, expectedUp, expectedRight }) => {
+      const persisted = {
+        ...defaultPreferences,
+        language: "ja",
+        appearance: { ...defaultPreferences.appearance, darkMode: true },
+        study: { ...defaultPreferences.study, cardInterval: 15 },
+        controls: {
+          ...defaultPreferences.controls,
+          showSwipeButtonList: false,
+          cardSwipeUp: up,
+          cardSwipeDown: "GoToNextCardNotMastered",
+          cardSwipeLeft: "GoToPrevCard",
+          cardSwipeRight: "GoToNextCard",
+        },
+      };
+      useMemoryStorage({ "tango-config": JSON.stringify({ state: { preferences: persisted }, version: 1 }) });
+      await preferencesStore.persist.rehydrate();
+      expect(preferencesStore.getState().preferences).toEqual({
+        ...persisted,
+        controls: {
+          ...persisted.controls,
+          cardSwipeUp: expectedUp,
+          cardSwipeDown: "RateHard",
+          cardSwipeLeft: "RateAgain",
+          cardSwipeRight: expectedRight,
+        },
+      });
+    }
+  );
+
   it("discards version 2 preferences without migration", async () => {
     useMemoryStorage({
       "tango-config": JSON.stringify({

@@ -6,7 +6,10 @@ export const studySessionSchema: z.ZodType<StudySession> = z
   .object({
     sessionId: z.string().min(1),
     deckId: z.string().min(1),
-    cardOrderIds: z.array(z.string().min(1)).min(1),
+    cardOrderIds: z
+      .array(z.string().min(1))
+      .min(1)
+      .refine((ids) => new Set(ids).size === ids.length),
     currentIndex: z.number().int().nonnegative(),
     lastStudiedAt: z.number().nonnegative(),
     remote: z.object({

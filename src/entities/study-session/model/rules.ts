@@ -2,9 +2,9 @@ import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
 import type { SwipeAction } from "@/entities/preference/@x/study-session";
 import {
   type CardProgressFields,
+  type StudyRating,
   createStudyProgressFromCard,
   isStudyProgressEligible,
-  recordCardStudyProgress,
 } from "@/entities/study-progress/@x/study-session";
 
 import type {
@@ -121,17 +121,23 @@ export const resolveStudySession = <Card extends StudySessionCard>(
 
 // Collapses control actions into the movement, exit, or no-op effects understood by a study session.
 const resolveStudySessionSwipeEffect = (swipeAction: SwipeAction): StudySessionSwipeEffect => {
-  if (swipeAction === "DoNothing" || swipeAction === "GoToPrevCard") return "none";
+  if (swipeAction === "DoNothing") return "none";
   if (swipeAction === "GoBack") return "exit";
   return "next";
 };
 
-// Plans a swipe without mutation and emits progress only when the current session and Card still resolve.
+const ratings: Partial<Record<SwipeAction, StudyRating>> = {
+  RateAgain: "again",
+  RateHard: "hard",
+  RateGood: "good",
+  RateEasy: "easy",
+};
+
+// Resolves the action and rating only when the current session and Card still exist.
 export const planStudySessionSwipe = (
   session: StudySession | undefined,
-  cards: readonly CardProgressFields[],
-  swipeAction: SwipeAction,
-  studiedAt: number
+  cards: readonly StudySessionCard[],
+  swipeAction: SwipeAction
 ): StudySessionSwipePlan => {
   if (session == null) return { effect: "none" };
 
@@ -143,8 +149,7 @@ export const planStudySessionSwipe = (
 
   return {
     effect,
-    session,
-    progress: recordCardStudyProgress(resolvedSession.card, swipeAction, studiedAt),
+    rating: ratings[swipeAction],
   };
 };
 

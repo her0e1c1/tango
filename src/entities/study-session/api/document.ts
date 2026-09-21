@@ -7,7 +7,10 @@ const studySessionDocumentSchema = firestoreMetadataSchema
   .extend({
     uid: z.string().min(1),
     deckId: z.string().min(1),
-    cardOrderIds: z.array(z.string().min(1)).min(1),
+    cardOrderIds: z
+      .array(z.string().min(1))
+      .min(1)
+      .refine((ids) => new Set(ids).size === ids.length),
     currentIndex: z.number().int().nonnegative(),
     startedAt: firestoreTimestampSchema,
     endedAt: firestoreTimestampSchema.nullable(),

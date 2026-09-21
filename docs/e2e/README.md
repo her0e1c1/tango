@@ -151,9 +151,9 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| STUDY-ACTIONS-01 | write | [mastered action で学習結果を保存して次の Card へ進める](./study-actions.md#study-actions-01) |
-| STUDY-ACTIONS-02 | write | [non-mastered action で学習結果を保存して次の Card へ進める](./study-actions.md#study-actions-02) |
-| STUDY-ACTIONS-03 | write | [next-card action で次の Card へ進める](./study-actions.md#study-actions-03) |
+| STUDY-ACTIONS-01 | write | [good action で学習結果を保存して次の Card へ進める](./study-actions.md#study-actions-01) |
+| STUDY-ACTIONS-02 | write | [again action で学習結果を保存して次の Card へ進める](./study-actions.md#study-actions-02) |
+| STUDY-ACTIONS-03 | write | [スキップ で次の Card へ進める](./study-actions.md#study-actions-03) |
 | STUDY-ACTIONS-04 | read | [学習中に前の Card へ戻れない](./study-actions.md#study-actions-04) |
 | STUDY-ACTIONS-05 | write | [学習結果の保存失敗後に同じ Card から再試行できる](./study-actions.md#study-actions-05) |
 

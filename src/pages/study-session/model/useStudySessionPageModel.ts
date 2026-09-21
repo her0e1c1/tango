@@ -21,6 +21,7 @@ import { updateStudyIndex } from "./actions/updateStudyIndex";
 import { useAutoPlay } from "./actions/useAutoPlay";
 import { useStudyQuery } from "./queries/useStudyQuery";
 import { useStudySessionPageState } from "./queries/useStudySessionPageState";
+import { skipCard } from "./actions/skipCard";
 
 export function useStudySessionPageModel(deckId: DeckId) {
   const navigate = useNavigate();
@@ -31,7 +32,6 @@ export function useStudySessionPageModel(deckId: DeckId) {
   useEffect(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
   useAutoPlay(query.sessionState);
   useStudyShortcuts({
-    uid,
     deckId,
     status: query.status,
     helpOpen: pageState.helpOpen,
@@ -55,12 +55,11 @@ export function useStudySessionPageModel(deckId: DeckId) {
     toggleAutoPlay,
     openHelp,
     closeHelp,
-    changeIndex: (index: number) => {
-      void updateStudyIndex(deckId, index);
-    },
-    swipeUp: () => void swipeCard(uid, deckId, "cardSwipeUp"),
-    swipeDown: () => void swipeCard(uid, deckId, "cardSwipeDown"),
-    swipeLeft: () => void swipeCard(uid, deckId, "cardSwipeLeft"),
-    swipeRight: () => void swipeCard(uid, deckId, "cardSwipeRight"),
+    changeIndex: (index: number) => void updateStudyIndex(deckId, index),
+    skip: () => void skipCard(deckId),
+    swipeUp: () => void swipeCard(deckId, "cardSwipeUp"),
+    swipeDown: () => void swipeCard(deckId, "cardSwipeDown"),
+    swipeLeft: () => void swipeCard(deckId, "cardSwipeLeft"),
+    swipeRight: () => void swipeCard(deckId, "cardSwipeRight"),
   };
 }

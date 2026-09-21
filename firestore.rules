@@ -15,21 +15,14 @@ service cloud.firestore {
     return request.auth.uid == request.resource.data.uid;
   }
   match /databases/{database}/documents {
-    match /studyAnswer/{answerId} {
-      function hasOwnedReferences() {
-        let answer = request.resource.data;
-        let session = getAfter(/databases/$(database)/documents/studySession/$(answer.sessionId)).data;
-        let card = getAfter(/databases/$(database)/documents/card/$(answer.cardId)).data;
-        return session.uid == request.auth.uid && card.uid == request.auth.uid &&
-          answer.deckId == session.deckId && card.deckId == session.deckId;
-      }
-      allow read: if isSignedIn() && isOwner();
-      allow create: if isSignedIn() && isValid() && hasOwnedReferences();
-    }
     match /studySession/{sessionId} {
       allow read: if isSignedIn() && isOwner();
       allow create: if isSignedIn() && isValid();
       allow update: if isSignedIn() && isValidOwner();
+    }
+    match /studyAnswer/{answerId} {
+      allow read: if isSignedIn() && isOwner();
+      allow create: if isSignedIn() && isValid();
     }
     match /deck/{deckId} {
       function isPublic() {
