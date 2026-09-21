@@ -34,6 +34,8 @@ readonly ATTRIBUTE_CONDITION="attribute.repository_id == '${REPOSITORY_ID}' && a
 DEPLOY_ROLES=(
   "roles/firebasehosting.admin"
   "roles/firebaserules.admin"
+  # Deploy includes firestore:indexes, which requires index management access.
+  "roles/datastore.indexAdmin"
   "roles/serviceusage.serviceUsageConsumer"
   "roles/serviceusage.apiKeysViewer"
 )
