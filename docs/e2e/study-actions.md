@@ -7,7 +7,7 @@
 ## 保存境界
 
 - 単一タブ・単一の学習操作元を対象とし、匿名と通常ログインで同じ Firestore batch を使う。
-- 評価回答では StudyAnswer の作成、StudyProgress の閲覧記録・相対難易度更新、StudySchedule 更新、StudySession の前進・完了を一つの batch にまとめる。ID と回答時刻は受付時に固定する。
+- 評価回答では StudyAnswer の作成、StudyProgress の閲覧記録、StudySchedule 更新、StudySession の前進・完了を一つの batch にまとめる。ID と回答時刻は受付時に固定する。
 - ローカル snapshot へ反映した時点で前進し、クラウド確定や server timestamp を待たない。SDK が保留している操作を新しい ID で再発行しない。
 - Security Rules は匿名のクラウド書き込みを拒否し、本人 UID と更新時の UID 維持を確認する。StudyAnswer は本人による read／create のみ許可する。
 - 回答形式、参照先、回答 ID、Card 進捗、回答順序、Session の前進・完了はアプリとそのテストの責務とする。Rules は本人 UID の回答作成を許可し、payload や参照先の存在・整合、Session の状態遷移は制約しない。
@@ -46,7 +46,7 @@ When:
 Then:
 
 - 独立した `studyAnswer/{answerId}` に `{ type: "rating", rating: "good" }` を保存する。
-- `hard` / `easy` も受け付けた値のまま保存し、既存の成功評価と同じ difficulty rule を使う。
+- `again` / `hard` / `good` / `easy` は受け付けた値のまま保存し、FSRS schedule の計算だけに使用する。StudyProgress の相対 difficulty は評価回答では変更しない。
 - good / hard / easyの各評価からFSRS scheduleを生成する。既存scheduleがあればその記憶状態を更新し、なければ閲覧履歴や相対difficultyから推測せず空の初期状態から計算する。初回保存時にlegacy nextSeeingAt/intervalを削除する。
 - 現在だった Card の difficulty が good rule に従って 1 下がり、学習回数が 1 増えて保存される。
 - 回答・Card の学習結果・session の前進はすべて保存されるか、いずれも保存されない。
