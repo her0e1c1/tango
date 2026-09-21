@@ -50,7 +50,7 @@ export interface CardPlayerProps {
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
-  showSkipControls?: boolean | undefined;
+  showSkipControls?: boolean;
   playbackControlsAvailable: boolean;
   backTextSlot?: React.ReactNode;
   cardOverlaySlot?: React.ReactNode;
@@ -78,7 +78,7 @@ export interface CardPlayerProps {
   onToggleHelp: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
-  onToggleSkipControls?: (() => void) | undefined;
+  onToggleSkipControls?: () => void;
 }
 
 const toolbarButtonClass =
@@ -88,14 +88,14 @@ interface StudyModeActionsProps {
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
-  showSkipControls?: boolean | undefined;
+  showSkipControls?: boolean;
   playbackControlsAvailable: boolean;
   playbackDescriptionId: string;
   onEscape: React.KeyboardEventHandler<HTMLButtonElement>;
   onToggleCardDetails: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
-  onToggleSkipControls?: (() => void) | undefined;
+  onToggleSkipControls?: () => void;
 }
 
 const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
@@ -111,7 +111,8 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
   const cardDetailsTitle = props.showCardDetails
     ? t("studySession.toolbar.cardDetails.hide")
     : t("studySession.toolbar.cardDetails.show");
-  const skipTitle = props.showSkipControls
+  const showSkipControls = props.showSkipControls ?? false;
+  const skipTitle = showSkipControls
     ? t("studySession.toolbar.skipControls.hide")
     : t("studySession.toolbar.skipControls.show");
 
@@ -149,9 +150,9 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
         <button
           type="button"
           aria-label={t("studySession.toolbar.skipControls.label")}
-          aria-pressed={props.showSkipControls}
+          aria-pressed={showSkipControls}
           title={skipTitle}
-          className={cx(toolbarButtonClass, props.showSkipControls && "bg-surface-muted text-accent-primary")}
+          className={cx(toolbarButtonClass, showSkipControls && "bg-surface-muted text-accent-primary")}
           onClick={props.onToggleSkipControls}
           onKeyDown={props.onEscape}
         >
@@ -185,7 +186,7 @@ interface StudyToolbarProps {
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
-  showSkipControls?: boolean | undefined;
+  showSkipControls?: boolean;
   playbackControlsAvailable: boolean;
   onOpenHelp: () => void;
   onToggleHelp: () => void;
@@ -194,7 +195,7 @@ interface StudyToolbarProps {
   onBack: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
-  onToggleSkipControls?: (() => void) | undefined;
+  onToggleSkipControls?: () => void;
 }
 
 const getStudyToolbarCopy = (
@@ -285,14 +286,14 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
             showCardDetails={props.showCardDetails}
             showSwipeControls={props.showSwipeControls}
             showPlaybackControls={props.showPlaybackControls}
-            showSkipControls={props.showSkipControls}
+            {...(props.showSkipControls !== undefined ? { showSkipControls: props.showSkipControls } : {})}
             playbackControlsAvailable={props.playbackControlsAvailable}
             playbackDescriptionId={playbackDescriptionId}
             onEscape={closeOnEscape}
             onToggleCardDetails={props.onToggleCardDetails}
             onToggleSwipeControls={props.onToggleSwipeControls}
             onTogglePlaybackControls={props.onTogglePlaybackControls}
-            onToggleSkipControls={props.onToggleSkipControls}
+            {...(props.onToggleSkipControls !== undefined ? { onToggleSkipControls: props.onToggleSkipControls } : {})}
           />
         </fieldset>
       ) : null}
@@ -549,7 +550,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           showCardDetails={props.showCardDetails}
           showSwipeControls={props.showSwipeControls}
           showPlaybackControls={props.showPlaybackControls}
-          showSkipControls={props.showSkipControls}
+          {...(props.showSkipControls !== undefined ? { showSkipControls: props.showSkipControls } : {})}
           playbackControlsAvailable={props.playbackControlsAvailable}
           onOpenHelp={props.help.onOpen}
           onToggleHelp={props.onToggleHelp}
@@ -558,7 +559,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           onBack={props.onBack}
           onToggleSwipeControls={props.onToggleSwipeControls}
           onTogglePlaybackControls={props.onTogglePlaybackControls}
-          onToggleSkipControls={props.onToggleSkipControls}
+          {...(props.onToggleSkipControls !== undefined ? { onToggleSkipControls: props.onToggleSkipControls } : {})}
         />
       ) : null}
       <div
