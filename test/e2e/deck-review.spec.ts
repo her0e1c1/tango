@@ -28,7 +28,10 @@ test("DECK-NAVIGATION-12 opens existing study setup from the Deck review counts"
   expect(await readLocalData(page)).toEqual(before);
 });
 
-test("DECK-NAVIGATION-13 refreshes Deck review counts at the exact deadline without saving", async ({ fixture, page }) => {
+test("DECK-NAVIGATION-13 refreshes Deck review counts at the exact deadline without saving", async ({
+  fixture,
+  page,
+}) => {
   const now = Date.now();
   const deadline = now + 60_000;
   const future = fixture.card("card-future");

@@ -44,15 +44,16 @@ const sessions = {
   },
 };
 
-const renderPage = () => render(
-  <MemoryRouter>
-    <Routes>
-      <Route path="/" element={<DeckListPage />} />
-      <Route path="/deck/:id/start" element={<h1>Study setup</h1>} />
-      <Route path="/deck/:id/study" element={<h1>Continue destination</h1>} />
-    </Routes>
-  </MemoryRouter>
-);
+const renderPage = () =>
+  render(
+    <MemoryRouter>
+      <Routes>
+        <Route path="/" element={<DeckListPage />} />
+        <Route path="/deck/:id/start" element={<h1>Study setup</h1>} />
+        <Route path="/deck/:id/study" element={<h1>Continue destination</h1>} />
+      </Routes>
+    </MemoryRouter>
+  );
 
 describe("DECK-NAVIGATION-12 Deck review navigation", () => {
   beforeEach(() => {

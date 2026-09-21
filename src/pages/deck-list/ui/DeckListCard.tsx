@@ -38,11 +38,13 @@ export interface DeckListCardProps extends DeckListCardActions, DeckListCardMenu
   deck: Deck;
   cardCount: number;
   studySession?: StudySession;
-  review?: {
-    dueCardCount: number;
-    newCardCount: number;
-    nextDueAt: number | undefined;
-  } | undefined;
+  review?:
+    | {
+        dueCardCount: number;
+        newCardCount: number;
+        nextDueAt: number | undefined;
+      }
+    | undefined;
 }
 
 /**
@@ -86,11 +88,11 @@ const DeckListCardReview: React.FC<{
             : review.nextDueAt === undefined
               ? t("noMatches")
               : t("nextReview", {
-                time: new Intl.DateTimeFormat(i18n.resolvedLanguage, {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }).format(review.nextDueAt),
-              })}
+                  time: new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }).format(review.nextDueAt),
+                })}
         </span>
       )}
     </span>

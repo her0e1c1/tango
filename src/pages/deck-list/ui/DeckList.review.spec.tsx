@@ -12,7 +12,8 @@ const nextDueAt = Date.UTC(2026, 0, 2);
 const sections: DeckListProps["sections"] = {
   studying: [
     {
-      deck: createDeck({ id: "active", name: "Active" }), cardCount: 4,
+      deck: createDeck({ id: "active", name: "Active" }),
+      cardCount: 4,
       studySession: {
         sessionId: "session-active",
         deckId: "active",
