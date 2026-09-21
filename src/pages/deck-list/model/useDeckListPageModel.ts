@@ -63,6 +63,7 @@ export function useDeckListPageModel() {
       if ((await resumeStudy(id)) && isMounted()) void navigate(routes.deckStudy.to(id));
     },
     startStudy: (id: string) => void navigate(routes.deckStudyStart.to(id)),
+    openHistory: (id: string) => void navigate(routes.studyHistory.to(id)),
     downloadDeck: (id: string) => exportDeck(id),
   };
 }

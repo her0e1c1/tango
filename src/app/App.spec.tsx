@@ -35,6 +35,7 @@ vi.mock("@/pages/deck-import", () => ({ DeckImportPage: () => null }));
 vi.mock("@/pages/deck-list", () => ({ DeckListPage: () => <div>Deck list</div> }));
 vi.mock("@/pages/deck-view", () => ({ DeckViewPage: () => null }));
 vi.mock("@/pages/settings", () => ({ SettingsPage: () => null }));
+vi.mock("@/pages/study-history", () => ({ StudyHistoryPage: () => <div>Study history</div> }));
 vi.mock("@/pages/study-session", () => ({ StudySessionPage: () => null }));
 vi.mock("@/pages/study-session-start", () => ({ StudySessionStartPage: () => null }));
 
@@ -46,7 +47,7 @@ const renderApp = (path = "/") => {
   return { router, view: render(<App router={router} />) };
 };
 
-describe("App [ACCOUNT-02]", () => {
+describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
   beforeEach(() => {
     dismissToast();
     routeMocks.accountThrows = false;
@@ -70,6 +71,11 @@ describe("App [ACCOUNT-02]", () => {
     renderApp();
 
     expect(screen.getByText("Deck list")).toBeInTheDocument();
+  });
+
+  it("renders the independent study history route with a Deck query", () => {
+    renderApp("/study-history?deckId=deck-id");
+    expect(screen.getByText("Study history")).toBeInTheDocument();
   });
 
   it("hosts notifications outside the route tree", () => {
