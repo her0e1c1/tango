@@ -19,7 +19,7 @@ vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "uid" } },
 }));
 
-describe("Query realtime subscriptions [CARD-VIEW-01] [CARD-LIST-ACTIONS-03]", () => {
+describe("Query realtime subscriptions", () => {
   beforeEach(() => {
     cardStore.setState({ remoteCards: [] });
     deckStore.setState({ remoteDecks: [] });
@@ -29,7 +29,7 @@ describe("Query realtime subscriptions [CARD-VIEW-01] [CARD-LIST-ACTIONS-03]", (
     await Promise.all(getApps().map(deleteApp));
   });
 
-  it("loads Card content and study information from the initial snapshot", async () => {
+  it("[FIRESTORE-SUBSCRIPTIONS-01] loads Card content and study information from the initial snapshot", async () => {
     const uid = "uid";
     const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Fetched Deck" });
     const card = createCard({
@@ -58,7 +58,7 @@ describe("Query realtime subscriptions [CARD-VIEW-01] [CARD-LIST-ACTIONS-03]", (
     }
   });
 
-  it("delivers initial, update, and delete snapshots without a cursor", async () => {
+  it("[FIRESTORE-SUBSCRIPTIONS-02] delivers initial, update, and delete snapshots without a cursor", async () => {
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));
@@ -98,7 +98,7 @@ describe("Query realtime subscriptions [CARD-VIEW-01] [CARD-LIST-ACTIONS-03]", (
     }
   });
 
-  it("stops changing stores after unsubscribe", async () => {
+  it("[FIRESTORE-SUBSCRIPTIONS-03] stops changing stores after unsubscribe", async () => {
     const uid = "uid";
     const errors: Error[] = [];
     const stopDecks = subscribeDecks(uid, (error) => errors.push(error));

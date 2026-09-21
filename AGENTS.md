@@ -74,9 +74,16 @@ Every task that changes repository files must complete this workflow:
 - Do not add tests for non-application code. Assert observable behavior through the tested level's public boundary, not implementation details.
 - Design production interfaces for production requirements. Do not add or change parameters, dependency objects, callbacks, factories, optional overrides, or exports solely for tests or mocks; use test-side module mocks or spies instead.
 
-### Unit and Integration Tests
+### Firestore Integration Tests
 
-- Treat `docs/e2e` as the only runtime behavior specification; do not introduce separate unit/integration specification documents or ID systems. Define missing behavior there before writing tests; adding new files under `docs` still requires an explicit user request.
+- Use `docs/integration/firestore` for persistence, subscription, and security-rule contracts tested under `test/integration/firestore`. Keep browser-facing user flows in `docs/e2e`; related E2E links are optional, not required IDs for Firestore-specific contracts.
+- Follow the E2E specification format in Japanese: purpose, case index table, explicit ID anchors and headings, category, and Given / When / Then. Link each specification to its test file and include an identifiable test title for every case. Describe setup inline; do not add fixture files.
+- Each `it` or `it.each` title must include its `FIRESTORE-<UPPERCASE-SPEC-FILENAME>-<NN>` ID. Start at `01` in each file, follow document order without gaps, and update indexes, anchors, and titles together. Parameterized rows may share an ID when their inputs and expected results are documented.
+- Update the corresponding specification when adding or changing a test, including regressions. Do not mock the Firestore boundary being verified. Distinguish Adapter validation from Rules authorization and record unverified expectations separately instead of changing behavior during documentation work.
+
+### Other Unit and Integration Tests
+
+- Outside `test/integration/firestore`, treat `docs/e2e` as the only runtime behavior specification; do not introduce separate unit/integration specification documents or ID systems. Define missing behavior there before writing tests; adding new files under `docs` still requires an explicit user request.
 - Each new or modified unit/integration test for runtime behavior must reference at least one existing E2E case ID in its outermost `describe` title, or its test title when there is no `describe`.
 - Co-locate unit tests under `src/**/*.spec.{ts,tsx}` for deterministic rules, state transitions, validation, and module or component behavior without real external services.
 - Put integration tests under `test/integration/**/*.spec.{ts,tsx}` for contracts across application modules, persistence, stores, or emulators. Do not mock the boundary being verified.

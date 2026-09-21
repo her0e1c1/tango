@@ -113,7 +113,7 @@ const answerData = () => ({
   updatedAt: Timestamp.fromMillis(2000),
 });
 
-describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-SESSION-03] [STUDY-SESSION-04] [STUDY-SESSION-05] [STUDY-ACTIONS-05] [PERSISTENCE-01] [PERSISTENCE-04]", () => {
+describe("StudyAnswer atomic persistence and access", () => {
   let environment: RulesTestEnvironment;
   beforeAll(async () => {
     environment = await initializeTestEnvironment({
@@ -153,7 +153,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
   const answers = () => getDocs(query(collection(connection.db, "studyAnswer"), where("uid", "==", uid)));
 
   it.each(["again", "hard", "good", "easy"] as const)(
-    "records %s unchanged with one progress update and one advance",
+    "[FIRESTORE-STUDY-ANSWER-01] records %s with progress and one advance",
     async (rating) => {
       const input = operation({ rating });
       const result = await saveStudyOperation(input);
@@ -179,7 +179,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     }
   );
 
-  it("rejects an operation from a stale position without another answer", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-02] rejects stale positions without another answer", async () => {
     const input = operation();
     await saveStudyOperation(input);
     await expect(saveStudyOperation(input)).rejects.toThrow("session does not match");
@@ -187,7 +187,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await getDoc(doc(connection.db, "card", input.cardId))).data()?.numberOfSeen).toBe(1);
   });
 
-  it("uses accepted progress without rereading concurrent Card changes", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-03] persists accepted progress despite concurrent changes", async () => {
     const input = operation();
     await updateDoc(doc(connection.db, "card", "card-0"), { numberOfSeen: 20, difficulty: 9 });
     await saveStudyOperation(input);
@@ -197,7 +197,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     });
   });
 
-  it("records ten answers and completes atomically", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-04] records ten answers and completes", async () => {
     let final = operation();
     for (const [index, cardId] of cardIds.entries()) {
       final = operation({ cardId, currentIndex: index, answeredAt: 2000 + index });
@@ -212,7 +212,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await answers()).size).toBe(10);
   });
 
-  it("keeps saved answers after abandonment and records the same card in a new session", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-05] preserves answers across abandonment and restart", async () => {
     const first = operation();
     await saveStudyOperation(first);
     await updateDoc(doc(connection.db, "studySession", sessionId), {
@@ -232,7 +232,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await getDoc(doc(connection.db, "card", first.cardId))).data()?.numberOfSeen).toBe(2);
   });
 
-  it("advances a skip with progress without creating an answer", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-06] skips with progress but no answer", async () => {
     await saveStudyOperation(operation({ rating: undefined }));
     expect((await answers()).size).toBe(0);
     expect((await getDoc(doc(connection.db, "card", "card-0"))).data()).toMatchObject({
@@ -243,7 +243,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await expect(saveStudyOperation(operation())).rejects.toBeDefined();
   });
 
-  it("completes the final skip without creating an answer", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-07] completes a final skip without an answer", async () => {
     await updateDoc(doc(connection.db, "studySession", sessionId), { currentIndex: 9 });
     const input = operation({ cardId: "card-9", currentIndex: 9, rating: undefined });
     await saveStudyOperation(input);
@@ -252,7 +252,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.endReason).toBe("completed");
   });
 
-  it("saves when the backend is reachable even if the browser reports offline", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-08] saves despite an offline browser flag", async () => {
     const online = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
     try {
       await saveStudyOperation(operation());
@@ -262,7 +262,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await answers()).size).toBe(1);
   });
 
-  it("rejects a missing session and a changed authentication scope without partial writes", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-09] rejects missing sessions and changed authentication", async () => {
     await expect(saveStudyOperation(operation({ sessionId: "not-saved" }))).rejects.toBeDefined();
     replaceAuthSession({ status: "authenticated", uid: "other-user", isAnonymous: false, displayName: null });
     await expect(saveStudyOperation(operation())).rejects.toThrow("user changed");
@@ -270,7 +270,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await getDoc(doc(connection.db, "card", "card-0"))).data()?.numberOfSeen).toBe(0);
   });
 
-  it("retries the same accepted operation after a denied write without partial progress", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-10] retries denied writes without partial progress", async () => {
     const input = operation();
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid: "another-owner" });
@@ -288,7 +288,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     );
   });
 
-  it.each(["sessionId", "cardId", "deckId"] as const)("queries only the owner's answers by %s", async (field) => {
+  it.each(["sessionId", "cardId", "deckId"] as const)("[FIRESTORE-STUDY-ANSWER-11] queries by %s", async (field) => {
     const input = operation();
     await saveStudyOperation(input);
     const constraints: QueryConstraint[] = [where("uid", "==", uid), where(field, "==", input[field])];
@@ -298,19 +298,19 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await assertFails(getDocs(query(collection(connection.db, "studyAnswer"), where(field, "==", input[field]))));
   });
 
-  it("rejects creating an answer under another UID", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-12] rejects an answer owned by another UID", async () => {
     await assertFails(setDoc(doc(collection(connection.db, "studyAnswer")), { ...answerData(), uid: "other" }));
     expect((await answers()).size).toBe(0);
   });
 
-  it("leaves answer payload and reference validation to the application", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-13] leaves payload and references to the application", async () => {
     const reference = doc(collection(connection.db, "studyAnswer"));
     const data = { uid, sessionId: "missing", cardId: "missing", answer: { type: "text", text: "custom" } };
     await assertSucceeds(setDoc(reference, data));
     expect((await getDoc(reference)).data()).toEqual(data);
   });
 
-  it("allows an owner answer alone without enforcing application transitions", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-14] allows standalone answers without transitions", async () => {
     await assertSucceeds(setDoc(doc(collection(connection.db, "studyAnswer")), answerData()));
     expect((await answers()).size).toBe(1);
     expect((await getDoc(doc(connection.db, "card", "card-0"))).data()?.numberOfSeen).toBe(0);
@@ -320,7 +320,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
   it.each([
     { rating: "again" as const, difficulty: 10 },
     { rating: "easy" as const, difficulty: 1 },
-  ])("keeps difficulty within its bounds for $rating", async ({ rating, difficulty }) => {
+  ])("[FIRESTORE-STUDY-ANSWER-15] preserves difficulty bounds for $rating", async ({ rating, difficulty }) => {
     await updateDoc(doc(connection.db, "card", "card-0"), { difficulty });
     await saveStudyOperation(
       operation({
@@ -332,7 +332,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await answers()).size).toBe(1);
   });
 
-  it("keeps Session updates owner-only without duplicating application transitions", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-16] restricts session ownership, not transitions", async () => {
     const reference = doc(connection.db, "studySession", sessionId);
     await assertFails(updateDoc(reference, { uid: "other" }));
     await assertSucceeds(updateDoc(reference, { currentIndex: 1, endReason: "completed" }));
@@ -342,7 +342,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await assertFails(deleteDoc(reference));
   });
 
-  it("denies even the owner's updates and deletion of saved answers", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-17] denies answer updates, overwrites and deletion", async () => {
     const input = operation();
     await saveStudyOperation(input);
     const reference = doc(connection.db, "studyAnswer", input.id);
@@ -351,11 +351,11 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await assertFails(deleteDoc(reference));
   });
 
-  it("denies reading missing answer IDs", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-18] denies reading missing answer IDs", async () => {
     await assertFails(getDoc(doc(connection.db, "studyAnswer", "missing-answer")));
   });
 
-  it.each(["other-user", "anonymous", "unauthenticated"])("denies %s access even for a public deck", async (actor) => {
+  it.each(["other-user", "anonymous", "unauthenticated"])("[FIRESTORE-STUDY-ANSWER-19] denies %s", async (actor) => {
     const input = operation();
     await saveStudyOperation(input);
     const db = (

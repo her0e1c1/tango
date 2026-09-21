@@ -62,6 +62,9 @@ mise run test-integration
 mise run test-sample
 ```
 
+Firestore persistence, subscription, and security-rule contracts and case IDs are documented in the
+[Firestore integration test specifications](./docs/integration/firestore/README.md).
+
 ### Vitest Coverage
 
 Run the TypeScript and React unit specs in one Vitest invocation:
