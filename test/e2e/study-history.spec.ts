@@ -16,18 +16,28 @@ async function completeStudy(page: Page, fixture: E2EFixture) {
   await page.getByRole("button", { name: "Study history", exact: true }).click();
 }
 
-async function expectCompletedHistory(page: Page) {
+async function expectCompletedHistory(page: Page, fixture: E2EFixture) {
   await expect(page.getByRole("heading", { level: 1, name: "Study history" })).toBeVisible();
   await expect(page.getByRole("row")).toHaveCount(31);
   await expect(page.getByRole("row").last().getByRole("cell")).toHaveText(["1", "1"]);
-  await expect(page.locator("dd")).toHaveText(["1", "1"]);
+  await expect(page.locator("dl").first().locator("dd")).toHaveText(["1", "1"]);
   await expect(page.getByRole("img", { name: /Daily starts and completions/ })).toBeVisible();
+  const recent = page.getByRole("region", { name: "Recent sessions" });
+  await expect(recent.getByRole("listitem")).toHaveCount(1);
+  await expect(recent.getByRole("heading", { name: fixture.deck().name })).toBeVisible();
+  const cards = [...fixture.state.remote.cards, ...fixture.state.browser.localCards].filter(
+    (card) => card.deckId === fixture.deck().id
+  );
+  await expect(recent.locator("dd").nth(2)).toHaveText(String(cards.length));
+  await expect(recent.getByText("Completed", { exact: true })).toBeVisible();
+  await expect(recent.locator("dd").nth(0)).not.toHaveText("—");
+  await expect(recent.locator("dd").nth(1)).not.toHaveText("—");
 }
 
 test("STUDY-SESSION-09 shows independent starts and completions after studying", async ({ fixture, page }) => {
   await fixture.apply(page);
   await completeStudy(page, fixture);
-  await expectCompletedHistory(page);
+  await expectCompletedHistory(page, fixture);
 });
 
 test("STUDY-SESSION-10 keeps Deck selection in the URL across navigation and reload", async ({ fixture, page }) => {
@@ -68,9 +78,9 @@ test("STUDY-SESSION-11 keeps unavailable Deck selection without displaying all h
 test("STUDY-SESSION-12 restores anonymous study history from the device cache", async ({ fixture, page }) => {
   await fixture.apply(page);
   await completeStudy(page, fixture);
-  await expectCompletedHistory(page);
+  await expectCompletedHistory(page, fixture);
   await page.reload();
-  await expectCompletedHistory(page);
+  await expectCompletedHistory(page, fixture);
   await expect(page.getByText(/Anonymous data is stored only on this browser/)).toBeVisible();
   await expect(page.getByText(/Cloud history may be incomplete/)).toBeVisible();
 });

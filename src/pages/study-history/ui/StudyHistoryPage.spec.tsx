@@ -41,7 +41,15 @@ function emit(records: StudyHistoryRecord[] = [], fromCache = false) {
   });
 }
 function completedRecord(deckId = first.id): StudyHistoryRecord {
-  return { deckId, occurredAt: Date.now() };
+  return {
+    deckId,
+    occurredAt: Date.now(),
+    sessionId: deckId,
+    startedAt: Date.now(),
+    endedAt: Date.now(),
+    endReason: "completed",
+    cardCount: 3,
+  };
 }
 
 describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 StudyHistoryPage", () => {
@@ -67,6 +75,11 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 St
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     act(() => subscriptions[1]?.emit([completedRecord()], true));
     expect(screen.getAllByRole("row")).toHaveLength(31);
+    const recent = screen.getByRole("region", { name: "Recent sessions" });
+    expect(within(recent).getAllByRole("listitem")).toHaveLength(1);
+    expect(within(recent).getByRole("heading", { name: first.name })).toBeVisible();
+    expect(within(recent).getByText("Completed")).toBeVisible();
+    expect(within(recent).getByText("3")).toBeVisible();
     expect(screen.getByText(/Cloud history may be incomplete/)).toBeVisible();
     expect(
       within(
@@ -172,6 +185,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 St
     await actAsync(() => getI18n().changeLanguage("ja"));
     expect(screen.getByRole("heading", { name: "学習記録" })).toBeVisible();
     expect(screen.getByRole("combobox")).toHaveValue(first.id);
+    expect(screen.getByRole("region", { name: "最近のセッション" })).toHaveTextContent("完了");
     act(() => replaceRemoteDecks([second]));
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("対象のデッキを表示できません");

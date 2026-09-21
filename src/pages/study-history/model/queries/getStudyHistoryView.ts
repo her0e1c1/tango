@@ -1,5 +1,6 @@
 import type { Deck } from "@/entities/deck";
 import type { useStudyHistoryState } from "../useStudyHistoryState";
+import { getRecentStudySessions } from "./getRecentStudySessions";
 import { aggregateStudyHistory } from "./aggregateStudyHistory";
 
 export function getStudyHistoryView(
@@ -26,6 +27,10 @@ export function getStudyHistoryView(
     decks: visibleDecks,
     status,
     fromCache: Boolean(result?.started?.fromCache || result?.completed?.fromCache),
+    recentSessions:
+      status === "ready" && result?.started && result.completed
+        ? getRecentStudySessions(state.period, result.started.records, result.completed.records, selectedDecks)
+        : [],
     summary:
       status === "ready" && result?.started && result.completed
         ? aggregateStudyHistory(

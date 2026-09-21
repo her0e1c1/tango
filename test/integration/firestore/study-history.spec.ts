@@ -77,9 +77,29 @@ describe("STUDY-SESSION-09 STUDY-SESSION-12 Firestore history reads", () => {
       [deckId, otherDeck].sort()
     );
     expect((await read(deckId, "started")).records).toEqual(
-      Array.from({ length: 130 }, () => ({ deckId, occurredAt: start }))
+      Array.from({ length: 130 }, () =>
+        expect.objectContaining({
+          deckId,
+          occurredAt: start,
+          sessionId: expect.any(String),
+          startedAt: start,
+          endedAt: null,
+          endReason: null,
+          cardCount: 1,
+        })
+      )
     );
-    expect((await read(deckId, "completed")).records).toEqual([{ deckId, occurredAt: start }]);
+    expect((await read(deckId, "completed")).records).toEqual([
+      expect.objectContaining({
+        deckId,
+        occurredAt: start,
+        sessionId: expect.any(String),
+        startedAt: start - 1,
+        endedAt: start,
+        endReason: "completed",
+        cardCount: 1,
+      }),
+    ]);
     await disableNetwork(testDb);
     try {
       const cached = await read(deckId, "started", true);

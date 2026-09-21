@@ -3,7 +3,12 @@ import { db } from "@/shared/firebase";
 import { parseStudySessionDocument } from "./document";
 
 export interface StudyHistoryRecord {
+  sessionId: string;
   deckId: string;
+  startedAt: number;
+  endedAt: number | null;
+  endReason: "completed" | "abandoned" | null;
+  cardCount: number;
   occurredAt: number;
 }
 
@@ -39,7 +44,20 @@ export function subscribeStudyHistory(
         const value = parseStudySessionDocument(item.data({ serverTimestamps: "estimate" }));
         if (value === undefined) return [];
         const occurredAt = metric === "started" ? value.startedAt : value.endedAt;
-        return occurredAt === null ? [] : [{ deckId: value.deckId, occurredAt: occurredAt.toDate().getTime() }];
+        return occurredAt === null
+          ? []
+          : [
+              {
+                sessionId: item.id,
+                deckId: value.deckId,
+                startedAt: value.startedAt.seconds * 1000 + value.startedAt.nanoseconds / 1_000_000,
+                endedAt:
+                  value.endedAt === null ? null : value.endedAt.seconds * 1000 + value.endedAt.nanoseconds / 1_000_000,
+                endReason: value.endReason,
+                cardCount: value.cardOrderIds.length,
+                occurredAt: occurredAt.toDate().getTime(),
+              },
+            ];
       });
       onRecords(records, snapshot.metadata.fromCache);
     },
