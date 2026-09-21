@@ -16,27 +16,15 @@ service cloud.firestore {
   }
   match /databases/{database}/documents {
     match /studyAnswer/{answerId} {
-      function validAnswer() {
+      function hasOwnedReferences() {
         let answer = request.resource.data;
-        let session = get(/databases/$(database)/documents/studySession/$(answer.sessionId)).data;
-        let after = getAfter(/databases/$(database)/documents/studySession/$(answer.sessionId)).data;
-        let previousCard = get(/databases/$(database)/documents/card/$(answer.cardId)).data;
+        let session = getAfter(/databases/$(database)/documents/studySession/$(answer.sessionId)).data;
         let card = getAfter(/databases/$(database)/documents/card/$(answer.cardId)).data;
-        return answer.keys().hasOnly(['uid', 'sessionId', 'deckId', 'cardId', 'answer', 'answeredAt', 'createdAt', 'updatedAt']) &&
-          answerId == answer.sessionId + '-' + string(session.currentIndex) &&
-          card.numberOfSeen == previousCard.get('numberOfSeen', 0) + 1 &&
-          card.lastSeenAt == answer.answeredAt.toMillis() && card.updatedAt == answer.answeredAt.toMillis() &&
-          answer.uid == request.auth.uid && session.uid == request.auth.uid && card.uid == request.auth.uid &&
-          answer.deckId == session.deckId && card.deckId == session.deckId &&
-          session.endReason == null && session.cardOrderIds[session.currentIndex] == answer.cardId &&
-          answer.answer.keys().hasOnly(['type', 'rating']) && answer.answer.type == 'rating' &&
-          answer.answer.rating in ['again', 'hard', 'good', 'easy'] &&
-          answer.answeredAt is timestamp && answer.createdAt is timestamp && answer.updatedAt is timestamp &&
-          ((after.currentIndex == session.currentIndex + 1 && after.endReason == null) ||
-           (session.currentIndex == session.cardOrderIds.size() - 1 && after.currentIndex == session.currentIndex && after.endReason == 'completed'));
+        return session.uid == request.auth.uid && card.uid == request.auth.uid &&
+          answer.deckId == session.deckId && card.deckId == session.deckId;
       }
       allow read: if isSignedIn() && isOwner();
-      allow create: if isSignedIn() && validAnswer();
+      allow create: if isSignedIn() && isValid() && hasOwnedReferences();
     }
     match /studySession/{sessionId} {
       allow read: if isSignedIn() && isOwner();

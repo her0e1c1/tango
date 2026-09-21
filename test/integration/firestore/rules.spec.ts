@@ -185,26 +185,27 @@ describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions
         await assertSucceeds(getDoc(doc(db, "studyAnswer", `session-${String(index)}`)));
       }
     });
-    it.each(["different ID", "duplicate ID", "missing progress", "unchanged count", "wrong timestamp"])(
-      "rejects an answer batch with %s",
-      async (fault) => {
-        const db = ownerDb();
-        const batch = writeBatch(db);
-        batch.set(doc(db, "studyAnswer", fault === "different ID" ? "other" : "session-0"), answer());
-        if (fault === "duplicate ID") batch.set(doc(db, "studyAnswer", "duplicate"), answer());
-        if (fault !== "missing progress")
-          batch.update(doc(db, "card", "first"), {
-            numberOfSeen: fault === "unchanged count" ? 0 : 1,
-            lastSeenAt: fault === "wrong timestamp" ? 1000 : 2000,
-            updatedAt: 2000,
-          });
-        batch.update(doc(db, "studySession", "session"), { currentIndex: 1 });
-        await assertFails(batch.commit());
-      }
-    );
-    it("rejects an answer without its session advancement and forbids rewriting history", async () => {
+    it("leaves answer identity, progress and completed-session sequencing to the application", async () => {
       const db = ownerDb();
-      await assertFails(setDoc(doc(db, "studyAnswer", "standalone"), answer()));
+      await assertSucceeds(setDoc(doc(db, "studyAnswer", "standalone"), answer("last")));
+      await updateDoc(doc(db, "studySession", "session"), { endReason: "completed" });
+      await assertSucceeds(setDoc(doc(db, "studyAnswer", "another-id"), answer("last")));
+    });
+    it.each([
+      { sessionId: "missing" },
+      { cardId: "missing" },
+      { sessionId: "foreign-session" },
+      { cardId: "foreign-card" },
+      { deckId: "another-deck" },
+      { cardId: "another-deck-card" },
+    ])("rejects an answer with inaccessible or mismatched references: %j", async (reference) => {
+      await createData("studySession", "foreign-session", { uid: "other", deckId: "deck" });
+      await createData("card", "foreign-card", { uid: "other", deckId: "deck" });
+      await createData("card", "another-deck-card", { uid: "owner", deckId: "another-deck" });
+      await assertFails(setDoc(doc(ownerDb(), "studyAnswer", "new"), { ...answer(), ...reference }));
+    });
+    it("forbids rewriting or deleting answer history", async () => {
+      const db = ownerDb();
       await createData("studyAnswer", "saved", answer());
       await assertFails(updateDoc(doc(db, "studyAnswer", "saved"), { answer: { type: "rating", rating: "again" } }));
       await assertFails(deleteDoc(doc(db, "studyAnswer", "saved")));
