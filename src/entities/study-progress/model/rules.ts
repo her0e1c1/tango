@@ -1,20 +1,9 @@
-import { clampDifficulty, type Difficulty } from "./difficulty";
-import type { CardProgressFields, StudyRating } from "./types";
+import type { CardProgressFields } from "./types";
 
-// Keep the existing binary difficulty rule, not FSRS scheduling; Hard/Good/Easy all indicate successful recall.
-export const calculateDifficulty = (difficulty: Difficulty, rating: StudyRating | undefined): Difficulty => {
-  if (rating === undefined) return difficulty;
-  return clampDifficulty(difficulty + (rating === "again" ? 1 : -1));
-};
-
-// Builds the persistence patch for one interaction, which always increments the seen count and records its timestamp.
-export const recordCardStudyProgress = (
-  progress: CardProgressFields,
-  rating: StudyRating | undefined,
-  studiedAt: number
-) => ({
+// Builds the persistence patch for one interaction. Recall ratings are handled only by FSRS scheduling.
+export const recordCardStudyProgress = (progress: CardProgressFields, studiedAt: number) => ({
   cardId: progress.id,
-  difficulty: calculateDifficulty(progress.difficulty, rating),
+  difficulty: progress.difficulty,
   numberOfSeen: progress.numberOfSeen + 1,
   lastSeenAt: studiedAt,
 });
