@@ -22,6 +22,11 @@ const defineIdRoute = (path: string): IdRoute => ({
 // path changes cannot leave generated destinations stale or require upward FSD imports.
 export const routes = {
   deckList: defineStaticRoute("/"),
+  studyHistory: {
+    path: "/study-history",
+    to: (deckId?: string) =>
+      deckId === undefined ? "/study-history" : `/study-history?${new URLSearchParams({ deckId }).toString()}`,
+  },
   deckCreate: defineStaticRoute("/deck/new"),
   cardList: defineIdRoute("/deck/:id"),
   cardCreate: defineIdRoute("/deck/:id/card/new"),

@@ -21,6 +21,7 @@ export interface DeckListCardActions {
   onClickContinue?: (id: DeckId) => void;
   onClickStudy?: (id: DeckId) => void;
   onClickRestart?: (id: DeckId) => void;
+  onClickHistory?: (id: DeckId) => void;
   onClickDownload?: (id: DeckId) => void;
   onClickEdit?: (id: DeckId) => void;
   onClickDelete?: (id: DeckId) => void;
@@ -201,6 +202,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
         onToggle={withId(props.onToggleMenu)}
         onClose={() => props.onCloseMenu?.()}
         {...(active ? { onRestart: withId(props.onClickRestart) } : {})}
+        onHistory={withId(props.onClickHistory)}
         onDownload={withId(props.onClickDownload)}
         onEdit={withId(props.onClickEdit)}
         onDelete={withId(props.onClickDelete)}

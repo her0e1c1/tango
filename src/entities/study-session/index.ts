@@ -18,3 +18,5 @@ export { startStudy, moveStudySession, setStudySessionIndex, abandonStudySession
 export { useRemoteStudySessionsLoading } from "./model/queries/useRemoteStudySessionsLoading";
 
 export { writeStudySessionPosition } from "./api/batch";
+export { subscribeStudyHistory } from "./api/history";
+export type { StudyHistoryRecord, StudyHistoryPeriod } from "./api/history";

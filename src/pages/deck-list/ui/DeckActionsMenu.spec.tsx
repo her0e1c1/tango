@@ -53,7 +53,7 @@ const DisableableMenu: React.FC = () => {
   );
 };
 
-describe("DeckActionsMenu", () => {
+describe("STUDY-SESSION-10 DeckActionsMenu", () => {
   it("opens an accessible menu and routes each action", () => {
     const actions = {
       onRestart: vi.fn(),
@@ -92,7 +92,12 @@ describe("DeckActionsMenu", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open actions for History" }));
 
     expect(screen.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("menuitem").map((item) => item.textContent)).toEqual(["Download", "Edit", "Delete"]);
+    expect(screen.getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+      "Download",
+      "Edit",
+      "Study history",
+      "Delete",
+    ]);
   });
 
   it("supports arrow navigation and returns focus to the trigger on Escape", async () => {

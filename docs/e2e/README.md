@@ -201,3 +201,12 @@
 | PERSISTENCE-02 | batch | [offline cache の変更を再接続後に remote へ同期できる](./persistence.md#persistence-02) |
 | PERSISTENCE-03 | write | [別の open client に remote Card の変更を即時反映できる](./persistence.md#persistence-03) |
 | PERSISTENCE-04 | batch | [未ログインの変更を local-only に維持できる](./persistence.md#persistence-04) |
+
+### Study history
+
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STUDY-SESSION-09 | write | [30日分の学習記録](./study-session.md#study-session-09) |
+| STUDY-SESSION-10 | read | [URLとデッキ選択](./study-session.md#study-session-10) |
+| STUDY-SESSION-11 | read | [表示できないデッキ](./study-session.md#study-session-11) |
+| STUDY-SESSION-12 | write | [匿名の端末内学習記録](./study-session.md#study-session-12) |
