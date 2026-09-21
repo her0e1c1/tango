@@ -59,11 +59,11 @@
 | IMPORT-02 | read | [不正な行を含む CSV の import を阻止できる](./import.md#import-02) |
 | IMPORT-03 | batch | [CSV を remote に import して reload 後も利用できる](./import.md#import-03) |
 | IMPORT-04 | batch | [CSV を local-only に import して reload 後に学習できる](./import.md#import-04) |
-| IMPORT-05 | batch | [失敗した import を同じ保存先へ重複なく再試行できる](./import.md#import-05) |
+| IMPORT-05 | batch | [queued import の同期拒否を通知できる](./import.md#import-05) |
 | IMPORT-06 | batch | [4種類の例を同じ確認・保存フローで追加できる](./import.md#import-06) |
 | IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](./import.md#import-07) |
 | IMPORT-08 | batch | [Sample deck の全内容を local-only に取り込んで学習できる](./import.md#import-08) |
-| IMPORT-09 | batch | [Sample deck の remote 保存失敗から重複なく回復できる](./import.md#import-09) |
+| IMPORT-09 | batch | [通常ユーザーの Sample deck を同期できる](./import.md#import-09) |
 | IMPORT-10 | batch | [Google 未ログインの Sample deck を local-only に維持できる](./import.md#import-10) |
 
 ### Deck Navigation
@@ -99,8 +99,7 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| DECK-TRANSFER-01 | batch | [local-only Deck と Card を remote へ移行できる](./deck-transfer.md#deck-transfer-01) |
-| DECK-TRANSFER-02 | read | [Deck の Card を CSV で export できる](./deck-transfer.md#deck-transfer-02) |
+| DECK-TRANSFER-01 | read | [Deck の Card を CSV で export できる](./deck-transfer.md#deck-transfer-01) |
 
 ### Card View
 
@@ -143,7 +142,7 @@
 | CARD-LIST-ACTIONS-04 | write | [Card 一覧の difficulty 保存失敗後に再試行できる](./card-list-actions.md#card-list-actions-04) |
 | CARD-LIST-ACTIONS-05 | batch | [表示中の Card の difficulty をまとめて変更できる](./card-list-actions.md#card-list-actions-05) |
 | CARD-LIST-ACTIONS-06 | batch | [Card の一括 difficulty 変更を部分失敗後に再試行できる](./card-list-actions.md#card-list-actions-06) |
-| CARD-LIST-ACTIONS-07 | write | [退出後に古い Card 更新が完了しても通知しない](./card-list-actions.md#card-list-actions-07) |
+| CARD-LIST-ACTIONS-07 | write | [退出後の Card 更新結果を適切に扱う](./card-list-actions.md#card-list-actions-07) |
 | CARD-LIST-ACTIONS-08 | write | [再訪後の Card 更新を古い更新の完了から保護する](./card-list-actions.md#card-list-actions-08) |
 | CARD-LIST-ACTIONS-09 | read | [Card を追加が新しい順に表示できる](./card-list-actions.md#card-list-actions-09) |
 | CARD-LIST-ACTIONS-10 | read | [Card の表示順を標準へ戻せる](./card-list-actions.md#card-list-actions-10) |

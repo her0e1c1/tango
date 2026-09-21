@@ -17,11 +17,11 @@ describe("getAuthUid [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04] [DECK-MANAGEMENT-07]
     expect(getAuthUid()).toBe("uid-a");
   });
 
-  it("withholds the cloud identity until the anonymous account is linked", () => {
+  it("preserves the same persistence identity when an anonymous account is linked", () => {
     const session = { status: "authenticated" as const, uid: "uid-a", isAnonymous: true, displayName: null };
     replaceAuthSession(session);
 
-    expect(getAuthUid()).toBe("");
+    expect(getAuthUid()).toBe("uid-a");
 
     replaceAuthSession({ ...session, isAnonymous: false });
 

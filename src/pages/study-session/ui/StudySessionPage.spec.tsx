@@ -1,3 +1,5 @@
+import { setStudySessionIndex } from "@/test/entityFixtures";
+import "@/test/mockFirestorePersistence";
 import { Timestamp } from "firebase/firestore";
 import type { Preferences } from "@/entities/preference";
 
@@ -11,13 +13,8 @@ import "@testing-library/jest-dom/vitest";
 import { replaceAuthSession } from "@/entities/auth";
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
-import {
-  clearStudySessions,
-  getStudySession,
-  setStudySessionIndex,
-  startStudy,
-  subscribeStudySessions,
-} from "@/entities/study-session";
+import { clearStudySessions, getStudySession, subscribeStudySessions } from "@/entities/study-session";
+import { startStudy } from "@/test/entityFixtures";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
@@ -45,7 +42,7 @@ vi.mock("firebase/firestore", async (importOriginal) => ({
   collection: vi.fn(),
   where: vi.fn(),
   query: vi.fn(),
-  onSnapshot: (_query: unknown, _options: unknown, receive: typeof mocks.receiveSnapshot) => {
+  onSnapshot: (_query: unknown, receive: typeof mocks.receiveSnapshot) => {
     mocks.receiveSnapshot = receive;
     return () => {
       mocks.receiveSnapshot = undefined;
@@ -72,7 +69,7 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
     },
     touchStudySession: (...args: Parameters<typeof original.touchStudySession>) => {
       mocks.touchStudySession(...args);
-      original.touchStudySession(...args);
+      return original.touchStudySession(...args);
     },
   };
 });
@@ -159,12 +156,12 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
     mocks.toggleShowHelp.mockReset();
     mocks.toggleShowPlaybackControls.mockReset();
     mocks.toggleShowSwipeButtonList.mockReset();
-    await createDeck("", deck);
-    await mutateCards("", [
+    await createDeck("user-id", deck);
+    await mutateCards("user-id", [
       { kind: "create", card: firstCard },
       { kind: "create", card: secondCard },
     ]);
-    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
   });
 
   it("renders the active session from stored Entity state", () => {
@@ -385,7 +382,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
       },
     });
     clearStudySessions();
-    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
     renderPage();
     const sessionBeforeHelp = getStudySession(deckId);
 
@@ -423,7 +420,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
   it("updates semantic Help labels without resetting the mounted session or controls", () => {
     mocks.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 60 });
     clearStudySessions();
-    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
     renderPage();
     const sessionBeforeLanguageChange = getStudySession(deckId);
     const cardBeforeLanguageChange = screen.getByText("Front one");
@@ -447,7 +444,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
   it("pauses autoplay while Help is open and resumes without changing its explicit state", () => {
     mocks.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 1 });
     clearStudySessions();
-    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
     vi.useFakeTimers();
 
     try {
@@ -618,10 +615,10 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
   });
 
   it("shows loading feedback while active session cards are unavailable", async () => {
-    await deleteCard("", firstCard.id);
-    await deleteCard("", secondCard.id);
+    await deleteCard("user-id", firstCard.id);
+    await deleteCard("user-id", secondCard.id);
     clearStudySessions();
-    startStudy(deckId, [firstCard], mocks.preferences.study);
+    startStudy(deckId, [firstCard], mocks.preferences.study, "user-id");
 
     renderPage();
 
@@ -685,4 +682,23 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
       )
     ).toThrowError("invalid deck id");
   });
+});
+
+vi.mock("@/pages/study-session/api/saveStudyAnswer", async () => {
+  const { moveStudySession } = await import("@/test/entityFixtures");
+  const { planStudySessionSwipe } = await import("@/entities/study-session");
+  return {
+    saveStudyAnswer: async (
+      uid: string,
+      session: import("@/entities/study-session").StudySession,
+      action: import("@/entities/preference").Preferences["controls"]["cardSwipeUp"],
+      now: number
+    ) => {
+      const { getCards } = await import("@/entities/card");
+      const plan = planStudySessionSwipe(session, getCards(), action, now);
+      if (plan.effect !== "next") return;
+      await mocks.editStudyProgress(uid, plan.progress);
+      moveStudySession(session);
+    },
+  };
 });

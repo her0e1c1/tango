@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -56,9 +57,9 @@ describe("NAVIGATION-02 DECK-NAVIGATION-02 CARD-VIEW-01 CARD-LIST-ACTIONS-03 CAR
   beforeEach(async () => {
     mocks.preferences = createPreferences();
     mocks.setDarkMode.mockReset();
-    await createDeck("", createLocalDeck({ id: deckId, name: "First deck", selectedTags: ["typescript"] }));
-    await createDeck("", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
-    await mutateCards("", [
+    await createDeck("user-id", createLocalDeck({ id: deckId, name: "First deck", selectedTags: ["typescript"] }));
+    await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
+    await mutateCards("user-id", [
       {
         kind: "create",
         card: createLocalCard({
@@ -117,7 +118,7 @@ describe("NAVIGATION-02 DECK-NAVIGATION-02 CARD-VIEW-01 CARD-LIST-ACTIONS-03 CAR
 
   it("uses the shared progressive tag filter", async () => {
     await mutateCards(
-      "",
+      "user-id",
       Array.from({ length: 12 }, (_, index) => {
         const suffix = String(index + 1).padStart(2, "0");
         return {

@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { replaceAuthSession } from "@/entities/auth";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import type { Deck } from "@/entities/deck";
-import { createCard, createDeck, createLocalDeck, createPreferences } from "@/test/factories";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { startStudySession } from "./startStudySession";
+import { restoreStudySession } from "@/test/entityFixtures";
 
 const mocks = vi.hoisted(() => ({ deck: null as Deck | null }));
 
@@ -20,7 +21,10 @@ vi.mock("@/entities/preference", () => ({
 }));
 
 vi.mock("@/entities/study-session/api/firestore", () => ({
-  createStudySession: vi.fn(() => Promise.resolve()),
+  createStudySession: async (session: import("@/entities/study-session").StudySession) => {
+    await Promise.resolve();
+    restoreStudySession(session);
+  },
   updateStudySession: vi.fn(() => Promise.resolve()),
 }));
 
@@ -29,34 +33,21 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
   beforeEach(() => {
     clearStudySessions();
-    mocks.deck = createDeck({ id: "deck" });
+    mocks.deck = createDeck({ id: "deck", uid: "uid" });
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null });
   });
 
-  it.each([
-    { label: "signed-in remote Deck", isAnonymous: false, deck: createDeck({ id: "deck" }), remote: true },
-    { label: "signed-in local Deck", isAnonymous: false, deck: createLocalDeck({ id: "deck" }), remote: false },
-    {
-      label: "anonymous public Deck",
-      isAnonymous: true,
-      deck: createDeck({ id: "deck", isPublic: true }),
-      remote: false,
-    },
-  ])("starts a $label with the appropriate persistence mode", ({ isAnonymous, deck, remote }) => {
+  it.each([true, false])("uses the same persistence path for anonymous=%s", async (isAnonymous) => {
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous, displayName: null });
+    const deck = createDeck({ id: "deck", uid: "uid" });
     mocks.deck = deck;
-    startStudySession(deck.id, deck);
-    expect(getStudySession(deck.id)).toMatchObject({ cardOrderIds: ["card"], currentIndex: 0 });
-    expect(getStudySession(deck.id)?.remote?.uid).toBe(remote ? "uid" : undefined);
+    expect(await startStudySession(deck.id, deck)).toBe(true);
+    expect(getStudySession(deck.id)).toMatchObject({ cardOrderIds: ["card"], currentIndex: 0, remote: { uid: "uid" } });
   });
-  it("uses the current account after an identity switch before Start", () => {
-    const deck = createDeck({ id: "deck" });
-    const start = () => startStudySession(deck.id, deck);
+  it("rejects a different account after an identity switch before Start", async () => {
+    const deck = createDeck({ id: "deck", uid: "uid" });
     replaceAuthSession({ status: "authenticated", uid: "current", isAnonymous: false, displayName: null });
-    expect(start()).toBe(true);
-    expect(getStudySession("deck")?.remote?.uid).toBe("current");
-    replaceAuthSession({ status: "unauthenticated" });
-    expect(start()).toBe(true);
-    expect(getStudySession("deck")?.remote).toBeUndefined();
+    expect(await startStudySession(deck.id, deck)).toBe(false);
+    expect(getStudySession("deck")).toBeUndefined();
   });
 });

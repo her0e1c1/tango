@@ -14,7 +14,7 @@ Card 一覧上の swipe、filter、一括変更が、Card の学習状態と一�
 | CARD-LIST-ACTIONS-04 | write | [Card 一覧の difficulty 保存失敗後に再試行できる](#card-list-actions-04) |
 | CARD-LIST-ACTIONS-05 | batch | [表示中の Card の difficulty をまとめて変更できる](#card-list-actions-05) |
 | CARD-LIST-ACTIONS-06 | batch | [Card の一括 difficulty 変更を部分失敗後に再試行できる](#card-list-actions-06) |
-| CARD-LIST-ACTIONS-07 | write | [退出後に古い Card 更新が完了しても通知しない](#card-list-actions-07) |
+| CARD-LIST-ACTIONS-07 | write | [退出後の Card 更新結果を適切に扱う](#card-list-actions-07) |
 | CARD-LIST-ACTIONS-08 | write | [再訪後の Card 更新を古い更新の完了から保護する](#card-list-actions-08) |
 | CARD-LIST-ACTIONS-09 | read | [Card を追加が新しい順に表示できる](#card-list-actions-09) |
 | CARD-LIST-ACTIONS-10 | read | [Card の表示順を標準へ戻せる](#card-list-actions-10) |
@@ -172,9 +172,11 @@ Then:
 - 変更対象ではない Card の difficulty は変更されない。
 - 最初の保存失敗に伴う未処理の browser error が発生しない。
 
+cache 反映が全件成功した後に一部の remote 書き込みが拒否された場合、dialog は閉じたまま共通同期エラーを表示する。成功した Card は保持し、拒否された Card は SDK が戻す。一覧で現在の対象を確認して dialog を開き直し、同じ絶対値を指定して再試行できる。E2E ではこの段階の部分失敗を確認する。
+
 <a id="card-list-actions-07"></a>
 
-### CARD-LIST-ACTIONS-07 退出後に古い Card 更新が完了しても通知しない
+### CARD-LIST-ACTIONS-07 退出後の Card 更新結果を適切に扱う
 
 カテゴリ: `write`
 
@@ -197,7 +199,9 @@ Then:
 - 再訪時に古い dialog や更新中状態は残らず、操作できる。
 - 未処理の browser error が発生しない。
 
-成功する保存、および削除・一括 difficulty 変更でも、退出後の完了は画面状態や toast を変更しない。同じ不変条件の境界値として component test で確認する。
+上記の画面固有の完了処理とは別に、cache 反映後の remote 拒否は現在の UID に対する App 共通の同期エラーとして退出後も通知する。cache 反映で画面の pending は解除され、cloud 待ちだけを理由に操作をロックしない。E2E ではこの段階を確認する。
+
+成功する保存、および削除・一括 difficulty 変更でも、退出後の画面固有の完了処理は画面状態や toast を変更しない。同じ不変条件の境界値として component test で確認する。
 
 <a id="card-list-actions-08"></a>
 
@@ -224,6 +228,8 @@ Then:
 - Bの完了前は確認とキャンセルが無効で、二重実行しない。
 - Bの成功時にだけ削除 dialog が閉じ、成功通知が表示され、操作可能になる。
 - 未処理の browser error が発生しない。
+
+cache 反映後は B の dialog が閉じ、remote 待ちは pending としない。この間の A の remote 拒否は共通同期エラーを表示するが、B の cache 変更や保存を取り消さない。E2E ではこの段階を確認する。
 
 Aが成功する場合、およびAが削除・一括 difficulty 変更の場合も同じ保護を行う。一括変更のBでは新しい一括変更 dialog を保持する。これらは同じ不変条件の境界値として component test で確認する。
 

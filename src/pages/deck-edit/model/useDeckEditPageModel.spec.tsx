@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import type { Deck, DeckId } from "@/entities/deck";
 
 import { render, screen } from "@testing-library/react";
@@ -6,9 +7,10 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { CATEGORY, createDeck, useDeck } from "@/entities/deck";
+import { CATEGORY, useDeck } from "@/entities/deck";
 import { DeckForm } from "@/features/deck-form";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { replaceRemoteDecks } from "@/test/entityFixtures";
 import { createLocalDeck } from "@/test/factories";
 
 import { useDeckEditPageModel } from "./useDeckEditPageModel";
@@ -38,23 +40,20 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         throw error;
       }
       await writeControls.beforeWrite?.();
-      if (args[1].localMode === false) return;
       return actual.editDeck(...args);
     },
   };
 });
 
 const AvailableDeckFormHarness = (props: { deck: Deck }) => {
-  const { form, onCancel, onSubmit, cloudStorageAvailable } = useDeckEditPageModel(props.deck);
+  const { form, onCancel, onSubmit } = useDeckEditPageModel(props.deck);
   return (
     <DeckForm
       mode="edit"
       categories={CATEGORY}
-      cloudStorageAvailable={cloudStorageAvailable}
       deckInfo={{ id: props.deck.id, createdAt: props.deck.createdAt, updatedAt: props.deck.updatedAt }}
       deckName={props.deck.name}
       form={form}
-      isLocalOnly={props.deck.localMode}
       onCancel={onCancel}
       onSubmit={(event) => void onSubmit(event)}
     />
@@ -66,7 +65,7 @@ const StoredDeckFormHarness = (props: { deckId: DeckId }) => {
   return deck === undefined ? null : <AvailableDeckFormHarness deck={deck} />;
 };
 
-describe("DECK-MANAGEMENT-01 DECK-TRANSFER-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageModel", () => {
+describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageModel", () => {
   const deckId = "deck-id";
   const renderForm = () => {
     const router = createMemoryRouter(
@@ -84,13 +83,13 @@ describe("DECK-MANAGEMENT-01 DECK-TRANSFER-01 DECK-MANAGEMENT-08 PERSISTENCE-04 
     );
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     dismissToast();
     authControls.uid = "user-id";
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
     writeControls.writes = [];
-    await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", category: "language", convertToBr: false }));
+    replaceRemoteDecks([createLocalDeck({ id: deckId, name: "Deck name", category: "language", convertToBr: false })]);
   });
 
   it("restores successfully saved form values from the Deck Entity", async () => {
@@ -121,51 +120,8 @@ describe("DECK-MANAGEMENT-01 DECK-TRANSFER-01 DECK-MANAGEMENT-08 PERSISTENCE-04 
 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
+    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
     expect(writeControls.writes.at(-1)?.uid).toBe("latest-user");
-  });
-
-  it("keeps guest edits local and disables cloud promotion", async () => {
-    authControls.uid = "";
-    const view = renderForm();
-    expect(screen.getByRole("radio", { name: "Cloud" })).toBeDisabled();
-    expect(screen.getByRole("radio", { name: "Local only" })).toBeChecked();
-    expect(screen.getByText(/Sign in to save to the cloud/)).toBeVisible();
-    await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
-    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Guest deck");
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
-    expect(writeControls.writes.at(-1)).toEqual({
-      uid: "",
-      deck: expect.objectContaining({ name: "Guest deck", localMode: true }),
-    });
-    view.unmount();
-    renderForm();
-    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Guest deck");
-  });
-
-  it("keeps a local Deck local if the user signs out after selecting cloud", async () => {
-    renderForm();
-    await userEvent.click(screen.getByRole("radio", { name: "Cloud" }));
-    authControls.uid = "";
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
-    expect(writeControls.writes.at(-1)).toEqual({
-      uid: "",
-      deck: expect.objectContaining({ id: deckId, localMode: true }),
-    });
-  });
-
-  it("requests cloud persistence when Cloud is selected", async () => {
-    renderForm();
-    await userEvent.click(screen.getByRole("radio", { name: "Cloud" }));
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-
-    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
-    expect(writeControls.writes.at(-1)).toEqual({
-      uid: "user-id",
-      deck: expect.objectContaining({ id: deckId, localMode: false }),
-    });
   });
 
   it("disables every edit and exit control while saving", async () => {
@@ -186,7 +142,7 @@ describe("DECK-MANAGEMENT-01 DECK-TRANSFER-01 DECK-MANAGEMENT-08 PERSISTENCE-04 
   });
 
   it("removes a cleared optional URL from the stored Deck", async () => {
-    await createDeck("", createLocalDeck({ id: deckId, name: "Deck name", url: "https://example.com/deck.csv" }));
+    replaceRemoteDecks([createLocalDeck({ id: deckId, name: "Deck name", url: "https://example.com/deck.csv" })]);
     const view = renderForm();
     await userEvent.click(screen.getByText("More settings"));
     await userEvent.clear(screen.getByRole("textbox", { name: "Source URL" }));
@@ -223,7 +179,7 @@ describe("DECK-MANAGEMENT-01 DECK-TRANSFER-01 DECK-MANAGEMENT-08 PERSISTENCE-04 
     await userEvent.clear(name);
     await userEvent.type(name, "Unsaved deck");
 
-    await createDeck("", createLocalDeck({ id: deckId, name: "Subscription name", category: "science" }));
+    replaceRemoteDecks([createLocalDeck({ id: deckId, name: "Subscription name", category: "science" })]);
 
     expect(name).toHaveValue("Unsaved deck");
     expect(screen.getByRole("combobox")).toHaveValue("language");

@@ -1,9 +1,9 @@
 import type { TFunction } from "i18next";
 import type * as React from "react";
 import { useId, useLayoutEffect, useRef } from "react";
-import { AiOutlineArrowLeft, AiOutlineCloud, AiOutlineDown, AiOutlineMobile } from "react-icons/ai";
+import { AiOutlineArrowLeft, AiOutlineDown } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
-import { Controller, type UseFormReturn, useFormState } from "react-hook-form";
+import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import { Button } from "@/shared/ui/button";
 import { FormItem, Input, Switch } from "@/shared/ui/forms";
@@ -13,11 +13,9 @@ export interface DeckFormFields {
   category: string;
   url?: string | undefined;
   convertToBr: boolean;
-  localMode?: boolean | undefined;
 }
 
 interface CommonDeckFormProps {
-  cloudStorageAvailable: boolean;
   categories: readonly string[];
   form: UseFormReturn<DeckFormFields>;
   onCancel: () => void;
@@ -26,14 +24,12 @@ interface CommonDeckFormProps {
 
 interface DeckCreateFormProps extends CommonDeckFormProps {
   mode: "create";
-  isLocalModeLocked: boolean;
 }
 
 interface DeckEditFormProps extends CommonDeckFormProps {
   mode: "edit";
   deckName: string;
   deckInfo: { id: string; createdAt: number; updatedAt: number };
-  isLocalOnly: boolean;
   afterForm?: React.ReactNode;
 }
 
@@ -43,8 +39,6 @@ const formatDate = (timestamp: number, locale: string): string => new Date(times
 
 interface DeckFormPresentation {
   isSaving: boolean;
-  localModeDisabled: boolean;
-  localModeHelp: string | undefined;
   title: string;
 }
 
@@ -52,110 +46,10 @@ const getDeckFormPresentation = (
   props: DeckFormProps,
   formIsSubmitting: boolean,
   t: TFunction
-): DeckFormPresentation => {
-  if (props.mode === "create") {
-    return {
-      isSaving: formIsSubmitting,
-      localModeDisabled: props.isLocalModeLocked,
-      localModeHelp: props.cloudStorageAvailable ? undefined : t("deckForm.storage.signInHelp"),
-      title: t("deckForm.create.title"),
-    };
-  }
-
-  return {
-    isSaving: formIsSubmitting,
-    localModeDisabled: !props.isLocalOnly,
-    localModeHelp:
-      !props.cloudStorageAvailable && props.isLocalOnly
-        ? t("deckForm.storage.signInHelp")
-        : props.isLocalOnly
-          ? t("deckForm.edit.localModeHelp")
-          : t("deckForm.edit.remoteModeHelp"),
-    title: props.deckName,
-  };
-};
-
-const StorageSection = ({
-  cloudStorageAvailable,
-  disabled,
-  form,
-  idPrefix,
-  help,
-}: {
-  cloudStorageAvailable: boolean;
-  disabled: boolean;
-  form: UseFormReturn<DeckFormFields>;
-  idPrefix: string;
-  help: string | undefined;
-}) => {
-  const { t } = useTranslation();
-  const options = [
-    {
-      localMode: false,
-      label: t("deckForm.storage.cloud"),
-      description: t("deckForm.storage.cloudHelp"),
-      Icon: AiOutlineCloud,
-    },
-    {
-      localMode: true,
-      label: t("deckForm.storage.localOnly"),
-      description: t("deckForm.storage.localHelp"),
-      Icon: AiOutlineMobile,
-    },
-  ];
-
-  return (
-    <fieldset className="min-w-0" disabled={disabled} aria-describedby={help ? `${idPrefix}-help` : undefined}>
-      <legend className="mb-3 text-caption font-medium text-ink">{t("deckForm.storage.title")}</legend>
-      {/* Persistence branches on this boolean; native radio strings such as "false" must not enter form state. */}
-      <Controller
-        control={form.control}
-        name="localMode"
-        render={({ field }) => (
-          <div className="grid grid-cols-2 gap-2">
-            {options.map(({ localMode, label, description, Icon }) => (
-              <label
-                key={String(localMode)}
-                className="flex min-w-0 cursor-pointer flex-col gap-2 rounded-control border border-border bg-surface p-3 has-checked:border-accent-primary has-checked:bg-accent-primary/5 has-disabled:cursor-not-allowed has-disabled:opacity-60"
-              >
-                <span className="flex items-center justify-between gap-2">
-                  <Icon aria-hidden="true" className="text-ink" />
-                  <input
-                    ref={localMode ? undefined : field.ref}
-                    type="radio"
-                    name={field.name}
-                    value={String(localMode)}
-                    checked={(field.value === true || !cloudStorageAvailable) === localMode}
-                    disabled={!localMode && !cloudStorageAvailable}
-                    onBlur={field.onBlur}
-                    onChange={() => field.onChange(localMode)}
-                    aria-label={label}
-                    aria-describedby={`${idPrefix}-${String(localMode)}-description`}
-                    className="size-4 shrink-0 accent-accent-primary"
-                  />
-                </span>
-                <span className="break-words text-caption text-ink">
-                  {label}
-                  <span
-                    id={`${idPrefix}-${String(localMode)}-description`}
-                    className="mt-1 block text-xs text-ink-muted"
-                  >
-                    {description}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
-      />
-      {help !== undefined && (
-        <p id={`${idPrefix}-help`} className="mt-3 text-caption text-ink-muted">
-          {help}
-        </p>
-      )}
-    </fieldset>
-  );
-};
+): DeckFormPresentation => ({
+  isSaving: formIsSubmitting,
+  title: props.mode === "create" ? t("deckForm.create.title") : props.deckName,
+});
 
 const BasicInformationSection = ({
   categories,
@@ -342,13 +236,6 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
             error={formState.errors.name?.message}
             form={props.form}
             idPrefix={idPrefix}
-          />
-          <StorageSection
-            cloudStorageAvailable={props.cloudStorageAvailable}
-            disabled={presentation.localModeDisabled}
-            form={props.form}
-            idPrefix={`${idPrefix}-storage`}
-            help={presentation.localModeHelp}
           />
           <ImportFormattingSection
             error={formState.errors.url?.message}

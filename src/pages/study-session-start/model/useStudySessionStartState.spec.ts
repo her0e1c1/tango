@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -5,7 +6,8 @@ import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
-import { clearStudySessions, getStudySession, startStudy } from "@/entities/study-session";
+import { clearStudySessions, getStudySession } from "@/entities/study-session";
+import { startStudy } from "@/test/entityFixtures";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 import { useStudySessionStartState } from "./queries/useStudySessionStartState";
@@ -66,8 +68,8 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
     });
     clearStudySessions();
     updatePreferences(preferences);
-    await createDeck("", deck);
-    await mutateCards("", [
+    await createDeck("user-id", deck);
+    await mutateCards("user-id", [
       { kind: "create", card: eligibleCard },
       { kind: "create", card: laterCard },
       { kind: "create", card: highDifficultyCard },
@@ -76,7 +78,7 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
   });
 
   afterEach(async () => {
-    await deleteDeck("", deck.id);
+    await deleteDeck("user-id", deck.id);
     clearStudySessions();
   });
 
@@ -90,7 +92,7 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
     });
 
     act(() => {
-      startStudy(deck.id, result.current.cards, result.current.studyPreferences);
+      startStudy(deck.id, result.current.cards, result.current.studyPreferences, deck.uid);
     });
 
     expect(getStudySession(deck.id)).toMatchObject({
@@ -106,7 +108,7 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
     expect(result.current.cardsLength).toBe(1);
 
     act(() => {
-      startStudy(deck.id, result.current.cards, result.current.studyPreferences);
+      startStudy(deck.id, result.current.cards, result.current.studyPreferences, deck.uid);
     });
 
     expect(getStudySession(deck.id)?.cardOrderIds).toEqual([laterCard.id]);

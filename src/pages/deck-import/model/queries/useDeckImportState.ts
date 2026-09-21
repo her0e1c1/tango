@@ -5,7 +5,6 @@ import { deckImportStore, type DeckImportState } from "../store";
 import { getDeckImportCardPreview } from "./getDeckImportCardPreview";
 
 const selectDeckImportView = (state: DeckImportState) => ({
-  storageMode: state.storageMode,
   preview: state.source.kind === "selected" ? state.source.preview : undefined,
   previewError: state.source.kind === "error" ? state.source.error : undefined,
   validating: state.status === "validating",

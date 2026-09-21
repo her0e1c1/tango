@@ -110,12 +110,12 @@ Given:
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に編集対象の Card が存在する。
-- 編集要求の失敗が共通 toast で処理され、変更内容が維持されている。
+- 編集要求の失敗が共通 toast で処理されている。cache 反映前の失敗では入力を維持し、反映後の remote 拒否では SDK が変更を戻す。
 - 次の編集要求は成功できる。
 
 When:
 
-- 同じ変更内容の保存を再試行し、Card 一覧を reload する。
+- 必要なら編集画面を開き直して同じ変更内容を入力し、保存を再試行して Card 一覧を reload する。
 
 Then:
 
@@ -148,7 +148,7 @@ Then:
 - 両面の拡大編集画面は viewport の上端から下端まで表示され、見出しや完了ボタンが欠けない。
 - 拡大編集とタグ選択の背景は viewport 全体を覆い、タグ選択画面は下端に隙間なく接する。
 - 作成した Card が reload 後も同じ Deck の Card 一覧に表示される。
-- Card は remote 保存先だけに1件存在し、owner は対象 Deck と一致する。
+- Card は Firestore cache と同期後の remote に同じ ID で1件存在し、owner は対象 Deck と一致する。
 - 入力検証中と保存中は作成ボタンが無効になり、作成処理が終わるまで追加の作成を受け付けない。
 - browser error が発生しない。
 
@@ -188,13 +188,13 @@ Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する remote Deck が存在する。
-- remote Card の最初の作成要求が保存前に拒否され、Card が保存されていないことが確定している。
-- 作成失敗が共通 toast で処理され、作成画面と入力内容が維持されている。
+- remote Card の最初の作成要求が拒否され、remote に保存されていないことが確定している。cache 反映後の拒否では SDK が Card を cache から戻す。
+- 作成失敗が共通 toast で処理されている。cache 反映前の失敗では作成画面と入力を維持する。
 - 次の作成要求は成功できる。
 
 When:
 
-- 入力内容を変更せずに同じ Card の作成を再試行し、Card 一覧を reload する。
+- 必要なら作成画面を開き直して同じ内容を入力し、作成を再試行して Card 一覧を reload する。
 
 Then:
 
@@ -202,7 +202,7 @@ Then:
 - 再試行には最初の要求と異なる新しい Card ID と、それと同じ unique key が使用される。
 - 作成した Card が対象 Deck の remote data に一つだけ存在する。
 - Card の front text、back text、deck ID、owner が最初の作成要求から維持されている。
-- browser storage に同じ Card の local-only duplicate が存在しない。
+- Firestore cache と remote は同じ Card ID を保持し、別 ID の複製は存在しない。
 - 最初の作成失敗に伴う未処理の browser error が発生しない。
 
 保存結果が不明な通信失敗では、最初の要求が保存済みである可能性がある。再試行は新しい ID を使用するため、この場合の重複防止は保証しない。
@@ -313,7 +313,7 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、remote 保存の完了を待っている。
+- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、Firestore cache への反映完了を待っている。
 
 When:
 
@@ -327,6 +327,8 @@ Then:
 - 成功通知が表示され、対象 Deck に入力した Card が1件だけ永続化され、reload 後も表示される。
 - browser error が発生しない。
 
+cache 反映が完了すれば remote の応答を待たずに成功して一覧へ移動する。remote 応答を保留した E2E では、この時点で Card が表示されることを確認する。
+
 <a id="card-management-13"></a>
 
 ### CARD-MANAGEMENT-13 Card 作成中に離脱しても保存成功時に一覧へ移動する
@@ -336,7 +338,7 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、remote 保存の完了を待っている。
+- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、Firestore cache への反映完了を待っている。
 
 When:
 
@@ -349,6 +351,8 @@ Then:
 - 成功通知が表示され、対象 Deck に入力した Card が1件だけ永続化され、reload 後も表示される。
 - browser error が発生しない。
 
+cache 反映後に別の画面へ移動した場合、その後の remote 同期成功は再遷移を起こさない。E2E では Deck 一覧に留まり、再度開いた Card 一覧に保存した Card があることを確認する。
+
 <a id="card-management-14"></a>
 
 ### CARD-MANAGEMENT-14 Card 作成失敗後も離脱確認と入力を保持して再試行できる
@@ -358,7 +362,7 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、remote 保存の完了を待っている。
+- 認証済みユーザーが所有する Deck の Card 作成画面で両面を入力し、Firestore cache への反映完了を待っている。
 
 When:
 
@@ -370,6 +374,8 @@ Then:
 - Keep editing で前後の入力を保持し、再試行の成功後は所属 Deck の Card 一覧へ移動する。
 - 成功通知が表示され、対象 Deck に入力した Card が1件だけ永続化され、reload 後も表示される。
 - browser error が発生しない。
+
+cache 反映後の remote 拒否は App 共通の同期エラー通知で知らせ、移動先に留まる。SDK が拒否した Card を戻し、古い入力画面や離脱確認を復元しない。この段階を E2E で確認する。
 
 <a id="card-management-15"></a>
 

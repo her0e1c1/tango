@@ -34,6 +34,7 @@ export const WithStudyProgress: Story = {
       cardOrderIds: ["card-1", "card-2", "card-3"],
       currentIndex: 0,
       lastStudiedAt: fixture.timestamp - 5 * 60 * 1000,
+      remote: { uid: "uid", startedAt: 0 },
     },
   },
 };
@@ -52,6 +53,7 @@ export const RestoredFromAnotherDevice: Story = {
       cardOrderIds: ["card-1", "card-2"],
       currentIndex: 1,
       lastStudiedAt: 0,
+      remote: { uid: "uid", startedAt: 0 },
     },
   },
 };

@@ -233,8 +233,6 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  await expect(page.getByRole("radio", { name: "Local only", exact: true })).toBeChecked();
-  await expect(page.getByRole("radio", { name: "Cloud", exact: true })).toBeDisabled();
   await page.getByRole("textbox", { name: "Name" }).fill(updatedName);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -248,7 +246,7 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   await page.reload();
   await expect(page.getByRole("button", { name: `View ${updatedFrontText}` })).toBeVisible();
   const stored = await readLocalData(page);
-  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id, name: updatedName, localMode: true }));
+  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id, name: updatedName }));
   expect(stored.cards).toContainEqual(expect.objectContaining({ id: card.id, frontText: updatedFrontText }));
   expect(await getDocument("deck", deck.id)).toBeUndefined();
   expect(await getDocument("card", card.id)).toBeUndefined();

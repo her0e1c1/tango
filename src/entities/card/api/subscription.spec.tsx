@@ -1,8 +1,8 @@
+import { createDeck } from "@/test/factories";
 import { act, renderHook } from "@testing-library/react";
 import { Timestamp } from "firebase/firestore";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createLocalCard } from "@/test/factories";
 import { useCards } from "../model/queries/useCards";
 import { cardStore } from "../model/store";
 
@@ -23,6 +23,10 @@ vi.mock("firebase/firestore", async (importOriginal) => {
     where: mocks.where,
   };
 });
+vi.mock("@/entities/deck/@x/card", () => ({
+  getDecks: () => [createDeck({ id: "deck-a", uid: "uid-a" })],
+  useDecks: () => [createDeck({ id: "deck-a", uid: "uid-a" })],
+}));
 vi.mock("@/shared/firebase", () => ({ db: "db" }));
 
 import { subscribeCards } from "./firestore";
@@ -54,14 +58,12 @@ const getErrorHandler = () => mocks.onSnapshot.mock.calls[0]?.[2] as (error: Err
 
 describe("Card Firestore subscription [CARD-VIEW-01]", () => {
   beforeEach(() => {
-    cardStore.setState({ remoteCards: [], localCards: [] });
+    cardStore.setState({ remoteCards: [] });
     vi.clearAllMocks();
     mocks.onSnapshot.mockReturnValue(vi.fn());
   });
 
   it("fully replaces active Cards from each snapshot", () => {
-    const localCard = createLocalCard({ id: "local", frontText: "Local front" });
-    cardStore.setState({ localCards: [localCard] });
     const { result } = renderHook(useCards);
     subscribeCards("uid-a", vi.fn());
 
@@ -95,11 +97,10 @@ describe("Card Firestore subscription [CARD-VIEW-01]", () => {
         startLine: 8,
         endLine: 9,
       }),
-      localCard,
     ]);
 
     act(() => getSnapshotHandler()({ docs: [cardDocument("replacement", { frontText: "Current" })] }));
-    expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" }), localCard]);
+    expect(result.current).toEqual([expect.objectContaining({ id: "replacement", frontText: "Current" })]);
   });
 
   it("reports invalid Firestore documents", () => {

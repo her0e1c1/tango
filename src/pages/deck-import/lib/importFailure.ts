@@ -5,7 +5,7 @@ export class ImportFailure extends Error {
   }
 }
 
-export function importFailureKey(error: unknown) {
+export function importFailureKey(error: unknown): string | undefined {
   const code = error != null && typeof error === "object" && "code" in error ? error.code : undefined;
   if (error instanceof ImportFailure) {
     return error.code === "authentication" ? "deckImport.errors.authentication" : "deckImport.errors.accountChanged";

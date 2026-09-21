@@ -53,6 +53,7 @@ test("CARD-LIST-ACTIONS-10 restores standard order and resets sorting when revis
   );
   await sort.selectOption("newest");
   await page.getByRole("button", { name: "tango", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Decks", exact: true })).toBeVisible();
   await page.goBack();
   await expect(sort).toHaveValue("standard");
   expect(await readLocalData(page)).toEqual(before);

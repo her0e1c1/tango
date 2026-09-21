@@ -8,10 +8,7 @@ import type {
   cardSchema,
   deleteCardSchema,
   editCardSchema,
-  localCardCreateSchema,
-  localCardEditSchema,
-  localCardSchema,
-  persistedCardStateSchema,
+  cardContentEditSchema,
 } from "./schema";
 
 /** Firestore-backed Card data whose ownership and deletion metadata must remain at the Entity boundary. */
@@ -22,35 +19,30 @@ type StudyProgressField = "difficulty" | "numberOfSeen" | "lastSeenAt" | "nextSe
 export type RemoteCardRead = Omit<RemoteCard, StudyProgressField>;
 /** Card-owned fields read from the shared physical Firestore document. */
 export type CardDocumentFields = Omit<RemoteCardRead, "id">;
-/** Browser-persisted Card data owned by a local-mode Deck and therefore intentionally lacking a uid. */
-export type LocalCard = z.infer<typeof localCardSchema>;
-/** Browser-persisted subset of Card state. */
-export type PersistedCardState = z.infer<typeof persistedCardStateSchema>;
-/** Entity read model spanning both persistence modes; mutations route through the owning Deck. */
-export type Card = RemoteCard | LocalCard;
+export type Card = RemoteCard;
 /** Shared create/edit content without identity or persistence metadata. */
 export type CardContentInput = z.infer<typeof cardContentInputSchema>;
 /** Validated payload used to create a remote Card document. */
 export type CardCreate = z.infer<typeof cardCreateSchema>;
 /** Input accepted at the remote Card creation boundary. */
 export type CardCreateInput = z.input<typeof cardCreateSchema>;
-/** Input accepted at the local Card creation boundary. */
-export type LocalCardCreateInput = z.input<typeof localCardCreateSchema>;
+/** Input accepted at the owner-free Card creation boundary. */
+type CardContentCreateInput = Omit<CardCreateInput, "uid">;
 /** Owner-free fields accepted by the single-Card creation workflow. */
 export type CardCreateCommand = Pick<
-  LocalCardCreateInput,
+  CardContentCreateInput,
   "id" | "deckId" | "frontText" | "backText" | "tags" | "uniqueKey"
 >;
 /** Validated stable identifier for a Card. */
 export type CardId = z.infer<typeof cardIdSchema>;
 /** Validated editable fields for a remote Card. */
 export type CardEdit = z.infer<typeof cardEditSchema>;
-/** Validated partial edit for a local Card. */
-export type LocalCardEdit = z.infer<typeof localCardEditSchema>;
+/** Validated partial edit for a owner-free Card. */
+type CardContentEdit = z.infer<typeof cardContentEditSchema>;
 /** Persistence-agnostic Card edit accepted by mutation orchestration. */
-export type CardEditInput = LocalCardEdit;
-/** Create payload accepted by a persistence-routed Card mutation. */
-export type CardMutationCreateInput = CardCreateInput | LocalCardCreateInput;
+export type CardEditInput = CardContentEdit;
+/** Create payload accepted by a bulk Card mutation. */
+type CardMutationCreateInput = CardContentCreateInput;
 /** Create or edit command applied during a bulk Card mutation. */
 export type CardMutation = { kind: "create"; card: CardMutationCreateInput } | { kind: "edit"; card: CardEditInput };
 /** User-editable Card content independent of identity and persistence metadata. */

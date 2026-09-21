@@ -297,23 +297,17 @@ interface LocalDataFixture {
 }
 
 const seedLocalData = async (page: Page, fixture: LocalDataFixture) => {
-  await page.addInitScript((value) => {
-    // Keep the fixture stable for initial hydration without resurrecting data after navigation or reload.
-    if (!window.location.origin.startsWith("http")) return;
-    if (window.sessionStorage.getItem("tango-e2e-local-data-seeded") !== null) return;
-    window.localStorage.setItem(
-      "tango-local-decks",
-      JSON.stringify({ state: { localDecks: value.decks ?? [] }, version: 1 })
-    );
-    window.localStorage.setItem(
-      "tango-local-cards",
-      JSON.stringify({ state: { localCards: value.cards ?? [] }, version: 1 })
-    );
-    window.localStorage.setItem(
-      "tango-study",
-      JSON.stringify({ state: { sessionsByDeckId: value.sessionsByDeckId ?? {} }, version: 4 })
-    );
-    window.sessionStorage.setItem("tango-e2e-local-data-seeded", "true");
+  if (
+    (fixture.decks?.length ?? 0) + (fixture.cards?.length ?? 0) + Object.keys(fixture.sessionsByDeckId ?? {}).length ===
+    0
+  )
+    return;
+  await page.goto("/");
+  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
+  await page.evaluate(async (value) => {
+    const modulePath = "/e2e-fixture.js";
+    const fixtureModule = (await import(/* @vite-ignore */ modulePath)) as typeof import("./browser-fixture");
+    await fixtureModule.seedCache(value);
   }, fixture);
 };
 
@@ -322,24 +316,16 @@ const seedStudySessions = async (
   sessionsByDeckId: Record<string, StudySessionFixture>,
   deckNames: readonly string[] = []
 ) => {
-  // Loading the Deck list first settles Auth and warms Firestore's local cache before a study route consumes both.
-  await page.goto("/");
-  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
-  await Promise.all(deckNames.map((name) => page.getByRole("button", { name: `View ${name}`, exact: true }).waitFor()));
-  await page.evaluate((sessions) => {
-    window.localStorage.setItem("tango-study", JSON.stringify({ state: { sessionsByDeckId: sessions }, version: 4 }));
-  }, sessionsByDeckId);
-  // Initial anonymous bootstrap clears study state at the identity boundary, so hydrate only after auth has settled.
-  await page.reload();
+  await seedLocalData(page, { sessionsByDeckId });
   await Promise.all(deckNames.map((name) => page.getByRole("button", { name: `View ${name}`, exact: true }).waitFor()));
 };
 
 export const readLocalData = async (page: Page) =>
-  page.evaluate(() => ({
-    decks: JSON.parse(window.localStorage.getItem("tango-local-decks") ?? "{}").state?.localDecks ?? [],
-    cards: JSON.parse(window.localStorage.getItem("tango-local-cards") ?? "{}").state?.localCards ?? [],
-    sessionsByDeckId: JSON.parse(window.localStorage.getItem("tango-study") ?? "{}").state?.sessionsByDeckId ?? {},
-  }));
+  page.evaluate(async () => {
+    const modulePath = "/e2e-fixture.js";
+    const fixtureModule = (await import(/* @vite-ignore */ modulePath)) as typeof import("./browser-fixture");
+    return fixtureModule.readCache();
+  });
 
 interface FixtureAuthSeedOptions extends AnonymousAuthOptions {
   /** Logical UID of the anonymous user created after a linked user signs out. */
@@ -477,13 +463,13 @@ function createE2EFixture(
   const seedPage = async (page: Page, options: FixturePageSeedOptions = {}) => {
     const selectedUser = requireLogicalValue(namespaced.users, "auth user", options.user);
     await seedFixturePreferences(page, namespaced.state.browser.preferences, options.preferences);
-    await seedFixtureLocalData(page, namespaced.state, options.localData);
     await seedFixtureAuth(page, {
       users: namespaced.users,
       selectedUser,
       options: options.auth,
       namespace,
     });
+    await seedFixtureLocalData(page, namespaced.state, options.localData);
     await seedFixtureStudySessions(page, namespaced.state, options.studySessions);
   };
 

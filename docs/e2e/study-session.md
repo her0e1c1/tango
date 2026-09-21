@@ -43,7 +43,7 @@ Then:
 - session の先頭 Card の front text が表示される。
 - 開始操作は実行時点の認証を使い、別アカウントへの切替後に以前の UID で保存しない。
 - ログイン済みユーザーの remote Deck では、session ID を document ID として Firestore の `studySession` に所有者、Deck、出題順、現在位置、開始時刻を保存する。回答情報は含めない。
-- `createdAt` / `updatedAt` は server timestamp の技術メタ情報であり、開始・終了時刻や最近学習した時刻とは分ける。
+- `createdAt` / `updatedAt` は操作時に固定した client timestamp を保存する。`startedAt` は再開で変更せず、最近学習した時刻は `updatedAt` から復元する。
 - オフライン再読み込み直後や別 Deck の保存待ちでも Start / Restart を許可し、書き込みは Firestore SDK のオフラインキューへ渡す。同期失敗は共通の通知で知らせ、開始操作を禁止しない。
 - browser error が発生しない。
 
@@ -115,8 +115,8 @@ When:
 
 Then:
 
-- 以前とは異なる新しい学習 session が保存される。
-- この端末で既知の以前の remote session は `endReason: abandoned` と server timestamp の終了時刻を保持する。明示的な session 終了操作や Deck 削除も破棄として扱う。
+- 以前とは異なる新しい学習 session が保存される。新規作成と既知の旧 session の終了は一つの batch で cache に反映し、cache 保存が失敗した場合は旧 session の ID・Card 順序・位置を維持して再試行できる。
+- この端末で既知の以前の remote session は `endReason: abandoned` と 操作時に固定した終了時刻を保持する。明示的な session 終了操作や Deck 削除も破棄として扱う。
 - 複数の remote session がある場合は、読み込み時に最新の作成時刻の session を採用する。複数端末の同時操作・未送信状態との厳密な競合調停と、未取得の旧 session をすべて終了する保証は対象外とする。同時開始の収束は別 Issue #1658 で扱う。
 - 新しい session の位置が先頭になる。
 - 新しい session の先頭 Card の front text が表示される。
@@ -140,7 +140,7 @@ When:
 Then:
 
 - 最後の Card の学習結果が保存される。
-- 対象 Deck の学習 session がローカルの進行中一覧から削除され、remote document は `endReason: completed` と server timestamp の終了時刻を保持する。
+- 対象 Deck の学習 session がローカルの進行中一覧から削除され、remote document は `endReason: completed` と 操作時に固定した終了時刻を保持する。
 - 進捗更新では終了状態を変更しない。Firestore Rules は認証と所有者を検証し、位置や終了理由の状態遷移は制約しない。
 - Study completion screen に完了 message と学習した Card 数が表示される。
 - Deck 一覧へ automatic redirect せず、Deck 一覧へ戻る action が利用できる。

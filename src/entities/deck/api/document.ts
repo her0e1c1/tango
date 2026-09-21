@@ -34,10 +34,9 @@ export const parseDeckDocument = (id: DeckId, value: unknown): DeckDocument =>
   parseFirestoreDocument(deckDocumentSchema, "deck", id, value);
 
 // Converts a validated Firestore document to the Deck shape used by the application.
-export const toDeck = (id: DeckId, document: DeckDocument): Extract<Deck, { localMode: false }> => ({
+export const toDeck = (id: DeckId, document: DeckDocument): Deck => ({
   id,
   uid: document.uid,
-  localMode: false,
   name: document.name,
   ...(document.url === undefined ? {} : { url: document.url }),
   isPublic: document.isPublic,

@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import { BackText } from "@/entities/card";
 import type { Card, CardId } from "@/entities/card";
 
@@ -91,8 +92,8 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 
     dismissToast();
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
-    await createDeck("", createLocalDeck({ id: deckId }));
-    await mutateCards("", [
+    await createDeck("user-id", createLocalDeck({ id: deckId }));
+    await mutateCards("user-id", [
       {
         kind: "create",
         card: createLocalCard({
@@ -175,7 +176,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "Unsaved front");
 
-    await mutateCards("", [
+    await mutateCards("user-id", [
       {
         kind: "edit",
         card: { id: cardId, frontText: "Subscription front", backText: "Subscription back" },

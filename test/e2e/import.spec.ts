@@ -42,13 +42,9 @@ test("IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture,
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
-  await page.getByRole("button", { name: "Change", exact: true }).click();
   const upload = page.getByLabel("Upload a csv file");
   const uploadArea = page.locator("label").filter({ has: upload });
-  const destination = page.getByRole("radio", { name: /Local only/ });
-  await destination.check();
-  await destination.focus();
-  await page.keyboard.press("Tab");
+  await upload.focus();
   await expect(upload).toBeFocused();
   await expect(uploadArea).toHaveCSS("outline-style", "solid");
   await expect(uploadArea).toHaveCSS("outline-width", "2px");
@@ -61,7 +57,6 @@ test("IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture,
   await expect(upload).toBeFocused();
   await expect(uploadArea).toHaveCSS("outline-style", "solid");
   await page.keyboard.press("Shift+Tab");
-  await expect(destination).toBeFocused();
   await expect(uploadArea).toHaveCSS("outline-style", "none");
 
   const file = validCsv(namespace.id("preview"));
@@ -81,7 +76,6 @@ test("IMPORT-02 Invalid CSV rows block persistence", async ({ fixture, page, nam
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
-  await page.getByRole("button", { name: "Change", exact: true }).click();
   await page
     .getByLabel("Upload a csv file")
     .setInputFiles(
@@ -104,10 +98,8 @@ test("IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, na
   const { uid } = fixture.user();
   await fixture.apply(page, { auth: { linked: true } });
   await page.goto("/import");
-  await page.getByRole("button", { name: "Change", exact: true }).click();
   const csvNamespace = namespace.id("remote");
   const file = validCsv(csvNamespace);
-  await page.getByRole("radio", { name: /Sync with account/ }).check();
   await page.getByLabel("Upload a csv file").setInputFiles(file);
   await expect(page.getByText("2 valid")).toBeVisible();
   await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
@@ -135,11 +127,8 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   const { uid } = fixture.user();
   await fixture.apply(page);
   await page.goto("/import");
-  await page.getByRole("button", { name: "Change", exact: true }).click();
   const csvNamespace = namespace.id("local");
   const file = validCsv(csvNamespace);
-  await expect(page.getByRole("radio", { name: /Local only/ })).toBeChecked();
-  await expect(page.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
   await page.getByLabel("Upload a csv file").setInputFiles(file);
   await expect(page.getByText("2 valid")).toBeVisible();
   await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
@@ -151,8 +140,8 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   const stored = await readLocalData(page);
   const decks = stored.decks.filter(({ name }: { name?: string }) => name === file.name);
   expect(decks).toHaveLength(1);
-  const localDeck = decks[0] as { id: string; localMode: boolean };
-  expect(localDeck.localMode).toBe(true);
+  const localDeck = decks[0];
+  if (!localDeck) throw new Error("Imported Deck missing");
   expect(stored.cards.filter(({ deckId }: { deckId?: string }) => deckId === localDeck.id)).toHaveLength(2);
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
@@ -162,7 +151,7 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   await expect(page.getByText(new RegExp(`^front ${csvNamespace} (one|two)$`))).toBeVisible();
 });
 
-test("IMPORT-05 A partial remote import retries without duplicates", async ({
+test("IMPORT-05 A rejected queued import reports failure without automatic replay", async ({
   browserErrors,
   fixture,
   namespace,
@@ -172,39 +161,23 @@ test("IMPORT-05 A partial remote import retries without duplicates", async ({
   const { uid } = fixture.user();
   await fixture.apply(page, { auth: { linked: true } });
   await page.goto("/import");
-  await page.getByRole("button", { name: "Change", exact: true }).click();
   const file = csvFile(`${namespace.id("retry")}.csv`, [
     `"retry front ${namespace.caseId}","retry back ${namespace.caseId}","","${namespace.id("retry-key")}"`,
   ]);
-  await page.getByRole("radio", { name: /Sync with account/ }).check();
   await page.getByLabel("Upload a csv file").setInputFiles(file);
   await expect(page.getByText("1 valid")).toBeVisible();
   const fault = await failNextFirestoreWrite(page, { collection: "card" });
 
   await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
-  await expect(page.getByRole("alert")).toContainText("You do not have permission to import this data.");
-  await expect(page.getByText(file.name, { exact: true }).first()).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Sync with account/ })).toBeChecked();
-  await expect.poll(async () => (await documentsForUid("deck", uid)).length).toBe(1);
+  await expect(page).toHaveURL(/\/$/);
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
+  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await fault.dispose();
   expect(await documentsForUid("card", uid)).toEqual([]);
-  const [partialDeck] = await documentsForUid("deck", uid);
-  if (partialDeck == null) throw new Error("Partially imported remote Deck was not found");
-  const partialDeckId = documentId(partialDeck);
-  if (partialDeckId === "") throw new Error("Partially imported remote Deck id was not found");
-
-  await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("alert")).toHaveCount(0);
-  await expect(page.getByRole("status").filter({ hasText: "Imported 1 card." })).toBeVisible();
-  await expect.poll(async () => (await documentsForUid("card", uid)).length).toBe(1);
-  const decksAfterRetry = await documentsForUid("deck", uid);
-  const cardsAfterRetry = await documentsForUid("card", uid);
-  expect(decksAfterRetry.map(documentId)).toEqual([partialDeckId]);
-  expect(cardsAfterRetry).toHaveLength(1);
-  expect(cardsAfterRetry[0]?.fields.deckId?.stringValue).toBe(partialDeckId);
+  expect(await documentsForUid("deck", uid)).toHaveLength(1);
+  await page.reload();
+  expect(await documentsForUid("card", uid)).toEqual([]);
 });
 
 test("IMPORT-06 All four examples share preview, download, and destination-aware import", async ({
@@ -218,7 +191,7 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
       label: "Basic",
       file: "basic-sample.csv",
       count: 3,
-      local: true,
+      local: false,
       representativeRow: ["apple", "りんご", "果物", "apple-001"],
     },
     {
@@ -232,7 +205,7 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
       label: "Markdown",
       file: "markdown-sample.csv",
       count: 2,
-      local: true,
+      local: false,
       representativeRow: ["Markdownで強調するには？", "**重要**な語句を強調します。", "md", "markdown-source"],
     },
     {
@@ -250,8 +223,6 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
   ];
   for (const example of examples) {
     await page.goto("/import");
-    await page.getByRole("button", { name: "Change", exact: true }).click();
-    await page.getByRole("radio", { name: example.local ? /Local only/ : /Sync with account/ }).check();
     await page.getByRole("button", { name: example.label, exact: true }).click();
     await page.getByText("View CSV source", { exact: true }).click();
     const downloadReady = page.waitForEvent("download");
@@ -279,37 +250,29 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
     await page.getByRole("button", { name: "Choose file or example", exact: true }).click();
     await expect(page.getByRole("button", { name: "Basic", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Sample deck", exact: true })).toBeVisible();
-    await expect(page.getByRole("radio", { name: example.local ? /Local only/ : /Sync with account/ })).toBeChecked();
     await page.getByRole("button", { name: example.label, exact: true }).click();
     await page.getByRole("button", { name: "Try this example", exact: true }).click();
     await expect(page.getByText(`uniqueKey: ${firstRow[3]}`, { exact: true })).toBeVisible();
     const localBefore = await readLocalData(page);
     expect(localBefore.decks.some(({ name }: { name?: string }) => name === example.file)).toBe(false);
-    expect((await documentsForUid("deck", uid)).some((deck) => deck.fields.name?.stringValue === example.file)).toBe(
-      false
-    );
+    expect(
+      (await documentsForUid("deck", uid)).some((document) => document.fields.name?.stringValue === example.file)
+    ).toBe(false);
     await page.getByRole("button", { name: `Add ${example.count} cards`, exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole("status").filter({ hasText: `Imported ${example.count} cards.` })).toBeVisible();
     await page.reload();
     await expect(page.getByRole("button", { name: `View ${example.file}`, exact: true })).toBeVisible();
     const local = await readLocalData(page);
-    const remoteDecks = await documentsForUid("deck", uid);
-    if (example.local) {
-      const deck = local.decks.find(({ name }: { name?: string }) => name === example.file);
-      expect(deck).toBeDefined();
-      const cards = local.cards.filter(({ deckId }: { deckId?: string }) => deckId === deck.id);
-      expect(cards).toHaveLength(example.count);
-      expect(remoteDecks.some((item) => item.fields.name?.stringValue === example.file)).toBe(false);
-    } else {
-      const deck = remoteDecks.find((item) => item.fields.name?.stringValue === example.file);
-      if (deck == null) throw new Error("Example deck was not saved remotely");
-      const cards = (await documentsForUid("card", uid)).filter(
-        (card) => card.fields.deckId?.stringValue === documentId(deck)
-      );
-      expect(cards).toHaveLength(example.count);
-      expect(local.decks.some(({ name }: { name?: string }) => name === example.file)).toBe(false);
-    }
+    const deck = local.decks.find((value) => value.name === example.file);
+    if (!deck) throw new Error("Imported Deck missing");
+    expect(local.cards.filter((card) => card.deckId === deck.id)).toHaveLength(example.count);
+    await expect
+      .poll(
+        async () =>
+          (await documentsForUid("card", uid)).filter((card) => card.fields.deckId?.stringValue === deck.id).length
+      )
+      .toBe(example.count);
     await page.getByRole("button", { name: `View ${example.file}`, exact: true }).click();
     await expect(page.getByRole("heading", { name: "Cards", exact: true })).toBeVisible();
     await expect(page.getByRole("article")).toHaveCount(example.count);
@@ -317,7 +280,7 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
 });
 
 test("IMPORT-07 Sample Deck is initialized once", async ({ fixture, page }) => {
-  const sampleDeckId = fixture.id("sample-v1");
+  const sampleDeckId = `${fixture.user().uid}-sample-v1`;
   expect(fixture.state.browser.preferences.loadSample).toBe(true);
   await fixture.apply(page);
 

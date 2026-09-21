@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import type { Difficulty } from "@/entities/study-progress/@x/deck";
-import type { deckCreateSchema, deckIdSchema, localDeckCreateSchema } from "./schema";
+import type { deckCreateSchema, deckIdSchema } from "./schema";
 
 /** Deck rendering category or syntax-highlighting language. */
 export type Category = string;
@@ -34,9 +34,8 @@ export type Deck = {
   createdAt: number;
   /** Unix epoch time in milliseconds when the Deck was last changed. */
   updatedAt: number;
-} & ({ localMode: true } | { uid: string; localMode: false });
+  uid: string;
+};
 
 /** Owner-free input accepted at the remote Deck creation boundary. */
 export type RemoteDeckCreateInput = z.input<typeof deckCreateSchema>;
-/** Input accepted at the local Deck creation boundary. */
-export type LocalDeckCreateInput = z.input<typeof localDeckCreateSchema>;

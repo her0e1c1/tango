@@ -8,7 +8,7 @@ const readSelectedTags = async (deckId: string): Promise<string[]> =>
 
 test("STUDY-SESSION-08 reveals, persists, and applies an additional Study tag", async ({ fixture, page }) => {
   const deck = fixture.deck();
-  const targetCard = fixture.card("card-10");
+  const targetCard = fixture.card("card-list-actions-03");
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}/start`);
 

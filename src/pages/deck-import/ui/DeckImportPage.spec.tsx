@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import { getI18n } from "react-i18next";
 import { selectDeckImportFile } from "../model/actions/selectDeckImportFile";
 import { fireEvent, render, screen, within } from "@testing-library/react";
@@ -19,7 +20,7 @@ const controls = vi.hoisted(() => ({
 
 vi.mock("@/entities/auth", () => ({
   getAuthSession: () => ({ status: "anonymous" }),
-  getAuthUid: () => "",
+  getAuthUid: () => "user-id",
   useAuth: () => ({ isAnonymous: true }),
 }));
 vi.mock("@/entities/card", async (importOriginal) => {
@@ -85,8 +86,6 @@ const renderPage = () =>
   );
 
 const selectLocalFile = async (name: string, backText = "back") => {
-  await userEvent.click(screen.getByRole("button", { name: "Change" }));
-  await userEvent.click(screen.getByRole("radio", { name: /Local only/ }));
   fireEvent.change(screen.getByLabelText("Upload a csv file"), {
     target: {
       files: [new File([`"front","${backText}","tag","key"`], name, { type: "text/csv" })],
@@ -104,19 +103,9 @@ describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06 SETTINGS-09]",
     controls.setDarkMode.mockReset();
   });
 
-  it("offers local storage by default and requires sign-in for cloud imports", async () => {
+  it("has no destination selector for anonymous imports", () => {
     renderPage();
-    expect(screen.getByText(/Sign in to save to the cloud/)).toBeVisible();
-    await userEvent.click(screen.getByRole("button", { name: "Change" }));
-    expect(screen.getByRole("radio", { name: /Local only/ })).toBeChecked();
-    expect(screen.getByRole("radio", { name: /Sync with account/ })).toBeDisabled();
-    fireEvent.change(screen.getByLabelText("Upload a csv file"), {
-      target: { files: [new File(["guest front,guest back,tag,key"], "guest-default.csv")] },
-    });
-    await userEvent.click(await screen.findByRole("button", { name: "Add 1 card" }));
-    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
-    expect(screen.getByText("guest-default.csv")).toBeVisible();
-    expect(screen.getByText("guest front: guest back")).toBeVisible();
+    expect(screen.queryByRole("radio", { name: /Local only/ })).not.toBeInTheDocument();
   });
 
   it("translates cached CSV diagnostics without reading again or changing the selected source", async () => {
@@ -210,8 +199,7 @@ describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06 SETTINGS-09]",
   it("reviews the sample deck and waits for the common save before navigating", async () => {
     const request = Promise.withResolvers<void>();
     renderPage();
-    await userEvent.click(screen.getByRole("button", { name: "Change" }));
-    await userEvent.click(screen.getByRole("radio", { name: /Local only/ }));
+
     await userEvent.click(screen.getByRole("button", { name: "Sample deck" }));
     await userEvent.click(screen.getByRole("button", { name: "Try this example" }));
     expect(await screen.findByRole("heading", { name: "Review import" })).toBeVisible();

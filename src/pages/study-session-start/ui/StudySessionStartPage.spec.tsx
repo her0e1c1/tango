@@ -1,3 +1,4 @@
+import "@/test/mockFirestorePersistence";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
@@ -87,14 +88,14 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
-  it("starts from Enter only outside interactive controls", () => {
+  it("starts from Enter only outside interactive controls", async () => {
     renderPage();
 
     fireEvent.keyDown(screen.getByRole("combobox", { name: "Maximum difficulty" }), { key: "Enter" });
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
     fireEvent.keyDown(document.body, { key: "Enter" });
-    expect(screen.getByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
 
@@ -147,7 +148,7 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
 
     await userEvent.click(screen.getByRole("button", { name: "Start 1 card" }));
 
-    expect(screen.getByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
 

@@ -1,10 +1,11 @@
+import { useDecks } from "@/entities/deck/@x/card";
 import { useStore } from "zustand";
 
 import { cardStore } from "../store";
 import type { Card } from "../types";
 
-// Reads remote and local Cards as one ordered collection.
 export const useCards = (): Card[] => {
   const state = useStore(cardStore);
-  return [...state.remoteCards, ...state.localCards];
+  const decks = useDecks();
+  return state.remoteCards.filter((card) => decks.some((deck) => deck.id === card.deckId && deck.uid === card.uid));
 };

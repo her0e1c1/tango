@@ -17,6 +17,7 @@ const session: StudySession = {
   cardOrderIds: ["card-1", "card-2", "card-3"],
   currentIndex: 1,
   lastStudiedAt: 0,
+  remote: { uid: "uid", startedAt: 0 },
 };
 
 describe("compareActiveDecks [STUDY-SESSION-06]", () => {

@@ -1,13 +1,10 @@
+import { setStudySessionIndex, restoreStudySession } from "@/test/entityFixtures";
+import "@/test/mockFirestorePersistence";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
-import {
-  clearStudySessions,
-  getStudySession,
-  setStudySessionIndex,
-  startStudy,
-  touchStudySession,
-} from "@/entities/study-session";
+import { clearStudySessions, getStudySession, touchStudySession } from "@/entities/study-session";
+import { startStudy } from "@/test/entityFixtures";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,7 +23,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-router-dom", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: mocks.uid }) }));
+vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: mocks.uid }), getAuthUid: () => mocks.uid }));
 vi.mock("@/entities/preference", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preference")>()),
   getPreferences: () => mocks.preferences,
@@ -83,7 +80,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       showSwipeFeedback: true,
       cardSwipeRight: "GoToNextCardMastered",
     });
-    startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
   });
 
   afterEach(() => {
@@ -144,7 +141,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
 
   it("reports invalid when the session has no current card", async () => {
     clearStudySessions();
-    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
     mocks.cards = [];
 
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
@@ -174,7 +171,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     const previousSessionId = getStudySession(deckId)?.sessionId;
 
     act(() => vi.advanceTimersByTime(500));
-    act(() => startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+    act(() => startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid));
     expect(getStudySession(deckId)?.sessionId).not.toBe(previousSessionId);
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
 
@@ -217,7 +214,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
+    act(() => {
+      void result.current.swipeRight();
+    });
     await actAsync(async () => result.current.swipeLeft());
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
 
@@ -232,7 +231,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result, unmount } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
+    act(() => {
+      void result.current.swipeRight();
+    });
     unmount();
     await actAsync(async () => {
       request.resolve();
@@ -243,32 +244,38 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
-  it("does not advance a session changed by the controller during the write", async () => {
+  it("serializes controller movement behind the pending answer", async () => {
     const request = Promise.withResolvers<void>();
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
-    setStudySessionIndex(deckId, 1);
+    act(() => {
+      void result.current.swipeRight();
+    });
+    act(() => {
+      void result.current.changeIndex(1);
+    });
     await actAsync(async () => {
       request.resolve();
       await request.promise;
     });
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledOnce();
   });
 
   it("does not complete a final Card when the active session is replaced during the write", async () => {
     clearStudySessions();
-    startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
     mocks.cards = cards.slice(0, 1);
     const request = Promise.withResolvers<void>();
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
-    act(() => startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+    act(() => {
+      void result.current.swipeRight();
+    });
+    act(() => startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid));
     await actAsync(async () => {
       request.resolve();
       await request.promise;
@@ -284,9 +291,11 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     mocks.editStudyProgress.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(result.current.swipeRight);
+    act(() => {
+      void result.current.swipeRight();
+    });
     vi.mocked(Date.now).mockReturnValue(946_684_800_100);
-    touchStudySession(deckId);
+    await touchStudySession(deckId);
     await actAsync(async () => {
       request.resolve();
       await request.promise;
@@ -331,11 +340,11 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     mocks.preferences = createPreferences({ cardSwipeLeft: "GoToPrevCard", showSwipeFeedback: true });
     setStudySessionIndex(deckId, index);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
-    act(result.current.toggleBackText);
+    await actAsync(async () => result.current.toggleBackText());
     const session = getStudySession(deckId);
 
     await actAsync(async () => result.current.swipeLeft());
-    act(() => result.current.changeIndex(0));
+    await actAsync(async () => result.current.changeIndex(0));
 
     expect(result.current.query.status).toBe("studying");
     expect(getStudySession(deckId)).toEqual(session);
@@ -355,6 +364,20 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
 
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
     expect(getStudySession(deckId)).toBeUndefined();
+    expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
+  });
+
+  it("shows a restored final Card instead of completion after a cloud rejection", async () => {
+    setStudySessionIndex(deckId, 1);
+    const { result } = renderHook(() => useStudySessionPageModel(deckId));
+    const previous = getStudySession(deckId);
+    if (!previous) throw new Error("Expected the final Card");
+    await actAsync(async () => result.current.swipeRight());
+    expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
+    await actAsync(async () => restoreStudySession(previous));
+    expect(result.current.query).toMatchObject({ status: "studying", card: { frontText: "card-2" } });
+    expect(result.current.pageState.completion).toBeUndefined();
+    await actAsync(async () => result.current.swipeRight());
     expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
   });
 
@@ -421,7 +444,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       expect(firstResult.current.pageState.completion).toEqual({ cardCount: 2 });
       const nextDeckId = destination === "other Deck" ? "deck-2" : deckId;
       if (destination === "other UID") mocks.uid = "user-2";
-      act(() => startStudy(nextDeckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }));
+      act(() => startStudy(nextDeckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid));
       const presentations: unknown[] = [];
       const { result: nextResult } = renderHook(() => {
         const model = useStudySessionPageModel(nextDeckId);
@@ -470,7 +493,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       firstResult.current.swipeRight();
     });
     unmountFirst();
-    startStudy("deck-2", cards, { shuffled: false, maxNumberOfCardsToLearn: 0 });
+    startStudy("deck-2", cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
     const { result: nextResult } = renderHook(() => useStudySessionPageModel("deck-2"));
     act(nextResult.current.openHelp);
     await actAsync(async () => {
@@ -515,4 +538,23 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     act(() => vi.advanceTimersByTime(500));
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
+});
+
+vi.mock("@/pages/study-session/api/saveStudyAnswer", async () => {
+  const { moveStudySession } = await import("@/test/entityFixtures");
+  const { planStudySessionSwipe } = await import("@/entities/study-session");
+  return {
+    saveStudyAnswer: async (
+      uid: string,
+      session: import("@/entities/study-session").StudySession,
+      action: import("@/entities/preference").Preferences["controls"]["cardSwipeUp"],
+      now: number
+    ) => {
+      const { getCards } = await import("@/entities/card");
+      const plan = planStudySessionSwipe(session, getCards(), action, now);
+      if (plan.effect !== "next") return;
+      await mocks.editStudyProgress(uid, plan.progress);
+      moveStudySession(session);
+    },
+  };
 });

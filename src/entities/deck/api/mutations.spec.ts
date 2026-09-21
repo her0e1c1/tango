@@ -1,21 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createDeck as createDeckFixture, createLocalDeck } from "@/test/factories";
+import { createDeck as createDeckFixture } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   createRemoteDeck: vi.fn(),
-  deleteLocalCardsByDeckId: vi.fn(),
   deleteRemoteDeck: vi.fn(),
   editRemoteDeck: vi.fn(),
-  moveLocalCardsToRemote: vi.fn(),
   abandonStudySession: vi.fn(),
 }));
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
-vi.mock("@/entities/card/@x/deck", () => ({
-  deleteLocalCardsByDeckId: mocks.deleteLocalCardsByDeckId,
-  moveLocalCardsToRemote: mocks.moveLocalCardsToRemote,
-}));
 vi.mock("@/entities/study-session/@x/deck", () => ({ abandonStudySession: mocks.abandonStudySession }));
 vi.mock("./firestore", () => ({
   createDeck: mocks.createRemoteDeck,
@@ -28,7 +22,7 @@ import { deckStore } from "../model/store";
 
 describe("Deck mutations [DECK-MANAGEMENT-01] [DECK-MANAGEMENT-02]", () => {
   beforeEach(() => {
-    deckStore.setState({ remoteDecks: [], localDecks: [] });
+    deckStore.setState({ remoteDecks: [] });
     localStorage.clear();
     vi.clearAllMocks();
   });
@@ -68,35 +62,5 @@ describe("Deck mutations [DECK-MANAGEMENT-01] [DECK-MANAGEMENT-02]", () => {
       name: "Renamed",
     });
     expect(mocks.deleteRemoteDeck).toHaveBeenCalledExactlyOnceWith("owner", deck.id);
-  });
-
-  it("moves a local Deck and its Cards to remote persistence when local mode is disabled", async () => {
-    const deck = createLocalDeck({ id: "local", name: "Local Deck", url: "https://example.com/local.csv" });
-    deckStore.setState({ localDecks: [deck] });
-
-    await editDeck("uid", { id: deck.id, name: "Synced Deck", url: null, localMode: false });
-
-    expect(mocks.createRemoteDeck).toHaveBeenCalledExactlyOnceWith(
-      "uid",
-      expect.objectContaining({ id: deck.id, name: "Synced Deck", localMode: false })
-    );
-    const remoteInput = mocks.createRemoteDeck.mock.calls[0]?.[1];
-    expect(remoteInput).not.toHaveProperty("uid");
-    expect(remoteInput).not.toHaveProperty("createdAt");
-    expect(remoteInput).not.toHaveProperty("updatedAt");
-    expect(remoteInput).not.toHaveProperty("url");
-    expect(mocks.moveLocalCardsToRemote).toHaveBeenCalledExactlyOnceWith("uid", deck.id);
-    expect(mocks.createRemoteDeck.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.moveLocalCardsToRemote.mock.invocationCallOrder[0] ?? 0
-    );
-    expect(deckStore.getState().localDecks).toEqual([]);
-  });
-
-  it("rejects moving a remote Deck into local storage", async () => {
-    const deck = createDeckFixture({ id: "remote", uid: "uid" });
-    deckStore.setState({ remoteDecks: [deck] });
-
-    await expect(editDeck("uid", { id: deck.id, localMode: true })).rejects.toThrow("cannot be moved to local storage");
-    expect(mocks.editRemoteDeck).not.toHaveBeenCalled();
   });
 });

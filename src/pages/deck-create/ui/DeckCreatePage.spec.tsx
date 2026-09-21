@@ -91,7 +91,7 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
 
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: "new-deck",
-      localMode: false,
+
       name: "New deck",
       category: "",
       convertToBr: true,
@@ -101,12 +101,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(screen.getByText("Created deck “New deck”.")).toBeVisible();
   });
 
-  it("defaults to local storage and prevents cloud creation while signed out", async () => {
-    mocks.uid = "";
+  it("creates an anonymous Deck without a destination selector", async () => {
+    mocks.uid = "anonymous";
     renderPage();
-    expect(screen.getByRole("radio", { name: "Local only" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "Cloud" })).toBeDisabled();
-    expect(screen.getByText(/Sign in to save to the cloud/)).toBeVisible();
     await userEvent.click(screen.getByText("More settings"));
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Local deck");
@@ -114,9 +111,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
-    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("", {
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("anonymous", {
       id: "new-deck",
-      localMode: true,
+
       name: "Local deck",
       category: "",
       convertToBr: true,
@@ -124,19 +121,17 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     });
   });
 
-  it("keeps creation local when the user signs out after choosing cloud", async () => {
+  it("uses the current anonymous UID after signing out", async () => {
     renderPage();
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Signed-out deck");
-    expect(screen.getByRole("radio", { name: "Cloud" })).toBeChecked();
-    mocks.uid = "";
+    mocks.uid = "anonymous";
 
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith(
-      "",
+      "anonymous",
       expect.objectContaining({
         name: "Signed-out deck",
-        localMode: true,
       })
     );
   });
@@ -149,7 +144,7 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
 
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: "new-deck",
-      localMode: false,
+
       name: "No source deck",
       category: "",
       convertToBr: false,
@@ -176,15 +171,10 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(category).toHaveValue("typescript");
     expect(sourceUrl).toHaveValue("https://example.com/failed.csv");
     expect(convertLineBreaks).toBeChecked();
-    const localMode = screen.getByRole("radio", { name: "Local only" });
-    expect(localMode).toBeEnabled();
-    expect(localMode).not.toBeChecked();
-    await userEvent.click(localMode);
-    expect(localMode).toBeChecked();
     expect(mocks.generateDeckId).toHaveBeenCalledOnce();
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: "new-deck",
-      localMode: false,
+
       name: "Failed deck",
       category: "typescript",
       convertToBr: true,
@@ -308,7 +298,6 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(screen.queryByText("Unable to create this deck.")).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Current deck");
     expect(screen.getByRole("button", { name: "Create deck" })).toBeDisabled();
-    expect(screen.getByRole("radio", { name: "Local only" })).toBeDisabled();
 
     await actAsync(async () => {
       newWrite.resolve();

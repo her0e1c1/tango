@@ -28,6 +28,7 @@ export const AccountView: React.FC<AccountViewProps> = ({
   return (
     <section className="mx-auto flex w-full max-w-reading flex-col gap-4 text-ink">
       <h1 className="break-words text-title font-bold text-ink">{t("account.title")}</h1>
+      {!isLoggedIn && <p className="text-caption text-ink-muted">{t("account.profile.anonymousDataHelp")}</p>}
       <section
         aria-labelledby="account-profile-heading"
         className="overflow-hidden rounded-surface border border-border bg-surface shadow-surface"

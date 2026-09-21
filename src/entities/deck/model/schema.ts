@@ -17,14 +17,12 @@ const editableDeckFieldsSchema = z.object({
   convertToBr: z.boolean(),
 });
 
-export const deckFormSchema = editableDeckFieldsSchema
-  .pick({
-    name: true,
-    category: true,
-    url: true,
-    convertToBr: true,
-  })
-  .extend({ localMode: z.boolean().optional() });
+export const deckFormSchema = editableDeckFieldsSchema.pick({
+  name: true,
+  category: true,
+  url: true,
+  convertToBr: true,
+});
 
 const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   id: deckIdSchema,
@@ -37,25 +35,11 @@ const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   convertToBr: editableDeckFieldsSchema.shape.convertToBr.default(false),
 });
 
-export const deckCreateSchema = deckCreateFieldsSchema.extend({
-  localMode: z.literal(false).default(false),
-});
-
-export const localDeckCreateSchema = deckCreateFieldsSchema.extend({ localMode: z.literal(true) });
-
-// Persisted v1 Decks may predate defaulted filtering fields, so hydration must reuse the create defaults.
-export const localDeckSchema = localDeckCreateSchema.extend({
-  createdAt: z.number(),
-  updatedAt: z.number(),
-});
-
-const persistedDeckSchema = localDeckSchema;
-export const persistedDeckStateSchema = z.object({ localDecks: z.array(persistedDeckSchema) });
+export const deckCreateSchema = deckCreateFieldsSchema;
 
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   id: deckIdSchema,
   url: editableDeckFieldsSchema.shape.url.nullable(),
-  localMode: z.boolean().optional(),
 });
 
 export const createDeckSchema = z.object({ uid: authenticatedUidSchema, deck: deckCreateSchema });

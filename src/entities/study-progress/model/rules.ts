@@ -14,7 +14,7 @@ import type {
 } from "./types";
 
 // Existing controls use Again/Good; navigation-only actions have no recall rating.
-const resolveStudyRating = (swipeAction: SwipeAction): StudyRating | undefined => {
+export const resolveStudyRating = (swipeAction: SwipeAction): StudyRating | undefined => {
   if (swipeAction === "GoToNextCardMastered") return "good";
   // Preserve the existing toggle behavior as a failed recall.
   if (swipeAction === "GoToNextCardNotMastered" || swipeAction === "GoToNextCardToggleMastered") {

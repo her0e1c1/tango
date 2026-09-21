@@ -1,3 +1,4 @@
+rules_version = '2';
 service cloud.firestore {
   function isSignedIn() {
     return request.auth != null &&
@@ -14,6 +15,17 @@ service cloud.firestore {
     return request.auth.uid == request.resource.data.uid;
   }
   match /databases/{database}/documents {
+    match /studyAnswer/{answerId} {
+      function hasOwnedReferences() {
+        let answer = request.resource.data;
+        let session = getAfter(/databases/$(database)/documents/studySession/$(answer.sessionId)).data;
+        let card = getAfter(/databases/$(database)/documents/card/$(answer.cardId)).data;
+        return session.uid == request.auth.uid && card.uid == request.auth.uid &&
+          answer.deckId == session.deckId && card.deckId == session.deckId;
+      }
+      allow read: if isSignedIn() && isOwner();
+      allow create: if isSignedIn() && isValid() && hasOwnedReferences();
+    }
     match /studySession/{sessionId} {
       allow read: if isSignedIn() && isOwner();
       allow create: if isSignedIn() && isValid();
@@ -21,7 +33,7 @@ service cloud.firestore {
     }
     match /deck/{deckId} {
       function isPublic() {
-        return resource.data.isPublic == true;
+        return resource.data.isPublic == true && resource.data.get('deletedAt', null) == null;
       }
       allow read: if isOwner() || isPublic();
       allow create: if isSignedIn() && isValid();
@@ -33,10 +45,12 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/deck/$(deckId));
       }
       function isPublic() {
-        return getDeck(resource.data.deckId).data.isPublic == true;
+        let deck = getDeck(resource.data.deckId).data;
+        return deck.isPublic == true && deck.get('deletedAt', null) == null &&
+               resource.data.get('deletedAt', null) == null;
       }
       function belongsToDeck() {
-        return getDeck(request.resource.data.deckId).data.uid == request.auth.uid
+        return getAfter(/databases/$(database)/documents/deck/$(request.resource.data.deckId)).data.uid == request.auth.uid;
       }
       allow read: if isOwner() || isPublic();
       allow create: if isSignedIn() && isValid() && belongsToDeck();

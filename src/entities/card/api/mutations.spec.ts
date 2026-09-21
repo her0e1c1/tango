@@ -1,11 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  createCard as createCardFixture,
-  createDeck as createDeckFixture,
-  createLocalCard,
-  createLocalDeck,
-} from "@/test/factories";
+import { createCard as createCardFixture, createDeck as createDeckFixture } from "@/test/factories";
 const mocks = vi.hoisted(() => ({
   createRemoteCard: vi.fn(),
   deleteRemoteCard: vi.fn(),
@@ -14,7 +9,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ db: {} }));
-vi.mock("@/entities/deck/@x/card", () => ({ findDeckById: mocks.findDeckById }));
+vi.mock("@/entities/deck/@x/card", () => ({
+  findDeckById: mocks.findDeckById,
+  getDecks: () => [createDeckFixture({ uid: "owner" })],
+}));
 vi.mock("./firestore", () => ({
   createCard: mocks.createRemoteCard,
   deleteCard: mocks.deleteRemoteCard,
@@ -22,47 +20,27 @@ vi.mock("./firestore", () => ({
 }));
 
 import { cardStore } from "../model/store";
-import { createCard, deleteCard, editCard, moveLocalCardsToRemote } from "./mutations";
+import { createCard, deleteCard, editCard } from "./mutations";
 
 describe("CARD-MANAGEMENT-02 Card mutations", () => {
   beforeEach(() => {
-    cardStore.setState({ remoteCards: [], localCards: [] });
+    cardStore.setState({ remoteCards: [] });
     localStorage.clear();
     vi.clearAllMocks();
     mocks.findDeckById.mockReset();
   });
 
-  it("creates one Card through the owning Deck persistence mode", async () => {
-    const localDeck = createLocalDeck({ id: "local-deck" });
-    const remoteDeck = createDeckFixture({ id: "remote-deck", uid: "owner" });
-    mocks.findDeckById.mockImplementation((id) =>
-      id === localDeck.id ? localDeck : id === remoteDeck.id ? remoteDeck : undefined
-    );
-
-    await createCard("", {
-      id: "local-card",
-      deckId: localDeck.id,
-      frontText: "Local front",
-      backText: "Local back",
-      tags: ["custom"],
-      uniqueKey: "local-card",
-    });
-    await createCard("owner", {
-      id: "remote-card",
-      deckId: remoteDeck.id,
-      frontText: "Remote front",
-      backText: "Remote back",
+  it.each(["anonymous-owner", "linked-owner"])("creates a Card for %s through Firestore", async (uid) => {
+    mocks.findDeckById.mockReturnValue(createDeckFixture({ id: "deck", uid }));
+    await createCard(uid, {
+      id: "card",
+      deckId: "deck",
+      frontText: "Front",
+      backText: "Back",
       tags: [],
-      uniqueKey: "remote-card",
+      uniqueKey: "key",
     });
-
-    expect(cardStore.getState().localCards).toEqual([
-      expect.objectContaining({ id: "local-card", deckId: localDeck.id, tags: ["custom"] }),
-    ]);
-    expect(mocks.createRemoteCard).toHaveBeenCalledWith(
-      "owner",
-      expect.objectContaining({ id: "remote-card", deckId: remoteDeck.id, uid: "owner" })
-    );
+    expect(mocks.createRemoteCard).toHaveBeenCalledWith(uid, expect.objectContaining({ id: "card", uid }));
   });
 
   it("rejects an unknown Deck and a mismatched remote owner before writing", async () => {
@@ -94,33 +72,11 @@ describe("CARD-MANAGEMENT-02 Card mutations", () => {
     await expect(deleteCard("uid", card.id)).rejects.toThrow('Card "missing" was not found');
   });
 
-  it("rejects edit and delete when the Card parent Deck cannot be resolved", async () => {
-    const card = createCardFixture({ id: "orphan", deckId: "missing-deck" });
-    cardStore.setState({ remoteCards: [card] });
-
-    await expect(editCard("uid", { id: card.id, frontText: "Updated" })).rejects.toThrow(
-      'Deck "missing-deck" was not found'
-    );
-    await expect(deleteCard("uid", card.id)).rejects.toThrow('Deck "missing-deck" was not found');
-  });
-
-  it("moves every local Card for a Deck to remote persistence before deleting local copies", async () => {
-    const cards = [
-      createLocalCard({ id: "first", deckId: "deck" }),
-      createLocalCard({ id: "second", deckId: "deck" }),
-      createLocalCard({ id: "other", deckId: "other-deck" }),
-    ];
-    cardStore.setState({ localCards: cards });
-
-    await moveLocalCardsToRemote("uid", "deck");
-
-    expect(mocks.createRemoteCard).toHaveBeenCalledTimes(2);
-    expect(mocks.createRemoteCard).toHaveBeenCalledWith(
-      "uid",
-      expect.objectContaining({ id: "first", deckId: "deck", uid: "uid" })
-    );
-    expect(mocks.createRemoteCard.mock.calls[0]?.[1]).not.toHaveProperty("createdAt");
-    expect(mocks.createRemoteCard.mock.calls[0]?.[1]).not.toHaveProperty("updatedAt");
-    expect(cardStore.getState().localCards).toEqual([cards[2]]);
+  it("rejects another owner's Card before editing or deleting", async () => {
+    cardStore.setState({ remoteCards: [createCardFixture({ id: "card", uid: "owner" })] });
+    await expect(editCard("other", { id: "card", frontText: "Updated" })).rejects.toThrow("owner does not match");
+    await expect(deleteCard("other", "card")).rejects.toThrow("owner does not match");
+    expect(mocks.editRemoteCard).not.toHaveBeenCalled();
+    expect(mocks.deleteRemoteCard).not.toHaveBeenCalled();
   });
 });

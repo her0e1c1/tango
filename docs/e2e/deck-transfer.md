@@ -2,42 +2,17 @@
 
 ## 目的
 
-Deck と Card の保存先を local-only から remote へ移行し、Deck の Card を外部で利用できる形式へ export できることを確認する。
+Deck の Card を外部で利用できる形式へ export できることを確認する。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| DECK-TRANSFER-01 | batch | [local-only Deck と Card を remote へ移行できる](#deck-transfer-01) |
-| DECK-TRANSFER-02 | read | [Deck の Card を CSV で export できる](#deck-transfer-02) |
+| DECK-TRANSFER-01 | read | [Deck の Card を CSV で export できる](#deck-transfer-01) |
 
 <a id="deck-transfer-01"></a>
 
-### DECK-TRANSFER-01 local-only Deck と Card を remote へ移行できる
-
-カテゴリ: `batch`
-
-Given:
-
-- Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- Google アカウントにログインしたユーザーの browser storage に local-only Deck が存在する。
-- 未ログインでは Cloud へ移行できず、ログイン後の明示的な保存によってのみ移行する。
-- 対象 Deck に複数の local-only Card が存在する。
-
-When:
-
-- 対象 Deck の Local only を無効にして保存し、画面を reload する。
-
-Then:
-
-- Deck の更新成功が共通 toast で表示される。
-- 対象 Deck とすべての Card が remote から読み込まれて表示される。
-- browser storage に移行前の Deck と Card の duplicate が残らない。
-- browser error が発生しない。
-
-<a id="deck-transfer-02"></a>
-
-### DECK-TRANSFER-02 Deck の Card を CSV で export できる
+### DECK-TRANSFER-01 Deck の Card を CSV で export できる
 
 カテゴリ: `read`
 
