@@ -94,12 +94,14 @@ interface StudyModeActionsProps {
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
+  showSkipControls?: boolean;
   playbackControlsAvailable: boolean;
   playbackDescriptionId: string;
   onEscape: React.KeyboardEventHandler<HTMLButtonElement>;
   onToggleCardDetails: () => void;
   onToggleSwipeControls: () => void;
   onTogglePlaybackControls: () => void;
+  onToggleSkipControls?: () => void;
 }
 
 const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
