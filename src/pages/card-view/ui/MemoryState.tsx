@@ -21,10 +21,6 @@ interface MemoryStateProps {
 export function MemoryState({ memory }: MemoryStateProps) {
   const { t, i18n } = useTranslation();
   const id = useId();
-  const percent = (value: number) =>
-    new Intl.NumberFormat(i18n.language, { style: "percent", maximumFractionDigits: 1 }).format(value);
-  const date = (value: number) =>
-    new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium", timeStyle: "short" }).format(value);
   if (memory === undefined) {
     return (
       <section
@@ -36,19 +32,20 @@ export function MemoryState({ memory }: MemoryStateProps) {
       </section>
     );
   }
+  const percent = new Intl.NumberFormat(i18n.language, { style: "percent", maximumFractionDigits: 1 });
+  const date = new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium", timeStyle: "short" });
   const { at, start, end, lastReviewedAt, dueAt, retrievability, dueRetrievability, isDue, target, points } = memory;
   const x = (time: number) => 44 + (296 * (time - start)) / (end - start);
   const y = (probability: number) => 204 - 140 * probability;
   const span = end - start;
   const unit = span < 3_600_000 ? "minute" : span < 172_800_000 ? "hour" : "day";
   const divisor = unit === "minute" ? 60_000 : unit === "hour" ? 3_600_000 : 86_400_000;
-  const elapsed = (time: number) =>
-    new Intl.NumberFormat(i18n.language, {
-      style: "unit",
-      unit,
-      unitDisplay: "short",
-      maximumFractionDigits: 1,
-    }).format((time - lastReviewedAt) / divisor);
+  const elapsed = new Intl.NumberFormat(i18n.language, {
+    style: "unit",
+    unit,
+    unitDisplay: "short",
+    maximumFractionDigits: 1,
+  });
   const path = points
     .map((point, index) => `${index === 0 ? "M" : "L"}${String(x(point.time))},${String(y(point.probability))}`)
     .join(" ");
@@ -62,9 +59,9 @@ export function MemoryState({ memory }: MemoryStateProps) {
       </h2>
       <p className="mt-2">{t("memory.explanation")}</p>
       <p className="mt-3 text-2xl font-semibold">
-        {t("memory.retrievability")}: {percent(retrievability)}
+        {t("memory.retrievability")}: {percent.format(retrievability)}
       </p>
-      <p>{t("memory.asOf", { time: date(at) })}</p>
+      <p>{t("memory.asOf", { time: date.format(at) })}</p>
       <svg
         viewBox="0 0 360 260"
         role="img"
@@ -73,15 +70,15 @@ export function MemoryState({ memory }: MemoryStateProps) {
       >
         <title id={`${id}-title`}>{t("memory.chart")}</title>
         <desc id={`${id}-description`}>
-          {t("memory.explanation")} {t("memory.asOf", { time: date(at) })}: {percent(retrievability)}.{" "}
-          {t("memory.nextReview")}: {date(dueAt)}, {percent(dueRetrievability)}. {t("memory.target")}: {percent(target)}
-          .
+          {t("memory.explanation")} {t("memory.asOf", { time: date.format(at) })}: {percent.format(retrievability)}.{" "}
+          {t("memory.nextReview")}: {date.format(dueAt)}, {percent.format(dueRetrievability)}. {t("memory.target")}:{" "}
+          {percent.format(target)}.
         </desc>
         {[0, 0.5, 1].map((value) => (
           <g key={value}>
             <line x1="44" x2="340" y1={y(value)} y2={y(value)} stroke="currentColor" opacity="0.2" />
             <text x="39" y={y(value) + 4} textAnchor="end" fontSize="11" fill="currentColor">
-              {percent(value)}
+              {percent.format(value)}
             </text>
           </g>
         ))}
@@ -115,7 +112,7 @@ export function MemoryState({ memory }: MemoryStateProps) {
             fontSize="11"
             fill="currentColor"
           >
-            {elapsed(time)}
+            {elapsed.format((time - lastReviewedAt) / divisor)}
           </text>
         ))}
         <text x="192" y="249" textAnchor="middle" fontSize="12" fill="currentColor">
@@ -125,23 +122,23 @@ export function MemoryState({ memory }: MemoryStateProps) {
       <dl className="mt-2 grid gap-3 sm:grid-cols-2">
         <div>
           <dt className="font-semibold">{t("memory.lastReview")}</dt>
-          <dd>{date(lastReviewedAt)}</dd>
+          <dd>{date.format(lastReviewedAt)}</dd>
         </div>
         <div>
           <dt className="font-semibold">{t("memory.nextReview")}</dt>
           <dd>
-            {date(dueAt)}
+            {date.format(dueAt)}
             {isDue ? ` · ${t("memory.due")}` : ""}
           </dd>
         </div>
         <div>
           <dt className="font-semibold">{t("memory.atDue")}</dt>
-          <dd>{percent(dueRetrievability)}</dd>
+          <dd>{percent.format(dueRetrievability)}</dd>
         </div>
         <div>
           <dt className="font-semibold">{t("memory.target")}</dt>
           <dd>
-            {percent(target)} — {t("memory.targetHelp")}
+            {percent.format(target)} — {t("memory.targetHelp")}
           </dd>
         </div>
       </dl>
