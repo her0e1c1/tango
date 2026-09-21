@@ -7,6 +7,7 @@ import "@/shared/firebase";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter } from "react-router-dom";
+// biome-ignore lint/correctness/noUnresolvedImports: Vite generates this virtual module; it has no filesystem path.
 import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import { AppErrorBoundary } from "./error-boundary";

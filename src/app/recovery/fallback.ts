@@ -2,6 +2,7 @@ import { getRecoveryMessages } from "./messages";
 import { requestApplicationReset } from "./reset";
 
 export function showStartupFailure(error: unknown): void {
+  // biome-ignore lint/suspicious/noConsole: Preserve startup failure diagnostics when React cannot mount.
   console.error("Tango startup failed", error);
   const messages = getRecoveryMessages();
   document.documentElement.lang = messages.language;
