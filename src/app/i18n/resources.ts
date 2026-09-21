@@ -2,6 +2,23 @@
 export const resources = {
   en: {
     translation: {
+      memory: {
+        title: "Memory state",
+        empty: "No FSRS memory state yet. It will appear after a rated study answer.",
+        explanation: "FSRS estimates how likely you are to recall this card if you do not review it again.",
+        retrievability: "Estimated recall",
+        asOf: "As of {{time}}",
+        chart: "Forgetting curve",
+        snapshot: "Snapshot",
+        nextReview: "Next review",
+        lastReview: "Last review",
+        elapsed: "Time since last review",
+        due: "Review due",
+        atDue: "Estimated recall at next review",
+        target: "Target retention",
+        targetHelp: "Dashed guide; the saved review time can differ from its intersection with the curve.",
+      },
+
       validation: {
         required: {
           frontText: "Front text is required.",
@@ -731,6 +748,23 @@ export const resources = {
   },
   ja: {
     translation: {
+      memory: {
+        title: "記憶状態",
+        empty: "FSRSによる記憶状態はまだありません。評価を伴う学習後に表示されます。",
+        explanation: "追加で復習しなかった場合に、このカードを思い出せる確率のFSRSによる推定です。",
+        retrievability: "推定想起率",
+        asOf: "{{time}}時点",
+        chart: "忘却曲線",
+        snapshot: "基準時刻",
+        nextReview: "次回復習日時",
+        lastReview: "最終復習日時",
+        elapsed: "最終復習からの経過時間",
+        due: "復習期限到来",
+        atDue: "次回復習時の推定想起率",
+        target: "目標保持率",
+        targetHelp: "破線の補助線。保存済みの復習日時は曲線との交点と一致するとは限りません。",
+      },
+
       validation: {
         required: {
           frontText: "表面のテキストは必須です。",

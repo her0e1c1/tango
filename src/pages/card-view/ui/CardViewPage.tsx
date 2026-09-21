@@ -6,11 +6,13 @@ import { CardView } from "@/entities/card";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
+import { MemoryState } from "./MemoryState";
 import { useCardViewPageModel } from "../model/useCardViewPageModel";
 
 export const CardViewPage: React.FC = () => {
   const { t } = useTranslation();
   const params = useParams();
+  if (params.id == null) throw new Error("invalid card id");
   const state = useCardViewPageModel(params.id);
 
   if (state == null) {
@@ -22,6 +24,7 @@ export const CardViewPage: React.FC = () => {
   return (
     <AppLayout showHeader>
       <CardView {...state} />
+      <MemoryState memory={state.memory} />
     </AppLayout>
   );
 };

@@ -111,6 +111,7 @@
 | CARD-VIEW-03 | read | [開いている Card の裏面 overlay を閉じられる](./card-view.md#card-view-03) |
 | CARD-VIEW-04 | read | [Card view を直接開ける](./card-view.md#card-view-04) |
 | CARD-VIEW-05 | read | [存在しない Card から復帰できる](./card-view.md#card-view-05) |
+| CARD-VIEW-06 | write | [評価後の記憶状態を確認できる](./card-view.md#card-view-06) |
 
 ### Card Management
 
