@@ -1,4 +1,4 @@
-import { setStudySessionIndex } from "@/test/entityFixtures";
+import { setStudySessionIndex, restoreStudySession } from "@/test/entityFixtures";
 import "@/test/mockFirestorePersistence";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
@@ -364,6 +364,20 @@ describe("Study Page model [SWIPE-05] [SWIPE-02] [SWIPE-08] [SWIPE-09] [SWIPE-10
 
     expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
     expect(getStudySession(deckId)).toBeUndefined();
+    expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
+  });
+
+  it("shows a restored final Card instead of completion after a cloud rejection", async () => {
+    setStudySessionIndex(deckId, 1);
+    const { result } = renderHook(() => useStudySessionPageModel(deckId));
+    const previous = getStudySession(deckId);
+    if (!previous) throw new Error("Expected the final Card");
+    await actAsync(async () => result.current.swipeRight());
+    expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
+    await actAsync(async () => restoreStudySession(previous));
+    expect(result.current.query).toMatchObject({ status: "studying", card: { frontText: "card-2" } });
+    expect(result.current.pageState.completion).toBeUndefined();
+    await actAsync(async () => result.current.swipeRight());
     expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
   });
 

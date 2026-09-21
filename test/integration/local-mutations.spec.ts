@@ -8,7 +8,9 @@ import {
   getDocFromCache,
   getDocsFromCache,
   waitForPendingWrites,
+  setDoc,
 } from "firebase/firestore";
+import { writeLocally } from "@/shared/firestore-write";
 import { replaceAuthSession } from "@/entities/auth";
 import { createCard, deleteCard, editCard, getCards } from "@/entities/card";
 import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
@@ -43,6 +45,17 @@ afterEach(async () => {
 });
 
 describe("Firestore cache mutations [CARD-04 PERSIST-02 PERSIST-04 SWIPE-10]", () => {
+  it("completes offline writes without active listeners, including unchanged writes", async () => {
+    stop();
+    const reference = doc(testDb, "deck", deckId);
+    await createDeck("uid", { id: deckId, name: "Offline cache" });
+    const value = (await getDocFromCache(reference)).data();
+    if (!value) throw new Error("Expected a cached Deck");
+    await writeLocally("uid", [reference], () => setDoc(reference, value));
+    await writeLocally("uid", [reference], () => setDoc(reference, value));
+    expect((await getDocFromCache(reference)).data()).toEqual(value);
+  });
+
   it("completes offline Card writes and hides every child after deleting its Deck", async () => {
     await createDeck("uid", { id: deckId, name: "Offline" });
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));

@@ -20,8 +20,12 @@ service cloud.firestore {
         let answer = request.resource.data;
         let session = get(/databases/$(database)/documents/studySession/$(answer.sessionId)).data;
         let after = getAfter(/databases/$(database)/documents/studySession/$(answer.sessionId)).data;
+        let previousCard = get(/databases/$(database)/documents/card/$(answer.cardId)).data;
         let card = getAfter(/databases/$(database)/documents/card/$(answer.cardId)).data;
         return answer.keys().hasOnly(['uid', 'sessionId', 'deckId', 'cardId', 'answer', 'answeredAt', 'createdAt', 'updatedAt']) &&
+          answerId == answer.sessionId + '-' + string(session.currentIndex) &&
+          card.numberOfSeen == previousCard.get('numberOfSeen', 0) + 1 &&
+          card.lastSeenAt == answer.answeredAt.toMillis() && card.updatedAt == answer.answeredAt.toMillis() &&
           answer.uid == request.auth.uid && session.uid == request.auth.uid && card.uid == request.auth.uid &&
           answer.deckId == session.deckId && card.deckId == session.deckId &&
           session.endReason == null && session.cardOrderIds[session.currentIndex] == answer.cardId &&

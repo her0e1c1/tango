@@ -9,6 +9,7 @@ import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 
 const marker = "tango-firestore-migrated";
+const ownerKey = "tango-firestore-migration-owner";
 const legacyEnvelope = z.object({ version: z.number(), state: z.record(z.string(), z.unknown()) });
 const legacyRows = z.array(z.record(z.string(), z.unknown()));
 
@@ -20,6 +21,8 @@ function readLegacy(key: string): Record<string, unknown> | undefined {
 /** Release compatibility only: retain the original keys and import once before editing becomes available. */
 export async function migrateLegacyData(uid: string): Promise<void> {
   if (localStorage.getItem(marker) !== null) return;
+  const owner = localStorage.getItem(ownerKey);
+  if (owner !== null && owner !== uid) return;
   const legacyDecks = readLegacy("tango-local-decks");
   const legacyCards = readLegacy("tango-local-cards");
   if (legacyDecks === undefined && legacyCards === undefined) return;
@@ -87,6 +90,8 @@ export async function migrateLegacyData(uid: string): Promise<void> {
       },
     });
   }
+  // Claim the source before any asynchronous writes; interrupted imports may resume only for this UID.
+  localStorage.setItem(ownerKey, uid);
   // Preserve parent order and stay within the rules budget of 20 document lookups per batch.
   // Fixed IDs make an interrupted import repeatable.
   for (let index = 0; index < documents.length; index += 20) {

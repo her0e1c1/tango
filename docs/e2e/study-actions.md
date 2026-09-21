@@ -45,6 +45,7 @@ Then:
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
 - 実行した swipe 方向が、言語に依存しないアイコンとして共通 toast で短時間表示される。
+- 回答の ID は session と回答位置に対応し、別 ID での同じ回答や、Card の学習回数・回答時刻を更新しない回答 batch は Security Rules が拒否する。
 - browser error が発生しない。
 
 <a id="swipe-03"></a>
@@ -143,6 +144,7 @@ When:
 Then:
 
 - 失敗した試行では swipe feedback が表示されず、成功した再試行だけ共通 toast が表示される。
+- 最終回答の cache 反映後に remote が拒否した場合も、復元された Card を表示して完了画面を解除し、再試行できる。
 - 再試行した学習結果が一度だけ保存される。
 - session の位置が次の Card へ一度だけ進む。
 - 次の Card の front text が表示される。

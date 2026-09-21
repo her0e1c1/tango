@@ -185,6 +185,23 @@ describe("PERSIST-01 PERSIST-04 Firestore ownership and guest write restrictions
         await assertSucceeds(getDoc(doc(db, "studyAnswer", `session-${String(index)}`)));
       }
     });
+    it.each(["different ID", "duplicate ID", "missing progress", "unchanged count", "wrong timestamp"])(
+      "rejects an answer batch with %s",
+      async (fault) => {
+        const db = ownerDb();
+        const batch = writeBatch(db);
+        batch.set(doc(db, "studyAnswer", fault === "different ID" ? "other" : "session-0"), answer());
+        if (fault === "duplicate ID") batch.set(doc(db, "studyAnswer", "duplicate"), answer());
+        if (fault !== "missing progress")
+          batch.update(doc(db, "card", "first"), {
+            numberOfSeen: fault === "unchanged count" ? 0 : 1,
+            lastSeenAt: fault === "wrong timestamp" ? 1000 : 2000,
+            updatedAt: 2000,
+          });
+        batch.update(doc(db, "studySession", "session"), { currentIndex: 1 });
+        await assertFails(batch.commit());
+      }
+    );
     it("rejects an answer without its session advancement and forbids rewriting history", async () => {
       const db = ownerDb();
       await assertFails(setDoc(doc(db, "studyAnswer", "standalone"), answer()));

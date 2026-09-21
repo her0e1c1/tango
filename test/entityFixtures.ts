@@ -3,3 +3,4 @@ export { replaceRemoteDecks } from "@/entities/deck/model/actions/replaceRemoteD
 export { startStudy } from "@/entities/study-session/model/actions/startStudy";
 export { moveStudySession } from "@/entities/study-session/model/actions/moveStudySession";
 export { setStudySessionIndex } from "@/entities/study-session/model/actions/setStudySessionIndex";
+export { restoreStudySession } from "@/entities/study-session/model/actions/restoreStudySession";
