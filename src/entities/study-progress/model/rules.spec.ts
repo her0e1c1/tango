@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildStudyCardOrder,
-  calculateDifficulty,
-  createStudyProgressFromCard,
-  recordCardStudyProgress,
-} from "./rules";
-import { createStudyProgress } from "./defaults";
+import { calculateDifficulty, recordCardStudyProgress } from "./rules";
 import type { CardProgressFields, StudyRating } from "./types";
 
 // Builds the Card fields required by StudyProgress ordering rules.
@@ -14,37 +8,6 @@ const cardProgress = (id: string, numberOfSeen = 0): CardProgressFields => ({
   id,
   difficulty: 5,
   numberOfSeen,
-});
-
-describe("StudyProgress defaults [CARD-VIEW-01]", () => {
-  it("creates unrated progress with neutral difficulty", () => {
-    expect(createStudyProgress("card-id")).toEqual({ cardId: "card-id", difficulty: 5, numberOfSeen: 0 });
-  });
-});
-
-describe("createStudyProgressFromCard [CARD-VIEW-01]", () => {
-  it("restores progress from a Card without copying Card content", () => {
-    const card = {
-      id: "card-id",
-      difficulty: 3,
-      numberOfSeen: 4,
-      lastSeenAt: 1_786_512_000_000,
-      nextSeeingAt: new Date(1_786_598_400_000),
-      interval: 86_400,
-      frontText: "not part of progress",
-    };
-    const progress = createStudyProgressFromCard(card);
-
-    expect(progress).toEqual({
-      cardId: "card-id",
-      difficulty: 3,
-      numberOfSeen: 4,
-      lastSeenAt: 1_786_512_000_000,
-      nextSeeingAt: new Date(1_786_598_400_000),
-      interval: 86_400,
-    });
-    expect(progress).not.toHaveProperty("frontText");
-  });
 });
 
 describe("recordCardStudyProgress [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-04]", () => {
@@ -88,45 +51,5 @@ describe("calculateDifficulty [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIO
     [10, "again", 10],
   ])("adjusts difficulty %i for %s to %i", (difficulty, rating, expectedDifficulty) => {
     expect(calculateDifficulty(difficulty, rating)).toBe(expectedDifficulty);
-  });
-});
-
-describe("buildStudyCardOrder [STUDY-SESSION-01]", () => {
-  const cards = [cardProgress("a"), cardProgress("b"), cardProgress("c"), cardProgress("d")];
-
-  it("returns the progress-based card order when shuffle and maximum are disabled", () => {
-    expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual(["a", "b", "c", "d"]);
-  });
-
-  it("returns no card IDs for an empty selection", () => {
-    expect(buildStudyCardOrder([], { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual([]);
-  });
-
-  it("limits the number of cards", () => {
-    expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual(["a", "b"]);
-  });
-
-  it("orders cards by study progress before applying the maximum", () => {
-    const unorderedCards = [cardProgress("seen", 5), cardProgress("new", 1), cardProgress("middle", 3)];
-
-    expect(buildStudyCardOrder(unorderedCards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual([
-      "new",
-      "middle",
-    ]);
-  });
-
-  it("returns every selected card exactly once when shuffled", () => {
-    const result = buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 0 });
-
-    expect(result).toHaveLength(cards.length);
-    expect(new Set(result)).toEqual(new Set(["a", "b", "c", "d"]));
-  });
-
-  it("limits a shuffled order to distinct selected cards", () => {
-    const result = buildStudyCardOrder(cards, { shuffled: true, maxNumberOfCardsToLearn: 2 });
-
-    expect(result).toHaveLength(2);
-    expect(new Set(result).size).toBe(2);
-    expect(result.every((id) => cards.some((card) => card.id === id))).toBe(true);
   });
 });

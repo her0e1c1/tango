@@ -1,7 +1,8 @@
+import { studyScheduleDocumentSchema } from "@/entities/study-schedule/@x/card";
 import { z } from "zod";
 
-import { difficultySchema, studyScheduleSchema } from "@/entities/study-progress/@x/card";
-import { firestoreTimestampDateSchema, parseFirestoreDocument } from "@/shared/api";
+import { difficultySchema } from "@/entities/study-progress/@x/card";
+import { parseFirestoreDocument } from "@/shared/api";
 
 const sharedCardDocumentSchema = z.object({
   // Older documents may duplicate the Firestore document id in their stored fields.
@@ -17,9 +18,7 @@ const sharedCardDocumentSchema = z.object({
   deletedAt: z.number().nullable(),
   numberOfSeen: z.number(),
   lastSeenAt: z.number().optional(),
-  nextSeeingAt: firestoreTimestampDateSchema.optional(),
-  interval: z.number().optional(),
-  schedule: studyScheduleSchema.optional(),
+  ...studyScheduleDocumentSchema.shape,
   url: z.string().optional(),
   startLine: z.number().optional(),
   endLine: z.number().optional(),

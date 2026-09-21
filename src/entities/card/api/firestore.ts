@@ -22,19 +22,25 @@ import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
-/** Cross-Entity read contract for the two models sharing one physical Card document. */
+/** Cross-Entity read contract for the models sharing one physical Card document. */
 interface CardRead {
   card: RemoteCardRead;
   progress: StudyProgress;
+  timing: Pick<RemoteCard, "schedule" | "nextSeeingAt" | "interval">;
 }
 
-/** Maps one physical Card document into independent Card and StudyProgress read models. */
+/** Maps one physical Card document into Card, StudyProgress, and review timing. */
 const mapCardRead = (id: CardId, value: unknown): CardRead => {
-  // Both Entities share one physical document, so their mappings must observe the same validated snapshot.
+  // These Entities share one physical document, so their mappings must observe the same validated snapshot.
   const document = parseCardDocument(id, value);
   return {
     card: mapCardDocument(id, document),
     progress: mapStudyProgressDocument(id, document),
+    timing: omitUndefined({
+      schedule: document.schedule,
+      nextSeeingAt: document.nextSeeingAt,
+      interval: document.interval,
+    }),
   };
 };
 
@@ -60,16 +66,14 @@ const subscribeCardReads = (
   );
 
 // Existing consumers stay behind the combined Card API until #604 migrates them to separated reads.
-const combineCardRead = ({ card, progress }: CardRead): RemoteCard => {
+const combineCardRead = ({ card, progress, timing }: CardRead): RemoteCard => {
   const combinedCard: RemoteCard = {
     ...card,
+    ...timing,
     difficulty: progress.difficulty,
     numberOfSeen: progress.numberOfSeen,
   };
   if (progress.lastSeenAt !== undefined) combinedCard.lastSeenAt = progress.lastSeenAt;
-  if (progress.nextSeeingAt !== undefined) combinedCard.nextSeeingAt = progress.nextSeeingAt;
-  if (progress.interval !== undefined) combinedCard.interval = progress.interval;
-  if (progress.schedule !== undefined) combinedCard.schedule = progress.schedule;
   return combinedCard;
 };
 

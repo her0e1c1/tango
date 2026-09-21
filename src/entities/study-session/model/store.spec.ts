@@ -176,3 +176,5 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBe("legacy backup");
   });
 });
+
+vi.mock("@/shared/firebase", () => ({ db: {} }));

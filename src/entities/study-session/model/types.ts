@@ -1,6 +1,6 @@
 import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
-import type { StudyRating } from "@/entities/study-progress/@x/study-session";
+import type { StudyRating } from "@/entities/study-answer/@x/study-session";
 
 /**
  * Persisted progress for one deck's active study run.

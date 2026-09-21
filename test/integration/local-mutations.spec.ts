@@ -1,3 +1,4 @@
+import { calculateStudySchedule } from "@/entities/study-schedule";
 import "@/test/initializeTestFirestore";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -22,7 +23,8 @@ import type { StudySession } from "@/entities/study-session";
 function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating, answeredAt: number) {
   const card = getCards().find(({ id }) => id === session.cardOrderIds[session.currentIndex]);
   if (!card) throw new Error("Missing card");
-  const { difficulty, numberOfSeen, schedule } = recordCardStudyProgress(card, rating, answeredAt);
+  const { difficulty, numberOfSeen } = recordCardStudyProgress(card, rating, answeredAt);
+  const schedule = calculateStudySchedule(card.schedule, rating, answeredAt);
   return saveStudyOperation(
     {
       id: crypto.randomUUID(),
@@ -34,7 +36,8 @@ function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating
       cardCount: session.cardOrderIds.length,
       answeredAt,
       rating,
-      progress: { difficulty, numberOfSeen, ...(schedule === undefined ? {} : { schedule }) },
+      progress: { difficulty, numberOfSeen },
+      ...(schedule === undefined ? {} : { schedule }),
     },
     session
   );
@@ -100,7 +103,7 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
     for (const card of cards) await createCard("uid", card);
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
-    await startStudy({ deckId, cards, preferences: { shuffled: false, maxNumberOfCardsToLearn: 0 }, uid: "uid" });
+    await startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
     const session = getStudySession(deckId);
     if (!session) throw new Error("Missing session");
     const answeredAt = 1_800_000_000_000;

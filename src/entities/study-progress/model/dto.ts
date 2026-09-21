@@ -11,8 +11,5 @@ export const mapStudyProgressDocument = (
     numberOfSeen: document.numberOfSeen,
   };
   if (document.lastSeenAt !== undefined) progress.lastSeenAt = document.lastSeenAt;
-  if (document.nextSeeingAt !== undefined) progress.nextSeeingAt = document.nextSeeingAt;
-  if (document.interval !== undefined) progress.interval = document.interval;
-  if (document.schedule !== undefined) progress.schedule = document.schedule;
   return progress;
 };
