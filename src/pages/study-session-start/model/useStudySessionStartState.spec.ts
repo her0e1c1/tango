@@ -1,6 +1,6 @@
+import "@/test/mockFirestorePersistence";
 import { seedCardStudyState } from "@/test/studyStateFixtures";
 import { clearCardStudyStates } from "@/entities/card-study-state";
-import "@/test/mockFirestorePersistence";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -53,7 +53,7 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
       displayName: null,
       isAnonymous: true,
       status: "authenticated",
-      uid: "local-user",
+      uid: "user-id",
     });
     clearCardStudyStates();
     seedCardStudyState(futureCard.id, 253_402_300_799_999, "user-id", deck.id);

@@ -1,5 +1,5 @@
-import { setStudySessionIndex } from "@/entities/study-session/model/actions/setStudySessionIndex";
 import "@/test/mockFirestorePersistence";
+import { setStudySessionIndex } from "@/entities/study-session";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
@@ -76,7 +76,7 @@ describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATI
     );
     await seedLocalDeck(deck, cards);
     startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
-    setStudySessionIndex(deck.id, 1);
+    await setStudySessionIndex(deck.id, 1);
     const before = savedState(deck.id);
     let router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
     let view = render(<App router={router} />);
@@ -220,7 +220,7 @@ describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATI
     await seedLocalDeck(deck, cards);
     updatePreferences({ study: { cardInterval: 1, defaultAutoPlay: true } });
     startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
-    setStudySessionIndex(deck.id, 1);
+    await setStudySessionIndex(deck.id, 1);
     const before = savedState(deck.id);
     vi.useFakeTimers();
     const router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });

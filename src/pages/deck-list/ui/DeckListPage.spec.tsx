@@ -1,5 +1,6 @@
-import { setStudySessionIndex } from "@/test/entityFixtures";
 import "@/test/mockFirestorePersistence";
+vi.mock("@/entities/auth/@x/study-session", () => ({ getAuthUid: () => mocks.uid }));
+import { setStudySessionIndex } from "@/entities/study-session";
 import type { Preferences } from "@/entities/preference";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -188,7 +189,7 @@ describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02
     await mutateCards("user-id", [{ kind: "create", card: nextCard }]);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
     startStudy(activeDeck.id, [activeCard, nextCard], { ...mocks.preferences.study, shuffled: false }, mocks.uid);
-    setStudySessionIndex(activeDeck.id, 1);
+    await setStudySessionIndex(activeDeck.id, 1);
     now.mockReturnValue(2000);
     startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
     const router = createMemoryRouter([

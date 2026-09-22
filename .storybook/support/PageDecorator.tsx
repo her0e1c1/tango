@@ -16,8 +16,7 @@ import { MemoryRouter } from "react-router-dom";
 import { replaceAuthSession } from "@/entities/auth";
 import { type PreferencesFixture, replacePreferences } from "@/entities/preference/testing";
 import { clearStudySessions } from "@/entities/study-session";
-import { startStudy } from "@/test/entityFixtures";
-import { setStudySessionIndex } from "@/entities/study-session/model/actions/setStudySessionIndex";
+import { restoreStudySession } from "@/test/entityFixtures";
 
 export const PAGE_STORY_UID = "storybook-user";
 
@@ -65,13 +64,15 @@ export const preparePageStory = (parameters: PageStoryParameters): void => {
   });
   Object.entries(parameters.sessionsByDeckId ?? {}).forEach(([deckId, session]) => {
     if (session == null) return;
-    startStudy(
+    const now = Date.now();
+    restoreStudySession({
+      sessionId: crypto.randomUUID(),
       deckId,
-      session.cardOrderIds.map((id) => ({ id, fsrs: null })),
-      { shuffled: false, maxNumberOfCardsToLearn: 0 },
-      PAGE_STORY_UID
-    );
-    setStudySessionIndex(deckId, session.currentIndex);
+      cardOrderIds: [...session.cardOrderIds],
+      currentIndex: session.currentIndex,
+      lastStudiedAt: now,
+      remote: { uid: PAGE_STORY_UID, startedAt: now },
+    });
   });
   replaceRemoteDecks(decks);
   replaceRemoteCards(cards);

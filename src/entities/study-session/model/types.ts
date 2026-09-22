@@ -1,6 +1,5 @@
 import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
-import type { StudyRating } from "@/entities/study-answer/@x/study-session";
 
 /**
  * Persisted progress for one deck's active study run.
@@ -38,18 +37,6 @@ export interface StudySessionWrite {
  * so one corrupt session does not discard valid progress for other decks.
  */
 export type StudySessions = Partial<Record<DeckId, StudySession>>;
-
-/** No-op, exit, or cursor movement produced by a study swipe. */
-export type StudySessionSwipeEffect = "none" | "exit" | "next";
-
-/** Pure swipe plan describing its session effect and optional rating. */
-export type StudySessionSwipePlan =
-  | { effect: "none" }
-  | { effect: "exit" }
-  | {
-      effect: "next";
-      rating: StudyRating | undefined;
-    };
 
 /** Minimal Card identity needed to resolve a study session position. */
 export type StudySessionCard = { id: StudySession["cardOrderIds"][number] };

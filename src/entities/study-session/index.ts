@@ -2,9 +2,6 @@ export { useStudySession } from "./model/queries/useStudySession";
 export { useStudySessions } from "./model/queries/useStudySessions";
 export {
   canMoveStudySession,
-  compareActiveDecks,
-  groupDecksByStudyStatus,
-  planStudySessionSwipe,
   resolveStudySession,
   selectStudyCards,
   selectStudyCardsWithDeadline,

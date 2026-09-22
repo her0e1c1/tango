@@ -1,5 +1,7 @@
-import { setStudySessionIndex, restoreStudySession } from "@/test/entityFixtures";
 import "@/test/mockFirestorePersistence";
+vi.mock("@/entities/auth/@x/study-session", () => ({ getAuthUid: () => mocks.uid }));
+import { restoreStudySession } from "@/test/entityFixtures";
+import { setStudySessionIndex } from "@/entities/study-session";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
@@ -144,13 +146,15 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     await waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
   });
 
-  it("advances the session while autoplay is enabled", () => {
+  it("advances the session while autoplay is enabled", async () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     act(() => result.current.toggleBackText());
 
-    act(() => vi.advanceTimersByTime(1000));
+    await actAsync(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
 
     expect(result.current.query).toMatchObject({
       status: "studying",
@@ -193,7 +197,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("does not complete the final Card when persistence fails", async () => {
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     mocks.persistOperation.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
@@ -332,7 +336,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
 
   it.each([1, 0])("ignores backward slider movement at index %s without saving or hiding the answer", async (index) => {
     mocks.preferences = createPreferences({ cardSwipeLeft: "DoNothing", showSwipeFeedback: true });
-    setStudySessionIndex(deckId, index);
+    await setStudySessionIndex(deckId, index);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     await actAsync(async () => result.current.toggleBackText());
     const session = getStudySession(deckId);
@@ -349,7 +353,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("completes after the final Card is persisted and preserves the session Card count", async () => {
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
     if (result.current.query.status !== "studying") throw new Error("Expected an active Study state");
@@ -362,7 +366,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("shows a restored final Card instead of completion after a cloud rejection", async () => {
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     const previous = getStudySession(deckId);
     if (!previous) throw new Error("Expected the final Card");
@@ -376,7 +380,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("allows an explicit retry after a failed final Card save", async () => {
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     mocks.persistOperation.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     await actAsync(async () => result.current.swipeRight());
@@ -430,7 +434,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   it.each(["same Deck", "other Deck", "other UID"])(
     "starts %s with fresh presentation on the first render",
     async (destination) => {
-      setStudySessionIndex(deckId, 1);
+      await setStudySessionIndex(deckId, 1);
       const { result: firstResult, unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
       await actAsync(async () => firstResult.current.swipeRight());
       act(firstResult.current.openHelp);
@@ -461,7 +465,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   );
 
   it("hides old completion before effects when the mounted Page changes UID", async () => {
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     const presentations: unknown[] = [];
     const { result, rerender } = renderHook(() => {
       const model = useStudySessionPageModel(deckId);
@@ -479,7 +483,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("does not publish an old final save into a newly entered Deck", async () => {
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
     const { result: firstResult, unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
@@ -500,42 +504,58 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
 
-  it("pauses only the timer during Help and respects explicit playback stop", () => {
+  it("pauses only the timer during Help and respects explicit playback stop", async () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
-    act(() => vi.advanceTimersByTime(500));
+    await actAsync(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
     act(result.current.openHelp);
-    act(() => vi.advanceTimersByTime(2000));
+    await actAsync(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
+    });
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
     expect(result.current.pageState.autoPlay).toBe(true);
     act(result.current.closeHelp);
-    act(() => vi.advanceTimersByTime(500));
+    await actAsync(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
     act(result.current.toggleAutoPlay);
-    act(() => vi.advanceTimersByTime(1000));
+    await actAsync(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
     act(result.current.toggleAutoPlay);
-    act(() => vi.advanceTimersByTime(1000));
+    await actAsync(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
 
-  it("cancels the departed visit's timer before continuing the same Deck", () => {
+  it("cancels the departed visit's timer before continuing the same Deck", async () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
     const { unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
-    act(() => vi.advanceTimersByTime(500));
+    await actAsync(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
     unmountFirst();
     renderHook(() => useStudySessionPageModel(deckId));
-    act(() => vi.advanceTimersByTime(500));
+    await actAsync(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
-    act(() => vi.advanceTimersByTime(500));
+    await actAsync(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
 });
 
 vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
-  const { moveStudySession } = await import("@/test/entityFixtures");
+  const { moveStudySession } = await import("@/entities/study-session");
   return {
     saveStudyOperation: async (
       operation: import("./studyOperation").StudyOperation,
@@ -546,7 +566,7 @@ vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
         cardId: operation.cardId,
         answeredAt: operation.answeredAt,
       });
-      moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
+      await moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
       return {
         session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
         endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,

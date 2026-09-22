@@ -1,7 +1,8 @@
+import { planStudySessionSwipe } from "../queries/planStudySessionSwipe";
 import { calculateFsrsState, getCardStudyState } from "@/entities/card-study-state";
 import { getCards } from "@/entities/card";
 import { getPreferences, type SwipeAction, type SwipeDirection } from "@/entities/preference";
-import { abandonStudySession, getStudySession, planStudySessionSwipe } from "@/entities/study-session";
+import { abandonStudySession, getStudySession } from "@/entities/study-session";
 import { showSwipeFeedback } from "../../lib/showSwipeFeedback";
 import { studySessionPageStore } from "../store";
 import { executeStudyOperation } from "./executeStudyOperation";
