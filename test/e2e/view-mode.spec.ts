@@ -176,3 +176,83 @@ test("STUDY-CONTROLS-09 shares and persists view mode across Study and Deck view
   await expect(page.getByRole("region", { name: "Card front text" })).toHaveCount(0);
   await expect.poll(() => readViewMode(page)).toBe(false);
 });
+
+test("STUDY-CONTROLS-10 keeps long text and all controls reachable on a short viewport", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  await page.setViewportSize({ width: 568, height: 320 });
+  await fixture.apply(page, {
+    preferences: {
+      controls: {
+        viewMode: true,
+        showCardDetails: true,
+        showSwipeButtonList: true,
+        showPlaybackControls: true,
+        showSkip: true,
+      },
+    },
+  });
+  await page.goto(`/deck/${deck.id}/study`);
+  await page.getByRole("button", { name: "Open card actions" }).click();
+  const surface = page.getByRole("region", { name: "Card front text" });
+  await surface.scrollIntoViewIfNeeded();
+  await expect.poll(() => surface.evaluate((element) => element.clientHeight)).toBeGreaterThanOrEqual(160);
+  await expect(surface).toBeInViewport();
+  await surface.focus();
+  await surface.press("End");
+  await expect
+    .poll(() => surface.evaluate((element) => element.scrollTop + element.clientHeight >= element.scrollHeight - 1))
+    .toBe(true);
+  for (const name of ["Swipe right", "Play", "Skip"]) {
+    const button = page.getByRole("button", { name, exact: true });
+    await button.scrollIntoViewIfNeeded();
+    await expect(button).toBeInViewport();
+  }
+  await expect.poll(() => readViewMode(page)).toBe(true);
+  expect((await readSession(page, deck.id))?.currentIndex).toBe(0);
+});
+
+test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without card actions", async ({
+  fixture,
+  page,
+}) => {
+  const deck = fixture.deck();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await fixture.apply(page, { preferences: { controls: { viewMode: true } } });
+  await page.goto(`/deck/${deck.id}/study`);
+  const surface = page.getByRole("region", { name: "Card front text" });
+  await touchScroll(page, surface);
+  await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  const box = await surface.boundingBox();
+  if (box === null) throw new Error("Missing reading surface");
+  const session = await page.context().newCDPSession(page);
+  await session.send("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: true,
+  });
+  const scale = await page.evaluate(() => window.visualViewport?.scale ?? 1);
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await session.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [
+      { id: 0, x: x - 30, y },
+      { id: 1, x: x + 30, y },
+    ],
+  });
+  for (const distance of [40, 55, 75, 100, 130]) {
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [
+        { id: 0, x: x - distance, y },
+        { id: 1, x: x + distance, y },
+      ],
+    });
+  }
+  await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect.poll(() => page.evaluate(() => window.visualViewport?.scale ?? 1)).toBeGreaterThan(scale);
+  await session.detach();
+  await expect.poll(() => readViewMode(page)).toBe(true);
+  expect((await readSession(page, deck.id))?.currentIndex).toBe(0);
+});

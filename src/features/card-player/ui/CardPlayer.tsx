@@ -637,7 +637,13 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
   const showStudyChrome = !props.showBackText;
 
   return (
-    <div className="relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink" style={studyLayoutStyles}>
+    <div
+      className={cx(
+        "relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink",
+        viewMode && "[@media(max-height:450px)]:overflow-y-auto"
+      )}
+      style={studyLayoutStyles}
+    >
       {showStudyChrome ? (
         <StudyToolbar
           ref={helpTriggerRef}
@@ -679,7 +685,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           props.showBackText
             ? "overflow-y-auto pt-[env(safe-area-inset-top)]"
             : viewMode
-              ? "overflow-y-auto touch-pan-y overscroll-contain"
+              ? "overflow-y-auto [touch-action:pan-y_pinch-zoom] overscroll-contain [@media(max-height:450px)]:min-h-[50svh] [@media(max-height:450px)]:flex-none [@media(max-height:450px)]:h-[50svh]"
               : "overflow-hidden"
         )}
         {...cardGestureHandlers}

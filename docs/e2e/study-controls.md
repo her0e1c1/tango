@@ -17,6 +17,8 @@
 | STUDY-CONTROLS-07 | write | [view mode をタップまたは Enter で終了して表面を維持できる](#study-controls-07) |
 | STUDY-CONTROLS-08 | batch | [view mode 中も評価ボタンと自動再生で次の Card へ進める](#study-controls-08) |
 | STUDY-CONTROLS-09 | write | [view mode 設定を閲覧・学習・reload 間で共有できる](#study-controls-09) |
+| STUDY-CONTROLS-10 | write | [横向きの短い画面でも本文と操作ボタンに到達できる](#study-controls-10) |
+| STUDY-CONTROLS-11 | write | [view mode でタッチスクロールとピンチ拡大ができる](#study-controls-11) |
 
 <a id="study-controls-01"></a>
 
@@ -229,3 +231,43 @@ Then:
 
 - ON と OFF が両画面と reload 後に反映される。他の設定は維持される。
 - browser error が発生しない。
+
+<a id="study-controls-10"></a>
+
+### STUDY-CONTROLS-10 横向きの短い画面でも本文と操作ボタンに到達できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
+- 568×320 の画面で長い front text を学習中である。view mode とカード情報・評価・再生・Skip の表示を ON にしている。
+
+When:
+
+- 「…」を展開し、本文と各操作部をスクロールする。
+
+Then:
+
+- 本文の表示領域は画面の高さの半分以上を保ち、末尾まで読める。評価・再生・Skip ボタンも画面内にスクロールして表示できる。
+- 評価・カード移動・モード終了は発生しない。browser error が発生しない。
+
+<a id="study-controls-11"></a>
+
+### STUDY-CONTROLS-11 view mode でタッチスクロールとピンチ拡大ができる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
+- タッチ端末で長い front text を学習中で、view mode が ON である。
+
+When:
+
+- 本文を縦にスクロールし、2本指でピンチ拡大する。
+
+Then:
+
+- 本文のスクロール位置が変わり、ピンチ操作で表示倍率が上がる。
+- 評価・カード移動・モード終了は発生しない。browser error が発生しない。

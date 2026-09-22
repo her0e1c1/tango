@@ -190,6 +190,8 @@
 | STUDY-CONTROLS-07 | write | [view mode をタップまたは Enter で終了して表面を維持できる](./study-controls.md#study-controls-07) |
 | STUDY-CONTROLS-08 | batch | [view mode 中も評価ボタンと自動再生で次の Card へ進める](./study-controls.md#study-controls-08) |
 | STUDY-CONTROLS-09 | write | [view mode 設定を閲覧・学習・reload 間で共有できる](./study-controls.md#study-controls-09) |
+| STUDY-CONTROLS-10 | write | [横向きの短い画面でも本文と操作ボタンに到達できる](./study-controls.md#study-controls-10) |
+| STUDY-CONTROLS-11 | write | [view mode でタッチスクロールとピンチ拡大ができる](./study-controls.md#study-controls-11) |
 
 ### Study Back Text
 
