@@ -253,7 +253,7 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-11] rejects creating a %s`
+対応テスト: `[FIRESTORE-RULES-DECK-11] rejects creating a deck`
 
 Given:
 
@@ -274,7 +274,7 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-12] rejects updating an existing %s`
+対応テスト: `[FIRESTORE-RULES-DECK-12] rejects updating an existing deck`
 
 Given:
 
@@ -295,7 +295,7 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-13] rejects deleting an existing %s`
+対応テスト: `[FIRESTORE-RULES-DECK-13] rejects deleting an existing deck`
 
 Given:
 
@@ -316,7 +316,7 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-14] preserves public %s reads`
+対応テスト: `[FIRESTORE-RULES-DECK-14] preserves public deck reads`
 
 Given:
 
