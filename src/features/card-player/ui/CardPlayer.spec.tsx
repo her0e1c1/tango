@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -64,7 +64,7 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]", () => {
+describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]", () => {
   it("ignores reading gestures and their trailing click while keeping explicit buttons active", () => {
     const props = toolbarProps();
     const onSwipeUp = vi.fn();
@@ -275,7 +275,7 @@ describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] 
     expect(onClickLeft).not.toHaveBeenCalled();
   });
 
-  it("STUDY-CONTROLS-05 keeps the Help slot fixed while opening the remaining study actions", async () => {
+  it("STUDY-CONTROLS-05 keeps Help available while opening the remaining study actions", async () => {
     const user = userEvent.setup();
     const onBack = vi.fn();
     const onToggleCardDetails = vi.fn();
@@ -352,7 +352,7 @@ describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] 
     expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
   });
 
-  it("STUDY-CONTROLS-05 keeps the fixed Help visibility toggle mounted while visibility changes", () => {
+  it("STUDY-CONTROLS-05 keeps the Help visibility toggle mounted while visibility changes", () => {
     const onToggleHelp = vi.fn();
     const props = toolbarProps();
     const { rerender } = render(<CardPlayer {...props} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />);
@@ -363,10 +363,9 @@ describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] 
     const helpToggle = screen.getByRole("button", { name: "Help button" });
     expect(actions).not.toContainElement(helpToggle);
     expect(helpToggle).toHaveAttribute("aria-pressed", "true");
-    expect(helpToggle).toHaveClass(
-      "absolute",
-      "right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)]",
-      "top-0"
+    expect(screen.getByTestId("toolbar-shortcuts")).toContainElement(screen.getByRole("button", { name: "View mode" }));
+    expect(screen.getByTestId("toolbar-shortcuts")).toContainElement(
+      screen.getByRole("button", { name: /card actions/ })
     );
 
     rerender(<CardPlayer {...props} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />);
@@ -390,10 +389,11 @@ describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] 
     expect(viewModeButton).toBeVisible();
     expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
     expect(viewModeButton).toHaveAttribute("title", "Enter view mode");
-    expect(viewModeButton).toHaveClass(
-      "absolute",
-      "right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]",
-      "top-0"
+    expect(screen.getByTestId("toolbar-shortcuts")).toContainElement(
+      screen.getByRole("button", { name: "Open study help" })
+    );
+    expect(screen.getByTestId("toolbar-shortcuts")).toContainElement(
+      screen.getByRole("button", { name: /card actions/ })
     );
 
     fireEvent.click(viewModeButton);
@@ -431,6 +431,47 @@ describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] 
 
     fireEvent.keyDown(screen.getByRole("button", { name: "View mode" }), { key: "Escape" });
     expect(screen.getByRole("button", { name: "Open card actions" })).toHaveFocus();
+  });
+
+  it.each([
+    { showHelp: true, showViewMode: true, showEdit: true },
+    { showHelp: false, showViewMode: true, showEdit: true },
+    { showHelp: true, showViewMode: true, showEdit: false },
+    { showHelp: false, showViewMode: true, showEdit: false },
+    { showHelp: true, showViewMode: false, showEdit: true },
+    { showHelp: false, showViewMode: false, showEdit: false },
+  ])("STUDY-CONTROLS-05 composes visible shortcuts: %o", ({ showHelp, showViewMode, showEdit }) => {
+    render(
+      <CardPlayer
+        {...toolbarProps()}
+        showHelp={showHelp}
+        showViewMode={showViewMode}
+        editLink={{ visible: showEdit, onToggle: vi.fn(), element: <a href="/edit">Edit current card</a> }}
+      />
+    );
+
+    const trigger = screen.getByRole("button", { name: "Open card actions" });
+    const shortcuts = screen.getByTestId("toolbar-shortcuts");
+    expect(
+      within(shortcuts)
+        .getAllByRole("button")
+        .map((button) => button.getAttribute("aria-label"))
+    ).toEqual(["Open card actions", ...(showHelp ? ["Open study help"] : []), ...(showViewMode ? ["View mode"] : [])]);
+    expect(within(shortcuts).queryByRole("link", { name: "Edit current card" }) !== null).toBe(showEdit);
+    expect(within(shortcuts).queryAllByRole("button")).toHaveLength(1 + Number(showHelp) + Number(showViewMode));
+    expect(within(shortcuts).queryAllByRole("link")).toHaveLength(Number(showEdit));
+
+    fireEvent.click(trigger);
+    expect(
+      within(shortcuts)
+        .getAllByRole("button")
+        .map((button) => button.getAttribute("aria-label"))
+    ).toEqual(["Close card actions", "Help button", "View mode", "Edit link"]);
+    expect(within(shortcuts).queryByRole("link")).not.toBeInTheDocument();
+    fireEvent.keyDown(within(shortcuts).getByRole("button", { name: "Edit link" }), { key: "Escape" });
+    expect(trigger).toHaveFocus();
+    expect(within(shortcuts).queryAllByRole("button")).toHaveLength(1 + Number(showHelp) + Number(showViewMode));
+    expect(within(shortcuts).queryAllByRole("link")).toHaveLength(Number(showEdit));
   });
 
   it("shows and hides all card details from the persisted preference value", () => {
