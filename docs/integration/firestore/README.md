@@ -8,7 +8,7 @@
 | 文書 | 責務 | 対応テスト |
 | --- | --- | --- |
 | この README | 実行方法、共通前提、記述・ID 規約、索引、未検証項目 | Firestore 結合テスト全体 |
-| [Deck](./deck.md) | 作成、部分更新、URL の扱い、親 Deck の論理削除 | `deck.spec.ts` |
+| [Deck](./deck.md) | 作成、部分更新、URL の扱い、Deck と配下 Card の原子的な論理削除 | `deck.spec.ts` |
 | [Card](./card.md) | 作成、部分更新、本文と FSRS の更新、一括保存、論理削除 | `card.spec.ts` |
 | [Card.fsrs](./card-fsrs.md) | 初期購読、検証、UID 分離、削除 | `card-fsrs.spec.ts` |
 | [StudyAnswer](./study-answer.md) | 回答・スキップ・再試行と履歴の権限制御 | `study-answer.spec.ts` |
@@ -105,7 +105,7 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-DECK-01 | write | [Deck の保存対象だけを新規作成できる](./deck.md#firestore-deck-01) |
 | FIRESTORE-DECK-02 | write | [Deck の編集で作成日時と対象外フィールドを維持できる](./deck.md#firestore-deck-02) |
 | FIRESTORE-DECK-03 | write | [URL の省略と明示的なクリアを区別できる](./deck.md#firestore-deck-03) |
-| FIRESTORE-DECK-04 | write | [親 Deck だけを論理削除し子 Card を書き換えない](./deck.md#firestore-deck-04) |
+| FIRESTORE-DECK-04 | batch | [Deck と配下 Card をまとめて論理削除できる](./deck.md#firestore-deck-04) |\n| FIRESTORE-DECK-05 | batch | [Card がない Deck を論理削除できる](./deck.md#firestore-deck-05) |\n| FIRESTORE-DECK-06 | batch | [Deck と配下 Card の削除を原子的に扱う](./deck.md#firestore-deck-06) |
 
 ### card
 
