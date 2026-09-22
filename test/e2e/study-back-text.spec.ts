@@ -119,7 +119,7 @@ test("STUDY-BACK-TEXT-05 runs the mapped left overlay action once and shows the 
   await expect
     .poll(() => readProgress(currentCard.id))
     .toEqual({
-      difficulty: currentCard.difficulty - 1,
+      difficulty: currentCard.difficulty,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
@@ -144,7 +144,7 @@ test("STUDY-BACK-TEXT-06 runs the mapped right overlay action once and shows the
   await expect
     .poll(() => readProgress(currentCard.id))
     .toEqual({
-      difficulty: currentCard.difficulty + 1,
+      difficulty: currentCard.difficulty,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);

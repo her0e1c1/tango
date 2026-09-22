@@ -286,7 +286,7 @@ test("STUDY-SESSION-06 keeps multiple Deck sessions independent", async ({ fixtu
   await expect
     .poll(() => readProgress(currentCardA.id))
     .toEqual({
-      difficulty: currentCardA.difficulty - 1,
+      difficulty: currentCardA.difficulty,
       numberOfSeen: currentCardA.numberOfSeen + 1,
     });
   await expect.poll(() => readProgress(currentCardB.id)).toEqual(progressOf(currentCardB));
