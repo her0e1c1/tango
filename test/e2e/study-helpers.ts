@@ -1,14 +1,23 @@
-import type { Page } from "@playwright/test";
+import { documentId, getDocument, listDocuments, type StudySessionFixture } from "./fixtures";
 
-import { readLocalData, listDocuments, type StudySessionFixture } from "./fixtures";
-
-export const readProgress = async (cardId: string) => {
-  const documents = await listDocuments("cardStudyState");
-  const state = documents.find((document) => document.fields.cardId?.stringValue === cardId);
+export const readProgress = async (uid: string, cardId: string) => {
+  const state = await getDocument("cardStudyState", `${uid.length}:${uid}${cardId}`);
   return { reps: Number(state?.fields.fsrs?.mapValue?.fields?.reps?.integerValue ?? 0) };
 };
 
-export const readSession = async (page: Page, deckId: string) => {
-  const { sessionsByDeckId } = await readLocalData(page);
-  return sessionsByDeckId[deckId] as StudySessionFixture | undefined;
+// Only linked-user sessions can be observed through the emulator. Anonymous tests use the Study UI.
+export const readSession = async (uid: string, deckId: string): Promise<StudySessionFixture | undefined> => {
+  const documents = await listDocuments("studySession");
+  const session = documents.find(
+    ({ fields }) =>
+      fields.uid?.stringValue === uid && fields.deckId?.stringValue === deckId && fields.endReason?.nullValue === null
+  );
+  if (!session) return;
+  return {
+    sessionId: documentId(session),
+    deckId,
+    cardOrderIds: session.fields.cardOrderIds?.arrayValue?.values?.map((value) => String(value.stringValue)) ?? [],
+    currentIndex: Number(session.fields.currentIndex?.integerValue),
+    lastStudiedAt: Date.parse(session.fields.updatedAt?.timestampValue ?? ""),
+  };
 };

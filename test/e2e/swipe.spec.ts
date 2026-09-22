@@ -1,24 +1,13 @@
+import { createAnonymousDeck, startAnonymousStudy } from "./ui-helpers";
 import type { Page } from "@playwright/test";
 
-import {
-  allowExpectedFirestoreWriteFailure,
-  failNextFirestoreWrite,
-  expect,
-  listDocuments,
-  readLocalData,
-  test,
-} from "./fixtures";
+import { allowExpectedFirestoreWriteFailure, failNextFirestoreWrite, expect, listDocuments, test } from "./fixtures";
 import { readProgress, readSession } from "./study-helpers";
 
 const cardAt = <T>(cards: readonly T[], index: number) => {
   const card = cards[index];
   if (card === undefined) throw new Error(`Missing Card fixture at index ${String(index)}`);
   return card;
-};
-
-const readLocalProgress = async (page: Page, cardId: string) => {
-  const { cardStudyStates } = await readLocalData(page);
-  return { reps: cardStudyStates.find((state) => state.cardId === cardId)?.fsrs?.reps ?? 0 };
 };
 
 const swipeFrontUp = async (page: Page, frontText: string, button: "left" | "middle" | "right" = "left") => {
@@ -45,7 +34,7 @@ test("STUDY-ACTIONS-01 saves a good answer and progress and advances to the next
 
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  const beforeAnswer = await readSession(page, deck.id);
+  const beforeAnswer = await readSession(fixture.user().uid, deck.id);
   await page.getByRole("button", { name: "Swipe right" }).click();
 
   const feedback = page.getByRole("status").filter({ hasText: "Swiped right" });
@@ -55,10 +44,12 @@ test("STUDY-ACTIONS-01 saves a good answer and progress and advances to the next
   await expect(directionIcon).toBeVisible();
   await expect(page.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  await expect.poll(() => readProgress(fixture.user().uid, currentCard.id)).toEqual({ reps: 1 });
   await expect
-    .poll(async () => (await readSession(page, deck.id))?.lastStudiedAt)
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex + 1);
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.lastStudiedAt)
     .toBeGreaterThan(beforeAnswer?.lastStudiedAt ?? session.lastStudiedAt);
   await expect(feedback).toHaveCount(0, { timeout: 2000 });
   await expect(directionIcon).toHaveCount(0);
@@ -83,8 +74,10 @@ test("STUDY-ACTIONS-02 saves an again answer and progress and advances to the ne
   await page.getByRole("button", { name: "Swipe left" }).click();
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  await expect.poll(() => readProgress(fixture.user().uid, currentCard.id)).toEqual({ reps: 1 });
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex + 1);
 });
 
 test("STUDY-ACTIONS-03 skips without creating an answer and advances", async ({ fixture, page }) => {
@@ -98,8 +91,10 @@ test("STUDY-ACTIONS-03 skips without creating an answer and advances", async ({ 
   await page.getByRole("button", { name: "Skip" }).click();
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  await expect.poll(() => readProgress(fixture.user().uid, currentCard.id)).toEqual({ reps: 0 });
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex + 1);
   expect(
     (await listDocuments("studyAnswer")).filter((item) => item.fields.sessionId?.stringValue === session.sessionId)
   ).toHaveLength(0);
@@ -123,8 +118,10 @@ test("STUDY-ACTIONS-04 prevents returning to previous Cards through study contro
   await slider.click({ position: { x: 1, y: 10 } });
   await expect(slider).toHaveValue(String(session.currentIndex));
   await expect(front).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+  await expect.poll(() => readProgress(fixture.user().uid, currentCard.id)).toEqual({ reps: 0 });
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex);
   await expect(page.getByTestId("swipe-feedback-direction")).toHaveCount(0);
 });
 
@@ -161,8 +158,8 @@ test("STUDY-SESSION-01 starts a filtered session capped by the learning limit", 
     await page.getByRole("button", { name: `Start ${countLabel}` }).click();
 
     await expect(page.getByText(firstCard.frontText, { exact: true })).toBeVisible();
-    await expect.poll(async () => (await readSession(page, deck.id))?.cardOrderIds).toEqual(expectedIds);
-    const stored = await readSession(page, deck.id);
+    await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds).toEqual(expectedIds);
+    const stored = await readSession(fixture.user().uid, deck.id);
     expect(stored?.cardOrderIds).not.toContain(otherTagExcluded.id);
     expect(stored?.cardOrderIds).not.toContain(tagOnlyExcluded.id);
   }
@@ -176,7 +173,7 @@ test("STUDY-SESSION-02 prevents an empty filtered session from starting", async 
 
   await expect(page.getByText("No cards match your filters.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Start 0 cards" })).toBeDisabled();
-  expect(await readSession(page, deck.id)).toBeUndefined();
+  expect(await readSession(fixture.user().uid, deck.id)).toBeUndefined();
 });
 
 test("STUDY-SESSION-03 returns and continues from the same Card", async ({ fixture, page }) => {
@@ -189,14 +186,16 @@ test("STUDY-SESSION-03 returns and continues from the same Card", async ({ fixtu
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await returnToDeckList(page);
   await expect(page).toHaveURL(/\/$/);
-  const beforeContinue = await readSession(page, deck.id);
+  const beforeContinue = await readSession(fixture.user().uid, deck.id);
   await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
 
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  await expect.poll(async () => (await readSession(page, deck.id))?.sessionId).toBe(session.sessionId);
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+  await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.sessionId).toBe(session.sessionId);
   await expect
-    .poll(async () => (await readSession(page, deck.id))?.lastStudiedAt)
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex);
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.lastStudiedAt)
     .toBeGreaterThan(beforeContinue?.lastStudiedAt ?? session.lastStudiedAt);
 });
 
@@ -212,9 +211,12 @@ test("STUDY-SESSION-04 restarts an in-progress Deck from a new session", async (
   await page.getByRole("button", { name: `Start ${String(cards.length)} cards` }).click();
 
   await expect(page.getByText(cardAt(cards, 0).frontText, { exact: true })).toBeVisible();
-  const restarted = await readSession(page, deck.id);
-  expect(restarted?.sessionId).not.toBe(previous.sessionId);
-  expect(restarted?.currentIndex).toBe(0);
+  await expect
+    .poll(async () => {
+      const restarted = await readSession(fixture.user().uid, deck.id);
+      return restarted !== undefined && restarted.sessionId !== previous.sessionId && restarted.currentIndex === 0;
+    })
+    .toBe(true);
 });
 
 test("STUDY-SESSION-05 finishes the final Card and shows the completion screen", async ({ fixture, page }) => {
@@ -235,9 +237,9 @@ test("STUDY-SESSION-05 finishes the final Card and shows the completion screen",
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toHaveCount(0);
-  await expect.poll(() => readProgress(finalCard.id)).toEqual({ reps: 1 });
+  await expect.poll(() => readProgress(fixture.user().uid, finalCard.id)).toEqual({ reps: 1 });
   expect(session.currentIndex).toBe(session.cardOrderIds.length - 1);
-  expect(await readSession(page, deck.id)).toBeUndefined();
+  expect(await readSession(fixture.user().uid, deck.id)).toBeUndefined();
 });
 
 test("STUDY-SESSION-06 keeps multiple Deck sessions independent", async ({ fixture, page }) => {
@@ -256,10 +258,14 @@ test("STUDY-SESSION-06 keeps multiple Deck sessions independent", async ({ fixtu
   await page.getByRole("button", { name: `Continue ${deckB.name}` }).click();
 
   await expect(page.getByText(currentCardB.frontText, { exact: true })).toBeVisible();
-  await expect.poll(async () => (await readSession(page, deckA.id))?.currentIndex).toBe(sessionA.currentIndex + 1);
-  await expect.poll(async () => (await readSession(page, deckB.id))?.currentIndex).toBe(sessionB.currentIndex);
-  await expect.poll(() => readProgress(currentCardA.id)).toEqual({ reps: 1 });
-  await expect.poll(() => readProgress(currentCardB.id)).toEqual({ reps: 0 });
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deckA.id))?.currentIndex)
+    .toBe(sessionA.currentIndex + 1);
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deckB.id))?.currentIndex)
+    .toBe(sessionB.currentIndex);
+  await expect.poll(() => readProgress(fixture.user().uid, currentCardA.id)).toEqual({ reps: 1 });
+  await expect.poll(() => readProgress(fixture.user().uid, currentCardB.id)).toEqual({ reps: 0 });
 });
 
 test("STUDY-ACTIONS-05 retries a failed progress write from the same Card once", async ({
@@ -281,15 +287,19 @@ test("STUDY-ACTIONS-05 retries a failed progress write from the same Card once",
   await fault.waitForFailure();
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Swiped up" })).toHaveCount(0);
-  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+  await expect.poll(() => readProgress(fixture.user().uid, currentCard.id)).toEqual({ reps: 0 });
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex);
 
   await page.getByRole("button", { name: "Swipe up" }).click();
 
   await expect(page.getByRole("status").filter({ hasText: "Swiped up" })).toBeVisible();
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  await expect.poll(() => readProgress(fixture.user().uid, currentCard.id)).toEqual({ reps: 1 });
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex + 1);
   await fault.dispose();
 });
 
@@ -307,7 +317,7 @@ test("STUDY-CONTROLS-01 advances a remote session on a primary upward mouse drag
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
+  await expect.poll(() => readProgress(fixture.user().uid, currentCard.id)).toEqual({ reps: 1 });
 });
 
 test("STUDY-CONTROLS-02 ignores non-primary mouse drags", async ({ fixture, page }) => {
@@ -321,70 +331,84 @@ test("STUDY-CONTROLS-02 ignores non-primary mouse drags", async ({ fixture, page
   await swipeFrontUp(page, currentCard.frontText, "middle");
 
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+  await expect.poll(() => readProgress(fixture.user().uid, currentCard.id)).toEqual({ reps: 0 });
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex);
 });
 
 test("STUDY-CONTROLS-03 saves local-only progress and advances on a primary upward mouse drag", async ({
   fixture,
   page,
 }) => {
-  const deck = fixture.deck();
-  const session = fixture.session();
-  const currentCard = fixture.card("card-1");
-  const nextCard = fixture.card("card-2");
   await fixture.apply(page);
+  const local = await createAnonymousDeck(page);
+  const { deck } = local;
+  const frontText = await startAnonymousStudy(page, deck.id);
+  const currentCard = frontText === local.first.frontText ? local.first : local.second;
+  const nextCard = currentCard === local.first ? local.second : local.first;
 
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText);
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
-  await expect.poll(() => readLocalProgress(page, currentCard.id)).toEqual({ reps: 1 });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
+  await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue("1");
+  await page.goto(`/card/${currentCard.id}`);
+  await expect(page.getByRole("img", { name: /Forgetting curve/ })).toBeVisible();
 });
 
 test("STUDY-SESSION-07 preserves local-only progress and session position across reload", async ({ fixture, page }) => {
-  const deck = fixture.deck();
-  const session = fixture.session();
-  const currentCard = fixture.card("card-1");
-  const nextCard = fixture.card("card-2");
   await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
+  const local = await createAnonymousDeck(page);
+  const { deck } = local;
+  const frontText = await startAnonymousStudy(page, deck.id);
+  const currentCard = frontText === local.first.frontText ? local.first : local.second;
+  const nextCard = currentCard === local.first ? local.second : local.first;
 
   await page.goto(`/deck/${deck.id}/study`);
   await swipeFrontUp(page, currentCard.frontText);
   await page.getByText(nextCard.frontText, { exact: true }).waitFor();
 
-  const initialState = (await readLocalData(page)).cardStudyStates.find((state) => state.cardId === currentCard.id);
-  const savedSchedule = initialState?.fsrs;
-  expect(savedSchedule).toMatchObject({ reps: 1, state: "review" });
-  if (!savedSchedule) throw new Error("Expected a persisted FSRS schedule");
   await page.reload();
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
-  await expect.poll(() => readLocalProgress(page, currentCard.id)).toEqual({ reps: 1 });
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
-  expect((await readLocalData(page)).cardStudyStates.find((state) => state.cardId === currentCard.id)?.fsrs).toEqual(
-    savedSchedule
-  );
+  await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue("1");
+  await page.goto("/");
+  await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
+  await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
+  await page.goto(`/card/${currentCard.id}`);
+  await expect(page.getByRole("img", { name: /Forgetting curve/ })).toBeVisible();
+  const nextReview = await page
+    .getByRole("term")
+    .filter({ hasText: /^Next review$/ })
+    .locator("..")
+    .locator("dd")
+    .textContent();
+  const dueMinute = Date.parse(nextReview ?? "");
+  expect(Number.isFinite(dueMinute)).toBe(true);
   await page.goto(`/deck/${deck.id}/start`);
   await expect(page.getByRole("button", { name: "Start 1 card", exact: true })).toBeEnabled();
-  await page.clock.install({ time: new Date(savedSchedule.dueAt - 1000) });
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Start 1 card", exact: true })).toBeEnabled();
+  // The public date display has minute precision; cross that whole minute with the page still open.
+  await page.clock.install({ time: new Date(dueMinute - 60_000) });
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByRole("button", { name: "Start 1 card", exact: true })).toBeEnabled();
-  await page.clock.runFor(1000);
+  await page.clock.runFor(120_000);
   await expect(page.getByRole("button", { name: "Start 2 cards", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Start 2 cards", exact: true }).click();
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  await expect
-    .poll(async () => (await readSession(page, deck.id))?.cardOrderIds)
-    .toEqual([currentCard.id, nextCard.id]);
-  await page.getByRole("button", { name: "Swipe right" }).click();
+  await page.getByRole("button", { name: "Swipe right", exact: true }).click();
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
-  await expect
-    .poll(async () => (await readLocalData(page)).cardStudyStates.find((state) => state.cardId === currentCard.id))
-    .toMatchObject({ createdAt: initialState?.createdAt, fsrs: { reps: 2 } });
+  await page.reload();
+  await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
+  for (const collection of ["deck", "card", "studySession", "studyAnswer", "cardStudyState"] as const) {
+    expect(
+      (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === fixture.user().uid)
+    ).toEqual([]);
+  }
 });
 
 test("STUDY-CONTROLS-04 shows configured Study controls without changing the active session", async ({
@@ -397,7 +421,7 @@ test("STUDY-CONTROLS-04 shows configured Study controls without changing the act
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
-  const progressBeforeHelp = await readProgress(currentCard.id);
+  const progressBeforeHelp = await readProgress(fixture.user().uid, currentCard.id);
   await expect(page.getByRole("button", { name: "Open study help" })).toBeVisible();
   await page.getByRole("button", { name: "Open study help" }).click();
 
@@ -423,8 +447,10 @@ test("STUDY-CONTROLS-04 shows configured Study controls without changing the act
 
   await expect(dialog).toContainText("B / Swipe controls buttonShow the currently hidden swipe buttons");
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressBeforeHelp);
-  await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
+  await expect.poll(() => readProgress(fixture.user().uid, currentCard.id)).toEqual(progressBeforeHelp);
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex);
 
   await page.keyboard.press("Escape");
 

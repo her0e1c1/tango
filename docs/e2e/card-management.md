@@ -161,6 +161,7 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
 - local-only Deck が存在する。
 - viewport は 360 x 640 である。
 
@@ -386,6 +387,7 @@ cache 反映後の remote 拒否は App 共通の同期エラー通知で知ら�
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
 - local-only Deck の Card 作成画面を開いており、Front は未入力である。
 
 When:
@@ -412,6 +414,7 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
 - local-only Card の編集画面を開いている。
 
 When:

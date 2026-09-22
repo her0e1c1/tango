@@ -1,3 +1,4 @@
+import { createAnonymousDeck, downloadDeckCards } from "./ui-helpers";
 import type { Page } from "@playwright/test";
 import {
   allowExpectedFirestoreWriteFailure,
@@ -6,7 +7,6 @@ import {
   getDocument,
   documentId,
   listDocuments,
-  readLocalData,
   requireDocument,
   test,
 } from "./fixtures";
@@ -339,11 +339,10 @@ test("CARD-MANAGEMENT-05 creates one remote Card and keeps it across reload", as
   expect(createdCard.fields.deckId?.stringValue).toBe(deck.id);
   expect(createdCard.fields.uid?.stringValue).toBe(deck.uid);
   expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
-  expect((await readLocalData(page)).cards).toEqual(expect.arrayContaining([expect.objectContaining({ frontText })]));
+  await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(1);
 });
 
 test("CARD-MANAGEMENT-06 creates one local Card and keeps it across reload", async ({ fixture, page, namespace }) => {
-  const deck = fixture.deck();
   const frontText =
     `${namespace.caseId} local front. ${"This paragraph explains a useful idea with enough detail to study later. ".repeat(26)}`.slice(
       0,
@@ -352,6 +351,8 @@ test("CARD-MANAGEMENT-06 creates one local Card and keeps it across reload", asy
   const backText = `${namespace.caseId} local back`;
   await page.setViewportSize({ width: 360, height: 640 });
   await fixture.apply(page);
+  const local = await createAnonymousDeck(page);
+  const { deck } = local;
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByRole("button", { name: "Actions", exact: true }).click();
@@ -407,13 +408,13 @@ test("CARD-MANAGEMENT-06 creates one local Card and keeps it across reload", asy
   await page.reload();
 
   await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
-  const localCards = (await readLocalData(page)).cards.filter(
-    (card: { deckId?: string; frontText?: string }) => card.deckId === deck.id && card.frontText === frontText
-  );
-  expect(localCards).toHaveLength(1);
-  expect(localCards[0]).toEqual(
-    expect.objectContaining({ deckId: deck.id, uniqueKey: localCards[0]?.id, frontText, backText })
-  );
+  await page.getByRole("button", { name: `Open actions for ${frontText}`, exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
+  const cardId = new URL(page.url()).pathname.split("/").at(-2);
+  const downloaded = await downloadDeckCards(page, deck.name);
+  expect(downloaded.filter((value) => value.frontText === frontText)).toEqual([
+    { frontText, backText, tags: [], uniqueKey: cardId },
+  ]);
   expect(
     (await listDocuments("card")).filter(
       (document) =>
@@ -453,12 +454,14 @@ test("CARD-MANAGEMENT-10 reveals the first invalid side without saving empty tex
 });
 
 test("CARD-MANAGEMENT-15 previews an unsaved answer while creating an incomplete Card", async ({ fixture, page }) => {
-  const deck = fixture.deck();
   await fixture.apply(page);
+  const local = await createAnonymousDeck(page);
+  const { deck } = local;
+
   await page.setViewportSize({ width: 375, height: 812 });
+  const before = await downloadDeckCards(page, deck.name);
   await page.goto(`/deck/${deck.id}/card/new`);
   await expect(page.getByRole("heading", { name: "Create card" })).toBeVisible();
-  const before = await readLocalData(page);
   const url = page.url();
   await page.getByRole("tab", { name: "Back", exact: true }).click();
   const input = page.getByRole("textbox", { name: "Back text" });
@@ -497,15 +500,18 @@ test("CARD-MANAGEMENT-15 previews an unsaved answer while creating an incomplete
   await expect(preview.locator("strong")).toHaveText("Expanded draft");
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page).toHaveURL(url);
-  expect(await readLocalData(page)).toEqual(before);
+  await page.reload();
+  expect(await downloadDeckCards(page, deck.name)).toEqual(before);
 });
 
 test("CARD-MANAGEMENT-16 previews current answer tags without saving the edited Card", async ({ fixture, page }) => {
-  const card = fixture.card();
   await fixture.apply(page);
+  const local = await createAnonymousDeck(page);
+  const { deck, first: card } = local;
+
+  const before = await downloadDeckCards(page, deck.name);
   await page.goto(`/card/${card.id}/edit`);
   await expect(page.getByRole("heading", { name: "Edit card" })).toBeVisible();
-  const before = await readLocalData(page);
   const url = page.url();
   await page.getByRole("tab", { name: "Back", exact: true }).click();
   const input = page.getByRole("textbox", { name: "Back text" });
@@ -550,10 +556,10 @@ test("CARD-MANAGEMENT-16 previews current answer tags without saving the edited 
   await expect(input).toHaveValue("def updated():\n    return 43");
   await expect(preview.locator(".hljs-title")).toHaveText("updated");
   await expect(page).toHaveURL(url);
-  expect(await readLocalData(page)).toEqual(before);
   await page.getByRole("button", { name: "tango" }).click();
   await expect(page.getByRole("alertdialog")).toBeVisible();
   await page.getByRole("button", { name: "Keep editing" }).click();
   await expect(input).toHaveValue("def updated():\n    return 43");
-  expect(await readLocalData(page)).toEqual(before);
+  await page.reload();
+  expect(await downloadDeckCards(page, deck.name)).toEqual(before);
 });

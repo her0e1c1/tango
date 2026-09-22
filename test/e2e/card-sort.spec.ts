@@ -1,5 +1,5 @@
 import type { Locator } from "@playwright/test";
-import { expect, readLocalData, test } from "./fixtures";
+import { expect, listDocuments, test } from "./fixtures";
 
 const expectOrder = async (rows: Locator, names: string[]) => {
   await expect(rows).toHaveCount(names.length);
@@ -7,6 +7,13 @@ const expectOrder = async (rows: Locator, names: string[]) => {
     await expect(rows.nth(index)).toHaveAccessibleName(`View ${name}`);
   }
 };
+
+const savedDocuments = async (uid: string) =>
+  Promise.all(
+    (["deck", "card", "studySession", "studyAnswer", "cardStudyState"] as const).map(async (collection) =>
+      (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === uid)
+    )
+  );
 
 test("CARD-LIST-ACTIONS-02 sorts newest first with stable ties without changing saved data", async ({
   fixture,
@@ -20,7 +27,7 @@ test("CARD-LIST-ACTIONS-02 sorts newest first with stable ties without changing 
   await page.goto(`/deck/${deck.id}`);
   const rows = page.getByRole("button", { name: /^View / });
   await expectOrder(rows, [oldest.frontText, newest.frontText, tied.frontText]);
-  const before = await readLocalData(page);
+  const before = await savedDocuments(fixture.user().uid);
   const sort = page.getByRole("combobox", { name: "Sort order" });
   await sort.focus();
   await page.keyboard.press("ArrowDown");
@@ -32,7 +39,7 @@ test("CARD-LIST-ACTIONS-02 sorts newest first with stable ties without changing 
   await expect(page.getByRole("button", { name: "Close card" })).toContainText(oldest.backText);
   await page.getByRole("button", { name: "Close card" }).click();
   await expect(sort).toHaveValue("newest");
-  expect(await readLocalData(page)).toEqual(before);
+  expect(await savedDocuments(fixture.user().uid)).toEqual(before);
 });
 
 test("CARD-LIST-ACTIONS-03 restores standard order and resets sorting when revisiting", async ({ fixture, page }) => {
@@ -42,7 +49,7 @@ test("CARD-LIST-ACTIONS-03 restores standard order and resets sorting when revis
   await page.goto(`/deck/${deck.id}`);
   const sort = page.getByRole("combobox", { name: "Sort order" });
   await sort.selectOption("newest");
-  const before = await readLocalData(page);
+  const before = await savedDocuments(fixture.user().uid);
   await sort.focus();
   await page.keyboard.press("ArrowUp");
   await page.keyboard.press("Tab");
@@ -56,5 +63,5 @@ test("CARD-LIST-ACTIONS-03 restores standard order and resets sorting when revis
   await expect(page.getByRole("heading", { name: "Decks", exact: true })).toBeVisible();
   await page.goBack();
   await expect(sort).toHaveValue("standard");
-  expect(await readLocalData(page)).toEqual(before);
+  expect(await savedDocuments(fixture.user().uid)).toEqual(before);
 });

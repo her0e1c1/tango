@@ -75,6 +75,7 @@ Then:
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
 - browser storage に、複数の Card を含む local-only Deck と進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
 - 上方向の drag は easy action に設定されている。

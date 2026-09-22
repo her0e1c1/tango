@@ -1,28 +1,40 @@
 extends: remote-deck-with-cards.yaml
-browser:
-  localDecks:
+remote:
+  decks:
+    - id: deck-1
+      uid: user-1
+      name: E2E Deck
     - id: plan
-      localMode: true
+      uid: user-1
       name: Plain Deck
     - id: plan?draft=1
-      localMode: true
+      uid: user-1
       name: Question mark Deck
     - id: plan#draft
-      localMode: true
+      uid: user-1
       name: Hash Deck
-  localCards:
+  cards:
+    - id: card-1
+      uid: user-1
+      deckId: deck-1
+      frontText: apple
+      backText: りんご
+      uniqueKey: apple
     - id: plain-card
       deckId: plan
+      uid: user-1
       frontText: Plain Card
       backText: Plain answer
       uniqueKey: plain
     - id: question-card
       deckId: plan?draft=1
+      uid: user-1
       frontText: Question mark Card
       backText: Question mark answer
       uniqueKey: question
     - id: hash-card
       deckId: plan#draft
+      uid: user-1
       frontText: Hash Card
       backText: Hash answer
       uniqueKey: hash

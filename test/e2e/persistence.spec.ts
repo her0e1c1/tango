@@ -1,3 +1,4 @@
+import { createAnonymousDeck } from "./ui-helpers";
 import type { Page, Route } from "@playwright/test";
 import {
   collectBrowserErrors,
@@ -5,7 +6,6 @@ import {
   expect,
   getDocument,
   listDocuments,
-  readLocalData,
   requestFirestoreAsGuest,
   requireDocument,
   setDocument,
@@ -224,12 +224,13 @@ test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", asyn
 });
 
 test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", async ({ fixture, page, namespace }) => {
-  const deck = fixture.deck();
-  const card = fixture.card();
   const { uid } = fixture.user();
   const updatedName = `${namespace.caseId} local deck update`;
   const updatedFrontText = `${namespace.caseId} local card update`;
   await fixture.apply(page);
+  const local = await createAnonymousDeck(page);
+  const { deck, first: card } = local;
+
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
@@ -245,9 +246,8 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await page.reload();
   await expect(page.getByRole("button", { name: `View ${updatedFrontText}` })).toBeVisible();
-  const stored = await readLocalData(page);
-  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id, name: updatedName }));
-  expect(stored.cards).toContainEqual(expect.objectContaining({ id: card.id, frontText: updatedFrontText }));
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: `View ${updatedName}` })).toBeVisible();
   expect(await getDocument("deck", deck.id)).toBeUndefined();
   expect(await getDocument("card", card.id)).toBeUndefined();
 
