@@ -90,7 +90,7 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | 対象 | 現在の検証範囲と不足 |
 | --- | --- |
 | [FIRESTORE-CARD-05](./card.md#firestore-card-05) | エラーと有効な Card の保存を確認する。不正な Card の保存先不在は直接確認していない |
-| Deck / Card の Rules | 親が他人所有の Card 更新による回答 batch の拒否は [FIRESTORE-STUDY-ANSWER-10](./study-answer.md#firestore-study-answer-10) で確認する。親不在の作成／更新、他人所有の親への新規作成、Deck / Card の所有者 UID 変更は直接検証していない。Rules 固有の仕様は [rules-deck](./rules-deck.md) と [rules-card](./rules-card.md) に分離する |
+| Deck / Card の Rules | 親が他人所有の Card 更新による回答 batch の拒否は [FIRESTORE-STUDY-ANSWER-10](./study-answer.md#firestore-study-answer-10) で確認する。親不在の作成／更新、他人所有の親への新規作成、Card の所有者 UID 変更は直接検証していない。Deck の所有者 UID の変更・削除と乗っ取り拒否は [FIRESTORE-RULES-DECK-20](./rules-deck.md#firestore-rules-deck-20) と [FIRESTORE-RULES-DECK-21](./rules-deck.md#firestore-rules-deck-21) で扱う。Rules 固有の仕様は [rules-deck](./rules-deck.md) と [rules-card](./rules-card.md) に分離する |
 
 購読解除後の確認は [Subscriptions](./subscriptions.md#firestore-subscriptions-03) に示す観測時点に限定する。
 [StudySession](./study-session.md#firestore-study-session-01) の再購読を別端末・ブラウザ reload の保証に拡張しない。
@@ -198,6 +198,11 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-RULES-DECK-17 | write | [未認証による Deck の作成を拒否する](./rules-deck.md#firestore-rules-deck-17) |
 | FIRESTORE-RULES-DECK-18 | write | [未認証による Deck の更新を拒否する](./rules-deck.md#firestore-rules-deck-18) |
 | FIRESTORE-RULES-DECK-19 | write | [未認証による Deck の物理削除を拒否する](./rules-deck.md#firestore-rules-deck-19) |
+| FIRESTORE-RULES-DECK-20 | write | [本人による所有者 UID の変更・削除を拒否する](./rules-deck.md#firestore-rules-deck-20) |
+| FIRESTORE-RULES-DECK-21 | write | [他人の Deck の所有者を自分にする更新・上書きを拒否する](./rules-deck.md#firestore-rules-deck-21) |
+| FIRESTORE-RULES-DECK-22 | read | [本人の UID で絞った Deck 一覧取得を許可する](./rules-deck.md#firestore-rules-deck-22) |
+| FIRESTORE-RULES-DECK-23 | read | [権限を保証できない Deck 一覧取得を拒否する](./rules-deck.md#firestore-rules-deck-23) |
+| FIRESTORE-RULES-DECK-24 | read | [匿名認証による他人の非公開 Deck 取得を拒否する](./rules-deck.md#firestore-rules-deck-24) |
 
 ### rules-card
 
