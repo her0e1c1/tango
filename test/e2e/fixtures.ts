@@ -245,6 +245,7 @@ const e2eConfig: E2EConfig = {
   },
   controls: {
     viewMode: false,
+    showViewMode: true,
     showHelp: true,
     showEditLink: true,
     showSwipeButtonList: true,
