@@ -6,6 +6,8 @@ Firestore の snapshot を Card / Deck store に反映し、購読解除で反�
 
 対応ファイル: [`subscriptions.spec.ts`](../../../test/integration/firestore/subscriptions.spec.ts)
 
+追加テストの仕様（未実装・未検証）は [Snapshot](./snapshot.md) を参照する。本書の既存3ケースとは分けて管理する。
+
 関連 E2E: [CARD-VIEW-01](../../e2e/card-view.md#card-view-01)、[DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)
 
 ## 共通前提
