@@ -6,10 +6,7 @@
 
 対応ファイル: [`rules.spec.ts`](../../../test/integration/firestore/rules.spec.ts)
 
-## 共通前提
-
-`test-rule` project で実際の `firestore.rules` を読み込む。Given の事前 document は Rules 無効化 context で準備し、When は Rules 有効の context から直接 SDK を呼ぶ。非匿名認証は `google.com`、匿名認証は `anonymous`、未認証は認証情報なしとする。アプリケーションの schema validation は通さない。
-詳細な実行・cleanup の前提は [README](./README.md) を参照する。
+共通前提は [AGENTS.md](./AGENTS.md#security-rules-common-prerequisites) を参照する。
 
 ## テストケース
 

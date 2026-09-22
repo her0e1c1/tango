@@ -1,6 +1,7 @@
 # Firestore Integration Test Instructions
 
 - Treat the case specifications under `docs/integration/firestore/` as the single source of truth for Firestore integration test cases.
+- Follow the [Security Rules common prerequisites](../../../docs/integration/firestore/AGENTS.md#security-rules-common-prerequisites) for Rules setup and authentication contexts.
 - Tests under `test/integration/firestore/` must cover every documented test case.
 - Each documented case ID must correspond to exactly one test definition (`it` or `it.each`), and each test definition must correspond to exactly one documented case ID. Do not duplicate an ID across definitions or combine multiple case IDs in one definition.
 - Each `it` or `it.each` title must include its documented `FIRESTORE-<UPPERCASE-SPEC-FILENAME>-<NN>` ID. Follow `docs/integration/firestore/README.md` for the filename prefix and sequential numbering; do not allocate a separate sequence in test files.
