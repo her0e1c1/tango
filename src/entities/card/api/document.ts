@@ -1,10 +1,12 @@
 import { z } from "zod";
+import { fsrsStateSchema } from "../model/fsrs";
 
 import { parseFirestoreDocument } from "@/shared/api";
 
 const cardDocumentSchema = z.object({
   // Older documents may duplicate the Firestore document id in their stored fields.
   id: z.string().optional(),
+  fsrs: fsrsStateSchema.nullable(),
   frontText: z.string(),
   backText: z.string(),
   tags: z.array(z.string()),

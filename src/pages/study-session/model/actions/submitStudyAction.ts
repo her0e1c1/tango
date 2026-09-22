@@ -1,6 +1,5 @@
+import { calculateFsrsState, getCards } from "@/entities/card";
 import { planStudySessionSwipe } from "../queries/planStudySessionSwipe";
-import { calculateFsrsState, getCardStudyState } from "@/entities/card-study-state";
-import { getCards } from "@/entities/card";
 import { getPreferences, type SwipeAction, type SwipeDirection } from "@/entities/preference";
 import { abandonStudySession, getStudySession } from "@/entities/study-session";
 import { showSwipeFeedback } from "../../lib/showSwipeFeedback";
@@ -45,7 +44,6 @@ export async function submitStudyAction(
   const card = cards.find(({ id }) => id === cardId);
   if (card === undefined) return;
   const answeredAt = Date.now();
-  const state = getCardStudyState(card.id);
   await executeStudyOperation({
     id: crypto.randomUUID(),
     uid,
@@ -57,7 +55,7 @@ export async function submitStudyAction(
     answeredAt,
     ...(plan.rating === undefined
       ? {}
-      : { rating: plan.rating, fsrs: calculateFsrsState(state?.fsrs ?? null, plan.rating, answeredAt) }),
+      : { rating: plan.rating, fsrs: calculateFsrsState(card.fsrs, plan.rating, answeredAt) }),
     ...(direction === undefined || !getPreferences().appearance.showSwipeFeedback ? {} : { direction }),
   });
 }

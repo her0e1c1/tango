@@ -1,7 +1,6 @@
-import type { Card } from "@/entities/card/@x/card-study-state";
 import { createEmptyCard, fsrs as createScheduler, Rating, State, type Card as FsrsCard } from "ts-fsrs";
-import type { StudyRating } from "@/entities/study-answer/@x/card-study-state";
-import { instantSchema, fsrsStateSchema, type FsrsState } from "./schema";
+import type { StudyRating } from "@/entities/study-answer/@x/card";
+import { instantSchema, fsrsStateSchema, type FsrsState } from "./fsrs";
 
 const scheduler = createScheduler({
   request_retention: 0.9,
@@ -47,7 +46,7 @@ export function calculateFsrsState(schedule: FsrsState | null, rating: StudyRati
   });
 }
 
-// Missing documents and explicit null both represent an unrated card.
+// Explicit null represents an unrated card.
 export function classifyFsrsState(
   fsrs: FsrsState | null,
   now: number
@@ -64,11 +63,4 @@ export function getStudyRetrievability(schedule: FsrsState, at: number): number 
   // get_retrievability rounds elapsed time to whole days in ts-fsrs 5.4.2.
   const elapsedDays = Math.max(0, instantSchema.parse(at) - saved.lastReviewedAt) / 86_400_000;
   return scheduler.forgetting_curve(elapsedDays, saved.stability);
-}
-
-export function joinStudyCards(
-  cards: readonly Card[],
-  states: Readonly<Partial<Record<Card["id"], { fsrs: FsrsState | null }>>>
-) {
-  return cards.map((card) => ({ ...card, fsrs: states[card.id]?.fsrs ?? null }));
 }

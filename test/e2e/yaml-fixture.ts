@@ -1,4 +1,4 @@
-import { fsrsStateSchema } from "../../src/entities/card-study-state/model/schema";
+import { fsrsStateSchema } from "../../src/entities/card/model/fsrs";
 import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import path from "node:path";
 
@@ -34,6 +34,7 @@ export interface FixtureDeck {
 }
 
 export interface FixtureCard {
+  fsrs: z.infer<typeof fsrsStateSchema> | null;
   id: string;
   deckId: string;
   frontText: string;
@@ -48,8 +49,6 @@ export interface FixtureCard {
   startLine?: number;
   endLine?: number;
 }
-
-type FixtureCardStudyState = z.infer<typeof fixtureCardStudyStateSchema>;
 
 export interface FixtureStudySession {
   sessionId: string;
@@ -100,7 +99,6 @@ export interface FixtureState {
   remote: {
     decks: FixtureDeck[];
     cards: FixtureCard[];
-    cardStudyStates: FixtureCardStudyState[];
     studySessions: Record<string, FixtureStudySession>;
   };
   browser: {
@@ -186,6 +184,7 @@ const cardContentFields = {
 } as const;
 
 const cardStateFields = {
+  fsrs: fsrsStateSchema.nullable().optional(),
   createdAt: z.number().optional(),
   updatedAt: z.number().optional(),
   deletedAt: z.number().nullable().optional(),
@@ -260,23 +259,12 @@ const studySessionSchema = z.strictObject({
   lastStudiedAt: z.number().nonnegative().optional(),
 });
 
-const fixtureCardStudyStateSchema = z.strictObject({
-  schemaVersion: z.literal(1),
-  uid: nonEmptyString,
-  cardId: nonEmptyString,
-  deckId: nonEmptyString,
-  fsrs: fsrsStateSchema.nullable(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
-});
-
 const fixtureDocumentSchema = z.strictObject({
   auth: z.strictObject({ users: z.array(userSchema).min(1) }),
   remote: z
     .strictObject({
       decks: z.array(remoteDeckSchema).optional(),
       cards: z.array(remoteCardSchema).optional(),
-      cardStudyStates: z.array(fixtureCardStudyStateSchema).optional(),
       studySessions: z.record(nonEmptyString, studySessionSchema).optional(),
     })
     .optional(),
@@ -662,6 +650,7 @@ const normalizeDeck = (raw: RawRemoteDeck, id: string, uid: string): FixtureDeck
 
 const normalizeCard = (raw: RawRemoteCard, id: string, deckId: string, uid: string): FixtureCard => {
   const normalized: FixtureCard = {
+    fsrs: raw.fsrs ?? null,
     id,
     deckId,
     uid,
@@ -914,21 +903,12 @@ export const namespaceFixture = (
   const sessions = normalizeSessions(logical.studySessions, identifiers.idFor);
   validateRuntimeIds(users, decks, cards, sessions);
 
-  const normalizeStates = (states: FixtureCardStudyState[] = []) =>
-    states.map((state) => ({
-      ...state,
-      uid: identifiers.uidFor(state.uid),
-      cardId: identifiers.idFor(state.cardId),
-      deckId: identifiers.idFor(state.deckId),
-    }));
-
   return {
     state: {
       auth: { users: users.values },
       remote: {
         decks: decks.values,
         cards: cards.values,
-        cardStudyStates: normalizeStates(document.remote?.cardStudyStates),
         studySessions: sessions.byDeckId,
       },
       browser: {

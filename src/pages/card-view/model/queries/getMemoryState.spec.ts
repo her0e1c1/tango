@@ -1,6 +1,6 @@
 import "@/test/mockFirestorePersistence";
 import { describe, expect, it, vi } from "vitest";
-import { calculateFsrsState, getStudyRetrievability, studyRetentionTarget } from "@/entities/card-study-state";
+import { calculateFsrsState, getStudyRetrievability, studyRetentionTarget } from "@/entities/card";
 import { getMemoryState } from "./getMemoryState";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));

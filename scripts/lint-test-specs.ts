@@ -188,8 +188,8 @@ for (const [directory, testDirectory] of [
   const cases = readCases(directory);
   if (!cases.length) problems.push(`${directory}: no specification cases found`);
   for (const spec of cases) {
-    const links = [...withoutFences(read(spec.file)).matchAll(/\]\(([^)]+\.spec\.tsx?)\)/gu)].map(
-      ([, file = ""]) => path.normalize(path.join(path.dirname(spec.file), file))
+    const links = [...withoutFences(read(spec.file)).matchAll(/\]\(([^)]+\.spec\.tsx?)\)/gu)].map(([, file = ""]) =>
+      path.normalize(path.join(path.dirname(spec.file), file))
     );
     const candidates = links.length ? links : [...tests.keys()];
     if (!candidates.some((file) => tests.get(file)?.has(spec.id))) {

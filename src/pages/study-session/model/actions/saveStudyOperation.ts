@@ -1,6 +1,5 @@
-import { writeCardStudyState } from "@/entities/card-study-state";
+import { writeCardFsrs, getCards } from "@/entities/card";
 import { writeStudyAnswer } from "@/entities/study-answer";
-import { getCards } from "@/entities/card";
 import { getDecks } from "@/entities/deck";
 import { createLocalBatch } from "@/shared/firestore-write";
 import { getAuthUid } from "@/entities/auth";
@@ -34,7 +33,7 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
   );
   const references = [result.reference];
   if (operation.rating !== undefined && operation.fsrs !== undefined) {
-    references.push(writeCardStudyState(batch, { ...operation, fsrs: operation.fsrs }));
+    references.push(writeCardFsrs(batch, { ...operation, fsrs: operation.fsrs }));
     references.push(writeStudyAnswer(batch, { ...operation, rating: operation.rating }));
   }
   await commit(references);

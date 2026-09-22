@@ -1,5 +1,5 @@
 interface FirestoreQuery {
-  collectionName: "card" | "deck" | "studySession" | "cardStudyState";
+  collectionName: "card" | "deck" | "studySession";
   uid: string;
 }
 
@@ -26,7 +26,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
       ...filter,
     }),
     onSnapshot: (request: FirestoreQuery, publishSnapshot: (snapshot: FirestoreSnapshot) => void) => {
-      if (request.collectionName === "studySession" || request.collectionName === "cardStudyState") {
+      if (request.collectionName === "studySession") {
         publishSnapshot({ docs: [] });
         return () => undefined;
       }
@@ -41,6 +41,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
                 uid: request.uid,
                 createdAt: 1,
                 updatedAt: 2,
+                fsrs: null,
                 deletedAt: null,
                 difficultyMax: null,
                 difficultyMin: null,
@@ -61,6 +62,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
                 uid: request.uid,
                 createdAt: 1,
                 updatedAt: 2,
+                fsrs: null,
                 deletedAt: null,
                 difficulty: 5,
                 numberOfSeen: 0,

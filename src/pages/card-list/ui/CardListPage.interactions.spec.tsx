@@ -23,9 +23,6 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/card-study-state/api/deleteCardStudyStates", () => ({
-  deleteCardStudyStates: async () => undefined,
-}));
 vi.mock("@/entities/auth", () => ({
   useAuth: () => ({ uid: "user-id" }),
   getAuthUid: mocks.getAuthUid,

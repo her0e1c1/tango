@@ -1,6 +1,5 @@
 import "@/test/mockFirestorePersistence";
-import { seedCardStudyState } from "@/test/studyStateFixtures";
-import { clearCardStudyStates } from "@/entities/card-study-state";
+import { seedCardFsrs } from "@/test/studyStateFixtures";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -55,8 +54,6 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
       status: "authenticated",
       uid: "user-id",
     });
-    clearCardStudyStates();
-    seedCardStudyState(futureCard.id, 253_402_300_799_999, "user-id", deck.id);
     clearStudySessions();
     updatePreferences(preferences);
     await createDeck("user-id", deck);
@@ -65,6 +62,7 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
       { kind: "create", card: laterCard },
       { kind: "create", card: futureCard },
     ]);
+    seedCardFsrs(futureCard.id, 253_402_300_799_999);
   });
 
   afterEach(async () => {

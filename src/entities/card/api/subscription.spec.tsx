@@ -42,6 +42,7 @@ const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
     uid: "uid-a",
     createdAt: 1,
     updatedAt: 2,
+    fsrs: null,
     deletedAt: null,
     ...overrides,
   }),

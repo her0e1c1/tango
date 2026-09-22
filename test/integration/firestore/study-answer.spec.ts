@@ -1,11 +1,5 @@
-import {
-  calculateFsrsState,
-  getCardStudyState,
-  subscribeCardStudyStates,
-  clearCardStudyStates,
-} from "@/entities/card-study-state";
-import { cardStudyStateId } from "@/entities/card-study-state/api/id";
-import { parseCardStudyState } from "@/entities/card-study-state/api/document";
+import { calculateFsrsState, getCards, subscribeCards, clearRemoteCards } from "@/entities/card";
+import { parseCardDocument } from "@/entities/card/api/document";
 import fs from "node:fs";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -72,7 +66,7 @@ function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
     rating === undefined
       ? undefined
       : calculateFsrsState(
-          getCardStudyState(overrides.cardId ?? "card-0")?.fsrs ?? null,
+          getCards().find((card) => card.id === (overrides.cardId ?? "card-0"))?.fsrs ?? null,
           rating,
           overrides.answeredAt ?? 2000
         );
@@ -130,7 +124,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
   let stopStates: () => void = () => undefined;
   afterEach(() => {
     stopStates();
-    clearCardStudyStates();
+    clearRemoteCards();
   });
   beforeAll(async () => {
     environment = await initializeTestEnvironment({
@@ -152,28 +146,25 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await Promise.all(
       cardIds.map((id) =>
         setDoc(doc(connection.db, "card", id), {
-          uid,
-          deckId,
-          deletedAt: null,
-          updatedAt: 0,
+          ...createCard({ id, uid, deckId }),
         })
       )
     );
     await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
     // The emulator reset does not clear this client's cache between examples.
-    await getDocs(query(collection(connection.db, "cardStudyState"), where("uid", "==", uid)));
+    await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
     await new Promise<void>((resolve, reject) => {
-      stopStates = subscribeCardStudyStates(uid, reject, resolve);
+      stopStates = subscribeCards(uid, reject, resolve);
     });
   });
   afterAll(async () => {
     await environment.cleanup();
   });
 
-  const stateReference = (cardId = "card-0") => doc(connection.db, "cardStudyState", cardStudyStateId(uid, cardId));
+  const stateReference = (cardId = "card-0") => doc(connection.db, "card", cardId);
   const hasState = async (cardId = "card-0") =>
-    (await getDocs(query(collection(connection.db, "cardStudyState"), where("uid", "==", uid)))).docs.some(
-      (document) => document.data().cardId === cardId
+    (await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)))).docs.some(
+      (document) => document.id === cardId && document.data().fsrs !== null
     );
   const answers = () => getDocs(query(collection(connection.db, "studyAnswer"), where("uid", "==", uid)));
 
@@ -196,11 +187,11 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
       });
       expect(answer?.createdAt).toEqual(answer?.updatedAt);
       expect((await getDoc(stateReference(input.cardId))).data()).toMatchObject({
-        createdAt: input.answeredAt,
+        createdAt: 0,
         updatedAt: input.answeredAt,
         fsrs: input.fsrs,
       });
-      expect((await getDoc(doc(connection.db, "card", input.cardId))).data()?.updatedAt).toBe(0);
+      expect((await getDoc(doc(connection.db, "card", input.cardId))).data()?.updatedAt).toBe(input.answeredAt);
       expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     }
   );
@@ -213,13 +204,17 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await getDoc(stateReference(input.cardId))).data()?.fsrs.reps).toBe(1);
   });
 
-  it("[FIRESTORE-STUDY-ANSWER-03] leaves Card content and metadata unchanged when rating", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-03] preserves Card content and creation time when rating", async () => {
     const input = operation();
     await updateDoc(doc(connection.db, "card", input.cardId), { frontText: "Edited", updatedAt: 500 });
     const before = (await getDoc(doc(connection.db, "card", input.cardId))).data();
     await saveStudyOperation(input);
-    expect((await getDoc(doc(connection.db, "card", input.cardId))).data()).toEqual(before);
-    expect((await getDoc(stateReference())).data()?.createdAt).toBe(input.answeredAt);
+    expect((await getDoc(doc(connection.db, "card", input.cardId))).data()).toEqual({
+      ...before,
+      fsrs: input.fsrs,
+      updatedAt: input.answeredAt,
+    });
+    expect((await getDoc(stateReference())).data()?.createdAt).toBe(0);
   });
 
   it("[FIRESTORE-STUDY-ANSWER-04] records ten answers and completes", async () => {
@@ -343,7 +338,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     async (rating) => {
       const input = operation({ rating });
       await saveStudyOperation(input);
-      const saved = parseCardStudyState(stateReference().id, (await getDoc(stateReference())).data());
+      const saved = parseCardDocument(stateReference().id, (await getDoc(stateReference())).data());
       expect(saved.fsrs).toEqual(input.fsrs);
       expect(saved.fsrs?.reps).toBe(1);
     }
@@ -392,7 +387,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     const input = operation();
     await saveStudyOperation(input);
     const data = (await getDoc(stateReference())).data();
-    const restored = parseCardStudyState(stateReference().id, data);
+    const restored = parseCardDocument(stateReference().id, data);
     expect(restored.fsrs).toEqual(input.fsrs);
     expect(calculateFsrsState(restored.fsrs, "good", 602_000)).toEqual(
       calculateFsrsState(input.fsrs ?? null, "good", 602_000)
@@ -400,13 +395,13 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await editCard(uid, { id: "card-0", uid, frontText: "Edited" });
     await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
     await saveStudyOperation(operation({ rating: undefined }));
-    expect((await getDoc(stateReference())).data()).toEqual(data);
+    expect((await getDoc(stateReference())).data()?.fsrs).toEqual(data?.fsrs);
     expect((await answers()).size).toBe(1);
-    expect(() => parseCardStudyState(stateReference().id, { ...data, schemaVersion: 2 })).toThrow();
+    expect(() => parseCardDocument(stateReference().id, { ...data, fsrs: {} })).toThrow();
     await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
     await saveStudyOperation(operation({ answeredAt: 602_000 }));
     expect((await getDoc(stateReference())).data()).toMatchObject({
-      createdAt: 2000,
+      createdAt: 0,
       updatedAt: 602_000,
       fsrs: { reps: 2 },
     });
