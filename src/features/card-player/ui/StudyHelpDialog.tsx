@@ -20,6 +20,7 @@ type StudyHelpDialogControl =
   | "exit";
 
 type StudyHelpDialogAction =
+  | "viewModeHidden"
   | "enterViewMode"
   | "exitViewMode"
   | "viewModeScroll"
@@ -63,6 +64,7 @@ const controlKeys = {
 } as const satisfies Record<StudyHelpDialogControl, string>;
 
 const actionKeys = {
+  viewModeHidden: "studySession.help.actions.viewModeHidden",
   enterViewMode: "studySession.help.actions.enterViewMode",
   exitViewMode: "studySession.help.actions.exitViewMode",
   viewModeScroll: "studySession.help.actions.viewModeScroll",

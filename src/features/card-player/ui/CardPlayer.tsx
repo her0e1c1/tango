@@ -53,6 +53,8 @@ export interface CardPlayerProps {
   allowBackHorizontalSwipe?: boolean;
   answerLabel?: string;
   cardKey?: string;
+  showViewMode: boolean;
+  onToggleShowViewMode: () => void;
   showHelp: boolean;
   viewMode: boolean;
   onToggleViewMode: () => void;
@@ -196,6 +198,8 @@ interface StudyToolbarProps {
   ref?: React.RefObject<HTMLButtonElement | null>;
   helpTriggerLabel?: string;
   open: boolean;
+  showViewMode: boolean;
+  onToggleShowViewMode: () => void;
   showHelp: boolean;
   viewMode: boolean;
   onToggleViewMode: () => void;
@@ -298,21 +302,31 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
         </button>
       ) : null}
-      <button
-        type="button"
-        aria-label={t("studySession.toolbar.viewMode.label")}
-        aria-pressed={props.viewMode}
-        title={t(props.viewMode ? "studySession.toolbar.viewMode.exit" : "studySession.toolbar.viewMode.enter")}
-        className={cx(
-          toolbarButtonClass,
-          "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] top-0",
-          props.viewMode && "bg-surface-muted text-accent-primary"
-        )}
-        onClick={props.onToggleViewMode}
-        onKeyDown={closeOnEscape}
-      >
-        <AiOutlineRead aria-hidden="true" className="text-xl" />
-      </button>
+      {props.open || props.showViewMode ? (
+        <button
+          type="button"
+          aria-label={t("studySession.toolbar.viewMode.label")}
+          aria-pressed={props.open ? props.showViewMode : props.viewMode}
+          title={t(
+            props.open
+              ? props.showViewMode
+                ? "studySession.toolbar.viewMode.hide"
+                : "studySession.toolbar.viewMode.show"
+              : props.viewMode
+                ? "studySession.toolbar.viewMode.exit"
+                : "studySession.toolbar.viewMode.enter"
+          )}
+          className={cx(
+            toolbarButtonClass,
+            "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] top-0",
+            (props.open ? props.showViewMode : props.viewMode) && "bg-surface-muted text-accent-primary"
+          )}
+          onClick={props.open ? props.onToggleShowViewMode : props.onToggleViewMode}
+          onKeyDown={closeOnEscape}
+        >
+          <AiOutlineRead aria-hidden="true" className="text-xl" />
+        </button>
+      ) : null}
       {props.editLink !== undefined && (props.open || props.editLink.visible) ? (
         <div className="absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] top-0">
           {props.open ? (
@@ -652,6 +666,8 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           viewMode={viewMode}
           onToggleViewMode={props.onToggleViewMode}
           open={studyActionsOpen}
+          showViewMode={props.showViewMode}
+          onToggleShowViewMode={props.onToggleShowViewMode}
           showHelp={props.showHelp}
           showCardDetails={props.showCardDetails}
           showSwipeControls={props.showSwipeControls}

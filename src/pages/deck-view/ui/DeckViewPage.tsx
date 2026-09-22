@@ -45,6 +45,8 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
             </Link>
           ),
         }}
+        showViewMode={model.controls.showViewMode}
+        onToggleShowViewMode={model.toggleShowViewMode}
         showHelp={model.controls.showHelp}
         showCardDetails={model.controls.showCardDetails}
         showSwipeControls={model.controls.showSwipeButtonList}

@@ -5,6 +5,7 @@ import type { Deck } from "@/entities/deck";
 import {
   toggleShowEditLink,
   toggleViewMode,
+  toggleShowViewMode,
   toggleShowHelp,
   toggleShowCardDetails,
   toggleShowPlaybackControls,
@@ -50,6 +51,7 @@ export function useDeckViewPageModel(deck: Deck) {
     toggleAutoPlay,
     toggleShowEditLink,
     toggleViewMode,
+    toggleShowViewMode,
     toggleShowHelp,
     toggleShowCardDetails,
     toggleShowPlaybackControls,

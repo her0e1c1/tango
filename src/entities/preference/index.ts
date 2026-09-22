@@ -1,3 +1,4 @@
+export { toggleShowViewMode } from "./model/actions/toggleShowViewMode";
 export { toggleViewMode } from "./model/actions/toggleViewMode";
 export { getPreferences } from "./model/queries/getPreferences";
 export { usePreferences } from "./model/queries/usePreferences";

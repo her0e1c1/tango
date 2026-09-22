@@ -34,6 +34,8 @@ const meta = {
     onToggleSwipeControls: fn(),
     onTogglePlaybackControls: fn(),
     showSwipeControls: true,
+    showViewMode: true,
+    onToggleShowViewMode: fn(),
     showHelp: true,
     showPlaybackControls: true,
     showCardDetails: true,

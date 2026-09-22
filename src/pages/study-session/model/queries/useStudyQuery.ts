@@ -16,6 +16,7 @@ export const useStudyQuery = (deckId: string) => {
     session === undefined && remoteLoading ? { status: "preparing" } : resolveStudySession(session, cards);
   const controls = {
     swipeActions: preferences.controls,
+    showViewMode: preferences.controls.showViewMode,
     showHelp: preferences.controls.showHelp,
     viewMode: preferences.controls.viewMode,
     playbackControlsAvailable: preferences.study.cardInterval > 0,
