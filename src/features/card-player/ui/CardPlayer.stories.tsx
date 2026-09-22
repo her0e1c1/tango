@@ -381,7 +381,6 @@ const readingPlay: Story["play"] = async ({ args, canvasElement }) => {
   await expect(surface.scrollTop + surface.clientHeight).toBeGreaterThanOrEqual(surface.scrollHeight - 1);
   const controls = canvas.getByRole("button", { name: "Play" });
   await expect(surface.getBoundingClientRect().bottom).toBeLessThanOrEqual(controls.getBoundingClientRect().top);
-  await userEvent.click(canvas.getByRole("button", { name: "Open card actions" }));
   const toggle = canvas.getByRole("button", { name: "View mode" });
   await expect(toggle).toHaveAttribute("aria-pressed", "true");
   await expect(toggle.getBoundingClientRect().bottom).toBeLessThanOrEqual(surface.getBoundingClientRect().top);

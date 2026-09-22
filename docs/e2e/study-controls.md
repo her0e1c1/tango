@@ -160,7 +160,7 @@ Given:
 
 When:
 
-- 「…」から view mode を ON にして、wheel・touch・方向キー・Space・PageUp／PageDown で本文を読む。マウスを全方向へドラッグし、文字選択も行う。
+- ツールバーの閲覧モードボタンから view mode を ON にして、wheel・touch・方向キー・Space・PageUp／PageDown で本文を読む。マウスを全方向へドラッグし、文字選択も行う。
 
 Then:
 
