@@ -39,7 +39,7 @@ describe("DECK-NAVIGATION-01 STUDY-SESSION-03 useDeckListState", () => {
   beforeEach(async () => {
     vi.useFakeTimers();
     updatePreferences({ study: { useCardInterval: false } });
-    replaceAuthSession({ status: "initializing" });
+    replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
     clearStudySessions();
     await Promise.all(decks.map((deck) => createDeck("user-id", deck)));
     await mutateCards(

@@ -1,3 +1,5 @@
+import { compareActiveDecks } from "./compareActiveDecks";
+import { groupDecksByStudyStatus } from "./groupDecksByStudyStatus";
 import { useStore } from "zustand";
 
 import { useStudyCards } from "@/entities/card-study-state";
@@ -7,13 +9,7 @@ type StudyCard = Card & { fsrs: FsrsState | null };
 import { type Deck, type DeckId, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { classifyFsrsState } from "@/entities/card-study-state";
-import {
-  compareActiveDecks,
-  groupDecksByStudyStatus,
-  selectStudyCardsWithDeadline,
-  type StudySession,
-  useStudySessions,
-} from "@/entities/study-session";
+import { selectStudyCardsWithDeadline, type StudySession, useStudySessions } from "@/entities/study-session";
 import { useDeadlineQuery } from "@/shared/lib/useDeadlineQuery";
 
 import { deckListStore, type DeckListBootstrapStatus } from "../store";

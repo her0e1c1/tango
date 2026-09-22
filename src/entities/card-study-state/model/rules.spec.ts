@@ -1,6 +1,7 @@
+import { createCard } from "@/test/factories";
 import { createEmptyCard, fsrs as createScheduler, Rating } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
-import { calculateFsrsState, classifyFsrsState, getStudyRetrievability } from "./rules";
+import { calculateFsrsState, classifyFsrsState, getStudyRetrievability, joinStudyCards } from "./rules";
 import { cardStudyStateDocumentSchema } from "../api/document";
 import { cardStudyStateId } from "../api/id";
 
@@ -82,5 +83,19 @@ describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", ()
   });
   it("classifies absence as new without fabricating difficulty", () => {
     expect(classifyFsrsState(null, at)).toEqual({ status: "new" });
+  });
+  it("joins saved and unrated cards without changing their content or order", () => {
+    const cards = [createCard({ id: "missing" }), createCard({ id: "empty" }), createCard({ id: "rated" })];
+    const fsrs = calculateFsrsState(null, "good", at);
+    const states = { empty: { fsrs: null }, rated: { fsrs } };
+    const originalCards = structuredClone(cards);
+    const originalStates = structuredClone(states);
+    expect(joinStudyCards(cards, states)).toEqual([
+      { ...cards[0], fsrs: null },
+      { ...cards[1], fsrs: null },
+      { ...cards[2], fsrs },
+    ]);
+    expect(cards).toEqual(originalCards);
+    expect(states).toEqual(originalStates);
   });
 });

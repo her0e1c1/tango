@@ -1,6 +1,6 @@
+import "@/test/mockFirestorePersistence";
 import { seedCardStudyState } from "@/test/studyStateFixtures";
 import { clearCardStudyStates } from "@/entities/card-study-state";
-import "@/test/mockFirestorePersistence";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Card } from "@/entities/card";
