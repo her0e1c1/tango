@@ -363,11 +363,9 @@ describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] 
     const helpToggle = screen.getByRole("button", { name: "Help button" });
     expect(actions).not.toContainElement(helpToggle);
     expect(helpToggle).toHaveAttribute("aria-pressed", "true");
-    expect(helpToggle).toHaveClass(
-      "absolute",
-      "right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)]",
-      "top-0"
-    );
+    const shortcuts = helpToggle.closest("[data-study-toolbar-shortcuts]");
+    expect(shortcuts).toHaveClass("flex", "flex-row-reverse", "gap-1");
+    expect(shortcuts).toContainElement(helpToggle);
 
     rerender(<CardPlayer {...props} showHelp={false} onToggleHelp={onToggleHelp} frontTextSlot={<div>Front</div>} />);
 
@@ -390,11 +388,22 @@ describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] 
     expect(viewModeButton).toBeVisible();
     expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
     expect(viewModeButton).toHaveAttribute("title", "Enter view mode");
-    expect(viewModeButton).toHaveClass(
-      "absolute",
-      "right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]",
-      "top-0"
+    const shortcuts = viewModeButton.closest("[data-study-toolbar-shortcuts]");
+    expect(shortcuts).toHaveClass("flex", "flex-row-reverse", "gap-1");
+    expect(shortcuts).toContainElement(viewModeButton);
+
+    rerender(
+      <CardPlayer
+        {...props}
+        showHelp={false}
+        viewMode={false}
+        onToggleViewMode={onToggleViewMode}
+        frontTextSlot={<div>Front</div>}
+      />
     );
+    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
+    expect(shortcuts?.children).toHaveLength(1);
+    expect(shortcuts?.firstElementChild).toBe(viewModeButton);
 
     fireEvent.click(viewModeButton);
     expect(onToggleViewMode).toHaveBeenCalledOnce();
