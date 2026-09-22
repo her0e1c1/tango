@@ -234,28 +234,31 @@ describe("Firestore ownership and guest write restrictions", () => {
       await assertFails(updateDoc(doc(db, "studyAnswer", "saved"), { answer: { type: "rating", rating: "again" } }));
       await assertFails(deleteDoc(doc(db, "studyAnswer", "saved")));
     });
-    it.each(["other-user", "anonymous"])("[FIRESTORE-RULES-STUDY-ANSWER-04] rejects %s reads and answer batches", async (actor) => {
-      await createData("studyAnswer", "saved", answer());
-      const db = testEnv
-        .authenticatedContext(actor === "anonymous" ? "owner" : actor, {
-          firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
-        })
-        .firestore();
-      await assertFails(getDoc(doc(db, "studyAnswer", "saved")));
-      const batch = writeBatch(db);
-      batch.set(doc(db, "studyAnswer", "new"), answer());
-      batch.set(doc(db, "cardStudyState", "5:ownerfirst"), {
-        schemaVersion: 1,
-        uid: "owner",
-        cardId: "first",
-        deckId: "deck",
-        fsrs: validFsrs,
-        createdAt: 2000,
-        updatedAt: 2000,
-      });
-      batch.update(doc(db, "studySession", "session"), { currentIndex: 1 });
-      await assertFails(batch.commit());
-    });
+    it.each(["other-user", "anonymous"])(
+      "[FIRESTORE-RULES-STUDY-ANSWER-04] rejects %s reads and answer batches",
+      async (actor) => {
+        await createData("studyAnswer", "saved", answer());
+        const db = testEnv
+          .authenticatedContext(actor === "anonymous" ? "owner" : actor, {
+            firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
+          })
+          .firestore();
+        await assertFails(getDoc(doc(db, "studyAnswer", "saved")));
+        const batch = writeBatch(db);
+        batch.set(doc(db, "studyAnswer", "new"), answer());
+        batch.set(doc(db, "cardStudyState", "5:ownerfirst"), {
+          schemaVersion: 1,
+          uid: "owner",
+          cardId: "first",
+          deckId: "deck",
+          fsrs: validFsrs,
+          createdAt: 2000,
+          updatedAt: 2000,
+        });
+        batch.update(doc(db, "studySession", "session"), { currentIndex: 1 });
+        await assertFails(batch.commit());
+      }
+    );
   });
 
   describe("authenticated context", () => {
