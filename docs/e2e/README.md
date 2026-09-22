@@ -25,6 +25,9 @@
 | NAVIGATION-02 | read | [画面の keyboard shortcut で主要 route へ遷移できる](./navigation.md#navigation-02) |
 | NAVIGATION-03 | write | [共通エラー画面が現在の言語で表示され Reload で復旧する](./navigation.md#navigation-03) |
 | NAVIGATION-04 | read | [初期化リクエストを読み取れなくても通常起動できる](./navigation.md#navigation-04) |
+| NAVIGATION-05 | read | [未処理の実行時例外と Promise rejection から復旧できる](./navigation.md#navigation-05) |
+| NAVIGATION-06 | read | [通常アプリの起動失敗から復旧できる](./navigation.md#navigation-06) |
+| NAVIGATION-07 | write | [初期化失敗時は通常起動せず復旧画面を表示する](./navigation.md#navigation-07) |
 
 ### Account
 
