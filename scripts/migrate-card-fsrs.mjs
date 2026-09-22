@@ -131,7 +131,11 @@ if (mode === "backup") {
           writes: [{ delete: source.name, currentDocument: { updateTime: source.updateTime } }],
         });
       } catch (error) {
-        await request(`${base}:rollback`, { transaction });
+        try {
+          await request(`${base}:rollback`, { transaction });
+        } catch {
+          // An aborted or committed transaction may already be closed; retain the original diagnostic.
+        }
         throw error;
       }
     }

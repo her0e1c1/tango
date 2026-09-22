@@ -9,16 +9,16 @@
 | --- | --- | --- |
 | この README | 実行方法、共通前提、記述・ID 規約、索引、未検証項目 | Firestore 結合テスト全体 |
 | [Deck](./deck.md) | 作成、部分更新、URL の扱い、親 Deck の論理削除 | `deck.spec.ts` |
-| [Card](./card.md) | 作成、部分更新、内容と個人状態の分離、一括保存、論理削除 | `card.spec.ts` |
+| [Card](./card.md) | 作成、部分更新、本文と FSRS の更新、一括保存、論理削除 | `card.spec.ts` |
 | [Card.fsrs](./card-fsrs.md) | 初期購読、検証、UID 分離、削除 | `card-fsrs.spec.ts` |
 | [StudyAnswer](./study-answer.md) | 回答・スキップ・再試行と履歴の権限制御 | `study-answer.spec.ts` |
 | [StudySession](./study-session.md) | 順序・位置の復元、開始・中断・完了、オフライン queue | `study-session.spec.ts` |
 | [Subscriptions](./subscriptions.md) | 初期 snapshot、変更の store 反映、購読解除 | `subscriptions.spec.ts` |
-| [Rules](./rules.md) | 認証主体と SDK 操作ごとの許可・拒否 | `rules.spec.ts` |
+| [Rules / Deck](./rules-deck.md) / [Card](./rules-card.md) / [StudySession](./rules-study-session.md) / [StudyAnswer](./rules-study-answer.md) | entity ごとの認証主体と SDK 操作の許可・拒否 | `rules.spec.ts` |
 | [Study History](./study-history.md) | 開始・完了履歴と回答履歴の期間・Deck 条件、cache、権限 | `study-history.spec.ts` |
 
 対応テストはすべて [`test/integration/firestore`](../../../test/integration/firestore) に置く。
-上表の8ファイルを対象とし、各仕様書のケースを下記の索引に掲載する。
+上表の11ファイルを対象とし、各仕様書のケースを下記の索引に掲載する。
 local→remote 移行や local-only session 非送信のケースは、対象テストにはないため検証済みとして記載しない。
 
 ## 実行方法
@@ -90,7 +90,7 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | 対象 | 現在の検証範囲と不足 |
 | --- | --- |
 | [FIRESTORE-CARD-05](./card.md#firestore-card-05) | エラーと有効な Card の保存を確認する。不正な Card の保存先不在は直接確認していない |
-| Deck / Card の Rules | 親が他人所有の Card 更新による回答 batch の拒否は [FIRESTORE-STUDY-ANSWER-10](./study-answer.md#firestore-study-answer-10) で確認する。親不在の作成／更新、他人所有の親への新規作成、Deck / Card の所有者 UID 変更は直接検証していない |
+| Deck / Card の Rules | 親が他人所有の Card 更新による回答 batch の拒否は [FIRESTORE-STUDY-ANSWER-10](./study-answer.md#firestore-study-answer-10) で確認する。親不在の作成／更新、他人所有の親への新規作成、Deck の所有者 UID 変更は直接検証していない。Card の所有者変更拒否は [FIRESTORE-RULES-CARD-21](./rules-card.md#firestore-rules-card-21) で確認する。Rules 固有の仕様は [rules-deck](./rules-deck.md) と [rules-card](./rules-card.md) に分離する |
 
 購読解除後の確認は [Subscriptions](./subscriptions.md#firestore-subscriptions-03) に示す観測時点に限定する。
 [StudySession](./study-session.md#firestore-study-session-01) の再購読を別端末・ブラウザ reload の保証に拡張しない。
@@ -175,55 +175,75 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-SUBSCRIPTIONS-02 | batch | [購読中の追加・更新・論理削除を store に反映できる](./subscriptions.md#firestore-subscriptions-02) |
 | FIRESTORE-SUBSCRIPTIONS-03 | read | [購読解除後の編集で store の値を更新しない](./subscriptions.md#firestore-subscriptions-03) |
 
-### rules
+### rules-deck
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| FIRESTORE-RULES-01 | batch | [本人が private session を作成・取得・更新できる](./rules.md#firestore-rules-01) |
-| FIRESTORE-RULES-02 | batch | [公開 Deck でも他ユーザー・匿名・未認証から session にアクセスできない](./rules.md#firestore-rules-02) |
-| FIRESTORE-RULES-03 | write | [本人でも session の所有者変更と物理削除はできない](./rules.md#firestore-rules-03) |
-| FIRESTORE-RULES-04 | read | [削除済みの公開 Deck と Card を第三者が取得できない](./rules.md#firestore-rules-04) |
-| FIRESTORE-RULES-05 | batch | [回答作成と Card.fsrs・session 更新を同じ batch で許可する](./rules.md#firestore-rules-05) |
-| FIRESTORE-RULES-06 | write | [回答 ID と完了後の回答順序はアプリケーションの責務とする](./rules.md#firestore-rules-06) |
-| FIRESTORE-RULES-07 | write | [保存済みの回答履歴は本人でも更新・削除できない](./rules.md#firestore-rules-07) |
-| FIRESTORE-RULES-08 | batch | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](./rules.md#firestore-rules-08) |
-| FIRESTORE-RULES-09 | read | [本人による Deck の取得を許可する](./rules.md#firestore-rules-09) |
-| FIRESTORE-RULES-10 | write | [本人による Deck の作成を許可する](./rules.md#firestore-rules-10) |
-| FIRESTORE-RULES-11 | write | [本人による Deck の更新を許可する](./rules.md#firestore-rules-11) |
-| FIRESTORE-RULES-12 | write | [本人による Deck の物理削除を許可する](./rules.md#firestore-rules-12) |
-| FIRESTORE-RULES-13 | read | [本人による Card の取得を許可する](./rules.md#firestore-rules-13) |
-| FIRESTORE-RULES-14 | write | [本人による Card の作成を許可する](./rules.md#firestore-rules-14) |
-| FIRESTORE-RULES-15 | write | [本人による Card の更新を許可する](./rules.md#firestore-rules-15) |
-| FIRESTORE-RULES-16 | write | [本人による Card の物理削除を許可する](./rules.md#firestore-rules-16) |
-| FIRESTORE-RULES-17 | read | [他ユーザーによる Deck の非公開データの取得を拒否する](./rules.md#firestore-rules-17) |
-| FIRESTORE-RULES-18 | read | [他ユーザーによる Deck の公開データの取得を許可する](./rules.md#firestore-rules-18) |
-| FIRESTORE-RULES-19 | write | [他ユーザーによる Deck の作成を拒否する](./rules.md#firestore-rules-19) |
-| FIRESTORE-RULES-20 | write | [他ユーザーによる Deck の更新を拒否する](./rules.md#firestore-rules-20) |
-| FIRESTORE-RULES-21 | write | [他ユーザーによる Deck の物理削除を拒否する](./rules.md#firestore-rules-21) |
-| FIRESTORE-RULES-22 | read | [他ユーザーによる Card の非公開データの取得を拒否する](./rules.md#firestore-rules-22) |
-| FIRESTORE-RULES-23 | read | [他ユーザーによる Card の公開データの取得を許可する](./rules.md#firestore-rules-23) |
-| FIRESTORE-RULES-24 | write | [他ユーザーによる Card の作成を拒否する](./rules.md#firestore-rules-24) |
-| FIRESTORE-RULES-25 | write | [他ユーザーによる Card の更新を拒否する](./rules.md#firestore-rules-25) |
-| FIRESTORE-RULES-26 | write | [他ユーザーによる Card の物理削除を拒否する](./rules.md#firestore-rules-26) |
-| FIRESTORE-RULES-27 | write | [匿名認証による Deck・Card の作成を拒否する](./rules.md#firestore-rules-27) |
-| FIRESTORE-RULES-28 | write | [匿名認証による Deck・Card の更新を拒否する](./rules.md#firestore-rules-28) |
-| FIRESTORE-RULES-29 | write | [匿名認証による Deck・Card の物理削除を拒否する](./rules.md#firestore-rules-29) |
-| FIRESTORE-RULES-30 | read | [匿名認証による Deck・Card の公開データの取得を許可する](./rules.md#firestore-rules-30) |
-| FIRESTORE-RULES-31 | read | [未認証による Deck の非公開データの取得を拒否する](./rules.md#firestore-rules-31) |
-| FIRESTORE-RULES-32 | read | [未認証による Deck の公開データの取得を許可する](./rules.md#firestore-rules-32) |
-| FIRESTORE-RULES-33 | write | [未認証による Deck の作成を拒否する](./rules.md#firestore-rules-33) |
-| FIRESTORE-RULES-34 | write | [未認証による Deck の更新を拒否する](./rules.md#firestore-rules-34) |
-| FIRESTORE-RULES-35 | write | [未認証による Deck の物理削除を拒否する](./rules.md#firestore-rules-35) |
-| FIRESTORE-RULES-36 | read | [未認証による Card の非公開データの取得を拒否する](./rules.md#firestore-rules-36) |
-| FIRESTORE-RULES-37 | read | [未認証による Card の公開データの取得を許可する](./rules.md#firestore-rules-37) |
-| FIRESTORE-RULES-38 | write | [未認証による Card の作成を拒否する](./rules.md#firestore-rules-38) |
-| FIRESTORE-RULES-39 | write | [未認証による Card の更新を拒否する](./rules.md#firestore-rules-39) |
-| FIRESTORE-RULES-40 | write | [未認証による Card の物理削除を拒否する](./rules.md#firestore-rules-40) |
-| FIRESTORE-RULES-41 | write | [本人の FSRS 更新を許可し Card の同一性を維持する](./rules.md#firestore-rules-41) |
-| FIRESTORE-RULES-42 | write | [公開 Card の FSRS を公開し他人の書込を拒否する](./rules.md#firestore-rules-42) |
-| FIRESTORE-RULES-43 | write | [FSRS 外形と所有権・削除状態を確認する](./rules.md#firestore-rules-43) |
-| FIRESTORE-RULES-44 | write | [旧個人学習フィールドを Card に書き戻せない](./rules.md#firestore-rules-44) |
-| FIRESTORE-RULES-45 | write | [評価更新で物理削除 Card を再作成しない](./rules.md#firestore-rules-45) |
+| FIRESTORE-RULES-DECK-01 | read | [削除済みの公開 Deck を第三者が取得できない](./rules-deck.md#firestore-rules-deck-01) |
+| FIRESTORE-RULES-DECK-02 | read | [本人による Deck の取得を許可する](./rules-deck.md#firestore-rules-deck-02) |
+| FIRESTORE-RULES-DECK-03 | write | [本人による Deck の作成を許可する](./rules-deck.md#firestore-rules-deck-03) |
+| FIRESTORE-RULES-DECK-04 | write | [本人による Deck の更新を許可する](./rules-deck.md#firestore-rules-deck-04) |
+| FIRESTORE-RULES-DECK-05 | write | [本人による Deck の物理削除を許可する](./rules-deck.md#firestore-rules-deck-05) |
+| FIRESTORE-RULES-DECK-06 | read | [他ユーザーによる Deck の非公開データの取得を拒否する](./rules-deck.md#firestore-rules-deck-06) |
+| FIRESTORE-RULES-DECK-07 | read | [他ユーザーによる Deck の公開データの取得を許可する](./rules-deck.md#firestore-rules-deck-07) |
+| FIRESTORE-RULES-DECK-08 | write | [他ユーザーによる Deck の作成を拒否する](./rules-deck.md#firestore-rules-deck-08) |
+| FIRESTORE-RULES-DECK-09 | write | [他ユーザーによる Deck の更新を拒否する](./rules-deck.md#firestore-rules-deck-09) |
+| FIRESTORE-RULES-DECK-10 | write | [他ユーザーによる Deck の物理削除を拒否する](./rules-deck.md#firestore-rules-deck-10) |
+| FIRESTORE-RULES-DECK-11 | write | [匿名認証による Deck の作成を拒否する](./rules-deck.md#firestore-rules-deck-11) |
+| FIRESTORE-RULES-DECK-12 | write | [匿名認証による Deck の更新を拒否する](./rules-deck.md#firestore-rules-deck-12) |
+| FIRESTORE-RULES-DECK-13 | write | [匿名認証による Deck の物理削除を拒否する](./rules-deck.md#firestore-rules-deck-13) |
+| FIRESTORE-RULES-DECK-14 | read | [匿名認証による Deck の公開データの取得を許可する](./rules-deck.md#firestore-rules-deck-14) |
+| FIRESTORE-RULES-DECK-15 | read | [未認証による Deck の非公開データの取得を拒否する](./rules-deck.md#firestore-rules-deck-15) |
+| FIRESTORE-RULES-DECK-16 | read | [未認証による Deck の公開データの取得を許可する](./rules-deck.md#firestore-rules-deck-16) |
+| FIRESTORE-RULES-DECK-17 | write | [未認証による Deck の作成を拒否する](./rules-deck.md#firestore-rules-deck-17) |
+| FIRESTORE-RULES-DECK-18 | write | [未認証による Deck の更新を拒否する](./rules-deck.md#firestore-rules-deck-18) |
+| FIRESTORE-RULES-DECK-19 | write | [未認証による Deck の物理削除を拒否する](./rules-deck.md#firestore-rules-deck-19) |
+
+### rules-card
+
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| FIRESTORE-RULES-CARD-01 | read | [削除済みの公開 Deck 配下または削除済みの Card を第三者が取得できない](./rules-card.md#firestore-rules-card-01) |
+| FIRESTORE-RULES-CARD-02 | read | [本人による Card の取得を許可する](./rules-card.md#firestore-rules-card-02) |
+| FIRESTORE-RULES-CARD-03 | write | [本人による Card の作成を許可する](./rules-card.md#firestore-rules-card-03) |
+| FIRESTORE-RULES-CARD-04 | write | [本人による Card の更新を許可する](./rules-card.md#firestore-rules-card-04) |
+| FIRESTORE-RULES-CARD-05 | write | [本人による Card の物理削除を許可する](./rules-card.md#firestore-rules-card-05) |
+| FIRESTORE-RULES-CARD-06 | read | [他ユーザーによる Card の非公開データの取得を拒否する](./rules-card.md#firestore-rules-card-06) |
+| FIRESTORE-RULES-CARD-07 | read | [他ユーザーによる Card の公開データの取得を許可する](./rules-card.md#firestore-rules-card-07) |
+| FIRESTORE-RULES-CARD-08 | write | [他ユーザーによる Card の作成を拒否する](./rules-card.md#firestore-rules-card-08) |
+| FIRESTORE-RULES-CARD-09 | write | [他ユーザーによる Card の更新を拒否する](./rules-card.md#firestore-rules-card-09) |
+| FIRESTORE-RULES-CARD-10 | write | [他ユーザーによる Card の物理削除を拒否する](./rules-card.md#firestore-rules-card-10) |
+| FIRESTORE-RULES-CARD-11 | write | [匿名認証による Card の作成を拒否する](./rules-card.md#firestore-rules-card-11) |
+| FIRESTORE-RULES-CARD-12 | write | [匿名認証による Card の更新を拒否する](./rules-card.md#firestore-rules-card-12) |
+| FIRESTORE-RULES-CARD-13 | write | [匿名認証による Card の物理削除を拒否する](./rules-card.md#firestore-rules-card-13) |
+| FIRESTORE-RULES-CARD-14 | read | [匿名認証による Card の公開データの取得を許可する](./rules-card.md#firestore-rules-card-14) |
+| FIRESTORE-RULES-CARD-15 | read | [未認証による Card の非公開データの取得を拒否する](./rules-card.md#firestore-rules-card-15) |
+| FIRESTORE-RULES-CARD-16 | read | [未認証による Card の公開データの取得を許可する](./rules-card.md#firestore-rules-card-16) |
+| FIRESTORE-RULES-CARD-17 | write | [未認証による Card の作成を拒否する](./rules-card.md#firestore-rules-card-17) |
+| FIRESTORE-RULES-CARD-18 | write | [未認証による Card の更新を拒否する](./rules-card.md#firestore-rules-card-18) |
+| FIRESTORE-RULES-CARD-19 | write | [未認証による Card の物理削除を拒否する](./rules-card.md#firestore-rules-card-19) |
+| FIRESTORE-RULES-CARD-20 | write | [旧個人学習フィールドを Card に書き戻せない](./rules-card.md#firestore-rules-card-20) |
+| FIRESTORE-RULES-CARD-21 | write | [本人の FSRS 更新を許可し Card の同一性を維持する](./rules-card.md#firestore-rules-card-21) |
+| FIRESTORE-RULES-CARD-22 | write | [公開 Card の FSRS を公開し他人の書込を拒否する](./rules-card.md#firestore-rules-card-22) |
+| FIRESTORE-RULES-CARD-23 | write | [FSRS 外形と所有権・削除状態を確認する](./rules-card.md#firestore-rules-card-23) |
+| FIRESTORE-RULES-CARD-24 | write | [評価更新で物理削除 Card を再作成しない](./rules-card.md#firestore-rules-card-24) |
+
+### rules-study-session
+
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| FIRESTORE-RULES-STUDY-SESSION-01 | batch | [本人が private session を作成・取得・更新できる](./rules-study-session.md#firestore-rules-study-session-01) |
+| FIRESTORE-RULES-STUDY-SESSION-02 | batch | [公開 Deck でも他ユーザー・匿名・未認証から session にアクセスできない](./rules-study-session.md#firestore-rules-study-session-02) |
+| FIRESTORE-RULES-STUDY-SESSION-03 | write | [本人でも session の所有者変更と物理削除はできない](./rules-study-session.md#firestore-rules-study-session-03) |
+
+### rules-study-answer
+
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| FIRESTORE-RULES-STUDY-ANSWER-01 | batch | [回答作成と Card.fsrs・session 更新を同じ batch で許可する](./rules-study-answer.md#firestore-rules-study-answer-01) |
+| FIRESTORE-RULES-STUDY-ANSWER-02 | write | [回答 ID と完了後の回答順序はアプリケーションの責務とする](./rules-study-answer.md#firestore-rules-study-answer-02) |
+| FIRESTORE-RULES-STUDY-ANSWER-03 | write | [保存済みの回答履歴は本人でも更新・削除できない](./rules-study-answer.md#firestore-rules-study-answer-03) |
+| FIRESTORE-RULES-STUDY-ANSWER-04 | batch | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](./rules-study-answer.md#firestore-rules-study-answer-04) |
 
 ### study-history
 
