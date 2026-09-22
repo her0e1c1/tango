@@ -72,7 +72,9 @@ const e2eCases = readCases("docs/e2e");
 const firestoreCases = readCases("docs/integration/firestore");
 const storybookCases = readCases("docs/integration/storybook");
 const e2eFiles = filesIn(path.join(root, "test/e2e")).filter((file) => file.endsWith(".spec.ts"));
-const firestoreFiles = filesIn(path.join(root, "test/integration/firestore")).filter((file) => /\.spec\.tsx?$/u.test(file));
+const firestoreFiles = filesIn(path.join(root, "test/integration/firestore")).filter((file) =>
+  /\.spec\.tsx?$/u.test(file)
+);
 const storyFiles = filesIn(path.join(root, "src")).filter((file) => /\.stories\.tsx?$/u.test(file));
 const config = ts.readConfigFile(path.join(root, "tsconfig.json"), ts.sys.readFile);
 if (config.error) throw new Error(ts.flattenDiagnosticMessageText(config.error.messageText, "\n"));
@@ -221,12 +223,18 @@ function testIds(file: string): Set<string> {
         if (parts.some((part) => ["skip", "todo", "fixme", "skipIf", "runIf"].includes(part))) return;
         if (!suites.has(first) && !parts.includes("describe") && isCallable(node.arguments.at(-1))) {
           if (hasEmptyRows(node.expression) || skipsUnconditionally(node.arguments.at(-1))) return;
-          if (parts.slice(1).some((part) => !["each", "for", "only", "concurrent", "sequential", "fails"].includes(part)))
+          if (
+            parts.slice(1).some((part) => !["each", "for", "only", "concurrent", "sequential", "fails"].includes(part))
+          )
             return;
           const title = node.arguments[0];
           if (title !== undefined) {
             const value = valueOf(title);
-            const text = ts.isStringLiteralLike(value) ? value.text : ts.isTemplateExpression(value) ? value.head.text : "";
+            const text = ts.isStringLiteralLike(value)
+              ? value.text
+              : ts.isTemplateExpression(value)
+                ? value.head.text
+                : "";
             for (const match of text.matchAll(caseIdPattern)) ids.add(match[0]);
           }
           return;
@@ -243,8 +251,8 @@ function checkTests(cases: SpecCase[], files: string[]): void {
   const byFile = new Map(files.map((file) => [file, testIds(file)]));
   for (const spec of cases) {
     // Firestore specifications declare their owning test file. E2E IDs can span test files.
-    const links = [...withoutFences(readFileSync(spec.file, "utf8")).matchAll(/\]\(([^)]+\.spec\.tsx?)\)/gu)].map((match) =>
-      path.resolve(path.dirname(spec.file), match[1] ?? "")
+    const links = [...withoutFences(readFileSync(spec.file, "utf8")).matchAll(/\]\(([^)]+\.spec\.tsx?)\)/gu)].map(
+      (match) => path.resolve(path.dirname(spec.file), match[1] ?? "")
     );
     const candidates = links.length > 0 ? links : files;
     if (!candidates.some((file) => byFile.get(file)?.has(spec.id))) {
@@ -314,9 +322,9 @@ checkStorybook();
 
 // README is an index of specifications, not a second list of individual test executions.
 const indexedIds = new Set(
-  [...readFileSync(path.join(root, "docs/e2e/README.md"), "utf8").matchAll(/^\| ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,}) \|/gmu)].map(
-    (match) => match[1]
-  )
+  [
+    ...readFileSync(path.join(root, "docs/e2e/README.md"), "utf8").matchAll(/^\| ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,}) \|/gmu),
+  ].map((match) => match[1])
 );
 for (const spec of e2eCases) {
   if (!indexedIds.has(spec.id)) problems.push(`docs/e2e/README.md: missing ${spec.id}`);
