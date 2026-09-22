@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import type { Preferences } from "@/entities/preference";
+import { toggleViewMode, type Preferences } from "@/entities/preference";
 import type { DeckFilterValues } from "@/features/deck-filter";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -262,5 +262,11 @@ describe("DECK-NAVIGATION-03 DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATI
     await userEvent.click(link);
     expect(screen.getByRole("region", { name: "Card answer" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Card front" })).not.toBeInTheDocument();
+  });
+
+  it("toggles view mode from the toolbar button", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "View mode" }));
+    expect(toggleViewMode).toHaveBeenCalledOnce();
   });
 });

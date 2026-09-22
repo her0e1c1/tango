@@ -3,9 +3,7 @@ import { expect, test } from "./fixtures";
 import { readProgress, readSession } from "./study-helpers";
 
 const enterViewMode = async (page: Page) => {
-  await page.getByRole("button", { name: "Open card actions" }).click();
   await page.getByRole("button", { name: "View mode", exact: true }).click();
-  await page.getByRole("button", { name: "Close card actions" }).click();
 };
 
 const readViewMode = (page: Page) =>

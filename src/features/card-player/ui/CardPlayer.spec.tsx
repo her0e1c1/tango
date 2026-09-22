@@ -377,6 +377,45 @@ describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] 
     expect(onToggleHelp).toHaveBeenCalledOnce();
   });
 
+  it("places view mode on the toolbar to the left of the Help icon and toggles it on and off", () => {
+    const onToggleViewMode = vi.fn();
+    const props = toolbarProps();
+    const { rerender } = render(
+      <CardPlayer {...props} viewMode={false} onToggleViewMode={onToggleViewMode} frontTextSlot={<div>Front</div>} />
+    );
+
+    const viewModeButton = screen.getByRole("button", { name: "View mode" });
+    expect(viewModeButton).toBeVisible();
+    expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
+    expect(viewModeButton).toHaveAttribute("title", "Enter view mode");
+    expect(viewModeButton).toHaveClass(
+      "absolute",
+      "right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)]",
+      "top-0"
+    );
+
+    fireEvent.click(viewModeButton);
+    expect(onToggleViewMode).toHaveBeenCalledOnce();
+
+    rerender(
+      <CardPlayer {...props} viewMode={true} onToggleViewMode={onToggleViewMode} frontTextSlot={<div>Front</div>} />
+    );
+    expect(viewModeButton).toHaveAttribute("aria-pressed", "true");
+    expect(viewModeButton).toHaveAttribute("title", "Exit view mode");
+    expect(viewModeButton).toHaveClass("bg-surface-muted", "text-accent-primary");
+
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    expect(viewModeButton).toBeVisible();
+    const actions = screen.getByRole("group", { name: "Card actions" });
+    expect(actions).not.toContainElement(viewModeButton);
+
+    fireEvent.click(viewModeButton);
+    expect(onToggleViewMode).toHaveBeenCalledTimes(2);
+
+    fireEvent.keyDown(viewModeButton, { key: "Escape" });
+    expect(screen.getByRole("button", { name: "Open card actions" })).toHaveFocus();
+  });
+
   it("shows and hides all card details from the persisted preference value", () => {
     const { rerender } = render(
       <CardPlayer

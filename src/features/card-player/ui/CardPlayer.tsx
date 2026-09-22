@@ -94,8 +94,6 @@ const toolbarButtonClass =
   "pointer-events-auto inline-flex size-touch shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 interface StudyModeActionsProps {
-  viewMode: boolean;
-  onToggleViewMode: () => void;
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
@@ -129,17 +127,6 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-1">
-      <button
-        type="button"
-        aria-label={t("studySession.toolbar.viewMode.label")}
-        aria-pressed={props.viewMode}
-        title={t(props.viewMode ? "studySession.toolbar.viewMode.exit" : "studySession.toolbar.viewMode.enter")}
-        className={cx(toolbarButtonClass, props.viewMode && "bg-surface-muted text-accent-primary")}
-        onClick={props.onToggleViewMode}
-        onKeyDown={props.onEscape}
-      >
-        <AiOutlineRead aria-hidden="true" className="text-xl" />
-      </button>
       <button
         type="button"
         aria-label={t("studySession.toolbar.swipeControls.label")}
@@ -292,27 +279,6 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
         )}
       </button>
-      {props.editLink !== undefined && (props.open || props.editLink.visible) ? (
-        <div className="absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] top-0">
-          {props.open ? (
-            <button
-              type="button"
-              aria-label={t("studySession.toolbar.editLink.label")}
-              aria-pressed={props.editLink.visible}
-              title={t(
-                props.editLink.visible ? "studySession.toolbar.editLink.hide" : "studySession.toolbar.editLink.show"
-              )}
-              className={cx(toolbarButtonClass, props.editLink.visible && "bg-surface-muted text-accent-primary")}
-              onClick={props.editLink.onToggle}
-              onKeyDown={closeOnEscape}
-            >
-              <AiOutlineEdit aria-hidden="true" className="text-xl" />
-            </button>
-          ) : (
-            props.editLink.element
-          )}
-        </div>
-      ) : null}
       {props.open || props.showHelp ? (
         // The fixed slot opens Help while actions are closed and controls its visibility while they are open.
         <button
@@ -332,6 +298,42 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
         </button>
       ) : null}
+      <button
+        type="button"
+        aria-label={t("studySession.toolbar.viewMode.label")}
+        aria-pressed={props.viewMode}
+        title={t(props.viewMode ? "studySession.toolbar.viewMode.exit" : "studySession.toolbar.viewMode.enter")}
+        className={cx(
+          toolbarButtonClass,
+          "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] top-0",
+          props.viewMode && "bg-surface-muted text-accent-primary"
+        )}
+        onClick={props.onToggleViewMode}
+        onKeyDown={closeOnEscape}
+      >
+        <AiOutlineRead aria-hidden="true" className="text-xl" />
+      </button>
+      {props.editLink !== undefined && (props.open || props.editLink.visible) ? (
+        <div className="absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] top-0">
+          {props.open ? (
+            <button
+              type="button"
+              aria-label={t("studySession.toolbar.editLink.label")}
+              aria-pressed={props.editLink.visible}
+              title={t(
+                props.editLink.visible ? "studySession.toolbar.editLink.hide" : "studySession.toolbar.editLink.show"
+              )}
+              className={cx(toolbarButtonClass, props.editLink.visible && "bg-surface-muted text-accent-primary")}
+              onClick={props.editLink.onToggle}
+              onKeyDown={closeOnEscape}
+            >
+              <AiOutlineEdit aria-hidden="true" className="text-xl" />
+            </button>
+          ) : (
+            props.editLink.element
+          )}
+        </div>
+      ) : null}
       {props.open ? (
         // Move secondary actions below the fixed shortcuts before they can overlap on narrow screens.
         <fieldset
@@ -342,13 +344,11 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
             props.viewMode
               ? "px-shell-gutter pt-[calc(var(--spacing-touch)+0.25rem)]"
               : props.editLink === undefined
-                ? "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] max-[419px]:absolute max-[419px]:inset-x-0 max-[419px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[419px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
-                : "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] max-[499px]:absolute max-[499px]:inset-x-0 max-[499px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[499px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+                ? "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] max-[419px]:absolute max-[419px]:inset-x-0 max-[419px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[419px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+                : "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*4+1rem)] max-[499px]:absolute max-[499px]:inset-x-0 max-[499px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[499px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
           )}
         >
           <StudyModeActions
-            viewMode={props.viewMode}
-            onToggleViewMode={props.onToggleViewMode}
             showCardDetails={props.showCardDetails}
             showSwipeControls={props.showSwipeControls}
             showPlaybackControls={props.showPlaybackControls}
