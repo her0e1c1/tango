@@ -29,6 +29,7 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
 }));
 vi.mock("@/entities/preference", () => ({
   toggleViewMode: vi.fn(),
+  toggleShowViewMode: vi.fn(),
   usePreferences: () => data.preferences,
   getPreferences: () => data.preferences,
   setDarkMode: vi.fn(),

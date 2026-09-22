@@ -14,6 +14,7 @@ type StudyHelpControlId =
   | "exit";
 
 type StudyHelpActionId =
+  | "viewModeHidden"
   | "enterViewMode"
   | "exitViewMode"
   | "viewModeScroll"
@@ -53,7 +54,10 @@ export const buildCardPlayerHelpRows = (
   }));
 
   rows.push(
-    { control: "viewMode", action: viewMode ? "exitViewMode" : "enterViewMode" },
+    {
+      control: "viewMode",
+      action: !preferences.controls.showViewMode ? "viewModeHidden" : viewMode ? "exitViewMode" : "enterViewMode",
+    },
     { control: "flip", action: viewMode ? "exitViewMode" : "flip" },
     {
       control: "autoPlay",

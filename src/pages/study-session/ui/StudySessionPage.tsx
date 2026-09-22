@@ -19,6 +19,7 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
     goBack,
     finish,
     toggleViewMode,
+    toggleShowViewMode,
     toggleShowHelp,
     toggleShowCardDetails,
     toggleShowPlaybackControls,
@@ -82,6 +83,8 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
         onTogglePlaybackControls={toggleShowPlaybackControls}
         onToggleSkipControls={toggleShowSkip}
         showBackText={pageState.showBackText}
+        showViewMode={query.showViewMode}
+        onToggleShowViewMode={toggleShowViewMode}
         showHelp={query.showHelp}
         showCardDetails={query.showCardDetails}
         showSwipeControls={query.showSwipeButtonList}

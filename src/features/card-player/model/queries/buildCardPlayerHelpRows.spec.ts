@@ -36,13 +36,14 @@ describe("STUDY-CONTROLS-04 STUDY-CONTROLS-06 buildCardPlayerHelpRows", () => {
   it("describes hidden and unavailable controls from current preferences", () => {
     const preferences = createPreferences({
       cardInterval: 0,
-      controls: { showSwipeButtonList: false, showPlaybackControls: false, showSkip: false },
+      controls: { showViewMode: false, showSwipeButtonList: false, showPlaybackControls: false, showSkip: false },
     });
 
     const rows = buildCardPlayerHelpRows(preferences);
 
     expect(rows).toEqual(
       expect.arrayContaining([
+        { control: "viewMode", action: "viewModeHidden" },
         { control: "autoPlay", action: "autoPlayUnavailable" },
         { control: "swipeButtons", action: "swipeButtonsHidden" },
         { control: "playbackControls", action: "playbackControlsUnavailable" },

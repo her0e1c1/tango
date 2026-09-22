@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   toggleViewMode,
+  toggleShowViewMode,
   toggleShowHelp,
   toggleShowCardDetails,
   toggleShowPlaybackControls,
@@ -48,6 +49,7 @@ export function useStudySessionPageModel(deckId: DeckId) {
     goBack: () => void navigate(routes.deckList.to()),
     finish: () => void navigate(routes.deckList.to(), { replace: true }),
     toggleViewMode,
+    toggleShowViewMode,
     toggleShowHelp,
     toggleShowCardDetails,
     toggleShowPlaybackControls,

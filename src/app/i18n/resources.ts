@@ -527,7 +527,13 @@ export const resources = {
         },
         frontAria: "Card front text",
         toolbar: {
-          viewMode: { label: "View mode", enter: "Enter view mode", exit: "Exit view mode" },
+          viewMode: {
+            label: "View mode",
+            show: "Show view mode button",
+            hide: "Hide view mode button",
+            enter: "Enter view mode",
+            exit: "Exit view mode",
+          },
           editLink: {
             label: "Edit link",
             show: "Show edit link",
@@ -593,6 +599,7 @@ export const resources = {
             RateAgain: "Again — answer and continue",
             RateHard: "Hard — answer and continue",
             RateEasy: "Easy — answer and continue",
+            viewModeHidden: "Open card actions (…) to show the hidden View mode button",
             enterViewMode: "Read the front text with scrolling",
             exitViewMode: "Exit view mode and keep the front visible",
             viewModeScroll: "Scroll the front text; swipe and arrow actions are disabled",
@@ -1340,7 +1347,13 @@ export const resources = {
         },
         frontAria: "カードの表面テキスト",
         toolbar: {
-          viewMode: { label: "閲覧モード", enter: "閲覧モードに切り替え", exit: "閲覧モードを終了" },
+          viewMode: {
+            label: "閲覧モード",
+            show: "閲覧モードボタンを表示",
+            hide: "閲覧モードボタンを非表示",
+            enter: "閲覧モードに切り替え",
+            exit: "閲覧モードを終了",
+          },
           editLink: {
             label: "編集リンク",
             show: "編集リンクを表示",
@@ -1399,6 +1412,7 @@ export const resources = {
             exit: "デッキ一覧へ戻るボタン",
           },
           actions: {
+            viewModeHidden: "「…」から非表示の閲覧モードボタンを表示する",
             enterViewMode: "表面テキストをスクロールして読む",
             exitViewMode: "表面を表示したまま閲覧モードを終了する",
             viewModeScroll: "表面をスクロールする（スワイプ・方向キーの操作は無効）",

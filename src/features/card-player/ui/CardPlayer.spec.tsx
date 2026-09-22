@@ -13,6 +13,8 @@ const playbackUnavailableDescription = "Playback controls unavailable because th
 const toolbarProps = () => ({
   viewMode: false,
   onToggleViewMode: vi.fn(),
+  showViewMode: true,
+  onToggleShowViewMode: vi.fn(),
   showHelp: true,
   showCardDetails: true,
   showSwipeControls: true,
@@ -410,9 +412,24 @@ describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] 
     expect(actions).not.toContainElement(viewModeButton);
 
     fireEvent.click(viewModeButton);
-    expect(onToggleViewMode).toHaveBeenCalledTimes(2);
+    expect(props.onToggleShowViewMode).toHaveBeenCalledOnce();
+    rerender(<CardPlayer {...props} viewMode showViewMode={false} frontTextSlot={<div>Front</div>} />);
+    expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
+    expect(viewModeButton).toHaveAttribute("title", "Show view mode button");
+    fireEvent.click(screen.getByRole("button", { name: "Close card actions" }));
+    expect(screen.queryByRole("button", { name: "View mode" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    const visibilityButton = screen.getByRole("button", { name: "View mode" });
+    fireEvent.click(visibilityButton);
+    expect(props.onToggleShowViewMode).toHaveBeenCalledTimes(2);
+    rerender(<CardPlayer {...props} viewMode frontTextSlot={<div>Front</div>} />);
+    fireEvent.click(screen.getByRole("button", { name: "Close card actions" }));
+    expect(screen.getByRole("button", { name: "View mode" })).toHaveAttribute("title", "Exit view mode");
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
 
-    fireEvent.keyDown(viewModeButton, { key: "Escape" });
+    expect(onToggleViewMode).toHaveBeenCalledOnce();
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "View mode" }), { key: "Escape" });
     expect(screen.getByRole("button", { name: "Open card actions" })).toHaveFocus();
   });
 

@@ -97,6 +97,26 @@ for (const scenario of [
     expect(await readProgress(card.id)).toEqual(before);
     if (scenario.route === "study") {
       expect((await readSession(page, deck.id))?.currentIndex).toBe(0);
+      const viewModeButton = page.getByRole("button", { name: "View mode", exact: true });
+      await page.getByRole("button", { name: "Open card actions" }).click();
+      await viewModeButton.click();
+      await expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
+      await expect.poll(() => readViewMode(page)).toBe(true);
+      await page.getByRole("button", { name: "Close card actions" }).click();
+      await expect(viewModeButton).toHaveCount(0);
+      await page.reload();
+      await expect(page.getByRole("button", { name: "Open card actions" })).toBeVisible();
+      await expect(viewModeButton).toHaveCount(0);
+      await page.goto(`/deck/${deck.id}/view`);
+      await expect(page.getByRole("button", { name: "Open card actions" })).toBeVisible();
+      await expect(viewModeButton).toHaveCount(0);
+      await page.getByRole("button", { name: "Open card actions" }).click();
+      await viewModeButton.click();
+      await page.getByRole("button", { name: "Close card actions" }).click();
+      await expect(viewModeButton).toHaveAttribute("title", "Exit view mode");
+      await page.goto(`/deck/${deck.id}/study`);
+      await expect(viewModeButton).toBeVisible();
+
       await page.getByRole("button", { name: "Open study help" }).click();
       await expect(page.getByRole("dialog")).toContainText("Exit view mode and keep the front visible");
       await expect(page.getByRole("dialog")).toContainText("Space scrolls the front text");
