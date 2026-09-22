@@ -264,92 +264,89 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
       >
         <AiOutlineLeft aria-hidden="true" className="text-xl" />
       </button>
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-label={copy.actionToggleLabel}
-        aria-expanded={props.open}
-        aria-controls={actionsId}
-        className={cx(
-          toolbarButtonClass,
-          "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] top-0"
-        )}
-        onClick={props.onToggleOpen}
-        onKeyDown={closeOnEscape}
+      <div
+        data-testid="toolbar-shortcuts"
+        className="absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] top-0 flex flex-row-reverse items-center gap-1"
       >
-        {props.open ? (
-          <AiOutlineClose aria-hidden="true" className="text-xl" />
-        ) : (
-          <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
-        )}
-      </button>
-      {props.open || props.showHelp ? (
-        // The fixed slot opens Help while actions are closed and controls its visibility while they are open.
         <button
-          ref={props.open ? undefined : helpTriggerRef}
+          ref={triggerRef}
           type="button"
-          aria-label={copy.helpButtonLabel}
-          aria-pressed={props.open ? props.showHelp : undefined}
-          title={props.open ? copy.helpTitle : undefined}
-          className={cx(
-            toolbarButtonClass,
-            "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)+0.25rem)] top-0",
-            props.open && props.showHelp && "bg-surface-muted text-accent-primary"
-          )}
-          onClick={props.open ? props.onToggleHelp : props.onOpenHelp}
+          aria-label={copy.actionToggleLabel}
+          aria-expanded={props.open}
+          aria-controls={actionsId}
+          className={toolbarButtonClass}
+          onClick={props.onToggleOpen}
           onKeyDown={closeOnEscape}
         >
-          <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
-        </button>
-      ) : null}
-      {props.open || props.showViewMode ? (
-        <button
-          type="button"
-          aria-label={t("studySession.toolbar.viewMode.label")}
-          aria-pressed={props.open ? props.showViewMode : props.viewMode}
-          title={t(
-            props.open
-              ? props.showViewMode
-                ? "studySession.toolbar.viewMode.hide"
-                : "studySession.toolbar.viewMode.show"
-              : props.viewMode
-                ? "studySession.toolbar.viewMode.exit"
-                : "studySession.toolbar.viewMode.enter"
-          )}
-          className={cx(
-            toolbarButtonClass,
-            "absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] top-0",
-            (props.open ? props.showViewMode : props.viewMode) && "bg-surface-muted text-accent-primary"
-          )}
-          onClick={props.open ? props.onToggleShowViewMode : props.onToggleViewMode}
-          onKeyDown={closeOnEscape}
-        >
-          <AiOutlineRead aria-hidden="true" className="text-xl" />
-        </button>
-      ) : null}
-      {props.editLink !== undefined && (props.open || props.editLink.visible) ? (
-        <div className="absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] top-0">
           {props.open ? (
-            <button
-              type="button"
-              aria-label={t("studySession.toolbar.editLink.label")}
-              aria-pressed={props.editLink.visible}
-              title={t(
-                props.editLink.visible ? "studySession.toolbar.editLink.hide" : "studySession.toolbar.editLink.show"
-              )}
-              className={cx(toolbarButtonClass, props.editLink.visible && "bg-surface-muted text-accent-primary")}
-              onClick={props.editLink.onToggle}
-              onKeyDown={closeOnEscape}
-            >
-              <AiOutlineEdit aria-hidden="true" className="text-xl" />
-            </button>
+            <AiOutlineClose aria-hidden="true" className="text-xl" />
           ) : (
-            props.editLink.element
+            <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
           )}
-        </div>
-      ) : null}
+        </button>
+        {props.open || props.showHelp ? (
+          // Help opens the dialog while actions are closed and controls its visibility while they are open.
+          <button
+            ref={props.open ? undefined : helpTriggerRef}
+            type="button"
+            aria-label={copy.helpButtonLabel}
+            aria-pressed={props.open ? props.showHelp : undefined}
+            title={props.open ? copy.helpTitle : undefined}
+            className={cx(toolbarButtonClass, props.open && props.showHelp && "bg-surface-muted text-accent-primary")}
+            onClick={props.open ? props.onToggleHelp : props.onOpenHelp}
+            onKeyDown={closeOnEscape}
+          >
+            <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
+          </button>
+        ) : null}
+        {props.open || props.showViewMode ? (
+          <button
+            type="button"
+            aria-label={t("studySession.toolbar.viewMode.label")}
+            aria-pressed={props.open ? props.showViewMode : props.viewMode}
+            title={t(
+              props.open
+                ? props.showViewMode
+                  ? "studySession.toolbar.viewMode.hide"
+                  : "studySession.toolbar.viewMode.show"
+                : props.viewMode
+                  ? "studySession.toolbar.viewMode.exit"
+                  : "studySession.toolbar.viewMode.enter"
+            )}
+            className={cx(
+              toolbarButtonClass,
+              (props.open ? props.showViewMode : props.viewMode) && "bg-surface-muted text-accent-primary"
+            )}
+            onClick={props.open ? props.onToggleShowViewMode : props.onToggleViewMode}
+            onKeyDown={closeOnEscape}
+          >
+            <AiOutlineRead aria-hidden="true" className="text-xl" />
+          </button>
+        ) : null}
+        {props.editLink !== undefined && (props.open || props.editLink.visible) ? (
+          <div className="shrink-0">
+            {props.open ? (
+              <button
+                type="button"
+                aria-label={t("studySession.toolbar.editLink.label")}
+                aria-pressed={props.editLink.visible}
+                title={t(
+                  props.editLink.visible ? "studySession.toolbar.editLink.hide" : "studySession.toolbar.editLink.show"
+                )}
+                className={cx(toolbarButtonClass, props.editLink.visible && "bg-surface-muted text-accent-primary")}
+                onClick={props.editLink.onToggle}
+                onKeyDown={closeOnEscape}
+              >
+                <AiOutlineEdit aria-hidden="true" className="text-xl" />
+              </button>
+            ) : (
+              props.editLink.element
+            )}
+          </div>
+        ) : null}
+      </div>
       {props.open ? (
-        // Move secondary actions below the fixed shortcuts before they can overlap on narrow screens.
+        // Move secondary actions below the shortcuts before they can overlap on narrow screens.
         <fieldset
           id={actionsId}
           aria-label={t("studySession.toolbar.actions.label")}
