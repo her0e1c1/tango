@@ -12,6 +12,7 @@ const rows: StudyHelpDialogProps["rows"] = [
   { control: "autoPlay", action: "autoPlay" },
   { control: "swipeButtons", action: "swipeButtonsVisible" },
   { control: "playbackControls", action: "playbackControlsVisible" },
+  { control: "skipControls", action: "skipControlsVisible" },
   { control: "cardDetails", action: "cardDetails" },
   { control: "exit", action: "exit" },
 ];

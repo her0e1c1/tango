@@ -8,6 +8,7 @@ import { toggleShowCardDetails } from "./actions/toggleShowCardDetails";
 import { toggleShowEditLink } from "./actions/toggleShowEditLink";
 import { toggleShowHelp } from "./actions/toggleShowHelp";
 import { toggleShowPlaybackControls } from "./actions/toggleShowPlaybackControls";
+import { toggleShowSkip } from "./actions/toggleShowSkip";
 import { toggleShowSwipeButtonList } from "./actions/toggleShowSwipeButtonList";
 import { updatePreferences } from "./actions/updatePreferences";
 
@@ -48,6 +49,10 @@ describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
     expect(preferencesStore.getState().preferences.controls.showEditLink).toBe(true);
   });
 
+  it("shows the study skip control by default", () => {
+    expect(defaultPreferences.controls.showSkip).toBe(true);
+  });
+
   it("keeps back text swipe overlays off by default", () => {
     expect(defaultPreferences.controls.showBackTextSwipeOverlays).toBe(false);
   });
@@ -67,6 +72,7 @@ describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
     });
     updatePreferences({ controls: { showSwipeButtonList: false } });
     updatePreferences({ controls: { showPlaybackControls: false } });
+    updatePreferences({ controls: { showSkip: false } });
 
     expect(store.getState().preferences).toEqual({
       ...defaultPreferences,
@@ -80,6 +86,7 @@ describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
         showBackTextSwipeOverlays: true,
         showSwipeButtonList: false,
         showPlaybackControls: false,
+        showSkip: false,
       },
     });
   });
@@ -127,6 +134,7 @@ describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
     toggleShowPlaybackControls();
     toggleShowCardDetails();
     toggleShowHelp();
+    toggleShowSkip();
 
     expect(preferencesStore.getState().preferences).toEqual({
       ...defaultPreferences,
@@ -139,6 +147,7 @@ describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
         showPlaybackControls: false,
         showCardDetails: false,
         showHelp: false,
+        showSkip: false,
       },
     });
   });
@@ -176,6 +185,7 @@ describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
         showHelp: _showHelp,
         showEditLink: _showEditLink,
         showBackTextSwipeOverlays: _showBackTextSwipeOverlays,
+        showSkip: _showSkip,
         ...controlsBeforeAdditiveFields
       },
       ...preferencesBeforeAdditiveFields
@@ -201,6 +211,7 @@ describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
         showHelp: true,
         showEditLink: true,
         showBackTextSwipeOverlays: false,
+        showSkip: true,
       },
     });
   });

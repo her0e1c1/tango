@@ -116,6 +116,7 @@ export type PreferencesOverrides = {
   showCardDetails?: boolean;
   showDifficultySlider?: boolean;
   showBackTextSwipeOverlays?: boolean;
+  showSkip?: boolean;
   cardSwipeUp?: SwipeAction;
   cardSwipeDown?: SwipeAction;
   cardSwipeLeft?: SwipeAction;
@@ -154,6 +155,7 @@ const createControls = (
   showCardDetails: controls?.showCardDetails ?? flat?.showCardDetails ?? true,
   showDifficultySlider: controls?.showDifficultySlider ?? flat?.showDifficultySlider ?? false,
   showBackTextSwipeOverlays: controls?.showBackTextSwipeOverlays ?? flat?.showBackTextSwipeOverlays ?? false,
+  showSkip: controls?.showSkip ?? flat?.showSkip ?? true,
   cardSwipeUp: controls?.cardSwipeUp ?? flat?.cardSwipeUp ?? "RateEasy",
   cardSwipeDown: controls?.cardSwipeDown ?? flat?.cardSwipeDown ?? "RateHard",
   cardSwipeLeft: controls?.cardSwipeLeft ?? flat?.cardSwipeLeft ?? "RateAgain",

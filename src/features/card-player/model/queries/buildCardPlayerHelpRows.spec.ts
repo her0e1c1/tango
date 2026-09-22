@@ -28,7 +28,7 @@ describe("STUDY-CONTROLS-04 buildCardPlayerHelpRows", () => {
   it("describes hidden and unavailable controls from current preferences", () => {
     const preferences = createPreferences({
       cardInterval: 0,
-      controls: { showSwipeButtonList: false, showPlaybackControls: false },
+      controls: { showSwipeButtonList: false, showPlaybackControls: false, showSkip: false },
     });
 
     const rows = buildCardPlayerHelpRows(preferences);
@@ -38,8 +38,15 @@ describe("STUDY-CONTROLS-04 buildCardPlayerHelpRows", () => {
         { control: "autoPlay", action: "autoPlayUnavailable" },
         { control: "swipeButtons", action: "swipeButtonsHidden" },
         { control: "playbackControls", action: "playbackControlsUnavailable" },
+        { control: "skipControls", action: "skipControlsHidden" },
       ])
     );
+  });
+
+  it("omits skip help when the player does not provide a skip control", () => {
+    const rows = buildCardPlayerHelpRows(createPreferences(), {}, false);
+
+    expect(rows).not.toEqual(expect.arrayContaining([{ control: "skipControls", action: expect.any(String) }]));
   });
 
   it("keeps mapping identity independent from presentation locale", () => {
