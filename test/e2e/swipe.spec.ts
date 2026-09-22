@@ -63,7 +63,7 @@ test("STUDY-ACTIONS-01 saves a good answer and progress and advances to the next
   await expect
     .poll(() => readProgress(currentCard.id))
     .toEqual({
-      difficulty: currentCard.difficulty - 1,
+      difficulty: currentCard.difficulty,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
@@ -96,7 +96,7 @@ test("STUDY-ACTIONS-02 saves an again answer and progress and advances to the ne
   await expect
     .poll(() => readProgress(currentCard.id))
     .toEqual({
-      difficulty: currentCard.difficulty + 1,
+      difficulty: currentCard.difficulty,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
@@ -258,7 +258,7 @@ test("STUDY-SESSION-05 finishes the final Card and shows the completion screen",
   await expect
     .poll(() => readProgress(finalCard.id))
     .toEqual({
-      difficulty: finalCard.difficulty - 1,
+      difficulty: finalCard.difficulty,
       numberOfSeen: finalCard.numberOfSeen + 1,
     });
   expect(session.currentIndex).toBe(session.cardOrderIds.length - 1);
@@ -286,7 +286,7 @@ test("STUDY-SESSION-06 keeps multiple Deck sessions independent", async ({ fixtu
   await expect
     .poll(() => readProgress(currentCardA.id))
     .toEqual({
-      difficulty: currentCardA.difficulty - 1,
+      difficulty: currentCardA.difficulty,
       numberOfSeen: currentCardA.numberOfSeen + 1,
     });
   await expect.poll(() => readProgress(currentCardB.id)).toEqual(progressOf(currentCardB));
@@ -321,7 +321,7 @@ test("STUDY-ACTIONS-05 retries a failed progress write from the same Card once",
   await expect
     .poll(() => readProgress(currentCard.id))
     .toEqual({
-      difficulty: currentCard.difficulty - 1,
+      difficulty: currentCard.difficulty,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
@@ -345,7 +345,7 @@ test("STUDY-CONTROLS-01 advances a remote session on a primary upward mouse drag
   await expect
     .poll(() => readProgress(currentCard.id))
     .toEqual({
-      difficulty: currentCard.difficulty - 1,
+      difficulty: currentCard.difficulty,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
 });
@@ -383,7 +383,7 @@ test("STUDY-CONTROLS-03 saves local-only progress and advances on a primary upwa
   await expect
     .poll(() => readLocalProgress(page, currentCard.id))
     .toEqual({
-      difficulty: currentCard.difficulty - 1,
+      difficulty: currentCard.difficulty,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
@@ -410,7 +410,7 @@ test("STUDY-SESSION-07 preserves local-only progress and session position across
   await expect
     .poll(() => readLocalProgress(page, currentCard.id))
     .toEqual({
-      difficulty: currentCard.difficulty - 1,
+      difficulty: currentCard.difficulty,
       numberOfSeen: currentCard.numberOfSeen + 1,
     });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);

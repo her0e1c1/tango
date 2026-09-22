@@ -169,6 +169,7 @@ When:
 Then:
 
 - 最初の Deck の学習結果と session の位置が保存される。
+- 学習した Card の相対難易度は変わらず、学習回数が1増える。
 - もう一方の Deck は操作前の session と位置から再開する。
 - 各 Deck の Card と session が混在しない。
 - browser error が発生しない。

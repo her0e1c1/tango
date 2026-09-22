@@ -264,7 +264,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
     expect(screen.queryByText("Back two")).not.toBeInTheDocument();
     expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith(
       "user-id",
-      expect.objectContaining({ cardId: "first-card", difficulty: 1, numberOfSeen: 4 })
+      expect.objectContaining({ cardId: "first-card", difficulty: 2, numberOfSeen: 4 })
     );
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });

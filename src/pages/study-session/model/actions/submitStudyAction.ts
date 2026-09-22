@@ -46,7 +46,7 @@ export async function submitStudyAction(
   if (card === undefined) return;
   const answeredAt = Date.now();
   classifyStudySchedule(card, answeredAt);
-  const progress = recordCardStudyProgress(card, plan.rating, answeredAt);
+  const progress = recordCardStudyProgress(card, answeredAt);
   await executeStudyOperation({
     id: crypto.randomUUID(),
     uid,
