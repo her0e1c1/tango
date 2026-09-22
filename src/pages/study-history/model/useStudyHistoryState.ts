@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { subscribeStudyHistory, type StudyHistoryRecord } from "@/entities/study-session";
-import { getStudyHistoryPeriod } from "./queries/getStudyHistoryPeriod";
+import { subscribeStudyHistory, type StudyHistoryPeriod, type StudyHistoryRecord } from "@/entities/study-session";
 
 type HistoryRead = { records: StudyHistoryRecord[]; fromCache: boolean };
 
-export function useStudyHistoryState(uid: string | null, deckId: string | null) {
-  const [request, setRequest] = useState(() => ({ uid, deckId, period: getStudyHistoryPeriod(new Date()) }));
+export function useStudyHistoryState(uid: string | null, deckId: string | null, period: StudyHistoryPeriod | null) {
+  const [retryVersion, setRetryVersion] = useState(0);
+  const [request, setRequest] = useState(() => ({ uid, deckId, period, retryVersion }));
   const [result, setResult] = useState<{
     request: typeof request;
     started?: HistoryRead;
@@ -13,12 +13,18 @@ export function useStudyHistoryState(uid: string | null, deckId: string | null) 
     error?: Error;
   }>(() => ({ request }));
 
-  if (request.uid !== uid || request.deckId !== deckId) {
-    setRequest({ uid, deckId, period: getStudyHistoryPeriod(new Date()) });
+  if (
+    request.uid !== uid ||
+    request.deckId !== deckId ||
+    request.period?.start !== period?.start ||
+    request.period?.end !== period?.end ||
+    request.retryVersion !== retryVersion
+  ) {
+    setRequest({ uid, deckId, period, retryVersion });
   }
 
   useEffect(() => {
-    if (request.uid === null) return;
+    if (request.uid === null || request.period === null) return;
     let active = true;
     const stops: (() => void)[] = [];
     const onError = (error: Error) => {
@@ -50,8 +56,8 @@ export function useStudyHistoryState(uid: string | null, deckId: string | null) 
   }, [request]);
 
   return {
+    setRetryVersion,
     period: request.period,
     result: result.request === request ? result : null,
-    retry: () => setRequest({ uid, deckId, period: getStudyHistoryPeriod(new Date()) }),
   };
 }

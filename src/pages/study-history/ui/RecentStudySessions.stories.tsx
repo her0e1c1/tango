@@ -45,3 +45,25 @@ export const MobileJapanese: Story = {
   },
 };
 export const Dark: Story = { globals: { theme: "dark" } };
+export const Empty: Story = { args: { sessions: [] } };
+export const MoreSessions: Story = {
+  args: {
+    sessions: Array.from({ length: 10 }, (_, index) => ({
+      sessionId: String(index),
+      deckName: `Deck ${String(index + 1)}`,
+      startedAt: new Date(2026, 8, 21, 10).getTime(),
+      endedAt: new Date(2026, 8, 21, 11).getTime(),
+      endReason: "completed" as const,
+      cardCount: 20,
+    })),
+  },
+  play: async ({ canvas, userEvent }) => {
+    await expect(canvas.getAllByRole("listitem")).toHaveLength(3);
+    await userEvent.click(canvas.getByRole("button", { name: "Show all 10 sessions", expanded: false }));
+    await expect(canvas.getByRole("button", { name: "Show fewer sessions", expanded: true })).toHaveAttribute(
+      "aria-controls",
+      canvas.getByRole("list").id
+    );
+    await expect(canvas.getAllByRole("listitem")).toHaveLength(10);
+  },
+};
