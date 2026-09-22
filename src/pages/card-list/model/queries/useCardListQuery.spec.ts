@@ -1,0 +1,193 @@
+import { renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { Card } from "@/entities/card";
+import type { Preferences } from "@/entities/preference";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
+
+import { useCardListQuery } from "./useCardListQuery";
+
+vi.mock("@/shared/firebase", () => ({
+  auth: {},
+  db: {},
+}));
+
+const repository = vi.hoisted(() => ({
+  cards: [] as Card[],
+  preferences: null as unknown as Preferences,
+}));
+
+vi.mock("@/entities/card", () => ({
+  useCardsByDeckId: () => ({ cards: repository.cards, tags: [] }),
+}));
+
+vi.mock("@/entities/preference", () => ({
+  usePreferences: () => repository.preferences,
+}));
+
+vi.mock("@/shared/lib/useDeadlineQuery", () => ({
+  useDeadlineQuery: <Inputs extends unknown[], T>(
+    evaluate: (...args: [...Inputs, number]) => T,
+    inputs: [...Inputs]
+  ): T => evaluate(...inputs, Date.now()),
+}));
+
+describe("useCardListQuery [CARD-LIST-ACTIONS-03]", () => {
+  beforeEach(() => {
+    repository.preferences = createPreferences({
+      study: { useCardInterval: true, cardInterval: 1 },
+    });
+  });
+
+  it("derives emptyReason across no-cards, filter-zero, interval-zero, and populated states", () => {
+    const deck = createDeck({ id: "deck-1" });
+    const emptyFilter = {
+      difficultyMax: null,
+      difficultyMin: null,
+      selectedTags: [],
+      tagAndFilter: false,
+    };
+
+    repository.cards = [createCard({ id: "c-1", deckId: "deck-1", difficulty: 5 })];
+    expect(
+      renderHook(() =>
+        useCardListQuery({
+          deck,
+          filter: emptyFilter,
+          shownCard: undefined,
+          sortOrder: "standard",
+        })
+      ).result.current.emptyReason
+    ).toBeUndefined();
+
+    repository.cards = [];
+    expect(
+      renderHook(() =>
+        useCardListQuery({
+          deck,
+          filter: emptyFilter,
+          shownCard: undefined,
+          sortOrder: "standard",
+        })
+      ).result.current.emptyReason
+    ).toBe("no-cards");
+
+    repository.cards = [createCard({ id: "c-1", deckId: "deck-1", difficulty: 8 })];
+    expect(
+      renderHook(() =>
+        useCardListQuery({
+          deck,
+          filter: { ...emptyFilter, difficultyMax: 5, difficultyMin: 1 },
+          shownCard: undefined,
+          sortOrder: "standard",
+        })
+      ).result.current.emptyReason
+    ).toBe("filter-zero");
+
+    repository.cards = [
+      createCard({
+        id: "c-1",
+        deckId: "deck-1",
+        difficulty: 5,
+        numberOfSeen: 1,
+        nextSeeingAt: new Date(Date.now() + 100_000),
+      }),
+    ];
+    expect(
+      renderHook(() =>
+        useCardListQuery({
+          deck,
+          filter: emptyFilter,
+          shownCard: undefined,
+          sortOrder: "standard",
+        })
+      ).result.current.emptyReason
+    ).toBe("interval-zero");
+  });
+
+  it("reports no-cards when the deck has no cards", () => {
+    repository.cards = [];
+    const deck = createDeck({ id: "deck-1" });
+    const filter = {
+      difficultyMax: null,
+      difficultyMin: null,
+      selectedTags: [],
+      tagAndFilter: false,
+    };
+
+    const { result } = renderHook(() =>
+      useCardListQuery({
+        deck,
+        filter,
+        shownCard: undefined,
+        sortOrder: "standard",
+      })
+    );
+
+    expect(result.current.rawCount).toBe(0);
+    expect(result.current.visibleCount).toBe(0);
+    expect(result.current.emptyReason).toBe("no-cards");
+  });
+
+  it("reports filter-zero when cards exist but do not match the difficulty filter", () => {
+    repository.cards = [
+      createCard({
+        id: "c-1",
+        deckId: "deck-1",
+        difficulty: 8,
+      }),
+    ];
+    const deck = createDeck({ id: "deck-1" });
+    const filter = {
+      difficultyMax: 5,
+      difficultyMin: 1,
+      selectedTags: [],
+      tagAndFilter: false,
+    };
+
+    const { result } = renderHook(() =>
+      useCardListQuery({
+        deck,
+        filter,
+        shownCard: undefined,
+        sortOrder: "standard",
+      })
+    );
+
+    expect(result.current.rawCount).toBe(1);
+    expect(result.current.visibleCount).toBe(0);
+    expect(result.current.emptyReason).toBe("filter-zero");
+  });
+
+  it("reports interval-zero when cards match filters but are scheduled for future review", () => {
+    repository.cards = [
+      createCard({
+        id: "c-1",
+        deckId: "deck-1",
+        difficulty: 3,
+        numberOfSeen: 1,
+        nextSeeingAt: new Date(Date.now() + 100_000),
+      }),
+    ];
+    const deck = createDeck({ id: "deck-1" });
+    const filter = {
+      difficultyMax: null,
+      difficultyMin: null,
+      selectedTags: [],
+      tagAndFilter: false,
+    };
+
+    const { result } = renderHook(() =>
+      useCardListQuery({
+        deck,
+        filter,
+        shownCard: undefined,
+        sortOrder: "standard",
+      })
+    );
+
+    expect(result.current.rawCount).toBe(1);
+    expect(result.current.visibleCount).toBe(0);
+    expect(result.current.emptyReason).toBe("interval-zero");
+  });
+});

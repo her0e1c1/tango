@@ -22,7 +22,7 @@ import { useDeckListState } from "./queries/useDeckListState";
 
 export function useDeckListPageModel() {
   const navigate = useNavigate();
-  const sections = useDeckListState();
+  const deckListState = useDeckListState();
   const cards = useCards();
   const decks = useDecks();
   const { loadSample } = usePreferences();
@@ -47,8 +47,23 @@ export function useDeckListPageModel() {
   useKey("s", () => void navigate(routes.settings.to()));
   useKey("i", () => void navigate(routes.deckImport.to()));
 
+  const empty = deckListState.emptyReason
+    ? {
+        reason: deckListState.emptyReason,
+        onRetry: deckListState.emptyReason === "error" ? () => void bootstrapSampleDeck() : undefined,
+      }
+    : undefined;
+
   return {
-    sections,
+    sections: {
+      studying: deckListState.studying,
+      other: deckListState.other,
+      reviewNow: deckListState.reviewNow,
+      totals: deckListState.totals,
+    },
+    rawCount: deckListState.rawCount,
+    visibleCount: deckListState.visibleCount,
+    empty,
     deletionTarget,
     deletionPending: deletion.pending,
     requestDeletion,

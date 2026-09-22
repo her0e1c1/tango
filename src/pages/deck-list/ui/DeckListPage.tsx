@@ -21,6 +21,7 @@ export const DeckListPage: React.FC = () => {
       )}
       <DeckList
         sections={model.sections}
+        empty={model.empty}
         onCreateDeck={model.createDeck}
         onImportDeck={model.importDeck}
         deckCard={{

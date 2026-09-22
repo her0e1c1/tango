@@ -140,6 +140,14 @@ export const resources = {
         create: "Create deck",
         import: "Import decks",
         listActions: "Actions",
+        empty: {
+          checking: "Checking for sample deck…",
+          errorTitle: "Unable to load sample deck",
+          errorDescription: "We couldn't load the sample deck. You can try again or create a deck manually.",
+          retry: "Retry",
+          confirmedTitle: "No decks yet",
+          confirmedDescription: "Create your first deck or import an existing deck from a CSV file.",
+        },
         sections: {
           reviewTitle: "Review now",
           reviewNote: "earliest due first",
@@ -326,6 +334,15 @@ export const resources = {
         count_one: "{{count}} card",
         count_other: "{{count}} cards",
         add: "Add card",
+        empty: {
+          noCardsTitle: "No cards yet",
+          noCardsDescription: "Add cards to start studying this deck.",
+          filterZeroTitle: "No cards match the active filters",
+          filterZeroDescription: "Adjust or clear your filters to view cards in this deck.",
+          clearFilters: "Clear filters",
+          intervalZeroTitle: "No cards due for review",
+          intervalZeroDescription: "All matching cards are scheduled for future review.",
+        },
         closeCard: "Close card",
         sort: { label: "Sort order", standard: "Standard", newest: "Newest added" },
         bulkDifficulty: {
@@ -915,6 +932,14 @@ export const resources = {
         create: "デッキを作成",
         import: "デッキをインポート",
         listActions: "アクション",
+        empty: {
+          checking: "サンプルデッキを確認中…",
+          errorTitle: "サンプルデッキの読み込みに失敗しました",
+          errorDescription: "サンプルデッキを読み込めませんでした。再試行するか、手動でデッキを作成できます。",
+          retry: "再試行",
+          confirmedTitle: "デッキがまだありません",
+          confirmedDescription: "最初のデッキを作成するか、CSVファイルからインポートしてください。",
+        },
         sections: {
           reviewTitle: "今すぐ復習",
           reviewNote: "復習期日順",
@@ -1100,6 +1125,15 @@ export const resources = {
         count_one: "{{count}}枚",
         count_other: "{{count}}枚",
         add: "カードを追加",
+        empty: {
+          noCardsTitle: "カードがまだありません",
+          noCardsDescription: "カードを追加してこのデッキの学習を始めましょう。",
+          filterZeroTitle: "フィルターに一致するカードがありません",
+          filterZeroDescription: "フィルター条件を変更するか解除してカードを表示してください。",
+          clearFilters: "フィルターを解除",
+          intervalZeroTitle: "復習待ちのカードはありません",
+          intervalZeroDescription: "一致するすべてのカードは次回の復習待ちです。",
+        },
         closeCard: "カードを閉じる",
         sort: { label: "並び順", standard: "標準", newest: "追加が新しい順" },
         bulkDifficulty: {

@@ -1,15 +1,16 @@
 import "@/test/mockFirestorePersistence";
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { updatePreferences } from "@/entities/preference";
 import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
+import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions } from "@/entities/study-session";
 import { startStudy } from "@/test/entityFixtures";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
+import { deckListStore } from "../store";
 import { useDeckListState } from "./useDeckListState";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -54,7 +55,15 @@ describe("DECK-NAVIGATION-01 STUDY-SESSION-03 useDeckListState", () => {
 
   afterEach(async () => {
     clearStudySessions();
-    await Promise.all(decks.map((deck) => deleteDeck("user-id", deck.id)));
+    await Promise.all(
+      decks.map(async (deck) => {
+        try {
+          await deleteDeck("user-id", deck.id);
+        } catch {
+          // already deleted
+        }
+      })
+    );
     vi.useRealTimers();
   });
 
@@ -71,5 +80,37 @@ describe("DECK-NAVIGATION-01 STUDY-SESSION-03 useDeckListState", () => {
     });
     expect(sections.other.map((item) => item.deck.id)).toEqual(["other-a", "other-z"]);
     expect(sections.other.map((item) => item.cardCount)).toEqual([1, 2]);
+    expect(sections.rawCount).toBe(4);
+    expect(sections.visibleCount).toBe(4);
+    expect(sections.emptyReason).toBeUndefined();
+  });
+
+  it("derives emptyReason across checking, error, confirmed-empty, and deck-present states", async () => {
+    // 1. Deck-present state
+    expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBeUndefined();
+
+    // Clear decks to test 0-deck scenarios
+    for (const deck of decks) {
+      await deleteDeck("user-id", deck.id);
+    }
+
+    // 2. Checking state (bootstrap idle or checking with loadSample true)
+    act(() => {
+      deckListStore.setState({ bootstrapStatus: "checking" });
+    });
+    expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBe("checking");
+
+    // 3. Error state
+    act(() => {
+      deckListStore.setState({ bootstrapStatus: "error" });
+    });
+    expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBe("error");
+
+    // 4. Confirmed empty state (loadSample false or bootstrap done)
+    act(() => {
+      updatePreferences({ loadSample: false });
+      deckListStore.setState({ bootstrapStatus: "done" });
+    });
+    expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBe("confirmed-empty");
   });
 });

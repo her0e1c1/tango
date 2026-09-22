@@ -10,6 +10,7 @@ const repository = vi.hoisted(() => ({
   cards: [] as Card[],
   decks: [] as Deck[],
   loadSample: true,
+  createDeckError: false,
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -32,6 +33,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   return {
     ...actual,
     createDeck: (_uid: string, deck: RemoteDeckCreateInput) => {
+      if (repository.createDeckError) return Promise.reject(new Error("Storage quota exceeded"));
       const fields = {
         id: deck.id,
         name: deck.name,
@@ -59,14 +61,17 @@ vi.mock("@/entities/preference", () => ({
   getPreferences: () => ({ loadSample: repository.loadSample }),
 }));
 
+import { deckListStore } from "../store";
 import { bootstrapSampleDeck } from "./bootstrapSampleDeck";
 
 describe("bootstrapSampleDeck [IMPORT-07]", () => {
   beforeEach(() => {
+    deckListStore.setState({ bootstrapStatus: "idle" });
     repository.uid = "uid-a";
     repository.cards = [];
     repository.decks = [];
     repository.loadSample = true;
+    repository.createDeckError = false;
   });
 
   it("persists the sample locally without a signed-in user", async () => {
@@ -118,5 +123,21 @@ describe("bootstrapSampleDeck [IMPORT-07]", () => {
 
     expect(repository.decks).toEqual([]);
     expect(repository.cards).toEqual([]);
+    expect(deckListStore.getState().bootstrapStatus).toBe("done");
+  });
+
+  it("sets error status on failure and allows retry", async () => {
+    repository.createDeckError = true;
+    await bootstrapSampleDeck();
+
+    expect(deckListStore.getState().bootstrapStatus).toBe("error");
+    expect(repository.loadSample).toBe(true);
+
+    repository.createDeckError = false;
+    await bootstrapSampleDeck();
+
+    expect(deckListStore.getState().bootstrapStatus).toBe("done");
+    expect(repository.loadSample).toBe(false);
+    expect(repository.decks).toHaveLength(1);
   });
 });

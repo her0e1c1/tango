@@ -265,6 +265,7 @@ describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02
   });
 
   it("renders an empty list after all Decks are removed", async () => {
+    mocks.preferences.loadSample = false;
     await deleteDeck("user-id", activeDeck.id);
     await deleteDeck("user-id", freshDeck.id);
     renderPage();
@@ -272,5 +273,7 @@ describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02
     expect(screen.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
     expect(screen.getByText("0 decks")).toBeVisible();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 2, name: "No decks yet" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Create deck" })).toBeVisible();
   });
 });
