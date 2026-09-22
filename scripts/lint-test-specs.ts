@@ -98,9 +98,13 @@ function sourceOf(file: string): ts.SourceFile {
   return source;
 }
 
-function valueOf(node: ts.Node, seen = new Set<ts.Node>()): ts.Node {
+type Bindings = ReadonlyMap<ts.Node, ts.Node>;
+
+function resolveValue(node: ts.Node, seen = new Set<ts.Node>(), bindings: Bindings = new Map()): ts.Node {
   if (seen.has(node)) throw new Error(`Circular declaration in ${node.getSourceFile().fileName}`);
   const next = new Set(seen).add(node);
+  const bound = bindings.get(node);
+  if (bound !== undefined) return resolveValue(bound, next, bindings);
   if (
     ts.isParenthesizedExpression(node) ||
     ts.isAsExpression(node) ||
@@ -108,38 +112,43 @@ function valueOf(node: ts.Node, seen = new Set<ts.Node>()): ts.Node {
     ts.isTypeAssertionExpression(node) ||
     ts.isNonNullExpression(node)
   )
-    return valueOf(node.expression, next);
+    return resolveValue(node.expression, next, bindings);
   if (ts.isVariableDeclaration(node) || ts.isPropertyAssignment(node)) {
-    return node.initializer === undefined ? node : valueOf(node.initializer, next);
+    return node.initializer === undefined ? node : resolveValue(node.initializer, next, bindings);
   }
-  if (ts.isExportAssignment(node)) return valueOf(node.expression, next);
-  if (ts.isPropertyAccessExpression(node)) return propertyOf(node.expression, node.name.text, next) ?? node;
+  if (ts.isExportAssignment(node)) return resolveValue(node.expression, next, bindings);
+  if (ts.isPropertyAccessExpression(node)) return propertyOf(node.expression, node.name.text, next, bindings) ?? node;
   if (ts.isIdentifier(node) || ts.isShorthandPropertyAssignment(node)) {
     const symbol = ts.isShorthandPropertyAssignment(node)
       ? checker.getShorthandAssignmentValueSymbol(node)
       : checker.getSymbolAtLocation(node);
     const declaration = declarationOf(symbol);
-    if (declaration !== undefined && declaration !== node) return valueOf(declaration, next);
+    if (declaration !== undefined && declaration !== node) return resolveValue(declaration, next, bindings);
   }
   return node;
 }
 
-function propertyOf(node: ts.Node, name: string, seen = new Set<ts.Node>()): ts.Node | undefined {
-  const value = valueOf(node, seen);
+function propertyOf(
+  node: ts.Node,
+  name: string,
+  seen = new Set<ts.Node>(),
+  bindings: Bindings = new Map()
+): ts.Node | undefined {
+  const value = resolveValue(node, seen, bindings);
   if (!ts.isObjectLiteralExpression(value)) return undefined;
   for (const property of [...value.properties].reverse()) {
     if (ts.isSpreadAssignment(property)) {
-      const spread = valueOf(property.expression, new Set(seen).add(value));
+      const spread = resolveValue(property.expression, new Set(seen).add(value), bindings);
       // An unknown spread can override an earlier property; do not invent coverage.
       if (!ts.isObjectLiteralExpression(spread)) return spread;
-      const inherited = propertyOf(spread, name, new Set(seen).add(value));
+      const inherited = propertyOf(spread, name, new Set(seen).add(value), bindings);
       if (inherited !== undefined) return inherited;
     } else if (
       property.name !== undefined &&
       (ts.isIdentifier(property.name) || ts.isStringLiteral(property.name)) &&
       property.name.text === name
     ) {
-      return valueOf(property, seen);
+      return resolveValue(property, seen, bindings);
     }
   }
   return undefined;
@@ -147,7 +156,7 @@ function propertyOf(node: ts.Node, name: string, seen = new Set<ts.Node>()): ts.
 
 function isCallable(node: ts.Node | undefined): boolean {
   if (node === undefined) return false;
-  const value = valueOf(node);
+  const value = resolveValue(node);
   return (
     ts.isArrowFunction(value) ||
     ts.isFunctionExpression(value) ||
@@ -172,7 +181,7 @@ function callParts(node: ts.Expression): string[] {
 function hasEmptyRows(expression: ts.Expression): boolean {
   if (!ts.isCallExpression(expression)) return false;
   const argument = expression.arguments[0];
-  const rows = argument === undefined ? undefined : valueOf(argument);
+  const rows = argument === undefined ? undefined : resolveValue(argument);
   return (
     (["each", "for"].includes(callParts(expression.expression).at(-1) ?? "") &&
       rows !== undefined &&
@@ -184,7 +193,7 @@ function hasEmptyRows(expression: ts.Expression): boolean {
 
 function skipsUnconditionally(callback: ts.Node | undefined): boolean {
   if (callback === undefined) return false;
-  const value = valueOf(callback);
+  const value = resolveValue(callback);
   if (!(ts.isArrowFunction(value) || ts.isFunctionExpression(value) || ts.isFunctionDeclaration(value))) return false;
   if (value.body === undefined || !ts.isBlock(value.body)) return false;
   return value.body.statements.some((statement) => {
@@ -197,6 +206,19 @@ function skipsUnconditionally(callback: ts.Node | undefined): boolean {
       (call.arguments.length === 0 || call.arguments[0]?.kind === ts.SyntaxKind.TrueKeyword)
     );
   });
+}
+
+function staticText(node: ts.Node, bindings: Bindings): string | undefined {
+  const value = resolveValue(node, new Set(), bindings);
+  if (ts.isStringLiteralLike(value) || ts.isNumericLiteral(value)) return value.text;
+  if (!ts.isTemplateExpression(value)) return undefined;
+  let text = value.head.text;
+  for (const span of value.templateSpans) {
+    const part = staticText(span.expression, bindings);
+    if (part === undefined) return undefined;
+    text += part + span.literal.text;
+  }
+  return text;
 }
 
 function testIds(file: string): Set<string> {
@@ -214,34 +236,44 @@ function testIds(file: string): Set<string> {
     }
   }
   const ids = new Set<string>();
-  function visit(node: ts.Node): void {
+  function visit(node: ts.Node, bindings: Bindings = new Map()): void {
+    if (ts.isForOfStatement(node)) {
+      if (!ts.isVariableDeclarationList(node.initializer)) return;
+      const [declaration] = node.initializer.declarations;
+      const rows = resolveValue(node.expression, new Set(), bindings);
+      // Expand literal tables without executing test modules or guessing dynamic generators.
+      if (declaration !== undefined && ts.isIdentifier(declaration.name) && ts.isArrayLiteralExpression(rows)) {
+        for (const row of rows.elements) {
+          if (!ts.isSpreadElement(row)) visit(node.statement, new Map(bindings).set(declaration, row));
+        }
+      }
+      return;
+    }
     if (ts.isCallExpression(node)) {
       const parts = callParts(node.expression);
       const first = parts[0];
       if (first !== undefined && names.has(first)) {
         // Conditional skips are not statically proven coverage either.
         if (parts.some((part) => ["skip", "todo", "fixme", "skipIf", "runIf"].includes(part))) return;
-        if (!suites.has(first) && !parts.includes("describe") && isCallable(node.arguments.at(-1))) {
-          if (hasEmptyRows(node.expression) || skipsUnconditionally(node.arguments.at(-1))) return;
+        const [title, testOrOptions, testOrTimeout] = node.arguments;
+        // Vitest accepts a trailing timeout; Playwright accepts details before the callback.
+        const callback = isCallable(testOrOptions) ? testOrOptions : testOrTimeout;
+        if (!(suites.has(first) || parts.includes("describe")) && isCallable(callback)) {
+          if (hasEmptyRows(node.expression) || skipsUnconditionally(callback)) return;
           if (
             parts.slice(1).some((part) => !["each", "for", "only", "concurrent", "sequential", "fails"].includes(part))
           )
             return;
-          const title = node.arguments[0];
           if (title !== undefined) {
-            const value = valueOf(title);
-            const text = ts.isStringLiteralLike(value)
-              ? value.text
-              : ts.isTemplateExpression(value)
-                ? value.head.text
-                : "";
+            const value = resolveValue(title, new Set(), bindings);
+            const text = staticText(value, bindings) ?? (ts.isTemplateExpression(value) ? value.head.text : "");
             for (const match of text.matchAll(caseIdPattern)) ids.add(match[0]);
           }
           return;
         }
       }
     }
-    ts.forEachChild(node, visit);
+    ts.forEachChild(node, (child) => visit(child, bindings));
   }
   visit(source);
   return ids;
@@ -269,7 +301,7 @@ function storyEnabled(story: ts.Node, meta: ts.Node | undefined, name: string): 
     if (tags === undefined) continue;
     if (!ts.isArrayLiteralExpression(tags)) return false;
     for (const tag of tags.elements) {
-      const value = valueOf(tag);
+      const value = resolveValue(tag);
       if (!ts.isStringLiteralLike(value)) return false;
       if (value.text === "!test") enabled = false;
       if (value.text === "test") enabled = true;
@@ -280,7 +312,7 @@ function storyEnabled(story: ts.Node, meta: ts.Node | undefined, name: string): 
     if (filter === undefined) continue;
     if (!ts.isArrayLiteralExpression(filter)) return false;
     const matches = filter.elements.some((item) => {
-      const value = valueOf(item);
+      const value = resolveValue(item);
       return ts.isStringLiteralLike(value) && value.text === name;
     });
     if (key === "includeStories" ? !matches : matches) enabled = false;

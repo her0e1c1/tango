@@ -62,7 +62,7 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 | [Application Layout](./app-layout.md) | 共通 Header と画面コンテンツを組み合わせ、スクロール中の Header と本文の位置関係を確認する。 | 2 |
 | [Deck List](./deck-list.md) | Deck 一覧のメニュー、閲覧要求、空状態、復習件数と日本語表示を確認する。 | 8 |
 | [Deck Form and Deletion](./deck-form.md) | Deck フォームの入力保持、エラー表示と削除確認の通知を確認する。 | 4 |
-| [Card List](./card-list.md) | Card 一覧の操作通知、空状態の区別、タグ解除、overlay の終了と並び順の変更要求を確認する。 | 10 |
+| [Card List](./card-list.md) | Card 一覧の操作通知、空状態の区別、タグ解除、overlay の終了と並び順の変更要求を確認する。 | 9 |
 | [Card Form](./card-form.md) | Card 入力、タブ間の値の保持、タグ選択、日本語エラー、解答プレビューと作成要求を確認する。 | 5 |
 | [Deck Filter](./deck-filter.md) | タグ選択の解除と、多数のタグを開示する UI の結合を確認する。 | 2 |
 | [Deck Import](./import.md) | CSV 選択からプレビューまでの画面結合と、日本語の診断表示を確認する。 | 3 |
