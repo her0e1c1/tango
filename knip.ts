@@ -6,6 +6,7 @@ const config: KnipConfig = {
   project: [
     "src/**/*.{ts,tsx,css,scss,sass,mdx}!",
     "test/**/*.{ts,tsx}",
+    "scripts/**/*.ts",
     ".storybook/**/*.{ts,tsx}",
     "*.{ts,js}",
   ],

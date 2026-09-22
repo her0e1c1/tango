@@ -31,8 +31,8 @@
 - 各ファイルのケースを記載順に `01` から欠番なく採番する。番号は最低2桁のゼロ埋めとする（例: `CARD-VIEW-01`、`CARD-VIEW-02`）。
 - ケースの追加・移動・削除時は必要に応じて振り直し、索引・anchor・Playwright のテスト名・unit / integration test の参照も同時に更新する。
 
-- 各 ID をちょうど一つの Playwright test に対応させる。
-- 詳細仕様の Markdown は `docs/e2e` 直下に置く。E2E contract check はこの階層の Markdown を読み取る。
+- 各 ID を少なくとも一つの Playwright test に対応させる。同じ ID を複数テストで確認してよく、一つのテストで複数 ID を確認してもよい。テスト名の先頭は fixture 選択用の主 ID とし、追加の ID もテスト名に記載する。
+- 詳細仕様の Markdown は `docs/e2e` 直下に置く。仕様網羅 lint はこの階層の Markdown を読み取る。
 - 各テストケースには `read`、`write`、`batch` のいずれかのカテゴリを明示する。
 - テストケースは `Given` / `When` / `Then` で記述し、それぞれ原則1ブロックとする。
 - `Given` の先頭で共有 fixture YAML を必ず1つ `Fixture: ...` として指定する。
@@ -50,6 +50,8 @@
 
 ## 変更時の確認
 
-- `npm run lint:e2e-contract`: README の索引、詳細仕様、fixture、Playwright test の対応を確認する。
+- `npm run lint:test-specs`: E2E・Firestore・Storybook の詳細仕様がテスト宣言で網羅されていることを静的に確認する。テストランナーや browser / emulator は起動しない。
 - `npm run lint:markdown`: Markdown の構文と形式を確認する。
-- `mise run e2e`: E2E test を実行する。
+- `mise run e2e`: 全 fixture の検証後に E2E test を実行する。
+
+網羅 lint はアサーションの内容や実行結果を保証しない。ID はテストタイトルの文字列・テンプレート文字列の固定部分に記載し、コメントや無効化したテストを対応先にしない。

@@ -77,11 +77,13 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 本番の保存・認証契約に関わる変更は、該当する E2E / Firestore 仕様も更新する。
 
 ```sh
+npm run lint:test-specs
 npm run lint:markdown
 npm run test:storybook
 ```
 
 ブラウザ上で個別に確認するときは `npm run storybook` を実行し、対応する title / export の Story を開く。
 `npm run build:storybook` の成功だけで `play` の成功とはしない。
-既存の `lint:e2e-contract` は E2E 用であり、このディレクトリの ID と Story の対応を自動検証するものではない。
-この文書化では新しい contract checker、fixture、CI の変更は追加しない。
+`lint:test-specs` は各ケースの「対応 Story」にあるファイル・named export・継承を含む `play` の存在を静的に確認する。複数ケースでの同じ Story の共有と、一つのケースへの複数 Story の対応を許可する。
+記載した各対応先が解決でき、テスト対象として有効な `play` を持つ必要がある。動的な factory など静的に解決できない対応先は網羅済みとして数えない。
+アサーションが Given / When / Then の意味を満たすことや、実行時の条件分岐・成功はこの lint では保証しない。

@@ -4,8 +4,8 @@
 - Number cases in document order from `01`, with at least two digits and no gaps. When adding, moving, or removing cases, update the sequence, indexes, anchors, Playwright titles, and unit/integration references in the same change.
 
 - 最初に [`conventions.md`](./conventions.md) と [`fixture/README.md`](./fixture/README.md) を読む。
-- `docs/e2e/README.md` を全 E2E case ID の索引とし、各 ID をちょうど一つの Playwright test と詳細仕様に対応させる。
-- 詳細仕様の Markdown は E2E contract check が読み取れるように `docs/e2e` 直下へ置く。
+- `docs/e2e/README.md` を全 E2E case ID の索引とし、各 ID を一つの詳細仕様と少なくとも一つの Playwright test に対応させる。複数テストでの同じ ID の共有と、一つのテストによる複数 ID の確認を許可する。
+- 詳細仕様の Markdown は仕様網羅 lint が読み取れるように `docs/e2e` 直下へ置く。
 - 大きな仕様書は、対象 entity だけでなく、表示・管理・一覧操作や session・controls のような利用者の振る舞いで分割する。
 - 各テストケースには `read`、`write`、`batch` のいずれかを明示する。
 - 各テストケースは `Given` / `When` / `Then` を原則1ブロックずつ記述する。
