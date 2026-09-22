@@ -46,7 +46,7 @@ When:
 
 Then:
 
-- 指定した ID・UID・親 Deck ID・本文・tags・uniqueKey と既定の学習情報を保存する。`deletedAt` は `null` である。
+- 指定した ID・UID・親 Deck ID・本文・tags・uniqueKey を保存する。`deletedAt` は `null` である。個人学習状態は Card に保存しない。
 - `createdAt` と `updatedAt` は同じ数値である。
 - `currentIndex` と `cardOrderIds` は保存しない。
 
@@ -89,8 +89,9 @@ When:
 
 Then:
 
-- Card の内容だけが保存され、旧個人学習フィールドは保存されない。
-- State は作成しない。これは Adapter の入力処理の検証であり、直接 SDK の拒否は Rules 仕様で確認する。
+- 保存した Card に difficulty と numberOfSeen が含まれない。
+
+これは Adapter の入力処理の検証であり、直接 SDK の拒否は Rules 仕様で確認する。State document が作成されていないことは、このケースの assertion では直接確認していない。
 
 <a id="firestore-card-04"></a>
 

@@ -1,5 +1,6 @@
+import { createAnonymousDeck, startAnonymousStudy } from "./ui-helpers";
 import type { Page } from "@playwright/test";
-import { expect, listDocuments, readLocalData, test } from "./fixtures";
+import { documentId, expect, listDocuments, test } from "./fixtures";
 
 const accountUid = async (page: Page) => {
   const value = await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent();
@@ -51,14 +52,21 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
   page,
   namespace,
 }) => {
-  const deck = fixture.deck();
-  const card = fixture.card();
-  const session = fixture.session();
   await fixture.apply(page, { auth: false });
+  const local = await createAnonymousDeck(page);
+  const { deck } = local;
+  const studyFront = await startAnonymousStudy(page, deck.id);
+  const card = studyFront === local.first.frontText ? local.first : local.second;
+
   await page.goto("/account");
   await expect(page.getByText("Anonymous account")).toBeVisible();
   const anonymousUid = await accountUid(page);
 
+  for (const collection of ["deck", "card", "studySession", "studyAnswer", "cardStudyState"] as const) {
+    expect((await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === anonymousUid)).toEqual(
+      []
+    );
+  }
   await completeGooglePopup(page, namespace.uid);
   await expect(page.getByRole("status").filter({ hasText: "Signed in." })).toBeVisible();
   await expect(page.getByText("Signed in with Google")).toBeVisible();
@@ -69,20 +77,45 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
   await expect(page.getByText(deck.name, { exact: true })).toBeVisible();
   await page.goto(`/deck/${deck.id}`);
   await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
-  const stored = await readLocalData(page);
-  expect(stored.decks).toContainEqual(expect.objectContaining({ id: deck.id }));
-  expect(stored.cards).toContainEqual(expect.objectContaining({ id: card.id, deckId: deck.id }));
-  expect(stored.sessionsByDeckId).toHaveProperty(deck.id, session);
+  await expect
+    .poll(async () =>
+      (await listDocuments("deck"))
+        .filter(({ fields }) => fields.uid?.stringValue === anonymousUid)
+        .map((document) => ({ id: documentId(document), name: document.fields.name?.stringValue }))
+    )
+    .toEqual([{ id: deck.id, name: deck.name }]);
+  await expect
+    .poll(async () =>
+      (await listDocuments("card"))
+        .filter(({ fields }) => fields.uid?.stringValue === anonymousUid)
+        .map((document) => ({
+          id: documentId(document),
+          deckId: document.fields.deckId?.stringValue,
+          frontText: document.fields.frontText?.stringValue,
+          backText: document.fields.backText?.stringValue,
+        }))
+        .sort((left, right) => left.id.localeCompare(right.id))
+    )
+    .toEqual(
+      local.cards
+        .map(({ id, frontText, backText }) => ({ id, deckId: deck.id, frontText, backText }))
+        .sort((left, right) => left.id.localeCompare(right.id))
+    );
+  await page.goto("/");
+  await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
+  await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue("0");
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
-  for (const collection of ["deck", "card"] as const) {
-    await expect
-      .poll(
-        async () =>
-          (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === anonymousUid).length
-      )
-      .toBeGreaterThan(0);
-  }
+  await expect
+    .poll(async () =>
+      (await listDocuments("studySession"))
+        .filter(({ fields }) => fields.uid?.stringValue === anonymousUid && fields.deckId?.stringValue === deck.id)
+        .map(({ fields }) => ({
+          index: Number(fields.currentIndex?.integerValue),
+          cards: fields.cardOrderIds?.arrayValue?.values?.map((value) => value.stringValue),
+        }))
+    )
+    .toEqual([{ index: 0, cards: [card.id, card === local.first ? local.second.id : local.first.id] }]);
 });
 
 test("ACCOUNT-02 A closed Google popup can be retried successfully", async ({ fixture, page, namespace }) => {
@@ -105,16 +138,15 @@ test("ACCOUNT-03 Sign-out switches to a new anonymous identity boundary", async 
   const card = fixture.card("card-2");
   const { uid } = fixture.user();
   await fixture.apply(page);
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
+  await page.getByRole("button", { name: `View ${deck.name}` }).click();
+  await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
   await page.goto("/account");
   await expect(page.getByText("Signed in with Google")).toBeVisible();
   const originalUid = await accountUid(page);
   expect(originalUid).toBe(uid);
 
-  await page.evaluate(async () => {
-    const modulePath = "/e2e-fixture.js";
-    const fixtureModule = (await import(/* @vite-ignore */ modulePath)) as typeof import("./browser-fixture");
-    await fixtureModule.waitForCacheSync();
-  });
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Signed out." })).toBeVisible();
   await expect(page.getByText("Anonymous account")).toBeVisible();
@@ -128,10 +160,8 @@ test("ACCOUNT-03 Sign-out switches to a new anonymous identity boundary", async 
   await expect(page.getByText(card.frontText, { exact: true })).toHaveCount(0);
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByRole("heading", { level: 1, name: "Study session unavailable." })).toBeVisible();
-  const sessions = await page.evaluate(
-    () => JSON.parse(localStorage.getItem("tango-study") ?? "{}").state?.sessionsByDeckId ?? {}
-  );
-  expect(sessions).not.toHaveProperty(deck.id);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
 });
 
 test("ACCOUNT-04 Authentication initialization recovers after Reload", async ({ browserErrors, fixture, page }) => {

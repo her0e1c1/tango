@@ -1,5 +1,4 @@
 import type { Card } from "@/entities/card/@x/card-study-state";
-import type { CardStudyStateDocument } from "../api/document";
 import { createEmptyCard, fsrs as createScheduler, Rating, State, type Card as FsrsCard } from "ts-fsrs";
 import type { StudyRating } from "@/entities/study-answer/@x/card-study-state";
 import { instantSchema, fsrsStateSchema, type FsrsState } from "./schema";
@@ -67,6 +66,9 @@ export function getStudyRetrievability(schedule: FsrsState, at: number): number 
   return scheduler.forgetting_curve(elapsedDays, saved.stability);
 }
 
-export function joinStudyCards(cards: Card[], states: Readonly<Record<string, CardStudyStateDocument>>) {
+export function joinStudyCards(
+  cards: readonly Card[],
+  states: Readonly<Partial<Record<Card["id"], { fsrs: FsrsState | null }>>>
+) {
   return cards.map((card) => ({ ...card, fsrs: states[card.id]?.fsrs ?? null }));
 }

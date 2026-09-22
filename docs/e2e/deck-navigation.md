@@ -36,7 +36,7 @@ Given:
 - Fixture: [`deck-navigation`](./fixture/deck-navigation.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
 - 対象 Deck に Card が存在する。
-- 追加の local-only ケースとして、通常の英数字 ID と、その ID に query／fragment の区切り文字を含む接尾辞を付けた Deck が共存し、それぞれ異なる名前と Card 本文を持つ。これらは現在のスキーマが受け付ける保存済みデータであり、作成フォームによる ID 指定ではない。
+- 追加のサーバー seed ケースとして、通常の英数字 ID と、その ID に query／fragment の区切り文字を含む接尾辞を付けた Deck が共存し、それぞれ異なる名前と Card 本文を持つ。これらは現在のスキーマが受け付ける保存済みデータであり、作成フォームによる ID 指定ではない。
 
 When:
 
@@ -45,7 +45,7 @@ When:
 - 一覧のアクションと各 Deck の操作メニューを順に開く。
 - 一覧の「デッキを作成」と「デッキをインポート」をそれぞれ選択し、保存操作をせず一覧へ戻る。
 - 対象 Deck を選択する。
-- local-only ケースでは各 Deck を一覧から開き、生成された URL の直接表示と reload も行う。
+- 特殊 ID のケースでは各 Deck を一覧から開き、生成された URL の直接表示と reload も行う。
 
 Then:
 
@@ -55,7 +55,7 @@ Then:
 - 作成とインポートの項目は、それぞれ既存の作成画面とインポート画面へ遷移する。
 - 対象 Deck の Card 一覧へ遷移する。
 - 対象 Card の front text が表示される。
-- local-only ケースでは選択した完全な ID の Card だけが表示され、同じ接頭辞の別 Deck の Card は表示されない。
+- 特殊 ID のケースでは選択した完全な ID の Card だけが表示され、同じ接頭辞の別 Deck の Card は表示されない。
 - ID 内の `?` と `#` は1つのパスパラメーターの値としてエンコードされ、query と fragment は空のままとなる。直接表示と reload 後も対象と内容が一致する。
 - 表示と遷移によって保存済み Deck・Card の ID や内容は変更されない。
 - browser error が発生しない。
@@ -119,6 +119,8 @@ Then:
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
+- 作成順を閲覧順と仮定せず、最初の View で表示された Card を先頭として、移動と再入場後の順序を確認する。
 - local-only Deck に複数の Card と学習 session が存在する。
 
 When:
@@ -296,6 +298,8 @@ Then:
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
+- 作成順を閲覧順と仮定せず、最初の View で表示された Card を先頭として、移動と再入場後の順序を確認する。
 - 閲覧対象の Card が複数あり、再生操作を表示する設定である。
 
 When:

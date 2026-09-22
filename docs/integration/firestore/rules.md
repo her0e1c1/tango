@@ -57,7 +57,6 @@
 | FIRESTORE-RULES-38 | write | [未認証による Card の作成を拒否する](#firestore-rules-38) |
 | FIRESTORE-RULES-39 | write | [未認証による Card の更新を拒否する](#firestore-rules-39) |
 | FIRESTORE-RULES-40 | write | [未認証による Card の物理削除を拒否する](#firestore-rules-40) |
-
 | FIRESTORE-RULES-41 | write | [本人が任意の状態を作成・読取・更新・削除でき、同一性は変更できない](#firestore-rules-41) |
 | FIRESTORE-RULES-42 | write | [公開 Card の State も本人以外はアクセスできない](#firestore-rules-42) |
 | FIRESTORE-RULES-43 | write | [状態の同一性・メタデータ・所有 Card を検証する](#firestore-rules-43) |
@@ -232,7 +231,7 @@ Given:
 
 When:
 
-- 回答を get する。続いて回答作成・Card 更新・session 更新を含む batch を commit する。
+- 回答を get する。続いて回答作成・CardStudyState への書き込み・session 更新を含む batch を commit する。Card 自体は更新しない。
 
 Then:
 
@@ -333,7 +332,7 @@ Then:
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
-- Card に `uid: "uid"` を事前保存する。
+- Card に `uid: "uid"` だけを事前保存する。
 
 When:
 
@@ -398,7 +397,7 @@ Then:
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
-- Card に `uid: "uid"` を事前保存する。
+- Card に `uid: "uid"` だけを事前保存する。
 
 When:
 
@@ -608,7 +607,7 @@ Then:
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
-- Card に `uid: "uid"` だけを事前保存する。公開設定は与えない。
+- Card に `uid: "uid"` だけを事前保存する。
 
 When:
 
@@ -797,7 +796,7 @@ Then:
 Given:
 
 - 認証情報を持たない SDK context で操作する。
-- Deck に `uid: "uid"` だけを事前保存する。公開設定は与えない。
+- Deck に `uid: "uid"` だけを事前保存する。
 
 When:
 
@@ -902,7 +901,7 @@ Then:
 Given:
 
 - 認証情報を持たない SDK context で操作する。
-- Card に `uid: "uid"` だけを事前保存する。公開設定は与えない。
+- Card に `uid: "uid"` だけを事前保存する。
 
 When:
 
@@ -926,11 +925,13 @@ Given:
 
 When:
 
-- null の State を作成して読取・更新し、UID・Card ID・作成日時の変更を試みる。
+- Card を単体取得し、fsrs: null の State を作成して単体取得・本人 UID 条件付き query を行い、有効な FSRS へ更新する。
+- UID・Card ID・作成日時の変更を試み、State の削除と再削除を行う。
 
 Then:
 
-- 通常の更新と削除のみ許可され、同一性の変更は拒否される。State がない場合の削除も no-op として許可する。
+- Card の読取と、State の作成・単体取得・query・FSRS 更新・削除は許可される。
+- UID・Card ID・作成日時の変更は拒否される。State がない場合の削除も no-op として許可する。
 
 <a id="firestore-rules-42"></a>
 
@@ -946,11 +947,12 @@ Given:
 
 When:
 
-- 他ユーザー・同一 UID の匿名・未認証で Card と State の単体・一覧読取、State 書込・更新・削除を試みる。
+- 他ユーザー・同一 UID の匿名・未認証で Card の単体読取と、State の単体・一覧読取、書込・更新・削除を試みる。
+- 存在しない State の削除も試みる。
 
 Then:
 
-- Card は読めるが State への全操作は拒否される。本人以外による未作成 State の削除も拒否し、応答から学習状態の有無を推測できない。
+- Card の単体読取は許可されるが、試みた State への全操作は拒否される。既存 State と未作成 State のどちらも、本人以外による削除は拒否される。
 
 <a id="firestore-rules-43"></a>
 

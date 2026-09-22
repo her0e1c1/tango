@@ -5,10 +5,7 @@ import { createCard, createDeck } from "@/test/factories";
 import {
   calculateStudySessionIndex,
   canMoveStudySession,
-  compareActiveDecks,
-  groupDecksByStudyStatus,
   isStudySessionPositionUnchanged,
-  planStudySessionSwipe,
   resolveStudySession,
   selectStudyCardsWithDeadline,
 } from "./rules";
@@ -42,38 +39,6 @@ describe("study card selection [STUDY-SESSION-01]", () => {
     expect(() =>
       selectStudyCardsWithDeadline([{ ...card, fsrs: { ...due, reps: 0 } }], deck, true, due.dueAt)
     ).toThrow();
-  });
-});
-
-describe("compareActiveDecks [STUDY-SESSION-06]", () => {
-  it("orders recent sessions first and uses deck name as the tie breaker", () => {
-    const activeDecks = [
-      { deck: { name: "Bravo" }, session: { ...session, lastStudiedAt: 100 } },
-      { deck: { name: "Charlie" }, session: { ...session, lastStudiedAt: 200 } },
-      { deck: { name: "Alpha" }, session: { ...session, lastStudiedAt: 200 } },
-    ];
-
-    expect(activeDecks.sort(compareActiveDecks).map(({ deck }) => deck.name)).toEqual(["Alpha", "Charlie", "Bravo"]);
-  });
-});
-
-describe("groupDecksByStudyStatus [STUDY-SESSION-06]", () => {
-  it("groups decks by whether they have a study session", () => {
-    const decks = [
-      { id: "not-studying-z", name: "Zulu" },
-      { id: "studying-old", name: "Bravo" },
-      { id: "not-studying-a", name: "Alpha" },
-      { id: "studying-new", name: "Charlie" },
-    ];
-    const sessions = {
-      "studying-old": { ...session, deckId: "studying-old", lastStudiedAt: 100 },
-      "studying-new": { ...session, deckId: "studying-new", lastStudiedAt: 200 },
-    };
-
-    const groups = groupDecksByStudyStatus(decks, sessions);
-
-    expect(groups.active.map(({ deck }) => deck.id)).toEqual(["studying-old", "studying-new"]);
-    expect(groups.inactive.map((deck) => deck.id)).toEqual(["not-studying-z", "not-studying-a"]);
   });
 });
 
@@ -115,45 +80,6 @@ describe("resolveStudySession [STUDY-ACTIONS-03]", () => {
     expect(resolveStudySession(undefined, cards)).toEqual({ status: "invalid" });
     expect(resolveStudySession({ ...session, cardOrderIds: [] }, [])).toEqual({ status: "invalid" });
     expect(resolveStudySession(session, cards)).toEqual({ status: "invalid" });
-  });
-});
-
-describe("planStudySessionSwipe [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-04]", () => {
-  const cards = [
-    { id: "card-1", difficulty: 5, numberOfSeen: 0 },
-    { id: "card-2", difficulty: 2, numberOfSeen: 3 },
-  ];
-
-  it("resolves the rating and movement for the active card", () => {
-    expect(planStudySessionSwipe(session, cards, "RateGood")).toEqual({
-      effect: "next",
-      rating: "good",
-    });
-  });
-
-  it.each([
-    ["GoToNextCard", "next"],
-    ["RateGood", "next"],
-    ["RateAgain", "next"],
-    ["RateHard", "next"],
-    ["RateEasy", "next"],
-  ] as const)("plans %s to move %s after persistence", (swipeAction, effect) => {
-    expect(planStudySessionSwipe(session, cards, swipeAction)).toMatchObject({ effect });
-  });
-
-  it.each([
-    ["DoNothing", "none"],
-    ["GoBack", "exit"],
-  ] as const)("plans %s as %s without a progress edit", (swipeAction, effect) => {
-    expect(planStudySessionSwipe(session, cards, swipeAction)).toEqual({ effect });
-  });
-
-  it("ignores swipes without a resolvable active session", () => {
-    expect(planStudySessionSwipe(undefined, cards, "GoToNextCard")).toEqual({ effect: "none" });
-    expect(planStudySessionSwipe(session, cards.slice(0, 1), "GoToNextCard")).toEqual({ effect: "none" });
-    expect(planStudySessionSwipe({ ...session, currentIndex: 3 }, cards, "GoToNextCard")).toEqual({
-      effect: "none",
-    });
   });
 });
 

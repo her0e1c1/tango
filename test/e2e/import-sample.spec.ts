@@ -1,17 +1,12 @@
+import { downloadDeckCards } from "./ui-helpers";
 import type { Page } from "@playwright/test";
 import sampleCards from "../../sample/build/output.json";
-import { documentId, expect, listDocuments, readLocalData, test } from "./fixtures";
+import { documentId, expect, listDocuments, test } from "./fixtures";
 
 type SampleCard = (typeof sampleCards)[number];
 const sampleName = "deck-sample.csv";
 const byKey = (left: SampleCard, right: SampleCard) => left.uniqueKey.localeCompare(right.uniqueKey);
 const expectedCards = [...sampleCards].sort(byKey);
-const cardContent = ({ frontText, backText, tags, uniqueKey }: SampleCard) => ({
-  frontText,
-  backText,
-  tags,
-  uniqueKey,
-});
 const documentsForUid = async (collection: "deck" | "card", uid: string) =>
   (await listDocuments(collection)).filter((document) => document.fields.uid?.stringValue === uid);
 
@@ -42,14 +37,9 @@ test("IMPORT-10 A fresh anonymous session keeps the imported Sample deck local",
     await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent()
   )?.trim();
   if (!uid) throw new Error("The anonymous account has no User ID");
-  const { decks, cards } = await readLocalData(page);
-  expect(decks).toHaveLength(1);
-  const [deck] = decks;
-  if (!deck) throw new Error("The anonymous account has no imported Deck");
-  expect(deck).toMatchObject({ name: sampleName });
-  expect(cards).toHaveLength(sampleCards.length);
-  expect(cards.every((card: { deckId: string }) => card.deckId === deck.id)).toBe(true);
-  expect(cards.map(cardContent).sort(byKey)).toEqual(expectedCards);
+  expect(
+    (await downloadDeckCards(page, sampleName)).sort((a, b) => String(a.uniqueKey).localeCompare(String(b.uniqueKey)))
+  ).toEqual(expectedCards);
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
 
@@ -67,8 +57,9 @@ test("IMPORT-08 A local Sample deck preserves every card and can be studied afte
   const { uid } = fixture.user();
   await fixture.apply(page);
   await previewSample(page);
-  expect((await readLocalData(page)).decks).toEqual([]);
-  expect((await readLocalData(page)).cards).toEqual([]);
+  await page.goto("/");
+  await expect(page.getByRole("article")).toHaveCount(0);
+  await previewSample(page);
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
 
@@ -82,12 +73,9 @@ test("IMPORT-08 A local Sample deck preserves every card and can be studied afte
   await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
   await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
 
-  const { decks, cards } = await readLocalData(page);
-  expect(decks).toHaveLength(1);
-  expect(decks[0]).toMatchObject({ name: sampleName });
-  expect(cards).toHaveLength(sampleCards.length);
-  expect(cards.every((card: { deckId: string }) => card.deckId === decks[0]?.id)).toBe(true);
-  expect(cards.map(cardContent).sort(byKey)).toEqual(expectedCards);
+  expect(
+    (await downloadDeckCards(page, sampleName)).sort((a, b) => String(a.uniqueKey).localeCompare(String(b.uniqueKey)))
+  ).toEqual(expectedCards);
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
 
@@ -113,6 +101,9 @@ test("IMPORT-09 A linked account syncs every Sample deck card without duplicates
   await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
   await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
 
+  await expect
+    .poll(async () => (await documentsForUid("deck", uid)).map(({ fields }) => fields.name?.stringValue))
+    .toEqual([sampleName]);
   const [savedDeck] = await documentsForUid("deck", uid);
   if (!savedDeck) throw new Error("Missing imported Deck");
   await expect.poll(async () => (await documentsForUid("card", uid)).length).toBe(sampleCards.length);
@@ -126,5 +117,5 @@ test("IMPORT-09 A linked account syncs every Sample deck card without duplicates
     uniqueKey: fields.uniqueKey?.stringValue ?? "",
   }));
   expect(contents.sort(byKey)).toEqual(expectedCards);
-  expect((await readLocalData(page)).cards).toHaveLength(sampleCards.length);
+  await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
 });

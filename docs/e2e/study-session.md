@@ -188,6 +188,7 @@ Then:
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
 - browser storage に、複数の Card を含む local-only Deck と進行中の学習 session が存在する。
 - 現在の Card の表面が表示されている。
 - 上方向の drag は easy action に設定されている。
@@ -198,7 +199,7 @@ When:
 
 Then:
 
-- 期限到来後に新しい session で同じ Card を再評価すると、保存済み FSRS を使って reps が2になり、State の createdAt は初回のまま維持される。
+- 期限到来後に新しい session で同じ Card を再評価できる。FSRS の完全復元、再評価時の reps=2 と createdAt 維持は [FIRESTORE-STUDY-ANSWER-20](../integration/firestore/study-answer.md#firestore-study-answer-20) でアプリ API と Firestore 境界を検証する。
 - 現在だった Card の easy 学習結果とFSRS scheduleが browser storage に維持されている。間隔反復ONの新しい学習候補から期限前は除外し、開いたまま期限を迎えると候補に復帰する。
 - session の位置が次の Card に維持されている。
 - 次の Card の front text が表示され、back text は表示されない。
@@ -327,6 +328,7 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
 - 匿名ユーザーの Deck が Firestore の端末内キャッシュに保存され、同期は停止している。
 
 When:

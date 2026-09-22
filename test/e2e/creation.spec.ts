@@ -4,7 +4,6 @@ import {
   expect,
   failNextFirestoreWrite,
   listDocuments,
-  readLocalData,
   test,
 } from "./fixtures";
 
@@ -35,13 +34,9 @@ test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote dupl
 
   const deckArticle = page.getByRole("button", { name: `View ${name}` }).locator("xpath=ancestor::article[1]");
   await expect(deckArticle).toContainText(category);
-  const local = await readLocalData(page);
-  const localDecks = local.decks.filter(
-    (deck: { id?: string; name?: string }) => deck.id === deckId && deck.name === name
-  );
-  expect(localDecks).toHaveLength(1);
-  expect(localDecks[0]).toEqual(expect.objectContaining({ id: deckId, name, category }));
-  expect(local.cards.filter((card: { deckId?: string }) => card.deckId === deckId)).toEqual([]);
+  await expect(page.getByRole("button", { name: `View ${name}`, exact: true })).toHaveCount(1);
+  await page.getByRole("button", { name: `View ${name}`, exact: true }).click();
+  await expect(page.getByText("0 cards", { exact: true })).toBeVisible();
   expect(
     (await listDocuments("deck")).filter(
       (document) =>
@@ -118,5 +113,5 @@ test("CARD-MANAGEMENT-07 retries a rejected remote Card create with a new ID and
   expect(documentId(createdCard)).not.toBe(attemptedCardId);
   expect(createdCard.fields.backText?.stringValue).toBe(backText);
   expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
-  expect((await readLocalData(page)).cards).toEqual(expect.arrayContaining([expect.objectContaining({ frontText })]));
+  await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(1);
 });

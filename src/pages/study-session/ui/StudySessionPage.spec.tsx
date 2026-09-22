@@ -1,5 +1,5 @@
-import { setStudySessionIndex } from "@/test/entityFixtures";
 import "@/test/mockFirestorePersistence";
+import { setStudySessionIndex } from "@/entities/study-session";
 import { Timestamp } from "firebase/firestore";
 import type { Preferences } from "@/entities/preference";
 
@@ -186,8 +186,8 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.getByText("not studied yet")).toBeVisible();
   });
 
-  it("shows four ratings and prevents backward slider movement", () => {
-    setStudySessionIndex(deckId, 1);
+  it("shows four ratings and prevents backward slider movement", async () => {
+    await setStudySessionIndex(deckId, 1);
     renderPage();
     expect(screen.getByText("Again")).toBeVisible();
     expect(screen.getByText("Hard")).toBeVisible();
@@ -200,12 +200,12 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(mocks.persistOperation).not.toHaveBeenCalled();
   });
 
-  it("allows the progress slider to advance and prevents returning to the skipped Card", () => {
+  it("allows the progress slider to advance and prevents returning to the skipped Card", async () => {
     renderPage();
     const slider = screen.getByRole("slider", { name: "Study progress" });
     fireEvent.change(slider, { target: { value: "1" } });
 
-    expect(screen.getByText("Front two")).toBeVisible();
+    expect(await screen.findByText("Front two")).toBeVisible();
     expect(slider).toHaveValue("1");
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
 
@@ -418,7 +418,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(getStudySession(deckId)).toEqual(sessionBeforeLanguageChange);
   });
 
-  it("pauses autoplay while Help is open and resumes without changing its explicit state", () => {
+  it("pauses autoplay while Help is open and resumes without changing its explicit state", async () => {
     mocks.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 1 });
     clearStudySessions();
     startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
@@ -428,13 +428,17 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
       renderPage();
       fireEvent.click(screen.getByRole("button", { name: "Open study help" }));
 
-      act(() => vi.advanceTimersByTime(1000));
+      await actAsync(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
 
       expect(screen.getByText("Front one")).toBeVisible();
       expect(screen.getByRole("button", { name: "Pause" })).toBePressed();
 
       fireEvent.click(screen.getByRole("button", { name: "Close help" }));
-      act(() => vi.advanceTimersByTime(1000));
+      await actAsync(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
 
       expect(screen.getByText("Front two")).toBeVisible();
       expect(screen.getByRole("button", { name: "Pause" })).toBePressed();
@@ -456,7 +460,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
   });
 
   it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     renderPage(`/deck/${deckId}/study`, "/previous");
 
     fireEvent.click(screen.getByRole("button", { name: "Swipe up" }));
@@ -674,7 +678,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
 });
 
 vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
-  const { moveStudySession } = await import("@/test/entityFixtures");
+  const { moveStudySession } = await import("@/entities/study-session");
   return {
     saveStudyOperation: async (
       operation: import("../model/studyOperation").StudyOperation,
@@ -685,7 +689,7 @@ vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
         cardId: operation.cardId,
         answeredAt: operation.answeredAt,
       });
-      moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
+      await moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
       return {
         session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
         endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,

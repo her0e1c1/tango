@@ -64,6 +64,14 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
   const { studySessionStore } = await import("@/entities/study-session/model/store");
   return {
     ...actual,
+    updateStudySessionRecency: async (session: import("@/entities/study-session").StudySession) => {
+      await Promise.resolve();
+      studySessionStore.setState((state) => {
+        // Simulate an update to this document, not a replacement of another run's snapshot.
+        const current = state.sessionsByDeckId[session.deckId];
+        if (current?.sessionId === session.sessionId) current.lastStudiedAt = session.lastStudiedAt;
+      });
+    },
     createStudySession: async (session: import("@/entities/study-session").StudySession) => {
       await Promise.resolve();
       studySessionStore.setState((state) => {
@@ -73,41 +81,10 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
     updateStudySession: async (session: import("@/entities/study-session").StudySession, endReason: string | null) => {
       await Promise.resolve();
       studySessionStore.setState((state) => {
+        if (state.sessionsByDeckId[session.deckId]?.sessionId !== session.sessionId) return;
         if (endReason) delete state.sessionsByDeckId[session.deckId];
-        else state.sessionsByDeckId[session.deckId] = session;
+        else state.sessionsByDeckId[session.deckId] = { ...session, lastStudiedAt: Date.now() };
       });
-    },
-  };
-});
-
-vi.mock("@/entities/study-session/api/mutations", async () => {
-  const { touchStudySession } = await import("@/entities/study-session/model/actions/touchStudySession");
-  const { restoreStudySession } = await import("@/test/entityFixtures");
-  const { moveStudySession } = await import("@/entities/study-session/model/actions/moveStudySession");
-  const { setStudySessionIndex } = await import("@/entities/study-session/model/actions/setStudySessionIndex");
-  const { removeStudySession } = await import("@/entities/study-session/model/actions/removeStudySession");
-  return {
-    touchStudySession: async (deckId: string) => {
-      await Promise.resolve();
-      touchStudySession(deckId);
-    },
-    startStudy: async (input: Parameters<typeof import("@/entities/study-session").startStudy>[0]) => {
-      await Promise.resolve();
-      const now = input.now ?? Date.now();
-      restoreStudySession({
-        sessionId: crypto.randomUUID(),
-        deckId: input.deckId,
-        cardOrderIds: [...input.cardOrderIds],
-        currentIndex: 0,
-        lastStudiedAt: now,
-        remote: { uid: input.uid, startedAt: now },
-      });
-    },
-    moveStudySession: async (...args: Parameters<typeof moveStudySession>) => moveStudySession(...args),
-    setStudySessionIndex: async (...args: Parameters<typeof setStudySessionIndex>) => setStudySessionIndex(...args),
-    abandonStudySession: async (deckId: string) => {
-      await Promise.resolve();
-      removeStudySession(deckId);
     },
   };
 });

@@ -49,7 +49,7 @@ Then:
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- local-only Deck に追加日時が異なる Card と、追加日時が同じ Card が存在する。
+- 通常ログインのユーザーが所有する Deck に追加日時が異なる Card と、追加日時が同じ Card が存在する。
 - Card 一覧は標準の順序で表示され、既存の Study session がある。
 
 When:
@@ -75,7 +75,7 @@ Then:
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
-- local-only Deck の Card 一覧で「追加が新しい順」を選択している。
+- 通常ログインのユーザーが所有する Deck の Card 一覧で「追加が新しい順」を選択している。
 
 When:
 

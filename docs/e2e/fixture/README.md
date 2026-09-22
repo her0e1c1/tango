@@ -6,8 +6,8 @@
 ## 構造
 
 - `auth.users` は mock する認証 identity を表す。
-- `remote` は Firestore emulator に保存する Deck / Card を表す。
-- `browser` は localStorage の preference と、Firestore 永続 cache に準備する匿名データ・Study session を表す。旧 fixture の `localDecks` / `localCards` は匿名 cache の入力名であり、独自 CRUD の保存先ではない。
+- `remote` は REST API で Firestore emulator に保存する Deck / Card / CardStudyState / StudySession を表す。
+- `browser` は localStorage の preference だけを表す。匿名の Deck / Card は作成・インポート UI、Session は学習開始 UI で用意し、再読み込み時に再投入しない。
 - fixture YAML にはアプリケーション上の永続状態を記述し、Firestore 固有の serialization は記述しない。
 - 認証失敗、network failure、dialog の表示状態など永続状態ではない前提は fixture に含めず、各ケースの `Given` に記述する。
 - YAML alias は使用しない。
@@ -53,11 +53,11 @@
 
 ### Card study state
 
-`remote.cardStudyStates` と `browser.cardStudyStates` は省略時に空。評価済み状態を必要とするケースだけ `schemaVersion: 1`、uid、cardId、deckId、fsrs、createdAt、updatedAt を記述する。Card から状態を生成しない。UID と Card ID を namespace 化した後、UID 長の接頭辞から document ID を生成する。
+`remote.cardStudyStates` は省略時に空。評価済み状態を必要とするケースだけ `schemaVersion: 1`、uid、cardId、deckId、fsrs、createdAt、updatedAt を記述する。Card から状態を生成しない。UID と Card ID を namespace 化した後、UID 長の接頭辞から document ID を生成する。
 
 ### Study session
 
-省略された `lastStudiedAt` は `0` として正規化する。
+通常ログイン用の `remote.studySessions` のみを seed する。省略された `lastStudiedAt` は `0` として正規化する。匿名の Session は UI で開始し、表示カード・進捗・Continue・reload で確認する。
 
 ### Language
 
@@ -75,4 +75,6 @@
 - fixture 内の ID と UID は logical ID とする。
 - すべてのカテゴリで logical ID と UID を test case と retry ごとに分離した namespace へ展開し、他ケースと共有しない。
 - UID、Deck / Card / session ID、Card の `deckId`、`studySessions` の map key と `cardOrderIds` は同じ対応表で展開する。
-- application-defined stable ID である `sample-v1` と `sample-v1-card-*` は namespace へ展開せず、そのまま利用する。
+- UI で作成した匿名データの ID は URL から取得する。実 Auth Emulator の UID は Account 画面から取得し、YAML の UID と同一と仮定しない。
+- REST の document ID はパスセグメントとしてエンコードし、`?` / `#` を含む ID も保持する。
+- 自動サンプルはアプリ自身が初期化する。テスト側で固定 ID のデータを投入しない。

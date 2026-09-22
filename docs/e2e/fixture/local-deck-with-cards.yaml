@@ -1,18 +1,6 @@
 extends: empty.yaml
+# Create Local Deck and two Cards through the UI; IDs come from their routes.
 browser:
-  localDecks:
-    - id: deck-1
-      localMode: true
-      name: Local Deck
-      category: English
-  localCards:
-    - id: card-1
-      deckId: deck-1
-      frontText: local first
-      backText: local first answer
-      uniqueKey: local-first
-    - id: card-2
-      deckId: deck-1
-      frontText: local second
-      backText: local second answer
-      uniqueKey: local-second
+  preferences:
+    study:
+      shuffled: false
