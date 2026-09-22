@@ -31,6 +31,11 @@
 | FIRESTORE-RULES-DECK-17 | write | [未認証による Deck の作成を拒否する](#firestore-rules-deck-17) |
 | FIRESTORE-RULES-DECK-18 | write | [未認証による Deck の更新を拒否する](#firestore-rules-deck-18) |
 | FIRESTORE-RULES-DECK-19 | write | [未認証による Deck の物理削除を拒否する](#firestore-rules-deck-19) |
+| FIRESTORE-RULES-DECK-20 | write | [本人による所有者 UID の変更・削除を拒否する](#firestore-rules-deck-20) |
+| FIRESTORE-RULES-DECK-21 | write | [他人の Deck の所有者を自分にする更新・上書きを拒否する](#firestore-rules-deck-21) |
+| FIRESTORE-RULES-DECK-22 | read | [本人の UID で絞った Deck 一覧取得を許可する](#firestore-rules-deck-22) |
+| FIRESTORE-RULES-DECK-23 | read | [権限を保証できない Deck 一覧取得を拒否する](#firestore-rules-deck-23) |
+| FIRESTORE-RULES-DECK-24 | read | [匿名認証による他人の非公開 Deck 取得を拒否する](#firestore-rules-deck-24) |
 
 <a id="firestore-rules-deck-01"></a>
 
@@ -61,12 +66,12 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-02] should read a deck`
+対応テスト: `[FIRESTORE-RULES-DECK-02] should read an owned deck (deletedAt=%s)`
 
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
-- Deck に `uid: "uid", isPublic: false` を事前保存する。
+- Deck に `uid: "uid", isPublic: false` を事前保存する。`deletedAt` は `null`（未削除）と `1000`（論理削除済み）の2通りで検証する。
 
 When:
 
@@ -74,7 +79,7 @@ When:
 
 Then:
 
-- 取得が許可される。
+- 論理削除の有無にかかわらず、本人による取得が許可される。
 
 <a id="firestore-rules-deck-03"></a>
 
@@ -145,12 +150,12 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-06] should not read a deck`
+対応テスト: `[FIRESTORE-RULES-DECK-06] should not read a deck (visibility=%j)`
 
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
-- Deck に `uid: "uid"` だけを事前保存する。公開設定は与えない。
+- Deck に `uid: "uid"` を事前保存する。`isPublic` 未指定と `isPublic: false` の2通りで検証する。
 
 When:
 
@@ -208,12 +213,12 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-09] should not update a deck`
+対応テスト: `[FIRESTORE-RULES-DECK-09] should not update a deck (visibility=%j)`
 
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
-- Deck に `uid: "uid"` だけを事前保存する。公開設定は与えない。
+- Deck に `uid: "uid", deletedAt: null` を事前保存する。`isPublic` 未指定・`false`・`true` の3通りで検証する。
 
 When:
 
@@ -221,7 +226,7 @@ When:
 
 Then:
 
-- 更新が拒否される。
+- 公開設定にかかわらず、更新が拒否される。
 
 <a id="firestore-rules-deck-10"></a>
 
@@ -229,12 +234,12 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-10] should not delete a deck`
+対応テスト: `[FIRESTORE-RULES-DECK-10] should not delete a deck (visibility=%j)`
 
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
-- Deck に `uid: "uid"` だけを事前保存する。公開設定は与えない。
+- Deck に `uid: "uid", deletedAt: null` を事前保存する。`isPublic` 未指定・`false`・`true` の3通りで検証する。
 
 When:
 
@@ -242,7 +247,7 @@ When:
 
 Then:
 
-- 物理削除が拒否される。
+- 公開設定にかかわらず、物理削除が拒否される。
 
 <a id="firestore-rules-deck-11"></a>
 
@@ -254,8 +259,8 @@ Then:
 
 Given:
 
-- 匿名認証の UID `uid` で、Deck と Card のそれぞれを検証する。
-- 本人 UID の親 Deck が存在し、新しい保存先 ID と同じ UID・deckId を指定する。
+- 匿名認証の UID `uid` で操作する。
+- 本人 UID の Deck が存在し、未使用の ID に同じ UID と既存 Deck の ID を `deckId` として指定する。
 
 When:
 
@@ -263,7 +268,7 @@ When:
 
 Then:
 
-- Deck と Card の両方で操作が拒否される。UID の一致だけでは書き込めない。
+- Deck の作成が拒否される。UID の一致だけでは書き込めない。
 
 <a id="firestore-rules-deck-12"></a>
 
@@ -271,12 +276,12 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-12] rejects updating an existing deck`
+対応テスト: `[FIRESTORE-RULES-DECK-12] rejects updating an existing deck (visibility=%j)`
 
 Given:
 
-- 匿名認証の UID `uid` で、Deck と Card のそれぞれを検証する。
-- 本人 UID の親 Deck と、同じ UID・deckId を持つ更新対象が存在する。
+- 匿名認証の UID `uid` で操作する。
+- Deck に `uid: "uid", deletedAt: null` を事前保存する。`isPublic` 未指定・`false`・`true` の3通りで検証する。
 
 When:
 
@@ -284,7 +289,7 @@ When:
 
 Then:
 
-- Deck と Card の両方で操作が拒否される。UID の一致だけでは書き込めない。
+- 公開設定や UID の一致にかかわらず、匿名認証による操作が拒否される。
 
 <a id="firestore-rules-deck-13"></a>
 
@@ -292,12 +297,12 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-13] rejects deleting an existing deck`
+対応テスト: `[FIRESTORE-RULES-DECK-13] rejects deleting an existing deck (visibility=%j)`
 
 Given:
 
-- 匿名認証の UID `uid` で、Deck と Card のそれぞれを検証する。
-- 対象 document の UID は匿名認証の UID と同じである。
+- 匿名認証の UID `uid` で操作する。
+- Deck に `uid: "uid", deletedAt: null` を事前保存する。`isPublic` 未指定・`false`・`true` の3通りで検証する。
 
 When:
 
@@ -305,7 +310,7 @@ When:
 
 Then:
 
-- Deck と Card の両方で操作が拒否される。UID の一致だけでは書き込めない。
+- 公開設定や UID の一致にかかわらず、匿名認証による操作が拒否される。
 
 <a id="firestore-rules-deck-14"></a>
 
@@ -317,16 +322,16 @@ Then:
 
 Given:
 
-- 匿名認証の UID `uid` で、Deck と Card のそれぞれを検証する。
-- 別 UID `another-user` の公開 Deck と、その Deck を参照する同じ所有者の Card が存在する。
+- 匿名認証の UID `uid` で操作する。
+- 別 UID `another-user` の Deck に `isPublic: true` を事前保存する。
 
 When:
 
-- 公開 Deck と、その子 Card をそれぞれ `getDoc` で取得する。
+- 公開 Deck を `getDoc` で取得する。
 
 Then:
 
-- Deck と Card の両方で取得が許可される。
+- Deck の取得が許可される。
 
 <a id="firestore-rules-deck-15"></a>
 
@@ -334,12 +339,12 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-15] should not read a deck`
+対応テスト: `[FIRESTORE-RULES-DECK-15] should not read a deck (visibility=%j)`
 
 Given:
 
 - 認証情報を持たない SDK context で操作する。
-- Deck に `uid: "uid"` だけを事前保存する。公開設定は与えない。
+- Deck に `uid: "uid"` を事前保存する。`isPublic` 未指定と `isPublic: false` の2通りで検証する。
 
 When:
 
@@ -397,12 +402,12 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-18] should not update a deck`
+対応テスト: `[FIRESTORE-RULES-DECK-18] should not update a deck (visibility=%j)`
 
 Given:
 
 - 認証情報を持たない SDK context で操作する。
-- Deck に `uid: "uid"` だけを事前保存する。公開設定は与えない。
+- Deck に `uid: "uid", deletedAt: null` を事前保存する。`isPublic` 未指定・`false`・`true` の3通りで検証する。
 
 When:
 
@@ -410,7 +415,7 @@ When:
 
 Then:
 
-- 更新が拒否される。
+- 公開設定にかかわらず、更新が拒否される。
 
 <a id="firestore-rules-deck-19"></a>
 
@@ -418,12 +423,12 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-19] should not delete a deck`
+対応テスト: `[FIRESTORE-RULES-DECK-19] should not delete a deck (visibility=%j)`
 
 Given:
 
 - 認証情報を持たない SDK context で操作する。
-- Deck に `uid: "uid"` だけを事前保存する。
+- Deck に `uid: "uid", deletedAt: null` を事前保存する。`isPublic` 未指定・`false`・`true` の3通りで検証する。
 
 When:
 
@@ -431,4 +436,116 @@ When:
 
 Then:
 
-- 物理削除が拒否される。
+- 公開設定にかかわらず、物理削除が拒否される。
+
+<a id="firestore-rules-deck-20"></a>
+
+### FIRESTORE-RULES-DECK-20 本人による所有者 UID の変更・削除を拒否する
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-DECK-20] rejects changing or removing the owner UID`
+
+Given:
+
+- 非匿名認証の UID `uid` で操作する。
+- Deck に `uid: "uid"` を事前保存する。
+
+When:
+
+- `updateDoc` で `uid` を `another-user` に変更、`null` に変更、`deleteField()` で削除する3操作をそれぞれ試す。
+- UID を含まない `{ name: "replacement" }` による `setDoc` の全体上書きも試す。
+
+Then:
+
+- 4操作すべてが拒否される。本人でも所有者 UID を変更・削除できない。
+
+<a id="firestore-rules-deck-21"></a>
+
+### FIRESTORE-RULES-DECK-21 他人の Deck の所有者を自分にする更新・上書きを拒否する
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-DECK-21] rejects taking ownership of another user's deck (isPublic=%s)`
+
+Given:
+
+- 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
+- Deck に `uid: "uid", deletedAt: null` を事前保存する。`isPublic` は `false` と `true` の2通りで検証する。
+
+When:
+
+- `updateDoc` で `uid` を操作主体の `invalid` に変更する。
+- `setDoc` で `{ uid: "invalid", name: "replacement" }` に全体を上書きする。
+
+Then:
+
+- 公開・非公開のいずれも更新と上書きが拒否される。更新後の UID を自分にしても、他人の Deck の所有権を奪えない。
+
+<a id="firestore-rules-deck-22"></a>
+
+### FIRESTORE-RULES-DECK-22 本人の UID で絞った Deck 一覧取得を許可する
+
+カテゴリ: `read`
+
+対応テスト: `[FIRESTORE-RULES-DECK-22] lists only the owner's decks including deleted decks`
+
+Given:
+
+- 非匿名認証の UID `uid` で操作する。
+- 本人の Deck `private`（非公開・未削除）、`public`（公開・未削除）、`deleted`（公開・`deletedAt: 1000`）を事前保存する。未削除の Deck の `deletedAt` は `null` とする。
+- 別 UID `another-user` の公開 Deck `other-public` と非公開 Deck `other-private` も保存する。両方とも `deletedAt: null` とする。
+
+When:
+
+- `where("uid", "==", "uid")` を指定した `deck` コレクションの query を `getDocs` で取得する。
+
+Then:
+
+- 取得が許可され、返却 ID は `private`・`public`・`deleted` の3件だけである。
+- 他ユーザーの Deck は含まれず、本人の論理削除済み Deck は含まれる。これは Rules の認可であり、アプリケーションでの非表示とは区別する。
+
+<a id="firestore-rules-deck-23"></a>
+
+### FIRESTORE-RULES-DECK-23 権限を保証できない Deck 一覧取得を拒否する
+
+カテゴリ: `read`
+
+対応テスト: `[FIRESTORE-RULES-DECK-23] rejects unsafe deck queries from %s`
+
+Given:
+
+- 所有者 UID `uid` の公開 Deck と非公開 Deck を事前保存する。両方とも `deletedAt: null` とする。
+- 非匿名認証 UID `other-user`・匿名認証 UID `anonymous`・未認証の3通りで検証する。認証 UID は所有者 UID と一致しない。
+
+When:
+
+- 条件なしの `deck` コレクション全件取得を `getDocs` で実行する。
+- 所有者の `where("uid", "==", "uid")` だけで絞った query も `getDocs` で実行する。
+
+Then:
+
+- 各認証主体で2種類の query がともに拒否される。読めない Deck を除外して成功する動作とは扱わない。
+
+<a id="firestore-rules-deck-24"></a>
+
+### FIRESTORE-RULES-DECK-24 匿名認証による他人の非公開 Deck 取得を拒否する
+
+カテゴリ: `read`
+
+対応テスト: `[FIRESTORE-RULES-DECK-24] rejects reading another user's private deck (visibility=%j)`
+
+Given:
+
+- 匿名認証の UID `uid` で操作する。
+- 別 UID `another-user` の Deck を事前保存する。`isPublic` 未指定と `isPublic: false` の2通りで検証する。
+
+When:
+
+- 対象 Deck を `getDoc` で取得する。
+
+Then:
+
+- どちらの非公開 Deck も取得が拒否される。
+
+所有者と同じ UID の匿名認証に対する読取仕様は、このケースでは変更しない。
