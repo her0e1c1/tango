@@ -4,7 +4,15 @@ import { createPreferences } from "@/test/factories";
 
 import { buildCardPlayerHelpRows } from "./buildCardPlayerHelpRows";
 
-describe("STUDY-CONTROLS-04 buildCardPlayerHelpRows", () => {
+describe("STUDY-CONTROLS-04 STUDY-CONTROLS-06 buildCardPlayerHelpRows", () => {
+  it("explains scrolling, mode exit, and button playback while reading", () => {
+    const rows = buildCardPlayerHelpRows(createPreferences({ controls: { viewMode: true } }));
+    expect(rows.slice(0, 4).every((row) => row.action === "viewModeScroll")).toBe(true);
+    expect(rows).toContainEqual({ control: "flip", action: "exitViewMode" });
+    expect(rows).toContainEqual({ control: "autoPlay", action: "viewModeAutoPlay" });
+    expect(rows).toContainEqual({ control: "viewMode", action: "exitViewMode" });
+  });
+
   it("maps configured directions to semantic control and action identifiers", () => {
     const preferences = createPreferences({
       controls: {

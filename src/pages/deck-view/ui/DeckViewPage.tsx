@@ -24,6 +24,8 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
   return (
     <AppLayout fullscreen showHeader={false} scroll={false}>
       <CardPlayer
+        viewMode={model.controls.viewMode}
+        onToggleViewMode={model.toggleViewMode}
         cardKey={model.card.id}
         allowBackHorizontalSwipe
         answerLabel={t("deckView.answerAria")}
@@ -66,6 +68,7 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
         }}
         frontTextSlot={
           <FrontText
+            viewMode={model.controls.viewMode}
             text={model.card.frontText}
             category={model.category}
             ariaLabel={t("deckView.frontAria")}

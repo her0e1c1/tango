@@ -1,5 +1,5 @@
 import { useKey, useLatest } from "react-use";
-import { toggleShowSwipeButtonList } from "@/entities/preference";
+import { getPreferences, toggleShowSwipeButtonList } from "@/entities/preference";
 import { shouldIgnoreCardShortcut } from "@/features/card-player";
 import { swipeCard } from "./actions/swipeCard";
 import { toggleBackText } from "./actions/toggleBackText";
@@ -45,9 +45,17 @@ export function useStudyShortcuts({
   const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
     // Native editing and activation keys take precedence, while unrelated Study shortcuts remain
     // available after a user moves focus into the card or floating controls.
+    // A held Enter must not exit reading mode and then flip the same card.
+    if (event.repeat && action === "toggleBackText") return;
     const currentStudy = latestShortcuts.current;
     // A modal Help surface owns every key while open, including keys without native dialog behavior.
     if (currentStudy.status !== "studying" || currentStudy.helpOpen || shouldIgnoreCardShortcut(event)) return;
+    if (
+      !currentStudy.showBackText &&
+      getPreferences().controls.viewMode &&
+      (isDirectionalStudyAction(action) || action === "toggleAutoPlay")
+    )
+      return;
     // Directional keys are an input gesture, so the answer keeps them inert even though edge overlays can act.
     if (currentStudy.showBackText && isDirectionalStudyAction(action)) return;
     currentStudy.actions[action]();

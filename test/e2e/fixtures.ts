@@ -244,6 +244,7 @@ const e2eConfig: E2EConfig = {
     selectedTags: [] as string[],
   },
   controls: {
+    viewMode: false,
     showHelp: true,
     showEditLink: true,
     showSwipeButtonList: true,

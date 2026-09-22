@@ -84,6 +84,7 @@ export interface FixturePreferences {
     selectedTags: string[];
   };
   controls: {
+    viewMode: boolean;
     showHelp: boolean;
     showEditLink: boolean;
     showSwipeButtonList: boolean;
@@ -275,6 +276,7 @@ const preferencesSchema = z.strictObject({
     .optional(),
   controls: z
     .strictObject({
+      viewMode: z.boolean().optional(),
       showHelp: z.boolean().optional(),
       showEditLink: z.boolean().optional(),
       showSwipeButtonList: z.boolean().optional(),
@@ -647,6 +649,7 @@ const fixturePreferenceDefaults: FixturePreferences = {
     selectedTags: [],
   },
   controls: {
+    viewMode: false,
     showHelp: true,
     showEditLink: true,
     showSwipeButtonList: true,

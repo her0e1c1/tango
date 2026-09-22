@@ -1,3 +1,4 @@
+export { toggleViewMode } from "./model/actions/toggleViewMode";
 export { getPreferences } from "./model/queries/getPreferences";
 export { usePreferences } from "./model/queries/usePreferences";
 export { studyPreferencesLimits } from "./model/rules";

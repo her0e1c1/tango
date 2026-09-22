@@ -10,6 +10,7 @@ type StudyHelpDialogControl =
   | "cardSwipeDown"
   | "cardSwipeLeft"
   | "cardSwipeRight"
+  | "viewMode"
   | "flip"
   | "autoPlay"
   | "swipeButtons"
@@ -19,6 +20,10 @@ type StudyHelpDialogControl =
   | "exit";
 
 type StudyHelpDialogAction =
+  | "enterViewMode"
+  | "exitViewMode"
+  | "viewModeScroll"
+  | "viewModeAutoPlay"
   | "previousCard"
   | "DoNothing"
   | "GoBack"
@@ -43,6 +48,7 @@ interface StudyHelpDialogRow {
 }
 
 const controlKeys = {
+  viewMode: "studySession.help.controls.viewMode",
   cardSwipeUp: "studySession.help.controls.cardSwipeUp",
   cardSwipeDown: "studySession.help.controls.cardSwipeDown",
   cardSwipeLeft: "studySession.help.controls.cardSwipeLeft",
@@ -57,6 +63,10 @@ const controlKeys = {
 } as const satisfies Record<StudyHelpDialogControl, string>;
 
 const actionKeys = {
+  enterViewMode: "studySession.help.actions.enterViewMode",
+  exitViewMode: "studySession.help.actions.exitViewMode",
+  viewModeScroll: "studySession.help.actions.viewModeScroll",
+  viewModeAutoPlay: "studySession.help.actions.viewModeAutoPlay",
   previousCard: "deckView.helpPrevious",
   DoNothing: "studySession.help.actions.DoNothing",
   GoBack: "studySession.help.actions.GoBack",

@@ -11,6 +11,8 @@ import { CardPlayer } from "./CardPlayer";
 const playbackUnavailableDescription = "Playback controls unavailable because the card interval is set to 0";
 
 const toolbarProps = () => ({
+  viewMode: false,
+  onToggleViewMode: vi.fn(),
   showHelp: true,
   showCardDetails: true,
   showSwipeControls: true,
@@ -60,7 +62,83 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("CardPlayer [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]", () => {
+describe("CardPlayer [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]", () => {
+  it("ignores reading gestures and their trailing click while keeping explicit buttons active", () => {
+    const props = toolbarProps();
+    const onSwipeUp = vi.fn();
+    const onSwipeLeft = vi.fn();
+    render(
+      <CardPlayer
+        {...props}
+        viewMode
+        frontTextSlot={<div>Long front</div>}
+        onSwipeUp={onSwipeUp}
+        onSwipeLeft={onSwipeLeft}
+        swipeButtonList={{ onClickLeft: onSwipeLeft }}
+      />
+    );
+    const front = screen.getByText("Long front");
+    swipeUp(front);
+    swipeLeft(front);
+    swipeWithMouse(front, { clientX: 100, clientY: 200 }, { clientX: 100, clientY: 20 });
+    fireEvent.click(front);
+    expect(onSwipeUp).not.toHaveBeenCalled();
+    expect(onSwipeLeft).not.toHaveBeenCalled();
+    expect(props.onToggleViewMode).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Swipe left" }));
+    expect(onSwipeLeft).toHaveBeenCalledOnce();
+  });
+
+  it("keeps view mode active while the front text has a selection", () => {
+    const props = toolbarProps();
+    render(<CardPlayer {...props} viewMode frontTextSlot={<div>Selectable front</div>} />);
+    const text = screen.getByText("Selectable front");
+    const selection = window.getSelection();
+    if (selection === null) throw new Error("Selection API unavailable");
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    expect(selection.toString()).toBe("Selectable front");
+    fireEvent.click(text);
+    expect(props.onToggleViewMode).not.toHaveBeenCalled();
+    selection.removeAllRanges();
+    fireEvent.click(text);
+    expect(props.onToggleViewMode).toHaveBeenCalledOnce();
+  });
+
+  it("exits reading on a tap, but reserves Space for scrolling", () => {
+    const props = toolbarProps();
+    render(<CardPlayer {...props} viewMode frontTextSlot={<div>Long front</div>} />);
+    const region = screen.getByRole("region", { name: "Card front text" });
+    expect(region).toHaveFocus();
+    fireEvent.keyDown(region, { key: " " });
+    fireEvent.keyUp(region, { key: " " });
+    expect(props.onToggleViewMode).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText("Long front"));
+    expect(props.onToggleViewMode).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the reading preference from changing answer gestures", () => {
+    const onSwipeLeft = vi.fn();
+    const onAnswerClick = vi.fn();
+    render(
+      <CardPlayer
+        {...toolbarProps()}
+        viewMode
+        showBackText
+        allowBackHorizontalSwipe
+        backTextSlot={<div>Answer</div>}
+        onSwipeLeft={onSwipeLeft}
+        onAnswerClick={onAnswerClick}
+      />
+    );
+    fireEvent.click(screen.getByText("Answer"));
+    expect(onAnswerClick).toHaveBeenCalledOnce();
+    swipeLeft(screen.getByText("Answer"));
+    expect(onSwipeLeft).toHaveBeenCalledOnce();
+  });
+
   it("uses the edit shortcut slot to toggle visibility only while actions are open", async () => {
     function Player() {
       const [visible, setVisible] = useState(true);

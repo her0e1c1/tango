@@ -4,6 +4,7 @@ type SwipeAction = Preferences["controls"][SwipeDirection];
 
 type StudyHelpControlId =
   | SwipeDirection
+  | "viewMode"
   | "flip"
   | "autoPlay"
   | "swipeButtons"
@@ -13,6 +14,10 @@ type StudyHelpControlId =
   | "exit";
 
 type StudyHelpActionId =
+  | "enterViewMode"
+  | "exitViewMode"
+  | "viewModeScroll"
+  | "viewModeAutoPlay"
   | SwipeAction
   | "previousCard"
   | "flip"
@@ -40,17 +45,19 @@ export const buildCardPlayerHelpRows = (
   mappings: Partial<Record<SwipeDirection, SwipeAction | "previousCard">> = {},
   includeSkipControl = true
 ): readonly StudyHelpRow[] => {
+  const viewMode = preferences.controls.viewMode;
   const playbackAvailable = preferences.study.cardInterval > 0;
   const rows: StudyHelpRow[] = directionOrder.map((direction) => ({
     control: direction,
-    action: mappings[direction] ?? preferences.controls[direction],
+    action: viewMode ? "viewModeScroll" : (mappings[direction] ?? preferences.controls[direction]),
   }));
 
   rows.push(
-    { control: "flip", action: "flip" },
+    { control: "viewMode", action: viewMode ? "exitViewMode" : "enterViewMode" },
+    { control: "flip", action: viewMode ? "exitViewMode" : "flip" },
     {
       control: "autoPlay",
-      action: playbackAvailable ? "autoPlay" : "autoPlayUnavailable",
+      action: playbackAvailable ? (viewMode ? "viewModeAutoPlay" : "autoPlay") : "autoPlayUnavailable",
     },
     {
       control: "swipeButtons",

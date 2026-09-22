@@ -24,3 +24,5 @@ export const TooLong: Story = {
 export const LongMath: Story = { args: { text: `${fixture.math.block}\n${fixture.math.block}`, category: "math" } };
 export const Mobile: Story = { ...TooLong, globals: { viewport: { value: "iphonex", isRotated: false } } };
 export const Dark: Story = { ...TooLong, globals: { theme: "dark" } };
+
+export const ViewMode: Story = { ...TooLong, args: { ...TooLong.args, viewMode: true } };

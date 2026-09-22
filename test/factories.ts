@@ -148,6 +148,7 @@ const createControls = (
   controls?: Partial<ControlPreferences>,
   flat?: Partial<PreferencesOverrides>
 ): ControlPreferences => ({
+  viewMode: controls?.viewMode ?? false,
   showHelp: controls?.showHelp ?? flat?.showHelp ?? true,
   showEditLink: controls?.showEditLink ?? true,
   showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,

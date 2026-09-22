@@ -31,6 +31,7 @@ const mocks = vi.hoisted(() => ({
   removeStudySession: vi.fn(),
   setDarkMode: vi.fn(),
   touchStudySession: vi.fn(),
+  toggleViewMode: vi.fn(),
   toggleShowCardDetails: vi.fn(),
   toggleShowHelp: vi.fn(),
   toggleShowPlaybackControls: vi.fn(),
@@ -52,6 +53,7 @@ vi.mock("firebase/firestore", async (importOriginal) => ({
 }));
 
 vi.mock("@/entities/preference", () => ({
+  toggleViewMode: mocks.toggleViewMode,
   usePreferences: () => mocks.preferences,
   getPreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
@@ -104,7 +106,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-SESSION-05] [STUDY-CONTROLS-04]", () => {
+describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-SESSION-05] [STUDY-CONTROLS-04]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -155,6 +157,7 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
     mocks.removeStudySession.mockReset();
     mocks.setDarkMode.mockReset();
     mocks.touchStudySession.mockReset();
+    mocks.toggleViewMode.mockReset();
     mocks.toggleShowCardDetails.mockReset();
     mocks.toggleShowHelp.mockReset();
     mocks.toggleShowPlaybackControls.mockReset();
@@ -166,6 +169,23 @@ describe("StudySessionPage [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [
       { kind: "create", card: secondCard },
     ]);
     startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
+  });
+
+  it("exits view mode once for a held Enter without revealing the answer", () => {
+    mocks.preferences.controls.viewMode = true;
+    mocks.toggleViewMode.mockImplementation(() => {
+      mocks.preferences.controls.viewMode = false;
+    });
+    renderPage();
+    const surface = screen.getByRole("region", { name: "Card front text" });
+    fireEvent.keyDown(surface, { key: "Enter" });
+    fireEvent.keyDown(surface, { key: "Enter", repeat: true });
+    fireEvent.keyDown(window, { key: "Enter", repeat: true });
+    expect(mocks.toggleViewMode).toHaveBeenCalledOnce();
+    expect(screen.getByText("Front one")).toBeVisible();
+    expect(screen.queryByText("Back one")).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(screen.getByText("Back one")).toBeVisible();
   });
 
   it("renders the active session from stored Entity state", () => {

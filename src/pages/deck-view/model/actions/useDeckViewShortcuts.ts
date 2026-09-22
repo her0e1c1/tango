@@ -4,6 +4,7 @@ import { getPreferences, toggleShowSwipeButtonList } from "@/entities/preference
 import { shouldIgnoreCardShortcut } from "@/features/card-player";
 import { useNavigate } from "react-router-dom";
 import { routes } from "@/shared/router";
+import { getDeckViewPosition } from "../queries/getDeckViewPosition";
 import { deckViewStore } from "../store";
 import { flipCard } from "./flipCard";
 import { moveCard } from "./moveCard";
@@ -25,6 +26,11 @@ export function useDeckViewShortcuts(cards: readonly Card[]): void {
         current.cards.length === 0 ||
         shouldIgnoreCardShortcut(event)
       )
+        return;
+      const state = deckViewStore.getState();
+      const card = getDeckViewPosition(current.cards, state.cardId).card;
+      const showBackText = card !== undefined && card.id === state.cardId && state.showBackText;
+      if (!showBackText && getPreferences().controls.viewMode && (event.key.startsWith("Arrow") || event.key === " "))
         return;
       event.preventDefault();
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {

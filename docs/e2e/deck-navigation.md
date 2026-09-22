@@ -21,6 +21,9 @@ Deck と Card 一覧の主要な route を開き、存在しない Deck から�
 | DECK-NAVIGATION-11 | read | [閲覧の進捗スライダーで前後へ移動できる](#deck-navigation-11) |
 | DECK-NAVIGATION-12 | read | [保持中の復習件数と学習導線を表示できる](#deck-navigation-12) |
 | DECK-NAVIGATION-13 | read | [復習期限の到達で一覧を更新できる](#deck-navigation-13) |
+| DECK-NAVIGATION-14 | write | [view mode で長い表面を読みながら移動を防止できる](#deck-navigation-14) |
+| DECK-NAVIGATION-15 | write | [閲覧の view mode 終了後に通常の表裏操作へ戻れる](#deck-navigation-15) |
+| DECK-NAVIGATION-16 | write | [view mode 中も閲覧ボタンと自動再生を使える](#deck-navigation-16) |
 
 <a id="deck-navigation-01"></a>
 
@@ -357,3 +360,64 @@ Then:
 - dueAt <= now となった Card を due に加算し、同じ時刻で区分と合計を更新する。
 - 入力変更、focus / visibility 復帰でも再評価し、一覧全体で期限 timer は最大1つ、unmount で解除する。
 - Session の順序・位置、Card の schedule、永続データを変更しない。browser error が発生しない。
+
+<a id="deck-navigation-14"></a>
+
+### DECK-NAVIGATION-14 view mode で長い表面を読みながら移動を防止できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
+- 長い front text を持つ Card を Deck 閲覧画面で表示している。
+
+When:
+
+- view mode を ON にして wheel・touch・方向キーでスクロールし、左右・上下へドラッグする。
+
+Then:
+
+- 本文の先頭と末尾を読める。スワイプ・方向キーは前後の Card への移動や画面退出を起こさず、view mode を維持する。
+- 学習データは変更されない。
+- browser error が発生しない。
+
+<a id="deck-navigation-15"></a>
+
+### DECK-NAVIGATION-15 閲覧の view mode 終了後に通常の表裏操作へ戻れる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- Deck 閲覧画面で view mode が ON である。
+
+When:
+
+- 本文タップと Enter でそれぞれ view mode を終了し、通常の表面から裏面へ切り替える。
+
+Then:
+
+- 終了操作では表面を維持する。終了後の表裏切り替えと裏面のスクロール・タップ・左右移動は従来どおり動作する。
+- browser error が発生しない。
+
+<a id="deck-navigation-16"></a>
+
+### DECK-NAVIGATION-16 view mode 中も閲覧ボタンと自動再生を使える
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- 複数の Card を閲覧でき、view mode が ON、自動再生の間隔が正の値である。
+
+When:
+
+- 次の Card ボタンと再生ボタンで順に次の Card へ進む。
+
+Then:
+
+- ボタンと自動再生で次の Card へ進み、view mode を維持する。学習データは変更されない。
+- browser error が発生しない。
