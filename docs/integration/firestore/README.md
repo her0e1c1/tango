@@ -14,7 +14,7 @@
 | [StudyAnswer](./study-answer.md) | 回答・スキップ・再試行と履歴の権限制御 | `study-answer.spec.ts` |
 | [StudySession](./study-session.md) | 順序・位置の復元、開始・中断・完了、オフライン queue | `study-session.spec.ts` |
 | [Subscriptions](./subscriptions.md) | 初期 snapshot、変更の store 反映、購読解除 | `subscriptions.spec.ts` |
-| [Rules](./rules.md) | 認証主体と SDK 操作ごとの許可・拒否 | `rules.spec.ts` |
+| Rules | 認証主体と SDK 操作ごとの許可・拒否 | `rules.spec.ts` |
 | [Study History](./study-history.md) | 開始・完了履歴と回答履歴の期間・Deck 条件、cache、権限 | `study-history.spec.ts` |
 
 対応テストはすべて [`test/integration/firestore`](../../../test/integration/firestore) に置く。
