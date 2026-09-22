@@ -52,8 +52,8 @@ function readCases(directory: string) {
 }
 
 function unwrap(node: ts.Node | undefined): ts.Node | undefined {
-  while (node && (ts.isAsExpression(node) || ts.isSatisfiesExpression(node) || ts.isParenthesizedExpression(node))) {
-    node = node.expression;
+  if (node && (ts.isAsExpression(node) || ts.isSatisfiesExpression(node) || ts.isParenthesizedExpression(node))) {
+    return unwrap(node.expression);
   }
   return node;
 }
@@ -108,7 +108,7 @@ function testIds(file: string): Set<string> {
   const ids = new Set<string>();
   function visit(node: ts.Node, bindings: ReadonlyMap<string, string> = new Map()): void {
     if (ts.isSourceFile(node) || ts.isBlock(node)) {
-      node.statements.forEach((statement) => visit(statement, bindings));
+      for (const statement of node.statements) visit(statement, bindings);
     } else if (ts.isForOfStatement(node) && ts.isVariableDeclarationList(node.initializer)) {
       const [declaration] = node.initializer.declarations;
       const rows = unwrap(node.expression);
