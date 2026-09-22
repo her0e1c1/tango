@@ -42,11 +42,25 @@ function withoutFences(markdown: string): string {
     .join("\n");
 }
 
+function specificationFiles(directory: string): string[] {
+  const absolute = path.join(root, directory);
+  if (directory === "docs/e2e") {
+    return readdirSync(absolute, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".md") && entry.name !== "AGENTS.md")
+      .map((entry) => path.join(absolute, entry.name))
+      .sort((left, right) => left.localeCompare(right));
+  }
+  return filesIn(absolute).filter((file) => file.endsWith(".md"));
+}
+
 function readCases(directory: string): SpecCase[] {
   const cases: SpecCase[] = [];
-  for (const file of filesIn(path.join(root, directory)).filter((name) => name.endsWith(".md"))) {
+  for (const file of specificationFiles(directory)) {
     const markdown = withoutFences(readFileSync(file, "utf8"));
     const headings = [...markdown.matchAll(/^#{2,6} ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,})(?:\s|$).*$/gmu)];
+    if (directory === "docs/e2e" && headings.length === 0) {
+      problems.push(`${path.relative(root, file)}: E2E specification must contain at least one test case`);
+    }
     for (const [index, heading] of headings.entries()) {
       const id = heading[1];
       if (id === undefined) continue;
@@ -351,16 +365,6 @@ function checkStorybook(): void {
 checkTests(e2eCases, e2eFiles);
 checkTests(firestoreCases, firestoreFiles);
 checkStorybook();
-
-// README is an index of specifications, not a second list of individual test executions.
-const indexedIds = new Set(
-  [
-    ...readFileSync(path.join(root, "docs/e2e/README.md"), "utf8").matchAll(/^\| ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,}) \|/gmu),
-  ].map((match) => match[1])
-);
-for (const spec of e2eCases) {
-  if (!indexedIds.has(spec.id)) problems.push(`docs/e2e/README.md: missing ${spec.id}`);
-}
 
 if (problems.length > 0) {
   process.stderr.write(`${problems.join("\n")}\n`);

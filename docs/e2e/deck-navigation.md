@@ -40,7 +40,7 @@ Given:
 
 When:
 
-- Deck 一覧上部の「アクション」を開き、作成とインポートの項目を確認する。
+- Deck 一覧上部の「追加」を開き、作成とインポートの項目を確認する。
 - keyboard の矢印キーで項目を移動し、Escape で閉じる。
 - 一覧のアクションと各 Deck の操作メニューを順に開く。
 - 一覧の「デッキを作成」と「デッキをインポート」をそれぞれ選択し、保存操作をせず一覧へ戻る。
@@ -53,7 +53,7 @@ Then:
 - Escape でメニューが閉じ、開いたボタンに focus が戻る。
 - 一覧と各 Deck の操作メニューは同時に複数開かない。
 - 作成とインポートの項目は、それぞれ既存の作成画面とインポート画面へ遷移する。
-- 対象 Deck の Card 一覧へ遷移する。
+- 対象 Deck の Card 一覧へ遷移する。デッキ名の読み上げ名は「Open cards in …」／「…のカード一覧を開く」とし、学習進捗を変更しない View／閲覧メニューと区別できる。
 - 対象 Card の front text が表示される。
 - 特殊 ID のケースでは選択した完全な ID の Card だけが表示され、同じ接頭辞の別 Deck の Card は表示されない。
 - ID 内の `?` と `#` は1つのパスパラメーターの値としてエンコードされ、query と fragment は空のままとなる。直接表示と reload 後も対象と内容が一致する。
@@ -94,7 +94,7 @@ Given:
 
 When:
 
-- Deck 一覧の Continue の横にある View を選択する。
+- Deck 一覧の対象 Deck の三点メニューを開き、View を選択する。
 - Card をクリックして表裏を切り替え、両面で左右の primary mouse drag と左右キー、表面で前後ボタンを使う。
 - non-primary mouse drag、上下の drag と上下キーを操作する。
 - 先頭から前、末尾から次へ移動し、再入場も行う。
@@ -125,7 +125,7 @@ Given:
 
 When:
 
-- Deck 一覧から View を開き、Card の裏面と次の Card を閲覧する。
+- Deck 一覧の対象 Deck の三点メニューから View を開き、Card の裏面と次の Card を閲覧する。
 - 途中で reload し、戻るボタンで一覧へ戻って再入場する。
 - 前後ボタンでそれぞれ閲覧の端を越える。
 
@@ -152,7 +152,7 @@ Given:
 
 When:
 
-- Deck 一覧の Study の横から View を開き、対象の全 Card を順に閲覧する。
+- Deck 一覧の対象 Deck の三点メニューから View を開き、対象の全 Card を順に閲覧する。
 - Card 一覧へ戻ってtag filter の保存を保留し、その後 tag 条件を変更する。
 - 保存完了前に Deck 一覧を経由して View を開き、閲覧終了後に保留した保存を完了する。
 
@@ -330,17 +330,17 @@ Given:
 
 When:
 
-- 一覧の合計と Deck 別の件数を確認し、keyboard で Review または Study new を選択する。
+- 一覧の合計と Deck 別の件数を確認し、「件数について」と0件の理由を必要に応じて展開する。keyboard で Review または Study new を選択する。
 - 追加ケースでは間隔反復を無効にし、英語・日本語、mobile、dark、zoom 表示も確認する。
 
 Then:
 
-- 現在保持中のデータと保存済み filter に基づく件数である旨を表示する。maximum cards と shuffle は件数に影響しない。
-- Studying、Review now、Other decks に各 Deck を一度だけ表示する。空の区分は見出しを出さない。
-- Studying は従来の recent-first と Continue・進捗を維持する。Review now は最も早い dueAt 順、その後 new-only、同順位は名前順となる。
-- 合計には Studying も一度だけ含める。保持中 Card がない場合、filter 不一致、future-only を区別し、future-only は次回復習日時を表示する。完全同期や学習完了は断定しない。
+- 「件数について」を開くと、現在保持中のデータと保存済み filter に基づく件数である旨を表示する。maximum cards と shuffle は件数に影響しない。
+- 区分見出しのない単一の一覧に各 Deck を一度だけ表示する。名前から Card 一覧を開ける。各行は Card 数、学習中の現在位置、復習・新規件数と1つの主学習操作を表示し、閲覧・管理は三点メニューにまとめる。カテゴリ、最終学習時刻と進捗バーは行に表示しない。
+- 学習中の Deck は recent-first で先頭に並び、Continue と現在位置を表示する。その後、復習対象を最も早い dueAt 順、new-only、その他を名前順に並べる。同順位は名前順となる。現在位置は完了枚数ではない。
+- 合計には学習中の Deck も一度だけ含める。0件の行は「復習・新規なし」を表示し、展開すると保持中 Card がない場合、filter 不一致、future-only を区別する理由を表示する。future-only は次回復習日時を表示し、Study は常に利用できる。完全同期や学習完了は断定しない。
 - Review / Study new は既存の開始設定画面へ遷移するだけで Session を作成・置換しない。Continue は既存 Session を再開する。
-- 間隔反復 OFF では追加件数と Review now を隠し、従来の操作を維持する。
+- 間隔反復 OFF では復習・新規件数とその補足を隠し、Continue または Study と閲覧・管理操作を維持する。
 - 一覧表示と開始設定画面への遷移で保存済み Deck・Card・Session を変更しない。browser error が発生しない。
 
 <a id="deck-navigation-13"></a>
@@ -361,7 +361,7 @@ When:
 
 Then:
 
-- dueAt <= now となった Card を due に加算し、同じ時刻で区分と合計を更新する。
+- dueAt <= now となった Card を due に加算し、同じ時刻で一覧の並び順と合計を更新する。
 - 入力変更、focus / visibility 復帰でも再評価し、一覧全体で期限 timer は最大1つ、unmount で解除する。
 - Session の順序・位置、Card の schedule、永続データを変更しない。browser error が発生しない。
 

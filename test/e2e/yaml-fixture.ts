@@ -550,15 +550,21 @@ const readFixtureIndexEntry = (documentedCase: DocumentedCase): FixtureIndexEntr
   return { category, path: resolveFixturePath(documentedCase, fixtureLink) };
 };
 
-const listE2eMarkdownFiles = () =>
+const listE2eSpecificationFiles = () =>
   readdirSync(docsRoot)
-    .filter((file) => file.endsWith(".md"))
+    .filter((file) => file.endsWith(".md") && file !== "AGENTS.md")
     .map((file) => path.join(docsRoot, file));
 
 const buildFixtureIndex = (): ReadonlyMap<string, FixtureIndexEntry> => {
   const index = new Map<string, FixtureIndexEntry>();
-  for (const markdownPath of listE2eMarkdownFiles()) {
-    for (const documentedCase of readDocumentedCases(markdownPath)) {
+  for (const markdownPath of listE2eSpecificationFiles()) {
+    const documentedCases = readDocumentedCases(markdownPath);
+    if (documentedCases.length === 0) {
+      throw new Error(
+        `E2E specification must contain at least one test case: ${path.relative(repositoryRoot, markdownPath)}`
+      );
+    }
+    for (const documentedCase of documentedCases) {
       if (index.has(documentedCase.caseId)) {
         throw new Error(`Duplicate documented E2E case ID: ${documentedCase.caseId}`);
       }

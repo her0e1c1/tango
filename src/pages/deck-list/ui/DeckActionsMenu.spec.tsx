@@ -53,9 +53,10 @@ const DisableableMenu: React.FC = () => {
   );
 };
 
-describe("STUDY-SESSION-10 DeckActionsMenu", () => {
+describe("STUDY-SESSION-10 DECK-NAVIGATION-03 DeckActionsMenu", () => {
   it("opens an accessible menu and routes each action", () => {
     const actions = {
+      onView: vi.fn(),
       onRestart: vi.fn(),
       onDownload: vi.fn(),
       onEdit: vi.fn(),
@@ -69,6 +70,9 @@ describe("STUDY-SESSION-10 DeckActionsMenu", () => {
 
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("menu", { name: "Actions for Algebra" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("menuitem", { name: "View" }));
+    expect(actions.onView).toHaveBeenCalledOnce();
+    fireEvent.click(trigger);
     fireEvent.click(screen.getByRole("menuitem", { name: "Restart" }));
     expect(actions.onRestart).toHaveBeenCalledOnce();
 
@@ -93,6 +97,7 @@ describe("STUDY-SESSION-10 DeckActionsMenu", () => {
 
     expect(screen.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+      "View",
       "Download",
       "Edit",
       "Study history",
@@ -105,13 +110,13 @@ describe("STUDY-SESSION-10 DeckActionsMenu", () => {
     const trigger = screen.getByRole("button", { name: "Open actions for Design" });
 
     fireEvent.click(trigger);
+    const view = screen.getByRole("menuitem", { name: "View" });
     const restart = screen.getByRole("menuitem", { name: "Restart" });
-    const download = screen.getByRole("menuitem", { name: "Download" });
-    await waitFor(() => expect(restart).toHaveFocus());
+    await waitFor(() => expect(view).toHaveFocus());
 
-    fireEvent.keyDown(restart, { key: "ArrowDown" });
-    expect(download).toHaveFocus();
-    fireEvent.keyDown(download, { key: "Escape" });
+    fireEvent.keyDown(view, { key: "ArrowDown" });
+    expect(restart).toHaveFocus();
+    fireEvent.keyDown(restart, { key: "Escape" });
 
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
@@ -132,13 +137,13 @@ describe("STUDY-SESSION-10 DeckActionsMenu", () => {
       ["Delete", actions.onDelete],
     ] as const) {
       fireEvent.click(trigger);
-      const download = screen.getByRole("menuitem", { name: "Download" });
+      const view = screen.getByRole("menuitem", { name: "View" });
       const item = screen.getByRole("menuitem", { name: label });
       // biome-ignore lint/performance/noAwaitInLoops: Each action reuses the same controlled menu and must finish in order.
-      await waitFor(() => expect(download).toHaveFocus());
+      await waitFor(() => expect(view).toHaveFocus());
 
       act(() => {
-        download.blur();
+        view.blur();
         item.focus();
       });
       fireEvent.click(item);
@@ -158,11 +163,11 @@ describe("STUDY-SESSION-10 DeckActionsMenu", () => {
     const externalTarget = screen.getByRole("button", { name: "External focus target" });
 
     fireEvent.click(trigger);
-    const download = screen.getByRole("menuitem", { name: "Download" });
-    await waitFor(() => expect(download).toHaveFocus());
+    const view = screen.getByRole("menuitem", { name: "View" });
+    await waitFor(() => expect(view).toHaveFocus());
 
     act(() => {
-      download.blur();
+      view.blur();
       externalTarget.focus();
     });
 

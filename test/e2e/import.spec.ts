@@ -13,8 +13,8 @@ import {
 
 const readSampleState = async (page: Page, sampleDeckId: string) => {
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "View Sample Deck", exact: true })).toHaveCount(1);
-  await page.getByRole("button", { name: "View Sample Deck", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Open cards in Sample Deck", exact: true })).toHaveCount(1);
+  await page.getByRole("button", { name: "Open cards in Sample Deck", exact: true }).click();
   await expect(page).toHaveURL(`/deck/${sampleDeckId}`);
   const names = await page.getByRole("button", { name: /^View / }).allTextContents();
   const contents = await downloadDeckCards(page, "Sample Deck");
@@ -113,7 +113,7 @@ test("IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, na
   if (deckId === "") throw new Error("Imported remote Deck id was not found");
 
   await page.reload();
-  await page.getByRole("button", { name: `View ${file.name}` }).click();
+  await page.getByRole("button", { name: `Open cards in ${file.name}` }).click();
   await expect(page.getByText(`front ${csvNamespace} one`, { exact: true })).toBeVisible();
   await expect(page.getByText(`front ${csvNamespace} two`, { exact: true })).toBeVisible();
   expect((await documentsForUid("card", uid)).every((document) => document.fields.deckId?.stringValue === deckId)).toBe(
@@ -156,8 +156,8 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   await expect(page.getByRole("status").filter({ hasText: "Imported 2 cards." })).toBeVisible();
 
   await page.reload();
-  await expect(page.getByRole("button", { name: `View ${file.name}` })).toBeVisible();
-  await expect(page.getByRole("button", { name: `View ${file.name}`, exact: true })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: `Open cards in ${file.name}` })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${file.name}`, exact: true })).toHaveCount(1);
   const contents = await downloadDeckCards(page, file.name);
   expect(contents).toHaveLength(2);
   expect(contents).toContainEqual({ frontText: "日本語�", backText: "回答�", tags: ["タグ"], uniqueKey: "utf8-key" });
@@ -278,8 +278,8 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole("status").filter({ hasText: `Imported ${example.count} cards.` })).toBeVisible();
     await page.reload();
-    await expect(page.getByRole("button", { name: `View ${example.file}`, exact: true })).toBeVisible();
-    await page.getByRole("button", { name: `View ${example.file}`, exact: true }).click();
+    await expect(page.getByRole("button", { name: `Open cards in ${example.file}`, exact: true })).toBeVisible();
+    await page.getByRole("button", { name: `Open cards in ${example.file}`, exact: true }).click();
     const deckId = decodeURIComponent(new URL(page.url()).pathname.split("/").at(-1) ?? "");
     await expect
       .poll(

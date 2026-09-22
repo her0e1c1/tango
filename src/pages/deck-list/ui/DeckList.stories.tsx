@@ -53,7 +53,7 @@ export const Default: Story = {};
 
 export const ListActions: Story = {
   play: async ({ args, canvas, userEvent }) => {
-    const trigger = canvas.getByRole("button", { name: "Actions" });
+    const trigger = canvas.getByRole("button", { name: "Add" });
     await userEvent.click(trigger);
     await userEvent.click(canvas.getByRole("menuitem", { name: "Create deck" }));
     await expect(args.onCreateDeck).toHaveBeenCalled();
@@ -70,7 +70,7 @@ export const Japanese: Story = {
   parameters: { locale: "ja" },
   play: async ({ canvas, userEvent }) => {
     await expect(canvas.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: "アクション" }));
+    await userEvent.click(canvas.getByRole("button", { name: "追加" }));
     await expect(canvas.getByRole("menuitem", { name: "デッキを作成" })).toBeVisible();
     await expect(canvas.getByRole("menuitem", { name: "デッキをインポート" })).toBeVisible();
     const [firstDeck] = mixed.studying;
@@ -82,15 +82,16 @@ export const Japanese: Story = {
 };
 
 export const ViewDeck: Story = {
-  args: { deckCard: { onClickName: fn() } },
+  args: { deckCard: { onClickView: fn() } },
   play: async ({ args, canvas, userEvent }) => {
-    const [viewButton] = canvas.getAllByRole("button", { name: /^View / });
+    const [trigger] = canvas.getAllByRole("button", { name: /^Open actions for / });
     const [firstDeck] = mixed.studying;
-    if (viewButton == null || firstDeck == null) throw new Error("ViewDeck requires at least one Deck");
+    if (trigger == null || firstDeck == null) throw new Error("ViewDeck requires at least one Deck");
 
-    await userEvent.click(viewButton);
+    await userEvent.click(trigger);
+    await userEvent.click(canvas.getByRole("menuitem", { name: "View" }));
 
-    await expect(args.deckCard?.onClickName).toHaveBeenCalledWith(firstDeck.deck.id);
+    await expect(args.deckCard?.onClickView).toHaveBeenCalledWith(firstDeck.deck.id);
   },
 };
 
@@ -113,7 +114,7 @@ export const Empty: Story = {
     await expect(canvas.getByText("0 decks")).toBeVisible();
     await expect(canvas.getByRole("heading", { name: "No decks yet" })).toBeVisible();
     await expect(canvas.getByRole("button", { name: "Create deck" })).toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Add" }));
     await expect(canvas.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
     await expect(canvas.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
   },
@@ -174,8 +175,10 @@ const reviewSections: DeckListProps["sections"] = {
 };
 export const ReviewCounts: Story = {
   args: { sections: reviewSections },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("heading", { name: "Review now" })).toBeVisible();
+  play: async ({ canvas, userEvent }) => {
+    await expect(canvas.getByRole("region", { name: "Decks" })).toBeVisible();
+    await userEvent.click(canvas.getByText("About counts"));
+    await expect(canvas.getByText("Counts use data currently held on this device and saved filters.")).toBeVisible();
     await expect(canvas.getByText("5 due · 5 new")).toBeVisible();
   },
 };

@@ -17,7 +17,7 @@ test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote dupl
   await fixture.apply(page);
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("menuitem", { name: "Create deck" }).click();
   await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("combobox").selectOption(category);
@@ -32,10 +32,10 @@ test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote dupl
   await page.goto("/");
   await page.reload();
 
-  const deckArticle = page.getByRole("button", { name: `View ${name}` }).locator("xpath=ancestor::article[1]");
-  await expect(deckArticle).toContainText(category);
-  await expect(page.getByRole("button", { name: `View ${name}`, exact: true })).toHaveCount(1);
-  await page.getByRole("button", { name: `View ${name}`, exact: true }).click();
+  const deckArticle = page.getByRole("button", { name: `Open cards in ${name}` }).locator("xpath=ancestor::article[1]");
+  await expect(deckArticle).toContainText("0 cards");
+  await expect(page.getByRole("button", { name: `Open cards in ${name}`, exact: true })).toHaveCount(1);
+  await page.getByRole("button", { name: `Open cards in ${name}`, exact: true }).click();
   await expect(page.getByText("0 cards", { exact: true })).toBeVisible();
   expect(
     (await listDocuments("deck")).filter(

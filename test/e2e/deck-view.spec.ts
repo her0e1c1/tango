@@ -15,7 +15,8 @@ const readSavedData = async (page: Page, fixture: E2EFixture) => ({
 });
 
 const openView = async (page: Page, deckName: string) => {
-  await page.getByRole("button", { name: `View cards in ${deckName}`, exact: true }).click();
+  await page.getByRole("button", { name: `Open actions for ${deckName}`, exact: true }).click();
+  await page.getByRole("menuitem", { name: "View", exact: true }).click();
 };
 
 const expectFront = async (page: Page, frontText: string) => {
@@ -218,7 +219,7 @@ test("DECK-NAVIGATION-05 views all tag matches in standard order without the stu
     await route.fallback();
   });
   try {
-    await page.getByRole("button", { name: `View ${deck.name}`, exact: true }).click();
+    await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
     await page.getByText("Filters", { exact: true }).click();
     await page.getByRole("checkbox", { name: queuedTag, exact: true }).locator("xpath=parent::label").click();
     await writeArrived.promise;
@@ -256,7 +257,7 @@ test("DECK-NAVIGATION-06 applies review scheduling to read-only viewing", async 
   const unscheduled = fixture.card("card-unscheduled");
   await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
   await page.goto("/");
-  await expect(page.getByRole("button", { name: `View cards in ${deck.name}`, exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open actions for ${deck.name}`, exact: true })).toBeVisible();
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
   await expectFront(page, due.frontText);
@@ -276,7 +277,7 @@ test("DECK-NAVIGATION-07 recovers from empty and missing Deck views without savi
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.goto("/");
-  await expect(page.getByRole("button", { name: `View cards in ${deck.name}`, exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open actions for ${deck.name}`, exact: true })).toBeVisible();
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
   await expect(page.getByText("No cards match the current filters.", { exact: true })).toBeVisible();

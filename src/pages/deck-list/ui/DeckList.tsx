@@ -43,51 +43,6 @@ export interface DeckListProps {
 }
 
 /**
- * Renders one labeled group of Deck List items.
- */
-const DeckListSection: React.FC<{
-  title: string;
-  note: string;
-  items: DeckListItem[];
-  actions: DeckListCardActions | undefined;
-  openMenuDeckId: DeckId | undefined;
-  onToggleMenu: (id: DeckId) => void;
-  onCloseMenu: () => void;
-}> = ({ title, note, items, actions, openMenuDeckId, onToggleMenu, onCloseMenu }) => {
-  const headingId = React.useId();
-  const { t } = useTranslation();
-  if (items.length === 0) return null;
-
-  return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between gap-3 px-1">
-        <h2 id={headingId} className="text-caption font-bold uppercase tracking-wide text-ink-muted">
-          {title}
-        </h2>
-        <span className="shrink-0 text-caption text-ink-muted">
-          {t("deckList.count", { count: items.length })} · {note}
-        </span>
-      </div>
-      <div className="rounded-surface border border-border bg-surface shadow-surface dark:border-black">
-        {items.map((item) => (
-          <DeckListCard
-            key={item.deck.id}
-            deck={item.deck}
-            cardCount={item.cardCount}
-            {...(item.review ? { review: item.review } : {})}
-            {...(item.studySession != null ? { studySession: item.studySession } : {})}
-            {...actions}
-            openMenuDeckId={openMenuDeckId}
-            onToggleMenu={onToggleMenu}
-            onCloseMenu={onCloseMenu}
-          />
-        ))}
-      </div>
-    </section>
-  );
-};
-
-/**
  * Renders the Deck List presentation from prepared sections and action callbacks.
  */
 export const DeckList: React.FC<DeckListProps> = (props) => {
@@ -104,46 +59,50 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="break-words text-title font-bold text-ink">{t("deckList.title")}</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-baseline gap-3">
+          <h1 className="break-words text-title font-semibold text-ink">{t("deckList.title")}</h1>
           <span className="shrink-0 text-caption text-ink-muted">{t("deckList.count", { count: total })}</span>
-          <ActionsMenu
-            groupLabel={t("deckList.listActions")}
-            triggerLabel={t("deckList.listActions")}
-            menuLabel={t("deckList.listActions")}
-            triggerContent={
-              <>
-                {t("deckList.listActions")}
-                <AiOutlineDown aria-hidden="true" />
-              </>
-            }
-            open={actionsOpen}
-            onToggle={() => {
-              closeMenu();
-              setActionsOpen((open) => !open);
-            }}
-            onClose={() => setActionsOpen(false)}
-            items={[
-              {
-                key: "create",
-                label: t("deckList.create"),
-                icon: <AiOutlinePlus aria-hidden="true" />,
-                onSelect: props.onCreateDeck,
-              },
-              {
-                key: "import",
-                label: t("deckList.import"),
-                icon: <AiOutlineUpload aria-hidden="true" />,
-                onSelect: props.onImportDeck,
-              },
-            ]}
-          />
         </div>
+        <ActionsMenu
+          groupLabel={t("deckList.listActions")}
+          triggerLabel={t("deckList.listActions")}
+          menuLabel={t("deckList.listActions")}
+          triggerContent={
+            <>
+              <AiOutlinePlus aria-hidden="true" />
+              {t("deckList.listActions")}
+              <AiOutlineDown aria-hidden="true" />
+            </>
+          }
+          open={actionsOpen}
+          onToggle={() => {
+            closeMenu();
+            setActionsOpen((open) => !open);
+          }}
+          onClose={() => setActionsOpen(false)}
+          items={[
+            {
+              key: "create",
+              label: t("deckList.create"),
+              icon: <AiOutlinePlus aria-hidden="true" />,
+              onSelect: props.onCreateDeck,
+            },
+            {
+              key: "import",
+              label: t("deckList.import"),
+              icon: <AiOutlineUpload aria-hidden="true" />,
+              onSelect: props.onImportDeck,
+            },
+          ]}
+        />
       </div>
       {total > 0 && props.sections.totals !== undefined && (
-        <div className="text-body text-ink">
+        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-caption text-ink">
           <p>{t("deckList.reviewCounts", props.sections.totals)}</p>
-          <p className="text-caption text-ink-muted">{t("deckList.localCountsNote")}</p>
+          <details className="text-ink-muted">
+            <summary className="cursor-pointer rounded-control">{t("deckList.aboutCounts")}</summary>
+            <p className="mt-2 max-w-reading">{t("deckList.localCountsNote")}</p>
+          </details>
         </div>
       )}
       {total === 0 && props.empty ? (
@@ -200,33 +159,33 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
           </section>
         )
       ) : null}
-      <DeckListSection
-        title={t("deckList.sections.studyingTitle")}
-        note={t("deckList.sections.studyingNote")}
-        items={props.sections.studying}
-        actions={props.deckCard}
-        openMenuDeckId={openMenuDeckId}
-        onToggleMenu={toggleMenu}
-        onCloseMenu={closeMenu}
-      />
-      <DeckListSection
-        title={t("deckList.sections.reviewTitle")}
-        note={t("deckList.sections.reviewNote")}
-        items={props.sections.reviewNow ?? []}
-        actions={props.deckCard}
-        openMenuDeckId={openMenuDeckId}
-        onToggleMenu={toggleMenu}
-        onCloseMenu={closeMenu}
-      />
-      <DeckListSection
-        title={t("deckList.sections.otherTitle")}
-        note={t("deckList.sections.otherNote")}
-        items={props.sections.other}
-        actions={props.deckCard}
-        openMenuDeckId={openMenuDeckId}
-        onToggleMenu={toggleMenu}
-        onCloseMenu={closeMenu}
-      />
+      {total > 0 && (
+        <section aria-label={t("deckList.title")} className="rounded-surface border border-border bg-surface">
+          {props.sections.totals !== undefined && (
+            <div
+              aria-hidden="true"
+              className="hidden grid-cols-[minmax(0,1fr)_11rem_10.25rem] gap-6 border-b border-border px-5 py-3 text-caption text-ink-muted sm:grid"
+            >
+              <span>{t("deckList.deckName")}</span>
+              <span>{t("deckList.cardsToStudy")}</span>
+              <span />
+            </div>
+          )}
+          {[...props.sections.studying, ...(props.sections.reviewNow ?? []), ...props.sections.other].map((item) => (
+            <DeckListCard
+              key={item.deck.id}
+              deck={item.deck}
+              cardCount={item.cardCount}
+              {...(item.review ? { review: item.review } : {})}
+              {...(item.studySession != null ? { studySession: item.studySession } : {})}
+              {...props.deckCard}
+              openMenuDeckId={openMenuDeckId}
+              onToggleMenu={toggleMenu}
+              onCloseMenu={closeMenu}
+            />
+          ))}
+        </section>
+      )}
     </>
   );
 };

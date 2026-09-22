@@ -114,9 +114,10 @@ describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02
     const session = getStudySession(activeDeck.id);
     renderPage();
     expect(screen.getByText("0 due · 2 new")).toBeVisible();
+    await userEvent.click(screen.getByText("About counts"));
     expect(screen.getByText("Counts use data currently held on this device and saved filters.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Continue Active deck" })).toBeVisible();
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "1");
+    expect(screen.getByText("Studying · Card 1 of 1")).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "Study new cards in Fresh deck" }));
     expect(screen.getByRole("heading", { name: "Study start destination" })).toBeVisible();
     expect(getStudySession(freshDeck.id)).toBeUndefined();
@@ -125,7 +126,7 @@ describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02
 
   it("navigates from each visible Deck action", async () => {
     let view = renderPage();
-    await userEvent.click(screen.getByRole("button", { name: "View Active deck" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open cards in Active deck" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
 
     view.unmount();
@@ -154,9 +155,12 @@ describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02
     renderPage();
 
     if (label.startsWith("View cards")) {
-      await userEvent.click(screen.getByRole("button", { name: label }));
+      await userEvent.click(
+        screen.getByRole("button", { name: `Open actions for ${label.replace("View cards in ", "")}` })
+      );
+      await userEvent.click(screen.getByRole("menuitem", { name: "View" }));
     } else {
-      await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+      await userEvent.click(screen.getByRole("button", { name: "Add" }));
       await userEvent.click(screen.getByRole("menuitem", { name: label }));
     }
 
@@ -171,7 +175,7 @@ describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02
     await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-    expect(screen.getByRole("button", { name: "View Fresh deck" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Open cards in Fresh deck" })).toBeVisible();
     expect(trigger).toHaveFocus();
 
     await userEvent.click(trigger);
@@ -181,7 +185,7 @@ describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02
 
     expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith(uid, freshDeck.id);
     expect(await screen.findByRole("alert")).toBeVisible();
-    expect(screen.getByRole("button", { name: "View Fresh deck" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Open cards in Fresh deck" })).toBeVisible();
   });
 
   it("refreshes recency before Continue navigates while preserving the current card", async () => {

@@ -10,7 +10,7 @@ Storybook の `play` 関数で、画面・機能の UI と実際の子コンポ�
 | テスト | 確認する境界 | この仕様では確認しないこと |
 | --- | --- | --- |
 | Storybook `play` | 実際の UI、DOM、React Hook Form、表示用 hook、子コンポーネント、公開 callback | 本番認証、Firestore の保存・購読・Rules、再読込後の永続化 |
-| [E2E](../../e2e/README.md) | 画面遷移から操作完了、保存、再読込、失敗後の復旧までの代表導線 | UI のすべての表示バリエーション |
+| [E2E](../../e2e/) | 画面遷移から操作完了、保存、再読込、失敗後の復旧までの代表導線 | UI のすべての表示バリエーション |
 | [Firestore integration](../firestore/README.md) | Adapter、購読、emulator 上の保存・Rules | UI の表示や操作 |
 
 対象は Pages / Features の利用者向け UI 契約と Integration のルート・レイアウト Story とする。
@@ -28,7 +28,7 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 
 ## 書式と ID
 
-[E2E テスト規約](../../e2e/conventions.md) の目的、索引表、明示的な anchor、カテゴリ、Given / When / Then を踏襲する。
+[E2E テスト規約](../../e2e/AGENTS.md) の明示的な anchor、カテゴリ、Given / When / Then を踏襲する。
 ただし E2E の fixture と永続化カテゴリは持ち込まず、準備する値・状態は Given に直接記述する。
 
 - ID は `STORYBOOK-<仕様ファイル名を大文字化>-<NN>` とする。例: `card-form.md` → `STORYBOOK-CARD-FORM-01`。
