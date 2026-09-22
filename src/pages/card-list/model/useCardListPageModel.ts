@@ -5,7 +5,6 @@ import { useAuth } from "@/entities/auth";
 import type { CardId } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import {
-  clearDeckFilterRange,
   clearDeckFilters,
   getDeckFilterState,
   updateDeckFilterDraft,
@@ -18,12 +17,7 @@ import { changeCardSortOrder } from "./actions/changeCardSortOrder";
 import { cancelCardDeletion } from "./actions/cancelCardDeletion";
 import { closeCardAnswer } from "./actions/closeCardAnswer";
 import { showCardAnswer } from "./actions/showCardAnswer";
-import { cancelBulkDifficulty } from "./actions/cancelBulkDifficulty";
-import { changeBulkDifficulty } from "./actions/changeBulkDifficulty";
-import { changeCardDifficulty } from "./actions/changeCardDifficulty";
-import { confirmBulkDifficulty } from "./actions/confirmBulkDifficulty";
 import { confirmCardDeletion } from "./actions/confirmCardDeletion";
-import { requestBulkDifficulty } from "./actions/requestBulkDifficulty";
 import { requestCardDeletion } from "./actions/requestCardDeletion";
 import { getRemainingCardListTags } from "./queries/getRemainingCardListTags";
 import { getCardListControls } from "./queries/getCardListControls";
@@ -85,10 +79,7 @@ export function useCardListPageModel(deck: Deck) {
     changeSortOrder: changeCardSortOrder,
     ...controls,
     deckFilter,
-    clearDifficultyRange: () => clearDeckFilterRange(filterUpdate),
     clearFilters,
-    setDifficultyMax: (difficultyMax: number | null) => updateDeckFilterDraft({ difficultyMax }, filterUpdate),
-    setDifficultyMin: (difficultyMin: number | null) => updateDeckFilterDraft({ difficultyMin }, filterUpdate),
     setSelectedTags: (selectedTags: string[]) => updateDeckFilterDraft({ selectedTags }, filterUpdate),
     setTagAndFilter: (tagAndFilter: boolean) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate),
     removeTag: (tag: string) =>
@@ -99,15 +90,9 @@ export function useCardListPageModel(deck: Deck) {
 
     goToCardCreate,
     goToCardEdit: (id: CardId) => void navigate(routes.cardForm.to(id)),
-    requestBulk: () => requestBulkDifficulty(query.cards),
-    cancelBulk: cancelBulkDifficulty,
-    confirmBulk: () => void confirmBulkDifficulty(),
-    changeBulkDifficulty,
     confirmDeletion: confirmCardDeletion,
     cancelDeletion: cancelCardDeletion,
     requestDeletion: requestCardDeletion,
-    swipeLeft: (id: CardId) => void changeCardDifficulty(id, "again"),
-    swipeRight: (id: CardId) => void changeCardDifficulty(id, "good"),
     showAnswer: showCardAnswer,
     closeAnswer: closeCardAnswer,
   };

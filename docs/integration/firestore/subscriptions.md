@@ -17,22 +17,22 @@ Firestore の snapshot を Card / Deck store に反映し、購読解除で反�
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| FIRESTORE-SUBSCRIPTIONS-01 | read | [初期 snapshot から Card 本文と学習情報を取得できる](#firestore-subscriptions-01) |
+| FIRESTORE-SUBSCRIPTIONS-01 | read | [初期 snapshot から Card 本文を取得できる](#firestore-subscriptions-01) |
 | FIRESTORE-SUBSCRIPTIONS-02 | batch | [購読中の追加・更新・論理削除を store に反映できる](#firestore-subscriptions-02) |
 | FIRESTORE-SUBSCRIPTIONS-03 | read | [購読解除後の編集で store の値を更新しない](#firestore-subscriptions-03) |
 
 <a id="firestore-subscriptions-01"></a>
 
-### FIRESTORE-SUBSCRIPTIONS-01 初期 snapshot から Card 本文と学習情報を取得できる
+### FIRESTORE-SUBSCRIPTIONS-01 初期 snapshot から Card 本文を取得できる
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-SUBSCRIPTIONS-01] loads Card content and study information from the initial snapshot`
+対応テスト: `[FIRESTORE-SUBSCRIPTIONS-01] loads Card content from the initial snapshot`
 
 Given:
 
 - 本人の Deck と Card を保存済みで、親 Deck を store に保持している。
-- Card は frontText `Fetched Card`、difficulty `2`、numberOfSeen `3` を持つ。
+- Card は frontText `Fetched Card` を持つ。
 
 When:
 
@@ -40,7 +40,7 @@ When:
 
 Then:
 
-- Card store に同じ ID と本文・difficulty `2`・numberOfSeen `3` が反映される。
+- Card store に同じ ID と本文 が反映される。
 - 購読エラーは通知されない。
 
 <a id="firestore-subscriptions-02"></a>

@@ -38,8 +38,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         id: deck.id,
         name: deck.name,
         isPublic: deck.isPublic ?? false,
-        difficultyMax: deck.difficultyMax ?? null,
-        difficultyMin: deck.difficultyMin ?? null,
         selectedTags: deck.selectedTags ?? [],
         tagAndFilter: deck.tagAndFilter ?? false,
         category: deck.category ?? "",
@@ -141,3 +139,5 @@ describe("bootstrapSampleDeck [IMPORT-07]", () => {
     expect(repository.decks).toHaveLength(1);
   });
 });
+
+vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => repository.cards }));

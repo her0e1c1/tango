@@ -4,7 +4,6 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "storybook/test";
 
 import { CardView, FrontText } from "@/entities/card";
-import { DifficultyIndicator } from "@/entities/study-progress";
 import * as fixture from "@/storybook/fixture";
 import { Layout } from "@/shared/ui/layout";
 
@@ -45,13 +44,7 @@ const meta = {
       onClose: fn(),
     },
     frontTextSlot: <FrontText text={fixture.card.default.frontText} />,
-    cardOverlaySlot: (
-      <CardOverlay
-        difficultySlot={<DifficultyIndicator difficulty={fixture.card.default.difficulty} />}
-        numberOfSeen={fixture.card.default.numberOfSeen}
-        lastSeenAt={fixture.timestamp}
-      />
-    ),
+    cardOverlaySlot: <CardOverlay fsrs={null} />,
     controller: { autoPlay: false, index: 3, numberOfCards: 24 },
     swipeButtonList: { disabledDirections: { cardSwipeLeft: true } },
   },

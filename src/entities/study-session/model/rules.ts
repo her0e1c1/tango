@@ -1,4 +1,4 @@
-import { classifyStudySchedule, type StudyScheduleFields } from "@/entities/study-schedule/@x/study-session";
+import { classifyFsrsState, type FsrsState } from "@/entities/card-study-state/@x/study-session";
 import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
 import type { SwipeAction } from "@/entities/preference/@x/study-session";
 import type { StudyRating } from "@/entities/study-answer/@x/study-session";
@@ -35,15 +35,13 @@ interface DecksByStudyStatus<TDeck> {
 }
 
 /** Card fields needed to decide whether the Card belongs in a study session. */
-interface StudyCardSelectionCard extends StudyScheduleFields {
-  difficulty: number;
+interface StudyCardSelectionCard {
+  fsrs: FsrsState | null;
   tags: readonly string[];
 }
 
 /** Deck-owned filters that define the study-session candidate set. */
 interface StudyCardSelectionDeck {
-  difficultyMax: number | null;
-  difficultyMin: number | null;
   selectedTags: readonly string[];
   tagAndFilter: boolean;
 }
@@ -78,17 +76,15 @@ export const groupDecksByStudyStatus = <TDeck extends StudySessionDeck>(
 export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCard>(
   cards: readonly TCard[],
   deck: StudyCardSelectionDeck,
-  respectNextSeeingAt: boolean,
+  useCardInterval: boolean,
   now: number
 ): { cards: TCard[]; nextDueAt: number | undefined } {
   const selected: TCard[] = [];
   let nextDueAt: number | undefined;
   for (const card of cards) {
     if (!isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter)) continue;
-    if (deck.difficultyMax !== null && card.difficulty > deck.difficultyMax) continue;
-    if (deck.difficultyMin !== null && card.difficulty < deck.difficultyMin) continue;
-    const timing = classifyStudySchedule(card, now);
-    if (respectNextSeeingAt && timing.status === "future") {
+    const timing = classifyFsrsState(card.fsrs, now);
+    if (useCardInterval && timing.status === "future") {
       nextDueAt = nextDueAt === undefined ? timing.dueAt : Math.min(nextDueAt, timing.dueAt);
     } else selected.push(card);
   }
@@ -98,10 +94,10 @@ export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCar
 export function selectStudyCards<TCard extends StudyCardSelectionCard>(
   cards: readonly TCard[],
   deck: StudyCardSelectionDeck,
-  respectNextSeeingAt: boolean,
+  useCardInterval: boolean,
   now = Date.now()
 ): TCard[] {
-  return selectStudyCardsWithDeadline(cards, deck, respectNextSeeingAt, now).cards;
+  return selectStudyCardsWithDeadline(cards, deck, useCardInterval, now).cards;
 }
 
 // Reads the Card id at the session cursor, returning undefined for an empty or out-of-range position.

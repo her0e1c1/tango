@@ -1,3 +1,4 @@
+import { seedCardStudyState } from "@/test/studyStateFixtures";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { replaceAuthSession } from "@/entities/auth";
@@ -13,8 +14,9 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 const now = Date.parse("2026-09-21T00:00:00Z");
 const deck = createDeck({ id: "deck", uid: "uid", selectedTags: [] });
 function setDeadline(dueAt: number) {
+  seedCardStudyState("card", dueAt, "uid", deck.id);
   cardStore.setState({
-    remoteCards: [createCard({ id: "card", deckId: deck.id, uid: "uid", nextSeeingAt: new Date(dueAt) })],
+    remoteCards: [createCard({ id: "card", deckId: deck.id, uid: "uid" })],
   });
 }
 

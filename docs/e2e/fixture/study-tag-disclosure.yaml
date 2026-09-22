@@ -38,14 +38,14 @@ remote:
       backText: answer 04
       tags: [tag-04]
       uniqueKey: card-tag-04
-    - id: card-list-actions-01
+    - id: tag-card-05
       deckId: deck-1
       uid: user-1
       frontText: card tag 05
       backText: answer 05
       tags: [tag-05]
       uniqueKey: card-tag-05
-    - id: card-list-actions-02
+    - id: tag-card-06
       deckId: deck-1
       uid: user-1
       frontText: card tag 06
@@ -73,7 +73,7 @@ remote:
       backText: answer 09
       tags: [tag-09]
       uniqueKey: card-tag-09
-    - id: card-list-actions-03
+    - id: card-list-actions-01
       deckId: deck-1
       uid: user-1
       frontText: card tag 10

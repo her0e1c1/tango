@@ -7,7 +7,7 @@ import * as fixture from "@/storybook/fixture";
 
 import { CardList } from "./CardList";
 
-const activeFilter = { difficultyMax: 8, difficultyMin: 3, selectedTags: ["tag 1", "tag 2"] };
+const activeFilter = { selectedTags: ["tag 1", "tag 2"] };
 const longUnbrokenTag =
   "tag_this_is_one_genuinely_long_unbroken_value_that_must_never_force_the_mobile_card_list_beyond_the_viewport_width_even_when_it_keeps_going_0123456789";
 const longUnbrokenCards = fixture.cards.long.map((card, index) =>
@@ -25,7 +25,7 @@ const RemovableSelectedTagsExample: React.FC<{
   return (
     <CardList
       cards={fixture.cards.default}
-      filter={{ difficultyMin: null, difficultyMax: null, selectedTags }}
+      filter={{ selectedTags }}
       onRemoveTag={(tag) => {
         props.onRemoveTag?.(tag);
         setSelectedTags((values) => values.filter((value) => value !== tag));
@@ -68,7 +68,6 @@ const meta = {
     sortOrder: "standard",
     onSortOrderChange: fn(),
     cards: fixture.cards.default,
-    onChangeDifficulty: fn(),
     filter: activeFilter,
     filterSlot: <div>Filter controls</div>,
   },
@@ -88,17 +87,6 @@ export const AddCard: Story = {
   },
 };
 
-export const BulkDifficulty: Story = {
-  args: {
-    onChangeDifficulty: fn(),
-  },
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
-    await userEvent.click(canvas.getByRole("menuitem", { name: "Change difficulty" }));
-    await expect(args.onChangeDifficulty).toHaveBeenCalledOnce();
-  },
-};
-
 export const Empty: Story = {
   args: {
     cards: [],
@@ -106,7 +94,7 @@ export const Empty: Story = {
       reason: "no-cards",
       onAddCard: fn(),
     },
-    filter: { difficultyMax: null, difficultyMin: null, selectedTags: [] },
+    filter: { selectedTags: [] },
   },
   play: async ({ canvas }) => {
     await expect(canvas.getByText("0 cards")).toBeVisible();
@@ -122,7 +110,7 @@ export const FilterZero: Story = {
       reason: "filter-zero",
       onClearFilters: fn(),
     },
-    filter: { difficultyMax: 5, difficultyMin: 3, selectedTags: ["react"] },
+    filter: { selectedTags: ["react"] },
   },
   play: async ({ canvas }) => {
     await expect(canvas.getByRole("heading", { name: "No cards match the active filters" })).toBeVisible();
@@ -136,7 +124,7 @@ export const IntervalZero: Story = {
     empty: {
       reason: "interval-zero",
     },
-    filter: { difficultyMax: null, difficultyMin: null, selectedTags: [] },
+    filter: { selectedTags: [] },
   },
   play: async ({ canvas }) => {
     await expect(canvas.getByRole("heading", { name: "No cards due for review" })).toBeVisible();
@@ -203,7 +191,7 @@ export const IphoneXLong: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
   args: {
     filterSlot: <div>Many filter controls</div>,
-    filter: { difficultyMax: 8, difficultyMin: 3, selectedTags: [longUnbrokenTag] },
+    filter: { selectedTags: [longUnbrokenTag] },
     cards: longUnbrokenCards,
   },
 };

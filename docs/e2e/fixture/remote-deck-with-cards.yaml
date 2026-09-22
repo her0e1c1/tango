@@ -17,8 +17,6 @@ remote:
       backText: りんご
       tags: [math, typescript]
       uniqueKey: apple
-      difficulty: 4
-      numberOfSeen: 3
     - id: card-2
       deckId: deck-1
       uid: user-1
@@ -26,7 +24,6 @@ remote:
       backText: オレンジ
       tags: [other]
       uniqueKey: orange
-      difficulty: 4
     - id: card-3
       deckId: deck-1
       uid: user-1
@@ -34,5 +31,3 @@ remote:
       backText: バナナ
       tags: [math]
       uniqueKey: banana
-      difficulty: 6
-      numberOfSeen: 1

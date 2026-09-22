@@ -1,7 +1,7 @@
 import "@/test/mockFirestorePersistence";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { calculateStudySchedule } from "@/entities/study-schedule";
+import { calculateFsrsState } from "@/entities/card-study-state";
 import { useSnapshotTime } from "./useSnapshotTime";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -11,7 +11,7 @@ describe("CARD-VIEW-06 memory reference time", () => {
   it("holds a snapshot until the card, schedule, or foreground changes", () => {
     const at = Date.UTC(2026, 8, 21);
     const clock = vi.spyOn(Date, "now").mockReturnValue(at);
-    const schedule = calculateStudySchedule(undefined, "good", at);
+    const schedule = calculateFsrsState(null, "good", at);
     const { result, rerender } = renderHook(({ id, value }) => useSnapshotTime(id, value), {
       initialProps: { id: "first", value: schedule },
     });
@@ -24,7 +24,7 @@ describe("CARD-VIEW-06 memory reference time", () => {
     rerender({ id: "second", value: schedule });
     expect(result.current).toBe(at + 60_000);
     clock.mockReturnValue(at + 120_000);
-    rerender({ id: "second", value: calculateStudySchedule(schedule, "good", at + 120_000) });
+    rerender({ id: "second", value: calculateFsrsState(schedule, "good", at + 120_000) });
     expect(result.current).toBe(at + 120_000);
     clock.mockReturnValue(at + 180_000);
     vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");

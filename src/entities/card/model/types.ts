@@ -13,12 +13,7 @@ import type {
 
 /** Firestore-backed Card data whose ownership and deletion metadata must remain at the Entity boundary. */
 export type RemoteCard = z.infer<typeof cardSchema>;
-/** StudyProgress and StudySchedule fields retained only by the legacy combined Card model. */
-type StudyStateField = "difficulty" | "numberOfSeen" | "lastSeenAt" | "nextSeeingAt" | "interval" | "schedule";
-/** Firestore Card read model without StudyProgress- and StudySchedule-owned fields. */
-export type RemoteCardRead = Omit<RemoteCard, StudyStateField>;
-/** Card-owned fields read from the shared physical Firestore document. */
-export type CardDocumentFields = Omit<RemoteCardRead, "id">;
+export type CardDocumentFields = Omit<RemoteCard, "id">;
 export type Card = RemoteCard;
 /** Shared create/edit content without identity or persistence metadata. */
 export type CardContentInput = z.infer<typeof cardContentInputSchema>;

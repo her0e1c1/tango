@@ -4,6 +4,7 @@
  * normal containers, hooks, and route parameters.
  */
 
+import { clearCardStudyStates } from "@/entities/card-study-state";
 import type { CardId } from "@/entities/card";
 import { type RemoteCard, replaceRemoteCards } from "@/entities/card/testing";
 import type { Deck, DeckId } from "@/entities/deck";
@@ -39,12 +40,12 @@ const cloneDeck = (deck: Deck): Deck => ({
 const cloneCard = (card: RemoteCard): RemoteCard => ({
   ...card,
   tags: [...card.tags],
-  ...(card.nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(card.nextSeeingAt.getTime()) }),
 });
 
 // Reset every store before seeding it so navigation between stories cannot leak state.
 export const preparePageStory = (parameters: PageStoryParameters): void => {
   clearStudySessions();
+  clearCardStudyStates();
 
   replaceAuthSession({
     status: "authenticated",
@@ -66,7 +67,7 @@ export const preparePageStory = (parameters: PageStoryParameters): void => {
     if (session == null) return;
     startStudy(
       deckId,
-      session.cardOrderIds.map((id, numberOfSeen) => ({ id, difficulty: 5, numberOfSeen })),
+      session.cardOrderIds.map((id) => ({ id, fsrs: null })),
       { shuffled: false, maxNumberOfCardsToLearn: 0 },
       PAGE_STORY_UID
     );

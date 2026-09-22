@@ -25,7 +25,7 @@ Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に difficulty、学習回数、tags を持つ Card が存在する。
+- 対象 Deck に tags を持つ Card が存在する。
 
 When:
 
@@ -33,7 +33,7 @@ When:
 
 Then:
 
-- 対象 Card の front text、difficulty、学習回数、tags が表示される。
+- 対象 Card の front text、tags が表示される。
 - browser error が発生しない。
 
 <a id="card-view-02"></a>

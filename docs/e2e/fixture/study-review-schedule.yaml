@@ -7,17 +7,48 @@ remote:
       frontText: due card
       backText: due answer
       uniqueKey: due-card
-      nextSeeingAt: "2000-01-01T00:00:00.000Z"
     - id: card-future
       deckId: deck-1
       uid: user-1
       frontText: future card
       backText: future answer
       uniqueKey: future-card
-      nextSeeingAt: "2999-01-01T00:00:00.000Z"
     - id: card-unscheduled
       deckId: deck-1
       uid: user-1
       frontText: unscheduled card
       backText: unscheduled answer
       uniqueKey: unscheduled-card
+  cardStudyStates:
+    - schemaVersion: 1
+      uid: user-1
+      cardId: card-due
+      deckId: deck-1
+      createdAt: 0
+      updatedAt: 0
+      fsrs:
+        state: review
+        dueAt: 946684800000
+        lastReviewedAt: 0
+        difficulty: 5
+        stability: 1
+        reps: 1
+        lapses: 0
+        learningSteps: 0
+        scheduledDays: 1
+    - schemaVersion: 1
+      uid: user-1
+      cardId: card-future
+      deckId: deck-1
+      createdAt: 0
+      updatedAt: 0
+      fsrs:
+        state: review
+        dueAt: 32472144000000
+        lastReviewedAt: 0
+        difficulty: 5
+        stability: 1
+        reps: 1
+        lapses: 0
+        learningSteps: 0
+        scheduledDays: 1

@@ -5,7 +5,7 @@
 
 import type { TFunction } from "i18next";
 import * as React from "react";
-import { AiOutlineDown, AiOutlinePlus, AiOutlineSliders } from "react-icons/ai";
+import { AiOutlineDown, AiOutlinePlus } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 
 import type { CardId } from "@/entities/card";
@@ -20,8 +20,6 @@ import { Card, type CardActionsProps } from "./Card";
 interface CardListItem {
   id: CardId;
   frontText: string;
-  difficulty: number;
-  numberOfSeen: number;
   tags: string[];
 }
 
@@ -31,8 +29,6 @@ interface CardListOverlayProps {
 }
 
 interface CardListFilterState {
-  difficultyMax: number | null;
-  difficultyMin: number | null;
   selectedTags: string[];
 }
 
@@ -51,7 +47,6 @@ export interface CardListProps {
   onSortOrderChange?: (value: "standard" | "newest") => void;
   sortDisabled?: boolean;
   filterDisabled?: boolean;
-  onChangeDifficulty?: () => void;
   disabled?: boolean;
   filter?: CardListFilterState;
   filterSlot?: React.ReactNode;
@@ -60,28 +55,7 @@ export interface CardListProps {
   onShowCard?: (id: CardId) => void;
   onRemoveTag?: (tag: string) => void;
   onAddCard?: () => void;
-  renderDifficulty?: (difficulty: number) => React.ReactNode;
 }
-
-/**
- * Formats the difficulty range label text shown to the user.
- * The helper keeps wording consistent with the active locale across the screen.
- */
-const difficultyRangeLabel = (filter: CardListFilterState, t: TFunction) => {
-  if (filter.difficultyMin != null && filter.difficultyMax != null) {
-    return t("cardList.filters.difficultyRange", {
-      minimum: filter.difficultyMin,
-      maximum: filter.difficultyMax,
-    });
-  }
-  if (filter.difficultyMin != null) {
-    return t("cardList.filters.difficultyMinimum", { minimum: filter.difficultyMin });
-  }
-  if (filter.difficultyMax != null) {
-    return t("cardList.filters.difficultyMaximum", { maximum: filter.difficultyMax });
-  }
-  return null;
-};
 
 /**
  * Formats the filter label text shown to the user.
@@ -89,24 +63,20 @@ const difficultyRangeLabel = (filter: CardListFilterState, t: TFunction) => {
  */
 const filterLabel = (filter: CardListFilterState, t: TFunction) => {
   const labels: string[] = [];
-  const difficulty = difficultyRangeLabel(filter, t);
-  if (difficulty != null) labels.push(difficulty);
   if (filter.selectedTags.length > 0) {
     labels.push(t("cardList.filters.tagCount", { count: filter.selectedTags.length }));
   }
   return labels.length > 0 ? labels.join(" · ") : t("cardList.filters.noFilters");
 };
 
-const emptyFilter: CardListFilterState = { difficultyMax: null, difficultyMin: null, selectedTags: [] };
+const emptyFilter: CardListFilterState = { selectedTags: [] };
 
 /**
  * Composes the complete Card List Rows screen from reusable UI components.
  * All data and callbacks arrive through props, allowing the same screen to run in tests and
  * Storybook.
  */
-const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" | "onShowCard" | "renderDifficulty">> = (
-  props
-) => {
+const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" | "onShowCard">> = (props) => {
   const [openMenuCardId, setOpenMenuCardId] = React.useState<CardId>();
   // Clear a removed target without remounting surviving rows and losing keyboard focus.
   if (openMenuCardId !== undefined && !props.cards.some((card) => card.id === openMenuCardId)) {
@@ -120,12 +90,9 @@ const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" |
           key={card.id}
           card={card}
           disabled={Boolean(props.disabled || props.card?.disabled)}
-          difficultySlot={props.renderDifficulty?.(card.difficulty)}
           menuOpen={openMenuCardId === card.id}
           onToggleMenu={(id) => setOpenMenuCardId((value) => (value === id ? undefined : id))}
           onCloseMenu={() => setOpenMenuCardId(undefined)}
-          {...(props.card?.onSwipedLeft !== undefined ? { onSwipedLeft: props.card.onSwipedLeft } : {})}
-          {...(props.card?.onSwipedRight !== undefined ? { onSwipedRight: props.card.onSwipedRight } : {})}
           {...(props.card?.onDelete !== undefined ? { onDelete: props.card.onDelete } : {})}
           {...(props.card?.goToEdit !== undefined ? { goToEdit: props.card.goToEdit } : {})}
           goToView={() => {
@@ -190,7 +157,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
           <span className="shrink-0 text-caption text-ink-muted">
             {t("cardList.count", { count: props.cards.length })}
           </span>
-          {(props.onAddCard !== undefined || props.onChangeDifficulty !== undefined) && (
+          {props.onAddCard !== undefined && (
             <ActionsMenu
               groupLabel={t("cardList.listActions")}
               triggerLabel={t("cardList.listActions")}
@@ -211,12 +178,6 @@ export const CardList: React.FC<CardListProps> = (props) => {
                   label: t("cardList.add"),
                   icon: <AiOutlinePlus aria-hidden="true" />,
                   onSelect: () => props.onAddCard?.(),
-                },
-                {
-                  key: "difficulty",
-                  label: t("cardList.bulkDifficulty.title"),
-                  icon: <AiOutlineSliders aria-hidden="true" />,
-                  onSelect: () => props.onChangeDifficulty?.(),
                 },
               ]}
             />
@@ -291,7 +252,6 @@ export const CardList: React.FC<CardListProps> = (props) => {
           disabled={Boolean(props.disabled)}
           {...(props.card !== undefined ? { card: props.card } : {})}
           {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
-          {...(props.renderDifficulty !== undefined ? { renderDifficulty: props.renderDifficulty } : {})}
         />
       ) : props.empty ? (
         <section

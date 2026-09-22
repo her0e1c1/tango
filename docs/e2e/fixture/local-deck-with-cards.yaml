@@ -16,5 +16,3 @@ browser:
       frontText: local second
       backText: local second answer
       uniqueKey: local-second
-      difficulty: 4
-      numberOfSeen: 1

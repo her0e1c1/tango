@@ -22,8 +22,9 @@ test("DECK-NAVIGATION-13 updates the list when a review deadline arrives", async
   const future = fixture.card("card-future");
   await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
   const before = await requireDocument("card", future.id);
-  if (future.nextSeeingAt === undefined) throw new Error("Expected a future review deadline");
-  const deadline = new Date(future.nextSeeingAt);
+  const state = fixture.state.remote.cardStudyStates.find((value) => value.cardId === future.id);
+  if (!state?.fsrs) throw new Error("Expected a future review deadline");
+  const deadline = new Date(state.fsrs.dueAt);
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Review now" })).toBeVisible();
   await page.clock.install({ time: new Date(deadline.getTime() - 1000) });

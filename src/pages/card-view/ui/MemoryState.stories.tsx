@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { calculateStudySchedule } from "@/entities/study-schedule";
+import { calculateFsrsState } from "@/entities/card-study-state";
 import { getMemoryState } from "../model/queries/getMemoryState";
 import { MemoryState } from "./MemoryState";
 
 const at = Date.UTC(2026, 8, 21, 12);
-const short = calculateStudySchedule(undefined, "good", at);
-const long = calculateStudySchedule(undefined, "easy", at);
+const short = calculateFsrsState(null, "good", at);
+const long = calculateFsrsState(null, "easy", at);
 const meta = {
   title: "Pages/CardView/MemoryState",
   component: MemoryState,

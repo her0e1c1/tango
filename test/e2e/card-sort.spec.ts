@@ -8,7 +8,7 @@ const expectOrder = async (rows: Locator, names: string[]) => {
   }
 };
 
-test("CARD-LIST-ACTIONS-09 sorts newest first with stable ties without changing saved data", async ({
+test("CARD-LIST-ACTIONS-02 sorts newest first with stable ties without changing saved data", async ({
   fixture,
   page,
 }) => {
@@ -35,7 +35,7 @@ test("CARD-LIST-ACTIONS-09 sorts newest first with stable ties without changing 
   expect(await readLocalData(page)).toEqual(before);
 });
 
-test("CARD-LIST-ACTIONS-10 restores standard order and resets sorting when revisiting", async ({ fixture, page }) => {
+test("CARD-LIST-ACTIONS-03 restores standard order and resets sorting when revisiting", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const cards = [fixture.card("card-1"), fixture.card("card-2"), fixture.card("card-3")];
   await fixture.apply(page);

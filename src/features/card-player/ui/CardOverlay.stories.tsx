@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { DifficultyIndicator } from "@/entities/study-progress";
 import * as fixture from "@/storybook/fixture";
 
 import { CardOverlay } from "./CardOverlay";
@@ -13,9 +12,7 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
-    difficultySlot: <DifficultyIndicator difficulty={1} />,
-    numberOfSeen: 4,
-    lastSeenAt: fixture.timestamp,
+    fsrs: { difficulty: 4, lastReviewedAt: fixture.timestamp },
   },
 } satisfies Meta<typeof CardOverlay>;
 

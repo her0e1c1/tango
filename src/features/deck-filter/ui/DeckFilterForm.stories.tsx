@@ -8,46 +8,22 @@ import * as fixture from "@/storybook/fixture";
 type DeckFilterFormProps = React.ComponentProps<typeof DeckFilterForm>;
 
 const args: DeckFilterFormProps = {
-  difficultyLowerBound: 1,
-  difficultyMax: 8,
-  difficultyMin: 3,
-  difficultyUpperBound: 10,
   tags: [...fixture.tags.default],
   selectedTags: [],
   tagAndFilter: false,
-  clearDifficultyRange: fn(),
-  setDifficultyMax: fn(),
-  setDifficultyMin: fn(),
   setSelectedTags: fn(),
   setTagAndFilter: fn(),
 };
 
 const InteractiveDeckFilterForm: React.FC<DeckFilterFormProps> = (props) => {
-  const [difficultyMax, setDifficultyMax] = React.useState(props.difficultyMax);
-  const [difficultyMin, setDifficultyMin] = React.useState(props.difficultyMin);
   const [selectedTags, setSelectedTags] = React.useState(props.selectedTags);
   const [tagAndFilter, setTagAndFilter] = React.useState(props.tagAndFilter);
 
   return (
     <DeckFilterForm
       {...props}
-      difficultyMax={difficultyMax}
-      difficultyMin={difficultyMin}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
-      clearDifficultyRange={() => {
-        props.clearDifficultyRange();
-        setDifficultyMax(null);
-        setDifficultyMin(null);
-      }}
-      setDifficultyMax={(value) => {
-        props.setDifficultyMax(value);
-        setDifficultyMax(value);
-      }}
-      setDifficultyMin={(value) => {
-        props.setDifficultyMin(value);
-        setDifficultyMin(value);
-      }}
       setSelectedTags={(value) => {
         props.setSelectedTags(value);
         setSelectedTags(value);
@@ -95,14 +71,6 @@ export const NoMatchCompatible: Story = {
     selectedTags: ["advanced", "review"],
     tagAndFilter: true,
   },
-};
-
-export const SavedFractionalDifficultyRange: Story = {
-  args: { difficultyMax: 8.25, difficultyMin: 2.5 },
-};
-
-export const InvalidSavedDifficultyRange: Story = {
-  args: { difficultyMax: 3, difficultyMin: 5 },
 };
 
 export const Mobile: Story = {

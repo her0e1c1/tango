@@ -4,7 +4,6 @@ import { Link, useParams } from "react-router-dom";
 
 import { BackText, FrontText } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { DifficultyIndicator } from "@/entities/study-progress";
 import { CardPlayer, CardOverlay } from "@/features/card-player";
 import { routes } from "@/shared/router";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
@@ -78,13 +77,7 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
         backTextSlot={
           <BackText text={model.card.backText} category={model.category} code={model.code} dark={model.dark} />
         }
-        cardOverlaySlot={
-          <CardOverlay
-            difficultySlot={<DifficultyIndicator difficulty={model.card.difficulty} />}
-            numberOfSeen={model.card.numberOfSeen}
-            {...(model.card.lastSeenAt !== undefined ? { lastSeenAt: model.card.lastSeenAt } : {})}
-          />
-        }
+        cardOverlaySlot={<CardOverlay fsrs={model.card.fsrs} />}
         controller={{
           autoPlay: model.autoPlay,
           index: model.index,

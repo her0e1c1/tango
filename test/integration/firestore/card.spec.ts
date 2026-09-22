@@ -26,7 +26,6 @@ import { createCard as createCardCommand, deleteCard, editCard } from "@/entitie
 import { createDeck as createDeckCommand } from "@/entities/deck/api/firestore";
 import { replaceRemoteCards } from "@/entities/card/model/actions/replaceRemoteCards";
 import { replaceRemoteDecks } from "@/entities/deck/model/actions/replaceRemoteDecks";
-import { editRemoteStudyProgress } from "@/entities/study-progress/api/firestore";
 import * as Uuid from "uuid";
 import { createCard, createDeck, createRemoteDeckInput } from "@/test/factories";
 
@@ -109,27 +108,13 @@ describe("firestore/card", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
-  it("[FIRESTORE-CARD-03] updates StudyProgress without changing Card-owned fields", async () => {
+  it("[FIRESTORE-CARD-03] excludes personal study fields from new Card writes", async () => {
     const deckId = await initDeck();
-    const card = { ...newCard, deckId, id: uuid() };
+    const card = { ...newCard, deckId, id: uuid(), difficulty: 5, numberOfSeen: 3 };
     await createCardCommand("uid", card);
-    const created = (await getDoc(doc(db, "card", card.id))).data();
-    if (created === undefined) throw new Error("Created Card was not found");
-    const untrustedProgress = {
-      cardId: card.id,
-      difficulty: 5.5,
-      numberOfSeen: 3,
-      frontText: "unexpected",
-      deckId: "other-deck",
-      uid: "other-user",
-      deletedAt: 1,
-    } as unknown as Parameters<typeof editRemoteStudyProgress>[1];
-
-    await editRemoteStudyProgress("uid", untrustedProgress);
-
     const data = (await getDoc(doc(db, "card", card.id))).data();
-    expect(data).toEqual({ ...created, difficulty: 5.5, numberOfSeen: 3, updatedAt: expect.any(Number) });
-    expect(data?.createdAt).toBe(created.createdAt);
+    expect(data).not.toHaveProperty("difficulty");
+    expect(data).not.toHaveProperty("numberOfSeen");
   });
 
   it("[FIRESTORE-CARD-04] should upsert a complete card", async () => {

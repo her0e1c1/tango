@@ -1,5 +1,9 @@
 import { vi } from "vitest";
 
+vi.mock("@/entities/card-study-state/api/deleteCardStudyStates", () => ({
+  deleteCardStudyStates: async () => undefined,
+}));
+
 vi.mock("@/entities/deck/api/firestore", async () => {
   const { deckStore } = await import("@/entities/deck/model/store");
   const { deckCreateSchema } = await import("@/entities/deck/model/schema");

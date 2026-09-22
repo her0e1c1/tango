@@ -1,17 +1,7 @@
-import type {
-  CardCreate,
-  CardCreateInput,
-  CardEdit,
-  CardId,
-  DeleteCardInput,
-  EditCardInput,
-  RemoteCard,
-  RemoteCardRead,
-} from "../model/types";
+import type { CardCreate, CardCreateInput, CardEdit, DeleteCardInput, EditCardInput, RemoteCard } from "../model/types";
 
 import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
-import { mapStudyProgressDocument, type StudyProgress } from "@/entities/study-progress/@x/card";
 import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
@@ -22,68 +12,20 @@ import { parseCardDocument } from "./document";
 
 const CARD_COLLECTION = "card";
 
-/** Cross-Entity read contract for the models sharing one physical Card document. */
-interface CardRead {
-  card: RemoteCardRead;
-  progress: StudyProgress;
-  timing: Pick<RemoteCard, "schedule" | "nextSeeingAt" | "interval">;
-}
-
-/** Maps one physical Card document into Card, StudyProgress, and review timing. */
-const mapCardRead = (id: CardId, value: unknown): CardRead => {
-  // These Entities share one physical document, so their mappings must observe the same validated snapshot.
-  const document = parseCardDocument(id, value);
-  return {
-    card: mapCardDocument(id, document),
-    progress: mapStudyProgressDocument(id, document),
-    timing: omitUndefined({
-      schedule: document.schedule,
-      nextSeeingAt: document.nextSeeingAt,
-      interval: document.interval,
-    }),
-  };
-};
-
-/** Maps active documents and omits tombstones from both read paths. */
-const mapActiveCardReads = (documents: ReadonlyArray<{ id: string; data: () => unknown }>): CardRead[] =>
-  documents.map((document) => mapCardRead(document.id, document.data())).filter(({ card }) => card.deletedAt === null);
-
-const subscribeCardReads = (
-  uid: string,
-  onReads: (reads: CardRead[]) => void,
-  onError: (error: Error) => void
-): (() => void) =>
+export const subscribeCards = (uid: string, onError: (error: Error) => void, onReady?: () => void): (() => void) =>
   onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
     (snapshot) => {
       try {
-        onReads(mapActiveCardReads(snapshot.docs));
+        replaceRemoteCards(
+          snapshot.docs
+            .map((document) => mapCardDocument(document.id, parseCardDocument(document.id, document.data())))
+            .filter((card) => card.deletedAt === null)
+        );
+        onReady?.();
       } catch (cause) {
         onError(cause instanceof Error ? cause : new Error(String(cause)));
       }
-    },
-    onError
-  );
-
-// Existing consumers stay behind the combined Card API until #604 migrates them to separated reads.
-const combineCardRead = ({ card, progress, timing }: CardRead): RemoteCard => {
-  const combinedCard: RemoteCard = {
-    ...card,
-    ...timing,
-    difficulty: progress.difficulty,
-    numberOfSeen: progress.numberOfSeen,
-  };
-  if (progress.lastSeenAt !== undefined) combinedCard.lastSeenAt = progress.lastSeenAt;
-  return combinedCard;
-};
-
-/** Keeps existing Card subscribers on the combined read model until #604. */
-export const subscribeCards = (uid: string, onError: (error: Error) => void, onReady?: () => void): (() => void) =>
-  subscribeCardReads(
-    uid,
-    (reads) => {
-      replaceRemoteCards(reads.map(combineCardRead));
-      onReady?.();
     },
     onError
   );

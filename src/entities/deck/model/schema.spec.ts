@@ -6,7 +6,7 @@ import { createDeck as createDeckFixture } from "@/test/factories";
 
 import { createDeckSchema, editDeckSchema } from "./schema";
 
-describe("Deck operation schemas [CARD-LIST-ACTIONS-03]", () => {
+describe("Deck operation schemas [CARD-LIST-ACTIONS-01]", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
   describe("createDeckSchema", () => {
@@ -18,8 +18,6 @@ describe("Deck operation schemas [CARD-LIST-ACTIONS-03]", () => {
           name: "Deck",
 
           isPublic: false,
-          difficultyMax: 10,
-          difficultyMin: 1,
           selectedTags: [],
           tagAndFilter: false,
           category: "",
@@ -59,13 +57,6 @@ describe("Deck operation schemas [CARD-LIST-ACTIONS-03]", () => {
       expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck" } }).deck).not.toHaveProperty("url");
       expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", url: null } }).deck).toHaveProperty("url", null);
     });
-
-    it.each([0, 11, Number.NaN, Number.POSITIVE_INFINITY])(
-      "rejects invalid difficulty filter value %s",
-      (difficultyMin) => {
-        expect(() => editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", difficultyMin } })).toThrow();
-      }
-    );
 
     it.each([
       ["authenticated uid", { uid: "", deck: { id: "deck" } }, "confirmed user"],

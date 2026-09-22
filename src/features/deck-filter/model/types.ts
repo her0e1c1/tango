@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Deck } from "@/entities/deck";
 
-export type DeckFilterValues = Pick<Deck, "difficultyMax" | "difficultyMin" | "selectedTags" | "tagAndFilter">;
+export type DeckFilterValues = Pick<Deck, "selectedTags" | "tagAndFilter">;
 export interface DeckFilterDraft {
   key: string;
   draft: DeckFilterValues;

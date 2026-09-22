@@ -1,4 +1,5 @@
-import { calculateStudySchedule } from "@/entities/study-schedule";
+import { calculateFsrsState, getCardStudyState } from "@/entities/card-study-state";
+import { cardStudyStateId } from "@/entities/card-study-state/api/id";
 import "@/test/initializeTestFirestore";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -17,14 +18,13 @@ import { createCard, deleteCard, editCard, getCards } from "@/entities/card";
 import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { getStudySession, startStudy } from "@/entities/study-session";
 import { saveStudyOperation } from "@/pages/study-session/model/actions/saveStudyOperation";
-import { recordCardStudyProgress, type StudyRating } from "@/entities/study-progress";
+import type { StudyRating } from "@/entities/study-answer";
 import type { StudySession } from "@/entities/study-session";
 
 function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating, answeredAt: number) {
   const card = getCards().find(({ id }) => id === session.cardOrderIds[session.currentIndex]);
   if (!card) throw new Error("Missing card");
-  const { difficulty, numberOfSeen } = recordCardStudyProgress(card, answeredAt);
-  const schedule = calculateStudySchedule(card.schedule, rating, answeredAt);
+  const fsrs = calculateFsrsState(getCardStudyState(card.id)?.fsrs ?? null, rating, answeredAt);
   return saveStudyOperation(
     {
       id: crypto.randomUUID(),
@@ -36,8 +36,7 @@ function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating
       cardCount: session.cardOrderIds.length,
       answeredAt,
       rating,
-      progress: { difficulty, numberOfSeen },
-      ...(schedule === undefined ? {} : { schedule }),
+      fsrs,
     },
     session
   );
@@ -97,9 +96,9 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toEqual([]));
   });
 
-  it("saves one answer, progress and session advancement atomically while offline", async () => {
+  it("saves one answer, state and session advancement atomically while offline", async () => {
     await createDeck("uid", { id: deckId, name: "Study offline" });
-    const cards = [0, 1].map(() => cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid", numberOfSeen: 0 }));
+    const cards = [0, 1].map(() => cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" }));
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
     for (const card of cards) await createCard("uid", card);
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
@@ -112,19 +111,21 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     const answer = answers.docs.find((item) => item.data().sessionId === session.sessionId)?.data();
     expect(answer).toMatchObject({ cardId: cards[0]?.id, answer: { type: "rating", rating: "good" } });
     expect(answer?.answeredAt.toMillis()).toBe(answeredAt);
-    expect((await getDocFromCache(doc(testDb, "card", cards[0]?.id ?? "missing"))).data()).toMatchObject({
-      numberOfSeen: 1,
-      lastSeenAt: answeredAt,
-      schedule: { version: 1, reps: 1, lastReviewedAt: answeredAt, dueAt: answeredAt + 600_000 },
+    expect(
+      (await getDocFromCache(doc(testDb, "cardStudyState", cardStudyStateId("uid", cards[0]?.id ?? "missing")))).data()
+    ).toMatchObject({
+      createdAt: answeredAt,
+      updatedAt: answeredAt,
+      fsrs: { reps: 1, lastReviewedAt: answeredAt, dueAt: answeredAt + 600_000 },
     });
     await vi.waitFor(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
-    const savedSchedule = getCards().find((card) => card.id === cards[0]?.id)?.schedule;
+    const savedSchedule = getCardStudyState(cards[0]?.id ?? "missing")?.fsrs;
     expect(savedSchedule).toBeDefined();
     stop();
     const subscription = startFirestoreSubscriptions("uid");
     stop = subscription.stop;
     await subscription.ready;
-    expect(getCards().find((card) => card.id === cards[0]?.id)?.schedule).toEqual(savedSchedule);
+    expect(getCardStudyState(cards[0]?.id ?? "missing")?.fsrs).toEqual(savedSchedule);
     await expect(saveStudyAnswer("uid", session, "good", answeredAt)).rejects.toThrow("session does not match");
     const final = getStudySession(deckId);
     if (!final) throw new Error("Missing final position");

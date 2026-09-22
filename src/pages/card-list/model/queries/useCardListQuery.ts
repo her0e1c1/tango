@@ -1,7 +1,7 @@
+import { useStudyCards } from "@/entities/card-study-state";
 import { useCardsByDeckId } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { MAX_DIFFICULTY, MIN_DIFFICULTY } from "@/entities/study-progress";
 import { useDeadlineQuery } from "@/shared/lib/useDeadlineQuery";
 import { selectStudyCardsWithDeadline } from "@/entities/study-session";
 
@@ -37,7 +37,8 @@ interface CardListQueryOptions {
 
 export const useCardListQuery = ({ deck, filter, shownCard, sortOrder }: CardListQueryOptions) => {
   const preferences = usePreferences();
-  const { cards: deckCards, tags } = useCardsByDeckId(deck.id);
+  const { tags } = useCardsByDeckId(deck.id);
+  const deckCards = useStudyCards().filter((card) => card.deckId === deck.id);
   const { cards: matchingCards } = useDeadlineQuery(selectStudyCardsWithDeadline, [
     deckCards,
     filter,
@@ -69,7 +70,5 @@ export const useCardListQuery = ({ deck, filter, shownCard, sortOrder }: CardLis
     emptyReason,
     tags,
     answer,
-    bulkDifficultyMaximum: MAX_DIFFICULTY,
-    bulkDifficultyMinimum: MIN_DIFFICULTY,
   };
 };

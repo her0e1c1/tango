@@ -78,8 +78,6 @@ describe("Card operation schemas [CARD-VIEW-01]", () => {
         tags: ["tag"],
         uniqueKey: "key",
         deletedAt: null,
-        difficulty: 5,
-        numberOfSeen: 0,
       },
     });
   });

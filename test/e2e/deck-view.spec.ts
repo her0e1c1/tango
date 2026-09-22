@@ -166,7 +166,7 @@ test("DECK-NAVIGATION-04 resets local-only viewing position on reload and reentr
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-NAVIGATION-05 views all difficulty and tag matches in standard order without the study limit", async ({
+test("DECK-NAVIGATION-05 views all tag matches in standard order without the study limit", async ({
   fixture,
   page,
 }) => {
@@ -203,10 +203,9 @@ test("DECK-NAVIGATION-05 views all difficulty and tag matches in standard order 
   try {
     await page.getByRole("button", { name: `View ${deck.name}`, exact: true }).click();
     await page.getByText("Filters", { exact: true }).click();
-    await page.getByRole("combobox", { name: "Minimum difficulty" }).selectOption(String(queuedMatch.difficulty));
+    await page.getByRole("checkbox", { name: queuedTag, exact: true }).locator("xpath=parent::label").click();
     await writeArrived.promise;
     // Local filter changes are usable while cloud acknowledgement is held.
-    await page.getByRole("checkbox", { name: queuedTag, exact: true }).locator("xpath=parent::label").click();
     await page.getByRole("checkbox", { name: previousTag, exact: true }).locator("xpath=parent::label").click();
     await expect(page.getByRole("checkbox", { name: queuedTag, exact: true })).toBeChecked();
     await expect(page.getByRole("checkbox", { name: previousTag, exact: true })).not.toBeChecked();
@@ -227,9 +226,6 @@ test("DECK-NAVIGATION-05 views all difficulty and tag matches in standard order 
     await expect
       .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values)
       .toEqual([{ stringValue: queuedTag }]);
-    expect((await requireDocument("deck", deck.id)).fields.difficultyMin?.integerValue).toBe(
-      String(queuedMatch.difficulty)
-    );
     const afterFilterSave = await readSavedData(page, fixture);
     expect(afterFilterSave.cards).toEqual(before.cards);
     expect(afterFilterSave.local).toEqual(beforeQueuedView.local);

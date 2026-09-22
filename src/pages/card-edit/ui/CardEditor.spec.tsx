@@ -55,7 +55,6 @@ const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; o
         id: props.card.id,
         uniqueKey: props.card.uniqueKey,
         ...(props.card.createdAt ? { createdAt: props.card.createdAt } : {}),
-        ...(props.card.lastSeenAt != null ? { lastSeenAt: props.card.lastSeenAt } : {}),
       }}
       categories={CATEGORY}
       preview={<BackText {...preview} />}

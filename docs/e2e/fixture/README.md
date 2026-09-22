@@ -34,8 +34,6 @@
 省略 field は次の値で正規化する。
 
 - `isPublic: false`
-- `difficultyMax: null`
-- `difficultyMin: null`
 - `selectedTags: []`
 - `tagAndFilter: false`
 - `category: ""`
@@ -49,11 +47,13 @@
 省略 field は次の値で正規化する。
 
 - `tags: []`
-- `difficulty: 5`
-- `numberOfSeen: 0`
 - `deletedAt: null`
 - `createdAt: 0`
 - `updatedAt: 0`
+
+### Card study state
+
+`remote.cardStudyStates` と `browser.cardStudyStates` は省略時に空。評価済み状態を必要とするケースだけ `schemaVersion: 1`、uid、cardId、deckId、fsrs、createdAt、updatedAt を記述する。Card から状態を生成しない。UID と Card ID を namespace 化した後、UID 長の接頭辞から document ID を生成する。
 
 ### Study session
 

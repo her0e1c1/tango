@@ -21,7 +21,7 @@
 | FIRESTORE-RULES-02 | batch | [公開 Deck でも他ユーザー・匿名・未認証から session にアクセスできない](#firestore-rules-02) |
 | FIRESTORE-RULES-03 | write | [本人でも session の所有者変更と物理削除はできない](#firestore-rules-03) |
 | FIRESTORE-RULES-04 | read | [削除済みの公開 Deck と Card を第三者が取得できない](#firestore-rules-04) |
-| FIRESTORE-RULES-05 | batch | [回答作成と Card・session 更新を同じ batch で許可する](#firestore-rules-05) |
+| FIRESTORE-RULES-05 | batch | [回答作成と State・session 更新を同じ batch で許可する](#firestore-rules-05) |
 | FIRESTORE-RULES-06 | write | [回答 ID と完了後の回答順序はアプリケーションの責務とする](#firestore-rules-06) |
 | FIRESTORE-RULES-07 | write | [保存済みの回答履歴は本人でも更新・削除できない](#firestore-rules-07) |
 | FIRESTORE-RULES-08 | batch | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](#firestore-rules-08) |
@@ -57,6 +57,12 @@
 | FIRESTORE-RULES-38 | write | [未認証による Card の作成を拒否する](#firestore-rules-38) |
 | FIRESTORE-RULES-39 | write | [未認証による Card の更新を拒否する](#firestore-rules-39) |
 | FIRESTORE-RULES-40 | write | [未認証による Card の物理削除を拒否する](#firestore-rules-40) |
+
+| FIRESTORE-RULES-41 | write | [本人が任意の状態を作成・読取・更新・削除でき、同一性は変更できない](#firestore-rules-41) |
+| FIRESTORE-RULES-42 | write | [公開 Card の State も本人以外はアクセスできない](#firestore-rules-42) |
+| FIRESTORE-RULES-43 | write | [状態の同一性・メタデータ・所有 Card を検証する](#firestore-rules-43) |
+| FIRESTORE-RULES-44 | write | [旧個人学習フィールドを Card に書き戻せない](#firestore-rules-44) |
+| FIRESTORE-RULES-45 | write | [区切り文字と Unicode を含む決定的 ID を許可する](#firestore-rules-45) |
 
 <a id="firestore-rules-01"></a>
 
@@ -147,11 +153,11 @@ Then:
 
 <a id="firestore-rules-05"></a>
 
-### FIRESTORE-RULES-05 回答作成と Card・session 更新を同じ batch で許可する
+### FIRESTORE-RULES-05 回答作成と State・session 更新を同じ batch で許可する
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-RULES-05] accepts the first and final answer with atomic Card and session updates`
+対応テスト: `[FIRESTORE-RULES-05] accepts the first and final answer with atomic state and session updates`
 
 Given:
 
@@ -160,7 +166,7 @@ Given:
 
 When:
 
-- 最初と最後の Card について、回答作成・Card の閲覧回数更新・session の位置更新を1つの SDK batch に入れて commit する。最後の batch には completed と endedAt も含める。
+- 最初と最後の Card について、回答作成・CardStudyState 更新・session の位置更新を1つの SDK batch に入れて commit する。最後の batch には completed と endedAt も含める。
 - 各回答を本人として get する。
 
 Then:
@@ -905,3 +911,103 @@ When:
 Then:
 
 - 物理削除が拒否される。
+
+<a id="firestore-rules-41"></a>
+
+### FIRESTORE-RULES-41 本人が任意の状態を作成・読取・更新・削除でき、同一性は変更できない
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-41] permits optional owner state and keeps its identity stable`
+
+Given:
+
+- State がない本人所有の Card がある。
+
+When:
+
+- null の State を作成して読取・更新し、UID・Card ID・作成日時の変更を試みる。
+
+Then:
+
+- 通常の更新と削除のみ許可され、同一性の変更は拒否される。State がない場合の削除も no-op として許可する。
+
+<a id="firestore-rules-42"></a>
+
+### FIRESTORE-RULES-42 公開 Card の State も本人以外はアクセスできない
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-42] keeps public Card state private from %s`
+
+Given:
+
+- 公開 Card と本人の State がある。
+
+When:
+
+- 他ユーザー・同一 UID の匿名・未認証で Card と State の単体・一覧読取、State 書込・更新・削除を試みる。
+
+Then:
+
+- Card は読めるが State への全操作は拒否される。本人以外による未作成 State の削除も拒否し、応答から学習状態の有無を推測できない。
+
+<a id="firestore-rules-43"></a>
+
+### FIRESTORE-RULES-43 状態の同一性・メタデータ・所有 Card を検証する
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-43] rejects invalid identity, metadata and unrelated Cards`
+
+Given:
+
+- 本人の Deck と Card がある。
+
+When:
+
+- 異なる document ID、version 2、重複 id、異なる Deck、非 map・空 map・不正型・範囲外・余分な項目の FSRS、他人所有または削除済み Card の State を保存する。
+
+Then:
+
+- 全て拒否される。FSRS の必須項目・型・範囲（状態 enum、difficulty 1〜10、正の有限 stability、日時、正の reps、lapses <= reps、非負整数 step、間隔上限）と余分な項目も Rules で拒否する。スケジュール計算の正しさは Rules へ実装しない。
+
+<a id="firestore-rules-44"></a>
+
+### FIRESTORE-RULES-44 旧個人学習フィールドを Card に書き戻せない
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-44] rejects legacy Card field %s`
+
+Given:
+
+- 本人の Deck と内容のみの Card がある。
+
+When:
+
+- difficulty / numberOfSeen / firstSeenAt / lastSeenAt / nextSeeingAt / interval / studySchedule をそれぞれ追加して作成・更新する。
+
+Then:
+
+- 全て拒否される。
+
+<a id="firestore-rules-45"></a>
+
+### FIRESTORE-RULES-45 区切り文字と Unicode を含む決定的 ID を許可する
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-45] accepts delimiter and Unicode characters in deterministic IDs`
+
+Given:
+
+- UID は a:日😀、Card ID は b:c😀 とする。
+
+When:
+
+- UID の長さを接頭辞とした State ID で本人が保存し、削除と再削除を行う。
+
+Then:
+
+- 許可される。Deck ID は識別子に含まれない。

@@ -18,10 +18,10 @@ vi.mock("@/shared/firebase", () => ({ auth: {} }));
 
 import { CardList } from "./CardList";
 
-const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", difficulty: 5, tags: [] });
+const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", tags: [] });
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
-describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-03] [CARD-LIST-ACTIONS-05] [CARD-LIST-ACTIONS-09]", () => {
+describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [CARD-LIST-ACTIONS-02]", () => {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {
     render(<CardList cards={[]} filterSlot={<div>Controls</div>} />);
 
@@ -33,35 +33,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-03] [CARD-LIST-ACTIONS-05] 
     expect(screen.queryByText(/no cards/i)).not.toBeInTheDocument();
   });
 
-  it("formats difficulty bounds, tag count, persistent chips, and singular card count", () => {
-    const view = render(
-      <CardList
-        cards={[card]}
-        filter={{ difficultyMin: 2, difficultyMax: 8, selectedTags: ["one", "two"] }}
-        filterSlot={<div>Controls</div>}
-      />
-    );
-
-    expect(screen.getByText("1 card")).toBeInTheDocument();
-    expect(screen.getByText("difficulty 2–8 · 2 tags")).toBeInTheDocument();
-    const summary = screen.getByText((_, element) => element?.textContent?.startsWith("Filters") === true, {
-      selector: "summary",
-    });
-    expect(summary).toHaveAccessibleName(/Filters\s*difficulty 2–8 · 2 tags/);
-    expect(screen.getByRole("list", { name: "Selected tags" })).toHaveTextContent("one");
-    expect(screen.getByRole("list", { name: "Selected tags" })).toHaveTextContent("two");
-    expect(screen.getByText("Controls")).not.toBeVisible();
-
-    view.rerender(<CardList cards={[card]} filter={{ difficultyMin: 2, difficultyMax: null, selectedTags: [] }} />);
-    expect(screen.getByText("difficulty ≥ 2")).toBeInTheDocument();
-
-    view.rerender(<CardList cards={[card]} filter={{ difficultyMin: null, difficultyMax: 8, selectedTags: [] }} />);
-    expect(screen.getByText("difficulty ≤ 8")).toBeInTheDocument();
-  });
-
   it("preserves a long selected tag without changing its text", () => {
     const longTag = `tag-${"unbroken".repeat(30)}`;
-    render(<CardList cards={[card]} filter={{ difficultyMin: null, difficultyMax: null, selectedTags: [longTag] }} />);
+    render(<CardList cards={[card]} filter={{ selectedTags: [longTag] }} />);
     const chip = screen.getByText(longTag);
 
     expect(chip).toHaveTextContent(longTag);
@@ -69,13 +43,7 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-03] [CARD-LIST-ACTIONS-05] 
 
   it("removes one selected tag from the persistent filter summary", async () => {
     const onRemoveTag = vi.fn();
-    render(
-      <CardList
-        cards={[card]}
-        filter={{ difficultyMin: null, difficultyMax: null, selectedTags: ["one", "two"] }}
-        onRemoveTag={onRemoveTag}
-      />
-    );
+    render(<CardList cards={[card]} filter={{ selectedTags: ["one", "two"] }} onRemoveTag={onRemoveTag} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Remove one filter" }));
     expect(onRemoveTag).toHaveBeenCalledExactlyOnceWith("one");
@@ -89,7 +57,7 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-03] [CARD-LIST-ACTIONS-05] 
       return (
         <CardList
           cards={[card]}
-          filter={{ difficultyMin: null, difficultyMax: null, selectedTags }}
+          filter={{ selectedTags }}
           onRemoveTag={(tag) => {
             onRemoveTag(tag);
             setSelectedTags((current) => current.filter((item) => item !== tag));
@@ -121,7 +89,7 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-03] [CARD-LIST-ACTIONS-05] 
       return (
         <CardList
           cards={[card]}
-          filter={{ difficultyMin: null, difficultyMax: null, selectedTags }}
+          filter={{ selectedTags }}
           onRemoveTag={(tag) => {
             onRemoveTag(tag);
             setSelectedTags((current) => current.filter((item) => item !== tag));
@@ -148,9 +116,7 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-03] [CARD-LIST-ACTIONS-05] 
 
   it("maintains focus order through chips without altering filters during tab navigation", async () => {
     const user = userEvent.setup();
-    render(
-      <CardList cards={[card]} filter={{ difficultyMin: null, difficultyMax: null, selectedTags: ["one", "two"] }} />
-    );
+    render(<CardList cards={[card]} filter={{ selectedTags: ["one", "two"] }} />);
 
     const oneChip = screen.getByRole("button", { name: "Remove one filter" });
     oneChip.focus();
@@ -166,22 +132,6 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-03] [CARD-LIST-ACTIONS-05] 
   it("shows filter disclosure state", () => {
     render(<CardList cards={[card]} />);
     expect(screen.getByText("Filters")).toBeVisible();
-  });
-
-  it("keeps controls hidden until Actions opens and delegates the two choices", async () => {
-    const onChangeDifficulty = vi.fn();
-    const onAddCard = vi.fn();
-    render(<CardList cards={[card, otherCard]} onChangeDifficulty={onChangeDifficulty} onAddCard={onAddCard} />);
-    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-    expect(screen.queryByRole("combobox", { name: "New difficulty" })).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
-    expect(screen.getAllByRole("menuitem")).toHaveLength(2);
-    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
-    expect(onChangeDifficulty).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Add card" }));
-    expect(onAddCard).toHaveBeenCalledOnce();
   });
 
   it("keeps only one menu open and removes it with a missing row", async () => {

@@ -5,6 +5,5 @@ export function getCardEditInfo(card: Card) {
     id: card.id,
     uniqueKey: card.uniqueKey,
     ...(card.createdAt ? { createdAt: card.createdAt } : {}),
-    ...(card.lastSeenAt != null ? { lastSeenAt: card.lastSeenAt } : {}),
   };
 }

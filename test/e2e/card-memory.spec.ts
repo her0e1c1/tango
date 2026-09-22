@@ -19,7 +19,7 @@ test("CARD-VIEW-06 shows FSRS memory after a rating, reload, and offline navigat
   if (ratedId === undefined) throw new Error("Missing study card");
   await page.getByRole("button", { name: "Swipe right" }).click();
   await expect
-    .poll(async () => (await readLocalData(page)).cards.find((value) => value.id === ratedId)?.schedule)
+    .poll(async () => (await readLocalData(page)).cardStudyStates.find((value) => value.cardId === ratedId)?.fsrs)
     .toBeDefined();
   await page.goto(`/card/${ratedId}`);
   await expect(page.getByRole("img", { name: /Forgetting curve/ })).toBeVisible();

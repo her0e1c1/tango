@@ -87,7 +87,7 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
       await expect.poll(async () => (await readSession(page, deck.id))?.cardOrderIds.length).toBe(count);
       const session = await readSession(page, deck.id);
       expect(session?.cardOrderIds).toEqual(
-        [fixture.card("card-2").id, fixture.card("card-3").id, fixture.card("card-1").id].slice(0, count)
+        [fixture.card("card-1").id, fixture.card("card-2").id, fixture.card("card-3").id].slice(0, count)
       );
 
       await page.goto("/settings");

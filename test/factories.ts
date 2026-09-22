@@ -24,8 +24,6 @@ export const createDeck = (overrides: Partial<Deck> = {}): Deck => ({
   isPublic: false,
   createdAt: 0,
   updatedAt: 0,
-  difficultyMax: null,
-  difficultyMin: null,
   selectedTags: [],
   tagAndFilter: false,
   category: "",
@@ -47,8 +45,6 @@ export const createLocalDeck = (overrides: Partial<Deck> = {}): Deck => ({
   isPublic: false,
   createdAt: 0,
   updatedAt: 0,
-  difficultyMax: null,
-  difficultyMin: null,
   selectedTags: [],
   tagAndFilter: false,
   category: "",
@@ -71,8 +67,6 @@ export const createCard = (overrides: Partial<RemoteCard> = {}): RemoteCard => (
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  difficulty: 5,
-  numberOfSeen: 0,
   ...overrides,
 });
 
@@ -87,8 +81,6 @@ export const createLocalCard = (overrides: Partial<RemoteCard> = {}): RemoteCard
   createdAt: 0,
   updatedAt: 0,
   deletedAt: null,
-  difficulty: 5,
-  numberOfSeen: 0,
   ...overrides,
 });
 
@@ -114,7 +106,6 @@ export type PreferencesOverrides = {
   showSwipeButtonList?: boolean;
   showPlaybackControls?: boolean;
   showCardDetails?: boolean;
-  showDifficultySlider?: boolean;
   showBackTextSwipeOverlays?: boolean;
   showSkip?: boolean;
   cardSwipeUp?: SwipeAction;
@@ -154,7 +145,6 @@ const createControls = (
   showSwipeButtonList: controls?.showSwipeButtonList ?? flat?.showSwipeButtonList ?? true,
   showPlaybackControls: controls?.showPlaybackControls ?? flat?.showPlaybackControls ?? true,
   showCardDetails: controls?.showCardDetails ?? flat?.showCardDetails ?? true,
-  showDifficultySlider: controls?.showDifficultySlider ?? flat?.showDifficultySlider ?? false,
   showBackTextSwipeOverlays: controls?.showBackTextSwipeOverlays ?? flat?.showBackTextSwipeOverlays ?? false,
   showSkip: controls?.showSkip ?? flat?.showSkip ?? true,
   cardSwipeUp: controls?.cardSwipeUp ?? flat?.cardSwipeUp ?? "RateEasy",

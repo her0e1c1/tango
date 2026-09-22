@@ -1,6 +1,13 @@
-import { calculateStudySchedule } from "@/entities/study-schedule";
+import {
+  calculateFsrsState,
+  getCardStudyState,
+  subscribeCardStudyStates,
+  clearCardStudyStates,
+} from "@/entities/card-study-state";
+import { cardStudyStateId } from "@/entities/card-study-state/api/id";
+import { parseCardStudyState } from "@/entities/card-study-state/api/document";
 import fs from "node:fs";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   assertFails,
   assertSucceeds,
@@ -26,11 +33,8 @@ import {
 } from "firebase/firestore";
 import { replaceAuthSession } from "@/entities/auth";
 import { saveStudyOperation as persistStudyOperation } from "@/pages/study-session/model/actions/saveStudyOperation";
-import { recordCardStudyProgress } from "@/entities/study-progress";
 import type { StudyOperation } from "@/pages/study-session/model/studyOperation";
 
-import { parseCardDocument } from "@/entities/card/api/document";
-import { editRemoteStudyProgress } from "@/entities/study-progress/api/firestore";
 import { editCard } from "@/entities/card/api/firestore";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
@@ -63,13 +67,15 @@ const sessionData = () => ({
   updatedAt: serverTimestamp(),
 });
 function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
-  const { difficulty, numberOfSeen } = recordCardStudyProgress(
-    { id: overrides.cardId ?? "card-0", difficulty: 5, numberOfSeen: 0 },
-    overrides.answeredAt ?? 2000
-  );
   const rating = "rating" in overrides ? overrides.rating : "good";
-  const schedule =
-    rating === undefined ? undefined : calculateStudySchedule(undefined, rating, overrides.answeredAt ?? 2000);
+  const fsrs =
+    rating === undefined
+      ? undefined
+      : calculateFsrsState(
+          getCardStudyState(overrides.cardId ?? "card-0")?.fsrs ?? null,
+          rating,
+          overrides.answeredAt ?? 2000
+        );
   return {
     id: crypto.randomUUID(),
     uid,
@@ -80,8 +86,7 @@ function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
     cardCount: cardIds.length,
     answeredAt: 2000,
     rating: "good",
-    progress: { difficulty, numberOfSeen },
-    ...(schedule === undefined ? {} : { schedule }),
+    ...(fsrs === undefined ? {} : { fsrs }),
     ...overrides,
   };
 }
@@ -122,6 +127,11 @@ const answerData = () => ({
 
 describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-05]", () => {
   let environment: RulesTestEnvironment;
+  let stopStates: () => void = () => undefined;
+  afterEach(() => {
+    stopStates();
+    clearCardStudyStates();
+  });
   beforeAll(async () => {
     environment = await initializeTestEnvironment({
       projectId: "test-study-answer",
@@ -144,19 +154,27 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
         setDoc(doc(connection.db, "card", id), {
           uid,
           deckId,
-          difficulty: 5,
-          numberOfSeen: 0,
           deletedAt: null,
           updatedAt: 0,
         })
       )
     );
     await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
+    // The emulator reset does not clear this client's cache between examples.
+    await getDocs(query(collection(connection.db, "cardStudyState"), where("uid", "==", uid)));
+    await new Promise<void>((resolve, reject) => {
+      stopStates = subscribeCardStudyStates(uid, reject, resolve);
+    });
   });
   afterAll(async () => {
     await environment.cleanup();
   });
 
+  const stateReference = (cardId = "card-0") => doc(connection.db, "cardStudyState", cardStudyStateId(uid, cardId));
+  const hasState = async (cardId = "card-0") =>
+    (await getDocs(query(collection(connection.db, "cardStudyState"), where("uid", "==", uid)))).docs.some(
+      (document) => document.data().cardId === cardId
+    );
   const answers = () => getDocs(query(collection(connection.db, "studyAnswer"), where("uid", "==", uid)));
 
   it.each(["again", "hard", "good", "easy"] as const)(
@@ -177,12 +195,12 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
         updatedAt: expect.any(Timestamp),
       });
       expect(answer?.createdAt).toEqual(answer?.updatedAt);
-      expect((await getDoc(doc(connection.db, "card", input.cardId))).data()).toMatchObject({
-        difficulty: 5,
-        numberOfSeen: 1,
-        lastSeenAt: input.answeredAt,
-        schedule: input.schedule,
+      expect((await getDoc(stateReference(input.cardId))).data()).toMatchObject({
+        createdAt: input.answeredAt,
+        updatedAt: input.answeredAt,
+        fsrs: input.fsrs,
       });
+      expect((await getDoc(doc(connection.db, "card", input.cardId))).data()?.updatedAt).toBe(0);
       expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     }
   );
@@ -192,17 +210,16 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await saveStudyOperation(input);
     await expect(saveStudyOperation(input)).rejects.toThrow("session does not match");
     expect((await answers()).size).toBe(1);
-    expect((await getDoc(doc(connection.db, "card", input.cardId))).data()?.numberOfSeen).toBe(1);
+    expect((await getDoc(stateReference(input.cardId))).data()?.fsrs.reps).toBe(1);
   });
 
-  it("[FIRESTORE-STUDY-ANSWER-03] persists accepted progress despite concurrent changes", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-03] leaves Card content and metadata unchanged when rating", async () => {
     const input = operation();
-    await updateDoc(doc(connection.db, "card", "card-0"), { numberOfSeen: 20, difficulty: 9 });
+    await updateDoc(doc(connection.db, "card", input.cardId), { frontText: "Edited", updatedAt: 500 });
+    const before = (await getDoc(doc(connection.db, "card", input.cardId))).data();
     await saveStudyOperation(input);
-    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()).toMatchObject({
-      numberOfSeen: 1,
-      difficulty: 5,
-    });
+    expect((await getDoc(doc(connection.db, "card", input.cardId))).data()).toEqual(before);
+    expect((await getDoc(stateReference())).data()?.createdAt).toBe(input.answeredAt);
   });
 
   it("[FIRESTORE-STUDY-ANSWER-04] records ten answers and completes", async () => {
@@ -233,20 +250,16 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await saveStudyOperation(
       operation({
         sessionId: nextSessionId,
-        progress: { difficulty: 3, numberOfSeen: 2 },
       })
     );
     expect((await answers()).size).toBe(2);
-    expect((await getDoc(doc(connection.db, "card", first.cardId))).data()?.numberOfSeen).toBe(2);
+    expect((await getDoc(stateReference(first.cardId))).data()?.fsrs.reps).toBe(2);
   });
 
-  it("[FIRESTORE-STUDY-ANSWER-06] skips with progress but no answer", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-06] skips without a state or answer", async () => {
     await saveStudyOperation(operation({ rating: undefined }));
     expect((await answers()).size).toBe(0);
-    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()).toMatchObject({
-      difficulty: 5,
-      numberOfSeen: 1,
-    });
+    expect(await hasState()).toBe(false);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     await expect(saveStudyOperation(operation())).rejects.toBeDefined();
   });
@@ -256,7 +269,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     const input = operation({ cardId: "card-9", currentIndex: 9, rating: undefined });
     await saveStudyOperation(input);
     expect((await answers()).size).toBe(0);
-    expect((await getDoc(doc(connection.db, "card", "card-9"))).data()?.numberOfSeen).toBe(1);
+    expect(await hasState("card-9")).toBe(false);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.endReason).toBe("completed");
   });
 
@@ -275,7 +288,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     replaceAuthSession({ status: "authenticated", uid: "other-user", isAnonymous: false, displayName: null });
     await expect(saveStudyOperation(operation())).rejects.toThrow("user changed");
     expect((await answers()).size).toBe(0);
-    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()?.numberOfSeen).toBe(0);
+    expect(await hasState()).toBe(false);
   });
 
   it("[FIRESTORE-STUDY-ANSWER-10] retries denied writes without partial progress", async () => {
@@ -286,7 +299,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await expect(saveStudyOperation(input)).rejects.toBeDefined();
     expect((await answers()).size).toBe(0);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
-    expect((await getDoc(doc(connection.db, "card", input.cardId))).data()?.numberOfSeen).toBe(0);
+    expect(await hasState(input.cardId)).toBe(false);
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid });
     });
@@ -321,24 +334,20 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
   it("[FIRESTORE-STUDY-ANSWER-14] allows standalone answers without transitions", async () => {
     await assertSucceeds(setDoc(doc(collection(connection.db, "studyAnswer")), answerData()));
     expect((await answers()).size).toBe(1);
-    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()?.numberOfSeen).toBe(0);
+    expect(await hasState()).toBe(false);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
   });
 
-  it.each([
-    { rating: "again" as const, difficulty: 10 },
-    { rating: "easy" as const, difficulty: 1 },
-  ])("[FIRESTORE-STUDY-ANSWER-15] preserves difficulty bounds for $rating", async ({ rating, difficulty }) => {
-    await updateDoc(doc(connection.db, "card", "card-0"), { difficulty });
-    await saveStudyOperation(
-      operation({
-        rating,
-        progress: { difficulty, numberOfSeen: 1 },
-      })
-    );
-    expect((await getDoc(doc(connection.db, "card", "card-0"))).data()).toMatchObject({ difficulty, numberOfSeen: 1 });
-    expect((await answers()).size).toBe(1);
-  });
+  it.each(["again", "hard", "good", "easy"] as const)(
+    "[FIRESTORE-STUDY-ANSWER-15] records valid FSRS state for %s",
+    async (rating) => {
+      const input = operation({ rating });
+      await saveStudyOperation(input);
+      const saved = parseCardStudyState(stateReference().id, (await getDoc(stateReference())).data());
+      expect(saved.fsrs).toEqual(input.fsrs);
+      expect(saved.fsrs?.reps).toBe(1);
+    }
+  );
 
   it("[FIRESTORE-STUDY-ANSWER-16] restricts session ownership, not transitions", async () => {
     const reference = doc(connection.db, "studySession", sessionId);
@@ -377,33 +386,29 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await assertFails(getDocs(query(collection(db, "studyAnswer"), where("uid", "==", uid))));
     await assertFails(setDoc(doc(collection(db, "studyAnswer")), answerData()));
   });
-  it("[FIRESTORE-STUDY-ANSWER-20] restores FSRS and preserves it across partial edits and skip", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-20] restores FSRS and preserves it across content edits and skip", async () => {
     const reference = doc(connection.db, "card", "card-0");
-    await setDoc(reference, {
-      ...createCard({ id: "card-0", uid, deckId }),
-      nextSeeingAt: Timestamp.fromMillis(1000),
-      interval: 12,
-    });
+    await setDoc(reference, createCard({ id: "card-0", uid, deckId }));
     const input = operation();
     await saveStudyOperation(input);
-    const data = (await getDoc(reference)).data();
-    expect(data).not.toHaveProperty("nextSeeingAt");
-    expect(data).not.toHaveProperty("interval");
-    const restored = parseCardDocument("card-0", data);
-    expect(restored.schedule).toEqual(input.schedule);
-    expect(calculateStudySchedule(restored.schedule, "good", 602000)).toEqual(
-      calculateStudySchedule(input.schedule, "good", 602000)
+    const data = (await getDoc(stateReference())).data();
+    const restored = parseCardStudyState(stateReference().id, data);
+    expect(restored.fsrs).toEqual(input.fsrs);
+    expect(calculateFsrsState(restored.fsrs, "good", 602_000)).toEqual(
+      calculateFsrsState(input.fsrs ?? null, "good", 602_000)
     );
-    await editRemoteStudyProgress(uid, { cardId: "card-0", difficulty: 8 });
     await editCard(uid, { id: "card-0", uid, frontText: "Edited" });
-    expect((await getDoc(reference)).data()?.schedule).toEqual(restored.schedule);
     await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
     await saveStudyOperation(operation({ rating: undefined }));
-    expect((await getDoc(reference)).data()?.schedule).toEqual(restored.schedule);
+    expect((await getDoc(stateReference())).data()).toEqual(data);
     expect((await answers()).size).toBe(1);
-    expect(() => parseCardDocument("card-0", { ...data, schedule: { ...restored.schedule, version: 2 } })).toThrow();
-    expect(() =>
-      parseCardDocument("card-0", { ...data, schedule: { ...restored.schedule, dueAt: "invalid" } })
-    ).toThrow();
+    expect(() => parseCardStudyState(stateReference().id, { ...data, schemaVersion: 2 })).toThrow();
+    await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
+    await saveStudyOperation(operation({ answeredAt: 602_000 }));
+    expect((await getDoc(stateReference())).data()).toMatchObject({
+      createdAt: 2000,
+      updatedAt: 602_000,
+      fsrs: { reps: 2 },
+    });
   });
 });

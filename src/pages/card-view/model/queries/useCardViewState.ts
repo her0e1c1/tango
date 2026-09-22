@@ -1,4 +1,5 @@
-import { type Card, useCard } from "@/entities/card";
+import { useStudyCards } from "@/entities/card-study-state";
+import type { Card } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 
@@ -6,7 +7,6 @@ const buildCardViewState = (card: Card, deck: Deck, dark: boolean) => {
   const category = getCategory(deck.category, card.tags);
 
   return {
-    schedule: card.schedule,
     text: card.backText,
     category,
     code: isHighlightLanguage(category),
@@ -15,9 +15,9 @@ const buildCardViewState = (card: Card, deck: Deck, dark: boolean) => {
 };
 
 export const useCardViewState = (cardId: string) => {
-  const card = useCard(cardId);
+  const card = useStudyCards().find((candidate) => candidate.id === cardId);
   const deck = useDeck(card?.deckId);
   const preferences = usePreferences();
   if (card == null || deck == null) return;
-  return buildCardViewState(card, deck, preferences.appearance.darkMode);
+  return { ...buildCardViewState(card, deck, preferences.appearance.darkMode), fsrs: card.fsrs };
 };

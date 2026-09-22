@@ -12,8 +12,6 @@ const requiredDocument = {
   createdAt: 1,
   updatedAt: 2,
   deletedAt: null,
-  difficulty: 3,
-  numberOfSeen: 4,
 };
 
 describe("Card document [CARD-VIEW-01]", () => {
@@ -25,21 +23,12 @@ describe("Card document [CARD-VIEW-01]", () => {
     const document = {
       ...requiredDocument,
       id: "legacy-card-a",
-      lastSeenAt: 5,
-      interval: 6,
       url: "https://example.com/card-a",
       startLine: 7,
       endLine: 8,
     };
 
     expect(parseCardDocument("card-a", document)).toEqual(document);
-  });
-
-  it("normalizes a Firestore Timestamp-like value to a Date", () => {
-    const date = new Date(60);
-    const nextSeeingAt = { seconds: 0, nanoseconds: 60_000_000, toDate: () => date };
-
-    expect(parseCardDocument("card-a", { ...requiredDocument, nextSeeingAt }).nextSeeingAt).toBe(date);
   });
 
   it.each([
@@ -53,20 +42,5 @@ describe("Card document [CARD-VIEW-01]", () => {
         documentId: "card-a",
       })
     );
-  });
-
-  it("keeps the collection and document context in parse errors", () => {
-    expect(() => parseCardDocument("card-a", { ...requiredDocument, nextSeeingAt: null })).toThrowError(
-      'Invalid Firestore card document "card-a": nextSeeingAt'
-    );
-  });
-
-  it.each([Number.NaN, Number.POSITIVE_INFINITY, 0, 11])("rejects malformed difficulty %s", (difficulty) => {
-    expect(() => parseCardDocument("card-a", { ...requiredDocument, difficulty })).toThrow();
-  });
-
-  it("rejects a document without difficulty", () => {
-    const { difficulty: _difficulty, ...missingProgress } = requiredDocument;
-    expect(() => parseCardDocument("card-a", missingProgress)).toThrow();
   });
 });

@@ -11,7 +11,7 @@
 ## 共通前提
 
 project `test-study-answer` に実際の `firestore.rules` を読み込む。各ケース前に専用 project を消去し、非匿名認証の UID `answer-owner`、公開 Deck `deck`、Card `card-0`〜`card-9`、未終了の session `session` を準備する。
-Card / Deck store と認証状態も初期化する。4評価の受理済み操作は、StudyProgress の閲覧記録と独立した StudySchedule の FSRS schedule を保持し、同一 batch で保存する。評価によって相対 difficulty は変更しない。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
+Card / Deck store と認証状態も初期化し、本人 UID の CardStudyState を購読する。4評価の受理済み操作は計算済み FSRS を保持し、State・Answer・Session を同一 batch で保存する。Card の内容とメタデータは変更しない。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
 事前データはテスト内で作成し、新しい fixture ファイルは用意しない。共通の実行方法は [README](./README.md) を参照する。
 
 ## テストケース
@@ -20,10 +20,10 @@ Card / Deck store と認証状態も初期化する。4評価の受理済み操�
 | --- | --- | --- |
 | FIRESTORE-STUDY-ANSWER-01 | batch | [4種類の評価を保存し進捗と位置を1回更新する](#firestore-study-answer-01) |
 | FIRESTORE-STUDY-ANSWER-02 | batch | [保存済みの位置から同じ操作を再実行して回答を増やさない](#firestore-study-answer-02) |
-| FIRESTORE-STUDY-ANSWER-03 | write | [保存時の再計算ではなく受理済みの進捗値を使う](#firestore-study-answer-03) |
+| FIRESTORE-STUDY-ANSWER-03 | write | [評価では Card の内容とメタデータを変更しない](#firestore-study-answer-03) |
 | FIRESTORE-STUDY-ANSWER-04 | batch | [10枚への回答を保存して session を完了する](#firestore-study-answer-04) |
 | FIRESTORE-STUDY-ANSWER-05 | batch | [中断後も回答を保持し別 session で同じ Card に回答できる](#firestore-study-answer-05) |
-| FIRESTORE-STUDY-ANSWER-06 | batch | [途中のスキップは回答を作らず進捗と位置を更新する](#firestore-study-answer-06) |
+| FIRESTORE-STUDY-ANSWER-06 | batch | [途中のスキップは Session だけを前進する](#firestore-study-answer-06) |
 | FIRESTORE-STUDY-ANSWER-07 | batch | [最後のスキップは回答を作らず session を完了する](#firestore-study-answer-07) |
 | FIRESTORE-STUDY-ANSWER-08 | write | [ブラウザのオフライン判定だけで保存を止めない](#firestore-study-answer-08) |
 | FIRESTORE-STUDY-ANSWER-09 | batch | [存在しない session と認証変更で部分保存を残さない](#firestore-study-answer-09) |
@@ -31,13 +31,13 @@ Card / Deck store と認証状態も初期化する。4評価の受理済み操�
 | FIRESTORE-STUDY-ANSWER-11 | read | [所有者条件を付けて session・Card・Deck ごとの回答を取得する](#firestore-study-answer-11) |
 | FIRESTORE-STUDY-ANSWER-12 | write | [別 UID の回答作成を拒否する](#firestore-study-answer-12) |
 | FIRESTORE-STUDY-ANSWER-13 | write | [回答形式と参照先の検証は Rules では強制しない](#firestore-study-answer-13) |
-| FIRESTORE-STUDY-ANSWER-14 | write | [回答単独の保存では進捗と session を更新しない](#firestore-study-answer-14) |
-| FIRESTORE-STUDY-ANSWER-15 | write | [境界値の難易度を受理済み進捗として保存できる](#firestore-study-answer-15) |
+| FIRESTORE-STUDY-ANSWER-14 | write | [回答単独の保存では State と Session を更新しない](#firestore-study-answer-14) |
+| FIRESTORE-STUDY-ANSWER-15 | write | [4評価の FSRS を検証して保存する](#firestore-study-answer-15) |
 | FIRESTORE-STUDY-ANSWER-16 | write | [session の所有権とアプリケーションの終了遷移を区別する](#firestore-study-answer-16) |
 | FIRESTORE-STUDY-ANSWER-17 | write | [本人でも保存済み回答を更新・上書き・削除できない](#firestore-study-answer-17) |
 | FIRESTORE-STUDY-ANSWER-18 | read | [存在しない回答 ID の読取を拒否する](#firestore-study-answer-18) |
 | FIRESTORE-STUDY-ANSWER-19 | batch | [公開 Deck でも第三者・匿名・未認証に回答を公開しない](#firestore-study-answer-19) |
-| FIRESTORE-STUDY-ANSWER-20 | batch | [FSRSを復元し部分更新とSkipで維持する](#firestore-study-answer-20) |
+| FIRESTORE-STUDY-ANSWER-20 | batch | [FSRS を復元し本文編集とスキップで維持する](#firestore-study-answer-20) |
 
 <a id="firestore-study-answer-01"></a>
 
@@ -49,7 +49,7 @@ Card / Deck store と認証状態も初期化する。4評価の受理済み操�
 
 Given:
 
-- 本人の10枚の session が位置 `0` で存在する。対象 Card の difficulty は `5`、numberOfSeen は `0` とする。rating は again / hard / good / easy の4通りを使う。
+- 本人の10枚の session が位置 `0` で存在する。対象 Card に State はない。rating は again / hard / good / easy の4通りを使う。
 
 When:
 
@@ -58,7 +58,7 @@ When:
 Then:
 
 - scheduleは同じbatchで保存され、保存済み値は入力scheduleと一致する。
-- 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt と updatedAt は等しい Timestamp になる。Card の numberOfSeen は `1`、lastSeenAt は `2000`、difficulty は元の `5` のままになる。戻り値と保存 session の位置は `1` になる。
+- 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt と updatedAt は等しい Timestamp になる。State の fsrs.reps は `1`、createdAt と updatedAt は `2000` となる。戻り値と保存 session の位置は `1` になる。
 
 <a id="firestore-study-answer-02"></a>
 
@@ -78,29 +78,27 @@ When:
 
 Then:
 
-- `session does not match` を含むエラーになり、回答件数と対象 Card の numberOfSeen はどちらも `1` のままである。
+- `session does not match` を含むエラーになり、回答件数と対象 State の fsrs.reps はどちらも `1` のままである。
 
 <a id="firestore-study-answer-03"></a>
 
-### FIRESTORE-STUDY-ANSWER-03 保存時の再計算ではなく受理済みの進捗値を使う
+### FIRESTORE-STUDY-ANSWER-03 評価では Card の内容とメタデータを変更しない
 
-カテゴリ: `write`
+カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-03] persists accepted progress despite concurrent changes`
+対応テスト: `[FIRESTORE-STUDY-ANSWER-03] leaves Card content and metadata unchanged when rating`
 
 Given:
 
-- difficulty `5`・numberOfSeen `1` を含む回答操作を準備した後、保存先 Card を difficulty `9`・numberOfSeen `20` に変更している。
+- 本人の Card と未評価の State がある（State document は未作成）。
 
 When:
 
-- 準備済みの操作を保存する。
+- 受理した評価操作を保存する。
 
 Then:
 
-- 保存後の difficulty は `5`、numberOfSeen は `1` になる。
-
-複数端末の進捗を加算・マージする保証ではない。
+- Card の保存内容は updatedAt を含めて完全に同じであり、State の createdAt は回答時刻となる。
 
 <a id="firestore-study-answer-04"></a>
 
@@ -138,31 +136,31 @@ Given:
 
 When:
 
-- 別 session で同じ Card の回答を保存する。受理済み進捗は difficulty `3`・numberOfSeen `2` とする。
+- 別 session で同じ Card の回答を保存する。前回保存した FSRS から次の評価を計算する。
 
 Then:
 
-- 回答は合計2件になり、Card の numberOfSeen は `2` になる。
+- 回答は合計2件になり、State の fsrs.reps は `2` になる。
 
 <a id="firestore-study-answer-06"></a>
 
-### FIRESTORE-STUDY-ANSWER-06 途中のスキップは回答を作らず進捗と位置を更新する
+### FIRESTORE-STUDY-ANSWER-06 途中のスキップは Session だけを前進する
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-06] skips with progress but no answer`
+対応テスト: `[FIRESTORE-STUDY-ANSWER-06] skips without a state or answer`
 
 Given:
 
-- 本人の session が位置 `0` にあり、Card の difficulty は `5`、numberOfSeen は `0` である。
+- 本人の session が位置 0 にあり、State はない。
 
 When:
 
-- rating を指定せず操作を保存し、その後、古い位置 `0` の回答操作を保存しようとする。
+- rating のないスキップ操作を保存し、古い位置から評価を試みる。
 
 Then:
 
-- 回答は0件のまま、Card の difficulty は `5`、numberOfSeen は `1`、session の位置は `1` になる。古い位置からの回答はエラーになる。
+- 回答と State は0件、session の位置は1になる。古い位置からの回答は拒否される。
 
 <a id="firestore-study-answer-07"></a>
 
@@ -182,7 +180,7 @@ When:
 
 Then:
 
-- 回答は0件のまま、対象 Card の numberOfSeen は `1`、session の endReason は `completed` になる。
+- 回答は0件のまま、State は作成されず、session の endReason は `completed` になる。
 
 <a id="firestore-study-answer-08"></a>
 
@@ -224,7 +222,7 @@ When:
 
 Then:
 
-- 最初の呼び出しはエラーになり、認証変更後は `user changed` を含むエラーになる。回答は0件、元の Card の numberOfSeen は `0` のままである。
+- 最初の呼び出しはエラーになり、認証変更後は `user changed` を含むエラーになる。回答は0件、State は作成されない。
 
 不存在の検証ではテストの準備処理も対象 session を取得する。アプリケーションが独自の不存在エラーを返す保証ではない。
 
@@ -246,7 +244,7 @@ When:
 
 Then:
 
-- 最初の保存はエラーになり、回答は0件、session の位置と Card の numberOfSeen は `0` のままである。再試行後は同じ操作 ID の回答に answeredAt `2000` の Timestamp が保存される。
+- 最初の保存はエラーになり、回答は0件、session の位置は `0` のままで State は作成されない。再試行後は同じ操作 ID の回答に answeredAt `2000` の Timestamp が保存される。
 
 <a id="firestore-study-answer-11"></a>
 
@@ -314,47 +312,43 @@ Then:
 
 <a id="firestore-study-answer-14"></a>
 
-### FIRESTORE-STUDY-ANSWER-14 回答単独の保存では進捗と session を更新しない
+### FIRESTORE-STUDY-ANSWER-14 回答単独の保存では State と Session を更新しない
 
-カテゴリ: `write`
+カテゴリ: `batch`
 
 対応テスト: `[FIRESTORE-STUDY-ANSWER-14] allows standalone answers without transitions`
 
 Given:
 
-- 本人の Card の numberOfSeen と session の位置は `0` である。
+- 本人の Card に State がなく、session の位置は0である。
 
 When:
 
-- アプリケーションの保存処理を通さず、本人の回答だけを SDK で保存する。
+- アプリ保存処理を通さず SDK で本人の回答だけを保存する。
 
 Then:
 
-- 回答は1件になり、Card の numberOfSeen と session の位置は `0` のままである。
-
-Rules が3種類の document の同時更新を必須にする保証ではない。
+- 回答は1件になり、State はなく session の位置は0のままである。Rules は同時更新自体を強制しない。
 
 <a id="firestore-study-answer-15"></a>
 
-### FIRESTORE-STUDY-ANSWER-15 境界値の難易度を受理済み進捗として保存できる
+### FIRESTORE-STUDY-ANSWER-15 4評価の FSRS を検証して保存する
 
-カテゴリ: `write`
+カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-15] preserves difficulty bounds for $rating`
+対応テスト: `[FIRESTORE-STUDY-ANSWER-15] records valid FSRS state for %s`
 
 Given:
 
-- again / difficulty `10`、easy / difficulty `1` の2通りを用意する。保存先 Card と操作の進捗に同じ難易度を設定する。
+- 未評価の Card に対し again / hard / good / easy の4通りを用意する。
 
 When:
 
-- numberOfSeen `1` と境界値の difficulty を含む操作を保存する。
+- 受理時に計算した FSRS を含む操作を保存し、State document を parser で復元する。
 
 Then:
 
-- 入力した difficulty と numberOfSeen `1` が保存され、回答は1件になる。
-
-このテストは境界内の受理済み値の保存を確認する。範囲外入力の補正・拒否や難易度計算の全境界を保証しない。
+- 保存した FSRS は入力値と一致し、reps は1となる。
 
 <a id="firestore-study-answer-16"></a>
 
@@ -442,23 +436,20 @@ Then:
 
 <a id="firestore-study-answer-20"></a>
 
-### FIRESTORE-STUDY-ANSWER-20 FSRSを復元し部分更新とSkipで維持する
+### FIRESTORE-STUDY-ANSWER-20 FSRS を復元し本文編集とスキップで維持する
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-20] restores FSRS and preserves it across partial edits and skip`
+対応テスト: `[FIRESTORE-STUDY-ANSWER-20] restores FSRS and preserves it across content edits and skip`
 
 Given:
 
-- 本人のCardにlegacy期限とintervalがあり、10枚のsessionの先頭から評価できる。
+- 本人の Card と未評価の session を用意する。
 
 When:
 
-- goodを保存し、Card readerとProgress mapperで復元する。難易度と本文を部分更新する。
-- 同じCardを含む新sessionでSkipする。
+- good を時刻2000で保存し State parser で復元する。本文を編集し、新 session でスキップし、さらに時刻602000で評価する。
 
 Then:
 
-- 初回評価でlegacy nextSeeingAt/intervalを削除し、復元scheduleの全フィールドと次回の計算結果は保存前と一致する。
-- 難易度・本文編集とSkipはscheduleを維持する。Skipでは回答を増やさない。
-- 未対応versionや不正期限の保存データはCard readerの検証エラーとなり、新規として復元しない。
+- 復元した FSRS と次回計算結果は保存前と一致する。本文編集とスキップでは State 全体が変わらず回答も増えない。次回評価後は createdAt: 2000、updatedAt: 602000、reps: 2 となる。未対応 schemaVersion は parser が拒否する。

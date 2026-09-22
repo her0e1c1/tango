@@ -29,6 +29,17 @@ import {
 import * as Uuid from "uuid";
 
 const uuid = Uuid.v4;
+const validFsrs = {
+  state: "review",
+  difficulty: 5,
+  stability: 1,
+  dueAt: 86402000,
+  lastReviewedAt: 2000,
+  reps: 1,
+  lapses: 0,
+  learningSteps: 0,
+  scheduledDays: 1,
+};
 
 describe("Firestore ownership and guest write restrictions", () => {
   let testEnv: RulesTestEnvironment;
@@ -159,8 +170,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         .firestore();
     beforeEach(async () => {
       await createData("deck", "deck", { uid: "owner", isPublic: false });
-      for (const id of ["first", "last"])
-        await createData("card", id, { uid: "owner", deckId: "deck", numberOfSeen: 0 });
+      for (const id of ["first", "last"]) await createData("card", id, { uid: "owner", deckId: "deck" });
       await createData("studySession", "session", {
         uid: "owner",
         deckId: "deck",
@@ -170,12 +180,20 @@ describe("Firestore ownership and guest write restrictions", () => {
         endedAt: null,
       });
     });
-    it("[FIRESTORE-RULES-05] accepts the first and final answer with atomic Card and session updates", async () => {
+    it("[FIRESTORE-RULES-05] accepts the first and final answer with atomic state and session updates", async () => {
       const db = ownerDb();
       for (const [index, cardId] of ["first", "last"].entries()) {
         const batch = writeBatch(db);
         batch.set(doc(db, "studyAnswer", `session-${String(index)}`), answer(cardId));
-        batch.update(doc(db, "card", cardId), { numberOfSeen: 1, lastSeenAt: 2000, updatedAt: 2000 });
+        batch.set(doc(db, "cardStudyState", `5:owner${cardId}`), {
+          schemaVersion: 1,
+          uid: "owner",
+          cardId,
+          deckId: "deck",
+          fsrs: validFsrs,
+          createdAt: 2000,
+          updatedAt: 2000,
+        });
         batch.update(doc(db, "studySession", "session"), {
           currentIndex: 1,
           ...(index === 1 ? { endReason: "completed", endedAt: Timestamp.fromMillis(2000) } : {}),
@@ -207,7 +225,15 @@ describe("Firestore ownership and guest write restrictions", () => {
       await assertFails(getDoc(doc(db, "studyAnswer", "saved")));
       const batch = writeBatch(db);
       batch.set(doc(db, "studyAnswer", "new"), answer());
-      batch.update(doc(db, "card", "first"), { numberOfSeen: 1 });
+      batch.set(doc(db, "cardStudyState", "5:ownerfirst"), {
+        schemaVersion: 1,
+        uid: "owner",
+        cardId: "first",
+        deckId: "deck",
+        fsrs: validFsrs,
+        createdAt: 2000,
+        updatedAt: 2000,
+      });
       batch.update(doc(db, "studySession", "session"), { currentIndex: 1 });
       await assertFails(batch.commit());
     });
@@ -453,6 +479,113 @@ describe("Firestore ownership and guest write restrictions", () => {
         await createData("card", id, { uid: "uid" });
         await assertFails(deleteDoc(doc(db, "card", id)));
       });
+    });
+  });
+  describe("CardStudyState", () => {
+    const state = {
+      schemaVersion: 1,
+      uid: "owner",
+      cardId: "card",
+      deckId: "deck",
+      fsrs: null,
+      createdAt: 1000,
+      updatedAt: 1000,
+    };
+    const ownerDb = () =>
+      testEnv
+        .authenticatedContext("owner", { firebase: { sign_in_provider: "google.com", identities: {} } })
+        .firestore();
+    beforeEach(async () => {
+      await createData("deck", "deck", { uid: "owner", isPublic: true });
+      await createData("card", "card", { uid: "owner", deckId: "deck", deletedAt: null });
+    });
+    it("[FIRESTORE-RULES-41] permits optional owner state and keeps its identity stable", async () => {
+      const db = ownerDb();
+      const reference = doc(db, "cardStudyState", "5:ownercard");
+      await assertSucceeds(getDoc(doc(db, "card", "card")));
+      await assertSucceeds(setDoc(reference, state));
+      await assertSucceeds(getDoc(reference));
+      await assertSucceeds(getDocs(query(firestoreCollection(db, "cardStudyState"), where("uid", "==", "owner"))));
+      await assertSucceeds(updateDoc(reference, { fsrs: validFsrs, updatedAt: 2000 }));
+      await assertFails(updateDoc(reference, { uid: "other" }));
+      await assertFails(updateDoc(reference, { cardId: "other" }));
+      await assertFails(updateDoc(reference, { createdAt: 2000 }));
+      await assertSucceeds(deleteDoc(reference));
+      await assertSucceeds(deleteDoc(reference));
+    });
+    it.each(["other", "anonymous", "unauthenticated"])(
+      "[FIRESTORE-RULES-42] keeps public Card state private from %s",
+      async (actor) => {
+        await createData("cardStudyState", "5:ownercard", state);
+        const db =
+          actor === "unauthenticated"
+            ? testEnv.unauthenticatedContext().firestore()
+            : testEnv
+                .authenticatedContext(actor === "anonymous" ? "owner" : actor, {
+                  firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
+                })
+                .firestore();
+        await assertSucceeds(getDoc(doc(db, "card", "card")));
+        const reference = doc(db, "cardStudyState", "5:ownercard");
+        await assertFails(getDoc(reference));
+        await assertFails(getDocs(query(firestoreCollection(db, "cardStudyState"), where("uid", "==", "owner"))));
+        await assertFails(setDoc(reference, state));
+        await assertFails(updateDoc(reference, { updatedAt: 2000 }));
+        await assertFails(deleteDoc(reference));
+        await assertFails(deleteDoc(doc(db, "cardStudyState", "5:ownermissing-card")));
+      }
+    );
+    it("[FIRESTORE-RULES-43] rejects invalid identity, metadata and unrelated Cards", async () => {
+      const db = ownerDb();
+      const reference = doc(db, "cardStudyState", "5:ownercard");
+      await assertFails(setDoc(doc(db, "cardStudyState", "wrong-id"), state));
+      for (const change of [
+        { schemaVersion: 2 },
+        { id: "duplicate" },
+        { deckId: "other" },
+        { fsrs: 1 },
+        { fsrs: {} },
+        ...[
+          { extra: true },
+          { difficulty: 0 },
+          { difficulty: 11 },
+          { state: "new" },
+          { stability: 0 },
+          { stability: Infinity },
+          { dueAt: -1 },
+          { lastReviewedAt: 1.5 },
+          { reps: 0 },
+          { lapses: 2 },
+          { learningSteps: 0.5 },
+          { scheduledDays: 36501 },
+        ].map((invalid) => ({ fsrs: { ...validFsrs, ...invalid } })),
+      ])
+        await assertFails(setDoc(reference, { ...state, ...change }));
+      await createData("card", "card", { uid: "other", deckId: "deck" });
+      await assertFails(setDoc(reference, state));
+      await createData("card", "card", { uid: "owner", deckId: "deck", deletedAt: 1000 });
+      await assertFails(setDoc(reference, state));
+    });
+    it.each(["difficulty", "numberOfSeen", "firstSeenAt", "lastSeenAt", "nextSeeingAt", "interval", "studySchedule"])(
+      "[FIRESTORE-RULES-44] rejects legacy Card field %s",
+      async (field) => {
+        const db = ownerDb();
+        await assertFails(setDoc(doc(db, "card", "new"), { uid: "owner", deckId: "deck", [field]: 1 }));
+        await assertFails(updateDoc(doc(db, "card", "card"), { [field]: 1 }));
+      }
+    );
+    it("[FIRESTORE-RULES-45] accepts delimiter and Unicode characters in deterministic IDs", async () => {
+      const uid = "a:日😀";
+      const cardId = "b:c😀";
+      const db = testEnv
+        .authenticatedContext(uid, { firebase: { sign_in_provider: "google.com", identities: {} } })
+        .firestore();
+      await createData("deck", "deck", { uid });
+      await createData("card", cardId, { uid, deckId: "deck" });
+      const reference = doc(db, "cardStudyState", `${uid.length}:${uid}${cardId}`);
+      await assertSucceeds(setDoc(reference, { ...state, uid, cardId }));
+      await assertSucceeds(deleteDoc(reference));
+      await assertSucceeds(deleteDoc(reference));
     });
   });
 });

@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import { CardView, FrontText } from "@/entities/card";
-import { DifficultyIndicator } from "@/entities/study-progress";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 import { AppLayout } from "@/widgets/app-layout";
 
@@ -114,13 +113,7 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
             onClick={toggleBackText}
           />
         }
-        cardOverlaySlot={
-          <CardOverlay
-            difficultySlot={<DifficultyIndicator difficulty={query.card.difficulty} />}
-            numberOfSeen={query.card.numberOfSeen}
-            {...(query.card.lastSeenAt !== undefined ? { lastSeenAt: query.card.lastSeenAt } : {})}
-          />
-        }
+        cardOverlaySlot={<CardOverlay fsrs={query.card.fsrs} />}
         backTextSlot={<CardView {...query.card.back} onClick={toggleBackText} variant="bare" />}
         actionSlot={
           (!pageState.showBackText || blocked) && (pageState.swipePending || query.showSkip) ? (

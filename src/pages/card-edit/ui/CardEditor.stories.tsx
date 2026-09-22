@@ -47,7 +47,6 @@ const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEdit
         id: card.id,
         uniqueKey: card.uniqueKey,
         ...(card.createdAt ? { createdAt: card.createdAt } : {}),
-        ...(card.lastSeenAt != null ? { lastSeenAt: card.lastSeenAt } : {}),
       }}
       categories={CATEGORY}
       preview={<BackText {...preview} />}

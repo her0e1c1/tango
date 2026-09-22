@@ -327,7 +327,6 @@ export const resources = {
           uniqueKey: "Unique key",
           id: "ID",
           created: "Created",
-          lastSeen: "Last seen",
         },
         actions: {
           cancel: "Cancel",
@@ -366,39 +365,16 @@ export const resources = {
         },
         closeCard: "Close card",
         sort: { label: "Sort order", standard: "Standard", newest: "Newest added" },
-        bulkDifficulty: {
-          title: "Change difficulty",
-          target_one: "{{count}} visible card",
-          target_other: "{{count}} visible cards",
-          newDifficulty: "New difficulty",
-          success_one: "Set {{count}} card to difficulty {{difficulty}}.",
-          success_other: "Set {{count}} cards to difficulty {{difficulty}}.",
-          partialFailure_one:
-            "Updated {{successCount}} of {{totalCount}}. {{count}} card could not be updated. Try again.",
-          partialFailure_other:
-            "Updated {{successCount}} of {{totalCount}}. {{count}} cards could not be updated. Try again.",
-          dialog: {
-            title: "Change card difficulty?",
-            description_one: "Set {{count}} visible card to difficulty {{difficulty}}.",
-            description_other: "Set {{count}} visible cards to difficulty {{difficulty}}.",
-            cancel: "Cancel",
-            confirm: "Apply change",
-          },
-        },
+
         filters: {
           title: "Filters",
           noFilters: "No filters",
-          difficultyRange: "difficulty {{minimum}}–{{maximum}}",
-          difficultyMinimum: "difficulty ≥ {{minimum}}",
-          difficultyMaximum: "difficulty ≤ {{maximum}}",
           tagCount_one: "{{count}} tag",
           tagCount_other: "{{count}} tags",
           selectedTags: "Selected tags",
         },
         card: {
           notStudied: "not studied yet",
-          studied_one: "studied {{count}} time",
-          studied_other: "studied {{count}} times",
           view: "View {{cardText}}",
           tags: "Tags: {{tags}}",
         },
@@ -423,26 +399,7 @@ export const resources = {
       },
       deckFilter: {
         saveError: "Unable to save filters. Check your connection and change a filter to try again.",
-        difficultyRange: {
-          title: "Difficulty range",
-          clear: "Clear",
-          clearLimits: "limits",
-          separator: "to",
-          minimum: {
-            label: "Minimum",
-            aria: "Minimum difficulty",
-            description: "Include cards at or above this difficulty.",
-          },
-          maximum: {
-            label: "Maximum",
-            aria: "Maximum difficulty",
-            description: "Include cards at or below this difficulty.",
-          },
-          status: {
-            range: "Difficulty range: {{minimum}} to {{maximum}}.",
-          },
-          invalid: "Minimum difficulty must not be greater than maximum difficulty.",
-        },
+
         tagFilter: {
           title: "Tags",
           noFilter: "No filter",
@@ -517,11 +474,7 @@ export const resources = {
           progressValue: "{{current}} of {{total}}",
         },
         cardDetails: {
-          seen_one: "{{count}} time",
-          seen_other: "{{count}} times",
-          seenSince_one: "{{count}} time since {{date}}",
-          seenSince_other: "{{count}} times since {{date}}",
-          lastSeen: "Last studied {{date}}",
+          fsrs: "FSRS D: {{difficulty}} · Last review: {{date}}",
         },
         completion: {
           eyebrow: "Session complete",
@@ -612,7 +565,7 @@ export const resources = {
             playbackControlsUnavailable: "Playback controls are unavailable while the card interval is 0",
             skipControlsVisible: "Hide the currently visible skip control",
             skipControlsHidden: "Show the currently hidden skip control",
-            cardDetails: "Show or hide difficulty and study history",
+            cardDetails: "Show or hide FSRS difficulty and last review",
             exit: "Exit without ending the current study session",
           },
         },
@@ -726,12 +679,7 @@ export const resources = {
         goHome: "Go home",
         goBack: "Go back",
       },
-      difficulty: {
-        aria: "Difficulty {{difficulty}}, {{cue}}",
-        easy: "easy",
-        hard: "hard",
-        neutral: "neutral",
-      },
+
       tag: {
         removeFilter: "Remove {{label}} filter",
       },
@@ -764,7 +712,7 @@ export const resources = {
           },
           showCardDetails: {
             label: "Show card details",
-            help: "Display difficulty and study history during a session",
+            help: "Display FSRS difficulty and last review during a session",
           },
           showSwipeFeedback: {
             label: "Show swipe feedback",
@@ -788,7 +736,7 @@ export const resources = {
           },
           maximumCards: {
             label: "Maximum cards",
-            help: "Limit new study sessions. 0 includes all cards matching difficulty, tags, and any active review schedule.",
+            help: "Limit new study sessions. 0 includes all cards matching tags and any active review schedule.",
             allMatching: "All matching cards",
             value_one: "{{count}} card",
             value_other: "{{count}} cards",
@@ -1145,7 +1093,6 @@ export const resources = {
           uniqueKey: "一意キー",
           id: "ID",
           created: "作成日",
-          lastSeen: "最終学習日",
         },
         actions: {
           cancel: "キャンセル",
@@ -1184,39 +1131,16 @@ export const resources = {
         },
         closeCard: "カードを閉じる",
         sort: { label: "並び順", standard: "標準", newest: "追加が新しい順" },
-        bulkDifficulty: {
-          title: "難易度をまとめて変更",
-          target_one: "表示中のカード{{count}}枚",
-          target_other: "表示中のカード{{count}}枚",
-          newDifficulty: "変更後の難易度",
-          success_one: "{{count}}枚のカードを難易度{{difficulty}}に変更しました。",
-          success_other: "{{count}}枚のカードを難易度{{difficulty}}に変更しました。",
-          partialFailure_one:
-            "{{totalCount}}枚中{{successCount}}枚を更新しました。{{count}}枚を更新できませんでした。もう一度お試しください。",
-          partialFailure_other:
-            "{{totalCount}}枚中{{successCount}}枚を更新しました。{{count}}枚を更新できませんでした。もう一度お試しください。",
-          dialog: {
-            title: "カードの難易度を変更しますか？",
-            description_one: "表示中のカード{{count}}枚を難易度{{difficulty}}に変更します。",
-            description_other: "表示中のカード{{count}}枚を難易度{{difficulty}}に変更します。",
-            cancel: "キャンセル",
-            confirm: "変更を適用",
-          },
-        },
+
         filters: {
           title: "フィルター",
           noFilters: "フィルターなし",
-          difficultyRange: "難易度 {{minimum}}～{{maximum}}",
-          difficultyMinimum: "難易度 ≥ {{minimum}}",
-          difficultyMaximum: "難易度 ≤ {{maximum}}",
           tagCount_one: "{{count}}個のタグ",
           tagCount_other: "{{count}}個のタグ",
           selectedTags: "選択中のタグ",
         },
         card: {
           notStudied: "未学習",
-          studied_one: "{{count}}回学習",
-          studied_other: "{{count}}回学習",
           view: "{{cardText}}を表示",
           tags: "タグ: {{tags}}",
         },
@@ -1241,26 +1165,7 @@ export const resources = {
       },
       deckFilter: {
         saveError: "フィルターを保存できませんでした。接続を確認し、フィルターを変更して再試行してください。",
-        difficultyRange: {
-          title: "難易度範囲",
-          clear: "クリア",
-          clearLimits: "制限",
-          separator: "〜",
-          minimum: {
-            label: "最小",
-            aria: "最小難易度",
-            description: "この難易度以上のカードを含めます。",
-          },
-          maximum: {
-            label: "最大",
-            aria: "最大難易度",
-            description: "この難易度以下のカードを含めます。",
-          },
-          status: {
-            range: "難易度範囲：{{minimum}}〜{{maximum}}。",
-          },
-          invalid: "最小難易度は最大難易度以下にしてください。",
-        },
+
         tagFilter: {
           title: "タグ",
           noFilter: "フィルターなし",
@@ -1335,11 +1240,7 @@ export const resources = {
           progressValue: "{{total}}枚中{{current}}枚目",
         },
         cardDetails: {
-          seen_one: "{{count}}回",
-          seen_other: "{{count}}回",
-          seenSince_one: "{{count}}回（最終学習：{{date}}）",
-          seenSince_other: "{{count}}回（最終学習：{{date}}）",
-          lastSeen: "最終学習：{{date}}",
+          fsrs: "FSRS D: {{difficulty}}・最終評価：{{date}}",
         },
         completion: {
           eyebrow: "セッション完了",
@@ -1430,7 +1331,7 @@ export const resources = {
             playbackControlsUnavailable: "カード間隔が0のため再生コントロールは利用できません",
             skipControlsVisible: "表示中のスキップ操作ボタンを隠す",
             skipControlsHidden: "非表示のスキップ操作ボタンを表示する",
-            cardDetails: "難易度と学習履歴を表示または非表示にする",
+            cardDetails: "FSRS の難易度と最終評価日を表示または非表示にする",
             exit: "現在の学習セッションを終了せずに画面を離れる",
           },
         },
@@ -1544,12 +1445,7 @@ export const resources = {
         goHome: "ホームへ",
         goBack: "戻る",
       },
-      difficulty: {
-        aria: "難易度 {{difficulty}}、{{cue}}",
-        easy: "簡単",
-        hard: "難しい",
-        neutral: "中立",
-      },
+
       tag: {
         removeFilter: "{{label}}フィルターを削除",
       },

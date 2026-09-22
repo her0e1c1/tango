@@ -26,7 +26,7 @@ const projectId = "tango-e2e";
 const firestorePort = process.env.VITE_DB_PORT ?? "8080";
 const firestoreBase = `http://db:${firestorePort}/v1/projects/${projectId}/databases/(default)/documents`;
 
-export type FirestoreCollection = "deck" | "card" | "studyAnswer" | "studySession";
+export type FirestoreCollection = "deck" | "card" | "studyAnswer" | "studySession" | "cardStudyState";
 
 export interface TestNamespace {
   caseId: string;
@@ -250,7 +250,6 @@ const e2eConfig: E2EConfig = {
     showSwipeButtonList: true,
     showPlaybackControls: true,
     showCardDetails: true,
-    showDifficultySlider: false,
     showBackTextSwipeOverlays: false,
     showSkip: true,
     cardSwipeUp: "RateEasy",
@@ -294,6 +293,7 @@ export interface StudySessionFixture {
 }
 
 interface LocalDataFixture {
+  cardStudyStates?: Record<string, unknown>[];
   decks?: Record<string, unknown>[];
   cards?: Record<string, unknown>[];
   sessionsByDeckId?: Record<string, StudySessionFixture>;
@@ -301,7 +301,10 @@ interface LocalDataFixture {
 
 const seedLocalData = async (page: Page, fixture: LocalDataFixture) => {
   if (
-    (fixture.decks?.length ?? 0) + (fixture.cards?.length ?? 0) + Object.keys(fixture.sessionsByDeckId ?? {}).length ===
+    (fixture.cardStudyStates?.length ?? 0) +
+      (fixture.decks?.length ?? 0) +
+      (fixture.cards?.length ?? 0) +
+      Object.keys(fixture.sessionsByDeckId ?? {}).length ===
     0
   )
     return;
@@ -415,6 +418,7 @@ const seedFixtureLocalData = async (page: Page, state: FixtureState, shouldSeed:
   await seedLocalData(page, {
     decks: state.browser.localDecks.map((deck) => ({ ...deck })),
     cards: state.browser.localCards.map((card) => ({ ...card })),
+    cardStudyStates: state.browser.cardStudyStates.map((value) => ({ ...value })),
   });
 };
 
@@ -483,6 +487,11 @@ function createE2EFixture(
     // Seed parent Decks first so every observable intermediate state preserves Card references.
     await Promise.all(namespaced.state.remote.decks.map((deck) => setDocument("deck", deck.id, { ...deck })));
     await Promise.all(namespaced.state.remote.cards.map((card) => setDocument("card", card.id, { ...card })));
+    await Promise.all(
+      namespaced.state.remote.cardStudyStates.map((state) =>
+        setDocument("cardStudyState", `${state.uid.length}:${state.uid}${state.cardId}`, { ...state })
+      )
+    );
   };
 
   const seedPage = async (page: Page, options: FixturePageSeedOptions = {}) => {
@@ -529,6 +538,12 @@ const firestoreValue = (value: unknown): object => {
     return Number.isInteger(value) ? { integerValue: String(value) } : { doubleValue: value };
   }
   if (Array.isArray(value)) return { arrayValue: { values: value.map(firestoreValue) } };
+  if (typeof value === "object")
+    return {
+      mapValue: {
+        fields: Object.fromEntries(Object.entries(value).map(([key, field]) => [key, firestoreValue(field)])),
+      },
+    };
   throw new Error(`Unsupported Firestore fixture value: ${String(value)}`);
 };
 
@@ -538,7 +553,7 @@ export interface FirestoreDocument {
     Record<
       string,
       {
-        mapValue?: { fields?: Record<string, { stringValue?: string }> };
+        mapValue?: { fields?: Record<string, { stringValue?: string; integerValue?: string; doubleValue?: number }> };
         arrayValue?: { values?: Record<string, unknown>[] };
         booleanValue?: boolean;
         doubleValue?: number;
@@ -642,6 +657,10 @@ const seedDeniedWriteTarget = async (collection: FirestoreCollection, id: string
     return;
   }
 
+  if (collection !== "card") {
+    await setDocument(collection, id, { uid });
+    return;
+  }
   const deckId = `${id}-deck`;
   await setDocument("deck", deckId, { id: deckId, uid, name: "Denied E2E Deck" });
   await setDocument("card", id, { id, uid, deckId, frontText: "Denied E2E Card" });

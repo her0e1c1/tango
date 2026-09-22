@@ -1,9 +1,12 @@
 import { useStore } from "zustand";
 
-import { type Card, useCards } from "@/entities/card";
+import { useStudyCards } from "@/entities/card-study-state";
+import type { Card } from "@/entities/card";
+import type { FsrsState } from "@/entities/card-study-state";
+type StudyCard = Card & { fsrs: FsrsState | null };
 import { type Deck, type DeckId, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { classifyStudySchedule } from "@/entities/study-schedule";
+import { classifyFsrsState } from "@/entities/card-study-state";
 import {
   compareActiveDecks,
   groupDecksByStudyStatus,
@@ -17,13 +20,13 @@ import { deckListStore, type DeckListBootstrapStatus } from "../store";
 
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
-function summarizeDeck(cards: Card[], deck: Deck, now: number) {
+function summarizeDeck(cards: StudyCard[], deck: Deck, now: number) {
   const selected = selectStudyCardsWithDeadline(cards, deck, true, now);
   let due = 0;
   let newCount = 0;
   let earliestDueAt: number | undefined;
   for (const card of selected.cards) {
-    const timing = classifyStudySchedule(card, now);
+    const timing = classifyFsrsState(card.fsrs, now);
     if (timing.status === "new") newCount += 1;
     else if (timing.status === "due") {
       due += 1;
@@ -60,13 +63,13 @@ function buildDeckListSections(
     enabled,
   }: {
     decks: Deck[];
-    cards: Card[];
+    cards: StudyCard[];
     sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
     enabled: boolean;
   },
   now: number
 ) {
-  const cardsByDeck = new Map<DeckId, Card[]>();
+  const cardsByDeck = new Map<DeckId, StudyCard[]>();
   for (const card of cards) {
     const group = cardsByDeck.get(card.deckId) ?? [];
     group.push(card);
@@ -100,7 +103,7 @@ function buildDeckListSections(
 }
 
 export const useDeckListState = () => {
-  const cards = useCards();
+  const cards = useStudyCards();
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
   const preferences = usePreferences();

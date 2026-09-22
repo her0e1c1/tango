@@ -16,7 +16,7 @@ export function restoreStudySession(session: StudySession): void {
 
 export function startStudy(
   deckId: string,
-  cards: Parameters<typeof buildStudyCardOrder>[0],
+  cards: { id: string }[],
   preferences: Parameters<typeof buildStudyCardOrder>[1] & { now?: number },
   uid: string
 ): void {
@@ -24,7 +24,11 @@ export function startStudy(
   restoreStudySession({
     sessionId: crypto.randomUUID(),
     deckId,
-    cardOrderIds: buildStudyCardOrder(cards, preferences, now),
+    cardOrderIds: buildStudyCardOrder(
+      cards.map((card) => ({ ...card, fsrs: null })),
+      preferences,
+      now
+    ),
     currentIndex: 0,
     lastStudiedAt: now,
     remote: { uid, startedAt: now },

@@ -168,7 +168,7 @@ const reviewSections: DeckListProps["sections"] = {
   })),
   other: otherItems(fixture.decks.default.slice(3)).map((item) => ({
     ...item,
-    review: { due: 0, new: 0, nextDueAt: fixture.timestamp + 86400000 },
+    review: { due: 0, new: 0, nextDueAt: fixture.timestamp + 86_400_000 },
   })),
   totals: { due: 5, new: 5 },
 };

@@ -1,3 +1,5 @@
+import type { CardStudyStateDocument } from "@/entities/card-study-state";
+import { cardStudyStateId } from "@/entities/card-study-state/api/id";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 /** Test-only build entry sharing the app's SDK instance; never included in a normal release build. */
@@ -15,6 +17,7 @@ import { auth, db } from "@/shared/firebase";
 import { writeLocally } from "@/shared/firestore-write";
 
 interface Seed {
+  cardStudyStates?: Record<string, unknown>[];
   decks?: Record<string, unknown>[];
   cards?: Record<string, unknown>[];
   sessionsByDeckId?: Record<
@@ -27,6 +30,11 @@ export async function seedCache(seed: Seed): Promise<void> {
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error("Authenticate before seeding the cache");
   const documents = [
+    ...(seed.cardStudyStates ?? []).map((state) => ({
+      collection: "cardStudyState",
+      id: cardStudyStateId(uid, String(state.cardId)),
+      data: { ...state, uid },
+    })),
     ...(seed.decks ?? []).map(({ localMode: _mode, ...deck }) => ({
       collection: "deck",
       id: String(deck.id),
@@ -64,7 +72,7 @@ export async function readCache() {
   await auth.authStateReady();
   const uid = auth.currentUser?.uid;
   const snapshots = await Promise.all(
-    ["deck", "card", "studySession"].map((name) =>
+    ["deck", "card", "studySession", "cardStudyState"].map((name) =>
       getDocsFromCache(query(collection(db, name), where("uid", "==", uid ?? "")))
     )
   );
@@ -89,7 +97,8 @@ export async function readCache() {
       lastStudiedAt: (data.updatedAt as Timestamp).toMillis(),
     };
   }
-  return { decks, cards, sessionsByDeckId };
+  const cardStudyStates = snapshots[3]?.docs.map((document) => document.data() as CardStudyStateDocument) ?? [];
+  return { decks, cards, sessionsByDeckId, cardStudyStates };
 }
 
 export async function waitForCacheSync(): Promise<void> {

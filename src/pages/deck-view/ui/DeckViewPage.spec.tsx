@@ -1,3 +1,5 @@
+import { seedCardStudyState } from "@/test/studyStateFixtures";
+import { clearCardStudyStates } from "@/entities/card-study-state";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { getI18n } from "react-i18next";
@@ -21,6 +23,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: "viewer" }) }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
+  useCards: () => data.cards,
   useCardsByDeckId: () => ({ cards: data.cards, tags: [] }),
 }));
 vi.mock("@/entities/deck", async (importOriginal) => ({
@@ -59,6 +62,7 @@ describe("DECK-NAVIGATION-03 DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATI
   afterEach(() => vi.useRealTimers());
 
   beforeEach(() => {
+    clearCardStudyStates();
     data.deck = createLocalDeck({ id: "deck-1", name: "View deck", category: "English" });
     data.cards = [
       createLocalCard({
@@ -138,11 +142,9 @@ describe("DECK-NAVIGATION-03 DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATI
     expect(screen.getByRole("heading", { name: "Decks" })).toBeVisible();
   });
 
-  it("uses pending filter selections with the same difficulty and tag rules", () => {
-    data.pendingFilter = { difficultyMin: 3, difficultyMax: 5, selectedTags: ["target"], tagAndFilter: false };
-    data.cards.push(
-      createLocalCard({ id: "excluded", deckId: "deck-1", frontText: "Excluded", difficulty: 2, tags: ["target"] })
-    );
+  it("uses pending filter selections with the same tag rules", () => {
+    data.pendingFilter = { selectedTags: ["target"], tagAndFilter: false };
+    data.cards.push(createLocalCard({ id: "excluded", deckId: "deck-1", frontText: "Excluded", tags: ["other"] }));
     renderPage();
     expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
@@ -150,7 +152,7 @@ describe("DECK-NAVIGATION-03 DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATI
 
   it("excludes future review cards when the review schedule is enabled", () => {
     data.preferences = createPreferences({ useCardInterval: true });
-    data.cards[0] = createLocalCard({ ...data.cards[0], nextSeeingAt: new Date(Date.now() + 86_400_000) });
+    seedCardStudyState(data.cards[0]?.id ?? "missing", Date.now() + 86_400_000);
     renderPage();
     expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
@@ -264,3 +266,5 @@ describe("DECK-NAVIGATION-03 DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATI
     expect(screen.queryByRole("button", { name: "Card front" })).not.toBeInTheDocument();
   });
 });
+
+vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => data.cards }));

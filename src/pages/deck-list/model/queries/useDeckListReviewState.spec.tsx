@@ -1,3 +1,5 @@
+import { seedCardStudyState } from "@/test/studyStateFixtures";
+import { clearCardStudyStates } from "@/entities/card-study-state";
 import "@/test/mockFirestorePersistence";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -22,17 +24,19 @@ vi.mock("@/entities/study-session", async (original) => ({
   useStudySessions: () => input.sessions,
 }));
 
-function card(deckId: string, nextSeeingAt?: number, overrides: Partial<Card> = {}) {
+function card(deckId: string, dueAt?: number, overrides: Partial<Card> = {}) {
+  const id = crypto.randomUUID();
+  if (dueAt !== undefined) seedCardStudyState(id, dueAt, "user-id", deckId);
   return createCard({
-    id: `${deckId}-${String(input.cards.length)}`,
+    id,
     deckId,
-    ...(nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(nextSeeingAt) }),
     ...overrides,
   });
 }
 
 describe("DECK-NAVIGATION-12 DECK-NAVIGATION-13 held review counts", () => {
   beforeEach(() => {
+    clearCardStudyStates();
     vi.useFakeTimers();
     vi.setSystemTime(1000);
     input.preferences = createPreferences({ useCardInterval: true, maxNumberOfCardsToLearn: 1, shuffled: true });
@@ -81,26 +85,19 @@ describe("DECK-NAVIGATION-12 DECK-NAVIGATION-13 held review counts", () => {
     expect(input).toEqual(before);
   });
 
-  it.each([false, true])(
-    "applies saved difficulty and tag filters (AND=%s) without maximum or shuffle",
-    (tagAndFilter) => {
-      input.sessions = {};
-      input.decks = [
-        createDeck({ id: "filter", selectedTags: ["a", "b"], tagAndFilter, difficultyMin: 3, difficultyMax: 7 }),
-      ];
-      input.cards = [
-        card("filter", 1000, { tags: ["a", "b"] }),
-        card("filter", undefined, { tags: ["a", "b"], numberOfSeen: 8 }),
-        card("filter", undefined, { tags: ["a"] }),
-        card("filter", 1000, { tags: ["a", "b"], difficulty: 2 }),
-        card("filter", 1000, { tags: ["a", "b"], difficulty: 8 }),
-        card("filter", 1500, { tags: ["other"] }),
-      ];
-      const { result } = renderHook(useDeckListState);
-      expect(result.current.totals).toEqual({ due: 1, new: tagAndFilter ? 1 : 2 });
-      expect(result.current.nextDueAt).toBeUndefined();
-    }
-  );
+  it.each([false, true])("applies saved tag filters (AND=%s) without maximum or shuffle", (tagAndFilter) => {
+    input.sessions = {};
+    input.decks = [createDeck({ id: "filter", selectedTags: ["a", "b"], tagAndFilter })];
+    input.cards = [
+      card("filter", 1000, { tags: ["a", "b"] }),
+      card("filter", undefined, { tags: ["a", "b"] }),
+      card("filter", undefined, { tags: ["a"] }),
+      card("filter", 1500, { tags: ["other"] }),
+    ];
+    const { result } = renderHook(useDeckListState);
+    expect(result.current.totals).toEqual({ due: 1, new: tagAndFilter ? 1 : 2 });
+    expect(result.current.nextDueAt).toBeUndefined();
+  });
 
   it("refreshes all decks at deadlines with one timer and releases it on unmount", () => {
     const { result, unmount } = renderHook(useDeckListState);
@@ -138,27 +135,6 @@ describe("DECK-NAVIGATION-12 DECK-NAVIGATION-13 held review counts", () => {
     expect(result.current.other).toHaveLength(8);
     expect(result.current.other.every((item) => item.review === undefined)).toBe(true);
   });
-
-  it("uses a valid schedule before legacy dates and never infers new from review count", () => {
-    input.cards = [
-      card("new", 500, {
-        schedule: {
-          version: 1,
-          state: "review",
-          dueAt: 2000,
-          stability: 1,
-          difficulty: 5,
-          lastReviewedAt: 0,
-          reps: 1,
-          lapses: 0,
-          elapsedDays: 0,
-          scheduledDays: 1,
-          learningSteps: 0,
-        },
-      }),
-    ];
-    const { result } = renderHook(useDeckListState);
-    expect(result.current.totals).toEqual({ due: 0, new: 0 });
-    expect(result.current.nextDueAt).toBe(2000);
-  });
 });
+
+vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => input.cards }));

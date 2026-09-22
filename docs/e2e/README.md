@@ -75,7 +75,7 @@
 | DECK-NAVIGATION-02 | read | [存在しない Deck から復帰できる](./deck-navigation.md#deck-navigation-02) |
 | DECK-NAVIGATION-03 | read | [remote Deck を学習データを変更せずに閲覧できる](./deck-navigation.md#deck-navigation-03) |
 | DECK-NAVIGATION-04 | read | [local-only Deck の閲覧位置を保存せずに再入場できる](./deck-navigation.md#deck-navigation-04) |
-| DECK-NAVIGATION-05 | write | [現在の難易度と tag filter に一致する全 Card を標準順で閲覧できる](./deck-navigation.md#deck-navigation-05) |
+| DECK-NAVIGATION-05 | write | [現在のtag filter に一致する全 Card を標準順で閲覧できる](./deck-navigation.md#deck-navigation-05) |
 | DECK-NAVIGATION-06 | read | [復習期日の設定を閲覧対象へ反映できる](./deck-navigation.md#deck-navigation-06) |
 | DECK-NAVIGATION-07 | read | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](./deck-navigation.md#deck-navigation-07) |
 | DECK-NAVIGATION-08 | read | [1件の Card の長い解答を touch で閲覧して終了できる](./deck-navigation.md#deck-navigation-08) |
@@ -143,16 +143,9 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| CARD-LIST-ACTIONS-01 | write | [Card の右 swipe で difficulty を下げられる](./card-list-actions.md#card-list-actions-01) |
-| CARD-LIST-ACTIONS-02 | write | [Card の左 swipe で difficulty を上げられる](./card-list-actions.md#card-list-actions-02) |
-| CARD-LIST-ACTIONS-03 | write | [difficulty と tag の filter を保存して Card 一覧へ反映できる](./card-list-actions.md#card-list-actions-03) |
-| CARD-LIST-ACTIONS-04 | write | [Card 一覧の difficulty 保存失敗後に再試行できる](./card-list-actions.md#card-list-actions-04) |
-| CARD-LIST-ACTIONS-05 | batch | [表示中の Card の difficulty をまとめて変更できる](./card-list-actions.md#card-list-actions-05) |
-| CARD-LIST-ACTIONS-06 | batch | [Card の一括 difficulty 変更を部分失敗後に再試行できる](./card-list-actions.md#card-list-actions-06) |
-| CARD-LIST-ACTIONS-07 | write | [退出後の Card 更新結果を適切に扱う](./card-list-actions.md#card-list-actions-07) |
-| CARD-LIST-ACTIONS-08 | write | [再訪後の Card 更新を古い更新の完了から保護する](./card-list-actions.md#card-list-actions-08) |
-| CARD-LIST-ACTIONS-09 | read | [Card を追加が新しい順に表示できる](./card-list-actions.md#card-list-actions-09) |
-| CARD-LIST-ACTIONS-10 | read | [Card の表示順を標準へ戻せる](./card-list-actions.md#card-list-actions-10) |
+| CARD-LIST-ACTIONS-01 | write | [tag の filter を保存して Card 一覧へ反映できる](./card-list-actions.md#card-list-actions-01) |
+| CARD-LIST-ACTIONS-02 | read | [Card を追加が新しい順に表示できる](./card-list-actions.md#card-list-actions-02) |
+| CARD-LIST-ACTIONS-03 | read | [Card の表示順を標準へ戻せる](./card-list-actions.md#card-list-actions-03) |
 
 ### Study Actions
 
