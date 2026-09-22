@@ -1,8 +1,8 @@
 import { documentId, getDocument, listDocuments, type StudySessionFixture } from "./fixtures";
 
-export const readProgress = async (_uid: string, cardId: string) => {
-  const state = await getDocument("card", cardId);
-  return { reps: Number(state?.fields.fsrs?.mapValue?.fields?.reps?.integerValue ?? 0) };
+export const readProgress = async (cardId: string) => {
+  const card = await getDocument("card", cardId);
+  return { reps: Number(card?.fields.fsrs?.mapValue?.fields?.reps?.integerValue ?? 0) };
 };
 
 // Only linked-user sessions can be observed through the emulator. Anonymous tests use the Study UI.

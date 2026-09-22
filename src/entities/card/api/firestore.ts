@@ -1,6 +1,7 @@
 import type { CardCreate, CardCreateInput, CardEdit, DeleteCardInput, EditCardInput, RemoteCard } from "../model/types";
 
-import { collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { FirebaseError } from "firebase/app";
+import { getDocFromCache, collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 
 import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
@@ -30,11 +31,20 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void, onR
     onError
   );
 
-/** Writes a new physical Card document with synchronized creation and update timestamps. */
+/** Prepared imports retry the same IDs; a locally saved Card must never be initialized again. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
+  const reference = doc(db, CARD_COLLECTION, card.id);
+  const existing = await getDocFromCache(reference).catch((error: unknown) => {
+    if (error instanceof FirebaseError && error.code === "unavailable") return undefined;
+    throw error;
+  });
+  if (existing?.exists()) {
+    const saved = parseCardDocument(card.id, existing.data());
+    if (saved.uid !== card.uid || saved.deckId !== card.deckId) throw new Error("Card identity does not match");
+    return;
+  }
   const createdAt = Date.now();
   const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: createdAt } satisfies RemoteCard);
-  const reference = doc(db, CARD_COLLECTION, card.id);
   await writeLocally(card.uid, [reference], () => setDoc(reference, document));
 };
 

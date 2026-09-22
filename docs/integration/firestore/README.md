@@ -114,7 +114,7 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-CARD-01 | write | [Card の保存対象だけを新規作成できる](./card.md#firestore-card-01) |
 | FIRESTORE-CARD-02 | write | [Card の編集で作成日時と対象外フィールドを維持できる](./card.md#firestore-card-02) |
 | FIRESTORE-CARD-03 | write | [Card 作成時に旧個人学習フィールドを除外する](./card.md#firestore-card-03) |
-| FIRESTORE-CARD-04 | write | [一括保存 API で新規 Card を保存できる](./card.md#firestore-card-04) |
+| FIRESTORE-CARD-04 | write | [一括作成の再試行で既存 Card の学習状態を維持する](./card.md#firestore-card-04) |
 | FIRESTORE-CARD-05 | batch | [一部の入力失敗を返しつつ有効な Card を保存できる](./card.md#firestore-card-05) |
 | FIRESTORE-CARD-06 | write | [保存計画後に物理削除された Card を編集で再作成しない](./card.md#firestore-card-06) |
 | FIRESTORE-CARD-07 | write | [Card の削除日時を保存し本文を維持できる](./card.md#firestore-card-07) |

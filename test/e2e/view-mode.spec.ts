@@ -89,12 +89,12 @@ for (const scenario of [
     await page.setViewportSize({ width: 320, height: 568 });
     await fixture.apply(page);
     await page.goto(`/deck/${deck.id}/${scenario.route}`);
-    const before = await readProgress(fixture.user().uid, card.id);
+    const before = await readProgress(card.id);
     await enterViewMode(page);
     await readLongFront(page);
     await expect(page).toHaveURL(`/deck/${deck.id}/${scenario.route}`);
     await expect(page.getByRole("region", { name: "Card front text" })).toContainText(card.frontText);
-    expect(await readProgress(fixture.user().uid, card.id)).toEqual(before);
+    expect(await readProgress(card.id)).toEqual(before);
     if (scenario.route === "study") {
       expect((await readSession(fixture.user().uid, deck.id))?.currentIndex).toBe(0);
       const viewModeButton = page.getByRole("button", { name: "View mode", exact: true });
@@ -160,7 +160,7 @@ for (const scenario of [
     const first = fixture.card("card-1");
     await fixture.apply(page, { preferences: { study: { cardInterval: 1 }, controls: { viewMode: true } } });
     await page.goto(`/deck/${deck.id}/${scenario.route}`);
-    const before = await readProgress(fixture.user().uid, first.id);
+    const before = await readProgress(first.id);
     await page.getByRole("button", { name: scenario.next, exact: true }).click();
     const surface = page.getByRole("region", { name: "Card front text" });
     await expect(surface).toContainText(fixture.card("card-2").frontText);
@@ -169,8 +169,8 @@ for (const scenario of [
     await expect(surface).toContainText(fixture.card("card-3").frontText);
     await page.getByRole("button", { name: "Pause", exact: true }).click();
     await expect.poll(() => readViewMode(page)).toBe(true);
-    if (scenario.route === "view") expect(await readProgress(fixture.user().uid, first.id)).toEqual(before);
-    else await expect.poll(() => readProgress(fixture.user().uid, first.id)).toEqual({ ...before, reps: 1 });
+    if (scenario.route === "view") expect(await readProgress(first.id)).toEqual(before);
+    else await expect.poll(() => readProgress(first.id)).toEqual({ ...before, reps: 1 });
   });
 }
 

@@ -1,4 +1,4 @@
-import { useCards, useCardsByDeckId } from "@/entities/card";
+import { useCardsByDeckId } from "@/entities/card";
 import type { DeckId } from "@/entities/deck";
 import type { DeckFilterValues } from "@/features/deck-filter";
 import { usePreferences } from "@/entities/preference";
@@ -7,8 +7,7 @@ import { selectStudyCardsWithDeadline } from "@/entities/study-session";
 
 export const useStudySessionStartState = (deckId: DeckId, filter: DeckFilterValues) => {
   const preferences = usePreferences();
-  const { tags } = useCardsByDeckId(deckId);
-  const deckCards = useCards().filter((card) => card.deckId === deckId);
+  const { cards: deckCards, tags } = useCardsByDeckId(deckId);
 
   const { cards } = useDeadlineQuery(selectStudyCardsWithDeadline, [
     deckCards,

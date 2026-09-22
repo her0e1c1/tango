@@ -131,7 +131,7 @@ describe("firestore/card", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("numberOfSeen");
   });
 
-  it("[FIRESTORE-CARD-04] should upsert a complete card", async () => {
+  it("[FIRESTORE-CARD-04] preserves a rated Card when retrying a prepared create", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
 
@@ -140,6 +140,13 @@ describe("firestore/card", { retry: 3 }, () => {
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...c, createdAt: expect.any(Number), updatedAt: expect.any(Number) });
     expect(data?.createdAt).toBe(data?.updatedAt);
+    const reference = doc(db, "card", c.id);
+    await updateDoc(reference, { fsrs: calculateFsrsState(null, "good", 1000) });
+    const rated = (await getDoc(reference)).data();
+
+    await mutateCards("uid", [{ kind: "create", card: c }]);
+
+    expect((await getDoc(reference)).data()).toEqual(rated);
   });
 
   it("[FIRESTORE-CARD-05] reports failed imported Cards while persisting valid Cards", async () => {
