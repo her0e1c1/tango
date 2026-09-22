@@ -139,12 +139,26 @@ function testIds(file: string): Set<string> {
   return ids;
 }
 
-// Read explicit CSF properties, not arbitrary spreads or imported/factory-generated stories.
-function properties(node: ts.Node | undefined): Map<string, ts.Expression> | undefined {
+// Resolve only earlier, same-file object spreads; never load imports or evaluate factories.
+function properties(
+  node: ts.Node | undefined,
+  objects: ReadonlyMap<string, Map<string, ts.Expression> | undefined>
+): Map<string, ts.Expression> | undefined {
   const object = unwrap(node);
-  if (!object || !ts.isObjectLiteralExpression(object) || object.properties.some(ts.isSpreadAssignment)) return;
-  const entries = object.properties.filter(ts.isPropertyAssignment);
-  return new Map(entries.map(({ name, initializer }) => [name.getText().replace(/["']/gu, ""), initializer]));
+  if (!object || !ts.isObjectLiteralExpression(object)) return;
+  const result = new Map<string, ts.Expression>();
+  for (const property of object.properties) {
+    if (ts.isSpreadAssignment(property)) {
+      const inherited = ts.isIdentifier(property.expression) ? objects.get(property.expression.text) : undefined;
+      if (!inherited) return;
+      for (const [name, value] of inherited) result.set(name, value);
+    } else if (ts.isPropertyAssignment(property) && !ts.isComputedPropertyName(property.name)) {
+      result.set(property.name.getText().replace(/["']/gu, ""), property.initializer);
+    } else {
+      return;
+    }
+  }
+  return result;
 }
 
 function stringList(node: ts.Node | undefined): (string | undefined)[] {
@@ -158,15 +172,18 @@ function storyExports(file: string): Set<string> {
   const source = parse(file);
   const variables = source.statements.filter(ts.isVariableStatement);
   const declarations = variables.flatMap((statement) => [...statement.declarationList.declarations]);
-  const values = new Map(declarations.map(({ name, initializer }) => [name.getText(), initializer]));
+  const objects = new Map<string, Map<string, ts.Expression> | undefined>();
+  for (const { name, initializer } of declarations) objects.set(name.getText(), properties(initializer, objects));
   const defaultExport = source.statements.find(ts.isExportAssignment)?.expression;
-  const metaValue = defaultExport && ts.isIdentifier(defaultExport) ? values.get(defaultExport.text) : defaultExport;
-  const meta = properties(metaValue);
+  const meta =
+    defaultExport && ts.isIdentifier(defaultExport)
+      ? objects.get(defaultExport.text)
+      : properties(defaultExport, objects);
   const stories = new Set<string>();
   for (const statement of variables) {
     if (!statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)) continue;
     for (const declaration of statement.declarationList.declarations) {
-      const story = properties(declaration.initializer);
+      const story = objects.get(declaration.name.getText());
       if (!story || !meta) continue;
       const name = declaration.name.getText();
       const tags = ["test", ...stringList(meta.get("tags")), ...stringList(story.get("tags"))];
