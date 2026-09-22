@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fsrsStateSchema } from "./fsrs";
 
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
@@ -36,6 +37,7 @@ const cardCreateFieldsSchema = editableCardFieldsSchema.extend({
 export const cardCreateSchema = cardCreateFieldsSchema.extend({ uid: cardUidSchema });
 
 export const cardSchema = cardCreateSchema.extend({
+  fsrs: fsrsStateSchema.nullable(),
   createdAt: z.number(),
   updatedAt: z.number(),
 });

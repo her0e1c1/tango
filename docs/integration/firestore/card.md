@@ -10,7 +10,7 @@ Card 内容の書込範囲、部分失敗、論理削除を確認する。
 
 ## 共通前提
 
-本人の非匿名認証 UID は `uid` とする。作成・更新対象には本人所有の親 Deck を用意し、各ケースで別の ID を使う。個人学習状態は Card の保存値に含めない。
+本人の非匿名認証 UID は `uid` とする。作成・更新対象には本人所有の親 Deck を用意し、各ケースで別の ID を使う。Card.fsrs に学習状態を保存し、新規作成では null とする。
 詳細な実行・cleanup の前提は [README](./README.md) を参照する。
 
 ## テストケース
@@ -46,7 +46,7 @@ When:
 
 Then:
 
-- 指定した ID・UID・親 Deck ID・本文・tags・uniqueKey を保存する。`deletedAt` は `null` である。個人学習状態は Card に保存しない。
+- 指定した ID・UID・親 Deck ID・本文・tags・uniqueKey を保存する。`deletedAt` は `null` である。fsrs は null である。
 - `createdAt` と `updatedAt` は同じ数値である。
 - `currentIndex` と `cardOrderIds` は保存しない。
 
@@ -60,11 +60,11 @@ Then:
 
 Given:
 
-- 本人の親 Deck と Card が存在し、Card の作成直後の保存値を取得している。
+- 本人の親 Deck と Card が存在し、Card に有効な FSRS を保存して値を取得している。
 
 When:
 
-- frontText を `updated` に変更する。入力に `currentIndex: 1` と `cardOrderIds: ["card-1"]` を混在させて `editCard` を実行する。
+- frontText を `updated` に変更する。入力に `currentIndex: 1` と `cardOrderIds: ["card-1"]` を混在させて `editCard` と既存 Card の `mutateCards` 更新を順に実行する。
 
 Then:
 
@@ -81,7 +81,7 @@ Then:
 
 Given:
 
-- 本人の親 Deck があり、Card 内容と旧 difficulty、numberOfSeen を含む入力を用意する。
+- 本人の親 Deck があり、Card 内容と評価済み FSRS、旧 difficulty、numberOfSeen を含む複製元の入力を用意する。
 
 When:
 
@@ -89,9 +89,9 @@ When:
 
 Then:
 
-- 保存した Card に difficulty と numberOfSeen が含まれない。
+- 保存した Card に difficulty と numberOfSeen が含まれず、fsrs は null となる。
 
-これは Adapter の入力処理の検証であり、直接 SDK の拒否は Rules 仕様で確認する。State document が作成されていないことは、このケースの assertion では直接確認していない。
+これは Adapter の入力処理の検証であり、直接 SDK の拒否は Rules 仕様で確認する。新規 ID の Card に複製元の学習状態を引き継がない。
 
 <a id="firestore-card-04"></a>
 

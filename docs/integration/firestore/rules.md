@@ -21,7 +21,7 @@
 | FIRESTORE-RULES-02 | batch | [公開 Deck でも他ユーザー・匿名・未認証から session にアクセスできない](#firestore-rules-02) |
 | FIRESTORE-RULES-03 | write | [本人でも session の所有者変更と物理削除はできない](#firestore-rules-03) |
 | FIRESTORE-RULES-04 | read | [削除済みの公開 Deck と Card を第三者が取得できない](#firestore-rules-04) |
-| FIRESTORE-RULES-05 | batch | [回答作成と State・session 更新を同じ batch で許可する](#firestore-rules-05) |
+| FIRESTORE-RULES-05 | batch | [回答作成と Card.fsrs・session 更新を同じ batch で許可する](#firestore-rules-05) |
 | FIRESTORE-RULES-06 | write | [回答 ID と完了後の回答順序はアプリケーションの責務とする](#firestore-rules-06) |
 | FIRESTORE-RULES-07 | write | [保存済みの回答履歴は本人でも更新・削除できない](#firestore-rules-07) |
 | FIRESTORE-RULES-08 | batch | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](#firestore-rules-08) |
@@ -57,11 +57,11 @@
 | FIRESTORE-RULES-38 | write | [未認証による Card の作成を拒否する](#firestore-rules-38) |
 | FIRESTORE-RULES-39 | write | [未認証による Card の更新を拒否する](#firestore-rules-39) |
 | FIRESTORE-RULES-40 | write | [未認証による Card の物理削除を拒否する](#firestore-rules-40) |
-| FIRESTORE-RULES-41 | write | [本人が任意の状態を作成・読取・更新・削除でき、同一性は変更できない](#firestore-rules-41) |
-| FIRESTORE-RULES-42 | write | [公開 Card の State も本人以外はアクセスできない](#firestore-rules-42) |
-| FIRESTORE-RULES-43 | write | [状態の同一性・メタデータ・所有 Card を検証する](#firestore-rules-43) |
+| FIRESTORE-RULES-41 | write | [本人の FSRS 更新を許可し Card の同一性を維持する](#firestore-rules-41) |
+| FIRESTORE-RULES-42 | write | [公開 Card の FSRS を公開し他人の書込を拒否する](#firestore-rules-42) |
+| FIRESTORE-RULES-43 | write | [FSRS 外形と所有権・削除状態を確認する](#firestore-rules-43) |
 | FIRESTORE-RULES-44 | write | [旧個人学習フィールドを Card に書き戻せない](#firestore-rules-44) |
-| FIRESTORE-RULES-45 | write | [区切り文字と Unicode を含む決定的 ID を許可する](#firestore-rules-45) |
+| FIRESTORE-RULES-45 | write | [評価更新で物理削除 Card を再作成しない](#firestore-rules-45) |
 
 <a id="firestore-rules-01"></a>
 
@@ -152,7 +152,7 @@ Then:
 
 <a id="firestore-rules-05"></a>
 
-### FIRESTORE-RULES-05 回答作成と State・session 更新を同じ batch で許可する
+### FIRESTORE-RULES-05 回答作成と Card.fsrs・session 更新を同じ batch で許可する
 
 カテゴリ: `batch`
 
@@ -165,7 +165,7 @@ Given:
 
 When:
 
-- 最初と最後の Card について、回答作成・CardStudyState 更新・session の位置更新を1つの SDK batch に入れて commit する。最後の batch には completed と endedAt も含める。
+- 最初と最後の Card について、回答作成・Card.fsrs 更新・session の位置更新を1つの SDK batch に入れて commit する。最後の batch には completed と endedAt も含める。
 - 各回答を本人として get する。
 
 Then:
@@ -231,7 +231,7 @@ Given:
 
 When:
 
-- 回答を get する。続いて回答作成・CardStudyState への書き込み・session 更新を含む batch を commit する。Card 自体は更新しない。
+- 回答を get する。続いて回答作成・Card.fsrs への書き込み・session 更新を含む batch を commit する。Card の fsrs と updatedAt を更新する。
 
 Then:
 
@@ -358,7 +358,7 @@ Given:
 
 When:
 
-- UID `uid` と親 deckId を指定して `setDoc` で作成する。
+- UID `uid`、親 deckId、fsrs: null、createdAt: 0、deletedAt: null を指定して `setDoc` で作成する。
 
 Then:
 
@@ -375,12 +375,12 @@ Then:
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
-- Card に `uid: "uid"` を事前保存する。
+- Card に uid、親 deckId、fsrs: null、createdAt: 0、deletedAt: null を事前保存する。
 - 親 Deck は UID `uid` が所有し、書込後の Card の deckId はその親を参照する。
 
 When:
 
-- UID を維持し、本人の親 Deck ID を `updateDoc` で保存する。
+- UID と親 Deck を維持し、frontText を `Updated` に更新する。
 
 Then:
 
@@ -913,54 +913,51 @@ Then:
 
 <a id="firestore-rules-41"></a>
 
-### FIRESTORE-RULES-41 本人が任意の状態を作成・読取・更新・削除でき、同一性は変更できない
+### FIRESTORE-RULES-41 本人の FSRS 更新を許可し Card の同一性を維持する
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-41] permits optional owner state and keeps its identity stable`
+対応テスト: `[FIRESTORE-RULES-41] permits owner FSRS updates and preserves Card identity`
 
 Given:
 
-- State がない本人所有の Card がある。
+- 本人の Deck と fsrs: null、createdAt: 1000 の Card がある。
 
 When:
 
-- Card を単体取得し、fsrs: null の State を作成して単体取得・本人 UID 条件付き query を行い、有効な FSRS へ更新する。
-- UID・Card ID・作成日時の変更を試み、State の削除と再削除を行う。
+- Card の単体・本人 UID query 読取、FSRS 更新、UID・Deck・作成日時変更、物理削除を試す。
 
 Then:
 
-- Card の読取と、State の作成・単体取得・query・FSRS 更新・削除は許可される。
-- UID・Card ID・作成日時の変更は拒否される。State がない場合の削除も no-op として許可する。
+- 読取・FSRS 更新・削除を許可し、UID・Deck・作成日時変更は拒否する。
 
 <a id="firestore-rules-42"></a>
 
-### FIRESTORE-RULES-42 公開 Card の State も本人以外はアクセスできない
+### FIRESTORE-RULES-42 公開 Card の FSRS を公開し他人の書込を拒否する
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-42] keeps public Card state private from %s`
+対応テスト: `[FIRESTORE-RULES-42] exposes public Card FSRS but denies writes from %s`
 
 Given:
 
-- 公開 Card と本人の State がある。
+- 公開 Deck の評価済み Card がある。
 
 When:
 
-- 他ユーザー・同一 UID の匿名・未認証で Card の単体読取と、State の単体・一覧読取、書込・更新・削除を試みる。
-- 存在しない State の削除も試みる。
+- 他ユーザー・同一 UID の匿名・未認証で Card を読み、置換・FSRS 更新・削除を試す。
 
 Then:
 
-- Card の単体読取は許可されるが、試みた State への全操作は拒否される。既存 State と未作成 State のどちらも、本人以外による削除は拒否される。
+- 全員が保存された FSRS を取得できる。全ての書込は拒否される。
 
 <a id="firestore-rules-43"></a>
 
-### FIRESTORE-RULES-43 状態の同一性・メタデータ・所有 Card を検証する
+### FIRESTORE-RULES-43 FSRS 外形と所有権・削除状態を確認する
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-43] rejects invalid identity, metadata and unrelated Cards`
+対応テスト: `[FIRESTORE-RULES-43] rejects invalid FSRS shape and foreign or deleted Cards`
 
 Given:
 
@@ -968,13 +965,11 @@ Given:
 
 When:
 
-- 異なる document ID、version 2、重複 id、異なる Deck、非 map の FSRS、文字列の作成日時、小数の更新日時、他人所有または削除済み Card の State を保存する。
-- 本人の正常な Card に、空 map、難易度 0・無限大 stability を持つ FSRS、負の作成日時・年9999上限を超える整数の更新日時を保存する。
+- 数値 FSRS、空 map、不正な数値を含む map を更新する。他人の Card、削除 Card、他人所有 Deck の Card に評価を書き込む。
 
 Then:
 
-- 同一性・外側の型・所有権に違反する前者は拒否され、後者は許可される。Rules は FSRS を null または map、メタデータ日時を整数としてのみ検証する。
-- これはサーバー側のデータ整合性保証を意図的に減らす変更である。本人がアプリを迂回すると不正 FSRS を保存できる。詳細な範囲・必須項目は Zod/Adapter が検証し、不正データで本人の購読・学習が失敗し得る。未評価への読み替えはしない（[Adapter の検証](card-study-state.md#firestore-card-study-state-03)）。
+- 非 map、他人・削除済み・Deck 所有者不一致を拒否する。空 map と difficulty: 0、stability: Infinity を含む map は Rules が許可する。詳細検証は Adapter が担当し、不正値は購読時に拒否される。
 
 <a id="firestore-rules-44"></a>
 
@@ -986,7 +981,7 @@ Then:
 
 Given:
 
-- 本人の Deck と内容のみの Card がある。
+- 本人の Deck と fsrs: null の Card がある。
 
 When:
 
@@ -998,20 +993,20 @@ Then:
 
 <a id="firestore-rules-45"></a>
 
-### FIRESTORE-RULES-45 区切り文字と Unicode を含む決定的 ID を許可する
+### FIRESTORE-RULES-45 評価更新で物理削除 Card を再作成しない
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-45] accepts delimiter and Unicode characters in deterministic IDs`
+対応テスト: `[FIRESTORE-RULES-45] cannot recreate a deleted Card through a rating update`
 
 Given:
 
-- UID は a:日😀、Card ID は b:c😀 とする。
+- 本人の Deck と Card がある。
 
 When:
 
-- UID の長さを接頭辞とした State ID で本人が保存し、削除と再削除を行う。
+- Card を物理削除した後、fsrs と updatedAt の部分更新を試す。
 
 Then:
 
-- 許可される。Deck ID は識別子に含まれない。
+- 更新は拒否され、Card は再作成されない。

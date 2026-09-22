@@ -4,6 +4,7 @@ import type { CardDocumentFields, CardId, RemoteCard } from "./types";
 export const mapCardDocument = (id: CardId, document: CardDocumentFields): RemoteCard => {
   const card: RemoteCard = {
     id,
+    fsrs: document.fsrs,
     frontText: document.frontText,
     backText: document.backText,
     tags: document.tags,

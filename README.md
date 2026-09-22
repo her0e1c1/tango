@@ -101,33 +101,72 @@ compose-backed `mise run e2e` task for the acceptance suite. Failed local runs r
 Each test and retry uses isolated identifiers and storage, so the suite can run fully in parallel locally. CI runs the
 same acceptance suite with its configured worker and retry limits.
 
-### Card study state cutover (#1702)
+### Card FSRS cutover (#1725)
 
-This release resets personal scheduling. It does not migrate, backfill, or recover legacy progress, including valid
-`Card.studySchedule` values. Cards without `cardStudyState` are unrated; only a new rating creates their state.
+`Card.fsrs` is the sole scheduling state. New and copied Cards start at `null`; content edits and update imports
+preserve it. Ratings partially update only `fsrs` and `updatedAt` in the same batch as Answer and Session.
+`createdAt` remains Card creation time; `updatedAt` is the last document update, including ratings.
+The last rating time remains `fsrs.lastReviewedAt`. Content comparison in imports uses editable fields, and
+Card ordering uses creation time or FSRS deadlines, so a rating is not treated as a content edit.
 
-Before reopening the application for this release:
+**Anyone allowed to read a public Card can also read its FSRS, including review timestamps and difficulty.**
+UI visibility is not access control. Private Cards remain private; FSRS writes require the Card and Deck owner.
+Rules validate the outer Card shape and nullable FSRS map; the application validates all FSRS fields and ranges.
+Malformed or missing FSRS fails parsing instead of becoming an unrated Card. Card/Deck tombstones hide the Card
+and its embedded state together; physically removing a Card cannot leave a separate state document.
 
-1. Stop old clients and writes during the maintenance window.
-2. Remove `difficulty`, `numberOfSeen`, `firstSeenAt`, `lastSeenAt`, `nextSeeingAt`, `interval`, and `studySchedule`
-   from every Firestore `card` document, including cards in public decks. Do not copy these values into the new
-   collection. Remove obsolete `difficultyMin` and `difficultyMax` from saved deck filters as well.
-3. Deploy the content-only Card rules, private `cardStudyState` rules, and matching application together. Verify
-   that public Card reads expose no personal study fields and old clients cannot write those fields back.
-4. Clear the incompatible Firestore IndexedDB cache and old pending writes on affected clients before reopening
-   them. This intentionally discards local-only legacy progress and any unsynchronized edits; communicate that
-   impact before the cutover. Do not reset caches on ordinary application startup.
+This replaces the #1702 reset procedure. Do not reset valid state, replay answers, discard unsynchronized writes,
+or run this migration at application startup. This PR does not authorize or execute production migration,
+source deletion, or Rules deployment.
 
-The repository change does not execute production cleanup or deploy rules. The operator must complete and verify
-the maintenance steps before release. Session and answer history is retained; it is not replayed into new state.
+1. Announce maintenance and the public-FSRS reading contract. Inventory all linked and anonymous clients,
+   including offline devices. Keep the old release available for recovery. Before blocking writes, bring linked
+   clients online and wait for all SDK pending writes to be acknowledged. Export and retain any unsynchronized
+   data that cannot be acknowledged. Stop if any device has unresolved data; elapsed time is not proof of sync.
+2. Anonymous clients have local-only data and must not be reset or signed out. Preserve their UID and complete
+   browser profile/IndexedDB backup. In an isolated copy, use a one-time maintenance client on the old SDK/cache
+   with networking disabled: read the cached Card/State/Deck collections, perform the same schema, ID and owner
+   checks below, and update only Card.fsrs/updatedAt in a local batch. Wait for local snapshots (not server ACKs),
+   verify all values/counts and preserve pending writes and identity. Remove obsolete local State documents only
+   after verification. This server tool cannot migrate anonymous caches. A client with an incomplete cache must
+   remain blocked until its missing data is recovered; never interpret a failed cache read as absent State.
+3. Stop old clients, background tabs and service workers. Block client writes with temporary maintenance Rules
+   and restrict application access. Take a managed Firestore export as an independent rollback backup.
+   Do not reopen old clients after migration; their full Card writes can erase FSRS. Obtain a short-lived operator
+   token with `gcloud auth print-access-token` and place it in `FIRESTORE_MIGRATION_TOKEN` without logging it.
+4. Run the one-time tool with Node 24, from this checkout, using the explicit production project and a new private
+   backup path outside the repository. These commands are operator actions, not part of deployment automation:
 
-Rules enforce ownership, deterministic identity, Card ownership, and the outer document shape. Detailed FSRS
-validation remains in the application Zod/persistence boundary; Rules accept any FSRS map and integer metadata
-timestamps. This deliberately reduces server-side integrity guarantees: an owner bypassing the application can
-save malformed personal state, which then fails application parsing and may prevent that owner's study flow.
-Malformed state is never silently treated as unrated.
+   ```bash
+   node scripts/migrate-card-fsrs.mjs backup PROJECT /secure/path/card-fsrs.json
+   node scripts/migrate-card-fsrs.mjs check PROJECT /secure/path/card-fsrs.json
+   node scripts/migrate-card-fsrs.mjs apply PROJECT /secure/path/card-fsrs.json
+   node scripts/migrate-card-fsrs.mjs verify PROJECT /secure/path/card-fsrs.json
+   ```
 
-State cleanup uses deterministic IDs for a deleted Card and the known Card/State IDs for a deleted Deck, so an
-uncached State for a known Card is still deleted. A Deck deletion from an incomplete offline cache cannot enumerate
-children absent from both snapshots; this release does not add a server synchronization barrier or orphan sweep.
-Such orphan states are never study candidates without an active Card.
+   The tool validates every legacy State schema and deterministic ID, Card/Deck/UID correspondence, timestamps,
+   and existing target FSRS before any writes. Orphans, mismatches and invalid data are reported as errors;
+   resolve them explicitly without deleting or overwriting the unresolved source. Missing State or explicit null
+   maps to null. Card content and createdAt are untouched; updatedAt is the maximum of existing Card/State times.
+   Writes use update-time preconditions and cannot recreate Cards. Retry partial runs with the same backup:
+   existing migrated values and valid newer ratings are preserved, conflicting target values stop the run.
+5. Under maintenance, compare the backup's Card/State counts and mapping with the verify report (zero pending,
+   zero errors). Compare each embedded FSRS to its source, and confirm unchanged content and createdAt.
+   Retain the backup and report. Only after every server and local-only client is accounted for, remove the exact
+   backed-up State documents with this separate, explicitly destructive operator command:
+
+   ```bash
+   node scripts/migrate-card-fsrs.mjs cleanup PROJECT /secure/path/card-fsrs.json
+   ```
+
+   Cleanup revalidates every target against the backup, refuses changed/additional sources before deleting,
+   and reads each target in a read-write transaction before deleting its source with an update-time precondition.
+   It verifies that the old collection is empty. A partial cleanup can be retried with the same backup; already
+   deleted sources are tolerated, but every backed-up mapping is still validated. Keep old writers stopped.
+6. Deploy the new Card Rules (which deny the old collection) and matching app while maintenance remains active.
+   For linked clients with confirmed zero pending writes, clear the old Firestore cache once so a stale content-only
+   snapshot cannot fail the new parser; preserve Auth and Preferences. For anonymous or still-pending clients,
+   use the verified migrated cache from step 2, never a blanket cache clear. Replace the service worker and close
+   old tabs before reopening. Confirm Card snapshots, ratings, skips, content edits, imports and public reads.
+   Normal startup must never clear the cache. If rollback is needed, keep maintenance active and restore a
+   consistent backup plus matching app/Rules; do not restore old writers over newer learning results.

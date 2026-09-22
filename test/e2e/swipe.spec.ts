@@ -404,7 +404,7 @@ test("STUDY-SESSION-07 preserves local-only progress and session position across
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
-  for (const collection of ["deck", "card", "studySession", "studyAnswer", "cardStudyState"] as const) {
+  for (const collection of ["deck", "card", "studySession", "studyAnswer"] as const) {
     expect(
       (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === fixture.user().uid)
     ).toEqual([]);

@@ -33,7 +33,7 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void, onR
 /** Writes a new physical Card document with synchronized creation and update timestamps. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const createdAt = Date.now();
-  const document = omitUndefined({ ...card, createdAt, updatedAt: createdAt } satisfies RemoteCard);
+  const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: createdAt } satisfies RemoteCard);
   const reference = doc(db, CARD_COLLECTION, card.id);
   await writeLocally(card.uid, [reference], () => setDoc(reference, document));
 };

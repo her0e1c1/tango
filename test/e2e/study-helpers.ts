@@ -1,7 +1,7 @@
 import { documentId, getDocument, listDocuments, type StudySessionFixture } from "./fixtures";
 
-export const readProgress = async (uid: string, cardId: string) => {
-  const state = await getDocument("cardStudyState", `${uid.length}:${uid}${cardId}`);
+export const readProgress = async (_uid: string, cardId: string) => {
+  const state = await getDocument("card", cardId);
   return { reps: Number(state?.fields.fsrs?.mapValue?.fields?.reps?.integerValue ?? 0) };
 };
 

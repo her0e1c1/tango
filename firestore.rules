@@ -15,33 +15,6 @@ service cloud.firestore {
     return request.auth.uid == request.resource.data.uid;
   }
   match /databases/{database}/documents {
-    match /cardStudyState/{stateId} {
-      function validState() {
-        let state = request.resource.data;
-        return state.keys().hasOnly(['schemaVersion', 'uid', 'cardId', 'deckId', 'fsrs', 'createdAt', 'updatedAt']) &&
-               state.schemaVersion == 1 && state.cardId is string && state.cardId.size() > 0 &&
-               state.deckId is string && state.deckId.size() > 0 &&
-               stateId == string(state.uid.size()) + ':' + state.uid + state.cardId &&
-               state.createdAt is int && state.updatedAt is int &&
-               (state.fsrs == null || state.fsrs is map);
-      }
-      function ownsCard() {
-        let card = get(/databases/$(database)/documents/card/$(request.resource.data.cardId)).data;
-        return card.uid == request.auth.uid && card.deckId == request.resource.data.deckId &&
-               get(/databases/$(database)/documents/deck/$(card.deckId)).data.uid == request.auth.uid &&
-               card.get('deletedAt', null) == null;
-      }
-      function ownsStateId() {
-        let prefix = string(request.auth.uid.size()) + ':' + request.auth.uid;
-        return stateId.size() > prefix.size() && stateId[0:prefix.size()] == prefix;
-      }
-      allow read: if isSignedIn() && isOwner();
-      allow create: if isSignedIn() && isValid() && validState() && ownsCard();
-      allow update: if isSignedIn() && isValidOwner() && validState() && ownsCard() &&
-                    request.resource.data.cardId == resource.data.cardId &&
-                    request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if isSignedIn() && ownsStateId() && (resource == null || isOwner());
-    }
     match /studySession/{sessionId} {
       allow read: if isSignedIn() && isOwner();
       allow create: if isSignedIn() && isValid();
@@ -72,13 +45,16 @@ service cloud.firestore {
       function belongsToDeck() {
         return getAfter(/databases/$(database)/documents/deck/$(request.resource.data.deckId)).data.uid == request.auth.uid;
       }
-      function contentOnly() {
+      function validCard() {
         return request.resource.data.keys().hasOnly(['id', 'uid', 'deckId', 'frontText', 'backText', 'tags',
-          'uniqueKey', 'createdAt', 'updatedAt', 'deletedAt', 'url', 'startLine', 'endLine']);
+          'uniqueKey', 'fsrs', 'createdAt', 'updatedAt', 'deletedAt', 'url', 'startLine', 'endLine']) && (request.resource.data.fsrs == null || request.resource.data.fsrs is map);
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isSignedIn() && isValid() && belongsToDeck() && contentOnly();
-      allow update: if isSignedIn() && isValidOwner() && belongsToDeck() && contentOnly();
+      allow create: if isSignedIn() && isValid() && belongsToDeck() && validCard();
+      allow update: if isSignedIn() && isValidOwner() && belongsToDeck() && validCard() &&
+                    request.resource.data.deckId == resource.data.deckId &&
+                    request.resource.data.createdAt == resource.data.createdAt &&
+                    (request.resource.data.fsrs == resource.data.fsrs || resource.data.deletedAt == null);
       allow delete: if isSignedIn() && isOwner();
     }
   }

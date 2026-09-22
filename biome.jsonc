@@ -133,7 +133,7 @@
   "overrides": [
     {
       // Tooling and integration tests execute in Node rather than the browser application runtime.
-      "includes": [".storybook/main.ts", "*.config.{js,mjs,ts}", "test/**/*.{ts,tsx}"],
+      "includes": [".storybook/main.ts", "*.config.{js,mjs,ts}", "test/**/*.{ts,tsx}", "scripts/**/*.mjs"],
       "linter": {
         "rules": {
           "correctness": {

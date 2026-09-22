@@ -1,5 +1,4 @@
-import { seedCardStudyState } from "@/test/studyStateFixtures";
-import { clearCardStudyStates } from "@/entities/card-study-state";
+import { calculateFsrsState } from "@/entities/card";
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,7 +18,8 @@ const repository = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
 }));
 
-vi.mock("@/entities/card", () => ({
+vi.mock("@/entities/card", async (original) => ({
+  ...(await original<typeof import("@/entities/card")>()),
   useCards: () => repository.cards,
   useCardsByDeckId: () => ({ cards: repository.cards, tags: [] }),
 }));
@@ -37,7 +37,6 @@ vi.mock("@/shared/lib/useDeadlineQuery", () => ({
 
 describe("useCardListQuery [CARD-LIST-ACTIONS-01]", () => {
   beforeEach(() => {
-    clearCardStudyStates();
     repository.preferences = createPreferences({
       study: { useCardInterval: true, cardInterval: 1 },
     });
@@ -85,10 +84,11 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-01]", () => {
         })
       ).result.current.emptyReason
     ).toBe("filter-zero");
-    seedCardStudyState("c-1", Date.now() + 100_000, "user-id", "deck-1");
+    const fsrs = { ...calculateFsrsState(null, "good", 0), dueAt: Date.now() + 100_000 };
 
     repository.cards = [
       createCard({
+        fsrs,
         id: "c-1",
         deckId: "deck-1",
       }),
@@ -155,9 +155,10 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-01]", () => {
   });
 
   it("reports interval-zero when cards match filters but are scheduled for future review", () => {
-    seedCardStudyState("c-1", Date.now() + 100_000, "user-id", "deck-1");
+    const fsrs = { ...calculateFsrsState(null, "good", 0), dueAt: Date.now() + 100_000 };
     repository.cards = [
       createCard({
+        fsrs,
         id: "c-1",
         deckId: "deck-1",
       }),

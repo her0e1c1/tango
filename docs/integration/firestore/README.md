@@ -10,7 +10,7 @@
 | この README | 実行方法、共通前提、記述・ID 規約、索引、未検証項目 | Firestore 結合テスト全体 |
 | [Deck](./deck.md) | 作成、部分更新、URL の扱い、親 Deck の論理削除 | `deck.spec.ts` |
 | [Card](./card.md) | 作成、部分更新、内容と個人状態の分離、一括保存、論理削除 | `card.spec.ts` |
-| [CardStudyState](./card-study-state.md) | 初期購読、検証、UID 分離、削除 | `card-study-state.spec.ts` |
+| [Card.fsrs](./card-fsrs.md) | 初期購読、検証、UID 分離、削除 | `card-fsrs.spec.ts` |
 | [StudyAnswer](./study-answer.md) | 回答・スキップ・再試行と履歴の権限制御 | `study-answer.spec.ts` |
 | [StudySession](./study-session.md) | 順序・位置の復元、開始・中断・完了、オフライン queue | `study-session.spec.ts` |
 | [Subscriptions](./subscriptions.md) | 初期 snapshot、変更の store 反映、購読解除 | `subscriptions.spec.ts` |
@@ -43,7 +43,7 @@ Firestore 以外の既存 integration test も同じタスクで実行される�
 | 対象 | 検証する境界 | データ準備と認証 |
 | --- | --- | --- |
 | 保存・購読 Adapter | 実際のアプリケーション操作から、Emulator の保存値・SDK cache・購読結果・store まで | 既存の `test/initializeTestFirestore.ts` で project `test` に接続し、UID `uid`・非匿名 provider `google.com` の token を使用する |
-| StudyAnswer 保存・認可 | 実際の保存処理と SDK 操作から、回答・State・session の保存結果と Rules まで | project `test-study-answer`、非匿名認証 UID `answer-owner`。各ケース前にデータと store を初期化し、終了時に Rules 環境を cleanup する |
+| StudyAnswer 保存・認可 | 実際の保存処理と SDK 操作から、回答・Card.fsrs・session の保存結果と Rules まで | project `test-study-answer`、非匿名認証 UID `answer-owner`。各ケース前にデータと store を初期化し、終了時に Rules 環境を cleanup する |
 | Security Rules | 実際の `firestore.rules` に対する SDK 操作の許可・拒否 | `rules.spec.ts` が project `test-rule` に Rules を読み込む。事前データだけ Rules 無効化 context で準備し、検証操作は各認証 context で実行する |
 
 Firebase 初期化先やアプリケーションの認証値の差し替えはテスト側で行うが、検証対象の Firestore API・購読・永続化を mock しない。
@@ -120,16 +120,16 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-CARD-07 | write | [Card の削除日時を保存し本文を維持できる](./card.md#firestore-card-07) |
 | FIRESTORE-CARD-08 | read | [作成した Card の存在を確認できる](./card.md#firestore-card-08) |
 
-### card-study-state
+### card-fsrs
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| FIRESTORE-CARD-STUDY-STATE-01 | subscription | [旧 Card の値を参照せず欠落と null を未評価として扱う](./card-study-state.md#firestore-card-study-state-01) |
-| FIRESTORE-CARD-STUDY-STATE-02 | subscription | [本人の State だけを復元し購読停止でクリアする](./card-study-state.md#firestore-card-study-state-02) |
-| FIRESTORE-CARD-STUDY-STATE-03 | subscription | [不正データを未評価へ読み替えない](./card-study-state.md#firestore-card-study-state-03) |
-| FIRESTORE-CARD-STUDY-STATE-04 | subscription | [削除対象と本人に属する State だけを削除する](./card-study-state.md#firestore-card-study-state-04) |
-| FIRESTORE-CARD-STUDY-STATE-05 | subscription | [購読拒否を未評価へ読み替えない](./card-study-state.md#firestore-card-study-state-05) |
-| FIRESTORE-CARD-STUDY-STATE-06 | write | [未取得の State も決定的 ID で削除できる](./card-study-state.md#firestore-card-study-state-06) |
+| FIRESTORE-CARD-FSRS-01 | write | [null と評価済み Card を同じ購読で復元する](./card-fsrs.md#firestore-card-fsrs-01) |
+| FIRESTORE-CARD-FSRS-02 | read | [本人の Card だけを復元し停止でクリアする](./card-fsrs.md#firestore-card-fsrs-02) |
+| FIRESTORE-CARD-FSRS-03 | read | [不正 FSRS を未評価に読み替えない](./card-fsrs.md#firestore-card-fsrs-03) |
+| FIRESTORE-CARD-FSRS-04 | write | [削除 Card の状態を隠し他の Card は維持する](./card-fsrs.md#firestore-card-fsrs-04) |
+| FIRESTORE-CARD-FSRS-05 | read | [購読拒否を通知する](./card-fsrs.md#firestore-card-fsrs-05) |
+| FIRESTORE-CARD-FSRS-06 | write | [オフライン削除を再接続後も維持する](./card-fsrs.md#firestore-card-fsrs-06) |
 
 ### study-session
 
@@ -148,7 +148,7 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | --- | --- | --- |
 | FIRESTORE-STUDY-ANSWER-01 | batch | [4種類の評価を保存し進捗と位置を1回更新する](./study-answer.md#firestore-study-answer-01) |
 | FIRESTORE-STUDY-ANSWER-02 | batch | [保存済みの位置から同じ操作を再実行して回答を増やさない](./study-answer.md#firestore-study-answer-02) |
-| FIRESTORE-STUDY-ANSWER-03 | write | [評価では Card の内容とメタデータを変更しない](./study-answer.md#firestore-study-answer-03) |
+| FIRESTORE-STUDY-ANSWER-03 | write | [評価では Card の本文と作成日時を維持する](./study-answer.md#firestore-study-answer-03) |
 | FIRESTORE-STUDY-ANSWER-04 | batch | [10枚への回答を保存して session を完了する](./study-answer.md#firestore-study-answer-04) |
 | FIRESTORE-STUDY-ANSWER-05 | batch | [中断後も回答を保持し別 session で同じ Card に回答できる](./study-answer.md#firestore-study-answer-05) |
 | FIRESTORE-STUDY-ANSWER-06 | batch | [途中のスキップは Session だけを前進する](./study-answer.md#firestore-study-answer-06) |
@@ -159,7 +159,7 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-STUDY-ANSWER-11 | read | [所有者条件を付けて session・Card・Deck ごとの回答を取得する](./study-answer.md#firestore-study-answer-11) |
 | FIRESTORE-STUDY-ANSWER-12 | write | [別 UID の回答作成を拒否する](./study-answer.md#firestore-study-answer-12) |
 | FIRESTORE-STUDY-ANSWER-13 | write | [回答形式と参照先の検証は Rules では強制しない](./study-answer.md#firestore-study-answer-13) |
-| FIRESTORE-STUDY-ANSWER-14 | write | [回答単独の保存では State と Session を更新しない](./study-answer.md#firestore-study-answer-14) |
+| FIRESTORE-STUDY-ANSWER-14 | write | [回答単独の保存では Card.fsrs と Session を更新しない](./study-answer.md#firestore-study-answer-14) |
 | FIRESTORE-STUDY-ANSWER-15 | write | [4評価の FSRS を検証して保存する](./study-answer.md#firestore-study-answer-15) |
 | FIRESTORE-STUDY-ANSWER-16 | write | [session の所有権とアプリケーションの終了遷移を区別する](./study-answer.md#firestore-study-answer-16) |
 | FIRESTORE-STUDY-ANSWER-17 | write | [本人でも保存済み回答を更新・上書き・削除できない](./study-answer.md#firestore-study-answer-17) |
@@ -183,7 +183,7 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-RULES-02 | batch | [公開 Deck でも他ユーザー・匿名・未認証から session にアクセスできない](./rules.md#firestore-rules-02) |
 | FIRESTORE-RULES-03 | write | [本人でも session の所有者変更と物理削除はできない](./rules.md#firestore-rules-03) |
 | FIRESTORE-RULES-04 | read | [削除済みの公開 Deck と Card を第三者が取得できない](./rules.md#firestore-rules-04) |
-| FIRESTORE-RULES-05 | batch | [回答作成と State・session 更新を同じ batch で許可する](./rules.md#firestore-rules-05) |
+| FIRESTORE-RULES-05 | batch | [回答作成と Card.fsrs・session 更新を同じ batch で許可する](./rules.md#firestore-rules-05) |
 | FIRESTORE-RULES-06 | write | [回答 ID と完了後の回答順序はアプリケーションの責務とする](./rules.md#firestore-rules-06) |
 | FIRESTORE-RULES-07 | write | [保存済みの回答履歴は本人でも更新・削除できない](./rules.md#firestore-rules-07) |
 | FIRESTORE-RULES-08 | batch | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](./rules.md#firestore-rules-08) |
@@ -219,11 +219,11 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-RULES-38 | write | [未認証による Card の作成を拒否する](./rules.md#firestore-rules-38) |
 | FIRESTORE-RULES-39 | write | [未認証による Card の更新を拒否する](./rules.md#firestore-rules-39) |
 | FIRESTORE-RULES-40 | write | [未認証による Card の物理削除を拒否する](./rules.md#firestore-rules-40) |
-| FIRESTORE-RULES-41 | write | [本人が任意の状態を作成・読取・更新・削除でき、同一性は変更できない](./rules.md#firestore-rules-41) |
-| FIRESTORE-RULES-42 | write | [公開 Card の State も本人以外はアクセスできない](./rules.md#firestore-rules-42) |
-| FIRESTORE-RULES-43 | write | [状態の同一性・メタデータ・所有 Card を検証する](./rules.md#firestore-rules-43) |
+| FIRESTORE-RULES-41 | write | [本人の FSRS 更新を許可し Card の同一性を維持する](./rules.md#firestore-rules-41) |
+| FIRESTORE-RULES-42 | write | [公開 Card の FSRS を公開し他人の書込を拒否する](./rules.md#firestore-rules-42) |
+| FIRESTORE-RULES-43 | write | [FSRS 外形と所有権・削除状態を確認する](./rules.md#firestore-rules-43) |
 | FIRESTORE-RULES-44 | write | [旧個人学習フィールドを Card に書き戻せない](./rules.md#firestore-rules-44) |
-| FIRESTORE-RULES-45 | write | [区切り文字と Unicode を含む決定的 ID を許可する](./rules.md#firestore-rules-45) |
+| FIRESTORE-RULES-45 | write | [評価更新で物理削除 Card を再作成しない](./rules.md#firestore-rules-45) |
 
 ### study-history
 

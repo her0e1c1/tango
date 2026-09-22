@@ -128,7 +128,7 @@ When:
 Then:
 
 - 左に設定された good 学習結果が一度だけ保存される。
-- Card の内容と更新日時は変わらず、CardStudyState の FSRS 評価回数が1増える。
+- Card の内容と作成日時は変わらず、Card.fsrs の評価回数が1増え、updatedAt は回答時刻になる。
 - session の位置が次の Card へ一つ進む。
 - 次の Card の front text が表示され、back text は表示されない。
 - overlay の tap によって通常の裏面 tap は実行されない。
@@ -154,7 +154,7 @@ When:
 Then:
 
 - 右に設定された again 学習結果が一度だけ保存される。
-- Card の内容と更新日時は変わらず、CardStudyState の FSRS 評価回数が1増える。
+- Card の内容と作成日時は変わらず、Card.fsrs の評価回数が1増え、updatedAt は回答時刻になる。
 - session の位置が次の Card へ一つ進む。
 - 次の Card の front text が表示され、back text は表示されない。
 - overlay の tap によって通常の裏面 tap は実行されない。
