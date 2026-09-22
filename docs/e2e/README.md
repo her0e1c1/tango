@@ -84,6 +84,9 @@
 | DECK-NAVIGATION-11 | read | [閲覧の進捗スライダーで前後へ移動できる](./deck-navigation.md#deck-navigation-11) |
 | DECK-NAVIGATION-12 | read | [保持中の復習件数と学習導線を表示できる](./deck-navigation.md#deck-navigation-12) |
 | DECK-NAVIGATION-13 | read | [復習期限の到達で一覧を更新できる](./deck-navigation.md#deck-navigation-13) |
+| DECK-NAVIGATION-14 | write | [view mode で長い表面を読みながら移動を防止できる](./deck-navigation.md#deck-navigation-14) |
+| DECK-NAVIGATION-15 | write | [閲覧の view mode 終了後に通常の表裏操作へ戻れる](./deck-navigation.md#deck-navigation-15) |
+| DECK-NAVIGATION-16 | write | [view mode 中も閲覧ボタンと自動再生を使える](./deck-navigation.md#deck-navigation-16) |
 
 ### Deck Management
 
@@ -183,6 +186,10 @@
 | STUDY-CONTROLS-03 | write | [local-only Deck で primary mouse の上方向 drag により次の Card へ進める](./study-controls.md#study-controls-03) |
 | STUDY-CONTROLS-04 | read | [Help dialog に現在の操作 mapping を表示できる](./study-controls.md#study-controls-04) |
 | STUDY-CONTROLS-05 | write | [Help button の表示設定を reload 後も維持できる](./study-controls.md#study-controls-05) |
+| STUDY-CONTROLS-06 | write | [view mode で長い表面を操作の誤発火なくスクロールできる](./study-controls.md#study-controls-06) |
+| STUDY-CONTROLS-07 | write | [view mode をタップまたは Enter で終了して表面を維持できる](./study-controls.md#study-controls-07) |
+| STUDY-CONTROLS-08 | batch | [view mode 中も評価ボタンと自動再生で次の Card へ進める](./study-controls.md#study-controls-08) |
+| STUDY-CONTROLS-09 | write | [view mode 設定を閲覧・学習・reload 間で共有できる](./study-controls.md#study-controls-09) |
 
 ### Study Back Text
 

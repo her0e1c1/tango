@@ -11,6 +11,7 @@ import { MathContent, Title } from "@/shared/ui/content";
 
 export interface FrontTextProps {
   text: string;
+  viewMode?: boolean;
   ariaLabel?: string;
   category?: string;
   onClick?: () => void;
@@ -24,10 +25,10 @@ export interface FrontTextProps {
 export const FrontText: React.FC<FrontTextProps> = (props) => {
   const contentId = React.useId();
   const content = props.category === "math" ? <MathContent text={props.text} /> : <Title>{props.text}</Title>;
-  const buttonInteraction = useButtonInteraction<HTMLDivElement>(props.onClick);
+  const buttonInteraction = useButtonInteraction<HTMLDivElement>(props.viewMode ? undefined : props.onClick);
   const clickInteraction = {
     ...buttonInteraction,
-    ...(props.onClick !== undefined && props.ariaLabel !== undefined
+    ...(!props.viewMode && props.onClick !== undefined && props.ariaLabel !== undefined
       ? { "aria-label": props.ariaLabel, "aria-describedby": contentId }
       : {}),
   };
@@ -35,7 +36,8 @@ export const FrontText: React.FC<FrontTextProps> = (props) => {
     <div
       id="frontText"
       className={cx(
-        "mx-auto flex h-full w-full min-w-0 max-w-content items-center justify-center break-words py-section-gap pl-[calc(var(--spacing-study-inline)+env(safe-area-inset-left))] pr-[calc(var(--spacing-study-inline)+env(safe-area-inset-right))] text-ink"
+        "mx-auto flex w-full min-w-0 max-w-content justify-center break-words py-section-gap pl-[calc(var(--spacing-study-inline)+env(safe-area-inset-left))] pr-[calc(var(--spacing-study-inline)+env(safe-area-inset-right))] text-ink",
+        props.viewMode ? "h-auto items-start" : "h-full items-center"
       )}
       {...clickInteraction}
     >

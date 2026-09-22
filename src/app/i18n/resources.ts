@@ -509,7 +509,9 @@ export const resources = {
           summary_other: "You studied {{count}} cards.",
           back: "Back to deck list",
         },
+        frontAria: "Card front text",
         toolbar: {
+          viewMode: { label: "View mode", enter: "Enter view mode", exit: "Exit view mode" },
           editLink: {
             label: "Edit link",
             show: "Show edit link",
@@ -558,6 +560,7 @@ export const resources = {
             cardSwipeDown: "Arrow Down / Swipe Down",
             cardSwipeLeft: "Arrow Left / Swipe Left",
             cardSwipeRight: "Arrow Right / Swipe Right",
+            viewMode: "View mode button",
             flip: "Enter / Select Card",
             autoPlay: "Space / Play or Pause button",
             swipeButtons: "B / Swipe controls button",
@@ -574,6 +577,10 @@ export const resources = {
             RateAgain: "Again — answer and continue",
             RateHard: "Hard — answer and continue",
             RateEasy: "Easy — answer and continue",
+            enterViewMode: "Read the front text with scrolling",
+            exitViewMode: "Exit view mode and keep the front visible",
+            viewModeScroll: "Scroll the front text; swipe and arrow actions are disabled",
+            viewModeAutoPlay: "Use Play or Pause; Space scrolls the front text",
             flip: "Flip or reveal the current card",
             autoPlay: "Play or pause autoplay",
             autoPlayUnavailable: "Autoplay is unavailable while the card interval is 0",
@@ -1300,7 +1307,9 @@ export const resources = {
           summary_other: "{{count}}枚のカードを学習しました。",
           back: "デッキ一覧へ戻る",
         },
+        frontAria: "カードの表面テキスト",
         toolbar: {
+          viewMode: { label: "閲覧モード", enter: "閲覧モードに切り替え", exit: "閲覧モードを終了" },
           editLink: {
             label: "編集リンク",
             show: "編集リンクを表示",
@@ -1349,6 +1358,7 @@ export const resources = {
             cardSwipeDown: "下矢印 / 下へスワイプ",
             cardSwipeLeft: "左矢印 / 左へスワイプ",
             cardSwipeRight: "右矢印 / 右へスワイプ",
+            viewMode: "閲覧モードボタン",
             flip: "Enter / カードを選択",
             autoPlay: "Space / 再生・一時停止ボタン",
             swipeButtons: "B / スワイプ操作ボタン",
@@ -1358,6 +1368,10 @@ export const resources = {
             exit: "デッキ一覧へ戻るボタン",
           },
           actions: {
+            enterViewMode: "表面テキストをスクロールして読む",
+            exitViewMode: "表面を表示したまま閲覧モードを終了する",
+            viewModeScroll: "表面をスクロールする（スワイプ・方向キーの操作は無効）",
+            viewModeAutoPlay: "再生・一時停止はボタンで操作する（Space は表面のスクロール）",
             DoNothing: "何もしない",
             GoBack: "現在の学習セッションを終了してデッキ一覧へ戻る",
             GoToNextCard: "次のカードへ移動",

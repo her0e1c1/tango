@@ -8,7 +8,17 @@ import "@testing-library/jest-dom/vitest";
 
 import { FrontText } from "./FrontText";
 
-describe("FrontText", () => {
+describe("FrontText [STUDY-BACK-TEXT-01] [STUDY-CONTROLS-06]", () => {
+  it("renders reading content without a Space-activated flip button", () => {
+    const onClick = vi.fn();
+    render(<FrontText viewMode text="Reading front" onClick={onClick} />);
+    expect(screen.getByText("Reading front")).toBeVisible();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    fireEvent.keyDown(screen.getByText("Reading front"), { key: " " });
+    fireEvent.keyUp(screen.getByText("Reading front"), { key: " " });
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
   it("preserves content and click interaction", () => {
     const onClick = vi.fn();
     render(<FrontText text="A very long front without spaces: abcdefghijklmnopqrstuvwxyz" onClick={onClick} />);

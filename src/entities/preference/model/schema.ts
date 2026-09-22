@@ -22,6 +22,7 @@ const DEFAULT_STUDY = {
 };
 
 const DEFAULT_CONTROLS = {
+  viewMode: false,
   showHelp: true,
   showEditLink: true,
   showSwipeButtonList: true,
@@ -84,6 +85,7 @@ const studyPreferencesSchema = z
 
 export const controlPreferencesSchema = z
   .object({
+    viewMode: z.boolean().catch(DEFAULT_CONTROLS.viewMode),
     showHelp: z.boolean().catch(DEFAULT_CONTROLS.showHelp),
     showEditLink: z.boolean().catch(DEFAULT_CONTROLS.showEditLink),
     showSwipeButtonList: z.boolean().catch(DEFAULT_CONTROLS.showSwipeButtonList),

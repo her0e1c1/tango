@@ -2,6 +2,7 @@ import cx from "classnames";
 import type { TFunction } from "i18next";
 import * as React from "react";
 import {
+  AiOutlineRead,
   AiOutlineClose,
   AiOutlineEllipsis,
   AiOutlineEdit,
@@ -53,6 +54,8 @@ export interface CardPlayerProps {
   answerLabel?: string;
   cardKey?: string;
   showHelp: boolean;
+  viewMode: boolean;
+  onToggleViewMode: () => void;
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
@@ -91,6 +94,8 @@ const toolbarButtonClass =
   "pointer-events-auto inline-flex size-touch shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 interface StudyModeActionsProps {
+  viewMode: boolean;
+  onToggleViewMode: () => void;
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
@@ -123,7 +128,18 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
     : t("studySession.toolbar.skipControls.show");
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex flex-wrap items-center justify-end gap-1">
+      <button
+        type="button"
+        aria-label={t("studySession.toolbar.viewMode.label")}
+        aria-pressed={props.viewMode}
+        title={t(props.viewMode ? "studySession.toolbar.viewMode.exit" : "studySession.toolbar.viewMode.enter")}
+        className={cx(toolbarButtonClass, props.viewMode && "bg-surface-muted text-accent-primary")}
+        onClick={props.onToggleViewMode}
+        onKeyDown={props.onEscape}
+      >
+        <AiOutlineRead aria-hidden="true" className="text-xl" />
+      </button>
       <button
         type="button"
         aria-label={t("studySession.toolbar.swipeControls.label")}
@@ -194,6 +210,8 @@ interface StudyToolbarProps {
   helpTriggerLabel?: string;
   open: boolean;
   showHelp: boolean;
+  viewMode: boolean;
+  onToggleViewMode: () => void;
   showCardDetails: boolean;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
@@ -235,7 +253,14 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
   };
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-[var(--study-toolbar-top)] z-50 h-touch">
+    <div
+      className={cx(
+        "pointer-events-none z-50 min-h-touch",
+        props.viewMode
+          ? "relative mt-[var(--study-toolbar-top)] mb-3 shrink-0"
+          : "absolute inset-x-0 top-[var(--study-toolbar-top)] h-touch"
+      )}
+    >
       <button
         type="button"
         aria-label={t("studySession.toolbar.back")}
@@ -313,13 +338,17 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
           id={actionsId}
           aria-label={t("studySession.toolbar.actions.label")}
           className={cx(
-            "pointer-events-none m-0 flex h-touch min-w-0 items-center justify-end border-0 p-0",
-            props.editLink === undefined
-              ? "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] max-[359px]:absolute max-[359px]:inset-x-0 max-[359px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[359px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
-              : "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] max-[439px]:absolute max-[439px]:inset-x-0 max-[439px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[439px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+            "pointer-events-none m-0 flex min-h-touch min-w-0 items-center justify-end border-0 p-0",
+            props.viewMode
+              ? "px-shell-gutter pt-[calc(var(--spacing-touch)+0.25rem)]"
+              : props.editLink === undefined
+                ? "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*2+0.5rem)] max-[419px]:absolute max-[419px]:inset-x-0 max-[419px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[419px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+                : "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] max-[499px]:absolute max-[499px]:inset-x-0 max-[499px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[499px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
           )}
         >
           <StudyModeActions
+            viewMode={props.viewMode}
+            onToggleViewMode={props.onToggleViewMode}
             showCardDetails={props.showCardDetails}
             showSwipeControls={props.showSwipeControls}
             showPlaybackControls={props.showPlaybackControls}
@@ -418,6 +447,7 @@ const BackTextOverlays: React.FC<{
 
 const CardContent: React.FC<{
   showBackText: boolean | undefined;
+  viewMode: boolean;
   hideCardOverlayOnNarrowScreen: boolean;
   hasEditLink: boolean;
   backTextSlot: React.ReactNode | undefined;
@@ -426,6 +456,7 @@ const CardContent: React.FC<{
   backTextOverlay: CardPlayerProps["backTextOverlay"];
 }> = ({
   showBackText,
+  viewMode,
   hideCardOverlayOnNarrowScreen,
   hasEditLink,
   backTextSlot,
@@ -444,6 +475,7 @@ const CardContent: React.FC<{
       </>
     );
   }
+  if (viewMode) return <div data-study-front-content="">{frontTextSlot}</div>;
   if (frontTextSlot != null) {
     return (
       <div className="relative h-full min-h-0">
@@ -453,7 +485,7 @@ const CardContent: React.FC<{
             data-study-card-overlay=""
             className={cx(
               "absolute inset-x-0 top-[var(--study-card-top)] h-touch",
-              hideCardOverlayOnNarrowScreen && (hasEditLink ? "max-[439px]:hidden" : "max-[359px]:hidden")
+              hideCardOverlayOnNarrowScreen && (hasEditLink ? "max-[499px]:hidden" : "max-[419px]:hidden")
             )}
           >
             {cardOverlaySlot}
@@ -470,6 +502,7 @@ const CardContent: React.FC<{
 };
 
 const Controls: React.FC<{
+  viewMode: boolean;
   showBackText: boolean | undefined;
   showSwipeControls: boolean;
   showPlaybackControls: boolean;
@@ -478,6 +511,7 @@ const Controls: React.FC<{
   controller: ControllerProps | undefined;
   actionSlot: React.ReactNode;
 }> = ({
+  viewMode,
   showBackText,
   showSwipeControls,
   showPlaybackControls,
@@ -489,8 +523,13 @@ const Controls: React.FC<{
   const showController = showPlaybackControls && playbackControlsAvailable;
   if (showBackText ? !actionSlot : !(showSwipeControls || showController || actionSlot)) return null;
   return (
-    // The dock floats so toggling either control group cannot move the prompt away from screen center.
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-40 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] pt-2">
+    // Normal prompts stay centered; reading mode reserves space so the dock cannot cover the text.
+    <div
+      className={cx(
+        "pointer-events-none z-40 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pl-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-left))] pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] pt-2",
+        viewMode ? "relative shrink-0" : "absolute inset-x-0 bottom-0"
+      )}
+    >
       <div className="pointer-events-auto mx-auto w-full max-w-content space-y-2 rounded-surface border border-border bg-surface-elevated/90 p-2 shadow-elevated backdrop-blur-md">
         {!showBackText && showSwipeControls ? <SwipeButtonList {...swipeButtonList} /> : null}
         {!showBackText && showController ? <Controller {...controller} /> : null}
@@ -502,6 +541,7 @@ const Controls: React.FC<{
 
 export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
   const { t } = useTranslation();
+  const viewMode = props.viewMode && !props.showBackText;
   const [studyActionsOpen, setStudyActionsOpen] = React.useState(false);
   // Safari does not focus pointer-activated buttons by default, so Help must restore this explicit trigger.
   const helpTriggerRef = React.useRef<HTMLButtonElement>(null);
@@ -511,7 +551,10 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
   const surfaceRef = React.useRef<HTMLDivElement | null>(null);
   React.useEffect(() => {
     if (surfaceRef.current !== null) surfaceRef.current.scrollTop = 0;
-  }, [props.cardKey, props.showBackText]);
+  }, [props.cardKey, props.showBackText, viewMode]);
+  React.useEffect(() => {
+    if (viewMode) surfaceRef.current?.focus({ preventScroll: true });
+  }, [viewMode]);
   const suppressCardClick = React.useRef(false);
   const suppressCardClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -534,14 +577,14 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
 
   const swipeHandlers = useSwipeable({
     onSwiped: suppressTrailingCardClick,
-    ...((!props.showBackText || props.allowBackHorizontalSwipe) && props.onSwipeLeft !== undefined
+    ...(!viewMode && (!props.showBackText || props.allowBackHorizontalSwipe) && props.onSwipeLeft !== undefined
       ? { onSwipedLeft: props.onSwipeLeft }
       : {}),
-    ...(!props.showBackText && props.onSwipeUp !== undefined ? { onSwipedUp: props.onSwipeUp } : {}),
-    ...((!props.showBackText || props.allowBackHorizontalSwipe) && props.onSwipeRight !== undefined
+    ...(!viewMode && !props.showBackText && props.onSwipeUp !== undefined ? { onSwipedUp: props.onSwipeUp } : {}),
+    ...(!viewMode && (!props.showBackText || props.allowBackHorizontalSwipe) && props.onSwipeRight !== undefined
       ? { onSwipedRight: props.onSwipeRight }
       : {}),
-    ...(!props.showBackText && props.onSwipeDown !== undefined ? { onSwipedDown: props.onSwipeDown } : {}),
+    ...(!viewMode && !props.showBackText && props.onSwipeDown !== undefined ? { onSwipedDown: props.onSwipeDown } : {}),
     trackMouse: true,
   });
 
@@ -561,8 +604,23 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
     event.stopPropagation();
   };
 
-  const clickAnswer: React.MouseEventHandler<HTMLDivElement> = (event) => {
-    if (!props.showBackText || event.button !== 0) return;
+  const clickSurface: React.MouseEventHandler<HTMLDivElement> = (event) => {
+    if (event.button !== 0) return;
+    if (viewMode) {
+      const selection = window.getSelection();
+      if (
+        selection !== null &&
+        !selection.isCollapsed &&
+        selection.anchorNode !== null &&
+        event.currentTarget.contains(selection.anchorNode)
+      )
+        return;
+      if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea")) return;
+      if (event.target instanceof Element && event.target.closest("[data-study-front-content]"))
+        props.onToggleViewMode();
+      return;
+    }
+    if (!props.showBackText) return;
     // Answer links and controls keep their native behavior instead of also flipping the card.
     if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea")) return;
     props.onAnswerClick?.();
@@ -571,7 +629,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
   const cardGestureHandlers = {
     ...swipeHandlers,
     onClickCapture: stopTrailingCardClick,
-    onClick: clickAnswer,
+    onClick: clickSurface,
     onMouseDown: startPrimaryMouseSwipe,
   };
 
@@ -585,6 +643,8 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           ref={helpTriggerRef}
           {...(props.editLink !== undefined ? { editLink: props.editLink } : {})}
           {...(props.help.triggerLabel !== undefined ? { helpTriggerLabel: props.help.triggerLabel } : {})}
+          viewMode={viewMode}
+          onToggleViewMode={props.onToggleViewMode}
           open={studyActionsOpen}
           showHelp={props.showHelp}
           showCardDetails={props.showCardDetails}
@@ -602,13 +662,25 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           {...(props.onToggleSkipControls !== undefined ? { onToggleSkipControls: props.onToggleSkipControls } : {})}
         />
       ) : null}
+      {viewMode && props.showCardDetails && props.cardOverlaySlot != null ? (
+        <div data-study-card-overlay="" className="relative h-touch shrink-0">
+          {props.cardOverlaySlot}
+        </div>
+      ) : null}
       <div
+        {...(viewMode
+          ? { role: "region", tabIndex: 0, "data-study-front-scroll": "", "aria-label": t("studySession.frontAria") }
+          : {})}
         {...(props.showBackText
           ? { ...answerSurfaceProps, "aria-label": props.answerLabel ?? t("studySession.answerAria") }
           : {})}
         className={cx(
           "relative min-h-0 flex-1",
-          props.showBackText ? "overflow-y-auto pt-[env(safe-area-inset-top)]" : "overflow-hidden"
+          props.showBackText
+            ? "overflow-y-auto pt-[env(safe-area-inset-top)]"
+            : viewMode
+              ? "overflow-y-auto touch-pan-y overscroll-contain"
+              : "overflow-hidden"
         )}
         {...cardGestureHandlers}
         ref={(element) => {
@@ -617,6 +689,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
         }}
       >
         <CardContent
+          viewMode={viewMode}
           showBackText={props.showBackText}
           hideCardOverlayOnNarrowScreen={studyActionsOpen}
           hasEditLink={props.editLink !== undefined}
@@ -627,6 +700,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
         />
       </div>
       <Controls
+        viewMode={viewMode}
         showBackText={props.showBackText}
         showSwipeControls={props.showSwipeControls}
         showPlaybackControls={props.showPlaybackControls}

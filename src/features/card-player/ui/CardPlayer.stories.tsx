@@ -26,6 +26,8 @@ const meta = {
     layout: "fullscreen",
   },
   args: {
+    viewMode: false,
+    onToggleViewMode: fn(),
     onBack: fn(),
     onToggleCardDetails: fn(),
     onToggleHelp: fn(),
@@ -368,4 +370,42 @@ export const ViewEditLinkNarrow: Story = {
 export const ViewEditLinkMobile: Story = {
   ...ViewEditLink,
   globals: { viewport: { value: "iphonex", isRotated: false } },
+};
+
+const readingPlay: Story["play"] = async ({ args, canvasElement }) => {
+  const canvas = within(canvasElement);
+  const surface = canvas.getByRole("region", { name: "Card front text" });
+  await expect(surface).toHaveFocus();
+  await expect(surface.scrollHeight).toBeGreaterThan(surface.clientHeight);
+  surface.scrollTop = surface.scrollHeight;
+  await expect(surface.scrollTop + surface.clientHeight).toBeGreaterThanOrEqual(surface.scrollHeight - 1);
+  const controls = canvas.getByRole("button", { name: "Play" });
+  await expect(surface.getBoundingClientRect().bottom).toBeLessThanOrEqual(controls.getBoundingClientRect().top);
+  await userEvent.click(canvas.getByRole("button", { name: "Open card actions" }));
+  const toggle = canvas.getByRole("button", { name: "View mode" });
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(toggle.getBoundingClientRect().bottom).toBeLessThanOrEqual(surface.getBoundingClientRect().top);
+  await userEvent.click(toggle);
+  await expect(args.onToggleViewMode).toHaveBeenCalledOnce();
+};
+
+export const ViewModeLongFront: Story = {
+  args: {
+    viewMode: true,
+    frontTextSlot: <FrontText viewMode text={fixture.card.toolong.frontText.repeat(30)} />,
+  },
+  play: readingPlay,
+};
+
+export const ViewModeMobile: Story = {
+  ...ViewModeLongFront,
+  globals: { viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const ViewModeMath: Story = {
+  ...ViewModeLongFront,
+  args: {
+    viewMode: true,
+    frontTextSlot: <FrontText viewMode text={Array(20).fill(fixture.math.block).join("\n\n")} category="math" />,
+  },
 };

@@ -17,6 +17,7 @@ export const useStudyQuery = (deckId: string) => {
   const controls = {
     swipeActions: preferences.controls,
     showHelp: preferences.controls.showHelp,
+    viewMode: preferences.controls.viewMode,
     playbackControlsAvailable: preferences.study.cardInterval > 0,
     showCardDetails: preferences.controls.showCardDetails,
     showPlaybackControls: preferences.controls.showPlaybackControls,
@@ -37,6 +38,7 @@ export const useStudyQuery = (deckId: string) => {
     status: "studying" as const,
     session: { currentIndex: sessionState.session.currentIndex, cardCount: sessionState.session.cardOrderIds.length },
     card: {
+      id: sessionState.card.id,
       frontText: sessionState.card.frontText,
       category,
       difficulty: sessionState.card.difficulty,

@@ -3,6 +3,7 @@ import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
 import { defaultPreferences } from "./defaults";
 import { preferencesStore } from "./store";
+import { toggleViewMode } from "./actions/toggleViewMode";
 import { setDarkMode } from "./actions/setDarkMode";
 import { toggleShowCardDetails } from "./actions/toggleShowCardDetails";
 import { toggleShowEditLink } from "./actions/toggleShowEditLink";
@@ -34,10 +35,23 @@ const useMemoryStorage = (initial: Record<string, string> = {}): MemoryStorage =
   return storage;
 };
 
-describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
+describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
   beforeEach(() => {
     useMemoryStorage();
     updatePreferences(defaultPreferences);
+  });
+
+  it("persists view mode without changing other preferences", async () => {
+    const before = preferencesStore.getState().preferences;
+    toggleViewMode();
+    await preferencesStore.persist.rehydrate();
+    expect(preferencesStore.getState().preferences).toEqual({
+      ...before,
+      controls: { ...before.controls, viewMode: true },
+    });
+    toggleViewMode();
+    await preferencesStore.persist.rehydrate();
+    expect(preferencesStore.getState().preferences).toEqual(before);
   });
 
   it("persists hiding and restoring the view edit link", async () => {
@@ -182,6 +196,7 @@ describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
     const {
       language: _language,
       controls: {
+        viewMode: _viewMode,
         showHelp: _showHelp,
         showEditLink: _showEditLink,
         showBackTextSwipeOverlays: _showBackTextSwipeOverlays,
@@ -208,6 +223,7 @@ describe("preferences store [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
       language: "system",
       controls: {
         ...persistedPreferences.controls,
+        viewMode: false,
         showHelp: true,
         showEditLink: true,
         showBackTextSwipeOverlays: false,

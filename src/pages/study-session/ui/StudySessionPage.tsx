@@ -18,6 +18,7 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
   const {
     goBack,
     finish,
+    toggleViewMode,
     toggleShowHelp,
     toggleShowCardDetails,
     toggleShowPlaybackControls,
@@ -71,6 +72,9 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
   return (
     <AppLayout fullscreen showHeader={false}>
       <CardPlayer
+        cardKey={query.card.id}
+        viewMode={query.viewMode}
+        onToggleViewMode={toggleViewMode}
         onBack={goBack}
         onToggleCardDetails={toggleShowCardDetails}
         onToggleHelp={toggleShowHelp}
@@ -103,7 +107,12 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
             }
           : {})}
         frontTextSlot={
-          <FrontText category={query.card.category} text={query.card.frontText} onClick={toggleBackText} />
+          <FrontText
+            viewMode={query.viewMode}
+            category={query.card.category}
+            text={query.card.frontText}
+            onClick={toggleBackText}
+          />
         }
         cardOverlaySlot={
           <CardOverlay

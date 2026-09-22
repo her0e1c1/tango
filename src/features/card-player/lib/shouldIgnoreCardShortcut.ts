@@ -3,7 +3,7 @@ const studyShortcutTextEntryTarget =
 const studyShortcutButtonTarget =
   "a[href], button, summary, input[type='button'], input[type='submit'], input[type='reset'], input[type='checkbox'], input[type='radio'], [role='button'], [role='link'], [role='switch'], [role='checkbox'], [role='radio'], [role='tab']";
 const studyShortcutSliderTarget = "input[type='range'], [role='slider']";
-const studyShortcutAnswerScrollTarget = "[data-study-answer-scroll]";
+const studyShortcutAnswerScrollTarget = "[data-study-answer-scroll], [data-study-front-scroll]";
 
 export const shouldIgnoreCardShortcut = (event: KeyboardEvent): boolean => {
   if (!(event.target instanceof Element)) return false;

@@ -4,6 +4,7 @@ import { useAuth } from "@/entities/auth";
 import type { Deck } from "@/entities/deck";
 import {
   toggleShowEditLink,
+  toggleViewMode,
   toggleShowHelp,
   toggleShowCardDetails,
   toggleShowPlaybackControls,
@@ -48,6 +49,7 @@ export function useDeckViewPageModel(deck: Deck) {
     closeHelp,
     toggleAutoPlay,
     toggleShowEditLink,
+    toggleViewMode,
     toggleShowHelp,
     toggleShowCardDetails,
     toggleShowPlaybackControls,
