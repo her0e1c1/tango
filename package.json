@@ -28,7 +28,7 @@
     "fmt:sample:fix": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'ruff format' base",
     "lint": "npm run lint:tsc && npm run lint:eslint && npm run lint:biome && npm run lint:fsd && npm run lint:knip && npm run lint:e2e-contract && npm run lint:markdown",
     "lint:biome": "biome lint --error-on-warnings .",
-    "lint:e2e-contract": "playwright test --list --project=chromium --reporter=./test/e2e/e2e-contract-reporter.ts",
+    "lint:e2e-contract": "playwright test --config=playwright.contract.config.ts --list --project=chromium",
     "lint:eslint": "eslint --max-warnings=0 'src/**/*.{ts,tsx}'",
     "lint:fsd": "steiger ./src",
     "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' && biome lint --write . && knip --fix --allow-remove-files && npm run lint:markdown:fix",
