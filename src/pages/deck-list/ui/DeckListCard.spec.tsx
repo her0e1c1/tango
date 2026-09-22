@@ -38,7 +38,7 @@ const deck = createDeck({
   category: "math",
 });
 
-describe("DECK-NAVIGATION-12 DeckListCard [STUDY-SESSION-03]", () => {
+describe("DECK-NAVIGATION-12 DECK-NAVIGATION-03 DeckListCard [STUDY-SESSION-03]", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-18T00:10:00Z"));
@@ -58,8 +58,9 @@ describe("DECK-NAVIGATION-12 DeckListCard [STUDY-SESSION-03]", () => {
     ],
   ])("distinguishes zero-count decks (%s cards)", (cardCount, nextDueAt, note) => {
     render(<DeckListCard deck={deck} cardCount={cardCount} review={{ due: 0, new: 0, nextDueAt }} />);
+    expect(screen.getByText(note)).not.toBeVisible();
+    fireEvent.click(screen.getByText("No due or new cards"));
     expect(screen.getByText(note)).toBeVisible();
-    expect(screen.getByText("0 due · 0 new")).toBeVisible();
     expect(screen.getByRole("button", { name: "Study Deck name" })).toBeEnabled();
   });
 
@@ -96,13 +97,13 @@ describe("DECK-NAVIGATION-12 DeckListCard [STUDY-SESSION-03]", () => {
       />
     );
 
-    expect(screen.getByText("math")).toBeInTheDocument();
-
-    const viewButton = screen.getByRole("button", { name: "View Deck name" });
-    const progressbar = screen.getByRole("progressbar", { name: "Progress for Deck name" });
-    expect(viewButton).toHaveAccessibleDescription("math2 / 3 · 5m ago");
-    expect(viewButton).not.toContainElement(progressbar);
-    expect(progressbar).toHaveAttribute("aria-valuenow", "2");
+    expect(screen.getByText("8 cards")).toBeVisible();
+    expect(screen.getByText("Studying · Card 2 of 3")).toBeVisible();
+    expect(screen.queryByText("math")).not.toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open cards in Deck name" })).toHaveAccessibleDescription(
+      "8 cards Studying · Card 2 of 3"
+    );
     expect(screen.getByRole("button", { name: "Continue Deck name" })).toBeInTheDocument();
   });
 
@@ -127,7 +128,9 @@ describe("DECK-NAVIGATION-12 DeckListCard [STUDY-SESSION-03]", () => {
         }}
       />
     );
-    expect(screen.getByRole("button", { name: "View Deck name" })).toHaveAccessibleDescription("math2 / 2");
+    expect(screen.getByRole("button", { name: "Open cards in Deck name" })).toHaveAccessibleDescription(
+      "2 cards Studying · Card 2 of 2"
+    );
     expect(screen.getByRole("button", { name: "Continue Deck name" })).toBeVisible();
   });
 
@@ -145,6 +148,7 @@ describe("DECK-NAVIGATION-12 DeckListCard [STUDY-SESSION-03]", () => {
   it("passes the deck id to navigation and management actions", () => {
     const actions = {
       onClickName: vi.fn(),
+      onClickView: vi.fn(),
       onClickContinue: vi.fn(),
       onClickStudy: vi.fn(),
       onClickRestart: vi.fn(),
@@ -168,8 +172,11 @@ describe("DECK-NAVIGATION-12 DeckListCard [STUDY-SESSION-03]", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "View Deck name" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open cards in Deck name" }));
     fireEvent.click(screen.getByRole("button", { name: "Continue Deck name" }));
+    expect(screen.queryByRole("button", { name: "View" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "View" }));
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Restart" }));
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
@@ -180,6 +187,7 @@ describe("DECK-NAVIGATION-12 DeckListCard [STUDY-SESSION-03]", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
 
     expect(actions.onClickName).toHaveBeenCalledExactlyOnceWith(deck.id);
+    expect(actions.onClickView).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(actions.onClickContinue).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(actions.onClickStudy).not.toHaveBeenCalled();
     expect(actions.onClickRestart).toHaveBeenCalledExactlyOnceWith(deck.id);
@@ -208,11 +216,11 @@ describe("DECK-NAVIGATION-12 DeckListCard [STUDY-SESSION-03]", () => {
       </>
     );
 
-    expect(screen.getByRole("button", { name: "View Deck name" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Open cards in Deck name" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Study Deck name" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Open actions for Deck name" })).toBeDisabled();
     expect(screen.getAllByRole("article")[0]).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByRole("button", { name: "View Other deck" })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "Open cards in Other deck" })).not.toBeDisabled();
     expect(screen.getByRole("button", { name: "Study Other deck" })).not.toBeDisabled();
     expect(screen.getByRole("button", { name: "Open actions for Other deck" })).not.toBeDisabled();
   });

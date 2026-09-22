@@ -6,8 +6,9 @@ test("DECK-NAVIGATION-12 shows held review counts and opens existing study setti
   await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
   const before = await requireDocument("deck", deck.id);
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Review now" })).toBeVisible();
+  await expect(page.getByRole("article", { name: deck.name, exact: true })).toBeVisible();
   await expect(page.getByText("1 due · 1 new", { exact: true })).toHaveCount(2);
+  await page.getByText("About counts", { exact: true }).click();
   await expect(page.getByText("Counts use data currently held on this device and saved filters.")).toBeVisible();
   const review = page.getByRole("button", { name: `Review ${deck.name}`, exact: true });
   await review.focus();
@@ -26,7 +27,7 @@ test("DECK-NAVIGATION-13 updates the list when a review deadline arrives", async
   if (!state?.fsrs) throw new Error("Expected a future review deadline");
   const deadline = new Date(state.fsrs.dueAt);
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Review now" })).toBeVisible();
+  await expect(page.getByRole("article", { name: deck.name, exact: true })).toBeVisible();
   await page.clock.install({ time: new Date(deadline.getTime() - 1000) });
   await page.clock.pauseAt(new Date(deadline.getTime() - 500));
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));

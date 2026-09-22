@@ -7,6 +7,7 @@
 import * as React from "react";
 import {
   AiOutlineBarChart,
+  AiOutlineRead,
   AiOutlineCloudDownload,
   AiOutlineDelete,
   AiOutlineEdit,
@@ -21,6 +22,7 @@ export interface DeckActionsMenuProps {
   disabled?: boolean;
   onToggle: () => void;
   onClose: () => void;
+  onView?: () => void;
   onRestart?: () => void;
   onHistory?: () => void;
   onDownload?: () => void;
@@ -41,6 +43,12 @@ export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
   }, [disabled, onClose, open]);
 
   const items: ActionsMenuItem[] = [
+    {
+      key: "view",
+      label: t("deckView.title"),
+      icon: <AiOutlineRead aria-hidden="true" />,
+      ...(props.onView !== undefined ? { onSelect: props.onView } : {}),
+    },
     ...(props.onRestart != null
       ? [
           {

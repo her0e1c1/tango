@@ -1,10 +1,7 @@
 /**
- * @file Defines the Deck List Page's Deck Card presentation component.
- * The component renders props and reports user intent through callbacks while data access stays
- * outside the view.
+ * @file Renders a compact deck row with one primary study action.
  */
 
-import type { TFunction } from "i18next";
 import cx from "classnames";
 import * as React from "react";
 import { AiFillCaretRight } from "react-icons/ai";
@@ -41,76 +38,6 @@ export interface DeckListCardProps extends DeckListCardActions, DeckListCardMenu
   review?: { due: number; new: number; nextDueAt: number | undefined };
 }
 
-/**
- * Formats a deck's last-study time as compact locale-dependent copy.
- * Keeping the raw timestamp at this UI boundary lets a mounted list update when the locale changes.
- */
-const formatLastStudied = (timestamp: number, t: TFunction): string => {
-  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
-  if (elapsedSeconds < 60) return t("deckList.lastStudied.justNow");
-  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
-  if (elapsedMinutes < 60) return t("deckList.lastStudied.minutes", { count: elapsedMinutes });
-  const elapsedHours = Math.floor(elapsedMinutes / 60);
-  if (elapsedHours < 24) return t("deckList.lastStudied.hours", { count: elapsedHours });
-  const elapsedDays = Math.floor(elapsedHours / 24);
-  if (elapsedDays < 30) return t("deckList.lastStudied.days", { count: elapsedDays });
-  const elapsedMonths = Math.floor(elapsedDays / 30);
-  if (elapsedMonths < 12) return t("deckList.lastStudied.months", { count: elapsedMonths });
-  return t("deckList.lastStudied.years", { count: Math.floor(elapsedMonths / 12) });
-};
-
-const primaryActionClassName =
-  "inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control px-3 text-caption font-semibold transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
-
-const DeckListCardStatus: React.FC<{
-  deck: DeckListCardProps["deck"];
-  active: boolean;
-  studySession: DeckListCardProps["studySession"];
-  progressValue: number;
-  cardCount: number;
-  statusId: string;
-}> = ({ deck, active, studySession, progressValue, cardCount, statusId }) => {
-  const { t } = useTranslation();
-
-  return (
-    <span id={statusId} className="mt-1 flex min-w-0 items-center gap-2 text-caption text-ink-muted">
-      {deck.category !== "" && (
-        <span className="max-w-28 truncate rounded-pill bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">
-          {deck.category}
-        </span>
-      )}
-      <span className="truncate">
-        {active && studySession
-          ? `${String(progressValue)} / ${String(studySession.cardOrderIds.length)}${studySession.lastStudiedAt > 0 ? ` · ${formatLastStudied(studySession.lastStudiedAt, t)}` : ""}`
-          : t("deckList.cardCount", { count: cardCount })}
-      </span>
-    </span>
-  );
-};
-
-const DeckListCardProgressBar: React.FC<{
-  active: boolean;
-  progressValue: number;
-  progressPercent: number;
-  cardCount: number;
-  deckName: string;
-}> = ({ active, progressValue, progressPercent, cardCount, deckName }) => {
-  const { t } = useTranslation();
-  if (!active) return null;
-  return (
-    <span
-      role="progressbar"
-      aria-label={t("deckList.progress", { deckName })}
-      aria-valuemin={0}
-      aria-valuemax={cardCount}
-      aria-valuenow={progressValue}
-      className="mt-2 block h-1 overflow-hidden rounded-pill bg-surface-muted"
-    >
-      <span className="block h-full rounded-pill bg-accent-primary" style={{ width: `${String(progressPercent)}%` }} />
-    </span>
-  );
-};
-
 const DeckReviewStatus: React.FC<{
   cardCount: number;
   due: number;
@@ -118,115 +45,102 @@ const DeckReviewStatus: React.FC<{
   nextDueAt: number | undefined;
 }> = ({ cardCount, due, newCount, nextDueAt }) => {
   const { t, i18n } = useTranslation();
-  let note: string | undefined;
-  if (due + newCount === 0) {
-    if (cardCount === 0) note = t("deckList.noHeldCards");
-    else if (nextDueAt === undefined) note = t("deckList.noFilterMatches");
-    else
-      note = t("deckList.nextReview", {
-        date: new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium", timeStyle: "short" }).format(nextDueAt),
-      });
-  }
+  if (due + newCount > 0) return <p>{t("deckList.reviewCounts", { due, new: newCount })}</p>;
+
+  const note =
+    cardCount === 0
+      ? t("deckList.noHeldCards")
+      : nextDueAt === undefined
+        ? t("deckList.noFilterMatches")
+        : t("deckList.nextReview", {
+            date: new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium", timeStyle: "short" }).format(nextDueAt),
+          });
+
   return (
-    <div className="mt-1 text-caption text-ink-muted">
-      <p>{t("deckList.reviewCounts", { due, new: newCount })}</p>
-      {note !== undefined && <p>{note}</p>}
-    </div>
+    <details>
+      <summary className="cursor-pointer rounded-control">{t("deckList.noReviewCards")}</summary>
+      <p className="mt-2">{note}</p>
+    </details>
   );
 };
 
-/**
- * Renders the Deck Card user interface.
- * Summarizes a deck, its tags, study progress, and available actions while reflecting pending
- * operations.
- */
 export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
   const { t } = useTranslation();
   const { deck, studySession, review } = props;
   const studyAction = review?.due ? "review" : review?.new ? "studyNew" : "study";
   const active = studySession != null;
-  const studyCardCount = studySession?.cardOrderIds.length ?? 0;
-  const progressValue = active ? studySession.currentIndex + 1 : 0;
-  const progressPercent = active ? Math.min(100, (progressValue / studyCardCount) * 100) : 0;
   const pending = props.isPending?.(deck.id) ?? false;
-  /**
-   * Wraps an optional action so it receives the current item's identifier when invoked.
-   * Presentation markup can pass a parameterless callback while domain actions still receive the
-   * item they should change.
-   */
   const withId = (action?: (id: DeckId) => void) => () => action?.(deck.id);
   const statusId = React.useId();
 
   return (
     <article
+      aria-label={deck.name}
       aria-busy={pending}
       className={cx(
-        "relative flex flex-wrap min-h-20 items-center gap-2 border-b border-border px-3 py-2 transition-colors duration-fast ease-calm last:border-b-0 dark:border-black",
-        pending ? "bg-surface-muted" : "hover:bg-surface-muted"
+        "relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-border px-4 py-4 last:border-b-0 sm:gap-x-6 sm:px-5",
+        review === undefined ? "sm:grid-cols-[minmax(0,1fr)_10.25rem]" : "sm:grid-cols-[minmax(0,1fr)_11rem_10.25rem]",
+        pending && "bg-surface-muted"
       )}
     >
-      <div className="min-w-40 flex-1 px-1 py-1">
+      <div className="col-start-1 row-start-1 min-w-0">
         <button
           type="button"
-          aria-label={t("deckList.view", { deckName: deck.name })}
+          aria-label={t("deckList.openCards", { deckName: deck.name })}
           aria-describedby={statusId}
-          className="flex w-full min-w-0 items-center gap-1.5 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          className="block w-full min-w-0 break-words rounded-control text-left text-body font-semibold text-ink hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           onClick={withId(props.onClickName)}
           disabled={pending}
         >
-          <span className="truncate text-body font-semibold text-ink">{deck.name}</span>
+          {deck.name}
         </button>
+        <p id={statusId} className="mt-1 flex flex-wrap items-baseline gap-x-2 text-caption text-ink-muted">
+          <span>{t("deckList.cardCount", { count: props.cardCount })}</span>{" "}
+          {studySession != null && (
+            <span className="text-accent-primary">
+              {t("deckList.studyPosition", {
+                position: studySession.currentIndex + 1,
+                total: studySession.cardOrderIds.length,
+              })}
+            </span>
+          )}
+        </p>
+      </div>
 
-        <DeckListCardStatus
-          deck={deck}
-          active={active}
-          studySession={studySession}
-          progressValue={progressValue}
-          cardCount={props.cardCount}
-          statusId={statusId}
-        />
-
-        {review !== undefined && (
+      {review !== undefined && (
+        <div className="col-start-1 row-start-2 min-w-0 text-caption text-ink-muted sm:col-start-2 sm:row-start-1">
           <DeckReviewStatus
             cardCount={props.cardCount}
             due={review.due}
             newCount={review.new}
             nextDueAt={review.nextDueAt}
           />
-        )}
+        </div>
+      )}
 
-        <DeckListCardProgressBar
-          active={active}
-          progressValue={progressValue}
-          progressPercent={progressPercent}
-          cardCount={studyCardCount}
-          deckName={deck.name}
-        />
-      </div>
-
-      <button
-        type="button"
-        aria-label={t(
-          active
-            ? "deckList.continueDeck"
-            : studyAction === "review"
-              ? "deckList.reviewDeck"
-              : studyAction === "studyNew"
-                ? "deckList.studyNewDeck"
-                : "deckList.studyDeck",
-          { deckName: deck.name }
-        )}
+      <div
         className={cx(
-          primaryActionClassName,
-          active
-            ? "bg-accent-primary text-ink-inverse hover:opacity-90"
-            : "border border-border bg-transparent text-ink hover:bg-surface-muted"
+          "col-start-2 row-span-2 row-start-1 flex flex-col items-end gap-1 sm:row-span-1 sm:flex-row sm:items-center sm:justify-end sm:gap-2",
+          review !== undefined && "sm:col-start-3"
         )}
-        onClick={withId(active ? props.onClickContinue : props.onClickStudy)}
-        disabled={pending}
       >
-        {active && <AiFillCaretRight aria-hidden="true" />}
-        <span>
+        <button
+          type="button"
+          aria-label={t(
+            active
+              ? "deckList.continueDeck"
+              : studyAction === "review"
+                ? "deckList.reviewDeck"
+                : studyAction === "studyNew"
+                  ? "deckList.studyNewDeck"
+                  : "deckList.studyDeck",
+            { deckName: deck.name }
+          )}
+          className="inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-control bg-accent-primary px-3 text-caption font-semibold text-ink-inverse hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 sm:w-28"
+          onClick={withId(active ? props.onClickContinue : props.onClickStudy)}
+          disabled={pending}
+        >
+          {active && <AiFillCaretRight aria-hidden="true" />}
           {t(
             active
               ? "deckList.continue"
@@ -236,31 +150,21 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
                   ? "deckList.studyNew"
                   : "deckList.study"
           )}
-        </span>
-      </button>
-
-      <button
-        type="button"
-        aria-label={t("deckList.viewCards", { deckName: deck.name })}
-        className={cx(primaryActionClassName, "border border-border bg-transparent text-ink hover:bg-surface-muted")}
-        onClick={withId(props.onClickView)}
-        disabled={pending}
-      >
-        {t("deckView.title")}
-      </button>
-
-      <DeckActionsMenu
-        deckName={deck.name}
-        open={props.openMenuDeckId === deck.id}
-        disabled={pending}
-        onToggle={withId(props.onToggleMenu)}
-        onClose={() => props.onCloseMenu?.()}
-        {...(active ? { onRestart: withId(props.onClickRestart) } : {})}
-        onHistory={withId(props.onClickHistory)}
-        onDownload={withId(props.onClickDownload)}
-        onEdit={withId(props.onClickEdit)}
-        onDelete={withId(props.onClickDelete)}
-      />
+        </button>
+        <DeckActionsMenu
+          deckName={deck.name}
+          open={props.openMenuDeckId === deck.id}
+          disabled={pending}
+          onToggle={withId(props.onToggleMenu)}
+          onClose={() => props.onCloseMenu?.()}
+          onView={withId(props.onClickView)}
+          {...(active ? { onRestart: withId(props.onClickRestart) } : {})}
+          onHistory={withId(props.onClickHistory)}
+          onDownload={withId(props.onClickDownload)}
+          onEdit={withId(props.onClickEdit)}
+          onDelete={withId(props.onClickDelete)}
+        />
+      </div>
     </article>
   );
 };

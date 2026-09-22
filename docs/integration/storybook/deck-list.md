@@ -39,7 +39,7 @@ Given:
 
 When:
 
-- Actions を開き、Create deck を選択する。
+- Add を開き、Create deck を選択する。
 
 Then:
 
@@ -55,11 +55,11 @@ Then:
 
 Given:
 
-- Deck 一覧の Actions メニューが閉じている。
+- Deck 一覧の Add メニューが閉じている。
 
 When:
 
-- Actions を開き、Import decks を選択する。
+- Add を開き、Import decks を選択する。
 
 Then:
 
@@ -79,7 +79,7 @@ Given:
 
 When:
 
-- 一覧を描画し、「アクション」を開く。
+- 一覧を描画し、「追加」を開く。
 
 Then:
 
@@ -100,11 +100,11 @@ Given:
 
 When:
 
-- 先頭 Deck の View ボタンを押す。
+- 先頭 Deck の三点メニューを開き、View を選択する。
 
 Then:
 
-- 閲覧 callback に、その Deck の ID が渡される。
+- 学習進捗を変更しない閲覧を要求する callback に、その Deck の ID が渡される。Card 一覧を開く callback は対象外とする。
 
 <a id="storybook-deck-list-05"></a>
 
@@ -120,7 +120,7 @@ Given:
 
 When:
 
-- 一覧を描画し、Actions を開く。
+- 一覧を描画し、Add を開く。
 
 Then:
 
@@ -145,7 +145,7 @@ When:
 
 Then:
 
-- Review now の見出しと 5 due · 5 new が表示される。
+- 区分見出しのない一覧に 5 due · 5 new が表示され、「件数について」に相当する About counts を開くと集計対象の補足が表示される。
 
 <a id="storybook-deck-list-07"></a>
 

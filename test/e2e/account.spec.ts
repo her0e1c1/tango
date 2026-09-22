@@ -140,7 +140,7 @@ test("ACCOUNT-03 Sign-out switches to a new anonymous identity boundary", async 
   await fixture.apply(page);
   await page.goto("/");
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
-  await page.getByRole("button", { name: `View ${deck.name}` }).click();
+  await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
   await expect(page.getByText(card.frontText, { exact: true })).toBeVisible();
   await page.goto("/account");
   await expect(page.getByText("Signed in with Google")).toBeVisible();
