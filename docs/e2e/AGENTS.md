@@ -41,7 +41,7 @@
 - ID の prefix は仕様ファイル名から `.md` を除いて大文字化する（例: `card-view.md` → `CARD-VIEW`）。
 - 各ファイルのケースを記載順に `01` から欠番なく採番する。番号は最低2桁のゼロ埋めとする。
 - ケースの追加・移動・削除時は必要に応じて振り直し、anchor、Playwright のテスト名、unit / integration test の参照も同時に更新する。
-- 各 ID を少なくとも一つの Playwright test に対応させる。同じ ID を複数テストで確認してよく、一つのテストで複数 ID を確認してもよい。テスト名の先頭は fixture 選択用の主 ID とし、追加の ID もテスト名に記載する。
+- 各 ID を少なくとも一つの Playwright test に対応させる。同じ ID を複数テストで確認してよく、一つのテストで複数 ID を確認してもよい。テスト名の先頭は fixture 選択用の主 ID とし、追加の ID はその直後に空白区切りで記載する。
 - 各テストケースには `read`、`write`、`batch` のいずれかのカテゴリを明示する。
 - テストケースは `Given` / `When` / `Then` で記述し、それぞれ原則1ブロックとする。
 - `Given` の先頭で共有 fixture YAML を必ず1つ `Fixture: ...` として指定する。
@@ -55,7 +55,7 @@
 - `docs/e2e/*.md` の仕様書に定義した test case を Playwright test がすべて網羅しなければならない。
 - Playwright 側に仕様書に存在しない E2E test case を追加してはならない。
 - 詳細仕様での E2E case ID の重複を禁止する。複数テストで同じ仕様 ID を共有することは許可する。
-- 詳細仕様とテスト宣言の対応は `npm run lint:test-specs` で静的に検証する。fixture は E2E の global setup で browser 起動前に検証する。
+- 仕様 ID の記載漏れは `npm run lint:test-specs` で簡易チェックする。fixture は E2E の global setup で browser 起動前に検証する。
 - 手動で管理する E2E case ID の索引は作成しない。仕様書を single source of truth とする。
 
 ## 共通の期待結果
@@ -66,8 +66,8 @@
 
 ## 変更時の確認
 
-- `npm run lint:test-specs`: E2E・Firestore・Storybook の詳細仕様がテスト宣言で網羅されていることを確認する。テストランナーや browser / emulator は起動しない。
+- `npm run lint:test-specs`: E2E・Firestore の仕様 ID がテストソース内の文字列先頭にあるか、Storybook の対応 export の記述があるかを確認する。テストランナーや browser / emulator は起動しない。
 - `npm run lint:markdown`: Markdown の構文と形式を確認する。
 - `mise run e2e`: 全 fixture の検証後に E2E test を実行する。
 
-網羅 lint はアサーションの内容や実行結果を保証しない。コメントや無効化したテストを対応先にしない。
+この lint は正規表現による文字列照合のみとし、1:1・重複・コメント・skip・実行条件は判定しない。テストの網羅性やアサーションの内容・実行結果はレビューとテスト実行で確認する。
