@@ -10,7 +10,7 @@ Card 内容の書込範囲、部分失敗、論理削除を確認する。
 
 ## 共通前提
 
-本人の非匿名認証 UID は `uid` とする。作成・更新対象には本人所有の親 Deck を用意し、各ケースで別の ID を使う。個人学習状態は Card の保存値に含めない。
+本人の非匿名認証 UID は `uid` とする。作成・更新対象には本人所有の親 Deck を用意し、各ケースで別の ID を使う。Card.fsrs に学習状態を保存し、新規作成では null とする。
 詳細な実行・cleanup の前提は [README](./README.md) を参照する。
 
 ## テストケース
@@ -20,7 +20,7 @@ Card 内容の書込範囲、部分失敗、論理削除を確認する。
 | FIRESTORE-CARD-01 | write | [Card の保存対象だけを新規作成できる](#firestore-card-01) |
 | FIRESTORE-CARD-02 | write | [Card の編集で作成日時と対象外フィールドを維持できる](#firestore-card-02) |
 | FIRESTORE-CARD-03 | write | [Card 作成時に旧個人学習フィールドを除外する](#firestore-card-03) |
-| FIRESTORE-CARD-04 | write | [一括保存 API で新規 Card を保存できる](#firestore-card-04) |
+| FIRESTORE-CARD-04 | write | [一括作成の再試行で既存 Card の学習状態を維持する](#firestore-card-04) |
 | FIRESTORE-CARD-05 | batch | [一部の入力失敗を返しつつ有効な Card を保存できる](#firestore-card-05) |
 | FIRESTORE-CARD-06 | write | [保存計画後に物理削除された Card を編集で再作成しない](#firestore-card-06) |
 | FIRESTORE-CARD-07 | write | [Card の削除日時を保存し本文を維持できる](#firestore-card-07) |
@@ -46,7 +46,7 @@ When:
 
 Then:
 
-- 指定した ID・UID・親 Deck ID・本文・tags・uniqueKey を保存する。`deletedAt` は `null` である。個人学習状態は Card に保存しない。
+- 指定した ID・UID・親 Deck ID・本文・tags・uniqueKey を保存する。`deletedAt` は `null` である。fsrs は null である。
 - `createdAt` と `updatedAt` は同じ数値である。
 - `currentIndex` と `cardOrderIds` は保存しない。
 
@@ -60,11 +60,11 @@ Then:
 
 Given:
 
-- 本人の親 Deck と Card が存在し、Card の作成直後の保存値を取得している。
+- 本人の親 Deck と Card が存在し、Card に有効な FSRS を保存して値を取得している。
 
 When:
 
-- frontText を `updated` に変更する。入力に `currentIndex: 1` と `cardOrderIds: ["card-1"]` を混在させて `editCard` を実行する。
+- frontText を `updated` に変更する。入力に `currentIndex: 1` と `cardOrderIds: ["card-1"]` を混在させて `editCard` と既存 Card の `mutateCards` 更新を順に実行する。
 
 Then:
 
@@ -81,7 +81,7 @@ Then:
 
 Given:
 
-- 本人の親 Deck があり、Card 内容と旧 difficulty、numberOfSeen を含む入力を用意する。
+- 本人の親 Deck があり、Card 内容と評価済み FSRS、旧 difficulty、numberOfSeen を含む複製元の入力を用意する。
 
 When:
 
@@ -89,17 +89,17 @@ When:
 
 Then:
 
-- 保存した Card に difficulty と numberOfSeen が含まれない。
+- 保存した Card に difficulty と numberOfSeen が含まれず、fsrs は null となる。
 
-これは Adapter の入力処理の検証であり、直接 SDK の拒否は Rules 仕様で確認する。State document が作成されていないことは、このケースの assertion では直接確認していない。
+これは Adapter の入力処理の検証であり、直接 SDK の拒否は Rules 仕様で確認する。新規 ID の Card に複製元の学習状態を引き継がない。
 
 <a id="firestore-card-04"></a>
 
-### FIRESTORE-CARD-04 一括保存 API で新規 Card を保存できる
+### FIRESTORE-CARD-04 一括作成の再試行で既存 Card の学習状態を維持する
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-CARD-04] should upsert a complete card`
+対応テスト: `[FIRESTORE-CARD-04] preserves a rated Card when retrying a prepared create`
 
 Given:
 
@@ -108,12 +108,15 @@ Given:
 When:
 
 - `mutateCards("uid", [{ kind: "create", card }])` を実行する。
+- 保存した Card を評価し、同じ ID の作成操作を再実行する。
 
 Then:
 
 - 入力した Card の値を保存し、createdAt と updatedAt は同じ数値になる。
 
-既存テスト名の `upsert` にかかわらず、このケースは未使用 ID への create だけを検証する。既存 document の上書きは保証に含めない。
+- 再試行後も FSRS と本文、createdAt、updatedAt を含む保存値が変わらない。
+
+再試行は SDK キャッシュに保存済みの同じ ID を使用する。キャッシュにない別クライアントの document の存在確認は保証に含めない。
 
 <a id="firestore-card-05"></a>
 

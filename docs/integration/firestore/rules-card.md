@@ -35,6 +35,10 @@
 | FIRESTORE-RULES-CARD-18 | write | [未認証による Card の更新を拒否する](#firestore-rules-card-18) |
 | FIRESTORE-RULES-CARD-19 | write | [未認証による Card の物理削除を拒否する](#firestore-rules-card-19) |
 | FIRESTORE-RULES-CARD-20 | write | [旧個人学習フィールドを Card に書き戻せない](#firestore-rules-card-20) |
+| FIRESTORE-RULES-CARD-21 | write | [本人の FSRS 更新を許可し Card の同一性を維持する](#firestore-rules-card-21) |
+| FIRESTORE-RULES-CARD-22 | write | [公開 Card の FSRS を公開し他人の書込を拒否する](#firestore-rules-card-22) |
+| FIRESTORE-RULES-CARD-23 | write | [FSRS 外形と所有権・削除状態を確認する](#firestore-rules-card-23) |
+| FIRESTORE-RULES-CARD-24 | write | [評価更新で物理削除 Card を再作成しない](#firestore-rules-card-24) |
 
 <a id="firestore-rules-card-01"></a>
 
@@ -97,7 +101,7 @@ Given:
 
 When:
 
-- UID `uid` と親 deckId を指定して `setDoc` で作成する。
+- UID `uid`、親 deckId、fsrs: null、createdAt: 0、deletedAt: null を指定して `setDoc` で作成する。
 
 Then:
 
@@ -114,12 +118,12 @@ Then:
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
-- Card に `uid: "uid"` を事前保存する。
+- Card に uid、親 deckId、fsrs: null、createdAt: 0、deletedAt: null を事前保存する。
 - 親 Deck は UID `uid` が所有し、書込後の Card の deckId はその親を参照する。
 
 When:
 
-- UID を維持し、本人の親 Deck ID を `updateDoc` で保存する。
+- UID と親 Deck を維持し、frontText を `Updated` に更新する。
 
 Then:
 
@@ -450,7 +454,7 @@ Then:
 
 Given:
 
-- 本人の Deck と内容のみの Card がある。
+- 本人の Deck と fsrs: null の Card がある。
 
 When:
 
@@ -459,3 +463,83 @@ When:
 Then:
 
 - 全て拒否される。
+
+<a id="firestore-rules-card-21"></a>
+
+### FIRESTORE-RULES-CARD-21 本人の FSRS 更新を許可し Card の同一性を維持する
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-CARD-21] permits owner FSRS updates and preserves Card identity`
+
+Given:
+
+- 本人の Deck と fsrs: null、createdAt: 1000 の Card がある。
+
+When:
+
+- Card の単体・本人 UID query 読取、FSRS 更新、UID・Deck・作成日時変更、物理削除を試す。
+
+Then:
+
+- 読取・FSRS 更新・削除を許可し、UID・Deck・作成日時変更は拒否する。
+
+<a id="firestore-rules-card-22"></a>
+
+### FIRESTORE-RULES-CARD-22 公開 Card の FSRS を公開し他人の書込を拒否する
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-CARD-22] exposes public Card FSRS but denies writes from %s`
+
+Given:
+
+- 公開 Deck の評価済み Card がある。
+
+When:
+
+- 他ユーザー・同一 UID の匿名・未認証で Card を読み、置換・FSRS 更新・削除を試す。
+
+Then:
+
+- 全員が保存された FSRS を取得できる。全ての書込は拒否される。
+
+<a id="firestore-rules-card-23"></a>
+
+### FIRESTORE-RULES-CARD-23 FSRS 外形と所有権・削除状態を確認する
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-CARD-23] rejects invalid FSRS shape and foreign or deleted Cards`
+
+Given:
+
+- 本人の Deck と Card がある。
+
+When:
+
+- 数値 FSRS、空 map、不正な数値を含む map を更新する。他人の Card、削除 Card、他人所有 Deck の Card に評価を書き込む。
+
+Then:
+
+- 非 map、他人・削除済み・Deck 所有者不一致を拒否する。空 map と difficulty: 0、stability: Infinity を含む map は Rules が許可する。詳細検証は Adapter が担当し、不正値は購読時に拒否される。
+
+<a id="firestore-rules-card-24"></a>
+
+### FIRESTORE-RULES-CARD-24 評価更新で物理削除 Card を再作成しない
+
+カテゴリ: `write`
+
+対応テスト: `[FIRESTORE-RULES-CARD-24] cannot recreate a deleted Card through a rating update`
+
+Given:
+
+- 本人の Deck と Card がある。
+
+When:
+
+- Card を物理削除した後、fsrs と updatedAt の部分更新を試す。
+
+Then:
+
+- 更新は拒否され、Card は再作成されない。

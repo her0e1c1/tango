@@ -11,10 +11,11 @@ const requiredDocument = {
   uid: "uid-a",
   createdAt: 1,
   updatedAt: 2,
+  fsrs: null,
   deletedAt: null,
 };
 
-describe("Card document [CARD-VIEW-01]", () => {
+describe("Card document [CARD-VIEW-01 STUDY-SESSION-01]", () => {
   it("parses a valid document without adding optional fields", () => {
     expect(parseCardDocument("card-a", requiredDocument)).toEqual(requiredDocument);
   });
@@ -34,6 +35,8 @@ describe("Card document [CARD-VIEW-01]", () => {
   it.each([
     ["missing", { ...requiredDocument, frontText: undefined }],
     ["malformed", { ...requiredDocument, tags: [42] }],
+    ["missing FSRS", { ...requiredDocument, fsrs: undefined }],
+    ["invalid FSRS", { ...requiredDocument, fsrs: {} }],
   ])("rejects a %s required field", (_case, document) => {
     expect(() => parseCardDocument("card-a", document)).toThrowError(
       expect.objectContaining({

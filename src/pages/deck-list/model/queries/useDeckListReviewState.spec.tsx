@@ -1,6 +1,5 @@
 import "@/test/mockFirestorePersistence";
-import { seedCardStudyState } from "@/test/studyStateFixtures";
-import { clearCardStudyStates } from "@/entities/card-study-state";
+import { calculateFsrsState } from "@/entities/card";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Card } from "@/entities/card";
@@ -16,7 +15,10 @@ const input = vi.hoisted(() => ({
   preferences: {} as ReturnType<typeof createPreferences>,
 }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
-vi.mock("@/entities/card", () => ({ useCards: () => input.cards }));
+vi.mock("@/entities/card", async (original) => ({
+  ...(await original<typeof import("@/entities/card")>()),
+  useCards: () => input.cards,
+}));
 vi.mock("@/entities/deck", () => ({ useDecks: () => input.decks }));
 vi.mock("@/entities/preference", () => ({ usePreferences: () => input.preferences }));
 vi.mock("@/entities/study-session", async (original) => ({
@@ -26,9 +28,9 @@ vi.mock("@/entities/study-session", async (original) => ({
 
 function card(deckId: string, dueAt?: number, overrides: Partial<Card> = {}) {
   const id = crypto.randomUUID();
-  if (dueAt !== undefined) seedCardStudyState(id, dueAt, "user-id", deckId);
   return createCard({
     id,
+    fsrs: dueAt === undefined ? null : { ...calculateFsrsState(null, "good", 0), dueAt },
     deckId,
     ...overrides,
   });
@@ -36,7 +38,6 @@ function card(deckId: string, dueAt?: number, overrides: Partial<Card> = {}) {
 
 describe("DECK-NAVIGATION-12 DECK-NAVIGATION-13 held review counts", () => {
   beforeEach(() => {
-    clearCardStudyStates();
     vi.useFakeTimers();
     vi.setSystemTime(1000);
     input.preferences = createPreferences({ useCardInterval: true, maxNumberOfCardsToLearn: 1, shuffled: true });

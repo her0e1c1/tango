@@ -108,4 +108,4 @@ Then:
 - Deck は物理削除されず、`deletedAt` に数値が入る。
 - 2件の Card は残り、各 `deletedAt` は `null` のままである。
 
-子 Card の非表示や第三者からのアクセス拒否はこの保存確認と区別する。第三者の読取制限は [FIRESTORE-RULES-04](./rules.md#firestore-rules-04) を参照する。
+子 Card の非表示や第三者からのアクセス拒否はこの保存確認と区別する。第三者の読取制限は [Deck Rules](./rules-deck.md#firestore-rules-deck-01) と [Card Rules](./rules-card.md#firestore-rules-card-01) を参照する。

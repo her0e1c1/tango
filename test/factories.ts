@@ -66,6 +66,7 @@ export const createCard = (overrides: Partial<RemoteCard> = {}): RemoteCard => (
   uniqueKey: "unique-key",
   createdAt: 0,
   updatedAt: 0,
+  fsrs: null,
   deletedAt: null,
   ...overrides,
 });
@@ -80,6 +81,7 @@ export const createLocalCard = (overrides: Partial<RemoteCard> = {}): RemoteCard
   uniqueKey: "unique-key",
   createdAt: 0,
   updatedAt: 0,
+  fsrs: null,
   deletedAt: null,
   ...overrides,
 });

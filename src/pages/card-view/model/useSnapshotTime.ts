@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState } from "react";
-import type { FsrsState } from "@/entities/card-study-state";
+import type { FsrsState } from "@/entities/card";
 
 export function useSnapshotTime(cardId: string, schedule: FsrsState | null) {
   // Firestore snapshots can replace schedule objects without changing their values.

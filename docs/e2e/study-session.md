@@ -43,7 +43,7 @@ Then:
 
 - session には現在のfilter draftに一致する Card だけが含まれる。開始actionはクリック時点のデータ・設定・時刻で再選定する。
 - 間隔反復ONでは期限が古いdue（期限一致を含む）→期限なしのFSRS未開始の順に安定整列し、上限→選定済み集合だけのshuffleを適用する。未来期限は除外する。OFFでは標準順→全候補shuffle→上限とし、未来期限も含める。
-- UID で購読した CardStudyState の fsrs.dueAt を正本とし、State がないか fsrs が null の Card は未評価とする。旧 Card フィールドを参照しない。不正 State・未対応 schemaVersion・不正期限・購読失敗はエラーとし、新規や0件に読み替えない。
+- UID で購読した Card.fsrs.dueAt を正本とし、fsrs が null の Card は未評価とする。不正 FSRS・欠落フィールド・不正期限・購読失敗はエラーとし、新規や0件に読み替えない。
 - 開始画面・Card一覧・Deck閲覧は同じ期限ルールと各評価で一つのnowを使う。後二者にはSession専用の順序・上限を適用しない。
 - mount中に最も近い未来期限のtimerを一つだけ持ち、期限到来・foreground復帰・データ/設定変更で再評価する。未来期限なしではtimerを置かず、遠い期限は安全なcheckpointで再計算する。遅延callback、時計の前後移動、timer置換・unmountを扱う。
 - 正の上限では session の Card 数が設定済みの学習上限と一致する。
@@ -174,7 +174,7 @@ When:
 Then:
 
 - 最初の Deck の学習結果と session の位置が保存される。
-- 学習した Card の内容と更新日時は変わらず、CardStudyState の FSRS 評価回数が1増える。
+- 学習した Card の内容と作成日時は変わらず、Card.fsrs の評価回数が1増え、updatedAt は回答時刻になる。
 - もう一方の Deck は操作前の session と位置から再開する。
 - 各 Deck の Card と session が混在しない。
 - browser error が発生しない。

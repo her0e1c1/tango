@@ -1,4 +1,4 @@
-import { getStudyRetrievability, studyRetentionTarget, type FsrsState } from "@/entities/card-study-state";
+import { getStudyRetrievability, studyRetentionTarget, type FsrsState } from "@/entities/card";
 
 export function getMemoryState(schedule: FsrsState | null, at: number) {
   if (schedule === null) return;

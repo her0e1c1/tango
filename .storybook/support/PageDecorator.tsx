@@ -4,7 +4,6 @@
  * normal containers, hooks, and route parameters.
  */
 
-import { clearCardStudyStates } from "@/entities/card-study-state";
 import type { CardId } from "@/entities/card";
 import { type RemoteCard, replaceRemoteCards } from "@/entities/card/testing";
 import type { Deck, DeckId } from "@/entities/deck";
@@ -44,7 +43,6 @@ const cloneCard = (card: RemoteCard): RemoteCard => ({
 // Reset every store before seeding it so navigation between stories cannot leak state.
 export const preparePageStory = (parameters: PageStoryParameters): void => {
   clearStudySessions();
-  clearCardStudyStates();
 
   replaceAuthSession({
     status: "authenticated",

@@ -1,38 +1,20 @@
-import { createCard } from "@/test/factories";
 import { createEmptyCard, fsrs as createScheduler, Rating } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
-import { calculateFsrsState, classifyFsrsState, getStudyRetrievability, joinStudyCards } from "./rules";
-import { cardStudyStateDocumentSchema } from "../api/document";
-import { cardStudyStateId } from "../api/id";
+import { calculateFsrsState, classifyFsrsState, getStudyRetrievability } from "./fsrsRules";
+
+import { fsrsStateSchema } from "./fsrs";
 
 const at = Date.UTC(2026, 8, 22);
 describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", () => {
-  it("uses an unambiguous stable identity for each user and card", () => {
-    expect(cardStudyStateId("a", "bc")).not.toBe(cardStudyStateId("ab", "c"));
-    expect(cardStudyStateId("a:b", "c")).not.toBe(cardStudyStateId("a", "b:c"));
-    expect(cardStudyStateId("a", "b")).toBe(cardStudyStateId("a", "b"));
-  });
   it.each(["again", "hard", "good", "easy"] as const)(
     "saves and restores %s without changing the next calculation",
     (rating) => {
       const fsrs = calculateFsrsState(null, rating, at);
-      const saved = cardStudyStateDocumentSchema.parse(
-        JSON.parse(
-          JSON.stringify({
-            schemaVersion: 1,
-            uid: "uid",
-            cardId: "card",
-            deckId: "deck",
-            fsrs,
-            createdAt: at,
-            updatedAt: at,
-          })
-        )
-      );
+      const saved = fsrsStateSchema.parse(JSON.parse(JSON.stringify(fsrs)));
       expect(fsrs.reps).toBe(1);
       expect(fsrs).not.toHaveProperty("elapsedDays");
       expect(classifyFsrsState(fsrs, fsrs.dueAt).status).toBe("due");
-      expect(calculateFsrsState(saved.fsrs, "good", fsrs.dueAt)).toEqual(calculateFsrsState(fsrs, "good", fsrs.dueAt));
+      expect(calculateFsrsState(saved, "good", fsrs.dueAt)).toEqual(calculateFsrsState(fsrs, "good", fsrs.dueAt));
     }
   );
   it("keeps library lapse semantics across learning, review and relearning", () => {
@@ -83,19 +65,5 @@ describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", ()
   });
   it("classifies absence as new without fabricating difficulty", () => {
     expect(classifyFsrsState(null, at)).toEqual({ status: "new" });
-  });
-  it("joins saved and unrated cards without changing their content or order", () => {
-    const cards = [createCard({ id: "missing" }), createCard({ id: "empty" }), createCard({ id: "rated" })];
-    const fsrs = calculateFsrsState(null, "good", at);
-    const states = { empty: { fsrs: null }, rated: { fsrs } };
-    const originalCards = structuredClone(cards);
-    const originalStates = structuredClone(states);
-    expect(joinStudyCards(cards, states)).toEqual([
-      { ...cards[0], fsrs: null },
-      { ...cards[1], fsrs: null },
-      { ...cards[2], fsrs },
-    ]);
-    expect(cards).toEqual(originalCards);
-    expect(states).toEqual(originalStates);
   });
 });

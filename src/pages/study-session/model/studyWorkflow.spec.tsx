@@ -58,6 +58,7 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
   uniqueKey: id,
   createdAt: 0,
   updatedAt: 0,
+  fsrs: null,
   deletedAt: null,
 }));
 

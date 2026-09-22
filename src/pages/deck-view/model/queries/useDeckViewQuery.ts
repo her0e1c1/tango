@@ -1,4 +1,4 @@
-import { useStudyCards } from "@/entities/card-study-state";
+import { useCards } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { useDeadlineQuery } from "@/shared/lib/useDeadlineQuery";
@@ -13,7 +13,7 @@ export function useDeckViewQuery(
   cardId: string | undefined,
   showBackText: boolean
 ) {
-  const deckCards = useStudyCards().filter((candidate) => candidate.deckId === deck.id);
+  const deckCards = useCards().filter((candidate) => candidate.deckId === deck.id);
   const preferences = usePreferences();
   const { cards } = useDeadlineQuery(selectStudyCardsWithDeadline, [
     deckCards,

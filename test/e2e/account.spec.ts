@@ -62,7 +62,7 @@ test("ACCOUNT-01 Google linking preserves the anonymous identity and its data", 
   await expect(page.getByText("Anonymous account")).toBeVisible();
   const anonymousUid = await accountUid(page);
 
-  for (const collection of ["deck", "card", "studySession", "studyAnswer", "cardStudyState"] as const) {
+  for (const collection of ["deck", "card", "studySession", "studyAnswer"] as const) {
     expect((await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === anonymousUid)).toEqual(
       []
     );

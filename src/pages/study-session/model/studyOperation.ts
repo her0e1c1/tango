@@ -1,4 +1,4 @@
-import { fsrsStateSchema } from "@/entities/card-study-state";
+import { fsrsStateSchema } from "@/entities/card";
 import { z } from "zod";
 import { studyRatingSchema } from "@/entities/study-answer";
 
