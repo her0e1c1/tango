@@ -130,3 +130,41 @@ export const IphoneXLong: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
   args: { sections: longSections },
 };
+
+const reviewSections: DeckListProps["sections"] = {
+  studying: studyingItems(fixture.decks.default.slice(0, 1)).map((item) => ({
+    ...item,
+    review: { due: 2, new: 1, nextDueAt: undefined },
+  })),
+  reviewNow: otherItems(fixture.decks.default.slice(1, 3)).map((item, i) => ({
+    ...item,
+    review: { due: i === 0 ? 3 : 0, new: 2, nextDueAt: undefined },
+  })),
+  other: otherItems(fixture.decks.default.slice(3)).map((item) => ({
+    ...item,
+    review: { due: 0, new: 0, nextDueAt: fixture.timestamp + 86400000 },
+  })),
+  totals: { due: 5, new: 5 },
+};
+export const ReviewCounts: Story = {
+  args: { sections: reviewSections },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("heading", { name: "Review now" })).toBeVisible();
+    await expect(canvas.getByText("5 due · 5 new")).toBeVisible();
+  },
+};
+export const ReviewJapanese: Story = { args: { sections: reviewSections }, parameters: { locale: "ja" } };
+export const ReviewMobileDark: Story = {
+  args: { sections: reviewSections },
+  globals: { theme: "dark", viewport: { value: "iphonex", isRotated: false } },
+};
+export const ReviewZoom: Story = {
+  args: { sections: reviewSections },
+  decorators: [
+    (Story) => (
+      <div style={{ zoom: 2 }}>
+        <Story />
+      </div>
+    ),
+  ],
+};

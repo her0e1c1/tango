@@ -16,6 +16,7 @@ interface DeckListItem {
   deck: Deck;
   cardCount: number;
   studySession?: StudySession;
+  review?: { due: number; new: number; nextDueAt: number | undefined };
 }
 
 interface StudyingDeckListItem extends DeckListItem {
@@ -26,6 +27,8 @@ export interface DeckListProps {
   sections: {
     studying: StudyingDeckListItem[];
     other: DeckListItem[];
+    reviewNow?: DeckListItem[];
+    totals?: { due: number; new: number };
   };
   deckCard?: DeckListCardActions;
   onCreateDeck: () => void;
@@ -64,6 +67,7 @@ const DeckListSection: React.FC<{
             key={item.deck.id}
             deck={item.deck}
             cardCount={item.cardCount}
+            {...(item.review ? { review: item.review } : {})}
             {...(item.studySession != null ? { studySession: item.studySession } : {})}
             {...actions}
             openMenuDeckId={openMenuDeckId}
@@ -83,7 +87,7 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
   const { t } = useTranslation();
   const [openMenuDeckId, setOpenMenuDeckId] = React.useState<DeckId>();
   const [actionsOpen, setActionsOpen] = React.useState(false);
-  const total = props.sections.studying.length + props.sections.other.length;
+  const total = props.sections.studying.length + props.sections.other.length + (props.sections.reviewNow?.length ?? 0);
   const toggleMenu = (id: DeckId) => {
     setActionsOpen(false);
     setOpenMenuDeckId((value) => (value === id ? undefined : id));
@@ -129,10 +133,25 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
           />
         </div>
       </div>
+      {props.sections.totals !== undefined && (
+        <div className="text-body text-ink">
+          <p>{t("deckList.reviewCounts", props.sections.totals)}</p>
+          <p className="text-caption text-ink-muted">{t("deckList.localCountsNote")}</p>
+        </div>
+      )}
       <DeckListSection
         title={t("deckList.sections.studyingTitle")}
         note={t("deckList.sections.studyingNote")}
         items={props.sections.studying}
+        actions={props.deckCard}
+        openMenuDeckId={openMenuDeckId}
+        onToggleMenu={toggleMenu}
+        onCloseMenu={closeMenu}
+      />
+      <DeckListSection
+        title={t("deckList.sections.reviewTitle")}
+        note={t("deckList.sections.reviewNote")}
+        items={props.sections.reviewNow ?? []}
         actions={props.deckCard}
         openMenuDeckId={openMenuDeckId}
         onToggleMenu={toggleMenu}

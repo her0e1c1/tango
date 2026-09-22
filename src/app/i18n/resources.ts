@@ -124,6 +124,16 @@ export const resources = {
         answerAria: "Card answer",
       },
       deckList: {
+        reviewCounts: "{{due}} due · {{new}} new",
+        localCountsNote: "Counts use data currently held on this device and saved filters.",
+        review: "Review",
+        studyNew: "Study new",
+        reviewDeck: "Review {{deckName}}",
+        studyNewDeck: "Study new cards in {{deckName}}",
+        noHeldCards: "No cards held on this device",
+        noFilterMatches: "No cards match saved filters",
+        nextReview: "Next review: {{date}}",
+
         title: "Decks",
         count_one: "{{count}} deck",
         count_other: "{{count}} decks",
@@ -131,6 +141,8 @@ export const resources = {
         import: "Import decks",
         listActions: "Actions",
         sections: {
+          reviewTitle: "Review now",
+          reviewNote: "earliest due first",
           studyingTitle: "Studying",
           studyingNote: "recent first",
           otherTitle: "Other decks",
@@ -887,6 +899,16 @@ export const resources = {
         answerAria: "カードの回答",
       },
       deckList: {
+        reviewCounts: "復習 {{due}} 件 · 新規 {{new}} 件",
+        localCountsNote: "この端末で現在保持しているデータと保存済みフィルターに基づく件数です。",
+        review: "復習",
+        studyNew: "新規を学習",
+        reviewDeck: "{{deckName}}を復習",
+        studyNewDeck: "{{deckName}}の新規カードを学習",
+        noHeldCards: "この端末に保持中のカードはありません",
+        noFilterMatches: "保存済みフィルターに一致するカードはありません",
+        nextReview: "次回の復習: {{date}}",
+
         title: "デッキ",
         count_one: "{{count}}件",
         count_other: "{{count}}件",
@@ -894,6 +916,8 @@ export const resources = {
         import: "デッキをインポート",
         listActions: "アクション",
         sections: {
+          reviewTitle: "今すぐ復習",
+          reviewNote: "復習期日順",
           studyingTitle: "学習中",
           studyingNote: "最近の順",
           otherTitle: "その他のデッキ",

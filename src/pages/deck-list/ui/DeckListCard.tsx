@@ -38,6 +38,7 @@ export interface DeckListCardProps extends DeckListCardActions, DeckListCardMenu
   deck: Deck;
   cardCount: number;
   studySession?: StudySession;
+  review?: { due: number; new: number; nextDueAt: number | undefined };
 }
 
 /**
@@ -110,6 +111,30 @@ const DeckListCardProgressBar: React.FC<{
   );
 };
 
+const DeckReviewStatus: React.FC<{
+  cardCount: number;
+  due: number;
+  newCount: number;
+  nextDueAt: number | undefined;
+}> = ({ cardCount, due, newCount, nextDueAt }) => {
+  const { t, i18n } = useTranslation();
+  let note: string | undefined;
+  if (due + newCount === 0) {
+    if (cardCount === 0) note = t("deckList.noHeldCards");
+    else if (nextDueAt === undefined) note = t("deckList.noFilterMatches");
+    else
+      note = t("deckList.nextReview", {
+        date: new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium", timeStyle: "short" }).format(nextDueAt),
+      });
+  }
+  return (
+    <div className="mt-1 text-caption text-ink-muted">
+      <p>{t("deckList.reviewCounts", { due, new: newCount })}</p>
+      {note !== undefined && <p>{note}</p>}
+    </div>
+  );
+};
+
 /**
  * Renders the Deck Card user interface.
  * Summarizes a deck, its tags, study progress, and available actions while reflecting pending
@@ -117,7 +142,8 @@ const DeckListCardProgressBar: React.FC<{
  */
 export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
   const { t } = useTranslation();
-  const { deck, studySession } = props;
+  const { deck, studySession, review } = props;
+  const studyAction = review?.due ? "review" : review?.new ? "studyNew" : "study";
   const active = studySession != null;
   const studyCardCount = studySession?.cardOrderIds.length ?? 0;
   const progressValue = active ? studySession.currentIndex + 1 : 0;
@@ -135,11 +161,11 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
     <article
       aria-busy={pending}
       className={cx(
-        "relative flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 transition-colors duration-fast ease-calm last:border-b-0 dark:border-black",
+        "relative flex flex-wrap min-h-20 items-center gap-2 border-b border-border px-3 py-2 transition-colors duration-fast ease-calm last:border-b-0 dark:border-black",
         pending ? "bg-surface-muted" : "hover:bg-surface-muted"
       )}
     >
-      <div className="min-w-0 flex-1 px-1 py-1">
+      <div className="min-w-40 flex-1 px-1 py-1">
         <button
           type="button"
           aria-label={t("deckList.view", { deckName: deck.name })}
@@ -160,6 +186,15 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           statusId={statusId}
         />
 
+        {review !== undefined && (
+          <DeckReviewStatus
+            cardCount={props.cardCount}
+            due={review.due}
+            newCount={review.new}
+            nextDueAt={review.nextDueAt}
+          />
+        )}
+
         <DeckListCardProgressBar
           active={active}
           progressValue={progressValue}
@@ -171,7 +206,16 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
 
       <button
         type="button"
-        aria-label={t(active ? "deckList.continueDeck" : "deckList.studyDeck", { deckName: deck.name })}
+        aria-label={t(
+          active
+            ? "deckList.continueDeck"
+            : studyAction === "review"
+              ? "deckList.reviewDeck"
+              : studyAction === "studyNew"
+                ? "deckList.studyNewDeck"
+                : "deckList.studyDeck",
+          { deckName: deck.name }
+        )}
         className={cx(
           primaryActionClassName,
           active
@@ -182,7 +226,17 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
         disabled={pending}
       >
         {active && <AiFillCaretRight aria-hidden="true" />}
-        <span>{t(active ? "deckList.continue" : "deckList.study")}</span>
+        <span>
+          {t(
+            active
+              ? "deckList.continue"
+              : studyAction === "review"
+                ? "deckList.review"
+                : studyAction === "studyNew"
+                  ? "deckList.studyNew"
+                  : "deckList.study"
+          )}
+        </span>
       </button>
 
       <button

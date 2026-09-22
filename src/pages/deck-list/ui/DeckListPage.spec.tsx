@@ -52,7 +52,7 @@ const StudyDestination = () => {
   );
 };
 
-describe("NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 DECK-TRANSFER-01 DECK-NAVIGATION-03 STUDY-SESSION-03 DeckListPage", () => {
+describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 DECK-TRANSFER-01 DECK-NAVIGATION-03 STUDY-SESSION-03 DeckListPage", () => {
   const activeDeck = createLocalDeck({ id: "active-deck", name: "Active deck" });
   const freshDeck = createLocalDeck({ id: "fresh-deck", name: "Fresh deck" });
   const activeCard = createLocalCard({
@@ -106,6 +106,20 @@ describe("NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("shows held-data counts and opens Study new without replacing an active session", async () => {
+    mocks.preferences = createPreferences({ useCardInterval: true });
+    const session = getStudySession(activeDeck.id);
+    renderPage();
+    expect(screen.getByText("0 due · 2 new")).toBeVisible();
+    expect(screen.getByText("Counts use data currently held on this device and saved filters.")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Continue Active deck" })).toBeVisible();
+    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "1");
+    await userEvent.click(screen.getByRole("button", { name: "Study new cards in Fresh deck" }));
+    expect(screen.getByRole("heading", { name: "Study start destination" })).toBeVisible();
+    expect(getStudySession(freshDeck.id)).toBeUndefined();
+    expect(getStudySession(activeDeck.id)).toEqual(session);
   });
 
   it("navigates from each visible Deck action", async () => {
