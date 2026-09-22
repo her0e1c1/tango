@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import type { CardId } from "@/entities/card";
 import { ActionsMenu } from "@/shared/ui/actions-menu";
+import { Button } from "@/shared/ui/button";
 import { RemovableTag } from "@/shared/ui/content";
 import { Select } from "@/shared/ui/forms";
 import { Overlay } from "@/shared/ui/feedback";
@@ -35,8 +36,17 @@ interface CardListFilterState {
   selectedTags: string[];
 }
 
+type CardListEmptyReason = "no-cards" | "filter-zero" | "interval-zero";
+
+interface CardListEmptyProps {
+  reason: CardListEmptyReason;
+  onAddCard?: (() => void) | undefined;
+  onClearFilters?: (() => void) | undefined;
+}
+
 export interface CardListProps {
   cards: CardListItem[];
+  empty?: CardListEmptyProps | undefined;
   sortOrder?: "standard" | "newest";
   onSortOrderChange?: (value: "standard" | "newest") => void;
   sortDisabled?: boolean;
@@ -275,7 +285,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
         </div>
       </fieldset>
 
-      {props.cards.length > 0 && (
+      {props.cards.length > 0 ? (
         <CardListRows
           cards={props.cards}
           disabled={Boolean(props.disabled)}
@@ -283,7 +293,40 @@ export const CardList: React.FC<CardListProps> = (props) => {
           {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
           {...(props.renderDifficulty !== undefined ? { renderDifficulty: props.renderDifficulty } : {})}
         />
-      )}
+      ) : props.empty ? (
+        <section
+          aria-labelledby="card-list-empty-title"
+          className="rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
+        >
+          <h2 id="card-list-empty-title" className="text-title font-semibold text-ink">
+            {props.empty.reason === "no-cards"
+              ? t("cardList.empty.noCardsTitle")
+              : props.empty.reason === "filter-zero"
+                ? t("cardList.empty.filterZeroTitle")
+                : t("cardList.empty.intervalZeroTitle")}
+          </h2>
+          <p className="mt-2 text-body text-ink-muted">
+            {props.empty.reason === "no-cards"
+              ? t("cardList.empty.noCardsDescription")
+              : props.empty.reason === "filter-zero"
+                ? t("cardList.empty.filterZeroDescription")
+                : t("cardList.empty.intervalZeroDescription")}
+          </p>
+          {props.empty.reason === "no-cards" && props.empty.onAddCard ? (
+            <div className="mt-4 flex justify-center">
+              <Button variant="primary" onClick={props.empty.onAddCard}>
+                {t("cardList.add")}
+              </Button>
+            </div>
+          ) : props.empty.reason === "filter-zero" && props.empty.onClearFilters ? (
+            <div className="mt-4 flex justify-center">
+              <Button variant="secondary" onClick={props.empty.onClearFilters}>
+                {t("cardList.empty.clearFilters")}
+              </Button>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </>
   );
 };

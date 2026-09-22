@@ -232,4 +232,53 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-03] [CARD-LIST-ACTIONS-05] 
     expect(onClose).toHaveBeenCalledOnce();
     expect(screen.getByText("Overlay back")).toBeInTheDocument();
   });
+
+  it("renders empty state with Add card action for no-cards", async () => {
+    const onAdd = vi.fn();
+    render(
+      <CardList
+        cards={[]}
+        empty={{
+          reason: "no-cards",
+          onAddCard: onAdd,
+        }}
+      />
+    );
+
+    expect(screen.getByRole("heading", { level: 2, name: "No cards yet" })).toBeInTheDocument();
+    expect(screen.getByText("Add cards to start studying this deck.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Add card" }));
+    expect(onAdd).toHaveBeenCalledOnce();
+  });
+
+  it("renders empty state with Clear filters action for filter-zero", async () => {
+    const onClear = vi.fn();
+    render(
+      <CardList
+        cards={[]}
+        empty={{
+          reason: "filter-zero",
+          onClearFilters: onClear,
+        }}
+      />
+    );
+
+    expect(screen.getByRole("heading", { level: 2, name: "No cards match the active filters" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(onClear).toHaveBeenCalledOnce();
+  });
+
+  it("renders interval-zero empty state without Clear filters action", () => {
+    render(
+      <CardList
+        cards={[]}
+        empty={{
+          reason: "interval-zero",
+        }}
+      />
+    );
+
+    expect(screen.getByRole("heading", { level: 2, name: "No cards due for review" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
+  });
 });

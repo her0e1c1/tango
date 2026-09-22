@@ -52,6 +52,7 @@ const CardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
       <div className="contents" inert={model.dialogOpen}>
         <CardList
           cards={model.cards}
+          empty={model.empty}
           sortOrder={model.sortOrder}
           onSortOrderChange={model.changeSortOrder}
           sortDisabled={model.mutationPending}

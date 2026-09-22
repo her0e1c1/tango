@@ -103,12 +103,38 @@ export const WithStudyProgress: Story = {
 };
 
 export const Empty: Story = {
-  args: { sections: { studying: [], other: [] } },
+  args: {
+    sections: { studying: [], other: [] },
+    empty: {
+      reason: "confirmed-empty",
+    },
+  },
   play: async ({ canvas, userEvent }) => {
     await expect(canvas.getByText("0 decks")).toBeVisible();
+    await expect(canvas.getByRole("heading", { name: "No decks yet" })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Create deck" })).toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
     await expect(canvas.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
     await expect(canvas.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
+  },
+};
+
+export const Checking: Story = {
+  args: {
+    sections: { studying: [], other: [] },
+    empty: {
+      reason: "checking",
+    },
+  },
+};
+
+export const BootstrapError: Story = {
+  args: {
+    sections: { studying: [], other: [] },
+    empty: {
+      reason: "error",
+      onRetry: fn(),
+    },
   },
 };
 

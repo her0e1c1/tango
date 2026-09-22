@@ -6,6 +6,7 @@ import type { CardId } from "@/entities/card";
 import { type Deck, useDeck } from "@/entities/deck";
 import {
   clearDeckFilterRange,
+  clearDeckFilters,
   getDeckFilterState,
   updateDeckFilterDraft,
   useDeckFilterDraft,
@@ -66,13 +67,26 @@ export function useCardListPageModel(deck: Deck) {
   useKey("t", goToDeckList, undefined, [goToDeckList]);
   useKey("s", goToSettings, undefined, [goToSettings]);
 
+  const goToCardCreate = () => void navigate(routes.cardCreate.to(deck.id));
+  const clearFilters = () => clearDeckFilters(filterUpdate);
+
+  const empty = query.emptyReason
+    ? {
+        reason: query.emptyReason,
+        onAddCard: goToCardCreate,
+        onClearFilters: clearFilters,
+      }
+    : undefined;
+
   return {
     ...state,
     ...query,
+    empty,
     changeSortOrder: changeCardSortOrder,
     ...controls,
     deckFilter,
     clearDifficultyRange: () => clearDeckFilterRange(filterUpdate),
+    clearFilters,
     setDifficultyMax: (difficultyMax: number | null) => updateDeckFilterDraft({ difficultyMax }, filterUpdate),
     setDifficultyMin: (difficultyMin: number | null) => updateDeckFilterDraft({ difficultyMin }, filterUpdate),
     setSelectedTags: (selectedTags: string[]) => updateDeckFilterDraft({ selectedTags }, filterUpdate),
@@ -83,7 +97,7 @@ export function useCardListPageModel(deck: Deck) {
         filterUpdate
       ),
 
-    goToCardCreate: () => void navigate(routes.cardCreate.to(deck.id)),
+    goToCardCreate,
     goToCardEdit: (id: CardId) => void navigate(routes.cardForm.to(id)),
     requestBulk: () => requestBulkDifficulty(query.cards),
     cancelBulk: cancelBulkDifficulty,

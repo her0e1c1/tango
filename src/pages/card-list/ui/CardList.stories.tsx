@@ -102,7 +102,45 @@ export const BulkDifficulty: Story = {
 export const Empty: Story = {
   args: {
     cards: [],
+    empty: {
+      reason: "no-cards",
+      onAddCard: fn(),
+    },
     filter: { difficultyMax: null, difficultyMin: null, selectedTags: [] },
+  },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByText("0 cards")).toBeVisible();
+    await expect(canvas.getByRole("heading", { name: "No cards yet" })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Add card" })).toBeVisible();
+  },
+};
+
+export const FilterZero: Story = {
+  args: {
+    cards: [],
+    empty: {
+      reason: "filter-zero",
+      onClearFilters: fn(),
+    },
+    filter: { difficultyMax: 5, difficultyMin: 3, selectedTags: ["react"] },
+  },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("heading", { name: "No cards match the active filters" })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Clear filters" })).toBeVisible();
+  },
+};
+
+export const IntervalZero: Story = {
+  args: {
+    cards: [],
+    empty: {
+      reason: "interval-zero",
+    },
+    filter: { difficultyMax: null, difficultyMin: null, selectedTags: [] },
+  },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("heading", { name: "No cards due for review" })).toBeVisible();
+    await expect(canvas.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
   },
 };
 

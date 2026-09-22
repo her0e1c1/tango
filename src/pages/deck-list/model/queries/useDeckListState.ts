@@ -1,3 +1,5 @@
+import { useStore } from "zustand";
+
 import { type Card, useCards } from "@/entities/card";
 import { type Deck, type DeckId, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
@@ -10,6 +12,8 @@ import {
   useStudySessions,
 } from "@/entities/study-session";
 import { useDeadlineQuery } from "@/shared/lib/useDeadlineQuery";
+
+import { deckListStore, type DeckListBootstrapStatus } from "../store";
 
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
@@ -27,6 +31,25 @@ function summarizeDeck(cards: Card[], deck: Deck, now: number) {
     }
   }
   return { due, new: newCount, earliestDueAt, nextDueAt: selected.nextDueAt };
+}
+
+export type DeckListEmptyReason = "checking" | "error" | "confirmed-empty";
+
+interface DeriveDeckListEmptyReasonOptions {
+  rawCount: number;
+  loadSample: boolean;
+  bootstrapStatus: DeckListBootstrapStatus;
+}
+
+function deriveDeckListEmptyReason({
+  rawCount,
+  loadSample,
+  bootstrapStatus,
+}: DeriveDeckListEmptyReasonOptions): DeckListEmptyReason | undefined {
+  if (rawCount > 0) return undefined;
+  if (loadSample && (bootstrapStatus === "checking" || bootstrapStatus === "idle")) return "checking";
+  if (loadSample && bootstrapStatus === "error") return "error";
+  return "confirmed-empty";
 }
 
 function buildDeckListSections(
@@ -81,7 +104,24 @@ export const useDeckListState = () => {
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
   const preferences = usePreferences();
-  return useDeadlineQuery(buildDeckListSections, [
+  const { bootstrapStatus } = useStore(deckListStore);
+
+  const sections = useDeadlineQuery(buildDeckListSections, [
     { decks, cards, sessionsByDeckId, enabled: preferences.study.useCardInterval },
   ]);
+
+  const rawCount = decks.length;
+  const visibleCount = sections.studying.length + sections.reviewNow.length + sections.other.length;
+  const emptyReason = deriveDeckListEmptyReason({
+    rawCount,
+    loadSample: preferences.loadSample,
+    bootstrapStatus,
+  });
+
+  return {
+    ...sections,
+    rawCount,
+    visibleCount,
+    emptyReason,
+  };
 };

@@ -190,6 +190,48 @@ describe("NAVIGATION-02 DECK-NAVIGATION-02 CARD-VIEW-01 CARD-LIST-ACTIONS-03 CAR
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
 
+  it("renders empty recovery when deck has no cards and navigates to card creator", async () => {
+    const emptyDeckId = "empty-deck-id";
+    await createDeck("user-id", createLocalDeck({ id: emptyDeckId, name: "Empty deck" }));
+    renderPage(`/deck/${emptyDeckId}`);
+
+    expect(await screen.findByRole("heading", { level: 2, name: "No cards yet" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Add card" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Card creator destination" })).toBeVisible();
+  });
+
+  it("renders filter-zero recovery and clears filters when cards match zero", async () => {
+    const filteredDeckId = "filtered-deck-id";
+    await createDeck(
+      "user-id",
+      createLocalDeck({
+        id: filteredDeckId,
+        name: "Filtered deck",
+        difficultyMax: 3,
+        difficultyMin: 1,
+      })
+    );
+    await mutateCards("user-id", [
+      {
+        kind: "create",
+        card: createLocalCard({
+          id: "card-diff-8",
+          deckId: filteredDeckId,
+          difficulty: 8,
+          frontText: "High diff",
+          tags: ["react"],
+          uniqueKey: "card-diff-8",
+        }),
+      },
+    ]);
+
+    renderPage(`/deck/${filteredDeckId}`);
+
+    expect(await screen.findByRole("heading", { level: 2, name: "No cards match the active filters" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(await screen.findByRole("button", { name: "View High diff" })).toBeVisible();
+  });
+
   it("rejects a route without a deck id", () => {
     expect(() =>
       render(

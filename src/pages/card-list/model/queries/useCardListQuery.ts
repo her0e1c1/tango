@@ -9,6 +9,25 @@ import type { DeckFilterValues } from "@/features/deck-filter";
 
 import type { CardListSortOrder, CardListState } from "../store";
 
+type CardListEmptyReason = "no-cards" | "filter-zero" | "interval-zero";
+
+interface DeriveCardListEmptyReasonOptions {
+  rawCount: number;
+  visibleCount: number;
+  filterMatchCount: number;
+}
+
+function deriveCardListEmptyReason({
+  rawCount,
+  visibleCount,
+  filterMatchCount,
+}: DeriveCardListEmptyReasonOptions): CardListEmptyReason | undefined {
+  if (visibleCount > 0) return undefined;
+  if (rawCount === 0) return "no-cards";
+  if (filterMatchCount === 0) return "filter-zero";
+  return "interval-zero";
+}
+
 interface CardListQueryOptions {
   deck: Deck;
   filter: DeckFilterValues;
@@ -25,6 +44,14 @@ export const useCardListQuery = ({ deck, filter, shownCard, sortOrder }: CardLis
     preferences.study.useCardInterval,
   ]);
   const cards = sortOrder === "newest" ? matchingCards.toSorted((a, b) => b.createdAt - a.createdAt) : matchingCards;
+  const rawCount = deckCards.length;
+  const visibleCount = cards.length;
+  const filterMatchCount =
+    rawCount === 0 || visibleCount > 0
+      ? visibleCount
+      : selectStudyCardsWithDeadline(deckCards, filter, false, 0).cards.length;
+  const emptyReason = deriveCardListEmptyReason({ rawCount, visibleCount, filterMatchCount });
+
   const category = shownCard == null ? undefined : getCategory(deck.category, shownCard.tags);
   const answer =
     shownCard == null || category == null
@@ -37,6 +64,9 @@ export const useCardListQuery = ({ deck, filter, shownCard, sortOrder }: CardLis
         };
   return {
     cards,
+    rawCount,
+    visibleCount,
+    emptyReason,
     tags,
     answer,
     bulkDifficultyMaximum: MAX_DIFFICULTY,

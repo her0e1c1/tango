@@ -129,16 +129,71 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DeckList", () => {
     expect(importDeck).not.toHaveBeenCalled();
   });
 
-  it("keeps list actions available without introducing an empty-state message", async () => {
-    render(<DeckList sections={{ studying: [], other: [] }} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
+  it("keeps list actions available when empty", async () => {
+    render(
+      <DeckList
+        sections={{ studying: [], other: [] }}
+        empty={{
+          reason: "confirmed-empty",
+        }}
+        onCreateDeck={onCreateDeck}
+        onImportDeck={onImportDeck}
+      />
+    );
 
     expect(screen.getByText("0 decks")).toBeInTheDocument();
-    expect(screen.queryByRole("region")).not.toBeInTheDocument();
-    expect(screen.queryByText(/no decks/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "No decks yet" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Create deck" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Import decks" })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Actions" }));
     expect(screen.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
     expect(screen.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
+  });
+
+  it("renders checking status without confirmed empty guidance", () => {
+    render(
+      <DeckList
+        sections={{ studying: [], other: [] }}
+        empty={{
+          reason: "checking",
+        }}
+        onCreateDeck={onCreateDeck}
+        onImportDeck={onImportDeck}
+      />
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("Checking for sample deck…");
+    expect(screen.queryByRole("heading", { name: "No decks yet" })).not.toBeInTheDocument();
+  });
+
+  it("renders bootstrap error with Retry, Create deck, and Import actions", async () => {
+    const onRetry = vi.fn();
+    const create = vi.fn();
+    const importDeck = vi.fn();
+    render(
+      <DeckList
+        sections={{ studying: [], other: [] }}
+        empty={{
+          reason: "error",
+          onRetry,
+        }}
+        onCreateDeck={create}
+        onImportDeck={importDeck}
+      />
+    );
+
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Unable to load sample deck" })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
+    expect(create).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
+    expect(importDeck).toHaveBeenCalledTimes(1);
   });
 
   it("localizes fixed copy without translating user-created deck names", async () => {
