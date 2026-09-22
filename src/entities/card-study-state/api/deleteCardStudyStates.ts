@@ -18,8 +18,10 @@ export async function deleteCardStudyStates(
             .filter((state) => state.uid === uid && state.deckId === target.deckId)
             .map((state) => state.cardId),
         ];
-  for (const cardId of new Set(cardIds)) {
-    const reference = doc(db, "cardStudyState", cardStudyStateId(uid, cardId));
-    await writeLocally(uid, [reference], () => deleteDoc(reference));
-  }
+  await Promise.all(
+    [...new Set(cardIds)].map((cardId) => {
+      const reference = doc(db, "cardStudyState", cardStudyStateId(uid, cardId));
+      return writeLocally(uid, [reference], () => deleteDoc(reference));
+    })
+  );
 }

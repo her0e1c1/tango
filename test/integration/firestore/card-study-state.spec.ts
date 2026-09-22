@@ -109,29 +109,40 @@ describe("CardStudyState persistence", () => {
     stop();
     expect(getCardStudyState("card")).toBeUndefined();
   });
-  it.each(["version", "difficulty", "extra", "lapses", "NaN"])(
-    "[FIRESTORE-CARD-STUDY-STATE-03] rejects invalid persisted state: %s",
-    async (kind) => {
-      const changes =
-        kind === "version"
-          ? { schemaVersion: 2 }
-          : kind === "extra"
-            ? { extra: true }
-            : {
-                fsrs: {
-                  ...fsrs,
-                  ...(kind === "difficulty"
-                    ? { difficulty: 0 }
-                    : kind === "lapses"
-                      ? { lapses: 2 }
-                      : { stability: Number.NaN }),
-                },
-              };
-      await seed("cardStudyState", cardStudyStateId(uid, "card"), { ...state(), ...changes });
-      await expect(start()).rejects.toBeDefined();
-      expect(() => getCardStudyState("card")).toThrow();
+  it.each([
+    { name: "version", changes: { schemaVersion: 2 }, bypassRules: true },
+    { name: "extra document field", changes: { extra: true }, bypassRules: true },
+    ...[
+      {},
+      { ...fsrs, extra: true },
+      ...[
+        { difficulty: 0 },
+        { difficulty: 11 },
+        { state: "new" },
+        { stability: 0 },
+        { stability: Infinity },
+        { stability: Number.NaN },
+        { dueAt: -1 },
+        { dueAt: 253402300800000 },
+        { lastReviewedAt: 1.5 },
+        { reps: 0 },
+        { lapses: fsrs.reps + 1 },
+        { learningSteps: 0.5 },
+        { scheduledDays: 36501 },
+      ].map((invalid) => ({ ...fsrs, ...invalid })),
+    ].map((invalid, index) => ({ name: `FSRS variant ${index + 1}`, changes: { fsrs: invalid }, bypassRules: false })),
+  ])("[FIRESTORE-CARD-STUDY-STATE-03] rejects invalid persisted state: $name", async ({ changes, bypassRules }) => {
+    const id = cardStudyStateId(uid, "card");
+    const invalid = { ...state(), ...changes };
+    if (bypassRules) await seed("cardStudyState", id, invalid);
+    else {
+      await seed("deck", "deck", { ...createDeck({ id: "deck", uid }), deletedAt: null });
+      await seed("card", "card", createCard({ id: "card", deckId: "deck", uid }));
+      await setDoc(doc(connection.db, "cardStudyState", id), invalid);
     }
-  );
+    await expect(start()).rejects.toBeDefined();
+    expect(() => getCardStudyState("card")).toThrow();
+  });
   it("[FIRESTORE-CARD-STUDY-STATE-04] cleans up only existing state for the requested Card or Deck", async () => {
     for (const [id, deck] of [
       ["first", "deck"],

@@ -121,6 +121,12 @@ Before reopening the application for this release:
 The repository change does not execute production cleanup or deploy rules. The operator must complete and verify
 the maintenance steps before release. Session and answer history is retained; it is not replayed into new state.
 
+Rules enforce ownership, deterministic identity, Card ownership, and the outer document shape. Detailed FSRS
+validation remains in the application Zod/persistence boundary; Rules accept any FSRS map and integer metadata
+timestamps. This deliberately reduces server-side integrity guarantees: an owner bypassing the application can
+save malformed personal state, which then fails application parsing and may prevent that owner's study flow.
+Malformed state is never silently treated as unrated.
+
 State cleanup uses deterministic IDs for a deleted Card and the known Card/State IDs for a deleted Deck, so an
 uncached State for a known Card is still deleted. A Deck deletion from an incomplete offline cache cannot enumerate
 children absent from both snapshots; this release does not add a server synchronization barrier or orphan sweep.

@@ -544,23 +544,13 @@ describe("Firestore ownership and guest write restrictions", () => {
         { id: "duplicate" },
         { deckId: "other" },
         { fsrs: 1 },
-        { fsrs: {} },
-        ...[
-          { extra: true },
-          { difficulty: 0 },
-          { difficulty: 11 },
-          { state: "new" },
-          { stability: 0 },
-          { stability: Infinity },
-          { dueAt: -1 },
-          { lastReviewedAt: 1.5 },
-          { reps: 0 },
-          { lapses: 2 },
-          { learningSteps: 0.5 },
-          { scheduledDays: 36501 },
-        ].map((invalid) => ({ fsrs: { ...validFsrs, ...invalid } })),
+        { createdAt: "1000" },
+        { updatedAt: 1.5 },
       ])
         await assertFails(setDoc(reference, { ...state, ...change }));
+      await assertSucceeds(setDoc(reference, { ...state, fsrs: {}, createdAt: -1, updatedAt: 253402300800000 }));
+      await assertSucceeds(updateDoc(reference, { fsrs: { ...validFsrs, difficulty: 0, stability: Infinity } }));
+      await assertSucceeds(deleteDoc(reference));
       await createData("card", "card", { uid: "other", deckId: "deck" });
       await assertFails(setDoc(reference, state));
       await createData("card", "card", { uid: "owner", deckId: "deck", deletedAt: 1000 });

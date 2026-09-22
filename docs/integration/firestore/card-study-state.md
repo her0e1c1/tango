@@ -68,11 +68,13 @@ Then:
 
 カテゴリ: `subscription`
 
-対応テスト: `[FIRESTORE-CARD-STUDY-STATE-03] rejects invalid persisted state: %s`
+対応テスト: `[FIRESTORE-CARD-STUDY-STATE-03] rejects invalid persisted state: $name`
 
 Given:
 
-- schemaVersion 2、fsrs の難易度 0、余分な field、lapses > reps、NaN の5通りの不正な State をそれぞれ保存する。
+- schemaVersion 2 と外側の余分な field は Rules を無効にした管理用 setup で保存する。
+- FSRS は空 map、余分な field、難易度 0/11、state=new、stability 0/Infinity/NaN、dueAt -1/253402300800000、lastReviewedAt 1.5、reps 0、lapses > reps、learningSteps 0.5、scheduledDays 36501 をそれぞれ用いる。本人所有の Card/Deck を用意し、通常の本人クライアントで Rules を通して保存する。
+- Rules はこれらの map を許可するが、アプリの Zod/Adapter は不正な FSRS を拒否する契約とする。
 
 When:
 

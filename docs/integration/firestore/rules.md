@@ -966,11 +966,13 @@ Given:
 
 When:
 
-- 異なる document ID、version 2、重複 id、異なる Deck、非 map・空 map・不正型・範囲外・余分な項目の FSRS、他人所有または削除済み Card の State を保存する。
+- 異なる document ID、version 2、重複 id、異なる Deck、非 map の FSRS、文字列の作成日時、小数の更新日時、他人所有または削除済み Card の State を保存する。
+- 本人の正常な Card に、空 map、難易度 0・無限大 stability を持つ FSRS、負の作成日時・年9999上限を超える整数の更新日時を保存する。
 
 Then:
 
-- 全て拒否される。FSRS の必須項目・型・範囲（状態 enum、difficulty 1〜10、正の有限 stability、日時、正の reps、lapses <= reps、非負整数 step、間隔上限）と余分な項目も Rules で拒否する。スケジュール計算の正しさは Rules へ実装しない。
+- 同一性・外側の型・所有権に違反する前者は拒否され、後者は許可される。Rules は FSRS を null または map、メタデータ日時を整数としてのみ検証する。
+- これはサーバー側のデータ整合性保証を意図的に減らす変更である。本人がアプリを迂回すると不正 FSRS を保存できる。詳細な範囲・必須項目は Zod/Adapter が検証し、不正データで本人の購読・学習が失敗し得る。未評価への読み替えはしない（[Adapter の検証](card-study-state.md#firestore-card-study-state-03)）。
 
 <a id="firestore-rules-44"></a>
 

@@ -16,31 +16,14 @@ service cloud.firestore {
   }
   match /databases/{database}/documents {
     match /cardStudyState/{stateId} {
-      function validInstant(value) {
-        return value is int && value >= 0 && value <= 253402300799999;
-      }
-      // Subtracting a value from itself rejects infinity without imposing an FSRS stability cap.
-      function validFsrs(value) {
-        return value is map &&
-               value.keys().hasOnly(['state', 'difficulty', 'stability', 'dueAt', 'lastReviewedAt',
-                 'reps', 'lapses', 'learningSteps', 'scheduledDays']) &&
-               value.state in ['learning', 'review', 'relearning'] &&
-               value.difficulty is number && value.difficulty >= 1 && value.difficulty <= 10 &&
-               value.stability is number && value.stability > 0 && value.stability - value.stability == 0 &&
-               validInstant(value.dueAt) && validInstant(value.lastReviewedAt) &&
-               value.reps is int && value.reps > 0 &&
-               value.lapses is int && value.lapses >= 0 && value.lapses <= value.reps &&
-               value.learningSteps is int && value.learningSteps >= 0 &&
-               value.scheduledDays is number && value.scheduledDays >= 0 && value.scheduledDays <= 36500;
-      }
       function validState() {
         let state = request.resource.data;
         return state.keys().hasOnly(['schemaVersion', 'uid', 'cardId', 'deckId', 'fsrs', 'createdAt', 'updatedAt']) &&
                state.schemaVersion == 1 && state.cardId is string && state.cardId.size() > 0 &&
                state.deckId is string && state.deckId.size() > 0 &&
                stateId == string(state.uid.size()) + ':' + state.uid + state.cardId &&
-               validInstant(state.createdAt) && validInstant(state.updatedAt) &&
-               (state.fsrs == null || validFsrs(state.fsrs));
+               state.createdAt is int && state.updatedAt is int &&
+               (state.fsrs == null || state.fsrs is map);
       }
       function ownsCard() {
         let card = get(/databases/$(database)/documents/card/$(request.resource.data.cardId)).data;

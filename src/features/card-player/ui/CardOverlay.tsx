@@ -12,7 +12,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({ fsrs }) => {
   const locale = i18n.resolvedLanguage ?? i18n.language;
   return (
     <Overlay position="top">
-      <div className="mx-auto flex max-w-content flex-row items-center gap-2 bg-surface-elevated py-2 px-4 text-ink">
+      <div className="mx-auto flex max-w-content flex-row items-center gap-2 bg-surface-elevated py-2 pl-[calc(var(--spacing-study-inline)+env(safe-area-inset-left))] pr-[calc(var(--spacing-study-inline)+env(safe-area-inset-right))] text-ink">
         <Description>
           {fsrs === null
             ? t("cardList.card.notStudied")
