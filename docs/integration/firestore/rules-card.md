@@ -257,7 +257,7 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-11] rejects creating a %s`
+対応テスト: `[FIRESTORE-RULES-CARD-11] rejects creating a card`
 
 Given:
 
@@ -278,7 +278,7 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-12] rejects updating an existing %s`
+対応テスト: `[FIRESTORE-RULES-CARD-12] rejects updating an existing card`
 
 Given:
 
@@ -299,7 +299,7 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-13] rejects deleting an existing %s`
+対応テスト: `[FIRESTORE-RULES-CARD-13] rejects deleting an existing card`
 
 Given:
 
@@ -320,7 +320,7 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-CARD-14] preserves public %s reads`
+対応テスト: `[FIRESTORE-RULES-CARD-14] preserves public card reads`
 
 Given:
 
