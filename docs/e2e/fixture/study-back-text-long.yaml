@@ -1,5 +1,8 @@
 extends: study-session-start.yaml
 remote:
+  studySessions:
+    deck-1:
+      cardOrderIds: [card-1]
   cards:
     - id: card-1
       deckId: deck-1
@@ -47,7 +50,3 @@ remote:
         Answer line 39 keeps the response taller than the visible region.
         Answer line 40 provides enough content for meaningful scrolling.
       uniqueKey: long-answer
-browser:
-  studySessions:
-    deck-1:
-      cardOrderIds: [card-1]

@@ -26,7 +26,8 @@ test("SETTINGS-03 applies review scheduling to the next study session", async ({
   await page.goto(`/deck/${deck.id}/start`);
   await page.getByRole("button", { name: "Start 2 cards" }).click();
 
-  const session = await readSession(page, deck.id);
+  await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds).toHaveLength(2);
+  const session = await readSession(fixture.user().uid, deck.id);
   expect(session?.cardOrderIds).toHaveLength(2);
   expect(session?.cardOrderIds).toEqual(expect.arrayContaining([dueCard.id, unscheduledCard.id]));
   expect(session?.cardOrderIds).not.toContain(futureCard.id);

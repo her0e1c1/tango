@@ -1,3 +1,4 @@
+import { downloadDeckCards } from "./ui-helpers";
 import { readFile } from "node:fs/promises";
 import * as Papa from "papaparse";
 import type { Page } from "@playwright/test";
@@ -7,20 +8,17 @@ import {
   expect,
   failNextFirestoreWrite,
   listDocuments,
-  readLocalData,
   test,
 } from "./fixtures";
 
 const readSampleState = async (page: Page, sampleDeckId: string) => {
-  const { decks, cards } = await readLocalData(page);
-  const sampleDecks = decks.filter((candidate: { id?: string }) => candidate.id === sampleDeckId);
-  return {
-    deckIds: sampleDecks.map(({ id }: { id: string }) => id),
-    cardIds: cards
-      .filter(({ deckId }: { deckId?: string }) => deckId === sampleDeckId)
-      .map(({ id }: { id: string }) => id)
-      .sort(),
-  };
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "View Sample Deck", exact: true })).toHaveCount(1);
+  await page.getByRole("button", { name: "View Sample Deck", exact: true }).click();
+  await expect(page).toHaveURL(`/deck/${sampleDeckId}`);
+  const names = await page.getByRole("button", { name: /^View / }).allTextContents();
+  const contents = await downloadDeckCards(page, "Sample Deck");
+  return { names, contents };
 };
 
 const documentsForUid = async (collection: "deck" | "card", uid: string) =>
@@ -144,8 +142,9 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
     "This CSV cannot be read as UTF-8. Save it as UTF-8 and select it again."
   );
   await expect(page.getByRole("button", { name: /^Add \d+ cards?$/u })).toHaveCount(0);
-  expect((await readLocalData(page)).decks).toEqual([]);
-  expect((await readLocalData(page)).cards).toEqual([]);
+  await page.goto("/");
+  await expect(page.getByRole("article")).toHaveCount(0);
+  await page.goto("/import");
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
   await page.getByLabel("Upload a csv file").setInputFiles(file);
@@ -158,15 +157,10 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
 
   await page.reload();
   await expect(page.getByRole("button", { name: `View ${file.name}` })).toBeVisible();
-  const stored = await readLocalData(page);
-  const decks = stored.decks.filter(({ name }: { name?: string }) => name === file.name);
-  expect(decks).toHaveLength(1);
-  const localDeck = decks[0];
-  if (!localDeck) throw new Error("Imported Deck missing");
-  expect(stored.cards.filter(({ deckId }: { deckId?: string }) => deckId === localDeck.id)).toHaveLength(2);
-  expect(stored.cards).toContainEqual(
-    expect.objectContaining({ frontText: "日本語�", backText: "回答�", tags: ["タグ"] })
-  );
+  await expect(page.getByRole("button", { name: `View ${file.name}`, exact: true })).toHaveCount(1);
+  const contents = await downloadDeckCards(page, file.name);
+  expect(contents).toHaveLength(2);
+  expect(contents).toContainEqual({ frontText: "日本語�", backText: "回答�", tags: ["タグ"], uniqueKey: "utf8-key" });
   expect(await documentsForUid("deck", uid)).toEqual([]);
   expect(await documentsForUid("card", uid)).toEqual([]);
 
@@ -277,8 +271,6 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
     await page.getByRole("button", { name: example.label, exact: true }).click();
     await page.getByRole("button", { name: "Try this example", exact: true }).click();
     await expect(page.getByText(`uniqueKey: ${firstRow[3]}`, { exact: true })).toBeVisible();
-    const localBefore = await readLocalData(page);
-    expect(localBefore.decks.some(({ name }: { name?: string }) => name === example.file)).toBe(false);
     expect(
       (await documentsForUid("deck", uid)).some((document) => document.fields.name?.stringValue === example.file)
     ).toBe(false);
@@ -287,17 +279,14 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
     await expect(page.getByRole("status").filter({ hasText: `Imported ${example.count} cards.` })).toBeVisible();
     await page.reload();
     await expect(page.getByRole("button", { name: `View ${example.file}`, exact: true })).toBeVisible();
-    const local = await readLocalData(page);
-    const deck = local.decks.find((value) => value.name === example.file);
-    if (!deck) throw new Error("Imported Deck missing");
-    expect(local.cards.filter((card) => card.deckId === deck.id)).toHaveLength(example.count);
+    await page.getByRole("button", { name: `View ${example.file}`, exact: true }).click();
+    const deckId = decodeURIComponent(new URL(page.url()).pathname.split("/").at(-1) ?? "");
     await expect
       .poll(
         async () =>
-          (await documentsForUid("card", uid)).filter((card) => card.fields.deckId?.stringValue === deck.id).length
+          (await documentsForUid("card", uid)).filter((card) => card.fields.deckId?.stringValue === deckId).length
       )
       .toBe(example.count);
-    await page.getByRole("button", { name: `View ${example.file}`, exact: true }).click();
     await expect(page.getByRole("heading", { name: "Cards", exact: true })).toBeVisible();
     await expect(page.getByRole("article")).toHaveCount(example.count);
   }
@@ -311,8 +300,8 @@ test("IMPORT-07 Sample Deck is initialized once", async ({ fixture, page }) => {
   await page.goto("/");
   await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();
   const initialSample = await readSampleState(page, sampleDeckId);
-  expect(initialSample.deckIds).toHaveLength(1);
-  expect(initialSample.cardIds.length).toBeGreaterThan(0);
+  expect(initialSample.names.length).toBeGreaterThan(0);
+  expect(initialSample.contents).toHaveLength(initialSample.names.length);
 
   await page.reload();
   await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();

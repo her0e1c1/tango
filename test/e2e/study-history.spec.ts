@@ -1,11 +1,8 @@
+import { createAnonymousDeck } from "./ui-helpers";
 import type { Page } from "@playwright/test";
-import { expect, test, type E2EFixture } from "./fixtures";
+import { expect, test } from "./fixtures";
 
-async function completeStudy(page: Page, fixture: E2EFixture) {
-  const deck = fixture.deck();
-  const cards = [...fixture.state.remote.cards, ...fixture.state.browser.localCards].filter(
-    (card) => card.deckId === deck.id
-  );
+async function completeStudy(page: Page, deck: { id: string }, cards: readonly unknown[]) {
   await page.goto(`/deck/${encodeURIComponent(deck.id)}/start`);
   await page.getByRole("button", { name: `Start ${String(cards.length)} cards` }).click();
   for (let index = 0; index < cards.length; index += 1) {
@@ -16,7 +13,7 @@ async function completeStudy(page: Page, fixture: E2EFixture) {
   await page.getByRole("button", { name: "Study history", exact: true }).click();
 }
 
-async function expectCompletedHistory(page: Page, fixture: E2EFixture) {
+async function expectCompletedHistory(page: Page, deck: { name: string }, cards: readonly unknown[]) {
   await expect(page.getByRole("heading", { level: 1, name: "Study history" })).toBeVisible();
   await page.getByText("Show daily counts · 30 days").click();
   await expect(page.getByRole("row")).toHaveCount(31);
@@ -25,10 +22,7 @@ async function expectCompletedHistory(page: Page, fixture: E2EFixture) {
   await expect(page.getByRole("img", { name: /Starts and completions in the selected period/ })).toBeVisible();
   const recent = page.getByRole("region", { name: "Recent sessions" });
   await expect(recent.getByRole("listitem")).toHaveCount(1);
-  await expect(recent.getByRole("heading", { name: fixture.deck().name })).toBeVisible();
-  const cards = [...fixture.state.remote.cards, ...fixture.state.browser.localCards].filter(
-    (card) => card.deckId === fixture.deck().id
-  );
+  await expect(recent.getByRole("heading", { name: deck.name })).toBeVisible();
   await expect(recent.locator("dd").nth(2)).toHaveText(String(cards.length));
   await expect(recent.getByText("Completed", { exact: true })).toBeVisible();
   await expect(recent.locator("dd").nth(0)).not.toHaveText("—");
@@ -37,8 +31,8 @@ async function expectCompletedHistory(page: Page, fixture: E2EFixture) {
 
 test("STUDY-SESSION-09 shows independent starts and completions after studying", async ({ fixture, page }) => {
   await fixture.apply(page);
-  await completeStudy(page, fixture);
-  await expectCompletedHistory(page, fixture);
+  await completeStudy(page, fixture.deck(), fixture.state.remote.cards);
+  await expectCompletedHistory(page, fixture.deck(), fixture.state.remote.cards);
 });
 
 test("STUDY-SESSION-10 keeps Deck selection in the URL across navigation and reload", async ({ fixture, page }) => {
@@ -80,10 +74,13 @@ test("STUDY-SESSION-11 keeps unavailable Deck selection without displaying all h
 
 test("STUDY-SESSION-12 restores anonymous study history from the device cache", async ({ fixture, page }) => {
   await fixture.apply(page);
-  await completeStudy(page, fixture);
-  await expectCompletedHistory(page, fixture);
+  const local = await createAnonymousDeck(page);
+  const { deck, cards } = local;
+
+  await completeStudy(page, deck, cards);
+  await expectCompletedHistory(page, deck, cards);
   await page.reload();
-  await expectCompletedHistory(page, fixture);
+  await expectCompletedHistory(page, deck, cards);
   await expect(page.getByText(/Anonymous data is stored only on this browser/)).toBeVisible();
   await expect(page.getByText(/Cloud history may be incomplete/)).toBeVisible();
 });

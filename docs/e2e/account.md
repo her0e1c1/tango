@@ -32,6 +32,8 @@
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
+- 実 Auth Emulator が発行した匿名 UID を Account 画面で確認し、連携前のクラウド不在と連携後の同一 UID への同期を検証する。
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
 - 匿名ユーザーの browser storage に local-only Deck と Card が存在する。
 - 対象 Deck に進行中の学習 session が存在する。
 - Google アカウントへ連携できる。
