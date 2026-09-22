@@ -11,7 +11,7 @@ const intervalDescription =
 
 const savedDocuments = async (uid: string) =>
   Promise.all(
-    (["deck", "card", "studySession", "studyAnswer", "cardStudyState"] as const).map(async (collection) =>
+    (["deck", "card", "studySession", "studyAnswer"] as const).map(async (collection) =>
       (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === uid)
     )
   );

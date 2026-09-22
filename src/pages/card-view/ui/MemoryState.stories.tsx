@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { calculateFsrsState } from "@/entities/card-study-state";
+import { calculateFsrsState } from "@/entities/card";
 import { getMemoryState } from "../model/queries/getMemoryState";
 import { MemoryState } from "./MemoryState";
 

@@ -7,25 +7,6 @@ remote:
       frontText: due card
       backText: due answer
       uniqueKey: due-card
-    - id: card-future
-      deckId: deck-1
-      uid: user-1
-      frontText: future card
-      backText: future answer
-      uniqueKey: future-card
-    - id: card-unscheduled
-      deckId: deck-1
-      uid: user-1
-      frontText: unscheduled card
-      backText: unscheduled answer
-      uniqueKey: unscheduled-card
-  cardStudyStates:
-    - schemaVersion: 1
-      uid: user-1
-      cardId: card-due
-      deckId: deck-1
-      createdAt: 0
-      updatedAt: 0
       fsrs:
         state: review
         dueAt: 946684800000
@@ -36,12 +17,12 @@ remote:
         lapses: 0
         learningSteps: 0
         scheduledDays: 1
-    - schemaVersion: 1
-      uid: user-1
-      cardId: card-future
+    - id: card-future
       deckId: deck-1
-      createdAt: 0
-      updatedAt: 0
+      uid: user-1
+      frontText: future card
+      backText: future answer
+      uniqueKey: future-card
       fsrs:
         state: review
         dueAt: 32472144000000
@@ -52,3 +33,9 @@ remote:
         lapses: 0
         learningSteps: 0
         scheduledDays: 1
+    - id: card-unscheduled
+      deckId: deck-1
+      uid: user-1
+      frontText: unscheduled card
+      backText: unscheduled answer
+      uniqueKey: unscheduled-card

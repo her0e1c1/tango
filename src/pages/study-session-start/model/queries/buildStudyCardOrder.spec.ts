@@ -1,4 +1,4 @@
-import { calculateFsrsState } from "@/entities/card-study-state";
+import { calculateFsrsState } from "@/entities/card";
 import { describe, expect, it, vi } from "vitest";
 import { buildStudyCardOrder } from "./buildStudyCardOrder";
 const cardProgress = (id: string) => ({ id, fsrs: null });

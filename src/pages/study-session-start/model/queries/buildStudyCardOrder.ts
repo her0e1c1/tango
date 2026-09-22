@@ -1,5 +1,5 @@
 import * as lodash from "lodash";
-import { classifyFsrsState, type FsrsState } from "@/entities/card-study-state";
+import { classifyFsrsState, type FsrsState } from "@/entities/card";
 
 interface StudyOrderCard {
   id: string;

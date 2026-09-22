@@ -11,7 +11,7 @@
 ## 共通前提
 
 project `test-study-answer` に実際の `firestore.rules` を読み込む。各ケース前に専用 project を消去し、非匿名認証の UID `answer-owner`、公開 Deck `deck`、Card `card-0`〜`card-9`、未終了の session `session` を準備する。
-Card / Deck store と認証状態も初期化し、本人 UID の CardStudyState を購読する。4評価の受理済み操作は計算済み FSRS を保持し、State・Answer・Session を同一 batch で保存する。Card の内容とメタデータは変更しない。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
+Card / Deck store と認証状態も初期化し、本人 UID の Card.fsrs を購読する。4評価の受理済み操作は計算済み FSRS を保持し、Card・Answer・Session を同一 batch で保存する。Card の本文と createdAt は維持し、fsrs と updatedAt だけを更新する。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
 事前データはテスト内で作成し、新しい fixture ファイルは用意しない。共通の実行方法は [README](./README.md) を参照する。
 
 ## テストケース
@@ -20,7 +20,7 @@ Card / Deck store と認証状態も初期化し、本人 UID の CardStudyState
 | --- | --- | --- |
 | FIRESTORE-STUDY-ANSWER-01 | batch | [4種類の評価を保存し進捗と位置を1回更新する](#firestore-study-answer-01) |
 | FIRESTORE-STUDY-ANSWER-02 | batch | [保存済みの位置から同じ操作を再実行して回答を増やさない](#firestore-study-answer-02) |
-| FIRESTORE-STUDY-ANSWER-03 | write | [評価では Card の内容とメタデータを変更しない](#firestore-study-answer-03) |
+| FIRESTORE-STUDY-ANSWER-03 | write | [評価では Card の本文と作成日時を維持する](#firestore-study-answer-03) |
 | FIRESTORE-STUDY-ANSWER-04 | batch | [10枚への回答を保存して session を完了する](#firestore-study-answer-04) |
 | FIRESTORE-STUDY-ANSWER-05 | batch | [中断後も回答を保持し別 session で同じ Card に回答できる](#firestore-study-answer-05) |
 | FIRESTORE-STUDY-ANSWER-06 | batch | [途中のスキップは Session だけを前進する](#firestore-study-answer-06) |
@@ -31,7 +31,7 @@ Card / Deck store と認証状態も初期化し、本人 UID の CardStudyState
 | FIRESTORE-STUDY-ANSWER-11 | read | [所有者条件を付けて session・Card・Deck ごとの回答を取得する](#firestore-study-answer-11) |
 | FIRESTORE-STUDY-ANSWER-12 | write | [別 UID の回答作成を拒否する](#firestore-study-answer-12) |
 | FIRESTORE-STUDY-ANSWER-13 | write | [回答形式と参照先の検証は Rules では強制しない](#firestore-study-answer-13) |
-| FIRESTORE-STUDY-ANSWER-14 | write | [回答単独の保存では State と Session を更新しない](#firestore-study-answer-14) |
+| FIRESTORE-STUDY-ANSWER-14 | write | [回答単独の保存では Card.fsrs と Session を更新しない](#firestore-study-answer-14) |
 | FIRESTORE-STUDY-ANSWER-15 | write | [4評価の FSRS を検証して保存する](#firestore-study-answer-15) |
 | FIRESTORE-STUDY-ANSWER-16 | write | [session の所有権とアプリケーションの終了遷移を区別する](#firestore-study-answer-16) |
 | FIRESTORE-STUDY-ANSWER-17 | write | [本人でも保存済み回答を更新・上書き・削除できない](#firestore-study-answer-17) |
@@ -49,7 +49,7 @@ Card / Deck store と認証状態も初期化し、本人 UID の CardStudyState
 
 Given:
 
-- 本人の10枚の session が位置 `0` で存在する。対象 Card に State はない。rating は again / hard / good / easy の4通りを使う。
+- 本人の10枚の session が位置 `0` で存在する。対象 Card に FSRS は null。rating は again / hard / good / easy の4通りを使う。
 
 When:
 
@@ -58,7 +58,7 @@ When:
 Then:
 
 - scheduleは同じbatchで保存され、保存済み値は入力scheduleと一致する。
-- 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt と updatedAt は等しい Timestamp になる。State の fsrs.reps は `1`、createdAt と updatedAt は `2000` となる。戻り値と保存 session の位置は `1` になる。
+- 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt と updatedAt は等しい Timestamp になる。Card の fsrs.reps は `1`、createdAt は `0`、updatedAt は `2000` となる。戻り値と保存 session の位置は `1` になる。
 
 <a id="firestore-study-answer-02"></a>
 
@@ -78,19 +78,19 @@ When:
 
 Then:
 
-- `session does not match` を含むエラーになり、回答件数と対象 State の fsrs.reps はどちらも `1` のままである。
+- `session does not match` を含むエラーになり、回答件数と対象 Card.fsrs.reps はどちらも `1` のままである。
 
 <a id="firestore-study-answer-03"></a>
 
-### FIRESTORE-STUDY-ANSWER-03 評価では Card の内容とメタデータを変更しない
+### FIRESTORE-STUDY-ANSWER-03 評価では Card の本文と作成日時を維持する
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-03] leaves Card content and metadata unchanged when rating`
+対応テスト: `[FIRESTORE-STUDY-ANSWER-03] preserves Card content and creation time when rating`
 
 Given:
 
-- 本人の Card と未評価の State がある（State document は未作成）。
+- 本人の Card があり、fsrs は null である。
 
 When:
 
@@ -98,7 +98,7 @@ When:
 
 Then:
 
-- Card の保存内容は updatedAt を含めて完全に同じであり、State の createdAt は回答時刻となる。
+- Card の fsrs と updatedAt だけが変わり、本文と createdAt は維持される。
 
 <a id="firestore-study-answer-04"></a>
 
@@ -140,7 +140,7 @@ When:
 
 Then:
 
-- 回答は合計2件になり、State の fsrs.reps は `2` になる。
+- 回答は合計2件になり、Card.fsrs.reps は `2` になる。
 
 <a id="firestore-study-answer-06"></a>
 
@@ -152,7 +152,7 @@ Then:
 
 Given:
 
-- 本人の session が位置 0 にあり、State はない。
+- 本人の session が位置 0 にあり、FSRS は null。
 
 When:
 
@@ -160,7 +160,7 @@ When:
 
 Then:
 
-- 回答と State は0件、session の位置は1になる。古い位置からの回答は拒否される。
+- 回答と FSRS は null、session の位置は1になる。古い位置からの回答は拒否される。
 
 <a id="firestore-study-answer-07"></a>
 
@@ -180,7 +180,7 @@ When:
 
 Then:
 
-- 回答は0件のまま、State は作成されず、session の endReason は `completed` になる。
+- 回答は0件のまま、FSRS は null のままで、session の endReason は `completed` になる。
 
 <a id="firestore-study-answer-08"></a>
 
@@ -222,7 +222,7 @@ When:
 
 Then:
 
-- 最初の呼び出しはエラーになり、認証変更後は `user changed` を含むエラーになる。回答は0件、State は作成されない。
+- 最初の呼び出しはエラーになり、認証変更後は `user changed` を含むエラーになる。回答は0件、FSRS は null のままである。
 
 不存在の検証ではテストの準備処理も対象 session を取得する。アプリケーションが独自の不存在エラーを返す保証ではない。
 
@@ -244,7 +244,7 @@ When:
 
 Then:
 
-- 最初の保存はエラーになり、回答は0件、session の位置は `0` のままで State は作成されない。再試行後は同じ操作 ID の回答に answeredAt `2000` の Timestamp が保存される。
+- 最初の保存はエラーになり、回答は0件、session の位置は `0` のままで FSRS は null のままである。再試行後は同じ操作 ID の回答に answeredAt `2000` の Timestamp が保存される。
 
 <a id="firestore-study-answer-11"></a>
 
@@ -312,7 +312,7 @@ Then:
 
 <a id="firestore-study-answer-14"></a>
 
-### FIRESTORE-STUDY-ANSWER-14 回答単独の保存では State と Session を更新しない
+### FIRESTORE-STUDY-ANSWER-14 回答単独の保存では Card.fsrs と Session を更新しない
 
 カテゴリ: `batch`
 
@@ -320,7 +320,7 @@ Then:
 
 Given:
 
-- 本人の Card に State がなく、session の位置は0である。
+- 本人の Card に FSRS が null で、session の位置は0である。
 
 When:
 
@@ -328,7 +328,7 @@ When:
 
 Then:
 
-- 回答は1件になり、State はなく session の位置は0のままである。Rules は同時更新自体を強制しない。
+- 回答は1件になり、FSRS は null で session の位置は0のままである。Rules は同時更新自体を強制しない。
 
 <a id="firestore-study-answer-15"></a>
 
@@ -344,7 +344,7 @@ Given:
 
 When:
 
-- 受理時に計算した FSRS を含む操作を保存し、State document を parser で復元する。
+- 受理時に計算した FSRS を含む操作を保存し、Card document を parser で復元する。
 
 Then:
 
@@ -448,8 +448,8 @@ Given:
 
 When:
 
-- good を時刻2000で保存し State parser で復元する。本文を編集し、新 session でスキップし、さらに時刻602000で評価する。
+- good を時刻2000で保存し Card parser で復元する。本文を編集し、新 session でスキップし、さらに時刻602000で評価する。
 
 Then:
 
-- 復元した FSRS と次回計算結果は保存前と一致する。本文編集とスキップでは State 全体が変わらず回答も増えない。次回評価後は createdAt: 2000、updatedAt: 602000、reps: 2 となる。未対応 schemaVersion は parser が拒否する。
+- 復元した FSRS と次回計算結果は保存前と一致する。本文編集とスキップでは FSRS が変わらず回答も増えない。次回評価後は createdAt: 0、updatedAt: 602000、reps: 2 となる。不正な FSRS は parser が拒否する。

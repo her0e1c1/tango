@@ -1,5 +1,4 @@
-import { seedCardStudyState } from "@/test/studyStateFixtures";
-import { clearCardStudyStates } from "@/entities/card-study-state";
+import { calculateFsrsState } from "@/entities/card";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { getI18n } from "react-i18next";
@@ -63,7 +62,6 @@ describe("DECK-NAVIGATION-03 DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATI
   afterEach(() => vi.useRealTimers());
 
   beforeEach(() => {
-    clearCardStudyStates();
     data.deck = createLocalDeck({ id: "deck-1", name: "View deck", category: "English" });
     data.cards = [
       createLocalCard({
@@ -153,7 +151,9 @@ describe("DECK-NAVIGATION-03 DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATI
 
   it("excludes future review cards when the review schedule is enabled", () => {
     data.preferences = createPreferences({ useCardInterval: true });
-    seedCardStudyState(data.cards[0]?.id ?? "missing", Date.now() + 86_400_000);
+    data.cards = data.cards.map((card, index) =>
+      index === 0 ? { ...card, fsrs: { ...calculateFsrsState(null, "good", 0), dueAt: Date.now() + 86_400_000 } } : card
+    );
     renderPage();
     expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");

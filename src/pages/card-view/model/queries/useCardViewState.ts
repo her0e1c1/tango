@@ -1,4 +1,4 @@
-import { useStudyCards } from "@/entities/card-study-state";
+import { useCard } from "@/entities/card";
 import type { Card } from "@/entities/card";
 import { getCategory, isHighlightLanguage, type Deck, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
@@ -15,7 +15,7 @@ const buildCardViewState = (card: Card, deck: Deck, dark: boolean) => {
 };
 
 export const useCardViewState = (cardId: string) => {
-  const card = useStudyCards().find((candidate) => candidate.id === cardId);
+  const card = useCard(cardId);
   const deck = useDeck(card?.deckId);
   const preferences = usePreferences();
   if (card == null || deck == null) return;

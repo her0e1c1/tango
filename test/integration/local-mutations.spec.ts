@@ -1,5 +1,4 @@
-import { calculateFsrsState, getCardStudyState } from "@/entities/card-study-state";
-import { cardStudyStateId } from "@/entities/card-study-state/api/id";
+import { calculateFsrsState } from "@/entities/card";
 import "@/test/initializeTestFirestore";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -24,7 +23,7 @@ import type { StudySession } from "@/entities/study-session";
 function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating, answeredAt: number) {
   const card = getCards().find(({ id }) => id === session.cardOrderIds[session.currentIndex]);
   if (!card) throw new Error("Missing card");
-  const fsrs = calculateFsrsState(getCardStudyState(card.id)?.fsrs ?? null, rating, answeredAt);
+  const fsrs = calculateFsrsState(card.fsrs, rating, answeredAt);
   return saveStudyOperation(
     {
       id: crypto.randomUUID(),
@@ -111,21 +110,18 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     const answer = answers.docs.find((item) => item.data().sessionId === session.sessionId)?.data();
     expect(answer).toMatchObject({ cardId: cards[0]?.id, answer: { type: "rating", rating: "good" } });
     expect(answer?.answeredAt.toMillis()).toBe(answeredAt);
-    expect(
-      (await getDocFromCache(doc(testDb, "cardStudyState", cardStudyStateId("uid", cards[0]?.id ?? "missing")))).data()
-    ).toMatchObject({
-      createdAt: answeredAt,
+    expect((await getDocFromCache(doc(testDb, "card", cards[0]?.id ?? "missing"))).data()).toMatchObject({
       updatedAt: answeredAt,
       fsrs: { reps: 1, lastReviewedAt: answeredAt, dueAt: answeredAt + 600_000 },
     });
     await vi.waitFor(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
-    const savedSchedule = getCardStudyState(cards[0]?.id ?? "missing")?.fsrs;
+    const savedSchedule = getCards().find((card) => card.id === cards[0]?.id)?.fsrs;
     expect(savedSchedule).toBeDefined();
     stop();
     const subscription = startFirestoreSubscriptions("uid");
     stop = subscription.stop;
     await subscription.ready;
-    expect(getCardStudyState(cards[0]?.id ?? "missing")?.fsrs).toEqual(savedSchedule);
+    expect(getCards().find((card) => card.id === cards[0]?.id)?.fsrs).toEqual(savedSchedule);
     await expect(saveStudyAnswer("uid", session, "good", answeredAt)).rejects.toThrow("session does not match");
     const final = getStudySession(deckId);
     if (!final) throw new Error("Missing final position");
