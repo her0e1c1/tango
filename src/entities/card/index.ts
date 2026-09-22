@@ -15,7 +15,6 @@ export type {
   CardRaw,
 } from "./model/types";
 export {
-  countCardsByDeckId,
   filterCardsByDeckId,
   getCardContentValidationErrors,
   mustFindCardById,

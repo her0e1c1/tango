@@ -38,7 +38,7 @@ const deck = createDeck({
   category: "math",
 });
 
-describe("DeckListCard [STUDY-SESSION-03]", () => {
+describe("DECK-NAVIGATION-12 DeckListCard [STUDY-SESSION-03]", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-18T00:10:00Z"));
@@ -46,6 +46,38 @@ describe("DeckListCard [STUDY-SESSION-03]", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it.each([
+    [0, undefined, "No cards held on this device"],
+    [3, undefined, "No cards match saved filters"],
+    [
+      3,
+      Date.UTC(2026, 8, 23, 12),
+      `Next review: ${new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(Date.UTC(2026, 8, 23, 12))}`,
+    ],
+  ])("distinguishes zero-count decks (%s cards)", (cardCount, nextDueAt, note) => {
+    render(<DeckListCard deck={deck} cardCount={cardCount} review={{ due: 0, new: 0, nextDueAt }} />);
+    expect(screen.getByText(note)).toBeVisible();
+    expect(screen.getByText("0 due · 0 new")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Study Deck name" })).toBeEnabled();
+  });
+
+  it.each([
+    [1, 2, "Review Deck name"],
+    [0, 2, "Study new cards in Deck name"],
+  ])("opens study settings for due=%s and new=%s", (due, newCount, label) => {
+    const onClickStudy = vi.fn();
+    render(
+      <DeckListCard
+        deck={deck}
+        cardCount={3}
+        review={{ due, new: newCount, nextDueAt: undefined }}
+        onClickStudy={onClickStudy}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: label }));
+    expect(onClickStudy).toHaveBeenCalledWith(deck.id);
   });
 
   it("renders compact progress for an active deck", () => {

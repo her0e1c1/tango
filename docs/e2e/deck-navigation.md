@@ -19,6 +19,8 @@ Deck と Card 一覧の主要な route を開き、存在しない Deck から�
 | DECK-NAVIGATION-09 | write | [閲覧と学習で表示設定と操作ヘルプを共有できる](#deck-navigation-09) |
 | DECK-NAVIGATION-10 | read | [学習データを保存せずに閲覧を自動再生できる](#deck-navigation-10) |
 | DECK-NAVIGATION-11 | read | [閲覧の進捗スライダーで前後へ移動できる](#deck-navigation-11) |
+| DECK-NAVIGATION-12 | read | [保持中の復習件数と学習導線を表示できる](#deck-navigation-12) |
+| DECK-NAVIGATION-13 | read | [復習期限の到達で一覧を更新できる](#deck-navigation-13) |
 
 <a id="deck-navigation-01"></a>
 
@@ -306,3 +308,52 @@ Then:
 - 本文上の Enter は反転、Space は再生切替、b は方向ボタンの表示切替として働く。入力欄やボタンの標準キー操作を妨げず、裏面のスクロール領域に focus がある場合の Space はスクロールを優先する。
 - Deck、Card、学習履歴、学習 session、設定を変更しない。表示設定を明示的に切り替えた場合のみ、その設定を保存する。
 - browser error が発生しない。
+
+<a id="deck-navigation-12"></a>
+
+### DECK-NAVIGATION-12 保持中の復習件数と学習導線を表示できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- 復習期日を過ぎた、未来の、未設定の Card があり、間隔反復が有効である。
+- 追加の Page / query ケースでは学習中、空、filter 不一致、future-only、new-only の Deck が共存する。難易度範囲と tag の AND / OR 条件を使用する。
+
+When:
+
+- 一覧の合計と Deck 別の件数を確認し、keyboard で Review または Study new を選択する。
+- 追加ケースでは間隔反復を無効にし、英語・日本語、mobile、dark、zoom 表示も確認する。
+
+Then:
+
+- 現在保持中のデータと保存済み filter に基づく件数である旨を表示する。maximum cards と shuffle は件数に影響しない。
+- Studying、Review now、Other decks に各 Deck を一度だけ表示する。空の区分は見出しを出さない。
+- Studying は従来の recent-first と Continue・進捗を維持する。Review now は最も早い dueAt 順、その後 new-only、同順位は名前順となる。
+- 合計には Studying も一度だけ含める。保持中 Card がない場合、filter 不一致、future-only を区別し、future-only は次回復習日時を表示する。完全同期や学習完了は断定しない。
+- Review / Study new は既存の開始設定画面へ遷移するだけで Session を作成・置換しない。Continue は既存 Session を再開する。
+- 間隔反復 OFF では追加件数と Review now を隠し、従来の操作を維持する。
+- 一覧表示と開始設定画面への遷移で保存済み Deck・Card・Session を変更しない。browser error が発生しない。
+
+<a id="deck-navigation-13"></a>
+
+### DECK-NAVIGATION-13 復習期限の到達で一覧を更新できる
+
+カテゴリ: `read`
+
+Given:
+
+- Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
+- 間隔反復が有効で、browser clock は future Card の期日直前で停止している。
+- 追加の query ケースでは複数 Deck に未来の期限があり、Card・Deck・filter・設定・Session の変更と画面復帰を確認する。
+
+When:
+
+- 一覧を表示したまま browser clock を期日まで進める。
+
+Then:
+
+- dueAt <= now となった Card を due に加算し、同じ時刻で区分と合計を更新する。
+- 入力変更、focus / visibility 復帰でも再評価し、一覧全体で期限 timer は最大1つ、unmount で解除する。
+- Session の順序・位置、Card の schedule、永続データを変更しない。browser error が発生しない。

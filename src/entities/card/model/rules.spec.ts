@@ -1,30 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createCard } from "@/test/factories";
-import {
-  countCardsByDeckId,
-  filterCardsByDeckId,
-  filterTagsByDeckId,
-  getCardContentValidationErrors,
-  mustFindCardById,
-} from "./rules";
-
-describe("countCardsByDeckId", () => {
-  it("counts cards for each deck", () => {
-    const counts = countCardsByDeckId([
-      createCard({ id: "card-1", deckId: "deck-a" }),
-      createCard({ id: "card-2", deckId: "deck-b" }),
-      createCard({ id: "card-3", deckId: "deck-a" }),
-    ]);
-
-    expect(counts).toEqual(
-      new Map([
-        ["deck-a", 2],
-        ["deck-b", 1],
-      ])
-    );
-  });
-});
+import { filterCardsByDeckId, filterTagsByDeckId, getCardContentValidationErrors, mustFindCardById } from "./rules";
 
 describe("IMPORT-02 getCardContentValidationErrors", () => {
   it("returns field errors from the Card content schema", () => {

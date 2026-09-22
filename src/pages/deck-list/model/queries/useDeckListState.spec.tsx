@@ -2,6 +2,7 @@ import "@/test/mockFirestorePersistence";
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { updatePreferences } from "@/entities/preference";
 import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
@@ -36,6 +37,7 @@ const cardsForDeck = (deckId: string) => cards.filter((card) => card.deckId === 
 describe("DECK-NAVIGATION-01 STUDY-SESSION-03 useDeckListState", () => {
   beforeEach(async () => {
     vi.useFakeTimers();
+    updatePreferences({ study: { useCardInterval: false } });
     replaceAuthSession({ status: "initializing" });
     clearStudySessions();
     await Promise.all(decks.map((deck) => createDeck("user-id", deck)));

@@ -82,6 +82,8 @@
 | DECK-NAVIGATION-09 | write | [閲覧と学習で表示設定と操作ヘルプを共有できる](./deck-navigation.md#deck-navigation-09) |
 | DECK-NAVIGATION-10 | read | [学習データを保存せずに閲覧を自動再生できる](./deck-navigation.md#deck-navigation-10) |
 | DECK-NAVIGATION-11 | read | [閲覧の進捗スライダーで前後へ移動できる](./deck-navigation.md#deck-navigation-11) |
+| DECK-NAVIGATION-12 | read | [保持中の復習件数と学習導線を表示できる](./deck-navigation.md#deck-navigation-12) |
+| DECK-NAVIGATION-13 | read | [復習期限の到達で一覧を更新できる](./deck-navigation.md#deck-navigation-13) |
 
 ### Deck Management
 
