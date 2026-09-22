@@ -1,11 +1,24 @@
 import "./styles/index.css";
-import { showStartupFailure } from "./recovery/fallback";
-import { resetApplicationIfRequested } from "./recovery/reset";
+import React, { lazy, type ReactNode } from "react";
+import { createRoot } from "react-dom/client";
+import { AppErrorBoundary, AppStartupFallback } from "./error-boundary";
+import { resetApplicationIfRequested } from "./error-boundary/reset";
 
-async function startApplication(): Promise<void> {
-  if (await resetApplicationIfRequested()) return;
-  // Module initialization failures happen before a React Error Boundary can catch them.
-  await import("./bootstrap");
-}
+// React caches this single startup promise, including across StrictMode renders.
+const Application = lazy<() => ReactNode>(async () => {
+  if (await resetApplicationIfRequested()) return { default: () => null };
+  return import("./bootstrap");
+});
 
-void startApplication().catch(showStartupFailure);
+const root = document.getElementById("root");
+if (root == null) throw new Error("Missing root element");
+
+createRoot(root).render(
+  <React.StrictMode>
+    <AppErrorBoundary>
+      <React.Suspense fallback={<AppStartupFallback />}>
+        <Application />
+      </React.Suspense>
+    </AppErrorBoundary>
+  </React.StrictMode>
+);

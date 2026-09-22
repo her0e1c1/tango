@@ -26,8 +26,6 @@ export async function resetApplicationIfRequested(): Promise<boolean> {
   if (!requested) return false;
   // Consume the request before doing any work: a failed reset must not create an automatic retry loop.
   sessionStorage.removeItem(RESET_REQUEST_KEY);
-  const root = document.getElementById("root");
-  if (root) root.textContent = getRecoveryMessages().resetting;
 
   const [{ auth, db }, { clearIndexedDbPersistence }, { signOut }] = await Promise.all([
     import("@/shared/firebase"),

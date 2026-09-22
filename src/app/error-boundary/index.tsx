@@ -2,8 +2,8 @@ import { Component, type ReactNode, useLayoutEffect } from "react";
 
 import { useTranslation } from "react-i18next";
 import { appI18n } from "../i18n/instance";
-import { getRecoveryMessages } from "../recovery/messages";
-import { requestApplicationReset } from "../recovery/reset";
+import { getRecoveryMessages } from "./messages";
+import { requestApplicationReset } from "./reset";
 
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -20,31 +20,58 @@ const reloadPage = () => {
   window.location.reload();
 };
 
-export const AppErrorFallback = () => {
-  // This fallback also serves the boundary outside I18nProvider.
-  const { t, i18n } = useTranslation(undefined, { i18n: appI18n });
+function useRecoveryMessages() {
+  // The standalone instance retains the active locale without reading persisted preferences.
+  const { i18n } = useTranslation(undefined, { i18n: appI18n });
+  const messages = getRecoveryMessages(i18n.resolvedLanguage);
   useLayoutEffect(() => {
-    document.documentElement.lang = i18n.resolvedLanguage ?? "en";
-  }, [i18n, i18n.resolvedLanguage]);
+    document.documentElement.lang = messages.language;
+  }, [messages.language]);
+  return messages;
+}
+
+export function AppStartupFallback() {
+  const messages = useRecoveryMessages();
+  return <RouteFeedback title={messages.starting} tone="loading" />;
+}
+
+export function AppErrorFallback({ title, description }: { title?: string; description?: string }) {
+  const messages = useRecoveryMessages();
   return (
     <RouteFeedback
-      title={t("recovery.title")}
-      description={t("recovery.description")}
+      title={title ?? messages.title}
+      description={description ?? messages.description}
       tone="error"
-      primaryAction={{ label: t("recovery.reload"), onClick: reloadPage }}
+      primaryAction={{ label: messages.reload, onClick: reloadPage }}
       secondaryAction={{
-        label: getRecoveryMessages(i18n.resolvedLanguage).reset,
-        onClick: () => requestApplicationReset(i18n.resolvedLanguage),
+        label: messages.reset,
+        onClick: () => requestApplicationReset(messages.language),
       }}
     />
   );
-};
+}
 
 // biome-ignore lint/style/useReactFunctionComponents: React requires a class to define an Error Boundary without another dependency.
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
-  constructor(props: AppErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
+  override state: AppErrorBoundaryState = { hasError: false };
+
+  private readonly showFailure = () => {
+    this.setState((state) => (state.hasError ? null : { hasError: true }));
+  };
+
+  private readonly handleWindowError = (event: ErrorEvent) => {
+    // Resource load events are not runtime exceptions.
+    if (event instanceof ErrorEvent) this.showFailure();
+  };
+
+  override componentDidMount(): void {
+    window.addEventListener("error", this.handleWindowError);
+    window.addEventListener("unhandledrejection", this.showFailure);
+  }
+
+  override componentWillUnmount(): void {
+    window.removeEventListener("error", this.handleWindowError);
+    window.removeEventListener("unhandledrejection", this.showFailure);
   }
 
   static getDerivedStateFromError(): AppErrorBoundaryState {

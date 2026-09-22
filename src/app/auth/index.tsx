@@ -4,17 +4,15 @@ import { useTranslation } from "react-i18next";
 import { useAuthSession } from "@/entities/auth";
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
-import { getRecoveryMessages } from "../recovery/messages";
-import { requestApplicationReset } from "../recovery/reset";
+import { AppErrorFallback } from "../error-boundary";
 import { startAuthSession } from "./lifecycle";
 
 export interface AuthProviderProps {
   children: React.ReactNode;
-  reload?: (() => void) | undefined;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = () => window.location.reload() }) => {
-  const { t, i18n } = useTranslation();
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const { t } = useTranslation();
   const authState = useAuthSession();
 
   React.useEffect(() => {
@@ -33,18 +31,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, reload = (
   }
 
   if (authState.status === "error") {
-    return (
-      <RouteFeedback
-        title={t("auth.failure.title")}
-        description={t("auth.failure.description")}
-        tone="error"
-        primaryAction={{ label: t("recovery.reload"), onClick: reload }}
-        secondaryAction={{
-          label: getRecoveryMessages(i18n.resolvedLanguage).reset,
-          onClick: () => requestApplicationReset(i18n.resolvedLanguage),
-        }}
-      />
-    );
+    return <AppErrorFallback title={t("auth.failure.title")} description={t("auth.failure.description")} />;
   }
 
   return children;

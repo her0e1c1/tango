@@ -1,5 +1,4 @@
 import { act, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import { replaceAuthSession } from "@/entities/auth";
@@ -19,17 +18,17 @@ describe("Authentication feedback [ACCOUNT-04 SETTINGS-04]", () => {
     act(() => replaceAuthSession({ status: "authenticated", uid: "anonymous", isAnonymous: true, displayName: null }));
     expect(screen.getByText("Ready")).toBeVisible();
   });
-  it("offers reload on initialization failure", async () => {
-    const reload = vi.fn();
+  it("offers shared recovery on initialization failure", () => {
     replaceAuthSession({ status: "error", error: new Error("storage failure") });
     render(
-      <AuthProvider reload={reload}>
+      <AuthProvider>
         <p>Ready</p>
       </AuthProvider>
     );
     expect(screen.getByText("Unable to start Tango")).toBeVisible();
-    await userEvent.click(screen.getByRole("button", { name: "Reload" }));
-    expect(reload).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Clear cache and reset" })).toBeVisible();
+    expect(screen.getByText("Authentication could not be initialized.")).toBeVisible();
     expect(screen.queryByText("Ready")).not.toBeInTheDocument();
   });
 });

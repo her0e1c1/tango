@@ -28,11 +28,6 @@ export const resources = {
         },
         invalid: "The value is invalid.",
       },
-      recovery: {
-        title: "Something went wrong",
-        description: "Tango encountered an unexpected error. Reload the app to try again.",
-        reload: "Reload",
-      },
       auth: {
         failure: { title: "Unable to start Tango", description: "Authentication could not be initialized." },
         starting: {
@@ -847,11 +842,6 @@ export const resources = {
           tags: "タグは必須です。",
         },
         invalid: "入力内容が正しくありません。",
-      },
-      recovery: {
-        title: "問題が発生しました",
-        description: "予期しないエラーが発生しました。再読み込みしてもう一度お試しください。",
-        reload: "再読み込み",
       },
       auth: {
         failure: { title: "Tango を起動できません", description: "認証を初期化できませんでした。" },

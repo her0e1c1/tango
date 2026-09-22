@@ -71,7 +71,7 @@ test("NAVIGATION-03 The outer error boundary keeps the locale and supports reloa
   await failNextThemeUpdate(page);
   await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
   await expect(page.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
-  await expect(page.getByText("予期しないエラーが発生しました。再読み込みしてもう一度お試しください。")).toBeVisible();
+  await expect(page.getByText(/再読み込みするか、キャッシュを削除して初期化してください。/)).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   await page.getByRole("button", { name: "再読み込み" }).click();
   await expect(page.getByRole("heading", { name: "設定", exact: true })).toBeVisible();
@@ -137,4 +137,88 @@ test("NAVIGATION-04 Unavailable reset request storage does not prevent ordinary 
   await expect(page.getByRole("heading", { name: "Tangoを起動できません" })).toHaveCount(0);
   await page.goto("/account");
   await expect(page.getByText(uid, { exact: true })).toBeVisible();
+});
+
+test("NAVIGATION-05 Unhandled browser errors share recovery without clearing data", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
+  await fixture.apply(page);
+  browserErrors.allow(/E2E_UNHANDLED_FAILURE|(?:page error: )?(?:null|undefined)/);
+  for (const failure of ["timer", "promise", "string", "null", "undefined"] as const) {
+    await page.goto("/settings");
+    await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+    const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
+    await page.evaluate((kind) => {
+      if (kind === "timer") {
+        setTimeout(() => {
+          throw new Error("E2E_UNHANDLED_FAILURE");
+        }, 0);
+      } else {
+        const reason =
+          kind === "promise"
+            ? new Error("E2E_UNHANDLED_FAILURE")
+            : kind === "string"
+              ? "E2E_UNHANDLED_FAILURE"
+              : kind === "null"
+                ? null
+                : undefined;
+        void Promise.reject(reason);
+      }
+    }, failure);
+    await expect(page.getByRole("alert")).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
+    await page.getByRole("button", { name: "Reload" }).click();
+    await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+  }
+  await page.evaluate(async () => {
+    window.dispatchEvent(new Event("error"));
+    await Promise.reject(new Error("handled")).catch(() => undefined);
+  });
+  await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+});
+
+test("NAVIGATION-06 Lazy application module failures show React recovery", async ({ fixture, page, browserErrors }) => {
+  await fixture.apply(page);
+  browserErrors.allow(/E2E_BOOTSTRAP_FAILURE/);
+  // Replace only the lazy module, preserving the real entry, React root, and Boundary in both Vite modes.
+  await page.route(/\/(?:src\/app\/bootstrap\.tsx|assets\/bootstrap-[^/]+\.js)(?:\?.*)?$/, (route) =>
+    route.fulfill({ contentType: "application/javascript", body: 'throw new Error("E2E_BOOTSTRAP_FAILURE");' })
+  );
+  await page.goto("/");
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Reload" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Clear cache and reset" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  expect(await page.evaluate(() => localStorage.getItem("tango-config"))).not.toBeNull();
+});
+
+test("NAVIGATION-07 Reset failure shows recovery without loading the normal application", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
+  await fixture.apply(page);
+  browserErrors.allow(/E2E_RESET_FAILURE/);
+  const bootstrapRequests: string[] = [];
+  page.on("request", (request) => {
+    if (/\/(?:src\/app\/bootstrap\.tsx|assets\/bootstrap-[^/]+\.js)(?:\?.*)?$/.test(request.url()))
+      bootstrapRequests.push(request.url());
+  });
+  await page.addInitScript(() => {
+    sessionStorage.setItem("tango-startup-reset", "1");
+    const removeItem = Storage.prototype.removeItem;
+    Storage.prototype.removeItem = function (key) {
+      if (this === sessionStorage && key === "tango-startup-reset") throw new Error("E2E_RESET_FAILURE");
+      removeItem.call(this, key);
+    };
+  });
+  await page.goto("/");
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Clear cache and reset" })).toBeVisible();
+  expect(bootstrapRequests).toEqual([]);
+  expect(
+    await page.evaluate(() => navigator.serviceWorker.getRegistrations().then((registrations) => registrations.length))
+  ).toBe(0);
 });
