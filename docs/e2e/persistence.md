@@ -98,6 +98,7 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
 - Google アカウントにログインしていない匿名ユーザーである。
 - browser storage に local-only Deck と複数の Card が存在する。
 

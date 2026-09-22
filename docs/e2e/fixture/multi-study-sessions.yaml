@@ -4,6 +4,17 @@ auth:
     - uid: user-1
       provider: google
 remote:
+  studySessions:
+    deck-a:
+      sessionId: session-a
+      deckId: deck-a
+      cardOrderIds: [card-a-1, card-a-2]
+      currentIndex: 0
+    deck-b:
+      sessionId: session-b
+      deckId: deck-b
+      cardOrderIds: [card-b-1, card-b-2]
+      currentIndex: 1
   decks:
     - id: deck-a
       uid: user-1
@@ -38,15 +49,3 @@ remote:
       frontText: b-second
       backText: b second answer
       uniqueKey: b-second
-browser:
-  studySessions:
-    deck-a:
-      sessionId: session-a
-      deckId: deck-a
-      cardOrderIds: [card-a-1, card-a-2]
-      currentIndex: 0
-    deck-b:
-      sessionId: session-b
-      deckId: deck-b
-      cardOrderIds: [card-b-1, card-b-2]
-      currentIndex: 1

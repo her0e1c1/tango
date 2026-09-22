@@ -1,5 +1,5 @@
 extends: study-session-middle.yaml
-browser:
+remote:
   studySessions:
     deck-1:
       currentIndex: 2

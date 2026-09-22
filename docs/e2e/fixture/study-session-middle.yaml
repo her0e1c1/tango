@@ -3,6 +3,7 @@ browser:
   preferences:
     controls:
       showBackTextSwipeOverlays: true
+remote:
   studySessions:
     deck-1:
       currentIndex: 1

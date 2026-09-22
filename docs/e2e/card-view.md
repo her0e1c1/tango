@@ -133,6 +133,7 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
+- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
 - 匿名ユーザーの cache に、FSRS 未開始の Card がある。
 
 When:

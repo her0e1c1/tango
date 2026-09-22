@@ -1,3 +1,4 @@
+import { readSession } from "./study-helpers";
 import { readFile } from "node:fs/promises";
 import type { Page } from "@playwright/test";
 import {
@@ -7,7 +8,6 @@ import {
   failNextFirestoreWrite,
   getDocument,
   listDocuments,
-  readLocalData,
   requireDocument,
   test,
 } from "./fixtures";
@@ -63,9 +63,10 @@ test("DECK-NAVIGATION-01 navigates from the Deck list to its Card list", async (
   await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
   await expect(page.getByText(card.frontText)).toBeVisible();
 
-  const { localDecks, localCards } = fixture.state.browser;
-  const before = await readLocalData(page);
-  for (const selected of localDecks) {
+  const specialDecks = fixture.state.remote.decks.filter(({ id }) => id !== deck.id);
+  const specialCards = fixture.state.remote.cards.filter(({ deckId }) => deckId !== deck.id);
+  const before = await Promise.all(fixture.state.remote.cards.map(({ id }) => requireDocument("card", id)));
+  for (const selected of specialDecks) {
     await page.goto("/");
     await page.getByRole("button", { name: `Open cards in ${selected.name}`, exact: true }).click();
     const destination = new URL(page.url());
@@ -76,13 +77,15 @@ test("DECK-NAVIGATION-01 navigates from the Deck list to its Card list", async (
       if (entry === "direct") await page.goto(destination.href);
       if (entry === "reload") await page.reload();
       await expect(page).toHaveURL(destination.href);
-      for (const candidate of localCards) {
+      for (const candidate of specialCards) {
         const button = page.getByRole("button", { name: `View ${candidate.frontText}`, exact: true });
         if (candidate.deckId === selected.id) await expect(button).toBeVisible();
         else await expect(button).toHaveCount(0);
       }
       await expect(page.getByText(card.frontText, { exact: true })).toHaveCount(0);
-      expect(await readLocalData(page)).toEqual(before);
+      expect(await Promise.all(fixture.state.remote.cards.map(({ id }) => requireDocument("card", id)))).toEqual(
+        before
+      );
     }
   }
 });
@@ -135,13 +138,13 @@ test("DECK-MANAGEMENT-02 deletes one Deck and preserves unrelated Deck data", as
   await expect
     .poll(async () => Number((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue ?? 0))
     .toBeGreaterThan(0);
-  expect((await readLocalData(page)).cards.filter((card) => card.deckId === deck.id)).toEqual([]);
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("heading", { name: "Deck not found" })).toBeVisible();
+  await page.goto("/");
 
   expect(await getDocument("deck", otherDeck.id)).toBeDefined();
   expect((await Promise.all(otherCards.map((card) => getDocument("card", card.id)))).every(Boolean)).toBe(true);
-  const sessionsByDeckId = (await readLocalData(page)).sessionsByDeckId;
-  expect(sessionsByDeckId).not.toHaveProperty(deck.id);
-  expect(sessionsByDeckId).toHaveProperty(otherDeck.id, otherSession);
+  expect(await readSession(fixture.user().uid, otherDeck.id)).toEqual(otherSession);
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toHaveCount(0);
   await expect(page.getByRole("button", { name: `Open cards in ${otherDeck.name}` })).toBeVisible();
   await expect(page.getByRole("button", { name: `Continue ${otherDeck.name}` })).toBeVisible();
@@ -166,7 +169,7 @@ test("DECK-MANAGEMENT-03 cancels Deck deletion and preserves all related data", 
   await expect(trigger).toBeFocused();
   expect(await getDocument("deck", deck.id)).toBeDefined();
   expect((await Promise.all(cards.map((card) => getDocument("card", card.id)))).every(Boolean)).toBe(true);
-  expect((await readLocalData(page)).sessionsByDeckId).toHaveProperty(deck.id, session);
+  expect(await readSession(fixture.user().uid, deck.id)).toEqual(session);
 });
 
 test("DECK-MANAGEMENT-04 retries the same Deck deletion after a handled failure", async ({
@@ -218,8 +221,10 @@ test("DECK-MANAGEMENT-04 retries the same Deck deletion after a handled failure"
   await expect
     .poll(async () => Number((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue ?? 0))
     .toBeGreaterThan(0);
-  expect((await readLocalData(page)).cards.filter((card) => card.deckId === deck.id)).toEqual([]);
-  expect((await readLocalData(page)).sessionsByDeckId).not.toHaveProperty(deck.id);
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("heading", { name: "Deck not found" })).toBeVisible();
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toHaveCount(0);
 });
 
 test("DECK-NAVIGATION-02 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
@@ -307,8 +312,7 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
     ({ fields }) => fields.uid?.stringValue === uid && fields.deckId?.stringValue === deckId
   );
   expect(ownedCardsForDeck).toEqual([]);
-  const local = await readLocalData(page);
-  expect(local.decks).toHaveLength(1);
+  await expect(page.getByRole("button", { name: `Open cards in ${name}`, exact: true })).toHaveCount(1);
 });
 
 test("DECK-MANAGEMENT-06 reports a failed remote create without locking the form", async ({
@@ -344,9 +348,8 @@ test("DECK-MANAGEMENT-06 reports a failed remote create without locking the form
       fields.uid?.stringValue === uid && (fields.name as { stringValue?: string } | undefined)?.stringValue === name
   );
   expect(owned).toEqual([]);
-  const local = await readLocalData(page);
-  expect(local.decks).toEqual([]);
-  expect(local.cards).toEqual([]);
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: `Open cards in ${name}`, exact: true })).toHaveCount(0);
 });
 
 test("DECK-MANAGEMENT-08 confirms before discarding an unsaved Deck edit", async ({ fixture, page, namespace }) => {

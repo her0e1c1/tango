@@ -168,6 +168,19 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
   let activeUid = uid;
   let signInCount = 0;
   let shouldFailSignUp = normalizedOptions.failSignUpOnce ?? false;
+  await page.route("**/securetoken.googleapis.com/**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        id_token: emulatorToken(activeUid, normalizedOptions.linked && activeUid === uid),
+        refresh_token: "e2e-refresh-token",
+        expires_in: "3600",
+        user_id: activeUid,
+        token_type: "Bearer",
+        project_id: projectId,
+      }),
+    });
+  });
   await page.route("**/identitytoolkit.googleapis.com/**", async (route) => {
     const url = route.request().url();
     if (url.includes("accounts:lookup")) {
@@ -293,49 +306,6 @@ export interface StudySessionFixture {
   lastStudiedAt: number;
 }
 
-interface LocalDataFixture {
-  cardStudyStates?: Record<string, unknown>[];
-  decks?: Record<string, unknown>[];
-  cards?: Record<string, unknown>[];
-  sessionsByDeckId?: Record<string, StudySessionFixture>;
-}
-
-const seedLocalData = async (page: Page, fixture: LocalDataFixture) => {
-  if (
-    (fixture.cardStudyStates?.length ?? 0) +
-      (fixture.decks?.length ?? 0) +
-      (fixture.cards?.length ?? 0) +
-      Object.keys(fixture.sessionsByDeckId ?? {}).length ===
-    0
-  )
-    return;
-  await page.goto("/");
-  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
-  await page.evaluate(async (value) => {
-    const modulePath = "/e2e-fixture.js";
-    const fixtureModule = (await import(/* @vite-ignore */ modulePath)) as typeof import("./browser-fixture");
-    await fixtureModule.seedCache(value);
-  }, fixture);
-};
-
-const seedStudySessions = async (
-  page: Page,
-  sessionsByDeckId: Record<string, StudySessionFixture>,
-  deckNames: readonly string[] = []
-) => {
-  await seedLocalData(page, { sessionsByDeckId });
-  await Promise.all(
-    deckNames.map((name) => page.getByRole("button", { name: `Open cards in ${name}`, exact: true }).waitFor())
-  );
-};
-
-export const readLocalData = async (page: Page) =>
-  page.evaluate(async () => {
-    const modulePath = "/e2e-fixture.js";
-    const fixtureModule = (await import(/* @vite-ignore */ modulePath)) as typeof import("./browser-fixture");
-    return fixtureModule.readCache();
-  });
-
 interface FixtureAuthSeedOptions extends AnonymousAuthOptions {
   /** Logical UID of the anonymous user created after a linked user signs out. */
   nextUser?: string;
@@ -348,8 +318,6 @@ interface FixturePageSeedOptions {
   auth?: FixtureAuthSeedOptions | false;
   /** Additional per-test preferences layered over the normalized YAML state. */
   preferences?: E2EConfigOverrides | false;
-  localData?: boolean;
-  studySessions?: boolean;
 }
 
 interface FixtureApplyOptions extends FixturePageSeedOptions {
@@ -416,15 +384,6 @@ const seedFixturePreferences = async (
   });
 };
 
-const seedFixtureLocalData = async (page: Page, state: FixtureState, shouldSeed: boolean | undefined) => {
-  if (shouldSeed === false) return;
-  await seedLocalData(page, {
-    decks: state.browser.localDecks.map((deck) => ({ ...deck })),
-    cards: state.browser.localCards.map((card) => ({ ...card })),
-    cardStudyStates: state.browser.cardStudyStates.map((value) => ({ ...value })),
-  });
-};
-
 const seedFixtureAuth = async (
   page: Page,
   fixture: {
@@ -447,39 +406,6 @@ const seedFixtureAuth = async (
   });
 };
 
-const seedFixtureStudySessions = async (page: Page, state: FixtureState, shouldSeed: boolean | undefined) => {
-  const { studySessions } = state.browser;
-  if (shouldSeed === false || Object.keys(studySessions).length === 0) return;
-  const sessionDeckIds = new Set(Object.keys(studySessions));
-  const deckNames = [...state.remote.decks, ...state.browser.localDecks]
-    .filter(({ id }) => sessionDeckIds.has(id))
-    .map(({ name }) => name);
-  const cachedSessions: Record<string, StudySessionFixture> = {};
-  for (const [deckId, session] of Object.entries(studySessions)) {
-    const deck = state.remote.decks.find(({ id }) => id === deckId);
-    const owner = state.auth.users.find(({ uid, provider }) => uid === deck?.uid && provider === "google");
-    if (!owner) {
-      cachedSessions[deckId] = session;
-      continue;
-    }
-    // A resumed fixture is pre-existing server state, not a client create at a nonzero position.
-    await setDocument("studySession", session.sessionId, {
-      uid: owner.uid,
-      deckId,
-      cardOrderIds: session.cardOrderIds,
-      currentIndex: session.currentIndex,
-      startedAt: new Date(session.lastStudiedAt),
-      createdAt: new Date(session.lastStudiedAt),
-      updatedAt: new Date(session.lastStudiedAt),
-      endedAt: null,
-      endReason: null,
-    });
-  }
-  await page.goto("/");
-  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
-  await seedStudySessions(page, cachedSessions, deckNames);
-};
-
 function createE2EFixture(
   source: FixtureSource,
   namespace: TestNamespace,
@@ -495,6 +421,21 @@ function createE2EFixture(
         setDocument("cardStudyState", `${state.uid.length}:${state.uid}${state.cardId}`, { ...state })
       )
     );
+    for (const session of Object.values(namespaced.state.remote.studySessions)) {
+      const deck = namespaced.state.remote.decks.find(({ id }) => id === session.deckId);
+      if (!deck?.uid) throw new Error("A server session requires an owned Deck");
+      await setDocument("studySession", session.sessionId, {
+        uid: deck.uid,
+        deckId: deck.id,
+        cardOrderIds: session.cardOrderIds,
+        currentIndex: session.currentIndex,
+        startedAt: new Date(session.lastStudiedAt),
+        createdAt: new Date(session.lastStudiedAt),
+        updatedAt: new Date(session.lastStudiedAt),
+        endedAt: null,
+        endReason: null,
+      });
+    }
   };
 
   const seedPage = async (page: Page, options: FixturePageSeedOptions = {}) => {
@@ -506,8 +447,6 @@ function createE2EFixture(
       options: options.auth,
       namespace,
     });
-    await seedFixtureLocalData(page, namespaced.state, options.localData);
-    await seedFixtureStudySessions(page, namespaced.state, options.studySessions);
   };
 
   const fixture: E2EFixture = {
@@ -573,7 +512,7 @@ export const setDocument = async (collection: FirestoreCollection, id: string, d
   const fields = Object.fromEntries(
     Object.entries(document).flatMap(([key, value]) => (value === undefined ? [] : [[key, firestoreValue(value)]]))
   );
-  const response = await fetch(`${firestoreBase}/${collection}/${id}`, {
+  const response = await fetch(`${firestoreBase}/${collection}/${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: { Authorization: "Bearer owner", "Content-Type": "application/json" },
     body: JSON.stringify({ fields }),
@@ -594,7 +533,7 @@ export const requestFirestoreAsGuest = async ({
   method: "PATCH" | "DELETE";
   document?: Record<string, unknown>;
 }) =>
-  fetch(`${firestoreBase}/${collection}/${id}`, {
+  fetch(`${firestoreBase}/${collection}/${encodeURIComponent(id)}`, {
     method,
     headers: { Authorization: `Bearer ${emulatorToken(uid)}`, "Content-Type": "application/json" },
     ...(document === undefined
@@ -610,7 +549,7 @@ export const getDocument = async (
   collection: FirestoreCollection,
   id: string
 ): Promise<FirestoreDocument | undefined> => {
-  const response = await fetch(`${firestoreBase}/${collection}/${id}`, {
+  const response = await fetch(`${firestoreBase}/${collection}/${encodeURIComponent(id)}`, {
     headers: { Authorization: "Bearer owner" },
   });
   if (response.status === 404) return;
@@ -620,7 +559,7 @@ export const getDocument = async (
 
 export const requireDocument = async (collection: FirestoreCollection, id: string) => {
   const document = await getDocument(collection, id);
-  if (document === undefined) throw new Error(`Firestore document is missing: ${collection}/${id}`);
+  if (document === undefined) throw new Error(`Firestore document is missing: ${collection}/${encodeURIComponent(id)}`);
   return document;
 };
 

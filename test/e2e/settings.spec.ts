@@ -84,8 +84,8 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
       await expect(page.getByRole("heading", { level: 2, name: `${countLabel} in this session` })).toBeVisible();
       await page.getByRole("button", { name: `Start ${countLabel}` }).click();
       await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
-      await expect.poll(async () => (await readSession(page, deck.id))?.cardOrderIds.length).toBe(count);
-      const session = await readSession(page, deck.id);
+      await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds.length).toBe(count);
+      const session = await readSession(fixture.user().uid, deck.id);
       expect(session?.cardOrderIds).toEqual(
         [fixture.card("card-1").id, fixture.card("card-2").id, fixture.card("card-3").id].slice(0, count)
       );
@@ -105,8 +105,8 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
       await page.goto("/");
       await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
       await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
-      expect((await readSession(page, deck.id))?.sessionId).toBe(session?.sessionId);
-      expect((await readSession(page, deck.id))?.cardOrderIds).toEqual(session?.cardOrderIds);
+      expect((await readSession(fixture.user().uid, deck.id))?.sessionId).toBe(session?.sessionId);
+      expect((await readSession(fixture.user().uid, deck.id))?.cardOrderIds).toEqual(session?.cardOrderIds);
     });
   }
 });

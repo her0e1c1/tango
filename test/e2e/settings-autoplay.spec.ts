@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-import { expect, readLocalData, requireDocument, test } from "./fixtures";
+import { expect, listDocuments, requireDocument, test } from "./fixtures";
 import { readSession } from "./study-helpers";
 
 const readPreferences = (page: Page) =>
@@ -8,6 +8,13 @@ const readPreferences = (page: Page) =>
 
 const intervalDescription =
   "Seconds between cards. At 0, cards do not advance automatically, and the play/pause button and progress slider are hidden.";
+
+const savedDocuments = async (uid: string) =>
+  Promise.all(
+    (["deck", "card", "studySession", "studyAnswer", "cardStudyState"] as const).map(async (collection) =>
+      (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === uid)
+    )
+  );
 
 test("SETTINGS-10 Zero autoplay interval is explained and saved without resetting other preferences", async ({
   fixture,
@@ -22,7 +29,7 @@ test("SETTINGS-10 Zero autoplay interval is explained and saved without resettin
   await expect(interval).toHaveAttribute("min", "0");
   await expect(interval).toHaveAttribute("max", "60");
   const preferences = await readPreferences(page);
-  const savedData = await readLocalData(page);
+  const savedData = await savedDocuments(fixture.user().uid);
 
   await interval.focus();
   await page.keyboard.press("Home");
@@ -49,7 +56,7 @@ test("SETTINGS-10 Zero autoplay interval is explained and saved without resettin
   await expect(interval).toHaveAttribute("aria-valuetext", "60 seconds");
   await expect(page.getByText("60s", { exact: true })).toBeVisible();
   await expect.poll(() => readPreferences(page)).toEqual(preferences);
-  expect(await readLocalData(page)).toEqual(savedData);
+  expect(await savedDocuments(fixture.user().uid)).toEqual(savedData);
 });
 
 test("SETTINGS-11 Restoring a positive interval preserves the active study session and playback preferences", async ({
@@ -66,8 +73,8 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   });
   await page.goto(`/deck/${deck.id}/start`);
   await page.getByRole("button", { name: `Start ${String(fixture.state.remote.cards.length)} cards` }).click();
-  await expect.poll(() => readSession(page, deck.id)).toMatchObject({ currentIndex: 0 });
-  const session = await readSession(page, deck.id);
+  await expect.poll(() => readSession(fixture.user().uid, deck.id)).toMatchObject({ currentIndex: 0 });
+  const session = await readSession(fixture.user().uid, deck.id);
   if (session === undefined) throw new Error("Expected a newly started study session");
   const firstCard = fixture.state.remote.cards.find((card) => card.id === session.cardOrderIds[0]);
   const secondCard = fixture.state.remote.cards.find((card) => card.id === session.cardOrderIds[1]);
@@ -79,7 +86,11 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   await expect(page.getByRole("slider", { name: "Study progress" })).toHaveCount(0);
   await page.clock.runFor(1250);
   // Cloud metadata may arrive after Start; the existing session values must stay unchanged.
-  expect(await readSession(page, deck.id)).toMatchObject({ ...session });
+  expect(await readSession(fixture.user().uid, deck.id)).toMatchObject({
+    sessionId: session.sessionId,
+    cardOrderIds: session.cardOrderIds,
+    currentIndex: 0,
+  });
   await page.getByRole("button", { name: "Open study help" }).click();
   const help = page.getByRole("dialog", { name: "Study controls" });
   await expect(help.getByText("Autoplay is unavailable while the card interval is 0", { exact: true })).toBeVisible();
@@ -93,19 +104,18 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   });
   await page.keyboard.press("Space");
   await page.clock.runFor(1250);
-  expect(await readSession(page, deck.id)).toMatchObject({ ...session });
+  expect(await readSession(fixture.user().uid, deck.id)).toMatchObject({
+    sessionId: session.sessionId,
+    cardOrderIds: session.cardOrderIds,
+    currentIndex: 0,
+  });
   expect(await readPreferences(page)).toEqual(preferences);
   await expect(page.getByRole("button", { name: firstCard.frontText, exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Swipe right", exact: true }).click();
   await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
   const continuedPosition = { sessionId: session.sessionId, cardOrderIds: session.cardOrderIds, currentIndex: 1 };
-  await expect.poll(() => readSession(page, deck.id)).toMatchObject(continuedPosition);
-  await page.evaluate(async () => {
-    const path = "/e2e-fixture.js";
-    const bridge = await import(/* @vite-ignore */ path);
-    await bridge.waitForCacheSync();
-  });
+  await expect.poll(() => readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
   const deckBeforeSettings = await requireDocument("deck", deck.id);
   const cardsBeforeSettings = await Promise.all(
     fixture.state.remote.cards.map((card) => requireDocument("card", card.id))
@@ -120,14 +130,14 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   await page.keyboard.press("End");
   const restoredPreferences = { ...preferences, study: { ...preferences.study, cardInterval: 60 } };
   await expect.poll(() => readPreferences(page)).toEqual(restoredPreferences);
-  expect(await readSession(page, deck.id)).toMatchObject(continuedPosition);
+  expect(await readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
 
   await page.goto("/");
   await page.getByRole("button", { name: `Continue ${deck.name}`, exact: true }).click();
   await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Study progress" })).toBeVisible();
-  expect(await readSession(page, deck.id)).toMatchObject(continuedPosition);
+  expect(await readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
   expect(await readPreferences(page)).toEqual(restoredPreferences);

@@ -28,5 +28,7 @@ test("STUDY-SESSION-08 reveals, persists, and applies an additional Study tag", 
   await page.getByRole("button", { name: "Start 1 card" }).click();
 
   await expect(page.getByText(targetCard.frontText, { exact: true })).toBeVisible();
-  await expect.poll(async () => (await readSession(page, deck.id))?.cardOrderIds).toEqual([targetCard.id]);
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds)
+    .toEqual([targetCard.id]);
 });

@@ -14,7 +14,7 @@ test("DECK-NAVIGATION-12 shows held review counts and opens existing study setti
   await review.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(`/deck/${deck.id}/start`);
-  expect(await readSession(page, deck.id)).toBeUndefined();
+  expect(await readSession(fixture.user().uid, deck.id)).toBeUndefined();
   expect(await requireDocument("deck", deck.id)).toEqual(before);
 });
 
@@ -34,6 +34,6 @@ test("DECK-NAVIGATION-13 updates the list when a review deadline arrives", async
   await expect(page.getByText("1 due · 1 new", { exact: true })).toHaveCount(2);
   await page.clock.runFor(500);
   await expect(page.getByText("2 due · 1 new", { exact: true })).toHaveCount(2);
-  expect(await readSession(page, deck.id)).toBeUndefined();
+  expect(await readSession(fixture.user().uid, deck.id)).toBeUndefined();
   expect(await requireDocument("card", future.id)).toEqual(before);
 });

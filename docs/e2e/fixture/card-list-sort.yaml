@@ -1,8 +1,9 @@
-extends: local-deck-with-cards.yaml
-browser:
-  localCards:
+extends: remote-deck-with-cards.yaml
+remote:
+  cards:
     - id: card-1
       deckId: deck-1
+      uid: user-1
       frontText: oldest question
       backText: oldest answer
       uniqueKey: oldest
@@ -11,6 +12,7 @@ browser:
       updatedAt: 9000
     - id: card-2
       deckId: deck-1
+      uid: user-1
       frontText: newest question
       backText: newest answer
       uniqueKey: newest
@@ -18,6 +20,7 @@ browser:
       createdAt: 3000
     - id: card-3
       deckId: deck-1
+      uid: user-1
       frontText: tied question
       backText: tied answer
       uniqueKey: tied
