@@ -12,7 +12,7 @@ Deck と Card 一覧の主要な route を開き、存在しない Deck から�
 | DECK-NAVIGATION-02 | read | [存在しない Deck から復帰できる](#deck-navigation-02) |
 | DECK-NAVIGATION-03 | read | [remote Deck を学習データを変更せずに閲覧できる](#deck-navigation-03) |
 | DECK-NAVIGATION-04 | read | [local-only Deck の閲覧位置を保存せずに再入場できる](#deck-navigation-04) |
-| DECK-NAVIGATION-05 | write | [現在の難易度と tag filter に一致する全 Card を標準順で閲覧できる](#deck-navigation-05) |
+| DECK-NAVIGATION-05 | write | [現在のtag filter に一致する全 Card を標準順で閲覧できる](#deck-navigation-05) |
 | DECK-NAVIGATION-06 | read | [復習期日の設定を閲覧対象へ反映できる](#deck-navigation-06) |
 | DECK-NAVIGATION-07 | read | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](#deck-navigation-07) |
 | DECK-NAVIGATION-08 | read | [1件の Card の長い解答を touch で閲覧して終了できる](#deck-navigation-08) |
@@ -136,29 +136,29 @@ Then:
 
 <a id="deck-navigation-05"></a>
 
-### DECK-NAVIGATION-05 現在の難易度と tag filter に一致する全 Card を標準順で閲覧できる
+### DECK-NAVIGATION-05 現在のtag filter に一致する全 Card を標準順で閲覧できる
 
 カテゴリ: `write`
 
 Given:
 
 - Fixture: [`study-filter`](./fixture/study-filter.yaml)
-- 難易度と tag の両方に一致する Card が学習の枚数上限を超えて存在する。
-- 難易度だけ、または tag だけが条件から外れる Card も存在する。
+- tagに一致する Card が学習の枚数上限を超えて存在する。
+- tag が条件から外れる Card も存在する。
 - 学習の shuffle が有効である。
 - Card 一覧の filter 保存を一時保留でき、保留中も追加の条件を選択できる。
 
 When:
 
 - Deck 一覧の Study の横から View を開き、対象の全 Card を順に閲覧する。
-- Card 一覧へ戻って難易度の保存を保留し、その後 tag 条件を変更する。
+- Card 一覧へ戻ってtag filter の保存を保留し、その後 tag 条件を変更する。
 - 保存完了前に Deck 一覧を経由して View を開き、閲覧終了後に保留した保存を完了する。
 
 Then:
 
 - Card 一覧の標準順で条件に一致する全 Card を表示し、学習の枚数上限と shuffle は適用しない。
 - 条件から外れる Card は表示せず、最終 Card の次で一覧へ戻る。
-- remote 同期待ちでも cache に保存した最新の難易度と tag の選択条件を引き継ぎ、対象 Card を表示する。
+- remote 同期待ちでも cache に保存した最新のtag の選択条件を引き継ぎ、対象 Card を表示する。
 - 保存保留中の閲覧で永続データは変化しない。保留の解除後は先に行った filter 編集だけを保存し、Card、学習履歴、設定を変更せず、学習 session を作成しない。
 - browser error が発生しない。
 
@@ -322,7 +322,7 @@ Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
 - 復習期日を過ぎた、未来の、未設定の Card があり、間隔反復が有効である。
-- 追加の Page / query ケースでは学習中、空、filter 不一致、future-only、new-only の Deck が共存する。難易度範囲と tag の AND / OR 条件を使用する。
+- 追加の Page / query ケースでは学習中、空、filter 不一致、future-only、new-only の Deck が共存する。tag の AND / OR 条件を使用する。
 
 When:
 

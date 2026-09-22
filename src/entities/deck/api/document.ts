@@ -1,11 +1,10 @@
 import { z } from "zod";
 
-import { difficultySchema } from "@/entities/study-progress/@x/deck";
 import { parseFirestoreDocument } from "@/shared/api";
 import type { deckCreateSchema } from "../model/schema";
 import type { Deck, DeckId } from "../model/types";
 
-const sharedDeckDocumentSchema = z.object({
+const deckDocumentSchema = z.object({
   // Older documents duplicate the Firestore document id in their data.
   id: z.string().optional(),
   name: z.string(),
@@ -19,11 +18,6 @@ const sharedDeckDocumentSchema = z.object({
   tagAndFilter: z.boolean(),
   category: z.string(),
   convertToBr: z.boolean(),
-});
-
-const deckDocumentSchema = sharedDeckDocumentSchema.extend({
-  difficultyMax: difficultySchema.nullable(),
-  difficultyMin: difficultySchema.nullable(),
 });
 
 /** Validated field shape stored in one physical Deck Firestore document. */
@@ -40,8 +34,6 @@ export const toDeck = (id: DeckId, document: DeckDocument): Deck => ({
   name: document.name,
   ...(document.url === undefined ? {} : { url: document.url }),
   isPublic: document.isPublic,
-  difficultyMax: document.difficultyMax,
-  difficultyMin: document.difficultyMin,
   selectedTags: document.selectedTags,
   tagAndFilter: document.tagAndFilter,
   category: document.category,
@@ -61,8 +53,6 @@ export const toDeckDocument = (
   name: deck.name,
   ...(deck.url === undefined ? {} : { url: deck.url }),
   isPublic: deck.isPublic,
-  difficultyMax: deck.difficultyMax,
-  difficultyMin: deck.difficultyMin,
   selectedTags: deck.selectedTags,
   tagAndFilter: deck.tagAndFilter,
   category: deck.category,

@@ -1,3 +1,5 @@
+import { seedCardStudyState } from "@/test/studyStateFixtures";
+import { clearCardStudyStates } from "@/entities/card-study-state";
 import "@/test/mockFirestorePersistence";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,20 +22,15 @@ const preferences = createPreferences({
 const deck = createLocalDeck({
   id: "study-start-deck",
   name: "Japanese vocabulary",
-  difficultyMax: 6,
-  difficultyMin: 4,
   selectedTags: ["eligible"],
 });
 const filter = {
-  difficultyMax: deck.difficultyMax,
-  difficultyMin: deck.difficultyMin,
   selectedTags: deck.selectedTags,
   tagAndFilter: deck.tagAndFilter,
 };
 const eligibleCard = createLocalCard({
   id: "eligible-card",
   deckId: deck.id,
-  difficulty: 4,
   tags: ["eligible"],
   uniqueKey: "eligible-card",
 });
@@ -43,17 +40,9 @@ const laterCard = createLocalCard({
   tags: ["later"],
   uniqueKey: "later-card",
 });
-const highDifficultyCard = createLocalCard({
-  id: "high-difficulty-card",
-  deckId: deck.id,
-  difficulty: 7,
-  tags: ["eligible"],
-  uniqueKey: "high-difficulty-card",
-});
 const futureCard = createLocalCard({
   id: "future-card",
   deckId: deck.id,
-  nextSeeingAt: new Date(253_402_300_799_999),
   tags: ["eligible"],
   uniqueKey: "future-card",
 });
@@ -66,13 +55,14 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
       status: "authenticated",
       uid: "local-user",
     });
+    clearCardStudyStates();
+    seedCardStudyState(futureCard.id, 253_402_300_799_999, "user-id", deck.id);
     clearStudySessions();
     updatePreferences(preferences);
     await createDeck("user-id", deck);
     await mutateCards("user-id", [
       { kind: "create", card: eligibleCard },
       { kind: "create", card: laterCard },
-      { kind: "create", card: highDifficultyCard },
       { kind: "create", card: futureCard },
     ]);
   });

@@ -8,7 +8,7 @@ import { CardFields, type CardFormFields } from "@/features/card-form";
 import { Button } from "@/shared/ui/button";
 
 export interface CardEditorProps {
-  cardInfo: { uniqueKey: string; id: CardId; createdAt?: number; lastSeenAt?: number };
+  cardInfo: { uniqueKey: string; id: CardId; createdAt?: number };
   categories: readonly string[];
   preview: React.ReactNode;
   form: UseFormReturn<CardFormFields>;
@@ -57,12 +57,6 @@ export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, pr
                 <div>
                   <dt className="font-medium text-ink-muted">{t("cardForm.information.created")}</dt>
                   <dd className="text-ink">{formatDate(cardInfo.createdAt, locale)}</dd>
-                </div>
-              )}
-              {cardInfo.lastSeenAt !== undefined && (
-                <div>
-                  <dt className="font-medium text-ink-muted">{t("cardForm.information.lastSeen")}</dt>
-                  <dd className="text-ink">{formatDate(cardInfo.lastSeenAt, locale)}</dd>
                 </div>
               )}
             </dl>

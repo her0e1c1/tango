@@ -29,7 +29,7 @@ describe("Query realtime subscriptions", () => {
     await Promise.all(getApps().map(deleteApp));
   });
 
-  it("[FIRESTORE-SUBSCRIPTIONS-01] loads Card content and study information from the initial snapshot", async () => {
+  it("[FIRESTORE-SUBSCRIPTIONS-01] loads Card content from the initial snapshot", async () => {
     const uid = "uid";
     const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Fetched Deck" });
     const card = createCard({
@@ -37,8 +37,6 @@ describe("Query realtime subscriptions", () => {
       deckId: deck.id,
       uid,
       frontText: "Fetched Card",
-      difficulty: 2,
-      numberOfSeen: 3,
     });
     await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
     deckStore.setState({ remoteDecks: [deck] });
@@ -49,7 +47,7 @@ describe("Query realtime subscriptions", () => {
     try {
       await vi.waitFor(() => {
         expect(cardStore.getState().remoteCards).toContainEqual(
-          expect.objectContaining({ id: card.id, frontText: "Fetched Card", difficulty: 2, numberOfSeen: 3 })
+          expect.objectContaining({ id: card.id, frontText: "Fetched Card" })
         );
       });
       expect(onError).not.toHaveBeenCalled();

@@ -1,70 +1,22 @@
-/**
- * @file Verifies the "DeckFilterForm" contract with automated examples.
- * The examples make the expected behavior concrete for difficulty controls, callbacks, and default limits.
- */
-
-import { render, within, screen } from "@testing-library/react";
-import type { ComponentProps } from "react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
-
 import { DeckFilterForm } from "./DeckFilterForm";
-
-type DeckFilterFormProps = ComponentProps<typeof DeckFilterForm>;
-
-/**
- * Provides the create props test helper used by this file.
- * Keeping this setup in one function lets each test focus on the behavior it is proving.
- */
-const createProps = (): DeckFilterFormProps => ({
-  difficultyLowerBound: 1,
-  difficultyMax: 4,
-  difficultyMin: 3,
-  difficultyUpperBound: 10,
-  tags: ["one", "two"],
-  selectedTags: ["one"],
-  tagAndFilter: true,
-  clearDifficultyRange: vi.fn(),
-  setDifficultyMax: vi.fn(),
-  setDifficultyMin: vi.fn(),
-  setSelectedTags: vi.fn(),
-  setTagAndFilter: vi.fn(),
-});
-
-describe("CARD-LIST-ACTIONS-03 DeckFilterForm", () => {
-  it("composes difficulty and tag filters and preserves callbacks", async () => {
-    const props = createProps();
-    render(<DeckFilterForm {...props} />);
-    const difficultyRegion = screen.getByRole("region", { name: "Difficulty range" });
-    const maximum = within(difficultyRegion).getByRole("combobox", { name: "Maximum difficulty" });
-    const minimum = within(difficultyRegion).getByRole("combobox", { name: "Minimum difficulty" });
-
-    expect(maximum).toHaveValue("4");
-    expect(minimum).toHaveValue("3");
-
-    await userEvent.selectOptions(maximum, "5");
-    await userEvent.selectOptions(minimum, "2");
-
-    expect(props.setDifficultyMax).toHaveBeenCalledWith(5);
-    expect(props.setDifficultyMin).toHaveBeenCalledWith(2);
-    await userEvent.click(within(difficultyRegion).getByRole("button", { name: "Clear limits" }));
-    expect(props.clearDifficultyRange).toHaveBeenCalledOnce();
-    expect(screen.getByRole("region", { name: "Tags" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Save filters" })).not.toBeInTheDocument();
-  });
-
-  it("shows explicit domain bounds for legacy null limits", () => {
-    render(<DeckFilterForm {...createProps()} difficultyMax={null} difficultyMin={null} />);
-    const difficultyRegion = screen.getByRole("region", { name: "Difficulty range" });
-    expect(within(difficultyRegion).queryByRole("button", { name: "Clear limits" })).not.toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("10");
-    expect(screen.getByRole("combobox", { name: "Minimum difficulty" })).toHaveValue("1");
-  });
-
-  it("disables editing when requested", () => {
-    render(<DeckFilterForm {...createProps()} disabled />);
-
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeDisabled();
+describe("CARD-LIST-ACTIONS-01 DeckFilterForm", () => {
+  it("filters by tags without manual difficulty controls", async () => {
+    const select = vi.fn();
+    render(
+      <DeckFilterForm
+        tags={["one", "two"]}
+        selectedTags={[]}
+        tagAndFilter={false}
+        setSelectedTags={select}
+        setTagAndFilter={vi.fn()}
+      />
+    );
+    await userEvent.click(screen.getByRole("checkbox", { name: "one" }));
+    expect(select).toHaveBeenCalledWith(["one"]);
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 });

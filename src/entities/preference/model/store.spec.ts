@@ -82,7 +82,7 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [DECK-NAVIGATION-0
       loadSample: false,
       appearance: { darkMode: true },
       study: { cardInterval: 15 },
-      controls: { showCardDetails: false, showDifficultySlider: true, showBackTextSwipeOverlays: true },
+      controls: { showCardDetails: false, showBackTextSwipeOverlays: true },
     });
     updatePreferences({ controls: { showSwipeButtonList: false } });
     updatePreferences({ controls: { showPlaybackControls: false } });
@@ -96,7 +96,6 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [DECK-NAVIGATION-0
       controls: {
         ...defaultPreferences.controls,
         showCardDetails: false,
-        showDifficultySlider: true,
         showBackTextSwipeOverlays: true,
         showSwipeButtonList: false,
         showPlaybackControls: false,

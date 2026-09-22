@@ -1,10 +1,9 @@
-import { writeStudySchedule } from "@/entities/study-schedule";
+import { writeCardStudyState } from "@/entities/card-study-state";
 import { writeStudyAnswer } from "@/entities/study-answer";
 import { getCards } from "@/entities/card";
 import { getDecks } from "@/entities/deck";
 import { createLocalBatch } from "@/shared/firestore-write";
 import { getAuthUid } from "@/entities/auth";
-import { writeStudyProgress } from "@/entities/study-progress";
 import { getStudySession, writeStudySessionPosition, type StudySession } from "@/entities/study-session";
 import { studyOperationSchema, type StudyOperation } from "../studyOperation";
 
@@ -28,19 +27,14 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
   if (card?.uid !== operation.uid || deck?.uid !== operation.uid || card.deckId !== deck.id)
     throw new Error("Study references do not match");
   const { batch, commit } = createLocalBatch(operation.uid);
-  const progressReference = writeStudyProgress(
-    batch,
-    { ...operation.progress, cardId: operation.cardId, lastSeenAt: operation.answeredAt },
-    operation.answeredAt
-  );
   const result = writeStudySessionPosition(
     batch,
     { ...session, lastStudiedAt: operation.answeredAt },
     operation.currentIndex + 1
   );
-  const references = [progressReference, result.reference];
-  if (operation.rating !== undefined && operation.schedule !== undefined) {
-    writeStudySchedule(batch, operation.cardId, operation.schedule, operation.answeredAt);
+  const references = [result.reference];
+  if (operation.rating !== undefined && operation.fsrs !== undefined) {
+    references.push(writeCardStudyState(batch, { ...operation, fsrs: operation.fsrs }));
     references.push(writeStudyAnswer(batch, { ...operation, rating: operation.rating }));
   }
   await commit(references);

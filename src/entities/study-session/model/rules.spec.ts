@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { calculateFsrsState } from "@/test/studyStateFixtures";
+import { describe, expect, it, vi } from "vitest";
 import { createCard, createDeck } from "@/test/factories";
 
 import {
@@ -23,32 +24,23 @@ const session: StudySession = {
 };
 
 describe("study card selection [STUDY-SESSION-01]", () => {
-  const deck = createDeck({ difficultyMin: 3, difficultyMax: 7, selectedTags: ["selected"], tagAndFilter: false });
-  const card = createCard({ id: "due", difficulty: 7, tags: ["selected"], nextSeeingAt: new Date(1000) });
-
-  it.each([true, false])("applies inclusive difficulty and tag filters with interval=%s", (useInterval) => {
+  const deck = createDeck({ selectedTags: ["selected"], tagAndFilter: false });
+  const due = calculateFsrsState(null, "good", 0);
+  const card = { ...createCard({ id: "due", tags: ["selected"] }), fsrs: due };
+  it.each([true, false])("applies tags and deadlines with interval=%s", (useInterval) => {
     const cards = [
       card,
-      { ...card, id: "lower-bound", difficulty: 3 },
-      { ...card, id: "high", difficulty: 8 },
-      { ...card, id: "low", difficulty: 2 },
+      { ...card, id: "new", fsrs: null },
       { ...card, id: "other-tag", tags: ["other"] },
-      { ...card, id: "future", nextSeeingAt: new Date(1001) },
-      { ...card, id: "later", nextSeeingAt: new Date(2000) },
+      { ...card, id: "future", fsrs: { ...due, dueAt: due.dueAt + 1 } },
     ];
-    const selected = selectStudyCardsWithDeadline(cards, deck, useInterval, 1000);
-    expect(selected.cards.map(({ id }) => id)).toEqual(
-      useInterval ? ["due", "lower-bound"] : ["due", "lower-bound", "future", "later"]
-    );
-    expect(selected.nextDueAt).toBe(useInterval ? 1001 : undefined);
+    const selected = selectStudyCardsWithDeadline(cards, deck, useInterval, due.dueAt);
+    expect(selected.cards.map(({ id }) => id)).toEqual(useInterval ? ["due", "new"] : ["due", "new", "future"]);
+    expect(selected.nextDueAt).toBe(useInterval ? due.dueAt + 1 : undefined);
   });
-
-  it.each([true, false])("rejects malformed schedules and legacy dates with interval=%s", (useInterval) => {
+  it("rejects malformed FSRS state instead of classifying it as new", () => {
     expect(() =>
-      selectStudyCardsWithDeadline([{ ...card, nextSeeingAt: new Date(NaN) }], deck, useInterval, 1000)
-    ).toThrow();
-    expect(() =>
-      selectStudyCardsWithDeadline([{ ...card, schedule: {} } as typeof card], deck, useInterval, 1000)
+      selectStudyCardsWithDeadline([{ ...card, fsrs: { ...due, reps: 0 } }], deck, true, due.dueAt)
     ).toThrow();
   });
 });
@@ -182,3 +174,5 @@ describe("isStudySessionPositionUnchanged [STUDY-ACTIONS-05]", () => {
     expect(isStudySessionPositionUnchanged(session, undefined)).toBe(false);
   });
 });
+
+vi.mock("@/shared/firebase", () => ({ db: {} }));

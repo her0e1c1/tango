@@ -1,3 +1,4 @@
+import { fsrsStateSchema } from "../../src/entities/card-study-state/model/schema";
 import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import path from "node:path";
 
@@ -22,8 +23,6 @@ export interface FixtureDeck {
   name: string;
   url?: string;
   isPublic: boolean;
-  difficultyMax: number | null;
-  difficultyMin: number | null;
   selectedTags: string[];
   tagAndFilter: boolean;
   category: string;
@@ -42,8 +41,6 @@ export interface FixtureCard {
   backText: string;
   tags: string[];
   uniqueKey: string;
-  difficulty: number;
-  numberOfSeen: number;
   createdAt: number;
   updatedAt: number;
   deletedAt: number | null;
@@ -51,10 +48,9 @@ export interface FixtureCard {
   url?: string;
   startLine?: number;
   endLine?: number;
-  lastSeenAt?: number;
-  nextSeeingAt?: Date;
-  interval?: number;
 }
+
+type FixtureCardStudyState = z.infer<typeof fixtureCardStudyStateSchema>;
 
 export interface FixtureStudySession {
   sessionId: string;
@@ -91,7 +87,6 @@ export interface FixturePreferences {
     showSwipeButtonList: boolean;
     showPlaybackControls: boolean;
     showCardDetails: boolean;
-    showDifficultySlider: boolean;
     showBackTextSwipeOverlays: boolean;
     showSkip: boolean;
     cardSwipeUp: SwipeAction;
@@ -103,11 +98,12 @@ export interface FixturePreferences {
 
 export interface FixtureState {
   auth: { users: FixtureUser[] };
-  remote: { decks: FixtureDeck[]; cards: FixtureCard[] };
+  remote: { decks: FixtureDeck[]; cards: FixtureCard[]; cardStudyStates: FixtureCardStudyState[] };
   browser: {
     preferences: FixturePreferences;
     localDecks: FixtureDeck[];
     localCards: FixtureCard[];
+    cardStudyStates: FixtureCardStudyState[];
     studySessions: Record<string, FixtureStudySession>;
   };
 }
@@ -157,15 +153,9 @@ const fixtureRoot = path.join(docsRoot, "fixture");
 const sampleCardsPath = path.join(repositoryRoot, "sample/build/output.json");
 
 const nonEmptyString = z.string().min(1);
-const difficultySchema = z.number().finite().min(1).max(10);
 const nonBlankString = z
   .string()
   .refine((value) => value.trim().length > 0, { message: "Expected a non-blank string" });
-const optionalDateString = z
-  .string()
-  .refine((value) => !Number.isNaN(Date.parse(value)), { message: "Expected an ISO-compatible date string" })
-  .optional();
-
 const userSchema = z.strictObject({
   uid: nonEmptyString,
   provider: z.enum(["anonymous", "google"]),
@@ -178,8 +168,6 @@ const remoteDeckSchema = z.strictObject({
   name: nonBlankString,
   url: z.url().optional(),
   isPublic: z.boolean().optional(),
-  difficultyMax: difficultySchema.nullable().optional(),
-  difficultyMin: difficultySchema.nullable().optional(),
   selectedTags: z.array(z.string()).optional(),
   tagAndFilter: z.boolean().optional(),
   category: z.string().optional(),
@@ -195,8 +183,6 @@ const localDeckSchema = z.strictObject({
   name: nonBlankString,
   url: z.url().optional(),
   isPublic: z.boolean().optional(),
-  difficultyMax: difficultySchema.nullable().optional(),
-  difficultyMin: difficultySchema.nullable().optional(),
   selectedTags: z.array(z.string()).optional(),
   tagAndFilter: z.boolean().optional(),
   category: z.string().optional(),
@@ -216,11 +202,6 @@ const cardContentFields = {
 } as const;
 
 const cardStateFields = {
-  difficulty: difficultySchema.optional(),
-  numberOfSeen: z.number().nonnegative().optional(),
-  lastSeenAt: z.number().optional(),
-  nextSeeingAt: optionalDateString,
-  interval: z.number().optional(),
   createdAt: z.number().optional(),
   updatedAt: z.number().optional(),
   deletedAt: z.number().nullable().optional(),
@@ -284,7 +265,6 @@ const preferencesSchema = z.strictObject({
       showSwipeButtonList: z.boolean().optional(),
       showPlaybackControls: z.boolean().optional(),
       showCardDetails: z.boolean().optional(),
-      showDifficultySlider: z.boolean().optional(),
       showBackTextSwipeOverlays: z.boolean().optional(),
       showSkip: z.boolean().optional(),
       cardSwipeUp: swipeActionSchema.optional(),
@@ -312,12 +292,23 @@ const sampleDeckSchema = z.strictObject({
   }),
 });
 
+const fixtureCardStudyStateSchema = z.strictObject({
+  schemaVersion: z.literal(1),
+  uid: nonEmptyString,
+  cardId: nonEmptyString,
+  deckId: nonEmptyString,
+  fsrs: fsrsStateSchema.nullable(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
 const fixtureDocumentSchema = z.strictObject({
   auth: z.strictObject({ users: z.array(userSchema).min(1) }),
   remote: z
     .strictObject({
       decks: z.array(remoteDeckSchema).optional(),
       cards: z.array(remoteCardSchema).optional(),
+      cardStudyStates: z.array(fixtureCardStudyStateSchema).optional(),
     })
     .optional(),
   browser: z
@@ -325,6 +316,7 @@ const fixtureDocumentSchema = z.strictObject({
       preferences: preferencesSchema.optional(),
       localDecks: z.array(localDeckSchema).optional(),
       localCards: z.array(localCardSchema).optional(),
+      cardStudyStates: z.array(fixtureCardStudyStateSchema).optional(),
       studySessions: z.record(nonEmptyString, studySessionSchema).optional(),
       sampleDeck: sampleDeckSchema.optional(),
     })
@@ -658,7 +650,6 @@ const fixturePreferenceDefaults: FixturePreferences = {
     showSwipeButtonList: true,
     showPlaybackControls: true,
     showCardDetails: true,
-    showDifficultySlider: false,
     showBackTextSwipeOverlays: false,
     showSkip: true,
     cardSwipeUp: "RateEasy",
@@ -693,8 +684,6 @@ const normalizeDeck = (raw: RawRemoteDeck | RawLocalDeck, id: string, uid?: stri
     name: raw.name,
     ...(raw.url === undefined ? {} : { url: raw.url }),
     isPublic: raw.isPublic ?? false,
-    difficultyMax: raw.difficultyMax ?? null,
-    difficultyMin: raw.difficultyMin ?? null,
     selectedTags: [...(raw.selectedTags ?? [])],
     tagAndFilter: raw.tagAndFilter ?? false,
     category: raw.category ?? "",
@@ -716,17 +705,12 @@ const normalizeCard = (raw: RawRemoteCard | RawLocalCard, id: string, deckId: st
     backText: raw.backText,
     tags: [...(raw.tags ?? [])],
     uniqueKey: raw.uniqueKey,
-    difficulty: raw.difficulty ?? 5,
-    numberOfSeen: raw.numberOfSeen ?? 0,
     createdAt: raw.createdAt ?? 0,
     updatedAt: raw.updatedAt ?? 0,
     deletedAt: raw.deletedAt ?? null,
     ...(raw.url === undefined ? {} : { url: raw.url }),
     ...(raw.startLine === undefined ? {} : { startLine: raw.startLine }),
     ...(raw.endLine === undefined ? {} : { endLine: raw.endLine }),
-    ...(raw.lastSeenAt === undefined ? {} : { lastSeenAt: raw.lastSeenAt }),
-    ...(raw.nextSeeingAt === undefined ? {} : { nextSeeingAt: new Date(raw.nextSeeingAt) }),
-    ...(raw.interval === undefined ? {} : { interval: raw.interval }),
   };
   return uid === undefined ? normalized : { ...normalized, uid };
 };
@@ -1105,6 +1089,13 @@ export const namespaceFixture = (
   const sessions = normalizeSessions(logical.studySessions, identifiers.idFor);
   validateRuntimeIds(users, decks, cards, sessions);
 
+  const normalizeStates = (states: FixtureCardStudyState[] = []) =>
+    states.map((state) => ({
+      ...state,
+      uid: identifiers.uidFor(state.uid),
+      cardId: identifiers.idFor(state.cardId),
+      deckId: identifiers.idFor(state.deckId),
+    }));
   const remoteDeckCount = logical.remoteDecks.length;
   const remoteCardCount = logical.remoteCards.length;
 
@@ -1114,11 +1105,13 @@ export const namespaceFixture = (
       remote: {
         decks: decks.values.slice(0, remoteDeckCount),
         cards: cards.values.slice(0, remoteCardCount),
+        cardStudyStates: normalizeStates(document.remote?.cardStudyStates),
       },
       browser: {
         preferences: normalizePreferences(document.browser?.preferences),
         localDecks: decks.values.slice(remoteDeckCount),
         localCards: cards.values.slice(remoteCardCount),
+        cardStudyStates: normalizeStates(document.browser?.cardStudyStates),
         studySessions: sessions.byDeckId,
       },
     },

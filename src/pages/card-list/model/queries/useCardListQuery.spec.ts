@@ -1,3 +1,5 @@
+import { seedCardStudyState } from "@/test/studyStateFixtures";
+import { clearCardStudyStates } from "@/entities/card-study-state";
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -18,6 +20,7 @@ const repository = vi.hoisted(() => ({
 }));
 
 vi.mock("@/entities/card", () => ({
+  useCards: () => repository.cards,
   useCardsByDeckId: () => ({ cards: repository.cards, tags: [] }),
 }));
 
@@ -32,8 +35,9 @@ vi.mock("@/shared/lib/useDeadlineQuery", () => ({
   ): T => evaluate(...inputs, Date.now()),
 }));
 
-describe("useCardListQuery [CARD-LIST-ACTIONS-03]", () => {
+describe("useCardListQuery [CARD-LIST-ACTIONS-01]", () => {
   beforeEach(() => {
+    clearCardStudyStates();
     repository.preferences = createPreferences({
       study: { useCardInterval: true, cardInterval: 1 },
     });
@@ -42,13 +46,11 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-03]", () => {
   it("derives emptyReason across no-cards, filter-zero, interval-zero, and populated states", () => {
     const deck = createDeck({ id: "deck-1" });
     const emptyFilter = {
-      difficultyMax: null,
-      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
     };
 
-    repository.cards = [createCard({ id: "c-1", deckId: "deck-1", difficulty: 5 })];
+    repository.cards = [createCard({ id: "c-1", deckId: "deck-1" })];
     expect(
       renderHook(() =>
         useCardListQuery({
@@ -72,25 +74,23 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-03]", () => {
       ).result.current.emptyReason
     ).toBe("no-cards");
 
-    repository.cards = [createCard({ id: "c-1", deckId: "deck-1", difficulty: 8 })];
+    repository.cards = [createCard({ id: "c-1", deckId: "deck-1" })];
     expect(
       renderHook(() =>
         useCardListQuery({
           deck,
-          filter: { ...emptyFilter, difficultyMax: 5, difficultyMin: 1 },
+          filter: { ...emptyFilter, selectedTags: ["missing"] },
           shownCard: undefined,
           sortOrder: "standard",
         })
       ).result.current.emptyReason
     ).toBe("filter-zero");
+    seedCardStudyState("c-1", Date.now() + 100_000, "user-id", "deck-1");
 
     repository.cards = [
       createCard({
         id: "c-1",
         deckId: "deck-1",
-        difficulty: 5,
-        numberOfSeen: 1,
-        nextSeeingAt: new Date(Date.now() + 100_000),
       }),
     ];
     expect(
@@ -109,8 +109,6 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-03]", () => {
     repository.cards = [];
     const deck = createDeck({ id: "deck-1" });
     const filter = {
-      difficultyMax: null,
-      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
     };
@@ -129,19 +127,16 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-03]", () => {
     expect(result.current.emptyReason).toBe("no-cards");
   });
 
-  it("reports filter-zero when cards exist but do not match the difficulty filter", () => {
+  it("reports filter-zero when cards exist but do not match the tag filter", () => {
     repository.cards = [
       createCard({
         id: "c-1",
         deckId: "deck-1",
-        difficulty: 8,
       }),
     ];
     const deck = createDeck({ id: "deck-1" });
     const filter = {
-      difficultyMax: 5,
-      difficultyMin: 1,
-      selectedTags: [],
+      selectedTags: ["missing"],
       tagAndFilter: false,
     };
 
@@ -160,19 +155,15 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-03]", () => {
   });
 
   it("reports interval-zero when cards match filters but are scheduled for future review", () => {
+    seedCardStudyState("c-1", Date.now() + 100_000, "user-id", "deck-1");
     repository.cards = [
       createCard({
         id: "c-1",
         deckId: "deck-1",
-        difficulty: 3,
-        numberOfSeen: 1,
-        nextSeeingAt: new Date(Date.now() + 100_000),
       }),
     ];
     const deck = createDeck({ id: "deck-1" });
     const filter = {
-      difficultyMax: null,
-      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
     };
@@ -191,3 +182,5 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-03]", () => {
     expect(result.current.emptyReason).toBe("interval-zero");
   });
 });
+
+vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => repository.cards }));

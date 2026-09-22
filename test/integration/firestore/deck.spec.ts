@@ -42,8 +42,6 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
   const newDeck = createDeckFixture({
     name: "new deck name",
     uid: "uid",
-    difficultyMax: 10,
-    difficultyMin: 1,
     createdAt: 0,
     updatedAt: 0,
   });

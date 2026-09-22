@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createDeckSchema } from "../model/schema";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
-describe("Deck Firestore document mapping [CARD-LIST-ACTIONS-03]", () => {
+describe("Deck Firestore document mapping [CARD-LIST-ACTIONS-01]", () => {
   it("accepts legacy strings without applying current command validation", () => {
     expect(
       parseDeckDocument("deck", {
@@ -11,8 +11,6 @@ describe("Deck Firestore document mapping [CARD-LIST-ACTIONS-03]", () => {
         name: "",
         url: "legacy-value",
         isPublic: false,
-        difficultyMax: null,
-        difficultyMin: null,
         selectedTags: [],
         tagAndFilter: false,
         category: "",
@@ -26,8 +24,6 @@ describe("Deck Firestore document mapping [CARD-LIST-ACTIONS-03]", () => {
       name: "",
       url: "legacy-value",
       isPublic: false,
-      difficultyMax: null,
-      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
       category: "",
@@ -46,8 +42,6 @@ describe("Deck Firestore document mapping [CARD-LIST-ACTIONS-03]", () => {
       uid: "actor",
       name: "Deck",
       isPublic: false,
-      difficultyMax: 10,
-      difficultyMin: 1,
       selectedTags: [],
       tagAndFilter: false,
       category: "",
@@ -64,8 +58,6 @@ describe("Deck Firestore document mapping [CARD-LIST-ACTIONS-03]", () => {
       uid: "owner",
       name: "Deck",
       isPublic: false,
-      difficultyMax: null,
-      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
       category: "",
@@ -81,8 +73,6 @@ describe("Deck Firestore document mapping [CARD-LIST-ACTIONS-03]", () => {
 
       name: "Deck",
       isPublic: false,
-      difficultyMax: null,
-      difficultyMin: null,
       selectedTags: [],
       tagAndFilter: false,
       category: "",
@@ -90,24 +80,5 @@ describe("Deck Firestore document mapping [CARD-LIST-ACTIONS-03]", () => {
       createdAt: 1,
       updatedAt: 2,
     });
-  });
-
-  it("rejects malformed difficulty bounds", () => {
-    expect(() =>
-      parseDeckDocument("deck", {
-        uid: "owner",
-        name: "Malformed filters",
-        isPublic: false,
-        difficultyMax: 11,
-        difficultyMin: 3,
-        selectedTags: [],
-        tagAndFilter: false,
-        category: "",
-        convertToBr: false,
-        deletedAt: null,
-        createdAt: 1,
-        updatedAt: 2,
-      })
-    ).toThrow();
   });
 });

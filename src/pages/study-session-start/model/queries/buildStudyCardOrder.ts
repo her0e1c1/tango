@@ -1,9 +1,9 @@
 import * as lodash from "lodash";
-import { classifyStudySchedule, type StudyScheduleFields } from "@/entities/study-schedule";
+import { classifyFsrsState, type FsrsState } from "@/entities/card-study-state";
 
-interface StudyOrderCard extends StudyScheduleFields {
+interface StudyOrderCard {
   id: string;
-  numberOfSeen: number;
+  fsrs: FsrsState | null;
 }
 interface StudyCardOrderOptions {
   useCardInterval?: boolean;
@@ -11,7 +11,7 @@ interface StudyCardOrderOptions {
   maxNumberOfCardsToLearn: number;
 }
 
-// Builds a least-seen-first Card order, optionally shuffling the full set before applying a positive session limit.
+// Orders due cards before unrated cards; without intervals, preserves the source order.
 export const buildStudyCardOrder = (
   cards: StudyOrderCard[],
   options: StudyCardOrderOptions,
@@ -19,7 +19,7 @@ export const buildStudyCardOrder = (
 ): string[] => {
   if (options.useCardInterval) {
     const selected = cards
-      .map((card) => ({ card, timing: classifyStudySchedule(card, now) }))
+      .map((card) => ({ card, timing: classifyFsrsState(card.fsrs, now) }))
       .filter(({ timing }) => timing.status !== "future")
       .sort((a, b) => {
         if (a.timing.status === "new") return b.timing.status === "new" ? 0 : 1;
@@ -30,10 +30,7 @@ export const buildStudyCardOrder = (
     const limited = options.maxNumberOfCardsToLearn > 0 ? selected.slice(0, options.maxNumberOfCardsToLearn) : selected;
     return options.shuffled ? lodash.shuffle(limited) : limited;
   }
-  let cardOrderIds = cards
-    .slice()
-    .sort((a, b) => a.numberOfSeen - b.numberOfSeen)
-    .map((card) => card.id);
+  let cardOrderIds = cards.map((card) => card.id);
   // The maximum follows shuffling so a limited randomized session can draw from the complete card set.
   if (options.shuffled) cardOrderIds = lodash.shuffle(cardOrderIds);
   if (options.maxNumberOfCardsToLearn > 0) cardOrderIds = cardOrderIds.slice(0, options.maxNumberOfCardsToLearn);

@@ -21,9 +21,6 @@ const AvailableStudySessionStartPage: React.FC<{ deck: Deck }> = ({ deck }) => {
         filterSlot={
           <DeckFilterForm
             {...model.filter}
-            clearDifficultyRange={model.clearDifficultyRange}
-            setDifficultyMax={model.setDifficultyMax}
-            setDifficultyMin={model.setDifficultyMin}
             setSelectedTags={model.setSelectedTags}
             setTagAndFilter={model.setTagAndFilter}
             tags={model.tags}

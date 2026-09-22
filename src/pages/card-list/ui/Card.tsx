@@ -5,8 +5,7 @@
  */
 
 import cx from "classnames";
-import * as React from "react";
-import { useSwipeable } from "react-swipeable";
+import type * as React from "react";
 import { useTranslation } from "react-i18next";
 
 import type { CardId } from "@/entities/card";
@@ -17,15 +16,11 @@ import { CardActionsMenu } from "./CardActionsMenu";
 interface CardItem {
   id: CardId;
   frontText: string;
-  difficulty: number;
-  numberOfSeen: number;
   tags: string[];
 }
 
 export interface CardActionsProps {
   disabled?: boolean;
-  onSwipedLeft?: (id: CardId) => void;
-  onSwipedRight?: (id: CardId) => void;
   onDelete?: (id: CardId) => void;
   goToEdit?: (id: CardId) => void;
   goToView?: (id: CardId) => void;
@@ -40,50 +35,12 @@ interface CardRowMenuProps {
 export interface CardProps extends CardActionsProps, CardRowMenuProps {
   className?: string;
   card: CardItem;
-  difficultySlot?: React.ReactNode;
 }
 
-/**
- * Formats how many times a card has been studied.
- * The label handles the singular and plural forms shown in card metadata.
- */
-/**
- * Renders the Card user interface.
- * Presents one study card's front, back, difficulty, and tags according to its current reveal state.
- */
 export const Card: React.FC<CardProps> = (props) => {
   const { t } = useTranslation();
   const { id } = props.card;
   const disabled = Boolean(props.disabled);
-  const suppressViewClick = React.useRef(false);
-  const suppressViewClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
-  const menuBoundary = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(
-    () => () => {
-      if (suppressViewClickTimer.current !== undefined) clearTimeout(suppressViewClickTimer.current);
-    },
-    []
-  );
-
-  React.useEffect(() => {
-    const boundary = menuBoundary.current;
-    if (boundary == null) return;
-
-    /**
-     * Stops swipe events inside an interactive card element from reaching the outer card gesture
-     * handler.
-     * Links and buttons can therefore be used without accidentally triggering a card swipe.
-     */
-    const stopSwipeTracking = (event: Event) => event.stopPropagation();
-    const boundaryEvents = ["mousedown", "touchstart", "touchmove", "touchend", "touchcancel"] as const;
-    for (const eventName of boundaryEvents) boundary.addEventListener(eventName, stopSwipeTracking);
-
-    return () => {
-      for (const eventName of boundaryEvents) boundary.removeEventListener(eventName, stopSwipeTracking);
-    };
-  }, []);
-
   /**
    * Wraps an optional action so it receives the current item's identifier when invoked.
    * Presentation markup can pass a parameterless callback while domain actions still receive the
@@ -92,32 +49,8 @@ export const Card: React.FC<CardProps> = (props) => {
   const withId = (action?: (id: CardId) => void) => () => {
     if (!disabled) action?.(id);
   };
-  /**
-   * Wraps an optional swipe action so it receives the current card identifier.
-   * The wrapper also keeps swipe callbacks independent from the card component's event details.
-   */
-  const withSwipeId = (action?: (id: CardId) => void) => () => {
-    if (disabled) return;
-
-    // Mouse swipes emit a trailing click; suppress it through this task so swiping never also opens the Card.
-    suppressViewClick.current = true;
-    if (suppressViewClickTimer.current !== undefined) clearTimeout(suppressViewClickTimer.current);
-    suppressViewClickTimer.current = setTimeout(() => {
-      suppressViewClick.current = false;
-      suppressViewClickTimer.current = undefined;
-    }, 0);
-    action?.(id);
-  };
-  const handlers = useSwipeable({
-    onSwipedLeft: withSwipeId(props.onSwipedLeft),
-    onSwipedRight: withSwipeId(props.onSwipedRight),
-    trackMouse: true,
-  });
-  const seenCount = props.card.numberOfSeen;
-
   return (
     <article
-      {...handlers}
       aria-busy={disabled}
       className={cx(
         "flex min-h-20 items-center gap-2 border-b border-border px-3 py-2 transition-colors duration-fast ease-calm last:border-b-0 sm:gap-3 sm:px-4 dark:border-black",
@@ -126,7 +59,6 @@ export const Card: React.FC<CardProps> = (props) => {
         props.className
       )}
     >
-      {props.difficultySlot}
       <div className="relative flex min-h-touch min-w-0 flex-1 flex-col justify-center rounded-control">
         <button
           type="button"
@@ -134,14 +66,11 @@ export const Card: React.FC<CardProps> = (props) => {
           aria-label={t("cardList.card.view", { cardText: props.card.frontText })}
           className="absolute inset-0 z-10 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed"
           onClick={() => {
-            if (!(disabled || suppressViewClick.current)) props.goToView?.(id);
+            if (!disabled) props.goToView?.(id);
           }}
         />
         <span className="w-full truncate px-1 text-body font-semibold text-ink">{props.card.frontText}</span>
         <div className="mt-1 flex w-full min-w-0 items-center gap-2 text-caption text-ink-muted">
-          <span className="shrink-0">
-            {seenCount === 0 ? t("cardList.card.notStudied") : t("cardList.card.studied", { count: seenCount })}
-          </span>
           {props.card.tags.length > 0 && (
             <fieldset
               aria-label={t("cardList.card.tags", { tags: props.card.tags.join(", ") })}
@@ -154,7 +83,7 @@ export const Card: React.FC<CardProps> = (props) => {
           )}
         </div>
       </div>
-      <div ref={menuBoundary} className="shrink-0">
+      <div className="shrink-0">
         <CardActionsMenu
           cardText={props.card.frontText}
           open={Boolean(props.menuOpen)}

@@ -4,7 +4,6 @@ import { useParams } from "react-router-dom";
 
 import { BackText } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
-import { DifficultyIndicator } from "@/entities/study-progress";
 import { DeckFilterForm } from "@/features/deck-filter";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
 import { AppLayout } from "@/widgets/app-layout";
@@ -12,7 +11,6 @@ import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useCardListPageModel, useCardListRouteModel } from "../model/useCardListPageModel";
 import { CardList } from "./CardList";
-import { BulkDifficultyDialog } from "./bulk-difficulty";
 
 const CardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
@@ -20,19 +18,7 @@ const CardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
 
   return (
     <AppLayout showHeader={model.answer == null}>
-      {model.bulk != null ? (
-        <BulkDifficultyDialog
-          cardCount={model.bulk.cardIds.length}
-          difficulty={model.bulk.difficulty}
-          selectionDisabled={model.bulk.attempted}
-          difficultyLowerBound={model.bulkDifficultyMinimum}
-          difficultyUpperBound={model.bulkDifficultyMaximum}
-          onDifficultyChange={model.changeBulkDifficulty}
-          pending={model.mutationPending}
-          onCancel={model.cancelBulk}
-          onConfirm={model.confirmBulk}
-        />
-      ) : model.deletionTarget != null ? (
+      {model.deletionTarget != null ? (
         <DestructiveActionDialog
           title={t("cardList.deletion.title")}
           targetLabel={t("cardList.deletion.targetLabel")}
@@ -57,17 +43,12 @@ const CardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
           onSortOrderChange={model.changeSortOrder}
           sortDisabled={model.mutationPending}
           filterDisabled={model.mutationPending}
-          onChangeDifficulty={model.requestBulk}
           disabled={model.busy}
-          renderDifficulty={(difficulty) => <DifficultyIndicator className="shrink-0" difficulty={difficulty} />}
           onAddCard={model.goToCardCreate}
           filter={model.filterSummary}
           filterSlot={
             <DeckFilterForm
               {...model.deckFilter}
-              clearDifficultyRange={model.clearDifficultyRange}
-              setDifficultyMax={model.setDifficultyMax}
-              setDifficultyMin={model.setDifficultyMin}
               setSelectedTags={model.setSelectedTags}
               setTagAndFilter={model.setTagAndFilter}
               disabled={model.mutationPending}
@@ -77,8 +58,6 @@ const CardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
           onRemoveTag={model.removeTag}
           card={{
             disabled: model.busy,
-            onSwipedLeft: model.swipeLeft,
-            onSwipedRight: model.swipeRight,
             goToEdit: model.goToCardEdit,
             onDelete: model.requestDeletion,
           }}

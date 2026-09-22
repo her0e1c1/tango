@@ -1,4 +1,5 @@
-import { useCards, type Card } from "@/entities/card";
+import { useStudyCards } from "@/entities/card-study-state";
+import type { Card } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { resolveStudySession, useStudySession, useRemoteStudySessionsLoading } from "@/entities/study-session";
@@ -7,13 +8,13 @@ import { buildCardPlayerHelpRows } from "@/features/card-player";
 export type StudySessionState = ReturnType<typeof resolveStudySession<Card>>;
 
 export const useStudyQuery = (deckId: string) => {
-  const cards = useCards();
+  const cards = useStudyCards();
   const deck = useDeck(deckId);
   const preferences = usePreferences();
   const session = useStudySession(deckId);
   const remoteLoading = useRemoteStudySessionsLoading();
-  const sessionState: StudySessionState =
-    session === undefined && remoteLoading ? { status: "preparing" } : resolveStudySession(session, cards);
+  const sessionState =
+    session === undefined && remoteLoading ? { status: "preparing" as const } : resolveStudySession(session, cards);
   const controls = {
     swipeActions: preferences.controls,
     showViewMode: preferences.controls.showViewMode,
@@ -41,10 +42,8 @@ export const useStudyQuery = (deckId: string) => {
     card: {
       id: sessionState.card.id,
       frontText: sessionState.card.frontText,
+      fsrs: sessionState.card.fsrs,
       category,
-      difficulty: sessionState.card.difficulty,
-      numberOfSeen: sessionState.card.numberOfSeen,
-      ...(sessionState.card.lastSeenAt !== undefined ? { lastSeenAt: sessionState.card.lastSeenAt } : {}),
       back: {
         text: sessionState.card.backText,
         category,

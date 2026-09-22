@@ -34,7 +34,7 @@ const NextDeckButton = () => {
   );
 };
 
-describe("NAVIGATION-02 DECK-NAVIGATION-02 CARD-VIEW-01 CARD-LIST-ACTIONS-03 CARD-MANAGEMENT-05 CARD-LIST-ACTIONS-10 CardListPage", () => {
+describe("NAVIGATION-02 DECK-NAVIGATION-02 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MANAGEMENT-05 CARD-LIST-ACTIONS-03 CardListPage", () => {
   const deckId = "deck-id";
   const nextDeckId = "next-deck";
   const cardId = "card-id";
@@ -207,8 +207,7 @@ describe("NAVIGATION-02 DECK-NAVIGATION-02 CARD-VIEW-01 CARD-LIST-ACTIONS-03 CAR
       createLocalDeck({
         id: filteredDeckId,
         name: "Filtered deck",
-        difficultyMax: 3,
-        difficultyMin: 1,
+        selectedTags: ["missing"],
       })
     );
     await mutateCards("user-id", [
@@ -217,7 +216,6 @@ describe("NAVIGATION-02 DECK-NAVIGATION-02 CARD-VIEW-01 CARD-LIST-ACTIONS-03 CAR
         card: createLocalCard({
           id: "card-diff-8",
           deckId: filteredDeckId,
-          difficulty: 8,
           frontText: "High diff",
           tags: ["react"],
           uniqueKey: "card-diff-8",

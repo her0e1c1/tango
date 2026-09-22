@@ -1,10 +1,11 @@
+import { calculateFsrsState } from "@/entities/card-study-state";
 import { describe, expect, it, vi } from "vitest";
 import { buildStudyCardOrder } from "./buildStudyCardOrder";
-const cardProgress = (id: string, numberOfSeen = 0) => ({ id, numberOfSeen });
+const cardProgress = (id: string) => ({ id, fsrs: null });
 describe("buildStudyCardOrder [STUDY-SESSION-01]", () => {
   const cards = [cardProgress("a"), cardProgress("b"), cardProgress("c"), cardProgress("d")];
 
-  it("returns the progress-based card order when shuffle and maximum are disabled", () => {
+  it("returns the source card order when shuffle and maximum are disabled", () => {
     expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 0 })).toEqual(["a", "b", "c", "d"]);
   });
 
@@ -16,12 +17,12 @@ describe("buildStudyCardOrder [STUDY-SESSION-01]", () => {
     expect(buildStudyCardOrder(cards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual(["a", "b"]);
   });
 
-  it("orders cards by study progress before applying the maximum", () => {
-    const unorderedCards = [cardProgress("seen", 5), cardProgress("new", 1), cardProgress("middle", 3)];
+  it("preserves source order before applying the maximum", () => {
+    const unorderedCards = [cardProgress("seen"), cardProgress("new"), cardProgress("middle")];
 
     expect(buildStudyCardOrder(unorderedCards, { shuffled: false, maxNumberOfCardsToLearn: 2 })).toEqual([
+      "seen",
       "new",
-      "middle",
     ]);
   });
 
@@ -43,14 +44,15 @@ describe("buildStudyCardOrder [STUDY-SESSION-01]", () => {
 
 describe("due ordering [STUDY-SESSION-01]", () => {
   const now = Date.parse("2026-09-21T00:00:00Z");
-  const card = { id: "card", numberOfSeen: 20 };
+  const card = { id: "card", fsrs: null };
+  const saved = calculateFsrsState(null, "good", now - 600_000);
   it.each([false, true])("limits the oldest due cards before shuffling=%s", (shuffled) => {
     const cards = [
       { ...card, id: "new" },
-      { ...card, id: "equal", nextSeeingAt: new Date(now) },
-      { ...card, id: "oldest", nextSeeingAt: new Date(now - 2) },
-      { ...card, id: "tie", nextSeeingAt: new Date(now - 2) },
-      { ...card, id: "future", nextSeeingAt: new Date(now + 1) },
+      { ...card, id: "equal", fsrs: { ...saved, dueAt: now } },
+      { ...card, id: "oldest", fsrs: { ...saved, dueAt: now - 2 } },
+      { ...card, id: "tie", fsrs: { ...saved, dueAt: now - 2 } },
+      { ...card, id: "future", fsrs: { ...saved, dueAt: now + 1 } },
     ];
     expect(
       new Set(buildStudyCardOrder(cards, { useCardInterval: true, shuffled, maxNumberOfCardsToLearn: 2 }, now))

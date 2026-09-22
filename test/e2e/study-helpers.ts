@@ -1,18 +1,11 @@
 import type { Page } from "@playwright/test";
 
-import { readLocalData, requireDocument, type StudySessionFixture } from "./fixtures";
-
-export const progressOf = (card: { difficulty: number; numberOfSeen: number }) => ({
-  difficulty: card.difficulty,
-  numberOfSeen: card.numberOfSeen,
-});
+import { readLocalData, listDocuments, type StudySessionFixture } from "./fixtures";
 
 export const readProgress = async (cardId: string) => {
-  const document = await requireDocument("card", cardId);
-  return {
-    difficulty: Number(document.fields.difficulty?.doubleValue ?? document.fields.difficulty?.integerValue),
-    numberOfSeen: Number(document.fields.numberOfSeen?.integerValue),
-  };
+  const documents = await listDocuments("cardStudyState");
+  const state = documents.find((document) => document.fields.cardId?.stringValue === cardId);
+  return { reps: Number(state?.fields.fsrs?.mapValue?.fields?.reps?.integerValue ?? 0) };
 };
 
 export const readSession = async (page: Page, deckId: string) => {

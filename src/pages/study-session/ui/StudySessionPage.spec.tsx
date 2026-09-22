@@ -27,7 +27,7 @@ const mocks = vi.hoisted(() => ({
       }) => void)
     | undefined,
   preferences: null as unknown as Preferences,
-  editStudyProgress: vi.fn(),
+  persistOperation: vi.fn(),
   removeStudySession: vi.fn(),
   setDarkMode: vi.fn(),
   touchStudySession: vi.fn(),
@@ -80,18 +80,7 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
   };
 });
 // Persistence is outside Page behavior; successful writes let the real study workflow advance.
-vi.mock("@/entities/study-progress", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/study-progress")>()),
-  editStudyProgress: mocks.editStudyProgress,
-  DifficultyIndicator: ({ difficulty = 5 }: { difficulty?: number }) => {
-    const cue = difficulty < 5 ? "easy" : difficulty > 5 ? "hard" : "neutral";
-    return (
-      <span role="status" aria-label={`Difficulty ${String(difficulty)}, ${cue}`}>
-        {difficulty}
-      </span>
-    );
-  },
-}));
+
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionPage } from "./StudySessionPage";
@@ -117,8 +106,6 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     frontText: "Front one",
     backText: "Back one",
     uniqueKey: "first-card",
-    difficulty: 2,
-    numberOfSeen: 3,
   });
   const secondCard = createLocalCard({
     id: "second-card",
@@ -126,8 +113,6 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     frontText: "Front two",
     backText: "Back two",
     uniqueKey: "second-card",
-    difficulty: 1,
-    numberOfSeen: 4,
   });
   const renderPage = (path = `/deck/${deckId}/study`, previousPath?: string) => {
     const initialEntries = previousPath === undefined ? [path] : [previousPath, path];
@@ -155,7 +140,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     clearStudySessions();
     dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
-    mocks.editStudyProgress.mockReset().mockResolvedValue(undefined);
+    mocks.persistOperation.mockReset().mockResolvedValue(undefined);
     mocks.removeStudySession.mockReset();
     mocks.setDarkMode.mockReset();
     mocks.touchStudySession.mockReset();
@@ -198,7 +183,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.queryByRole("group", { name: "Card actions" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
     expect(screen.getByText("Front one")).toBeVisible();
-    expect(screen.getByText(/3 times/)).toBeVisible();
+    expect(screen.getByText("not studied yet")).toBeVisible();
   });
 
   it("shows four ratings and prevents backward slider movement", () => {
@@ -212,7 +197,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     fireEvent.change(slider, { target: { value: "0" } });
     expect(slider).toHaveValue("1");
     expect(screen.getByText("Front two")).toBeVisible();
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.persistOperation).not.toHaveBeenCalled();
   });
 
   it("allows the progress slider to advance and prevents returning to the skipped Card", () => {
@@ -228,7 +213,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.getByText("Front two")).toBeVisible();
     expect(slider).toHaveValue("1");
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.persistOperation).not.toHaveBeenCalled();
   });
 
   it.each([false, true])("reveals the answer from Enter with anonymous=%s", (isAnonymous) => {
@@ -239,7 +224,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
 
     expect(screen.getByText("Back one")).toBeVisible();
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Difficulty 2, easy")).not.toBeInTheDocument();
+    expect(screen.queryByText("not studied yet")).not.toBeInTheDocument();
     expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Card actions" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
@@ -265,7 +250,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     await user.keyboard("{ArrowUp}{ArrowDown}{ArrowLeft}{ArrowRight}");
 
     expect(screen.getByText("Back one")).toBeVisible();
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.persistOperation).not.toHaveBeenCalled();
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
   });
 
@@ -284,9 +269,9 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
 
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
     expect(screen.queryByText("Back two")).not.toBeInTheDocument();
-    expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith(
+    expect(mocks.persistOperation).toHaveBeenCalledExactlyOnceWith(
       "user-id",
-      expect.objectContaining({ cardId: "first-card", difficulty: 2, numberOfSeen: 4 })
+      expect.objectContaining({ cardId: "first-card", fsrs: expect.objectContaining({ reps: 1 }) })
     );
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
@@ -313,7 +298,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     await user.keyboard("{ArrowRight}");
 
     await waitFor(() => expect(screen.getByText("Front two")).toBeVisible());
-    expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
+    expect(mocks.persistOperation).toHaveBeenCalledOnce();
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
   });
 
@@ -343,7 +328,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
       cardSwipeRight: "RateGood",
     });
     const request = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValueOnce(request.promise);
+    mocks.persistOperation.mockReturnValueOnce(request.promise);
     renderPage();
 
     fireEvent.keyDown(window, { key: "ArrowRight" });
@@ -390,7 +375,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(dialog).toHaveTextContent("Enter / Select CardFlip or reveal the current card");
     expect(dialog).toHaveTextContent("Space / Play or Pause buttonPlay or pause autoplay");
     expect(dialog).toHaveTextContent("B / Swipe controls buttonHide the currently visible swipe buttons");
-    expect(dialog).toHaveTextContent("Card details buttonShow or hide difficulty and study history");
+    expect(dialog).toHaveTextContent("Card details buttonShow or hide FSRS difficulty and last review");
     expect(dialog).toHaveTextContent("Back to deck list buttonExit without ending the current study session");
     expect(screen.getByRole("button", { name: "Close help" })).toHaveFocus();
 
@@ -401,7 +386,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
 
     expect(screen.getByText("Front one")).toBeVisible();
     expect(getStudySession(deckId)).toEqual(sessionBeforeHelp);
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.persistOperation).not.toHaveBeenCalled();
     expect(mocks.toggleShowSwipeButtonList).not.toHaveBeenCalled();
 
     fireEvent.keyDown(screen.getByRole("button", { name: "Close help" }), { key: "Escape" });
@@ -482,7 +467,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(getStudySession(deckId)).toBeUndefined();
 
     fireEvent.keyDown(window, { key: "ArrowUp" });
-    expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
+    expect(mocks.persistOperation).toHaveBeenCalledOnce();
 
     fireEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
     expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
@@ -501,8 +486,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
     expect(actions).toBeVisible();
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
-    expect(screen.getByLabelText("Difficulty 2, easy")).toBeVisible();
-    expect(screen.getByText(/3 times/)).toBeVisible();
+    expect(screen.getByText("not studied yet")).toBeVisible();
   });
 
   it("delegates visibility toggles to persisted preference actions", () => {
@@ -562,7 +546,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     await user.keyboard("b");
 
     expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+    expect(mocks.persistOperation).not.toHaveBeenCalled();
   });
 
   it.each(["{ArrowUp}", "{ArrowDown}", "{ArrowLeft}", "{ArrowRight}"])(
@@ -583,7 +567,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
       progress.focus();
       await user.keyboard(key);
 
-      expect(mocks.editStudyProgress).not.toHaveBeenCalled();
+      expect(mocks.persistOperation).not.toHaveBeenCalled();
     }
   );
 
@@ -600,7 +584,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.getByRole("button", { name: "Card details" })).not.toBePressed();
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Difficulty 2, easy")).not.toBeInTheDocument();
+    expect(screen.queryByText("not studied yet")).not.toBeInTheDocument();
     expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();
   });
 
@@ -696,10 +680,10 @@ vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
       operation: import("../model/studyOperation").StudyOperation,
       session: import("@/entities/study-session").StudySession
     ) => {
-      await mocks.editStudyProgress(operation.uid, {
-        ...operation.progress,
+      await mocks.persistOperation(operation.uid, {
+        fsrs: operation.fsrs,
         cardId: operation.cardId,
-        lastSeenAt: operation.answeredAt,
+        answeredAt: operation.answeredAt,
       });
       moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
       return {

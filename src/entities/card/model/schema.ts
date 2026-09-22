@@ -1,7 +1,5 @@
-import { studyScheduleFieldsSchema } from "@/entities/study-schedule/@x/card";
 import { z } from "zod";
 
-import { DEFAULT_DIFFICULTY, difficultySchema } from "@/entities/study-progress/@x/card";
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
 const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Card writes");
@@ -33,10 +31,6 @@ const cardCreateFieldsSchema = editableCardFieldsSchema.extend({
   id: cardIdSchema,
   deckId: cardDeckIdSchema,
   deletedAt: z.number().nullable().default(null),
-  difficulty: difficultySchema.default(DEFAULT_DIFFICULTY),
-  numberOfSeen: z.number().default(0),
-  lastSeenAt: z.number().optional(),
-  ...studyScheduleFieldsSchema.shape,
 });
 
 export const cardCreateSchema = cardCreateFieldsSchema.extend({ uid: cardUidSchema });

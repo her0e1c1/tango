@@ -24,6 +24,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   getCards: () => mocks.cards,
+  useCards: () => mocks.cards,
   useCardsByDeckId: () => ({ cards: mocks.cards, tags: mocks.tags }),
 }));
 vi.mock("@/entities/auth", () => ({
@@ -76,7 +77,7 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
     mocks.deck = createDeck({ id: deckId, name: "Japanese vocabulary" });
     mocks.cards = [createCard({ id: cardId, deckId })];
-    mocks.tags = [];
+    mocks.tags = ["tag"];
     vi.clearAllMocks();
   });
 
@@ -91,7 +92,7 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
   it("starts from Enter only outside interactive controls", async () => {
     renderPage();
 
-    fireEvent.keyDown(screen.getByRole("combobox", { name: "Maximum difficulty" }), { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("checkbox", { name: "tag" }), { key: "Enter" });
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
     fireEvent.keyDown(document.body, { key: "Enter" });
@@ -99,29 +100,27 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
 
-  it("updates the session size immediately when a difficulty limit changes", async () => {
+  it("updates the session size immediately when a tag filter changes", async () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 0 } });
     mocks.cards = [
-      createCard({ id: "easy-card", deckId, difficulty: 2 }),
-      createCard({ id: "hard-card", deckId, difficulty: 7 }),
+      createCard({ id: "easy-card", deckId, tags: ["other"] }),
+      createCard({ id: "hard-card", deckId, tags: ["tag"] }),
     ];
     renderPage();
 
     expect(screen.getByRole("button", { name: "Start 2 cards" })).toBeVisible();
-    const minimumDifficulty = screen.getByRole("combobox", { name: "Minimum difficulty" });
+    const tag = screen.getByRole("checkbox", { name: "tag" });
 
-    fireEvent.keyDown(minimumDifficulty, { key: "Enter" });
+    fireEvent.keyDown(tag, { key: "Enter" });
     expect(screen.getByRole("heading", { level: 1, name: "Japanese vocabulary" })).toBeVisible();
 
-    await userEvent.selectOptions(minimumDifficulty, "5");
+    await userEvent.click(tag);
 
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
     expect(screen.getByText("1 card matches your filters.")).toBeVisible();
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deckId,
-      difficultyMax: null,
-      difficultyMin: 5,
-      selectedTags: [],
+      selectedTags: ["tag"],
       tagAndFilter: false,
     });
   });
@@ -136,8 +135,6 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
 
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deckId,
-      difficultyMax: null,
-      difficultyMin: null,
       selectedTags: ["tag-12"],
       tagAndFilter: false,
     });
@@ -200,3 +197,6 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
     ).toThrowError("invalid deck id");
   });
 });
+
+vi.mock("@/entities/card/model/queries/getCards", () => ({ getCards: () => mocks.cards }));
+vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => mocks.cards }));

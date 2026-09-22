@@ -127,7 +127,7 @@ describe("SETTINGS-02 maximum card count presentation", () => {
       allMatching: "All matching cards",
       single: "1 card",
       plural: "2 cards",
-      help: "difficulty, tags, and any active review schedule",
+      help: "tags and any active review schedule",
     },
     {
       locale: "ja",

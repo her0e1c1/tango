@@ -1,11 +1,11 @@
-import { getStudyRetrievability, studyRetentionTarget, type StudySchedule } from "@/entities/study-schedule";
+import { getStudyRetrievability, studyRetentionTarget, type FsrsState } from "@/entities/card-study-state";
 
-export function getMemoryState(schedule: StudySchedule | undefined, at: number) {
-  if (schedule === undefined) return;
+export function getMemoryState(schedule: FsrsState | null, at: number) {
+  if (schedule === null) return;
   const retrievability = getStudyRetrievability(schedule, at);
   const start = Math.min(schedule.lastReviewedAt, at, schedule.dueAt);
   const span = Math.max(schedule.lastReviewedAt, at, schedule.dueAt) - start;
-  const end = Math.min(253402300799999, start + Math.max(span, 60_000) * 1.1);
+  const end = Math.min(253_402_300_799_999, start + Math.max(span, 60_000) * 1.1);
   const times = new Set([schedule.lastReviewedAt, at, schedule.dueAt]);
   for (let index = 0; index <= 192; index++) {
     times.add(Math.round(start + (end - start) * (index / 192) ** 2));

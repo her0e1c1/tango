@@ -1,6 +1,5 @@
 import { createDeck } from "@/test/factories";
 import { act, renderHook } from "@testing-library/react";
-import { Timestamp } from "firebase/firestore";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useCards } from "../model/queries/useCards";
@@ -44,8 +43,6 @@ const cardDocument = (id: string, overrides: Record<string, unknown> = {}) => ({
     createdAt: 1,
     updatedAt: 2,
     deletedAt: null,
-    difficulty: 3,
-    numberOfSeen: 4,
     ...overrides,
   }),
 });
@@ -71,9 +68,6 @@ describe("Card Firestore subscription [CARD-VIEW-01]", () => {
       getSnapshotHandler()({
         docs: [
           cardDocument("active", {
-            lastSeenAt: 50,
-            nextSeeingAt: Timestamp.fromMillis(60),
-            interval: 7,
             url: "https://example.com/card",
             startLine: 8,
             endLine: 9,
@@ -87,12 +81,7 @@ describe("Card Firestore subscription [CARD-VIEW-01]", () => {
       expect.objectContaining({
         id: "active",
         frontText: "Remote front",
-        difficulty: 3,
-        numberOfSeen: 4,
         tags: ["science"],
-        lastSeenAt: 50,
-        nextSeeingAt: new Date(60),
-        interval: 7,
         url: "https://example.com/card",
         startLine: 8,
         endLine: 9,
@@ -107,7 +96,7 @@ describe("Card Firestore subscription [CARD-VIEW-01]", () => {
     const onError = vi.fn();
     subscribeCards("uid-a", onError);
 
-    act(() => getSnapshotHandler()({ docs: [cardDocument("invalid", { nextSeeingAt: null })] }));
+    act(() => getSnapshotHandler()({ docs: [cardDocument("invalid", { tags: null })] }));
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ name: "FirestoreDocumentValidationError", documentId: "invalid" })

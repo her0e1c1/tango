@@ -8,8 +8,6 @@ export const getInitialDeckFilterDraft = (uid: string, deck: Deck): DeckFilterDr
     pendingFilters.get(key) ?? {
       key,
       draft: {
-        difficultyMax: deck.difficultyMax,
-        difficultyMin: deck.difficultyMin,
         selectedTags: [...deck.selectedTags],
         tagAndFilter: deck.tagAndFilter,
       },

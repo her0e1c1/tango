@@ -14,27 +14,6 @@ import {
 const cardArticle = (page: Page, frontText: string) =>
   page.getByRole("button", { name: `View ${frontText}`, exact: true }).locator("xpath=ancestor::article[1]");
 
-const expectDifficulty = async (page: Page, frontText: string, difficulty: number) => {
-  await expect(
-    cardArticle(page, frontText)
-      .locator("span")
-      .filter({ hasText: new RegExp(`^${String(difficulty)}$`) })
-  ).toBeVisible();
-};
-
-const swipe = async (page: Page, frontText: string, direction: "left" | "right") => {
-  const target = page.getByRole("button", { name: `View ${frontText}`, exact: true });
-  const box = await target.boundingBox();
-  if (box === null) throw new Error("Card swipe target bounding box is unavailable");
-  const startX = direction === "right" ? box.x + 20 : box.x + box.width - 20;
-  const endX = direction === "right" ? box.x + box.width - 20 : box.x + 20;
-  const y = box.y + box.height / 2;
-  await page.mouse.move(startX, y);
-  await page.mouse.down();
-  await page.mouse.move(endX, y);
-  await page.mouse.up();
-};
-
 const openCardDeleteDialog = async (page: Page, frontText: string) => {
   await page.getByRole("button", { name: `Open actions for ${frontText}` }).click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
@@ -47,7 +26,7 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("CARD-VIEW-01 shows front text, difficulty, study count, and tags", async ({ fixture, page }) => {
+test("CARD-VIEW-01 shows front text and tags", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -56,8 +35,6 @@ test("CARD-VIEW-01 shows front text, difficulty, study count, and tags", async (
 
   const article = cardArticle(page, card.frontText);
   await expect(article.getByText(card.frontText)).toBeVisible();
-  await expectDifficulty(page, card.frontText, card.difficulty);
-  await expect(article.getByText(`studied ${String(card.numberOfSeen)} times`)).toBeVisible();
   await expect(article.getByRole("group", { name: `Tags: ${card.tags.join(", ")}` })).toBeVisible();
 });
 
@@ -133,38 +110,6 @@ test("CARD-MANAGEMENT-02 deletes a Card and does not reload it as active", async
   await expect
     .poll(async () => (await requireDocument("card", card.id)).fields.deletedAt?.integerValue)
     .not.toBeUndefined();
-});
-
-test("CARD-LIST-ACTIONS-01 decreases difficulty by one after a right swipe and reload", async ({ fixture, page }) => {
-  const deck = fixture.deck();
-  const card = fixture.card();
-  const expectedDifficulty = card.difficulty - 1;
-  await fixture.apply(page);
-
-  await page.goto(`/deck/${deck.id}`);
-  await swipe(page, card.frontText, "right");
-  await expect
-    .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
-    .toBe(String(expectedDifficulty));
-  await page.reload();
-
-  await expectDifficulty(page, card.frontText, expectedDifficulty);
-});
-
-test("CARD-LIST-ACTIONS-02 increases difficulty by one after a left swipe and reload", async ({ fixture, page }) => {
-  const deck = fixture.deck();
-  const card = fixture.card();
-  const expectedDifficulty = card.difficulty + 1;
-  await fixture.apply(page);
-
-  await page.goto(`/deck/${deck.id}`);
-  await swipe(page, card.frontText, "left");
-  await expect
-    .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
-    .toBe(String(expectedDifficulty));
-  await page.reload();
-
-  await expectDifficulty(page, card.frontText, expectedDifficulty);
 });
 
 test("CARD-VIEW-03 closes the back-text overlay without changing persistent Card data", async ({ fixture, page }) => {
@@ -255,24 +200,20 @@ test("CARD-MANAGEMENT-04 retries the same Card edit after a handled failure", as
   expect(documentId(after)).toBe(card.id);
 });
 
-test("CARD-LIST-ACTIONS-03 persists difficulty and tag filters and applies both after reload", async ({
-  fixture,
-  page,
-}) => {
+test("CARD-LIST-ACTIONS-01 persists tag filters and applies them after reload", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const matching = fixture.card("card-1");
   const wrongTag = fixture.card("card-2");
-  const difficultyMiss = fixture.card("card-3");
+  const anotherCard = fixture.card("card-3");
   const [selectedTag] = matching.tags;
-  if (selectedTag === undefined) throw new Error("CARD-LIST-ACTIONS-03 fixture requires a matching Card tag");
+  if (selectedTag === undefined) throw new Error("CARD-LIST-ACTIONS-01 fixture requires a matching Card tag");
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}`);
   await page.getByText("Filters", { exact: true }).click();
-  await page.getByRole("combobox", { name: "Maximum difficulty" }).selectOption("4");
   await clickCheckboxLabel(page, selectedTag);
   const extraTag = wrongTag.tags[0];
-  if (extraTag === undefined) throw new Error("CARD-LIST-ACTIONS-03 fixture requires another Card tag");
+  if (extraTag === undefined) throw new Error("CARD-LIST-ACTIONS-01 fixture requires another Card tag");
   await clickCheckboxLabel(page, extraTag);
   await page.getByText("Filters", { exact: true }).click();
   const selectedChip = page.getByRole("button", { name: `Remove ${selectedTag} filter` });
@@ -284,22 +225,18 @@ test("CARD-LIST-ACTIONS-03 persists difficulty and tag filters and applies both 
   const summary = page.locator("summary").filter({ hasText: "Filters" });
   await expect(summary).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("combobox", { name: "Maximum difficulty" })).toBeVisible();
   await clickCheckboxLabel(page, selectedTag);
   await expect(page.getByRole("button", { name: "Save filters" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: `View ${matching.frontText}` })).toBeEnabled();
-  await expect.poll(async () => (await requireDocument("deck", deck.id)).fields.difficultyMax?.integerValue).toBe("4");
   await expect
     .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values)
     .toEqual([{ stringValue: selectedTag }]);
   await page.reload();
 
-  await expect(page.getByText("difficulty ≤ 4 · 1 tag")).toBeVisible();
   await page.getByText("Filters", { exact: true }).click();
-  await expect(page.getByRole("combobox", { name: "Maximum difficulty" })).toHaveValue("4");
   await expect(page.getByRole("checkbox", { name: selectedTag })).toBeChecked();
   await expect(page.getByRole("button", { name: `View ${matching.frontText}` })).toBeVisible();
-  await expect(page.getByRole("button", { name: `View ${difficultyMiss.frontText}` })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: `View ${anotherCard.frontText}` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${wrongTag.frontText}` })).toHaveCount(0);
   await expect
     .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values)
@@ -483,89 +420,6 @@ test("CARD-MANAGEMENT-06 creates one local Card and keeps it across reload", asy
         document.fields.deckId?.stringValue === deck.id && document.fields.frontText?.stringValue === frontText
     )
   ).toEqual([]);
-});
-
-test("CARD-LIST-ACTIONS-05 changes the difficulty of only the Cards visible in the filter draft", async ({
-  fixture,
-  page,
-}) => {
-  const deck = fixture.deck();
-  const matchingCards = [fixture.card("card-1"), fixture.card("card-2")];
-  const excludedCard = fixture.card("card-3");
-  const newDifficulty = 7;
-  await fixture.apply(page);
-
-  await page.goto(`/deck/${deck.id}`);
-  await page.getByText("Filters", { exact: true }).click();
-  await page.getByRole("combobox", { name: "Maximum difficulty" }).selectOption("4");
-  await Promise.all(
-    matchingCards.map((card) => expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible())
-  );
-  await expect(page.getByRole("button", { name: `View ${excludedCard.frontText}` })).toHaveCount(0);
-
-  const trigger = page.getByRole("button", { name: "Actions", exact: true });
-  await trigger.click();
-  await page.getByRole("menuitem", { name: "Change difficulty" }).click();
-  await expect(page.getByRole("button", { name: "Cancel" })).toBeFocused();
-  await page.getByRole("button", { name: String(newDifficulty), exact: true }).click();
-  const dialog = page.getByRole("dialog", { name: "Change card difficulty?" });
-  const description = dialog.getByText(
-    `Set ${String(matchingCards.length)} visible cards to difficulty ${String(newDifficulty)}.`
-  );
-  const cancel = dialog.getByRole("button", { name: "Cancel" });
-  const applyChange = dialog.getByRole("button", { name: "Apply change" });
-  await expect(dialog).toContainText(
-    `Set ${String(matchingCards.length)} visible cards to difficulty ${String(newDifficulty)}.`
-  );
-  await cancel.focus();
-  await page.keyboard.press("s");
-  await page.keyboard.press("t");
-  await expect(dialog).toBeVisible();
-  await expect(page).toHaveURL(`/deck/${deck.id}`);
-  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("hidden");
-  await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("button", { name: "10", exact: true })).toBeFocused();
-  await description.focus();
-  await page.keyboard.press("Shift+Tab");
-  await expect(applyChange).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(description).toBeFocused();
-  await page.keyboard.press("Escape");
-
-  await expect(dialog).not.toBeVisible();
-  await expect(trigger).toBeFocused();
-  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
-  await Promise.all(
-    matchingCards.map((card) =>
-      expect
-        .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
-        .toBe(String(card.difficulty))
-    )
-  );
-
-  await trigger.click();
-  await page.getByRole("menuitem", { name: "Change difficulty" }).click();
-  await dialog.getByRole("button", { name: String(newDifficulty), exact: true }).click();
-  await applyChange.click();
-  await expect(dialog).not.toBeVisible();
-
-  await Promise.all(
-    matchingCards.map((card) =>
-      expect
-        .poll(async () => (await requireDocument("card", card.id)).fields.difficulty?.integerValue)
-        .toBe(String(newDifficulty))
-    )
-  );
-  await expect
-    .poll(async () => (await requireDocument("card", excludedCard.id)).fields.difficulty?.integerValue)
-    .toBe(String(excludedCard.difficulty));
-  await page.reload();
-
-  // The auto-saved filter still excludes the updated cards after reload.
-  await page.getByText("Filters", { exact: true }).click();
-  await page.getByRole("button", { name: "Clear limits" }).click();
-  await Promise.all(matchingCards.map((card) => expectDifficulty(page, card.frontText, newDifficulty)));
-  await expectDifficulty(page, excludedCard.frontText, excludedCard.difficulty);
 });
 
 test("CARD-MANAGEMENT-10 reveals the first invalid side without saving empty text", async ({ fixture, page }) => {

@@ -170,7 +170,7 @@ for (const scenario of [
     await page.getByRole("button", { name: "Pause", exact: true }).click();
     await expect.poll(() => readViewMode(page)).toBe(true);
     if (scenario.route === "view") expect(await readProgress(first.id)).toEqual(before);
-    else await expect.poll(() => readProgress(first.id)).toEqual({ ...before, numberOfSeen: first.numberOfSeen + 1 });
+    else await expect.poll(() => readProgress(first.id)).toEqual({ ...before, reps: 1 });
   });
 }
 

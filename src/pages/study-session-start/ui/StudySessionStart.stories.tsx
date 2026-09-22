@@ -13,26 +13,14 @@ const Filters: React.FC<{
   initialTagAndFilter: boolean;
   tags: readonly string[];
 }> = (props) => {
-  const [difficultyMax, setDifficultyMax] = React.useState<number | null>(8);
-  const [difficultyMin, setDifficultyMin] = React.useState<number | null>(3);
   const [selectedTags, setSelectedTags] = React.useState(props.initialSelectedTags);
   const [tagAndFilter, setTagAndFilter] = React.useState(props.initialTagAndFilter);
 
   return (
     <DeckFilterForm
-      difficultyLowerBound={1}
-      difficultyMax={difficultyMax}
-      difficultyMin={difficultyMin}
-      difficultyUpperBound={10}
       tags={[...props.tags]}
       selectedTags={selectedTags}
       tagAndFilter={tagAndFilter}
-      clearDifficultyRange={() => {
-        setDifficultyMax(null);
-        setDifficultyMin(null);
-      }}
-      setDifficultyMax={setDifficultyMax}
-      setDifficultyMin={setDifficultyMin}
       setSelectedTags={setSelectedTags}
       setTagAndFilter={setTagAndFilter}
     />

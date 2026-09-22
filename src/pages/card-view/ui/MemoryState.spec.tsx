@@ -2,7 +2,7 @@ import "@testing-library/jest-dom/vitest";
 import "@/test/mockFirestorePersistence";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { calculateStudySchedule } from "@/entities/study-schedule";
+import { calculateFsrsState } from "@/entities/card-study-state";
 import { getMemoryState } from "../model/queries/getMemoryState";
 import { MemoryState } from "./MemoryState";
 
@@ -11,7 +11,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 describe("CARD-VIEW-06 memory presentation", () => {
   it("describes recall, reference time, saved deadline, and the target even when markers coincide", () => {
     const at = Date.UTC(2026, 8, 21);
-    const schedule = calculateStudySchedule(undefined, "good", at);
+    const schedule = calculateFsrsState(null, "good", at);
     render(<MemoryState memory={getMemoryState(schedule, schedule.dueAt)} />);
     expect(screen.getByRole("img", { name: /Forgetting curve/ })).toBeVisible();
     expect(screen.getByText(/Estimated recall:/)).toBeVisible();

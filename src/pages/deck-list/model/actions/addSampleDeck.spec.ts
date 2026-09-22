@@ -34,8 +34,6 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         id: deck.id,
         name: deck.name,
         isPublic: deck.isPublic ?? false,
-        difficultyMax: deck.difficultyMax ?? null,
-        difficultyMin: deck.difficultyMin ?? null,
         selectedTags: deck.selectedTags ?? [],
         tagAndFilter: deck.tagAndFilter ?? false,
         category: deck.category ?? "",
@@ -97,3 +95,5 @@ describe("addSampleDeck [IMPORT-07]", () => {
     );
   });
 });
+
+vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => repository.cards }));

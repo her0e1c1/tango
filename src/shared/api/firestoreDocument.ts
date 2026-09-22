@@ -25,24 +25,10 @@ const isFirestoreTimestamp = (value: unknown): value is FirestoreTimestamp => {
   }
 };
 
-const javascriptDateSchema = z.date();
 export const firestoreTimestampSchema = z.custom<FirestoreTimestamp>(
   isFirestoreTimestamp,
   "Expected a Firestore Timestamp"
 );
-
-export const firestoreTimestampDateSchema = z
-  .union([javascriptDateSchema, firestoreTimestampSchema])
-  .transform((value, context) => {
-    if (value instanceof Date) return value;
-    try {
-      return value.toDate();
-    } catch {
-      context.addIssue({ code: "custom", message: "Invalid Firestore Timestamp" });
-      return z.NEVER;
-    }
-  })
-  .pipe(javascriptDateSchema);
 
 type FirestoreDocumentIssues = z.ZodError["issues"];
 

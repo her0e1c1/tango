@@ -100,3 +100,34 @@ compose-backed `mise run e2e` task for the acceptance suite. Failed local runs r
 
 Each test and retry uses isolated identifiers and storage, so the suite can run fully in parallel locally. CI runs the
 same acceptance suite with its configured worker and retry limits.
+
+### Card study state cutover (#1702)
+
+This release resets personal scheduling. It does not migrate, backfill, or recover legacy progress, including valid
+`Card.studySchedule` values. Cards without `cardStudyState` are unrated; only a new rating creates their state.
+
+Before reopening the application for this release:
+
+1. Stop old clients and writes during the maintenance window.
+2. Remove `difficulty`, `numberOfSeen`, `firstSeenAt`, `lastSeenAt`, `nextSeeingAt`, `interval`, and `studySchedule`
+   from every Firestore `card` document, including cards in public decks. Do not copy these values into the new
+   collection. Remove obsolete `difficultyMin` and `difficultyMax` from saved deck filters as well.
+3. Deploy the content-only Card rules, private `cardStudyState` rules, and matching application together. Verify
+   that public Card reads expose no personal study fields and old clients cannot write those fields back.
+4. Clear the incompatible Firestore IndexedDB cache and old pending writes on affected clients before reopening
+   them. This intentionally discards local-only legacy progress and any unsynchronized edits; communicate that
+   impact before the cutover. Do not reset caches on ordinary application startup.
+
+The repository change does not execute production cleanup or deploy rules. The operator must complete and verify
+the maintenance steps before release. Session and answer history is retained; it is not replayed into new state.
+
+Rules enforce ownership, deterministic identity, Card ownership, and the outer document shape. Detailed FSRS
+validation remains in the application Zod/persistence boundary; Rules accept any FSRS map and integer metadata
+timestamps. This deliberately reduces server-side integrity guarantees: an owner bypassing the application can
+save malformed personal state, which then fails application parsing and may prevent that owner's study flow.
+Malformed state is never silently treated as unrated.
+
+State cleanup uses deterministic IDs for a deleted Card and the known Card/State IDs for a deleted Deck, so an
+uncached State for a known Card is still deleted. A Deck deletion from an incomplete offline cache cannot enumerate
+children absent from both snapshots; this release does not add a server synchronization barrier or orphan sweep.
+Such orphan states are never study candidates without an active Card.

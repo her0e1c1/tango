@@ -1,44 +1,26 @@
-/**
- * @file Defines the Card Player's Card metadata overlay.
- * The component renders prepared values while state and workflow ownership remain with the consuming Page.
- */
-
 import type * as React from "react";
 import { useTranslation } from "react-i18next";
-
 import { Description } from "@/shared/ui/content";
 import { Overlay } from "@/shared/ui/feedback";
 
 export interface CardOverlayProps {
-  difficultySlot?: React.ReactNode;
-  numberOfSeen?: number;
-  lastSeenAt?: number;
+  fsrs: { difficulty: number; lastReviewedAt: number } | null;
 }
 
-/** Shows the active Card's difficulty and study metadata in a compact overlay. */
-export const CardOverlay: React.FC<CardOverlayProps> = (props) => {
+export const CardOverlay: React.FC<CardOverlayProps> = ({ fsrs }) => {
   const { t, i18n } = useTranslation();
-  const formattedLastSeen =
-    props.lastSeenAt == null
-      ? undefined
-      : new Intl.DateTimeFormat(i18n.resolvedLanguage ?? i18n.language).format(new Date(props.lastSeenAt));
-  const metadata = (() => {
-    if (props.numberOfSeen != null && formattedLastSeen !== undefined) {
-      return t("studySession.cardDetails.seenSince", {
-        count: props.numberOfSeen,
-        date: formattedLastSeen,
-      });
-    }
-    if (props.numberOfSeen != null) return t("studySession.cardDetails.seen", { count: props.numberOfSeen });
-    if (formattedLastSeen !== undefined) return t("studySession.cardDetails.lastSeen", { date: formattedLastSeen });
-    return null;
-  })();
-
+  const locale = i18n.resolvedLanguage ?? i18n.language;
   return (
     <Overlay position="top">
       <div className="mx-auto flex max-w-content flex-row items-center gap-2 bg-surface-elevated py-2 pl-[calc(var(--spacing-study-inline)+env(safe-area-inset-left))] pr-[calc(var(--spacing-study-inline)+env(safe-area-inset-right))] text-ink">
-        {props.difficultySlot}
-        <Description>{metadata}</Description>
+        <Description>
+          {fsrs === null
+            ? t("cardList.card.notStudied")
+            : t("studySession.cardDetails.fsrs", {
+                difficulty: new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(fsrs.difficulty),
+                date: new Intl.DateTimeFormat(locale).format(new Date(fsrs.lastReviewedAt)),
+              })}
+        </Description>
       </div>
     </Overlay>
   );

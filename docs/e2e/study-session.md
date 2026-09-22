@@ -31,8 +31,8 @@
 Given:
 
 - Fixture: [`study-filter`](./fixture/study-filter.yaml)
-- 認証済みユーザーが所有する Deck に、difficulty と tags の組み合わせが異なる複数の Card が存在する。
-- 対象 Deck に difficulty と tag の filter が保存されている。
+- 認証済みユーザーが所有する Deck に、tags が異なる複数の Card が存在する。
+- 対象 Deck に tag の filter が保存されている。
 - 設定済みの学習上限より多くの Card が保存済み filter に一致する。
 
 When:
@@ -42,8 +42,8 @@ When:
 Then:
 
 - session には現在のfilter draftに一致する Card だけが含まれる。開始actionはクリック時点のデータ・設定・時刻で再選定する。
-- 間隔反復ONでは期限が古いdue（期限一致を含む）→期限なしのFSRS未開始の順に安定整列し、上限→選定済み集合だけのshuffleを適用する。未来期限は除外する。OFFでは閲覧回数順→全候補shuffle→上限を維持し、未来期限も含める。
-- 有効なscheduleの期限を正本とし、scheduleなしではlegacy nextSeeingAtを使う。intervalだけでは期限を作らない。不正schedule・未対応version・不正期限は検証エラーとし、新規や0件に読み替えない。
+- 間隔反復ONでは期限が古いdue（期限一致を含む）→期限なしのFSRS未開始の順に安定整列し、上限→選定済み集合だけのshuffleを適用する。未来期限は除外する。OFFでは標準順→全候補shuffle→上限とし、未来期限も含める。
+- UID で購読した CardStudyState の fsrs.dueAt を正本とし、State がないか fsrs が null の Card は未評価とする。旧 Card フィールドを参照しない。不正 State・未対応 schemaVersion・不正期限・購読失敗はエラーとし、新規や0件に読み替えない。
 - 開始画面・Card一覧・Deck閲覧は同じ期限ルールと各評価で一つのnowを使う。後二者にはSession専用の順序・上限を適用しない。
 - mount中に最も近い未来期限のtimerを一つだけ持ち、期限到来・foreground復帰・データ/設定変更で再評価する。未来期限なしではtimerを置かず、遠い期限は安全なcheckpointで再計算する。遅延callback、時計の前後移動、timer置換・unmountを扱う。
 - 正の上限では session の Card 数が設定済みの学習上限と一致する。
@@ -66,7 +66,7 @@ Given:
 
 - Fixture: [`study-filter-no-matches`](./fixture/study-filter-no-matches.yaml)
 - 認証済みユーザーが所有する Deck に Card が存在する。
-- 学習開始画面の difficulty と tag の filter に一致する Card が存在しない。
+- 学習開始画面の tag の filter に一致する Card が存在しない。
 
 When:
 
@@ -174,7 +174,7 @@ When:
 Then:
 
 - 最初の Deck の学習結果と session の位置が保存される。
-- 学習した Card の相対難易度は変わらず、学習回数が1増える。
+- 学習した Card の内容と更新日時は変わらず、CardStudyState の FSRS 評価回数が1増える。
 - もう一方の Deck は操作前の session と位置から再開する。
 - 各 Deck の Card と session が混在しない。
 - browser error が発生しない。
@@ -198,6 +198,7 @@ When:
 
 Then:
 
+- 期限到来後に新しい session で同じ Card を再評価すると、保存済み FSRS を使って reps が2になり、State の createdAt は初回のまま維持される。
 - 現在だった Card の easy 学習結果とFSRS scheduleが browser storage に維持されている。間隔反復ONの新しい学習候補から期限前は除外し、開いたまま期限を迎えると候補に復帰する。
 - session の位置が次の Card に維持されている。
 - 次の Card の front text が表示され、back text は表示されない。

@@ -1,6 +1,5 @@
 import type { z } from "zod";
 
-import type { Difficulty } from "@/entities/study-progress/@x/deck";
 import type { deckCreateSchema, deckIdSchema } from "./schema";
 
 /** Deck rendering category or syntax-highlighting language. */
@@ -18,10 +17,6 @@ export type Deck = {
   url?: string | undefined;
   /** Whether the Deck is marked for public visibility; local Decks normally keep this disabled. */
   isPublic: boolean;
-  /** Inclusive upper Card-difficulty boundary, or `null` when the Deck has no upper difficulty restriction. */
-  difficultyMax: Difficulty | null;
-  /** Inclusive lower Card-difficulty boundary, or `null` when the Deck has no lower difficulty restriction. */
-  difficultyMin: Difficulty | null;
   /** Card tags used by the Deck filter; an empty collection means that tags do not restrict Cards. */
   selectedTags: string[];
   /** Uses AND matching when true and OR matching when false for {@link selectedTags}. */

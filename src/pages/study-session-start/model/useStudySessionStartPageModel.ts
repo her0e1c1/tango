@@ -7,7 +7,6 @@ import { type Deck, useDeck } from "@/entities/deck";
 import {
   useDeckFilterDraft,
   getDeckFilterState,
-  clearDeckFilterRange,
   useDeckFilterSaveLifecycle,
   updateDeckFilterDraft,
 } from "@/features/deck-filter";
@@ -58,9 +57,6 @@ export function useStudySessionStartPageModel(deck: Deck) {
     start: () => {
       void start();
     },
-    clearDifficultyRange: () => clearDeckFilterRange(filterUpdate),
-    setDifficultyMax: (difficultyMax: number | null) => updateDeckFilterDraft({ difficultyMax }, filterUpdate),
-    setDifficultyMin: (difficultyMin: number | null) => updateDeckFilterDraft({ difficultyMin }, filterUpdate),
     setSelectedTags: (selectedTags: string[]) => updateDeckFilterDraft({ selectedTags }, filterUpdate),
     setTagAndFilter: (tagAndFilter: boolean) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate),
   };

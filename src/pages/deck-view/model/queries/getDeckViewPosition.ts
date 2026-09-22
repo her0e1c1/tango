@@ -1,6 +1,6 @@
 import type { Card, CardId } from "@/entities/card";
 
-export function getDeckViewPosition(cards: readonly Card[], cardId: CardId | undefined) {
+export function getDeckViewPosition<T extends Card>(cards: readonly T[], cardId: CardId | undefined) {
   const index = Math.max(
     0,
     cards.findIndex((card) => card.id === cardId)

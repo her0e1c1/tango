@@ -1,3 +1,5 @@
+import { seedCardStudyState } from "@/test/studyStateFixtures";
+import { clearCardStudyStates } from "@/entities/card-study-state";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { replaceAuthSession } from "@/entities/auth";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
@@ -36,6 +38,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PERSISTENCE-04]", () => {
   beforeEach(() => {
+    clearCardStudyStates();
     clearStudySessions();
     mocks.cards = null;
     mocks.useCardInterval = false;
@@ -62,7 +65,8 @@ describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PE
     const now = Date.parse("2026-09-21T00:00:00Z");
     vi.setSystemTime(now);
     mocks.useCardInterval = true;
-    mocks.cards = [createCard({ id: "future", deckId: "deck", uid: "uid", nextSeeingAt: new Date(now + 1000) })];
+    seedCardStudyState("future", now + 1000, "uid", "deck");
+    mocks.cards = [createCard({ id: "future", deckId: "deck", uid: "uid" })];
     const deck = createDeck({ id: "deck", uid: "uid" });
     expect(await startStudySession(deck.id, deck)).toBe(false);
     expect(getStudySession(deck.id)).toBeUndefined();
@@ -71,3 +75,7 @@ describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PE
     expect(getStudySession(deck.id)?.cardOrderIds).toEqual(["future"]);
   });
 });
+
+vi.mock("@/entities/card/model/queries/getCards", () => ({
+  getCards: () => mocks.cards ?? [createCard({ id: "card", deckId: "deck" })],
+}));

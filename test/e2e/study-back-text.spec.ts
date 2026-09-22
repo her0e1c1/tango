@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
-import { progressOf, readProgress, readSession } from "./study-helpers";
+import { readProgress, readSession } from "./study-helpers";
 
 const revealAnswer = async (page: Page, frontText: string) => {
   await page.getByRole("button", { name: frontText, exact: true }).click();
@@ -51,7 +51,7 @@ test("STUDY-BACK-TEXT-02 selects answer text without changing the Card state", a
   await expect
     .poll(async () => page.evaluate(() => window.getSelection()?.toString() ?? ""))
     .toContain(currentCard.backText);
-  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
+  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
@@ -72,7 +72,7 @@ test("STUDY-BACK-TEXT-03 returns to the same Card front when answer overlays are
 
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(currentCard.backText, { exact: true })).toBeHidden();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
+  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
@@ -96,7 +96,7 @@ test("STUDY-BACK-TEXT-04 scrolls a long answer without changing the Card state",
 
   await expect.poll(async () => answerRegion.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   await expect(answerRegion).toContainText(currentCard.backText.split("\n").at(-1) ?? currentCard.backText);
-  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
+  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
@@ -116,12 +116,7 @@ test("STUDY-BACK-TEXT-05 runs the mapped left overlay action once and shows the 
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
-  await expect
-    .poll(() => readProgress(currentCard.id))
-    .toEqual({
-      difficulty: currentCard.difficulty,
-      numberOfSeen: currentCard.numberOfSeen + 1,
-    });
+  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
@@ -141,12 +136,7 @@ test("STUDY-BACK-TEXT-06 runs the mapped right overlay action once and shows the
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
-  await expect
-    .poll(() => readProgress(currentCard.id))
-    .toEqual({
-      difficulty: currentCard.difficulty,
-      numberOfSeen: currentCard.numberOfSeen + 1,
-    });
+  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex + 1);
 });
 
@@ -188,7 +178,7 @@ test("STUDY-BACK-TEXT-07 keeps the full answer width beneath overlays on a narro
   await expect(answerText).toBeVisible();
   await expect(leftOverlayButton).toBeVisible();
   await expect(rightOverlayButton).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
+  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });
 
@@ -243,6 +233,6 @@ test("STUDY-BACK-TEXT-08 scrolls a long answer with wheel and touch from edge ov
   await expect(leftOverlay).toBeVisible();
   await expect(rightOverlay).toBeVisible();
   await expect(page.getByText(currentCard.backText, { exact: true })).toBeVisible();
-  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressOf(currentCard));
+  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
   await expect.poll(async () => (await readSession(page, deck.id))?.currentIndex).toBe(session.currentIndex);
 });

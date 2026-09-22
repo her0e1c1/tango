@@ -1,13 +1,13 @@
 import "@/test/mockFirestorePersistence";
 import { describe, expect, it, vi } from "vitest";
-import { calculateStudySchedule, getStudyRetrievability, studyRetentionTarget } from "@/entities/study-schedule";
+import { calculateFsrsState, getStudyRetrievability, studyRetentionTarget } from "@/entities/card-study-state";
 import { getMemoryState } from "./getMemoryState";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 describe("CARD-VIEW-06 memory chart snapshot", () => {
   const at = Date.UTC(2026, 8, 21);
-  const schedule = calculateStudySchedule(undefined, "good", at);
+  const schedule = calculateFsrsState(null, "good", at);
   it.each([at + 60_000, schedule.dueAt, at + 100_000 * 86_400_000])(
     "keeps exact markers and bounded samples at %s",
     (now) => {
@@ -26,6 +26,6 @@ describe("CARD-VIEW-06 memory chart snapshot", () => {
     }
   );
   it("leaves missing FSRS state empty", () => {
-    expect(getMemoryState(undefined, at)).toBeUndefined();
+    expect(getMemoryState(null, at)).toBeUndefined();
   });
 });

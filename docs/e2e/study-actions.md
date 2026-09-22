@@ -7,12 +7,13 @@
 ## 保存境界
 
 - 単一タブ・単一の学習操作元を対象とし、匿名と通常ログインで同じ Firestore batch を使う。
-- 評価回答では StudyAnswer の作成、StudyProgress の閲覧記録、StudySchedule 更新、StudySession の前進・完了を一つの batch にまとめる。ID と回答時刻は受付時に固定する。
+- 評価回答では StudyAnswer の作成、CardStudyState の作成・更新、StudySession の前進・完了を一つの batch にまとめる。ID と回答時刻は受付時に固定する。
 - ローカル snapshot へ反映した時点で前進し、クラウド確定や server timestamp を待たない。SDK が保留している操作を新しい ID で再発行しない。
 - Security Rules は匿名のクラウド書き込みを拒否し、本人 UID と更新時の UID 維持を確認する。StudyAnswer は本人による read／create のみ許可する。
-- 回答形式、参照先、回答 ID、Card 進捗、回答順序、Session の前進・完了はアプリとそのテストの責務とする。Rules は本人 UID の回答作成を許可し、payload や参照先の存在・整合、Session の状態遷移は制約しない。
+- 回答形式、参照先、回答 ID、State の FSRS、回答順序、Session の前進・完了はアプリとそのテストの責務とする。Rules は本人 UID の回答作成を許可し、payload や参照先の存在・整合、Session の状態遷移は制約しない。
 - FSRS-6.0（ts-fsrs 5.4.2、保持率0.9、fuzz無効、最大36500日、learning steps 1分/10分、relearning step 10分）を使用する。4評価は受付時刻で一度だけ計算し、scheduleを同じ回答batchで保存する。間隔反復OFFでも計算する。
-- scheduleには形式version、状態、期限・前回評価時刻（Unixミリ秒）、stability、FSRS difficulty、復習/失敗回数、間隔日数、learning stepを保持し、reload後の次回計算を変えない。相対difficultyとは独立させる。
+- CardStudyState は schemaVersion: 1、uid、cardId、deckId、fsrs、createdAt、updatedAt のみを保存する。fsrs は状態、期限・前回評価時刻（Unixミリ秒）、stability、difficulty、reps、lapses、scheduledDays、learningSteps を保持し、reload 後の次回計算を変えない。fsrs 内の version や elapsedDays は保存しない。
+- 保存・復元後の連続評価は、同条件の ts-fsrs 5.4.2 へ直接連続入力した場合と期限・難易度・stability・回数・learning step が一致する。
 - 保存・同期失敗は共通通知で表示する。独自の再送・競合復旧キューは作らない。
 - これは #1653 の transaction 必須・オンライン確定後のみ前進・匿名別保存という計画を #1665 に従って置き換える。
 
@@ -46,15 +47,15 @@ When:
 Then:
 
 - 独立した `studyAnswer/{answerId}` に `{ type: "rating", rating: "good" }` を保存する。
-- `again` / `hard` / `good` / `easy` は受け付けた値のまま保存し、FSRS schedule の計算だけに使用する。StudyProgress の相対 difficulty は評価回答では変更しない。
-- good / hard / easyの各評価からFSRS scheduleを生成する。既存scheduleがあればその記憶状態を更新し、なければ閲覧履歴や相対difficultyから推測せず空の初期状態から計算する。初回保存時にlegacy nextSeeingAt/intervalを削除する。
-- 現在だった Card の相対 difficulty は変わらず、学習回数が 1 増えて保存される。
-- 回答・Card の学習結果・session の前進はすべて保存されるか、いずれも保存されない。
+- `again` / `hard` / `good` / `easy` は受け付けた値のまま保存し、FSRS の計算に使用する。Card の内容と更新日時は変更しない。
+- good / hard / easy の各評価から FSRS を生成する。本人の既存 State に fsrs があればその記憶状態を更新し、なければ空の初期状態から計算する。旧 Card の studySchedule や閲覧履歴は移行・参照しない。
+- Card の内容と updatedAt は変わらず、State の fsrs.reps が1増える。State の createdAt は初回評価で固定し、updatedAt は今回の評価時刻となる。
+- 回答・State・session の前進はすべて保存されるか、いずれも保存されない。
 - session の位置が次の Card へ進む。
 - 保存成功後に最近の学習時刻を更新し、Deck 一覧の学習順と経過表示へ反映する。
 - 次の Card の front text が表示される。
 - 実行した swipe 方向が、言語に依存しないアイコンとして共通 toast で短時間表示される。
-- アプリは 操作受付時に固定した独立したランダム回答 ID を使い、回答、Card の学習回数・回答時刻、session の更新を一つの batch にまとめ、通常の二重送信を防止する。
+- アプリは 操作受付時に固定した独立したランダム回答 ID を使い、回答、State、session の更新を一つの batch にまとめ、通常の二重送信を防止する。
 - browser error が発生しない。
 
 <a id="study-actions-02"></a>
@@ -77,8 +78,8 @@ Then:
 
 - 独立した `studyAnswer/{answerId}` に `{ type: "rating", rating: "again" }` を保存する。
 - againでFSRS scheduleを更新し、短い期限を保存する。同じsessionへの再投入は行わない。
-- 現在だった Card の相対 difficulty は変わらず、学習回数が 1 増えて保存される。
-- 回答・Card の学習結果・session の前進はすべて保存されるか、いずれも保存されない。
+- Card の内容と updatedAt は変わらず、State の fsrs.reps が1増える。State の createdAt は初回評価で固定し、updatedAt は今回の評価時刻となる。
+- 回答・State・session の前進はすべて保存されるか、いずれも保存されない。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
 - browser error が発生しない。
@@ -102,8 +103,8 @@ When:
 Then:
 
 - 回答Documentを作成しない。
-- FSRS scheduleを生成・変更しない。裏面表示、Help、離脱、slider、autoplayでもscheduleを更新しない。
-- 現在だった Card の difficulty は変わらず、学習回数が 1 増えて保存される。
+- FSRS scheduleを生成・変更しない。裏面表示、Help、離脱、slider、autoplay でも State を作成・更新しない。
+- State を作成・更新せず、Card の内容・メタデータも変更しない。Session だけを前進する。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示される。
 - browser error が発生しない。

@@ -27,7 +27,7 @@ const ControlledTagFilter: React.FC<{ tags: string[]; initialSelectedTags?: stri
   );
 };
 
-describe("CARD-LIST-ACTIONS-03 STUDY-SESSION-08 TagFilter", () => {
+describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
   it("reports tag, clear, and explicit match-mode changes with a deduplicated selection count", async () => {
     const user = userEvent.setup();
     const onSelectedTagsChange = vi.fn();

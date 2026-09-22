@@ -64,8 +64,6 @@ const updateDeckDocument = async (uid: string, deck: z.infer<typeof deckEditSche
     url: deck.url === null ? deleteField() : deck.url,
     isPublic: deck.isPublic,
     updatedAt: Date.now(),
-    difficultyMax: deck.difficultyMax,
-    difficultyMin: deck.difficultyMin,
     selectedTags: deck.selectedTags,
     tagAndFilter: deck.tagAndFilter,
     category: deck.category,

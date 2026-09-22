@@ -72,10 +72,6 @@ describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATI
         frontText: `${name} prompt`,
         backText: `${name} answer`,
         uniqueKey: name,
-        difficulty: index + 3,
-        numberOfSeen: index + 2,
-        lastSeenAt: 1234,
-        nextSeeingAt: new Date(5678),
       })
     );
     await seedLocalDeck(deck, cards);
@@ -127,20 +123,17 @@ describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATI
     router.dispose();
   });
 
-  it("views every difficulty and tag match in standard order despite the study limit and shuffle without creating a session", async () => {
+  it("views every tag match in standard order despite the study limit and shuffle without creating a session", async () => {
     const deck = createLocalDeck({
       id: "view-filtered",
       name: "Filtered View Deck",
-      difficultyMin: 3,
-      difficultyMax: 5,
       selectedTags: ["target"],
     });
     const rows = [
-      { frontText: "match-1", difficulty: 5, tags: ["target"] },
-      { frontText: "match-2", difficulty: 4, tags: ["target"] },
-      { frontText: "match-3", difficulty: 3, tags: ["target"] },
-      { frontText: "difficulty-miss", difficulty: 2, tags: ["target"] },
-      { frontText: "tag-miss", difficulty: 4, tags: ["other"] },
+      { frontText: "match-1", tags: ["target"] },
+      { frontText: "match-2", tags: ["target"] },
+      { frontText: "match-3", tags: ["target"] },
+      { frontText: "tag-miss", tags: ["other"] },
     ];
     await seedLocalDeck(
       deck,
@@ -161,7 +154,6 @@ describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATI
         "aria-valuetext",
         `${String(index + 1)} of 3`
       );
-      expect(screen.queryByText("difficulty-miss")).not.toBeInTheDocument();
       expect(screen.queryByText("tag-miss")).not.toBeInTheDocument();
       await userEvent.click(screen.getByRole("button", { name: "Next card" }));
     }

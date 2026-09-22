@@ -1,7 +1,7 @@
 import { useLayoutEffect, useState } from "react";
-import type { StudySchedule } from "@/entities/study-schedule";
+import type { FsrsState } from "@/entities/card-study-state";
 
-export function useSnapshotTime(cardId: string, schedule: StudySchedule | undefined) {
+export function useSnapshotTime(cardId: string, schedule: FsrsState | null) {
   // Firestore snapshots can replace schedule objects without changing their values.
   const scheduleKey = JSON.stringify(schedule);
   const [at, setAt] = useState(() => Date.now());

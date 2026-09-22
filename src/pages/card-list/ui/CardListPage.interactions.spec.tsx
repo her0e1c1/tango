@@ -15,7 +15,6 @@ import { createCard, createDeck, createPreferences } from "@/test/factories";
 const mocks = vi.hoisted(() => ({
   deleteCard: vi.fn(),
   editDeck: vi.fn(),
-  editStudyProgress: vi.fn(),
   getAuthUid: vi.fn<() => string>(),
   getCards: vi.fn<() => Card[]>(),
   deck: undefined as Deck | undefined,
@@ -24,6 +23,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/entities/card-study-state/api/deleteCardStudyStates", () => ({
+  deleteCardStudyStates: async () => undefined,
+}));
 vi.mock("@/entities/auth", () => ({
   useAuth: () => ({ uid: "user-id" }),
   getAuthUid: mocks.getAuthUid,
@@ -32,6 +34,7 @@ vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   deleteCard: mocks.deleteCard,
   getCards: mocks.getCards,
+  useCards: () => mocks.cards,
   useCardsByDeckId: () => ({
     cards: mocks.cards,
     tags: [...new Set(mocks.cards.flatMap((candidate) => candidate.tags))],
@@ -46,18 +49,11 @@ vi.mock("@/entities/preference", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preference")>()),
   usePreferences: () => mocks.preferences,
 }));
-vi.mock("@/entities/study-progress", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/study-progress")>()),
-  editStudyProgress: mocks.editStudyProgress,
-}));
-
 import { CardListPage } from "./CardListPage";
 
 const deck = createDeck({
   id: "deck-id",
   category: "raw",
-  difficultyMin: 3,
-  difficultyMax: 4,
   selectedTags: ["typescript", "react"],
 });
 const card = createCard({
@@ -65,7 +61,6 @@ const card = createCard({
   deckId: deck.id,
   frontText: "Front",
   backText: "Back",
-  difficulty: 4,
   tags: ["typescript", "react"],
 });
 
@@ -104,39 +99,18 @@ const renderCardList = (overrides: Partial<RenderCardListOptions> = {}) => {
   return render(createCardListPage(options.deck.id));
 };
 
-const swipeRight = (article: HTMLElement) => {
-  fireEvent.mouseDown(article, { clientX: 0, clientY: 0 });
-  fireEvent.mouseMove(document, { clientX: 100, clientY: 0 });
-  fireEvent.mouseUp(document, { clientX: 100, clientY: 0 });
-};
-
-type ListMutation = "swipe" | "deletion" | "bulk";
-
-const startListMutation = async (mutation: ListMutation) => {
-  if (mutation === "swipe") {
-    swipeRight(screen.getByRole("article"));
-  } else if (mutation === "deletion") {
-    await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
-    fireEvent.click(screen.getByRole("button", { name: "Delete card" }));
-  } else {
-    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
-    await userEvent.click(screen.getByRole("button", { name: "7" }));
-    fireEvent.click(screen.getByRole("button", { name: "Apply change" }));
-  }
+const startListMutation = async () => {
+  await userEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
+  await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+  fireEvent.click(screen.getByRole("button", { name: "Delete card" }));
 };
 
 const staleMutationCases = [
-  { mutation: "swipe", outcome: "success" },
-  { mutation: "swipe", outcome: "failure" },
   { mutation: "deletion", outcome: "success" },
   { mutation: "deletion", outcome: "failure" },
-  { mutation: "bulk", outcome: "success" },
-  { mutation: "bulk", outcome: "failure" },
 ] as const;
 
-describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS-02 CARD-MANAGEMENT-03 CARD-LIST-ACTIONS-03 CARD-MANAGEMENT-08 CARD-LIST-ACTIONS-04 CARD-LIST-ACTIONS-05 CARD-LIST-ACTIONS-06 CARD-LIST-ACTIONS-07 CARD-LIST-ACTIONS-08 CARD-LIST-ACTIONS-09 CARD-LIST-ACTIONS-10 CardListPage interactions", () => {
+describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS-02 CARD-LIST-ACTIONS-03 CardListPage interactions", () => {
   beforeEach(() => {
     dismissToast();
     vi.clearAllMocks();
@@ -144,7 +118,6 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
     mocks.getCards.mockImplementation(() => mocks.cards);
     mocks.deleteCard.mockResolvedValue(undefined);
     mocks.editDeck.mockResolvedValue(undefined);
-    mocks.editStudyProgress.mockResolvedValue(undefined);
   });
 
   it("sorts by creation time with stable ties and restores the live standard order without writes", async () => {
@@ -178,16 +151,15 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "standard");
     expect(names()).toEqual(["Front", "Updated tie", "Added"]);
     expect(mocks.editDeck).not.toHaveBeenCalled();
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
     expect(mocks.deleteCard).not.toHaveBeenCalled();
   });
 
   it("retains sorting for empty filtered results and permits sorting during filter autosave", async () => {
     const saving = Promise.withResolvers<void>();
     mocks.editDeck.mockReturnValue(saving.promise);
-    renderCardList();
+    renderCardList({ cards: [{ ...card, tags: ["typescript"] }] });
     await userEvent.click(screen.getByText("Filters"));
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "3");
+    await userEvent.click(screen.getByRole("checkbox", { name: "typescript" }));
     expect(screen.getByText("0 cards")).toBeVisible();
     expect(screen.getByRole("button", { name: "Actions" })).toBeDisabled();
     const sort = screen.getByRole("combobox", { name: "Sort order" });
@@ -197,44 +169,11 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
       saving.resolve();
       await saving.promise;
     });
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "4");
+    await userEvent.click(screen.getByRole("checkbox", { name: "typescript" }));
     expect(await screen.findByRole("button", { name: "View Front" })).toBeVisible();
     expect(sort).toHaveValue("newest");
     expect(screen.getByRole("checkbox", { name: "typescript" })).toBeVisible();
     expect(screen.getByRole("checkbox", { name: "react" })).toBeVisible();
-  });
-
-  it("locks sorting during Card writes and ignores changes through a dialog background", async () => {
-    const saving = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValue(saving.promise);
-    renderCardList();
-    const sort = screen.getByRole("combobox", { name: "Sort order" });
-    await userEvent.selectOptions(sort, "newest");
-    swipeRight(screen.getByRole("article"));
-    expect(sort).toBeDisabled();
-    await actAsync(async () => {
-      saving.resolve();
-      await saving.promise;
-    });
-    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
-    fireEvent.change(sort, { target: { value: "standard" } });
-    expect(sort).toHaveValue("newest");
-  });
-
-  it("updates filters and automatically persists the complete selection", async () => {
-    renderCardList();
-
-    await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
-    expect(screen.getByText("difficulty 3–4 · 1 tag")).toBeVisible();
-
-    expect(mocks.editDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
-      id: deck.id,
-      difficultyMax: 4,
-      difficultyMin: 3,
-      selectedTags: ["react"],
-      tagAndFilter: false,
-    });
   });
 
   it("removes a selected tag via keyboard, keeps focus on the remaining chip, and continues Tab navigation", async () => {
@@ -244,7 +183,6 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
       deckId: deck.id,
       frontText: "Second card",
       backText: "Back 2",
-      difficulty: 4,
       tags: ["typescript", "react"],
     });
     renderCardList({ cards: [card, otherMatchingCard] });
@@ -266,8 +204,6 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
 
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deck.id,
-      difficultyMax: 4,
-      difficultyMin: 3,
       selectedTags: ["react"],
       tagAndFilter: false,
     });
@@ -288,12 +224,10 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
       selector: "summary",
     });
     expect(summary).toHaveFocus();
-    expect(summary).toHaveAccessibleName(/Filters\s*difficulty 3–4/);
+    expect(summary).toHaveAccessibleName(/Filters\s*No filters/);
 
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deck.id,
-      difficultyMax: 4,
-      difficultyMin: 3,
       selectedTags: [],
       tagAndFilter: false,
     });
@@ -334,8 +268,6 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
     expect(settingsButton).toHaveFocus();
     expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", {
       id: deck.id,
-      difficultyMax: 4,
-      difficultyMin: 3,
       selectedTags: [],
       tagAndFilter: false,
     });
@@ -357,65 +289,6 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
     expect(typescriptChip).toHaveFocus();
 
     expect(mocks.editDeck).not.toHaveBeenCalled();
-  });
-
-  it("CARD-LIST-ACTIONS-03 applies difficulty and tag selections before their save completes", async () => {
-    const saving = Promise.withResolvers<void>();
-    renderCardList({
-      cards: [
-        card,
-        createCard({ ...card, id: "hard", frontText: "Hard", difficulty: 6 }),
-        createCard({ ...card, id: "react-only", frontText: "React only", tags: ["react"] }),
-      ],
-    });
-
-    await userEvent.click(screen.getByText("Filters"));
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Maximum difficulty" }), "6");
-    expect(screen.getByRole("button", { name: "View Hard" })).toBeVisible();
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Minimum difficulty" }), "5");
-    expect(screen.queryByRole("button", { name: "View Front" })).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: /Clear.*limits/i }));
-    expect(screen.getByRole("button", { name: "View Front" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "View React only" })).toBeVisible();
-    await userEvent.click(screen.getByRole("radio", { name: "All" }));
-    expect(screen.queryByRole("button", { name: "View React only" })).not.toBeInTheDocument();
-    mocks.editDeck.mockReturnValueOnce(saving.promise);
-    await userEvent.click(screen.getByRole("checkbox", { name: "typescript" }));
-    expect(screen.getByRole("button", { name: "View React only" })).toBeVisible();
-    expect(screen.getByText("1 tag")).toBeVisible();
-
-    await actAsync(async () => {
-      saving.resolve();
-      await saving.promise;
-    });
-    await waitFor(() =>
-      expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", {
-        id: deck.id,
-        difficultyMax: 10,
-        difficultyMin: 1,
-        selectedTags: ["react"],
-        tagAndFilter: true,
-      })
-    );
-    expect(screen.getByRole("button", { name: "Actions" })).toBeEnabled();
-  });
-
-  it("does not report the full difficulty domain as an active filter", () => {
-    const fullRangeDeck = createDeck({
-      ...deck,
-      difficultyMin: 1,
-      difficultyMax: 10,
-      selectedTags: [],
-    });
-    const view = renderCardList({ deck: fullRangeDeck });
-
-    expect(screen.getByText("No filters")).toBeInTheDocument();
-    expect(screen.queryByText("difficulty 1–10")).not.toBeInTheDocument();
-
-    view.unmount();
-    renderCardList({ deck: { ...fullRangeDeck, selectedTags: ["typescript"] } });
-    expect(screen.getByText("1 tag")).toBeInTheDocument();
-    expect(screen.queryByText("difficulty 1–10")).not.toBeInTheDocument();
   });
 
   it("coordinates Card view and edit navigation", async () => {
@@ -441,151 +314,6 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
     await userEvent.click(screen.getByRole("button", { name: "View Front" }));
 
     expect(screen.getByLabelText("Close card")).toHaveTextContent(languageCard.backText);
-  });
-
-  it("sets the requested difficulty only on the Cards visible when confirmation opens", async () => {
-    const otherVisibleCard = createCard({
-      id: "other-visible-card",
-      deckId: deck.id,
-      frontText: "Other visible",
-      difficulty: 4,
-      tags: ["react"],
-    });
-    const hiddenCard = createCard({
-      id: "hidden-card",
-      deckId: deck.id,
-      frontText: "Hidden",
-      difficulty: 6,
-      tags: ["react"],
-    });
-    const view = renderCardList({ cards: [card, otherVisibleCard, hiddenCard] });
-
-    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
-    await userEvent.click(screen.getByRole("button", { name: "7" }));
-    const dialog = screen.getByRole("dialog", { name: "Change card difficulty?" });
-    expect(dialog).toHaveTextContent("Set 2 visible cards to difficulty 7.");
-    expect(mocks.editStudyProgress).not.toHaveBeenCalled();
-
-    mocks.cards = [card, hiddenCard];
-    view.rerender(createCardListPage(deck.id));
-    expect(screen.getByText("1 card")).toBeVisible();
-    expect(dialog).toHaveTextContent("Set 2 visible cards to difficulty 7.");
-
-    await userEvent.click(within(dialog).getByRole("button", { name: "Apply change" }));
-
-    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
-    expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-id", { cardId: card.id, difficulty: 7 });
-    expect(mocks.editStudyProgress).toHaveBeenCalledWith("user-id", {
-      cardId: otherVisibleCard.id,
-      difficulty: 7,
-    });
-    expect(mocks.editStudyProgress).not.toHaveBeenCalledWith("user-id", {
-      cardId: hiddenCard.id,
-      difficulty: 7,
-    });
-    await waitFor(() =>
-      expect(screen.queryByRole("dialog", { name: "Change card difficulty?" })).not.toBeInTheDocument()
-    );
-    expect(screen.queryByRole("combobox", { name: "New difficulty" })).not.toBeInTheDocument();
-    expect(screen.getByText("Set 2 cards to difficulty 7.")).toBeVisible();
-  });
-
-  it("waits for every bulk write and retains the confirmed snapshot for an idempotent retry", async () => {
-    const otherVisibleCard = createCard({
-      id: "other-visible-card",
-      deckId: deck.id,
-      frontText: "Other visible",
-      difficulty: 4,
-      tags: ["react"],
-    });
-    const remainingWrite = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockRejectedValueOnce(new Error("first bulk write failed"));
-    mocks.editStudyProgress.mockReturnValueOnce(remainingWrite.promise);
-    const view = renderCardList({ cards: [card, otherVisibleCard] });
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "newest");
-
-    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
-    await userEvent.click(screen.getByRole("button", { name: "7" }));
-    const dialog = screen.getByRole("dialog", { name: "Change card difficulty?" });
-    const confirm = within(dialog).getByRole("button", { name: "Apply change" });
-    fireEvent.click(confirm);
-    fireEvent.click(confirm);
-
-    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
-    mocks.cards = [createCard({ ...card, id: "unapproved", frontText: "Unapproved", createdAt: 9000 })];
-    view.rerender(createCardListPage(deck.id));
-    expect(dialog).toHaveAttribute("aria-busy", "true");
-    expect(screen.queryByText(/could not be updated/)).not.toBeInTheDocument();
-
-    await actAsync(async () => {
-      remainingWrite.resolve();
-      await remainingWrite.promise;
-    });
-
-    expect(await screen.findByText("Updated 1 of 2. 1 card could not be updated. Try again.")).toBeVisible();
-    expect(screen.getByRole("dialog", { name: "Change card difficulty?" })).toHaveTextContent(
-      "Set 2 visible cards to difficulty 7."
-    );
-    expect(screen.getByRole("button", { name: "7" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "8" })).toBeDisabled();
-
-    await userEvent.click(screen.getByRole("button", { name: "Apply change" }));
-
-    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(4));
-    expect(mocks.editStudyProgress.mock.calls.map(([, update]) => update)).toEqual([
-      { cardId: card.id, difficulty: 7 },
-      { cardId: otherVisibleCard.id, difficulty: 7 },
-      { cardId: card.id, difficulty: 7 },
-      { cardId: otherVisibleCard.id, difficulty: 7 },
-    ]);
-    await waitFor(() =>
-      expect(screen.queryByRole("dialog", { name: "Change card difficulty?" })).not.toBeInTheDocument()
-    );
-    expect(screen.queryByText(/could not be updated/)).not.toBeInTheDocument();
-    expect(screen.getByText("Set 2 cards to difficulty 7.")).toBeVisible();
-  });
-
-  it("uses singular failure copy when the only bulk write fails", async () => {
-    mocks.editStudyProgress.mockRejectedValueOnce(new Error("bulk write failed"));
-    renderCardList();
-
-    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
-    await userEvent.click(screen.getByRole("button", { name: "7" }));
-    await userEvent.click(screen.getByRole("button", { name: "Apply change" }));
-
-    expect(await screen.findByText("Updated 0 of 1. 1 card could not be updated. Try again.")).toBeVisible();
-  });
-
-  it("ignores screen shortcuts while bulk confirmation is open or pending", async () => {
-    const write = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValueOnce(write.promise);
-    renderCardList();
-
-    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Change difficulty" }));
-    await userEvent.click(screen.getByRole("button", { name: "7" }));
-    const dialog = screen.getByRole("dialog", { name: "Change card difficulty?" });
-
-    fireEvent.keyDown(window, { key: "s" });
-    fireEvent.keyDown(window, { key: "t" });
-    expect(dialog).toBeVisible();
-    expect(screen.queryByRole("heading", { name: "Settings destination" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
-
-    await userEvent.click(within(dialog).getByRole("button", { name: "Apply change" }));
-    await waitFor(() => expect(dialog).toHaveAttribute("aria-busy", "true"));
-    fireEvent.keyDown(window, { key: "s" });
-    fireEvent.keyDown(window, { key: "t" });
-    expect(dialog).toBeVisible();
-
-    await actAsync(async () => {
-      write.resolve();
-      await write.promise;
-    });
-    await waitFor(() => expect(dialog).not.toBeInTheDocument());
   });
 
   it.each([true, false])(
@@ -648,53 +376,12 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
     expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
   });
 
-  it("CARD-LIST-ACTIONS-01 uses the latest identity and Card difficulty when swiping after render", async () => {
-    renderCardList();
-    const article = screen.getByRole("article");
-
-    // Keep render snapshots unchanged to catch actions that capture identity or difficulty before the gesture.
-    mocks.getAuthUid.mockReturnValue("latest-user-id");
-    mocks.getCards.mockReturnValue([createCard({ ...card, difficulty: 3 })]);
-
-    swipeRight(article);
-
-    await waitFor(() =>
-      expect(mocks.editStudyProgress).toHaveBeenCalledExactlyOnceWith("latest-user-id", {
-        cardId: card.id,
-        difficulty: 2,
-      })
-    );
-  });
-
-  it("allows only one list mutation until the active write settles", async () => {
-    const difficultyWrite = Promise.withResolvers<void>();
-    mocks.editStudyProgress.mockReturnValueOnce(difficultyWrite.promise);
-    renderCardList();
-    await userEvent.click(screen.getByRole("button", { name: "Remove typescript filter" }));
-    const article = screen.getByRole("article");
-
-    swipeRight(article);
-
-    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledOnce());
-    expect(screen.getByRole("button", { name: "Actions" })).toBeDisabled();
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeDisabled();
-    expect(within(article).getByRole("button", { name: "View Front" })).toBeDisabled();
-    swipeRight(article);
-    expect(mocks.editStudyProgress).toHaveBeenCalledOnce();
-
-    await actAsync(async () => {
-      difficultyWrite.resolve();
-      await difficultyWrite.promise;
-    });
-    expect(screen.getByRole("combobox", { name: "Maximum difficulty" })).toBeEnabled();
-  });
-
-  it.each(staleMutationCases)("ignores $mutation $outcome after leaving the page", async ({ mutation, outcome }) => {
+  it.each(staleMutationCases)("ignores $mutation $outcome after leaving the page", async ({ outcome }) => {
     const write = Promise.withResolvers<void>();
-    const save = mutation === "deletion" ? mocks.deleteCard : mocks.editStudyProgress;
+    const save = mocks.deleteCard;
     save.mockReturnValueOnce(write.promise);
     const view = renderCardList();
-    await startListMutation(mutation);
+    await startListMutation();
     expect(save).toHaveBeenCalledOnce();
 
     view.unmount();
@@ -715,25 +402,24 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
 
   it.each(staleMutationCases)(
     "keeps the new mutation and dialog pending when an old $mutation ends in $outcome after revisiting",
-    async ({ mutation, outcome }) => {
+    async ({ outcome }) => {
       const oldWrite = Promise.withResolvers<void>();
       const newWrite = Promise.withResolvers<void>();
-      const oldSave = mutation === "deletion" ? mocks.deleteCard : mocks.editStudyProgress;
+      const oldSave = mocks.deleteCard;
       oldSave.mockReturnValueOnce(oldWrite.promise);
       const view = renderCardList();
-      await startListMutation(mutation);
+      await startListMutation();
       expect(oldSave).toHaveBeenCalledOnce();
       view.unmount();
 
       // Keep B's dialog open so A cannot silently close it or release B's lock.
-      const newMutation = mutation === "bulk" ? "bulk" : "deletion";
-      const newSave = newMutation === "bulk" ? mocks.editStudyProgress : mocks.deleteCard;
+      const newSave = mocks.deleteCard;
       newSave.mockReturnValueOnce(newWrite.promise);
       renderCardList();
-      await startListMutation(newMutation);
-      const dialog = screen.getByRole(newMutation === "bulk" ? "dialog" : "alertdialog");
+      await startListMutation();
+      const dialog = screen.getByRole("alertdialog");
       const confirm = within(dialog).getByRole("button", {
-        name: newMutation === "bulk" ? "Apply change" : "Delete card",
+        name: "Delete card",
       });
       const callsBeforeCompletion = newSave.mock.calls.length;
       expect(confirm).toBeDisabled();
@@ -758,30 +444,10 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-LIST-ACTIONS-01 CARD-LIST-ACTIONS
       });
       expect(dialog).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Actions" })).toBeEnabled();
-      expect(
-        screen.getByText(newMutation === "bulk" ? "Set 1 card to difficulty 7." : "Deleted card “Front”.")
-      ).toBeVisible();
+      expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
     }
   );
-
-  it("retries a failed difficulty write through the same swipe gesture", async () => {
-    mocks.editStudyProgress.mockRejectedValueOnce(new Error("edit failed"));
-    renderCardList();
-    const article = screen.getByRole("article");
-
-    swipeRight(article);
-    expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-    swipeRight(article);
-
-    await waitFor(() => expect(mocks.editStudyProgress).toHaveBeenCalledTimes(2));
-    expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
-    expect(mocks.editStudyProgress).toHaveBeenLastCalledWith("user-id", {
-      cardId: card.id,
-      difficulty: 3,
-    });
-
-    fireEvent.keyDown(window, { key: "t" });
-    expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
-    expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
-  });
 });
+
+vi.mock("@/entities/card/model/queries/getCards", () => ({ getCards: vi.fn<() => Card[]>() }));
+vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => mocks.cards }));
