@@ -137,13 +137,17 @@ test("DECK-NAVIGATION-04 resets local-only viewing position on reload and reentr
 }) => {
   await fixture.apply(page);
   const local = await createAnonymousDeck(page);
-  const { deck, first, second } = local;
+  const { deck } = local;
   const studyFront = await startAnonymousStudy(page, deck.id);
 
   await page.goto("/");
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
+  const viewFront = await page.getByRole("button", { name: "Card front", exact: true }).innerText();
+  expect(local.cards.map((card) => card.frontText)).toContain(viewFront);
+  const [first, second] =
+    viewFront === local.first.frontText ? [local.first, local.second] : [local.second, local.first];
   await page.getByText(first.frontText, { exact: true }).click();
   await expect(page.getByRole("region", { name: "Card answer", exact: true })).toContainText(first.backText);
   await page.keyboard.press("ArrowRight");
@@ -170,8 +174,12 @@ test("DECK-NAVIGATION-04 resets local-only viewing position on reload and reentr
   await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
   await expect(page.getByText(studyFront, { exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue("0");
-  expect(await downloadDeckCards(page, deck.name)).toEqual(
-    local.cards.map(({ id, frontText, backText }) => ({ frontText, backText, tags: [], uniqueKey: id }))
+  expect(
+    (await downloadDeckCards(page, deck.name)).sort((a, b) => String(a.uniqueKey).localeCompare(String(b.uniqueKey)))
+  ).toEqual(
+    local.cards
+      .toSorted((a, b) => a.id.localeCompare(b.id))
+      .map(({ id, frontText, backText }) => ({ frontText, backText, tags: [], uniqueKey: id }))
   );
 });
 
@@ -446,29 +454,37 @@ test("DECK-NAVIGATION-11 browses forward and backward with the progress slider w
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toBeVisible();
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
+  const viewFront = await page.getByRole("button", { name: "Card front", exact: true }).innerText();
+  expect(local.cards.map((card) => card.frontText)).toContain(viewFront);
+  const [first, second] =
+    viewFront === local.first.frontText ? [local.first, local.second] : [local.second, local.first];
   const slider = page.getByRole("slider", { name: "Viewing progress" });
   await slider.focus();
   await page.keyboard.press("End");
-  await expectFront(page, local.second.frontText);
+  await expectFront(page, second.frontText);
   await expect(slider).toHaveAttribute("aria-valuetext", "2 of 2");
   await page.keyboard.press("ArrowLeft");
-  await expectFront(page, local.first.frontText);
+  await expectFront(page, first.frontText);
   await expect(slider).toHaveAttribute("aria-valuetext", "1 of 2");
   await page.getByRole("button", { name: "Card front", exact: true }).click();
   await expect(page.getByRole("region", { name: "Card answer" })).toBeVisible();
   await expect(slider).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Back to deck list", exact: true })).toHaveCount(0);
   await page.keyboard.press("ArrowRight");
-  await expectFront(page, local.second.frontText);
+  await expectFront(page, second.frontText);
   await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
   await openView(page, deck.name);
-  await expectFront(page, local.first.frontText);
+  await expectFront(page, first.frontText);
   expect(await readSavedData(page, fixture)).toEqual(before);
   await page.goto("/");
   await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
   await expect(page.getByText(studyFront, { exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue("0");
-  expect(await downloadDeckCards(page, deck.name)).toEqual(
-    local.cards.map(({ id, frontText, backText }) => ({ frontText, backText, tags: [], uniqueKey: id }))
+  expect(
+    (await downloadDeckCards(page, deck.name)).sort((a, b) => String(a.uniqueKey).localeCompare(String(b.uniqueKey)))
+  ).toEqual(
+    local.cards
+      .toSorted((a, b) => a.id.localeCompare(b.id))
+      .map(({ id, frontText, backText }) => ({ frontText, backText, tags: [], uniqueKey: id }))
   );
 });

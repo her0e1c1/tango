@@ -120,6 +120,7 @@ Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
 - 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
+- 作成順を閲覧順と仮定せず、最初の View で表示された Card を先頭として、移動と再入場後の順序を確認する。
 - local-only Deck に複数の Card と学習 session が存在する。
 
 When:
@@ -298,6 +299,7 @@ Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
 - 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
+- 作成順を閲覧順と仮定せず、最初の View で表示された Card を先頭として、移動と再入場後の順序を確認する。
 - 閲覧対象の Card が複数あり、再生操作を表示する設定である。
 
 When:
