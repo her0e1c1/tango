@@ -17,7 +17,7 @@ export function useStudyHistoryPageModel() {
   const { today, setToday } = useStudyHistoryClock(uid, params.toString());
   const range = getStudyHistoryRange(params, today);
   const form = useStudyHistoryFormState(range.fields, range.maxDate);
-  const history = useStudyHistoryState(uid || null, deckId, range.period, today);
+  const history = useStudyHistoryState(uid || null, deckId, range.period);
   const view = getStudyHistoryView(uid, decks, deckId, history);
   return {
     ...view,
@@ -26,7 +26,7 @@ export function useStudyHistoryPageModel() {
     period: history.period,
     range,
     form,
-    retry: () => retryStudyHistory(setToday),
+    retry: () => retryStudyHistory(setToday, history.setRetryVersion),
     selectDeck: (id: string) => setParams(changeStudyHistoryFilters(params, { deckId: id })),
     selectPeriod: (days: 7 | 30 | 90) => setParams(changeStudyHistoryFilters(params, { days })),
     submitRange: form.handleSubmit((values) => setParams(changeStudyHistoryFilters(params, values))),

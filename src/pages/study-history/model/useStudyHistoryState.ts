@@ -3,13 +3,9 @@ import { subscribeStudyHistory, type StudyHistoryPeriod, type StudyHistoryRecord
 
 type HistoryRead = { records: StudyHistoryRecord[]; fromCache: boolean };
 
-export function useStudyHistoryState(
-  uid: string | null,
-  deckId: string | null,
-  period: StudyHistoryPeriod | null,
-  readAt: Date
-) {
-  const [request, setRequest] = useState(() => ({ uid, deckId, period, readAt }));
+export function useStudyHistoryState(uid: string | null, deckId: string | null, period: StudyHistoryPeriod | null) {
+  const [retryVersion, setRetryVersion] = useState(0);
+  const [request, setRequest] = useState(() => ({ uid, deckId, period, retryVersion }));
   const [result, setResult] = useState<{
     request: typeof request;
     started?: HistoryRead;
@@ -22,9 +18,9 @@ export function useStudyHistoryState(
     request.deckId !== deckId ||
     request.period?.start !== period?.start ||
     request.period?.end !== period?.end ||
-    request.readAt !== readAt
+    request.retryVersion !== retryVersion
   ) {
-    setRequest({ uid, deckId, period, readAt });
+    setRequest({ uid, deckId, period, retryVersion });
   }
 
   useEffect(() => {
@@ -60,6 +56,7 @@ export function useStudyHistoryState(
   }, [request]);
 
   return {
+    setRetryVersion,
     period: request.period,
     result: result.request === request ? result : null,
   };

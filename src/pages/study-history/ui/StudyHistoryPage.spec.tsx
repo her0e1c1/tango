@@ -151,6 +151,28 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     }
   );
 
+  it("keeps custom-range results and subscriptions at midnight but retries explicitly", () => {
+    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
+    vi.setSystemTime(new Date(2026, 8, 21, 23, 59, 59));
+    renderPage("/study-history?start=2026-09-20&end=2026-09-21");
+    emit([completedRecord()]);
+    act(() => vi.advanceTimersByTime(1000));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: first.name })).toBeVisible();
+    expect(screen.getByLabelText("End date")).toHaveAttribute("max", "2026-09-22");
+    expect(subscriptions).toHaveLength(2);
+    expect(subscriptions.every((sub) => sub.stop.mock.calls.length === 0)).toBe(true);
+    act(() => subscriptions[0]?.fail(new Error("failed")));
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(subscriptions).toHaveLength(4);
+    expect(subscriptions.slice(0, 2).every((sub) => sub.stop.mock.calls.length === 1)).toBe(true);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading");
+    emit();
+    expect(screen.getByText("No study records in this period.")).toBeVisible();
+    expect(screen.getByLabelText("Start date")).toHaveValue("2026-09-20");
+    expect(screen.getByLabelText("End date")).toHaveValue("2026-09-21");
+  });
+
   it("uses the URL for filtering, back/forward, and ignores previous deck and UID callbacks", async () => {
     const user = userEvent.setup();
     const { router } = renderPage();
