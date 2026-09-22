@@ -1,5 +1,5 @@
 import { actAsync } from "@/test/act";
-import { act, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -18,6 +18,7 @@ const subscriptions: {
   uid: string;
   deckId: string | null;
   metric: string;
+  period: { start: number; end: number };
   emit: (records: StudyHistoryRecord[], fromCache: boolean) => void;
   fail: (error: Error) => void;
   stop: ReturnType<typeof vi.fn>;
@@ -52,12 +53,12 @@ function completedRecord(deckId = first.id): StudyHistoryRecord {
   };
 }
 
-describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 StudyHistoryPage", () => {
+describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 STUDY-SESSION-13 StudyHistoryPage", () => {
   beforeEach(() => {
     subscriptions.length = 0;
-    vi.mocked(subscribeStudyHistory).mockImplementation(({ uid, deckId, metric }, next, fail) => {
+    vi.mocked(subscribeStudyHistory).mockImplementation(({ uid, deckId, metric, period }, next, fail) => {
       const stop = vi.fn();
-      subscriptions.push({ uid, deckId, metric, emit: next, fail, stop });
+      subscriptions.push({ uid, deckId, metric, period, emit: next, fail, stop });
       return stop;
     });
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null });
@@ -68,12 +69,14 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 St
     vi.restoreAllMocks();
   });
 
-  it("waits for both reads, displays cached values, and renders every date", () => {
+  it("waits for both reads, displays cached values, and renders every date", async () => {
     renderPage();
     expect(screen.getByRole("status")).toHaveTextContent("Loading");
     act(() => subscriptions[0]?.emit([completedRecord()], true));
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     act(() => subscriptions[1]?.emit([completedRecord()], true));
+    expect(screen.getByRole("table", { hidden: true })).not.toBeVisible();
+    await userEvent.setup().click(screen.getByText("Show daily counts · 30 days"));
     expect(screen.getAllByRole("row")).toHaveLength(31);
     const recent = screen.getByRole("region", { name: "Recent sessions" });
     expect(within(recent).getAllByRole("listitem")).toHaveLength(1);
@@ -84,7 +87,7 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 St
     expect(
       within(
         screen.getByRole("row", {
-          name: `${new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date())} 1 1`,
+          name: `${new Intl.DateTimeFormat("en", { year: "numeric", month: "short", day: "numeric" }).format(new Date())} 1 1`,
         })
       )
         .getAllByRole("cell")
@@ -118,9 +121,35 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 St
     vi.setSystemTime(new Date(2026, 9, 21, 12));
     await userEvent.setup().click(screen.getByRole("button", { name: "Retry" }));
     emit([completedRecord()]);
-    expect(screen.getByRole("row", { name: "Oct 21 1 1" })).toBeVisible();
+    await userEvent.setup().click(screen.getByText("Show daily counts · 30 days"));
+    expect(screen.getByRole("row", { name: "Oct 21, 2026 1 1" })).toBeVisible();
     expect(screen.getByText("Sep 22, 2026 – Oct 21, 2026")).toBeVisible();
   });
+
+  it.each([
+    ["days=7", new Date(2026, 8, 16).getTime(), new Date(2026, 8, 23).getTime(), ["2026-09-16", "2026-09-22"]],
+    [
+      "start=2026-09-20&end=2026-09-21",
+      new Date(2026, 8, 20).getTime(),
+      new Date(2026, 8, 22).getTime(),
+      ["2026-09-20", "2026-09-21"],
+    ],
+  ])(
+    "refreshes the calendar at midnight while preserving custom dates: %s",
+    (search, start, end, [startDate, endDate]) => {
+      vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
+      vi.setSystemTime(new Date(2026, 8, 21, 23, 59, 59));
+      renderPage(`/study-history?${search}`);
+      emit();
+      act(() => vi.advanceTimersByTime(1000));
+      expect(subscriptions.slice(-2).every((sub) => sub.period.start === start && sub.period.end === end)).toBe(true);
+      emit();
+      fireEvent.click(screen.getByRole("button", { name: "Custom range" }));
+      expect(screen.getByLabelText("End date")).toHaveAttribute("max", "2026-09-22");
+      expect(screen.getByLabelText("Start date")).toHaveValue(startDate);
+      expect(screen.getByLabelText("End date")).toHaveValue(endDate);
+    }
+  );
 
   it("uses the URL for filtering, back/forward, and ignores previous deck and UID callbacks", async () => {
     const user = userEvent.setup();
@@ -138,10 +167,11 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 St
     );
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     emit([completedRecord(), completedRecord(second.id)]);
+    await user.click(screen.getByText("Show daily counts · 30 days"));
     expect(
       within(
         screen.getByRole("row", {
-          name: `${new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date())} 1 1`,
+          name: `${new Intl.DateTimeFormat("en", { year: "numeric", month: "short", day: "numeric" }).format(new Date())} 1 1`,
         })
       )
         .getAllByRole("cell")
@@ -190,4 +220,118 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 St
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("対象のデッキを表示できません");
   });
+
+  it("selects 7 and 90 days, keeps all daily values, and ignores delayed results from the previous period", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 8, 22, 12));
+    const user = userEvent.setup();
+    renderPage();
+    emit();
+    const old = subscriptions.slice();
+    await user.click(screen.getByRole("button", { name: "90 days" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Loading");
+    act(() =>
+      old.forEach((sub) => {
+        sub.emit([completedRecord()], false);
+      })
+    );
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    const older = {
+      ...completedRecord(),
+      sessionId: "older",
+      startedAt: new Date(2026, 7, 1, 12).getTime(),
+      endedAt: new Date(2026, 7, 1, 12).getTime(),
+      occurredAt: new Date(2026, 7, 1, 12).getTime(),
+    };
+    emit([older, completedRecord()]);
+    expect(screen.getByText("Jun 25, 2026 – Sep 22, 2026")).toBeVisible();
+    expect(screen.getByText("Study counts per 7 days")).toBeVisible();
+    expect(screen.getAllByRole("definition")[0]).toHaveTextContent("2");
+    await user.click(screen.getByText("Show daily counts · 90 days"));
+    await user.click(screen.getByRole("button", { name: "Older dates" }));
+    expect(screen.getByRole("row", { name: "Aug 1, 2026 1 1" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Older dates" }));
+    expect(screen.getByRole("row", { name: "Jun 25, 2026 0 0" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Older dates" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "7 days" }));
+    emit([older, completedRecord()]);
+    expect(screen.getAllByRole("definition")[0]).toHaveTextContent("1");
+    await user.click(screen.getByText("Show daily counts · 7 days"));
+    expect(screen.getAllByRole("row")).toHaveLength(8);
+    expect(screen.getByRole("row", { name: "Sep 16, 2026 0 0" })).toBeVisible();
+  });
+
+  it("applies inclusive custom dates, preserves them on Deck changes and retry, and restores URL navigation", async () => {
+    const user = userEvent.setup();
+    const { router } = renderPage();
+    emit();
+    await user.click(screen.getByRole("button", { name: "Custom range" }));
+    fireEvent.change(screen.getByLabelText("Start date"), { target: { value: "2026-01-01" } });
+    fireEvent.change(screen.getByLabelText("End date"), { target: { value: "2026-01-02" } });
+    await user.click(screen.getByRole("button", { name: "Apply" }));
+    expect(router.state.location.search).toBe("?start=2026-01-01&end=2026-01-02");
+    await waitFor(() =>
+      expect(subscriptions.at(-1)?.period).toEqual({
+        start: new Date(2026, 0, 1).getTime(),
+        end: new Date(2026, 0, 3).getTime(),
+      })
+    );
+    const boundary = (time: number): StudyHistoryRecord => ({
+      ...completedRecord(),
+      startedAt: time,
+      endedAt: time,
+      occurredAt: time,
+      sessionId: String(time),
+    });
+    emit([
+      boundary(new Date(2026, 0, 1).getTime()),
+      boundary(new Date(2026, 0, 2, 23, 59, 59, 999).getTime()),
+      boundary(new Date(2026, 0, 3).getTime()),
+    ]);
+    expect(screen.getAllByRole("definition")[0]).toHaveTextContent("2");
+    await user.click(screen.getByText("Show daily counts · 2 days"));
+    expect(screen.getByRole("row", { name: "Jan 1, 2026 1 1" })).toBeVisible();
+    expect(screen.getByRole("row", { name: "Jan 2, 2026 1 1" })).toBeVisible();
+    await user.selectOptions(screen.getByRole("combobox"), first.id);
+    expect(new URLSearchParams(router.state.location.search).get("start")).toBe("2026-01-01");
+    act(() => subscriptions.at(-1)?.fail(new Error("failed")));
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(subscriptions.at(-1)?.period).toEqual({
+      start: new Date(2026, 0, 1).getTime(),
+      end: new Date(2026, 0, 3).getTime(),
+    });
+    await user.click(screen.getByRole("button", { name: "7 days" }));
+    await actAsync(() => router.navigate(-1));
+    expect(screen.getByLabelText("Start date")).toHaveValue("2026-01-01");
+    expect(screen.getByLabelText("End date")).toHaveValue("2026-01-02");
+    expect(screen.getByRole("combobox")).toHaveValue(first.id);
+    await actAsync(() => router.navigate(1));
+    expect(screen.getByRole("button", { name: "7 days" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("rejects invalid drafts without replacing the displayed period", async () => {
+    const user = userEvent.setup();
+    const { router } = renderPage("/study-history?start=2026-01-01&end=2026-01-02");
+    emit();
+    fireEvent.change(screen.getByLabelText("End date"), { target: { value: "2025-12-31" } });
+    await user.click(screen.getByRole("button", { name: "Apply" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("End date must be on or after start date.");
+    expect(router.state.location.search).toBe("?start=2026-01-01&end=2026-01-02");
+    expect(screen.getByText("Jan 1, 2026 – Jan 2, 2026")).toBeVisible();
+    fireEvent.change(screen.getByLabelText("End date"), { target: { value: "9999-01-01" } });
+    await user.click(screen.getByRole("button", { name: "Apply" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("End date must be today or earlier.");
+  });
+
+  it.each(["days=invalid", "start=2026-02-30&end=2026-03-01", "start=2026-01-01", "start=2026-01-02&end=2026-01-01"])(
+    "does not substitute a default period for an invalid URL (%s)",
+    async (query) => {
+      renderPage(`/study-history?${query}`);
+      expect(screen.getByRole("alert")).toHaveTextContent("This date range is invalid.");
+      expect(subscriptions).toHaveLength(0);
+      await userEvent.setup().click(screen.getByRole("button", { name: "30 days" }));
+      emit();
+      expect(screen.getByText("No study records in this period.")).toBeVisible();
+    }
+  );
 });

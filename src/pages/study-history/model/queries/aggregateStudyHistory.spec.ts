@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { StudyHistoryRecord } from "@/entities/study-session";
 import { aggregateStudyHistory } from "./aggregateStudyHistory";
 import { getStudyHistoryPeriod } from "./getStudyHistoryPeriod";
+import { getStudyHistoryRange } from "./getStudyHistoryRange";
 
 const period = getStudyHistoryPeriod(new Date(2026, 8, 21, 15));
 const record = (occurredAt: number, deckId = "deck"): StudyHistoryRecord => ({
@@ -15,7 +16,7 @@ const record = (occurredAt: number, deckId = "deck"): StudyHistoryRecord => ({
 });
 const visible = new Set(["deck"]);
 
-describe("STUDY-SESSION-09 daily study counts", () => {
+describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
   it("counts a completed session once in both metrics and includes 30 calendar days", () => {
     const started = record(new Date(2026, 8, 21, 10).getTime());
     const completed = record(new Date(2026, 8, 21, 11).getTime());
@@ -61,4 +62,29 @@ describe("STUDY-SESSION-09 daily study counts", () => {
       expect(result.days.at(-1)?.date).toBe(today.getTime());
     }
   );
+
+  it.each([
+    ["2020-12-31", "2021-01-02", 3],
+    ["2024-02-28", "2024-03-01", 3],
+    ["2026-03-07", "2026-03-09", 3],
+    ["2025-11-01", "2025-11-03", 3],
+    ["2026-01-01", "2026-01-01", 1],
+  ] as const)("includes both local date boundaries in %s–%s", (start, end, length) => {
+    const range = getStudyHistoryRange(new URLSearchParams({ start, end }), new Date(2026, 8, 22)).period;
+    if (range === null) throw new Error("Expected a valid custom period");
+    const empty = aggregateStudyHistory(range, [], [], visible);
+    expect(empty.days).toHaveLength(length);
+    expect(empty.started).toBe(0);
+    expect(empty.completed).toBe(0);
+    const result = aggregateStudyHistory(
+      range,
+      [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
+      [record(range.start), record(range.end - 1)],
+      visible
+    );
+    expect(result.started).toBe(2);
+    expect(result.completed).toBe(2);
+    expect(result.days[0]?.date).toBe(new Date(`${start}T00:00:00`).getTime());
+    expect(result.days.at(-1)?.date).toBe(new Date(`${end}T00:00:00`).getTime());
+  });
 });

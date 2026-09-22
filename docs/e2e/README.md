@@ -214,3 +214,4 @@
 | STUDY-SESSION-10 | read | [URLとデッキ選択](./study-session.md#study-session-10) |
 | STUDY-SESSION-11 | read | [表示できないデッキ](./study-session.md#study-session-11) |
 | STUDY-SESSION-12 | write | [匿名の端末内学習記録](./study-session.md#study-session-12) |
+| STUDY-SESSION-13 | read | [学習記録の期間選択](./study-session.md#study-session-13) |
