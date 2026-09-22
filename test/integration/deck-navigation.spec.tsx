@@ -51,7 +51,7 @@ describe("DECK-NAVIGATION-01 Deck navigation through App, router, and local Enti
     const router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
     const view = render(<App router={router} />);
 
-    await userEvent.click(screen.getByRole("button", { name: `View ${selected.name}` }));
+    await userEvent.click(screen.getByRole("button", { name: `Open cards in ${selected.name}` }));
 
     expect(await screen.findByRole("button", { name: `View ${selected.frontText}` })).toBeVisible();
     expect(router.state.location).toMatchObject({ pathname: selected.path, search: "", hash: "" });

@@ -324,7 +324,9 @@ const seedStudySessions = async (
   deckNames: readonly string[] = []
 ) => {
   await seedLocalData(page, { sessionsByDeckId });
-  await Promise.all(deckNames.map((name) => page.getByRole("button", { name: `View ${name}`, exact: true }).waitFor()));
+  await Promise.all(
+    deckNames.map((name) => page.getByRole("button", { name: `Open cards in ${name}`, exact: true }).waitFor())
+  );
 };
 
 export const readLocalData = async (page: Page) =>

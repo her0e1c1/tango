@@ -136,7 +136,7 @@ test("SETTINGS-04 Explicit Japanese language is auto-saved across reload", async
 
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
-  await page.getByRole("button", { name: "アクション", exact: true }).click();
+  await page.getByRole("button", { name: "追加", exact: true }).click();
   await expect(page.getByRole("menuitem", { name: "デッキを作成" })).toBeVisible();
 });
 

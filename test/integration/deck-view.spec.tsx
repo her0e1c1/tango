@@ -82,7 +82,8 @@ describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATI
     let view = render(<App router={router} />);
 
     expect(screen.getByRole("button", { name: "Continue Local View Deck" })).toBeVisible();
-    await userEvent.click(screen.getByRole("button", { name: "View cards in Local View Deck" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Local View Deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "View" }));
     expect(await screen.findByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
     expect(screen.getByRole("slider", { name: "Viewing progress" })).toHaveAttribute("aria-valuetext", "1 of 3");
 
@@ -106,12 +107,14 @@ describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATI
     expect(await screen.findByRole("button", { name: "Continue Local View Deck" })).toBeVisible();
     expect(savedState(deck.id)).toEqual(before);
 
-    await userEvent.click(screen.getByRole("button", { name: "View cards in Local View Deck" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Local View Deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "View" }));
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
     await userEvent.click(screen.getByRole("button", { name: "Previous card" }));
     expect(await screen.findByRole("button", { name: "Continue Local View Deck" })).toBeVisible();
 
-    await userEvent.click(screen.getByRole("button", { name: "View cards in Local View Deck" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Local View Deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "View" }));
     for (const name of ["First", "Second", "Third"]) {
       expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent(`${name} prompt`);
       await userEvent.click(screen.getByRole("button", { name: "Next card" }));
@@ -147,7 +150,8 @@ describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATI
     const view = render(<App router={router} />);
 
     expect(screen.getByRole("button", { name: "Study Filtered View Deck" })).toBeVisible();
-    await userEvent.click(screen.getByRole("button", { name: "View cards in Filtered View Deck" }));
+    await userEvent.click(screen.getByRole("button", { name: "Open actions for Filtered View Deck" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "View" }));
     for (const [index, prompt] of ["match-1", "match-2", "match-3"].entries()) {
       expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent(prompt);
       expect(screen.getByRole("slider", { name: "Viewing progress" })).toHaveAttribute(

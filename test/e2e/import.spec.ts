@@ -115,7 +115,7 @@ test("IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, na
   if (deckId === "") throw new Error("Imported remote Deck id was not found");
 
   await page.reload();
-  await page.getByRole("button", { name: `View ${file.name}` }).click();
+  await page.getByRole("button", { name: `Open cards in ${file.name}` }).click();
   await expect(page.getByText(`front ${csvNamespace} one`, { exact: true })).toBeVisible();
   await expect(page.getByText(`front ${csvNamespace} two`, { exact: true })).toBeVisible();
   expect((await documentsForUid("card", uid)).every((document) => document.fields.deckId?.stringValue === deckId)).toBe(
@@ -157,7 +157,7 @@ test("IMPORT-04 A local-only CSV import survives reload and can be studied", asy
   await expect(page.getByRole("status").filter({ hasText: "Imported 2 cards." })).toBeVisible();
 
   await page.reload();
-  await expect(page.getByRole("button", { name: `View ${file.name}` })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${file.name}` })).toBeVisible();
   const stored = await readLocalData(page);
   const decks = stored.decks.filter(({ name }: { name?: string }) => name === file.name);
   expect(decks).toHaveLength(1);
@@ -286,7 +286,7 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole("status").filter({ hasText: `Imported ${example.count} cards.` })).toBeVisible();
     await page.reload();
-    await expect(page.getByRole("button", { name: `View ${example.file}`, exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: `Open cards in ${example.file}`, exact: true })).toBeVisible();
     const local = await readLocalData(page);
     const deck = local.decks.find((value) => value.name === example.file);
     if (!deck) throw new Error("Imported Deck missing");
@@ -297,7 +297,7 @@ test("IMPORT-06 All four examples share preview, download, and destination-aware
           (await documentsForUid("card", uid)).filter((card) => card.fields.deckId?.stringValue === deck.id).length
       )
       .toBe(example.count);
-    await page.getByRole("button", { name: `View ${example.file}`, exact: true }).click();
+    await page.getByRole("button", { name: `Open cards in ${example.file}`, exact: true }).click();
     await expect(page.getByRole("heading", { name: "Cards", exact: true })).toBeVisible();
     await expect(page.getByRole("article")).toHaveCount(example.count);
   }

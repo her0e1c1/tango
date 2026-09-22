@@ -64,7 +64,7 @@ test("CARD-MANAGEMENT-09 confirms before discarding an unsaved Card edit", async
   await dialog.getByRole("button", { name: "Discard changes" }).click();
 
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("button", { name: `View ${deck.name}` })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
   await expect
     .poll(async () => (await requireDocument("card", card.id)).fields.frontText?.stringValue)
     .toBe(card.frontText);
@@ -164,7 +164,7 @@ test("CARD-MANAGEMENT-13 keeps a queued creation after navigating away", async (
       .poll(async () => (await listDocuments("card")).some((item) => item.fields.frontText?.stringValue === frontText))
       .toBe(true);
     await expect(page).toHaveURL(/\/$/);
-    await page.getByRole("button", { name: `View ${deck.name}`, exact: true }).click();
+    await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
     await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
   } finally {
     write.release();
@@ -190,7 +190,7 @@ test("CARD-MANAGEMENT-14 reports rejected queued creation after leaving the form
     await fault.waitForFailure();
     await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
     await expect(page).toHaveURL(/\/$/);
-    await page.getByRole("button", { name: `View ${deck.name}`, exact: true }).click();
+    await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
     await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(0);
   } finally {
     write.release();

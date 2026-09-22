@@ -127,8 +127,8 @@ test("PERSISTENCE-01 keeps remote Decks and Cards isolated by UID across reloads
   await expect(page.getByText(deckB.name)).toHaveCount(0);
   await expect(pageB.getByText(deckA.name)).toHaveCount(0);
   await Promise.all([
-    page.getByRole("button", { name: `View ${deckA.name}` }).click(),
-    pageB.getByRole("button", { name: `View ${deckB.name}` }).click(),
+    page.getByRole("button", { name: `Open cards in ${deckA.name}` }).click(),
+    pageB.getByRole("button", { name: `Open cards in ${deckB.name}` }).click(),
   ]);
 
   await Promise.all([
@@ -156,14 +156,14 @@ test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", asyn
 
   await page.goto("/");
   await expect(page.getByText(deck.name)).toBeVisible();
-  await page.getByRole("button", { name: `View ${deck.name}` }).click();
+  await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
   await expect(page.getByText(card.frontText)).toBeVisible();
   await page.getByRole("button", { name: "tango" }).click();
   await expect(page).toHaveURL(/\/$/);
   const stopServingWorker = await installApplicationCacheForOfflineReload(page, baseURL);
   await page.reload();
   await expect(page.getByText(deck.name)).toBeVisible();
-  await page.getByRole("button", { name: `View ${deck.name}` }).click();
+  await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
   await expect(page.getByText(card.frontText)).toBeVisible();
   await page.getByRole("button", { name: "tango" }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -179,7 +179,7 @@ test("PERSISTENCE-02 syncs an offline cached Card edit after reconnecting", asyn
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByText(deck.name)).toBeVisible();
-  await page.getByRole("button", { name: `View ${deck.name}` }).click();
+  await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
   await expect(page.getByText(card.frontText)).toBeVisible();
 
   await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
@@ -237,7 +237,7 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
 
-  await page.getByRole("button", { name: `View ${updatedName}` }).click();
+  await page.getByRole("button", { name: `Open cards in ${updatedName}` }).click();
   await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
   await page.getByRole("textbox", { name: "Front text" }).fill(updatedFrontText);

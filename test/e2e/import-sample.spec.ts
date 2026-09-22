@@ -33,7 +33,7 @@ test("IMPORT-10 A fresh anonymous session keeps the imported Sample deck local",
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: `View ${sampleName}`, exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Open account", exact: true }).click();
   await expect(page.getByText("Anonymous account", { exact: true })).toBeVisible();
@@ -56,7 +56,7 @@ test("IMPORT-10 A fresh anonymous session keeps the imported Sample deck local",
   await page.getByRole("button", { name: "tango", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await page.reload();
-  await page.getByRole("button", { name: `View ${sampleName}`, exact: true }).click();
+  await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
   await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
 });
 
@@ -76,9 +76,9 @@ test("IMPORT-08 A local Sample deck preserves every card and can be studied afte
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: `View ${sampleName}`, exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: `View ${sampleName}`, exact: true }).click();
+  await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
   await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
   await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
 
@@ -107,9 +107,9 @@ test("IMPORT-09 A linked account syncs every Sample deck card without duplicates
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: `View ${sampleName}`, exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: `View ${sampleName}`, exact: true }).click();
+  await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
   await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
   await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
 
