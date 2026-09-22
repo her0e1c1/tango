@@ -28,7 +28,9 @@ for (const [directory, testDirectory] of [
   ["docs/e2e", "test/e2e"],
   ["docs/integration/firestore", "test/integration/firestore"],
 ] as const) {
-  const source = files(testDirectory, /\.spec\.tsx?$/u).map(read).join("\n");
+  const source = files(testDirectory, /\.spec\.tsx?$/u)
+    .map(read)
+    .join("\n");
   // Text-only check: accept leading IDs in title strings and scenario tables without evaluating tests.
   const prefixes = source.matchAll(/["'`]((?:[A-Z]+(?:-[A-Z]+)*-[0-9]{2,}(?:\s+|(?=["'`])))+)/gu);
   const ids = new Set([...prefixes].flatMap(([, prefix = ""]) => prefix.trim().split(/\s+/u)));
