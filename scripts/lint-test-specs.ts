@@ -154,6 +154,8 @@ function properties(
       for (const [name, value] of inherited) result.set(name, value);
     } else if (ts.isPropertyAssignment(property) && !ts.isComputedPropertyName(property.name)) {
       result.set(property.name.getText().replace(/["']/gu, ""), property.initializer);
+    } else if (ts.isShorthandPropertyAssignment(property)) {
+      result.set(property.name.text, property.name);
     } else {
       return;
     }
