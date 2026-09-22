@@ -5,7 +5,7 @@ import { subscribeWriteErrors } from "@/shared/firestore-write";
  * "should update a card", and "should import cards".
  */
 
-import { mutateCards, type Card } from "@/entities/card";
+import { calculateFsrsState, mutateCards, type Card } from "@/entities/card";
 import type { CardCreateInput, RemoteCard } from "@/entities/card/model/types";
 
 import "@/test/initializeTestFirestore";
@@ -13,6 +13,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   collection,
   deleteDoc,
+  updateDoc,
   doc,
   getDoc as readServerDoc,
   waitForPendingWrites,
@@ -92,6 +93,8 @@ describe("firestore/card", { retry: 3 }, () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);
+    const fsrs = calculateFsrsState(null, "good", 1000);
+    await updateDoc(doc(db, "card", c.id), { fsrs });
     const created = (await getDoc(doc(db, "card", c.id))).data();
     if (created === undefined) throw new Error("Created Card was not found");
     const n = {
@@ -101,6 +104,9 @@ describe("firestore/card", { retry: 3 }, () => {
       cardOrderIds: ["card-1"],
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
     await editCard("uid", n);
+    expect((await getDoc(doc(db, "card", n.id))).data()?.fsrs).toEqual(fsrs);
+    replaceRemoteCards([{ ...c, fsrs }]);
+    await mutateCards("uid", [{ kind: "edit", card: n }]);
     const data = (await getDoc(doc(db, "card", n.id))).data();
     expect(data).toEqual({ ...created, frontText: "updated", updatedAt: expect.any(Number) });
     expect(data?.createdAt).toBe(created.createdAt);
@@ -110,14 +116,22 @@ describe("firestore/card", { retry: 3 }, () => {
 
   it("[FIRESTORE-CARD-03] excludes personal study fields from new Card writes", async () => {
     const deckId = await initDeck();
-    const card = { ...newCard, deckId, id: uuid(), difficulty: 5, numberOfSeen: 3 };
+    const card = {
+      ...newCard,
+      deckId,
+      id: uuid(),
+      fsrs: calculateFsrsState(null, "easy", 1000),
+      difficulty: 5,
+      numberOfSeen: 3,
+    };
     await createCardCommand("uid", card);
     const data = (await getDoc(doc(db, "card", card.id))).data();
+    expect(data?.fsrs).toBeNull();
     expect(data).not.toHaveProperty("difficulty");
     expect(data).not.toHaveProperty("numberOfSeen");
   });
 
-  it("[FIRESTORE-CARD-04] should upsert a complete card", async () => {
+  it("[FIRESTORE-CARD-04] preserves a rated Card when retrying a prepared create", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
 
@@ -126,6 +140,13 @@ describe("firestore/card", { retry: 3 }, () => {
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...c, createdAt: expect.any(Number), updatedAt: expect.any(Number) });
     expect(data?.createdAt).toBe(data?.updatedAt);
+    const reference = doc(db, "card", c.id);
+    await updateDoc(reference, { fsrs: calculateFsrsState(null, "good", 1000) });
+    const rated = (await getDoc(reference)).data();
+
+    await mutateCards("uid", [{ kind: "create", card: c }]);
+
+    expect((await getDoc(reference)).data()).toEqual(rated);
   });
 
   it("[FIRESTORE-CARD-05] reports failed imported Cards while persisting valid Cards", async () => {

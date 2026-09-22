@@ -1,4 +1,4 @@
-import { classifyFsrsState, type FsrsState } from "@/entities/card-study-state/@x/study-session";
+import { classifyFsrsState, type FsrsState } from "@/entities/card/@x/study-session";
 import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
 
 import type { ResolvedStudySession, StudySession, StudySessionCard } from "./types";

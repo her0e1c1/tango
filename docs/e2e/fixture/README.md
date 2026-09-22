@@ -6,7 +6,7 @@
 ## 構造
 
 - `auth.users` は mock する認証 identity を表す。
-- `remote` は REST API で Firestore emulator に保存する Deck / Card / CardStudyState / StudySession を表す。
+- `remote` は REST API で Firestore emulator に保存する Deck / Card / StudySession を表す。
 - `browser` は localStorage の preference だけを表す。匿名の Deck / Card は作成・インポート UI、Session は学習開始 UI で用意し、再読み込み時に再投入しない。
 - fixture YAML にはアプリケーション上の永続状態を記述し、Firestore 固有の serialization は記述しない。
 - 認証失敗、network failure、dialog の表示状態など永続状態ではない前提は fixture に含めず、各ケースの `Given` に記述する。
@@ -53,7 +53,7 @@
 
 ### Card study state
 
-`remote.cardStudyStates` は省略時に空。評価済み状態を必要とするケースだけ `schemaVersion: 1`、uid、cardId、deckId、fsrs、createdAt、updatedAt を記述する。Card から状態を生成しない。UID と Card ID を namespace 化した後、UID 長の接頭辞から document ID を生成する。
+`remote.cards[].fsrs` は省略時に null。評価済み状態を必要とするケースだけ FSRS の全フィールドを Card に記述する。updatedAt は FSRS 更新を含む document 全体の更新時刻である。
 
 ### Study session
 

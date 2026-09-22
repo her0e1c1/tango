@@ -22,3 +22,7 @@ export {
 export { BackText } from "./ui/BackText";
 export { CardView } from "./ui/CardView";
 export { FrontText } from "./ui/FrontText";
+
+export { calculateFsrsState, classifyFsrsState, getStudyRetrievability, studyRetentionTarget } from "./model/fsrsRules";
+export { fsrsStateSchema, type FsrsState } from "./model/fsrs";
+export { writeCardFsrs } from "./api/batch";

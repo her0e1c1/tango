@@ -21,7 +21,7 @@ const authSessionFromUser = (user: User) => ({
 
 async function hasPendingChanges(uid: string): Promise<boolean> {
   const snapshots = await Promise.all(
-    ["deck", "card", "studySession", "studyAnswer", "cardStudyState"].map((name) =>
+    ["deck", "card", "studySession", "studyAnswer"].map((name) =>
       getDocsFromCache(query(collection(db, name), where("uid", "==", uid)))
     )
   );

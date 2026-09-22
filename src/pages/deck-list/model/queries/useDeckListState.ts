@@ -1,14 +1,11 @@
+import { useCards, classifyFsrsState } from "@/entities/card";
 import { compareActiveDecks } from "./compareActiveDecks";
 import { groupDecksByStudyStatus } from "./groupDecksByStudyStatus";
 import { useStore } from "zustand";
 
-import { useStudyCards } from "@/entities/card-study-state";
 import type { Card } from "@/entities/card";
-import type { FsrsState } from "@/entities/card-study-state";
-type StudyCard = Card & { fsrs: FsrsState | null };
 import { type Deck, type DeckId, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { classifyFsrsState } from "@/entities/card-study-state";
 import { selectStudyCardsWithDeadline, type StudySession, useStudySessions } from "@/entities/study-session";
 import { useDeadlineQuery } from "@/shared/lib/useDeadlineQuery";
 
@@ -16,7 +13,7 @@ import { deckListStore, type DeckListBootstrapStatus } from "../store";
 
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
-function summarizeDeck(cards: StudyCard[], deck: Deck, now: number) {
+function summarizeDeck(cards: Card[], deck: Deck, now: number) {
   const selected = selectStudyCardsWithDeadline(cards, deck, true, now);
   let due = 0;
   let newCount = 0;
@@ -59,13 +56,13 @@ function buildDeckListSections(
     enabled,
   }: {
     decks: Deck[];
-    cards: StudyCard[];
+    cards: Card[];
     sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
     enabled: boolean;
   },
   now: number
 ) {
-  const cardsByDeck = new Map<DeckId, StudyCard[]>();
+  const cardsByDeck = new Map<DeckId, Card[]>();
   for (const card of cards) {
     const group = cardsByDeck.get(card.deckId) ?? [];
     group.push(card);
@@ -99,7 +96,7 @@ function buildDeckListSections(
 }
 
 export const useDeckListState = () => {
-  const cards = useStudyCards();
+  const cards = useCards();
   const decks = useDecks();
   const sessionsByDeckId = useStudySessions();
   const preferences = usePreferences();

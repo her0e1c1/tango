@@ -12,14 +12,14 @@
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| FIRESTORE-RULES-STUDY-ANSWER-01 | batch | [回答作成と State・session 更新を同じ batch で許可する](#firestore-rules-study-answer-01) |
+| FIRESTORE-RULES-STUDY-ANSWER-01 | batch | [回答作成と Card.fsrs・session 更新を同じ batch で許可する](#firestore-rules-study-answer-01) |
 | FIRESTORE-RULES-STUDY-ANSWER-02 | write | [回答 ID と完了後の回答順序はアプリケーションの責務とする](#firestore-rules-study-answer-02) |
 | FIRESTORE-RULES-STUDY-ANSWER-03 | write | [保存済みの回答履歴は本人でも更新・削除できない](#firestore-rules-study-answer-03) |
 | FIRESTORE-RULES-STUDY-ANSWER-04 | batch | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](#firestore-rules-study-answer-04) |
 
 <a id="firestore-rules-study-answer-01"></a>
 
-### FIRESTORE-RULES-STUDY-ANSWER-01 回答作成と State・session 更新を同じ batch で許可する
+### FIRESTORE-RULES-STUDY-ANSWER-01 回答作成と Card.fsrs・session 更新を同じ batch で許可する
 
 カテゴリ: `batch`
 
@@ -32,7 +32,7 @@ Given:
 
 When:
 
-- 最初と最後の Card について、回答作成・CardStudyState 更新・session の位置更新を1つの SDK batch に入れて commit する。最後の batch には completed と endedAt も含める。
+- 最初と最後の Card について、回答作成・Card.fsrs 更新・session の位置更新を1つの SDK batch に入れて commit する。最後の batch には completed と endedAt も含める。
 - 各回答を本人として get する。
 
 Then:
@@ -98,7 +98,7 @@ Given:
 
 When:
 
-- 回答を get する。続いて回答作成・CardStudyState への書き込み・session 更新を含む batch を commit する。Card 自体は更新しない。
+- 回答を get する。続いて回答作成・Card.fsrs への書き込み・session 更新を含む batch を commit する。Card の fsrs と updatedAt を更新する。
 
 Then:
 

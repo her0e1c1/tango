@@ -2,7 +2,7 @@ import "@/test/mockFirestorePersistence";
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { calculateFsrsState } from "@/entities/card-study-state";
+import { calculateFsrsState } from "@/entities/card";
 import { getMemoryState } from "../model/queries/getMemoryState";
 import { MemoryState } from "./MemoryState";
 

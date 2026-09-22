@@ -5,7 +5,7 @@ import { type E2EFixture, expect, getDocument, listDocuments, requireDocument, t
 
 const readSavedData = async (page: Page, fixture: E2EFixture) => ({
   learning: await Promise.all(
-    (["studySession", "studyAnswer", "cardStudyState"] as const).map(async (collection) =>
+    (["studySession", "studyAnswer"] as const).map(async (collection) =>
       (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === fixture.user().uid)
     )
   ),

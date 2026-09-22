@@ -26,7 +26,7 @@ const projectId = "tango-e2e";
 const firestorePort = process.env.VITE_DB_PORT ?? "8080";
 const firestoreBase = `http://db:${firestorePort}/v1/projects/${projectId}/databases/(default)/documents`;
 
-export type FirestoreCollection = "deck" | "card" | "studyAnswer" | "studySession" | "cardStudyState";
+export type FirestoreCollection = "deck" | "card" | "studyAnswer" | "studySession";
 
 export interface TestNamespace {
   caseId: string;
@@ -416,11 +416,6 @@ function createE2EFixture(
     // Seed parent Decks first so every observable intermediate state preserves Card references.
     await Promise.all(namespaced.state.remote.decks.map((deck) => setDocument("deck", deck.id, { ...deck })));
     await Promise.all(namespaced.state.remote.cards.map((card) => setDocument("card", card.id, { ...card })));
-    await Promise.all(
-      namespaced.state.remote.cardStudyStates.map((state) =>
-        setDocument("cardStudyState", `${state.uid.length}:${state.uid}${state.cardId}`, { ...state })
-      )
-    );
     for (const session of Object.values(namespaced.state.remote.studySessions)) {
       const deck = namespaced.state.remote.decks.find(({ id }) => id === session.deckId);
       if (!deck?.uid) throw new Error("A server session requires an owned Deck");

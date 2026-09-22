@@ -1,9 +1,5 @@
 import { vi } from "vitest";
 
-vi.mock("@/entities/card-study-state/api/deleteCardStudyStates", () => ({
-  deleteCardStudyStates: async () => undefined,
-}));
-
 vi.mock("@/entities/deck/api/firestore", async () => {
   const { deckStore } = await import("@/entities/deck/model/store");
   const { deckCreateSchema } = await import("@/entities/deck/model/schema");
@@ -40,7 +36,7 @@ vi.mock("@/entities/card/api/firestore", async () => {
   return {
     createCard: async (_uid: string, input: unknown) => {
       await Promise.resolve();
-      const card = { ...cardCreateSchema.parse(input), createdAt: Date.now(), updatedAt: Date.now() };
+      const card = { ...cardCreateSchema.parse(input), fsrs: null, createdAt: Date.now(), updatedAt: Date.now() };
       cardStore.setState((state) => ({
         remoteCards: [...state.remoteCards.filter((value) => value.id !== card.id), card],
       }));

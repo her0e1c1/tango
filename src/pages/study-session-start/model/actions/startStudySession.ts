@@ -1,4 +1,4 @@
-import { getStudyCards } from "@/entities/card-study-state";
+import { getCards } from "@/entities/card";
 import { buildStudyCardOrder } from "../queries/buildStudyCardOrder";
 import { showToast } from "@/shared/ui/toast";
 import { getAuthUid } from "@/entities/auth";
@@ -19,7 +19,7 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   // Use the current draft even when its autosave has not reached the Deck yet.
   const now = Date.now();
   const cards = selectStudyCards(
-    getStudyCards().filter((card) => card.deckId === deckId),
+    getCards().filter((card) => card.deckId === deckId),
     filter,
     study.useCardInterval,
     now
