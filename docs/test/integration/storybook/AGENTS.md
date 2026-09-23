@@ -4,6 +4,7 @@
 - Follow the Japanese case format and ID-only correspondence rules in `../../AGENTS.md`. Do not add Story file or named-export mappings.
 - Use `STORYBOOK-<UPPERCASE-SPEC-FILENAME>-<NN>` IDs, starting at `01` in document order without gaps. Update indexes, anchors, and headings together; README files index specifications rather than define cases.
 - Use `render` for visible states and attributes, and `interaction` for results of user operations. These categories do not imply persistence.
+- 正常系・異常系の区分は [共通規約](../../AGENTS.md#正常系異常系の区分) に従い、カテゴリとは別に明示する。
 - Describe setup inline without E2E fixtures or dedicated fixture files. Keep each Given / When / Then to one block and split independent behaviors into separate IDs.
 - A shared play may verify several cases. Describe the prerequisite state in Given without naming the Story export; prior operations may establish that state, but this does not imply independent test execution.
 - A case may cover multiple display variants. Describe each variant's inputs and expected results instead of listing export names.

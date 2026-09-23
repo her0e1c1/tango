@@ -14,29 +14,31 @@ DeckFilterForm / TagFilter と実際の子 UI、Story 側の選択状態。Card 
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STORYBOOK-DECK-FILTER-01 | interaction | [選択タグをクリアする](#storybook-deck-filter-01) |
-| STORYBOOK-DECK-FILTER-02 | interaction | [折りたたまれたタグを表示する](#storybook-deck-filter-02) |
-| STORYBOOK-DECK-FILTER-03 | interaction | [タグ選択を通知する](#storybook-deck-filter-03) |
-| STORYBOOK-DECK-FILTER-04 | interaction | [重複を除いて選択を扱う](#storybook-deck-filter-04) |
-| STORYBOOK-DECK-FILTER-05 | interaction | [Any と All を切り替える](#storybook-deck-filter-05) |
-| STORYBOOK-DECK-FILTER-06 | interaction | [選択済みと候補外のタグを先頭に保つ](#storybook-deck-filter-06) |
-| STORYBOOK-DECK-FILTER-07 | interaction | [追加表示したタグへキーボードで移動する](#storybook-deck-filter-07) |
-| STORYBOOK-DECK-FILTER-08 | interaction | [解除で隠れるタグからフォーカスを移す](#storybook-deck-filter-08) |
-| STORYBOOK-DECK-FILTER-09 | interaction | [最後の候補外タグを解除する](#storybook-deck-filter-09) |
-| STORYBOOK-DECK-FILTER-10 | interaction | [Clear の無効化前にフォーカスを移す](#storybook-deck-filter-10) |
-| STORYBOOK-DECK-FILTER-11 | render | [8件以下では開示ボタンを表示しない](#storybook-deck-filter-11) |
-| STORYBOOK-DECK-FILTER-12 | render | [空状態でも一致条件を保つ](#storybook-deck-filter-12) |
-| STORYBOOK-DECK-FILTER-13 | render | [大量の選択タグをスクロール領域にする](#storybook-deck-filter-13) |
-| STORYBOOK-DECK-FILTER-14 | render | [長いタグ名を保持する](#storybook-deck-filter-14) |
-| STORYBOOK-DECK-FILTER-15 | interaction | [言語変更後も展開状態を保つ](#storybook-deck-filter-15) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STORYBOOK-DECK-FILTER-01 | interaction | 正常系 | [選択タグをクリアする](#storybook-deck-filter-01) |
+| STORYBOOK-DECK-FILTER-02 | interaction | 正常系 | [折りたたまれたタグを表示する](#storybook-deck-filter-02) |
+| STORYBOOK-DECK-FILTER-03 | interaction | 正常系 | [タグ選択を通知する](#storybook-deck-filter-03) |
+| STORYBOOK-DECK-FILTER-04 | interaction | 正常系 | [重複を除いて選択を扱う](#storybook-deck-filter-04) |
+| STORYBOOK-DECK-FILTER-05 | interaction | 正常系 | [Any と All を切り替える](#storybook-deck-filter-05) |
+| STORYBOOK-DECK-FILTER-06 | interaction | 正常系 | [選択済みと候補外のタグを先頭に保つ](#storybook-deck-filter-06) |
+| STORYBOOK-DECK-FILTER-07 | interaction | 正常系 | [追加表示したタグへキーボードで移動する](#storybook-deck-filter-07) |
+| STORYBOOK-DECK-FILTER-08 | interaction | 正常系 | [解除で隠れるタグからフォーカスを移す](#storybook-deck-filter-08) |
+| STORYBOOK-DECK-FILTER-09 | interaction | 正常系 | [最後の候補外タグを解除する](#storybook-deck-filter-09) |
+| STORYBOOK-DECK-FILTER-10 | interaction | 正常系 | [Clear の無効化前にフォーカスを移す](#storybook-deck-filter-10) |
+| STORYBOOK-DECK-FILTER-11 | render | 正常系 | [8件以下では開示ボタンを表示しない](#storybook-deck-filter-11) |
+| STORYBOOK-DECK-FILTER-12 | render | 正常系 | [空状態でも一致条件を保つ](#storybook-deck-filter-12) |
+| STORYBOOK-DECK-FILTER-13 | render | 正常系 | [大量の選択タグをスクロール領域にする](#storybook-deck-filter-13) |
+| STORYBOOK-DECK-FILTER-14 | render | 正常系 | [長いタグ名を保持する](#storybook-deck-filter-14) |
+| STORYBOOK-DECK-FILTER-15 | interaction | 正常系 | [言語変更後も展開状態を保つ](#storybook-deck-filter-15) |
 
 <a id="storybook-deck-filter-01"></a>
 
 ### STORYBOOK-DECK-FILTER-01 選択タグをクリアする
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -56,6 +58,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 12件中8件を表示し、残り4件を折りたたんでいる。
@@ -73,6 +77,8 @@ Then:
 ### STORYBOOK-DECK-FILTER-03 [TODO] タグ選択を通知する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -92,6 +98,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 候補は one / two、選択値は one / one とする。
@@ -110,6 +118,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - Match の radio group で Any を選択し、変更を Story 側に反映する。
@@ -127,6 +137,8 @@ Then:
 ### STORYBOOK-DECK-FILTER-06 [TODO] 選択済みと候補外のタグを先頭に保つ
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -147,6 +159,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - tag-1〜tag-12 が未選択で、開示ボタンにフォーカスしている。
@@ -164,6 +178,8 @@ Then:
 ### STORYBOOK-DECK-FILTER-08 [TODO] 解除で隠れるタグからフォーカスを移す
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -183,6 +199,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 候補は空で、候補外 stale だけを選択している。
@@ -200,6 +218,8 @@ Then:
 ### STORYBOOK-DECK-FILTER-10 [TODO] Clear の無効化前にフォーカスを移す
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -219,6 +239,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 未選択候補が8件ある。
@@ -236,6 +258,8 @@ Then:
 ### STORYBOOK-DECK-FILTER-12 [TODO] 空状態でも一致条件を保つ
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -255,6 +279,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 120候補すべてを選択している。
@@ -273,6 +299,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 空白のない長いタグ名を渡す。
@@ -290,6 +318,8 @@ Then:
 ### STORYBOOK-DECK-FILTER-15 [TODO] 言語変更後も展開状態を保つ
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 

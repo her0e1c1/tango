@@ -8,17 +8,19 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応状況 |
-| --- | --- | --- | --- |
-| UNIT-FSRS-CLASSIFICATION-01 | read | [明示的な未評価状態を新規として扱う](#unit-fsrs-classification-01) | 既存対応 |
-| UNIT-FSRS-CLASSIFICATION-02 | read | [期限と基準時刻の境界で復習対象を判定する](#unit-fsrs-classification-02) | 一部対応 |
-| UNIT-FSRS-CLASSIFICATION-03 | read | [不正な状態を新規や復習予定に読み替えない](#unit-fsrs-classification-03) | 未対応 |
+| ID | カテゴリ | 区分 | テストケース | 対応状況 |
+| --- | --- | --- | --- | --- |
+| UNIT-FSRS-CLASSIFICATION-01 | read | 正常系 | [明示的な未評価状態を新規として扱う](#unit-fsrs-classification-01) | 既存対応 |
+| UNIT-FSRS-CLASSIFICATION-02 | read | 正常系 | [期限と基準時刻の境界で復習対象を判定する](#unit-fsrs-classification-02) | 一部対応 |
+| UNIT-FSRS-CLASSIFICATION-03 | read | 異常系 | [不正な状態を新規や復習予定に読み替えない](#unit-fsrs-classification-03) | 未対応 |
 
 <a id="unit-fsrs-classification-01"></a>
 
 ### UNIT-FSRS-CLASSIFICATION-01 明示的な未評価状態を新規として扱う
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -42,6 +44,8 @@ Then:
 ### UNIT-FSRS-CLASSIFICATION-02 期限と基準時刻の境界で復習対象を判定する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -74,6 +78,8 @@ Then:
 ### UNIT-FSRS-CLASSIFICATION-03 不正な状態を新規や復習予定に読み替えない
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 

@@ -6,30 +6,32 @@ Card を作成・編集・削除でき、失敗後も入力を維持して再試
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| CARD-MANAGEMENT-01 | write | [Card 編集内容を保存して reload 後も確認できる](#card-management-01) |
-| CARD-MANAGEMENT-02 | write | [Card を削除できる](#card-management-02) |
-| CARD-MANAGEMENT-03 | read | [Card の削除を取り消せる](#card-management-03) |
-| CARD-MANAGEMENT-04 | write | [Card の編集失敗後に再試行できる](#card-management-04) |
-| CARD-MANAGEMENT-05 | write | [ログイン中の Deck に Card を作成できる](#card-management-05) |
-| CARD-MANAGEMENT-06 | write | [匿名で利用中の Deck に Card を作成できる](#card-management-06) |
-| CARD-MANAGEMENT-07 | write | [Card の作成拒否後に重複なく再試行できる](#card-management-07) |
-| CARD-MANAGEMENT-08 | write | [Card の削除失敗後に再試行できる](#card-management-08) |
-| CARD-MANAGEMENT-09 | read | [未保存の Card 編集内容を離脱前に確認できる](#card-management-09) |
-| CARD-MANAGEMENT-10 | read | [Card の未表示の面にある入力エラーを修正できる](#card-management-10) |
-| CARD-MANAGEMENT-11 | read | [未保存の Card 作成内容の離脱を確認できる](#card-management-11) |
-| CARD-MANAGEMENT-12 | write | [Card 作成成功が未回答の離脱確認より優先される](#card-management-12) |
-| CARD-MANAGEMENT-13 | write | [Card 作成中に離脱しても保存成功時に一覧へ移動する](#card-management-13) |
-| CARD-MANAGEMENT-14 | write | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](#card-management-14) |
-| CARD-MANAGEMENT-15 | read | [作成中の未保存の解答をプレビューできる](#card-management-15) |
-| CARD-MANAGEMENT-16 | read | [編集中の未保存の解答と表示形式をプレビューできる](#card-management-16) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| CARD-MANAGEMENT-01 | write | 正常系 | [Card 編集内容を保存して reload 後も確認できる](#card-management-01) |
+| CARD-MANAGEMENT-02 | write | 正常系 | [Card を削除できる](#card-management-02) |
+| CARD-MANAGEMENT-03 | read | 正常系 | [Card の削除を取り消せる](#card-management-03) |
+| CARD-MANAGEMENT-04 | write | 異常系 | [Card の編集失敗後に再試行できる](#card-management-04) |
+| CARD-MANAGEMENT-05 | write | 正常系 | [ログイン中の Deck に Card を作成できる](#card-management-05) |
+| CARD-MANAGEMENT-06 | write | 正常系 | [匿名で利用中の Deck に Card を作成できる](#card-management-06) |
+| CARD-MANAGEMENT-07 | write | 異常系 | [Card の作成拒否後に重複なく再試行できる](#card-management-07) |
+| CARD-MANAGEMENT-08 | write | 異常系 | [Card の削除失敗後に再試行できる](#card-management-08) |
+| CARD-MANAGEMENT-09 | read | 正常系 | [未保存の Card 編集内容を離脱前に確認できる](#card-management-09) |
+| CARD-MANAGEMENT-10 | read | 異常系 | [Card の未表示の面にある入力エラーを修正できる](#card-management-10) |
+| CARD-MANAGEMENT-11 | read | 正常系 | [未保存の Card 作成内容の離脱を確認できる](#card-management-11) |
+| CARD-MANAGEMENT-12 | write | 正常系 | [Card 作成成功が未回答の離脱確認より優先される](#card-management-12) |
+| CARD-MANAGEMENT-13 | write | 正常系 | [Card 作成中に離脱しても保存成功時に一覧へ移動する](#card-management-13) |
+| CARD-MANAGEMENT-14 | write | 異常系 | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](#card-management-14) |
+| CARD-MANAGEMENT-15 | read | 正常系 | [作成中の未保存の解答をプレビューできる](#card-management-15) |
+| CARD-MANAGEMENT-16 | read | 正常系 | [編集中の未保存の解答と表示形式をプレビューできる](#card-management-16) |
 
 <a id="card-management-01"></a>
 
 ### CARD-MANAGEMENT-01 Card 編集内容を保存して reload 後も確認できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -60,6 +62,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
@@ -82,6 +86,8 @@ Then:
 ### CARD-MANAGEMENT-03 Card の削除を取り消せる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -106,6 +112,8 @@ Then:
 ### CARD-MANAGEMENT-04 Card の編集失敗後に再試行できる
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -132,6 +140,8 @@ Then:
 ### CARD-MANAGEMENT-05 ログイン中の Deck に Card を作成できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -160,6 +170,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
@@ -185,6 +197,8 @@ Then:
 ### CARD-MANAGEMENT-07 Card の作成拒否後に重複なく再試行できる
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -214,6 +228,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
@@ -237,6 +253,8 @@ Then:
 ### CARD-MANAGEMENT-09 未保存の Card 編集内容を離脱前に確認できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -264,6 +282,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -288,6 +308,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -310,6 +332,8 @@ Then:
 ### CARD-MANAGEMENT-12 Card 作成成功が未回答の離脱確認より優先される
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -335,6 +359,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -357,6 +383,8 @@ Then:
 ### CARD-MANAGEMENT-14 Card 作成失敗後も離脱確認と入力を保持して再試行できる
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -381,6 +409,8 @@ Then:
 ### CARD-MANAGEMENT-15 作成中の未保存の解答をプレビューできる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -408,6 +438,8 @@ Then:
 ### CARD-MANAGEMENT-16 編集中の未保存の解答と表示形式をプレビューできる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 

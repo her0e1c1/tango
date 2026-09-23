@@ -12,17 +12,19 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| UNIT-STORE-AUTH-01 | initial | [本人確認が終わるまでは利用者を確定しない](#unit-store-auth-01) |
-| UNIT-STORE-AUTH-02 | state-change | [認証完了後は今回の利用者情報だけを提供する](#unit-store-auth-02) |
-| UNIT-STORE-AUTH-03 | state-change | [認証未完了の状態へ変わったら古い本人情報を提供しない](#unit-store-auth-03) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| UNIT-STORE-AUTH-01 | initial | 正常系 | [本人確認が終わるまでは利用者を確定しない](#unit-store-auth-01) |
+| UNIT-STORE-AUTH-02 | state-change | 正常系 / 異常系 | [認証完了後は今回の利用者情報だけを提供する](#unit-store-auth-02) |
+| UNIT-STORE-AUTH-03 | state-change | 正常系 / 異常系 | [認証未完了の状態へ変わったら古い本人情報を提供しない](#unit-store-auth-03) |
 
 <a id="unit-store-auth-01"></a>
 
 ### UNIT-STORE-AUTH-01 本人確認が終わるまでは利用者を確定しない
 
 カテゴリ: `initial`
+
+区分: 正常系
 
 対応テスト: `starts without an identity`（要補完：既存テストは事前に初期状態を書き込んでおり、起動直後を検証していない）。
 
@@ -43,6 +45,8 @@ Then:
 ### UNIT-STORE-AUTH-02 認証完了後は今回の利用者情報だけを提供する
 
 カテゴリ: `state-change`
+
+区分: 正常系 / 異常系
 
 対応テスト: `replaces the current session`（要補完：既存テストは初期状態から匿名利用者への変更のみ）。
 
@@ -69,6 +73,8 @@ Then:
 ### UNIT-STORE-AUTH-03 認証未完了の状態へ変わったら古い本人情報を提供しない
 
 カテゴリ: `state-change`
+
+区分: 正常系 / 異常系
 
 対応テスト: `represents anonymous authentication without an SDK credential`（要補完：既存テストは初期状態から試行中への変更のみ）。
 

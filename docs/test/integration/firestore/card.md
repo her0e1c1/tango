@@ -13,22 +13,24 @@ Card 内容の書込範囲、部分失敗、論理削除を確認する。
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-CARD-01 | write | [Card の保存対象だけを新規作成できる](#firestore-card-01) |
-| FIRESTORE-CARD-02 | write | [Card の編集で作成日時と対象外フィールドを維持できる](#firestore-card-02) |
-| FIRESTORE-CARD-03 | write | [Card 作成時に旧個人学習フィールドを除外する](#firestore-card-03) |
-| FIRESTORE-CARD-04 | write | [一括作成の再試行で既存 Card の学習状態を維持する](#firestore-card-04) |
-| FIRESTORE-CARD-05 | batch | [一部の入力失敗を返しつつ有効な Card を保存できる](#firestore-card-05) |
-| FIRESTORE-CARD-06 | write | [保存計画後に物理削除された Card を編集で再作成しない](#firestore-card-06) |
-| FIRESTORE-CARD-07 | write | [Card の削除日時を保存し本文を維持できる](#firestore-card-07) |
-| FIRESTORE-CARD-08 | read | [作成した Card の存在を確認できる](#firestore-card-08) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-CARD-01 | write | 正常系 | [Card の保存対象だけを新規作成できる](#firestore-card-01) |
+| FIRESTORE-CARD-02 | write | 正常系 | [Card の編集で作成日時と対象外フィールドを維持できる](#firestore-card-02) |
+| FIRESTORE-CARD-03 | write | 正常系 | [Card 作成時に旧個人学習フィールドを除外する](#firestore-card-03) |
+| FIRESTORE-CARD-04 | write | 正常系 | [一括作成の再試行で既存 Card の学習状態を維持する](#firestore-card-04) |
+| FIRESTORE-CARD-05 | batch | 異常系 | [一部の入力失敗を返しつつ有効な Card を保存できる](#firestore-card-05) |
+| FIRESTORE-CARD-06 | write | 異常系 | [保存計画後に物理削除された Card を編集で再作成しない](#firestore-card-06) |
+| FIRESTORE-CARD-07 | write | 正常系 | [Card の削除日時を保存し本文を維持できる](#firestore-card-07) |
+| FIRESTORE-CARD-08 | read | 正常系 | [作成した Card の存在を確認できる](#firestore-card-08) |
 
 <a id="firestore-card-01"></a>
 
 ### FIRESTORE-CARD-01 Card の保存対象だけを新規作成できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -52,6 +54,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - 本人の親 Deck と Card が存在し、Card に有効な FSRS を保存して値を取得している。
@@ -70,6 +74,8 @@ Then:
 ### FIRESTORE-CARD-03 Card 作成時に旧個人学習フィールドを除外する
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -90,6 +96,8 @@ Then:
 ### FIRESTORE-CARD-04 一括作成の再試行で既存 Card の学習状態を維持する
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -114,6 +122,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 異常系
+
 Given:
 
 - 本人の親 Deck が存在する。
@@ -136,6 +146,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 本人の親 Deck と Card が存在し、store に編集対象の Card がある。
@@ -157,6 +169,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - 本人の親 Deck と Card が存在し、削除前の保存値を取得している。
@@ -175,6 +189,8 @@ Then:
 ### FIRESTORE-CARD-08 作成した Card の存在を確認できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 

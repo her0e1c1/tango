@@ -20,19 +20,21 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STUDY-ACTIONS-01 | write | [good action で学習結果を保存して次の Card へ進める](#study-actions-01) |
-| STUDY-ACTIONS-02 | write | [again action で学習結果を保存して次の Card へ進める](#study-actions-02) |
-| STUDY-ACTIONS-03 | write | [スキップで次の Card へ進める](#study-actions-03) |
-| STUDY-ACTIONS-04 | read | [学習中に前の Card へ戻れない](#study-actions-04) |
-| STUDY-ACTIONS-05 | write | [学習結果の保存失敗後に同じ Card から再試行できる](#study-actions-05) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STUDY-ACTIONS-01 | write | 正常系 | [good action で学習結果を保存して次の Card へ進める](#study-actions-01) |
+| STUDY-ACTIONS-02 | write | 正常系 | [again action で学習結果を保存して次の Card へ進める](#study-actions-02) |
+| STUDY-ACTIONS-03 | write | 正常系 | [スキップで次の Card へ進める](#study-actions-03) |
+| STUDY-ACTIONS-04 | read | 正常系 | [学習中に前の Card へ戻れない](#study-actions-04) |
+| STUDY-ACTIONS-05 | write | 異常系 | [学習結果の保存失敗後に同じ Card から再試行できる](#study-actions-05) |
 
 <a id="study-actions-01"></a>
 
 ### STUDY-ACTIONS-01 good action で学習結果を保存して次の Card へ進める
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -62,6 +64,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -85,6 +89,8 @@ Then:
 ### STUDY-ACTIONS-03 スキップで次の Card へ進める
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -110,6 +116,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -134,6 +142,8 @@ Then:
 ### STUDY-ACTIONS-05 学習結果の保存失敗後に同じ Card から再試行できる
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 

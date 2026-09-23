@@ -8,17 +8,19 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-RULES-STUDY-SESSION-01 | batch | [本人が private session を作成・取得・更新できる](#firestore-rules-study-session-01) |
-| FIRESTORE-RULES-STUDY-SESSION-02 | batch | [公開 Deck でも他ユーザー・匿名・未認証から session にアクセスできない](#firestore-rules-study-session-02) |
-| FIRESTORE-RULES-STUDY-SESSION-03 | write | [本人でも session の所有者変更と物理削除はできない](#firestore-rules-study-session-03) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-RULES-STUDY-SESSION-01 | batch | 正常系 | [本人が private session を作成・取得・更新できる](#firestore-rules-study-session-01) |
+| FIRESTORE-RULES-STUDY-SESSION-02 | batch | 異常系 | [公開 Deck でも他ユーザー・匿名・未認証から session にアクセスできない](#firestore-rules-study-session-02) |
+| FIRESTORE-RULES-STUDY-SESSION-03 | write | 異常系 | [本人でも session の所有者変更と物理削除はできない](#firestore-rules-study-session-03) |
 
 <a id="firestore-rules-study-session-01"></a>
 
 ### FIRESTORE-RULES-STUDY-SESSION-01 本人が private session を作成・取得・更新できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -40,6 +42,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 異常系
+
 Given:
 
 - UID `uid` の公開 Deck と、その UID の session が存在する。
@@ -58,6 +62,8 @@ Then:
 ### FIRESTORE-RULES-STUDY-SESSION-03 本人でも session の所有者変更と物理削除はできない
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 

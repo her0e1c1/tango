@@ -40,24 +40,26 @@ Card の FSRS 固有の契約は [Card.fsrs](./card-fsrs.md)、StudySession の�
 
 ## 追加テスト仕様一覧（未検証）
 
-| カテゴリ | 追加仕様 | 対象 |
-| --- | --- | --- |
-| read | [空の初期 snapshot で以前のデータを消す](#empty-initial-snapshot) | Card / Deck |
-| read | [初期 snapshot から有効な document だけを反映する](#active-initial-snapshot) | Card / Deck |
-| read | [購読 UID 以外の document を混在させない](#owner-isolation) | Card / Deck |
-| batch | [物理削除で結果から消えた document を store から除く](#physical-deletion) | Card / Deck |
-| batch | [別クライアントの追加・更新を反映する](#remote-client-updates) | Card / Deck |
-| read | [不正な snapshot で直前の正常な結果を壊さない](#invalid-document) | Card / Deck |
-| read | [不正な document の修正後に購読が回復する](#validation-recovery) | Card / Deck |
-| read | [読取拒否を購読エラーとして通知する](#permission-denied) | Card / Deck |
-| read | [購読解除後の snapshot で store を更新しない](#unsubscribe) | Card / Deck |
-| read | [再購読で停止中の変更を含む現在の結果を取得する](#resubscribe) | Card / Deck |
+| カテゴリ | 区分 | 追加仕様 | 対象 |
+| --- | --- | --- | --- |
+| read | 正常系 | [空の初期 snapshot で以前のデータを消す](#empty-initial-snapshot) | Card / Deck |
+| read | 正常系 | [初期 snapshot から有効な document だけを反映する](#active-initial-snapshot) | Card / Deck |
+| read | 正常系 | [購読 UID 以外の document を混在させない](#owner-isolation) | Card / Deck |
+| batch | 正常系 | [物理削除で結果から消えた document を store から除く](#physical-deletion) | Card / Deck |
+| batch | 正常系 | [別クライアントの追加・更新を反映する](#remote-client-updates) | Card / Deck |
+| read | 異常系 | [不正な snapshot で直前の正常な結果を壊さない](#invalid-document) | Card / Deck |
+| read | 異常系 | [不正な document の修正後に購読が回復する](#validation-recovery) | Card / Deck |
+| read | 異常系 | [読取拒否を購読エラーとして通知する](#permission-denied) | Card / Deck |
+| read | 正常系 | [購読解除後の snapshot で store を更新しない](#unsubscribe) | Card / Deck |
+| read | 正常系 | [再購読で停止中の変更を含む現在の結果を取得する](#resubscribe) | Card / Deck |
 
 <a id="empty-initial-snapshot"></a>
 
 ### 空の初期 snapshot で以前のデータを消す
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -78,6 +80,8 @@ Then:
 ### 初期 snapshot から有効な document だけを反映する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -100,6 +104,8 @@ Then:
 ### 購読 UID 以外の document を混在させない
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -124,6 +130,8 @@ Rules による読取拒否ではなく、購読 query の UID 分離を確認�
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - 本人の document A / B が保存され、購読結果として両方が store に反映済みである。
@@ -147,6 +155,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - 本人の UID に対応する購読を開始し、初期結果の反映が完了している。
@@ -169,6 +179,8 @@ Then:
 ### 不正な snapshot で直前の正常な結果を壊さない
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 
@@ -195,6 +207,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - 不正な document B を含む snapshot に対して validation エラーが通知され、同じ購読を継続している。
@@ -217,6 +231,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - 本人とは異なる UID の非公開 Deck、またはその配下の Card を保存している。
@@ -238,6 +254,8 @@ SDK の拒否を mock せず、Adapter の document validation エラーとも�
 ### 購読解除後の snapshot で store を更新しない
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -262,6 +280,8 @@ Then:
 ### 再購読で停止中の変更を含む現在の結果を取得する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 

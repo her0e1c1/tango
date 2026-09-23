@@ -16,25 +16,27 @@ Card 一覧（card-list）と Deck 閲覧（deck-view）で、学習条件とは
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| CARD-FILTER-01 | read | [学習条件にかかわらず Card を全件表示できる](#card-filter-01) |
-| CARD-FILTER-02 | read | [他の Deck のフィルター条件にかかわらず Card を全件表示できる](#card-filter-02) |
-| CARD-FILTER-03 | read | [Card が登録されていない Deck は0件表示になる](#card-filter-03) |
-| CARD-FILTER-04 | read | [フィルターに一致する Card がない場合は0件表示になる](#card-filter-04) |
-| CARD-FILTER-05 | write | [リロード後も同じタグと AND / OR 条件を復元できる](#card-filter-05) |
-| CARD-FILTER-06 | write | [フィルターを解除した状態もリロード後に維持できる](#card-filter-06) |
-| CARD-FILTER-07 | write | [単一タグで Card を絞り込める](#card-filter-07) |
-| CARD-FILTER-08 | write | [AND 条件ですべての選択タグを持つ Card に絞り込める](#card-filter-08) |
-| CARD-FILTER-09 | write | [OR 条件でいずれかの選択タグを持つ Card に絞り込める](#card-filter-09) |
-| CARD-FILTER-10 | read | [絞り込み結果を追加が新しい順にソートできる](#card-filter-10) |
-| CARD-FILTER-11 | read | [絞り込み結果の表示順を標準へ戻せる](#card-filter-11) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| CARD-FILTER-01 | read | 正常系 | [学習条件にかかわらず Card を全件表示できる](#card-filter-01) |
+| CARD-FILTER-02 | read | 正常系 | [他の Deck のフィルター条件にかかわらず Card を全件表示できる](#card-filter-02) |
+| CARD-FILTER-03 | read | 正常系 | [Card が登録されていない Deck は0件表示になる](#card-filter-03) |
+| CARD-FILTER-04 | read | 正常系 | [フィルターに一致する Card がない場合は0件表示になる](#card-filter-04) |
+| CARD-FILTER-05 | write | 正常系 | [リロード後も同じタグと AND / OR 条件を復元できる](#card-filter-05) |
+| CARD-FILTER-06 | write | 正常系 | [フィルターを解除した状態もリロード後に維持できる](#card-filter-06) |
+| CARD-FILTER-07 | write | 正常系 | [単一タグで Card を絞り込める](#card-filter-07) |
+| CARD-FILTER-08 | write | 正常系 | [AND 条件ですべての選択タグを持つ Card に絞り込める](#card-filter-08) |
+| CARD-FILTER-09 | write | 正常系 | [OR 条件でいずれかの選択タグを持つ Card に絞り込める](#card-filter-09) |
+| CARD-FILTER-10 | read | 正常系 | [絞り込み結果を追加が新しい順にソートできる](#card-filter-10) |
+| CARD-FILTER-11 | read | 正常系 | [絞り込み結果の表示順を標準へ戻せる](#card-filter-11) |
 
 <a id="card-filter-01"></a>
 
 ### CARD-FILTER-01 [TODO] 学習条件にかかわらず Card を全件表示できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -67,6 +69,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -91,6 +95,8 @@ Then:
 ### CARD-FILTER-03 [TODO] Card が登録されていない Deck は0件表示になる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -117,6 +123,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -140,6 +148,8 @@ Then:
 ### CARD-FILTER-05 [TODO] リロード後も同じタグと AND / OR 条件を復元できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -167,6 +177,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -189,6 +201,8 @@ Then:
 ### CARD-FILTER-07 [TODO] 単一タグで Card を絞り込める
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -214,6 +228,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
@@ -237,6 +253,8 @@ Then:
 ### CARD-FILTER-09 [TODO] OR 条件でいずれかの選択タグを持つ Card に絞り込める
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -262,6 +280,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
@@ -286,6 +306,8 @@ Then:
 ### CARD-FILTER-11 [TODO] 絞り込み結果の表示順を標準へ戻せる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 

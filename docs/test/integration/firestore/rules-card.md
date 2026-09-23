@@ -8,38 +8,40 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-RULES-CARD-01 | read | [削除済みの公開 Deck 配下または削除済みの Card を第三者が取得できない](#firestore-rules-card-01) |
-| FIRESTORE-RULES-CARD-02 | read | [本人による Card の取得を許可する](#firestore-rules-card-02) |
-| FIRESTORE-RULES-CARD-03 | write | [本人による Card の作成を許可する](#firestore-rules-card-03) |
-| FIRESTORE-RULES-CARD-04 | write | [本人による Card の更新を許可する](#firestore-rules-card-04) |
-| FIRESTORE-RULES-CARD-05 | write | [本人による Card の物理削除を許可する](#firestore-rules-card-05) |
-| FIRESTORE-RULES-CARD-06 | read | [他ユーザーによる Card の非公開データの取得を拒否する](#firestore-rules-card-06) |
-| FIRESTORE-RULES-CARD-07 | read | [他ユーザーによる Card の公開データの取得を許可する](#firestore-rules-card-07) |
-| FIRESTORE-RULES-CARD-08 | write | [他ユーザーによる Card の作成を拒否する](#firestore-rules-card-08) |
-| FIRESTORE-RULES-CARD-09 | write | [他ユーザーによる Card の更新を拒否する](#firestore-rules-card-09) |
-| FIRESTORE-RULES-CARD-10 | write | [他ユーザーによる Card の物理削除を拒否する](#firestore-rules-card-10) |
-| FIRESTORE-RULES-CARD-11 | write | [匿名認証による Card の作成を拒否する](#firestore-rules-card-11) |
-| FIRESTORE-RULES-CARD-12 | write | [匿名認証による Card の更新を拒否する](#firestore-rules-card-12) |
-| FIRESTORE-RULES-CARD-13 | write | [匿名認証による Card の物理削除を拒否する](#firestore-rules-card-13) |
-| FIRESTORE-RULES-CARD-14 | read | [匿名認証による Card の公開データの取得を許可する](#firestore-rules-card-14) |
-| FIRESTORE-RULES-CARD-15 | read | [未認証による Card の非公開データの取得を拒否する](#firestore-rules-card-15) |
-| FIRESTORE-RULES-CARD-16 | read | [未認証による Card の公開データの取得を許可する](#firestore-rules-card-16) |
-| FIRESTORE-RULES-CARD-17 | write | [未認証による Card の作成を拒否する](#firestore-rules-card-17) |
-| FIRESTORE-RULES-CARD-18 | write | [未認証による Card の更新を拒否する](#firestore-rules-card-18) |
-| FIRESTORE-RULES-CARD-19 | write | [未認証による Card の物理削除を拒否する](#firestore-rules-card-19) |
-| FIRESTORE-RULES-CARD-20 | write | [旧個人学習フィールドを Card に書き戻せない](#firestore-rules-card-20) |
-| FIRESTORE-RULES-CARD-21 | write | [本人の FSRS 更新を許可し Card の同一性を維持する](#firestore-rules-card-21) |
-| FIRESTORE-RULES-CARD-22 | write | [公開 Card の FSRS を公開し他人の書込を拒否する](#firestore-rules-card-22) |
-| FIRESTORE-RULES-CARD-23 | write | [FSRS 外形と所有権・削除状態を確認する](#firestore-rules-card-23) |
-| FIRESTORE-RULES-CARD-24 | write | [評価更新で物理削除 Card を再作成しない](#firestore-rules-card-24) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-RULES-CARD-01 | read | 異常系 | [削除済みの公開 Deck 配下または削除済みの Card を第三者が取得できない](#firestore-rules-card-01) |
+| FIRESTORE-RULES-CARD-02 | read | 正常系 | [本人による Card の取得を許可する](#firestore-rules-card-02) |
+| FIRESTORE-RULES-CARD-03 | write | 正常系 | [本人による Card の作成を許可する](#firestore-rules-card-03) |
+| FIRESTORE-RULES-CARD-04 | write | 正常系 | [本人による Card の更新を許可する](#firestore-rules-card-04) |
+| FIRESTORE-RULES-CARD-05 | write | 正常系 | [本人による Card の物理削除を許可する](#firestore-rules-card-05) |
+| FIRESTORE-RULES-CARD-06 | read | 異常系 | [他ユーザーによる Card の非公開データの取得を拒否する](#firestore-rules-card-06) |
+| FIRESTORE-RULES-CARD-07 | read | 正常系 | [他ユーザーによる Card の公開データの取得を許可する](#firestore-rules-card-07) |
+| FIRESTORE-RULES-CARD-08 | write | 異常系 | [他ユーザーによる Card の作成を拒否する](#firestore-rules-card-08) |
+| FIRESTORE-RULES-CARD-09 | write | 異常系 | [他ユーザーによる Card の更新を拒否する](#firestore-rules-card-09) |
+| FIRESTORE-RULES-CARD-10 | write | 異常系 | [他ユーザーによる Card の物理削除を拒否する](#firestore-rules-card-10) |
+| FIRESTORE-RULES-CARD-11 | write | 異常系 | [匿名認証による Card の作成を拒否する](#firestore-rules-card-11) |
+| FIRESTORE-RULES-CARD-12 | write | 異常系 | [匿名認証による Card の更新を拒否する](#firestore-rules-card-12) |
+| FIRESTORE-RULES-CARD-13 | write | 異常系 | [匿名認証による Card の物理削除を拒否する](#firestore-rules-card-13) |
+| FIRESTORE-RULES-CARD-14 | read | 正常系 | [匿名認証による Card の公開データの取得を許可する](#firestore-rules-card-14) |
+| FIRESTORE-RULES-CARD-15 | read | 異常系 | [未認証による Card の非公開データの取得を拒否する](#firestore-rules-card-15) |
+| FIRESTORE-RULES-CARD-16 | read | 正常系 | [未認証による Card の公開データの取得を許可する](#firestore-rules-card-16) |
+| FIRESTORE-RULES-CARD-17 | write | 異常系 | [未認証による Card の作成を拒否する](#firestore-rules-card-17) |
+| FIRESTORE-RULES-CARD-18 | write | 異常系 | [未認証による Card の更新を拒否する](#firestore-rules-card-18) |
+| FIRESTORE-RULES-CARD-19 | write | 異常系 | [未認証による Card の物理削除を拒否する](#firestore-rules-card-19) |
+| FIRESTORE-RULES-CARD-20 | write | 異常系 | [旧個人学習フィールドを Card に書き戻せない](#firestore-rules-card-20) |
+| FIRESTORE-RULES-CARD-21 | write | 正常系 / 異常系 | [本人の FSRS 更新を許可し Card の同一性を維持する](#firestore-rules-card-21) |
+| FIRESTORE-RULES-CARD-22 | write | 正常系 / 異常系 | [公開 Card の FSRS を公開し他人の書込を拒否する](#firestore-rules-card-22) |
+| FIRESTORE-RULES-CARD-23 | write | 正常系 / 異常系 | [FSRS 外形と所有権・削除状態を確認する](#firestore-rules-card-23) |
+| FIRESTORE-RULES-CARD-24 | write | 異常系 | [評価更新で物理削除 Card を再作成しない](#firestore-rules-card-24) |
 
 <a id="firestore-rules-card-01"></a>
 
 ### FIRESTORE-RULES-CARD-01 削除済みの公開 Deck 配下または削除済みの Card を第三者が取得できない
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 
@@ -63,6 +65,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -81,6 +85,8 @@ Then:
 ### FIRESTORE-RULES-CARD-03 本人による Card の作成を許可する
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -102,6 +108,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -122,6 +130,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -140,6 +150,8 @@ Then:
 ### FIRESTORE-RULES-CARD-06 他ユーザーによる Card の非公開データの取得を拒否する
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 
@@ -160,6 +172,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -178,6 +192,8 @@ Then:
 ### FIRESTORE-RULES-CARD-08 他ユーザーによる Card の作成を拒否する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -198,6 +214,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -216,6 +234,8 @@ Then:
 ### FIRESTORE-RULES-CARD-10 他ユーザーによる Card の物理削除を拒否する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -236,6 +256,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 匿名認証の UID `uid` で、Deck と Card のそれぞれを検証する。
@@ -254,6 +276,8 @@ Then:
 ### FIRESTORE-RULES-CARD-12 匿名認証による Card の更新を拒否する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -274,6 +298,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 匿名認証の UID `uid` で、Deck と Card のそれぞれを検証する。
@@ -292,6 +318,8 @@ Then:
 ### FIRESTORE-RULES-CARD-14 匿名認証による Card の公開データの取得を許可する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -312,6 +340,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -330,6 +360,8 @@ Then:
 ### FIRESTORE-RULES-CARD-16 未認証による Card の公開データの取得を許可する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -350,6 +382,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -368,6 +402,8 @@ Then:
 ### FIRESTORE-RULES-CARD-18 未認証による Card の更新を拒否する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -388,6 +424,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -407,6 +445,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 本人の Deck と fsrs: null の Card がある。
@@ -424,6 +464,8 @@ Then:
 ### FIRESTORE-RULES-CARD-21 本人の FSRS 更新を許可し Card の同一性を維持する
 
 カテゴリ: `write`
+
+区分: 正常系 / 異常系
 
 Given:
 
@@ -443,6 +485,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系 / 異常系
+
 Given:
 
 - 公開 Deck の評価済み Card がある。
@@ -461,6 +505,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系 / 異常系
+
 Given:
 
 - 本人の Deck と Card がある。
@@ -478,6 +524,8 @@ Then:
 ### FIRESTORE-RULES-CARD-24 評価更新で物理削除 Card を再作成しない
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 

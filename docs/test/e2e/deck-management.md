@@ -6,22 +6,24 @@ Deck を作成・編集・削除でき、失敗後も再試行できることを
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| DECK-MANAGEMENT-01 | write | [Deck 編集内容を保存して reload 後も確認できる](#deck-management-01) |
-| DECK-MANAGEMENT-02 | batch | [Deck と関連データをまとめて削除できる](#deck-management-02) |
-| DECK-MANAGEMENT-03 | read | [Deck の削除を取り消せる](#deck-management-03) |
-| DECK-MANAGEMENT-04 | batch | [Deck の削除失敗後に再試行できる](#deck-management-04) |
-| DECK-MANAGEMENT-05 | write | [ログイン中に空の Deck を作成して reload 後も確認できる](#deck-management-05) |
-| DECK-MANAGEMENT-06 | write | [ログイン中の Deck 作成失敗を通知できる](#deck-management-06) |
-| DECK-MANAGEMENT-07 | write | [匿名で空の Deck を作成して reload 後も確認できる](#deck-management-07) |
-| DECK-MANAGEMENT-08 | read | [未保存の Deck 編集内容を離脱前に確認できる](#deck-management-08) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| DECK-MANAGEMENT-01 | write | 正常系 | [Deck 編集内容を保存して reload 後も確認できる](#deck-management-01) |
+| DECK-MANAGEMENT-02 | batch | 正常系 | [Deck と関連データをまとめて削除できる](#deck-management-02) |
+| DECK-MANAGEMENT-03 | read | 正常系 | [Deck の削除を取り消せる](#deck-management-03) |
+| DECK-MANAGEMENT-04 | batch | 異常系 | [Deck の削除失敗後に再試行できる](#deck-management-04) |
+| DECK-MANAGEMENT-05 | write | 正常系 | [ログイン中に空の Deck を作成して reload 後も確認できる](#deck-management-05) |
+| DECK-MANAGEMENT-06 | write | 異常系 | [ログイン中の Deck 作成失敗を通知できる](#deck-management-06) |
+| DECK-MANAGEMENT-07 | write | 正常系 | [匿名で空の Deck を作成して reload 後も確認できる](#deck-management-07) |
+| DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を離脱前に確認できる](#deck-management-08) |
 
 <a id="deck-management-01"></a>
 
 ### DECK-MANAGEMENT-01 Deck 編集内容を保存して reload 後も確認できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -43,6 +45,8 @@ Then:
 ### DECK-MANAGEMENT-02 Deck と関連データをまとめて削除できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -70,6 +74,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -93,6 +99,8 @@ Then:
 ### DECK-MANAGEMENT-04 Deck の削除失敗後に再試行できる
 
 カテゴリ: `batch`
+
+区分: 異常系
 
 Given:
 
@@ -123,6 +131,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -146,6 +156,8 @@ Then:
 ### DECK-MANAGEMENT-06 ログイン中の Deck 作成失敗を通知できる
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -171,6 +183,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -195,6 +209,8 @@ Then:
 ### DECK-MANAGEMENT-08 未保存の Deck 編集内容を離脱前に確認できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 

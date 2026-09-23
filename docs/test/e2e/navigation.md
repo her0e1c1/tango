@@ -6,19 +6,21 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| NAVIGATION-01 | read | [存在しない route から Deck 一覧へ復帰できる](#navigation-01) |
-| NAVIGATION-02 | read | [画面の keyboard shortcut で主要 route へ遷移できる](#navigation-02) |
-| NAVIGATION-03 | write | [共通エラー画面が現在の言語で表示され Reload で復旧する](#navigation-03) |
-| NAVIGATION-04 | read | [処理中の予期しないエラーから復旧できる](#navigation-04) |
-| NAVIGATION-05 | write | [不正な PWA キャッシュによる起動失敗から復旧できる](#navigation-05) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| NAVIGATION-01 | read | 異常系 | [存在しない route から Deck 一覧へ復帰できる](#navigation-01) |
+| NAVIGATION-02 | read | 正常系 | [画面の keyboard shortcut で主要 route へ遷移できる](#navigation-02) |
+| NAVIGATION-03 | write | 異常系 | [共通エラー画面が現在の言語で表示され Reload で復旧する](#navigation-03) |
+| NAVIGATION-04 | read | 異常系 | [処理中の予期しないエラーから復旧できる](#navigation-04) |
+| NAVIGATION-05 | write | 異常系 | [不正な PWA キャッシュによる起動失敗から復旧できる](#navigation-05) |
 
 <a id="navigation-01"></a>
 
 ### NAVIGATION-01 存在しない route から Deck 一覧へ復帰できる
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 
@@ -42,6 +44,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -63,6 +67,8 @@ Then:
 ### NAVIGATION-03 共通エラー画面が現在の言語で表示され Reload で復旧する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -91,6 +97,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -114,6 +122,8 @@ Then:
 ### NAVIGATION-05 不正な PWA キャッシュによる起動失敗から復旧できる
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 

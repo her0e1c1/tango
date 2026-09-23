@@ -15,19 +15,21 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| ACCOUNT-01 | batch | [匿名アカウントを Google アカウントに連携してデータを維持できる](#account-01) |
-| ACCOUNT-02 | write | [Google sign-in のエラー表示から再試行できる](#account-02) |
-| ACCOUNT-03 | batch | [sign-out 後に新しい匿名アカウントへ切り替えられる](#account-03) |
-| ACCOUNT-04 | read | [認証初期化失敗から Reload で復帰できる](#account-04) |
-| ACCOUNT-05 | batch | [処理中と通知表示中の言語変更を通知に反映できる](#account-05) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| ACCOUNT-01 | batch | 正常系 | [匿名アカウントを Google アカウントに連携してデータを維持できる](#account-01) |
+| ACCOUNT-02 | write | 異常系 | [Google sign-in のエラー表示から再試行できる](#account-02) |
+| ACCOUNT-03 | batch | 正常系 | [sign-out 後に新しい匿名アカウントへ切り替えられる](#account-03) |
+| ACCOUNT-04 | read | 異常系 | [認証初期化失敗から Reload で復帰できる](#account-04) |
+| ACCOUNT-05 | batch | 正常系 | [処理中と通知表示中の言語変更を通知に反映できる](#account-05) |
 
 <a id="account-01"></a>
 
 ### ACCOUNT-01 匿名アカウントを Google アカウントに連携してデータを維持できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -58,6 +60,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -81,6 +85,8 @@ Then:
 ### ACCOUNT-03 sign-out 後に新しい匿名アカウントへ切り替えられる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -110,6 +116,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -132,6 +140,8 @@ Then:
 ### ACCOUNT-05 処理中と通知表示中の言語変更を通知に反映できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 

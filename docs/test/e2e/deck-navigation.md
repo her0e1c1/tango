@@ -7,30 +7,32 @@ Deck と Card 一覧の主要な画面を開き、存在しない Deck から利
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| DECK-NAVIGATION-01 | read | [Deck 一覧から Card 一覧へ遷移できる](#deck-navigation-01) |
-| DECK-NAVIGATION-02 | read | [存在しない Deck から復帰できる](#deck-navigation-02) |
-| DECK-NAVIGATION-03 | read | [ログイン中の Deck を学習データを変更せずに閲覧できる](#deck-navigation-03) |
-| DECK-NAVIGATION-04 | read | [匿名利用中の Deck を先頭から閲覧し直せる](#deck-navigation-04) |
-| DECK-NAVIGATION-05 | read | [学習条件に依存せず全 Card を標準順で閲覧できる](#deck-navigation-05) |
-| DECK-NAVIGATION-06 | read | [復習期日前の Card も閲覧できる](#deck-navigation-06) |
-| DECK-NAVIGATION-07 | read | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](#deck-navigation-07) |
-| DECK-NAVIGATION-08 | read | [1件の Card の長い解答を touch で閲覧して終了できる](#deck-navigation-08) |
-| DECK-NAVIGATION-09 | write | [閲覧と学習で表示設定と操作ヘルプを共有できる](#deck-navigation-09) |
-| DECK-NAVIGATION-10 | read | [学習データを変更せずに閲覧を自動再生できる](#deck-navigation-10) |
-| DECK-NAVIGATION-11 | read | [閲覧の進捗スライダーで前後へ移動できる](#deck-navigation-11) |
-| DECK-NAVIGATION-12 | read | [読み込み済みの復習件数と学習導線を表示できる](#deck-navigation-12) |
-| DECK-NAVIGATION-13 | read | [復習期限の到達で一覧を更新できる](#deck-navigation-13) |
-| DECK-NAVIGATION-14 | write | [view mode で長い表面を読みながら移動を防止できる](#deck-navigation-14) |
-| DECK-NAVIGATION-15 | write | [閲覧の view mode 終了後に通常の表裏操作へ戻れる](#deck-navigation-15) |
-| DECK-NAVIGATION-16 | write | [view mode 中も閲覧ボタンと自動再生を使える](#deck-navigation-16) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| DECK-NAVIGATION-01 | read | 正常系 | [Deck 一覧から Card 一覧へ遷移できる](#deck-navigation-01) |
+| DECK-NAVIGATION-02 | read | 異常系 | [存在しない Deck から復帰できる](#deck-navigation-02) |
+| DECK-NAVIGATION-03 | read | 正常系 | [ログイン中の Deck を学習データを変更せずに閲覧できる](#deck-navigation-03) |
+| DECK-NAVIGATION-04 | read | 正常系 | [匿名利用中の Deck を先頭から閲覧し直せる](#deck-navigation-04) |
+| DECK-NAVIGATION-05 | read | 正常系 | [学習条件に依存せず全 Card を標準順で閲覧できる](#deck-navigation-05) |
+| DECK-NAVIGATION-06 | read | 正常系 | [復習期日前の Card も閲覧できる](#deck-navigation-06) |
+| DECK-NAVIGATION-07 | read | 正常系 / 異常系 | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](#deck-navigation-07) |
+| DECK-NAVIGATION-08 | read | 正常系 | [1件の Card の長い解答を touch で閲覧して終了できる](#deck-navigation-08) |
+| DECK-NAVIGATION-09 | write | 正常系 | [閲覧と学習で表示設定と操作ヘルプを共有できる](#deck-navigation-09) |
+| DECK-NAVIGATION-10 | read | 正常系 | [学習データを変更せずに閲覧を自動再生できる](#deck-navigation-10) |
+| DECK-NAVIGATION-11 | read | 正常系 | [閲覧の進捗スライダーで前後へ移動できる](#deck-navigation-11) |
+| DECK-NAVIGATION-12 | read | 正常系 | [読み込み済みの復習件数と学習導線を表示できる](#deck-navigation-12) |
+| DECK-NAVIGATION-13 | read | 正常系 | [復習期限の到達で一覧を更新できる](#deck-navigation-13) |
+| DECK-NAVIGATION-14 | write | 正常系 | [view mode で長い表面を読みながら移動を防止できる](#deck-navigation-14) |
+| DECK-NAVIGATION-15 | write | 正常系 | [閲覧の view mode 終了後に通常の表裏操作へ戻れる](#deck-navigation-15) |
+| DECK-NAVIGATION-16 | write | 正常系 | [view mode 中も閲覧ボタンと自動再生を使える](#deck-navigation-16) |
 
 <a id="deck-navigation-01"></a>
 
 ### DECK-NAVIGATION-01 Deck 一覧から Card 一覧へ遷移できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -64,6 +66,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -83,6 +87,8 @@ Then:
 ### DECK-NAVIGATION-03 ログイン中の Deck を学習データを変更せずに閲覧できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -114,6 +120,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
@@ -137,6 +145,8 @@ Then:
 ### DECK-NAVIGATION-05 学習条件に依存せず全 Card を標準順で閲覧できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 検証状況: 未実装
 
@@ -165,6 +175,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 検証状況: 未実装
 
 Given:
@@ -189,6 +201,8 @@ Then:
 ### DECK-NAVIGATION-07 閲覧対象が空または Deck が存在しない場合に一覧へ戻れる
 
 カテゴリ: `read`
+
+区分: 正常系 / 異常系
 
 検証状況: 未実装
 
@@ -215,6 +229,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
@@ -238,6 +254,8 @@ Then:
 ### DECK-NAVIGATION-09 閲覧と学習で表示設定と操作ヘルプを共有できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -268,6 +286,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -296,6 +316,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-start-local`](./fixture/study-session-start-local.yaml)
@@ -321,6 +343,8 @@ Then:
 ### DECK-NAVIGATION-12 読み込み済みの復習件数と学習導線を表示できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -351,6 +375,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
@@ -375,6 +401,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
@@ -396,6 +424,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -415,6 +445,8 @@ Then:
 ### DECK-NAVIGATION-16 view mode 中も閲覧ボタンと自動再生を使える
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 

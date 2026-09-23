@@ -6,25 +6,27 @@ Settings で変更した設定が再読み込み後も維持され、学習の�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| SETTINGS-01 | write | [Dark mode を自動保存して reload 後も反映できる](#settings-01) |
-| SETTINGS-02 | write | [Maximum cards 設定を学習開始画面に反映できる](#settings-02) |
-| SETTINGS-03 | batch | [Respect review schedule を次の学習 session に反映できる](#settings-03) |
-| SETTINGS-04 | write | [日本語設定を自動保存して reload 後も反映できる](#settings-04) |
-| SETTINGS-05 | write | [System 設定でブラウザーの言語を reload 後も反映できる](#settings-05) |
-| SETTINGS-06 | read | [無効な保存済み設定から現在の既定値へ復旧できる](#settings-06) |
-| SETTINGS-07 | read | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](#settings-07) |
-| SETTINGS-08 | write | [Card の検証エラーが言語変更に追随し入力を保持する](#settings-08) |
-| SETTINGS-09 | write | [CSV の検証結果が再読み込みなしで言語変更に追随する](#settings-09) |
-| SETTINGS-10 | write | [自動再生の間隔の0の意味を表示して reload 後も維持できる](#settings-10) |
-| SETTINGS-11 | batch | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](#settings-11) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| SETTINGS-01 | write | 正常系 | [Dark mode を自動保存して reload 後も反映できる](#settings-01) |
+| SETTINGS-02 | write | 正常系 | [Maximum cards 設定を学習開始画面に反映できる](#settings-02) |
+| SETTINGS-03 | batch | 正常系 | [Respect review schedule を次の学習 session に反映できる](#settings-03) |
+| SETTINGS-04 | write | 正常系 | [日本語設定を自動保存して reload 後も反映できる](#settings-04) |
+| SETTINGS-05 | write | 正常系 | [System 設定でブラウザーの言語を reload 後も反映できる](#settings-05) |
+| SETTINGS-06 | read | 異常系 | [無効な保存済み設定から現在の既定値へ復旧できる](#settings-06) |
+| SETTINGS-07 | read | 正常系 | [詳細設定をキーボードで開閉してフォーカス位置を確認できる](#settings-07) |
+| SETTINGS-08 | write | 異常系 | [Card の検証エラーが言語変更に追随し入力を保持する](#settings-08) |
+| SETTINGS-09 | write | 異常系 | [CSV の検証結果が再読み込みなしで言語変更に追随する](#settings-09) |
+| SETTINGS-10 | write | 正常系 | [自動再生の間隔の0の意味を表示して reload 後も維持できる](#settings-10) |
+| SETTINGS-11 | batch | 正常系 | [間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる](#settings-11) |
 
 <a id="settings-01"></a>
 
 ### SETTINGS-01 Dark mode を自動保存して reload 後も反映できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -46,6 +48,8 @@ Then:
 ### SETTINGS-02 Maximum cards 設定を学習開始画面に反映できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -72,6 +76,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
@@ -97,6 +103,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -119,6 +127,8 @@ Then:
 ### SETTINGS-05 System 設定でブラウザーの言語を reload 後も反映できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -144,6 +154,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -167,6 +179,8 @@ Then:
 ### SETTINGS-07 詳細設定をキーボードで開閉してフォーカス位置を確認できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -194,6 +208,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`remote-deck-with-card`](./fixture/remote-deck-with-card.yaml)
@@ -215,6 +231,8 @@ Then:
 ### SETTINGS-09 CSV の検証結果が再読み込みなしで言語変更に追随する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -240,6 +258,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -263,6 +283,8 @@ Then:
 ### SETTINGS-11 間隔0から正の値へ戻して同じ学習 session の再生操作を利用できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 

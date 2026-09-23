@@ -6,25 +6,27 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STUDY-CONTROLS-01 | write | [ログイン中の Deck で primary mouse の上方向 drag により次の Card へ進める](#study-controls-01) |
-| STUDY-CONTROLS-02 | read | [non-primary mouse の drag を無視できる](#study-controls-02) |
-| STUDY-CONTROLS-03 | write | [匿名利用中の Deck で primary mouse の上方向 drag により次の Card へ進める](#study-controls-03) |
-| STUDY-CONTROLS-04 | read | [Help dialog に現在の操作の割り当てを表示できる](#study-controls-04) |
-| STUDY-CONTROLS-05 | write | [Help button の表示設定を reload 後も維持できる](#study-controls-05) |
-| STUDY-CONTROLS-06 | write | [view mode で長い表面を操作の誤発火なくスクロールできる](#study-controls-06) |
-| STUDY-CONTROLS-07 | write | [view mode をタップまたは Enter で終了して表面を維持できる](#study-controls-07) |
-| STUDY-CONTROLS-08 | batch | [view mode 中も評価ボタンと自動再生で次の Card へ進める](#study-controls-08) |
-| STUDY-CONTROLS-09 | write | [view mode 設定を閲覧・学習・reload 間で共有できる](#study-controls-09) |
-| STUDY-CONTROLS-10 | write | [横向きの短い画面でも本文と操作ボタンに到達できる](#study-controls-10) |
-| STUDY-CONTROLS-11 | write | [view mode でタッチスクロールとピンチ拡大ができる](#study-controls-11) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STUDY-CONTROLS-01 | write | 正常系 | [ログイン中の Deck で primary mouse の上方向 drag により次の Card へ進める](#study-controls-01) |
+| STUDY-CONTROLS-02 | read | 正常系 | [non-primary mouse の drag を無視できる](#study-controls-02) |
+| STUDY-CONTROLS-03 | write | 正常系 | [匿名利用中の Deck で primary mouse の上方向 drag により次の Card へ進める](#study-controls-03) |
+| STUDY-CONTROLS-04 | read | 正常系 | [Help dialog に現在の操作の割り当てを表示できる](#study-controls-04) |
+| STUDY-CONTROLS-05 | write | 正常系 | [Help button の表示設定を reload 後も維持できる](#study-controls-05) |
+| STUDY-CONTROLS-06 | write | 正常系 | [view mode で長い表面を操作の誤発火なくスクロールできる](#study-controls-06) |
+| STUDY-CONTROLS-07 | write | 正常系 | [view mode をタップまたは Enter で終了して表面を維持できる](#study-controls-07) |
+| STUDY-CONTROLS-08 | batch | 正常系 | [view mode 中も評価ボタンと自動再生で次の Card へ進める](#study-controls-08) |
+| STUDY-CONTROLS-09 | write | 正常系 | [view mode 設定を閲覧・学習・reload 間で共有できる](#study-controls-09) |
+| STUDY-CONTROLS-10 | write | 正常系 | [横向きの短い画面でも本文と操作ボタンに到達できる](#study-controls-10) |
+| STUDY-CONTROLS-11 | write | 正常系 | [view mode でタッチスクロールとピンチ拡大ができる](#study-controls-11) |
 
 <a id="study-controls-01"></a>
 
 ### STUDY-CONTROLS-01 ログイン中の Deck で primary mouse の上方向 drag により次の Card へ進める
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -50,6 +52,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -71,6 +75,8 @@ Then:
 ### STUDY-CONTROLS-03 匿名利用中の Deck で primary mouse の上方向 drag により次の Card へ進める
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -95,6 +101,8 @@ Then:
 ### STUDY-CONTROLS-04 Help dialog に現在の操作の割り当てを表示できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -129,6 +137,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-help`](./fixture/study-session-help.yaml)
@@ -152,6 +162,8 @@ Then:
 ### STUDY-CONTROLS-06 view mode で長い表面を操作の誤発火なくスクロールできる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -177,6 +189,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -199,6 +213,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -220,6 +236,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -239,6 +257,8 @@ Then:
 ### STUDY-CONTROLS-10 横向きの短い画面でも本文と操作ボタンに到達できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -260,6 +280,8 @@ Then:
 ### STUDY-CONTROLS-11 view mode でタッチスクロールとピンチ拡大ができる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 

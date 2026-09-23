@@ -6,20 +6,22 @@ Card 一覧と Card view で学習情報・裏面を表示し、overlay や存�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| CARD-VIEW-01 | read | [Card 一覧に学習情報を表示できる](#card-view-01) |
-| CARD-VIEW-02 | read | [Card の裏面 overlay を開ける](#card-view-02) |
-| CARD-VIEW-03 | read | [開いている Card の裏面 overlay を閉じられる](#card-view-03) |
-| CARD-VIEW-04 | read | [Card view を直接開ける](#card-view-04) |
-| CARD-VIEW-05 | read | [存在しない Card から復帰できる](#card-view-05) |
-| CARD-VIEW-06 | write | [評価後の記憶状態を確認できる](#card-view-06) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| CARD-VIEW-01 | read | 正常系 | [Card 一覧に学習情報を表示できる](#card-view-01) |
+| CARD-VIEW-02 | read | 正常系 | [Card の裏面 overlay を開ける](#card-view-02) |
+| CARD-VIEW-03 | read | 正常系 | [開いている Card の裏面 overlay を閉じられる](#card-view-03) |
+| CARD-VIEW-04 | read | 正常系 | [Card view を直接開ける](#card-view-04) |
+| CARD-VIEW-05 | read | 異常系 | [存在しない Card から復帰できる](#card-view-05) |
+| CARD-VIEW-06 | write | 正常系 | [評価後の記憶状態を確認できる](#card-view-06) |
 
 <a id="card-view-01"></a>
 
 ### CARD-VIEW-01 Card 一覧に学習情報を表示できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -42,6 +44,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -62,6 +66,8 @@ Then:
 ### CARD-VIEW-03 開いている Card の裏面 overlay を閉じられる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -85,6 +91,8 @@ Then:
 ### CARD-VIEW-04 Card view を直接開ける
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -110,6 +118,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -129,6 +139,8 @@ Then:
 ### CARD-VIEW-06 評価後の記憶状態を確認できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 

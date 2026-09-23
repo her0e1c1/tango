@@ -8,38 +8,40 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-RULES-DECK-01 | read | [削除済みの公開 Deck を第三者が取得できない](#firestore-rules-deck-01) |
-| FIRESTORE-RULES-DECK-02 | read | [本人による Deck の取得を許可する](#firestore-rules-deck-02) |
-| FIRESTORE-RULES-DECK-03 | write | [本人による Deck の作成を許可する](#firestore-rules-deck-03) |
-| FIRESTORE-RULES-DECK-04 | write | [本人による Deck の更新を許可する](#firestore-rules-deck-04) |
-| FIRESTORE-RULES-DECK-05 | write | [本人による Deck の物理削除を許可する](#firestore-rules-deck-05) |
-| FIRESTORE-RULES-DECK-06 | read | [他ユーザーによる Deck の非公開データの取得を拒否する](#firestore-rules-deck-06) |
-| FIRESTORE-RULES-DECK-07 | read | [他ユーザーによる Deck の公開データの取得を許可する](#firestore-rules-deck-07) |
-| FIRESTORE-RULES-DECK-08 | write | [他ユーザーによる Deck の作成を拒否する](#firestore-rules-deck-08) |
-| FIRESTORE-RULES-DECK-09 | write | [他ユーザーによる Deck の更新を拒否する](#firestore-rules-deck-09) |
-| FIRESTORE-RULES-DECK-10 | write | [他ユーザーによる Deck の物理削除を拒否する](#firestore-rules-deck-10) |
-| FIRESTORE-RULES-DECK-11 | write | [匿名認証による Deck の作成を拒否する](#firestore-rules-deck-11) |
-| FIRESTORE-RULES-DECK-12 | write | [匿名認証による Deck の更新を拒否する](#firestore-rules-deck-12) |
-| FIRESTORE-RULES-DECK-13 | write | [匿名認証による Deck の物理削除を拒否する](#firestore-rules-deck-13) |
-| FIRESTORE-RULES-DECK-14 | read | [匿名認証による Deck の公開データの取得を許可する](#firestore-rules-deck-14) |
-| FIRESTORE-RULES-DECK-15 | read | [未認証による Deck の非公開データの取得を拒否する](#firestore-rules-deck-15) |
-| FIRESTORE-RULES-DECK-16 | read | [未認証による Deck の公開データの取得を許可する](#firestore-rules-deck-16) |
-| FIRESTORE-RULES-DECK-17 | write | [未認証による Deck の作成を拒否する](#firestore-rules-deck-17) |
-| FIRESTORE-RULES-DECK-18 | write | [未認証による Deck の更新を拒否する](#firestore-rules-deck-18) |
-| FIRESTORE-RULES-DECK-19 | write | [未認証による Deck の物理削除を拒否する](#firestore-rules-deck-19) |
-| FIRESTORE-RULES-DECK-20 | write | [本人による所有者 UID の変更・削除を拒否する](#firestore-rules-deck-20) |
-| FIRESTORE-RULES-DECK-21 | write | [他人の Deck の所有者を自分にする更新・上書きを拒否する](#firestore-rules-deck-21) |
-| FIRESTORE-RULES-DECK-22 | read | [本人の UID で絞った Deck 一覧取得を許可する](#firestore-rules-deck-22) |
-| FIRESTORE-RULES-DECK-23 | read | [権限を保証できない Deck 一覧取得を拒否する](#firestore-rules-deck-23) |
-| FIRESTORE-RULES-DECK-24 | read | [匿名認証による他人の非公開 Deck 取得を拒否する](#firestore-rules-deck-24) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-RULES-DECK-01 | read | 正常系 / 異常系 | [削除済みの公開 Deck を第三者が取得できない](#firestore-rules-deck-01) |
+| FIRESTORE-RULES-DECK-02 | read | 正常系 | [本人による Deck の取得を許可する](#firestore-rules-deck-02) |
+| FIRESTORE-RULES-DECK-03 | write | 正常系 | [本人による Deck の作成を許可する](#firestore-rules-deck-03) |
+| FIRESTORE-RULES-DECK-04 | write | 正常系 | [本人による Deck の更新を許可する](#firestore-rules-deck-04) |
+| FIRESTORE-RULES-DECK-05 | write | 正常系 | [本人による Deck の物理削除を許可する](#firestore-rules-deck-05) |
+| FIRESTORE-RULES-DECK-06 | read | 異常系 | [他ユーザーによる Deck の非公開データの取得を拒否する](#firestore-rules-deck-06) |
+| FIRESTORE-RULES-DECK-07 | read | 正常系 | [他ユーザーによる Deck の公開データの取得を許可する](#firestore-rules-deck-07) |
+| FIRESTORE-RULES-DECK-08 | write | 異常系 | [他ユーザーによる Deck の作成を拒否する](#firestore-rules-deck-08) |
+| FIRESTORE-RULES-DECK-09 | write | 異常系 | [他ユーザーによる Deck の更新を拒否する](#firestore-rules-deck-09) |
+| FIRESTORE-RULES-DECK-10 | write | 異常系 | [他ユーザーによる Deck の物理削除を拒否する](#firestore-rules-deck-10) |
+| FIRESTORE-RULES-DECK-11 | write | 異常系 | [匿名認証による Deck の作成を拒否する](#firestore-rules-deck-11) |
+| FIRESTORE-RULES-DECK-12 | write | 異常系 | [匿名認証による Deck の更新を拒否する](#firestore-rules-deck-12) |
+| FIRESTORE-RULES-DECK-13 | write | 異常系 | [匿名認証による Deck の物理削除を拒否する](#firestore-rules-deck-13) |
+| FIRESTORE-RULES-DECK-14 | read | 正常系 | [匿名認証による Deck の公開データの取得を許可する](#firestore-rules-deck-14) |
+| FIRESTORE-RULES-DECK-15 | read | 異常系 | [未認証による Deck の非公開データの取得を拒否する](#firestore-rules-deck-15) |
+| FIRESTORE-RULES-DECK-16 | read | 正常系 | [未認証による Deck の公開データの取得を許可する](#firestore-rules-deck-16) |
+| FIRESTORE-RULES-DECK-17 | write | 異常系 | [未認証による Deck の作成を拒否する](#firestore-rules-deck-17) |
+| FIRESTORE-RULES-DECK-18 | write | 異常系 | [未認証による Deck の更新を拒否する](#firestore-rules-deck-18) |
+| FIRESTORE-RULES-DECK-19 | write | 異常系 | [未認証による Deck の物理削除を拒否する](#firestore-rules-deck-19) |
+| FIRESTORE-RULES-DECK-20 | write | 異常系 | [本人による所有者 UID の変更・削除を拒否する](#firestore-rules-deck-20) |
+| FIRESTORE-RULES-DECK-21 | write | 異常系 | [他人の Deck の所有者を自分にする更新・上書きを拒否する](#firestore-rules-deck-21) |
+| FIRESTORE-RULES-DECK-22 | read | 正常系 | [本人の UID で絞った Deck 一覧取得を許可する](#firestore-rules-deck-22) |
+| FIRESTORE-RULES-DECK-23 | read | 異常系 | [権限を保証できない Deck 一覧取得を拒否する](#firestore-rules-deck-23) |
+| FIRESTORE-RULES-DECK-24 | read | 異常系 | [匿名認証による他人の非公開 Deck 取得を拒否する](#firestore-rules-deck-24) |
 
 <a id="firestore-rules-deck-01"></a>
 
 ### FIRESTORE-RULES-DECK-01 削除済みの公開 Deck を第三者が取得できない
 
 カテゴリ: `read`
+
+区分: 正常系 / 異常系
 
 Given:
 
@@ -62,6 +64,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -80,6 +84,8 @@ Then:
 ### FIRESTORE-RULES-DECK-03 本人による Deck の作成を許可する
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -100,6 +106,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -118,6 +126,8 @@ Then:
 ### FIRESTORE-RULES-DECK-05 本人による Deck の物理削除を許可する
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -138,6 +148,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -156,6 +168,8 @@ Then:
 ### FIRESTORE-RULES-DECK-07 他ユーザーによる Deck の公開データの取得を許可する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -176,6 +190,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -194,6 +210,8 @@ Then:
 ### FIRESTORE-RULES-DECK-09 他ユーザーによる Deck の更新を拒否する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -214,6 +232,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -232,6 +252,8 @@ Then:
 ### FIRESTORE-RULES-DECK-11 匿名認証による Deck の作成を拒否する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -252,6 +274,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 匿名認証の UID `uid` で操作する。
@@ -270,6 +294,8 @@ Then:
 ### FIRESTORE-RULES-DECK-13 匿名認証による Deck の物理削除を拒否する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -290,6 +316,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - 匿名認証の UID `uid` で操作する。
@@ -308,6 +336,8 @@ Then:
 ### FIRESTORE-RULES-DECK-15 未認証による Deck の非公開データの取得を拒否する
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 
@@ -328,6 +358,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -346,6 +378,8 @@ Then:
 ### FIRESTORE-RULES-DECK-17 未認証による Deck の作成を拒否する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -366,6 +400,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -385,6 +421,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -403,6 +441,8 @@ Then:
 ### FIRESTORE-RULES-DECK-20 本人による所有者 UID の変更・削除を拒否する
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 
@@ -424,6 +464,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -443,6 +485,8 @@ Then:
 ### FIRESTORE-RULES-DECK-22 本人の UID で絞った Deck 一覧取得を許可する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -465,6 +509,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - 所有者 UID `uid` の公開 Deck と非公開 Deck を事前保存する。両方とも `deletedAt: null` とする。
@@ -484,6 +530,8 @@ Then:
 ### FIRESTORE-RULES-DECK-24 匿名認証による他人の非公開 Deck 取得を拒否する
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 
