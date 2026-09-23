@@ -1,41 +1,5 @@
 # Firestore 結合テスト仕様書
 
-アプリケーションと Firestore の境界で保証する保存・取得・購読・権限制御を記述する。
-ブラウザ経由の利用者導線は [E2E 仕様書](../../e2e/AGENTS.md)、Firestore 境界の契約と ID はこのディレクトリを参照する。
-実行方法、共通前提、記述・ID 規約は [AGENTS.md](./AGENTS.md) を参照する。
-
-## ドキュメント構成
-
-| 文書 | 責務 |
-| --- | --- |
-| この README | 索引、未検証項目 |
-| [AGENTS.md](./AGENTS.md) | 実行方法、共通前提、記述・ID 規約 |
-| [Deck](./deck.md) | 作成、部分更新、URL の扱い、Deck と配下 Card の原子的な論理削除 |
-| [Card Filter](./card-filter.md) | Deck ごとの閲覧用フィルターの保存・復元・購読、学習条件からの独立 |
-| [Card](./card.md) | 作成、部分更新、本文と FSRS の更新、一括保存、論理削除 |
-| [Card.fsrs](./card-fsrs.md) | 初期購読、検証、UID 分離、削除 |
-| [StudyAnswer](./study-answer.md) | 回答・スキップ・再試行と履歴の権限制御 |
-| [StudySession](./study-session.md) | 順序・位置の復元、開始・中断・完了、オフライン queue |
-| [Subscriptions](./subscriptions.md) | 初期 snapshot、変更の store 反映、購読解除 |
-| [Rules / Deck](./rules-deck.md) / [Card](./rules-card.md) / [StudySession](./rules-study-session.md) / [StudyAnswer](./rules-study-answer.md) | entity ごとの認証主体と SDK 操作の許可・拒否 |
-| [Study History](./study-history.md) | 開始・完了履歴と回答履歴の期間・Deck 条件、cache、権限 |
-
-各仕様書のケースを下記の索引に掲載する。
-local→remote 移行や local-only session 非送信のケースは、対象テストにはないため検証済みとして記載しない。
-
-## 未検証・要確認
-
-ここに挙げた内容を、既存テストで保証済みの Then として扱わない。追加検証は [#1677](https://github.com/her0e1c1/tango/issues/1677) で扱う。
-
-| 対象 | 現在の検証範囲と不足 |
-| --- | --- |
-| [FIRESTORE-CARD-05](./card.md#firestore-card-05) | エラーと有効な Card の保存を確認する。不正な Card の保存先不在は直接確認していない |
-| Deck / Card の Rules | 親が他人所有の Card 更新による回答 batch の拒否は [FIRESTORE-STUDY-ANSWER-10](./study-answer.md#firestore-study-answer-10) で確認する。親不在の作成／更新、他人所有の親への新規作成は直接検証していない。Deck の所有者 UID の変更・削除と乗っ取り拒否は [FIRESTORE-RULES-DECK-20](./rules-deck.md#firestore-rules-deck-20) と [FIRESTORE-RULES-DECK-21](./rules-deck.md#firestore-rules-deck-21) で扱う。Card の所有者変更拒否は [FIRESTORE-RULES-CARD-21](./rules-card.md#firestore-rules-card-21) で確認する。Rules 固有の仕様は [rules-deck](./rules-deck.md) と [rules-card](./rules-card.md) に分離する |
-
-購読解除後の確認は [Subscriptions](./subscriptions.md#firestore-subscriptions-03) に示す観測時点に限定する。
-[StudySession](./study-session.md#firestore-study-session-01) の再購読を別端末・ブラウザ reload の保証に拡張しない。
-これらの文書は期待契約と既存 assertion の対応を示すものであり、個々の実行結果はテスト実行ログで確認する。
-
 ## テストケース索引
 
 ### deck
@@ -136,9 +100,25 @@ local→remote 移行や local-only session 非送信のケースは、対象テ
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| FIRESTORE-SUBSCRIPTIONS-01 | read | 正常系 | [初期 snapshot から Card 本文を取得できる](./subscriptions.md#firestore-subscriptions-01) |
-| FIRESTORE-SUBSCRIPTIONS-02 | batch | 正常系 | [購読中の追加・更新・論理削除を store に反映できる](./subscriptions.md#firestore-subscriptions-02) |
-| FIRESTORE-SUBSCRIPTIONS-03 | read | 正常系 | [購読解除後の編集で store の値を更新しない](./subscriptions.md#firestore-subscriptions-03) |
+| FIRESTORE-SUBSCRIPTIONS-01 | read | 正常系 | [初回の購読結果から Card 本文を取得できる](./subscriptions.md#firestore-subscriptions-01) |
+| FIRESTORE-SUBSCRIPTIONS-02 | batch | 正常系 | [購読中の追加・更新・論理削除を取得結果に反映する](./subscriptions.md#firestore-subscriptions-02) |
+| FIRESTORE-SUBSCRIPTIONS-03 | read | 正常系 | [購読停止後の編集完了時にも以前の取得結果を保持する](./subscriptions.md#firestore-subscriptions-03) |
+
+### snapshot
+
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-SNAPSHOT-01 | read | 正常系 | [空の初期取得結果で以前のデータを置き換える](./snapshot.md#firestore-snapshot-01) |
+| FIRESTORE-SNAPSHOT-02 | read | 正常系 | [初期取得で論理削除されていないデータだけを提供する](./snapshot.md#firestore-snapshot-02) |
+| FIRESTORE-SNAPSHOT-03 | read | 正常系 | [読取可能な公開データでも別所有者のデータを混在させない](./snapshot.md#firestore-snapshot-03) |
+| FIRESTORE-SNAPSHOT-04 | batch | 正常系 | [物理削除されたデータを取得結果から除く](./snapshot.md#firestore-snapshot-04) |
+| FIRESTORE-SNAPSHOT-05 | batch | 正常系 | [別クライアントによる追加・更新を購読結果に反映する](./snapshot.md#firestore-snapshot-05) |
+| FIRESTORE-SNAPSHOT-06 | read | 異常系 | [不正データを含む取得結果で直前の正常な結果を壊さない](./snapshot.md#firestore-snapshot-06) |
+| FIRESTORE-SNAPSHOT-07 | read | 異常系 | [不正データの修正後に同じ購読で正常な結果を取得する](./snapshot.md#firestore-snapshot-07) |
+| FIRESTORE-SNAPSHOT-08 | read | 異常系 | [読取拒否を通知し他人の非公開データを提供しない](./snapshot.md#firestore-snapshot-08) |
+| FIRESTORE-SNAPSHOT-09 | read | 正常系 | [停止後に到達した更新で取得結果と通知を変更しない](./snapshot.md#firestore-snapshot-09) |
+| FIRESTORE-SNAPSHOT-10 | read | 正常系 | [再購読で停止中の変更を含む現在の結果を取得する](./snapshot.md#firestore-snapshot-10) |
+| FIRESTORE-SNAPSHOT-11 | read | 異常系 | [不正な初期取得結果を正常な読込完了として扱わない](./snapshot.md#firestore-snapshot-11) |
 
 ### rules-deck
 
