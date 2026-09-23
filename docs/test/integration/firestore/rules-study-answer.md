@@ -4,8 +4,6 @@
 
 実際の `firestore.rules` に対する StudyAnswer entity の許可・拒否を、認証主体と SDK 操作の組み合わせで確認する。
 
-対応ファイル: [`rules.spec.ts`](../../../test/integration/firestore/rules.spec.ts)
-
 共通前提は [AGENTS.md](./AGENTS.md#security-rules-common-prerequisites) を参照する。
 
 ## テストケース
@@ -22,8 +20,6 @@
 ### FIRESTORE-RULES-STUDY-ANSWER-01 回答作成と Card.fsrs・session 更新を同じ batch で許可する
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-RULES-STUDY-ANSWER-01] accepts the first and final answer with atomic state and session updates`
 
 Given:
 
@@ -47,8 +43,6 @@ Rules が常に batch を必須にする契約ではない。単独の回答作�
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-STUDY-ANSWER-02] leaves answer sequencing to the application`
-
 Given:
 
 - 本人が同じ Deck に属する Card と session を所有している。
@@ -69,8 +63,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-STUDY-ANSWER-03] forbids rewriting or deleting answer history`
-
 Given:
 
 - 本人の rating `good` の回答履歴が存在する。
@@ -88,8 +80,6 @@ Then:
 ### FIRESTORE-RULES-STUDY-ANSWER-04 他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-RULES-STUDY-ANSWER-04] rejects %s reads and answer batches`
 
 Given:
 

@@ -4,8 +4,6 @@
 
 StudySession の開始・完了履歴を期間と Deck で取得する購読契約を確認する。
 
-対応ファイル: [`study-history.spec.ts`](../../../test/integration/firestore/study-history.spec.ts)
-
 関連 E2E: [STUDY-SESSION-09](../../e2e/study-session.md#study-session-09)、[STUDY-SESSION-12](../../e2e/study-session.md#study-session-12)
 
 ## 共通前提
@@ -26,8 +24,6 @@ StudySession の開始・完了履歴を期間と Deck で取得する購読契�
 ### FIRESTORE-STUDY-HISTORY-01 期間と Deck による履歴取得を cache と権限境界を含めて確認できる
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-STUDY-HISTORY-01] reads period and Deck filters online and from cache`
 
 Given:
 
@@ -72,8 +68,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-STUDY-HISTORY-02] reads bounded answers in stable order with source metadata`
-
 Given:
 
 - UID `uid` の回答を固有の期間・Deckに保存する。開始時刻に again / hard / good / easy の4回答、別 Deck に1回答、開始前・終了境界に各1回答、不正 rating に1回答を保存する。
@@ -95,8 +89,6 @@ Then:
 ### FIRESTORE-STUDY-HISTORY-03 回答履歴の入力境界を検証する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-STUDY-HISTORY-03] rejects invalid bounds and foreign owners before reading`
 
 Given:
 

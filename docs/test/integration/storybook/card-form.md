@@ -14,21 +14,19 @@ CardFields / CardCreator、実際の React Hook Form、プレビュー hook と 
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-CARD-FORM-01 | interaction | [面を切り替えても編集中の表面テキストを保持する](#storybook-card-form-01) | [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction` |
-| STORYBOOK-CARD-FORM-02 | interaction | [タグ編集で未選択のタグを選択できる](#storybook-card-form-02) | [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction` |
-| STORYBOOK-CARD-FORM-03 | render | [日本語の入力エラーを入力欄の説明に関連付ける](#storybook-card-form-03) | [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `JapaneseValidation` |
-| STORYBOOK-CARD-FORM-04 | interaction | [編集中の解答プレビュー領域を開く](#storybook-card-form-04) | [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview` / [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `MobilePreview` / [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `DarkCodePreview` |
-| STORYBOOK-CARD-FORM-05 | interaction | [入力後の作成操作を submit callback に通知する](#storybook-card-form-05) | [CardCreator.stories.tsx](../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction` |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-CARD-FORM-01 | interaction | [面を切り替えても編集中の表面テキストを保持する](#storybook-card-form-01) |
+| STORYBOOK-CARD-FORM-02 | interaction | [タグ編集で未選択のタグを選択できる](#storybook-card-form-02) |
+| STORYBOOK-CARD-FORM-03 | render | [日本語の入力エラーを入力欄の説明に関連付ける](#storybook-card-form-03) |
+| STORYBOOK-CARD-FORM-04 | interaction | [編集中の解答プレビュー領域を開く](#storybook-card-form-04) |
+| STORYBOOK-CARD-FORM-05 | interaction | [入力後の作成操作を submit callback に通知する](#storybook-card-form-05) |
 
 <a id="storybook-card-form-01"></a>
 
 ### STORYBOOK-CARD-FORM-01 面を切り替えても編集中の表面テキストを保持する
 
 カテゴリ: `interaction`
-
-対応 Story: [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -49,8 +47,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`
-
 Given:
 
 - Card の入力フォームで raw タグは未選択である。
@@ -68,8 +64,6 @@ Then:
 ### STORYBOOK-CARD-FORM-03 日本語の入力エラーを入力欄の説明に関連付ける
 
 カテゴリ: `render`
-
-対応 Story: [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `JapaneseValidation`
 
 Given:
 
@@ -90,12 +84,10 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview` / [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `MobilePreview` / [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `DarkCodePreview`
-
 Given:
 
-- Preview / MobilePreview では解答 **Draft answer** と数式 $x^2$、math タグを持つ Card を用意する。
-- MobilePreview は iPhone X 表示、DarkCodePreview は dark 表示で、解答 const answer = 42; と typescript タグを用意する。
+- 通常表示と iPhone X 表示では解答 **Draft answer** と数式 $x^2$、math タグを持つ Card を用意する。
+- dark 表示では、解答 const answer = 42; と typescript タグを用意する。
 
 When:
 
@@ -111,8 +103,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardCreator.stories.tsx](../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction`
-
 Given:
 
 - 空の Card 作成フォームを用意し、submit callback を spy にする。
@@ -127,4 +117,4 @@ Then:
 
 ## 自動アサーションに含めない項目
 
-`Back`、`Expanded`、`TagSelection`、`ExpandedPreview` とそれらの表示バリエーションは主に表示準備の play である。期待結果のアサーションがない項目を、値の保持や拡大プレビューの検証済みケースには数えない。
+裏面・拡大・タグ選択・拡大プレビューとそれらの表示バリエーションの Story は主に表示準備の play である。期待結果のアサーションがない項目を、値の保持や拡大プレビューの検証済みケースには数えない。

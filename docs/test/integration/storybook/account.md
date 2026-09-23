@@ -14,21 +14,19 @@ AccountView と実際のボタン・表示 UI。認証状態は props、通知�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-ACCOUNT-01 | interaction | [匿名状態を表示してログインを要求する](#storybook-account-01) | [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `Anonymous` |
-| STORYBOOK-ACCOUNT-02 | interaction | [ログイン済み状態を表示してログアウトを要求する](#storybook-account-02) | [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `SignedIn` |
-| STORYBOOK-ACCOUNT-03 | render | [ログイン処理中のボタンを無効にする](#storybook-account-03) | [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `SigningIn` |
-| STORYBOOK-ACCOUNT-04 | render | [ログアウト処理中のボタンを無効にする](#storybook-account-04) | [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `SigningOut` |
-| STORYBOOK-ACCOUNT-05 | render | [ログイン済みの操作を日本語で表示する](#storybook-account-05) | [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `Japanese` |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-ACCOUNT-01 | interaction | [匿名状態を表示してログインを要求する](#storybook-account-01) |
+| STORYBOOK-ACCOUNT-02 | interaction | [ログイン済み状態を表示してログアウトを要求する](#storybook-account-02) |
+| STORYBOOK-ACCOUNT-03 | render | [ログイン処理中のボタンを無効にする](#storybook-account-03) |
+| STORYBOOK-ACCOUNT-04 | render | [ログアウト処理中のボタンを無効にする](#storybook-account-04) |
+| STORYBOOK-ACCOUNT-05 | render | [ログイン済みの操作を日本語で表示する](#storybook-account-05) |
 
 <a id="storybook-account-01"></a>
 
 ### STORYBOOK-ACCOUNT-01 匿名状態を表示してログインを要求する
 
 カテゴリ: `interaction`
-
-対応 Story: [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `Anonymous`
 
 Given:
 
@@ -49,8 +47,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `SignedIn`
-
 Given:
 
 - Google 連携済みで表示名は Maya Tanaka、認証操作は処理中ではない。
@@ -70,8 +66,6 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `SigningIn`
-
 Given:
 
 - 匿名状態でログイン処理中である。
@@ -90,8 +84,6 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `SigningOut`
-
 Given:
 
 - ログイン済みでログアウト処理中である。
@@ -109,8 +101,6 @@ Then:
 ### STORYBOOK-ACCOUNT-05 ログイン済みの操作を日本語で表示する
 
 カテゴリ: `render`
-
-対応 Story: [AccountView.stories.tsx](../../../src/pages/account/ui/AccountView.stories.tsx) :: `Japanese`
 
 Given:
 

@@ -14,19 +14,17 @@ SettingsForm と実際の React Hook Form、および SettingsSection / Settings
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-SETTINGS-01 | render | [日本語の設定画面と System 選択を表示する](#storybook-settings-01) | [SettingsForm.stories.tsx](../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Japanese` |
-| STORYBOOK-SETTINGS-02 | interaction | [再生操作の表示設定をフォーム上で切り替える](#storybook-settings-02) | [SettingsForm.stories.tsx](../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction` |
-| STORYBOOK-SETTINGS-03 | interaction | [設定行の Switch と変更通知を結合する](#storybook-settings-03) | [SettingsSection.stories.tsx](../../../src/pages/settings/ui/SettingsSection.stories.tsx) :: `Interaction` |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-SETTINGS-01 | render | [日本語の設定画面と System 選択を表示する](#storybook-settings-01) |
+| STORYBOOK-SETTINGS-02 | interaction | [再生操作の表示設定をフォーム上で切り替える](#storybook-settings-02) |
+| STORYBOOK-SETTINGS-03 | interaction | [設定行の Switch と変更通知を結合する](#storybook-settings-03) |
 
 <a id="storybook-settings-01"></a>
 
 ### STORYBOOK-SETTINGS-01 日本語の設定画面と System 選択を表示する
 
 カテゴリ: `render`
-
-対応 Story: [SettingsForm.stories.tsx](../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Japanese`
 
 Given:
 
@@ -46,8 +44,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [SettingsForm.stories.tsx](../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction`
-
 Given:
 
 - 通常の設定フォームを表示し、Show playback controls の初期チェック状態を記録する。
@@ -65,8 +61,6 @@ Then:
 ### STORYBOOK-SETTINGS-03 設定行の Switch と変更通知を結合する
 
 カテゴリ: `interaction`
-
-対応 Story: [SettingsSection.stories.tsx](../../../src/pages/settings/ui/SettingsSection.stories.tsx) :: `Interaction`
 
 Given:
 

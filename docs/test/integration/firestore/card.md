@@ -4,8 +4,6 @@
 
 Card 内容の書込範囲、部分失敗、論理削除を確認する。
 
-対応ファイル: [`card.spec.ts`](../../../test/integration/firestore/card.spec.ts)
-
 関連 E2E: [CARD-MANAGEMENT-01](../../e2e/card-management.md#card-management-01)、[CARD-MANAGEMENT-02](../../e2e/card-management.md#card-management-02)、[CARD-MANAGEMENT-05](../../e2e/card-management.md#card-management-05)、[IMPORT-03](../../e2e/import.md#import-03)
 
 ## 共通前提
@@ -32,8 +30,6 @@ Card 内容の書込範囲、部分失敗、論理削除を確認する。
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-CARD-01] should create a card`
-
 Given:
 
 - 本人の親 Deck が存在する。
@@ -56,8 +52,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-CARD-02] should update a card`
-
 Given:
 
 - 本人の親 Deck と Card が存在し、Card に有効な FSRS を保存して値を取得している。
@@ -76,8 +70,6 @@ Then:
 ### FIRESTORE-CARD-03 Card 作成時に旧個人学習フィールドを除外する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-CARD-03] excludes personal study fields from new Card writes`
 
 Given:
 
@@ -98,8 +90,6 @@ Then:
 ### FIRESTORE-CARD-04 一括作成の再試行で既存 Card の学習状態を維持する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-CARD-04] preserves a rated Card when retrying a prepared create`
 
 Given:
 
@@ -124,8 +114,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-CARD-05] reports failed imported Cards while persisting valid Cards`
-
 Given:
 
 - 本人の親 Deck が存在する。
@@ -148,8 +136,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-CARD-06] does not recreate an existing Card deleted after import planning`
-
 Given:
 
 - 本人の親 Deck と Card が存在し、store に編集対象の Card がある。
@@ -171,8 +157,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-CARD-07] should logical-remove a card`
-
 Given:
 
 - 本人の親 Deck と Card が存在し、削除前の保存値を取得している。
@@ -191,8 +175,6 @@ Then:
 ### FIRESTORE-CARD-08 作成した Card の存在を確認できる
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-CARD-08] should exists a card`
 
 Given:
 

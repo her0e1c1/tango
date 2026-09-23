@@ -4,8 +4,6 @@
 
 実際の `firestore.rules` に対する Deck entity の許可・拒否を、認証主体と SDK 操作の組み合わせで確認する。
 
-対応ファイル: [`rules.spec.ts`](../../../test/integration/firestore/rules.spec.ts)
-
 共通前提は [AGENTS.md](./AGENTS.md#security-rules-common-prerequisites) を参照する。
 
 ## テストケース
@@ -43,8 +41,6 @@
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-01] rejects %s from reading a deleted public Deck`
-
 Given:
 
 - 所有者 `owner` の公開 Deck `deleted` は deletedAt `1000`、公開 Deck `active` は deletedAt `null` である。
@@ -66,8 +62,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-02] should read an owned deck (deletedAt=%s)`
-
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -86,8 +80,6 @@ Then:
 ### FIRESTORE-RULES-DECK-03 本人による Deck の作成を許可する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-DECK-03] should create a deck`
 
 Given:
 
@@ -108,8 +100,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-04] should update a deck`
-
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -128,8 +118,6 @@ Then:
 ### FIRESTORE-RULES-DECK-05 本人による Deck の物理削除を許可する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-DECK-05] should delete a deck`
 
 Given:
 
@@ -150,8 +138,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-06] should not read a deck (visibility=%j)`
-
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -170,8 +156,6 @@ Then:
 ### FIRESTORE-RULES-DECK-07 他ユーザーによる Deck の公開データの取得を許可する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-RULES-DECK-07] should read a public deck`
 
 Given:
 
@@ -192,8 +176,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-08] should not create a deck`
-
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -212,8 +194,6 @@ Then:
 ### FIRESTORE-RULES-DECK-09 他ユーザーによる Deck の更新を拒否する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-DECK-09] should not update a deck (visibility=%j)`
 
 Given:
 
@@ -234,8 +214,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-10] should not delete a deck (visibility=%j)`
-
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -254,8 +232,6 @@ Then:
 ### FIRESTORE-RULES-DECK-11 匿名認証による Deck の作成を拒否する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-DECK-11] rejects creating a deck`
 
 Given:
 
@@ -276,8 +252,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-12] rejects updating an existing deck (visibility=%j)`
-
 Given:
 
 - 匿名認証の UID `uid` で操作する。
@@ -296,8 +270,6 @@ Then:
 ### FIRESTORE-RULES-DECK-13 匿名認証による Deck の物理削除を拒否する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-DECK-13] rejects deleting an existing deck (visibility=%j)`
 
 Given:
 
@@ -318,8 +290,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-14] preserves public deck reads`
-
 Given:
 
 - 匿名認証の UID `uid` で操作する。
@@ -338,8 +308,6 @@ Then:
 ### FIRESTORE-RULES-DECK-15 未認証による Deck の非公開データの取得を拒否する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-RULES-DECK-15] should not read a deck (visibility=%j)`
 
 Given:
 
@@ -360,8 +328,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-16] should read a public deck`
-
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -380,8 +346,6 @@ Then:
 ### FIRESTORE-RULES-DECK-17 未認証による Deck の作成を拒否する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-DECK-17] should not create a deck`
 
 Given:
 
@@ -402,8 +366,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-18] should not update a deck (visibility=%j)`
-
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -423,8 +385,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-19] should not delete a deck (visibility=%j)`
-
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -443,8 +403,6 @@ Then:
 ### FIRESTORE-RULES-DECK-20 本人による所有者 UID の変更・削除を拒否する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-DECK-20] rejects changing or removing the owner UID`
 
 Given:
 
@@ -466,8 +424,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-DECK-21] rejects taking ownership of another user's deck (isPublic=%s)`
-
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -487,8 +443,6 @@ Then:
 ### FIRESTORE-RULES-DECK-22 本人の UID で絞った Deck 一覧取得を許可する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-RULES-DECK-22] lists only the owner's decks including deleted decks`
 
 Given:
 
@@ -511,8 +465,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-DECK-23] rejects unsafe deck queries from %s`
-
 Given:
 
 - 所有者 UID `uid` の公開 Deck と非公開 Deck を事前保存する。両方とも `deletedAt: null` とする。
@@ -532,8 +484,6 @@ Then:
 ### FIRESTORE-RULES-DECK-24 匿名認証による他人の非公開 Deck 取得を拒否する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-RULES-DECK-24] rejects reading another user's private deck (visibility=%j)`
 
 Given:
 

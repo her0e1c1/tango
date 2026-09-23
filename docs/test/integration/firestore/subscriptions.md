@@ -4,8 +4,6 @@
 
 Firestore の snapshot を Card / Deck store に反映し、購読解除で反映を止める契約を確認する。
 
-対応ファイル: [`subscriptions.spec.ts`](../../../test/integration/firestore/subscriptions.spec.ts)
-
 追加テストの仕様（未実装・未検証）は [Snapshot](./snapshot.md) を参照する。本書の既存3ケースとは分けて管理する。
 
 関連 E2E: [CARD-VIEW-01](../../e2e/card-view.md#card-view-01)、[DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)
@@ -29,8 +27,6 @@ Firestore の snapshot を Card / Deck store に反映し、購読解除で反�
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-SUBSCRIPTIONS-01] loads Card content from the initial snapshot`
-
 Given:
 
 - 本人の Deck と Card を保存済みで、親 Deck を store に保持している。
@@ -50,8 +46,6 @@ Then:
 ### FIRESTORE-SUBSCRIPTIONS-02 購読中の追加・更新・論理削除を store に反映できる
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-SUBSCRIPTIONS-02] delivers initial, update, and delete snapshots without a cursor`
 
 Given:
 
@@ -75,8 +69,6 @@ Then:
 ### FIRESTORE-SUBSCRIPTIONS-03 購読解除後の編集で store の値を更新しない
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-SUBSCRIPTIONS-03] stops changing stores after unsubscribe`
 
 Given:
 

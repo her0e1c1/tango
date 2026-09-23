@@ -77,7 +77,7 @@ Every task that changes repository files must complete this workflow:
 ### Firestore Integration Tests
 
 - Use `docs/test/integration/firestore` for persistence, subscription, and security-rule contracts tested under `test/integration/firestore`. Keep browser-facing user flows in `docs/test/e2e`; related E2E links are optional, not required IDs for Firestore-specific contracts.
-- Follow the E2E specification format in Japanese: purpose, case index table, explicit ID anchors and headings, category, and Given / When / Then. Link each specification to its test file and include an identifiable test title for every case. Describe setup inline; do not add fixture files.
+- Follow the E2E specification format in Japanese: purpose, case index table, explicit ID anchors and headings, category, and Given / When / Then. Follow `docs/test/AGENTS.md` for ID-based correspondence instead of listing test files or copying test titles into specifications. Describe setup inline; do not add fixture files.
 - Each `it` or `it.each` title must include its `FIRESTORE-<UPPERCASE-SPEC-FILENAME>-<NN>` ID. Start at `01` in each file, follow document order without gaps, and update indexes, anchors, and titles together. Parameterized rows may share an ID when their inputs and expected results are documented.
 - Update the corresponding specification when adding or changing a test, including regressions. Do not mock the Firestore boundary being verified. Distinguish Adapter validation from Rules authorization and record unverified expectations separately instead of changing behavior during documentation work.
 
@@ -85,7 +85,7 @@ Every task that changes repository files must complete this workflow:
 
 - Use `docs/test/integration/storybook` for public UI contracts verified by `play` functions in `src/**/*.stories.tsx`. Keep end-to-end user flows in `docs/test/e2e` and persistence, subscriptions, and Rules in `docs/test/integration/firestore`.
 - Follow the Japanese E2E-style format: purpose, case index, explicit ID anchors and headings, category, and one Given / When / Then block each. Describe setup inline; do not add dedicated fixture files or duplicate stories under `test/integration`.
-- Use `STORYBOOK-<UPPERCASE-SPEC-FILENAME>-<NN>` IDs starting at `01` without gaps. Map every case to its story file and named export; update indexes, anchors, and mappings together. Existing story names do not need to change solely to carry an ID. Document shared plays and parameterized story variants explicitly.
+- Use `STORYBOOK-<UPPERCASE-SPEC-FILENAME>-<NN>` IDs starting at `01` without gaps. Follow `docs/test/AGENTS.md` for implementation-side ID references instead of Story file and export mappings in specifications. Update indexes, anchors, and ID references together. Document shared plays and parameterized story variants explicitly.
 - Test observable UI behavior with real composed components and forms. Mock only boundaries outside the contract, using story-side setup and public callback spies; do not add production interfaces solely for tests.
 - Update the corresponding specification when adding or changing a play, including regressions. Separate rendering-only stories, setup-only plays, and missing assertions from verified expectations; a callback notification does not prove persistence or navigation.
 

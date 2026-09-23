@@ -14,19 +14,17 @@ CSV 選択からプレビューまでの画面結合と、日本語の診断表�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-IMPORT-01 | render | [保存先を選ばずインポートを開始できる画面を表示する](#storybook-import-01) | [DeckImportView.stories.tsx](../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default` |
-| STORYBOOK-IMPORT-02 | interaction | [ルート上のファイル選択から有効行のプレビューを表示する](#storybook-import-02) | [App.stories.tsx](../../../src/app/App.stories.tsx) :: `Import` |
-| STORYBOOK-IMPORT-03 | render | [列数エラーを日本語で表示して追加を無効にする](#storybook-import-03) | [DeckImportView.stories.tsx](../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics` |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-IMPORT-01 | render | [保存先を選ばずインポートを開始できる画面を表示する](#storybook-import-01) |
+| STORYBOOK-IMPORT-02 | interaction | [ルート上のファイル選択から有効行のプレビューを表示する](#storybook-import-02) |
+| STORYBOOK-IMPORT-03 | render | [列数エラーを日本語で表示して追加を無効にする](#storybook-import-03) |
 
 <a id="storybook-import-01"></a>
 
 ### STORYBOOK-IMPORT-01 保存先を選ばずインポートを開始できる画面を表示する
 
 カテゴリ: `render`
-
-対応 Story: [DeckImportView.stories.tsx](../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`
 
 Given:
 
@@ -45,8 +43,6 @@ Then:
 ### STORYBOOK-IMPORT-02 ルート上のファイル選択から有効行のプレビューを表示する
 
 カテゴリ: `interaction`
-
-対応 Story: [App.stories.tsx](../../../src/app/App.stories.tsx) :: `Import`
 
 Given:
 
@@ -68,8 +64,6 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckImportView.stories.tsx](../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics`
-
 Given:
 
 - 日本語 locale で、有効行0件・不正行1件、2行目の列数が3の解析結果を渡す。
@@ -85,4 +79,4 @@ Then:
 
 ## 自動アサーションに含めない項目
 
-`Invalid`、`Pending`、`PreviewError` などの表示専用 Story と、CSV を保存して再読込する E2E を混同しない。
+不正入力・処理中・プレビューエラーなどの表示専用 Story と、CSV を保存して再読込する E2E を混同しない。

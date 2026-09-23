@@ -4,8 +4,6 @@
 
 Deck の作成・部分更新・論理削除を、Firestore 上の保存値として確認する。
 
-対応ファイル: [`deck.spec.ts`](../../../test/integration/firestore/deck.spec.ts)
-
 関連 E2E: [DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)、[DECK-MANAGEMENT-02](../../e2e/deck-management.md#deck-management-02)、[DECK-MANAGEMENT-05](../../e2e/deck-management.md#deck-management-05)
 
 ## 共通前提
@@ -30,8 +28,6 @@ Deck の作成・部分更新・論理削除を、Firestore 上の保存値と�
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-DECK-01] should create a deck and check if exists`
-
 Given:
 
 - 本人の新しい Deck ID と name `new deck name` を用意する。
@@ -53,8 +49,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-DECK-02] should update a deck`
-
 Given:
 
 - 本人の Deck が存在し、作成直後の保存値を取得している。
@@ -74,8 +68,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-DECK-03] preserves an omitted URL and removes a cleared URL`
-
 Given:
 
 - 本人の Deck に URL `https://example.com/deck` が保存されている。
@@ -94,8 +86,6 @@ Then:
 ### FIRESTORE-DECK-04 Deck と配下 Card をまとめて論理削除できる
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-DECK-04] tombstones a Deck and all child Cards atomically`
 
 Given:
 
@@ -119,8 +109,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-DECK-05] tombstones an empty Deck`
-
 Given:
 
 - 本人の Deck が存在し、その Deck に属する Card は存在しない。
@@ -139,8 +127,6 @@ Then:
 ### FIRESTORE-DECK-06 Deck と配下 Card の削除を原子的に扱う
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-DECK-06] leaves the Deck and all child Cards unchanged when the delete batch is rejected`
 
 Given:
 
