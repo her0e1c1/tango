@@ -6,7 +6,6 @@
 オフラインで受け付けた操作や保存済みデータの変更についても、保存結果と購読後の再開対象が一致することを保証する。
 関数の呼び出し順や内部の store 構造ではなく、保存された session と公開 query から取得できる再開対象を観測する。
 
-
 関連 E2E: [STUDY-SESSION-01](../../e2e/study-session.md#study-session-01)、[STUDY-SESSION-03](../../e2e/study-session.md#study-session-03)、[STUDY-SESSION-05](../../e2e/study-session.md#study-session-05)、[PERSISTENCE-02](../../e2e/persistence.md#persistence-02)
 
 ## 共通前提
@@ -46,7 +45,6 @@ SDK から直接行うデータ変更も、同じインスタンスで購読へ�
 
 カテゴリ: `batch`
 
-
 Given:
 
 - 本人の新しい Deck に3枚の学習対象があり、まだ学習を開始していない。
@@ -67,7 +65,6 @@ Then:
 ### FIRESTORE-STUDY-SESSION-02 離脱だけでは終了せず最初からやり直すと旧セッションを中断する
 
 カテゴリ: `batch`
-
 
 Given:
 
@@ -90,7 +87,6 @@ Then:
 
 カテゴリ: `write`
 
-
 Given:
 
 - 本人の学習が最後のカード、位置 `2` に到達している。
@@ -112,7 +108,6 @@ Then:
 
 カテゴリ: `batch`
 
-
 Given:
 
 - 本人の学習を購読しており、ネットワークが無効である。
@@ -133,7 +128,6 @@ Then:
 ### FIRESTORE-STUDY-SESSION-05 別Deckの未送信書込に妨げられずオフラインでやり直せる
 
 カテゴリ: `batch`
-
 
 Given:
 
@@ -158,7 +152,6 @@ Then:
 
 カテゴリ: `read`
 
-
 Given:
 
 - 本人の有効なセッションと、同じ UID だが必要な学習情報を欠き `answers: []` だけを持つ不正な document が保存されている。
@@ -178,7 +171,6 @@ Then:
 ### FIRESTORE-STUDY-SESSION-07 次のカードへ進めた操作が重複してもカードを飛ばさない
 
 カテゴリ: `write`
-
 
 Given:
 
@@ -200,7 +192,6 @@ Then:
 
 カテゴリ: `write`
 
-
 Given:
 
 - 本人の未終了セッションが位置 `1` で保存されている。
@@ -220,7 +211,6 @@ Then:
 ### FIRESTORE-STUDY-SESSION-09 古い学習の更新時刻に惑わされずDeckごとに最新のセッションを復元する
 
 カテゴリ: `read`
-
 
 Given:
 
@@ -246,7 +236,6 @@ Then:
 ### FIRESTORE-STUDY-SESSION-10 最新の学習が終了済みなら古い未終了セッションも復元しない
 
 カテゴリ: `read`
-
 
 Given:
 
@@ -274,7 +263,6 @@ Then:
 
 カテゴリ: `read`
 
-
 Given:
 
 - 本人の学習が位置 `0` で保存され、同じセッションを購読している。
@@ -293,7 +281,6 @@ Then:
 ### FIRESTORE-STUDY-SESSION-12 保存された終了を反映し別Deckの学習は維持する
 
 カテゴリ: `read`
-
 
 Given:
 
@@ -320,7 +307,6 @@ Then:
 
 カテゴリ: `batch`
 
-
 Given:
 
 - 本人の学習を購読しており、ネットワークが無効である。
@@ -342,7 +328,6 @@ Then:
 ### FIRESTORE-STUDY-SESSION-14 学習対象が0枚ならセッションを作成せず既存の学習も中断しない
 
 カテゴリ: `write`
-
 
 Given:
 
