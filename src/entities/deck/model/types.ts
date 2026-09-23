@@ -1,6 +1,8 @@
 import type { z } from "zod";
 
-import type { deckCreateSchema, deckIdSchema } from "./schema";
+import type { cardFilterSchema, deckCreateSchema, deckIdSchema } from "./schema";
+
+export type CardFilter = z.infer<typeof cardFilterSchema>;
 
 /** Deck rendering category or syntax-highlighting language. */
 export type Category = string;
@@ -17,10 +19,12 @@ export type Deck = {
   url?: string | undefined;
   /** Whether the Deck is marked for public visibility; local Decks normally keep this disabled. */
   isPublic: boolean;
-  /** Card tags used by the Deck filter; an empty collection means that tags do not restrict Cards. */
+  /** Card tags used for study; an empty collection means that tags do not restrict Cards. */
   selectedTags: string[];
   /** Uses AND matching when true and OR matching when false for {@link selectedTags}. */
   tagAndFilter: boolean;
+  /** Independent browsing conditions; an unset filter displays every Card. */
+  cardFilter?: CardFilter | undefined;
   /** Fallback rendering category when no supported Card tag supplies a more specific category. */
   category: Category;
   /** Whether imported text should convert two consecutive line breaks into one HTML `<br />`. */

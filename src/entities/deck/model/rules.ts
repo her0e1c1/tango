@@ -1,4 +1,4 @@
-import type { Category, DeckId } from "./types";
+import type { CardFilter, Category, Deck, DeckId } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -70,3 +70,7 @@ export const mustFindDeckById = <TDeck extends { id: DeckId }>(decks: readonly T
 
   return deck;
 };
+
+export function getCardFilter(deck: Deck): CardFilter {
+  return deck.cardFilter ?? { selectedTags: [], tagAndFilter: false };
+}

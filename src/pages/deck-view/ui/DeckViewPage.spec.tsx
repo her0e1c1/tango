@@ -42,7 +42,10 @@ vi.mock("@/entities/preference", () => ({
   toggleShowSwipeButtonList: vi.fn(),
 }));
 vi.mock("@/features/deck-filter", () => ({
-  useDeckFilterDraft: (_uid: string, deck: Deck) => ({ state: { draft: data.pendingFilter ?? deck } }),
+  useDeckFilterSaveLifecycle: vi.fn(),
+  useDeckFilterDraft: (_uid: string, deck: Deck) => ({
+    state: { draft: data.pendingFilter ?? deck.cardFilter ?? { selectedTags: [], tagAndFilter: false } },
+  }),
 }));
 
 import { DeckViewPage } from "./DeckViewPage";
@@ -149,23 +152,23 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
   });
 
-  it("excludes future review cards when the review schedule is enabled", () => {
+  it("[CARD-FILTER-01] includes future review cards when the review schedule is enabled", () => {
     data.preferences = createPreferences({ useCardInterval: true });
     data.cards = data.cards.map((card, index) =>
       index === 0 ? { ...card, fsrs: { ...calculateFsrsState(null, "good", 0), dueAt: Date.now() + 86_400_000 } } : card
     );
     renderPage();
-    expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
-    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
+    expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 2");
+    expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
   });
 
   it("shows recovery for empty and missing decks without active card controls", async () => {
     data.cards = [];
     const view = renderPage();
-    expect(screen.getByText("No cards match the current filters.")).toBeVisible();
+    expect(screen.getByText("No cards yet")).toBeVisible();
     expect(screen.queryByRole("button", { name: "Next card" })).not.toBeInTheDocument();
     fireEvent.keyDown(window, { key: "ArrowRight" });
-    expect(screen.getByText("No cards match the current filters.")).toBeVisible();
+    expect(screen.getByText("No cards yet")).toBeVisible();
     view.unmount();
     data.deck = undefined;
     renderPage();

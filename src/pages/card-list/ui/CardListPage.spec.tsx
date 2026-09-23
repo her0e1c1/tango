@@ -57,7 +57,14 @@ describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MAN
   beforeEach(async () => {
     mocks.preferences = createPreferences();
     mocks.setDarkMode.mockReset();
-    await createDeck("user-id", createLocalDeck({ id: deckId, name: "First deck", selectedTags: ["typescript"] }));
+    await createDeck(
+      "user-id",
+      createLocalDeck({
+        id: deckId,
+        name: "First deck",
+        cardFilter: { selectedTags: ["typescript"], tagAndFilter: false },
+      })
+    );
     await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
     await mutateCards("user-id", [
       {
@@ -207,7 +214,7 @@ describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MAN
       createLocalDeck({
         id: filteredDeckId,
         name: "Filtered deck",
-        selectedTags: ["missing"],
+        cardFilter: { selectedTags: ["missing"], tagAndFilter: true },
       })
     );
     await mutateCards("user-id", [

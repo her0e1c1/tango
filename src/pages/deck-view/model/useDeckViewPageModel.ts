@@ -11,7 +11,7 @@ import {
   toggleShowPlaybackControls,
   toggleShowSwipeButtonList,
 } from "@/entities/preference";
-import { useDeckFilterDraft } from "@/features/deck-filter";
+import { useDeckFilterDraft, useDeckFilterSaveLifecycle } from "@/features/deck-filter";
 import { useResetStoreOnMount } from "@/shared/lib/useResetStoreOnMount";
 import { routes } from "@/shared/router";
 import { flipCard } from "./actions/flipCard";
@@ -28,7 +28,8 @@ import { deckViewStore } from "./store";
 export function useDeckViewPageModel(deck: Deck) {
   const navigate = useNavigate();
   const { uid } = useAuth();
-  const filter = useDeckFilterDraft(uid, deck);
+  const filter = useDeckFilterDraft(uid, deck, "card");
+  useDeckFilterSaveLifecycle(filter.state.pending, filter.setState);
   const state = useStore(deckViewStore);
   useResetStoreOnMount(deckViewStore);
   const query = useDeckViewQuery(deck, filter.state.draft, state.cardId, state.showBackText);

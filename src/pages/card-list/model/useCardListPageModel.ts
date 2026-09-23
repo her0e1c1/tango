@@ -35,9 +35,10 @@ export function useCardListPageModel(deck: Deck) {
   const navigate = useNavigate();
   const state = useStore(cardListStore);
   useResetStoreOnMount(cardListStore);
-  const filterDraft = useDeckFilterDraft(uid, deck);
+  const filterDraft = useDeckFilterDraft(uid, deck, "card");
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
   const filterUpdate = {
+    scope: "card" as const,
     uid,
     deckId: deck.id,
     draft: filterDraft.state.draft,

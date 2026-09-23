@@ -51,7 +51,7 @@ import { CardListPage } from "./CardListPage";
 const deck = createDeck({
   id: "deck-id",
   category: "raw",
-  selectedTags: ["typescript", "react"],
+  cardFilter: { selectedTags: ["typescript", "react"], tagAndFilter: false },
 });
 const card = createCard({
   id: "card-id",
@@ -114,7 +114,10 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     mocks.getAuthUid.mockReturnValue("user-id");
     mocks.getCards.mockImplementation(() => mocks.cards);
     mocks.deleteCard.mockResolvedValue(undefined);
-    mocks.editDeck.mockResolvedValue(undefined);
+    mocks.editDeck.mockImplementation((_uid, patch) => {
+      if (mocks.deck) mocks.deck = { ...mocks.deck, ...patch };
+      return Promise.resolve();
+    });
   });
 
   it("sorts by creation time with stable ties and restores the live standard order without writes", async () => {
@@ -201,14 +204,13 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
 
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deck.id,
-      selectedTags: ["react"],
-      tagAndFilter: false,
+      cardFilter: { selectedTags: ["react"], tagAndFilter: false },
     });
   });
 
   it("removes the final selected tag via keyboard and moves focus to the closed filters summary", async () => {
     const user = userEvent.setup();
-    renderCardList({ deck: { ...deck, selectedTags: ["react"] } });
+    renderCardList({ deck: { ...deck, cardFilter: { selectedTags: ["react"], tagAndFilter: false } } });
 
     const reactChip = screen.getByRole("button", { name: "Remove react filter" });
     reactChip.focus();
@@ -225,8 +227,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
 
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deck.id,
-      selectedTags: [],
-      tagAndFilter: false,
+      cardFilter: { selectedTags: [], tagAndFilter: false },
     });
   });
 
@@ -257,6 +258,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     expect(settingsButton).toHaveFocus();
 
     await actAsync(async () => {
+      if (mocks.deck) mocks.deck = { ...mocks.deck, cardFilter: { selectedTags: [], tagAndFilter: false } };
       resolveSave();
       await Promise.resolve();
     });
@@ -265,8 +267,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     expect(settingsButton).toHaveFocus();
     expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", {
       id: deck.id,
-      selectedTags: [],
-      tagAndFilter: false,
+      cardFilter: { selectedTags: [], tagAndFilter: false },
     });
   });
 
@@ -303,7 +304,7 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
   it("renders a language Card answer in the overlay", async () => {
     const languageCard = createCard({ ...card, backText: "const answer = 42;", tags: ["typescript"] });
     renderCardList({
-      deck: { ...deck, selectedTags: ["typescript"] },
+      deck: { ...deck, cardFilter: { selectedTags: ["typescript"], tagAndFilter: false } },
       cards: [languageCard],
       preferences: createPreferences({ appearance: { darkMode: true } }),
     });

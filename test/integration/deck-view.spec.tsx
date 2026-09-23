@@ -126,11 +126,11 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     router.dispose();
   });
 
-  it("views every tag match in standard order despite the study limit and shuffle without creating a session", async () => {
+  it("[CARD-FILTER-07] views every tag match in standard order despite the study limit and shuffle without creating a session", async () => {
     const deck = createLocalDeck({
       id: "view-filtered",
       name: "Filtered View Deck",
-      selectedTags: ["target"],
+      cardFilter: { selectedTags: ["target"], tagAndFilter: false },
     });
     const rows = [
       { frontText: "match-1", tags: ["target"] },

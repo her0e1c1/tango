@@ -3,12 +3,18 @@ import { z } from "zod";
 export const authenticatedUidSchema = z.string().min(1, "A confirmed user is required for remote Deck writes");
 export const deckIdSchema = z.string().min(1, "Deck id is required");
 
+export const cardFilterSchema = z.object({
+  selectedTags: z.array(z.string()),
+  tagAndFilter: z.boolean(),
+});
+
 const editableDeckFieldsSchema = z.object({
   name: z.string().trim().min(1, "Deck name is required."),
   url: z.url("Enter a valid URL.").optional(),
   isPublic: z.boolean(),
   selectedTags: z.array(z.string()),
   tagAndFilter: z.boolean(),
+  cardFilter: cardFilterSchema.optional(),
   category: z.string(),
   convertToBr: z.boolean(),
 });

@@ -15,6 +15,7 @@ import { DeckFilterForm } from "../ui/DeckFilterForm";
 import { useDeckFilterDraft } from "./useDeckFilterDraft";
 import { getDeckFilterState } from "./queries/getDeckFilterState";
 import { useDeckFilterSaveLifecycle } from "./useDeckFilterSaveLifecycle";
+import type { DeckFilterScope } from "./types";
 import { updateDeckFilterDraft } from "./actions/updateDeckFilterDraft";
 
 type EditDeck = typeof import("@/entities/deck").editDeck;
@@ -37,11 +38,16 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   };
 });
 
-const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[] }> = ({ deck, tags = ["tag1", "tag2"] }) => {
+const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[]; scope?: DeckFilterScope }> = ({
+  deck,
+  tags = ["tag1", "tag2"],
+  scope = "study",
+}) => {
   const uid = getAuthUid();
-  const filterDraft = useDeckFilterDraft(uid, deck);
+  const filterDraft = useDeckFilterDraft(uid, deck, scope);
   useDeckFilterSaveLifecycle(filterDraft.state.pending, filterDraft.setState);
   const filterUpdate = {
+    scope,
     uid,
     deckId: deck.id,
     draft: filterDraft.state.draft,
@@ -150,5 +156,55 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
     view.rerender(<DeckFilterHarness deck={createRemoteDeck({ id: "second", selectedTags: ["tag2"] })} />);
 
     expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
+  });
+});
+
+describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
+  beforeEach(() => {
+    writeControls.calls = [];
+    writeControls.write = undefined;
+  });
+
+  it("keeps browsing saves across page changes without leaking them into study filters", async () => {
+    const write = Promise.withResolvers<void>();
+    writeControls.write = () => write.promise;
+    const deck = createRemoteDeck({ id: "browse-pending", selectedTags: ["tag2"], tagAndFilter: true });
+    const { unmount: unmountList } = render(<DeckFilterHarness deck={deck} scope="card" />);
+    expect(screen.getByRole("checkbox", { name: "tag2" })).not.toBeChecked();
+    await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
+    unmountList();
+    const { unmount: unmountStudy } = render(<DeckFilterHarness deck={deck} />);
+    expect(screen.getByRole("checkbox", { name: "tag1" })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
+    unmountStudy();
+    render(<DeckFilterHarness deck={deck} scope="card" />);
+    expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "tag2" })).not.toBeChecked();
+    await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
+    await actAsync(async () => write.resolve());
+    await waitFor(() =>
+      expect(writeControls.calls.at(-1)?.[1]).toEqual({
+        id: deck.id,
+        cardFilter: { selectedTags: ["tag2"], tagAndFilter: false },
+      })
+    );
+  });
+
+  it("follows saved browsing changes and clearing without copying study conditions", () => {
+    const deck = createRemoteDeck({ id: "browse-live", selectedTags: ["tag2"], tagAndFilter: true });
+    const view = render(<DeckFilterHarness deck={deck} scope="card" />);
+    expect(screen.getByRole("radio", { name: "Any" })).toBeChecked();
+    view.rerender(
+      <DeckFilterHarness deck={{ ...deck, cardFilter: { selectedTags: ["tag1"], tagAndFilter: true } }} scope="card" />
+    );
+    expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "All" })).toBeChecked();
+    view.rerender(
+      <DeckFilterHarness deck={{ ...deck, cardFilter: { selectedTags: [], tagAndFilter: false } }} scope="card" />
+    );
+    expect(screen.getByRole("checkbox", { name: "tag1" })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "tag2" })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: "Any" })).toBeChecked();
   });
 });

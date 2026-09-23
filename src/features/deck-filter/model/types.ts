@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
-import type { Deck } from "@/entities/deck";
+import type { CardFilter, Deck } from "@/entities/deck";
 
-export type DeckFilterValues = Pick<Deck, "selectedTags" | "tagAndFilter">;
+export type DeckFilterValues = CardFilter;
 export interface DeckFilterDraft {
   key: string;
   draft: DeckFilterValues;
@@ -9,7 +9,10 @@ export interface DeckFilterDraft {
 }
 export type SetDeckFilterDraft = Dispatch<SetStateAction<DeckFilterDraft>>;
 
+export type DeckFilterScope = "study" | "card";
+
 export interface UpdateDeckFilterOptions {
+  scope?: DeckFilterScope;
   uid: string;
   deckId: Deck["id"];
   draft: DeckFilterValues;
