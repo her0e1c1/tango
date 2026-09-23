@@ -1,0 +1,80 @@
+name: Rebase PR 1759 onto latest main
+
+on:
+  push:
+    branches:
+      - maintenance/pr1759-rebase-0650
+
+permissions:
+  contents: write
+
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24.15.0
+      - name: Rebase and resolve documentation conflicts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main docs/test-normal-abnormal-classification
+          test "$(git rev-parse origin/main)" = 3a9ddf297e89d8afbc6c6393f96bc16f20915594
+          test "$(git rev-parse origin/docs/test-normal-abnormal-classification)" = c818053c11059851118e530dd080af157eca6b88
+          git worktree add -b pr1759-candidate-0650 .worktrees/pr1759-candidate-0650 origin/main
+          cd .worktrees/pr1759-candidate-0650
+          git config user.name her0e1c1
+          git config user.email 2764757+her0e1c1@users.noreply.github.com
+          git reset --hard c818053c11059851118e530dd080af157eca6b88
+          if ! git rebase origin/main; then
+            test -d "$(git rev-parse --git-path rebase-merge)"
+            python "$GITHUB_WORKSPACE/.github/pr1759-resolve.py" resolve
+            GIT_EDITOR=true git rebase --continue
+          fi
+          python "$GITHUB_WORKSPACE/.github/pr1759-resolve.py" extend
+          git commit --amend --no-edit
+          python "$GITHUB_WORKSPACE/.github/pr1759-resolve.py" validate | tee /tmp/pr1759-validation.txt
+          git diff --check origin/main HEAD
+      - name: Install dependencies
+        working-directory: .worktrees/pr1759-candidate-0650
+        run: |
+          npm install --global npm@12.0.1
+          npm ci
+      - name: Validate documentation
+        working-directory: .worktrees/pr1759-candidate-0650
+        run: |
+          npm run lint:test-specs
+          npm run lint:markdown
+          git diff --check origin/main HEAD
+          git diff --exit-code
+      - name: Publish validated candidate
+        working-directory: .worktrees/pr1759-candidate-0650
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = 3a9ddf297e89d8afbc6c6393f96bc16f20915594
+          test "$(git rev-parse HEAD^)" = "$(git rev-parse origin/main)"
+          git push origin HEAD:refs/heads/maintenance/pr1759-candidate-0650
+          {
+            echo "Candidate: $(git rev-parse HEAD)"
+            echo "Base: $(git rev-parse origin/main)"
+            echo "Docs tree: $(git rev-parse HEAD:docs/test)"
+            echo "Passed lint:test-specs, lint:markdown, git diff --check."
+            echo "Mandatory custom reviewer unavailable; review remains incomplete."
+            echo "PR branch not modified by this workflow."
+          } | tee -a /tmp/pr1759-validation.txt
+          git bundle create /tmp/pr1759-latest.bundle HEAD origin/main
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr1759-latest-validation
+          path: |
+            /tmp/pr1759-validation.txt
+            /tmp/pr1759-conflicts.txt
+            /tmp/pr1759-latest.bundle
+          retention-days: 1
+          if-no-files-found: error
