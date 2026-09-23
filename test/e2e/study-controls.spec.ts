@@ -1,6 +1,146 @@
-import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./utils/fixtures";
 import { readProgress, readSession } from "./utils/study-helpers";
+import { createAnonymousDeck, startAnonymousStudy } from "./utils/ui-helpers";
+import type { Locator, Page } from "@playwright/test";
+
+const swipeFrontUp = async (page: Page, frontText: string, button: "left" | "middle" | "right" = "left") => {
+  const box = await page.getByRole("button", { name: frontText, exact: true }).boundingBox();
+  if (box == null) throw new Error("Study card front is not visible");
+  const x = box.x + box.width / 2;
+  await page.mouse.move(x, box.y + box.height * 0.5);
+  await page.mouse.down({ button });
+  await page.mouse.move(x, box.y + box.height * 0.2, { steps: 5 });
+  await page.mouse.up({ button });
+};
+
+test("STUDY-CONTROLS-01 advances a remote session on a primary upward mouse drag without flipping", async ({
+  fixture,
+  page,
+}) => {
+  const deck = fixture.deck();
+  const currentCard = fixture.card("card-1");
+  const nextCard = fixture.card("card-2");
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  await swipeFrontUp(page, currentCard.frontText);
+
+  await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
+  await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
+  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
+});
+
+test("STUDY-CONTROLS-02 ignores non-primary mouse drags", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const currentCard = fixture.card("card-1");
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  await swipeFrontUp(page, currentCard.frontText, "right");
+  await swipeFrontUp(page, currentCard.frontText, "middle");
+
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 0 });
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex);
+});
+
+test("STUDY-CONTROLS-03 saves local-only progress and advances on a primary upward mouse drag", async ({
+  fixture,
+  page,
+}) => {
+  await fixture.apply(page);
+  const local = await createAnonymousDeck(page);
+  const { deck } = local;
+  const frontText = await startAnonymousStudy(page, deck.id);
+  const currentCard = frontText === local.first.frontText ? local.first : local.second;
+  const nextCard = currentCard === local.first ? local.second : local.first;
+
+  await page.goto(`/deck/${deck.id}/study`);
+  await swipeFrontUp(page, currentCard.frontText);
+
+  await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
+  await expect(page.getByText(nextCard.backText, { exact: true })).toBeHidden();
+  await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue("1");
+  await page.goto(`/card/${currentCard.id}`);
+  await expect(page.getByRole("img", { name: /Forgetting curve/ })).toBeVisible();
+});
+
+test("STUDY-CONTROLS-04 shows configured Study controls without changing the active session", async ({
+  fixture,
+  page,
+}) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const currentCard = fixture.card("card-1");
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  const progressBeforeHelp = await readProgress(currentCard.id);
+  await expect(page.getByRole("button", { name: "Open study help" })).toBeVisible();
+  await page.getByRole("button", { name: "Open study help" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Study controls" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("Arrow Up / Swipe UpEnd the current session and return to the deck list");
+  await expect(dialog).toContainText("Arrow Down / Swipe DownNo action");
+  await expect(dialog).toContainText("Arrow Left / Swipe LeftHard — answer and continue");
+  await expect(dialog).toContainText("Arrow Right / Swipe RightEasy — answer and continue");
+  await expect(dialog).toContainText("Enter / Select CardFlip or reveal the current card");
+  await expect(dialog).toContainText("Space / Play or Pause buttonPlay or pause autoplay");
+  await expect(dialog).toContainText("B / Swipe controls buttonShow the currently hidden swipe buttons");
+  await expect(dialog).toContainText("Playback controls buttonShow the currently hidden playback controls");
+  await expect(dialog).toContainText("Card details buttonShow or hide FSRS difficulty and last review");
+  await expect(dialog).toContainText("Back to deck list buttonExit without ending the current study session");
+
+  const close = dialog.getByRole("button", { name: "Close help" });
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.press("b");
+
+  await expect(dialog).toContainText("B / Swipe controls buttonShow the currently hidden swipe buttons");
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  await expect.poll(() => readProgress(currentCard.id)).toEqual(progressBeforeHelp);
+  await expect
+    .poll(async () => (await readSession(fixture.user().uid, deck.id))?.currentIndex)
+    .toBe(session.currentIndex);
+
+  await page.keyboard.press("Escape");
+
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Open study help" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
+});
+
+test("STUDY-CONTROLS-05 toggles and persists the Study Help button", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  await fixture.apply(page);
+
+  await page.goto(`/deck/${deck.id}/study`);
+  const help = page.getByRole("button", { name: "Open study help" });
+  const actions = page.getByRole("button", { name: "Open card actions" });
+  await expect(help).toBeVisible();
+  await expect(actions).toBeVisible();
+  const helpBounds = await help.boundingBox();
+  const actionsBounds = await actions.boundingBox();
+  expect(helpBounds).not.toBeNull();
+  expect(actionsBounds).not.toBeNull();
+  if (helpBounds === null || actionsBounds === null) throw new Error("Missing toolbar bounds");
+  expect(helpBounds.x + helpBounds.width).toBeLessThanOrEqual(actionsBounds.x);
+
+  await actions.click();
+  await page.getByRole("button", { name: "Help button" }).click();
+  await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
+
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Open study help" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Open card actions" }).click();
+  await expect(page.getByRole("button", { name: "Help button" })).toHaveAttribute("aria-pressed", "false");
+});
 
 const enterViewMode = async (page: Page) => {
   await page.getByRole("button", { name: "View mode", exact: true }).click();
@@ -104,11 +244,9 @@ const verifyStudyViewModeControls = async (page: Page, uid: string, deckId: stri
   expect((await readSession(uid, deckId))?.currentIndex).toBe(0);
 };
 
-for (const scenario of [
-  { id: "STUDY-CONTROLS-06", route: "study" },
-  { id: "NAVIGATION-19", route: "view" },
-]) {
-  test(`${scenario.id} scrolls the entire front without gesture actions or accidental exit`, async ({
+test.describe("View mode", () => {
+  const scenario = { id: "STUDY-CONTROLS-06", route: "study" };
+  test("STUDY-CONTROLS-06 scrolls the entire front without gesture actions or accidental exit", async ({
     fixture,
     page,
   }) => {
@@ -125,13 +263,11 @@ for (const scenario of [
     expect(await readProgress(card.id)).toEqual(before);
     if (scenario.route === "study") await verifyStudyViewModeControls(page, fixture.user().uid, deck.id);
   });
-}
+});
 
-for (const scenario of [
-  { id: "STUDY-CONTROLS-07", route: "study", answer: "Study answer" },
-  { id: "NAVIGATION-20", route: "view", answer: "Card answer" },
-]) {
-  test(`${scenario.id} exits view mode with a tap or Enter before flipping the card`, async ({ fixture, page }) => {
+test.describe("View mode", () => {
+  const scenario = { id: "STUDY-CONTROLS-07", route: "study", answer: "Study answer" };
+  test("STUDY-CONTROLS-07 exits view mode with a tap or Enter before flipping the card", async ({ fixture, page }) => {
     const deck = fixture.deck();
     const card = fixture.card("card-1");
     await fixture.apply(page);
@@ -152,13 +288,11 @@ for (const scenario of [
     await page.getByRole("region", { name: scenario.answer }).getByText(card.backText, { exact: true }).click();
     await expect(page.getByRole("region", { name: scenario.answer })).toHaveCount(0);
   });
-}
+});
 
-for (const scenario of [
-  { id: "STUDY-CONTROLS-08", route: "study", next: "Swipe right" },
-  { id: "NAVIGATION-21", route: "view", next: "Next card" },
-]) {
-  test(`${scenario.id} keeps button actions and autoplay available in view mode`, async ({ fixture, page }) => {
+test.describe("View mode", () => {
+  const scenario = { id: "STUDY-CONTROLS-08", route: "study", next: "Swipe right" };
+  test("STUDY-CONTROLS-08 keeps button actions and autoplay available in view mode", async ({ fixture, page }) => {
     const deck = fixture.deck();
     const first = fixture.card("card-1");
     await fixture.apply(page, { preferences: { study: { cardInterval: 1 }, controls: { viewMode: true } } });
@@ -176,7 +310,7 @@ for (const scenario of [
       .poll(() => readProgress(first.id))
       .toEqual(scenario.route === "view" ? before : { ...before, reps: 1 });
   });
-}
+});
 
 test("STUDY-CONTROLS-09 shares and persists view mode across Study and Deck viewing", async ({ fixture, page }) => {
   const deck = fixture.deck();
