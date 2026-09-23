@@ -1,4 +1,4 @@
-import { downloadDeckCards } from "./ui-helpers";
+import { downloadDeckCards } from "./utils/ui-helpers";
 import { readFile } from "node:fs/promises";
 import * as Papa from "papaparse";
 import type { Page } from "@playwright/test";
@@ -9,7 +9,7 @@ import {
   failNextFirestoreWrite,
   listDocuments,
   test,
-} from "./fixtures";
+} from "./utils/fixtures";
 
 const readSampleState = async (page: Page, sampleDeckId: string) => {
   await page.goto("/");

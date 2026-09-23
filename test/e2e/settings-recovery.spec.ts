@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { expect, test } from "./utils/fixtures";
 
 test("SETTINGS-06 recovers current defaults from invalid persisted preferences", async ({ fixture, page }) => {
   await fixture.apply(page);

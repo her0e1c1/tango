@@ -1,6 +1,6 @@
-import { createAnonymousDeck, startAnonymousStudy } from "./ui-helpers";
+import { createAnonymousDeck, startAnonymousStudy } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
-import { documentId, expect, listDocuments, test } from "./fixtures";
+import { documentId, expect, listDocuments, test } from "./utils/fixtures";
 
 const accountUid = async (page: Page) => {
   const value = await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent();

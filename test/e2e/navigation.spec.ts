@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, requireDocument, test } from "./fixtures";
+import { expect, requireDocument, test } from "./utils/fixtures";
 
 async function failNextThemeUpdate(page: Page): Promise<void> {
   await page.evaluate(() => {

@@ -7,7 +7,7 @@ import {
   listDocuments,
   requireDocument,
   test,
-} from "./fixtures";
+} from "./utils/fixtures";
 
 const openCardDeleteDialog = async (page: Page, frontText: string) => {
   await page.getByRole("button", { name: `Open actions for ${frontText}` }).click();

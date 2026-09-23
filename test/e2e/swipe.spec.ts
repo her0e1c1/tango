@@ -1,8 +1,14 @@
-import { createAnonymousDeck, startAnonymousStudy } from "./ui-helpers";
+import { createAnonymousDeck, startAnonymousStudy } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
 
-import { allowExpectedFirestoreWriteFailure, failNextFirestoreWrite, expect, listDocuments, test } from "./fixtures";
-import { readProgress, readSession } from "./study-helpers";
+import {
+  allowExpectedFirestoreWriteFailure,
+  failNextFirestoreWrite,
+  expect,
+  listDocuments,
+  test,
+} from "./utils/fixtures";
+import { readProgress, readSession } from "./utils/study-helpers";
 
 const cardAt = <T>(cards: readonly T[], index: number) => {
   const card = cards[index];

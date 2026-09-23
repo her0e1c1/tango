@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
-import { collectBrowserErrors, expect, requireDocument, test } from "./fixtures";
-import { readSession } from "./study-helpers";
+import { collectBrowserErrors, expect, requireDocument, test } from "./utils/fixtures";
+import { readSession } from "./utils/study-helpers";
 
 test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page }) => {
   const initialDarkMode = fixture.state.browser.preferences.appearance.darkMode;

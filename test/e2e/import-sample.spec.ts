@@ -1,7 +1,7 @@
-import { downloadDeckCards } from "./ui-helpers";
+import { downloadDeckCards } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
 import sampleCards from "../../sample/build/output.json";
-import { documentId, expect, listDocuments, test } from "./fixtures";
+import { documentId, expect, listDocuments, test } from "./utils/fixtures";
 
 type SampleCard = (typeof sampleCards)[number];
 const sampleName = "deck-sample.csv";

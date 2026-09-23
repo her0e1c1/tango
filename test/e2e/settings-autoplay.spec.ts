@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 
-import { expect, listDocuments, requireDocument, test } from "./fixtures";
-import { readSession } from "./study-helpers";
+import { expect, listDocuments, requireDocument, test } from "./utils/fixtures";
+import { readSession } from "./utils/study-helpers";
 
 const readPreferences = (page: Page) =>
   page.evaluate(() => JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences);

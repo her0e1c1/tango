@@ -1,5 +1,5 @@
-import { createAnonymousDeck } from "./ui-helpers";
-import { expect, test } from "./fixtures";
+import { createAnonymousDeck } from "./utils/ui-helpers";
+import { expect, test } from "./utils/fixtures";
 
 test("CARD-VIEW-06 shows FSRS memory after a rating, reload, and offline navigation", async ({
   fixture,

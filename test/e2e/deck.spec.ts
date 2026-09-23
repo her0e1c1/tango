@@ -1,4 +1,4 @@
-import { readSession } from "./study-helpers";
+import { readSession } from "./utils/study-helpers";
 import { readFile } from "node:fs/promises";
 import type { Page } from "@playwright/test";
 import {
@@ -10,7 +10,7 @@ import {
   listDocuments,
   requireDocument,
   test,
-} from "./fixtures";
+} from "./utils/fixtures";
 
 const openDeckDeleteDialog = async (page: Page, deckName: string) => {
   await page.getByRole("button", { name: `Open actions for ${deckName}` }).click();

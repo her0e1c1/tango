@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
-import { readProgress, readSession } from "./study-helpers";
+import { expect, test } from "./utils/fixtures";
+import { readProgress, readSession } from "./utils/study-helpers";
 
 const enterViewMode = async (page: Page) => {
   await page.getByRole("button", { name: "View mode", exact: true }).click();
