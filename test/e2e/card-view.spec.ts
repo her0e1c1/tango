@@ -1,6 +1,6 @@
 import { expect, getDocument, requireDocument, test } from "./utils/fixtures";
 import { createAnonymousDeck } from "./utils/ui-helpers";
-import { type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 test("CARD-VIEW-06 shows FSRS memory after a rating, reload, and offline navigation", async ({
   fixture,

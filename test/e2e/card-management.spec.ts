@@ -8,7 +8,7 @@ import {
   test,
 } from "./utils/fixtures";
 import { createAnonymousDeck, downloadDeckCards } from "./utils/ui-helpers";
-import { type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 test.describe("card-resilience", () => {
   const openCardDeleteDialog = async (page: Page, frontText: string) => {

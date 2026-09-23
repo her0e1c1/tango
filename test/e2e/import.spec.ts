@@ -8,7 +8,7 @@ import {
   test,
 } from "./utils/fixtures";
 import { downloadDeckCards } from "./utils/ui-helpers";
-import { type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import * as Papa from "papaparse";
 

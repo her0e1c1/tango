@@ -1,5 +1,5 @@
 import { expect, listDocuments, requireDocument, test } from "./utils/fixtures";
-import { type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 const expectOrder = async (rows: Locator, names: string[]) => {
   await expect(rows).toHaveCount(names.length);

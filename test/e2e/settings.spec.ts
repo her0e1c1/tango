@@ -1,6 +1,6 @@
 import { collectBrowserErrors, expect, listDocuments, requireDocument, test } from "./utils/fixtures";
 import { readSession } from "./utils/study-helpers";
-import { type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 test("SETTINGS-03 applies review scheduling to the next study session", async ({ fixture, page }) => {
   const deck = fixture.deck();

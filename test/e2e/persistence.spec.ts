@@ -10,7 +10,7 @@ import {
   test,
 } from "./utils/fixtures";
 import { createAnonymousDeck } from "./utils/ui-helpers";
-import { type Page, type Route } from "@playwright/test";
+import type { Page, Route } from "@playwright/test";
 
 test("PERSISTENCE-03 reflects a remote Card edit in another open client without reload", async ({
   baseURL,

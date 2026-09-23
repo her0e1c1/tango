@@ -9,7 +9,7 @@ import {
   test,
 } from "./utils/fixtures";
 import { readSession } from "./utils/study-helpers";
-import { type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote duplicate", async ({
   fixture,

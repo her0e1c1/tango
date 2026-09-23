@@ -1,7 +1,7 @@
 import { expect, test } from "./utils/fixtures";
 import { readProgress, readSession } from "./utils/study-helpers";
 import { createAnonymousDeck, startAnonymousStudy } from "./utils/ui-helpers";
-import { type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 const swipeFrontUp = async (page: Page, frontText: string, button: "left" | "middle" | "right" = "left") => {
   const box = await page.getByRole("button", { name: frontText, exact: true }).boundingBox();

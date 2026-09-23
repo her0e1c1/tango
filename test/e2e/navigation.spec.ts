@@ -1,7 +1,7 @@
 import { type E2EFixture, expect, getDocument, listDocuments, requireDocument, test } from "./utils/fixtures";
 import { readProgress, readSession } from "./utils/study-helpers";
 import { createAnonymousDeck, downloadDeckCards, startAnonymousStudy } from "./utils/ui-helpers";
-import { type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 test("NAVIGATION-17 shows held review counts and opens existing study settings", async ({ fixture, page }) => {
   const deck = fixture.deck();

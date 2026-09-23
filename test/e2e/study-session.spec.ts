@@ -1,7 +1,7 @@
 import { expect, listDocuments, requireDocument, test } from "./utils/fixtures";
 import { readProgress, readSession } from "./utils/study-helpers";
 import { createAnonymousDeck, startAnonymousStudy } from "./utils/ui-helpers";
-import { type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 const readSelectedTags = async (deckId: string): Promise<string[]> =>
   ((await requireDocument("deck", deckId)).fields.selectedTags?.arrayValue?.values ?? [])
