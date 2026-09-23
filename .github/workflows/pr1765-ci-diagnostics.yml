@@ -1,4 +1,4 @@
-name: PR 1765 CI repair validation
+name: PR 1765 rebase validation
 
 on:
   push:
@@ -13,109 +13,137 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      PR_HEAD: b7a0f1e991794502ff1bfa481f8d1d4bc1612233
+      PR_HEAD: ddc8934f83f2ce16f7352125c5cf4fca14a812cd
+      OLD_BASE: 46bb114ef49f38b12090b8db0252d9da2015267c
+      MAIN_HEAD: c30c6631c116c18317adae4f135871a44b981fd0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: b7a0f1e991794502ff1bfa481f8d1d4bc1612233
+          ref: c30c6631c116c18317adae4f135871a44b981fd0
           fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.15.0
           cache: npm
-      - name: Prepare a worktree from current main
+      - name: Record current main test discovery
+        run: |
+          set -euo pipefail
+          npm install --global npm@12.0.1
+          npm ci
+          npm run build:sample
+          npx playwright test --list --reporter=json > "$RUNNER_TEMP/main-tests.json"
+      - name: Reapply only the file reorganization on current main
         run: |
           set -euo pipefail
           git fetch origin main refactor/align-e2e-file-pairs
+          test "$(git rev-parse origin/main)" = "$MAIN_HEAD"
           test "$(git rev-parse origin/refactor/align-e2e-file-pairs)" = "$PR_HEAD"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git worktree add .worktrees/pr1765-ci-fix -b pr1765-ci-fix origin/main
-          git -C .worktrees/pr1765-ci-fix merge --ff-only "$PR_HEAD"
-      - name: Apply only the diagnosed fixes
-        working-directory: .worktrees/pr1765-ci-fix
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          pattern = re.compile(r'^import \{ (type \w+(?:, type \w+)*) \} from "@playwright/test";$', re.MULTILINE)
-          count = 0
-          for file in sorted(Path('test/e2e').glob('*.spec.ts')):
-              before = file.read_text()
-              after, matches = pattern.subn(lambda match: 'import type { ' + match[1].replace('type ', '') + ' } from "@playwright/test";', before)
-              if matches:
-                  file.write_text(after)
-                  count += matches
-          assert count == 10, f'Expected 10 type-only imports, found {count}'
-          pending = Path('test/e2e/card-filter.spec.ts')
-          assert pending.read_text().count('test.fixme(') == 11
-          headings = re.findall(r'^### CARD-FILTER-.*$', Path('docs/test/e2e/card-filter.md').read_text(), re.MULTILINE)
-          assert len(headings) == 11 and all('[TODO]' in heading for heading in headings)
-          pending.write_text('// TODO: Implement the [TODO] cases in docs/test/e2e/card-filter.md.\n// Keep the paired module without registering empty or skipped tests.\nexport {};\n')
-          file = Path('test/e2e/AGENTS.md')
-          before = file.read_text()
-          old = '- Every documented case must have at least one active test.'
-          assert before.count(old) == 1
-          after = before.replace(old, '- Every documented case without `[TODO]` must have at least one active test.')
-          after = after.replace('- Run `npm run lint:test-specs`', '- Keep `[TODO]` cases in the specification without empty or skipped tests. If all cases are pending, retain the paired `.spec.ts` as a module with a TODO comment pointing to its specification.\n- Run `npm run lint:test-specs`')
-          file.write_text(after)
-          file = Path('docs/test/e2e/AGENTS.md')
-          before = file.read_text()
-          old = 'Explicit `[TODO]` cases remain unimplemented until their skipped tests receive real assertions.'
-          assert before.count(old) == 1
-          file.write_text(before.replace(old, 'Keep explicit `[TODO]` cases in the specification without empty or skipped tests; a fully pending specification retains a paired test module with a TODO comment.'))
-          print('Fixed 10 type-only imports; removed 11 empty skipped stubs without implementing pending cases.')
-          PY
+          git worktree add .worktrees/pr1765-rebase -b pr1765-rebase origin/main
+          cd .worktrees/pr1765-rebase
+          git diff --binary --no-renames "$OLD_BASE" "$PR_HEAD" -- test/e2e docs/test/e2e/AGENTS.md \
+            ':(exclude)test/e2e/card-filter.spec.ts' \
+            ':(exclude)test/e2e/card.spec.ts' \
+            ':(exclude)test/e2e/deck-view.spec.ts' | git apply -
+          node <<'JS'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const { execFileSync } = require('node:child_process');
+          const ts = require('typescript');
+          const printer = ts.createPrinter({ removeComments: true });
+          const parse = (name, text) => ts.createSourceFile(name, text, ts.ScriptTarget.Latest, true);
+          const show = (ref, file) => execFileSync('git', ['show', `${ref}:${file}`], { encoding: 'utf8' });
+          function testNode(source, id) {
+            const found = [];
+            function visit(node) {
+              if (ts.isExpressionStatement(node) && ts.isCallExpression(node.expression)) {
+                const call = node.expression;
+                const title = call.arguments[0];
+                if (ts.isIdentifier(call.expression) && call.expression.text === 'test' && title &&
+                    ts.isStringLiteralLike(title) && title.text.startsWith(`${id} `)) found.push(node);
+              }
+              ts.forEachChild(node, visit);
+            }
+            visit(source);
+            assert.equal(found.length, 1, `${source.fileName}: ${id}`);
+            return found[0];
+          }
+          const canonical = (node, source) => printer.printNode(ts.EmitHint.Unspecified, node, source);
+          for (const [original, destination, ids] of [
+            ['test/e2e/card.spec.ts', 'test/e2e/card-list-actions.spec.ts', ['CARD-LIST-ACTIONS-01']],
+            ['test/e2e/deck-view.spec.ts', 'test/e2e/navigation.spec.ts', ['NAVIGATION-10', 'NAVIGATION-11', 'NAVIGATION-12']],
+          ]) {
+            const base = parse(original, show(process.env.OLD_BASE, original));
+            const main = parse(original, show(process.env.MAIN_HEAD, original));
+            for (const id of ids) {
+              const text = fs.readFileSync(destination, 'utf8');
+              const target = parse(destination, text);
+              const oldNode = testNode(base, id);
+              const targetNode = testNode(target, id);
+              const mainNode = testNode(main, id);
+              assert.equal(canonical(targetNode, target), canonical(oldNode, base), `Unexpected PR edits to ${id}`);
+              fs.writeFileSync(destination, text.slice(0, targetNode.getStart(target)) + mainNode.getText(main) + text.slice(targetNode.end));
+              const replaced = parse(destination, fs.readFileSync(destination, 'utf8'));
+              assert.equal(canonical(testNode(replaced, id), replaced), canonical(mainNode, main), `Lost main changes to ${id}`);
+              console.log(`Preserved current main declaration: ${id} -> ${destination}`);
+            }
+          }
+          assert.equal(fs.readFileSync('test/e2e/card-filter.spec.ts', 'utf8'), show(process.env.MAIN_HEAD, 'test/e2e/card-filter.spec.ts'));
+          JS
+          git rm test/e2e/card.spec.ts test/e2e/deck-view.spec.ts
+          npx biome lint --write --only=correctness/noUnusedImports test/e2e/navigation.spec.ts
+          npx biome format --write test/e2e/navigation.spec.ts test/e2e/card-list-actions.spec.ts
           git diff --check
-          git diff --stat
           git add test/e2e docs/test/e2e/AGENTS.md
-          git commit -m 'fix(test): preserve type imports and remove skipped TODO stubs'
+          git commit -m 'refactor(test): align E2E file pairs with current browsing filters'
           git fetch origin main
           git rebase origin/main
-      - name: Validate from a normal checkout, not an ignored worktree path
+          test "$(git rev-parse origin/main)" = "$MAIN_HEAD"
+      - name: Validate from the normal repository checkout
         run: |
           set -euo pipefail
-          git checkout --detach pr1765-ci-fix
+          git checkout --detach pr1765-rebase
           curl --fail --silent --show-error https://mise.run | sh
           export PATH="$HOME/.local/bin:$PATH"
           mise trust
-          mise install node npm hadolint
           mise run check || { npx biome lint --error-on-warnings --diagnostic-level=warn --max-diagnostics=none .; exit 1; }
-          npx biome lint --error-on-warnings --diagnostic-level=warn --max-diagnostics=none .
-          npx playwright test --list --reporter=json > "$RUNNER_TEMP/pr1765-tests.json"
+          npx playwright test --list --reporter=json > "$RUNNER_TEMP/rebased-tests.json"
           python3 - <<'PY'
+          from collections import Counter
           from pathlib import Path
           import json, os, re, subprocess
-          root = Path('test/e2e')
-          actual = {f.name.removesuffix('.spec.ts') for f in root.glob('*.spec.ts')}
-          expected = {f.stem for f in Path('docs/test/e2e').glob('*.md') if f.name not in ('AGENTS.md', 'README.md')}
-          assert actual == expected and len(actual) == 15
-          report = json.loads(Path(os.environ['RUNNER_TEMP'], 'pr1765-tests.json').read_text())
-          def titles(suites):
+          def specs(suites):
               for suite in suites:
-                  for spec in suite.get('specs', []):
-                      yield spec['title']
-                  yield from titles(suite.get('suites', []))
-          registered = list(titles(report['suites']))
-          assert len(registered) == 122 and len(set(registered)) == 122, len(registered)
-          assert not any(title.startswith('CARD-FILTER-') for title in registered)
-          for file in root.glob('*.spec.ts'):
-              if file.name == 'card-filter.spec.ts':
-                  continue
-              old = subprocess.check_output(['git', 'show', os.environ['PR_HEAD'] + ':' + str(file)], text=True)
-              normalize = lambda text: re.sub(r'^import .*$', '', text, flags=re.MULTILINE)
-              assert normalize(old) == normalize(file.read_text()), str(file)
-          print('Validated 15 file pairs and all 122 original active test declarations; test bodies are unchanged.')
+                  yield from suite.get('specs', [])
+                  yield from specs(suite.get('suites', []))
+          def load(name):
+              return list(specs(json.loads(Path(os.environ['RUNNER_TEMP'], name).read_text())['suites']))
+          before, after = load('main-tests.json'), load('rebased-tests.json')
+          assert Counter(item['title'] for item in before) == Counter(item['title'] for item in after), 'Test titles or multiplicities changed'
+          docs = {file.stem: file for file in Path('docs/test/e2e').glob('*.md') if file.name not in ('AGENTS.md', 'README.md')}
+          tests = {file.name.removesuffix('.spec.ts') for file in Path('test/e2e').glob('*.spec.ts')}
+          assert tests == set(docs) and len(tests) == 15, 'File pairing mismatch'
+          for item in after:
+              document = docs[Path(item['file']).name.removesuffix('.spec.ts')]
+              documented = set(re.findall(r'^### ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,})\b', document.read_text(), re.MULTILINE))
+              referenced = set(re.findall(r'\b[A-Z]+(?:-[A-Z]+)*-[0-9]{2,}\b', item['title']))
+              assert referenced and referenced <= documented, (item['title'], str(document))
+          changed = subprocess.check_output(['git', 'diff', '--name-only', os.environ['MAIN_HEAD'], 'HEAD'], text=True).splitlines()
+          assert all(path.startswith('test/e2e/') or path == 'docs/test/e2e/AGENTS.md' for path in changed), changed
+          subprocess.run(['git', 'diff', '--exit-code', os.environ['MAIN_HEAD'], 'HEAD', '--', 'test/e2e/card-filter.spec.ts'], check=True)
+          print(f'Validated {len(after)} current-main tests, {len(tests)} file pairs, and unchanged new Card filter tests.')
           PY
-      - name: Publish the validated result branch only
+      - name: Publish only the validated candidate
         run: |
           set -euo pipefail
           git fetch origin main refactor/align-e2e-file-pairs
+          test "$(git rev-parse origin/main)" = "$MAIN_HEAD"
           test "$(git rev-parse origin/refactor/align-e2e-file-pairs)" = "$PR_HEAD"
           git merge-base --is-ancestor origin/main HEAD
-          git diff --check origin/main
+          test "$(git rev-list --count origin/main..HEAD)" = 1
           test -z "$(git status --porcelain --untracked-files=no)"
-          git push origin HEAD:refs/heads/maintenance/pr1765-ci-result
+          git diff --check origin/main
+          git push origin HEAD:refs/heads/maintenance/pr1765-rebase-result
           echo "VALIDATED_SHA=$(git rev-parse HEAD)"
-          echo 'The temporary workflow is absent from the result branch. The custom reviewer gate has not been run.'
+          echo 'No temporary workflow is included. The custom reviewer gate is not available in this runner.'
