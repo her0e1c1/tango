@@ -2,8 +2,9 @@
 
 ## Directory contract
 
-- `docs/test/e2e/*.md` は `AGENTS.md` を除き、すべて E2E テスト仕様書とする。
-- 一般的な説明、索引、規約文書を `docs/test/e2e` 直下に追加しない。
+- `docs/test/e2e/*.md` は `README.md` と `AGENTS.md` を除き、すべて E2E テスト仕様書とする。
+- `README.md` にはテストケースの一覧テーブルのみを記述する。
+- 一般的な説明や規約文書を `docs/test/e2e` 直下に追加しない。
 - E2E 仕様書の記述規約はこの `AGENTS.md` を正とする。
 - 各仕様書は1つ以上の E2E test case を含む。
 - 詳細仕様の Markdown は `docs/test/e2e` 直下へ置く。
@@ -56,7 +57,7 @@
 - Playwright 側に仕様書に存在しない E2E test case を追加してはならない。
 - 詳細仕様での E2E case ID の重複を禁止する。複数テストで同じ仕様 ID を共有することは許可する。
 - 仕様 ID の記載漏れは `npm run lint:test-specs` で簡易チェックする。fixture は E2E の global setup で browser 起動前に検証する。
-- 手動で管理する E2E case ID の索引は作成しない。仕様書を single source of truth とする。
+- `README.md` 以外に手動で管理する E2E case ID の索引を作成しない。仕様書を single source of truth とする。
 
 ## 共通の期待結果
 
