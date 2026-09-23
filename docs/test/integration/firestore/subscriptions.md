@@ -2,9 +2,8 @@
 
 ## 目的
 
-Firestore の snapshot を Card / Deck store に反映し、購読解除で反映を止める契約を確認する。
-
-追加テストの仕様（未実装・未検証）は [Snapshot](./snapshot.md) を参照する。本書の既存3ケースとは分けて管理する。
+Card / Deck の公開された購読操作を通して、保存済みの内容と同一クライアント内の変更を取得でき、購読停止後は以前の取得結果を保持することを確認する。
+空の結果、所有者の分離、不正データ、独立したクライアントからの更新は [Snapshot](./snapshot.md) を参照する。停止後の更新到達まで確認する契約は [FIRESTORE-SNAPSHOT-09](./snapshot.md#firestore-snapshot-09) として区別する。
 
 関連 E2E: [CARD-VIEW-01](../../e2e/card-view.md#card-view-01)、[DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)
 
@@ -14,13 +13,13 @@ Firestore の snapshot を Card / Deck store に反映し、購読解除で反�
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| FIRESTORE-SUBSCRIPTIONS-01 | read | 正常系 | [初期 snapshot から Card 本文を取得できる](#firestore-subscriptions-01) |
-| FIRESTORE-SUBSCRIPTIONS-02 | batch | 正常系 | [購読中の追加・更新・論理削除を store に反映できる](#firestore-subscriptions-02) |
-| FIRESTORE-SUBSCRIPTIONS-03 | read | 正常系 | [購読解除後の編集で store の値を更新しない](#firestore-subscriptions-03) |
+| FIRESTORE-SUBSCRIPTIONS-01 | read | 正常系 | [初回の購読結果から Card 本文を取得できる](#firestore-subscriptions-01) |
+| FIRESTORE-SUBSCRIPTIONS-02 | batch | 正常系 | [購読中の追加・更新・論理削除を取得結果に反映する](#firestore-subscriptions-02) |
+| FIRESTORE-SUBSCRIPTIONS-03 | read | 正常系 | [購読停止後の編集完了時にも以前の取得結果を保持する](#firestore-subscriptions-03) |
 
 <a id="firestore-subscriptions-01"></a>
 
-### FIRESTORE-SUBSCRIPTIONS-01 初期 snapshot から Card 本文を取得できる
+### FIRESTORE-SUBSCRIPTIONS-01 初回の購読結果から Card 本文を取得できる
 
 カテゴリ: `read`
 
@@ -28,21 +27,21 @@ Firestore の snapshot を Card / Deck store に反映し、購読解除で反�
 
 Given:
 
-- 本人の Deck と Card を保存済みで、親 Deck を store に保持している。
-- Card は frontText `Fetched Card` を持つ。
+- 本人の Deck と Card が保存済みで、親 Deck は利用側から参照できる。
+- Card の表面の本文は Fetched Card である。
 
 When:
 
-- `subscribeCards("uid", onError)` を開始し、対象 ID の store 反映を待つ。
+- 本人の Card の購読を開始する。
 
 Then:
 
-- Card store に同じ ID と本文 が反映される。
+- 対象 Card の ID と保存した本文を、購読結果から参照できる。
 - 購読エラーは通知されない。
 
 <a id="firestore-subscriptions-02"></a>
 
-### FIRESTORE-SUBSCRIPTIONS-02 購読中の追加・更新・論理削除を store に反映できる
+### FIRESTORE-SUBSCRIPTIONS-02 購読中の追加・更新・論理削除を取得結果に反映する
 
 カテゴリ: `batch`
 
@@ -50,24 +49,27 @@ Then:
 
 Given:
 
-- Card と Deck の store を空にし、本人の UID で両方の購読を開始している。
+- 本人の Card と Deck を購読している。次の各行を、それぞれの操作前の状態とする。
+
+| 操作前の状態 | 保存操作 | 反映後に参照できる結果 |
+| --- | --- | --- |
+| 対象 Deck と Card が存在しない | Deck を作成し、その Deck に属する Card を作成する | 作成した Deck と Card の ID が含まれる |
+| 対象 Deck と Card が取得済みである | Deck の名前と Card の表面の本文を Updated に変更する | 両方の対象 ID が Updated を持つ |
+| 対象 Deck と Card が取得済みである | Card と Deck の両方を論理削除する | 両方の対象 ID が含まれない |
 
 When:
 
-- 本人の Deck を作成して store 反映を待ち、その後 Card を作成して反映を待つ。
-- Deck の name と Card の frontText を `Updated` に変更して反映を待つ。
-- Card と Deck をそれぞれ削除して反映を待つ。
+- 購読している同じクライアントから、表の保存操作を行う。
 
 Then:
 
-- 追加時は両方の ID、更新時は両方の `Updated` が各 store に現れる。
-- 削除後は両方の ID が各 store からなくなる。購読エラーは発生しない。
-
-このケースは Card と Deck の両方を削除する。親 Deck だけの削除による子 Card の非表示確認とは区別する。
+- 変更を受信した購読結果は表に一致する。
+- 購読エラーは通知されない。
+- 最後の行は Card と Deck の両方の削除を対象とし、親 Deck だけを削除したときの子 Card の扱いは保証しない。
 
 <a id="firestore-subscriptions-03"></a>
 
-### FIRESTORE-SUBSCRIPTIONS-03 購読解除後の編集で store の値を更新しない
+### FIRESTORE-SUBSCRIPTIONS-03 購読停止後の編集完了時にも以前の取得結果を保持する
 
 カテゴリ: `read`
 
@@ -75,15 +77,14 @@ Then:
 
 Given:
 
-- 本人の Deck と Card を購読中で、name と frontText が `Before stop` として store に反映済みである。
+- 本人の Deck と Card を購読し、名前と表面の本文として Before stop を取得済みである。
 
 When:
 
-- 両方の購読を解除し、Deck と Card を `After stop` に編集する。
+- 両方の購読を停止し、同じクライアントで Deck と Card を After stop に編集する。
 
 Then:
 
-- 編集操作後の各 store には `Before stop` が残る。
-- 購読エラーは発生しない。
-
-既存 assertion は編集操作直後の値を確認する。遅延イベントまで含めた長時間の無反映を、このテストだけで保証しない。
+- 編集操作が完了した時点でも、取得結果の名前と本文は Before stop のままである。
+- 購読エラーは通知されない。
+- この時点の確認を、別クライアントの更新が到達した後も結果や通知が変わらないことの保証として扱わない。
