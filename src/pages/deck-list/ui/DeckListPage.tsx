@@ -10,7 +10,7 @@ export const DeckListPage: React.FC = () => {
   const model = useDeckListPageModel();
 
   return (
-    <AppLayout showHeader>
+    <AppLayout showHeader contentSurface="canvas">
       {model.deletionTarget != null && (
         <DeckDeletionDialog
           target={model.deletionTarget}

@@ -53,7 +53,7 @@ const DisableableMenu: React.FC = () => {
   );
 };
 
-describe("STUDY-SESSION-10 DECK-NAVIGATION-03 DeckActionsMenu", () => {
+describe("STUDY-SESSION-10 DECK-NAVIGATION-01 DECK-NAVIGATION-03 DeckActionsMenu", () => {
   it("opens an accessible menu and routes each action", () => {
     const actions = {
       onView: vi.fn(),
@@ -102,6 +102,7 @@ describe("STUDY-SESSION-10 DECK-NAVIGATION-03 DeckActionsMenu", () => {
       "Edit",
       "Study history",
       "Delete",
+      "Close menu",
     ]);
   });
 
