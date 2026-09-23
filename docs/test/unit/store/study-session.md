@@ -2,145 +2,152 @@
 
 ## 目的
 
-学習セッションストア (`studySessionStore`) の初期状態、複数デック間の独立セッション保持、個別セッションの削除、クリア、およびリモート所有者スコープ変更（`setStudySessionOwner`）と一括更新処理を確認する。
+デックごとの学習の続きを参照でき、削除・所有者変更・取得完了によって他のデックや利用者のセッションを混同しないことを確認する。カードの選定規則、FSRS、Firestore への保存、認証に伴う購読の開始・停止は対象外とする。
 
-対応ファイル: [`store.ts`](../../../../src/entities/study-session/model/store.ts) / [`clearStudySessions.ts`](../../../../src/entities/study-session/model/actions/clearStudySessions.ts) / [`removeStudySession.ts`](../../../../src/entities/study-session/model/actions/removeStudySession.ts) / [`setStudySessionOwner.ts`](../../../../src/entities/study-session/model/actions/setStudySessionOwner.ts) / [`replaceRemoteStudySessions.ts`](../../../../src/entities/study-session/model/actions/replaceRemoteStudySessions.ts) / [`finishStudySessionLoading.ts`](../../../../src/entities/study-session/model/actions/finishStudySessionLoading.ts) / [`store.spec.ts`](../../../../src/entities/study-session/model/store.spec.ts)
+関連テスト: [`store.spec.ts`](../../../../src/entities/study-session/model/store.spec.ts)
 
-関連 E2E: [STUDY-SESSION-01](../../e2e/study-session.md#study-session-01)、[STUDY-ACTIONS-04](../../e2e/study-actions.md#study-actions-04)
+関連 E2E: [STUDY-SESSION-01](../../e2e/study-session.md#study-session-01)、[STUDY-ACTIONS-04](../../e2e/study-actions.md#study-actions-04)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
-## 共通前提
-
-テスト実行前に `studySessionStore.setState({ sessionsByDeckId: {}, remoteLoading: false })` を実行し、ストア状態を初期化する。
+対応状況は既存テストとの静的な照合結果であり、テストの実行結果ではない。共通の検証境界と対応状況の意味は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| UNIT-STORE-STUDY-01 | state-change | [複数デックの独立した学習セッションを保持できる](#unit-store-study-01) |
-| UNIT-STORE-STUDY-02 | state-change | [指定したデックのセッションのみを削除できる](#unit-store-study-02) |
-| UNIT-STORE-STUDY-03 | state-change | [レガシーバックアップを削除せずに画面表示セッションをクリアできる](#unit-store-study-03) |
-| UNIT-STORE-STUDY-04 | scope-reset | [所有者 UID 変更時に異所有者のセッションを削除しローディング状態を更新できる](#unit-store-study-04) |
-| UNIT-STORE-STUDY-05 | state-change | [リモート学習セッションを一括置換しローディングを完了できる](#unit-store-study-05) |
-| UNIT-STORE-STUDY-06 | state-change | [リモート学習セッションのローディング完了を設定できる](#unit-store-study-06) |
+| UNIT-STORE-STUDY-01 | state-change | [デックごとの学習の続きが互いに混ざらない](#unit-store-study-01) |
+| UNIT-STORE-STUDY-02 | state-change | [指定したデックだけ学習の続きから除外する](#unit-store-study-02) |
+| UNIT-STORE-STUDY-03 | scope-reset | [学習中の情報をクリアしても旧バックアップを失わない](#unit-store-study-03) |
+| UNIT-STORE-STUDY-04 | scope-reset | [所有者を変更したら一致しない学習の続きを提供しない](#unit-store-study-04) |
+| UNIT-STORE-STUDY-05 | state-change | [最新の取得結果に学習の続きを切り替えて取得待ちを終了する](#unit-store-study-05) |
+| UNIT-STORE-STUDY-06 | state-change | [取得待ちだけを終了すると保持済みの学習の続きは変わらない](#unit-store-study-06) |
 
 <a id="unit-store-study-01"></a>
 
-### UNIT-STORE-STUDY-01 複数デックの独立した学習セッションを保持できる
+### UNIT-STORE-STUDY-01 デックごとの学習の続きが互いに混ざらない
 
 カテゴリ: `state-change`
 
-対応テスト: `[STUDY-SESSION-01] [STUDY-ACTIONS-04] keeps independent study sessions for multiple decks`
+対応テスト: `keeps independent study sessions for multiple decks`（要補完：異なる学習位置と存在しないデックの参照）。
 
 Given:
 
-- 2つの異なるデック ID（`deck-1`, `deck-2`）を用意する。
+同じ利用者に、デック A のセッション（カード順 a1、a2、学習の続きは 2 枚目）と、デック B のセッション（カード順 b1、学習の続きは 1 枚目）がある。両者のセッション識別子と最終学習時刻も異なる。
 
 When:
 
-- それぞれのデックに対して `startStudy` で学習を開始する。
+両セッションを学習セッションモデルへ反映する。
 
 Then:
 
-- `sessionsByDeckId` に両方のデックのセッションが独立して保存され、カード順や現在インデックスが正しく管理される。
+デック A と B を指定した参照結果は、それぞれのセッション識別子、カード順、学習位置、最終学習時刻に一致する。互いの値を上書きせず、存在しないデック C のセッションは取得できない。
 
 <a id="unit-store-study-02"></a>
 
-### UNIT-STORE-STUDY-02 指定したデックのセッションのみを削除できる
+### UNIT-STORE-STUDY-02 指定したデックだけ学習の続きから除外する
 
 カテゴリ: `state-change`
 
-対応テスト: `[STUDY-SESSION-01] [STUDY-ACTIONS-04] removes only the requested session`
+対応テスト: `removes only the requested session`（要補完：残るセッションの内容全体と存在しないデックの削除）。
 
 Given:
 
-- `deck-1` と `deck-2` のセッションが `studySessionStore` に存在する。
+デック A と B に、カード順・学習位置・最終学習時刻が異なるセッションを保持している。
 
 When:
 
-- `removeStudySession("deck-1")` を実行する。
+A のセッションを削除する場合と、存在しない C のセッションを削除する場合を、それぞれ同じ変更前の状態から実行する。
 
 Then:
 
-- `deck-1` のセッションのみが削除され、`deck-2` のセッションはそのまま維持される。
+A を削除した場合は A だけが取得できなくなり、B の内容は変更されない。C を削除した場合は失敗せず、A と B の内容はどちらも変更されない。
 
 <a id="unit-store-study-03"></a>
 
-### UNIT-STORE-STUDY-03 レガシーバックアップを削除せずに画面表示セッションをクリアできる
-
-カテゴリ: `state-change`
-
-対応テスト: `[STUDY-SESSION-01] [STUDY-ACTIONS-04] clears the visible session without deleting the legacy backup`
-
-Given:
-
-- `localStorage` にレガシーバックアップ用キー `tango-study` の値が存在する。
-- 画面上の学習セッションが存在する。
-
-When:
-
-- `clearStudySessions()` を呼び出す。
-
-Then:
-
-- ストア上の画面表示セッションは消去（`getStudySession` で `undefined`）されるが、`localStorage` のバックアップ値は保持される。
-
-<a id="unit-store-study-04"></a>
-
-### UNIT-STORE-STUDY-04 所有者 UID 変更時に異所有者のセッションを削除しローディング状態を更新できる
+### UNIT-STORE-STUDY-03 学習中の情報をクリアしても旧バックアップを失わない
 
 カテゴリ: `scope-reset`
 
-対応テスト: 仕様（アクション `setStudySessionOwner.ts`）定義
+対応テスト: `clears the visible session without deleting the legacy backup`（要補完：複数デック、取得待ちの解除、既に空の場合）。
 
 Given:
 
-- `uid: "user-a"` 所有のセッションがストアに存在する。
+複数デックのセッションを保持して取得待ちであり、保存先 tango-study には旧バックアップがある。既にセッションがなく取得待ちでもない場合も独立して用意する。
 
 When:
 
-- `setStudySessionOwner("user-b")` を呼び出す。
+学習セッションモデルのクリア操作を行う。
 
 Then:
 
-- 所有者が一致しない `"user-a"` のセッションが削除され、`remoteLoading` が `true` に設定される。
+どのデックのセッションも取得できず、取得待ちではなくなる。既に空でも操作は失敗しない。旧バックアップの内容は変更・削除されない。
+
+<a id="unit-store-study-04"></a>
+
+### UNIT-STORE-STUDY-04 所有者を変更したら一致しない学習の続きを提供しない
+
+カテゴリ: `scope-reset`
+
+対応テスト: 未検証：参照した既存テストには所有者変更の検証がない。
+
+Given:
+
+利用者 a のデック A と B のセッションを保持している。各行を独立して検証する。
+
+| 新しい所有者 | 変更後に取得できるセッション | 取得待ち |
+| --- | --- | --- |
+| 利用者 a | A、B を変更せず維持 | はい |
+| 利用者 b | なし | はい |
+| 所有者なし | なし | いいえ |
+
+When:
+
+学習セッションモデルへ新しい所有者を通知する。
+
+Then:
+
+参照結果と取得待ちの有無は表に一致する。同じ所有者の再取得では学習位置などを失わず、別の所有者や所有者なしに変わった場合は以前の利用者の学習の続きを提供しない。
 
 <a id="unit-store-study-05"></a>
 
-### UNIT-STORE-STUDY-05 リモート学習セッションを一括置換しローディングを完了できる
+### UNIT-STORE-STUDY-05 最新の取得結果に学習の続きを切り替えて取得待ちを終了する
 
 カテゴリ: `state-change`
 
-対応テスト: 仕様（アクション `replaceRemoteStudySessions.ts`）定義
+対応テスト: 未検証：参照した既存テストには取得結果による一括置換の検証がない。
 
 Given:
 
-- `remoteLoading: true` の状態である。
-- 取得した StudySession オブジェクト配列を用意する。
+同じ所有者のデック A、B のセッションを保持して取得待ちである。新しい取得結果として、次の各条件を独立して用意する。
+
+| 新しい取得結果 | 取得できるセッション |
+| --- | --- |
+| A の更新された学習位置・最終学習時刻と C のセッション | 更新後の A と C のみ |
+| セッションなし | なし |
 
 When:
 
-- `replaceRemoteStudySessions(sessions)` を実行する。
+新しい取得結果を学習セッションモデルへ反映する。
 
 Then:
 
-- `sessionsByDeckId` が渡されたセッションで一括置換され、`remoteLoading` フラグが `false` に更新される。
+参照結果は表に一致し、以前だけ存在したセッションや A の古い学習位置・最終学習時刻は残らない。結果が空の場合も取得待ちは終了する。
 
 <a id="unit-store-study-06"></a>
 
-### UNIT-STORE-STUDY-06 リモート学習セッションのローディング完了を設定できる
+### UNIT-STORE-STUDY-06 取得待ちだけを終了すると保持済みの学習の続きは変わらない
 
 カテゴリ: `state-change`
 
-対応テスト: 仕様（アクション `finishStudySessionLoading.ts`）定義
+対応テスト: 未検証：参照した既存テストには取得終了だけを通知する操作の検証がない。
 
 Given:
 
-- `remoteLoading: true` の状態である。
+デック A、B のセッションを保持して取得待ちである。セッションを保持せず取得待ちである場合も独立して用意する。
 
 When:
 
-- `finishStudySessionLoading()` を実行する。
+取得結果の差し替えを伴わない取得終了を学習セッションモデルへ通知する。
 
 Then:
 
-- `studySessionStore.getState().remoteLoading` が `false` になる。
+取得待ちは終了し、保持済みのセッション識別子、カード順、学習位置、最終学習時刻は変更されない。セッションがなければ、そのまま何も取得できない。取得結果を空として反映する操作とは区別する。
