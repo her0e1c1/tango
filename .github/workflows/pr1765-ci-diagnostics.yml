@@ -1,0 +1,27 @@
+name: PR 1765 CI diagnostics
+
+on:
+  push:
+    branches: [maintenance/pr1765-ci-diagnostics]
+    paths: [.github/workflows/pr1765-ci-diagnostics.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: b7a0f1e991794502ff1bfa481f8d1d4bc1612233
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.15.0
+          cache: npm
+      - run: npm install --global npm@12.0.1
+      - run: npm ci
+      - run: npm run build:sample
+      - name: Show every blocking Biome diagnostic
+        run: npx biome lint --error-on-warnings --diagnostic-level=warn --max-diagnostics=none .
