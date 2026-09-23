@@ -2,26 +2,39 @@
 
 ## 目的
 
-タグ選択の解除と、多数のタグを開示する UI の結合を確認する。
+タグ選択、一致条件、段階的な開示とフォーカスの維持を確認する。
 
 ## 検証境界
 
-DeckFilterForm / TagFilter、実際の子 UI と Story 側の選択状態。Card の絞り込み結果、難易度範囲の正規化や永続化は対象外。
+DeckFilterForm / TagFilter と実際の子 UI、Story 側の選択状態。Card の絞り込み計算と永続化は対象外。
 
-関連 E2E: [card-list-actions](../../e2e/card-list-actions.md)。
+書式・実行前提は [README](./README.md)、関連 E2E は [card-list-actions](../../e2e/card-list-actions.md) を参照する。
 
-書式・実行前提は [README](./README.md) を参照する。
+03〜15 は Vitest から追加した契約で、対応 Story は追加先である。記載した各条件の準備とアサーションは未実装であり、既存の展開操作だけで検証済みとはしない。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-DECK-FILTER-01 | interaction | [選択済みタグをクリアする](#storybook-deck-filter-01) | [DeckFilterForm.stories.tsx](../../../../src/features/deck-filter/ui/DeckFilterForm.stories.tsx) :: `Interaction` |
-| STORYBOOK-DECK-FILTER-02 | interaction | [折りたたまれたタグをすべて表示する](#storybook-deck-filter-02) | [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded` |
+| STORYBOOK-DECK-FILTER-01 | interaction | [選択タグをクリアする](#storybook-deck-filter-01) | DeckFilterForm :: `Interaction` |
+| STORYBOOK-DECK-FILTER-02 | interaction | [折りたたまれたタグを表示する](#storybook-deck-filter-02) | TagFilter :: `Expanded` |
+| STORYBOOK-DECK-FILTER-03 | interaction | [タグ選択を通知する](#storybook-deck-filter-03) | DeckFilterForm :: `Interaction`（未実装） |
+| STORYBOOK-DECK-FILTER-04 | interaction | [重複を除いて選択を扱う](#storybook-deck-filter-04) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-05 | interaction | [Any と All を切り替える](#storybook-deck-filter-05) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-06 | interaction | [選択済みと候補外のタグを先頭に保つ](#storybook-deck-filter-06) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-07 | interaction | [追加表示したタグへキーボードで移動する](#storybook-deck-filter-07) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-08 | interaction | [解除で隠れるタグからフォーカスを移す](#storybook-deck-filter-08) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-09 | interaction | [最後の候補外タグを解除する](#storybook-deck-filter-09) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-10 | interaction | [Clear の無効化前にフォーカスを移す](#storybook-deck-filter-10) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-11 | render | [8件以下では開示ボタンを表示しない](#storybook-deck-filter-11) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-12 | render | [空状態でも一致条件を保つ](#storybook-deck-filter-12) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-13 | render | [大量の選択タグをスクロール領域にする](#storybook-deck-filter-13) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-14 | render | [長いタグ名を保持する](#storybook-deck-filter-14) | TagFilter :: `Expanded`（未実装） |
+| STORYBOOK-DECK-FILTER-15 | interaction | [言語変更後も展開状態を保つ](#storybook-deck-filter-15) | TagFilter :: `Expanded`（未実装） |
 
 <a id="storybook-deck-filter-01"></a>
 
-### STORYBOOK-DECK-FILTER-01 選択済みタグをクリアする
+### STORYBOOK-DECK-FILTER-01 選択タグをクリアする
 
 カテゴリ: `interaction`
 
@@ -29,19 +42,19 @@ DeckFilterForm / TagFilter、実際の子 UI と Story 側の選択状態。Card
 
 Given:
 
-- tag 1 が選択済みのフィルターフォームを用意し、変更を Story 側の状態に反映する。
+- tag 1 が選択済みで、変更を Story 側の状態へ反映する。
 
 When:
 
-- タグ選択の Clear を押す。
+- Clear を押す。
 
 Then:
 
-- 選択タグの変更 callback に空配列が渡され、tag 1 のチェックが外れる。
+- 空配列を変更 callback に渡し、tag 1 のチェックが外れる。
 
 <a id="storybook-deck-filter-02"></a>
 
-### STORYBOOK-DECK-FILTER-02 折りたたまれたタグをすべて表示する
+### STORYBOOK-DECK-FILTER-02 折りたたまれたタグを表示する
 
 カテゴリ: `interaction`
 
@@ -49,7 +62,7 @@ Then:
 
 Given:
 
-- タグ12件があり、8件を表示して残り4件を折りたたんでいる。
+- 12件中8件を表示し、残り4件を折りたたんでいる。
 
 When:
 
@@ -57,5 +70,291 @@ When:
 
 Then:
 
-- 12件のタグのチェックボックスが表示される。
-- 開示ボタンが Show fewer tags になり、aria-expanded が true になる。
+- 12件の checkbox を表示する。開示ボタンは Show fewer tags になり、aria-expanded は true になる。
+
+<a id="storybook-deck-filter-03"></a>
+
+### STORYBOOK-DECK-FILTER-03 タグ選択を通知する
+
+カテゴリ: `interaction`
+
+対応 Story: [DeckFilterForm.stories.tsx](../../../../src/features/deck-filter/ui/DeckFilterForm.stories.tsx) :: `Interaction`（追加先、未実装）
+
+元テスト: [DeckFilterForm.spec.tsx](../../../../src/features/deck-filter/ui/DeckFilterForm.spec.tsx)。
+
+Given:
+
+- one / two が未選択で、Any 条件である。
+
+When:
+
+- one を選択する。
+
+Then:
+
+- `["one"]` を変更 callback に渡し、手動難易度の combobox は表示しない。
+
+<a id="storybook-deck-filter-04"></a>
+
+### STORYBOOK-DECK-FILTER-04 重複を除いて選択を扱う
+
+カテゴリ: `interaction`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の重複した選択値。
+
+Given:
+
+- 候補は one / two、選択値は one / one とする。
+
+When:
+
+- two を追加する場合と、初期状態から one を解除する場合を個別に操作する。
+
+Then:
+
+- 初期表示は 1 selected で Clear は有効である。追加要求は `["one", "two"]`、解除要求は空配列になる。
+
+<a id="storybook-deck-filter-05"></a>
+
+### STORYBOOK-DECK-FILTER-05 Any と All を切り替える
+
+カテゴリ: `interaction`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の明示的な match-mode 変更。
+
+Given:
+
+- Match の radio group で Any を選択し、変更を Story 側に反映する。
+
+When:
+
+- All、その後 Any を選ぶ。
+
+Then:
+
+- All は true、Any は false を callback に通知し、選択中の条件を checked 状態で示す。
+
+<a id="storybook-deck-filter-06"></a>
+
+### STORYBOOK-DECK-FILTER-06 選択済みと候補外のタグを先頭に保つ
+
+カテゴリ: `interaction`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の selected / stale tags。
+
+Given:
+
+- one〜twelve の候補に two の重複があり、候補外 stale と four を選択している。stale の選択値にも重複がある。
+
+When:
+
+- 展開して twelve を選択し、再び折りたたむ。
+
+Then:
+
+- 初期表示は重複のない stale / four と未選択8件で、残りは3件である。
+- 選択後は stale / four / twelve が先頭に残り、折りたたんでも twelve を保持する。隠れた未選択候補は2件になる。
+
+<a id="storybook-deck-filter-07"></a>
+
+### STORYBOOK-DECK-FILTER-07 追加表示したタグへキーボードで移動する
+
+カテゴリ: `interaction`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の keyboard disclosure。
+
+Given:
+
+- tag-1〜tag-12 が未選択で、開示ボタンにフォーカスしている。
+
+When:
+
+- Enter で展開し、Tab で追加タグから Show fewer tags まで移動し、Space で折りたたむ。
+
+Then:
+
+- 展開直後は tag-9 に移り、追加タグへ順に移動できる。折りたたむと追加タグが隠れ、開示ボタンにフォーカスを保つ。
+
+<a id="storybook-deck-filter-08"></a>
+
+### STORYBOOK-DECK-FILTER-08 解除で隠れるタグからフォーカスを移す
+
+カテゴリ: `interaction`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の collapsed chip 解除。
+
+Given:
+
+- 12候補中 tag-12 を選択し、折りたたみ状態でその checkbox にフォーカスしている。
+
+When:
+
+- Space で解除する。
+
+Then:
+
+- tag-12 は隠れ、表示中の tag-1 にフォーカスが移る。
+
+<a id="storybook-deck-filter-09"></a>
+
+### STORYBOOK-DECK-FILTER-09 最後の候補外タグを解除する
+
+カテゴリ: `interaction`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の last stale tag。
+
+Given:
+
+- 候補は空で、候補外 stale だけを選択している。
+
+When:
+
+- stale にフォーカスし、Space で解除する。
+
+Then:
+
+- stale が消え、Any の radio にフォーカスが移る。
+
+<a id="storybook-deck-filter-10"></a>
+
+### STORYBOOK-DECK-FILTER-10 Clear の無効化前にフォーカスを移す
+
+カテゴリ: `interaction`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の Clear 後のフォーカス。
+
+Given:
+
+- one を選択している。
+
+When:
+
+- Clear を押す。
+
+Then:
+
+- Clear は無効になり、Any の radio にフォーカスが移る。
+
+<a id="storybook-deck-filter-11"></a>
+
+### STORYBOOK-DECK-FILTER-11 8件以下では開示ボタンを表示しない
+
+カテゴリ: `render`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の8件の境界。
+
+Given:
+
+- 未選択候補が8件ある。
+
+When:
+
+- フィルターを描画する。
+
+Then:
+
+- 全8件と No filter を表示し、Clear は無効で、開示ボタンは表示しない。
+
+<a id="storybook-deck-filter-12"></a>
+
+### STORYBOOK-DECK-FILTER-12 空状態でも一致条件を保つ
+
+カテゴリ: `render`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の empty state。
+
+Given:
+
+- 候補・選択タグとも空で、All を選択している。
+
+When:
+
+- フィルターを描画する。
+
+Then:
+
+- No tags available. と選択中の All を表示し、checkbox と開示ボタンは表示しない。
+
+<a id="storybook-deck-filter-13"></a>
+
+### STORYBOOK-DECK-FILTER-13 大量の選択タグをスクロール領域にする
+
+カテゴリ: `render`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の all-selected list。
+
+Given:
+
+- 120候補すべてを選択している。
+
+When:
+
+- フィルターを描画する。
+
+Then:
+
+- Tag choices は高さ制限のある縦スクロール領域になり、全120件の操作と 120 selected を保持する。未選択タグの開示ボタンは出さず、特定の CSS クラス名を契約にしない。
+
+<a id="storybook-deck-filter-14"></a>
+
+### STORYBOOK-DECK-FILTER-14 長いタグ名を保持する
+
+カテゴリ: `render`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の long tag。
+
+Given:
+
+- 空白のない長いタグ名を渡す。
+
+When:
+
+- フィルターを描画する。
+
+Then:
+
+- 元の名前全体で特定できる checkbox を表示する。
+
+<a id="storybook-deck-filter-15"></a>
+
+### STORYBOOK-DECK-FILTER-15 言語変更後も展開状態を保つ
+
+カテゴリ: `interaction`
+
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
+
+元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の locale change。
+
+Given:
+
+- 10候補を英語で全件展開している。
+
+When:
+
+- 日本語へ変更する。
+
+Then:
+
+- 開示ボタンの文言は日本語へ変わり、展開状態と追加表示された tag-9 を保持する。

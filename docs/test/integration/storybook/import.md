@@ -1,28 +1,37 @@
-# Deck Import Storybook 結合テスト仕様書
+# Import Storybook 結合テスト仕様書
 
 ## 目的
 
-CSV 選択からプレビューまでの画面結合と、日本語の診断表示を確認する。
+CSV 選択、プレビュー、明示的な確定、診断表示と失敗・処理中の操作を確認する。
 
 ## 検証境界
 
-ルート Story では実際のアプリルート、ページ、CSV の読み取り・解析・プレビュー UI を組み合わせる。View の診断 Story は解析結果を渡して表示を確認する。保存・Firestore・Auth emulator はこの仕様の検証境界ではない。
+ルート Story は実際のファイル読取・解析・プレビューを組み合わせる。DeckImportView の Story は解析結果とエラーを入力境界にする。実認証、Firestore の保存、ダウンロードファイルの内容は対象外。
 
-関連 E2E: [import](../../e2e/import.md) / [settings](../../e2e/settings.md)。
+書式・実行前提は [README](./README.md)、関連 E2E は [import](../../e2e/import.md) を参照する。
 
-書式・実行前提は [README](./README.md) を参照する。
+04〜12 は Vitest から追加した契約で、対応 Story は追加先である。各ケースの状態準備とアサーションは未実装であり、表示専用 Story の存在だけで検証済みとしない。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-IMPORT-01 | render | [保存先を選ばずインポートを開始できる画面を表示する](#storybook-import-01) | [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default` |
-| STORYBOOK-IMPORT-02 | interaction | [ルート上のファイル選択から有効行のプレビューを表示する](#storybook-import-02) | [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Import` |
-| STORYBOOK-IMPORT-03 | render | [列数エラーを日本語で表示して追加を無効にする](#storybook-import-03) | [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics` |
+| STORYBOOK-IMPORT-01 | render | [初期画面に保存先選択を表示しない](#storybook-import-01) | DeckImportView :: `Default` |
+| STORYBOOK-IMPORT-02 | interaction | [CSV を読み込んでプレビューする](#storybook-import-02) | App :: `Import` |
+| STORYBOOK-IMPORT-03 | render | [日本語の診断と無効な確定操作を表示する](#storybook-import-03) | DeckImportView :: `JapaneseDiagnostics` |
+| STORYBOOK-IMPORT-04 | interaction | [プレビュー失敗を安全な日本語にする](#storybook-import-04) | DeckImportView :: `Default`（未実装） |
+| STORYBOOK-IMPORT-05 | interaction | [診断を翻訳しユーザー入力は保持する](#storybook-import-05) | DeckImportView :: `JapaneseDiagnostics`（未実装） |
+| STORYBOOK-IMPORT-06 | interaction | [形式の説明を必要なときだけ開く](#storybook-import-06) | DeckImportView :: `Default`（未実装） |
+| STORYBOOK-IMPORT-07 | render | [処理中の選択を無効にする](#storybook-import-07) | DeckImportView :: `Default`（未実装） |
+| STORYBOOK-IMPORT-08 | interaction | [各サンプルの操作を要求する](#storybook-import-08) | DeckImportView :: `Default`（未実装） |
+| STORYBOOK-IMPORT-09 | interaction | [レビュー後もファイルを選び直せる](#storybook-import-09) | DeckImportView :: `Default`（未実装） |
+| STORYBOOK-IMPORT-10 | interaction | [内容確認だけでは保存を要求しない](#storybook-import-10) | DeckImportView :: `Default`（未実装） |
+| STORYBOOK-IMPORT-11 | render | [一部の行が不正なら確定を止める](#storybook-import-11) | DeckImportView :: `JapaneseDiagnostics`（未実装） |
+| STORYBOOK-IMPORT-12 | render | [準備失敗後も選び直せる](#storybook-import-12) | DeckImportView :: `Default`（未実装） |
 
 <a id="storybook-import-01"></a>
 
-### STORYBOOK-IMPORT-01 保存先を選ばずインポートを開始できる画面を表示する
+### STORYBOOK-IMPORT-01 初期画面に保存先選択を表示しない
 
 カテゴリ: `render`
 
@@ -30,19 +39,19 @@ CSV 選択からプレビューまでの画面結合と、日本語の診断表�
 
 Given:
 
-- ファイル未選択のインポート画面にサンプル例を渡す。
+- 対象ファイルをまだ選択していない。
 
 When:
 
-- 画面を描画する。
+- 初期画面を描画する。
 
 Then:
 
-- Add a deck の見出しが表示され、保存先を選ぶ radio は存在しない。
+- Add a deck を表示し、保存先の radio は存在しない。
 
 <a id="storybook-import-02"></a>
 
-### STORYBOOK-IMPORT-02 ルート上のファイル選択から有効行のプレビューを表示する
+### STORYBOOK-IMPORT-02 CSV を読み込んでプレビューする
 
 カテゴリ: `interaction`
 
@@ -50,21 +59,19 @@ Then:
 
 Given:
 
-- インポートの実際のルートを、Story 用の認証・アプリ状態で開く。
-- storybook-import.csv に4列の1行 "storybook prompt","storybook answer","story","storybook-import" を用意する。
+- 実際のインポートルートと、有効な4列1行の storybook-import.csv を用意する。
 
 When:
 
-- Upload a csv file にそのファイルを選択する。
+- ファイル入力で CSV を選択する。
 
 Then:
 
-- ファイル選択前に保存先を選ぶ radio がない。
-- Review import、1 valid、storybook answer が表示される。
+- 選択前には保存先の radio がなく、選択後は Review import、有効1件、解答を表示する。保存完了は確認しない。
 
 <a id="storybook-import-03"></a>
 
-### STORYBOOK-IMPORT-03 列数エラーを日本語で表示して追加を無効にする
+### STORYBOOK-IMPORT-03 日本語の診断と無効な確定操作を表示する
 
 カテゴリ: `render`
 
@@ -72,17 +79,211 @@ Then:
 
 Given:
 
-- 日本語 locale で、有効行0件・不正行1件、2行目の列数が3の解析結果を渡す。
+- 日本語 locale で有効0件・無効1件、2行目が3列という診断を渡す。
 
 When:
 
-- 診断画面を描画する。
+- プレビューを描画する。
 
 Then:
 
-- alert に「列数は4列である必要があります（現在は3列）。」が表示される。
-- 「0枚のカードを追加」ボタンが無効で、document の lang が ja になる。
+- 日本語の alert と0件の件数を表示し、追加ボタンは無効、document の lang は ja になる。
 
-## 自動アサーションに含めない項目
+<a id="storybook-import-04"></a>
 
-`Invalid`、`Pending`、`PreviewError` などの表示専用 Story と、CSV を保存して再読込する E2E を混同しない。
+### STORYBOOK-IMPORT-04 プレビュー失敗を安全な日本語にする
+
+カテゴリ: `interaction`
+
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
+
+元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の preview failure の言語変更。
+
+Given:
+
+- authentication、account-changed、permission-denied、unavailable、QuotaExceededError、未知の例外を英語で個別に表示する。
+
+When:
+
+- 日本語へ変更する。
+
+Then:
+
+- 認証、アカウント変更後の再選択、権限、接続確認、容量確保、一般的な準備失敗を区別した日本語へ変わる。未知の例外の内部情報は表示しない。
+
+<a id="storybook-import-05"></a>
+
+### STORYBOOK-IMPORT-05 診断を翻訳しユーザー入力は保持する
+
+カテゴリ: `interaction`
+
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics`（追加先、未実装）
+
+元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の cached diagnostics。
+
+Given:
+
+- uniqueKey「自作キー」の重複と context「ユーザー入力」、2列の行、空 CSV、不正な閉じ引用符、未知の parser エラーを渡す。
+
+When:
+
+- 英語から日本語へ変更する。
+
+Then:
+
+- 各診断を区別した日本語を表示し、自作キーとユーザー入力の文字列は改変しない。
+
+<a id="storybook-import-06"></a>
+
+### STORYBOOK-IMPORT-06 形式の説明を必要なときだけ開く
+
+カテゴリ: `interaction`
+
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
+
+元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の optional format details。
+
+Given:
+
+- 対象未選択の初期画面を表示する。
+
+When:
+
+- CSV format を開く。
+
+Then:
+
+- ファイル選択は最初から有効で、Review import は表示しない。初期状態では隠れていた、ヘッダーなし4列の説明が見える。
+
+<a id="storybook-import-07"></a>
+
+### STORYBOOK-IMPORT-07 処理中の選択を無効にする
+
+カテゴリ: `render`
+
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
+
+元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の importing 状態。
+
+Given:
+
+- インポート処理中の状態を渡す。
+
+When:
+
+- 画面を描画する。
+
+Then:
+
+- ファイル選択と Try this example は無効になり、Save to の選択領域は表示しない。
+
+<a id="storybook-import-08"></a>
+
+### STORYBOOK-IMPORT-08 各サンプルの操作を要求する
+
+カテゴリ: `interaction`
+
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
+
+元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の example 別 preview / download。
+
+Given:
+
+- Basic / Math / Markdown / Sample deck の4条件を用意する。対応 ID は basic / math / markdown / deck である。
+
+When:
+
+- サンプルを選んで Try this example を押し、Download CSV にフォーカスして Enter を押す。
+
+Then:
+
+- 選択サンプルは pressed となり、プレビューとダウンロードの callback に対象 ID を渡す。ファイル内容は確認しない。
+
+<a id="storybook-import-09"></a>
+
+### STORYBOOK-IMPORT-09 レビュー後もファイルを選び直せる
+
+カテゴリ: `interaction`
+
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
+
+元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の selected files と再選択。
+
+Given:
+
+- ファイル選択 callback を渡す。
+
+When:
+
+- deck.csv を選択し、プレビューを渡した後、再度ファイルを選択する。
+
+Then:
+
+- 初回・レビュー後のどちらでも、選択された File を callback に渡す。
+
+<a id="storybook-import-10"></a>
+
+### STORYBOOK-IMPORT-10 内容確認だけでは保存を要求しない
+
+カテゴリ: `interaction`
+
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
+
+元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の explicit confirmation。
+
+Given:
+
+- 表面 front、裏面 back、uniqueKey key-1 の有効1件と空行1件スキップのプレビューを渡す。
+
+When:
+
+- 内容を確認し、Choose file or example と Add 1 card の操作をそれぞれ行う。
+
+Then:
+
+- 両面、uniqueKey、スキップ件数を表示し、サンプル試用ボタンは表示しない。
+- プレビューを表示するだけではインポートを要求しない。選び直しと確定を別の callback に通知し、確定時だけインポートを要求する。
+
+<a id="storybook-import-11"></a>
+
+### STORYBOOK-IMPORT-11 一部の行が不正なら確定を止める
+
+カテゴリ: `render`
+
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics`（追加先、未実装）
+
+元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の partially invalid preview。
+
+Given:
+
+- 英語 locale で有効1件と、3行目の uniqueKey が空という無効1件を渡す。
+
+When:
+
+- プレビューを描画する。
+
+Then:
+
+- alert に Row 3: Unique key is required. と修正済み CSV を選ぶ案内を表示する。有効な Card があっても Add 1 card は無効である。
+
+<a id="storybook-import-12"></a>
+
+### STORYBOOK-IMPORT-12 準備失敗後も選び直せる
+
+カテゴリ: `render`
+
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
+
+元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の preparation failure。
+
+Given:
+
+- プレビュー準備に失敗した状態を渡す。
+
+When:
+
+- 画面を描画する。
+
+Then:
+
+- The import preview could not be prepared. を表示し、内部の file read failed は表示しない。ファイル選択と Try this example は有効なままである。
