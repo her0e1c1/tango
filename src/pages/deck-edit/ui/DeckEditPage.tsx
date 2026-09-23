@@ -11,6 +11,8 @@ import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useDeckEditPageModel, useDeckEditRouteModel } from "../model/useDeckEditPageModel";
 
+import { TagManagement } from "./TagManagement";
+
 const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const model = useDeckEditPageModel(deck);
@@ -36,26 +38,47 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
         }}
         deckName={deck.name}
         form={model.form}
+        saveDisabled={model.deckSaveDisabled}
         onCancel={model.onCancel}
         onSubmit={model.onSubmit}
         afterForm={
-          <section
-            aria-labelledby="delete-deck-heading"
-            className="mt-section-gap rounded-surface border border-danger p-4 md:p-5"
-          >
-            <h2 id="delete-deck-heading" className="text-title font-semibold text-danger">
-              {t("deckDeletion.dangerTitle")}
-            </h2>
-            <p className="mt-1 text-body text-ink-muted">{t("deckDeletion.dangerDescription")}</p>
-            <Button
-              className="mt-4"
-              variant="destructive"
-              disabled={model.isSubmitting}
-              onClick={model.requestDeletion}
+          <>
+            <TagManagement
+              tags={model.tags}
+              addForm={model.addTagForm}
+              renameForm={model.renameTagForm}
+              editingTag={model.editingTag}
+              error={model.tagError}
+              unavailable={model.tagUnavailable}
+              disabled={model.tagDisabled}
+              pending={model.tagPending}
+              deletion={model.tagDeletion}
+              onAdd={model.onAddTag}
+              onRename={model.onRenameTag}
+              onEdit={model.onEditTag}
+              onCancelEdit={model.onCancelTagEdit}
+              onDelete={model.onRequestTagDeletion}
+              onCancelDeletion={model.onCancelTagDeletion}
+              onConfirmDeletion={model.onConfirmTagDeletion}
+            />
+            <section
+              aria-labelledby="delete-deck-heading"
+              className="mt-section-gap rounded-surface border border-danger p-4 md:p-5"
             >
-              {t("deckDeletion.confirm")}
-            </Button>
-          </section>
+              <h2 id="delete-deck-heading" className="text-title font-semibold text-danger">
+                {t("deckDeletion.dangerTitle")}
+              </h2>
+              <p className="mt-1 text-body text-ink-muted">{t("deckDeletion.dangerDescription")}</p>
+              <Button
+                className="mt-4"
+                variant="destructive"
+                disabled={model.isSubmitting || model.tagPending}
+                onClick={model.requestDeletion}
+              >
+                {t("deckDeletion.confirm")}
+              </Button>
+            </section>
+          </>
         }
       />
     </AppLayout>

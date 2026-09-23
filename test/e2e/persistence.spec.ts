@@ -284,7 +284,7 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  await page.getByRole("textbox", { name: "Name" }).fill(updatedName);
+  await page.getByRole("textbox", { name: "Name", exact: true }).fill(updatedName);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
 

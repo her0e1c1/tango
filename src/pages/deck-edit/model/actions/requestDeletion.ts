@@ -5,6 +5,8 @@ import { requestDeckDeletion } from "@/features/deck-deletion";
 import { deckEditPageStore } from "../store";
 
 export function requestDeletion(deckId: Deck["id"]): void {
+  const state = deckEditPageStore.getState();
+  if (state.tagMutation !== undefined || state.submission !== undefined) return;
   requestDeckDeletion(deckId, {
     pending: deckEditPageStore.getState().deletionId !== undefined,
     decks: getDecks(),

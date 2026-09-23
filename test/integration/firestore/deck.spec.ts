@@ -6,6 +6,9 @@
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
+import { readDeckTags, writeDeckTags } from "@/entities/deck";
+import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
+import { transact } from "@/shared/api";
 import { describe, expect, it, vi } from "vitest";
 import {
   doc,
@@ -119,6 +122,59 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await Promise.all(
       cards.map(async (card) => expect((await getDoc(doc(db, "card", card.id))).data()?.deletedAt).toBeNull())
     );
+  });
+
+  it("[FIRESTORE-DECK-07] atomically renames 501 Cards and retains tags during ordinary Deck edits", async () => {
+    const deck = createRemoteDeckInput({ id: uuid() });
+    await createDeck("uid", deck);
+    const cards = Array.from({ length: 501 }, () =>
+      createCard({ id: uuid(), deckId: deck.id, uid: "uid", tags: ["old", "kept"] })
+    );
+    await Promise.all(cards.map((card) => createCardCommand("uid", card)));
+    await waitForPendingWrites(db);
+    const before = await Promise.all(cards.map(async (card) => (await getDoc(doc(db, "card", card.id))).data()));
+    await transact(async (transaction) => {
+      expect(await readDeckTags(transaction, "uid", deck.id)).toEqual([]);
+      const stored = await readCardsForTagUpdate(transaction, "uid", deck.id);
+      writeDeckTags(transaction, deck.id, ["renamed", "kept"]);
+      writeCardTagChanges(transaction, stored, "old", "renamed");
+    });
+    await editDeck("uid", { id: deck.id, name: "Updated name" });
+    expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({
+      name: "Updated name",
+      tags: ["renamed", "kept"],
+    });
+    await Promise.all(
+      cards.map(async (card, index) => {
+        expect((await getDoc(doc(db, "card", card.id))).data()).toEqual({
+          ...before[index],
+          tags: ["renamed", "kept"],
+          updatedAt: expect.any(Number),
+        });
+      })
+    );
+  }, 30_000);
+
+  it("[FIRESTORE-DECK-08] rejects the whole tag update when a Card write violates ownership rules", async () => {
+    const deck = createRemoteDeckInput({ id: uuid() });
+    await createDeck("uid", deck);
+    const card = createCard({ id: uuid(), deckId: deck.id, uid: "uid", tags: ["old", "kept"] });
+    await createCardCommand("uid", card);
+    const deckRef = doc(db, "deck", deck.id);
+    const cardRef = doc(db, "card", card.id);
+    const beforeDeck = (await getDoc(deckRef)).data();
+    const beforeCard = (await getDoc(cardRef)).data();
+    await expect(
+      transact(async (transaction) => {
+        await readDeckTags(transaction, "uid", deck.id);
+        const stored = await readCardsForTagUpdate(transaction, "uid", deck.id);
+        writeDeckTags(transaction, deck.id, ["renamed", "kept"]);
+        writeCardTagChanges(transaction, stored, "old", "renamed");
+        transaction.update(cardRef, { uid: "another-user" });
+      })
+    ).rejects.toMatchObject({ code: "permission-denied" });
+    expect((await getDoc(deckRef)).data()).toEqual(beforeDeck);
+    expect((await getDoc(cardRef)).data()).toEqual(beforeCard);
   });
 
   // Pending implementation of the deletion contract documented in PR #1731.

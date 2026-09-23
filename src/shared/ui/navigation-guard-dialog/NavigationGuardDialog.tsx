@@ -7,12 +7,14 @@ import { useToastModalFocusTarget } from "../toast";
 
 interface NavigationGuardDialogProps {
   description?: React.ReactNode;
+  pending?: boolean | undefined;
   onDiscardChanges: () => void;
   onKeepEditing: () => void;
 }
 
 export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
   description,
+  pending,
   onDiscardChanges,
   onKeepEditing,
 }) => {
@@ -77,7 +79,7 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
           {t("navigationGuard.title")}
         </h2>
         <p id={descriptionId} className="mt-4 text-body text-ink-muted">
-          {description ?? t("navigationGuard.description")}
+          {pending ? t("navigationGuard.pending") : (description ?? t("navigationGuard.description"))}
         </p>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
@@ -88,7 +90,7 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
           >
             {t("navigationGuard.keepEditing")}
           </button>
-          <Button variant="destructive" onClick={onDiscardChanges}>
+          <Button variant="destructive" disabled={Boolean(pending)} onClick={onDiscardChanges}>
             {t("navigationGuard.discard")}
           </Button>
         </div>

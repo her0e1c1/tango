@@ -23,7 +23,7 @@ test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote dupl
   await page.goto("/");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("menuitem", { name: "Create deck" }).click();
-  await page.getByRole("textbox", { name: "Name" }).fill(name);
+  await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await expect(page.getByRole("radio")).toHaveCount(0);
   await page.getByRole("button", { name: "Create deck" }).click();
@@ -76,7 +76,7 @@ test("DECK-MANAGEMENT-01 persists edited name, category, and source URL across r
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  await page.getByRole("textbox", { name: "Name" }).fill(updatedName);
+  await page.getByRole("textbox", { name: "Name", exact: true }).fill(updatedName);
   await page.getByRole("combobox").selectOption("typescript");
   await page.getByText("More settings").click();
   await page.getByRole("textbox", { name: "Source URL" }).fill(updatedSourceUrl);
@@ -87,7 +87,7 @@ test("DECK-MANAGEMENT-01 persists edited name, category, and source URL across r
   await page.getByRole("button", { name: `Open actions for ${updatedName}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
 
-  await expect(page.getByRole("textbox", { name: "Name" })).toHaveValue(updatedName);
+  await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue(updatedName);
   await expect(page.getByRole("combobox")).toHaveValue("typescript");
   await page.getByText("More settings").click();
   await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(updatedSourceUrl);
@@ -214,7 +214,7 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
   await page.goto("/");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("menuitem", { name: "Create deck" }).click();
-  await page.getByRole("textbox", { name: "Name" }).fill(name);
+  await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await page.getByText("More settings").click();
   await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
@@ -271,7 +271,7 @@ test("DECK-MANAGEMENT-06 reports a failed remote create without locking the form
   await page.getByRole("menuitem", { name: "Create deck" }).click();
   const fault = await failNextFirestoreWrite(page, { collection: "deck" });
   allowExpectedFirestoreWriteFailure(browserErrors);
-  await page.getByRole("textbox", { name: "Name" }).fill(name);
+  await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await page.getByText("More settings").click();
   await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
@@ -299,7 +299,7 @@ test("DECK-MANAGEMENT-08 confirms before discarding an unsaved Deck edit", async
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
-  const name = page.getByRole("textbox", { name: "Name" });
+  const name = page.getByRole("textbox", { name: "Name", exact: true });
   await name.fill(unsavedName);
 
   await page.getByRole("button", { name: "tango" }).click();

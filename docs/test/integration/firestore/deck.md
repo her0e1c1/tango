@@ -18,6 +18,8 @@ Deck の作成・部分更新・論理削除を、Firestore 上の保存値と�
 | FIRESTORE-DECK-04 | batch | 正常系 | [Deck と配下 Card をまとめて論理削除できる](#firestore-deck-04) |
 | FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](#firestore-deck-05)（未実装・未検証） |
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06)（未実装・未検証） |
+| FIRESTORE-DECK-07 | batch | 正常系 | [多数の Card と登録タグをまとめて改名する](#firestore-deck-07) |
+| FIRESTORE-DECK-08 | batch | 異常系 | [タグ更新の拒否で部分保存を残さない](#firestore-deck-08) |
 
 <a id="firestore-deck-01"></a>
 
@@ -158,3 +160,49 @@ Then:
 - 配下 Card は一部だけ削除された状態にならず、全件の `deletedAt` が削除前の値のままである。
 
 このケースでは「Deck は削除済みだが Card が残る」「一部の Card だけ削除済み」という部分成功を許可しない。
+
+<a id="firestore-deck-07"></a>
+
+### FIRESTORE-DECK-07 多数の Card と登録タグをまとめて改名する
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- 本人の Deck に旧タグと保持するタグを持つ Card が501枚ある。
+- Deck に登録タグ一覧がまだない。
+
+When:
+
+- Entity の公開されたタグ読取・更新操作を一つのトランザクションで実行し、旧タグを新しいタグに変更する。
+- 続いて通常の Deck 編集で名前を保存する。
+
+Then:
+
+- 全501枚の Card と Deck の登録タグが新しい名前を保持する。
+- 他のタグ、Card の本文・ID・削除状態は変わらない。
+- 通常の Deck 編集が登録タグを上書きしない。
+
+<a id="firestore-deck-08"></a>
+
+### FIRESTORE-DECK-08 タグ更新の拒否で部分保存を残さない
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- 本人の Deck と、その Deck に属する旧タグ付き Card がある。
+- 同じトランザクションに、本人の UID を別 UID に変更する不正な Card 書込が含まれる。
+
+When:
+
+- Entity の公開されたタグ更新操作を含むトランザクションを確定する。
+
+Then:
+
+- 実際の Firestore Rules が不正な Card 更新を拒否する。
+- トランザクション全体が失敗し、Deck の登録タグと Card の保存値は操作前と同一である。

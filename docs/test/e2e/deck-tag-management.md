@@ -26,7 +26,7 @@ AND / OR、フィルター解除、条件の保存は [Card Filter の仕様](./
 
 <a id="deck-tag-management-01"></a>
 
-### DECK-TAG-MANAGEMENT-01 [TODO] Deck のタグを一覧表示できる
+### DECK-TAG-MANAGEMENT-01 Deck のタグを一覧表示できる
 
 カテゴリ: `read`
 
@@ -49,7 +49,7 @@ Then:
 
 <a id="deck-tag-management-02"></a>
 
-### DECK-TAG-MANAGEMENT-02 [TODO] タグがない場合は0件表示になる
+### DECK-TAG-MANAGEMENT-02 タグがない場合は0件表示になる
 
 カテゴリ: `read`
 
@@ -71,7 +71,7 @@ Then:
 
 <a id="deck-tag-management-03"></a>
 
-### DECK-TAG-MANAGEMENT-03 [TODO] タグを追加できる
+### DECK-TAG-MANAGEMENT-03 タグを追加できる
 
 カテゴリ: `write`
 
@@ -81,20 +81,25 @@ Given:
 
 - Fixture: [`deck-tag-management`](./fixture/deck-tag-management.yaml)
 - 対象 Deck には Card もタグもなく、別の Deck にはタグがある。
+- Deck 名に未保存の入力がある。
 
 When:
 
-- 対象 Deck に、別の Deck のタグと同じ名前のタグを追加し、リロードする。
+- 対象 Deck に、別の Deck のタグと同じ名前のタグを追加する。
+- Deck の変更を保存するかキャンセルしてから、リロードしてタグ管理を開く。
 
 Then:
 
 - 入力した名前のタグが対象 Deck に一つ表示される。
 - Card がなくてもタグを保持できる。
+- タグの追加では Deck 名の未保存入力を変えず、Deck の保存・キャンセル後も追加済みタグが残る。
+- 未確定のタグ入力がある間は Deck の保存を実行できず、タグ入力が失われない。
+- 保存処理中に画面を離れようとした場合、処理の完了まで移動せず、保存が完了してから移動できる。
 - 別の Deck のタグは変更されない。
 
 <a id="deck-tag-management-04"></a>
 
-### DECK-TAG-MANAGEMENT-04 [TODO] 空の名前ではタグを追加できない
+### DECK-TAG-MANAGEMENT-04 空の名前ではタグを追加できない
 
 カテゴリ: `read`
 
@@ -116,7 +121,7 @@ Then:
 
 <a id="deck-tag-management-05"></a>
 
-### DECK-TAG-MANAGEMENT-05 [TODO] 同じ Deck に同名のタグを追加できない
+### DECK-TAG-MANAGEMENT-05 同じ Deck に同名のタグを追加できない
 
 カテゴリ: `read`
 
@@ -138,7 +143,7 @@ Then:
 
 <a id="deck-tag-management-06"></a>
 
-### DECK-TAG-MANAGEMENT-06 [TODO] タグの名前を変更できる
+### DECK-TAG-MANAGEMENT-06 タグの名前を変更できる
 
 カテゴリ: `batch`
 
@@ -162,7 +167,7 @@ Then:
 
 <a id="deck-tag-management-07"></a>
 
-### DECK-TAG-MANAGEMENT-07 [TODO] タグの名前を空に変更できない
+### DECK-TAG-MANAGEMENT-07 タグの名前を空に変更できない
 
 カテゴリ: `read`
 
@@ -184,7 +189,7 @@ Then:
 
 <a id="deck-tag-management-08"></a>
 
-### DECK-TAG-MANAGEMENT-08 [TODO] 同じ Deck の別タグと同じ名前に変更できない
+### DECK-TAG-MANAGEMENT-08 同じ Deck の別タグと同じ名前に変更できない
 
 カテゴリ: `read`
 
@@ -206,7 +211,7 @@ Then:
 
 <a id="deck-tag-management-09"></a>
 
-### DECK-TAG-MANAGEMENT-09 [TODO] タグを削除できる
+### DECK-TAG-MANAGEMENT-09 タグを削除できる
 
 カテゴリ: `batch`
 
@@ -230,7 +235,7 @@ Then:
 
 <a id="deck-tag-management-10"></a>
 
-### DECK-TAG-MANAGEMENT-10 [TODO] タグの削除をキャンセルできる
+### DECK-TAG-MANAGEMENT-10 タグの削除をキャンセルできる
 
 カテゴリ: `read`
 
