@@ -7,15 +7,28 @@ import { appI18n } from "../src/app/i18n/instance";
 import { INITIAL_VIEWPORTS } from "./support/storybookViewports";
 import "../src/app/styles/index.css";
 
-const withI18n: Decorator = (Story, context) => {
-  // Keep visible copy and document metadata deterministic unless a story explicitly demonstrates Japanese.
-  const language = context.parameters.locale === "ja" ? "ja" : "en";
-  document.documentElement.lang = language;
-  void appI18n.changeLanguage(language);
-  return createElement(I18nextProvider, { i18n: appI18n }, createElement(Story));
+// Docs mounts English and Japanese stories together; each language needs its own instance.
+const docsI18n = {
+  en: appI18n.cloneInstance({ lng: "en", initAsync: false }),
+  ja: appI18n.cloneInstance({ lng: "ja", initAsync: false }),
+};
+
+const withI18n: Decorator = (Story, { parameters, viewMode }) => {
+  const language = parameters.locale === "ja" ? "ja" : "en";
+  const i18n = viewMode === "docs" ? docsI18n[language] : appI18n;
+  const content = createElement(I18nextProvider, { i18n }, createElement(Story));
+  return viewMode === "docs"
+    ? createElement("div", { lang: language, style: { display: "contents" } }, content)
+    : content;
 };
 
 const preview: Preview = {
+  beforeEach: async ({ parameters, viewMode }) => {
+    const language = parameters.locale === "ja" ? "ja" : "en";
+    const i18n = viewMode === "docs" ? docsI18n[language] : appI18n;
+    await i18n.changeLanguage(language);
+    document.documentElement.lang = viewMode === "docs" ? "en" : language;
+  },
   decorators: [
     withI18n,
     withThemeByClassName({

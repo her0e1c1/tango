@@ -55,7 +55,7 @@ Then:
 
 Given:
 
-- 実際のインポートルートと、有効な4列1行の storybook-import.csv を用意する。
+- 実際のインポートルートと、有効な4列1行の storybook-import.csv を用意する。Story の再実行・再入場時も未選択状態から開始する。
 
 When:
 
@@ -63,7 +63,7 @@ When:
 
 Then:
 
-- 選択前には保存先の radio がなく、選択後は Review import、有効1件、解答を表示する。保存完了は確認しない。
+- 選択前には Review import と保存先の radio がなく、選択後は Review import、有効1件、解答を表示する。保存完了は確認しない。
 
 <a id="storybook-import-03"></a>
 

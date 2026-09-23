@@ -22,8 +22,6 @@ Shared の汎用部品を単独で確認する Story は対象外とし、必要
 
 - 対象テストは [`src/**/*.stories.tsx`](../../../../src) の `play` に置く。`test/integration/storybook` への複製や専用 fixture ファイルは追加しない。
 - [`vitest.config.ts`](../../../../vitest.config.ts) の `storybook` project は Vitest addon と Playwright の Chromium browser で実行する。jsdom の unit / integration project とは別である。
-- [`preview.ts`](../../../../.storybook/preview.ts) の実際の i18n とアプリ CSS を使用する。通常は英語で、日本語ケースだけ `parameters.locale = "ja"` を設定する。
-- 入力値、フォームエラー、空状態、認証状態、callback の spy は Story 側で用意する。ルート Story は既存の [`PageDecorator.tsx`](../../../../.storybook/support/PageDecorator.tsx) に従って初期化する。
 - Firebase は既存の [Storybook 設定](../../../../.storybook/main.ts) による差し替えを使う。emulator への接続成功や実保存をこの仕様に含めない。
 - Story ごとにフォーム、選択状態、spy 履歴、共有 store、言語、スクロール位置を分離またはリセットし、実行順に依存させない。
 
