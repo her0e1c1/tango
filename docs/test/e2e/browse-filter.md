@@ -2,29 +2,37 @@
 
 ## 目的
 
-Card 一覧（card-list）と Deck 閲覧（deck-view）を、学習用の tag filter と FSRS の復習期日による選別から分離する。
-復習期日前の Card も閲覧・管理でき、一覧での絞り込みが学習条件を変更しないことを確認する。
+フィルター機能を、今回学習する Card を選ぶ「学習条件」とは独立した機能として定義する。
+Card 一覧（card-list）と Deck 閲覧（deck-view）は、同じ Deck に保存した「閲覧フィルター」を使用する。
+閲覧フィルターと学習条件は相互に上書きせず、それぞれの目的にだけ適用する。
 
-Card 一覧の tag filter はその画面内の一時的な条件とし、初期状態は絞り込みなしとする。
-Deck 閲覧は対象 Deck の全 Card を表示し、学習条件と Card 一覧の tag filter を引き継がない。
+閲覧フィルターは FSRS に依存しない。FSRS だけを除外する例外ではなく、学習用のタグ、復習期日、枚数上限、shuffle などの学習条件全体から独立する。
+復習期日前の Card は、この独立性を確認する代表例であり、FSRS 専用の例外処理や切り替えを要求しない。
+
+閲覧フィルターの選択タグと AND / OR 条件は Deck ごとに自動保存する。
+再入場・再読み込みでは対象 Deck の保存済み条件を復元し、別の Deck へは適用しない。
+保存済み条件がない Deck だけを絞り込みなし・OR 条件で初期表示し、学習条件を初期値としてコピーしない。
+条件を解除した場合も、絞り込みなしの状態を保存する。
+Deck 閲覧は常に全件表示するのではなく、対象 Deck の閲覧フィルターに一致する Card を標準順で表示する。
+
 本書は変更後の期待仕様であり、各ケースの検証は未実装である。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| BROWSE-FILTER-01 | read | [学習条件にかかわらず Card 一覧を全件表示できる](#browse-filter-01) |
-| BROWSE-FILTER-02 | read | [学習と一覧の条件を引き継がず Deck の全 Card を閲覧できる](#browse-filter-02) |
-| BROWSE-FILTER-03 | read | [一覧専用の tag filter を AND / OR で適用できる](#browse-filter-03) |
-| BROWSE-FILTER-04 | read | [一覧の絞り込み解除で学習条件を変えずに全件へ戻れる](#browse-filter-04) |
-| BROWSE-FILTER-05 | write | [学習用の tag filter を変更しても閲覧対象は変わらない](#browse-filter-05) |
-| BROWSE-FILTER-06 | write | [復習期日の設定を変更しても閲覧対象は変わらない](#browse-filter-06) |
-| BROWSE-FILTER-07 | read | [全 Card が復習期日前でも一覧と Deck 閲覧を開ける](#browse-filter-07) |
-| BROWSE-FILTER-08 | read | [一覧の再入場・再読込・Deck 変更で絞り込みを持ち越さない](#browse-filter-08) |
+| BROWSE-FILTER-01 | read | [閲覧フィルター未設定の Deck は学習条件にかかわらず全件表示できる](#browse-filter-01) |
+| BROWSE-FILTER-02 | write | [学習条件とは別の閲覧フィルターを一覧と Deck 閲覧で共有できる](#browse-filter-02) |
+| BROWSE-FILTER-03 | write | [閲覧フィルターのタグと AND / OR 条件を保存して適用できる](#browse-filter-03) |
+| BROWSE-FILTER-04 | write | [閲覧フィルターの解除を保存しても学習条件は変わらない](#browse-filter-04) |
+| BROWSE-FILTER-05 | write | [学習用のタグ条件を変更しても保存済み閲覧フィルターは変わらない](#browse-filter-05) |
+| BROWSE-FILTER-06 | write | [学習設定を変更しても閲覧フィルターと閲覧結果は変わらない](#browse-filter-06) |
+| BROWSE-FILTER-07 | read | [学習候補が0件でも閲覧フィルターに従って表示できる](#browse-filter-07) |
+| BROWSE-FILTER-08 | batch | [Deck ごとの閲覧フィルターを再入場・再読込・Deck 切り替え後も復元できる](#browse-filter-08) |
 
 <a id="browse-filter-01"></a>
 
-### BROWSE-FILTER-01 学習条件にかかわらず Card 一覧を全件表示できる
+### BROWSE-FILTER-01 閲覧フィルター未設定の Deck は学習条件にかかわらず全件表示できる
 
 カテゴリ: `read`
 
@@ -33,113 +41,116 @@ Deck 閲覧は対象 Deck の全 Card を表示し、学習条件と Card 一覧
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- 認証済みユーザーが所有する Deck に、復習期日を過ぎた Card、復習期日前の Card、FSRS 未開始の Card が存在する。
-- 学習用の tag filter が保存され、その条件に一致しない Card も同じ Deck に存在する。
-- Respect review schedule が有効で、基準時刻は期限到来済み Card の期日より後、期限前 Card の期日より前である。
-- Card 一覧ではまだ絞り込みを行っていない。
+- 認証済みユーザーが所有する Deck に、タグと学習状態が異なる Card が存在する。
+- 学習用のタグ条件が保存され、その条件に一致しない Card も同じ Deck に存在する。
+- 復習期日を尊重する学習設定が有効で、基準時刻は期限到来済み Card の期日より後、期限前 Card の期日より前である。
+- 対象 Deck の閲覧フィルターは未設定である。
 
 When:
 
-- 対象 Deck の Card 一覧を開き、復習期日前の Card の裏面を表示してから、編集画面を開く。編集内容は保存しない。
+- 対象 Deck の Card 一覧を開き、学習候補に含まれない Card の裏面と編集画面を開く。編集内容は保存しない。
 
 Then:
 
-- 一覧の tag filter は絞り込みなしで始まり、対象 Deck の全 Card とその件数を表示する。
-- 復習期日前の Card と学習用の tag filter に一致しない Card も一覧に含まれる。
-- 復習期日前の Card の裏面と編集画面を開ける。閲覧・編集画面を開くために復習期日の設定を変更する必要はない。
+- 閲覧フィルターは絞り込みなし・OR 条件で始まり、対象 Deck の全 Card とその件数を表示する。
+- 学習用のタグ条件に一致しない Card と、復習期日前の Card も一覧に含まれる。
+- 学習条件を変更せずに、対象 Card の裏面と編集画面を開ける。
 - 別の Deck の Card は表示しない。
-- 保存済みの学習条件、Card の内容と FSRS、学習履歴、学習 session は変更されない。
+- 閲覧フィルター、学習条件、Card、学習履歴、学習 session は変更されない。
 - browser error が発生しない。
 
 <a id="browse-filter-02"></a>
 
-### BROWSE-FILTER-02 学習と一覧の条件を引き継がず Deck の全 Card を閲覧できる
+### BROWSE-FILTER-02 学習条件とは別の閲覧フィルターを一覧と Deck 閲覧で共有できる
 
-カテゴリ: `read`
+カテゴリ: `write`
 
 検証状況: 未実装
 
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- 復習期日と tags が異なる Card がある Deck に、学習用の tag filter が保存されている。
-- Respect review schedule が有効である。
-- Card 一覧では、学習用とは異なるタグを選んで一部の Card だけを表示している。
+- タグと学習状態が異なる Card を持つ Deck に、学習用のタグ条件が保存されている。
+- 対象 Deck の閲覧フィルターは未設定である。
+- 学習用のタグとは別に、復習期日前の Card と未評価 Card に共通し、ほかの Card は持たないタグがある。
 
 When:
 
-- Deck 一覧を経由して対象 Deck の View を開き、全 Card の表裏を順に閲覧する。
+- Card 一覧でその共通タグを閲覧フィルターに選択し、自動保存後に Deck 一覧を経由して同じ Deck の閲覧画面を開く。
+- 対象 Card の表裏を順に閲覧した後、Card 一覧を再度開く。
 
 Then:
 
-- 対象 Deck の全 Card を標準順で閲覧でき、総数は Deck 内の全 Card 数と一致する。
-- 復習期日前、学習用の tag filter に不一致、Card 一覧の tag filter に不一致の Card も閲覧できる。
-- 別の Deck の Card は表示しない。
-- 学習条件、Card の内容と FSRS、学習履歴、学習 session は変更されない。
+- Card 一覧と Deck 閲覧は、対象 Deck の同じ閲覧フィルターに一致する Card を表示する。
+- 復習期日前の Card も条件に一致すれば表示し、未選択のタグしか持たない Card は表示しない。
+- Deck 閲覧の総数は絞り込み後の Card 数と一致し、対象 Card を標準順で閲覧できる。
+- Card 一覧へ戻っても保存したタグの選択と絞り込み結果が復元される。
+- 対象 Deck の閲覧フィルターだけを保存し、学習条件、Card、学習履歴、学習 session は変更しない。
 - browser error が発生しない。
 
 <a id="browse-filter-03"></a>
 
-### BROWSE-FILTER-03 一覧専用の tag filter を AND / OR で適用できる
+### BROWSE-FILTER-03 閲覧フィルターのタグと AND / OR 条件を保存して適用できる
 
-カテゴリ: `read`
+カテゴリ: `write`
 
 検証状況: 未実装
 
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- 学習用のタグとは別に、期限到来済み Card と未評価 Card のみに共通するタグ、および期限前 Card と未評価 Card のみに共通するタグが存在する。
-- Respect review schedule が有効である。
-- 対象 Deck の Card 一覧を開いている。
+- 学習用のタグとは別に、一方だけ、他方だけ、両方、どちらも持たない Card を区別できる2つのタグがある。
+- 対象 Deck の閲覧フィルターは未設定で、学習用のタグ条件は保存されている。
 
 When:
 
-- その2つのタグを一覧で選択し、OR 条件と AND 条件でそれぞれ絞り込む。
-- 学習開始画面へ移動する。学習は開始しない。
+- その2つのタグを Card 一覧で選択し、次の各条件を独立した初期状態から設定する。
+- 自動保存後に一覧を再読込し、同じ Deck の閲覧画面と学習開始画面を開く。学習は開始しない。
+
+| 閲覧フィルターの条件 | 一覧と Deck 閲覧に表示する Card |
+| --- | --- |
+| OR | どちらか一方または両方のタグを持つ Card |
+| AND | 両方のタグを持つ Card のみ |
 
 Then:
 
-| 一覧の条件 | 一覧に表示する Card |
-| --- | --- |
-| OR | どちらかのタグを持つ、期限到来済み・期限前・未評価の Card |
-| AND | 両方のタグを持つ未評価の Card のみ |
-
-- 一覧の表示件数は、それぞれの条件に一致する Card 数と一致する。
-- タグに一致する Card は復習期日前でも表示する。
-- 学習開始画面のタグ選択と AND / OR 条件は保存済みの学習条件を維持し、一覧で選んだ条件に置き換わらない。
-- 保存済みの学習条件、Card の内容と FSRS、学習履歴、学習 session は変更されない。
+- 選択したタグと AND / OR 条件が再読込後も復元され、一覧と Deck 閲覧の表示対象・件数が表の期待結果と一致する。
+- 条件に一致する Card を、学習状態や学習用のタグ条件でさらに除外しない。
+- 学習開始画面のタグ選択と AND / OR 条件は保存済みの学習条件を維持する。
+- 閲覧フィルター以外の保存設定、Card、学習履歴、学習 session は変更されない。
 - browser error が発生しない。
 
 <a id="browse-filter-04"></a>
 
-### BROWSE-FILTER-04 一覧の絞り込み解除で学習条件を変えずに全件へ戻れる
+### BROWSE-FILTER-04 閲覧フィルターの解除を保存しても学習条件は変わらない
 
-カテゴリ: `read`
+カテゴリ: `write`
 
 検証状況: 未実装
 
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- 学習用の tag filter が保存され、Respect review schedule が有効である。
-- 対象 Deck の一覧で、学習用のタグと、そのタグを持たない Card のタグを AND 条件で選択し、一致する Card がない状態である。
+- 学習用のタグ条件が保存され、復習期日を尊重する学習設定が有効である。
+- Card 一覧の操作で、同じ Card が両方を持つことのないタグを閲覧フィルターの AND 条件として保存し、一致する Card がない状態を準備している。
 
 When:
 
-- Card 一覧の絞り込み解除を実行し、その後、学習開始画面を開く。学習は開始しない。
+- Card 一覧の閲覧フィルターを解除する。
+- 自動保存後に一覧を再読込し、同じ Deck の閲覧画面と学習開始画面を開く。学習は開始しない。
 
 Then:
 
-- 一覧のタグ選択が解除され、復習期日前の Card を含む対象 Deck の全 Card とその件数が再表示される。
-- 学習開始画面には保存済みの学習用 tag filter が残る。
-- Respect review schedule は有効なままであり、学習条件に一致しても復習期日前の Card は学習候補に含まれない。
-- Card の内容と FSRS、学習履歴、学習 session は変更されない。
+- 閲覧フィルターは絞り込みなし・OR 条件へ戻り、その状態が再読込後も復元される。
+- Card 一覧と Deck 閲覧に、対象 Deck の全 Card とその件数を表示する。
+- 解除前の条件が再入場時に復活したり、学習条件を閲覧フィルターとして再適用したりしない。
+- 学習開始画面には保存済みの学習用タグ条件と復習期日の設定が残り、学習候補は変更されない。
+- 閲覧フィルター以外の保存設定、Card、学習履歴、学習 session は変更されない。
 - browser error が発生しない。
 
 <a id="browse-filter-05"></a>
 
-### BROWSE-FILTER-05 学習用の tag filter を変更しても閲覧対象は変わらない
+### BROWSE-FILTER-05 学習用のタグ条件を変更しても保存済み閲覧フィルターは変わらない
 
 カテゴリ: `write`
 
@@ -148,25 +159,26 @@ Then:
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- 対象 Deck に学習用の tag filter が保存され、その条件に一致しない Card も存在する。
-- Card 一覧ではまだ絞り込みを行っていない。
+- 学習用のタグ条件が保存されている。
+- Card 一覧の操作で、学習用とは異なるタグを閲覧フィルターとして保存し、一部の Card だけを表示している状態を準備している。
+- 保存した閲覧フィルターに一致する Card と、学習条件の変更先のタグを持つ Card は異なる。
 
 When:
 
-- 学習開始画面で、これまで学習条件から外れていた Card のタグだけを選択する。
-- 保存後に Card 一覧と Deck 閲覧を開き、最後に学習開始画面を再読込する。学習は開始しない。
+- 学習開始画面で、これまで学習条件から外れていた Card のタグだけを選択して保存する。
+- Card 一覧と Deck 閲覧を開き、それぞれ再読込する。学習は開始しない。
 
 Then:
 
-- Card 一覧は絞り込みなしで全件を表示し、Deck 閲覧でも同じ Deck の全 Card を閲覧できる。
-- 学習開始画面には変更したタグ選択が保存されており、新しいタグ条件に一致する Card だけが学習候補となる。
-- 明示的に変更した学習用の tag filter だけが保存される。
-- Card の内容と FSRS、学習履歴、学習 session、復習期日の設定は変更されない。
+- 閲覧フィルターの選択タグと AND / OR 条件は、学習条件の変更前と同じ状態を復元する。
+- Card 一覧と Deck 閲覧の表示対象・件数は変更されず、全件表示にも切り替わらない。
+- 学習開始画面には変更した学習用タグ条件が保存されている。
+- 明示的に変更した学習条件だけを保存し、閲覧フィルター、Card、学習履歴、学習 session は変更しない。
 - browser error が発生しない。
 
 <a id="browse-filter-06"></a>
 
-### BROWSE-FILTER-06 復習期日の設定を変更しても閲覧対象は変わらない
+### BROWSE-FILTER-06 学習設定を変更しても閲覧フィルターと閲覧結果は変わらない
 
 カテゴリ: `write`
 
@@ -175,24 +187,31 @@ Then:
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- Respect review schedule が有効であり、学習用のタグに一致する復習期日前の Card が存在する。
-- Card 一覧では絞り込みを行っていない。
+- 対象 Deck に、学習用のタグ条件と、学習状態の異なる複数の Card がある。
+- Card 一覧の操作で、学習状態の異なる2枚以上の Card に一致し、全件ではない閲覧フィルターを保存した状態を準備している。
 
 When:
 
-- 設定画面で Respect review schedule を無効にし、Card 一覧、Deck 閲覧、学習開始画面を開く。学習は開始しない。
+- 次の学習設定を、それぞれ独立した初期状態から変更して保存する。
+- Card 一覧と Deck 閲覧を開き、再読込後の表示も確認する。学習は開始しない。
+
+| 変更する学習設定 | 操作 |
+| --- | --- |
+| 復習期日を尊重する設定 | 有効から無効へ変更する |
+| 学習枚数の上限 | 制限なしから、閲覧対象の Card 数より少ない正の上限へ変更する |
+| shuffle | 有効・無効を切り替える |
 
 Then:
 
-- Card 一覧と Deck 閲覧は、設定変更前と同じ全 Card を表示する。対象の Card と件数は変わらない。
-- 学習開始画面では、学習用のタグに一致する復習期日前の Card も候補に含まれる。タグに一致しない Card は候補に含まれない。
-- 復習期日の設定だけが保存され、学習用の tag filter は変更されない。
-- Card の内容と FSRS、学習履歴、学習 session は変更されない。
+- どの学習設定を変更しても、保存済み閲覧フィルターの選択タグと AND / OR 条件は変わらない。
+- Card 一覧と Deck 閲覧の対象・件数は設定変更前と同じで、Deck 閲覧の標準順も変わらない。
+- 変更した学習設定は保存されるが、閲覧条件へ追加されたり、閲覧フィルターの初期化に使われたりしない。
+- 閲覧フィルター、Card、学習履歴、学習 session は変更されない。
 - browser error が発生しない。
 
 <a id="browse-filter-07"></a>
 
-### BROWSE-FILTER-07 全 Card が復習期日前でも一覧と Deck 閲覧を開ける
+### BROWSE-FILTER-07 学習候補が0件でも閲覧フィルターに従って表示できる
 
 カテゴリ: `read`
 
@@ -201,49 +220,53 @@ Then:
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- 学習用のタグには一致するが、全 Card の復習期日が未来である Deck が存在する。
-- Respect review schedule が有効で、未評価の Card と進行中の学習 session は存在しない。
+- Card は存在するが、保存済みの学習条件では今回学習できる Card がない Deck がある。
+- 代表例として、学習用のタグには一致するが全 Card の復習期日が未来で、復習期日を尊重する設定が有効な Deck を使用する。
+- 対象 Deck の閲覧フィルターは未設定であり、進行中の学習 session は存在しない。
 
 When:
 
-- その Deck の学習開始画面を開いた後、Card 一覧と Deck 閲覧を開く。
+- 対象 Deck の学習開始画面を開いた後、Card 一覧と Deck 閲覧を開く。
 
 Then:
 
 - 学習開始画面では今回学習できる Card がない旨を表示し、学習を開始できない。
-- Card 一覧と Deck 閲覧では、その Deck の全 Card の表裏を確認できる。
-- 閲覧画面で「Card が存在しない」または「復習期日まで閲覧できない」という空状態にはならない。
-- 復習期日の設定を無効にせず閲覧でき、Card の内容と FSRS、学習履歴、学習 session は変更されない。
+- Card 一覧と Deck 閲覧は閲覧フィルターに従い、この状態では全 Card の表裏を確認できる。
+- 学習候補が0件であることを理由に、閲覧結果を空にしたり、Card が存在しないと表示したりしない。
+- 閲覧のために学習条件を変更する必要はなく、保存設定、Card、学習履歴、学習 session は変更されない。
 - browser error が発生しない。
 
 <a id="browse-filter-08"></a>
 
-### BROWSE-FILTER-08 一覧の再入場・再読込・Deck 変更で絞り込みを持ち越さない
+### BROWSE-FILTER-08 Deck ごとの閲覧フィルターを再入場・再読込・Deck 切り替え後も復元できる
 
-カテゴリ: `read`
+カテゴリ: `batch`
 
 検証状況: 未実装
 
 Given:
 
 - Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
-- Card を持つ複数の Deck が存在し、それぞれ学習用の tag filter が保存されている。
-- 一方の Deck の Card 一覧でタグを選択し、一部の Card に絞り込んでいる。
+- Card を持つ複数の Deck が存在し、それぞれ学習用のタグ条件が保存されている。
+- 各 Deck の閲覧フィルターは未設定である。
+- 一方の Deck には2つのタグの両方を持つ Card があり、もう一方の Deck には選択対象のタグを持つ Card がある。
 
 When:
 
-- 次の操作を、それぞれ上記の状態から行う。
+- 一方の Deck では2つのタグと AND 条件、もう一方の Deck では選択対象のタグと OR 条件を、各 Card 一覧の閲覧フィルターとして保存する。
+- 各 Deck について、次の操作後に Card 一覧と Deck 閲覧を確認する。
 
-| 操作 | 操作後に確認する一覧 |
+| 操作 | 確認対象 |
 | --- | --- |
-| Deck 一覧に戻り、同じ Deck の Card 一覧を再度開く | 元の Deck |
-| 表示中の Card 一覧を再読込する | 元の Deck |
-| 別の Deck の Card 一覧へ移動する | 移動先の Deck |
+| Deck 一覧に戻り、同じ Deck を再度開く | 再入場した Deck |
+| 表示中の画面を再読込する | 再読込した Deck |
+| 別の Deck へ移動し、元の Deck へ戻る | 移動先の Deck と元の Deck |
 
 Then:
 
-- 操作後の一覧はタグ選択なしで始まり、対象 Deck の全 Card を表示する。
-- 以前の一覧条件や保存済みの学習条件を、一覧の初期値として引き継がない。
-- 元の Deck と移動先の Deck の Card を混在させない。
-- 各 Deck の保存済み学習条件、Card の内容と FSRS、学習履歴、学習 session は変更されない。
+- どの操作後も、対象 Deck に保存した選択タグと AND / OR 条件が復元される。
+- Card 一覧と Deck 閲覧は、対象 Deck 自身の保存済み条件に一致する Card と件数を表示する。
+- 別の Deck で条件を変更しても元の Deck の条件を上書きせず、対象 Card も混在させない。
+- 学習条件を閲覧フィルターの初期値にせず、保存済みの閲覧フィルターを絞り込みなしへ戻さない。
+- 各 Deck の学習条件、Card、学習履歴、学習 session は変更されない。
 - browser error が発生しない。
