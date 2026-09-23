@@ -119,8 +119,6 @@ Then:
 
 区分: 正常系
 
-検証状況: **未実装・未検証（TODO）**。以下は期待仕様であり、検証済みの保証ではない。
-
 Given:
 
 - 本人の Deck が存在し、その Deck に属する Card は存在しない。
@@ -136,13 +134,11 @@ Then:
 
 <a id="firestore-deck-06"></a>
 
-### FIRESTORE-DECK-06 Deck と配下 Card の削除を原子的に扱う
+### FIRESTORE-DECK-06 [TODO] Deck と配下 Card の削除を原子的に扱う
 
 カテゴリ: `batch`
 
 区分: 異常系
-
-検証状況: **未実装・未検証（TODO）**。以下は期待仕様であり、検証済みの保証ではない。
 
 Given:
 

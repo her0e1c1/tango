@@ -1,4 +1,4 @@
-import { expect, getDocument, requireDocument, test, type BrowserErrorCollector } from "./utils/fixtures";
+import { expect, getDocument, requireDocument, setDocument, test, type BrowserErrorCollector } from "./utils/fixtures";
 import { installApplicationCacheForOfflineReload } from "./utils/offline-cache";
 import { createAnonymousDeck } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
@@ -191,6 +191,27 @@ test("DECK-TAG-MANAGEMENT-10 cancels deletion without changing tags or Cards", a
   await expect(dialog).toHaveCount(0);
   await expect(row(page, "shared")).toBeVisible();
   expect(await readCard(cardId)).toEqual(before);
+});
+
+test("DECK-TAG-MANAGEMENT-12 filters both browsing pages by an assigned Deck tag", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  const deck = fixture.deck("deck-target");
+  await setDocument("deck", deck.id, { ...deck, deletedAt: null, tags: ["kept"] });
+  const cards = fixture.state.remote.cards;
+  const before = await Promise.all(cards.map((card) => readCard(card.id)));
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("button", { name: /^View / })).toHaveCount(2);
+  await page.locator("summary").filter({ hasText: "Filters" }).click();
+  await page.getByRole("checkbox", { name: "kept", exact: true }).locator("xpath=parent::label").click();
+  await expect(page.getByRole("button", { name: /^View / })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "View first tagged question", exact: true })).toBeVisible();
+  await expect(page.getByText("1 card", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "View second tagged question", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "View other deck question", exact: true })).toHaveCount(0);
+  await page.goto(`/deck/${deck.id}/view`);
+  await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
+  await expect(page.getByRole("button", { name: "Card front", exact: true })).toHaveText("first tagged question");
+  expect(await Promise.all(cards.map((card) => readCard(card.id)))).toEqual(before);
 });
 
 function allowOfflineErrors(errors: BrowserErrorCollector) {

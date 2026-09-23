@@ -179,8 +179,20 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect((await getDoc(cardRef)).data()).toEqual(beforeCard);
   });
 
-  // Pending implementation of the deletion contract documented in PR #1731.
-  it.todo("[FIRESTORE-DECK-05] tombstones an empty Deck");
+  it("[FIRESTORE-DECK-05] tombstones an empty Deck", async () => {
+    const deck = createRemoteDeckInput({ id: uuid() });
+    await createDeck("uid", deck);
+    const reference = doc(db, "deck", deck.id);
+    const before = (await getDoc(reference)).data();
+
+    await deleteDeck("uid", deck.id);
+
+    const deleted = await getDoc(reference);
+    expect(deleted.exists()).toBe(true);
+    expect(deleted.data()).toEqual({ ...before, deletedAt: expect.any(Number), updatedAt: expect.any(Number) });
+  });
+
+  // Child tombstoning is not implemented by the current parent-only deletion operation.
   it.todo("[FIRESTORE-DECK-06] leaves the Deck and all child Cards unchanged when the delete batch is rejected");
 });
 

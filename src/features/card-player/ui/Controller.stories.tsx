@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import * as React from "react";
-import { expect, fn } from "storybook/test";
+import { expect, fireEvent, fn } from "storybook/test";
 
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import { Controller } from "./Controller";
@@ -70,3 +70,23 @@ export const Complete: Story = {
 };
 
 export const Saving: Story = { args: { disabled: true } };
+
+export const KeyboardPlayback: Story = {
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-STUDY-CONTROLS-03 Request playback with Enter", async () => {
+      canvas.getByRole("button", { name: "Play" }).focus();
+      await userEvent.keyboard("{Enter}");
+      await expect(args.onToggleAutoPlay).toHaveBeenCalledOnce();
+    });
+  },
+};
+
+export const ChangePosition: Story = {
+  args: { index: 0, numberOfCards: 5 },
+  play: async ({ args, canvas, step }) => {
+    await step("STORYBOOK-STUDY-CONTROLS-04 Request a numeric position", async () => {
+      await fireEvent.change(canvas.getByRole("slider"), { target: { value: "3" } });
+      await expect(args.onChange).toHaveBeenLastCalledWith(3);
+    });
+  },
+};

@@ -10,7 +10,7 @@ CardPlayer と実際の子 UI、CardOverlay、Story 側の表示状態と公開 
 
 書式・実行前提は [README](./README.md)、再生・スキップ・ヘルプの契約は [study-controls](./study-controls.md) を参照する。
 
-この仕様は [CardPlayer.spec.tsx](../../../../src/features/card-player/ui/CardPlayer.spec.tsx) と [CardOverlay.spec.tsx](../../../../src/features/card-player/ui/CardOverlay.spec.tsx) の UI 契約を記録する。01〜04、06、08、10〜23 は未実装で、05・07 は既存 play の一部に追加アサーションが必要で、09 は既存 play と対応する。いずれも今回のテスト実行成功を示すものではない。
+未実装のケースは見出しの `[TODO]` で示す。
 
 ## テストケース
 
@@ -42,7 +42,7 @@ CardPlayer と実際の子 UI、CardOverlay、Story 側の表示状態と公開 
 
 <a id="storybook-card-player-01"></a>
 
-### STORYBOOK-CARD-PLAYER-01 [TODO] 読書ジェスチャーを学習操作にしない
+### STORYBOOK-CARD-PLAYER-01 読書ジェスチャーを学習操作にしない
 
 カテゴリ: `interaction`
 
@@ -62,7 +62,7 @@ Then:
 
 <a id="storybook-card-player-02"></a>
 
-### STORYBOOK-CARD-PLAYER-02 [TODO] 文字選択中に閲覧を終了しない
+### STORYBOOK-CARD-PLAYER-02 文字選択中に閲覧を終了しない
 
 カテゴリ: `interaction`
 
@@ -82,7 +82,7 @@ Then:
 
 <a id="storybook-card-player-03"></a>
 
-### STORYBOOK-CARD-PLAYER-03 [TODO] Space とタップを区別する
+### STORYBOOK-CARD-PLAYER-03 Space とタップを区別する
 
 カテゴリ: `interaction`
 
@@ -102,7 +102,7 @@ Then:
 
 <a id="storybook-card-player-04"></a>
 
-### STORYBOOK-CARD-PLAYER-04 [TODO] 閲覧設定で裏面の許可済み操作を変えない
+### STORYBOOK-CARD-PLAYER-04 閲覧設定で裏面の許可済み操作を変えない
 
 カテゴリ: `interaction`
 
@@ -122,7 +122,7 @@ Then:
 
 <a id="storybook-card-player-05"></a>
 
-### STORYBOOK-CARD-PLAYER-05 [TODO] 編集リンクの表示を切り替える
+### STORYBOOK-CARD-PLAYER-05 編集リンクの表示を切り替える
 
 カテゴリ: `interaction`
 
@@ -138,12 +138,12 @@ When:
 
 Then:
 
-- 既存 play: リンクの初期表示・非表示・再表示と、操作中のボタン同士が重ならないことを確認する。
-- 要追加: 一覧を開いている間はリンク本体を表示せず、切替後の pressed は false になる。Escape で Open card actions にフォーカスを戻す。
+- リンクの初期表示・非表示・再表示と、操作中のボタン同士が重ならないことを確認する。
+- 一覧を開いている間はリンク本体を表示せず、切替後の pressed は false になる。Escape で Open card actions にフォーカスを戻す。
 
 <a id="storybook-card-player-06"></a>
 
-### STORYBOOK-CARD-PLAYER-06 [TODO] 裏面と編集非対応画面に編集操作を出さない
+### STORYBOOK-CARD-PLAYER-06 裏面と編集非対応画面に編集操作を出さない
 
 カテゴリ: `render`
 
@@ -163,7 +163,7 @@ Then:
 
 <a id="storybook-card-player-07"></a>
 
-### STORYBOOK-CARD-PLAYER-07 [TODO] 裏面では解答に集中できる表示にする
+### STORYBOOK-CARD-PLAYER-07 裏面では解答に集中できる表示にする
 
 カテゴリ: `render`
 
@@ -179,8 +179,8 @@ When:
 
 Then:
 
-- 既存 play: 解答が見え、スワイプボタンと Card actions がないことを確認する。
-- 要追加: Study answer はフォーカス可能で、表面・詳細・戻る操作・操作一覧の開閉・再生操作も表示しない。
+- 解答が見え、スワイプボタンと Card actions がないことを確認する。
+- Study answer はフォーカス可能で、表面・詳細・戻る操作・操作一覧の開閉・再生操作も表示しない。
 
 <a id="storybook-card-player-08"></a>
 
@@ -205,7 +205,7 @@ Then:
 
 <a id="storybook-card-player-09"></a>
 
-### STORYBOOK-CARD-PLAYER-09 [TODO] 端のホイール入力をスクロールへ渡す
+### STORYBOOK-CARD-PLAYER-09 端のホイール入力をスクロールへ渡す
 
 カテゴリ: `interaction`
 
@@ -226,7 +226,7 @@ Then:
 
 <a id="storybook-card-player-10"></a>
 
-### STORYBOOK-CARD-PLAYER-10 [TODO] 操作一覧から各操作を要求する
+### STORYBOOK-CARD-PLAYER-10 操作一覧から各操作を要求する
 
 カテゴリ: `interaction`
 
@@ -247,7 +247,7 @@ Then:
 
 <a id="storybook-card-player-11"></a>
 
-### STORYBOOK-CARD-PLAYER-11 [TODO] ヘルプの再表示操作を失わない
+### STORYBOOK-CARD-PLAYER-11 ヘルプの再表示操作を失わない
 
 カテゴリ: `interaction`
 
@@ -267,7 +267,7 @@ Then:
 
 <a id="storybook-card-player-12"></a>
 
-### STORYBOOK-CARD-PLAYER-12 [TODO] 閲覧モードの状態をボタンで示す
+### STORYBOOK-CARD-PLAYER-12 閲覧モードの状態をボタンで示す
 
 カテゴリ: `interaction`
 
@@ -287,7 +287,7 @@ Then:
 
 <a id="storybook-card-player-13"></a>
 
-### STORYBOOK-CARD-PLAYER-13 [TODO] 閲覧モードとボタン表示を区別する
+### STORYBOOK-CARD-PLAYER-13 閲覧モードとボタン表示を区別する
 
 カテゴリ: `interaction`
 
@@ -308,7 +308,7 @@ Then:
 
 <a id="storybook-card-player-14"></a>
 
-### STORYBOOK-CARD-PLAYER-14 [TODO] 表示設定に従ってショートカットを組み合わせる
+### STORYBOOK-CARD-PLAYER-14 表示設定に従ってショートカットを組み合わせる
 
 カテゴリ: `interaction`
 
@@ -329,7 +329,7 @@ Then:
 
 <a id="storybook-card-player-15"></a>
 
-### STORYBOOK-CARD-PLAYER-15 [TODO] 詳細表示をまとめて切り替える
+### STORYBOOK-CARD-PLAYER-15 詳細表示をまとめて切り替える
 
 カテゴリ: `interaction`
 
@@ -349,7 +349,7 @@ Then:
 
 <a id="storybook-card-player-16"></a>
 
-### STORYBOOK-CARD-PLAYER-16 [TODO] 再生設定が使えない理由を確認できる
+### STORYBOOK-CARD-PLAYER-16 再生設定が使えない理由を確認できる
 
 カテゴリ: `interaction`
 
@@ -370,7 +370,7 @@ Then:
 
 <a id="storybook-card-player-17"></a>
 
-### STORYBOOK-CARD-PLAYER-17 [TODO] 選択した下部操作だけを表示する
+### STORYBOOK-CARD-PLAYER-17 選択した下部操作だけを表示する
 
 カテゴリ: `render`
 
@@ -390,7 +390,7 @@ Then:
 
 <a id="storybook-card-player-18"></a>
 
-### STORYBOOK-CARD-PLAYER-18 [TODO] 未許可の裏面スワイプを無視する
+### STORYBOOK-CARD-PLAYER-18 未許可の裏面スワイプを無視する
 
 カテゴリ: `interaction`
 
@@ -410,7 +410,7 @@ Then:
 
 <a id="storybook-card-player-19"></a>
 
-### STORYBOOK-CARD-PLAYER-19 [TODO] 表面スワイプをボタン表示と独立して扱う
+### STORYBOOK-CARD-PLAYER-19 表面スワイプをボタン表示と独立して扱う
 
 カテゴリ: `interaction`
 
@@ -430,7 +430,7 @@ Then:
 
 <a id="storybook-card-player-20"></a>
 
-### STORYBOOK-CARD-PLAYER-20 [TODO] ドラッグをクリックとして重複処理しない
+### STORYBOOK-CARD-PLAYER-20 ドラッグをクリックとして重複処理しない
 
 カテゴリ: `interaction`
 
@@ -450,7 +450,7 @@ Then:
 
 <a id="storybook-card-player-21"></a>
 
-### STORYBOOK-CARD-PLAYER-21 [TODO] 中・右ボタンのドラッグを無視する
+### STORYBOOK-CARD-PLAYER-21 中・右ボタンのドラッグを無視する
 
 カテゴリ: `interaction`
 
@@ -470,7 +470,7 @@ Then:
 
 <a id="storybook-card-player-22"></a>
 
-### STORYBOOK-CARD-PLAYER-22 [TODO] 裏面のドラッグ後に誤操作しない
+### STORYBOOK-CARD-PLAYER-22 裏面のドラッグ後に誤操作しない
 
 カテゴリ: `interaction`
 
@@ -490,7 +490,7 @@ Then:
 
 <a id="storybook-card-player-23"></a>
 
-### STORYBOOK-CARD-PLAYER-23 [TODO] 未評価と FSRS 難易度を区別する
+### STORYBOOK-CARD-PLAYER-23 未評価と FSRS 難易度を区別する
 
 カテゴリ: `render`
 

@@ -10,7 +10,7 @@ AccountView の表示・callback と、実際の AccountPage / ToastViewport / �
 
 書式・実行前提は [README](./README.md)、関連 E2E は [account](../../e2e/account.md) を参照する。
 
-06〜14 は Vitest から追加した契約である。対応先の App :: Account は実際の画面を表示する既存 Story だが、以下の操作・状態を準備する `play` とアサーションは未実装である。
+未実装のケースは見出しの `[TODO]` で示す。
 
 ## テストケース
 
@@ -133,7 +133,7 @@ Then:
 
 <a id="storybook-account-06"></a>
 
-### STORYBOOK-ACCOUNT-06 [TODO] 認証状態と UID を表示する
+### STORYBOOK-ACCOUNT-06 認証状態と UID を表示する
 
 カテゴリ: `render`
 
@@ -154,7 +154,7 @@ Then:
 
 <a id="storybook-account-07"></a>
 
-### STORYBOOK-ACCOUNT-07 [TODO] 先行操作の完了で別操作の待機を解除しない
+### STORYBOOK-ACCOUNT-07 先行操作の完了で別操作の待機を解除しない
 
 カテゴリ: `interaction`
 
@@ -175,7 +175,7 @@ Then:
 
 <a id="storybook-account-08"></a>
 
-### STORYBOOK-ACCOUNT-08 [TODO] 言語変更でプロフィール値を変えない
+### STORYBOOK-ACCOUNT-08 言語変更でプロフィール値を変えない
 
 カテゴリ: `interaction`
 
@@ -195,7 +195,7 @@ Then:
 
 <a id="storybook-account-09"></a>
 
-### STORYBOOK-ACCOUNT-09 [TODO] ショートカットでホームへ戻る
+### STORYBOOK-ACCOUNT-09 ショートカットでホームへ戻る
 
 カテゴリ: `interaction`
 
@@ -215,7 +215,7 @@ Then:
 
 <a id="storybook-account-10"></a>
 
-### STORYBOOK-ACCOUNT-10 [TODO] 認証失敗後に再試行する
+### STORYBOOK-ACCOUNT-10 認証失敗後に再試行する
 
 カテゴリ: `interaction`
 
@@ -235,7 +235,7 @@ Then:
 
 <a id="storybook-account-11"></a>
 
-### STORYBOOK-ACCOUNT-11 [TODO] 表示済みの通知を画面離脱だけで消さない
+### STORYBOOK-ACCOUNT-11 表示済みの通知を画面離脱だけで消さない
 
 カテゴリ: `interaction`
 
@@ -255,7 +255,7 @@ Then:
 
 <a id="storybook-account-12"></a>
 
-### STORYBOOK-ACCOUNT-12 [TODO] 画面離脱後に届く失敗も通知する
+### STORYBOOK-ACCOUNT-12 画面離脱後に届く失敗も通知する
 
 カテゴリ: `interaction`
 
@@ -275,7 +275,7 @@ Then:
 
 <a id="storybook-account-13"></a>
 
-### STORYBOOK-ACCOUNT-13 [TODO] 日本語で認証結果を通知する
+### STORYBOOK-ACCOUNT-13 日本語で認証結果を通知する
 
 カテゴリ: `interaction`
 
@@ -295,7 +295,7 @@ Then:
 
 <a id="storybook-account-14"></a>
 
-### STORYBOOK-ACCOUNT-14 [TODO] 画面へ戻っても待機状態を保つ
+### STORYBOOK-ACCOUNT-14 画面へ戻っても待機状態を保つ
 
 カテゴリ: `interaction`
 
