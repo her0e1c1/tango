@@ -43,6 +43,10 @@ jobs:
     name: Storybook
     uses: ./.github/workflows/storybook.yaml
 
+  code-quality:
+    name: Code quality
+    uses: ./.github/workflows/code-quality.yml
+
   checks:
     name: Test / ${{ matrix.name }}
     runs-on: ubuntu-latest
@@ -52,13 +56,11 @@ jobs:
         include:
           - name: Build
             command: npm run build:sample && npm run build
-          - name: Code quality
-            command: npm run build:sample && npm run fmt && npm run lint
           - name: Unit coverage
             command: npm run build:sample && npm run test:coverage
             coverage: true
           - name: Sample
-            command: npm run fmt:sample && npm run test:sample
+            command: npm run test:sample
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -115,11 +117,12 @@ jobs:
   test:
     name: Test
     if: ${{ always() }}
-    needs: [checks, dependency-review, e2e, integration, storybook]
+    needs: [checks, code-quality, dependency-review, e2e, integration, storybook]
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
         env:
+          CODE_QUALITY_RESULT: ${{ needs.code-quality.result }}
           CHECKS_RESULT: ${{ needs.checks.result }}
           DEPENDENCY_REVIEW_RESULT: ${{ needs.dependency-review.result }}
           E2E_RESULT: ${{ needs.e2e.result }}
@@ -127,6 +130,7 @@ jobs:
           INTEGRATION_RESULT: ${{ needs.integration.result }}
           STORYBOOK_RESULT: ${{ needs.storybook.result }}
         run: |
+          test "$CODE_QUALITY_RESULT" = success
           test "$CHECKS_RESULT" = success
           test "$E2E_RESULT" = success
           test "$INTEGRATION_RESULT" = success
