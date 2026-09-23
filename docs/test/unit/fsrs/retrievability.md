@@ -8,18 +8,20 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応状況 |
-| --- | --- | --- | --- |
-| UNIT-FSRS-RETRIEVABILITY-01 | read | [最終評価以前の有効な時刻では想起確率を1とする](#unit-fsrs-retrievability-01) | 一部対応 |
-| UNIT-FSRS-RETRIEVABILITY-02 | read | [1日未満の経過時間も想起確率に反映する](#unit-fsrs-retrievability-02) | 未対応 |
-| UNIT-FSRS-RETRIEVABILITY-03 | read | [安定性に対応する90%の想起確率を返す](#unit-fsrs-retrievability-03) | 未対応 |
-| UNIT-FSRS-RETRIEVABILITY-04 | read | [不正な状態や計算時刻を正常な確率に読み替えない](#unit-fsrs-retrievability-04) | 未対応 |
+| ID | カテゴリ | 区分 | テストケース | 対応状況 |
+| --- | --- | --- | --- | --- |
+| UNIT-FSRS-RETRIEVABILITY-01 | read | 正常系 | [最終評価以前の有効な時刻では想起確率を1とする](#unit-fsrs-retrievability-01) | 一部対応 |
+| UNIT-FSRS-RETRIEVABILITY-02 | read | 正常系 | [1日未満の経過時間も想起確率に反映する](#unit-fsrs-retrievability-02) | 未対応 |
+| UNIT-FSRS-RETRIEVABILITY-03 | read | 正常系 | [安定性に対応する90%の想起確率を返す](#unit-fsrs-retrievability-03) | 未対応 |
+| UNIT-FSRS-RETRIEVABILITY-04 | read | 異常系 | [不正な状態や計算時刻を正常な確率に読み替えない](#unit-fsrs-retrievability-04) | 未対応 |
 
 <a id="unit-fsrs-retrievability-01"></a>
 
 ### UNIT-FSRS-RETRIEVABILITY-01 最終評価以前の有効な時刻では想起確率を1とする
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -45,6 +47,8 @@ Then:
 ### UNIT-FSRS-RETRIEVABILITY-02 1日未満の経過時間も想起確率に反映する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -72,6 +76,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - 最終評価日時 `t0` の有効な評価済み状態がある。
@@ -98,6 +104,8 @@ Then:
 ### UNIT-FSRS-RETRIEVABILITY-04 不正な状態や計算時刻を正常な確率に読み替えない
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 

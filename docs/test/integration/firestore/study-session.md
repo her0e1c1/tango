@@ -22,28 +22,30 @@ SDK から直接行うデータ変更も、同じインスタンスで購読へ�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-STUDY-SESSION-01 | batch | [途中の学習を保存した順序と位置から再開できる](#firestore-study-session-01) |
-| FIRESTORE-STUDY-SESSION-02 | batch | [離脱だけでは終了せず最初からやり直すと旧セッションを中断する](#firestore-study-session-02) |
-| FIRESTORE-STUDY-SESSION-03 | write | [最後のカードを完了した操作が重複しても終了記録を変更しない](#firestore-study-session-03) |
-| FIRESTORE-STUDY-SESSION-04 | batch | [オフラインで中断した学習を重複なく同期できる](#firestore-study-session-04) |
-| FIRESTORE-STUDY-SESSION-05 | batch | [別Deckの未送信書込に妨げられずオフラインでやり直せる](#firestore-study-session-05) |
-| FIRESTORE-STUDY-SESSION-06 | read | [不正な保存データが混在しても有効な学習を復元してやり直せる](#firestore-study-session-06) |
-| FIRESTORE-STUDY-SESSION-07 | write | [次のカードへ進めた操作が重複してもカードを飛ばさない](#firestore-study-session-07) |
-| FIRESTORE-STUDY-SESSION-08 | write | [学習を再開した時刻だけを更新し順序と位置を維持する](#firestore-study-session-08) |
-| FIRESTORE-STUDY-SESSION-09 | read | [古い学習の更新時刻に惑わされずDeckごとに最新のセッションを復元する](#firestore-study-session-09) |
-| FIRESTORE-STUDY-SESSION-10 | read | [最新の学習が終了済みなら古い未終了セッションも復元しない](#firestore-study-session-10) |
-| FIRESTORE-STUDY-SESSION-11 | read | [購読をやり直さず保存された進行位置を反映する](#firestore-study-session-11) |
-| FIRESTORE-STUDY-SESSION-12 | read | [保存された終了を反映し別Deckの学習は維持する](#firestore-study-session-12) |
-| FIRESTORE-STUDY-SESSION-13 | batch | [オフラインで完了した学習を重複なく同期し再開対象に戻さない](#firestore-study-session-13) |
-| FIRESTORE-STUDY-SESSION-14 | write | [学習対象が0枚ならセッションを作成せず既存の学習も中断しない](#firestore-study-session-14) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-STUDY-SESSION-01 | batch | 正常系 | [途中の学習を保存した順序と位置から再開できる](#firestore-study-session-01) |
+| FIRESTORE-STUDY-SESSION-02 | batch | 正常系 | [離脱だけでは終了せず最初からやり直すと旧セッションを中断する](#firestore-study-session-02) |
+| FIRESTORE-STUDY-SESSION-03 | write | 正常系 | [最後のカードを完了した操作が重複しても終了記録を変更しない](#firestore-study-session-03) |
+| FIRESTORE-STUDY-SESSION-04 | batch | 正常系 | [オフラインで中断した学習を重複なく同期できる](#firestore-study-session-04) |
+| FIRESTORE-STUDY-SESSION-05 | batch | 正常系 | [別Deckの未送信書込に妨げられずオフラインでやり直せる](#firestore-study-session-05) |
+| FIRESTORE-STUDY-SESSION-06 | read | 異常系 | [不正な保存データが混在しても有効な学習を復元してやり直せる](#firestore-study-session-06) |
+| FIRESTORE-STUDY-SESSION-07 | write | 正常系 | [次のカードへ進めた操作が重複してもカードを飛ばさない](#firestore-study-session-07) |
+| FIRESTORE-STUDY-SESSION-08 | write | 正常系 | [学習を再開した時刻だけを更新し順序と位置を維持する](#firestore-study-session-08) |
+| FIRESTORE-STUDY-SESSION-09 | read | 正常系 | [古い学習の更新時刻に惑わされずDeckごとに最新のセッションを復元する](#firestore-study-session-09) |
+| FIRESTORE-STUDY-SESSION-10 | read | 正常系 | [最新の学習が終了済みなら古い未終了セッションも復元しない](#firestore-study-session-10) |
+| FIRESTORE-STUDY-SESSION-11 | read | 正常系 | [購読をやり直さず保存された進行位置を反映する](#firestore-study-session-11) |
+| FIRESTORE-STUDY-SESSION-12 | read | 正常系 | [保存された終了を反映し別Deckの学習は維持する](#firestore-study-session-12) |
+| FIRESTORE-STUDY-SESSION-13 | batch | 正常系 | [オフラインで完了した学習を重複なく同期し再開対象に戻さない](#firestore-study-session-13) |
+| FIRESTORE-STUDY-SESSION-14 | write | 正常系 | [学習対象が0枚ならセッションを作成せず既存の学習も中断しない](#firestore-study-session-14) |
 
 <a id="firestore-study-session-01"></a>
 
 ### FIRESTORE-STUDY-SESSION-01 途中の学習を保存した順序と位置から再開できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -66,6 +68,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - 本人の学習が2枚目まで進んでおり、位置 `1` を保存している。
@@ -86,6 +90,8 @@ Then:
 ### FIRESTORE-STUDY-SESSION-03 最後のカードを完了した操作が重複しても終了記録を変更しない
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -108,6 +114,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - 本人の学習を購読しており、ネットワークが無効である。
@@ -128,6 +136,8 @@ Then:
 ### FIRESTORE-STUDY-SESSION-05 別Deckの未送信書込に妨げられずオフラインでやり直せる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -152,6 +162,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - 本人の有効なセッションと、同じ UID だが必要な学習情報を欠き `answers: []` だけを持つ不正な document が保存されている。
@@ -171,6 +183,8 @@ Then:
 ### FIRESTORE-STUDY-SESSION-07 次のカードへ進めた操作が重複してもカードを飛ばさない
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -192,6 +206,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - 本人の未終了セッションが位置 `1` で保存されている。
@@ -211,6 +227,8 @@ Then:
 ### FIRESTORE-STUDY-SESSION-09 古い学習の更新時刻に惑わされずDeckごとに最新のセッションを復元する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -236,6 +254,8 @@ Then:
 ### FIRESTORE-STUDY-SESSION-10 最新の学習が終了済みなら古い未終了セッションも復元しない
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -263,6 +283,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - 本人の学習が位置 `0` で保存され、同じセッションを購読している。
@@ -281,6 +303,8 @@ Then:
 ### FIRESTORE-STUDY-SESSION-12 保存された終了を反映し別Deckの学習は維持する
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -307,6 +331,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - 本人の学習を購読しており、ネットワークが無効である。
@@ -328,6 +354,8 @@ Then:
 ### FIRESTORE-STUDY-SESSION-14 学習対象が0枚ならセッションを作成せず既存の学習も中断しない
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 

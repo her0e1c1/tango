@@ -6,6 +6,7 @@
 - Follow the shared format and ID-only correspondence rules in `../../AGENTS.md`. Do not add implementation file or test-title mappings.
 - Use `FIRESTORE-<UPPERCASE-SPEC-FILENAME>-<NN>` IDs, starting at `01` in document order without gaps. Update indexes, anchors, and headings together; README files do not define case IDs.
 - Use the categories `read`, `write`, and `batch`. Describe case-specific setup inline; do not add fixture files.
+- 正常系・異常系の区分は [共通規約](../../AGENTS.md#正常系異常系の区分) に従い、カテゴリとは別に明示する。
 - Parameterized inputs may share a case ID when all authentication actors, inputs, and expected results are documented.
 - Distinguish Adapter validation from Rules authorization. Keep unverified expectations explicit instead of treating proposed or skipped tests as verified behavior.
 - Keep Security Rules common prerequisites in this file instead of duplicating them in `rules-*.md`.

@@ -6,20 +6,22 @@ Card.fsrs の購読・検証・UID 分離・削除と初期 readiness を確認�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-CARD-FSRS-01 | write | [null と評価済み Card を同じ購読で復元する](#firestore-card-fsrs-01) |
-| FIRESTORE-CARD-FSRS-02 | read | [本人の Card だけを復元し停止でクリアする](#firestore-card-fsrs-02) |
-| FIRESTORE-CARD-FSRS-03 | read | [不正 FSRS を未評価に読み替えない](#firestore-card-fsrs-03) |
-| FIRESTORE-CARD-FSRS-04 | write | [削除 Card の状態を隠し他の Card は維持する](#firestore-card-fsrs-04) |
-| FIRESTORE-CARD-FSRS-05 | read | [購読拒否を通知する](#firestore-card-fsrs-05) |
-| FIRESTORE-CARD-FSRS-06 | write | [オフライン削除を再接続後も維持する](#firestore-card-fsrs-06) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-CARD-FSRS-01 | write | 正常系 | [null と評価済み Card を同じ購読で復元する](#firestore-card-fsrs-01) |
+| FIRESTORE-CARD-FSRS-02 | read | 正常系 | [本人の Card だけを復元し停止でクリアする](#firestore-card-fsrs-02) |
+| FIRESTORE-CARD-FSRS-03 | read | 異常系 | [不正 FSRS を未評価に読み替えない](#firestore-card-fsrs-03) |
+| FIRESTORE-CARD-FSRS-04 | write | 正常系 | [削除 Card の状態を隠し他の Card は維持する](#firestore-card-fsrs-04) |
+| FIRESTORE-CARD-FSRS-05 | read | 異常系 | [購読拒否を通知する](#firestore-card-fsrs-05) |
+| FIRESTORE-CARD-FSRS-06 | write | 正常系 | [オフライン削除を再接続後も維持する](#firestore-card-fsrs-06) |
 
 <a id="firestore-card-fsrs-01"></a>
 
 ### FIRESTORE-CARD-FSRS-01 null と評価済み Card を同じ購読で復元する
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -39,6 +41,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - 本人と別 UID の評価済み Card がある。
@@ -56,6 +60,8 @@ Then:
 ### FIRESTORE-CARD-FSRS-03 不正 FSRS を未評価に読み替えない
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 
@@ -75,6 +81,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - 本人の同じ Deck に評価済み Card が2件ある。
@@ -93,6 +101,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - 本人の認証 context から他人の UID を購読する。
@@ -110,6 +120,8 @@ Then:
 ### FIRESTORE-CARD-FSRS-06 オフライン削除を再接続後も維持する
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 

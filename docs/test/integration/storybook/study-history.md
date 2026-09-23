@@ -14,23 +14,25 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STORYBOOK-STUDY-HISTORY-01 | interaction | [プリセットの選択要求を通知する](#storybook-study-history-01) |
-| STORYBOOK-STUDY-HISTORY-02 | interaction | [任意期間の入力欄を開く](#storybook-study-history-02) |
-| STORYBOOK-STUDY-HISTORY-03 | interaction | [折りたたんだ日別表を30日単位で開く](#storybook-study-history-03) |
-| STORYBOOK-STUDY-HISTORY-04 | interaction | [日別表の古い日付のページへ進む](#storybook-study-history-04) |
-| STORYBOOK-STUDY-HISTORY-05 | render | [最近のセッションの終了状態を区別する](#storybook-study-history-05) |
-| STORYBOOK-STUDY-HISTORY-06 | render | [最近のセッションの状態を日本語で表示する](#storybook-study-history-06) |
-| STORYBOOK-STUDY-HISTORY-07 | interaction | [最近のセッションを全件展開する](#storybook-study-history-07) |
-| STORYBOOK-STUDY-HISTORY-08 | render | [30日分の集計グラフを表示する](#storybook-study-history-08) |
-| STORYBOOK-STUDY-HISTORY-09 | render | [90日分のグラフに集約単位を表示する](#storybook-study-history-09) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STORYBOOK-STUDY-HISTORY-01 | interaction | 正常系 | [プリセットの選択要求を通知する](#storybook-study-history-01) |
+| STORYBOOK-STUDY-HISTORY-02 | interaction | 正常系 | [任意期間の入力欄を開く](#storybook-study-history-02) |
+| STORYBOOK-STUDY-HISTORY-03 | interaction | 正常系 | [折りたたんだ日別表を30日単位で開く](#storybook-study-history-03) |
+| STORYBOOK-STUDY-HISTORY-04 | interaction | 正常系 | [日別表の古い日付のページへ進む](#storybook-study-history-04) |
+| STORYBOOK-STUDY-HISTORY-05 | render | 正常系 | [最近のセッションの終了状態を区別する](#storybook-study-history-05) |
+| STORYBOOK-STUDY-HISTORY-06 | render | 正常系 | [最近のセッションの状態を日本語で表示する](#storybook-study-history-06) |
+| STORYBOOK-STUDY-HISTORY-07 | interaction | 正常系 | [最近のセッションを全件展開する](#storybook-study-history-07) |
+| STORYBOOK-STUDY-HISTORY-08 | render | 正常系 | [30日分の集計グラフを表示する](#storybook-study-history-08) |
+| STORYBOOK-STUDY-HISTORY-09 | render | 正常系 | [90日分のグラフに集約単位を表示する](#storybook-study-history-09) |
 
 <a id="storybook-study-history-01"></a>
 
 ### STORYBOOK-STUDY-HISTORY-01 プリセットの選択要求を通知する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -51,6 +53,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 期間選択に開始日2026-09-01と終了日2026-09-22のフォームを用意し、任意期間の入力を閉じている。
@@ -68,6 +72,8 @@ Then:
 ### STORYBOOK-STUDY-HISTORY-03 折りたたんだ日別表を30日単位で開く
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -87,6 +93,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 90日分の日別表を開き、最初の30日分を表示している。
@@ -104,6 +112,8 @@ Then:
 ### STORYBOOK-STUDY-HISTORY-05 最近のセッションの終了状態を区別する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -124,6 +134,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 完了・中止・未完了の3セッションを日本語 locale と iPhone X 表示で用意する。
@@ -141,6 +153,8 @@ Then:
 ### STORYBOOK-STUDY-HISTORY-07 最近のセッションを全件展開する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -161,6 +175,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 30日分の chart と開始2件・完了3件の集計値を渡す。
@@ -178,6 +194,8 @@ Then:
 ### STORYBOOK-STUDY-HISTORY-09 90日分のグラフに集約単位を表示する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 

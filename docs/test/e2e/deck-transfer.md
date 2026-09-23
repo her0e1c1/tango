@@ -6,15 +6,17 @@ Deck の Card を外部で利用できる形式へ export できることを確�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| DECK-TRANSFER-01 | read | [Deck の Card を CSV で export できる](#deck-transfer-01) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| DECK-TRANSFER-01 | read | 正常系 | [Deck の Card を CSV で export できる](#deck-transfer-01) |
 
 <a id="deck-transfer-01"></a>
 
 ### DECK-TRANSFER-01 Deck の Card を CSV で export できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 

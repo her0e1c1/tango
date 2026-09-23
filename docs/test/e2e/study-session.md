@@ -6,27 +6,29 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STUDY-SESSION-01 | write | [filter と学習上限を反映して session を開始できる](#study-session-01) |
-| STUDY-SESSION-02 | read | [filter に一致する Card がない場合は session を開始できない](#study-session-02) |
-| STUDY-SESSION-03 | write | [学習画面から戻った後に同じ位置から Continue できる](#study-session-03) |
-| STUDY-SESSION-04 | write | [Restart で新しい session を先頭から開始できる](#study-session-04) |
-| STUDY-SESSION-05 | write | [最後の Card を完了して completion screen を表示できる](#study-session-05) |
-| STUDY-SESSION-06 | batch | [複数 Deck の学習 session を独立して維持できる](#study-session-06) |
-| STUDY-SESSION-07 | write | [匿名での学習結果と再開位置を reload 後も維持できる](#study-session-07) |
-| STUDY-SESSION-08 | batch | [展開した tag filter を保存して学習 session に適用できる](#study-session-08) |
-| STUDY-SESSION-09 | write | [学習を完了すると30日分の開始・完了数を確認できる](#study-session-09) |
-| STUDY-SESSION-10 | read | [URL と Deck 選択が再読み込み・戻る・進むでも一致する](#study-session-10) |
-| STUDY-SESSION-11 | read | [表示できない Deck を勝手に全件表示へ切り替えない](#study-session-11) |
-| STUDY-SESSION-12 | write | [匿名の学習記録を同じブラウザーで再表示できる](#study-session-12) |
-| STUDY-SESSION-13 | read | [期間を選んで学習記録を確認できる](#study-session-13) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STUDY-SESSION-01 | write | 正常系 | [filter と学習上限を反映して session を開始できる](#study-session-01) |
+| STUDY-SESSION-02 | read | 正常系 | [filter に一致する Card がない場合は session を開始できない](#study-session-02) |
+| STUDY-SESSION-03 | write | 正常系 | [学習画面から戻った後に同じ位置から Continue できる](#study-session-03) |
+| STUDY-SESSION-04 | write | 正常系 | [Restart で新しい session を先頭から開始できる](#study-session-04) |
+| STUDY-SESSION-05 | write | 正常系 | [最後の Card を完了して completion screen を表示できる](#study-session-05) |
+| STUDY-SESSION-06 | batch | 正常系 | [複数 Deck の学習 session を独立して維持できる](#study-session-06) |
+| STUDY-SESSION-07 | write | 正常系 | [匿名での学習結果と再開位置を reload 後も維持できる](#study-session-07) |
+| STUDY-SESSION-08 | batch | 正常系 | [展開した tag filter を保存して学習 session に適用できる](#study-session-08) |
+| STUDY-SESSION-09 | write | 正常系 | [学習を完了すると30日分の開始・完了数を確認できる](#study-session-09) |
+| STUDY-SESSION-10 | read | 正常系 | [URL と Deck 選択が再読み込み・戻る・進むでも一致する](#study-session-10) |
+| STUDY-SESSION-11 | read | 異常系 | [表示できない Deck を勝手に全件表示へ切り替えない](#study-session-11) |
+| STUDY-SESSION-12 | write | 正常系 | [匿名の学習記録を同じブラウザーで再表示できる](#study-session-12) |
+| STUDY-SESSION-13 | read | 正常系 | [期間を選んで学習記録を確認できる](#study-session-13) |
 
 <a id="study-session-01"></a>
 
 ### STUDY-SESSION-01 filter と学習上限を反映して session を開始できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -61,6 +63,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-filter-no-matches`](./fixture/study-filter-no-matches.yaml)
@@ -83,6 +87,8 @@ Then:
 ### STUDY-SESSION-03 学習画面から戻った後に同じ位置から Continue できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -112,6 +118,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
@@ -135,6 +143,8 @@ Then:
 ### STUDY-SESSION-05 最後の Card を完了して completion screen を表示できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -160,6 +170,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`multi-study-sessions`](./fixture/multi-study-sessions.yaml)
@@ -182,6 +194,8 @@ Then:
 ### STUDY-SESSION-07 匿名での学習結果と再開位置を reload 後も維持できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -209,6 +223,8 @@ Then:
 ### STUDY-SESSION-08 展開した tag filter を保存して学習 session に適用できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -254,6 +270,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -278,6 +296,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -300,6 +320,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -320,6 +342,8 @@ Then:
 ### STUDY-SESSION-12 匿名の学習記録を同じブラウザーで再表示できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -342,6 +366,8 @@ Then:
 ### STUDY-SESSION-13 期間を選んで学習記録を確認できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 

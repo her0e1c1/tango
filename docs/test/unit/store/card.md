@@ -12,17 +12,19 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| UNIT-STORE-CARD-01 | state-change | [最新の取得結果だけをカード一覧として提供する](#unit-store-card-01) |
-| UNIT-STORE-CARD-02 | scope-reset | [カードのクリア後は以前のカードを参照できない](#unit-store-card-02) |
-| UNIT-STORE-CARD-03 | visibility | [所属デックと所有者が一致するカードだけを提供する](#unit-store-card-03) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| UNIT-STORE-CARD-01 | state-change | 正常系 | [最新の取得結果だけをカード一覧として提供する](#unit-store-card-01) |
+| UNIT-STORE-CARD-02 | scope-reset | 正常系 | [カードのクリア後は以前のカードを参照できない](#unit-store-card-02) |
+| UNIT-STORE-CARD-03 | visibility | 正常系 | [所属デックと所有者が一致するカードだけを提供する](#unit-store-card-03) |
 
 <a id="unit-store-card-01"></a>
 
 ### UNIT-STORE-CARD-01 最新の取得結果だけをカード一覧として提供する
 
 カテゴリ: `state-change`
+
+区分: 正常系
 
 対応テスト: `fully replaces active Cards from each snapshot`（要補完：同一 ID の内容更新と空の取得結果）。
 
@@ -50,6 +52,8 @@ Then:
 
 カテゴリ: `scope-reset`
 
+区分: 正常系
+
 対応テスト: 未検証：参照した既存テストにはクリア操作の検証がない。
 
 Given:
@@ -69,6 +73,8 @@ Then:
 ### UNIT-STORE-CARD-03 所属デックと所有者が一致するカードだけを提供する
 
 カテゴリ: `visibility`
+
+区分: 正常系
 
 対応テスト: 未検証：既存の購読テストは所属デックと所有者が一致する入力だけを使用している。
 

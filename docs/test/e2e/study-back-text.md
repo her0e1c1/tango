@@ -6,22 +6,24 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STUDY-BACK-TEXT-01 | read | [学習中の Card を表面から裏面へ切り替えられる](#study-back-text-01) |
-| STUDY-BACK-TEXT-02 | read | [裏面 text を選択しても Card の状態を維持できる](#study-back-text-02) |
-| STUDY-BACK-TEXT-03 | read | [overlay 設定 OFF の裏面 tap で同じ Card の表面へ戻れる](#study-back-text-03) |
-| STUDY-BACK-TEXT-04 | read | [長い裏面 text を scroll しても Card の状態を維持できる](#study-back-text-04) |
-| STUDY-BACK-TEXT-05 | write | [左 overlay から設定済み action を実行できる](#study-back-text-05) |
-| STUDY-BACK-TEXT-06 | write | [右 overlay から設定済み action を実行できる](#study-back-text-06) |
-| STUDY-BACK-TEXT-07 | read | [狭い画面でも overlay の下で裏面を全幅表示できる](#study-back-text-07) |
-| STUDY-BACK-TEXT-08 | read | [overlay 上の wheel と touch で長い裏面 text を scroll できる](#study-back-text-08) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STUDY-BACK-TEXT-01 | read | 正常系 | [学習中の Card を表面から裏面へ切り替えられる](#study-back-text-01) |
+| STUDY-BACK-TEXT-02 | read | 正常系 | [裏面 text を選択しても Card の状態を維持できる](#study-back-text-02) |
+| STUDY-BACK-TEXT-03 | read | 正常系 | [overlay 設定 OFF の裏面 tap で同じ Card の表面へ戻れる](#study-back-text-03) |
+| STUDY-BACK-TEXT-04 | read | 正常系 | [長い裏面 text を scroll しても Card の状態を維持できる](#study-back-text-04) |
+| STUDY-BACK-TEXT-05 | write | 正常系 | [左 overlay から設定済み action を実行できる](#study-back-text-05) |
+| STUDY-BACK-TEXT-06 | write | 正常系 | [右 overlay から設定済み action を実行できる](#study-back-text-06) |
+| STUDY-BACK-TEXT-07 | read | 正常系 | [狭い画面でも overlay の下で裏面を全幅表示できる](#study-back-text-07) |
+| STUDY-BACK-TEXT-08 | read | 正常系 | [overlay 上の wheel と touch で長い裏面 text を scroll できる](#study-back-text-08) |
 
 <a id="study-back-text-01"></a>
 
 ### STUDY-BACK-TEXT-01 学習中の Card を表面から裏面へ切り替えられる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -44,6 +46,8 @@ Then:
 ### STUDY-BACK-TEXT-02 裏面 text を選択しても Card の状態を維持できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -68,6 +72,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
@@ -91,6 +97,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-back-text-long`](./fixture/study-back-text-long.yaml)
@@ -113,6 +121,8 @@ Then:
 ### STUDY-BACK-TEXT-05 左 overlay から設定済み action を実行できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -140,6 +150,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-back-text-overlays`](./fixture/study-back-text-overlays.yaml)
@@ -166,6 +178,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`study-back-text-overlays`](./fixture/study-back-text-overlays.yaml)
@@ -190,6 +204,8 @@ Then:
 ### STUDY-BACK-TEXT-08 overlay 上の wheel と touch で長い裏面 text を scroll できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
