@@ -3,13 +3,11 @@
 ## 目的
 
 StudySession の開始・完了履歴を期間と Deck で取得する購読契約を確認する。
+保存データと query 条件はケース内で準備し、日別集計や UI の表示形式を対象にしない。
 
 関連 E2E: [STUDY-SESSION-09](../../e2e/study-session.md#study-session-09)、[STUDY-SESSION-12](../../e2e/study-session.md#study-session-12)
 
-## 共通前提
-
-非匿名認証の UID `uid` で接続する。保存データと query 条件はこのケース内で準備し、日別集計や UI の表示形式を対象にしない。
-詳細な実行・cleanup の前提は [README](./README.md) を参照する。
+共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 
 ## テストケース
 

@@ -21,9 +21,7 @@
 
 ## 検証境界
 
-実行と cleanup は [README](./README.md) に従う。Firestore Emulator と実際の購読 Adapter を使い、`onSnapshot` や snapshot の内容を mock しない。
-本人は非匿名認証とし、通常ケースでは認証 UID と購読 UID を一致させる。ケース専用の UID と document ID を使い、他のテストのデータを削除しない。
-事前の store 値、他人の document、不正な document はテスト側で準備する。Rules を無効化するのは必要な事前データの準備だけとし、購読と検証操作には実際の Rules を適用する。
+共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 
 各追加仕様は、下表の Card / Deck の組み合わせをそれぞれ確認する。Card では同じ所有者の親 Deck を保存しておく。
 
@@ -33,8 +31,6 @@
 | Deck | `subscribeDecks` | Deck store の remote Deck 一覧 | `name` | `name: null` |
 
 store の ID 集合と値を検証し、配列順、内部関数の呼出し回数、snapshot の通知回数には依存しない。
-通常は期待する値への反映を待ち、Firestore への書込み完了だけを購読反映完了とみなさない。サーバー側の更新を扱うケースでは、書込み確認と受信側の反映を別々に待つ。
-すべての購読は失敗時も解除し、作成したクライアントを破棄する。
 
 Card の FSRS 固有の契約は [Card.fsrs](./card-fsrs.md)、StudySession の復元は [StudySession](./study-session.md)、履歴 query と cache は [Study History](./study-history.md) を参照する。本書ではそれらの仕様を重複させない。
 

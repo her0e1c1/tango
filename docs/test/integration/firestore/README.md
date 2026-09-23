@@ -2,13 +2,16 @@
 
 アプリケーションと Firestore の境界で保証する保存・取得・購読・権限制御を記述する。
 ブラウザ経由の利用者導線は [E2E 仕様書](../../e2e/AGENTS.md)、Firestore 境界の契約と ID はこのディレクトリを参照する。
+実行方法、共通前提、記述・ID 規約は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## ドキュメント構成
 
 | 文書 | 責務 |
 | --- | --- |
-| この README | 実行方法、共通前提、記述・ID 規約、索引、未検証項目 |
+| この README | 索引、未検証項目 |
+| [AGENTS.md](./AGENTS.md) | 実行方法、共通前提、記述・ID 規約 |
 | [Deck](./deck.md) | 作成、部分更新、URL の扱い、Deck と配下 Card の原子的な論理削除 |
+| [Card Filter](./card-filter.md) | Deck ごとの閲覧用フィルターの保存・復元・購読、学習条件からの独立 |
 | [Card](./card.md) | 作成、部分更新、本文と FSRS の更新、一括保存、論理削除 |
 | [Card.fsrs](./card-fsrs.md) | 初期購読、検証、UID 分離、削除 |
 | [StudyAnswer](./study-answer.md) | 回答・スキップ・再試行と履歴の権限制御 |
@@ -17,71 +20,8 @@
 | [Rules / Deck](./rules-deck.md) / [Card](./rules-card.md) / [StudySession](./rules-study-session.md) / [StudyAnswer](./rules-study-answer.md) | entity ごとの認証主体と SDK 操作の許可・拒否 |
 | [Study History](./study-history.md) | 開始・完了履歴と回答履歴の期間・Deck 条件、cache、権限 |
 
-テスト実装はすべて [`test/integration/firestore`](../../../test/integration/firestore) に置く。
-上表の11ファイルを対象とし、各仕様書のケースを下記の索引に掲載する。
+各仕様書のケースを下記の索引に掲載する。
 local→remote 移行や local-only session 非送信のケースは、対象テストにはないため検証済みとして記載しない。
-
-## 実行方法
-
-リポジトリルートで、開発環境を初回設定してから既存タスクを使う。
-
-```bash
-mise install
-mise run init
-mise run test-integration
-```
-
-`test-integration` は sample build と Docker Compose の Firestore Emulator 起動後に、Vitest の integration project を実行する。
-ホスト・ポートは既存の `VITE_DB_HOST` / `VITE_DB_PORT` 設定を使う。本番 Firebase に接続しない。
-Firestore 以外の既存 integration test も同じタスクで実行されるが、この仕様書の対象には含めない。
-テストタイトルやコードを変更した場合は `mise run check` も実行する。新しい runner や CI job は追加しない。
-
-## 検証境界と共通前提
-
-### Adapter と Rules の分担
-
-| 対象 | 検証する境界 | データ準備と認証 |
-| --- | --- | --- |
-| 保存・購読 Adapter | 実際のアプリケーション操作から、Emulator の保存値・SDK cache・購読結果・store まで | 既存の `test/initializeTestFirestore.ts` で project `test` に接続し、UID `uid`・非匿名 provider `google.com` の token を使用する |
-| StudyAnswer 保存・認可 | 実際の保存処理と SDK 操作から、回答・Card.fsrs・session の保存結果と Rules まで | project `test-study-answer`、非匿名認証 UID `answer-owner`。各ケース前にデータと store を初期化し、終了時に Rules 環境を cleanup する |
-| Security Rules | 実際の `firestore.rules` に対する SDK 操作の許可・拒否 | `rules.spec.ts` が project `test-rule` に Rules を読み込む。事前データだけ Rules 無効化 context で準備し、検証操作は各認証 context で実行する |
-
-Firebase 初期化先やアプリケーションの認証値の差し替えはテスト側で行うが、検証対象の Firestore API・購読・永続化を mock しない。
-Adapter の入力 validation と Rules の認可を混同しない。例えば不正な Card 入力が Adapter で拒否されても、Rules がその型を検証する保証にはならない。
-物理削除、`deletedAt` による論理削除、store からの非表示、`permission-denied` による読取拒否は別の結果として記述する。
-
-### 事前データ・分離・cleanup
-
-- 共通の認証状態は各仕様書に、ケース固有の保存値と親子関係は Given に記載する。別の fixture ファイルや fixture 規約は作らない。既存のテスト用 factory はそのまま利用する。
-- Adapter テストは UUID の Deck / Card / session ID などでデータを分離する。Study History は固有の短い期間と Deck ID で query 結果を分離する。Rules / StudyAnswer テストは各ケース前に専用 project のデータを消去する。
-- store を使うケースは対象 store を初期化する。購読テストは返された解除関数を呼び、StudySession / Subscriptions / Study History は終了時に Firebase app を破棄する。
-- オフラインのケースは SDK のネットワークを無効化し、終了時に有効へ戻す。StudySession は cleanup で pending writes も待つ。タイマーによる自動中断や複数タブ・複数端末を前提にしない。
-
-### 非同期結果の確認
-
-Adapter の Promise 完了は local 反映であり、remote への送信完了とは限らない。
-送信後の保存値を確認する箇所では `waitForPendingWrites` を併用する。`getDoc` 自体を server 専用読取とは扱わない。
-購読結果は `vi.waitFor` で対象 ID・値への反映を待つ。Study History のオンライン取得は `fromCache: false` の snapshot を待つ。
-オフラインの検証には cache の読取と再接続後の確認を区別して記載する。
-
-同じ SDK インスタンス内の store 初期化・再購読は、ブラウザ reload や新規クライアントの検証ではない。
-ブラウザ上の永続 cache と利用者導線は E2E、純粋な計算ロジックは unit test の責務とし、ここへ複製しない。
-
-## 記述・ID 規約
-
-E2E と同じく「目的」「テストケース一覧表」「ID の明示的なアンカーと見出し」「カテゴリ」「Given / When / Then」で記述する。
-仕様と実装の対応付けは [共通規約](../../AGENTS.md) に従い、Test ID を使う。仕様書に対応テストファイルやテストタイトルの記入欄は設けない。長い入力の組み合わせだけ表で補足する。
-カテゴリは `read`（取得・購読）、`write`（単一の保存・認可）、`batch`（複数操作の契約）を使う。
-
-ID は `FIRESTORE-<仕様書ファイル名の大文字表記>-<連番>` とする。例えば `FIRESTORE-STUDY-SESSION-01` を使う。
-各ファイルで `01` から文書順に欠番なく採番し、README は採番しない。
-テスト追加・並び替え時は、索引・アンカー・テストタイトルを一緒に更新する。
-各 `it` / `it.each` のタイトルに対応 ID を付け、parameterized test の各行は同じ契約 ID を共有してよい。
-その場合は認証主体・入力・期待結果の全組み合わせを仕様書から読み取れるようにする。
-
-新規・変更・回帰テストは対応する仕様書も更新する。E2E ID は関連仕様へのリンクであり、Firestore 固有の契約に必須とはしない。
-E2E の索引・Playwright との一対一対応規約や、Firestore 以外の unit/integration 規約は変更しない。
-未検証事項は下記のように区別し、必要な追加テスト・不具合修正は別 Issue で扱う。本番インターフェイスをテストのためだけに変更しない。
 
 ## 未検証・要確認
 
@@ -108,6 +48,18 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-DECK-04 | batch | 正常系 | [Deck と配下 Card をまとめて論理削除できる](./deck.md#firestore-deck-04) |
 | FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](./deck.md#firestore-deck-05) |
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](./deck.md#firestore-deck-06) |
+
+### card-filter
+
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-CARD-FILTER-01 | read | 正常系 | [未設定の Deck は学習条件や他 Deck に依存せず既定値で取得できる](./card-filter.md#firestore-card-filter-01) |
+| FIRESTORE-CARD-FILTER-02 | write | 正常系 | [選択タグと AND / OR 条件を保存して復元できる](./card-filter.md#firestore-card-filter-02) |
+| FIRESTORE-CARD-FILTER-03 | write | 正常系 | [保存済みフィルターを新しい条件に置き換えられる](./card-filter.md#firestore-card-filter-03) |
+| FIRESTORE-CARD-FILTER-04 | write | 正常系 | [解除した状態を保存して復元できる](./card-filter.md#firestore-card-filter-04) |
+| FIRESTORE-CARD-FILTER-05 | write | 正常系 | [Deck ごとのフィルターを独立して保存できる](./card-filter.md#firestore-card-filter-05) |
+| FIRESTORE-CARD-FILTER-06 | write | 正常系 | [学習用タグ条件の変更で Card フィルターを上書きしない](./card-filter.md#firestore-card-filter-06) |
+| FIRESTORE-CARD-FILTER-07 | read | 正常系 | [購読中の変更・解除を対象 Deck に反映できる](./card-filter.md#firestore-card-filter-07) |
 
 ### card
 

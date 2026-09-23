@@ -8,17 +8,14 @@
 
 関連 E2E: [STUDY-SESSION-01](../../e2e/study-session.md#study-session-01)、[STUDY-SESSION-03](../../e2e/study-session.md#study-session-03)、[STUDY-SESSION-05](../../e2e/study-session.md#study-session-05)、[PERSISTENCE-02](../../e2e/persistence.md#persistence-02)
 
-## 共通前提
+共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 
-本人の非匿名認証 UID は `uid` とし、ケースごとに Deck ID とメモリ上の学習状態を分離する。
+## 学習対象と用語
+
 特記しない限り、学習対象は `first`、`second`、`third` の3枚で、順序は固定、枚数制限はない。位置 `0`・`1`・`2` は、それぞれ1枚目・2枚目・3枚目を表す。
 「再開対象」は Deck ごとに公開 query `getStudySession` で取得できる未終了の session を指す。
 
-保存完了の確認では未送信書込の完了を待ち、購読結果は該当 ID・値の反映を待つ。再開対象がないことを再購読で確認するケースでは、初回 snapshot の処理完了後に判定する。
-再購読は同じ Firestore SDK インスタンスで購読を解除し、メモリ上の学習状態を破棄して購読し直す操作であり、ブラウザ reload・別タブ・別端末の検証ではない。
-SDK から直接行うデータ変更も、同じインスタンスで購読への反映を確認するための操作である。
 認可・物理削除の拒否は [Rules / StudySession](./rules-study-session.md)、回答・FSRS との一括保存は [StudyAnswer](./study-answer.md) で扱う。
-詳細な実行・cleanup の前提は [README](./README.md) を参照する。
 
 ## テストケース
 
