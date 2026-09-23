@@ -1,6 +1,8 @@
 # StudySession を Deck ごとにブラウザーへ保存する
 
-Status: Accepted
+Status: Superseded
+
+後継: [StudySession の Firestore 永続化](./20260924-persist-study-session-lifecycle-in-firestore.md)
 
 ## Decision
 

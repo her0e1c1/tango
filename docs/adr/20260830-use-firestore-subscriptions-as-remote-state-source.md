@@ -13,7 +13,7 @@ Status: Accepted
 - 書き込みは Entity の Firestore API から行う。リモート Store は楽観的更新や書き込み完了時に直接更新せず、snapshot を待つ。ローカル専用 Entity のブラウザー Store は対象外とする。
 - 個別のリモート Card 削除は `deletedAt` を持つ削除済みデータとして保存し、購読側で表示対象から除外する。Deck 全体の削除では、子 Card を物理削除してから Deck を削除できる。削除方針は Entity の永続化 API、Store への反映は listener が担う。
 
-この一方向の更新経路に例外を設ける場合は、別の ADR に記録する。
+この一方向の更新経路に例外を設ける場合は、別の ADR に記録する。匿名利用にも適用する保存経路は[共通キャッシュの決定](./20260924-unify-persistence-through-firestore-cache.md)、常時保持しない回答履歴の読み取りは[範囲を限定した履歴取得の決定](./20260924-read-bounded-study-answer-history-on-demand.md)を参照する。
 
 ## Context
 

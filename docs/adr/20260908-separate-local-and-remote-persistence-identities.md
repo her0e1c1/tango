@@ -1,6 +1,8 @@
 # ローカルとリモートの保存先・所有者を区別する
 
-Status: Accepted
+Status: Superseded
+
+後継: [共通の Firestore 永続キャッシュ](./20260924-unify-persistence-through-firestore-cache.md)
 
 ## Decision
 

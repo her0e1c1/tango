@@ -1,6 +1,8 @@
 # 文書化した E2E ケースをテスト仕様の基準にする
 
-Status: Accepted
+Status: Superseded
+
+後継: [テスト境界ごとの仕様](./20260924-specify-behavior-at-each-test-boundary.md)
 
 ## Decision
 

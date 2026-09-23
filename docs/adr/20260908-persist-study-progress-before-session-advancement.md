@@ -1,6 +1,8 @@
 # StudyProgress を保存してから Session を進める
 
-Status: Accepted
+Status: Superseded
+
+後継: [FSRS・回答・Session の一括保存](./20260924-store-fsrs-on-card-with-atomic-study-writes.md)
 
 ## Decision
 
