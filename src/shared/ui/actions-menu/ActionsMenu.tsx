@@ -5,6 +5,7 @@
  */
 
 import type * as React from "react";
+import { useTranslation } from "react-i18next";
 import { AiOutlineMore } from "react-icons/ai";
 
 import { focusableElementSelector } from "../../lib/focusableElementSelector";
@@ -18,6 +19,7 @@ export interface ActionsMenuItem {
 }
 
 export interface ActionsMenuProps {
+  mobileSheet?: boolean;
   groupLabel: string;
   triggerLabel: string;
   triggerContent?: React.ReactNode;
@@ -38,6 +40,17 @@ const triggerClassName =
 const menuClassName =
   "absolute right-0 top-full z-20 min-w-40 rounded-control border border-border bg-surface py-1 shadow-elevated";
 
+const mobileSheetClassName =
+  "fixed inset-x-0 bottom-0 z-[70] max-h-[calc(100dvh-env(safe-area-inset-top)-1rem)] overflow-y-auto overscroll-contain rounded-t-surface border border-border bg-surface px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-elevated sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-full sm:z-20 sm:max-h-[70dvh] sm:min-w-40 sm:rounded-control sm:px-0 sm:py-1";
+
+const isVisible = (element: HTMLElement) => {
+  for (let parent: HTMLElement | null = element; parent != null; parent = parent.parentElement) {
+    const style = getComputedStyle(parent);
+    if (parent.hidden || parent.inert || style.display === "none" || style.visibility === "hidden") return false;
+  }
+  return true;
+};
+
 /**
  * Moves keyboard focus to the menu item next to the trigger button.
  * This preserves an intuitive focus position when an actions menu opens from either direction.
@@ -47,7 +60,7 @@ const focusAdjacentToTrigger = (menu: HTMLElement, direction: -1 | 1) => {
   if (trigger == null) return;
 
   const focusable = Array.from(document.querySelectorAll<HTMLElement>(focusableElementSelector)).filter(
-    (element) => element.tabIndex >= 0 && element.closest("[hidden], [inert]") == null
+    (element) => element.tabIndex >= 0 && element.closest("[hidden], [inert]") == null && isVisible(element)
   );
   const triggerIndex = focusable.indexOf(trigger);
   focusable[triggerIndex + direction]?.focus();
@@ -57,7 +70,9 @@ const handleNavigationKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
   if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
 
   event.preventDefault();
-  const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'));
+  const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')).filter(
+    isVisible
+  );
   const currentIndex = items.indexOf(document.activeElement as HTMLButtonElement);
   let nextIndex = 0;
   if (event.key === "End") {
@@ -76,6 +91,7 @@ const handleNavigationKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
  * or dismissal to its owner.
  */
 export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
+  const { t } = useTranslation();
   /**
    * Returns keyboard focus to the button that opened this actions menu.
    * Closing an item or tabbing away therefore leaves focus at a predictable control.
@@ -90,7 +106,7 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
    * Items can omit their action while still receiving the same predictable menu cleanup.
    */
   const run = (action?: () => void) => (event: React.MouseEvent<HTMLButtonElement>) => {
-    const menu = event.currentTarget.parentElement;
+    const menu = event.currentTarget.closest<HTMLElement>('[role="menu"]');
     action?.();
     props.onClose();
     if (menu != null) focusTrigger(menu);
@@ -168,8 +184,33 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
         {props.triggerContent ?? <AiOutlineMore aria-hidden="true" size={24} />}
       </button>
 
+      {isOpen && props.mobileSheet === true && (
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={t("actionsMenu.close")}
+          className="fixed inset-0 z-[60] bg-canvas/70 sm:hidden"
+          onClick={(event) => {
+            props.onClose();
+            event.currentTarget.parentElement?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]')?.focus();
+          }}
+        />
+      )}
       {isOpen ? (
-        <div role="menu" aria-label={props.menuLabel} className={menuClassName} onKeyDown={handleMenuKeyDown}>
+        <div
+          role="menu"
+          aria-label={props.menuLabel}
+          className={props.mobileSheet ? mobileSheetClassName : menuClassName}
+          onKeyDown={handleMenuKeyDown}
+        >
+          {props.mobileSheet === true && (
+            <div
+              role="presentation"
+              className="px-3 py-3 text-caption font-semibold break-words text-ink-muted sm:hidden"
+            >
+              {props.menuLabel}
+            </div>
+          )}
           {props.items.map((item) => (
             <button
               key={item.key}
@@ -183,6 +224,17 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
               {item.label}
             </button>
           ))}
+          {props.mobileSheet === true && (
+            <button
+              type="button"
+              role="menuitem"
+              tabIndex={-1}
+              className={`${itemClassName} mt-2 border-t border-border sm:hidden`}
+              onClick={run()}
+            >
+              {t("actionsMenu.close")}
+            </button>
+          )}
         </div>
       ) : null}
     </fieldset>

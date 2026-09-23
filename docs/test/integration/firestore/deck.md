@@ -19,8 +19,8 @@ Deck の作成・部分更新・論理削除を、Firestore 上の保存値と�
 | FIRESTORE-DECK-02 | write | [Deck の編集で作成日時と対象外フィールドを維持できる](#firestore-deck-02) |
 | FIRESTORE-DECK-03 | write | [URL の省略と明示的なクリアを区別できる](#firestore-deck-03) |
 | FIRESTORE-DECK-04 | batch | [Deck と配下 Card をまとめて論理削除できる](#firestore-deck-04) |
-| FIRESTORE-DECK-05 | batch | [Card がない Deck を論理削除できる](#firestore-deck-05) |
-| FIRESTORE-DECK-06 | batch | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06) |
+| FIRESTORE-DECK-05 | batch | [Card がない Deck を論理削除できる](#firestore-deck-05)（未実装・未検証） |
+| FIRESTORE-DECK-06 | batch | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06)（未実装・未検証） |
 
 <a id="firestore-deck-01"></a>
 
@@ -109,6 +109,8 @@ Then:
 
 カテゴリ: `batch`
 
+検証状況: **未実装・未検証（TODO）**。以下は期待仕様であり、検証済みの保証ではない。
+
 Given:
 
 - 本人の Deck が存在し、その Deck に属する Card は存在しない。
@@ -127,6 +129,8 @@ Then:
 ### FIRESTORE-DECK-06 Deck と配下 Card の削除を原子的に扱う
 
 カテゴリ: `batch`
+
+検証状況: **未実装・未検証（TODO）**。以下は期待仕様であり、検証済みの保証ではない。
 
 Given:
 

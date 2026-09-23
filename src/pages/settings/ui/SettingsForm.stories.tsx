@@ -46,18 +46,22 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const Japanese: Story = {
   parameters: { locale: "ja" },
-  play: async ({ canvas }) => {
-    await expect(document.documentElement).toHaveAttribute("lang", "ja");
-    await expect(canvas.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
-    await expect(canvas.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-SETTINGS-01 Japanese settings", async () => {
+      await expect(document.documentElement).toHaveAttribute("lang", "ja");
+      await expect(canvas.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+      await expect(canvas.getByRole("combobox", { name: "言語" })).toHaveDisplayValue("System");
+    });
   },
 };
 export const Interaction: Story = {
-  play: async ({ canvas, userEvent }) => {
-    const playback = canvas.getByRole<HTMLInputElement>("checkbox", { name: "Show playback controls" });
-    const initialValue = playback.checked;
-    await userEvent.click(playback);
-    await expect(playback.checked).toBe(!initialValue);
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-SETTINGS-02 Toggle playback controls", async () => {
+      const playback = canvas.getByRole<HTMLInputElement>("checkbox", { name: "Show playback controls" });
+      const initialValue = playback.checked;
+      await userEvent.click(playback);
+      await expect(playback.checked).toBe(!initialValue);
+    });
   },
 };
 export const LongContent: Story = {

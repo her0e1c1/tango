@@ -46,9 +46,11 @@ export const LongDeckName: Story = {
 };
 
 export const Confirm: Story = {
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Delete deck" }));
-    await expect(args.onConfirm).toHaveBeenCalledOnce();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-FORM-04 Confirm deletion", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Delete deck" }));
+      await expect(args.onConfirm).toHaveBeenCalledOnce();
+    });
   },
 };
 

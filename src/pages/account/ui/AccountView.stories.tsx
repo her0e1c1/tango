@@ -26,39 +26,47 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Anonymous: Story = {
-  play: async ({ args, canvas, userEvent }) => {
-    await expect(canvas.getByText("Anonymous account")).toBeVisible();
-    await expect(canvas.getByText("Not available")).toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: "Sign in with Google" }));
-    await expect(args.onSignIn).toHaveBeenCalled();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-ACCOUNT-01 Anonymous account", async () => {
+      await expect(canvas.getByText("Anonymous account")).toBeVisible();
+      await expect(canvas.getByText("Not available")).toBeVisible();
+      await userEvent.click(canvas.getByRole("button", { name: "Sign in with Google" }));
+      await expect(args.onSignIn).toHaveBeenCalled();
+    });
   },
 };
 
 export const SignedIn: Story = {
   args: { isLoggedIn: true, displayName: "Maya Tanaka", uid: "google-linked-user" },
-  play: async ({ args, canvas, userEvent }) => {
-    await expect(canvas.getByText("Signed in with Google")).toBeVisible();
-    await expect(canvas.getByText("Maya Tanaka")).toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: "Sign out" }));
-    await expect(args.onSignOut).toHaveBeenCalled();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-ACCOUNT-02 Signed-in account", async () => {
+      await expect(canvas.getByText("Signed in with Google")).toBeVisible();
+      await expect(canvas.getByText("Maya Tanaka")).toBeVisible();
+      await userEvent.click(canvas.getByRole("button", { name: "Sign out" }));
+      await expect(args.onSignOut).toHaveBeenCalled();
+    });
   },
 };
 
 export const SigningIn: Story = {
   args: { signInPending: true },
-  play: async ({ canvas }) => {
-    const button = canvas.getByRole("button", { name: "Sign in with Google" });
-    await expect(button).toBeDisabled();
-    await expect(button).toHaveAttribute("aria-busy", "true");
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-ACCOUNT-03 Sign-in pending", async () => {
+      const button = canvas.getByRole("button", { name: "Sign in with Google" });
+      await expect(button).toBeDisabled();
+      await expect(button).toHaveAttribute("aria-busy", "true");
+    });
   },
 };
 
 export const SigningOut: Story = {
   args: { ...SignedIn.args, signOutPending: true },
-  play: async ({ canvas }) => {
-    const button = canvas.getByRole("button", { name: "Sign out" });
-    await expect(button).toBeDisabled();
-    await expect(button).toHaveAttribute("aria-busy", "true");
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-ACCOUNT-04 Sign-out pending", async () => {
+      const button = canvas.getByRole("button", { name: "Sign out" });
+      await expect(button).toBeDisabled();
+      await expect(button).toHaveAttribute("aria-busy", "true");
+    });
   },
 };
 
@@ -77,10 +85,12 @@ export const LongIdentity: Story = {
 export const Japanese: Story = {
   args: { ...SignedIn.args },
   parameters: { locale: "ja" },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("heading", { level: 1, name: "アカウント" })).toBeVisible();
-    await expect(canvas.getByText("Maya Tanaka")).toBeVisible();
-    await expect(canvas.getByRole("button", { name: "ログアウト" })).toBeEnabled();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-ACCOUNT-05 Japanese account", async () => {
+      await expect(canvas.getByRole("heading", { level: 1, name: "アカウント" })).toBeVisible();
+      await expect(canvas.getByText("Maya Tanaka")).toBeVisible();
+      await expect(canvas.getByRole("button", { name: "ログアウト" })).toBeEnabled();
+    });
   },
 };
 

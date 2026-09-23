@@ -44,3 +44,5 @@ export const NarrowDarkReadingSurface: Story = {
     viewport: { value: "iphonex", isRotated: false },
   },
 };
+
+export const Canvas: Story = { ...Default, args: { ...Default.args, surface: "canvas" } };

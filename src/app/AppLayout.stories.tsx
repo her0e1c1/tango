@@ -35,25 +35,27 @@ export const FixedByDefault: Story = {
       </section>
     )),
   },
-  play: async ({ canvas }) => {
-    const shell = canvas.getByRole("region", { name: "Application shell" });
-    const header = canvas.getByRole("banner");
-    const firstSection = canvas.getByRole("heading", { name: "Application section 1" }).closest("section");
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-APP-LAYOUT-01 Fixed header", async () => {
+      const shell = canvas.getByRole("region", { name: "Application shell" });
+      const header = canvas.getByRole("banner");
+      const firstSection = canvas.getByRole("heading", { name: "Application section 1" }).closest("section");
 
-    await expect(firstSection).not.toBeNull();
-    if (firstSection === null) return;
+      await expect(firstSection).not.toBeNull();
+      if (firstSection === null) return;
 
-    await expect(getComputedStyle(header).position).toBe("fixed");
-    const initialHeaderTop = header.getBoundingClientRect().top;
-    await expect(firstSection.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-      header.getBoundingClientRect().bottom
-    );
+      await expect(getComputedStyle(header).position).toBe("fixed");
+      const initialHeaderTop = header.getBoundingClientRect().top;
+      await expect(firstSection.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        header.getBoundingClientRect().bottom
+      );
 
-    shell.scrollTop = shell.scrollHeight;
+      shell.scrollTop = shell.scrollHeight;
 
-    await expect(shell.scrollTop).toBeGreaterThan(0);
-    await expect(header.getBoundingClientRect().top).toBe(initialHeaderTop);
-    shell.scrollTop = 0;
+      await expect(shell.scrollTop).toBeGreaterThan(0);
+      await expect(header.getBoundingClientRect().top).toBe(initialHeaderTop);
+      shell.scrollTop = 0;
+    });
   },
 };
 
@@ -62,11 +64,13 @@ export const FixedHeaderDisabled: Story = {
     fixedHeader: false,
     children: <h1 className="text-title font-bold text-ink">Non-fixed application content</h1>,
   },
-  play: async ({ canvas }) => {
-    const header = canvas.getByRole("banner");
-    const content = canvas.getByRole("heading", { name: "Non-fixed application content" });
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-APP-LAYOUT-02 Non-fixed header", async () => {
+      const header = canvas.getByRole("banner");
+      const content = canvas.getByRole("heading", { name: "Non-fixed application content" });
 
-    await expect(getComputedStyle(header).position).toBe("static");
-    await expect(content.getBoundingClientRect().top).toBeGreaterThanOrEqual(header.getBoundingClientRect().bottom);
+      await expect(getComputedStyle(header).position).toBe("static");
+      await expect(content.getBoundingClientRect().top).toBeGreaterThanOrEqual(header.getBoundingClientRect().bottom);
+    });
   },
 };

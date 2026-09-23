@@ -75,11 +75,13 @@ export const Row: Story = {
 
 export const Interaction: Story = {
   render: (args) => <SettingsSectionStory {...args} />,
-  play: async ({ canvas, userEvent }) => {
-    const control = canvas.getByRole("checkbox", { name: "Show swipe controls" });
-    await userEvent.click(control);
-    await expect(control).not.toBeChecked();
-    await expect(onShowSwipeControlsChange).toHaveBeenCalledOnce();
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-SETTINGS-03 Toggle setting row", async () => {
+      const control = canvas.getByRole("checkbox", { name: "Show swipe controls" });
+      await userEvent.click(control);
+      await expect(control).not.toBeChecked();
+      await expect(onShowSwipeControlsChange).toHaveBeenCalledOnce();
+    });
   },
 };
 

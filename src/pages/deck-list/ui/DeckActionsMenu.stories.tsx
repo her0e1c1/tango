@@ -77,12 +77,14 @@ export const LongDeckName: Story = {
 
 export const Interaction: Story = {
   render: (args) => <DeckActionsMenuStory {...args} />,
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.deckName}` }));
-    await expect(canvas.getByRole("menu", { name: `Actions for ${args.deckName}` })).toBeVisible();
-    await userEvent.click(canvas.getByRole("menuitem", { name: "Download" }));
-    await expect(args.onDownload).toHaveBeenCalledOnce();
-    await expect(canvas.queryByRole("menu", { name: `Actions for ${args.deckName}` })).not.toBeInTheDocument();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-LIST-07 Download from menu", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.deckName}` }));
+      await expect(canvas.getByRole("menu", { name: `Actions for ${args.deckName}` })).toBeVisible();
+      await userEvent.click(canvas.getByRole("menuitem", { name: "Download" }));
+      await expect(args.onDownload).toHaveBeenCalledOnce();
+      await expect(canvas.queryByRole("menu", { name: `Actions for ${args.deckName}` })).not.toBeInTheDocument();
+    });
   },
 };
 
@@ -98,9 +100,11 @@ export const Dark: Story = {
 
 export const History: Story = {
   render: (args) => <DeckActionsMenuStory {...args} />,
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.deckName}` }));
-    await userEvent.click(canvas.getByRole("menuitem", { name: "Study history" }));
-    await expect(args.onHistory).toHaveBeenCalledOnce();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-LIST-08 Open study history", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.deckName}` }));
+      await userEvent.click(canvas.getByRole("menuitem", { name: "Study history" }));
+      await expect(args.onHistory).toHaveBeenCalledOnce();
+    });
   },
 };

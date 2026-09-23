@@ -50,12 +50,14 @@ type Story = StoryObj<typeof meta>;
 export const Collapsed: Story = {};
 
 export const Expanded: Story = {
-  play: async ({ canvas, userEvent }) => {
-    const disclosure = canvas.getByRole("button", { name: "Show 4 more tags" });
-    await userEvent.click(disclosure);
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-FILTER-02 Expand tags", async () => {
+      const disclosure = canvas.getByRole("button", { name: "Show 4 more tags" });
+      await userEvent.click(disclosure);
 
-    await expect(canvas.getAllByRole("checkbox")).toHaveLength(12);
-    await expect(canvas.getByRole("button", { name: "Show fewer tags" })).toHaveAttribute("aria-expanded", "true");
+      await expect(canvas.getAllByRole("checkbox")).toHaveLength(12);
+      await expect(canvas.getByRole("button", { name: "Show fewer tags" })).toHaveAttribute("aria-expanded", "true");
+    });
   },
 };
 

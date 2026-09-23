@@ -42,12 +42,16 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
-  play: async ({ canvas, userEvent, args }) => {
-    await expect(canvas.getByRole("button", { name: "30 days" })).toHaveAttribute("aria-pressed", "true");
-    await userEvent.click(canvas.getByRole("button", { name: "7 days" }));
-    await expect(args.onSelectPeriod).toHaveBeenCalledWith(7);
-    await userEvent.click(canvas.getByRole("button", { name: "Custom range" }));
-    await expect(canvas.getByLabelText("Start date")).toBeVisible();
+  play: async ({ canvas, userEvent, args, step }) => {
+    await step("STORYBOOK-STUDY-HISTORY-01 Select a preset", async () => {
+      await expect(canvas.getByRole("button", { name: "30 days" })).toHaveAttribute("aria-pressed", "true");
+      await userEvent.click(canvas.getByRole("button", { name: "7 days" }));
+      await expect(args.onSelectPeriod).toHaveBeenCalledWith(7);
+    });
+    await step("STORYBOOK-STUDY-HISTORY-02 Open custom range", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Custom range" }));
+      await expect(canvas.getByLabelText("Start date")).toBeVisible();
+    });
   },
 };
 export const Custom: Story = { args: { preset: "custom" } };

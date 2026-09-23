@@ -48,10 +48,12 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Interaction: Story = {
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Play" }));
-    await expect(args.onToggleAutoPlay).toHaveBeenCalledOnce();
-    await expect(canvas.getByRole("button", { name: "Pause" })).toBePressed();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-STUDY-CONTROLS-01 Toggle playback", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Play" }));
+      await expect(args.onToggleAutoPlay).toHaveBeenCalledOnce();
+      await expect(canvas.getByRole("button", { name: "Pause" })).toBePressed();
+    });
   },
 };
 

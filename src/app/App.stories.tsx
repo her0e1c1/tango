@@ -83,19 +83,21 @@ export const Account: Story = {
 
 export const Import: Story = {
   parameters: { page: page(routes.deckImport.to()) },
-  play: async ({ canvas, userEvent }) => {
-    const file = new File(
-      ['"storybook prompt","storybook answer","story","storybook-import"'],
-      "storybook-import.csv",
-      { type: "text/csv" }
-    );
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-IMPORT-02 Import preview through route", async () => {
+      const file = new File(
+        ['"storybook prompt","storybook answer","story","storybook-import"'],
+        "storybook-import.csv",
+        { type: "text/csv" }
+      );
 
-    await expect(canvas.queryByRole("radio")).not.toBeInTheDocument();
-    await userEvent.upload(canvas.getByLabelText("Upload a csv file"), file);
+      await expect(canvas.queryByRole("radio")).not.toBeInTheDocument();
+      await userEvent.upload(canvas.getByLabelText("Upload a csv file"), file);
 
-    await expect(await canvas.findByRole("heading", { level: 2, name: "Review import" })).toBeVisible();
-    await expect(canvas.getByText("1 valid")).toBeVisible();
-    await expect(canvas.getByText("storybook answer")).toBeVisible();
+      await expect(await canvas.findByRole("heading", { level: 2, name: "Review import" })).toBeVisible();
+      await expect(canvas.getByText("1 valid")).toBeVisible();
+      await expect(canvas.getByText("storybook answer")).toBeVisible();
+    });
   },
 };
 

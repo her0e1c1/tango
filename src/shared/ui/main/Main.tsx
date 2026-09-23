@@ -12,23 +12,21 @@ import type * as React from "react";
  * Constrains primary page content to the shared reading width and applies consistent horizontal
  * and vertical spacing.
  */
-export const Main: React.FC<{ children?: React.ReactNode }> = (props) => (
+export const Main: React.FC<{ children?: React.ReactNode; surface?: "panel" | "canvas" }> = (props) => (
   <div
     className={cx(
       "mx-auto",
-      "mt-section-gap",
+      props.surface !== "canvas" && "mt-section-gap",
       "flex",
       "w-full",
       "max-w-content",
       "flex-1",
       "flex-col",
       "gap-section-gap",
-      "rounded-surface",
-      "bg-surface",
+      props.surface === "canvas" ? "bg-canvas" : "rounded-surface bg-surface shadow-surface",
       "px-shell-gutter",
       "py-section-gap",
-      "text-ink",
-      "shadow-surface"
+      "text-ink"
     )}
   >
     {props.children}

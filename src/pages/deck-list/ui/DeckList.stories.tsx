@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn } from "storybook/test";
 
-import { withPageLayout } from "@/storybook/PageLayoutDecorator";
+import { Layout } from "@/shared/ui/layout";
 import type { Deck } from "@/entities/deck";
 import * as fixture from "@/storybook/fixture";
 
@@ -35,7 +35,13 @@ const meta = {
   title: "Pages/Deck List/DeckList",
   component: DeckList,
   tags: ["autodocs"],
-  decorators: [withPageLayout],
+  decorators: [
+    (Story) => (
+      <Layout contentSurface="canvas">
+        <Story />
+      </Layout>
+    ),
+  ],
   parameters: {
     layout: "fullscreen",
   },
@@ -52,46 +58,54 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const ListActions: Story = {
-  play: async ({ args, canvas, userEvent }) => {
+  play: async ({ args, canvas, userEvent, step }) => {
     const trigger = canvas.getByRole("button", { name: "Add" });
-    await userEvent.click(trigger);
-    await userEvent.click(canvas.getByRole("menuitem", { name: "Create deck" }));
-    await expect(args.onCreateDeck).toHaveBeenCalled();
-    await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+    await step("STORYBOOK-DECK-LIST-01 Request deck creation", async () => {
+      await userEvent.click(trigger);
+      await userEvent.click(canvas.getByRole("menuitem", { name: "Create deck" }));
+      await expect(args.onCreateDeck).toHaveBeenCalled();
+      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+    });
 
-    await userEvent.click(trigger);
-    await userEvent.click(canvas.getByRole("menuitem", { name: "Import decks" }));
-    await expect(args.onImportDeck).toHaveBeenCalled();
-    await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+    await step("STORYBOOK-DECK-LIST-02 Request deck import", async () => {
+      await userEvent.click(trigger);
+      await userEvent.click(canvas.getByRole("menuitem", { name: "Import decks" }));
+      await expect(args.onImportDeck).toHaveBeenCalled();
+      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+    });
   },
 };
 
 export const Japanese: Story = {
   parameters: { locale: "ja" },
-  play: async ({ canvas, userEvent }) => {
-    await expect(canvas.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: "追加" }));
-    await expect(canvas.getByRole("menuitem", { name: "デッキを作成" })).toBeVisible();
-    await expect(canvas.getByRole("menuitem", { name: "デッキをインポート" })).toBeVisible();
-    const [firstDeck] = mixed.studying;
-    if (firstDeck == null) throw new Error("Japanese requires at least one Deck");
-    const [firstDeckName] = canvas.getAllByText(firstDeck.deck.name);
-    if (firstDeckName == null) throw new Error("Japanese requires the first Deck name to be visible");
-    await expect(firstDeckName).toBeVisible();
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-LIST-03 Japanese deck list", async () => {
+      await expect(canvas.getByRole("heading", { level: 1, name: "デッキ" })).toBeVisible();
+      await userEvent.click(canvas.getByRole("button", { name: "追加" }));
+      await expect(canvas.getByRole("menuitem", { name: "デッキを作成" })).toBeVisible();
+      await expect(canvas.getByRole("menuitem", { name: "デッキをインポート" })).toBeVisible();
+      const [firstDeck] = mixed.studying;
+      if (firstDeck == null) throw new Error("Japanese requires at least one Deck");
+      const [firstDeckName] = canvas.getAllByText(firstDeck.deck.name);
+      if (firstDeckName == null) throw new Error("Japanese requires the first Deck name to be visible");
+      await expect(firstDeckName).toBeVisible();
+    });
   },
 };
 
 export const ViewDeck: Story = {
   args: { deckCard: { onClickView: fn() } },
-  play: async ({ args, canvas, userEvent }) => {
-    const [trigger] = canvas.getAllByRole("button", { name: /^Open actions for / });
-    const [firstDeck] = mixed.studying;
-    if (trigger == null || firstDeck == null) throw new Error("ViewDeck requires at least one Deck");
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-LIST-04 View selected deck", async () => {
+      const [trigger] = canvas.getAllByRole("button", { name: /^Open actions for / });
+      const [firstDeck] = mixed.studying;
+      if (trigger == null || firstDeck == null) throw new Error("ViewDeck requires at least one Deck");
 
-    await userEvent.click(trigger);
-    await userEvent.click(canvas.getByRole("menuitem", { name: "View" }));
+      await userEvent.click(trigger);
+      await userEvent.click(canvas.getByRole("menuitem", { name: "View" }));
 
-    await expect(args.deckCard?.onClickView).toHaveBeenCalledWith(firstDeck.deck.id);
+      await expect(args.deckCard?.onClickView).toHaveBeenCalledWith(firstDeck.deck.id);
+    });
   },
 };
 
@@ -110,13 +124,15 @@ export const Empty: Story = {
       reason: "confirmed-empty",
     },
   },
-  play: async ({ canvas, userEvent }) => {
-    await expect(canvas.getByText("0 decks")).toBeVisible();
-    await expect(canvas.getByRole("heading", { name: "No decks yet" })).toBeVisible();
-    await expect(canvas.getByRole("button", { name: "Create deck" })).toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: "Add" }));
-    await expect(canvas.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
-    await expect(canvas.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-LIST-05 Empty deck list", async () => {
+      await expect(canvas.getByText("0 decks")).toBeVisible();
+      await expect(canvas.getByRole("heading", { name: "No decks yet" })).toBeVisible();
+      await expect(canvas.getByRole("button", { name: "Create deck" })).toBeVisible();
+      await userEvent.click(canvas.getByRole("button", { name: "Add" }));
+      await expect(canvas.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
+      await expect(canvas.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
+    });
   },
 };
 
@@ -175,11 +191,13 @@ const reviewSections: DeckListProps["sections"] = {
 };
 export const ReviewCounts: Story = {
   args: { sections: reviewSections },
-  play: async ({ canvas, userEvent }) => {
-    await expect(canvas.getByRole("region", { name: "Decks" })).toBeVisible();
-    await userEvent.click(canvas.getByText("About counts"));
-    await expect(canvas.getByText("Counts use data currently held on this device and saved filters.")).toBeVisible();
-    await expect(canvas.getByText("5 due · 5 new")).toBeVisible();
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-LIST-06 Review counts", async () => {
+      await expect(canvas.getByRole("region", { name: "Decks" })).toBeVisible();
+      await userEvent.click(canvas.getByText("About counts"));
+      await expect(canvas.getByText("Counts use data currently held on this device and saved filters.")).toBeVisible();
+      await expect(canvas.getByText("5 due · 5 new")).toBeVisible();
+    });
   },
 };
 export const ReviewJapanese: Story = { args: { sections: reviewSections }, parameters: { locale: "ja" } };
@@ -196,4 +214,15 @@ export const ReviewZoom: Story = {
       </div>
     ),
   ],
+};
+
+export const MobileCards: Story = {
+  args: { sections: reviewSections },
+  parameters: { locale: "ja" },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+};
+
+export const TabletCards: Story = {
+  args: { sections: reviewSections },
+  globals: { viewport: { value: "ipad", isRotated: false } },
 };

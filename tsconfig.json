@@ -20,7 +20,7 @@
     "exactOptionalPropertyTypes": true,
     // Require `override` on a class member that replaces a member from its parent class.
     "noImplicitOverride": true,
-    // Report a function that returns a value on some paths but not on others.
+    // Report a function that returns a value on some paths but not others.
     "noImplicitReturns": true,
     // Treat unchecked lookups such as `items[index]` as possibly `undefined`.
     "noUncheckedIndexedAccess": true,
@@ -52,6 +52,8 @@
     "src",
     // Check integration tests, end-to-end tests, and shared test helpers.
     "test",
+    // Check standalone repository tooling.
+    "scripts",
     // Check root configuration files such as `vite.config.ts` and `vitest.config.ts`.
     "*.ts",
     // Check all Storybook configuration and helper files.

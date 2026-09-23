@@ -46,21 +46,25 @@ export const Default: Story = {};
 export const ValidationError: Story = { args: { validationError: true } };
 export const LongContent: Story = { args: { card: longCard } };
 export const Interaction: Story = {
-  play: async ({ canvas, userEvent }) => {
-    const frontText = canvas.getByRole("textbox", { name: "Front text" });
-    await userEvent.clear(frontText);
-    await userEvent.type(frontText, "Updated prompt");
-    await expect(frontText).toHaveValue("Updated prompt");
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-FORM-01 Preserve front text across tabs", async () => {
+      const frontText = canvas.getByRole("textbox", { name: "Front text" });
+      await userEvent.clear(frontText);
+      await userEvent.type(frontText, "Updated prompt");
+      await expect(frontText).toHaveValue("Updated prompt");
 
-    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
-    await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
-    await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveValue("Updated prompt");
-    await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
-    const firstTag = canvas.getByRole("checkbox", { name: "raw" });
-    await expect(firstTag).not.toBeChecked();
-    await userEvent.click(firstTag);
-    await expect(firstTag).toBeChecked();
-    await userEvent.click(canvas.getByRole("button", { name: "Done" }));
+      await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+      await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
+      await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveValue("Updated prompt");
+    });
+    await step("STORYBOOK-CARD-FORM-02 Select a tag", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
+      const firstTag = canvas.getByRole("checkbox", { name: "raw" });
+      await expect(firstTag).not.toBeChecked();
+      await userEvent.click(firstTag);
+      await expect(firstTag).toBeChecked();
+      await userEvent.click(canvas.getByRole("button", { name: "Done" }));
+    });
   },
 };
 export const Mobile: Story = { ...LongContent, globals: { viewport: { value: "iphonex", isRotated: false } } };
@@ -96,21 +100,25 @@ export const MobileBack: Story = {
 export const JapaneseValidation: Story = {
   args: { validationError: true },
   parameters: { locale: "ja" },
-  play: async ({ canvas }) => {
-    await canvas.findByText("表面のテキストは必須です。");
-    await expect(canvas.getByRole("textbox", { name: "表面のテキスト" })).toHaveAccessibleDescription(
-      "表面のテキストは必須です。"
-    );
-    await expect(document.documentElement).toHaveAttribute("lang", "ja");
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-CARD-FORM-03 Japanese validation", async () => {
+      await canvas.findByText("表面のテキストは必須です。");
+      await expect(canvas.getByRole("textbox", { name: "表面のテキスト" })).toHaveAccessibleDescription(
+        "表面のテキストは必須です。"
+      );
+      await expect(document.documentElement).toHaveAttribute("lang", "ja");
+    });
   },
 };
 
 export const Preview: Story = {
   args: { card: { ...fixture.card.default, backText: "**Draft answer**\n\n$x^2$", tags: ["math"] } },
-  play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
-    await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
-    await expect(canvas.getByRole("region", { name: "Answer preview" })).toBeVisible();
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-FORM-04 Open answer preview", async () => {
+      await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
+      await expect(canvas.getByRole("region", { name: "Answer preview" })).toBeVisible();
+    });
   },
 };
 export const MobilePreview: Story = { ...Preview, globals: { viewport: { value: "iphonex", isRotated: false } } };

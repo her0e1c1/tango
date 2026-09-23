@@ -10,11 +10,6 @@ const meta = {
   tags: ["autodocs"],
   decorators: [withPageLayout],
   parameters: { layout: "fullscreen" },
-  render: (args) => (
-    <div className="rounded-surface border border-border bg-surface shadow-surface dark:border-black">
-      <DeckListCard {...args} />
-    </div>
-  ),
   args: {
     deck: fixture.deck.default,
     cardCount: 24,
@@ -67,3 +62,9 @@ export const Dark: Story = {
     theme: "dark",
   },
 };
+
+export const Pending: Story = { args: { isPending: () => true } };
+export const DueCards: Story = { args: { review: { due: 12, new: 5, nextDueAt: undefined } } };
+export const NewCards: Story = { args: { review: { due: 0, new: 18, nextDueAt: undefined } } };
+export const NextReview: Story = { args: { review: { due: 0, new: 0, nextDueAt: fixture.timestamp + 86_400_000 } } };
+export const MobileLongName: Story = { ...TooLongName, globals: { viewport: { value: "iphone5", isRotated: false } } };

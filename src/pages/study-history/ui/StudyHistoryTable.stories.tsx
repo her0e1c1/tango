@@ -22,12 +22,16 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
-  play: async ({ canvas, userEvent }) => {
-    await expect(canvas.getByRole("table", { hidden: true })).not.toBeVisible();
-    await userEvent.click(canvas.getByText("Show daily counts · 90 days"));
-    await expect(canvas.getAllByRole("row")).toHaveLength(31);
-    await userEvent.click(canvas.getByRole("button", { name: "Older dates" }));
-    await expect(canvas.getByText("31–60 of 90 days")).toBeVisible();
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-STUDY-HISTORY-03 Expand daily counts", async () => {
+      await expect(canvas.getByRole("table", { hidden: true })).not.toBeVisible();
+      await userEvent.click(canvas.getByText("Show daily counts · 90 days"));
+      await expect(canvas.getAllByRole("row")).toHaveLength(31);
+    });
+    await step("STORYBOOK-STUDY-HISTORY-04 Show older dates", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Older dates" }));
+      await expect(canvas.getByText("31–60 of 90 days")).toBeVisible();
+    });
   },
 };
 export const Empty: Story = { args: { days: days.slice(0, 7).map((day) => ({ ...day, started: 0, completed: 0 })) } };

@@ -10,7 +10,7 @@ Firestore の snapshot を Card / Deck store に反映し、購読解除で反�
 
 ## 共通前提
 
-本人の非匿名認証 UID は `uid` とする。ケースごとに Card / Deck store を空にし、別の ID を使う。追加・更新・削除の反映は対象 ID の期待値になるまで待つ。
+本人の非匿名認証 UID は `uid` とする。ケースごとに Card / Deck store を空にし、別の ID を使う。追加・更新・削除の反映は対象 ID の期待値になるまで待つ。親 Deck を購読で準備する場合は、Card の作成前に Deck store への反映を待つ。
 詳細な実行・cleanup の前提は [README](./README.md) を参照する。
 
 ## テストケース
@@ -53,7 +53,7 @@ Given:
 
 When:
 
-- 本人の Deck と Card を作成し、それぞれの反映を待つ。
+- 本人の Deck を作成して store 反映を待ち、その後 Card を作成して反映を待つ。
 - Deck の name と Card の frontText を `Updated` に変更して反映を待つ。
 - Card と Deck をそれぞれ削除して反映を待つ。
 

@@ -19,25 +19,18 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 
 ## 実行前提
 
-- 対象テストは [`src/**/*.stories.tsx`](../../../src) の `play` に置く。`test/integration/storybook` への複製や専用 fixture ファイルは追加しない。
-- [`vitest.config.ts`](../../../vitest.config.ts) の `storybook` project は Vitest addon と Playwright の Chromium browser で実行する。jsdom の unit / integration project とは別である。
-- [`preview.ts`](../../../.storybook/preview.ts) の実際の i18n とアプリ CSS を使用する。通常は英語で、日本語ケースだけ `parameters.locale = "ja"` を設定する。
-- 必要な入力値、フォームエラー、空状態、認証 props、callback の spy は Story 側で用意する。ルート Story の状態は既存の [`PageDecorator.tsx`](../../../.storybook/support/PageDecorator.tsx) に従って初期化する。
-- Firebase は既存の [Storybook 設定](../../../.storybook/main.ts) による差し替えを使う。Firestore emulator への接続成功や実保存の保証をこの仕様に含めない。
+- 対象テストは [`src/**/*.stories.tsx`](../../../../src) の `play` に置く。`test/integration/storybook` への複製や専用 fixture ファイルは追加しない。
+- [`vitest.config.ts`](../../../../vitest.config.ts) の `storybook` project は Vitest addon と Playwright の Chromium browser で実行する。jsdom の unit / integration project とは別である。
+- [`preview.ts`](../../../../.storybook/preview.ts) の実際の i18n とアプリ CSS を使用する。通常は英語で、日本語ケースだけ `parameters.locale = "ja"` を設定する。
+- 必要な入力値、フォームエラー、空状態、認証 props、callback の spy は Story 側で用意する。ルート Story の状態は既存の [`PageDecorator.tsx`](../../../../src/storybook/PageDecorator.tsx) に従って初期化する。
+- Firebase は既存の [Storybook 設定](../../../../.storybook/main.ts) による差し替えを使う。Firestore emulator への接続成功や実保存の保証をこの仕様に含めない。
 - Story ごとにフォーム、選択状態、spy の履歴、共有 store、言語、スクロール位置を分離またはリセットし、別 Story や実行順に依存させない。
 
 ## 書式と ID
 
-[E2E テスト規約](../../e2e/AGENTS.md) の明示的な anchor、カテゴリ、Given / When / Then を踏襲する。
-ただし E2E の fixture と永続化カテゴリは持ち込まず、準備する値・状態は Given に直接記述する。
-
-- ID は `STORYBOOK-<仕様ファイル名を大文字化>-<NN>` とする。例: `card-form.md` → `STORYBOOK-CARD-FORM-01`。
-- 各仕様ファイルを記載順に `01` から欠番なく採番し、索引・anchor・見出しを一緒に更新する。README は機能別仕様への索引とする。
-- カテゴリ `render` は与えた状態に対する表示・属性の確認、`interaction` はクリック・入力・スクロール等に対する結果の確認を意味する。保存の有無を意味しない。
-- 各ケースは Given / When / Then をそれぞれ1ブロックで記述する。独立した振る舞いは別 ID に分ける。
-- 仕様と実装の対応付けは [共通規約](../../AGENTS.md) に従い、Test ID を使う。仕様書に Story ファイル・export 名の対応欄を設けない。
-- 既存の1つの `play` が複数ケースを確認している場合、Given の状態はその Story の先行操作で準備してよい。これは独立した複数テストとして実行されることを意味しない。
-- 同じ契約を複数の表示バリエーションで確認する場合は、1つの ID にまとめ、Given に差分を列挙する。
+仕様書の書式・採番・カテゴリ・表示バリエーションの記述は [AGENTS.md](./AGENTS.md) を参照する。
+仕様と実装は Test ID で対応付け、仕様書に実装ファイルや Story export の対応欄は設けない。
+全テスト仕様に共通する規約は [共通規約](../../AGENTS.md) に置く。
 
 ## 期待結果と実装の対応
 
@@ -62,7 +55,7 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 | [Application Layout](./app-layout.md) | 共通 Header と画面コンテンツを組み合わせ、スクロール中の Header と本文の位置関係を確認する。 | 2 |
 | [Deck List](./deck-list.md) | Deck 一覧のメニュー、閲覧要求、空状態、復習件数と日本語表示を確認する。 | 8 |
 | [Deck Form and Deletion](./deck-form.md) | Deck フォームの入力保持、エラー表示と削除確認の通知を確認する。 | 4 |
-| [Card List](./card-list.md) | Card 一覧の操作通知、空状態の区別、タグ解除、overlay の終了と並び順の変更要求を確認する。 | 10 |
+| [Card List](./card-list.md) | Card 一覧の操作通知、空状態の区別、タグ解除、overlay の終了と並び順の変更要求を確認する。 | 9 |
 | [Card Form](./card-form.md) | Card 入力、タブ間の値の保持、タグ選択、日本語エラー、解答プレビューと作成要求を確認する。 | 5 |
 | [Deck Filter](./deck-filter.md) | タグ選択の解除と、多数のタグを開示する UI の結合を確認する。 | 2 |
 | [Deck Import](./import.md) | CSV 選択からプレビューまでの画面結合と、日本語の診断表示を確認する。 | 3 |
@@ -77,11 +70,12 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 本番の保存・認証契約に関わる変更は、該当する E2E / Firestore 仕様も更新する。
 
 ```sh
+npm run lint:test-specs
 npm run lint:markdown
 npm run test:storybook
 ```
 
-ブラウザ上で個別に確認するときは `npm run storybook` を実行し、対応する title / export の Story を開く。
+ブラウザ上で個別に確認するときは `npm run storybook` を実行し、Test ID で実装側の `play` step を探して対象の Story を開く。
 `npm run build:storybook` の成功だけで `play` の成功とはしない。
-既存の `lint:e2e-contract` は E2E 用であり、このディレクトリの ID と Story の対応を自動検証するものではない。
-この文書化では新しい contract checker、fixture、CI の変更は追加しない。
+`lint:test-specs` は仕様 ID が Story ソース内の文字列先頭にあることだけを正規表現で確認する。実装側では `play` の step 名に ID を付け、複数ケースや表示バリエーションで同じ play を共有してよい。
+1:1・重複・コメント・skip・`play` の有無・継承・tags・実行条件は解析しない。Given / When / Then の網羅性やアサーションの内容・実行結果はレビューと Storybook のテスト実行で確認する。

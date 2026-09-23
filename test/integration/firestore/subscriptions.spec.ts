@@ -66,9 +66,11 @@ describe("Query realtime subscriptions", () => {
       const deck = createDeckFixture({ id: crypto.randomUUID(), uid });
       const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid });
       await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
-      await mutateCards(uid, [{ kind: "create", card }]);
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(expect.objectContaining({ id: deck.id }));
+      });
+      await mutateCards(uid, [{ kind: "create", card }]);
+      await vi.waitFor(() => {
         expect(cardStore.getState().remoteCards).toContainEqual(expect.objectContaining({ id: card.id }));
       });
 
@@ -105,11 +107,13 @@ describe("Query realtime subscriptions", () => {
     const card = createCard({ id: crypto.randomUUID(), deckId: deck.id, uid, frontText: "Before stop" });
 
     await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
-    await mutateCards(uid, [{ kind: "create", card }]);
     await vi.waitFor(() => {
       expect(deckStore.getState().remoteDecks).toContainEqual(
         expect.objectContaining({ id: deck.id, name: "Before stop" })
       );
+    });
+    await mutateCards(uid, [{ kind: "create", card }]);
+    await vi.waitFor(() => {
       expect(cardStore.getState().remoteCards).toContainEqual(
         expect.objectContaining({ id: card.id, frontText: "Before stop" })
       );

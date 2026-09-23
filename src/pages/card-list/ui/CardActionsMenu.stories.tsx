@@ -72,12 +72,14 @@ export const LongCardText: Story = {
 
 export const Interaction: Story = {
   render: (args) => <CardActionsMenuStory {...args} />,
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.cardText}` }));
-    await expect(canvas.getByRole("menu", { name: `Actions for ${args.cardText}` })).toBeVisible();
-    await userEvent.click(canvas.getByRole("menuitem", { name: "Edit" }));
-    await expect(args.onEdit).toHaveBeenCalledOnce();
-    await expect(canvas.queryByRole("menu", { name: `Actions for ${args.cardText}` })).not.toBeInTheDocument();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-09 Edit card from menu", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.cardText}` }));
+      await expect(canvas.getByRole("menu", { name: `Actions for ${args.cardText}` })).toBeVisible();
+      await userEvent.click(canvas.getByRole("menuitem", { name: "Edit" }));
+      await expect(args.onEdit).toHaveBeenCalledOnce();
+      await expect(canvas.queryByRole("menu", { name: `Actions for ${args.cardText}` })).not.toBeInTheDocument();
+    });
   },
 };
 

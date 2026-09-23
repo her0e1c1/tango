@@ -92,3 +92,9 @@ export const Dark: Story = {
   args: { open: true },
   globals: { theme: "dark" },
 };
+
+export const MobileSheet: Story = {
+  args: { open: true, mobileSheet: true },
+  render: (args) => <ActionsMenuStory {...args} />,
+  globals: { viewport: { value: "iphone5", isRotated: false } },
+};
