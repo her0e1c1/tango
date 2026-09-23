@@ -1,15 +1,19 @@
-# StudyProgressを保存してからSessionを進める
+# StudyProgress を保存してから Session を進める
 
 Status: Accepted
 
-## Context
-
-表示中のCardを先に進めてからStudyProgressの保存に失敗すると、visible sessionとdurable progressが食い違い、rollback用のsnapshot、token、競合処理が必要になる。
-
 ## Decision
 
-Card移動を伴うswipeでは、現在のStudySession、Card、Preferencesからdomain planを先に導出し、そのplanが持つStudyProgressを保存してからStudySessionを進める。no-opとStudy終了のeffectはStudyProgress updateを生成しない。
+Card を移動するスワイプは、次の順で処理する。
 
-StudyProgressの保存先は対象Cardのpersistence identityに従う。保存に失敗した場合は現在位置を維持し、optimisticなSession移動とrollbackを行わない。
+1. 現在の StudySession・Card・Preferences から、保存内容と移動先を表すドメインの plan を作る。
+2. Card の保存先の識別情報に従って StudyProgress を保存する。失敗したら現在位置を維持する。
+3. plan 作成時の Session 識別子と位置が今も一致する場合だけ、Session を進める。
 
-保存成功後のSession移動は、plan作成時のSession identityとpositionが現在も一致する場合だけ適用する。完了状態はStudyProgress保存と最終Session移動の両方が成功した後だけ表示する。[PR #1045](https://github.com/her0e1c1/tango/pull/1045)、[PR #1094](https://github.com/her0e1c1/tango/pull/1094)、[PR #1264](https://github.com/her0e1c1/tango/pull/1264)、[PR #1353](https://github.com/her0e1c1/tango/pull/1353)を参照する。
+何もしない操作と学習終了の effect では、StudyProgress の更新を生成しない。先に画面を進めてから取り消す処理は行わず、完了表示は保存と最後の Session 移動の両方が成功した後に出す。
+
+## Context
+
+画面を先に進めて保存に失敗すると、表示と保存済みの進捗が食い違い、巻き戻しや競合処理が必要になる。
+
+関連PR: [#1045](https://github.com/her0e1c1/tango/pull/1045)、[#1094](https://github.com/her0e1c1/tango/pull/1094)、[#1264](https://github.com/her0e1c1/tango/pull/1264)、[#1353](https://github.com/her0e1c1/tango/pull/1353)

@@ -1,17 +1,20 @@
-# PWAではapplication shellだけをcacheする
+# PWA ではアプリの静的ファイルだけをキャッシュする
 
 Status: Accepted
 
-## Context
-
-Service WorkerがFirebase responseやuser dataをruntime cacheすると、Firestore persistenceやLocal Storeとcache ownershipが重複し、logoutやidentity切替後にstale dataを表示する危険がある。一方、installabilityとstatic application shellのoffline起動にはService Workerが有効である。
-
 ## Decision
 
-`vite-plugin-pwa`でroot scopeのmanifestとService Workerを生成し、browser applicationをinstall可能にする。
+`vite-plugin-pwa` でルートスコープの manifest と Service Worker を生成し、アプリをインストール可能にする。
 
-WorkboxでprecacheするのはbuildされたHTML、CSS、JavaScript、および明示したstatic assetだけとする。Firebase response、API response、Deck、Card、Study dataなどのuser dataをService Workerのruntime cacheへ保存しない。
+- Workbox で事前キャッシュするのは、ビルド済みの HTML・CSS・JavaScript と指定した静的ファイルだけとする。
+- Firebase・API の応答、Deck・Card・学習データなどの利用者データは、Service Worker の実行時キャッシュに保存しない。
+- リモートデータのオフライン保存は Firestore の永続キャッシュ、ローカル専用データは Entity Store のブラウザー保存が担う。
+- Storybook のビルドには PWA plugin を含めない。
 
-Remote dataのoffline durabilityはFirestore persistent cache、Local only dataはEntity Storeのbrowser persistenceが所有する。Storybook buildからPWA pluginを除外する。
+PWA の生成は通常の Vite ビルドに任せ、標準ツールが保証する生成物の独自検査は作らない。
 
-PWA artifact生成は通常のVite buildに委ね、standard toolingが保証する生成物を検査するcustom verifierを維持しない。[PR #333](https://github.com/her0e1c1/tango/pull/333)、[PR #452](https://github.com/her0e1c1/tango/pull/452)を参照する。
+## Context
+
+Service Worker に利用者データも保存すると、保存責任が重複し、ログアウトや利用者切替後に古いデータを表示する恐れがある。静的ファイルのキャッシュは、インストールとオフライン起動に使う。
+
+関連PR: [#333](https://github.com/her0e1c1/tango/pull/333)、[#452](https://github.com/her0e1c1/tango/pull/452)

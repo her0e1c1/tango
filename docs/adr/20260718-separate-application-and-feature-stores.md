@@ -1,13 +1,16 @@
-# アプリケーション状態とFeature状態のStoreを分ける
+# アプリ全体と Feature 固有の Store を分ける
 
 Status: Superseded
 
-## Context
-
-永続化された設定は`App`と複数のFeatureから使用される。設定Featureの配下に置くと、アプリケーション全体の利用側がFeature実装へ依存する。
+後継: [Page-first FSD の責務境界](./20260830-adopt-page-first-fsd-boundaries.md)
 
 ## Decision
 
-アプリケーション全体で使用するStoreは`src/store`、共有hookは`src/hooks`に置く。study StoreのようなFeature固有のStoreは、singletonであっても所有するFeature内に置く。[PR #312](https://github.com/her0e1c1/tango/pull/312)を参照する。
+- アプリ全体で使う Store は `src/store`、共有 hook は `src/hooks` に置く。
+- study Store など Feature 固有の Store は、singleton でもその Feature 内に置く。
 
-この決定は、[Page-first FSDの責務境界を採用する](./20260830-adopt-page-first-fsd-boundaries.md)により置き換えられた。
+## Context
+
+全体で使う設定を設定 Feature に置くと、App や他の Feature がその内部実装に依存してしまう。
+
+関連PR: [#312](https://github.com/her0e1c1/tango/pull/312)

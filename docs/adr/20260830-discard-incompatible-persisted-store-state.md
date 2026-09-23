@@ -1,17 +1,20 @@
-# 互換性のない永続Store状態を破棄する
+# 互換性のない永続 Store 状態は破棄する
 
 Status: Accepted
 
-## Context
-
-開発中のStore shapeに対して継続的にmigrationとlegacy formatの読み取りを追加すると、現在の設計より互換性layerの保守が大きくなる。現段階では、client-sideの永続Store shapeを安定した公開互換性契約として扱っていない。
-
 ## Decision
 
-プロダクトがactive development中である間、互換性のないclient-side persisted Store stateを維持するためのmigrationやlegacy readerを原則追加しない。
+開発が活発な間は、クライアントの永続 Store に互換性のための移行処理や旧形式の読み取りを原則追加しない。
 
-current-versionのhydrated stateはschemaでvalidateする。malformedなstateはStoreの境界に応じて、invalid entryだけを独立して破棄するか、validated default stateへ戻す。安全なschema defaultを持つadditive fieldなど、既存stateと互換な変更ではpersist versionを更新しない。
+- 復元した現行バージョンの状態はスキーマで検証する。不正な項目だけを破棄するか、Store の境界に応じて検証済みの初期値に戻す。
+- 安全な既定値を持つフィールド追加など、互換性のある変更では永続化バージョンを上げない。
+- 互換性のない変更ではバージョンを上げ、古い状態を破棄して検証済みの初期値に戻す。
+- 特定データの互換性維持が明示的に求められた場合だけ移行処理を追加する。
 
-互換性のない変更ではpersist versionを更新し、古いstateを破棄してvalidated default stateへ戻す。特定の永続データについて互換性維持が明示的に要求された場合だけmigrationを追加する。
+永続 Store の互換性を安定した公開仕様として保証する段階で、この方針を見直す。
 
-永続Storeをstable compatibility contractにするときは、この決定を再評価する。[PR #993](https://github.com/her0e1c1/tango/pull/993)、[PR #1350](https://github.com/her0e1c1/tango/pull/1350)を参照する。
+## Context
+
+現段階では保存形式の互換性を公開仕様として保証していない。旧形式の対応を続けると、現行設計より互換性維持の保守が大きくなる。
+
+関連PR: [#993](https://github.com/her0e1c1/tango/pull/993)、[#1350](https://github.com/her0e1c1/tango/pull/1350)

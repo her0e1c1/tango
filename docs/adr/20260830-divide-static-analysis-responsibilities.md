@@ -2,24 +2,24 @@
 
 Status: Accepted
 
-## Context
-
-format、一般的なlint、型情報を使う規則、React Compilerの方針、FSD境界、型検査、未使用コード検出を、1つのツールだけで同じ品質で扱うことはできない。一方、同じ検査を複数のツールで重複させると、設定と保守の負担が増える。
-
 ## Decision
 
-検査の種類ごとに主担当を1つ定める。
+同じ検査を重複させず、種類ごとに担当ツールを決める。
 
-- Biomeはformatと一般的な構文・styleの検査を担当する。
-- ESLintは型情報を使うTypeScript規則、React HooksとReact Compilerの方針、テスト固有の規則、およびプロジェクト固有のUI境界を担当する。
-- SteigerはFSDのarchitecture constraintを担当する。
-- TypeScriptはcompileと型検査を担当する。
-- Knipは未使用のfile、export、dependencyの検出を担当する。
+- Biome: 整形、一般的な構文・スタイルの検査。
+- ESLint: 型情報を使う TypeScript 規則、React Hooks・Compiler、テスト固有の規則、プロジェクト固有の UI 境界。
+- Steiger: FSD の構造と依存関係。
+- TypeScript: コンパイルと型検査。
+- Knip: 未使用のファイル・export・依存関係。
 
-React Compilerをapplication sourceの標準compile contractとし、Viteの設定をVitestとStorybookでも共有する。production、unit test、Storybookでcompile条件を揃える。
+アプリのコンパイルには React Compiler を使い、Vite の設定を Vitest・Storybook と共有する。本番・単体テスト・Storybook のコンパイル条件をそろえる。
 
-通常のmemoizationを目的とした`useMemo`と`useCallback`は追加せず、Compilerへ委ねる。これらのhookはlintで禁止する。外部APIとのsemantic identityなどCompilerでは表せない要件が生じた場合は、例外を追加する前にこのDecisionとlint policyを更新する。
+`useMemo` と `useCallback` は lint で禁止し、通常のメモ化は Compiler に任せる。外部 API に渡す参照の同一性など、Compiler で満たせない要件には、この ADR と lint 方針を更新してから例外を設ける。
 
-React HooksおよびCompiler diagnosticsをerrorとして扱う。Compilerに適合しないcodeは修正または責務を分離し、diagnosticを広く無効化しない。
+Hooks・Compiler の診断はエラーとして扱う。広く無効化せず、コードの修正か責務の分離で解消する。
 
-[PR #320](https://github.com/her0e1c1/tango/pull/320)、[PR #356](https://github.com/her0e1c1/tango/pull/356)、[PR #424](https://github.com/her0e1c1/tango/pull/424)、[PR #1200](https://github.com/her0e1c1/tango/pull/1200)、[PR #1240](https://github.com/her0e1c1/tango/pull/1240)を参照する。
+## Context
+
+すべての検査を一つのツールでは扱えない。一方、複数ツールで同じ検査をすると設定と保守が重複する。
+
+関連PR: [#320](https://github.com/her0e1c1/tango/pull/320)、[#356](https://github.com/her0e1c1/tango/pull/356)、[#424](https://github.com/her0e1c1/tango/pull/424)、[#1200](https://github.com/her0e1c1/tango/pull/1200)、[#1240](https://github.com/her0e1c1/tango/pull/1240)

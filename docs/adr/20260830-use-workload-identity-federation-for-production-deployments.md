@@ -1,17 +1,20 @@
-# 本番デプロイにWorkload Identity Federationを使用する
+# 本番デプロイに Workload Identity Federation を使う
 
 Status: Accepted
 
-## Context
-
-長期間有効なFirebase CLI tokenやservice-account JSON keyをGitHubへ保存すると、漏えい時の影響が長く続き、production deploymentが個人credentialへ依存する。production deployは検証済みのdefault branchと明示したenvironmentだけから実行する必要がある。
-
 ## Decision
 
-GitHub ActionsからGoogle Cloudへのproduction deploymentには、GitHub OIDCとGoogle Workload Identity Federationによる短期credentialを使用する。
+GitHub Actions から Google Cloud への認証は、GitHub OIDC と Workload Identity Federation による短期認証情報を使う。
 
-`main`へのpushでproduction Deploy workflowを開始し、canonicalなreusable `Test` workflowが成功した後だけFirebase HostingとFirestore Rulesをdeployする。target Firebase projectとdeploy対象をworkflowで明示する。
+- `main` への push で Deploy を開始し、共通の再利用可能な `Test` ワークフローが成功した後だけ Firebase Hosting と Firestore Rules をデプロイする。対象プロジェクトとデプロイ対象は明記する。
+- 長期の Firebase CLI token やサービスアカウント JSON キーは使わない。連携元を不変のリポジトリ識別子・`refs/heads/main`・GitHub の `production` Environment に制限する。
+- 本番デプロイ専用の最小権限のサービスアカウントを使い、`id-token: write` はデプロイジョブだけに与える。
+- Google 認証を含むサードパーティー Actions はコミット SHA で固定する。生成した ADC 認証情報は Git・キャッシュ・成果物に保存しない。
 
-長期のFirebase CLI tokenまたはservice-account JSON keyをdeployment credentialとして使用しない。federated identityはimmutable repository identity、`refs/heads/main`、およびGitHubの`production` Environmentへ制限する。production deploy専用のleast-privilege service accountを使用し、`id-token: write`はdeployment jobだけに与える。
+リソース ID・IAM ロール・設定手順は、セットアップスクリプトとワークフローで管理する。
 
-Google authentication actionを含むthird-party Actionsはimmutable commit SHAで固定する。generated ADC credentialをsource control、cache、artifactへ保存しない。具体的なresource ID、IAM role、setup手順はsetup scriptとworkflowで管理する。[PR #1238](https://github.com/her0e1c1/tango/pull/1238)、[PR #1259](https://github.com/her0e1c1/tango/pull/1259)、[PR #1341](https://github.com/her0e1c1/tango/pull/1341)を参照する。
+## Context
+
+長期認証情報を GitHub に保存すると、漏えいの影響が長く続き、個人の認証情報にも依存する。本番デプロイは検証済みの既定ブランチと指定環境に限定する。
+
+関連PR: [#1238](https://github.com/her0e1c1/tango/pull/1238)、[#1259](https://github.com/her0e1c1/tango/pull/1259)、[#1341](https://github.com/her0e1c1/tango/pull/1341)

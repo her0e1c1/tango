@@ -1,15 +1,17 @@
-# Fail-closedなaggregate Test gateを使用する
+# 必要な検証がそろった場合だけ Test を成功にする
 
 Status: Accepted
 
-## Context
-
-branch protectionが多数のjob名へ直接依存すると、workflowの分割や名称変更でrequired checkが不安定になる。また、failure、cancellation、想定外のskipを成功として扱うと、不完全な検証結果でmergeできる。
-
 ## Decision
 
-branch protectionが参照する安定したcheckを`Test`とし、final aggregate jobが必要な検証jobすべての結果を検査する。具体的なjob構成とeventごとの実行対象はcanonicalなTest workflowを正とし、この文書に重複して列挙しない。
+ブランチ保護が参照するチェック名を `Test` に固定し、最後の集約ジョブで必要な検証結果を確認する。ジョブ構成とイベントごとの対象は共通の Test ワークフローに記述し、この文書には重複して列挙しない。
 
-aggregate jobは依存jobの成否にかかわらず実行し、failure、cancellation、想定外のskipが1つでもあればfailする。event種別上実行対象でないjobだけ、明示した条件でskipを許可する。
+集約ジョブは依存ジョブの成否にかかわらず実行する。失敗・キャンセル・想定外のスキップが一つでもあれば失敗とし、イベント上の対象外ジョブだけ明示した条件でスキップを許可する。
 
-同一Pull Requestの古いrunだけをcancelし、manual runとreusable workflow callerは独立させる。各検証jobは診断と再利用のため独立したまま保つ。[PR #1341](https://github.com/her0e1c1/tango/pull/1341)、[PR #1432](https://github.com/her0e1c1/tango/pull/1432)を参照する。
+キャンセルするのは同じ PR の古い実行だけとし、手動実行と再利用ワークフローの呼び出し元は分離する。個別の検証ジョブは、原因調査と再利用のため独立させておく。
+
+## Context
+
+ブランチ保護が多数のジョブ名に依存すると、分割や改名に弱くなる。不完全な検証を成功と扱うと、必要な確認なしにマージできてしまう。
+
+関連PR: [#1341](https://github.com/her0e1c1/tango/pull/1341)、[#1432](https://github.com/her0e1c1/tango/pull/1432)

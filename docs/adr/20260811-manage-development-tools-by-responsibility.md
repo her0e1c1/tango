@@ -2,21 +2,21 @@
 
 Status: Accepted
 
-## Context
-
-開発ツールにはそれぞれ異なるインストール要件および再現性要件がある。すべての開発ツールを npm の `devDependency` として扱うと所有関係が曖昧になり、不要なプロジェクト依存関係が追加される可能性がある。
-
 ## Decision
 
-開発ツールはその責務と配信モデルに従って管理する。
+- `devDependencies`: TypeScript、Biome、ESLint、Vitest、Playwright、Storybook、Knip など、ビルドや検証の再現に必要な Node.js 系ツール。
+- `mise.toml`: Node.js、npm、Hadolint など、npm の外で配布されるランタイム・パッケージマネージャー・CLI。
+- コンテナ環境: コンテナ内だけで使うツール。他の管理方法と重複させない。
+- 個人環境: React Developer Tools など任意の対話ツール。プロジェクトの依存関係に含めない。
 
-- TypeScript、Biome、ESLint、Vitest、Playwright、Storybook、Knip など、ビルド、リンティング、テスト、その他のプロジェクトチェックの再現に必要な Node.js エコシステムのツールには `devDependencies` を使用する。
-- Node.js、npm、Hadolint など、npm 外で配信される言語ランタイム、パッケージマネージャー、スタンドアロン CLI ツールには `mise.toml` を使用する。
-- コンテナ内でのみ使用するツールは、npm や mise で重複管理せずコンテナ環境内で管理する。
-- 開発者個人のインタラクティブな任意ツールをプロジェクトの依存関係に追加しない。React Developer Tools などのツールは、必要な時に個別にインストールする。
+Node.js 系の検証処理は npm scripts に集約する。mise はランタイム管理・依存関係の準備・タスクの組み合わせを担い、CI は npm scripts を直接、または薄い mise タスク経由で呼ぶ。
 
-Node.js エコシステムのチェックにおける標準の実行エントリーポイントとして npm scripts を使用する。CI ワークフローは、固定されたツールチェーンや共通セットアップが有用な場合、直接または薄い mise タスク経由でそれらを呼び出すことができる。チェックロジックの重複を防ぐため、チェックロジックは npm scripts に保持し、mise はランタイム管理、依存関係のセットアップ、タスク構成を担う。
+Firestore エミュレータなどの外部サービスは、利用するワークフローかコンテナで準備する。環境ごとに起動方法が違っても、実行する検証コマンドは共通にする。
 
-Firestore エミュレータの起動など、ワークフロー固有の外部サービスセットアップは、所有するワークフローまたはコンテナ環境内に留める。異なるジョブは環境が異なる場合、同じ基礎となるプロジェクトコマンドを実行しつつ、異なるランチャーを選択できる。
+公式の配布元を優先し、再現性のために必要な場合を除いて同じツールを複数箇所で管理しない。
 
-ツールの公式配信チャネルを優先し、再現性に必要な場合を除き、同じツールを複数の場所で管理することを避ける。[PR #449](https://github.com/her0e1c1/tango/pull/449)、[PR #662](https://github.com/her0e1c1/tango/pull/662)を参照する。
+## Context
+
+すべてを npm で管理すると、ツールの管理責任が曖昧になり、不要な依存関係が増える。
+
+関連PR: [#449](https://github.com/her0e1c1/tango/pull/449)、[#662](https://github.com/her0e1c1/tango/pull/662)
