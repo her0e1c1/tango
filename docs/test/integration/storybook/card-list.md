@@ -203,11 +203,9 @@ Then:
 
 <a id="storybook-card-list-10"></a>
 
-### STORYBOOK-CARD-LIST-10 空理由がなければ案内を断定しない
+### STORYBOOK-CARD-LIST-10 [TODO] 空理由がなければ案内を断定しない
 
 カテゴリ: `render`
-
-検証状況: 未実装
 
 Given:
 
@@ -223,11 +221,9 @@ Then:
 
 <a id="storybook-card-list-11"></a>
 
-### STORYBOOK-CARD-LIST-11 長い選択タグを保持する
+### STORYBOOK-CARD-LIST-11 [TODO] 長い選択タグを保持する
 
 カテゴリ: `render`
-
-検証状況: 未実装
 
 Given:
 
@@ -243,11 +239,9 @@ Then:
 
 <a id="storybook-card-list-12"></a>
 
-### STORYBOOK-CARD-LIST-12 タグ解除後に残るタグへフォーカスを移す
+### STORYBOOK-CARD-LIST-12 [TODO] タグ解除後に残るタグへフォーカスを移す
 
 カテゴリ: `interaction`
-
-検証状況: 未実装
 
 Given:
 
@@ -263,11 +257,9 @@ Then:
 
 <a id="storybook-card-list-13"></a>
 
-### STORYBOOK-CARD-LIST-13 最後のタグ解除後はフィルターへ戻る
+### STORYBOOK-CARD-LIST-13 [TODO] 最後のタグ解除後はフィルターへ戻る
 
 カテゴリ: `interaction`
-
-検証状況: 未実装
 
 Given:
 
@@ -283,11 +275,9 @@ Then:
 
 <a id="storybook-card-list-14"></a>
 
-### STORYBOOK-CARD-LIST-14 Tab 移動で選択を変えない
+### STORYBOOK-CARD-LIST-14 [TODO] Tab 移動で選択を変えない
 
 カテゴリ: `interaction`
-
-検証状況: 未実装
 
 Given:
 
@@ -303,11 +293,9 @@ Then:
 
 <a id="storybook-card-list-15"></a>
 
-### STORYBOOK-CARD-LIST-15 メニューを一つに保ち行の削除で閉じる
+### STORYBOOK-CARD-LIST-15 [TODO] メニューを一つに保ち行の削除で閉じる
 
 カテゴリ: `interaction`
-
-検証状況: 未実装
 
 Given:
 
@@ -323,11 +311,9 @@ Then:
 
 <a id="storybook-card-list-16"></a>
 
-### STORYBOOK-CARD-LIST-16 並べ替え後も同じ Card を操作する
+### STORYBOOK-CARD-LIST-16 [TODO] 並べ替え後も同じ Card を操作する
 
 カテゴリ: `interaction`
-
-検証状況: 未実装
 
 Given:
 
@@ -343,11 +329,9 @@ Then:
 
 <a id="storybook-card-list-17"></a>
 
-### STORYBOOK-CARD-LIST-17 空状態から追加を要求する
+### STORYBOOK-CARD-LIST-17 [TODO] 空状態から追加を要求する
 
 カテゴリ: `interaction`
-
-検証状況: 未実装
 
 Given:
 
@@ -363,11 +347,9 @@ Then:
 
 <a id="storybook-card-list-18"></a>
 
-### STORYBOOK-CARD-LIST-18 0件状態からフィルター解除を要求する
+### STORYBOOK-CARD-LIST-18 [TODO] 0件状態からフィルター解除を要求する
 
 カテゴリ: `interaction`
-
-検証状況: 未実装
 
 Given:
 
@@ -383,11 +365,9 @@ Then:
 
 <a id="storybook-card-list-19"></a>
 
-### STORYBOOK-CARD-LIST-19 行の編集要求に対象 ID を渡す
+### STORYBOOK-CARD-LIST-19 [TODO] 行の編集要求に対象 ID を渡す
 
 カテゴリ: `interaction`
-
-検証状況: 未実装
 
 Given:
 
@@ -403,11 +383,9 @@ Then:
 
 <a id="storybook-card-list-20"></a>
 
-### STORYBOOK-CARD-LIST-20 処理中の行を操作させない
+### STORYBOOK-CARD-LIST-20 [TODO] 処理中の行を操作させない
 
 カテゴリ: `render`
-
-検証状況: 未実装
 
 Given:
 
@@ -423,11 +401,9 @@ Then:
 
 <a id="storybook-card-list-21"></a>
 
-### STORYBOOK-CARD-LIST-21 削除を要求する
+### STORYBOOK-CARD-LIST-21 [TODO] 削除を要求する
 
 カテゴリ: `interaction`
-
-検証状況: 未実装
 
 Given:
 
@@ -443,11 +419,9 @@ Then:
 
 <a id="storybook-card-list-22"></a>
 
-### STORYBOOK-CARD-LIST-22 無効なメニューを表示しない
+### STORYBOOK-CARD-LIST-22 [TODO] 無効なメニューを表示しない
 
 カテゴリ: `render`
-
-検証状況: 未実装
 
 Given:
 
