@@ -17,18 +17,17 @@ Card 内容の書込範囲、部分失敗、論理削除を確認する。
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| FIRESTORE-CARD-01 | write | [Card の保存対象だけを新規作成できる](#firestore-card-01) |
-| FIRESTORE-CARD-02 | write | [Card の編集で作成日時と対象外フィールドを維持できる](#firestore-card-02) |
-| FIRESTORE-CARD-03 | write | [Card 作成時に旧個人学習フィールドを除外する](#firestore-card-03) |
-| FIRESTORE-CARD-04 | write | [一括作成の再試行で既存 Card の学習状態を維持する](#firestore-card-04) |
-| FIRESTORE-CARD-05 | batch | [一部の入力失敗を返しつつ有効な Card を保存できる](#firestore-card-05) |
-| FIRESTORE-CARD-06 | write | [保存計画後に物理削除された Card を編集で再作成しない](#firestore-card-06) |
-| FIRESTORE-CARD-07 | write | [Card の削除日時を保存し本文を維持できる](#firestore-card-07) |
-| FIRESTORE-CARD-08 | read | [作成した Card の存在を確認できる](#firestore-card-08) |
+| FIRESTORE-CARD-01 | write | [Card を作成すると指定内容が保存され未学習状態で開始する](#firestore-card-01) |
+| FIRESTORE-CARD-02 | write | [Card の内容を編集しても学習状態と作成日時を維持する](#firestore-card-02) |
+| FIRESTORE-CARD-03 | write | [複製元から Card を作成しても個人の学習状態を引き継がない](#firestore-card-03) |
+| FIRESTORE-CARD-04 | write | [同じ Card の作成を再試行しても保存済みの内容と学習状態を上書きしない](#firestore-card-04) |
+| FIRESTORE-CARD-05 | batch | [不正入力が混在しても有効な Card を保存して失敗を返す](#firestore-card-05) |
+| FIRESTORE-CARD-06 | write | [編集対象が物理削除済みなら Card を再作成しない](#firestore-card-06) |
+| FIRESTORE-CARD-07 | write | [Card を削除すると削除状態になり保存内容を維持する](#firestore-card-07) |
 
 <a id="firestore-card-01"></a>
 
-### FIRESTORE-CARD-01 Card の保存対象だけを新規作成できる
+### FIRESTORE-CARD-01 Card を作成すると指定内容が保存され未学習状態で開始する
 
 カテゴリ: `write`
 
@@ -42,7 +41,7 @@ Given:
 
 When:
 
-- `createCard("uid", input)` を実行し、送信完了後に `card/{id}` を取得する。
+- Card を新規作成する。
 
 Then:
 
@@ -52,7 +51,7 @@ Then:
 
 <a id="firestore-card-02"></a>
 
-### FIRESTORE-CARD-02 Card の編集で作成日時と対象外フィールドを維持できる
+### FIRESTORE-CARD-02 Card の内容を編集しても学習状態と作成日時を維持する
 
 カテゴリ: `write`
 
@@ -64,7 +63,7 @@ Given:
 
 When:
 
-- frontText を `updated` に変更する。入力に `currentIndex: 1` と `cardOrderIds: ["card-1"]` を混在させて `editCard` と既存 Card の `mutateCards` 更新を順に実行する。
+- Card の frontText を `updated` に編集する。
 
 Then:
 
@@ -73,7 +72,7 @@ Then:
 
 <a id="firestore-card-03"></a>
 
-### FIRESTORE-CARD-03 Card 作成時に旧個人学習フィールドを除外する
+### FIRESTORE-CARD-03 複製元から Card を作成しても個人の学習状態を引き継がない
 
 カテゴリ: `write`
 
@@ -85,7 +84,7 @@ Given:
 
 When:
 
-- Card の作成 Adapter を実行する。
+- 複製元の内容を使って新しい Card を作成する。
 
 Then:
 
@@ -95,7 +94,7 @@ Then:
 
 <a id="firestore-card-04"></a>
 
-### FIRESTORE-CARD-04 一括作成の再試行で既存 Card の学習状態を維持する
+### FIRESTORE-CARD-04 同じ Card の作成を再試行しても保存済みの内容と学習状態を上書きしない
 
 カテゴリ: `write`
 
@@ -103,24 +102,23 @@ Then:
 
 Given:
 
-- 本人の親 Deck が存在する。新しい Card ID と frontText `upserted` を持つ完全な Card 入力を用意する。
+- 本人の親 Deck が存在する。
+- Card が保存済みで、学習評価による FSRS が保存されている。
+- 再試行には保存時と同じ Card ID を使う。
 
 When:
 
-- `mutateCards("uid", [{ kind: "create", card }])` を実行する。
-- 保存した Card を評価し、同じ ID の作成操作を再実行する。
+- 同じ Card の作成を再試行する。
 
 Then:
 
-- 入力した Card の値を保存し、createdAt と updatedAt は同じ数値になる。
-
-- 再試行後も FSRS と本文、createdAt、updatedAt を含む保存値が変わらない。
+- FSRS と本文、createdAt、updatedAt を含む保存済みの値が変わらない。
 
 再試行は SDK キャッシュに保存済みの同じ ID を使用する。キャッシュにない別クライアントの document の存在確認は保証に含めない。
 
 <a id="firestore-card-05"></a>
 
-### FIRESTORE-CARD-05 一部の入力失敗を返しつつ有効な Card を保存できる
+### FIRESTORE-CARD-05 不正入力が混在しても有効な Card を保存して失敗を返す
 
 カテゴリ: `batch`
 
@@ -133,7 +131,7 @@ Given:
 
 When:
 
-- 2件の create を同じ `mutateCards` 呼び出しに渡す。
+- 2件の Card をまとめて新規保存する。
 
 Then:
 
@@ -144,7 +142,7 @@ Then:
 
 <a id="firestore-card-06"></a>
 
-### FIRESTORE-CARD-06 保存計画後に物理削除された Card を編集で再作成しない
+### FIRESTORE-CARD-06 編集対象が物理削除済みなら Card を再作成しない
 
 カテゴリ: `write`
 
@@ -167,7 +165,7 @@ Then:
 
 <a id="firestore-card-07"></a>
 
-### FIRESTORE-CARD-07 Card の削除日時を保存し本文を維持できる
+### FIRESTORE-CARD-07 Card を削除すると削除状態になり保存内容を維持する
 
 カテゴリ: `write`
 
@@ -186,22 +184,3 @@ Then:
 - document は残り、deletedAt と updatedAt が同じ数値になる。
 - createdAt とその他の保存値は変わらない。
 
-<a id="firestore-card-08"></a>
-
-### FIRESTORE-CARD-08 作成した Card の存在を確認できる
-
-カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-CARD-08] should exists a card`
-
-Given:
-
-- 本人の親 Deck が存在し、新しい Card を `createCard` で作成している。
-
-When:
-
-- SDK の送信完了後に `card/{id}` を取得する。
-
-Then:
-
-- 取得した snapshot の `exists()` は `true` になる。
