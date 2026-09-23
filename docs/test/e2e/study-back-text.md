@@ -49,7 +49,7 @@ Given:
 
 - Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
 - 認証済みユーザーが所有する Deck に進行中の学習 session が存在する。
-- 現在の Card に selectable な back text が設定されている。
+- 現在の Card に文字を選択できる back text が設定されている。
 
 When:
 
@@ -103,7 +103,7 @@ When:
 
 Then:
 
-- answer の scroll 位置が下方向へ移動する。
+- answer の下側の本文を読める。
 - 同じ Card の back text が引き続き表示される。
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。
@@ -128,10 +128,10 @@ When:
 Then:
 
 - 左に設定された good 学習結果が一度だけ保存される。
-- Card の内容と作成日時は変わらず、Card.fsrs の評価回数が1増え、updatedAt は回答時刻になる。
+- Card の内容と作成日時は変わらず、今回の評価が記憶状態と最終復習に反映される。
 - session の位置が次の Card へ一つ進む。
 - 次の Card の front text が表示され、back text は表示されない。
-- overlay の tap によって通常の裏面 tap は実行されない。
+- overlay の tap で次の Card が誤って裏返ることはない。
 - browser error が発生しない。
 
 <a id="study-back-text-06"></a>
@@ -154,10 +154,10 @@ When:
 Then:
 
 - 右に設定された again 学習結果が一度だけ保存される。
-- Card の内容と作成日時は変わらず、Card.fsrs の評価回数が1増え、updatedAt は回答時刻になる。
+- Card の内容と作成日時は変わらず、今回の評価が記憶状態と最終復習に反映される。
 - session の位置が次の Card へ一つ進む。
 - 次の Card の front text が表示され、back text は表示されない。
-- overlay の tap によって通常の裏面 tap は実行されない。
+- overlay の tap で次の Card が誤って裏返ることはない。
 - browser error が発生しない。
 
 <a id="study-back-text-07"></a>
@@ -202,13 +202,13 @@ Given:
 When:
 
 - 現在の Card を裏面へ切り替え、左 overlay 上から下方向へ wheel scroll する。
-- answer の scroll 位置を先頭へ戻し、右 overlay 上から上方向へ touch 操作する。
+- answer を先頭へスクロールして戻し、右 overlay 上から上方向へ touch 操作する。
 
 Then:
 
-- wheel と touch のどちらでも answer の scroll 位置が下方向へ移動する。
+- wheel と touch のどちらでも answer の下側の本文を読める。
 - 対象 Card の back text と左右 overlay が引き続き表示される。
 - 右 overlay と viewport 右端の間に scrollbar を直接操作できる領域が残る。
-- overlay の action は実行されない。
+- overlay に設定された評価や移動は行われない。
 - Card の学習結果と session の位置が変更されない。
 - browser error が発生しない。

@@ -2,7 +2,7 @@
 
 ## 目的
 
-Deck の作成・編集・削除が保存先の境界を守り、失敗後の再試行でも identity と関連データの整合性、および操作対象外の Deck の分離を維持できることを確認する。
+Deck を作成・編集・削除でき、失敗後も再試行できることを確認する。再試行で重複を作らず、対象 Deck の Card と学習に操作が反映され、他の Deck は変更されない。
 
 ## テストケース
 
@@ -12,9 +12,9 @@ Deck の作成・編集・削除が保存先の境界を守り、失敗後の再
 | DECK-MANAGEMENT-02 | batch | [Deck と関連データをまとめて削除できる](#deck-management-02) |
 | DECK-MANAGEMENT-03 | read | [Deck の削除を取り消せる](#deck-management-03) |
 | DECK-MANAGEMENT-04 | batch | [Deck の削除失敗後に再試行できる](#deck-management-04) |
-| DECK-MANAGEMENT-05 | write | [空の remote Deck を作成して reload 後も確認できる](#deck-management-05) |
-| DECK-MANAGEMENT-06 | write | [remote Deck の作成失敗を通知できる](#deck-management-06) |
-| DECK-MANAGEMENT-07 | write | [空の local-only Deck を作成して reload 後も確認できる](#deck-management-07) |
+| DECK-MANAGEMENT-05 | write | [ログイン中に空の Deck を作成して reload 後も確認できる](#deck-management-05) |
+| DECK-MANAGEMENT-06 | write | [ログイン中の Deck 作成失敗を通知できる](#deck-management-06) |
+| DECK-MANAGEMENT-07 | write | [匿名で空の Deck を作成して reload 後も確認できる](#deck-management-07) |
 | DECK-MANAGEMENT-08 | read | [未保存の Deck 編集内容を離脱前に確認できる](#deck-management-08) |
 
 <a id="deck-management-01"></a>
@@ -34,7 +34,7 @@ When:
 
 Then:
 
-- Deck の更新成功が共通 toast で表示される。
+- Deck の更新成功が通知される。
 - 編集画面に変更後の name、category、source URL が表示される。
 - browser error が発生しない。
 
@@ -57,9 +57,9 @@ When:
 
 Then:
 
-- Deck の削除成功が共通 toast で表示される。
+- Deck の削除成功が通知される。
 - Deck 一覧に対象 Deck が表示されない。
-- Deck を論理削除し、関連する全 Card は未取得のものも含めて表示・操作できなくなる。
+- 対象 Deck のすべての Card を表示・操作できなくなる。削除前にこのブラウザーで開いたことがない Card も対象となる。
 - 対象 Deck の学習 session を再開できない。
 - 操作対象ではない Deck、Card、学習 session は維持され、引き続き再開できる。
 - browser error が発生しない。
@@ -74,7 +74,7 @@ Given:
 
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
-- 対象 Deck の action menu trigger から削除 dialog を開いている。
+- 対象 Deck の操作メニューボタンから削除 dialog を開いている。
 - dialog に対象 Deck、関連 Card と学習 session への影響、削除を取り消せない旨が表示されている。
 
 When:
@@ -84,8 +84,8 @@ When:
 Then:
 
 - 削除 dialog が閉じる。
-- focus が対象 Deck の action menu trigger に戻る。
-- 対象 Deck と関連する Card および学習 session が変更されない。
+- focus が対象 Deck の操作メニューボタンに戻る。
+- 対象 Deck と Card を引き続き利用でき、学習 session も同じ位置から再開できる。
 - browser error が発生しない。
 
 <a id="deck-management-04"></a>
@@ -99,27 +99,27 @@ Given:
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に Card と再開可能な学習 session が存在する。
-- 削除要求の失敗が共通 toast で処理され、削除 dialog が閉じている。
-- 失敗 toast が既定の4秒間の表示期間内にある。
-- 次の削除要求は成功できる。
+- 削除の失敗が通知され、削除 dialog が閉じている。
+- 失敗通知が既定の4秒間の表示期間内にある。
+- 次の削除は成功できる。
 
 When:
 
-- 対象 Deck の削除 dialog を開き直し、短い mobile viewport で失敗 toast が削除 action と重なる状態にして再試行する。
+- 対象 Deck の削除 dialog を開き直し、短い mobile viewport で失敗通知が削除ボタンと重なる状態で再試行する。
 
 Then:
 
 - 削除 dialog が閉じる。
-- dialog 表示中の失敗 toast は操作 control と pointer hit target を持たず、重なった削除 action を妨げない。
-- dialog 表示中に toast が消えるか置き換わっても、focus は dialog 内に維持される。
-- Deck の削除成功が共通 toast で表示され、失敗 toast は残らない。
+- 失敗通知が削除ボタンに重なっていても、dialog 内の操作を妨げない。通知側へ誤って操作や focus が移らない。
+- dialog 表示中に通知が消えるか置き換わっても、focus は dialog 内に維持される。
+- Deck の削除成功が通知され、失敗通知は残らない。
 - Deck 一覧に対象 Deck が表示されない。
-- 対象 Deck と関連する Card および学習 session が削除される。
+- 対象 Deck の Card を利用できず、学習 session も再開できない。
 - 最初の削除失敗に伴う未処理の browser error が発生しない。
 
 <a id="deck-management-05"></a>
 
-### DECK-MANAGEMENT-05 空の remote Deck を作成して reload 後も確認できる
+### DECK-MANAGEMENT-05 ログイン中に空の Deck を作成して reload 後も確認できる
 
 カテゴリ: `write`
 
@@ -127,7 +127,7 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
-- 作成対象の Deck は現在の UID の remote data と local-only data のどちらにも存在しない。
+- 作成対象の Deck はまだ存在しない。
 
 When:
 
@@ -135,16 +135,15 @@ When:
 
 Then:
 
-- Deck の作成成功が共通 toast で表示される。
-- 作成した空の Deck が reload 後も Deck 一覧に表示される。
-- 作成した Deck は現在の UID の remote data に一つだけ存在する。
-- 作成した Deck の source URL と改行変換が remote data に保存されている。
-- cache と remote は同じ ID を使い、独立した local-only duplicate を作成しない。
+- Deck の作成成功が通知される。
+- 作成した空の Deck が reload 後も Deck 一覧に一つだけ表示される。
+- 編集画面でも入力した name、category、source URL、改行変換を確認できる。
+- 同期後も同じアカウントの Deck として利用でき、再読み込みや同期によって複製が増えない。
 - browser error が発生しない。
 
 <a id="deck-management-06"></a>
 
-### DECK-MANAGEMENT-06 remote Deck の作成失敗を通知できる
+### DECK-MANAGEMENT-06 ログイン中の Deck 作成失敗を通知できる
 
 カテゴリ: `write`
 
@@ -152,7 +151,7 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
-- remote Deck の作成要求が失敗する。
+- Deck の作成が保存またはクラウドへの同期の段階で失敗する。
 
 When:
 
@@ -160,15 +159,15 @@ When:
 
 Then:
 
-- cache への反映で操作を完了し、その後に検出した同期エラーを共通 toast で表示する。
-- 失敗 toast は共通の既定時間で自動非表示になる。
-- SDK が拒否した Deck は remote と cache の有効データには残らない。
-- 未処理の browser error や独自の自動再試行を発生させない。
-- cache 保存自体が失敗した場合は入力を維持し、再送信できる。
+- ブラウザー内で保存が完了すれば、クラウドの応答待ちで操作が止まらない。後から同期失敗が判明した場合も通知される。
+- 失敗通知は既定の表示時間で自動的に消える。
+- 保存を拒否された Deck は、利用できる Deck として一覧に残らない。
+- 操作していないのに新しい Deck が繰り返し作成されたり、失敗が未処理の browser error になったりしない。
+- ブラウザー内で保存できなかった場合は入力が維持され、利用者が保存を再試行できる。
 
 <a id="deck-management-07"></a>
 
-### DECK-MANAGEMENT-07 空の local-only Deck を作成して reload 後も確認できる
+### DECK-MANAGEMENT-07 匿名で空の Deck を作成して reload 後も確認できる
 
 カテゴリ: `write`
 
@@ -176,7 +175,7 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしていない匿名ユーザーである。
-- 作成対象の Deck は現在の UID の remote data と local-only data のどちらにも存在しない。
+- 作成対象の Deck はまだ存在しない。
 
 When:
 
@@ -184,11 +183,10 @@ When:
 
 Then:
 
-- 作成画面に保存先選択はなく、現在の匿名 UID の Firestore cache に保存する。
-- Deck の作成成功が共通 toast で表示される。
-- 作成した空の Deck が reload 後も Deck 一覧に表示される。
-- 作成した Deck は browser storage に一つだけ存在する。
-- remote data に同じ Deck が存在しない。
+- 作成画面に保存先の選択肢はない。
+- Deck の作成成功が通知される。
+- 作成した空の Deck が同じブラウザーで reload した後も、一つだけ Deck 一覧に表示される。
+- 作成した Deck はこのブラウザーだけで利用でき、クラウドには追加されない。
 - 対象 Deck に Card が存在しない。
 - browser error が発生しない。
 
@@ -203,7 +201,7 @@ Given:
 - Fixture: [`deck-unsaved-navigation`](./fixture/deck-unsaved-navigation.yaml)
 - 認証済みユーザーが所有する編集対象の Deck が存在する。
 - Deck 編集画面で name を変更し、まだ保存していない。
-- 永続する共通 toast が表示されている。
+- 通知が表示されている。
 
 When:
 
@@ -212,8 +210,8 @@ When:
 Then:
 
 - 最初の離脱は取り消され、変更した name が編集画面に維持される。
-- 離脱確認 dialog 表示中の toast は操作 control と pointer hit target を持たない。
-- dialog 表示中に toast が消えるか置き換わっても、focus は Keep editing に維持される。
+- 離脱確認 dialog 表示中は、通知が重なっていても dialog の操作を妨げない。
+- dialog 表示中に通知が消えるか置き換わっても、focus は Keep editing に維持される。
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。
-- 永続化された Deck の name は変更されない。
+- Deck 一覧には変更前の name が表示される。
 - browser error が発生しない。
