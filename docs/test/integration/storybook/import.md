@@ -4,13 +4,9 @@
 
 CSV 選択、プレビュー、明示的な確定、診断表示と失敗・処理中の操作を確認する。
 
-## 検証境界
+CSV の選択から解析結果の表示までと、与えられた解析結果・エラーに対する UI の振る舞いを対象とする。実認証、Firestore の保存、ダウンロードファイルの内容は対象外とする。公開 callback の通知だけで保存やダウンロードの成功とは判断しない。
 
-ルート Story は実際のファイル読取・解析・プレビューを組み合わせる。DeckImportView の Story は解析結果とエラーを入力境界にする。実認証、Firestore の保存、ダウンロードファイルの内容は対象外。
-
-書式・実行前提は [README](./README.md)、関連 E2E は [import](../../e2e/import.md) を参照する。
-
-未実装のケースは見出しの `[TODO]` で示す。
+書式・実行前提は [AGENTS.md](./AGENTS.md)、関連 E2E は [import](../../e2e/import.md) を参照する。
 
 ## テストケース
 
@@ -59,7 +55,7 @@ Then:
 
 Given:
 
-- 実際のインポートルートと、有効な4列1行の storybook-import.csv を用意する。Story の再実行・再入場時も未選択状態から開始する。
+- 対象ファイルが未選択のインポート画面を表示しており、有効な4列1行の CSV ファイルがある。
 
 When:
 
@@ -79,7 +75,7 @@ Then:
 
 Given:
 
-- 日本語 locale で有効0件・無効1件、2行目が3列という診断を渡す。
+- 表示言語が日本語で、解析結果は有効0件・無効1件である。無効な行の診断は「2行目が3列」である。
 
 When:
 
@@ -99,7 +95,7 @@ Then:
 
 Given:
 
-- authentication、account-changed、permission-denied、unavailable、QuotaExceededError、未知の例外を英語で個別に表示する。
+- 認証失敗、アカウントの変更、権限不足、接続不可、保存容量不足、原因不明の例外について、それぞれ対応するプレビュー失敗の案内を英語で表示している。各原因を独立した入力例とする。
 
 When:
 
@@ -119,7 +115,7 @@ Then:
 
 Given:
 
-- uniqueKey「自作キー」の重複と context「ユーザー入力」、2列の行、空 CSV、不正な閉じ引用符、未知の parser エラーを渡す。
+- uniqueKey「自作キー」の重複と診断対象の文字列「ユーザー入力」、2列の行、空 CSV、不正な閉じ引用符、未知の解析エラーについて、それぞれの診断を英語で表示している。
 
 When:
 
@@ -159,7 +155,7 @@ Then:
 
 Given:
 
-- インポート処理中の状態を渡す。
+- インポート処理中である。
 
 When:
 
@@ -179,7 +175,7 @@ Then:
 
 Given:
 
-- Basic / Math / Markdown / Sample deck の4条件を用意する。対応 ID は basic / math / markdown / deck である。
+- Basic / Math / Markdown / Sample deck の各サンプルを選択できる。操作要求に用いる ID は、それぞれ basic / math / markdown / deck である。
 
 When:
 
@@ -199,11 +195,11 @@ Then:
 
 Given:
 
-- ファイル選択 callback を渡す。
+- 対象ファイルが未選択で、ファイル選択を利用できる。
 
 When:
 
-- deck.csv を選択し、プレビューを渡した後、再度ファイルを選択する。
+- deck.csv を選択し、そのプレビューが表示された後、再度ファイルを選択する。
 
 Then:
 
@@ -219,7 +215,7 @@ Then:
 
 Given:
 
-- 表面 front、裏面 back、uniqueKey key-1 の有効1件と空行1件スキップのプレビューを渡す。
+- 表面 front、裏面 back、uniqueKey key-1 の有効1件と、空行1件のスキップを示すプレビューがある。
 
 When:
 
@@ -240,7 +236,7 @@ Then:
 
 Given:
 
-- 英語 locale で有効1件と、3行目の uniqueKey が空という無効1件を渡す。
+- 表示言語が英語で、解析結果には有効1件と、3行目の uniqueKey が空という無効1件がある。
 
 When:
 
@@ -260,7 +256,7 @@ Then:
 
 Given:
 
-- プレビュー準備に失敗した状態を渡す。
+- ファイルの読み取りに失敗し、プレビューを準備できていない。失敗の内部情報には file read failed が含まれる。
 
 When:
 
