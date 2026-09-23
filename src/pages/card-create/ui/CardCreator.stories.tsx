@@ -52,12 +52,14 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const Saving: Story = { args: { isSaving: true } };
 export const Interaction: Story = {
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.type(canvas.getByRole("textbox", { name: "Front text" }), "Hello");
-    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
-    await userEvent.type(canvas.getByRole("textbox", { name: "Back text" }), "Hola");
-    await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
-    await expect(args.onSubmit).toHaveBeenCalledOnce();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-FORM-05 Submit card", async () => {
+      await userEvent.type(canvas.getByRole("textbox", { name: "Front text" }), "Hello");
+      await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+      await userEvent.type(canvas.getByRole("textbox", { name: "Back text" }), "Hola");
+      await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
+      await expect(args.onSubmit).toHaveBeenCalledOnce();
+    });
   },
 };
 export const Mobile: Story = { globals: { viewport: { value: "iphonex", isRotated: false } } };

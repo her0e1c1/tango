@@ -4,8 +4,6 @@
 
 Deck の作成・部分更新・論理削除を、Firestore 上の保存値として確認する。
 
-対応ファイル: [`deck.spec.ts`](../../../test/integration/firestore/deck.spec.ts)
-
 関連 E2E: [DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)、[DECK-MANAGEMENT-02](../../e2e/deck-management.md#deck-management-02)、[DECK-MANAGEMENT-05](../../e2e/deck-management.md#deck-management-05)
 
 ## 共通前提
@@ -21,16 +19,14 @@ Deck の作成・部分更新・論理削除を、Firestore 上の保存値と�
 | FIRESTORE-DECK-02 | write | [Deck の編集で作成日時と対象外フィールドを維持できる](#firestore-deck-02) |
 | FIRESTORE-DECK-03 | write | [URL の省略と明示的なクリアを区別できる](#firestore-deck-03) |
 | FIRESTORE-DECK-04 | batch | [Deck と配下 Card をまとめて論理削除できる](#firestore-deck-04) |
-| FIRESTORE-DECK-05 | batch | [Card がない Deck を論理削除できる](#firestore-deck-05) |
-| FIRESTORE-DECK-06 | batch | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06) |
+| FIRESTORE-DECK-05 | batch | [Card がない Deck を論理削除できる](#firestore-deck-05)（未実装・未検証） |
+| FIRESTORE-DECK-06 | batch | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06)（未実装・未検証） |
 
 <a id="firestore-deck-01"></a>
 
 ### FIRESTORE-DECK-01 Deck の保存対象だけを新規作成できる
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-DECK-01] should create a deck and check if exists`
 
 Given:
 
@@ -53,8 +49,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-DECK-02] should update a deck`
-
 Given:
 
 - 本人の Deck が存在し、作成直後の保存値を取得している。
@@ -74,8 +68,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-DECK-03] preserves an omitted URL and removes a cleared URL`
-
 Given:
 
 - 本人の Deck に URL `https://example.com/deck` が保存されている。
@@ -94,8 +86,6 @@ Then:
 ### FIRESTORE-DECK-04 Deck と配下 Card をまとめて論理削除できる
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-DECK-04] tombstones a Deck and all child Cards atomically`
 
 Given:
 
@@ -119,7 +109,7 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-DECK-05] tombstones an empty Deck`
+検証状況: **未実装・未検証（TODO）**。以下は期待仕様であり、検証済みの保証ではない。
 
 Given:
 
@@ -140,7 +130,7 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-DECK-06] leaves the Deck and all child Cards unchanged when the delete batch is rejected`
+検証状況: **未実装・未検証（TODO）**。以下は期待仕様であり、検証済みの保証ではない。
 
 Given:
 

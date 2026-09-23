@@ -80,10 +80,12 @@ export const Default: Story = {};
 
 export const AddCard: Story = {
   args: { onAddCard: fn() },
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
-    await userEvent.click(canvas.getByRole("menuitem", { name: "Add card" }));
-    await expect(args.onAddCard).toHaveBeenCalledOnce();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-01 Request card creation", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Actions" }));
+      await userEvent.click(canvas.getByRole("menuitem", { name: "Add card" }));
+      await expect(args.onAddCard).toHaveBeenCalledOnce();
+    });
   },
 };
 
@@ -96,10 +98,12 @@ export const Empty: Story = {
     },
     filter: { selectedTags: [] },
   },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByText("0 cards")).toBeVisible();
-    await expect(canvas.getByRole("heading", { name: "No cards yet" })).toBeVisible();
-    await expect(canvas.getByRole("button", { name: "Add card" })).toBeVisible();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-CARD-LIST-02 Empty card collection", async () => {
+      await expect(canvas.getByText("0 cards")).toBeVisible();
+      await expect(canvas.getByRole("heading", { name: "No cards yet" })).toBeVisible();
+      await expect(canvas.getByRole("button", { name: "Add card" })).toBeVisible();
+    });
   },
 };
 
@@ -112,9 +116,11 @@ export const FilterZero: Story = {
     },
     filter: { selectedTags: ["react"] },
   },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("heading", { name: "No cards match the active filters" })).toBeVisible();
-    await expect(canvas.getByRole("button", { name: "Clear filters" })).toBeVisible();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-CARD-LIST-03 Empty filtered result", async () => {
+      await expect(canvas.getByRole("heading", { name: "No cards match the active filters" })).toBeVisible();
+      await expect(canvas.getByRole("button", { name: "Clear filters" })).toBeVisible();
+    });
   },
 };
 
@@ -126,32 +132,38 @@ export const IntervalZero: Story = {
     },
     filter: { selectedTags: [] },
   },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("heading", { name: "No cards due for review" })).toBeVisible();
-    await expect(canvas.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-CARD-LIST-04 No cards due", async () => {
+      await expect(canvas.getByRole("heading", { name: "No cards due for review" })).toBeVisible();
+      await expect(canvas.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
+    });
   },
 };
 
 export const ViewCard: Story = {
   args: { onShowCard: fn() },
-  play: async ({ args, canvas, userEvent }) => {
-    const [viewButton] = canvas.getAllByRole("button", { name: /^View / });
-    const [firstCard] = fixture.cards.default;
-    if (viewButton == null || firstCard == null) throw new Error("ViewCard requires at least one Card");
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-05 View selected card", async () => {
+      const [viewButton] = canvas.getAllByRole("button", { name: /^View / });
+      const [firstCard] = fixture.cards.default;
+      if (viewButton == null || firstCard == null) throw new Error("ViewCard requires at least one Card");
 
-    await userEvent.click(viewButton);
+      await userEvent.click(viewButton);
 
-    await expect(args.onShowCard).toHaveBeenCalledWith(firstCard.id);
+      await expect(args.onShowCard).toHaveBeenCalledWith(firstCard.id);
+    });
   },
 };
 
 export const RemovableSelectedTags: Story = {
   args: { onRemoveTag: fn() },
   render: (args) => <RemovableSelectedTagsExample onRemoveTag={args.onRemoveTag} />,
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Remove TypeScript filter" }));
-    await expect(args.onRemoveTag).toHaveBeenCalledWith("TypeScript");
-    await expect(canvas.queryByRole("button", { name: "Remove TypeScript filter" })).not.toBeInTheDocument();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-06 Remove selected tag", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Remove TypeScript filter" }));
+      await expect(args.onRemoveTag).toHaveBeenCalledWith("TypeScript");
+      await expect(canvas.queryByRole("button", { name: "Remove TypeScript filter" })).not.toBeInTheDocument();
+    });
   },
 };
 
@@ -174,10 +186,12 @@ export const DarkCardView: Story = {
 export const CardViewInteraction: Story = {
   args: { overlay: cardViewOverlay(false) },
   render: (args) => <ClosableCardViewExample {...args} />,
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Close card" }));
-    await expect(args.overlay?.onClose).toHaveBeenCalledOnce();
-    await expect(canvas.queryByRole("button", { name: "Close card" })).not.toBeInTheDocument();
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-07 Close card overlay", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Close card" }));
+      await expect(args.overlay?.onClose).toHaveBeenCalledOnce();
+      await expect(canvas.queryByRole("button", { name: "Close card" })).not.toBeInTheDocument();
+    });
   },
 };
 
@@ -198,9 +212,11 @@ export const IphoneXLong: Story = {
 
 export const NewestAdded: Story = {
   args: { sortOrder: "newest" },
-  play: async ({ args, canvas, userEvent }) => {
-    await userEvent.selectOptions(canvas.getByRole("combobox", { name: "Sort order" }), "standard");
-    await expect(args.onSortOrderChange).toHaveBeenCalledWith("standard");
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-08 Change sort order", async () => {
+      await userEvent.selectOptions(canvas.getByRole("combobox", { name: "Sort order" }), "standard");
+      await expect(args.onSortOrderChange).toHaveBeenCalledWith("standard");
+    });
   },
 };
 

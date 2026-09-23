@@ -14,30 +14,28 @@ AccountView の表示・callback と、実際の AccountPage / ToastViewport / �
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-ACCOUNT-01 | interaction | [匿名アカウントからログインを要求する](#storybook-account-01) | AccountView :: `Anonymous` |
-| STORYBOOK-ACCOUNT-02 | interaction | [ログアウトを要求する](#storybook-account-02) | AccountView :: `SignedIn` |
-| STORYBOOK-ACCOUNT-03 | render | [ログイン待機中の操作を無効にする](#storybook-account-03) | AccountView :: `SigningIn` |
-| STORYBOOK-ACCOUNT-04 | render | [ログアウト待機中の操作を無効にする](#storybook-account-04) | AccountView :: `SigningOut` |
-| STORYBOOK-ACCOUNT-05 | render | [日本語の画面を表示する](#storybook-account-05) | AccountView :: `Japanese` |
-| STORYBOOK-ACCOUNT-06 | render | [認証状態と UID を表示する](#storybook-account-06) | App :: `Account`（未実装） |
-| STORYBOOK-ACCOUNT-07 | interaction | [先行操作の完了で別操作の待機を解除しない](#storybook-account-07) | App :: `Account`（未実装） |
-| STORYBOOK-ACCOUNT-08 | interaction | [言語変更でプロフィール値を変えない](#storybook-account-08) | App :: `Account`（未実装） |
-| STORYBOOK-ACCOUNT-09 | interaction | [ショートカットでホームへ戻る](#storybook-account-09) | App :: `Account`（未実装） |
-| STORYBOOK-ACCOUNT-10 | interaction | [認証失敗後に再試行する](#storybook-account-10) | App :: `Account`（未実装） |
-| STORYBOOK-ACCOUNT-11 | interaction | [表示済みの通知を画面離脱だけで消さない](#storybook-account-11) | App :: `Account`（未実装） |
-| STORYBOOK-ACCOUNT-12 | interaction | [画面離脱後に届く失敗も通知する](#storybook-account-12) | App :: `Account`（未実装） |
-| STORYBOOK-ACCOUNT-13 | interaction | [日本語で認証結果を通知する](#storybook-account-13) | App :: `Account`（未実装） |
-| STORYBOOK-ACCOUNT-14 | interaction | [画面へ戻っても待機状態を保つ](#storybook-account-14) | App :: `Account`（未実装） |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-ACCOUNT-01 | interaction | [匿名アカウントからログインを要求する](#storybook-account-01) |
+| STORYBOOK-ACCOUNT-02 | interaction | [ログアウトを要求する](#storybook-account-02) |
+| STORYBOOK-ACCOUNT-03 | render | [ログイン待機中の操作を無効にする](#storybook-account-03) |
+| STORYBOOK-ACCOUNT-04 | render | [ログアウト待機中の操作を無効にする](#storybook-account-04) |
+| STORYBOOK-ACCOUNT-05 | render | [日本語の画面を表示する](#storybook-account-05) |
+| STORYBOOK-ACCOUNT-06 | render | [認証状態と UID を表示する](#storybook-account-06) |
+| STORYBOOK-ACCOUNT-07 | interaction | [先行操作の完了で別操作の待機を解除しない](#storybook-account-07) |
+| STORYBOOK-ACCOUNT-08 | interaction | [言語変更でプロフィール値を変えない](#storybook-account-08) |
+| STORYBOOK-ACCOUNT-09 | interaction | [ショートカットでホームへ戻る](#storybook-account-09) |
+| STORYBOOK-ACCOUNT-10 | interaction | [認証失敗後に再試行する](#storybook-account-10) |
+| STORYBOOK-ACCOUNT-11 | interaction | [表示済みの通知を画面離脱だけで消さない](#storybook-account-11) |
+| STORYBOOK-ACCOUNT-12 | interaction | [画面離脱後に届く失敗も通知する](#storybook-account-12) |
+| STORYBOOK-ACCOUNT-13 | interaction | [日本語で認証結果を通知する](#storybook-account-13) |
+| STORYBOOK-ACCOUNT-14 | interaction | [画面へ戻っても待機状態を保つ](#storybook-account-14) |
 
 <a id="storybook-account-01"></a>
 
 ### STORYBOOK-ACCOUNT-01 匿名アカウントからログインを要求する
 
 カテゴリ: `interaction`
-
-対応 Story: [AccountView.stories.tsx](../../../../src/pages/account/ui/AccountView.stories.tsx) :: `Anonymous`
 
 Given:
 
@@ -57,8 +55,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [AccountView.stories.tsx](../../../../src/pages/account/ui/AccountView.stories.tsx) :: `SignedIn`
-
 Given:
 
 - 表示名 Maya の連携済みアカウントで、処理中ではない。
@@ -76,8 +72,6 @@ Then:
 ### STORYBOOK-ACCOUNT-03 ログイン待機中の操作を無効にする
 
 カテゴリ: `render`
-
-対応 Story: [AccountView.stories.tsx](../../../../src/pages/account/ui/AccountView.stories.tsx) :: `SigningIn`
 
 Given:
 
@@ -97,8 +91,6 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [AccountView.stories.tsx](../../../../src/pages/account/ui/AccountView.stories.tsx) :: `SigningOut`
-
 Given:
 
 - 連携済みアカウントでログアウト処理中である。
@@ -116,8 +108,6 @@ Then:
 ### STORYBOOK-ACCOUNT-05 日本語の画面を表示する
 
 カテゴリ: `render`
-
-対応 Story: [AccountView.stories.tsx](../../../../src/pages/account/ui/AccountView.stories.tsx) :: `Japanese`
 
 Given:
 
@@ -137,9 +127,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Account`（追加先、未実装）
-
-元テスト: [AccountPage.spec.tsx](../../../../src/pages/account/ui/AccountPage.spec.tsx) の匿名・連携済み identity。
+検証状況: 未実装
 
 Given:
 
@@ -160,9 +148,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Account`（追加先、未実装）
-
-元テスト: [AccountPage.spec.tsx](../../../../src/pages/account/ui/AccountPage.spec.tsx) の認証遷移中の重なった操作。
+検証状況: 未実装
 
 Given:
 
@@ -183,9 +169,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Account`（追加先、未実装）
-
-元テスト: [AccountPage.spec.tsx](../../../../src/pages/account/ui/AccountPage.spec.tsx) の固定文言の言語変更。
+検証状況: 未実装
 
 Given:
 
@@ -205,9 +189,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Account`（追加先、未実装）
-
-元テスト: [AccountPage.spec.tsx](../../../../src/pages/account/ui/AccountPage.spec.tsx) の route shortcut。
+検証状況: 未実装
 
 Given:
 
@@ -227,9 +209,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Account`（追加先、未実装）
-
-元テスト: [AccountPage.spec.tsx](../../../../src/pages/account/ui/AccountPage.spec.tsx) のログイン・ログアウト再試行。
+検証状況: 未実装
 
 Given:
 
@@ -249,9 +229,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Account`（追加先、未実装）
-
-元テスト: [AccountPage.spec.tsx](../../../../src/pages/account/ui/AccountPage.spec.tsx) の処理済み失敗通知と画面離脱。
+検証状況: 未実装
 
 Given:
 
@@ -271,9 +249,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Account`（追加先、未実装）
-
-元テスト: [AccountPage.spec.tsx](../../../../src/pages/account/ui/AccountPage.spec.tsx) の離脱後に到着するログイン・ログアウト失敗。
+検証状況: 未実装
 
 Given:
 
@@ -293,9 +269,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Account`（追加先、未実装）
-
-元テスト: [AccountPage.spec.tsx](../../../../src/pages/account/ui/AccountPage.spec.tsx) の日本語 toast。
+検証状況: 未実装
 
 Given:
 
@@ -315,9 +289,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Account`（追加先、未実装）
-
-元テスト: [AccountPage.pending.spec.tsx](../../../../src/pages/account/ui/AccountPage.pending.spec.tsx) の remount 後の pending。
+検証状況: 未実装
 
 Given:
 

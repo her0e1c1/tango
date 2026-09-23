@@ -10,31 +10,29 @@ SettingsForm と実際の React Hook Form、SettingsSection / SettingsRow / Swit
 
 書式・実行前提は [README](./README.md)、関連 E2E は [settings](../../e2e/settings.md) を参照する。
 
-04〜11 は Vitest から追加した契約で、対応 Story は追加先を示す。各ケースの準備とアサーションは未実装である。
+04〜11 は Vitest から追加した契約で、各ケースの準備とアサーションは未実装である。
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-SETTINGS-01 | render | [設定を日本語で表示する](#storybook-settings-01) | SettingsForm :: `Japanese` |
-| STORYBOOK-SETTINGS-02 | interaction | [再生操作の表示設定を切り替える](#storybook-settings-02) | SettingsForm :: `Interaction` |
-| STORYBOOK-SETTINGS-03 | interaction | [セクション内のスイッチ変更を通知する](#storybook-settings-03) | SettingsSection :: `Interaction` |
-| STORYBOOK-SETTINGS-04 | render | [設定とアカウント操作を分離する](#storybook-settings-04) | App :: `Settings`（未実装） |
-| STORYBOOK-SETTINGS-05 | interaction | [入力変更を表示に反映する](#storybook-settings-05) | SettingsForm :: `Interaction`（未実装） |
-| STORYBOOK-SETTINGS-06 | render | [復習説明とバージョン情報を表示する](#storybook-settings-06) | SettingsForm :: `Interaction`（未実装） |
-| STORYBOOK-SETTINGS-07 | render | [ラベルと説明を対応する UI に関連付ける](#storybook-settings-07) | SettingsSection :: `Interaction`（未実装） |
-| STORYBOOK-SETTINGS-08 | render | [日本語の操作名と読み上げ値を表示する](#storybook-settings-08) | SettingsForm :: `Japanese`（未実装） |
-| STORYBOOK-SETTINGS-09 | interaction | [最大カード数0を全件として説明する](#storybook-settings-09) | SettingsForm :: `Interaction`（未実装） |
-| STORYBOOK-SETTINGS-10 | interaction | [再生間隔の境界値を説明する](#storybook-settings-10) | SettingsForm :: `Interaction`（未実装） |
-| STORYBOOK-SETTINGS-11 | interaction | [ショートカットでホームへ戻る](#storybook-settings-11) | App :: `Settings`（未実装） |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-SETTINGS-01 | render | [設定を日本語で表示する](#storybook-settings-01) |
+| STORYBOOK-SETTINGS-02 | interaction | [再生操作の表示設定を切り替える](#storybook-settings-02) |
+| STORYBOOK-SETTINGS-03 | interaction | [セクション内のスイッチ変更を通知する](#storybook-settings-03) |
+| STORYBOOK-SETTINGS-04 | render | [設定とアカウント操作を分離する](#storybook-settings-04) |
+| STORYBOOK-SETTINGS-05 | interaction | [入力変更を表示に反映する](#storybook-settings-05) |
+| STORYBOOK-SETTINGS-06 | render | [復習説明とバージョン情報を表示する](#storybook-settings-06) |
+| STORYBOOK-SETTINGS-07 | render | [ラベルと説明を対応する UI に関連付ける](#storybook-settings-07) |
+| STORYBOOK-SETTINGS-08 | render | [日本語の操作名と読み上げ値を表示する](#storybook-settings-08) |
+| STORYBOOK-SETTINGS-09 | interaction | [最大カード数0を全件として説明する](#storybook-settings-09) |
+| STORYBOOK-SETTINGS-10 | interaction | [再生間隔の境界値を説明する](#storybook-settings-10) |
+| STORYBOOK-SETTINGS-11 | interaction | [ショートカットでホームへ戻る](#storybook-settings-11) |
 
 <a id="storybook-settings-01"></a>
 
 ### STORYBOOK-SETTINGS-01 設定を日本語で表示する
 
 カテゴリ: `render`
-
-対応 Story: [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Japanese`
 
 Given:
 
@@ -54,8 +52,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction`
-
 Given:
 
 - 実際の React Hook Form を持つ設定画面を表示する。
@@ -73,8 +69,6 @@ Then:
 ### STORYBOOK-SETTINGS-03 セクション内のスイッチ変更を通知する
 
 カテゴリ: `interaction`
-
-対応 Story: [SettingsSection.stories.tsx](../../../../src/pages/settings/ui/SettingsSection.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -94,9 +88,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Settings`（追加先、未実装）
-
-元テスト: [SettingsForm.spec.tsx](../../../../src/pages/settings/ui/SettingsForm.spec.tsx) の設定のグループ化、[SettingsPage.spec.tsx](../../../../src/pages/settings/ui/SettingsPage.spec.tsx) のアカウント操作との分離。
+検証状況: 未実装
 
 Given:
 
@@ -117,9 +109,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [SettingsForm.spec.tsx](../../../../src/pages/settings/ui/SettingsForm.spec.tsx) の RHF registration。
+検証状況: 未実装
 
 Given:
 
@@ -140,9 +130,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [SettingsForm.spec.tsx](../../../../src/pages/settings/ui/SettingsForm.spec.tsx) の scheduling descriptions / metadata。
+検証状況: 未実装
 
 Given:
 
@@ -163,9 +151,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [SettingsSection.stories.tsx](../../../../src/pages/settings/ui/SettingsSection.stories.tsx) :: `Interaction`（追加先、未実装） / [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [SettingsSection.spec.tsx](../../../../src/pages/settings/ui/SettingsSection.spec.tsx) の見出し・入力の関連付け、[SettingsForm.spec.tsx](../../../../src/pages/settings/ui/SettingsForm.spec.tsx) の複数インスタンス。
+検証状況: 未実装
 
 Given:
 
@@ -186,9 +172,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Japanese`（追加先、未実装）
-
-元テスト: [SettingsForm.spec.tsx](../../../../src/pages/settings/ui/SettingsForm.spec.tsx) の Japanese presentation / accessible value text。
+検証状況: 未実装
 
 Given:
 
@@ -208,9 +192,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [SettingsForm.spec.tsx](../../../../src/pages/settings/ui/SettingsForm.spec.tsx) の zero / positive counts。
+検証状況: 未実装
 
 Given:
 
@@ -231,9 +213,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [SettingsForm.autoplay.spec.tsx](../../../../src/pages/settings/ui/SettingsForm.autoplay.spec.tsx)。
+検証状況: 未実装
 
 Given:
 
@@ -255,9 +235,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Settings`（追加先、未実装）
-
-元テスト: [SettingsPage.spec.tsx](../../../../src/pages/settings/ui/SettingsPage.spec.tsx) の route shortcut。
+検証状況: 未実装
 
 Given:
 

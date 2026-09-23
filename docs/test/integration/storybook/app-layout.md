@@ -14,18 +14,16 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-APP-LAYOUT-01 | interaction | [固定 Header が本文に重ならずスクロール中も同じ位置に残る](#storybook-app-layout-01) | [AppLayout.stories.tsx](../../../../src/app/AppLayout.stories.tsx) :: `FixedByDefault` |
-| STORYBOOK-APP-LAYOUT-02 | render | [固定を無効にした Header の下に本文を配置する](#storybook-app-layout-02) | [AppLayout.stories.tsx](../../../../src/app/AppLayout.stories.tsx) :: `FixedHeaderDisabled` |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-APP-LAYOUT-01 | interaction | [固定 Header が本文に重ならずスクロール中も同じ位置に残る](#storybook-app-layout-01) |
+| STORYBOOK-APP-LAYOUT-02 | render | [固定を無効にした Header の下に本文を配置する](#storybook-app-layout-02) |
 
 <a id="storybook-app-layout-01"></a>
 
 ### STORYBOOK-APP-LAYOUT-01 固定 Header が本文に重ならずスクロール中も同じ位置に残る
 
 カテゴリ: `interaction`
-
-対応 Story: [AppLayout.stories.tsx](../../../../src/app/AppLayout.stories.tsx) :: `FixedByDefault`
 
 Given:
 
@@ -46,8 +44,6 @@ Then:
 ### STORYBOOK-APP-LAYOUT-02 固定を無効にした Header の下に本文を配置する
 
 カテゴリ: `render`
-
-対応 Story: [AppLayout.stories.tsx](../../../../src/app/AppLayout.stories.tsx) :: `FixedHeaderDisabled`
 
 Given:
 

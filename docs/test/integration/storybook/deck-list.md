@@ -10,46 +10,44 @@ DeckList と実際の DeckListCard / DeckActionsMenu を組み合わせ、表示
 
 書式・実行前提は [README](./README.md)、関連 E2E は [deck-navigation](../../e2e/deck-navigation.md) と [study-session](../../e2e/study-session.md) を参照する。
 
-09〜26 は Vitest から追加した契約で、対応 Story は追加先を示す。各条件の準備とアサーションは未実装である。DeckListCard の契約は実際の行を含む DeckList の Story に紐付ける。
+09〜26 は Vitest から追加した契約で、各条件の準備とアサーションは未実装である。DeckListCard の契約は実際の行を含む DeckList の Story に紐付ける。
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-DECK-LIST-01 | interaction | [Deck 作成を要求する](#storybook-deck-list-01) | DeckList :: `ListActions` |
-| STORYBOOK-DECK-LIST-02 | interaction | [Deck インポートを要求する](#storybook-deck-list-02) | DeckList :: `ListActions` |
-| STORYBOOK-DECK-LIST-03 | render | [固定文言だけを日本語にする](#storybook-deck-list-03) | DeckList :: `Japanese` |
-| STORYBOOK-DECK-LIST-04 | interaction | [Deck の閲覧を要求する](#storybook-deck-list-04) | DeckList :: `ViewDeck` |
-| STORYBOOK-DECK-LIST-05 | render | [空の一覧にも追加導線を表示する](#storybook-deck-list-05) | DeckList :: `Empty` |
-| STORYBOOK-DECK-LIST-06 | render | [復習対象・新規件数と説明を表示する](#storybook-deck-list-06) | DeckList :: `ReviewCounts` |
-| STORYBOOK-DECK-LIST-07 | interaction | [ダウンロードを要求してメニューを閉じる](#storybook-deck-list-07) | DeckActionsMenu :: `Interaction` |
-| STORYBOOK-DECK-LIST-08 | interaction | [学習履歴を要求する](#storybook-deck-list-08) | DeckActionsMenu :: `History` |
-| STORYBOOK-DECK-LIST-09 | render | [学習中と未開始を一つの一覧に表示する](#storybook-deck-list-09) | DeckList :: `ViewDeck`（未実装） |
-| STORYBOOK-DECK-LIST-10 | interaction | [複数のメニューを同時に開かない](#storybook-deck-list-10) | DeckList :: `ListActions`（未実装） |
-| STORYBOOK-DECK-LIST-11 | interaction | [追加メニューをキーボードで開閉する](#storybook-deck-list-11) | DeckList :: `ListActions`（未実装） |
-| STORYBOOK-DECK-LIST-12 | interaction | [作成要求後に追加ボタンへ戻る](#storybook-deck-list-12) | DeckList :: `ListActions`（未実装） |
-| STORYBOOK-DECK-LIST-13 | render | [確認中に空の一覧と断定しない](#storybook-deck-list-13) | DeckList :: `Empty`（未実装） |
-| STORYBOOK-DECK-LIST-14 | interaction | [初期データ取得失敗から操作を選ぶ](#storybook-deck-list-14) | DeckList :: `Empty`（未実装） |
-| STORYBOOK-DECK-LIST-15 | interaction | [復習対象0件の理由を区別する](#storybook-deck-list-15) | DeckList :: `ReviewCounts`（未実装） |
-| STORYBOOK-DECK-LIST-16 | interaction | [復習と新規学習を区別して要求する](#storybook-deck-list-16) | DeckList :: `ReviewCounts`（未実装） |
-| STORYBOOK-DECK-LIST-17 | render | [学習位置を表示する](#storybook-deck-list-17) | DeckList :: `ViewDeck`（未実装） |
-| STORYBOOK-DECK-LIST-18 | interaction | [Study で行の閲覧を起動しない](#storybook-deck-list-18) | DeckList :: `ViewDeck`（未実装） |
-| STORYBOOK-DECK-LIST-19 | interaction | [各操作に対象 ID を渡す](#storybook-deck-list-19) | DeckList :: `ViewDeck`（未実装） |
-| STORYBOOK-DECK-LIST-20 | render | [ローカル Deck にリモート表示を付けない](#storybook-deck-list-20) | DeckList :: `ViewDeck`（未実装） |
-| STORYBOOK-DECK-LIST-21 | render | [処理中の行だけを無効にする](#storybook-deck-list-21) | DeckList :: `ViewDeck`（未実装） |
-| STORYBOOK-DECK-LIST-22 | render | [未開始なら Restart を表示しない](#storybook-deck-list-22) | DeckActionsMenu :: `Interaction`（未実装） |
-| STORYBOOK-DECK-LIST-23 | interaction | [メニューを矢印キーで移動する](#storybook-deck-list-23) | DeckActionsMenu :: `Interaction`（未実装） |
-| STORYBOOK-DECK-LIST-24 | interaction | [メニュー内のフォーカス移動で操作を失わない](#storybook-deck-list-24) | DeckActionsMenu :: `Interaction`（未実装） |
-| STORYBOOK-DECK-LIST-25 | interaction | [外へ移ったフォーカスを奪わない](#storybook-deck-list-25) | DeckActionsMenu :: `Interaction`（未実装） |
-| STORYBOOK-DECK-LIST-26 | interaction | [再有効化してもメニューを閉じたままにする](#storybook-deck-list-26) | DeckActionsMenu :: `Interaction`（未実装） |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-DECK-LIST-01 | interaction | [Deck 作成を要求する](#storybook-deck-list-01) |
+| STORYBOOK-DECK-LIST-02 | interaction | [Deck インポートを要求する](#storybook-deck-list-02) |
+| STORYBOOK-DECK-LIST-03 | render | [固定文言だけを日本語にする](#storybook-deck-list-03) |
+| STORYBOOK-DECK-LIST-04 | interaction | [Deck の閲覧を要求する](#storybook-deck-list-04) |
+| STORYBOOK-DECK-LIST-05 | render | [空の一覧にも追加導線を表示する](#storybook-deck-list-05) |
+| STORYBOOK-DECK-LIST-06 | render | [復習対象・新規件数と説明を表示する](#storybook-deck-list-06) |
+| STORYBOOK-DECK-LIST-07 | interaction | [ダウンロードを要求してメニューを閉じる](#storybook-deck-list-07) |
+| STORYBOOK-DECK-LIST-08 | interaction | [学習履歴を要求する](#storybook-deck-list-08) |
+| STORYBOOK-DECK-LIST-09 | render | [学習中と未開始を一つの一覧に表示する](#storybook-deck-list-09) |
+| STORYBOOK-DECK-LIST-10 | interaction | [複数のメニューを同時に開かない](#storybook-deck-list-10) |
+| STORYBOOK-DECK-LIST-11 | interaction | [追加メニューをキーボードで開閉する](#storybook-deck-list-11) |
+| STORYBOOK-DECK-LIST-12 | interaction | [作成要求後に追加ボタンへ戻る](#storybook-deck-list-12) |
+| STORYBOOK-DECK-LIST-13 | render | [確認中に空の一覧と断定しない](#storybook-deck-list-13) |
+| STORYBOOK-DECK-LIST-14 | interaction | [初期データ取得失敗から操作を選ぶ](#storybook-deck-list-14) |
+| STORYBOOK-DECK-LIST-15 | interaction | [復習対象0件の理由を区別する](#storybook-deck-list-15) |
+| STORYBOOK-DECK-LIST-16 | interaction | [復習と新規学習を区別して要求する](#storybook-deck-list-16) |
+| STORYBOOK-DECK-LIST-17 | render | [学習位置を表示する](#storybook-deck-list-17) |
+| STORYBOOK-DECK-LIST-18 | interaction | [Study で行の閲覧を起動しない](#storybook-deck-list-18) |
+| STORYBOOK-DECK-LIST-19 | interaction | [各操作に対象 ID を渡す](#storybook-deck-list-19) |
+| STORYBOOK-DECK-LIST-20 | render | [ローカル Deck にリモート表示を付けない](#storybook-deck-list-20) |
+| STORYBOOK-DECK-LIST-21 | render | [処理中の行だけを無効にする](#storybook-deck-list-21) |
+| STORYBOOK-DECK-LIST-22 | render | [未開始なら Restart を表示しない](#storybook-deck-list-22) |
+| STORYBOOK-DECK-LIST-23 | interaction | [メニューを矢印キーで移動する](#storybook-deck-list-23) |
+| STORYBOOK-DECK-LIST-24 | interaction | [メニュー内のフォーカス移動で操作を失わない](#storybook-deck-list-24) |
+| STORYBOOK-DECK-LIST-25 | interaction | [外へ移ったフォーカスを奪わない](#storybook-deck-list-25) |
+| STORYBOOK-DECK-LIST-26 | interaction | [再有効化してもメニューを閉じたままにする](#storybook-deck-list-26) |
 
 <a id="storybook-deck-list-01"></a>
 
 ### STORYBOOK-DECK-LIST-01 Deck 作成を要求する
 
 カテゴリ: `interaction`
-
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions`
 
 Given:
 
@@ -69,8 +67,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions`
-
 Given:
 
 - 作成・インポート callback を渡す。
@@ -88,8 +84,6 @@ Then:
 ### STORYBOOK-DECK-LIST-03 固定文言だけを日本語にする
 
 カテゴリ: `render`
-
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Japanese`
 
 Given:
 
@@ -109,8 +103,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck`
-
 Given:
 
 - Deck 閲覧と Card 一覧への callback を区別して渡す。
@@ -128,8 +120,6 @@ Then:
 ### STORYBOOK-DECK-LIST-05 空の一覧にも追加導線を表示する
 
 カテゴリ: `render`
-
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Empty`
 
 Given:
 
@@ -149,8 +139,6 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ReviewCounts`
-
 Given:
 
 - 復習対象5件、新規5件の Deck を用意する。
@@ -168,8 +156,6 @@ Then:
 ### STORYBOOK-DECK-LIST-07 ダウンロードを要求してメニューを閉じる
 
 カテゴリ: `interaction`
-
-対応 Story: [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -189,8 +175,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `History`
-
 Given:
 
 - 学習履歴 callback を渡す。
@@ -209,9 +193,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck`（追加先、未実装）
-
-元テスト: [DeckList.spec.tsx](../../../../src/pages/deck-list/ui/DeckList.spec.tsx) の単一一覧と未開始 Deck。
+検証状況: 未実装
 
 Given:
 
@@ -232,9 +214,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions`（追加先、未実装）
-
-元テスト: [DeckList.spec.tsx](../../../../src/pages/deck-list/ui/DeckList.spec.tsx) の一覧・Deck メニューの排他。
+検証状況: 未実装
 
 Given:
 
@@ -254,9 +234,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions`（追加先、未実装）
-
-元テスト: [DeckList.spec.tsx](../../../../src/pages/deck-list/ui/DeckList.spec.tsx) の keyboard selection / Escape。
+検証状況: 未実装
 
 Given:
 
@@ -276,9 +254,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions`（追加先、未実装）
-
-元テスト: [DeckList.spec.tsx](../../../../src/pages/deck-list/ui/DeckList.spec.tsx) の作成要求後の focus。
+検証状況: 未実装
 
 Given:
 
@@ -298,9 +274,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Empty`（追加先、未実装）
-
-元テスト: [DeckList.spec.tsx](../../../../src/pages/deck-list/ui/DeckList.spec.tsx) の checking status。
+検証状況: 未実装
 
 Given:
 
@@ -320,9 +294,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Empty`（追加先、未実装）
-
-元テスト: [DeckList.spec.tsx](../../../../src/pages/deck-list/ui/DeckList.spec.tsx) の bootstrap error。
+検証状況: 未実装
 
 Given:
 
@@ -342,9 +314,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ReviewCounts`（追加先、未実装）
-
-元テスト: [DeckListCard.spec.tsx](../../../../src/pages/deck-list/ui/DeckListCard.spec.tsx) の zero-count decks。
+検証状況: 未実装
 
 Given:
 
@@ -364,9 +334,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ReviewCounts`（追加先、未実装）
-
-元テスト: [DeckListCard.spec.tsx](../../../../src/pages/deck-list/ui/DeckListCard.spec.tsx) の due / new 別の study settings。
+検証状況: 未実装
 
 Given:
 
@@ -386,9 +354,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck`（追加先、未実装）
-
-元テスト: [DeckListCard.spec.tsx](../../../../src/pages/deck-list/ui/DeckListCard.spec.tsx) の compact progress / restored position。
+検証状況: 未実装
 
 Given:
 
@@ -409,9 +375,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck`（追加先、未実装）
-
-元テスト: [DeckListCard.spec.tsx](../../../../src/pages/deck-list/ui/DeckListCard.spec.tsx) の inactive Study。
+検証状況: 未実装
 
 Given:
 
@@ -431,9 +395,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck`（追加先、未実装）
-
-元テスト: [DeckListCard.spec.tsx](../../../../src/pages/deck-list/ui/DeckListCard.spec.tsx) の navigation / management actions。
+検証状況: 未実装
 
 Given:
 
@@ -453,9 +415,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck`（追加先、未実装）
-
-元テスト: [DeckListCard.spec.tsx](../../../../src/pages/deck-list/ui/DeckListCard.spec.tsx) の local deck。
+検証状況: 未実装
 
 Given:
 
@@ -475,9 +435,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck`（追加先、未実装）
-
-元テスト: [DeckListCard.spec.tsx](../../../../src/pages/deck-list/ui/DeckListCard.spec.tsx) の pending row。
+検証状況: 未実装
 
 Given:
 
@@ -497,9 +455,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [DeckActionsMenu.spec.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.spec.tsx) の inactive menu。
+検証状況: 未実装
 
 Given:
 
@@ -519,9 +475,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [DeckActionsMenu.spec.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.spec.tsx) の arrow navigation / Escape。
+検証状況: 未実装
 
 Given:
 
@@ -541,9 +495,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [DeckActionsMenu.spec.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.spec.tsx) のメニュー内に収まる ambiguous blur。
+検証状況: 未実装
 
 Given:
 
@@ -563,9 +515,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [DeckActionsMenu.spec.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.spec.tsx) の外部要素に収まる blur。
+検証状況: 未実装
 
 Given:
 
@@ -585,9 +535,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [DeckActionsMenu.spec.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.spec.tsx) の controlled open / disabled。
+検証状況: 未実装
 
 Given:
 

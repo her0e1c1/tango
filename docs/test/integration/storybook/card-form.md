@@ -10,43 +10,41 @@ CardFields / CardCreator / CardEditor、実際の React Hook Form、プレビュ
 
 書式・実行前提は [README](./README.md)、関連 E2E は [card-management](../../e2e/card-management.md) を参照する。
 
-06〜23 は Vitest から追加した契約で、対応 Story は追加先を示す。該当ケースの準備とアサーションは未実装である。CardEditor は実際の編集画面を含むルート Story に紐付ける。
+06〜23 は Vitest から追加した契約で、該当ケースの準備とアサーションは未実装である。CardEditor は実際の編集画面を含むルート Story に紐付ける。
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-CARD-FORM-01 | interaction | [タブ間で表面の入力を保持する](#storybook-card-form-01) | CardFields :: `Interaction` |
-| STORYBOOK-CARD-FORM-02 | interaction | [タグを選択する](#storybook-card-form-02) | CardFields :: `Interaction` |
-| STORYBOOK-CARD-FORM-03 | render | [日本語エラーを入力に関連付ける](#storybook-card-form-03) | CardFields :: `JapaneseValidation` |
-| STORYBOOK-CARD-FORM-04 | interaction | [解答プレビューを開く](#storybook-card-form-04) | CardFields :: `Preview` / `MobilePreview` / `DarkCodePreview` |
-| STORYBOOK-CARD-FORM-05 | interaction | [作成操作を通知する](#storybook-card-form-05) | CardCreator :: `Interaction` |
-| STORYBOOK-CARD-FORM-06 | interaction | [拡大編集後も両面の下書きを保つ](#storybook-card-form-06) | CardFields :: `Interaction`（未実装） |
-| STORYBOOK-CARD-FORM-07 | interaction | [独自タグの選択と要約を保って送信する](#storybook-card-form-07) | CardFields :: `Interaction`（未実装） |
-| STORYBOOK-CARD-FORM-08 | interaction | [キーボードで面を切り替える](#storybook-card-form-08) | CardFields :: `Interaction`（未実装） |
-| STORYBOOK-CARD-FORM-09 | interaction | [裏面エラーを開いてフォーカスする](#storybook-card-form-09) | CardFields :: `Interaction`（未実装） |
-| STORYBOOK-CARD-FORM-10 | interaction | [未知のエラーを安全な翻訳文で表示する](#storybook-card-form-10) | CardFields :: `JapaneseValidation`（未実装） |
-| STORYBOOK-CARD-FORM-11 | interaction | [言語変更後も下書きとタグを保つ](#storybook-card-form-11) | CardFields :: `JapaneseValidation`（未実装） |
-| STORYBOOK-CARD-FORM-12 | interaction | [不完全な下書きを送信せずプレビューする](#storybook-card-form-12) | CardFields :: `Preview`（未実装） |
-| STORYBOOK-CARD-FORM-13 | interaction | [拡大編集の変更を数式プレビューに反映する](#storybook-card-form-13) | CardFields :: `Preview`（未実装） |
-| STORYBOOK-CARD-FORM-14 | interaction | [表示条件に応じてコードを表示する](#storybook-card-form-14) | CardFields :: `DarkCodePreview`（未実装） |
-| STORYBOOK-CARD-FORM-15 | interaction | [タグ変更をプレビューに反映する](#storybook-card-form-15) | CardFields :: `Preview`（未実装） |
-| STORYBOOK-CARD-FORM-16 | interaction | [言語変更後もプレビューを開いておく](#storybook-card-form-16) | CardFields :: `Preview`（未実装） |
-| STORYBOOK-CARD-FORM-17 | interaction | [作成成功を通知する](#storybook-card-form-17) | CardCreator :: `Interaction`（未実装） |
-| STORYBOOK-CARD-FORM-18 | interaction | [作成失敗後に入力を保って再試行する](#storybook-card-form-18) | CardCreator :: `Interaction`（未実装） |
-| STORYBOOK-CARD-FORM-19 | interaction | [作成中の連続送信を抑止する](#storybook-card-form-19) | CardCreator :: `Interaction`（未実装） |
-| STORYBOOK-CARD-FORM-20 | interaction | [保存中は編集と離脱を無効にする](#storybook-card-form-20) | App :: `CardForm`（未実装） |
-| STORYBOOK-CARD-FORM-21 | interaction | [外部更新で編集値を上書きしない](#storybook-card-form-21) | App :: `CardForm`（未実装） |
-| STORYBOOK-CARD-FORM-22 | interaction | [両面が不正なら表面から修正する](#storybook-card-form-22) | App :: `CardForm`（未実装） |
-| STORYBOOK-CARD-FORM-23 | interaction | [編集の保存失敗後に再送信する](#storybook-card-form-23) | App :: `CardForm`（未実装） |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-CARD-FORM-01 | interaction | [タブ間で表面の入力を保持する](#storybook-card-form-01) |
+| STORYBOOK-CARD-FORM-02 | interaction | [タグを選択する](#storybook-card-form-02) |
+| STORYBOOK-CARD-FORM-03 | render | [日本語エラーを入力に関連付ける](#storybook-card-form-03) |
+| STORYBOOK-CARD-FORM-04 | interaction | [解答プレビューを開く](#storybook-card-form-04) |
+| STORYBOOK-CARD-FORM-05 | interaction | [作成操作を通知する](#storybook-card-form-05) |
+| STORYBOOK-CARD-FORM-06 | interaction | [拡大編集後も両面の下書きを保つ](#storybook-card-form-06) |
+| STORYBOOK-CARD-FORM-07 | interaction | [独自タグの選択と要約を保って送信する](#storybook-card-form-07) |
+| STORYBOOK-CARD-FORM-08 | interaction | [キーボードで面を切り替える](#storybook-card-form-08) |
+| STORYBOOK-CARD-FORM-09 | interaction | [裏面エラーを開いてフォーカスする](#storybook-card-form-09) |
+| STORYBOOK-CARD-FORM-10 | interaction | [未知のエラーを安全な翻訳文で表示する](#storybook-card-form-10) |
+| STORYBOOK-CARD-FORM-11 | interaction | [言語変更後も下書きとタグを保つ](#storybook-card-form-11) |
+| STORYBOOK-CARD-FORM-12 | interaction | [不完全な下書きを送信せずプレビューする](#storybook-card-form-12) |
+| STORYBOOK-CARD-FORM-13 | interaction | [拡大編集の変更を数式プレビューに反映する](#storybook-card-form-13) |
+| STORYBOOK-CARD-FORM-14 | interaction | [表示条件に応じてコードを表示する](#storybook-card-form-14) |
+| STORYBOOK-CARD-FORM-15 | interaction | [タグ変更をプレビューに反映する](#storybook-card-form-15) |
+| STORYBOOK-CARD-FORM-16 | interaction | [言語変更後もプレビューを開いておく](#storybook-card-form-16) |
+| STORYBOOK-CARD-FORM-17 | interaction | [作成成功を通知する](#storybook-card-form-17) |
+| STORYBOOK-CARD-FORM-18 | interaction | [作成失敗後に入力を保って再試行する](#storybook-card-form-18) |
+| STORYBOOK-CARD-FORM-19 | interaction | [作成中の連続送信を抑止する](#storybook-card-form-19) |
+| STORYBOOK-CARD-FORM-20 | interaction | [保存中は編集と離脱を無効にする](#storybook-card-form-20) |
+| STORYBOOK-CARD-FORM-21 | interaction | [外部更新で編集値を上書きしない](#storybook-card-form-21) |
+| STORYBOOK-CARD-FORM-22 | interaction | [両面が不正なら表面から修正する](#storybook-card-form-22) |
+| STORYBOOK-CARD-FORM-23 | interaction | [編集の保存失敗後に再送信する](#storybook-card-form-23) |
 
 <a id="storybook-card-form-01"></a>
 
 ### STORYBOOK-CARD-FORM-01 タブ間で表面の入力を保持する
 
 カテゴリ: `interaction`
-
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -66,8 +64,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`
-
 Given:
 
 - raw タグが未選択である。
@@ -85,8 +81,6 @@ Then:
 ### STORYBOOK-CARD-FORM-03 日本語エラーを入力に関連付ける
 
 カテゴリ: `render`
-
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `JapaneseValidation`
 
 Given:
 
@@ -106,8 +100,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview` / `MobilePreview` / `DarkCodePreview`
-
 Given:
 
 - 太字と数式の解答を通常幅・iPhone X で用意し、別条件では dark 表示の TypeScript コードを用意する。
@@ -125,8 +117,6 @@ Then:
 ### STORYBOOK-CARD-FORM-05 作成操作を通知する
 
 カテゴリ: `interaction`
-
-対応 Story: [CardCreator.stories.tsx](../../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -146,9 +136,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の両面の下書きと拡大編集。
+検証状況: 未実装
 
 Given:
 
@@ -168,9 +156,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の選択タグの送信。
+検証状況: 未実装
 
 Given:
 
@@ -191,9 +177,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の矢印・端点キー。
+検証状況: 未実装
 
 Given:
 
@@ -213,9 +197,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の非表示の裏面エラー。
+検証状況: 未実装
 
 Given:
 
@@ -236,9 +218,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `JapaneseValidation`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の未知の validation エラー。
+検証状況: 未実装
 
 Given:
 
@@ -258,9 +238,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `JapaneseValidation`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の既存エラーの言語変更。
+検証状況: 未実装
 
 Given:
 
@@ -280,9 +258,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の不完全な下書きプレビュー。
+検証状況: 未実装
 
 Given:
 
@@ -302,9 +278,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の live math draft。
+検証状況: 未実装
 
 Given:
 
@@ -324,9 +298,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `DarkCodePreview`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の言語・テーマ別プレビュー。
+検証状況: 未実装
 
 Given:
 
@@ -346,9 +318,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) のタグ変更と Deck category への fallback。
+検証状況: 未実装
 
 Given:
 
@@ -368,9 +338,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview`（追加先、未実装）
-
-元テスト: [CardFields.spec.tsx](../../../../src/features/card-form/ui/CardFields.spec.tsx) の開いたプレビューの言語変更。
+検証状況: 未実装
 
 Given:
 
@@ -390,9 +358,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardCreator.stories.tsx](../../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [CardCreator.spec.tsx](../../../../src/pages/card-create/ui/CardCreator.spec.tsx) の作成成功通知。
+検証状況: 未実装
 
 Given:
 
@@ -412,9 +378,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardCreator.stories.tsx](../../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [CardCreator.spec.tsx](../../../../src/pages/card-create/ui/CardCreator.spec.tsx) の失敗後の入力保持と再試行。
+検証状況: 未実装
 
 Given:
 
@@ -434,9 +398,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardCreator.stories.tsx](../../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [CardCreator.spec.tsx](../../../../src/pages/card-create/ui/CardCreator.spec.tsx) の即時連打・非同期 validation・保存待機。
+検証状況: 未実装
 
 Given:
 
@@ -456,9 +418,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `CardForm`（追加先、未実装）
-
-元テスト: [CardEditor.spec.tsx](../../../../src/pages/card-edit/ui/CardEditor.spec.tsx) の保存中の全操作抑止。
+検証状況: 未実装
 
 Given:
 
@@ -478,9 +438,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `CardForm`（追加先、未実装）
-
-元テスト: [CardEditor.spec.tsx](../../../../src/pages/card-edit/ui/CardEditor.spec.tsx) の編集開始時の snapshot 保持。
+検証状況: 未実装
 
 Given:
 
@@ -500,9 +458,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `CardForm`（追加先、未実装）
-
-元テスト: [CardEditor.spec.tsx](../../../../src/pages/card-edit/ui/CardEditor.spec.tsx) の validation 拒否時の UI 部分。
+検証状況: 未実装
 
 Given:
 
@@ -522,9 +478,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `CardForm`（追加先、未実装）
-
-元テスト: [CardEditor.spec.tsx](../../../../src/pages/card-edit/ui/CardEditor.spec.tsx) の明示的な再試行。
+検証状況: 未実装
 
 Given:
 

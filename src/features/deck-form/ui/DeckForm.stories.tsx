@@ -105,38 +105,44 @@ export const Create: Story = {};
 export const Edit: Story = { args: { mode: "edit" } };
 export const ValidationError: Story = {
   args: { validationError: true },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("textbox", { name: "Source URL" })).toBeVisible();
-    await expect(canvas.getByText("Enter a valid URL.")).toBeVisible();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-DECK-FORM-03 Show validation errors", async () => {
+      await expect(canvas.getByRole("textbox", { name: "Source URL" })).toBeVisible();
+      await expect(canvas.getByText("Enter a valid URL.")).toBeVisible();
+    });
   },
 };
 export const Creating: Story = { args: { isSaving: true } };
 export const Saving: Story = { args: { mode: "edit", isSaving: true } };
 export const LongContent: Story = { args: { mode: "edit", deck: longDeck } };
 export const Interaction: Story = {
-  play: async ({ canvas, userEvent }) => {
-    const name = canvas.getByRole("textbox", { name: "Name" });
-    await userEvent.type(name, "New deck");
-    await expect(name).toHaveValue("New deck");
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-FORM-01 Enter name and category", async () => {
+      const name = canvas.getByRole("textbox", { name: "Name" });
+      await userEvent.type(name, "New deck");
+      await expect(name).toHaveValue("New deck");
 
-    const category = canvas.getByRole("combobox");
-    await userEvent.selectOptions(category, "math");
-    await expect(category).toHaveValue("math");
+      const category = canvas.getByRole("combobox");
+      await userEvent.selectOptions(category, "math");
+      await expect(category).toHaveValue("math");
+    });
 
-    await userEvent.click(canvas.getByText("More settings"));
-    const sourceUrl = canvas.getByRole("textbox", { name: "Source URL" });
-    await userEvent.type(sourceUrl, "https://example.com/deck.csv");
-    await expect(sourceUrl).toHaveValue("https://example.com/deck.csv");
+    await step("STORYBOOK-DECK-FORM-02 Preserve advanced settings", async () => {
+      await userEvent.click(canvas.getByText("More settings"));
+      const sourceUrl = canvas.getByRole("textbox", { name: "Source URL" });
+      await userEvent.type(sourceUrl, "https://example.com/deck.csv");
+      await expect(sourceUrl).toHaveValue("https://example.com/deck.csv");
 
-    const convertLineBreaks = canvas.getByRole("checkbox", { name: "Convert line breaks" });
-    await userEvent.click(convertLineBreaks);
-    await expect(convertLineBreaks).toBeChecked();
+      const convertLineBreaks = canvas.getByRole("checkbox", { name: "Convert line breaks" });
+      await userEvent.click(convertLineBreaks);
+      await expect(convertLineBreaks).toBeChecked();
 
-    await userEvent.click(canvas.getByText("More settings"));
-    await expect(sourceUrl).not.toBeVisible();
-    await userEvent.click(canvas.getByText("More settings"));
-    await expect(sourceUrl).toHaveValue("https://example.com/deck.csv");
-    await expect(convertLineBreaks).toBeChecked();
+      await userEvent.click(canvas.getByText("More settings"));
+      await expect(sourceUrl).not.toBeVisible();
+      await userEvent.click(canvas.getByText("More settings"));
+      await expect(sourceUrl).toHaveValue("https://example.com/deck.csv");
+      await expect(convertLineBreaks).toBeChecked();
+    });
   },
 };
 export const Mobile: Story = {

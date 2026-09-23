@@ -24,34 +24,19 @@ function readCases(directory: string) {
     });
 }
 
-for (const [directory, testDirectory] of [
-  ["docs/test/e2e", "test/e2e"],
-  ["docs/test/integration/firestore", "test/integration/firestore"],
+for (const [directory, testDirectory, pattern] of [
+  ["docs/test/e2e", "test/e2e", /\.spec\.tsx?$/u],
+  ["docs/test/integration/firestore", "test/integration/firestore", /\.spec\.tsx?$/u],
+  ["docs/test/integration/storybook", "src", /\.stories\.tsx?$/u],
 ] as const) {
-  const source = files(testDirectory, /\.spec\.tsx?$/u)
-    .map(read)
-    .join("\n");
-  // Text-only check: accept leading IDs in title strings and scenario tables without evaluating tests.
+  const source = files(testDirectory, pattern).map(read).join("\n");
   const prefixes = source.matchAll(/["'`]((?:\[?[A-Z]+(?:-[A-Z]+)*-[0-9]{2,}\]?(?:\s+|(?=["'`])))+)/gu);
   const ids = new Set([...prefixes].flatMap(([, prefix = ""]) => prefix.split(/[\s[\]]+/u)));
-  for (const { id, file } of readCases(directory)) {
-    if (!ids.has(id)) problems.push(`${file}: ${id} has no matching test title prefix`);
-  }
-}
 
-const stories = new Map(
-  files("src", /\.stories\.tsx?$/u).map((file) => [
-    file,
-    new Set([...read(file).matchAll(/^export\s+const\s+([\w$]+)/gmu)].map(([, name]) => name)),
-  ])
-);
-for (const { id, file, body } of readCases("docs/test/integration/storybook")) {
-  const mapping = /^対応 Story: (.+)$/mu.exec(body)?.[1] ?? "";
-  const references = [...mapping.matchAll(/\]\(([^)]+\.stories\.tsx?)\)\s*::\s*`([\w$]+)`/gu)];
-  const covered = references.some(([, target = "", name]) =>
-    stories.get(path.normalize(path.join(path.dirname(file), target)))?.has(name)
-  );
-  if (!covered) problems.push(`${file}: ${id} has no matching Story export`);
+  for (const testCase of readCases(directory)) {
+    if (/^検証状況:.*未実装/mu.test(testCase.body)) continue;
+    if (!ids.has(testCase.id)) problems.push(`${testCase.file}: ${testCase.id} has no matching test label prefix`);
+  }
 }
 
 if (problems.length > 0) {

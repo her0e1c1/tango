@@ -14,31 +14,29 @@ DeckFilterForm / TagFilter と実際の子 UI、Story 側の選択状態。Card 
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-DECK-FILTER-01 | interaction | [選択タグをクリアする](#storybook-deck-filter-01) | DeckFilterForm :: `Interaction` |
-| STORYBOOK-DECK-FILTER-02 | interaction | [折りたたまれたタグを表示する](#storybook-deck-filter-02) | TagFilter :: `Expanded` |
-| STORYBOOK-DECK-FILTER-03 | interaction | [タグ選択を通知する](#storybook-deck-filter-03) | DeckFilterForm :: `Interaction`（未実装） |
-| STORYBOOK-DECK-FILTER-04 | interaction | [重複を除いて選択を扱う](#storybook-deck-filter-04) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-05 | interaction | [Any と All を切り替える](#storybook-deck-filter-05) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-06 | interaction | [選択済みと候補外のタグを先頭に保つ](#storybook-deck-filter-06) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-07 | interaction | [追加表示したタグへキーボードで移動する](#storybook-deck-filter-07) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-08 | interaction | [解除で隠れるタグからフォーカスを移す](#storybook-deck-filter-08) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-09 | interaction | [最後の候補外タグを解除する](#storybook-deck-filter-09) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-10 | interaction | [Clear の無効化前にフォーカスを移す](#storybook-deck-filter-10) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-11 | render | [8件以下では開示ボタンを表示しない](#storybook-deck-filter-11) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-12 | render | [空状態でも一致条件を保つ](#storybook-deck-filter-12) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-13 | render | [大量の選択タグをスクロール領域にする](#storybook-deck-filter-13) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-14 | render | [長いタグ名を保持する](#storybook-deck-filter-14) | TagFilter :: `Expanded`（未実装） |
-| STORYBOOK-DECK-FILTER-15 | interaction | [言語変更後も展開状態を保つ](#storybook-deck-filter-15) | TagFilter :: `Expanded`（未実装） |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-DECK-FILTER-01 | interaction | [選択タグをクリアする](#storybook-deck-filter-01) |
+| STORYBOOK-DECK-FILTER-02 | interaction | [折りたたまれたタグを表示する](#storybook-deck-filter-02) |
+| STORYBOOK-DECK-FILTER-03 | interaction | [タグ選択を通知する](#storybook-deck-filter-03) |
+| STORYBOOK-DECK-FILTER-04 | interaction | [重複を除いて選択を扱う](#storybook-deck-filter-04) |
+| STORYBOOK-DECK-FILTER-05 | interaction | [Any と All を切り替える](#storybook-deck-filter-05) |
+| STORYBOOK-DECK-FILTER-06 | interaction | [選択済みと候補外のタグを先頭に保つ](#storybook-deck-filter-06) |
+| STORYBOOK-DECK-FILTER-07 | interaction | [追加表示したタグへキーボードで移動する](#storybook-deck-filter-07) |
+| STORYBOOK-DECK-FILTER-08 | interaction | [解除で隠れるタグからフォーカスを移す](#storybook-deck-filter-08) |
+| STORYBOOK-DECK-FILTER-09 | interaction | [最後の候補外タグを解除する](#storybook-deck-filter-09) |
+| STORYBOOK-DECK-FILTER-10 | interaction | [Clear の無効化前にフォーカスを移す](#storybook-deck-filter-10) |
+| STORYBOOK-DECK-FILTER-11 | render | [8件以下では開示ボタンを表示しない](#storybook-deck-filter-11) |
+| STORYBOOK-DECK-FILTER-12 | render | [空状態でも一致条件を保つ](#storybook-deck-filter-12) |
+| STORYBOOK-DECK-FILTER-13 | render | [大量の選択タグをスクロール領域にする](#storybook-deck-filter-13) |
+| STORYBOOK-DECK-FILTER-14 | render | [長いタグ名を保持する](#storybook-deck-filter-14) |
+| STORYBOOK-DECK-FILTER-15 | interaction | [言語変更後も展開状態を保つ](#storybook-deck-filter-15) |
 
 <a id="storybook-deck-filter-01"></a>
 
 ### STORYBOOK-DECK-FILTER-01 選択タグをクリアする
 
 カテゴリ: `interaction`
-
-対応 Story: [DeckFilterForm.stories.tsx](../../../../src/features/deck-filter/ui/DeckFilterForm.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -58,8 +56,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`
-
 Given:
 
 - 12件中8件を表示し、残り4件を折りたたんでいる。
@@ -78,9 +74,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckFilterForm.stories.tsx](../../../../src/features/deck-filter/ui/DeckFilterForm.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [DeckFilterForm.spec.tsx](../../../../src/features/deck-filter/ui/DeckFilterForm.spec.tsx)。
+検証状況: 未実装
 
 Given:
 
@@ -100,9 +94,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の重複した選択値。
+検証状況: 未実装
 
 Given:
 
@@ -122,9 +114,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の明示的な match-mode 変更。
+検証状況: 未実装
 
 Given:
 
@@ -144,9 +134,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の selected / stale tags。
+検証状況: 未実装
 
 Given:
 
@@ -167,9 +155,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の keyboard disclosure。
+検証状況: 未実装
 
 Given:
 
@@ -189,9 +175,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の collapsed chip 解除。
+検証状況: 未実装
 
 Given:
 
@@ -211,9 +195,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の last stale tag。
+検証状況: 未実装
 
 Given:
 
@@ -233,9 +215,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の Clear 後のフォーカス。
+検証状況: 未実装
 
 Given:
 
@@ -255,9 +235,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の8件の境界。
+検証状況: 未実装
 
 Given:
 
@@ -277,9 +255,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の empty state。
+検証状況: 未実装
 
 Given:
 
@@ -299,9 +275,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の all-selected list。
+検証状況: 未実装
 
 Given:
 
@@ -321,9 +295,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の long tag。
+検証状況: 未実装
 
 Given:
 
@@ -343,9 +315,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`（追加先、未実装）
-
-元テスト: [TagFilter.spec.tsx](../../../../src/features/deck-filter/ui/TagFilter.spec.tsx) の locale change。
+検証状況: 未実装
 
 Given:
 

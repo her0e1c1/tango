@@ -10,30 +10,28 @@ Controller、StudySaveControls、SwipeButtonList、StudyHelpDialog と実際の�
 
 書式・実行前提は [README](./README.md)、関連 E2E は [study-controls](../../e2e/study-controls.md) と [study-actions](../../e2e/study-actions.md) を参照する。
 
-03〜10 は既存 Vitest から追加した契約で、対応 Story は追加先を示す。このケースの `play` とアサーションは未実装である。ヘルプは実際の子 UI を含む CardPlayer の Story に紐付ける。
+03〜10 は既存 Vitest から追加した契約で、未実装・未検証である。ヘルプは実際の子 UI を含む CardPlayer の Story に紐付ける。
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-STUDY-CONTROLS-01 | interaction | [再生を要求して一時停止表示にする](#storybook-study-controls-01) | Controller :: `Interaction` |
-| STORYBOOK-STUDY-CONTROLS-02 | interaction | [スキップを要求する](#storybook-study-controls-02) | StudySaveControls :: `Default` |
-| STORYBOOK-STUDY-CONTROLS-03 | interaction | [Enter で再生を要求する](#storybook-study-controls-03) | Controller :: `Interaction`（未実装） |
-| STORYBOOK-STUDY-CONTROLS-04 | interaction | [スライダーで表示位置を要求する](#storybook-study-controls-04) | Controller :: `Interaction`（未実装） |
-| STORYBOOK-STUDY-CONTROLS-05 | interaction | [無効な方向を Tab 移動から除く](#storybook-study-controls-05) | SwipeButtonList :: `Disabled`（未実装） |
-| STORYBOOK-STUDY-CONTROLS-06 | interaction | [Enter で方向操作を要求する](#storybook-study-controls-06) | SwipeButtonList :: `Ratings`（未実装） |
-| STORYBOOK-STUDY-CONTROLS-07 | interaction | [ヘルプをモーダルとして開く](#storybook-study-controls-07) | CardPlayer :: `HelpOpen`（未実装） |
-| STORYBOOK-STUDY-CONTROLS-08 | interaction | [ヘルプ内にフォーカスを保ち Escape で戻る](#storybook-study-controls-08) | CardPlayer :: `HelpOpen`（未実装） |
-| STORYBOOK-STUDY-CONTROLS-09 | interaction | [背景の通知を操作させない](#storybook-study-controls-09) | CardPlayer :: `HelpOpen`（未実装） |
-| STORYBOOK-STUDY-CONTROLS-10 | interaction | [ヘルプを閉じて通知の操作を戻す](#storybook-study-controls-10) | CardPlayer :: `HelpOpen`（未実装） |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-STUDY-CONTROLS-01 | interaction | [再生を要求して一時停止表示にする](#storybook-study-controls-01) |
+| STORYBOOK-STUDY-CONTROLS-02 | interaction | [スキップを要求する](#storybook-study-controls-02) |
+| STORYBOOK-STUDY-CONTROLS-03 | interaction | [Enter で再生を要求する](#storybook-study-controls-03) |
+| STORYBOOK-STUDY-CONTROLS-04 | interaction | [スライダーで表示位置を要求する](#storybook-study-controls-04) |
+| STORYBOOK-STUDY-CONTROLS-05 | interaction | [無効な方向を Tab 移動から除く](#storybook-study-controls-05) |
+| STORYBOOK-STUDY-CONTROLS-06 | interaction | [Enter で方向操作を要求する](#storybook-study-controls-06) |
+| STORYBOOK-STUDY-CONTROLS-07 | interaction | [ヘルプをモーダルとして開く](#storybook-study-controls-07) |
+| STORYBOOK-STUDY-CONTROLS-08 | interaction | [ヘルプ内にフォーカスを保ち Escape で戻る](#storybook-study-controls-08) |
+| STORYBOOK-STUDY-CONTROLS-09 | interaction | [背景の通知を操作させない](#storybook-study-controls-09) |
+| STORYBOOK-STUDY-CONTROLS-10 | interaction | [ヘルプを閉じて通知の操作を戻す](#storybook-study-controls-10) |
 
 <a id="storybook-study-controls-01"></a>
 
 ### STORYBOOK-STUDY-CONTROLS-01 再生を要求して一時停止表示にする
 
 カテゴリ: `interaction`
-
-対応 Story: [Controller.stories.tsx](../../../../src/features/card-player/ui/Controller.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -53,8 +51,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [StudySaveControls.stories.tsx](../../../../src/pages/study-session/ui/StudySaveControls.stories.tsx) :: `Default`
-
 Given:
 
 - 保存処理中ではない。
@@ -73,9 +69,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [Controller.stories.tsx](../../../../src/features/card-player/ui/Controller.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [Controller.spec.tsx](../../../../src/features/card-player/ui/Controller.spec.tsx) のキーボード操作。
+検証状況: 未実装
 
 Given:
 
@@ -95,9 +89,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [Controller.stories.tsx](../../../../src/features/card-player/ui/Controller.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [Controller.spec.tsx](../../../../src/features/card-player/ui/Controller.spec.tsx) の手動 index 変更。
+検証状況: 未実装
 
 Given:
 
@@ -117,9 +109,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [SwipeButtonList.stories.tsx](../../../../src/features/card-player/ui/SwipeButtonList.stories.tsx) :: `Disabled`（追加先、未実装）
-
-元テスト: [SwipeButtonList.spec.tsx](../../../../src/features/card-player/ui/SwipeButtonList.spec.tsx) の無効方向とキーボード移動。
+検証状況: 未実装
 
 Given:
 
@@ -139,9 +129,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [SwipeButtonList.stories.tsx](../../../../src/features/card-player/ui/SwipeButtonList.stories.tsx) :: `Ratings`（追加先、未実装）
-
-元テスト: [SwipeButtonList.spec.tsx](../../../../src/features/card-player/ui/SwipeButtonList.spec.tsx) の Enter 操作。
+検証状況: 未実装
 
 Given:
 
@@ -161,9 +149,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `HelpOpen`（追加先、未実装）
-
-元テスト: [StudyHelpDialog.spec.tsx](../../../../src/features/card-player/ui/StudyHelpDialog.spec.tsx) の modal semantics。
+検証状況: 未実装
 
 Given:
 
@@ -184,9 +170,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `HelpOpen`（追加先、未実装）
-
-元テスト: [StudyHelpDialog.spec.tsx](../../../../src/features/card-player/ui/StudyHelpDialog.spec.tsx) の focus trap と Escape。
+検証状況: 未実装
 
 Given:
 
@@ -206,9 +190,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `HelpOpen`（追加先、未実装）
-
-元テスト: [StudyHelpDialog.spec.tsx](../../../../src/features/card-player/ui/StudyHelpDialog.spec.tsx) の永続通知と modal。
+検証状況: 未実装
 
 Given:
 
@@ -228,9 +210,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `HelpOpen`（追加先、未実装）
-
-元テスト: [StudyHelpDialog.spec.tsx](../../../../src/features/card-player/ui/StudyHelpDialog.spec.tsx) の Strict Mode cleanup。
+検証状況: 未実装
 
 Given:
 

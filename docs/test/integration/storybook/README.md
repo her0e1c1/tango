@@ -102,5 +102,5 @@ npm run test:storybook
 
 個別確認では `npm run storybook` を実行して該当 Story を開く。
 `npm run build:storybook` の成功だけで play の成功とはしない。
-`lint:test-specs` は各ケースの「対応 Story」の少なくとも一つについて、対象ファイルに `export const <named export>` があることを正規表現で確認する。複数ケースで同じ Story を共有してよい。
+`lint:test-specs` は仕様 ID が実装側のテスト名または Storybook step label の先頭にあることを正規表現で確認する。`検証状況: 未実装` のケースは対象外とする。
 play の有無・継承・tags・実行条件、Given / When / Then の網羅性やアサーション内容・実行結果は、この参照チェックでは確認しない。レビューと Storybook の実行で別途確認する。

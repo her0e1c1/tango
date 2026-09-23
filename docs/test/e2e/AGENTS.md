@@ -67,7 +67,7 @@
 
 ## 変更時の確認
 
-- `npm run lint:test-specs`: E2E・Firestore の仕様 ID がテストソース内の文字列先頭にあるか、Storybook の対応 export の記述があるかを確認する。テストランナーや browser / emulator は起動しない。
+- `npm run lint:test-specs`: E2E・Firestore・Storybook の仕様 ID が、各テストソース内の文字列先頭にあるかを確認する。Storybook は `play` の step 名に ID を付ける。テストランナーや browser / emulator は起動しない。
 - `npm run lint:markdown`: Markdown の構文と形式を確認する。
 - `mise run e2e`: 全 fixture の検証後に E2E test を実行する。
 

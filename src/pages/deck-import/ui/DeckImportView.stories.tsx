@@ -43,9 +43,11 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  play: async ({ canvas }) => {
-    await expect(canvas.queryByRole("radio")).not.toBeInTheDocument();
-    await expect(canvas.getByRole("heading", { name: "Add a deck" })).toBeVisible();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-IMPORT-01 Initial import screen", async () => {
+      await expect(canvas.queryByRole("radio")).not.toBeInTheDocument();
+      await expect(canvas.getByRole("heading", { name: "Add a deck" })).toBeVisible();
+    });
   },
 };
 
@@ -100,9 +102,11 @@ export const IphoneReview: Story = {
 export const JapaneseDiagnostics: Story = {
   ...Invalid,
   parameters: { locale: "ja" },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("alert")).toHaveTextContent("列数は4列である必要があります（現在は3列）。");
-    await expect(canvas.getByRole("button", { name: /^0枚のカードを追加$/ })).toBeDisabled();
-    await expect(document.documentElement).toHaveAttribute("lang", "ja");
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-IMPORT-03 Japanese diagnostics", async () => {
+      await expect(canvas.getByRole("alert")).toHaveTextContent("列数は4列である必要があります（現在は3列）。");
+      await expect(canvas.getByRole("button", { name: /^0枚のカードを追加$/ })).toBeDisabled();
+      await expect(document.documentElement).toHaveAttribute("lang", "ja");
+    });
   },
 };

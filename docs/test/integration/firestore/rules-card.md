@@ -4,8 +4,6 @@
 
 実際の `firestore.rules` に対する Card entity の許可・拒否を、認証主体と SDK 操作の組み合わせで確認する。
 
-対応ファイル: [`rules.spec.ts`](../../../test/integration/firestore/rules.spec.ts)
-
 共通前提は [AGENTS.md](./AGENTS.md#security-rules-common-prerequisites) を参照する。
 
 ## テストケース
@@ -43,8 +41,6 @@
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-CARD-01] rejects %s from reading deleted public Card content`
-
 Given:
 
 - 所有者 `owner` の公開 Deck `deleted` は deletedAt `1000`、公開 Deck `active` は deletedAt `null` である。
@@ -67,8 +63,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-CARD-02] should read a card`
-
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -87,8 +81,6 @@ Then:
 ### FIRESTORE-RULES-CARD-03 本人による Card の作成を許可する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-CARD-03] should create a card`
 
 Given:
 
@@ -110,8 +102,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-04] should update a card`
-
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -132,8 +122,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-05] should delete a card`
-
 Given:
 
 - 非匿名認証の UID `uid` で操作する。
@@ -152,8 +140,6 @@ Then:
 ### FIRESTORE-RULES-CARD-06 他ユーザーによる Card の非公開データの取得を拒否する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-RULES-CARD-06] should not read a card`
 
 Given:
 
@@ -174,8 +160,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-CARD-07] should read a public card`
-
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -194,8 +178,6 @@ Then:
 ### FIRESTORE-RULES-CARD-08 他ユーザーによる Card の作成を拒否する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-CARD-08] should not create a card`
 
 Given:
 
@@ -216,8 +198,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-09] should not update a card`
-
 Given:
 
 - 所有者 UID `uid` と異なる、非匿名認証の UID `invalid` で操作する。
@@ -236,8 +216,6 @@ Then:
 ### FIRESTORE-RULES-CARD-10 他ユーザーによる Card の物理削除を拒否する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-CARD-10] should not delete a card`
 
 Given:
 
@@ -258,8 +236,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-11] rejects creating a card`
-
 Given:
 
 - 匿名認証の UID `uid` で、Deck と Card のそれぞれを検証する。
@@ -278,8 +254,6 @@ Then:
 ### FIRESTORE-RULES-CARD-12 匿名認証による Card の更新を拒否する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-CARD-12] rejects updating an existing card`
 
 Given:
 
@@ -300,8 +274,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-13] rejects deleting an existing card`
-
 Given:
 
 - 匿名認証の UID `uid` で、Deck と Card のそれぞれを検証する。
@@ -320,8 +292,6 @@ Then:
 ### FIRESTORE-RULES-CARD-14 匿名認証による Card の公開データの取得を許可する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-RULES-CARD-14] preserves public card reads`
 
 Given:
 
@@ -342,8 +312,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-RULES-CARD-15] should not read a card`
-
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -362,8 +330,6 @@ Then:
 ### FIRESTORE-RULES-CARD-16 未認証による Card の公開データの取得を許可する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-RULES-CARD-16] should read a public card`
 
 Given:
 
@@ -384,8 +350,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-17] should not create a card`
-
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -404,8 +368,6 @@ Then:
 ### FIRESTORE-RULES-CARD-18 未認証による Card の更新を拒否する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-CARD-18] should not update a card`
 
 Given:
 
@@ -426,8 +388,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-19] should not delete a card`
-
 Given:
 
 - 認証情報を持たない SDK context で操作する。
@@ -447,8 +407,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-20] rejects legacy Card field %s`
-
 Given:
 
 - 本人の Deck と fsrs: null の Card がある。
@@ -466,8 +424,6 @@ Then:
 ### FIRESTORE-RULES-CARD-21 本人の FSRS 更新を許可し Card の同一性を維持する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-CARD-21] permits owner FSRS updates and preserves Card identity`
 
 Given:
 
@@ -487,8 +443,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-22] exposes public Card FSRS but denies writes from %s`
-
 Given:
 
 - 公開 Deck の評価済み Card がある。
@@ -507,8 +461,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-RULES-CARD-23] rejects invalid FSRS shape and foreign or deleted Cards`
-
 Given:
 
 - 本人の Deck と Card がある。
@@ -526,8 +478,6 @@ Then:
 ### FIRESTORE-RULES-CARD-24 評価更新で物理削除 Card を再作成しない
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-CARD-24] cannot recreate a deleted Card through a rating update`
 
 Given:
 

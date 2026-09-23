@@ -26,22 +26,26 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
-  play: async ({ canvas }) => {
-    await expect(canvas.getAllByRole("listitem")).toHaveLength(3);
-    await expect(canvas.getByText("Unfinished")).toBeVisible();
-    await expect(canvas.getByText("Completed")).toBeVisible();
-    await expect(canvas.getByText("Abandoned")).toBeVisible();
-    await expect(canvas.getByText("—")).toBeVisible();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-STUDY-HISTORY-05 Session statuses", async () => {
+      await expect(canvas.getAllByRole("listitem")).toHaveLength(3);
+      await expect(canvas.getByText("Unfinished")).toBeVisible();
+      await expect(canvas.getByText("Completed")).toBeVisible();
+      await expect(canvas.getByText("Abandoned")).toBeVisible();
+      await expect(canvas.getByText("—")).toBeVisible();
+    });
   },
 };
 export const MobileJapanese: Story = {
   parameters: { locale: "ja" },
   globals: { viewport: { value: "iphonex", isRotated: false } },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("heading", { name: "最近のセッション" })).toBeVisible();
-    await expect(canvas.getByText("未完了")).toBeVisible();
-    await expect(canvas.getByText("完了", { exact: true })).toBeVisible();
-    await expect(canvas.getByText("中止")).toBeVisible();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-STUDY-HISTORY-06 Japanese session statuses", async () => {
+      await expect(canvas.getByRole("heading", { name: "最近のセッション" })).toBeVisible();
+      await expect(canvas.getByText("未完了")).toBeVisible();
+      await expect(canvas.getByText("完了", { exact: true })).toBeVisible();
+      await expect(canvas.getByText("中止")).toBeVisible();
+    });
   },
 };
 export const Dark: Story = { globals: { theme: "dark" } };
@@ -57,13 +61,15 @@ export const MoreSessions: Story = {
       cardCount: 20,
     })),
   },
-  play: async ({ canvas, userEvent }) => {
-    await expect(canvas.getAllByRole("listitem")).toHaveLength(3);
-    await userEvent.click(canvas.getByRole("button", { name: "Show all 10 sessions", expanded: false }));
-    await expect(canvas.getByRole("button", { name: "Show fewer sessions", expanded: true })).toHaveAttribute(
-      "aria-controls",
-      canvas.getByRole("list").id
-    );
-    await expect(canvas.getAllByRole("listitem")).toHaveLength(10);
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-STUDY-HISTORY-07 Expand all sessions", async () => {
+      await expect(canvas.getAllByRole("listitem")).toHaveLength(3);
+      await userEvent.click(canvas.getByRole("button", { name: "Show all 10 sessions", expanded: false }));
+      await expect(canvas.getByRole("button", { name: "Show fewer sessions", expanded: true })).toHaveAttribute(
+        "aria-controls",
+        canvas.getByRole("list").id
+      );
+      await expect(canvas.getAllByRole("listitem")).toHaveLength(10);
+    });
   },
 };

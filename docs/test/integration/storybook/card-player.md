@@ -10,35 +10,35 @@ CardPlayer と実際の子 UI、CardOverlay、Story 側の表示状態と公開 
 
 書式・実行前提は [README](./README.md)、再生・スキップ・ヘルプの契約は [study-controls](./study-controls.md) を参照する。
 
-この仕様は [CardPlayer.spec.tsx](../../../../src/features/card-player/ui/CardPlayer.spec.tsx) と [CardOverlay.spec.tsx](../../../../src/features/card-player/ui/CardOverlay.spec.tsx) の UI 契約を記録する。01〜04、06、08、10〜23 は未実装で、対応 Story は追加先を示す。05・07 は既存 play の一部に追加アサーションが必要で、09 は既存 play と対応する。いずれも今回のテスト実行成功を示すものではない。
+この仕様は [CardPlayer.spec.tsx](../../../../src/features/card-player/ui/CardPlayer.spec.tsx) と [CardOverlay.spec.tsx](../../../../src/features/card-player/ui/CardOverlay.spec.tsx) の UI 契約を記録する。01〜04、06、08、10〜23 は未実装で、05・07 は既存 play の一部に追加アサーションが必要で、09 は既存 play と対応する。いずれも今回のテスト実行成功を示すものではない。
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-CARD-PLAYER-01 | interaction | [読書ジェスチャーを学習操作にしない](#storybook-card-player-01) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-02 | interaction | [文字選択中に閲覧を終了しない](#storybook-card-player-02) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-03 | interaction | [Space とタップを区別する](#storybook-card-player-03) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-04 | interaction | [閲覧設定で裏面の許可済み操作を変えない](#storybook-card-player-04) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-05 | interaction | [編集リンクの表示を切り替える](#storybook-card-player-05) | `ViewEditLink` / `ViewEditLinkNarrow` / `ViewEditLinkMobile`（要追加） |
-| STORYBOOK-CARD-PLAYER-06 | render | [裏面と編集非対応画面に編集操作を出さない](#storybook-card-player-06) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-07 | render | [裏面では解答に集中できる表示にする](#storybook-card-player-07) | `LongAnswer` / `MobileLongAnswer`（要追加） |
-| STORYBOOK-CARD-PLAYER-08 | interaction | [端の操作と解答クリックを分離する](#storybook-card-player-08) | `AnswerSwipeOverlays`（要追加） |
-| STORYBOOK-CARD-PLAYER-09 | interaction | [端のホイール入力をスクロールへ渡す](#storybook-card-player-09) | `AnswerSwipeOverlays` |
-| STORYBOOK-CARD-PLAYER-10 | interaction | [操作一覧から各操作を要求する](#storybook-card-player-10) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-11 | interaction | [ヘルプの再表示操作を失わない](#storybook-card-player-11) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-12 | interaction | [閲覧モードの状態をボタンで示す](#storybook-card-player-12) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-13 | interaction | [閲覧モードとボタン表示を区別する](#storybook-card-player-13) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-14 | interaction | [表示設定に従ってショートカットを組み合わせる](#storybook-card-player-14) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-15 | interaction | [詳細表示をまとめて切り替える](#storybook-card-player-15) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-16 | interaction | [再生設定が使えない理由を確認できる](#storybook-card-player-16) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-17 | render | [選択した下部操作だけを表示する](#storybook-card-player-17) | `SwipeControlsHidden` / `PlaybackControlsHidden`（要追加） |
-| STORYBOOK-CARD-PLAYER-18 | interaction | [未許可の裏面スワイプを無視する](#storybook-card-player-18) | `LongAnswer`（未実装） |
-| STORYBOOK-CARD-PLAYER-19 | interaction | [表面スワイプをボタン表示と独立して扱う](#storybook-card-player-19) | `SwipeControlsHidden`（未実装） |
-| STORYBOOK-CARD-PLAYER-20 | interaction | [ドラッグをクリックとして重複処理しない](#storybook-card-player-20) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-21 | interaction | [中・右ボタンのドラッグを無視する](#storybook-card-player-21) | `Default`（未実装） |
-| STORYBOOK-CARD-PLAYER-22 | interaction | [裏面のドラッグ後に誤操作しない](#storybook-card-player-22) | `LongAnswer`（未実装） |
-| STORYBOOK-CARD-PLAYER-23 | render | [未評価と FSRS 難易度を区別する](#storybook-card-player-23) | `Default`（未実装） |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-CARD-PLAYER-01 | interaction | [読書ジェスチャーを学習操作にしない](#storybook-card-player-01) |
+| STORYBOOK-CARD-PLAYER-02 | interaction | [文字選択中に閲覧を終了しない](#storybook-card-player-02) |
+| STORYBOOK-CARD-PLAYER-03 | interaction | [Space とタップを区別する](#storybook-card-player-03) |
+| STORYBOOK-CARD-PLAYER-04 | interaction | [閲覧設定で裏面の許可済み操作を変えない](#storybook-card-player-04) |
+| STORYBOOK-CARD-PLAYER-05 | interaction | [編集リンクの表示を切り替える](#storybook-card-player-05) |
+| STORYBOOK-CARD-PLAYER-06 | render | [裏面と編集非対応画面に編集操作を出さない](#storybook-card-player-06) |
+| STORYBOOK-CARD-PLAYER-07 | render | [裏面では解答に集中できる表示にする](#storybook-card-player-07) |
+| STORYBOOK-CARD-PLAYER-08 | interaction | [端の操作と解答クリックを分離する](#storybook-card-player-08) |
+| STORYBOOK-CARD-PLAYER-09 | interaction | [端のホイール入力をスクロールへ渡す](#storybook-card-player-09) |
+| STORYBOOK-CARD-PLAYER-10 | interaction | [操作一覧から各操作を要求する](#storybook-card-player-10) |
+| STORYBOOK-CARD-PLAYER-11 | interaction | [ヘルプの再表示操作を失わない](#storybook-card-player-11) |
+| STORYBOOK-CARD-PLAYER-12 | interaction | [閲覧モードの状態をボタンで示す](#storybook-card-player-12) |
+| STORYBOOK-CARD-PLAYER-13 | interaction | [閲覧モードとボタン表示を区別する](#storybook-card-player-13) |
+| STORYBOOK-CARD-PLAYER-14 | interaction | [表示設定に従ってショートカットを組み合わせる](#storybook-card-player-14) |
+| STORYBOOK-CARD-PLAYER-15 | interaction | [詳細表示をまとめて切り替える](#storybook-card-player-15) |
+| STORYBOOK-CARD-PLAYER-16 | interaction | [再生設定が使えない理由を確認できる](#storybook-card-player-16) |
+| STORYBOOK-CARD-PLAYER-17 | render | [選択した下部操作だけを表示する](#storybook-card-player-17) |
+| STORYBOOK-CARD-PLAYER-18 | interaction | [未許可の裏面スワイプを無視する](#storybook-card-player-18) |
+| STORYBOOK-CARD-PLAYER-19 | interaction | [表面スワイプをボタン表示と独立して扱う](#storybook-card-player-19) |
+| STORYBOOK-CARD-PLAYER-20 | interaction | [ドラッグをクリックとして重複処理しない](#storybook-card-player-20) |
+| STORYBOOK-CARD-PLAYER-21 | interaction | [中・右ボタンのドラッグを無視する](#storybook-card-player-21) |
+| STORYBOOK-CARD-PLAYER-22 | interaction | [裏面のドラッグ後に誤操作しない](#storybook-card-player-22) |
+| STORYBOOK-CARD-PLAYER-23 | render | [未評価と FSRS 難易度を区別する](#storybook-card-player-23) |
 
 <a id="storybook-card-player-01"></a>
 
@@ -46,9 +46,7 @@ CardPlayer と実際の子 UI、CardOverlay、Story 側の表示状態と公開 
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の reading gestures / trailing click。
+検証状況: 未実装
 
 Given:
 
@@ -68,9 +66,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の front text selection。
+検証状況: 未実装
 
 Given:
 
@@ -90,9 +86,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の reading tap / Space。
+検証状況: 未実装
 
 Given:
 
@@ -112,9 +106,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の reading preference / answer gestures。
+検証状況: 未実装
 
 Given:
 
@@ -134,9 +126,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `ViewEditLink` / `ViewEditLinkNarrow` / `ViewEditLinkMobile`（要追加）
-
-元テスト: CardPlayer の edit shortcut visibility。
+検証状況: 一部未実装
 
 Given:
 
@@ -157,9 +147,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の answer / Study における編集リンク。
+検証状況: 未実装
 
 Given:
 
@@ -179,9 +167,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `LongAnswer` / `MobileLongAnswer`（要追加）
-
-元テスト: CardPlayer の answer-only presentation。
+検証状況: 一部未実装
 
 Given:
 
@@ -202,9 +188,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `AnswerSwipeOverlays`（要追加）
-
-元テスト: CardPlayer の back-text edge actions。
+検証状況: 一部未実装
 
 Given:
 
@@ -225,9 +209,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `AnswerSwipeOverlays`
-
-元テスト: CardPlayer の edge wheel input。既存 Story でも対応する公開契約を確認する。
+検証状況: 一部未実装
 
 Given:
 
@@ -248,9 +230,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の `STUDY-CONTROLS-05` に含まれる操作一覧。
+検証状況: 未実装
 
 Given:
 
@@ -271,9 +251,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の Help visibility toggle。
+検証状況: 未実装
 
 Given:
 
@@ -293,9 +271,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の toolbar view mode。
+検証状況: 未実装
 
 Given:
 
@@ -315,9 +291,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の toolbar view mode に含まれる表示設定。
+検証状況: 未実装
 
 Given:
 
@@ -338,9 +312,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の visible shortcuts の組合せ。
+検証状況: 未実装
 
 Given:
 
@@ -361,9 +333,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の card details の表示設定。
+検証状況: 未実装
 
 Given:
 
@@ -383,9 +353,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の unavailable playback toggle。
+検証状況: 未実装
 
 Given:
 
@@ -406,9 +374,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `SwipeControlsHidden` / `PlaybackControlsHidden`（要追加）
-
-元テスト: CardPlayer の selected bottom control groups。
+検証状況: 一部未実装
 
 Given:
 
@@ -428,9 +394,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `LongAnswer`（追加先、未実装）
-
-元テスト: CardPlayer の back text swipes。
+検証状況: 未実装
 
 Given:
 
@@ -450,9 +414,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `SwipeControlsHidden`（追加先、未実装）
-
-元テスト: CardPlayer の front text vertical swipe。
+検証状況: 未実装
 
 Given:
 
@@ -472,9 +434,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の primary-button mouse swipe。
+検証状況: 未実装
 
 Given:
 
@@ -494,9 +454,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardPlayer の non-primary mouse drags。
+検証状況: 未実装
 
 Given:
 
@@ -516,9 +474,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `LongAnswer`（追加先、未実装）
-
-元テスト: CardPlayer の back text mouse drag。
+検証状況: 未実装
 
 Given:
 
@@ -538,9 +494,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardPlayer.stories.tsx](../../../../src/features/card-player/ui/CardPlayer.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: CardOverlay の評価前後の FSRS difficulty。
+検証状況: 未実装
 
 Given:
 

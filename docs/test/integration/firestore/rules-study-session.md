@@ -4,8 +4,6 @@
 
 実際の `firestore.rules` に対する StudySession entity の許可・拒否を、認証主体と SDK 操作の組み合わせで確認する。
 
-対応ファイル: [`rules.spec.ts`](../../../test/integration/firestore/rules.spec.ts)
-
 共通前提は [AGENTS.md](./AGENTS.md#security-rules-common-prerequisites) を参照する。
 
 ## テストケース
@@ -21,8 +19,6 @@
 ### FIRESTORE-RULES-STUDY-SESSION-01 本人が private session を作成・取得・更新できる
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-RULES-STUDY-SESSION-01] allows the owner to create, resume and complete a private session`
 
 Given:
 
@@ -44,8 +40,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-RULES-STUDY-SESSION-02] denies %s access even when the Deck is public`
-
 Given:
 
 - UID `uid` の公開 Deck と、その UID の session が存在する。
@@ -64,8 +58,6 @@ Then:
 ### FIRESTORE-RULES-STUDY-SESSION-03 本人でも session の所有者変更と物理削除はできない
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-RULES-STUDY-SESSION-03] rejects ownership changes and deletion`
 
 Given:
 

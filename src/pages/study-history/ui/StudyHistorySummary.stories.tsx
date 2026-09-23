@@ -23,8 +23,10 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("img")).toBeVisible();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-STUDY-HISTORY-08 Render summary chart", async () => {
+      await expect(canvas.getByRole("img")).toBeVisible();
+    });
   },
 };
 export const Empty: Story = {
@@ -46,8 +48,10 @@ export const NinetyDays: Story = {
     started: 90,
     completed: 45,
   },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByText("Study counts per 7 days")).toBeVisible();
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-STUDY-HISTORY-09 Show aggregation unit", async () => {
+      await expect(canvas.getByText("Study counts per 7 days")).toBeVisible();
+    });
   },
 };
 export const MobileJapanese: Story = {

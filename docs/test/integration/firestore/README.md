@@ -5,19 +5,19 @@
 
 ## ドキュメント構成
 
-| 文書 | 責務 | 対応テスト |
-| --- | --- | --- |
-| この README | 実行方法、共通前提、記述・ID 規約、索引、未検証項目 | Firestore 結合テスト全体 |
-| [Deck](./deck.md) | 作成、部分更新、URL の扱い、Deck と配下 Card の原子的な論理削除 | `deck.spec.ts` |
-| [Card](./card.md) | 作成、部分更新、本文と FSRS の更新、一括保存、論理削除 | `card.spec.ts` |
-| [Card.fsrs](./card-fsrs.md) | 初期購読、検証、UID 分離、削除 | `card-fsrs.spec.ts` |
-| [StudyAnswer](./study-answer.md) | 回答・スキップ・再試行と履歴の権限制御 | `study-answer.spec.ts` |
-| [StudySession](./study-session.md) | 順序・位置の復元、開始・中断・完了、オフライン queue | `study-session.spec.ts` |
-| [Subscriptions](./subscriptions.md) | 初期 snapshot、変更の store 反映、購読解除 | `subscriptions.spec.ts` |
-| [Rules / Deck](./rules-deck.md) / [Card](./rules-card.md) / [StudySession](./rules-study-session.md) / [StudyAnswer](./rules-study-answer.md) | entity ごとの認証主体と SDK 操作の許可・拒否 | `rules.spec.ts` |
-| [Study History](./study-history.md) | 開始・完了履歴と回答履歴の期間・Deck 条件、cache、権限 | `study-history.spec.ts` |
+| 文書 | 責務 |
+| --- | --- |
+| この README | 実行方法、共通前提、記述・ID 規約、索引、未検証項目 |
+| [Deck](./deck.md) | 作成、部分更新、URL の扱い、Deck と配下 Card の原子的な論理削除 |
+| [Card](./card.md) | 作成、部分更新、本文と FSRS の更新、一括保存、論理削除 |
+| [Card.fsrs](./card-fsrs.md) | 初期購読、検証、UID 分離、削除 |
+| [StudyAnswer](./study-answer.md) | 回答・スキップ・再試行と履歴の権限制御 |
+| [StudySession](./study-session.md) | 順序・位置の復元、開始・中断・完了、オフライン queue |
+| [Subscriptions](./subscriptions.md) | 初期 snapshot、変更の store 反映、購読解除 |
+| [Rules / Deck](./rules-deck.md) / [Card](./rules-card.md) / [StudySession](./rules-study-session.md) / [StudyAnswer](./rules-study-answer.md) | entity ごとの認証主体と SDK 操作の許可・拒否 |
+| [Study History](./study-history.md) | 開始・完了履歴と回答履歴の期間・Deck 条件、cache、権限 |
 
-対応テストはすべて [`test/integration/firestore`](../../../test/integration/firestore) に置く。
+テスト実装はすべて [`test/integration/firestore`](../../../test/integration/firestore) に置く。
 上表の11ファイルを対象とし、各仕様書のケースを下記の索引に掲載する。
 local→remote 移行や local-only session 非送信のケースは、対象テストにはないため検証済みとして記載しない。
 
@@ -70,7 +70,7 @@ Adapter の Promise 完了は local 反映であり、remote への送信完了�
 ## 記述・ID 規約
 
 E2E と同じく「目的」「テストケース一覧表」「ID の明示的なアンカーと見出し」「カテゴリ」「Given / When / Then」で記述する。
-各仕様書から対応テストファイルにリンクし、各ケースには識別可能なテストタイトルを記載する。長い入力の組み合わせだけ表で補足する。
+仕様と実装の対応付けは [共通規約](../../AGENTS.md) に従い、Test ID を使う。仕様書に対応テストファイルやテストタイトルの記入欄は設けない。長い入力の組み合わせだけ表で補足する。
 カテゴリは `read`（取得・購読）、`write`（単一の保存・認可）、`batch`（複数操作の契約）を使う。
 
 ID は `FIRESTORE-<仕様書ファイル名の大文字表記>-<連番>` とする。例えば `FIRESTORE-STUDY-SESSION-01` を使う。

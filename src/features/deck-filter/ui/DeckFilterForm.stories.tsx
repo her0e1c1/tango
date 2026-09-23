@@ -51,10 +51,12 @@ export const Default: Story = {};
 
 export const Interaction: Story = {
   args: { selectedTags: ["tag 1"] },
-  play: async ({ args: storyArgs, canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Clear" }));
-    await expect(storyArgs.setSelectedTags).toHaveBeenCalledWith([]);
-    await expect(canvas.getByRole("checkbox", { name: "tag 1" })).not.toBeChecked();
+  play: async ({ args: storyArgs, canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-FILTER-01 Clear selected tags", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Clear" }));
+      await expect(storyArgs.setSelectedTags).toHaveBeenCalledWith([]);
+      await expect(canvas.getByRole("checkbox", { name: "tag 1" })).not.toBeChecked();
+    });
   },
 };
 

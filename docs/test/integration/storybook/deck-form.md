@@ -14,20 +14,18 @@ DeckForm と実際の React Hook Form、および DeckDeletionDialog。エラー
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-DECK-FORM-01 | interaction | [名前とカテゴリを入力できる](#storybook-deck-form-01) | [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction` |
-| STORYBOOK-DECK-FORM-02 | interaction | [詳細設定を閉じて開き直しても入力を保持する](#storybook-deck-form-02) | [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction` |
-| STORYBOOK-DECK-FORM-03 | render | [詳細項目のエラーを見える状態で表示する](#storybook-deck-form-03) | [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `ValidationError` |
-| STORYBOOK-DECK-FORM-04 | interaction | [削除確認から確定 callback を通知する](#storybook-deck-form-04) | [DeckDeletionDialog.stories.tsx](../../../../src/features/deck-deletion/ui/DeckDeletionDialog.stories.tsx) :: `Confirm` |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-DECK-FORM-01 | interaction | [名前とカテゴリを入力できる](#storybook-deck-form-01) |
+| STORYBOOK-DECK-FORM-02 | interaction | [詳細設定を閉じて開き直しても入力を保持する](#storybook-deck-form-02) |
+| STORYBOOK-DECK-FORM-03 | render | [詳細項目のエラーを見える状態で表示する](#storybook-deck-form-03) |
+| STORYBOOK-DECK-FORM-04 | interaction | [削除確認から確定 callback を通知する](#storybook-deck-form-04) |
 
 <a id="storybook-deck-form-01"></a>
 
 ### STORYBOOK-DECK-FORM-01 名前とカテゴリを入力できる
 
 カテゴリ: `interaction`
-
-対応 Story: [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -46,8 +44,6 @@ Then:
 ### STORYBOOK-DECK-FORM-02 詳細設定を閉じて開き直しても入力を保持する
 
 カテゴリ: `interaction`
-
-対応 Story: [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -69,8 +65,6 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `ValidationError`
-
 Given:
 
 - 名前と URL にフォームエラーを設定した作成フォームを用意する。
@@ -89,8 +83,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckDeletionDialog.stories.tsx](../../../../src/features/deck-deletion/ui/DeckDeletionDialog.stories.tsx) :: `Confirm`
-
 Given:
 
 - Japanese verbs と Card 24件を削除対象とする確認ダイアログを表示し、処理中ではない。
@@ -105,4 +97,4 @@ Then:
 
 ## 自動アサーションに含めない項目
 
-`ExpandedSettings` は設定を開く操作だけで、期待結果のアサーションはない。`Creating`、`Saving`、削除の `Pending` は表示専用であり、二重送信防止や取消しの検証済みケースには数えない。
+詳細設定を開くだけの Story には、期待結果のアサーションはない。作成中・保存中・削除処理中の Story は表示専用であり、二重送信防止や取消しの検証済みケースには数えない。

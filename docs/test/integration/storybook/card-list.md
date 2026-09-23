@@ -14,38 +14,36 @@ CardList、実際の Card / CardActionsMenu と Story 側の表示状態を組�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-CARD-LIST-01 | interaction | [Card の追加を要求する](#storybook-card-list-01) | CardList :: `AddCard` |
-| STORYBOOK-CARD-LIST-02 | render | [Card 未作成の空状態を表示する](#storybook-card-list-02) | CardList :: `Empty` |
-| STORYBOOK-CARD-LIST-03 | render | [フィルターによる0件状態を表示する](#storybook-card-list-03) | CardList :: `FilterZero` |
-| STORYBOOK-CARD-LIST-04 | render | [復習期限による0件状態を区別する](#storybook-card-list-04) | CardList :: `IntervalZero` |
-| STORYBOOK-CARD-LIST-05 | interaction | [閲覧要求に対象 ID を渡す](#storybook-card-list-05) | CardList :: `ViewCard` |
-| STORYBOOK-CARD-LIST-06 | interaction | [選択タグを解除する](#storybook-card-list-06) | CardList :: `RemovableSelectedTags` |
-| STORYBOOK-CARD-LIST-07 | interaction | [Card の overlay を閉じる](#storybook-card-list-07) | CardList :: `CardViewInteraction` |
-| STORYBOOK-CARD-LIST-08 | interaction | [標準順への変更を要求する](#storybook-card-list-08) | CardList :: `NewestAdded` |
-| STORYBOOK-CARD-LIST-09 | interaction | [編集を要求してメニューを閉じる](#storybook-card-list-09) | CardActionsMenu :: `Interaction` |
-| STORYBOOK-CARD-LIST-10 | render | [空理由がなければ案内を断定しない](#storybook-card-list-10) | CardList :: `Empty`（未実装） |
-| STORYBOOK-CARD-LIST-11 | render | [長い選択タグを保持する](#storybook-card-list-11) | CardList :: `RemovableSelectedTags`（未実装） |
-| STORYBOOK-CARD-LIST-12 | interaction | [タグ解除後に残るタグへフォーカスを移す](#storybook-card-list-12) | CardList :: `RemovableSelectedTags`（未実装） |
-| STORYBOOK-CARD-LIST-13 | interaction | [最後のタグ解除後はフィルターへ戻る](#storybook-card-list-13) | CardList :: `RemovableSelectedTags`（未実装） |
-| STORYBOOK-CARD-LIST-14 | interaction | [Tab 移動で選択を変えない](#storybook-card-list-14) | CardList :: `RemovableSelectedTags`（未実装） |
-| STORYBOOK-CARD-LIST-15 | interaction | [メニューを一つに保ち行の削除で閉じる](#storybook-card-list-15) | CardList :: `ViewCard`（未実装） |
-| STORYBOOK-CARD-LIST-16 | interaction | [並べ替え後も同じ Card を操作する](#storybook-card-list-16) | CardList :: `ViewCard`（未実装） |
-| STORYBOOK-CARD-LIST-17 | interaction | [空状態から追加を要求する](#storybook-card-list-17) | CardList :: `Empty`（未実装） |
-| STORYBOOK-CARD-LIST-18 | interaction | [0件状態からフィルター解除を要求する](#storybook-card-list-18) | CardList :: `FilterZero`（未実装） |
-| STORYBOOK-CARD-LIST-19 | interaction | [行の編集要求に対象 ID を渡す](#storybook-card-list-19) | CardList :: `ViewCard`（未実装） |
-| STORYBOOK-CARD-LIST-20 | render | [処理中の行を操作させない](#storybook-card-list-20) | CardList :: `ViewCard`（未実装） |
-| STORYBOOK-CARD-LIST-21 | interaction | [削除を要求する](#storybook-card-list-21) | CardActionsMenu :: `Interaction`（未実装） |
-| STORYBOOK-CARD-LIST-22 | render | [無効なメニューを表示しない](#storybook-card-list-22) | CardActionsMenu :: `Interaction`（未実装） |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-CARD-LIST-01 | interaction | [Card の追加を要求する](#storybook-card-list-01) |
+| STORYBOOK-CARD-LIST-02 | render | [Card 未作成の空状態を表示する](#storybook-card-list-02) |
+| STORYBOOK-CARD-LIST-03 | render | [フィルターによる0件状態を表示する](#storybook-card-list-03) |
+| STORYBOOK-CARD-LIST-04 | render | [復習期限による0件状態を区別する](#storybook-card-list-04) |
+| STORYBOOK-CARD-LIST-05 | interaction | [閲覧要求に対象 ID を渡す](#storybook-card-list-05) |
+| STORYBOOK-CARD-LIST-06 | interaction | [選択タグを解除する](#storybook-card-list-06) |
+| STORYBOOK-CARD-LIST-07 | interaction | [Card の overlay を閉じる](#storybook-card-list-07) |
+| STORYBOOK-CARD-LIST-08 | interaction | [標準順への変更を要求する](#storybook-card-list-08) |
+| STORYBOOK-CARD-LIST-09 | interaction | [編集を要求してメニューを閉じる](#storybook-card-list-09) |
+| STORYBOOK-CARD-LIST-10 | render | [空理由がなければ案内を断定しない](#storybook-card-list-10) |
+| STORYBOOK-CARD-LIST-11 | render | [長い選択タグを保持する](#storybook-card-list-11) |
+| STORYBOOK-CARD-LIST-12 | interaction | [タグ解除後に残るタグへフォーカスを移す](#storybook-card-list-12) |
+| STORYBOOK-CARD-LIST-13 | interaction | [最後のタグ解除後はフィルターへ戻る](#storybook-card-list-13) |
+| STORYBOOK-CARD-LIST-14 | interaction | [Tab 移動で選択を変えない](#storybook-card-list-14) |
+| STORYBOOK-CARD-LIST-15 | interaction | [メニューを一つに保ち行の削除で閉じる](#storybook-card-list-15) |
+| STORYBOOK-CARD-LIST-16 | interaction | [並べ替え後も同じ Card を操作する](#storybook-card-list-16) |
+| STORYBOOK-CARD-LIST-17 | interaction | [空状態から追加を要求する](#storybook-card-list-17) |
+| STORYBOOK-CARD-LIST-18 | interaction | [0件状態からフィルター解除を要求する](#storybook-card-list-18) |
+| STORYBOOK-CARD-LIST-19 | interaction | [行の編集要求に対象 ID を渡す](#storybook-card-list-19) |
+| STORYBOOK-CARD-LIST-20 | render | [処理中の行を操作させない](#storybook-card-list-20) |
+| STORYBOOK-CARD-LIST-21 | interaction | [削除を要求する](#storybook-card-list-21) |
+| STORYBOOK-CARD-LIST-22 | render | [無効なメニューを表示しない](#storybook-card-list-22) |
 
 <a id="storybook-card-list-01"></a>
 
 ### STORYBOOK-CARD-LIST-01 Card の追加を要求する
 
 カテゴリ: `interaction`
-
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `AddCard`
 
 Given:
 
@@ -65,8 +63,6 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `Empty`
-
 Given:
 
 - Card は0件、フィルターなし、空理由は no-cards である。
@@ -84,8 +80,6 @@ Then:
 ### STORYBOOK-CARD-LIST-03 フィルターによる0件状態を表示する
 
 カテゴリ: `render`
-
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `FilterZero`
 
 Given:
 
@@ -105,8 +99,6 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `IntervalZero`
-
 Given:
 
 - フィルターなし、表示0件、空理由は interval-zero である。
@@ -124,8 +116,6 @@ Then:
 ### STORYBOOK-CARD-LIST-05 閲覧要求に対象 ID を渡す
 
 カテゴリ: `interaction`
-
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `ViewCard`
 
 Given:
 
@@ -145,8 +135,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `RemovableSelectedTags`
-
 Given:
 
 - TypeScript / Accessibility を選択し、解除を Story 側の状態に反映する。
@@ -164,8 +152,6 @@ Then:
 ### STORYBOOK-CARD-LIST-07 Card の overlay を閉じる
 
 カテゴリ: `interaction`
-
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `CardViewInteraction`
 
 Given:
 
@@ -185,8 +171,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `NewestAdded`
-
 Given:
 
 - 並び順は newest で、変更 callback を渡す。
@@ -204,8 +188,6 @@ Then:
 ### STORYBOOK-CARD-LIST-09 編集を要求してメニューを閉じる
 
 カテゴリ: `interaction`
-
-対応 Story: [CardActionsMenu.stories.tsx](../../../../src/pages/card-list/ui/CardActionsMenu.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -225,9 +207,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `Empty`（追加先、未実装）
-
-元テスト: [CardList.spec.tsx](../../../../src/pages/card-list/ui/CardList.spec.tsx) の0件・フィルター要約。
+検証状況: 未実装
 
 Given:
 
@@ -247,9 +227,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `RemovableSelectedTags`（追加先、未実装）
-
-元テスト: [CardList.spec.tsx](../../../../src/pages/card-list/ui/CardList.spec.tsx) の long selected tag。
+検証状況: 未実装
 
 Given:
 
@@ -269,9 +247,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `RemovableSelectedTags`（追加先、未実装）
-
-元テスト: [CardList.spec.tsx](../../../../src/pages/card-list/ui/CardList.spec.tsx) の残るタグへのフォーカス。
+検証状況: 未実装
 
 Given:
 
@@ -291,9 +267,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `RemovableSelectedTags`（追加先、未実装）
-
-元テスト: [CardList.spec.tsx](../../../../src/pages/card-list/ui/CardList.spec.tsx) の最後のタグ解除。
+検証状況: 未実装
 
 Given:
 
@@ -313,9 +287,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `RemovableSelectedTags`（追加先、未実装）
-
-元テスト: [CardList.spec.tsx](../../../../src/pages/card-list/ui/CardList.spec.tsx) の chip 間の Tab 移動。
+検証状況: 未実装
 
 Given:
 
@@ -335,9 +307,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `ViewCard`（追加先、未実装）
-
-元テスト: [CardList.spec.tsx](../../../../src/pages/card-list/ui/CardList.spec.tsx) のメニュー排他と行の除去。
+検証状況: 未実装
 
 Given:
 
@@ -357,9 +327,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `ViewCard`（追加先、未実装）
-
-元テスト: [CardList.spec.tsx](../../../../src/pages/card-list/ui/CardList.spec.tsx) の reorder 後の View / Edit。
+検証状況: 未実装
 
 Given:
 
@@ -379,9 +347,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `Empty`（追加先、未実装）
-
-元テスト: [CardList.spec.tsx](../../../../src/pages/card-list/ui/CardList.spec.tsx) の no-cards の追加操作。
+検証状況: 未実装
 
 Given:
 
@@ -401,9 +367,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `FilterZero`（追加先、未実装）
-
-元テスト: [CardList.spec.tsx](../../../../src/pages/card-list/ui/CardList.spec.tsx) の filter-zero の解除操作。
+検証状況: 未実装
 
 Given:
 
@@ -423,9 +387,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `ViewCard`（追加先、未実装）
-
-元テスト: [Card.spec.tsx](../../../../src/pages/card-list/ui/Card.spec.tsx) の text / tags と ID の通知。
+検証状況: 未実装
 
 Given:
 
@@ -445,9 +407,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardList.stories.tsx](../../../../src/pages/card-list/ui/CardList.stories.tsx) :: `ViewCard`（追加先、未実装）
-
-元テスト: [Card.spec.tsx](../../../../src/pages/card-list/ui/Card.spec.tsx) の pending write。
+検証状況: 未実装
 
 Given:
 
@@ -467,9 +427,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardActionsMenu.stories.tsx](../../../../src/pages/card-list/ui/CardActionsMenu.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [CardActionsMenu.spec.tsx](../../../../src/pages/card-list/ui/CardActionsMenu.spec.tsx) の edit / delete actions。
+検証状況: 未実装
 
 Given:
 
@@ -489,9 +447,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardActionsMenu.stories.tsx](../../../../src/pages/card-list/ui/CardActionsMenu.stories.tsx) :: `Interaction`（追加先、未実装）
-
-元テスト: [CardActionsMenu.spec.tsx](../../../../src/pages/card-list/ui/CardActionsMenu.spec.tsx) の disabled trigger。
+検証状況: 未実装
 
 Given:
 

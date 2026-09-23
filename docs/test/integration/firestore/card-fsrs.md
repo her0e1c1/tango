@@ -4,8 +4,6 @@
 
 Card.fsrs の購読・検証・UID 分離・削除と初期 readiness を確認する。FSRS の数値検証は Adapter、アクセス制御は Rules の契約とする。
 
-対応ファイル: [`card-fsrs.spec.ts`](../../../test/integration/firestore/card-fsrs.spec.ts)
-
 ## テストケース
 
 | ID | カテゴリ | テストケース |
@@ -22,8 +20,6 @@ Card.fsrs の購読・検証・UID 分離・削除と初期 readiness を確認�
 ### FIRESTORE-CARD-FSRS-01 null と評価済み Card を同じ購読で復元する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-CARD-FSRS-01] restores null and rated Cards through one subscription`
 
 Given:
 
@@ -43,8 +39,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-CARD-FSRS-02] restores only the active UID and clears Cards on stop`
-
 Given:
 
 - 本人と別 UID の評価済み Card がある。
@@ -62,8 +56,6 @@ Then:
 ### FIRESTORE-CARD-FSRS-03 不正 FSRS を未評価に読み替えない
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-CARD-FSRS-03] rejects invalid persisted FSRS: %j`
 
 Given:
 
@@ -83,8 +75,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-CARD-FSRS-04] hides deleted Card state without changing other Cards`
-
 Given:
 
 - 本人の同じ Deck に評価済み Card が2件ある。
@@ -103,8 +93,6 @@ Then:
 
 カテゴリ: `read`
 
-対応テスト: `[FIRESTORE-CARD-FSRS-05] surfaces a denied subscription`
-
 Given:
 
 - 本人の認証 context から他人の UID を購読する。
@@ -122,8 +110,6 @@ Then:
 ### FIRESTORE-CARD-FSRS-06 オフライン削除を再接続後も維持する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-CARD-FSRS-06] preserves offline deletion after reconnect`
 
 Given:
 

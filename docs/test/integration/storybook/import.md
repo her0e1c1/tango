@@ -14,28 +14,26 @@ CSV 選択、プレビュー、明示的な確定、診断表示と失敗・処�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応 Story |
-| --- | --- | --- | --- |
-| STORYBOOK-IMPORT-01 | render | [初期画面に保存先選択を表示しない](#storybook-import-01) | DeckImportView :: `Default` |
-| STORYBOOK-IMPORT-02 | interaction | [CSV を読み込んでプレビューする](#storybook-import-02) | App :: `Import` |
-| STORYBOOK-IMPORT-03 | render | [日本語の診断と無効な確定操作を表示する](#storybook-import-03) | DeckImportView :: `JapaneseDiagnostics` |
-| STORYBOOK-IMPORT-04 | interaction | [プレビュー失敗を安全な日本語にする](#storybook-import-04) | DeckImportView :: `Default`（未実装） |
-| STORYBOOK-IMPORT-05 | interaction | [診断を翻訳しユーザー入力は保持する](#storybook-import-05) | DeckImportView :: `JapaneseDiagnostics`（未実装） |
-| STORYBOOK-IMPORT-06 | interaction | [形式の説明を必要なときだけ開く](#storybook-import-06) | DeckImportView :: `Default`（未実装） |
-| STORYBOOK-IMPORT-07 | render | [処理中の選択を無効にする](#storybook-import-07) | DeckImportView :: `Default`（未実装） |
-| STORYBOOK-IMPORT-08 | interaction | [各サンプルの操作を要求する](#storybook-import-08) | DeckImportView :: `Default`（未実装） |
-| STORYBOOK-IMPORT-09 | interaction | [レビュー後もファイルを選び直せる](#storybook-import-09) | DeckImportView :: `Default`（未実装） |
-| STORYBOOK-IMPORT-10 | interaction | [内容確認だけでは保存を要求しない](#storybook-import-10) | DeckImportView :: `Default`（未実装） |
-| STORYBOOK-IMPORT-11 | render | [一部の行が不正なら確定を止める](#storybook-import-11) | DeckImportView :: `JapaneseDiagnostics`（未実装） |
-| STORYBOOK-IMPORT-12 | render | [準備失敗後も選び直せる](#storybook-import-12) | DeckImportView :: `Default`（未実装） |
+| ID | カテゴリ | テストケース |
+| --- | --- | --- |
+| STORYBOOK-IMPORT-01 | render | [初期画面に保存先選択を表示しない](#storybook-import-01) |
+| STORYBOOK-IMPORT-02 | interaction | [CSV を読み込んでプレビューする](#storybook-import-02) |
+| STORYBOOK-IMPORT-03 | render | [日本語の診断と無効な確定操作を表示する](#storybook-import-03) |
+| STORYBOOK-IMPORT-04 | interaction | [プレビュー失敗を安全な日本語にする](#storybook-import-04) |
+| STORYBOOK-IMPORT-05 | interaction | [診断を翻訳しユーザー入力は保持する](#storybook-import-05) |
+| STORYBOOK-IMPORT-06 | interaction | [形式の説明を必要なときだけ開く](#storybook-import-06) |
+| STORYBOOK-IMPORT-07 | render | [処理中の選択を無効にする](#storybook-import-07) |
+| STORYBOOK-IMPORT-08 | interaction | [各サンプルの操作を要求する](#storybook-import-08) |
+| STORYBOOK-IMPORT-09 | interaction | [レビュー後もファイルを選び直せる](#storybook-import-09) |
+| STORYBOOK-IMPORT-10 | interaction | [内容確認だけでは保存を要求しない](#storybook-import-10) |
+| STORYBOOK-IMPORT-11 | render | [一部の行が不正なら確定を止める](#storybook-import-11) |
+| STORYBOOK-IMPORT-12 | render | [準備失敗後も選び直せる](#storybook-import-12) |
 
 <a id="storybook-import-01"></a>
 
 ### STORYBOOK-IMPORT-01 初期画面に保存先選択を表示しない
 
 カテゴリ: `render`
-
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`
 
 Given:
 
@@ -55,8 +53,6 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Import`
-
 Given:
 
 - 実際のインポートルートと、有効な4列1行の storybook-import.csv を用意する。
@@ -74,8 +70,6 @@ Then:
 ### STORYBOOK-IMPORT-03 日本語の診断と無効な確定操作を表示する
 
 カテゴリ: `render`
-
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics`
 
 Given:
 
@@ -95,9 +89,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の preview failure の言語変更。
+検証状況: 未実装
 
 Given:
 
@@ -117,9 +109,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics`（追加先、未実装）
-
-元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の cached diagnostics。
+検証状況: 未実装
 
 Given:
 
@@ -139,9 +129,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の optional format details。
+検証状況: 未実装
 
 Given:
 
@@ -161,9 +149,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の importing 状態。
+検証状況: 未実装
 
 Given:
 
@@ -183,9 +169,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の example 別 preview / download。
+検証状況: 未実装
 
 Given:
 
@@ -205,9 +189,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の selected files と再選択。
+検証状況: 未実装
 
 Given:
 
@@ -227,9 +209,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の explicit confirmation。
+検証状況: 未実装
 
 Given:
 
@@ -250,9 +230,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics`（追加先、未実装）
-
-元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の partially invalid preview。
+検証状況: 未実装
 
 Given:
 
@@ -272,9 +250,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`（追加先、未実装）
-
-元テスト: [DeckImportView.spec.tsx](../../../../src/pages/deck-import/ui/DeckImportView.spec.tsx) の preparation failure。
+検証状況: 未実装
 
 Given:
 
