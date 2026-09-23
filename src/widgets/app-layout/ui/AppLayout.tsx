@@ -22,6 +22,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
       headerProps={{
         dark: preferences.appearance.darkMode,
         labels: {
+          menu: t("header.menu"),
           switchToLightMode: t("header.switchToLightMode"),
           switchToDarkMode: t("header.switchToDarkMode"),
           importDecks: t("header.importDecks"),

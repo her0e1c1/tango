@@ -129,7 +129,9 @@ export const resources = {
         date: "Date",
         scale: "Scale: 0–{{maximum}} sessions",
       },
+      actionsMenu: { close: "Close menu" },
       header: {
+        menu: "Menu",
         switchToLightMode: "Switch to light mode",
         switchToDarkMode: "Switch to dark mode",
         importDecks: "Import decks",
@@ -140,6 +142,7 @@ export const resources = {
         answerAria: "Card answer",
       },
       deckList: {
+        groups: { studying: "Studying", reviewNow: "Ready to study", other: "Other decks" },
         aboutCounts: "About counts",
         deckName: "Deck name",
         cardsToStudy: "Cards to study",
@@ -880,7 +883,9 @@ export const resources = {
         date: "日付",
         scale: "目盛り: 0～{{maximum}} 回",
       },
+      actionsMenu: { close: "メニューを閉じる" },
       header: {
+        menu: "メニュー",
         switchToLightMode: "ライトモードに切り替える",
         switchToDarkMode: "ダークモードに切り替える",
         importDecks: "デッキをインポート",
@@ -891,6 +896,7 @@ export const resources = {
         answerAria: "カードの回答",
       },
       deckList: {
+        groups: { studying: "学習中", reviewNow: "今学習できるデッキ", other: "その他" },
         aboutCounts: "件数について",
         deckName: "デッキ名",
         cardsToStudy: "学習するカード",

@@ -20,6 +20,7 @@ const Footer = () => <div className="shrink-0 pb-[calc(var(--spacing-section-gap
 const fixedHeaderOffsetClass = "pt-[calc(var(--spacing-touch)+1rem+env(safe-area-inset-top))]";
 
 export interface LayoutProps {
+  contentSurface?: "panel" | "canvas";
   showHeader?: boolean;
   fixedHeader?: boolean;
   scroll?: boolean;
@@ -56,7 +57,7 @@ export const Layout: React.FC<LayoutProps> = (props) => {
   return (
     <Outer {...(fixedHeader ? { className: fixedHeaderOffsetClass } : {})}>
       {header}
-      <Main>{props.children}</Main>
+      <Main {...(props.contentSurface ? { surface: props.contentSurface } : {})}>{props.children}</Main>
       <Footer />
     </Outer>
   );
