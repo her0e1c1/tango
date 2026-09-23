@@ -101,6 +101,7 @@ const verifyStudyViewModeControls = async (page: Page, uid: string, deckId: stri
   await page.getByRole("button", { name: "Open study help" }).click();
   await expect(page.getByRole("dialog")).toContainText("Exit view mode and keep the front visible");
   await expect(page.getByRole("dialog")).toContainText("Space scrolls the front text");
+  expect((await readSession(uid, deckId))?.currentIndex).toBe(0);
 };
 
 for (const scenario of [

@@ -17,19 +17,22 @@ const nonProductionFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 // Stories share those production exemptions, but only spec and test modules use Vitest and Testing Library semantics.
 const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}", "test/integration/**/*.{spec,test}.{ts,tsx}"];
 const playwrightFiles = ["test/e2e/**/*.{ts,tsx}", "playwright.config.ts"];
-// Steiger enforces FSD layer and slice boundaries, but it does not protect presentational UI from same-slice
-// model imports. Runtime imports are restricted so Pages and Containers connect state and workflows, then pass
-// prepared values through props.
-// Type-only imports remain allowed so presentational prop types can refer to model-owned types.
-// This gitignore-style directory pattern covers model and its descendants at any relative depth.
-const sameSliceModelImports = ["../**/model"];
-const sameSliceApiRestriction = {
+// no-restricted-imports uses gitignore patterns: a directory also matches its descendants.
+const apiImports = {
   group: ["../**/api", "@/**/api"],
   allowTypeImports: true,
   message: "Presentational UI must receive persistence operations through props.",
 };
+const presentationImports = [
+  apiImports,
+  {
+    group: ["../**/model", "@/entities", "@/entities/*"],
+    allowTypeImports: true,
+    message: "Presentational UI must receive state and workflows through props.",
+  },
+];
 const firestoreImports = {
-  group: ["firebase/firestore", "firebase/firestore/**"],
+  group: ["firebase/firestore"],
   allowTypeImports: true,
   message: "Use Entity public APIs for domain persistence.",
 };
@@ -130,82 +133,38 @@ export default defineConfig(
     files: ["src/pages/*/ui/**/*Page.{ts,tsx}"],
     rules: { "no-restricted-imports": ["error", { patterns: [firestoreImports] }] },
   },
-  // FSD permits Feature-to-Entity dependencies, but Feature UI stays props-driven under this project's stricter policy.
-  // State and workflows are connected outside presentational UI and passed in as prepared values and callbacks.
+  // Only Page and Container components connect state; other Page/Feature UI receives props.
   {
-    files: ["src/features/*/ui/**/*.{ts,tsx}"],
-    ignores: nonProductionFiles,
+    files: ["src/{pages,features}/*/ui/**/*.{ts,tsx}"],
+    ignores: [...nonProductionFiles, "src/pages/*/ui/**/*{Page,Container}.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          paths: pageRouteImports,
-          patterns: [
-            sameSliceApiRestriction,
-            {
-              // Cover the Entity layer barrel and every slice public API; prop contracts may still import their types.
-              group: ["@/entities", "@/entities/*"],
-              allowTypeImports: true,
-              message: "Feature UI must receive Entity data through presentational props.",
-            },
-            {
-              // Steiger allows same-slice imports, so this closes the runtime UI-to-model path that it cannot detect.
-              group: sameSliceModelImports,
-              allowTypeImports: true,
-              message: "Feature UI must receive Feature state and workflows through props.",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": ["error", { paths: pageRouteImports, patterns: presentationImports }],
     },
   },
-  // Page-first permits state and workflow connections only in files explicitly named Page or Container.
-  // These filename exemptions are architecture markers; every other production Page UI module remains props-driven.
   {
     files: ["src/pages/*/ui/**/*.{ts,tsx}"],
-    ignores: [
-      ...nonProductionFiles,
-      "src/pages/*/ui/**/*Page.{ts,tsx}",
-      "src/pages/*/ui/**/*Container.{ts,tsx}",
-    ],
+    ignores: [...nonProductionFiles, "src/pages/*/ui/**/*{Page,Container}.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          paths: pageRouteImports,
-          patterns: [
-            firestoreImports,
-            sameSliceApiRestriction,
-            {
-              // Entity data and actions are prepared by the Page or Container; type-only prop contracts remain safe.
-              group: ["@/entities", "@/entities/*"],
-              allowTypeImports: true,
-              message: "Presentational Page UI must receive Entity data and actions through props.",
-            },
-            {
-              // Restrict hook-shaped exports only so presentational Feature components
-              // remain available for composition.
-              group: ["@/features", "@/features/*"],
-              importNamePattern: "^use[A-Z]",
-              allowTypeImports: true,
-              message: "Only a Page or Container may connect to a Feature hook.",
-            },
-            {
-              // Route-specific model hooks are connected by the Page or Container, then exposed through UI props.
-              group: sameSliceModelImports,
-              allowTypeImports: true,
-              message: "Presentational Page UI must receive Page state and workflows through props.",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": ["error", {
+        paths: pageRouteImports,
+        patterns: [
+          ...presentationImports,
+          firestoreImports,
+          {
+            group: ["@/features", "@/features/*"],
+            importNamePattern: "^use[A-Z]",
+            allowTypeImports: true,
+            message: "Only a Page or Container may connect to a Feature hook.",
+          },
+        ],
+      }],
     },
   },
   {
     files: ["src/{entities,widgets}/*/ui/**/*.{ts,tsx}", "src/shared/ui/**/*.{ts,tsx}"],
     ignores: [...nonProductionFiles, "src/widgets/*/ui/**/*Container.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { paths: pageRouteImports, patterns: [sameSliceApiRestriction] }],
+      "no-restricted-imports": ["error", { paths: pageRouteImports, patterns: [apiImports] }],
     },
   },
   // Queries may read stores, but cannot depend on state-changing actions. Type contracts remain legal.
@@ -224,14 +183,13 @@ export default defineConfig(
     },
   },
   {
-    files: ["src/{pages,features,entities}/*/model/{schema,rules,defaults}.ts", "src/entities/card/model/fsrsRules.ts"],
+    files: ["src/{pages,features,entities}/*/model/{schema,rules,defaults,fsrsRules}.ts"],
     rules: {
       "no-restricted-imports": ["error", {
         paths: pageRouteImports,
         patterns: [
           firestoreImports,
-          { group: ["react", "react/**", "react-dom", "react-dom/**", "zustand", "zustand/**",
-              "./store", "./store.*", "./store/**", "../**/store", "../**/store.*", "@/**/store", "@/**/store.*"],
+          { group: ["react", "react-dom", "zustand", "**/store", "**/store.*"],
             allowTypeImports: true, message: "Schemas, rules, and defaults must stay independent of React and stores." },
         ],
       }],
