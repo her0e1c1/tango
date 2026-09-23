@@ -25,8 +25,8 @@ function readCases(directory: string) {
 }
 
 for (const [directory, testDirectory] of [
-  ["docs/e2e", "test/e2e"],
-  ["docs/integration/firestore", "test/integration/firestore"],
+  ["docs/test/e2e", "test/e2e"],
+  ["docs/test/integration/firestore", "test/integration/firestore"],
 ] as const) {
   const source = files(testDirectory, /\.spec\.tsx?$/u)
     .map(read)
@@ -45,7 +45,7 @@ const stories = new Map(
     new Set([...read(file).matchAll(/^export\s+const\s+([\w$]+)/gmu)].map(([, name]) => name)),
   ])
 );
-for (const { id, file, body } of readCases("docs/integration/storybook")) {
+for (const { id, file, body } of readCases("docs/test/integration/storybook")) {
   const mapping = /^対応 Story: (.+)$/mu.exec(body)?.[1] ?? "";
   const references = [...mapping.matchAll(/\]\(([^)]+\.stories\.tsx?)\)\s*::\s*`([\w$]+)`/gu)];
   const covered = references.some(([, target = "", name]) =>

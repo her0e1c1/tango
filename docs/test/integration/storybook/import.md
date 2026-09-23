@@ -16,9 +16,9 @@ CSV 選択からプレビューまでの画面結合と、日本語の診断表�
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-IMPORT-01 | render | [保存先を選ばずインポートを開始できる画面を表示する](#storybook-import-01) | [DeckImportView.stories.tsx](../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default` |
-| STORYBOOK-IMPORT-02 | interaction | [ルート上のファイル選択から有効行のプレビューを表示する](#storybook-import-02) | [App.stories.tsx](../../../src/app/App.stories.tsx) :: `Import` |
-| STORYBOOK-IMPORT-03 | render | [列数エラーを日本語で表示して追加を無効にする](#storybook-import-03) | [DeckImportView.stories.tsx](../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics` |
+| STORYBOOK-IMPORT-01 | render | [保存先を選ばずインポートを開始できる画面を表示する](#storybook-import-01) | [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default` |
+| STORYBOOK-IMPORT-02 | interaction | [ルート上のファイル選択から有効行のプレビューを表示する](#storybook-import-02) | [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Import` |
+| STORYBOOK-IMPORT-03 | render | [列数エラーを日本語で表示して追加を無効にする](#storybook-import-03) | [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics` |
 
 <a id="storybook-import-01"></a>
 
@@ -26,7 +26,7 @@ CSV 選択からプレビューまでの画面結合と、日本語の診断表�
 
 カテゴリ: `render`
 
-対応 Story: [DeckImportView.stories.tsx](../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `Default`
 
 Given:
 
@@ -46,7 +46,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [App.stories.tsx](../../../src/app/App.stories.tsx) :: `Import`
+対応 Story: [App.stories.tsx](../../../../src/app/App.stories.tsx) :: `Import`
 
 Given:
 
@@ -68,7 +68,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckImportView.stories.tsx](../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics`
+対応 Story: [DeckImportView.stories.tsx](../../../../src/pages/deck-import/ui/DeckImportView.stories.tsx) :: `JapaneseDiagnostics`
 
 Given:
 

@@ -16,8 +16,8 @@
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-APP-LAYOUT-01 | interaction | [固定 Header が本文に重ならずスクロール中も同じ位置に残る](#storybook-app-layout-01) | [AppLayout.stories.tsx](../../../src/app/AppLayout.stories.tsx) :: `FixedByDefault` |
-| STORYBOOK-APP-LAYOUT-02 | render | [固定を無効にした Header の下に本文を配置する](#storybook-app-layout-02) | [AppLayout.stories.tsx](../../../src/app/AppLayout.stories.tsx) :: `FixedHeaderDisabled` |
+| STORYBOOK-APP-LAYOUT-01 | interaction | [固定 Header が本文に重ならずスクロール中も同じ位置に残る](#storybook-app-layout-01) | [AppLayout.stories.tsx](../../../../src/app/AppLayout.stories.tsx) :: `FixedByDefault` |
+| STORYBOOK-APP-LAYOUT-02 | render | [固定を無効にした Header の下に本文を配置する](#storybook-app-layout-02) | [AppLayout.stories.tsx](../../../../src/app/AppLayout.stories.tsx) :: `FixedHeaderDisabled` |
 
 <a id="storybook-app-layout-01"></a>
 
@@ -25,7 +25,7 @@
 
 カテゴリ: `interaction`
 
-対応 Story: [AppLayout.stories.tsx](../../../src/app/AppLayout.stories.tsx) :: `FixedByDefault`
+対応 Story: [AppLayout.stories.tsx](../../../../src/app/AppLayout.stories.tsx) :: `FixedByDefault`
 
 Given:
 
@@ -47,7 +47,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [AppLayout.stories.tsx](../../../src/app/AppLayout.stories.tsx) :: `FixedHeaderDisabled`
+対応 Story: [AppLayout.stories.tsx](../../../../src/app/AppLayout.stories.tsx) :: `FixedHeaderDisabled`
 
 Given:
 

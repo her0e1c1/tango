@@ -10,7 +10,7 @@ Playwright testだけをE2E仕様として扱うと、期待する利用者向�
 
 ## Decision
 
-`docs/e2e/**`を、E2Eだけでなくunitおよびintegration testが保証するruntime application behaviorの正とする。
+`docs/test/e2e/**`を、E2Eだけでなくunitおよびintegration testが保証するruntime application behaviorの正とする。
 
 各文書化test case IDはexactly one Playwright testに対応し、各Playwright testもexactly one文書化IDに対応させる。文書化されていないE2E testは追加しない。
 
@@ -20,4 +20,4 @@ dependency directionやtype correctnessなどのstatic constraintはlintまた�
 
 各E2E testはsame-categoryのYAML fixtureをexactly one参照する。fixtureはseed前にschemaと参照整合性をすべて検証し、UID、document ID、session IDなどのidentityをtest caseとretry単位で分離する。
 
-fixture、test配置、mocking boundaryの具体的な規則は`docs/e2e/AGENTS.md`、`test/e2e/AGENTS.md`、およびroot `AGENTS.md`で管理する。[PR #1256](https://github.com/her0e1c1/tango/pull/1256)、[PR #1260](https://github.com/her0e1c1/tango/pull/1260)、[PR #1299](https://github.com/her0e1c1/tango/pull/1299)、[PR #1397](https://github.com/her0e1c1/tango/pull/1397)を参照する。
+fixture、test配置、mocking boundaryの具体的な規則は`docs/test/e2e/AGENTS.md`、`test/e2e/AGENTS.md`、およびroot `AGENTS.md`で管理する。[PR #1256](https://github.com/her0e1c1/tango/pull/1256)、[PR #1260](https://github.com/her0e1c1/tango/pull/1260)、[PR #1299](https://github.com/her0e1c1/tango/pull/1299)、[PR #1397](https://github.com/her0e1c1/tango/pull/1397)を参照する。

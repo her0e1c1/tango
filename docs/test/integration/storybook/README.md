@@ -19,11 +19,11 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 
 ## 実行前提
 
-- 対象テストは [`src/**/*.stories.tsx`](../../../src) の `play` に置く。`test/integration/storybook` への複製や専用 fixture ファイルは追加しない。
-- [`vitest.config.ts`](../../../vitest.config.ts) の `storybook` project は Vitest addon と Playwright の Chromium browser で実行する。jsdom の unit / integration project とは別である。
-- [`preview.ts`](../../../.storybook/preview.ts) の実際の i18n とアプリ CSS を使用する。通常は英語で、日本語ケースだけ `parameters.locale = "ja"` を設定する。
-- 必要な入力値、フォームエラー、空状態、認証 props、callback の spy は Story 側で用意する。ルート Story の状態は既存の [`PageDecorator.tsx`](../../../.storybook/support/PageDecorator.tsx) に従って初期化する。
-- Firebase は既存の [Storybook 設定](../../../.storybook/main.ts) による差し替えを使う。Firestore emulator への接続成功や実保存の保証をこの仕様に含めない。
+- 対象テストは [`src/**/*.stories.tsx`](../../../../src) の `play` に置く。`test/integration/storybook` への複製や専用 fixture ファイルは追加しない。
+- [`vitest.config.ts`](../../../../vitest.config.ts) の `storybook` project は Vitest addon と Playwright の Chromium browser で実行する。jsdom の unit / integration project とは別である。
+- [`preview.ts`](../../../../.storybook/preview.ts) の実際の i18n とアプリ CSS を使用する。通常は英語で、日本語ケースだけ `parameters.locale = "ja"` を設定する。
+- 必要な入力値、フォームエラー、空状態、認証 props、callback の spy は Story 側で用意する。ルート Story の状態は既存の [`PageDecorator.tsx`](../../../../.storybook/support/PageDecorator.tsx) に従って初期化する。
+- Firebase は既存の [Storybook 設定](../../../../.storybook/main.ts) による差し替えを使う。Firestore emulator への接続成功や実保存の保証をこの仕様に含めない。
 - Story ごとにフォーム、選択状態、spy の履歴、共有 store、言語、スクロール位置を分離またはリセットし、別 Story や実行順に依存させない。
 
 ## 書式と ID

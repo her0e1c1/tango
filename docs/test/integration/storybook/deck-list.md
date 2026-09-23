@@ -16,14 +16,14 @@ DeckList、DeckActionsMenu と実際の子 UI。操作の通知先は公開 call
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-DECK-LIST-01 | interaction | [一覧から Deck の作成を要求する](#storybook-deck-list-01) | [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions` |
-| STORYBOOK-DECK-LIST-02 | interaction | [一覧から Deck のインポートを要求する](#storybook-deck-list-02) | [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions` |
-| STORYBOOK-DECK-LIST-03 | interaction | [日本語の一覧と操作名を表示する](#storybook-deck-list-03) | [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Japanese` |
-| STORYBOOK-DECK-LIST-04 | interaction | [選択した Deck の ID を閲覧 callback に渡す](#storybook-deck-list-04) | [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck` |
-| STORYBOOK-DECK-LIST-05 | interaction | [確定した空の一覧でも追加の導線を表示する](#storybook-deck-list-05) | [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Empty` |
-| STORYBOOK-DECK-LIST-06 | render | [渡された復習件数を一覧に表示する](#storybook-deck-list-06) | [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ReviewCounts` |
-| STORYBOOK-DECK-LIST-07 | interaction | [Deck のダウンロードを要求してメニューを閉じる](#storybook-deck-list-07) | [DeckActionsMenu.stories.tsx](../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction` |
-| STORYBOOK-DECK-LIST-08 | interaction | [Deck の学習履歴を開くよう要求する](#storybook-deck-list-08) | [DeckActionsMenu.stories.tsx](../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `History` |
+| STORYBOOK-DECK-LIST-01 | interaction | [一覧から Deck の作成を要求する](#storybook-deck-list-01) | [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions` |
+| STORYBOOK-DECK-LIST-02 | interaction | [一覧から Deck のインポートを要求する](#storybook-deck-list-02) | [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions` |
+| STORYBOOK-DECK-LIST-03 | interaction | [日本語の一覧と操作名を表示する](#storybook-deck-list-03) | [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Japanese` |
+| STORYBOOK-DECK-LIST-04 | interaction | [選択した Deck の ID を閲覧 callback に渡す](#storybook-deck-list-04) | [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck` |
+| STORYBOOK-DECK-LIST-05 | interaction | [確定した空の一覧でも追加の導線を表示する](#storybook-deck-list-05) | [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Empty` |
+| STORYBOOK-DECK-LIST-06 | render | [渡された復習件数を一覧に表示する](#storybook-deck-list-06) | [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ReviewCounts` |
+| STORYBOOK-DECK-LIST-07 | interaction | [Deck のダウンロードを要求してメニューを閉じる](#storybook-deck-list-07) | [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction` |
+| STORYBOOK-DECK-LIST-08 | interaction | [Deck の学習履歴を開くよう要求する](#storybook-deck-list-08) | [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `History` |
 
 <a id="storybook-deck-list-01"></a>
 
@@ -31,7 +31,7 @@ DeckList、DeckActionsMenu と実際の子 UI。操作の通知先は公開 call
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions`
+対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions`
 
 Given:
 
@@ -51,7 +51,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions`
+対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ListActions`
 
 Given:
 
@@ -71,7 +71,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Japanese`
+対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Japanese`
 
 Given:
 
@@ -92,7 +92,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck`
+対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ViewDeck`
 
 Given:
 
@@ -112,7 +112,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Empty`
+対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `Empty`
 
 Given:
 
@@ -133,7 +133,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckList.stories.tsx](../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ReviewCounts`
+対応 Story: [DeckList.stories.tsx](../../../../src/pages/deck-list/ui/DeckList.stories.tsx) :: `ReviewCounts`
 
 Given:
 
@@ -153,7 +153,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckActionsMenu.stories.tsx](../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction`
+対応 Story: [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -174,7 +174,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckActionsMenu.stories.tsx](../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `History`
+対応 Story: [DeckActionsMenu.stories.tsx](../../../../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx) :: `History`
 
 Given:
 

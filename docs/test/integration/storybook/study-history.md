@@ -16,15 +16,15 @@
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-STUDY-HISTORY-01 | interaction | [プリセットの選択要求を通知する](#storybook-study-history-01) | [StudyHistoryPeriodPicker.stories.tsx](../../../src/pages/study-history/ui/StudyHistoryPeriodPicker.stories.tsx) :: `Default` |
-| STORYBOOK-STUDY-HISTORY-02 | interaction | [任意期間の入力欄を開く](#storybook-study-history-02) | [StudyHistoryPeriodPicker.stories.tsx](../../../src/pages/study-history/ui/StudyHistoryPeriodPicker.stories.tsx) :: `Default` |
-| STORYBOOK-STUDY-HISTORY-03 | interaction | [折りたたんだ日別表を30日単位で開く](#storybook-study-history-03) | [StudyHistoryTable.stories.tsx](../../../src/pages/study-history/ui/StudyHistoryTable.stories.tsx) :: `Default` |
-| STORYBOOK-STUDY-HISTORY-04 | interaction | [日別表の古い日付のページへ進む](#storybook-study-history-04) | [StudyHistoryTable.stories.tsx](../../../src/pages/study-history/ui/StudyHistoryTable.stories.tsx) :: `Default` |
-| STORYBOOK-STUDY-HISTORY-05 | render | [最近のセッションの終了状態を区別する](#storybook-study-history-05) | [RecentStudySessions.stories.tsx](../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `Default` |
-| STORYBOOK-STUDY-HISTORY-06 | render | [最近のセッションの状態を日本語で表示する](#storybook-study-history-06) | [RecentStudySessions.stories.tsx](../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `MobileJapanese` |
-| STORYBOOK-STUDY-HISTORY-07 | interaction | [最近のセッションを全件展開する](#storybook-study-history-07) | [RecentStudySessions.stories.tsx](../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `MoreSessions` |
-| STORYBOOK-STUDY-HISTORY-08 | render | [30日分の集計グラフを表示する](#storybook-study-history-08) | [StudyHistorySummary.stories.tsx](../../../src/pages/study-history/ui/StudyHistorySummary.stories.tsx) :: `Default` |
-| STORYBOOK-STUDY-HISTORY-09 | render | [90日分のグラフに集約単位を表示する](#storybook-study-history-09) | [StudyHistorySummary.stories.tsx](../../../src/pages/study-history/ui/StudyHistorySummary.stories.tsx) :: `NinetyDays` |
+| STORYBOOK-STUDY-HISTORY-01 | interaction | [プリセットの選択要求を通知する](#storybook-study-history-01) | [StudyHistoryPeriodPicker.stories.tsx](../../../../src/pages/study-history/ui/StudyHistoryPeriodPicker.stories.tsx) :: `Default` |
+| STORYBOOK-STUDY-HISTORY-02 | interaction | [任意期間の入力欄を開く](#storybook-study-history-02) | [StudyHistoryPeriodPicker.stories.tsx](../../../../src/pages/study-history/ui/StudyHistoryPeriodPicker.stories.tsx) :: `Default` |
+| STORYBOOK-STUDY-HISTORY-03 | interaction | [折りたたんだ日別表を30日単位で開く](#storybook-study-history-03) | [StudyHistoryTable.stories.tsx](../../../../src/pages/study-history/ui/StudyHistoryTable.stories.tsx) :: `Default` |
+| STORYBOOK-STUDY-HISTORY-04 | interaction | [日別表の古い日付のページへ進む](#storybook-study-history-04) | [StudyHistoryTable.stories.tsx](../../../../src/pages/study-history/ui/StudyHistoryTable.stories.tsx) :: `Default` |
+| STORYBOOK-STUDY-HISTORY-05 | render | [最近のセッションの終了状態を区別する](#storybook-study-history-05) | [RecentStudySessions.stories.tsx](../../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `Default` |
+| STORYBOOK-STUDY-HISTORY-06 | render | [最近のセッションの状態を日本語で表示する](#storybook-study-history-06) | [RecentStudySessions.stories.tsx](../../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `MobileJapanese` |
+| STORYBOOK-STUDY-HISTORY-07 | interaction | [最近のセッションを全件展開する](#storybook-study-history-07) | [RecentStudySessions.stories.tsx](../../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `MoreSessions` |
+| STORYBOOK-STUDY-HISTORY-08 | render | [30日分の集計グラフを表示する](#storybook-study-history-08) | [StudyHistorySummary.stories.tsx](../../../../src/pages/study-history/ui/StudyHistorySummary.stories.tsx) :: `Default` |
+| STORYBOOK-STUDY-HISTORY-09 | render | [90日分のグラフに集約単位を表示する](#storybook-study-history-09) | [StudyHistorySummary.stories.tsx](../../../../src/pages/study-history/ui/StudyHistorySummary.stories.tsx) :: `NinetyDays` |
 
 <a id="storybook-study-history-01"></a>
 
@@ -32,7 +32,7 @@
 
 カテゴリ: `interaction`
 
-対応 Story: [StudyHistoryPeriodPicker.stories.tsx](../../../src/pages/study-history/ui/StudyHistoryPeriodPicker.stories.tsx) :: `Default`
+対応 Story: [StudyHistoryPeriodPicker.stories.tsx](../../../../src/pages/study-history/ui/StudyHistoryPeriodPicker.stories.tsx) :: `Default`
 
 Given:
 
@@ -53,7 +53,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [StudyHistoryPeriodPicker.stories.tsx](../../../src/pages/study-history/ui/StudyHistoryPeriodPicker.stories.tsx) :: `Default`
+対応 Story: [StudyHistoryPeriodPicker.stories.tsx](../../../../src/pages/study-history/ui/StudyHistoryPeriodPicker.stories.tsx) :: `Default`
 
 Given:
 
@@ -73,7 +73,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [StudyHistoryTable.stories.tsx](../../../src/pages/study-history/ui/StudyHistoryTable.stories.tsx) :: `Default`
+対応 Story: [StudyHistoryTable.stories.tsx](../../../../src/pages/study-history/ui/StudyHistoryTable.stories.tsx) :: `Default`
 
 Given:
 
@@ -93,7 +93,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [StudyHistoryTable.stories.tsx](../../../src/pages/study-history/ui/StudyHistoryTable.stories.tsx) :: `Default`
+対応 Story: [StudyHistoryTable.stories.tsx](../../../../src/pages/study-history/ui/StudyHistoryTable.stories.tsx) :: `Default`
 
 Given:
 
@@ -113,7 +113,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [RecentStudySessions.stories.tsx](../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `Default`
+対応 Story: [RecentStudySessions.stories.tsx](../../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `Default`
 
 Given:
 
@@ -134,7 +134,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [RecentStudySessions.stories.tsx](../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `MobileJapanese`
+対応 Story: [RecentStudySessions.stories.tsx](../../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `MobileJapanese`
 
 Given:
 
@@ -154,7 +154,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [RecentStudySessions.stories.tsx](../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `MoreSessions`
+対応 Story: [RecentStudySessions.stories.tsx](../../../../src/pages/study-history/ui/RecentStudySessions.stories.tsx) :: `MoreSessions`
 
 Given:
 
@@ -175,7 +175,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [StudyHistorySummary.stories.tsx](../../../src/pages/study-history/ui/StudyHistorySummary.stories.tsx) :: `Default`
+対応 Story: [StudyHistorySummary.stories.tsx](../../../../src/pages/study-history/ui/StudyHistorySummary.stories.tsx) :: `Default`
 
 Given:
 
@@ -195,7 +195,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [StudyHistorySummary.stories.tsx](../../../src/pages/study-history/ui/StudyHistorySummary.stories.tsx) :: `NinetyDays`
+対応 Story: [StudyHistorySummary.stories.tsx](../../../../src/pages/study-history/ui/StudyHistorySummary.stories.tsx) :: `NinetyDays`
 
 Given:
 

@@ -16,9 +16,9 @@ SettingsForm と実際の React Hook Form、および SettingsSection / Settings
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-SETTINGS-01 | render | [日本語の設定画面と System 選択を表示する](#storybook-settings-01) | [SettingsForm.stories.tsx](../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Japanese` |
-| STORYBOOK-SETTINGS-02 | interaction | [再生操作の表示設定をフォーム上で切り替える](#storybook-settings-02) | [SettingsForm.stories.tsx](../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction` |
-| STORYBOOK-SETTINGS-03 | interaction | [設定行の Switch と変更通知を結合する](#storybook-settings-03) | [SettingsSection.stories.tsx](../../../src/pages/settings/ui/SettingsSection.stories.tsx) :: `Interaction` |
+| STORYBOOK-SETTINGS-01 | render | [日本語の設定画面と System 選択を表示する](#storybook-settings-01) | [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Japanese` |
+| STORYBOOK-SETTINGS-02 | interaction | [再生操作の表示設定をフォーム上で切り替える](#storybook-settings-02) | [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction` |
+| STORYBOOK-SETTINGS-03 | interaction | [設定行の Switch と変更通知を結合する](#storybook-settings-03) | [SettingsSection.stories.tsx](../../../../src/pages/settings/ui/SettingsSection.stories.tsx) :: `Interaction` |
 
 <a id="storybook-settings-01"></a>
 
@@ -26,7 +26,7 @@ SettingsForm と実際の React Hook Form、および SettingsSection / Settings
 
 カテゴリ: `render`
 
-対応 Story: [SettingsForm.stories.tsx](../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Japanese`
+対応 Story: [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Japanese`
 
 Given:
 
@@ -46,7 +46,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [SettingsForm.stories.tsx](../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction`
+対応 Story: [SettingsForm.stories.tsx](../../../../src/pages/settings/ui/SettingsForm.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -66,7 +66,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [SettingsSection.stories.tsx](../../../src/pages/settings/ui/SettingsSection.stories.tsx) :: `Interaction`
+対応 Story: [SettingsSection.stories.tsx](../../../../src/pages/settings/ui/SettingsSection.stories.tsx) :: `Interaction`
 
 Given:
 

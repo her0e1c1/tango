@@ -16,10 +16,10 @@ DeckForm と実際の React Hook Form、および DeckDeletionDialog。エラー
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-DECK-FORM-01 | interaction | [名前とカテゴリを入力できる](#storybook-deck-form-01) | [DeckForm.stories.tsx](../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction` |
-| STORYBOOK-DECK-FORM-02 | interaction | [詳細設定を閉じて開き直しても入力を保持する](#storybook-deck-form-02) | [DeckForm.stories.tsx](../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction` |
-| STORYBOOK-DECK-FORM-03 | render | [詳細項目のエラーを見える状態で表示する](#storybook-deck-form-03) | [DeckForm.stories.tsx](../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `ValidationError` |
-| STORYBOOK-DECK-FORM-04 | interaction | [削除確認から確定 callback を通知する](#storybook-deck-form-04) | [DeckDeletionDialog.stories.tsx](../../../src/features/deck-deletion/ui/DeckDeletionDialog.stories.tsx) :: `Confirm` |
+| STORYBOOK-DECK-FORM-01 | interaction | [名前とカテゴリを入力できる](#storybook-deck-form-01) | [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction` |
+| STORYBOOK-DECK-FORM-02 | interaction | [詳細設定を閉じて開き直しても入力を保持する](#storybook-deck-form-02) | [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction` |
+| STORYBOOK-DECK-FORM-03 | render | [詳細項目のエラーを見える状態で表示する](#storybook-deck-form-03) | [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `ValidationError` |
+| STORYBOOK-DECK-FORM-04 | interaction | [削除確認から確定 callback を通知する](#storybook-deck-form-04) | [DeckDeletionDialog.stories.tsx](../../../../src/features/deck-deletion/ui/DeckDeletionDialog.stories.tsx) :: `Confirm` |
 
 <a id="storybook-deck-form-01"></a>
 
@@ -27,7 +27,7 @@ DeckForm と実際の React Hook Form、および DeckDeletionDialog。エラー
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckForm.stories.tsx](../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction`
+対応 Story: [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -47,7 +47,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckForm.stories.tsx](../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction`
+対応 Story: [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -69,7 +69,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [DeckForm.stories.tsx](../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `ValidationError`
+対応 Story: [DeckForm.stories.tsx](../../../../src/features/deck-form/ui/DeckForm.stories.tsx) :: `ValidationError`
 
 Given:
 
@@ -89,7 +89,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckDeletionDialog.stories.tsx](../../../src/features/deck-deletion/ui/DeckDeletionDialog.stories.tsx) :: `Confirm`
+対応 Story: [DeckDeletionDialog.stories.tsx](../../../../src/features/deck-deletion/ui/DeckDeletionDialog.stories.tsx) :: `Confirm`
 
 Given:
 
