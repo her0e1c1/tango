@@ -1,5 +1,9 @@
 # E2E Test Instructions
 
+- Pair each `test/e2e/<name>.spec.ts` with exactly one `docs/test/e2e/<name>.md` using the same basename.
+- Keep every referenced case ID in that paired specification. Multiple tests may share an ID; a test may cover multiple IDs only within the same specification file.
+- Preserve fixture IDs when moving tests. Helpers, fixtures, `AGENTS.md`, and `README.md` are outside the file-pairing contract.
+
 - Treat `docs/test/e2e/**` as the single source of truth for E2E test cases.
 - Playwright tests under `test/e2e/**` must cover every test case documented under `docs/test/e2e/**`.
 - Each Playwright test title must start with its corresponding `docs/test/e2e` test case ID followed by a space.

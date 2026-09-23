@@ -1,6 +1,197 @@
-import type { Page } from "@playwright/test";
-import { collectBrowserErrors, expect, requireDocument, test } from "./utils/fixtures";
+import { collectBrowserErrors, expect, listDocuments, requireDocument, test } from "./utils/fixtures";
 import { readSession } from "./utils/study-helpers";
+import { type Page } from "@playwright/test";
+
+test("SETTINGS-03 applies review scheduling to the next study session", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const dueCard = fixture.card("card-due");
+  const futureCard = fixture.card("card-future");
+  const unscheduledCard = fixture.card("card-unscheduled");
+  await fixture.apply(page);
+  await page.goto("/settings");
+
+  const respectReviewSchedule = page.getByRole("checkbox", { name: "Respect review schedule" });
+  await expect(respectReviewSchedule).not.toBeChecked();
+  await respectReviewSchedule.locator("xpath=parent::label").click();
+  await expect(respectReviewSchedule).toBeChecked();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study?.useCardInterval
+      )
+    )
+    .toBe(true);
+
+  await page.reload();
+  await expect(respectReviewSchedule).toBeChecked();
+  await page.goto(`/deck/${deck.id}/start`);
+  await page.getByRole("button", { name: "Start 2 cards" }).click();
+
+  await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds).toHaveLength(2);
+  const session = await readSession(fixture.user().uid, deck.id);
+  expect(session?.cardOrderIds).toHaveLength(2);
+  expect(session?.cardOrderIds).toEqual(expect.arrayContaining([dueCard.id, unscheduledCard.id]));
+  expect(session?.cardOrderIds).not.toContain(futureCard.id);
+});
+
+const readPreferences = (page: Page) =>
+  page.evaluate(() => JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences);
+
+const intervalDescription =
+  "Seconds between cards. At 0, cards do not advance automatically, and the play/pause button and progress slider are hidden.";
+
+const savedDocuments = async (uid: string) =>
+  Promise.all(
+    (["deck", "card", "studySession", "studyAnswer"] as const).map(async (collection) =>
+      (await listDocuments(collection)).filter(({ fields }) => fields.uid?.stringValue === uid)
+    )
+  );
+
+test("SETTINGS-10 Zero autoplay interval is explained and saved without resetting other preferences", async ({
+  fixture,
+  page,
+}) => {
+  await fixture.apply(page, {
+    preferences: { study: { defaultAutoPlay: true }, controls: { showPlaybackControls: true } },
+  });
+  await page.goto("/settings");
+  const interval = page.getByRole("slider", { name: "Autoplay interval" });
+  await expect(interval).toHaveValue("60");
+  await expect(interval).toHaveAttribute("min", "0");
+  await expect(interval).toHaveAttribute("max", "60");
+  const preferences = await readPreferences(page);
+  const savedData = await savedDocuments(fixture.user().uid);
+
+  await interval.focus();
+  await page.keyboard.press("Home");
+  await expect(interval).toHaveValue("0");
+  await expect(interval).toHaveAttribute("aria-valuetext", "No automatic advance (0 seconds)");
+  await expect(interval).toHaveAccessibleDescription(intervalDescription);
+  await expect(page.getByText(intervalDescription, { exact: true })).toBeVisible();
+  await expect(page.getByText("No automatic advance (0s)", { exact: true })).toBeVisible();
+  await expect
+    .poll(() => readPreferences(page))
+    .toEqual({ ...preferences, study: { ...preferences.study, cardInterval: 0 } });
+
+  await page.reload();
+  await expect(interval).toHaveValue("0");
+  await expect(interval).toHaveAttribute("aria-valuetext", "No automatic advance (0 seconds)");
+  await expect(interval).toHaveAccessibleDescription(intervalDescription);
+  await expect(page.getByText("No automatic advance (0s)", { exact: true })).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: "Start autoplay" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Show playback controls" })).toBeChecked();
+
+  await interval.focus();
+  await page.keyboard.press("End");
+  await expect(interval).toHaveValue("60");
+  await expect(interval).toHaveAttribute("aria-valuetext", "60 seconds");
+  await expect(page.getByText("60s", { exact: true })).toBeVisible();
+  await expect.poll(() => readPreferences(page)).toEqual(preferences);
+  expect(await savedDocuments(fixture.user().uid)).toEqual(savedData);
+});
+
+test("SETTINGS-11 Restoring a positive interval preserves the active study session and playback preferences", async ({
+  fixture,
+  page,
+}) => {
+  const deck = fixture.deck();
+  await page.clock.install();
+  await fixture.apply(page, {
+    preferences: {
+      study: { cardInterval: 0, defaultAutoPlay: true, shuffled: false },
+      controls: { showPlaybackControls: true },
+    },
+  });
+  await page.goto(`/deck/${deck.id}/start`);
+  await page.getByRole("button", { name: `Start ${String(fixture.state.remote.cards.length)} cards` }).click();
+  await expect.poll(() => readSession(fixture.user().uid, deck.id)).toMatchObject({ currentIndex: 0 });
+  const session = await readSession(fixture.user().uid, deck.id);
+  if (session === undefined) throw new Error("Expected a newly started study session");
+  const firstCard = fixture.state.remote.cards.find((card) => card.id === session.cardOrderIds[0]);
+  const secondCard = fixture.state.remote.cards.find((card) => card.id === session.cardOrderIds[1]);
+  if (firstCard === undefined || secondCard === undefined) throw new Error("Expected at least two study Cards");
+  const preferences = await readPreferences(page);
+
+  await expect(page.getByRole("button", { name: firstCard.frontText, exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^(Play|Pause)$/ })).toHaveCount(0);
+  await expect(page.getByRole("slider", { name: "Study progress" })).toHaveCount(0);
+  await page.clock.runFor(1250);
+  // Cloud metadata may arrive after Start; the existing session values must stay unchanged.
+  expect(await readSession(fixture.user().uid, deck.id)).toMatchObject({
+    sessionId: session.sessionId,
+    cardOrderIds: session.cardOrderIds,
+    currentIndex: 0,
+  });
+  await page.getByRole("button", { name: "Open study help" }).click();
+  const help = page.getByRole("dialog", { name: "Study controls" });
+  await expect(help.getByText("Autoplay is unavailable while the card interval is 0", { exact: true })).toBeVisible();
+  await expect(
+    help.getByText("Playback controls are unavailable while the card interval is 0", { exact: true })
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Close help", exact: true }).click();
+  // Exercise the page shortcut instead of activating the help button restored by focus management.
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+  await page.keyboard.press("Space");
+  await page.clock.runFor(1250);
+  expect(await readSession(fixture.user().uid, deck.id)).toMatchObject({
+    sessionId: session.sessionId,
+    cardOrderIds: session.cardOrderIds,
+    currentIndex: 0,
+  });
+  expect(await readPreferences(page)).toEqual(preferences);
+  await expect(page.getByRole("button", { name: firstCard.frontText, exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Swipe right", exact: true }).click();
+  await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
+  const continuedPosition = { sessionId: session.sessionId, cardOrderIds: session.cardOrderIds, currentIndex: 1 };
+  await expect.poll(() => readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
+  const deckBeforeSettings = await requireDocument("deck", deck.id);
+  const cardsBeforeSettings = await Promise.all(
+    fixture.state.remote.cards.map((card) => requireDocument("card", card.id))
+  );
+
+  await page.getByRole("button", { name: "Open card actions", exact: true }).click();
+  await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
+  await page.getByRole("button", { name: "Open settings", exact: true }).click();
+  const interval = page.getByRole("slider", { name: "Autoplay interval" });
+  await expect(interval).toHaveValue("0");
+  await interval.focus();
+  await page.keyboard.press("End");
+  const restoredPreferences = { ...preferences, study: { ...preferences.study, cardInterval: 60 } };
+  await expect.poll(() => readPreferences(page)).toEqual(restoredPreferences);
+  expect(await readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
+
+  await page.goto("/");
+  await page.getByRole("button", { name: `Continue ${deck.name}`, exact: true }).click();
+  await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
+  await expect(page.getByRole("slider", { name: "Study progress" })).toBeVisible();
+  expect(await readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+  expect(await readPreferences(page)).toEqual(restoredPreferences);
+  expect(await requireDocument("deck", deck.id)).toEqual(deckBeforeSettings);
+  expect(await Promise.all(fixture.state.remote.cards.map((card) => requireDocument("card", card.id)))).toEqual(
+    cardsBeforeSettings
+  );
+});
+
+test("SETTINGS-06 recovers current defaults from invalid persisted preferences", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  await page.goto("/settings");
+  await page.evaluate(() => {
+    localStorage.setItem("tango-config", JSON.stringify({ state: { preferences: "invalid" }, version: 1 }));
+  });
+
+  await page.reload();
+
+  await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: "Dark mode" })).not.toBeChecked();
+  await expect(page.getByRole("slider", { name: "Maximum cards" })).toHaveValue("10");
+  await expect(page.getByRole("combobox", { name: "Language" })).toHaveValue("system");
+});
 
 test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page }) => {
   const initialDarkMode = fixture.state.browser.preferences.appearance.darkMode;

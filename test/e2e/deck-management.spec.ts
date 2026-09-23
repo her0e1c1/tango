@@ -1,6 +1,3 @@
-import { readSession } from "./utils/study-helpers";
-import { readFile } from "node:fs/promises";
-import type { Page } from "@playwright/test";
 import {
   allowExpectedFirestoreWriteFailure,
   documentId,
@@ -11,6 +8,47 @@ import {
   requireDocument,
   test,
 } from "./utils/fixtures";
+import { readSession } from "./utils/study-helpers";
+import { type Page } from "@playwright/test";
+
+test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote duplicate", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
+  const name = `${namespace.caseId} local deck`;
+  const category = "typescript";
+  await fixture.apply(page);
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Create deck" }).click();
+  await page.getByRole("textbox", { name: "Name" }).fill(name);
+  await page.getByRole("combobox").selectOption(category);
+  await expect(page.getByRole("radio")).toHaveCount(0);
+  await page.getByRole("button", { name: "Create deck" }).click();
+  await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
+  await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
+  const deckId = new URL(page.url()).pathname.split("/").at(-1);
+  if (deckId === undefined) throw new Error("Created local-only Deck ID is missing");
+  await expect(page.getByText("0 cards")).toBeVisible();
+
+  await page.goto("/");
+  await page.reload();
+
+  const deckArticle = page.getByRole("button", { name: `Open cards in ${name}` }).locator("xpath=ancestor::article[1]");
+  await expect(deckArticle).toContainText("0 cards");
+  await expect(page.getByRole("button", { name: `Open cards in ${name}`, exact: true })).toHaveCount(1);
+  await page.getByRole("button", { name: `Open cards in ${name}`, exact: true }).click();
+  await expect(page.getByText("0 cards", { exact: true })).toBeVisible();
+  expect(
+    (await listDocuments("deck")).filter(
+      (document) =>
+        (document.fields.name as { stringValue?: string } | undefined)?.stringValue === name ||
+        documentId(document) === deckId
+    )
+  ).toEqual([]);
+});
 
 const openDeckDeleteDialog = async (page: Page, deckName: string) => {
   await page.getByRole("button", { name: `Open actions for ${deckName}` }).click();
@@ -24,71 +62,6 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   await checkbox.locator("xpath=parent::label").click();
   return checkbox;
 };
-
-test("NAVIGATION-06 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
-  const deck = fixture.deck();
-  const card = fixture.card();
-  await fixture.apply(page);
-
-  await page.goto("/");
-  const actions = page.getByRole("button", { name: "Add", exact: true });
-  await actions.focus();
-  await actions.press("Enter");
-  await expect(page.getByRole("menuitem", { name: "Create deck" })).toBeFocused();
-  await page.keyboard.press("ArrowDown");
-  await expect(page.getByRole("menuitem", { name: "Import decks" })).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("menu")).toHaveCount(0);
-  await expect(actions).toBeFocused();
-
-  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
-  await actions.click();
-  await expect(page.getByRole("menu")).toHaveCount(1);
-  await expect(page.getByRole("menu", { name: "Add", exact: true })).toBeVisible();
-  // Use the keyboard to reach the Deck trigger while the list menu may cover it.
-  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).press("Enter");
-  await expect(page.getByRole("menu")).toHaveCount(1);
-  await expect(page.getByRole("menu", { name: `Actions for ${deck.name}` })).toBeVisible();
-
-  await actions.click();
-  await page.getByRole("menuitem", { name: "Create deck" }).click();
-  await expect(page).toHaveURL(/\/deck\/new$/);
-  await page.goto("/");
-  await actions.click();
-  await page.getByRole("menuitem", { name: "Import decks" }).click();
-  await expect(page).toHaveURL(/\/import$/);
-  await page.goto("/");
-  await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
-
-  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
-  await expect(page.getByText(card.frontText)).toBeVisible();
-
-  const specialDecks = fixture.state.remote.decks.filter(({ id }) => id !== deck.id);
-  const specialCards = fixture.state.remote.cards.filter(({ deckId }) => deckId !== deck.id);
-  const before = await Promise.all(fixture.state.remote.cards.map(({ id }) => requireDocument("card", id)));
-  for (const selected of specialDecks) {
-    await page.goto("/");
-    await page.getByRole("button", { name: `Open cards in ${selected.name}`, exact: true }).click();
-    const destination = new URL(page.url());
-    expect(destination.pathname).toBe(`/deck/${encodeURIComponent(selected.id)}`);
-    expect(destination.search).toBe("");
-    expect(destination.hash).toBe("");
-    for (const entry of ["navigation", "direct", "reload"]) {
-      if (entry === "direct") await page.goto(destination.href);
-      if (entry === "reload") await page.reload();
-      await expect(page).toHaveURL(destination.href);
-      for (const candidate of specialCards) {
-        const button = page.getByRole("button", { name: `View ${candidate.frontText}`, exact: true });
-        await expect(button).toHaveCount(Number(candidate.deckId === selected.id));
-        await expect(button).toBeVisible({ visible: candidate.deckId === selected.id });
-      }
-      await expect(page.getByText(card.frontText, { exact: true })).toHaveCount(0);
-      expect(await Promise.all(fixture.state.remote.cards.map(({ id }) => requireDocument("card", id)))).toEqual(
-        before
-      );
-    }
-  }
-});
 
 test("DECK-MANAGEMENT-01 persists edited name, category, and source URL across reload", async ({
   fixture,
@@ -225,39 +198,6 @@ test("DECK-MANAGEMENT-04 retries the same Deck deletion after a handled failure"
   await expect(page.getByRole("heading", { name: "Deck not found" })).toBeVisible();
   await page.goto("/");
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toHaveCount(0);
-});
-
-test("NAVIGATION-07 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
-  await fixture.apply(page);
-
-  await page.goto(`/deck/${namespace.id("missing")}`);
-  await expect(page.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
-  await page.getByRole("button", { name: "Go home" }).click();
-
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
-});
-
-test("DECK-TRANSFER-01 downloads every Card field as one CSV row", async ({ fixture, page }, testInfo) => {
-  const deck = fixture.deck();
-  const { cards } = fixture.state.remote;
-  await fixture.apply(page);
-  await page.goto("/");
-
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
-  await page.getByRole("menuitem", { name: "Download" }).click();
-  const download = await downloadPromise;
-  const path = testInfo.outputPath("deck.csv");
-  await download.saveAs(path);
-  const csv = await readFile(path, "utf8");
-
-  expect(download.suggestedFilename()).toBe(`${deck.name}.csv`);
-  const csvCell = (value: string) => (value.includes(",") ? `"${value.replaceAll('"', '""')}"` : value);
-  for (const card of cards) {
-    expect(csv).toContain([card.frontText, card.backText, card.tags.join(","), card.uniqueKey].map(csvCell).join(","));
-  }
-  expect(csv.trim().split("\n")).toHaveLength(cards.length);
 });
 
 test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate", async ({

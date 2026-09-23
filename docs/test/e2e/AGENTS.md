@@ -2,6 +2,10 @@
 
 ## Directory contract
 
+- Pair each specification `<name>.md` with `test/e2e/<name>.spec.ts`; the basenames must match one-to-one.
+- Keep all E2E tests referencing a specification's case IDs in its paired file. This is a file-level contract, not a one-test-per-case restriction.
+- Exclude `AGENTS.md`, `README.md`, fixtures, and helpers from file pairing. Explicit `[TODO]` cases remain unimplemented until their skipped tests receive real assertions.
+
 - `docs/test/e2e/*.md` は `README.md` と `AGENTS.md` を除き、すべて E2E テスト仕様書とする。
 - `README.md` にはテストケースの一覧テーブルのみを記述する。
 - 一般的な説明や規約文書を `docs/test/e2e` 直下に追加しない。
