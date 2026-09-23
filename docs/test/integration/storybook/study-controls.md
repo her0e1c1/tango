@@ -69,7 +69,7 @@ Then:
 
 カテゴリ: `interaction`
 
-検証状況: 未実装
+検証状況: todo (未実装)
 
 Given:
 
@@ -89,7 +89,7 @@ Then:
 
 カテゴリ: `interaction`
 
-検証状況: 未実装
+検証状況: todo (未実装)
 
 Given:
 
@@ -109,7 +109,7 @@ Then:
 
 カテゴリ: `interaction`
 
-検証状況: 未実装
+検証状況: todo (未実装)
 
 Given:
 
@@ -129,7 +129,7 @@ Then:
 
 カテゴリ: `interaction`
 
-検証状況: 未実装
+検証状況: todo (未実装)
 
 Given:
 
@@ -149,7 +149,7 @@ Then:
 
 カテゴリ: `interaction`
 
-検証状況: 未実装
+検証状況: todo (未実装)
 
 Given:
 
@@ -170,7 +170,7 @@ Then:
 
 カテゴリ: `interaction`
 
-検証状況: 未実装
+検証状況: todo (未実装)
 
 Given:
 
@@ -190,7 +190,7 @@ Then:
 
 カテゴリ: `interaction`
 
-検証状況: 未実装
+検証状況: todo (未実装)
 
 Given:
 
@@ -210,7 +210,7 @@ Then:
 
 カテゴリ: `interaction`
 
-検証状況: 未実装
+検証状況: todo (未実装)
 
 Given:
 

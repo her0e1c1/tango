@@ -102,5 +102,5 @@ npm run test:storybook
 
 個別確認では `npm run storybook` を実行して該当 Story を開く。
 `npm run build:storybook` の成功だけで play の成功とはしない。
-`lint:test-specs` は仕様 ID が実装側のテスト名または Storybook step label の先頭にあることを正規表現で確認する。`検証状況: 未実装` のケースは対象外とする。
+`lint:test-specs` は仕様 ID が実装側のテスト名または Storybook step label の先頭にあることを正規表現で確認する。`検証状況: todo` を明示したケースだけ対象外とする。`検証状況: todo (未実装)` や `検証状況: todo (一部未実装)` のように未完了の理由を残し、対応するテストを実装したら `todo` を外す。`検証状況: 未実装` のみでは対象外にしない。
 play の有無・継承・tags・実行条件、Given / When / Then の網羅性やアサーション内容・実行結果は、この参照チェックでは確認しない。レビューと Storybook の実行で別途確認する。
