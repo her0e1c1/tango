@@ -5,7 +5,7 @@
 - Except for this `AGENTS.md`, every `docs/unit/*.md` file is a Japanese unit test specification for `src/entities/**/*.spec.{ts,tsx}`.
 - Group specifications by Entity and split distinct behaviors when useful, such as Card data rules and Card presentation. Keep rules and shared execution assumptions here; do not add a README, fixture files, or a separate case registry.
 - Specify observable inputs, outputs, validation failures, state transitions, rendered content, and public callback or adapter boundaries. Do not prescribe private helpers, store layouts, mock call counts, or library algorithms.
-- Keep actual Firestore persistence, subscription delivery, and Rules in `docs/integration/firestore`, Storybook plays in `docs/integration/storybook`, and browser flows in `docs/e2e`.
+- Keep actual Firestore persistence, subscription delivery, and Rules in `docs/test/integration/firestore`, Storybook plays in `docs/test/integration/storybook`, and browser flows in `docs/test/e2e`.
 - A mocked SDK or persistence boundary verifies application behavior around that boundary, not real authentication, storage durability, authorization, delivery, or atomicity.
 
 ## Case format and correspondence

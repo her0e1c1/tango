@@ -132,7 +132,7 @@ export const requireE2ECaseId = (title: string): string => {
 };
 
 const looksLikeRepositoryRoot = (candidate: string) =>
-  existsSync(path.join(candidate, "package.json")) && existsSync(path.join(candidate, "docs/e2e/fixture"));
+  existsSync(path.join(candidate, "package.json")) && existsSync(path.join(candidate, "docs/test/e2e/fixture"));
 
 const findRepositoryRoot = (start: string): string => {
   let candidate = path.resolve(start);
@@ -146,7 +146,7 @@ const findRepositoryRoot = (start: string): string => {
 
 // Playwright transpiles this module as CommonJS, so resolve from its stable launch directory instead of module globals.
 const repositoryRoot = findRepositoryRoot(process.cwd());
-const docsRoot = path.join(repositoryRoot, "docs/e2e");
+const docsRoot = path.join(repositoryRoot, "docs/test/e2e");
 const fixtureRoot = path.join(docsRoot, "fixture");
 
 const nonEmptyString = z.string().min(1);
@@ -399,7 +399,7 @@ const resolveParentFixturePath = (parentName: string, childPath: string): string
   // A bare filename is not sufficient when the directory entry itself is a symlink outside the fixture root.
   if (!isWithin(realParentPath, realFixtureRoot)) {
     throw new Error(
-      `Invalid YAML fixture ${path.relative(repositoryRoot, childPath)}: parent fixture resolves outside docs/e2e/fixture`
+      `Invalid YAML fixture ${path.relative(repositoryRoot, childPath)}: parent fixture resolves outside docs/test/e2e/fixture`
     );
   }
   return realParentPath;
@@ -415,7 +415,7 @@ const assertInheritanceDepth = (depth: number, chain: readonly string[]) => {
 const materializeFixture = (fixturePath: string, ancestors: readonly string[] = []): MaterializedFixture => {
   const realFixturePath = realpathSync(fixturePath);
   if (!isWithin(realFixturePath, realFixtureRoot)) {
-    throw new Error(`Fixture resolves outside docs/e2e/fixture: ${path.relative(repositoryRoot, fixturePath)}`);
+    throw new Error(`Fixture resolves outside docs/test/e2e/fixture: ${path.relative(repositoryRoot, fixturePath)}`);
   }
   if (ancestors.includes(realFixturePath)) {
     throw new Error(`Fixture inheritance cycle: ${displayFixtureChain([...ancestors, realFixturePath])}`);
@@ -516,14 +516,14 @@ const resolveFixturePath = (documentedCase: DocumentedCase, fixtureLink: string)
   const { caseId, markdownPath } = documentedCase;
   const resolvedPath = path.resolve(path.dirname(markdownPath), fixtureLink);
   if (path.dirname(resolvedPath) !== fixtureRoot) {
-    throw new Error(`${caseId} Fixture must be a direct child of docs/e2e/fixture`);
+    throw new Error(`${caseId} Fixture must be a direct child of docs/test/e2e/fixture`);
   }
   if (!existsSync(resolvedPath)) {
     throw new Error(`${caseId} Fixture does not exist: ${path.relative(repositoryRoot, resolvedPath)}`);
   }
   const realPath = realpathSync(resolvedPath);
   if (!isWithin(realPath, realFixtureRoot)) {
-    throw new Error(`${caseId} Fixture resolves outside docs/e2e/fixture`);
+    throw new Error(`${caseId} Fixture resolves outside docs/test/e2e/fixture`);
   }
   return realPath;
 };
