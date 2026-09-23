@@ -1,21 +1,21 @@
-# LocalとRemoteのpersistence identityを分離する
+# ローカルとリモートの保存先・所有者を区別する
 
 Status: Accepted
 
-## Context
-
-browser-local dataとaccount-synced dataを同じidentityで扱うと、local dataがFirebase UIDへ依存し、保存先やownerを呼び出し側が推測する必要が生じる。また、Firestoreのoffline cacheとLocal only dataは、どちらもbrowserへ残るが意味が異なる。
-
 ## Decision
 
-Local only dataとaccount-synced Remote dataを別のpersistence identityとして扱う。Local dataはbrowser storageに保存しFirebase owner UIDを持たない。Remote dataはFirestoreに保存しauthenticated actorに所有される。
+ローカル専用データとアカウント同期データは、別の保存先・所有者情報で扱う。ローカルはブラウザーに保存し Firebase の所有者 UID を持たず、リモートは Firestore に保存して認証中の利用者が所有する。
 
-Deck自身の保存済みpersistence modeを、Deckとその子Cardの保存先の正とする。presentation codeは個別Cardの保存先やRemote ownerを選択しない。
+- Deck に保存されたモードを、Deck と子 Card の保存先の判断基準にする。UI が Card の保存先やリモートの所有者を選ばない。
+- 所有者は編集可能な入力に含めない。リモート Deck 作成では認証中の利用者、単一 Card 作成では認証中の利用者と親 Deck から導出する。
+- 準備済みインポートは選択時の UID を再試行の識別情報として保持できる。ただし実行時の利用者が変われば拒否し、リモート API でも所有者を検証する。
+- リモート Deck・Card の編集と削除では、所有者と認証中の利用者の不一致を書き込み前に拒否する。同じドキュメントを共有する別 Entity の書き込みへ、この条件を暗黙に広げない。
+- ローカルからリモートへの移行は、ID を維持する明示的な一方向操作にする。親 Deck とすべての子 Card の保存成功まではローカルを残し、再試行も同じ ID を使う。逆方向への暗黙の移行や双方向移行は行わない。
 
-ownerはuser-editable inputに含めない。Remote Deck createはauthenticated actorからownerを導出し、単一Cardのcreate workflowはauthenticated actorと所有Deckからownerを導出する。prepared importは選択時のUIDをretry identityの一部として保持できるが、実行時のactorが変わっていれば拒否し、Remote API境界でもownerを検証する。
+Firestore の永続キャッシュはリモートデータのオフライン用コピーであり、ローカル専用データではない。
 
-Remote DeckおよびRemote Cardのeditとdeleteは、Entity ownerとauthenticated actorの不一致をwrite開始前に拒否する。このownership検証を、同じphysical documentを共有する別Entityのwriteへ暗黙に一般化しない。
+## Context
 
-LocalからRemoteへの移行は、IDを維持する明示的な一方向Operationとする。親Deckとすべての子CardのRemote writeが成功するまでLocal copyを削除せず、失敗後のretryは同じIDへ再実行する。RemoteからLocalへの暗黙または双方向の移行は行わない。
+両者を同じ識別情報で扱うと、ローカルデータまで Firebase UID に依存し、呼び出し元が保存先や所有者を推測する必要が生じる。
 
-Firestoreのpersistent cacheはRemote dataのoffline copyであり、Local only dataとして扱わない。[PR #941](https://github.com/her0e1c1/tango/pull/941)、[PR #962](https://github.com/her0e1c1/tango/pull/962)、[PR #1089](https://github.com/her0e1c1/tango/pull/1089)、[PR #1195](https://github.com/her0e1c1/tango/pull/1195)、[PR #1317](https://github.com/her0e1c1/tango/pull/1317)を参照する。
+関連PR: [#941](https://github.com/her0e1c1/tango/pull/941)、[#962](https://github.com/her0e1c1/tango/pull/962)、[#1089](https://github.com/her0e1c1/tango/pull/1089)、[#1195](https://github.com/her0e1c1/tango/pull/1195)、[#1317](https://github.com/her0e1c1/tango/pull/1317)

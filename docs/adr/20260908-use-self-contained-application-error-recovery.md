@@ -1,19 +1,22 @@
-# Application error recoveryをself-containedにする
+# エラー復旧画面を通常のアプリから独立させる
 
 Status: Accepted
 
-## Context
-
-unexpected render errorがroot treeを壊すと、通常のPageやProviderを使うrecovery UIも表示できない。Data Routerが扱うroute errorとReact tree全体のerrorは発生境界が異なるが、利用者には一貫した回復手段が必要である。
-
 ## Decision
 
-単一のReact rootをapplication ProviderとRouterの外側にあるAppErrorBoundaryで包む。main.tsxで通常のAppとRouterを直接構成し、起動前のリセット要求や専用bootstrapは持たない。Service Workerは`injectRegister: "script"`で通常登録する。DOM fallbackは持たない。Data Routerのroot routeにも`errorElement`を設定し、route-level errorとroot render errorで同じapplication fallbackを使用する。
+単一の React root で、Provider・Router の外側に `AppErrorBoundary` を置く。`main.tsx` で App と Router を直接構成し、専用 bootstrap・起動前のリセット要求・DOM fallback は持たない。Service Worker は `injectRegister: "script"` で登録する。
 
-fallbackはSharedのpresentational UIとProvider外で使えるi18n instance、復旧文言と明示的なキャッシュ削除操作に依存する。Auth、Firestore、永続化設定、Routerは読み込まない。locale同期前は英語、同期後は保持している言語を使い、html[lang]を一致させる。認証error stateもcontrolled flowを維持したまま同じAppErrorFallbackを使う。
+- Data Router の root route にも `errorElement` を置き、route・root 描画エラーで同じ復旧画面を使う。認証エラーも通常の制御フローを保って同じ `AppErrorFallback` を使う。
+- 復旧画面は Shared の表示 UI、Provider 外で使える i18n、復旧文言、明示的なキャッシュ削除だけに依存する。Auth・Firestore・永続化設定・Router は読み込まない。言語同期前は英語、同期後は保持した言語を使い、`html[lang]` と一致させる。
+- Boundary 一か所で Window の `error`・`unhandledrejection` を監視し、unmount で解除する。未処理エラーを復旧状態へ渡すが、resource load error や処理済みの失敗は対象にせず、ブラウザー本来の診断も消さない。
+- 復旧はページ全体の再読み込み、またはキャッシュ削除後の再読み込みとする。壊れた React 部分だけを作り直して、不完全な実行状態を継続しない。検証・保存・認証など想定内の失敗は、通常のエラー処理で扱う。
+- キャッシュ削除は利用者の操作から直接実行する。Tango と同じ scope の Service Worker と、その scope を名前の末尾に持つ Workbox cache だけを削除し、現在の URL を再読み込みする。Firestore の保存・未同期書き込み・認証・設定・他アプリの保存領域は残す。
+- 削除失敗時は通知して復旧画面に留まり、自動再試行しない。エラーを検知しただけではキャッシュを削除しない。
 
-Boundaryに一か所だけWindowのerrorとunhandledrejectionの監視を置き、ブラウザーが通知した未処理エラーを同じ復旧stateへ渡す。監視はunmountで解除し、resource load errorや処理済みの失敗を昇格させず、元のブラウザー診断を消さない。React自体や復旧画面自体の失敗、通知されない失敗、永久pendingの検知は保証しない。
+React・復旧画面自体の失敗、ブラウザーが通知しない失敗、永久に処理中の状態、entry module の読み込みや React root 成立前の初期化失敗は保証対象外とする。
 
-recovery actionはfull page reloadまたはアプリのキャッシュ削除後のfull page reloadとし、壊れたReact subtreeだけをresetして同じpartial runtime stateを継続しない。validation error、persistence failure、authentication failureなど想定内のfailureは通常のcontrolled error flowで扱い、Error Boundaryをapplication control flowとして使用しない。[PR #1330](https://github.com/her0e1c1/tango/pull/1330)、[PR #1374](https://github.com/her0e1c1/tango/pull/1374)を参照する。
+## Context
 
-キャッシュ削除はError Boundaryの操作から直接行う。Tangoと一致するscopeのService Workerをunregisterし、そのscopeを名前の末尾に持つWorkbox cacheだけを削除して現在のURLを再読み込みする。Firestore persistence、未同期書き込み、認証状態、設定、他アプリの保存領域は維持する。削除失敗時は通知して復旧画面に留まり、自動再試行しない。エラー検知だけではキャッシュを削除しない。entry moduleの読み込みやReact root成立前の初期化失敗は保証の対象外とする。
+通常の Provider や Page が壊れても復旧手段を表示する必要がある。route と React root ではエラーの境界が違うため、同じ復旧画面を両方で使う。
+
+関連PR: [#1330](https://github.com/her0e1c1/tango/pull/1330)、[#1374](https://github.com/her0e1c1/tango/pull/1374)

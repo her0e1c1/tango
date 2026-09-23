@@ -1,17 +1,19 @@
-# Testの依存置換をproduction interfaceへ持ち込まない
+# テストの都合で本番コードの公開 API を変えない
 
 Status: Accepted
 
-## Context
-
-ID generator、clock、callback、factoryなどをtestから差し替えるためだけにproduction functionへ注入すると、実行時には不要なparameterやdependency objectが公開interfaceへ残り、callerと実装の責務が広がる。testabilityのための抽象化がproduction requirementとして誤認される。
-
 ## Decision
 
-production function、hook、component、およびmoduleのinterfaceは、production use caseだけから設計する。testまたはmockの都合だけでparameter、dependency object、callback、factory、optional override、exportを追加または変更しない。
+関数・hook・コンポーネント・モジュールの公開 API は、本番の要件から設計する。
 
-production codeは実際の依存を直接importする。testで置換が必要な場合は、既存のproduction interfaceを維持したままtest側のmodule mockまたはspyを使用する。
+- テストや mock のためだけに、引数・依存オブジェクト・callback・factory・任意の上書き設定・export を追加、変更しない。
+- 本番コードは実際の依存先を直接 import する。テストでは既存の API を変えず、テスト側のモジュール mock や spy で置き換える。
+- 複数の実行時 adapter、設定、ライフサイクルの管理など、本番の要件がある場合は抽象化や依存注入を許容する。
 
-複数のruntime adapter、configuration、lifecycle ownershipなどproduction上の要件がある場合は、その要件に基づくabstractionまたはdependency injectionを導入できる。test convenienceだけを根拠にはしない。
+テストは既存の公開境界から観測できる振る舞いを検証し、テスト専用の差し替え口を本番コードに作らない。
 
-Testは既存のpublic boundaryからobservable behaviorを検証し、test-only seamをproductionへ作らない。[PR #454](https://github.com/her0e1c1/tango/pull/454)、[PR #1178](https://github.com/her0e1c1/tango/pull/1178)、[PR #1471](https://github.com/her0e1c1/tango/pull/1471)を参照する。
+## Context
+
+テストのためだけの依存注入は、本番では不要な引数や責務を増やし、本番要件として誤解されやすい。
+
+関連PR: [#454](https://github.com/her0e1c1/tango/pull/454)、[#1178](https://github.com/her0e1c1/tango/pull/1178)、[#1471](https://github.com/her0e1c1/tango/pull/1471)

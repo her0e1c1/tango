@@ -1,27 +1,22 @@
-# Firestoreの購読をリモート状態の正とする
+# Firestore の購読をリモート状態の正とする
 
 Status: Accepted
 
-## Context
-
-リモートEntityの状態を、query cache、mutation完了時のStore更新、Firestore listenerなど複数の経路から更新すると、状態の反映順序と同期元が分かれ、同じデータが食い違う可能性がある。
-
-invalid documentを黙って除外すると、不完全なcollectionを正常なread結果としてconsumerへ渡してしまう。このためsnapshot全体を検証し、1件でもinvalidなら正常なdocumentの更新も公開できないという制約を受け入れる。
-
 ## Decision
 
-Firestoreの`onSnapshot`から受け取るsnapshotを、リモートEntity状態の正とする。
+リモート Entity の状態は `onSnapshot` だけから更新する。
 
-SharedはFirebaseの汎用初期化を所有する。対象Entityは、自身に関係するFirestore schema、parse、CRUD、query、subscription adapter、およびリモートEntity Storeを所有する。CRUDという理由だけでFeature sliceを作らない。Appは、認証状態に応じてsubscriptionを開始・停止するlifecycleを所有する。
+- Shared は Firebase の汎用初期化、Entity は自身のスキーマ・解析・CRUD・クエリ・購読処理・リモート Store、App は認証に応じた購読の開始・停止を担う。CRUD のためだけに Feature を作らない。
+- snapshot 全体を検証し、正常な場合だけコレクション全体を置き換える。`documentChanges()` による差分ミラーや、更新操作のメタデータ用 Store は作らない。不正なドキュメントが一件でもあれば部分反映せず、購読のエラー callback に渡す。
+- 現行のエラー処理は console への記録のみで、利用者には表示しない。次の正常な snapshot か購読スコープの cleanup まで、直前の値が残り得る。将来のエラー表示を禁止するものではない。
+- Firestore の公開 SDK の永続キャッシュを使う。非公開 API の検査や独自の準備完了管理は作らず、初期化を待ってアプリ表示を止めない。
+- 書き込みは Entity の Firestore API から行う。リモート Store は楽観的更新や書き込み完了時に直接更新せず、snapshot を待つ。ローカル専用 Entity のブラウザー Store は対象外とする。
+- 個別のリモート Card 削除は `deletedAt` を持つ削除済みデータとして保存し、購読側で表示対象から除外する。Deck 全体の削除では、子 Card を物理削除してから Deck を削除できる。削除方針は Entity の永続化 API、Store への反映は listener が担う。
 
-各listener callbackでは、受け取ったsnapshot全体をatomicにparseし、accepted snapshotでRemote collection全体をreplaceする。`documentChanges()`によるincremental mirrorやmutation metadataの別Storeを維持しない。invalid documentを含むsnapshotはpartial publishせず、subscriptionのerror callbackへ渡す。
+この一方向の更新経路に例外を設ける場合は、別の ADR に記録する。
 
-現行実装ではsubscription errorはconsoleへ記録され、直前のRemote collectionは維持される。利用者向けのerror表示はなく、次のvalid snapshotまたはscope cleanupまで古い値が残りうる。これは現在のerror handlingの制約であり、将来の利用者向けerror表示を禁止する決定ではない。
+## Context
 
-Firestoreはpublic SDKが提供するpersistent cacheを使用し、private APIによる検査や独自のreadiness runtimeを作らない。application renderingはFirestore初期化の完了を待たない。
+複数の経路から同じ状態を更新すると、反映順序や同期元が食い違う。不正なデータを黙って除外した不完全なコレクションも、正常な取得結果として公開しない。そのため、一件の不正データで正常な項目の更新も止まることを受け入れる。
 
-リモートmutationはEntityのFirestore API経由で書き込む。リモートEntity Storeをoptimistic updateまたはmutation完了時に直接更新せず、Firestore subscriptionのsnapshotによって更新する。この規則はRemote dataに適用し、Local only Entityのbrowser store更新には適用しない。
-
-個別のRemote Card削除は`deletedAt`を持つtombstoneとして保存し、Card subscriptionがactive collectionから除外する。Deck aggregateの削除は子Card documentを先にphysical deleteしてからDeck documentを削除できる。どちらの削除policyも対象Entityのpersistence APIが所有し、Remote Storeへの反映はlistenerに委ねる。
-
-この一方向のdata flowに例外を設ける場合は、別のarchitecture decisionとして記録する。[PR #616](https://github.com/her0e1c1/tango/pull/616)、[PR #759](https://github.com/her0e1c1/tango/pull/759)、[PR #777](https://github.com/her0e1c1/tango/pull/777)、[PR #833](https://github.com/her0e1c1/tango/pull/833)、[PR #839](https://github.com/her0e1c1/tango/pull/839)、[PR #1200](https://github.com/her0e1c1/tango/pull/1200)を参照する。
+関連PR: [#616](https://github.com/her0e1c1/tango/pull/616)、[#759](https://github.com/her0e1c1/tango/pull/759)、[#777](https://github.com/her0e1c1/tango/pull/777)、[#833](https://github.com/her0e1c1/tango/pull/833)、[#839](https://github.com/her0e1c1/tango/pull/839)、[#1200](https://github.com/her0e1c1/tango/pull/1200)

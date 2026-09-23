@@ -1,15 +1,18 @@
-# Application localeをApp i18nで管理する
+# アプリの表示言語を app/i18n で管理する
 
 Status: Accepted
 
-## Context
-
-application copy、`html[lang]`、browser languageの解決をPageごとに行うと、表示言語とaccessibility metadataがずれ、locale変更でroute stateやmounted UIを不要に作り直す可能性がある。remote resource loadingへ依存すると、初期表示とtest環境も不安定になる。
-
 ## Decision
 
-`app/i18n`をapplication localeのownerとし、i18next instance、React Provider、およびbundled English/Japanese resourcesを管理する。Providerはroute treeを包み、locale変更ではcurrent routeやmounted application stateを置き換えずに表示を更新する。
+`app/i18n` が i18next instance・React Provider・同梱の日英リソースを管理する。Provider はルートツリーを包み、言語変更で現在のルートやマウント済みの状態を作り直さない。
 
-persisted language preferenceは`system`、`en`、`ja`とする。`system`ではbrowserのprimary languageを解決し、System選択中だけ`languagechange`へ追従する。unsupported browser localeはEnglishへfallbackする。
+- 保存する言語設定は `system`・`en`・`ja` とする。
+- `system` はブラウザーの優先言語を使い、その選択中だけ `languagechange` に追従する。未対応の言語は英語にする。
+- リソースは同期的に初期化し、描画前に表示言語と `html[lang]` を一致させる。
+- テスト・Storybook・E2E は実行環境の言語に依存せず、必要な言語を明示する。
 
-resourcesをsynchronousに初期化し、effective localeと`html[lang]`をpaint前に同期する。host environmentのlocaleへ暗黙に依存せず、test、Storybook、E2Eは必要なlocaleを明示する。[PR #1365](https://github.com/her0e1c1/tango/pull/1365)を参照する。
+## Context
+
+Page ごとに言語を解決すると、文言とアクセシビリティ情報がずれたり、画面の状態が失われたりする。翻訳のリモート取得も初期表示やテストを不安定にする。
+
+関連PR: [#1365](https://github.com/her0e1c1/tango/pull/1365)

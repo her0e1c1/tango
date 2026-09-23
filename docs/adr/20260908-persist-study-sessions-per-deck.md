@@ -1,21 +1,20 @@
-# StudySessionをDeckごとにclient persistenceする
+# StudySession を Deck ごとにブラウザーへ保存する
 
 Status: Accepted
 
-## Context
-
-StudySessionはactive Study画面だけでなく、Deck Listの再開表示やapplication lifecycleからも参照される。Feature-localなsingletonまたはcomponent stateで所有すると、別のDeckのSessionと共存できず、reloadで失われ、他のconsumerがFeature内部へ依存する。
-
-再開位置はbrowser内のSession状態として扱い、account-syncedなStudyProgressとは保存責務を分ける。この選択ではreload後の再開は可能だが、別browserや別端末へ同じ再開位置を引き継ぐことは保証しない。
-
 ## Decision
 
-StudySession Entityを、再開可能なSessionのownerとする。SessionはDeck IDでindexし、各Deckに現在のSessionを最大1つ保持する。他のDeckのSessionは同時に共存できる。
+再開可能な Session は StudySession Entity が管理する。Deck ID ごとに現在の Session を最大一つ持ち、他の Deck の Session と共存させる。
 
-Studyの開始または再開始では新しいSession identityを発行し、対象Card IDのordering snapshot、current position、last studied timeをSession自身が所有する。callerが渡したarrayやその後のCard並び替えにSession orderingを追従させない。
+- 学習の開始・再開始で新しい Session 識別子を発行する。Card ID の順序・現在位置・最終学習時刻は Session が保持し、呼び出し元の配列変更や後からの Card の並べ替えに追従しない。
+- Store はスキーマで検証・整形してブラウザーに保存する。Firestore でのアカウント同期は行わず、別ブラウザー・端末での再開位置は保証しない。
+- Public API には個別の query・action・型・純粋なルールを公開する。Zustand Store や永続化 middleware は公開しない。
+- Deck 削除処理が同じ Deck ID の Session も削除する。Page ごとの cleanup に任せず、リモート削除に失敗した場合は Session を残す。
 
-StudySession Storeはschemaでsanitizeしたbrowser-persisted client stateとし、Firestoreへaccount syncしない。consumerにはPublic APIから個別のquery、action、type、およびpure ruleを公開し、Zustand Storeまたはpersist middlewareを公開しない。
+現在位置と利用可能な Card の解決は Entity、画面固有の一時的な表示状態との接続は Page が担う。進行順序は[保存してから Session を進める決定](./20260908-persist-study-progress-before-session-advancement.md)に従う。
 
-Deck削除のworkflowは同じDeck IDのStudySessionをremoveし、Page callerごとのcleanupに委ねない。Remote persistenceの削除が失敗した場合はSessionを維持し、成功後にだけ再開状態を消す。
+## Context
 
-StudySession Entityは現在位置と利用可能なCardの解決を所有し、Pageはその結果と画面固有のtransient presentation stateを接続する。StudyProgressの永続化とSession advancementの順序は[保存してからSessionを進める決定](./20260908-persist-study-progress-before-session-advancement.md)に従う。[PR #990](https://github.com/her0e1c1/tango/pull/990)、[PR #1067](https://github.com/her0e1c1/tango/pull/1067)、[PR #1113](https://github.com/her0e1c1/tango/pull/1113)、[PR #1132](https://github.com/her0e1c1/tango/pull/1132)、[PR #1435](https://github.com/her0e1c1/tango/pull/1435)を参照する。
+Session は学習画面以外からも参照される。Feature やコンポーネント内だけで管理すると、複数 Deck の共存・再読み込み後の再開・責務分離が難しい。再開位置のブラウザー保存は、アカウント同期する StudyProgress と分ける。
+
+関連PR: [#990](https://github.com/her0e1c1/tango/pull/990)、[#1067](https://github.com/her0e1c1/tango/pull/1067)、[#1113](https://github.com/her0e1c1/tango/pull/1113)、[#1132](https://github.com/her0e1c1/tango/pull/1132)、[#1435](https://github.com/her0e1c1/tango/pull/1435)

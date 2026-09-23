@@ -1,17 +1,19 @@
-# Domain Entityとpersistence documentを分離する
+# Entity と保存ドキュメントの境界を分ける
 
 Status: Accepted
 
-## Context
-
-1つのFirestore documentが複数のdomain conceptを保存している場合、physical documentをそのまま1つのEntityとすると、異なるrule、read model、write ownershipが同じmodelへ混在する。
-
 ## Decision
 
-Entity境界はdomain behaviorとownershipで決め、Firestore document境界とは一致させなくてよい。複数Entityが1つのphysical documentを共有することを許可する。
+Entity はドメインの振る舞いと責務で分ける。Firestore のドキュメント境界と一致させる必要はなく、複数 Entity が一つのドキュメントを共有してよい。
 
-raw document schemaはpersistence境界で一度validateし、各Entityへ必要なfieldだけを独立してmapする。storage上の同居だけを理由に、Entity model同士を依存させない。
+- 保存データは永続化の境界で一度検証し、Entity ごとに必要な項目を取り出す。同じ場所に保存する理由だけで Entity model 同士を依存させない。
+- 更新 API は担当する概念の項目だけを部分更新し、他の概念の項目を上書きしない。
+- 作成時は、同居する概念の初期値を含めてドキュメント全体を初期化してよい。`updatedAt` など共通の保存メタデータはドキュメントの変更に合わせて更新する。
 
-既存documentの更新では、各persistence APIが対象domain conceptのfieldだけをpatchし、共有document内の他conceptのfieldを上書きしない。document作成時は、同居するconceptに必要なdefaultを含むphysical document全体を初期化できる。`updatedAt`などdocument共通のpersistence metadataはphysical documentの変更に合わせて更新する。
+Card の内容と StudyProgress は、この方針で同じ Card ドキュメントを共有する。
 
-Card contentとStudyProgressはこの方針で同じCard documentを共有する。[PR #613](https://github.com/her0e1c1/tango/pull/613)、[PR #905](https://github.com/her0e1c1/tango/pull/905)、[PR #1123](https://github.com/her0e1c1/tango/pull/1123)を参照する。
+## Context
+
+保存単位をそのまま Entity にすると、異なるルール・読み取りモデル・書き込み責務が一つの model に混ざる。
+
+関連PR: [#613](https://github.com/her0e1c1/tango/pull/613)、[#905](https://github.com/her0e1c1/tango/pull/905)、[#1123](https://github.com/her0e1c1/tango/pull/1123)

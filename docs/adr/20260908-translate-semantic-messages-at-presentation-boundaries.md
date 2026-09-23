@@ -1,15 +1,17 @@
-# Semantic messageをpresentation境界で翻訳する
+# 文言は表示する場所で翻訳する
 
 Status: Accepted
 
-## Context
-
-Operation開始時に翻訳済み文字列を作ると、完了までにlocaleが変わった場合に古い言語で通知される。domainやActionが表示文言を所有すると、localeとpresentationへの依存も広がる。
-
 ## Decision
 
-i18n Provider配下のapplication固定文言とOperation feedbackは、semantic message keyとparameterで表現する。UI componentおよびToast viewportが、表示時点のlocaleで翻訳する。
+i18n Provider 配下の固定文言と操作結果は、翻訳キーとパラメーターで表す。UI と Toast の表示側が、その時点の言語に翻訳する。
 
-非同期Operationの完了通知は完了時点のlocaleを使用する。表示中の通知はlocale変更に追従して再翻訳するが、notification identity、focus、timeoutは作り直さない。
+- 非同期処理の通知は完了時点の言語を使う。表示中に言語が変われば再翻訳するが、通知の識別子・フォーカス・表示期限は作り直さない。
+- 利用者が書いた内容や保存済みの値そのものは翻訳しない。日付・数値の書式は表示側で整える。
+- root・route の共通エラー画面は、Provider の外でも同じコンポーネントが動くよう、独立した既定の文言を使ってよい。
 
-user-authored contentとraw persisted valueは翻訳しない。日付、数値などlocale依存のformatはpresentation境界で行う。root errorとroute errorで共用するcatastrophic fallbackは、同じcomponentがi18n Provider外でも動作できるようself-containedなdefault copyを使用できる。[PR #1410](https://github.com/her0e1c1/tango/pull/1410)、[PR #1446](https://github.com/her0e1c1/tango/pull/1446)を参照する。
+## Context
+
+操作開始時に翻訳すると、完了までに言語が変わっても古い文言で通知される。ドメインや action が文言を持つと、表示や言語への依存も広がる。
+
+関連PR: [#1410](https://github.com/her0e1c1/tango/pull/1410)、[#1446](https://github.com/her0e1c1/tango/pull/1446)

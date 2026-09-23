@@ -1,19 +1,20 @@
-# Entity境界では重複したデータ表現を作らない
+# 同じ意味の Entity データは一つの型で表す
 
 Status: Accepted
 
-## Context
-
-同じEntityデータをDomain、DTO、Store、Viewなど複数のほぼ同一な型で表現すると、型を分けたこと自体を理由とするmapperやwrapperが増える。その結果、項目の追加や変更が複数の型、schema、mapper、testへ波及し、型安全性以上に理解と保守のコストが増える。
-
 ## Decision
 
-アプリケーション内で同じ意味と形式を持つEntityデータには、原則として1つの基本型を使用する。
+同じ意味・形式の Entity データには、原則として一つの基本型を使う。
 
-Domain、DTO、Store、View、Command、Repository、Value Objectなどの概念は、異なる振る舞い、制約、またはデータ形式を表現する必要がある場合だけ導入する。
+- 作成・編集・インポートで意味が同じ入力は、Entity model のスキーマと型を共有する。
+- Form には利用者が編集する値だけを含める。ID・UID・所有者・時刻などは Form の外で組み合わせる。
+- 生の保存ドキュメントなど、形式が実際に異なる境界だけに専用スキーマと mapper を置く。
+- Domain・DTO・Store・View・Command・Repository・Value Object などは、異なる振る舞い・制約・形式を表す必要がある場合だけ導入する。
 
-create、edit、importなどで意味が同じuser inputは、Entity modelのschemaと型を共有する。Form valuesにはuserが編集する値だけを含め、ID、UID、owner、timestampなどのcontextはForm外で組み合わせる。raw persistence documentのように形式が実際に異なる境界は、専用schemaを境界の近くに置く。
+FSD や DDD の役割を埋めるだけの型・ラッパー・サービス・ディレクトリは作らない。抽象化を足す前に、既存コードを削除または直接再利用できないか確認する。
 
-mapperは入力と出力の形式が実際に異なる境界だけに置き、その境界の近くで管理する。FSDやDDDの役割を埋めるためだけの型、wrapper、service、directoryは追加しない。
+## Context
 
-新しい抽象化を追加する前に、既存の型や処理を削除または直接再利用できないか確認する。[PR #1047](https://github.com/her0e1c1/tango/pull/1047)、[PR #1048](https://github.com/her0e1c1/tango/pull/1048)、[PR #1191](https://github.com/her0e1c1/tango/pull/1191)、[PR #1461](https://github.com/her0e1c1/tango/pull/1461)を参照する。
+ほぼ同じデータを複数の型で表すと、項目の変更が型・スキーマ・mapper・テストへ波及し、型安全性以上に保守コストが増える。
+
+関連PR: [#1047](https://github.com/her0e1c1/tango/pull/1047)、[#1048](https://github.com/her0e1c1/tango/pull/1048)、[#1191](https://github.com/her0e1c1/tango/pull/1191)、[#1461](https://github.com/her0e1c1/tango/pull/1461)

@@ -1,21 +1,22 @@
-# OperationとPageのlifetimeを分離する
+# 非同期操作と画面の状態を別の期間で管理する
 
 Status: Accepted
 
-## Context
-
-非同期Operationは開始元Pageのunmount後も完了しうる。pendingや完了通知をPage visitの状態に閉じると、Page再訪時の重複実行、結果通知の消失、過去のvisitによるnavigationが起こる。一方、Page内だけで使う表示状態までOperationと同じlifetimeで保持すると、過去のvisitの状態が残る。
-
 ## Decision
 
-form valuesとRHFのsubmission stateはRHFが所有する。表示の開閉、autoplayなど現在のPage visitに閉じるpresentation stateは、React stateまたはPage-ownedな非永続Storeで管理し、visitの切替時にresetする。
+画面を離れた後も続く非同期操作と、その画面を表示している間だけ必要な状態を分ける。画面の表示期間は、開いてから離れるまでとする。
 
-Pageをまたいで同一application runtime中に継続すべきpending、attempt identity、retry identityだけを、presentation stateのreset対象から分離した非永続Operation stateで管理する。同じPage Storeに置く場合も、visit cleanupで進行中Operationのlockを解放しない。
+- Form の値と送信状態は React Hook Form が管理する。開閉や自動再生などの表示状態は React state または Page の非永続 Store に置き、画面の表示期間が切り替わるときにリセットする。
+- 画面をまたいで必要な処理中状態・実行識別子・再試行識別子だけを、非永続の操作状態として残す。同じ Page Store に置く場合も、画面の cleanup で処理中のロックを解除しない。
+- 操作側が重複防止・保存・ロック解除・アプリ全体への結果通知まで担う。Toast は通知だけに使い、再試行 callback を持たせない。再試行は保持した入力や識別子を使い、主操作から明示的に開始する。
+- 画面固有の遷移・フォーカス・表示更新は、開始時と同じ表示期間にある場合だけ実行する。表示済みの全体向け Toast の寿命とフォーカス復元は、画面の表示期間に従属させない。
 
-Pageをまたいで継続するOperationは重複実行の抑止、永続化、lock解放、App-wideな結果通知までを所有する。Operation feedbackは非対話Toastで通知し、実行可能なretry callbackをToastへ保持しない。失敗後の再試行は、保持した入力またはretry identityを使ってprimary actionから明示的に開始する。
+現行の Deck 削除は例外で、削除 UI が消えた後の成功・失敗通知を抑止する。全操作の移行完了を意味せず、Deck 削除を移行する場合は処理中状態と通知の両方を変える。
 
-Page visitに固有のnavigation、focus、presentation state更新は、開始時と同じvisitが有効な場合だけ実行する。公開済みのApp-wideなToastのlifecycleとfocus restorationはPage visitへ従属させない。
+操作のロックは同じクライアント内の誤操作防止に限り、データ整合性やタブ間・端末間の排他制御には使わない。
 
-現行のDeck削除workflowはこのOperation state分離の対象外であり、開始元の削除UIがunmountされた後の成功・失敗通知を抑止する。この文書は全workflowの移行完了を意味しない。Deck削除を同じlifetimeへ移行する場合は、pending管理と通知の両方を変更する必要がある。
+## Context
 
-Operationのpending guardは同一client runtime内の誤操作を抑止するためのものであり、データ整合性やcross-tab、cross-deviceの排他制御には使用しない。[PR #910](https://github.com/her0e1c1/tango/pull/910)、[PR #924](https://github.com/her0e1c1/tango/pull/924)、[PR #1396](https://github.com/her0e1c1/tango/pull/1396)、[PR #1416](https://github.com/her0e1c1/tango/pull/1416)、[PR #1444](https://github.com/her0e1c1/tango/pull/1444)、[PR #1459](https://github.com/her0e1c1/tango/pull/1459)、[PR #1465](https://github.com/her0e1c1/tango/pull/1465)を参照する。
+非同期操作は画面を離れた後も完了し得る。操作状態を画面と一緒に消すと重複実行や通知の消失が起こり、逆に表示状態を残すと再訪時に古い状態が見える。
+
+関連PR: [#910](https://github.com/her0e1c1/tango/pull/910)、[#924](https://github.com/her0e1c1/tango/pull/924)、[#1396](https://github.com/her0e1c1/tango/pull/1396)、[#1416](https://github.com/her0e1c1/tango/pull/1416)、[#1444](https://github.com/her0e1c1/tango/pull/1444)、[#1459](https://github.com/her0e1c1/tango/pull/1459)、[#1465](https://github.com/her0e1c1/tango/pull/1465)

@@ -1,15 +1,18 @@
-# Calm Focusのsemantic visual tokenを使用する
+# Calm Focus の共通デザイントークンを使う
 
 Status: Accepted
 
-## Context
-
-色、typography、spacing、radius、elevation、focus、motionをcomponentごとのliteralで管理すると、light/dark theme、responsive layout、accessibility ruleが画面間でずれる。外部content stylesheetが独自themeを選ぶ場合も、applicationのvisual source of truthと競合する。
-
 ## Decision
 
-Calm Focusをapplication-wideなvisual systemとし、共通の色、typography、spacing、radius、elevation、focus、motionをsemantic CSS custom propertyで定義する。Tailwind themeはそのtokenを参照し、componentは意味に基づくutilityを使用する。
+アプリ全体の見た目は Calm Focus に統一する。色・文字・余白・角丸・影・フォーカス・動きを、用途に名前を付けた CSS custom property で定義する。
 
-Dark themeはcomponentごとに別paletteを組み立てず、semantic tokenのoverrideとして表現する。Markdownなどthird-party contentのtheme variableもCalm Focus tokenへmapする。
+- Tailwind theme は共通トークンを参照し、コンポーネントは用途に対応する utility を使う。
+- ダークテーマはトークンの上書きで表し、コンポーネントごとに配色を作らない。Markdown など外部コンテンツのテーマ変数も共通トークンに対応させる。
+- focus-visible・reduced motion・safe area・dynamic viewport・タッチ領域の共通基準は、アプリのスタイルと Shared UI が担う。
+- 操作状態と振る舞いはコンポーネント、状態の見た目と遷移は共通トークンを使う CSS が担う。
 
-focus-visible、reduced motion、safe area、dynamic viewport、およびtouch targetの共通baselineはapplication styleとShared UIが所有する。interaction stateとbehaviorはcomponent codeが所有し、CSSはsemantic tokenを使ってそのvisual stateとtransitionを表現する。[PR #256](https://github.com/her0e1c1/tango/pull/256)、[PR #291](https://github.com/her0e1c1/tango/pull/291)、[PR #1231](https://github.com/her0e1c1/tango/pull/1231)を参照する。
+## Context
+
+値を各コンポーネントへ直書きすると、テーマやレスポンシブ表示、アクセシビリティの基準が画面間でずれる。外部スタイルの独自テーマとも競合する。
+
+関連PR: [#256](https://github.com/her0e1c1/tango/pull/256)、[#291](https://github.com/her0e1c1/tango/pull/291)、[#1231](https://github.com/her0e1c1/tango/pull/1231)

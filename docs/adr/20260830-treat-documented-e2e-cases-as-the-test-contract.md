@@ -1,23 +1,23 @@
-# 文書化したE2Eケースをテスト契約の正とする
+# 文書化した E2E ケースをテスト仕様の基準にする
 
 Status: Accepted
 
-## Context
-
-Playwright testだけをE2E仕様として扱うと、期待する利用者向け振る舞いとtest codeが分離されず、仕様の欠落や不要なtestを判断しにくい。また、共有する永続データを使うE2Eを並列実行すると、test間やretry間のidentity衝突によって結果が不安定になる。
-
-2026-08-30の[PR #1397](https://github.com/her0e1c1/tango/pull/1397)で、E2E向けだった仕様の適用範囲をunitおよびintegration testにも拡張した。test levelごとに別の仕様を持つことで期待するbehaviorが分岐するのを避けるためであり、既存のE2Eと文書化IDの対応は維持する。以下はこの拡張後の決定を記録する。
-
 ## Decision
 
-`docs/test/e2e/**`を、E2Eだけでなくunitおよびintegration testが保証するruntime application behaviorの正とする。
+`docs/test/e2e/**` を、E2E・単体・結合テストが保証するアプリの実行時の振る舞いの基準にする。
 
-各文書化test case IDはexactly one Playwright testに対応し、各Playwright testもexactly one文書化IDに対応させる。文書化されていないE2E testは追加しない。
+- 文書のケース ID と Playwright テストは 1 対 1 に対応させる。未記載の E2E テストは追加しない。
+- 単体・結合テストの追加・変更でも既存の E2E ケース ID を参照する。期待する振る舞いが未記載なら、先に仕様を追加・更新する。
+- パラメーター化テストの追加ケースは、参照する振る舞いと不変条件を保つ境界値・同値クラスに限る。
+- 各テストは対象レベルの公開境界から、観測できる結果を検証する。依存方向や型の正しさは lint・型検査で保証し、E2E ケース ID を作らない。
+- 各 E2E テストは同じカテゴリの YAML fixture を一つ使う。seed 前にスキーマと参照整合性を検証し、UID・ドキュメント ID・セッション ID はケースと再試行ごとに分離する。
 
-runtime behaviorを検証する新規または変更されたunitおよびintegration testは、既存のE2E case IDを参照する。期待するbehaviorが未記載ならtestより先にE2E仕様を追加または更新する。parameterized testの追加caseは、参照するbehaviorとinvariantを維持するboundary valueまたはequivalence classに限る。
+fixture・テスト配置・mock の詳細は `docs/test/e2e/AGENTS.md`、`test/e2e/AGENTS.md`、ルートの `AGENTS.md` に置く。
 
-dependency directionやtype correctnessなどのstatic constraintはlintまたはtypecheckで保証し、E2E case IDを作らない。各testは対象levelのpublic boundaryからobservable resultをassertする。
+## Context
 
-各E2E testはsame-categoryのYAML fixtureをexactly one参照する。fixtureはseed前にschemaと参照整合性をすべて検証し、UID、document ID、session IDなどのidentityをtest caseとretry単位で分離する。
+テストコードだけでは、期待する振る舞いの欠落や不要なテストを判断しにくい。共有データの並列利用も ID 衝突による不安定さを生む。
 
-fixture、test配置、mocking boundaryの具体的な規則は`docs/test/e2e/AGENTS.md`、`test/e2e/AGENTS.md`、およびroot `AGENTS.md`で管理する。[PR #1256](https://github.com/her0e1c1/tango/pull/1256)、[PR #1260](https://github.com/her0e1c1/tango/pull/1260)、[PR #1299](https://github.com/her0e1c1/tango/pull/1299)、[PR #1397](https://github.com/her0e1c1/tango/pull/1397)を参照する。
+2026-08-30 の PR #1397 で、E2E 向けの仕様を単体・結合テストにも拡張した。テストレベルによる仕様の分岐を避け、既存の E2E と文書 ID の対応は維持する。
+
+関連PR: [#1256](https://github.com/her0e1c1/tango/pull/1256)、[#1260](https://github.com/her0e1c1/tango/pull/1260)、[#1299](https://github.com/her0e1c1/tango/pull/1299)、[#1397](https://github.com/her0e1c1/tango/pull/1397)
