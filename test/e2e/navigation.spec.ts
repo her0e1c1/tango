@@ -143,3 +143,70 @@ test("NAVIGATION-04 Unhandled browser errors share recovery without clearing dat
   });
   await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
 });
+
+test("NAVIGATION-05 Corrupt PWA cache fails startup until cache recovery reloads the healthy application", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  const { uid } = fixture.user();
+  await fixture.apply(page);
+  const deckBefore = await requireDocument("deck", deck.id);
+  const cardBefore = await requireDocument("card", card.id);
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
+  const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
+
+  const assetPath = await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+    const scope = `${window.location.origin}/`;
+    const name = (await caches.keys()).find((key) => key.startsWith("workbox-precache-") && key.endsWith(scope));
+    if (!name) throw new Error("Expected Tango's precache");
+    const cache = await caches.open(name);
+    const script = document.querySelector<HTMLScriptElement>('script[type="module"][src]');
+    if (!script) throw new Error("Expected the production application module");
+    const pathname = new URL(script.src).pathname;
+    const request = (await cache.keys()).find((key) => new URL(key.url).pathname === pathname);
+    if (!request) throw new Error("Expected the cached application module");
+    const response = await cache.match(request);
+    if (!response) throw new Error("Expected the cached module response");
+    const source = await response.text();
+    // Keep React and the recovery UI usable, but corrupt a startup effect's class token in the real cached bundle.
+    const corrupted = source.replace(
+      /\.classList\.toggle\((["'`])dark\1\s*,/,
+      '.classList.toggle("E2E INVALID CACHE TOKEN",'
+    );
+    if (corrupted === source) throw new Error("Could not corrupt the cached startup class token");
+    await cache.put(request, new Response(corrupted, { headers: response.headers }));
+    return pathname;
+  });
+  browserErrors.allow(/E2E INVALID CACHE TOKEN/);
+
+  const cachedResponse = page.waitForResponse((response) => new URL(response.url()).pathname === assetPath);
+  await page.reload();
+  expect((await cachedResponse).fromServiceWorker()).toBe(true);
+  await expect(page.getByRole("heading", { name: "Something went wrong", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Decks", exact: true })).toHaveCount(0);
+
+  await Promise.all([page.waitForEvent("load"), page.getByRole("button", { name: "Reload", exact: true }).click()]);
+  await expect(page.getByRole("heading", { name: "Something went wrong", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Clear cache and reload", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { name: "Decks", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Something went wrong", exact: true })).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
+  expect(
+    await page.evaluate(async (path) => {
+      const response = await caches.match(path, { ignoreSearch: true });
+      return (await response?.text())?.includes("E2E INVALID CACHE TOKEN") ?? false;
+    }, assetPath)
+  ).toBe(false);
+  await page.goto("/account");
+  await expect(page.getByText(uid, { exact: true })).toBeVisible();
+  expect(await requireDocument("deck", deck.id)).toEqual(deckBefore);
+  expect(await requireDocument("card", card.id)).toEqual(cardBefore);
+});

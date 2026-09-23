@@ -12,6 +12,7 @@
 | NAVIGATION-02 | read | [画面の keyboard shortcut で主要 route へ遷移できる](#navigation-02) |
 | NAVIGATION-03 | write | [共通エラー画面が現在の言語で表示され Reload で復旧する](#navigation-03) |
 | NAVIGATION-04 | read | [未処理の実行時例外と Promise rejection から復旧できる](#navigation-04) |
+| NAVIGATION-05 | write | [不正な PWA キャッシュによる起動失敗から復旧できる](#navigation-05) |
 
 <a id="navigation-01"></a>
 
@@ -107,3 +108,30 @@ Then:
 - 通常の resource load error と catch 済みの失敗では全画面エラーに移行しない。
 - StrictMode と再マウント後も監視を重複させず、unmount 時に監視を解除する。
 - ブラウザーの元のエラー診断は保持する。テストで発生させた診断だけを許容する。
+
+<a id="navigation-05"></a>
+
+### NAVIGATION-05 不正な PWA キャッシュによる起動失敗から復旧できる
+
+カテゴリ: `write`
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが Deck 一覧を表示でき、設定が保存されている。
+- ブラウザーの PWA キャッシュにあるアプリの JavaScript が不正になり、起動中に復旧画面で捕捉可能な実行時エラーが発生する。
+- サーバーから取得できるアプリは正常であり、クラウドの Deck と Card は変更されていない。
+
+When:
+
+- アプリを再読み込みして起動エラーを表示する。
+- 通常の Reload を試してから、Clear cache and reload を選択する。
+
+Then:
+
+- 実際の Service Worker が不正なキャッシュを返し、起動時に共通の復旧画面が表示される。
+- 通常の Reload だけでは不正なキャッシュが残り、同じ起動エラーになる。
+- キャッシュクリア後は正常なアプリを読み込み、元の URL で Deck 一覧を表示する。
+- 復旧画面は消え、不正な JavaScript はキャッシュに残らない。
+- 保存済みの設定と認証 UID を保持し、クラウドの Deck と Card の内容を変更しない。
+- テストで意図的に壊したキャッシュによる診断だけを許容し、復旧後に予期しない browser error が発生しない。
