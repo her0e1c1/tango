@@ -32,8 +32,8 @@ for (const [directory, testDirectory] of [
     .map(read)
     .join("\n");
   // Text-only check: accept leading IDs in title strings and scenario tables without evaluating tests.
-  const prefixes = source.matchAll(/["'`]((?:[A-Z]+(?:-[A-Z]+)*-[0-9]{2,}(?:\s+|(?=["'`])))+)/gu);
-  const ids = new Set([...prefixes].flatMap(([, prefix = ""]) => prefix.trim().split(/\s+/u)));
+  const prefixes = source.matchAll(/["'`]((?:\[?[A-Z]+(?:-[A-Z]+)*-[0-9]{2,}\]?(?:\s+|(?=["'`])))+)/gu);
+  const ids = new Set([...prefixes].flatMap(([, prefix = ""]) => prefix.split(/[\s[\]]+/u)));
   for (const { id, file } of readCases(directory)) {
     if (!ids.has(id)) problems.push(`${file}: ${id} has no matching test title prefix`);
   }
