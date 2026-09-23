@@ -1,24 +1,20 @@
 import "./styles/index.css";
-import React, { lazy, type ReactNode } from "react";
+import "@/shared/firebase";
+import React from "react";
 import { createRoot } from "react-dom/client";
-import { AppErrorBoundary, AppStartupFallback } from "./error-boundary";
-import { resetApplicationIfRequested } from "./error-boundary/reset";
+import { createBrowserRouter } from "react-router-dom";
+import App from "./App";
+import { AppErrorBoundary } from "./error-boundary";
+import { appRoutes } from "./routes";
 
-// React caches this single startup promise, including across StrictMode renders.
-const Application = lazy<() => ReactNode>(async () => {
-  if (await resetApplicationIfRequested()) return { default: () => null };
-  return import("./bootstrap");
-});
-
+const router = createBrowserRouter(appRoutes);
 const root = document.getElementById("root");
 if (root == null) throw new Error("Missing root element");
 
 createRoot(root).render(
   <React.StrictMode>
     <AppErrorBoundary>
-      <React.Suspense fallback={<AppStartupFallback />}>
-        <Application />
-      </React.Suspense>
+      <App router={router} />
     </AppErrorBoundary>
   </React.StrictMode>
 );
