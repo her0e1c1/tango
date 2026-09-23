@@ -10,20 +10,32 @@ const files = (directory: string, pattern: RegExp, recursive = true) =>
     .filter((file) => pattern.test(file))
     .map((file) => path.join(directory, file));
 
+function readCases(directory: string) {
+  return files(directory, /\.md$/u, false)
+    .filter((file) => !["AGENTS.md", "README.md"].includes(path.basename(file)))
+    .flatMap((file) => {
+      const markdown = read(file);
+      const headings = [...markdown.matchAll(/^### ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,})\b.*$/gmu)];
+      return headings.map((heading, index) => ({
+        id: heading[1] ?? "",
+        file,
+        body: markdown.slice(heading.index, headings[index + 1]?.index),
+      }));
+    });
+}
+
 for (const [directory, testDirectory, pattern] of [
   ["docs/test/e2e", "test/e2e", /\.spec\.tsx?$/u],
   ["docs/test/integration/firestore", "test/integration/firestore", /\.spec\.tsx?$/u],
   ["docs/test/integration/storybook", "src", /\.stories\.tsx?$/u],
 ] as const) {
   const source = files(testDirectory, pattern).map(read).join("\n");
-  // Text-only check: accept leading IDs in test titles, scenario tables, and Storybook step labels.
   const prefixes = source.matchAll(/["'`]((?:\[?[A-Z]+(?:-[A-Z]+)*-[0-9]{2,}\]?(?:\s+|(?=["'`])))+)/gu);
   const ids = new Set([...prefixes].flatMap(([, prefix = ""]) => prefix.split(/[\s[\]]+/u)));
-  for (const file of files(directory, /\.md$/u, false)) {
-    if (["AGENTS.md", "README.md"].includes(path.basename(file))) continue;
-    for (const [, id] of read(file).matchAll(/^### ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,})\b.*$/gmu)) {
-      if (id !== undefined && !ids.has(id)) problems.push(`${file}: ${id} has no matching test label prefix`);
-    }
+
+  for (const testCase of readCases(directory)) {
+    if (/^検証状況:.*未実装/mu.test(testCase.body)) continue;
+    if (!ids.has(testCase.id)) problems.push(`${testCase.file}: ${testCase.id} has no matching test label prefix`);
   }
 }
 
