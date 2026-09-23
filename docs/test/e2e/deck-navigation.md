@@ -3,7 +3,7 @@
 ## 目的
 
 Deck と Card 一覧の主要な route を開き、存在しない Deck から利用可能な画面へ復帰できることを確認する。
-一覧と学習の filter 分離は [Browse Filter](./browse-filter.md) を参照する。
+一覧と学習の filter 分離は [Card Filter](./card-filter.md) を参照する。
 
 ## テストケース
 
@@ -150,7 +150,7 @@ Given:
 - Fixture: [`study-filter`](./fixture/study-filter.yaml)
 - 学習用の tag filter に一致する Card が学習の枚数上限を超えて存在する。
 - 学習用の tag filter に一致しない Card も同じ Deck に存在する。
-- 学習の shuffle が有効である。
+- 学習の shuffle が有効であり、Card フィルターは未設定である。
 
 When:
 
@@ -176,7 +176,7 @@ Given:
 
 - Fixture: [`study-review-schedule`](./fixture/study-review-schedule.yaml)
 - 復習期日を過ぎた Card、未来に復習予定の Card、期日未設定の Card が存在する。
-- Respect review schedule が有効である。
+- Respect review schedule が有効であり、Card フィルターは未設定である。
 
 When:
 
@@ -252,7 +252,7 @@ Given:
 When:
 
 - Deck の View を開き、Help の操作説明を確認する。
-- 閲覧表面の鉛筆リンクから現在の Card の既存編集画面を開き、保存せず閲覧へ戻る。
+- 閲覧表面の鉛筆リンクから現在の Card の既存編集画面を開く。
 - 「…」内の鉛筆で編集リンクの表示・非表示を切り替え、他の表示設定も切り替える。
 - reload してから同じ Deck の学習を Continue する。
 
