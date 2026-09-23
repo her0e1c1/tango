@@ -1,22 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
 
-import { type PageStoryParameters, preparePageStory, withPageStory } from "@/storybook/PageDecorator";
+import { type AppStoryParameters, prepareAppStory, withPageStory } from "@/storybook/appStory";
 import { AppLayout } from "@/widgets/app-layout";
 
 const meta = {
   title: "Integration/AppLayout",
   component: AppLayout,
   decorators: [withPageStory],
-  loaders: [
-    ({ parameters }) => {
-      preparePageStory(parameters.page as PageStoryParameters);
-      return {};
-    },
-  ],
+  beforeEach: prepareAppStory,
   parameters: {
     layout: "fullscreen",
-    page: { path: "/" } satisfies PageStoryParameters,
+    page: { path: "/" } satisfies AppStoryParameters,
   },
   args: {
     showHeader: true,

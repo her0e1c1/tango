@@ -1,88 +1,169 @@
-import type { Decorator, Meta, StoryObj } from "@storybook/react-vite";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useEffect, useState } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { expect } from "storybook/test";
 
 import { routes } from "@/shared/router";
-import { type PageStoryParameters, preparePageStory } from "@/storybook/PageDecorator";
-import { PAGE_STORY_CARD_ID, PAGE_STORY_DECK_ID, pageStoryState } from "@/storybook/pageFixture";
+import { APP_STORY_UID, type AppStoryParameters, prepareAppStory } from "@/storybook/appStory";
+import type { CardId } from "@/entities/card";
+import type { Deck, DeckId } from "@/entities/deck";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
 
 import { appRoutes } from "./routes";
 
-const AppRoutes = () => null;
+const PAGE_STORY_DECK_ID: DeckId = "storybook-japanese";
+const PAGE_STORY_SECONDARY_DECK_ID: DeckId = "storybook-math";
+const PAGE_STORY_CARD_ID: CardId = "storybook-hello";
 
-const withAppRouter: Decorator = (_Story, context) => {
-  const parameters = context.parameters.page as PageStoryParameters | undefined;
-  if (parameters == null) throw new Error("App route stories require parameters.page");
-  const router = createMemoryRouter(appRoutes, { initialEntries: [parameters.path] });
-  return <RouterProvider key={context.id} router={router} />;
+const timestamp = Date.UTC(2026, 6, 1, 9, 0, 0);
+
+const pageStoryDecks: Deck[] = [
+  createDeck({
+    id: PAGE_STORY_DECK_ID,
+    uid: APP_STORY_UID,
+    name: "Japanese starter",
+    category: "markdown",
+    selectedTags: ["greeting"],
+    url: "https://example.com/decks/starter.csv",
+    createdAt: timestamp - 14 * 24 * 60 * 60 * 1000,
+    updatedAt: timestamp,
+  }),
+  createDeck({
+    id: PAGE_STORY_SECONDARY_DECK_ID,
+    uid: APP_STORY_UID,
+    name: "Everyday mathematics",
+    category: "math",
+    createdAt: timestamp - 30 * 24 * 60 * 60 * 1000,
+    updatedAt: timestamp - 24 * 60 * 60 * 1000,
+  }),
+];
+
+const pageStoryCards = [
+  createCard({
+    id: PAGE_STORY_CARD_ID,
+    deckId: PAGE_STORY_DECK_ID,
+    uid: APP_STORY_UID,
+    frontText: "Hello",
+    backText: "こんにちは",
+    tags: ["greeting"],
+    uniqueKey: "storybook-hello",
+    createdAt: timestamp - 10 * 24 * 60 * 60 * 1000,
+    updatedAt: timestamp,
+  }),
+  createCard({
+    id: "storybook-good-morning",
+    deckId: PAGE_STORY_DECK_ID,
+    uid: APP_STORY_UID,
+    frontText: "Good morning",
+    backText: "おはようございます",
+    tags: ["greeting", "polite"],
+    uniqueKey: "storybook-good-morning",
+    createdAt: timestamp - 9 * 24 * 60 * 60 * 1000,
+    updatedAt: timestamp - 60 * 60 * 1000,
+  }),
+  createCard({
+    id: "storybook-thank-you",
+    deckId: PAGE_STORY_DECK_ID,
+    uid: APP_STORY_UID,
+    frontText: "Thank you",
+    backText: "ありがとうございます",
+    tags: ["polite"],
+    uniqueKey: "storybook-thank-you",
+    createdAt: timestamp - 8 * 24 * 60 * 60 * 1000,
+    updatedAt: timestamp - 2 * 60 * 60 * 1000,
+  }),
+  createCard({
+    id: "storybook-circle-area",
+    deckId: PAGE_STORY_SECONDARY_DECK_ID,
+    uid: APP_STORY_UID,
+    frontText: "What is the area of a circle with radius r?",
+    backText: "$\\pi r^2$",
+    tags: ["geometry"],
+    uniqueKey: "storybook-circle-area",
+    createdAt: timestamp - 20 * 24 * 60 * 60 * 1000,
+    updatedAt: timestamp - 3 * 24 * 60 * 60 * 1000,
+  }),
+];
+
+const pageStoryState = {
+  decks: pageStoryDecks,
+  cards: pageStoryCards,
+  preferences: createPreferences({
+    maxNumberOfCardsToLearn: 20,
+  }),
+  sessionsByDeckId: {
+    [PAGE_STORY_DECK_ID]: {
+      sessionId: "storybook-session-japanese",
+      lastStudiedAt: timestamp,
+      startedAt: timestamp - 5 * 60 * 1000,
+      cardOrderIds: pageStoryCards.filter((card) => card.deckId === PAGE_STORY_DECK_ID).map((card) => card.id),
+      currentIndex: 1,
+    },
+  },
+} satisfies Omit<AppStoryParameters, "path">;
+
+const AppRoutes = ({ path }: { path: string }) => {
+  const [router] = useState(() => createMemoryRouter(appRoutes, { initialEntries: [path] }));
+  useEffect(() => () => router.dispose(), [router]);
+  return <RouterProvider router={router} />;
 };
-
-const page = (path: string, overrides: Partial<Omit<PageStoryParameters, "path">> = {}): PageStoryParameters => ({
-  ...pageStoryState,
-  ...overrides,
-  path,
-});
 
 const meta = {
   title: "Integration/Routes",
-  component: AppRoutes,
-  decorators: [withAppRouter],
-  loaders: [
-    ({ parameters }) => {
-      preparePageStory(parameters.page as PageStoryParameters);
-      return {};
-    },
-  ],
+  render: (_args, context) => (
+    <AppRoutes key={context.id} path={(context.parameters.page as AppStoryParameters).path} />
+  ),
+  beforeEach: prepareAppStory,
   parameters: {
     layout: "fullscreen",
   },
-} satisfies Meta<typeof AppRoutes>;
+} satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const DeckList: Story = {
-  parameters: { page: page(routes.deckList.to()) },
+  parameters: { page: { ...pageStoryState, path: routes.deckList.to() } },
 };
 
 export const DeckCreate: Story = {
-  parameters: { page: page(routes.deckCreate.to()) },
+  parameters: { page: { ...pageStoryState, path: routes.deckCreate.to() } },
 };
 
 export const CardList: Story = {
-  parameters: { page: page(routes.cardList.to(PAGE_STORY_DECK_ID)) },
+  parameters: { page: { ...pageStoryState, path: routes.cardList.to(PAGE_STORY_DECK_ID) } },
 };
 
 export const DeckForm: Story = {
-  parameters: { page: page(routes.deckForm.to(PAGE_STORY_DECK_ID)) },
+  parameters: { page: { ...pageStoryState, path: routes.deckForm.to(PAGE_STORY_DECK_ID) } },
 };
 
 export const DeckStudyStart: Story = {
-  parameters: { page: page(routes.deckStudyStart.to(PAGE_STORY_DECK_ID)) },
+  parameters: { page: { ...pageStoryState, path: routes.deckStudyStart.to(PAGE_STORY_DECK_ID) } },
 };
 
 export const DeckStudy: Story = {
-  parameters: { page: page(routes.deckStudy.to(PAGE_STORY_DECK_ID)) },
+  parameters: { page: { ...pageStoryState, path: routes.deckStudy.to(PAGE_STORY_DECK_ID) } },
 };
 
 export const CardView: Story = {
-  parameters: { page: page(routes.cardView.to(PAGE_STORY_CARD_ID)) },
+  parameters: { page: { ...pageStoryState, path: routes.cardView.to(PAGE_STORY_CARD_ID) } },
 };
 
 export const CardForm: Story = {
-  parameters: { page: page(routes.cardForm.to(PAGE_STORY_CARD_ID)) },
+  parameters: { page: { ...pageStoryState, path: routes.cardForm.to(PAGE_STORY_CARD_ID) } },
 };
 
 export const Settings: Story = {
-  parameters: { page: page(routes.settings.to()) },
+  parameters: { page: { ...pageStoryState, path: routes.settings.to() } },
 };
 
 export const Account: Story = {
-  parameters: { page: page(routes.account.to()) },
+  parameters: { page: { ...pageStoryState, path: routes.account.to() } },
 };
 
 export const Import: Story = {
-  parameters: { page: page(routes.deckImport.to()) },
+  parameters: { page: { ...pageStoryState, path: routes.deckImport.to() } },
   play: async ({ canvas, userEvent, step }) => {
     await step("STORYBOOK-IMPORT-02 Import preview through route", async () => {
       const file = new File(
@@ -91,6 +172,7 @@ export const Import: Story = {
         { type: "text/csv" }
       );
 
+      await expect(canvas.queryByRole("heading", { name: "Review import" })).not.toBeInTheDocument();
       await expect(canvas.queryByRole("radio")).not.toBeInTheDocument();
       await userEvent.upload(canvas.getByLabelText("Upload a csv file"), file);
 
@@ -102,5 +184,5 @@ export const Import: Story = {
 };
 
 export const NotFound: Story = {
-  parameters: { page: page("/not-found") },
+  parameters: { page: { ...pageStoryState, path: "/not-found" } },
 };
