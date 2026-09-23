@@ -182,8 +182,8 @@ test("NAVIGATION-05 Unhandled browser errors share recovery without clearing dat
 test("NAVIGATION-06 Lazy application module failures show React recovery", async ({ fixture, page, browserErrors }) => {
   await fixture.apply(page);
   browserErrors.allow(/E2E_BOOTSTRAP_FAILURE/);
-  // Replace only the lazy module, preserving the real entry, React root, and Boundary in both Vite modes.
-  await page.route(/\/(?:src\/app\/bootstrap\.tsx|assets\/bootstrap-[^/]+\.js)(?:\?.*)?$/, (route) =>
+  // Replace only the lazy application module, preserving the real entry, React root, and Boundary in both Vite modes.
+  await page.route(/\/(?:src\/app\/App\.tsx|assets\/App-[^/]+\.js)(?:\?.*)?$/, (route) =>
     route.fulfill({ contentType: "application/javascript", body: 'throw new Error("E2E_BOOTSTRAP_FAILURE");' })
   );
   await page.goto("/");
