@@ -23,8 +23,9 @@ jobs:
         run: |
           set -euo pipefail
           git fetch origin main docs/test-normal-abnormal-classification
-          test "$(git rev-parse origin/main)" = 3a9ddf297e89d8afbc6c6393f96bc16f20915594
+          git diff --exit-code 3a9ddf297e89d8afbc6c6393f96bc16f20915594 origin/main -- docs/test AGENTS.md scripts/lint-test-specs.ts package.json package-lock.json .markdownlint-cli2.jsonc
           test "$(git rev-parse origin/docs/test-normal-abnormal-classification)" = c818053c11059851118e530dd080af157eca6b88
+          sed "s/3a9ddf297e89d8afbc6c6393f96bc16f20915594/$(git rev-parse origin/main)/g" .github/pr1759-resolve.py > /tmp/pr1759-resolve.py
           git worktree add -b pr1759-candidate-0650 .worktrees/pr1759-candidate-0650 origin/main
           cd .worktrees/pr1759-candidate-0650
           git config user.name her0e1c1
@@ -32,32 +33,32 @@ jobs:
           git reset --hard c818053c11059851118e530dd080af157eca6b88
           if ! git rebase origin/main; then
             test -d "$(git rev-parse --git-path rebase-merge)"
-            python "$GITHUB_WORKSPACE/.github/pr1759-resolve.py" resolve
+            python /tmp/pr1759-resolve.py resolve
             GIT_EDITOR=true git rebase --continue
           fi
-          python "$GITHUB_WORKSPACE/.github/pr1759-resolve.py" extend
+          python /tmp/pr1759-resolve.py extend
           git commit --amend --no-edit
-          python "$GITHUB_WORKSPACE/.github/pr1759-resolve.py" validate | tee /tmp/pr1759-validation.txt
+          python /tmp/pr1759-resolve.py validate | tee /tmp/pr1759-validation.txt
           git diff --check origin/main HEAD
       - name: Install dependencies
         working-directory: .worktrees/pr1759-candidate-0650
         run: |
           npm install --global npm@12.0.1
           npm ci
-      - name: Validate documentation
-        working-directory: .worktrees/pr1759-candidate-0650
-        run: |
-          npm run lint:test-specs
-          npm run lint:markdown
-          git diff --check origin/main HEAD
-          git diff --exit-code
-      - name: Publish validated candidate
+      - name: Validate and publish candidate
         working-directory: .worktrees/pr1759-candidate-0650
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin main
-          test "$(git rev-parse origin/main)" = 3a9ddf297e89d8afbc6c6393f96bc16f20915594
+          git diff --exit-code 3a9ddf297e89d8afbc6c6393f96bc16f20915594 origin/main -- docs/test AGENTS.md scripts/lint-test-specs.ts package.json package-lock.json .markdownlint-cli2.jsonc
+          git rebase origin/main
+          sed "s/3a9ddf297e89d8afbc6c6393f96bc16f20915594/$(git rev-parse origin/main)/g" "$GITHUB_WORKSPACE/.github/pr1759-resolve.py" > /tmp/pr1759-resolve.py
+          python /tmp/pr1759-resolve.py validate
+          npm run lint:test-specs
+          npm run lint:markdown
+          git diff --check origin/main HEAD
+          git diff --exit-code
           test "$(git rev-parse HEAD^)" = "$(git rev-parse origin/main)"
           git push origin HEAD:refs/heads/maintenance/pr1759-candidate-0650
           {
