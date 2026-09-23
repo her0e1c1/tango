@@ -25,24 +25,26 @@ CSV の内容を確認して取り込み、失敗後も再試行できること�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| IMPORT-01 | read | [有効な CSV を保存せずに preview できる](#import-01) |
-| IMPORT-02 | read | [不正な行を含む CSV の import を阻止できる](#import-02) |
-| IMPORT-03 | batch | [ログイン中に CSV を import して reload 後も利用できる](#import-03) |
-| IMPORT-04 | batch | [匿名で CSV を import して reload 後に学習できる](#import-04) |
-| IMPORT-05 | batch | [取り込んだ内容の同期拒否を通知できる](#import-05) |
-| IMPORT-06 | batch | [4種類の例を同じ確認・保存の手順で追加できる](#import-06) |
-| IMPORT-07 | batch | [Sample Deck を一度だけ初期生成できる](#import-07) |
-| IMPORT-08 | batch | [Sample deck の全内容を匿名で取り込んで学習できる](#import-08) |
-| IMPORT-09 | batch | [通常ユーザーの Sample deck を同期できる](#import-09) |
-| IMPORT-10 | batch | [Google 未ログインの Sample deck をこのブラウザーだけに維持できる](#import-10) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| IMPORT-01 | read | 正常系 | [有効な CSV を保存せずに preview できる](#import-01) |
+| IMPORT-02 | read | 異常系 | [不正な行を含む CSV の import を阻止できる](#import-02) |
+| IMPORT-03 | batch | 正常系 | [ログイン中に CSV を import して reload 後も利用できる](#import-03) |
+| IMPORT-04 | batch | 正常系 | [匿名で CSV を import して reload 後に学習できる](#import-04) |
+| IMPORT-05 | batch | 異常系 | [取り込んだ内容の同期拒否を通知できる](#import-05) |
+| IMPORT-06 | batch | 正常系 | [4種類の例を同じ確認・保存の手順で追加できる](#import-06) |
+| IMPORT-07 | batch | 正常系 | [Sample Deck を一度だけ初期生成できる](#import-07) |
+| IMPORT-08 | batch | 正常系 | [Sample deck の全内容を匿名で取り込んで学習できる](#import-08) |
+| IMPORT-09 | batch | 正常系 | [通常ユーザーの Sample deck を同期できる](#import-09) |
+| IMPORT-10 | batch | 正常系 | [Google 未ログインの Sample deck をこのブラウザーだけに維持できる](#import-10) |
 
 <a id="import-01"></a>
 
 ### IMPORT-01 有効な CSV を保存せずに preview できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -70,6 +72,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -92,6 +96,8 @@ Then:
 ### IMPORT-03 ログイン中に CSV を import して reload 後も利用できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -116,6 +122,8 @@ Then:
 ### IMPORT-04 匿名で CSV を import して reload 後に学習できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -143,6 +151,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 異常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -165,6 +175,8 @@ Then:
 ### IMPORT-06 4種類の例を同じ確認・保存の手順で追加できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -197,6 +209,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`sample-bootstrap`](./fixture/sample-bootstrap.yaml)
@@ -217,6 +231,8 @@ Then:
 ### IMPORT-08 Sample deck の全内容を匿名で取り込んで学習できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -244,6 +260,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
@@ -266,6 +284,8 @@ Then:
 ### IMPORT-10 Google 未ログインの Sample deck をこのブラウザーだけに維持できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 

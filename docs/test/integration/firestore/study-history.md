@@ -13,17 +13,19 @@ StudySession の開始・完了履歴を期間と Deck で取得する購読契�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-STUDY-HISTORY-01 | batch | [期間と Deck による履歴取得を cache と権限境界を含めて確認できる](#firestore-study-history-01) |
-| FIRESTORE-STUDY-HISTORY-02 | read | [回答履歴の期間・順序・上限・cacheを確認する](#firestore-study-history-02) |
-| FIRESTORE-STUDY-HISTORY-03 | read | [回答履歴の入力境界を検証する](#firestore-study-history-03) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-STUDY-HISTORY-01 | batch | 正常系 / 異常系 | [期間と Deck による履歴取得を cache と権限境界を含めて確認できる](#firestore-study-history-01) |
+| FIRESTORE-STUDY-HISTORY-02 | read | 正常系 / 異常系 | [回答履歴の期間・順序・上限・cacheを確認する](#firestore-study-history-02) |
+| FIRESTORE-STUDY-HISTORY-03 | read | 異常系 | [回答履歴の入力境界を検証する](#firestore-study-history-03) |
 
 <a id="firestore-study-history-01"></a>
 
 ### FIRESTORE-STUDY-HISTORY-01 期間と Deck による履歴取得を cache と権限境界を含めて確認できる
 
 カテゴリ: `batch`
+
+区分: 正常系 / 異常系
 
 Given:
 
@@ -68,6 +70,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系 / 異常系
+
 Given:
 
 - UID `uid` の回答を固有の期間・Deckに保存する。開始時刻に again / hard / good / easy の4回答、別 Deck に1回答、開始前・終了境界に各1回答、不正 rating に1回答を保存する。
@@ -89,6 +93,8 @@ Then:
 ### FIRESTORE-STUDY-HISTORY-03 回答履歴の入力境界を検証する
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 

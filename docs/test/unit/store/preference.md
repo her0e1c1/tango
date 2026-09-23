@@ -12,23 +12,25 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| UNIT-STORE-PREF-01 | initial | [保存設定がない初回利用では標準の設定を提供する](#unit-store-pref-01) |
-| UNIT-STORE-PREF-02 | state-change | [一部の設定を変更しても未指定の設定を維持する](#unit-store-pref-02) |
-| UNIT-STORE-PREF-03 | state-change | [切り替え操作は対象設定だけをオン・オフする](#unit-store-pref-03) |
-| UNIT-STORE-PREF-04 | persistence | [変更した設定を再起動後も利用できる](#unit-store-pref-04) |
-| UNIT-STORE-PREF-05 | validation | [数値設定の境界を受け付け、不正値だけを既定値へ戻す](#unit-store-pref-05) |
-| UNIT-STORE-PREF-06 | persistence | [互換性のある保存設定は不足・不正な項目だけを補完する](#unit-store-pref-06) |
-| UNIT-STORE-PREF-07 | compatibility | [旧標準スワイプ配置を更新し、利用者の有効な割り当ては維持する](#unit-store-pref-07) |
-| UNIT-STORE-PREF-08 | persistence | [読み込めない保存設定でも初期設定で利用を開始できる](#unit-store-pref-08) |
-| UNIT-STORE-PREF-09 | state-change | [確定したタグ選択は入力元の後編集で変わらない](#unit-store-pref-09) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| UNIT-STORE-PREF-01 | initial | 正常系 | [保存設定がない初回利用では標準の設定を提供する](#unit-store-pref-01) |
+| UNIT-STORE-PREF-02 | state-change | 正常系 | [一部の設定を変更しても未指定の設定を維持する](#unit-store-pref-02) |
+| UNIT-STORE-PREF-03 | state-change | 正常系 | [切り替え操作は対象設定だけをオン・オフする](#unit-store-pref-03) |
+| UNIT-STORE-PREF-04 | persistence | 正常系 | [変更した設定を再起動後も利用できる](#unit-store-pref-04) |
+| UNIT-STORE-PREF-05 | validation | 正常系 / 異常系 | [数値設定の境界を受け付け、不正値だけを既定値へ戻す](#unit-store-pref-05) |
+| UNIT-STORE-PREF-06 | persistence | 正常系 / 異常系 | [互換性のある保存設定は不足・不正な項目だけを補完する](#unit-store-pref-06) |
+| UNIT-STORE-PREF-07 | compatibility | 正常系 | [旧標準スワイプ配置を更新し、利用者の有効な割り当ては維持する](#unit-store-pref-07) |
+| UNIT-STORE-PREF-08 | persistence | 異常系 | [読み込めない保存設定でも初期設定で利用を開始できる](#unit-store-pref-08) |
+| UNIT-STORE-PREF-09 | state-change | 正常系 | [確定したタグ選択は入力元の後編集で変わらない](#unit-store-pref-09) |
 
 <a id="unit-store-pref-01"></a>
 
 ### UNIT-STORE-PREF-01 保存設定がない初回利用では標準の設定を提供する
 
 カテゴリ: `initial`
+
+区分: 正常系
 
 対応テスト: `shows the study skip control by default`、`keeps back text swipe overlays off by default`、`shows the study Help shortcut by default`（要補完：既存テストは定数の確認のみ）。
 
@@ -49,6 +51,8 @@ Then:
 ### UNIT-STORE-PREF-02 一部の設定を変更しても未指定の設定を維持する
 
 カテゴリ: `state-change`
+
+区分: 正常系
 
 対応テスト: `updates each preference group without resetting other settings`、`updates and persists the %s language without resetting other preferences`（要補完：タグの置換・空配列、同一グループ内の非既定値の保持）。
 
@@ -78,6 +82,8 @@ Then:
 
 カテゴリ: `state-change`
 
+区分: 正常系
+
 対応テスト: `persists view mode without changing other preferences`、`persists hiding and restoring the view edit link`、`updates preferences through the public helpers`（要補完：各切り替えの両方向と非既定の他設定の保持）。
 
 Given:
@@ -98,6 +104,8 @@ Then:
 
 カテゴリ: `persistence`
 
+区分: 正常系
+
 対応テスト: `persists preference changes`、`persists view mode without changing other preferences`、`persists hiding and restoring the view edit link`、`updates and persists the %s language without resetting other preferences`（要補完：保存前のメモリ状態を引き継がない復元）。
 
 Given:
@@ -117,6 +125,8 @@ Then:
 ### UNIT-STORE-PREF-05 数値設定の境界を受け付け、不正値だけを既定値へ戻す
 
 カテゴリ: `validation`
+
+区分: 正常系 / 異常系
 
 対応テスト: `validates numeric ranges during updates`（要補完：既存値が非既定の場合、有効な境界値、小数、同時に指定した正常値の保持）。
 
@@ -143,6 +153,8 @@ Then:
 ### UNIT-STORE-PREF-06 互換性のある保存設定は不足・不正な項目だけを補完する
 
 カテゴリ: `persistence`
+
+区分: 正常系 / 異常系
 
 対応テスト: `hydrates version 1 preferences with defaults for additive fields`（要補完：不正な単一項目と欠落した設定グループの補完）。
 
@@ -171,6 +183,8 @@ Then:
 
 カテゴリ: `compatibility`
 
+区分: 正常系
+
 対応テスト: `hydrates the version-1 mapping with up=$up without resetting other preferences`（既存対応：下記 3 行）。
 
 Given:
@@ -197,6 +211,8 @@ Then:
 
 カテゴリ: `persistence`
 
+区分: 異常系
+
 対応テスト: `discards version 2 preferences without migration`、`uses current defaults for %s`（既存対応：下記 4 条件で初期設定に復帰すること）。
 
 Given:
@@ -221,6 +237,8 @@ Then:
 ### UNIT-STORE-PREF-09 確定したタグ選択は入力元の後編集で変わらない
 
 カテゴリ: `state-change`
+
+区分: 正常系
 
 対応テスト: 未検証：参照した既存テストには入力元配列の後編集の検証がない。
 

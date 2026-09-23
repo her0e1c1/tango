@@ -8,18 +8,20 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| PERSISTENCE-01 | read | [アカウントごとのデータを再読み込み後も分離して表示できる](#persistence-01) |
-| PERSISTENCE-02 | batch | [オフラインの変更を再接続後に同期できる](#persistence-02) |
-| PERSISTENCE-03 | write | [別のブラウザーに Card の変更を再読み込みなしで反映できる](#persistence-03) |
-| PERSISTENCE-04 | batch | [未ログインの変更をこのブラウザーだけに維持できる](#persistence-04) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| PERSISTENCE-01 | read | 正常系 | [アカウントごとのデータを再読み込み後も分離して表示できる](#persistence-01) |
+| PERSISTENCE-02 | batch | 正常系 | [オフラインの変更を再接続後に同期できる](#persistence-02) |
+| PERSISTENCE-03 | write | 正常系 | [別のブラウザーに Card の変更を再読み込みなしで反映できる](#persistence-03) |
+| PERSISTENCE-04 | batch | 正常系 | [未ログインの変更をこのブラウザーだけに維持できる](#persistence-04) |
 
 <a id="persistence-01"></a>
 
 ### PERSISTENCE-01 アカウントごとのデータを再読み込み後も分離して表示できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -45,6 +47,8 @@ Then:
 ### PERSISTENCE-02 オフラインの変更を再接続後に同期できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -72,6 +76,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
@@ -95,6 +101,8 @@ Then:
 ### PERSISTENCE-04 未ログインの変更をこのブラウザーだけに維持できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 

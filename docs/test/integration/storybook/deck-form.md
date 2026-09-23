@@ -14,18 +14,20 @@ DeckForm と実際の React Hook Form、および DeckDeletionDialog。エラー
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STORYBOOK-DECK-FORM-01 | interaction | [名前とカテゴリを入力できる](#storybook-deck-form-01) |
-| STORYBOOK-DECK-FORM-02 | interaction | [詳細設定を閉じて開き直しても入力を保持する](#storybook-deck-form-02) |
-| STORYBOOK-DECK-FORM-03 | render | [詳細項目のエラーを見える状態で表示する](#storybook-deck-form-03) |
-| STORYBOOK-DECK-FORM-04 | interaction | [削除確認から確定 callback を通知する](#storybook-deck-form-04) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STORYBOOK-DECK-FORM-01 | interaction | 正常系 | [名前とカテゴリを入力できる](#storybook-deck-form-01) |
+| STORYBOOK-DECK-FORM-02 | interaction | 正常系 | [詳細設定を閉じて開き直しても入力を保持する](#storybook-deck-form-02) |
+| STORYBOOK-DECK-FORM-03 | render | 異常系 | [詳細項目のエラーを見える状態で表示する](#storybook-deck-form-03) |
+| STORYBOOK-DECK-FORM-04 | interaction | 正常系 | [削除確認から確定 callback を通知する](#storybook-deck-form-04) |
 
 <a id="storybook-deck-form-01"></a>
 
 ### STORYBOOK-DECK-FORM-01 名前とカテゴリを入力できる
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -44,6 +46,8 @@ Then:
 ### STORYBOOK-DECK-FORM-02 詳細設定を閉じて開き直しても入力を保持する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -65,6 +69,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 異常系
+
 Given:
 
 - 名前と URL にフォームエラーを設定した作成フォームを用意する。
@@ -82,6 +88,8 @@ Then:
 ### STORYBOOK-DECK-FORM-04 削除確認から確定 callback を通知する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 

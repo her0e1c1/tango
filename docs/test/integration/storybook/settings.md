@@ -14,25 +14,27 @@ SettingsForm と実際の React Hook Form、SettingsSection / SettingsRow / Swit
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STORYBOOK-SETTINGS-01 | render | [設定を日本語で表示する](#storybook-settings-01) |
-| STORYBOOK-SETTINGS-02 | interaction | [再生操作の表示設定を切り替える](#storybook-settings-02) |
-| STORYBOOK-SETTINGS-03 | interaction | [セクション内のスイッチ変更を通知する](#storybook-settings-03) |
-| STORYBOOK-SETTINGS-04 | render | [設定とアカウント操作を分離する](#storybook-settings-04) |
-| STORYBOOK-SETTINGS-05 | interaction | [入力変更を表示に反映する](#storybook-settings-05) |
-| STORYBOOK-SETTINGS-06 | render | [復習説明とバージョン情報を表示する](#storybook-settings-06) |
-| STORYBOOK-SETTINGS-07 | render | [ラベルと説明を対応する UI に関連付ける](#storybook-settings-07) |
-| STORYBOOK-SETTINGS-08 | render | [日本語の操作名と読み上げ値を表示する](#storybook-settings-08) |
-| STORYBOOK-SETTINGS-09 | interaction | [最大カード数0を全件として説明する](#storybook-settings-09) |
-| STORYBOOK-SETTINGS-10 | interaction | [再生間隔の境界値を説明する](#storybook-settings-10) |
-| STORYBOOK-SETTINGS-11 | interaction | [ショートカットでホームへ戻る](#storybook-settings-11) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STORYBOOK-SETTINGS-01 | render | 正常系 | [設定を日本語で表示する](#storybook-settings-01) |
+| STORYBOOK-SETTINGS-02 | interaction | 正常系 | [再生操作の表示設定を切り替える](#storybook-settings-02) |
+| STORYBOOK-SETTINGS-03 | interaction | 正常系 | [セクション内のスイッチ変更を通知する](#storybook-settings-03) |
+| STORYBOOK-SETTINGS-04 | render | 正常系 | [設定とアカウント操作を分離する](#storybook-settings-04) |
+| STORYBOOK-SETTINGS-05 | interaction | 正常系 | [入力変更を表示に反映する](#storybook-settings-05) |
+| STORYBOOK-SETTINGS-06 | render | 正常系 | [復習説明とバージョン情報を表示する](#storybook-settings-06) |
+| STORYBOOK-SETTINGS-07 | render | 正常系 | [ラベルと説明を対応する UI に関連付ける](#storybook-settings-07) |
+| STORYBOOK-SETTINGS-08 | render | 正常系 | [日本語の操作名と読み上げ値を表示する](#storybook-settings-08) |
+| STORYBOOK-SETTINGS-09 | interaction | 正常系 | [最大カード数0を全件として説明する](#storybook-settings-09) |
+| STORYBOOK-SETTINGS-10 | interaction | 正常系 | [再生間隔の境界値を説明する](#storybook-settings-10) |
+| STORYBOOK-SETTINGS-11 | interaction | 正常系 | [ショートカットでホームへ戻る](#storybook-settings-11) |
 
 <a id="storybook-settings-01"></a>
 
 ### STORYBOOK-SETTINGS-01 設定を日本語で表示する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -52,6 +54,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 実際の React Hook Form を持つ設定画面を表示する。
@@ -70,6 +74,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - スワイプ操作表示のスイッチが有効である。
@@ -87,6 +93,8 @@ Then:
 ### STORYBOOK-SETTINGS-04 [TODO] 設定とアカウント操作を分離する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -107,6 +115,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 再生操作・Card 詳細・スキップは表示、裏面操作は非表示、言語 system、最大24枚である。
@@ -125,6 +135,8 @@ Then:
 ### STORYBOOK-SETTINGS-06 [TODO] 復習説明とバージョン情報を表示する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -145,6 +157,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 説明付きの Appearance セクションと Dark mode 入力を用意する。別条件では設定フォームを二つ描画する。
@@ -164,6 +178,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 日本語 locale、最大24枚、再生間隔7秒である。
@@ -181,6 +197,8 @@ Then:
 ### STORYBOOK-SETTINGS-09 [TODO] 最大カード数0を全件として説明する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -201,6 +219,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 間隔は60秒とする。en / ja と、自動再生で開始・再生操作表示の true/false 全4組を組み合わせた8条件を個別に用意する。
@@ -220,6 +240,8 @@ Then:
 ### STORYBOOK-SETTINGS-11 [TODO] ショートカットでホームへ戻る
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 

@@ -8,18 +8,20 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース | 対応状況 |
-| --- | --- | --- | --- |
-| UNIT-FSRS-SCHEDULING-01 | write | [未評価の Card を選択した評価で学習開始する](#unit-fsrs-scheduling-01) | 一部対応 |
-| UNIT-FSRS-SCHEDULING-02 | write | [学習段階に応じて状態と忘却回数を更新する](#unit-fsrs-scheduling-02) | 一部対応 |
-| UNIT-FSRS-SCHEDULING-03 | write | [復元した学習状態から同じ計算結果で学習を継続する](#unit-fsrs-scheduling-03) | 一部対応 |
-| UNIT-FSRS-SCHEDULING-04 | write | [不正な状態や回答時刻で更新結果を作らない](#unit-fsrs-scheduling-04) | 未対応 |
+| ID | カテゴリ | 区分 | テストケース | 対応状況 |
+| --- | --- | --- | --- | --- |
+| UNIT-FSRS-SCHEDULING-01 | write | 正常系 | [未評価の Card を選択した評価で学習開始する](#unit-fsrs-scheduling-01) | 一部対応 |
+| UNIT-FSRS-SCHEDULING-02 | write | 正常系 | [学習段階に応じて状態と忘却回数を更新する](#unit-fsrs-scheduling-02) | 一部対応 |
+| UNIT-FSRS-SCHEDULING-03 | write | 正常系 | [復元した学習状態から同じ計算結果で学習を継続する](#unit-fsrs-scheduling-03) | 一部対応 |
+| UNIT-FSRS-SCHEDULING-04 | write | 異常系 | [不正な状態や回答時刻で更新結果を作らない](#unit-fsrs-scheduling-04) | 未対応 |
 
 <a id="unit-fsrs-scheduling-01"></a>
 
 ### UNIT-FSRS-SCHEDULING-01 未評価の Card を選択した評価で学習開始する
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -47,6 +49,8 @@ Then:
 ### UNIT-FSRS-SCHEDULING-02 学習段階に応じて状態と忘却回数を更新する
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -84,6 +88,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - `t0` を開始基準とする `again → hard → easy → again → good` の評価履歴を入力例とし、各回答時刻は直前の次回期限の `1日後` とする。最初の回答時刻は `t0 + 1日` とする。
@@ -110,6 +116,8 @@ Then:
 ### UNIT-FSRS-SCHEDULING-04 不正な状態や回答時刻で更新結果を作らない
 
 カテゴリ: `write`
+
+区分: 異常系
 
 Given:
 

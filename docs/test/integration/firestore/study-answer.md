@@ -14,34 +14,36 @@ Card / Deck store と認証状態も初期化し、本人 UID の Card.fsrs を�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-STUDY-ANSWER-01 | batch | [4種類の評価を保存し進捗と位置を1回更新する](#firestore-study-answer-01) |
-| FIRESTORE-STUDY-ANSWER-02 | batch | [保存済みの位置から同じ操作を再実行して回答を増やさない](#firestore-study-answer-02) |
-| FIRESTORE-STUDY-ANSWER-03 | write | [評価では Card の本文と作成日時を維持する](#firestore-study-answer-03) |
-| FIRESTORE-STUDY-ANSWER-04 | batch | [10枚への回答を保存して session を完了する](#firestore-study-answer-04) |
-| FIRESTORE-STUDY-ANSWER-05 | batch | [中断後も回答を保持し別 session で同じ Card に回答できる](#firestore-study-answer-05) |
-| FIRESTORE-STUDY-ANSWER-06 | batch | [途中のスキップは Session だけを前進する](#firestore-study-answer-06) |
-| FIRESTORE-STUDY-ANSWER-07 | batch | [最後のスキップは回答を作らず session を完了する](#firestore-study-answer-07) |
-| FIRESTORE-STUDY-ANSWER-08 | write | [ブラウザのオフライン判定だけで保存を止めない](#firestore-study-answer-08) |
-| FIRESTORE-STUDY-ANSWER-09 | batch | [存在しない session と認証変更で部分保存を残さない](#firestore-study-answer-09) |
-| FIRESTORE-STUDY-ANSWER-10 | batch | [書込拒否後に同じ操作を再試行できる](#firestore-study-answer-10) |
-| FIRESTORE-STUDY-ANSWER-11 | read | [所有者条件を付けて session・Card・Deck ごとの回答を取得する](#firestore-study-answer-11) |
-| FIRESTORE-STUDY-ANSWER-12 | write | [別 UID の回答作成を拒否する](#firestore-study-answer-12) |
-| FIRESTORE-STUDY-ANSWER-13 | write | [回答形式と参照先の検証は Rules では強制しない](#firestore-study-answer-13) |
-| FIRESTORE-STUDY-ANSWER-14 | write | [回答単独の保存では Card.fsrs と Session を更新しない](#firestore-study-answer-14) |
-| FIRESTORE-STUDY-ANSWER-15 | write | [4評価の FSRS を検証して保存する](#firestore-study-answer-15) |
-| FIRESTORE-STUDY-ANSWER-16 | write | [session の所有権とアプリケーションの終了遷移を区別する](#firestore-study-answer-16) |
-| FIRESTORE-STUDY-ANSWER-17 | write | [本人でも保存済み回答を更新・上書き・削除できない](#firestore-study-answer-17) |
-| FIRESTORE-STUDY-ANSWER-18 | read | [存在しない回答 ID の読取を拒否する](#firestore-study-answer-18) |
-| FIRESTORE-STUDY-ANSWER-19 | batch | [公開 Deck でも第三者・匿名・未認証に回答を公開しない](#firestore-study-answer-19) |
-| FIRESTORE-STUDY-ANSWER-20 | batch | [FSRS を復元し本文編集とスキップで維持する](#firestore-study-answer-20) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-STUDY-ANSWER-01 | batch | 正常系 | [4種類の評価を保存し進捗と位置を1回更新する](#firestore-study-answer-01) |
+| FIRESTORE-STUDY-ANSWER-02 | batch | 異常系 | [保存済みの位置から同じ操作を再実行して回答を増やさない](#firestore-study-answer-02) |
+| FIRESTORE-STUDY-ANSWER-03 | write | 正常系 | [評価では Card の本文と作成日時を維持する](#firestore-study-answer-03) |
+| FIRESTORE-STUDY-ANSWER-04 | batch | 正常系 | [10枚への回答を保存して session を完了する](#firestore-study-answer-04) |
+| FIRESTORE-STUDY-ANSWER-05 | batch | 正常系 | [中断後も回答を保持し別 session で同じ Card に回答できる](#firestore-study-answer-05) |
+| FIRESTORE-STUDY-ANSWER-06 | batch | 正常系 / 異常系 | [途中のスキップは Session だけを前進する](#firestore-study-answer-06) |
+| FIRESTORE-STUDY-ANSWER-07 | batch | 正常系 | [最後のスキップは回答を作らず session を完了する](#firestore-study-answer-07) |
+| FIRESTORE-STUDY-ANSWER-08 | write | 正常系 | [ブラウザのオフライン判定だけで保存を止めない](#firestore-study-answer-08) |
+| FIRESTORE-STUDY-ANSWER-09 | batch | 異常系 | [存在しない session と認証変更で部分保存を残さない](#firestore-study-answer-09) |
+| FIRESTORE-STUDY-ANSWER-10 | batch | 異常系 | [書込拒否後に同じ操作を再試行できる](#firestore-study-answer-10) |
+| FIRESTORE-STUDY-ANSWER-11 | read | 正常系 / 異常系 | [所有者条件を付けて session・Card・Deck ごとの回答を取得する](#firestore-study-answer-11) |
+| FIRESTORE-STUDY-ANSWER-12 | write | 異常系 | [別 UID の回答作成を拒否する](#firestore-study-answer-12) |
+| FIRESTORE-STUDY-ANSWER-13 | write | 正常系 | [回答形式と参照先の検証は Rules では強制しない](#firestore-study-answer-13) |
+| FIRESTORE-STUDY-ANSWER-14 | write | 正常系 | [回答単独の保存では Card.fsrs と Session を更新しない](#firestore-study-answer-14) |
+| FIRESTORE-STUDY-ANSWER-15 | write | 正常系 | [4評価の FSRS を検証して保存する](#firestore-study-answer-15) |
+| FIRESTORE-STUDY-ANSWER-16 | write | 正常系 / 異常系 | [session の所有権とアプリケーションの終了遷移を区別する](#firestore-study-answer-16) |
+| FIRESTORE-STUDY-ANSWER-17 | write | 異常系 | [本人でも保存済み回答を更新・上書き・削除できない](#firestore-study-answer-17) |
+| FIRESTORE-STUDY-ANSWER-18 | read | 異常系 | [存在しない回答 ID の読取を拒否する](#firestore-study-answer-18) |
+| FIRESTORE-STUDY-ANSWER-19 | batch | 異常系 | [公開 Deck でも第三者・匿名・未認証に回答を公開しない](#firestore-study-answer-19) |
+| FIRESTORE-STUDY-ANSWER-20 | batch | 正常系 | [FSRS を復元し本文編集とスキップで維持する](#firestore-study-answer-20) |
 
 <a id="firestore-study-answer-01"></a>
 
 ### FIRESTORE-STUDY-ANSWER-01 4種類の評価を保存し進捗と位置を1回更新する
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -62,6 +64,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 異常系
+
 Given:
 
 - 位置 `0` の回答操作を一度保存している。
@@ -80,6 +84,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - 本人の Card があり、fsrs は null である。
@@ -97,6 +103,8 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-04 10枚への回答を保存して session を完了する
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -118,6 +126,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - 最初の Card の回答を保存し、旧 session を abandoned に更新している。同じ Card 順序の別 ID の session を用意する。
@@ -135,6 +145,8 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-06 途中のスキップは Session だけを前進する
 
 カテゴリ: `batch`
+
+区分: 正常系 / 異常系
 
 Given:
 
@@ -154,6 +166,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - session の位置を最後の `9` にしている。
@@ -171,6 +185,8 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-08 ブラウザのオフライン判定だけで保存を止めない
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -192,6 +208,8 @@ SDK の通信遮断やオフライン queue の検証ではない。
 
 カテゴリ: `batch`
 
+区分: 異常系
+
 Given:
 
 - 本人の通常の session は存在するが、別 ID `not-saved` は存在しない。
@@ -212,6 +230,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 異常系
+
 Given:
 
 - 本人の操作を準備し、Rules 無効化 context で親 Deck の UID を別の所有者へ変更する。
@@ -229,6 +249,8 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-11 所有者条件を付けて session・Card・Deck ごとの回答を取得する
 
 カテゴリ: `read`
+
+区分: 正常系 / 異常系
 
 Given:
 
@@ -250,6 +272,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 本人の非匿名認証 context と有効な回答入力を用意する。
@@ -267,6 +291,8 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-13 回答形式と参照先の検証は Rules では強制しない
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -288,6 +314,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - 本人の Card に FSRS が null で、session の位置は0である。
@@ -306,6 +334,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 正常系
+
 Given:
 
 - 未評価の Card に対し again / hard / good / easy の4通りを用意する。
@@ -323,6 +353,8 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-16 session の所有権とアプリケーションの終了遷移を区別する
 
 カテゴリ: `write`
+
+区分: 正常系 / 異常系
 
 Given:
 
@@ -344,6 +376,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 本人の回答をアプリケーション経由で保存済みである。
@@ -361,6 +395,8 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-18 存在しない回答 ID の読取を拒否する
 
 カテゴリ: `read`
+
+区分: 異常系
 
 Given:
 
@@ -382,6 +418,8 @@ Then:
 
 カテゴリ: `batch`
 
+区分: 異常系
+
 Given:
 
 - 本人の公開 Deck と回答が保存済みである。主体は他ユーザー・本人と同じ UID の匿名認証・未認証の3通りとする。
@@ -399,6 +437,8 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-20 FSRS を復元し本文編集とスキップで維持する
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 

@@ -14,26 +14,28 @@ CSV 選択、プレビュー、明示的な確定、診断表示と失敗・処�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STORYBOOK-IMPORT-01 | render | [初期画面に保存先選択を表示しない](#storybook-import-01) |
-| STORYBOOK-IMPORT-02 | interaction | [CSV を読み込んでプレビューする](#storybook-import-02) |
-| STORYBOOK-IMPORT-03 | render | [日本語の診断と無効な確定操作を表示する](#storybook-import-03) |
-| STORYBOOK-IMPORT-04 | interaction | [プレビュー失敗を安全な日本語にする](#storybook-import-04) |
-| STORYBOOK-IMPORT-05 | interaction | [診断を翻訳しユーザー入力は保持する](#storybook-import-05) |
-| STORYBOOK-IMPORT-06 | interaction | [形式の説明を必要なときだけ開く](#storybook-import-06) |
-| STORYBOOK-IMPORT-07 | render | [処理中の選択を無効にする](#storybook-import-07) |
-| STORYBOOK-IMPORT-08 | interaction | [各サンプルの操作を要求する](#storybook-import-08) |
-| STORYBOOK-IMPORT-09 | interaction | [レビュー後もファイルを選び直せる](#storybook-import-09) |
-| STORYBOOK-IMPORT-10 | interaction | [内容確認だけでは保存を要求しない](#storybook-import-10) |
-| STORYBOOK-IMPORT-11 | render | [一部の行が不正なら確定を止める](#storybook-import-11) |
-| STORYBOOK-IMPORT-12 | render | [準備失敗後も選び直せる](#storybook-import-12) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STORYBOOK-IMPORT-01 | render | 正常系 | [初期画面に保存先選択を表示しない](#storybook-import-01) |
+| STORYBOOK-IMPORT-02 | interaction | 正常系 | [CSV を読み込んでプレビューする](#storybook-import-02) |
+| STORYBOOK-IMPORT-03 | render | 異常系 | [日本語の診断と無効な確定操作を表示する](#storybook-import-03) |
+| STORYBOOK-IMPORT-04 | interaction | 異常系 | [プレビュー失敗を安全な日本語にする](#storybook-import-04) |
+| STORYBOOK-IMPORT-05 | interaction | 異常系 | [診断を翻訳しユーザー入力は保持する](#storybook-import-05) |
+| STORYBOOK-IMPORT-06 | interaction | 正常系 | [形式の説明を必要なときだけ開く](#storybook-import-06) |
+| STORYBOOK-IMPORT-07 | render | 正常系 | [処理中の選択を無効にする](#storybook-import-07) |
+| STORYBOOK-IMPORT-08 | interaction | 正常系 | [各サンプルの操作を要求する](#storybook-import-08) |
+| STORYBOOK-IMPORT-09 | interaction | 正常系 | [レビュー後もファイルを選び直せる](#storybook-import-09) |
+| STORYBOOK-IMPORT-10 | interaction | 正常系 | [内容確認だけでは保存を要求しない](#storybook-import-10) |
+| STORYBOOK-IMPORT-11 | render | 異常系 | [一部の行が不正なら確定を止める](#storybook-import-11) |
+| STORYBOOK-IMPORT-12 | render | 異常系 | [準備失敗後も選び直せる](#storybook-import-12) |
 
 <a id="storybook-import-01"></a>
 
 ### STORYBOOK-IMPORT-01 初期画面に保存先選択を表示しない
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -53,6 +55,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 実際のインポートルートと、有効な4列1行の storybook-import.csv を用意する。Story の再実行・再入場時も未選択状態から開始する。
@@ -70,6 +74,8 @@ Then:
 ### STORYBOOK-IMPORT-03 日本語の診断と無効な確定操作を表示する
 
 カテゴリ: `render`
+
+区分: 異常系
 
 Given:
 
@@ -89,6 +95,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 異常系
+
 Given:
 
 - authentication、account-changed、permission-denied、unavailable、QuotaExceededError、未知の例外を英語で個別に表示する。
@@ -106,6 +114,8 @@ Then:
 ### STORYBOOK-IMPORT-05 [TODO] 診断を翻訳しユーザー入力は保持する
 
 カテゴリ: `interaction`
+
+区分: 異常系
 
 Given:
 
@@ -125,6 +135,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 対象未選択の初期画面を表示する。
@@ -142,6 +154,8 @@ Then:
 ### STORYBOOK-IMPORT-07 [TODO] 処理中の選択を無効にする
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -161,6 +175,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - Basic / Math / Markdown / Sample deck の4条件を用意する。対応 ID は basic / math / markdown / deck である。
@@ -179,6 +195,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - ファイル選択 callback を渡す。
@@ -196,6 +214,8 @@ Then:
 ### STORYBOOK-IMPORT-10 [TODO] 内容確認だけでは保存を要求しない
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -216,6 +236,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 異常系
+
 Given:
 
 - 英語 locale で有効1件と、3行目の uniqueKey が空という無効1件を渡す。
@@ -233,6 +255,8 @@ Then:
 ### STORYBOOK-IMPORT-12 [TODO] 準備失敗後も選び直せる
 
 カテゴリ: `render`
+
+区分: 異常系
 
 Given:
 

@@ -14,37 +14,39 @@ CardPlayer と実際の子 UI、CardOverlay、Story 側の表示状態と公開 
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STORYBOOK-CARD-PLAYER-01 | interaction | [読書ジェスチャーを学習操作にしない](#storybook-card-player-01) |
-| STORYBOOK-CARD-PLAYER-02 | interaction | [文字選択中に閲覧を終了しない](#storybook-card-player-02) |
-| STORYBOOK-CARD-PLAYER-03 | interaction | [Space とタップを区別する](#storybook-card-player-03) |
-| STORYBOOK-CARD-PLAYER-04 | interaction | [閲覧設定で裏面の許可済み操作を変えない](#storybook-card-player-04) |
-| STORYBOOK-CARD-PLAYER-05 | interaction | [編集リンクの表示を切り替える](#storybook-card-player-05) |
-| STORYBOOK-CARD-PLAYER-06 | render | [裏面と編集非対応画面に編集操作を出さない](#storybook-card-player-06) |
-| STORYBOOK-CARD-PLAYER-07 | render | [裏面では解答に集中できる表示にする](#storybook-card-player-07) |
-| STORYBOOK-CARD-PLAYER-08 | interaction | [端の操作と解答クリックを分離する](#storybook-card-player-08) |
-| STORYBOOK-CARD-PLAYER-09 | interaction | [端のホイール入力をスクロールへ渡す](#storybook-card-player-09) |
-| STORYBOOK-CARD-PLAYER-10 | interaction | [操作一覧から各操作を要求する](#storybook-card-player-10) |
-| STORYBOOK-CARD-PLAYER-11 | interaction | [ヘルプの再表示操作を失わない](#storybook-card-player-11) |
-| STORYBOOK-CARD-PLAYER-12 | interaction | [閲覧モードの状態をボタンで示す](#storybook-card-player-12) |
-| STORYBOOK-CARD-PLAYER-13 | interaction | [閲覧モードとボタン表示を区別する](#storybook-card-player-13) |
-| STORYBOOK-CARD-PLAYER-14 | interaction | [表示設定に従ってショートカットを組み合わせる](#storybook-card-player-14) |
-| STORYBOOK-CARD-PLAYER-15 | interaction | [詳細表示をまとめて切り替える](#storybook-card-player-15) |
-| STORYBOOK-CARD-PLAYER-16 | interaction | [再生設定が使えない理由を確認できる](#storybook-card-player-16) |
-| STORYBOOK-CARD-PLAYER-17 | render | [選択した下部操作だけを表示する](#storybook-card-player-17) |
-| STORYBOOK-CARD-PLAYER-18 | interaction | [未許可の裏面スワイプを無視する](#storybook-card-player-18) |
-| STORYBOOK-CARD-PLAYER-19 | interaction | [表面スワイプをボタン表示と独立して扱う](#storybook-card-player-19) |
-| STORYBOOK-CARD-PLAYER-20 | interaction | [ドラッグをクリックとして重複処理しない](#storybook-card-player-20) |
-| STORYBOOK-CARD-PLAYER-21 | interaction | [中・右ボタンのドラッグを無視する](#storybook-card-player-21) |
-| STORYBOOK-CARD-PLAYER-22 | interaction | [裏面のドラッグ後に誤操作しない](#storybook-card-player-22) |
-| STORYBOOK-CARD-PLAYER-23 | render | [未評価と FSRS 難易度を区別する](#storybook-card-player-23) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STORYBOOK-CARD-PLAYER-01 | interaction | 正常系 | [読書ジェスチャーを学習操作にしない](#storybook-card-player-01) |
+| STORYBOOK-CARD-PLAYER-02 | interaction | 正常系 | [文字選択中に閲覧を終了しない](#storybook-card-player-02) |
+| STORYBOOK-CARD-PLAYER-03 | interaction | 正常系 | [Space とタップを区別する](#storybook-card-player-03) |
+| STORYBOOK-CARD-PLAYER-04 | interaction | 正常系 | [閲覧設定で裏面の許可済み操作を変えない](#storybook-card-player-04) |
+| STORYBOOK-CARD-PLAYER-05 | interaction | 正常系 | [編集リンクの表示を切り替える](#storybook-card-player-05) |
+| STORYBOOK-CARD-PLAYER-06 | render | 正常系 | [裏面と編集非対応画面に編集操作を出さない](#storybook-card-player-06) |
+| STORYBOOK-CARD-PLAYER-07 | render | 正常系 | [裏面では解答に集中できる表示にする](#storybook-card-player-07) |
+| STORYBOOK-CARD-PLAYER-08 | interaction | 正常系 | [端の操作と解答クリックを分離する](#storybook-card-player-08) |
+| STORYBOOK-CARD-PLAYER-09 | interaction | 正常系 | [端のホイール入力をスクロールへ渡す](#storybook-card-player-09) |
+| STORYBOOK-CARD-PLAYER-10 | interaction | 正常系 | [操作一覧から各操作を要求する](#storybook-card-player-10) |
+| STORYBOOK-CARD-PLAYER-11 | interaction | 正常系 | [ヘルプの再表示操作を失わない](#storybook-card-player-11) |
+| STORYBOOK-CARD-PLAYER-12 | interaction | 正常系 | [閲覧モードの状態をボタンで示す](#storybook-card-player-12) |
+| STORYBOOK-CARD-PLAYER-13 | interaction | 正常系 | [閲覧モードとボタン表示を区別する](#storybook-card-player-13) |
+| STORYBOOK-CARD-PLAYER-14 | interaction | 正常系 | [表示設定に従ってショートカットを組み合わせる](#storybook-card-player-14) |
+| STORYBOOK-CARD-PLAYER-15 | interaction | 正常系 | [詳細表示をまとめて切り替える](#storybook-card-player-15) |
+| STORYBOOK-CARD-PLAYER-16 | interaction | 正常系 | [再生設定が使えない理由を確認できる](#storybook-card-player-16) |
+| STORYBOOK-CARD-PLAYER-17 | render | 正常系 | [選択した下部操作だけを表示する](#storybook-card-player-17) |
+| STORYBOOK-CARD-PLAYER-18 | interaction | 正常系 | [未許可の裏面スワイプを無視する](#storybook-card-player-18) |
+| STORYBOOK-CARD-PLAYER-19 | interaction | 正常系 | [表面スワイプをボタン表示と独立して扱う](#storybook-card-player-19) |
+| STORYBOOK-CARD-PLAYER-20 | interaction | 正常系 | [ドラッグをクリックとして重複処理しない](#storybook-card-player-20) |
+| STORYBOOK-CARD-PLAYER-21 | interaction | 正常系 | [中・右ボタンのドラッグを無視する](#storybook-card-player-21) |
+| STORYBOOK-CARD-PLAYER-22 | interaction | 正常系 | [裏面のドラッグ後に誤操作しない](#storybook-card-player-22) |
+| STORYBOOK-CARD-PLAYER-23 | render | 正常系 | [未評価と FSRS 難易度を区別する](#storybook-card-player-23) |
 
 <a id="storybook-card-player-01"></a>
 
 ### STORYBOOK-CARD-PLAYER-01 [TODO] 読書ジェスチャーを学習操作にしない
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -64,6 +66,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 閲覧モードの表面を実際の Selection API で選択している。
@@ -81,6 +85,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-03 [TODO] Space とタップを区別する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -100,6 +106,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 閲覧モード設定は有効で、裏面を表示し、裏面の横スワイプを許可する。
@@ -117,6 +125,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-05 [TODO] 編集リンクの表示を切り替える
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -137,6 +147,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 編集リンクを持つ裏面と、編集リンクを提供しない学習画面を別条件にする。
@@ -154,6 +166,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-07 [TODO] 裏面では解答に集中できる表示にする
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -174,6 +188,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - クリック可能な解答と左右の端の操作を表示する。
@@ -192,6 +208,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-09 [TODO] 端のホイール入力をスクロールへ渡す
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -212,6 +230,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - ヘルプ、詳細、スワイプ、再生、スキップを有効にし、操作一覧は閉じている。
@@ -231,6 +251,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 操作一覧を開き、ヘルプ表示が有効である。
@@ -249,6 +271,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 一覧は閉じ、閲覧モードは無効である。変更を Story 側に反映する。
@@ -266,6 +290,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-13 [TODO] 閲覧モードとボタン表示を区別する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -286,6 +312,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - ヘルプ・閲覧・編集リンクの順に、true/false の組合せ TTT、FTT、TTF、FTF、TFT、FFF の6条件を用意する。
@@ -305,6 +333,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 詳細を表示した表面で操作一覧を開いている。
@@ -322,6 +352,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-16 [TODO] 再生設定が使えない理由を確認できる
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -342,6 +374,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 再生とスワイプを用意し、スワイプだけ非表示、再生だけ非表示を別条件にする。
@@ -359,6 +393,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-18 [TODO] 未許可の裏面スワイプを無視する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -378,6 +414,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 閲覧モードではない表面を表示し、スワイプボタンを隠している。
@@ -395,6 +433,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-20 [TODO] ドラッグをクリックとして重複処理しない
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -414,6 +454,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 上方向の操作が可能な表面を表示する。
@@ -432,6 +474,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 裏面にクリック操作を用意し、裏面スワイプは許可しない。
@@ -449,6 +493,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-23 [TODO] 未評価と FSRS 難易度を区別する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 

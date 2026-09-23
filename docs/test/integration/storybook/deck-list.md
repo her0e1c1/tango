@@ -14,40 +14,42 @@ DeckList と実際の DeckListCard / DeckActionsMenu を組み合わせ、表示
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STORYBOOK-DECK-LIST-01 | interaction | [Deck 作成を要求する](#storybook-deck-list-01) |
-| STORYBOOK-DECK-LIST-02 | interaction | [Deck インポートを要求する](#storybook-deck-list-02) |
-| STORYBOOK-DECK-LIST-03 | render | [固定文言だけを日本語にする](#storybook-deck-list-03) |
-| STORYBOOK-DECK-LIST-04 | interaction | [Deck の閲覧を要求する](#storybook-deck-list-04) |
-| STORYBOOK-DECK-LIST-05 | render | [空の一覧にも追加導線を表示する](#storybook-deck-list-05) |
-| STORYBOOK-DECK-LIST-06 | render | [復習対象・新規件数と説明を表示する](#storybook-deck-list-06) |
-| STORYBOOK-DECK-LIST-07 | interaction | [ダウンロードを要求してメニューを閉じる](#storybook-deck-list-07) |
-| STORYBOOK-DECK-LIST-08 | interaction | [学習履歴を要求する](#storybook-deck-list-08) |
-| STORYBOOK-DECK-LIST-09 | render | [学習中と未開始を一つの一覧に表示する](#storybook-deck-list-09) |
-| STORYBOOK-DECK-LIST-10 | interaction | [複数のメニューを同時に開かない](#storybook-deck-list-10) |
-| STORYBOOK-DECK-LIST-11 | interaction | [追加メニューをキーボードで開閉する](#storybook-deck-list-11) |
-| STORYBOOK-DECK-LIST-12 | interaction | [作成要求後に追加ボタンへ戻る](#storybook-deck-list-12) |
-| STORYBOOK-DECK-LIST-13 | render | [確認中に空の一覧と断定しない](#storybook-deck-list-13) |
-| STORYBOOK-DECK-LIST-14 | interaction | [初期データ取得失敗から操作を選ぶ](#storybook-deck-list-14) |
-| STORYBOOK-DECK-LIST-15 | interaction | [復習対象0件の理由を区別する](#storybook-deck-list-15) |
-| STORYBOOK-DECK-LIST-16 | interaction | [復習と新規学習を区別して要求する](#storybook-deck-list-16) |
-| STORYBOOK-DECK-LIST-17 | render | [学習位置を表示する](#storybook-deck-list-17) |
-| STORYBOOK-DECK-LIST-18 | interaction | [Study で行の閲覧を起動しない](#storybook-deck-list-18) |
-| STORYBOOK-DECK-LIST-19 | interaction | [各操作に対象 ID を渡す](#storybook-deck-list-19) |
-| STORYBOOK-DECK-LIST-20 | render | [ローカル Deck にリモート表示を付けない](#storybook-deck-list-20) |
-| STORYBOOK-DECK-LIST-21 | render | [処理中の行だけを無効にする](#storybook-deck-list-21) |
-| STORYBOOK-DECK-LIST-22 | render | [未開始なら Restart を表示しない](#storybook-deck-list-22) |
-| STORYBOOK-DECK-LIST-23 | interaction | [メニューを矢印キーで移動する](#storybook-deck-list-23) |
-| STORYBOOK-DECK-LIST-24 | interaction | [メニュー内のフォーカス移動で操作を失わない](#storybook-deck-list-24) |
-| STORYBOOK-DECK-LIST-25 | interaction | [外へ移ったフォーカスを奪わない](#storybook-deck-list-25) |
-| STORYBOOK-DECK-LIST-26 | interaction | [再有効化してもメニューを閉じたままにする](#storybook-deck-list-26) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STORYBOOK-DECK-LIST-01 | interaction | 正常系 | [Deck 作成を要求する](#storybook-deck-list-01) |
+| STORYBOOK-DECK-LIST-02 | interaction | 正常系 | [Deck インポートを要求する](#storybook-deck-list-02) |
+| STORYBOOK-DECK-LIST-03 | render | 正常系 | [固定文言だけを日本語にする](#storybook-deck-list-03) |
+| STORYBOOK-DECK-LIST-04 | interaction | 正常系 | [Deck の閲覧を要求する](#storybook-deck-list-04) |
+| STORYBOOK-DECK-LIST-05 | render | 正常系 | [空の一覧にも追加導線を表示する](#storybook-deck-list-05) |
+| STORYBOOK-DECK-LIST-06 | render | 正常系 | [復習対象・新規件数と説明を表示する](#storybook-deck-list-06) |
+| STORYBOOK-DECK-LIST-07 | interaction | 正常系 | [ダウンロードを要求してメニューを閉じる](#storybook-deck-list-07) |
+| STORYBOOK-DECK-LIST-08 | interaction | 正常系 | [学習履歴を要求する](#storybook-deck-list-08) |
+| STORYBOOK-DECK-LIST-09 | render | 正常系 | [学習中と未開始を一つの一覧に表示する](#storybook-deck-list-09) |
+| STORYBOOK-DECK-LIST-10 | interaction | 正常系 | [複数のメニューを同時に開かない](#storybook-deck-list-10) |
+| STORYBOOK-DECK-LIST-11 | interaction | 正常系 | [追加メニューをキーボードで開閉する](#storybook-deck-list-11) |
+| STORYBOOK-DECK-LIST-12 | interaction | 正常系 | [作成要求後に追加ボタンへ戻る](#storybook-deck-list-12) |
+| STORYBOOK-DECK-LIST-13 | render | 正常系 | [確認中に空の一覧と断定しない](#storybook-deck-list-13) |
+| STORYBOOK-DECK-LIST-14 | interaction | 異常系 | [初期データ取得失敗から操作を選ぶ](#storybook-deck-list-14) |
+| STORYBOOK-DECK-LIST-15 | interaction | 正常系 | [復習対象0件の理由を区別する](#storybook-deck-list-15) |
+| STORYBOOK-DECK-LIST-16 | interaction | 正常系 | [復習と新規学習を区別して要求する](#storybook-deck-list-16) |
+| STORYBOOK-DECK-LIST-17 | render | 正常系 | [学習位置を表示する](#storybook-deck-list-17) |
+| STORYBOOK-DECK-LIST-18 | interaction | 正常系 | [Study で行の閲覧を起動しない](#storybook-deck-list-18) |
+| STORYBOOK-DECK-LIST-19 | interaction | 正常系 | [各操作に対象 ID を渡す](#storybook-deck-list-19) |
+| STORYBOOK-DECK-LIST-20 | render | 正常系 | [ローカル Deck にリモート表示を付けない](#storybook-deck-list-20) |
+| STORYBOOK-DECK-LIST-21 | render | 正常系 | [処理中の行だけを無効にする](#storybook-deck-list-21) |
+| STORYBOOK-DECK-LIST-22 | render | 正常系 | [未開始なら Restart を表示しない](#storybook-deck-list-22) |
+| STORYBOOK-DECK-LIST-23 | interaction | 正常系 | [メニューを矢印キーで移動する](#storybook-deck-list-23) |
+| STORYBOOK-DECK-LIST-24 | interaction | 正常系 | [メニュー内のフォーカス移動で操作を失わない](#storybook-deck-list-24) |
+| STORYBOOK-DECK-LIST-25 | interaction | 正常系 | [外へ移ったフォーカスを奪わない](#storybook-deck-list-25) |
+| STORYBOOK-DECK-LIST-26 | interaction | 正常系 | [再有効化してもメニューを閉じたままにする](#storybook-deck-list-26) |
 
 <a id="storybook-deck-list-01"></a>
 
 ### STORYBOOK-DECK-LIST-01 Deck 作成を要求する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -67,6 +69,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 作成・インポート callback を渡す。
@@ -84,6 +88,8 @@ Then:
 ### STORYBOOK-DECK-LIST-03 固定文言だけを日本語にする
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -103,6 +109,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - Deck 閲覧と Card 一覧への callback を区別して渡す。
@@ -120,6 +128,8 @@ Then:
 ### STORYBOOK-DECK-LIST-05 空の一覧にも追加導線を表示する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -139,6 +149,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 復習対象5件、新規5件の Deck を用意する。
@@ -156,6 +168,8 @@ Then:
 ### STORYBOOK-DECK-LIST-07 ダウンロードを要求してメニューを閉じる
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -175,6 +189,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 学習履歴 callback を渡す。
@@ -192,6 +208,8 @@ Then:
 ### STORYBOOK-DECK-LIST-09 [TODO] 学習中と未開始を一つの一覧に表示する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -212,6 +230,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 複数 Deck の一覧を表示する。
@@ -229,6 +249,8 @@ Then:
 ### STORYBOOK-DECK-LIST-11 [TODO] 追加メニューをキーボードで開閉する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -248,6 +270,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - Add メニューを開いている。
@@ -265,6 +289,8 @@ Then:
 ### STORYBOOK-DECK-LIST-13 [TODO] 確認中に空の一覧と断定しない
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -284,6 +310,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 異常系
+
 Given:
 
 - 初期データ取得に失敗し、Deck は0件で、各操作 callback を渡している。
@@ -301,6 +329,8 @@ Then:
 ### STORYBOOK-DECK-LIST-15 [TODO] 復習対象0件の理由を区別する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -320,6 +350,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - Deck name の復習対象1件・新規2件と、復習対象0件・新規2件を別条件にする。
@@ -337,6 +369,8 @@ Then:
 ### STORYBOOK-DECK-LIST-17 [TODO] 学習位置を表示する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -357,6 +391,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 未開始の Deck name を表示し、学習と行の閲覧に別の callback を渡す。
@@ -374,6 +410,8 @@ Then:
 ### STORYBOOK-DECK-LIST-19 [TODO] 各操作に対象 ID を渡す
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -393,6 +431,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - ローカル Deck を用意する。
@@ -410,6 +450,8 @@ Then:
 ### STORYBOOK-DECK-LIST-21 [TODO] 処理中の行だけを無効にする
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 
@@ -429,6 +471,8 @@ Then:
 
 カテゴリ: `render`
 
+区分: 正常系
+
 Given:
 
 - 再開するセッションがない Deck のメニューを開く。
@@ -446,6 +490,8 @@ Then:
 ### STORYBOOK-DECK-LIST-23 [TODO] メニューを矢印キーで移動する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -465,6 +511,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - View にフォーカスし、Download / Edit / Delete を個別の対象条件にする。
@@ -483,6 +531,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 開いたメニュー内にフォーカスし、外側にも操作可能なボタンがある。
@@ -500,6 +550,8 @@ Then:
 ### STORYBOOK-DECK-LIST-26 [TODO] 再有効化してもメニューを閉じたままにする
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 

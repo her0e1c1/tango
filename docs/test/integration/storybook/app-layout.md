@@ -14,16 +14,18 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STORYBOOK-APP-LAYOUT-01 | interaction | [固定 Header が本文に重ならずスクロール中も同じ位置に残る](#storybook-app-layout-01) |
-| STORYBOOK-APP-LAYOUT-02 | render | [固定を無効にした Header の下に本文を配置する](#storybook-app-layout-02) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STORYBOOK-APP-LAYOUT-01 | interaction | 正常系 | [固定 Header が本文に重ならずスクロール中も同じ位置に残る](#storybook-app-layout-01) |
+| STORYBOOK-APP-LAYOUT-02 | render | 正常系 | [固定を無効にした Header の下に本文を配置する](#storybook-app-layout-02) |
 
 <a id="storybook-app-layout-01"></a>
 
 ### STORYBOOK-APP-LAYOUT-01 固定 Header が本文に重ならずスクロール中も同じ位置に残る
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -44,6 +46,8 @@ Then:
 ### STORYBOOK-APP-LAYOUT-02 固定を無効にした Header の下に本文を配置する
 
 カテゴリ: `render`
+
+区分: 正常系
 
 Given:
 

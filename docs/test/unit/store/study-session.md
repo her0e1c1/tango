@@ -12,20 +12,22 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| UNIT-STORE-STUDY-01 | state-change | [デックごとの学習の続きが互いに混ざらない](#unit-store-study-01) |
-| UNIT-STORE-STUDY-02 | state-change | [指定したデックだけ学習の続きから除外する](#unit-store-study-02) |
-| UNIT-STORE-STUDY-03 | scope-reset | [学習中の情報をクリアしても旧バックアップを失わない](#unit-store-study-03) |
-| UNIT-STORE-STUDY-04 | scope-reset | [所有者を変更したら一致しない学習の続きを提供しない](#unit-store-study-04) |
-| UNIT-STORE-STUDY-05 | state-change | [最新の取得結果に学習の続きを切り替えて取得待ちを終了する](#unit-store-study-05) |
-| UNIT-STORE-STUDY-06 | state-change | [取得待ちだけを終了すると保持済みの学習の続きは変わらない](#unit-store-study-06) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| UNIT-STORE-STUDY-01 | state-change | 正常系 | [デックごとの学習の続きが互いに混ざらない](#unit-store-study-01) |
+| UNIT-STORE-STUDY-02 | state-change | 正常系 | [指定したデックだけ学習の続きから除外する](#unit-store-study-02) |
+| UNIT-STORE-STUDY-03 | scope-reset | 正常系 | [学習中の情報をクリアしても旧バックアップを失わない](#unit-store-study-03) |
+| UNIT-STORE-STUDY-04 | scope-reset | 正常系 | [所有者を変更したら一致しない学習の続きを提供しない](#unit-store-study-04) |
+| UNIT-STORE-STUDY-05 | state-change | 正常系 | [最新の取得結果に学習の続きを切り替えて取得待ちを終了する](#unit-store-study-05) |
+| UNIT-STORE-STUDY-06 | state-change | 正常系 | [取得待ちだけを終了すると保持済みの学習の続きは変わらない](#unit-store-study-06) |
 
 <a id="unit-store-study-01"></a>
 
 ### UNIT-STORE-STUDY-01 デックごとの学習の続きが互いに混ざらない
 
 カテゴリ: `state-change`
+
+区分: 正常系
 
 対応テスト: `keeps independent study sessions for multiple decks`（要補完：異なる学習位置と存在しないデックの参照）。
 
@@ -47,6 +49,8 @@ Then:
 
 カテゴリ: `state-change`
 
+区分: 正常系
+
 対応テスト: `removes only the requested session`（要補完：残るセッションの内容全体と存在しないデックの削除）。
 
 Given:
@@ -67,6 +71,8 @@ A を削除した場合は A だけが取得できなくなり、B の内容は�
 
 カテゴリ: `scope-reset`
 
+区分: 正常系
+
 対応テスト: `clears the visible session without deleting the legacy backup`（要補完：複数デック、取得待ちの解除、既に空の場合）。
 
 Given:
@@ -86,6 +92,8 @@ Then:
 ### UNIT-STORE-STUDY-04 所有者を変更したら一致しない学習の続きを提供しない
 
 カテゴリ: `scope-reset`
+
+区分: 正常系
 
 対応テスト: 未検証：参照した既存テストには所有者変更の検証がない。
 
@@ -113,6 +121,8 @@ Then:
 
 カテゴリ: `state-change`
 
+区分: 正常系
+
 対応テスト: 未検証：参照した既存テストには取得結果による一括置換の検証がない。
 
 Given:
@@ -137,6 +147,8 @@ Then:
 ### UNIT-STORE-STUDY-06 取得待ちだけを終了すると保持済みの学習の続きは変わらない
 
 カテゴリ: `state-change`
+
+区分: 正常系
 
 対応テスト: 未検証：参照した既存テストには取得終了だけを通知する操作の検証がない。
 

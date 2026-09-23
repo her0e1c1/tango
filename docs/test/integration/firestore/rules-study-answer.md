@@ -8,18 +8,20 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-RULES-STUDY-ANSWER-01 | batch | [回答作成と Card.fsrs・session 更新を同じ batch で許可する](#firestore-rules-study-answer-01) |
-| FIRESTORE-RULES-STUDY-ANSWER-02 | write | [回答 ID と完了後の回答順序はアプリケーションの責務とする](#firestore-rules-study-answer-02) |
-| FIRESTORE-RULES-STUDY-ANSWER-03 | write | [保存済みの回答履歴は本人でも更新・削除できない](#firestore-rules-study-answer-03) |
-| FIRESTORE-RULES-STUDY-ANSWER-04 | batch | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](#firestore-rules-study-answer-04) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-RULES-STUDY-ANSWER-01 | batch | 正常系 | [回答作成と Card.fsrs・session 更新を同じ batch で許可する](#firestore-rules-study-answer-01) |
+| FIRESTORE-RULES-STUDY-ANSWER-02 | write | 正常系 | [回答 ID と完了後の回答順序はアプリケーションの責務とする](#firestore-rules-study-answer-02) |
+| FIRESTORE-RULES-STUDY-ANSWER-03 | write | 異常系 | [保存済みの回答履歴は本人でも更新・削除できない](#firestore-rules-study-answer-03) |
+| FIRESTORE-RULES-STUDY-ANSWER-04 | batch | 異常系 | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](#firestore-rules-study-answer-04) |
 
 <a id="firestore-rules-study-answer-01"></a>
 
 ### FIRESTORE-RULES-STUDY-ANSWER-01 回答作成と Card.fsrs・session 更新を同じ batch で許可する
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -43,6 +45,8 @@ Rules が常に batch を必須にする契約ではない。単独の回答作�
 
 カテゴリ: `write`
 
+区分: 正常系
+
 Given:
 
 - 本人が同じ Deck に属する Card と session を所有している。
@@ -63,6 +67,8 @@ Then:
 
 カテゴリ: `write`
 
+区分: 異常系
+
 Given:
 
 - 本人の rating `good` の回答履歴が存在する。
@@ -80,6 +86,8 @@ Then:
 ### FIRESTORE-RULES-STUDY-ANSWER-04 他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する
 
 カテゴリ: `batch`
+
+区分: 異常系
 
 Given:
 

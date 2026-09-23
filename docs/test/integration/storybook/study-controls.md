@@ -14,24 +14,26 @@ Controller、StudySaveControls、SwipeButtonList、StudyHelpDialog と実際の�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| STORYBOOK-STUDY-CONTROLS-01 | interaction | [再生を要求して一時停止表示にする](#storybook-study-controls-01) |
-| STORYBOOK-STUDY-CONTROLS-02 | interaction | [スキップを要求する](#storybook-study-controls-02) |
-| STORYBOOK-STUDY-CONTROLS-03 | interaction | [Enter で再生を要求する](#storybook-study-controls-03) |
-| STORYBOOK-STUDY-CONTROLS-04 | interaction | [スライダーで表示位置を要求する](#storybook-study-controls-04) |
-| STORYBOOK-STUDY-CONTROLS-05 | interaction | [無効な方向を Tab 移動から除く](#storybook-study-controls-05) |
-| STORYBOOK-STUDY-CONTROLS-06 | interaction | [Enter で方向操作を要求する](#storybook-study-controls-06) |
-| STORYBOOK-STUDY-CONTROLS-07 | interaction | [ヘルプをモーダルとして開く](#storybook-study-controls-07) |
-| STORYBOOK-STUDY-CONTROLS-08 | interaction | [ヘルプ内にフォーカスを保ち Escape で戻る](#storybook-study-controls-08) |
-| STORYBOOK-STUDY-CONTROLS-09 | interaction | [背景の通知を操作させない](#storybook-study-controls-09) |
-| STORYBOOK-STUDY-CONTROLS-10 | interaction | [ヘルプを閉じて通知の操作を戻す](#storybook-study-controls-10) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| STORYBOOK-STUDY-CONTROLS-01 | interaction | 正常系 | [再生を要求して一時停止表示にする](#storybook-study-controls-01) |
+| STORYBOOK-STUDY-CONTROLS-02 | interaction | 正常系 | [スキップを要求する](#storybook-study-controls-02) |
+| STORYBOOK-STUDY-CONTROLS-03 | interaction | 正常系 | [Enter で再生を要求する](#storybook-study-controls-03) |
+| STORYBOOK-STUDY-CONTROLS-04 | interaction | 正常系 | [スライダーで表示位置を要求する](#storybook-study-controls-04) |
+| STORYBOOK-STUDY-CONTROLS-05 | interaction | 正常系 | [無効な方向を Tab 移動から除く](#storybook-study-controls-05) |
+| STORYBOOK-STUDY-CONTROLS-06 | interaction | 正常系 | [Enter で方向操作を要求する](#storybook-study-controls-06) |
+| STORYBOOK-STUDY-CONTROLS-07 | interaction | 正常系 | [ヘルプをモーダルとして開く](#storybook-study-controls-07) |
+| STORYBOOK-STUDY-CONTROLS-08 | interaction | 正常系 | [ヘルプ内にフォーカスを保ち Escape で戻る](#storybook-study-controls-08) |
+| STORYBOOK-STUDY-CONTROLS-09 | interaction | 正常系 | [背景の通知を操作させない](#storybook-study-controls-09) |
+| STORYBOOK-STUDY-CONTROLS-10 | interaction | 正常系 | [ヘルプを閉じて通知の操作を戻す](#storybook-study-controls-10) |
 
 <a id="storybook-study-controls-01"></a>
 
 ### STORYBOOK-STUDY-CONTROLS-01 再生を要求して一時停止表示にする
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -51,6 +53,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 保存処理中ではない。
@@ -68,6 +72,8 @@ Then:
 ### STORYBOOK-STUDY-CONTROLS-03 [TODO] Enter で再生を要求する
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -87,6 +93,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 5件中の index 0 を表示している。
@@ -104,6 +112,8 @@ Then:
 ### STORYBOOK-STUDY-CONTROLS-05 [TODO] 無効な方向を Tab 移動から除く
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -123,6 +133,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 有効な左方向のボタンにフォーカスしている。
@@ -140,6 +152,8 @@ Then:
 ### STORYBOOK-STUDY-CONTROLS-07 [TODO] ヘルプをモーダルとして開く
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 
@@ -160,6 +174,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - ポインターでヘルプを開き、Close help にフォーカスしている。
@@ -178,6 +194,8 @@ Then:
 
 カテゴリ: `interaction`
 
+区分: 正常系
+
 Given:
 
 - 手動で閉じられる永続通知がある。
@@ -195,6 +213,8 @@ Then:
 ### STORYBOOK-STUDY-CONTROLS-10 [TODO] ヘルプを閉じて通知の操作を戻す
 
 カテゴリ: `interaction`
+
+区分: 正常系
 
 Given:
 

@@ -15,17 +15,19 @@ Firestore の snapshot を Card / Deck store に反映し、購読解除で反�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| FIRESTORE-SUBSCRIPTIONS-01 | read | [初期 snapshot から Card 本文を取得できる](#firestore-subscriptions-01) |
-| FIRESTORE-SUBSCRIPTIONS-02 | batch | [購読中の追加・更新・論理削除を store に反映できる](#firestore-subscriptions-02) |
-| FIRESTORE-SUBSCRIPTIONS-03 | read | [購読解除後の編集で store の値を更新しない](#firestore-subscriptions-03) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-SUBSCRIPTIONS-01 | read | 正常系 | [初期 snapshot から Card 本文を取得できる](#firestore-subscriptions-01) |
+| FIRESTORE-SUBSCRIPTIONS-02 | batch | 正常系 | [購読中の追加・更新・論理削除を store に反映できる](#firestore-subscriptions-02) |
+| FIRESTORE-SUBSCRIPTIONS-03 | read | 正常系 | [購読解除後の編集で store の値を更新しない](#firestore-subscriptions-03) |
 
 <a id="firestore-subscriptions-01"></a>
 
 ### FIRESTORE-SUBSCRIPTIONS-01 初期 snapshot から Card 本文を取得できる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
@@ -46,6 +48,8 @@ Then:
 ### FIRESTORE-SUBSCRIPTIONS-02 購読中の追加・更新・論理削除を store に反映できる
 
 カテゴリ: `batch`
+
+区分: 正常系
 
 Given:
 
@@ -69,6 +73,8 @@ Then:
 ### FIRESTORE-SUBSCRIPTIONS-03 購読解除後の編集で store の値を更新しない
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 

@@ -12,16 +12,18 @@
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| UNIT-STORE-DECK-01 | state-change | [最新の取得結果だけをデック一覧として提供する](#unit-store-deck-01) |
-| UNIT-STORE-DECK-02 | scope-reset | [デックのクリア後は以前のデックを参照できない](#unit-store-deck-02) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| UNIT-STORE-DECK-01 | state-change | 正常系 | [最新の取得結果だけをデック一覧として提供する](#unit-store-deck-01) |
+| UNIT-STORE-DECK-02 | scope-reset | 正常系 | [デックのクリア後は以前のデックを参照できない](#unit-store-deck-02) |
 
 <a id="unit-store-deck-01"></a>
 
 ### UNIT-STORE-DECK-01 最新の取得結果だけをデック一覧として提供する
 
 カテゴリ: `state-change`
+
+区分: 正常系
 
 対応テスト: `replaces the store with active Decks`（要補完：既存テストは空の状態への初回反映のみ）。
 
@@ -48,6 +50,8 @@ Then:
 ### UNIT-STORE-DECK-02 デックのクリア後は以前のデックを参照できない
 
 カテゴリ: `scope-reset`
+
+区分: 正常系
 
 対応テスト: 未検証：参照した既存テストにはクリア操作の検証がない。
 

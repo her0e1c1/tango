@@ -6,17 +6,19 @@ Card 一覧上のタグ filter と表示順が、教材や個人学習状態を�
 
 ## テストケース
 
-| ID | カテゴリ | テストケース |
-| --- | --- | --- |
-| CARD-LIST-ACTIONS-01 | write | [tag の filter を保存して Card 一覧へ反映できる](#card-list-actions-01) |
-| CARD-LIST-ACTIONS-02 | read | [Card を追加が新しい順に表示できる](#card-list-actions-02) |
-| CARD-LIST-ACTIONS-03 | read | [Card の表示順を標準へ戻せる](#card-list-actions-03) |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| CARD-LIST-ACTIONS-01 | write | 正常系 | [tag の filter を保存して Card 一覧へ反映できる](#card-list-actions-01) |
+| CARD-LIST-ACTIONS-02 | read | 正常系 | [Card を追加が新しい順に表示できる](#card-list-actions-02) |
+| CARD-LIST-ACTIONS-03 | read | 正常系 | [Card の表示順を標準へ戻せる](#card-list-actions-03) |
 
 <a id="card-list-actions-01"></a>
 
 ### CARD-LIST-ACTIONS-01 tag の filter を保存して Card 一覧へ反映できる
 
 カテゴリ: `write`
+
+区分: 正常系
 
 Given:
 
@@ -46,6 +48,8 @@ Then:
 
 カテゴリ: `read`
 
+区分: 正常系
+
 Given:
 
 - Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
@@ -71,6 +75,8 @@ Then:
 ### CARD-LIST-ACTIONS-03 Card の表示順を標準へ戻せる
 
 カテゴリ: `read`
+
+区分: 正常系
 
 Given:
 
