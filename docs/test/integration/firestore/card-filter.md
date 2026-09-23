@@ -26,7 +26,7 @@ Card 一覧と Deck 閲覧で共有する選択タグと AND / OR 条件を対�
 
 <a id="firestore-card-filter-01"></a>
 
-### FIRESTORE-CARD-FILTER-01 [TODO] 未設定の Deck は学習条件や他 Deck に依存せず既定値で取得できる
+### FIRESTORE-CARD-FILTER-01 未設定の Deck は学習条件や他 Deck に依存せず既定値で取得できる
 
 カテゴリ: `read`
 
@@ -51,7 +51,7 @@ Then:
 
 <a id="firestore-card-filter-02"></a>
 
-### FIRESTORE-CARD-FILTER-02 [TODO] 選択タグと AND / OR 条件を保存して復元できる
+### FIRESTORE-CARD-FILTER-02 選択タグと AND / OR 条件を保存して復元できる
 
 カテゴリ: `write`
 
@@ -80,7 +80,7 @@ Then:
 
 <a id="firestore-card-filter-03"></a>
 
-### FIRESTORE-CARD-FILTER-03 [TODO] 保存済みフィルターを新しい条件に置き換えられる
+### FIRESTORE-CARD-FILTER-03 保存済みフィルターを新しい条件に置き換えられる
 
 カテゴリ: `write`
 
@@ -103,7 +103,7 @@ Then:
 
 <a id="firestore-card-filter-04"></a>
 
-### FIRESTORE-CARD-FILTER-04 [TODO] 解除した状態を保存して復元できる
+### FIRESTORE-CARD-FILTER-04 解除した状態を保存して復元できる
 
 カテゴリ: `write`
 
@@ -127,7 +127,7 @@ Then:
 
 <a id="firestore-card-filter-05"></a>
 
-### FIRESTORE-CARD-FILTER-05 [TODO] Deck ごとのフィルターを独立して保存できる
+### FIRESTORE-CARD-FILTER-05 Deck ごとのフィルターを独立して保存できる
 
 カテゴリ: `write`
 
@@ -157,7 +157,7 @@ Then:
 
 <a id="firestore-card-filter-06"></a>
 
-### FIRESTORE-CARD-FILTER-06 [TODO] 学習用タグ条件の変更で Card フィルターを上書きしない
+### FIRESTORE-CARD-FILTER-06 学習用タグ条件の変更で Card フィルターを上書きしない
 
 カテゴリ: `write`
 
@@ -180,7 +180,7 @@ Then:
 
 <a id="firestore-card-filter-07"></a>
 
-### FIRESTORE-CARD-FILTER-07 [TODO] 購読中の変更・解除を対象 Deck に反映できる
+### FIRESTORE-CARD-FILTER-07 購読中の変更・解除を対象 Deck に反映できる
 
 カテゴリ: `read`
 

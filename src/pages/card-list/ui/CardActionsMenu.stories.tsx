@@ -92,3 +92,27 @@ export const Dark: Story = {
   ...Open,
   globals: { theme: "dark" },
 };
+
+export const DeleteRequest: Story = {
+  args: { cardText: "Binary search" },
+  render: (args) => <CardActionsMenuStory {...args} />,
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-21 Request deletion from the card menu", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Open actions for Binary search" }));
+      await expect(canvas.getByRole("group", { name: "Card actions for Binary search" })).toBeVisible();
+      await expect(canvas.getAllByRole("menuitem").map((item) => item.textContent)).toEqual(["Edit", "Delete"]);
+      await userEvent.click(canvas.getByRole("menuitem", { name: "Delete" }));
+      await expect(args.onDelete).toHaveBeenCalledOnce();
+    });
+  },
+};
+
+export const DisabledMenuContract: Story = {
+  args: { open: true, disabled: true },
+  play: async ({ args, canvas, step }) => {
+    await step("STORYBOOK-CARD-LIST-22 Hide a disabled menu even when open is requested", async () => {
+      await expect(canvas.getByRole("button", { name: `Open actions for ${args.cardText}` })).toBeDisabled();
+      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+    });
+  },
+};

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { expect, fn } from "storybook/test";
+import { expect, fn, waitFor } from "storybook/test";
 
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 
@@ -105,6 +105,105 @@ export const History: Story = {
       await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.deckName}` }));
       await userEvent.click(canvas.getByRole("menuitem", { name: "Study history" }));
       await expect(args.onHistory).toHaveBeenCalledOnce();
+    });
+  },
+};
+
+export const UnstartedMenu: Story = {
+  args: { open: true },
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-DECK-LIST-22 Omit restart without an active session", async () => {
+      await expect(canvas.getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+        "View",
+        "Download",
+        "Edit",
+        "Study history",
+        "Delete",
+      ]);
+      await expect(canvas.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
+    });
+  },
+};
+
+export const KeyboardMenu: Story = {
+  args: { onRestart: fn() },
+  render: (args) => <DeckActionsMenuStory {...args} />,
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-LIST-23 Navigate the menu with arrow keys", async () => {
+      const trigger = canvas.getByRole("button", { name: `Open actions for ${args.deckName}` });
+      await userEvent.click(trigger);
+      await expect(canvas.getByRole("menuitem", { name: "View" })).toHaveFocus();
+      await userEvent.keyboard("{ArrowDown}");
+      await expect(canvas.getByRole("menuitem", { name: "Restart" })).toHaveFocus();
+      await userEvent.keyboard("{Escape}");
+      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+      await expect(trigger).toHaveFocus();
+    });
+  },
+};
+
+export const OutsideFocus: Story = {
+  render: (args) => (
+    <>
+      <button type="button">Outside menu</button>
+      <DeckActionsMenuStory {...args} />
+    </>
+  ),
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-LIST-25 Preserve focus moved outside the menu", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.deckName}` }));
+      await expect(canvas.getByRole("menuitem", { name: "View" })).toHaveFocus();
+      canvas.getByRole("button", { name: "Outside menu" }).focus();
+      await waitFor(() => expect(canvas.queryByRole("menu")).not.toBeInTheDocument());
+      await expect(canvas.getByRole("button", { name: "Outside menu" })).toHaveFocus();
+    });
+  },
+};
+
+function refocusStory(name: string, callback: "onDownload" | "onEdit" | "onDelete"): Story {
+  return {
+    render: (args) => <DeckActionsMenuStory {...args} />,
+    play: async ({ args, canvas, userEvent, step }) => {
+      await step("STORYBOOK-DECK-LIST-24 Keep actions available across transient blur", async () => {
+        await userEvent.click(canvas.getByRole("button", { name: `Open actions for ${args.deckName}` }));
+        const view = canvas.getByRole("menuitem", { name: "View" });
+        await expect(view).toHaveFocus();
+        view.blur();
+        canvas.getByRole("menuitem", { name }).focus();
+        await userEvent.keyboard("{Enter}");
+        await expect(args[callback]).toHaveBeenCalledOnce();
+      });
+    },
+  };
+}
+export const RefocusDownload = refocusStory("Download", "onDownload");
+export const RefocusEdit = refocusStory("Edit", "onEdit");
+export const RefocusDelete = refocusStory("Delete", "onDelete");
+
+function PendingMenuExample(args: DeckActionsMenuProps) {
+  const [disabled, setDisabled] = useState(false);
+  return (
+    <>
+      <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => setDisabled(!disabled)}>
+        Toggle pending
+      </button>
+      <DeckActionsMenuStory {...args} disabled={disabled} />
+    </>
+  );
+}
+export const PendingCycle: Story = {
+  render: (args) => <PendingMenuExample {...args} />,
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-DECK-LIST-26 Keep menu closed after pending work", async () => {
+      const trigger = canvas.getByRole("button", { name: `Open actions for ${args.deckName}` });
+      await userEvent.click(trigger);
+      await expect(canvas.getByRole("menu")).toBeVisible();
+      await userEvent.click(canvas.getByRole("button", { name: "Toggle pending" }));
+      await expect(trigger).toBeDisabled();
+      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+      await userEvent.click(canvas.getByRole("button", { name: "Toggle pending" }));
+      await expect(trigger).toBeEnabled();
+      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
     });
   },
 };

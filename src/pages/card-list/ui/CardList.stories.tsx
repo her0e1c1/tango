@@ -222,3 +222,182 @@ export const NewestAdded: Story = {
 
 export const FilterSaving: Story = { args: { disabled: true, sortOrder: "newest" } };
 export const CardSaving: Story = { args: { disabled: true, sortDisabled: true } };
+
+export const UnconfirmedEmpty: Story = {
+  args: { cards: [], filter: { selectedTags: [] } },
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-CARD-LIST-10 Avoid claiming an unknown empty reason", async () => {
+      await expect(canvas.getByRole("heading", { name: "Cards" })).toBeVisible();
+      for (const text of ["0 cards", "Filters", "No filters"])
+        await expect(canvas.getByText(text, { exact: true })).toBeVisible();
+      await expect(canvas.queryByText("No cards yet")).not.toBeInTheDocument();
+      await expect(canvas.queryByRole("button", { name: "tango" })).not.toBeInTheDocument();
+    });
+  },
+};
+
+export const LongSelectedTag: Story = {
+  args: { filter: { selectedTags: [`tag-${"unbroken".repeat(30)}`] } },
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-CARD-LIST-11 Preserve the complete selected tag", async () => {
+      await expect(canvas.getByText(`tag-${"unbroken".repeat(30)}`, { exact: true })).toBeVisible();
+    });
+  },
+};
+
+export const EmptyAddRequest: Story = {
+  args: Empty.args ?? {},
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-17 Request a card from the empty state", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Add card" }));
+      await expect(args.empty?.onAddCard).toHaveBeenCalledOnce();
+    });
+  },
+};
+
+export const EmptyClearRequest: Story = {
+  args: FilterZero.args ?? {},
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-18 Request clearing an empty result filter", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Clear filters" }));
+      await expect(args.empty?.onClearFilters).toHaveBeenCalledOnce();
+    });
+  },
+};
+
+export const EditTarget: Story = {
+  args: { cards: [{ id: "card", frontText: "Front", tags: ["one", "two"] }], card: { goToEdit: fn() } },
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-19 Edit the identified row", async () => {
+      await expect(canvas.getByText("one", { exact: true })).toBeVisible();
+      await expect(canvas.getByText("two", { exact: true })).toBeVisible();
+      await userEvent.click(canvas.getByRole("button", { name: "Open actions for Front" }));
+      await userEvent.click(canvas.getByRole("menuitem", { name: "Edit" }));
+      await expect(args.card?.goToEdit).toHaveBeenCalledWith("card");
+    });
+  },
+};
+
+export const PendingRow: Story = {
+  args: { cards: [{ id: "card", frontText: "Front", tags: [] }], card: { disabled: true } },
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-CARD-LIST-20 Disable both operations in a pending row", async () => {
+      await expect(canvas.getByRole("button", { name: "View Front" })).toBeDisabled();
+      await expect(canvas.getByRole("button", { name: "Open actions for Front" })).toBeDisabled();
+    });
+  },
+};
+
+const KeyboardTagList = (args: React.ComponentProps<typeof CardList>) => {
+  const [selectedTags, setSelectedTags] = React.useState(["one", "two"]);
+  return (
+    <CardList
+      {...args}
+      filter={{ selectedTags }}
+      onRemoveTag={(tag) => {
+        args.onRemoveTag?.(tag);
+        setSelectedTags((values) => values.filter((value) => value !== tag));
+      }}
+    />
+  );
+};
+
+export const KeyboardTagRemoval: Story = {
+  args: { onRemoveTag: fn() },
+  render: (args) => <KeyboardTagList {...args} />,
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-14 Tab without removing selected tags", async () => {
+      canvas.getByRole("button", { name: "Remove one filter" }).focus();
+      await userEvent.tab();
+      await expect(canvas.getByRole("button", { name: "Remove two filter" })).toHaveFocus();
+      await userEvent.tab({ shift: true });
+      await expect(canvas.getByRole("button", { name: "Remove one filter" })).toHaveFocus();
+      await expect(args.onRemoveTag).not.toHaveBeenCalled();
+    });
+    await step("STORYBOOK-CARD-LIST-12 Move focus to the remaining tag", async () => {
+      await userEvent.keyboard("{Enter}");
+      await expect(args.onRemoveTag).toHaveBeenLastCalledWith("one");
+      await expect(canvas.getByRole("button", { name: "Remove two filter" })).toHaveFocus();
+      await userEvent.tab();
+      await expect(canvas.getAllByRole("button", { name: /^View / })[0]).toHaveFocus();
+    });
+    await step("STORYBOOK-CARD-LIST-13 Return focus to filters after removing the final tag", async () => {
+      canvas.getByRole("button", { name: "Remove two filter" }).focus();
+      await userEvent.keyboard(" ");
+      await expect(args.onRemoveTag).toHaveBeenLastCalledWith("two");
+      await expect(canvas.queryByRole("button", { name: /Remove .* filter/ })).not.toBeInTheDocument();
+      await expect(canvas.getByText("No filters").closest("summary")).toHaveFocus();
+    });
+  },
+};
+
+const changingCards = [
+  { ...fixture.card.default, frontText: "Front" },
+  { ...fixture.card.default, id: "other", frontText: "Other" },
+];
+function ChangingRowsExample(args: React.ComponentProps<typeof CardList>) {
+  const [cards, setCards] = React.useState(changingCards);
+  return (
+    <>
+      <button
+        type="button"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() =>
+          setCards((current) => (current.length === 2 ? current.filter((card) => card.id !== "other") : changingCards))
+        }
+      >
+        Toggle Other
+      </button>
+      <button
+        type="button"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() => setCards((current) => [...current].reverse())}
+      >
+        Reverse rows
+      </button>
+      <CardList {...args} cards={cards} />
+    </>
+  );
+}
+export const RemovedMenu: Story = {
+  render: (args) => <ChangingRowsExample {...args} />,
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-LIST-15 Close a removed row menu without reopening it", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Open actions for Front" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Open actions for Other" }));
+      await expect(canvas.queryByRole("menu", { name: "Actions for Front" })).not.toBeInTheDocument();
+      await expect(canvas.getAllByRole("menu")).toHaveLength(1);
+      await userEvent.click(canvas.getByRole("button", { name: "Toggle Other" }));
+      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+      await userEvent.click(canvas.getByRole("button", { name: "Toggle Other" }));
+      await expect(canvas.getByRole("button", { name: "Open actions for Other" })).toBeVisible();
+      await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
+    });
+  },
+};
+function reorderedRowStory(edit: boolean): Story {
+  return {
+    args: { onShowCard: fn(), card: { goToEdit: fn() } },
+    render: (args) => <ChangingRowsExample {...args} />,
+    play: async ({ args, canvas, userEvent, step }) => {
+      await step("STORYBOOK-CARD-LIST-16 Preserve the focused card across row updates", async () => {
+        if (edit) await userEvent.click(canvas.getByRole("button", { name: "Open actions for Front" }));
+        const target = edit
+          ? canvas.getByRole("menuitem", { name: "Edit" })
+          : canvas.getByRole("button", { name: "View Front" });
+        target.focus();
+        // External data updates must not take focus from the surviving row.
+        canvas.getByRole("button", { name: "Reverse rows" }).click();
+        await expect(target).toHaveFocus();
+        canvas.getByRole("button", { name: "Toggle Other" }).click();
+        await expect(target).toHaveFocus();
+        canvas.getByRole("button", { name: "Toggle Other" }).click();
+        await expect(target).toHaveFocus();
+        await userEvent.keyboard("{Enter}");
+        await expect(edit ? args.card?.goToEdit : args.onShowCard).toHaveBeenCalledWith(fixture.card.default.id);
+      });
+    },
+  };
+}
+export const ReorderedView = reorderedRowStory(false);
+export const ReorderedEdit = reorderedRowStory(true);

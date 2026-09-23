@@ -10,7 +10,7 @@ SettingsForm と実際の React Hook Form、SettingsSection / SettingsRow / Swit
 
 書式・実行前提は [README](./README.md)、関連 E2E は [settings](../../e2e/settings.md) を参照する。
 
-04〜11 は Vitest から追加した契約で、各ケースの準備とアサーションは未実装である。
+未実装のケースは見出しの `[TODO]` で示す。
 
 ## テストケース
 
@@ -90,7 +90,7 @@ Then:
 
 <a id="storybook-settings-04"></a>
 
-### STORYBOOK-SETTINGS-04 [TODO] 設定とアカウント操作を分離する
+### STORYBOOK-SETTINGS-04 設定とアカウント操作を分離する
 
 カテゴリ: `render`
 
@@ -111,7 +111,7 @@ Then:
 
 <a id="storybook-settings-05"></a>
 
-### STORYBOOK-SETTINGS-05 [TODO] 入力変更を表示に反映する
+### STORYBOOK-SETTINGS-05 入力変更を表示に反映する
 
 カテゴリ: `interaction`
 
@@ -132,7 +132,7 @@ Then:
 
 <a id="storybook-settings-06"></a>
 
-### STORYBOOK-SETTINGS-06 [TODO] 復習説明とバージョン情報を表示する
+### STORYBOOK-SETTINGS-06 復習説明とバージョン情報を表示する
 
 カテゴリ: `render`
 
@@ -153,7 +153,7 @@ Then:
 
 <a id="storybook-settings-07"></a>
 
-### STORYBOOK-SETTINGS-07 [TODO] ラベルと説明を対応する UI に関連付ける
+### STORYBOOK-SETTINGS-07 ラベルと説明を対応する UI に関連付ける
 
 カテゴリ: `render`
 
@@ -174,7 +174,7 @@ Then:
 
 <a id="storybook-settings-08"></a>
 
-### STORYBOOK-SETTINGS-08 [TODO] 日本語の操作名と読み上げ値を表示する
+### STORYBOOK-SETTINGS-08 日本語の操作名と読み上げ値を表示する
 
 カテゴリ: `render`
 
@@ -194,7 +194,7 @@ Then:
 
 <a id="storybook-settings-09"></a>
 
-### STORYBOOK-SETTINGS-09 [TODO] 最大カード数0を全件として説明する
+### STORYBOOK-SETTINGS-09 最大カード数0を全件として説明する
 
 カテゴリ: `interaction`
 
@@ -215,7 +215,7 @@ Then:
 
 <a id="storybook-settings-10"></a>
 
-### STORYBOOK-SETTINGS-10 [TODO] 再生間隔の境界値を説明する
+### STORYBOOK-SETTINGS-10 再生間隔の境界値を説明する
 
 カテゴリ: `interaction`
 
@@ -237,7 +237,7 @@ Then:
 
 <a id="storybook-settings-11"></a>
 
-### STORYBOOK-SETTINGS-11 [TODO] ショートカットでホームへ戻る
+### STORYBOOK-SETTINGS-11 ショートカットでホームへ戻る
 
 カテゴリ: `interaction`
 

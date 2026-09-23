@@ -195,11 +195,11 @@ test("CARD-FILTER-06 persists clearing to no tags and OR", async ({ fixture, pag
 });
 
 for (const scenario of [
-  { id: "07", tags: ["target"], all: false, names: mixedCards.slice(0, 3) },
-  { id: "08", tags: ["alpha", "beta"], all: true, names: ["new tagged card"] },
-  { id: "09", tags: ["alpha", "beta"], all: false, names: mixedCards.slice(0, 3) },
+  { id: "CARD-FILTER-07", tags: ["target"], all: false, names: mixedCards.slice(0, 3) },
+  { id: "CARD-FILTER-08", tags: ["alpha", "beta"], all: true, names: ["new tagged card"] },
+  { id: "CARD-FILTER-09", tags: ["alpha", "beta"], all: false, names: mixedCards.slice(0, 3) },
 ]) {
-  test(`CARD-FILTER-${scenario.id} applies tag matching in both browsing pages`, async ({ fixture, page }) => {
+  test(`${scenario.id} applies tag matching in both browsing pages`, async ({ fixture, page }) => {
     const deck = await setup(fixture, page);
     const before = await savedDocuments(fixture.user().uid, deck.id);
     await page.goto(`/deck/${deck.id}`);
@@ -215,11 +215,8 @@ for (const scenario of [
 }
 
 for (const filtered of [false, true]) {
-  for (const id of ["10", "11"]) {
-    test(`CARD-FILTER-${id} sorts ${filtered ? "filtered" : "all"} cards without persisting order`, async ({
-      fixture,
-      page,
-    }) => {
+  for (const id of ["CARD-FILTER-10", "CARD-FILTER-11"]) {
+    test(`${id} sorts ${filtered ? "filtered" : "all"} cards without persisting order`, async ({ fixture, page }) => {
       await fixture.apply(page);
       const deck = fixture.deck();
       if (filtered) await seedFilter(deck, ["shared"], false);
@@ -229,9 +226,11 @@ for (const filtered of [false, true]) {
       await expectList(page, standard);
       const sort = page.getByRole("combobox", { name: "Sort order" });
       await sort.selectOption("newest");
-      if (id === "11") await sort.selectOption("standard");
+      if (id === "CARD-FILTER-11") await sort.selectOption("standard");
       const expected =
-        id === "11" ? standard : ["newest question", ...(filtered ? [] : ["tied question"]), "oldest question"];
+        id === "CARD-FILTER-11"
+          ? standard
+          : ["newest question", ...(filtered ? [] : ["tied question"]), "oldest question"];
       const rows = page.getByRole("button", { name: /^View / });
       for (const [index, name] of expected.entries())
         await expect(rows.nth(index)).toHaveAccessibleName(`View ${name}`);

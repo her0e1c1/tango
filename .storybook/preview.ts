@@ -1,11 +1,17 @@
 import { withThemeByClassName } from "@storybook/addon-themes";
 import type { Decorator, Preview } from "@storybook/react";
 import { createElement } from "react";
+import { sb } from "storybook/test";
 import { I18nextProvider } from "react-i18next";
 
 import { appI18n } from "../src/app/i18n/instance";
 import { INITIAL_VIEWPORTS } from "./support/storybookViewports";
 import "../src/app/styles/index.css";
+
+// Mock external authentication and Card persistence; forms, actions, and notifications remain real.
+sb.mock("../src/entities/auth/api/signInWithGoogle.ts");
+sb.mock("../src/entities/auth/api/signOutCurrentUser.ts");
+sb.mock("../src/entities/card/api/mutations.ts", { spy: true });
 
 // Docs mounts English and Japanese stories together; each language needs its own instance.
 const docsI18n = {

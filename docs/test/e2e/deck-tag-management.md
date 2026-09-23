@@ -284,7 +284,7 @@ Then:
 
 <a id="deck-tag-management-12"></a>
 
-### DECK-TAG-MANAGEMENT-12 [TODO] Card に設定したタグで絞り込める
+### DECK-TAG-MANAGEMENT-12 Card に設定したタグで絞り込める
 
 カテゴリ: `write`
 
