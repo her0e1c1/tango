@@ -19,48 +19,29 @@ jobs:
   changes:
     name: Detect changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
-      run-tests: ${{ steps.changes.outputs.run-tests }}
+      # Manual runs and callers without a PR or push diff keep the full checks.
+      run-tests: ${{ (github.event_name != 'pull_request' && github.event_name != 'push') || steps.filter.outputs.typescript == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
+        if: ${{ github.event_name == 'push' }}
 
-      - name: Classify changed files
-        id: changes
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          run_tests=true
-          if [[ "$EVENT_NAME" == pull_request || "$EVENT_NAME" == push ]]; then
-            # Unknown bases (including new branches) must keep the full checks.
-            if git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
-              if [[ "$EVENT_NAME" == pull_request ]]; then
-                base=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
-              else
-                base=$BASE_SHA
-              fi
-              # Disable rename detection so both sides of extension changes are checked.
-              git diff --no-renames --name-only -z "$base" "$HEAD_SHA" > "$RUNNER_TEMP/changed-files"
-              if [[ -s "$RUNNER_TEMP/changed-files" ]]; then
-                run_tests=false
-                while IFS= read -r -d '' path; do
-                  if [[ "$path" != *.md ]]; then
-                    run_tests=true
-                    break
-                  fi
-                done < "$RUNNER_TEMP/changed-files"
-              fi
-            fi
-          fi
-          echo "run-tests=$run_tests" >> "$GITHUB_OUTPUT"
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+        id: filter
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            typescript:
+              - '**/*.ts'
+              - '**/*.tsx'
 
   dependency-review:
     name: Dependency Review
-    needs: changes
-    if: ${{ github.event_name == 'pull_request' && needs.changes.outputs.run-tests == 'true' }}
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -92,7 +73,10 @@ jobs:
 
   linter:
     name: Linter
+    needs: changes
     uses: ./.github/workflows/linter.yaml
+    with:
+      lightweight: ${{ needs.changes.outputs.run-tests != 'true' }}
 
   checks:
     needs: changes
@@ -192,7 +176,7 @@ jobs:
           test "$E2E_RESULT" = "$expected"
           test "$INTEGRATION_RESULT" = "$expected"
           test "$STORYBOOK_RESULT" = "$expected"
-          if [ "$EVENT_NAME" = pull_request ] && [ "$RUN_TESTS" = true ]; then
+          if [ "$EVENT_NAME" = pull_request ]; then
             test "$DEPENDENCY_REVIEW_RESULT" = success
           else
             test "$DEPENDENCY_REVIEW_RESULT" = skipped

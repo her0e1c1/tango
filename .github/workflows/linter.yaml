@@ -2,6 +2,11 @@ name: Linter
 
 on:
   workflow_call:
+    inputs:
+      lightweight:
+        description: Run only Markdown and test-specification checks
+        type: boolean
+        default: false
   workflow_dispatch:
 
 permissions:
@@ -24,11 +29,18 @@ jobs:
 
       - run: npm ci
 
+      - name: Check Markdown and test specifications
+        if: ${{ inputs.lightweight }}
+        run: npm run lint:markdown && npm run lint:test-specs
+
       - name: Build sample data
+        if: ${{ !inputs.lightweight }}
         run: npm run build:sample
 
       - name: Check formatting
+        if: ${{ !inputs.lightweight }}
         run: npm run fmt && npm run fmt:sample
 
       - name: Run linters
+        if: ${{ !inputs.lightweight }}
         run: npm run lint
