@@ -3,6 +3,7 @@
 - Be simple.
 - Do not suppress Knip findings with `@public`, `@ignore`, `ignore*` settings, or exclusion patterns. Remove unused code or dependencies, and configure actual application and tooling entry points instead.
 - Before editing, fetch `origin/main` and create a `git worktree` at `.worktrees/$BRANCH` from it. Never work directly on `main`.
+- Before creating or updating a pull request, fetch the latest base branch and rebase the working branch onto it. Verify that the PR diff contains only task-related changes, removing unrelated commits or changes before pushing.
 - Do not commit files ignored by `.gitignore`.
 - Do not add files under `docs` unless the user explicitly requests them.
 - Follow `CONTRIBUTING.md` when creating GitHub issues.
