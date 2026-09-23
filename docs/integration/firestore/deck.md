@@ -20,7 +20,9 @@ Deck の作成・部分更新・論理削除を、Firestore 上の保存値と�
 | FIRESTORE-DECK-01 | write | [Deck の保存対象だけを新規作成できる](#firestore-deck-01) |
 | FIRESTORE-DECK-02 | write | [Deck の編集で作成日時と対象外フィールドを維持できる](#firestore-deck-02) |
 | FIRESTORE-DECK-03 | write | [URL の省略と明示的なクリアを区別できる](#firestore-deck-03) |
-| FIRESTORE-DECK-04 | write | [親 Deck だけを論理削除し子 Card を書き換えない](#firestore-deck-04) |
+| FIRESTORE-DECK-04 | batch | [Deck と配下 Card をまとめて論理削除できる](#firestore-deck-04) |
+| FIRESTORE-DECK-05 | batch | [Card がない Deck を論理削除できる](#firestore-deck-05) |
+| FIRESTORE-DECK-06 | batch | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06) |
 
 <a id="firestore-deck-01"></a>
 
@@ -89,23 +91,71 @@ Then:
 
 <a id="firestore-deck-04"></a>
 
-### FIRESTORE-DECK-04 親 Deck だけを論理削除し子 Card を書き換えない
+### FIRESTORE-DECK-04 Deck と配下 Card をまとめて論理削除できる
 
-カテゴリ: `write`
+カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-DECK-04] tombstones the parent without rewriting child documents`
+対応テスト: `[FIRESTORE-DECK-04] tombstones a Deck and all child Cards atomically`
 
 Given:
 
 - 本人の Deck と、その Deck に属する `deletedAt: null` の Card が2件存在する。
+- 別の Deck と、その配下 Card も存在する。
 
 When:
 
-- `deleteDeck("uid", deckId)` を実行し、送信完了後に親と子を取得する。
+- `deleteDeck("uid", deckId)` を実行し、送信完了後に対象 Deck と Card を取得する。
 
 Then:
 
-- Deck は物理削除されず、`deletedAt` に数値が入る。
-- 2件の Card は残り、各 `deletedAt` は `null` のままである。
+- 対象 Deck は物理削除されず、`deletedAt` に数値が入る。
+- 対象 Deck に属する2件の Card も物理削除されず、`deletedAt` に数値が入る。
+- Deck と2件の Card の `deletedAt` は同じ削除操作の時刻である。
+- 別の Deck とその配下 Card は変更されない。
 
-子 Card の非表示や第三者からのアクセス拒否はこの保存確認と区別する。第三者の読取制限は [Deck Rules](./rules-deck.md#firestore-rules-deck-01) と [Card Rules](./rules-card.md#firestore-rules-card-01) を参照する。
+<a id="firestore-deck-05"></a>
+
+### FIRESTORE-DECK-05 Card がない Deck を論理削除できる
+
+カテゴリ: `batch`
+
+対応テスト: `[FIRESTORE-DECK-05] tombstones an empty Deck`
+
+Given:
+
+- 本人の Deck が存在し、その Deck に属する Card は存在しない。
+
+When:
+
+- `deleteDeck("uid", deckId)` を実行し、送信完了後に対象 Deck を取得する。
+
+Then:
+
+- 対象 Deck は物理削除されず、`deletedAt` に数値が入る。
+- 子 Card が0件でも削除操作は成功する。
+
+<a id="firestore-deck-06"></a>
+
+### FIRESTORE-DECK-06 Deck と配下 Card の削除を原子的に扱う
+
+カテゴリ: `batch`
+
+対応テスト: `[FIRESTORE-DECK-06] leaves the Deck and all child Cards unchanged when the delete batch is rejected`
+
+Given:
+
+- 本人の Deck と、その Deck に属する `deletedAt: null` の Card が複数存在する。
+- 同一 batch 内の Card 更新の1件が Firestore Rules に拒否される状態を用意する。
+- 削除前の Deck と全 Card の保存値を取得している。
+
+When:
+
+- Deck と配下 Card を同一 batch で論理削除する操作を実行し、書込失敗を待つ。
+
+Then:
+
+- 削除操作は失敗する。
+- Deck の `deletedAt` は変更されない。
+- 配下 Card は一部だけ削除された状態にならず、全件の `deletedAt` が削除前の値のままである。
+
+このケースでは「Deck は削除済みだが Card が残る」「一部の Card だけ削除済み」という部分成功を許可しない。
