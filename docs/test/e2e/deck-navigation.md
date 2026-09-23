@@ -3,6 +3,7 @@
 ## 目的
 
 Deck と Card 一覧の主要な route を開き、存在しない Deck から利用可能な画面へ復帰できることを確認する。
+一覧と学習の filter 分離は [Browse Filter](./browse-filter.md) を参照する。
 
 ## テストケース
 
@@ -12,8 +13,8 @@ Deck と Card 一覧の主要な route を開き、存在しない Deck から�
 | DECK-NAVIGATION-02 | read | [存在しない Deck から復帰できる](#deck-navigation-02) |
 | DECK-NAVIGATION-03 | read | [remote Deck を学習データを変更せずに閲覧できる](#deck-navigation-03) |
 | DECK-NAVIGATION-04 | read | [local-only Deck の閲覧位置を保存せずに再入場できる](#deck-navigation-04) |
-| DECK-NAVIGATION-05 | write | [現在のtag filter に一致する全 Card を標準順で閲覧できる](#deck-navigation-05) |
-| DECK-NAVIGATION-06 | read | [復習期日の設定を閲覧対象へ反映できる](#deck-navigation-06) |
+| DECK-NAVIGATION-05 | read | [学習条件に依存せず全 Card を標準順で閲覧できる](#deck-navigation-05) |
+| DECK-NAVIGATION-06 | read | [復習期日前の Card も閲覧できる](#deck-navigation-06) |
 | DECK-NAVIGATION-07 | read | [閲覧対象が空または Deck が存在しない場合に一覧へ戻れる](#deck-navigation-07) |
 | DECK-NAVIGATION-08 | read | [1件の Card の長い解答を touch で閲覧して終了できる](#deck-navigation-08) |
 | DECK-NAVIGATION-09 | write | [閲覧と学習で表示設定と操作ヘルプを共有できる](#deck-navigation-09) |
@@ -138,37 +139,38 @@ Then:
 
 <a id="deck-navigation-05"></a>
 
-### DECK-NAVIGATION-05 現在のtag filter に一致する全 Card を標準順で閲覧できる
+### DECK-NAVIGATION-05 学習条件に依存せず全 Card を標準順で閲覧できる
 
-カテゴリ: `write`
+カテゴリ: `read`
+
+検証状況: 未実装
 
 Given:
 
 - Fixture: [`study-filter`](./fixture/study-filter.yaml)
-- tagに一致する Card が学習の枚数上限を超えて存在する。
-- tag が条件から外れる Card も存在する。
+- 学習用の tag filter に一致する Card が学習の枚数上限を超えて存在する。
+- 学習用の tag filter に一致しない Card も同じ Deck に存在する。
 - 学習の shuffle が有効である。
-- Card 一覧の filter 保存を一時保留でき、保留中も追加の条件を選択できる。
 
 When:
 
-- Deck 一覧の対象 Deck の三点メニューから View を開き、対象の全 Card を順に閲覧する。
-- Card 一覧へ戻ってtag filter の保存を保留し、その後 tag 条件を変更する。
-- 保存完了前に Deck 一覧を経由して View を開き、閲覧終了後に保留した保存を完了する。
+- Deck 一覧の対象 Deck の三点メニューから View を開き、対象 Deck の全 Card を順に閲覧する。
 
 Then:
 
-- Card 一覧の標準順で条件に一致する全 Card を表示し、学習の枚数上限と shuffle は適用しない。
-- 条件から外れる Card は表示せず、最終 Card の次で一覧へ戻る。
-- remote 同期待ちでも cache に保存した最新のtag の選択条件を引き継ぎ、対象 Card を表示する。
-- 保存保留中の閲覧で永続データは変化しない。保留の解除後は先に行った filter 編集だけを保存し、Card、学習履歴、設定を変更せず、学習 session を作成しない。
+- 絞り込みなしの Card 一覧と同じ標準順で、対象 Deck の全 Card を表示する。
+- 学習用の tag filter、学習の枚数上限、shuffle は閲覧対象と順序に適用しない。
+- 最終 Card の次で Deck 一覧へ戻る。
+- 保存済みの学習条件、Card、学習履歴、設定を変更せず、学習 session を作成しない。
 - browser error が発生しない。
 
 <a id="deck-navigation-06"></a>
 
-### DECK-NAVIGATION-06 復習期日の設定を閲覧対象へ反映できる
+### DECK-NAVIGATION-06 復習期日前の Card も閲覧できる
 
 カテゴリ: `read`
+
+検証状況: 未実装
 
 Given:
 
@@ -182,7 +184,8 @@ When:
 
 Then:
 
-- 期日を過ぎた Card と期日未設定の Card だけを標準順で表示する。
+- 復習期日にかかわらず、対象 Deck の全 Card を標準順で表示する。
+- 未来に復習予定の Card も表裏を閲覧でき、総数にはその Card も含まれる。
 - Card の復習期日や学習履歴、設定を変更せず、学習 session を作成しない。
 - browser error が発生しない。
 
@@ -192,15 +195,17 @@ Then:
 
 カテゴリ: `read`
 
+検証状況: 未実装
+
 Given:
 
-- Fixture: [`study-filter-no-matches`](./fixture/study-filter-no-matches.yaml)
-- 現在の filter に一致する Card がない Deck が存在する。
+- Fixture: [`browse-filter`](./fixture/browse-filter.yaml)
+- Card が1枚も存在しない Deck がある。学習用の条件に一致しないだけの Deck ではない。
 - 別の route が参照する Deck は存在しない。
 
 When:
 
-- 対象 Deck の View を開いて戻る操作を行い、存在しない Deck の閲覧 route を直接開いて復帰する。
+- Card が存在しない Deck の View を開いて戻る操作を行い、存在しない Deck の閲覧 route を直接開いて復帰する。
 
 Then:
 
