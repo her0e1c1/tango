@@ -1,4 +1,4 @@
-name: Code quality
+name: Linter
 
 on:
   workflow_call:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  code-quality:
+  linter:
     name: Lint and format
     runs-on: ubuntu-latest
     steps:

@@ -16,51 +16,10 @@ permissions:
   contents: read
 
 jobs:
-  changes:
-    name: Detect Markdown-only changes
-    runs-on: ubuntu-latest
-    outputs:
-      markdown-only: ${{ steps.changes.outputs.markdown-only }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Classify changed files
-        id: changes
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          markdown_only=false
-          if [[ "$EVENT_NAME" == pull_request || "$EVENT_NAME" == push ]]; then
-            # Unknown bases (including new branches) must keep the full checks.
-            if git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
-              if [[ "$EVENT_NAME" == pull_request ]]; then
-                base=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
-              else
-                base=$BASE_SHA
-              fi
-              # Disable rename detection so both sides of extension changes are checked.
-              git diff --no-renames --name-only -z "$base" "$HEAD_SHA" > "$RUNNER_TEMP/changed-files"
-              if [[ -s "$RUNNER_TEMP/changed-files" ]]; then
-                markdown_only=true
-                while IFS= read -r -d '' path; do
-                  if [[ "$path" != *.md ]]; then
-                    markdown_only=false
-                    break
-                  fi
-                done < "$RUNNER_TEMP/changed-files"
-              fi
-            fi
-          fi
-          echo "markdown-only=$markdown_only" >> "$GITHUB_OUTPUT"
-
+  # Non-PR callers intentionally skip this job; the aggregate validates that exact event/result pairing.
   dependency-review:
     name: Dependency Review
-    needs: changes
-    if: ${{ github.event_name == 'pull_request' && needs.changes.outputs.markdown-only == 'false' }}
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -71,32 +30,24 @@ jobs:
           fail-on-severity: high
 
   e2e:
-    needs: changes
-    if: ${{ needs.changes.outputs.markdown-only == 'false' }}
     name: E2E
     uses: ./.github/workflows/e2e.yaml
 
   integration:
-    needs: changes
-    if: ${{ needs.changes.outputs.markdown-only == 'false' }}
     name: Integration
     permissions:
       contents: read
     uses: ./.github/workflows/integration.yaml
 
   storybook:
-    needs: changes
-    if: ${{ needs.changes.outputs.markdown-only == 'false' }}
     name: Storybook
     uses: ./.github/workflows/storybook.yaml
 
-  code-quality:
-    name: Code quality
-    uses: ./.github/workflows/code-quality.yml
+  linter:
+    name: Linter
+    uses: ./.github/workflows/linter.yaml
 
   checks:
-    needs: changes
-    if: ${{ needs.changes.outputs.markdown-only == 'false' }}
     name: Test / ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
@@ -162,18 +113,16 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Accept skipped jobs only when the successful change classifier explicitly permits them.
+  # Fail closed for canonical results; only Dependency Review may be skipped, and only outside PRs.
   test:
     name: Test
     if: ${{ always() }}
-    needs: [changes, checks, code-quality, dependency-review, e2e, integration, storybook]
+    needs: [checks, linter, dependency-review, e2e, integration, storybook]
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
         env:
-          CHANGES_RESULT: ${{ needs.changes.result }}
-          MARKDOWN_ONLY: ${{ needs.changes.outputs.markdown-only }}
-          CODE_QUALITY_RESULT: ${{ needs.code-quality.result }}
+          LINTER_RESULT: ${{ needs.linter.result }}
           CHECKS_RESULT: ${{ needs.checks.result }}
           DEPENDENCY_REVIEW_RESULT: ${{ needs.dependency-review.result }}
           E2E_RESULT: ${{ needs.e2e.result }}
@@ -181,18 +130,12 @@ jobs:
           INTEGRATION_RESULT: ${{ needs.integration.result }}
           STORYBOOK_RESULT: ${{ needs.storybook.result }}
         run: |
-          test "$CHANGES_RESULT" = success
-          test "$CODE_QUALITY_RESULT" = success
-          case "$MARKDOWN_ONLY" in
-            true) expected=skipped ;;
-            false) expected=success ;;
-            *) exit 1 ;;
-          esac
-          test "$CHECKS_RESULT" = "$expected"
-          test "$E2E_RESULT" = "$expected"
-          test "$INTEGRATION_RESULT" = "$expected"
-          test "$STORYBOOK_RESULT" = "$expected"
-          if [ "$EVENT_NAME" = pull_request ] && [ "$MARKDOWN_ONLY" = false ]; then
+          test "$LINTER_RESULT" = success
+          test "$CHECKS_RESULT" = success
+          test "$E2E_RESULT" = success
+          test "$INTEGRATION_RESULT" = success
+          test "$STORYBOOK_RESULT" = success
+          if [ "$EVENT_NAME" = pull_request ]; then
             test "$DEPENDENCY_REVIEW_RESULT" = success
           else
             test "$DEPENDENCY_REVIEW_RESULT" = skipped
