@@ -5,8 +5,6 @@
 `subscribeCards` / `subscribeDecks` が実際の Firestore snapshot を受け取り、現在の購読結果を store に反映する契約を確認する。
 初期取得だけでなく、空の結果、UID 分離、物理削除、不正な document、購読エラー、解除・再購読を対象とする。
 
-対応テストファイル（追加先）: [`subscriptions.spec.ts`](../../../test/integration/firestore/subscriptions.spec.ts)
-
 ## 検証状況
 
 本書の追加仕様はすべて **未実装・未検証** であり、既存テストによる保証ではない。本番コードとテストコードは、この仕様書追加では変更しない。
@@ -20,7 +18,6 @@
 
 未検証事項と既存テストの一対一対応を混同しないため、追加仕様にはまだ実行対象のケース ID を付けない。
 テスト実装時に、本書の文書順で `FIRESTORE-SNAPSHOT-<NN>` を `01` から欠番なく採番し、索引・明示的な ID アンカー・見出し・テストタイトルを同じ変更で更新する。
-以下のテストタイトルは実装時の識別用であり、既存の `it` / `it.each` を表さない。
 
 ## 検証境界
 
@@ -62,8 +59,6 @@ Card の FSRS 固有の契約は [Card.fsrs](./card-fsrs.md)、StudySession の�
 
 カテゴリ: `read`
 
-追加予定テスト: `clears stale remote data on an empty initial snapshot (%s)`
-
 Given:
 
 - 購読する UID の対象 collection には document がない。
@@ -83,8 +78,6 @@ Then:
 ### 初期 snapshot から有効な document だけを反映する
 
 カテゴリ: `read`
-
-追加予定テスト: `loads only active documents from the initial snapshot (%s)`
 
 Given:
 
@@ -107,8 +100,6 @@ Then:
 ### 購読 UID 以外の document を混在させない
 
 カテゴリ: `read`
-
-追加予定テスト: `keeps snapshots isolated to the subscribed owner (%s)`
 
 Given:
 
@@ -133,8 +124,6 @@ Rules による読取拒否ではなく、購読 query の UID 分離を確認�
 
 カテゴリ: `batch`
 
-追加予定テスト: `removes physically deleted documents from snapshot results (%s)`
-
 Given:
 
 - 本人の document A / B が保存され、購読結果として両方が store に反映済みである。
@@ -158,8 +147,6 @@ Then:
 
 カテゴリ: `batch`
 
-追加予定テスト: `receives creates and updates from another client (%s)`
-
 Given:
 
 - 本人の UID に対応する購読を開始し、初期結果の反映が完了している。
@@ -182,8 +169,6 @@ Then:
 ### 不正な snapshot で直前の正常な結果を壊さない
 
 カテゴリ: `read`
-
-追加予定テスト: `preserves the last valid result when a snapshot contains an invalid document (%s)`
 
 Given:
 
@@ -210,8 +195,6 @@ Then:
 
 カテゴリ: `read`
 
-追加予定テスト: `recovers after an invalid document is corrected (%s)`
-
 Given:
 
 - 不正な document B を含む snapshot に対して validation エラーが通知され、同じ購読を継続している。
@@ -234,8 +217,6 @@ Then:
 
 カテゴリ: `read`
 
-追加予定テスト: `reports permission-denied without exposing another owner's documents (%s)`
-
 Given:
 
 - 本人とは異なる UID の非公開 Deck、またはその配下の Card を保存している。
@@ -257,8 +238,6 @@ SDK の拒否を mock せず、Adapter の document validation エラーとも�
 ### 購読解除後の snapshot で store を更新しない
 
 カテゴリ: `read`
-
-追加予定テスト: `keeps stores unchanged after unsubscribing while remote updates are observed (%s)`
 
 Given:
 
@@ -283,8 +262,6 @@ Then:
 ### 再購読で停止中の変更を含む現在の結果を取得する
 
 カテゴリ: `read`
-
-追加予定テスト: `reloads the current snapshot after resubscribing (%s)`
 
 Given:
 

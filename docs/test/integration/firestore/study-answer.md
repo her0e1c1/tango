@@ -4,8 +4,6 @@
 
 回答保存・スキップ・再試行と、回答履歴の所有権・不変性を確認する。アプリケーションの操作と Rules だけの検証を区別する。
 
-対応ファイル: [`study-answer.spec.ts`](../../../test/integration/firestore/study-answer.spec.ts)
-
 関連 E2E: [STUDY-ACTIONS-01](../../e2e/study-actions.md#study-actions-01)、[STUDY-SESSION-03](../../e2e/study-session.md#study-session-03)
 
 ## 共通前提
@@ -45,8 +43,6 @@ Card / Deck store と認証状態も初期化し、本人 UID の Card.fsrs を�
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-01] records %s with progress and one advance`
-
 Given:
 
 - 本人の10枚の session が位置 `0` で存在する。対象 Card に FSRS は null。rating は again / hard / good / easy の4通りを使う。
@@ -66,8 +62,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-02] rejects stale positions without another answer`
-
 Given:
 
 - 位置 `0` の回答操作を一度保存している。
@@ -86,8 +80,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-03] preserves Card content and creation time when rating`
-
 Given:
 
 - 本人の Card があり、fsrs は null である。
@@ -105,8 +97,6 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-04 10枚への回答を保存して session を完了する
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-STUDY-ANSWER-04] records ten answers and completes`
 
 Given:
 
@@ -128,8 +118,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-05] preserves answers across abandonment and restart`
-
 Given:
 
 - 最初の Card の回答を保存し、旧 session を abandoned に更新している。同じ Card 順序の別 ID の session を用意する。
@@ -147,8 +135,6 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-06 途中のスキップは Session だけを前進する
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-STUDY-ANSWER-06] skips without a state or answer`
 
 Given:
 
@@ -168,8 +154,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-07] completes a final skip without an answer`
-
 Given:
 
 - session の位置を最後の `9` にしている。
@@ -187,8 +171,6 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-08 ブラウザのオフライン判定だけで保存を止めない
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-STUDY-ANSWER-08] saves despite an offline browser flag`
 
 Given:
 
@@ -210,8 +192,6 @@ SDK の通信遮断やオフライン queue の検証ではない。
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-09] rejects missing sessions and changed authentication`
-
 Given:
 
 - 本人の通常の session は存在するが、別 ID `not-saved` は存在しない。
@@ -232,8 +212,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-10] retries denied writes without partial progress`
-
 Given:
 
 - 本人の操作を準備し、Rules 無効化 context で親 Deck の UID を別の所有者へ変更する。
@@ -251,8 +229,6 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-11 所有者条件を付けて session・Card・Deck ごとの回答を取得する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-STUDY-ANSWER-11] queries by %s`
 
 Given:
 
@@ -274,8 +250,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-12] rejects an answer owned by another UID`
-
 Given:
 
 - 本人の非匿名認証 context と有効な回答入力を用意する。
@@ -293,8 +267,6 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-13 回答形式と参照先の検証は Rules では強制しない
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-STUDY-ANSWER-13] leaves payload and references to the application`
 
 Given:
 
@@ -316,8 +288,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-14] allows standalone answers without transitions`
-
 Given:
 
 - 本人の Card に FSRS が null で、session の位置は0である。
@@ -336,8 +306,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-15] records valid FSRS state for %s`
-
 Given:
 
 - 未評価の Card に対し again / hard / good / easy の4通りを用意する。
@@ -355,8 +323,6 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-16 session の所有権とアプリケーションの終了遷移を区別する
 
 カテゴリ: `write`
-
-対応テスト: `[FIRESTORE-STUDY-ANSWER-16] restricts session ownership, not transitions`
 
 Given:
 
@@ -378,8 +344,6 @@ Then:
 
 カテゴリ: `write`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-17] denies answer updates, overwrites and deletion`
-
 Given:
 
 - 本人の回答をアプリケーション経由で保存済みである。
@@ -397,8 +361,6 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-18 存在しない回答 ID の読取を拒否する
 
 カテゴリ: `read`
-
-対応テスト: `[FIRESTORE-STUDY-ANSWER-18] denies reading missing answer IDs`
 
 Given:
 
@@ -420,8 +382,6 @@ Then:
 
 カテゴリ: `batch`
 
-対応テスト: `[FIRESTORE-STUDY-ANSWER-19] denies %s`
-
 Given:
 
 - 本人の公開 Deck と回答が保存済みである。主体は他ユーザー・本人と同じ UID の匿名認証・未認証の3通りとする。
@@ -439,8 +399,6 @@ Then:
 ### FIRESTORE-STUDY-ANSWER-20 FSRS を復元し本文編集とスキップで維持する
 
 カテゴリ: `batch`
-
-対応テスト: `[FIRESTORE-STUDY-ANSWER-20] restores FSRS and preserves it across content edits and skip`
 
 Given:
 
