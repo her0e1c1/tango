@@ -28,10 +28,19 @@ beforeEach(() => {
   vi.resetModules();
   startup.reset.mockReset().mockResolvedValue(false);
   startup.load.mockReset();
-  vi.doMock("./bootstrap", () => {
+
+  vi.doMock("@/shared/firebase", () => ({}));
+  vi.doMock("./routes", () => ({
+    appRoutes: [{ path: "*", element: null }],
+  }));
+  vi.doMock("virtual:pwa-register", () => ({
+    registerSW: vi.fn(),
+  }));
+  vi.doMock("./App", () => {
     startup.load();
     return { default: () => <p>Normal application</p> };
   });
+
   const container = document.createElement("div");
   container.id = "root";
   document.body.append(container);
@@ -64,7 +73,7 @@ describe("NAVIGATION-06 lazy application startup", () => {
 
   it("shows shared recovery when the application module fails to initialize", async () => {
     startup.load.mockImplementation(() => {
-      throw new Error("bootstrap failed");
+      throw new Error("application startup failed");
     });
     await actAsync(async () => {
       await import("./main");
