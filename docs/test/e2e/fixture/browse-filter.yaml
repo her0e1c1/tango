@@ -5,6 +5,10 @@ auth:
       provider: google
 remote:
   decks:
+    - id: deck-empty
+      uid: user-1
+      name: Empty Browse Deck
+      category: English
     - id: deck-mixed
       uid: user-1
       name: Browse Filter Deck
@@ -14,10 +18,6 @@ remote:
       uid: user-1
       name: Future Only Deck
       selectedTags: [target]
-      category: English
-    - id: deck-empty
-      uid: user-1
-      name: Empty Browse Deck
       category: English
   cards:
     - id: card-due
