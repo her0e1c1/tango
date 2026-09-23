@@ -69,7 +69,6 @@ jobs:
           PY
           git diff --check
           git diff --stat
-          git diff
           git add test/e2e docs/test/e2e/AGENTS.md
           git commit -m 'fix(test): preserve type imports and remove skipped TODO stubs'
           git fetch origin main
@@ -82,7 +81,7 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           mise trust
           mise install node npm hadolint
-          mise run check
+          mise run check || { npx biome lint --error-on-warnings --diagnostic-level=warn --max-diagnostics=none .; exit 1; }
           npx biome lint --error-on-warnings --diagnostic-level=warn --max-diagnostics=none .
           npx playwright test --list --reporter=json > "$RUNNER_TEMP/pr1765-tests.json"
           python3 - <<'PY'
