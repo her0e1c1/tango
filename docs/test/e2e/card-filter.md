@@ -32,11 +32,9 @@ Card 一覧（card-list）と Deck 閲覧（deck-view）で、学習条件とは
 
 <a id="card-filter-01"></a>
 
-### CARD-FILTER-01 学習条件にかかわらず Card を全件表示できる
+### CARD-FILTER-01 [TODO] 学習条件にかかわらず Card を全件表示できる
 
 カテゴリ: `read`
-
-検証状況: 未実装
 
 Given:
 
@@ -65,11 +63,9 @@ Then:
 
 <a id="card-filter-02"></a>
 
-### CARD-FILTER-02 他の Deck のフィルター条件にかかわらず Card を全件表示できる
+### CARD-FILTER-02 [TODO] 他の Deck のフィルター条件にかかわらず Card を全件表示できる
 
 カテゴリ: `read`
-
-検証状況: 未実装
 
 Given:
 
@@ -92,11 +88,9 @@ Then:
 
 <a id="card-filter-03"></a>
 
-### CARD-FILTER-03 Card が登録されていない Deck は0件表示になる
+### CARD-FILTER-03 [TODO] Card が登録されていない Deck は0件表示になる
 
 カテゴリ: `read`
-
-検証状況: 未実装
 
 Given:
 
@@ -119,11 +113,9 @@ Then:
 
 <a id="card-filter-04"></a>
 
-### CARD-FILTER-04 フィルターに一致する Card がない場合は0件表示になる
+### CARD-FILTER-04 [TODO] フィルターに一致する Card がない場合は0件表示になる
 
 カテゴリ: `read`
-
-検証状況: 未実装
 
 Given:
 
@@ -145,11 +137,9 @@ Then:
 
 <a id="card-filter-05"></a>
 
-### CARD-FILTER-05 リロード後も同じタグと AND / OR 条件を復元できる
+### CARD-FILTER-05 [TODO] リロード後も同じタグと AND / OR 条件を復元できる
 
 カテゴリ: `write`
-
-検証状況: 未実装
 
 Given:
 
@@ -173,11 +163,9 @@ Then:
 
 <a id="card-filter-06"></a>
 
-### CARD-FILTER-06 フィルターを解除した状態もリロード後に維持できる
+### CARD-FILTER-06 [TODO] フィルターを解除した状態もリロード後に維持できる
 
 カテゴリ: `write`
-
-検証状況: 未実装
 
 Given:
 
@@ -198,11 +186,9 @@ Then:
 
 <a id="card-filter-07"></a>
 
-### CARD-FILTER-07 単一タグで Card を絞り込める
+### CARD-FILTER-07 [TODO] 単一タグで Card を絞り込める
 
 カテゴリ: `write`
-
-検証状況: 未実装
 
 Given:
 
@@ -224,11 +210,9 @@ Then:
 
 <a id="card-filter-08"></a>
 
-### CARD-FILTER-08 AND 条件ですべての選択タグを持つ Card に絞り込める
+### CARD-FILTER-08 [TODO] AND 条件ですべての選択タグを持つ Card に絞り込める
 
 カテゴリ: `write`
-
-検証状況: 未実装
 
 Given:
 
@@ -250,11 +234,9 @@ Then:
 
 <a id="card-filter-09"></a>
 
-### CARD-FILTER-09 OR 条件でいずれかの選択タグを持つ Card に絞り込める
+### CARD-FILTER-09 [TODO] OR 条件でいずれかの選択タグを持つ Card に絞り込める
 
 カテゴリ: `write`
-
-検証状況: 未実装
 
 Given:
 
@@ -276,11 +258,9 @@ Then:
 
 <a id="card-filter-10"></a>
 
-### CARD-FILTER-10 絞り込み結果を追加が新しい順にソートできる
+### CARD-FILTER-10 [TODO] 絞り込み結果を追加が新しい順にソートできる
 
 カテゴリ: `read`
-
-検証状況: 未実装
 
 Given:
 
@@ -303,11 +283,9 @@ Then:
 
 <a id="card-filter-11"></a>
 
-### CARD-FILTER-11 絞り込み結果の表示順を標準へ戻せる
+### CARD-FILTER-11 [TODO] 絞り込み結果の表示順を標準へ戻せる
 
 カテゴリ: `read`
-
-検証状況: 未実装
 
 Given:
 
