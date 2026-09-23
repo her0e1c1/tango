@@ -50,7 +50,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { DeckEditPage } from "./DeckEditPage";
 
-describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 DECK-NAVIGATION-02 DECK-MANAGEMENT-08)", () => {
+describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 NAVIGATION-07 DECK-MANAGEMENT-08)", () => {
   const deckId = "deck-id";
   const renderPage = (path = `/deck/${deckId}/edit`) => {
     const router = createMemoryRouter(

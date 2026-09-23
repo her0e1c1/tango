@@ -64,7 +64,7 @@ const swipeWithMouse = (
   fireEvent.mouseUp(document, { ...end, button });
 };
 
-describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [DECK-NAVIGATION-09]", () => {
+describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [NAVIGATION-14]", () => {
   it("ignores reading gestures and their trailing click while keeping explicit buttons active", () => {
     const props = toolbarProps();
     const onSwipeUp = vi.fn();

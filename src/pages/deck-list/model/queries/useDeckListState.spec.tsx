@@ -35,7 +35,7 @@ const studyPreferences = createPreferences({ shuffled: false, useCardInterval: f
 
 const cardsForDeck = (deckId: string) => cards.filter((card) => card.deckId === deckId);
 
-describe("DECK-NAVIGATION-01 STUDY-SESSION-03 useDeckListState", () => {
+describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
   beforeEach(async () => {
     vi.useFakeTimers();
     updatePreferences({ study: { useCardInterval: false } });

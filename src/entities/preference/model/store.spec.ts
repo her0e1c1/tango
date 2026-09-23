@@ -35,7 +35,7 @@ const useMemoryStorage = (initial: Record<string, string> = {}): MemoryStorage =
   return storage;
 };
 
-describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [DECK-NAVIGATION-09]", () => {
+describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", () => {
   beforeEach(() => {
     useMemoryStorage();
     updatePreferences(defaultPreferences);

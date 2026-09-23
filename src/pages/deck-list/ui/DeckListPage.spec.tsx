@@ -53,7 +53,7 @@ const StudyDestination = () => {
   );
 };
 
-describe("DECK-NAVIGATION-12 NAVIGATION-02 DECK-NAVIGATION-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 DECK-TRANSFER-01 DECK-NAVIGATION-03 STUDY-SESSION-03 DeckListPage", () => {
+describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 DECK-TRANSFER-01 NAVIGATION-08 STUDY-SESSION-03 DeckListPage", () => {
   const activeDeck = createLocalDeck({ id: "active-deck", name: "Active deck" });
   const freshDeck = createLocalDeck({ id: "fresh-deck", name: "Fresh deck" });
   const activeCard = createLocalCard({

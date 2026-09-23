@@ -25,7 +25,7 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("DECK-NAVIGATION-01 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
+test("NAVIGATION-06 navigates from the Deck list to its Card list", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const card = fixture.card();
   await fixture.apply(page);
@@ -227,7 +227,7 @@ test("DECK-MANAGEMENT-04 retries the same Deck deletion after a handled failure"
   await expect(page.getByRole("button", { name: `Continue ${deck.name}` })).toHaveCount(0);
 });
 
-test("DECK-NAVIGATION-02 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
+test("NAVIGATION-07 recovers home from a missing Deck route", async ({ fixture, page, namespace }) => {
   await fixture.apply(page);
 
   await page.goto(`/deck/${namespace.id("missing")}`);

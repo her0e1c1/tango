@@ -38,7 +38,7 @@ const deck = createDeck({
   category: "math",
 });
 
-describe("DECK-NAVIGATION-12 DECK-NAVIGATION-03 DeckListCard [STUDY-SESSION-03]", () => {
+describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-18T00:10:00Z"));

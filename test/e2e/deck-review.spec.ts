@@ -1,7 +1,7 @@
 import { expect, requireDocument, test } from "./fixtures";
 import { readSession } from "./study-helpers";
 
-test("DECK-NAVIGATION-12 shows held review counts and opens existing study settings", async ({ fixture, page }) => {
+test("NAVIGATION-17 shows held review counts and opens existing study settings", async ({ fixture, page }) => {
   const deck = fixture.deck();
   await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
   const before = await requireDocument("deck", deck.id);
@@ -18,7 +18,7 @@ test("DECK-NAVIGATION-12 shows held review counts and opens existing study setti
   expect(await requireDocument("deck", deck.id)).toEqual(before);
 });
 
-test("DECK-NAVIGATION-13 updates the list when a review deadline arrives", async ({ fixture, page }) => {
+test("NAVIGATION-18 updates the list when a review deadline arrives", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const future = fixture.card("card-future");
   await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
