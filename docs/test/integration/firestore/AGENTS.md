@@ -61,6 +61,7 @@ mise run test-integration
 `test-integration` は sample build と Docker Compose の Firestore Emulator 起動後に、Vitest の integration project を実行する。
 ホスト・ポートは既存の `VITE_DB_HOST` / `VITE_DB_PORT` 設定を使い、本番 Firebase に接続しない。
 Firestore 以外の既存 integration test も同じタスクで実行されるが、この仕様書の対象には含めない。
+Rules と index は既存のデプロイ経路を使う。Emulator は本番の複合 index の有無を強制しないため、履歴取得などのテスト成功だけで本番 index の利用可能性を保証しない。
 テストタイトルやコードを変更した場合は `mise run check` も実行する。新しい runner や CI job は追加しない。
 
 ## Security Rules common prerequisites

@@ -28,6 +28,8 @@ Card 一覧（card-list）と Deck 閲覧（deck-view）で、学習条件とは
 | CARD-FILTER-09 | write | 正常系 | [OR 条件でいずれかの選択タグを持つ Card に絞り込める](#card-filter-09) |
 | CARD-FILTER-10 | read | 正常系 | [絞り込み結果を追加が新しい順にソートできる](#card-filter-10) |
 | CARD-FILTER-11 | read | 正常系 | [絞り込み結果の表示順を標準へ戻せる](#card-filter-11) |
+| CARD-FILTER-12 | write | 正常系 | [タグ未選択なら AND / OR にかかわらず全件表示する](#card-filter-12) |
+| CARD-FILTER-13 | read | 正常系 | [リロードでソートだけを標準へ戻しフィルターを維持する](#card-filter-13) |
 
 <a id="card-filter-01"></a>
 
@@ -324,4 +326,54 @@ Then:
 - 現在のフィルターに一致する Card が標準の相対順序へ戻る。
 - 表示対象と件数、選択タグ、AND / OR 条件は変わらない。
 - Card、保存済みフィルター、学習条件、学習 session は変更されない。
+- browser error が発生しない。
+
+<a id="card-filter-12"></a>
+
+### CARD-FILTER-12 [TODO] タグ未選択なら AND / OR にかかわらず全件表示する
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`browse-filter-empty-tags`](./fixture/browse-filter-empty-tags.yaml)
+- 対象 Deck に、タグ付きの Card とタグのない Card があり、一覧は絞り込みなしで表示されている。
+- AND と OR を、それぞれ独立した入力例とする。
+
+When:
+
+- タグを一つも選択せずに対象の AND / OR 条件を指定し、自動保存後に一覧をリロードして同じ Deck の閲覧画面も開く。
+
+Then:
+
+- 両画面で対象 Deck の全 Card を一度ずつ表示し、タグのない Card も除外しない。
+- 選択タグが空であることを理由に0件表示にしない。
+- 学習条件や他の Deck のフィルターを代わりに適用せず、それらの保存値も変更しない。
+- browser error が発生しない。
+
+<a id="card-filter-13"></a>
+
+### CARD-FILTER-13 [TODO] リロードでソートだけを標準へ戻しフィルターを維持する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`card-list-sort`](./fixture/card-list-sort.yaml)
+- 一部の Card に一致するタグのフィルターを保存済みで、Card 一覧を「追加が新しい順」で表示している。
+- 絞り込み結果の標準順と追加が新しい順は異なり、確認中に Card の追加・編集・削除は行わない。
+
+When:
+
+- Card 一覧をリロードし、同じ Deck の閲覧画面も開く。
+
+Then:
+
+- 両画面は保存済みフィルターに一致する Card を標準の相対順序で表示する。
+- 選択タグと AND / OR 条件、表示対象と件数はリロード前から変わらない。
+- 保存済みフィルターまで初期化せず、Card、学習条件、学習 session の順序・位置も変更しない。
 - browser error が発生しない。

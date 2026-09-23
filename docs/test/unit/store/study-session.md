@@ -4,11 +4,9 @@
 
 デックごとの学習の続きを参照でき、削除・所有者変更・取得完了によって他のデックや利用者のセッションを混同しないことを確認する。カードの選定規則、FSRS、Firestore への保存、認証に伴う購読の開始・停止は対象外とする。
 
-関連テスト: [`store.spec.ts`](../../../../src/entities/study-session/model/store.spec.ts)
-
 関連 E2E: [STUDY-SESSION-01](../../e2e/study-session.md#study-session-01)、[STUDY-ACTIONS-04](../../e2e/study-actions.md#study-actions-04)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
-対応状況は既存テストとの静的な照合結果であり、テストの実行結果ではない。共通の検証境界と対応状況の意味は [AGENTS.md](./AGENTS.md) を参照する。
+共通の検証前提は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
@@ -23,13 +21,11 @@
 
 <a id="unit-store-study-01"></a>
 
-### UNIT-STORE-STUDY-01 デックごとの学習の続きが互いに混ざらない
+### UNIT-STORE-STUDY-01 [TODO] デックごとの学習の続きが互いに混ざらない
 
 カテゴリ: `state-change`
 
 区分: 正常系
-
-対応テスト: `keeps independent study sessions for multiple decks`（要補完：異なる学習位置と存在しないデックの参照）。
 
 Given:
 
@@ -45,13 +41,11 @@ Then:
 
 <a id="unit-store-study-02"></a>
 
-### UNIT-STORE-STUDY-02 指定したデックだけ学習の続きから除外する
+### UNIT-STORE-STUDY-02 [TODO] 指定したデックだけ学習の続きから除外する
 
 カテゴリ: `state-change`
 
 区分: 正常系
-
-対応テスト: `removes only the requested session`（要補完：残るセッションの内容全体と存在しないデックの削除）。
 
 Given:
 
@@ -67,17 +61,15 @@ A を削除した場合は A だけが取得できなくなり、B の内容は�
 
 <a id="unit-store-study-03"></a>
 
-### UNIT-STORE-STUDY-03 学習中の情報をクリアしても旧バックアップを失わない
+### UNIT-STORE-STUDY-03 [TODO] 学習中の情報をクリアしても旧バックアップを失わない
 
 カテゴリ: `scope-reset`
 
 区分: 正常系
 
-対応テスト: `clears the visible session without deleting the legacy backup`（要補完：複数デック、取得待ちの解除、既に空の場合）。
-
 Given:
 
-複数デックのセッションを保持して取得待ちであり、保存先 tango-study には旧バックアップがある。既にセッションがなく取得待ちでもない場合も独立して用意する。
+複数デックのセッションを保持して取得待ちであり、以前の保存形式の学習バックアップがある。既にセッションがなく取得待ちでもない場合も独立して用意する。
 
 When:
 
@@ -89,13 +81,11 @@ Then:
 
 <a id="unit-store-study-04"></a>
 
-### UNIT-STORE-STUDY-04 所有者を変更したら一致しない学習の続きを提供しない
+### UNIT-STORE-STUDY-04 [TODO] 所有者を変更したら一致しない学習の続きを提供しない
 
 カテゴリ: `scope-reset`
 
 区分: 正常系
-
-対応テスト: 未検証：参照した既存テストには所有者変更の検証がない。
 
 Given:
 
@@ -117,13 +107,11 @@ Then:
 
 <a id="unit-store-study-05"></a>
 
-### UNIT-STORE-STUDY-05 最新の取得結果に学習の続きを切り替えて取得待ちを終了する
+### UNIT-STORE-STUDY-05 [TODO] 最新の取得結果に学習の続きを切り替えて取得待ちを終了する
 
 カテゴリ: `state-change`
 
 区分: 正常系
-
-対応テスト: 未検証：参照した既存テストには取得結果による一括置換の検証がない。
 
 Given:
 
@@ -144,13 +132,11 @@ Then:
 
 <a id="unit-store-study-06"></a>
 
-### UNIT-STORE-STUDY-06 取得待ちだけを終了すると保持済みの学習の続きは変わらない
+### UNIT-STORE-STUDY-06 [TODO] 取得待ちだけを終了すると保持済みの学習の続きは変わらない
 
 カテゴリ: `state-change`
 
 区分: 正常系
-
-対応テスト: 未検証：参照した既存テストには取得終了だけを通知する操作の検証がない。
 
 Given:
 

@@ -4,20 +4,20 @@
 
 最後の評価からの経過時間と安定性に応じた想起確率を返し、日内の時間差や時計の前後を正しく扱うことを確認する。表示上の丸め、グラフ描画、次回期限による出題判定は対象外とする。
 
-共通前提は [AGENTS.md](./AGENTS.md) を参照する。観測境界は `getStudyRetrievability`、対応テストファイルは [fsrsRules.spec.ts][tests] とする。
+共通前提は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
-| ID | カテゴリ | 区分 | テストケース | 対応状況 |
-| --- | --- | --- | --- | --- |
-| UNIT-FSRS-RETRIEVABILITY-01 | read | 正常系 | [最終評価以前の有効な時刻では想起確率を1とする](#unit-fsrs-retrievability-01) | 一部対応 |
-| UNIT-FSRS-RETRIEVABILITY-02 | read | 正常系 | [1日未満の経過時間も想起確率に反映する](#unit-fsrs-retrievability-02) | 未対応 |
-| UNIT-FSRS-RETRIEVABILITY-03 | read | 正常系 | [安定性に対応する90%の想起確率を返す](#unit-fsrs-retrievability-03) | 未対応 |
-| UNIT-FSRS-RETRIEVABILITY-04 | read | 異常系 | [不正な状態や計算時刻を正常な確率に読み替えない](#unit-fsrs-retrievability-04) | 未対応 |
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| UNIT-FSRS-RETRIEVABILITY-01 | read | 正常系 | [最終評価以前の有効な時刻では想起確率を1とする](#unit-fsrs-retrievability-01) |
+| UNIT-FSRS-RETRIEVABILITY-02 | read | 正常系 | [1日未満の経過時間も想起確率に反映する](#unit-fsrs-retrievability-02) |
+| UNIT-FSRS-RETRIEVABILITY-03 | read | 正常系 | [安定性に対応する90%の想起確率を返す](#unit-fsrs-retrievability-03) |
+| UNIT-FSRS-RETRIEVABILITY-04 | read | 異常系 | [不正な状態や計算時刻を正常な確率に読み替えない](#unit-fsrs-retrievability-04) |
 
 <a id="unit-fsrs-retrievability-01"></a>
 
-### UNIT-FSRS-RETRIEVABILITY-01 最終評価以前の有効な時刻では想起確率を1とする
+### UNIT-FSRS-RETRIEVABILITY-01 [TODO] 最終評価以前の有効な時刻では想起確率を1とする
 
 カテゴリ: `read`
 
@@ -38,13 +38,9 @@ Then:
 - 計算時刻が最終評価より前でも負の経過時間として計算せず、`1` を超える確率を返さない。
 - 計算によって最終評価日時や学習状態を変更しない。
 
-対応テスト: [fsrsRules.spec.ts][tests] の `keeps library lapse semantics across learning, review and relearning`。
-
-対応状況: **一部対応**。既存テストは最終評価と同時刻の確率 `1` を確認する。評価直前の時刻と入力状態の不変性は未確認。
-
 <a id="unit-fsrs-retrievability-02"></a>
 
-### UNIT-FSRS-RETRIEVABILITY-02 1日未満の経過時間も想起確率に反映する
+### UNIT-FSRS-RETRIEVABILITY-02 [TODO] 1日未満の経過時間も想起確率に反映する
 
 カテゴリ: `read`
 
@@ -66,13 +62,9 @@ Then:
 - 24時間の直前と一致時刻の確率差は `1e-6` 未満とし、日数の切替時だけ不連続に下がる計算にならない。
 - 1日未満を0日として扱ったり、ローカル日付の切替回数を経過日数として扱ったりしない。
 
-対応テスト: [fsrsRules.spec.ts][tests] に追加する対象。既存の対応タイトルなし。
-
-対応状況: **未対応**。既存の想起確率の assertion は経過時間0だけであり、日内の減衰や日数境界は確認していない。
-
 <a id="unit-fsrs-retrievability-03"></a>
 
-### UNIT-FSRS-RETRIEVABILITY-03 安定性に対応する90%の想起確率を返す
+### UNIT-FSRS-RETRIEVABILITY-03 [TODO] 安定性に対応する90%の想起確率を返す
 
 カテゴリ: `read`
 
@@ -91,17 +83,11 @@ Then:
 
 - 安定性 `10` 日では想起確率が `0.9` になる。絶対誤差 `1e-8` を許容する。
 - 安定性 `5` 日では `0.9` より低く、安定性 `20` 日では `0.9` より高い、有限な `0` 以上 `1` 以下の値になる。
-- これは「安定性に等しい日数が経過すると想起確率が90%になる」という意味の確認である。丸めや短期学習ステップを含む次回期限で、常に確率が厳密に90%になることは要求しない。
-
-期待結果の根拠: FSRS 公式の [The Algorithm / FSRS-6][algorithm] にある `R(S, S) = 90%`。
-
-対応テスト: [fsrsRules.spec.ts][tests] に追加する対象。既存の対応タイトルなし。
-
-対応状況: **未対応**。安定性の日数単位と経過時間のミリ秒から日への換算を、独立した基準値で確認する assertion はまだない。
+- 期待値の根拠は FSRS 公式の [The Algorithm / FSRS-6][algorithm] にある `R(S, S) = 90%` とする。丸めや短期学習ステップを含む次回期限で、常に確率が厳密に90%になることは要求しない。
 
 <a id="unit-fsrs-retrievability-04"></a>
 
-### UNIT-FSRS-RETRIEVABILITY-04 不正な状態や計算時刻を正常な確率に読み替えない
+### UNIT-FSRS-RETRIEVABILITY-04 [TODO] 不正な状態や計算時刻を正常な確率に読み替えない
 
 カテゴリ: `read`
 
@@ -109,7 +95,7 @@ Then:
 
 Given:
 
-- 次のいずれか一つだけを不正にした入力を準備する。
+- 次のいずれか一つだけを不正にした入力を用意する。
 
 | 不正にする入力 | 代表値 | その他の入力 |
 | --- | --- | --- |
@@ -125,9 +111,4 @@ Then:
 - 入力を拒否し、正常な確率を返さない。
 - 不正な時刻を「最終評価以前の有効な時刻」と同じ扱いで `1` にしたり、計算失敗を `0` や `NaN` の結果として返したりしない。
 
-対応テスト: [fsrsRules.spec.ts][tests] に追加する対象。既存の対応タイトルなし。
-
-対応状況: **未対応**。不正な入力に対する想起確率計算の assertion はまだない。
-
-[tests]: ../../../../src/entities/card/model/fsrsRules.spec.ts
 [algorithm]: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm/e6ded59fa6d1d6bb2950a759d53b14575e9e586c#fsrs-6

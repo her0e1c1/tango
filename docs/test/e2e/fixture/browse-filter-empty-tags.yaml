@@ -1,0 +1,23 @@
+extends: browse-filter.yaml
+remote:
+  cards:
+    - id: card-tagged
+      deckId: deck-mixed
+      uid: user-1
+      frontText: tagged card
+      backText: tagged answer
+      tags: [target]
+      uniqueKey: tagged-card
+    - id: card-untagged
+      deckId: deck-mixed
+      uid: user-1
+      frontText: untagged card
+      backText: untagged answer
+      uniqueKey: untagged-card
+    - id: card-other-deck
+      deckId: deck-future
+      uid: user-1
+      frontText: other deck card
+      backText: other deck answer
+      tags: [target]
+      uniqueKey: other-deck-card
