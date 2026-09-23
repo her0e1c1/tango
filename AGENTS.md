@@ -91,10 +91,11 @@ Every task that changes repository files must complete this workflow:
 
 ### Other Unit and Integration Tests
 
-- Outside `test/integration/firestore` and Storybook `play` functions, treat `docs/test/e2e` as the only runtime behavior specification; do not introduce separate unit/integration specification documents or ID systems. Define missing behavior there before writing tests; adding new files under `docs` still requires an explicit user request.
-- Each new or modified unit/integration test for runtime behavior must reference at least one existing E2E case ID in its outermost `describe` title, or its test title when there is no `describe`.
+- For FSRS domain unit tests only, use `docs/test/unit/fsrs` and follow its `AGENTS.md`. New or modified test titles must start with the relevant `UNIT-FSRS-<UPPERCASE-SPEC-FILENAME>-<NN>` ID; E2E IDs are optional, and one-to-one case/test mapping is not required.
+- Outside FSRS domain unit tests, `test/integration/firestore`, and Storybook `play` functions, treat `docs/test/e2e` as the only runtime behavior specification; do not introduce separate unit/integration specification documents or ID systems. Define missing behavior there before writing tests; adding new files under `docs` still requires an explicit user request.
+- Each new or modified non-FSRS unit/integration test for runtime behavior must reference at least one existing E2E case ID in its outermost `describe` title, or its test title when there is no `describe`.
 - Co-locate unit tests under `src/**/*.spec.{ts,tsx}` for deterministic rules, state transitions, validation, and module or component behavior without real external services.
 - Put integration tests under `test/integration/**/*.spec.{ts,tsx}` for contracts across application modules, persistence, stores, or emulators. Do not mock the boundary being verified.
-- Parameterized tests must include a representative row matching the referenced E2E Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.
+- Parameterized tests must include a representative row matching the referenced specification's Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.
 - Do not derive cases or expected results solely from implementation details: branches, private functions, internal state shapes, mock call counts, or coverage gaps.
 - Enforce static constraints, such as dependency direction and type correctness, with lint or typecheck rather than runtime tests; these checks do not require E2E IDs.
