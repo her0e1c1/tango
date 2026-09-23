@@ -1,7 +1,7 @@
 import { getAuthUid } from "@/entities/auth";
 import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
 import { readDeckTags, writeDeckTags } from "@/entities/deck";
-import { transact } from "@/shared/api";
+import { transact } from "@/shared/firestore-transaction";
 import { showToast } from "@/shared/ui/toast";
 
 import { deckEditPageStore as store } from "../store";

@@ -8,7 +8,7 @@ import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 import "@/test/initializeTestFirestore";
 import { readDeckTags, writeDeckTags } from "@/entities/deck";
 import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
-import { transact } from "@/shared/api";
+import { transact } from "@/shared/firestore-transaction";
 import { describe, expect, it, vi } from "vitest";
 import {
   doc,

@@ -52,8 +52,26 @@ for (const finish of ["save", "cancel"]) {
     await page.getByRole("textbox", { name: "Name", exact: true }).fill("Unsaved deck name");
     await section(page).getByRole("textbox", { name: "New tag name" }).fill("shared");
     await expect(page.getByRole("button", { name: "Save changes", exact: true })).toBeDisabled();
+    let releaseCommit: () => void = () => undefined;
+    const heldCommit = new Promise<void>((resolve) => {
+      releaseCommit = resolve;
+    });
+    let commitRequested = false;
+    await page.route(/\/documents:commit(?:\?|$)/, async (route) => {
+      commitRequested = true;
+      await heldCommit;
+      await route.continue();
+    });
     await section(page).getByRole("button", { name: "Add tag" }).click();
+    await expect.poll(() => commitRequested).toBe(true);
+    await page.getByRole("button", { name: "tango", exact: true }).click();
+    const navigation = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+    await expect(navigation.getByRole("button", { name: "Discard changes", exact: true })).toBeDisabled();
+    await expect(page).toHaveURL(`/deck/${deck.id}/edit`);
+    releaseCommit();
     await saved(page);
+    await expect(navigation.getByRole("button", { name: "Discard changes", exact: true })).toBeEnabled();
+    await navigation.getByRole("button", { name: "Keep editing", exact: true }).click();
     await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue("Unsaved deck name");
     expect((await requireDocument("deck", deck.id)).fields.name?.stringValue).toBe(deck.name);
     if (finish === "save") {
