@@ -1,17 +1,17 @@
-# Adopt Feature-Sliced Design
+# Feature-Sliced Design を採用する
 
 Status: Accepted
 
 ## Context
 
-The frontend is being organized around explicit architectural boundaries. A shared architectural baseline is needed so directory placement and dependency decisions are consistent as the codebase evolves.
+フロントエンドは明示的なアーキテクチャ境界に基づいて整理されつつある。コードベースの進化に伴い、ディレクトリの配置や依存関係の決定を常に一貫させるため、共通のアーキテクチャのベースラインが必要とされている。
 
 ## Decision
 
-Adopt [Feature-Sliced Design (FSD)](https://feature-sliced.design/) as the baseline architectural methodology for the frontend.
+フロントエンドのベースラインアーキテクチャ手法として [Feature-Sliced Design (FSD)](https://feature-sliced.design/) を採用する。
 
-Follow FSD's core layering and dependency principles while allowing project-specific segment names and conventions when they make responsibilities clearer. Project-specific rules documented in ADRs take precedence when they intentionally differ from conventional FSD structure.
+FSD のコアとなるレイヤリングおよび依存関係の原則に従う。ただし、責務がより明確になる場合はプロジェクト固有のセグメント名や規約を許容する。従来の FSD 構造と意図的に異なる場合は、ADR に文書化されたプロジェクト固有のルールを優先する。
 
-Cross-layer and cross-slice consumers use the owning slice's Public API. Application-owned type contracts use explicit module imports rather than ambient declarations. Ambient declarations are limited to build and runtime environment contracts such as Vite environment fields and compile-time constants. Keep `src` for production FSD layers; Storybook and test support that must compose across multiple production layers belongs outside `src` and is not Shared production code.
+レイヤー間およびスライス間の利用者は、所有するスライスの Public API を使用する。アプリケーション所有の型契約には、アンビエント宣言ではなく明示的なモジュールインポートを使用する。アンビエント宣言は、Vite 環境変数やコンパイル時定数など、ビルドおよびランタイムの環境契約に限定する。プロダクションの FSD レイヤーには `src` を維持し、複数のプロダクションレイヤーにまたがって構成する必要のある Storybook やテストサポートは `src` の外に配置し、Shared プロダクションコードとはみなさない。
 
-Enforce dependency direction, slice isolation, and Public API access with Steiger rather than duplicating FSD rules across general-purpose linters. See [PR #542](https://github.com/her0e1c1/tango/pull/542), [PR #550](https://github.com/her0e1c1/tango/pull/550), [PR #617](https://github.com/her0e1c1/tango/pull/617), and [PR #623](https://github.com/her0e1c1/tango/pull/623).
+依存方向、スライスの独立性、および Public API へのアクセス制御は、汎用リンターで FSD ルールを重複管理するのではなく Steiger で強制する。[PR #542](https://github.com/her0e1c1/tango/pull/542)、[PR #550](https://github.com/her0e1c1/tango/pull/550)、[PR #617](https://github.com/her0e1c1/tango/pull/617)、[PR #623](https://github.com/her0e1c1/tango/pull/623)を参照する。

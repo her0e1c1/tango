@@ -1,22 +1,22 @@
-# Manage Development Tools by Responsibility
+# 開発ツールを責務ごとに管理する
 
 Status: Accepted
 
 ## Context
 
-Development tools have different installation and reproducibility requirements. Treating every development tool as an npm `devDependency` makes ownership unclear and can add unnecessary project dependencies.
+開発ツールにはそれぞれ異なるインストール要件および再現性要件がある。すべての開発ツールを npm の `devDependency` として扱うと所有関係が曖昧になり、不要なプロジェクト依存関係が追加される可能性がある。
 
 ## Decision
 
-Manage tools according to their responsibility and distribution model:
+開発ツールはその責務と配信モデルに従って管理する。
 
-- Use `devDependencies` for Node.js ecosystem tools required to build, lint, test, or otherwise reproduce project checks, such as TypeScript, Biome, ESLint, Vitest, Playwright, Storybook, and Knip.
-- Use `mise.toml` for language runtimes, package managers, and standalone CLI tools distributed outside npm, such as Node.js, npm, and Hadolint.
-- Manage tools used only inside containers within the container environment, rather than duplicating them in npm or mise.
-- Do not add optional, interactive, developer-specific tools to project dependencies. Tools such as React Developer Tools should be installed individually when needed.
+- TypeScript、Biome、ESLint、Vitest、Playwright、Storybook、Knip など、ビルド、リンティング、テスト、その他のプロジェクトチェックの再現に必要な Node.js エコシステムのツールには `devDependencies` を使用する。
+- Node.js、npm、Hadolint など、npm 外で配信される言語ランタイム、パッケージマネージャー、スタンドアロン CLI ツールには `mise.toml` を使用する。
+- コンテナ内でのみ使用するツールは、npm や mise で重複管理せずコンテナ環境内で管理する。
+- 開発者個人のインタラクティブな任意ツールをプロジェクトの依存関係に追加しない。React Developer Tools などのツールは、必要な時に個別にインストールする。
 
-Use npm scripts as the canonical executable entrypoints for Node.js ecosystem checks. CI workflows may invoke them directly or through thin mise tasks when pinned toolchains or shared setup are useful. Keep check logic in npm scripts and keep mise responsible for runtime management, dependency setup, and task composition rather than duplicating the checks.
+Node.js エコシステムのチェックにおける標準の実行エントリーポイントとして npm scripts を使用する。CI ワークフローは、固定されたツールチェーンや共通セットアップが有用な場合、直接または薄い mise タスク経由でそれらを呼び出すことができる。チェックロジックの重複を防ぐため、チェックロジックは npm scripts に保持し、mise はランタイム管理、依存関係のセットアップ、タスク構成を担う。
 
-Workflow-specific external service setup, such as starting the Firestore emulator, remains in the owning workflow or container environment. Different jobs may choose different launchers when their environments differ, while still executing the same underlying project commands.
+Firestore エミュレータの起動など、ワークフロー固有の外部サービスセットアップは、所有するワークフローまたはコンテナ環境内に留める。異なるジョブは環境が異なる場合、同じ基礎となるプロジェクトコマンドを実行しつつ、異なるランチャーを選択できる。
 
-Prefer the tool's official distribution channel and avoid managing the same tool in multiple places unless reproducibility requires it. See [PR #449](https://github.com/her0e1c1/tango/pull/449) and [PR #662](https://github.com/her0e1c1/tango/pull/662).
+ツールの公式配信チャネルを優先し、再現性に必要な場合を除き、同じツールを複数の場所で管理することを避ける。[PR #449](https://github.com/her0e1c1/tango/pull/449)、[PR #662](https://github.com/her0e1c1/tango/pull/662)を参照する。

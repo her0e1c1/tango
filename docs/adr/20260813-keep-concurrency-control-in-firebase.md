@@ -1,17 +1,17 @@
-# Keep Concurrency Control in Firebase
+# 排他・並行制御を Firebase 側で維持する
 
 Status: Accepted
 
 ## Context
 
-Client-side locks and mutation queues add state and complexity, and cannot guarantee consistency across tabs, devices, or clients.
+クライアント側のロックやミューテーションキューは状態と複雑さを増大させ、タブ間、デバイス間、またはクライアント間での整合性を保証できない。
 
 ## Decision
 
-Do not implement client-side mutexes, locks, serial mutation queues, or similar mechanisms to guarantee consistency of Firebase-backed data.
+Firebase に保持されたデータの整合性を保証するために、クライアント側のミューテックス、ロック、シリアルミューテーションキュー、または同様のメカニズムを実装しない。
 
-When atomicity or concurrency control is required, use Firebase-provided mechanisms such as Firestore transactions, batched writes, or Cloud Functions as appropriate.
+アトミック性や排他・並行制御が必要な場合は、必要に応じて Firestore トランザクション、一括書き込み（batched writes）、Cloud Functions などの Firebase 提供のメカニズムを使用する。
 
-Client-local sequencing is allowed when it preserves one interactive workflow rather than claiming remote consistency. A workflow may retain an operation lock across Page visits or serialize successive writes so their user-intended order and latest complete draft survive navigation. Such state cannot provide cross-tab or cross-device exclusion and must not replace Firebase authorization, transactions, or other server-enforced invariants.
+リモートの整合性を担保するのではなく、単一の対話型ワークフローを保護する目的であれば、クライアントローカルでの順序制御（シーケンシング）は許容される。ワークフローは Page 遷移を跨いで操作ロックを保持したり、意図した書き込み順序や最新のドラフトが画面遷移後も維持されるよう連続する書き込みを直列化したりできる。そのような状態はタブ間やデバイス間での排他を提供できず、Firebase の認可、トランザクション、その他のサーバー側で強制される不変条件を置き換えてはならない。
 
-UI controls may also disable accidental duplicate actions while work is pending. See [PR #1433](https://github.com/her0e1c1/tango/pull/1433), [PR #1444](https://github.com/her0e1c1/tango/pull/1444), [PR #1459](https://github.com/her0e1c1/tango/pull/1459), and [PR #1465](https://github.com/her0e1c1/tango/pull/1465).
+UI コントロールは処理待機中の予期せぬ重複操作を無効化してもよい。[PR #1433](https://github.com/her0e1c1/tango/pull/1433)、[PR #1444](https://github.com/her0e1c1/tango/pull/1444)、[PR #1459](https://github.com/her0e1c1/tango/pull/1459)、[PR #1465](https://github.com/her0e1c1/tango/pull/1465)を参照する。
