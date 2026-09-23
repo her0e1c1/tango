@@ -70,11 +70,9 @@ Then:
 
 <a id="storybook-deck-filter-03"></a>
 
-### STORYBOOK-DECK-FILTER-03 タグ選択を通知する
+### STORYBOOK-DECK-FILTER-03 [TODO] タグ選択を通知する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -90,11 +88,9 @@ Then:
 
 <a id="storybook-deck-filter-04"></a>
 
-### STORYBOOK-DECK-FILTER-04 重複を除いて選択を扱う
+### STORYBOOK-DECK-FILTER-04 [TODO] 重複を除いて選択を扱う
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -110,11 +106,9 @@ Then:
 
 <a id="storybook-deck-filter-05"></a>
 
-### STORYBOOK-DECK-FILTER-05 Any と All を切り替える
+### STORYBOOK-DECK-FILTER-05 [TODO] Any と All を切り替える
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -130,11 +124,9 @@ Then:
 
 <a id="storybook-deck-filter-06"></a>
 
-### STORYBOOK-DECK-FILTER-06 選択済みと候補外のタグを先頭に保つ
+### STORYBOOK-DECK-FILTER-06 [TODO] 選択済みと候補外のタグを先頭に保つ
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -151,11 +143,9 @@ Then:
 
 <a id="storybook-deck-filter-07"></a>
 
-### STORYBOOK-DECK-FILTER-07 追加表示したタグへキーボードで移動する
+### STORYBOOK-DECK-FILTER-07 [TODO] 追加表示したタグへキーボードで移動する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -171,11 +161,9 @@ Then:
 
 <a id="storybook-deck-filter-08"></a>
 
-### STORYBOOK-DECK-FILTER-08 解除で隠れるタグからフォーカスを移す
+### STORYBOOK-DECK-FILTER-08 [TODO] 解除で隠れるタグからフォーカスを移す
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -191,11 +179,9 @@ Then:
 
 <a id="storybook-deck-filter-09"></a>
 
-### STORYBOOK-DECK-FILTER-09 最後の候補外タグを解除する
+### STORYBOOK-DECK-FILTER-09 [TODO] 最後の候補外タグを解除する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -211,11 +197,9 @@ Then:
 
 <a id="storybook-deck-filter-10"></a>
 
-### STORYBOOK-DECK-FILTER-10 Clear の無効化前にフォーカスを移す
+### STORYBOOK-DECK-FILTER-10 [TODO] Clear の無効化前にフォーカスを移す
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -231,11 +215,9 @@ Then:
 
 <a id="storybook-deck-filter-11"></a>
 
-### STORYBOOK-DECK-FILTER-11 8件以下では開示ボタンを表示しない
+### STORYBOOK-DECK-FILTER-11 [TODO] 8件以下では開示ボタンを表示しない
 
 カテゴリ: `render`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -251,11 +233,9 @@ Then:
 
 <a id="storybook-deck-filter-12"></a>
 
-### STORYBOOK-DECK-FILTER-12 空状態でも一致条件を保つ
+### STORYBOOK-DECK-FILTER-12 [TODO] 空状態でも一致条件を保つ
 
 カテゴリ: `render`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -271,11 +251,9 @@ Then:
 
 <a id="storybook-deck-filter-13"></a>
 
-### STORYBOOK-DECK-FILTER-13 大量の選択タグをスクロール領域にする
+### STORYBOOK-DECK-FILTER-13 [TODO] 大量の選択タグをスクロール領域にする
 
 カテゴリ: `render`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -291,11 +269,9 @@ Then:
 
 <a id="storybook-deck-filter-14"></a>
 
-### STORYBOOK-DECK-FILTER-14 長いタグ名を保持する
+### STORYBOOK-DECK-FILTER-14 [TODO] 長いタグ名を保持する
 
 カテゴリ: `render`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -311,11 +287,9 @@ Then:
 
 <a id="storybook-deck-filter-15"></a>
 
-### STORYBOOK-DECK-FILTER-15 言語変更後も展開状態を保つ
+### STORYBOOK-DECK-FILTER-15 [TODO] 言語変更後も展開状態を保つ
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 

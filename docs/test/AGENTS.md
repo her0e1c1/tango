@@ -21,3 +21,4 @@
 - 共通の文書ルールはこのファイル、階層固有の文書ルールは子の `AGENTS.md` に置き、repository root の `AGENTS.md` へ重複して記述しない。
 - Firestore / Storybook 契約以外の runtime behavior 仕様は `e2e` に置く。明示的な依頼なしに別の unit / integration 仕様書や ID system を追加しない。
 - ID が存在するだけではテスト済み・検証済みとはみなさない。未実装、skip、TODO は明示し、合格した検証として扱わない。
+- 対応テストの参照チェックを保留するケースは、見出しの ID 直後にだけ `[TODO]` を付ける。例: `### STORYBOOK-ACCOUNT-06 [TODO] 認証状態と UID を表示する`。対応するテストを実装したら印を削除する。状態行や `done` は記述せず、索引にも印を重複させない。印がないことはチェック対象を意味し、検証済みを意味しない。

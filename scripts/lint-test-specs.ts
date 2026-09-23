@@ -16,11 +16,12 @@ function readCases(directory: string) {
     .flatMap((file) => {
       const markdown = read(file);
       const headings = [...markdown.matchAll(/^### ([A-Z]+(?:-[A-Z]+)*-[0-9]{2,})\b.*$/gmu)];
-      return headings.map((heading, index) => ({
-        id: heading[1] ?? "",
-        file,
-        body: markdown.slice(heading.index, headings[index + 1]?.index),
-      }));
+      return headings
+        .filter((heading) => !heading[0].includes("[TODO]"))
+        .map((heading) => ({
+          id: heading[1] ?? "",
+          file,
+        }));
     });
 }
 
@@ -34,7 +35,6 @@ for (const [directory, testDirectory, pattern] of [
   const ids = new Set([...prefixes].flatMap(([, prefix = ""]) => prefix.split(/[\s[\]]+/u)));
 
   for (const testCase of readCases(directory)) {
-    if (/^検証状況:[ \t]*(?:todo|`todo`)(?:[ \t]|$)/imu.test(testCase.body)) continue;
     if (!ids.has(testCase.id)) problems.push(`${testCase.file}: ${testCase.id} has no matching test label prefix`);
   }
 }

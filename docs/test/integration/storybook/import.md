@@ -85,11 +85,9 @@ Then:
 
 <a id="storybook-import-04"></a>
 
-### STORYBOOK-IMPORT-04 プレビュー失敗を安全な日本語にする
+### STORYBOOK-IMPORT-04 [TODO] プレビュー失敗を安全な日本語にする
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -105,11 +103,9 @@ Then:
 
 <a id="storybook-import-05"></a>
 
-### STORYBOOK-IMPORT-05 診断を翻訳しユーザー入力は保持する
+### STORYBOOK-IMPORT-05 [TODO] 診断を翻訳しユーザー入力は保持する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -125,11 +121,9 @@ Then:
 
 <a id="storybook-import-06"></a>
 
-### STORYBOOK-IMPORT-06 形式の説明を必要なときだけ開く
+### STORYBOOK-IMPORT-06 [TODO] 形式の説明を必要なときだけ開く
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -145,11 +139,9 @@ Then:
 
 <a id="storybook-import-07"></a>
 
-### STORYBOOK-IMPORT-07 処理中の選択を無効にする
+### STORYBOOK-IMPORT-07 [TODO] 処理中の選択を無効にする
 
 カテゴリ: `render`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -165,11 +157,9 @@ Then:
 
 <a id="storybook-import-08"></a>
 
-### STORYBOOK-IMPORT-08 各サンプルの操作を要求する
+### STORYBOOK-IMPORT-08 [TODO] 各サンプルの操作を要求する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -185,11 +175,9 @@ Then:
 
 <a id="storybook-import-09"></a>
 
-### STORYBOOK-IMPORT-09 レビュー後もファイルを選び直せる
+### STORYBOOK-IMPORT-09 [TODO] レビュー後もファイルを選び直せる
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -205,11 +193,9 @@ Then:
 
 <a id="storybook-import-10"></a>
 
-### STORYBOOK-IMPORT-10 内容確認だけでは保存を要求しない
+### STORYBOOK-IMPORT-10 [TODO] 内容確認だけでは保存を要求しない
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -226,11 +212,9 @@ Then:
 
 <a id="storybook-import-11"></a>
 
-### STORYBOOK-IMPORT-11 一部の行が不正なら確定を止める
+### STORYBOOK-IMPORT-11 [TODO] 一部の行が不正なら確定を止める
 
 カテゴリ: `render`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -246,11 +230,9 @@ Then:
 
 <a id="storybook-import-12"></a>
 
-### STORYBOOK-IMPORT-12 準備失敗後も選び直せる
+### STORYBOOK-IMPORT-12 [TODO] 準備失敗後も選び直せる
 
 カテゴリ: `render`
-
-検証状況: todo (未実装)
 
 Given:
 

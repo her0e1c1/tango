@@ -65,11 +65,9 @@ Then:
 
 <a id="storybook-study-controls-03"></a>
 
-### STORYBOOK-STUDY-CONTROLS-03 Enter で再生を要求する
+### STORYBOOK-STUDY-CONTROLS-03 [TODO] Enter で再生を要求する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -85,11 +83,9 @@ Then:
 
 <a id="storybook-study-controls-04"></a>
 
-### STORYBOOK-STUDY-CONTROLS-04 スライダーで表示位置を要求する
+### STORYBOOK-STUDY-CONTROLS-04 [TODO] スライダーで表示位置を要求する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -105,11 +101,9 @@ Then:
 
 <a id="storybook-study-controls-05"></a>
 
-### STORYBOOK-STUDY-CONTROLS-05 無効な方向を Tab 移動から除く
+### STORYBOOK-STUDY-CONTROLS-05 [TODO] 無効な方向を Tab 移動から除く
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -125,11 +119,9 @@ Then:
 
 <a id="storybook-study-controls-06"></a>
 
-### STORYBOOK-STUDY-CONTROLS-06 Enter で方向操作を要求する
+### STORYBOOK-STUDY-CONTROLS-06 [TODO] Enter で方向操作を要求する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -145,11 +137,9 @@ Then:
 
 <a id="storybook-study-controls-07"></a>
 
-### STORYBOOK-STUDY-CONTROLS-07 ヘルプをモーダルとして開く
+### STORYBOOK-STUDY-CONTROLS-07 [TODO] ヘルプをモーダルとして開く
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -166,11 +156,9 @@ Then:
 
 <a id="storybook-study-controls-08"></a>
 
-### STORYBOOK-STUDY-CONTROLS-08 ヘルプ内にフォーカスを保ち Escape で戻る
+### STORYBOOK-STUDY-CONTROLS-08 [TODO] ヘルプ内にフォーカスを保ち Escape で戻る
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -186,11 +174,9 @@ Then:
 
 <a id="storybook-study-controls-09"></a>
 
-### STORYBOOK-STUDY-CONTROLS-09 背景の通知を操作させない
+### STORYBOOK-STUDY-CONTROLS-09 [TODO] 背景の通知を操作させない
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -206,11 +192,9 @@ Then:
 
 <a id="storybook-study-controls-10"></a>
 
-### STORYBOOK-STUDY-CONTROLS-10 ヘルプを閉じて通知の操作を戻す
+### STORYBOOK-STUDY-CONTROLS-10 [TODO] ヘルプを閉じて通知の操作を戻す
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 

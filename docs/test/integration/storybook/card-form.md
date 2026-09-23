@@ -132,11 +132,9 @@ Then:
 
 <a id="storybook-card-form-06"></a>
 
-### STORYBOOK-CARD-FORM-06 拡大編集後も両面の下書きを保つ
+### STORYBOOK-CARD-FORM-06 [TODO] 拡大編集後も両面の下書きを保つ
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -152,11 +150,9 @@ Then:
 
 <a id="storybook-card-form-07"></a>
 
-### STORYBOOK-CARD-FORM-07 独自タグの選択と要約を保って送信する
+### STORYBOOK-CARD-FORM-07 [TODO] 独自タグの選択と要約を保って送信する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -173,11 +169,9 @@ Then:
 
 <a id="storybook-card-form-08"></a>
 
-### STORYBOOK-CARD-FORM-08 キーボードで面を切り替える
+### STORYBOOK-CARD-FORM-08 [TODO] キーボードで面を切り替える
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -193,11 +187,9 @@ Then:
 
 <a id="storybook-card-form-09"></a>
 
-### STORYBOOK-CARD-FORM-09 裏面エラーを開いてフォーカスする
+### STORYBOOK-CARD-FORM-09 [TODO] 裏面エラーを開いてフォーカスする
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -214,11 +206,9 @@ Then:
 
 <a id="storybook-card-form-10"></a>
 
-### STORYBOOK-CARD-FORM-10 未知のエラーを安全な翻訳文で表示する
+### STORYBOOK-CARD-FORM-10 [TODO] 未知のエラーを安全な翻訳文で表示する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -234,11 +224,9 @@ Then:
 
 <a id="storybook-card-form-11"></a>
 
-### STORYBOOK-CARD-FORM-11 言語変更後も下書きとタグを保つ
+### STORYBOOK-CARD-FORM-11 [TODO] 言語変更後も下書きとタグを保つ
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -254,11 +242,9 @@ Then:
 
 <a id="storybook-card-form-12"></a>
 
-### STORYBOOK-CARD-FORM-12 不完全な下書きを送信せずプレビューする
+### STORYBOOK-CARD-FORM-12 [TODO] 不完全な下書きを送信せずプレビューする
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -274,11 +260,9 @@ Then:
 
 <a id="storybook-card-form-13"></a>
 
-### STORYBOOK-CARD-FORM-13 拡大編集の変更を数式プレビューに反映する
+### STORYBOOK-CARD-FORM-13 [TODO] 拡大編集の変更を数式プレビューに反映する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -294,11 +278,9 @@ Then:
 
 <a id="storybook-card-form-14"></a>
 
-### STORYBOOK-CARD-FORM-14 表示条件に応じてコードを表示する
+### STORYBOOK-CARD-FORM-14 [TODO] 表示条件に応じてコードを表示する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -314,11 +296,9 @@ Then:
 
 <a id="storybook-card-form-15"></a>
 
-### STORYBOOK-CARD-FORM-15 タグ変更をプレビューに反映する
+### STORYBOOK-CARD-FORM-15 [TODO] タグ変更をプレビューに反映する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -334,11 +314,9 @@ Then:
 
 <a id="storybook-card-form-16"></a>
 
-### STORYBOOK-CARD-FORM-16 言語変更後もプレビューを開いておく
+### STORYBOOK-CARD-FORM-16 [TODO] 言語変更後もプレビューを開いておく
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -354,11 +332,9 @@ Then:
 
 <a id="storybook-card-form-17"></a>
 
-### STORYBOOK-CARD-FORM-17 作成成功を通知する
+### STORYBOOK-CARD-FORM-17 [TODO] 作成成功を通知する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -374,11 +350,9 @@ Then:
 
 <a id="storybook-card-form-18"></a>
 
-### STORYBOOK-CARD-FORM-18 作成失敗後に入力を保って再試行する
+### STORYBOOK-CARD-FORM-18 [TODO] 作成失敗後に入力を保って再試行する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -394,11 +368,9 @@ Then:
 
 <a id="storybook-card-form-19"></a>
 
-### STORYBOOK-CARD-FORM-19 作成中の連続送信を抑止する
+### STORYBOOK-CARD-FORM-19 [TODO] 作成中の連続送信を抑止する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -414,11 +386,9 @@ Then:
 
 <a id="storybook-card-form-20"></a>
 
-### STORYBOOK-CARD-FORM-20 保存中は編集と離脱を無効にする
+### STORYBOOK-CARD-FORM-20 [TODO] 保存中は編集と離脱を無効にする
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -434,11 +404,9 @@ Then:
 
 <a id="storybook-card-form-21"></a>
 
-### STORYBOOK-CARD-FORM-21 外部更新で編集値を上書きしない
+### STORYBOOK-CARD-FORM-21 [TODO] 外部更新で編集値を上書きしない
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -454,11 +422,9 @@ Then:
 
 <a id="storybook-card-form-22"></a>
 
-### STORYBOOK-CARD-FORM-22 両面が不正なら表面から修正する
+### STORYBOOK-CARD-FORM-22 [TODO] 両面が不正なら表面から修正する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
@@ -474,11 +440,9 @@ Then:
 
 <a id="storybook-card-form-23"></a>
 
-### STORYBOOK-CARD-FORM-23 編集の保存失敗後に再送信する
+### STORYBOOK-CARD-FORM-23 [TODO] 編集の保存失敗後に再送信する
 
 カテゴリ: `interaction`
-
-検証状況: todo (未実装)
 
 Given:
 
