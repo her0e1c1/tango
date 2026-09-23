@@ -105,6 +105,42 @@ const CardListRows: React.FC<Pick<CardListProps, "cards" | "card" | "disabled" |
   );
 };
 
+const CardListEmpty = ({ empty }: { empty: CardListEmptyProps }) => {
+  const { t } = useTranslation();
+  const copy = {
+    "no-cards": { title: "cardList.empty.noCardsTitle", description: "cardList.empty.noCardsDescription" },
+    "filter-zero": { title: "cardList.empty.filterZeroTitle", description: "cardList.empty.filterZeroDescription" },
+    "interval-zero": {
+      title: "cardList.empty.intervalZeroTitle",
+      description: "cardList.empty.intervalZeroDescription",
+    },
+  } as const;
+  return (
+    <section
+      aria-labelledby="card-list-empty-title"
+      className="rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
+    >
+      <h2 id="card-list-empty-title" className="text-title font-semibold text-ink">
+        {t(copy[empty.reason].title)}
+      </h2>
+      <p className="mt-2 text-body text-ink-muted">{t(copy[empty.reason].description)}</p>
+      {empty.reason === "no-cards" && empty.onAddCard ? (
+        <div className="mt-4 flex justify-center">
+          <Button variant="primary" onClick={empty.onAddCard}>
+            {t("cardList.add")}
+          </Button>
+        </div>
+      ) : empty.reason === "filter-zero" && empty.onClearFilters ? (
+        <div className="mt-4 flex justify-center">
+          <Button variant="secondary" onClick={empty.onClearFilters}>
+            {t("cardList.empty.clearFilters")}
+          </Button>
+        </div>
+      ) : null}
+    </section>
+  );
+};
+
 /**
  * Composes the Card List screen from reusable UI components.
  * All data and callbacks arrive through props, allowing the same screen to run in tests and
@@ -254,38 +290,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
           {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
         />
       ) : props.empty ? (
-        <section
-          aria-labelledby="card-list-empty-title"
-          className="rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
-        >
-          <h2 id="card-list-empty-title" className="text-title font-semibold text-ink">
-            {props.empty.reason === "no-cards"
-              ? t("cardList.empty.noCardsTitle")
-              : props.empty.reason === "filter-zero"
-                ? t("cardList.empty.filterZeroTitle")
-                : t("cardList.empty.intervalZeroTitle")}
-          </h2>
-          <p className="mt-2 text-body text-ink-muted">
-            {props.empty.reason === "no-cards"
-              ? t("cardList.empty.noCardsDescription")
-              : props.empty.reason === "filter-zero"
-                ? t("cardList.empty.filterZeroDescription")
-                : t("cardList.empty.intervalZeroDescription")}
-          </p>
-          {props.empty.reason === "no-cards" && props.empty.onAddCard ? (
-            <div className="mt-4 flex justify-center">
-              <Button variant="primary" onClick={props.empty.onAddCard}>
-                {t("cardList.add")}
-              </Button>
-            </div>
-          ) : props.empty.reason === "filter-zero" && props.empty.onClearFilters ? (
-            <div className="mt-4 flex justify-center">
-              <Button variant="secondary" onClick={props.empty.onClearFilters}>
-                {t("cardList.empty.clearFilters")}
-              </Button>
-            </div>
-          ) : null}
-        </section>
+        <CardListEmpty empty={props.empty} />
       ) : null}
     </>
   );

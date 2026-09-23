@@ -72,6 +72,25 @@ export function startAuthSession(): () => void {
     }
   );
 
+  async function bootstrapAnonymousSession(): Promise<void> {
+    stopSubscriptions();
+    replaceAuthSession({ status: "authenticating", attemptId: Symbol("anonymous-auth") });
+    bootstrap ??= signInAnonymously(auth).finally(() => {
+      bootstrap = undefined;
+    });
+    await bootstrap;
+  }
+
+  async function restoreUserSession(user: User, currentGeneration: number): Promise<void> {
+    if (subscription?.uid !== user.uid) {
+      stopSubscriptions();
+      subscription = { uid: user.uid, ...startFirestoreSubscriptions(user.uid) };
+    }
+    await subscription.ready;
+    if (!isCurrent(currentGeneration)) return;
+    replaceAuthSession(authSessionFromUser(user));
+  }
+
   async function activate(user: User | null): Promise<void> {
     generation += 1;
     const currentGeneration = generation;
@@ -81,21 +100,10 @@ export function startAuthSession(): () => void {
       await (user && !user.isAnonymous ? enableNetwork(db) : disableNetwork(db));
       if (!isCurrent(currentGeneration)) return;
       if (user === null) {
-        stopSubscriptions();
-        replaceAuthSession({ status: "authenticating", attemptId: Symbol("anonymous-auth") });
-        bootstrap ??= signInAnonymously(auth).finally(() => {
-          bootstrap = undefined;
-        });
-        await bootstrap;
+        await bootstrapAnonymousSession();
         return;
       }
-      if (subscription?.uid !== user.uid) {
-        stopSubscriptions();
-        subscription = { uid: user.uid, ...startFirestoreSubscriptions(user.uid) };
-      }
-      await subscription.ready;
-      if (!isCurrent(currentGeneration)) return;
-      replaceAuthSession(authSessionFromUser(user));
+      await restoreUserSession(user, currentGeneration);
     } catch (error) {
       if (isCurrent(currentGeneration)) reportError(error);
     }

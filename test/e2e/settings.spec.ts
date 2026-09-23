@@ -1,4 +1,5 @@
-import { collectBrowserErrors, expect, requireDocument, test } from "./fixtures";
+import type { Page, TestInfo } from "@playwright/test";
+import { collectBrowserErrors, expect, requireDocument, test, type E2EFixture } from "./fixtures";
 import { readSession } from "./study-helpers";
 
 test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page }) => {
@@ -8,11 +9,9 @@ test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page
   await page.goto("/settings");
 
   const darkMode = page.getByRole("checkbox", { name: "Dark mode" });
-  if (initialDarkMode) await expect(darkMode).toBeChecked();
-  else await expect(darkMode).not.toBeChecked();
+  await expect(darkMode).toBeChecked({ checked: initialDarkMode });
   await darkMode.locator("xpath=parent::label").click();
-  if (expectedDarkMode) await expect(darkMode).toBeChecked();
-  else await expect(darkMode).not.toBeChecked();
+  await expect(darkMode).toBeChecked({ checked: expectedDarkMode });
   await expect
     .poll(() =>
       page.evaluate(
@@ -22,17 +21,80 @@ test("SETTINGS-01 Dark mode is auto-saved across reload", async ({ fixture, page
     .toBe(expectedDarkMode);
 
   await page.reload();
-  if (expectedDarkMode) {
-    await expect(darkMode).toBeChecked();
-    await expect(page.locator("html")).toHaveClass(/dark/);
-  } else {
-    await expect(darkMode).not.toBeChecked();
-    await expect(page.locator("html")).not.toHaveClass(/dark/);
-  }
+  await expect(darkMode).toBeChecked({ checked: expectedDarkMode });
+  await expect(page.locator("html")).toHaveClass(expectedDarkMode ? /dark/ : /^(?!.*\bdark\b).*$/);
 });
 
-test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture, page }) => {
+const verifyUnlimitedCardLocale = async (page: Page) => {
+  await expect(page.getByText("All matching cards", { exact: true })).toBeVisible();
+  await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
+  const japaneseSlider = page.getByRole("slider", { name: "最大カード数" });
+  await expect(japaneseSlider).toHaveAttribute("aria-valuetext", "条件に一致するすべてのカード");
+  await expect(page.getByText("条件に一致するすべてのカード", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(japaneseSlider).toHaveValue("0");
+  await expect(japaneseSlider).toHaveAttribute("aria-valuetext", "条件に一致するすべてのカード");
+  await page.getByRole("combobox", { name: "言語" }).selectOption("en");
+  await expect(page.getByRole("slider", { name: "Maximum cards" })).toBeVisible();
+};
+
+const verifyMaximumCards = async (page: Page, fixture: E2EFixture, maximum: number) => {
   const deck = fixture.deck();
+  const numberOfCards = fixture.state.remote.cards.length;
+  await page.goto("/settings");
+  const maximumCards = page.getByRole("slider", { name: "Maximum cards" });
+  await maximumCards.focus();
+  await maximumCards.press("Home");
+  for (let index = 0; index < maximum; index += 1) await maximumCards.press("ArrowRight");
+  await expect(maximumCards).toHaveValue(String(maximum));
+  const accessibleValue =
+    maximum === 0 ? "All matching cards" : `${String(maximum)} ${maximum === 1 ? "card" : "cards"}`;
+  await expect(maximumCards).toHaveAttribute("aria-valuetext", accessibleValue);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study?.maxNumberOfCardsToLearn
+      )
+    )
+    .toBe(maximum);
+
+  await page.reload();
+  await expect(maximumCards).toHaveValue(String(maximum));
+  await expect(maximumCards).toHaveAttribute("aria-valuetext", accessibleValue);
+  if (maximum === 0) await verifyUnlimitedCardLocale(page);
+
+  const count = maximum === 0 ? numberOfCards : maximum;
+  const countLabel = `${String(count)} ${count === 1 ? "card" : "cards"}`;
+  await page.goto(`/deck/${deck.id}/start`);
+  await expect(page.getByRole("heading", { level: 2, name: `${countLabel} in this session` })).toBeVisible();
+  await page.getByRole("button", { name: `Start ${countLabel}` }).click();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+  await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds.length).toBe(count);
+  const session = await readSession(fixture.user().uid, deck.id);
+  expect(session?.cardOrderIds).toEqual(
+    [fixture.card("card-1").id, fixture.card("card-2").id, fixture.card("card-3").id].slice(0, count)
+  );
+
+  await page.goto("/settings");
+  await maximumCards.press("Home");
+  if (maximum === 0) await maximumCards.press("ArrowRight");
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study?.maxNumberOfCardsToLearn
+      )
+    )
+    .toBe(maximum === 0 ? 1 : 0);
+  await page.goto("/");
+  await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
+  expect((await readSession(fixture.user().uid, deck.id))?.sessionId).toBe(session?.sessionId);
+  expect((await readSession(fixture.user().uid, deck.id))?.cardOrderIds).toEqual(session?.cardOrderIds);
+};
+
+test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture, page }) => {
   const numberOfCards = fixture.state.remote.cards.length;
   const expectedMaximum = numberOfCards - 1;
   if (expectedMaximum < 1) throw new Error("SETTINGS-02 fixture requires at least two Cards");
@@ -43,70 +105,7 @@ test("SETTINGS-02 Maximum cards limits the next study session", async ({ fixture
 
   for (const maximum of [expectedMaximum, 0, 1]) {
     await test.step(`Maximum cards ${String(maximum)}`, async () => {
-      await page.goto("/settings");
-      const maximumCards = page.getByRole("slider", { name: "Maximum cards" });
-      await maximumCards.focus();
-      await maximumCards.press("Home");
-      for (let index = 0; index < maximum; index += 1) await maximumCards.press("ArrowRight");
-      await expect(maximumCards).toHaveValue(String(maximum));
-      const accessibleValue =
-        maximum === 0 ? "All matching cards" : `${String(maximum)} ${maximum === 1 ? "card" : "cards"}`;
-      await expect(maximumCards).toHaveAttribute("aria-valuetext", accessibleValue);
-      await expect
-        .poll(() =>
-          page.evaluate(
-            () =>
-              JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study
-                ?.maxNumberOfCardsToLearn
-          )
-        )
-        .toBe(maximum);
-
-      await page.reload();
-      await expect(maximumCards).toHaveValue(String(maximum));
-      await expect(maximumCards).toHaveAttribute("aria-valuetext", accessibleValue);
-      if (maximum === 0) {
-        await expect(page.getByText("All matching cards", { exact: true })).toBeVisible();
-        await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
-        const japaneseSlider = page.getByRole("slider", { name: "最大カード数" });
-        await expect(japaneseSlider).toHaveAttribute("aria-valuetext", "条件に一致するすべてのカード");
-        await expect(page.getByText("条件に一致するすべてのカード", { exact: true })).toBeVisible();
-        await page.reload();
-        await expect(japaneseSlider).toHaveValue("0");
-        await expect(japaneseSlider).toHaveAttribute("aria-valuetext", "条件に一致するすべてのカード");
-        await page.getByRole("combobox", { name: "言語" }).selectOption("en");
-        await expect(maximumCards).toBeVisible();
-      }
-
-      const count = maximum === 0 ? numberOfCards : maximum;
-      const countLabel = `${String(count)} ${count === 1 ? "card" : "cards"}`;
-      await page.goto(`/deck/${deck.id}/start`);
-      await expect(page.getByRole("heading", { level: 2, name: `${countLabel} in this session` })).toBeVisible();
-      await page.getByRole("button", { name: `Start ${countLabel}` }).click();
-      await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
-      await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.cardOrderIds.length).toBe(count);
-      const session = await readSession(fixture.user().uid, deck.id);
-      expect(session?.cardOrderIds).toEqual(
-        [fixture.card("card-1").id, fixture.card("card-2").id, fixture.card("card-3").id].slice(0, count)
-      );
-
-      await page.goto("/settings");
-      await maximumCards.press("Home");
-      if (maximum === 0) await maximumCards.press("ArrowRight");
-      await expect
-        .poll(() =>
-          page.evaluate(
-            () =>
-              JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study
-                ?.maxNumberOfCardsToLearn
-          )
-        )
-        .toBe(maximum === 0 ? 1 : 0);
-      await page.goto("/");
-      await page.getByRole("button", { name: `Continue ${deck.name}` }).click();
-      await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/study$`));
-      expect((await readSession(fixture.user().uid, deck.id))?.sessionId).toBe(session?.sessionId);
-      expect((await readSession(fixture.user().uid, deck.id))?.cardOrderIds).toEqual(session?.cardOrderIds);
+      await verifyMaximumCards(page, fixture, maximum);
     });
   }
 });
@@ -168,6 +167,87 @@ test.describe("ja-JP browser locale", () => {
   });
 });
 
+const verifyAdvancedDisclosure = async (page: Page, testInfo: TestInfo, screenshotPrefix: string) => {
+  await page.goto("/");
+  await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
+  if ((page.viewportSize()?.width ?? 1100) < 640) {
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Open settings", exact: true }).click();
+  } else {
+    await page.getByRole("button", { name: "Open settings", exact: true }).click();
+  }
+  const summary = page.locator("summary");
+  const details = page.locator("details");
+  const interval = page.getByRole("slider", { name: "Autoplay interval" });
+  const readSavedData = () =>
+    page.evaluate(() =>
+      Object.fromEntries(
+        ["tango-config", "tango-local-decks", "tango-local-cards", "tango-study"].map((key) => [
+          key,
+          localStorage.getItem(key),
+        ])
+      )
+    );
+  const saved = await readSavedData();
+  await expect(summary).toContainText("Advanced");
+  await expect(details).not.toHaveAttribute("open");
+  await interval.focus();
+  await page.keyboard.press("Tab");
+  await expect(summary).toBeFocused();
+  const captureFocus = async (state: string) => {
+    await expect(summary).toBeInViewport();
+    const ring = await summary.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        visible: element.matches(":focus-visible"),
+        width: Number.parseFloat(style.outlineWidth),
+        offset: Number.parseFloat(style.outlineOffset),
+      };
+    });
+    expect(ring.visible).toBe(true);
+    expect(ring.width).toBeGreaterThan(0);
+    // An inset ring must fit inside the clipping disclosure in both open states.
+    expect(ring.offset + ring.width).toBeLessThanOrEqual(0);
+    await testInfo.attach(`${screenshotPrefix}-${state}`, {
+      body: await details.screenshot(),
+      contentType: "image/png",
+    });
+  };
+  await captureFocus("closed");
+  await page.keyboard.press("Shift+Tab");
+  await expect(interval).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(summary).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(details).toHaveAttribute("open");
+  await captureFocus("open");
+  await expect(details.getByText("Version", { exact: true })).toBeVisible();
+  const commit = details.getByRole("link");
+  const hasCommit = (await commit.count()) > 0;
+  await expect(hasCommit ? commit : details.getByText("unknown", { exact: true })).toBeVisible();
+  await expect
+    .poll(() => commit.evaluateAll((links) => links.map((link) => link.getAttribute("href"))))
+    .toEqual(hasCommit ? [expect.stringMatching(/\/commit\/[a-f0-9]+$/)] : []);
+  if (hasCommit) await page.keyboard.press("Tab");
+  await expect(hasCommit ? commit : summary).toBeFocused();
+  await expect.poll(() => summary.evaluate((element) => element === document.activeElement)).toBe(!hasCommit);
+  if (hasCommit) await page.keyboard.press("Shift+Tab");
+  await expect(summary).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(details).not.toHaveAttribute("open");
+  await page.keyboard.press("Space");
+  await expect(details).toHaveAttribute("open");
+  await page.keyboard.press("Space");
+  await expect(details).not.toHaveAttribute("open");
+  await page.keyboard.press("Space");
+  await expect(details).toHaveAttribute("open");
+  expect(await readSavedData()).toEqual(saved);
+  await page.reload();
+  await expect(summary).toBeVisible();
+  await expect(details).not.toHaveAttribute("open");
+  expect(await readSavedData()).toEqual(saved);
+};
+
 test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without changing saved data", async ({
   browser,
   baseURL,
@@ -182,85 +262,7 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
       const errors = collectBrowserErrors(page.context(), baseURL);
       try {
         await fixture.apply(page, { preferences: { appearance: { darkMode } } });
-        await page.goto("/");
-        await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
-        if (viewport.width < 640) {
-          await page.getByRole("button", { name: "Menu", exact: true }).click();
-          await page.getByRole("menuitem", { name: "Open settings", exact: true }).click();
-        } else {
-          await page.getByRole("button", { name: "Open settings", exact: true }).click();
-        }
-        const summary = page.locator("summary");
-        const details = page.locator("details");
-        const interval = page.getByRole("slider", { name: "Autoplay interval" });
-        const readSavedData = () =>
-          page.evaluate(() =>
-            Object.fromEntries(
-              ["tango-config", "tango-local-decks", "tango-local-cards", "tango-study"].map((key) => [
-                key,
-                localStorage.getItem(key),
-              ])
-            )
-          );
-        const saved = await readSavedData();
-        await expect(summary).toContainText("Advanced");
-        await expect(details).not.toHaveAttribute("open");
-        await interval.focus();
-        await page.keyboard.press("Tab");
-        await expect(summary).toBeFocused();
-        const captureFocus = async (state: string) => {
-          await expect(summary).toBeInViewport();
-          const ring = await summary.evaluate((element) => {
-            const style = getComputedStyle(element);
-            return {
-              visible: element.matches(":focus-visible"),
-              width: Number.parseFloat(style.outlineWidth),
-              offset: Number.parseFloat(style.outlineOffset),
-            };
-          });
-          expect(ring.visible).toBe(true);
-          expect(ring.width).toBeGreaterThan(0);
-          // An inset ring must fit inside the clipping disclosure in both open states.
-          expect(ring.offset + ring.width).toBeLessThanOrEqual(0);
-          await testInfo.attach(`${viewport.width}-${darkMode ? "dark" : "light"}-${state}`, {
-            body: await details.screenshot(),
-            contentType: "image/png",
-          });
-        };
-        await captureFocus("closed");
-        await page.keyboard.press("Shift+Tab");
-        await expect(interval).toBeFocused();
-        await page.keyboard.press("Tab");
-        await expect(summary).toBeFocused();
-        await page.keyboard.press("Enter");
-        await expect(details).toHaveAttribute("open");
-        await captureFocus("open");
-        await expect(details.getByText("Version", { exact: true })).toBeVisible();
-        const commit = details.getByRole("link");
-        if ((await commit.count()) > 0) {
-          await expect(commit).toHaveAttribute("href", /\/commit\/[a-f0-9]+$/);
-          await page.keyboard.press("Tab");
-          await expect(commit).toBeFocused();
-          await expect(summary).not.toBeFocused();
-          await page.keyboard.press("Shift+Tab");
-          await expect(summary).toBeFocused();
-        } else {
-          // Source archives can render the supported unknown-commit fallback without a link.
-          await expect(details.getByText("unknown", { exact: true })).toBeVisible();
-        }
-        await page.keyboard.press("Enter");
-        await expect(details).not.toHaveAttribute("open");
-        await page.keyboard.press("Space");
-        await expect(details).toHaveAttribute("open");
-        await page.keyboard.press("Space");
-        await expect(details).not.toHaveAttribute("open");
-        await page.keyboard.press("Space");
-        await expect(details).toHaveAttribute("open");
-        expect(await readSavedData()).toEqual(saved);
-        await page.reload();
-        await expect(summary).toBeVisible();
-        await expect(details).not.toHaveAttribute("open");
-        expect(await readSavedData()).toEqual(saved);
+        await verifyAdvancedDisclosure(page, testInfo, `${viewport.width}-${darkMode ? "dark" : "light"}`);
         errors.assert();
       } finally {
         await page.close();
@@ -340,7 +342,7 @@ test("SETTINGS-09 Cached CSV diagnostics follow the current language", async ({ 
   await expect(alert).toContainText("裏面のテキストは必須です。");
   await expect(alert).toContainText("引用符で囲まれたフィールドが閉じられていません。");
   await expect(alert.getByRole("listitem")).toHaveCount(3);
-  expect(await alert.locator("code").allTextContents()).toEqual(context);
+  await expect(alert.locator("code")).toHaveText(context);
   await expect(page.getByText("有効: 1件")).toBeVisible();
   await expect(page.getByText("無効: 2件")).toBeVisible();
   await expect(page.getByText("問題", { exact: true })).toBeVisible();

@@ -79,8 +79,8 @@ test("DECK-NAVIGATION-01 navigates from the Deck list to its Card list", async (
       await expect(page).toHaveURL(destination.href);
       for (const candidate of specialCards) {
         const button = page.getByRole("button", { name: `View ${candidate.frontText}`, exact: true });
-        if (candidate.deckId === selected.id) await expect(button).toBeVisible();
-        else await expect(button).toHaveCount(0);
+        await expect(button).toHaveCount(Number(candidate.deckId === selected.id));
+        await expect(button).toBeVisible({ visible: candidate.deckId === selected.id });
       }
       await expect(page.getByText(card.frontText, { exact: true })).toHaveCount(0);
       expect(await Promise.all(fixture.state.remote.cards.map(({ id }) => requireDocument("card", id)))).toEqual(

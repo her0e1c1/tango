@@ -42,7 +42,18 @@ export function useStudyShortcuts({
       toggleSwipeButtonList: toggleShowSwipeButtonList,
     },
   });
-  const runWhileStudying = (action: StudyShortcutAction) => (event: KeyboardEvent) => {
+  const shortcuts: Record<string, StudyShortcutAction> = {
+    ArrowUp: "swipeUp",
+    ArrowDown: "swipeDown",
+    ArrowLeft: "swipeLeft",
+    ArrowRight: "swipeRight",
+    Enter: "toggleBackText",
+    b: "toggleSwipeButtonList",
+    " ": "toggleAutoPlay",
+  };
+  const runWhileStudying = (event: KeyboardEvent) => {
+    const action = shortcuts[event.key];
+    if (action === undefined) return;
     // Native editing and activation keys take precedence, while unrelated Study shortcuts remain
     // available after a user moves focus into the card or floating controls.
     // A held Enter must not exit reading mode and then flip the same card.
@@ -50,23 +61,14 @@ export function useStudyShortcuts({
     const currentStudy = latestShortcuts.current;
     // A modal Help surface owns every key while open, including keys without native dialog behavior.
     if (currentStudy.status !== "studying" || currentStudy.helpOpen || shouldIgnoreCardShortcut(event)) return;
-    if (
-      !currentStudy.showBackText &&
-      getPreferences().controls.viewMode &&
-      (isDirectionalStudyAction(action) || action === "toggleAutoPlay")
-    )
-      return;
+    const directional = isDirectionalStudyAction(action);
+    const reading = !currentStudy.showBackText && getPreferences().controls.viewMode;
+    const blockedByReading = reading && (directional || action === "toggleAutoPlay");
     // Directional keys are an input gesture, so the answer keeps them inert even though edge overlays can act.
-    if (currentStudy.showBackText && isDirectionalStudyAction(action)) return;
+    const blockedByAnswer = currentStudy.showBackText && directional;
+    if (blockedByReading || blockedByAnswer) return;
     currentStudy.actions[action]();
   };
 
-  // useKey retains its initial handler, so that handler reads current Page state through one stable ref.
-  useKey("ArrowUp", runWhileStudying("swipeUp"));
-  useKey("ArrowDown", runWhileStudying("swipeDown"));
-  useKey("ArrowLeft", runWhileStudying("swipeLeft"));
-  useKey("ArrowRight", runWhileStudying("swipeRight"));
-  useKey("Enter", runWhileStudying("toggleBackText"));
-  useKey("b", runWhileStudying("toggleSwipeButtonList"));
-  useKey(" ", runWhileStudying("toggleAutoPlay"));
+  useKey((event) => Object.hasOwn(shortcuts, event.key), runWhileStudying);
 }

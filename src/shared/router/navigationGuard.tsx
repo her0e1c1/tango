@@ -10,7 +10,6 @@ const BeforeUnloadGuard = () => {
     (event) => {
       event.preventDefault();
       // Legacy browsers require returnValue in addition to the modern preventDefault contract.
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
       event.returnValue = "";
     },
     { capture: true }

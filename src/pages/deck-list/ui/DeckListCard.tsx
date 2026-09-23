@@ -69,8 +69,11 @@ const DeckReviewStatus: React.FC<{
 export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
   const { t } = useTranslation();
   const { deck, studySession, review } = props;
-  const studyAction = review?.due ? "review" : review?.new ? "studyNew" : "study";
   const active = studySession != null;
+  let studyAction = "study" as "continue" | "review" | "studyNew" | "study";
+  if (active) studyAction = "continue";
+  else if (review?.due) studyAction = "review";
+  else if (review?.new) studyAction = "studyNew";
   const pending = props.isPending?.(deck.id) ?? false;
   const withId = (action?: (id: DeckId) => void) => () => action?.(deck.id);
   const statusId = React.useId();
@@ -148,16 +151,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
 
       <button
         type="button"
-        aria-label={t(
-          active
-            ? "deckList.continueDeck"
-            : studyAction === "review"
-              ? "deckList.reviewDeck"
-              : studyAction === "studyNew"
-                ? "deckList.studyNewDeck"
-                : "deckList.studyDeck",
-          { deckName: deck.name }
-        )}
+        aria-label={t(`deckList.${studyAction}Deck`, { deckName: deck.name })}
         className={cx(
           "inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-control px-3 py-2 text-body font-semibold hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50",
           active ? "bg-accent-primary text-ink-inverse" : "bg-surface-muted text-accent-primary"
@@ -166,15 +160,7 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
         disabled={pending}
       >
         {active && <AiFillCaretRight aria-hidden="true" />}
-        {t(
-          active
-            ? "deckList.continue"
-            : studyAction === "review"
-              ? "deckList.review"
-              : studyAction === "studyNew"
-                ? "deckList.studyNew"
-                : "deckList.study"
-        )}
+        {t(`deckList.${studyAction}`)}
       </button>
     </article>
   );

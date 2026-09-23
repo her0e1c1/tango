@@ -42,6 +42,66 @@ export interface DeckListProps {
   onImportDeck: () => void;
 }
 
+const DeckListEmpty = (props: {
+  empty: NonNullable<DeckListProps["empty"]>;
+  onCreateDeck: DeckListProps["onCreateDeck"];
+  onImportDeck: DeckListProps["onImportDeck"];
+}) => {
+  const { t } = useTranslation();
+  return props.empty.reason === "checking" ? (
+    <div
+      role="status"
+      aria-live="polite"
+      className="rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
+    >
+      <p className="text-body text-ink-muted">{t("deckList.empty.checking")}</p>
+    </div>
+  ) : props.empty.reason === "error" ? (
+    <section
+      role="alert"
+      aria-live="assertive"
+      aria-labelledby="deck-list-empty-error-title"
+      className="rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
+    >
+      <h2 id="deck-list-empty-error-title" className="text-title font-bold text-ink">
+        {t("deckList.empty.errorTitle")}
+      </h2>
+      <p className="mt-2 text-body text-ink-muted">{t("deckList.empty.errorDescription")}</p>
+      <div className="mt-6 flex flex-wrap justify-center gap-2">
+        {props.empty.onRetry ? (
+          <Button variant="primary" onClick={props.empty.onRetry}>
+            {t("deckList.empty.retry")}
+          </Button>
+        ) : null}
+        <Button variant="secondary" onClick={props.onCreateDeck}>
+          {t("deckList.create")}
+        </Button>
+        <Button variant="quiet" onClick={props.onImportDeck}>
+          {t("deckList.import")}
+        </Button>
+      </div>
+    </section>
+  ) : (
+    <section
+      aria-labelledby="deck-list-empty-confirmed-title"
+      className="rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
+    >
+      <h2 id="deck-list-empty-confirmed-title" className="text-title font-bold text-ink">
+        {t("deckList.empty.confirmedTitle")}
+      </h2>
+      <p className="mt-2 text-body text-ink-muted">{t("deckList.empty.confirmedDescription")}</p>
+      <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <Button variant="primary" onClick={props.onCreateDeck}>
+          {t("deckList.create")}
+        </Button>
+        <Button variant="secondary" onClick={props.onImportDeck}>
+          {t("deckList.import")}
+        </Button>
+      </div>
+    </section>
+  );
+};
+
 /**
  * Renders the Deck List presentation from prepared sections and action callbacks.
  */
@@ -107,58 +167,7 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
         </div>
       )}
       {total === 0 && props.empty ? (
-        props.empty.reason === "checking" ? (
-          <div
-            role="status"
-            aria-live="polite"
-            className="rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
-          >
-            <p className="text-body text-ink-muted">{t("deckList.empty.checking")}</p>
-          </div>
-        ) : props.empty.reason === "error" ? (
-          <section
-            role="alert"
-            aria-live="assertive"
-            aria-labelledby="deck-list-empty-error-title"
-            className="rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
-          >
-            <h2 id="deck-list-empty-error-title" className="text-title font-bold text-ink">
-              {t("deckList.empty.errorTitle")}
-            </h2>
-            <p className="mt-2 text-body text-ink-muted">{t("deckList.empty.errorDescription")}</p>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {props.empty.onRetry ? (
-                <Button variant="primary" onClick={props.empty.onRetry}>
-                  {t("deckList.empty.retry")}
-                </Button>
-              ) : null}
-              <Button variant="secondary" onClick={props.onCreateDeck}>
-                {t("deckList.create")}
-              </Button>
-              <Button variant="quiet" onClick={props.onImportDeck}>
-                {t("deckList.import")}
-              </Button>
-            </div>
-          </section>
-        ) : (
-          <section
-            aria-labelledby="deck-list-empty-confirmed-title"
-            className="rounded-surface border border-border bg-surface p-6 text-center text-ink shadow-surface"
-          >
-            <h2 id="deck-list-empty-confirmed-title" className="text-title font-bold text-ink">
-              {t("deckList.empty.confirmedTitle")}
-            </h2>
-            <p className="mt-2 text-body text-ink-muted">{t("deckList.empty.confirmedDescription")}</p>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <Button variant="primary" onClick={props.onCreateDeck}>
-                {t("deckList.create")}
-              </Button>
-              <Button variant="secondary" onClick={props.onImportDeck}>
-                {t("deckList.import")}
-              </Button>
-            </div>
-          </section>
-        )
+        <DeckListEmpty empty={props.empty} onCreateDeck={props.onCreateDeck} onImportDeck={props.onImportDeck} />
       ) : null}
       {total > 0 && (
         <section aria-label={t("deckList.title")} className="space-y-6">

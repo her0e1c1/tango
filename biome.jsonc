@@ -30,6 +30,10 @@
       "preset": "all",
       // Exceptions preserve established test, orchestration, and fire-and-forget conventions.
       "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": { "maxAllowedComplexity": 15 }
+        },
         "noExcessiveLinesPerFunction": "off",
         "noForEach": "off",
         "noVoid": "off"
@@ -131,6 +135,29 @@
     }
   },
   "overrides": [
+    {
+      "includes": ["src/**/*.stories.tsx"],
+      "linter": {
+        "rules": {
+          // TypeScript ESLint resolves storybook/test thenables; keep one owner for Story promise diagnostics.
+          "nursery": { "noFloatingPromises": "off" }
+        }
+      }
+    },
+    {
+      // Share Playwright diagnostics with #1015; Storybook uses its own interaction rules.
+      "includes": ["playwright.config.ts", "test/e2e/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "noPlaywrightMissingAwait": "error",
+            "noPlaywrightWaitForTimeout": "error",
+            "noPlaywrightForceOption": "error",
+            "noConditionalExpect": "error"
+          }
+        }
+      }
+    },
     {
       // Tooling and integration tests execute in Node rather than the browser application runtime.
       "includes": [".storybook/main.ts", "*.config.{js,mjs,ts}", "test/**/*.{ts,tsx}", "scripts/**/*.ts"],

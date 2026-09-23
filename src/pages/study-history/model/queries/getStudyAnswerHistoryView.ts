@@ -11,27 +11,18 @@ export function getStudyAnswerHistoryView(state: ReturnType<typeof useStudyAnswe
     result?.history && request.period
       ? aggregateStudyAnswers(request.period, result.history, new Set(selected.map((deck) => deck.id)))
       : null;
+  let status = "ready";
+  if (request.period === null) status = "invalidRange";
+  else if (request.uid === null) status = "loading";
+  else if (request.deckId !== null && selected.length === 0) status = "unavailable";
+  else if (result?.error) status = "error";
+  else if (!summary) status = "loading";
+  else if (summary.source === "cache") status = "cache-limited";
+  else if (summary.truncated) status = "truncated";
+  else if (!summary.complete) status = "incomplete";
+  else if (summary.ratedAnswerCount === 0) status = "empty";
   return {
-    status:
-      request.period === null
-        ? "invalidRange"
-        : request.uid === null
-          ? "loading"
-          : request.deckId !== null && selected.length === 0
-            ? "unavailable"
-            : result?.error
-              ? "error"
-              : !summary
-                ? "loading"
-                : summary.source === "cache"
-                  ? "cache-limited"
-                  : summary.truncated
-                    ? "truncated"
-                    : !summary.complete
-                      ? "incomplete"
-                      : summary.ratedAnswerCount === 0
-                        ? "empty"
-                        : "ready",
+    status,
     summary,
     error: result?.error,
   };

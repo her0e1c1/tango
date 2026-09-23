@@ -140,16 +140,15 @@ test("STUDY-SESSION-01 starts a filtered session capped by the learning limit", 
       const slider = page.getByRole("slider", { name: "Maximum cards" });
       await slider.press("Home");
       if (maximum === 1) await slider.press("ArrowRight");
-      await expect
-        .poll(() =>
-          page.evaluate(
-            () =>
-              JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study
-                ?.maxNumberOfCardsToLearn
-          )
-        )
-        .toBe(maximum);
     }
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.study?.maxNumberOfCardsToLearn
+        )
+      )
+      .toBe(maximum);
     const matchingIds = [firstCard.id, secondCard.id, eligibleBeyondLimit.id];
     const expectedIds = maximum === 0 ? matchingIds : matchingIds.slice(0, maximum);
     const countLabel = `${String(expectedIds.length)} ${expectedIds.length === 1 ? "card" : "cards"}`;
@@ -472,8 +471,8 @@ test("STUDY-CONTROLS-05 toggles and persists the Study Help button", async ({ fi
   const actionsBounds = await actions.boundingBox();
   expect(helpBounds).not.toBeNull();
   expect(actionsBounds).not.toBeNull();
-  if (helpBounds !== null && actionsBounds !== null)
-    expect(helpBounds.x + helpBounds.width).toBeLessThanOrEqual(actionsBounds.x);
+  if (helpBounds === null || actionsBounds === null) throw new Error("Missing toolbar bounds");
+  expect(helpBounds.x + helpBounds.width).toBeLessThanOrEqual(actionsBounds.x);
 
   await actions.click();
   await page.getByRole("button", { name: "Help button" }).click();

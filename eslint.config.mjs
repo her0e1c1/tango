@@ -5,22 +5,34 @@ import { createConfig as createBoundariesConfig } from "eslint-plugin-boundaries
 import reactHooks from "eslint-plugin-react-hooks";
 import testingLibrary from "eslint-plugin-testing-library";
 import vitest from "@vitest/eslint-plugin";
+import playwright from "eslint-plugin-playwright";
+import storybook from "eslint-plugin-storybook";
 
 // lint:tsc invokes TypeScript 7 through @typescript/native directly to avoid the two tsc binaries colliding.
 // Keep TypeScript 5 for the compiler API used by this parser and other tools, including Steiger's TS 5 peers.
-// Keep ESLint focused on application-owned TypeScript.
-// TypeScript and Biome cover repository tooling and tests outside src.
+// Keep application policies separate from test-runner checks.
 const sourceFiles = ["src/**/*.{ts,tsx}"];
 // Tests and stories use fixtures, mocks, and direct wiring, so production-only type and UI policies exclude them.
 const nonProductionFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 // Stories share those production exemptions, but only spec and test modules use Vitest and Testing Library semantics.
-const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}"];
+const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}", "test/integration/**/*.{spec,test}.{ts,tsx}"];
+const playwrightFiles = ["test/e2e/**/*.{ts,tsx}", "playwright.config.ts"];
 // Steiger enforces FSD layer and slice boundaries, but it does not protect presentational UI from same-slice
 // model imports. Runtime imports are restricted so Pages and Containers connect state and workflows, then pass
 // prepared values through props.
 // Type-only imports remain allowed so presentational prop types can refer to model-owned types.
 // This gitignore-style directory pattern covers model and its descendants at any relative depth.
 const sameSliceModelImports = ["../**/model"];
+const sameSliceApiRestriction = {
+  group: ["../**/api", "@/**/api"],
+  allowTypeImports: true,
+  message: "Presentational UI must receive persistence operations through props.",
+};
+const firestoreImports = {
+  group: ["firebase/firestore", "firebase/firestore/**"],
+  allowTypeImports: true,
+  message: "Use Entity public APIs for domain persistence.",
+};
 const pageRouteImports = ["react-router", "react-router-dom"].map((name) => ({
   name,
   importNames: ["useParams"],
@@ -29,21 +41,19 @@ const pageRouteImports = ["react-router", "react-router-dom"].map((name) => ({
 
 // Flat config composes every matching block. Shared React and parsing checks come first, followed by narrower policies.
 export default defineConfig(
+  { linterOptions: { noInlineConfig: true } },
+  {
+    files: [...sourceFiles, ...vitestFiles, ...playwrightFiles],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+    },
+  },
   // Hook correctness and React Compiler compatibility must hold in production, tests, and stories alike.
   {
     files: sourceFiles,
     // React Compiler is enabled in Vite, so this preset checks both Hooks semantics and compiler-incompatible patterns.
     extends: [reactHooks.configs.flat["recommended-latest"]],
-    languageOptions: {
-      // Parse TS and TSX here so every narrower source config uses the same TypeScript syntax and project information.
-      parser: tsParser,
-      parserOptions: {
-        // Use the same TypeScript project graph as tsc so type-aware rules can reason about resolved types.
-        projectService: true,
-        // Anchor project discovery to this file so lint results do not depend on the process working directory.
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
     rules: {
       // React Compiler owns routine memoization, so manual caches would duplicate its work and add dependency lists
       // that can become stale.
@@ -109,6 +119,17 @@ export default defineConfig(
       "no-restricted-imports": ["error", { paths: pageRouteImports }],
     },
   },
+  {
+    files: ["src/pages/*/{model,ui}/**/*.{ts,tsx}"],
+    ignores: [...nonProductionFiles, "src/pages/*/ui/**/*Page.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", { paths: pageRouteImports, patterns: [firestoreImports] }],
+    },
+  },
+  {
+    files: ["src/pages/*/ui/**/*Page.{ts,tsx}"],
+    rules: { "no-restricted-imports": ["error", { patterns: [firestoreImports] }] },
+  },
   // FSD permits Feature-to-Entity dependencies, but Feature UI stays props-driven under this project's stricter policy.
   // State and workflows are connected outside presentational UI and passed in as prepared values and callbacks.
   {
@@ -120,6 +141,7 @@ export default defineConfig(
         {
           paths: pageRouteImports,
           patterns: [
+            sameSliceApiRestriction,
             {
               // Cover the Entity layer barrel and every slice public API; prop contracts may still import their types.
               group: ["@/entities", "@/entities/*"],
@@ -152,6 +174,8 @@ export default defineConfig(
         {
           paths: pageRouteImports,
           patterns: [
+            firestoreImports,
+            sameSliceApiRestriction,
             {
               // Entity data and actions are prepared by the Page or Container; type-only prop contracts remain safe.
               group: ["@/entities", "@/entities/*"],
@@ -177,11 +201,82 @@ export default defineConfig(
       ],
     },
   },
+  {
+    files: ["src/{entities,widgets}/*/ui/**/*.{ts,tsx}", "src/shared/ui/**/*.{ts,tsx}"],
+    ignores: [...nonProductionFiles, "src/widgets/*/ui/**/*Container.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", { paths: pageRouteImports, patterns: [sameSliceApiRestriction] }],
+    },
+  },
+  // Queries may read stores, but cannot depend on state-changing actions. Type contracts remain legal.
+  {
+    files: ["src/{pages,features,entities}/*/model/queries/**/*.{ts,tsx}"],
+    ignores: nonProductionFiles,
+    rules: {
+      "no-restricted-imports": ["error", {
+        paths: pageRouteImports,
+        patterns: [
+          firestoreImports,
+          { group: ["../**/actions", "@/**/model/actions"], allowTypeImports: true,
+            message: "Queries must not depend on actions at runtime." },
+        ],
+      }],
+    },
+  },
+  {
+    files: ["src/{pages,features,entities}/*/model/{schema,rules,defaults}.ts", "src/entities/card/model/fsrsRules.ts"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        paths: pageRouteImports,
+        patterns: [
+          firestoreImports,
+          { group: ["react", "react/**", "react-dom", "react-dom/**", "zustand", "zustand/**",
+              "./store", "./store.*", "./store/**", "../**/store", "../**/store.*", "@/**/store", "@/**/store.*"],
+            allowTypeImports: true, message: "Schemas, rules, and defaults must stay independent of React and stores." },
+        ],
+      }],
+    },
+  },
+  {
+    files: ["src/shared/router/navigationGuard.tsx"],
+    rules: {
+      // BeforeUnloadEvent.returnValue is required alongside preventDefault for legacy browsers.
+      "@typescript-eslint/no-deprecated": ["error", { allow: [{ from: "lib", name: "returnValue" }] }],
+    },
+  },
+  {
+    files: ["src/**/*.stories.tsx"],
+    extends: [storybook.configs["flat/recommended"]],
+    plugins: { "@typescript-eslint": tseslint },
+    rules: {
+      // Preserve the existing Hooks checks; the Storybook preset otherwise disables this rule.
+      "react-hooks/rules-of-hooks": "error",
+      // Storybook 10.6's await-interactions misses storybook/test imports. Check their real Promise/thenable types.
+      "@typescript-eslint/no-floating-promises": ["error", { checkThenables: true }],
+    },
+  },
+  {
+    files: playwrightFiles,
+    plugins: { playwright },
+    // Biome owns await, timeout, force, and conditional-expect checks (shared with #1015).
+    rules: { "playwright/prefer-web-first-assertions": "error" },
+  },
   // Co-located tests retain the shared React and source-layout checks, then add test-specific correctness rules.
   // Stories are excluded because they are Storybook render fixtures rather than Vitest suites.
   {
     files: vitestFiles,
-    // Testing Library favors user-observable interactions, while Vitest validates suite and assertion usage.
-    extends: [testingLibrary.configs["flat/react"], vitest.configs.recommended],
+    // Vitest validates suites and assertions without applying production policies to integration tests.
+    extends: [vitest.configs.recommended],
+  },
+  {
+    files: ["test/integration/firestore/**/*.{spec,test}.{ts,tsx}"],
+    rules: {
+      // Firebase's helpers assert Rules authorization by resolving or rejecting the real SDK operation.
+      "vitest/expect-expect": ["error", { assertFunctionNames: ["expect", "assertSucceeds", "assertFails"] }],
+    },
+  },
+  {
+    files: ["src/**/*.{spec,test}.{ts,tsx}"],
+    extends: [testingLibrary.configs["flat/react"]],
   },
 );
