@@ -2,81 +2,90 @@
 
 ## 目的
 
-Card リモートストア (`cardStore`) の初期状態、リモート Card スナップショットによる全置換更新、および認証スコープ終了時のクリア処理を確認する。
+取得済みカードの変更と消去が参照結果に反映され、参照可能なデックに属する同じ所有者のカードだけを取得できることを確認する。Firestore document の検証、論理削除の除外、購読開始・停止は扱わない。
 
-対応ファイル: [`store.ts`](../../../../src/entities/card/model/store.ts) / [`replaceRemoteCards.ts`](../../../../src/entities/card/model/actions/replaceRemoteCards.ts) / [`clearRemoteCards.ts`](../../../../src/entities/card/model/actions/clearRemoteCards.ts) / [`subscription.spec.tsx`](../../../../src/entities/card/api/subscription.spec.tsx)
+関連テスト: [`subscription.spec.tsx`](../../../../src/entities/card/api/subscription.spec.tsx)（SDK を模した既存テスト。Store 単体テストそのものとは区別する）
 
-関連 E2E: [CARD-VIEW-01](../../e2e/card-view.md#card-view-01)、[CARD-MANAGEMENT-01](../../e2e/card-management.md#card-management-01)
+関連 E2E: [CARD-VIEW-01](../../e2e/card-view.md#card-view-01)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
-## 共通前提
-
-テスト実行前に `cardStore.setState({ remoteCards: [] })` を呼び出し、`cardStore` のリモート Card 一覧を空配列に初期化する。
+対応状況は既存テストとの静的な照合結果であり、テストの実行結果ではない。共通の検証境界と対応状況の意味は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| UNIT-STORE-CARD-01 | initial | [初期状態で remoteCards が空配列であること](#unit-store-card-01) |
-| UNIT-STORE-CARD-02 | state-change | [リモートスナップショットで Card 一覧を全置換できること](#unit-store-card-02) |
-| UNIT-STORE-CARD-03 | scope-reset | [認証スコープ終了時に remoteCards をクリアできること](#unit-store-card-03) |
+| UNIT-STORE-CARD-01 | state-change | [最新の取得結果だけをカード一覧として提供する](#unit-store-card-01) |
+| UNIT-STORE-CARD-02 | scope-reset | [カードのクリア後は以前のカードを参照できない](#unit-store-card-02) |
+| UNIT-STORE-CARD-03 | visibility | [所属デックと所有者が一致するカードだけを提供する](#unit-store-card-03) |
 
 <a id="unit-store-card-01"></a>
 
-### UNIT-STORE-CARD-01 初期状態で remoteCards が空配列であること
-
-カテゴリ: `initial`
-
-対応テスト: `Card Firestore subscription [CARD-VIEW-01]`
-
-Given:
-
-- `cardStore` が初期化されている。
-
-When:
-
-- `cardStore.getState()` を取得する。
-
-Then:
-
-- `remoteCards` は空の配列 `[]` である。
-
-<a id="unit-store-card-02"></a>
-
-### UNIT-STORE-CARD-02 リモートスナップショットで Card 一覧を全置換できること
+### UNIT-STORE-CARD-01 最新の取得結果だけをカード一覧として提供する
 
 カテゴリ: `state-change`
 
-対応テスト: `[CARD-VIEW-01] fully replaces active Cards from each snapshot`
+対応テスト: `fully replaces active Cards from each snapshot`（要補完：同一 ID の内容更新と空の取得結果）。
 
 Given:
 
-- 初期状態の `cardStore` が存在する。
-- 1つのアクティブな RemoteCard オブジェクトを用意する。
+入力カードの所属デックと所有者は参照可能なデックと一致している。各行を独立して検証する。
+
+| 変更前のカード | 新しい取得結果 |
+| --- | --- |
+| なし | A、B |
+| A（表面が旧内容）、B | A（表面が新内容）、C |
+| A、B | なし |
 
 When:
 
-- `replaceRemoteCards([remoteCard])` を呼び出し、その後別の RemoteCard 配列で再度呼び出す。
+新しい取得結果をカードモデルへ反映する。
 
 Then:
 
-- `cardStore.getState().remoteCards` の内容が、渡されたスナップショットで完全に置換され最新の状態が反映される。
+参照できるカードの ID と内容は新しい取得結果に一致する。以前だけ存在した B や A の旧内容は残らず、空の結果を受け取った場合は以前のカードを参照できない。
 
-<a id="unit-store-card-03"></a>
+<a id="unit-store-card-02"></a>
 
-### UNIT-STORE-CARD-03 認証スコープ終了時に remoteCards をクリアできること
+### UNIT-STORE-CARD-02 カードのクリア後は以前のカードを参照できない
 
 カテゴリ: `scope-reset`
 
-対応テスト: 仕様（アクション `clearRemoteCards.ts`）定義
+対応テスト: 未検証：参照した既存テストにはクリア操作の検証がない。
 
 Given:
 
-- `cardStore` に RemoteCard が保持されている。
+参照可能なデックに属するカード A、B を保持している場合と、カードを保持していない場合を用意する。
 
 When:
 
-- `clearRemoteCards()` を呼び出す。
+カードモデルのクリア操作を行う。
 
 Then:
 
-- `cardStore.getState().remoteCards` は空配列 `[]` にクリアされる。
+どちらの場合もカード一覧は空となり、以前のカードを参照できない。既に空であっても操作は失敗しない。
+
+<a id="unit-store-card-03"></a>
+
+### UNIT-STORE-CARD-03 所属デックと所有者が一致するカードだけを提供する
+
+カテゴリ: `visibility`
+
+対応テスト: 未検証：既存の購読テストは所属デックと所有者が一致する入力だけを使用している。
+
+Given:
+
+カード A はデック X・利用者 a、カード B はデック X・利用者 b、カード C はデック Y・利用者 a に属する。カードを保持したまま、参照可能デックを次の各条件にする。
+
+| 参照可能なデック | 取得できるカード |
+| --- | --- |
+| デック X・利用者 a | A のみ |
+| デック X・利用者 b | B のみ |
+| なし | なし |
+
+When:
+
+現在のカード一覧を取得する。
+
+Then:
+
+結果は表に一致する。デック ID だけが一致する別所有者のカードや、参照できるデックのないカードは含まれない。

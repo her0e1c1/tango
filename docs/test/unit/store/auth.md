@@ -2,101 +2,92 @@
 
 ## 目的
 
-認証セッションストア (`authSessionStore`) の初期状態、認証状態の移行、および全置換更新における動作を確認する。
+認証結果を利用する側が、現在の状態と本人情報だけを取得でき、前の利用者や認証試行の情報を引き継がないことを確認する。Firebase Auth の実行、試行の競合制御、サインアウト時の他 Entity の消去は対象外とする。
 
-対応ファイル: [`store.ts`](../../../../src/entities/auth/model/store.ts) / [`replaceAuthSession.ts`](../../../../src/entities/auth/model/actions/replaceAuthSession.ts) / [`getAuthSession.ts`](../../../../src/entities/auth/model/queries/getAuthSession.ts) / [`useAuthSession.ts`](../../../../src/entities/auth/model/queries/useAuthSession.ts) / [`replaceAuthSession.spec.ts`](../../../../src/entities/auth/model/actions/replaceAuthSession.spec.ts) / [`useAuthSession.spec.ts`](../../../../src/entities/auth/model/queries/useAuthSession.spec.ts)
+関連テスト: [`replaceAuthSession.spec.ts`](../../../../src/entities/auth/model/actions/replaceAuthSession.spec.ts)
 
-関連 E2E: [ACCOUNT-01](../../e2e/account.md#account-01)、[ACCOUNT-03](../../e2e/account.md#account-03)、[ACCOUNT-04](../../e2e/account.md#account-04)
+関連 E2E: [ACCOUNT-03](../../e2e/account.md#account-03)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
-## 共通前提
-
-テスト実行前に `replaceAuthSession({ status: "initializing" })` を呼び出し、`authSessionStore` の状態を初期化状態にリセットする。
+対応状況は既存テストとの静的な照合結果であり、テストの実行結果ではない。共通の検証境界と対応状況の意味は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| UNIT-STORE-AUTH-01 | initial | [識別子なしの初期状態を保持できる](#unit-store-auth-01) |
-| UNIT-STORE-AUTH-02 | state-change | [現在の認証セッションを新しい認証情報で全置換できる](#unit-store-auth-02) |
-| UNIT-STORE-AUTH-03 | state-change | [SDK 認証資格情報を伴わない匿名認証状態を保持できる](#unit-store-auth-03) |
-| UNIT-STORE-AUTH-04 | state-change | [グローバル entity store の変更をセッション購読に伝播できる](#unit-store-auth-04) |
+| UNIT-STORE-AUTH-01 | initial | [本人確認が終わるまでは利用者を確定しない](#unit-store-auth-01) |
+| UNIT-STORE-AUTH-02 | state-change | [認証完了後は今回の利用者情報だけを提供する](#unit-store-auth-02) |
+| UNIT-STORE-AUTH-03 | state-change | [認証未完了の状態へ変わったら古い本人情報を提供しない](#unit-store-auth-03) |
 
 <a id="unit-store-auth-01"></a>
 
-### UNIT-STORE-AUTH-01 識別子なしの初期状態を保持できる
+### UNIT-STORE-AUTH-01 本人確認が終わるまでは利用者を確定しない
 
 カテゴリ: `initial`
 
-対応テスト: `[ACCOUNT-03] [ACCOUNT-04] starts without an identity`
+対応テスト: `starts without an identity`（要補完：既存テストは事前に初期状態を書き込んでおり、起動直後を検証していない）。
 
 Given:
 
-- `authSessionStore` が `status: "initializing"` でリセットされている。
+認証結果をまだ受け取っていない新しい実行環境である。期待する状態を事前に書き込まない。
 
 When:
 
-- `getAuthSession()` を取得する。
+現在の認証状態を取得する。
 
 Then:
 
-- セッションの `status` は `"initializing"` であり、`uid` プロパティが存在しない。
+状態は初期確認中であり、認証済みとして扱われない。利用者 ID、表示名、匿名利用者かどうかの情報はまだ提供されない。
 
 <a id="unit-store-auth-02"></a>
 
-### UNIT-STORE-AUTH-02 現在の認証セッションを新しい認証情報で全置換できる
+### UNIT-STORE-AUTH-02 認証完了後は今回の利用者情報だけを提供する
 
 カテゴリ: `state-change`
 
-対応テスト: `[ACCOUNT-03] [ACCOUNT-04] replaces the current session`
+対応テスト: `replaces the current session`（要補完：既存テストは初期状態から匿名利用者への変更のみ）。
 
 Given:
 
-- 初期状態の `authSessionStore` が存在する。
+次のいずれかの状態である。各行を独立して検証する。
+
+| 変更前 | 今回完了した認証結果 |
+| --- | --- |
+| 表示名を持つ利用者 A が認証済み | 利用者 B、表示名なし、匿名利用者 |
+| 匿名認証を試行中 | 利用者 A、表示名 Alice、連携済み利用者 |
+| 認証に失敗している | 利用者 A、表示名 Alice、連携済み利用者 |
 
 When:
 
-- `replaceAuthSession({ status: "authenticated", uid: "uid-a", isAnonymous: true, displayName: null })` を実行する。
+今回完了した認証結果を認証モデルへ反映する。
 
 Then:
 
-- `getAuthSession()` の返す値が指定した認証済みセッションオブジェクト（`status: "authenticated"`, `uid: "uid-a"`, `isAnonymous: true`, `displayName: null`）に完全に置き換わる。
+現在の状態は認証済みとなり、利用者 ID、表示名、匿名利用者かどうかは今回の結果に一致する。以前の利用者情報、試行識別子、失敗情報は残らない。
 
 <a id="unit-store-auth-03"></a>
 
-### UNIT-STORE-AUTH-03 SDK 認証資格情報を伴わない匿名認証状態を保持できる
+### UNIT-STORE-AUTH-03 認証未完了の状態へ変わったら古い本人情報を提供しない
 
 カテゴリ: `state-change`
 
-対応テスト: `[ACCOUNT-03] [ACCOUNT-04] represents anonymous authentication without an SDK credential`
+対応テスト: `represents anonymous authentication without an SDK credential`（要補完：既存テストは初期状態から試行中への変更のみ）。
 
 Given:
 
-- `attemptId` Symbol を作成する。
+次の変更前の状態である。各行を独立して検証する。
+
+| 変更前 | 反映する状態 | 残してよい付随情報 |
+| --- | --- | --- |
+| 利用者 A が認証済み | 未認証 | なし |
+| 利用者 A が認証済み | 初期確認中 | なし |
+| 利用者 A が認証済み | 認証試行中 | 今回の試行識別子 |
+| 試行 A の認証試行中 | 試行 B の認証試行中 | 試行 B の識別子のみ |
+| 認証試行中 | 認証失敗 | 今回の失敗情報のみ |
 
 When:
 
-- `replaceAuthSession({ status: "authenticating", attemptId })` を実行する。
+表の状態変更を認証モデルへ反映する。
 
 Then:
 
-- `getAuthSession()` が `status: "authenticating"` かつ該当する `attemptId` を持つオブジェクトを返す。
-
-<a id="unit-store-auth-04"></a>
-
-### UNIT-STORE-AUTH-04 グローバル entity store の変更をセッション購読に伝播できる
-
-カテゴリ: `state-change`
-
-対応テスト: `[ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04] reads session updates from the global entity store`
-
-Given:
-
-- `useAuthSession` フックをレンダリングする。
-
-When:
-
-- `replaceAuthSession` により `status: "authenticated"` のセッション情報を設定する。
-
-Then:
-
-- フックの参照値 `result.current` が更新後の認証済みセッション状態を返す。
+指定した認証状態と表に示した付随情報だけを取得できる。以前の利用者 ID、表示名、匿名利用者かどうかの情報は提供されず、古い試行識別子も残らない。認証試行中は、匿名利用者の認証完了とは区別される。
