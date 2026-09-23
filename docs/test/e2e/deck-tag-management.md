@@ -4,6 +4,8 @@
 
 Deck ごとにタグを一覧表示・追加・名称変更・削除できることを確認する。
 空の名前や同じ Deck 内の重複を拒否し、他の Deck のタグには影響しない。
+登録したタグを同じ Deck の Card に設定し、そのタグで Card 一覧と Deck 閲覧を絞り込めることも確認する。
+AND / OR、フィルター解除、条件の保存は [Card Filter の仕様](./card-filter.md) に従う。
 
 ## テストケース
 
@@ -19,6 +21,8 @@ Deck ごとにタグを一覧表示・追加・名称変更・削除できるこ
 | DECK-TAG-MANAGEMENT-08 | read | 異常系 | [同じ Deck の別タグと同じ名前に変更できない](#deck-tag-management-08) |
 | DECK-TAG-MANAGEMENT-09 | batch | 正常系 | [タグを削除できる](#deck-tag-management-09) |
 | DECK-TAG-MANAGEMENT-10 | read | 正常系 | [タグの削除をキャンセルできる](#deck-tag-management-10) |
+| DECK-TAG-MANAGEMENT-11 | write | 正常系 | [登録したタグを Card に設定できる](#deck-tag-management-11) |
+| DECK-TAG-MANAGEMENT-12 | write | 正常系 | [Card に設定したタグで絞り込める](#deck-tag-management-12) |
 
 <a id="deck-tag-management-01"></a>
 
@@ -245,3 +249,51 @@ Then:
 
 - 削除確認が閉じ、対象タグが一覧に残る。
 - Card に付いているタグも変わらない。
+
+<a id="deck-tag-management-11"></a>
+
+### DECK-TAG-MANAGEMENT-11 [TODO] 登録したタグを Card に設定できる
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-tag-management`](./fixture/deck-tag-management.yaml)
+- 対象 Deck のタグ管理に登録済みのタグがあり、対象 Card にはまだ付いていない。
+- 別の Deck にだけ登録されているタグもある。
+
+When:
+
+- 対象 Card の編集画面で、登録済みのタグを候補から選択して保存し、リロードして編集画面を開き直す。
+
+Then:
+
+- 選択したタグが対象 Card に表示され、編集画面でも選択されている。
+- タグの候補には対象 Deck の登録済みタグが含まれ、他の Deck にだけ登録されたタグは含まれない。
+- Card の本文・既存のタグと、他の Card のタグは変わらない。
+
+<a id="deck-tag-management-12"></a>
+
+### DECK-TAG-MANAGEMENT-12 [TODO] Card に設定したタグで絞り込める
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-tag-management`](./fixture/deck-tag-management.yaml)
+- 対象 Deck に、登録したタグを設定済みの Card と、そのタグを設定していない Card がある。
+- Card 一覧は絞り込みなしで表示されており、別の Deck にも Card がある。
+
+When:
+
+- 対象 Deck の Card 一覧でそのタグをフィルター条件に選び、同じ Deck の閲覧画面も開く。
+
+Then:
+
+- 両画面とも選択したタグを持つ Card だけが表示され、件数は一致する Card 数となる。
+- 選択したタグを持たない Card と、他の Deck の Card は表示されない。
+- 絞り込みによって Card の本文や設定したタグは変わらない。
