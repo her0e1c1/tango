@@ -120,4 +120,8 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       cards.map(async (card) => expect((await getDoc(doc(db, "card", card.id))).data()?.deletedAt).toBeNull())
     );
   });
+
+  // Pending implementation of the deletion contract documented in PR #1731.
+  it.todo("[FIRESTORE-DECK-05] tombstones an empty Deck");
+  it.todo("[FIRESTORE-DECK-06] leaves the Deck and all child Cards unchanged when the delete batch is rejected");
 });

@@ -19,11 +19,11 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 
 ## 実行前提
 
-- 対象テストは [`src/**/*.stories.tsx`](../../../src) の `play` に置く。`test/integration/storybook` への複製や専用 fixture ファイルは追加しない。
-- [`vitest.config.ts`](../../../vitest.config.ts) の `storybook` project は Vitest addon と Playwright の Chromium browser で実行する。jsdom の unit / integration project とは別である。
-- [`preview.ts`](../../../.storybook/preview.ts) の実際の i18n とアプリ CSS を使用する。通常は英語で、日本語ケースだけ `parameters.locale = "ja"` を設定する。
-- 必要な入力値、フォームエラー、空状態、認証 props、callback の spy は Story 側で用意する。ルート Story の状態は既存の [`PageDecorator.tsx`](../../../.storybook/support/PageDecorator.tsx) に従って初期化する。
-- Firebase は既存の [Storybook 設定](../../../.storybook/main.ts) による差し替えを使う。Firestore emulator への接続成功や実保存の保証をこの仕様に含めない。
+- 対象テストは [`src/**/*.stories.tsx`](../../../../src) の `play` に置く。`test/integration/storybook` への複製や専用 fixture ファイルは追加しない。
+- [`vitest.config.ts`](../../../../vitest.config.ts) の `storybook` project は Vitest addon と Playwright の Chromium browser で実行する。jsdom の unit / integration project とは別である。
+- [`preview.ts`](../../../../.storybook/preview.ts) の実際の i18n とアプリ CSS を使用する。通常は英語で、日本語ケースだけ `parameters.locale = "ja"` を設定する。
+- 必要な入力値、フォームエラー、空状態、認証 props、callback の spy は Story 側で用意する。ルート Story の状態は既存の [`PageDecorator.tsx`](../../../../.storybook/support/PageDecorator.tsx) に従って初期化する。
+- Firebase は既存の [Storybook 設定](../../../../.storybook/main.ts) による差し替えを使う。Firestore emulator への接続成功や実保存の保証をこの仕様に含めない。
 - Story ごとにフォーム、選択状態、spy の履歴、共有 store、言語、スクロール位置を分離またはリセットし、別 Story や実行順に依存させない。
 
 ## 書式と ID
@@ -62,7 +62,7 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 | [Application Layout](./app-layout.md) | 共通 Header と画面コンテンツを組み合わせ、スクロール中の Header と本文の位置関係を確認する。 | 2 |
 | [Deck List](./deck-list.md) | Deck 一覧のメニュー、閲覧要求、空状態、復習件数と日本語表示を確認する。 | 8 |
 | [Deck Form and Deletion](./deck-form.md) | Deck フォームの入力保持、エラー表示と削除確認の通知を確認する。 | 4 |
-| [Card List](./card-list.md) | Card 一覧の操作通知、空状態の区別、タグ解除、overlay の終了と並び順の変更要求を確認する。 | 10 |
+| [Card List](./card-list.md) | Card 一覧の操作通知、空状態の区別、タグ解除、overlay の終了と並び順の変更要求を確認する。 | 9 |
 | [Card Form](./card-form.md) | Card 入力、タブ間の値の保持、タグ選択、日本語エラー、解答プレビューと作成要求を確認する。 | 5 |
 | [Deck Filter](./deck-filter.md) | タグ選択の解除と、多数のタグを開示する UI の結合を確認する。 | 2 |
 | [Deck Import](./import.md) | CSV 選択からプレビューまでの画面結合と、日本語の診断表示を確認する。 | 3 |
@@ -77,11 +77,12 @@ Shared の汎用部品を単独で確認する Story はこの一覧の対象外
 本番の保存・認証契約に関わる変更は、該当する E2E / Firestore 仕様も更新する。
 
 ```sh
+npm run lint:test-specs
 npm run lint:markdown
 npm run test:storybook
 ```
 
 ブラウザ上で個別に確認するときは `npm run storybook` を実行し、対応する title / export の Story を開く。
 `npm run build:storybook` の成功だけで `play` の成功とはしない。
-既存の `lint:e2e-contract` は E2E 用であり、このディレクトリの ID と Story の対応を自動検証するものではない。
-この文書化では新しい contract checker、fixture、CI の変更は追加しない。
+`lint:test-specs` は各ケースの「対応 Story」のうち少なくとも一つについて、対象ファイルに `export const <named export>` の記述があることだけを正規表現で確認する。複数ケースで同じ Story を共有してよい。
+`play` の有無・継承・tags・実行条件は解析しない。Given / When / Then の網羅性やアサーションの内容・実行結果はレビューと Storybook のテスト実行で確認する。

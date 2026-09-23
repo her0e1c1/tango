@@ -16,11 +16,11 @@ CardFields / CardCreator、実際の React Hook Form、プレビュー hook と 
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-CARD-FORM-01 | interaction | [面を切り替えても編集中の表面テキストを保持する](#storybook-card-form-01) | [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction` |
-| STORYBOOK-CARD-FORM-02 | interaction | [タグ編集で未選択のタグを選択できる](#storybook-card-form-02) | [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction` |
-| STORYBOOK-CARD-FORM-03 | render | [日本語の入力エラーを入力欄の説明に関連付ける](#storybook-card-form-03) | [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `JapaneseValidation` |
-| STORYBOOK-CARD-FORM-04 | interaction | [編集中の解答プレビュー領域を開く](#storybook-card-form-04) | [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview` / [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `MobilePreview` / [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `DarkCodePreview` |
-| STORYBOOK-CARD-FORM-05 | interaction | [入力後の作成操作を submit callback に通知する](#storybook-card-form-05) | [CardCreator.stories.tsx](../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction` |
+| STORYBOOK-CARD-FORM-01 | interaction | [面を切り替えても編集中の表面テキストを保持する](#storybook-card-form-01) | [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction` |
+| STORYBOOK-CARD-FORM-02 | interaction | [タグ編集で未選択のタグを選択できる](#storybook-card-form-02) | [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction` |
+| STORYBOOK-CARD-FORM-03 | render | [日本語の入力エラーを入力欄の説明に関連付ける](#storybook-card-form-03) | [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `JapaneseValidation` |
+| STORYBOOK-CARD-FORM-04 | interaction | [編集中の解答プレビュー領域を開く](#storybook-card-form-04) | [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview` / [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `MobilePreview` / [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `DarkCodePreview` |
+| STORYBOOK-CARD-FORM-05 | interaction | [入力後の作成操作を submit callback に通知する](#storybook-card-form-05) | [CardCreator.stories.tsx](../../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction` |
 
 <a id="storybook-card-form-01"></a>
 
@@ -28,7 +28,7 @@ CardFields / CardCreator、実際の React Hook Form、プレビュー hook と 
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`
+対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -49,7 +49,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`
+対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -69,7 +69,7 @@ Then:
 
 カテゴリ: `render`
 
-対応 Story: [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `JapaneseValidation`
+対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `JapaneseValidation`
 
 Given:
 
@@ -90,7 +90,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview` / [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `MobilePreview` / [CardFields.stories.tsx](../../../src/features/card-form/ui/CardFields.stories.tsx) :: `DarkCodePreview`
+対応 Story: [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `Preview` / [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `MobilePreview` / [CardFields.stories.tsx](../../../../src/features/card-form/ui/CardFields.stories.tsx) :: `DarkCodePreview`
 
 Given:
 
@@ -111,7 +111,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [CardCreator.stories.tsx](../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction`
+対応 Story: [CardCreator.stories.tsx](../../../../src/pages/card-create/ui/CardCreator.stories.tsx) :: `Interaction`
 
 Given:
 

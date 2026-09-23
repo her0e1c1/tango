@@ -16,8 +16,8 @@ DeckFilterForm / TagFilter、実際の子 UI と Story 側の選択状態。Card
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-DECK-FILTER-01 | interaction | [選択済みタグをクリアする](#storybook-deck-filter-01) | [DeckFilterForm.stories.tsx](../../../src/features/deck-filter/ui/DeckFilterForm.stories.tsx) :: `Interaction` |
-| STORYBOOK-DECK-FILTER-02 | interaction | [折りたたまれたタグをすべて表示する](#storybook-deck-filter-02) | [TagFilter.stories.tsx](../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded` |
+| STORYBOOK-DECK-FILTER-01 | interaction | [選択済みタグをクリアする](#storybook-deck-filter-01) | [DeckFilterForm.stories.tsx](../../../../src/features/deck-filter/ui/DeckFilterForm.stories.tsx) :: `Interaction` |
+| STORYBOOK-DECK-FILTER-02 | interaction | [折りたたまれたタグをすべて表示する](#storybook-deck-filter-02) | [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded` |
 
 <a id="storybook-deck-filter-01"></a>
 
@@ -25,7 +25,7 @@ DeckFilterForm / TagFilter、実際の子 UI と Story 側の選択状態。Card
 
 カテゴリ: `interaction`
 
-対応 Story: [DeckFilterForm.stories.tsx](../../../src/features/deck-filter/ui/DeckFilterForm.stories.tsx) :: `Interaction`
+対応 Story: [DeckFilterForm.stories.tsx](../../../../src/features/deck-filter/ui/DeckFilterForm.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -45,7 +45,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [TagFilter.stories.tsx](../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`
+対応 Story: [TagFilter.stories.tsx](../../../../src/features/deck-filter/ui/TagFilter.stories.tsx) :: `Expanded`
 
 Given:
 

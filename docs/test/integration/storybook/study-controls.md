@@ -16,8 +16,8 @@ Controller とその実際の子 UI、Story 側の再生状態、および Study
 
 | ID | カテゴリ | テストケース | 対応 Story |
 | --- | --- | --- | --- |
-| STORYBOOK-STUDY-CONTROLS-01 | interaction | [再生を要求して一時停止の表示に切り替える](#storybook-study-controls-01) | [Controller.stories.tsx](../../../src/features/card-player/ui/Controller.stories.tsx) :: `Interaction` |
-| STORYBOOK-STUDY-CONTROLS-02 | interaction | [処理中でないときにスキップを要求する](#storybook-study-controls-02) | [StudySaveControls.stories.tsx](../../../src/pages/study-session/ui/StudySaveControls.stories.tsx) :: `Default` |
+| STORYBOOK-STUDY-CONTROLS-01 | interaction | [再生を要求して一時停止の表示に切り替える](#storybook-study-controls-01) | [Controller.stories.tsx](../../../../src/features/card-player/ui/Controller.stories.tsx) :: `Interaction` |
+| STORYBOOK-STUDY-CONTROLS-02 | interaction | [処理中でないときにスキップを要求する](#storybook-study-controls-02) | [StudySaveControls.stories.tsx](../../../../src/pages/study-session/ui/StudySaveControls.stories.tsx) :: `Default` |
 
 <a id="storybook-study-controls-01"></a>
 
@@ -25,7 +25,7 @@ Controller とその実際の子 UI、Story 側の再生状態、および Study
 
 カテゴリ: `interaction`
 
-対応 Story: [Controller.stories.tsx](../../../src/features/card-player/ui/Controller.stories.tsx) :: `Interaction`
+対応 Story: [Controller.stories.tsx](../../../../src/features/card-player/ui/Controller.stories.tsx) :: `Interaction`
 
 Given:
 
@@ -47,7 +47,7 @@ Then:
 
 カテゴリ: `interaction`
 
-対応 Story: [StudySaveControls.stories.tsx](../../../src/pages/study-session/ui/StudySaveControls.stories.tsx) :: `Default`
+対応 Story: [StudySaveControls.stories.tsx](../../../../src/pages/study-session/ui/StudySaveControls.stories.tsx) :: `Default`
 
 Given:
 
@@ -63,4 +63,4 @@ Then:
 
 ## 自動アサーションに含めない項目
 
-[SwipeButtonList.stories.tsx](../../../src/features/card-player/ui/SwipeButtonList.stories.tsx) の `Ratings` や `Disabled` は表示専用で、Again / Hard / Good / Easy の通知や操作抑止の自動アサーションはない。Controller / StudySaveControls の `Saving` も同様に別途検証が必要である。
+[SwipeButtonList.stories.tsx](../../../../src/features/card-player/ui/SwipeButtonList.stories.tsx) の `Ratings` や `Disabled` は表示専用で、Again / Hard / Good / Easy の通知や操作抑止の自動アサーションはない。Controller / StudySaveControls の `Saving` も同様に別途検証が必要である。
