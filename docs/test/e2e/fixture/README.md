@@ -1,6 +1,6 @@
 # E2E Fixture 規約
 
-`docs/e2e/fixture/*.yaml` を E2E 開始時の論理的な永続状態の仕様とし、すべてのカテゴリで共有する。
+`docs/test/e2e/fixture/*.yaml` を E2E 開始時の論理的な永続状態の仕様とし、すべてのカテゴリで共有する。
 各テストケースは `Given` の先頭で使用する fixture を1つ明示する。
 
 ## 構造
