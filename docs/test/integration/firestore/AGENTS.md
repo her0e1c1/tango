@@ -44,6 +44,7 @@
 
 - Adapter の Promise 完了は local 反映であり、remote への送信完了とは限らない。サーバーへの保存を確認する場合は `waitForPendingWrites` などで送信完了を待ち、サーバー上の保存値を確認する。ローカル反映だけでサーバーへの保存成功とせず、`getDoc` 自体を server 専用読取とも扱わない。StudyAnswer は書込エラー通知も確認する。
 - 購読結果は `vi.waitFor` などで対象 ID・値への反映を待つ。Firestore への書込完了だけを購読反映完了とみなさず、書込側の保存と受信側の反映は別々に確認する。空の結果や再開対象の不在は、初回 snapshot の処理完了後に判定する。
+- To verify non-delivery after stopping a subscription, keep an independent observation listener on the receiving Firestore instance without updating application state. After another client writes the change, wait until this listener receives the server-synchronized value, then inspect the stopped subscription's result and notifications. Do not substitute the write Promise or a fixed sleep for this arrival boundary. Clean up the observation listener even on failure; this finite observation does not prove an indefinite absence of notifications.
 - メモリ上の値に頼らず保存値からの復元を確認する場合は、購読を解除して対象の状態（Card フィルターや学習状態など）を破棄し、購読し直す。サーバーからの復元では、サーバーと同期した結果を待つ。Study History のオンライン取得は `fromCache: false` の snapshot を待つ。
 - オフラインの検証では cache の読取と再接続後のサーバー確認を区別する。オフライン中の復元や操作に、サーバーとの同期完了を要求しない。
 - 同じ SDK インスタンス内の store 初期化・再購読は、ブラウザ reload・別タブ・別端末・新規クライアントの検証ではない。同じインスタンスからの SDK 更新も、独立したクライアントからの更新とは扱わない。別クライアントを検証するケースは、その条件を Given / When に明記する。
