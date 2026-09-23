@@ -6,11 +6,13 @@
 
 関連 E2E: [STUDY-ACTIONS-01](../../e2e/study-actions.md#study-actions-01)、[STUDY-SESSION-03](../../e2e/study-session.md#study-session-03)
 
-## 共通前提
+共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 
-project `test-study-answer` に実際の `firestore.rules` を読み込む。各ケース前に専用 project を消去し、非匿名認証の UID `answer-owner`、公開 Deck `deck`、Card `card-0`〜`card-9`、未終了の session `session` を準備する。
-Card / Deck store と認証状態も初期化し、本人 UID の Card.fsrs を購読する。4評価の受理済み操作は計算済み FSRS を保持し、Card・Answer・Session を同一 batch で保存する。Card の本文と createdAt は維持し、fsrs と updatedAt だけを更新する。操作の ID は UUID、通常の回答日時は `2000` とし、保存時は pending writes と書込エラー通知を確認する。終了時は Rules 環境を cleanup する。
-事前データはテスト内で作成し、新しい fixture ファイルは用意しない。共通の実行方法は [README](./README.md) を参照する。
+## 対象データと操作
+
+各ケースでは、本人の公開 Deck `deck`、Card `card-0`〜`card-9`、未終了の session `session` を初期状態として準備する。
+4評価の受理済み操作は計算済み FSRS を保持し、Card・Answer・Session を同一 batch で保存する。Card の本文と createdAt は維持し、fsrs と updatedAt だけを更新する。
+操作の ID は UUID、通常の回答日時は `2000` とする。
 
 ## テストケース
 

@@ -8,10 +8,7 @@ Firestore の snapshot を Card / Deck store に反映し、購読解除で反�
 
 関連 E2E: [CARD-VIEW-01](../../e2e/card-view.md#card-view-01)、[DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)
 
-## 共通前提
-
-本人の非匿名認証 UID は `uid` とする。ケースごとに Card / Deck store を空にし、別の ID を使う。追加・更新・削除の反映は対象 ID の期待値になるまで待つ。親 Deck を購読で準備する場合は、Card の作成前に Deck store への反映を待つ。
-詳細な実行・cleanup の前提は [README](./README.md) を参照する。
+共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 
 ## テストケース
 

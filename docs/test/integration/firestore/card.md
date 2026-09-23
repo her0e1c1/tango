@@ -3,13 +3,11 @@
 ## 目的
 
 Card 内容の書込範囲、部分失敗、論理削除を確認する。
+Card.fsrs に学習状態を保存し、新規作成では null とする。
 
 関連 E2E: [CARD-MANAGEMENT-01](../../e2e/card-management.md#card-management-01)、[CARD-MANAGEMENT-02](../../e2e/card-management.md#card-management-02)、[CARD-MANAGEMENT-05](../../e2e/card-management.md#card-management-05)、[IMPORT-03](../../e2e/import.md#import-03)
 
-## 共通前提
-
-本人の非匿名認証 UID は `uid` とする。作成・更新対象には本人所有の親 Deck を用意し、各ケースで別の ID を使う。Card.fsrs に学習状態を保存し、新規作成では null とする。
-詳細な実行・cleanup の前提は [README](./README.md) を参照する。
+共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 
 ## テストケース
 

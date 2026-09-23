@@ -6,10 +6,7 @@ Deck の作成・部分更新・論理削除を、Firestore 上の保存値と�
 
 関連 E2E: [DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)、[DECK-MANAGEMENT-02](../../e2e/deck-management.md#deck-management-02)、[DECK-MANAGEMENT-05](../../e2e/deck-management.md#deck-management-05)
 
-## 共通前提
-
-本人の非匿名認証 UID は `uid` とする。各ケースは別の Deck ID を使う。API の完了は local 反映なので、保存値の確認前に `waitForPendingWrites` を待つ。
-詳細な実行・cleanup の前提は [README](./README.md) を参照する。
+共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 
 ## テストケース
 
