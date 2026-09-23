@@ -39,3 +39,12 @@ export const mustFindCardById = (cards: readonly Card[], id: CardId): Card => {
 
   return card;
 };
+
+export function filterCardsByTags(cards: Card[], filter: { selectedTags: string[]; tagAndFilter: boolean }): Card[] {
+  if (filter.selectedTags.length === 0) return cards;
+  return cards.filter((card) =>
+    filter.tagAndFilter
+      ? filter.selectedTags.every((tag) => card.tags.includes(tag))
+      : filter.selectedTags.some((tag) => card.tags.includes(tag))
+  );
+}

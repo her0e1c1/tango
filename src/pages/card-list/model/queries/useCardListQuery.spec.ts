@@ -28,21 +28,14 @@ vi.mock("@/entities/preference", () => ({
   usePreferences: () => repository.preferences,
 }));
 
-vi.mock("@/shared/lib/useDeadlineQuery", () => ({
-  useDeadlineQuery: <Inputs extends unknown[], T>(
-    evaluate: (...args: [...Inputs, number]) => T,
-    inputs: [...Inputs]
-  ): T => evaluate(...inputs, Date.now()),
-}));
-
-describe("useCardListQuery [CARD-LIST-ACTIONS-01]", () => {
+describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () => {
   beforeEach(() => {
     repository.preferences = createPreferences({
       study: { useCardInterval: true, cardInterval: 1 },
     });
   });
 
-  it("derives emptyReason across no-cards, filter-zero, interval-zero, and populated states", () => {
+  it("derives emptyReason across no-cards, filter-zero, and populated states", () => {
     const deck = createDeck({ id: "deck-1" });
     const emptyFilter = {
       selectedTags: [],
@@ -102,7 +95,7 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-01]", () => {
           sortOrder: "standard",
         })
       ).result.current.emptyReason
-    ).toBe("interval-zero");
+    ).toBeUndefined();
   });
 
   it("reports no-cards when the deck has no cards", () => {
@@ -154,7 +147,7 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-01]", () => {
     expect(result.current.emptyReason).toBe("filter-zero");
   });
 
-  it("reports interval-zero when cards match filters but are scheduled for future review", () => {
+  it("includes matching cards scheduled for future review", () => {
     const fsrs = { ...calculateFsrsState(null, "good", 0), dueAt: Date.now() + 100_000 };
     repository.cards = [
       createCard({
@@ -179,8 +172,8 @@ describe("useCardListQuery [CARD-LIST-ACTIONS-01]", () => {
     );
 
     expect(result.current.rawCount).toBe(1);
-    expect(result.current.visibleCount).toBe(0);
-    expect(result.current.emptyReason).toBe("interval-zero");
+    expect(result.current.visibleCount).toBe(1);
+    expect(result.current.emptyReason).toBeUndefined();
   });
 });
 

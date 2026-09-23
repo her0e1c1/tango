@@ -1,7 +1,7 @@
 import { createAnonymousDeck, startAnonymousStudy, downloadDeckCards } from "./utils/ui-helpers";
 import type { Locator, Page } from "@playwright/test";
 
-import { type E2EFixture, expect, getDocument, listDocuments, requireDocument, test } from "./utils/fixtures";
+import { type E2EFixture, expect, getDocument, listDocuments, test } from "./utils/fixtures";
 
 const readSavedData = async (page: Page, fixture: E2EFixture) => ({
   learning: await Promise.all(
@@ -181,9 +181,9 @@ test("NAVIGATION-09 resets local-only viewing position on reload and reentry wit
   );
 });
 
-test("NAVIGATION-10 views all tag matches in standard order without the study limit", async ({ fixture, page }) => {
+test("NAVIGATION-10 views all cards in standard order independently of study conditions", async ({ fixture, page }) => {
   const deck = fixture.deck();
-  const matching = [fixture.card("card-1"), fixture.card("card-2"), fixture.card("card-3")];
+  const matching = ["card-1", "card-2", "card-3", "card-4", "card-5"].map((id) => fixture.card(id));
   await fixture.apply(page, { preferences: { study: { shuffled: true } } });
   await page.goto("/");
   await expect(page.getByRole("button", { name: `Study ${deck.name}`, exact: true })).toBeVisible();
@@ -191,71 +191,30 @@ test("NAVIGATION-10 views all tag matches in standard order without the study li
   await openView(page, deck.name);
   for (const [index, card] of matching.entries()) {
     await expectFront(page, card.frontText);
-    await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", `${String(index + 1)} of 3`);
+    await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", `${String(index + 1)} of 5`);
     await page.getByRole("button", { name: "Next card", exact: true }).click();
   }
   await expect(page).toHaveURL(/\/$/);
   expect(await readSavedData(page, fixture)).toEqual(before);
-
-  const queuedMatch = fixture.card("card-5");
-  const queuedTag = queuedMatch.tags[0];
-  const previousTag = deck.selectedTags[0];
-  if (queuedTag === undefined || previousTag === undefined) throw new Error("Expected both filter fixture tags");
-  const writeArrived = Promise.withResolvers<void>();
-  const releaseWrite = Promise.withResolvers<void>();
-  const writePattern = "**/google.firestore.v1.Firestore/Write/channel**";
-  await page.route(writePattern, async (route) => {
-    const body = decodeURIComponent((route.request().postData() ?? "").replaceAll("+", "%20"));
-    if (body.includes(`/documents/deck/${deck.id}`)) {
-      writeArrived.resolve();
-      await releaseWrite.promise;
-    }
-    await route.fallback();
-  });
-  try {
-    await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
-    await page.getByText("Filters", { exact: true }).click();
-    await page.getByRole("checkbox", { name: queuedTag, exact: true }).locator("xpath=parent::label").click();
-    await writeArrived.promise;
-    // Local filter changes are usable while cloud acknowledgement is held.
-    await page.getByRole("checkbox", { name: previousTag, exact: true }).locator("xpath=parent::label").click();
-    await expect(page.getByRole("checkbox", { name: queuedTag, exact: true })).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: previousTag, exact: true })).not.toBeChecked();
-    const beforeQueuedView = await readSavedData(page, fixture);
-    await page.getByRole("button", { name: "tango", exact: true }).click();
-    await expect(page).toHaveURL(/\/$/);
-    await openView(page, deck.name);
-    await expectFront(page, queuedMatch.frontText);
-    await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
-    await page.getByRole("button", { name: "Next card", exact: true }).click();
-    await expect(page).toHaveURL(/\/$/);
-    expect(await readSavedData(page, fixture)).toEqual(beforeQueuedView);
-
-    releaseWrite.resolve();
-    await expect
-      .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values)
-      .toEqual([{ stringValue: queuedTag }]);
-    const afterFilterSave = await readSavedData(page, fixture);
-    expect(afterFilterSave.cards).toEqual(before.cards);
-    expect(afterFilterSave.learning).toEqual(beforeQueuedView.learning);
-    expect(afterFilterSave.preferences).toEqual(before.preferences);
-  } finally {
-    releaseWrite.resolve();
-    await page.unroute(writePattern);
-  }
 });
 
-test("NAVIGATION-11 applies review scheduling to read-only viewing", async ({ fixture, page }) => {
+test("NAVIGATION-11 includes future reviews in read-only viewing", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const due = fixture.card("card-due");
   const unscheduled = fixture.card("card-unscheduled");
+  const future = fixture.card("card-future");
   await fixture.apply(page, { preferences: { study: { useCardInterval: true } } });
   await page.goto("/");
   await expect(page.getByRole("button", { name: `Open actions for ${deck.name}`, exact: true })).toBeVisible();
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
   await expectFront(page, due.frontText);
-  await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 2");
+  await expect(page.getByLabel("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 3");
+  await page.getByRole("button", { name: "Next card", exact: true }).click();
+  await expectFront(page, future.frontText);
+  await page.getByRole("button", { name: "Card front" }).click();
+  await expect(page.getByRole("region", { name: "Card answer" })).toContainText(future.backText);
+  await page.getByRole("region", { name: "Card answer" }).click();
   await page.getByRole("button", { name: "Next card", exact: true }).click();
   await expectFront(page, unscheduled.frontText);
   await page.getByRole("button", { name: "Next card", exact: true }).click();
@@ -274,7 +233,7 @@ test("NAVIGATION-12 recovers from empty and missing Deck views without saving", 
   await expect(page.getByRole("button", { name: `Open actions for ${deck.name}`, exact: true })).toBeVisible();
   const before = await readSavedData(page, fixture);
   await openView(page, deck.name);
-  await expect(page.getByText("No cards match the current filters.", { exact: true })).toBeVisible();
+  await expect(page.getByText("No cards yet", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Next card", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Back to deck list", exact: true }).first().click();
   await expect(page).toHaveURL(/\/$/);

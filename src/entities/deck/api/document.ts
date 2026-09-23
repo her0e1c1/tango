@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { parseFirestoreDocument } from "@/shared/api";
-import type { deckCreateSchema } from "../model/schema";
+import { cardFilterSchema, type deckCreateSchema } from "../model/schema";
 import type { Deck, DeckId } from "../model/types";
 
 const deckDocumentSchema = z.object({
@@ -16,6 +16,7 @@ const deckDocumentSchema = z.object({
   deletedAt: z.number().nullable(),
   selectedTags: z.array(z.string()),
   tagAndFilter: z.boolean(),
+  cardFilter: cardFilterSchema.optional(),
   category: z.string(),
   convertToBr: z.boolean(),
 });
@@ -36,6 +37,7 @@ export const toDeck = (id: DeckId, document: DeckDocument): Deck => ({
   isPublic: document.isPublic,
   selectedTags: document.selectedTags,
   tagAndFilter: document.tagAndFilter,
+  ...(document.cardFilter === undefined ? {} : { cardFilter: document.cardFilter }),
   category: document.category,
   convertToBr: document.convertToBr,
   createdAt: document.createdAt,
@@ -55,6 +57,7 @@ export const toDeckDocument = (
   isPublic: deck.isPublic,
   selectedTags: deck.selectedTags,
   tagAndFilter: deck.tagAndFilter,
+  ...(deck.cardFilter === undefined ? {} : { cardFilter: deck.cardFilter }),
   category: deck.category,
   convertToBr: deck.convertToBr,
   deletedAt: null,

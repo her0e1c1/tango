@@ -32,7 +32,8 @@ vi.mock("@/entities/auth", () => ({
   useAuth: () => ({ uid: "user-id", isAnonymous: false }),
   getAuthUid: () => "user-id",
 }));
-vi.mock("@/entities/deck", () => ({
+vi.mock("@/entities/deck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/deck")>()),
   editDeck: mocks.editDeck,
   isDeckTagSelectionMatching: () => true,
   useDeck: () => mocks.deck ?? undefined,

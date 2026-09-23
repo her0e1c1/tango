@@ -6,6 +6,7 @@ import { BackText } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { DeckFilterForm } from "@/features/deck-filter";
 import { DestructiveActionDialog } from "@/shared/ui/destructive-action-dialog";
+import { Button } from "@/shared/ui/button";
 import { AppLayout } from "@/widgets/app-layout";
 import { RouteNotFound } from "@/widgets/route-not-found";
 
@@ -47,13 +48,20 @@ const CardListContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
           onAddCard={model.goToCardCreate}
           filter={model.filterSummary}
           filterSlot={
-            <DeckFilterForm
-              {...model.deckFilter}
-              setSelectedTags={model.setSelectedTags}
-              setTagAndFilter={model.setTagAndFilter}
-              disabled={model.mutationPending}
-              tags={model.tags}
-            />
+            <>
+              <DeckFilterForm
+                {...model.deckFilter}
+                setSelectedTags={model.setSelectedTags}
+                setTagAndFilter={model.setTagAndFilter}
+                disabled={model.mutationPending}
+                tags={model.tags}
+              />
+              {model.emptyReason !== "filter-zero" && (
+                <Button variant="secondary" onClick={model.clearFilters} disabled={model.mutationPending}>
+                  {t("cardList.empty.clearFilters")}
+                </Button>
+              )}
+            </>
           }
           onRemoveTag={model.removeTag}
           card={{

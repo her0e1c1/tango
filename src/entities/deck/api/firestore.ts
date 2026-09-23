@@ -66,6 +66,7 @@ const updateDeckDocument = async (uid: string, deck: z.infer<typeof deckEditSche
     updatedAt: Date.now(),
     selectedTags: deck.selectedTags,
     tagAndFilter: deck.tagAndFilter,
+    cardFilter: deck.cardFilter,
     category: deck.category,
     convertToBr: deck.convertToBr,
   });

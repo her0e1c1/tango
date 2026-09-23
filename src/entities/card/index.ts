@@ -16,6 +16,7 @@ export type {
 } from "./model/types";
 export {
   filterCardsByDeckId,
+  filterCardsByTags,
   getCardContentValidationErrors,
   mustFindCardById,
 } from "./model/rules";

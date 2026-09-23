@@ -1,8 +1,6 @@
-import { useCards } from "@/entities/card";
+import { filterCardsByTags, useCards } from "@/entities/card";
 import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { useDeadlineQuery } from "@/shared/lib/useDeadlineQuery";
-import { selectStudyCardsWithDeadline } from "@/entities/study-session";
 import type { DeckFilterValues } from "@/features/deck-filter";
 import { buildCardPlayerHelpRows } from "@/features/card-player";
 import { getDeckViewPosition } from "./getDeckViewPosition";
@@ -15,15 +13,12 @@ export function useDeckViewQuery(
 ) {
   const deckCards = useCards().filter((candidate) => candidate.deckId === deck.id);
   const preferences = usePreferences();
-  const { cards } = useDeadlineQuery(selectStudyCardsWithDeadline, [
-    deckCards,
-    filter,
-    preferences.study.useCardInterval,
-  ]);
+  const cards = filterCardsByTags(deckCards, filter);
   const { index, card } = getDeckViewPosition(cards, cardId);
   const category = getCategory(deck.category, card?.tags ?? []);
   return {
     cards,
+    hasCards: deckCards.length > 0,
     card,
     index,
     controls: preferences.controls,

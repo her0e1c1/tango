@@ -20,7 +20,7 @@ function setDeadline(dueAt: number) {
   seedCardFsrs("card", dueAt);
 }
 
-describe("mounted deadline consumers [STUDY-SESSION-01]", () => {
+describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(now);
@@ -33,21 +33,24 @@ describe("mounted deadline consumers [STUDY-SESSION-01]", () => {
     vi.useRealTimers();
   });
 
-  it.each(["start", "list", "view"] as const)("updates %s at exact due time without another interaction", (page) => {
-    const { result, unmount } = renderHook(() => {
-      const start = useStudySessionStartState(deck.id, deck);
-      const list = useCardListQuery({ deck, filter: deck, shownCard: undefined, sortOrder: "standard" });
-      const view = useDeckViewQuery(deck, deck, "card", false);
-      return page === "start" ? start.cardsLength : page === "list" ? list.cards.length : view.total;
-    });
-    expect(result.current).toBe(0);
-    act(() => vi.advanceTimersByTime(999));
-    expect(result.current).toBe(0);
-    act(() => vi.advanceTimersByTime(1));
-    expect(result.current).toBe(1);
-    unmount();
-    expect(vi.getTimerCount()).toBe(0);
-  });
+  it.each(["start", "list", "view"] as const)(
+    "applies deadlines only to study while browsing stays complete (%s)",
+    (page) => {
+      const { result, unmount } = renderHook(() => {
+        const start = useStudySessionStartState(deck.id, deck);
+        const list = useCardListQuery({ deck, filter: deck, shownCard: undefined, sortOrder: "standard" });
+        const view = useDeckViewQuery(deck, deck, "card", false);
+        return page === "start" ? start.cardsLength : page === "list" ? list.cards.length : view.total;
+      });
+      expect(result.current).toBe(page === "start" ? 0 : 1);
+      act(() => vi.advanceTimersByTime(999));
+      expect(result.current).toBe(page === "start" ? 0 : 1);
+      act(() => vi.advanceTimersByTime(1));
+      expect(result.current).toBe(1);
+      unmount();
+      expect(vi.getTimerCount()).toBe(0);
+    }
+  );
 
   it("waits safely for a deadline beyond the browser timeout limit", () => {
     setDeadline(now + 2 ** 32);

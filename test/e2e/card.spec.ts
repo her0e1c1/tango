@@ -229,8 +229,11 @@ test("CARD-LIST-ACTIONS-01 persists tag filters and applies them after reload", 
   await expect(page.getByRole("button", { name: "Save filters" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: `View ${matching.frontText}` })).toBeEnabled();
   await expect
-    .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values)
-    .toEqual([{ stringValue: selectedTag }]);
+    .poll(async () => (await requireDocument("deck", deck.id)).fields.cardFilter?.mapValue?.fields)
+    .toEqual({
+      selectedTags: { arrayValue: { values: [{ stringValue: selectedTag }] } },
+      tagAndFilter: { booleanValue: false },
+    });
   await page.reload();
 
   await page.getByText("Filters", { exact: true }).click();
@@ -239,8 +242,11 @@ test("CARD-LIST-ACTIONS-01 persists tag filters and applies them after reload", 
   await expect(page.getByRole("button", { name: `View ${anotherCard.frontText}` })).toBeVisible();
   await expect(page.getByRole("button", { name: `View ${wrongTag.frontText}` })).toHaveCount(0);
   await expect
-    .poll(async () => (await requireDocument("deck", deck.id)).fields.selectedTags?.arrayValue?.values)
-    .toEqual([{ stringValue: selectedTag }]);
+    .poll(async () => (await requireDocument("deck", deck.id)).fields.cardFilter?.mapValue?.fields)
+    .toEqual({
+      selectedTags: { arrayValue: { values: [{ stringValue: selectedTag }] } },
+      tagAndFilter: { booleanValue: false },
+    });
 });
 
 test("CARD-VIEW-04 opens a Card view route inside the application shell", async ({ fixture, page }) => {
