@@ -86,4 +86,4 @@
 
 document の schema を直接検証する。Firebase Timestamp 値は使うが、Firestore には接続しない。回答の保存、重複防止、回答履歴の取得、FSRS の更新はこの仕様の検証範囲ではない。
 
-[document]: ../../src/entities/study-answer/api/studyAnswerDocument.spec.ts
+[document]: ../../../src/entities/study-answer/api/studyAnswerDocument.spec.ts

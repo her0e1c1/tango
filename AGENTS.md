@@ -91,7 +91,7 @@ Every task that changes repository files must complete this workflow:
 
 ### Entity Unit Tests
 
-- Use `docs/unit` for the observable contracts tested by `src/entities/**/*.spec.{ts,tsx}`. Follow `docs/unit/AGENTS.md` for the Japanese specification format, Unit IDs, test mappings, isolation, and verification boundaries.
+- Use `docs/test/unit` for the observable contracts tested by `src/entities/**/*.spec.{ts,tsx}`. Follow `docs/test/unit/AGENTS.md` for the Japanese specification format, Unit IDs, test mappings, isolation, and verification boundaries.
 - Update the matching specification when adding or changing an Entity unit test. Map cases to test files and identifiable titles without requiring a one-to-one relationship or renaming existing tests just to add IDs.
 - Entity unit tests do not require E2E case IDs; existing E2E references may remain as optional context. Keep real Firestore contracts, Storybook plays, and browser flows in their respective specifications.
 

@@ -437,12 +437,12 @@ Card の入力・所有者・抽出規則、保存 document の解析、購読�
 
 Firestore SDK、保存処理、必要な他 Entity の参照をモックする。実際の永続化、Rules、他端末同期、学習回答との原子的な保存は対象外。FSRS はリポジトリで固定したライブラリを実際に使い、保存形式とアプリ側の計算結果の互換性を確認する。
 
-[schema]: ../../src/entities/card/model/schema.spec.ts
-[rules]: ../../src/entities/card/model/rules.spec.ts
-[dto]: ../../src/entities/card/model/dto.spec.ts
-[fsrs]: ../../src/entities/card/model/fsrsRules.spec.ts
-[document]: ../../src/entities/card/api/document.spec.ts
-[id]: ../../src/entities/card/api/id.spec.ts
-[firestore]: ../../src/entities/card/api/firestore.spec.ts
-[mutations]: ../../src/entities/card/api/mutations.spec.ts
-[subscription]: ../../src/entities/card/api/subscription.spec.tsx
+[schema]: ../../../src/entities/card/model/schema.spec.ts
+[rules]: ../../../src/entities/card/model/rules.spec.ts
+[dto]: ../../../src/entities/card/model/dto.spec.ts
+[fsrs]: ../../../src/entities/card/model/fsrsRules.spec.ts
+[document]: ../../../src/entities/card/api/document.spec.ts
+[id]: ../../../src/entities/card/api/id.spec.ts
+[firestore]: ../../../src/entities/card/api/firestore.spec.ts
+[mutations]: ../../../src/entities/card/api/mutations.spec.ts
+[subscription]: ../../../src/entities/card/api/subscription.spec.tsx

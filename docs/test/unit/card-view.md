@@ -107,6 +107,6 @@ Card の表示 component に渡された本文・カテゴリ・表示モード�
 
 ブラウザ実機でのレイアウト、数式・コードの見た目、実際の反転や学習進行は対象外。クリック callback の通知だけから、保存・遷移・反転が完了したとは判断しない。Storybook play の結合契約は別に管理する。
 
-[front]: ../../src/entities/card/ui/FrontText.spec.tsx
-[back]: ../../src/entities/card/ui/BackText.spec.tsx
-[view]: ../../src/entities/card/ui/CardView.spec.tsx
+[front]: ../../../src/entities/card/ui/FrontText.spec.tsx
+[back]: ../../../src/entities/card/ui/BackText.spec.tsx
+[view]: ../../../src/entities/card/ui/CardView.spec.tsx

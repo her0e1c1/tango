@@ -336,10 +336,10 @@ Deck の入力、タグ・表示カテゴリの選択、識別子、保存形式
 
 保存処理・Firestore SDK は必要な境界でモックする。実際の書き込み、削除に伴う関連データの処理、Rules による認可、購読クエリの実行は Firestore 結合テストの対象。型だけの検査は本仕様の runtime ケースに含めない。
 
-[rules]: ../../src/entities/deck/model/rules.spec.ts
-[schema]: ../../src/entities/deck/model/schema.spec.ts
-[document]: ../../src/entities/deck/api/document.spec.ts
-[id]: ../../src/entities/deck/api/id.spec.ts
-[firestore]: ../../src/entities/deck/api/firestore.spec.ts
-[mutations]: ../../src/entities/deck/api/mutations.spec.ts
-[subscription]: ../../src/entities/deck/api/subscription.spec.tsx
+[rules]: ../../../src/entities/deck/model/rules.spec.ts
+[schema]: ../../../src/entities/deck/model/schema.spec.ts
+[document]: ../../../src/entities/deck/api/document.spec.ts
+[id]: ../../../src/entities/deck/api/id.spec.ts
+[firestore]: ../../../src/entities/deck/api/firestore.spec.ts
+[mutations]: ../../../src/entities/deck/api/mutations.spec.ts
+[subscription]: ../../../src/entities/deck/api/subscription.spec.tsx

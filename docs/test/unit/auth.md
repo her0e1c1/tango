@@ -197,9 +197,9 @@
 
 Firebase Auth はモックする。実際の Google popup、アカウント連携、データ移行、サインアウト後の再認証は対象外。サインアウトのケースは SDK への要求のみを確認し、実際に認証が解除されたことまでは保証しない。
 
-[session]: ../../src/entities/auth/model/actions/replaceAuthSession.spec.ts
-[uid]: ../../src/entities/auth/model/queries/getAuthUid.spec.ts
-[auth]: ../../src/entities/auth/model/queries/useAuth.spec.ts
-[hook]: ../../src/entities/auth/model/queries/useAuthSession.spec.ts
-[sign-in]: ../../src/entities/auth/api/signInWithGoogle.spec.ts
-[sign-out]: ../../src/entities/auth/api/signOutCurrentUser.spec.ts
+[session]: ../../../src/entities/auth/model/actions/replaceAuthSession.spec.ts
+[uid]: ../../../src/entities/auth/model/queries/getAuthUid.spec.ts
+[auth]: ../../../src/entities/auth/model/queries/useAuth.spec.ts
+[hook]: ../../../src/entities/auth/model/queries/useAuthSession.spec.ts
+[sign-in]: ../../../src/entities/auth/api/signInWithGoogle.spec.ts
+[sign-out]: ../../../src/entities/auth/api/signOutCurrentUser.spec.ts

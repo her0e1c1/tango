@@ -203,4 +203,4 @@
 
 ブラウザの再起動、保存容量超過、端末間同期、画面への反映は対象外。数値検証のケースは記載した不正値を対象とし、許容範囲の全境界を網羅したものではない。
 
-[store]: ../../src/entities/preference/model/store.spec.ts
+[store]: ../../../src/entities/preference/model/store.spec.ts

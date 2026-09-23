@@ -375,7 +375,7 @@
 
 認証・Firestore・保存完了後の反映はテスト側のモックや既存 helper で与える。成功時のモック反映は実際の保存や snapshot 配信の保証ではない。複数 document の原子性、Rules、履歴取得、実機の再読込・オフライン復旧は結合テストまたは E2E の対象。
 
-[rules]: ../../src/entities/study-session/model/rules.spec.ts
-[store]: ../../src/entities/study-session/model/store.spec.ts
-[mutations]: ../../src/entities/study-session/api/mutations.spec.ts
-[firestore]: ../../src/entities/study-session/api/firestore.spec.ts
+[rules]: ../../../src/entities/study-session/model/rules.spec.ts
+[store]: ../../../src/entities/study-session/model/store.spec.ts
+[mutations]: ../../../src/entities/study-session/api/mutations.spec.ts
+[firestore]: ../../../src/entities/study-session/api/firestore.spec.ts
