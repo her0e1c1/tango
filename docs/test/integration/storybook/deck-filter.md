@@ -38,7 +38,6 @@ DeckFilterForm / TagFilter と実際の子 UI、Story 側の選択状態。Card 
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - tag 1 が選択済みで、変更を Story 側の状態へ反映する。
@@ -56,7 +55,6 @@ Then:
 ### STORYBOOK-DECK-FILTER-02 折りたたまれたタグを表示する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -78,7 +76,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - one / two が未選択で、Any 条件である。
@@ -98,7 +95,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -120,7 +116,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - Match の radio group で Any を選択し、変更を Story 側に反映する。
@@ -140,7 +135,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -163,7 +157,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - tag-1〜tag-12 が未選択で、開示ボタンにフォーカスしている。
@@ -183,7 +176,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -205,7 +197,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 候補は空で、候補外 stale だけを選択している。
@@ -225,7 +216,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -247,7 +237,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 未選択候補が8件ある。
@@ -267,7 +256,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -289,7 +277,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 120候補すべてを選択している。
@@ -310,7 +297,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 空白のない長いタグ名を渡す。
@@ -330,7 +316,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 

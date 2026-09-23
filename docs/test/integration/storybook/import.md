@@ -35,7 +35,6 @@ CSV 選択、プレビュー、明示的な確定、診断表示と失敗・処�
 
 カテゴリ: `render`
 
-
 Given:
 
 - 対象ファイルをまだ選択していない。
@@ -54,7 +53,6 @@ Then:
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 実際のインポートルートと、有効な4列1行の storybook-import.csv を用意する。
@@ -72,7 +70,6 @@ Then:
 ### STORYBOOK-IMPORT-03 日本語の診断と無効な確定操作を表示する
 
 カテゴリ: `render`
-
 
 Given:
 
@@ -94,7 +91,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - authentication、account-changed、permission-denied、unavailable、QuotaExceededError、未知の例外を英語で個別に表示する。
@@ -114,7 +110,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -136,7 +131,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 対象未選択の初期画面を表示する。
@@ -156,7 +150,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -178,7 +171,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - Basic / Math / Markdown / Sample deck の4条件を用意する。対応 ID は basic / math / markdown / deck である。
@@ -199,7 +191,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - ファイル選択 callback を渡す。
@@ -219,7 +210,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -242,7 +232,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 英語 locale で有効1件と、3行目の uniqueKey が空という無効1件を渡す。
@@ -262,7 +251,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 

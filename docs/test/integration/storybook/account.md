@@ -37,7 +37,6 @@ AccountView の表示・callback と、実際の AccountPage / ToastViewport / �
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 匿名アカウントで表示名がなく、処理中ではない。
@@ -55,7 +54,6 @@ Then:
 ### STORYBOOK-ACCOUNT-02 ログアウトを要求する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -75,7 +73,6 @@ Then:
 
 カテゴリ: `render`
 
-
 Given:
 
 - 匿名アカウントでログイン処理中である。
@@ -94,7 +91,6 @@ Then:
 
 カテゴリ: `render`
 
-
 Given:
 
 - 連携済みアカウントでログアウト処理中である。
@@ -112,7 +108,6 @@ Then:
 ### STORYBOOK-ACCOUNT-05 日本語の画面を表示する
 
 カテゴリ: `render`
-
 
 Given:
 
@@ -133,7 +128,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -156,7 +150,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 匿名状態からログインを開始して応答を保留する。連携済み状態を供給した後、ログアウトも開始して保留する。
@@ -178,7 +171,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 英語で Test User / linked-user の連携済みアカウントを表示する。
@@ -198,7 +190,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -220,7 +211,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - ログインとログアウトを別条件にし、外部認証境界は失敗、成功の順に返す。
@@ -240,7 +230,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -262,7 +251,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - ログインとログアウトを別条件にし、操作の応答を保留する。
@@ -283,7 +271,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 日本語の匿名アカウントを表示し、認証境界は成功を返す。
@@ -303,7 +290,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 

@@ -45,7 +45,6 @@ CardList、実際の Card / CardActionsMenu と Story 側の表示状態を組�
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 一覧に追加 callback を渡す。
@@ -63,7 +62,6 @@ Then:
 ### STORYBOOK-CARD-LIST-02 Card 未作成の空状態を表示する
 
 カテゴリ: `render`
-
 
 Given:
 
@@ -83,7 +81,6 @@ Then:
 
 カテゴリ: `render`
 
-
 Given:
 
 - react タグを指定し、表示0件、空理由は filter-zero である。
@@ -101,7 +98,6 @@ Then:
 ### STORYBOOK-CARD-LIST-04 復習期限による0件状態を区別する
 
 カテゴリ: `render`
-
 
 Given:
 
@@ -121,7 +117,6 @@ Then:
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 一覧に閲覧 callback を渡す。
@@ -139,7 +134,6 @@ Then:
 ### STORYBOOK-CARD-LIST-06 選択タグを解除する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -159,7 +153,6 @@ Then:
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 解答 overlay が開き、close callback を Story 側の状態に反映する。
@@ -178,7 +171,6 @@ Then:
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 並び順は newest で、変更 callback を渡す。
@@ -196,7 +188,6 @@ Then:
 ### STORYBOOK-CARD-LIST-09 編集を要求してメニューを閉じる
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -218,7 +209,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - Card は0件、フィルターなしで、空理由を渡さない。
@@ -238,7 +228,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -260,7 +249,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - one / two を選択し、one の解除ボタンにフォーカスしている。解除を Story 側に反映する。
@@ -280,7 +268,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -302,7 +289,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - one / two を選択し、one の解除ボタンにフォーカスしている。
@@ -322,7 +308,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -344,7 +329,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 対象 Card の View、または開いたメニューの Edit にフォーカスしている。2条件を個別に用意する。
@@ -364,7 +348,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -386,7 +369,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - filter-zero に解除 callback を渡す。
@@ -406,7 +388,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -428,7 +409,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 処理中で無効な Card 行を表示する。
@@ -449,7 +429,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - Binary search のメニューが閉じている。
@@ -469,7 +448,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 

@@ -34,7 +34,6 @@ SettingsForm と実際の React Hook Form、SettingsSection / SettingsRow / Swit
 
 カテゴリ: `render`
 
-
 Given:
 
 - 日本語 locale、言語設定 system のフォームを用意する。
@@ -53,7 +52,6 @@ Then:
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 実際の React Hook Form を持つ設定画面を表示する。
@@ -71,7 +69,6 @@ Then:
 ### STORYBOOK-SETTINGS-03 セクション内のスイッチ変更を通知する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -92,7 +89,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -115,7 +111,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 再生操作・Card 詳細・スキップは表示、裏面操作は非表示、言語 system、最大24枚である。
@@ -136,7 +131,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -159,7 +153,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 説明付きの Appearance セクションと Dark mode 入力を用意する。別条件では設定フォームを二つ描画する。
@@ -181,7 +174,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 日本語 locale、最大24枚、再生間隔7秒である。
@@ -201,7 +193,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -224,7 +215,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 間隔は60秒とする。en / ja と、自動再生で開始・再生操作表示の true/false 全4組を組み合わせた8条件を個別に用意する。
@@ -246,7 +236,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 

@@ -33,7 +33,6 @@ Controller、StudySaveControls、SwipeButtonList、StudyHelpDialog と実際の�
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 停止中で24件中の index 3 を表示し、再生切替を Story 側の状態に反映する。
@@ -51,7 +50,6 @@ Then:
 ### STORYBOOK-STUDY-CONTROLS-02 スキップを要求する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -73,7 +71,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 停止中の Play にフォーカスしている。
@@ -93,7 +90,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -115,7 +111,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 左だけが無効なボタン列を表示する。
@@ -136,7 +131,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 有効な左方向のボタンにフォーカスしている。
@@ -156,7 +150,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -179,7 +172,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - ポインターでヘルプを開き、Close help にフォーカスしている。
@@ -200,7 +192,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 手動で閉じられる永続通知がある。
@@ -220,7 +211,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 

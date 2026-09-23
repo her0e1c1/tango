@@ -49,7 +49,6 @@ DeckList と実際の DeckListCard / DeckActionsMenu を組み合わせ、表示
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 作成・インポート callback を渡す。
@@ -67,7 +66,6 @@ Then:
 ### STORYBOOK-DECK-LIST-02 Deck インポートを要求する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -87,7 +85,6 @@ Then:
 
 カテゴリ: `render`
 
-
 Given:
 
 - 日本語 locale でユーザーが名付けた Deck を渡す。
@@ -105,7 +102,6 @@ Then:
 ### STORYBOOK-DECK-LIST-04 Deck の閲覧を要求する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -125,7 +121,6 @@ Then:
 
 カテゴリ: `render`
 
-
 Given:
 
 - Deck が0件で、空状態が確定している。
@@ -143,7 +138,6 @@ Then:
 ### STORYBOOK-DECK-LIST-06 復習対象・新規件数と説明を表示する
 
 カテゴリ: `render`
-
 
 Given:
 
@@ -163,7 +157,6 @@ Then:
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - Japanese verbs のメニューが閉じており、開閉を Story 側に反映する。
@@ -181,7 +174,6 @@ Then:
 ### STORYBOOK-DECK-LIST-08 学習履歴を要求する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -202,7 +194,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -225,7 +216,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 複数 Deck の一覧を表示する。
@@ -245,7 +235,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -267,7 +256,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - Add メニューを開いている。
@@ -287,7 +275,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -309,7 +296,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 初期データ取得に失敗し、Deck は0件で、各操作 callback を渡している。
@@ -329,7 +315,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -351,7 +336,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - Deck name の復習対象1件・新規2件と、復習対象0件・新規2件を別条件にする。
@@ -371,7 +355,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -394,7 +377,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 未開始の Deck name を表示し、学習と行の閲覧に別の callback を渡す。
@@ -414,7 +396,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -436,7 +417,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - ローカル Deck を用意する。
@@ -456,7 +436,6 @@ Then:
 カテゴリ: `render`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -478,7 +457,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 再開するセッションがない Deck のメニューを開く。
@@ -498,7 +476,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -520,7 +497,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - View にフォーカスし、Download / Edit / Delete を個別の対象条件にする。
@@ -541,7 +517,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 開いたメニュー内にフォーカスし、外側にも操作可能なボタンがある。
@@ -561,7 +536,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 

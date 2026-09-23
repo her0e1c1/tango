@@ -46,7 +46,6 @@ CardFields / CardCreator / CardEditor、実際の React Hook Form、プレビュ
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 既存 Card のフォームを表示する。
@@ -64,7 +63,6 @@ Then:
 ### STORYBOOK-CARD-FORM-02 タグを選択する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -84,7 +82,6 @@ Then:
 
 カテゴリ: `render`
 
-
 Given:
 
 - 日本語 locale で両面の入力エラーを渡す。
@@ -103,7 +100,6 @@ Then:
 
 カテゴリ: `interaction`
 
-
 Given:
 
 - 太字と数式の解答を通常幅・iPhone X で用意し、別条件では dark 表示の TypeScript コードを用意する。
@@ -121,7 +117,6 @@ Then:
 ### STORYBOOK-CARD-FORM-05 作成操作を通知する
 
 カテゴリ: `interaction`
-
 
 Given:
 
@@ -143,7 +138,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 表面 Front、裏面 Back のフォームを表示する。
@@ -163,7 +157,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -186,7 +179,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - Front タブにフォーカスしている。
@@ -206,7 +198,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -229,7 +220,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 表面 Front に未知のエラーがあり、英語で拡大編集を開いている。
@@ -249,7 +239,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -271,7 +260,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 表面は空、裏面は改行を含む First / Second で、raw 表示を用いる。
@@ -291,7 +279,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -313,7 +300,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 解答は `const answer = 42;`。Deck python・タグなし・light、Deck math・タグ custom/typescript/python・dark、Deck math・タグ md・light を個別に用意する。
@@ -333,7 +319,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -355,7 +340,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 英語で解答プレビューを開いている。
@@ -375,7 +359,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -397,7 +380,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 有効な両面を入力し、外部保存境界は失敗、成功の順に返す。
@@ -417,7 +399,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -439,7 +420,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 実際の編集フォームを使い、外部保存の応答を保留する。
@@ -459,7 +439,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
@@ -481,7 +460,6 @@ Then:
 
 検証状況: 未実装
 
-
 Given:
 
 - 編集フォームの両面を空にしている。
@@ -501,7 +479,6 @@ Then:
 カテゴリ: `interaction`
 
 検証状況: 未実装
-
 
 Given:
 
