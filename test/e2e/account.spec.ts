@@ -175,7 +175,7 @@ test("ACCOUNT-04 Authentication initialization recovers after Reload", async ({ 
   await expect(page.getByRole("heading", { level: 1, name: "Unable to start Tango" })).toBeVisible();
   await expect(page.getByText("Authentication could not be initialized.")).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await page.getByRole("button", { name: "Reload" }).click();
+  await page.getByRole("button", { name: "Reload", exact: true }).click();
 
   await expect(page.getByRole("heading", { level: 1, name: "Decks" })).toBeVisible();
 });

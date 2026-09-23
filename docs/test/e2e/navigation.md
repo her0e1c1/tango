@@ -11,10 +11,8 @@
 | NAVIGATION-01 | read | [存在しない route から Deck 一覧へ復帰できる](#navigation-01) |
 | NAVIGATION-02 | read | [画面の keyboard shortcut で主要 route へ遷移できる](#navigation-02) |
 | NAVIGATION-03 | write | [共通エラー画面が現在の言語で表示され Reload で復旧する](#navigation-03) |
-| NAVIGATION-04 | read | [初期化リクエストを読み取れなくても通常起動できる](#navigation-04) |
-| NAVIGATION-05 | read | [未処理の実行時例外と Promise rejection から復旧できる](#navigation-05) |
-| NAVIGATION-06 | read | [通常アプリの起動失敗から復旧できる](#navigation-06) |
-| NAVIGATION-07 | write | [初期化失敗時は通常起動せず復旧画面を表示する](#navigation-07) |
+| NAVIGATION-04 | read | [未処理の実行時例外と Promise rejection から復旧できる](#navigation-04) |
+| NAVIGATION-05 | write | [不正な PWA キャッシュによる起動失敗から復旧できる](#navigation-05) |
 
 <a id="navigation-01"></a>
 
@@ -76,43 +74,20 @@ Given:
 When:
 
 - Dark mode を変更して共通エラー画面を表示し、再読み込みを選択する。
-- 再び同じ障害を発生させ、キャッシュ初期化の確認を一度キャンセルしてから承認する。
+- 再び同じ障害を発生させ、キャッシュを削除して再読み込みする。
 
 Then:
 
 - Provider 外側のエラー境界が障害を捕捉し、日本語の見出し・説明・再読み込みボタンと html[lang] を表示する。
 - 初期 locale 同期前は安全な英語の既定値を使用する。
 - 通常の再読み込み後は保存データを削除せず、日本語の Settings へ復旧する。
-- 初期化の確認には、匿名データ・未同期の変更・設定の消失、ログアウト、再起動に通信が必要なことを明記する。キャンセル時はデータを変更しない。
-- 承認した場合だけ、次の起動で認証・購読を開始する前に Firestore のキャッシュと未同期書き込みを削除し、ログアウトして設定を既定値に戻す。
-- Tango の Service Worker 登録とその scope の Workbox キャッシュを削除し、トップ画面から新しい匿名状態で起動する。同期済みのクラウドデータと他アプリの保存データは削除しない。
-- 初期化に失敗した場合は再読み込みを繰り返さず、再試行可能なエラー画面を表示する。復旧用 React root の成立後、通常アプリの遅延読み込み・初期化で失敗しても同じ復旧画面を表示する。
+- Tango の Service Worker 登録とその scope の Workbox キャッシュだけを削除して、現在の URL を再読み込みする。
+- 認証状態、Firestore persistence と未同期書き込み、設定、他アプリの保存データは保持する。
+- キャッシュ削除に失敗した場合はエラーを通知し、自動再読み込みせず復旧画面から再試行できる。
 
 <a id="navigation-04"></a>
 
-### NAVIGATION-04 初期化リクエストを読み取れなくても通常起動できる
-
-カテゴリ: `read`
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 認証済みユーザーが日本語の Settings 画面を利用している。
-- sessionStorage の初期化リクエストの読み取りで SecurityError が発生する。
-
-When:
-
-- Settings を再読み込みする。
-
-Then:
-
-- 起動失敗画面に留まらず、日本語の Settings を表示する。
-- 保存済みの設定と認証状態を維持し、データの初期化や自動再読み込みを行わない。
-- browser error が発生しない。
-
-<a id="navigation-05"></a>
-
-### NAVIGATION-05 未処理の実行時例外と Promise rejection から復旧できる
+### NAVIGATION-04 未処理の実行時例外と Promise rejection から復旧できる
 
 カテゴリ: `read`
 
@@ -134,48 +109,29 @@ Then:
 - StrictMode と再マウント後も監視を重複させず、unmount 時に監視を解除する。
 - ブラウザーの元のエラー診断は保持する。テストで発生させた診断だけを許容する。
 
-<a id="navigation-06"></a>
+<a id="navigation-05"></a>
 
-### NAVIGATION-06 通常アプリの起動失敗から復旧できる
-
-カテゴリ: `read`
-
-Given:
-
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 復旧用 React root を読み込めるが、通常アプリの遅延モジュールの読み込みまたは初期化に失敗する。
-- ブラウザーには保存済みの設定がある。
-
-When:
-
-- アプリを開く。
-
-Then:
-
-- 共通の React 復旧画面から Reload と確認付き初期化を選択できる。
-- locale 同期前は英語を使用し、html[lang] と一致する。
-- 保存データを自動削除せず、通常アプリを描画しない。
-- entry JavaScript、React、復旧画面自体や root DOM が利用できない失敗は保証の対象外とする。
-
-<a id="navigation-07"></a>
-
-### NAVIGATION-07 初期化失敗時は通常起動せず復旧画面を表示する
+### NAVIGATION-05 不正な PWA キャッシュによる起動失敗から復旧できる
 
 カテゴリ: `write`
 
 Given:
 
-- Fixture: [`empty`](./fixture/empty.yaml)
-- 利用者が確認ダイアログで初期化を承認している。
-- 次の document で初期化要求の消費またはキャッシュ削除に失敗する。
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 認証済みユーザーが Deck 一覧を表示でき、設定が保存されている。
+- ブラウザーの PWA キャッシュにあるアプリの JavaScript が不正になり、起動中に復旧画面で捕捉可能な実行時エラーが発生する。
+- サーバーから取得できるアプリは正常であり、クラウドの Deck と Card は変更されていない。
 
 When:
 
-- 初期化要求のあるアプリを開く。
+- アプリを再読み込みして起動エラーを表示する。
+- 通常の Reload を試してから、Clear cache and reload を選択する。
 
 Then:
 
-- React の準備中表示から共通の復旧画面に切り替わり、自動再試行しない。
-- 初期化中・初期化失敗時には通常の Auth、Firestore 購読、キャッシュ送信、Service Worker 再登録を開始しない。
-- 成功時も現在の document では通常アプリを読み込まず、トップへの遷移で終了する。
-- StrictMode でも要求消費や削除処理を重複実行しない。
+- 実際の Service Worker が不正なキャッシュを返し、起動時に共通の復旧画面が表示される。
+- 通常の Reload だけでは不正なキャッシュが残り、同じ起動エラーになる。
+- キャッシュクリア後は正常なアプリを読み込み、元の URL で Deck 一覧を表示する。
+- 復旧画面は消え、不正な JavaScript はキャッシュに残らない。
+- 保存済みの設定と認証 UID を保持し、クラウドの Deck と Card の内容を変更しない。
+- テストで意図的に壊したキャッシュによる診断だけを許容し、復旧後に予期しない browser error が発生しない。

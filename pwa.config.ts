@@ -4,11 +4,7 @@ import type { VitePWAOptions } from "vite-plugin-pwa";
 // The web app manifest describes the installed app; Workbox builds the service
 // worker, a browser-managed script that can cache files and handle requests.
 export const pwaOptions = {
-  // Keep registration under the app's startup control instead of injecting a
-  // registration script into HTML. src/app/bootstrap.tsx calls registerSW()
-  // only after startup has ruled out a reset. This does not disable generation
-  // of the service worker or prevent that explicit registration.
-  injectRegister: false,
+  injectRegister: "script",
 
   // Output filename for the web app manifest, which browsers read for installation.
   // This is separate from Workbox's precache manifest (the list of files to cache).

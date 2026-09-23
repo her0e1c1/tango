@@ -27,12 +27,10 @@
   "errorBoundary": {
     "language": "en",
     "title": "Something went wrong",
-    "description": "Reload to try again, or clear the cache and reset Tango. If resetting fails, close other Tango tabs and check your browser's storage permissions.",
+    "description": "Reload to try again, or clear the app cache and reload. Your data, sign-in, and settings are kept.",
     "reload": "Reload",
-    "reset": "Clear cache and reset",
-    "starting": "Preparing Tango…",
-    "confirm": "This deletes this browser's decks, cards, study records, unsynced changes, and settings, and signs you out. Data already synced to the cloud is kept. An internet connection is needed to restart. Continue?",
-    "resetFailed": "Unable to request a reset. Check your browser's storage permissions and try again."
+    "clearCache": "Clear cache and reload",
+    "clearCacheFailed": "Unable to clear the app cache. Check your browser's storage permissions and try again."
   },
   "auth": {
     "failure": {

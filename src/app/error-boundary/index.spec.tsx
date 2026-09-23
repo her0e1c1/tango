@@ -44,7 +44,7 @@ describe("NAVIGATION-03 AppErrorBoundary", () => {
 
     expect(screen.getByRole("alert")).toBeVisible();
     expect(screen.getByRole("heading", { level: 1, name: "Something went wrong" })).toBeVisible();
-    expect(screen.getByText(/Reload to try again, or clear the cache/)).toBeVisible();
+    expect(screen.getByText(/Reload to try again, or clear the app cache/)).toBeVisible();
     expect(screen.queryByText("Application content")).not.toBeInTheDocument();
     expect(onCaughtError).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
@@ -69,7 +69,7 @@ it("NAVIGATION-03 uses the initialized locale outside I18nProvider", async () =>
 
 afterEach(() => vi.restoreAllMocks());
 
-describe("NAVIGATION-05 unhandled browser errors", () => {
+describe("NAVIGATION-04 unhandled browser errors", () => {
   it.each([new Error("async failure"), "failure", null, undefined, false, 0, ""])(
     "shows recovery regardless of rejection reason: %s",
     (reason) => {
@@ -86,7 +86,7 @@ describe("NAVIGATION-05 unhandled browser errors", () => {
       expect(screen.getByRole("alert")).toBeVisible();
       expect(event.defaultPrevented).toBe(false);
       expect(screen.queryByText("Application content")).not.toBeInTheDocument();
-      const reset = screen.getByRole("button", { name: "Clear cache and reset" });
+      const reset = screen.getByRole("button", { name: "Clear cache and reload" });
       reset.focus();
       fireEvent(window, new ErrorEvent("error", { error: new Error("duplicate") }));
       expect(reset).toHaveFocus();
@@ -142,19 +142,5 @@ describe("NAVIGATION-03 provider lifecycle and initial render failures", () => {
       { onCaughtError: vi.fn() }
     );
     expect(screen.getByRole("alert")).toBeVisible();
-  });
-
-  it("requires confirmation before requesting a reset", () => {
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    sessionStorage.clear();
-    render(
-      <AppErrorBoundary>
-        <ApplicationContent crash />
-      </AppErrorBoundary>,
-      { onCaughtError: vi.fn() }
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Clear cache and reset" }));
-    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("unsynced changes"));
-    expect(sessionStorage.getItem("tango-startup-reset")).toBeNull();
   });
 });

@@ -3,7 +3,7 @@ import { Component, type ReactNode, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { appI18n } from "../i18n/instance";
 import { getRecoveryMessages } from "../i18n/resources";
-import { requestApplicationReset } from "./reset";
+import { clearCacheAndReload } from "./clear-cache";
 
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -30,11 +30,6 @@ function useRecoveryMessages() {
   return messages;
 }
 
-export function AppStartupFallback() {
-  const messages = useRecoveryMessages();
-  return <RouteFeedback title={messages.starting} tone="loading" />;
-}
-
 export function AppErrorFallback({ title, description }: { title?: string; description?: string }) {
   const messages = useRecoveryMessages();
   return (
@@ -44,8 +39,8 @@ export function AppErrorFallback({ title, description }: { title?: string; descr
       tone="error"
       primaryAction={{ label: messages.reload, onClick: reloadPage }}
       secondaryAction={{
-        label: messages.reset,
-        onClick: () => requestApplicationReset(messages.language),
+        label: messages.clearCache,
+        onClick: () => void clearCacheAndReload(messages.language),
       }}
     />
   );

@@ -27,7 +27,7 @@ describe("Authentication feedback [ACCOUNT-04 SETTINGS-04]", () => {
     );
     expect(screen.getByText("Unable to start Tango")).toBeVisible();
     expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Clear cache and reset" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Clear cache and reload" })).toBeVisible();
     expect(screen.getByText("Authentication could not be initialized.")).toBeVisible();
     expect(screen.queryByText("Ready")).not.toBeInTheDocument();
   });
