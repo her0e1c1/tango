@@ -16,10 +16,51 @@ permissions:
   contents: read
 
 jobs:
-  # Non-PR callers intentionally skip this job; the aggregate validates that exact event/result pairing.
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      run-tests: ${{ steps.changes.outputs.run-tests }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Classify changed files
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          run_tests=true
+          if [[ "$EVENT_NAME" == pull_request || "$EVENT_NAME" == push ]]; then
+            # Unknown bases (including new branches) must keep the full checks.
+            if git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+              if [[ "$EVENT_NAME" == pull_request ]]; then
+                base=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+              else
+                base=$BASE_SHA
+              fi
+              # Disable rename detection so both sides of extension changes are checked.
+              git diff --no-renames --name-only -z "$base" "$HEAD_SHA" > "$RUNNER_TEMP/changed-files"
+              if [[ -s "$RUNNER_TEMP/changed-files" ]]; then
+                run_tests=false
+                while IFS= read -r -d '' path; do
+                  if [[ "$path" != *.md ]]; then
+                    run_tests=true
+                    break
+                  fi
+                done < "$RUNNER_TEMP/changed-files"
+              fi
+            fi
+          fi
+          echo "run-tests=$run_tests" >> "$GITHUB_OUTPUT"
+
   dependency-review:
     name: Dependency Review
-    if: ${{ github.event_name == 'pull_request' }}
+    needs: changes
+    if: ${{ github.event_name == 'pull_request' && needs.changes.outputs.run-tests == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,16 +71,22 @@ jobs:
           fail-on-severity: high
 
   e2e:
+    needs: changes
+    if: ${{ needs.changes.outputs.run-tests == 'true' }}
     name: E2E
     uses: ./.github/workflows/e2e.yaml
 
   integration:
+    needs: changes
+    if: ${{ needs.changes.outputs.run-tests == 'true' }}
     name: Integration
     permissions:
       contents: read
     uses: ./.github/workflows/integration.yaml
 
   storybook:
+    needs: changes
+    if: ${{ needs.changes.outputs.run-tests == 'true' }}
     name: Storybook
     uses: ./.github/workflows/storybook.yaml
 
@@ -48,6 +95,8 @@ jobs:
     uses: ./.github/workflows/linter.yaml
 
   checks:
+    needs: changes
+    if: ${{ needs.changes.outputs.run-tests == 'true' }}
     name: Test / ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
@@ -113,15 +162,17 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Fail closed for canonical results; only Dependency Review may be skipped, and only outside PRs.
+  # Accept skipped jobs only when the successful change classifier explicitly permits them.
   test:
     name: Test
     if: ${{ always() }}
-    needs: [checks, linter, dependency-review, e2e, integration, storybook]
+    needs: [changes, checks, linter, dependency-review, e2e, integration, storybook]
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
         env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          RUN_TESTS: ${{ needs.changes.outputs.run-tests }}
           LINTER_RESULT: ${{ needs.linter.result }}
           CHECKS_RESULT: ${{ needs.checks.result }}
           DEPENDENCY_REVIEW_RESULT: ${{ needs.dependency-review.result }}
@@ -130,12 +181,18 @@ jobs:
           INTEGRATION_RESULT: ${{ needs.integration.result }}
           STORYBOOK_RESULT: ${{ needs.storybook.result }}
         run: |
+          test "$CHANGES_RESULT" = success
           test "$LINTER_RESULT" = success
-          test "$CHECKS_RESULT" = success
-          test "$E2E_RESULT" = success
-          test "$INTEGRATION_RESULT" = success
-          test "$STORYBOOK_RESULT" = success
-          if [ "$EVENT_NAME" = pull_request ]; then
+          case "$RUN_TESTS" in
+            false) expected=skipped ;;
+            true) expected=success ;;
+            *) exit 1 ;;
+          esac
+          test "$CHECKS_RESULT" = "$expected"
+          test "$E2E_RESULT" = "$expected"
+          test "$INTEGRATION_RESULT" = "$expected"
+          test "$STORYBOOK_RESULT" = "$expected"
+          if [ "$EVENT_NAME" = pull_request ] && [ "$RUN_TESTS" = true ]; then
             test "$DEPENDENCY_REVIEW_RESULT" = success
           else
             test "$DEPENDENCY_REVIEW_RESULT" = skipped
