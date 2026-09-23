@@ -1,5 +1,5 @@
-import { expect, requireDocument, test } from "./fixtures";
-import { readSession } from "./study-helpers";
+import { expect, requireDocument, test } from "./utils/fixtures";
+import { readSession } from "./utils/study-helpers";
 
 test("NAVIGATION-17 shows held review counts and opens existing study settings", async ({ fixture, page }) => {
   const deck = fixture.deck();

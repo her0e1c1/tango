@@ -1,6 +1,6 @@
-import { createAnonymousDeck } from "./ui-helpers";
+import { createAnonymousDeck } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
+import { expect, test } from "./utils/fixtures";
 
 async function completeStudy(page: Page, deck: { id: string }, cards: readonly unknown[]) {
   await page.goto(`/deck/${encodeURIComponent(deck.id)}/start`);

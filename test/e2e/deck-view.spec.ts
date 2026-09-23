@@ -1,7 +1,7 @@
-import { createAnonymousDeck, startAnonymousStudy, downloadDeckCards } from "./ui-helpers";
+import { createAnonymousDeck, startAnonymousStudy, downloadDeckCards } from "./utils/ui-helpers";
 import type { Locator, Page } from "@playwright/test";
 
-import { type E2EFixture, expect, getDocument, listDocuments, requireDocument, test } from "./fixtures";
+import { type E2EFixture, expect, getDocument, listDocuments, requireDocument, test } from "./utils/fixtures";
 
 const readSavedData = async (page: Page, fixture: E2EFixture) => ({
   learning: await Promise.all(

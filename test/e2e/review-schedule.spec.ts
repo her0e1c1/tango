@@ -1,5 +1,5 @@
-import { expect, test } from "./fixtures";
-import { readSession } from "./study-helpers";
+import { expect, test } from "./utils/fixtures";
+import { readSession } from "./utils/study-helpers";
 
 test("SETTINGS-03 applies review scheduling to the next study session", async ({ fixture, page }) => {
   const deck = fixture.deck();

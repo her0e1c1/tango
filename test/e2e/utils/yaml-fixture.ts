@@ -1,4 +1,4 @@
-import { fsrsStateSchema } from "../../src/entities/card/model/fsrs";
+import { fsrsStateSchema } from "@/entities/card/model/fsrs";
 import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import path from "node:path";
 

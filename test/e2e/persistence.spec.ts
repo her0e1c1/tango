@@ -1,4 +1,4 @@
-import { createAnonymousDeck } from "./ui-helpers";
+import { createAnonymousDeck } from "./utils/ui-helpers";
 import type { Page, Route } from "@playwright/test";
 import {
   collectBrowserErrors,
@@ -10,7 +10,7 @@ import {
   requireDocument,
   setDocument,
   test,
-} from "./fixtures";
+} from "./utils/fixtures";
 
 const installApplicationCacheForOfflineReload = async (page: Page, baseURL: string | undefined) => {
   if (baseURL === undefined) throw new Error("Playwright baseURL is required for an offline reload");

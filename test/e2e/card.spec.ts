@@ -1,4 +1,4 @@
-import { createAnonymousDeck, downloadDeckCards } from "./ui-helpers";
+import { createAnonymousDeck, downloadDeckCards } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
 import {
   allowExpectedFirestoreWriteFailure,
@@ -9,7 +9,7 @@ import {
   listDocuments,
   requireDocument,
   test,
-} from "./fixtures";
+} from "./utils/fixtures";
 
 const cardArticle = (page: Page, frontText: string) =>
   page.getByRole("button", { name: `View ${frontText}`, exact: true }).locator("xpath=ancestor::article[1]");

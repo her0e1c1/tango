@@ -1,5 +1,5 @@
-import { expect, requireDocument, test } from "./fixtures";
-import { readSession } from "./study-helpers";
+import { expect, requireDocument, test } from "./utils/fixtures";
+import { readSession } from "./utils/study-helpers";
 
 const readSelectedTags = async (deckId: string): Promise<string[]> =>
   ((await requireDocument("deck", deckId)).fields.selectedTags?.arrayValue?.values ?? [])

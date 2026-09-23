@@ -5,7 +5,7 @@ import {
   failNextFirestoreWrite,
   listDocuments,
   test,
-} from "./fixtures";
+} from "./utils/fixtures";
 
 test("DECK-MANAGEMENT-07 creates one empty local-only Deck without a remote duplicate", async ({
   fixture,

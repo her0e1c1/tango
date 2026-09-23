@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 
-import { expect, test } from "./fixtures";
-import { readProgress, readSession } from "./study-helpers";
+import { expect, test } from "./utils/fixtures";
+import { readProgress, readSession } from "./utils/study-helpers";
 
 const revealAnswer = async (page: Page, frontText: string) => {
   await page.getByRole("button", { name: frontText, exact: true }).click();
