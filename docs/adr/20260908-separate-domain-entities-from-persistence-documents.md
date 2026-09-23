@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+Card と学習状態を分ける個別の判断は、[Card.fsrs への統合](./20260924-keep-fsrs-state-in-card.md)で変更した。この文書の一般原則は維持する。
+
 ## Decision
 
 Entity はドメインの振る舞いと責務で分ける。Firestore のドキュメント境界と一致させる必要はなく、複数 Entity が一つのドキュメントを共有してよい。

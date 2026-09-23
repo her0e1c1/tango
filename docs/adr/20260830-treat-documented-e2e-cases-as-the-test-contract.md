@@ -1,6 +1,8 @@
 # 文書化した E2E ケースをテスト仕様の基準にする
 
-Status: Accepted
+Status: Superseded
+
+後継: [テスト層ごとの振る舞いを仕様化し、Test ID で対応付ける](./20260924-use-layer-specific-behavior-test-contracts.md)
 
 ## Decision
 

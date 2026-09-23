@@ -1,6 +1,8 @@
 # StudyProgress を保存してから Session を進める
 
-Status: Accepted
+Status: Superseded
+
+後継: [学習状態を Card.fsrs に統合する](./20260924-keep-fsrs-state-in-card.md)
 
 ## Decision
 
