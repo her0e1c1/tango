@@ -1,6 +1,6 @@
 import { BackText } from "@/entities/card";
 import { useCardPreviewContent } from "@/features/card-form";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { fn } from "storybook/test";

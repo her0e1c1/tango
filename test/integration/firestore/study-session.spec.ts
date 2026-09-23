@@ -338,8 +338,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       const final = getStudySession(deckId);
       if (final === undefined) throw new Error("Expected the latest session");
       expect(final.sessionId).toBe(started.sessionId);
-      if (endReason === "completed") expect(await moveStudySession(final)).toBe(true);
-      else await abandonStudySession(deckId);
+      const completed = endReason === "completed" ? await moveStudySession(final) : await abandonStudySession(deckId);
+      expect(completed).toBe(endReason === "completed" ? true : undefined);
       await waitForPendingWrites(testDb);
       const ended = (await readSession(started.sessionId)).data();
       expect(ended).toMatchObject({ endReason, endedAt: expect.any(Timestamp) });
@@ -444,10 +444,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       expect(documents.docs.filter((item) => item.data().deckId === deckId).map(({ id }) => id)).toEqual(
         previous ? [previous.sessionId] : []
       );
-      if (previous) {
-        expect((await readSession(previous.sessionId)).data()).toEqual(original);
-        expect(getStudySession(deckId)).toMatchObject({ sessionId: previous.sessionId, currentIndex: 1 });
-      } else expect(getStudySession(deckId)).toBeUndefined();
+      expect(previous ? (await readSession(previous.sessionId)).data() : undefined).toEqual(original);
+      const previousSession = expect.objectContaining({ sessionId: previous?.sessionId, currentIndex: 1 });
+      expect(getStudySession(deckId)).toEqual(previous ? previousSession : undefined);
     }
   );
 });

@@ -14,18 +14,12 @@ export function getStudyHistoryView(
   const visibleDecks = decks.filter((deck) => deck.uid === uid);
   const selectedDecks = visibleDecks.filter((deck) => deckId === null || deck.id === deckId);
   const { result } = state;
-  const status =
-    state.period === null
-      ? "invalidRange"
-      : uid === ""
-        ? "loading"
-        : deckId !== null && selectedDecks.length === 0
-          ? "unavailable"
-          : result?.error
-            ? "error"
-            : !result?.started || !result.completed
-              ? "loading"
-              : "ready";
+  let status = "ready";
+  if (state.period === null) status = "invalidRange";
+  else if (uid === "") status = "loading";
+  else if (deckId !== null && selectedDecks.length === 0) status = "unavailable";
+  else if (result?.error) status = "error";
+  else if (!result?.started || !result.completed) status = "loading";
   const summary =
     status === "ready" && result?.started && result.completed && state.period
       ? aggregateStudyHistory(

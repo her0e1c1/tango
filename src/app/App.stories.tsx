@@ -1,4 +1,4 @@
-import type { Decorator, Meta, StoryObj } from "@storybook/react";
+import type { Decorator, Meta, StoryObj } from "@storybook/react-vite";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { expect } from "storybook/test";
 

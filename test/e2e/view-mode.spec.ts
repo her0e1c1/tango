@@ -76,6 +76,34 @@ const readLongFront = async (page: Page) => {
   await expect.poll(() => surface.evaluate((element) => element.scrollTop)).toBe(0);
 };
 
+const verifyStudyViewModeControls = async (page: Page, uid: string, deckId: string) => {
+  expect((await readSession(uid, deckId))?.currentIndex).toBe(0);
+  const viewModeButton = page.getByRole("button", { name: "View mode", exact: true });
+  await page.getByRole("button", { name: "Open card actions" }).click();
+  await viewModeButton.click();
+  await expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
+  await expect.poll(() => readViewMode(page)).toBe(true);
+  await page.getByRole("button", { name: "Close card actions" }).click();
+  await expect(viewModeButton).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Open card actions" })).toBeVisible();
+  await expect(viewModeButton).toHaveCount(0);
+  await page.goto(`/deck/${deckId}/view`);
+  await expect(page.getByRole("button", { name: "Open card actions" })).toBeVisible();
+  await expect(viewModeButton).toHaveCount(0);
+  await page.getByRole("button", { name: "Open card actions" }).click();
+  await viewModeButton.click();
+  await page.getByRole("button", { name: "Close card actions" }).click();
+  await expect(viewModeButton).toHaveAttribute("title", "Exit view mode");
+  await page.goto(`/deck/${deckId}/study`);
+  await expect(viewModeButton).toBeVisible();
+
+  await page.getByRole("button", { name: "Open study help" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Exit view mode and keep the front visible");
+  await expect(page.getByRole("dialog")).toContainText("Space scrolls the front text");
+  expect((await readSession(uid, deckId))?.currentIndex).toBe(0);
+};
+
 for (const scenario of [
   { id: "STUDY-CONTROLS-06", route: "study" },
   { id: "DECK-NAVIGATION-14", route: "view" },
@@ -95,32 +123,7 @@ for (const scenario of [
     await expect(page).toHaveURL(`/deck/${deck.id}/${scenario.route}`);
     await expect(page.getByRole("region", { name: "Card front text" })).toContainText(card.frontText);
     expect(await readProgress(card.id)).toEqual(before);
-    if (scenario.route === "study") {
-      expect((await readSession(fixture.user().uid, deck.id))?.currentIndex).toBe(0);
-      const viewModeButton = page.getByRole("button", { name: "View mode", exact: true });
-      await page.getByRole("button", { name: "Open card actions" }).click();
-      await viewModeButton.click();
-      await expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
-      await expect.poll(() => readViewMode(page)).toBe(true);
-      await page.getByRole("button", { name: "Close card actions" }).click();
-      await expect(viewModeButton).toHaveCount(0);
-      await page.reload();
-      await expect(page.getByRole("button", { name: "Open card actions" })).toBeVisible();
-      await expect(viewModeButton).toHaveCount(0);
-      await page.goto(`/deck/${deck.id}/view`);
-      await expect(page.getByRole("button", { name: "Open card actions" })).toBeVisible();
-      await expect(viewModeButton).toHaveCount(0);
-      await page.getByRole("button", { name: "Open card actions" }).click();
-      await viewModeButton.click();
-      await page.getByRole("button", { name: "Close card actions" }).click();
-      await expect(viewModeButton).toHaveAttribute("title", "Exit view mode");
-      await page.goto(`/deck/${deck.id}/study`);
-      await expect(viewModeButton).toBeVisible();
-
-      await page.getByRole("button", { name: "Open study help" }).click();
-      await expect(page.getByRole("dialog")).toContainText("Exit view mode and keep the front visible");
-      await expect(page.getByRole("dialog")).toContainText("Space scrolls the front text");
-    }
+    if (scenario.route === "study") await verifyStudyViewModeControls(page, fixture.user().uid, deck.id);
   });
 }
 
@@ -169,8 +172,9 @@ for (const scenario of [
     await expect(surface).toContainText(fixture.card("card-3").frontText);
     await page.getByRole("button", { name: "Pause", exact: true }).click();
     await expect.poll(() => readViewMode(page)).toBe(true);
-    if (scenario.route === "view") expect(await readProgress(first.id)).toEqual(before);
-    else await expect.poll(() => readProgress(first.id)).toEqual({ ...before, reps: 1 });
+    await expect
+      .poll(() => readProgress(first.id))
+      .toEqual(scenario.route === "view" ? before : { ...before, reps: 1 });
   });
 }
 

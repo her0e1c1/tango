@@ -192,6 +192,74 @@ const ImportPreview = ({
   );
 };
 
+const ImportFileSelection = (
+  props: Pick<DeckImportViewProps, "preview" | "validating" | "pending" | "onChooseAgain" | "onChange"> & {
+    busy: boolean;
+  }
+) => {
+  const { t } = useTranslation();
+  const { busy } = props;
+  return (
+    <section className={panelClass}>
+      <h2 className="flex items-center gap-3 text-title font-semibold">
+        <span aria-hidden="true" className="text-caption text-accent-primary">
+          {props.preview ? "✓" : "1"}
+        </span>
+        {t("deckImport.file.title")}
+      </h2>
+      {props.preview ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-control border border-border p-3">
+          <AiOutlineFileText aria-hidden="true" className="shrink-0 text-accent-primary" />
+          <div className="min-w-0 flex-1">
+            <strong className="break-words">{props.preview.deckName}</strong>
+            <p className="text-caption text-ink-muted">{t("deckImport.file.nameHelp")}</p>
+          </div>
+          <Button variant="quiet" disabled={busy} onClick={() => props.onChooseAgain?.()}>
+            {t("deckImport.file.chooseAgain")}
+          </Button>
+          <label className="relative min-h-touch cursor-pointer content-center rounded-control px-2 text-caption text-accent-primary underline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus has-[:focus-visible]:outline-offset-2">
+            {t("deckImport.file.replace")}
+            <input
+              type="file"
+              accept=".csv"
+              aria-label={t("deckImport.uploadPrompt")}
+              disabled={busy}
+              className="absolute inset-0 h-full w-full opacity-0 disabled:cursor-not-allowed"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) props.onChange?.(file);
+                event.target.value = "";
+              }}
+            />
+          </label>
+        </div>
+      ) : (
+        <Upload
+          className="max-w-none"
+          disabled={busy}
+          {...(props.onChange === undefined ? {} : { onChange: props.onChange })}
+        />
+      )}
+      {props.validating || props.pending ? (
+        <p role="status" className="text-caption text-ink-muted">
+          {t(props.validating ? "deckImport.status.validating" : "deckImport.status.importing")}
+        </p>
+      ) : null}
+      {!props.preview && (
+        <details>
+          <summary className={summaryClass}>{t("deckImport.format.title")}</summary>
+          <div className="space-y-2 rounded-control bg-canvas p-3 text-caption text-ink-muted">
+            <p>{t("deckImport.format.encoding")}</p>
+            <p>{t("deckImport.format.columns")}</p>
+            <p>{t("deckImport.format.uniqueKey")}</p>
+            <p>{t("deckImport.format.quoting")}</p>
+          </div>
+        </details>
+      )}
+    </section>
+  );
+};
+
 export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
   const { t } = useTranslation();
   const [exampleId, setExampleId] = React.useState(props.initialExampleId ?? "basic");
@@ -204,63 +272,7 @@ export const DeckImportView: React.FC<DeckImportViewProps> = (props) => {
         <p className="mt-2 text-ink-muted">{t("deckImport.description")}</p>
       </div>
       <PreviewError error={props.previewError} />
-      <section className={panelClass}>
-        <h2 className="flex items-center gap-3 text-title font-semibold">
-          <span aria-hidden="true" className="text-caption text-accent-primary">
-            {props.preview ? "✓" : "1"}
-          </span>
-          {t("deckImport.file.title")}
-        </h2>
-        {props.preview ? (
-          <div className="flex flex-wrap items-center gap-3 rounded-control border border-border p-3">
-            <AiOutlineFileText aria-hidden="true" className="shrink-0 text-accent-primary" />
-            <div className="min-w-0 flex-1">
-              <strong className="break-words">{props.preview.deckName}</strong>
-              <p className="text-caption text-ink-muted">{t("deckImport.file.nameHelp")}</p>
-            </div>
-            <Button variant="quiet" disabled={busy} onClick={() => props.onChooseAgain?.()}>
-              {t("deckImport.file.chooseAgain")}
-            </Button>
-            <label className="relative min-h-touch cursor-pointer content-center rounded-control px-2 text-caption text-accent-primary underline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus has-[:focus-visible]:outline-offset-2">
-              {t("deckImport.file.replace")}
-              <input
-                type="file"
-                accept=".csv"
-                aria-label={t("deckImport.uploadPrompt")}
-                disabled={busy}
-                className="absolute inset-0 h-full w-full opacity-0 disabled:cursor-not-allowed"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) props.onChange?.(file);
-                  event.target.value = "";
-                }}
-              />
-            </label>
-          </div>
-        ) : (
-          <Upload
-            className="max-w-none"
-            disabled={busy}
-            {...(props.onChange === undefined ? {} : { onChange: props.onChange })}
-          />
-        )}
-        {props.validating || props.pending ? (
-          <p role="status" className="text-caption text-ink-muted">
-            {t(props.validating ? "deckImport.status.validating" : "deckImport.status.importing")}
-          </p>
-        ) : null}
-        {!props.preview && (
-          <details>
-            <summary className={summaryClass}>{t("deckImport.format.title")}</summary>
-            <div className="space-y-2 rounded-control bg-canvas p-3 text-caption text-ink-muted">
-              <p>{t("deckImport.format.encoding")}</p>
-              <p>{t("deckImport.format.columns")}</p>
-              <p>{t("deckImport.format.uniqueKey")}</p>
-              <p>{t("deckImport.format.quoting")}</p>
-            </div>
-          </details>
-        )}
-      </section>
+      <ImportFileSelection {...props} busy={busy} />
       {props.preview !== undefined && (
         <ImportPreview
           preview={props.preview}

@@ -1,5 +1,5 @@
 import { useCardPreviewContent } from "../model/queries/useCardPreviewContent";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useForm } from "react-hook-form";
 import { expect, within } from "storybook/test";
 

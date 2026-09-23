@@ -156,14 +156,13 @@ test("NAVIGATION-05 Unhandled browser errors share recovery without clearing dat
           throw new Error("E2E_UNHANDLED_FAILURE");
         }, 0);
       } else {
-        const reason =
-          kind === "promise"
-            ? new Error("E2E_UNHANDLED_FAILURE")
-            : kind === "string"
-              ? "E2E_UNHANDLED_FAILURE"
-              : kind === "null"
-                ? null
-                : undefined;
+        const reasons = {
+          promise: new Error("E2E_UNHANDLED_FAILURE"),
+          string: "E2E_UNHANDLED_FAILURE",
+          null: null,
+          undefined,
+        };
+        const reason = reasons[kind];
         void Promise.reject(reason);
       }
     }, failure);

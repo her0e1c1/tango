@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { AiOutlineDelete, AiOutlineDownload, AiOutlineEdit } from "react-icons/ai";
 import { expect, fn } from "storybook/test";

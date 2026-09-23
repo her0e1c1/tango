@@ -124,7 +124,7 @@ Given:
 
 When:
 
-- 各種類の未処理エラーを発生させ、共通画面の Reload を選択する。
+- タイマーからの Error と、Error・文字列・null・undefined の各 Promise rejection を順に発生させ、その都度共通画面の Reload を選択する。
 
 Then:
 

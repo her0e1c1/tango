@@ -183,6 +183,10 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
   });
   await page.route("**/identitytoolkit.googleapis.com/**", async (route) => {
     const url = route.request().url();
+    const linked = normalizedOptions.linked && activeUid === uid;
+    const providerUserInfo = linked
+      ? [{ providerId: "google.com", rawId: activeUid, displayName: "E2E User" }]
+      : undefined;
     if (url.includes("accounts:lookup")) {
       await route.fulfill({
         status: 200,
@@ -192,11 +196,7 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
           users: [
             {
               localId: activeUid,
-              ...(normalizedOptions.linked && activeUid === uid
-                ? {
-                    providerUserInfo: [{ providerId: "google.com", rawId: activeUid, displayName: "E2E User" }],
-                  }
-                : {}),
+              providerUserInfo,
               lastLoginAt: "1",
               createdAt: "1",
               lastRefreshAt: new Date().toISOString(),

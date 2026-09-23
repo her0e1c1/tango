@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { calculateFsrsState } from "@/entities/card";
 import { getMemoryState } from "../model/queries/getMemoryState";
 import { MemoryState } from "./MemoryState";
