@@ -52,19 +52,19 @@ jobs:
           assert pending.read_text().count('test.fixme(') == 11
           headings = re.findall(r'^### CARD-FILTER-.*$', Path('docs/test/e2e/card-filter.md').read_text(), re.MULTILINE)
           assert len(headings) == 11 and all('[TODO]' in heading for heading in headings)
-          pending.write_text('// TODO: Implement the [TODO] cases in docs/test/e2e/card-filter.md.\n// Keep this paired file without registering empty or skipped tests.\n')
+          pending.write_text('// TODO: Implement the [TODO] cases in docs/test/e2e/card-filter.md.\n// Keep the paired module without registering empty or skipped tests.\nexport {};\n')
           file = Path('test/e2e/AGENTS.md')
           before = file.read_text()
           old = '- Every documented case must have at least one active test.'
           assert before.count(old) == 1
           after = before.replace(old, '- Every documented case without `[TODO]` must have at least one active test.')
-          after = after.replace('- Run `npm run lint:test-specs`', '- Keep `[TODO]` cases in the specification without empty or skipped tests. If all cases are pending, retain the paired `.spec.ts` with only a TODO comment pointing to its specification.\n- Run `npm run lint:test-specs`')
+          after = after.replace('- Run `npm run lint:test-specs`', '- Keep `[TODO]` cases in the specification without empty or skipped tests. If all cases are pending, retain the paired `.spec.ts` as a module with a TODO comment pointing to its specification.\n- Run `npm run lint:test-specs`')
           file.write_text(after)
           file = Path('docs/test/e2e/AGENTS.md')
           before = file.read_text()
           old = 'Explicit `[TODO]` cases remain unimplemented until their skipped tests receive real assertions.'
           assert before.count(old) == 1
-          file.write_text(before.replace(old, 'Keep explicit `[TODO]` cases in the specification without empty or skipped tests; a fully pending specification retains a comment-only paired test file.'))
+          file.write_text(before.replace(old, 'Keep explicit `[TODO]` cases in the specification without empty or skipped tests; a fully pending specification retains a paired test module with a TODO comment.'))
           print('Fixed 10 type-only imports; removed 11 empty skipped stubs without implementing pending cases.')
           PY
           git diff --check
