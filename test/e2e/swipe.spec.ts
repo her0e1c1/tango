@@ -133,6 +133,7 @@ test("STUDY-SESSION-01 starts a filtered session capped by the learning limit", 
   const otherTagExcluded = fixture.card("card-4");
   const tagOnlyExcluded = fixture.card("card-5");
   await fixture.apply(page);
+  await page.goto("/settings");
 
   for (const maximum of [fixture.state.browser.preferences.study.maxNumberOfCardsToLearn, 0, 1]) {
     if (maximum !== fixture.state.browser.preferences.study.maxNumberOfCardsToLearn) {
