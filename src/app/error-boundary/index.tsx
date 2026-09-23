@@ -2,7 +2,7 @@ import { Component, type ReactNode, useLayoutEffect } from "react";
 
 import { useTranslation } from "react-i18next";
 import { appI18n } from "../i18n/instance";
-import { getRecoveryMessages } from "./messages";
+import { getRecoveryMessages } from "../i18n/resources";
 import { requestApplicationReset } from "./reset";
 
 import { RouteFeedback } from "@/shared/ui/route-feedback";
