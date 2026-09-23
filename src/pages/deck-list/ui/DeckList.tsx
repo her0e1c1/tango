@@ -64,6 +64,7 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
           <span className="shrink-0 text-caption text-ink-muted">{t("deckList.count", { count: total })}</span>
         </div>
         <ActionsMenu
+          mobileSheet
           groupLabel={t("deckList.listActions")}
           triggerLabel={t("deckList.listActions")}
           menuLabel={t("deckList.listActions")}
@@ -160,30 +161,38 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
         )
       ) : null}
       {total > 0 && (
-        <section aria-label={t("deckList.title")} className="rounded-surface border border-border bg-surface">
-          {props.sections.totals !== undefined && (
-            <div
-              aria-hidden="true"
-              className="hidden grid-cols-[minmax(0,1fr)_11rem_10.25rem] gap-6 border-b border-border px-5 py-3 text-caption text-ink-muted sm:grid"
-            >
-              <span>{t("deckList.deckName")}</span>
-              <span>{t("deckList.cardsToStudy")}</span>
-              <span />
-            </div>
+        <section aria-label={t("deckList.title")} className="space-y-6">
+          {(
+            [
+              ["studying", props.sections.studying],
+              ["reviewNow", props.sections.reviewNow ?? []],
+              ["other", props.sections.other],
+            ] as const
+          ).map(([group, items]) =>
+            items.length > 0 ? (
+              <section key={group} aria-label={t(`deckList.groups.${group}`)}>
+                <h2 className="mb-3 flex items-baseline justify-between gap-3 text-caption font-semibold text-ink-muted">
+                  {t(`deckList.groups.${group}`)}{" "}
+                  <span className="font-normal">{t("deckList.count", { count: items.length })}</span>
+                </h2>
+                <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {items.map((item) => (
+                    <DeckListCard
+                      key={item.deck.id}
+                      deck={item.deck}
+                      cardCount={item.cardCount}
+                      {...(item.review ? { review: item.review } : {})}
+                      {...(item.studySession != null ? { studySession: item.studySession } : {})}
+                      {...props.deckCard}
+                      openMenuDeckId={openMenuDeckId}
+                      onToggleMenu={toggleMenu}
+                      onCloseMenu={closeMenu}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null
           )}
-          {[...props.sections.studying, ...(props.sections.reviewNow ?? []), ...props.sections.other].map((item) => (
-            <DeckListCard
-              key={item.deck.id}
-              deck={item.deck}
-              cardCount={item.cardCount}
-              {...(item.review ? { review: item.review } : {})}
-              {...(item.studySession != null ? { studySession: item.studySession } : {})}
-              {...props.deckCard}
-              openMenuDeckId={openMenuDeckId}
-              onToggleMenu={toggleMenu}
-              onCloseMenu={closeMenu}
-            />
-          ))}
         </section>
       )}
     </>

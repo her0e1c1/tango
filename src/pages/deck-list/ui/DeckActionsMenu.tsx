@@ -88,6 +88,7 @@ export const DeckActionsMenu: React.FC<DeckActionsMenuProps> = (props) => {
 
   return (
     <ActionsMenu
+      mobileSheet
       groupLabel={t("deckList.actions.group", { deckName: props.deckName })}
       triggerLabel={t("deckList.actions.trigger", { deckName: props.deckName })}
       menuLabel={t("deckList.actions.menu", { deckName: props.deckName })}

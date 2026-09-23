@@ -1,8 +1,10 @@
 import { chromium, type FullConfig } from "@playwright/test";
 
 import { routeAnonymousAuth, seedConfig } from "./fixtures";
+import { validateE2EFixtures } from "./yaml-fixture";
 
 const warmApplication = async (config: FullConfig) => {
+  validateE2EFixtures();
   const endpoint = process.env.PW_TEST_CONNECT_WS_ENDPOINT;
   const browser = endpoint === undefined ? await chromium.launch() : await chromium.connect(endpoint);
   const page = await browser.newPage();

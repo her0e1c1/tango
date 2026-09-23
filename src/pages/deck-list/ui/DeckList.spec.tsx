@@ -36,7 +36,7 @@ const sections = {
 } satisfies DeckListProps["sections"];
 
 describe("SETTINGS-04 DECK-NAVIGATION-01 DECK-NAVIGATION-12 DeckList", () => {
-  it("renders a single list with active decks before other decks", () => {
+  it("groups active decks before other decks with visible headings", () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Decks" })).toBeInTheDocument();
@@ -46,10 +46,12 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DECK-NAVIGATION-12 DeckList", () => {
     expect(within(list).getAllByRole("article")).toHaveLength(2);
     expect(within(list).getAllByRole("article")[0]).toHaveAccessibleName(activeDeck.name);
     expect(within(list).getAllByRole("article")[1]).toHaveAccessibleName(otherDeck.name);
-    expect(within(list).queryByRole("heading")).not.toBeInTheDocument();
+    expect(within(list).getByRole("heading", { name: "Studying 1 deck" })).toBeVisible();
+    expect(within(list).getByRole("heading", { name: "Other decks 1 deck" })).toBeVisible();
+    expect(within(list).queryByRole("region", { name: "Ready to study" })).not.toBeInTheDocument();
   });
 
-  it("keeps inactive decks available without a section heading", () => {
+  it("keeps inactive decks available and omits empty groups", () => {
     render(
       <DeckList
         sections={{ studying: [], other: sections.other }}
@@ -59,8 +61,51 @@ describe("SETTINGS-04 DECK-NAVIGATION-01 DECK-NAVIGATION-12 DeckList", () => {
     );
 
     expect(screen.getByRole("article", { name: otherDeck.name })).toBeVisible();
+    expect(screen.getByRole("region", { name: "Other decks" })).toBeVisible();
+    expect(screen.queryByRole("region", { name: "Studying" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Ready to study" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Continue Active deck" })).not.toBeInTheDocument();
   });
+
+  it("shows ready decks between studying and other decks", () => {
+    const readyDeck = createDeck({ id: "ready", name: "Ready deck" });
+    render(
+      <DeckList
+        sections={{
+          ...sections,
+          reviewNow: [{ deck: readyDeck, cardCount: 3, review: { due: 2, new: 1, nextDueAt: undefined } }],
+        }}
+        onCreateDeck={onCreateDeck}
+        onImportDeck={onImportDeck}
+      />
+    );
+    const list = screen.getByRole("region", { name: "Decks" });
+    expect(
+      within(list)
+        .getAllByRole("region")
+        .map((region) => region.getAttribute("aria-label"))
+    ).toEqual(["Studying", "Ready to study", "Other decks"]);
+    const readyGroup = screen.getByRole("region", { name: "Ready to study" });
+    expect(within(readyGroup).getByRole("article", { name: readyDeck.name })).toBeVisible();
+    expect(within(readyGroup).getByRole("button", { name: "Review Ready deck" })).toBeVisible();
+    expect(within(list).getAllByRole("article")).toHaveLength(3);
+  });
+
+  it.each(["button", "menuitem"] as const)(
+    "closes the mobile sheet through its %s without running an action",
+    async (role) => {
+      const create = vi.fn();
+      const importDeck = vi.fn();
+      render(<DeckList sections={sections} onCreateDeck={create} onImportDeck={importDeck} />);
+      const trigger = screen.getByRole("button", { name: "Add" });
+      await userEvent.click(trigger);
+      await userEvent.click(screen.getByRole(role, { name: "Close menu" }));
+      expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+      expect(trigger).toHaveFocus();
+      expect(create).not.toHaveBeenCalled();
+      expect(importDeck).not.toHaveBeenCalled();
+    }
+  );
 
   it("opens one deck actions menu at a time", () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);

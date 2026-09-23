@@ -28,6 +28,18 @@ export const resources = {
         },
         invalid: "The value is invalid.",
       },
+      errorBoundary: {
+        language: "en",
+        title: "Something went wrong",
+        description:
+          "Reload to try again, or clear the cache and reset Tango. If resetting fails, close other Tango tabs and check your browser's storage permissions.",
+        reload: "Reload",
+        reset: "Clear cache and reset",
+        starting: "Preparing Tango…",
+        confirm:
+          "This deletes this browser's decks, cards, study records, unsynced changes, and settings, and signs you out. Data already synced to the cloud is kept. An internet connection is needed to restart. Continue?",
+        resetFailed: "Unable to request a reset. Check your browser's storage permissions and try again.",
+      },
       auth: {
         failure: { title: "Unable to start Tango", description: "Authentication could not be initialized." },
         starting: {
@@ -129,7 +141,9 @@ export const resources = {
         date: "Date",
         scale: "Scale: 0–{{maximum}} sessions",
       },
+      actionsMenu: { close: "Close menu" },
       header: {
+        menu: "Menu",
         switchToLightMode: "Switch to light mode",
         switchToDarkMode: "Switch to dark mode",
         importDecks: "Import decks",
@@ -140,6 +154,7 @@ export const resources = {
         answerAria: "Card answer",
       },
       deckList: {
+        groups: { studying: "Studying", reviewNow: "Ready to study", other: "Other decks" },
         aboutCounts: "About counts",
         deckName: "Deck name",
         cardsToStudy: "Cards to study",
@@ -780,6 +795,18 @@ export const resources = {
         },
         invalid: "入力内容が正しくありません。",
       },
+      errorBoundary: {
+        language: "ja",
+        title: "問題が発生しました",
+        description:
+          "再読み込みするか、キャッシュを削除して初期化してください。初期化に失敗する場合は、他のTangoのタブを閉じ、ブラウザーのストレージ設定を確認してください。",
+        reload: "再読み込み",
+        reset: "キャッシュを削除して初期化",
+        starting: "Tangoを準備しています…",
+        confirm:
+          "このブラウザーのデッキ・カード・学習記録・未同期の変更・設定を削除し、ログアウトします。同期済みのクラウドデータは削除しません。再起動にはインターネット接続が必要です。続けますか？",
+        resetFailed: "初期化を開始できません。ブラウザーのストレージ設定を確認して、もう一度お試しください。",
+      },
       auth: {
         failure: { title: "Tango を起動できません", description: "認証を初期化できませんでした。" },
         starting: {
@@ -880,7 +907,9 @@ export const resources = {
         date: "日付",
         scale: "目盛り: 0～{{maximum}} 回",
       },
+      actionsMenu: { close: "メニューを閉じる" },
       header: {
+        menu: "メニュー",
         switchToLightMode: "ライトモードに切り替える",
         switchToDarkMode: "ダークモードに切り替える",
         importDecks: "デッキをインポート",
@@ -891,6 +920,7 @@ export const resources = {
         answerAria: "カードの回答",
       },
       deckList: {
+        groups: { studying: "学習中", reviewNow: "今学習できるデッキ", other: "その他" },
         aboutCounts: "件数について",
         deckName: "デッキ名",
         cardsToStudy: "学習するカード",
@@ -1503,3 +1533,12 @@ export const resources = {
     },
   },
 } as const;
+
+// Recovery copy must not depend on persisted application state.
+export type RecoveryMessages =
+  | typeof resources.en.translation.errorBoundary
+  | typeof resources.ja.translation.errorBoundary;
+
+export function getRecoveryMessages(language: string = navigator.language): RecoveryMessages {
+  return language.startsWith("ja") ? resources.ja.translation.errorBoundary : resources.en.translation.errorBoundary;
+}

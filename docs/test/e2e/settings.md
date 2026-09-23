@@ -172,7 +172,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- 認証済みユーザーが Deck 一覧から Settings を開き、詳細設定が閉じている。
+- 認証済みユーザーが Deck 一覧から Settings を開き、詳細設定が閉じている。狭い画面ではヘッダーの Menu から Open settings を選び、広い画面ではヘッダーの Open settings を選ぶ。
 - 広い画面と狭い画面、明色と暗色のそれぞれで確認する。
 
 When:

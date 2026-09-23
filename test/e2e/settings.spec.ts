@@ -184,7 +184,12 @@ test("SETTINGS-07 Advanced disclosure keeps keyboard focus visible without chang
         await fixture.apply(page, { preferences: { appearance: { darkMode } } });
         await page.goto("/");
         await page.getByRole("heading", { level: 1, name: "Decks" }).waitFor();
-        await page.getByRole("button", { name: "Open settings", exact: true }).click();
+        if (viewport.width < 640) {
+          await page.getByRole("button", { name: "Menu", exact: true }).click();
+          await page.getByRole("menuitem", { name: "Open settings", exact: true }).click();
+        } else {
+          await page.getByRole("button", { name: "Open settings", exact: true }).click();
+        }
         const summary = page.locator("summary");
         const details = page.locator("details");
         const interval = page.getByRole("slider", { name: "Autoplay interval" });

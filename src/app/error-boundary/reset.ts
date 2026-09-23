@@ -1,4 +1,4 @@
-import { getRecoveryMessages } from "./messages";
+import { getRecoveryMessages } from "../i18n/resources";
 
 const RESET_REQUEST_KEY = "tango-startup-reset";
 

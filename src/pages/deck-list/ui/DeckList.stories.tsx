@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn } from "storybook/test";
 
-import { withPageLayout } from "@/storybook/PageLayoutDecorator";
+import { Layout } from "@/shared/ui/layout";
 import type { Deck } from "@/entities/deck";
 import * as fixture from "@/storybook/fixture";
 
@@ -35,7 +35,13 @@ const meta = {
   title: "Pages/Deck List/DeckList",
   component: DeckList,
   tags: ["autodocs"],
-  decorators: [withPageLayout],
+  decorators: [
+    (Story) => (
+      <Layout contentSurface="canvas">
+        <Story />
+      </Layout>
+    ),
+  ],
   parameters: {
     layout: "fullscreen",
   },
@@ -196,4 +202,15 @@ export const ReviewZoom: Story = {
       </div>
     ),
   ],
+};
+
+export const MobileCards: Story = {
+  args: { sections: reviewSections },
+  parameters: { locale: "ja" },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+};
+
+export const TabletCards: Story = {
+  args: { sections: reviewSections },
+  globals: { viewport: { value: "ipad", isRotated: false } },
 };

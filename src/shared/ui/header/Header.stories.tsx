@@ -30,3 +30,5 @@ export const MobileDarkFixed: Story = {
     viewport: { value: "iphonex", isRotated: false },
   },
 };
+
+export const Mobile: Story = { globals: { viewport: { value: "iphone5", isRotated: false } } };
