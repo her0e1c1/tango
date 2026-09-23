@@ -2,7 +2,8 @@
 
 ## 目的
 
-Deck の作成・部分更新・論理削除を、Firestore 上の保存値として確認する。
+Deck の公開された保存操作を通して、作成・部分更新・論理削除・タグ変更の結果を確認する。
+入力の検証と Rules の認可を区別し、ローカル反映とサーバーへの保存を同一視しない。
 
 関連 E2E: [DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)、[DECK-MANAGEMENT-02](../../e2e/deck-management.md#deck-management-02)、[DECK-MANAGEMENT-05](../../e2e/deck-management.md#deck-management-05)
 
@@ -16,15 +17,15 @@ Deck の作成・部分更新・論理削除を、Firestore 上の保存値と�
 | FIRESTORE-DECK-02 | write | 正常系 | [Deck の編集で作成日時と対象外フィールドを維持できる](#firestore-deck-02) |
 | FIRESTORE-DECK-03 | write | 正常系 | [URL の省略と明示的なクリアを区別できる](#firestore-deck-03) |
 | FIRESTORE-DECK-04 | batch | 正常系 | [Deck と配下 Card をまとめて論理削除できる](#firestore-deck-04) |
-| FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](#firestore-deck-05)（未実装・未検証） |
-| FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06)（未実装・未検証） |
+| FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](#firestore-deck-05) |
+| FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06) |
 | FIRESTORE-DECK-07 | batch | 正常系 | [多数の Card と登録タグをまとめて改名する](#firestore-deck-07) |
 | FIRESTORE-DECK-08 | batch | 異常系 | [タグ更新の拒否で部分保存を残さない](#firestore-deck-08) |
 | FIRESTORE-DECK-09 | batch | 正常系 | [保留中の Card 保存の後にタグ変更を同期する](#firestore-deck-09) |
 
 <a id="firestore-deck-01"></a>
 
-### FIRESTORE-DECK-01 Deck の保存対象だけを新規作成できる
+### FIRESTORE-DECK-01 [TODO] Deck の保存対象だけを新規作成できる
 
 カテゴリ: `write`
 
@@ -32,16 +33,16 @@ Deck の作成・部分更新・論理削除を、Firestore 上の保存値と�
 
 Given:
 
-- 本人の新しい Deck ID と name `new deck name` を用意する。
-- 入力に学習 session の `currentIndex: 1`、`cardOrderIds: ["card-1"]` も混在させる。
+- 本人の新しい Deck ID と name `new deck name` が指定されている。
+- 作成入力に学習 session の `currentIndex: 1`、`cardOrderIds: ["card-1"]` も含まれている。
 
 When:
 
-- `createDeck("uid", input)` を実行し、SDK の送信完了後に `deck/{id}` を取得する。
+- 公開された Deck の新規作成操作で保存する。
 
 Then:
 
-- 指定した ID・UID・name と既定の Deck 設定を保存する。難易度範囲は `1`〜`10`、`deletedAt` は `null` である。
+- サーバー上に指定した ID・UID・name と既定の Deck 設定を保存する。難易度範囲は `1`〜`10`、`deletedAt` は `null` である。
 - `createdAt` と `updatedAt` は同じ数値であり、document が存在する。
 - `localMode`、`currentIndex`、`cardOrderIds` は保存しない。
 
@@ -55,20 +56,20 @@ Then:
 
 Given:
 
-- 本人の Deck が存在し、作成直後の保存値を取得している。
+- 本人の Deck が存在し、変更前の名前・作成日時・設定が保存されている。
 
 When:
 
-- name を `updated` に変更する。入力に `currentIndex: 1` と `cardOrderIds: ["card-1"]` を混在させて `editDeck` を実行する。
+- 公開された編集操作で name を `updated` に変更する。編集入力には `currentIndex: 1` と `cardOrderIds: ["card-1"]` も含める。
 
 Then:
 
-- name は `updated`、`updatedAt` は数値になる。`createdAt` を含むその他の保存値は変わらない。
+- サーバー上の name は `updated`、`updatedAt` は数値になる。`createdAt` を含むその他の保存値は変わらない。
 - `localMode`、`currentIndex`、`cardOrderIds` は追加しない。
 
 <a id="firestore-deck-03"></a>
 
-### FIRESTORE-DECK-03 URL の省略と明示的なクリアを区別できる
+### FIRESTORE-DECK-03 [TODO] URL の省略と明示的なクリアを区別できる
 
 カテゴリ: `write`
 
@@ -77,19 +78,24 @@ Then:
 Given:
 
 - 本人の Deck に URL `https://example.com/deck` が保存されている。
+- 次の入力を、それぞれ同じ保存済み状態から独立して確認する。
+
+| 編集入力 | 保存後の URL |
+| --- | --- |
+| name だけを変更し、URL を指定しない | 保存済みの URL を維持する |
+| `url: null` を指定する | `url` フィールドが存在しない |
 
 When:
 
-- URL を省略した name の編集を保存し、その後 `url: null` を指定して保存する。
+- 対象の編集入力を公開された Deck の編集操作で保存する。
 
 Then:
 
-- 最初の編集後も既存の URL を保持する。
-- `url: null` の保存後は `url` フィールド自体がなくなる。
+- サーバー上の URL は表の結果となり、省略を削除要求として扱わない。
 
 <a id="firestore-deck-04"></a>
 
-### FIRESTORE-DECK-04 Deck と配下 Card をまとめて論理削除できる
+### FIRESTORE-DECK-04 [TODO] Deck と配下 Card をまとめて論理削除できる
 
 カテゴリ: `batch`
 
@@ -102,11 +108,11 @@ Given:
 
 When:
 
-- `deleteDeck("uid", deckId)` を実行し、送信完了後に対象 Deck と Card を取得する。
+- 公開された削除操作で対象 Deck を削除する。
 
 Then:
 
-- 対象 Deck は物理削除されず、`deletedAt` に数値が入る。
+- サーバー上の対象 Deck は物理削除されず、`deletedAt` に数値が入る。
 - 対象 Deck に属する2件の Card も物理削除されず、`deletedAt` に数値が入る。
 - Deck と2件の Card の `deletedAt` は同じ削除操作の時刻である。
 - 別の Deck とその配下 Card は変更されない。
@@ -125,11 +131,11 @@ Given:
 
 When:
 
-- `deleteDeck("uid", deckId)` を実行し、送信完了後に対象 Deck を取得する。
+- 公開された削除操作で対象 Deck を削除する。
 
 Then:
 
-- 対象 Deck は物理削除されず、`deletedAt` に数値が入る。
+- サーバー上の対象 Deck は物理削除されず、`deletedAt` に数値が入る。
 - 子 Card が0件でも削除操作は成功する。
 
 <a id="firestore-deck-06"></a>
@@ -143,20 +149,18 @@ Then:
 Given:
 
 - 本人の Deck と、その Deck に属する `deletedAt: null` の Card が複数存在する。
-- 同一 batch 内の Card 更新の1件が Firestore Rules に拒否される状態を用意する。
-- 削除前の Deck と全 Card の保存値を取得している。
+- 削除対象の Card のうち1件は、今回の認証状態では更新を許可されない。
+- Deck と全 Card の削除前の保存値が分かっている。
 
 When:
 
-- Deck と配下 Card を同一 batch で論理削除する操作を実行し、書込失敗を待つ。
+- 公開された削除操作で、Deck と配下 Card をまとめて論理削除する。
 
 Then:
 
-- 削除操作は失敗する。
-- Deck の `deletedAt` は変更されない。
-- 配下 Card は一部だけ削除された状態にならず、全件の `deletedAt` が削除前の値のままである。
-
-このケースでは「Deck は削除済みだが Card が残る」「一部の Card だけ削除済み」という部分成功を許可しない。
+- 削除の失敗が通知される。
+- サーバー上の Deck の `deletedAt` は変更されない。
+- 配下 Card の `deletedAt` は全件とも削除前の値であり、親だけ・子だけ・一部の子だけが削除された部分成功を残さない。
 
 <a id="firestore-deck-07"></a>
 
@@ -173,12 +177,12 @@ Given:
 
 When:
 
-- Entity の公開されたタグ読取・更新操作を一つのbatchで実行し、旧タグを新しいタグに変更する。
-- 続いて通常の Deck 編集で名前を保存する。
+- 公開されたタグの読取・更新操作で、対象 Card と Deck の登録タグの旧名を新しい名前にまとめて変更する。
+- その後、通常の Deck 編集で名前を保存する。
 
 Then:
 
-- 全501枚の Card と Deck の登録タグが新しい名前を保持する。
+- サーバー上の全501枚の Card と Deck の登録タグが新しい名前を保持する。
 - 他のタグ、Card の本文・ID・削除状態は変わらない。
 - 通常の Deck 編集が登録タグを上書きしない。
 
@@ -193,16 +197,16 @@ Then:
 Given:
 
 - 本人の Deck と、その Deck に属する旧タグ付き Card がある。
-- 同じbatchに、本人の UID を別 UID に変更する不正な Card 書込が含まれる。
+- 同じ保存単位に、本人の UID を別 UID に変更する不正な Card 更新が含まれている。
 
 When:
 
-- Entity の公開されたタグ更新操作を含むbatchを確定する。
+- 公開されたタグ更新と不正な Card 更新を、一つの保存単位として確定する。
 
 Then:
 
-- 実際の Firestore Rules が不正な Card 更新を拒否する。
-- batch全体が失敗し、Deck の登録タグと Card の保存値は操作前と同一である。
+- Rules による認可で Card 更新が拒否され、保存全体が失敗する。
+- サーバー上の Deck の登録タグと Card の保存値は操作前と同一であり、部分保存を残さない。
 
 <a id="firestore-deck-09"></a>
 
@@ -215,12 +219,12 @@ Then:
 Given:
 
 - 本人の Deck と旧タグ・保持するタグを持つ Card が同期済みである。
-- 通信を止め、同じタグを持つ Card の追加と、既存 Card の本文変更をローカル保存している。
+- 通信がない状態で、同じタグを持つ Card の追加と、既存 Card の本文変更をローカル保存している。
+- 改名と削除を、それぞれ同じ変更前の状態から独立して確認する。
 
 When:
 
-- キャッシュから対象 Deck のタグと Card を読み、旧タグを改名または削除する batch をローカル保存する。
-- 再接続して保留中の書込みの同期完了を待つ。
+- 公開されたタグ変更操作で旧タグを改名または削除し、再接続する。
 
 Then:
 

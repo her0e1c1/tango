@@ -3,14 +3,9 @@
 ## 目的
 
 再生、スキップ、方向操作とヘルプのキーボード操作を確認する。
+操作の公開 callback、表示状態、実際の子 UI と通知の組み合わせを対象とし、回答記録・FSRS 更新・学習進捗の実保存は対象外とする。
 
-## 検証境界
-
-Controller、StudySaveControls、SwipeButtonList、StudyHelpDialog と実際の子 UI、Story 側の表示状態、ToastViewport を組み合わせる。回答記録、FSRS 更新、実際の学習進捗の保存は対象外。
-
-書式・実行前提は [README](./README.md)、関連 E2E は [study-controls](../../e2e/study-controls.md) と [study-actions](../../e2e/study-actions.md) を参照する。
-
-未実装のケースは見出しの `[TODO]` で示す。ヘルプは実際の子 UI を含む CardPlayer で確認する。
+書式・実行前提は [AGENTS.md](./AGENTS.md)、関連 E2E は [study-controls](../../e2e/study-controls.md) と [study-actions](../../e2e/study-actions.md) を参照する。
 
 ## テストケース
 
@@ -37,7 +32,7 @@ Controller、StudySaveControls、SwipeButtonList、StudyHelpDialog と実際の�
 
 Given:
 
-- 停止中で24件中の index 3 を表示し、再生切替を Story 側の状態に反映する。
+- 停止中で24件中の4件目を表示しており、再生切替の要求を受けた結果が表示状態へ反映される。
 
 When:
 
@@ -97,7 +92,7 @@ Then:
 
 Given:
 
-- 5件中の index 0 を表示している。
+- 5件中の先頭を表示している。
 
 When:
 
@@ -121,7 +116,7 @@ Given:
 
 When:
 
-- Swipe left を押し、ボタン列の前から Tab で移動する。
+- Swipe left の操作を試み、ボタン列の前から Tab で移動する。
 
 Then:
 
@@ -218,7 +213,7 @@ Then:
 
 Given:
 
-- Strict Mode で永続通知と開いたヘルプを表示している。
+- 永続通知と開いたヘルプを表示している。
 
 When:
 

@@ -1,0 +1,36 @@
+extends: empty.yaml
+auth:
+  users:
+    - uid: user-1
+      provider: google
+remote:
+  decks:
+    - id: deck-export
+      uid: user-1
+      name: CSV Export Deck
+    - id: deck-other
+      uid: user-1
+      name: Other Deck
+  cards:
+    - id: card-special
+      deckId: deck-export
+      uid: user-1
+      frontText: '日本語, "quoted" question'
+      backText: |-
+        first line
+        second line, "quoted" answer
+      tags: [go, typescript]
+      uniqueKey: 'key,"quoted"'
+    - id: card-no-tags
+      deckId: deck-export
+      uid: user-1
+      frontText: plain question
+      backText: plain answer
+      uniqueKey: plain-key
+    - id: card-other
+      deckId: deck-other
+      uid: user-1
+      frontText: other deck question
+      backText: other deck answer
+      tags: [other]
+      uniqueKey: other-key

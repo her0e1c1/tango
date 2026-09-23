@@ -27,6 +27,7 @@ AND / OR、フィルター解除、条件の保存は [Card Filter の仕様](./
 | DECK-TAG-MANAGEMENT-14 | batch | 正常系 | [保留中の Card 編集後もタグ変更が維持される](#deck-tag-management-14) |
 | DECK-TAG-MANAGEMENT-15 | batch | 正常系 | [匿名モードでもタグを管理して再読み込みできる](#deck-tag-management-15) |
 | DECK-TAG-MANAGEMENT-16 | batch | 正常系 | [同じ名前の保存ではタグを更新しない](#deck-tag-management-16) |
+| DECK-TAG-MANAGEMENT-17 | write | 正常系 | [Card からタグを外しても登録タグと他の Card を維持する](#deck-tag-management-17) |
 
 <a id="deck-tag-management-01"></a>
 
@@ -389,3 +390,35 @@ When:
 Then:
 
 - タグ名・Card の本文・更新日時は変わらない。
+
+<a id="deck-tag-management-17"></a>
+
+### DECK-TAG-MANAGEMENT-17 [TODO] Card からタグを外しても登録タグと他の Card を維持する
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-tag-management`](./fixture/deck-tag-management.yaml)
+- 対象 Deck のタグ管理で、解除対象のタグをその Deck にまだ存在しない名前へ変更して保存済みである。対象タグは Card の表示だけでなく Deck の登録タグとして保持されている。
+- 次の各状態を独立した入力例とする。別の Deck にもタグ付き Card がある。
+
+| 対象 Card のタグ | 同じ Deck の別 Card にも解除対象が付いているか | 解除後の対象 Card のタグ |
+| --- | --- | --- |
+| 解除対象だけ | はい | タグなし |
+| 解除対象と別のタグ | はい | 別のタグだけ |
+| 解除対象と別のタグ | いいえ。対象 Card が最後の割り当てである | 別のタグだけ |
+
+When:
+
+- 対象 Card の編集画面で対象タグを外して保存し、リロードして編集画面と Deck のタグ管理を開き直す。
+
+Then:
+
+- 対象 Card のタグは表の結果となり、解除したタグが再び付かない。
+- Deck の登録タグと選択候補には対象タグが残る。最後の割り当てを外して使用中の Card が0件になっても、登録タグ自体は削除されない。
+- 同じ Deck の他の Card に付いたタグは変更されない。
+- 別の Deck のタグと Card への設定は変更されない。
+- Card の本文・件数は変わらない。

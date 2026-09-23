@@ -4,11 +4,9 @@
 
 取得済みデックの一覧が最新の結果に切り替わり、クリア後に以前のデックを参照できないことを確認する。Firestore の通信、document の検証、論理削除の除外、認証ライフサイクルは対象外とする。
 
-関連テスト: [`subscription.spec.tsx`](../../../../src/entities/deck/api/subscription.spec.tsx)（SDK を模した既存テスト。Store 単体テストそのものとは区別する）
-
 関連 E2E: [CARD-LIST-ACTIONS-01](../../e2e/card-list-actions.md#card-list-actions-01)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
-対応状況は既存テストとの静的な照合結果であり、テストの実行結果ではない。共通の検証境界と対応状況の意味は [AGENTS.md](./AGENTS.md) を参照する。
+共通の検証前提は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
@@ -19,13 +17,11 @@
 
 <a id="unit-store-deck-01"></a>
 
-### UNIT-STORE-DECK-01 最新の取得結果だけをデック一覧として提供する
+### UNIT-STORE-DECK-01 [TODO] 最新の取得結果だけをデック一覧として提供する
 
 カテゴリ: `state-change`
 
 区分: 正常系
-
-対応テスト: `replaces the store with active Decks`（要補完：既存テストは空の状態への初回反映のみ）。
 
 Given:
 
@@ -47,13 +43,11 @@ Then:
 
 <a id="unit-store-deck-02"></a>
 
-### UNIT-STORE-DECK-02 デックのクリア後は以前のデックを参照できない
+### UNIT-STORE-DECK-02 [TODO] デックのクリア後は以前のデックを参照できない
 
 カテゴリ: `scope-reset`
 
 区分: 正常系
-
-対応テスト: 未検証：参照した既存テストにはクリア操作の検証がない。
 
 Given:
 

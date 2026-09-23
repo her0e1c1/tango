@@ -2,15 +2,11 @@
 
 ## 目的
 
-Deck フォームの入力保持、エラー表示と削除確認の通知を確認する。
-
-## 検証境界
-
-DeckForm と実際の React Hook Form、および DeckDeletionDialog。エラーは Story から渡し、validation rule の実行や永続化は検証しない。
+Deck フォームの入力保持、エラー表示と削除確認の公開 callback の通知を確認する。フォームへ与えられたエラーの表示を対象とし、validation rule の実行や永続化は検証しない。削除確定の通知だけで、保存済み Deck が削除されたとは判断しない。
 
 関連 E2E: [deck-management](../../e2e/deck-management.md)。
 
-書式・実行前提は [README](./README.md) を参照する。
+書式・実行前提は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
@@ -20,6 +16,8 @@ DeckForm と実際の React Hook Form、および DeckDeletionDialog。エラー
 | STORYBOOK-DECK-FORM-02 | interaction | 正常系 | [詳細設定を閉じて開き直しても入力を保持する](#storybook-deck-form-02) |
 | STORYBOOK-DECK-FORM-03 | render | 異常系 | [詳細項目のエラーを見える状態で表示する](#storybook-deck-form-03) |
 | STORYBOOK-DECK-FORM-04 | interaction | 正常系 | [削除確認から確定 callback を通知する](#storybook-deck-form-04) |
+| STORYBOOK-DECK-FORM-05 | interaction | 正常系 | [削除を確定せずに取消しを通知する](#storybook-deck-form-05) |
+| STORYBOOK-DECK-FORM-06 | interaction | 正常系 | [削除処理中は再確定と取消しを通知しない](#storybook-deck-form-06) |
 
 <a id="storybook-deck-form-01"></a>
 
@@ -31,7 +29,7 @@ DeckForm と実際の React Hook Form、および DeckDeletionDialog。エラー
 
 Given:
 
-- 名前とカテゴリが空の作成フォームを、実際の React Hook Form で表示する。
+- 名前とカテゴリが空の作成フォームを表示している。
 
 When:
 
@@ -51,12 +49,12 @@ Then:
 
 Given:
 
-- 作成フォームの More settings が閉じている。
+- 作成フォームの More settings が開いている。
+- Source URL に `https://example.com/deck.csv` を入力し、Convert line breaks を有効にしている。
 
 When:
 
-- More settings を開き、Source URL に https://example.com/deck.csv を入力する。
-- Convert line breaks を有効にし、More settings を閉じてから再度開く。
+- More settings を閉じてから再度開く。
 
 Then:
 
@@ -73,11 +71,11 @@ Then:
 
 Given:
 
-- 名前と URL にフォームエラーを設定した作成フォームを用意する。
+- URL にフォームエラーがある。
 
 When:
 
-- フォームを描画する。
+- 作成フォームを表示する。
 
 Then:
 
@@ -101,8 +99,47 @@ When:
 
 Then:
 
-- 削除確定 callback が一度通知される。
+- 公開された削除確定 callback を通じて、削除の確定が一度通知される。
 
-## 自動アサーションに含めない項目
+<a id="storybook-deck-form-05"></a>
 
-詳細設定を開くだけの Story には、期待結果のアサーションはない。作成中・保存中・削除処理中の Story は表示専用であり、二重送信防止や取消しの検証済みケースには数えない。
+### STORYBOOK-DECK-FORM-05 [TODO] 削除を確定せずに取消しを通知する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 削除確認ダイアログが開いており、削除を開始していない。
+- Cancel ボタンと、ダイアログ内での Escape を独立した操作例とする。
+
+When:
+
+- 対象の操作で削除の取消しを選ぶ。
+
+Then:
+
+- 公開された取消し callback を通じて、取消しが一度通知される。
+- 削除確定は通知されない。保存済みデータの状態や、親画面によるダイアログの終了はこの通知だけでは保証しない。
+
+<a id="storybook-deck-form-06"></a>
+
+### STORYBOOK-DECK-FORM-06 [TODO] 削除処理中は再確定と取消しを通知しない
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 削除の確定を一度通知済みで、処理が完了していない確認ダイアログを表示している。
+
+When:
+
+- 処理中に確定ボタン・Cancel・Escape による操作を試みる。
+
+Then:
+
+- 処理中であることを示し、確定ボタンと Cancel は操作できない。
+- 追加の削除確定や取消しを通知せず、処理中のダイアログが操作によって閉じることはない。

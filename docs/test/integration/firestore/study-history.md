@@ -2,8 +2,8 @@
 
 ## 目的
 
-StudySession の開始・完了履歴を期間と Deck で取得する購読契約を確認する。
-保存データと query 条件はケース内で準備し、日別集計や UI の表示形式を対象にしない。
+StudySession の開始・完了履歴と回答履歴を、期間・Deck・所有者の条件に従って取得できることを確認する。
+サーバーから取得した結果と端末内の結果を区別し、日別集計や UI の表示形式は対象にしない。
 
 関連 E2E: [STUDY-SESSION-09](../../e2e/study-session.md#study-session-09)、[STUDY-SESSION-12](../../e2e/study-session.md#study-session-12)
 
@@ -27,20 +27,8 @@ StudySession の開始・完了履歴を期間と Deck で取得する購読契�
 
 Given:
 
-- 本人の UID と他テストと重ならない期間 `[start, start + 1)` を用意し、次の session を SDK の batch で保存する。
-
-When:
-
-- `subscribeStudyHistory` で started / completed を、それぞれ Deck 指定なし・対象 Deck 指定ありで取得する。
-- ネットワーク停止後、対象 Deck の履歴を再購読する。ネットワーク復旧後に別 UID の履歴を要求する。
-
-Then:
-
-- オンラインでは cache 以外の snapshot を待ち、下表の件数・値を取得する。started は開始日時、completed は完了日時を使い、abandoned を完了に数えない。
-- オフラインの started snapshot は `fromCache: true` で130件、completed は1件である。
-- 別 UID の履歴取得は `permission-denied` をエラー callback に通知する。
-
-#### 事前データと期待結果
+- 本人の UID に次の学習 session が保存されている。取得期間は `[start, start + 1)` とし、時刻の単位は Unix ミリ秒とする。
+- 各 session は異なる識別子を持ち、cardCount は `1` である。
 
 | Deck | 件数 | startedAt | endedAt | endReason |
 | --- | --- | --- | --- | --- |
@@ -50,6 +38,16 @@ Then:
 | 対象 | 1 | start - 1 | start | abandoned |
 | 対象 | 1 | start + 1 | start + 1 | completed |
 
+- オンライン取得、対象 Deck の履歴を取得済みのオフライン取得、別 UID の取得を、独立した条件として確認する。
+
+When:
+
+- 対象の通信状態・UID・Deck 条件で、公開された履歴購読を開始する。開始履歴と完了履歴はそれぞれ指定して取得する。
+
+Then:
+
+- 本人のオンライン取得では、サーバーと同期した結果が次の表に一致する。
+
 | 指標 | Deck 条件 | 期待結果 |
 | --- | --- | --- |
 | started | 指定なし | 131件 |
@@ -57,10 +55,11 @@ Then:
 | started | 対象 Deck | `{ deckId, occurredAt: start }` が130件 |
 | completed | 対象 Deck | `{ deckId, occurredAt: start }` が1件 |
 
-終了境界 `start + 1` の session は期間外として扱う。各 record の sessionId は文字列、cardCount は `1` である。started の対象 record は startedAt `start`・endedAt `null`・endReason `null` を持つ。completed の対象 record は startedAt `start - 1`・endedAt `start`・endReason `completed` を持つ。
-
-130件の取得を確認するが、負荷試験や無制限の件数保証ではない。
-日別の表示・集計 UI は E2E の責務であり、このケースは取得 record の契約を扱う。
+- started は開始日時、completed は完了日時を期間判定に使い、abandoned を完了に数えない。終了境界 `start + 1` は含めない。
+- 各 record の sessionId は文字列、cardCount は `1` である。対象 Deck の started record は startedAt `start`・endedAt `null`・endReason `null`、completed record は startedAt `start - 1`・endedAt `start`・endReason `completed` を持つ。
+- 本人のオフライン取得では、対象 Deck の開始履歴130件・完了履歴1件を cache の結果として返し、サーバーと同期済みの結果として扱わない。
+- 別 UID の取得では、公開されたエラー通知に `permission-denied` が届く。
+- 130件という入力例を確認し、無制限の件数保証や負荷試験とは扱わない。
 
 <a id="firestore-study-history-02"></a>
 
@@ -72,19 +71,27 @@ Then:
 
 Given:
 
-- UID `uid` の回答を固有の期間・Deckに保存する。開始時刻に again / hard / good / easy の4回答、別 Deck に1回答、開始前・終了境界に各1回答、不正 rating に1回答を保存する。
-- Rules は所有者条件を検証する。不正 rating は Rules の責務ではなく Adapter の検証対象とする。
+- 本人の回答が保存されている。対象期間の開始時刻に、対象 Deck の again / hard / good / easy の4回答と別 Deck の1回答がある。
+- 対象 Deck には、期間開始前・終了境界の回答が各1件と、不正な rating を持つ期間内の回答が1件ある。
+- 同時刻の回答は異なる document ID を持つ。不正 rating は保存データを読む Adapter の検証対象とする。
+- 次の取得条件をそれぞれ独立して確認する。
+
+| 取得条件 | 前提 |
+| --- | --- |
+| 本人のオンライン取得 | Deck 指定あり・なし、上限2件・10件をそれぞれ指定する |
+| ログイン済みのオフライン取得 | 対象範囲の履歴を端末内で参照できる |
+| 匿名の取得 | 匿名利用者自身の履歴を端末内で参照できる |
+| cache にない範囲の取得 | 通信がなく、指定した範囲の履歴が端末内にない |
 
 When:
 
-- 本人の回答を Deck 指定あり・なし、上限2件・10件で読み、ネットワーク停止後にログイン済みと匿名の cache を読む。
+- 公開された回答履歴の取得操作へ、対象の期間・Deck・上限を指定する。
 
 Then:
 
-- answeredAt 降順、同時刻は document ID 降順で返す。半開区間外を除き、Deck 指定で正常4件・指定なしで正常5件を返す。
-- 不正回答を補完せず invalidCount で知らせる。上限2件では truncated、全件取得では非 truncated となる。
-- オンラインの結果は server、オフラインと匿名は cache となり、cache にない範囲は cache の0件となる。
-- Rules/index の既存デプロイ経路を使用する。エミュレーターは本番の複合 index の有無を強制しないため、本番 index の利用可能性はこのテストでは未検証である。
+- answeredAt 降順、同時刻は document ID 降順で返す。半開区間外を除き、上限10件では Deck 指定ありで正常4件・指定なしで正常5件を返す。
+- 不正回答を正常な回答へ補完せず、invalidCount で知らせる。上限2件では truncated、全件取得では非 truncated となる。
+- オンラインの結果は server、オフラインと匿名の結果は cache と区別される。cache にない範囲は cache の0件となり、サーバー上にも履歴がないとは断定しない。
 
 <a id="firestore-study-history-03"></a>
 
@@ -96,12 +103,21 @@ Then:
 
 Given:
 
-- SDK の current user は UID `uid` である。
+- 現在の認証済み利用者は UID `uid` である。
+- ほかの条件は有効とし、次のいずれか一つだけが不正な取得条件を独立した入力例とする。
+
+| 不正にする条件 | 入力例 |
+| --- | --- |
+| 所有者 | 空 UID、現在の利用者と異なる UID |
+| Deck | 空の Deck ID |
+| 期間 | 開始が終了より後、開始と終了が同じ、非有限の時刻 |
+| 取得上限 | 0、小数、1001件 |
 
 When:
 
-- 空 UID、別 UID、空 Deck、逆転または空の区間、非有限時刻、0・小数・1001件の上限を Adapter に渡す。
+- 公開された回答履歴の取得操作へ、対象の不正条件を指定する。
 
 Then:
 
-- すべて reject する。これは Adapter の入力検証であり Rules の認可テストの代用ではない。回答の Rules 所有権は既存の StudyAnswer 仕様で確認する。
+- 入力を拒否し、正常な取得結果として返さない。
+- この拒否は Adapter の入力検証であり、Rules の認可成功・失敗を保証するものではない。

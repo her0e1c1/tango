@@ -4,11 +4,9 @@
 
 認証結果を利用する側が、現在の状態と本人情報だけを取得でき、前の利用者や認証試行の情報を引き継がないことを確認する。Firebase Auth の実行、試行の競合制御、サインアウト時の他 Entity の消去は対象外とする。
 
-関連テスト: [`replaceAuthSession.spec.ts`](../../../../src/entities/auth/model/actions/replaceAuthSession.spec.ts)
-
 関連 E2E: [ACCOUNT-03](../../e2e/account.md#account-03)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
-対応状況は既存テストとの静的な照合結果であり、テストの実行結果ではない。共通の検証境界と対応状況の意味は [AGENTS.md](./AGENTS.md) を参照する。
+共通の検証前提は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
@@ -20,17 +18,15 @@
 
 <a id="unit-store-auth-01"></a>
 
-### UNIT-STORE-AUTH-01 本人確認が終わるまでは利用者を確定しない
+### UNIT-STORE-AUTH-01 [TODO] 本人確認が終わるまでは利用者を確定しない
 
 カテゴリ: `initial`
 
 区分: 正常系
 
-対応テスト: `starts without an identity`（要補完：既存テストは事前に初期状態を書き込んでおり、起動直後を検証していない）。
-
 Given:
 
-認証結果をまだ受け取っていない新しい実行環境である。期待する状態を事前に書き込まない。
+認証結果をまだ受け取っていない新しい実行環境である。
 
 When:
 
@@ -42,13 +38,11 @@ Then:
 
 <a id="unit-store-auth-02"></a>
 
-### UNIT-STORE-AUTH-02 認証完了後は今回の利用者情報だけを提供する
+### UNIT-STORE-AUTH-02 [TODO] 認証完了後は今回の利用者情報だけを提供する
 
 カテゴリ: `state-change`
 
 区分: 正常系 / 異常系
-
-対応テスト: `replaces the current session`（要補完：既存テストは初期状態から匿名利用者への変更のみ）。
 
 Given:
 
@@ -70,13 +64,11 @@ Then:
 
 <a id="unit-store-auth-03"></a>
 
-### UNIT-STORE-AUTH-03 認証未完了の状態へ変わったら古い本人情報を提供しない
+### UNIT-STORE-AUTH-03 [TODO] 認証未完了の状態へ変わったら古い本人情報を提供しない
 
 カテゴリ: `state-change`
 
 区分: 正常系 / 異常系
-
-対応テスト: `represents anonymous authentication without an SDK credential`（要補完：既存テストは初期状態から試行中への変更のみ）。
 
 Given:
 

@@ -4,11 +4,9 @@
 
 取得済みカードの変更と消去が参照結果に反映され、参照可能なデックに属する同じ所有者のカードだけを取得できることを確認する。Firestore document の検証、論理削除の除外、購読開始・停止は扱わない。
 
-関連テスト: [`subscription.spec.tsx`](../../../../src/entities/card/api/subscription.spec.tsx)（SDK を模した既存テスト。Store 単体テストそのものとは区別する）
-
 関連 E2E: [CARD-VIEW-01](../../e2e/card-view.md#card-view-01)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
-対応状況は既存テストとの静的な照合結果であり、テストの実行結果ではない。共通の検証境界と対応状況の意味は [AGENTS.md](./AGENTS.md) を参照する。
+共通の検証前提は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
@@ -20,13 +18,11 @@
 
 <a id="unit-store-card-01"></a>
 
-### UNIT-STORE-CARD-01 最新の取得結果だけをカード一覧として提供する
+### UNIT-STORE-CARD-01 [TODO] 最新の取得結果だけをカード一覧として提供する
 
 カテゴリ: `state-change`
 
 区分: 正常系
-
-対応テスト: `fully replaces active Cards from each snapshot`（要補完：同一 ID の内容更新と空の取得結果）。
 
 Given:
 
@@ -48,13 +44,11 @@ Then:
 
 <a id="unit-store-card-02"></a>
 
-### UNIT-STORE-CARD-02 カードのクリア後は以前のカードを参照できない
+### UNIT-STORE-CARD-02 [TODO] カードのクリア後は以前のカードを参照できない
 
 カテゴリ: `scope-reset`
 
 区分: 正常系
-
-対応テスト: 未検証：参照した既存テストにはクリア操作の検証がない。
 
 Given:
 
@@ -70,13 +64,11 @@ Then:
 
 <a id="unit-store-card-03"></a>
 
-### UNIT-STORE-CARD-03 所属デックと所有者が一致するカードだけを提供する
+### UNIT-STORE-CARD-03 [TODO] 所属デックと所有者が一致するカードだけを提供する
 
 カテゴリ: `visibility`
 
 区分: 正常系
-
-対応テスト: 未検証：既存の購読テストは所属デックと所有者が一致する入力だけを使用している。
 
 Given:
 
