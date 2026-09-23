@@ -1,0 +1,93 @@
+extends: empty.yaml
+auth:
+  users:
+    - uid: user-1
+      provider: google
+remote:
+  decks:
+    - id: deck-empty
+      uid: user-1
+      name: Empty Browse Deck
+      category: English
+    - id: deck-mixed
+      uid: user-1
+      name: Browse Filter Deck
+      selectedTags: [target]
+      category: English
+    - id: deck-future
+      uid: user-1
+      name: Future Only Deck
+      selectedTags: [target]
+      category: English
+  cards:
+    - id: card-due
+      deckId: deck-mixed
+      uid: user-1
+      frontText: due tagged card
+      backText: due tagged answer
+      tags: [target, alpha]
+      uniqueKey: due-tagged-card
+      fsrs:
+        state: review
+        dueAt: 946684800000
+        lastReviewedAt: 0
+        difficulty: 5
+        stability: 1
+        reps: 1
+        lapses: 0
+        learningSteps: 0
+        scheduledDays: 1
+    - id: card-future
+      deckId: deck-mixed
+      uid: user-1
+      frontText: future tagged card
+      backText: future tagged answer
+      tags: [target, beta]
+      uniqueKey: future-tagged-card
+      fsrs:
+        state: review
+        dueAt: 32472144000000
+        lastReviewedAt: 0
+        difficulty: 5
+        stability: 1
+        reps: 1
+        lapses: 0
+        learningSteps: 0
+        scheduledDays: 1
+    - id: card-new
+      deckId: deck-mixed
+      uid: user-1
+      frontText: new tagged card
+      backText: new tagged answer
+      tags: [target, alpha, beta]
+      uniqueKey: new-tagged-card
+    - id: card-other-tag
+      deckId: deck-mixed
+      uid: user-1
+      frontText: excluded study tag card
+      backText: excluded study tag answer
+      tags: [other]
+      uniqueKey: other-tag-card
+    - id: card-future-only
+      deckId: deck-future
+      uid: user-1
+      frontText: future only card
+      backText: future only answer
+      tags: [target]
+      uniqueKey: future-only-card
+      fsrs:
+        state: review
+        dueAt: 32472144000000
+        lastReviewedAt: 0
+        difficulty: 5
+        stability: 1
+        reps: 1
+        lapses: 0
+        learningSteps: 0
+        scheduledDays: 1
+browser:
+  preferences:
+    study:
+      useCardInterval: true
+      maxNumberOfCardsToLearn: 1
+      shuffled: true
