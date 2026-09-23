@@ -2,81 +2,63 @@
 
 ## 目的
 
-Deck リモートストア (`deckStore`) の初期状態、リモート Deck スナップショットによる全置換更新、および認証スコープ終了時のクリア処理を確認する。
+取得済みデックの一覧が最新の結果に切り替わり、クリア後に以前のデックを参照できないことを確認する。Firestore の通信、document の検証、論理削除の除外、認証ライフサイクルは対象外とする。
 
-対応ファイル: [`store.ts`](../../../../src/entities/deck/model/store.ts) / [`replaceRemoteDecks.ts`](../../../../src/entities/deck/model/actions/replaceRemoteDecks.ts) / [`clearRemoteDecks.ts`](../../../../src/entities/deck/model/actions/clearRemoteDecks.ts) / [`subscription.spec.tsx`](../../../../src/entities/deck/api/subscription.spec.tsx)
+関連テスト: [`subscription.spec.tsx`](../../../../src/entities/deck/api/subscription.spec.tsx)（SDK を模した既存テスト。Store 単体テストそのものとは区別する）
 
-関連 E2E: [CARD-LIST-ACTIONS-01](../../e2e/card-list-actions.md#card-list-actions-01)、[DECK-NAVIGATION-01](../../e2e/deck-navigation.md#deck-navigation-01)
+関連 E2E: [CARD-LIST-ACTIONS-01](../../e2e/card-list-actions.md#card-list-actions-01)、[ACCOUNT-04](../../e2e/account.md#account-04)
 
-## 共通前提
-
-テスト実行前に `deckStore.setState({ remoteDecks: [] })` を呼び出し、`deckStore` のリモート Deck 一覧を空配列に初期化する。
+対応状況は既存テストとの静的な照合結果であり、テストの実行結果ではない。共通の検証境界と対応状況の意味は [AGENTS.md](./AGENTS.md) を参照する。
 
 ## テストケース
 
 | ID | カテゴリ | テストケース |
 | --- | --- | --- |
-| UNIT-STORE-DECK-01 | initial | [初期状態で remoteDecks が空配列であること](#unit-store-deck-01) |
-| UNIT-STORE-DECK-02 | state-change | [リモートスナップショットで Deck 一覧を置換できること](#unit-store-deck-02) |
-| UNIT-STORE-DECK-03 | scope-reset | [認証スコープ終了時に remoteDecks をクリアできること](#unit-store-deck-03) |
+| UNIT-STORE-DECK-01 | state-change | [最新の取得結果だけをデック一覧として提供する](#unit-store-deck-01) |
+| UNIT-STORE-DECK-02 | scope-reset | [デックのクリア後は以前のデックを参照できない](#unit-store-deck-02) |
 
 <a id="unit-store-deck-01"></a>
 
-### UNIT-STORE-DECK-01 初期状態で remoteDecks が空配列であること
-
-カテゴリ: `initial`
-
-対応テスト: `Deck Firestore subscription [CARD-LIST-ACTIONS-01]`
-
-Given:
-
-- `deckStore` が初期化されている。
-
-When:
-
-- `deckStore.getState()` を取得する。
-
-Then:
-
-- `remoteDecks` は空の配列 `[]` である。
-
-<a id="unit-store-deck-02"></a>
-
-### UNIT-STORE-DECK-02 リモートスナップショットで Deck 一覧を置換できること
+### UNIT-STORE-DECK-01 最新の取得結果だけをデック一覧として提供する
 
 カテゴリ: `state-change`
 
-対応テスト: `[CARD-LIST-ACTIONS-01] replaces the store with active Decks`
+対応テスト: `replaces the store with active Decks`（要補完：既存テストは空の状態への初回反映のみ）。
 
 Given:
 
-- 初期状態の `deckStore` が存在する。
-- アクティブな Deck オブジェクトを用意する。
+次の変更前のデックを保持している。各行を独立して検証する。
+
+| 変更前のデック | 新しい取得結果 |
+| --- | --- |
+| なし | A、B |
+| A（名前が旧名称）、B | A（名前が新名称）、C |
+| A、B | なし |
 
 When:
 
-- `replaceRemoteDecks([deck])` を呼び出す。
+新しい取得結果をデックモデルへ反映する。
 
 Then:
 
-- `deckStore.getState().remoteDecks` に指定した Deck 配列が保存・置換される。
+参照できるデックの ID と内容は新しい取得結果に一致する。以前だけ存在した B や A の旧名称は残らず、空の結果を受け取った場合は以前のデックを参照できない。
 
-<a id="unit-store-deck-03"></a>
+<a id="unit-store-deck-02"></a>
 
-### UNIT-STORE-DECK-03 認証スコープ終了時に remoteDecks をクリアできること
+### UNIT-STORE-DECK-02 デックのクリア後は以前のデックを参照できない
 
 カテゴリ: `scope-reset`
 
-対応テスト: 仕様（アクション `clearRemoteDecks.ts`）定義
+対応テスト: 未検証：参照した既存テストにはクリア操作の検証がない。
 
 Given:
 
-- `deckStore` に Deck が保持されている。
+デック A、B を保持している場合と、デックを保持していない場合を用意する。
 
 When:
 
-- `clearRemoteDecks()` を呼び出す。
+デックモデルのクリア操作を行う。
 
 Then:
 
-- `deckStore.getState().remoteDecks` は空配列 `[]` にクリアされる。
+どちらの場合もデック一覧は空となり、以前のデックを参照できない。既に空であっても操作は失敗しない。
