@@ -23,6 +23,10 @@ AND / OR、フィルター解除、条件の保存は [Card Filter の仕様](./
 | DECK-TAG-MANAGEMENT-10 | read | 正常系 | [タグの削除をキャンセルできる](#deck-tag-management-10) |
 | DECK-TAG-MANAGEMENT-11 | write | 正常系 | [登録したタグを Card に設定できる](#deck-tag-management-11) |
 | DECK-TAG-MANAGEMENT-12 | write | 正常系 | [Card に設定したタグで絞り込める](#deck-tag-management-12) |
+| DECK-TAG-MANAGEMENT-13 | batch | 正常系 | [オフラインでタグを管理して再接続後に同期できる](#deck-tag-management-13) |
+| DECK-TAG-MANAGEMENT-14 | batch | 正常系 | [保留中の Card 編集後もタグ変更が維持される](#deck-tag-management-14) |
+| DECK-TAG-MANAGEMENT-15 | batch | 正常系 | [匿名モードでもタグを管理して再読み込みできる](#deck-tag-management-15) |
+| DECK-TAG-MANAGEMENT-16 | batch | 正常系 | [同じ名前の保存ではタグを更新しない](#deck-tag-management-16) |
 
 <a id="deck-tag-management-01"></a>
 
@@ -94,7 +98,6 @@ Then:
 - Card がなくてもタグを保持できる。
 - タグの追加では Deck 名の未保存入力を変えず、Deck の保存・キャンセル後も追加済みタグが残る。
 - 未確定のタグ入力がある間は Deck の保存を実行できず、タグ入力が失われない。
-- 保存処理中に画面を離れようとした場合、処理の完了まで移動せず、保存が完了してから移動できる。
 - 別の Deck のタグは変更されない。
 
 <a id="deck-tag-management-04"></a>
@@ -302,3 +305,87 @@ Then:
 - 両画面とも選択したタグを持つ Card だけが表示され、件数は一致する Card 数となる。
 - 選択したタグを持たない Card と、他の Deck の Card は表示されない。
 - 絞り込みによって Card の本文や設定したタグは変わらない。
+
+<a id="deck-tag-management-13"></a>
+
+### DECK-TAG-MANAGEMENT-13 オフラインでタグを管理して再接続後に同期できる
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-tag-management`](./fixture/deck-tag-management.yaml)
+- 対象 Deck と Card が端末に読み込み済みである。
+
+When:
+
+- 通信を切り、タグの追加・改名・削除を行って再読み込みし、再接続する。
+
+Then:
+
+- 通信がない間も変更を保持し、再接続後も旧タグが復活しない。他のタグ・Card の本文・別 Deck は保持する。
+
+<a id="deck-tag-management-14"></a>
+
+### DECK-TAG-MANAGEMENT-14 保留中の Card 編集後もタグ変更が維持される
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-tag-management`](./fixture/deck-tag-management.yaml)
+- タグ付き Card と対象 Deck が端末に読み込み済みである。
+
+When:
+
+- 通信を切って Card の本文を保存し、直後に Deck 編集でそのタグを改名または削除してから再接続する。
+
+Then:
+
+- 先行する本文変更と後続のタグ変更が両方とも同期され、旧タグが復活しない。
+
+<a id="deck-tag-management-15"></a>
+
+### DECK-TAG-MANAGEMENT-15 匿名モードでもタグを管理して再読み込みできる
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-tag-management`](./fixture/deck-tag-management.yaml)
+- 匿名モードで作成した Deck とタグ付き Card が端末にある。
+
+When:
+
+- タグの追加・改名・削除を行い、通信がない状態で再読み込みする。
+
+Then:
+
+- 変更が端末内に保持され、Card の本文と他のタグは残る。匿名データをクラウドへ送信しない。
+
+<a id="deck-tag-management-16"></a>
+
+### DECK-TAG-MANAGEMENT-16 同じ名前の保存ではタグを更新しない
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`deck-tag-management`](./fixture/deck-tag-management.yaml)
+- 対象 Deck の Card にタグが付いている。
+
+When:
+
+- タグ名の編集を開き、名前を変えずに保存する。
+
+Then:
+
+- タグ名・Card の本文・更新日時は変わらない。

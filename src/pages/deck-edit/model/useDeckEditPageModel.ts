@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
 
-import { useAuth } from "@/entities/auth";
 import { useCardsByDeckId } from "@/entities/card";
 import { CATEGORY, useDeck, type Deck } from "@/entities/deck";
 import { getDeckDeletionTarget } from "@/features/deck-deletion";
@@ -32,7 +31,6 @@ export function useDeckEditRouteModel(deckId: string | undefined) {
 
 export function useDeckEditPageModel(deck: Deck) {
   const navigate = useNavigate();
-  const { isAnonymous } = useAuth();
   const { form } = useDeckEditFormState(deck);
   const { isDirty, isSubmitting } = form.formState;
   const isMounted = useMountedGuard();
@@ -72,9 +70,8 @@ export function useDeckEditPageModel(deck: Deck) {
     editingTag,
     tagError,
     tagPending,
-    tagUnavailable: isAnonymous,
     deckSaveDisabled: hasTagDraft || tagPending || deletionPending,
-    tagDisabled: isAnonymous || isSubmitting || deletionPending || deletionTarget !== undefined || tagPending,
+    tagDisabled: isSubmitting || deletionPending || deletionTarget !== undefined || tagPending,
     tagDeletion: guard.isBlocked ? undefined : tagDeletion,
     onAddTag: addForm.handleSubmit((values) => submitTagName(deck.id, values, addForm.reset)),
     onRenameTag: renameForm.handleSubmit((values) => submitTagName(deck.id, values, renameForm.reset, editingTag)),

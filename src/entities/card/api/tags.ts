@@ -1,36 +1,49 @@
-import { collection, getDocsFromServer, query, where, type Transaction } from "firebase/firestore";
+import {
+  collection,
+  getDocsFromCache,
+  query,
+  where,
+  type DocumentReference,
+  type WriteBatch,
+} from "firebase/firestore";
 
 import { db } from "@/shared/firebase";
 import { parseCardDocument } from "./document";
 
-/** Read the complete owned Deck, independent of the browsing filter or local cache. */
-export async function readCardsForTagUpdate(transaction: Transaction, uid: string, deckId: string) {
+/** Read all cached active Cards, including earlier writes still waiting to sync. */
+export async function readCardsForTagUpdate(uid: string, deckId: string) {
   if (!uid || !deckId) throw new Error("A user and Deck are required");
-  const snapshot = await getDocsFromServer(
-    query(collection(db, "card"), where("uid", "==", uid), where("deckId", "==", deckId))
+  const snapshot = await getDocsFromCache(
+    query(
+      collection(db, "card"),
+      where("uid", "==", uid),
+      where("deckId", "==", deckId),
+      where("deletedAt", "==", null)
+    )
   );
-  // Re-read within the transaction so edits to existing Cards retry instead of losing their other tags.
-  const documents = await Promise.all(snapshot.docs.map((card) => transaction.get(card.ref)));
-  return documents.flatMap((document) => {
+  return snapshot.docs.map((document) => {
     const card = parseCardDocument(document.id, document.data());
     if (card.uid !== uid || card.deckId !== deckId) throw new Error("Card ownership changed");
-    return card.deletedAt === null ? [{ reference: document.ref, tags: card.tags }] : [];
+    return { reference: document.ref, tags: card.tags };
   });
 }
 
 export function writeCardTagChanges(
-  transaction: Transaction,
+  batch: WriteBatch,
   cards: Awaited<ReturnType<typeof readCardsForTagUpdate>>,
   previous: string,
   replacement: string | undefined
-): void {
+) {
+  const references: DocumentReference[] = [];
   for (const card of cards) {
-    if (!card.tags.includes(previous)) continue;
+    if (previous === replacement || !card.tags.includes(previous)) continue;
     const tags = [
       ...new Set(
         card.tags.flatMap((tag) => (tag === previous ? (replacement === undefined ? [] : [replacement]) : [tag]))
       ),
     ];
-    transaction.update(card.reference, { tags, updatedAt: Date.now() });
+    batch.update(card.reference, { tags, updatedAt: Date.now() });
+    references.push(card.reference);
   }
+  return references;
 }

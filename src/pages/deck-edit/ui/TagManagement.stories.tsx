@@ -43,5 +43,3 @@ export const Pending: Story = { args: { pending: true, disabled: true } };
 export const DeleteConfirmation: Story = { args: { deletion: "shared" } };
 export const Mobile: Story = { globals: { viewport: { value: "iphonex", isRotated: false } } };
 export const Dark: Story = { globals: { theme: "dark" } };
-
-export const Unavailable: Story = { args: { unavailable: true, disabled: true } };

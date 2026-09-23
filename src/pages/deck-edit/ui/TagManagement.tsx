@@ -12,7 +12,6 @@ interface TagManagementProps {
   renameForm: UseFormReturn<{ name: string }>;
   editingTag: string | undefined;
   error: "required" | "duplicate" | undefined;
-  unavailable?: boolean;
   disabled: boolean;
   pending: boolean;
   deletion: string | undefined;
@@ -37,7 +36,6 @@ export function TagManagement(props: TagManagementProps) {
         {t("deckTags.title")}
       </h2>
       <p className="text-body text-ink-muted">{t("deckTags.description")}</p>
-      {props.unavailable ? <p>{t("deckTags.unavailable")}</p> : null}
       <form noValidate onSubmit={(event) => void props.onAdd(event)}>
         <fieldset
           disabled={props.disabled || props.editingTag !== undefined}

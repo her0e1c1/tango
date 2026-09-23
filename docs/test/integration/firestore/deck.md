@@ -20,6 +20,7 @@ Deck の作成・部分更新・論理削除を、Firestore 上の保存値と�
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06)（未実装・未検証） |
 | FIRESTORE-DECK-07 | batch | 正常系 | [多数の Card と登録タグをまとめて改名する](#firestore-deck-07) |
 | FIRESTORE-DECK-08 | batch | 異常系 | [タグ更新の拒否で部分保存を残さない](#firestore-deck-08) |
+| FIRESTORE-DECK-09 | batch | 正常系 | [保留中の Card 保存の後にタグ変更を同期する](#firestore-deck-09) |
 
 <a id="firestore-deck-01"></a>
 
@@ -176,7 +177,7 @@ Given:
 
 When:
 
-- Entity の公開されたタグ読取・更新操作を一つのトランザクションで実行し、旧タグを新しいタグに変更する。
+- Entity の公開されたタグ読取・更新操作を一つのbatchで実行し、旧タグを新しいタグに変更する。
 - 続いて通常の Deck 編集で名前を保存する。
 
 Then:
@@ -196,13 +197,37 @@ Then:
 Given:
 
 - 本人の Deck と、その Deck に属する旧タグ付き Card がある。
-- 同じトランザクションに、本人の UID を別 UID に変更する不正な Card 書込が含まれる。
+- 同じbatchに、本人の UID を別 UID に変更する不正な Card 書込が含まれる。
 
 When:
 
-- Entity の公開されたタグ更新操作を含むトランザクションを確定する。
+- Entity の公開されたタグ更新操作を含むbatchを確定する。
 
 Then:
 
 - 実際の Firestore Rules が不正な Card 更新を拒否する。
-- トランザクション全体が失敗し、Deck の登録タグと Card の保存値は操作前と同一である。
+- batch全体が失敗し、Deck の登録タグと Card の保存値は操作前と同一である。
+
+<a id="firestore-deck-09"></a>
+
+### FIRESTORE-DECK-09 保留中の Card 保存の後にタグ変更を同期する
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- 本人の Deck と旧タグ・保持するタグを持つ Card が同期済みである。
+- 通信を止め、同じタグを持つ Card の追加と、既存 Card の本文変更をローカル保存している。
+
+When:
+
+- キャッシュから対象 Deck のタグと Card を読み、旧タグを改名または削除する batch をローカル保存する。
+- 再接続して保留中の書込みの同期完了を待つ。
+
+Then:
+
+- 追加済み・編集済み両方の Card が更新対象となる。
+- オフライン中のローカル値と、再接続後のサーバー値に改名または削除の結果が残り、旧タグが復活しない。
+- 先行する本文の変更と他のタグは保持される。

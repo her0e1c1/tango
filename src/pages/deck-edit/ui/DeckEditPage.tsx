@@ -49,7 +49,6 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
               renameForm={model.renameTagForm}
               editingTag={model.editingTag}
               error={model.tagError}
-              unavailable={model.tagUnavailable}
               disabled={model.tagDisabled}
               pending={model.tagPending}
               deletion={model.tagDeletion}

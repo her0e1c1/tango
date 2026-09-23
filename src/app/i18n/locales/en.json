@@ -1,8 +1,7 @@
 {
   "deckTags": {
-    "unavailable": "Link an account to manage tags.",
     "title": "Tag management",
-    "description": "Tags for cards in this deck. Each tag operation saves separately from deck changes and requires an internet connection. Save or cancel tag drafts before saving deck changes.",
+    "description": "Tags for cards in this deck. Each tag operation saves separately from deck changes. Save or cancel tag drafts before saving deck changes.",
     "newName": "New tag name",
     "add": "Add tag",
     "rename": "Rename",
@@ -17,7 +16,7 @@
     "tag": "Tag",
     "deleteDescription": "This tag will also be removed from all cards in this deck. The cards and their other tags will remain.",
     "saved": "Tag changes saved.",
-    "failed": "Tag changes could not be saved. Check your connection and try again."
+    "failed": "Tag changes could not be saved. Please try again."
   },
   "memory": {
     "title": "Memory state",
