@@ -105,7 +105,9 @@ E2E の索引・Playwright との一対一対応規約や、Firestore 以外の 
 | FIRESTORE-DECK-01 | write | [Deck の保存対象だけを新規作成できる](./deck.md#firestore-deck-01) |
 | FIRESTORE-DECK-02 | write | [Deck の編集で作成日時と対象外フィールドを維持できる](./deck.md#firestore-deck-02) |
 | FIRESTORE-DECK-03 | write | [URL の省略と明示的なクリアを区別できる](./deck.md#firestore-deck-03) |
-| FIRESTORE-DECK-04 | batch | [Deck と配下 Card をまとめて論理削除できる](./deck.md#firestore-deck-04) |\n| FIRESTORE-DECK-05 | batch | [Card がない Deck を論理削除できる](./deck.md#firestore-deck-05) |\n| FIRESTORE-DECK-06 | batch | [Deck と配下 Card の削除を原子的に扱う](./deck.md#firestore-deck-06) |
+| FIRESTORE-DECK-04 | batch | [Deck と配下 Card をまとめて論理削除できる](./deck.md#firestore-deck-04) |
+| FIRESTORE-DECK-05 | batch | [Card がない Deck を論理削除できる](./deck.md#firestore-deck-05) |
+| FIRESTORE-DECK-06 | batch | [Deck と配下 Card の削除を原子的に扱う](./deck.md#firestore-deck-06) |
 
 ### card
 
