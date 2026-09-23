@@ -63,7 +63,7 @@ mise run test-sample
 ```
 
 Firestore persistence, subscription, and security-rule contracts and case IDs are documented in the
-[Firestore integration test specifications](./docs/integration/firestore/README.md).
+[Firestore integration test specifications](./docs/test/integration/firestore/README.md).
 
 ### Vitest Coverage
 
@@ -84,7 +84,7 @@ pytest, and browser behavior is tested separately with Playwright.
 
 ### E2E Test
 
-Playwright runs the browser-level acceptance suite documented in `docs/e2e/`. `mise run e2e` starts isolated
+Playwright runs the browser-level acceptance suite documented in `docs/test/e2e/`. `mise run e2e` starts isolated
 Firestore and Firebase Auth emulators, a healthy Vite dev server from the project image, and the official Playwright
 Docker image as a remote browser server before running the complete suite. The tests use emulator-backed remote data,
 local-only browser data, offline cache behavior, and the Auth emulator's local identity-provider flow; they do not
