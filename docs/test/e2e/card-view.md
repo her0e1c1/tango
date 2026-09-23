@@ -77,7 +77,7 @@ Then:
 
 - back text overlay が閉じる。
 - Card 一覧に対象 Card の front text が表示される。
-- Card の永続データが変更されない。
+- Card の内容と学習結果は変わらない。
 - browser error が発生しない。
 
 <a id="card-view-04"></a>
@@ -94,14 +94,14 @@ Given:
 
 When:
 
-- 対象 Card の view route を直接開く。
-- 同じ画面を開いたまま別の Card の view route へ遷移する。
+- 対象 Card の閲覧 URL を直接開く。
+- 同じ画面で別の Card の閲覧 URL を開く。
 
 Then:
 
 - 対象 Card の back text が Card answer として表示される。
-- URL の Card ID が変わると、遷移先の Card の back text に表示が更新される。
-- application shell が表示される。
+- URL の対象を変えると、遷移先の Card の back text に表示が更新される。
+- アプリ共通のヘッダーとナビゲーションが表示される。
 - browser error が発生しない。
 
 <a id="card-view-05"></a>
@@ -113,11 +113,11 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーの保存先に、route が参照する Card が存在しない。
+- 閲覧 URL が示す Card は存在しない。
 
 When:
 
-- 存在しない Card の view route を直接開き、Card が利用できない旨の画面から home recovery action を実行する。
+- 存在しない Card の閲覧 URL を直接開き、Card が利用できない旨の画面からホームへ戻る操作を選ぶ。
 
 Then:
 
@@ -133,24 +133,23 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- 匿名のまま作成 UI で Local Deck と2枚の Card を用意し、必要な Session は学習開始 UI で開始する。生成 ID は URL から取得する。
-- 匿名ユーザーの cache に、FSRS 未開始の Card がある。
+- 匿名ユーザーがこのブラウザーで利用できる Deck に、まだ評価していない Card がある。
 
 When:
 
-- Card view で空状態を確認し、学習画面で Card を評価してから Card view を開く。
-- 再読込し、オフラインでも同じ Card view を開く。
+- Card view で未評価の表示を確認し、学習画面で Card を評価してから Card view を開く。
+- 再読み込みし、オフラインでも同じ Card view を開く。
 
 Then:
 
-- 評価前は FSRS 未開始と表示され、旧期限や学習回数から架空の数値を作らない。
+- 評価前は FSRS 未開始と表示され、以前の復習予定や閲覧回数から推定した数値を表示しない。
 - 評価後は「追加で復習しなかった場合の FSRS による推定」として想起率と忘却曲線を表示する。
-- 最終復習、基準時刻、保存済みの次回期限と目標保持率を区別して示す。
-- 想起率は最終復習直後に100%で、分・時間単位でも FSRS と一致して非増加となる。
-- 基準時刻の数値とマーカーは一致し、期限到来は保存期限と同じ基準時刻で判定する。
-- 同時刻のマーカーも識別でき、最大200点で短期・長期の範囲を表示する。
-- 対象変更と foreground 復帰で基準時刻を更新し、別 Card の曲線を残さない。
-- 再読込・匿名・オフラインでも取得済みの状態を使い、設定の復習間隔ON/OFFに依存しない。
-- 不正・未対応の schedule や取得エラーを未開始として扱わない。
-- en/ja、モバイル、dark modeでテキストと読み上げ名・説明を確認できる。
+- 最終復習、基準時刻、次回の復習予定と目標保持率を区別して示す。
+- 想起率は最終復習直後に100%で、追加で復習しない限り、分・時間の経過によって増えない。
+- 基準時刻の数値とマーカーは一致し、次回の復習予定に達したかどうかも同じ基準時刻で示す。
+- 同時刻のマーカーも識別でき、短期・長期の範囲の曲線を確認できる。
+- 別の Card を開いた場合や画面へ戻った場合は現在の基準時刻を表示し、別 Card の曲線を残さない。
+- 再読み込み後や匿名・オフラインの利用中も、一度読み込んだ記憶状態を確認できる。復習間隔の ON / OFF では記憶状態の表示を失わない。
+- 読み込めない記憶状態や取得失敗を、未評価の Card として表示しない。
+- 英語・日本語、モバイル、dark mode でテキストと読み上げ名・説明を確認できる。
 - browser error が発生しない。
