@@ -13,3 +13,4 @@ export type {
   DeckId,
   RemoteDeckCreateInput,
 } from "./model/types";
+export { readDeckTags, writeDeckTags } from "./api/tags";

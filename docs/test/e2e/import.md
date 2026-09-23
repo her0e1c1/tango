@@ -183,7 +183,7 @@ Given:
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
 - Import 画面に基本・数式・マークダウン・サンプルデッキの4種類の例がある。
-- 例に対応する Deck と Card はまだ存在しない。
+- 各種類を独立した状態で確認し、その例に対応する Deck と Card はまだ存在しない。
 
 When:
 

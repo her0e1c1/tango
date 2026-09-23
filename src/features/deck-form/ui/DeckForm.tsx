@@ -18,6 +18,7 @@ export interface DeckFormFields {
 interface CommonDeckFormProps {
   categories: readonly string[];
   form: UseFormReturn<DeckFormFields>;
+  saveDisabled?: boolean;
   onCancel: () => void;
   onSubmit: (event: React.SubmitEvent<HTMLFormElement>) => void | Promise<void>;
 }
@@ -247,7 +248,13 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
           {props.mode === "edit" ? <DeckInformation deckInfo={props.deckInfo} /> : null}
         </fieldset>
         <div className="border-t border-border p-4 md:px-6">
-          <Button className="min-h-12 w-full" variant="primary" type="submit" loading={presentation.isSaving}>
+          <Button
+            className="min-h-12 w-full"
+            variant="primary"
+            type="submit"
+            disabled={Boolean(props.saveDisabled)}
+            loading={presentation.isSaving}
+          >
             {t(
               props.mode === "create"
                 ? "deckForm.actions.create"

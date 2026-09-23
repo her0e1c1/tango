@@ -1,4 +1,23 @@
 {
+  "deckTags": {
+    "title": "Tag management",
+    "description": "Tags for cards in this deck. Each tag operation saves separately from deck changes. Save or cancel tag drafts before saving deck changes.",
+    "newName": "New tag name",
+    "add": "Add tag",
+    "rename": "Rename",
+    "renameName": "New name",
+    "save": "Save name",
+    "cancel": "Cancel",
+    "delete": "Delete tag",
+    "empty": "No tags yet.",
+    "required": "A tag name is required.",
+    "duplicate": "A tag with this name already exists in this deck.",
+    "deleteTitle": "Delete tag?",
+    "tag": "Tag",
+    "deleteDescription": "This tag will also be removed from all cards in this deck. The cards and their other tags will remain.",
+    "saved": "Tag changes saved.",
+    "failed": "Tag changes could not be saved. Please try again."
+  },
   "memory": {
     "title": "Memory state",
     "empty": "No FSRS memory state yet. It will appear after a rated study answer.",
@@ -667,6 +686,7 @@
     }
   },
   "navigationGuard": {
+    "pending": "Please wait for the current save to finish before leaving.",
     "title": "Discard unsaved changes?",
     "description": "Your changes will be lost if you leave this page.",
     "keepEditing": "Keep editing",

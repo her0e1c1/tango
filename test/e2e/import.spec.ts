@@ -323,48 +323,49 @@ test.describe("import", () => {
     expect(await documentsForUid("card", uid)).toEqual([]);
   });
 
-  test("IMPORT-06 All four examples share preview, download, and destination-aware import", async ({
-    fixture,
-    page,
-  }, testInfo) => {
-    const { uid } = fixture.user();
-    await fixture.apply(page, { auth: { linked: true } });
-    const examples = [
-      {
-        label: "Basic",
-        file: "basic-sample.csv",
-        count: 3,
-        local: false,
-        representativeRow: ["apple", "りんご", "果物", "apple-001"],
-      },
-      {
-        label: "Math",
-        file: "math-sample.csv",
-        count: 2,
-        local: false,
-        representativeRow: ["半径 $r$ の円の面積は？", "$\\pi r^2$", "math", "circle-area"],
-      },
-      {
-        label: "Markdown",
-        file: "markdown-sample.csv",
-        count: 2,
-        local: false,
-        representativeRow: ["Markdownで強調するには？", "**重要**な語句を強調します。", "md", "markdown-source"],
-      },
-      {
-        label: "Sample deck",
-        file: "deck-sample.csv",
-        count: 11,
-        local: false,
-        representativeRow: [
-          "What is bisect_left?",
-          expect.stringContaining("def my_bisect_left(sl, a):\n    lo, hi = 0, len(sl)"),
-          "py,binarysearch",
-          "test/binarysearch/test_bisect_left.py",
-        ],
-      },
-    ];
-    for (const example of examples) {
+  const examples = [
+    {
+      label: "Basic",
+      file: "basic-sample.csv",
+      count: 3,
+      local: false,
+      representativeRow: ["apple", "りんご", "果物", "apple-001"],
+    },
+    {
+      label: "Math",
+      file: "math-sample.csv",
+      count: 2,
+      local: false,
+      representativeRow: ["半径 $r$ の円の面積は？", "$\\pi r^2$", "math", "circle-area"],
+    },
+    {
+      label: "Markdown",
+      file: "markdown-sample.csv",
+      count: 2,
+      local: false,
+      representativeRow: ["Markdownで強調するには？", "**重要**な語句を強調します。", "md", "markdown-source"],
+    },
+    {
+      label: "Sample deck",
+      file: "deck-sample.csv",
+      count: 11,
+      local: false,
+      representativeRow: [
+        "What is bisect_left?",
+        expect.stringContaining("def my_bisect_left(sl, a):\n    lo, hi = 0, len(sl)"),
+        "py,binarysearch",
+        "test/binarysearch/test_bisect_left.py",
+      ],
+    },
+  ];
+  // Each example gets a fresh browser context and UID instead of accumulating reloads and pending streams.
+  for (const example of examples) {
+    test(`IMPORT-06 ${example.label} supports preview, download, and destination-aware import`, async ({
+      fixture,
+      page,
+    }, testInfo) => {
+      const { uid } = fixture.user();
+      await fixture.apply(page, { auth: { linked: true } });
       await page.goto("/import");
       await page.getByRole("button", { name: example.label, exact: true }).click();
       await page.getByText("View CSV source", { exact: true }).click();
@@ -414,8 +415,8 @@ test.describe("import", () => {
         .toBe(example.count);
       await expect(page.getByRole("heading", { name: "Cards", exact: true })).toBeVisible();
       await expect(page.getByRole("article")).toHaveCount(example.count);
-    }
-  });
+    });
+  }
 
   test("IMPORT-07 Sample Deck is initialized once", async ({ fixture, page }) => {
     const sampleDeckId = `${fixture.user().uid}-sample-v1`;

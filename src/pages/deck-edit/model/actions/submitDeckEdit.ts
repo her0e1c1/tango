@@ -5,7 +5,14 @@ import { showToast } from "@/shared/ui/toast";
 
 import { deckEditPageStore as store } from "../store";
 
-export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields): Promise<boolean> {
+export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, hasTagDraft: boolean): Promise<boolean> {
+  if (
+    hasTagDraft ||
+    store.getState().tagMutation !== undefined ||
+    store.getState().deletionTarget !== undefined ||
+    store.getState().deletionId !== undefined
+  )
+    return false;
   const pending = store.getState().submission;
   if (pending !== undefined) {
     // Keep concurrent submissions pending, but let only the original caller navigate.

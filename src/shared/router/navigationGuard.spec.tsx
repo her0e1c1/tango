@@ -7,10 +7,10 @@ import "@testing-library/jest-dom/vitest";
 
 import { useNavigationGuard } from "./navigationGuard";
 
-const GuardedRoute = () => {
+const GuardedRoute = ({ pending = false }: { pending?: boolean }) => {
   const navigate = useNavigate();
   const [isDirty, setDirty] = React.useState(false);
-  const guard = useNavigationGuard(isDirty);
+  const guard = useNavigationGuard(isDirty, { pending });
 
   return (
     <>
@@ -143,5 +143,36 @@ describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigation
     view.unmount();
     addListener.mockRestore();
     removeListener.mockRestore();
+  });
+});
+
+describe("DECK-TAG-MANAGEMENT-03 pending navigation", () => {
+  it("keeps the route mounted until saving finishes even when discard is requested", async () => {
+    const PendingContext = React.createContext(true);
+    const PendingRoute = () => <GuardedRoute pending={React.useContext(PendingContext)} />;
+    const router = createMemoryRouter(
+      [
+        { path: "/form", element: <PendingRoute /> },
+        { path: "/next", element: <h1>Next page</h1> },
+      ],
+      { initialEntries: ["/form"] }
+    );
+    const view = render(
+      <PendingContext value={true}>
+        <RouterProvider router={router} />
+      </PendingContext>
+    );
+    await userEvent.click(screen.getByRole("link", { name: "Leave" }));
+    expect(screen.getByRole("button", { name: "Discard changes" })).toBeDisabled();
+    expect(screen.getByText("Please wait for the current save to finish before leaving.")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(screen.queryByRole("heading", { name: "Next page" })).not.toBeInTheDocument();
+    view.rerender(
+      <PendingContext value={false}>
+        <RouterProvider router={router} />
+      </PendingContext>
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(await screen.findByRole("heading", { name: "Next page" })).toBeVisible();
   });
 });

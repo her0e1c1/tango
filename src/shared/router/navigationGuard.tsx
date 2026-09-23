@@ -19,6 +19,7 @@ const BeforeUnloadGuard = () => {
 
 export interface NavigationGuardOptions {
   description?: React.ReactNode;
+  pending?: boolean;
 }
 
 export const useNavigationGuard = (isDirty: boolean, options?: NavigationGuardOptions) => {
@@ -34,7 +35,7 @@ export const useNavigationGuard = (isDirty: boolean, options?: NavigationGuardOp
       allowedNavigation.current = null;
       return false;
     }
-    return isDirty;
+    return isDirty || Boolean(options?.pending);
   });
 
   const allowNavigation = (intent: AllowedNavigationIntent, navigate: () => void | Promise<void>) => {
@@ -66,11 +67,12 @@ export const useNavigationGuard = (isDirty: boolean, options?: NavigationGuardOp
     allowNavigation,
     element: (
       <>
-        {isDirty ? <BeforeUnloadGuard /> : null}
+        {isDirty || options?.pending ? <BeforeUnloadGuard /> : null}
         {blocker.state === "blocked" && (
           // React Router resumes the exact destination, including Back/Forward history entries.
           <NavigationGuardDialog
             description={options?.description}
+            pending={options?.pending}
             onDiscardChanges={blocker.proceed}
             onKeepEditing={blocker.reset}
           />
