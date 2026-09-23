@@ -89,4 +89,5 @@ browser:
   preferences:
     study:
       useCardInterval: true
-      maxNumberOfCardsToLearn: 0
+      maxNumberOfCardsToLearn: 1
+      shuffled: true
