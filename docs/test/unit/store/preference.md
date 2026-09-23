@@ -6,7 +6,7 @@
 
 関連テスト: [`store.spec.ts`](../../../../src/entities/preference/model/store.spec.ts)
 
-関連 E2E: [STUDY-CONTROLS-09](../../e2e/study-controls.md#study-controls-09)、[SETTINGS-06](../../e2e/settings.md#settings-06)、[DECK-NAVIGATION-09](../../e2e/deck-navigation.md#deck-navigation-09)
+関連 E2E: [STUDY-CONTROLS-09](../../e2e/study-controls.md#study-controls-09)、[SETTINGS-06](../../e2e/settings.md#settings-06)、[NAVIGATION-14](../../e2e/navigation.md#navigation-14)
 
 対応状況は既存テストとの静的な照合結果であり、テストの実行結果ではない。共通の検証境界と対応状況の意味は [AGENTS.md](./AGENTS.md) を参照する。
 

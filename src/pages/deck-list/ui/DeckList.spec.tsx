@@ -35,7 +35,7 @@ const sections = {
   other: [{ deck: otherDeck, cardCount: 7 }],
 } satisfies DeckListProps["sections"];
 
-describe("SETTINGS-04 DECK-NAVIGATION-01 DECK-NAVIGATION-12 DeckList", () => {
+describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
   it("groups active decks before other decks with visible headings", () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 

@@ -60,10 +60,7 @@ const touchGesture = async (page: Page, surface: Locator, direction?: "left" | "
   await session.detach();
 };
 
-test("DECK-NAVIGATION-03 browses remote Cards without changing learning data or preferences", async ({
-  fixture,
-  page,
-}) => {
+test("NAVIGATION-08 browses remote Cards without changing learning data or preferences", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const first = fixture.card("card-1");
   const second = fixture.card("card-2");
@@ -132,7 +129,7 @@ test("DECK-NAVIGATION-03 browses remote Cards without changing learning data or 
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-NAVIGATION-04 resets local-only viewing position on reload and reentry without saving", async ({
+test("NAVIGATION-09 resets local-only viewing position on reload and reentry without saving", async ({
   fixture,
   page,
 }) => {
@@ -184,10 +181,7 @@ test("DECK-NAVIGATION-04 resets local-only viewing position on reload and reentr
   );
 });
 
-test("DECK-NAVIGATION-05 views all tag matches in standard order without the study limit", async ({
-  fixture,
-  page,
-}) => {
+test("NAVIGATION-10 views all tag matches in standard order without the study limit", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const matching = [fixture.card("card-1"), fixture.card("card-2"), fixture.card("card-3")];
   await fixture.apply(page, { preferences: { study: { shuffled: true } } });
@@ -251,7 +245,7 @@ test("DECK-NAVIGATION-05 views all tag matches in standard order without the stu
   }
 });
 
-test("DECK-NAVIGATION-06 applies review scheduling to read-only viewing", async ({ fixture, page }) => {
+test("NAVIGATION-11 applies review scheduling to read-only viewing", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const due = fixture.card("card-due");
   const unscheduled = fixture.card("card-unscheduled");
@@ -269,7 +263,7 @@ test("DECK-NAVIGATION-06 applies review scheduling to read-only viewing", async 
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-NAVIGATION-07 recovers from empty and missing Deck views without saving", async ({
+test("NAVIGATION-12 recovers from empty and missing Deck views without saving", async ({
   fixture,
   page,
   namespace,
@@ -292,7 +286,7 @@ test("DECK-NAVIGATION-07 recovers from empty and missing Deck views without savi
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-NAVIGATION-08 scrolls one long answer with touch and exits at either horizontal boundary", async ({
+test("NAVIGATION-13 scrolls one long answer with touch and exits at either horizontal boundary", async ({
   fixture,
   page,
 }) => {
@@ -328,10 +322,7 @@ test("DECK-NAVIGATION-08 scrolls one long answer with touch and exits at either 
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-NAVIGATION-09 shares display preferences with Study and explains viewing actions", async ({
-  fixture,
-  page,
-}) => {
+test("NAVIGATION-14 shares display preferences with Study and explains viewing actions", async ({ fixture, page }) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.goto("/");
@@ -407,7 +398,7 @@ test("DECK-NAVIGATION-09 shares display preferences with Study and explains view
   }
 });
 
-test("DECK-NAVIGATION-10 starts viewing stopped and autoplays without persisting learning data", async ({
+test("NAVIGATION-15 starts viewing stopped and autoplays without persisting learning data", async ({
   fixture,
   page,
 }) => {
@@ -442,7 +433,7 @@ test("DECK-NAVIGATION-10 starts viewing stopped and autoplays without persisting
   expect(await readSavedData(page, fixture)).toEqual(before);
 });
 
-test("DECK-NAVIGATION-11 browses forward and backward with the progress slider without saving", async ({
+test("NAVIGATION-16 browses forward and backward with the progress slider without saving", async ({
   fixture,
   page,
 }) => {

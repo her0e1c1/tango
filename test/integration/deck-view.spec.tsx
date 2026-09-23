@@ -47,7 +47,7 @@ function savedState(deckId: string) {
   });
 }
 
-describe("DECK-NAVIGATION-04 DECK-NAVIGATION-05 DECK-NAVIGATION-09 DECK-NAVIGATION-10 DECK-NAVIGATION-11 Deck View through App, routes, local Entities, and persistence", () => {
+describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 Deck View through App, routes, local Entities, and persistence", () => {
   beforeEach(() => {
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
     updatePreferences(createPreferences({ loadSample: false, language: "en" }));

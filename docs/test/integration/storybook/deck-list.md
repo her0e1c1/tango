@@ -8,7 +8,7 @@
 
 DeckList と実際の DeckListCard / DeckActionsMenu を組み合わせ、表示データと callback を境界にする。実際の画面遷移、ダウンロード内容、件数集計と永続化は対象外。
 
-書式・実行前提は [README](./README.md)、関連 E2E は [deck-navigation](../../e2e/deck-navigation.md) と [study-session](../../e2e/study-session.md) を参照する。
+書式・実行前提は [README](./README.md)、関連 E2E は [navigation](../../e2e/navigation.md) と [study-session](../../e2e/study-session.md) を参照する。
 
 09〜26 は Vitest から追加した契約で、各条件の準備とアサーションは未実装である。DeckListCard の契約は実際の行を含む DeckList の Story に紐付ける。
 

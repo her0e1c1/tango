@@ -36,7 +36,7 @@ function card(deckId: string, dueAt?: number, overrides: Partial<Card> = {}) {
   });
 }
 
-describe("DECK-NAVIGATION-12 DECK-NAVIGATION-13 held review counts", () => {
+describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);

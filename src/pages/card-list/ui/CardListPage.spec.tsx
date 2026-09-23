@@ -34,7 +34,7 @@ const NextDeckButton = () => {
   );
 };
 
-describe("NAVIGATION-02 DECK-NAVIGATION-02 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MANAGEMENT-05 CARD-LIST-ACTIONS-03 CardListPage", () => {
+describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MANAGEMENT-05 CARD-LIST-ACTIONS-03 CardListPage", () => {
   const deckId = "deck-id";
   const nextDeckId = "next-deck";
   const cardId = "card-id";

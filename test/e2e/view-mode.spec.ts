@@ -106,7 +106,7 @@ const verifyStudyViewModeControls = async (page: Page, uid: string, deckId: stri
 
 for (const scenario of [
   { id: "STUDY-CONTROLS-06", route: "study" },
-  { id: "DECK-NAVIGATION-14", route: "view" },
+  { id: "NAVIGATION-19", route: "view" },
 ]) {
   test(`${scenario.id} scrolls the entire front without gesture actions or accidental exit`, async ({
     fixture,
@@ -129,7 +129,7 @@ for (const scenario of [
 
 for (const scenario of [
   { id: "STUDY-CONTROLS-07", route: "study", answer: "Study answer" },
-  { id: "DECK-NAVIGATION-15", route: "view", answer: "Card answer" },
+  { id: "NAVIGATION-20", route: "view", answer: "Card answer" },
 ]) {
   test(`${scenario.id} exits view mode with a tap or Enter before flipping the card`, async ({ fixture, page }) => {
     const deck = fixture.deck();
@@ -156,7 +156,7 @@ for (const scenario of [
 
 for (const scenario of [
   { id: "STUDY-CONTROLS-08", route: "study", next: "Swipe right" },
-  { id: "DECK-NAVIGATION-16", route: "view", next: "Next card" },
+  { id: "NAVIGATION-21", route: "view", next: "Next card" },
 ]) {
   test(`${scenario.id} keeps button actions and autoplay available in view mode`, async ({ fixture, page }) => {
     const deck = fixture.deck();
