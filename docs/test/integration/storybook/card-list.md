@@ -2,15 +2,15 @@
 
 ## 目的
 
-Card 一覧の操作通知、空状態の区別、タグ解除、overlay の終了と並び順の変更要求を確認する。
+一覧・空状態、操作通知、タグ解除、フォーカスの維持とメニューの操作抑止を確認する。
 
 ## 検証境界
 
-CardList、CardActionsMenu、実際の子 UI と Story 側の状態管理。Card の取得・保存、フィルター計算や実際のソート結果は対象外。
+CardList、実際の Card / CardActionsMenu と Story 側の表示状態を組み合わせる。取得・保存、フィルター計算、実際のソート処理は対象外。
 
-関連 E2E: [card-view](../../e2e/card-view.md) / [card-list-actions](../../e2e/card-list-actions.md) / [card-management](../../e2e/card-management.md)。
+書式・実行前提は [README](./README.md)、関連 E2E は [card-view](../../e2e/card-view.md)、[card-list-actions](../../e2e/card-list-actions.md)、[card-management](../../e2e/card-management.md) を参照する。
 
-書式・実行前提は [README](./README.md) を参照する。
+10〜22 は Vitest から追加した契約で、対応 Story は追加先である。各ケースの状態準備とアサーションは未実装である。Card 行単体の契約は実際の行を含む CardList の Story に紐付ける。
 
 ## テストケース
 
@@ -18,13 +18,26 @@ CardList、CardActionsMenu、実際の子 UI と Story 側の状態管理。Card
 | --- | --- | --- |
 | STORYBOOK-CARD-LIST-01 | interaction | [Card の追加を要求する](#storybook-card-list-01) |
 | STORYBOOK-CARD-LIST-02 | render | [Card 未作成の空状態を表示する](#storybook-card-list-02) |
-| STORYBOOK-CARD-LIST-03 | render | [フィルターによる0件状態に解除導線を表示する](#storybook-card-list-03) |
-| STORYBOOK-CARD-LIST-04 | render | [復習期限による0件状態をフィルター不一致と区別する](#storybook-card-list-04) |
-| STORYBOOK-CARD-LIST-05 | interaction | [選択した Card の ID を閲覧 callback に渡す](#storybook-card-list-05) |
-| STORYBOOK-CARD-LIST-06 | interaction | [選択済みタグを解除して表示を更新する](#storybook-card-list-06) |
+| STORYBOOK-CARD-LIST-03 | render | [フィルターによる0件状態を表示する](#storybook-card-list-03) |
+| STORYBOOK-CARD-LIST-04 | render | [復習期限による0件状態を区別する](#storybook-card-list-04) |
+| STORYBOOK-CARD-LIST-05 | interaction | [閲覧要求に対象 ID を渡す](#storybook-card-list-05) |
+| STORYBOOK-CARD-LIST-06 | interaction | [選択タグを解除する](#storybook-card-list-06) |
 | STORYBOOK-CARD-LIST-07 | interaction | [Card の overlay を閉じる](#storybook-card-list-07) |
 | STORYBOOK-CARD-LIST-08 | interaction | [標準順への変更を要求する](#storybook-card-list-08) |
-| STORYBOOK-CARD-LIST-09 | interaction | [Card の編集を要求して操作メニューを閉じる](#storybook-card-list-09) |
+| STORYBOOK-CARD-LIST-09 | interaction | [編集を要求してメニューを閉じる](#storybook-card-list-09) |
+| STORYBOOK-CARD-LIST-10 | render | [空理由がなければ案内を断定しない](#storybook-card-list-10) |
+| STORYBOOK-CARD-LIST-11 | render | [長い選択タグを保持する](#storybook-card-list-11) |
+| STORYBOOK-CARD-LIST-12 | interaction | [タグ解除後に残るタグへフォーカスを移す](#storybook-card-list-12) |
+| STORYBOOK-CARD-LIST-13 | interaction | [最後のタグ解除後はフィルターへ戻る](#storybook-card-list-13) |
+| STORYBOOK-CARD-LIST-14 | interaction | [Tab 移動で選択を変えない](#storybook-card-list-14) |
+| STORYBOOK-CARD-LIST-15 | interaction | [メニューを一つに保ち行の削除で閉じる](#storybook-card-list-15) |
+| STORYBOOK-CARD-LIST-16 | interaction | [並べ替え後も同じ Card を操作する](#storybook-card-list-16) |
+| STORYBOOK-CARD-LIST-17 | interaction | [空状態から追加を要求する](#storybook-card-list-17) |
+| STORYBOOK-CARD-LIST-18 | interaction | [0件状態からフィルター解除を要求する](#storybook-card-list-18) |
+| STORYBOOK-CARD-LIST-19 | interaction | [行の編集要求に対象 ID を渡す](#storybook-card-list-19) |
+| STORYBOOK-CARD-LIST-20 | render | [処理中の行を操作させない](#storybook-card-list-20) |
+| STORYBOOK-CARD-LIST-21 | interaction | [削除を要求する](#storybook-card-list-21) |
+| STORYBOOK-CARD-LIST-22 | render | [無効なメニューを表示しない](#storybook-card-list-22) |
 
 <a id="storybook-card-list-01"></a>
 
@@ -32,13 +45,14 @@ CardList、CardActionsMenu、実際の子 UI と Story 側の状態管理。Card
 
 カテゴリ: `interaction`
 
+
 Given:
 
-- Card 一覧に追加 callback を渡す。
+- 一覧に追加 callback を渡す。
 
 When:
 
-- Actions を開き、Add card を選択する。
+- Actions を開いて Add card を選ぶ。
 
 Then:
 
@@ -50,9 +64,10 @@ Then:
 
 カテゴリ: `render`
 
+
 Given:
 
-- Card が0件で、フィルターは未指定、空理由は no-cards である。
+- Card は0件、フィルターなし、空理由は no-cards である。
 
 When:
 
@@ -60,17 +75,18 @@ When:
 
 Then:
 
-- 0 cards、No cards yet、Add card ボタンが表示される。
+- 0 cards、No cards yet、Add card を表示する。
 
 <a id="storybook-card-list-03"></a>
 
-### STORYBOOK-CARD-LIST-03 フィルターによる0件状態に解除導線を表示する
+### STORYBOOK-CARD-LIST-03 フィルターによる0件状態を表示する
 
 カテゴリ: `render`
 
+
 Given:
 
-- react タグが指定され、表示 Card は0件、空理由は filter-zero である。
+- react タグを指定し、表示0件、空理由は filter-zero である。
 
 When:
 
@@ -78,17 +94,18 @@ When:
 
 Then:
 
-- No cards match the active filters と Clear filters ボタンが表示される。
+- No cards match the active filters と Clear filters を表示する。
 
 <a id="storybook-card-list-04"></a>
 
-### STORYBOOK-CARD-LIST-04 復習期限による0件状態をフィルター不一致と区別する
+### STORYBOOK-CARD-LIST-04 復習期限による0件状態を区別する
 
 カテゴリ: `render`
 
+
 Given:
 
-- フィルターは未指定で表示 Card は0件、空理由は interval-zero である。
+- フィルターなし、表示0件、空理由は interval-zero である。
 
 When:
 
@@ -96,35 +113,37 @@ When:
 
 Then:
 
-- No cards due for review が表示され、Clear filters ボタンは存在しない。
+- No cards due for review を表示し、Clear filters は表示しない。
 
 <a id="storybook-card-list-05"></a>
 
-### STORYBOOK-CARD-LIST-05 選択した Card の ID を閲覧 callback に渡す
+### STORYBOOK-CARD-LIST-05 閲覧要求に対象 ID を渡す
 
 カテゴリ: `interaction`
 
+
 Given:
 
-- Card 一覧に閲覧 callback を渡す。
+- 一覧に閲覧 callback を渡す。
 
 When:
 
-- 先頭 Card の View ボタンを押す。
+- 先頭 Card の View を押す。
 
 Then:
 
-- 閲覧 callback にその Card の ID が渡される。
+- 閲覧 callback に対象 Card の ID を渡す。
 
 <a id="storybook-card-list-06"></a>
 
-### STORYBOOK-CARD-LIST-06 選択済みタグを解除して表示を更新する
+### STORYBOOK-CARD-LIST-06 選択タグを解除する
 
 カテゴリ: `interaction`
 
+
 Given:
 
-- TypeScript と Accessibility が選択済みで、解除を Story 側の状態に反映する。
+- TypeScript / Accessibility を選択し、解除を Story 側の状態に反映する。
 
 When:
 
@@ -132,7 +151,7 @@ When:
 
 Then:
 
-- 解除 callback に TypeScript が渡され、そのタグの解除ボタンが一覧からなくなる。
+- 解除 callback に TypeScript を渡し、その解除ボタンが消える。
 
 <a id="storybook-card-list-07"></a>
 
@@ -140,9 +159,10 @@ Then:
 
 カテゴリ: `interaction`
 
+
 Given:
 
-- Card の解答 overlay が開いており、close callback を Story 側の状態に反映する。
+- 解答 overlay が開き、close callback を Story 側の状態に反映する。
 
 When:
 
@@ -150,7 +170,7 @@ When:
 
 Then:
 
-- close callback が一度通知され、Close card ボタンが表示領域からなくなる。
+- close callback が一度通知され、Close card が消える。
 
 <a id="storybook-card-list-08"></a>
 
@@ -158,37 +178,307 @@ Then:
 
 カテゴリ: `interaction`
 
+
 Given:
 
-- 並び順が newest の一覧に変更 callback を渡す。
+- 並び順は newest で、変更 callback を渡す。
 
 When:
 
-- Sort order で standard を選択する。
+- Sort order で standard を選ぶ。
 
 Then:
 
-- 並び順変更 callback に standard が渡される。
+- 変更 callback に standard を渡す。
 
 <a id="storybook-card-list-09"></a>
 
-### STORYBOOK-CARD-LIST-09 Card の編集を要求して操作メニューを閉じる
+### STORYBOOK-CARD-LIST-09 編集を要求してメニューを閉じる
 
 カテゴリ: `interaction`
 
+
 Given:
 
-- What is a binary search? の Card 操作メニューが閉じており、開閉を Story 側の状態に反映する。
+- What is a binary search? のメニューが閉じており、開閉を Story 側に反映する。
 
 When:
 
-- 対象 Card の操作メニューを開き、Edit を選択する。
+- メニューを開いて Edit を選ぶ。
 
 Then:
 
-- 開いたメニューは対象 Card のテキストを含む読み上げ名を持つ。
-- 編集 callback が一度通知され、メニューが閉じる。
+- 対象テキストを含む読み上げ名でメニューを特定できる。編集 callback が一度通知され、メニューが閉じる。
 
-## 自動アサーションに含めない項目
+<a id="storybook-card-list-10"></a>
 
-フィルター保存中・Card 保存中と各メニューの無効化状態の Story は表示専用で、処理中の操作抑止をこの一覧の検証済み項目に含めない。
+### STORYBOOK-CARD-LIST-10 空理由がなければ案内を断定しない
+
+カテゴリ: `render`
+
+検証状況: 未実装
+
+
+Given:
+
+- Card は0件、フィルターなしで、空理由を渡さない。
+
+When:
+
+- 一覧を描画する。
+
+Then:
+
+- Cards、0 cards、Filters、No filters を表示する。No cards yet や、この一覧自身の tango ボタンは表示しない。
+
+<a id="storybook-card-list-11"></a>
+
+### STORYBOOK-CARD-LIST-11 長い選択タグを保持する
+
+カテゴリ: `render`
+
+検証状況: 未実装
+
+
+Given:
+
+- `tag-` に `unbroken` を30回連結したタグを選択している。
+
+When:
+
+- 一覧を描画する。
+
+Then:
+
+- フィルター要約に元のタグ文字列全体を保持する。
+
+<a id="storybook-card-list-12"></a>
+
+### STORYBOOK-CARD-LIST-12 タグ解除後に残るタグへフォーカスを移す
+
+カテゴリ: `interaction`
+
+検証状況: 未実装
+
+
+Given:
+
+- one / two を選択し、one の解除ボタンにフォーカスしている。解除を Story 側に反映する。
+
+When:
+
+- Enter で one を解除し、Tab を押す。
+
+Then:
+
+- one の解除を通知して two の解除ボタンへ移り、次の Tab で先頭 Card の View に移る。
+
+<a id="storybook-card-list-13"></a>
+
+### STORYBOOK-CARD-LIST-13 最後のタグ解除後はフィルターへ戻る
+
+カテゴリ: `interaction`
+
+検証状況: 未実装
+
+
+Given:
+
+- two だけを選択し、その解除ボタンにフォーカスしている。
+
+When:
+
+- Space で解除する。
+
+Then:
+
+- two の解除を通知し、解除ボタンが消える。Filters / No filters という名前の summary にフォーカスが移る。
+
+<a id="storybook-card-list-14"></a>
+
+### STORYBOOK-CARD-LIST-14 Tab 移動で選択を変えない
+
+カテゴリ: `interaction`
+
+検証状況: 未実装
+
+
+Given:
+
+- one / two を選択し、one の解除ボタンにフォーカスしている。
+
+When:
+
+- Tab、Shift+Tab と移動する。
+
+Then:
+
+- two、one の順にフォーカスが移り、どちらも解除されない。
+
+<a id="storybook-card-list-15"></a>
+
+### STORYBOOK-CARD-LIST-15 メニューを一つに保ち行の削除で閉じる
+
+カテゴリ: `interaction`
+
+検証状況: 未実装
+
+
+Given:
+
+- Front / Other の2行を表示する。
+
+When:
+
+- Front、Other の順にメニューを開き、Other の行を入力から除去して再追加する。
+
+Then:
+
+- Other を開くと Front のメニューが閉じる。行を除くとメニューも閉じ、再追加しても開かない。
+
+<a id="storybook-card-list-16"></a>
+
+### STORYBOOK-CARD-LIST-16 並べ替え後も同じ Card を操作する
+
+カテゴリ: `interaction`
+
+検証状況: 未実装
+
+
+Given:
+
+- 対象 Card の View、または開いたメニューの Edit にフォーカスしている。2条件を個別に用意する。
+
+When:
+
+- 対象を残したまま順序変更・別行の追加と削除を行い、Enter を押す。
+
+Then:
+
+- フォーカスを失わず、対象操作の callback に元の Card の ID を渡す。
+
+<a id="storybook-card-list-17"></a>
+
+### STORYBOOK-CARD-LIST-17 空状態から追加を要求する
+
+カテゴリ: `interaction`
+
+検証状況: 未実装
+
+
+Given:
+
+- no-cards の空状態に追加 callback を渡す。
+
+When:
+
+- 空状態の Add card を押す。
+
+Then:
+
+- 追加 callback が一度通知される。Actions メニュー経由とは操作入口が異なる。
+
+<a id="storybook-card-list-18"></a>
+
+### STORYBOOK-CARD-LIST-18 0件状態からフィルター解除を要求する
+
+カテゴリ: `interaction`
+
+検証状況: 未実装
+
+
+Given:
+
+- filter-zero に解除 callback を渡す。
+
+When:
+
+- Clear filters を押す。
+
+Then:
+
+- 解除 callback が一度通知される。フィルター計算や再取得結果は確認しない。
+
+<a id="storybook-card-list-19"></a>
+
+### STORYBOOK-CARD-LIST-19 行の編集要求に対象 ID を渡す
+
+カテゴリ: `interaction`
+
+検証状況: 未実装
+
+
+Given:
+
+- ID card、表面 Front、タグ one / two の行を表示する。
+
+When:
+
+- その行のメニューから Edit を選ぶ。
+
+Then:
+
+- タグを確認でき、編集 callback に card を渡す。
+
+<a id="storybook-card-list-20"></a>
+
+### STORYBOOK-CARD-LIST-20 処理中の行を操作させない
+
+カテゴリ: `render`
+
+検証状況: 未実装
+
+
+Given:
+
+- 処理中で無効な Card 行を表示する。
+
+When:
+
+- 行を描画する。
+
+Then:
+
+- View Front と Open actions for Front の両方が無効になる。
+
+<a id="storybook-card-list-21"></a>
+
+### STORYBOOK-CARD-LIST-21 削除を要求する
+
+カテゴリ: `interaction`
+
+検証状況: 未実装
+
+
+Given:
+
+- Binary search のメニューが閉じている。
+
+When:
+
+- メニューを開いて Delete を選ぶ。
+
+Then:
+
+- Card actions for Binary search の group に Edit / Delete の順で表示し、削除 callback が一度通知される。実際の削除は確認しない。
+
+<a id="storybook-card-list-22"></a>
+
+### STORYBOOK-CARD-LIST-22 無効なメニューを表示しない
+
+カテゴリ: `render`
+
+検証状況: 未実装
+
+
+Given:
+
+- 開く指定と無効指定の両方を渡す。
+
+When:
+
+- メニューを描画する。
+
+Then:
+
+- 開くボタンは無効で、menu は表示しない。

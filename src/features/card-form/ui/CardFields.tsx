@@ -1,7 +1,7 @@
 import * as React from "react";
 import cx from "classnames";
 import { useTranslation } from "react-i18next";
-import { type UseFormReturn, useController, useFormState } from "react-hook-form";
+import { type FieldError, type UseFormReturn, useController, useFormState } from "react-hook-form";
 import { AiOutlineExpandAlt, AiOutlineRight } from "react-icons/ai";
 
 import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
@@ -143,6 +143,16 @@ const BackPreview = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+const CardSideError = ({ error, side, id }: { error: FieldError | undefined; side: CardSide; id: string }) => {
+  const { t } = useTranslation();
+  if (error === undefined) return null;
+  return (
+    <p id={id} role="alert" className="shrink-0 text-caption font-medium text-danger">
+      {t(error.type === "custom" ? `validation.required.${side}` : "validation.invalid")}
+    </p>
+  );
+};
+
 export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
   const { t } = useTranslation();
   const formState = useFormState({ control: form.control });
@@ -160,11 +170,12 @@ export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
   const frontTabRef = React.useRef<HTMLButtonElement>(null);
   const backTabRef = React.useRef<HTMLButtonElement>(null);
 
+  const invalidSide = (["frontText", "backText"] as const).find((side) => formState.errors[side]) ?? null;
+
   // A failed submission must reveal its first invalid side before React Hook Form can focus that input.
   if (validation.count !== formState.submitCount) {
-    const side = formState.errors.frontText ? "frontText" : formState.errors.backText ? "backText" : null;
-    setValidation({ count: formState.submitCount, side });
-    if (side) setActiveSide(side);
+    setValidation({ count: formState.submitCount, side: invalidSide });
+    if (invalidSide) setActiveSide(invalidSide);
   }
   React.useEffect(() => {
     if (validation.side) form.setFocus(validation.side);
@@ -275,11 +286,7 @@ export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
                 aria-describedby={error ? errorId : undefined}
               />
               {side.name === "backText" && <BackPreview>{preview}</BackPreview>}
-              {error !== undefined && (
-                <p id={errorId} role="alert" className="text-caption font-medium text-danger">
-                  {t(error.type === "custom" ? `validation.required.${side.name}` : "validation.invalid")}
-                </p>
-              )}
+              <CardSideError error={error} side={side.name} id={errorId} />
             </div>
           );
         })}
@@ -349,11 +356,7 @@ export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
               className="min-h-48 flex-1 resize-none text-xl leading-relaxed"
             />
             {activeSide === "backText" && <BackPreview>{preview}</BackPreview>}
-            {activeError !== undefined && (
-              <p id={expandedErrorId} role="alert" className="shrink-0 text-caption font-medium text-danger">
-                {t(activeError.type === "custom" ? `validation.required.${activeSide}` : "validation.invalid")}
-              </p>
-            )}
+            <CardSideError error={activeError} side={activeSide} id={expandedErrorId} />
           </div>
         </CardFieldsDialog>
       ) : null}

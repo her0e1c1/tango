@@ -114,11 +114,12 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
   const swipeTitle = props.showSwipeControls
     ? t("studySession.toolbar.swipeControls.hide")
     : t("studySession.toolbar.swipeControls.show");
-  const playbackTitle = props.playbackControlsAvailable
-    ? props.showPlaybackControls
-      ? t("studySession.toolbar.playbackControls.hide")
-      : t("studySession.toolbar.playbackControls.show")
-    : t("studySession.toolbar.playbackUnavailable");
+  let playbackTitle = t(
+    props.showPlaybackControls
+      ? "studySession.toolbar.playbackControls.hide"
+      : "studySession.toolbar.playbackControls.show"
+  );
+  if (!props.playbackControlsAvailable) playbackTitle = t("studySession.toolbar.playbackUnavailable");
   const cardDetailsTitle = props.showCardDetails
     ? t("studySession.toolbar.cardDetails.hide")
     : t("studySession.toolbar.cardDetails.show");
@@ -229,6 +230,92 @@ const getStudyToolbarCopy = (
   helpTitle: state.showHelp ? t("studySession.toolbar.help.hide") : t("studySession.toolbar.help.show"),
 });
 
+const ToolbarHelp = (
+  props: Pick<StudyToolbarProps, "open" | "showHelp" | "helpTriggerLabel" | "onToggleHelp" | "onOpenHelp"> & {
+    onEscape: React.KeyboardEventHandler<HTMLButtonElement>;
+  } & { helpRef: React.RefObject<HTMLButtonElement | null> | undefined }
+) => {
+  const { t } = useTranslation();
+  const copy = getStudyToolbarCopy(t, props);
+  if (!props.open && !props.showHelp) return null;
+  return (
+    // Help opens the dialog while actions are closed and controls its visibility while they are open.
+    <button
+      ref={props.open ? undefined : props.helpRef}
+      type="button"
+      aria-label={copy.helpButtonLabel}
+      aria-pressed={props.open ? props.showHelp : undefined}
+      title={props.open ? copy.helpTitle : undefined}
+      className={cx(toolbarButtonClass, props.open && props.showHelp && "bg-surface-muted text-accent-primary")}
+      onClick={props.open ? props.onToggleHelp : props.onOpenHelp}
+      onKeyDown={props.onEscape}
+    >
+      <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
+    </button>
+  );
+};
+
+const ToolbarViewMode = (
+  props: Pick<StudyToolbarProps, "open" | "showViewMode" | "viewMode" | "onToggleShowViewMode" | "onToggleViewMode"> & {
+    onEscape: React.KeyboardEventHandler<HTMLButtonElement>;
+  }
+) => {
+  const { t } = useTranslation();
+  if (!props.open && !props.showViewMode) return null;
+  return (
+    <button
+      type="button"
+      aria-label={t("studySession.toolbar.viewMode.label")}
+      aria-pressed={props.open ? props.showViewMode : props.viewMode}
+      title={t(
+        props.open
+          ? props.showViewMode
+            ? "studySession.toolbar.viewMode.hide"
+            : "studySession.toolbar.viewMode.show"
+          : props.viewMode
+            ? "studySession.toolbar.viewMode.exit"
+            : "studySession.toolbar.viewMode.enter"
+      )}
+      className={cx(
+        toolbarButtonClass,
+        (props.open ? props.showViewMode : props.viewMode) && "bg-surface-muted text-accent-primary"
+      )}
+      onClick={props.open ? props.onToggleShowViewMode : props.onToggleViewMode}
+      onKeyDown={props.onEscape}
+    >
+      <AiOutlineRead aria-hidden="true" className="text-xl" />
+    </button>
+  );
+};
+
+const ToolbarEditLink = (
+  props: Pick<StudyToolbarProps, "open" | "editLink"> & { onEscape: React.KeyboardEventHandler<HTMLButtonElement> }
+) => {
+  const { t } = useTranslation();
+  if (props.editLink === undefined || (!props.open && !props.editLink.visible)) return null;
+  return (
+    <div className="shrink-0">
+      {props.open ? (
+        <button
+          type="button"
+          aria-label={t("studySession.toolbar.editLink.label")}
+          aria-pressed={props.editLink.visible}
+          title={t(
+            props.editLink.visible ? "studySession.toolbar.editLink.hide" : "studySession.toolbar.editLink.show"
+          )}
+          className={cx(toolbarButtonClass, props.editLink.visible && "bg-surface-muted text-accent-primary")}
+          onClick={props.editLink.onToggle}
+          onKeyDown={props.onEscape}
+        >
+          <AiOutlineEdit aria-hidden="true" className="text-xl" />
+        </button>
+      ) : (
+        props.editLink.element
+      )}
+    </div>
+  );
+};
+
 const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...props }) => {
   const { t } = useTranslation();
   const actionsId = React.useId();
@@ -284,66 +371,28 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
             <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
           )}
         </button>
-        {props.open || props.showHelp ? (
-          // Help opens the dialog while actions are closed and controls its visibility while they are open.
-          <button
-            ref={props.open ? undefined : helpTriggerRef}
-            type="button"
-            aria-label={copy.helpButtonLabel}
-            aria-pressed={props.open ? props.showHelp : undefined}
-            title={props.open ? copy.helpTitle : undefined}
-            className={cx(toolbarButtonClass, props.open && props.showHelp && "bg-surface-muted text-accent-primary")}
-            onClick={props.open ? props.onToggleHelp : props.onOpenHelp}
-            onKeyDown={closeOnEscape}
-          >
-            <AiOutlineQuestionCircle aria-hidden="true" className="text-xl" />
-          </button>
-        ) : null}
-        {props.open || props.showViewMode ? (
-          <button
-            type="button"
-            aria-label={t("studySession.toolbar.viewMode.label")}
-            aria-pressed={props.open ? props.showViewMode : props.viewMode}
-            title={t(
-              props.open
-                ? props.showViewMode
-                  ? "studySession.toolbar.viewMode.hide"
-                  : "studySession.toolbar.viewMode.show"
-                : props.viewMode
-                  ? "studySession.toolbar.viewMode.exit"
-                  : "studySession.toolbar.viewMode.enter"
-            )}
-            className={cx(
-              toolbarButtonClass,
-              (props.open ? props.showViewMode : props.viewMode) && "bg-surface-muted text-accent-primary"
-            )}
-            onClick={props.open ? props.onToggleShowViewMode : props.onToggleViewMode}
-            onKeyDown={closeOnEscape}
-          >
-            <AiOutlineRead aria-hidden="true" className="text-xl" />
-          </button>
-        ) : null}
-        {props.editLink !== undefined && (props.open || props.editLink.visible) ? (
-          <div className="shrink-0">
-            {props.open ? (
-              <button
-                type="button"
-                aria-label={t("studySession.toolbar.editLink.label")}
-                aria-pressed={props.editLink.visible}
-                title={t(
-                  props.editLink.visible ? "studySession.toolbar.editLink.hide" : "studySession.toolbar.editLink.show"
-                )}
-                className={cx(toolbarButtonClass, props.editLink.visible && "bg-surface-muted text-accent-primary")}
-                onClick={props.editLink.onToggle}
-                onKeyDown={closeOnEscape}
-              >
-                <AiOutlineEdit aria-hidden="true" className="text-xl" />
-              </button>
-            ) : (
-              props.editLink.element
-            )}
-          </div>
-        ) : null}
+        <ToolbarHelp
+          open={props.open}
+          showHelp={props.showHelp}
+          onToggleHelp={props.onToggleHelp}
+          onOpenHelp={props.onOpenHelp}
+          helpRef={helpTriggerRef}
+          {...(props.helpTriggerLabel !== undefined ? { helpTriggerLabel: props.helpTriggerLabel } : {})}
+          onEscape={closeOnEscape}
+        />
+        <ToolbarViewMode
+          open={props.open}
+          showViewMode={props.showViewMode}
+          viewMode={props.viewMode}
+          onToggleShowViewMode={props.onToggleShowViewMode}
+          onToggleViewMode={props.onToggleViewMode}
+          onEscape={closeOnEscape}
+        />
+        <ToolbarEditLink
+          open={props.open}
+          {...(props.editLink !== undefined ? { editLink: props.editLink } : {})}
+          onEscape={closeOnEscape}
+        />
       </div>
       {props.open ? (
         // Move secondary actions below the shortcuts before they can overlap on narrow screens.
@@ -550,9 +599,56 @@ const Controls: React.FC<{
   );
 };
 
+function getReadingSurface(
+  viewMode: boolean,
+  showBackText: boolean | undefined,
+  answerLabel: string,
+  frontLabel: string
+) {
+  if (showBackText)
+    return {
+      ...answerSurfaceProps,
+      "aria-label": answerLabel,
+      className: "relative min-h-0 flex-1 overflow-y-auto pt-[env(safe-area-inset-top)]",
+    };
+  if (viewMode)
+    return {
+      role: "region",
+      tabIndex: 0,
+      "data-study-front-scroll": "",
+      "aria-label": frontLabel,
+      className:
+        "relative min-h-0 flex-1 overflow-y-auto [touch-action:pan-y_pinch-zoom] overscroll-contain [@media(max-height:450px)]:min-h-[50svh] [@media(max-height:450px)]:flex-none [@media(max-height:450px)]:h-[50svh]",
+    };
+  return { className: "relative min-h-0 flex-1 overflow-hidden" };
+}
+
+function clickCardSurface(
+  event: React.MouseEvent<HTMLDivElement>,
+  viewMode: boolean,
+  props: Pick<CardPlayerProps, "showBackText" | "onAnswerClick" | "onToggleViewMode">
+): void {
+  if (event.button !== 0) return;
+  if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea")) return;
+  if (!viewMode) {
+    if (props.showBackText) props.onAnswerClick?.();
+    return;
+  }
+  const selection = window.getSelection();
+  const selectingFront = selection !== null && !selection.isCollapsed;
+  if (selectingFront && selection.anchorNode !== null && event.currentTarget.contains(selection.anchorNode)) return;
+  if (event.target instanceof Element && event.target.closest("[data-study-front-content]")) props.onToggleViewMode();
+}
+
 export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
   const { t } = useTranslation();
   const viewMode = props.viewMode && !props.showBackText;
+  const readingSurface = getReadingSurface(
+    viewMode,
+    props.showBackText,
+    props.answerLabel ?? t("studySession.answerAria"),
+    t("studySession.frontAria")
+  );
   const [studyActionsOpen, setStudyActionsOpen] = React.useState(false);
   // Safari does not focus pointer-activated buttons by default, so Help must restore this explicit trigger.
   const helpTriggerRef = React.useRef<HTMLButtonElement>(null);
@@ -586,16 +682,12 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
     }, 0);
   };
 
+  const allowVerticalSwipe = !viewMode && !props.showBackText;
+  const allowHorizontalSwipe = !viewMode && (!props.showBackText || props.allowBackHorizontalSwipe);
   const swipeHandlers = useSwipeable({
     onSwiped: suppressTrailingCardClick,
-    ...(!viewMode && (!props.showBackText || props.allowBackHorizontalSwipe) && props.onSwipeLeft !== undefined
-      ? { onSwipedLeft: props.onSwipeLeft }
-      : {}),
-    ...(!viewMode && !props.showBackText && props.onSwipeUp !== undefined ? { onSwipedUp: props.onSwipeUp } : {}),
-    ...(!viewMode && (!props.showBackText || props.allowBackHorizontalSwipe) && props.onSwipeRight !== undefined
-      ? { onSwipedRight: props.onSwipeRight }
-      : {}),
-    ...(!viewMode && !props.showBackText && props.onSwipeDown !== undefined ? { onSwipedDown: props.onSwipeDown } : {}),
+    ...(allowHorizontalSwipe ? { onSwipedLeft: props.onSwipeLeft, onSwipedRight: props.onSwipeRight } : {}),
+    ...(allowVerticalSwipe ? { onSwipedUp: props.onSwipeUp, onSwipedDown: props.onSwipeDown } : {}),
     trackMouse: true,
   });
 
@@ -615,32 +707,10 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
     event.stopPropagation();
   };
 
-  const clickSurface: React.MouseEventHandler<HTMLDivElement> = (event) => {
-    if (event.button !== 0) return;
-    if (viewMode) {
-      const selection = window.getSelection();
-      if (
-        selection !== null &&
-        !selection.isCollapsed &&
-        selection.anchorNode !== null &&
-        event.currentTarget.contains(selection.anchorNode)
-      )
-        return;
-      if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea")) return;
-      if (event.target instanceof Element && event.target.closest("[data-study-front-content]"))
-        props.onToggleViewMode();
-      return;
-    }
-    if (!props.showBackText) return;
-    // Answer links and controls keep their native behavior instead of also flipping the card.
-    if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea")) return;
-    props.onAnswerClick?.();
-  };
-
   const cardGestureHandlers = {
     ...swipeHandlers,
     onClickCapture: stopTrailingCardClick,
-    onClick: clickSurface,
+    onClick: (event: React.MouseEvent<HTMLDivElement>) => clickCardSurface(event, viewMode, props),
     onMouseDown: startPrimaryMouseSwipe,
   };
 
@@ -657,8 +727,8 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
     >
       {showStudyChrome ? (
         <StudyToolbar
+          {...props}
           ref={helpTriggerRef}
-          {...(props.editLink !== undefined ? { editLink: props.editLink } : {})}
           {...(props.help.triggerLabel !== undefined ? { helpTriggerLabel: props.help.triggerLabel } : {})}
           viewMode={viewMode}
           onToggleViewMode={props.onToggleViewMode}
@@ -669,7 +739,6 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           showCardDetails={props.showCardDetails}
           showSwipeControls={props.showSwipeControls}
           showPlaybackControls={props.showPlaybackControls}
-          {...(props.showSkipControls !== undefined ? { showSkipControls: props.showSkipControls } : {})}
           playbackControlsAvailable={props.playbackControlsAvailable}
           onOpenHelp={props.help.onOpen}
           onToggleHelp={props.onToggleHelp}
@@ -678,7 +747,6 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
           onBack={props.onBack}
           onToggleSwipeControls={props.onToggleSwipeControls}
           onTogglePlaybackControls={props.onTogglePlaybackControls}
-          {...(props.onToggleSkipControls !== undefined ? { onToggleSkipControls: props.onToggleSkipControls } : {})}
         />
       ) : null}
       {viewMode && props.showCardDetails && props.cardOverlaySlot != null ? (
@@ -687,20 +755,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
         </div>
       ) : null}
       <div
-        {...(viewMode
-          ? { role: "region", tabIndex: 0, "data-study-front-scroll": "", "aria-label": t("studySession.frontAria") }
-          : {})}
-        {...(props.showBackText
-          ? { ...answerSurfaceProps, "aria-label": props.answerLabel ?? t("studySession.answerAria") }
-          : {})}
-        className={cx(
-          "relative min-h-0 flex-1",
-          props.showBackText
-            ? "overflow-y-auto pt-[env(safe-area-inset-top)]"
-            : viewMode
-              ? "overflow-y-auto [touch-action:pan-y_pinch-zoom] overscroll-contain [@media(max-height:450px)]:min-h-[50svh] [@media(max-height:450px)]:flex-none [@media(max-height:450px)]:h-[50svh]"
-              : "overflow-hidden"
-        )}
+        {...readingSurface}
         {...cardGestureHandlers}
         ref={(element) => {
           surfaceRef.current = element;
@@ -729,13 +784,7 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
         actionSlot={props.actionSlot}
       />
       {props.help.open ? (
-        <StudyHelpDialog
-          rows={props.help.rows}
-          {...(props.help.title !== undefined ? { title: props.help.title } : {})}
-          {...(props.help.description !== undefined ? { description: props.help.description } : {})}
-          restoreTriggerFocus={restoreHelpTriggerFocus}
-          onClose={props.help.onClose}
-        />
+        <StudyHelpDialog {...props.help} restoreTriggerFocus={restoreHelpTriggerFocus} onClose={props.help.onClose} />
       ) : null}
     </div>
   );

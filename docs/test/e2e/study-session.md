@@ -46,7 +46,7 @@ Then:
 - UID で購読した Card.fsrs.dueAt を正本とし、fsrs が null の Card は未評価とする。不正 FSRS・欠落フィールド・不正期限・購読失敗はエラーとし、新規や0件に読み替えない。
 - 開始画面・Card一覧・Deck閲覧は同じ期限ルールと各評価で一つのnowを使う。後二者にはSession専用の順序・上限を適用しない。
 - mount中に最も近い未来期限のtimerを一つだけ持ち、期限到来・foreground復帰・データ/設定変更で再評価する。未来期限なしではtimerを置かず、遠い期限は安全なcheckpointで再計算する。遅延callback、時計の前後移動、timer置換・unmountを扱う。
-- 正の上限では session の Card 数が設定済みの学習上限と一致する。
+- fixture の初期上限と変更後の0・1の各設定を保存値で確認し、正の上限では session の Card 数が設定済みの学習上限と一致する。
 - 上限 0 では枚数を制限せず、filter と適用される復習条件に一致するすべての Card を含む。上限 1 ではそのうち先頭の Card だけを含む。
 - 学習開始画面と start action の件数が新しい session の件数と一致する。
 - session の先頭 Card の front text が表示される。

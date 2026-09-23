@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { FrontText } from "./FrontText";
 import * as fixture from "@/storybook/fixture";
