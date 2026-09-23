@@ -88,8 +88,8 @@ Every task that changes repository files must complete this workflow:
 
 ### Other Unit and Integration Tests
 
-- Outside `test/integration/firestore` and Storybook `play` functions, implement runtime behavior tests against `docs/test/e2e`. Define missing behavior there before writing tests; adding new files under `docs` still requires an explicit user request.
-- Each new or modified unit/integration test for runtime behavior must reference at least one existing E2E case ID in its outermost `describe` title, or its test title when there is no `describe`.
+- Unit tests with dedicated specifications under `docs/test/unit` must reference the relevant `UNIT-*` case ID in the test title. Documentation rules stay in the corresponding `docs/test/unit/**/AGENTS.md`.
+- Unit/integration tests without a dedicated unit specification use `docs/test/e2e` as their runtime behavior specification and reference at least one existing E2E case ID in the outermost `describe` title, or the test title when there is no `describe`.
 - Co-locate unit tests under `src/**/*.spec.{ts,tsx}` for deterministic rules, state transitions, validation, and module or component behavior without real external services.
 - Put integration tests under `test/integration/**/*.spec.{ts,tsx}` for contracts across application modules, persistence, stores, or emulators. Do not mock the boundary being verified.
 - Parameterized tests must include a representative row matching the referenced E2E Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.

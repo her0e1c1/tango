@@ -130,6 +130,8 @@ Then:
 
 カテゴリ: `interaction`
 
+検証状況: 一部未実装
+
 
 
 Given:
@@ -172,6 +174,8 @@ Then:
 
 カテゴリ: `render`
 
+検証状況: 一部未実装
+
 
 
 Given:
@@ -193,6 +197,8 @@ Then:
 
 カテゴリ: `interaction`
 
+検証状況: 一部未実装
+
 
 
 Given:
@@ -213,6 +219,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-09 端のホイール入力をスクロールへ渡す
 
 カテゴリ: `interaction`
+
+検証状況: 一部未実装
 
 
 
@@ -385,6 +393,8 @@ Then:
 ### STORYBOOK-CARD-PLAYER-17 選択した下部操作だけを表示する
 
 カテゴリ: `render`
+
+検証状況: 一部未実装
 
 
 
