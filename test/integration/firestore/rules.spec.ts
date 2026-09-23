@@ -19,6 +19,7 @@ import {
   getDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   serverTimestamp,
   Timestamp,
   collection as firestoreCollection,
@@ -256,9 +257,9 @@ describe("Firestore ownership and guest write restrictions", () => {
     });
 
     describe("deck", () => {
-      it("[FIRESTORE-RULES-DECK-02] should read a deck", async () => {
+      it.each([null, 1000])("[FIRESTORE-RULES-DECK-02] should read an owned deck (deletedAt=%s)", async (deletedAt) => {
         const id = uuid();
-        await createData("deck", id, { uid: "uid", isPublic: false });
+        await createData("deck", id, { uid: "uid", isPublic: false, deletedAt });
         await assertSucceeds(getDoc(doc(db, "deck", id)));
       });
 
@@ -277,6 +278,28 @@ describe("Firestore ownership and guest write restrictions", () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid" });
         await assertSucceeds(deleteDoc(doc(db, "deck", id)));
+      });
+
+      it("[FIRESTORE-RULES-DECK-20] rejects changing or removing the owner UID", async () => {
+        const id = uuid();
+        await createData("deck", id, { uid: "uid" });
+        const reference = doc(db, "deck", id);
+        await assertFails(updateDoc(reference, { uid: "another-user" }));
+        await assertFails(updateDoc(reference, { uid: null }));
+        await assertFails(updateDoc(reference, { uid: deleteField() }));
+        await assertFails(setDoc(reference, { name: "replacement" }));
+      });
+
+      it("[FIRESTORE-RULES-DECK-22] lists only the owner's decks including deleted decks", async () => {
+        await createData("deck", "private", { uid: "uid", isPublic: false, deletedAt: null });
+        await createData("deck", "public", { uid: "uid", isPublic: true, deletedAt: null });
+        await createData("deck", "deleted", { uid: "uid", isPublic: true, deletedAt: 1000 });
+        await createData("deck", "other-public", { uid: "another-user", isPublic: true, deletedAt: null });
+        await createData("deck", "other-private", { uid: "another-user", isPublic: false, deletedAt: null });
+        const snapshot = await assertSucceeds(
+          getDocs(query(firestoreCollection(db, "deck"), where("uid", "==", "uid")))
+        );
+        expect(snapshot.docs.map((document) => document.id).sort()).toEqual(["deleted", "private", "public"]);
       });
     });
 
@@ -320,11 +343,14 @@ describe("Firestore ownership and guest write restrictions", () => {
     });
 
     describe("deck", () => {
-      it("[FIRESTORE-RULES-DECK-06] should not read a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(getDoc(doc(db, "deck", id)));
-      });
+      it.each([{}, { isPublic: false }])(
+        "[FIRESTORE-RULES-DECK-06] should not read a deck (visibility=%j)",
+        async (visibility) => {
+          const id = uuid();
+          await createData("deck", id, { uid: "uid", ...visibility });
+          await assertFails(getDoc(doc(db, "deck", id)));
+        }
+      );
 
       it("[FIRESTORE-RULES-DECK-07] should read a public deck", async () => {
         const id = uuid();
@@ -337,18 +363,35 @@ describe("Firestore ownership and guest write restrictions", () => {
         await assertFails(setDoc(doc(db, "deck", id), { uid: "uid" }));
       });
 
-      it("[FIRESTORE-RULES-DECK-09] should not update a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
-      });
+      it.each([{}, { isPublic: false }, { isPublic: true }])(
+        "[FIRESTORE-RULES-DECK-09] should not update a deck (visibility=%j)",
+        async (visibility) => {
+          const id = uuid();
+          await createData("deck", id, { uid: "uid", deletedAt: null, ...visibility });
+          await assertFails(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
+        }
+      );
 
-      it("[FIRESTORE-RULES-DECK-10] should not delete a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "deck", id)));
-      });
+      it.each([{}, { isPublic: false }, { isPublic: true }])(
+        "[FIRESTORE-RULES-DECK-10] should not delete a deck (visibility=%j)",
+        async (visibility) => {
+          const id = uuid();
+          await createData("deck", id, { uid: "uid", deletedAt: null, ...visibility });
+          await assertFails(deleteDoc(doc(db, "deck", id)));
+        }
+      );
     });
+
+    it.each([false, true])(
+      "[FIRESTORE-RULES-DECK-21] rejects taking ownership of another user's deck (isPublic=%s)",
+      async (isPublic) => {
+        const id = uuid();
+        await createData("deck", id, { uid: "uid", isPublic, deletedAt: null });
+        const reference = doc(db, "deck", id);
+        await assertFails(updateDoc(reference, { uid: "invalid" }));
+        await assertFails(setDoc(reference, { uid: "invalid", name: "replacement" }));
+      }
+    );
 
     describe("card", () => {
       it("[FIRESTORE-RULES-CARD-06] should not read a card", async () => {
@@ -404,12 +447,14 @@ describe("Firestore ownership and guest write restrictions", () => {
       await assertFails(setDoc(doc(db, "card", uuid()), { uid: "uid", deckId }));
     });
 
-    it("[FIRESTORE-RULES-DECK-12] rejects updating an existing deck", async () => {
-      const [deckId, id] = [uuid(), uuid()];
-      await createData("deck", deckId, { uid: "uid" });
-      await createData("deck", id, { uid: "uid", deckId });
-      await assertFails(updateDoc(doc(db, "deck", id), { name: "guest update" }));
-    });
+    it.each([{}, { isPublic: false }, { isPublic: true }])(
+      "[FIRESTORE-RULES-DECK-12] rejects updating an existing deck (visibility=%j)",
+      async (visibility) => {
+        const id = uuid();
+        await createData("deck", id, { uid: "uid", deletedAt: null, ...visibility });
+        await assertFails(updateDoc(doc(db, "deck", id), { name: "guest update" }));
+      }
+    );
 
     it("[FIRESTORE-RULES-CARD-12] rejects updating an existing card", async () => {
       const [deckId, id] = [uuid(), uuid()];
@@ -418,11 +463,14 @@ describe("Firestore ownership and guest write restrictions", () => {
       await assertFails(updateDoc(doc(db, "card", id), { name: "guest update" }));
     });
 
-    it("[FIRESTORE-RULES-DECK-13] rejects deleting an existing deck", async () => {
-      const id = uuid();
-      await createData("deck", id, { uid: "uid" });
-      await assertFails(deleteDoc(doc(db, "deck", id)));
-    });
+    it.each([{}, { isPublic: false }, { isPublic: true }])(
+      "[FIRESTORE-RULES-DECK-13] rejects deleting an existing deck (visibility=%j)",
+      async (visibility) => {
+        const id = uuid();
+        await createData("deck", id, { uid: "uid", deletedAt: null, ...visibility });
+        await assertFails(deleteDoc(doc(db, "deck", id)));
+      }
+    );
 
     it("[FIRESTORE-RULES-CARD-13] rejects deleting an existing card", async () => {
       const id = uuid();
@@ -435,6 +483,15 @@ describe("Firestore ownership and guest write restrictions", () => {
       await createData("deck", deckId, { uid: "another-user", isPublic: true });
       await assertSucceeds(getDoc(doc(db, "deck", deckId)));
     });
+
+    it.each([{}, { isPublic: false }])(
+      "[FIRESTORE-RULES-DECK-24] rejects reading another user's private deck (visibility=%j)",
+      async (visibility) => {
+        const id = uuid();
+        await createData("deck", id, { uid: "another-user", ...visibility });
+        await assertFails(getDoc(doc(db, "deck", id)));
+      }
+    );
 
     it("[FIRESTORE-RULES-CARD-14] preserves public card reads", async () => {
       const deckId = uuid();
@@ -453,11 +510,14 @@ describe("Firestore ownership and guest write restrictions", () => {
     });
 
     describe("deck", () => {
-      it("[FIRESTORE-RULES-DECK-15] should not read a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(getDoc(doc(db, "deck", id)));
-      });
+      it.each([{}, { isPublic: false }])(
+        "[FIRESTORE-RULES-DECK-15] should not read a deck (visibility=%j)",
+        async (visibility) => {
+          const id = uuid();
+          await createData("deck", id, { uid: "uid", ...visibility });
+          await assertFails(getDoc(doc(db, "deck", id)));
+        }
+      );
 
       it("[FIRESTORE-RULES-DECK-16] should read a public deck", async () => {
         const id = uuid();
@@ -470,17 +530,23 @@ describe("Firestore ownership and guest write restrictions", () => {
         await assertFails(setDoc(doc(db, "deck", id), { uid: "uid" }));
       });
 
-      it("[FIRESTORE-RULES-DECK-18] should not update a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
-      });
+      it.each([{}, { isPublic: false }, { isPublic: true }])(
+        "[FIRESTORE-RULES-DECK-18] should not update a deck (visibility=%j)",
+        async (visibility) => {
+          const id = uuid();
+          await createData("deck", id, { uid: "uid", deletedAt: null, ...visibility });
+          await assertFails(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
+        }
+      );
 
-      it("[FIRESTORE-RULES-DECK-19] should not delete a deck", async () => {
-        const id = uuid();
-        await createData("deck", id, { uid: "uid" });
-        await assertFails(deleteDoc(doc(db, "deck", id)));
-      });
+      it.each([{}, { isPublic: false }, { isPublic: true }])(
+        "[FIRESTORE-RULES-DECK-19] should not delete a deck (visibility=%j)",
+        async (visibility) => {
+          const id = uuid();
+          await createData("deck", id, { uid: "uid", deletedAt: null, ...visibility });
+          await assertFails(deleteDoc(doc(db, "deck", id)));
+        }
+      );
     });
 
     describe("card", () => {
@@ -515,6 +581,25 @@ describe("Firestore ownership and guest write restrictions", () => {
       });
     });
   });
+
+  it.each(["other-user", "anonymous", "unauthenticated"])(
+    "[FIRESTORE-RULES-DECK-23] rejects unsafe deck queries from %s",
+    async (actor) => {
+      await createData("deck", "private", { uid: "uid", isPublic: false, deletedAt: null });
+      await createData("deck", "public", { uid: "uid", isPublic: true, deletedAt: null });
+      const db =
+        actor === "unauthenticated"
+          ? testEnv.unauthenticatedContext().firestore()
+          : testEnv
+              .authenticatedContext(actor, {
+                firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
+              })
+              .firestore();
+      await assertFails(getDocs(firestoreCollection(db, "deck")));
+      await assertFails(getDocs(query(firestoreCollection(db, "deck"), where("uid", "==", "uid"))));
+    }
+  );
+
   describe("Card FSRS", () => {
     const card = { uid: "owner", deckId: "deck", fsrs: null, createdAt: 1000, updatedAt: 1000, deletedAt: null };
     const ownerDb = () =>
