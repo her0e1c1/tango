@@ -2,56 +2,31 @@
 
 ## 目的
 
-`subscribeCards` / `subscribeDecks` が実際の Firestore snapshot を受け取り、現在の購読結果を store に反映する契約を確認する。
-初期取得だけでなく、空の結果、UID 分離、物理削除、不正な document、購読エラー、解除・再購読を対象とする。
+Card / Deck の公開された購読操作を通して、取得結果、所有者の分離、削除、不正データからの復旧、購読の停止・再開を確認する。
+各ケースは Card と Deck をそれぞれ対象とする。表示値は Card では `frontText`、Deck では `name` を指し、Card には同じ所有者の有効な親 Deck がある。不正データを明示した場合を除き、保存内容は有効とする。
 
-## 検証状況
+共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。初期取得と同一クライアント内の変更は [Subscriptions](./subscriptions.md)、FSRS の保存内容は [Card.fsrs](./card-fsrs.md)、学習の復元は [StudySession](./study-session.md)、履歴取得は [Study History](./study-history.md) を参照する。
 
-本書の追加仕様はすべて **未実装・未検証** であり、既存テストによる保証ではない。本番コードとテストコードは、この仕様書追加では変更しない。
-既存ケースは [Subscriptions](./subscriptions.md) に維持し、重複して採番しない。
+## テストケース
 
-| 既存ケース | 既存 assertion の範囲 |
-| --- | --- |
-| [FIRESTORE-SUBSCRIPTIONS-01](./subscriptions.md#firestore-subscriptions-01) | 初期 snapshot の Card ID と本文 |
-| [FIRESTORE-SUBSCRIPTIONS-02](./subscriptions.md#firestore-subscriptions-02) | 同一クライアントからの Card / Deck の追加・更新・論理削除 |
-| [FIRESTORE-SUBSCRIPTIONS-03](./subscriptions.md#firestore-subscriptions-03) | 購読解除後の編集操作直後に、store が更新前の値を保持すること |
-
-未検証事項と既存テストの一対一対応を混同しないため、追加仕様にはまだ実行対象のケース ID を付けない。
-テスト実装時に、本書の文書順で `FIRESTORE-SNAPSHOT-<NN>` を `01` から欠番なく採番し、索引・明示的な ID アンカー・見出し・テストタイトルを同じ変更で更新する。
-
-## 検証境界
-
-共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
-
-各追加仕様は、下表の Card / Deck の組み合わせをそれぞれ確認する。Card では同じ所有者の親 Deck を保存しておく。
-
-| 対象 | 購読 API | 観測する値 | 更新する表示値 | 不正な document の例 |
-| --- | --- | --- | --- | --- |
-| Card | `subscribeCards` | Card store の remote Card 一覧 | `frontText` | `tags: null` |
-| Deck | `subscribeDecks` | Deck store の remote Deck 一覧 | `name` | `name: null` |
-
-store の ID 集合と値を検証し、配列順、内部関数の呼出し回数、snapshot の通知回数には依存しない。
-
-Card の FSRS 固有の契約は [Card.fsrs](./card-fsrs.md)、StudySession の復元は [StudySession](./study-session.md)、履歴 query と cache は [Study History](./study-history.md) を参照する。本書ではそれらの仕様を重複させない。
-
-## 追加テスト仕様一覧（未検証）
-
-| カテゴリ | 区分 | 追加仕様 | 対象 |
+| ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| read | 正常系 | [空の初期 snapshot で以前のデータを消す](#empty-initial-snapshot) | Card / Deck |
-| read | 正常系 | [初期 snapshot から有効な document だけを反映する](#active-initial-snapshot) | Card / Deck |
-| read | 正常系 | [購読 UID 以外の document を混在させない](#owner-isolation) | Card / Deck |
-| batch | 正常系 | [物理削除で結果から消えた document を store から除く](#physical-deletion) | Card / Deck |
-| batch | 正常系 | [別クライアントの追加・更新を反映する](#remote-client-updates) | Card / Deck |
-| read | 異常系 | [不正な snapshot で直前の正常な結果を壊さない](#invalid-document) | Card / Deck |
-| read | 異常系 | [不正な document の修正後に購読が回復する](#validation-recovery) | Card / Deck |
-| read | 異常系 | [読取拒否を購読エラーとして通知する](#permission-denied) | Card / Deck |
-| read | 正常系 | [購読解除後の snapshot で store を更新しない](#unsubscribe) | Card / Deck |
-| read | 正常系 | [再購読で停止中の変更を含む現在の結果を取得する](#resubscribe) | Card / Deck |
+| FIRESTORE-SNAPSHOT-01 | read | 正常系 | [空の初期取得結果で以前のデータを置き換える](#firestore-snapshot-01) |
+| FIRESTORE-SNAPSHOT-02 | read | 正常系 | [初期取得で論理削除されていないデータだけを提供する](#firestore-snapshot-02) |
+| FIRESTORE-SNAPSHOT-03 | read | 正常系 | [読取可能な公開データでも別所有者のデータを混在させない](#firestore-snapshot-03) |
+| FIRESTORE-SNAPSHOT-04 | batch | 正常系 | [物理削除されたデータを取得結果から除く](#firestore-snapshot-04) |
+| FIRESTORE-SNAPSHOT-05 | batch | 正常系 | [別クライアントによる追加・更新を購読結果に反映する](#firestore-snapshot-05) |
+| FIRESTORE-SNAPSHOT-06 | read | 異常系 | [不正データを含む取得結果で直前の正常な結果を壊さない](#firestore-snapshot-06) |
+| FIRESTORE-SNAPSHOT-07 | read | 異常系 | [不正データの修正後に同じ購読で正常な結果を取得する](#firestore-snapshot-07) |
+| FIRESTORE-SNAPSHOT-08 | read | 異常系 | [読取拒否を通知し他人の非公開データを提供しない](#firestore-snapshot-08) |
+| FIRESTORE-SNAPSHOT-09 | read | 正常系 | [停止後に到達した更新で取得結果と通知を変更しない](#firestore-snapshot-09) |
+| FIRESTORE-SNAPSHOT-10 | read | 正常系 | [再購読で停止中の変更を含む現在の結果を取得する](#firestore-snapshot-10) |
+| FIRESTORE-SNAPSHOT-11 | read | 異常系 | [不正な初期取得結果を正常な読込完了として扱わない](#firestore-snapshot-11) |
 
 <a id="empty-initial-snapshot"></a>
+<a id="firestore-snapshot-01"></a>
 
-### 空の初期 snapshot で以前のデータを消す
+### FIRESTORE-SNAPSHOT-01 [TODO] 空の初期取得結果で以前のデータを置き換える
 
 カテゴリ: `read`
 
@@ -59,21 +34,22 @@ Card の FSRS 固有の契約は [Card.fsrs](./card-fsrs.md)、StudySession の�
 
 Given:
 
-- 購読する UID の対象 collection には document がない。
-- 対象 store には、Firestore に存在しない古い document の値を保持している。
+- 本人が所有する対象データは保存されていない。
+- 利用側には、保存先には存在しない以前の取得結果が残っている。
 
 When:
 
-- 対象 UID で購読を開始し、空の初期結果の反映完了を待つ。
+- 本人のデータの購読を開始する。
 
 Then:
 
-- 対象 store の remote 一覧は空になり、古い ID は残らない。
-- `onReady` により空の結果でも読込完了が通知され、`onError` は通知されない。
+- 初回の取得が完了すると、参照できる一覧は空となり、以前の ID は残らない。
+- 0件でも正常な読込完了が通知され、購読エラーは通知されない。
 
 <a id="active-initial-snapshot"></a>
+<a id="firestore-snapshot-02"></a>
 
-### 初期 snapshot から有効な document だけを反映する
+### FIRESTORE-SNAPSHOT-02 [TODO] 初期取得で論理削除されていないデータだけを提供する
 
 カテゴリ: `read`
 
@@ -81,23 +57,22 @@ Then:
 
 Given:
 
-- 本人の document A / B は `deletedAt: null`、C は `deletedAt` に削除日時を持つ。
-- すべて schema 上は有効で、各 document は異なる ID と表示値を持つ。
-- 対象 store は空である。
+- 本人のデータ A / B は未削除であり、C には論理削除の日時が保存されている。
+- A / B / C は異なる ID と表示値を持ち、まだ取得していない。
 
 When:
 
-- 本人の UID で購読を開始し、初期結果の反映完了を待つ。
+- 本人のデータの購読を開始する。
 
 Then:
 
-- store の ID 集合は A / B のみで、それぞれ保存した表示値を持つ。
-- 論理削除済みの C は含まれない。
-- `onReady` で通知された時点で上記の値を読め、`onError` は通知されない。
+- 読込完了時に参照できる ID は A / B だけで、それぞれ保存された表示値を持つ。
+- 論理削除済みの C は含まれず、購読エラーは通知されない。
 
 <a id="owner-isolation"></a>
+<a id="firestore-snapshot-03"></a>
 
-### 購読 UID 以外の document を混在させない
+### FIRESTORE-SNAPSHOT-03 [TODO] 読取可能な公開データでも別所有者のデータを混在させない
 
 カテゴリ: `read`
 
@@ -105,24 +80,23 @@ Then:
 
 Given:
 
-- 本人の document A と、異なる UID の document B を保存している。
-- B は読取可能な公開 Deck、またはその配下の公開対象 Card とする。Card / Deck ともに論理削除されていない。
-- 対象 store は空である。
+- 本人のデータ A と、別の所有者のデータ B が保存されている。
+- B は公開 Deck、または公開 Deck に属する Card であり、本人にも読取権限がある。
+- A / B は未削除で、まだ取得していない。
 
 When:
 
-- 本人の認証 context から、本人の UID で購読を開始する。
+- 本人の認証で、本人を所有者とするデータを購読する。
 
 Then:
 
-- store の ID 集合は A のみで、読取可能であっても他人の B は含まれない。
-- 購読エラーは発生しない。
-
-Rules による読取拒否ではなく、購読 query の UID 分離を確認する。
+- 取得結果の ID は A だけとなり、読取可能であっても B は含まれない。
+- 購読エラーは通知されない。読取拒否ではなく、指定した所有者による取得範囲の分離を確認できる。
 
 <a id="physical-deletion"></a>
+<a id="firestore-snapshot-04"></a>
 
-### 物理削除で結果から消えた document を store から除く
+### FIRESTORE-SNAPSHOT-04 [TODO] 物理削除されたデータを取得結果から除く
 
 カテゴリ: `batch`
 
@@ -130,24 +104,27 @@ Rules による読取拒否ではなく、購読 query の UID 分離を確認�
 
 Given:
 
-- 本人の document A / B が保存され、購読結果として両方が store に反映済みである。
+- 本人の保存済みデータを購読している。次の各行を独立した状態とする。
+
+| 削除前に取得済みのデータ | 物理削除するデータ | 削除後の取得結果 |
+| --- | --- | --- |
+| A / B | A | B のみ |
+| A のみ | A | 空 |
 
 When:
 
-- 本人の別クライアントから SDK で A を物理削除し、受信側が B のみになるまで待つ。
-- 続いて B も物理削除し、受信側の空の結果への反映を待つ。
+- 本人の別クライアントで、表の対象データを保存先から物理削除する。
 
 Then:
 
-- A の削除後は B の ID と表示値を維持し、A は残らない。
-- B の削除後は remote 一覧が空になる。
-- 購読エラーは発生しない。
-
-`deletedAt` の更新による論理削除とは別の契約である。
+- 変更の受信後に参照できる ID は表に一致し、削除された A は残らない。
+- 残る B の表示値は変わらず、最後の1件を削除した場合は空の結果になる。
+- 購読エラーは通知されない。削除日時の更新による論理削除とは区別する。
 
 <a id="remote-client-updates"></a>
+<a id="firestore-snapshot-05"></a>
 
-### 別クライアントの追加・更新を反映する
+### FIRESTORE-SNAPSHOT-05 [TODO] 別クライアントによる追加・更新を購読結果に反映する
 
 カテゴリ: `batch`
 
@@ -155,24 +132,28 @@ Then:
 
 Given:
 
-- 本人の UID に対応する購読を開始し、初期結果の反映が完了している。
-- 書込み用には同じ本人 UID の別 Firebase app / Firestore インスタンスを用意し、購読側と SDK cache を共有しない。
+- 本人の購読は初回の取得を完了している。
+- 書込側は同じ本人の独立したクライアントであり、受信側とは端末内のデータを共有しない。
+- 次の各行を独立した状態とする。
+
+| 変更前の保存内容と取得結果 | 書込側の操作 | 受信後の取得結果 |
+| --- | --- | --- |
+| A は存在しない | A を表示値 Before で作成する | A / Before が含まれる |
+| A / Before が存在する | 同じ A の表示値を After に更新する | A / After が含まれ、Before は残らない |
 
 When:
 
-- 書込み用クライアントで document A を `Before` として追加し、購読側で A の反映を待つ。
-- 同じ ID の表示値を `After` に更新し、購読側でその値への反映を待つ。
+- 書込側で表の操作を行う。受信側は購読を継続し、保存操作や取得結果の直接変更を行わない。
 
 Then:
 
-- 購読側で書込み操作や store の直接更新をしなくても、A が追加されて `After` に変わる。
-- 更新後に同じ ID の項目が重複せず、購読エラーは発生しない。
-
-同一 SDK 内の local snapshot やブラウザの複数タブではなく、独立した SDK クライアント間の反映を確認する。
+- 受信後の結果は表に一致し、同じ ID の項目が重複しない。
+- 購読を開始し直さずに変更を取得でき、購読エラーは通知されない。
 
 <a id="invalid-document"></a>
+<a id="firestore-snapshot-06"></a>
 
-### 不正な snapshot で直前の正常な結果を壊さない
+### FIRESTORE-SNAPSHOT-06 [TODO] 不正データを含む取得結果で直前の正常な結果を壊さない
 
 カテゴリ: `read`
 
@@ -180,26 +161,23 @@ Then:
 
 Given:
 
-- 本人の有効な document A が購読され、表示値 `Before` が store に反映済みである。
-- `onReady` / `onError` の検証は、この正常な初期反映以降を観測対象とする。
+- 本人の有効なデータ A / Before を取得済みで、購読を継続している。
 
 When:
 
-- 本人の書込み用 context から、1つの batch で A の表示値を `After` に変更し、同じ UID の不正な document B を追加する。
-- B は Card では `tags: null`、Deck では `name: null` とし、他のフィールドは有効な値とする。
-- Adapter の validation エラー通知を待つ。
+- 保存先に、A の表示値を After に変更する更新と、本人の不正データ B の追加が一括で反映される。
+- B は Card では `tags: null`、Deck では `name: null` とし、それ以外の値は有効とする。
 
 Then:
 
-- `onError` に B を識別できる document validation エラーが渡る。
-- store は直前の正常な A / `Before` を維持し、A / `After` だけを部分反映したり、B を取り込んだりしない。
-- 不正な結果を正常な読込完了として `onReady` へ通知しない。
-
-入力 validation のあるアプリケーションの保存 API ではなく、実際の Rules が許可する SDK 書込みで不正データを作り、購読 Adapter の validation を確認する。
+- B を識別できるデータ検証エラーが通知される。
+- 参照できる結果は直前の正常な A / Before のままであり、A / After だけの部分反映や B の取り込みは行わない。
+- 不正な取得結果に対して正常な読込完了を通知しない。
 
 <a id="validation-recovery"></a>
+<a id="firestore-snapshot-07"></a>
 
-### 不正な document の修正後に購読が回復する
+### FIRESTORE-SNAPSHOT-07 [TODO] 不正データの修正後に同じ購読で正常な結果を取得する
 
 カテゴリ: `read`
 
@@ -207,23 +185,23 @@ Then:
 
 Given:
 
-- 不正な document B を含む snapshot に対して validation エラーが通知され、同じ購読を継続している。
-- Card では B の `tags` が `null`、Deck では B の `name` が `null` であり、他のフィールドは有効である。
+- 本人の不正データ B を含む取得結果に対して検証エラーが通知され、購読を継続している。
+- B は Card では `tags: null`、Deck では `name: null` であり、それ以外の保存値は有効である。
 
 When:
 
-- 本人の書込み用 context から B を修正する。Card は `tags: []`、Deck は `name: "Recovered"` にする。
-- 購読を作り直さず、修正された結果の反映を待つ。
+- B の保存値を、Card では `tags: []`、Deck では `name: "Recovered"` に修正する。
 
 Then:
 
-- B を含む現在の正常な document 一覧が store に反映される。
-- 正常な結果の反映後に `onReady` が通知される。
-- 修正後の正常な snapshot では validation エラーを通知しない。修正前に発生したエラーは消去されたものとして扱わない。
+- 購読を開始し直さなくても、B を含む現在の正常なデータ一覧を参照できる。
+- 修正された結果を参照できる状態で正常な読込完了が通知され、その正常な取得結果について検証エラーは通知されない。
+- 修正前に通知されたエラーが、後から発生しなかったことになるわけではない。
 
 <a id="permission-denied"></a>
+<a id="firestore-snapshot-08"></a>
 
-### 読取拒否を購読エラーとして通知する
+### FIRESTORE-SNAPSHOT-08 [TODO] 読取拒否を通知し他人の非公開データを提供しない
 
 カテゴリ: `read`
 
@@ -231,23 +209,23 @@ Then:
 
 Given:
 
-- 本人とは異なる UID の非公開 Deck、またはその配下の Card を保存している。
-- 購読側は本人の非匿名認証を使う新しいクライアントで、他人の document を cache や store に保持していない。
+- 別の所有者の非公開 Deck、またはその配下の Card が保存されている。
+- 購読側は本人の非匿名認証を使い、その非公開データを過去に取得しておらず、端末内にも保持していない。
 
 When:
 
-- 本人の認証 context から他人の UID を指定して購読を開始し、実際の Rules による拒否通知を待つ。
+- 本人の認証で、別の所有者のデータの購読を開始する。
 
 Then:
 
-- `onError` に `permission-denied` の Firestore エラーが渡る。
-- 他人の document は store に反映されない。
-
-SDK の拒否を mock せず、Adapter の document validation エラーとも区別する。拒否に先行する cache 由来の通知回数は、このケースの期待値に含めない。
+- 読取権限の不足を示す `permission-denied` が通知される。
+- 他人の非公開データは取得結果に含まれない。
+- 保存内容の検証エラーとは区別する。拒否より前の端末内データに由来する通知回数は要求しない。
 
 <a id="unsubscribe"></a>
+<a id="firestore-snapshot-09"></a>
 
-### 購読解除後の snapshot で store を更新しない
+### FIRESTORE-SNAPSHOT-09 [TODO] 停止後に到達した更新で取得結果と通知を変更しない
 
 カテゴリ: `read`
 
@@ -255,25 +233,23 @@ SDK の拒否を mock せず、Adapter の document validation エラーとも�
 
 Given:
 
-- document A / `Before` が store に反映済みである。
-- 購読側の同じ Firestore インスタンスに、store を変更しない検証用 listener を別途用意している。
+- 本人のデータ A / Before を取得済みである。
+- その購読を停止した後の取得結果と通知を観測する。
 
 When:
 
-- Adapter から返された解除関数を呼ぶ。
-- 本人の別クライアントで A の表示値を `After` に更新する。
-- 検証用 listener がサーバーの `After` を受信するまで待つ。
+- 本人の別クライアントで A の表示値を After に更新する。
 
 Then:
 
-- 解除した Adapter が管理する store は A / `Before` を維持する。
-- 解除後の更新に対する Adapter の完了通知・エラー通知は発生しない。
-
-編集 Promise の完了直後や固定 sleep だけで判定しない。ここで保証するのは検証用 listener の受信完了までの観測結果であり、無期限の無通知を証明するものではない。
+- 更新が受信側へ到達したことを共通前提の方法で確認した時点でも、停止した購読の取得結果は A / Before のままである。
+- 停止後の更新に対する読込完了やエラーは通知されない。
+- 編集操作の完了直後だけを確認する [FIRESTORE-SUBSCRIPTIONS-03](./subscriptions.md#firestore-subscriptions-03) とは観測範囲を区別する。
 
 <a id="resubscribe"></a>
+<a id="firestore-snapshot-10"></a>
 
-### 再購読で停止中の変更を含む現在の結果を取得する
+### FIRESTORE-SNAPSHOT-10 [TODO] 再購読で停止中の変更を含む現在の結果を取得する
 
 カテゴリ: `read`
 
@@ -281,18 +257,41 @@ Then:
 
 Given:
 
-- 本人の document A / B が store に反映済みで、購読を解除している。
-- 停止中に本人の別クライアントで A の表示値を `After` に更新し、B を物理削除し、C を追加している。
-- これらの書込みはサーバーに反映済みである。
+- 本人のデータ A / B を取得済みで、購読を停止している。
+- 停止中に本人の別クライアントで A を After に更新し、B を物理削除し、C を追加している。
+- これらの変更はサーバーに保存済みである。
 
 When:
 
-- 同じ UID で新しい購読を開始し、現在のサーバー結果への反映を待つ。
+- 同じ本人のデータの購読を開始し直す。
 
 Then:
 
-- store の ID 集合は A / C のみとなり、A は `After` を持つ。
-- 削除された B や停止前の A の値は、反映完了後の結果に残らない。
-- 正常な読込完了が通知され、購読エラーは発生しない。
+- サーバーと同期した結果の ID は A / C だけとなり、A は After を持つ。
+- 同期後の結果に、削除された B や以前の A の値は残らない。
+- 正常な読込完了が通知され、購読エラーは通知されない。
+- 再購読直後に端末内の古い値が通知されることは禁止しない。同じクライアントの再購読であり、ブラウザーの再読み込みや新規クライアントでの復元は保証しない。
 
-再購読直後に cache の値が届かないことは要求しない。同じ SDK の再購読であり、ブラウザ reload や永続 cache からの復元を保証するケースではない。
+<a id="firestore-snapshot-11"></a>
+
+### FIRESTORE-SNAPSHOT-11 [TODO] 不正な初期取得結果を正常な読込完了として扱わない
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- 本人の有効なデータ A と不正なデータ B が保存されている。
+- B は Card では `tags: null`、Deck では `name: null` とし、それ以外の値は有効とする。
+- まだ正常な取得結果を持っていない。
+
+When:
+
+- 本人のデータの購読を開始する。
+
+Then:
+
+- 初回の取得に対して、B を識別できるデータ検証エラーが通知される。
+- A だけの部分的な一覧を正常な取得結果として提供せず、不正な B も取り込まない。
+- エラーを正常な0件取得や未評価データへ読み替えず、正常な読込完了を通知しない。
