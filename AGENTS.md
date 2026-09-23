@@ -89,12 +89,18 @@ Every task that changes repository files must complete this workflow:
 - Test observable UI behavior with real composed components and forms. Mock only boundaries outside the contract, using story-side setup and public callback spies; do not add production interfaces solely for tests.
 - Update the corresponding specification when adding or changing a play, including regressions. Separate rendering-only stories, setup-only plays, and missing assertions from verified expectations; a callback notification does not prove persistence or navigation.
 
+### Entity Unit Tests
+
+- Use `docs/unit` for the observable contracts tested by `src/entities/**/*.spec.{ts,tsx}`. Follow `docs/unit/AGENTS.md` for the Japanese specification format, Unit IDs, test mappings, isolation, and verification boundaries.
+- Update the matching specification when adding or changing an Entity unit test. Map cases to test files and identifiable titles without requiring a one-to-one relationship or renaming existing tests just to add IDs.
+- Entity unit tests do not require E2E case IDs; existing E2E references may remain as optional context. Keep real Firestore contracts, Storybook plays, and browser flows in their respective specifications.
+
 ### Other Unit and Integration Tests
 
-- Outside `test/integration/firestore` and Storybook `play` functions, treat `docs/e2e` as the only runtime behavior specification; do not introduce separate unit/integration specification documents or ID systems. Define missing behavior there before writing tests; adding new files under `docs` still requires an explicit user request.
-- Each new or modified unit/integration test for runtime behavior must reference at least one existing E2E case ID in its outermost `describe` title, or its test title when there is no `describe`.
+- Outside Entity unit tests, `test/integration/firestore`, and Storybook `play` functions, treat `docs/e2e` as the only runtime behavior specification; do not introduce separate unit/integration specification documents or ID systems. Define missing behavior there before writing tests; adding new files under `docs` still requires an explicit user request.
+- Outside Entity unit tests, each new or modified unit/integration test for runtime behavior must reference at least one existing E2E case ID in its outermost `describe` title, or its test title when there is no `describe`.
 - Co-locate unit tests under `src/**/*.spec.{ts,tsx}` for deterministic rules, state transitions, validation, and module or component behavior without real external services.
 - Put integration tests under `test/integration/**/*.spec.{ts,tsx}` for contracts across application modules, persistence, stores, or emulators. Do not mock the boundary being verified.
-- Parameterized tests must include a representative row matching the referenced E2E Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.
+- Outside Entity unit tests, parameterized tests must include a representative row matching the referenced E2E Given / When / Then. Additional boundary-value or equivalence-class rows must preserve the same behavior and invariants.
 - Do not derive cases or expected results solely from implementation details: branches, private functions, internal state shapes, mock call counts, or coverage gaps.
 - Enforce static constraints, such as dependency direction and type correctness, with lint or typecheck rather than runtime tests; these checks do not require E2E IDs.
