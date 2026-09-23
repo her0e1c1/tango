@@ -1,5 +1,5 @@
 import { expect } from "storybook/test";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import { getDeckImportExamples } from "../model/queries/getDeckImportExamples";
