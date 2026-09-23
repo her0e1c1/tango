@@ -6,7 +6,7 @@ CSV 選択、プレビュー、明示的な確定、診断表示と失敗・処�
 
 CSV の選択から解析結果の表示までと、与えられた解析結果・エラーに対する UI の振る舞いを対象とする。実認証、Firestore の保存、ダウンロードファイルの内容は対象外とする。公開 callback の通知だけで保存やダウンロードの成功とは判断しない。
 
-書式・実行前提は [AGENTS.md](./AGENTS.md)、関連 E2E は [import](../../e2e/import.md) を参照する。
+書式・実行前提は [AGENTS.md](./AGENTS.md)、関連 E2E は [deck-import](../../e2e/deck-import.md) を参照する。
 
 ## テストケース
 

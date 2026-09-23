@@ -5,7 +5,7 @@
 Card の公開された保存操作を通して、内容の書込範囲、部分失敗、再試行、論理削除を確認する。Card.fsrs に学習状態を保存し、新規作成では null とする。
 本書の入力拒否は Adapter の validation の契約であり、SDK を直接利用した Rules の認可とは区別する。
 
-関連 E2E: [CARD-MANAGEMENT-01](../../e2e/card-management.md#card-management-01)、[CARD-MANAGEMENT-02](../../e2e/card-management.md#card-management-02)、[CARD-MANAGEMENT-05](../../e2e/card-management.md#card-management-05)、[IMPORT-03](../../e2e/import.md#import-03)
+関連 E2E: [CARD-MANAGEMENT-01](../../e2e/card-management.md#card-management-01)、[CARD-MANAGEMENT-02](../../e2e/card-management.md#card-management-02)、[CARD-MANAGEMENT-05](../../e2e/card-management.md#card-management-05)、[IMPORT-03](../../e2e/deck-import.md#import-03)
 
 共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 
