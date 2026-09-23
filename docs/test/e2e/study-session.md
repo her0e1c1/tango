@@ -28,6 +28,8 @@
 
 カテゴリ: `write`
 
+検証状況: 未実装（今回変更した閲覧分離の期待結果は未検証）
+
 Given:
 
 - Fixture: [`study-filter`](./fixture/study-filter.yaml)
@@ -44,8 +46,8 @@ Then:
 - session には現在のfilter draftに一致する Card だけが含まれる。開始actionはクリック時点のデータ・設定・時刻で再選定する。
 - 間隔反復ONでは期限が古いdue（期限一致を含む）→期限なしのFSRS未開始の順に安定整列し、上限→選定済み集合だけのshuffleを適用する。未来期限は除外する。OFFでは標準順→全候補shuffle→上限とし、未来期限も含める。
 - UID で購読した Card.fsrs.dueAt を正本とし、fsrs が null の Card は未評価とする。不正 FSRS・欠落フィールド・不正期限・購読失敗はエラーとし、新規や0件に読み替えない。
-- 開始画面・Card一覧・Deck閲覧は同じ期限ルールと各評価で一つのnowを使う。後二者にはSession専用の順序・上限を適用しない。
-- mount中に最も近い未来期限のtimerを一つだけ持ち、期限到来・foreground復帰・データ/設定変更で再評価する。未来期限なしではtimerを置かず、遠い期限は安全なcheckpointで再計算する。遅延callback、時計の前後移動、timer置換・unmountを扱う。
+- 学習開始画面と開始操作は学習用の tag filter と復習期日の条件を適用する。Card 一覧と Deck 閲覧には学習用の tag filter と復習期日による選別を適用しない。閲覧との分離は [Browse Filter](./browse-filter.md) を参照する。
+- 学習開始画面では、mount中に最も近い未来期限のtimerを一つだけ持ち、期限到来・foreground復帰・データ/設定変更で再評価する。未来期限なしではtimerを置かず、遠い期限は安全なcheckpointで再計算する。遅延callback、時計の前後移動、timer置換・unmountを扱う。
 - fixture の初期上限と変更後の0・1の各設定を保存値で確認し、正の上限では session の Card 数が設定済みの学習上限と一致する。
 - 上限 0 では枚数を制限せず、filter と適用される復習条件に一致するすべての Card を含む。上限 1 ではそのうち先頭の Card だけを含む。
 - 学習開始画面と start action の件数が新しい session の件数と一致する。
