@@ -187,60 +187,56 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     await waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
   });
 
-  it("keeps the visible session unchanged when persistence fails", async () => {
+  it("keeps local progression when server acknowledgement fails", async () => {
     mocks.persistOperation.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
     await actAsync(async () => result.current.swipeRight());
 
-    expect(getStudySession(deckId)?.currentIndex).toBe(0);
-    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
+    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeRight");
   });
 
-  it("does not complete the final Card when persistence fails", async () => {
+  it("completes the final Card without waiting for server acknowledgement", async () => {
     await setStudySessionIndex(deckId, 1);
     mocks.persistOperation.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
     await actAsync(async () => result.current.swipeRight());
 
-    expect(result.current.query.status).toBe("studying");
-    expect(getStudySession(deckId)?.currentIndex).toBe(1);
+    expect(getStudySession(deckId)).toBeUndefined();
+    expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
   });
 
-  it("blocks a second swipe while the first write is unresolved", async () => {
+  it("does not wait for unresolved server acknowledgement before the next swipe", async () => {
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(() => {
-      void result.current.swipeRight();
-    });
-    await actAsync(async () => result.current.swipeLeft());
-    expect(mocks.persistOperation).toHaveBeenCalledOnce();
+    await actAsync(async () => result.current.swipeRight());
+    await actAsync(async () => result.current.swipeRight());
 
-    await actAsync(async () => {
-      request.resolve();
-      await request.promise;
-    });
+    expect(mocks.persistOperation).toHaveBeenCalledTimes(2);
+    expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
+
+    request.resolve();
+    await request.promise;
   });
 
-  it("does not publish route-owned swipe feedback after unmount", async () => {
+  it("publishes local swipe feedback without waiting for server acknowledgement", async () => {
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
     const { result, unmount } = renderHook(() => useStudySessionPageModel(deckId));
 
-    act(() => {
-      void result.current.swipeRight();
-    });
+    await actAsync(async () => result.current.swipeRight());
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeRight");
     unmount();
-    await actAsync(async () => {
-      request.resolve();
-      await request.promise;
-    });
+
+    request.resolve();
+    await request.promise;
 
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
-    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledOnce();
   });
 
   it("serializes controller movement behind the pending answer", async () => {
@@ -380,13 +376,20 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
   });
 
-  it("allows an explicit retry after a failed final Card save", async () => {
+  it("allows an explicit retry after Firestore rolls back a failed final Card save", async () => {
     await setStudySessionIndex(deckId, 1);
+    const previous = getStudySession(deckId);
+    if (!previous) throw new Error("Expected the final Card");
     mocks.persistOperation.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
+
     await actAsync(async () => result.current.swipeRight());
+    expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
+
+    await actAsync(async () => restoreStudySession(previous));
     expect(result.current.pageState.completion).toBeUndefined();
     expect(result.current.pageState.swipePending).toBe(false);
+
     await actAsync(async () => result.current.swipeRight());
     expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
   });
@@ -407,29 +410,25 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
 
-  it("keeps the pending save locked across same-Deck reentry without hiding the new answer", async () => {
+  it("does not keep a save lock across same-Deck reentry while acknowledgement is pending", async () => {
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
     const { result: firstResult, unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
-    act(() => {
-      firstResult.current.swipeRight();
-    });
+
+    await actAsync(async () => firstResult.current.swipeRight());
     unmountFirst();
+
     const { result: nextResult } = renderHook(() => useStudySessionPageModel(deckId));
-    act(nextResult.current.toggleBackText);
-    await actAsync(async () => nextResult.current.swipeUp());
-    await actAsync(async () => nextResult.current.swipeDown());
-    await actAsync(async () => nextResult.current.swipeLeft());
-    expect(mocks.persistOperation).toHaveBeenCalledOnce();
-    await actAsync(async () => {
-      request.resolve();
-      await request.promise;
-    });
+    expect(nextResult.current.pageState.swipePending).toBe(false);
     expect(nextResult.current.query).toMatchObject({ session: { currentIndex: 1 } });
-    expect(nextResult.current.pageState.showBackText).toBe(true);
-    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
+
+    act(nextResult.current.toggleBackText);
     await actAsync(async () => nextResult.current.swipeRight());
+    expect(mocks.persistOperation).toHaveBeenCalledTimes(2);
     expect(nextResult.current.pageState.completion).toEqual({ cardCount: 2 });
+
+    request.resolve();
+    await request.promise;
   });
 
   it.each(["same Deck", "other Deck", "other UID"])(
@@ -483,26 +482,27 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(result.current.pageState.completion).toBeUndefined();
   });
 
-  it("does not publish an old final save into a newly entered Deck", async () => {
+  it("ignores an old server acknowledgement after entering another Deck", async () => {
     await setStudySessionIndex(deckId, 1);
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
     const { result: firstResult, unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
-    act(() => {
-      firstResult.current.swipeRight();
-    });
+
+    await actAsync(async () => firstResult.current.swipeRight());
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledOnce();
     unmountFirst();
+
     startStudy("deck-2", cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
     const { result: nextResult } = renderHook(() => useStudySessionPageModel("deck-2"));
     act(nextResult.current.openHelp);
-    await actAsync(async () => {
-      request.resolve();
-      await request.promise;
-    });
+
+    request.resolve();
+    await request.promise;
+
     expect(getStudySession(deckId)).toBeUndefined();
     expect(nextResult.current.query).toMatchObject({ session: { currentIndex: 0 } });
     expect(nextResult.current.pageState).toMatchObject({ completion: undefined, helpOpen: true });
-    expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
+    expect(mocks.onSwipeFeedback).toHaveBeenCalledOnce();
   });
 
   it("pauses only the timer during Help and respects explicit playback stop", async () => {
