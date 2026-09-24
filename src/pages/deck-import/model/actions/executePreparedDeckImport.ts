@@ -2,7 +2,8 @@ import { getAuthUid } from "@/entities/auth";
 import { ImportFailure } from "../../lib/importFailure";
 import { writeCardCreate, type CardMutation } from "@/entities/card";
 import { writeDeckCreate, type RemoteDeckCreateInput } from "@/entities/deck";
-import { db, writeBatch } from "@/shared/firebase";
+import { writeBatch } from "firebase/firestore";
+import { db } from "@/shared/firebase";
 
 export interface PreparedDeckImport {
   uid: string;
