@@ -276,7 +276,7 @@ describe("Incremental Firestore synchronization", () => {
         onError
       )
     );
-    await startStudy({ uid, deckId: "deck", cardOrderIds: ["a", "b"], now: 1000 });
+    startStudy({ uid, deckId: "deck", cardOrderIds: ["a", "b"], now: 1000 });
     await vi.waitFor(() => {
       expect(started).toHaveLength(1);
       expect(getStudySession("deck")?.lastStudiedAt).toBe(1000);

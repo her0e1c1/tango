@@ -398,6 +398,7 @@ test("PERSISTENCE-09 restores saved study progress without the SDK cache or serv
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await waitForSavedDocument(page, "tango-study-session-sync", session.sessionId);
   await waitForSavedDocument(page, "tango-card-sync", currentCard.id);
+  await waitForSavedDocument(page, "tango-deck-sync", deck.id);
   await openStorageMaintenance(page);
   browserErrors.allow(/console error: .*Could not reach Cloud Firestore backend/u);
   browserErrors.allow(
