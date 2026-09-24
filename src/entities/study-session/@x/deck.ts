@@ -1,1 +1,1 @@
-export { abandonStudySession } from "../api/mutations";
+export { abandonStudySession } from "../api/firestore";

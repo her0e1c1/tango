@@ -1,7 +1,6 @@
 export { getDecks } from "./model/queries/getDecks";
 export { subscribeDecks } from "./api/firestore";
-export { generateDeckId } from "./api/id";
-export { createDeck, deleteDeck, editDeck } from "./api/mutations";
+export { createDeck, deleteOwnedDeck as deleteDeck, editOwnedDeck as editDeck } from "./api/firestore";
 export { CATEGORY, getCardFilter, getCategory, isHighlightLanguage, mustFindDeckById } from "./model/rules";
 export { useDeck } from "./model/queries/useDeck";
 export { useDecks } from "./model/queries/useDecks";
@@ -13,4 +12,4 @@ export type {
   DeckId,
   RemoteDeckCreateInput,
 } from "./model/types";
-export { readDeckTags, writeDeckTags } from "./api/tags";
+export { readDeckTags, writeDeckTags } from "./api/firestore";

@@ -1,3 +1,4 @@
+import type { CardId, RemoteCard } from "../model/types";
 import { z } from "zod";
 import { fsrsStateSchema } from "../model/fsrs";
 
@@ -27,3 +28,24 @@ export type CardDocument = z.infer<typeof cardDocumentSchema>;
 // Parses one Firestore payload and reports Card-specific validation context.
 export const parseCardDocument = (id: string, value: unknown): CardDocument =>
   parseFirestoreDocument(cardDocumentSchema, "card", id, value);
+
+/** Maps only Card-owned document fields while preserving exact optional-property semantics. */
+export const mapCardDocument = (id: CardId, document: CardDocument): RemoteCard => {
+  const card: RemoteCard = {
+    id,
+    fsrs: document.fsrs,
+    frontText: document.frontText,
+    backText: document.backText,
+    tags: document.tags,
+    uniqueKey: document.uniqueKey,
+    deckId: document.deckId,
+    uid: document.uid,
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+    deletedAt: document.deletedAt,
+  };
+  if (document.url !== undefined) card.url = document.url;
+  if (document.startLine !== undefined) card.startLine = document.startLine;
+  if (document.endLine !== undefined) card.endLine = document.endLine;
+  return card;
+};

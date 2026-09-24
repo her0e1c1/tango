@@ -1,7 +1,11 @@
 export { getCards } from "./model/queries/getCards";
 export { subscribeCards } from "./api/firestore";
-export { generateCardId } from "./api/id";
-export { createCard, deleteCard, editCard, mutateCards } from "./api/mutations";
+export {
+  createOwnedCard as createCard,
+  deleteOwnedCard as deleteCard,
+  editOwnedCard as editCard,
+  mutateCards,
+} from "./api/firestore";
 export { useCard } from "./model/queries/useCard";
 export { useCards } from "./model/queries/useCards";
 export { useCardsByDeckId } from "./model/queries/useCardsByDeckId";
@@ -26,5 +30,5 @@ export { FrontText } from "./ui/FrontText";
 
 export { calculateFsrsState, classifyFsrsState, getStudyRetrievability, studyRetentionTarget } from "./model/fsrsRules";
 export { fsrsStateSchema, type FsrsState } from "./model/fsrs";
-export { writeCardFsrs } from "./api/batch";
-export { readCardsForTagUpdate, writeCardTagChanges } from "./api/tags";
+export { writeCardFsrs } from "./api/firestore";
+export { readCardsForTagUpdate, writeCardTagChanges } from "./api/firestore";

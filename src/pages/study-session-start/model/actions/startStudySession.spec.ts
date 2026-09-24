@@ -26,11 +26,27 @@ vi.mock("@/entities/preference", () => ({
 }));
 
 vi.mock("@/entities/study-session/api/firestore", () => ({
-  createStudySession: async (session: import("@/entities/study-session").StudySession) => {
+  startStudy: async ({
+    deckId,
+    cardOrderIds,
+    uid,
+    now = Date.now(),
+  }: {
+    deckId: string;
+    cardOrderIds: string[];
+    uid: string;
+    now?: number;
+  }) => {
     await Promise.resolve();
-    restoreStudySession(session);
+    restoreStudySession({
+      sessionId: crypto.randomUUID(),
+      deckId,
+      cardOrderIds,
+      currentIndex: 0,
+      lastStudiedAt: now,
+      remote: { uid, startedAt: now },
+    });
   },
-  updateStudySession: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));

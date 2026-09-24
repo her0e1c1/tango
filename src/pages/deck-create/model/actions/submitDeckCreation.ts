@@ -1,5 +1,6 @@
+import { generateId } from "@/shared/lib/generateId";
 import { getAuthUid } from "@/entities/auth";
-import { createDeck, generateDeckId, type DeckId } from "@/entities/deck";
+import { createDeck, type DeckId } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
 import { showToast } from "@/shared/ui/toast";
 
@@ -12,7 +13,7 @@ export async function submitDeckCreation(values: DeckFormFields): Promise<DeckId
   store.setState({ mutationId });
   try {
     const uid = getAuthUid();
-    const deckId = generateDeckId();
+    const deckId = generateId();
     await createDeck(uid, {
       id: deckId,
       name: values.name,

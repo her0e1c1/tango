@@ -1,15 +1,38 @@
-import type { CardCreate, CardCreateInput, CardEdit, DeleteCardInput, EditCardInput, RemoteCard } from "../model/types";
-
+import type {
+  CardCreate,
+  CardCreateInput,
+  CardEdit,
+  DeleteCardInput,
+  EditCardInput,
+  RemoteCard,
+  CardId,
+  CardCreateCommand,
+  CardEditInput,
+  CardMutation,
+} from "../model/types";
 import { FirebaseError } from "firebase/app";
-import { getDocFromCache, collection, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
-
+import {
+  getDocFromCache,
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+  type WriteBatch,
+  getDocsFromCache,
+  type DocumentReference,
+} from "firebase/firestore";
 import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
-import { mapCardDocument } from "../model/dto";
+import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { replaceRemoteCards } from "../model/actions/replaceRemoteCards";
-import { parseCardDocument } from "./document";
+import { fsrsStateSchema, instantSchema, type FsrsState } from "../model/fsrs";
+import { findCardById } from "../model/queries/findCardById";
+import { findDeckById } from "@/entities/deck/@x/card";
 
 const CARD_COLLECTION = "card";
 
@@ -35,7 +58,7 @@ export const subscribeCards = (uid: string, onError: (error: Error) => void, onR
 const createCardDocument = async (card: CardCreate): Promise<void> => {
   const reference = doc(db, CARD_COLLECTION, card.id);
   const existing = await getDocFromCache(reference).catch((error: unknown) => {
-    if (error instanceof FirebaseError && error.code === "unavailable") return undefined;
+    if (error instanceof FirebaseError && error.code === "unavailable") return;
     throw error;
   });
   if (existing?.exists()) {
@@ -88,3 +111,96 @@ export const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Pr
   const input = deleteCardSchema.parse({ uid, card });
   await removeCardDocument(input.uid, input.card.id);
 };
+
+export function writeCardFsrs(
+  batch: WriteBatch,
+  input: {
+    uid: string;
+    cardId: string;
+    deckId: string;
+    fsrs: FsrsState;
+    answeredAt: number;
+  }
+) {
+  const card = findCardById(input.cardId);
+  if (!(input.uid && card) || card.uid !== input.uid || card.deckId !== input.deckId || card.deletedAt !== null)
+    throw new Error("Study Card does not match");
+  const reference = doc(db, "card", input.cardId);
+  batch.update(reference, {
+    fsrs: fsrsStateSchema.parse(input.fsrs),
+    updatedAt: instantSchema.parse(input.answeredAt),
+  });
+  return reference;
+}
+
+function requireOwnedCard(uid: string, id: CardId) {
+  const card = findCardById(id);
+  if (card === undefined) throw new Error(`Card "${id}" was not found`);
+  if (!uid || card.uid !== uid) throw new Error("Card owner does not match the authenticated user");
+  return card;
+}
+
+export async function createOwnedCard(uid: string, card: CardCreateCommand): Promise<void> {
+  const deck = findDeckById(card.deckId);
+  if (deck === undefined) throw new Error(`Deck "${card.deckId}" was not found`);
+  if (!uid || deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
+  await createCard(uid, { ...card, uid });
+}
+
+export async function editOwnedCard(uid: string, card: CardEditInput): Promise<void> {
+  requireOwnedCard(uid, card.id);
+  await editCard(uid, { ...card, uid });
+}
+
+export async function mutateCards(uid: string, mutations: CardMutation[]): Promise<void> {
+  const results = await Promise.allSettled(
+    mutations.map((mutation) =>
+      mutation.kind === "create" ? createOwnedCard(uid, mutation.card) : editOwnedCard(uid, mutation.card)
+    )
+  );
+  const failure = results.find((result) => result.status === "rejected");
+  if (failure?.status === "rejected") throw failure.reason;
+}
+
+export async function deleteOwnedCard(uid: string, id: CardId): Promise<void> {
+  requireOwnedCard(uid, id);
+  await deleteCard(uid, { id, uid });
+}
+
+/** Read all cached active Cards, including earlier writes still waiting to sync. */
+export async function readCardsForTagUpdate(uid: string, deckId: string) {
+  if (!(uid && deckId)) throw new Error("A user and Deck are required");
+  const snapshot = await getDocsFromCache(
+    query(
+      collection(db, "card"),
+      where("uid", "==", uid),
+      where("deckId", "==", deckId),
+      where("deletedAt", "==", null)
+    )
+  );
+  return snapshot.docs.map((document) => {
+    const card = parseCardDocument(document.id, document.data());
+    if (card.uid !== uid || card.deckId !== deckId) throw new Error("Card ownership changed");
+    return { reference: document.ref, tags: card.tags };
+  });
+}
+
+export function writeCardTagChanges(
+  batch: WriteBatch,
+  cards: Awaited<ReturnType<typeof readCardsForTagUpdate>>,
+  previous: string,
+  replacement: string | undefined
+) {
+  const references: DocumentReference[] = [];
+  for (const card of cards) {
+    if (previous === replacement || !card.tags.includes(previous)) continue;
+    const tags = [
+      ...new Set(
+        card.tags.flatMap((tag) => (tag === previous ? (replacement === undefined ? [] : [replacement]) : [tag]))
+      ),
+    ];
+    batch.update(card.reference, { tags, updatedAt: Date.now() });
+    references.push(card.reference);
+  }
+  return references;
+}

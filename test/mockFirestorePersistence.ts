@@ -1,10 +1,12 @@
 import { vi } from "vitest";
 
-vi.mock("@/entities/deck/api/firestore", async () => {
+vi.mock("@/entities/deck/api/firestore", async (original) => {
+  const actual = await original<typeof import("@/entities/deck/api/firestore")>();
   const { deckStore } = await import("@/entities/deck/model/store");
   const { deckCreateSchema } = await import("@/entities/deck/model/schema");
   const { omitUndefined } = await import("@/shared/lib/omitUndefined");
   return {
+    ...actual,
     createDeck: async (uid: string, input: unknown) => {
       await Promise.resolve();
       const deck = { ...deckCreateSchema.parse(input), uid, createdAt: Date.now(), updatedAt: Date.now() };
@@ -12,7 +14,9 @@ vi.mock("@/entities/deck/api/firestore", async () => {
         remoteDecks: [...state.remoteDecks.filter((value) => value.id !== deck.id), deck],
       }));
     },
-    editDeck: async (_uid: string, input: { id: string; url?: string | null }) => {
+    editOwnedDeck: async (uid: string, input: { id: string; url?: string | null }) => {
+      if (!uid || deckStore.getState().remoteDecks.find((deck) => deck.id === input.id)?.uid !== uid)
+        throw new Error("Deck owner does not match the authenticated user");
       await Promise.resolve();
       deckStore.setState((state) => ({
         remoteDecks: state.remoteDecks.map((deck) =>
@@ -22,7 +26,9 @@ vi.mock("@/entities/deck/api/firestore", async () => {
         ),
       }));
     },
-    deleteDeck: async (_uid: string, id: string) => {
+    deleteOwnedDeck: async (uid: string, id: string) => {
+      if (!uid || deckStore.getState().remoteDecks.find((deck) => deck.id === id)?.uid !== uid)
+        throw new Error("Deck owner does not match the authenticated user");
       await Promise.resolve();
       deckStore.setState((state) => ({ remoteDecks: state.remoteDecks.filter((deck) => deck.id !== id) }));
     },
@@ -30,56 +36,99 @@ vi.mock("@/entities/deck/api/firestore", async () => {
   };
 });
 
-vi.mock("@/entities/card/api/firestore", async () => {
+vi.mock("@/entities/card/api/firestore", async (original) => {
+  const actual = await original<typeof import("@/entities/card/api/firestore")>();
   const { cardStore } = await import("@/entities/card/model/store");
   const { cardCreateSchema } = await import("@/entities/card/model/schema");
-  return {
-    createCard: async (_uid: string, input: unknown) => {
+  const operations = {
+    ...actual,
+    createOwnedCard: async (uid: string, input: import("@/entities/card/model/types").CardCreateCommand) => {
       await Promise.resolve();
-      const card = { ...cardCreateSchema.parse(input), fsrs: null, createdAt: Date.now(), updatedAt: Date.now() };
+      const card = {
+        ...cardCreateSchema.parse({ ...input, uid }),
+        fsrs: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
       cardStore.setState((state) => ({
         remoteCards: [...state.remoteCards.filter((value) => value.id !== card.id), card],
       }));
     },
-    editCard: async (_uid: string, input: { id: string }) => {
+    editOwnedCard: async (_uid: string, input: { id: string }) => {
       await Promise.resolve();
       cardStore.setState((state) => ({
         remoteCards: state.remoteCards.map((card) => (card.id === input.id ? { ...card, ...input } : card)),
       }));
     },
-    deleteCard: async (_uid: string, input: { id: string }) => {
+    deleteOwnedCard: async (_uid: string, id: string) => {
       await Promise.resolve();
-      cardStore.setState((state) => ({ remoteCards: state.remoteCards.filter((card) => card.id !== input.id) }));
+      cardStore.setState((state) => ({ remoteCards: state.remoteCards.filter((card) => card.id !== id) }));
     },
     subscribeCards: () => () => undefined,
+    mutateCards: async (uid: string, mutations: import("@/entities/card").CardMutation[]) => {
+      await Promise.all(
+        mutations.map((mutation) =>
+          mutation.kind === "create"
+            ? operations.createOwnedCard(uid, mutation.card)
+            : operations.editOwnedCard(uid, mutation.card)
+        )
+      );
+    },
   };
+  return operations;
 });
 
 vi.mock("@/entities/study-session/api/firestore", async (original) => {
   const actual = await original<typeof import("@/entities/study-session/api/firestore")>();
   const { studySessionStore } = await import("@/entities/study-session/model/store");
+  const { restoreStudySession } = await import("@/test/entityFixtures");
+  const { isStudySessionPositionUnchanged } = await import("@/entities/study-session/model/rules");
   return {
     ...actual,
-    updateStudySessionRecency: async (session: import("@/entities/study-session").StudySession) => {
+    startStudy: async ({ deckId, cardOrderIds, uid, now = Date.now() }: Parameters<typeof actual.startStudy>[0]) => {
       await Promise.resolve();
-      studySessionStore.setState((state) => {
-        // Simulate an update to this document, not a replacement of another run's snapshot.
-        const current = state.sessionsByDeckId[session.deckId];
-        if (current?.sessionId === session.sessionId) current.lastStudiedAt = session.lastStudiedAt;
+      restoreStudySession({
+        sessionId: crypto.randomUUID(),
+        deckId,
+        cardOrderIds: [...cardOrderIds],
+        currentIndex: 0,
+        lastStudiedAt: now,
+        remote: { uid, startedAt: now },
       });
     },
-    createStudySession: async (session: import("@/entities/study-session").StudySession) => {
+    touchStudySession: async (deckId: string) => {
       await Promise.resolve();
       studySessionStore.setState((state) => {
-        state.sessionsByDeckId[session.deckId] = session;
+        const current = state.sessionsByDeckId[deckId];
+        if (current) current.lastStudiedAt = Date.now();
       });
     },
-    updateStudySession: async (session: import("@/entities/study-session").StudySession, endReason: string | null) => {
+    setStudySessionIndex: async (deckId: string, currentIndex: number) => {
+      await Promise.resolve();
+      const session = studySessionStore.getState().sessionsByDeckId[deckId];
+      if (!session || currentIndex <= session.currentIndex || currentIndex >= session.cardOrderIds.length) return false;
+      restoreStudySession({ ...session, currentIndex, lastStudiedAt: Date.now() });
+      return true;
+    },
+    moveStudySession: async (session: import("@/entities/study-session").StudySession) => {
+      await Promise.resolve();
+      const current = studySessionStore.getState().sessionsByDeckId[session.deckId];
+      if (!isStudySessionPositionUnchanged(session, current)) return false;
+      studySessionStore.setState((state) => {
+        if (session.currentIndex + 1 === session.cardOrderIds.length) delete state.sessionsByDeckId[session.deckId];
+        else
+          state.sessionsByDeckId[session.deckId] = {
+            ...session,
+            currentIndex: session.currentIndex + 1,
+            lastStudiedAt: Date.now(),
+          };
+      });
+      return true;
+    },
+    abandonStudySession: async (deckId: string) => {
       await Promise.resolve();
       studySessionStore.setState((state) => {
-        if (state.sessionsByDeckId[session.deckId]?.sessionId !== session.sessionId) return;
-        if (endReason) delete state.sessionsByDeckId[session.deckId];
-        else state.sessionsByDeckId[session.deckId] = { ...session, lastStudiedAt: Date.now() };
+        delete state.sessionsByDeckId[deckId];
       });
     },
   };
