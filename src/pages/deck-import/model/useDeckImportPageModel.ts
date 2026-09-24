@@ -36,7 +36,7 @@ export function useDeckImportPageModel() {
   useKey("s", () => void navigate(routes.settings.to()));
 
   const importPreview = (): void => {
-    importDeckPreviewAction();
+    void importDeckPreviewAction();
   };
   useEffect(() => {
     if (pendingImport === undefined) return;
