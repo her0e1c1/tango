@@ -63,16 +63,11 @@
 
 ## `api/`
 
-- Create only `api/document.ts` and `api/firestore.ts` under an Entity API directory.
-- Use `api/document.ts` for persistence document types and conversions between persistence and Entity values.
-- Use `api/firestore.ts` for Entity-specific Firestore reads, writes, queries, subscriptions, collection names, and document IDs.
-- Do not create any other implementation files under `api/`.
-- The Account authentication flow is the only exception: `entities/auth/api/` may contain the external sign-in and sign-out API calls.
-- Do not create `*.spec.ts` or `*.spec.tsx` under `api/`; Entity APIs are covered by integration tests.
-- Access only resources owned by or directly related to this Entity.
-- Firestore SDK access is allowed here, not in `model/`.
-- Expose operations through the slice's `index.ts`. Never depend on Pages or Features or absorb Page-specific workflow sequencing, state, navigation, or notifications.
-- Reuse domain-agnostic clients and transport or storage helpers from Shared; do not move that infrastructure into an Entity.
+- Only `document.ts` and `firestore.ts` may be created under `api/`.
+- `document.ts` defines persistence document types and conversions.
+- `firestore.ts` defines Entity-specific Firestore access.
+- Account is the only exception: `entities/auth/api/` may additionally contain external sign-in/sign-out calls.
+- Do not create any other implementation files or tests under `api/`; Entity APIs are covered by integration tests.
 
 ## `ui/`
 
