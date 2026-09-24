@@ -64,14 +64,13 @@ export function useDeckEditPageModel(deck: Deck) {
 
   const deckListPath = routes.deckList.to();
   const goToList = () => navigate(deckListPath, { replace: true });
-  const onCompleted = () => guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
   const onSubmit = form.handleSubmit(async (values) => {
     // Validation can finish after the originating form was replaced.
     if (!isMounted()) return;
     const saved = await submitDeckEdit(deck.id, values, hasTagDraft);
     // Tag batches complete from subscribed Deck/Card state below.
     if (!(saved && isMounted())) return;
-    await onCompleted();
+    await guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
   });
   useEffect(() => {
     if (pendingTagSave === undefined || liveDeck === undefined) return;
@@ -96,8 +95,8 @@ export function useDeckEditPageModel(deck: Deck) {
       messageParams: { name: pendingTagSave.name },
       tone: "success",
     });
-    void onCompleted();
-  }, [cards, liveDeck, onCompleted, pendingTagSave]);
+    void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
+  }, [cards, deckListPath, guard, liveDeck, navigate, pendingTagSave]);
 
   return {
     form,
@@ -131,7 +130,7 @@ export function useDeckEditPageModel(deck: Deck) {
     confirmDeletion: async () => {
       if (!isMounted()) return;
       const deleted = await confirmDeletion();
-      if (deleted && isMounted()) await onCompleted();
+      if (deleted && isMounted()) await guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
     },
   };
 }
