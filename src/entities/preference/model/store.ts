@@ -2,13 +2,20 @@ import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
 
-import { defaultPreferences } from "./defaults";
-import { persistedPreferencesSchema } from "./schema";
+import { persistedPreferencesSchema, preferencesSchema } from "./schema";
 import type { Preferences } from "./types";
 
 const PREFERENCES_STORAGE_KEY = "tango-config";
 // Keep this stable for safely defaultable additions; a dedicated task must justify invalidating existing preferences.
 const PREFERENCES_STORAGE_VERSION = 1;
+
+const defaultPreferences: Preferences = preferencesSchema.parse({});
+// Store creation and recovery share these defaults, so freeze every mutable branch to prevent cross-reset mutation.
+Object.freeze(defaultPreferences.study.selectedTags);
+Object.freeze(defaultPreferences.appearance);
+Object.freeze(defaultPreferences.study);
+Object.freeze(defaultPreferences.controls);
+Object.freeze(defaultPreferences);
 
 /** Live validated preferences state. */
 interface PreferencesStoreState {
