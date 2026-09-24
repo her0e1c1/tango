@@ -1,7 +1,8 @@
 import { writeCardFsrs, getCards } from "@/entities/card";
 import { writeStudyAnswer } from "@/entities/study-answer";
 import { getDecks } from "@/entities/deck";
-import { db, writeBatch } from "@/shared/firebase";
+import { writeBatch } from "firebase/firestore";
+import { db } from "@/shared/firebase";
 import { getAuthUid } from "@/entities/auth";
 import { getStudySession, writeStudySessionPosition, type StudySession } from "@/entities/study-session";
 import { studyOperationSchema, type StudyOperation } from "../studyOperation";
