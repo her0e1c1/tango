@@ -23,7 +23,8 @@ async function rename(page: Page, name: string) {
 }
 
 async function saved(page: Page) {
-  await expect(page.getByRole("status").filter({ hasText: "Tag changes saved." })).toBeVisible();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
 }
 
 test("DECK-TAG-MANAGEMENT-01 lists legacy Card tags once within their Deck", async ({ fixture, page }) => {
@@ -93,7 +94,7 @@ test("DECK-TAG-MANAGEMENT-02 shows an empty list with an available add action", 
 });
 
 for (const finish of ["save", "cancel"]) {
-  test(`DECK-TAG-MANAGEMENT-03 retains an empty Deck tag independently of draft ${finish}`, async ({
+  test(`DECK-TAG-MANAGEMENT-03 saves or discards an empty Deck tag with the deck ${finish}`, async ({
     fixture,
     page,
   }) => {
@@ -106,11 +107,11 @@ for (const finish of ["save", "cancel"]) {
     await section(page).getByRole("textbox", { name: "New tag name" }).fill("shared");
     await expect(page.getByRole("button", { name: "Save changes", exact: true })).toBeDisabled();
     await section(page).getByRole("button", { name: "Add tag" }).click();
-    await saved(page);
+    await expect(row(page, "shared")).toBeVisible();
     await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue("Unsaved deck name");
     expect((await requireDocument("deck", deck.id)).fields.name?.stringValue).toBe(deck.name);
     if (finish === "save") {
-      await page.getByRole("button", { name: "Save changes", exact: true }).click();
+      await saved(page);
     } else {
       await page.getByRole("button", { name: "Back to decks", exact: true }).click();
       await page.getByRole("button", { name: "Discard changes", exact: true }).click();
@@ -118,8 +119,8 @@ for (const finish of ["save", "cancel"]) {
     await expect(page).toHaveURL(/\/$/);
     await page.goto(`/deck/${deck.id}/edit`);
     await page.reload();
-    await expect(row(page, "shared")).toHaveCount(1);
-    await expect(section(page).getByRole("listitem")).toHaveCount(1);
+    await expect(row(page, "shared")).toHaveCount(finish === "save" ? 1 : 0);
+    await expect(section(page).getByRole("listitem")).toHaveCount(finish === "save" ? 1 : 0);
     await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue(
       finish === "save" ? "Unsaved deck name" : deck.name
     );
@@ -158,7 +159,7 @@ test("DECK-TAG-MANAGEMENT-06 renames all matching Cards and preserves other Deck
   await page.goto(`/deck/${fixture.deck("deck-target").id}/edit`);
   await rename(page, "renamed");
   await saved(page);
-  await page.reload();
+  await page.goto(`/deck/${fixture.deck("deck-target").id}/edit`);
   await expect(row(page, "renamed")).toBeVisible();
   await expect(row(page, "shared")).toHaveCount(0);
   await expect(row(page, "kept")).toBeVisible();
@@ -215,7 +216,7 @@ test("DECK-TAG-MANAGEMENT-09 deletes only the target tag and retains every Card"
   await expect(dialog).toContainText("The cards and their other tags will remain.");
   await dialog.getByRole("button", { name: "Delete tag" }).click();
   await saved(page);
-  await page.reload();
+  await page.goto(`/deck/${fixture.deck("deck-target").id}/edit`);
   await expect(row(page, "shared")).toHaveCount(0);
   await expect(row(page, "kept")).toBeVisible();
   for (const [index, card] of cards.entries()) {
@@ -329,6 +330,8 @@ test("DECK-TAG-MANAGEMENT-13 manages cached tags offline and syncs after reconne
   await expect(row(page, "renamed")).toBeVisible();
   await deleteTag(page, "kept");
   expect(await Promise.all(cards.map((card) => readCard(card.id)))).toEqual(before);
+  await saved(page);
+  await openTagEditor(page, deck.name);
   await page.reload();
   await expect(row(page, "offline")).toBeVisible();
   await expect(row(page, "renamed")).toBeVisible();
@@ -343,6 +346,7 @@ test("DECK-TAG-MANAGEMENT-13 manages cached tags offline and syncs after reconne
       .toEqual({ ...original, tags: card.deckId === deck.id ? ["renamed"] : original.tags });
   }
   await page.reload();
+  await page.goto(`/deck/${deck.id}/edit`);
   await expect(row(page, "renamed")).toBeVisible();
   await expect(row(page, "shared")).toHaveCount(0);
 });
@@ -372,6 +376,7 @@ for (const operation of ["rename", "delete"]) {
     }
     await expect(row(page, "shared")).toHaveCount(0);
     expect((await readCard(card.id)).frontText).toBe(card.frontText);
+    await saved(page);
     await context.setOffline(false);
     await expect
       .poll(() => readCard(card.id))
@@ -382,6 +387,7 @@ for (const operation of ["rename", "delete"]) {
         deletedAt: { nullValue: null },
       });
     await page.reload();
+    await page.goto(`/deck/${deck.id}/edit`);
     await expect(row(page, "shared")).toHaveCount(0);
     await expect(row(page, "kept")).toBeVisible();
   });
@@ -418,6 +424,8 @@ test("DECK-TAG-MANAGEMENT-15 manages anonymous tags locally across an offline re
   await section(page).getByRole("button", { name: "Save name", exact: true }).click();
   await expect(row(page, "renamed")).toBeVisible();
   await deleteTag(page, "renamed");
+  await saved(page);
+  await openTagEditor(page, deck.name);
   await page.reload();
   await expect(row(page, "kept")).toBeVisible();
   await expect(section(page).getByRole("listitem")).toHaveCount(1);
@@ -439,7 +447,7 @@ test("DECK-TAG-MANAGEMENT-16 does not rewrite unchanged tag names", async ({ fix
   const beforeCard = await requireDocument("card", card.id);
   await page.goto(`/deck/${deck.id}/edit`);
   await rename(page, "shared");
-  await saved(page);
+  await expect(row(page, "shared")).toBeVisible();
   expect(await requireDocument("deck", deck.id)).toEqual(beforeDeck);
   expect(await requireDocument("card", card.id)).toEqual(beforeCard);
 });

@@ -39,16 +39,17 @@ export function useDeckEditPageModel(deck: Deck) {
   const deletionPending = useStore(deckEditPageStore, (state) => state.deletionId !== undefined);
   const { addForm, renameForm } = useTagFormState();
   const { cards } = useCardsByDeckId(deck.id);
-  const tags = getManagedTags(useDeck(deck.id), cards);
-  const usageCounts = getTagUsageCounts(cards);
+  const managedTags = getManagedTags(useDeck(deck.id), cards);
+  const draftTags = useStore(deckEditPageStore, (state) => state.draftTags);
+  const tagChanges = useStore(deckEditPageStore, (state) => state.tagChanges);
+  const tags = draftTags ?? managedTags;
+  const usageCounts = getTagUsageCounts(cards, tagChanges);
   const hasTagDraft = addForm.formState.isDirty || renameForm.formState.isDirty;
-  const tagPending = useStore(deckEditPageStore, (state) => state.tagMutation !== undefined);
   const tagError = useStore(deckEditPageStore, (state) => state.tagError);
   const editingTag = useStore(deckEditPageStore, (state) => state.editingTag);
   const tagDeletion = useStore(deckEditPageStore, (state) => state.tagDeletion);
   const guard = useNavigationGuard(
-    isDirty || isSubmitting || addForm.formState.isDirty || renameForm.formState.isDirty,
-    { pending: tagPending }
+    isDirty || isSubmitting || draftTags !== undefined || addForm.formState.isDirty || renameForm.formState.isDirty
   );
   useResetStoreOnMount(deckEditPageStore);
 
@@ -73,18 +74,17 @@ export function useDeckEditPageModel(deck: Deck) {
     renameTagForm: renameForm,
     editingTag,
     tagError,
-    tagPending,
-    deckSaveDisabled: hasTagDraft || tagPending || deletionPending,
-    tagDisabled: isSubmitting || deletionPending || deletionTarget !== undefined || tagPending,
+    deckSaveDisabled: hasTagDraft || deletionPending,
+    tagDisabled: isSubmitting || deletionPending || deletionTarget !== undefined,
     tagDeletion: guard.isBlocked ? undefined : tagDeletion,
-    onAddTag: addForm.handleSubmit((values) => submitTagName(deck.id, values, addForm.reset)),
-    onRenameTag: renameForm.handleSubmit((values) => submitTagName(deck.id, values, renameForm.reset, editingTag)),
+    onAddTag: addForm.handleSubmit((values) => submitTagName(tags, values, addForm.reset)),
+    onRenameTag: renameForm.handleSubmit((values) => submitTagName(tags, values, renameForm.reset, editingTag)),
     onEditTag: (tag: string) => editTagName(tag, renameForm.reset),
     onCancelTagEdit: () => editTagName(undefined, renameForm.reset),
     onRequestTagDeletion: requestTagDeletion,
     onCancelTagDeletion: () => requestTagDeletion(undefined),
-    onConfirmTagDeletion: async () => {
-      await saveTag(deck.id, undefined, tagDeletion);
+    onConfirmTagDeletion: () => {
+      saveTag(tags, undefined, tagDeletion);
     },
     isSubmitting,
     navigationGuard: guard.element,

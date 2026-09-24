@@ -13,7 +13,7 @@ AND / OR、フィルター解除、条件の保存は [Card Filter の仕様](./
 | --- | --- | --- | --- |
 | DECK-TAG-MANAGEMENT-01 | read | 正常系 | [Deck のタグを一覧表示できる](#deck-tag-management-01) |
 | DECK-TAG-MANAGEMENT-02 | read | 正常系 | [タグがない場合は0件表示になる](#deck-tag-management-02) |
-| DECK-TAG-MANAGEMENT-03 | write | 正常系 | [タグを追加できる](#deck-tag-management-03) |
+| DECK-TAG-MANAGEMENT-03 | write | 正常系 | [タグを Deck とともに保存・破棄できる](#deck-tag-management-03) |
 | DECK-TAG-MANAGEMENT-04 | read | 異常系 | [空の名前ではタグを追加できない](#deck-tag-management-04) |
 | DECK-TAG-MANAGEMENT-05 | read | 異常系 | [同じ Deck に同名のタグを追加できない](#deck-tag-management-05) |
 | DECK-TAG-MANAGEMENT-06 | batch | 正常系 | [タグの名前を変更できる](#deck-tag-management-06) |
@@ -79,7 +79,7 @@ Then:
 
 <a id="deck-tag-management-03"></a>
 
-### DECK-TAG-MANAGEMENT-03 タグを追加できる
+### DECK-TAG-MANAGEMENT-03 タグを Deck とともに保存・破棄できる
 
 カテゴリ: `write`
 
@@ -98,9 +98,9 @@ When:
 
 Then:
 
-- 入力した名前のタグが対象 Deck に一つ表示される。
-- Card がなくてもタグを保持できる。
-- タグの追加では Deck 名の未保存入力を変えず、Deck の保存・キャンセル後も追加済みタグが残る。
+- 保存した場合は入力した名前のタグが対象 Deck に一つ表示され、Card がなくても保持できる。
+- キャンセルした場合はタグと Deck 名の変更がどちらも保存されない。
+- タグの追加では Deck 名の未保存入力を変えない。
 - 未確定のタグ入力がある間は Deck の保存を実行できず、タグ入力が失われない。
 - 別の Deck のタグは変更されない。
 
@@ -164,7 +164,7 @@ Given:
 
 When:
 
-- 対象のタグを、その Deck にまだ存在しない名前に変更して保存し、リロードする。
+- 対象のタグを、その Deck にまだ存在しない名前に変更し、Deck の変更を保存してリロードする。
 
 Then:
 
@@ -232,7 +232,7 @@ Given:
 
 When:
 
-- 対象のタグの削除アイコンを押し、同じ行に表示される確認で削除を確定し、リロードする。
+- 対象のタグの削除アイコンを押し、同じ行に表示される確認で削除を確定する。Deck の変更を保存してリロードする。
 
 Then:
 
@@ -326,11 +326,11 @@ Given:
 
 When:
 
-- 通信を切り、タグの追加・改名・削除を行って再読み込みし、再接続する。
+- 通信を切り、タグの追加・改名・削除を行い、Deck の変更を保存して再読み込みし、再接続する。
 
 Then:
 
-- 通信がない間も変更を保持し、再接続後も旧タグが復活しない。他のタグ・Card の本文・別 Deck は保持する。
+- Deck の変更を保存した後は、通信がない間も変更を保持し、再接続後も旧タグが復活しない。他のタグ・Card の本文・別 Deck は保持する。
 
 <a id="deck-tag-management-14"></a>
 
@@ -347,7 +347,7 @@ Given:
 
 When:
 
-- 通信を切って Card の本文を保存し、直後に Deck 編集でそのタグを改名または削除してから再接続する。
+- 通信を切って Card の本文を保存し、直後に Deck 編集でそのタグを改名または削除する。Deck の変更を保存してから再接続する。
 
 Then:
 
@@ -368,7 +368,7 @@ Given:
 
 When:
 
-- タグの追加・改名・削除を行い、通信がない状態で再読み込みする。
+- タグの追加・改名・削除を行い、Deck の変更を保存してから通信がない状態で再読み込みする。
 
 Then:
 

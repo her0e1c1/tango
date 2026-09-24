@@ -35,7 +35,6 @@ function Harness({
       editingTag={editingTag}
       deletion={deletionCompleted ? undefined : deletion}
       disabled={disabled}
-      pending={disabled}
       error={undefined}
       onAdd={addForm.handleSubmit(({ name }) => {
         setTags([...tags, name]);

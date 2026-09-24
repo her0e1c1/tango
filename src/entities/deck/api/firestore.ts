@@ -71,8 +71,8 @@ export const createDeck = async (uid: string, deck: RemoteDeckCreateInput): Prom
 };
 
 // Writes editable Deck fields and advances the update timestamp.
-const updateDeckDocument = async (uid: string, deck: z.infer<typeof deckEditSchema>): Promise<void> => {
-  const document = omitUndefined({
+const deckEditDocument = (deck: z.infer<typeof deckEditSchema>) =>
+  omitUndefined({
     name: deck.name,
     url: deck.url === null ? deleteField() : deck.url,
     isPublic: deck.isPublic,
@@ -83,6 +83,9 @@ const updateDeckDocument = async (uid: string, deck: z.infer<typeof deckEditSche
     category: deck.category,
     convertToBr: deck.convertToBr,
   });
+
+const updateDeckDocument = async (uid: string, deck: z.infer<typeof deckEditSchema>): Promise<void> => {
+  const document = deckEditDocument(deck);
   const reference = doc(db, DECK_COLLECTION, deck.id);
   await writeLocally(uid, [reference], () => updateDoc(reference, document));
 };
@@ -92,6 +95,13 @@ export const editDeck = async (uid: string, deck: z.input<typeof deckEditSchema>
   const input = editDeckSchema.parse({ uid, deck });
   await updateDeckDocument(input.uid, input.deck);
 };
+
+export function writeDeckEdit(batch: WriteBatch, uid: string, deck: z.input<typeof deckEditSchema>, tags: string[]) {
+  const input = editDeckSchema.parse({ uid, deck });
+  const reference = doc(db, DECK_COLLECTION, input.deck.id);
+  batch.update(reference, { ...deckEditDocument(input.deck), tags });
+  return reference;
+}
 
 // Tombstones the parent; readers hide all of its child Cards.
 const deleteDeckDocuments = async (uid: string, deckId: string): Promise<void> => {
@@ -133,11 +143,4 @@ export async function readDeckTags(uid: string, deckId: string): Promise<string[
   const deck = parseDeckDocument(deckId, snapshot.data());
   if (deck.uid !== uid || deck.deletedAt !== null) throw new Error("Deck is unavailable");
   return deck.tags ?? [];
-}
-
-// The caller validates the current cached Deck before preparing this batch.
-export function writeDeckTags(batch: WriteBatch, deckId: string, tags: string[]) {
-  const reference = doc(db, "deck", deckId);
-  batch.update(reference, { tags, updatedAt: Date.now() });
-  return reference;
 }

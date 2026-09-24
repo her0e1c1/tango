@@ -1,17 +1,14 @@
 import { getAuthUid } from "@/entities/auth";
-import { type DeckId, editDeck } from "@/entities/deck";
+import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
+import { type DeckId, editDeck, readDeckTags, writeDeckEdit } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
+import { createLocalBatch } from "@/shared/firestore-write";
 import { showToast } from "@/shared/ui/toast";
 
 import { deckEditPageStore as store } from "../store";
 
 export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, hasTagDraft: boolean): Promise<boolean> {
-  if (
-    hasTagDraft ||
-    store.getState().tagMutation !== undefined ||
-    store.getState().deletionTarget !== undefined ||
-    store.getState().deletionId !== undefined
-  )
+  if (hasTagDraft || store.getState().deletionTarget !== undefined || store.getState().deletionId !== undefined)
     return false;
   const pending = store.getState().submission;
   if (pending !== undefined) {
@@ -22,7 +19,26 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, has
 
   const uid = getAuthUid();
   const input = { ...values, id: deckId, url: values.url ?? null };
-  const submission = editDeck(uid, input)
+  const changes = store.getState().tagChanges;
+  const save = async () => {
+    if (changes.length === 0) return editDeck(uid, input);
+    const registered = await readDeckTags(uid, deckId);
+    const cards = await readCardsForTagUpdate(uid, deckId);
+    const tags = [...new Set([...registered, ...cards.flatMap((card) => card.tags)])];
+    for (const { previous, name } of changes) {
+      if (previous !== undefined) {
+        const index = tags.indexOf(previous);
+        if (index < 0) throw new Error("Tag no longer exists");
+        tags.splice(index, 1);
+      }
+      if (name !== undefined && !tags.includes(name)) tags.push(name);
+    }
+    const { batch, commit } = createLocalBatch(uid);
+    const deckReference = writeDeckEdit(batch, uid, input, tags);
+    const cardReferences = writeCardTagChanges(batch, cards, changes);
+    await commit([deckReference, ...cardReferences]);
+  };
+  const submission = save()
     .then(() => {
       // Shared Toast lifetime covers persistence that finishes after the editor unmounts.
       showToast({ messageKey: "deckForm.toast.updated", messageParams: { name: input.name }, tone: "success" });

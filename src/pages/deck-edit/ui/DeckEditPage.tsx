@@ -51,7 +51,6 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
               editingTag={model.editingTag}
               error={model.tagError}
               disabled={model.tagDisabled}
-              pending={model.tagPending}
               deletion={model.tagDeletion}
               onAdd={model.onAddTag}
               onRename={model.onRenameTag}
@@ -72,7 +71,7 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
               <Button
                 className="mt-4"
                 variant="destructive"
-                disabled={model.isSubmitting || model.tagPending}
+                disabled={model.isSubmitting}
                 onClick={model.requestDeletion}
               >
                 {t("deckDeletion.confirm")}

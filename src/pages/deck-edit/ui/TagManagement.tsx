@@ -14,7 +14,6 @@ interface TagManagementProps {
   editingTag: string | undefined;
   error: "required" | "duplicate" | undefined;
   disabled: boolean;
-  pending: boolean;
   deletion: string | undefined;
   onAdd: (event: SubmitEvent<HTMLFormElement>) => void | Promise<void>;
   onRename: (event: SubmitEvent<HTMLFormElement>) => void | Promise<void>;
@@ -22,7 +21,7 @@ interface TagManagementProps {
   onCancelEdit: () => void;
   onDelete: (tag: string) => void;
   onCancelDeletion: () => void;
-  onConfirmDeletion: () => Promise<void>;
+  onConfirmDeletion: () => void;
 }
 
 function restoreTagFocus(button: HTMLButtonElement | undefined, addForm: UseFormReturn<{ name: string }>) {
@@ -43,7 +42,7 @@ export function TagManagement(props: TagManagementProps) {
   });
   const { editingTag, deletion, renameForm, addForm } = props;
   const active = editingTag !== undefined || deletion !== undefined;
-  const busy = props.disabled || props.pending;
+  const busy = props.disabled;
   const operationsDisabled = busy || active;
   const activeTag = editingTag ?? deletion;
   const missingTarget = activeTag !== undefined && !props.tags.includes(activeTag);
@@ -169,11 +168,7 @@ export function TagManagement(props: TagManagementProps) {
                 </fieldset>
               </form>
             ) : deletion === tag ? (
-              <fieldset
-                aria-labelledby={`${inputId}-delete-title`}
-                aria-busy={props.pending}
-                className="col-span-2 space-y-3"
-              >
+              <fieldset aria-labelledby={`${inputId}-delete-title`} className="col-span-2 space-y-3">
                 <p id={`${inputId}-delete-title`} className="font-medium">
                   {t("deckTags.deleteTitle")}
                 </p>
@@ -188,13 +183,7 @@ export function TagManagement(props: TagManagementProps) {
                   >
                     {t("deckTags.cancel")}
                   </button>
-                  <Button
-                    variant="destructive"
-                    className="min-h-12"
-                    disabled={busy}
-                    loading={props.pending}
-                    onClick={() => void props.onConfirmDeletion()}
-                  >
+                  <Button variant="destructive" className="min-h-12" disabled={busy} onClick={props.onConfirmDeletion}>
                     {t("deckTags.delete")}
                   </Button>
                 </div>

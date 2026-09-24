@@ -24,7 +24,6 @@ const meta = {
     editingTag: undefined,
     error: undefined,
     disabled: false,
-    pending: false,
     deletion: undefined,
     onAdd: fn(),
     onRename: fn(),
@@ -43,7 +42,7 @@ export const Empty: Story = { args: { tags: [] } };
 export const Editing: Story = { args: { editingTag: "shared" } };
 export const Required: Story = { args: { error: "required" } };
 export const Duplicate: Story = { args: { editingTag: "shared", error: "duplicate" } };
-export const Pending: Story = { args: { pending: true, disabled: true } };
+export const Disabled: Story = { args: { disabled: true } };
 export const DeleteConfirmation: Story = { args: { deletion: "shared" } };
 export const Mobile: Story = {
   args: { tags: ["shared", "kept", "A very long tag name that should wrap without moving its actions", "unused"] },

@@ -191,17 +191,20 @@ export async function readCardsForTagUpdate(uid: string, deckId: string) {
 export function writeCardTagChanges(
   batch: WriteBatch,
   cards: Awaited<ReturnType<typeof readCardsForTagUpdate>>,
-  previous: string,
-  replacement: string | undefined
+  changes: { previous: string | undefined; name: string | undefined }[]
 ) {
   const references: DocumentReference[] = [];
   for (const card of cards) {
-    if (previous === replacement || !card.tags.includes(previous)) continue;
     const tags = [
       ...new Set(
-        card.tags.flatMap((tag) => (tag === previous ? (replacement === undefined ? [] : [replacement]) : [tag]))
+        card.tags.flatMap((original) => {
+          let tag: string | undefined = original;
+          for (const change of changes) if (change.previous !== undefined && tag === change.previous) tag = change.name;
+          return tag === undefined ? [] : [tag];
+        })
       ),
     ];
+    if (tags.length === card.tags.length && tags.every((tag, index) => tag === card.tags[index])) continue;
     batch.update(card.reference, { tags, updatedAt: Date.now() });
     references.push(card.reference);
   }
