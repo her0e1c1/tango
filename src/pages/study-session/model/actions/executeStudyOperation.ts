@@ -19,6 +19,7 @@ export function executeStudyOperation(operation: StudyOperation): void {
     if (latest !== undefined && latest.sessionId !== operation.sessionId) return;
     studySessionPageStore.setState({
       pendingResult: {
+        deckId: operation.deckId,
         sessionId: operation.sessionId,
         currentIndex: result.session.currentIndex,
         completed: result.endReason === "completed",
