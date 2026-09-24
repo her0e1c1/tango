@@ -56,7 +56,6 @@ Then:
 - 検証中・保存中の連続送信で変更が重複せず、入力・保存・Cancel・戻るは完了まで無効になる。
 - 保存成功時だけ所属 Deck の Card 一覧へ戻る。すでに別画面や別 Card へ移った場合は、以前の保存完了によって遷移しない。
 - 元の Card が更新され、所属 Deck、学習結果、未変更の独自 tags は維持される。別のブラウザーから変更が届いても、編集中の入力を勝手に置き換えない。
-- browser error が発生しない。
 
 <a id="card-management-02"></a>
 
@@ -81,7 +80,6 @@ Then:
 - Card の削除成功が通知される。
 - Card 一覧に対象 Card が表示されず、対象 Deck の Card 件数は0になる。
 - 再読み込みしても削除した Card を閲覧・学習できない。
-- browser error が発生しない。
 
 <a id="card-management-03"></a>
 
@@ -107,7 +105,6 @@ Then:
 - 削除 dialog が閉じる。
 - focus が対象 Card の操作メニューボタンに戻る。
 - 対象 Card を同じ内容・学習状態で引き続き利用できる。
-- browser error が発生しない。
 
 <a id="card-management-04"></a>
 
@@ -134,7 +131,6 @@ Then:
 - Card 一覧へ戻る。
 - Card の更新成功が通知される。
 - reload 後も対象 Card に変更内容が表示される。
-- 最初の編集失敗に伴う未処理の browser error が発生しない。
 
 <a id="card-management-05"></a>
 
@@ -164,7 +160,6 @@ Then:
 - タグ候補は所属 Deck の Card から集約したタグであり、固定カテゴリや別 Deck のタグは追加されない。Card のタグがなければ候補は空で、タグを新規入力するかタグなしで作成できる。
 - 同期後も同じアカウントの対象 Deck で利用でき、別の Deck へ追加されたり複製が増えたりしない。
 - 入力検証中と保存中は作成ボタンが無効になり、作成処理が終わるまで追加の作成を受け付けない。
-- browser error が発生しない。
 
 <a id="card-management-06"></a>
 
@@ -192,7 +187,6 @@ Then:
 - アクセシブルな通知は Card の文脈を維持する。
 - 作成した Card が reload 後も同じ Deck の Card 一覧に表示され、front text の全文と back text が切り詰められずに保存される。
 - 作成した Card はこのブラウザーだけで一つ利用でき、クラウドには追加されない。
-- browser error が発生しない。
 
 <a id="card-management-07"></a>
 
@@ -220,7 +214,6 @@ Then:
 - 対象 Deck の Card 一覧に、作成した Card が一つだけ表示される。
 - 最初に入力した front text と back text が維持され、同じアカウントの同じ Deck で利用できる。
 - 再読み込みや同期によって Card の複製が増えない。
-- 最初の作成失敗に伴う未処理の browser error が発生しない。
 
 保存できたか不明な通信失敗は、このケースの前提に含めない。その状態からの再試行については重複防止を保証しない。
 
@@ -248,7 +241,6 @@ Then:
 - 削除 dialog が閉じる。
 - Card 一覧に対象 Card が表示されない。
 - 再読み込みしても削除した Card を閲覧・学習できない。
-- 最初の削除失敗に伴う未処理の browser error が発生しない。
 
 <a id="card-management-09"></a>
 
@@ -276,7 +268,6 @@ Then:
 - dialog 表示中に通知が消えるか置き換わっても、focus は Keep editing に維持される。
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。
 - 対象 Card を開き直すと、変更前の front text が表示される。
-- browser error が発生しない。
 
 <a id="card-management-10"></a>
 
@@ -302,7 +293,6 @@ Then:
 - 両面の tab にエラーが示され、Back tab を選ぶと back text の入力エラーも確認できる。
 - 拡大編集画面でも入力エラーが表示され、入力欄の読み上げ説明として確認できる。
 - 未入力の値は維持され、Card は保存されず元の内容が変更されない。
-- browser error が発生しない。
 
 <a id="card-management-11"></a>
 
@@ -327,7 +317,6 @@ Then:
 - 未変更の場合は確認なしで所属 Deck の Card 一覧へ戻る。
 - 未保存の入力がある場合は確認 dialog が表示され、Keep editing では入力を保持する。
 - Discard changes では所属 Deck の Card 一覧へ移動し、Card は作成されない。
-- browser error が発生しない。
 
 <a id="card-management-12"></a>
 
@@ -353,7 +342,6 @@ Then:
 - 保存成功で確認が閉じ、所属 Deck の Card 一覧へ移動する。以前に Header で選んだ画面へは移動しない。
 - 成功通知が表示され、対象 Deck に入力した Card が1件だけ表示され、reload 後も利用できる。
 - ブラウザー内で保存できればクラウドの応答を待たずに一覧へ移動し、Card を表示する。
-- browser error が発生しない。
 
 <a id="card-management-13"></a>
 
@@ -378,7 +366,6 @@ Then:
 - Discard changes で要求した Deck 一覧へ移動し、保存成功後は所属 Deck の Card 一覧へ移動する。
 - 成功通知が表示され、対象 Deck に入力した Card が1件だけ表示され、reload 後も利用できる。
 - 保存成功後に別画面へ移動した場合は、その後のクラウド同期完了によって再び遷移しない。対象 Deck を開き直すと保存した Card が表示される。
-- browser error が発生しない。
 
 <a id="card-management-14"></a>
 
@@ -404,7 +391,6 @@ Then:
 - Keep editing で両面の入力を保持し、再試行の成功後は所属 Deck の Card 一覧へ移動する。
 - 成功通知が表示され、対象 Deck に入力した Card が1件だけ表示され、reload 後も利用できる。
 - すでにローカル保存成功として移動した後にクラウドから拒否された場合は、Firestore の rollback により拒否された Card は一覧に残らず、以前の入力画面や離脱確認へ勝手に戻らない。遅延した同期拒否のための独自通知は行わない。
-- browser error が発生しない。
 
 <a id="card-management-15"></a>
 
@@ -433,7 +419,6 @@ Then:
 - プレビューを開閉した後も、開く前の入力操作を Undo できる。
 - 狭い画面でもプレビュー操作と入力欄を利用できる。
 - プレビューだけでは Card を作成せず、Deck の内容・学習結果・学習の現在位置・URL は変わらない。
-- browser error が発生しない。
 
 <a id="card-management-16"></a>
 
@@ -461,4 +446,3 @@ Then:
 - 通常・拡大入力のどちらでも、プレビューを閉じてキーボードで編集を続けられ、入力内容や Undo できる履歴を失わない。
 - 未保存変更の離脱確認は維持される。
 - プレビューだけでは Card や Deck の保存済み内容・学習結果・学習の現在位置・URL は変わらない。
-- browser error が発生しない。

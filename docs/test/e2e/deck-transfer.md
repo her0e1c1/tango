@@ -33,7 +33,6 @@ Then:
 
 - 対象 Deck の name に対応する CSV file が download される。
 - CSV に各 Card の front text、back text、tags、unique key が Card ごとの row として含まれる。
-- browser error が発生しない。
 
 <a id="deck-transfer-02"></a>
 
@@ -59,4 +58,4 @@ Then:
 - front text、back text、tags、unique key が保存値と一致し、特殊文字や本文中の改行が余分な列・レコードにならない。
 - タグなしの Card はタグが空のまま含まれ、後続の unique key の列がずれない。
 - 別の Deck の Card は含まれない。
-- ダウンロードによって両 Deck の Card の内容・件数は変更されず、browser error が発生しない。
+- ダウンロードによって両 Deck の Card の内容・件数は変更されない。

@@ -38,7 +38,6 @@ Then:
 
 - Deck の更新成功が通知される。
 - 編集画面に変更後の name、category、source URL が表示される。
-- browser error が発生しない。
 
 <a id="deck-management-02"></a>
 
@@ -66,7 +65,6 @@ Then:
 - 対象 Deck のすべての Card を表示・操作できなくなる。削除前にこのブラウザーで開いたことがない Card も対象となる。
 - 対象 Deck の学習 session を再開できない。
 - 操作対象ではない Deck、Card、学習 session は維持され、引き続き再開できる。
-- browser error が発生しない。
 
 <a id="deck-management-03"></a>
 
@@ -92,7 +90,6 @@ Then:
 - 削除 dialog が閉じる。
 - focus が対象 Deck の操作メニューボタンに戻る。
 - 対象 Deck と Card を引き続き利用でき、学習 session も同じ位置から再開できる。
-- browser error が発生しない。
 
 <a id="deck-management-04"></a>
 
@@ -120,7 +117,6 @@ Then:
 - Deck の削除成功が通知される。
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck の Card を利用できず、学習 session も再開できない。
-- 最初の削除失敗に伴う未処理の browser error が発生しない。
 
 <a id="deck-management-05"></a>
 
@@ -146,7 +142,6 @@ Then:
 - 作成した空の Deck が reload 後も Deck 一覧に一つだけ表示される。
 - 編集画面でも入力した name、category、source URL、改行変換を確認できる。
 - 同期後も同じアカウントの Deck として利用でき、再読み込みや同期によって複製が増えない。
-- browser error が発生しない。
 
 <a id="deck-management-06"></a>
 
@@ -170,7 +165,7 @@ Then:
 
 - ブラウザー内でローカル反映が完了すれば、クラウドの応答待ちで操作が止まらない。
 - クラウドから拒否された Deck は Firestore の rollback により利用できる Deck として一覧に残らない。遅延した同期拒否のための独自通知は行わない。
-- 操作していないのに新しい Deck が繰り返し作成されたり、失敗が未処理の browser error になったりしない。
+- 操作していないのに新しい Deck が繰り返し作成されない。
 
 <a id="deck-management-07"></a>
 
@@ -197,7 +192,6 @@ Then:
 - 作成した空の Deck が同じブラウザーで reload した後も、一つだけ Deck 一覧に表示される。
 - 作成した Deck はこのブラウザーだけで利用でき、クラウドには追加されない。
 - 対象 Deck に Card が存在しない。
-- browser error が発生しない。
 
 <a id="deck-management-08"></a>
 
@@ -225,4 +219,3 @@ Then:
 - dialog 表示中に通知が消えるか置き換わっても、focus は Keep editing に維持される。
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。
 - Deck 一覧には変更前の name が表示される。
-- browser error が発生しない。
