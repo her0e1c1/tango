@@ -205,7 +205,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(frontText).toHaveValue("Unsaved front");
   });
 
-  it("keeps the opening Card snapshot and disables the editor while saving", async () => {
+  it("keeps the opening Card snapshot and stays pending until the submitted snapshot is observed", async () => {
     let resolveWrite: () => void = () => undefined;
     mocks.beforeCardWrite = () =>
       new Promise<void>((resolve) => {
@@ -228,7 +228,8 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
     await actAsync(async () => resolveWrite());
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Card list" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    expect(screen.getByRole("heading", { level: 1, name: "Edit card" })).toBeVisible();
   });
 
   it("disables repeated save attempts during validation and persistence", async () => {
@@ -300,7 +301,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
   });
 
   it.each(["success", "failure"] as const)(
-    "shows the shared %s toast without navigating when persistence finishes after leaving",
+    "does not revive the editor after a late %s",
     async (outcome) => {
       const write = Promise.withResolvers<void>();
       mocks.beforeCardWrite = () => write.promise;
@@ -312,11 +313,8 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
 
       await actAsync(async () => (outcome === "failure" ? write.reject(new Error("write failed")) : write.resolve()));
 
-      expect(
-        await screen.findByText(
-          outcome === "success" ? "Updated card “Front text”." : "Unable to save changes. Try again."
-        )
-      ).toBeVisible();
+      if (outcome === "failure") expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+      else expect(screen.queryByText("Updated card “Front text”.")).not.toBeInTheDocument();
       expect(screen.getByRole("heading", { name: "Previous page" })).toBeVisible();
     }
   );
@@ -336,7 +334,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByRole("textbox", { name: "Front text" })).toHaveValue("Other front");
     await actAsync(async () => write.resolve());
-    expect(await screen.findByText("Updated card “Front text”.")).toBeVisible();
+    expect(screen.queryByText("Updated card “Front text”.")).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Other front");
     expect(view.router.state.location.pathname).toBe("/card/other-card/edit");
   });
