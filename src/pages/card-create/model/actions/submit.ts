@@ -8,7 +8,10 @@ interface SubmitCardCreateInput {
   values: CardContentInput;
 }
 
-export async function submit({ deckId, values }: SubmitCardCreateInput): Promise<{ id: string; name: string } | undefined> {
+export async function submit({
+  deckId,
+  values,
+}: SubmitCardCreateInput): Promise<{ id: string; name: string } | undefined> {
   // Each attempt has a new identity; retries intentionally do not reuse an uncertain previous write.
   const cardId = generateId();
 
