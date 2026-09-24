@@ -300,24 +300,21 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
   });
 
-  it.each(["success", "failure"] as const)(
-    "does not revive the editor after a late %s",
-    async (outcome) => {
-      const write = Promise.withResolvers<void>();
-      mocks.beforeCardWrite = () => write.promise;
-      const view = renderPage();
-      await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-      await actAsync(async () => view.router.navigate("/previous"));
-      await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
-      expect(await screen.findByRole("heading", { name: "Previous page" })).toBeVisible();
+  it.each(["success", "failure"] as const)("does not revive the editor after a late %s", async (outcome) => {
+    const write = Promise.withResolvers<void>();
+    mocks.beforeCardWrite = () => write.promise;
+    const view = renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await actAsync(async () => view.router.navigate("/previous"));
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(await screen.findByRole("heading", { name: "Previous page" })).toBeVisible();
 
-      await actAsync(async () => (outcome === "failure" ? write.reject(new Error("write failed")) : write.resolve()));
+    await actAsync(async () => (outcome === "failure" ? write.reject(new Error("write failed")) : write.resolve()));
 
-      if (outcome === "failure") expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-      else expect(screen.queryByText("Updated card “Front text”.")).not.toBeInTheDocument();
-      expect(screen.getByRole("heading", { name: "Previous page" })).toBeVisible();
-    }
-  );
+    if (outcome === "failure") expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
+    else expect(screen.queryByText("Updated card “Front text”.")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Previous page" })).toBeVisible();
+  });
 
   it("initializes a different Card and ignores navigation from the previous Card's save", async () => {
     await mutateCards("user-id", [
