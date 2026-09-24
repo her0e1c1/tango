@@ -90,6 +90,62 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
+  it.each(["", "   "])("DECK-TAG-MANAGEMENT-04 rejects an empty tag name (%j)", async (name) => {
+    renderPage();
+    if (name) await userEvent.type(screen.getByRole("textbox", { name: "New tag name" }), name);
+    await userEvent.click(screen.getByRole("button", { name: "Add tag" }));
+
+    expect(await screen.findByText("A tag name is required.")).toBeVisible();
+    expect(screen.getByRole("textbox", { name: "New tag name" })).toHaveFocus();
+    expect(screen.queryAllByRole("button", { name: /^Rename / })).toHaveLength(0);
+  });
+
+  it("DECK-TAG-MANAGEMENT-05 DECK-TAG-MANAGEMENT-07 DECK-TAG-MANAGEMENT-08 validates tags against the current draft", async () => {
+    renderPage();
+    const input = screen.getByRole("textbox", { name: "New tag name" });
+    await userEvent.type(input, "shared");
+    await userEvent.click(screen.getByRole("button", { name: "Add tag" }));
+    await userEvent.type(input, "shared");
+    await userEvent.click(screen.getByRole("button", { name: "Add tag" }));
+    expect(await screen.findByText("A tag with this name already exists in this deck.")).toBeVisible();
+    expect(screen.getAllByRole("button", { name: "Rename shared" })).toHaveLength(1);
+
+    await userEvent.clear(input);
+    await userEvent.type(input, "kept");
+    await userEvent.click(screen.getByRole("button", { name: "Add tag" }));
+    await userEvent.click(screen.getByRole("button", { name: "Rename shared" }));
+    const rename = screen.getByRole("textbox", { name: "New name" });
+    await userEvent.clear(rename);
+    await userEvent.click(screen.getByRole("button", { name: "Save name" }));
+    expect(await screen.findByText("A tag name is required.")).toBeVisible();
+    await userEvent.type(rename, "kept");
+    await userEvent.click(screen.getByRole("button", { name: "Save name" }));
+    expect(await screen.findByText("A tag with this name already exists in this deck.")).toBeVisible();
+    await userEvent.clear(rename);
+    await userEvent.type(rename, "renamed");
+    await userEvent.click(screen.getByRole("button", { name: "Save name" }));
+    expect(screen.getByRole("button", { name: "Rename renamed" })).toBeVisible();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("DECK-TAG-MANAGEMENT-03 guards and discards confirmed tag edits with the Deck form", async () => {
+    const view = renderPage();
+    const input = screen.getByRole("textbox", { name: "New tag name" });
+    await userEvent.type(input, "draft");
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Add tag" }));
+    expect(input).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
+    await userEvent.click(screen.getByRole("button", { name: "Back to decks" }));
+    expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
+    view.unmount();
+    renderPage();
+    expect(screen.queryByRole("button", { name: "Rename draft" })).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
+  });
+
   it("initializes the editor when the route Deck arrives after mount", async () => {
     const delayedDeckId = "delayed-deck";
     renderPage(`/deck/${delayedDeckId}/edit`);

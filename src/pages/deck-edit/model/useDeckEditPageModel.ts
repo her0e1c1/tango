@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
 
@@ -39,27 +40,19 @@ export function useDeckEditPageModel(deck: Deck) {
   const isMounted = useMountedGuard();
   const deletionTarget = useStore(deckEditPageStore, (state) => state.deletionTarget);
   const deletionPending = useStore(deckEditPageStore, (state) => state.deletionId !== undefined);
-  const { addForm, renameForm } = useTagFormState();
   const { cards } = useCardsByDeckId(deck.id);
   const liveDeck = useDeck(deck.id);
   const managedTags = getManagedTags(liveDeck, cards);
-  const draftTags = useStore(deckEditPageStore, (state) => state.draftTags);
+  const draftTags = useWatch({ control: form.control, name: "tags" });
   const tagChanges = useStore(deckEditPageStore, (state) => state.tagChanges);
   const tags = draftTags ?? managedTags;
   const usageCounts = getTagUsageCounts(cards, tagChanges);
-  const hasTagDraft = addForm.formState.isDirty || renameForm.formState.isDirty;
-  const tagError = useStore(deckEditPageStore, (state) => state.tagError);
   const editingTag = useStore(deckEditPageStore, (state) => state.editingTag);
+  const { addForm, renameForm } = useTagFormState(tags, editingTag);
+  const hasTagDraft = addForm.formState.isDirty || renameForm.formState.isDirty;
   const tagDeletion = useStore(deckEditPageStore, (state) => state.tagDeletion);
   const pendingTagSave = useStore(deckEditPageStore, (state) => state.pendingTagSave);
-  const guard = useNavigationGuard(
-    isDirty ||
-      isSubmitting ||
-      pendingTagSave !== undefined ||
-      draftTags !== undefined ||
-      addForm.formState.isDirty ||
-      renameForm.formState.isDirty
-  );
+  const guard = useNavigationGuard(isDirty || isSubmitting || pendingTagSave !== undefined || hasTagDraft);
   useResetStoreOnMount(deckEditPageStore);
 
   const deckListPath = routes.deckList.to();
@@ -89,7 +82,7 @@ export function useDeckEditPageModel(deck: Deck) {
       )
         return;
     }
-    deckEditPageStore.setState({ pendingTagSave: undefined, draftTags: undefined, tagChanges: [] });
+    deckEditPageStore.setState({ pendingTagSave: undefined, tagChanges: [] });
     showToast({
       messageKey: "deckForm.toast.updated",
       messageParams: { name: pendingTagSave.name },
@@ -108,18 +101,20 @@ export function useDeckEditPageModel(deck: Deck) {
     addTagForm: addForm,
     renameTagForm: renameForm,
     editingTag,
-    tagError,
+    tagError: (editingTag === undefined ? addForm : renameForm).formState.errors.name?.message,
     deckSaveDisabled: hasTagDraft || deletionPending || pendingTagSave !== undefined,
     tagDisabled: isSubmitting || pendingTagSave !== undefined || deletionPending || deletionTarget !== undefined,
     tagDeletion: guard.isBlocked ? undefined : tagDeletion,
-    onAddTag: addForm.handleSubmit((values) => submitTagName(tags, values, addForm.reset)),
-    onRenameTag: renameForm.handleSubmit((values) => submitTagName(tags, values, renameForm.reset, editingTag)),
+    onAddTag: addForm.handleSubmit((values) => submitTagName(tags, values, addForm.reset, form.setValue)),
+    onRenameTag: renameForm.handleSubmit((values) =>
+      submitTagName(tags, { ...values, previous: editingTag }, renameForm.reset, form.setValue)
+    ),
     onEditTag: (tag: string) => editTagName(tag, renameForm.reset),
     onCancelTagEdit: () => editTagName(undefined, renameForm.reset),
     onRequestTagDeletion: requestTagDeletion,
     onCancelTagDeletion: () => requestTagDeletion(undefined),
     onConfirmTagDeletion: () => {
-      saveTag(tags, undefined, tagDeletion);
+      saveTag(tags, undefined, form.setValue, tagDeletion);
     },
     isSubmitting: isSubmitting || pendingTagSave !== undefined,
     navigationGuard: guard.element,

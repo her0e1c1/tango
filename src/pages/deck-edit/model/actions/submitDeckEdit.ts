@@ -1,13 +1,17 @@
 import { getAuthUid } from "@/entities/auth";
 import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
 import { type DeckId, editDeck, readDeckTags, getDecks, mustFindDeckById } from "@/entities/deck";
-import type { DeckFormFields } from "@/features/deck-form";
 import { db, writeBatch } from "@/shared/firebase";
 import { showToast } from "@/shared/ui/toast";
 
+import type { DeckEditFormFields } from "../useDeckEditFormState";
 import { deckEditPageStore as store } from "../store";
 
-export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, hasTagDraft: boolean): Promise<boolean> {
+export async function submitDeckEdit(
+  deckId: DeckId,
+  values: DeckEditFormFields,
+  hasTagDraft: boolean
+): Promise<boolean> {
   if (
     hasTagDraft ||
     store.getState().pendingTagSave !== undefined ||
@@ -23,7 +27,9 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, has
   }
 
   const uid = getAuthUid();
-  const input = { ...values, id: deckId, url: values.url ?? null };
+  // Replay tag operations against current persistence data below, preserving concurrent additions.
+  const { tags: _tags, ...deckValues } = values;
+  const input = { ...deckValues, id: deckId, url: values.url ?? null };
   const changes = store.getState().tagChanges;
   const save = async (): Promise<"completed" | "pending"> => {
     const deck = mustFindDeckById(getDecks(), deckId);

@@ -9,5 +9,5 @@ export function requestTagDeletion(tag: string | undefined): void {
     state.deletionTarget !== undefined
   )
     return;
-  store.setState({ tagDeletion: tag, tagError: undefined });
+  store.setState({ tagDeletion: tag });
 }

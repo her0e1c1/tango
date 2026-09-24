@@ -1,15 +1,17 @@
-import type { UseFormReset } from "react-hook-form";
+import type { UseFormReset, UseFormSetValue } from "react-hook-form";
+
+import type { DeckEditFormFields } from "../useDeckEditFormState";
 
 import { deckEditPageStore as store } from "../store";
 import { saveTag } from "./saveTag";
 
 export function submitTagName(
   tags: string[],
-  values: { name: string },
+  values: { name: string; previous?: string | undefined },
   reset: UseFormReset<{ name: string }>,
-  previous?: string
+  setValue: UseFormSetValue<DeckEditFormFields>
 ): void {
-  if (saveTag(tags, values.name, previous)) {
+  if (saveTag(tags, values.name, setValue, values.previous)) {
     reset({ name: "" });
     store.setState({ editingTag: undefined });
   }

@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, type SubmitEvent } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import { useController, type UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 
@@ -12,7 +12,7 @@ interface TagManagementProps {
   addForm: UseFormReturn<{ name: string }>;
   renameForm: UseFormReturn<{ name: string }>;
   editingTag: string | undefined;
-  error: "required" | "duplicate" | undefined;
+  error: string | undefined;
   disabled: boolean;
   deletion: string | undefined;
   onAdd: (event: SubmitEvent<HTMLFormElement>) => void | Promise<void>;
@@ -22,6 +22,10 @@ interface TagManagementProps {
   onDelete: (tag: string) => void;
   onCancelDeletion: () => void;
   onConfirmDeletion: () => void;
+}
+
+function getTagErrorKey(error: string): "deckTags.required" | "deckTags.duplicate" {
+  return error === "required" ? "deckTags.required" : "deckTags.duplicate";
 }
 
 function restoreTagFocus(button: HTMLButtonElement | undefined, addForm: UseFormReturn<{ name: string }>) {
@@ -41,6 +45,8 @@ export function TagManagement(props: TagManagementProps) {
     deletion: undefined,
   });
   const { editingTag, deletion, renameForm, addForm } = props;
+  const { field: addName } = useController({ control: addForm.control, name: "name" });
+  const { field: renameName } = useController({ control: renameForm.control, name: "name" });
   const active = editingTag !== undefined || deletion !== undefined;
   const busy = props.disabled;
   const operationsDisabled = busy || active;
@@ -49,7 +55,7 @@ export function TagManagement(props: TagManagementProps) {
   const error =
     props.error === undefined ? null : (
       <p id={`${inputId}-error`} role="alert" className="text-caption text-danger">
-        {t(`deckTags.${props.error}`)}
+        {t(getTagErrorKey(props.error))}
       </p>
     );
 
@@ -102,7 +108,7 @@ export function TagManagement(props: TagManagementProps) {
             <Input
               id={`${inputId}-add`}
               className="mt-1 min-h-12 text-base"
-              {...addForm.register("name")}
+              {...addName}
               aria-invalid={(props.error !== undefined && editingTag === undefined) || undefined}
               aria-describedby={props.error && editingTag === undefined ? `${inputId}-error` : undefined}
             />
@@ -151,7 +157,7 @@ export function TagManagement(props: TagManagementProps) {
                     <Input
                       id={`${inputId}-rename`}
                       className="mt-1 min-h-12 text-base"
-                      {...renameForm.register("name")}
+                      {...renameName}
                       aria-invalid={props.error !== undefined || undefined}
                       aria-describedby={props.error ? `${inputId}-error` : undefined}
                     />
