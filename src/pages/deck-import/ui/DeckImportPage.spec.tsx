@@ -94,7 +94,7 @@ const selectLocalFile = async (name: string, backText = "back") => {
   await screen.findByRole("heading", { level: 2, name: "Review import" });
 };
 
-describe("DeckImportPage [IMPORT-01 IMPORT-04 IMPORT-05 IMPORT-06 SETTINGS-09]", () => {
+describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06 SETTINGS-09]", () => {
   beforeEach(() => {
     deckImportStore.setState(deckImportStore.getInitialState(), true);
     dismissToast();

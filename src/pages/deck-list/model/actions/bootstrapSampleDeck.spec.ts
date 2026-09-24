@@ -62,7 +62,7 @@ vi.mock("@/entities/preference", () => ({
 import { deckListStore } from "../store";
 import { bootstrapSampleDeck } from "./bootstrapSampleDeck";
 
-describe("bootstrapSampleDeck [IMPORT-07]", () => {
+describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
   beforeEach(() => {
     deckListStore.setState({ bootstrapStatus: "idle" });
     repository.uid = "uid-a";

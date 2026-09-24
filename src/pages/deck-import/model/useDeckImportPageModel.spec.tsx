@@ -24,7 +24,7 @@ vi.mock("@/entities/card", async (original) => ({
 
 const csv = (name = "deck.csv") => new File(["front,back,tag,key"], name, { type: "text/csv" });
 
-describe("Deck import operations [IMPORT-01 IMPORT-02 IMPORT-03 IMPORT-04 IMPORT-05 IMPORT-06]", () => {
+describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(createDeck).mockReset().mockResolvedValue();
