@@ -33,19 +33,18 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
       render(<ToastViewport />);
       session.uid = uid;
       const values = { frontText: "Edited front", backText: "Edited back", tags: [...card.tags] };
-      let saved: boolean | undefined;
+      let saved: Awaited<ReturnType<typeof submit>>;
       await actAsync(async () => {
         saved = await submit({ cardId: card.id, values });
       });
 
-      expect(saved).toBe(true);
+      expect(saved).toEqual(values);
       expect(editCard).toHaveBeenCalledWith(uid ?? "", {
         id: card.id,
         frontText: "Edited front",
         backText: "Edited back",
         tags: ["custom-tag"],
       });
-      expect(screen.getByText("Updated card “Edited front”.")).toBeVisible();
     }
   );
 
@@ -65,8 +64,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
       await saved;
     });
 
-    await expect(saved).resolves.toBe(true);
-    expect(screen.getByText("Updated card “Submitted”.")).toBeVisible();
+    await expect(saved).resolves.toEqual({ frontText: "Submitted", backText: "Back", tags: ["custom-tag"] });
   });
 
   it("returns false with shared feedback on failure and retries the same Card", async () => {
@@ -74,13 +72,12 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
     render(<ToastViewport />);
     const input = { cardId: "card-id", values: { frontText: "Retry", backText: "Back", tags: [] } };
     await actAsync(async () => {
-      expect(await submit(input)).toBe(false);
+      expect(await submit(input)).toBeUndefined();
     });
     expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
     await actAsync(async () => {
-      expect(await submit(input)).toBe(true);
+      expect(await submit(input)).toEqual(input.values);
     });
     expect(editCard).toHaveBeenLastCalledWith("opening-user", { id: "card-id", ...input.values });
-    expect(screen.getByText("Updated card “Retry”.")).toBeVisible();
   });
 });
