@@ -95,7 +95,7 @@ async function saveStudyOperation(input: StudyOperation) {
     remote: { uid: input.uid, startedAt: 1000 },
   };
   restoreStudySession(session);
-  const result = await persistStudyOperation(input, session);
+  const result = persistStudyOperation(input, session);
   await waitForPendingWrites(connection.db);
   return result;
 }
