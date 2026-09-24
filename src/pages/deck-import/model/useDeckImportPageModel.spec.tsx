@@ -3,6 +3,9 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createDeck } from "@/entities/deck";
 import { mutateCards } from "@/entities/card";
+import { deckStore } from "@/entities/deck/model/store";
+import { cardStore } from "@/entities/card/model/store";
+import { createDeck as createDeckFixture, createCard as createCardFixture } from "@/test/factories";
 import { useDeckImportPageModel } from "./useDeckImportPageModel";
 import { deckImportStore } from "./store";
 import { selectDeckImportFile } from "./actions/selectDeckImportFile";
@@ -27,8 +30,22 @@ const csv = (name = "deck.csv") => new File(["front,back,tag,key"], name, { type
 describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(createDeck).mockReset().mockResolvedValue();
-    vi.mocked(mutateCards).mockReset().mockResolvedValue();
+    deckStore.setState({ remoteDecks: [] });
+    cardStore.setState({ remoteCards: [] });
+    vi.mocked(createDeck)
+      .mockReset()
+      .mockImplementation(async (uid, input) => {
+        deckStore.setState({ remoteDecks: [createDeckFixture({ ...input, uid })] });
+      });
+    vi.mocked(mutateCards)
+      .mockReset()
+      .mockImplementation(async (uid, mutations) => {
+        cardStore.setState({
+          remoteCards: mutations.flatMap((mutation) =>
+            mutation.kind === "create" ? [createCardFixture({ ...mutation.card, uid })] : []
+          ),
+        });
+      });
     deckImportStore.setState(deckImportStore.getInitialState(), true);
     controls.uid = "anonymous-uid";
   });
