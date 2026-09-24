@@ -17,6 +17,10 @@ const meta = {
   tags: ["autodocs"],
   args: {
     tags: ["shared", "kept"],
+    usageCounts: new Map([
+      ["shared", 2],
+      ["kept", 1],
+    ]),
     editingTag: undefined,
     error: undefined,
     disabled: false,
@@ -41,5 +45,13 @@ export const Required: Story = { args: { error: "required" } };
 export const Duplicate: Story = { args: { editingTag: "shared", error: "duplicate" } };
 export const Pending: Story = { args: { pending: true, disabled: true } };
 export const DeleteConfirmation: Story = { args: { deletion: "shared" } };
-export const Mobile: Story = { globals: { viewport: { value: "iphonex", isRotated: false } } };
+export const Mobile: Story = {
+  args: { tags: ["shared", "kept", "A very long tag name that should wrap without moving its actions", "unused"] },
+  globals: { viewport: { value: "iphonex", isRotated: false } },
+};
+export const MobileEditing: Story = { ...Mobile, args: { ...Mobile.args, editingTag: "shared" } };
+export const MobileDeletion: Story = { ...Mobile, args: { ...Mobile.args, deletion: "shared" } };
 export const Dark: Story = { globals: { theme: "dark" } };
+
+export const RemovedEditingTag: Story = { args: { tags: ["kept"], editingTag: "shared" } };
+export const RemovedDeletionTag: Story = { args: { tags: ["kept"], deletion: "shared" } };
