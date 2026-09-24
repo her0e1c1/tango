@@ -50,7 +50,6 @@ export function useCardEditPageModel(card: Card) {
       messageParams: { name: pending.frontText },
       tone: "success",
     });
-    setPending(undefined);
     void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
       navigate(cardListPath, { replace: true })
     );
