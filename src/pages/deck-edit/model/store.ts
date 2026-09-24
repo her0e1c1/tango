@@ -4,6 +4,7 @@ import type { Deck } from "@/entities/deck";
 
 interface PendingTagSave {
   deckId: string;
+  name: string;
   tags: string[];
   cards: { id: string; tags: string[] }[];
 }
