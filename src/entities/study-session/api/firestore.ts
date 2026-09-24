@@ -10,7 +10,12 @@ import {
   type WriteBatch,
 } from "firebase/firestore";
 import { db } from "@/shared/firebase";
-import { finishStudySessionLoading, getStudySession, replaceRemoteStudySessions, setStudySessionOwner } from "../model/store";
+import {
+  finishStudySessionLoading,
+  getStudySession,
+  replaceRemoteStudySessions,
+  setStudySessionOwner,
+} from "../model/store";
 import { compareStudySessionCreation, isStudySessionPositionUnchanged } from "../model/rules";
 import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionWrite } from "../model/types";
