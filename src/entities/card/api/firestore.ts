@@ -36,6 +36,8 @@ import { findDeckById } from "@/entities/deck/@x/card";
 
 const CARD_COLLECTION = "card";
 
+// Intentionally subscribe to tombstones instead of filtering `deletedAt` in the Firestore query.
+// This keeps cross-client deletions explicit in the replicated snapshot; hide tombstones only when publishing the store.
 export const subscribeCards = (uid: string, onError: (error: Error) => void, onReady?: () => void): (() => void) =>
   onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
