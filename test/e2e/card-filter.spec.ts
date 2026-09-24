@@ -183,7 +183,8 @@ test("CARD-FILTER-06 persists clearing to no tags and OR", async ({ fixture, pag
   await page.goto(`/deck/${deck.id}`);
   await expectList(page, ["new tagged card"]);
   await openFilters(page);
-  await page.getByRole("button", { name: "Clear filters", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Clear filters", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Clear", exact: true }).click();
   await expectSaved(deck.id, noFilter.selectedTags, noFilter.tagAndFilter);
   await page.reload();
   await expectList(page, mixedCards);
