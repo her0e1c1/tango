@@ -87,14 +87,16 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
     ...actual,
     startStudy: async ({ deckId, cardOrderIds, uid, now = Date.now() }: Parameters<typeof actual.startStudy>[0]) => {
       await Promise.resolve();
+      const sessionId = crypto.randomUUID();
       restoreStudySession({
-        sessionId: crypto.randomUUID(),
+        sessionId,
         deckId,
         cardOrderIds: [...cardOrderIds],
         currentIndex: 0,
         lastStudiedAt: now,
         remote: { uid, startedAt: now },
       });
+      return sessionId;
     },
     touchStudySession: async (deckId: string) => {
       await Promise.resolve();
