@@ -35,14 +35,26 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     vi.mocked(createDeck)
       .mockReset()
       .mockImplementation(async (uid, input) => {
-        deckStore.setState({ remoteDecks: [createDeckFixture({ ...input, uid })] });
+        deckStore.setState({ remoteDecks: [createDeckFixture({ id: input.id, name: input.name, uid })] });
       });
     vi.mocked(mutateCards)
       .mockReset()
       .mockImplementation(async (uid, mutations) => {
         cardStore.setState({
           remoteCards: mutations.flatMap((mutation) =>
-            mutation.kind === "create" ? [createCardFixture({ ...mutation.card, uid })] : []
+            mutation.kind === "create"
+              ? [
+                  createCardFixture({
+                    id: mutation.card.id,
+                    deckId: mutation.card.deckId,
+                    uid,
+                    frontText: mutation.card.frontText,
+                    backText: mutation.card.backText,
+                    tags: mutation.card.tags,
+                    uniqueKey: mutation.card.uniqueKey,
+                  }),
+                ]
+              : []
           ),
         });
       });
