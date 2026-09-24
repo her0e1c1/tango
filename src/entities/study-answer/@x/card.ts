@@ -1,1 +1,1 @@
-export type { StudyRating } from "../model/rating";
+export type { StudyRating } from "../model/schema";
