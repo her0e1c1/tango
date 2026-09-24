@@ -14,6 +14,7 @@ interface StudySessionPageState {
 }
 
 interface PendingStudyResult {
+  deckId: DeckId;
   sessionId: string;
   currentIndex: number;
   completed: boolean;
