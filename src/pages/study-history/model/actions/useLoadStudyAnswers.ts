@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { readStudyAnswerHistory } from "@/entities/study-answer";
+import { subscribeStudyAnswerHistory } from "@/entities/study-answer";
 import type { useStudyAnswerHistoryState } from "../useStudyAnswerHistoryState";
 
 export function useLoadStudyAnswers({
@@ -9,22 +9,30 @@ export function useLoadStudyAnswers({
   useEffect(() => {
     if (request.uid === null || request.period === null) return;
     let active = true;
-    void readStudyAnswerHistory({
-      uid: request.uid,
-      deckId: request.deckId,
-      from: request.period.start,
-      to: request.period.end,
-      limit: 1000,
-    }).then(
-      (history) => {
-        if (active) setResult({ request, history });
-      },
-      (error: unknown) => {
-        if (active) setResult({ request, error: error instanceof Error ? error : new Error(String(error)) });
-      }
-    );
+    const onError = (error: unknown) => {
+      if (active) setResult({ request, error: error instanceof Error ? error : new Error(String(error)) });
+    };
+    let stop: (() => void) | undefined;
+    try {
+      stop = subscribeStudyAnswerHistory(
+        {
+          uid: request.uid,
+          deckId: request.deckId,
+          from: request.period.start,
+          to: request.period.end,
+          limit: 1000,
+        },
+        (history) => {
+          if (active) setResult({ request, history });
+        },
+        onError
+      );
+    } catch (error) {
+      onError(error);
+    }
     return () => {
       active = false;
+      stop?.();
     };
   }, [request, setResult]);
 }

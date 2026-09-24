@@ -9,7 +9,6 @@ export {
 export type { StudySession } from "./model/types";
 export { clearStudySessions } from "./model/actions/clearStudySessions";
 export { getStudySession } from "./model/queries/getStudySession";
-export { removeStudySession } from "./model/actions/removeStudySession";
 export { touchStudySession } from "./api/firestore";
 export { subscribeStudySessions } from "./api/firestore";
 export { startStudy, moveStudySession, setStudySessionIndex, abandonStudySession } from "./api/firestore";

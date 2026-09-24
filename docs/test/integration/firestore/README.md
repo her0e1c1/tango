@@ -202,3 +202,4 @@
 | FIRESTORE-STUDY-HISTORY-01 | batch | 正常系 / 異常系 | [期間と Deck による履歴取得を cache と権限境界を含めて確認できる](./study-history.md#firestore-study-history-01) |
 | FIRESTORE-STUDY-HISTORY-02 | read | 正常系 / 異常系 | [回答履歴の期間・順序・上限・cacheを確認する](./study-history.md#firestore-study-history-02) |
 | FIRESTORE-STUDY-HISTORY-03 | read | 異常系 | [回答履歴の入力境界を検証する](./study-history.md#firestore-study-history-03) |
+| FIRESTORE-STUDY-HISTORY-04 | batch | 正常系 | [回答の追加と同期状態を購読で受け取り解除後は更新しない](./study-history.md#firestore-study-history-04) |

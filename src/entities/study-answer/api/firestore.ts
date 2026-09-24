@@ -4,8 +4,7 @@ import {
   type WriteBatch,
   collection,
   documentId,
-  getDocs,
-  getDocsFromCache,
+  onSnapshot,
   limit,
   orderBy,
   query,
@@ -67,7 +66,11 @@ export interface StudyAnswerHistory {
   hasPendingWrites: boolean;
 }
 
-export async function readStudyAnswerHistory(input: z.infer<typeof inputSchema>): Promise<StudyAnswerHistory> {
+export function subscribeStudyAnswerHistory(
+  input: z.infer<typeof inputSchema>,
+  onHistory: (history: StudyAnswerHistory) => void,
+  onError: (error: Error) => void
+): () => void {
   const { uid, from, to, deckId, limit: maximum } = inputSchema.parse(input);
   const user = auth.currentUser;
   if (!user || user.uid !== uid) throw new Error("History owner is not the current user");
@@ -81,31 +84,39 @@ export async function readStudyAnswerHistory(input: z.infer<typeof inputSchema>)
     orderBy(documentId(), "desc"),
     limit(maximum + 1)
   );
-  const snapshot = await (user.isAnonymous ? getDocsFromCache(request) : getDocs(request));
-  if (auth.currentUser !== user) throw new Error("History owner changed during read");
-  let invalidCount = 0;
-  const records = snapshot.docs.slice(0, maximum).flatMap((document) => {
-    const parsed = studyAnswerDocumentSchema.safeParse(document.data());
-    if (!parsed.success) {
-      invalidCount += 1;
-      return [];
+  return onSnapshot(
+    request,
+    { includeMetadataChanges: true, source: user.isAnonymous ? "cache" : "default" },
+    (snapshot) => {
+      if (auth.currentUser !== user) return;
+      let invalidCount = 0;
+      const records = snapshot.docs.slice(0, maximum).flatMap((document) => {
+        const parsed = studyAnswerDocumentSchema.safeParse(document.data());
+        if (!parsed.success) {
+          invalidCount += 1;
+          return [];
+        }
+        const value = parsed.data;
+        return [
+          {
+            id: document.id,
+            deckId: value.deckId,
+            sessionId: value.sessionId,
+            answeredAt: value.answeredAt.seconds * 1000 + value.answeredAt.nanoseconds / 1_000_000,
+            rating: value.answer.rating,
+          },
+        ];
+      });
+      onHistory({
+        records,
+        source: snapshot.metadata.fromCache ? "cache" : "server",
+        truncated: snapshot.size > maximum,
+        invalidCount,
+        hasPendingWrites: snapshot.metadata.hasPendingWrites,
+      });
+    },
+    (error) => {
+      if (auth.currentUser === user) onError(error);
     }
-    const value = parsed.data;
-    return [
-      {
-        id: document.id,
-        deckId: value.deckId,
-        sessionId: value.sessionId,
-        answeredAt: value.answeredAt.seconds * 1000 + value.answeredAt.nanoseconds / 1_000_000,
-        rating: value.answer.rating,
-      },
-    ];
-  });
-  return {
-    records,
-    source: snapshot.metadata.fromCache ? "cache" : "server",
-    truncated: snapshot.size > maximum,
-    invalidCount,
-    hasPendingWrites: snapshot.metadata.hasPendingWrites,
-  };
+  );
 }

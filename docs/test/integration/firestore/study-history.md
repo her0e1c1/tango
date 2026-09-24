@@ -16,6 +16,7 @@ StudySession の開始・完了履歴と回答履歴を、期間・Deck・所有
 | FIRESTORE-STUDY-HISTORY-01 | batch | 正常系 / 異常系 | [期間と Deck による履歴取得を cache と権限境界を含めて確認できる](#firestore-study-history-01) |
 | FIRESTORE-STUDY-HISTORY-02 | read | 正常系 / 異常系 | [回答履歴の期間・順序・上限・cacheを確認する](#firestore-study-history-02) |
 | FIRESTORE-STUDY-HISTORY-03 | read | 異常系 | [回答履歴の入力境界を検証する](#firestore-study-history-03) |
+| FIRESTORE-STUDY-HISTORY-04 | batch | 正常系 | [回答の追加と同期状態を購読で受け取り解除後は更新しない](#firestore-study-history-04) |
 
 <a id="firestore-study-history-01"></a>
 
@@ -85,7 +86,7 @@ Given:
 
 When:
 
-- 公開された回答履歴の取得操作へ、対象の期間・Deck・上限を指定する。
+- 公開された回答履歴の購読操作へ、対象の期間・Deck・上限を指定する。
 
 Then:
 
@@ -115,9 +116,35 @@ Given:
 
 When:
 
-- 公開された回答履歴の取得操作へ、対象の不正条件を指定する。
+- 公開された回答履歴の購読操作へ、対象の不正条件を指定する。
 
 Then:
 
 - 入力を拒否し、正常な取得結果として返さない。
 - この拒否は Adapter の入力検証であり、Rules の認可成功・失敗を保証するものではない。
+
+<a id="firestore-study-history-04"></a>
+
+### FIRESTORE-STUDY-HISTORY-04 回答の追加と同期状態を購読で受け取り解除後は更新しない
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- 本人の対象 Deck と期間に回答はなく、上限10件で購読している。
+- 同じ本人 UID の別クライアントからも回答を保存できる。
+
+When:
+
+- オフラインで公開された回答保存操作を使って good の回答を1件保存し、再接続する。
+- 別クライアントから同じ範囲に easy の回答を追加する。
+- 購読を解除してから、別クライアントから同じ範囲に again の回答を追加する。
+
+Then:
+
+- 最初は server の0件が届き、オフラインの保存は cache の1件かつ未同期として届く。
+- 再接続後は同じ1件が server かつ同期済みとなる。回答内容が同じでも同期状態の変化を通知する。
+- 購読し直さず、別クライアントの追加を含む2件が表示される。
+- 解除後に受信側の独立した監視が server の again を確認した時点でも、解除済みの購読には通知が増えず good と easy の2件の結果が残る。
