@@ -17,7 +17,7 @@ async function readCard(id: string) {
 }
 
 async function rename(page: Page, name: string) {
-  await row(page, "shared").getByRole("button", { name: "Rename", exact: true }).click();
+  await row(page, "shared").getByRole("button", { name: "Rename shared", exact: true }).click();
   await section(page).getByRole("textbox", { name: "New name", exact: true }).fill(name);
   await section(page).getByRole("button", { name: "Save name", exact: true }).click();
 }
@@ -29,9 +29,60 @@ async function saved(page: Page) {
 test("DECK-TAG-MANAGEMENT-01 lists legacy Card tags once within their Deck", async ({ fixture, page }) => {
   await fixture.apply(page);
   await page.goto(`/deck/${fixture.deck("deck-target").id}/edit`);
-  await expect(section(page).getByRole("listitem")).toHaveText(["sharedRenameDelete tag", "keptRenameDelete tag"]);
+  await expect(section(page).getByRole("listitem")).toHaveText(["sharedUsed by 2 cards", "keptUsed by 1 card"]);
   await expect(row(page, "other-only")).toHaveCount(0);
 });
+
+test("DECK-TAG-MANAGEMENT-01 keeps icon actions directly accessible on a narrow screen", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  const deck = fixture.deck("deck-target");
+  const longTag = "A-long-tag-name-without-spaces-that-needs-to-wrap-on-a-small-phone";
+  await setDocument("deck", deck.id, { ...deck, deletedAt: null, tags: [longTag] });
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto(`/deck/${deck.id}/edit`);
+  await expect(row(page, longTag)).toContainText("Used by 0 cards");
+  for (const name of [longTag, "shared", "kept"]) {
+    const tagRow = row(page, name);
+    for (const action of [`Rename ${name}`, `Delete tag ${name}`]) {
+      const button = tagRow.getByRole("button", { name: action, exact: true });
+      await expect(button).toBeEnabled();
+      await expect(button).toHaveText("");
+      const bounds = await button.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds?.width).toBeGreaterThanOrEqual(48);
+      expect(bounds?.height).toBeGreaterThanOrEqual(48);
+      expect((bounds?.x ?? 0) + (bounds?.width ?? 0)).toBeLessThanOrEqual(320);
+    }
+  }
+  await row(page, longTag)
+    .getByRole("button", { name: `Rename ${longTag}`, exact: true })
+    .click();
+  await expect(row(page, longTag).getByRole("textbox", { name: "New name", exact: true })).toBeFocused();
+  await section(page).getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(row(page, longTag).getByRole("button", { name: `Rename ${longTag}`, exact: true })).toBeFocused();
+});
+
+for (const action of ["Rename shared", "Delete tag shared"]) {
+  test(`DECK-TAG-MANAGEMENT-18 recovers when the active tag disappears after ${action}`, async ({ fixture, page }) => {
+    await fixture.apply(page);
+    const deck = fixture.deck("deck-target");
+    await page.goto(`/deck/${deck.id}/edit`);
+    await row(page, "shared").getByRole("button", { name: action, exact: true }).click();
+    for (const card of fixture.state.remote.cards.filter((candidate) => candidate.deckId === deck.id)) {
+      await setDocument("card", card.id, {
+        ...card,
+        tags: card.tags.filter((tag) => tag !== "shared"),
+        deletedAt: null,
+      });
+    }
+    await expect(row(page, "shared")).toHaveCount(0);
+    const cancel = section(page).getByRole("button", { name: "Cancel", exact: true });
+    await expect(cancel).toBeFocused();
+    await cancel.click();
+    await expect(section(page).getByRole("button", { name: "Add tag", exact: true })).toBeEnabled();
+    await expect(row(page, "kept").getByRole("button", { name: "Rename kept", exact: true })).toBeEnabled();
+  });
+}
 
 test("DECK-TAG-MANAGEMENT-02 shows an empty list with an available add action", async ({ fixture, page }) => {
   await fixture.apply(page);
@@ -157,8 +208,10 @@ test("DECK-TAG-MANAGEMENT-09 deletes only the target tag and retains every Card"
   const cards = fixture.state.remote.cards;
   const before = await Promise.all(cards.map((card) => readCard(card.id)));
   await page.goto(`/deck/${fixture.deck("deck-target").id}/edit`);
-  await row(page, "shared").getByRole("button", { name: "Delete tag" }).click();
-  const dialog = page.getByRole("alertdialog", { name: "Delete tag?" });
+  await row(page, "shared").getByRole("button", { name: "Delete tag shared", exact: true }).click();
+  const dialog = page.getByRole("group", { name: "Delete tag?" });
+  await expect(row(page, "shared").getByRole("group", { name: "Delete tag?" })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeFocused();
   await expect(dialog).toContainText("The cards and their other tags will remain.");
   await dialog.getByRole("button", { name: "Delete tag" }).click();
   await saved(page);
@@ -185,10 +238,11 @@ test("DECK-TAG-MANAGEMENT-10 cancels deletion without changing tags or Cards", a
   const cardId = fixture.card("card-target-first").id;
   const before = await readCard(cardId);
   await page.goto(`/deck/${fixture.deck("deck-target").id}/edit`);
-  await row(page, "shared").getByRole("button", { name: "Delete tag" }).click();
-  const dialog = page.getByRole("alertdialog", { name: "Delete tag?" });
+  await row(page, "shared").getByRole("button", { name: "Delete tag shared", exact: true }).click();
+  const dialog = page.getByRole("group", { name: "Delete tag?" });
   await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(dialog).toHaveCount(0);
+  await expect(row(page, "shared").getByRole("button", { name: "Delete tag shared", exact: true })).toBeFocused();
   await expect(row(page, "shared")).toBeVisible();
   expect(await readCard(cardId)).toEqual(before);
 });
@@ -241,9 +295,11 @@ async function addTag(page: Page, name: string) {
 }
 
 async function deleteTag(page: Page, name: string) {
-  await row(page, name).getByRole("button", { name: "Delete tag", exact: true }).click();
+  await row(page, name)
+    .getByRole("button", { name: `Delete tag ${name}`, exact: true })
+    .click();
   await page
-    .getByRole("alertdialog", { name: "Delete tag?" })
+    .getByRole("group", { name: "Delete tag?" })
     .getByRole("button", { name: "Delete tag", exact: true })
     .click();
   await expect(row(page, name)).toHaveCount(0);
@@ -357,7 +413,7 @@ test("DECK-TAG-MANAGEMENT-15 manages anonymous tags locally across an offline re
   allowOfflineErrors(browserErrors);
   await context.setOffline(true);
   await addTag(page, "kept");
-  await row(page, "math").getByRole("button", { name: "Rename", exact: true }).click();
+  await row(page, "math").getByRole("button", { name: "Rename math", exact: true }).click();
   await section(page).getByRole("textbox", { name: "New name", exact: true }).fill("renamed");
   await section(page).getByRole("button", { name: "Save name", exact: true }).click();
   await expect(row(page, "renamed")).toBeVisible();

@@ -13,6 +13,7 @@ import { requestTagDeletion } from "./actions/requestTagDeletion";
 import { saveTag } from "./actions/saveTag";
 import { submitTagName } from "./actions/submitTagName";
 import { getManagedTags } from "./queries/getManagedTags";
+import { getTagUsageCounts } from "./queries/getTagUsageCounts";
 import { useTagFormState } from "./useTagFormState";
 
 import { cancelDeletion } from "./actions/cancelDeletion";
@@ -37,7 +38,9 @@ export function useDeckEditPageModel(deck: Deck) {
   const deletionTarget = useStore(deckEditPageStore, (state) => state.deletionTarget);
   const deletionPending = useStore(deckEditPageStore, (state) => state.deletionId !== undefined);
   const { addForm, renameForm } = useTagFormState();
-  const tags = getManagedTags(useDeck(deck.id), useCardsByDeckId(deck.id).cards);
+  const { cards } = useCardsByDeckId(deck.id);
+  const tags = getManagedTags(useDeck(deck.id), cards);
+  const usageCounts = getTagUsageCounts(cards);
   const hasTagDraft = addForm.formState.isDirty || renameForm.formState.isDirty;
   const tagPending = useStore(deckEditPageStore, (state) => state.tagMutation !== undefined);
   const tagError = useStore(deckEditPageStore, (state) => state.tagError);
@@ -65,6 +68,7 @@ export function useDeckEditPageModel(deck: Deck) {
     form,
     categories: CATEGORY,
     tags,
+    usageCounts,
     addTagForm: addForm,
     renameTagForm: renameForm,
     editingTag,

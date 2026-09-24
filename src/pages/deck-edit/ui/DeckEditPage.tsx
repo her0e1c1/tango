@@ -45,6 +45,7 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
           <>
             <TagManagement
               tags={model.tags}
+              usageCounts={model.usageCounts}
               addForm={model.addTagForm}
               renameForm={model.renameTagForm}
               editingTag={model.editingTag}
