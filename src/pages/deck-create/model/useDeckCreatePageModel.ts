@@ -22,11 +22,6 @@ export function useDeckCreatePageModel() {
   const guard = useNavigationGuard(form.formState.isDirty || pending);
   useResetStoreOnMount(deckCreatePageStore);
 
-  function openCreatedDeck(deckId: DeckId): void {
-    const to = routes.cardList.to(deckId);
-    void guard.allowNavigation({ historyAction: "REPLACE", to }, () => navigate(to, { replace: true }));
-  }
-
   const onSubmit = form.handleSubmit(async (values) => {
     const submitted = await submitDeckCreation(values);
     if (submitted !== undefined && isMounted()) setTarget(submitted);
@@ -36,9 +31,9 @@ export function useDeckCreatePageModel() {
     if (deckCreatePageStore.getState().mutationId !== target.mutationId) return;
     deckCreatePageStore.setState({ mutationId: undefined });
     showToast({ messageKey: "deckForm.toast.created", messageParams: { name: target.name }, tone: "success" });
-    setTarget(undefined);
-    openCreatedDeck(target.deckId);
-  }, [createdDeck, openCreatedDeck, target]);
+    const to = routes.cardList.to(target.deckId);
+    void guard.allowNavigation({ historyAction: "REPLACE", to }, () => navigate(to, { replace: true }));
+  }, [createdDeck, guard, navigate, target]);
 
   return {
     categories: CATEGORY,
