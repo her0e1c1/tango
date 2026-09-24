@@ -5,7 +5,13 @@ export {
   selectStudyCardsWithDeadline,
 } from "./model/rules";
 export type { StudySession } from "./model/types";
-export { clearStudySessions, getStudySession, useRemoteStudySessionsLoading, useStudySession, useStudySessions } from "./model/store";
+export {
+  clearStudySessions,
+  getStudySession,
+  useRemoteStudySessionsLoading,
+  useStudySession,
+  useStudySessions,
+} from "./model/store";
 export { touchStudySession } from "./api/firestore";
 export { subscribeStudySessions } from "./api/firestore";
 export { startStudy, moveStudySession, setStudySessionIndex, abandonStudySession } from "./api/firestore";

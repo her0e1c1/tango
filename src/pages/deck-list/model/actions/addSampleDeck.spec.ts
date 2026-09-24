@@ -95,4 +95,3 @@ describe("addSampleDeck [DECK-IMPORT-07]", () => {
     expect(repository.cards.every((card) => card.deckId === `${repository.uid}-sample-v1`)).toBe(true);
   });
 });
-

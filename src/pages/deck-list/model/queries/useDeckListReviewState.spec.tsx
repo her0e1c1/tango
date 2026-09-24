@@ -137,4 +137,3 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
     expect(result.current.other.every((item) => item.review === undefined)).toBe(true);
   });
 });
-

@@ -15,7 +15,12 @@ import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionWrite } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
 import { getAuthUid } from "@/entities/auth/@x/study-session";
-import { finishStudySessionLoading, getStudySession, replaceRemoteStudySessions, setStudySessionOwner } from "../model/store";
+import {
+  finishStudySessionLoading,
+  getStudySession,
+  replaceRemoteStudySessions,
+  setStudySessionOwner,
+} from "../model/store";
 
 function createStudySession(session: StudySession, previous?: StudySession): Promise<void> {
   const value = studySessionSchema.parse(session);
