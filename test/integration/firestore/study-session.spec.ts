@@ -205,7 +205,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     cardStore.setState({
       remoteCards: [...cards.map((card) => createCard({ ...card, uid: "uid", deckId })), ...otherCards],
     });
-    expect(await startStudySession(deck.id, deck)).toBe(true);
+    expect(await startStudySession(deck.id, deck)).toEqual(expect.any(String));
     await waitForCloud(() => expect(getStudySession(deckId)).toBeDefined());
     await setStudySessionIndex(deckId, 1);
     await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
@@ -217,11 +217,11 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect(getStudySession(deckId)).toBeUndefined();
     stop = subscribeStudySessions("uid", vi.fn());
     await vi.waitFor(() => expect(getStudySession(deckId)?.currentIndex).toBe(previous?.currentIndex));
-    expect(await startStudySession(otherDeck.id, otherDeck)).toBe(true);
+    expect(await startStudySession(otherDeck.id, otherDeck)).toEqual(expect.any(String));
     await waitForCloud(() =>
       expect(getStudySession(otherDeck.id)?.cardOrderIds).toEqual(otherCards.map(({ id }) => id))
     );
-    expect(await startStudySession(deck.id, deck)).toBe(true);
+    expect(await startStudySession(deck.id, deck)).toEqual(expect.any(String));
     await waitForCloud(() => expect(getStudySession(deckId)?.sessionId).not.toBe(previous?.sessionId));
     const restarted = getStudySession(deckId);
     expect(restarted?.sessionId).not.toBe(previous?.sessionId);
