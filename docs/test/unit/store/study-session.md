@@ -13,7 +13,7 @@
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
 | UNIT-STORE-STUDY-01 | state-change | 正常系 | [デックごとの学習の続きが互いに混ざらない](#unit-store-study-01) |
-| UNIT-STORE-STUDY-02 | state-change | 正常系 | [指定したデックだけ学習の続きから除外する](#unit-store-study-02) |
+| UNIT-STORE-STUDY-02 | state-change | 正常系 | [最新の取得結果にないデックを学習の続きから除外する](#unit-store-study-02) |
 | UNIT-STORE-STUDY-03 | scope-reset | 正常系 | [学習中の情報をクリアしても旧バックアップを失わない](#unit-store-study-03) |
 | UNIT-STORE-STUDY-04 | scope-reset | 正常系 | [所有者を変更したら一致しない学習の続きを提供しない](#unit-store-study-04) |
 | UNIT-STORE-STUDY-05 | state-change | 正常系 | [最新の取得結果に学習の続きを切り替えて取得待ちを終了する](#unit-store-study-05) |
@@ -41,7 +41,7 @@ Then:
 
 <a id="unit-store-study-02"></a>
 
-### UNIT-STORE-STUDY-02 [TODO] 指定したデックだけ学習の続きから除外する
+### UNIT-STORE-STUDY-02 最新の取得結果にないデックを学習の続きから除外する
 
 カテゴリ: `state-change`
 
@@ -53,11 +53,11 @@ Given:
 
 When:
 
-A のセッションを削除する場合と、存在しない C のセッションを削除する場合を、それぞれ同じ変更前の状態から実行する。
+B のセッションだけを含む最新の取得結果を反映する。
 
 Then:
 
-A を削除した場合は A だけが取得できなくなり、B の内容は変更されない。C を削除した場合は失敗せず、A と B の内容はどちらも変更されない。
+A だけが取得できなくなり、B の識別子・カード順・学習位置・最終学習時刻は変更されない。
 
 <a id="unit-store-study-03"></a>
 

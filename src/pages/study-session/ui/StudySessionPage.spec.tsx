@@ -28,7 +28,7 @@ const mocks = vi.hoisted(() => ({
     | undefined,
   preferences: null as unknown as Preferences,
   persistOperation: vi.fn(),
-  removeStudySession: vi.fn(),
+  abandonStudySession: vi.fn(),
   setDarkMode: vi.fn(),
   touchStudySession: vi.fn(),
   toggleViewMode: vi.fn(),
@@ -69,9 +69,9 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/study-session")>();
   return {
     ...original,
-    removeStudySession: (...args: Parameters<typeof original.removeStudySession>) => {
-      mocks.removeStudySession(...args);
-      original.removeStudySession(...args);
+    abandonStudySession: (...args: Parameters<typeof original.abandonStudySession>) => {
+      mocks.abandonStudySession(...args);
+      return original.abandonStudySession(...args);
     },
     touchStudySession: (...args: Parameters<typeof original.touchStudySession>) => {
       mocks.touchStudySession(...args);
@@ -141,7 +141,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.persistOperation.mockReset().mockResolvedValue(undefined);
-    mocks.removeStudySession.mockReset();
+    mocks.abandonStudySession.mockReset();
     mocks.setDarkMode.mockReset();
     mocks.touchStudySession.mockReset();
     mocks.toggleViewMode.mockReset();
@@ -456,7 +456,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
-    expect(mocks.removeStudySession).not.toHaveBeenCalled();
+    expect(mocks.abandonStudySession).not.toHaveBeenCalled();
   });
 
   it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
@@ -662,7 +662,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     renderPage("/deck/missing-deck/study");
 
     expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
-    expect(mocks.removeStudySession).not.toHaveBeenCalled();
+    expect(mocks.abandonStudySession).not.toHaveBeenCalled();
     expect(mocks.touchStudySession).not.toHaveBeenCalled();
   });
 

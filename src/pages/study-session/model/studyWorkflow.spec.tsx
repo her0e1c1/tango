@@ -108,10 +108,12 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(mocks.persistOperation).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }));
   });
 
-  it("reports preparing while the session card is not available", () => {
+  it("preserves the session while the Card cache is empty", () => {
     mocks.cards = [];
+    const session = getStudySession(deckId);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     expect(result.current.query.status).toBe("preparing");
+    expect(getStudySession(deckId)).toEqual(session);
   });
 
   it("reports persisted control visibility and playback availability", () => {
@@ -136,9 +138,8 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     });
   });
 
-  it("reports invalid when the session has no current card", async () => {
+  it("reports invalid when no active session exists", async () => {
     clearStudySessions();
-    startStudy(deckId, [], { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
     mocks.cards = [];
 
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
@@ -179,12 +180,13 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
   });
 
-  it("reports an invalid session and removes it", async () => {
-    clearStudySessions();
+  it("preserves resumable progress when the current Card is absent from a partial cache", () => {
+    mocks.cards = cards.slice(1);
+    const session = getStudySession(deckId);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
     expect(result.current.query.status).toBe("invalid");
-    await waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
+    expect(getStudySession(deckId)).toEqual(session);
   });
 
   it("keeps local progression when server acknowledgement fails", async () => {

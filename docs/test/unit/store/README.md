@@ -20,7 +20,7 @@
 | UNIT-STORE-PREF-08 | Preference | 異常系 | [読み込めない保存設定でも初期設定で利用を開始できる](./preference.md#unit-store-pref-08) |
 | UNIT-STORE-PREF-09 | Preference | 正常系 | [確定したタグ選択は入力元の後編集で変わらない](./preference.md#unit-store-pref-09) |
 | UNIT-STORE-STUDY-01 | Study Session | 正常系 | [デックごとの学習の続きが互いに混ざらない](./study-session.md#unit-store-study-01) |
-| UNIT-STORE-STUDY-02 | Study Session | 正常系 | [指定したデックだけ学習の続きから除外する](./study-session.md#unit-store-study-02) |
+| UNIT-STORE-STUDY-02 | Study Session | 正常系 | [最新の取得結果にないデックを学習の続きから除外する](./study-session.md#unit-store-study-02) |
 | UNIT-STORE-STUDY-03 | Study Session | 正常系 | [学習中の情報をクリアしても旧バックアップを失わない](./study-session.md#unit-store-study-03) |
 | UNIT-STORE-STUDY-04 | Study Session | 正常系 | [所有者を変更したら一致しない学習の続きを提供しない](./study-session.md#unit-store-study-04) |
 | UNIT-STORE-STUDY-05 | Study Session | 正常系 | [最新の取得結果に学習の続きを切り替えて取得待ちを終了する](./study-session.md#unit-store-study-05) |

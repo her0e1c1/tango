@@ -6,8 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { clearStudySessions } from "./actions/clearStudySessions";
 import { getStudySession } from "./queries/getStudySession";
-import { removeStudySession } from "./actions/removeStudySession";
-import { startStudy } from "@/test/entityFixtures";
+import { replaceRemoteStudySessions } from "./actions/replaceRemoteStudySessions";
+import { startStudy, restoreStudySession } from "@/test/entityFixtures";
 import { studySessionStore } from "./store";
 
 const STUDY_STORAGE_KEY = "tango-study";
@@ -64,15 +64,22 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     });
   });
 
-  it("removes only the requested session", () => {
+  it("[UNIT-STORE-STUDY-02] removes sessions absent from the latest snapshot while retaining other progress", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
     startSession("deck-1", ["card-1"]);
-    startSession("deck-2", ["card-2"]);
+    vi.setSystemTime(2000);
+    startSession("deck-2", ["card-2", "card-3"]);
+    const second = getStudySession("deck-2");
+    if (!second) throw new Error("Missing second session");
+    restoreStudySession({ ...second, currentIndex: 1 });
+    const retained = getStudySession("deck-2");
+    if (!retained) throw new Error("Missing retained session");
 
-    removeStudySession("deck-1");
+    replaceRemoteStudySessions([retained]);
 
-    expect(store.getState().sessionsByDeckId).toEqual({
-      "deck-2": expect.objectContaining({ deckId: "deck-2" }),
-    });
+    expect(getStudySession("deck-1")).toBeUndefined();
+    expect(getStudySession("deck-2")).toEqual(retained);
   });
 
   it("clears the visible session without deleting the legacy backup", () => {
