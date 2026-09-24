@@ -35,7 +35,8 @@ const readActiveRemoteDeck = (id: DeckId, value: unknown) => {
   return document.deletedAt === null ? toDeck(id, document) : undefined;
 };
 
-// Subscribes the remote Deck store to active documents owned by one user.
+// Intentionally subscribe to tombstones instead of filtering `deletedAt` in the Firestore query.
+// This keeps cross-client deletions explicit in the replicated snapshot; hide tombstones only when publishing the store.
 export const subscribeDecks = (uid: string, onError: (error: Error) => void, onReady?: () => void): (() => void) =>
   onSnapshot(
     query(collection(db, DECK_COLLECTION), where("uid", "==", uid)),
