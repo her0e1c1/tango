@@ -1,20 +1,31 @@
 import type { z } from "zod";
 import type { DeckId, RemoteDeckCreateInput } from "../model/types";
-
-import { collection, deleteField, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
-
+import {
+  collection,
+  deleteField,
+  doc,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+  getDocFromCache,
+  type WriteBatch,
+} from "firebase/firestore";
 import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
   authenticatedUidSchema,
   createDeckSchema,
-  type deckEditSchema,
+  deckEditSchema,
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
 import { replaceRemoteDecks } from "../model/actions/replaceRemoteDecks";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
+import { abandonStudySession } from "@/entities/study-session/@x/deck";
+import { findDeckById } from "../model/queries/findDeckById";
 
 const DECK_COLLECTION = "deck";
 
@@ -95,3 +106,36 @@ export const deleteDeck = async (uid: string, deckId: DeckId): Promise<void> => 
   const id = deckIdSchema.parse(deckId);
   await deleteDeckDocuments(userId, id);
 };
+function requireOwnedDeck(uid: string, id: DeckId): void {
+  authenticatedUidSchema.parse(uid);
+  const deck = findDeckById(id);
+  if (deck === undefined) throw new Error(`Deck "${id}" was not found`);
+  if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
+}
+
+export async function editOwnedDeck(uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> {
+  requireOwnedDeck(uid, deck.id);
+  await editDeck(uid, deckEditSchema.parse(deck));
+}
+
+export async function deleteOwnedDeck(uid: string, id: DeckId): Promise<void> {
+  requireOwnedDeck(uid, id);
+  await deleteDeck(uid, id);
+  await abandonStudySession(id);
+}
+
+export async function readDeckTags(uid: string, deckId: string): Promise<string[]> {
+  authenticatedUidSchema.parse(uid);
+  deckIdSchema.parse(deckId);
+  const snapshot = await getDocFromCache(doc(db, "deck", deckId));
+  const deck = parseDeckDocument(deckId, snapshot.data());
+  if (deck.uid !== uid || deck.deletedAt !== null) throw new Error("Deck is unavailable");
+  return deck.tags ?? [];
+}
+
+// The caller validates the current cached Deck before preparing this batch.
+export function writeDeckTags(batch: WriteBatch, deckId: string, tags: string[]) {
+  const reference = doc(db, "deck", deckId);
+  batch.update(reference, { tags, updatedAt: Date.now() });
+  return reference;
+}

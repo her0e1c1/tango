@@ -1,7 +1,7 @@
+import { generateId } from "@/shared/lib/generateId";
 import { ImportFailure } from "../../lib/importFailure";
 import { getAuthUid } from "@/entities/auth";
-import { generateCardId, type CardMutation } from "@/entities/card";
-import { generateDeckId } from "@/entities/deck";
+import type { CardMutation } from "@/entities/card";
 import { parseCsv, type DeckImportRow } from "../../lib/cardCsv";
 import { deckImportStore } from "../store";
 import type { PreparedDeckImport } from "./executePreparedDeckImport";
@@ -14,9 +14,9 @@ interface DeckImportSource {
 function prepareDeckImport({ name, rows }: DeckImportSource, uid: string): PreparedDeckImport {
   if (uid === "") throw new ImportFailure("authentication");
 
-  const deckId = generateDeckId();
+  const deckId = generateId();
   const mutations = rows.map((row): CardMutation => {
-    const cardFields = { ...row.card, id: generateCardId(), deckId };
+    const cardFields = { ...row.card, id: generateId(), deckId };
     return { kind: "create", card: cardFields };
   });
 

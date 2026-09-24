@@ -13,7 +13,6 @@ import type {
 
 /** Firestore-backed Card data whose ownership and deletion metadata must remain at the Entity boundary. */
 export type RemoteCard = z.infer<typeof cardSchema>;
-export type CardDocumentFields = Omit<RemoteCard, "id">;
 export type Card = RemoteCard;
 /** Shared create/edit content without identity or persistence metadata. */
 export type CardContentInput = z.infer<typeof cardContentInputSchema>;

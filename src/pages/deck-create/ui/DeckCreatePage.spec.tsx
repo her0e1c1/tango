@@ -14,7 +14,7 @@ import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 const mocks = vi.hoisted(() => ({
   uid: "user-id",
   createDeck: vi.fn(),
-  generateDeckId: vi.fn(),
+  generateId: vi.fn(),
   preferences: null as unknown as Preferences,
   setDarkMode: vi.fn(),
 }));
@@ -25,8 +25,9 @@ vi.mock("@/entities/auth", () => ({
 }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/entities/deck")>();
-  return { ...original, createDeck: mocks.createDeck, generateDeckId: mocks.generateDeckId };
+  return { ...original, createDeck: mocks.createDeck };
 });
+vi.mock("@/shared/lib/generateId", () => ({ generateId: mocks.generateId }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
@@ -75,7 +76,7 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     dismissToast();
     mocks.uid = "user-id";
     mocks.createDeck.mockReset().mockResolvedValue(undefined);
-    mocks.generateDeckId.mockReset().mockReturnValue("new-deck");
+    mocks.generateId.mockReset().mockReturnValue("new-deck");
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
   });
@@ -171,7 +172,7 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(category).toHaveValue("typescript");
     expect(sourceUrl).toHaveValue("https://example.com/failed.csv");
     expect(convertLineBreaks).toBeChecked();
-    expect(mocks.generateDeckId).toHaveBeenCalledOnce();
+    expect(mocks.generateId).toHaveBeenCalledOnce();
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: "new-deck",
 

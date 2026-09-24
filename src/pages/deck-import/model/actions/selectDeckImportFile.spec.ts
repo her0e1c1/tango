@@ -1,17 +1,19 @@
+import { generateId } from "@/shared/lib/generateId";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getAuthUid } from "@/entities/auth";
-import { generateCardId, mutateCards } from "@/entities/card";
-import { generateDeckId, createDeck } from "@/entities/deck";
+import { mutateCards } from "@/entities/card";
+import { createDeck } from "@/entities/deck";
 import { parseCsv } from "../../lib/cardCsv";
 import { deckImportStore } from "../store";
 import { selectDeckImportFile } from "./selectDeckImportFile";
 import { importDeckPreview } from "./importDeckPreview";
 
+vi.mock("@/shared/lib/generateId", () => ({ generateId: vi.fn() }));
 vi.mock("@/entities/auth", () => ({ getAuthUid: vi.fn() }));
 vi.mock("../../lib/cardCsv", () => ({ parseCsv: vi.fn() }));
 vi.mock("@/shared/ui/toast", () => ({ showToast: vi.fn() }));
-vi.mock("@/entities/card", () => ({ generateCardId: vi.fn(), mutateCards: vi.fn() }));
-vi.mock("@/entities/deck", () => ({ generateDeckId: vi.fn(), createDeck: vi.fn() }));
+vi.mock("@/entities/card", () => ({ mutateCards: vi.fn() }));
+vi.mock("@/entities/deck", () => ({ createDeck: vi.fn() }));
 
 describe("Deck import selection and saving [IMPORT-01 IMPORT-03 IMPORT-04]", () => {
   const row = {
@@ -28,8 +30,7 @@ describe("Deck import selection and saving [IMPORT-01 IMPORT-03 IMPORT-04]", () 
     vi.mocked(parseCsv).mockReset().mockResolvedValue({ rows, skippedRows: [], issues: [], invalidCount: 0 });
     vi.mocked(createDeck).mockReset();
     vi.mocked(mutateCards).mockReset();
-    vi.mocked(generateDeckId).mockReset().mockReturnValue("deck");
-    vi.mocked(generateCardId).mockReset().mockReturnValue("card");
+    vi.mocked(generateId).mockReset().mockReturnValueOnce("deck").mockReturnValue("card");
   });
 
   it.each([[0x82, 0xa0], [0xc3], [0xc0, 0xaf], [0xed, 0xa0, 0x80]])(
@@ -71,8 +72,12 @@ describe("Deck import selection and saving [IMPORT-01 IMPORT-03 IMPORT-04]", () 
   });
 
   it("saves same-name selections with distinct Deck and Card identities", async () => {
-    vi.mocked(generateDeckId).mockReturnValueOnce("deck-1").mockReturnValueOnce("deck-2");
-    vi.mocked(generateCardId).mockReturnValueOnce("card-1").mockReturnValueOnce("card-2");
+    vi.mocked(generateId)
+      .mockReset()
+      .mockReturnValueOnce("deck-1")
+      .mockReturnValueOnce("card-1")
+      .mockReturnValueOnce("deck-2")
+      .mockReturnValueOnce("card-2");
 
     await selectDeckImportFile(file("same.csv"));
     await expect(importDeckPreview()).resolves.toBe(true);
@@ -89,8 +94,7 @@ describe("Deck import selection and saving [IMPORT-01 IMPORT-03 IMPORT-04]", () 
 
   it("imports using the anonymous UID", async () => {
     vi.mocked(getAuthUid).mockReturnValue("anonymous-uid");
-    vi.mocked(generateDeckId).mockReturnValue("local-deck");
-    vi.mocked(generateCardId).mockReturnValue("local-card");
+    vi.mocked(generateId).mockReset().mockReturnValueOnce("local-deck").mockReturnValue("local-card");
 
     await selectDeckImportFile(file("local.csv"));
     await expect(importDeckPreview()).resolves.toBe(true);
