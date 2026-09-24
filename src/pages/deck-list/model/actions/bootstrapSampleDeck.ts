@@ -1,18 +1,26 @@
 import { getDecks } from "@/entities/deck";
-import { getPreferences } from "@/entities/preference";
+import { getPreferences, updatePreferences } from "@/entities/preference";
+import { getAuthUid } from "@/entities/auth";
 import { deckListStore } from "../store";
 import { addSampleDeck } from "./addSampleDeck";
 
 export async function bootstrapSampleDeck(): Promise<void> {
-  if (deckListStore.getState().bootstrapStatus === "checking") return;
-  if (!getPreferences().loadSample || getDecks().length > 0) {
+  const uid = getAuthUid();
+  const sampleDeckId = `${uid}-sample-v1`;
+  const decks = getDecks();
+  if (decks.some((deck) => deck.id === sampleDeckId)) {
+    updatePreferences({ loadSample: false });
     deckListStore.setState({ bootstrapStatus: "done" });
     return;
   }
+  if (!getPreferences().loadSample || decks.length > 0) {
+    deckListStore.setState({ bootstrapStatus: "done" });
+    return;
+  }
+  if (deckListStore.getState().bootstrapStatus === "checking") return;
   deckListStore.setState({ bootstrapStatus: "checking" });
   try {
     await addSampleDeck();
-    deckListStore.setState({ bootstrapStatus: "done" });
   } catch {
     deckListStore.setState({ bootstrapStatus: "error" });
   }
