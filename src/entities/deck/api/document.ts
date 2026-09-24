@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { parseFirestoreDocument } from "@/shared/api";
+import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { cardFilterSchema, type deckCreateSchema } from "../model/schema";
 import type { Deck, DeckId } from "../model/types";
 
@@ -30,39 +31,20 @@ export const parseDeckDocument = (id: DeckId, value: unknown): DeckDocument =>
   parseFirestoreDocument(deckDocumentSchema, "deck", id, value);
 
 // Converts a validated Firestore document to the Deck shape used by the application.
-export const toDeck = (id: DeckId, document: DeckDocument): Deck => ({
-  id,
-  uid: document.uid,
-  name: document.name,
-  ...(document.url === undefined ? {} : { url: document.url }),
-  isPublic: document.isPublic,
-  selectedTags: document.selectedTags,
-  ...(document.tags === undefined ? {} : { tags: document.tags }),
-  tagAndFilter: document.tagAndFilter,
-  ...(document.cardFilter === undefined ? {} : { cardFilter: document.cardFilter }),
-  category: document.category,
-  convertToBr: document.convertToBr,
-  createdAt: document.createdAt,
-  updatedAt: document.updatedAt,
-});
+export const toDeck = (id: DeckId, document: DeckDocument): Deck => {
+  const { id: _, deletedAt: __, ...rest } = document;
+  return omitUndefined({
+    ...rest,
+    id,
+  });
+};
 
 // Adds the authenticated actor as physical owner only when crossing the Firestore persistence boundary.
-export const toDeckDocument = (
-  uid: string,
-  deck: z.infer<typeof deckCreateSchema>,
-  timestamp: number
-): DeckDocument => ({
-  id: deck.id,
-  uid,
-  name: deck.name,
-  ...(deck.url === undefined ? {} : { url: deck.url }),
-  isPublic: deck.isPublic,
-  selectedTags: deck.selectedTags,
-  tagAndFilter: deck.tagAndFilter,
-  ...(deck.cardFilter === undefined ? {} : { cardFilter: deck.cardFilter }),
-  category: deck.category,
-  convertToBr: deck.convertToBr,
-  deletedAt: null,
-  createdAt: timestamp,
-  updatedAt: timestamp,
-});
+export const toDeckDocument = (uid: string, deck: z.infer<typeof deckCreateSchema>, timestamp: number): DeckDocument =>
+  omitUndefined({
+    ...deck,
+    uid,
+    deletedAt: null,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  });
