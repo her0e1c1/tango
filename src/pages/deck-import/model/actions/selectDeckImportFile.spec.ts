@@ -13,7 +13,7 @@ vi.mock("@/shared/ui/toast", () => ({ showToast: vi.fn() }));
 vi.mock("@/entities/card", () => ({ generateCardId: vi.fn(), mutateCards: vi.fn() }));
 vi.mock("@/entities/deck", () => ({ generateDeckId: vi.fn(), createDeck: vi.fn() }));
 
-describe("Deck import selection and saving [IMPORT-01 IMPORT-03 IMPORT-04]", () => {
+describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-IMPORT-04]", () => {
   const row = {
     rowNumber: 1,
     card: { frontText: "front", backText: "back", tags: ["tag"], uniqueKey: "key-1" },

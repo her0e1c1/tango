@@ -340,6 +340,9 @@ test("DECK-TAG-MANAGEMENT-15 manages anonymous tags locally across an offline re
 }) => {
   await fixture.apply(page, { auth: { linked: false } });
   const { deck, first } = await createAnonymousDeck(page);
+  await openTagEditor(page, deck.name);
+  await addTag(page, "math");
+  await saved(page);
   await page.goto(`/card/${first.id}/edit`);
   await page.getByRole("button", { name: "Edit tags", exact: true }).click();
   await page.getByRole("checkbox", { name: "math", exact: true }).locator("xpath=parent::label").click();
@@ -368,7 +371,7 @@ test("DECK-TAG-MANAGEMENT-15 manages anonymous tags locally across an offline re
   await page.goto(`/card/${first.id}/edit`);
   await expect(page.getByRole("textbox", { name: "Front text", exact: true })).toHaveValue(first.frontText);
   await page.getByRole("button", { name: "Edit tags", exact: true }).click();
-  await expect(page.getByRole("checkbox", { name: "math", exact: true })).not.toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "math", exact: true })).toHaveCount(0);
   await expect(page.getByRole("checkbox", { name: "renamed", exact: true })).toHaveCount(0);
 });
 

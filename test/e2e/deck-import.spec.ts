@@ -35,7 +35,7 @@ test.describe("import-sample", () => {
   const confirmSample = (page: Page) =>
     page.getByRole("button", { name: `Add ${sampleCards.length} cards`, exact: true }).click();
 
-  test("IMPORT-10 A fresh anonymous session keeps the imported Sample deck local", async ({ fixture, page }) => {
+  test("DECK-IMPORT-10 A fresh anonymous session keeps the imported Sample deck local", async ({ fixture, page }) => {
     await fixture.apply(page, { auth: false });
     await previewSample(page);
     await confirmSample(page);
@@ -64,7 +64,7 @@ test.describe("import-sample", () => {
     await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
   });
 
-  test("IMPORT-08 A local Sample deck preserves every card and can be studied after reload", async ({
+  test("DECK-IMPORT-08 A local Sample deck preserves every card and can be studied after reload", async ({
     fixture,
     page,
   }) => {
@@ -101,7 +101,7 @@ test.describe("import-sample", () => {
     await expect(page.getByRole("region", { name: "Study answer" })).toContainText("import pytest");
   });
 
-  test("IMPORT-09 A linked account syncs every Sample deck card without duplicates", async ({ fixture, page }) => {
+  test("DECK-IMPORT-09 A linked account syncs every Sample deck card without duplicates", async ({ fixture, page }) => {
     const { uid } = fixture.user();
     await fixture.apply(page, { auth: { linked: true } });
     await previewSample(page);
@@ -161,7 +161,7 @@ test.describe("import", () => {
       `"front ${namespace} two","back ${namespace} two","","${namespace}-key-2"`,
     ]);
 
-  test("IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture, page, namespace }) => {
+  test("DECK-IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture, page, namespace }) => {
     const { uid } = fixture.user();
     await fixture.apply(page);
     await page.goto("/import");
@@ -195,7 +195,7 @@ test.describe("import", () => {
     expect(await documentsForUid("card", uid)).toEqual([]);
   });
 
-  test("IMPORT-02 Invalid CSV rows block persistence", async ({ fixture, page, namespace }) => {
+  test("DECK-IMPORT-02 Invalid CSV rows block persistence", async ({ fixture, page, namespace }) => {
     const { uid } = fixture.user();
     await fixture.apply(page);
     await page.goto("/import");
@@ -217,7 +217,7 @@ test.describe("import", () => {
     expect(await documentsForUid("card", uid)).toEqual([]);
   });
 
-  test("IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, namespace }) => {
+  test("DECK-IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, namespace }) => {
     const { uid } = fixture.user();
     await fixture.apply(page, { auth: { linked: true } });
     await page.goto("/import");
@@ -246,7 +246,11 @@ test.describe("import", () => {
     ).toBe(true);
   });
 
-  test("IMPORT-04 A local-only CSV import survives reload and can be studied", async ({ fixture, page, namespace }) => {
+  test("DECK-IMPORT-04 A local-only CSV import survives reload and can be studied", async ({
+    fixture,
+    page,
+    namespace,
+  }) => {
     const { uid } = fixture.user();
     await fixture.apply(page);
     await page.goto("/import");
@@ -294,7 +298,7 @@ test.describe("import", () => {
     await expect(page.getByText(new RegExp(`^(日本語�|front ${csvNamespace} two)$`))).toBeVisible();
   });
 
-  test("IMPORT-05 A rejected queued import reports failure without automatic replay", async ({
+  test("DECK-IMPORT-05 A rejected queued import reports failure without automatic replay", async ({
     browserErrors,
     fixture,
     namespace,
@@ -360,7 +364,7 @@ test.describe("import", () => {
   ];
   // Each example gets a fresh browser context and UID instead of accumulating reloads and pending streams.
   for (const example of examples) {
-    test(`IMPORT-06 ${example.label} supports preview, download, and destination-aware import`, async ({
+    test(`DECK-IMPORT-06 ${example.label} supports preview, download, and destination-aware import`, async ({
       fixture,
       page,
     }, testInfo) => {
@@ -418,7 +422,7 @@ test.describe("import", () => {
     });
   }
 
-  test("IMPORT-07 Sample Deck is initialized once", async ({ fixture, page }) => {
+  test("DECK-IMPORT-07 Sample Deck is initialized once", async ({ fixture, page }) => {
     const sampleDeckId = `${fixture.user().uid}-sample-v1`;
     expect(fixture.state.browser.preferences.loadSample).toBe(true);
     await fixture.apply(page);

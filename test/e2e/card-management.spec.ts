@@ -10,6 +10,17 @@ import {
 import { createAnonymousDeck, downloadDeckCards } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
 
+async function registerDeckTags(page: Page, deckId: string, tags: string[]) {
+  for (const tag of tags) {
+    await page.goto(`/deck/${deckId}/edit`);
+    const section = page.getByRole("region", { name: "Tag management" });
+    await section.getByRole("textbox", { name: "New tag name" }).fill(tag);
+    await section.getByRole("button", { name: "Add tag", exact: true }).click();
+    await expect(section.getByRole("listitem", { name: tag, exact: true })).toBeVisible();
+    await expect(section.getByRole("button", { name: "Add tag", exact: true })).toBeEnabled();
+  }
+}
+
 test.describe("card-resilience", () => {
   const openCardDeleteDialog = async (page: Page, frontText: string) => {
     await page.getByRole("button", { name: `Open actions for ${frontText}` }).click();
@@ -229,9 +240,10 @@ test.describe("card", () => {
     return page.getByRole("alertdialog", { name: "Delete card?" });
   };
 
-  const clickCheckboxLabel = async (page: Page, name: string) => {
+  const toggleTag = async (page: Page, name: string) => {
     const checkbox = page.getByRole("checkbox", { name, exact: true });
-    await checkbox.locator("xpath=parent::label").click();
+    // Keyboard selection remains usable above the Firebase emulator overlay on mobile.
+    await checkbox.press("Space");
     return checkbox;
   };
 
@@ -248,6 +260,7 @@ test.describe("card", () => {
     };
     await fixture.apply(page);
     const before = await requireDocument("card", card.id);
+    await registerDeckTags(page, deck.id, ["chapter-1"]);
 
     await page.goto(`/deck/${deck.id}`);
     await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
@@ -260,8 +273,9 @@ test.describe("card", () => {
     await expandedEditor.getByRole("button", { name: "Done" }).click();
     await expect(page.getByRole("button", { name: "Expand Back" })).toBeFocused();
     await page.getByRole("button", { name: "Edit tags" }).click();
-    await clickCheckboxLabel(page, "math");
-    await clickCheckboxLabel(page, "python");
+    await expect(page.getByRole("checkbox", { name: "python" })).toHaveCount(0);
+    await toggleTag(page, "math");
+    await toggleTag(page, "chapter-1");
     await page.getByRole("button", { name: "Done" }).click();
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
@@ -277,7 +291,7 @@ test.describe("card", () => {
     await page.getByRole("button", { name: "Edit tags" }).click();
     await expect(page.getByRole("checkbox", { name: "math" })).not.toBeChecked();
     await expect(page.getByRole("checkbox", { name: "typescript" })).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "python" })).toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "chapter-1" })).toBeChecked();
     const after = await requireDocument("card", card.id);
     // Content edits must not overwrite identity or newer learning progress from the opening form snapshot.
     const {
@@ -392,6 +406,7 @@ test.describe("card", () => {
     const viewportBounds = { x: 0, y: 0, ...viewport };
     await page.setViewportSize(viewport);
     await fixture.apply(page);
+    await registerDeckTags(page, deck.id, ["chapter-1"]);
 
     await page.goto(`/deck/${deck.id}`);
     await page.getByRole("button", { name: "Actions", exact: true }).click();
@@ -418,6 +433,8 @@ test.describe("card", () => {
     const tagsBounds = await tagsDialog.boundingBox();
     if (tagsBounds === null) throw new Error("Tag selection dialog bounding box is unavailable");
     expect(tagsBounds.y + tagsBounds.height).toBe(viewport.height);
+    await expect(tagsDialog.getByRole("checkbox", { name: "python" })).toHaveCount(0);
+    await toggleTag(page, "chapter-1");
     await tagsDialog.getByRole("button", { name: "Done" }).click();
     await page.getByRole("button", { name: "Create card" }).dblclick();
     await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
@@ -443,6 +460,7 @@ test.describe("card", () => {
     expect(created).toHaveLength(1);
     const [createdCard] = created;
     if (createdCard === undefined) throw new Error("Created remote Card was not found");
+    expect(createdCard.fields.tags?.arrayValue?.values).toEqual([{ stringValue: "chapter-1" }]);
     expect(createdCard.fields.deckId?.stringValue).toBe(deck.id);
     expect(createdCard.fields.uid?.stringValue).toBe(deck.uid);
     expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
@@ -564,6 +582,7 @@ test.describe("card", () => {
     await fixture.apply(page);
     const local = await createAnonymousDeck(page);
     const { deck } = local;
+    await registerDeckTags(page, deck.id, ["math"]);
 
     await page.setViewportSize({ width: 375, height: 812 });
     const before = await downloadDeckCards(page, deck.name);
@@ -591,7 +610,7 @@ test.describe("card", () => {
     await expect(input).toHaveValue("");
     await input.fill("**Draft answer**\n\n$x^2$\n\n| A | B |\n| - | - |\n| 1 | 2 |");
     await page.getByRole("button", { name: "Edit tags" }).click();
-    await clickCheckboxLabel(page, "math");
+    await toggleTag(page, "math");
     await page.getByRole("button", { name: "Done" }).click();
     await trigger.click();
     await expect(preview.locator("strong")).toHaveText("Draft answer");
@@ -615,6 +634,7 @@ test.describe("card", () => {
     await fixture.apply(page);
     const local = await createAnonymousDeck(page);
     const { deck, first: card } = local;
+    await registerDeckTags(page, deck.id, ["typescript", "md", "python"]);
 
     const before = await downloadDeckCards(page, deck.name);
     await page.goto(`/card/${card.id}/edit`);
@@ -624,7 +644,7 @@ test.describe("card", () => {
     const input = page.getByRole("textbox", { name: "Back text" });
     await input.fill("const answer = 42;");
     await page.getByRole("button", { name: "Edit tags" }).click();
-    await clickCheckboxLabel(page, "typescript");
+    await toggleTag(page, "typescript");
     await page.getByRole("button", { name: "Done" }).click();
     await page.getByRole("button", { name: "Preview answer" }).click();
     const preview = page.getByRole("region", { name: "Answer preview" });
@@ -633,15 +653,15 @@ test.describe("card", () => {
     const dark = await page.locator("html").evaluate((element) => element.classList.contains("dark"));
     await expect(preview.locator("code")).toHaveAttribute("data-theme", dark ? "dark" : "light");
     await page.getByRole("button", { name: "Edit tags" }).click();
-    await clickCheckboxLabel(page, "typescript");
-    await clickCheckboxLabel(page, "md");
+    await toggleTag(page, "typescript");
+    await toggleTag(page, "md");
     await page.getByRole("button", { name: "Done" }).click();
     await input.fill("**Markdown source** $x^2$");
     await expect(preview.locator("code")).toHaveAttribute("data-language", "md");
     await expect(preview.locator(".katex")).toHaveCount(0);
     await page.getByRole("button", { name: "Edit tags" }).click();
-    await clickCheckboxLabel(page, "md");
-    await clickCheckboxLabel(page, "python");
+    await toggleTag(page, "md");
+    await toggleTag(page, "python");
     await page.getByRole("button", { name: "Done" }).click();
     await input.fill("def draft():\n    return 42");
     await expect(preview.locator("code")).toHaveAttribute("data-language", "python");

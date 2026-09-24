@@ -37,7 +37,7 @@ Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - 認証済みユーザーが所有する Deck が存在する。
-- 対象 Deck に編集対象の Card が存在する。
+- 対象 Deck に編集対象の Card が存在し、選択に使うタグを Deck に登録している。
 
 When:
 
@@ -50,6 +50,7 @@ Then:
 - 編集画面に変更後の front text、back text、tags が表示される。
 - tab と拡大画面を切り替えても両面の入力内容が維持され、拡大画面を閉じると起点へ focus が戻る。
 - tags の全候補は選択画面だけに表示され、閉じた状態は最大2個と残りの件数を1行に表示する。
+- 選択候補は所属 Deck に登録したタグと Card の既存タグであり、固定カテゴリや別 Deck のタグは追加されない。Deck のタグが未登録でも、Card の既存タグは保持・解除・再選択できる。
 - 選択画面は既存の独自 tag も扱え、閉じて開き直しても選択が維持される。
 - 検証中・保存中の連続送信で変更が重複せず、入力・保存・Cancel・戻るは完了まで無効になる。
 - 保存成功時だけ所属 Deck の Card 一覧へ戻る。すでに別画面や別 Card へ移った場合は、以前の保存完了によって遷移しない。
@@ -147,19 +148,20 @@ Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
 - Google アカウントにログインしたユーザーが所有する Deck が存在する。
-- モバイル幅の画面を使用している。
+- モバイル幅の画面を使用し、選択に使うタグを Deck に登録している。
 
 When:
 
 - Card 一覧の Actions の Add card から作成画面を開き、Front / Back の拡大編集で本文を入力する。
-- タグ選択画面を開いて閉じ、作成ボタンを続けてクリックして Card を作成し、画面を reload する。
+- 所属 Deck に登録したタグをタグ選択画面で選び、作成ボタンを続けてクリックして Card を作成し、画面を reload する。
 
 Then:
 
 - Card の作成成功が通知される。
 - 両面の拡大編集画面は viewport の上端から下端まで表示され、見出しや完了ボタンが欠けない。
 - 拡大編集とタグ選択の背景は viewport 全体を覆い、タグ選択画面は下端に隙間なく接する。
-- 作成した Card が reload 後も同じ Deck の Card 一覧に一つだけ表示される。
+- 作成した Card が reload 後も同じ Deck の Card 一覧に一つだけ表示され、選択したタグを保持する。
+- タグ候補は所属 Deck に登録したタグであり、固定カテゴリや別 Deck のタグは追加されない。Deck のタグが空または未登録なら候補は空で、タグなしで作成できる。
 - 同期後も同じアカウントの対象 Deck で利用でき、別の Deck へ追加されたり複製が増えたりしない。
 - 入力検証中と保存中は作成ボタンが無効になり、作成処理が終わるまで追加の作成を受け付けない。
 - browser error が発生しない。
@@ -415,7 +417,7 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- 匿名で利用中の Deck の Card 作成画面を開いており、Front は未入力である。
+- 匿名で利用中の Deck にプレビューに使うタグを登録し、Card 作成画面を開いている。Front は未入力である。
 
 When:
 
@@ -444,7 +446,7 @@ Then:
 Given:
 
 - Fixture: [`local-deck-with-cards`](./fixture/local-deck-with-cards.yaml)
-- 匿名で利用中の Card の編集画面を開いている。
+- 匿名で利用中の Card の編集画面を開き、プレビューに使うタグを Deck に登録している。
 
 When:
 

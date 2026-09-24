@@ -360,7 +360,7 @@ Then:
 Given:
 
 - Fixture: [`deck-tag-management`](./fixture/deck-tag-management.yaml)
-- 匿名モードで作成した Deck とタグ付き Card が端末にある。
+- 匿名モードで作成した Deck と、その Deck に登録したタグを設定した Card が端末にある。
 
 When:
 
@@ -369,6 +369,7 @@ When:
 Then:
 
 - 変更が端末内に保持され、Card の本文と他のタグは残る。匿名データをクラウドへ送信しない。
+- 改名前のタグと削除したタグは、Card のタグ選択候補に表示されない。
 
 <a id="deck-tag-management-16"></a>
 
