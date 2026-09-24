@@ -200,5 +200,3 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
   });
 });
 
-vi.mock("@/entities/card/model/queries/getCards", () => ({ getCards: () => mocks.cards }));
-vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => mocks.cards }));
