@@ -11,8 +11,8 @@ import {
   where,
 } from "firebase/firestore";
 import { db, auth } from "@/shared/firebase";
-import type { StudyAnswerHistory, StudyAnswerRecord } from "../model/types";
-import { createStudyAnswerDocument, parseStudyAnswerRecord, type StudyAnswerInput } from "./document";
+import type { StudyAnswerHistory, StudyAnswerInput, StudyAnswerRecord } from "../model/types";
+import { createStudyAnswerDocument, parseStudyAnswerRecord } from "./document";
 import { z } from "zod";
 
 export function writeStudyAnswer(batch: WriteBatch, input: StudyAnswerInput) {

@@ -2,16 +2,17 @@ import type { StudyAnswerHistory, StudyAnswerRecord } from "@/entities/study-ans
 import type { StudyHistoryPeriod } from "@/entities/study-session";
 
 function metrics(records: StudyAnswerRecord[]) {
+  const counts = { again: 0, hard: 0, good: 0, easy: 0 };
+  for (const record of records) counts[record.rating] += 1;
   const ratedAnswerCount = records.length;
-  const againCount = records.filter((record) => record.rating === "again").length;
-  const recalledCount = ratedAnswerCount - againCount;
+  const recalledCount = ratedAnswerCount - counts.again;
   return {
     ratedAnswerCount,
     recalledCount,
-    againCount,
-    hardCount: records.filter((record) => record.rating === "hard").length,
-    goodCount: records.filter((record) => record.rating === "good").length,
-    easyCount: records.filter((record) => record.rating === "easy").length,
+    againCount: counts.again,
+    hardCount: counts.hard,
+    goodCount: counts.good,
+    easyCount: counts.easy,
     recallRate: ratedAnswerCount === 0 ? undefined : recalledCount / ratedAnswerCount,
   };
 }

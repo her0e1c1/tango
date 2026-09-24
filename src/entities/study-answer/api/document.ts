@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase/firestore";
-import type { StudyAnswerRecord } from "../model/types";
+import type { StudyAnswerInput, StudyAnswerRecord } from "../model/types";
 import { z } from "zod";
-import { studyRatingSchema, type StudyRating } from "../model/schema";
+import { studyRatingSchema } from "../model/schema";
 import { firestoreMetadataSchema, firestoreTimestampSchema } from "@/shared/api";
 
 const ratingAnswerSchema = z
@@ -21,16 +21,6 @@ const studyAnswerDocumentSchema = firestoreMetadataSchema
     answeredAt: firestoreTimestampSchema,
   })
   .strict();
-
-export interface StudyAnswerInput {
-  id: string;
-  uid: string;
-  sessionId: string;
-  deckId: string;
-  cardId: string;
-  rating: StudyRating;
-  answeredAt: number;
-}
 
 export function createStudyAnswerDocument(input: StudyAnswerInput) {
   const answeredAt = Timestamp.fromMillis(input.answeredAt);

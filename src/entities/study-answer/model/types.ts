@@ -8,6 +8,11 @@ export interface StudyAnswerRecord {
   rating: StudyRating;
 }
 
+export interface StudyAnswerInput extends StudyAnswerRecord {
+  uid: string;
+  cardId: string;
+}
+
 export interface StudyAnswerHistory {
   records: StudyAnswerRecord[];
   source: "cache" | "server";
