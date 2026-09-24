@@ -38,14 +38,16 @@ vi.mock("@/entities/study-session/api/firestore", () => ({
     now?: number;
   }) => {
     await Promise.resolve();
+    const sessionId = crypto.randomUUID();
     restoreStudySession({
-      sessionId: crypto.randomUUID(),
+      sessionId,
       deckId,
       cardOrderIds,
       currentIndex: 0,
       lastStudiedAt: now,
       remote: { uid, startedAt: now },
     });
+    return sessionId;
   },
 }));
 
@@ -64,13 +66,13 @@ describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PE
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous, displayName: null });
     const deck = createDeck({ id: "deck", uid: "uid" });
     mocks.deck = deck;
-    expect(await startStudySession(deck.id, deck)).toBe(true);
+    expect(await startStudySession(deck.id, deck)).toEqual(expect.any(String));
     expect(getStudySession(deck.id)).toMatchObject({ cardOrderIds: ["card"], currentIndex: 0, remote: { uid: "uid" } });
   });
   it("rejects a different account after an identity switch before Start", async () => {
     const deck = createDeck({ id: "deck", uid: "uid" });
     replaceAuthSession({ status: "authenticated", uid: "current", isAnonymous: false, displayName: null });
-    expect(await startStudySession(deck.id, deck)).toBe(false);
+    expect(await startStudySession(deck.id, deck)).toBeUndefined();
     expect(getStudySession("deck")).toBeUndefined();
   });
   afterEach(() => vi.useRealTimers());
@@ -88,10 +90,10 @@ describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PE
       }),
     ];
     const deck = createDeck({ id: "deck", uid: "uid" });
-    expect(await startStudySession(deck.id, deck)).toBe(false);
+    expect(await startStudySession(deck.id, deck)).toBeUndefined();
     expect(getStudySession(deck.id)).toBeUndefined();
     vi.setSystemTime(now + 1000);
-    expect(await startStudySession(deck.id, deck)).toBe(true);
+    expect(await startStudySession(deck.id, deck)).toEqual(expect.any(String));
     expect(getStudySession(deck.id)?.cardOrderIds).toEqual(["future"]);
   });
 });
