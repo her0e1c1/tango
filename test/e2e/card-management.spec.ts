@@ -207,7 +207,7 @@ test.describe("card-resilience", () => {
       await page.getByRole("button", { name: "tango", exact: true }).click();
       write.release();
       await fault.waitForFailure();
-        await expect(page).toHaveURL(/\/$/);
+      await expect(page).toHaveURL(/\/$/);
       await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
       await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(0);
     } finally {
