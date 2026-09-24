@@ -29,7 +29,7 @@ import {
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { replaceAuthSession } from "@/entities/auth";
 import { getCards, subscribeCards } from "@/entities/card";
-import { editDeck, getDecks, subscribeDecks } from "@/entities/deck";
+import { clearRemoteDecks, editDeck, getDecks, subscribeDecks } from "@/entities/deck";
 import {
   getStudySession,
   startStudy,
@@ -239,7 +239,7 @@ describe("Incremental Firestore synchronization", () => {
     }
   );
 
-  it("[FIRESTORE-INCREMENTAL-SYNC-04] applies held changes when an invalid delta is repaired", async () => {
+  it.each([false, true])("[FIRESTORE-INCREMENTAL-SYNC-04] repairs an invalid delta (restart=%s)", async (restart) => {
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     stops.push(subscribeDecks(uid, onError));
     await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck"));
@@ -250,7 +250,17 @@ describe("Incremental Firestore synchronization", () => {
     await batch.commit();
     await vi.waitFor(() => expect(errors.length).toBeGreaterThan(0));
     expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck");
+    if (restart) {
+      stopContent();
+      await disableNetwork(connection.db);
+      clearRemoteDecks();
+      errors.length = 0;
+      await new Promise<void>((resolve) => stops.push(subscribeDecks(uid, onError, resolve)));
+    }
+    expect(getDecks().map(({ name }) => name)).toEqual(["deck"]);
+    expect(errors.length).toBeGreaterThan(0);
     await updateDoc(doc(remote, "deck", "invalid"), { name: "repaired", updatedAt: serverTimestamp() });
+    if (restart) await enableNetwork(connection.db);
     await vi.waitFor(() => expect(getDecks().map(({ name }) => name)).toEqual(["changed", "repaired"]));
   });
 

@@ -17,6 +17,10 @@ service cloud.firestore {
   function hasServerUpdateTime() {
     return request.resource.data.updatedAt == request.time;
   }
+  function preservesDeletion() {
+    return resource.data.get('deletedAt', null) == null ||
+           request.resource.data.get('deletedAt', null) != null;
+  }
   match /databases/{database}/documents {
     match /studySession/{sessionId} {
       allow read: if isSignedIn() && isOwner();
@@ -33,7 +37,7 @@ service cloud.firestore {
       }
       allow read: if isOwner() || isPublic();
       allow create: if isSignedIn() && isValid() && hasServerUpdateTime();
-      allow update: if isSignedIn() && isValidOwner() && hasServerUpdateTime();
+      allow update: if isSignedIn() && isValidOwner() && hasServerUpdateTime() && preservesDeletion();
     }
     match /card/{cardId} {
       function getDeck(deckId) {
@@ -53,7 +57,7 @@ service cloud.firestore {
       }
       allow read: if isOwner() || isPublic();
       allow create: if isSignedIn() && isValid() && belongsToDeck() && validCard() && hasServerUpdateTime();
-      allow update: if isSignedIn() && isValidOwner() && belongsToDeck() && validCard() && hasServerUpdateTime() &&
+      allow update: if isSignedIn() && isValidOwner() && belongsToDeck() && validCard() && hasServerUpdateTime() && preservesDeletion() &&
                     request.resource.data.deckId == resource.data.deckId &&
                     request.resource.data.createdAt == resource.data.createdAt &&
                     (request.resource.data.fsrs == resource.data.fsrs || resource.data.deletedAt == null);

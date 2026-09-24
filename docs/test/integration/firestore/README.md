@@ -147,6 +147,8 @@
 | FIRESTORE-RULES-DECK-22 | read | 正常系 | [本人の UID で絞った Deck 一覧取得を許可する](./rules-deck.md#firestore-rules-deck-22) |
 | FIRESTORE-RULES-DECK-23 | read | 異常系 | [権限を保証できない Deck 一覧取得を拒否する](./rules-deck.md#firestore-rules-deck-23) |
 | FIRESTORE-RULES-DECK-24 | read | 異常系 | [匿名認証による他人の非公開 Deck 取得を拒否する](./rules-deck.md#firestore-rules-deck-24) |
+| FIRESTORE-RULES-DECK-25 | write | 正常系 | [本人の論理削除と削除状態を保つ更新を許可する](./rules-deck.md#firestore-rules-deck-25) |
+| FIRESTORE-RULES-DECK-26 | write | 異常系 | [削除済み Deck の復活を拒否する](./rules-deck.md#firestore-rules-deck-26) |
 
 ### rules-card
 
@@ -176,6 +178,8 @@
 | FIRESTORE-RULES-CARD-22 | write | 正常系 / 異常系 | [公開 Card の FSRS を公開し他人の書込を拒否する](./rules-card.md#firestore-rules-card-22) |
 | FIRESTORE-RULES-CARD-23 | write | 正常系 / 異常系 | [FSRS 外形と所有権・削除状態を確認する](./rules-card.md#firestore-rules-card-23) |
 | FIRESTORE-RULES-CARD-24 | write | 異常系 | [評価更新で物理削除 Card を再作成しない](./rules-card.md#firestore-rules-card-24) |
+| FIRESTORE-RULES-CARD-25 | write | 正常系 | [本人の論理削除と削除状態を保つ更新を許可する](./rules-card.md#firestore-rules-card-25) |
+| FIRESTORE-RULES-CARD-26 | write | 異常系 | [削除済み Card の復活を拒否する](./rules-card.md#firestore-rules-card-26) |
 
 ### rules-study-session
 

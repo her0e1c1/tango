@@ -20,6 +20,7 @@
 | PERSISTENCE-07 | batch | 異常系 | [端末内の取得済みデータが欠損・破損しても再取得できる](#persistence-07) |
 | PERSISTENCE-08 | batch | 異常系 | [端末内の保存に失敗しても再読み込み後に内容を復元できる](#persistence-08) |
 | PERSISTENCE-09 | read | 正常系 | [再取得できなくても保存済みの学習位置を復元できる](#persistence-09) |
+| PERSISTENCE-10 | read | 異常系 | [不正な変更が届いても保存済みの正常な内容で再開できる](#persistence-10) |
 
 <a id="persistence-01"></a>
 
@@ -242,3 +243,26 @@ When:
 Then:
 
 - 保存済みの現在の Card と学習位置を表示する。学習を最初から開始したり、Deck や Card が消えたりしない。
+
+<a id="persistence-10"></a>
+
+### PERSISTENCE-10 不正な変更が届いても保存済みの正常な内容で再開できる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 取得済みの Deck と複数 Card を端末に保存している。
+- サーバーから受け取った Card の変更内容が不正で、同期エラーが通知されている。
+
+When:
+
+- データの通信が途絶えた状態で画面を再読み込みする。その後、サーバーの内容が修復され、通信を戻して再読み込みする。
+
+Then:
+
+- 同期エラーを通知しながら、通信断中も取得済みの正常な Card 一覧を表示する。起動エラーで閉じ込めたり、一覧を空にしたりしない。
+- 再接続後は修復後の内容を表示し、変更しなかった Card も保持する。

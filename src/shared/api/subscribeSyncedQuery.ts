@@ -1,4 +1,4 @@
-import { onSnapshot, type DocumentData, type Query, type QuerySnapshot } from "firebase/firestore";
+import { getDocsFromCache, onSnapshot, type DocumentData, type Query, type QuerySnapshot } from "firebase/firestore";
 import { firestoreTimestampSchema } from "./firestoreDocument";
 import { compareSyncTimestamps, type SyncCheckpoint, type SyncState, type SyncTimestamp } from "./syncPersistence";
 
@@ -141,7 +141,6 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
       base = saved;
       baseValues = values;
       initialized = true;
-      publish({ values: [...values.values()], fromCache: true, hasPendingWrites: false });
     } catch {
       publish({ values: [], fromCache: true, hasPendingWrites: false, checkpoint: null });
     }
@@ -263,10 +262,35 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
     );
   }
 
+  async function restoreCachedChanges() {
+    try {
+      // Forms capture their opening snapshot. Include queued SDK edits before exposing
+      // the confirmed replica, without waiting for a server or an online listener timeout.
+      const cached = await getDocsFromCache(options.request(base.lastUpdatedAt));
+      if (!isActive()) return;
+      const changes = new Map<string, SyncChange<T>>();
+      const invalid = new Map<string, unknown>();
+      readChanges(cached, changes, invalid, options.parse);
+      if (invalid.size > 0) throw invalid.values().next().value;
+      const merged = mergeChanges(base, baseValues, changes);
+      publish({
+        values: [...merged.values.values()],
+        fromCache: true,
+        hasPendingWrites: cached.metadata.hasPendingWrites,
+      });
+    } catch (error) {
+      // A failed overlay must not hide the validated replica or prevent later repairs.
+      publish({ values: [...baseValues.values()], fromCache: true, hasPendingWrites: false });
+      fail(error);
+    }
+  }
+
   async function start() {
     await hydrateStore(options.store);
     if (!isActive()) return;
     restoreSaved();
+    if (!isActive()) return;
+    if (initialized) await restoreCachedChanges();
     if (!isActive()) return;
     if (!initialized && options.bootstrap && options.source !== "cache") bootstrap(options.bootstrap);
     else listen(base.lastUpdatedAt, !initialized ? options.bootstrap?.initial : undefined);

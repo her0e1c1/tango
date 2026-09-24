@@ -409,3 +409,38 @@ test("PERSISTENCE-09 restores saved study progress without the SDK cache or serv
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue(String(session.currentIndex));
 });
+
+test("PERSISTENCE-10 restores a healthy replica despite invalid cached changes and receives repairs", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
+  await waitForSavedDocument(page, "tango-card-sync", card.id);
+  await waitForSavedDocument(page, "tango-deck-sync", deck.id);
+  const failure = page.getByText(
+    "A data save or sync failed. Check your connection and reload to review the saved data.",
+    { exact: true }
+  );
+  await setDocument("card", card.id, { ...card, frontText: 42, updatedAt: new Date() });
+  await expect(failure).toBeVisible();
+  browserErrors.allow(/console error: .*Could not reach Cloud Firestore backend/u);
+  browserErrors.allow(
+    /console error: Failed to load resource: .*ERR_INTERNET_DISCONNECTED.*\[http:\/\/(?:db|127\.0\.0\.1|localhost):[0-9]+\//iu
+  );
+  await page.route("http://db:*/**", (route) => route.abort("internetdisconnected"));
+  await page.reload();
+  await expect(failure).toBeVisible();
+  for (const existing of fixture.state.remote.cards)
+    await expect(page.getByRole("button", { name: `View ${existing.frontText}` })).toBeVisible();
+  await setDocument("card", card.id, { ...card, frontText: "Repaired Card", updatedAt: new Date() });
+  await page.unroute("http://db:*/**");
+  await page.reload();
+  await expect(page.getByRole("button", { name: "View Repaired Card" })).toBeVisible();
+  for (const existing of fixture.state.remote.cards.filter(({ id }) => id !== card.id))
+    await expect(page.getByRole("button", { name: `View ${existing.frontText}` })).toBeVisible();
+});

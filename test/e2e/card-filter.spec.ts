@@ -19,7 +19,12 @@ const savedDocuments = async (uid: string, mutableDeck?: string) =>
   );
 
 async function seedFilter(deck: FixtureDeck, selectedTags: string[], tagAndFilter: boolean) {
-  await setDocument("deck", deck.id, { ...deck, deletedAt: null, cardFilter: { selectedTags, tagAndFilter } });
+  await setDocument("deck", deck.id, {
+    ...deck,
+    updatedAt: new Date(deck.updatedAt),
+    deletedAt: null,
+    cardFilter: { selectedTags, tagAndFilter },
+  });
 }
 
 async function expectSaved(deckId: string, selectedTags: string[], tagAndFilter: boolean) {

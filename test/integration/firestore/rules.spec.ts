@@ -287,6 +287,30 @@ describe("Firestore ownership and guest write restrictions", () => {
         await assertFails(deleteDoc(doc(db, "deck", id)));
       });
 
+      it("[FIRESTORE-RULES-DECK-25] allows tombstoning and edits that preserve deletion", async () => {
+        const reference = doc(db, "deck", uuid());
+        await createData("deck", reference.id, { uid: "uid", deletedAt: null });
+        await assertSucceeds(updateDoc(reference, { deletedAt: 1000 }));
+        await assertSucceeds(updateDoc(reference, { name: "Updated" }));
+        expect((await getDoc(reference)).data()).toMatchObject({ deletedAt: 1000, name: "Updated" });
+      });
+
+      it.each(["clear", "remove", "replace"])(
+        "[FIRESTORE-RULES-DECK-26] rejects restoring a tombstoned Deck through %s",
+        async (operation) => {
+          const reference = doc(db, "deck", uuid());
+          const data = { uid: "uid", name: "Deleted" };
+          await createData("deck", reference.id, { ...data, deletedAt: 1000 });
+          const before = (await getDoc(reference)).data();
+          await assertFails(
+            operation === "replace"
+              ? setDoc(reference, data)
+              : updateDoc(reference, { deletedAt: operation === "clear" ? null : deleteField() })
+          );
+          expect((await getDoc(reference)).data()).toEqual(before);
+        }
+      );
+
       it("[FIRESTORE-RULES-DECK-20] rejects changing or removing the owner UID", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid" });
@@ -337,6 +361,34 @@ describe("Firestore ownership and guest write restrictions", () => {
         await createData("card", id, { uid: "uid" });
         await assertFails(deleteDoc(doc(db, "card", id)));
       });
+
+      it("[FIRESTORE-RULES-CARD-25] allows tombstoning and edits that preserve deletion", async () => {
+        const deckId = uuid();
+        const reference = doc(db, "card", uuid());
+        await createData("deck", deckId, { uid: "uid" });
+        await createData("card", reference.id, { uid: "uid", deckId, fsrs: null, createdAt: 0, deletedAt: null });
+        await assertSucceeds(updateDoc(reference, { deletedAt: 1000 }));
+        await assertSucceeds(updateDoc(reference, { frontText: "Updated" }));
+        expect((await getDoc(reference)).data()).toMatchObject({ deletedAt: 1000, frontText: "Updated" });
+      });
+
+      it.each(["clear", "remove", "replace"])(
+        "[FIRESTORE-RULES-CARD-26] rejects restoring a tombstoned Card through %s",
+        async (operation) => {
+          const deckId = uuid();
+          const reference = doc(db, "card", uuid());
+          const data = { uid: "uid", deckId, fsrs: null, createdAt: 0, frontText: "Deleted" };
+          await createData("deck", deckId, { uid: "uid" });
+          await createData("card", reference.id, { ...data, deletedAt: 1000 });
+          const before = (await getDoc(reference)).data();
+          await assertFails(
+            operation === "replace"
+              ? setDoc(reference, data)
+              : updateDoc(reference, { deletedAt: operation === "clear" ? null : deleteField() })
+          );
+          expect((await getDoc(reference)).data()).toEqual(before);
+        }
+      );
     });
   });
 
