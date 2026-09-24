@@ -448,5 +448,3 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
   );
 });
 
-vi.mock("@/entities/card/model/queries/getCards", () => ({ getCards: vi.fn<() => Card[]>() }));
-vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => mocks.cards }));

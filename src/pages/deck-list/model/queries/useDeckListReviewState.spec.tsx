@@ -138,4 +138,3 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
   });
 });
 
-vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => input.cards }));

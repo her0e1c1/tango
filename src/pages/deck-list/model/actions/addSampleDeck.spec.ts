@@ -96,4 +96,3 @@ describe("addSampleDeck [DECK-IMPORT-07]", () => {
   });
 });
 
-vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => repository.cards }));
