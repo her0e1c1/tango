@@ -8,7 +8,7 @@ interface SubmitCardCreateInput {
   values: CardContentInput;
 }
 
-export async function submit({ deckId, values }: SubmitCardCreateInput): Promise<boolean> {
+export async function submit({ deckId, values }: SubmitCardCreateInput): Promise<{ id: string; name: string } | undefined> {
   // Each attempt has a new identity; retries intentionally do not reuse an uncertain previous write.
   const cardId = generateId();
 
@@ -16,9 +16,8 @@ export async function submit({ deckId, values }: SubmitCardCreateInput): Promise
     await createCard(getAuthUid(), { ...values, id: cardId, uniqueKey: cardId, deckId });
   } catch {
     showToast({ messageKey: "cardForm.toast.createFailure", tone: "error" });
-    return false;
+    return;
   }
 
-  showToast({ messageKey: "cardForm.toast.created", messageParams: { name: values.frontText }, tone: "success" });
-  return true;
+  return { id: cardId, name: values.frontText };
 }
