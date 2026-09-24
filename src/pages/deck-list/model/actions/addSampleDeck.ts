@@ -3,7 +3,8 @@ import type { DeckId, RemoteDeckCreateInput } from "@/entities/deck";
 
 import { getAuthUid } from "@/entities/auth";
 import { writeDeckCreate } from "@/entities/deck";
-import { db, writeBatch } from "@/shared/firebase";
+import { writeBatch } from "firebase/firestore";
+import { db } from "@/shared/firebase";
 import sampleCards from "../../../../../sample/build/output.json";
 
 const SAMPLE_DECK_NAME = "Sample Deck";
