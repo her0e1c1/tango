@@ -1,7 +1,8 @@
 import { getAuthUid } from "@/entities/auth";
 import { ImportFailure } from "../../lib/importFailure";
-import { mutateCards, type CardMutation } from "@/entities/card";
-import { createDeck, type RemoteDeckCreateInput } from "@/entities/deck";
+import { writeCardCreate, type CardMutation } from "@/entities/card";
+import { writeDeckCreate, type RemoteDeckCreateInput } from "@/entities/deck";
+import { db, writeBatch } from "@/shared/firebase";
 
 export interface PreparedDeckImport {
   uid: string;
@@ -9,10 +10,14 @@ export interface PreparedDeckImport {
   mutations: CardMutation[];
 }
 
-export async function executePreparedDeckImport(prepared: PreparedDeckImport): Promise<void> {
+export function executePreparedDeckImport(prepared: PreparedDeckImport): void {
   const uid = getAuthUid();
   if (prepared.uid !== uid) throw new ImportFailure("account-changed");
-  // Cards depend on the destination existing; retry the prepared identities after any partial failure.
-  await createDeck(uid, prepared.destination);
-  if (prepared.mutations.length > 0) await mutateCards(uid, prepared.mutations);
+  const batch = writeBatch(db);
+  writeDeckCreate(batch, uid, prepared.destination);
+  for (const mutation of prepared.mutations) {
+    if (mutation.kind !== "create") throw new Error("Deck import only supports Card creation");
+    writeCardCreate(batch, uid, mutation.card);
+  }
+  void batch.commit().catch(() => undefined);
 }
