@@ -81,10 +81,12 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
         await Promise.resolve(result.current.importPreview());
       });
       await waitFor(() => expect(controls.navigate).toHaveBeenCalled());
-      expect(createDeck).toHaveBeenCalledWith(uid, expect.objectContaining({ name: "deck.csv" }));
-      expect(mutateCards).toHaveBeenCalledWith(uid, [
-        expect.objectContaining({ kind: "create", card: expect.objectContaining({ frontText: "front" }) }),
-      ]);
+      expect(createDeck).toHaveBeenCalledWith(uid, expect.objectContaining({ name: "deck.csv" }), expect.any(Function));
+      expect(mutateCards).toHaveBeenCalledWith(
+        uid,
+        [expect.objectContaining({ kind: "create", card: expect.objectContaining({ frontText: "front" }) })],
+        expect.any(Function)
+      );
     }
   );
 
@@ -120,11 +122,11 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     await selectDeckImportFile(csv());
     vi.mocked(mutateCards).mockRejectedValueOnce(new Error("local save failed"));
     expect(await importDeckPreview()).toBe(false);
-    const firstDeck = vi.mocked(createDeck).mock.calls[0];
-    const firstCards = vi.mocked(mutateCards).mock.calls[0];
+    const firstDeck = vi.mocked(createDeck).mock.calls[0]?.slice(0, 2);
+    const firstCards = vi.mocked(mutateCards).mock.calls[0]?.slice(0, 2);
     expect(await importDeckPreview()).toBe(true);
-    expect(vi.mocked(createDeck).mock.calls[1]).toEqual(firstDeck);
-    expect(vi.mocked(mutateCards).mock.calls[1]).toEqual(firstCards);
+    expect(vi.mocked(createDeck).mock.calls[1]?.slice(0, 2)).toEqual(firstDeck);
+    expect(vi.mocked(mutateCards).mock.calls[1]?.slice(0, 2)).toEqual(firstCards);
   });
 
   it("does not import a selection prepared by another account", async () => {

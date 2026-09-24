@@ -103,7 +103,7 @@ async function saveStudyOperation(input: StudyOperation) {
     remote: { uid: input.uid, startedAt: 1000 },
   };
   restoreStudySession(session);
-  const result = persistStudyOperation(input, session);
+  const result = await persistStudyOperation(input, session);
   await waitForPendingWrites(connection.db);
   return result;
 }
@@ -290,7 +290,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid: "another-owner" });
     });
-    await saveStudyOperation(input).catch(() => undefined);
+    await expect(saveStudyOperation(input)).rejects.toMatchObject({ code: "permission-denied" });
     expect((await answers()).size).toBe(0);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
     expect(await hasState(input.cardId)).toBe(false);

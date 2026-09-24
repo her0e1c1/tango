@@ -13,17 +13,24 @@ export async function submitDeckCreation(
   // Lock synchronously so submissions cannot outrun the form's next render.
   const mutationId = Symbol();
   store.setState({ mutationId });
+  const uid = getAuthUid();
+  const onLocalError = () => {
+    if (getAuthUid() === uid) showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" });
+  };
   try {
-    const uid = getAuthUid();
     const deckId = generateId();
-    await createDeck(uid, {
-      id: deckId,
-      name: values.name,
-      category: values.category,
-      convertToBr: values.convertToBr,
+    await createDeck(
+      uid,
+      {
+        id: deckId,
+        name: values.name,
+        category: values.category,
+        convertToBr: values.convertToBr,
 
-      ...(values.url === undefined ? {} : { url: values.url }),
-    });
+        ...(values.url === undefined ? {} : { url: values.url }),
+      },
+      onLocalError
+    );
     // Writes survive navigation, but resetting the store detaches their results.
     if (store.getState().mutationId !== mutationId) return;
     return { deckId, name: values.name, mutationId };

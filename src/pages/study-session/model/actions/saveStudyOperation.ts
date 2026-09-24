@@ -1,3 +1,4 @@
+import { settleFirestoreWrite, type LocalWriteErrorHandler } from "@/shared/api";
 import { writeCardFsrs, getCards } from "@/entities/card";
 import { writeStudyAnswer } from "@/entities/study-answer";
 import { getDecks } from "@/entities/deck";
@@ -6,7 +7,11 @@ import { getAuthUid } from "@/entities/auth";
 import { getStudySession, writeStudySessionPosition, type StudySession } from "@/entities/study-session";
 import { studyOperationSchema, type StudyOperation } from "../studyOperation";
 
-export function saveStudyOperation(input: StudyOperation, session: StudySession) {
+export async function saveStudyOperation(
+  input: StudyOperation,
+  session: StudySession,
+  onLocalError?: LocalWriteErrorHandler
+) {
   const operation = studyOperationSchema.parse(input);
   if (operation.uid === "" || getAuthUid() !== operation.uid) throw new Error("Study user changed");
   const current = getStudySession(operation.deckId);
@@ -35,6 +40,6 @@ export function saveStudyOperation(input: StudyOperation, session: StudySession)
     writeCardFsrs(batch, { ...operation, fsrs: operation.fsrs });
     writeStudyAnswer(batch, { ...operation, rating: operation.rating });
   }
-  void batch.commit().catch(() => undefined);
+  await settleFirestoreWrite(batch.commit(), onLocalError);
   return result;
 }

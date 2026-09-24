@@ -195,7 +195,7 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
     await mutateCards("user-id", [{ kind: "create", card: nextCard }]);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
     startStudy(activeDeck.id, [activeCard, nextCard], { ...mocks.preferences.study, shuffled: false }, mocks.uid);
-    setStudySessionIndex(activeDeck.id, 1);
+    void setStudySessionIndex(activeDeck.id, 1);
     now.mockReturnValue(2000);
     startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
     const router = createMemoryRouter([

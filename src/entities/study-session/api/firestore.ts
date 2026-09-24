@@ -1,3 +1,4 @@
+import { settleFirestoreWrite, type LocalWriteErrorHandler } from "@/shared/api";
 import {
   onSnapshot,
   collection,
@@ -19,8 +20,11 @@ import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite 
 import { getAuthUid } from "@/entities/auth/@x/study-session";
 import { setStudySessionSyncError, getStudySession, studySessionStore, setStudySessionOwner } from "../model/store";
 
-// Writes are queued locally; callers do not wait for server acknowledgement, including offline.
-function createStudySession(session: StudySession, previous?: StudySession): void {
+async function createStudySession(
+  session: StudySession,
+  previous: StudySession | undefined,
+  onLocalError?: LocalWriteErrorHandler
+): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   const now = Timestamp.now();
@@ -37,19 +41,26 @@ function createStudySession(session: StudySession, previous?: StudySession): voi
     const previousReference = doc(db, "studySession", previous.sessionId);
     batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: serverTimestamp() });
   }
-  void batch.commit().catch(() => undefined);
+  await settleFirestoreWrite(batch.commit(), onLocalError);
 }
 
-function updateStudySession(session: StudySession, endReason: StudySessionSnapshot["endReason"]): void {
+async function updateStudySession(
+  session: StudySession,
+  endReason: StudySessionSnapshot["endReason"],
+  onLocalError?: LocalWriteErrorHandler
+): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
-  void updateDoc(reference, {
-    ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
-    ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
-    lastStudiedAt: Date.now(),
-    updatedAt: serverTimestamp(),
-  }).catch(() => undefined);
+  await settleFirestoreWrite(
+    updateDoc(reference, {
+      ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
+      ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
+      lastStudiedAt: Date.now(),
+      updatedAt: serverTimestamp(),
+    }),
+    onLocalError
+  );
 }
 
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
@@ -120,17 +131,20 @@ function requireOwner(session: StudySession): void {
   if (session.remote.uid !== getAuthUid()) throw new Error("Study session owner changed");
 }
 
-export function startStudy({
-  deckId,
-  cardOrderIds,
-  uid,
-  now = Date.now(),
-}: {
-  deckId: string;
-  cardOrderIds: string[];
-  uid: string;
-  now?: number;
-}): string | undefined {
+export async function startStudy(
+  {
+    deckId,
+    cardOrderIds,
+    uid,
+    now = Date.now(),
+  }: {
+    deckId: string;
+    cardOrderIds: string[];
+    uid: string;
+    now?: number;
+  },
+  onLocalError?: LocalWriteErrorHandler
+): Promise<string | undefined> {
   if (!uid || uid !== getAuthUid()) throw new Error("Study session owner changed");
   const previous = getStudySession(deckId);
   if (previous) requireOwner(previous);
@@ -143,11 +157,15 @@ export function startStudy({
     remote: { uid, startedAt: now },
   };
   if (session.cardOrderIds.length === 0) return;
-  createStudySession(session, previous);
+  await createStudySession(session, previous, onLocalError);
   return session.sessionId;
 }
 
-export function setStudySessionIndex(deckId: string, currentIndex: number): boolean {
+export async function setStudySessionIndex(
+  deckId: string,
+  currentIndex: number,
+  onLocalError?: LocalWriteErrorHandler
+): Promise<boolean> {
   const session = getStudySession(deckId);
   if (
     !(session && Number.isInteger(currentIndex)) ||
@@ -156,23 +174,23 @@ export function setStudySessionIndex(deckId: string, currentIndex: number): bool
   )
     return false;
   requireOwner(session);
-  updateStudySession({ ...session, currentIndex }, null);
+  await updateStudySession({ ...session, currentIndex }, null, onLocalError);
   return true;
 }
 
-export function abandonStudySession(deckId: string): void {
+export async function abandonStudySession(deckId: string, onLocalError?: LocalWriteErrorHandler): Promise<void> {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
-  updateStudySession(session, "abandoned");
+  await updateStudySession(session, "abandoned", onLocalError);
 }
 
-export function touchStudySession(deckId: string): void {
+export async function touchStudySession(deckId: string, onLocalError?: LocalWriteErrorHandler): Promise<void> {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
-  void updateDoc(doc(db, "studySession", session.sessionId), {
-    lastStudiedAt: Date.now(),
-    updatedAt: serverTimestamp(),
-  }).catch(() => undefined);
+  await settleFirestoreWrite(
+    updateDoc(doc(db, "studySession", session.sessionId), { lastStudiedAt: Date.now(), updatedAt: serverTimestamp() }),
+    onLocalError
+  );
 }

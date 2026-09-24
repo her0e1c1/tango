@@ -94,22 +94,25 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
         lastStudiedAt: now,
         remote: { uid, startedAt: now },
       });
-      return sessionId;
+      return Promise.resolve(sessionId);
     },
     touchStudySession: (deckId: string) => {
       const current = studySessionStore.getState().sessionsByDeckId[deckId];
       if (current) restoreStudySession({ ...current, lastStudiedAt: Date.now() });
+      return Promise.resolve();
     },
     setStudySessionIndex: (deckId: string, currentIndex: number) => {
       const session = studySessionStore.getState().sessionsByDeckId[deckId];
-      if (!session || currentIndex <= session.currentIndex || currentIndex >= session.cardOrderIds.length) return false;
+      if (!session || currentIndex <= session.currentIndex || currentIndex >= session.cardOrderIds.length)
+        return Promise.resolve(false);
       restoreStudySession({ ...session, currentIndex, lastStudiedAt: Date.now() });
-      return true;
+      return Promise.resolve(true);
     },
     abandonStudySession: (deckId: string) => {
       studySessionStore.setState((state) => ({
         sessionsByDeckId: Object.fromEntries(Object.entries(state.sessionsByDeckId).filter(([id]) => id !== deckId)),
       }));
+      return Promise.resolve();
     },
   };
 });

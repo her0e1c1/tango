@@ -26,7 +26,7 @@
 | FIRESTORE-STUDY-SESSION-02 | batch | 正常系 | [離脱だけでは終了せず最初からやり直すと旧セッションを中断する](#firestore-study-session-02) |
 | FIRESTORE-STUDY-SESSION-03 | write | 正常系 | [最後のカードを完了した操作が重複しても終了記録を変更しない](#firestore-study-session-03) |
 | FIRESTORE-STUDY-SESSION-04 | batch | 正常系 | [オフラインで中断した学習を重複なく同期できる](#firestore-study-session-04) |
-| FIRESTORE-STUDY-SESSION-05 | batch | 正常系 | [別Deckの未送信書込に妨げられずオフラインでやり直せる](#firestore-study-session-05) |
+| FIRESTORE-STUDY-SESSION-05 | batch | 正常系 | [別Deckの未送信書込とともにやり直しを再接続後に完了する](#firestore-study-session-05) |
 | FIRESTORE-STUDY-SESSION-06 | read | 異常系 | [不正な保存データが混在しても有効な学習を復元してやり直せる](#firestore-study-session-06) |
 | FIRESTORE-STUDY-SESSION-07 | write | 正常系 | [次のカードへ進めた操作が重複してもカードを飛ばさない](#firestore-study-session-07) |
 | FIRESTORE-STUDY-SESSION-08 | write | 正常系 | [学習を再開した時刻だけを更新し順序と位置を維持する](#firestore-study-session-08) |
@@ -36,8 +36,8 @@
 | FIRESTORE-STUDY-SESSION-12 | read | 正常系 | [保存された終了を反映し別Deckの学習は維持する](#firestore-study-session-12) |
 | FIRESTORE-STUDY-SESSION-13 | batch | 正常系 | [オフラインで完了した学習を重複なく同期し再開対象に戻さない](#firestore-study-session-13) |
 | FIRESTORE-STUDY-SESSION-14 | write | 正常系 | [学習対象が0枚ならセッションを作成せず既存の学習も中断しない](#firestore-study-session-14) |
-| FIRESTORE-STUDY-SESSION-15 | write | 異常系 | [不正なカード順序を同期的に拒否し保存済みの学習を維持する](#firestore-study-session-15) |
-| FIRESTORE-STUDY-SESSION-16 | write | 異常系 | [所有者が変わった後の書込を同期的に拒否する](#firestore-study-session-16) |
+| FIRESTORE-STUDY-SESSION-15 | write | 異常系 | [不正なカード順序をPromise の reject で拒否し保存済みの学習を維持する](#firestore-study-session-15) |
+| FIRESTORE-STUDY-SESSION-16 | write | 異常系 | [所有者が変わった後の書込をPromise の reject で拒否する](#firestore-study-session-16) |
 | FIRESTORE-STUDY-SESSION-17 | read | 正常系 | [同期時刻と学習日時を分離して履歴と再開状態を共有する](#firestore-study-session-17) |
 
 <a id="firestore-study-session-01"></a>
@@ -104,7 +104,7 @@ When:
 
 Then:
 
-- 最初の保存操作は完了したセッションと終了理由 `completed` を同期的に返し、重複した操作はセッション不一致のエラーを同期的に投げる。保存と購読反映は別途待つ。
+- 最初の保存操作は保存成功後に完了したセッションと終了理由 `completed` を返し、重複した操作はセッション不一致のエラーで reject する。購読反映は別途待つ。
 - 位置 `2`、終了理由 `completed`、Timestamp の終了日時が保存され、再開対象から外れる。
 - 開始日時と作成日時は開始時の値を保持する。
 - 重複操作後の保存内容は最初の完了保存後と同一で、終了日時・更新日時も書き換わらない。
@@ -119,23 +119,23 @@ Then:
 
 Given:
 
-- 本人の学習を購読しており、ネットワークが無効である。
+- 本人の学習を開始・保存・購読済みであり、ネットワークが無効である。
 
 When:
 
-- 学習を開始して2枚目へ進み、明示的に中断する。
+- 2枚目への位置変更を要求し、cache 反映と未完了を確認して再接続する。保存完了後に再びオフラインにして明示的に中断する。
 - 購読を解除してメモリ上の学習状態を破棄し、再接続して未送信書込の完了を待つ。
 
 Then:
 
-- 開始は session ID、位置変更は `true`、中断は `undefined` を同期的に返し、サーバー応答を待たない。
+- 位置変更と中断の Promise はオフライン中に完了せず、それぞれ再接続後に `true` と `undefined` に resolve する。
 - 再接続前の cache には位置 `1` と終了理由 `abandoned` が反映される。
 - 再接続後も開始時と同じ session ID に位置 `1` と `abandoned` が保存される。
 - 対象 Deck の保存済みセッションは、その ID の1件だけである。
 
 <a id="firestore-study-session-05"></a>
 
-### FIRESTORE-STUDY-SESSION-05 別Deckの未送信書込に妨げられずオフラインでやり直せる
+### FIRESTORE-STUDY-SESSION-05 別Deckの未送信書込とともにやり直しを再接続後に完了する
 
 カテゴリ: `batch`
 
@@ -154,7 +154,7 @@ When:
 Then:
 
 - cache から対象 Deck の以前の位置を復元できる。
-- 再接続を待たずに別 Deck の開始と対象 Deck のやり直しが受け付けられる。
+- 別 Deck の開始と対象 Deck のやり直しは cache に反映されるが、操作の Promise は再接続後の保存成功まで完了しない。
 - 別 Deck はその Deck のカード順序を保持し、対象 Deck は旧セッションと異なる ID・位置 `0` になる。
 - 再接続後、対象 Deck の新セッションは未終了、旧セッションは `abandoned` で保存される。
 
@@ -337,15 +337,16 @@ Then:
 
 Given:
 
-- 本人の学習を購読しており、ネットワークが無効である。
+- 本人の学習を最後のカード、位置 `2` まで保存・購読済みであり、ネットワークが無効である。
 
 When:
 
-- 学習を開始し、最後のカード、位置 `2` まで進めて完了する。
+- 最後のカードの完了を要求する。
 - 購読を解除してメモリ上の学習状態を破棄し、再接続して未送信書込の完了を待ってから再購読する。
 
 Then:
 
+- 完了操作の Promise はオフライン中に完了せず、再接続後の保存成功で `true` に resolve する。
 - 再接続前の cache に位置 `2`、終了理由 `completed`、Timestamp の終了日時が反映される。
 - 再接続後も開始時と同じ session ID に位置 `2` と完了状態・終了日時が保存される。
 - 対象 Deck の保存済みセッションは、その ID の1件だけである。
@@ -374,13 +375,13 @@ When:
 
 Then:
 
-- 開始操作は同期的に `undefined` を返し、新しいセッションは作成されない。
+- 開始操作は `undefined` に resolve し、新しいセッションは作成されない。
 - 既存セッションの有無の両方で、保存済み ID 一覧と再開対象を確認する。既存セッションがなければ、保存件数は0件で再開対象も存在しない。
 - 既存セッションがあれば、保存内容は操作前と完全に同じである。同じ ID・位置 `1` の再開対象を維持し、中断や更新日時の変更も発生しない。
 
 <a id="firestore-study-session-15"></a>
 
-### FIRESTORE-STUDY-SESSION-15 不正なカード順序を同期的に拒否し保存済みの学習を維持する
+### FIRESTORE-STUDY-SESSION-15 不正なカード順序をPromise の reject で拒否し保存済みの学習を維持する
 
 カテゴリ: `write`
 
@@ -396,12 +397,12 @@ When:
 
 Then:
 
-- Adapter は入力検証エラーを同期的に投げる。Rules の認可エラーではない。
+- Adapter は入力検証エラーで Promise を reject する。Rules の認可エラーではない。
 - 対象 Deck の保存済みセッションは元の1件だけで、保存内容と再開対象は操作前と変わらない。
 
 <a id="firestore-study-session-16"></a>
 
-### FIRESTORE-STUDY-SESSION-16 所有者が変わった後の書込を同期的に拒否する
+### FIRESTORE-STUDY-SESSION-16 所有者が変わった後の書込をPromise の reject で拒否する
 
 カテゴリ: `write`
 
@@ -418,7 +419,7 @@ When:
 
 Then:
 
-- 各操作は所有者変更のエラーを同期的に投げる。Adapter の拒否であり、Rules の認可は検証しない。
+- 各操作は所有者変更のエラーで Promise を reject する。Adapter の拒否であり、Rules の認可は検証しない。
 - 対象 Deck の保存済みセッションは元の1件だけで、保存内容と再開対象は操作前と変わらない。
 
 <a id="firestore-study-session-17"></a>

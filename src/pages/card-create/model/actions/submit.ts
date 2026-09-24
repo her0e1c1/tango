@@ -15,12 +15,17 @@ export async function submit({
   // Each attempt has a new identity; retries intentionally do not reuse an uncertain previous write.
   const cardId = generateId();
 
+  const uid = getAuthUid();
+  const onLocalError = () => {
+    if (getAuthUid() === uid) showToast({ messageKey: "cardForm.toast.createFailure", tone: "error" });
+  };
   try {
-    await createCard(getAuthUid(), { ...values, id: cardId, uniqueKey: cardId, deckId });
+    await createCard(uid, { ...values, id: cardId, uniqueKey: cardId, deckId }, onLocalError);
   } catch {
-    showToast({ messageKey: "cardForm.toast.createFailure", tone: "error" });
+    if (getAuthUid() === uid) showToast({ messageKey: "cardForm.toast.createFailure", tone: "error" });
     return;
   }
 
+  if (getAuthUid() !== uid) return;
   return { id: cardId, name: values.frontText };
 }

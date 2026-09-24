@@ -1,3 +1,4 @@
+import type { LocalWriteErrorHandler } from "@/shared/api";
 import type { CardMutation } from "@/entities/card";
 import type { DeckId, RemoteDeckCreateInput } from "@/entities/deck";
 
@@ -30,11 +31,11 @@ const prepareSampleDeck = (uid: string): PreparedSampleDeck => {
   };
 };
 
-export async function addSampleDeck() {
+export async function addSampleDeck(onLocalError?: LocalWriteErrorHandler) {
   const uid = getAuthUid();
   const sample = prepareSampleDeck(uid);
-  await createDeck(uid, sample.destination);
-  if (sample.mutations.length > 0) await mutateCards(uid, sample.mutations);
+  await createDeck(uid, sample.destination, onLocalError);
+  if (sample.mutations.length > 0) await mutateCards(uid, sample.mutations, onLocalError);
   updatePreferences({ loadSample: false });
 
   return {

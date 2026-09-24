@@ -101,14 +101,18 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
-    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
-      id: "new-deck",
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith(
+      "user-id",
+      {
+        id: "new-deck",
 
-      name: "New deck",
-      category: "",
-      convertToBr: true,
-      url: "https://example.com/deck.csv",
-    });
+        name: "New deck",
+        category: "",
+        convertToBr: true,
+        url: "https://example.com/deck.csv",
+      },
+      expect.any(Function)
+    );
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
     expect(screen.getByText("Created deck “New deck”.")).toBeVisible();
   });
@@ -123,14 +127,18 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
-    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("anonymous", {
-      id: "new-deck",
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith(
+      "anonymous",
+      {
+        id: "new-deck",
 
-      name: "Local deck",
-      category: "",
-      convertToBr: true,
-      url: "https://example.com/local.csv",
-    });
+        name: "Local deck",
+        category: "",
+        convertToBr: true,
+        url: "https://example.com/local.csv",
+      },
+      expect.any(Function)
+    );
   });
 
   it("uses the current anonymous UID after signing out", async () => {
@@ -144,7 +152,8 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
       "anonymous",
       expect.objectContaining({
         name: "Signed-out deck",
-      })
+      }),
+      expect.any(Function)
     );
   });
 
@@ -154,13 +163,17 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "No source deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
-    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
-      id: "new-deck",
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith(
+      "user-id",
+      {
+        id: "new-deck",
 
-      name: "No source deck",
-      category: "",
-      convertToBr: false,
-    });
+        name: "No source deck",
+        category: "",
+        convertToBr: false,
+      },
+      expect.any(Function)
+    );
   });
 
   it("reports a creation failure without locking the form for a special retry flow", async () => {
@@ -184,14 +197,18 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(sourceUrl).toHaveValue("https://example.com/failed.csv");
     expect(convertLineBreaks).toBeChecked();
     expect(mocks.generateId).toHaveBeenCalledOnce();
-    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
-      id: "new-deck",
+    expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith(
+      "user-id",
+      {
+        id: "new-deck",
 
-      name: "Failed deck",
-      category: "typescript",
-      convertToBr: true,
-      url: "https://example.com/failed.csv",
-    });
+        name: "Failed deck",
+        category: "typescript",
+        convertToBr: true,
+        url: "https://example.com/failed.csv",
+      },
+      expect.any(Function)
+    );
   });
 
   it("keeps a failed creation notification during retry and replaces it on success", async () => {

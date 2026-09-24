@@ -15,20 +15,24 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields): Pr
   }
 
   const uid = getAuthUid();
+  const onLocalError = () => {
+    if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
+  };
   const input = { ...values, id: deckId, url: values.url ?? null };
   const save = async (): Promise<void> => {
     const deck = mustFindDeckById(getDecks(), deckId);
     if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
-    await editDeck(uid, input);
+    await editDeck(uid, input, onLocalError);
   };
   const submission = save()
     .then(() => {
+      if (getAuthUid() !== uid) return false;
       // Shared Toast lifetime covers persistence that finishes after the editor unmounts.
       showToast({ messageKey: "deckForm.toast.updated", messageParams: { name: input.name }, tone: "success" });
       return true;
     })
     .catch(() => {
-      showToast({ messageKey: "toast.saveFailure", tone: "error" });
+      if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
       return false;
     });
   store.setState({ submission });

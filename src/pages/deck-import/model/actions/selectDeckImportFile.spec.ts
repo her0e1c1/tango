@@ -62,13 +62,17 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     expect(mutateCards).not.toHaveBeenCalled();
     await expect(importDeckPreview()).resolves.toBe(true);
 
-    expect(createDeck).toHaveBeenCalledWith("uid", { id: "deck", name: "deck.csv" });
-    expect(mutateCards).toHaveBeenCalledWith("uid", [
-      {
-        kind: "create",
-        card: { ...row.card, id: "card", deckId: "deck" },
-      },
-    ]);
+    expect(createDeck).toHaveBeenCalledWith("uid", { id: "deck", name: "deck.csv" }, expect.any(Function));
+    expect(mutateCards).toHaveBeenCalledWith(
+      "uid",
+      [
+        {
+          kind: "create",
+          card: { ...row.card, id: "card", deckId: "deck" },
+        },
+      ],
+      expect.any(Function)
+    );
   });
 
   it("imports using the anonymous UID", async () => {
@@ -78,13 +82,21 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     await selectDeckImportFile(file("local.csv"));
     await expect(importDeckPreview()).resolves.toBe(true);
 
-    expect(createDeck).toHaveBeenCalledWith("anonymous-uid", { id: "local-deck", name: "local.csv" });
-    expect(mutateCards).toHaveBeenCalledWith("anonymous-uid", [
-      {
-        kind: "create",
-        card: { ...row.card, id: "local-card", deckId: "local-deck" },
-      },
-    ]);
+    expect(createDeck).toHaveBeenCalledWith(
+      "anonymous-uid",
+      { id: "local-deck", name: "local.csv" },
+      expect.any(Function)
+    );
+    expect(mutateCards).toHaveBeenCalledWith(
+      "anonymous-uid",
+      [
+        {
+          kind: "create",
+          card: { ...row.card, id: "local-card", deckId: "local-deck" },
+        },
+      ],
+      expect.any(Function)
+    );
   });
 
   it("uses the same API for anonymous imports", async () => {
@@ -92,9 +104,11 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     await selectDeckImportFile(file("guest.csv"));
     await expect(importDeckPreview()).resolves.toBe(true);
 
-    expect(createDeck).toHaveBeenCalledWith("anonymous-uid", { id: "deck", name: "guest.csv" });
-    expect(mutateCards).toHaveBeenCalledWith("anonymous-uid", [
-      { kind: "create", card: { ...row.card, id: "card", deckId: "deck" } },
-    ]);
+    expect(createDeck).toHaveBeenCalledWith("anonymous-uid", { id: "deck", name: "guest.csv" }, expect.any(Function));
+    expect(mutateCards).toHaveBeenCalledWith(
+      "anonymous-uid",
+      [{ kind: "create", card: { ...row.card, id: "card", deckId: "deck" } }],
+      expect.any(Function)
+    );
   });
 });

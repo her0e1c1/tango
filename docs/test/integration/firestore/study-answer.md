@@ -244,6 +244,8 @@ When:
 
 Then:
 
+- 保存操作の Promise は Rules の `permission-denied` で reject する。
+
 - 最初の保存はエラーになり、回答は0件、session の位置は `0` のままで FSRS は null のままである。再試行後は同じ操作 ID の回答に answeredAt `2000` の Timestamp が保存される。
 
 <a id="firestore-study-answer-11"></a>

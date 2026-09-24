@@ -1,3 +1,4 @@
+import { getAuthUid } from "@/entities/auth";
 import { showToast } from "@/shared/ui/toast";
 import { importFailureKey } from "../../lib/importFailure";
 import { executePreparedDeckImport } from "./executePreparedDeckImport";
@@ -7,9 +8,14 @@ export async function importDeckPreview(): Promise<boolean> {
   const { status, source } = deckImportStore.getState();
   if (status !== "idle" || source.kind !== "selected" || source.preparedImport === undefined) return false;
 
+  const uid = getAuthUid();
+  const onLocalError = (error: unknown) => {
+    if (getAuthUid() === uid)
+      showToast({ messageKey: importFailureKey(error) ?? "deckImport.toast.failure", tone: "error" });
+  };
   deckImportStore.setState({ status: "importing" });
   try {
-    await executePreparedDeckImport(source.preparedImport);
+    await executePreparedDeckImport(source.preparedImport, onLocalError);
     return true;
   } catch (error: unknown) {
     showToast({ messageKey: importFailureKey(error) ?? "deckImport.toast.failure", tone: "error" });

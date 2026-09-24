@@ -171,7 +171,7 @@ describe("firestore/card", { retry: 3 }, () => {
     await deleteCard("uid", card.id);
     await waitForPendingWrites(db);
 
-    await mutateCards("uid", [{ kind: "edit", card }]).catch(() => undefined);
+    await expect(mutateCards("uid", [{ kind: "edit", card }])).rejects.toBeDefined();
     await waitForPendingWrites(db);
     const ownedCards = await getDocs(query(collection(db, "card"), where("uid", "==", "uid")));
     expect(ownedCards.docs.find((snapshot) => snapshot.id === card.id)?.data().deletedAt).toEqual(expect.any(Number));

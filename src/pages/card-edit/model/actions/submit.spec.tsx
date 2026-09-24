@@ -40,12 +40,16 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
       });
 
       expect(saved).toEqual(values);
-      expect(editCard).toHaveBeenCalledWith(uid ?? "", {
-        id: card.id,
-        frontText: "Edited front",
-        backText: "Edited back",
-        tags: ["custom-tag"],
-      });
+      expect(editCard).toHaveBeenCalledWith(
+        uid ?? "",
+        {
+          id: card.id,
+          frontText: "Edited front",
+          backText: "Edited back",
+          tags: ["custom-tag"],
+        },
+        expect.any(Function)
+      );
     }
   );
 
@@ -79,6 +83,22 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
     await actAsync(async () => {
       expect(await submit(input)).toEqual(input.values);
     });
-    expect(editCard).toHaveBeenLastCalledWith("opening-user", { id: "card-id", ...input.values });
+    expect(editCard).toHaveBeenLastCalledWith("opening-user", { id: "card-id", ...input.values }, expect.any(Function));
+  });
+
+  it.each([false, true])("handles a later local failure with a user guard (changed: %s)", async (changedUser) => {
+    render(<ToastViewport />);
+    const values = { frontText: "Saved locally", backText: "Back", tags: [] };
+    await actAsync(async () => {
+      expect(await submit({ cardId: "card-id", values })).toEqual(values);
+    });
+    const onLocalError = vi.mocked(editCard).mock.calls[0]?.[2];
+    expect(onLocalError).toBeTypeOf("function");
+    if (changedUser) session.uid = "another-user";
+    await actAsync(async () => {
+      onLocalError?.(new Error("local persistence failed"));
+      await Promise.resolve();
+    });
+    expect(screen.queryAllByRole("alert")).toHaveLength(changedUser ? 0 : 1);
   });
 });

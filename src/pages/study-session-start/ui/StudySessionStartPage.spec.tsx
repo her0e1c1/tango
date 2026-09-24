@@ -120,11 +120,15 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
 
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
     expect(screen.getByText("1 card matches your filters.")).toBeVisible();
-    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
-      id: deckId,
-      selectedTags: ["tag"],
-      tagAndFilter: false,
-    });
+    expect(mocks.editDeck).toHaveBeenCalledWith(
+      "user-id",
+      {
+        id: deckId,
+        selectedTags: ["tag"],
+        tagAndFilter: false,
+      },
+      expect.any(Function)
+    );
   });
 
   it("reveals additional tags and persists a newly selected tag", async () => {
@@ -135,11 +139,15 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
     await userEvent.click(screen.getByRole("button", { name: "Show 4 more tags" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "tag-12" }));
 
-    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
-      id: deckId,
-      selectedTags: ["tag-12"],
-      tagAndFilter: false,
-    });
+    expect(mocks.editDeck).toHaveBeenCalledWith(
+      "user-id",
+      {
+        id: deckId,
+        selectedTags: ["tag-12"],
+        tagAndFilter: false,
+      },
+      expect.any(Function)
+    );
   });
 
   it("creates a study session before navigating to it", async () => {

@@ -204,10 +204,14 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     await user.tab();
     expect(screen.getByRole("button", { name: "View Front" })).toHaveFocus();
 
-    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
-      id: deck.id,
-      cardFilter: { selectedTags: ["react"], tagAndFilter: false },
-    });
+    expect(mocks.editDeck).toHaveBeenCalledWith(
+      "user-id",
+      {
+        id: deck.id,
+        cardFilter: { selectedTags: ["react"], tagAndFilter: false },
+      },
+      expect.any(Function)
+    );
   });
 
   it("removes the final selected tag via keyboard and moves focus to the closed filters summary", async () => {
@@ -227,10 +231,14 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     expect(summary).toHaveFocus();
     expect(summary).toHaveAccessibleName(/Filters\s*No filters/);
 
-    expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
-      id: deck.id,
-      cardFilter: { selectedTags: [], tagAndFilter: false },
-    });
+    expect(mocks.editDeck).toHaveBeenCalledWith(
+      "user-id",
+      {
+        id: deck.id,
+        cardFilter: { selectedTags: [], tagAndFilter: false },
+      },
+      expect.any(Function)
+    );
   });
 
   it("keeps chips usable during autosave and does not steal focus when saving finishes", async () => {
@@ -267,10 +275,14 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
 
     await waitFor(() => expect(screen.getByRole("button", { name: "View Front" })).toBeEnabled());
     expect(settingsButton).toHaveFocus();
-    expect(mocks.editDeck).toHaveBeenLastCalledWith("user-id", {
-      id: deck.id,
-      cardFilter: { selectedTags: [], tagAndFilter: false },
-    });
+    expect(mocks.editDeck).toHaveBeenLastCalledWith(
+      "user-id",
+      {
+        id: deck.id,
+        cardFilter: { selectedTags: [], tagAndFilter: false },
+      },
+      expect.any(Function)
+    );
   });
 
   it("preserves focus and does not alter filter state when tabbing through tags without removing them", async () => {

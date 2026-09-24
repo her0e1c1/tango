@@ -8,9 +8,12 @@ export async function confirmCardDeletion(): Promise<void> {
   if (deletionTarget == null || pendingMutationId !== undefined) return;
   const mutationId = Symbol();
   cardListStore.setState({ mutationId });
+  const uid = getAuthUid();
+  const onLocalError = () => {
+    if (getAuthUid() === uid) showToast({ messageKey: "cardList.toast.deleteFailure", tone: "error" });
+  };
   try {
-    const uid = getAuthUid();
-    await deleteCard(uid, deletionTarget.id);
+    await deleteCard(uid, deletionTarget.id, onLocalError);
     if (cardListStore.getState().mutationId !== mutationId) return;
     showToast({
       messageKey: "cardList.toast.deleted",

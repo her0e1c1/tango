@@ -256,12 +256,16 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await actAsync(async () => write.resolve());
 
     expect(await screen.findByText("Updated card “Front text”.")).toBeVisible();
-    expect(editCard).toHaveBeenCalledExactlyOnceWith("user-id", {
-      id: cardId,
-      frontText: "Front text",
-      backText: "Back text",
-      tags: [],
-    });
+    expect(editCard).toHaveBeenCalledExactlyOnceWith(
+      "user-id",
+      {
+        id: cardId,
+        frontText: "Front text",
+        backText: "Back text",
+        tags: [],
+      },
+      expect.any(Function)
+    );
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
     await actAsync(async () => view.router.navigate(-1));
     expect(await screen.findByRole("heading", { name: "Previous page" })).toBeVisible();

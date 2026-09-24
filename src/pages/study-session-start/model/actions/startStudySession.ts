@@ -14,6 +14,9 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   const deck = getDecks().find(({ id }) => id === deckId);
   if (deck === undefined) return;
   const uid = getAuthUid();
+  const onLocalError = () => {
+    if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
+  };
   if (uid === "" || deck.uid !== uid) return;
   const { study } = getPreferences();
   // Use the current draft even when its autosave has not reached the Deck yet.
@@ -27,12 +30,13 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   if (cards.length === 0) return;
   starting = true;
   try {
-    // Keep the interaction locked through this turn even though write acceptance is synchronous.
-    const sessionId = startStudy({ deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now });
-    await Promise.resolve();
-    return sessionId;
+    const sessionId = await startStudy(
+      { deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now },
+      onLocalError
+    );
+    return getAuthUid() === uid ? sessionId : undefined;
   } catch {
-    showToast({ messageKey: "toast.saveFailure", tone: "error" });
+    if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
     return;
   } finally {
     starting = false;

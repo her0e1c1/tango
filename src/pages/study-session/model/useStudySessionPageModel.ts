@@ -14,6 +14,7 @@ import { routes } from "@/shared/router";
 import { useStudyShortcuts } from "./useStudyShortcuts";
 import { useAuth } from "@/entities/auth";
 import type { DeckId } from "@/entities/deck";
+import { clearSettledStudySession } from "./actions/clearSettledStudySession";
 import { closeHelp } from "./actions/closeHelp";
 import { enterStudySessionPage } from "./actions/enterStudySessionPage";
 import { maintainStudySession } from "./actions/maintainStudySession";
@@ -35,6 +36,7 @@ export function useStudySessionPageModel(deckId: DeckId) {
   const query = useStudyQuery(deckId);
   const pageState = useStudySessionPageState(uid, deckId);
   const pendingResult = useStore(studySessionPageStore, (state) => state.pendingResult);
+  useEffect(clearSettledStudySession, [uid, query.savingSnapshot, query.awaitingRollback]);
   useEffect(() => enterStudySessionPage(uid, deckId), [uid, deckId]);
   useEffect(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
   useAutoPlay(query.sessionState);
@@ -53,7 +55,12 @@ export function useStudySessionPageModel(deckId: DeckId) {
         query.sessionState.session.currentIndex === pendingResult.currentIndex;
     if (!reflected) return;
     showStudyResult(pendingResult.completed, pendingResult.cardCount, pendingResult.direction);
-    studySessionPageStore.setState({ isSaving: false, pendingResult: undefined });
+    studySessionPageStore.setState({
+      isSaving: false,
+      pendingResult: undefined,
+      savingSession: undefined,
+      saveToken: undefined,
+    });
   }, [deckId, pendingResult, query.sessionId, query.sessionState]);
   useEffect(() => {
     if (query.status !== "invalid" || pageState.completion != null || pageState.swipePending) return;

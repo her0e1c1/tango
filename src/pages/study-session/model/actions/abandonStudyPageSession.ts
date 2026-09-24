@@ -1,7 +1,8 @@
 import { getAuthUid } from "@/entities/auth";
 import { getPreferences, type SwipeDirection } from "@/entities/preference";
-import { abandonStudySession } from "@/entities/study-session";
+import { abandonStudySession, getStudySession } from "@/entities/study-session";
 import { showToast } from "@/shared/ui/toast";
+import { clearSettledStudySession } from "./clearSettledStudySession";
 import { showSwipeFeedback } from "../../lib/showSwipeFeedback";
 import { studySessionPageStore } from "../store";
 
@@ -9,11 +10,21 @@ export async function abandonStudyPageSession(deckId: string, direction?: SwipeD
   const uid = getAuthUid();
   const { owner, isSaving } = studySessionPageStore.getState();
   if (isSaving || owner?.uid !== uid || owner.deckId !== deckId) return;
-  studySessionPageStore.setState({ isSaving: true });
+  const onLocalError = () => {
+    if (studySessionPageStore.getState().owner === owner && getAuthUid() === uid)
+      showToast({ messageKey: "toast.saveFailure", tone: "error" });
+  };
+  const session = getStudySession(deckId);
+  if (session === undefined) return;
+  studySessionPageStore.setState({
+    isSaving: true,
+    savingSession: session,
+    awaitingRollback: false,
+    saveToken: undefined,
+  });
   try {
-    // Keep the interaction locked through this turn even though write acceptance is synchronous.
-    abandonStudySession(deckId);
-    await Promise.resolve();
+    await abandonStudySession(deckId, onLocalError);
+    studySessionPageStore.setState({ isSaving: false, savingSession: undefined });
     if (
       studySessionPageStore.getState().owner === owner &&
       getAuthUid() === uid &&
@@ -22,9 +33,9 @@ export async function abandonStudyPageSession(deckId: string, direction?: SwipeD
     )
       showSwipeFeedback(direction);
   } catch {
+    studySessionPageStore.setState({ awaitingRollback: true });
+    clearSettledStudySession();
     if (studySessionPageStore.getState().owner === owner && getAuthUid() === uid)
       showToast({ messageKey: "toast.saveFailure", tone: "error" });
-  } finally {
-    studySessionPageStore.setState({ isSaving: false });
   }
 }
