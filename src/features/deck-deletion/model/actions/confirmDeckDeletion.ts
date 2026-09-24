@@ -1,5 +1,6 @@
 import { getAuthUid } from "@/entities/auth";
-import { deleteDeck } from "@/entities/deck";
+import { deleteDeck, getDecks, mustFindDeckById } from "@/entities/deck";
+import { abandonStudySession } from "@/entities/study-session";
 import { showToast } from "@/shared/ui/toast";
 import type { DeckDeletionTarget } from "../types";
 
@@ -24,7 +25,10 @@ export const confirmDeckDeletion = async ({
   setPending(true);
   try {
     const uid = getAuthUid();
+    const currentDeck = mustFindDeckById(getDecks(), deck.id);
+    if (currentDeck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
     await deleteDeck(uid, deck.id);
+    await abandonStudySession(deck.id);
     if (!isMounted()) return;
     setTarget(undefined);
     showToast({ messageKey: "deckDeletion.toast.deleted", messageParams: { name: deck.name }, tone: "success" });

@@ -6,7 +6,7 @@
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
-import { readDeckTags, writeDeckEdit } from "@/entities/deck";
+import { readDeckTags } from "@/entities/deck";
 import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -139,7 +139,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(await readDeckTags("uid", deck.id)).toEqual([]);
     const stored = await readCardsForTagUpdate("uid", deck.id);
     const batch = writeBatch(db);
-    writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, ["renamed", "kept"]);
+    await editDeck("uid", { id: deck.id, name: "Updated name" }, { batch, tags: ["renamed", "kept"] });
     writeCardTagChanges(batch, stored, [{ previous: "old", name: "renamed" }]);
     await batch.commit();
     expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({
@@ -169,7 +169,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await readDeckTags("uid", deck.id);
     const stored = await readCardsForTagUpdate("uid", deck.id);
     const batch = writeBatch(db);
-    writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, ["renamed", "kept"]);
+    await editDeck("uid", { id: deck.id, name: "Updated name" }, { batch, tags: ["renamed", "kept"] });
     writeCardTagChanges(batch, stored, [{ previous: "old", name: "renamed" }]);
     batch.update(cardRef, { uid: "another-user" });
     await expect(batch.commit()).rejects.toMatchObject({ code: "permission-denied" });
@@ -222,7 +222,7 @@ describe("firestore/deck pending Card writes", () => {
         const stored = await readCardsForTagUpdate("uid", deck.id);
         const batch = writeBatch(db);
         const tags = replacement === undefined ? ["kept"] : [replacement, "kept"];
-        writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, tags);
+        await editDeck("uid", { id: deck.id, name: "Updated name" }, { batch, tags });
         writeCardTagChanges(batch, stored, [{ previous: "old", name: replacement }]);
         void batch.commit().catch(() => undefined);
         for (const id of [existing.id, created.id]) {

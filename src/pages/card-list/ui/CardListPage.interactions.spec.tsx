@@ -41,6 +41,7 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
   editDeck: mocks.editDeck,
   useDeck: () => mocks.deck,
+  getDecks: () => (mocks.deck ? [mocks.deck] : []),
 }));
 vi.mock("@/entities/preference", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preference")>()),

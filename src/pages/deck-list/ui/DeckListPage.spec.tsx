@@ -183,7 +183,7 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
     mocks.uid = uid;
     await userEvent.click(screen.getByRole("button", { name: "Delete deck" }));
 
-    expect(mocks.deleteDeck).toHaveBeenCalledExactlyOnceWith(uid, freshDeck.id);
+    expect(mocks.deleteDeck).not.toHaveBeenCalled();
     expect(await screen.findByRole("alert")).toBeVisible();
     expect(screen.getByRole("button", { name: "Open cards in Fresh deck" })).toBeVisible();
   });
