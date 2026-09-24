@@ -1,4 +1,3 @@
-import { importFailureKey } from "../../lib/importFailure";
 import { executePreparedDeckImport } from "./executePreparedDeckImport";
 import { deckImportStore } from "../store";
 
@@ -11,7 +10,7 @@ export function importDeckPreview(): boolean {
     executePreparedDeckImport(source.preparedImport);
     return true;
   } catch (error: unknown) {
-    deckImportStore.setState({ status: "idle", source: { kind: "error", error: importFailureKey(error) ?? error } });
+    deckImportStore.setState({ status: "idle", source: { kind: "error", error } });
     return false;
   }
 }
