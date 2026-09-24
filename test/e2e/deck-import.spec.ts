@@ -298,7 +298,7 @@ test.describe("import", () => {
     await expect(page.getByText(new RegExp(`^(日本語�|front ${csvNamespace} two)$`))).toBeVisible();
   });
 
-  test("DECK-IMPORT-05 A rejected queued import reports failure without automatic replay", async ({
+  test("DECK-IMPORT-05 A rejected queued import rolls back without automatic replay", async ({
     browserErrors,
     fixture,
     namespace,
@@ -319,7 +319,6 @@ test.describe("import", () => {
     await expect(page).toHaveURL(/\/$/);
     await expect.poll(fault.wasTriggered).toBe(true);
     await fault.waitForFailure();
-    await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
     await fault.dispose();
     expect(await documentsForUid("card", uid)).toEqual([]);
     expect(await documentsForUid("deck", uid)).toHaveLength(1);

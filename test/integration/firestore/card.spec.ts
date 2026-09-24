@@ -1,4 +1,3 @@
-import { subscribeWriteErrors } from "@/shared/firestore-write";
 /**
  * @file Verifies the "card" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "should create a card",
@@ -30,7 +29,7 @@ import { replaceRemoteDecks } from "@/entities/deck/model/actions/replaceRemoteD
 import * as Uuid from "uuid";
 import { createCard, createDeck, createRemoteDeckInput } from "@/test/factories";
 
-// Adapter operations complete locally; cloud assertions wait for SDK acknowledgement.
+// Adapter operations submit through the local SDK; cloud assertions wait for acknowledgement.
 const getDoc = async (reference: DocumentReference) => {
   await waitForPendingWrites(reference.firestore);
   return readServerDoc(reference);
@@ -174,11 +173,8 @@ describe("firestore/card", { retry: 3 }, () => {
     replaceRemoteCards([card]);
     await deleteDoc(doc(db, "card", card.id));
 
-    const onError = vi.fn();
-    const stopErrors = subscribeWriteErrors(onError);
-    await mutateCards("uid", [{ kind: "edit", card }]);
-    await vi.waitFor(() => expect(onError).toHaveBeenCalled());
-    stopErrors();
+    await mutateCards("uid", [{ kind: "edit", card }]).catch(() => undefined);
+    await waitForPendingWrites(db);
     const ownedCards = await getDocs(query(collection(db, "card"), where("uid", "==", "uid")));
     expect(ownedCards.docs.some((snapshot) => snapshot.id === card.id)).toBe(false);
   });

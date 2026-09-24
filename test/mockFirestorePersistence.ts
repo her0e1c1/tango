@@ -110,10 +110,9 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
       restoreStudySession({ ...session, currentIndex, lastStudiedAt: Date.now() });
       return true;
     },
-    moveStudySession: async (session: import("@/entities/study-session").StudySession) => {
-      await Promise.resolve();
+    moveStudySession: (session: import("@/entities/study-session").StudySession) => {
       const current = studySessionStore.getState().sessionsByDeckId[session.deckId];
-      if (!isStudySessionPositionUnchanged(session, current)) return false;
+      if (!isStudySessionPositionUnchanged(session, current)) return Promise.resolve(false);
       studySessionStore.setState((state) => {
         if (session.currentIndex + 1 === session.cardOrderIds.length) delete state.sessionsByDeckId[session.deckId];
         else
@@ -123,7 +122,7 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
             lastStudiedAt: Date.now(),
           };
       });
-      return true;
+      return Promise.resolve(true);
     },
     abandonStudySession: async (deckId: string) => {
       await Promise.resolve();

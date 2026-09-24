@@ -8,7 +8,6 @@ import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 import "@/test/initializeTestFirestore";
 import { readDeckTags, writeDeckEdit } from "@/entities/deck";
 import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
-import { createLocalBatch } from "@/shared/firestore-write";
 import { describe, expect, it, vi } from "vitest";
 import {
   doc,
@@ -26,7 +25,7 @@ import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore"
 import * as Uuid from "uuid";
 import { createCard, createDeck as createDeckFixture, createRemoteDeckInput } from "@/test/factories";
 
-// Adapter operations complete locally; cloud assertions wait for SDK acknowledgement.
+// Adapter operations submit through the local SDK; cloud assertions wait for acknowledgement.
 const getDoc = async (reference: DocumentReference) => {
   await waitForPendingWrites(reference.firestore);
   return readServerDoc(reference);
@@ -139,10 +138,10 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     const before = await Promise.all(cards.map(async (card) => (await getDoc(doc(db, "card", card.id))).data()));
     expect(await readDeckTags("uid", deck.id)).toEqual([]);
     const stored = await readCardsForTagUpdate("uid", deck.id);
-    const { batch, commit } = createLocalBatch("uid");
-    const deckReference = writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, ["renamed", "kept"]);
-    const cardReferences = writeCardTagChanges(batch, stored, [{ previous: "old", name: "renamed" }]);
-    await commit([deckReference, ...cardReferences]);
+    const batch = writeBatch(db);
+    writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, ["renamed", "kept"]);
+    writeCardTagChanges(batch, stored, [{ previous: "old", name: "renamed" }]);
+    await batch.commit();
     expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({
       name: "Updated name",
       tags: ["renamed", "kept"],
@@ -215,17 +214,23 @@ describe("firestore/deck pending Card writes", () => {
           frontText: "Pending text edit",
           tags: ["old", "kept"],
         });
+        await vi.waitFor(async () =>
+          expect((await readCardsForTagUpdate("uid", deck.id)).map((card) => card.reference.id).sort()).toEqual(
+            [existing.id, created.id].sort()
+          )
+        );
         const stored = await readCardsForTagUpdate("uid", deck.id);
-        expect(stored.map((card) => card.reference.id).sort()).toEqual([existing.id, created.id].sort());
-        const { batch, commit } = createLocalBatch("uid");
+        const batch = writeBatch(db);
         const tags = replacement === undefined ? ["kept"] : [replacement, "kept"];
-        const deckReference = writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, tags);
-        const cardReferences = writeCardTagChanges(batch, stored, [{ previous: "old", name: replacement }]);
-        await commit([deckReference, ...cardReferences]);
+        writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, tags);
+        writeCardTagChanges(batch, stored, [{ previous: "old", name: replacement }]);
+        void batch.commit().catch(() => undefined);
         for (const id of [existing.id, created.id]) {
-          const local = await getDocFromCache(doc(db, "card", id));
-          expect(local.metadata.hasPendingWrites).toBe(true);
-          expect(local.data()?.tags).toEqual(tags);
+          await vi.waitFor(async () => {
+            const local = await getDocFromCache(doc(db, "card", id));
+            expect(local.metadata.hasPendingWrites).toBe(true);
+            expect(local.data()?.tags).toEqual(tags);
+          });
         }
         await enableNetwork(db);
         await waitForPendingWrites(db);

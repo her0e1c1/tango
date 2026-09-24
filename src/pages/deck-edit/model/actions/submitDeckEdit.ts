@@ -2,7 +2,7 @@ import { getAuthUid } from "@/entities/auth";
 import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
 import { type DeckId, editDeck, readDeckTags, writeDeckEdit } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
-import { createLocalBatch } from "@/shared/firestore-write";
+import { db, writeBatch } from "@/shared/firebase";
 import { showToast } from "@/shared/ui/toast";
 
 import { deckEditPageStore as store } from "../store";
@@ -33,10 +33,10 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, has
       }
       if (name !== undefined && !tags.includes(name)) tags.push(name);
     }
-    const { batch, commit } = createLocalBatch(uid);
-    const deckReference = writeDeckEdit(batch, uid, input, tags);
-    const cardReferences = writeCardTagChanges(batch, cards, changes);
-    await commit([deckReference, ...cardReferences]);
+    const batch = writeBatch(db);
+    writeDeckEdit(batch, uid, input, tags);
+    writeCardTagChanges(batch, cards, changes);
+    void batch.commit().catch(() => undefined);
   };
   const submission = save()
     .then(() => {

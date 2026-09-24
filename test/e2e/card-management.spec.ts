@@ -31,7 +31,7 @@ test.describe("card-resilience", () => {
     return page.getByRole("alertdialog", { name: "Delete card?" });
   };
 
-  test("CARD-MANAGEMENT-08 retries the same Card deletion after a handled failure", async ({
+  test("CARD-MANAGEMENT-08 retries the same Card deletion after Firestore rollback", async ({
     fixture,
     page,
     browserErrors,
@@ -46,7 +46,6 @@ test.describe("card-resilience", () => {
     const dialog = await openCardDeleteDialog(page, card.frontText);
     await dialog.getByRole("button", { name: "Delete card" }).click();
     await expect(dialog).not.toBeVisible();
-    await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
     await expect.poll(fault.wasTriggered).toBe(true);
     await fault.waitForFailure();
     await fault.dispose();
@@ -191,7 +190,7 @@ test.describe("card-resilience", () => {
     }
   });
 
-  test("CARD-MANAGEMENT-14 reports rejected queued creation after leaving the form", async ({
+  test("CARD-MANAGEMENT-14 removes rejected queued creation after leaving the form", async ({
     fixture,
     page,
     namespace,
@@ -208,8 +207,7 @@ test.describe("card-resilience", () => {
       await page.getByRole("button", { name: "tango", exact: true }).click();
       write.release();
       await fault.waitForFailure();
-      await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
-      await expect(page).toHaveURL(/\/$/);
+        await expect(page).toHaveURL(/\/$/);
       await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
       await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(0);
     } finally {
@@ -347,7 +345,7 @@ test.describe("card", () => {
     expect(await requireDocument("card", card.id)).toEqual(before);
   });
 
-  test("CARD-MANAGEMENT-04 retries the same Card edit after a handled failure", async ({
+  test("CARD-MANAGEMENT-04 retries the same Card edit after Firestore rollback", async ({
     fixture,
     page,
     browserErrors,
@@ -370,7 +368,6 @@ test.describe("card", () => {
     await page.getByRole("tab", { name: "Back", exact: true }).click();
     await page.getByRole("textbox", { name: "Back text" }).fill(changedBack);
     await page.getByRole("button", { name: "Save changes" }).click();
-    await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
     await expect.poll(fault.wasTriggered).toBe(true);
     await fault.waitForFailure();
     await fault.dispose();
@@ -722,7 +719,6 @@ test("CARD-MANAGEMENT-07 retries a rejected remote Card create with a new ID and
   await page.getByRole("tab", { name: "Back", exact: true }).click();
   await page.getByRole("textbox", { name: "Back text" }).fill(backText);
   await page.getByRole("button", { name: "Create card" }).click();
-  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();

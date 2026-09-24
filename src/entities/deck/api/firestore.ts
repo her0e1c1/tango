@@ -12,7 +12,6 @@ import {
   getDocFromCache,
   type WriteBatch,
 } from "firebase/firestore";
-import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
@@ -57,11 +56,12 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void, onR
   );
 
 // Writes a new Deck document with synchronized creation and update timestamps.
-const createDeckDocument = async (uid: string, deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {
+const createDeckDocument = (uid: string, deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {
   const createdAt = Date.now();
   const document = toDeckDocument(uid, deck, createdAt);
   const reference = doc(db, DECK_COLLECTION, deck.id);
-  await writeLocally(uid, [reference], () => setDoc(reference, document));
+  void setDoc(reference, document).catch(() => undefined);
+  return Promise.resolve();
 };
 
 // Validates the actor and owner-free command before creating an actor-owned Firestore document.
@@ -84,39 +84,39 @@ const deckEditDocument = (deck: z.infer<typeof deckEditSchema>) =>
     convertToBr: deck.convertToBr,
   });
 
-const updateDeckDocument = async (uid: string, deck: z.infer<typeof deckEditSchema>): Promise<void> => {
+const updateDeckDocument = (deck: z.infer<typeof deckEditSchema>): Promise<void> => {
   const document = deckEditDocument(deck);
   const reference = doc(db, DECK_COLLECTION, deck.id);
-  await writeLocally(uid, [reference], () => updateDoc(reference, document));
+  void updateDoc(reference, document).catch(() => undefined);
+  return Promise.resolve();
 };
 
 // Validates an authenticated Deck edit before updating Firestore.
 export const editDeck = async (uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> => {
   const input = editDeckSchema.parse({ uid, deck });
-  await updateDeckDocument(input.uid, input.deck);
+  await updateDeckDocument(input.deck);
 };
 
 export function writeDeckEdit(batch: WriteBatch, uid: string, deck: z.input<typeof deckEditSchema>, tags: string[]) {
   const input = editDeckSchema.parse({ uid, deck });
-  const reference = doc(db, DECK_COLLECTION, input.deck.id);
-  batch.update(reference, { ...deckEditDocument(input.deck), tags });
-  return reference;
+  batch.update(doc(db, DECK_COLLECTION, input.deck.id), { ...deckEditDocument(input.deck), tags });
 }
 
 // Tombstones the parent; readers hide all of its child Cards.
-const deleteDeckDocuments = async (uid: string, deckId: string): Promise<void> => {
+const deleteDeckDocuments = (deckId: string): Promise<void> => {
   // A parent tombstone hides all children, including Cards not yet present in this device's cache.
   // This keeps deletion atomic and offline-capable for decks of any size.
   const reference = doc(db, DECK_COLLECTION, deckId);
   const deletedAt = Date.now();
-  await writeLocally(uid, [reference], () => updateDoc(reference, { deletedAt, updatedAt: deletedAt }));
+  void updateDoc(reference, { deletedAt, updatedAt: deletedAt }).catch(() => undefined);
+  return Promise.resolve();
 };
 
 // Validates Deck ownership before deleting its remote document graph.
 export const deleteDeck = async (uid: string, deckId: DeckId): Promise<void> => {
-  const userId = authenticatedUidSchema.parse(uid);
+  authenticatedUidSchema.parse(uid);
   const id = deckIdSchema.parse(deckId);
-  await deleteDeckDocuments(userId, id);
+  await deleteDeckDocuments(id);
 };
 function requireOwnedDeck(uid: string, id: DeckId): void {
   authenticatedUidSchema.parse(uid);

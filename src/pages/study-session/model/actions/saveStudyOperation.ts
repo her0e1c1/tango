@@ -1,12 +1,12 @@
 import { writeCardFsrs, getCards } from "@/entities/card";
 import { writeStudyAnswer } from "@/entities/study-answer";
 import { getDecks } from "@/entities/deck";
-import { createLocalBatch } from "@/shared/firestore-write";
+import { db, writeBatch } from "@/shared/firebase";
 import { getAuthUid } from "@/entities/auth";
 import { getStudySession, writeStudySessionPosition, type StudySession } from "@/entities/study-session";
 import { studyOperationSchema, type StudyOperation } from "../studyOperation";
 
-export async function saveStudyOperation(input: StudyOperation, session: StudySession) {
+export function saveStudyOperation(input: StudyOperation, session: StudySession) {
   const operation = studyOperationSchema.parse(input);
   if (operation.uid === "" || getAuthUid() !== operation.uid) throw new Error("Study user changed");
   const current = getStudySession(operation.deckId);
@@ -25,17 +25,16 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
   const deck = getDecks().find(({ id }) => id === operation.deckId);
   if (card?.uid !== operation.uid || deck?.uid !== operation.uid || card.deckId !== deck.id)
     throw new Error("Study references do not match");
-  const { batch, commit } = createLocalBatch(operation.uid);
+  const batch = writeBatch(db);
   const result = writeStudySessionPosition(
     batch,
     { ...session, lastStudiedAt: operation.answeredAt },
     operation.currentIndex + 1
   );
-  const references = [result.reference];
   if (operation.rating !== undefined && operation.fsrs !== undefined) {
-    references.push(writeCardFsrs(batch, { ...operation, fsrs: operation.fsrs }));
-    references.push(writeStudyAnswer(batch, { ...operation, rating: operation.rating }));
+    writeCardFsrs(batch, { ...operation, fsrs: operation.fsrs });
+    writeStudyAnswer(batch, { ...operation, rating: operation.rating });
   }
-  await commit(references);
+  void batch.commit().catch(() => undefined);
   return result;
 }

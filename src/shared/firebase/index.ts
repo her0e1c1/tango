@@ -6,7 +6,7 @@
 
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
-import { connectFirestoreEmulator, initializeFirestore, persistentLocalCache } from "firebase/firestore";
+import { connectFirestoreEmulator, initializeFirestore, persistentLocalCache, writeBatch } from "firebase/firestore";
 
 const projectId = import.meta.env.VITE_PROJECT_ID;
 const apiKey = import.meta.env.VITE_WEB_API_KEY;
@@ -22,6 +22,7 @@ export const auth = getAuth(app);
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache(),
 });
+export { writeBatch };
 
 // E2E serves a production bundle for parallel-run performance, but its isolated build must still target emulators.
 const useFirebaseEmulators = import.meta.env.DEV || import.meta.env.VITE_USE_FIREBASE_EMULATORS === "true";

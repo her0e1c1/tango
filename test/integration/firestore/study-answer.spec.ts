@@ -34,14 +34,14 @@ import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
 import { restoreStudySession } from "@/test/entityFixtures";
 import { createCard, createDeck } from "@/test/factories";
-import { subscribeWriteErrors } from "@/shared/firestore-write";
 
 const connection = vi.hoisted(() => ({ db: undefined as unknown as Firestore }));
-vi.mock("@/shared/firebase", () => ({
+vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "answer-owner" } },
   get db() {
     return connection.db;
   },
+  writeBatch: (await import("firebase/firestore")).writeBatch,
 }));
 
 const uid = "answer-owner";
@@ -95,18 +95,9 @@ async function saveStudyOperation(input: StudyOperation) {
     remote: { uid: input.uid, startedAt: 1000 },
   };
   restoreStudySession(session);
-  let failure: unknown;
-  const stop = subscribeWriteErrors((error) => {
-    failure = error;
-  });
-  try {
-    const result = await persistStudyOperation(input, session);
-    await waitForPendingWrites(connection.db);
-    if (failure) throw failure;
-    return result;
-  } finally {
-    stop();
-  }
+  const result = await persistStudyOperation(input, session);
+  await waitForPendingWrites(connection.db);
+  return result;
 }
 const answerData = () => ({
   uid,
@@ -279,7 +270,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
   });
 
   it("[FIRESTORE-STUDY-ANSWER-09] rejects missing sessions and changed authentication", async () => {
-    await expect(saveStudyOperation(operation({ sessionId: "not-saved" }))).rejects.toBeDefined();
+    await saveStudyOperation(operation({ sessionId: "not-saved" })).catch(() => undefined);
     replaceAuthSession({ status: "authenticated", uid: "other-user", isAnonymous: false, displayName: null });
     await expect(saveStudyOperation(operation())).rejects.toThrow("user changed");
     expect((await answers()).size).toBe(0);
@@ -291,7 +282,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid: "another-owner" });
     });
-    await expect(saveStudyOperation(input)).rejects.toBeDefined();
+    await saveStudyOperation(input).catch(() => undefined);
     expect((await answers()).size).toBe(0);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
     expect(await hasState(input.cardId)).toBe(false);

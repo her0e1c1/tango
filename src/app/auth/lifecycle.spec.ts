@@ -46,10 +46,6 @@ vi.mock("firebase/firestore", () => ({
   where: vi.fn(),
   getDocsFromCache: async () => ({ metadata: { hasPendingWrites: control.pending } }),
 }));
-vi.mock("@/shared/firestore-write", () => ({
-  hasUnacknowledgedWrites: () => false,
-  subscribeWriteErrors: () => () => undefined,
-}));
 vi.mock("../firestore-subscriptions", () => ({
   startFirestoreSubscriptions: (uid: string) => {
     control.subscribed = uid;

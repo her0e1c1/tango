@@ -28,7 +28,7 @@ export async function submitStudyAction(
   const card = cards.find(({ id }) => id === cardId);
   if (card === undefined) return;
   const answeredAt = Date.now();
-  await executeStudyOperation({
+  executeStudyOperation({
     id: crypto.randomUUID(),
     uid,
     deckId,

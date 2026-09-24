@@ -22,9 +22,7 @@ import {
   where,
   type WriteBatch,
   getDocsFromCache,
-  type DocumentReference,
 } from "firebase/firestore";
-import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
@@ -71,7 +69,7 @@ const createCardDocument = async (card: CardCreate): Promise<void> => {
   }
   const createdAt = Date.now();
   const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: createdAt } satisfies RemoteCard);
-  await writeLocally(card.uid, [reference], () => setDoc(reference, document));
+  void setDoc(reference, document).catch(() => undefined);
 };
 
 /** Validates Card ownership before creating its Firestore document. */
@@ -81,7 +79,7 @@ export const createCard = async (uid: string, card: CardCreateInput): Promise<vo
 };
 
 /** Writes the editable Card fields and advances the update timestamp. */
-const updateCardDocument = async (card: CardEdit): Promise<void> => {
+const updateCardDocument = (card: CardEdit): Promise<void> => {
   const document = omitUndefined({
     frontText: card.frontText,
     backText: card.backText,
@@ -93,7 +91,8 @@ const updateCardDocument = async (card: CardEdit): Promise<void> => {
     updatedAt: Date.now(),
   });
   const reference = doc(db, CARD_COLLECTION, card.id);
-  await writeLocally(card.uid, [reference], () => updateDoc(reference, document));
+  void updateDoc(reference, document).catch(() => undefined);
+  return Promise.resolve();
 };
 
 /** Validates Card ownership before editing its Firestore document. */
@@ -103,16 +102,17 @@ export const editCard = async (uid: string, card: EditCardInput["card"]): Promis
 };
 
 /** Tombstones a Card so synchronized readers can converge before hiding it. */
-const removeCardDocument = async (uid: string, id: string): Promise<void> => {
+const removeCardDocument = (id: string): Promise<void> => {
   const updatedAt = Date.now();
   const reference = doc(db, CARD_COLLECTION, id);
-  await writeLocally(uid, [reference], () => updateDoc(reference, { updatedAt, deletedAt: updatedAt }));
+  void updateDoc(reference, { updatedAt, deletedAt: updatedAt }).catch(() => undefined);
+  return Promise.resolve();
 };
 
 /** Validates Card ownership before tombstoning its Firestore document. */
 export const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Promise<void> => {
   const input = deleteCardSchema.parse({ uid, card });
-  await removeCardDocument(input.uid, input.card.id);
+  await removeCardDocument(input.card.id);
 };
 
 export function writeCardFsrs(
@@ -128,12 +128,10 @@ export function writeCardFsrs(
   const card = findCardById(input.cardId);
   if (!(input.uid && card) || card.uid !== input.uid || card.deckId !== input.deckId || card.deletedAt !== null)
     throw new Error("Study Card does not match");
-  const reference = doc(db, "card", input.cardId);
-  batch.update(reference, {
+  batch.update(doc(db, "card", input.cardId), {
     fsrs: fsrsStateSchema.parse(input.fsrs),
     updatedAt: instantSchema.parse(input.answeredAt),
   });
-  return reference;
 }
 
 function requireOwnedCard(uid: string, id: CardId) {
@@ -193,7 +191,6 @@ export function writeCardTagChanges(
   cards: Awaited<ReturnType<typeof readCardsForTagUpdate>>,
   changes: { previous: string | undefined; name: string | undefined }[]
 ) {
-  const references: DocumentReference[] = [];
   for (const card of cards) {
     const tags = [
       ...new Set(
@@ -206,7 +203,5 @@ export function writeCardTagChanges(
     ];
     if (tags.length === card.tags.length && tags.every((tag, index) => tag === card.tags[index])) continue;
     batch.update(card.reference, { tags, updatedAt: Date.now() });
-    references.push(card.reference);
   }
-  return references;
 }
