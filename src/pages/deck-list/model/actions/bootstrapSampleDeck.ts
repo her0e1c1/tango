@@ -21,6 +21,10 @@ export async function bootstrapSampleDeck(): Promise<void> {
   deckListStore.setState({ bootstrapStatus: "checking" });
   try {
     await addSampleDeck();
+    if (getDecks().some((deck) => deck.id === sampleDeckId)) {
+      updatePreferences({ loadSample: false });
+      deckListStore.setState({ bootstrapStatus: "done" });
+    }
   } catch {
     deckListStore.setState({ bootstrapStatus: "error" });
   }
