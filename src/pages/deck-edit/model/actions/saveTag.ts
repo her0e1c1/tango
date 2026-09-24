@@ -2,7 +2,12 @@ import { deckEditPageStore as store } from "../store";
 
 export function saveTag(tags: string[], name: string | undefined, previous?: string): boolean {
   const state = store.getState();
-  if (state.submission !== undefined || state.pendingTagSave !== undefined || state.deletionTarget !== undefined || state.deletionId !== undefined)
+  if (
+    state.submission !== undefined ||
+    state.pendingTagSave !== undefined ||
+    state.deletionTarget !== undefined ||
+    state.deletionId !== undefined
+  )
     return false;
   if (name !== undefined && name.trim().length === 0) {
     store.setState({ tagError: "required" });
