@@ -67,6 +67,8 @@
 | FIRESTORE-STUDY-SESSION-12 | read | 正常系 | [保存された終了を反映し別Deckの学習は維持する](./study-session.md#firestore-study-session-12) |
 | FIRESTORE-STUDY-SESSION-13 | batch | 正常系 | [オフラインで完了した学習を重複なく同期し再開対象に戻さない](./study-session.md#firestore-study-session-13) |
 | FIRESTORE-STUDY-SESSION-14 | write | 正常系 | [学習対象が0枚ならセッションを作成せず既存の学習も中断しない](./study-session.md#firestore-study-session-14) |
+| FIRESTORE-STUDY-SESSION-15 | write | 異常系 | [不正なカード順序を同期的に拒否し保存済みの学習を維持する](./study-session.md#firestore-study-session-15) |
+| FIRESTORE-STUDY-SESSION-16 | write | 異常系 | [所有者が変わった後の書込を同期的に拒否する](./study-session.md#firestore-study-session-16) |
 
 ### study-answer
 

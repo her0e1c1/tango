@@ -11,7 +11,9 @@ export function maintainStudySession(deckId: DeckId): void {
   // Missing Cards may reflect a partial cache; reads must not erase resumable progress.
   if (status !== "studying") return;
   const uid = getAuthUid();
-  void touchStudySession(deckId).catch(() => {
+  try {
+    touchStudySession(deckId);
+  } catch {
     if (getAuthUid() === uid) showToast({ messageKey: "studySession.syncFailure", tone: "error" });
-  });
+  }
 }

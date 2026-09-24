@@ -13,6 +13,7 @@ import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import { startStudy } from "@/test/entityFixtures";
+import { actAsync } from "@/test/act";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -193,7 +194,7 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
     await mutateCards("user-id", [{ kind: "create", card: nextCard }]);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
     startStudy(activeDeck.id, [activeCard, nextCard], { ...mocks.preferences.study, shuffled: false }, mocks.uid);
-    await setStudySessionIndex(activeDeck.id, 1);
+    setStudySessionIndex(activeDeck.id, 1);
     now.mockReturnValue(2000);
     startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
     const router = createMemoryRouter([
@@ -222,6 +223,26 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
       screen.getAllByRole("button", { name: /^Continue / }).map((button) => button.getAttribute("aria-label"))
     ).toEqual(["Continue Active deck", "Continue Fresh deck"]);
   });
+
+  it.each(["identity change", "unmount"])(
+    "[STUDY-SESSION-03] cancels Continue navigation after a queued %s",
+    async (change) => {
+      const router = createMemoryRouter([
+        { path: "/", element: <DeckListPage /> },
+        { path: "/deck/:id/study", element: <h1>Study destination</h1> },
+      ]);
+      const view = render(<RouterProvider router={router} />);
+      queueMicrotask(() => {
+        if (change === "identity change") mocks.uid = "other-user";
+        else view.unmount();
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Continue Active deck" }));
+      await actAsync(async () => {
+        await Promise.resolve();
+      });
+      expect(router.state.location.pathname).toBe("/");
+    }
+  );
 
   it("downloads a visible Deck", async () => {
     renderPage();

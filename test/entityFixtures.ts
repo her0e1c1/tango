@@ -7,9 +7,9 @@ import type { StudySession } from "@/entities/study-session";
 import { studySessionStore } from "@/entities/study-session/model/store";
 
 export function restoreStudySession(session: StudySession): void {
-  studySessionStore.setState((state) => {
-    state.sessionsByDeckId[session.deckId] = session;
-  });
+  studySessionStore.setState((state) => ({
+    sessionsByDeckId: { ...state.sessionsByDeckId, [session.deckId]: session },
+  }));
 }
 
 export function startStudy(

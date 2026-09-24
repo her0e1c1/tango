@@ -76,7 +76,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     );
     await seedLocalDeck(deck, cards);
     startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
-    await setStudySessionIndex(deck.id, 1);
+    setStudySessionIndex(deck.id, 1);
     const before = savedState(deck.id);
     let router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
     let view = render(<App router={router} />);
@@ -224,7 +224,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     await seedLocalDeck(deck, cards);
     updatePreferences({ study: { cardInterval: 1, defaultAutoPlay: true } });
     startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
-    await setStudySessionIndex(deck.id, 1);
+    setStudySessionIndex(deck.id, 1);
     const before = savedState(deck.id);
     vi.useFakeTimers();
     const router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });

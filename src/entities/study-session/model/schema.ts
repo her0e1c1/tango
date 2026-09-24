@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-import type { StudySession } from "./types";
-
-export const studySessionSchema: z.ZodType<StudySession> = z
+export const studySessionSchema = z
   .object({
     sessionId: z.string().min(1),
     deckId: z.string().min(1),

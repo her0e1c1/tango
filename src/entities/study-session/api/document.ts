@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 import { firestoreMetadataSchema, firestoreTimestampSchema } from "@/shared/api";
-import type { StudySession, StudySessionWrite } from "../model/types";
+import type { StudySession } from "../model/types";
 
 const studySessionDocumentSchema = firestoreMetadataSchema
   .extend({
@@ -22,6 +22,11 @@ const studySessionDocumentSchema = firestoreMetadataSchema
   );
 
 type StudySessionDocument = z.infer<typeof studySessionDocumentSchema>;
+
+export interface StudySessionWrite {
+  session: StudySession;
+  endReason: StudySessionDocument["endReason"];
+}
 
 export function parseStudySessionDocument(value: unknown): StudySessionDocument | undefined {
   const parsed = studySessionDocumentSchema.safeParse(value);

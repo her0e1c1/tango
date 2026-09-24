@@ -26,7 +26,7 @@ vi.mock("@/entities/preference", () => ({
 }));
 
 vi.mock("@/entities/study-session/api/firestore", () => ({
-  startStudy: async ({
+  startStudy: ({
     deckId,
     cardOrderIds,
     uid,
@@ -37,7 +37,6 @@ vi.mock("@/entities/study-session/api/firestore", () => ({
     uid: string;
     now?: number;
   }) => {
-    await Promise.resolve();
     const sessionId = crypto.randomUUID();
     restoreStudySession({
       sessionId,
