@@ -18,6 +18,6 @@ export const readSession = async (uid: string, deckId: string): Promise<StudySes
     deckId,
     cardOrderIds: session.fields.cardOrderIds?.arrayValue?.values?.map((value) => String(value.stringValue)) ?? [],
     currentIndex: Number(session.fields.currentIndex?.integerValue),
-    lastStudiedAt: Date.parse(session.fields.updatedAt?.timestampValue ?? ""),
+    lastStudiedAt: Number(session.fields.lastStudiedAt?.integerValue ?? session.fields.lastStudiedAt?.doubleValue),
   };
 };

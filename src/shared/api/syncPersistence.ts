@@ -63,6 +63,7 @@ function reviveTimestamp(_key: string, value: unknown): unknown {
 }
 
 function createSyncStorage(): PersistStorage<SyncState> {
+  let hydrated = false;
   let previous: SyncState["sync"] | undefined;
   let pending: Promise<unknown> = Promise.resolve();
   return {
@@ -84,9 +85,13 @@ function createSyncStorage(): PersistStorage<SyncState> {
       } catch {
         // An unavailable or corrupt replica cannot supply a valid resume position.
         return null;
+      } finally {
+        hydrated = true;
       }
     },
     setItem(name, value) {
+      // Owner/loading initialization must not overwrite the unread durable replica.
+      if (!hydrated) return Promise.resolve();
       if (previous === value.state.sync) return pending;
       previous = value.state.sync;
       const serialized = JSON.stringify(value);

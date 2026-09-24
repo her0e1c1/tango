@@ -245,27 +245,30 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   expect((await requireDocument("card", legacyCardId)).fields.frontText?.stringValue).toBe("Legacy card");
 });
 
-async function waitForSavedCards(page: import("@playwright/test").Page, id: string) {
+async function waitForSavedDocument(page: import("@playwright/test").Page, name: string, id: string) {
   await expect
     .poll(() =>
-      page.evaluate(async (cardId) => {
-        const database = await new Promise<IDBDatabase>((resolve, reject) => {
-          const request = indexedDB.open("tango-firestore-sync");
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(request.error);
-        });
-        try {
-          return await new Promise<boolean>((resolve, reject) => {
-            const transaction = database.transaction("state", "readonly");
-            const request = transaction.objectStore("state").get("tango-card-sync");
-            transaction.oncomplete = () =>
-              resolve(typeof request.result === "string" && request.result.includes(cardId));
-            transaction.onerror = () => reject(transaction.error);
+      page.evaluate(
+        async ({ key, documentId: savedId }) => {
+          const database = await new Promise<IDBDatabase>((resolve, reject) => {
+            const request = indexedDB.open("tango-firestore-sync");
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
           });
-        } finally {
-          database.close();
-        }
-      }, id)
+          try {
+            return await new Promise<boolean>((resolve, reject) => {
+              const transaction = database.transaction("state", "readonly");
+              const request = transaction.objectStore("state").get(key);
+              transaction.oncomplete = () =>
+                resolve(typeof request.result === "string" && request.result.includes(savedId));
+              transaction.onerror = () => reject(transaction.error);
+            });
+          } finally {
+            database.close();
+          }
+        },
+        { key: name, documentId: id }
+      )
     )
     .toBe(true);
 }
@@ -296,7 +299,7 @@ for (const corruption of ["missing", "invalid-json", "invalid-card"] as const) {
     await fixture.apply(page);
     await page.goto(`/deck/${deck.id}`);
     await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
-    await waitForSavedCards(page, card.id);
+    await waitForSavedDocument(page, "tango-card-sync", card.id);
     await openStorageMaintenance(page);
     await page.evaluate(
       async ({ corruption: damage, cardId }) => {
@@ -352,7 +355,7 @@ test("PERSISTENCE-08 recovers a failed replica transaction without losing unchan
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}`);
   await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
-  await waitForSavedCards(page, card.id);
+  await waitForSavedDocument(page, "tango-card-sync", card.id);
   await page.evaluate(() => {
     const put = IDBObjectStore.prototype.put;
     IDBObjectStore.prototype.put = function (...args) {
@@ -367,7 +370,9 @@ test("PERSISTENCE-08 recovers a failed replica transaction without losing unchan
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByRole("button", { name: "View Saved despite replica failure" })).toBeVisible();
   await expect(
-    page.getByText("A data save or sync failed. Check your connection and reload to review the saved data.")
+    page.getByText("A data save or sync failed. Check your connection and reload to review the saved data.", {
+      exact: true,
+    })
   ).toBeVisible();
   await expect
     .poll(async () => (await requireDocument("card", card.id)).fields.frontText?.stringValue)
@@ -378,4 +383,28 @@ test("PERSISTENCE-08 recovers a failed replica transaction without losing unchan
     const text = existing.id === card.id ? "Saved despite replica failure" : existing.frontText;
     await expect(page.getByRole("button", { name: `View ${text}` })).toBeVisible();
   }
+});
+
+test("PERSISTENCE-09 restores saved study progress without the SDK cache or server", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const currentCard = fixture.card("card-2");
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}/study`);
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  await waitForSavedDocument(page, "tango-study-session-sync", session.sessionId);
+  await waitForSavedDocument(page, "tango-card-sync", currentCard.id);
+  await openStorageMaintenance(page);
+  browserErrors.allow(/console error: .*Could not reach Cloud Firestore backend/u);
+  browserErrors.allow(
+    /console error: Failed to load resource: .*ERR_INTERNET_DISCONNECTED.*\[http:\/\/(?:db|127\.0\.0\.1|localhost):[0-9]+\//iu
+  );
+  await page.route("http://db:*/**", (route) => route.abort("internetdisconnected"));
+  await page.goto(`/deck/${deck.id}/study`);
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue(String(session.currentIndex));
 });

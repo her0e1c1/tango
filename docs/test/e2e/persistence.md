@@ -19,6 +19,7 @@
 | PERSISTENCE-06 | batch | 正常系 | [オフラインで進めた学習を同期後に別ブラウザーで再開できる](#persistence-06) |
 | PERSISTENCE-07 | batch | 異常系 | [端末内の取得済みデータが欠損・破損しても再取得できる](#persistence-07) |
 | PERSISTENCE-08 | batch | 異常系 | [端末内の保存に失敗しても再読み込み後に内容を復元できる](#persistence-08) |
+| PERSISTENCE-09 | read | 正常系 | [再取得できなくても保存済みの学習位置を復元できる](#persistence-09) |
 
 <a id="persistence-01"></a>
 
@@ -219,3 +220,25 @@ When:
 Then:
 
 - 保存失敗を画面で通知する。再読み込み後はサーバーに保存された変更を表示し、変更しなかった Card も欠落しない。
+
+<a id="persistence-09"></a>
+
+### PERSISTENCE-09 再取得できなくても保存済みの学習位置を復元できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
+- Google アカウントの途中の学習を取得し、この端末に保存している。
+- 通信が途絶えて再取得できないが、端末には取得済みの Deck、Card、学習位置が残っている。
+
+When:
+
+- 同じアカウントのまま画面を再読み込みし、対象の学習を開く。
+
+Then:
+
+- 保存済みの現在の Card と学習位置を表示する。学習を最初から開始したり、Deck や Card が消えたりしない。
