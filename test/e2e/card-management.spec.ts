@@ -5,6 +5,7 @@ import {
   failNextFirestoreWrite,
   listDocuments,
   requireDocument,
+  setDocument,
   test,
 } from "./utils/fixtures";
 import { createAnonymousDeck, downloadDeckCards } from "./utils/ui-helpers";
@@ -18,6 +19,8 @@ async function registerDeckTags(page: Page, deckId: string, tags: string[]) {
     await section.getByRole("button", { name: "Add tag", exact: true }).click();
     await expect(section.getByRole("listitem", { name: tag, exact: true })).toBeVisible();
     await expect(section.getByRole("button", { name: "Add tag", exact: true })).toBeEnabled();
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
   }
 }
 
@@ -406,7 +409,7 @@ test.describe("card", () => {
     const viewportBounds = { x: 0, y: 0, ...viewport };
     await page.setViewportSize(viewport);
     await fixture.apply(page);
-    await registerDeckTags(page, deck.id, ["chapter-1"]);
+    await setDocument("deck", deck.id, { ...deck, tags: ["chapter-1"] });
 
     await page.goto(`/deck/${deck.id}`);
     await page.getByRole("button", { name: "Actions", exact: true }).click();
