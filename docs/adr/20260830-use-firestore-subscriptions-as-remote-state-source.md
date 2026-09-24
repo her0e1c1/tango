@@ -1,6 +1,8 @@
 # Firestore の購読をリモート状態の正とする
 
-Status: Accepted
+Status: Superseded
+
+後継: [Firestore の差分同期と取得済みデータの永続化](./20260924-use-incremental-firestore-synchronization.md)。以下は当時の決定であり、全体置換と物理削除の記述は後継 ADR で更新する。
 
 ## Decision
 

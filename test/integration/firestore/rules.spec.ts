@@ -13,11 +13,13 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {
-  setDoc,
+  setDoc as saveDocument,
+  type DocumentReference,
+  type DocumentData,
   writeBatch,
   doc,
   getDoc,
-  updateDoc,
+  updateDoc as updateDocument,
   deleteDoc,
   deleteField,
   serverTimestamp,
@@ -41,6 +43,11 @@ const validFsrs = {
   learningSteps: 0,
   scheduledDays: 1,
 };
+
+const setDoc = (reference: DocumentReference, data: DocumentData) =>
+  saveDocument(reference, { ...data, updatedAt: serverTimestamp() });
+const updateDoc = (reference: DocumentReference, data: DocumentData) =>
+  updateDocument(reference, { ...data, updatedAt: serverTimestamp() });
 
 describe("Firestore ownership and guest write restrictions", () => {
   let testEnv: RulesTestEnvironment;
@@ -182,7 +189,7 @@ describe("Firestore ownership and guest write restrictions", () => {
       answer: { type: "rating", rating: "good" },
       answeredAt: Timestamp.fromMillis(2000),
       createdAt: Timestamp.fromMillis(2000),
-      updatedAt: Timestamp.fromMillis(2000),
+      updatedAt: serverTimestamp(),
     });
     const ownerDb = () =>
       testEnv
@@ -206,11 +213,11 @@ describe("Firestore ownership and guest write restrictions", () => {
       for (const [index, cardId] of ["first", "last"].entries()) {
         const batch = writeBatch(db);
         batch.set(doc(db, "studyAnswer", `session-${String(index)}`), answer(cardId));
-        batch.update(doc(db, "card", cardId), { fsrs: validFsrs, updatedAt: 2000 });
+        batch.update(doc(db, "card", cardId), { fsrs: validFsrs, updatedAt: serverTimestamp() });
         batch.update(doc(db, "studySession", "session"), {
           currentIndex: 1,
           ...(index === 1 ? { endReason: "completed", endedAt: Timestamp.fromMillis(2000) } : {}),
-          updatedAt: Timestamp.fromMillis(2000),
+          updatedAt: serverTimestamp(),
         });
         await assertSucceeds(batch.commit());
         await assertSucceeds(getDoc(doc(db, "studyAnswer", `session-${String(index)}`)));
@@ -240,7 +247,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         await assertFails(getDoc(doc(db, "studyAnswer", "saved")));
         const batch = writeBatch(db);
         batch.set(doc(db, "studyAnswer", "new"), answer());
-        batch.update(doc(db, "card", "first"), { fsrs: validFsrs, updatedAt: 2000 });
+        batch.update(doc(db, "card", "first"), { fsrs: validFsrs, updatedAt: serverTimestamp() });
         batch.update(doc(db, "studySession", "session"), { currentIndex: 1 });
         await assertFails(batch.commit());
       }
@@ -274,10 +281,10 @@ describe("Firestore ownership and guest write restrictions", () => {
         await assertSucceeds(updateDoc(doc(db, "deck", id), { uid: "uid", name: "update" }));
       });
 
-      it("[FIRESTORE-RULES-DECK-05] should delete a deck", async () => {
+      it("[FIRESTORE-RULES-DECK-05] rejects owner physical deletion", async () => {
         const id = uuid();
         await createData("deck", id, { uid: "uid" });
-        await assertSucceeds(deleteDoc(doc(db, "deck", id)));
+        await assertFails(deleteDoc(doc(db, "deck", id)));
       });
 
       it("[FIRESTORE-RULES-DECK-20] rejects changing or removing the owner UID", async () => {
@@ -325,10 +332,10 @@ describe("Firestore ownership and guest write restrictions", () => {
         await assertSucceeds(updateDoc(doc(db, "card", id), { frontText: "Updated" }));
       });
 
-      it("[FIRESTORE-RULES-CARD-05] should delete a card", async () => {
+      it("[FIRESTORE-RULES-CARD-05] rejects owner physical deletion", async () => {
         const id = uuid();
         await createData("card", id, { uid: "uid" });
-        await assertSucceeds(deleteDoc(doc(db, "card", id)));
+        await assertFails(deleteDoc(doc(db, "card", id)));
       });
     });
   });
@@ -623,11 +630,11 @@ describe("Firestore ownership and guest write restrictions", () => {
       const reference = doc(db, "card", "card");
       await assertSucceeds(getDoc(reference));
       await assertSucceeds(getDocs(query(firestoreCollection(db, "card"), where("uid", "==", "owner"))));
-      await assertSucceeds(updateDoc(reference, { fsrs: validFsrs, updatedAt: 2000 }));
+      await assertSucceeds(updateDoc(reference, { fsrs: validFsrs, updatedAt: serverTimestamp() }));
       await assertFails(updateDoc(reference, { uid: "other" }));
       await assertFails(updateDoc(reference, { deckId: "other" }));
       await assertFails(updateDoc(reference, { createdAt: 2000 }));
-      await assertSucceeds(deleteDoc(reference));
+      await assertFails(deleteDoc(reference));
     });
     it.each(["other", "anonymous", "unauthenticated"])(
       "[FIRESTORE-RULES-CARD-22] exposes public Card FSRS but denies writes from %s",
@@ -644,7 +651,7 @@ describe("Firestore ownership and guest write restrictions", () => {
         const reference = doc(db, "card", "card");
         expect((await assertSucceeds(getDoc(reference))).data()?.fsrs).toEqual(validFsrs);
         await assertFails(setDoc(reference, card));
-        await assertFails(updateDoc(reference, { fsrs: null, updatedAt: 2000 }));
+        await assertFails(updateDoc(reference, { fsrs: null, updatedAt: serverTimestamp() }));
         await assertFails(deleteDoc(reference));
       }
     );
@@ -664,8 +671,10 @@ describe("Firestore ownership and guest write restrictions", () => {
     });
     it("[FIRESTORE-RULES-CARD-24] cannot recreate a deleted Card through a rating update", async () => {
       const reference = doc(ownerDb(), "card", "card");
-      await assertSucceeds(deleteDoc(reference));
-      await assertFails(updateDoc(reference, { fsrs: validFsrs, updatedAt: 2000 }));
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await deleteDoc(doc(context.firestore(), "card", "card"));
+      });
+      await assertFails(updateDoc(reference, { fsrs: validFsrs, updatedAt: serverTimestamp() }));
     });
   });
 });

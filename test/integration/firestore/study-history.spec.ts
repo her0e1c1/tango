@@ -9,6 +9,7 @@ import {
   connectFirestoreEmulator,
   getFirestore,
   setDoc,
+  serverTimestamp,
   onSnapshot,
   collection,
   query,
@@ -51,7 +52,8 @@ describe("Firestore history reads", () => {
       endedAt: endedAt === null ? null : Timestamp.fromMillis(endedAt),
       endReason,
       createdAt: Timestamp.fromMillis(startedAt),
-      updatedAt: Timestamp.fromMillis(endedAt ?? startedAt),
+      updatedAt: serverTimestamp(),
+      lastStudiedAt: endedAt ?? startedAt,
     });
     for (let i = 0; i < 130; i += 1)
       batch.set(doc(testDb, "studySession", crypto.randomUUID()), document(deckId, start, null, null));
@@ -195,7 +197,7 @@ describe("Bounded answer history", () => {
         answer: { type: "rating", rating },
         answeredAt: timestamp,
         createdAt: timestamp,
-        updatedAt: timestamp,
+        updatedAt: serverTimestamp(),
       });
     }
     await batch.commit();
@@ -299,7 +301,7 @@ describe("Bounded answer history", () => {
         answer: { type: "rating", rating: "easy" },
         answeredAt: timestamp,
         createdAt: timestamp,
-        updatedAt: timestamp,
+        updatedAt: serverTimestamp(),
       });
       await vi.waitFor(() => {
         expect(snapshots.at(-1)?.source).toBe("server");
@@ -326,7 +328,7 @@ describe("Bounded answer history", () => {
         answer: { type: "rating", rating: "again" },
         answeredAt: timestamp,
         createdAt: timestamp,
-        updatedAt: timestamp,
+        updatedAt: serverTimestamp(),
       });
       await vi.waitFor(() => expect(observed).toBe(true));
       expect(snapshots).toHaveLength(count);

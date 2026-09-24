@@ -29,7 +29,7 @@ Given:
 
 When:
 
-- アプリ購読を開始し、Card の fsrs と updatedAt を更新する。
+- アプリ購読を開始し、Card の fsrs と serverTimestamp の updatedAt を更新する。
 
 Then:
 

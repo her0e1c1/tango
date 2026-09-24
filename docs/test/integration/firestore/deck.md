@@ -16,7 +16,7 @@ Deck の公開された保存操作を通して、作成・部分更新・論理
 | FIRESTORE-DECK-01 | write | 正常系 | [Deck の保存対象だけを新規作成できる](#firestore-deck-01) |
 | FIRESTORE-DECK-02 | write | 正常系 | [Deck の編集で作成日時と対象外フィールドを維持できる](#firestore-deck-02) |
 | FIRESTORE-DECK-03 | write | 正常系 | [URL の省略と明示的なクリアを区別できる](#firestore-deck-03) |
-| FIRESTORE-DECK-04 | batch | 正常系 | [Deck と配下 Card をまとめて論理削除できる](#firestore-deck-04) |
+| FIRESTORE-DECK-04 | batch | 正常系 | [Deck を論理削除して子 Card の保存内容を保持する](#firestore-deck-04) |
 | FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](#firestore-deck-05) |
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06) |
 
@@ -42,7 +42,7 @@ Then:
 - 登録タグ `tags` は入力に含まれていても新たに保存されない。
 
 - サーバー上に指定した ID・UID・name と既定の Deck 設定を保存する。難易度範囲は `1`〜`10`、`deletedAt` は `null` である。
-- `createdAt` と `updatedAt` は同じ数値であり、document が存在する。
+- `createdAt` は数値、`updatedAt` はサーバー確定 Timestamp であり、document が存在する。
 - `localMode`、`currentIndex`、`cardOrderIds` は保存しない。
 
 <a id="firestore-deck-02"></a>
@@ -65,7 +65,7 @@ Then:
 
 - 登録タグ `tags` は入力に含まれていても新たに保存されない。
 
-- サーバー上の name は `updated`、`updatedAt` は数値になる。`createdAt` を含むその他の保存値は変わらない。
+- サーバー上の name は `updated`、`updatedAt` はサーバー確定 Timestamp になる。`createdAt` を含むその他の保存値は変わらない。
 - `localMode`、`currentIndex`、`cardOrderIds` は追加しない。
 
 <a id="firestore-deck-03"></a>
@@ -96,7 +96,7 @@ Then:
 
 <a id="firestore-deck-04"></a>
 
-### FIRESTORE-DECK-04 [TODO] Deck と配下 Card をまとめて論理削除できる
+### FIRESTORE-DECK-04 Deck を論理削除して子 Card の保存内容を保持する
 
 カテゴリ: `batch`
 
@@ -114,8 +114,8 @@ When:
 Then:
 
 - サーバー上の対象 Deck は物理削除されず、`deletedAt` に数値が入る。
-- 対象 Deck に属する2件の Card も物理削除されず、`deletedAt` に数値が入る。
-- Deck と2件の Card の `deletedAt` は同じ削除操作の時刻である。
+- 対象 Deck に属する2件の Card は物理削除されず、本文・FSRS・更新時刻・`deletedAt: null` を維持する。
+- 親 Deck の削除による子 Card の非表示は [差分同期](./incremental-sync.md#firestore-incremental-sync-02) で確認する。
 - 別の Deck とその配下 Card は変更されない。
 
 <a id="firestore-deck-05"></a>

@@ -1,8 +1,8 @@
-import { Timestamp } from "firebase/firestore";
-import type { StudyAnswerInput, StudyAnswerRecord } from "../model/types";
+import { serverTimestamp, Timestamp, type DocumentData } from "firebase/firestore";
+import type { StudyAnswerInput, StudyAnswerRecord, StudyAnswerSnapshot } from "../model/types";
 import { z } from "zod";
 import { studyRatingSchema } from "../model/schema";
-import { firestoreMetadataSchema, firestoreTimestampSchema } from "@/shared/api";
+import { compareSyncTimestamps, firestoreMetadataSchema, firestoreTimestampSchema } from "@/shared/api";
 
 const ratingAnswerSchema = z
   .object({
@@ -24,7 +24,7 @@ const studyAnswerDocumentSchema = firestoreMetadataSchema
 
 export function createStudyAnswerDocument(input: StudyAnswerInput) {
   const answeredAt = Timestamp.fromMillis(input.answeredAt);
-  return studyAnswerDocumentSchema.parse({
+  const document = studyAnswerDocumentSchema.parse({
     uid: input.uid,
     sessionId: input.sessionId,
     deckId: input.deckId,
@@ -34,9 +34,10 @@ export function createStudyAnswerDocument(input: StudyAnswerInput) {
     createdAt: answeredAt,
     updatedAt: answeredAt,
   });
+  return { ...document, updatedAt: serverTimestamp() };
 }
 
-export function parseStudyAnswerRecord(id: string, data: unknown): StudyAnswerRecord | null {
+function parseStudyAnswerRecord(id: string, data: unknown): StudyAnswerRecord | null {
   const parsed = studyAnswerDocumentSchema.safeParse(data);
   if (!parsed.success) return null;
   const value = parsed.data;
@@ -47,4 +48,23 @@ export function parseStudyAnswerRecord(id: string, data: unknown): StudyAnswerRe
     answeredAt: value.answeredAt.seconds * 1000 + value.answeredAt.nanoseconds / 1_000_000,
     rating: value.answer.rating,
   };
+}
+
+export function parseStudyAnswerSnapshot(id: string, data: DocumentData): StudyAnswerSnapshot {
+  const answeredAt = firestoreTimestampSchema.parse(data.answeredAt);
+  return { id, answeredAt, record: parseStudyAnswerRecord(id, data) };
+}
+
+export function retainStudyAnswerDocuments(documents: Record<string, DocumentData>, maximum: number) {
+  return Object.fromEntries(
+    Object.entries(documents)
+      .sort(
+        ([leftId, left], [rightId, right]) =>
+          compareSyncTimestamps(
+            firestoreTimestampSchema.parse(right.answeredAt),
+            firestoreTimestampSchema.parse(left.answeredAt)
+          ) || (leftId < rightId ? 1 : leftId > rightId ? -1 : 0)
+      )
+      .slice(0, maximum + 1)
+  );
 }

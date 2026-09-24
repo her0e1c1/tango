@@ -22,7 +22,10 @@ import { createLocalCard, createLocalDeck, createPreferences } from "@/test/fact
 const mocks = vi.hoisted(() => ({
   receiveSnapshot: undefined as
     | ((snapshot: {
-        docs: { id: string; data: () => Record<string, unknown> }[];
+        docChanges: () => {
+          type: "added";
+          doc: { id: string; data: () => Record<string, unknown>; metadata: { hasPendingWrites: boolean } };
+        }[];
         metadata: { fromCache: boolean; hasPendingWrites: boolean };
       }) => void)
     | undefined,
@@ -45,7 +48,7 @@ vi.mock("firebase/firestore", async (importOriginal) => ({
   collection: vi.fn(),
   where: vi.fn(),
   query: vi.fn(),
-  onSnapshot: (_query: unknown, receive: typeof mocks.receiveSnapshot) => {
+  onSnapshot: (_query: unknown, _options: unknown, receive: typeof mocks.receiveSnapshot) => {
     mocks.receiveSnapshot = receive;
     return () => {
       mocks.receiveSnapshot = undefined;
@@ -81,7 +84,7 @@ vi.mock("@/entities/study-session", async (importOriginal) => {
 });
 // Persistence is outside Page behavior; successful writes let the real study workflow advance.
 
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/firebase", () => ({ auth: {}, db: { app: { options: { projectId: "unit-study" } } } }));
 
 import { StudySessionPage } from "./StudySessionPage";
 
@@ -618,30 +621,36 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
   });
 
-  it("stays on a direct study route until the saved session arrives", () => {
+  it("stays on a direct study route until the saved session arrives", async () => {
     const saved = getStudySession(deckId);
     if (saved === undefined) throw new Error("Expected a saved session");
     clearStudySessions();
     const stop = subscribeStudySessions("user-id", vi.fn());
     renderPage();
     expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
+    await waitFor(() => expect(mocks.receiveSnapshot).toBeDefined());
     act(() =>
       mocks.receiveSnapshot?.({
         metadata: { fromCache: false, hasPendingWrites: false },
-        docs: [
+        docChanges: () => [
           {
-            id: saved.sessionId,
-            data: () => ({
-              uid: "user-id",
-              deckId,
-              cardOrderIds: saved.cardOrderIds,
-              currentIndex: saved.currentIndex,
-              startedAt: Timestamp.fromMillis(1),
-              createdAt: Timestamp.fromMillis(1),
-              updatedAt: Timestamp.fromMillis(1),
-              endedAt: null,
-              endReason: null,
-            }),
+            type: "added",
+            doc: {
+              metadata: { hasPendingWrites: false },
+              id: saved.sessionId,
+              data: () => ({
+                uid: "user-id",
+                deckId,
+                cardOrderIds: saved.cardOrderIds,
+                currentIndex: saved.currentIndex,
+                startedAt: Timestamp.fromMillis(1),
+                createdAt: Timestamp.fromMillis(1),
+                updatedAt: Timestamp.fromMillis(1),
+                lastStudiedAt: 1,
+                endedAt: null,
+                endReason: null,
+              }),
+            },
           },
         ],
       })

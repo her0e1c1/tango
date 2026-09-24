@@ -1,8 +1,16 @@
 import { createStore } from "zustand/vanilla";
+import { persist } from "zustand/middleware";
+import { syncPersistence, type SyncState } from "@/shared/api";
 
 import type { Deck } from "./types";
 
-export const deckStore = createStore<{ remoteDecks: Deck[] }>()(() => ({ remoteDecks: [] }));
+interface DeckState extends SyncState {
+  remoteDecks: Deck[];
+}
+
+export const deckStore = createStore<DeckState>()(
+  persist((): DeckState => ({ remoteDecks: [], sync: {} }), syncPersistence("tango-deck-sync"))
+);
 
 export function getDecks(): Deck[] {
   return deckStore.getState().remoteDecks;

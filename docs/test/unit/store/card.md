@@ -8,6 +8,8 @@
 
 共通の検証前提は [AGENTS.md](./AGENTS.md) を参照する。
 
+取得済みデータと同期位置の保存・復元は [差分同期](../../integration/firestore/incremental-sync.md) と [Persistence](../../e2e/persistence.md) で確認する。
+
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |

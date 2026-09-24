@@ -4,8 +4,9 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { applyStudySessionSnapshot } from "./actions/applyStudySessionSnapshot";
 import { startStudy, restoreStudySession } from "@/test/entityFixtures";
-import { clearStudySessions, getStudySession, replaceRemoteStudySessions, studySessionStore } from "./store";
+import { clearStudySessions, getStudySession, setStudySessionOwner, studySessionStore } from "./store";
 
 const STUDY_STORAGE_KEY = "tango-study";
 
@@ -73,7 +74,12 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     const retained = getStudySession("deck-2");
     if (!retained) throw new Error("Missing retained session");
 
-    replaceRemoteStudySessions([retained]);
+    setStudySessionOwner("uid");
+    applyStudySessionSnapshot("uid", "scope", {
+      values: [{ session: retained, endReason: null, endedAt: null }],
+      fromCache: false,
+      hasPendingWrites: false,
+    });
 
     expect(getStudySession("deck-1")).toBeUndefined();
     expect(getStudySession("deck-2")).toEqual(retained);

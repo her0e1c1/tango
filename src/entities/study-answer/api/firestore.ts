@@ -4,15 +4,19 @@ import {
   type WriteBatch,
   collection,
   documentId,
-  onSnapshot,
+  startAt,
   limit,
   orderBy,
   query,
   where,
 } from "firebase/firestore";
 import { db, auth } from "@/shared/firebase";
-import type { StudyAnswerHistory, StudyAnswerInput, StudyAnswerRecord } from "../model/types";
-import { createStudyAnswerDocument, parseStudyAnswerRecord } from "./document";
+import type { StudyAnswerHistory, StudyAnswerInput } from "../model/types";
+import { createStudyAnswerDocument, parseStudyAnswerSnapshot, retainStudyAnswerDocuments } from "./document";
+import { subscribeSyncedQuery } from "@/shared/api";
+import { studyAnswerStore } from "../model/store";
+import { applyStudyAnswerSnapshot } from "../model/actions/applyStudyAnswerSnapshot";
+import { getStudyAnswerHistory } from "../model/queries/getStudyAnswerHistory";
 import { z } from "zod";
 
 export function writeStudyAnswer(batch: WriteBatch, input: StudyAnswerInput) {
@@ -38,42 +42,58 @@ export function subscribeStudyAnswerHistory(
   const { uid, from, to, deckId, limit: maximum } = studyAnswerHistoryInputSchema.parse(input);
   const user = auth.currentUser;
   if (!user || user.uid !== uid) throw new Error("History owner is not the current user");
-  const request = query(
-    collection(db, "studyAnswer"),
+  const scope = JSON.stringify([db.app.options.projectId, uid, from, to, deckId, maximum]);
+  const constraints = [
     where("uid", "==", uid),
     ...(deckId === null ? [] : [where("deckId", "==", deckId)]),
     where("answeredAt", ">=", Timestamp.fromMillis(from)),
     where("answeredAt", "<", Timestamp.fromMillis(to)),
-    orderBy("answeredAt", "desc"),
-    orderBy(documentId(), "desc"),
-    limit(maximum + 1)
-  );
-  return onSnapshot(
-    request,
-    { includeMetadataChanges: true, source: user.isAnonymous ? "cache" : "default" },
-    (snapshot) => {
-      if (auth.currentUser !== user) return;
-      let invalidCount = 0;
-      const records: StudyAnswerRecord[] = [];
-      // Invalid documents still consume the requested limit.
-      for (const document of snapshot.docs.slice(0, maximum)) {
-        const record = parseStudyAnswerRecord(document.id, document.data());
-        if (record === null) {
-          invalidCount += 1;
-        } else {
-          records.push(record);
-        }
-      }
-      onHistory({
-        records,
-        source: snapshot.metadata.fromCache ? "cache" : "server",
-        truncated: snapshot.size > maximum,
-        invalidCount,
-        hasPendingWrites: snapshot.metadata.hasPendingWrites,
-      });
+  ];
+  const reference = collection(db, "studyAnswer");
+  return subscribeSyncedQuery({
+    scope,
+    store: studyAnswerStore,
+    source: user.isAnonymous ? "cache" : "default",
+    // A cursor includes unresolved server timestamps; a timestamp inequality does not.
+    // The non-null inequality permits updatedAt ordering alongside the event-time range.
+    request: (cursor) =>
+      query(
+        reference,
+        ...constraints,
+        where("updatedAt", "!=", null),
+        orderBy("updatedAt"),
+        orderBy("answeredAt"),
+        orderBy(documentId()),
+        ...(cursor ? [startAt(new Timestamp(cursor.seconds, cursor.nanoseconds))] : [])
+      ),
+    bootstrap: {
+      boundary: query(
+        reference,
+        ...constraints,
+        where("updatedAt", "!=", null),
+        orderBy("updatedAt", "desc"),
+        orderBy("answeredAt", "desc"),
+        orderBy(documentId(), "desc"),
+        limit(1)
+      ),
+      initial: query(
+        reference,
+        ...constraints,
+        orderBy("answeredAt", "desc"),
+        orderBy(documentId(), "desc"),
+        limit(maximum + 1)
+      ),
     },
-    (error) => {
+    parse: parseStudyAnswerSnapshot,
+    retain: (documents) => retainStudyAnswerDocuments(documents, maximum),
+    receive: (result) => {
+      if (auth.currentUser !== user) return;
+      const saved = applyStudyAnswerSnapshot(scope, result.checkpoint);
+      onHistory(getStudyAnswerHistory(result, maximum));
+      return saved;
+    },
+    onError: (error) => {
       if (auth.currentUser === user) onError(error);
-    }
-  );
+    },
+  });
 }

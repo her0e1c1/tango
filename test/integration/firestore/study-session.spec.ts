@@ -11,6 +11,7 @@ import {
   getDocs,
   query,
   setDoc,
+  serverTimestamp,
   Timestamp,
   updateDoc,
   waitForPendingWrites,
@@ -102,6 +103,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       endReason: null,
       createdAt: expect.any(Timestamp),
       updatedAt: expect.any(Timestamp),
+      lastStudiedAt: expect.any(Number),
     });
     stop();
     clearStudySessions();
@@ -237,7 +239,11 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     stop = subscribeStudySessions("uid", vi.fn());
     const valid = await startRemote();
     await waitForPendingWrites(testDb);
-    await setDoc(doc(testDb, "studySession", crypto.randomUUID()), { uid: "uid", answers: [] });
+    await setDoc(doc(testDb, "studySession", crypto.randomUUID()), {
+      uid: "uid",
+      answers: [],
+      updatedAt: serverTimestamp(),
+    });
     stop();
     clearStudySessions();
     const onError = vi.fn();
@@ -285,7 +291,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     await waitForPendingWrites(testDb);
     expect((await readSession(started.sessionId)).data()).toEqual({
       ...original,
-      updatedAt: Timestamp.fromMillis(touchedAt),
+      lastStudiedAt: touchedAt,
+      updatedAt: expect.any(Timestamp),
     });
     stop();
     clearStudySessions();
@@ -312,7 +319,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       currentIndex: 1,
       startedAt: Timestamp.fromMillis(1000),
       createdAt: Timestamp.fromMillis(1000),
-      updatedAt: Timestamp.fromMillis(3000),
+      updatedAt: serverTimestamp(),
+      lastStudiedAt: 3000,
       endedAt: null,
       endReason: null,
     };
@@ -322,7 +330,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       currentIndex: 2,
       startedAt: Timestamp.fromMillis(2000),
       createdAt: Timestamp.fromMillis(2000),
-      updatedAt: Timestamp.fromMillis(2000),
+      updatedAt: serverTimestamp(),
+      lastStudiedAt: 2000,
     });
     await setDoc(doc(testDb, "studySession", otherId), { ...older, deckId: otherDeckId });
     stop = subscribeStudySessions("uid", vi.fn());
@@ -346,7 +355,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
         currentIndex: 0,
         startedAt: Timestamp.fromMillis(1000),
         createdAt: Timestamp.fromMillis(1000),
-        updatedAt: Timestamp.fromMillis(1000),
+        updatedAt: serverTimestamp(),
+        lastStudiedAt: 1000,
       });
       const final = getStudySession(deckId);
       if (final === undefined) throw new Error("Expected the latest session");
@@ -378,7 +388,11 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     const started = await startRemote();
     await waitForPendingWrites(testDb);
     const updatedAt = Timestamp.now();
-    await updateDoc(doc(testDb, "studySession", started.sessionId), { currentIndex: 1, updatedAt });
+    await updateDoc(doc(testDb, "studySession", started.sessionId), {
+      currentIndex: 1,
+      lastStudiedAt: updatedAt.toMillis(),
+      updatedAt: serverTimestamp(),
+    });
     await waitForCloud(() =>
       expect(getStudySession(deckId)).toMatchObject({
         sessionId: started.sessionId,
@@ -403,7 +417,11 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       if (other === undefined) throw new Error("Expected another Deck session");
       await waitForPendingWrites(testDb);
       const endedAt = Timestamp.now();
-      await updateDoc(doc(testDb, "studySession", started.sessionId), { endReason, endedAt, updatedAt: endedAt });
+      await updateDoc(doc(testDb, "studySession", started.sessionId), {
+        endReason,
+        endedAt,
+        updatedAt: serverTimestamp(),
+      });
       await waitForCloud(() => {
         expect(getStudySession(deckId)).toBeUndefined();
         expect(getStudySession(otherDeckId)).toMatchObject({ sessionId: other.sessionId, currentIndex: 0 });

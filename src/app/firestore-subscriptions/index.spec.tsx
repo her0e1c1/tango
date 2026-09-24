@@ -4,7 +4,11 @@ interface FirestoreQuery {
 }
 
 interface FirestoreSnapshot {
-  docs: { id: string; data: () => Record<string, unknown> }[];
+  docChanges: () => {
+    type: "added";
+    doc: { id: string; data: () => Record<string, unknown>; metadata: { hasPendingWrites: boolean } };
+  }[];
+  metadata: { fromCache: boolean; hasPendingWrites: boolean };
 }
 
 import { act, render, screen } from "@testing-library/react";
@@ -14,7 +18,7 @@ import "@testing-library/jest-dom/vitest";
 import { clearRemoteCards, useCards } from "@/entities/card";
 import { clearRemoteDecks, useDecks } from "@/entities/deck";
 
-vi.mock("@/shared/firebase", () => ({ db: {} }));
+vi.mock("@/shared/firebase", () => ({ db: { app: { options: { projectId: "unit-app" } } } }));
 vi.mock("firebase/firestore", async (importOriginal) => {
   const actual = await importOriginal<typeof import("firebase/firestore")>();
   return {
@@ -25,9 +29,13 @@ vi.mock("firebase/firestore", async (importOriginal) => {
       ...collectionReference,
       ...filter,
     }),
-    onSnapshot: (request: FirestoreQuery, publishSnapshot: (snapshot: FirestoreSnapshot) => void) => {
+    onSnapshot: (
+      request: FirestoreQuery,
+      _options: unknown,
+      publishSnapshot: (snapshot: FirestoreSnapshot) => void
+    ) => {
       if (request.collectionName === "studySession") {
-        publishSnapshot({ docs: [] });
+        publishSnapshot({ docChanges: () => [], metadata: { fromCache: true, hasPendingWrites: false } });
         return () => undefined;
       }
       const deckId = `deck-${request.uid}`;
@@ -40,7 +48,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
                 isPublic: false,
                 uid: request.uid,
                 createdAt: 1,
-                updatedAt: 2,
+                updatedAt: actual.Timestamp.fromMillis(2),
                 fsrs: null,
                 deletedAt: null,
                 difficultyMax: null,
@@ -61,14 +69,17 @@ vi.mock("firebase/firestore", async (importOriginal) => {
                 deckId,
                 uid: request.uid,
                 createdAt: 1,
-                updatedAt: 2,
+                updatedAt: actual.Timestamp.fromMillis(2),
                 fsrs: null,
                 deletedAt: null,
                 difficulty: 5,
                 numberOfSeen: 0,
               }),
             };
-      publishSnapshot({ docs: [document] });
+      publishSnapshot({
+        docChanges: () => [{ type: "added", doc: { ...document, metadata: { hasPendingWrites: false } } }],
+        metadata: { fromCache: true, hasPendingWrites: false },
+      });
       return () => undefined;
     },
   };
@@ -92,16 +103,16 @@ describe("Firestore subscriptions [PERSISTENCE-01 PERSISTENCE-04 ACCOUNT-03]", (
     clearRemoteCards();
     clearRemoteDecks();
   });
-  it.each(["anonymous-uid", "linked-uid"])("publishes cached data for %s and clears it on cleanup", (uid) => {
+  it.each(["anonymous-uid", "linked-uid"])("publishes cached data for %s and clears it on cleanup", async (uid) => {
     const { stop } = startFirestoreSubscriptions(uid);
     render(<RepositoryView />);
-    expect(screen.getByText(`Deck for ${uid}`)).toBeVisible();
+    expect(await screen.findByText(`Deck for ${uid}`)).toBeVisible();
     expect(screen.getByText(`Front for ${uid}`)).toBeVisible();
     act(() => stop());
     expect(screen.queryByText(`Deck for ${uid}`)).not.toBeInTheDocument();
     expect(screen.queryByText(`Front for ${uid}`)).not.toBeInTheDocument();
   });
-  it("replaces the visible UID after stopping the old subscriptions", () => {
+  it("replaces the visible UID after stopping the old subscriptions", async () => {
     const { stop: stopFirst } = startFirestoreSubscriptions("first");
     render(<RepositoryView />);
     act(() => stopFirst());
@@ -110,7 +121,7 @@ describe("Firestore subscriptions [PERSISTENCE-01 PERSISTENCE-04 ACCOUNT-03]", (
       stopSecond = startFirestoreSubscriptions("second").stop;
     });
     expect(screen.queryByText("Deck for first")).not.toBeInTheDocument();
-    expect(screen.getByText("Deck for second")).toBeVisible();
+    expect(await screen.findByText("Deck for second")).toBeVisible();
     act(() => stopSecond());
   });
 });

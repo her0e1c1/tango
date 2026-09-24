@@ -17,9 +17,11 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  setDoc,
+  setDoc as saveDocument,
+  type DocumentReference,
+  type DocumentData,
   Timestamp,
-  updateDoc,
+  updateDoc as updateDocument,
   where,
   waitForPendingWrites,
   type Firestore,
@@ -44,6 +46,11 @@ vi.mock("@/shared/firebase", async () => ({
   writeBatch: (await import("firebase/firestore")).writeBatch,
 }));
 
+const setDoc = (reference: DocumentReference, data: DocumentData) =>
+  saveDocument(reference, { ...data, updatedAt: serverTimestamp() });
+const updateDoc = (reference: DocumentReference, data: DocumentData) =>
+  updateDocument(reference, { ...data, updatedAt: serverTimestamp() });
+
 const uid = "answer-owner";
 const sessionId = "session";
 const deckId = "deck";
@@ -55,6 +62,7 @@ const sessionData = () => ({
   cardOrderIds: cardIds,
   currentIndex: 0,
   startedAt: Timestamp.fromMillis(1000),
+  lastStudiedAt: 1000,
   endedAt: null,
   endReason: null,
   createdAt: serverTimestamp(),
@@ -130,7 +138,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
   });
   beforeEach(async () => {
     await environment.clearFirestore();
-    cardStore.setState({ remoteCards: cardIds.map((id) => createCard({ id, deckId, uid })) });
+    cardStore.setState({ sync: {}, remoteCards: cardIds.map((id) => createCard({ id, deckId, uid })) });
     deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid })] });
     replaceAuthSession({ status: "authenticated", uid, isAnonymous: false, displayName: null });
     await setDoc(doc(connection.db, "deck", deckId), { uid, isPublic: true });
@@ -176,13 +184,13 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
         createdAt: expect.any(Timestamp),
         updatedAt: expect.any(Timestamp),
       });
-      expect(answer?.createdAt).toEqual(answer?.updatedAt);
+      expect(answer?.createdAt).toEqual(answer?.answeredAt);
       expect((await getDoc(stateReference(input.cardId))).data()).toMatchObject({
         createdAt: 0,
-        updatedAt: input.answeredAt,
+        updatedAt: expect.any(Timestamp),
         fsrs: input.fsrs,
       });
-      expect((await getDoc(doc(connection.db, "card", input.cardId))).data()?.updatedAt).toBe(input.answeredAt);
+      expect((await getDoc(doc(connection.db, "card", input.cardId))).data()?.updatedAt).toBeInstanceOf(Timestamp);
       expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     }
   );
@@ -203,7 +211,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await getDoc(doc(connection.db, "card", input.cardId))).data()).toEqual({
       ...before,
       fsrs: input.fsrs,
-      updatedAt: input.answeredAt,
+      updatedAt: expect.any(Timestamp),
     });
     expect((await getDoc(stateReference())).data()?.createdAt).toBe(0);
   });
@@ -314,7 +322,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     const reference = doc(collection(connection.db, "studyAnswer"));
     const data = { uid, sessionId: "missing", cardId: "missing", answer: { type: "text", text: "custom" } };
     await assertSucceeds(setDoc(reference, data));
-    expect((await getDoc(reference)).data()).toEqual(data);
+    expect((await getDoc(reference)).data()).toEqual({ ...data, updatedAt: expect.any(Timestamp) });
   });
 
   it("[FIRESTORE-STUDY-ANSWER-14] allows standalone answers without transitions", async () => {
@@ -393,7 +401,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     await saveStudyOperation(operation({ answeredAt: 602_000 }));
     expect((await getDoc(stateReference())).data()).toMatchObject({
       createdAt: 0,
-      updatedAt: 602_000,
+      updatedAt: expect.any(Timestamp),
       fsrs: { reps: 2 },
     });
   });

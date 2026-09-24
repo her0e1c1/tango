@@ -17,6 +17,8 @@
 | PERSISTENCE-04 | batch | 正常系 | [未ログインの変更をこのブラウザーだけに維持できる](#persistence-04) |
 | PERSISTENCE-05 | batch | 正常系 | [未ログインでもオフラインの Card 操作を再読み込み後まで維持できる](#persistence-05) |
 | PERSISTENCE-06 | batch | 正常系 | [オフラインで進めた学習を同期後に別ブラウザーで再開できる](#persistence-06) |
+| PERSISTENCE-07 | batch | 異常系 | [端末内の取得済みデータが欠損・破損しても再取得できる](#persistence-07) |
+| PERSISTENCE-08 | batch | 異常系 | [端末内の保存に失敗しても再読み込み後に内容を復元できる](#persistence-08) |
 
 <a id="persistence-01"></a>
 
@@ -44,7 +46,7 @@ Then:
 
 <a id="persistence-02"></a>
 
-### PERSISTENCE-02 [TODO] オフラインの変更を再接続後に同期できる
+### PERSISTENCE-02 オフラインの変更を再接続後に同期できる
 
 カテゴリ: `batch`
 
@@ -175,3 +177,45 @@ Then:
 - 確認用ブラウザーでもその次の Card から再開し、元の出題順を維持する。評価済みの Card に戻ったり、未回答の Card を飛ばしたりしない。
 - Good の学習結果が維持され、再接続や再開によって同じ回答を重複して記録しない。
 - 再接続だけで学習が完了・中止扱いになったり、別の新しい学習に置き換わったりしない。
+
+<a id="persistence-07"></a>
+
+### PERSISTENCE-07 端末内の取得済みデータが欠損・破損しても再取得できる
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 取得済みの Deck と複数 Card があり、端末内の取得済みデータが一部欠損している、解析不能になっている、または本文の形式が壊れている。
+
+When:
+
+- オンラインで画面を再読み込みして Deck を開く。
+
+Then:
+
+- 保存済みの全 Card をサーバーから取得し直して表示する。欠損した Card を飛ばさず、重複もしない。
+
+<a id="persistence-08"></a>
+
+### PERSISTENCE-08 端末内の保存に失敗しても再読み込み後に内容を復元できる
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- 取得済みの Deck と複数 Card がある。端末内の保存が一時的に失敗する状態になっている。
+
+When:
+
+- Card を編集して保存する。保存エラーを確認し、端末内の保存が利用可能になってから画面を再読み込みする。
+
+Then:
+
+- 保存失敗を画面で通知する。再読み込み後はサーバーに保存された変更を表示し、変更しなかった Card も欠落しない。

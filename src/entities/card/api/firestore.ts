@@ -4,7 +4,6 @@ import type {
   CardEdit,
   DeleteCardInput,
   EditCardInput,
-  RemoteCard,
   CardId,
   CardCreateCommand,
   CardEditInput,
@@ -15,7 +14,10 @@ import {
   getDocFromCache,
   collection,
   doc,
-  onSnapshot,
+  orderBy,
+  startAt,
+  Timestamp,
+  serverTimestamp,
   query,
   setDoc,
   updateDoc,
@@ -23,34 +25,40 @@ import {
   type WriteBatch,
 } from "firebase/firestore";
 import { db } from "@/shared/firebase";
+import { subscribeSyncedQuery } from "@/shared/api";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
+import { applyCardSnapshot } from "../model/actions/applyCardSnapshot";
 import { fsrsStateSchema, instantSchema, type FsrsState } from "../model/fsrs";
-import { findCardById, replaceRemoteCards } from "../model/store";
+import { findCardById, cardStore } from "../model/store";
 
 const CARD_COLLECTION = "card";
 
 // Do not filter `deletedAt == null` in the Firestore query.
 // A remote tombstone would otherwise leave the query as a removed change backed by the previous matching document,
 // so this client would not receive the updated tombstone itself. Hide tombstones only when publishing the active store.
-export const subscribeCards = (uid: string, onError: (error: Error) => void, onReady?: () => void): (() => void) =>
-  onSnapshot(
-    query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
-    (snapshot) => {
-      try {
-        replaceRemoteCards(
-          snapshot.docs
-            .map((document) => mapCardDocument(document.id, parseCardDocument(document.id, document.data())))
-            .filter((card) => card.deletedAt === null)
-        );
-        onReady?.();
-      } catch (cause) {
-        onError(cause instanceof Error ? cause : new Error(String(cause)));
-      }
+export function subscribeCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
+  const scope = JSON.stringify([db.app.options.projectId, uid]);
+  return subscribeSyncedQuery({
+    scope,
+    store: cardStore,
+    request: (cursor) =>
+      query(
+        collection(db, CARD_COLLECTION),
+        where("uid", "==", uid),
+        orderBy("updatedAt"),
+        ...(cursor ? [startAt(new Timestamp(cursor.seconds, cursor.nanoseconds))] : [])
+      ),
+    parse: (id, data) => mapCardDocument(id, parseCardDocument(id, data)),
+    receive: (result) => {
+      const saved = applyCardSnapshot(scope, result);
+      onReady?.();
+      return saved;
     },
-    onError
-  );
+    onError,
+  });
+}
 
 /** Prepared imports retry the same IDs; a locally saved Card must never be initialized again. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
@@ -60,12 +68,12 @@ const createCardDocument = async (card: CardCreate): Promise<void> => {
     throw error;
   });
   if (existing?.exists()) {
-    const saved = parseCardDocument(card.id, existing.data());
+    const saved = parseCardDocument(card.id, existing.data({ serverTimestamps: "estimate" }));
     if (saved.uid !== card.uid || saved.deckId !== card.deckId) throw new Error("Card identity does not match");
     return;
   }
   const createdAt = Date.now();
-  const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: createdAt } satisfies RemoteCard);
+  const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: serverTimestamp() });
   void setDoc(reference, document).catch(() => undefined);
 };
 
@@ -82,7 +90,7 @@ const updateCardDocument = (card: CardEdit): Promise<void> => {
     backText: card.backText,
     tags: card.tags,
     uniqueKey: card.uniqueKey,
-    updatedAt: Date.now(),
+    updatedAt: serverTimestamp(),
   });
   const reference = doc(db, CARD_COLLECTION, card.id);
   void updateDoc(reference, document).catch(() => undefined);
@@ -97,9 +105,9 @@ export const editCard = async (uid: string, card: EditCardInput["card"]): Promis
 
 /** Tombstones a Card so synchronized readers can converge before hiding it. */
 const removeCardDocument = (id: string): Promise<void> => {
-  const updatedAt = Date.now();
+  const deletedAt = Date.now();
   const reference = doc(db, CARD_COLLECTION, id);
-  void updateDoc(reference, { updatedAt, deletedAt: updatedAt }).catch(() => undefined);
+  void updateDoc(reference, { updatedAt: serverTimestamp(), deletedAt }).catch(() => undefined);
   return Promise.resolve();
 };
 
@@ -120,11 +128,12 @@ export function writeCardFsrs(
   }
 ) {
   const card = findCardById(input.cardId);
+  instantSchema.parse(input.answeredAt);
   if (!(input.uid && card) || card.uid !== input.uid || card.deckId !== input.deckId || card.deletedAt !== null)
     throw new Error("Study Card does not match");
   batch.update(doc(db, "card", input.cardId), {
     fsrs: fsrsStateSchema.parse(input.fsrs),
-    updatedAt: instantSchema.parse(input.answeredAt),
+    updatedAt: serverTimestamp(),
   });
 }
 

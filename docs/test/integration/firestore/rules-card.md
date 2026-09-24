@@ -14,7 +14,7 @@
 | FIRESTORE-RULES-CARD-02 | read | 正常系 | [本人による Card の取得を許可する](#firestore-rules-card-02) |
 | FIRESTORE-RULES-CARD-03 | write | 正常系 | [本人による Card の作成を許可する](#firestore-rules-card-03) |
 | FIRESTORE-RULES-CARD-04 | write | 正常系 | [本人による Card の更新を許可する](#firestore-rules-card-04) |
-| FIRESTORE-RULES-CARD-05 | write | 正常系 | [本人による Card の物理削除を許可する](#firestore-rules-card-05) |
+| FIRESTORE-RULES-CARD-05 | write | 異常系 | [本人による Card の物理削除を拒否する](#firestore-rules-card-05) |
 | FIRESTORE-RULES-CARD-06 | read | 異常系 | [他ユーザーによる Card の非公開データの取得を拒否する](#firestore-rules-card-06) |
 | FIRESTORE-RULES-CARD-07 | read | 正常系 | [他ユーザーによる Card の公開データの取得を許可する](#firestore-rules-card-07) |
 | FIRESTORE-RULES-CARD-08 | write | 異常系 | [他ユーザーによる Card の作成を拒否する](#firestore-rules-card-08) |
@@ -126,11 +126,11 @@ Then:
 
 <a id="firestore-rules-card-05"></a>
 
-### FIRESTORE-RULES-CARD-05 本人による Card の物理削除を許可する
+### FIRESTORE-RULES-CARD-05 本人による Card の物理削除を拒否する
 
 カテゴリ: `write`
 
-区分: 正常系
+区分: 異常系
 
 Given:
 
@@ -143,7 +143,7 @@ When:
 
 Then:
 
-- 物理削除が許可される。
+- 物理削除は拒否され、document は残る。
 
 <a id="firestore-rules-card-06"></a>
 
@@ -477,7 +477,7 @@ When:
 
 Then:
 
-- 読取・FSRS 更新・削除を許可し、UID・Deck・作成日時変更は拒否する。
+- 読取・FSRS 更新を許可し、物理削除と UID・Deck・作成日時変更は拒否する。
 
 <a id="firestore-rules-card-22"></a>
 
@@ -533,7 +533,7 @@ Given:
 
 When:
 
-- Card を物理削除した後、fsrs と updatedAt の部分更新を試す。
+- 管理者が事前に Card を物理削除した状態で、本人が fsrs と updatedAt の部分更新を試す。
 
 Then:
 

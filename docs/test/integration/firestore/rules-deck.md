@@ -14,7 +14,7 @@
 | FIRESTORE-RULES-DECK-02 | read | 正常系 | [本人による Deck の取得を許可する](#firestore-rules-deck-02) |
 | FIRESTORE-RULES-DECK-03 | write | 正常系 | [本人による Deck の作成を許可する](#firestore-rules-deck-03) |
 | FIRESTORE-RULES-DECK-04 | write | 正常系 | [本人による Deck の更新を許可する](#firestore-rules-deck-04) |
-| FIRESTORE-RULES-DECK-05 | write | 正常系 | [本人による Deck の物理削除を許可する](#firestore-rules-deck-05) |
+| FIRESTORE-RULES-DECK-05 | write | 異常系 | [本人による Deck の物理削除を拒否する](#firestore-rules-deck-05) |
 | FIRESTORE-RULES-DECK-06 | read | 異常系 | [他ユーザーによる Deck の非公開データの取得を拒否する](#firestore-rules-deck-06) |
 | FIRESTORE-RULES-DECK-07 | read | 正常系 | [他ユーザーによる Deck の公開データの取得を許可する](#firestore-rules-deck-07) |
 | FIRESTORE-RULES-DECK-08 | write | 異常系 | [他ユーザーによる Deck の作成を拒否する](#firestore-rules-deck-08) |
@@ -123,11 +123,11 @@ Then:
 
 <a id="firestore-rules-deck-05"></a>
 
-### FIRESTORE-RULES-DECK-05 本人による Deck の物理削除を許可する
+### FIRESTORE-RULES-DECK-05 本人による Deck の物理削除を拒否する
 
 カテゴリ: `write`
 
-区分: 正常系
+区分: 異常系
 
 Given:
 
@@ -140,7 +140,7 @@ When:
 
 Then:
 
-- 物理削除が許可される。
+- 物理削除は拒否され、document は残る。
 
 <a id="firestore-rules-deck-06"></a>
 

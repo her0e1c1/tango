@@ -244,3 +244,138 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   expect((await requireDocument("deck", legacyDeckId)).fields.name?.stringValue).toBe("Legacy deck");
   expect((await requireDocument("card", legacyCardId)).fields.frontText?.stringValue).toBe("Legacy card");
 });
+
+async function waitForSavedCards(page: import("@playwright/test").Page, id: string) {
+  await expect
+    .poll(() =>
+      page.evaluate(async (cardId) => {
+        const database = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open("tango-firestore-sync");
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        try {
+          return await new Promise<boolean>((resolve, reject) => {
+            const transaction = database.transaction("state", "readonly");
+            const request = transaction.objectStore("state").get("tango-card-sync");
+            transaction.oncomplete = () =>
+              resolve(typeof request.result === "string" && request.result.includes(cardId));
+            transaction.onerror = () => reject(transaction.error);
+          });
+        } finally {
+          database.close();
+        }
+      }, id)
+    )
+    .toBe(true);
+}
+
+async function openStorageMaintenance(page: import("@playwright/test").Page) {
+  // Unload the SDK before clearing its disposable cache, leaving Auth and the application replica intact.
+  await page.route("**/storage-maintenance", (route) =>
+    route.fulfill({ contentType: "text/html", body: "<html><body>Storage maintenance</body></html>" })
+  );
+  await page.goto("/storage-maintenance");
+  await page.evaluate(async () => {
+    for (const { name } of await indexedDB.databases()) {
+      if (!name?.startsWith("firestore/")) continue;
+      await new Promise<void>((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(name);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error("Firestore cache is still open"));
+      });
+    }
+  });
+}
+
+for (const corruption of ["missing", "invalid-json", "invalid-card"] as const) {
+  test(`PERSISTENCE-07 rebuilds ${corruption} saved data after cache eviction`, async ({ fixture, page }) => {
+    const deck = fixture.deck();
+    const card = fixture.card();
+    await fixture.apply(page);
+    await page.goto(`/deck/${deck.id}`);
+    await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
+    await waitForSavedCards(page, card.id);
+    await openStorageMaintenance(page);
+    await page.evaluate(
+      async ({ corruption: damage, cardId }) => {
+        const database = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open("tango-firestore-sync");
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        try {
+          await new Promise<void>((resolve, reject) => {
+            const transaction = database.transaction("state", "readwrite");
+            const store = transaction.objectStore("state");
+            const request = store.get("tango-card-sync");
+            request.onsuccess = () => {
+              if (damage === "invalid-json") {
+                store.put("{broken", "tango-card-sync");
+                return;
+              }
+              {
+                const value = JSON.parse(String(request.result)) as {
+                  state: { sync: Record<string, { documents: Record<string, { frontText: unknown }> }> };
+                };
+                const checkpoint = Object.values(value.state.sync).find((candidate) =>
+                  Object.hasOwn(candidate.documents, cardId)
+                );
+                if (!checkpoint) throw new Error("Missing saved Card");
+                if (damage === "missing") delete checkpoint.documents[cardId];
+                else checkpoint.documents[cardId] = { ...checkpoint.documents[cardId], frontText: 42 };
+                store.put(JSON.stringify(value), "tango-card-sync");
+              }
+            };
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(transaction.error);
+          });
+        } finally {
+          database.close();
+        }
+      },
+      { corruption, cardId: card.id }
+    );
+    await page.goto(`/deck/${deck.id}`);
+    for (const existing of fixture.state.remote.cards)
+      await expect(page.getByRole("button", { name: `View ${existing.frontText}` })).toBeVisible();
+  });
+}
+
+test("PERSISTENCE-08 recovers a failed replica transaction without losing unchanged Cards", async ({
+  fixture,
+  page,
+}) => {
+  const deck = fixture.deck();
+  const card = fixture.card();
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
+  await waitForSavedCards(page, card.id);
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (...args) {
+      const request = put.apply(this, args);
+      if (this.transaction.db.name === "tango-firestore-sync") this.transaction.abort();
+      return request;
+    };
+  });
+  await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  await page.getByRole("textbox", { name: "Front text" }).fill("Saved despite replica failure");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByRole("button", { name: "View Saved despite replica failure" })).toBeVisible();
+  await expect(
+    page.getByText("A data save or sync failed. Check your connection and reload to review the saved data.")
+  ).toBeVisible();
+  await expect
+    .poll(async () => (await requireDocument("card", card.id)).fields.frontText?.stringValue)
+    .toBe("Saved despite replica failure");
+  await openStorageMaintenance(page);
+  await page.goto(`/deck/${deck.id}`);
+  for (const existing of fixture.state.remote.cards) {
+    const text = existing.id === card.id ? "Saved despite replica failure" : existing.frontText;
+    await expect(page.getByRole("button", { name: `View ${text}` })).toBeVisible();
+  }
+});

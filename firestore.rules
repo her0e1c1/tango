@@ -14,24 +14,26 @@ service cloud.firestore {
   function isValid() {
     return request.auth.uid == request.resource.data.uid;
   }
+  function hasServerUpdateTime() {
+    return request.resource.data.updatedAt == request.time;
+  }
   match /databases/{database}/documents {
     match /studySession/{sessionId} {
       allow read: if isSignedIn() && isOwner();
-      allow create: if isSignedIn() && isValid();
-      allow update: if isSignedIn() && isValidOwner();
+      allow create: if isSignedIn() && isValid() && hasServerUpdateTime();
+      allow update: if isSignedIn() && isValidOwner() && hasServerUpdateTime();
     }
     match /studyAnswer/{answerId} {
       allow read: if isSignedIn() && isOwner();
-      allow create: if isSignedIn() && isValid();
+      allow create: if isSignedIn() && isValid() && hasServerUpdateTime();
     }
     match /deck/{deckId} {
       function isPublic() {
         return resource.data.isPublic == true && resource.data.get('deletedAt', null) == null;
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isSignedIn() && isValid();
-      allow update: if isSignedIn() && isValidOwner();
-      allow delete: if isSignedIn() && isOwner();
+      allow create: if isSignedIn() && isValid() && hasServerUpdateTime();
+      allow update: if isSignedIn() && isValidOwner() && hasServerUpdateTime();
     }
     match /card/{cardId} {
       function getDeck(deckId) {
@@ -50,12 +52,11 @@ service cloud.firestore {
           'uniqueKey', 'fsrs', 'createdAt', 'updatedAt', 'deletedAt']) && (request.resource.data.fsrs == null || request.resource.data.fsrs is map);
       }
       allow read: if isOwner() || isPublic();
-      allow create: if isSignedIn() && isValid() && belongsToDeck() && validCard();
-      allow update: if isSignedIn() && isValidOwner() && belongsToDeck() && validCard() &&
+      allow create: if isSignedIn() && isValid() && belongsToDeck() && validCard() && hasServerUpdateTime();
+      allow update: if isSignedIn() && isValidOwner() && belongsToDeck() && validCard() && hasServerUpdateTime() &&
                     request.resource.data.deckId == resource.data.deckId &&
                     request.resource.data.createdAt == resource.data.createdAt &&
                     (request.resource.data.fsrs == resource.data.fsrs || resource.data.deletedAt == null);
-      allow delete: if isSignedIn() && isOwner();
     }
   }
 }

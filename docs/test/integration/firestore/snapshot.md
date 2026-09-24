@@ -11,10 +11,10 @@ Card / Deck の公開された購読操作を通して、取得結果、所有�
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| FIRESTORE-SNAPSHOT-01 | read | 正常系 | [空の初期取得結果で以前のデータを置き換える](#firestore-snapshot-01) |
+| FIRESTORE-SNAPSHOT-01 | read | 正常系 | [未同期スコープの空の初期取得結果で以前の表示を置き換える](#firestore-snapshot-01) |
 | FIRESTORE-SNAPSHOT-02 | read | 正常系 | [初期取得で論理削除されていないデータだけを提供する](#firestore-snapshot-02) |
 | FIRESTORE-SNAPSHOT-03 | read | 正常系 | [読取可能な公開データでも別所有者のデータを混在させない](#firestore-snapshot-03) |
-| FIRESTORE-SNAPSHOT-04 | batch | 正常系 | [物理削除されたデータを取得結果から除く](#firestore-snapshot-04) |
+| FIRESTORE-SNAPSHOT-04 | batch | 正常系 | [論理削除されたデータを取得結果から除く](#firestore-snapshot-04) |
 | FIRESTORE-SNAPSHOT-05 | batch | 正常系 | [別クライアントによる追加・更新を購読結果に反映する](#firestore-snapshot-05) |
 | FIRESTORE-SNAPSHOT-06 | read | 異常系 | [不正データを含む取得結果で直前の正常な結果を壊さない](#firestore-snapshot-06) |
 | FIRESTORE-SNAPSHOT-07 | read | 異常系 | [不正データの修正後に同じ購読で正常な結果を取得する](#firestore-snapshot-07) |
@@ -26,7 +26,7 @@ Card / Deck の公開された購読操作を通して、取得結果、所有�
 <a id="empty-initial-snapshot"></a>
 <a id="firestore-snapshot-01"></a>
 
-### FIRESTORE-SNAPSHOT-01 [TODO] 空の初期取得結果で以前のデータを置き換える
+### FIRESTORE-SNAPSHOT-01 [TODO] 未同期スコープの空の初期取得結果で以前の表示を置き換える
 
 カテゴリ: `read`
 
@@ -96,7 +96,7 @@ Then:
 <a id="physical-deletion"></a>
 <a id="firestore-snapshot-04"></a>
 
-### FIRESTORE-SNAPSHOT-04 [TODO] 物理削除されたデータを取得結果から除く
+### FIRESTORE-SNAPSHOT-04 [TODO] 論理削除されたデータを取得結果から除く
 
 カテゴリ: `batch`
 
@@ -106,14 +106,14 @@ Given:
 
 - 本人の保存済みデータを購読している。次の各行を独立した状態とする。
 
-| 削除前に取得済みのデータ | 物理削除するデータ | 削除後の取得結果 |
+| 削除前に取得済みのデータ | 論理削除するデータ | 削除後の取得結果 |
 | --- | --- | --- |
 | A / B | A | B のみ |
 | A のみ | A | 空 |
 
 When:
 
-- 本人の別クライアントで、表の対象データを保存先から物理削除する。
+- 本人の別クライアントで、表の対象データをdeletedAt と serverTimestamp の updatedAt を保存して論理削除する。
 
 Then:
 
@@ -258,7 +258,7 @@ Then:
 Given:
 
 - 本人のデータ A / B を取得済みで、購読を停止している。
-- 停止中に本人の別クライアントで A を After に更新し、B を物理削除し、C を追加している。
+- 停止中に本人の別クライアントで A を After に更新し、B を論理削除し、C を追加している。
 - これらの変更はサーバーに保存済みである。
 
 When:

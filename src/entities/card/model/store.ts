@@ -1,10 +1,18 @@
 import { getDecks } from "@/entities/deck/@x/card";
 import { createStore } from "zustand/vanilla";
+import { persist } from "zustand/middleware";
+import { syncPersistence, type SyncState } from "@/shared/api";
 
 import { cardIdSchema } from "./schema";
 import type { Card, CardId, RemoteCard } from "./types";
 
-export const cardStore = createStore<{ remoteCards: Card[] }>()(() => ({ remoteCards: [] }));
+interface CardState extends SyncState {
+  remoteCards: Card[];
+}
+
+export const cardStore = createStore<CardState>()(
+  persist((): CardState => ({ remoteCards: [], sync: {} }), syncPersistence("tango-card-sync"))
+);
 
 export function getCards(): Card[] {
   const { remoteCards } = cardStore.getState();

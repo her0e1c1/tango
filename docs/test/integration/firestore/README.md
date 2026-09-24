@@ -9,7 +9,7 @@
 | FIRESTORE-DECK-01 | write | 正常系 | [Deck の保存対象だけを新規作成できる](./deck.md#firestore-deck-01) |
 | FIRESTORE-DECK-02 | write | 正常系 | [Deck の編集で作成日時と対象外フィールドを維持できる](./deck.md#firestore-deck-02) |
 | FIRESTORE-DECK-03 | write | 正常系 | [URL の省略と明示的なクリアを区別できる](./deck.md#firestore-deck-03) |
-| FIRESTORE-DECK-04 | batch | 正常系 | [Deck と配下 Card をまとめて論理削除できる](./deck.md#firestore-deck-04) |
+| FIRESTORE-DECK-04 | batch | 正常系 | [Deck を論理削除して子 Card の保存内容を保持する](./deck.md#firestore-deck-04) |
 | FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](./deck.md#firestore-deck-05) |
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](./deck.md#firestore-deck-06) |
 
@@ -34,7 +34,7 @@
 | FIRESTORE-CARD-03 | write | 正常系 | [Card 作成時に旧個人学習フィールドを除外する](./card.md#firestore-card-03) |
 | FIRESTORE-CARD-04 | write | 正常系 | [一括作成の再試行で既存 Card の学習状態を維持する](./card.md#firestore-card-04) |
 | FIRESTORE-CARD-05 | batch | 異常系 | [一部の入力失敗を返しつつ有効な Card を保存できる](./card.md#firestore-card-05) |
-| FIRESTORE-CARD-06 | write | 異常系 | [保存計画後に物理削除された Card を編集で再作成しない](./card.md#firestore-card-06) |
+| FIRESTORE-CARD-06 | write | 異常系 | [保存計画後に論理削除された Card を編集で復活させない](./card.md#firestore-card-06) |
 | FIRESTORE-CARD-07 | write | 正常系 | [Card の削除日時を保存し本文を維持できる](./card.md#firestore-card-07) |
 | FIRESTORE-CARD-08 | read | 正常系 | [作成した Card の存在を確認できる](./card.md#firestore-card-08) |
 
@@ -107,10 +107,10 @@
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| FIRESTORE-SNAPSHOT-01 | read | 正常系 | [空の初期取得結果で以前のデータを置き換える](./snapshot.md#firestore-snapshot-01) |
+| FIRESTORE-SNAPSHOT-01 | read | 正常系 | [未同期スコープの空の初期取得結果で以前の表示を置き換える](./snapshot.md#firestore-snapshot-01) |
 | FIRESTORE-SNAPSHOT-02 | read | 正常系 | [初期取得で論理削除されていないデータだけを提供する](./snapshot.md#firestore-snapshot-02) |
 | FIRESTORE-SNAPSHOT-03 | read | 正常系 | [読取可能な公開データでも別所有者のデータを混在させない](./snapshot.md#firestore-snapshot-03) |
-| FIRESTORE-SNAPSHOT-04 | batch | 正常系 | [物理削除されたデータを取得結果から除く](./snapshot.md#firestore-snapshot-04) |
+| FIRESTORE-SNAPSHOT-04 | batch | 正常系 | [論理削除されたデータを取得結果から除く](./snapshot.md#firestore-snapshot-04) |
 | FIRESTORE-SNAPSHOT-05 | batch | 正常系 | [別クライアントによる追加・更新を購読結果に反映する](./snapshot.md#firestore-snapshot-05) |
 | FIRESTORE-SNAPSHOT-06 | read | 異常系 | [不正データを含む取得結果で直前の正常な結果を壊さない](./snapshot.md#firestore-snapshot-06) |
 | FIRESTORE-SNAPSHOT-07 | read | 異常系 | [不正データの修正後に同じ購読で正常な結果を取得する](./snapshot.md#firestore-snapshot-07) |
@@ -127,7 +127,7 @@
 | FIRESTORE-RULES-DECK-02 | read | 正常系 | [本人による Deck の取得を許可する](./rules-deck.md#firestore-rules-deck-02) |
 | FIRESTORE-RULES-DECK-03 | write | 正常系 | [本人による Deck の作成を許可する](./rules-deck.md#firestore-rules-deck-03) |
 | FIRESTORE-RULES-DECK-04 | write | 正常系 | [本人による Deck の更新を許可する](./rules-deck.md#firestore-rules-deck-04) |
-| FIRESTORE-RULES-DECK-05 | write | 正常系 | [本人による Deck の物理削除を許可する](./rules-deck.md#firestore-rules-deck-05) |
+| FIRESTORE-RULES-DECK-05 | write | 異常系 | [本人による Deck の物理削除を拒否する](./rules-deck.md#firestore-rules-deck-05) |
 | FIRESTORE-RULES-DECK-06 | read | 異常系 | [他ユーザーによる Deck の非公開データの取得を拒否する](./rules-deck.md#firestore-rules-deck-06) |
 | FIRESTORE-RULES-DECK-07 | read | 正常系 | [他ユーザーによる Deck の公開データの取得を許可する](./rules-deck.md#firestore-rules-deck-07) |
 | FIRESTORE-RULES-DECK-08 | write | 異常系 | [他ユーザーによる Deck の作成を拒否する](./rules-deck.md#firestore-rules-deck-08) |
@@ -156,7 +156,7 @@
 | FIRESTORE-RULES-CARD-02 | read | 正常系 | [本人による Card の取得を許可する](./rules-card.md#firestore-rules-card-02) |
 | FIRESTORE-RULES-CARD-03 | write | 正常系 | [本人による Card の作成を許可する](./rules-card.md#firestore-rules-card-03) |
 | FIRESTORE-RULES-CARD-04 | write | 正常系 | [本人による Card の更新を許可する](./rules-card.md#firestore-rules-card-04) |
-| FIRESTORE-RULES-CARD-05 | write | 正常系 | [本人による Card の物理削除を許可する](./rules-card.md#firestore-rules-card-05) |
+| FIRESTORE-RULES-CARD-05 | write | 異常系 | [本人による Card の物理削除を拒否する](./rules-card.md#firestore-rules-card-05) |
 | FIRESTORE-RULES-CARD-06 | read | 異常系 | [他ユーザーによる Card の非公開データの取得を拒否する](./rules-card.md#firestore-rules-card-06) |
 | FIRESTORE-RULES-CARD-07 | read | 正常系 | [他ユーザーによる Card の公開データの取得を許可する](./rules-card.md#firestore-rules-card-07) |
 | FIRESTORE-RULES-CARD-08 | write | 異常系 | [他ユーザーによる Card の作成を拒否する](./rules-card.md#firestore-rules-card-08) |
@@ -202,3 +202,16 @@
 | FIRESTORE-STUDY-HISTORY-02 | read | 正常系 / 異常系 | [回答履歴の期間・順序・上限・cacheを確認する](./study-history.md#firestore-study-history-02) |
 | FIRESTORE-STUDY-HISTORY-03 | read | 異常系 | [回答履歴の入力境界を検証する](./study-history.md#firestore-study-history-03) |
 | FIRESTORE-STUDY-HISTORY-04 | batch | 正常系 | [回答の追加と同期状態を購読で受け取り解除後は更新しない](./study-history.md#firestore-study-history-04) |
+
+### incremental-sync
+
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-INCREMENTAL-SYNC-01 | read | 正常系 | [更新境界を含めて再開し変更のないデータと同時刻の更新を保持する](./incremental-sync.md#firestore-incremental-sync-01) |
+| FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [停止中の論理削除を再開後に反映する](./incremental-sync.md#firestore-incremental-sync-02) |
+| FIRESTORE-INCREMENTAL-SYNC-03 | batch | 異常系 | [未確定変更を表示し拒否された変更を巻き戻す](./incremental-sync.md#firestore-incremental-sync-03) |
+| FIRESTORE-INCREMENTAL-SYNC-04 | read | 異常系 | [不正な差分の修復後に保留した変更も反映する](./incremental-sync.md#firestore-incremental-sync-04) |
+| FIRESTORE-INCREMENTAL-SYNC-05 | read | 正常系 | [同期時刻と学習日時を分離して履歴と再開状態を共有する](./incremental-sync.md#firestore-incremental-sync-05) |
+| FIRESTORE-INCREMENTAL-SYNC-06 | read | 正常系 | [回答履歴のスコープと表示上限を保ちながら全差分を取り込む](./incremental-sync.md#firestore-incremental-sync-06) |
+| FIRESTORE-INCREMENTAL-SYNC-07 | read | 正常系 | [回答履歴の初回取得中の追加を取り込む](./incremental-sync.md#firestore-incremental-sync-07) |
+| FIRESTORE-INCREMENTAL-SYNC-08 | write | 異常系 | [全 Entity の更新にサーバー時刻を要求する](./incremental-sync.md#firestore-incremental-sync-08) |

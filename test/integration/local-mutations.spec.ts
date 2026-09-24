@@ -103,7 +103,7 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     expect(answer).toMatchObject({ cardId: cards[0]?.id, answer: { type: "rating", rating: "good" } });
     expect(answer?.answeredAt.toMillis()).toBe(answeredAt);
     expect((await getDocFromCache(doc(testDb, "card", cards[0]?.id ?? "missing"))).data()).toMatchObject({
-      updatedAt: answeredAt,
+      updatedAt: null,
       fsrs: { reps: 1, lastReviewedAt: answeredAt, dueAt: answeredAt + 600_000 },
     });
     const savedSchedule = getCards().find((card) => card.id === cards[0]?.id)?.fsrs;
