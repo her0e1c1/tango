@@ -17,9 +17,6 @@ const cardDocumentSchema = z.object({
   createdAt: z.number(),
   updatedAt: z.number(),
   deletedAt: z.number().nullable(),
-  url: z.string().optional(),
-  startLine: z.number().optional(),
-  endLine: z.number().optional(),
 });
 
 /** Validated field shape stored in one physical Card Firestore document. */
@@ -29,7 +26,7 @@ export type CardDocument = z.infer<typeof cardDocumentSchema>;
 export const parseCardDocument = (id: string, value: unknown): CardDocument =>
   parseFirestoreDocument(cardDocumentSchema, "card", id, value);
 
-/** Maps only Card-owned document fields while preserving exact optional-property semantics. */
+/** Maps only Card-owned document fields into the remote Card. */
 export const mapCardDocument = (id: CardId, document: CardDocument): RemoteCard => {
   const card: RemoteCard = {
     id,
@@ -44,8 +41,5 @@ export const mapCardDocument = (id: CardId, document: CardDocument): RemoteCard 
     updatedAt: document.updatedAt,
     deletedAt: document.deletedAt,
   };
-  if (document.url !== undefined) card.url = document.url;
-  if (document.startLine !== undefined) card.startLine = document.startLine;
-  if (document.endLine !== undefined) card.endLine = document.endLine;
   return card;
 };

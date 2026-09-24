@@ -45,9 +45,6 @@ export interface FixtureCard {
   updatedAt: number;
   deletedAt: number | null;
   uid: string;
-  url?: string;
-  startLine?: number;
-  endLine?: number;
 }
 
 export interface FixtureStudySession {
@@ -178,9 +175,6 @@ const cardContentFields = {
   backText: nonBlankString,
   tags: z.array(z.string()).optional(),
   uniqueKey: nonBlankString,
-  url: z.string().optional(),
-  startLine: z.number().optional(),
-  endLine: z.number().optional(),
 } as const;
 
 const cardStateFields = {
@@ -661,9 +655,6 @@ const normalizeCard = (raw: RawRemoteCard, id: string, deckId: string, uid: stri
     createdAt: raw.createdAt ?? 0,
     updatedAt: raw.updatedAt ?? 0,
     deletedAt: raw.deletedAt ?? null,
-    ...(raw.url === undefined ? {} : { url: raw.url }),
-    ...(raw.startLine === undefined ? {} : { startLine: raw.startLine }),
-    ...(raw.endLine === undefined ? {} : { endLine: raw.endLine }),
   };
   return normalized;
 };

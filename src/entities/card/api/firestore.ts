@@ -84,9 +84,6 @@ const updateCardDocument = (card: CardEdit): Promise<void> => {
     backText: card.backText,
     tags: card.tags,
     uniqueKey: card.uniqueKey,
-    url: card.url,
-    startLine: card.startLine,
-    endLine: card.endLine,
     updatedAt: Date.now(),
   });
   const reference = doc(db, CARD_COLLECTION, card.id);
