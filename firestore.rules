@@ -47,7 +47,7 @@ service cloud.firestore {
       }
       function validCard() {
         return request.resource.data.keys().hasOnly(['id', 'uid', 'deckId', 'frontText', 'backText', 'tags',
-          'uniqueKey', 'fsrs', 'createdAt', 'updatedAt', 'deletedAt', 'url', 'startLine', 'endLine']) && (request.resource.data.fsrs == null || request.resource.data.fsrs is map);
+          'uniqueKey', 'fsrs', 'createdAt', 'updatedAt', 'deletedAt']) && (request.resource.data.fsrs == null || request.resource.data.fsrs is map);
       }
       allow read: if isOwner() || isPublic();
       allow create: if isSignedIn() && isValid() && belongsToDeck() && validCard();

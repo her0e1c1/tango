@@ -22,13 +22,7 @@ export const cardContentSchema = z.object({
 // Creation assigns the identity and editing preserves it; neither asks for it as content input.
 export const cardContentInputSchema = cardContentSchema.omit({ uniqueKey: true });
 
-const editableCardFieldsSchema = cardContentSchema.extend({
-  url: z.string().optional(),
-  startLine: z.number().optional(),
-  endLine: z.number().optional(),
-});
-
-const cardCreateFieldsSchema = editableCardFieldsSchema.extend({
+const cardCreateFieldsSchema = cardContentSchema.extend({
   id: cardIdSchema,
   deckId: cardDeckIdSchema,
   deletedAt: z.number().nullable().default(null),
@@ -42,7 +36,7 @@ export const cardSchema = cardCreateSchema.extend({
   updatedAt: z.number(),
 });
 
-export const cardContentEditSchema = editableCardFieldsSchema.partial().extend({ id: cardIdSchema });
+export const cardContentEditSchema = cardContentSchema.partial().extend({ id: cardIdSchema });
 export const cardEditSchema = cardContentEditSchema.extend({ uid: cardUidSchema });
 const cardIdentitySchema = z.object({ id: cardIdSchema, uid: cardUidSchema });
 
