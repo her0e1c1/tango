@@ -30,7 +30,6 @@ import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/sch
 import { replaceRemoteCards } from "../model/actions/replaceRemoteCards";
 import { fsrsStateSchema, instantSchema, type FsrsState } from "../model/fsrs";
 import { findCardById } from "../model/queries/findCardById";
-import { findDeckById } from "@/entities/deck/@x/card";
 
 const CARD_COLLECTION = "card";
 
@@ -154,9 +153,6 @@ function requireOwnedCard(uid: string, id: CardId) {
 }
 
 export async function createOwnedCard(uid: string, card: CardCreateCommand): Promise<void> {
-  const deck = findDeckById(card.deckId);
-  if (deck === undefined) throw new Error(`Deck "${card.deckId}" was not found`);
-  if (!uid || deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
   await createCard(uid, { ...card, uid });
 }
 
