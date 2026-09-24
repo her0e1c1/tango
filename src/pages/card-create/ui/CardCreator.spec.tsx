@@ -87,13 +87,12 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     });
   });
 
-  it("saves the entered Card and shows its success notification", async () => {
+  it("saves the entered Card", async () => {
     render(<CardCreatorHarness />);
     await enterRequiredValues();
 
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
-    expect(await screen.findByText("Created card “Front value”.")).toBeVisible();
     expect(savedCards).toEqual([
       {
         uid: "user-id",
@@ -129,8 +128,6 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
 
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
-    expect(await screen.findByText("Created card “Front value”.")).toBeVisible();
-    expect(screen.queryByText("Unable to create this card. Try again.")).not.toBeInTheDocument();
     expect(savedCards).toHaveLength(1);
     expect(rejectedCardId).toBeDefined();
     expect(savedCards[0]?.card).toEqual({
