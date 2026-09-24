@@ -4,11 +4,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { clearStudySessions } from "./actions/clearStudySessions";
-import { getStudySession } from "./queries/getStudySession";
-import { replaceRemoteStudySessions } from "./actions/replaceRemoteStudySessions";
 import { startStudy, restoreStudySession } from "@/test/entityFixtures";
-import { studySessionStore } from "./store";
+import { clearStudySessions, getStudySession, replaceRemoteStudySessions, studySessionStore } from "./store";
 
 const STUDY_STORAGE_KEY = "tango-study";
 
