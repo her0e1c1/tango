@@ -1,9 +1,8 @@
 import type { Card } from "@/entities/card";
 
 function updatedTag(original: string, changes: { previous: string | undefined; name: string | undefined }[]) {
-  let tag: string | undefined = original;
-  for (const change of changes) if (change.previous !== undefined && tag === change.previous) tag = change.name;
-  return tag;
+  const change = changes.find(({ previous }) => previous === original);
+  return change === undefined ? original : change.name;
 }
 
 export function getTagUsageCounts(

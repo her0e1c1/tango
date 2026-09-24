@@ -9,12 +9,9 @@ import { getDeckDeletionTarget } from "@/features/deck-deletion";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { useResetStoreOnMount } from "@/shared/lib/useResetStoreOnMount";
 import { routes, useNavigationGuard } from "@/shared/router";
-import { showToast } from "@/shared/ui/toast";
 
-import { editTagName } from "./actions/editTagName";
-import { requestTagDeletion } from "./actions/requestTagDeletion";
-import { saveTag } from "./actions/saveTag";
-import { submitTagName } from "./actions/submitTagName";
+import { getTagChanges } from "./queries/getTagChanges";
+import { completeDeckEdit } from "./actions/completeDeckEdit";
 import { getManagedTags } from "./queries/getManagedTags";
 import { getTagUsageCounts } from "./queries/getTagUsageCounts";
 import { useTagFormState } from "./useTagFormState";
@@ -35,63 +32,46 @@ export function useDeckEditRouteModel(deckId: string | undefined) {
 
 export function useDeckEditPageModel(deck: Deck) {
   const navigate = useNavigate();
-  const { form } = useDeckEditFormState(deck);
+  const { cards } = useCardsByDeckId(deck.id);
+  const liveDeck = useDeck(deck.id);
+  const managedTags = getManagedTags(liveDeck, cards);
+  const { form, pendingSave, setPendingSave } = useDeckEditFormState(deck, managedTags);
   const { isDirty, isSubmitting } = form.formState;
   const isMounted = useMountedGuard();
   const deletionTarget = useStore(deckEditPageStore, (state) => state.deletionTarget);
   const deletionPending = useStore(deckEditPageStore, (state) => state.deletionId !== undefined);
-  const { cards } = useCardsByDeckId(deck.id);
-  const liveDeck = useDeck(deck.id);
-  const managedTags = getManagedTags(liveDeck, cards);
-  const draftTags = useWatch({ control: form.control, name: "tags" });
-  const tagChanges = useStore(deckEditPageStore, (state) => state.tagChanges);
-  const tags = draftTags ?? managedTags;
-  const usageCounts = getTagUsageCounts(cards, tagChanges);
-  const editingTag = useStore(deckEditPageStore, (state) => state.editingTag);
-  const { addForm, renameForm } = useTagFormState(tags, editingTag);
+  const tagValues = useWatch({ control: form.control, name: "tags" }) ?? [];
+  const originalTags = form.formState.defaultValues?.tags ?? [];
+  const tags = tagValues.filter((tag): tag is string => tag !== null);
+  const usageCounts = getTagUsageCounts(cards, getTagChanges(originalTags, tagValues));
+  const { addForm, renameForm, editingTag, setEditingTag, tagDeletion, setTagDeletion } = useTagFormState(tags);
   const hasTagDraft = addForm.formState.isDirty || renameForm.formState.isDirty;
-  const tagDeletion = useStore(deckEditPageStore, (state) => state.tagDeletion);
-  const pendingTagSave = useStore(deckEditPageStore, (state) => state.pendingTagSave);
-  const guard = useNavigationGuard(isDirty || isSubmitting || pendingTagSave !== undefined || hasTagDraft);
+  const busy = isSubmitting || pendingSave !== undefined || deletionPending || deletionTarget !== undefined;
+  const guard = useNavigationGuard(isDirty || isSubmitting || pendingSave !== undefined || hasTagDraft);
   useResetStoreOnMount(deckEditPageStore);
 
   const deckListPath = routes.deckList.to();
   const goToList = () => navigate(deckListPath, { replace: true });
   const onSubmit = form.handleSubmit(async (values) => {
     // Validation can finish after the originating form was replaced.
-    if (!isMounted()) return;
-    const saved = await submitDeckEdit(deck.id, values, hasTagDraft);
+    if (!isMounted() || hasTagDraft || pendingSave !== undefined) return;
+    const saved = await submitDeckEdit(deck.id, values, originalTags);
     // Tag batches complete from subscribed Deck/Card state below.
-    if (!(saved && isMounted())) return;
+    if (!isMounted()) return;
+    if (typeof saved !== "boolean") {
+      setPendingSave(saved);
+      return;
+    }
+    if (!saved) return;
     await guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
   });
   useEffect(() => {
-    if (pendingTagSave === undefined || liveDeck === undefined) return;
-    const deckTags = liveDeck.tags ?? [];
-    if (
-      deckTags.length !== pendingTagSave.tags.length ||
-      deckTags.some((tag, index) => tag !== pendingTagSave.tags[index])
-    )
-      return;
-    for (const expected of pendingTagSave.cards) {
-      const card = cards.find(({ id }) => id === expected.id);
-      if (
-        card === undefined ||
-        card.tags.length !== expected.tags.length ||
-        card.tags.some((tag, index) => tag !== expected.tags[index])
-      )
-        return;
-    }
-    deckEditPageStore.setState({ pendingTagSave: undefined, tagChanges: [] });
-    showToast({
-      messageKey: "deckForm.toast.updated",
-      messageParams: { name: pendingTagSave.name },
-      tone: "success",
-    });
+    if (!completeDeckEdit(pendingSave)) return;
+    setPendingSave(undefined);
     void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, () =>
       navigate(deckListPath, { replace: true })
     );
-  }, [cards, deckListPath, guard, liveDeck, navigate, pendingTagSave]);
+  }, [cards, deckListPath, guard, liveDeck, navigate, pendingSave, setPendingSave]);
 
   return {
     form,
@@ -102,21 +82,54 @@ export function useDeckEditPageModel(deck: Deck) {
     renameTagForm: renameForm,
     editingTag,
     tagError: (editingTag === undefined ? addForm : renameForm).formState.errors.name?.message,
-    deckSaveDisabled: hasTagDraft || deletionPending || pendingTagSave !== undefined,
-    tagDisabled: isSubmitting || pendingTagSave !== undefined || deletionPending || deletionTarget !== undefined,
+    deckSaveDisabled: hasTagDraft || deletionPending || pendingSave !== undefined,
+    tagDisabled: busy,
     tagDeletion: guard.isBlocked ? undefined : tagDeletion,
-    onAddTag: addForm.handleSubmit((values) => submitTagName(tags, values, addForm.reset, form.setValue)),
-    onRenameTag: renameForm.handleSubmit((values) =>
-      submitTagName(tags, { ...values, previous: editingTag }, renameForm.reset, form.setValue)
-    ),
-    onEditTag: (tag: string) => editTagName(tag, renameForm.reset),
-    onCancelTagEdit: () => editTagName(undefined, renameForm.reset),
-    onRequestTagDeletion: requestTagDeletion,
-    onCancelTagDeletion: () => requestTagDeletion(undefined),
-    onConfirmTagDeletion: () => {
-      saveTag(tags, undefined, form.setValue, tagDeletion);
+    onAddTag: addForm.handleSubmit(({ name }) => {
+      if (busy || !isMounted()) return;
+      const current = form.getValues().tags ?? [];
+      if (current.includes(name)) {
+        addForm.setError("name", { type: "validate", message: "duplicate" });
+        return;
+      }
+      form.setValue("tags", [...current, name], { shouldDirty: true });
+      addForm.reset();
+    }),
+    onRenameTag: renameForm.handleSubmit(({ name }) => {
+      if (busy || !isMounted() || editingTag === undefined) return;
+      const current = form.getValues().tags ?? [];
+      const index = current.indexOf(editingTag);
+      if (index < 0) return;
+      if (name !== editingTag && current.includes(name)) {
+        renameForm.setError("name", { type: "validate", message: "duplicate" });
+        return;
+      }
+      form.setValue(`tags.${String(index)}` as `tags.${number}`, name, { shouldDirty: true });
+      renameForm.reset({ name: "" });
+      setEditingTag(undefined);
+    }),
+    onEditTag: (tag: string) => {
+      renameForm.reset({ name: tag });
+      addForm.clearErrors();
+      setEditingTag(tag);
     },
-    isSubmitting: isSubmitting || pendingTagSave !== undefined,
+    onCancelTagEdit: () => {
+      renameForm.reset({ name: "" });
+      setEditingTag(undefined);
+    },
+    onRequestTagDeletion: (tag: string) => {
+      addForm.clearErrors();
+      setTagDeletion(tag);
+    },
+    onCancelTagDeletion: () => setTagDeletion(undefined),
+    onConfirmTagDeletion: () => {
+      if (busy || tagDeletion === undefined) return;
+      const index = (form.getValues().tags ?? []).indexOf(tagDeletion);
+      if (index < 0) return;
+      form.setValue(`tags.${String(index)}` as `tags.${number}`, null, { shouldDirty: true });
+      setTagDeletion(undefined);
+    },
+    isSubmitting: isSubmitting || pendingSave !== undefined,
     navigationGuard: guard.element,
     deletionTarget: guard.isBlocked ? undefined : getDeckDeletionTarget(deletionTarget),
     deletionPending,

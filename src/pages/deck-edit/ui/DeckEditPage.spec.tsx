@@ -1,8 +1,9 @@
 import "@/test/mockFirestorePersistence";
+import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
 
-import { render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, Link, MemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,7 +12,8 @@ import "@testing-library/jest-dom/vitest";
 import { createDeck } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
-import { createDeck as createRemoteDeck, createLocalDeck, createPreferences } from "@/test/factories";
+import { replaceRemoteDecks } from "@/test/entityFixtures";
+import { createCard, createDeck as createRemoteDeck, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
   preferences: null as unknown as Preferences,
@@ -20,12 +22,17 @@ const mocks = vi.hoisted(() => ({
   skipDeckWrite: false,
   beforeDeckDelete: undefined as (() => Promise<void>) | undefined,
   remoteDeck: undefined as Deck | undefined,
+  cards: [] as Card[],
 }));
 
 vi.mock("@/entities/auth", () => ({ getAuthUid: () => "user-id", useAuth: () => ({ isAnonymous: false }) }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
+}));
+vi.mock("@/entities/card", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/card")>()),
+  useCardsByDeckId: () => ({ cards: mocks.cards }),
 }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
@@ -79,6 +86,7 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     mocks.skipDeckWrite = false;
     mocks.beforeDeckDelete = undefined;
     mocks.remoteDeck = undefined;
+    mocks.cards = [];
     await createDeck("user-id", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr: false }));
   });
 
@@ -144,6 +152,48 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     renderPage();
     expect(screen.queryByRole("button", { name: "Rename draft" })).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
+  });
+
+  it("DECK-TAG-MANAGEMENT-06 keeps Card usage attached to the original tags across multiple renames", async () => {
+    mocks.cards = ["a", "b", "b"].map((tag, index) => createCard({ id: String(index), deckId, tags: [tag] }));
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Rename b" }));
+    await userEvent.clear(screen.getByRole("textbox", { name: "New name" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "New name" }), "c");
+    await userEvent.click(screen.getByRole("button", { name: "Save name" }));
+    await userEvent.click(screen.getByRole("button", { name: "Rename a" }));
+    await userEvent.clear(screen.getByRole("textbox", { name: "New name" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "New name" }), "b");
+    await userEvent.click(screen.getByRole("button", { name: "Save name" }));
+    expect(within(screen.getByRole("listitem", { name: "b" })).getByText("Used by 1 card")).toBeVisible();
+    expect(within(screen.getByRole("listitem", { name: "c" })).getByText("Used by 2 cards")).toBeVisible();
+  });
+
+  it.each(["add", "rename"])(
+    "DECK-TAG-MANAGEMENT-05 DECK-TAG-MANAGEMENT-08 rejects a name introduced while %s validation is pending",
+    async (operation) => {
+      mocks.cards = [createCard({ id: "original", deckId, tags: ["shared"] })];
+      renderPage();
+      if (operation === "rename") await userEvent.click(screen.getByRole("button", { name: "Rename shared" }));
+      const input = screen.getByRole("textbox", { name: operation === "rename" ? "New name" : "New tag name" });
+      await userEvent.clear(input);
+      await userEvent.type(input, "arrived");
+      fireEvent.submit(screen.getByRole("button", { name: operation === "rename" ? "Save name" : "Add tag" }));
+      act(() => replaceRemoteDecks([createRemoteDeck({ id: deckId, name: "Deck name", tags: ["shared", "arrived"] })]));
+      expect(await screen.findByText("A tag with this name already exists in this deck.")).toBeVisible();
+      expect(screen.getAllByRole("listitem", { name: "arrived" })).toHaveLength(1);
+      expect(screen.getByRole("listitem", { name: "shared" })).toBeVisible();
+    }
+  );
+
+  it("DECK-TAG-MANAGEMENT-09 clears usage when a deleted tag name is added again", async () => {
+    mocks.cards = [createCard({ deckId, tags: ["shared"] })];
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Delete tag shared" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete tag" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "New tag name" }), "shared");
+    await userEvent.click(screen.getByRole("button", { name: "Add tag" }));
+    expect(within(screen.getByRole("listitem", { name: "shared" })).getByText("Used by 0 cards")).toBeVisible();
   });
 
   it("initializes the editor when the route Deck arrives after mount", async () => {

@@ -189,9 +189,9 @@ export function writeCardTagChanges(
     const tags = [
       ...new Set(
         card.tags.flatMap((original) => {
-          let tag: string | undefined = original;
-          for (const change of changes) if (change.previous !== undefined && tag === change.previous) tag = change.name;
-          return tag === undefined ? [] : [tag];
+          const change = changes.find(({ previous }) => previous === original);
+          const name = change === undefined ? original : change.name;
+          return name === undefined ? [] : [name];
         })
       ),
     ];

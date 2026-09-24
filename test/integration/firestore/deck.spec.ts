@@ -251,4 +251,45 @@ describe("firestore/deck pending Card writes", () => {
       }
     }
   );
+  it.each([
+    {
+      operation: "swap",
+      changes: [
+        { previous: "a", name: "b" },
+        { previous: "b", name: "a" },
+      ],
+      expected: [["b"], ["a"]],
+    },
+    {
+      operation: "delete and recreate",
+      changes: [
+        { previous: "a", name: undefined },
+        { previous: undefined, name: "a" },
+      ],
+      expected: [[], ["b"]],
+    },
+  ])("[FIRESTORE-DECK-10] preserves Card identity when tags $operation", async ({ changes, expected }) => {
+    const db = getFirestore();
+    const deck = createRemoteDeckInput({ id: uuid() });
+    await createDeck("uid", deck);
+    const cards = ["a", "b"].map((tag) => createCard({ id: uuid(), deckId: deck.id, uid: "uid", tags: [tag] }));
+    await Promise.all(cards.map((card) => createCardCommand("uid", card)));
+    await waitForPendingWrites(db);
+    const before = await Promise.all(cards.map(async (card) => (await getDoc(doc(db, "card", card.id))).data()));
+    const stored = await readCardsForTagUpdate("uid", deck.id);
+    const batch = writeBatch(db);
+    await editDeck("uid", { id: deck.id, url: null }, { batch, tags: ["a", "b"] });
+    writeCardTagChanges(batch, stored, changes);
+    await batch.commit();
+    expect((await getDoc(doc(db, "deck", deck.id))).data()?.tags).toEqual(["a", "b"]);
+    await Promise.all(
+      cards.map(async (card, index) => {
+        expect((await getDoc(doc(db, "card", card.id))).data()).toEqual({
+          ...before[index],
+          tags: expected[index],
+          updatedAt: expect.any(Number),
+        });
+      })
+    );
+  });
 });

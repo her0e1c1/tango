@@ -15,6 +15,7 @@
 | FIRESTORE-DECK-07 | batch | 正常系 | [多数の Card と登録タグをまとめて改名する](./deck.md#firestore-deck-07) |
 | FIRESTORE-DECK-08 | batch | 異常系 | [タグ更新の拒否で部分保存を残さない](./deck.md#firestore-deck-08) |
 | FIRESTORE-DECK-09 | batch | 正常系 | [保留中の Card 保存の後にタグ変更を同期する](./deck.md#firestore-deck-09) |
+| FIRESTORE-DECK-10 | batch | 正常系 | [タグ名の交換と削除・再追加で Card の対応を維持する](./deck.md#firestore-deck-10) |
 
 ### card-filter
 

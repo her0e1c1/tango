@@ -178,6 +178,39 @@ test("DECK-TAG-MANAGEMENT-06 renames all matching Cards and preserves other Deck
   }
 });
 
+test("DECK-TAG-MANAGEMENT-06 swaps tag names without merging their Cards", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  const deckId = fixture.deck("deck-target").id;
+  const cards = fixture.state.remote.cards.filter((card) => card.deckId === deckId);
+  const before = await Promise.all(cards.map((card) => readCard(card.id)));
+  await page.goto(`/deck/${deckId}/edit`);
+  for (const [from, to] of [
+    ["shared", "temporary"],
+    ["kept", "shared"],
+    ["temporary", "kept"],
+  ] as const) {
+    await row(page, from)
+      .getByRole("button", { name: `Rename ${from}`, exact: true })
+      .click();
+    await section(page).getByRole("textbox", { name: "New name", exact: true }).fill(to);
+    await section(page).getByRole("button", { name: "Save name", exact: true }).click();
+  }
+  await saved(page);
+  await page.goto(`/deck/${deckId}/edit`);
+  await expect(row(page, "shared")).toContainText("Used by 1 card");
+  await expect(row(page, "kept")).toContainText("Used by 2 cards");
+  for (const [index, card] of cards.entries()) {
+    const original = before[index];
+    if (original === undefined) throw new Error("Missing original Card");
+    await expect
+      .poll(() => readCard(card.id))
+      .toEqual({
+        ...original,
+        tags: original.tags.map((tag) => (tag === "shared" ? "kept" : "shared")),
+      });
+  }
+});
+
 for (const name of ["", "   "]) {
   test(`DECK-TAG-MANAGEMENT-07 rejects renaming to a blank name ${JSON.stringify(name)}`, async ({ fixture, page }) => {
     await fixture.apply(page);
@@ -232,6 +265,22 @@ test("DECK-TAG-MANAGEMENT-09 deletes only the target tag and retains every Card"
             : original.tags,
       });
   }
+});
+
+test("DECK-TAG-MANAGEMENT-09 keeps Cards untagged after deleting and recreating a tag", async ({ fixture, page }) => {
+  await fixture.apply(page);
+  const deckId = fixture.deck("deck-target").id;
+  const cardId = fixture.card("card-target-first").id;
+  const before = await readCard(cardId);
+  await page.goto(`/deck/${deckId}/edit`);
+  await row(page, "shared").getByRole("button", { name: "Delete tag shared", exact: true }).click();
+  await page.getByRole("group", { name: "Delete tag?" }).getByRole("button", { name: "Delete tag" }).click();
+  await section(page).getByRole("textbox", { name: "New tag name" }).fill("shared");
+  await section(page).getByRole("button", { name: "Add tag" }).click();
+  await saved(page);
+  await page.goto(`/deck/${deckId}/edit`);
+  await expect(row(page, "shared")).toContainText("Used by 0 cards");
+  await expect.poll(() => readCard(cardId)).toEqual({ ...before, tags: before.tags.filter((tag) => tag !== "shared") });
 });
 
 test("DECK-TAG-MANAGEMENT-10 cancels deletion without changing tags or Cards", async ({ fixture, page }) => {

@@ -22,6 +22,7 @@ Deck の公開された保存操作を通して、作成・部分更新・論理
 | FIRESTORE-DECK-07 | batch | 正常系 | [多数の Card と登録タグをまとめて改名する](#firestore-deck-07) |
 | FIRESTORE-DECK-08 | batch | 異常系 | [タグ更新の拒否で部分保存を残さない](#firestore-deck-08) |
 | FIRESTORE-DECK-09 | batch | 正常系 | [保留中の Card 保存の後にタグ変更を同期する](#firestore-deck-09) |
+| FIRESTORE-DECK-10 | batch | 正常系 | [タグ名の交換と削除・再追加で Card の対応を維持する](#firestore-deck-10) |
 
 <a id="firestore-deck-01"></a>
 
@@ -229,3 +230,25 @@ Then:
 - 追加済み・編集済み両方の Card が更新対象となる。
 - オフライン中のローカル値と、再接続後のサーバー値に改名または削除の結果が残り、旧タグが復活しない。
 - Deck 名の変更、先行する本文の変更と他のタグは保持される。
+
+<a id="firestore-deck-10"></a>
+
+### FIRESTORE-DECK-10 タグ名の交換と削除・再追加で Card の対応を維持する
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- 本人の Deck にタグ `a`、`b` が登録され、各タグを持つ別々の Card がある。
+
+When:
+
+- 同じ保存で `a` を `b`、`b` を `a` に交換する。または `a` を削除して同じ名前のタグを再追加する。
+
+Then:
+
+- 名前を交換した場合、元の `a` の Card には `b`、元の `b` の Card には `a` だけが保存される。
+- 削除・再追加した場合、元の `a` の Card はタグなしとなり、元の `b` の Card は変わらない。
+- どちらも Deck の登録タグは `a` と `b` を保持し、Card の他の情報は変わらない。

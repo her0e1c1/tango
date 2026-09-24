@@ -5,20 +5,22 @@ import { db, writeBatch } from "@/shared/firebase";
 import { showToast } from "@/shared/ui/toast";
 
 import type { DeckEditFormFields } from "../useDeckEditFormState";
+import { getTagChanges } from "../queries/getTagChanges";
 import { deckEditPageStore as store } from "../store";
+
+export interface PendingDeckSave {
+  deckId: string;
+  name: string;
+  tags: string[];
+  cards: { id: string; tags: string[] }[];
+}
 
 export async function submitDeckEdit(
   deckId: DeckId,
   values: DeckEditFormFields,
-  hasTagDraft: boolean
-): Promise<boolean> {
-  if (
-    hasTagDraft ||
-    store.getState().pendingTagSave !== undefined ||
-    store.getState().deletionTarget !== undefined ||
-    store.getState().deletionId !== undefined
-  )
-    return false;
+  originalTags: readonly (string | null | undefined)[]
+): Promise<boolean | PendingDeckSave> {
+  if (store.getState().deletionTarget !== undefined || store.getState().deletionId !== undefined) return false;
   const pending = store.getState().submission;
   if (pending !== undefined) {
     // Keep concurrent submissions pending, but let only the original caller navigate.
@@ -27,35 +29,39 @@ export async function submitDeckEdit(
   }
 
   const uid = getAuthUid();
-  // Replay tag operations against current persistence data below, preserving concurrent additions.
-  const { tags: _tags, ...deckValues } = values;
+  // Apply tag edits to current persistence data, preserving concurrent additions.
+  const { tags: tagValues = [], ...deckValues } = values;
   const input = { ...deckValues, id: deckId, url: values.url ?? null };
-  const changes = store.getState().tagChanges;
-  const save = async (): Promise<"completed" | "pending"> => {
+  const changes = getTagChanges(originalTags, tagValues);
+  const save = async (): Promise<true | PendingDeckSave> => {
     const deck = mustFindDeckById(getDecks(), deckId);
     if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
     if (changes.length === 0) {
       await editDeck(uid, input);
-      return "completed";
+      return true;
     }
     const registered = await readDeckTags(uid, deckId);
     const cards = await readCardsForTagUpdate(uid, deckId);
-    let tags = [...new Set([...registered, ...cards.flatMap((card) => card.tags)])];
-    for (const { previous, name } of changes) {
-      if (previous !== undefined && !tags.includes(previous)) throw new Error("Tag no longer exists");
-      tags = tags.filter((tag) => tag !== previous);
-      if (name !== undefined && !tags.includes(name)) tags.push(name);
+    const current = [...new Set([...registered, ...cards.flatMap((card) => card.tags)])];
+    if (changes.some(({ previous }) => previous !== undefined && !current.includes(previous))) {
+      throw new Error("Tag no longer exists");
     }
+    const replaced = new Set(changes.map(({ previous }) => previous));
+    const tags = [
+      ...new Set([
+        ...current.filter((tag) => !replaced.has(tag)),
+        ...changes.flatMap(({ name }) => (name === undefined ? [] : [name])),
+      ]),
+    ];
     const batch = writeBatch(db);
     await editDeck(uid, input, { batch, tags });
     const cardUpdates = writeCardTagChanges(batch, cards, changes);
     void batch.commit().catch(() => undefined);
-    store.setState({ pendingTagSave: { deckId, name: input.name, tags, cards: cardUpdates } });
-    return "pending";
+    return { deckId, name: input.name, tags, cards: cardUpdates };
   };
   const submission = save()
     .then((result) => {
-      if (result === "pending") return false;
+      if (result !== true) return result;
       // Shared Toast lifetime covers persistence that finishes after the editor unmounts.
       showToast({ messageKey: "deckForm.toast.updated", messageParams: { name: input.name }, tone: "success" });
       return true;
@@ -66,11 +72,13 @@ export async function submitDeckEdit(
     });
   store.setState({ submission });
 
+  let saved: boolean | PendingDeckSave = false;
   try {
-    const saved = await submission;
-    return saved && store.getState().submission === submission;
+    saved = await submission;
+    return store.getState().submission === submission ? saved : false;
   } finally {
     // An earlier visit must never release the current editor's save.
-    if (store.getState().submission === submission) store.setState({ submission: undefined });
+    if (typeof saved === "boolean" && store.getState().submission === submission)
+      store.setState({ submission: undefined });
   }
 }
