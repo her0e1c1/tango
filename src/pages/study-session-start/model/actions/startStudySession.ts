@@ -9,12 +9,12 @@ import type { DeckFilterValues } from "@/features/deck-filter";
 
 let starting = false;
 
-export async function startStudySession(deckId: DeckId, filter: DeckFilterValues): Promise<boolean> {
-  if (starting) return false;
+export async function startStudySession(deckId: DeckId, filter: DeckFilterValues): Promise<string | undefined> {
+  if (starting) return;
   const deck = getDecks().find(({ id }) => id === deckId);
-  if (deck === undefined) return false;
+  if (deck === undefined) return;
   const uid = getAuthUid();
-  if (uid === "" || deck.uid !== uid) return false;
+  if (uid === "" || deck.uid !== uid) return;
   const { study } = getPreferences();
   // Use the current draft even when its autosave has not reached the Deck yet.
   const now = Date.now();
@@ -24,14 +24,13 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
     study.useCardInterval,
     now
   );
-  if (cards.length === 0) return false;
+  if (cards.length === 0) return;
   starting = true;
   try {
-    await startStudy({ deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now });
-    return true;
+    return await startStudy({ deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now });
   } catch {
     showToast({ messageKey: "toast.saveFailure", tone: "error" });
-    return false;
+    return;
   } finally {
     starting = false;
   }
