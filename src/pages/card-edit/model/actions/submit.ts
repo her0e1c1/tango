@@ -8,7 +8,7 @@ interface SubmitCardEditInput {
 }
 
 export async function submit({ cardId, values }: SubmitCardEditInput): Promise<CardContentInput | undefined> {
-  // Snapshot only editable content, including tags outside the visible categories.
+  // Snapshot only editable content, including custom tags.
   const input = {
     id: cardId,
     frontText: values.frontText,

@@ -1,6 +1,8 @@
 # Deck の登録タグを Card への付与と独立して管理する
 
-Status: Accepted
+Status: Superseded
+
+[タグを Card フォームで管理する方針](./20260924-manage-tags-in-card-forms.md)に置き換える。
 
 ## Decision
 

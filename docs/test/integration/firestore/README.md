@@ -12,9 +12,6 @@
 | FIRESTORE-DECK-04 | batch | 正常系 | [Deck と配下 Card をまとめて論理削除できる](./deck.md#firestore-deck-04) |
 | FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](./deck.md#firestore-deck-05) |
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](./deck.md#firestore-deck-06) |
-| FIRESTORE-DECK-07 | batch | 正常系 | [多数の Card と登録タグをまとめて改名する](./deck.md#firestore-deck-07) |
-| FIRESTORE-DECK-08 | batch | 異常系 | [タグ更新の拒否で部分保存を残さない](./deck.md#firestore-deck-08) |
-| FIRESTORE-DECK-09 | batch | 正常系 | [保留中の Card 保存の後にタグ変更を同期する](./deck.md#firestore-deck-09) |
 
 ### card-filter
 

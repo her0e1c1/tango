@@ -1,3 +1,4 @@
+import { useCardTagForm } from "@/test/useCardTagForm";
 import { useCardPreviewContent } from "../model/queries/useCardPreviewContent";
 import { actAsync } from "@/test/act";
 import { getI18n } from "react-i18next";
@@ -38,7 +39,8 @@ const FormHarness = ({
   return (
     <form onSubmit={form.handleSubmit((validatedValues) => onSubmit(validatedValues))}>
       <CardFields
-        categories={["language", "math", "python", "typescript", "md", "raw"]}
+        {...useCardTagForm(form)}
+        availableTags={["language", "math", "python", "typescript", "md", "raw"]}
         preview={<BackText {...preview} />}
         form={form}
       />
@@ -83,7 +85,7 @@ describe("CARD-MANAGEMENT-01 CardFields editing", () => {
     expect(within(tagsDialog).getByRole("checkbox", { name: "custom" })).not.toBeChecked();
     await user.click(within(tagsDialog).getByRole("checkbox", { name: "custom" }));
     await user.click(within(tagsDialog).getByRole("checkbox", { name: "math" }));
-    await user.click(within(tagsDialog).getByRole("button", { name: "Done" }));
+    await user.click(within(tagsDialog).getByRole("button", { name: "Close tag editor" }));
     expect(tagsTrigger).toHaveFocus();
     expect(tagsTrigger).toHaveTextContent("+1");
     expect(tagsTrigger).toHaveAccessibleDescription("language, custom, math");
@@ -279,11 +281,11 @@ describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 unsaved answer preview", () => {
     expect(within(preview).getByRole("code")).toHaveAttribute("data-language", "python");
     await user.click(screen.getByRole("button", { name: "Edit tags" }));
     await user.click(screen.getByRole("checkbox", { name: "python" }));
-    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("button", { name: "Close tag editor" }));
     expect(within(preview).queryByRole("strong")).toHaveTextContent("Draft");
     await user.click(screen.getByRole("button", { name: "Edit tags" }));
     await user.click(screen.getByRole("checkbox", { name: "raw" }));
-    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("button", { name: "Close tag editor" }));
     expect(within(preview).queryByRole("strong")).toBeNull();
     expect(within(preview).getByText("**Draft**", { selector: "pre" })).toHaveTextContent("**Draft**");
     await actAsync(() => getI18n().changeLanguage("ja"));

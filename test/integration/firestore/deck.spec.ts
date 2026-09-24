@@ -6,21 +6,15 @@
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
-import { readDeckTags } from "@/entities/deck";
-import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
 import { describe, expect, it, vi } from "vitest";
 import {
   doc,
-  writeBatch,
-  disableNetwork,
-  enableNetwork,
-  getDocFromCache,
   getDoc as readServerDoc,
   waitForPendingWrites,
   type DocumentReference,
   getFirestore,
 } from "firebase/firestore";
-import { createCard as createCardCommand, editCard as editCardCommand } from "@/entities/card/api/firestore";
+import { createCard as createCardCommand } from "@/entities/card/api/firestore";
 import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
 import * as Uuid from "uuid";
 import { createCard, createDeck as createDeckFixture, createRemoteDeckInput } from "@/test/factories";
@@ -57,9 +51,10 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       id: uuid(),
       name: "new deck name",
 
+      tags: ["obsolete"],
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies RemoteDeckCreateInput & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies RemoteDeckCreateInput & { currentIndex: number; cardOrderIds: string[]; tags: string[] };
     await createDeck("uid", d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({
@@ -69,6 +64,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       updatedAt: expect.any(Number),
     });
     expect(data?.createdAt).toBe(data?.updatedAt);
+    expect(data).not.toHaveProperty("tags");
     expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
@@ -83,6 +79,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     const n = {
       ...d,
       name: "updated",
+      tags: ["obsolete"],
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     };
@@ -90,6 +87,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({ ...created, name: "updated", updatedAt: expect.any(Number) });
     expect(data?.createdAt).toBe(created.createdAt);
+    expect(data).not.toHaveProperty("tags");
     expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
@@ -127,56 +125,6 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     );
   });
 
-  it("[FIRESTORE-DECK-07] atomically saves Deck name, tags, and 501 Card renames", async () => {
-    const deck = createRemoteDeckInput({ id: uuid() });
-    await createDeck("uid", deck);
-    const cards = Array.from({ length: 501 }, () =>
-      createCard({ id: uuid(), deckId: deck.id, uid: "uid", tags: ["old", "kept"] })
-    );
-    await Promise.all(cards.map((card) => createCardCommand("uid", card)));
-    await waitForPendingWrites(db);
-    const before = await Promise.all(cards.map(async (card) => (await getDoc(doc(db, "card", card.id))).data()));
-    expect(await readDeckTags("uid", deck.id)).toEqual([]);
-    const stored = await readCardsForTagUpdate("uid", deck.id);
-    const batch = writeBatch(db);
-    await editDeck("uid", { id: deck.id, name: "Updated name" }, { batch, tags: ["renamed", "kept"] });
-    writeCardTagChanges(batch, stored, [{ previous: "old", name: "renamed" }]);
-    await batch.commit();
-    expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({
-      name: "Updated name",
-      tags: ["renamed", "kept"],
-    });
-    await Promise.all(
-      cards.map(async (card, index) => {
-        expect((await getDoc(doc(db, "card", card.id))).data()).toEqual({
-          ...before[index],
-          tags: ["renamed", "kept"],
-          updatedAt: expect.any(Number),
-        });
-      })
-    );
-  }, 30_000);
-
-  it("[FIRESTORE-DECK-08] rejects the whole tag update when a Card write violates ownership rules", async () => {
-    const deck = createRemoteDeckInput({ id: uuid() });
-    await createDeck("uid", deck);
-    const card = createCard({ id: uuid(), deckId: deck.id, uid: "uid", tags: ["old", "kept"] });
-    await createCardCommand("uid", card);
-    const deckRef = doc(db, "deck", deck.id);
-    const cardRef = doc(db, "card", card.id);
-    const beforeDeck = (await getDoc(deckRef)).data();
-    const beforeCard = (await getDoc(cardRef)).data();
-    await readDeckTags("uid", deck.id);
-    const stored = await readCardsForTagUpdate("uid", deck.id);
-    const batch = writeBatch(db);
-    await editDeck("uid", { id: deck.id, name: "Updated name" }, { batch, tags: ["renamed", "kept"] });
-    writeCardTagChanges(batch, stored, [{ previous: "old", name: "renamed" }]);
-    batch.update(cardRef, { uid: "another-user" });
-    await expect(batch.commit()).rejects.toMatchObject({ code: "permission-denied" });
-    expect((await getDoc(deckRef)).data()).toEqual(beforeDeck);
-    expect((await getDoc(cardRef)).data()).toEqual(beforeCard);
-  });
-
   it("[FIRESTORE-DECK-05] tombstones an empty Deck", async () => {
     const deck = createRemoteDeckInput({ id: uuid() });
     await createDeck("uid", deck);
@@ -192,63 +140,4 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
 
   // Child tombstoning is not implemented by the current parent-only deletion operation.
   it.todo("[FIRESTORE-DECK-06] leaves the Deck and all child Cards unchanged when the delete batch is rejected");
-});
-
-describe("firestore/deck pending Card writes", () => {
-  it.each(["renamed", undefined])(
-    "[FIRESTORE-DECK-09] queues tag replacement %s after pending Card creation and editing",
-    async (replacement) => {
-      const db = getFirestore();
-      const deck = createRemoteDeckInput({ id: uuid() });
-      await createDeck("uid", deck);
-      const existing = createCard({ id: uuid(), deckId: deck.id, uid: "uid", tags: ["old", "kept"] });
-      await createCardCommand("uid", existing);
-      await waitForPendingWrites(db);
-      await disableNetwork(db);
-      const created = createCard({ id: uuid(), deckId: deck.id, uid: "uid", tags: ["old", "kept"] });
-      try {
-        await createCardCommand("uid", created);
-        await editCardCommand("uid", {
-          id: existing.id,
-          uid: "uid",
-          frontText: "Pending text edit",
-          tags: ["old", "kept"],
-        });
-        await vi.waitFor(async () =>
-          expect((await readCardsForTagUpdate("uid", deck.id)).map((card) => card.reference.id).sort()).toEqual(
-            [existing.id, created.id].sort()
-          )
-        );
-        const stored = await readCardsForTagUpdate("uid", deck.id);
-        const batch = writeBatch(db);
-        const tags = replacement === undefined ? ["kept"] : [replacement, "kept"];
-        await editDeck("uid", { id: deck.id, name: "Updated name" }, { batch, tags });
-        writeCardTagChanges(batch, stored, [{ previous: "old", name: replacement }]);
-        void batch.commit().catch(() => undefined);
-        for (const id of [existing.id, created.id]) {
-          await vi.waitFor(async () => {
-            const local = await getDocFromCache(doc(db, "card", id));
-            expect(local.metadata.hasPendingWrites).toBe(true);
-            expect(local.data()?.tags).toEqual(tags);
-          });
-        }
-        await enableNetwork(db);
-        await waitForPendingWrites(db);
-        expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({ name: "Updated name", tags });
-        expect((await getDoc(doc(db, "card", existing.id))).data()).toMatchObject({
-          frontText: "Pending text edit",
-          backText: existing.backText,
-          tags,
-        });
-        expect((await getDoc(doc(db, "card", created.id))).data()).toMatchObject({
-          frontText: created.frontText,
-          backText: created.backText,
-          tags,
-        });
-      } finally {
-        await enableNetwork(db);
-        await waitForPendingWrites(db);
-      }
-    }
-  );
 });

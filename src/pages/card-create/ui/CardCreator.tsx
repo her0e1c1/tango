@@ -7,7 +7,13 @@ import { CardFields, type CardFormFields } from "@/features/card-form";
 import { Button } from "@/shared/ui/button";
 
 export interface CardCreatorProps {
-  categories: readonly string[];
+  availableTags: readonly string[];
+  tagRowIds: readonly string[];
+  tagOptions: readonly string[];
+  onAddTag: () => void;
+  onRenameTag: (index: number, name: string) => void;
+  onRemoveTag: (index: number) => void;
+  onSelectTag: (tag: string, selected: boolean) => void;
   preview: React.ReactNode;
   deckName: string;
   form: UseFormReturn<CardFormFields>;
@@ -17,7 +23,13 @@ export interface CardCreatorProps {
 }
 
 export const CardCreator: React.FC<CardCreatorProps> = ({
-  categories,
+  availableTags,
+  tagRowIds,
+  tagOptions,
+  onAddTag,
+  onRenameTag,
+  onRemoveTag,
+  onSelectTag,
   preview,
   deckName,
   form,
@@ -48,7 +60,17 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
       {/* Keep the DOM callback void for no-misused-promises; RHF still awaits the validated save callback. */}
       <form className="flex w-full flex-col gap-4" onSubmit={(event) => void onSubmit(event)}>
         <fieldset className="contents" disabled={isSaving}>
-          <CardFields categories={categories} preview={preview} form={form} />
+          <CardFields
+            tagRowIds={tagRowIds}
+            tagOptions={tagOptions}
+            onAddTag={onAddTag}
+            onRenameTag={onRenameTag}
+            onRemoveTag={onRemoveTag}
+            onSelectTag={onSelectTag}
+            availableTags={availableTags}
+            preview={preview}
+            form={form}
+          />
         </fieldset>
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
           <Button variant="quiet" type="button" onClick={onCancel}>

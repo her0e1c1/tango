@@ -6,11 +6,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck } from "@/entities/deck";
-import { replaceRemoteDecks } from "@/test/entityFixtures";
+import { replaceRemoteCards, replaceRemoteDecks } from "@/test/entityFixtures";
 import { getCards } from "@/entities/card";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
-import { createLocalDeck } from "@/test/factories";
+import { createLocalCard, createLocalDeck } from "@/test/factories";
 
 const writes = vi.hoisted(() => ({
   rejected: false,
@@ -71,6 +71,7 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
   };
 
   beforeEach(async () => {
+    replaceRemoteCards([]);
     dismissToast();
     writes.rejected = false;
     writes.pending = null;
@@ -98,10 +99,11 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
     expect(screen.getByText("Created card “Created front”.")).toBeVisible();
   });
 
-  it("CARD-MANAGEMENT-05 creates a Card with selected Deck tags instead of fixed categories", async () => {
-    replaceRemoteDecks([
-      { ...deck, tags: ["chapter-1", "exam"] },
-      createLocalDeck({ id: "other-deck", tags: ["other-only"] }),
+  it("CARD-MANAGEMENT-05 creates a Card with tags from Cards in the same Deck", async () => {
+    replaceRemoteDecks([deck, createLocalDeck({ id: "other-deck" })]);
+    replaceRemoteCards([
+      createLocalCard({ id: "source", deckId: deck.id, tags: ["chapter-1", "exam"] }),
+      createLocalCard({ id: "other", deckId: "other-deck", tags: ["other-only"] }),
     ]);
     renderPage();
     await userEvent.type(screen.getByRole("textbox", { name: "Front text" }), "Tagged front");
@@ -113,7 +115,7 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
     expect(screen.queryByRole("checkbox", { name: "math" })).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox", { name: "other-only" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("checkbox", { name: "chapter-1" }));
-    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close tag editor" }));
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
     expect(await screen.findByRole("heading", { name: "Card list destination" })).toBeVisible();
@@ -123,8 +125,8 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
     });
   });
 
-  it.each([undefined, []])("CARD-MANAGEMENT-05 offers no fallback tags when Deck tags are %s", async (tags) => {
-    replaceRemoteDecks([{ ...deck, ...(tags ? { tags } : {}) }]);
+  it("CARD-MANAGEMENT-05 offers no fallback tags when the Deck has no Cards", async () => {
+    replaceRemoteDecks([deck]);
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
     expect(screen.getByRole("dialog", { name: "Select tags" })).toBeVisible();

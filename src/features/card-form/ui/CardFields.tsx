@@ -5,7 +5,7 @@ import { type FieldError, type UseFormReturn, useController, useFormState } from
 import { AiOutlineExpandAlt, AiOutlineRight } from "react-icons/ai";
 
 import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
-import { Tag, Textarea } from "@/shared/ui/forms";
+import { Input, Tag, Textarea } from "@/shared/ui/forms";
 import { useToastModalFocusTarget } from "@/shared/ui/toast";
 
 export interface CardFormFields {
@@ -15,7 +15,13 @@ export interface CardFormFields {
 }
 
 export interface CardFieldsProps {
-  categories: readonly string[];
+  availableTags: readonly string[];
+  tagRowIds: readonly string[];
+  tagOptions: readonly string[];
+  onAddTag: () => void;
+  onRenameTag: (index: number, name: string) => void;
+  onRemoveTag: (index: number) => void;
+  onSelectTag: (tag: string, selected: boolean) => void;
   preview: React.ReactNode;
   form: UseFormReturn<CardFormFields>;
 }
@@ -25,11 +31,12 @@ type CardSide = "frontText" | "backText";
 interface CardFieldsDialogProps {
   title: string;
   expanded?: boolean;
+  closeLabel?: string;
   onClose: () => void;
   children: React.ReactNode;
 }
 
-const CardFieldsDialog = ({ title, expanded = false, onClose, children }: CardFieldsDialogProps) => {
+const CardFieldsDialog = ({ title, expanded = false, closeLabel, onClose, children }: CardFieldsDialogProps) => {
   const { t } = useTranslation();
   const titleId = React.useId();
   const dialogRef = React.useRef<HTMLDivElement>(null);
@@ -104,7 +111,7 @@ const CardFieldsDialog = ({ title, expanded = false, onClose, children }: CardFi
             className="min-h-touch shrink-0 rounded-control px-4 font-semibold text-accent-primary hover:bg-surface-muted"
             onClick={onClose}
           >
-            {t("cardForm.done")}
+            {closeLabel ?? t("cardForm.done")}
           </button>
         </header>
         <div className="min-h-0 flex-1 overflow-y-auto pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pl-[calc(1rem+env(safe-area-inset-left))] pr-[calc(1rem+env(safe-area-inset-right))]">
@@ -153,7 +160,17 @@ const CardSideError = ({ error, side, id }: { error: FieldError | undefined; sid
   );
 };
 
-export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
+export const CardFields = ({
+  availableTags,
+  tagRowIds,
+  tagOptions,
+  onAddTag,
+  onRenameTag,
+  onRemoveTag,
+  onSelectTag,
+  preview,
+  form,
+}: CardFieldsProps) => {
   const { t } = useTranslation();
   const formState = useFormState({ control: form.control });
   const { field: frontField } = useController({ name: "frontText", control: form.control });
@@ -161,7 +178,7 @@ export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
   const { field: tagsField } = useController({ name: "tags", control: form.control });
   const [activeSide, setActiveSide] = React.useState<CardSide>("frontText");
   const [expanded, setExpanded] = React.useState(false);
-  const [tagOptions, setTagOptions] = React.useState<readonly string[] | null>(null);
+  const [openTagOptions, setOpenTagOptions] = React.useState<readonly string[] | null>(null);
   const [validation, setValidation] = React.useState<{ count: number; side: CardSide | null }>({
     count: formState.submitCount,
     side: null,
@@ -296,10 +313,10 @@ export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
         aria-label={t("cardForm.tags.edit")}
         aria-describedby={tagsSummaryId}
         aria-haspopup="dialog"
-        aria-expanded={tagOptions !== null}
+        aria-expanded={openTagOptions !== null}
         onClick={() => {
           // Keep imported tags in the open list even after deselection so they can be selected again.
-          setTagOptions([...new Set([...categories, ...tags])]);
+          setOpenTagOptions(tagOptions);
         }}
         className="flex min-h-14 w-full min-w-0 items-center gap-2 rounded-control border border-border bg-surface px-3 py-2 text-left hover:bg-surface-muted"
       >
@@ -308,9 +325,9 @@ export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
           {tags.length === 0 && (
             <span className="truncate text-caption text-ink-muted">{t("cardForm.tags.empty")}</span>
           )}
-          {tags.slice(0, 2).map((tag) => (
+          {tags.slice(0, 2).map((tag, index) => (
             <span
-              key={tag}
+              key={tagRowIds[index]}
               className="max-w-28 truncate rounded bg-accent-primary/10 px-2 py-1 text-xs text-accent-primary"
             >
               {tag}
@@ -323,19 +340,81 @@ export const CardFields = ({ categories, preview, form }: CardFieldsProps) => {
           {tags.length === 0 ? t("cardForm.tags.empty") : tags.join(", ")}
         </span>
       </button>
-      {tagOptions !== null && (
-        <CardFieldsDialog title={t("cardForm.tags.select")} onClose={() => setTagOptions(null)}>
+      {formState.errors.tags !== undefined && openTagOptions === null && (
+        <p role="alert" className="text-caption text-danger">
+          {t("cardForm.tags.invalid")}
+        </p>
+      )}
+      {openTagOptions !== null && (
+        <CardFieldsDialog
+          title={t("cardForm.tags.select")}
+          closeLabel={t("cardForm.tags.close")}
+          onClose={() => setOpenTagOptions(null)}
+        >
+          <div className="mb-4 space-y-3">
+            {tags.map((tag, index) => {
+              const error = formState.errors.tags?.[index];
+              const rowId = `${id}-tag-${index.toString()}`;
+              return (
+                <div key={tagRowIds[index]} className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <label className="min-w-0 flex-1 text-caption" htmlFor={rowId}>
+                      {t("cardForm.tags.name", { count: index + 1 })}
+                      <Input
+                        id={rowId}
+                        value={tag}
+                        onChange={(event) => onRenameTag(index, event.target.value)}
+                        onBlur={tagsField.onBlur}
+                        onKeyDown={(event) => {
+                          // Enter edits the draft; only the Card's submit button saves it.
+                          if (event.key === "Enter") event.preventDefault();
+                        }}
+                        aria-invalid={error !== undefined || undefined}
+                        aria-describedby={error ? `${rowId}-error` : undefined}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="min-h-touch shrink-0 rounded-control px-3 text-danger hover:bg-surface-muted"
+                      aria-label={t("cardForm.tags.remove", { count: index + 1 })}
+                      onClick={(event) => {
+                        const container = event.currentTarget.closest('[role="dialog"]');
+                        const inputs = container?.querySelectorAll<HTMLInputElement>('input[type="text"]');
+                        const next = inputs?.[index + 1] ?? inputs?.[index - 1];
+                        if (next) next.focus();
+                        else container?.querySelector<HTMLButtonElement>("[data-add-tag]")?.focus();
+                        onRemoveTag(index);
+                      }}
+                    >
+                      {t("cardForm.tags.removeAction")}
+                    </button>
+                  </div>
+                  {error !== undefined && (
+                    <p id={`${rowId}-error`} role="alert" className="text-caption text-danger">
+                      {t(error.message === "duplicate" ? "cardForm.tags.duplicate" : "cardForm.tags.required")}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              data-add-tag
+              className="min-h-touch rounded-control px-3 text-accent-primary hover:bg-surface-muted"
+              onClick={onAddTag}
+            >
+              {t("cardForm.tags.add")}
+            </button>
+          </div>
           <fieldset className="flex flex-wrap gap-2" aria-label={t("cardForm.tags.title")}>
-            {tagOptions.map((tag) => (
+            {[...new Set([...openTagOptions, ...availableTags, ...tagOptions])].map((tag) => (
               <Tag
                 key={tag}
                 label={tag}
                 value={tag}
                 wrap
                 checked={tags.includes(tag)}
-                onChange={(event) =>
-                  tagsField.onChange(event.target.checked ? [...tags, tag] : tags.filter((value) => value !== tag))
-                }
+                onChange={(event) => onSelectTag(tag, event.target.checked)}
                 onBlur={tagsField.onBlur}
               />
             ))}

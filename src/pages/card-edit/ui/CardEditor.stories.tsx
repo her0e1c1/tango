@@ -1,3 +1,4 @@
+import { useCardTagForm } from "@/test/useCardTagForm";
 import { editCard as persistCard } from "@/entities/card";
 import { APP_STORY_UID, prepareAppStory } from "@/storybook/appStory";
 import { createCard, createDeck } from "@/test/factories";
@@ -49,12 +50,13 @@ const CardEditorStory = ({ card, isSaving, validationError, onCancel }: CardEdit
 
   return (
     <CardEditor
+      {...useCardTagForm(form)}
       cardInfo={{
         id: card.id,
         uniqueKey: card.uniqueKey,
         ...(card.createdAt ? { createdAt: card.createdAt } : {}),
       }}
-      categories={CATEGORY}
+      availableTags={CATEGORY}
       preview={<BackText {...preview} />}
       form={form}
       onCancel={onCancel}
@@ -106,8 +108,9 @@ function SavingEditorExample() {
         Receive external update
       </button>
       <CardEditor
+        {...useCardTagForm(form)}
         cardInfo={{ id: card.id, uniqueKey: card.uniqueKey }}
-        categories={CATEGORY}
+        availableTags={CATEGORY}
         preview={<BackText {...preview} />}
         form={form}
         onCancel={() => undefined}

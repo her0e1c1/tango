@@ -16,7 +16,6 @@ const deckDocumentSchema = z.object({
   updatedAt: z.number(),
   deletedAt: z.number().nullable(),
   selectedTags: z.array(z.string()),
-  tags: z.array(z.string()).optional(),
   tagAndFilter: z.boolean(),
   cardFilter: cardFilterSchema.optional(),
   category: z.string(),

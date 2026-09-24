@@ -1,4 +1,5 @@
 import "@/test/mockFirestorePersistence";
+import { useCardTagForm } from "@/test/useCardTagForm";
 import { BackText } from "@/entities/card";
 import type { Card, CardId } from "@/entities/card";
 
@@ -51,12 +52,13 @@ const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; o
   const preview = useCardPreviewContent(form.control, "raw", false);
   return (
     <CardEditor
+      {...useCardTagForm(form)}
       cardInfo={{
         id: props.card.id,
         uniqueKey: props.card.uniqueKey,
         ...(props.card.createdAt ? { createdAt: props.card.createdAt } : {}),
       }}
-      categories={CATEGORY}
+      availableTags={CATEGORY}
       preview={<BackText {...preview} />}
       form={form}
       onCancel={props.onCancel}
@@ -118,7 +120,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 
     await userEvent.type(backText, "Updated back");
     await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "math" }));
-    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close tag editor" }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());

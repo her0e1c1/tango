@@ -2,7 +2,7 @@
 
 ## 目的
 
-Deck の公開された保存操作を通して、作成・部分更新・論理削除・タグ変更の結果を確認する。
+Deck の公開された保存操作を通して、作成・部分更新・論理削除の結果を確認する。
 入力の検証と Rules の認可を区別し、ローカル反映とサーバーへの保存を同一視しない。
 
 関連 E2E: [DECK-MANAGEMENT-01](../../e2e/deck-management.md#deck-management-01)、[DECK-MANAGEMENT-02](../../e2e/deck-management.md#deck-management-02)、[DECK-MANAGEMENT-05](../../e2e/deck-management.md#deck-management-05)
@@ -19,13 +19,10 @@ Deck の公開された保存操作を通して、作成・部分更新・論理
 | FIRESTORE-DECK-04 | batch | 正常系 | [Deck と配下 Card をまとめて論理削除できる](#firestore-deck-04) |
 | FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](#firestore-deck-05) |
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06) |
-| FIRESTORE-DECK-07 | batch | 正常系 | [多数の Card と登録タグをまとめて改名する](#firestore-deck-07) |
-| FIRESTORE-DECK-08 | batch | 異常系 | [タグ更新の拒否で部分保存を残さない](#firestore-deck-08) |
-| FIRESTORE-DECK-09 | batch | 正常系 | [保留中の Card 保存の後にタグ変更を同期する](#firestore-deck-09) |
 
 <a id="firestore-deck-01"></a>
 
-### FIRESTORE-DECK-01 [TODO] Deck の保存対象だけを新規作成できる
+### FIRESTORE-DECK-01 Deck の保存対象だけを新規作成できる
 
 カテゴリ: `write`
 
@@ -41,6 +38,8 @@ When:
 - 公開された Deck の新規作成操作で保存する。
 
 Then:
+
+- 登録タグ `tags` は入力に含まれていても新たに保存されない。
 
 - サーバー上に指定した ID・UID・name と既定の Deck 設定を保存する。難易度範囲は `1`〜`10`、`deletedAt` は `null` である。
 - `createdAt` と `updatedAt` は同じ数値であり、document が存在する。
@@ -63,6 +62,8 @@ When:
 - 公開された編集操作で name を `updated` に変更する。編集入力には `currentIndex: 1` と `cardOrderIds: ["card-1"]` も含める。
 
 Then:
+
+- 登録タグ `tags` は入力に含まれていても新たに保存されない。
 
 - サーバー上の name は `updated`、`updatedAt` は数値になる。`createdAt` を含むその他の保存値は変わらない。
 - `localMode`、`currentIndex`、`cardOrderIds` は追加しない。
@@ -161,71 +162,3 @@ Then:
 - 削除の失敗が通知される。
 - サーバー上の Deck の `deletedAt` は変更されない。
 - 配下 Card の `deletedAt` は全件とも削除前の値であり、親だけ・子だけ・一部の子だけが削除された部分成功を残さない。
-
-<a id="firestore-deck-07"></a>
-
-### FIRESTORE-DECK-07 多数の Card と登録タグをまとめて改名する
-
-カテゴリ: `batch`
-
-区分: 正常系
-
-Given:
-
-- 本人の Deck に旧タグと保持するタグを持つ Card が501枚ある。
-- Deck に登録タグ一覧がまだない。
-
-When:
-
-- 公開された Deck の編集・タグ更新操作で、Deck 名と登録タグ、対象 Card の旧タグ名を一つの保存単位で変更する。
-
-Then:
-
-- サーバー上の Deck 名と登録タグ、全501枚の Card のタグが新しい値を保持する。
-- 他のタグ、Card の本文・ID・削除状態は変わらない。
-
-<a id="firestore-deck-08"></a>
-
-### FIRESTORE-DECK-08 タグ更新の拒否で部分保存を残さない
-
-カテゴリ: `batch`
-
-区分: 異常系
-
-Given:
-
-- 本人の Deck と、その Deck に属する旧タグ付き Card がある。
-- 同じ保存単位に、本人の UID を別 UID に変更する不正な Card 更新が含まれている。
-
-When:
-
-- 公開された Deck 名・タグ更新と不正な Card 更新を、一つの保存単位として確定する。
-
-Then:
-
-- Rules による認可で Card 更新が拒否され、保存全体が失敗する。
-- サーバー上の Deck 名・登録タグと Card の保存値は操作前と同一であり、部分保存を残さない。
-
-<a id="firestore-deck-09"></a>
-
-### FIRESTORE-DECK-09 保留中の Card 保存の後にタグ変更を同期する
-
-カテゴリ: `batch`
-
-区分: 正常系
-
-Given:
-
-- 本人の Deck と旧タグ・保持するタグを持つ Card が同期済みである。
-- 通信がない状態で、同じタグを持つ Card の追加と、既存 Card の本文変更をローカル保存している。
-- 改名と削除を、それぞれ同じ変更前の状態から独立して確認する。
-
-When:
-
-- 公開された Deck 編集・タグ変更操作で名前を変更し、旧タグを改名または削除して再接続する。
-
-Then:
-
-- 追加済み・編集済み両方の Card が更新対象となる。
-- オフライン中のローカル値と、再接続後のサーバー値に改名または削除の結果が残り、旧タグが復活しない。
-- Deck 名の変更、先行する本文の変更と他のタグは保持される。
