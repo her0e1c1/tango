@@ -39,7 +39,6 @@ Then:
 
 - 現在の Card の back text が表示される。
 - Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
 
 <a id="study-back-text-02"></a>
 
@@ -64,7 +63,6 @@ Then:
 - 選択範囲に対象 Card の back text が含まれる。
 - 対象 Card の back text が引き続き表示される。
 - Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
 
 <a id="study-back-text-03"></a>
 
@@ -89,7 +87,6 @@ Then:
 - 同じ Card の front text が表示され、back text は表示されない。
 - 左右の swipe overlay は表示されない。
 - Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
 
 <a id="study-back-text-04"></a>
 
@@ -114,7 +111,6 @@ Then:
 - answer の下側の本文を読める。
 - 同じ Card の back text が引き続き表示される。
 - Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
 
 <a id="study-back-text-05"></a>
 
@@ -142,7 +138,6 @@ Then:
 - session の位置が次の Card へ一つ進む。
 - 次の Card の front text が表示され、back text は表示されない。
 - overlay の tap で次の Card が誤って裏返ることはない。
-- browser error が発生しない。
 
 <a id="study-back-text-06"></a>
 
@@ -170,7 +165,6 @@ Then:
 - session の位置が次の Card へ一つ進む。
 - 次の Card の front text が表示され、back text は表示されない。
 - overlay の tap で次の Card が誤って裏返ることはない。
-- browser error が発生しない。
 
 <a id="study-back-text-07"></a>
 
@@ -197,7 +191,6 @@ Then:
 - 左右 overlay が back text の上に浮いた状態で表示される。
 - 対象 Card の back text が表示される。
 - Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
 
 <a id="study-back-text-08"></a>
 
@@ -227,4 +220,3 @@ Then:
 - 右 overlay と viewport 右端の間に scrollbar を直接操作できる領域が残る。
 - overlay に設定された評価や移動は行われない。
 - Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。

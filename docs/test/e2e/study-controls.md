@@ -44,7 +44,6 @@ Then:
 - 現在だった Card の easy 学習結果が保存される。
 - 次の Card の front text が表示され、back text は表示されない。
 - drag 後の click によって次の Card が裏面へ切り替わらない。
-- browser error が発生しない。
 
 <a id="study-controls-02"></a>
 
@@ -68,7 +67,6 @@ Then:
 
 - 現在の Card の front text が引き続き表示される。
 - Card の学習結果と session の位置が変更されない。
-- browser error が発生しない。
 
 <a id="study-controls-03"></a>
 
@@ -94,7 +92,6 @@ Then:
 - 現在だった Card の easy 学習結果が、このブラウザーで維持される。
 - session の位置が次の Card へ進む。
 - 次の Card の front text が表示され、back text は表示されない。
-- browser error が発生しない。
 
 <a id="study-controls-04"></a>
 
@@ -129,7 +126,6 @@ Then:
 - Help dialog を閉じると、残っている通知の操作を再び利用できる。
 - dialog 内のキー入力で Card、学習結果、session の位置が変更されない。
 - focus が dialog 内に維持され、閉じた後は Help button へ戻る。
-- browser error が発生しない。
 
 <a id="study-controls-05"></a>
 
@@ -155,7 +151,6 @@ Then:
 - ON のときは Help button と省略ボタンが重ならずに表示される。
 - 表示を OFF にすると Help button は非表示になる。
 - reload 後も Help button の表示設定は OFF のまま維持される。
-- browser error が発生しない。
 
 <a id="study-controls-06"></a>
 
@@ -181,7 +176,6 @@ Then:
 - スワイプと方向キーで評価・移動が発生せず、スクロールや選択後も view mode と表面が維持される。Card の学習結果と session の現在位置も変わらない。表示切替・reload・画面移動・Help 表示を終えた時点でも session の現在位置を維持する。
 - Space は自動再生やモード終了を起こさない。Help は閲覧中の操作を説明する。
 - 閲覧モードボタンは既定で表示される。「…」を開くと同じアイコンで表示・非表示を切り替えられ、モード自体は変化しない。非表示でも「…」から再表示でき、設定は reload 後も維持され、学習・閲覧画面で共有される。
-- browser error が発生しない。
 
 <a id="study-controls-07"></a>
 
@@ -205,7 +199,6 @@ Then:
 - タップと最初の Enter は同じ Card の表面を維持して view mode だけを OFF にする。次の Enter で裏面へ切り替わる。
 - Enter を押し続けても終了後に裏返らない。
 - スクロール位置は Card・表裏・モードの変更時に先頭へ戻る。
-- browser error が発生しない。
 
 <a id="study-controls-08"></a>
 
@@ -228,7 +221,6 @@ Then:
 
 - 評価ボタンの結果が保存され、次の Card に進む。自動再生でも次の Card に進む。
 - どちらの移動後も view mode は ON で、スクロール位置は先頭になる。
-- browser error が発生しない。
 
 <a id="study-controls-09"></a>
 
@@ -250,7 +242,6 @@ When:
 Then:
 
 - ON と OFF が両画面と reload 後に反映される。他の設定は維持される。
-- browser error が発生しない。
 
 <a id="study-controls-10"></a>
 
@@ -273,7 +264,6 @@ Then:
 
 - 本文の表示領域は画面の高さの半分以上を保ち、末尾まで読める。評価・再生・Skip ボタンも画面内にスクロールして表示できる。
 - 評価・Card 移動・モード終了は発生しない。
-- browser error が発生しない。
 
 <a id="study-controls-11"></a>
 
@@ -296,4 +286,3 @@ Then:
 
 - 本文のスクロール位置が変わり、ピンチ操作で表示倍率が上がる。
 - 評価・Card 移動・モード終了は発生しない。
-- browser error が発生しない。

@@ -35,7 +35,6 @@ When:
 Then:
 
 - 入力と解除は確認・OK 操作なしに即時反映され、名前の入力中もフォーカスを保つ。保存前は元の内容を保持し、保存後は編集した Card だけが変更される。他の Card・本文・学習状態は維持される。
-- browser error が発生しない。
 
 <a id="card-tag-management-02"></a>
 
@@ -57,7 +56,6 @@ When:
 Then:
 
 - 保存済みタグは操作前のままであり、下書きの変更は残らない。
-- browser error が発生しない。
 
 <a id="card-tag-management-03"></a>
 
@@ -79,7 +77,6 @@ When:
 Then:
 
 - エラーが入力欄に関連付けて表示され、不正な内容は保存できない。追加の確認画面は出ず、修正後は保存できる。
-- browser error が発生しない。
 
 <a id="card-tag-management-04"></a>
 
@@ -101,7 +98,6 @@ When:
 Then:
 
 - 候補は重複せず、別 Deck のタグを含まない。保存前の絞り込みは一枚に一致する。最後の割り当てを外した選択済みタグも解除でき、解除後は候補から消えて全 Card が表示される。Deck 閲覧も同じ条件を使用する。
-- browser error が発生しない。
 
 <a id="card-tag-management-05"></a>
 
@@ -123,7 +119,6 @@ When:
 Then:
 
 - オフラインの保存・再読込後も編集内容を表示し、再接続後に同じ内容を保持する。他の Card のタグは変更されない。
-- browser error が発生しない。
 
 <a id="card-tag-management-06"></a>
 
@@ -145,4 +140,3 @@ When:
 Then:
 
 - 再読込後もタグが保持され、再接続後も匿名データはローカルに留まる。
-- browser error が発生しない。

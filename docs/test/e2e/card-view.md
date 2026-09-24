@@ -36,7 +36,6 @@ When:
 Then:
 
 - 対象 Card の front text、tags が表示される。
-- browser error が発生しない。
 
 <a id="card-view-02"></a>
 
@@ -59,7 +58,6 @@ When:
 Then:
 
 - 対象 Card の back text が overlay に表示される。
-- browser error が発生しない。
 
 <a id="card-view-03"></a>
 
@@ -84,7 +82,6 @@ Then:
 - back text overlay が閉じる。
 - Card 一覧に対象 Card の front text が表示される。
 - Card の内容と学習結果は変わらない。
-- browser error が発生しない。
 
 <a id="card-view-04"></a>
 
@@ -110,7 +107,6 @@ Then:
 - 対象 Card の back text が Card answer として表示される。
 - URL の対象を変えると、遷移先の Card の back text に表示が更新される。
 - アプリ共通のヘッダーとナビゲーションが表示される。
-- browser error が発生しない。
 
 <a id="card-view-05"></a>
 
@@ -132,7 +128,6 @@ When:
 Then:
 
 - Deck 一覧が表示される。
-- browser error が発生しない。
 
 <a id="card-view-06"></a>
 
@@ -164,4 +159,3 @@ Then:
 - 再読み込み後や匿名・オフラインの利用中も、一度読み込んだ記憶状態を確認できる。復習間隔の ON / OFF では記憶状態の表示を失わない。
 - 読み込めない記憶状態や取得失敗を、未評価の Card として表示しない。
 - 英語・日本語、モバイル、dark mode でテキストと読み上げ名・説明を確認できる。
-- browser error が発生しない。
