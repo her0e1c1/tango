@@ -175,7 +175,7 @@ export async function startStudy({
   cardOrderIds: string[];
   uid: string;
   now?: number;
-}): Promise<void> {
+}): Promise<string | undefined> {
   if (!uid || uid !== getAuthUid()) throw new Error("Study session owner changed");
   const previous = getStudySession(deckId);
   if (previous) requireOwner(previous);
@@ -189,6 +189,7 @@ export async function startStudy({
   };
   if (session.cardOrderIds.length === 0) return;
   await createStudySession(session, previous);
+  return session.sessionId;
 }
 
 export async function setStudySessionIndex(deckId: string, currentIndex: number): Promise<boolean> {
