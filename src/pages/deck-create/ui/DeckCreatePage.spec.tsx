@@ -40,7 +40,7 @@ import { DeckCreatePage } from "./DeckCreatePage";
 type CreateDeckInput = Parameters<typeof import("@/entities/deck").createDeck>[1];
 
 const publishDeck = (uid: string, input: CreateDeckInput) => {
-  replaceRemoteDecks([createDeckFixture({ ...input, uid })]);
+  replaceRemoteDecks([createDeckFixture({ id: input.id, name: input.name, uid })]);
 };
 
 const LeaveRouteButton = () => {
