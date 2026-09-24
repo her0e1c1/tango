@@ -579,4 +579,3 @@ vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
     },
   };
 });
-
