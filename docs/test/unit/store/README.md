@@ -8,8 +8,12 @@
 | UNIT-STORE-CARD-01 | Card | 正常系 | [最新の取得結果だけをカード一覧として提供する](./card.md#unit-store-card-01) |
 | UNIT-STORE-CARD-02 | Card | 正常系 | [カードのクリア後は以前のカードを参照できない](./card.md#unit-store-card-02) |
 | UNIT-STORE-CARD-03 | Card | 正常系 | [所属デックと所有者が一致するカードだけを提供する](./card.md#unit-store-card-03) |
+| UNIT-STORE-CARD-04 | Card | 正常系 | [カードの作成・編集・削除は書き込み完了ではなく購読通知で反映する](./card.md#unit-store-card-04) |
+| UNIT-STORE-CARD-05 | Card | 異常系 | [カードの書き込み失敗だけでは直前の購読結果を変更しない](./card.md#unit-store-card-05) |
 | UNIT-STORE-DECK-01 | Deck | 正常系 | [最新の取得結果だけをデック一覧として提供する](./deck.md#unit-store-deck-01) |
 | UNIT-STORE-DECK-02 | Deck | 正常系 | [デックのクリア後は以前のデックを参照できない](./deck.md#unit-store-deck-02) |
+| UNIT-STORE-DECK-03 | Deck | 正常系 | [デックの作成・編集・削除は書き込み完了ではなく購読通知で反映する](./deck.md#unit-store-deck-03) |
+| UNIT-STORE-DECK-04 | Deck | 異常系 | [デックの書き込み失敗だけでは直前の購読結果を変更しない](./deck.md#unit-store-deck-04) |
 | UNIT-STORE-PREF-01 | Preference | 正常系 | [保存設定がない初回利用では標準の設定を提供する](./preference.md#unit-store-pref-01) |
 | UNIT-STORE-PREF-02 | Preference | 正常系 | [一部の設定を変更しても未指定の設定を維持する](./preference.md#unit-store-pref-02) |
 | UNIT-STORE-PREF-03 | Preference | 正常系 | [切り替え操作は対象設定だけをオン・オフする](./preference.md#unit-store-pref-03) |
@@ -25,3 +29,8 @@
 | UNIT-STORE-STUDY-04 | Study Session | 正常系 | [所有者を変更したら一致しない学習の続きを提供しない](./study-session.md#unit-store-study-04) |
 | UNIT-STORE-STUDY-05 | Study Session | 正常系 | [最新の取得結果に学習の続きを切り替えて取得待ちを終了する](./study-session.md#unit-store-study-05) |
 | UNIT-STORE-STUDY-06 | Study Session | 正常系 | [取得待ちだけを終了すると保持済みの学習の続きは変わらない](./study-session.md#unit-store-study-06) |
+| UNIT-STORE-STUDY-07 | Study Session | 正常系 | [学習の開始・やり直しは購読通知後に再開対象を切り替える](./study-session.md#unit-store-study-07) |
+| UNIT-STORE-STUDY-08 | Study Session | 正常系 | [学習位置・再開時刻・終了状態は購読通知後に更新する](./study-session.md#unit-store-study-08) |
+| UNIT-STORE-STUDY-09 | Study Session | 異常系 | [学習の書き込み失敗だけでは再開対象を変更しない](./study-session.md#unit-store-study-09) |
+| UNIT-STORE-STUDY-10 | Study Session | 正常系 | [学習の購読開始から初回通知まで取得待ちを維持する](./study-session.md#unit-store-study-10) |
+| UNIT-STORE-STUDY-11 | Study Session | 異常系 | [学習の購読エラーで取得待ちを終了し保持済みの続きを維持する](./study-session.md#unit-store-study-11) |
