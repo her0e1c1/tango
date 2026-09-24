@@ -3,7 +3,7 @@ import { confirmDeckDeletion } from "@/features/deck-deletion";
 import { deckEditPageStore as store } from "../store";
 
 export async function confirmDeletion(): Promise<boolean> {
-  if (store.getState().submission !== undefined) return false;
+  if (store.getState().submission !== undefined || store.getState().pendingTagSave !== undefined) return false;
   const { deletionTarget, deletionId } = store.getState();
   const mutationId = Symbol("deck-deletion");
   let deleted = false;
