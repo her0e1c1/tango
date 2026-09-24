@@ -4,7 +4,7 @@
 
 CSV の内容を確認して取り込み、失敗後も再試行できることを確認する。Sample Deck の明示的な追加と自動初期生成でも、重複や確認前の保存を起こさない。
 
-## 共通の操作・結果契約（IMPORT-01〜IMPORT-06）
+## 共通の操作・結果契約（DECK-IMPORT-01〜DECK-IMPORT-06）
 
 - CSV の検証、import、例の選択は同時に一つだけ実行でき、処理中は競合する操作を受け付けない。
 - 処理中に画面を離れて再入場しても処理中の表示が維持され、完了後に操作可能になる。
@@ -27,20 +27,20 @@ CSV の内容を確認して取り込み、失敗後も再試行できること�
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| IMPORT-01 | read | 正常系 | [有効な CSV を保存せずに preview できる](#import-01) |
-| IMPORT-02 | read | 異常系 | [不正な行を含む CSV の import を阻止できる](#import-02) |
-| IMPORT-03 | batch | 正常系 | [ログイン中に CSV を import して reload 後も利用できる](#import-03) |
-| IMPORT-04 | batch | 正常系 | [匿名で CSV を import して reload 後に学習できる](#import-04) |
-| IMPORT-05 | batch | 異常系 | [取り込んだ内容の同期拒否を通知できる](#import-05) |
-| IMPORT-06 | batch | 正常系 | [4種類の例を同じ確認・保存の手順で追加できる](#import-06) |
-| IMPORT-07 | batch | 正常系 | [Sample Deck を一度だけ初期生成できる](#import-07) |
-| IMPORT-08 | batch | 正常系 | [Sample deck の全内容を匿名で取り込んで学習できる](#import-08) |
-| IMPORT-09 | batch | 正常系 | [通常ユーザーの Sample deck を同期できる](#import-09) |
-| IMPORT-10 | batch | 正常系 | [Google 未ログインの Sample deck をこのブラウザーだけに維持できる](#import-10) |
+| DECK-IMPORT-01 | read | 正常系 | [有効な CSV を保存せずに preview できる](#deck-import-01) |
+| DECK-IMPORT-02 | read | 異常系 | [不正な行を含む CSV の import を阻止できる](#deck-import-02) |
+| DECK-IMPORT-03 | batch | 正常系 | [ログイン中に CSV を import して reload 後も利用できる](#deck-import-03) |
+| DECK-IMPORT-04 | batch | 正常系 | [匿名で CSV を import して reload 後に学習できる](#deck-import-04) |
+| DECK-IMPORT-05 | batch | 異常系 | [取り込んだ内容の同期拒否を通知できる](#deck-import-05) |
+| DECK-IMPORT-06 | batch | 正常系 | [4種類の例を同じ確認・保存の手順で追加できる](#deck-import-06) |
+| DECK-IMPORT-07 | batch | 正常系 | [Sample Deck を一度だけ初期生成できる](#deck-import-07) |
+| DECK-IMPORT-08 | batch | 正常系 | [Sample deck の全内容を匿名で取り込んで学習できる](#deck-import-08) |
+| DECK-IMPORT-09 | batch | 正常系 | [通常ユーザーの Sample deck を同期できる](#deck-import-09) |
+| DECK-IMPORT-10 | batch | 正常系 | [Google 未ログインの Sample deck をこのブラウザーだけに維持できる](#deck-import-10) |
 
-<a id="import-01"></a>
+<a id="deck-import-01"></a>
 
-### IMPORT-01 有効な CSV を保存せずに preview できる
+### DECK-IMPORT-01 有効な CSV を保存せずに preview できる
 
 カテゴリ: `read`
 
@@ -66,9 +66,9 @@ Then:
 - Deck と Card はまだ追加されない。
 - 未処理の browser error が発生しない。
 
-<a id="import-02"></a>
+<a id="deck-import-02"></a>
 
-### IMPORT-02 不正な行を含む CSV の import を阻止できる
+### DECK-IMPORT-02 不正な行を含む CSV の import を阻止できる
 
 カテゴリ: `read`
 
@@ -91,9 +91,9 @@ Then:
 - Deck と Card は追加されない。
 - 未処理の browser error が発生しない。
 
-<a id="import-03"></a>
+<a id="deck-import-03"></a>
 
-### IMPORT-03 ログイン中に CSV を import して reload 後も利用できる
+### DECK-IMPORT-03 ログイン中に CSV を import して reload 後も利用できる
 
 カテゴリ: `batch`
 
@@ -117,9 +117,9 @@ Then:
 - reload 後も Deck と Card の内容が維持される。
 - 未処理の browser error が発生しない。
 
-<a id="import-04"></a>
+<a id="deck-import-04"></a>
 
-### IMPORT-04 匿名で CSV を import して reload 後に学習できる
+### DECK-IMPORT-04 匿名で CSV を import して reload 後に学習できる
 
 カテゴリ: `batch`
 
@@ -145,9 +145,9 @@ Then:
 - 学習画面に import した Card が表示される。
 - 未処理の browser error が発生しない。
 
-<a id="import-05"></a>
+<a id="deck-import-05"></a>
 
-### IMPORT-05 取り込んだ内容の同期拒否を通知できる
+### DECK-IMPORT-05 取り込んだ内容の同期拒否を通知できる
 
 カテゴリ: `batch`
 
@@ -170,9 +170,9 @@ Then:
 - 未処理の browser error が発生しない。
 - ブラウザー内で保存できなかった場合は preview が維持され、同じ内容で利用者が再試行できる。
 
-<a id="import-06"></a>
+<a id="deck-import-06"></a>
 
-### IMPORT-06 4種類の例を同じ確認・保存の手順で追加できる
+### DECK-IMPORT-06 4種類の例を同じ確認・保存の手順で追加できる
 
 カテゴリ: `batch`
 
@@ -203,9 +203,9 @@ Then:
 - 保存に失敗した場合は同じ preview の内容で再試行でき、同じ取り込みが重複しない。アカウントが変わった場合は、以前の選択内容を別アカウントへ保存できない。
 - 未処理の browser error が発生しない。
 
-<a id="import-07"></a>
+<a id="deck-import-07"></a>
 
-### IMPORT-07 Sample Deck を一度だけ初期生成できる
+### DECK-IMPORT-07 Sample Deck を一度だけ初期生成できる
 
 カテゴリ: `batch`
 
@@ -226,9 +226,9 @@ Then:
 - Sample Deck とその Card 群は reload 後も重複しない。
 - browser error が発生しない。
 
-<a id="import-08"></a>
+<a id="deck-import-08"></a>
 
-### IMPORT-08 Sample deck の全内容を匿名で取り込んで学習できる
+### DECK-IMPORT-08 Sample deck の全内容を匿名で取り込んで学習できる
 
 カテゴリ: `batch`
 
@@ -254,9 +254,9 @@ Then:
 - Card 一覧と学習画面で取り込んだ内容を利用でき、解答を表示できる。
 - 未処理の browser error が発生しない。
 
-<a id="import-09"></a>
+<a id="deck-import-09"></a>
 
-### IMPORT-09 通常ユーザーの Sample deck を同期できる
+### DECK-IMPORT-09 通常ユーザーの Sample deck を同期できる
 
 カテゴリ: `batch`
 
@@ -279,9 +279,9 @@ Then:
 - 再読み込みや同期によって Deck と Card の複製が増えない。
 - 未処理の browser error が発生しない。
 
-<a id="import-10"></a>
+<a id="deck-import-10"></a>
 
-### IMPORT-10 Google 未ログインの Sample deck をこのブラウザーだけに維持できる
+### DECK-IMPORT-10 Google 未ログインの Sample deck をこのブラウザーだけに維持できる
 
 カテゴリ: `batch`
 

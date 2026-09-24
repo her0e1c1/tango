@@ -17,7 +17,7 @@ const displayToast = (input: ShowToastInput) => {
   return id;
 };
 
-describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [IMPORT-04] [IMPORT-05]", () => {
+describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [DECK-IMPORT-05]", () => {
   beforeEach(() => dismissToast());
 
   afterEach(() => {

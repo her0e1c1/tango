@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createCard } from "@/test/factories";
 import { filterCardsByDeckId, filterTagsByDeckId, getCardContentValidationErrors, mustFindCardById } from "./rules";
 
-describe("IMPORT-02 getCardContentValidationErrors", () => {
+describe("DECK-IMPORT-02 getCardContentValidationErrors", () => {
   it("returns field errors from the Card content schema", () => {
     expect(getCardContentValidationErrors({ frontText: " ", backText: "\n", tags: [], uniqueKey: "\t" })).toEqual({
       frontText: { field: "frontText", reason: "required" },

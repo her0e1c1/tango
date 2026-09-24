@@ -5,7 +5,7 @@ vi.mock("@/shared/files", () => ({ downloadTextFile: mocks.download }));
 import { downloadDeckImportExample } from "./downloadDeckImportExample";
 import { parseCsv } from "../../lib/cardCsv";
 
-describe("Example downloads [IMPORT-06]", () => {
+describe("Example downloads [DECK-IMPORT-06]", () => {
   it.each([
     { id: "basic", count: 3, front: "apple", back: "りんご", tags: ["果物"] },
     { id: "math", count: 2, front: "半径 $r$ の円の面積は？", back: "$\\pi r^2$", tags: ["math"] },
