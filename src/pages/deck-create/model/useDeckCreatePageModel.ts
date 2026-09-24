@@ -38,7 +38,7 @@ export function useDeckCreatePageModel() {
     showToast({ messageKey: "deckForm.toast.created", messageParams: { name: target.name }, tone: "success" });
     setTarget(undefined);
     openCreatedDeck(target.deckId);
-  }, [createdDeck, target]);
+  }, [createdDeck, openCreatedDeck, target]);
 
   return {
     categories: CATEGORY,
