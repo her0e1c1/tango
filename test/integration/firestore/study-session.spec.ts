@@ -76,10 +76,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
   async function startRemote(): Promise<StudySession> {
     const previousId = getStudySession(deckId)?.sessionId;
     await startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
-    await waitForCloud(() => {
+    await vi.waitUntil(() => {
       const session = getStudySession(deckId);
-      expect(session).toBeDefined();
-      expect(previousId === undefined || session?.sessionId !== previousId).toBe(true);
+      return session !== undefined && (previousId === undefined || session.sessionId !== previousId);
     });
     const session = getStudySession(deckId);
     if (session === undefined) throw new Error("Expected a session");
