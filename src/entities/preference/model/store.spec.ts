@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
-import { defaultPreferences } from "./defaults";
 import { preferencesStore } from "./store";
 import { toggleViewMode } from "./actions/toggleViewMode";
 import { setDarkMode } from "./actions/setDarkMode";
@@ -12,6 +11,8 @@ import { toggleShowPlaybackControls } from "./actions/toggleShowPlaybackControls
 import { toggleShowSkip } from "./actions/toggleShowSkip";
 import { toggleShowSwipeButtonList } from "./actions/toggleShowSwipeButtonList";
 import { updatePreferences } from "./actions/updatePreferences";
+
+const defaultPreferences = preferencesStore.getInitialState().preferences;
 
 /** Synchronous storage contract used by preferences persistence scenarios. */
 type MemoryStorage = Omit<StateStorage, "getItem"> & {
