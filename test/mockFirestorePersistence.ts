@@ -14,7 +14,7 @@ vi.mock("@/entities/deck/api/firestore", async (original) => {
         remoteDecks: [...state.remoteDecks.filter((value) => value.id !== deck.id), deck],
       }));
     },
-    editOwnedDeck: async (uid: string, input: { id: string; url?: string | null }) => {
+    editDeck: async (uid: string, input: { id: string; url?: string | null }) => {
       if (!uid || deckStore.getState().remoteDecks.find((deck) => deck.id === input.id)?.uid !== uid)
         throw new Error("Deck owner does not match the authenticated user");
       await Promise.resolve();
@@ -26,7 +26,7 @@ vi.mock("@/entities/deck/api/firestore", async (original) => {
         ),
       }));
     },
-    deleteOwnedDeck: async (uid: string, id: string) => {
+    deleteDeck: async (uid: string, id: string) => {
       if (!uid || deckStore.getState().remoteDecks.find((deck) => deck.id === id)?.uid !== uid)
         throw new Error("Deck owner does not match the authenticated user");
       await Promise.resolve();

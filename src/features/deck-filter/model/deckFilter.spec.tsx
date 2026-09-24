@@ -7,9 +7,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { actAsync } from "@/test/act";
+import { replaceRemoteDecks } from "@/test/entityFixtures";
 
 import type { Deck } from "@/entities/deck";
-import { createDeck as createRemoteDeck } from "@/test/factories";
+import { createDeck as buildRemoteDeck } from "@/test/factories";
 
 import { DeckFilterForm } from "../ui/DeckFilterForm";
 import { useDeckFilterDraft } from "./useDeckFilterDraft";
@@ -37,6 +38,12 @@ vi.mock("@/entities/deck", async (importOriginal) => {
     },
   };
 });
+
+const createRemoteDeck = (...args: Parameters<typeof buildRemoteDeck>): Deck => {
+  const deck = buildRemoteDeck(...args);
+  replaceRemoteDecks([deck]);
+  return deck;
+};
 
 const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[]; scope?: DeckFilterScope }> = ({
   deck,

@@ -121,7 +121,7 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
-    expect(writeControls.writes.at(-1)?.uid).toBe("latest-user");
+    expect(writeControls.writes).toEqual([]);
   });
 
   it("disables every edit and exit control while saving", async () => {

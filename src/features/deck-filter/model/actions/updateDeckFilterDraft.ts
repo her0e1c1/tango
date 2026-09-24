@@ -1,4 +1,4 @@
-import { editDeck } from "@/entities/deck";
+import { editDeck, getDecks, mustFindDeckById } from "@/entities/deck";
 import { showToast } from "@/shared/ui/toast";
 import { areFiltersEqual } from "../rules";
 import { pendingFilters } from "../store";
@@ -19,6 +19,8 @@ export function updateDeckFilterDraft(
   // and changing any field also retries fields retained from a failed save.
   const pending = (queued?.pending ?? Promise.resolve()).then(async () => {
     try {
+      const deck = mustFindDeckById(getDecks(), deckId);
+      if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
       await editDeck(uid, scope === "card" ? { id: deckId, cardFilter: submitted } : { id: deckId, ...submitted });
       if (pendingFilters.get(key)?.pending === pending) pendingFilters.delete(key);
     } catch {

@@ -1,6 +1,6 @@
 import { getAuthUid } from "@/entities/auth";
 import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
-import { type DeckId, editDeck, readDeckTags, writeDeckEdit } from "@/entities/deck";
+import { type DeckId, editDeck, readDeckTags, getDecks, mustFindDeckById } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
 import { db, writeBatch } from "@/shared/firebase";
 import { showToast } from "@/shared/ui/toast";
@@ -26,23 +26,22 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, has
   const input = { ...values, id: deckId, url: values.url ?? null };
   const changes = store.getState().tagChanges;
   const save = async (): Promise<"completed" | "pending"> => {
+    const deck = mustFindDeckById(getDecks(), deckId);
+    if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
     if (changes.length === 0) {
       await editDeck(uid, input);
       return "completed";
     }
     const registered = await readDeckTags(uid, deckId);
     const cards = await readCardsForTagUpdate(uid, deckId);
-    const tags = [...new Set([...registered, ...cards.flatMap((card) => card.tags)])];
+    let tags = [...new Set([...registered, ...cards.flatMap((card) => card.tags)])];
     for (const { previous, name } of changes) {
-      if (previous !== undefined) {
-        const index = tags.indexOf(previous);
-        if (index < 0) throw new Error("Tag no longer exists");
-        tags.splice(index, 1);
-      }
+      if (previous !== undefined && !tags.includes(previous)) throw new Error("Tag no longer exists");
+      tags = tags.filter((tag) => tag !== previous);
       if (name !== undefined && !tags.includes(name)) tags.push(name);
     }
     const batch = writeBatch(db);
-    writeDeckEdit(batch, uid, input, tags);
+    await editDeck(uid, input, { batch, tags });
     const cardUpdates = writeCardTagChanges(batch, cards, changes);
     void batch.commit().catch(() => undefined);
     store.setState({ pendingTagSave: { deckId, name: input.name, tags, cards: cardUpdates } });

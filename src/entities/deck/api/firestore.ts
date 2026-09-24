@@ -17,22 +17,14 @@ import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
   authenticatedUidSchema,
   createDeckSchema,
-  deckEditSchema,
+  type deckEditSchema,
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
 import { replaceRemoteDecks } from "../model/actions/replaceRemoteDecks";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
-import { abandonStudySession } from "@/entities/study-session/@x/deck";
-import { findDeckById } from "../model/queries/findDeckById";
 
 const DECK_COLLECTION = "deck";
-
-// Parses an active remote Deck while omitting tombstoned documents.
-const readActiveRemoteDeck = (id: DeckId, value: unknown) => {
-  const document = parseDeckDocument(id, value);
-  return document.deletedAt === null ? toDeck(id, document) : undefined;
-};
 
 // Do not filter `deletedAt == null` in the Firestore query.
 // A remote tombstone would otherwise leave the query as a removed change backed by the previous matching document,
@@ -43,8 +35,8 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void, onR
     (snapshot) => {
       try {
         const decks = snapshot.docs.flatMap((document) => {
-          const deck = readActiveRemoteDeck(document.id, document.data());
-          return deck === undefined ? [] : [deck];
+          const deck = parseDeckDocument(document.id, document.data());
+          return deck.deletedAt === null ? [toDeck(document.id, deck)] : [];
         });
         replaceRemoteDecks(decks);
         onReady?.();
@@ -55,85 +47,51 @@ export const subscribeDecks = (uid: string, onError: (error: Error) => void, onR
     onError
   );
 
-// Writes a new Deck document with synchronized creation and update timestamps.
-const createDeckDocument = (uid: string, deck: z.infer<typeof createDeckSchema>["deck"]): Promise<void> => {
+export function createDeck(uid: string, deck: RemoteDeckCreateInput): Promise<void> {
+  const input = createDeckSchema.parse({ uid, deck });
   const createdAt = Date.now();
-  const document = toDeckDocument(uid, deck, createdAt);
-  const reference = doc(db, DECK_COLLECTION, deck.id);
+  const document = toDeckDocument(input.uid, input.deck, createdAt);
+  const reference = doc(db, DECK_COLLECTION, input.deck.id);
   void setDoc(reference, document).catch(() => undefined);
   return Promise.resolve();
-};
-
-// Validates the actor and owner-free command before creating an actor-owned Firestore document.
-export const createDeck = async (uid: string, deck: RemoteDeckCreateInput): Promise<void> => {
-  const input = createDeckSchema.parse({ uid, deck });
-  await createDeckDocument(input.uid, input.deck);
-};
-
-// Writes editable Deck fields and advances the update timestamp.
-const deckEditDocument = (deck: z.infer<typeof deckEditSchema>) =>
-  omitUndefined({
-    name: deck.name,
-    url: deck.url === null ? deleteField() : deck.url,
-    isPublic: deck.isPublic,
-    updatedAt: Date.now(),
-    selectedTags: deck.selectedTags,
-    tagAndFilter: deck.tagAndFilter,
-    cardFilter: deck.cardFilter,
-    category: deck.category,
-    convertToBr: deck.convertToBr,
-  });
-
-const updateDeckDocument = (deck: z.infer<typeof deckEditSchema>): Promise<void> => {
-  const document = deckEditDocument(deck);
-  const reference = doc(db, DECK_COLLECTION, deck.id);
-  void updateDoc(reference, document).catch(() => undefined);
-  return Promise.resolve();
-};
-
-// Validates an authenticated Deck edit before updating Firestore.
-export const editDeck = async (uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> => {
-  const input = editDeckSchema.parse({ uid, deck });
-  await updateDeckDocument(input.deck);
-};
-
-export function writeDeckEdit(batch: WriteBatch, uid: string, deck: z.input<typeof deckEditSchema>, tags: string[]) {
-  const input = editDeckSchema.parse({ uid, deck });
-  batch.update(doc(db, DECK_COLLECTION, input.deck.id), { ...deckEditDocument(input.deck), tags });
 }
 
-// Tombstones the parent; readers hide all of its child Cards.
-const deleteDeckDocuments = (deckId: string): Promise<void> => {
+export function editDeck(
+  uid: string,
+  deck: z.input<typeof deckEditSchema>,
+  batchEdit?: { batch: WriteBatch; tags: string[] }
+): Promise<void> {
+  const input = editDeckSchema.parse({ uid, deck });
+  const document = omitUndefined({
+    name: input.deck.name,
+    url: input.deck.url === null ? deleteField() : input.deck.url,
+    isPublic: input.deck.isPublic,
+    updatedAt: Date.now(),
+    selectedTags: input.deck.selectedTags,
+    tagAndFilter: input.deck.tagAndFilter,
+    cardFilter: input.deck.cardFilter,
+    category: input.deck.category,
+    convertToBr: input.deck.convertToBr,
+  });
+  const reference = doc(db, DECK_COLLECTION, input.deck.id);
+  if (batchEdit) {
+    // Tag edits share the caller's batch with Card renames so the change stays atomic.
+    batchEdit.batch.update(reference, { ...document, tags: batchEdit.tags });
+  } else {
+    void updateDoc(reference, document).catch(() => undefined);
+  }
+  return Promise.resolve();
+}
+
+export function deleteDeck(uid: string, deckId: DeckId): Promise<void> {
+  authenticatedUidSchema.parse(uid);
+  const id = deckIdSchema.parse(deckId);
   // A parent tombstone hides all children, including Cards not yet present in this device's cache.
   // This keeps deletion atomic and offline-capable for decks of any size.
-  const reference = doc(db, DECK_COLLECTION, deckId);
+  const reference = doc(db, DECK_COLLECTION, id);
   const deletedAt = Date.now();
   void updateDoc(reference, { deletedAt, updatedAt: deletedAt }).catch(() => undefined);
   return Promise.resolve();
-};
-
-// Validates Deck ownership before deleting its remote document graph.
-export const deleteDeck = async (uid: string, deckId: DeckId): Promise<void> => {
-  authenticatedUidSchema.parse(uid);
-  const id = deckIdSchema.parse(deckId);
-  await deleteDeckDocuments(id);
-};
-function requireOwnedDeck(uid: string, id: DeckId): void {
-  authenticatedUidSchema.parse(uid);
-  const deck = findDeckById(id);
-  if (deck === undefined) throw new Error(`Deck "${id}" was not found`);
-  if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
-}
-
-export async function editOwnedDeck(uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> {
-  requireOwnedDeck(uid, deck.id);
-  await editDeck(uid, deckEditSchema.parse(deck));
-}
-
-export async function deleteOwnedDeck(uid: string, id: DeckId): Promise<void> {
-  requireOwnedDeck(uid, id);
-  await deleteDeck(uid, id);
-  await abandonStudySession(id);
 }
 
 export async function readDeckTags(uid: string, deckId: string): Promise<string[]> {
