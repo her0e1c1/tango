@@ -148,5 +148,3 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
     expect(repository.decks).toHaveLength(1);
   });
 });
-
-vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => repository.cards }));

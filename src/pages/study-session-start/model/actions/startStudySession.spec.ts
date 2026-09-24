@@ -97,7 +97,3 @@ describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PE
     expect(getStudySession(deck.id)?.cardOrderIds).toEqual(["future"]);
   });
 });
-
-vi.mock("@/entities/card/model/queries/getCards", () => ({
-  getCards: () => mocks.cards ?? [createCard({ id: "card", deckId: "deck" })],
-}));

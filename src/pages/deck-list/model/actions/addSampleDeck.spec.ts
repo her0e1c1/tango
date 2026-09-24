@@ -95,5 +95,3 @@ describe("addSampleDeck [DECK-IMPORT-07]", () => {
     expect(repository.cards.every((card) => card.deckId === `${repository.uid}-sample-v1`)).toBe(true);
   });
 });
-
-vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => repository.cards }));

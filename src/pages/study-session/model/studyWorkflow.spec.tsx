@@ -579,6 +579,3 @@ vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
     },
   };
 });
-
-vi.mock("@/entities/card/model/queries/getCards", () => ({ getCards: () => mocks.cards }));
-vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => mocks.cards }));

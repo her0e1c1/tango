@@ -10,15 +10,17 @@ import {
   type WriteBatch,
 } from "firebase/firestore";
 import { db } from "@/shared/firebase";
-import { replaceRemoteStudySessions } from "../model/actions/replaceRemoteStudySessions";
 import { compareStudySessionCreation, isStudySessionPositionUnchanged } from "../model/rules";
-import { finishStudySessionLoading } from "../model/actions/finishStudySessionLoading";
-import { setStudySessionOwner } from "../model/actions/setStudySessionOwner";
 import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionWrite } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
 import { getAuthUid } from "@/entities/auth/@x/study-session";
-import { getStudySession } from "../model/queries/getStudySession";
+import {
+  finishStudySessionLoading,
+  getStudySession,
+  replaceRemoteStudySessions,
+  setStudySessionOwner,
+} from "../model/store";
 
 function createStudySession(session: StudySession, previous?: StudySession): Promise<void> {
   const value = studySessionSchema.parse(session);

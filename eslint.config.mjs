@@ -169,7 +169,7 @@ export default defineConfig(
   },
   // Queries may read stores, but cannot depend on state-changing actions. Type contracts remain legal.
   {
-    files: ["src/{pages,features,entities}/*/model/queries/**/*.{ts,tsx}"],
+    files: ["src/{pages,features}/*/model/queries/**/*.{ts,tsx}"],
     ignores: nonProductionFiles,
     rules: {
       "no-restricted-imports": ["error", {

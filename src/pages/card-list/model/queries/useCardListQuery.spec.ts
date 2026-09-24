@@ -176,5 +176,3 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
     expect(result.current.emptyReason).toBeUndefined();
   });
 });
-
-vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => repository.cards }));

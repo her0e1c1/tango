@@ -1,4 +1,3 @@
-export { getCards } from "./model/queries/getCards";
 export { subscribeCards } from "./api/firestore";
 export {
   createOwnedCard as createCard,
@@ -6,11 +5,8 @@ export {
   editOwnedCard as editCard,
   mutateCards,
 } from "./api/firestore";
-export { useCard } from "./model/queries/useCard";
-export { useCards } from "./model/queries/useCards";
-export { useCardsByDeckId } from "./model/queries/useCardsByDeckId";
 export { cardContentInputSchema } from "./model/schema";
-export { clearRemoteCards } from "./model/actions/clearRemoteCards";
+export { clearRemoteCards, getCards, useCard, useCards, useCardsByDeckId } from "./model/store";
 export type {
   Card,
   CardContentInput,

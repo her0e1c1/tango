@@ -276,5 +276,3 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     expect(toggleViewMode).toHaveBeenCalledOnce();
   });
 });
-
-vi.mock("@/entities/card/model/queries/useCards", () => ({ useCards: () => data.cards }));

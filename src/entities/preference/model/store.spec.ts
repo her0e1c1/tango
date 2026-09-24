@@ -1,16 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createJSONStorage, type StateStorage } from "zustand/middleware";
 
-import { preferencesStore } from "./store";
-import { toggleViewMode } from "./actions/toggleViewMode";
-import { setDarkMode } from "./actions/setDarkMode";
-import { toggleShowCardDetails } from "./actions/toggleShowCardDetails";
-import { toggleShowEditLink } from "./actions/toggleShowEditLink";
-import { toggleShowHelp } from "./actions/toggleShowHelp";
-import { toggleShowPlaybackControls } from "./actions/toggleShowPlaybackControls";
-import { toggleShowSkip } from "./actions/toggleShowSkip";
-import { toggleShowSwipeButtonList } from "./actions/toggleShowSwipeButtonList";
-import { updatePreferences } from "./actions/updatePreferences";
+import {
+  preferencesStore,
+  setDarkMode,
+  toggleShowCardDetails,
+  toggleShowEditLink,
+  toggleShowHelp,
+  toggleShowPlaybackControls,
+  toggleShowSkip,
+  toggleShowSwipeButtonList,
+  toggleViewMode,
+  updatePreferences,
+} from "./store";
 
 const defaultPreferences = preferencesStore.getInitialState().preferences;
 
