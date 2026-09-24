@@ -8,7 +8,12 @@ import { showToast } from "@/shared/ui/toast";
 import { deckEditPageStore as store } from "../store";
 
 export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, hasTagDraft: boolean): Promise<boolean> {
-  if (hasTagDraft || store.getState().deletionTarget !== undefined || store.getState().deletionId !== undefined)
+  if (
+    hasTagDraft ||
+    store.getState().pendingTagSave !== undefined ||
+    store.getState().deletionTarget !== undefined ||
+    store.getState().deletionId !== undefined
+  )
     return false;
   const pending = store.getState().submission;
   if (pending !== undefined) {
@@ -20,8 +25,11 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, has
   const uid = getAuthUid();
   const input = { ...values, id: deckId, url: values.url ?? null };
   const changes = store.getState().tagChanges;
-  const save = async () => {
-    if (changes.length === 0) return editDeck(uid, input);
+  const save = async (): Promise<"completed" | "pending"> => {
+    if (changes.length === 0) {
+      await editDeck(uid, input);
+      return "completed";
+    }
     const registered = await readDeckTags(uid, deckId);
     const cards = await readCardsForTagUpdate(uid, deckId);
     const tags = [...new Set([...registered, ...cards.flatMap((card) => card.tags)])];
@@ -35,11 +43,14 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields, has
     }
     const batch = writeBatch(db);
     writeDeckEdit(batch, uid, input, tags);
-    writeCardTagChanges(batch, cards, changes);
+    const cardUpdates = writeCardTagChanges(batch, cards, changes);
     void batch.commit().catch(() => undefined);
+    store.setState({ pendingTagSave: { deckId, name: input.name, tags, cards: cardUpdates } });
+    return "pending";
   };
   const submission = save()
-    .then(() => {
+    .then((result) => {
+      if (result === "pending") return false;
       // Shared Toast lifetime covers persistence that finishes after the editor unmounts.
       showToast({ messageKey: "deckForm.toast.updated", messageParams: { name: input.name }, tone: "success" });
       return true;
