@@ -2,8 +2,7 @@ import { getAuthUid } from "@/entities/auth";
 import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
 import { type DeckId, editDeck, readDeckTags, writeDeckEdit } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
-import { writeBatch } from "firebase/firestore";
-import { db } from "@/shared/firebase";
+import { db, writeBatch } from "@/shared/firebase";
 import { showToast } from "@/shared/ui/toast";
 
 import { deckEditPageStore as store } from "../store";
