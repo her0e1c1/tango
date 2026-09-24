@@ -159,7 +159,7 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
 
     await userEvent.click(start);
 
-    expect(screen.getByRole("heading", { name: "Study session" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "Study session" })).toBeVisible();
     expect(screen.getByText("Studying latest-first, latest-second")).toBeVisible();
   });
 
