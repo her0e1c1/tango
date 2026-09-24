@@ -26,9 +26,8 @@ import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
-import { replaceRemoteCards } from "../model/actions/replaceRemoteCards";
 import { fsrsStateSchema, instantSchema, type FsrsState } from "../model/fsrs";
-import { findCardById } from "../model/queries/findCardById";
+import { findCardById, replaceRemoteCards } from "../model/store";
 
 const CARD_COLLECTION = "card";
 

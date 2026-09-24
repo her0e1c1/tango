@@ -41,13 +41,13 @@ Every task that changes repository files must complete this workflow:
 
 ### Model organization
 
-- Across Pages, Features, and Entities, put state-changing operations and workflows in `model/actions/`, and read-only getters, selectors, and derived data in `model/queries/`. Queries must not update state or initiate persistence.
+- Across Pages and Features, put state-changing operations and workflows in `model/actions/`, and read-only getters, selectors, and derived data in `model/queries/`. Queries must not update state or initiate persistence.
 - Give each action its own file and ordinary named function. Keep implementations out of actions objects, action factories, and hooks.
 - Provide a Page model hook in `model/` to supply Page and Container values and bound action callbacks as named properties, not an actions object. Limit it to wiring stores, state hooks, queries, actions, and simple effects; no business rules, validation, derived-data calculations, state transitions, or async workflow sequencing. Awaiting an action result solely to perform guarded navigation is allowed.
 - State hooks may own state, refs, forms, and resource cleanup, but must not return business-action callbacks. Page models connect them to actions.
 - Keep purpose-named operation trigger hooks in `model/actions/`. Page models may connect entry, cleanup, and existing actions through simple effects without a dedicated lifecycle hook.
 - Pass only each action's required inputs and state handles, not an entire model. Preserve shared locks, save ordering, retry identities, and pending-work lifetimes when splitting operations.
-- Limit Entity stores to state, initialization, and persistence middleware. Keep schemas, rules, and defaults pure, and persistence implementations in `api/`.
+- Entity `model/store.ts` owns Entity state plus synchronous store reads, updates, and thin selector hooks. Keep schemas and rules pure, and persistence implementations in `api/`.
 - Export reusable operations through the slice public API. Within a slice, import modules directly; do not add internal barrel files.
 
 ### Forms

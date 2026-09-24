@@ -10,7 +10,7 @@ import {
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
-import { replaceRemoteDecks } from "../model/actions/replaceRemoteDecks";
+import { replaceRemoteDecks } from "../model/store";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";

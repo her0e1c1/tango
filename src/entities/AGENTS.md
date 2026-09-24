@@ -37,25 +37,18 @@
 
 ## `model/store.ts`
 
-- Define the global Entity store with Zustand state, initialization, and hydration.
+- Define the global Entity store, initialization, hydration, synchronous reads and updates, and thin React selector hooks.
 - Define store default values in `store.ts`.
-- Keep application read and update operations in `queries/` and `actions/`.
+- Keep store operations as ordinary named functions outside Zustand state; do not bundle them in an action object or factory.
+- Apply validation and preserve state invariants at the store operation boundary.
 - Do not perform external access, subscriptions, or asynchronous workflows.
 - Treat persistence middleware as an explicit exception for storage access, state hydration, and persistence subscriptions.
 
-## `model/actions/`
+## Other `model/` files
 
-- Define each synchronous Entity state operation in its own file with an individual named export.
-- Apply validation and preserve state invariants at the operation boundary.
-- Keep operations outside Zustand state; do not bundle them in an action object or factory.
-- Do not perform external access or asynchronous persistence workflows here.
-
-## `model/queries/`
-
-- Define each state getter or thin React selector hook in its own file.
-- Read, select, or derive Entity state without updating it or performing external access.
-- Keep pure domain calculations in `rules.ts`.
-- Import individual modules directly within the slice; do not add internal barrel files.
+- Add a separate model file only for a cohesive domain concept that does not belong in `schema.ts`, `types.ts`, `rules.ts`, or `store.ts`.
+- Name such files after the domain concept, such as `fsrs.ts`; do not create generic responsibility buckets such as `actions/`, `queries/`, `helpers.ts`, `utils.ts`, or `service.ts`.
+- Keep pure calculations independent of React, stores, browser APIs, persistence, and external systems.
 
 ## `api/`
 
@@ -84,4 +77,4 @@
 ## Restrictions
 
 - Outside `api/`, colocate tests as `*.spec.ts` or `*.spec.tsx` next to the file they cover.
-- Do not create implementation files outside the roles defined above.
+- Do not create `model/actions/` or `model/queries/` under Entities.

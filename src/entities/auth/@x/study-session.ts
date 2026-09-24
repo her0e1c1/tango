@@ -1,1 +1,1 @@
-export { getAuthUid } from "../model/queries/getAuthUid";
+export { getAuthUid } from "../model/store";
