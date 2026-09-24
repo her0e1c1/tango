@@ -21,8 +21,6 @@ export type Deck = {
   isPublic: boolean;
   /** Card tags used for study; an empty collection means that tags do not restrict Cards. */
   selectedTags: string[];
-  /** Registered tags persist even when no Card uses them. */
-  tags?: string[];
   /** Uses AND matching when true and OR matching when false for {@link selectedTags}. */
   tagAndFilter: boolean;
   /** Independent browsing conditions; an unset filter displays every Card. */

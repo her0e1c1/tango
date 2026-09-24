@@ -5,24 +5,10 @@ import {
   failNextFirestoreWrite,
   listDocuments,
   requireDocument,
-  setDocument,
   test,
 } from "./utils/fixtures";
 import { createAnonymousDeck, downloadDeckCards } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
-
-async function registerDeckTags(page: Page, deckId: string, tags: string[]) {
-  for (const tag of tags) {
-    await page.goto(`/deck/${deckId}/edit`);
-    const section = page.getByRole("region", { name: "Tag management" });
-    await section.getByRole("textbox", { name: "New tag name" }).fill(tag);
-    await section.getByRole("button", { name: "Add tag", exact: true }).click();
-    await expect(section.getByRole("listitem", { name: tag, exact: true })).toBeVisible();
-    await expect(section.getByRole("button", { name: "Add tag", exact: true })).toBeEnabled();
-    await page.getByRole("button", { name: "Save changes", exact: true }).click();
-    await expect(page).toHaveURL(/\/$/);
-  }
-}
 
 test.describe("card-resilience", () => {
   const openCardDeleteDialog = async (page: Page, frontText: string) => {
@@ -243,8 +229,15 @@ test.describe("card", () => {
 
   const toggleTag = async (page: Page, name: string) => {
     const checkbox = page.getByRole("checkbox", { name, exact: true });
-    // Keyboard selection remains usable above the Firebase emulator overlay on mobile.
-    await checkbox.press("Space");
+    if ((await checkbox.count()) === 0) {
+      await page.getByRole("button", { name: "Add tag", exact: true }).click();
+      await page
+        .getByRole("textbox", { name: /^Tag name / })
+        .last()
+        .fill(name);
+    } else {
+      await checkbox.locator("xpath=parent::label").click();
+    }
     return checkbox;
   };
 
@@ -261,7 +254,6 @@ test.describe("card", () => {
     };
     await fixture.apply(page);
     const before = await requireDocument("card", card.id);
-    await registerDeckTags(page, deck.id, ["chapter-1"]);
 
     await page.goto(`/deck/${deck.id}`);
     await page.getByRole("button", { name: `Open actions for ${card.frontText}` }).click();
@@ -277,7 +269,7 @@ test.describe("card", () => {
     await expect(page.getByRole("checkbox", { name: "python" })).toHaveCount(0);
     await toggleTag(page, "math");
     await toggleTag(page, "chapter-1");
-    await page.getByRole("button", { name: "Done" }).click();
+    await page.getByRole("button", { name: "Close tag editor" }).click();
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
     await expect(page.getByRole("status").filter({ hasText: `Updated card “${changed.frontText}”.` })).toBeVisible();
@@ -406,7 +398,6 @@ test.describe("card", () => {
     const viewportBounds = { x: 0, y: 0, ...viewport };
     await page.setViewportSize(viewport);
     await fixture.apply(page);
-    await setDocument("deck", deck.id, { ...deck, tags: ["chapter-1"] });
 
     await page.goto(`/deck/${deck.id}`);
     await page.getByRole("button", { name: "Actions", exact: true }).click();
@@ -435,7 +426,7 @@ test.describe("card", () => {
     expect(tagsBounds.y + tagsBounds.height).toBe(viewport.height);
     await expect(tagsDialog.getByRole("checkbox", { name: "python" })).toHaveCount(0);
     await toggleTag(page, "chapter-1");
-    await tagsDialog.getByRole("button", { name: "Done" }).click();
+    await tagsDialog.getByRole("button", { name: "Close tag editor" }).click();
     await page.getByRole("button", { name: "Create card" }).dblclick();
     await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
     await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
@@ -582,7 +573,6 @@ test.describe("card", () => {
     await fixture.apply(page);
     const local = await createAnonymousDeck(page);
     const { deck } = local;
-    await registerDeckTags(page, deck.id, ["math"]);
 
     await page.setViewportSize({ width: 375, height: 812 });
     const before = await downloadDeckCards(page, deck.name);
@@ -611,7 +601,7 @@ test.describe("card", () => {
     await input.fill("**Draft answer**\n\n$x^2$\n\n| A | B |\n| - | - |\n| 1 | 2 |");
     await page.getByRole("button", { name: "Edit tags" }).click();
     await toggleTag(page, "math");
-    await page.getByRole("button", { name: "Done" }).click();
+    await page.getByRole("button", { name: "Close tag editor" }).click();
     await trigger.click();
     await expect(preview.locator("strong")).toHaveText("Draft answer");
     await expect(preview.locator(".katex")).toBeVisible();
@@ -634,7 +624,6 @@ test.describe("card", () => {
     await fixture.apply(page);
     const local = await createAnonymousDeck(page);
     const { deck, first: card } = local;
-    await registerDeckTags(page, deck.id, ["typescript", "md", "python"]);
 
     const before = await downloadDeckCards(page, deck.name);
     await page.goto(`/card/${card.id}/edit`);
@@ -645,7 +634,7 @@ test.describe("card", () => {
     await input.fill("const answer = 42;");
     await page.getByRole("button", { name: "Edit tags" }).click();
     await toggleTag(page, "typescript");
-    await page.getByRole("button", { name: "Done" }).click();
+    await page.getByRole("button", { name: "Close tag editor" }).click();
     await page.getByRole("button", { name: "Preview answer" }).click();
     const preview = page.getByRole("region", { name: "Answer preview" });
     await expect(preview.locator("code")).toHaveAttribute("data-language", "typescript");
@@ -655,14 +644,14 @@ test.describe("card", () => {
     await page.getByRole("button", { name: "Edit tags" }).click();
     await toggleTag(page, "typescript");
     await toggleTag(page, "md");
-    await page.getByRole("button", { name: "Done" }).click();
+    await page.getByRole("button", { name: "Close tag editor" }).click();
     await input.fill("**Markdown source** $x^2$");
     await expect(preview.locator("code")).toHaveAttribute("data-language", "md");
     await expect(preview.locator(".katex")).toHaveCount(0);
     await page.getByRole("button", { name: "Edit tags" }).click();
     await toggleTag(page, "md");
     await toggleTag(page, "python");
-    await page.getByRole("button", { name: "Done" }).click();
+    await page.getByRole("button", { name: "Close tag editor" }).click();
     await input.fill("def draft():\n    return 42");
     await expect(preview.locator("code")).toHaveAttribute("data-language", "python");
     await expect(preview.locator(".hljs-title")).toHaveText("draft");

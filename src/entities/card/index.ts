@@ -31,4 +31,3 @@ export { FrontText } from "./ui/FrontText";
 export { calculateFsrsState, classifyFsrsState, getStudyRetrievability, studyRetentionTarget } from "./model/fsrsRules";
 export { fsrsStateSchema, type FsrsState } from "./model/fsrs";
 export { writeCardFsrs } from "./api/firestore";
-export { readCardsForTagUpdate, writeCardTagChanges } from "./api/firestore";

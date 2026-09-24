@@ -20,7 +20,13 @@ export const cardContentSchema = z.object({
 });
 
 // Creation assigns the identity and editing preserves it; neither asks for it as content input.
-export const cardContentInputSchema = cardContentSchema.omit({ uniqueKey: true });
+export const cardContentInputSchema = cardContentSchema.omit({ uniqueKey: true }).extend({
+  tags: z.array(z.string().refine(isNonBlank, { message: "required" })).superRefine((tags, context) => {
+    tags.forEach((tag, index) => {
+      if (tags.indexOf(tag) !== index) context.addIssue({ code: "custom", message: "duplicate", path: [index] });
+    });
+  }),
+});
 
 const cardCreateFieldsSchema = cardContentSchema.extend({
   id: cardIdSchema,

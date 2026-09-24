@@ -1,11 +1,19 @@
-import { useFormState } from "react-hook-form";
+import { useFormState, useWatch } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { type Card, useCard } from "@/entities/card";
+import { type Card, useCard, useCardsByDeckId } from "@/entities/card";
 import { useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
-import { useCardPreviewContent } from "@/features/card-form";
+import {
+  addCardTag,
+  renameCardTag,
+  removeCardTag,
+  selectCardTag,
+  useCardTagState,
+  getCardTagOptions,
+  useCardPreviewContent,
+} from "@/features/card-form";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes, useNavigationGuard } from "@/shared/router";
 import { showToast } from "@/shared/ui/toast";
@@ -54,13 +62,23 @@ export function useCardEditPageModel(card: Card) {
       navigate(cardListPath, { replace: true })
     );
   }, [card.backText, card.frontText, card.tags, cardListPath, guard, navigate, pending]);
+  const tagValues = useWatch({ control: form.control, name: "tags" });
+  const { tagRowIds, setTagRowIds } = useCardTagState(form.getValues("tags"));
+  const { tags: availableTags } = useCardsByDeckId(snapshot.deckId);
   const preview = useCardPreviewContent(form.control, deck?.category ?? "", preferences.appearance.darkMode);
 
   return {
     form,
     preview,
     cardInfo: getCardEditInfo(snapshot),
-    categories: deck?.tags ?? [],
+    availableTags,
+    tagRowIds,
+    tagOptions: getCardTagOptions(availableTags, tagValues),
+    onAddTag: () => addCardTag("", form.getValues, form.setValue, setTagRowIds),
+    onRenameTag: (index: number, name: string) => renameCardTag(index, name, form.getValues, form.setValue),
+    onRemoveTag: (index: number) => removeCardTag(index, form.getValues, form.setValue, setTagRowIds),
+    onSelectTag: (tag: string, selected: boolean) =>
+      selectCardTag({ name: tag, selected }, form.getValues, form.setValue, setTagRowIds),
     navigationGuard: guard.element,
     onCancel: () => void navigate(-1),
     pending: pending !== undefined,

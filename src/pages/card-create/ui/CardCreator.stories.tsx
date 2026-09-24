@@ -1,3 +1,4 @@
+import { useCardTagForm } from "@/test/useCardTagForm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cardContentInputSchema } from "@/entities/card";
 import { createCard as persistCard } from "@/entities/card";
@@ -34,7 +35,8 @@ const CardCreatorStory = ({ isSaving, onCancel, onSubmit }: CardCreatorStoryProp
 
   return (
     <CardCreator
-      categories={CATEGORY}
+      {...useCardTagForm(form)}
+      availableTags={CATEGORY}
       preview={<BackText {...preview} />}
       deckName="Spanish vocabulary"
       form={form}
@@ -87,7 +89,8 @@ function SavingCreatorExample() {
   return (
     <>
       <CardCreator
-        categories={CATEGORY}
+        {...useCardTagForm(form)}
+        availableTags={CATEGORY}
         preview={<BackText {...preview} />}
         deckName={creationDeck.name}
         form={form}

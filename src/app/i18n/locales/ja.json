@@ -1,27 +1,4 @@
 {
-  "deckTags": {
-    "title": "タグ管理",
-    "description": "このデッキのカードで使うタグ",
-    "newName": "新しいタグ名",
-    "add": "タグを追加",
-    "renameLabel": "{{tag}}の名前を変更",
-    "renameName": "変更後の名前",
-    "save": "名前を保存",
-    "cancel": "キャンセル",
-    "delete": "タグを削除",
-    "deleteLabel": "{{tag}}を削除",
-    "usage_one": "{{count, number}}枚のカードで使用",
-    "usage_other": "{{count, number}}枚のカードで使用",
-    "saveHint": "タグの変更は Deck の「変更を保存」でまとめて保存されます。",
-    "unavailable": "このタグは一覧から削除されました。キャンセルすると他のタグを操作できます。",
-    "empty": "タグはまだありません。",
-    "required": "タグ名を入力してください。",
-    "duplicate": "この Deck には同じ名前のタグが既にあります。",
-    "deleteTitle": "タグを削除しますか？",
-    "deleteDescription": "この Deck のすべての Card からもタグを外します。Card 自体と他のタグは残ります。",
-    "saved": "タグの変更を保存しました。",
-    "failed": "タグの変更を保存できませんでした。再試行してください。"
-  },
   "memory": {
     "title": "記憶状態",
     "empty": "FSRSによる記憶状態はまだありません。評価を伴う学習後に表示されます。",
@@ -336,8 +313,16 @@
       "title": "タグ",
       "description": "フィルターや学習セッション用にカードを分類します。",
       "edit": "タグを編集",
+      "close": "タグ編集を閉じる",
       "select": "タグを選択",
-      "empty": "未選択"
+      "empty": "未選択",
+      "name": "タグ名 {{count}}",
+      "remove": "タグ {{count}} を外す",
+      "removeAction": "外す",
+      "add": "タグを追加",
+      "required": "タグ名を入力してください。",
+      "duplicate": "タグ名が重複しています。",
+      "invalid": "保存する前にタグ名を修正してください。"
     },
     "information": {
       "title": "カード情報",

@@ -11,20 +11,26 @@ import { useCardCreatePageModel, useCardCreateRouteModel } from "../model/useCar
 import { CardCreator } from "./CardCreator";
 
 const CardCreateContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const { form, preview, categories, navigationGuard, onCancel, onSubmit, pending } = useCardCreatePageModel(deck.id);
+  const model = useCardCreatePageModel(deck.id);
 
   return (
     <AppLayout showHeader>
       <CardCreator
-        preview={<BackText {...preview} />}
-        categories={categories}
+        tagRowIds={model.tagRowIds}
+        tagOptions={model.tagOptions}
+        onAddTag={model.onAddTag}
+        onRenameTag={model.onRenameTag}
+        onRemoveTag={model.onRemoveTag}
+        onSelectTag={model.onSelectTag}
+        preview={<BackText {...model.preview} />}
+        availableTags={model.availableTags}
         deckName={deck.name}
-        form={form}
-        pending={pending}
-        onCancel={onCancel}
-        onSubmit={onSubmit}
+        form={model.form}
+        pending={model.pending}
+        onCancel={model.onCancel}
+        onSubmit={model.onSubmit}
       />
-      {navigationGuard}
+      {model.navigationGuard}
     </AppLayout>
   );
 };

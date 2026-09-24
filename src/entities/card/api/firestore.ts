@@ -21,7 +21,6 @@ import {
   updateDoc,
   where,
   type WriteBatch,
-  getDocsFromCache,
 } from "firebase/firestore";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
@@ -159,45 +158,4 @@ export async function mutateCards(uid: string, mutations: CardMutation[]): Promi
 export async function deleteOwnedCard(uid: string, id: CardId): Promise<void> {
   requireOwnedCard(uid, id);
   await deleteCard(uid, { id, uid });
-}
-
-/** Read all cached active Cards, including earlier writes still waiting to sync. */
-export async function readCardsForTagUpdate(uid: string, deckId: string) {
-  if (!(uid && deckId)) throw new Error("A user and Deck are required");
-  const snapshot = await getDocsFromCache(
-    query(
-      collection(db, "card"),
-      where("uid", "==", uid),
-      where("deckId", "==", deckId),
-      where("deletedAt", "==", null)
-    )
-  );
-  return snapshot.docs.map((document) => {
-    const card = parseCardDocument(document.id, document.data());
-    if (card.uid !== uid || card.deckId !== deckId) throw new Error("Card ownership changed");
-    return { reference: document.ref, tags: card.tags };
-  });
-}
-
-export function writeCardTagChanges(
-  batch: WriteBatch,
-  cards: Awaited<ReturnType<typeof readCardsForTagUpdate>>,
-  changes: { previous: string | undefined; name: string | undefined }[]
-) {
-  const updates: { id: string; tags: string[] }[] = [];
-  for (const card of cards) {
-    const tags = [
-      ...new Set(
-        card.tags.flatMap((original) => {
-          let tag: string | undefined = original;
-          for (const change of changes) if (change.previous !== undefined && tag === change.previous) tag = change.name;
-          return tag === undefined ? [] : [tag];
-        })
-      ),
-    ];
-    if (tags.length === card.tags.length && tags.every((tag, index) => tag === card.tags[index])) continue;
-    batch.update(card.reference, { tags, updatedAt: Date.now() });
-    updates.push({ id: card.reference.id, tags });
-  }
-  return updates;
 }

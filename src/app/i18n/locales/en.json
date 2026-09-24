@@ -1,27 +1,4 @@
 {
-  "deckTags": {
-    "title": "Tag management",
-    "description": "Tags for cards in this deck.",
-    "newName": "New tag name",
-    "add": "Add tag",
-    "renameLabel": "Rename {{tag}}",
-    "renameName": "New name",
-    "save": "Save name",
-    "cancel": "Cancel",
-    "delete": "Delete tag",
-    "deleteLabel": "Delete tag {{tag}}",
-    "usage_one": "Used by {{count, number}} card",
-    "usage_other": "Used by {{count, number}} cards",
-    "saveHint": "Tag changes are saved with the deck when you select Save changes.",
-    "unavailable": "This tag is no longer available. Cancel to continue managing tags.",
-    "empty": "No tags yet.",
-    "required": "A tag name is required.",
-    "duplicate": "A tag with this name already exists in this deck.",
-    "deleteTitle": "Delete tag?",
-    "deleteDescription": "This tag will also be removed from all cards in this deck. The cards and their other tags will remain.",
-    "saved": "Tag changes saved.",
-    "failed": "Tag changes could not be saved. Please try again."
-  },
   "memory": {
     "title": "Memory state",
     "empty": "No FSRS memory state yet. It will appear after a rated study answer.",
@@ -336,8 +313,16 @@
       "title": "Tags",
       "description": "Organize this card for filtering and study sessions.",
       "edit": "Edit tags",
+      "close": "Close tag editor",
       "select": "Select tags",
-      "empty": "No tags"
+      "empty": "No tags",
+      "name": "Tag name {{count}}",
+      "remove": "Remove tag {{count}}",
+      "removeAction": "Remove",
+      "add": "Add tag",
+      "required": "Tag name is required.",
+      "duplicate": "Tag names must be unique.",
+      "invalid": "Fix the tag names before saving."
     },
     "information": {
       "title": "Card information",

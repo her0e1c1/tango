@@ -12,4 +12,3 @@ export type {
   DeckId,
   RemoteDeckCreateInput,
 } from "./model/types";
-export { readDeckTags } from "./api/firestore";

@@ -11,8 +11,6 @@ import { RouteNotFound } from "@/widgets/route-not-found";
 
 import { useDeckEditPageModel, useDeckEditRouteModel } from "../model/useDeckEditPageModel";
 
-import { TagManagement } from "./TagManagement";
-
 const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
   const { t } = useTranslation();
   const model = useDeckEditPageModel(deck);
@@ -43,23 +41,6 @@ const DeckEditContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
         onSubmit={model.onSubmit}
         afterForm={
           <>
-            <TagManagement
-              tags={model.tags}
-              usageCounts={model.usageCounts}
-              addForm={model.addTagForm}
-              renameForm={model.renameTagForm}
-              editingTag={model.editingTag}
-              error={model.tagError}
-              disabled={model.tagDisabled}
-              deletion={model.tagDeletion}
-              onAdd={model.onAddTag}
-              onRename={model.onRenameTag}
-              onEdit={model.onEditTag}
-              onCancelEdit={model.onCancelTagEdit}
-              onDelete={model.onRequestTagDeletion}
-              onCancelDeletion={model.onCancelTagDeletion}
-              onConfirmDeletion={model.onConfirmTagDeletion}
-            />
             <section
               aria-labelledby="delete-deck-heading"
               className="mt-section-gap rounded-surface border border-danger p-4 md:p-5"

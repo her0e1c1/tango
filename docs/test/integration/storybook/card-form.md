@@ -39,6 +39,8 @@ CardFields / CardCreator / CardEditor、実際の React Hook Form、プレビュ
 | STORYBOOK-CARD-FORM-21 | interaction | 正常系 | [外部更新で編集値を上書きしない](#storybook-card-form-21) |
 | STORYBOOK-CARD-FORM-22 | interaction | 異常系 | [両面が不正なら表面から修正する](#storybook-card-form-22) |
 | STORYBOOK-CARD-FORM-23 | interaction | 異常系 | [編集の保存失敗後に再送信する](#storybook-card-form-23) |
+| STORYBOOK-CARD-FORM-24 | interaction | 正常系 | [確認なしのタグ編集を下書きに即時反映する](#storybook-card-form-24) |
+| STORYBOOK-CARD-FORM-25 | interaction | 異常系 | [空白と重複したタグ名の送信を防ぐ](#storybook-card-form-25) |
 
 <a id="storybook-card-form-01"></a>
 
@@ -174,7 +176,7 @@ Given:
 
 When:
 
-- custom を解除・再選択し、math を追加する。Done で閉じて再度開き、Escape で閉じて Save を押す。
+- custom を解除・再選択し、math を追加する。Close tag editor で閉じて再度開き、Escape で閉じて Save を押す。
 
 Then:
 
@@ -501,3 +503,43 @@ When:
 Then:
 
 - Unable to save changes. Try again. と下書きを保持する。再試行成功時に保存完了 callback を通知する。再マウント後の永続化は対象外である。
+
+<a id="storybook-card-form-24"></a>
+
+### STORYBOOK-CARD-FORM-24 確認なしのタグ編集を下書きに即時反映する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 本文と二つのタグを持つ編集フォームを開いている。
+
+When:
+
+- タグ名を入力し、別のタグを外し、新しいタグを入力して、選択画面を開き直してから Card を送信する。
+
+Then:
+
+- 入力中にフォーカスを失わず、確認・OK 操作なしにタグと要約が更新される。送信前に submit callback は通知されず、送信時に最新の本文とタグを通知する。
+
+<a id="storybook-card-form-25"></a>
+
+### STORYBOOK-CARD-FORM-25 空白と重複したタグ名の送信を防ぐ
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- 本文と二つのタグを持つフォームで、新しいタグ行を追加する。
+
+When:
+
+- 空白のまま、次に既存と同じタグ名で送信を試み、有効な名前へ修正して送信する。
+
+Then:
+
+- 空名・重複のエラーが該当入力欄に関連付き、不正な値は submit callback に渡されない。修正すると確認画面なしに送信できる。

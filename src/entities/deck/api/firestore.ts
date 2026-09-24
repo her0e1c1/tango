@@ -1,17 +1,6 @@
 import type { z } from "zod";
 import type { DeckId, RemoteDeckCreateInput } from "../model/types";
-import {
-  collection,
-  deleteField,
-  doc,
-  onSnapshot,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-  getDocFromCache,
-  type WriteBatch,
-} from "firebase/firestore";
+import { collection, deleteField, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
@@ -56,11 +45,7 @@ export function createDeck(uid: string, deck: RemoteDeckCreateInput): Promise<vo
   return Promise.resolve();
 }
 
-export function editDeck(
-  uid: string,
-  deck: z.input<typeof deckEditSchema>,
-  batchEdit?: { batch: WriteBatch; tags: string[] }
-): Promise<void> {
+export function editDeck(uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> {
   const input = editDeckSchema.parse({ uid, deck });
   const document = omitUndefined({
     name: input.deck.name,
@@ -74,12 +59,7 @@ export function editDeck(
     convertToBr: input.deck.convertToBr,
   });
   const reference = doc(db, DECK_COLLECTION, input.deck.id);
-  if (batchEdit) {
-    // Tag edits share the caller's batch with Card renames so the change stays atomic.
-    batchEdit.batch.update(reference, { ...document, tags: batchEdit.tags });
-  } else {
-    void updateDoc(reference, document).catch(() => undefined);
-  }
+  void updateDoc(reference, document).catch(() => undefined);
   return Promise.resolve();
 }
 
@@ -92,13 +72,4 @@ export function deleteDeck(uid: string, deckId: DeckId): Promise<void> {
   const deletedAt = Date.now();
   void updateDoc(reference, { deletedAt, updatedAt: deletedAt }).catch(() => undefined);
   return Promise.resolve();
-}
-
-export async function readDeckTags(uid: string, deckId: string): Promise<string[]> {
-  authenticatedUidSchema.parse(uid);
-  deckIdSchema.parse(deckId);
-  const snapshot = await getDocFromCache(doc(db, "deck", deckId));
-  const deck = parseDeckDocument(deckId, snapshot.data());
-  if (deck.uid !== uid || deck.deletedAt !== null) throw new Error("Deck is unavailable");
-  return deck.tags ?? [];
 }

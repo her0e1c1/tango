@@ -1,4 +1,5 @@
 import "@/test/mockFirestorePersistence";
+import { useCardTagForm } from "@/test/useCardTagForm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -46,7 +47,8 @@ const CardCreatorHarness = () => {
   return (
     <>
       <CardCreator
-        categories={CATEGORY}
+        {...useCardTagForm(form)}
+        availableTags={CATEGORY}
         preview={<BackText {...preview} />}
         deckName={deck.name}
         form={form}

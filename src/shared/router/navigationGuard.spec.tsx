@@ -146,7 +146,7 @@ describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigation
   });
 });
 
-describe("DECK-TAG-MANAGEMENT-03 pending navigation", () => {
+describe("CARD-MANAGEMENT-13 pending navigation", () => {
   it("keeps the route mounted until saving finishes even when discard is requested", async () => {
     const PendingContext = React.createContext(true);
     const PendingRoute = () => <GuardedRoute pending={React.useContext(PendingContext)} />;

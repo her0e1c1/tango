@@ -16,8 +16,14 @@ const CardEditContainer: React.FC<{ card: Card }> = ({ card }) => {
     <AppLayout showHeader>
       {model.navigationGuard}
       <CardEditor
+        tagRowIds={model.tagRowIds}
+        tagOptions={model.tagOptions}
+        onAddTag={model.onAddTag}
+        onRenameTag={model.onRenameTag}
+        onRemoveTag={model.onRemoveTag}
+        onSelectTag={model.onSelectTag}
         cardInfo={model.cardInfo}
-        categories={model.categories}
+        availableTags={model.availableTags}
         preview={<BackText {...model.preview} />}
         form={model.form}
         pending={model.pending}

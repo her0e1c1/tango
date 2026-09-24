@@ -9,7 +9,13 @@ import { Button } from "@/shared/ui/button";
 
 export interface CardEditorProps {
   cardInfo: { uniqueKey: string; id: CardId; createdAt?: number };
-  categories: readonly string[];
+  availableTags: readonly string[];
+  tagRowIds: readonly string[];
+  tagOptions: readonly string[];
+  onAddTag: () => void;
+  onRenameTag: (index: number, name: string) => void;
+  onRemoveTag: (index: number) => void;
+  onSelectTag: (tag: string, selected: boolean) => void;
   preview: React.ReactNode;
   form: UseFormReturn<CardFormFields>;
   pending?: boolean;
@@ -21,7 +27,13 @@ const formatDate = (timestamp: number, locale: string): string => new Date(times
 
 export const CardEditor: React.FC<CardEditorProps> = ({
   cardInfo,
-  categories,
+  availableTags,
+  tagRowIds,
+  tagOptions,
+  onAddTag,
+  onRenameTag,
+  onRemoveTag,
+  onSelectTag,
   preview,
   form,
   pending = false,
@@ -49,7 +61,17 @@ export const CardEditor: React.FC<CardEditorProps> = ({
       </header>
       <form className="w-full space-y-4" onSubmit={(event) => void onSubmit(event)}>
         <fieldset className="contents" disabled={isSaving}>
-          <CardFields categories={categories} preview={preview} form={form} />
+          <CardFields
+            tagRowIds={tagRowIds}
+            tagOptions={tagOptions}
+            onAddTag={onAddTag}
+            onRenameTag={onRenameTag}
+            onRemoveTag={onRemoveTag}
+            onSelectTag={onSelectTag}
+            availableTags={availableTags}
+            preview={preview}
+            form={form}
+          />
           <details className="border-t border-border text-caption">
             <summary className="flex min-h-touch cursor-pointer items-center font-semibold text-ink">
               {t("cardForm.information.title")}

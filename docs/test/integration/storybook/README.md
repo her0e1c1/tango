@@ -83,6 +83,8 @@
 | STORYBOOK-CARD-FORM-21 | interaction | 正常系 | [外部更新で編集値を上書きしない](./card-form.md#storybook-card-form-21) |
 | STORYBOOK-CARD-FORM-22 | interaction | 異常系 | [両面が不正なら表面から修正する](./card-form.md#storybook-card-form-22) |
 | STORYBOOK-CARD-FORM-23 | interaction | 異常系 | [編集の保存失敗後に再送信する](./card-form.md#storybook-card-form-23) |
+| STORYBOOK-CARD-FORM-24 | interaction | 正常系 | [確認なしのタグ編集を下書きに即時反映する](./card-form.md#storybook-card-form-24) |
+| STORYBOOK-CARD-FORM-25 | interaction | 異常系 | [空白と重複したタグ名の送信を防ぐ](./card-form.md#storybook-card-form-25) |
 | STORYBOOK-DECK-FILTER-01 | interaction | 正常系 | [選択タグをクリアする](./deck-filter.md#storybook-deck-filter-01) |
 | STORYBOOK-DECK-FILTER-02 | interaction | 正常系 | [折りたたまれたタグを表示する](./deck-filter.md#storybook-deck-filter-02) |
 | STORYBOOK-DECK-FILTER-03 | interaction | 正常系 | [タグ選択を通知する](./deck-filter.md#storybook-deck-filter-03) |

@@ -10,7 +10,7 @@ import "@testing-library/jest-dom/vitest";
 
 import { editCard, getCards, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
-import { replaceRemoteDecks } from "@/test/entityFixtures";
+import { replaceRemoteCards, replaceRemoteDecks } from "@/test/entityFixtures";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createCard as createRemoteCard, createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
@@ -87,6 +87,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
   };
 
   beforeEach(async () => {
+    replaceRemoteCards([]);
     dismissToast();
     vi.mocked(editCard).mockClear();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
@@ -112,10 +113,11 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
 
-  it("CARD-MANAGEMENT-01 saves Deck tag selections while preserving existing Card tags", async () => {
-    replaceRemoteDecks([
-      createLocalDeck({ id: deckId, tags: ["chapter-1", "exam"] }),
-      createLocalDeck({ id: "other-deck", tags: ["other-only"] }),
+  it("CARD-MANAGEMENT-01 saves same-Deck Card tag selections while preserving existing Card tags", async () => {
+    replaceRemoteDecks([createLocalDeck({ id: deckId }), createLocalDeck({ id: "other-deck" })]);
+    await mutateCards("user-id", [
+      { kind: "create", card: createLocalCard({ id: "source", deckId, tags: ["chapter-1", "exam"] }) },
+      { kind: "create", card: createLocalCard({ id: "other", deckId: "other-deck", tags: ["other-only"] }) },
     ]);
     await editCard("user-id", { id: cardId, tags: ["legacy"] });
     renderPage();
@@ -128,18 +130,18 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await userEvent.click(screen.getByRole("checkbox", { name: "legacy" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "legacy" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "exam" }));
-    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close tag editor" }));
     await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
     expect(screen.getByRole("checkbox", { name: "exam" })).toBeChecked();
-    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close tag editor" }));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
     expect(getCards().find((card) => card.id === cardId)?.tags).toEqual(["legacy", "exam"]);
   });
 
-  it.each([undefined, []])("CARD-MANAGEMENT-01 retains existing Card tags when Deck tags are %s", async (tags) => {
-    replaceRemoteDecks([createLocalDeck({ id: deckId, ...(tags ? { tags } : {}) })]);
+  it("CARD-MANAGEMENT-01 retains existing tags when no other Card supplies candidates", async () => {
+    replaceRemoteDecks([createLocalDeck({ id: deckId })]);
     await editCard("user-id", { id: cardId, tags: ["legacy"] });
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));

@@ -1,3 +1,4 @@
+import { useCardTagForm } from "@/test/useCardTagForm";
 import { useState } from "react";
 import { useCardPreviewContent } from "../model/queries/useCardPreviewContent";
 import type { Meta, StoryObj } from "@storybook/react-vite";
@@ -66,7 +67,7 @@ const CardFieldsStory = ({
           Toggle theme
         </button>
       )}
-      <CardFields categories={CATEGORY} preview={<BackText {...preview} />} form={form} />
+      <CardFields {...useCardTagForm(form)} availableTags={CATEGORY} preview={<BackText {...preview} />} form={form} />
       <button type="submit">Save</button>
     </form>
   );
@@ -107,7 +108,7 @@ export const Interaction: Story = {
       await expect(firstTag).not.toBeChecked();
       await userEvent.click(firstTag);
       await expect(firstTag).toBeChecked();
-      await userEvent.click(canvas.getByRole("button", { name: "Done" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Close tag editor" }));
     });
   },
 };
@@ -250,7 +251,7 @@ export const CustomTagSubmission: Story = {
       await expect(custom).not.toBeChecked();
       await userEvent.click(custom);
       await userEvent.click(canvas.getByRole("checkbox", { name: "math" }));
-      await userEvent.click(canvas.getByRole("button", { name: "Done" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Close tag editor" }));
       await userEvent.click(editTags);
       await expect(canvas.getByRole("checkbox", { name: "math" })).toBeChecked();
       await userEvent.keyboard("{Escape}");
@@ -417,13 +418,81 @@ export const PreviewTagChanges: Story = {
       await expect(preview.querySelector("code")).toHaveAttribute("data-language", "python");
       await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
       await userEvent.click(canvas.getByRole("checkbox", { name: "python" }));
-      await userEvent.click(canvas.getByRole("button", { name: "Done" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Close tag editor" }));
       await expect(within(preview).getByText("Draft").tagName).toBe("STRONG");
       await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
       await userEvent.click(canvas.getByRole("checkbox", { name: "raw" }));
-      await userEvent.click(canvas.getByRole("button", { name: "Done" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Close tag editor" }));
       await expect(preview).toHaveTextContent("**Draft**");
       await expect(preview.querySelector("strong")).toBeNull();
+    });
+  },
+};
+
+export const DirectTagEditing: Story = {
+  args: { card: { ...fixture.card.default, frontText: "Front", backText: "Back", tags: ["language", "custom"] } },
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-FORM-24 Edit tag drafts without confirmation", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
+      const name = canvas.getByRole("textbox", { name: "Tag name 1" });
+      await userEvent.clear(name);
+      await userEvent.type(name, "renamed");
+      await expect(name).toHaveFocus();
+      await expect(name).toHaveValue("renamed");
+      await userEvent.click(canvas.getByRole("button", { name: "Remove tag 2" }));
+      await expect(canvas.queryByRole("textbox", { name: "Tag name 2" })).not.toBeInTheDocument();
+      await userEvent.click(canvas.getByRole("button", { name: "Add tag" }));
+      await userEvent.type(canvas.getByRole("textbox", { name: "Tag name 2" }), "new");
+      await expect(canvas.queryByRole("alertdialog")).not.toBeInTheDocument();
+      await expect(canvas.queryByRole("button", { name: /^(Done|OK|Confirm)$/ })).not.toBeInTheDocument();
+      await expect(args.onSubmit).not.toHaveBeenCalled();
+      await userEvent.click(canvas.getByRole("button", { name: "Close tag editor" }));
+      await expect(canvas.getByRole("button", { name: "Edit tags" })).toHaveAccessibleDescription("renamed, new");
+      await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
+      await expect(canvas.getByRole("textbox", { name: "Tag name 1" })).toHaveValue("renamed");
+      await userEvent.click(canvas.getByRole("button", { name: "Close tag editor" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Save" }));
+      await expect(args.onSubmit).toHaveBeenCalledWith({
+        frontText: "Front",
+        backText: "Back",
+        tags: ["renamed", "new"],
+      });
+    });
+  },
+};
+
+export const InvalidTagNames: Story = {
+  args: { card: { ...fixture.card.default, frontText: "Front", backText: "Back", tags: ["language", "custom"] } },
+  play: async ({ args, canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-FORM-25 Reject blank and duplicate tag names until corrected", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Add tag" }));
+      const name = canvas.getByRole("textbox", { name: "Tag name 3" });
+      await userEvent.type(name, " ");
+      await expect(name).toHaveAccessibleDescription("Tag name is required.");
+      await userEvent.click(canvas.getByRole("button", { name: "Close tag editor" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Save" }));
+      await expect(args.onSubmit).not.toHaveBeenCalled();
+      await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
+      const reopened = canvas.getByRole("textbox", { name: "Tag name 3" });
+      await userEvent.clear(reopened);
+      await userEvent.type(reopened, "custom");
+      await expect(reopened).toHaveAccessibleDescription("Tag names must be unique.");
+      await userEvent.click(canvas.getByRole("button", { name: "Close tag editor" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Save" }));
+      await expect(args.onSubmit).not.toHaveBeenCalled();
+      await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
+      const corrected = canvas.getByRole("textbox", { name: "Tag name 3" });
+      await userEvent.clear(corrected);
+      await userEvent.type(corrected, "new");
+      await expect(canvas.queryByRole("alert")).not.toBeInTheDocument();
+      await userEvent.click(canvas.getByRole("button", { name: "Close tag editor" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Save" }));
+      await expect(args.onSubmit).toHaveBeenCalledWith({
+        frontText: "Front",
+        backText: "Back",
+        tags: ["language", "custom", "new"],
+      });
     });
   },
 };
