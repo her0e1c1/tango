@@ -4,7 +4,6 @@ import { showToast } from "@/shared/ui/toast";
 import { saveStudyOperation } from "./saveStudyOperation";
 import { studySessionPageStore } from "../store";
 import type { StudyOperation } from "../studyOperation";
-import { showStudyResult } from "./showStudyResult";
 
 export function executeStudyOperation(operation: StudyOperation): void {
   const { owner, isSaving } = studySessionPageStore.getState();
@@ -18,12 +17,18 @@ export function executeStudyOperation(operation: StudyOperation): void {
     if (getAuthUid() !== operation.uid || studySessionPageStore.getState().owner !== owner) return;
     const latest = getStudySession(operation.deckId);
     if (latest !== undefined && latest.sessionId !== operation.sessionId) return;
-    // The batch is submitted here; persisted Entity state continues to arrive through subscriptions.
-    showStudyResult(result.endReason === "completed", operation.cardCount, operation.direction);
+    studySessionPageStore.setState({
+      pendingResult: {
+        sessionId: operation.sessionId,
+        currentIndex: result.session.currentIndex,
+        completed: result.endReason === "completed",
+        cardCount: operation.cardCount,
+        direction: operation.direction,
+      },
+    });
   } catch {
+    studySessionPageStore.setState({ isSaving: false, pendingResult: undefined });
     if (studySessionPageStore.getState().owner === owner && getAuthUid() === operation.uid)
       showToast({ messageKey: "studySession.answerSaveFailure", tone: "error" });
-  } finally {
-    studySessionPageStore.setState({ isSaving: false });
   }
 }
