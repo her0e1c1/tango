@@ -29,11 +29,6 @@
 - Do not split identical shapes into boundary-specific aliases.
 - Use Zod inference directly when a schema already defines the type and a separate name adds no meaning.
 
-## `model/defaults.ts`
-
-- Define Entity default values, initial values, and pure default factories.
-- Keep defaults independent from stores and external systems.
-
 ## `model/rules.ts`
 
 - Keep only necessary pure rules, calculations, relationships, selections, and transformations.
@@ -43,6 +38,7 @@
 ## `model/store.ts`
 
 - Define the global Entity store with Zustand state, initialization, and hydration.
+- Define store default values in `store.ts`.
 - Keep application read and update operations in `queries/` and `actions/`.
 - Do not perform external access, subscriptions, or asynchronous workflows.
 - Treat persistence middleware as an explicit exception for storage access, state hydration, and persistence subscriptions.
