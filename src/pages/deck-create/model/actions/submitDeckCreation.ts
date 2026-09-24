@@ -6,7 +6,9 @@ import { showToast } from "@/shared/ui/toast";
 
 import { deckCreatePageStore as store } from "../store";
 
-export async function submitDeckCreation(values: DeckFormFields): Promise<DeckId | undefined> {
+export async function submitDeckCreation(
+  values: DeckFormFields
+): Promise<{ deckId: DeckId; name: string; mutationId: symbol } | undefined> {
   if (store.getState().mutationId !== undefined) return;
   // Lock synchronously so submissions cannot outrun the form's next render.
   const mutationId = Symbol();
@@ -24,15 +26,12 @@ export async function submitDeckCreation(values: DeckFormFields): Promise<DeckId
     });
     // Writes survive navigation, but resetting the store detaches their results.
     if (store.getState().mutationId !== mutationId) return;
-    showToast({ messageKey: "deckForm.toast.created", messageParams: { name: values.name }, tone: "success" });
-    return deckId;
+    return { deckId, name: values.name, mutationId };
   } catch {
     if (store.getState().mutationId === mutationId) {
+      store.setState({ mutationId: undefined });
       showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" });
     }
     return undefined;
-  } finally {
-    // A detached write must not unlock a newer creation after re-entry.
-    if (store.getState().mutationId === mutationId) store.setState({ mutationId: undefined });
   }
 }
