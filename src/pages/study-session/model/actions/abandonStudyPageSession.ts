@@ -11,7 +11,9 @@ export async function abandonStudyPageSession(deckId: string, direction?: SwipeD
   if (isSaving || owner?.uid !== uid || owner.deckId !== deckId) return;
   studySessionPageStore.setState({ isSaving: true });
   try {
-    await abandonStudySession(deckId);
+    // Keep the interaction locked through this turn even though write acceptance is synchronous.
+    abandonStudySession(deckId);
+    await Promise.resolve();
     if (
       studySessionPageStore.getState().owner === owner &&
       getAuthUid() === uid &&

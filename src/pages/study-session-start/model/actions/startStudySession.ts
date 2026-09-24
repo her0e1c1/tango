@@ -27,7 +27,10 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   if (cards.length === 0) return;
   starting = true;
   try {
-    return await startStudy({ deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now });
+    // Keep the interaction locked through this turn even though write acceptance is synchronous.
+    const sessionId = startStudy({ deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now });
+    await Promise.resolve();
+    return sessionId;
   } catch {
     showToast({ messageKey: "toast.saveFailure", tone: "error" });
     return;

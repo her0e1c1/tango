@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import type { StudySession } from "./types";
 
 export const studySessionSchema: z.ZodType<StudySession> = z

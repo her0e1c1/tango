@@ -9,7 +9,10 @@ export async function updateStudyIndex(deckId: string, targetIndex: number): Pro
   if (owner?.deckId !== deckId || owner.uid !== getAuthUid() || isSaving) return;
   store.setState({ isSaving: true });
   try {
-    if ((await setStudySessionIndex(deckId, targetIndex)) && store.getState().owner === owner) hideBackText();
+    // Keep the interaction locked through this turn even though write acceptance is synchronous.
+    const accepted = setStudySessionIndex(deckId, targetIndex);
+    await Promise.resolve();
+    if (accepted && store.getState().owner === owner) hideBackText();
   } catch {
     if (store.getState().owner === owner && getAuthUid() === owner.uid)
       showToast({ messageKey: "toast.saveFailure", tone: "error" });

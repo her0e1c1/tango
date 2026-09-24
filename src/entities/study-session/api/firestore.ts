@@ -12,8 +12,13 @@ import {
 import { db } from "@/shared/firebase";
 import { compareStudySessionCreation, isStudySessionPositionUnchanged } from "../model/rules";
 import { studySessionSchema } from "../model/schema";
-import type { StudySession, StudySessionWrite } from "../model/types";
-import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
+import type { StudySession } from "../model/types";
+import {
+  parseStudySessionDocument,
+  toStudySessionDocument,
+  toStudySessionWrite,
+  type StudySessionWrite,
+} from "./document";
 import { getAuthUid } from "@/entities/auth/@x/study-session";
 import {
   finishStudySessionLoading,
@@ -22,7 +27,8 @@ import {
   setStudySessionOwner,
 } from "../model/store";
 
-function createStudySession(session: StudySession, previous?: StudySession): Promise<void> {
+// Writes are queued locally; callers do not wait for server acknowledgement, including offline.
+function createStudySession(session: StudySession, previous?: StudySession): void {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   const now = Timestamp.now();
@@ -40,10 +46,9 @@ function createStudySession(session: StudySession, previous?: StudySession): Pro
     batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: now });
   }
   void batch.commit().catch(() => undefined);
-  return Promise.resolve();
 }
 
-export function updateStudySession(session: StudySession, endReason: StudySessionWrite["endReason"]): Promise<void> {
+export function updateStudySession(session: StudySession, endReason: StudySessionWrite["endReason"]): void {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
@@ -52,13 +57,6 @@ export function updateStudySession(session: StudySession, endReason: StudySessio
     ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
     updatedAt: Timestamp.now(),
   }).catch(() => undefined);
-  return Promise.resolve();
-}
-
-function updateStudySessionRecency(session: StudySession): Promise<void> {
-  const reference = doc(db, "studySession", session.sessionId);
-  void updateDoc(reference, { updatedAt: Timestamp.fromMillis(session.lastStudiedAt) }).catch(() => undefined);
-  return Promise.resolve();
 }
 
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
@@ -167,7 +165,7 @@ function requireOwner(session: StudySession): void {
   if (session.remote.uid !== getAuthUid()) throw new Error("Study session owner changed");
 }
 
-export async function startStudy({
+export function startStudy({
   deckId,
   cardOrderIds,
   uid,
@@ -177,7 +175,7 @@ export async function startStudy({
   cardOrderIds: string[];
   uid: string;
   now?: number;
-}): Promise<string | undefined> {
+}): string | undefined {
   if (!uid || uid !== getAuthUid()) throw new Error("Study session owner changed");
   const previous = getStudySession(deckId);
   if (previous) requireOwner(previous);
@@ -190,11 +188,11 @@ export async function startStudy({
     remote: { uid, startedAt: now },
   };
   if (session.cardOrderIds.length === 0) return;
-  await createStudySession(session, previous);
+  createStudySession(session, previous);
   return session.sessionId;
 }
 
-export async function setStudySessionIndex(deckId: string, currentIndex: number): Promise<boolean> {
+export function setStudySessionIndex(deckId: string, currentIndex: number): boolean {
   const session = getStudySession(deckId);
   if (
     !(session && Number.isInteger(currentIndex)) ||
@@ -203,32 +201,32 @@ export async function setStudySessionIndex(deckId: string, currentIndex: number)
   )
     return false;
   requireOwner(session);
-  await updateStudySession({ ...session, currentIndex }, null);
+  updateStudySession({ ...session, currentIndex }, null);
   return true;
 }
 
-export async function moveStudySession(previous: StudySession): Promise<boolean> {
+export function moveStudySession(previous: StudySession): boolean {
   const current = getStudySession(previous.deckId);
   if (!isStudySessionPositionUnchanged(previous, current)) return false;
   requireOwner(previous);
   const completed = previous.currentIndex + 1 === previous.cardOrderIds.length;
-  await updateStudySession(
+  updateStudySession(
     { ...previous, currentIndex: completed ? previous.currentIndex : previous.currentIndex + 1 },
     completed ? "completed" : null
   );
   return true;
 }
 
-export async function abandonStudySession(deckId: string): Promise<void> {
+export function abandonStudySession(deckId: string): void {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
-  await updateStudySession(session, "abandoned");
+  updateStudySession(session, "abandoned");
 }
 
-export async function touchStudySession(deckId: string): Promise<void> {
+export function touchStudySession(deckId: string): void {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
-  await updateStudySessionRecency({ ...session, lastStudiedAt: Date.now() });
+  void updateDoc(doc(db, "studySession", session.sessionId), { updatedAt: Timestamp.now() }).catch(() => undefined);
 }

@@ -91,7 +91,7 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
     await Promise.all(cards.map((card) => createCard("uid", card)));
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
-    await startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
+    startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
     await vi.waitFor(() => expect(getStudySession(deckId)).toBeDefined());
     const session = getStudySession(deckId);
     if (!session) throw new Error("Missing session");

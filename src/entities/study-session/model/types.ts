@@ -1,47 +1,27 @@
 import type { CardId } from "@/entities/card/@x/study-session";
 import type { DeckId } from "@/entities/deck/@x/study-session";
 
-/**
- * Persisted progress for one deck's active study run.
- *
- * Starting the same deck again replaces its existing session. A session keeps
- * the original card order so resuming does not reshuffle cards midway through
- * the run. Hydration treats persisted values as untrusted and restores only
- * sessions that preserve the invariants documented below.
- */
+/** Progress for one active study run. Restarting a deck creates a new run. */
 export interface StudySession {
-  /** Immutable identity for rejecting commits from a study run that has already been replaced. */
+  /** Identifies the run so delayed operations cannot update its replacement. */
   readonly sessionId: string;
-  /** Must match its key in {@link StudySessions}; hydration drops mismatches. */
+  /** The deck whose progress this session tracks. Also the key in StudySessions. */
   deckId: DeckId;
-  /** Snapshot fixed at start so later caller mutations cannot reorder the run. */
+  /** Card order fixed at the start; resuming does not select or shuffle cards again. */
   cardOrderIds: CardId[];
-  /** Valid index into {@link cardOrderIds}; completed runs are removed instead of using a terminal index. */
+  /** Zero-based position in cardOrderIds. Completed runs leave the active session map. */
   currentIndex: number;
-  /** Drives recent-deck ordering and advances only when the session is started or used. */
+  /** Last use in Unix milliseconds, used to order recently studied decks. */
   lastStudiedAt: number;
-  /** Firestore ownership for anonymous and linked sessions; start time never changes on resume. */
-  remote: { uid: string; startedAt: number; createdAt?: number | undefined };
+  remote: {
+    /** Owner of the Firestore document, including anonymous users. */
+    uid: string;
+    /** Run start in Unix milliseconds; resuming keeps the original value. */
+    startedAt: number;
+    /** Document creation time in Unix milliseconds, populated by the subscription to select the newest run. */
+    createdAt?: number | undefined;
+  };
 }
 
-export interface StudySessionWrite {
-  session: StudySession;
-  endReason: "completed" | "abandoned" | null;
-}
-
-/**
- * Active study sessions indexed by deck identifier.
- *
- * A deck is absent until study starts and after its session is completed,
- * reset, or removed with the deck. Persisted entries are validated independently
- * so one corrupt session does not discard valid progress for other decks.
- */
+/** Currently loaded active progress, keyed by deck. */
 export type StudySessions = Partial<Record<DeckId, StudySession>>;
-
-/** Minimal Card identity needed to resolve a study session position. */
-export type StudySessionCard = { id: StudySession["cardOrderIds"][number] };
-
-/** Resolution of an active study session against the currently loaded Cards. */
-export type ResolvedStudySession<Card extends StudySessionCard> =
-  | { status: "preparing" | "invalid" }
-  | { status: "studying"; session: StudySession; card: Card };

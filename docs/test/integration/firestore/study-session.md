@@ -35,6 +35,8 @@
 | FIRESTORE-STUDY-SESSION-12 | read | 正常系 | [保存された終了を反映し別Deckの学習は維持する](#firestore-study-session-12) |
 | FIRESTORE-STUDY-SESSION-13 | batch | 正常系 | [オフラインで完了した学習を重複なく同期し再開対象に戻さない](#firestore-study-session-13) |
 | FIRESTORE-STUDY-SESSION-14 | write | 正常系 | [学習対象が0枚ならセッションを作成せず既存の学習も中断しない](#firestore-study-session-14) |
+| FIRESTORE-STUDY-SESSION-15 | write | 異常系 | [不正なカード順序を同期的に拒否し保存済みの学習を維持する](#firestore-study-session-15) |
+| FIRESTORE-STUDY-SESSION-16 | write | 異常系 | [所有者が変わった後の書込を同期的に拒否する](#firestore-study-session-16) |
 
 <a id="firestore-study-session-01"></a>
 
@@ -100,7 +102,7 @@ When:
 
 Then:
 
-- 最初の操作は受け付けられ、重複した操作は受け付けられない。
+- 最初の操作は同期的に `true`、重複した操作は同期的に `false` を返す。保存と購読反映は別途待つ。
 - 位置 `2`、終了理由 `completed`、Timestamp の終了日時が保存され、再開対象から外れる。
 - 開始日時と作成日時は開始時の値を保持する。
 - 重複操作後の保存内容は最初の完了保存後と同一で、終了日時・更新日時も書き換わらない。
@@ -124,6 +126,7 @@ When:
 
 Then:
 
+- 開始は session ID、位置変更は `true`、中断は `undefined` を同期的に返し、サーバー応答を待たない。
 - 再接続前の cache には位置 `1` と終了理由 `abandoned` が反映される。
 - 再接続後も開始時と同じ session ID に位置 `1` と `abandoned` が保存される。
 - 対象 Deck の保存済みセッションは、その ID の1件だけである。
@@ -369,6 +372,49 @@ When:
 
 Then:
 
-- 新しいセッションは作成されない。
+- 開始操作は同期的に `undefined` を返し、新しいセッションは作成されない。
 - 既存セッションの有無の両方で、保存済み ID 一覧と再開対象を確認する。既存セッションがなければ、保存件数は0件で再開対象も存在しない。
 - 既存セッションがあれば、保存内容は操作前と完全に同じである。同じ ID・位置 `1` の再開対象を維持し、中断や更新日時の変更も発生しない。
+
+<a id="firestore-study-session-15"></a>
+
+### FIRESTORE-STUDY-SESSION-15 不正なカード順序を同期的に拒否し保存済みの学習を維持する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- 本人の有効な未終了セッションを保存・購読済みである。
+
+When:
+
+- 同じ Deck の学習を、重複したカード ID の順序、または空文字のカード ID を含む順序で開始する。
+
+Then:
+
+- Adapter は入力検証エラーを同期的に投げる。Rules の認可エラーではない。
+- 対象 Deck の保存済みセッションは元の1件だけで、保存内容と再開対象は操作前と変わらない。
+
+<a id="firestore-study-session-16"></a>
+
+### FIRESTORE-STUDY-SESSION-16 所有者が変わった後の書込を同期的に拒否する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- UID `uid` の未終了セッションを位置 `0` で保存・購読済みである。
+- アプリケーションの認証状態が別 UID に変わり、元の学習状態がまだ残っている。
+
+When:
+
+- 元の UID での再開始、位置 `1` への変更、次のカードへの移動、中断、再開時刻の更新をそれぞれ要求する。
+
+Then:
+
+- 各操作は所有者変更のエラーを同期的に投げる。Adapter の拒否であり、Rules の認可は検証しない。
+- 対象 Deck の保存済みセッションは元の1件だけで、保存内容と再開対象は操作前と変わらない。

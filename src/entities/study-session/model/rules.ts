@@ -1,7 +1,11 @@
 import { classifyFsrsState, type FsrsState } from "@/entities/card/@x/study-session";
 import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
 
-import type { ResolvedStudySession, StudySession, StudySessionCard } from "./types";
+import type { StudySession } from "./types";
+
+type ResolvedStudySession<Card> =
+  | { status: "preparing" | "invalid" }
+  | { status: "studying"; session: StudySession; card: Card };
 
 /** Card fields needed to decide whether the Card belongs in a study session. */
 interface StudyCardSelectionCard {
@@ -43,18 +47,14 @@ export function selectStudyCards<TCard extends StudyCardSelectionCard>(
   return selectStudyCardsWithDeadline(cards, deck, useCardInterval, now).cards;
 }
 
-// Reads the Card id at the session cursor, returning undefined for an empty or out-of-range position.
-const getCurrentStudySessionCardId = (session: StudySession): StudySession["cardOrderIds"][number] | undefined =>
-  session.cardOrderIds[session.currentIndex];
-
 // Resolves whether an active session can study now, is waiting for Cards, or is invalid.
-export const resolveStudySession = <Card extends StudySessionCard>(
+export const resolveStudySession = <Card extends { id: string }>(
   session: StudySession | undefined,
   cards: readonly Card[]
 ): ResolvedStudySession<Card> => {
   if (session == null) return { status: "invalid" };
 
-  const cardId = getCurrentStudySessionCardId(session);
+  const cardId = session.cardOrderIds[session.currentIndex];
   if (cardId == null) return { status: "invalid" };
 
   const card = cards.find(({ id }) => id === cardId);
@@ -68,17 +68,10 @@ export const resolveStudySession = <Card extends StudySessionCard>(
 export const isStudySessionPositionUnchanged = (previous: StudySession, current: StudySession | undefined): boolean =>
   current?.sessionId === previous.sessionId &&
   current.currentIndex === previous.currentIndex &&
-  getCurrentStudySessionCardId(current) === getCurrentStudySessionCardId(previous);
+  current.cardOrderIds[current.currentIndex] === previous.cardOrderIds[previous.currentIndex];
 
-// Computes the next valid cursor; undefined signals that movement crossed a boundary and should end the session.
-export const calculateStudySessionIndex = (session: StudySession): number | undefined => {
-  const nextIndex = session.currentIndex + 1;
-  return nextIndex >= 0 && nextIndex < session.cardOrderIds.length ? nextIndex : undefined;
-};
-
-// Reports whether another Card remains after the current position.
 export const canMoveStudySession = (session: StudySession): boolean =>
-  calculateStudySessionIndex(session) !== undefined;
+  session.currentIndex + 1 >= 0 && session.currentIndex + 1 < session.cardOrderIds.length;
 
 // Server creation time orders runs across devices without confusing it with domain or recent-study time.
 export function compareStudySessionCreation(left: StudySession, right: StudySession): number {

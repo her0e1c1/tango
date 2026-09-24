@@ -186,8 +186,8 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.getByText("not studied yet")).toBeVisible();
   });
 
-  it("shows four ratings and prevents backward slider movement", async () => {
-    await setStudySessionIndex(deckId, 1);
+  it("shows four ratings and prevents backward slider movement", () => {
+    setStudySessionIndex(deckId, 1);
     renderPage();
     expect(screen.getByText("Again")).toBeVisible();
     expect(screen.getByText("Hard")).toBeVisible();
@@ -460,7 +460,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
   });
 
   it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
-    await setStudySessionIndex(deckId, 1);
+    setStudySessionIndex(deckId, 1);
     renderPage(`/deck/${deckId}/study`, "/previous");
 
     fireEvent.click(screen.getByRole("button", { name: "Swipe up" }));

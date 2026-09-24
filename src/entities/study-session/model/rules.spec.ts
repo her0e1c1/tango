@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import { createCard, createDeck } from "@/test/factories";
 
 import {
-  calculateStudySessionIndex,
   canMoveStudySession,
   isStudySessionPositionUnchanged,
   resolveStudySession,
@@ -39,16 +38,6 @@ describe("study card selection [STUDY-SESSION-01]", () => {
     expect(() =>
       selectStudyCardsWithDeadline([{ ...card, fsrs: { ...due, reps: 0 } }], deck, true, due.dueAt)
     ).toThrow();
-  });
-});
-
-describe("calculateStudySessionIndex [STUDY-ACTIONS-03] [STUDY-ACTIONS-04]", () => {
-  it("moves within the session card order", () => {
-    expect(calculateStudySessionIndex(session)).toBe(2);
-  });
-
-  it("returns no index when movement completes the session", () => {
-    expect(calculateStudySessionIndex({ ...session, currentIndex: 2 })).toBeUndefined();
   });
 });
 

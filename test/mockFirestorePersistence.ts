@@ -85,8 +85,7 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
   const { isStudySessionPositionUnchanged } = await import("@/entities/study-session/model/rules");
   return {
     ...actual,
-    startStudy: async ({ deckId, cardOrderIds, uid, now = Date.now() }: Parameters<typeof actual.startStudy>[0]) => {
-      await Promise.resolve();
+    startStudy: ({ deckId, cardOrderIds, uid, now = Date.now() }: Parameters<typeof actual.startStudy>[0]) => {
       const sessionId = crypto.randomUUID();
       restoreStudySession({
         sessionId,
@@ -98,15 +97,11 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
       });
       return sessionId;
     },
-    touchStudySession: async (deckId: string) => {
-      await Promise.resolve();
-      studySessionStore.setState((state) => {
-        const current = state.sessionsByDeckId[deckId];
-        if (current) current.lastStudiedAt = Date.now();
-      });
+    touchStudySession: (deckId: string) => {
+      const current = studySessionStore.getState().sessionsByDeckId[deckId];
+      if (current) restoreStudySession({ ...current, lastStudiedAt: Date.now() });
     },
-    setStudySessionIndex: async (deckId: string, currentIndex: number) => {
-      await Promise.resolve();
+    setStudySessionIndex: (deckId: string, currentIndex: number) => {
       const session = studySessionStore.getState().sessionsByDeckId[deckId];
       if (!session || currentIndex <= session.currentIndex || currentIndex >= session.cardOrderIds.length) return false;
       restoreStudySession({ ...session, currentIndex, lastStudiedAt: Date.now() });
@@ -114,23 +109,22 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
     },
     moveStudySession: (session: import("@/entities/study-session").StudySession) => {
       const current = studySessionStore.getState().sessionsByDeckId[session.deckId];
-      if (!isStudySessionPositionUnchanged(session, current)) return Promise.resolve(false);
-      studySessionStore.setState((state) => {
-        if (session.currentIndex + 1 === session.cardOrderIds.length) delete state.sessionsByDeckId[session.deckId];
-        else
-          state.sessionsByDeckId[session.deckId] = {
-            ...session,
-            currentIndex: session.currentIndex + 1,
-            lastStudiedAt: Date.now(),
-          };
-      });
-      return Promise.resolve(true);
+      if (!isStudySessionPositionUnchanged(session, current)) return false;
+      if (session.currentIndex + 1 === session.cardOrderIds.length) {
+        studySessionStore.setState((state) => ({
+          sessionsByDeckId: Object.fromEntries(
+            Object.entries(state.sessionsByDeckId).filter(([id]) => id !== session.deckId)
+          ),
+        }));
+      } else {
+        restoreStudySession({ ...session, currentIndex: session.currentIndex + 1, lastStudiedAt: Date.now() });
+      }
+      return true;
     },
-    abandonStudySession: async (deckId: string) => {
-      await Promise.resolve();
-      studySessionStore.setState((state) => {
-        delete state.sessionsByDeckId[deckId];
-      });
+    abandonStudySession: (deckId: string) => {
+      studySessionStore.setState((state) => ({
+        sessionsByDeckId: Object.fromEntries(Object.entries(state.sessionsByDeckId).filter(([id]) => id !== deckId)),
+      }));
     },
   };
 });
