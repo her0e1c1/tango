@@ -4,7 +4,7 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { parseCsv } from "./cardCsv";
 
-describe("IMPORT-01 IMPORT-02 card CSV import", () => {
+describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
   describe("parseCsv", () => {
     it("parses, normalizes, and validates string content", async () => {
       const analysis = await parseCsv('"front","back"," foo,foo, bar "," key "\n,,,');
