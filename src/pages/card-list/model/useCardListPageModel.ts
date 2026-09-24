@@ -80,7 +80,6 @@ export function useCardListPageModel(deck: Deck) {
     changeSortOrder: changeCardSortOrder,
     ...controls,
     deckFilter,
-    clearFilters,
     setSelectedTags: (selectedTags: string[]) => updateDeckFilterDraft({ selectedTags }, filterUpdate),
     setTagAndFilter: (tagAndFilter: boolean) => updateDeckFilterDraft({ tagAndFilter }, filterUpdate),
     removeTag: (tag: string) =>
