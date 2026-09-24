@@ -11,36 +11,16 @@ import {
   where,
 } from "firebase/firestore";
 import { db, auth } from "@/shared/firebase";
-import type { StudyRating } from "../model/rating";
-import { studyAnswerDocumentSchema } from "./document";
+import type { StudyAnswerHistory, StudyAnswerRecord } from "../model/types";
+import { createStudyAnswerDocument, parseStudyAnswerRecord, type StudyAnswerInput } from "./document";
 import { z } from "zod";
 
-interface StudyAnswerInput {
-  id: string;
-  uid: string;
-  sessionId: string;
-  deckId: string;
-  cardId: string;
-  rating: StudyRating;
-  answeredAt: number;
-}
-
 export function writeStudyAnswer(batch: WriteBatch, input: StudyAnswerInput) {
-  const answeredAt = Timestamp.fromMillis(input.answeredAt);
-  const answer = studyAnswerDocumentSchema.parse({
-    uid: input.uid,
-    sessionId: input.sessionId,
-    deckId: input.deckId,
-    cardId: input.cardId,
-    answer: { type: "rating", rating: input.rating },
-    answeredAt,
-    createdAt: answeredAt,
-    updatedAt: answeredAt,
-  });
-  batch.set(doc(db, "studyAnswer", input.id), answer);
+  const document = createStudyAnswerDocument(input);
+  batch.set(doc(db, "studyAnswer", input.id), document);
 }
 
-const inputSchema = z
+const studyAnswerHistoryInputSchema = z
   .object({
     uid: z.string().min(1),
     from: z.number(),
@@ -50,28 +30,12 @@ const inputSchema = z
   })
   .refine(({ from, to }) => from < to, "Invalid history interval");
 
-export interface StudyAnswerRecord {
-  id: string;
-  deckId: string;
-  sessionId: string;
-  answeredAt: number;
-  rating: StudyRating;
-}
-
-export interface StudyAnswerHistory {
-  records: StudyAnswerRecord[];
-  source: "cache" | "server";
-  truncated: boolean;
-  invalidCount: number;
-  hasPendingWrites: boolean;
-}
-
 export function subscribeStudyAnswerHistory(
-  input: z.infer<typeof inputSchema>,
+  input: z.infer<typeof studyAnswerHistoryInputSchema>,
   onHistory: (history: StudyAnswerHistory) => void,
   onError: (error: Error) => void
 ): () => void {
-  const { uid, from, to, deckId, limit: maximum } = inputSchema.parse(input);
+  const { uid, from, to, deckId, limit: maximum } = studyAnswerHistoryInputSchema.parse(input);
   const user = auth.currentUser;
   if (!user || user.uid !== uid) throw new Error("History owner is not the current user");
   const request = query(
@@ -90,23 +54,16 @@ export function subscribeStudyAnswerHistory(
     (snapshot) => {
       if (auth.currentUser !== user) return;
       let invalidCount = 0;
-      const records = snapshot.docs.slice(0, maximum).flatMap((document) => {
-        const parsed = studyAnswerDocumentSchema.safeParse(document.data());
-        if (!parsed.success) {
+      const records: StudyAnswerRecord[] = [];
+      // Invalid documents still consume the requested limit.
+      for (const document of snapshot.docs.slice(0, maximum)) {
+        const record = parseStudyAnswerRecord(document.id, document.data());
+        if (record === null) {
           invalidCount += 1;
-          return [];
+        } else {
+          records.push(record);
         }
-        const value = parsed.data;
-        return [
-          {
-            id: document.id,
-            deckId: value.deckId,
-            sessionId: value.sessionId,
-            answeredAt: value.answeredAt.seconds * 1000 + value.answeredAt.nanoseconds / 1_000_000,
-            rating: value.answer.rating,
-          },
-        ];
-      });
+      }
       onHistory({
         records,
         source: snapshot.metadata.fromCache ? "cache" : "server",
