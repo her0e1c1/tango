@@ -13,11 +13,15 @@ export interface PreparedDeckImport {
 export function executePreparedDeckImport(prepared: PreparedDeckImport): void {
   const uid = getAuthUid();
   if (prepared.uid !== uid) throw new ImportFailure("account-changed");
-  const batch = writeBatch(db);
-  writeDeckCreate(batch, uid, prepared.destination);
+  const deckBatch = writeBatch(db);
+  writeDeckCreate(deckBatch, uid, prepared.destination);
+  void deckBatch.commit().catch(() => undefined);
+
+  // Firestore preserves this client's queued write order; Cards follow the destination Deck without waiting for cloud ACK.
+  const cardBatch = writeBatch(db);
   for (const mutation of prepared.mutations) {
     if (mutation.kind !== "create") throw new Error("Deck import only supports Card creation");
-    writeCardCreate(batch, uid, mutation.card);
+    writeCardCreate(cardBatch, uid, mutation.card);
   }
-  void batch.commit().catch(() => undefined);
+  void cardBatch.commit().catch(() => undefined);
 }
