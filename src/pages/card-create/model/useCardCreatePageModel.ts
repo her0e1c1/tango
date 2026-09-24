@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { type CardContentInput, cardContentInputSchema } from "@/entities/card";
-import { CATEGORY, useDeck } from "@/entities/deck";
+import { useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { useCardPreviewContent } from "@/features/card-form";
 import { routes, useNavigationGuard } from "@/shared/router";
@@ -45,7 +45,7 @@ export function useCardCreatePageModel(deckId: string) {
   return {
     form,
     preview,
-    categories: CATEGORY,
+    categories: deck?.tags ?? [],
     navigationGuard: guard.element,
     onCancel: () => void navigate(destination),
     onSubmit: form.handleSubmit(onSubmit),

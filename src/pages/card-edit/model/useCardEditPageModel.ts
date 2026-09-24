@@ -2,7 +2,7 @@ import { useFormState } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 import { type Card, useCard } from "@/entities/card";
-import { CATEGORY, useDeck } from "@/entities/deck";
+import { useDeck } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { useCardPreviewContent } from "@/features/card-form";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
@@ -43,7 +43,7 @@ export function useCardEditPageModel(card: Card) {
     form,
     preview,
     cardInfo: getCardEditInfo(snapshot),
-    categories: CATEGORY,
+    categories: deck?.tags ?? [],
     navigationGuard: guard.element,
     onCancel: () => void navigate(-1),
     onSubmit,

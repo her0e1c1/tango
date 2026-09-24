@@ -6,6 +6,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck } from "@/entities/deck";
+import { replaceRemoteDecks } from "@/test/entityFixtures";
+import { getCards } from "@/entities/card";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
 import { createLocalDeck } from "@/test/factories";
@@ -94,6 +96,39 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
 
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
     expect(screen.getByText("Created card “Created front”.")).toBeVisible();
+  });
+
+  it("CARD-MANAGEMENT-05 creates a Card with selected Deck tags instead of fixed categories", async () => {
+    replaceRemoteDecks([
+      { ...deck, tags: ["chapter-1", "exam"] },
+      createLocalDeck({ id: "other-deck", tags: ["other-only"] }),
+    ]);
+    renderPage();
+    await userEvent.type(screen.getByRole("textbox", { name: "Front text" }), "Tagged front");
+    await userEvent.click(screen.getByRole("tab", { name: "Back" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Back text" }), "Tagged back");
+    await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
+
+    expect(screen.getAllByRole("checkbox")).toHaveLength(2);
+    expect(screen.queryByRole("checkbox", { name: "math" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "other-only" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("checkbox", { name: "chapter-1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await userEvent.click(screen.getByRole("button", { name: "Create card" }));
+
+    expect(await screen.findByRole("heading", { name: "Card list destination" })).toBeVisible();
+    expect(getCards().find((card) => card.frontText === "Tagged front")).toMatchObject({
+      deckId: deck.id,
+      tags: ["chapter-1"],
+    });
+  });
+
+  it.each([undefined, []])("CARD-MANAGEMENT-05 offers no fallback tags when Deck tags are %s", async (tags) => {
+    replaceRemoteDecks([{ ...deck, ...(tags ? { tags } : {}) }]);
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
+    expect(screen.getByRole("dialog", { name: "Select tags" })).toBeVisible();
+    expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
   });
 
   it("shows route recovery when the target Deck is unavailable", () => {
