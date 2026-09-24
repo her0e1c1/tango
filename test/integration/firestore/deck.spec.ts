@@ -6,7 +6,7 @@
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import "@/test/initializeTestFirestore";
-import { readDeckTags, writeDeckTags } from "@/entities/deck";
+import { readDeckTags, writeDeckEdit } from "@/entities/deck";
 import { readCardsForTagUpdate, writeCardTagChanges } from "@/entities/card";
 import { createLocalBatch } from "@/shared/firestore-write";
 import { describe, expect, it, vi } from "vitest";
@@ -128,7 +128,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     );
   });
 
-  it("[FIRESTORE-DECK-07] atomically renames 501 Cards and retains tags during ordinary Deck edits", async () => {
+  it("[FIRESTORE-DECK-07] atomically saves Deck name, tags, and 501 Card renames", async () => {
     const deck = createRemoteDeckInput({ id: uuid() });
     await createDeck("uid", deck);
     const cards = Array.from({ length: 501 }, () =>
@@ -140,10 +140,9 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(await readDeckTags("uid", deck.id)).toEqual([]);
     const stored = await readCardsForTagUpdate("uid", deck.id);
     const { batch, commit } = createLocalBatch("uid");
-    const deckReference = writeDeckTags(batch, deck.id, ["renamed", "kept"]);
-    const cardReferences = writeCardTagChanges(batch, stored, "old", "renamed");
+    const deckReference = writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, ["renamed", "kept"]);
+    const cardReferences = writeCardTagChanges(batch, stored, [{ previous: "old", name: "renamed" }]);
     await commit([deckReference, ...cardReferences]);
-    await editDeck("uid", { id: deck.id, name: "Updated name" });
     expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({
       name: "Updated name",
       tags: ["renamed", "kept"],
@@ -171,8 +170,8 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await readDeckTags("uid", deck.id);
     const stored = await readCardsForTagUpdate("uid", deck.id);
     const batch = writeBatch(db);
-    writeDeckTags(batch, deck.id, ["renamed", "kept"]);
-    writeCardTagChanges(batch, stored, "old", "renamed");
+    writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, ["renamed", "kept"]);
+    writeCardTagChanges(batch, stored, [{ previous: "old", name: "renamed" }]);
     batch.update(cardRef, { uid: "another-user" });
     await expect(batch.commit()).rejects.toMatchObject({ code: "permission-denied" });
     expect((await getDoc(deckRef)).data()).toEqual(beforeDeck);
@@ -220,8 +219,8 @@ describe("firestore/deck pending Card writes", () => {
         expect(stored.map((card) => card.reference.id).sort()).toEqual([existing.id, created.id].sort());
         const { batch, commit } = createLocalBatch("uid");
         const tags = replacement === undefined ? ["kept"] : [replacement, "kept"];
-        const deckReference = writeDeckTags(batch, deck.id, tags);
-        const cardReferences = writeCardTagChanges(batch, stored, "old", replacement);
+        const deckReference = writeDeckEdit(batch, "uid", { id: deck.id, name: "Updated name" }, tags);
+        const cardReferences = writeCardTagChanges(batch, stored, [{ previous: "old", name: replacement }]);
         await commit([deckReference, ...cardReferences]);
         for (const id of [existing.id, created.id]) {
           const local = await getDocFromCache(doc(db, "card", id));
@@ -230,7 +229,7 @@ describe("firestore/deck pending Card writes", () => {
         }
         await enableNetwork(db);
         await waitForPendingWrites(db);
-        expect((await getDoc(doc(db, "deck", deck.id))).data()?.tags).toEqual(tags);
+        expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({ name: "Updated name", tags });
         expect((await getDoc(doc(db, "card", existing.id))).data()).toMatchObject({
           frontText: "Pending text edit",
           backText: existing.backText,

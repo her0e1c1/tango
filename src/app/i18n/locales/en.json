@@ -12,7 +12,7 @@
     "deleteLabel": "Delete tag {{tag}}",
     "usage_one": "Used by {{count, number}} card",
     "usage_other": "Used by {{count, number}} cards",
-    "saveHint": "Each tag operation is saved separately from deck changes.",
+    "saveHint": "Tag changes are saved with the deck when you select Save changes.",
     "unavailable": "This tag is no longer available. Cancel to continue managing tags.",
     "empty": "No tags yet.",
     "required": "A tag name is required.",

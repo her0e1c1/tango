@@ -3,7 +3,8 @@ import { createStore } from "zustand/vanilla";
 import type { Deck } from "@/entities/deck";
 
 interface DeckEditPageState {
-  tagMutation: symbol | undefined;
+  draftTags: string[] | undefined;
+  tagChanges: { previous: string | undefined; name: string | undefined }[];
   tagError: "required" | "duplicate" | undefined;
   editingTag: string | undefined;
   tagDeletion: string | undefined;
@@ -13,7 +14,8 @@ interface DeckEditPageState {
 }
 
 export const deckEditPageStore = createStore<DeckEditPageState>()(() => ({
-  tagMutation: undefined,
+  draftTags: undefined,
+  tagChanges: [],
   tagError: undefined,
   editingTag: undefined,
   tagDeletion: undefined,

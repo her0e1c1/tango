@@ -12,7 +12,7 @@
     "deleteLabel": "{{tag}}を削除",
     "usage_one": "{{count, number}}枚のカードで使用",
     "usage_other": "{{count, number}}枚のカードで使用",
-    "saveHint": "追加・変更・削除はその都度保存されます。",
+    "saveHint": "タグの変更は Deck の「変更を保存」でまとめて保存されます。",
     "unavailable": "このタグは一覧から削除されました。キャンセルすると他のタグを操作できます。",
     "empty": "タグはまだありません。",
     "required": "タグ名を入力してください。",
