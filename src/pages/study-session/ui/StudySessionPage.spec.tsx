@@ -680,16 +680,18 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
 vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
   const { moveStudySession } = await import("@/entities/study-session");
   return {
-    saveStudyOperation: async (
+    saveStudyOperation: (
       operation: import("../model/studyOperation").StudyOperation,
       session: import("@/entities/study-session").StudySession
     ) => {
-      await mocks.persistOperation(operation.uid, {
-        fsrs: operation.fsrs,
-        cardId: operation.cardId,
-        answeredAt: operation.answeredAt,
-      });
-      await moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
+      void Promise.resolve(
+        mocks.persistOperation(operation.uid, {
+          fsrs: operation.fsrs,
+          cardId: operation.cardId,
+          answeredAt: operation.answeredAt,
+        })
+      ).catch(() => undefined);
+      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
       return {
         session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
         endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,

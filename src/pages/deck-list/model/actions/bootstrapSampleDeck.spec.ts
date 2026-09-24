@@ -13,17 +13,29 @@ const repository = vi.hoisted(() => ({
   createDeckError: false,
 }));
 
-vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
+vi.mock("@/shared/firebase", () => ({
+  auth: {},
+  db: {},
+}));
 vi.mock("@/entities/auth", () => ({ getAuthUid: () => repository.uid }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    mutateCards: (_uid: string, mutations: CardMutation[]) => {
-      const createdCards = mutations.flatMap((mutation) => (mutation.kind === "create" ? [mutation.card as Card] : []));
-      const createdIds = new Set(createdCards.map((card) => card.id));
-      repository.cards = [...repository.cards.filter((card) => !createdIds.has(card.id)), ...createdCards];
-      return Promise.resolve();
+    mutateCards: async (uid: string, mutations: CardMutation[]) => {
+      await Promise.resolve();
+      for (const mutation of mutations) {
+        if (mutation.kind !== "create") continue;
+        const saved: Card = {
+          ...mutation.card,
+          uid,
+          deletedAt: mutation.card.deletedAt ?? null,
+          fsrs: null,
+          createdAt: 0,
+          updatedAt: 0,
+        };
+        repository.cards = [...repository.cards.filter(({ id }) => id !== saved.id), saved];
+      }
     },
     useCards: () => repository.cards,
   };
@@ -32,8 +44,9 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
-    createDeck: (_uid: string, deck: RemoteDeckCreateInput) => {
-      if (repository.createDeckError) return Promise.reject(new Error("Storage quota exceeded"));
+    createDeck: async (uid: string, deck: RemoteDeckCreateInput) => {
+      await Promise.resolve();
+      if (repository.createDeckError) throw new Error("Storage quota exceeded");
       const fields = {
         id: deck.id,
         name: deck.name,
@@ -45,9 +58,8 @@ vi.mock("@/entities/deck", async (importOriginal) => {
         createdAt: 0,
         updatedAt: 0,
       };
-      const savedDeck: Deck = { ...fields, uid: repository.uid };
+      const savedDeck: Deck = { ...fields, uid };
       repository.decks = [...repository.decks.filter(({ id }) => id !== savedDeck.id), savedDeck];
-      return Promise.resolve();
     },
     getDecks: () => repository.decks,
   };
@@ -78,14 +90,11 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
     await bootstrapSampleDeck();
 
     expect(repository.loadSample).toBe(false);
-
     expect(repository.decks).toEqual([
       expect.objectContaining({ id: `${repository.uid}-sample-v1`, name: "Sample Deck" }),
     ]);
     expect(repository.cards.length).toBeGreaterThan(0);
-    expect(repository.cards.every((card) => card.deckId === `${repository.uid}-sample-v1` && !("uid" in card))).toBe(
-      true
-    );
+    expect(repository.cards.every((card) => card.deckId === `${repository.uid}-sample-v1`)).toBe(true);
   });
 
   it("preserves existing storage without adding a sample", async () => {

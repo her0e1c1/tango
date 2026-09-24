@@ -1,4 +1,5 @@
 // Test-side setup uses store actions without changing the production persistence boundary.
+export { replaceRemoteCards } from "@/entities/card/model/actions/replaceRemoteCards";
 export { replaceRemoteDecks } from "@/entities/deck/model/actions/replaceRemoteDecks";
 
 import { buildStudyCardOrder } from "@/pages/study-session-start/model/queries/buildStudyCardOrder";

@@ -23,7 +23,6 @@ const prepareSampleDeck = (uid: string): PreparedSampleDeck => {
       kind: "create",
       card: {
         ...card,
-        // Stable IDs make concurrent bootstrap attempts converge on the same local Cards.
         id: `${SampleDeckId}-card-${String(index + 1)}`,
         deckId: SampleDeckId,
       },
@@ -32,7 +31,6 @@ const prepareSampleDeck = (uid: string): PreparedSampleDeck => {
 };
 
 export async function addSampleDeck() {
-  // Read the current identity when the action runs rather than capturing a caller snapshot.
   const uid = getAuthUid();
   const sample = prepareSampleDeck(uid);
   await createDeck(uid, sample.destination);

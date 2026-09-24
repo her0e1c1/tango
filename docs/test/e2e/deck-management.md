@@ -13,7 +13,7 @@ Deck を作成・編集・削除でき、失敗後も再試行できることを
 | DECK-MANAGEMENT-03 | read | 正常系 | [Deck の削除を取り消せる](#deck-management-03) |
 | DECK-MANAGEMENT-04 | batch | 異常系 | [Deck の削除失敗後に再試行できる](#deck-management-04) |
 | DECK-MANAGEMENT-05 | write | 正常系 | [ログイン中に空の Deck を作成して reload 後も確認できる](#deck-management-05) |
-| DECK-MANAGEMENT-06 | write | 異常系 | [ログイン中の Deck 作成失敗を通知できる](#deck-management-06) |
+| DECK-MANAGEMENT-06 | write | 異常系 | [ログイン中の Deck 作成拒否を反映できる](#deck-management-06) |
 | DECK-MANAGEMENT-07 | write | 正常系 | [匿名で空の Deck を作成して reload 後も確認できる](#deck-management-07) |
 | DECK-MANAGEMENT-08 | read | 正常系 | [未保存の Deck 編集内容を離脱前に確認できる](#deck-management-08) |
 
@@ -107,20 +107,17 @@ Given:
 - Fixture: [`study-session-middle`](./fixture/study-session-middle.yaml)
 - 認証済みユーザーが所有する削除対象の Deck が存在する。
 - 対象 Deck に Card と再開可能な学習 session が存在する。
-- 削除の失敗が通知され、削除 dialog が閉じている。
-- 失敗通知が既定の4秒間の表示期間内にある。
+- 最初の削除がクラウドから拒否され、Firestore の rollback 後に対象 Deck、Card、学習 session を再び利用でき、削除 dialog は閉じている。
 - 次の削除は成功できる。
 
 When:
 
-- 対象 Deck の削除 dialog を開き直し、短い mobile viewport で失敗通知が削除ボタンと重なる状態で再試行する。
+- 対象 Deck の削除 dialog を開き直して再試行する。
 
 Then:
 
 - 削除 dialog が閉じる。
-- 失敗通知が削除ボタンに重なっていても、dialog 内の操作を妨げない。通知側へ誤って操作や focus が移らない。
-- dialog 表示中に通知が消えるか置き換わっても、focus は dialog 内に維持される。
-- Deck の削除成功が通知され、失敗通知は残らない。
+- Deck の削除成功が通知される。
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck の Card を利用できず、学習 session も再開できない。
 - 最初の削除失敗に伴う未処理の browser error が発生しない。
@@ -153,7 +150,7 @@ Then:
 
 <a id="deck-management-06"></a>
 
-### DECK-MANAGEMENT-06 ログイン中の Deck 作成失敗を通知できる
+### DECK-MANAGEMENT-06 ログイン中の Deck 作成拒否を反映できる
 
 カテゴリ: `write`
 
@@ -163,7 +160,7 @@ Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
 - Google アカウントにログインしている。
-- Deck の作成が保存またはクラウドへの同期の段階で失敗する。
+- Deck の作成がローカル反映後にクラウドへの同期で拒否される。
 
 When:
 
@@ -171,11 +168,9 @@ When:
 
 Then:
 
-- ブラウザー内で保存が完了すれば、クラウドの応答待ちで操作が止まらない。後から同期失敗が判明した場合も通知される。
-- 失敗通知は既定の表示時間で自動的に消える。
-- 保存を拒否された Deck は、利用できる Deck として一覧に残らない。
+- ブラウザー内でローカル反映が完了すれば、クラウドの応答待ちで操作が止まらない。
+- クラウドから拒否された Deck は Firestore の rollback により利用できる Deck として一覧に残らない。遅延した同期拒否のための独自通知は行わない。
 - 操作していないのに新しい Deck が繰り返し作成されたり、失敗が未処理の browser error になったりしない。
-- ブラウザー内で保存できなかった場合は入力が維持され、利用者が保存を再試行できる。
 
 <a id="deck-management-07"></a>
 

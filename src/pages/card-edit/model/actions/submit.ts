@@ -7,7 +7,7 @@ interface SubmitCardEditInput {
   values: CardContentInput;
 }
 
-export async function submit({ cardId, values }: SubmitCardEditInput): Promise<boolean> {
+export async function submit({ cardId, values }: SubmitCardEditInput): Promise<CardContentInput | undefined> {
   // Snapshot only editable content, including tags outside the visible categories.
   const input = {
     id: cardId,
@@ -20,14 +20,8 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<b
     await editCard(getAuthUid(), input);
   } catch {
     showToast({ messageKey: "toast.saveFailure", tone: "error" });
-    return false;
+    return;
   }
 
-  // Shared toast lifetime also covers persistence that finishes after the editor unmounts.
-  showToast({
-    messageKey: "cardForm.toast.updated",
-    messageParams: { name: input.frontText },
-    tone: "success",
-  });
-  return true;
+  return { frontText: input.frontText, backText: input.backText, tags: input.tags };
 }

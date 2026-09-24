@@ -217,7 +217,7 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
     expect(screen.getByText("Created card “Submitting front”.")).toBeVisible();
   });
 
-  it("allows discarding changes while creation is pending and completes background creation with toast and replace", async () => {
+  it("allows discarding changes while creation is pending without reviving the unmounted Page", async () => {
     const defer = Promise.withResolvers<void>();
     writes.pending = defer.promise;
     renderPage();
@@ -237,8 +237,9 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
       await Promise.resolve();
     });
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
-    expect(screen.getByText("Created card “Discarded while pending”.")).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
+    expect(screen.queryByText("Created card “Discarded while pending”.")).not.toBeInTheDocument();
+    expect(getCards().some((card) => card.frontText === "Discarded while pending")).toBe(true);
   });
 
   it("prioritizes save success over an unanswered leave confirmation dialog", async () => {

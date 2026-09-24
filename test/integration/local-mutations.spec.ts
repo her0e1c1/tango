@@ -9,9 +9,7 @@ import {
   getDocFromCache,
   getDocsFromCache,
   waitForPendingWrites,
-  setDoc,
 } from "firebase/firestore";
-import { writeLocally } from "@/shared/firestore-write";
 import { replaceAuthSession } from "@/entities/auth";
 import { createCard, deleteCard, editCard, getCards } from "@/entities/card";
 import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
@@ -47,6 +45,7 @@ import { testDb } from "@/test/initializeTestFirestore";
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
   auth: { currentUser: { uid: "uid" } },
+  writeBatch: (await import("firebase/firestore")).writeBatch,
 }));
 
 let stop: () => void = () => undefined;
@@ -55,7 +54,7 @@ beforeEach(async () => {
   await disableNetwork(testDb);
   replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: true, displayName: null });
   const subscription = startFirestoreSubscriptions("uid");
-  stop = subscription.stop;
+  ({ stop } = subscription);
   await subscription.ready;
   deckId = crypto.randomUUID();
 });
@@ -68,17 +67,6 @@ afterEach(async () => {
 });
 
 describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTENCE-04 STUDY-SESSION-05]", () => {
-  it("completes offline writes without active listeners, including unchanged writes", async () => {
-    stop();
-    const reference = doc(testDb, "deck", deckId);
-    await createDeck("uid", { id: deckId, name: "Offline cache" });
-    const value = (await getDocFromCache(reference)).data();
-    if (!value) throw new Error("Expected a cached Deck");
-    await writeLocally("uid", [reference], () => setDoc(reference, value));
-    await writeLocally("uid", [reference], () => setDoc(reference, value));
-    expect((await getDocFromCache(reference)).data()).toEqual(value);
-  });
-
   it("completes offline Card writes and hides every child after deleting its Deck", async () => {
     await createDeck("uid", { id: deckId, name: "Offline" });
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
@@ -88,7 +76,9 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     await createCard("uid", second);
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
     await editCard("uid", { id: first.id, frontText: "Edited offline" });
-    expect((await getDocFromCache(doc(testDb, "card", first.id))).data()?.frontText).toBe("Edited offline");
+    await vi.waitFor(async () =>
+      expect((await getDocFromCache(doc(testDb, "card", first.id))).data()?.frontText).toBe("Edited offline")
+    );
     await deleteCard("uid", first.id);
     await vi.waitFor(() => expect(getCards().some((card) => card.id === first.id)).toBe(false));
     await deleteDeck("uid", deckId);
@@ -99,13 +89,15 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     await createDeck("uid", { id: deckId, name: "Study offline" });
     const cards = [0, 1].map(() => cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" }));
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
-    for (const card of cards) await createCard("uid", card);
+    await Promise.all(cards.map((card) => createCard("uid", card)));
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
     await startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
+    await vi.waitFor(() => expect(getStudySession(deckId)).toBeDefined());
     const session = getStudySession(deckId);
     if (!session) throw new Error("Missing session");
     const answeredAt = 1_800_000_000_000;
-    await saveStudyAnswer("uid", session, "good", answeredAt);
+    saveStudyAnswer("uid", session, "good", answeredAt);
+    await vi.waitFor(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
     const answers = await getDocsFromCache(collection(testDb, "studyAnswer"));
     const answer = answers.docs.find((item) => item.data().sessionId === session.sessionId)?.data();
     expect(answer).toMatchObject({ cardId: cards[0]?.id, answer: { type: "rating", rating: "good" } });
@@ -114,18 +106,17 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
       updatedAt: answeredAt,
       fsrs: { reps: 1, lastReviewedAt: answeredAt, dueAt: answeredAt + 600_000 },
     });
-    await vi.waitFor(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
     const savedSchedule = getCards().find((card) => card.id === cards[0]?.id)?.fsrs;
     expect(savedSchedule).toBeDefined();
     stop();
     const subscription = startFirestoreSubscriptions("uid");
-    stop = subscription.stop;
+    ({ stop } = subscription);
     await subscription.ready;
     expect(getCards().find((card) => card.id === cards[0]?.id)?.fsrs).toEqual(savedSchedule);
-    await expect(saveStudyAnswer("uid", session, "good", answeredAt)).rejects.toThrow("session does not match");
+    expect(() => saveStudyAnswer("uid", session, "good", answeredAt)).toThrow("session does not match");
     const final = getStudySession(deckId);
     if (!final) throw new Error("Missing final position");
-    await saveStudyAnswer("uid", final, "again", answeredAt + 1);
+    saveStudyAnswer("uid", final, "again", answeredAt + 1);
     await vi.waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
     expect((await getDocFromCache(doc(testDb, "studySession", session.sessionId))).data()?.endReason).toBe("completed");
     await enableNetwork(testDb);

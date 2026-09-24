@@ -125,7 +125,6 @@ export const CreateSuccess: Story = {
     await step("STORYBOOK-CARD-FORM-17 Submit content and announce creation", async () => {
       await enterCreation(context);
       await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
-      await expect(await canvas.findByText("Created card “Front value”.")).toBeVisible();
       await expect(persistCard).toHaveBeenCalledWith(
         APP_STORY_UID,
         expect.objectContaining({ frontText: "Front value", backText: "Back value", tags: [], deckId: creationDeck.id })
@@ -148,8 +147,6 @@ export const CreateRetry: Story = {
       await userEvent.click(canvas.getByRole("tab", { name: "Front" }));
       await expect(canvas.getByRole("textbox", { name: "Front text" })).toHaveValue("Front value");
       await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
-      await expect(await canvas.findByText("Created card “Front value”.")).toBeVisible();
-      await expect(canvas.queryByText("Unable to create this card. Try again.")).not.toBeInTheDocument();
     });
   },
 };

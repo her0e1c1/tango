@@ -4,9 +4,8 @@ import { showToast } from "@/shared/ui/toast";
 import { saveStudyOperation } from "./saveStudyOperation";
 import { studySessionPageStore } from "../store";
 import type { StudyOperation } from "../studyOperation";
-import { showStudyResult } from "./showStudyResult";
 
-export async function executeStudyOperation(operation: StudyOperation): Promise<void> {
+export function executeStudyOperation(operation: StudyOperation): void {
   const { owner, isSaving } = studySessionPageStore.getState();
   if (isSaving || owner?.uid !== operation.uid || owner.deckId !== operation.deckId || getAuthUid() !== operation.uid)
     return;
@@ -14,16 +13,23 @@ export async function executeStudyOperation(operation: StudyOperation): Promise<
   if (session?.sessionId !== operation.sessionId) return;
   studySessionPageStore.setState({ isSaving: true });
   try {
-    const result = await saveStudyOperation(operation, session);
+    const result = saveStudyOperation(operation, session);
     if (getAuthUid() !== operation.uid || studySessionPageStore.getState().owner !== owner) return;
     const latest = getStudySession(operation.deckId);
     if (latest !== undefined && latest.sessionId !== operation.sessionId) return;
-    // Entity subscriptions already reflect the local batch; only presentation remains.
-    showStudyResult(result.endReason === "completed", operation.cardCount, operation.direction);
+    studySessionPageStore.setState({
+      pendingResult: {
+        deckId: operation.deckId,
+        sessionId: operation.sessionId,
+        currentIndex: result.session.currentIndex,
+        completed: result.endReason === "completed",
+        cardCount: operation.cardCount,
+        direction: operation.direction,
+      },
+    });
   } catch {
+    studySessionPageStore.setState({ isSaving: false, pendingResult: undefined });
     if (studySessionPageStore.getState().owner === owner && getAuthUid() === operation.uid)
       showToast({ messageKey: "studySession.answerSaveFailure", tone: "error" });
-  } finally {
-    studySessionPageStore.setState({ isSaving: false });
   }
 }

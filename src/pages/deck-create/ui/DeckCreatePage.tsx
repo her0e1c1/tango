@@ -15,6 +15,7 @@ export const DeckCreatePage: React.FC = () => {
         mode="create"
         categories={model.categories}
         form={model.form}
+        saveDisabled={model.pending}
         onCancel={model.onCancel}
         onSubmit={model.onSubmit}
       />

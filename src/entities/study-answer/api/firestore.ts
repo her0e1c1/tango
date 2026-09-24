@@ -38,9 +38,7 @@ export function writeStudyAnswer(batch: WriteBatch, input: StudyAnswerInput) {
     createdAt: answeredAt,
     updatedAt: answeredAt,
   });
-  const reference = doc(db, "studyAnswer", input.id);
-  batch.set(reference, answer);
-  return reference;
+  batch.set(doc(db, "studyAnswer", input.id), answer);
 }
 
 const inputSchema = z

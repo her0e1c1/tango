@@ -11,6 +11,7 @@ export interface CardCreatorProps {
   preview: React.ReactNode;
   deckName: string;
   form: UseFormReturn<CardFormFields>;
+  pending?: boolean;
   onCancel: () => void;
   onSubmit: (event: React.SubmitEvent<HTMLFormElement>) => Promise<void>;
 }
@@ -20,18 +21,20 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
   preview,
   deckName,
   form,
+  pending = false,
   onCancel,
   onSubmit,
 }) => {
   const { t } = useTranslation();
   const formState = useFormState({ control: form.control });
+  const isSaving = formState.isSubmitting || pending;
 
   return (
     <section className="mx-auto w-full max-w-reading rounded-surface border border-border bg-surface p-4 md:p-6">
       <header className="mb-5">
         <button
           type="button"
-          disabled={formState.isSubmitting}
+          disabled={isSaving}
           className="mb-1 inline-flex min-h-touch items-center gap-2 rounded-control px-2 text-caption font-semibold text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted"
           onClick={onCancel}
         >
@@ -44,13 +47,15 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
       {/* Fixed dialogs from CardFields must not receive the sibling margins added by space-y utilities. */}
       {/* Keep the DOM callback void for no-misused-promises; RHF still awaits the validated save callback. */}
       <form className="flex w-full flex-col gap-4" onSubmit={(event) => void onSubmit(event)}>
-        <CardFields categories={categories} preview={preview} form={form} />
+        <fieldset className="contents" disabled={isSaving}>
+          <CardFields categories={categories} preview={preview} form={form} />
+        </fieldset>
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
           <Button variant="quiet" type="button" onClick={onCancel}>
             {t("cardForm.actions.cancel")}
           </Button>
-          <Button variant="primary" type="submit" disabled={formState.isSubmitting}>
-            <span>{t(formState.isSubmitting ? "cardForm.actions.creating" : "cardForm.actions.create")}</span>
+          <Button variant="primary" type="submit" disabled={isSaving}>
+            <span>{t(isSaving ? "cardForm.actions.creating" : "cardForm.actions.create")}</span>
           </Button>
         </div>
       </form>

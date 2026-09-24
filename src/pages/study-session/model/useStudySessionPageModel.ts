@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useStore } from "zustand";
 import { useNavigate } from "react-router-dom";
 import {
   toggleViewMode,
@@ -25,12 +26,15 @@ import { useAutoPlay } from "./actions/useAutoPlay";
 import { useStudyQuery } from "./queries/useStudyQuery";
 import { useStudySessionPageState } from "./queries/useStudySessionPageState";
 import { skipCard } from "./actions/skipCard";
+import { showStudyResult } from "./actions/showStudyResult";
+import { studySessionPageStore } from "./store";
 
 export function useStudySessionPageModel(deckId: DeckId) {
   const navigate = useNavigate();
   const { uid } = useAuth();
   const query = useStudyQuery(deckId);
   const pageState = useStudySessionPageState(uid, deckId);
+  const pendingResult = useStore(studySessionPageStore, (state) => state.pendingResult);
   useEffect(() => enterStudySessionPage(uid, deckId), [uid, deckId]);
   useEffect(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
   useAutoPlay(query.sessionState);
@@ -40,6 +44,17 @@ export function useStudySessionPageModel(deckId: DeckId) {
     helpOpen: pageState.helpOpen,
     showBackText: pageState.showBackText,
   });
+  useEffect(() => {
+    if (pendingResult?.deckId !== deckId) return;
+    const reflected = pendingResult.completed
+      ? query.sessionId !== pendingResult.sessionId
+      : query.sessionState.status === "studying" &&
+        query.sessionState.session.sessionId === pendingResult.sessionId &&
+        query.sessionState.session.currentIndex === pendingResult.currentIndex;
+    if (!reflected) return;
+    showStudyResult(pendingResult.completed, pendingResult.cardCount, pendingResult.direction);
+    studySessionPageStore.setState({ isSaving: false, pendingResult: undefined });
+  }, [deckId, pendingResult, query.sessionId, query.sessionState]);
   useEffect(() => {
     if (query.status !== "invalid" || pageState.completion != null || pageState.swipePending) return;
     void navigate(routes.deckList.to(), { replace: true });

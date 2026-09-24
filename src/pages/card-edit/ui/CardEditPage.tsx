@@ -20,6 +20,7 @@ const CardEditContainer: React.FC<{ card: Card }> = ({ card }) => {
         categories={model.categories}
         preview={<BackText {...model.preview} />}
         form={model.form}
+        pending={model.pending}
         onCancel={model.onCancel}
         onSubmit={model.onSubmit}
       />

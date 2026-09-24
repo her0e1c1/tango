@@ -9,7 +9,6 @@ import {
   writeBatch,
   type WriteBatch,
 } from "firebase/firestore";
-import { writeLocally } from "@/shared/firestore-write";
 import { db } from "@/shared/firebase";
 import { replaceRemoteStudySessions } from "../model/actions/replaceRemoteStudySessions";
 import { compareStudySessionCreation, isStudySessionPositionUnchanged } from "../model/rules";
@@ -21,12 +20,11 @@ import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite 
 import { getAuthUid } from "@/entities/auth/@x/study-session";
 import { getStudySession } from "../model/queries/getStudySession";
 
-async function createStudySession(session: StudySession, previous?: StudySession): Promise<void> {
+function createStudySession(session: StudySession, previous?: StudySession): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   const now = Timestamp.now();
   const batch = writeBatch(db);
-  const references = [reference];
   batch.set(reference, {
     ...toStudySessionDocument(value),
     endedAt: null,
@@ -37,33 +35,28 @@ async function createStudySession(session: StudySession, previous?: StudySession
   if (previous) {
     if (previous.remote.uid !== value.remote.uid) throw new Error("Study session owner changed");
     const previousReference = doc(db, "studySession", previous.sessionId);
-    references.push(previousReference);
     batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: now });
   }
-  await writeLocally(value.remote.uid, references, () => batch.commit());
+  void batch.commit().catch(() => undefined);
+  return Promise.resolve();
 }
 
-export async function updateStudySession(
-  session: StudySession,
-  endReason: StudySessionWrite["endReason"]
-): Promise<void> {
+export function updateStudySession(session: StudySession, endReason: StudySessionWrite["endReason"]): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
-  await writeLocally(value.remote.uid, [reference], () =>
-    updateDoc(reference, {
-      ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
-      ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
-      updatedAt: Timestamp.now(),
-    })
-  );
+  void updateDoc(reference, {
+    ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
+    ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
+    updatedAt: Timestamp.now(),
+  }).catch(() => undefined);
+  return Promise.resolve();
 }
 
-async function updateStudySessionRecency(session: StudySession): Promise<void> {
+function updateStudySessionRecency(session: StudySession): Promise<void> {
   const reference = doc(db, "studySession", session.sessionId);
-  await writeLocally(session.remote.uid, [reference], () =>
-    updateDoc(reference, { updatedAt: Timestamp.fromMillis(session.lastStudiedAt) })
-  );
+  void updateDoc(reference, { updatedAt: Timestamp.fromMillis(session.lastStudiedAt) }).catch(() => undefined);
+  return Promise.resolve();
 }
 
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
@@ -103,7 +96,7 @@ export function writeStudySessionPosition(batch: WriteBatch, session: StudySessi
     ...(completed ? { endReason, endedAt: Timestamp.fromMillis(session.lastStudiedAt) } : {}),
     updatedAt: Timestamp.fromMillis(session.lastStudiedAt),
   });
-  return { reference, session: { ...session, currentIndex }, endReason };
+  return { session: { ...session, currentIndex }, endReason };
 }
 
 export interface StudyHistoryRecord {
@@ -182,7 +175,7 @@ export async function startStudy({
   cardOrderIds: string[];
   uid: string;
   now?: number;
-}): Promise<void> {
+}): Promise<string | undefined> {
   if (!uid || uid !== getAuthUid()) throw new Error("Study session owner changed");
   const previous = getStudySession(deckId);
   if (previous) requireOwner(previous);
@@ -196,6 +189,7 @@ export async function startStudy({
   };
   if (session.cardOrderIds.length === 0) return;
   await createStudySession(session, previous);
+  return session.sessionId;
 }
 
 export async function setStudySessionIndex(deckId: string, currentIndex: number): Promise<boolean> {

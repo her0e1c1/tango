@@ -11,7 +11,7 @@ import { useCardCreatePageModel, useCardCreateRouteModel } from "../model/useCar
 import { CardCreator } from "./CardCreator";
 
 const CardCreateContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
-  const { form, preview, categories, navigationGuard, onCancel, onSubmit } = useCardCreatePageModel(deck.id);
+  const { form, preview, categories, navigationGuard, onCancel, onSubmit, pending } = useCardCreatePageModel(deck.id);
 
   return (
     <AppLayout showHeader>
@@ -20,6 +20,7 @@ const CardCreateContainer: React.FC<{ deck: Deck }> = ({ deck }) => {
         categories={categories}
         deckName={deck.name}
         form={form}
+        pending={pending}
         onCancel={onCancel}
         onSubmit={onSubmit}
       />

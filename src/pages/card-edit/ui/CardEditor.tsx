@@ -12,14 +12,24 @@ export interface CardEditorProps {
   categories: readonly string[];
   preview: React.ReactNode;
   form: UseFormReturn<CardFormFields>;
+  pending?: boolean;
   onCancel: () => void;
   onSubmit: (event: React.SubmitEvent<HTMLFormElement>) => void | Promise<void>;
 }
 
 const formatDate = (timestamp: number, locale: string): string => new Date(timestamp).toLocaleDateString(locale);
 
-export const CardEditor: React.FC<CardEditorProps> = ({ cardInfo, categories, preview, form, onCancel, onSubmit }) => {
-  const { isSubmitting: isSaving } = useFormState({ control: form.control });
+export const CardEditor: React.FC<CardEditorProps> = ({
+  cardInfo,
+  categories,
+  preview,
+  form,
+  pending = false,
+  onCancel,
+  onSubmit,
+}) => {
+  const { isSubmitting } = useFormState({ control: form.control });
+  const isSaving = isSubmitting || pending;
   const { i18n, t } = useTranslation();
   const locale = i18n.resolvedLanguage ?? i18n.language;
 

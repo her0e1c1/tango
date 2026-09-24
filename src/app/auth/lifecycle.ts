@@ -2,9 +2,7 @@ import { beforeAuthStateChanged, onIdTokenChanged, signInAnonymously, type User 
 import { collection, disableNetwork, enableNetwork, getDocsFromCache, query, where } from "firebase/firestore";
 
 import { getAuthSession, replaceAuthSession } from "@/entities/auth";
-import { hasUnacknowledgedWrites, subscribeWriteErrors } from "@/shared/firestore-write";
 import { auth, db } from "@/shared/firebase";
-import { showToast } from "@/shared/ui/toast";
 import { startFirestoreSubscriptions } from "../firestore-subscriptions";
 
 // This is the first operation on the Firestore client, before any reads or restored writes can start networking.
@@ -25,7 +23,7 @@ async function hasPendingChanges(uid: string): Promise<boolean> {
       getDocsFromCache(query(collection(db, name), where("uid", "==", uid)))
     )
   );
-  return hasUnacknowledgedWrites(uid) || snapshots.some((snapshot) => snapshot.metadata.hasPendingWrites);
+  return snapshots.some((snapshot) => snapshot.metadata.hasPendingWrites);
 }
 
 export function startAuthSession(): () => void {
@@ -41,9 +39,6 @@ export function startAuthSession(): () => void {
   const reportError = (error: unknown) => {
     if (active) replaceAuthSession({ status: "error", error });
   };
-  const stopErrors = subscribeWriteErrors(() => {
-    if (active) showToast({ messageKey: "studySession.syncFailure", tone: "error" });
-  });
   const stopBefore = beforeAuthStateChanged(
     auth,
     async (nextUser) => {
@@ -121,7 +116,6 @@ export function startAuthSession(): () => void {
     generation += 1;
     stopAuth();
     stopBefore();
-    stopErrors();
     stopSubscriptions();
     if (getAuthSession().status !== "error") replaceAuthSession({ status: "initializing" });
   };

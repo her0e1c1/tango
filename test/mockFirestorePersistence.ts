@@ -87,14 +87,16 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
     ...actual,
     startStudy: async ({ deckId, cardOrderIds, uid, now = Date.now() }: Parameters<typeof actual.startStudy>[0]) => {
       await Promise.resolve();
+      const sessionId = crypto.randomUUID();
       restoreStudySession({
-        sessionId: crypto.randomUUID(),
+        sessionId,
         deckId,
         cardOrderIds: [...cardOrderIds],
         currentIndex: 0,
         lastStudiedAt: now,
         remote: { uid, startedAt: now },
       });
+      return sessionId;
     },
     touchStudySession: async (deckId: string) => {
       await Promise.resolve();
@@ -110,10 +112,9 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
       restoreStudySession({ ...session, currentIndex, lastStudiedAt: Date.now() });
       return true;
     },
-    moveStudySession: async (session: import("@/entities/study-session").StudySession) => {
-      await Promise.resolve();
+    moveStudySession: (session: import("@/entities/study-session").StudySession) => {
       const current = studySessionStore.getState().sessionsByDeckId[session.deckId];
-      if (!isStudySessionPositionUnchanged(session, current)) return false;
+      if (!isStudySessionPositionUnchanged(session, current)) return Promise.resolve(false);
       studySessionStore.setState((state) => {
         if (session.currentIndex + 1 === session.cardOrderIds.length) delete state.sessionsByDeckId[session.deckId];
         else
@@ -123,7 +124,7 @@ vi.mock("@/entities/study-session/api/firestore", async (original) => {
             lastStudiedAt: Date.now(),
           };
       });
-      return true;
+      return Promise.resolve(true);
     },
     abandonStudySession: async (deckId: string) => {
       await Promise.resolve();

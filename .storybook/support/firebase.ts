@@ -5,7 +5,20 @@
  */
 
 import type { Auth } from "firebase/auth";
-import type { Firestore } from "firebase/firestore";
+import type { Firestore, WriteBatch } from "firebase/firestore";
 
 export const auth = { currentUser: null } as Auth;
 export const db = {} as Firestore;
+export const writeBatch = () =>
+  ({
+    set() {
+      return this;
+    },
+    update() {
+      return this;
+    },
+    delete() {
+      return this;
+    },
+    commit: () => Promise.resolve(),
+  }) as unknown as WriteBatch;

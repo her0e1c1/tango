@@ -145,13 +145,12 @@ test("DECK-MANAGEMENT-03 cancels Deck deletion and preserves all related data", 
   expect(await readSession(fixture.user().uid, deck.id)).toEqual(session);
 });
 
-test("DECK-MANAGEMENT-04 retries the same Deck deletion after a handled failure", async ({
+test("DECK-MANAGEMENT-04 retries the same Deck deletion after Firestore rollback", async ({
   fixture,
   page,
   browserErrors,
 }) => {
   const deck = fixture.deck();
-  const failureMessage = "A data save or sync failed. Check your connection and reload to review the saved data.";
   await fixture.apply(page);
   await page.goto("/");
   const fault = await failNextFirestoreWrite(page, { collection: "deck", id: deck.id });
@@ -160,31 +159,11 @@ test("DECK-MANAGEMENT-04 retries the same Deck deletion after a handled failure"
   const dialog = await openDeckDeleteDialog(page, deck.name);
   await dialog.getByRole("button", { name: "Delete deck" }).click();
   await expect(dialog).not.toBeVisible();
-  await expect(page.getByRole("alert")).toContainText(failureMessage);
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await fault.dispose();
   const retryDialog = await openDeckDeleteDialog(page, deck.name);
-  await expect(page.getByRole("button", { name: "Dismiss notification" })).toHaveCount(0);
-  await page.setViewportSize({ width: 320, height: 480 });
-  const retry = retryDialog.getByRole("button", { name: "Delete deck" });
-  const retryBounds = await retry.boundingBox();
-  if (retryBounds === null) throw new Error("Could not measure the Deck deletion retry control");
-  const failureToast = page.getByText(failureMessage, { exact: true });
-  // Force an overlap so the browser proves a visual-only Toast cannot intercept the modal action.
-  await failureToast.evaluate((message, bounds) => {
-    const toast = message.parentElement;
-    if (!(toast instanceof HTMLElement)) throw new Error("Could not locate the visual Toast");
-    Object.assign(toast.style, {
-      position: "fixed",
-      left: `${String(bounds.x)}px`,
-      top: `${String(bounds.y)}px`,
-      width: `${String(bounds.width)}px`,
-      height: `${String(bounds.height)}px`,
-      zIndex: "100",
-    });
-  }, retryBounds);
-  await retry.click();
+  await retryDialog.getByRole("button", { name: "Delete deck" }).click();
 
   // Firestore reopens its write stream after the injected non-retryable error before accepting this retry.
   await expect(retryDialog).not.toBeVisible({ timeout: 15_000 });
@@ -255,7 +234,7 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
   await expect(page.getByRole("button", { name: `Open cards in ${name}`, exact: true })).toHaveCount(1);
 });
 
-test("DECK-MANAGEMENT-06 reports a failed remote create without locking the form", async ({
+test("DECK-MANAGEMENT-06 rolls back a rejected remote create without locking the form", async ({
   fixture,
   page,
   browserErrors,
@@ -279,7 +258,6 @@ test("DECK-MANAGEMENT-06 reports a failed remote create without locking the form
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
-  await expect(page.getByRole("alert")).toContainText("A data save or sync failed.");
   await fault.dispose();
 
   const remote = await listDocuments("deck");
