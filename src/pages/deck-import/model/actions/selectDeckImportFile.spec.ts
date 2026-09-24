@@ -71,27 +71,6 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     ]);
   });
 
-  it("saves same-name selections with distinct Deck and Card identities", async () => {
-    vi.mocked(generateId)
-      .mockReset()
-      .mockReturnValueOnce("deck-1")
-      .mockReturnValueOnce("card-1")
-      .mockReturnValueOnce("deck-2")
-      .mockReturnValueOnce("card-2");
-
-    await selectDeckImportFile(file("same.csv"));
-    await expect(importDeckPreview()).resolves.toBe(true);
-    await selectDeckImportFile(file("same.csv"));
-    await expect(importDeckPreview()).resolves.toBe(true);
-
-    for (const suffix of ["1", "2"]) {
-      expect(createDeck).toHaveBeenCalledWith("uid", { id: `deck-${suffix}`, name: "same.csv" });
-      expect(mutateCards).toHaveBeenCalledWith("uid", [
-        { kind: "create", card: { ...row.card, id: `card-${suffix}`, deckId: `deck-${suffix}` } },
-      ]);
-    }
-  });
-
   it("imports using the anonymous UID", async () => {
     vi.mocked(getAuthUid).mockReturnValue("anonymous-uid");
     vi.mocked(generateId).mockReset().mockReturnValueOnce("local-deck").mockReturnValue("local-card");

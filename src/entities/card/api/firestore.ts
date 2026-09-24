@@ -71,18 +71,6 @@ const createCardDocument = async (card: CardCreate): Promise<void> => {
   void setDoc(reference, document).catch(() => undefined);
 };
 
-export function writeCardCreate(batch: WriteBatch, uid: string, card: CardCreateInput): void {
-  const input = createCardSchema.parse({ uid, card });
-  const createdAt = Date.now();
-  const document = omitUndefined({
-    ...input.card,
-    fsrs: null,
-    createdAt,
-    updatedAt: createdAt,
-  } satisfies RemoteCard);
-  batch.set(doc(db, CARD_COLLECTION, input.card.id), document);
-}
-
 /** Validates Card ownership before creating its Firestore document. */
 export const createCard = async (uid: string, card: CardCreateInput): Promise<void> => {
   const input = createCardSchema.parse({ uid, card });

@@ -16,7 +16,7 @@ export function useDeckCreatePageModel() {
   const navigate = useNavigate();
   const { form } = useDeckCreateFormState();
   const pending = useStore(deckCreatePageStore, (state) => state.mutationId !== undefined);
-  const [target, setTarget] = useState<{ deckId: DeckId; name: string; mutationId: symbol }>();
+  const [target, setTarget] = useState<{ deckId: DeckId; name: string; mutationId: symbol } | undefined>(undefined);
   const createdDeck = useDeck(target?.deckId);
   const isMounted = useMountedGuard();
   const guard = useNavigationGuard(form.formState.isDirty || pending);

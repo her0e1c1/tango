@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "zustand";
 import { useKey } from "react-use";
@@ -27,6 +27,7 @@ export function useDeckImportPageModel() {
   const preferences = usePreferences();
   const navigate = useNavigate();
   const isMounted = useMountedGuard();
+  const initiatedHere = useRef<boolean>(false);
   const decks = useDecks();
   const cards = useCards();
   const pendingImport = useStore(deckImportStore, (state) =>
@@ -36,6 +37,8 @@ export function useDeckImportPageModel() {
   useKey("s", () => void navigate(routes.settings.to()));
 
   const importPreview = (): void => {
+    if (view.pending) return;
+    initiatedHere.current = true;
     void importDeckPreviewAction();
   };
   useEffect(() => {
@@ -51,7 +54,8 @@ export function useDeckImportPageModel() {
       tone: "success",
     });
     deckImportStore.setState({ status: "idle", source: { kind: "empty" } });
-    if (isMounted()) void navigate(routes.deckList.to());
+    if (initiatedHere.current && isMounted()) void navigate(routes.deckList.to());
+    initiatedHere.current = false;
   }, [cards, decks, isMounted, navigate, pendingImport]);
   return {
     view,

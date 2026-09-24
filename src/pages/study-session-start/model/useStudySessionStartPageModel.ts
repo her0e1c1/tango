@@ -25,7 +25,7 @@ export function useStudySessionStartRouteModel(deckId: string) {
 export function useStudySessionStartPageModel(deck: Deck) {
   const navigate = useNavigate();
   const isMounted = useMountedGuard();
-  const [pendingSessionId, setPendingSessionId] = useState<string>();
+  const [pendingSessionId, setPendingSessionId] = useState<string | undefined>(undefined);
   const session = useStudySession(deck.id);
   const { uid } = useAuth();
   const filterDraft = useDeckFilterDraft(uid, deck);

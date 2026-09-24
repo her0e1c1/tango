@@ -1,4 +1,4 @@
-import type { Card } from "@/entities/card";
+import type { Card, CardMutation } from "@/entities/card";
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -16,16 +16,26 @@ const repository = vi.hoisted(() => ({
 vi.mock("@/shared/firebase", () => ({
   auth: {},
   db: {},
-  writeBatch: () => ({ commit: () => Promise.resolve() }),
 }));
 vi.mock("@/entities/auth", () => ({ getAuthUid: () => repository.uid }));
 vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    writeCardCreate: (_batch: unknown, _uid: string, card: Omit<Card, "uid">) => {
-      const saved = card as Card;
-      repository.cards = [...repository.cards.filter(({ id }) => id !== saved.id), saved];
+    mutateCards: async (uid: string, mutations: CardMutation[]) => {
+      await Promise.resolve();
+      for (const mutation of mutations) {
+        if (mutation.kind !== "create") continue;
+        const saved: Card = {
+          ...mutation.card,
+          uid,
+          deletedAt: mutation.card.deletedAt ?? null,
+          fsrs: null,
+          createdAt: 0,
+          updatedAt: 0,
+        };
+        repository.cards = [...repository.cards.filter(({ id }) => id !== saved.id), saved];
+      }
     },
     useCards: () => repository.cards,
   };
@@ -34,7 +44,8 @@ vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
   return {
     ...actual,
-    writeDeckCreate: (_batch: unknown, uid: string, deck: RemoteDeckCreateInput) => {
+    createDeck: async (uid: string, deck: RemoteDeckCreateInput) => {
+      await Promise.resolve();
       if (repository.createDeckError) throw new Error("Storage quota exceeded");
       const fields = {
         id: deck.id,

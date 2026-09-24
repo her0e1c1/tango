@@ -1,10 +1,9 @@
 import { actAsync } from "@/test/act";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createDeck } from "@/entities/deck";
-import { mutateCards } from "@/entities/card";
-import { deckStore } from "@/entities/deck/model/store";
-import { cardStore } from "@/entities/card/model/store";
+import { createDeck, getDecks } from "@/entities/deck";
+import { mutateCards, getCards } from "@/entities/card";
+import { replaceRemoteDecks, replaceRemoteCards } from "@/test/entityFixtures";
 import { createDeck as createDeckFixture, createCard as createCardFixture } from "@/test/factories";
 import { useDeckImportPageModel } from "./useDeckImportPageModel";
 import { deckImportStore } from "./store";
@@ -30,18 +29,24 @@ const csv = (name = "deck.csv") => new File(["front,back,tag,key"], name, { type
 describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    deckStore.setState({ remoteDecks: [] });
-    cardStore.setState({ remoteCards: [] });
+    replaceRemoteDecks([]);
+    replaceRemoteCards([]);
     vi.mocked(createDeck)
       .mockReset()
       .mockImplementation(async (uid, input) => {
-        deckStore.setState({ remoteDecks: [createDeckFixture({ id: input.id, name: input.name, uid })] });
+        await Promise.resolve();
+        replaceRemoteDecks([
+          ...getDecks().filter((deck) => deck.id !== input.id),
+          createDeckFixture({ id: input.id, name: input.name, uid }),
+        ]);
       });
     vi.mocked(mutateCards)
       .mockReset()
       .mockImplementation(async (uid, mutations) => {
-        cardStore.setState({
-          remoteCards: mutations.flatMap((mutation) =>
+        await Promise.resolve();
+        replaceRemoteCards([
+          ...getCards().filter((card) => !mutations.some((mutation) => mutation.card.id === card.id)),
+          ...mutations.flatMap((mutation) =>
             mutation.kind === "create"
               ? [
                   createCardFixture({
@@ -56,7 +61,7 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
                 ]
               : []
           ),
-        });
+        ]);
       });
     deckImportStore.setState(deckImportStore.getInitialState(), true);
     controls.uid = "anonymous-uid";
@@ -82,6 +87,28 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
       ]);
     }
   );
+
+  it("saves same-name selections as distinct Decks after their snapshots arrive", async () => {
+    const { result } = renderHook(useDeckImportPageModel);
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await actAsync(async () => selectDeckImportFile(csv("same.csv")));
+      await actAsync(async () => result.current.importPreview());
+      await waitFor(() => expect(result.current.view.preview).toBeUndefined());
+    }
+
+    const decks = getDecks();
+    const cards = getCards();
+    expect(decks).toHaveLength(2);
+    expect(new Set(decks.map((deck) => deck.id)).size).toBe(2);
+    expect(decks.every((deck) => deck.name === "same.csv")).toBe(true);
+    expect(cards).toHaveLength(2);
+    expect(new Set(cards.map((card) => card.id)).size).toBe(2);
+    for (const deck of decks) {
+      expect(cards.filter((card) => card.deckId === deck.id)).toEqual([
+        expect.objectContaining({ frontText: "front", backText: "back" }),
+      ]);
+    }
+  });
 
   it("does not save invalid CSV rows", async () => {
     await selectDeckImportFile(new File(["front,back"], "invalid.csv"));
@@ -129,6 +156,17 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     });
     expect(mutateCards).toHaveBeenCalledOnce();
     await actAsync(async () => finish());
+    expect(result.current.view.pending).toBe(true);
+    act(() => {
+      const mutations = vi.mocked(mutateCards).mock.calls[0]?.[1] ?? [];
+      replaceRemoteCards(
+        mutations.flatMap((mutation) =>
+          mutation.kind === "create"
+            ? [createCardFixture({ ...mutation.card, deletedAt: mutation.card.deletedAt ?? null, uid: controls.uid })]
+            : []
+        )
+      );
+    });
     expect(controls.navigate).not.toHaveBeenCalled();
     expect(result.current.view.pending).toBe(false);
   });

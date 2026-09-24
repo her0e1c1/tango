@@ -95,7 +95,9 @@ export function useDeckEditPageModel(deck: Deck) {
       messageParams: { name: pendingTagSave.name },
       tone: "success",
     });
-    void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, goToList);
+    void guard.allowNavigation({ historyAction: "REPLACE", to: deckListPath }, () =>
+      navigate(deckListPath, { replace: true })
+    );
   }, [cards, deckListPath, guard, liveDeck, navigate, pendingTagSave]);
 
   return {

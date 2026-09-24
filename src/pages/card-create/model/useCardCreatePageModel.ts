@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFormState } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -24,8 +24,9 @@ export function useCardCreatePageModel(deckId: string) {
   const preferences = usePreferences();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [pending, setPending] = useState<{ id: string; name: string }>();
+  const [pending, setPending] = useState<{ id: string; name: string } | undefined>(undefined);
   const createdCard = useCard(pending?.id);
+  const completedId = useRef<string | undefined>(undefined);
   const destination = routes.cardList.to(deckId);
   const form = useForm<CardContentInput>({
     defaultValues: { frontText: "", backText: "", tags: [] },
@@ -43,9 +44,9 @@ export function useCardCreatePageModel(deckId: string) {
   }
 
   useEffect(() => {
-    if (pending === undefined || createdCard === undefined) return;
+    if (pending === undefined || createdCard === undefined || completedId.current === pending.id) return;
+    completedId.current = pending.id;
     showToast({ messageKey: "cardForm.toast.created", messageParams: { name: pending.name }, tone: "success" });
-    setPending(undefined);
     void guard.allowNavigation({ historyAction: "REPLACE", to: destination }, () =>
       navigate(destination, { replace: true })
     );

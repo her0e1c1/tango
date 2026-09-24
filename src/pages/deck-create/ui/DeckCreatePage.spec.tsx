@@ -83,6 +83,7 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     dismissToast();
     mocks.uid = "user-id";
     mocks.createDeck.mockReset().mockImplementation(async (uid: string, input: CreateDeckInput) => {
+      await Promise.resolve();
       publishDeck(uid, input);
     });
     mocks.generateId.mockReset().mockReturnValue("new-deck");

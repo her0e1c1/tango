@@ -91,12 +91,6 @@ const updateDeckDocument = (deck: z.infer<typeof deckEditSchema>): Promise<void>
   return Promise.resolve();
 };
 
-export function writeDeckCreate(batch: WriteBatch, uid: string, deck: RemoteDeckCreateInput): void {
-  const input = createDeckSchema.parse({ uid, deck });
-  const createdAt = Date.now();
-  batch.set(doc(db, DECK_COLLECTION, input.deck.id), toDeckDocument(input.uid, input.deck, createdAt));
-}
-
 // Validates an authenticated Deck edit before updating Firestore.
 export const editDeck = async (uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> => {
   const input = editDeckSchema.parse({ uid, deck });
