@@ -203,6 +203,7 @@ export function writeCardTagChanges(
   cards: Awaited<ReturnType<typeof readCardsForTagUpdate>>,
   changes: { previous: string | undefined; name: string | undefined }[]
 ) {
+  const updates: { id: string; tags: string[] }[] = [];
   for (const card of cards) {
     const tags = [
       ...new Set(
@@ -215,5 +216,7 @@ export function writeCardTagChanges(
     ];
     if (tags.length === card.tags.length && tags.every((tag, index) => tag === card.tags[index])) continue;
     batch.update(card.reference, { tags, updatedAt: Date.now() });
+    updates.push({ id: card.reference.id, tags });
   }
+  return updates;
 }
