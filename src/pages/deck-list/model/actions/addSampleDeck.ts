@@ -1,10 +1,10 @@
-import { writeCardCreate, type CardMutation } from "@/entities/card";
+import type { CardMutation } from "@/entities/card";
 import type { DeckId, RemoteDeckCreateInput } from "@/entities/deck";
 
 import { getAuthUid } from "@/entities/auth";
-import { writeDeckCreate } from "@/entities/deck";
-import { writeBatch } from "firebase/firestore";
-import { db } from "@/shared/firebase";
+import { mutateCards } from "@/entities/card";
+import { createDeck } from "@/entities/deck";
+import { updatePreferences } from "@/entities/preference";
 import sampleCards from "../../../../../sample/build/output.json";
 
 const SAMPLE_DECK_NAME = "Sample Deck";
@@ -23,7 +23,6 @@ const prepareSampleDeck = (uid: string): PreparedSampleDeck => {
       kind: "create",
       card: {
         ...card,
-        // Stable IDs make concurrent bootstrap attempts converge on the same local Cards.
         id: `${SampleDeckId}-card-${String(index + 1)}`,
         deckId: SampleDeckId,
       },
@@ -32,16 +31,11 @@ const prepareSampleDeck = (uid: string): PreparedSampleDeck => {
 };
 
 export async function addSampleDeck() {
-  // Read the current identity when the action runs rather than capturing a caller snapshot.
   const uid = getAuthUid();
   const sample = prepareSampleDeck(uid);
-  const batch = writeBatch(db);
-  writeDeckCreate(batch, uid, sample.destination);
-  for (const mutation of sample.mutations) {
-    if (mutation.kind !== "create") throw new Error("Sample Deck only supports Card creation");
-    writeCardCreate(batch, uid, mutation.card);
-  }
-  void batch.commit().catch(() => undefined);
+  await createDeck(uid, sample.destination);
+  if (sample.mutations.length > 0) await mutateCards(uid, sample.mutations);
+  updatePreferences({ loadSample: false });
 
   return {
     created: sample.mutations.length,
