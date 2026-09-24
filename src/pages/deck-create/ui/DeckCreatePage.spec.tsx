@@ -7,7 +7,8 @@ import { createMemoryRouter, RouterProvider, useNavigate } from "react-router-do
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createPreferences } from "@/test/factories";
+import { createDeck as createDeckFixture, createPreferences } from "@/test/factories";
+import { replaceRemoteDecks } from "@/test/entityFixtures";
 import { actAsync } from "@/test/act";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 
@@ -35,6 +36,12 @@ vi.mock("@/entities/preference", () => ({
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { DeckCreatePage } from "./DeckCreatePage";
+
+type CreateDeckInput = Parameters<typeof import("@/entities/deck").createDeck>[1];
+
+const publishDeck = (uid: string, input: CreateDeckInput) => {
+  replaceRemoteDecks([createDeckFixture({ ...input, uid })]);
+};
 
 const LeaveRouteButton = () => {
   const navigate = useNavigate();
@@ -75,7 +82,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
   beforeEach(() => {
     dismissToast();
     mocks.uid = "user-id";
-    mocks.createDeck.mockReset().mockResolvedValue(undefined);
+    mocks.createDeck.mockReset().mockImplementation(async (uid: string, input: CreateDeckInput) => {
+      publishDeck(uid, input);
+    });
     mocks.generateId.mockReset().mockReturnValue("new-deck");
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
@@ -185,7 +194,12 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
 
   it("keeps a failed creation notification during retry and replaces it on success", async () => {
     const retry = Promise.withResolvers<void>();
-    mocks.createDeck.mockRejectedValueOnce(new Error("write failed")).mockReturnValueOnce(retry.promise);
+    mocks.createDeck
+      .mockRejectedValueOnce(new Error("write failed"))
+      .mockImplementationOnce(async (uid: string, input: CreateDeckInput) => {
+        await retry.promise;
+        publishDeck(uid, input);
+      });
     renderPage();
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Retried deck");
@@ -232,10 +246,14 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
 
   it("suppresses a second submit while creation is pending", async () => {
     let resolveCreate: (() => void) | undefined;
-    mocks.createDeck.mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolveCreate = resolve;
-      })
+    mocks.createDeck.mockImplementation(
+      (uid: string, input: CreateDeckInput) =>
+        new Promise<void>((resolve) => {
+          resolveCreate = () => {
+            publishDeck(uid, input);
+            resolve();
+          };
+        })
     );
     renderPage();
 
@@ -256,7 +274,10 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
 
   it.each(["success", "failure"] as const)("does not publish a late %s after leaving the Page", async (outcome) => {
     const write = Promise.withResolvers<void>();
-    mocks.createDeck.mockReturnValueOnce(write.promise);
+    mocks.createDeck.mockImplementationOnce(async (uid: string, input: CreateDeckInput) => {
+      await write.promise;
+      publishDeck(uid, input);
+    });
     renderPage(true);
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Slow deck");
@@ -279,7 +300,15 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
   it.each(["success", "failure"] as const)("isolates an old %s after re-entering the Page", async (outcome) => {
     const oldWrite = Promise.withResolvers<void>();
     const newWrite = Promise.withResolvers<void>();
-    mocks.createDeck.mockReturnValueOnce(oldWrite.promise).mockReturnValueOnce(newWrite.promise);
+    mocks.createDeck
+      .mockImplementationOnce(async (uid: string, input: CreateDeckInput) => {
+        await oldWrite.promise;
+        publishDeck(uid, input);
+      })
+      .mockImplementationOnce(async (uid: string, input: CreateDeckInput) => {
+        await newWrite.promise;
+        publishDeck(uid, input);
+      });
     const { unmount } = renderPage(true);
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Old deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
