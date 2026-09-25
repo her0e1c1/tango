@@ -2,7 +2,7 @@
 
 Status: Superseded
 
-後継: [Firestore の差分同期と取得済みデータの永続化](./20260924-use-incremental-firestore-synchronization.md)。以下は当時の決定であり、全体置換と物理削除の記述は後継 ADR で更新する。
+後継: [Firestore SDK に同期と永続キャッシュを委ねる](./20260924-use-incremental-firestore-synchronization.md)。以下は当時の決定であり、同期責務と削除方針は後継 ADR で更新する。
 
 ## Decision
 

@@ -14,9 +14,6 @@ import {
   getDocFromCache,
   collection,
   doc,
-  orderBy,
-  startAt,
-  Timestamp,
   serverTimestamp,
   query,
   setDoc,
@@ -35,20 +32,10 @@ import { findCardById } from "../model/store";
 
 const CARD_COLLECTION = "card";
 
-// Do not filter `deletedAt == null` in the Firestore query.
-// A remote tombstone would otherwise leave the query as a removed change backed by the previous matching document,
-// so this client would not receive the updated tombstone itself. Hide tombstones only when publishing the active store.
+// Include tombstones; the Store exposes only active documents.
 export function subscribeCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  const scope = JSON.stringify([db.app.options.projectId, uid, CARD_COLLECTION]);
   return subscribeSyncedQuery({
-    scope,
-    request: (cursor) =>
-      query(
-        collection(db, CARD_COLLECTION),
-        where("uid", "==", uid),
-        orderBy("updatedAt"),
-        ...(cursor ? [startAt(new Timestamp(cursor.seconds, cursor.nanoseconds))] : [])
-      ),
+    request: query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
     parse: (id, data) => mapCardDocument(id, parseCardDocument(id, data)),
     receive: (result) => {
       applyCardSnapshot(result);

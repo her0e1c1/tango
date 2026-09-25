@@ -36,6 +36,7 @@
 | FIRESTORE-RULES-DECK-24 | read | 異常系 | [匿名認証による他人の非公開 Deck 取得を拒否する](#firestore-rules-deck-24) |
 | FIRESTORE-RULES-DECK-25 | write | 正常系 | [本人の論理削除と削除状態を保つ更新を許可する](#firestore-rules-deck-25) |
 | FIRESTORE-RULES-DECK-26 | write | 異常系 | [削除済み Deck の復活を拒否する](#firestore-rules-deck-26) |
+| FIRESTORE-RULES-DECK-27 | write | 異常系 | [Deck の書き込みにサーバー時刻を要求する](#firestore-rules-deck-27) |
 
 <a id="firestore-rules-deck-01"></a>
 
@@ -590,3 +591,23 @@ When:
 Then:
 
 - 全操作が拒否され、本人が取得した document は本文・削除状態・更新日時を含めて変更前と一致する。
+
+<a id="firestore-rules-deck-27"></a>
+
+### FIRESTORE-RULES-DECK-27 Deck の書き込みにサーバー時刻を要求する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- 本人の Deck と必要な参照先を用意し、有効な保存内容がある。
+
+When:
+
+- SDK から updatedAt を数値、端末生成 Timestamp、または省略した値で保存する。続いて serverTimestamp を指定する。
+
+Then:
+
+- 前者を Rules が拒否し、serverTimestamp の書き込みだけを許可する。本文編集にも同じ制約が適用される。

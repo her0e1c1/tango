@@ -55,7 +55,7 @@ vi.mock("@/shared/firebase", () => ({
 
 const token = { firebase: { sign_in_provider: "google.com", identities: {} } } as const;
 
-describe("Incremental Firestore synchronization", () => {
+describe("Firestore synchronization contracts", () => {
   let environment: RulesTestEnvironment;
   let remote: Firestore;
   let remoteApp: ReturnType<typeof initializeApp>;
@@ -211,8 +211,27 @@ describe("Incremental Firestore synchronization", () => {
     expect((await getDoc(doc(remote, kind, kind === "deck" ? "deck" : "a"))).data()?.deletedAt).toBe(1000);
   });
 
+  it("[FIRESTORE-INCREMENTAL-SYNC-03] receives stopped changes when subscribing again", async () => {
+    await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
+    for (const id of ["a", "b", "unchanged"]) await setDoc(doc(remote, "card", id), cardData(id));
+    await startContent();
+    await vi.waitFor(() => expect(getCards()).toHaveLength(3));
+    stopContent();
+    const batch = writeBatch(remote);
+    batch.update(doc(remote, "card", "a"), { frontText: "changed", updatedAt: serverTimestamp() });
+    batch.update(doc(remote, "card", "b"), { deletedAt: 1000, updatedAt: serverTimestamp() });
+    batch.set(doc(remote, "card", "c"), cardData("c"));
+    await batch.commit();
+    await startContent();
+    await vi.waitFor(() => {
+      expect(getCards().map(({ id }) => id)).toEqual(["a", "c", "unchanged"]);
+      expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("changed");
+    });
+    expect(errors).toEqual([]);
+  });
+
   it.each([-31_536_000_000, 31_536_000_000])(
-    "[FIRESTORE-INCREMENTAL-SYNC-03] rolls back pending edits with clock offset %s",
+    "[FIRESTORE-SNAPSHOT-12] rolls back pending edits with clock offset %s",
     async (offset) => {
       await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
       await startContent();
@@ -232,7 +251,7 @@ describe("Incremental Firestore synchronization", () => {
     }
   );
 
-  it("[FIRESTORE-INCREMENTAL-SYNC-04] repairs an invalid delta without losing buffered changes", async () => {
+  it("[FIRESTORE-SNAPSHOT-13] receives the complete repaired snapshot after a validation error", async () => {
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     stops.push(subscribeDecks(uid, onError));
     await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck"));
@@ -249,7 +268,7 @@ describe("Incremental Firestore synchronization", () => {
     await vi.waitFor(() => expect(getDecks().map(({ name }) => name)).toEqual(["changed", "repaired"]));
   });
 
-  it("[FIRESTORE-INCREMENTAL-SYNC-05] shares ended sessions with history while preserving event times", async () => {
+  it("[FIRESTORE-STUDY-SESSION-17] shares ended sessions with history while preserving event times", async () => {
     let started: StudyHistoryRecord[] = [];
     let completed: StudyHistoryRecord[] = [];
     const input = { uid, period: { start: 0, end: 3000 }, deckId: "deck" };
@@ -298,7 +317,7 @@ describe("Incremental Firestore synchronization", () => {
   });
 
   it.each([2, 1000])(
-    "[FIRESTORE-INCREMENTAL-SYNC-06] merges more than %s new answers and keeps history scopes independent",
+    "[FIRESTORE-STUDY-HISTORY-05] merges more than %s new answers and keeps history scopes independent",
     async (maximum) => {
       await setDoc(doc(remote, "studyAnswer", "initial"), answerData(3000));
       const initial = history(maximum);
@@ -339,7 +358,7 @@ describe("Incremental Firestore synchronization", () => {
   );
 
   it.each([false, true])(
-    "[FIRESTORE-INCREMENTAL-SYNC-07] merges answers arriving during bootstrap (existing=%s)",
+    "[FIRESTORE-STUDY-HISTORY-06] receives answers arriving when the listener starts (existing=%s)",
     async (existing) => {
       if (existing) await setDoc(doc(remote, "studyAnswer", "initial"), answerData(3000));
       let current: StudyAnswerHistory | undefined;
@@ -349,7 +368,7 @@ describe("Incremental Firestore synchronization", () => {
           { uid, from: 0, to: 10_000, deckId: "deck", limit: 1000 },
           (value) => {
             current = value;
-            added ??= setDoc(doc(remote, "studyAnswer", "during-bootstrap"), answerData(2000));
+            added ??= setDoc(doc(remote, "studyAnswer", "during-subscription"), answerData(2000));
           },
           onError
         )
@@ -359,7 +378,7 @@ describe("Incremental Firestore synchronization", () => {
           expect(errors).toEqual([]);
           expect(current).toMatchObject({ source: "server", hasPendingWrites: false });
           expect(current?.records.map(({ id }) => id)).toEqual(
-            existing ? ["initial", "during-bootstrap"] : ["during-bootstrap"]
+            existing ? ["initial", "during-subscription"] : ["during-subscription"]
           );
         },
         { timeout: 10_000 }
@@ -368,41 +387,58 @@ describe("Incremental Firestore synchronization", () => {
     }
   );
 
-  it.each(["deck", "card", "studySession", "studyAnswer"] as const)(
-    "[FIRESTORE-INCREMENTAL-SYNC-08] requires server update times for %s writes",
-    async (kind) => {
-      await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
-      const data: DocumentData = {
-        deck: deckData("new"),
-        card: cardData("new"),
-        studyAnswer: answerData(1000),
-        studySession: {
-          uid,
-          deckId: "deck",
-          cardOrderIds: ["a", "b"],
-          currentIndex: 0,
-          startedAt: Timestamp.fromMillis(1000),
-          lastStudiedAt: 1000,
-          createdAt: Timestamp.fromMillis(1000),
-          endedAt: null,
-          endReason: null,
-          updatedAt: serverTimestamp(),
-        },
-      }[kind];
-      const reference = doc(remote, kind, "new");
-      for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined]) {
-        const invalid = Object.fromEntries(
-          Object.entries({ ...data, updatedAt }).filter(([, value]) => value !== undefined)
-        );
-        await assertFails(setDoc(reference, invalid));
-      }
-      await assertSucceeds(setDoc(reference, data));
-      if (kind !== "studyAnswer") {
-        const fields = { deck: { name: "edited" }, card: { fsrs: {} }, studySession: { currentIndex: 1 } }[kind];
-        for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined])
-          await assertFails(updateDoc(reference, { ...fields, ...(updatedAt === undefined ? {} : { updatedAt }) }));
-        await assertSucceeds(updateDoc(reference, { ...fields, updatedAt: serverTimestamp() }));
-      }
+  async function expectServerUpdateTime(kind: "deck" | "card" | "studySession" | "studyAnswer") {
+    await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
+    const data: DocumentData = {
+      deck: deckData("new"),
+      card: cardData("new"),
+      studyAnswer: answerData(1000),
+      studySession: {
+        uid,
+        deckId: "deck",
+        cardOrderIds: ["a", "b"],
+        currentIndex: 0,
+        startedAt: Timestamp.fromMillis(1000),
+        lastStudiedAt: 1000,
+        createdAt: Timestamp.fromMillis(1000),
+        endedAt: null,
+        endReason: null,
+        updatedAt: serverTimestamp(),
+      },
+    }[kind];
+    const reference = doc(remote, kind, "new");
+    for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined]) {
+      const invalid = Object.fromEntries(
+        Object.entries({ ...data, updatedAt }).filter(([, value]) => value !== undefined)
+      );
+      await assertFails(setDoc(reference, invalid));
     }
-  );
+    await assertSucceeds(setDoc(reference, data));
+    if (kind !== "studyAnswer") {
+      const fields = { deck: { name: "edited" }, card: { fsrs: {} }, studySession: { currentIndex: 1 } }[kind];
+      for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined])
+        await assertFails(updateDoc(reference, { ...fields, ...(updatedAt === undefined ? {} : { updatedAt }) }));
+      await assertSucceeds(updateDoc(reference, { ...fields, updatedAt: serverTimestamp() }));
+    }
+  }
+
+  it("[FIRESTORE-RULES-DECK-27] requires server update times for deck writes", async () => {
+    await expectServerUpdateTime("deck");
+    expect((await getDoc(doc(remote, "deck", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
+  });
+
+  it("[FIRESTORE-RULES-CARD-27] requires server update times for card writes", async () => {
+    await expectServerUpdateTime("card");
+    expect((await getDoc(doc(remote, "card", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
+  });
+
+  it("[FIRESTORE-RULES-STUDY-SESSION-04] requires server update times for studySession writes", async () => {
+    await expectServerUpdateTime("studySession");
+    expect((await getDoc(doc(remote, "studySession", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
+  });
+
+  it("[FIRESTORE-RULES-STUDY-ANSWER-05] requires server update times for studyAnswer writes", async () => {
+    await expectServerUpdateTime("studyAnswer");
+    expect((await getDoc(doc(remote, "studyAnswer", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
+  });
 });

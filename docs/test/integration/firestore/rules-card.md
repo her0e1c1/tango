@@ -36,6 +36,7 @@
 | FIRESTORE-RULES-CARD-24 | write | 異常系 | [評価更新で物理削除 Card を再作成しない](#firestore-rules-card-24) |
 | FIRESTORE-RULES-CARD-25 | write | 正常系 | [本人の論理削除と削除状態を保つ更新を許可する](#firestore-rules-card-25) |
 | FIRESTORE-RULES-CARD-26 | write | 異常系 | [削除済み Card の復活を拒否する](#firestore-rules-card-26) |
+| FIRESTORE-RULES-CARD-27 | write | 異常系 | [Card の書き込みにサーバー時刻を要求する](#firestore-rules-card-27) |
 
 <a id="firestore-rules-card-01"></a>
 
@@ -583,3 +584,23 @@ When:
 Then:
 
 - 全操作が拒否され、本人が取得した document は本文・削除状態・更新日時を含めて変更前と一致する。
+
+<a id="firestore-rules-card-27"></a>
+
+### FIRESTORE-RULES-CARD-27 Card の書き込みにサーバー時刻を要求する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- 本人の Card と必要な参照先を用意し、有効な保存内容がある。
+
+When:
+
+- SDK から updatedAt を数値、端末生成 Timestamp、または省略した値で保存する。続いて serverTimestamp を指定する。
+
+Then:
+
+- 前者を Rules が拒否し、serverTimestamp の書き込みだけを許可する。FSRS 更新にも同じ制約が適用される。

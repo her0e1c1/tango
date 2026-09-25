@@ -14,6 +14,7 @@
 | FIRESTORE-RULES-STUDY-ANSWER-02 | write | 正常系 | [回答 ID と完了後の回答順序はアプリケーションの責務とする](#firestore-rules-study-answer-02) |
 | FIRESTORE-RULES-STUDY-ANSWER-03 | write | 異常系 | [保存済みの回答履歴は本人でも更新・削除できない](#firestore-rules-study-answer-03) |
 | FIRESTORE-RULES-STUDY-ANSWER-04 | batch | 異常系 | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](#firestore-rules-study-answer-04) |
+| FIRESTORE-RULES-STUDY-ANSWER-05 | write | 異常系 | [StudyAnswer の書き込みにサーバー時刻を要求する](#firestore-rules-study-answer-05) |
 
 <a id="firestore-rules-study-answer-01"></a>
 
@@ -101,3 +102,23 @@ When:
 Then:
 
 - 両方の主体で、回答の読取と batch commit が拒否される。
+
+<a id="firestore-rules-study-answer-05"></a>
+
+### FIRESTORE-RULES-STUDY-ANSWER-05 StudyAnswer の書き込みにサーバー時刻を要求する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- 本人の StudyAnswer と必要な参照先を用意し、有効な保存内容がある。
+
+When:
+
+- SDK から updatedAt を数値、端末生成 Timestamp、または省略した値で保存する。続いて serverTimestamp を指定する。
+
+Then:
+
+- 前者を Rules が拒否し、serverTimestamp の書き込みだけを許可する。回答の更新と削除は別の認可仕様に従う。

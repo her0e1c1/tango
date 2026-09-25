@@ -69,6 +69,7 @@
 | FIRESTORE-STUDY-SESSION-14 | write | 正常系 | [学習対象が0枚ならセッションを作成せず既存の学習も中断しない](./study-session.md#firestore-study-session-14) |
 | FIRESTORE-STUDY-SESSION-15 | write | 異常系 | [不正なカード順序を同期的に拒否し保存済みの学習を維持する](./study-session.md#firestore-study-session-15) |
 | FIRESTORE-STUDY-SESSION-16 | write | 異常系 | [所有者が変わった後の書込を同期的に拒否する](./study-session.md#firestore-study-session-16) |
+| FIRESTORE-STUDY-SESSION-17 | read | 正常系 | [同期時刻と学習日時を分離して履歴と再開状態を共有する](./study-session.md#firestore-study-session-17) |
 
 ### study-answer
 
@@ -118,6 +119,8 @@
 | FIRESTORE-SNAPSHOT-09 | read | 正常系 | [停止後に到達した更新で取得結果と通知を変更しない](./snapshot.md#firestore-snapshot-09) |
 | FIRESTORE-SNAPSHOT-10 | read | 正常系 | [再購読で停止中の変更を含む現在の結果を取得する](./snapshot.md#firestore-snapshot-10) |
 | FIRESTORE-SNAPSHOT-11 | read | 異常系 | [不正な初期取得結果を正常な読込完了として扱わない](./snapshot.md#firestore-snapshot-11) |
+| FIRESTORE-SNAPSHOT-12 | batch | 異常系 | [未確定変更を表示し拒否された変更を巻き戻す](./snapshot.md#firestore-snapshot-12) |
+| FIRESTORE-SNAPSHOT-13 | read | 異常系 | [不正な取得結果の修復後に現在の全データを反映する](./snapshot.md#firestore-snapshot-13) |
 
 ### rules-deck
 
@@ -149,6 +152,7 @@
 | FIRESTORE-RULES-DECK-24 | read | 異常系 | [匿名認証による他人の非公開 Deck 取得を拒否する](./rules-deck.md#firestore-rules-deck-24) |
 | FIRESTORE-RULES-DECK-25 | write | 正常系 | [本人の論理削除と削除状態を保つ更新を許可する](./rules-deck.md#firestore-rules-deck-25) |
 | FIRESTORE-RULES-DECK-26 | write | 異常系 | [削除済み Deck の復活を拒否する](./rules-deck.md#firestore-rules-deck-26) |
+| FIRESTORE-RULES-DECK-27 | write | 異常系 | [Deck の書き込みにサーバー時刻を要求する](./rules-deck.md#firestore-rules-deck-27) |
 
 ### rules-card
 
@@ -180,6 +184,7 @@
 | FIRESTORE-RULES-CARD-24 | write | 異常系 | [評価更新で物理削除 Card を再作成しない](./rules-card.md#firestore-rules-card-24) |
 | FIRESTORE-RULES-CARD-25 | write | 正常系 | [本人の論理削除と削除状態を保つ更新を許可する](./rules-card.md#firestore-rules-card-25) |
 | FIRESTORE-RULES-CARD-26 | write | 異常系 | [削除済み Card の復活を拒否する](./rules-card.md#firestore-rules-card-26) |
+| FIRESTORE-RULES-CARD-27 | write | 異常系 | [Card の書き込みにサーバー時刻を要求する](./rules-card.md#firestore-rules-card-27) |
 
 ### rules-study-session
 
@@ -188,6 +193,7 @@
 | FIRESTORE-RULES-STUDY-SESSION-01 | batch | 正常系 | [本人が private session を作成・取得・更新できる](./rules-study-session.md#firestore-rules-study-session-01) |
 | FIRESTORE-RULES-STUDY-SESSION-02 | batch | 異常系 | [公開 Deck でも他ユーザー・匿名・未認証から session にアクセスできない](./rules-study-session.md#firestore-rules-study-session-02) |
 | FIRESTORE-RULES-STUDY-SESSION-03 | write | 異常系 | [本人でも session の所有者変更と物理削除はできない](./rules-study-session.md#firestore-rules-study-session-03) |
+| FIRESTORE-RULES-STUDY-SESSION-04 | write | 異常系 | [StudySession の書き込みにサーバー時刻を要求する](./rules-study-session.md#firestore-rules-study-session-04) |
 
 ### rules-study-answer
 
@@ -197,6 +203,7 @@
 | FIRESTORE-RULES-STUDY-ANSWER-02 | write | 正常系 | [回答 ID と完了後の回答順序はアプリケーションの責務とする](./rules-study-answer.md#firestore-rules-study-answer-02) |
 | FIRESTORE-RULES-STUDY-ANSWER-03 | write | 異常系 | [保存済みの回答履歴は本人でも更新・削除できない](./rules-study-answer.md#firestore-rules-study-answer-03) |
 | FIRESTORE-RULES-STUDY-ANSWER-04 | batch | 異常系 | [他ユーザーと同一 UID の匿名認証による回答の読取・batch を拒否する](./rules-study-answer.md#firestore-rules-study-answer-04) |
+| FIRESTORE-RULES-STUDY-ANSWER-05 | write | 異常系 | [StudyAnswer の書き込みにサーバー時刻を要求する](./rules-study-answer.md#firestore-rules-study-answer-05) |
 
 ### study-history
 
@@ -206,6 +213,8 @@
 | FIRESTORE-STUDY-HISTORY-02 | read | 正常系 / 異常系 | [回答履歴の期間・順序・上限・cacheを確認する](./study-history.md#firestore-study-history-02) |
 | FIRESTORE-STUDY-HISTORY-03 | read | 異常系 | [回答履歴の入力境界を検証する](./study-history.md#firestore-study-history-03) |
 | FIRESTORE-STUDY-HISTORY-04 | batch | 正常系 | [回答の追加と同期状態を購読で受け取り解除後は更新しない](./study-history.md#firestore-study-history-04) |
+| FIRESTORE-STUDY-HISTORY-05 | read | 正常系 | [回答履歴の条件と表示上限を保ちながら追加回答を反映する](./study-history.md#firestore-study-history-05) |
+| FIRESTORE-STUDY-HISTORY-06 | read | 正常系 | [回答履歴の購読開始時の追加を取り込む](./study-history.md#firestore-study-history-06) |
 
 ### incremental-sync
 
@@ -213,9 +222,4 @@
 | --- | --- | --- | --- |
 | FIRESTORE-INCREMENTAL-SYNC-01 | read | 正常系 | [連続する差分で変更のないデータと同時刻の更新を保持する](./incremental-sync.md#firestore-incremental-sync-01) |
 | FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [購読中の論理削除を反映する](./incremental-sync.md#firestore-incremental-sync-02) |
-| FIRESTORE-INCREMENTAL-SYNC-03 | batch | 異常系 | [未確定変更を表示し拒否された変更を巻き戻す](./incremental-sync.md#firestore-incremental-sync-03) |
-| FIRESTORE-INCREMENTAL-SYNC-04 | read | 異常系 | [不正な差分の修復後に保留した変更も反映する](./incremental-sync.md#firestore-incremental-sync-04) |
-| FIRESTORE-INCREMENTAL-SYNC-05 | read | 正常系 | [同期時刻と学習日時を分離して履歴と再開状態を共有する](./incremental-sync.md#firestore-incremental-sync-05) |
-| FIRESTORE-INCREMENTAL-SYNC-06 | read | 正常系 | [回答履歴のスコープと表示上限を保ちながら全差分を取り込む](./incremental-sync.md#firestore-incremental-sync-06) |
-| FIRESTORE-INCREMENTAL-SYNC-07 | read | 正常系 | [回答履歴の初回取得中の追加を取り込む](./incremental-sync.md#firestore-incremental-sync-07) |
-| FIRESTORE-INCREMENTAL-SYNC-08 | write | 異常系 | [全 Entity の更新にサーバー時刻を要求する](./incremental-sync.md#firestore-incremental-sync-08) |
+| FIRESTORE-INCREMENTAL-SYNC-03 | read | 正常系 | [購読再開後に停止中の変更を反映する](./incremental-sync.md#firestore-incremental-sync-03) |

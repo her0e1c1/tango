@@ -4,10 +4,7 @@ interface FirestoreQuery {
 }
 
 interface FirestoreSnapshot {
-  docChanges: () => {
-    type: "added";
-    doc: { id: string; data: () => Record<string, unknown>; metadata: { hasPendingWrites: boolean } };
-  }[];
+  docs: { id: string; data: () => Record<string, unknown> }[];
   metadata: { fromCache: boolean; hasPendingWrites: boolean };
 }
 
@@ -35,7 +32,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
       publishSnapshot: (snapshot: FirestoreSnapshot) => void
     ) => {
       if (request.collectionName === "studySession") {
-        publishSnapshot({ docChanges: () => [], metadata: { fromCache: true, hasPendingWrites: false } });
+        publishSnapshot({ docs: [], metadata: { fromCache: true, hasPendingWrites: false } });
         return () => undefined;
       }
       const deckId = `deck-${request.uid}`;
@@ -77,7 +74,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
               }),
             };
       publishSnapshot({
-        docChanges: () => [{ type: "added", doc: { ...document, metadata: { hasPendingWrites: false } } }],
+        docs: [document],
         metadata: { fromCache: true, hasPendingWrites: false },
       });
       return () => undefined;

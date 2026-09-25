@@ -1,8 +1,8 @@
-# Firestore 差分同期 テスト仕様書
+# Firestore の同期 テスト仕様書
 
 ## 目的
 
-サーバー確定時刻による query・snapshot と購読中の差分統合を実際の Emulator で確認する。[共通前提](./AGENTS.md#共通前提) に従う。checkpoint からの再開・永続化・不正な cache からの復旧は実ブラウザーの [Persistence](../../e2e/persistence.md) で確認し、本番 index の準備完了とは区別する。
+購読中と再開後の変更が欠落・重複なく表示へ反映されることを確認する。[共通前提](./AGENTS.md#共通前提) に従う。オフライン復元は [Persistence](../../e2e/persistence.md)、不正データと rollback は [Snapshot](./snapshot.md)、日時と回答履歴は各 Entity の仕様で扱う。取得量や独自 cursor の利用を契約にしない。
 
 ## テストケース
 
@@ -10,12 +10,7 @@
 | --- | --- | --- | --- |
 | FIRESTORE-INCREMENTAL-SYNC-01 | read | 正常系 | [連続する差分で変更のないデータと同時刻の更新を保持する](#firestore-incremental-sync-01) |
 | FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [購読中の論理削除を反映する](#firestore-incremental-sync-02) |
-| FIRESTORE-INCREMENTAL-SYNC-03 | batch | 異常系 | [未確定変更を表示し拒否された変更を巻き戻す](#firestore-incremental-sync-03) |
-| FIRESTORE-INCREMENTAL-SYNC-04 | read | 異常系 | [不正な差分の修復後に保留した変更も反映する](#firestore-incremental-sync-04) |
-| FIRESTORE-INCREMENTAL-SYNC-05 | read | 正常系 | [同期時刻と学習日時を分離して履歴と再開状態を共有する](#firestore-incremental-sync-05) |
-| FIRESTORE-INCREMENTAL-SYNC-06 | read | 正常系 | [回答履歴のスコープと表示上限を保ちながら全差分を取り込む](#firestore-incremental-sync-06) |
-| FIRESTORE-INCREMENTAL-SYNC-07 | read | 正常系 | [回答履歴の初回取得中の追加を取り込む](#firestore-incremental-sync-07) |
-| FIRESTORE-INCREMENTAL-SYNC-08 | write | 異常系 | [全 Entity の更新にサーバー時刻を要求する](#firestore-incremental-sync-08) |
+| FIRESTORE-INCREMENTAL-SYNC-03 | read | 正常系 | [購読再開後に停止中の変更を反映する](#firestore-incremental-sync-03) |
 
 <a id="firestore-incremental-sync-01"></a>
 
@@ -59,47 +54,7 @@ Then:
 
 <a id="firestore-incremental-sync-03"></a>
 
-### FIRESTORE-INCREMENTAL-SYNC-03 未確定変更を表示し拒否された変更を巻き戻す
-
-カテゴリ: `batch`
-
-区分: 異常系
-
-Given:
-
-- 本人の Deck を同期済みである。ネットワークを切断し、端末時計を過去または未来にずらしている。
-
-When:
-
-- オフラインで本文を変更する。別クライアントが所有権を変えてから再接続し、書き込みを拒否させる。
-
-Then:
-
-- 未確定変更は直ちに購読結果へ反映される。拒否後は SDK の rollback を反映し、未確定本文を残さない。
-
-<a id="firestore-incremental-sync-04"></a>
-
-### FIRESTORE-INCREMENTAL-SYNC-04 不正な差分の修復後に保留した変更も反映する
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- 本人の有効な Deck を取得済みである。表示名が数値の不正 document と既存 Deck の変更をサーバーへ一括保存する。
-
-When:
-
-- 検証エラーを受け取った後、不正 document を有効な表示名へ修復する。
-
-Then:
-
-- 不正な差分で直前の正常な表示を壊さず、修復後は保留されていた既存 Deck の変更も反映する。
-
-<a id="firestore-incremental-sync-05"></a>
-
-### FIRESTORE-INCREMENTAL-SYNC-05 同期時刻と学習日時を分離して履歴と再開状態を共有する
+### FIRESTORE-INCREMENTAL-SYNC-03 購読再開後に停止中の変更を反映する
 
 カテゴリ: `read`
 
@@ -107,72 +62,12 @@ Then:
 
 Given:
 
-- Store が空で、本人の開始履歴と完了履歴を購読している。StudySession のネットワーク購読はまだ開始していない。
+- 本人の Deck と Card A・B・変更対象外の Card を取得済みである。
 
 When:
 
-- StudySession の購読を明示的に開始してから、学習日時を過去の値として保存し、セッションを進めて完了する。一方の履歴購読だけを停止し、別 UID の履歴購読を追加する。
+- 購読を停止する。別クライアントで A を編集し、B を論理削除し、C を追加してから購読を再開する。
 
 Then:
 
-- 別 UID の履歴購読はレコードを通知せず、既存の Store の所有者や学習状態を変更しない。StudySession の購読開始後は再開状態と残った履歴の更新が継続する。最終学習日時は指定した発生時刻であり、updatedAt はサーバー Timestamp となる。終了済みセッションは履歴に残り、再開対象からは消える。
-
-<a id="firestore-incremental-sync-06"></a>
-
-### FIRESTORE-INCREMENTAL-SYNC-06 回答履歴のスコープと表示上限を保ちながら全差分を取り込む
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- 本人の回答履歴を期間・Deck・要求件数を変えて購読する。要求上限は2件または1000件とする。
-
-When:
-
-- 購読中に要求件数より多い回答と、更新時刻は新しいが回答日時は古い回答を追加する。購読を続けてさらに過去日時の回答と最新日時の回答を順に追加する。
-
-Then:
-
-- 回答日時・ID の降順を保ち、最大要求件数まで表示して超過を通知する。別期間・Deck の値を混ぜず、過去日時の回答も対象スコープへ取り込む。上限到達後の連続追加でも並び順と超過判定を保ち、古い回答は表示へ戻らない。
-
-<a id="firestore-incremental-sync-07"></a>
-
-### FIRESTORE-INCREMENTAL-SYNC-07 回答履歴の初回取得中の追加を取り込む
-
-カテゴリ: `read`
-
-区分: 正常系
-
-Given:
-
-- 本人の対象期間には回答がない場合と既存回答がある場合をそれぞれ用意する。
-
-When:
-
-- 初回の履歴取得中に別クライアントから新しい回答を追加する。
-
-Then:
-
-- 初期結果とその後の差分が統合され、追加回答を欠落・重複なく返す。サーバー同期後は server かつ未送信なしとなる。
-
-<a id="firestore-incremental-sync-08"></a>
-
-### FIRESTORE-INCREMENTAL-SYNC-08 全 Entity の更新にサーバー時刻を要求する
-
-カテゴリ: `write`
-
-区分: 異常系
-
-Given:
-
-- 本人の Deck・Card・StudySession を用意し、各 Entity と StudyAnswer に有効な保存内容がある。
-
-When:
-
-- SDK から updatedAt を数値、端末生成 Timestamp、または省略した値で保存する。続いて serverTimestamp を指定する。
-
-Then:
-
-- 前者を Rules が拒否し、serverTimestamp の書き込みだけを許可する。本文編集、FSRS、学習進行にも同じ制約が適用される。
+- A の編集と C の追加が表示され、B は表示されない。変更対象外の Card は残る。欠落・重複なくサーバーの現在の状態に一致する。

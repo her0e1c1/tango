@@ -22,10 +22,7 @@ import { createLocalCard, createLocalDeck, createPreferences } from "@/test/fact
 const mocks = vi.hoisted(() => ({
   receiveSnapshot: undefined as
     | ((snapshot: {
-        docChanges: () => {
-          type: "added";
-          doc: { id: string; data: () => Record<string, unknown>; metadata: { hasPendingWrites: boolean } };
-        }[];
+        docs: { id: string; data: () => Record<string, unknown> }[];
         metadata: { fromCache: boolean; hasPendingWrites: boolean };
       }) => void)
     | undefined,
@@ -632,25 +629,21 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     act(() =>
       mocks.receiveSnapshot?.({
         metadata: { fromCache: false, hasPendingWrites: false },
-        docChanges: () => [
+        docs: [
           {
-            type: "added",
-            doc: {
-              metadata: { hasPendingWrites: false },
-              id: saved.sessionId,
-              data: () => ({
-                uid: "user-id",
-                deckId,
-                cardOrderIds: saved.cardOrderIds,
-                currentIndex: saved.currentIndex,
-                startedAt: Timestamp.fromMillis(1),
-                createdAt: Timestamp.fromMillis(1),
-                updatedAt: Timestamp.fromMillis(1),
-                lastStudiedAt: 1,
-                endedAt: null,
-                endReason: null,
-              }),
-            },
+            id: saved.sessionId,
+            data: () => ({
+              uid: "user-id",
+              deckId,
+              cardOrderIds: saved.cardOrderIds,
+              currentIndex: saved.currentIndex,
+              startedAt: Timestamp.fromMillis(1),
+              createdAt: Timestamp.fromMillis(1),
+              updatedAt: Timestamp.fromMillis(1),
+              lastStudiedAt: 1,
+              endedAt: null,
+              endReason: null,
+            }),
           },
         ],
       })

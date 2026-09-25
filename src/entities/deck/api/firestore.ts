@@ -1,18 +1,6 @@
 import type { z } from "zod";
 import type { DeckId, RemoteDeckCreateInput } from "../model/types";
-import {
-  collection,
-  deleteField,
-  doc,
-  orderBy,
-  startAt,
-  Timestamp,
-  serverTimestamp,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+import { collection, deleteField, doc, serverTimestamp, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { db } from "@/shared/firebase";
 import { subscribeSyncedQuery } from "@/shared/api";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
@@ -28,20 +16,10 @@ import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
 
-// Do not filter `deletedAt == null` in the Firestore query.
-// A remote tombstone would otherwise leave the query as a removed change backed by the previous matching document,
-// so this client would not receive the updated tombstone itself. Hide tombstones only when publishing the active store.
+// Include tombstones; the Store exposes only active documents.
 export function subscribeDecks(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  const scope = JSON.stringify([db.app.options.projectId, uid, DECK_COLLECTION]);
   return subscribeSyncedQuery({
-    scope,
-    request: (cursor) =>
-      query(
-        collection(db, DECK_COLLECTION),
-        where("uid", "==", uid),
-        orderBy("updatedAt"),
-        ...(cursor ? [startAt(new Timestamp(cursor.seconds, cursor.nanoseconds))] : [])
-      ),
+    request: query(collection(db, DECK_COLLECTION), where("uid", "==", uid)),
     parse: (id, data) => {
       const document = parseDeckDocument(id, data);
       return document.deletedAt === null ? toDeck(id, document) : null;

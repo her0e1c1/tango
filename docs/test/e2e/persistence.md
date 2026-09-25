@@ -17,12 +17,9 @@
 | PERSISTENCE-04 | batch | 正常系 | [未ログインの変更をこのブラウザーだけに維持できる](#persistence-04) |
 | PERSISTENCE-05 | batch | 正常系 | [未ログインでもオフラインの Card 操作を再読み込み後まで維持できる](#persistence-05) |
 | PERSISTENCE-06 | batch | 正常系 | [オフラインで進めた学習を同期後に別ブラウザーで再開できる](#persistence-06) |
-| PERSISTENCE-07 | batch | 異常系 | [端末内の取得済みデータが欠損・破損しても再取得できる](#persistence-07) |
-| PERSISTENCE-08 | batch | 異常系 | [端末内の保存に失敗しても再読み込み後に内容を復元できる](#persistence-08) |
-| PERSISTENCE-09 | read | 正常系 | [再取得できなくても保存済みの学習位置を復元できる](#persistence-09) |
-| PERSISTENCE-10 | read | 異常系 | [不正な変更が届いても保存済みの正常な内容で再開できる](#persistence-10) |
-| PERSISTENCE-11 | batch | 正常系 | [保存済みの一覧へ画面を閉じている間の変更と論理削除を反映できる](#persistence-11) |
-| PERSISTENCE-12 | batch | 正常系 | [回答履歴を再読み込み後も対象期間と Deck に絞って復元できる](#persistence-12) |
+| PERSISTENCE-07 | batch | 異常系 | [端末内のデータが失われてもサーバーから再取得できる](#persistence-07) |
+| PERSISTENCE-08 | read | 正常系 | [オフラインの再読み込みで保存済みの学習位置を復元できる](#persistence-08) |
+| PERSISTENCE-09 | batch | 正常系 | [画面を閉じている間の変更と論理削除を再開後に反映できる](#persistence-09) |
 
 <a id="persistence-01"></a>
 
@@ -184,7 +181,7 @@ Then:
 
 <a id="persistence-07"></a>
 
-### PERSISTENCE-07 端末内の取得済みデータが欠損・破損しても再取得できる
+### PERSISTENCE-07 端末内のデータが失われてもサーバーから再取得できる
 
 カテゴリ: `batch`
 
@@ -193,40 +190,19 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 取得済みの Deck と複数 Card があり、端末内の Card の取得済みデータが保存単位ごと失われている、同期位置だけが残って内容が失われている（documents の欠落）、解析不能になっている、または本文の形式が壊れている。
+- Google アカウントの Deck と複数 Card を一度取得している。
 
 When:
 
-- オンラインで画面を再読み込みして Deck を開く。
+- 端末内の取得済みデータが失われた後、オンラインで一覧を開き直す。
 
 Then:
 
-- 保存済みの全 Card をサーバーから取得し直して表示する。欠損した Card を飛ばさず、重複もしない。
+- 全 Card をサーバーの内容で表示し、欠落・重複しない。
 
 <a id="persistence-08"></a>
 
-### PERSISTENCE-08 端末内の保存に失敗しても再読み込み後に内容を復元できる
-
-カテゴリ: `batch`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 取得済みの Deck と複数 Card がある。端末内の保存が一時的に失敗する状態になっている。
-
-When:
-
-- Card を編集して保存する。保存エラーを確認し、端末内の保存が利用可能になってから画面を再読み込みする。
-
-Then:
-
-- 保存失敗を画面で通知する。再読み込み後はサーバーに保存された変更を表示し、変更しなかった Card も欠落しない。
-
-<a id="persistence-09"></a>
-
-### PERSISTENCE-09 再取得できなくても保存済みの学習位置を復元できる
+### PERSISTENCE-08 オフラインの再読み込みで保存済みの学習位置を復元できる
 
 カテゴリ: `read`
 
@@ -235,43 +211,19 @@ Then:
 Given:
 
 - Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
-- Google アカウントの途中の学習を取得し、この端末に保存している。
-- 通信が途絶えて再取得できないが、端末には取得済みの Deck、Card、学習位置が残っている。
+- Google アカウントの途中の学習を一度開き、端末内のデータを利用できる。
 
 When:
 
-- 同じアカウントのまま画面を再読み込みし、対象の学習を開く。
+- データの通信を切断し、学習画面を再読み込みする。
 
 Then:
 
-- 保存済みの現在の Card と学習位置を表示する。学習を最初から開始したり、Deck や Card が消えたりしない。
+- 同じ Card と学習位置を表示する。最初からやり直したり、Deck や Card が消えたりしない。
 
-<a id="persistence-10"></a>
+<a id="persistence-09"></a>
 
-### PERSISTENCE-10 不正な変更が届いても保存済みの正常な内容で再開できる
-
-カテゴリ: `read`
-
-区分: 異常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 取得済みの Deck と複数 Card を端末に保存している。
-- サーバーから受け取った Card の変更内容が不正で、同期エラーが通知されている。
-
-When:
-
-- データの通信が途絶えた状態で画面を再読み込みする。その後、サーバーの内容が修復され、通信を戻して再読み込みする。
-
-Then:
-
-- 同期エラーを通知しながら、通信断中も取得済みの正常な Card 一覧を表示する。起動エラーで閉じ込めたり、一覧を空にしたりしない。
-- 再接続後は修復後の内容を表示し、変更しなかった Card も保持する。
-
-<a id="persistence-11"></a>
-
-### PERSISTENCE-11 保存済みの一覧へ画面を閉じている間の変更と論理削除を反映できる
+### PERSISTENCE-09 画面を閉じている間の変更と論理削除を再開後に反映できる
 
 カテゴリ: `batch`
 
@@ -280,39 +232,12 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- Google アカウントの Deck と複数 Card を取得し、この端末に保存している。
+- Google アカウントの Deck と複数 Card を一度取得している。
 
 When:
 
-- 変更なしで一覧を再読み込みする。その後、画面を閉じている間に別クライアントで1枚を編集し、別の1枚を論理削除して一覧を開き直す。
-- 再び画面を閉じ、親 Deck を別クライアントで論理削除して Deck 一覧を開き直す。
+- 変更なしで一覧を再読み込みする。次に画面を閉じている間に別クライアントで1枚を編集し、別の1枚を論理削除して開き直す。再び画面を閉じ、親 Deck を論理削除して Deck 一覧を開き直す。
 
 Then:
 
-- 変更のない再読み込みでは全 Card を重複なく表示する。
-- 編集した Card は新しい本文で表示し、削除した Card は表示しない。変更していない Card は残る。
-- 親 Deck の削除後は Deck 一覧から消え、再読み込みしても復活しない。サーバーには論理削除した Deck と Card が残る。
-
-<a id="persistence-12"></a>
-
-### PERSISTENCE-12 [TODO] 回答履歴を再読み込み後も対象期間と Deck に絞って復元できる
-
-カテゴリ: `batch`
-
-区分: 正常系
-
-Given:
-
-- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- Google アカウントの回答履歴を期間・Deck ごとに取得し、この端末に保存している。
-- 回答一覧・超過表示は現行画面にないため、このブラウザーでの復元ケースは未検証である。購読中の並び順・超過判定は [差分同期](../integration/firestore/incremental-sync.md#firestore-incremental-sync-06) で扱う。
-
-When:
-
-- 画面を閉じている間に1000件を超える回答と、回答日時が過去の回答、別 Deck の回答が追加される。
-- 同じアカウントで画面を開き直し、期間・Deck を切り替える。
-
-Then:
-
-- 対象期間・Deck の保存済み回答と追加回答を重複なく統合し、回答日時・ID の降順で最大1000件を表示して超過を通知する。
-- 過去日時の回答も対象期間へ反映し、異なる期間・Deck の回答を混ぜない。
+- 変更なしの再読み込みでは全 Card を重複なく表示する。編集した Card は新しい本文で表示し、削除した Card は表示しない。変更しなかった Card は残る。親 Deck の削除後は一覧から消え、再読み込みでも復活しない。サーバーには削除済みの Deck と Card が残る。

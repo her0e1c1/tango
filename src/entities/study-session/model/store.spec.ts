@@ -124,26 +124,21 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
       const initial = await currentListener();
       initial.next({
         metadata: { fromCache: true, hasPendingWrites: false },
-        docChanges: () =>
-          expected.map((session) => ({
-            type: "added",
-            doc: {
-              id: session.sessionId,
-              metadata: { hasPendingWrites: false },
-              data: () => ({
-                uid: "uid",
-                deckId: session.deckId,
-                cardOrderIds: session.cardOrderIds,
-                currentIndex: session.currentIndex,
-                lastStudiedAt: session.lastStudiedAt,
-                startedAt: Timestamp.fromMillis(session.remote.startedAt),
-                createdAt: Timestamp.fromMillis(session.remote.createdAt),
-                updatedAt: Timestamp.fromMillis(300),
-                endedAt: null,
-                endReason: null,
-              }),
-            },
-          })),
+        docs: expected.map((session) => ({
+          id: session.sessionId,
+          data: () => ({
+            uid: "uid",
+            deckId: session.deckId,
+            cardOrderIds: session.cardOrderIds,
+            currentIndex: session.currentIndex,
+            lastStudiedAt: session.lastStudiedAt,
+            startedAt: Timestamp.fromMillis(session.remote.startedAt),
+            createdAt: Timestamp.fromMillis(session.remote.createdAt),
+            updatedAt: Timestamp.fromMillis(300),
+            endedAt: null,
+            endReason: null,
+          }),
+        })),
       } as unknown as QuerySnapshot);
       const input = { uid: "uid", period: { start: 0, end: 1000 }, deckId: null, metric: "started" as const };
       const history = vi.fn();

@@ -20,15 +20,3 @@ export interface StudyAnswerHistory {
   invalidCount: number;
   hasPendingWrites: boolean;
 }
-
-export interface StudyAnswerSnapshot {
-  id: string;
-  answeredAt: { seconds: number; nanoseconds: number };
-  record: StudyAnswerRecord | null;
-}
-
-export interface StudyAnswerSnapshotResult {
-  values: StudyAnswerSnapshot[];
-  fromCache: boolean;
-  hasPendingWrites: boolean;
-}

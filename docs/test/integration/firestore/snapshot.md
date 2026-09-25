@@ -22,6 +22,8 @@ Card / Deck の公開された購読操作を通して、取得結果、所有�
 | FIRESTORE-SNAPSHOT-09 | read | 正常系 | [停止後に到達した更新で取得結果と通知を変更しない](#firestore-snapshot-09) |
 | FIRESTORE-SNAPSHOT-10 | read | 正常系 | [再購読で停止中の変更を含む現在の結果を取得する](#firestore-snapshot-10) |
 | FIRESTORE-SNAPSHOT-11 | read | 異常系 | [不正な初期取得結果を正常な読込完了として扱わない](#firestore-snapshot-11) |
+| FIRESTORE-SNAPSHOT-12 | batch | 異常系 | [未確定変更を表示し拒否された変更を巻き戻す](#firestore-snapshot-12) |
+| FIRESTORE-SNAPSHOT-13 | read | 異常系 | [不正な取得結果の修復後に現在の全データを反映する](#firestore-snapshot-13) |
 
 <a id="empty-initial-snapshot"></a>
 <a id="firestore-snapshot-01"></a>
@@ -295,3 +297,43 @@ Then:
 - 初回の取得に対して、B を識別できるデータ検証エラーが通知される。
 - A だけの部分的な一覧を正常な取得結果として提供せず、不正な B も取り込まない。
 - エラーを正常な0件取得や未評価データへ読み替えず、正常な読込完了を通知しない。
+
+<a id="firestore-snapshot-12"></a>
+
+### FIRESTORE-SNAPSHOT-12 未確定変更を表示し拒否された変更を巻き戻す
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- 本人の Deck を同期済みである。ネットワークを切断し、端末時計を過去または未来にずらしている。
+
+When:
+
+- オフラインで本文を変更する。別クライアントが所有権を変えてから再接続し、書き込みを拒否させる。
+
+Then:
+
+- 未確定変更は直ちに購読結果へ反映される。拒否後は SDK の rollback を反映し、未確定本文を残さない。
+
+<a id="firestore-snapshot-13"></a>
+
+### FIRESTORE-SNAPSHOT-13 不正な取得結果の修復後に現在の全データを反映する
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- 本人の有効な Deck を取得済みである。表示名が数値の不正 document と既存 Deck の変更をサーバーへ一括保存する。
+
+When:
+
+- 検証エラーを受け取った後、不正 document を有効な表示名へ修復する。
+
+Then:
+
+- 不正な取得結果で直前の正常な表示を壊さず、修復後は既存 Deck の変更と修復した Deck をともに反映する。

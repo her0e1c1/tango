@@ -24,7 +24,7 @@
 
 ### 実行環境
 
-- Node の結合テストでは IndexedDB polyfill を使わず、実際の Emulator の query・snapshot・cursor と差分統合を確認する。保存済み checkpoint からの再開、保存失敗・破損時の復旧は、実ブラウザーの [Persistence E2E](../../e2e/persistence.md) で確認する。
+- Node の結合テストでは実際の Emulator の購読結果を確認する。SDK の永続キャッシュと再読み込みは、実ブラウザーの [Persistence E2E](../../e2e/persistence.md) で確認する。
 
 | 対象 | 接続・準備 |
 | --- | --- |

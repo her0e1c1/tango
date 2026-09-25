@@ -1,8 +1,6 @@
 import {
   collection,
   doc,
-  orderBy,
-  startAt,
   serverTimestamp,
   query,
   Timestamp,
@@ -56,17 +54,9 @@ export function updateStudySession(session: StudySession, endReason: StudySessio
 }
 
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  const scope = JSON.stringify([db.app.options.projectId, uid, "studySession"]);
   setStudySessionOwner(uid);
   return subscribeSyncedQuery({
-    scope,
-    request: (cursor) =>
-      query(
-        collection(db, "studySession"),
-        where("uid", "==", uid),
-        orderBy("updatedAt"),
-        ...(cursor ? [startAt(new Timestamp(cursor.seconds, cursor.nanoseconds))] : [])
-      ),
+    request: query(collection(db, "studySession"), where("uid", "==", uid)),
     parse: (id, data) => {
       const document = parseStudySessionDocument(data);
       return document ? toStudySessionWrite(id, document) : null;
