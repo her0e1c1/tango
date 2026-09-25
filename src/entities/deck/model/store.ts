@@ -1,5 +1,4 @@
 import { createStore } from "zustand/vanilla";
-import type { SyncedQueryResult } from "@/shared/api";
 
 import type { Deck } from "./types";
 
@@ -21,8 +20,8 @@ export const replaceRemoteDecks = (remoteDecks: Deck[]): void => {
   deckStore.setState({ remoteDecks });
 };
 
-export function applyDeckSnapshot(result: SyncedQueryResult<Deck | null>) {
+export function applyDeckSnapshot(decks: (Deck | null)[]) {
   deckStore.setState({
-    remoteDecks: result.values.filter((deck) => deck !== null).sort((left, right) => left.id.localeCompare(right.id)),
+    remoteDecks: decks.filter((deck) => deck !== null).sort((left, right) => left.id.localeCompare(right.id)),
   });
 }

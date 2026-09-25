@@ -1,8 +1,17 @@
 import type { z } from "zod";
 import type { DeckId, RemoteDeckCreateInput } from "../model/types";
-import { collection, deleteField, doc, serverTimestamp, query, setDoc, updateDoc, where } from "firebase/firestore";
+import {
+  onSnapshot,
+  collection,
+  deleteField,
+  doc,
+  serverTimestamp,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { db } from "@/shared/firebase";
-import { subscribeSyncedQuery } from "@/shared/api";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
   authenticatedUidSchema,
@@ -18,18 +27,23 @@ const DECK_COLLECTION = "deck";
 
 // Include tombstones; the Store exposes only active documents.
 export function subscribeDecks(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  return subscribeSyncedQuery({
-    request: query(collection(db, DECK_COLLECTION), where("uid", "==", uid)),
-    parse: (id, data) => {
-      const document = parseDeckDocument(id, data);
-      return document.deletedAt === null ? toDeck(id, document) : null;
+  return onSnapshot(
+    query(collection(db, DECK_COLLECTION), where("uid", "==", uid)),
+    { includeMetadataChanges: true },
+    (snapshot) => {
+      try {
+        const values = snapshot.docs.map((item) => {
+          const document = parseDeckDocument(item.id, item.data({ serverTimestamps: "estimate" }));
+          return document.deletedAt === null ? toDeck(item.id, document) : null;
+        });
+        applyDeckSnapshot(values);
+        onReady?.();
+      } catch (error) {
+        onError(error instanceof Error ? error : new Error(String(error)));
+      }
     },
-    receive: (result) => {
-      applyDeckSnapshot(result);
-      onReady?.();
-    },
-    onError,
-  });
+    onError
+  );
 }
 
 export function createDeck(uid: string, deck: RemoteDeckCreateInput): Promise<void> {

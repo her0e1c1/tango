@@ -1,7 +1,6 @@
 import { compareStudySessionCreation } from "./rules";
 import type { DeckId } from "@/entities/deck/@x/study-session";
 import { createStore } from "zustand/vanilla";
-import type { SyncedQueryResult } from "@/shared/api";
 
 import type { StudySession, StudySessions, StudySessionSnapshot } from "./types";
 
@@ -54,7 +53,10 @@ export function setStudySessionSyncError(syncError: Error): void {
   studySessionStore.setState({ remoteLoading: false, syncError });
 }
 
-export function applyStudySessionSnapshot(uid: string, result: SyncedQueryResult<StudySessionSnapshot | null>) {
+export function applyStudySessionSnapshot(
+  uid: string,
+  result: { values: (StudySessionSnapshot | null)[]; fromCache: boolean }
+) {
   if (studySessionStore.getState().ownerUid !== uid) return;
   const history = result.values.filter((value) => value !== null);
   const latest = new Map<string, StudySessionSnapshot>();

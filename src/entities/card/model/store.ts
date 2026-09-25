@@ -1,6 +1,5 @@
 import { getDecks } from "@/entities/deck/@x/card";
 import { createStore } from "zustand/vanilla";
-import type { SyncedQueryResult } from "@/shared/api";
 
 import { cardIdSchema } from "./schema";
 import type { Card, CardId, RemoteCard } from "./types";
@@ -30,10 +29,8 @@ export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
   cardStore.setState({ remoteCards });
 };
 
-export function applyCardSnapshot(result: SyncedQueryResult<RemoteCard>) {
+export function applyCardSnapshot(cards: RemoteCard[]) {
   cardStore.setState({
-    remoteCards: result.values
-      .filter((card) => card.deletedAt === null)
-      .sort((left, right) => left.id.localeCompare(right.id)),
+    remoteCards: cards.filter((card) => card.deletedAt === null).sort((left, right) => left.id.localeCompare(right.id)),
   });
 }

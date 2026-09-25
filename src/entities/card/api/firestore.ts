@@ -12,6 +12,7 @@ import type {
 import { FirebaseError } from "firebase/app";
 import {
   getDocFromCache,
+  onSnapshot,
   collection,
   doc,
   serverTimestamp,
@@ -22,7 +23,6 @@ import {
   type WriteBatch,
 } from "firebase/firestore";
 import { db } from "@/shared/firebase";
-import { subscribeSyncedQuery } from "@/shared/api";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
@@ -34,15 +34,22 @@ const CARD_COLLECTION = "card";
 
 // Include tombstones; the Store exposes only active documents.
 export function subscribeCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  return subscribeSyncedQuery({
-    request: query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
-    parse: (id, data) => mapCardDocument(id, parseCardDocument(id, data)),
-    receive: (result) => {
-      applyCardSnapshot(result);
-      onReady?.();
+  return onSnapshot(
+    query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
+    { includeMetadataChanges: true },
+    (snapshot) => {
+      try {
+        const values = snapshot.docs.map((item) => {
+          return mapCardDocument(item.id, parseCardDocument(item.id, item.data({ serverTimestamps: "estimate" })));
+        });
+        applyCardSnapshot(values);
+        onReady?.();
+      } catch (error) {
+        onError(error instanceof Error ? error : new Error(String(error)));
+      }
     },
-    onError,
-  });
+    onError
+  );
 }
 
 /** Prepared imports retry the same IDs; a locally saved Card must never be initialized again. */

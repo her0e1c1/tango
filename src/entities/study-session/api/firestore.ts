@@ -1,4 +1,5 @@
 import {
+  onSnapshot,
   collection,
   doc,
   serverTimestamp,
@@ -10,7 +11,6 @@ import {
   type WriteBatch,
 } from "firebase/firestore";
 import { db } from "@/shared/firebase";
-import { subscribeSyncedQuery } from "@/shared/api";
 import { applyStudySessionSnapshot } from "../model/store";
 import { getStudyHistory } from "../model/rules";
 import { isStudySessionPositionUnchanged } from "../model/rules";
@@ -55,22 +55,28 @@ export function updateStudySession(session: StudySession, endReason: StudySessio
 
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
   setStudySessionOwner(uid);
-  return subscribeSyncedQuery({
-    request: query(collection(db, "studySession"), where("uid", "==", uid)),
-    parse: (id, data) => {
-      const document = parseStudySessionDocument(data);
-      return document ? toStudySessionWrite(id, document) : null;
+  const reportError = (error: Error) => {
+    if (studySessionStore.getState().ownerUid !== uid) return;
+    setStudySessionSyncError(error);
+    onError(error);
+  };
+  return onSnapshot(
+    query(collection(db, "studySession"), where("uid", "==", uid)),
+    { includeMetadataChanges: true },
+    (snapshot) => {
+      try {
+        const values = snapshot.docs.map((item) => {
+          const document = parseStudySessionDocument(item.data({ serverTimestamps: "estimate" }));
+          return document ? toStudySessionWrite(item.id, document) : null;
+        });
+        applyStudySessionSnapshot(uid, { values, fromCache: snapshot.metadata.fromCache });
+        onReady?.();
+      } catch (error) {
+        reportError(error instanceof Error ? error : new Error(String(error)));
+      }
     },
-    receive: (result) => {
-      applyStudySessionSnapshot(uid, result);
-      onReady?.();
-    },
-    onError: (error) => {
-      if (studySessionStore.getState().ownerUid !== uid) return;
-      setStudySessionSyncError(error);
-      onError(error);
-    },
-  });
+    reportError
+  );
 }
 
 export function writeStudySessionPosition(batch: WriteBatch, session: StudySession, targetIndex: number) {

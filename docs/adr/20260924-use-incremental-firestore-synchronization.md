@@ -15,7 +15,7 @@ Status: Accepted
 - Deck・Card は論理削除し、削除済み状態を保持する。物理削除と削除状態の解除は Rules で拒否する。
 - `updatedAt` はサーバー時刻とし、回答日時や `lastStudiedAt` など業務上の日時と分離する。
 - 学習履歴は App が購読する StudySession の状態を共有する。回答履歴は期間・Deck・表示上限に対応した通常の Firestore listener で取得する。
-- ドメインの query・解析は Entity、汎用の購読 adapter は Shared に置く。Store は表示状態を保持する。
+- query・解析・購読は各 Entity が直接所有する。購読のためだけの共通 adapter は作らず、Store は表示状態を保持する。
 
 既存データの移行は行わず、新しい保存形式だけを対象とする。切替前に対応する Rules と必要な index を確認する。Emulator の成功は本番 index の準備完了や read cost を保証しない。
 
