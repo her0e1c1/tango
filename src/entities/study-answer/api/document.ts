@@ -2,7 +2,12 @@ import { serverTimestamp, Timestamp, type DocumentData } from "firebase/firestor
 import type { StudyAnswerInput, StudyAnswerRecord, StudyAnswerSnapshot } from "../model/types";
 import { z } from "zod";
 import { studyRatingSchema } from "../model/schema";
-import { compareSyncTimestamps, firestoreMetadataSchema, firestoreTimestampSchema } from "@/shared/api";
+import {
+  compareSyncTimestamps,
+  firestoreMetadataSchema,
+  firestoreTimestampSchema,
+  type SyncReplica,
+} from "@/shared/api";
 
 const ratingAnswerSchema = z
   .object({
@@ -55,9 +60,13 @@ export function parseStudyAnswerSnapshot(id: string, data: DocumentData): StudyA
   return { id, answeredAt, record: parseStudyAnswerRecord(id, data) };
 }
 
-export function retainStudyAnswerDocuments(documents: Record<string, DocumentData>, maximum: number) {
-  return Object.fromEntries(
-    Object.entries(documents)
+export function retainStudyAnswerReplica(
+  replica: SyncReplica<StudyAnswerSnapshot>,
+  maximum: number,
+  lastUpdatedAt = replica.checkpoint.lastUpdatedAt
+): SyncReplica<StudyAnswerSnapshot> {
+  const documents = Object.fromEntries(
+    Object.entries(replica.checkpoint.documents)
       .sort(
         ([leftId, left], [rightId, right]) =>
           compareSyncTimestamps(
@@ -67,4 +76,8 @@ export function retainStudyAnswerDocuments(documents: Record<string, DocumentDat
       )
       .slice(0, maximum + 1)
   );
+  return {
+    checkpoint: { documents, lastUpdatedAt },
+    values: new Map([...replica.values].filter(([id]) => Object.hasOwn(documents, id))),
+  };
 }

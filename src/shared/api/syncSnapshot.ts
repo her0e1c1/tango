@@ -1,11 +1,41 @@
 import type { DocumentData, QuerySnapshot } from "firebase/firestore";
 import { firestoreTimestampSchema } from "./firestoreDocument";
-import { compareSyncTimestamps, type SyncCheckpoint, type SyncTimestamp } from "./syncPersistence";
+import {
+  compareSyncTimestamps,
+  loadSyncCheckpoint,
+  deleteSyncCheckpoint,
+  type SyncCheckpoint,
+  type SyncTimestamp,
+} from "./syncPersistence";
 
 export interface SyncedQueryResult<T> {
   values: T[];
   fromCache: boolean;
   hasPendingWrites: boolean;
+}
+
+export interface SyncReplica<T> {
+  checkpoint: SyncCheckpoint;
+  values: Map<string, T>;
+}
+
+export async function loadSyncReplica<T>(
+  scope: string,
+  parse: (id: string, data: DocumentData) => T
+): Promise<SyncReplica<T> | null> {
+  const checkpoint = await loadSyncCheckpoint(scope);
+  if (!checkpoint) return null;
+  try {
+    const values = new Map<string, T>();
+    for (const [id, data] of Object.entries(checkpoint.documents)) {
+      readSyncTimestamp(data);
+      values.set(id, parse(id, data));
+    }
+    return { checkpoint, values };
+  } catch {
+    await deleteSyncCheckpoint(scope).catch(() => undefined);
+    return null;
+  }
 }
 
 export type SyncChange<T> =
@@ -38,14 +68,10 @@ export function readSyncChanges<T>(
   }
 }
 
-export function mergeSyncChanges<T>(
-  base: SyncCheckpoint,
-  baseValues: Map<string, T>,
-  changes: Map<string, SyncChange<T>>
-) {
-  const values = new Map(baseValues);
-  const documents = new Map(Object.entries(base.documents));
-  let lastUpdatedAt = base.lastUpdatedAt;
+export function mergeSyncChanges<T>(base: SyncReplica<T> | null, changes: Map<string, SyncChange<T>>) {
+  const values = new Map(base?.values);
+  const documents = new Map(Object.entries(base?.checkpoint.documents ?? {}));
+  let lastUpdatedAt = base?.checkpoint.lastUpdatedAt ?? null;
   for (const [id, change] of changes) {
     if (!change.success) throw change.error;
     const previous = documents.get(id);
@@ -56,5 +82,5 @@ export function mergeSyncChanges<T>(
     if (!change.pending && (lastUpdatedAt === null || compareSyncTimestamps(updatedAt, lastUpdatedAt) > 0))
       lastUpdatedAt = updatedAt;
   }
-  return { values, documents: Object.fromEntries(documents), lastUpdatedAt };
+  return { checkpoint: { documents: Object.fromEntries(documents), lastUpdatedAt }, values };
 }

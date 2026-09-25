@@ -1,13 +1,8 @@
 import { onSnapshot, type DocumentData, type Query } from "firebase/firestore";
+import { saveSyncCheckpoint, type SyncTimestamp } from "./syncPersistence";
 import {
-  loadSyncCheckpoint,
-  saveSyncCheckpoint,
-  deleteSyncCheckpoint,
-  type SyncCheckpoint,
-  type SyncTimestamp,
-} from "./syncPersistence";
-import {
-  readSyncTimestamp,
+  loadSyncReplica,
+  type SyncReplica,
   readSyncChanges,
   mergeSyncChanges,
   type SyncChange,
@@ -25,27 +20,11 @@ interface SyncedQueryOptions<T> {
 export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => void {
   let active = true;
   let unsubscribe: (() => void) | undefined;
-  let base: { checkpoint: SyncCheckpoint; values: Map<string, T> } | null = null;
+  let base: SyncReplica<T> | null = null;
   let receivedSnapshot = false;
   const fail = (cause: unknown) => {
     if (active) options.onError(cause instanceof Error ? cause : new Error(String(cause)));
   };
-  async function restoreSaved() {
-    const saved = await loadSyncCheckpoint(options.scope);
-    if (!active || !saved) return null;
-    try {
-      const values = new Map<string, T>();
-      for (const [id, data] of Object.entries(saved.documents)) {
-        readSyncTimestamp(data);
-        values.set(id, options.parse(id, data));
-      }
-      return { checkpoint: saved, values };
-    } catch {
-      await deleteSyncCheckpoint(options.scope).catch(fail);
-      return null;
-    }
-  }
-
   function restoreOnError(error: unknown) {
     if (base && !receivedSnapshot) {
       receivedSnapshot = true;
@@ -55,7 +34,7 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
   }
 
   async function start() {
-    const saved = await restoreSaved();
+    const saved = await loadSyncReplica(options.scope, options.parse);
     if (!active) return;
     base = saved;
     const changes = new Map<string, SyncChange<T>>();
@@ -65,22 +44,15 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
       (snapshot) => {
         if (!active) return;
         readSyncChanges(snapshot, changes, options.parse);
-        let merged: ReturnType<typeof mergeSyncChanges<T>>;
+        let merged: SyncReplica<T>;
         try {
-          merged = mergeSyncChanges(
-            base?.checkpoint ?? { documents: {}, lastUpdatedAt: null },
-            base?.values ?? new Map<string, T>(),
-            changes
-          );
+          merged = mergeSyncChanges(base, changes);
         } catch (error) {
           restoreOnError(error);
           return;
         }
         if (!(snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites)) {
-          base = {
-            checkpoint: { documents: merged.documents, lastUpdatedAt: merged.lastUpdatedAt },
-            values: merged.values,
-          };
+          base = merged;
           void saveSyncCheckpoint(options.scope, base.checkpoint).catch(fail);
           changes.clear();
         }

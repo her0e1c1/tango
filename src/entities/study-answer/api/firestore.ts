@@ -2,7 +2,6 @@ import {
   doc,
   onSnapshot,
   type Query,
-  type QuerySnapshot,
   Timestamp,
   type WriteBatch,
   collection,
@@ -15,15 +14,14 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "@/shared/firebase";
 import type { StudyAnswerHistory, StudyAnswerInput, StudyAnswerSnapshot } from "../model/types";
-import { createStudyAnswerDocument, parseStudyAnswerSnapshot, retainStudyAnswerDocuments } from "./document";
+import { createStudyAnswerDocument, parseStudyAnswerSnapshot, retainStudyAnswerReplica } from "./document";
 import {
-  loadSyncCheckpoint,
+  loadSyncReplica,
   saveSyncCheckpoint,
-  deleteSyncCheckpoint,
   readSyncTimestamp,
   readSyncChanges,
   mergeSyncChanges,
-  type SyncCheckpoint,
+  type SyncReplica,
   type SyncTimestamp,
   type SyncChange,
   type SyncedQueryResult,
@@ -91,11 +89,9 @@ export function subscribeStudyAnswerHistory(
     limit(1)
   );
   let active = true;
-  let stop: () => void = () => undefined;
-  let stopBoundary: () => void = () => undefined;
-  let base: SyncCheckpoint = { documents: {}, lastUpdatedAt: null };
-  let baseValues = new Map<string, StudyAnswerSnapshot>();
-  let restored = false;
+  let stop: (() => void) | undefined;
+  let stopBoundary: (() => void) | undefined;
+  let base: SyncReplica<StudyAnswerSnapshot> | null = null;
   let published = false;
   const isActive = () => active && auth.currentUser === user;
   const fail = (cause: unknown) => {
@@ -104,65 +100,14 @@ export function subscribeStudyAnswerHistory(
   function publish(result: SyncedQueryResult<StudyAnswerSnapshot>) {
     if (!isActive()) return;
     published = true;
-    try {
-      onHistory(getStudyAnswerHistory(result, maximum));
-    } catch (error) {
-      fail(error);
-    }
+    onHistory(getStudyAnswerHistory(result, maximum));
   }
   function restoreOnError(error: unknown) {
-    if (restored && !published) publish({ values: [...baseValues.values()], fromCache: true, hasPendingWrites: false });
+    if (base && !published) publish({ values: [...base.values.values()], fromCache: true, hasPendingWrites: false });
     fail(error);
   }
-  async function restoreSaved() {
-    const saved = await loadSyncCheckpoint(scope);
-    if (!isActive() || !saved) return;
-    try {
-      const values = new Map<string, StudyAnswerSnapshot>();
-      for (const [id, data] of Object.entries(saved.documents)) {
-        readSyncTimestamp(data);
-        values.set(id, parseStudyAnswerSnapshot(id, data));
-      }
-      base = saved;
-      baseValues = values;
-      restored = true;
-    } catch {
-      await deleteSyncCheckpoint(scope).catch(fail);
-    }
-  }
-  function ingest(
-    snapshot: QuerySnapshot,
-    changes: Map<string, SyncChange<StudyAnswerSnapshot>>,
-    boundary?: SyncTimestamp | null
-  ) {
-    readSyncChanges(snapshot, changes, parseStudyAnswerSnapshot);
-    let merged: ReturnType<typeof mergeSyncChanges<StudyAnswerSnapshot>>;
-    try {
-      merged = mergeSyncChanges(base, baseValues, changes);
-    } catch (error) {
-      restoreOnError(error);
-      return false;
-    }
-    const confirmed = !(snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites);
-    if (confirmed) {
-      const documents = retainStudyAnswerDocuments(merged.documents, maximum);
-      base = {
-        documents,
-        lastUpdatedAt: boundary === undefined ? merged.lastUpdatedAt : boundary,
-      };
-      baseValues = new Map([...merged.values].filter(([id]) => Object.hasOwn(documents, id)));
-      void saveSyncCheckpoint(scope, base).catch(fail);
-      changes.clear();
-    }
-    publish({
-      values: [...merged.values.values()],
-      fromCache: snapshot.metadata.fromCache || boundary !== undefined,
-      hasPendingWrites: snapshot.metadata.hasPendingWrites,
-    });
-    return confirmed;
-  }
   function listen(target: Query, source: "cache" | "default", boundary?: SyncTimestamp | null) {
-    stop();
+    stop?.();
     let current = true;
     const isCurrent = () => isActive() && current;
     const changes = new Map<string, SyncChange<StudyAnswerSnapshot>>();
@@ -171,8 +116,26 @@ export function subscribeStudyAnswerHistory(
       { includeMetadataChanges: true, source },
       (snapshot) => {
         if (!isCurrent()) return;
-        const confirmed = ingest(snapshot, changes, boundary);
-        if (isCurrent() && confirmed && boundary !== undefined) listen(request(base.lastUpdatedAt), "default");
+        readSyncChanges(snapshot, changes, parseStudyAnswerSnapshot);
+        let merged: SyncReplica<StudyAnswerSnapshot>;
+        try {
+          merged = mergeSyncChanges(base, changes);
+        } catch (error) {
+          restoreOnError(error);
+          return;
+        }
+        const confirmed = !(snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites);
+        if (confirmed) {
+          base = retainStudyAnswerReplica(merged, maximum, boundary);
+          void saveSyncCheckpoint(scope, base.checkpoint).catch(fail);
+          changes.clear();
+        }
+        publish({
+          values: [...merged.values.values()],
+          fromCache: snapshot.metadata.fromCache || boundary !== undefined,
+          hasPendingWrites: snapshot.metadata.hasPendingWrites,
+        });
+        if (isCurrent() && confirmed && boundary !== undefined) listen(request(boundary), "default");
       },
       (error) => {
         if (current) restoreOnError(error);
@@ -193,7 +156,7 @@ export function subscribeStudyAnswerHistory(
         if (!isActive() || snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return;
         try {
           const boundary = snapshot.docs[0] ? readSyncTimestamp(snapshot.docs[0].data()) : null;
-          stopBoundary();
+          stopBoundary?.();
           listen(initial, "default", boundary);
         } catch (error) {
           fail(error);
@@ -203,16 +166,17 @@ export function subscribeStudyAnswerHistory(
     );
   }
   async function start() {
-    await restoreSaved();
+    const saved = await loadSyncReplica(scope, parseStudyAnswerSnapshot);
     if (!isActive()) return;
-    if (restored) listen(request(base.lastUpdatedAt), anonymous ? "cache" : "default");
+    base = saved;
+    if (base) listen(request(base.checkpoint.lastUpdatedAt), anonymous ? "cache" : "default");
     else if (anonymous) listen(initial, "cache");
     else bootstrap();
   }
   void start().catch(fail);
   return () => {
     active = false;
-    stop();
-    stopBoundary();
+    stop?.();
+    stopBoundary?.();
   };
 }
