@@ -2,14 +2,14 @@
 
 ## 目的
 
-サーバー確定時刻による差分購読と、取得済みデータを checkpoint から復元した再開を実際の Emulator で確認する。[共通前提](./AGENTS.md#共通前提) に従う。ブラウザーの永続化は [Persistence](../../e2e/persistence.md) で確認し、本番 index の準備完了とは区別する。
+サーバー確定時刻による query・snapshot と購読中の差分統合を実際の Emulator で確認する。[共通前提](./AGENTS.md#共通前提) に従う。checkpoint からの再開・永続化・不正な cache からの復旧は実ブラウザーの [Persistence](../../e2e/persistence.md) で確認し、本番 index の準備完了とは区別する。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| FIRESTORE-INCREMENTAL-SYNC-01 | read | 正常系 | [更新境界を含めて再開し変更のないデータと同時刻の更新を保持する](#firestore-incremental-sync-01) |
-| FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [停止中の論理削除を再開後に反映する](#firestore-incremental-sync-02) |
+| FIRESTORE-INCREMENTAL-SYNC-01 | read | 正常系 | [連続する差分で変更のないデータと同時刻の更新を保持する](#firestore-incremental-sync-01) |
+| FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [購読中の論理削除を反映する](#firestore-incremental-sync-02) |
 | FIRESTORE-INCREMENTAL-SYNC-03 | batch | 異常系 | [未確定変更を表示し拒否された変更を巻き戻す](#firestore-incremental-sync-03) |
 | FIRESTORE-INCREMENTAL-SYNC-04 | read | 異常系 | [不正な差分の修復後に保留した変更も反映する](#firestore-incremental-sync-04) |
 | FIRESTORE-INCREMENTAL-SYNC-05 | read | 正常系 | [同期時刻と学習日時を分離して履歴と再開状態を共有する](#firestore-incremental-sync-05) |
@@ -19,7 +19,7 @@
 
 <a id="firestore-incremental-sync-01"></a>
 
-### FIRESTORE-INCREMENTAL-SYNC-01 更新境界を含めて再開し変更のないデータと同時刻の更新を保持する
+### FIRESTORE-INCREMENTAL-SYNC-01 連続する差分で変更のないデータと同時刻の更新を保持する
 
 カテゴリ: `read`
 
@@ -31,7 +31,7 @@ Given:
 
 When:
 
-- 購読を継続したまま別クライアントで異なる Card を順番に編集し、それぞれの確定を待つ。その後、購読を止め、別クライアントで一部を編集して再開する。変更なしの再購読も行う。
+- 購読を継続したまま別クライアントで異なる Card を順番に編集し、それぞれの確定を待つ。
 
 Then:
 
@@ -39,7 +39,7 @@ Then:
 
 <a id="firestore-incremental-sync-02"></a>
 
-### FIRESTORE-INCREMENTAL-SYNC-02 停止中の論理削除を再開後に反映する
+### FIRESTORE-INCREMENTAL-SYNC-02 購読中の論理削除を反映する
 
 カテゴリ: `batch`
 
@@ -47,15 +47,15 @@ Then:
 
 Given:
 
-- 本人の Deck と複数の Card を取得済みとし、購読を止めている。
+- 本人の Deck と複数の Card を取得済みとし、購読を継続している。
 
 When:
 
-- 別クライアントで Card または親 Deck を論理削除し、購読を再開する。
+- 別クライアントで Card または親 Deck を論理削除する。
 
 Then:
 
-- 削除対象は表示から消える。他のデータは残り、サーバーの tombstone は保持される。再度の購読でも復活しない。
+- 削除対象は表示から消える。他のデータは残り、サーバーの tombstone は保持される。
 
 <a id="firestore-incremental-sync-03"></a>
 
@@ -75,7 +75,7 @@ When:
 
 Then:
 
-- 未確定変更は直ちに購読結果へ反映される。サーバー確定していない時刻から再開しない。拒否後は SDK の rollback を反映し、未確定本文を残さない。
+- 未確定変更は直ちに購読結果へ反映される。拒否後は SDK の rollback を反映し、未確定本文を残さない。
 
 <a id="firestore-incremental-sync-04"></a>
 
@@ -88,7 +88,6 @@ Then:
 Given:
 
 - 本人の有効な Deck を取得済みである。表示名が数値の不正 document と既存 Deck の変更をサーバーへ一括保存する。
-- 購読を継続する場合と、不正な差分を SDK cache に取り込んだ後で購読を停止し、表示状態を破棄してオフラインで再開する場合を確認する。
 
 When:
 
@@ -97,7 +96,6 @@ When:
 Then:
 
 - 不正な差分で直前の正常な表示を壊さず、修復後は保留されていた既存 Deck の変更も反映する。
-- オフラインで再開した場合も、初回の準備完了時点で取得済みの正常な Deck を復元する。不正な差分はエラーとして通知し、再接続後の修復を継続して取り込む。
 
 <a id="firestore-incremental-sync-05"></a>
 
@@ -133,7 +131,7 @@ Given:
 
 When:
 
-- 停止中に要求件数より多い回答と、更新時刻は新しいが回答日時は古い回答を追加し、再開する。購読を続けてさらに過去日時の回答と最新日時の回答を順に追加する。
+- 購読中に要求件数より多い回答と、更新時刻は新しいが回答日時は古い回答を追加する。購読を続けてさらに過去日時の回答と最新日時の回答を順に追加する。
 
 Then:
 

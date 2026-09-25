@@ -24,7 +24,7 @@
 
 ### 実行環境
 
-- 差分同期の再購読ケースでは Node 環境に `fake-indexeddb` を用意し、アプリケーションの checkpoint 保存・読込処理を実行する。Firestore は実際の Emulator を使う。ブラウザーの永続性・保存失敗・破損時の復旧は E2E で確認する。
+- Node の結合テストでは IndexedDB polyfill を使わず、実際の Emulator の query・snapshot・cursor と差分統合を確認する。保存済み checkpoint からの再開、保存失敗・破損時の復旧は、実ブラウザーの [Persistence E2E](../../e2e/persistence.md) で確認する。
 
 | 対象 | 接続・準備 |
 | --- | --- |

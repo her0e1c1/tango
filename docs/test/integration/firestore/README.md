@@ -211,8 +211,8 @@
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| FIRESTORE-INCREMENTAL-SYNC-01 | read | 正常系 | [更新境界を含めて再開し変更のないデータと同時刻の更新を保持する](./incremental-sync.md#firestore-incremental-sync-01) |
-| FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [停止中の論理削除を再開後に反映する](./incremental-sync.md#firestore-incremental-sync-02) |
+| FIRESTORE-INCREMENTAL-SYNC-01 | read | 正常系 | [連続する差分で変更のないデータと同時刻の更新を保持する](./incremental-sync.md#firestore-incremental-sync-01) |
+| FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [購読中の論理削除を反映する](./incremental-sync.md#firestore-incremental-sync-02) |
 | FIRESTORE-INCREMENTAL-SYNC-03 | batch | 異常系 | [未確定変更を表示し拒否された変更を巻き戻す](./incremental-sync.md#firestore-incremental-sync-03) |
 | FIRESTORE-INCREMENTAL-SYNC-04 | read | 異常系 | [不正な差分の修復後に保留した変更も反映する](./incremental-sync.md#firestore-incremental-sync-04) |
 | FIRESTORE-INCREMENTAL-SYNC-05 | read | 正常系 | [同期時刻と学習日時を分離して履歴と再開状態を共有する](./incremental-sync.md#firestore-incremental-sync-05) |

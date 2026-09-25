@@ -1,4 +1,3 @@
-import "fake-indexeddb/auto";
 import fs from "node:fs";
 import {
   assertFails,
@@ -30,7 +29,7 @@ import {
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { replaceAuthSession } from "@/entities/auth";
 import { getCards, subscribeCards } from "@/entities/card";
-import { clearRemoteDecks, editDeck, getDecks, subscribeDecks } from "@/entities/deck";
+import { editDeck, getDecks, subscribeDecks } from "@/entities/deck";
 import {
   getStudySession,
   startStudy,
@@ -170,7 +169,7 @@ describe("Incremental Firestore synchronization", () => {
   });
   afterAll(async () => environment.cleanup());
 
-  it("[FIRESTORE-INCREMENTAL-SYNC-01] retains unchanged documents and every document at the inclusive boundary", async () => {
+  it("[FIRESTORE-INCREMENTAL-SYNC-01] merges consecutive snapshots without losing unchanged or same-timestamp documents", async () => {
     await startContent();
     await serverBarrier("deck");
     expect(getDecks()).toEqual([]);
@@ -193,19 +192,10 @@ describe("Incremental Firestore synchronization", () => {
     await vi.waitFor(() => expect(getCards().find(({ id }) => id === "b")?.frontText).toBe("second edit"));
     expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("first edit");
     await serverBarrier("card");
-    stopContent();
-    await updateDoc(doc(remote, "card", "a"), { frontText: "changed", updatedAt: serverTimestamp() });
-    await startContent();
-    await vi.waitFor(() => expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("changed"));
-    expect(getCards().find(({ id }) => id === "b")?.frontText).toBe("second edit");
-    expect(getDecks()).toHaveLength(2);
-    stopContent();
-    await startContent();
-    await serverBarrier("card");
     expect(getCards().map(({ id }) => id)).toEqual(["a", "b"]);
   });
 
-  it.each(["card", "deck"])("[FIRESTORE-INCREMENTAL-SYNC-02] catches up a stopped %s tombstone", async (kind) => {
+  it.each(["card", "deck"])("[FIRESTORE-INCREMENTAL-SYNC-02] applies a remote %s tombstone", async (kind) => {
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     await setDoc(doc(remote, "deck", "other"), deckData("other"));
     await setDoc(doc(remote, "card", "a"), cardData("a"));
@@ -213,16 +203,11 @@ describe("Incremental Firestore synchronization", () => {
     await startContent();
     await vi.waitFor(() => expect(getCards()).toHaveLength(2));
     await serverBarrier("card");
-    stopContent();
     await updateDoc(doc(remote, kind, kind === "deck" ? "deck" : "a"), {
       deletedAt: 1000,
       updatedAt: serverTimestamp(),
     });
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      await startContent();
-      await vi.waitFor(() => expect(getCards().map(({ id }) => id)).toEqual(["other"]));
-      stopContent();
-    }
+    await vi.waitFor(() => expect(getCards().map(({ id }) => id)).toEqual(["other"]));
     expect((await getDoc(doc(remote, kind, kind === "deck" ? "deck" : "a"))).data()?.deletedAt).toBe(1000);
   });
 
@@ -247,7 +232,7 @@ describe("Incremental Firestore synchronization", () => {
     }
   );
 
-  it.each([false, true])("[FIRESTORE-INCREMENTAL-SYNC-04] repairs an invalid delta (restart=%s)", async (restart) => {
+  it("[FIRESTORE-INCREMENTAL-SYNC-04] repairs an invalid delta without losing buffered changes", async () => {
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     stops.push(subscribeDecks(uid, onError));
     await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck"));
@@ -258,17 +243,9 @@ describe("Incremental Firestore synchronization", () => {
     await batch.commit();
     await vi.waitFor(() => expect(errors.length).toBeGreaterThan(0));
     expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("deck");
-    if (restart) {
-      stopContent();
-      await disableNetwork(connection.db);
-      clearRemoteDecks();
-      errors.length = 0;
-      await new Promise<void>((resolve) => stops.push(subscribeDecks(uid, onError, resolve)));
-    }
     expect(getDecks().map(({ name }) => name)).toEqual(["deck"]);
     expect(errors.length).toBeGreaterThan(0);
     await updateDoc(doc(remote, "deck", "invalid"), { name: "repaired", updatedAt: serverTimestamp() });
-    if (restart) await enableNetwork(connection.db);
     await vi.waitFor(() => expect(getDecks().map(({ name }) => name)).toEqual(["changed", "repaired"]));
   });
 
@@ -321,7 +298,7 @@ describe("Incremental Firestore synchronization", () => {
   });
 
   it.each([2, 1000])(
-    "[FIRESTORE-INCREMENTAL-SYNC-06] catches up more than %s answers and keeps history scopes independent",
+    "[FIRESTORE-INCREMENTAL-SYNC-06] merges more than %s new answers and keeps history scopes independent",
     async (maximum) => {
       await setDoc(doc(remote, "studyAnswer", "initial"), answerData(3000));
       const initial = history(maximum);
@@ -330,7 +307,6 @@ describe("Incremental Firestore synchronization", () => {
       await serverHistory(initial, 1);
       await serverHistory(allDecks, 1);
       await serverHistory(past, 0);
-      stopContent();
       for (let offset = 0; offset < maximum + 3; offset += 400) {
         const batch = writeBatch(remote);
         for (let index = offset; index < Math.min(offset + 400, maximum + 3); index += 1)
@@ -339,28 +315,25 @@ describe("Incremental Firestore synchronization", () => {
       }
       await setDoc(doc(remote, "studyAnswer", "backdated"), answerData(1000));
       await setDoc(doc(remote, "studyAnswer", "foreign-deck"), answerData(5000, "other"));
-      const resumed = history(maximum);
-      const resumedAll = history(maximum, null);
-      const resumedPast = history(maximum, "deck", 0, 2000);
-      await serverHistory(resumed, maximum);
-      await serverHistory(resumedAll, maximum);
-      await serverHistory(resumedPast, 1);
+      await serverHistory(initial, maximum);
+      await serverHistory(allDecks, maximum);
+      await serverHistory(past, 1);
       await vi.waitFor(() =>
-        expect(resumed.get()?.records[0]?.id).toBe(`answer-${String(maximum + 2).padStart(4, "0")}`)
+        expect(initial.get()?.records[0]?.id).toBe(`answer-${String(maximum + 2).padStart(4, "0")}`)
       );
-      expect(resumed.get()?.truncated).toBe(true);
-      expect(resumed.get()?.records.at(-1)?.id).toBe("answer-0003");
-      expect(resumedAll.get()?.records[0]?.id).toBe("foreign-deck");
-      expect(resumedPast.get()?.records.map(({ id }) => id)).toEqual(["backdated"]);
-      expect(resumedPast.get()?.truncated).toBe(false);
+      expect(initial.get()?.truncated).toBe(true);
+      expect(initial.get()?.records.at(-1)?.id).toBe("answer-0003");
+      await vi.waitFor(() => expect(allDecks.get()?.records[0]?.id).toBe("foreign-deck"));
+      expect(past.get()?.records.map(({ id }) => id)).toEqual(["backdated"]);
+      expect(past.get()?.truncated).toBe(false);
       await setDoc(doc(remote, "studyAnswer", "older-live"), answerData(500));
-      await serverHistory(resumedPast, 2);
-      expect(resumed.get()?.records.at(-1)?.id).toBe("answer-0003");
+      await serverHistory(past, 2);
+      expect(initial.get()?.records.at(-1)?.id).toBe("answer-0003");
       await setDoc(doc(remote, "studyAnswer", "newest-live"), answerData(6000));
-      await vi.waitFor(() => expect(resumed.get()?.records[0]?.id).toBe("newest-live"));
-      expect(resumed.get()?.records).toHaveLength(maximum);
-      expect(resumed.get()?.records.at(-1)?.id).toBe("answer-0004");
-      expect(resumed.get()?.truncated).toBe(true);
+      await vi.waitFor(() => expect(initial.get()?.records[0]?.id).toBe("newest-live"));
+      expect(initial.get()?.records).toHaveLength(maximum);
+      expect(initial.get()?.records.at(-1)?.id).toBe("answer-0004");
+      expect(initial.get()?.truncated).toBe(true);
     },
     30_000
   );

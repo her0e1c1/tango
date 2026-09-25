@@ -463,3 +463,40 @@ test("PERSISTENCE-10 restores a healthy replica despite invalid cached changes a
   for (const existing of fixture.state.remote.cards.filter(({ id }) => id !== card.id))
     await expect(page.getByRole("button", { name: `View ${existing.frontText}` })).toBeVisible();
 });
+
+test("PERSISTENCE-11 merges remote edits and tombstones into saved data after reopening", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const edited = fixture.card("card-1");
+  const deleted = fixture.card("card-2");
+  const unchanged = fixture.card("card-3");
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}`);
+  for (const card of fixture.state.remote.cards) {
+    await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
+    await waitForSavedDocument(page, "card", card.id);
+  }
+  await waitForSavedDocument(page, "deck", deck.id);
+  await openStorageMaintenance(page);
+  await page.goto(`/deck/${deck.id}`);
+  for (const card of fixture.state.remote.cards)
+    await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
+
+  await openStorageMaintenance(page);
+  await setDocument("card", edited.id, { ...edited, frontText: "Changed while closed", updatedAt: new Date() });
+  await setDocument("card", deleted.id, { ...deleted, deletedAt: Date.now(), updatedAt: new Date() });
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("button", { name: "View Changed while closed" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `View ${deleted.frontText}` })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: `View ${unchanged.frontText}` })).toBeVisible();
+
+  await openStorageMaintenance(page);
+  await setDocument("deck", deck.id, { ...deck, deletedAt: Date.now(), updatedAt: new Date() });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "No decks yet" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "No decks yet" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toHaveCount(0);
+  expect((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue).toBeDefined();
+  expect((await requireDocument("card", deleted.id)).fields.deletedAt?.integerValue).toBeDefined();
+});

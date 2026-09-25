@@ -21,6 +21,8 @@
 | PERSISTENCE-08 | batch | 異常系 | [端末内の保存に失敗しても再読み込み後に内容を復元できる](#persistence-08) |
 | PERSISTENCE-09 | read | 正常系 | [再取得できなくても保存済みの学習位置を復元できる](#persistence-09) |
 | PERSISTENCE-10 | read | 異常系 | [不正な変更が届いても保存済みの正常な内容で再開できる](#persistence-10) |
+| PERSISTENCE-11 | batch | 正常系 | [保存済みの一覧へ画面を閉じている間の変更と論理削除を反映できる](#persistence-11) |
+| PERSISTENCE-12 | batch | 正常系 | [回答履歴を再読み込み後も対象期間と Deck に絞って復元できる](#persistence-12) |
 
 <a id="persistence-01"></a>
 
@@ -266,3 +268,51 @@ Then:
 
 - 同期エラーを通知しながら、通信断中も取得済みの正常な Card 一覧を表示する。起動エラーで閉じ込めたり、一覧を空にしたりしない。
 - 再接続後は修復後の内容を表示し、変更しなかった Card も保持する。
+
+<a id="persistence-11"></a>
+
+### PERSISTENCE-11 保存済みの一覧へ画面を閉じている間の変更と論理削除を反映できる
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- Google アカウントの Deck と複数 Card を取得し、この端末に保存している。
+
+When:
+
+- 変更なしで一覧を再読み込みする。その後、画面を閉じている間に別クライアントで1枚を編集し、別の1枚を論理削除して一覧を開き直す。
+- 再び画面を閉じ、親 Deck を別クライアントで論理削除して Deck 一覧を開き直す。
+
+Then:
+
+- 変更のない再読み込みでは全 Card を重複なく表示する。
+- 編集した Card は新しい本文で表示し、削除した Card は表示しない。変更していない Card は残る。
+- 親 Deck の削除後は Deck 一覧から消え、再読み込みしても復活しない。サーバーには論理削除した Deck と Card が残る。
+
+<a id="persistence-12"></a>
+
+### PERSISTENCE-12 [TODO] 回答履歴を再読み込み後も対象期間と Deck に絞って復元できる
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- Google アカウントの回答履歴を期間・Deck ごとに取得し、この端末に保存している。
+- 回答一覧・超過表示は現行画面にないため、このブラウザーでの復元ケースは未検証である。購読中の並び順・超過判定は [差分同期](../integration/firestore/incremental-sync.md#firestore-incremental-sync-06) で扱う。
+
+When:
+
+- 画面を閉じている間に1000件を超える回答と、回答日時が過去の回答、別 Deck の回答が追加される。
+- 同じアカウントで画面を開き直し、期間・Deck を切り替える。
+
+Then:
+
+- 対象期間・Deck の保存済み回答と追加回答を重複なく統合し、回答日時・ID の降順で最大1000件を表示して超過を通知する。
+- 過去日時の回答も対象期間へ反映し、異なる期間・Deck の回答を混ぜない。
