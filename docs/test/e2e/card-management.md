@@ -20,7 +20,7 @@ Card を作成・編集・削除でき、失敗後も入力を維持して再試
 | CARD-MANAGEMENT-10 | read | 異常系 | [Card の未表示の面にある入力エラーを修正できる](#card-management-10) |
 | CARD-MANAGEMENT-11 | read | 正常系 | [未保存の Card 作成内容の離脱を確認できる](#card-management-11) |
 | CARD-MANAGEMENT-12 | write | 正常系 | [Card 作成成功が未回答の離脱確認より優先される](#card-management-12) |
-| CARD-MANAGEMENT-13 | write | 正常系 | [Card 作成中に離脱しても保存成功時に一覧へ移動する](#card-management-13) |
+| CARD-MANAGEMENT-13 | write | 正常系 | [Card 作成中に離脱しても保存処理を維持する](#card-management-13) |
 | CARD-MANAGEMENT-14 | write | 異常系 | [Card 作成失敗後も離脱確認と入力を保持して再試行できる](#card-management-14) |
 | CARD-MANAGEMENT-15 | read | 正常系 | [作成中の未保存の解答をプレビューできる](#card-management-15) |
 | CARD-MANAGEMENT-16 | read | 正常系 | [編集中の未保存の解答と表示形式をプレビューできる](#card-management-16) |
@@ -337,7 +337,7 @@ When:
 
 Then:
 
-- 確認には離脱後も作成が続き、成功時に一覧へ移動し、失敗時に通知される説明が表示される。
+- 確認には離脱後も作成が続く説明が表示される。画面に留まった場合は成功時に一覧へ移動し、失敗時に通知される。
 - Keep editing では入力と保存処理を維持し、作成画面に留まる。
 - 保存成功で確認が閉じ、所属 Deck の Card 一覧へ移動する。以前に Header で選んだ画面へは移動しない。
 - 成功通知が表示され、対象 Deck に入力した Card が1件だけ表示され、reload 後も利用できる。
@@ -345,7 +345,7 @@ Then:
 
 <a id="card-management-13"></a>
 
-### CARD-MANAGEMENT-13 Card 作成中に離脱しても保存成功時に一覧へ移動する
+### CARD-MANAGEMENT-13 Card 作成中に離脱しても保存処理を維持する
 
 カテゴリ: `write`
 
@@ -363,8 +363,8 @@ When:
 Then:
 
 - 確認には離脱後も作成が続くことと完了時の挙動が表示される。
-- Discard changes で要求した Deck 一覧へ移動し、保存成功後は所属 Deck の Card 一覧へ移動する。
-- 成功通知が表示され、対象 Deck に入力した Card が1件だけ表示され、reload 後も利用できる。
+- Discard changes で要求した Deck 一覧へ移動し、保存成功後も移動先に留まる。離脱済みの画面から成功通知や自動遷移を行わない。
+- 対象 Deck を開き直すと入力した Card が1件だけ表示され、reload 後も利用できる。
 - 保存成功後に別画面へ移動した場合は、その後のクラウド同期完了によって再び遷移しない。対象 Deck を開き直すと保存した Card が表示される。
 
 <a id="card-management-14"></a>

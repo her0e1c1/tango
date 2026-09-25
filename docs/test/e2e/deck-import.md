@@ -196,6 +196,8 @@ When:
 
 Then:
 
+- Sample Deck の初期化で全 Card が表示されてから reload とダウンロードを行い、全件が維持される。
+
 - Sample Deck とその Card 群が利用できる。
 - Sample Deck とその Card 群は reload 後も重複しない。
 

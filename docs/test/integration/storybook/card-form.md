@@ -382,7 +382,7 @@ When:
 
 Then:
 
-- 入力内容を作成要求へ渡し、Created card “Front value”. を表示する。生成 ID や実保存は確認しない。
+- 入力内容を作成要求へ渡し、保存の成功応答後に Created card “Front value”. を表示する。生成 ID や実保存は確認しない。
 
 <a id="storybook-card-form-18"></a>
 
@@ -502,7 +502,7 @@ When:
 
 Then:
 
-- Unable to save changes. Try again. と下書きを保持する。再試行成功時に保存完了 callback を通知する。再マウント後の永続化は対象外である。
+- Unable to save changes. Try again. と下書きを保持する。再試行の保存が成功応答を返した後に保存完了 callback を通知する。再マウント後の永続化は対象外である。
 
 <a id="storybook-card-form-24"></a>
 

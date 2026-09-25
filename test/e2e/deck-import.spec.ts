@@ -141,8 +141,9 @@ test.describe("import", () => {
     await expect(page.getByRole("button", { name: "Open cards in Sample Deck", exact: true })).toHaveCount(1);
     await page.getByRole("button", { name: "Open cards in Sample Deck", exact: true }).click();
     await expect(page).toHaveURL(`/deck/${sampleDeckId}`);
+    await expect(page.getByRole("button", { name: /^View / })).toHaveCount(sampleCards.length);
     const names = await page.getByRole("button", { name: /^View / }).allTextContents();
-    const contents = await downloadDeckCards(page, "Sample Deck");
+    const contents = await downloadDeckCards(page, "Sample Deck", sampleCards.length);
     return { names, contents };
   };
 
@@ -428,6 +429,9 @@ test.describe("import", () => {
 
     await page.goto("/");
     await expect(page.getByText("Sample Deck", { exact: true })).toBeVisible();
+    await expect(page.getByRole("article", { name: "Sample Deck", exact: true })).toContainText(
+      `${sampleCards.length} cards`
+    );
     const initialSample = await readSampleState(page, sampleDeckId);
     expect(initialSample.names.length).toBeGreaterThan(0);
     expect(initialSample.contents).toHaveLength(initialSample.names.length);

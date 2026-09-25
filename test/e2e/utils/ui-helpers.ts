@@ -34,8 +34,12 @@ export async function startAnonymousStudy(page: Page, deckId: string) {
   return page.locator("#frontText").innerText();
 }
 
-export async function downloadDeckCards(page: Page, deckName: string) {
+export async function downloadDeckCards(page: Page, deckName: string, expectedCardCount?: number) {
   await page.goto("/");
+  const count = expectedCardCount ?? "\\d+";
+  await expect(
+    page.getByRole("article", { name: deckName, exact: true }).getByText(new RegExp(`^${count} cards?$`))
+  ).toBeVisible();
   await page.getByRole("button", { name: `Open actions for ${deckName}`, exact: true }).click();
   const ready = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: "Download", exact: true }).click();

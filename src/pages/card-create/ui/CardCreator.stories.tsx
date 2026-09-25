@@ -130,7 +130,13 @@ export const CreateSuccess: Story = {
       await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
       await expect(persistCard).toHaveBeenCalledWith(
         APP_STORY_UID,
-        expect.objectContaining({ frontText: "Front value", backText: "Back value", tags: [], deckId: creationDeck.id })
+        expect.objectContaining({
+          frontText: "Front value",
+          backText: "Back value",
+          tags: [],
+          deckId: creationDeck.id,
+        }),
+        expect.any(Function)
       );
     });
   },

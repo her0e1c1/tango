@@ -133,7 +133,7 @@ test.describe("card-resilience", () => {
     await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
   };
 
-  test("CARD-MANAGEMENT-12 completes cache creation while the cloud write is pending", async ({
+  test("CARD-MANAGEMENT-12 waits for server acceptance before completing an unanswered leave dialog", async ({
     fixture,
     page,
     namespace,
@@ -143,9 +143,13 @@ test.describe("card-resilience", () => {
     await fixture.apply(page);
     const write = await beginCardCreation(page, deck.id, frontText);
     try {
-      await expect(page).toHaveURL(`/deck/${deck.id}`);
-      await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
-      await expect(page.getByRole("alertdialog")).toHaveCount(0);
+      await expect(page).toHaveURL(`/deck/${deck.id}/card/new`);
+      await page.getByRole("button", { name: "tango", exact: true }).click();
+      const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+      await dialog.getByRole("button", { name: "Keep editing" }).click();
+      await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("Pending back");
+      await page.getByRole("button", { name: "tango", exact: true }).click();
+      await expect(dialog).toBeVisible();
       write.release();
       await expectCreatedCard(page, deck.id, frontText);
     } finally {
@@ -153,14 +157,18 @@ test.describe("card-resilience", () => {
     }
   });
 
-  test("CARD-MANAGEMENT-13 keeps a queued creation after navigating away", async ({ fixture, page, namespace }) => {
+  test("CARD-MANAGEMENT-13 keeps a pending creation after explicitly leaving the form", async ({
+    fixture,
+    page,
+    namespace,
+  }) => {
     const deck = fixture.deck();
     const frontText = `${namespace.caseId} background front`;
     await fixture.apply(page);
     const write = await beginCardCreation(page, deck.id, frontText);
     try {
-      await expect(page).toHaveURL(`/deck/${deck.id}`);
       await page.getByRole("button", { name: "tango", exact: true }).click();
+      await page.getByRole("alertdialog").getByRole("button", { name: "Discard changes" }).click();
       await expect(page).toHaveURL(/\/$/);
       write.release();
       await expect
@@ -169,14 +177,19 @@ test.describe("card-resilience", () => {
         )
         .toBe(true);
       await expect(page).toHaveURL(/\/$/);
+      await expect(page.getByRole("status", { name: "Toast notifications" })).not.toContainText(
+        `Created card “${frontText}”.`
+      );
       await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
       await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
+      await page.reload();
+      await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(1);
     } finally {
       write.release();
     }
   });
 
-  test("CARD-MANAGEMENT-14 removes rejected queued creation after leaving the form", async ({
+  test("CARD-MANAGEMENT-14 preserves the leave dialog and inputs after rejection and retries", async ({
     fixture,
     page,
     namespace,
@@ -189,13 +202,20 @@ test.describe("card-resilience", () => {
     allowExpectedFirestoreWriteFailure(browserErrors);
     const write = await beginCardCreation(page, deck.id, frontText);
     try {
-      await expect(page).toHaveURL(`/deck/${deck.id}`);
       await page.getByRole("button", { name: "tango", exact: true }).click();
+      const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+      await expect(dialog).toBeVisible();
       write.release();
       await fault.waitForFailure();
-      await expect(page).toHaveURL(/\/$/);
-      await page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true }).click();
-      await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(0);
+      await fault.dispose();
+      await expect(page.getByRole("alert")).toContainText("Unable to create this card. Try again.");
+      await expect(dialog).toBeVisible();
+      await dialog.getByRole("button", { name: "Keep editing" }).click();
+      await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("Pending back");
+      await page.getByRole("tab", { name: "Front", exact: true }).click();
+      await expect(page.getByRole("textbox", { name: "Front text" })).toHaveValue(frontText);
+      await page.getByRole("button", { name: "Create card", exact: true }).click();
+      await expectCreatedCard(page, deck.id, frontText);
     } finally {
       write.release();
       await fault.dispose();
