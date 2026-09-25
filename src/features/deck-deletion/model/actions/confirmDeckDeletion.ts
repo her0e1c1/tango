@@ -31,13 +31,14 @@ export const confirmDeckDeletion = async ({
     const currentDeck = mustFindDeckById(getDecks(), deck.id);
     if (currentDeck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
     await deleteDeck(uid, deck.id, onLocalError);
+    if (getAuthUid() !== uid) return;
     await abandonStudySession(deck.id, onLocalError);
-    if (!isMounted()) return;
+    if (!isMounted() || getAuthUid() !== uid) return;
     setTarget(undefined);
     showToast({ messageKey: "deckDeletion.toast.deleted", messageParams: { name: deck.name }, tone: "success" });
     onDeleted?.();
   } catch {
-    if (isMounted()) {
+    if (isMounted() && getAuthUid() === uid) {
       // A failed attempt ends with the dialog closed; retry starts from a newly selected Deck.
       setTarget(undefined);
       showToast({

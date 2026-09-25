@@ -35,4 +35,19 @@ describe("Firestore write completion [PERSISTENCE-05] [CARD-MANAGEMENT-04]", () 
     await Promise.resolve();
     expect(onLocalError).toHaveBeenCalledExactlyOnceWith(failure);
   });
+  it("completes anonymous writes without a callback and reports later errors", async () => {
+    session.currentUser.isAnonymous = true;
+    const report = vi.fn();
+    vi.stubGlobal("reportError", report);
+    const write = Promise.withResolvers<void>();
+    try {
+      await expect(settleFirestoreWrite(write.promise)).resolves.toBeUndefined();
+      const error = new Error("local persistence failed");
+      write.reject(error);
+      await Promise.resolve();
+      expect(report).toHaveBeenCalledExactlyOnceWith(error);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });

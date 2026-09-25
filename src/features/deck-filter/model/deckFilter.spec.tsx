@@ -1,3 +1,4 @@
+import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { getAuthUid } from "@/entities/auth";
 import type React from "react";
 
@@ -22,11 +23,12 @@ import { updateDeckFilterDraft } from "./actions/updateDeckFilterDraft";
 type EditDeck = typeof import("@/entities/deck").editDeck;
 
 const writeControls = vi.hoisted(() => ({
+  uid: "user-id",
   calls: [] as Parameters<EditDeck>[],
   write: undefined as ((...args: Parameters<EditDeck>) => Promise<void>) | undefined,
 }));
 
-vi.mock("@/entities/auth", () => ({ getAuthUid: () => "user-id" }));
+vi.mock("@/entities/auth", () => ({ getAuthUid: () => writeControls.uid }));
 vi.mock("@/shared/firebase", () => ({ db: {} }));
 vi.mock("@/entities/deck", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/deck")>();
@@ -73,8 +75,29 @@ const DeckFilterHarness: React.FC<{ deck: Deck; tags?: string[]; scope?: DeckFil
 
 describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual draft and save actions", () => {
   beforeEach(() => {
+    dismissToast();
+    writeControls.uid = "user-id";
     writeControls.calls = [];
     writeControls.write = undefined;
+  });
+
+  it("does not show a previous account's rejected filter save", async () => {
+    const pending = Promise.withResolvers<void>();
+    writeControls.write = () => pending.promise;
+    const deck = createRemoteDeck({ id: "account-switch-filter", selectedTags: [] });
+    render(
+      <>
+        <DeckFilterHarness deck={deck} />
+        <ToastViewport />
+      </>
+    );
+    await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
+    writeControls.uid = "next-user";
+    await actAsync(async () => {
+      pending.reject(new Error("denied"));
+      await pending.promise.catch(() => undefined);
+    });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("automatically saves each change without a save button", async () => {
@@ -168,6 +191,8 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
 
 describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
   beforeEach(() => {
+    dismissToast();
+    writeControls.uid = "user-id";
     writeControls.calls = [];
     writeControls.write = undefined;
   });

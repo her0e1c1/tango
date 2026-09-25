@@ -14,20 +14,23 @@ export async function confirmCardDeletion(): Promise<void> {
   };
   try {
     await deleteCard(uid, deletionTarget.id, onLocalError);
-    if (cardListStore.getState().mutationId !== mutationId) return;
+    if (cardListStore.getState().mutationId !== mutationId || getAuthUid() !== uid) return;
     showToast({
       messageKey: "cardList.toast.deleted",
       messageParams: { name: deletionTarget.frontText },
       tone: "success",
     });
   } catch {
-    if (cardListStore.getState().mutationId !== mutationId) return;
+    if (cardListStore.getState().mutationId !== mutationId || getAuthUid() !== uid) return;
     showToast({ messageKey: "cardList.toast.deleteFailure", tone: "error" });
   } finally {
     // A reset detaches pending writes; their completion must not unlock a newer mutation.
     if (cardListStore.getState().mutationId === mutationId) {
       // Both outcomes close the dialog; retry requires selecting the Card again.
-      cardListStore.setState({ deletionTarget: undefined, mutationId: undefined });
+      cardListStore.setState({
+        ...(getAuthUid() === uid ? { deletionTarget: undefined } : {}),
+        mutationId: undefined,
+      });
     }
   }
 }

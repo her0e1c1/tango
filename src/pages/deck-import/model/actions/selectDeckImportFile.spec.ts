@@ -1,3 +1,4 @@
+import { showToast } from "@/shared/ui/toast";
 import { generateId } from "@/shared/lib/generateId";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getAuthUid } from "@/entities/auth";
@@ -73,6 +74,22 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
       ],
       expect.any(Function)
     );
+  });
+
+  it.each(["success", "failure"])("detaches an old account import on %s and permits a new import", async (outcome) => {
+    await selectDeckImportFile(file("deck.csv"));
+    const pending = Promise.withResolvers<void>();
+    vi.mocked(createDeck).mockReturnValueOnce(pending.promise);
+    vi.mocked(showToast).mockClear();
+    const result = importDeckPreview();
+    vi.mocked(getAuthUid).mockReturnValue("next-user");
+    if (outcome === "failure") pending.reject(new Error("denied"));
+    else pending.resolve();
+    await expect(result).resolves.toBe(false);
+    expect(showToast).not.toHaveBeenCalled();
+    expect(deckImportStore.getState().status).toBe("idle");
+    await selectDeckImportFile(file("new-account.csv"));
+    await expect(importDeckPreview()).resolves.toBe(true);
   });
 
   it("imports using the anonymous UID", async () => {

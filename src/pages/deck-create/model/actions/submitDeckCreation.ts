@@ -33,11 +33,15 @@ export async function submitDeckCreation(
     );
     // Writes survive navigation, but resetting the store detaches their results.
     if (store.getState().mutationId !== mutationId) return;
+    if (getAuthUid() !== uid) {
+      store.setState({ mutationId: undefined });
+      return;
+    }
     return { deckId, name: values.name, mutationId };
   } catch {
     if (store.getState().mutationId === mutationId) {
       store.setState({ mutationId: undefined });
-      showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" });
+      onLocalError();
     }
     return undefined;
   }

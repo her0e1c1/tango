@@ -33,7 +33,7 @@ export function updateDeckFilterDraft(
       if (pendingFilters.get(key)?.pending === pending) pendingFilters.delete(key);
     } catch {
       if (pendingFilters.get(key)?.pending === pending) pendingFilters.set(key, { key, draft: submitted });
-      showToast({ messageKey: "deckFilter.saveError", tone: "error" });
+      onLocalError();
     }
   });
   const next = { key, draft: submitted, pending };
