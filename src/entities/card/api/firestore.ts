@@ -29,7 +29,7 @@ import { subscribeSyncedQuery } from "@/shared/api";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
-import { applyCardSnapshot } from "../model/actions/applyCardSnapshot";
+import { applyCardSnapshot } from "../model/store";
 import { fsrsStateSchema, instantSchema, type FsrsState } from "../model/fsrs";
 import { findCardById, cardStore } from "../model/store";
 

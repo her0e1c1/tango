@@ -267,7 +267,6 @@ describe("Incremental Firestore synchronization", () => {
   it("[FIRESTORE-INCREMENTAL-SYNC-05] shares ended sessions with history while preserving event times", async () => {
     let started: StudyHistoryRecord[] = [];
     let completed: StudyHistoryRecord[] = [];
-    stops.push(subscribeStudySessions(uid, onError));
     const input = { uid, period: { start: 0, end: 3000 }, deckId: "deck" };
     const stopStarted = subscribeStudyHistory(
       { ...input, metric: "started" },
@@ -286,12 +285,15 @@ describe("Incremental Firestore synchronization", () => {
         onError
       )
     );
+    stops.push(subscribeStudySessions(uid, onError));
     startStudy({ uid, deckId: "deck", cardOrderIds: ["a", "b"], now: 1000 });
     await vi.waitFor(() => {
       expect(started).toHaveLength(1);
       expect(getStudySession("deck")?.lastStudiedAt).toBe(1000);
     });
     stopStarted();
+    const foreignHistory = vi.fn();
+    stops.push(subscribeStudyHistory({ ...input, uid: "another-owner", metric: "started" }, foreignHistory, onError));
     const session = getStudySession("deck");
     if (!session) throw new Error("Missing session");
     const batch = writeBatch(connection.db);
@@ -301,6 +303,7 @@ describe("Incremental Firestore synchronization", () => {
       expect(completed).toHaveLength(1);
       expect(getStudySession("deck")).toBeUndefined();
     });
+    expect(foreignHistory).not.toHaveBeenCalled();
     expect(completed[0]).toMatchObject({ sessionId: session.sessionId, occurredAt: 2000, endedAt: 2000 });
     expect((await getDoc(doc(remote, "studySession", session.sessionId))).data()).toMatchObject({
       lastStudiedAt: 2000,

@@ -13,14 +13,14 @@ import {
 } from "firebase/firestore";
 import { db } from "@/shared/firebase";
 import { subscribeSyncedQuery } from "@/shared/api";
-import { applyStudySessionSnapshot } from "../model/actions/applyStudySessionSnapshot";
-import { getStudyHistory } from "../model/queries/getStudyHistory";
+import { applyStudySessionSnapshot } from "../model/store";
+import { getStudyHistory } from "../model/rules";
 import { isStudySessionPositionUnchanged } from "../model/rules";
 import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionSnapshot, StudyHistoryRecord, StudyHistoryPeriod } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
 import { getAuthUid } from "@/entities/auth/@x/study-session";
-import { finishStudySessionLoading, getStudySession, studySessionStore, setStudySessionOwner } from "../model/store";
+import { setStudySessionSyncError, getStudySession, studySessionStore, setStudySessionOwner } from "../model/store";
 
 // Writes are queued locally; callers do not wait for server acknowledgement, including offline.
 function createStudySession(session: StudySession, previous?: StudySession): void {
@@ -55,58 +55,34 @@ export function updateStudySession(session: StudySession, endReason: StudySessio
   }).catch(() => undefined);
 }
 
-interface SessionSubscriber {
-  onError: (error: Error) => void;
-  onReady?: (() => void) | undefined;
-}
-
-const subscriptions = new Map<string, { consumers: Set<SessionSubscriber>; stop: () => void; ready: boolean }>();
-
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
   const scope = JSON.stringify([db.app.options.projectId, uid]);
-  const consumer = { onError, onReady };
-  let entry = subscriptions.get(scope);
-  if (!entry) {
-    setStudySessionOwner(uid);
-    entry = { consumers: new Set(), stop: () => undefined, ready: false };
-    subscriptions.set(scope, entry);
-    const current = entry;
-    current.stop = subscribeSyncedQuery({
-      scope,
-      store: studySessionStore,
-      request: (cursor) =>
-        query(
-          collection(db, "studySession"),
-          where("uid", "==", uid),
-          orderBy("updatedAt"),
-          ...(cursor ? [startAt(new Timestamp(cursor.seconds, cursor.nanoseconds))] : [])
-        ),
-      parse: (id, data) => {
-        const document = parseStudySessionDocument(data);
-        return document ? toStudySessionWrite(id, document) : null;
-      },
-      receive: (result) => {
-        const saved = applyStudySessionSnapshot(uid, scope, result);
-        current.ready = true;
-        for (const subscriber of current.consumers) subscriber.onReady?.();
-        return saved;
-      },
-      onError: (error) => {
-        if (studySessionStore.getState().ownerUid === uid) finishStudySessionLoading();
-        for (const subscriber of current.consumers) subscriber.onError(error);
-      },
-    });
-  }
-  entry.consumers.add(consumer);
-  if (entry.ready) onReady?.();
-  const current = entry;
-  return () => {
-    if (!current.consumers.delete(consumer)) return;
-    if (current.consumers.size === 0) {
-      current.stop();
-      subscriptions.delete(scope);
-    }
-  };
+  setStudySessionOwner(uid);
+  return subscribeSyncedQuery({
+    scope,
+    store: studySessionStore,
+    request: (cursor) =>
+      query(
+        collection(db, "studySession"),
+        where("uid", "==", uid),
+        orderBy("updatedAt"),
+        ...(cursor ? [startAt(new Timestamp(cursor.seconds, cursor.nanoseconds))] : [])
+      ),
+    parse: (id, data) => {
+      const document = parseStudySessionDocument(data);
+      return document ? toStudySessionWrite(id, document) : null;
+    },
+    receive: (result) => {
+      const saved = applyStudySessionSnapshot(uid, scope, result);
+      onReady?.();
+      return saved;
+    },
+    onError: (error) => {
+      if (studySessionStore.getState().ownerUid !== uid) return;
+      setStudySessionSyncError(error);
+      onError(error);
+    },
+  });
 }
 
 export function writeStudySessionPosition(batch: WriteBatch, session: StudySession, targetIndex: number) {
@@ -136,15 +112,15 @@ export function subscribeStudyHistory(
   const receive = () => {
     const state = studySessionStore.getState();
     if (state.ownerUid !== uid || state.remoteLoading) return;
+    if (state.syncError) {
+      onError(state.syncError);
+      return;
+    }
     onRecords(getStudyHistory(state.history, period, deckId, metric), state.fromCache);
   };
   const stopStore = studySessionStore.subscribe(receive);
-  const stopSession = subscribeStudySessions(uid, onError);
   receive();
-  return () => {
-    stopStore();
-    stopSession();
-  };
+  return stopStore;
 }
 
 function requireOwner(session: StudySession): void {

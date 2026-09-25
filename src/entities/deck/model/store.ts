@@ -1,6 +1,6 @@
 import { createStore } from "zustand/vanilla";
 import { persist } from "zustand/middleware";
-import { syncPersistence, type SyncState } from "@/shared/api";
+import { syncPersistence, type SyncState, type SyncedQueryResult } from "@/shared/api";
 
 import type { Deck } from "./types";
 
@@ -23,3 +23,13 @@ export const clearRemoteDecks = (): void => {
 export const replaceRemoteDecks = (remoteDecks: Deck[]): void => {
   deckStore.setState({ remoteDecks });
 };
+
+export function applyDeckSnapshot(scope: string, result: SyncedQueryResult<Deck | null>) {
+  const sync = { ...deckStore.getState().sync };
+  if (result.checkpoint === null) delete sync[scope];
+  else if (result.checkpoint) sync[scope] = result.checkpoint;
+  return deckStore.setState({
+    remoteDecks: result.values.filter((deck) => deck !== null).sort((left, right) => left.id.localeCompare(right.id)),
+    ...(result.checkpoint !== undefined ? { sync } : {}),
+  });
+}

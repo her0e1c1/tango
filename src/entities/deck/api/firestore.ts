@@ -23,7 +23,7 @@ import {
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
-import { applyDeckSnapshot } from "../model/actions/applyDeckSnapshot";
+import { applyDeckSnapshot } from "../model/store";
 import { deckStore } from "../model/store";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 

@@ -34,7 +34,7 @@ async function transact<T>(
   mode: IDBTransactionMode,
   operation: (store: IDBObjectStore) => IDBRequest<T>
 ) {
-  if (typeof indexedDB === "undefined") return undefined;
+  if (typeof indexedDB === "undefined") return;
   const database = await new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open("tango-firestore-sync", 1);
     request.onupgradeneeded = () => request.result.createObjectStore("state");
@@ -137,4 +137,21 @@ export function syncPersistence<State extends SyncState>(name: string): PersistO
 
 export function compareSyncTimestamps(left: SyncTimestamp, right: SyncTimestamp): number {
   return left.seconds - right.seconds || left.nanoseconds - right.nanoseconds;
+}
+
+interface SyncStore {
+  getState: () => SyncState;
+  persist: { hasHydrated: () => boolean; rehydrate: () => void | Promise<void> };
+}
+
+const hydrations = new WeakMap<SyncStore, Promise<void>>();
+
+export async function hydrateSyncStore(store: SyncStore) {
+  if (store.persist.hasHydrated()) return;
+  let hydration = hydrations.get(store);
+  if (!hydration) {
+    hydration = Promise.resolve(store.persist.rehydrate()).finally(() => hydrations.delete(store));
+    hydrations.set(store, hydration);
+  }
+  await hydration;
 }

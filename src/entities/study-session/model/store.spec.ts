@@ -4,7 +4,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { applyStudySessionSnapshot } from "./actions/applyStudySessionSnapshot";
+import { applyStudySessionSnapshot } from "./store";
 import { startStudy, restoreStudySession } from "@/test/entityFixtures";
 import { clearStudySessions, getStudySession, setStudySessionOwner, studySessionStore } from "./store";
 

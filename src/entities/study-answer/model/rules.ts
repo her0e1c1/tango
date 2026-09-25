@@ -1,5 +1,5 @@
 import { compareSyncTimestamps, type SyncedQueryResult } from "@/shared/api";
-import type { StudyAnswerHistory, StudyAnswerSnapshot } from "../types";
+import type { StudyAnswerHistory, StudyAnswerSnapshot } from "./types";
 
 export function getStudyAnswerHistory(
   result: SyncedQueryResult<StudyAnswerSnapshot>,

@@ -41,11 +41,11 @@ Given:
 | 対象 | 1 | start - 1 | start | abandoned |
 | 対象 | 1 | start + 1 | start + 1 | completed |
 
-- オンライン取得、対象 Deck の履歴を取得済みのオフライン取得、別 UID の取得を、独立した条件として確認する。
+- オンライン取得、対象 Deck の履歴を取得済みのオフライン取得、別 UID の StudySession 購読エラーの履歴への通知を、独立した条件として確認する。
 
 When:
 
-- 対象の通信状態・UID・Deck 条件で、公開された履歴購読を開始する。開始履歴と完了履歴はそれぞれ指定して取得する。
+- 対象 UID の StudySession 購読を明示的に開始し、対象の通信状態・UID・Deck 条件で Store の履歴購読を開始する。開始履歴と完了履歴はそれぞれ指定して取得する。
 
 Then:
 
@@ -61,7 +61,7 @@ Then:
 - started は開始日時、completed は完了日時を期間判定に使い、abandoned を完了に数えない。終了境界 `start + 1` は含めない。
 - 各 record の sessionId は文字列、cardCount は `1` である。対象 Deck の started record は startedAt `start`・endedAt `null`・endReason `null`、completed record は startedAt `start - 1`・endedAt `start`・endReason `completed` を持つ。
 - 本人のオフライン取得では、対象 Deck の開始履歴130件・完了履歴1件を cache の結果として返し、サーバーと同期済みの結果として扱わない。
-- 別 UID の取得では、公開されたエラー通知に `permission-denied` が届く。
+- 別 UID の StudySession 購読エラーの履歴への通知では、公開されたエラー通知に `permission-denied` が届く。
 - 130件という入力例を確認し、無制限の件数保証や負荷試験とは扱わない。
 
 <a id="firestore-study-history-02"></a>
