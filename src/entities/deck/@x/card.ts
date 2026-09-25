@@ -1,1 +1,2 @@
-export { getDecks, useDecks } from "../model/store";
+export { useDecks } from "../model/hooks";
+export { getDecks } from "../model/store";

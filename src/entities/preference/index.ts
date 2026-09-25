@@ -1,3 +1,4 @@
+export { usePreferences } from "./model/hooks";
 export {
   getPreferences,
   setDarkMode,
@@ -10,7 +11,6 @@ export {
   toggleShowViewMode,
   toggleViewMode,
   updatePreferences,
-  usePreferences,
 } from "./model/store";
 export { studyPreferencesLimits } from "./model/rules";
 export type {

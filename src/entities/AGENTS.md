@@ -37,16 +37,23 @@
 
 ## `model/store.ts`
 
-- Define the global Entity store, initialization, hydration, synchronous reads and updates, and thin React selector hooks.
+- Define the global Entity store, initialization, hydration, synchronous reads and updates.
 - Define store default values in `store.ts`.
 - Keep store operations as ordinary named functions outside Zustand state; do not bundle them in an action object or factory.
 - Apply validation and preserve state invariants at the store operation boundary.
 - Do not perform external access, subscriptions, or asynchronous workflows.
 - Treat persistence middleware as an explicit exception for storage access, state hydration, and persistence subscriptions.
 
+## `model/hooks.ts`
+
+- Consolidate Entity React hooks, including store selector hooks, in this file. Create it only when the Entity has hooks.
+- Import the Entity store and operations directly from their defining modules; keep store initialization, synchronous reads, and updates in `store.ts`.
+- Keep domain rules in pure model files and persistence implementations in `api/`; do not move Page or Feature workflows into Entity hooks.
+- Expose reusable hooks through the slice public API.
+
 ## Other `model/` files
 
-- Add a separate model file only for a cohesive domain concept that does not belong in `schema.ts`, `types.ts`, `rules.ts`, or `store.ts`.
+- Add a separate model file only for a cohesive domain concept that does not belong in `schema.ts`, `types.ts`, `rules.ts`, `store.ts`, or `hooks.ts`.
 - Name such files after the domain concept, such as `fsrs.ts`; do not create generic responsibility buckets such as `actions/`, `queries/`, `helpers.ts`, `utils.ts`, or `service.ts`.
 - Keep pure calculations independent of React, stores, browser APIs, persistence, and external systems.
 
