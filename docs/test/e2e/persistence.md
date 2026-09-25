@@ -191,7 +191,7 @@ Then:
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 取得済みの Deck と複数 Card があり、端末内の Card の取得済みデータが保存単位ごと失われている、同期位置だけが残って内容が失われている（documents の欠落または空のオブジェクト）、解析不能になっている、または本文の形式が壊れている。
+- 取得済みの Deck と複数 Card があり、端末内の Card の取得済みデータが保存単位ごと失われている、同期位置だけが残って内容が失われている（documents の欠落）、解析不能になっている、または本文の形式が壊れている。
 
 When:
 

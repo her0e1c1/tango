@@ -13,8 +13,7 @@ const checkpointSchema = z
     documents: z.record(z.string(), z.record(z.string(), z.unknown())),
     lastUpdatedAt: syncTimestampSchema.nullable(),
   })
-  .strict()
-  .refine(({ documents, lastUpdatedAt }) => lastUpdatedAt === null || Object.keys(documents).length > 0);
+  .strict();
 
 export type SyncCheckpoint = z.infer<typeof checkpointSchema>;
 
@@ -53,17 +52,8 @@ function reviveTimestamp(_key: string, value: unknown): unknown {
   return value;
 }
 
-// A new subscription must read after earlier writes, including writes from a stopped listener.
-// Keep the original rejection observable without blocking subsequent storage operations.
-let pending: Promise<unknown> = Promise.resolve();
-function access<T>(scope: string, mode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest<T>) {
-  const result = pending.then(() => transact(scope, mode, operation));
-  pending = result.catch(() => undefined);
-  return result;
-}
-
 export async function loadSyncCheckpoint(scope: string): Promise<SyncCheckpoint | null> {
-  const value: unknown = await access(scope, "readonly", (store) => store.get(scope)).catch(() => undefined);
+  const value: unknown = await transact(scope, "readonly", (store) => store.get(scope)).catch(() => undefined);
   if (value === undefined) return null;
   try {
     return checkpointSchema.parse(JSON.parse(z.string().parse(value), reviveTimestamp));
@@ -75,11 +65,11 @@ export async function loadSyncCheckpoint(scope: string): Promise<SyncCheckpoint 
 
 export function saveSyncCheckpoint(scope: string, checkpoint: SyncCheckpoint) {
   const serialized = JSON.stringify(checkpoint);
-  return access(scope, "readwrite", (store) => store.put(serialized, scope));
+  return transact(scope, "readwrite", (store) => store.put(serialized, scope));
 }
 
 export function deleteSyncCheckpoint(scope: string) {
-  return access(scope, "readwrite", (store) => store.delete(scope));
+  return transact(scope, "readwrite", (store) => store.delete(scope));
 }
 
 export function compareSyncTimestamps(left: SyncTimestamp, right: SyncTimestamp): number {

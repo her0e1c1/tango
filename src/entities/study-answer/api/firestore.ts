@@ -13,19 +13,18 @@ import {
   where,
 } from "firebase/firestore";
 import { db, auth } from "@/shared/firebase";
-import type { StudyAnswerHistory, StudyAnswerInput, StudyAnswerSnapshot } from "../model/types";
-import { createStudyAnswerDocument, parseStudyAnswerSnapshot, retainStudyAnswerReplica } from "./document";
+import type { StudyAnswerHistory, StudyAnswerInput, StudyAnswerSnapshotResult } from "../model/types";
 import {
-  loadSyncReplica,
-  saveSyncCheckpoint,
-  readSyncTimestamp,
-  readSyncChanges,
-  mergeSyncChanges,
-  type SyncReplica,
-  type SyncTimestamp,
-  type SyncChange,
-  type SyncedQueryResult,
-} from "@/shared/api";
+  createStudyAnswerDocument,
+  parseAnswerReplica,
+  retainStudyAnswerReplica,
+  readAnswerUpdatedAt,
+  readAnswerChanges,
+  mergeAnswerChanges,
+  type AnswerReplica,
+  type AnswerChange,
+} from "./document";
+import { loadSyncCheckpoint, saveSyncCheckpoint, deleteSyncCheckpoint, type SyncTimestamp } from "@/shared/api";
 import { getStudyAnswerHistory } from "../model/rules";
 import { z } from "zod";
 
@@ -91,13 +90,13 @@ export function subscribeStudyAnswerHistory(
   let active = true;
   let stop: (() => void) | undefined;
   let stopBoundary: (() => void) | undefined;
-  let base: SyncReplica<StudyAnswerSnapshot> | null = null;
+  let base: AnswerReplica | null = null;
   let published = false;
   const isActive = () => active && auth.currentUser === user;
   const fail = (cause: unknown) => {
     if (isActive()) onError(cause instanceof Error ? cause : new Error(String(cause)));
   };
-  function publish(result: SyncedQueryResult<StudyAnswerSnapshot>) {
+  function publish(result: StudyAnswerSnapshotResult) {
     if (!isActive()) return;
     published = true;
     onHistory(getStudyAnswerHistory(result, maximum));
@@ -110,16 +109,16 @@ export function subscribeStudyAnswerHistory(
     stop?.();
     let current = true;
     const isCurrent = () => isActive() && current;
-    const changes = new Map<string, SyncChange<StudyAnswerSnapshot>>();
+    const changes = new Map<string, AnswerChange>();
     const unsubscribe = onSnapshot(
       target,
       { includeMetadataChanges: true, source },
       (snapshot) => {
         if (!isCurrent()) return;
-        readSyncChanges(snapshot, changes, parseStudyAnswerSnapshot);
-        let merged: SyncReplica<StudyAnswerSnapshot>;
+        readAnswerChanges(snapshot, changes);
+        let merged: AnswerReplica;
         try {
-          merged = mergeSyncChanges(base, changes);
+          merged = mergeAnswerChanges(base, changes);
         } catch (error) {
           restoreOnError(error);
           return;
@@ -155,7 +154,7 @@ export function subscribeStudyAnswerHistory(
       (snapshot) => {
         if (!isActive() || snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return;
         try {
-          const boundary = snapshot.docs[0] ? readSyncTimestamp(snapshot.docs[0].data()) : null;
+          const boundary = snapshot.docs[0] ? readAnswerUpdatedAt(snapshot.docs[0].data()) : null;
           stopBoundary?.();
           listen(initial, "default", boundary);
         } catch (error) {
@@ -165,8 +164,18 @@ export function subscribeStudyAnswerHistory(
       fail
     );
   }
+  async function restoreSaved() {
+    const checkpoint = await loadSyncCheckpoint(scope);
+    if (!isActive() || !checkpoint) return null;
+    try {
+      return parseAnswerReplica(checkpoint);
+    } catch {
+      await deleteSyncCheckpoint(scope).catch(fail);
+      return null;
+    }
+  }
   async function start() {
-    const saved = await loadSyncReplica(scope, parseStudyAnswerSnapshot);
+    const saved = await restoreSaved();
     if (!isActive()) return;
     base = saved;
     if (base) listen(request(base.checkpoint.lastUpdatedAt), anonymous ? "cache" : "default");

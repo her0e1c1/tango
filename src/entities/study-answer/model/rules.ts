@@ -1,10 +1,7 @@
-import { compareSyncTimestamps, type SyncedQueryResult } from "@/shared/api";
-import type { StudyAnswerHistory, StudyAnswerSnapshot } from "./types";
+import { compareSyncTimestamps } from "@/shared/api";
+import type { StudyAnswerHistory, StudyAnswerSnapshotResult } from "./types";
 
-export function getStudyAnswerHistory(
-  result: SyncedQueryResult<StudyAnswerSnapshot>,
-  maximum: number
-): StudyAnswerHistory {
+export function getStudyAnswerHistory(result: StudyAnswerSnapshotResult, maximum: number): StudyAnswerHistory {
   const ordered = [...result.values].sort(
     (left, right) =>
       compareSyncTimestamps(right.answeredAt, left.answeredAt) || (left.id < right.id ? 1 : left.id > right.id ? -1 : 0)

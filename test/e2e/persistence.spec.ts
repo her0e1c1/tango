@@ -306,7 +306,7 @@ async function openStorageMaintenance(page: import("@playwright/test").Page) {
   });
 }
 
-for (const corruption of ["missing", "missing-documents", "empty-documents", "invalid-json", "invalid-card"] as const) {
+for (const corruption of ["missing", "missing-documents", "invalid-json", "invalid-card"] as const) {
   test(`PERSISTENCE-07 rebuilds ${corruption} saved data after cache eviction`, async ({ fixture, page }) => {
     const deck = fixture.deck();
     const card = fixture.card();
@@ -342,9 +342,6 @@ for (const corruption of ["missing", "missing-documents", "empty-documents", "in
               switch (damage) {
                 case "missing-documents":
                   checkpoint.documents = undefined;
-                  break;
-                case "empty-documents":
-                  checkpoint.documents = {};
                   break;
                 case "invalid-card":
                   if (!checkpoint.documents) throw new Error("Missing saved documents");

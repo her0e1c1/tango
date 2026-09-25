@@ -26,3 +26,9 @@ export interface StudyAnswerSnapshot {
   answeredAt: { seconds: number; nanoseconds: number };
   record: StudyAnswerRecord | null;
 }
+
+export interface StudyAnswerSnapshotResult {
+  values: StudyAnswerSnapshot[];
+  fromCache: boolean;
+  hasPendingWrites: boolean;
+}

@@ -83,7 +83,6 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     applyStudySessionSnapshot("uid", {
       values: [{ session: retained, endReason: null, endedAt: null }],
       fromCache: false,
-      hasPendingWrites: false,
     });
 
     expect(getStudySession("deck-1")).toBeUndefined();
