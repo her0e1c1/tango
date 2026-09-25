@@ -1,3 +1,4 @@
+export { useCards, useCard, useCardsByDeckId } from "./model/hooks";
 export { subscribeCards } from "./api/firestore";
 export {
   createOwnedCard as createCard,
@@ -6,7 +7,7 @@ export {
   mutateCards,
 } from "./api/firestore";
 export { cardContentInputSchema } from "./model/schema";
-export { clearRemoteCards, getCards, useCard, useCards, useCardsByDeckId } from "./model/store";
+export { clearRemoteCards, getCards } from "./model/store";
 export type {
   Card,
   CardContentInput,

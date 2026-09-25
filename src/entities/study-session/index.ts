@@ -1,3 +1,4 @@
+export { useStudySession, useStudySessions, useRemoteStudySessionsLoading } from "./model/hooks";
 export {
   canMoveStudySession,
   resolveStudySession,
@@ -8,9 +9,6 @@ export type { StudySession } from "./model/types";
 export {
   clearStudySessions,
   getStudySession,
-  useRemoteStudySessionsLoading,
-  useStudySession,
-  useStudySessions,
 } from "./model/store";
 export {
   touchStudySession,

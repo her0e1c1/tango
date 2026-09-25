@@ -1,4 +1,3 @@
-import { useStore } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createStore } from "zustand/vanilla";
@@ -44,8 +43,6 @@ export const preferencesStore = createStore<PreferencesStoreState>()(
 export function getPreferences(): Preferences {
   return preferencesStore.getState().preferences;
 }
-
-export const usePreferences = (): Preferences => useStore(preferencesStore, (state) => state.preferences);
 
 // Applies a partial preferences update through the store's validation boundary.
 export const updatePreferences = (preferencesInput: PartialPreferences): void => {

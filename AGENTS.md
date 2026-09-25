@@ -47,7 +47,7 @@ Every task that changes repository files must complete this workflow:
 - State hooks may own state, refs, forms, and resource cleanup, but must not return business-action callbacks. Page models connect them to actions.
 - Keep purpose-named operation trigger hooks in `model/actions/`. Page models may connect entry, cleanup, and existing actions through simple effects without a dedicated lifecycle hook.
 - Pass only each action's required inputs and state handles, not an entire model. Preserve shared locks, save ordering, retry identities, and pending-work lifetimes when splitting operations.
-- Entity `model/store.ts` owns Entity state plus synchronous store reads, updates, and thin selector hooks. Keep schemas and rules pure, and persistence implementations in `api/`.
+- Entity `model/store.ts` owns Entity state plus synchronous store reads and updates. Keep Entity React hooks in `model/hooks.ts`. Keep schemas and rules pure, and persistence implementations in `api/`.
 - Export reusable operations through the slice public API. Within a slice, import modules directly; do not add internal barrel files.
 
 ### Forms
