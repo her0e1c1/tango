@@ -245,32 +245,46 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   expect((await requireDocument("card", legacyCardId)).fields.frontText?.stringValue).toBe("Legacy card");
 });
 
-async function waitForSavedDocument(page: import("@playwright/test").Page, name: string, id: string) {
+async function waitForSavedDocument(page: import("@playwright/test").Page, collection: string, id: string) {
+  let scope: string | undefined;
   await expect
-    .poll(() =>
-      page.evaluate(
-        async ({ key, documentId: savedId }) => {
+    .poll(async () => {
+      scope = await page.evaluate(
+        async ({ collection: savedCollection, id: savedId }) => {
           const database = await new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open("tango-firestore-sync");
             request.onsuccess = () => resolve(request.result);
             request.onerror = () => reject(request.error);
           });
           try {
-            return await new Promise<boolean>((resolve, reject) => {
+            return await new Promise<string | undefined>((resolve, reject) => {
               const transaction = database.transaction("state", "readonly");
-              const request = transaction.objectStore("state").get(key);
+              const store = transaction.objectStore("state");
+              const keys = store.getAllKeys();
+              const values = store.getAll();
               transaction.oncomplete = () =>
-                resolve(typeof request.result === "string" && request.result.includes(savedId));
+                resolve(
+                  keys.result
+                    .map(String)
+                    .find(
+                      (key, index) =>
+                        JSON.parse(key)[2] === savedCollection &&
+                        Object.hasOwn(JSON.parse(String(values.result[index])).documents, savedId)
+                    )
+                );
               transaction.onerror = () => reject(transaction.error);
             });
           } finally {
             database.close();
           }
         },
-        { key: name, documentId: id }
-      )
-    )
-    .toBe(true);
+        { collection, id }
+      );
+      return scope;
+    })
+    .toBeTruthy();
+  if (!scope) throw new Error("Missing saved scope");
+  return scope;
 }
 
 async function openStorageMaintenance(page: import("@playwright/test").Page) {
@@ -292,17 +306,17 @@ async function openStorageMaintenance(page: import("@playwright/test").Page) {
   });
 }
 
-for (const corruption of ["missing", "invalid-json", "invalid-card"] as const) {
+for (const corruption of ["missing", "missing-documents", "empty-documents", "invalid-json", "invalid-card"] as const) {
   test(`PERSISTENCE-07 rebuilds ${corruption} saved data after cache eviction`, async ({ fixture, page }) => {
     const deck = fixture.deck();
     const card = fixture.card();
     await fixture.apply(page);
     await page.goto(`/deck/${deck.id}`);
     await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
-    await waitForSavedDocument(page, "tango-card-sync", card.id);
+    const scope = await waitForSavedDocument(page, "card", card.id);
     await openStorageMaintenance(page);
     await page.evaluate(
-      async ({ corruption: damage, cardId }) => {
+      async ({ corruption: damage, cardId, scope: savedScope }) => {
         const database = await new Promise<IDBDatabase>((resolve, reject) => {
           const request = indexedDB.open("tango-firestore-sync");
           request.onsuccess = () => resolve(request.result);
@@ -312,24 +326,32 @@ for (const corruption of ["missing", "invalid-json", "invalid-card"] as const) {
           await new Promise<void>((resolve, reject) => {
             const transaction = database.transaction("state", "readwrite");
             const store = transaction.objectStore("state");
-            const request = store.get("tango-card-sync");
+            const request = store.get(savedScope);
             request.onsuccess = () => {
-              if (damage === "invalid-json") {
-                store.put("{broken", "tango-card-sync");
-                return;
+              switch (damage) {
+                case "missing":
+                  store.delete(savedScope);
+                  return;
+                case "invalid-json":
+                  store.put("{broken", savedScope);
+                  return;
               }
-              {
-                const value = JSON.parse(String(request.result)) as {
-                  state: { sync: Record<string, { documents: Record<string, { frontText: unknown }> }> };
-                };
-                const checkpoint = Object.values(value.state.sync).find((candidate) =>
-                  Object.hasOwn(candidate.documents, cardId)
-                );
-                if (!checkpoint) throw new Error("Missing saved Card");
-                if (damage === "missing") delete checkpoint.documents[cardId];
-                else checkpoint.documents[cardId] = { ...checkpoint.documents[cardId], frontText: 42 };
-                store.put(JSON.stringify(value), "tango-card-sync");
+              const checkpoint = JSON.parse(String(request.result)) as {
+                documents?: Record<string, { frontText: unknown }> | undefined;
+              };
+              switch (damage) {
+                case "missing-documents":
+                  checkpoint.documents = undefined;
+                  break;
+                case "empty-documents":
+                  checkpoint.documents = {};
+                  break;
+                case "invalid-card":
+                  if (!checkpoint.documents) throw new Error("Missing saved documents");
+                  checkpoint.documents[cardId] = { ...checkpoint.documents[cardId], frontText: 42 };
+                  break;
               }
+              store.put(JSON.stringify(checkpoint), savedScope);
             };
             transaction.oncomplete = () => resolve();
             transaction.onerror = () => reject(transaction.error);
@@ -338,7 +360,7 @@ for (const corruption of ["missing", "invalid-json", "invalid-card"] as const) {
           database.close();
         }
       },
-      { corruption, cardId: card.id }
+      { corruption, cardId: card.id, scope }
     );
     await page.goto(`/deck/${deck.id}`);
     for (const existing of fixture.state.remote.cards)
@@ -355,7 +377,7 @@ test("PERSISTENCE-08 recovers a failed replica transaction without losing unchan
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}`);
   await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
-  await waitForSavedDocument(page, "tango-card-sync", card.id);
+  await waitForSavedDocument(page, "card", card.id);
   await page.evaluate(() => {
     const put = IDBObjectStore.prototype.put;
     IDBObjectStore.prototype.put = function (...args) {
@@ -396,9 +418,9 @@ test("PERSISTENCE-09 restores saved study progress without the SDK cache or serv
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  await waitForSavedDocument(page, "tango-study-session-sync", session.sessionId);
-  await waitForSavedDocument(page, "tango-card-sync", currentCard.id);
-  await waitForSavedDocument(page, "tango-deck-sync", deck.id);
+  await waitForSavedDocument(page, "studySession", session.sessionId);
+  await waitForSavedDocument(page, "card", currentCard.id);
+  await waitForSavedDocument(page, "deck", deck.id);
   await openStorageMaintenance(page);
   browserErrors.allow(/console error: .*Could not reach Cloud Firestore backend/u);
   browserErrors.allow(
@@ -420,8 +442,8 @@ test("PERSISTENCE-10 restores a healthy replica despite invalid cached changes a
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}`);
   await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
-  await waitForSavedDocument(page, "tango-card-sync", card.id);
-  await waitForSavedDocument(page, "tango-deck-sync", deck.id);
+  await waitForSavedDocument(page, "card", card.id);
+  await waitForSavedDocument(page, "deck", deck.id);
   const failure = page.getByText(
     "A data save or sync failed. Check your connection and reload to review the saved data.",
     { exact: true }

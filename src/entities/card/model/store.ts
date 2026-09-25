@@ -1,18 +1,15 @@
 import { getDecks } from "@/entities/deck/@x/card";
 import { createStore } from "zustand/vanilla";
-import { persist } from "zustand/middleware";
-import { syncPersistence, type SyncState, type SyncedQueryResult } from "@/shared/api";
+import type { SyncedQueryResult } from "@/shared/api";
 
 import { cardIdSchema } from "./schema";
 import type { Card, CardId, RemoteCard } from "./types";
 
-interface CardState extends SyncState {
+interface CardState {
   remoteCards: Card[];
 }
 
-export const cardStore = createStore<CardState>()(
-  persist((): CardState => ({ remoteCards: [], sync: {} }), syncPersistence("tango-card-sync"))
-);
+export const cardStore = createStore<CardState>(() => ({ remoteCards: [] }));
 
 export function getCards(): Card[] {
   const { remoteCards } = cardStore.getState();
@@ -33,14 +30,10 @@ export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
   cardStore.setState({ remoteCards });
 };
 
-export function applyCardSnapshot(scope: string, result: SyncedQueryResult<RemoteCard>) {
-  const sync = { ...cardStore.getState().sync };
-  if (result.checkpoint === null) delete sync[scope];
-  else if (result.checkpoint) sync[scope] = result.checkpoint;
-  return cardStore.setState({
+export function applyCardSnapshot(result: SyncedQueryResult<RemoteCard>) {
+  cardStore.setState({
     remoteCards: result.values
       .filter((card) => card.deletedAt === null)
       .sort((left, right) => left.id.localeCompare(right.id)),
-    ...(result.checkpoint !== undefined ? { sync } : {}),
   });
 }

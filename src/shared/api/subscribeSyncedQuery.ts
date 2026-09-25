@@ -1,5 +1,11 @@
 import { onSnapshot, type DocumentData, type Query, type QuerySnapshot } from "firebase/firestore";
-import { hydrateSyncStore, type SyncCheckpoint, type SyncState, type SyncTimestamp } from "./syncPersistence";
+import {
+  loadSyncCheckpoint,
+  saveSyncCheckpoint,
+  deleteSyncCheckpoint,
+  type SyncCheckpoint,
+  type SyncTimestamp,
+} from "./syncPersistence";
 import {
   readSyncTimestamp,
   readSyncChanges,
@@ -8,17 +14,11 @@ import {
   type SyncedQueryResult,
 } from "./syncSnapshot";
 
-interface SyncStore {
-  getState: () => SyncState;
-  persist: { hasHydrated: () => boolean; rehydrate: () => void | Promise<void> };
-}
-
 interface SyncedQueryOptions<T> {
   scope: string;
-  store: SyncStore;
   request: (cursor: SyncTimestamp | null) => Query;
   parse: (id: string, data: DocumentData) => T;
-  receive: (result: SyncedQueryResult<T>) => unknown;
+  receive: (result: SyncedQueryResult<T>) => void;
   onError: (error: Error) => void;
 }
 /** Mirrors snapshot changes; writes and retries remain entirely in the Firestore SDK. */
@@ -26,7 +26,7 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
   let active = true;
   const isActive = () => active;
   let stop: () => void = () => undefined;
-  let base: SyncCheckpoint = { documents: {}, lastUpdatedAt: null, documentCount: 0 };
+  let base: SyncCheckpoint = { documents: {}, lastUpdatedAt: null };
   let baseValues = new Map<string, T>();
   let restored = false;
   let published = false;
@@ -37,15 +37,15 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
     if (!isActive()) return;
     published = true;
     try {
-      void Promise.resolve(options.receive(result)).catch(fail);
+      options.receive(result);
     } catch (error) {
       fail(error);
     }
   };
 
-  function restoreSaved() {
-    const saved = options.store.getState().sync[options.scope];
-    if (!saved) return;
+  async function restoreSaved() {
+    const saved = await loadSyncCheckpoint(options.scope);
+    if (!isActive() || !saved) return;
     try {
       const values = new Map<string, T>();
       for (const [id, data] of Object.entries(saved.documents)) {
@@ -56,7 +56,7 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
       baseValues = values;
       restored = true;
     } catch {
-      publish({ values: [], fromCache: true, hasPendingWrites: false, checkpoint: null });
+      await deleteSyncCheckpoint(options.scope).catch(fail);
     }
   }
 
@@ -64,10 +64,9 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
     base = {
       documents: merged.documents,
       lastUpdatedAt: merged.lastUpdatedAt,
-      documentCount: Object.keys(merged.documents).length,
     };
     baseValues = merged.values;
-    return base;
+    void saveSyncCheckpoint(options.scope, base).catch(fail);
   }
 
   function restoreOnError(error: unknown) {
@@ -83,12 +82,11 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
     }
     const merged = mergeSyncChanges(base, baseValues, changes);
     const confirmed = !(snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites);
-    const checkpoint = confirmed ? confirm(merged) : undefined;
+    if (confirmed) confirm(merged);
     publish({
       values: [...merged.values.values()],
       fromCache: snapshot.metadata.fromCache,
       hasPendingWrites: snapshot.metadata.hasPendingWrites,
-      ...(checkpoint ? { checkpoint } : {}),
     });
     return confirmed;
   }
@@ -119,9 +117,7 @@ export function subscribeSyncedQuery<T>(options: SyncedQueryOptions<T>): () => v
   }
 
   async function start() {
-    await hydrateSyncStore(options.store);
-    if (!isActive()) return;
-    restoreSaved();
+    await restoreSaved();
     if (isActive()) listen(base.lastUpdatedAt);
   }
   void start().catch(fail);

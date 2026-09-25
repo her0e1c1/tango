@@ -138,7 +138,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
   });
   beforeEach(async () => {
     await environment.clearFirestore();
-    cardStore.setState({ sync: {}, remoteCards: cardIds.map((id) => createCard({ id, deckId, uid })) });
+    cardStore.setState({ remoteCards: cardIds.map((id) => createCard({ id, deckId, uid })) });
     deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid })] });
     replaceAuthSession({ status: "authenticated", uid, isAnonymous: false, displayName: null });
     await setDoc(doc(connection.db, "deck", deckId), { uid, isPublic: true });

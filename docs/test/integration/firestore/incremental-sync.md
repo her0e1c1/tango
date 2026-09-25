@@ -2,7 +2,7 @@
 
 ## 目的
 
-サーバー確定時刻による差分購読と、取得済みデータを維持した再開を実際の Emulator で確認する。[共通前提](./AGENTS.md#共通前提) に従う。ブラウザーの永続化は [Persistence](../../e2e/persistence.md) で確認し、本番 index の準備完了とは区別する。
+サーバー確定時刻による差分購読と、取得済みデータを checkpoint から復元した再開を実際の Emulator で確認する。[共通前提](./AGENTS.md#共通前提) に従う。ブラウザーの永続化は [Persistence](../../e2e/persistence.md) で確認し、本番 index の準備完了とは区別する。
 
 ## テストケース
 

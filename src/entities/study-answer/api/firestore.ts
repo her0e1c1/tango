@@ -17,7 +17,9 @@ import { db, auth } from "@/shared/firebase";
 import type { StudyAnswerHistory, StudyAnswerInput, StudyAnswerSnapshot } from "../model/types";
 import { createStudyAnswerDocument, parseStudyAnswerSnapshot, retainStudyAnswerDocuments } from "./document";
 import {
-  hydrateSyncStore,
+  loadSyncCheckpoint,
+  saveSyncCheckpoint,
+  deleteSyncCheckpoint,
   readSyncTimestamp,
   readSyncChanges,
   mergeSyncChanges,
@@ -26,8 +28,6 @@ import {
   type SyncChange,
   type SyncedQueryResult,
 } from "@/shared/api";
-import { studyAnswerStore } from "../model/store";
-import { applyStudyAnswerSnapshot } from "../model/store";
 import { getStudyAnswerHistory } from "../model/rules";
 import { z } from "zod";
 
@@ -55,7 +55,7 @@ export function subscribeStudyAnswerHistory(
   const user = auth.currentUser;
   if (!user || user.uid !== uid) throw new Error("History owner is not the current user");
   const anonymous = user.isAnonymous;
-  const scope = JSON.stringify([db.app.options.projectId, uid, from, to, deckId, maximum]);
+  const scope = JSON.stringify([db.app.options.projectId, uid, "studyAnswer", from, to, deckId, maximum]);
   const constraints = [
     where("uid", "==", uid),
     ...(deckId === null ? [] : [where("deckId", "==", deckId)]),
@@ -93,7 +93,7 @@ export function subscribeStudyAnswerHistory(
   let active = true;
   let stop: () => void = () => undefined;
   let stopBoundary: () => void = () => undefined;
-  let base: SyncCheckpoint = { documents: {}, lastUpdatedAt: null, documentCount: 0 };
+  let base: SyncCheckpoint = { documents: {}, lastUpdatedAt: null };
   let baseValues = new Map<string, StudyAnswerSnapshot>();
   let restored = false;
   let published = false;
@@ -105,7 +105,6 @@ export function subscribeStudyAnswerHistory(
     if (!isActive()) return;
     published = true;
     try {
-      void Promise.resolve(applyStudyAnswerSnapshot(scope, result.checkpoint)).catch(fail);
       onHistory(getStudyAnswerHistory(result, maximum));
     } catch (error) {
       fail(error);
@@ -115,9 +114,9 @@ export function subscribeStudyAnswerHistory(
     if (restored && !published) publish({ values: [...baseValues.values()], fromCache: true, hasPendingWrites: false });
     fail(error);
   }
-  function restoreSaved() {
-    const saved = studyAnswerStore.getState().sync[scope];
-    if (!saved) return;
+  async function restoreSaved() {
+    const saved = await loadSyncCheckpoint(scope);
+    if (!isActive() || !saved) return;
     try {
       const values = new Map<string, StudyAnswerSnapshot>();
       for (const [id, data] of Object.entries(saved.documents)) {
@@ -128,7 +127,7 @@ export function subscribeStudyAnswerHistory(
       baseValues = values;
       restored = true;
     } catch {
-      publish({ values: [], fromCache: true, hasPendingWrites: false, checkpoint: null });
+      await deleteSyncCheckpoint(scope).catch(fail);
     }
   }
   function ingest(
@@ -149,15 +148,14 @@ export function subscribeStudyAnswerHistory(
       base = {
         documents,
         lastUpdatedAt: boundary === undefined ? merged.lastUpdatedAt : boundary,
-        documentCount: Object.keys(documents).length,
       };
       baseValues = new Map([...merged.values].filter(([id]) => Object.hasOwn(documents, id)));
+      void saveSyncCheckpoint(scope, base).catch(fail);
     }
     publish({
       values: [...merged.values.values()],
       fromCache: snapshot.metadata.fromCache || boundary !== undefined,
       hasPendingWrites: snapshot.metadata.hasPendingWrites,
-      ...(confirmed ? { checkpoint: base } : {}),
     });
     return confirmed;
   }
@@ -204,9 +202,7 @@ export function subscribeStudyAnswerHistory(
     );
   }
   async function start() {
-    await hydrateSyncStore(studyAnswerStore);
-    if (!isActive()) return;
-    restoreSaved();
+    await restoreSaved();
     if (!isActive()) return;
     if (restored) listen(request(base.lastUpdatedAt), anonymous ? "cache" : "default");
     else if (anonymous) listen(initial, "cache");

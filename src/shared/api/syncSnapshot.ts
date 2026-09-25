@@ -6,7 +6,6 @@ export interface SyncedQueryResult<T> {
   values: T[];
   fromCache: boolean;
   hasPendingWrites: boolean;
-  checkpoint?: SyncCheckpoint | null;
 }
 
 export interface SyncChange<T> {

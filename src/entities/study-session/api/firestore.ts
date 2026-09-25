@@ -56,11 +56,10 @@ export function updateStudySession(session: StudySession, endReason: StudySessio
 }
 
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  const scope = JSON.stringify([db.app.options.projectId, uid]);
+  const scope = JSON.stringify([db.app.options.projectId, uid, "studySession"]);
   setStudySessionOwner(uid);
   return subscribeSyncedQuery({
     scope,
-    store: studySessionStore,
     request: (cursor) =>
       query(
         collection(db, "studySession"),
@@ -73,9 +72,8 @@ export function subscribeStudySessions(uid: string, onError: (error: Error) => v
       return document ? toStudySessionWrite(id, document) : null;
     },
     receive: (result) => {
-      const saved = applyStudySessionSnapshot(uid, scope, result);
+      applyStudySessionSnapshot(uid, result);
       onReady?.();
-      return saved;
     },
     onError: (error) => {
       if (studySessionStore.getState().ownerUid !== uid) return;

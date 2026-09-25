@@ -28,7 +28,7 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
   const store = studySessionStore;
 
   beforeEach(() => {
-    store.setState({ sessionsByDeckId: {}, sync: {} });
+    store.setState({ sessionsByDeckId: {} });
     localStorage.clear();
   });
 
@@ -79,7 +79,7 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     if (!retained) throw new Error("Missing retained session");
 
     setStudySessionOwner("uid");
-    applyStudySessionSnapshot("uid", "scope", {
+    applyStudySessionSnapshot("uid", {
       values: [{ session: retained, endReason: null, endedAt: null }],
       fromCache: false,
       hasPendingWrites: false,

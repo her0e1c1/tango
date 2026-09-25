@@ -24,7 +24,6 @@ import {
   editDeckSchema,
 } from "../model/schema";
 import { applyDeckSnapshot } from "../model/store";
-import { deckStore } from "../model/store";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
@@ -33,10 +32,9 @@ const DECK_COLLECTION = "deck";
 // A remote tombstone would otherwise leave the query as a removed change backed by the previous matching document,
 // so this client would not receive the updated tombstone itself. Hide tombstones only when publishing the active store.
 export function subscribeDecks(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  const scope = JSON.stringify([db.app.options.projectId, uid]);
+  const scope = JSON.stringify([db.app.options.projectId, uid, DECK_COLLECTION]);
   return subscribeSyncedQuery({
     scope,
-    store: deckStore,
     request: (cursor) =>
       query(
         collection(db, DECK_COLLECTION),
@@ -49,9 +47,8 @@ export function subscribeDecks(uid: string, onError: (error: Error) => void, onR
       return document.deletedAt === null ? toDeck(id, document) : null;
     },
     receive: (result) => {
-      const saved = applyDeckSnapshot(scope, result);
+      applyDeckSnapshot(result);
       onReady?.();
-      return saved;
     },
     onError,
   });

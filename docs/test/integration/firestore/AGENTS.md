@@ -24,6 +24,8 @@
 
 ### 実行環境
 
+- 差分同期の再購読ケースでは Node 環境に `fake-indexeddb` を用意し、アプリケーションの checkpoint 保存・読込処理を実行する。Firestore は実際の Emulator を使う。ブラウザーの永続性・保存失敗・破損時の復旧は E2E で確認する。
+
 | 対象 | 接続・準備 |
 | --- | --- |
 | 保存・購読 Adapter | 既存の `test/initializeTestFirestore.ts` で project `test` に接続し、UID `uid`・非匿名 provider `google.com` の token を使用する |

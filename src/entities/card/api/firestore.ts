@@ -31,7 +31,7 @@ import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { applyCardSnapshot } from "../model/store";
 import { fsrsStateSchema, instantSchema, type FsrsState } from "../model/fsrs";
-import { findCardById, cardStore } from "../model/store";
+import { findCardById } from "../model/store";
 
 const CARD_COLLECTION = "card";
 
@@ -39,10 +39,9 @@ const CARD_COLLECTION = "card";
 // A remote tombstone would otherwise leave the query as a removed change backed by the previous matching document,
 // so this client would not receive the updated tombstone itself. Hide tombstones only when publishing the active store.
 export function subscribeCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  const scope = JSON.stringify([db.app.options.projectId, uid]);
+  const scope = JSON.stringify([db.app.options.projectId, uid, CARD_COLLECTION]);
   return subscribeSyncedQuery({
     scope,
-    store: cardStore,
     request: (cursor) =>
       query(
         collection(db, CARD_COLLECTION),
@@ -52,9 +51,8 @@ export function subscribeCards(uid: string, onError: (error: Error) => void, onR
       ),
     parse: (id, data) => mapCardDocument(id, parseCardDocument(id, data)),
     receive: (result) => {
-      const saved = applyCardSnapshot(scope, result);
+      applyCardSnapshot(result);
       onReady?.();
-      return saved;
     },
     onError,
   });

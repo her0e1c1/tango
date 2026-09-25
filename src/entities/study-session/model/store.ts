@@ -1,12 +1,11 @@
 import { compareStudySessionCreation } from "./rules";
 import type { DeckId } from "@/entities/deck/@x/study-session";
 import { createStore } from "zustand/vanilla";
-import { persist } from "zustand/middleware";
-import { syncPersistence, type SyncState, type SyncedQueryResult } from "@/shared/api";
+import type { SyncedQueryResult } from "@/shared/api";
 
 import type { StudySession, StudySessions, StudySessionSnapshot } from "./types";
 
-interface StudySessionState extends SyncState {
+interface StudySessionState {
   sessionsByDeckId: StudySessions;
   remoteLoading: boolean;
   ownerUid: string | undefined;
@@ -15,20 +14,14 @@ interface StudySessionState extends SyncState {
   syncError: Error | null;
 }
 
-export const studySessionStore = createStore<StudySessionState>()(
-  persist(
-    (): StudySessionState => ({
-      sessionsByDeckId: {},
-      remoteLoading: false,
-      ownerUid: undefined,
-      history: [],
-      fromCache: true,
-      syncError: null,
-      sync: {},
-    }),
-    syncPersistence("tango-study-session-sync")
-  )
-);
+export const studySessionStore = createStore<StudySessionState>(() => ({
+  sessionsByDeckId: {},
+  remoteLoading: false,
+  ownerUid: undefined,
+  history: [],
+  fromCache: true,
+  syncError: null,
+}));
 
 export const getStudySession = (deckId: DeckId): StudySession | undefined =>
   studySessionStore.getState().sessionsByDeckId[deckId];
@@ -61,11 +54,7 @@ export function setStudySessionSyncError(syncError: Error): void {
   studySessionStore.setState({ remoteLoading: false, syncError });
 }
 
-export function applyStudySessionSnapshot(
-  uid: string,
-  scope: string,
-  result: SyncedQueryResult<StudySessionSnapshot | null>
-) {
+export function applyStudySessionSnapshot(uid: string, result: SyncedQueryResult<StudySessionSnapshot | null>) {
   if (studySessionStore.getState().ownerUid !== uid) return;
   const history = result.values.filter((value) => value !== null);
   const latest = new Map<string, StudySessionSnapshot>();
@@ -74,10 +63,7 @@ export function applyStudySessionSnapshot(
     if (!previous || compareStudySessionCreation(record.session, previous.session) > 0)
       latest.set(record.session.deckId, record);
   }
-  const sync = { ...studySessionStore.getState().sync };
-  if (result.checkpoint === null) delete sync[scope];
-  else if (result.checkpoint) sync[scope] = result.checkpoint;
-  return studySessionStore.setState({
+  studySessionStore.setState({
     history,
     sessionsByDeckId: Object.fromEntries(
       [...latest.values()].filter(({ endReason }) => endReason === null).map(({ session }) => [session.deckId, session])
@@ -85,6 +71,5 @@ export function applyStudySessionSnapshot(
     remoteLoading: false,
     fromCache: result.fromCache,
     syncError: null,
-    ...(result.checkpoint !== undefined ? { sync } : {}),
   });
 }
