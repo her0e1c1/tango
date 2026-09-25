@@ -12,7 +12,7 @@ Status: Accepted
 
 サーバーを正とし、書き込み後の表示更新は Firestore snapshot からだけ行う。Deck・Card・StudySession・回答履歴の取得済み document と `lastUpdatedAt` は購読を再開するための checkpoint とし、Shared の IndexedDB 処理でスコープごとに一つのレコードへ原子的に保存する。形式は `{ documents, lastUpdatedAt }` のみで、導出可能な `documentCount` は持たない。Entity の Zustand Store は表示状態だけを保持し、checkpoint の保存・復元や `persist` を扱わない。Preferences へも追加しない。表示用の状態には未確定のローカル snapshot も重ねるが、永続化する同期位置は確定済みデータと対にする。
 
-同期位置は Firebase project・UID・コレクション単位とし、回答履歴ではさらに期間の開始・終了、Deck、要求件数で分離する。Firestore Timestamp の秒とナノ秒を保存し、端末時計を同期位置に使わない。初回は全件、以降は `updatedAt` 順の `startAt(lastUpdatedAt)` で境界も再取得する。同一時刻の document を欠落させず、document ID と時刻で重複を統合する。通常の通知は `docChanges()` を適用する。初回の全件取得から確定した同期位置の購読へ一度切り替え、その後の切断・再接続は SDK に委ねる。アプリが購読を停止・再開するときは最新の保存済み位置から始める。
+同期位置は Firebase project・UID・コレクション単位とし、回答履歴ではさらに期間の開始・終了、Deck、要求件数で分離する。Firestore Timestamp の秒とナノ秒を保存し、端末時計を同期位置に使わない。初回は全件、以降は `updatedAt` 順の `startAt(lastUpdatedAt)` で境界も再取得する。同一時刻の document を欠落させず、document ID と時刻で重複を統合する。通常の通知は `docChanges()` を適用する。Deck・Card・StudySession は開始時に一度だけ listener を作り、初回の全件取得後も張り直さない。確定した差分は base に統合して変更バッファから削除し、未確定・未反映の差分だけを保持する。切断・再接続は SDK に委ねる。アプリが購読を停止・再開するときは最新の保存済み位置から始める。
 
 全 document の `updatedAt` は本文、FSRS、学習進行、削除を含めて `serverTimestamp()` で更新し、Rules は `request.time` との一致を要求する。回答日時や学習開始・終了日時は発生時刻のまま保持する。StudySession の `lastStudiedAt` を独立した数値として保存し、同期時刻と画面に出す学習日時を混同しない。UI に渡す日時は従来どおり数値に変換する。
 
