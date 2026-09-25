@@ -353,6 +353,14 @@ describe("Incremental Firestore synchronization", () => {
       expect(resumedAll.get()?.records[0]?.id).toBe("foreign-deck");
       expect(resumedPast.get()?.records.map(({ id }) => id)).toEqual(["backdated"]);
       expect(resumedPast.get()?.truncated).toBe(false);
+      await setDoc(doc(remote, "studyAnswer", "older-live"), answerData(500));
+      await serverHistory(resumedPast, 2);
+      expect(resumed.get()?.records.at(-1)?.id).toBe("answer-0003");
+      await setDoc(doc(remote, "studyAnswer", "newest-live"), answerData(6000));
+      await vi.waitFor(() => expect(resumed.get()?.records[0]?.id).toBe("newest-live"));
+      expect(resumed.get()?.records).toHaveLength(maximum);
+      expect(resumed.get()?.records.at(-1)?.id).toBe("answer-0004");
+      expect(resumed.get()?.truncated).toBe(true);
     },
     30_000
   );

@@ -133,15 +133,16 @@ export function subscribeStudyAnswerHistory(
   function ingest(
     snapshot: QuerySnapshot,
     changes: Map<string, SyncChange<StudyAnswerSnapshot>>,
-    invalid: Map<string, unknown>,
     boundary?: SyncTimestamp | null
   ) {
-    readSyncChanges(snapshot, changes, invalid, parseStudyAnswerSnapshot);
-    if (invalid.size > 0) {
-      restoreOnError(invalid.values().next().value);
+    readSyncChanges(snapshot, changes, parseStudyAnswerSnapshot);
+    let merged: ReturnType<typeof mergeSyncChanges<StudyAnswerSnapshot>>;
+    try {
+      merged = mergeSyncChanges(base, baseValues, changes);
+    } catch (error) {
+      restoreOnError(error);
       return false;
     }
-    const merged = mergeSyncChanges(base, baseValues, changes);
     const confirmed = !(snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites);
     if (confirmed) {
       const documents = retainStudyAnswerDocuments(merged.documents, maximum);
@@ -151,6 +152,7 @@ export function subscribeStudyAnswerHistory(
       };
       baseValues = new Map([...merged.values].filter(([id]) => Object.hasOwn(documents, id)));
       void saveSyncCheckpoint(scope, base).catch(fail);
+      changes.clear();
     }
     publish({
       values: [...merged.values.values()],
@@ -164,13 +166,12 @@ export function subscribeStudyAnswerHistory(
     let current = true;
     const isCurrent = () => isActive() && current;
     const changes = new Map<string, SyncChange<StudyAnswerSnapshot>>();
-    const invalid = new Map<string, unknown>();
     const unsubscribe = onSnapshot(
       target,
       { includeMetadataChanges: true, source },
       (snapshot) => {
         if (!isCurrent()) return;
-        const confirmed = ingest(snapshot, changes, invalid, boundary);
+        const confirmed = ingest(snapshot, changes, boundary);
         if (isCurrent() && confirmed && boundary !== undefined) listen(request(base.lastUpdatedAt), "default");
       },
       (error) => {

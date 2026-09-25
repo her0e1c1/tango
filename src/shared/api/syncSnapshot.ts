@@ -8,11 +8,9 @@ export interface SyncedQueryResult<T> {
   hasPendingWrites: boolean;
 }
 
-export interface SyncChange<T> {
-  data: DocumentData;
-  value: T;
-  pending: boolean;
-}
+export type SyncChange<T> =
+  | { success: true; data: DocumentData; value: T; pending: boolean }
+  | { success: false; error: unknown };
 
 export function readSyncTimestamp(data: DocumentData): SyncTimestamp {
   const value = firestoreTimestampSchema.parse(data.updatedAt);
@@ -22,12 +20,10 @@ export function readSyncTimestamp(data: DocumentData): SyncTimestamp {
 export function readSyncChanges<T>(
   snapshot: QuerySnapshot,
   changes: Map<string, SyncChange<T>>,
-  invalid: Map<string, unknown>,
   parse: (id: string, data: DocumentData) => T
 ) {
   for (const change of snapshot.docChanges({ includeMetadataChanges: true })) {
     const id = change.doc.id;
-    invalid.delete(id);
     if (change.type === "removed") {
       changes.delete(id);
       continue;
@@ -35,9 +31,9 @@ export function readSyncChanges<T>(
     try {
       const data = change.doc.data({ serverTimestamps: "estimate" });
       readSyncTimestamp(data);
-      changes.set(id, { data, value: parse(id, data), pending: change.doc.metadata.hasPendingWrites });
+      changes.set(id, { success: true, data, value: parse(id, data), pending: change.doc.metadata.hasPendingWrites });
     } catch (error) {
-      invalid.set(id, error);
+      changes.set(id, { success: false, error });
     }
   }
 }
@@ -51,6 +47,7 @@ export function mergeSyncChanges<T>(
   const documents = new Map(Object.entries(base.documents));
   let lastUpdatedAt = base.lastUpdatedAt;
   for (const [id, change] of changes) {
+    if (!change.success) throw change.error;
     const previous = documents.get(id);
     const updatedAt = readSyncTimestamp(change.data);
     if (!change.pending && previous && compareSyncTimestamps(updatedAt, readSyncTimestamp(previous)) < 0) continue;

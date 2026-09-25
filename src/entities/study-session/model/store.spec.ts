@@ -8,7 +8,8 @@ import { act, renderHook } from "@testing-library/react";
 import { deleteApp, getApp } from "firebase/app";
 import { Timestamp, type QuerySnapshot } from "firebase/firestore";
 import { subscribeStudyHistory, subscribeStudySessions } from "../api/firestore";
-import { applyStudySessionSnapshot, useRemoteStudySessionsLoading } from "./store";
+import { applyStudySessionSnapshot } from "./store";
+import { useRemoteStudySessionsLoading } from "./hooks";
 import { startStudy, restoreStudySession } from "@/test/entityFixtures";
 import { clearStudySessions, getStudySession, setStudySessionOwner, studySessionStore } from "./store";
 
