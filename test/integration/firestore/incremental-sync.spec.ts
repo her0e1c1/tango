@@ -240,14 +240,12 @@ describe("Firestore synchronization contracts", () => {
       await disableNetwork(connection.db);
       const now = Date.now();
       const clock = vi.spyOn(Date, "now").mockReturnValue(now + offset);
-      const rejected = expect(editDeck(uid, { id: "deck", name: "pending" })).rejects.toMatchObject({
-        code: "permission-denied",
-      });
+      const rejection = editDeck(uid, { id: "deck", name: "pending" }).catch((error: unknown) => error);
       clock.mockRestore();
       await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("pending"));
       await seed("deck", "deck", { ...deckData("deck"), uid: "different-owner" });
       await enableNetwork(connection.db);
-      await rejected;
+      await expect(rejection).resolves.toMatchObject({ code: "permission-denied" });
       await waitForPendingWrites(connection.db);
       await serverBarrier("deck");
       await vi.waitFor(() => expect(getDecks().some(({ name }) => name === "pending")).toBe(false));
