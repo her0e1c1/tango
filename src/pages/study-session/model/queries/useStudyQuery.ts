@@ -28,7 +28,12 @@ export const useStudyQuery = (deckId: string) => {
     showSkip: preferences.controls.showSkip,
     helpRows: buildCardPlayerHelpRows(preferences),
   };
-  const query = { sessionId: session?.sessionId, cards, preferences, sessionState, ...controls };
+  const query = {
+    cards,
+    preferences,
+    sessionState,
+    ...controls,
+  };
   if (deck == null || sessionState.status !== "studying")
     return {
       ...query,

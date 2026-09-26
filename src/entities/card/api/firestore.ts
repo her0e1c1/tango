@@ -22,7 +22,7 @@ import {
   where,
   type WriteBatch,
 } from "firebase/firestore";
-import { db } from "@/shared/firebase";
+import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
@@ -66,7 +66,9 @@ const createCardDocument = async (card: CardCreate): Promise<void> => {
   }
   const createdAt = Date.now();
   const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: serverTimestamp() });
-  void setDoc(reference, document).catch(() => undefined);
+  const write = setDoc(reference, document);
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 };
 
 /** Validates Card ownership before creating its Firestore document. */
@@ -76,7 +78,7 @@ const createCard = async (uid: string, card: CardCreateInput): Promise<void> => 
 };
 
 /** Writes the editable Card fields and advances the update timestamp. */
-const updateCardDocument = (card: CardEdit): Promise<void> => {
+const updateCardDocument = async (card: CardEdit): Promise<void> => {
   const document = omitUndefined({
     frontText: card.frontText,
     backText: card.backText,
@@ -85,8 +87,9 @@ const updateCardDocument = (card: CardEdit): Promise<void> => {
     updatedAt: serverTimestamp(),
   });
   const reference = doc(db, CARD_COLLECTION, card.id);
-  void updateDoc(reference, document).catch(() => undefined);
-  return Promise.resolve();
+  const write = updateDoc(reference, document);
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 };
 
 /** Validates Card ownership before editing its Firestore document. */
@@ -96,11 +99,12 @@ const editCard = async (uid: string, card: EditCardInput["card"]): Promise<void>
 };
 
 /** Tombstones a Card so synchronized readers can converge before hiding it. */
-const removeCardDocument = (id: string): Promise<void> => {
+const removeCardDocument = async (id: string): Promise<void> => {
   const deletedAt = Date.now();
   const reference = doc(db, CARD_COLLECTION, id);
-  void updateDoc(reference, { updatedAt: serverTimestamp(), deletedAt }).catch(() => undefined);
-  return Promise.resolve();
+  const write = updateDoc(reference, { updatedAt: serverTimestamp(), deletedAt });
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 };
 
 /** Validates Card ownership before tombstoning its Firestore document. */

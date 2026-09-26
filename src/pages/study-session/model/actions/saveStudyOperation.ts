@@ -1,12 +1,12 @@
 import { writeCardFsrs, getCards } from "@/entities/card";
 import { writeStudyAnswer } from "@/entities/study-answer";
 import { getDecks } from "@/entities/deck";
-import { db, writeBatch } from "@/shared/firebase";
+import { auth, db, writeBatch } from "@/shared/firebase";
 import { getAuthUid } from "@/entities/auth";
 import { getStudySession, writeStudySessionPosition, type StudySession } from "@/entities/study-session";
 import { studyOperationSchema, type StudyOperation } from "../studyOperation";
 
-export function saveStudyOperation(input: StudyOperation, session: StudySession) {
+export async function saveStudyOperation(input: StudyOperation, session: StudySession) {
   const operation = studyOperationSchema.parse(input);
   if (operation.uid === "" || getAuthUid() !== operation.uid) throw new Error("Study user changed");
   const current = getStudySession(operation.deckId);
@@ -35,6 +35,8 @@ export function saveStudyOperation(input: StudyOperation, session: StudySession)
     writeCardFsrs(batch, { ...operation, fsrs: operation.fsrs });
     writeStudyAnswer(batch, { ...operation, rating: operation.rating });
   }
-  void batch.commit().catch(() => undefined);
+  const write = batch.commit();
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
   return result;
 }

@@ -1,3 +1,4 @@
+import { getAuthUid } from "@/entities/auth";
 import { editDeck, getDecks, mustFindDeckById } from "@/entities/deck";
 import { showToast } from "@/shared/ui/toast";
 import { areFiltersEqual } from "../rules";
@@ -8,6 +9,9 @@ export function updateDeckFilterDraft(
   patch: Partial<DeckFilterValues>,
   { uid, deckId, draft, setState, scope = "study" }: UpdateDeckFilterOptions
 ): void {
+  const notifyFailure = () => {
+    if (getAuthUid() === uid) showToast({ messageKey: "deckFilter.saveError", tone: "error" });
+  };
   const key = JSON.stringify([uid, deckId, scope]);
   const queued = pendingFilters.get(key);
   const previous = queued?.draft ?? draft;
@@ -25,7 +29,7 @@ export function updateDeckFilterDraft(
       if (pendingFilters.get(key)?.pending === pending) pendingFilters.delete(key);
     } catch {
       if (pendingFilters.get(key)?.pending === pending) pendingFilters.set(key, { key, draft: submitted });
-      showToast({ messageKey: "deckFilter.saveError", tone: "error" });
+      notifyFailure();
     }
   });
   const next = { key, draft: submitted, pending };

@@ -14,7 +14,7 @@ import { replaceAuthSession } from "@/entities/auth";
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession, subscribeStudySessions } from "@/entities/study-session";
-import { startStudy } from "@/test/utils/entityFixtures";
+import { startStudy, restoreStudySession } from "@/test/utils/entityFixtures";
 import { ToastViewport } from "@/shared/ui/toast";
 import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
@@ -98,7 +98,7 @@ const DeckListDestination = () => {
   );
 };
 
-describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-SESSION-05] [STUDY-CONTROLS-04]", () => {
+describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-05] [STUDY-SESSION-05] [STUDY-CONTROLS-04]", () => {
   const deckId = "deck-id";
   const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
   const firstCard = createLocalCard({
@@ -188,7 +188,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
   });
 
   it("shows four ratings and prevents backward slider movement", () => {
-    setStudySessionIndex(deckId, 1);
+    void setStudySessionIndex(deckId, 1);
     renderPage();
     expect(screen.getByText("Again")).toBeVisible();
     expect(screen.getByText("Hard")).toBeVisible();
@@ -321,6 +321,44 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.getByRole("status", { name: "Toast notifications" })).toHaveTextContent("Swiped right");
     expect(screen.getAllByText("Swiped right")).toHaveLength(1);
     expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
+  });
+
+  it("shows a save failure toast and allows retry from the same Card", async () => {
+    mocks.preferences = createPreferences({ cardSwipeRight: "RateGood" });
+    mocks.persistOperation.mockRejectedValueOnce(new Error("permission-denied"));
+    renderPage();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Unable to save progress. Check your connection and retry.")
+    );
+    expect(screen.getByText("Front one")).toBeVisible();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(await screen.findByText("Front two")).toBeVisible();
+  });
+
+  it("keeps the route available for a final-answer rollback after releasing the save lock", async () => {
+    mocks.preferences = createPreferences({ cardSwipeRight: "RateGood" });
+    await setStudySessionIndex(deckId, 1);
+    const previous = getStudySession(deckId);
+    if (!previous) throw new Error("Expected final Card");
+    const request = Promise.withResolvers<void>();
+    mocks.persistOperation.mockReturnValueOnce(request.promise);
+    renderPage();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    act(() => clearStudySessions());
+    expect(screen.queryByText("Front two")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Study session unavailable." })).not.toBeInTheDocument();
+    await actAsync(async () => {
+      request.reject(new Error("permission-denied"));
+      await request.promise.catch(() => undefined);
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to save progress. Check your connection and retry.");
+    expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
+    act(() => restoreStudySession(previous));
+    expect(screen.getByText("Front two")).toBeVisible();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    await waitFor(() => expect(screen.queryByText("Front two")).not.toBeInTheDocument());
   });
 
   it("uses the latest locale when persistence resolves after a language change", async () => {
@@ -461,7 +499,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
   });
 
   it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
-    setStudySessionIndex(deckId, 1);
+    void setStudySessionIndex(deckId, 1);
     renderPage(`/deck/${deckId}/study`, "/previous");
 
     fireEvent.click(screen.getByRole("button", { name: "Swipe up" }));
@@ -654,10 +692,12 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     stop();
   });
 
-  it("returns to the deck list when no active session exists", async () => {
+  it("keeps an absent session on the route until the user returns to the deck list", async () => {
     clearStudySessions();
     renderPage();
-
+    expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
   });
 
@@ -683,17 +723,17 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
 vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
   const { applyStudySessionResult } = await import("@/test/utils/entityFixtures");
   return {
-    saveStudyOperation: (
+    saveStudyOperation: async (
       operation: import("../model/studyOperation").StudyOperation,
       session: import("@/entities/study-session").StudySession
     ) => {
-      void Promise.resolve(
+      await Promise.resolve(
         mocks.persistOperation(operation.uid, {
           fsrs: operation.fsrs,
           cardId: operation.cardId,
           answeredAt: operation.answeredAt,
         })
-      ).catch(() => undefined);
+      );
       const result = {
         session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
         endReason: session.currentIndex + 1 === session.cardOrderIds.length ? ("completed" as const) : null,

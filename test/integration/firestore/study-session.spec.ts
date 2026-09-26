@@ -95,8 +95,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
 
   async function startRemote(): Promise<StudySession> {
     const previousId = getStudySession(deckId)?.sessionId;
-    const sessionId = startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
-    if (typeof sessionId !== "string") throw new Error("Expected synchronous study acceptance");
+    const sessionId = await startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
+    if (typeof sessionId !== "string") throw new Error("Expected a saved study session");
     await vi.waitUntil(() => {
       const session = getStudySession(deckId);
       return session !== undefined && (previousId === undefined || session.sessionId !== previousId);
@@ -110,7 +110,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     const onError = vi.fn();
     stop = subscribeStudySessions("uid", onError);
     const started = await startRemote();
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     await waitForPendingWrites(testDb);
     expect((await readSession(started.sessionId)).data()).toEqual({
       uid: "uid",
@@ -141,7 +141,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
   it("[FIRESTORE-STUDY-SESSION-02] abandons the previous session only on explicit restart", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const previous = await startRemote();
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     await waitForPendingWrites(testDb);
     stop();
     expect((await readSession(previous.sessionId)).data()).toMatchObject({
@@ -175,12 +175,12 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     const started = await startRemote();
     await waitForPendingWrites(testDb);
     const original = (await readSession(started.sessionId)).data();
-    setStudySessionIndex(deckId, 2);
+    await setStudySessionIndex(deckId, 2);
     await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(2));
     const final = getStudySession(deckId);
     if (final === undefined) throw new Error("Expected the final Card");
     const operation = skipOperation(final);
-    expect(saveStudyOperation(operation, final).endReason).toBe("completed");
+    expect((await saveStudyOperation(operation, final)).endReason).toBe("completed");
     await waitForPendingWrites(testDb);
     const completed = (await readSession(started.sessionId)).data();
     expect(completed).toMatchObject({
@@ -191,7 +191,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       startedAt: original?.startedAt,
     });
     await waitForCloud(() => expect(getStudySession(deckId)).toBeUndefined());
-    expect(() => saveStudyOperation(operation, final)).toThrow("Study session does not match");
+    await expect(saveStudyOperation(operation, final)).rejects.toThrow("Study session does not match");
     await waitForPendingWrites(testDb);
     expect(getStudySession(deckId)).toBeUndefined();
     expect((await readSession(started.sessionId)).data()).toEqual(completed);
@@ -199,10 +199,20 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
 
   it("[FIRESTORE-STUDY-SESSION-04] syncs offline creation, progress and abandonment", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
-    await disableNetwork(testDb);
     const session = await startRemote();
-    expect(setStudySessionIndex(deckId, 1)).toBe(true);
-    expect(abandonStudySession(deckId)).toBeUndefined();
+    await disableNetwork(testDb);
+    let settled = false;
+    const progress = setStudySessionIndex(deckId, 1).then((value) => {
+      settled = true;
+      return value;
+    });
+    await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
+    expect(settled).toBe(false);
+    await enableNetwork(testDb);
+    expect(await progress).toBe(true);
+    await disableNetwork(testDb);
+    const abandoned = abandonStudySession(deckId);
+    await waitForCloud(() => expect(getStudySession(deckId)).toBeUndefined());
     stop();
     expect((await getDocFromCache(doc(testDb, "studySession", session.sessionId))).data()).toMatchObject({
       currentIndex: 1,
@@ -211,6 +221,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     clearStudySessions();
     await enableNetwork(testDb);
     await waitForPendingWrites(testDb);
+    await abandoned;
     expect((await readSession(session.sessionId)).data()).toMatchObject({ currentIndex: 1, endReason: "abandoned" });
     const documents = await getDocs(query(collection(testDb, "studySession"), where("uid", "==", "uid")));
     expect(documents.docs.filter((item) => item.data().deckId === deckId).map(({ id }) => id)).toEqual([
@@ -231,7 +242,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     });
     expect(await startStudySession(deck.id, deck)).toEqual(expect.any(String));
     await waitForCloud(() => expect(getStudySession(deckId)).toBeDefined());
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
     await waitForPendingWrites(testDb);
     const previous = getStudySession(deckId);
@@ -241,17 +252,24 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect(getStudySession(deckId)).toBeUndefined();
     stop = subscribeStudySessions("uid", vi.fn());
     await vi.waitFor(() => expect(getStudySession(deckId)?.currentIndex).toBe(previous?.currentIndex));
-    expect(await startStudySession(otherDeck.id, otherDeck)).toEqual(expect.any(String));
+    const otherSave = startStudy({ deckId: otherDeck.id, cardOrderIds: otherCards.map(({ id }) => id), uid: "uid" });
     await waitForCloud(() =>
       expect(getStudySession(otherDeck.id)?.cardOrderIds).toEqual(otherCards.map(({ id }) => id))
     );
-    expect(await startStudySession(deck.id, deck)).toEqual(expect.any(String));
+    let settled = false;
+    const restart = startStudySession(deck.id, deck).then((value) => {
+      settled = true;
+      return value;
+    });
     await waitForCloud(() => expect(getStudySession(deckId)?.sessionId).not.toBe(previous?.sessionId));
+    expect(settled).toBe(false);
     const restarted = getStudySession(deckId);
     expect(restarted?.sessionId).not.toBe(previous?.sessionId);
     expect(restarted?.currentIndex).toBe(0);
     await enableNetwork(testDb);
     await waitForPendingWrites(testDb);
+    await otherSave;
+    expect(await restart).toBe(restarted?.sessionId);
     expect((await readSession(restarted?.sessionId ?? "missing")).data()?.endReason).toBeNull();
     expect((await readSession(previous?.sessionId ?? "missing")).data()?.endReason).toBe("abandoned");
   });
@@ -280,7 +298,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     stop = subscribeStudySessions("uid", vi.fn());
     const started = await startRemote();
     const operation = skipOperation(started);
-    expect(saveStudyOperation(operation, started).session.currentIndex).toBe(1);
+    expect((await saveStudyOperation(operation, started)).session.currentIndex).toBe(1);
     await waitForPendingWrites(testDb);
     await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
     const advanced = (await readSession(started.sessionId)).data();
@@ -291,7 +309,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       endedAt: null,
       endReason: null,
     });
-    expect(() => saveStudyOperation(operation, started)).toThrow("Study session does not match");
+    await expect(saveStudyOperation(operation, started)).rejects.toThrow("Study session does not match");
     await waitForPendingWrites(testDb);
     expect(getStudySession(deckId)).toMatchObject({ sessionId: started.sessionId, currentIndex: 1 });
     expect((await readSession(started.sessionId)).data()).toEqual(advanced);
@@ -300,13 +318,13 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
   it("[FIRESTORE-STUDY-SESSION-08] refreshes recency without changing the saved run", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const started = await startRemote();
-    setStudySessionIndex(deckId, 1);
+    await setStudySessionIndex(deckId, 1);
     await waitForPendingWrites(testDb);
     const original = (await readSession(started.sessionId)).data();
     const touchedAt = Date.now() + 1000;
     const clock = vi.spyOn(Date, "now").mockReturnValue(touchedAt);
     try {
-      touchStudySession(deckId);
+      await touchStudySession(deckId);
     } finally {
       clock.mockRestore();
     }
@@ -368,7 +386,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     async (endReason) => {
       stop = subscribeStudySessions("uid", vi.fn());
       const started = await startRemote();
-      setStudySessionIndex(deckId, 2);
+      await setStudySessionIndex(deckId, 2);
       await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(2));
       await waitForPendingWrites(testDb);
       const previousId = crypto.randomUUID();
@@ -383,8 +401,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       const final = getStudySession(deckId);
       if (final === undefined) throw new Error("Expected the latest session");
       expect(final.sessionId).toBe(started.sessionId);
-      const result =
-        endReason === "completed" ? saveStudyOperation(skipOperation(final), final) : abandonStudySession(deckId);
+      const result = await (endReason === "completed"
+        ? saveStudyOperation(skipOperation(final), final)
+        : abandonStudySession(deckId));
       expect(result?.endReason).toBe(endReason === "completed" ? "completed" : undefined);
       await waitForPendingWrites(testDb);
       const ended = (await readSession(started.sessionId)).data();
@@ -433,10 +452,10 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     async (endReason) => {
       stop = subscribeStudySessions("uid", vi.fn());
       const started = await startRemote();
-      setStudySessionIndex(deckId, 2);
+      await setStudySessionIndex(deckId, 2);
       await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(2));
       const otherDeckId = crypto.randomUUID();
-      startStudy({ deckId: otherDeckId, cardOrderIds: ["other-card"], uid: "uid" });
+      await startStudy({ deckId: otherDeckId, cardOrderIds: ["other-card"], uid: "uid" });
       await waitForCloud(() => expect(getStudySession(otherDeckId)).toBeDefined());
       const other = getStudySession(otherDeckId);
       if (other === undefined) throw new Error("Expected another Deck session");
@@ -458,14 +477,19 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
 
   it("[FIRESTORE-STUDY-SESSION-13] syncs offline completion without duplicating or restoring the run", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
-    await disableNetwork(testDb);
     const started = await startRemote();
-    setStudySessionIndex(deckId, 2);
+    await setStudySessionIndex(deckId, 2);
+    await disableNetwork(testDb);
     await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(2));
     const final = getStudySession(deckId);
     if (final === undefined) throw new Error("Expected the final Card");
-    const operation = skipOperation(final);
-    expect(saveStudyOperation(operation, final).endReason).toBe("completed");
+    let settled = false;
+    const completion = saveStudyOperation(skipOperation(final), final).then((value) => {
+      settled = true;
+      return value;
+    });
+    await waitForCloud(() => expect(getStudySession(deckId)).toBeUndefined());
+    expect(settled).toBe(false);
     expect((await getDocFromCache(doc(testDb, "studySession", started.sessionId))).data()).toMatchObject({
       currentIndex: 2,
       endReason: "completed",
@@ -480,6 +504,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       endReason: "completed",
       endedAt: expect.any(Timestamp),
     });
+    expect((await completion).endReason).toBe("completed");
     const documents = await getDocs(query(collection(testDb, "studySession"), where("uid", "==", "uid")));
     expect(documents.docs.filter((item) => item.data().deckId === deckId).map(({ id }) => id)).toEqual([
       started.sessionId,
@@ -496,12 +521,12 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       stop = subscribeStudySessions("uid", vi.fn());
       const previous = hasPrevious ? await startRemote() : undefined;
       if (previous) {
-        setStudySessionIndex(deckId, 1);
+        await setStudySessionIndex(deckId, 1);
         await vi.waitUntil(() => getStudySession(deckId)?.currentIndex === 1);
       }
       await waitForPendingWrites(testDb);
       const original = previous ? (await readSession(previous.sessionId)).data() : undefined;
-      expect(startStudy({ deckId, cardOrderIds: [], uid: "uid" })).toBeUndefined();
+      expect(await startStudy({ deckId, cardOrderIds: [], uid: "uid" })).toBeUndefined();
       await waitForPendingWrites(testDb);
       const documents = await getDocs(query(collection(testDb, "studySession"), where("uid", "==", "uid")));
       expect(documents.docs.filter((item) => item.data().deckId === deckId).map(({ id }) => id)).toEqual(
@@ -514,13 +539,13 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
   );
 
   it.each([["first", "first"], [""]])(
-    "[FIRESTORE-STUDY-SESSION-15] rejects invalid card order %j synchronously without replacing the run",
+    "[FIRESTORE-STUDY-SESSION-15] rejects invalid card order %j without replacing the run",
     async (...cardOrderIds) => {
       stop = subscribeStudySessions("uid", vi.fn());
       const started = await startRemote();
       await waitForPendingWrites(testDb);
       const original = (await readSession(started.sessionId)).data();
-      expect(() => startStudy({ deckId, cardOrderIds, uid: "uid" })).toThrow();
+      await expect(startStudy({ deckId, cardOrderIds, uid: "uid" })).rejects.toThrow();
       await waitForPendingWrites(testDb);
       const documents = await getDocs(
         query(collection(testDb, "studySession"), where("uid", "==", "uid"), where("deckId", "==", deckId))
@@ -532,27 +557,29 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
   );
 
   it.each(["start", "index", "save", "abandon", "touch"] as const)(
-    "[FIRESTORE-STUDY-SESSION-16] rejects %s synchronously after the owner changes",
+    "[FIRESTORE-STUDY-SESSION-16] rejects %s after the owner changes",
     async (operation) => {
       stop = subscribeStudySessions("uid", vi.fn());
       const started = await startRemote();
       await waitForPendingWrites(testDb);
       const original = (await readSession(started.sessionId)).data();
       replaceAuthSession({ status: "authenticated", uid: "other", isAnonymous: false, displayName: null });
-      expect(() => {
-        switch (operation) {
-          case "start":
-            return startStudy({ deckId, cardOrderIds: ["first"], uid: "uid" });
-          case "index":
-            return setStudySessionIndex(deckId, 1);
-          case "save":
-            return saveStudyOperation(skipOperation(started), started);
-          case "abandon":
-            return abandonStudySession(deckId);
-          case "touch":
-            return touchStudySession(deckId);
-        }
-      }).toThrow(operation === "save" ? "Study user changed" : "Study session owner changed");
+      await expect(
+        (() => {
+          switch (operation) {
+            case "start":
+              return startStudy({ deckId, cardOrderIds: ["first"], uid: "uid" });
+            case "index":
+              return setStudySessionIndex(deckId, 1);
+            case "save":
+              return saveStudyOperation(skipOperation(started), started);
+            case "abandon":
+              return abandonStudySession(deckId);
+            case "touch":
+              return touchStudySession(deckId);
+          }
+        })()
+      ).rejects.toThrow(operation === "save" ? "Study user changed" : "Study session owner changed");
       await waitForPendingWrites(testDb);
       const documents = await getDocs(
         query(collection(testDb, "studySession"), where("uid", "==", "uid"), where("deckId", "==", deckId))

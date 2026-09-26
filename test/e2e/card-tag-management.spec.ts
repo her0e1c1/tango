@@ -158,15 +158,16 @@ test("CARD-TAG-MANAGEMENT-05 keeps offline Card tag edits across reload and reco
   await context.setOffline(true);
   await openTags(page);
   await page.getByRole("textbox", { name: "Tag name 1", exact: true }).fill("offline");
-  await saveCard(page, card.deckId);
-  await page.goto(`/card/${card.id}/edit`);
-  await openTags(page);
-  await expect(page.getByRole("textbox", { name: "Tag name 1", exact: true })).toHaveValue("offline");
+  await page.getByRole("button", { name: "Close tag editor", exact: true }).click();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page).toHaveURL(`/card/${card.id}/edit`);
+  await expect(page.getByRole("button", { name: "Saving…", exact: true })).toBeDisabled();
   await page.reload();
   await openTags(page);
   await expect(page.getByRole("textbox", { name: "Tag name 1", exact: true })).toHaveValue("offline");
   await context.setOffline(false);
   await expect.poll(() => readTags(card.id)).toEqual(["offline", "kept"]);
+  await expect(page).toHaveURL(`/card/${card.id}/edit`);
   expect(await readTags(other.id)).toEqual(other.tags);
 });
 
@@ -193,7 +194,9 @@ test("CARD-TAG-MANAGEMENT-06 keeps anonymous tags locally across offline reload"
     .last()
     .fill("local-edited");
   await saveCard(page, deck.id);
-  await page.goto(`/card/${first.id}/edit`);
+  await page.getByRole("button", { name: `Open actions for ${first.frontText}`, exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
+  await expect(page).toHaveURL(`/card/${first.id}/edit`);
   await page.reload();
   await openTags(page);
   await expect(page.getByRole("textbox", { name: /^Tag name / }).last()).toHaveValue("local-edited");

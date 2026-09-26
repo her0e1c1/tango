@@ -316,7 +316,7 @@ When:
 
 Then:
 
-- 未確定変更は直ちに購読結果へ反映される。拒否後は SDK の rollback を反映し、未確定本文を残さない。
+- 未確定変更は直ちに購読結果へ反映される。保存の Promise は再接続後の権限エラーで reject する。拒否後は SDK の rollback を反映し、未確定本文を残さない。
 
 <a id="firestore-snapshot-13"></a>
 

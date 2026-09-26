@@ -10,7 +10,7 @@ import {
   writeBatch,
   type WriteBatch,
 } from "firebase/firestore";
-import { db } from "@/shared/firebase";
+import { auth, db } from "@/shared/firebase";
 import { applyStudySessionSnapshot } from "../model/store";
 import { getStudyHistory } from "../model/rules";
 import { studySessionSchema } from "../model/schema";
@@ -19,8 +19,7 @@ import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite 
 import { getAuthUid } from "@/entities/auth/@x/study-session";
 import { setStudySessionSyncError, getStudySession, studySessionStore, setStudySessionOwner } from "../model/store";
 
-// Writes are queued locally; callers do not wait for server acknowledgement, including offline.
-function createStudySession(session: StudySession, previous?: StudySession): void {
+async function createStudySession(session: StudySession, previous: StudySession | undefined): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   const now = Timestamp.now();
@@ -37,19 +36,23 @@ function createStudySession(session: StudySession, previous?: StudySession): voi
     const previousReference = doc(db, "studySession", previous.sessionId);
     batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: serverTimestamp() });
   }
-  void batch.commit().catch(() => undefined);
+  const write = batch.commit();
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
 
-function updateStudySession(session: StudySession, endReason: StudySessionSnapshot["endReason"]): void {
+async function updateStudySession(session: StudySession, endReason: StudySessionSnapshot["endReason"]): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
-  void updateDoc(reference, {
+  const write = updateDoc(reference, {
     ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
     ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
     lastStudiedAt: Date.now(),
     updatedAt: serverTimestamp(),
-  }).catch(() => undefined);
+  });
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
 
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
@@ -120,7 +123,7 @@ function requireOwner(session: StudySession): void {
   if (session.remote.uid !== getAuthUid()) throw new Error("Study session owner changed");
 }
 
-export function startStudy({
+export async function startStudy({
   deckId,
   cardOrderIds,
   uid,
@@ -130,7 +133,7 @@ export function startStudy({
   cardOrderIds: string[];
   uid: string;
   now?: number;
-}): string | undefined {
+}): Promise<string | undefined> {
   if (!uid || uid !== getAuthUid()) throw new Error("Study session owner changed");
   const previous = getStudySession(deckId);
   if (previous) requireOwner(previous);
@@ -143,11 +146,11 @@ export function startStudy({
     remote: { uid, startedAt: now },
   };
   if (session.cardOrderIds.length === 0) return;
-  createStudySession(session, previous);
+  await createStudySession(session, previous);
   return session.sessionId;
 }
 
-export function setStudySessionIndex(deckId: string, currentIndex: number): boolean {
+export async function setStudySessionIndex(deckId: string, currentIndex: number): Promise<boolean> {
   const session = getStudySession(deckId);
   if (
     !(session && Number.isInteger(currentIndex)) ||
@@ -156,23 +159,25 @@ export function setStudySessionIndex(deckId: string, currentIndex: number): bool
   )
     return false;
   requireOwner(session);
-  updateStudySession({ ...session, currentIndex }, null);
+  await updateStudySession({ ...session, currentIndex }, null);
   return true;
 }
 
-export function abandonStudySession(deckId: string): void {
+export async function abandonStudySession(deckId: string): Promise<void> {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
-  updateStudySession(session, "abandoned");
+  await updateStudySession(session, "abandoned");
 }
 
-export function touchStudySession(deckId: string): void {
+export async function touchStudySession(deckId: string): Promise<void> {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
-  void updateDoc(doc(db, "studySession", session.sessionId), {
+  const write = updateDoc(doc(db, "studySession", session.sessionId), {
     lastStudiedAt: Date.now(),
     updatedAt: serverTimestamp(),
-  }).catch(() => undefined);
+  });
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }

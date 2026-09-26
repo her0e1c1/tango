@@ -13,8 +13,11 @@ export async function submitDeckCreation(
   // Lock synchronously so submissions cannot outrun the form's next render.
   const mutationId = Symbol();
   store.setState({ mutationId });
+  const uid = getAuthUid();
+  const notifyFailure = () => {
+    if (getAuthUid() === uid) showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" });
+  };
   try {
-    const uid = getAuthUid();
     const deckId = generateId();
     await createDeck(uid, {
       id: deckId,
@@ -26,11 +29,15 @@ export async function submitDeckCreation(
     });
     // Writes survive navigation, but resetting the store detaches their results.
     if (store.getState().mutationId !== mutationId) return;
+    if (getAuthUid() !== uid) {
+      store.setState({ mutationId: undefined });
+      return;
+    }
     return { deckId, name: values.name, mutationId };
   } catch {
     if (store.getState().mutationId === mutationId) {
       store.setState({ mutationId: undefined });
-      showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" });
+      notifyFailure();
     }
     return undefined;
   }

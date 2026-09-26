@@ -11,7 +11,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { db } from "@/shared/firebase";
+import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
   authenticatedUidSchema,
@@ -46,16 +46,17 @@ export function subscribeDecks(uid: string, onError: (error: Error) => void, onR
   );
 }
 
-export function createDeck(uid: string, deck: RemoteDeckCreateInput): Promise<void> {
+export async function createDeck(uid: string, deck: RemoteDeckCreateInput): Promise<void> {
   const input = createDeckSchema.parse({ uid, deck });
   const createdAt = Date.now();
   const document = toDeckDocument(input.uid, input.deck, createdAt);
   const reference = doc(db, DECK_COLLECTION, input.deck.id);
-  void setDoc(reference, document).catch(() => undefined);
-  return Promise.resolve();
+  const write = setDoc(reference, document);
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
 
-export function editDeck(uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> {
+export async function editDeck(uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> {
   const input = editDeckSchema.parse({ uid, deck });
   const document = omitUndefined({
     name: input.deck.name,
@@ -69,17 +70,19 @@ export function editDeck(uid: string, deck: z.input<typeof deckEditSchema>): Pro
     convertToBr: input.deck.convertToBr,
   });
   const reference = doc(db, DECK_COLLECTION, input.deck.id);
-  void updateDoc(reference, document).catch(() => undefined);
-  return Promise.resolve();
+  const write = updateDoc(reference, document);
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
 
-export function deleteDeck(uid: string, deckId: DeckId): Promise<void> {
+export async function deleteDeck(uid: string, deckId: DeckId): Promise<void> {
   authenticatedUidSchema.parse(uid);
   const id = deckIdSchema.parse(deckId);
   // A parent tombstone hides all children, including Cards not yet present in this device's cache.
   // This keeps deletion atomic and offline-capable for decks of any size.
   const reference = doc(db, DECK_COLLECTION, id);
   const deletedAt = Date.now();
-  void updateDoc(reference, { deletedAt, updatedAt: serverTimestamp() }).catch(() => undefined);
-  return Promise.resolve();
+  const write = updateDoc(reference, { deletedAt, updatedAt: serverTimestamp() });
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }

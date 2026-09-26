@@ -16,12 +16,14 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<C
     tags: [...values.tags],
   };
 
+  const uid = getAuthUid();
   try {
-    await editCard(getAuthUid(), input);
+    await editCard(uid, input);
   } catch {
-    showToast({ messageKey: "toast.saveFailure", tone: "error" });
+    if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
     return;
   }
 
+  if (getAuthUid() !== uid) return;
   return { frontText: input.frontText, backText: input.backText, tags: input.tags };
 }

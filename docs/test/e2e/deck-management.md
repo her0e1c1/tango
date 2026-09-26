@@ -9,7 +9,7 @@ Deck を作成・編集・削除でき、失敗後も再試行できることを
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
 | DECK-MANAGEMENT-01 | write | 正常系 | [Deck 編集内容を保存して reload 後も確認できる](#deck-management-01) |
-| DECK-MANAGEMENT-02 | batch | 正常系 | [Deck と関連データをまとめて削除できる](#deck-management-02) |
+| DECK-MANAGEMENT-02 | batch | 正常系 / 異常系 | [Deck と関連データをまとめて削除できる](#deck-management-02) |
 | DECK-MANAGEMENT-03 | read | 正常系 | [Deck の削除を取り消せる](#deck-management-03) |
 | DECK-MANAGEMENT-04 | batch | 異常系 | [Deck の削除失敗後に再試行できる](#deck-management-04) |
 | DECK-MANAGEMENT-05 | write | 正常系 | [ログイン中に空の Deck を作成して reload 後も確認できる](#deck-management-05) |
@@ -45,7 +45,7 @@ Then:
 
 カテゴリ: `batch`
 
-区分: 正常系
+区分: 正常系 / 異常系
 
 Given:
 
@@ -56,11 +56,11 @@ Given:
 
 When:
 
-- Deck 一覧から対象 Deck の削除を確定し、画面を reload する。
+- Deck 一覧から対象 Deck の削除を確定し、画面を reload する。学習セッション終了の後処理が成功する場合と、後処理だけが拒否される場合を確認する。
 
 Then:
 
-- Deck の削除成功が通知される。
+- Deck の保存成功で削除成功が通知され、操作待ちが解除される。学習セッションの終了だけが保留・失敗しても削除成功は取り消さず、失敗時は後処理を完了できなかったことを別の toast で通知する。
 - Deck 一覧に対象 Deck が表示されない。
 - 対象 Deck のすべての Card を表示・操作できなくなる。削除前にこのブラウザーで開いたことがない Card も対象となる。
 - 対象 Deck の学習 session を再開できない。
@@ -163,8 +163,8 @@ When:
 
 Then:
 
-- ブラウザー内でローカル反映が完了すれば、クラウドの応答待ちで操作が止まらない。
-- クラウドから拒否された Deck は Firestore の rollback により利用できる Deck として一覧に残らない。遅延した同期拒否のための独自通知は行わない。
+- 通常アカウントの作成はサーバー保存の成功まで待ち、保存失敗時は入力を維持して toast を表示する。匿名利用ではサーバー応答を待たない。
+- クラウドから拒否された Deck は Firestore の rollback により利用できる Deck として一覧に残らない。拒否は呼び出し側が toast で通知する。
 - 操作していないのに新しい Deck が繰り返し作成されない。
 
 <a id="deck-management-07"></a>

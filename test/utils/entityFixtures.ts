@@ -63,6 +63,8 @@ export const replacePreferences = (input: PartialPreferences): void => {
 };
 
 export function applyStudySessionResult(session: StudySession, endReason: "completed" | null): void {
+  // A delayed write to an older session cannot replace the current run's snapshot.
+  if (studySessionStore.getState().sessionsByDeckId[session.deckId]?.sessionId !== session.sessionId) return;
   if (endReason === null) {
     restoreStudySession(session);
     return;

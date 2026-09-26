@@ -260,7 +260,8 @@
   "deckDeletion": {
     "toast": {
       "deleted": "Deleted deck “{{name}}”.",
-      "failure": "Unable to delete this deck. Check your connection and try again."
+      "failure": "Unable to delete this deck. Check your connection and try again.",
+      "cleanupFailure": "The deck was deleted, but its study session could not be closed."
     },
     "title": "Delete deck?",
     "targetLabel": "Deck",

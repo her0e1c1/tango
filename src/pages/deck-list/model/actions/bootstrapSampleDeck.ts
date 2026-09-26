@@ -1,3 +1,4 @@
+import { showToast } from "@/shared/ui/toast";
 import { getDecks } from "@/entities/deck";
 import { getPreferences, updatePreferences } from "@/entities/preference";
 import { getAuthUid } from "@/entities/auth";
@@ -21,11 +22,14 @@ export async function bootstrapSampleDeck(): Promise<void> {
   deckListStore.setState({ bootstrapStatus: "checking" });
   try {
     await addSampleDeck();
+    if (getAuthUid() !== uid) return;
     if (getDecks().some((deck) => deck.id === sampleDeckId)) {
       updatePreferences({ loadSample: false });
       deckListStore.setState({ bootstrapStatus: "done" });
     }
   } catch {
+    if (getAuthUid() !== uid) return;
+    showToast({ messageKey: "toast.saveFailure", tone: "error" });
     deckListStore.setState({ bootstrapStatus: "error" });
   }
 }

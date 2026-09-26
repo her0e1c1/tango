@@ -22,19 +22,25 @@ export const confirmDeckDeletion = async ({
   if (target == null || pending) return;
   const { deck } = target;
 
+  const uid = getAuthUid();
   setPending(true);
   try {
-    const uid = getAuthUid();
     const currentDeck = mustFindDeckById(getDecks(), deck.id);
     if (currentDeck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
     await deleteDeck(uid, deck.id);
-    abandonStudySession(deck.id);
+    if (getAuthUid() !== uid) return;
+    const onCleanupError = () => {
+      if (isMounted() && getAuthUid() === uid)
+        showToast({ messageKey: "deckDeletion.toast.cleanupFailure", tone: "error" });
+    };
+    // Session cleanup cannot change the outcome of the already accepted Deck deletion.
+    void abandonStudySession(deck.id).catch(onCleanupError);
     if (!isMounted()) return;
     setTarget(undefined);
     showToast({ messageKey: "deckDeletion.toast.deleted", messageParams: { name: deck.name }, tone: "success" });
     onDeleted?.();
   } catch {
-    if (isMounted()) {
+    if (isMounted() && getAuthUid() === uid) {
       // A failed attempt ends with the dialog closed; retry starts from a newly selected Deck.
       setTarget(undefined);
       showToast({
