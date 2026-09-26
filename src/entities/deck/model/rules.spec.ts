@@ -2,8 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
-import { createDeck } from "@/test/factories";
-import { CATEGORY, getCategory, isDeckTagSelectionMatching, isHighlightLanguage, mustFindDeckById } from "./rules";
+import { CATEGORY, getCategory, isDeckTagSelectionMatching, isHighlightLanguage } from "./rules";
 
 describe("category", () => {
   it("defines supported categories including application categories and major languages", () => {
@@ -35,18 +34,6 @@ describe("category", () => {
 
   it("falls back to the deck category when no supported tag exists", () => {
     expect(getCategory("markdown", ["unknown"])).toBe("markdown");
-  });
-});
-
-describe("mustFindDeckById", () => {
-  it("returns the deck matching the specified id", () => {
-    const target = createDeck({ id: "target" });
-
-    expect(mustFindDeckById([createDeck({ id: "other" }), target], target.id)).toBe(target);
-  });
-
-  it("throws when no deck matches the specified id", () => {
-    expect(() => mustFindDeckById([], "missing")).toThrow("Deck not found: missing");
   });
 });
 

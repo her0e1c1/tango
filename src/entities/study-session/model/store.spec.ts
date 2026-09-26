@@ -8,10 +8,11 @@ import { act, renderHook } from "@testing-library/react";
 import { deleteApp, getApp } from "firebase/app";
 import { Timestamp, type QuerySnapshot } from "firebase/firestore";
 import { subscribeStudyHistory, subscribeStudySessions } from "../api/firestore";
+import { getStudySession } from "./queries";
 import { applyStudySessionSnapshot } from "./store";
 import { useRemoteStudySessionsLoading } from "./hooks";
 import { startStudy, restoreStudySession } from "@/test/utils/entityFixtures";
-import { clearStudySessions, getStudySession, setStudySessionOwner, studySessionStore } from "./store";
+import { clearStudySessions, setStudySessionOwner, studySessionStore } from "./store";
 
 const STUDY_STORAGE_KEY = "tango-study";
 

@@ -9,11 +9,11 @@ export const useStudySessionStartState = (deckId: DeckId, filter: DeckFilterValu
   const preferences = usePreferences();
   const { cards: deckCards, tags } = useCardsByDeckId(deckId);
 
-  const { cards } = useDeadlineQuery(selectStudyCardsWithDeadline, [
-    deckCards,
-    filter,
-    preferences.study.useCardInterval,
-  ]);
+  // Subscriptions trigger reevaluation; the query reads current state and time itself.
+  const { cards } = useDeadlineQuery(
+    () => selectStudyCardsWithDeadline(deckId, filter),
+    [deckId, deckCards, filter, preferences.study.useCardInterval]
+  );
 
   return {
     maxNumberOfCardsToLearn: preferences.study.maxNumberOfCardsToLearn,

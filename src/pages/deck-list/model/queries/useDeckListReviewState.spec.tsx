@@ -19,8 +19,17 @@ vi.mock("@/entities/card", async (original) => ({
   ...(await original<typeof import("@/entities/card")>()),
   useCards: () => input.cards,
 }));
+vi.mock("@/entities/card/@x/study-session", async (original) => ({
+  ...(await original<typeof import("@/entities/card/@x/study-session")>()),
+  findCardsByDeckId: (deckId: string) => input.cards.filter((card) => card.deckId === deckId),
+}));
 vi.mock("@/entities/deck", () => ({ useDecks: () => input.decks }));
 vi.mock("@/entities/preference", () => ({ usePreferences: () => input.preferences }));
+vi.mock("@/entities/deck/@x/study-session", async (original) => ({
+  ...(await original<typeof import("@/entities/deck/@x/study-session")>()),
+  findDeckById: (id: string) => input.decks.find((deck) => deck.id === id),
+}));
+vi.mock("@/entities/preference/@x/study-session", () => ({ getPreferences: () => input.preferences }));
 vi.mock("@/entities/study-session", async (original) => ({
   ...(await original<typeof import("@/entities/study-session")>()),
   useStudySessions: () => input.sessions,

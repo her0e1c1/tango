@@ -1,3 +1,4 @@
+import { getStudySession, isStudySessionOwner, queryStudyHistory } from "../model/queries";
 import {
   onSnapshot,
   collection,
@@ -12,12 +13,11 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "@/shared/firebase";
 import { applyStudySessionSnapshot } from "../model/store";
-import { getStudyHistory } from "../model/rules";
 import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionSnapshot, StudyHistoryRecord, StudyHistoryPeriod } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
 import { getAuthUid } from "@/entities/auth/@x/study-session";
-import { setStudySessionSyncError, getStudySession, studySessionStore, setStudySessionOwner } from "../model/store";
+import { setStudySessionSyncError, studySessionStore, setStudySessionOwner } from "../model/store";
 
 async function createStudySession(session: StudySession, previous: StudySession | undefined): Promise<void> {
   const value = studySessionSchema.parse(session);
@@ -58,7 +58,7 @@ async function updateStudySession(session: StudySession, endReason: StudySession
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
   setStudySessionOwner(uid);
   const reportError = (error: Error) => {
-    if (studySessionStore.getState().ownerUid !== uid) return;
+    if (!isStudySessionOwner(uid)) return;
     setStudySessionSyncError(error);
     onError(error);
   };
@@ -106,13 +106,13 @@ export function subscribeStudyHistory(
   onError: (error: Error) => void
 ): () => void {
   const receive = () => {
-    const state = studySessionStore.getState();
-    if (state.ownerUid !== uid || state.remoteLoading) return;
-    if (state.syncError) {
-      onError(state.syncError);
+    const result = queryStudyHistory(uid, period, deckId, metric);
+    if (result === undefined) return;
+    if (result.error) {
+      onError(result.error);
       return;
     }
-    onRecords(getStudyHistory(state.history, period, deckId, metric), state.fromCache);
+    onRecords(result.records, result.fromCache);
   };
   const stopStore = studySessionStore.subscribe(receive);
   receive();

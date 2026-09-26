@@ -12,11 +12,12 @@ const mocks = vi.hoisted(() => ({ deck: null as Deck | null, cards: null as Card
 
 vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
-  getDecks: () => (mocks.deck === null ? [] : [mocks.deck]),
+  findDeckById: (id: string) => (mocks.deck?.id === id ? mocks.deck : undefined),
 }));
-vi.mock("@/entities/card", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/card")>()),
-  getCards: () => mocks.cards ?? [createCard({ id: "card", deckId: "deck" })],
+vi.mock("@/entities/card/@x/study-session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/card/@x/study-session")>()),
+  findCardsByDeckId: (deckId: string) =>
+    (mocks.cards ?? [createCard({ id: "card", deckId: "deck" })]).filter((card) => card.deckId === deckId),
 }));
 vi.mock("@/entities/preference", () => ({
   getPreferences: () =>
@@ -24,6 +25,11 @@ vi.mock("@/entities/preference", () => ({
       study: { shuffled: false, maxNumberOfCardsToLearn: 0, useCardInterval: mocks.useCardInterval },
     }),
 }));
+
+vi.mock("@/entities/preference/@x/study-session", async () => {
+  const { getPreferences } = await import("@/entities/preference");
+  return { getPreferences };
+});
 
 vi.mock("@/entities/study-session/api/firestore", () => ({
   startStudy: ({

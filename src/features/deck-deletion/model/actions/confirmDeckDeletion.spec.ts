@@ -7,7 +7,7 @@ import { confirmDeckDeletion } from "./confirmDeckDeletion";
 
 const auth = vi.hoisted(() => ({ uid: "owner" }));
 vi.mock("@/entities/auth", () => ({ getAuthUid: () => auth.uid }));
-vi.mock("@/entities/deck", () => ({ deleteDeck: vi.fn(), getDecks: vi.fn(), mustFindDeckById: vi.fn() }));
+vi.mock("@/entities/deck", () => ({ deleteDeck: vi.fn(), mustFindDeckById: vi.fn() }));
 vi.mock("@/entities/study-session", () => ({ abandonStudySession: vi.fn() }));
 vi.mock("@/shared/ui/toast", () => ({ showToast: vi.fn() }));
 

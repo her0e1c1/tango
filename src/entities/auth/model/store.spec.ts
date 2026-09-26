@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { getAuthSession, getAuthUid, replaceAuthSession } from "./store";
+import { getAuthSession, getAuthUid } from "./queries";
+import { replaceAuthSession } from "./store";
 
 describe("authSessionStore [ACCOUNT-03] [ACCOUNT-04]", () => {
   beforeEach(() => replaceAuthSession({ status: "initializing" }));

@@ -37,23 +37,31 @@
 
 ## `model/store.ts`
 
-- Define the global Entity store, initialization, hydration, synchronous reads and updates.
+- Define the global Entity store, initialization, hydration, and synchronous updates. Keep reads within updates here; put standalone reads in `queries.ts`.
 - Define store default values in `store.ts`.
 - Keep store operations as ordinary named functions outside Zustand state; do not bundle them in an action object or factory.
 - Apply validation and preserve state invariants at the store operation boundary.
 - Do not perform external access, subscriptions, or asynchronous workflows.
 - Treat persistence middleware as an explicit exception for storage access, state hydration, and persistence subscriptions.
 
+## `model/queries.ts`
+
+- Treat the owning Entity store as the source of truth. Read it directly and never change state or initiate persistence.
+- Accept only lookup inputs, such as IDs; do not accept store state from callers.
+- Keep pure rules and calculations in their existing pure modules.
+- Read other Entities only through their minimal query APIs in `@x/`; never import another Entity's store.
+- Add queries only for existing consumers, without query frameworks, dependency injection, or repository abstractions.
+
 ## `model/hooks.ts`
 
 - Consolidate Entity React hooks, including store selector hooks, in this file. Create it only when the Entity has hooks.
-- Import the Entity store and operations directly from their defining modules; keep store initialization, synchronous reads, and updates in `store.ts`.
+- Import the Entity store and operations directly from their defining modules; keep initialization and updates in `store.ts` and standalone reads in `queries.ts`. Preserve subscriptions instead of replacing hooks with non-reactive queries.
 - Keep domain rules in pure model files and persistence implementations in `api/`; do not move Page or Feature workflows into Entity hooks.
 - Expose reusable hooks through the slice public API.
 
 ## Other `model/` files
 
-- Add a separate model file only for a cohesive domain concept that does not belong in `schema.ts`, `types.ts`, `rules.ts`, `store.ts`, or `hooks.ts`.
+- Add a separate model file only for a cohesive domain concept that does not belong in `schema.ts`, `types.ts`, `rules.ts`, `store.ts`, `queries.ts`, or `hooks.ts`.
 - Name such files after the domain concept, such as `fsrs.ts`; do not create generic responsibility buckets such as `actions/`, `queries/`, `helpers.ts`, `utils.ts`, or `service.ts`.
 - Keep pure calculations independent of React, stores, browser APIs, persistence, and external systems.
 
@@ -75,7 +83,7 @@
 ## `@x/`
 
 - Use `@x/` only for explicit cross-slice contracts.
-- Prefer type-only re-exports and keep the exposed surface minimal.
+- Keep type, pure-rule, and query re-exports minimal; never expose stores. Retain existing read hooks when cross-Entity React subscriptions are required.
 
 ## `index.ts`
 

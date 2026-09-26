@@ -1,8 +1,7 @@
 import { compareStudySessionCreation } from "./rules";
-import type { DeckId } from "@/entities/deck/@x/study-session";
 import { createStore } from "zustand/vanilla";
 
-import type { StudySession, StudySessions, StudySessionSnapshot } from "./types";
+import type { StudySessions, StudySessionSnapshot } from "./types";
 
 interface StudySessionState {
   sessionsByDeckId: StudySessions;
@@ -21,9 +20,6 @@ export const studySessionStore = createStore<StudySessionState>(() => ({
   fromCache: true,
   syncError: null,
 }));
-
-export const getStudySession = (deckId: DeckId): StudySession | undefined =>
-  studySessionStore.getState().sessionsByDeckId[deckId];
 
 export function clearStudySessions(): void {
   studySessionStore.setState({

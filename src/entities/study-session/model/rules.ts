@@ -20,7 +20,7 @@ interface StudyCardSelectionDeck {
 }
 
 // Eligibility stays in input order; only session creation applies order, shuffle and limits.
-export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCard>(
+export function calculateStudyCardSelection<TCard extends StudyCardSelectionCard>(
   cards: readonly TCard[],
   deck: StudyCardSelectionDeck,
   useCardInterval: boolean,
@@ -36,15 +36,6 @@ export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCar
     } else selected.push(card);
   }
   return { cards: selected, nextDueAt };
-}
-
-export function selectStudyCards<TCard extends StudyCardSelectionCard>(
-  cards: readonly TCard[],
-  deck: StudyCardSelectionDeck,
-  useCardInterval: boolean,
-  now = Date.now()
-): TCard[] {
-  return selectStudyCardsWithDeadline(cards, deck, useCardInterval, now).cards;
 }
 
 // Resolves whether an active session can study now, is waiting for Cards, or is invalid.

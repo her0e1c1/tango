@@ -40,10 +40,6 @@ export const preferencesStore = createStore<PreferencesStoreState>()(
   )
 );
 
-export function getPreferences(): Preferences {
-  return preferencesStore.getState().preferences;
-}
-
 // Applies a partial preferences update through the store's validation boundary.
 export const updatePreferences = (preferencesInput: PartialPreferences): void => {
   preferencesStore.setState((state) => {
@@ -59,35 +55,41 @@ export const updatePreferences = (preferencesInput: PartialPreferences): void =>
 };
 
 export function toggleShowViewMode(): void {
-  updatePreferences({ controls: { showViewMode: !getPreferences().controls.showViewMode } });
+  updatePreferences({ controls: { showViewMode: !preferencesStore.getState().preferences.controls.showViewMode } });
 }
 
 export function toggleViewMode(): void {
-  updatePreferences({ controls: { viewMode: !getPreferences().controls.viewMode } });
+  updatePreferences({ controls: { viewMode: !preferencesStore.getState().preferences.controls.viewMode } });
 }
 
 export const setDarkMode = (darkMode: boolean): void => updatePreferences({ appearance: { darkMode } });
 
 export const toggleShowCardDetails = (): void => {
-  updatePreferences({ controls: { showCardDetails: !getPreferences().controls.showCardDetails } });
+  updatePreferences({
+    controls: { showCardDetails: !preferencesStore.getState().preferences.controls.showCardDetails },
+  });
 };
 
 export function toggleShowEditLink(): void {
-  updatePreferences({ controls: { showEditLink: !getPreferences().controls.showEditLink } });
+  updatePreferences({ controls: { showEditLink: !preferencesStore.getState().preferences.controls.showEditLink } });
 }
 
 export const toggleShowHelp = (): void => {
-  updatePreferences({ controls: { showHelp: !getPreferences().controls.showHelp } });
+  updatePreferences({ controls: { showHelp: !preferencesStore.getState().preferences.controls.showHelp } });
 };
 
 export const toggleShowPlaybackControls = (): void => {
-  updatePreferences({ controls: { showPlaybackControls: !getPreferences().controls.showPlaybackControls } });
+  updatePreferences({
+    controls: { showPlaybackControls: !preferencesStore.getState().preferences.controls.showPlaybackControls },
+  });
 };
 
 export const toggleShowSkip = (): void => {
-  updatePreferences({ controls: { showSkip: !getPreferences().controls.showSkip } });
+  updatePreferences({ controls: { showSkip: !preferencesStore.getState().preferences.controls.showSkip } });
 };
 
 export const toggleShowSwipeButtonList = (): void => {
-  updatePreferences({ controls: { showSwipeButtonList: !getPreferences().controls.showSwipeButtonList } });
+  updatePreferences({
+    controls: { showSwipeButtonList: !preferencesStore.getState().preferences.controls.showSwipeButtonList },
+  });
 };

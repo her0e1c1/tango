@@ -7,7 +7,8 @@ export {
   mutateCards,
 } from "./api/firestore";
 export { cardContentInputSchema } from "./model/schema";
-export { clearRemoteCards, getCards } from "./model/store";
+export { clearRemoteCards } from "./model/store";
+export { getCards, findCardsByDeckId, mustFindCardById } from "./model/queries";
 export type {
   Card,
   CardContentInput,
@@ -16,10 +17,8 @@ export type {
   CardRaw,
 } from "./model/types";
 export {
-  filterCardsByDeckId,
   filterCardsByTags,
   getCardContentValidationErrors,
-  mustFindCardById,
 } from "./model/rules";
 export { BackText } from "./ui/BackText";
 export { CardView } from "./ui/CardView";

@@ -1,4 +1,4 @@
-import type { CardFilter, Category, Deck, DeckId } from "./types";
+import type { CardFilter, Category, Deck } from "./types";
 
 const APPLICATION_CATEGORIES: Category[] = ["raw", "math"];
 
@@ -60,15 +60,6 @@ export const isDeckTagSelectionMatching = (
   if (selectedTags.length === 0) return true;
   if (tagAndFilter) return selectedTags.every((tag) => candidateTags.includes(tag));
   return selectedTags.some((tag) => candidateTags.includes(tag));
-};
-
-// Returns the requested Deck or throws when a caller's Deck reference no longer resolves.
-export const mustFindDeckById = <TDeck extends { id: DeckId }>(decks: readonly TDeck[], id: DeckId): TDeck => {
-  const deck = decks.find((candidate) => candidate.id === id);
-
-  if (deck == null) throw new Error(`Deck not found: ${id}`);
-
-  return deck;
 };
 
 export function getCardFilter(deck: Deck): CardFilter {

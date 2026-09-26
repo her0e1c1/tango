@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createCard } from "@/test/factories";
-import { filterCardsByDeckId, filterTagsByDeckId, getCardContentValidationErrors, mustFindCardById } from "./rules";
+import { filterCardsByDeckId, filterTagsByDeckId, getCardContentValidationErrors } from "./rules";
 
 describe("DECK-IMPORT-02 getCardContentValidationErrors", () => {
   it("returns field errors from the Card content schema", () => {
@@ -36,17 +36,5 @@ describe("filterTagsByDeckId", () => {
     const card3 = createCard({ id: "card-3", deckId: "deck-b", tags: ["other"] });
 
     expect(filterTagsByDeckId([card1, card2, card3], "deck-a")).toEqual(["kanji", "n5", "verb"]);
-  });
-});
-
-describe("mustFindCardById", () => {
-  it("returns the card matching the specified id", () => {
-    const target = createCard({ id: "target" });
-
-    expect(mustFindCardById([createCard({ id: "other" }), target], target.id)).toBe(target);
-  });
-
-  it("throws when no card matches the specified id", () => {
-    expect(() => mustFindCardById([], "missing")).toThrow("Card not found: missing");
   });
 });

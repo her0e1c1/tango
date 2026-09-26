@@ -8,10 +8,6 @@ interface DeckState {
 
 export const deckStore = createStore<DeckState>(() => ({ remoteDecks: [] }));
 
-export function getDecks(): Deck[] {
-  return deckStore.getState().remoteDecks;
-}
-
 export const clearRemoteDecks = (): void => {
   deckStore.setState({ remoteDecks: [] });
 };
