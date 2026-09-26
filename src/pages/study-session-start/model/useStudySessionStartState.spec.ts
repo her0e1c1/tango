@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
-import { createDeck, deleteDeck } from "@/entities/deck";
+import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import { startStudy } from "@/test/entityFixtures";
@@ -57,11 +57,15 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
     clearStudySessions();
     updatePreferences(preferences);
     await createDeck("user-id", deck);
-    await mutateCards("user-id", [
-      { kind: "create", card: eligibleCard },
-      { kind: "create", card: laterCard },
-      { kind: "create", card: futureCard },
-    ]);
+    await mutateCards(
+      "user-id",
+      [
+        { kind: "create", card: eligibleCard },
+        { kind: "create", card: laterCard },
+        { kind: "create", card: futureCard },
+      ],
+      getDecks()
+    );
     seedCardFsrs(futureCard.id, 253_402_300_799_999);
   });
 

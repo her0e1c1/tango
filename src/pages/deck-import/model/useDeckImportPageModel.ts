@@ -29,7 +29,7 @@ export function useDeckImportPageModel() {
   const isMounted = useMountedGuard();
   const initiatedHere = useRef<boolean>(false);
   const decks = useDecks();
-  const cards = useCards();
+  const cards = useCards(useDecks());
   const pendingImport = useStore(deckImportStore, (state) =>
     state.status === "importing" && state.source.kind === "selected" ? state.source.preparedImport : undefined
   );

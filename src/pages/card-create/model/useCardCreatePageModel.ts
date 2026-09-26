@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { type CardContentInput, cardContentInputSchema, useCard, useCardsByDeckId } from "@/entities/card";
-import { useDeck } from "@/entities/deck";
+import { useDeck, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import {
   addCardTag,
@@ -28,12 +28,13 @@ export function useCardCreateRouteModel(deckId: string | undefined) {
 }
 
 export function useCardCreatePageModel(deckId: string) {
+  const decks = useDecks();
   const deck = useDeck(deckId);
   const preferences = usePreferences();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [pending, setPending] = useState<{ id: string; name: string } | undefined>(undefined);
-  const createdCard = useCard(pending?.id);
+  const createdCard = useCard(pending?.id, decks);
   const completedId = useRef<string | undefined>(undefined);
   const destination = routes.cardList.to(deckId);
   const form = useForm<CardContentInput>({
@@ -62,7 +63,7 @@ export function useCardCreatePageModel(deckId: string) {
 
   const tagValues = useWatch({ control: form.control, name: "tags" });
   const { tagRowIds, setTagRowIds } = useCardTagState(form.getValues("tags"));
-  const { tags: availableTags } = useCardsByDeckId(deckId);
+  const { tags: availableTags } = useCardsByDeckId(deckId, decks);
   const preview = useCardPreviewContent(form.control, deck?.category ?? "", preferences.appearance.darkMode);
 
   return {

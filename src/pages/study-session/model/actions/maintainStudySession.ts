@@ -1,3 +1,4 @@
+import { getDecks } from "@/entities/deck";
 import { getAuthUid } from "@/entities/auth";
 import { showToast } from "@/shared/ui/toast";
 import { getCards } from "@/entities/card";
@@ -7,12 +8,12 @@ import { getStudySession, resolveStudySession, touchStudySession } from "@/entit
 export function maintainStudySession(deckId: DeckId): void {
   const session = getStudySession(deckId);
   if (!session) return;
-  const { status } = resolveStudySession(session, getCards());
+  const { status } = resolveStudySession(session, getCards(getDecks()));
   // Missing Cards may reflect a partial cache; reads must not erase resumable progress.
   if (status !== "studying") return;
   const uid = getAuthUid();
   try {
-    touchStudySession(deckId);
+    touchStudySession(deckId, getAuthUid);
   } catch {
     if (getAuthUid() === uid) showToast({ messageKey: "studySession.syncFailure", tone: "error" });
   }

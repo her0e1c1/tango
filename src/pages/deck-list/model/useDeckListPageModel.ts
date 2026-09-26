@@ -23,8 +23,8 @@ import { useDeckListState } from "./queries/useDeckListState";
 export function useDeckListPageModel() {
   const navigate = useNavigate();
   const deckListState = useDeckListState();
-  const cards = useCards();
   const decks = useDecks();
+  const cards = useCards(decks);
   const { loadSample } = usePreferences();
   const isMounted = useMountedGuard();
   const deletion = useDeckDeletionState();

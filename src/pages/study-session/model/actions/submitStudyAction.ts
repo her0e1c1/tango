@@ -1,3 +1,4 @@
+import { getDecks } from "@/entities/deck";
 import { calculateFsrsState, getCards } from "@/entities/card";
 import { planStudySessionSwipe } from "../queries/planStudySessionSwipe";
 import { getPreferences, type SwipeAction, type SwipeDirection } from "@/entities/preference";
@@ -17,7 +18,7 @@ export async function submitStudyAction(
   if (isSaving || owner?.uid !== uid || owner.deckId !== deckId) return;
   const session = getStudySession(deckId);
   if (session === undefined) return;
-  const cards = getCards();
+  const cards = getCards(getDecks());
   const plan = planStudySessionSwipe(session, cards, action);
   if (plan.effect === "none") return;
   if (plan.effect === "exit") {

@@ -4,5 +4,5 @@ import { downloadDeckCsv } from "../../lib/deckCsv";
 
 export function exportDeck(id: DeckId): void {
   const deck = mustFindDeckById(getDecks(), id);
-  downloadDeckCsv(deck, filterCardsByDeckId(getCards(), id));
+  downloadDeckCsv(deck, filterCardsByDeckId(getCards(getDecks()), id));
 }

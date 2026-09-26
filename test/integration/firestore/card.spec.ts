@@ -1,3 +1,4 @@
+import { getDecks } from "@/entities/deck";
 /**
  * @file Verifies the "card" contract with automated examples.
  * The examples make the expected behavior concrete with cases such as "should create a card",
@@ -105,7 +106,7 @@ describe("firestore/card", { retry: 3 }, () => {
     await editCard("uid", n);
     expect((await getDoc(doc(db, "card", n.id))).data()?.fsrs).toEqual(fsrs);
     replaceRemoteCards([{ ...c, fsrs }]);
-    await mutateCards("uid", [{ kind: "edit", card: n }]);
+    await mutateCards("uid", [{ kind: "edit", card: n }], getDecks());
     const data = (await getDoc(doc(db, "card", n.id))).data();
     expect(data).toEqual({ ...created, frontText: "updated", updatedAt: expect.any(Timestamp) });
     expect(data?.createdAt).toBe(created.createdAt);
@@ -134,7 +135,7 @@ describe("firestore/card", { retry: 3 }, () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
 
-    await mutateCards("uid", [{ kind: "create", card: c }]);
+    await mutateCards("uid", [{ kind: "create", card: c }], getDecks());
 
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...c, createdAt: expect.any(Number), updatedAt: expect.any(Timestamp) });
@@ -142,7 +143,7 @@ describe("firestore/card", { retry: 3 }, () => {
     await updateDoc(reference, { fsrs: calculateFsrsState(null, "good", 1000), updatedAt: serverTimestamp() });
     const rated = (await getDoc(reference)).data();
 
-    await mutateCards("uid", [{ kind: "create", card: c }]);
+    await mutateCards("uid", [{ kind: "create", card: c }], getDecks());
 
     expect((await getDoc(reference)).data()).toEqual(rated);
   });
@@ -153,10 +154,14 @@ describe("firestore/card", { retry: 3 }, () => {
     const invalid = { ...newCard, deckId, id: uuid(), frontText: 42 } as unknown as RemoteCard;
 
     await expect(
-      mutateCards("uid", [
-        { kind: "create", card: valid },
-        { kind: "create", card: invalid },
-      ])
+      mutateCards(
+        "uid",
+        [
+          { kind: "create", card: valid },
+          { kind: "create", card: invalid },
+        ],
+        getDecks()
+      )
     ).rejects.toThrow();
 
     const data = (await getDoc(doc(db, "card", valid.id))).data();
@@ -172,7 +177,7 @@ describe("firestore/card", { retry: 3 }, () => {
     await deleteCard("uid", card);
     await waitForPendingWrites(db);
 
-    await mutateCards("uid", [{ kind: "edit", card }]).catch(() => undefined);
+    await mutateCards("uid", [{ kind: "edit", card }], getDecks()).catch(() => undefined);
     await waitForPendingWrites(db);
     const ownedCards = await getDocs(query(collection(db, "card"), where("uid", "==", "uid")));
     expect(ownedCards.docs.find((snapshot) => snapshot.id === card.id)?.data().deletedAt).toEqual(expect.any(Number));

@@ -1,5 +1,5 @@
-import { classifyFsrsState, type FsrsState } from "@/entities/card/@x/study-session";
-import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
+import type { classifyFsrsState, FsrsState } from "@/entities/card/@x/study-session";
+import type { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
 
 import type { StudySession, StudyHistoryPeriod, StudyHistoryRecord, StudySessionSnapshot } from "./types";
 
@@ -19,19 +19,25 @@ interface StudyCardSelectionDeck {
   tagAndFilter: boolean;
 }
 
+interface StudyCardSelectionOptions {
+  useCardInterval: boolean;
+  classifyFsrsState: typeof classifyFsrsState;
+  isDeckTagSelectionMatching: typeof isDeckTagSelectionMatching;
+}
+
 // Eligibility stays in input order; only session creation applies order, shuffle and limits.
 export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCard>(
   cards: readonly TCard[],
   deck: StudyCardSelectionDeck,
-  useCardInterval: boolean,
+  options: StudyCardSelectionOptions,
   now: number
 ): { cards: TCard[]; nextDueAt: number | undefined } {
   const selected: TCard[] = [];
   let nextDueAt: number | undefined;
   for (const card of cards) {
-    if (!isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter)) continue;
-    const timing = classifyFsrsState(card.fsrs, now);
-    if (useCardInterval && timing.status === "future") {
+    if (!options.isDeckTagSelectionMatching(card.tags, deck.selectedTags, deck.tagAndFilter)) continue;
+    const timing = options.classifyFsrsState(card.fsrs, now);
+    if (options.useCardInterval && timing.status === "future") {
       nextDueAt = nextDueAt === undefined ? timing.dueAt : Math.min(nextDueAt, timing.dueAt);
     } else selected.push(card);
   }
@@ -41,10 +47,10 @@ export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCar
 export function selectStudyCards<TCard extends StudyCardSelectionCard>(
   cards: readonly TCard[],
   deck: StudyCardSelectionDeck,
-  useCardInterval: boolean,
+  options: StudyCardSelectionOptions,
   now = Date.now()
 ): TCard[] {
-  return selectStudyCardsWithDeadline(cards, deck, useCardInterval, now).cards;
+  return selectStudyCardsWithDeadline(cards, deck, options, now).cards;
 }
 
 // Resolves whether an active session can study now, is waiting for Cards, or is invalid.

@@ -1,6 +1,6 @@
 import { useCards } from "@/entities/card";
 import type { Card } from "@/entities/card";
-import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
+import { getCategory, isHighlightLanguage, useDeck, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { resolveStudySession, useStudySession, useRemoteStudySessionsLoading } from "@/entities/study-session";
 import { buildCardPlayerHelpRows } from "@/features/card-player";
@@ -8,7 +8,7 @@ import { buildCardPlayerHelpRows } from "@/features/card-player";
 export type StudySessionState = ReturnType<typeof resolveStudySession<Card>>;
 
 export const useStudyQuery = (deckId: string) => {
-  const cards = useCards();
+  const cards = useCards(useDecks());
   const deck = useDeck(deckId);
   const preferences = usePreferences();
   const session = useStudySession(deckId);

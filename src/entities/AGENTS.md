@@ -75,7 +75,8 @@
 ## `@x/`
 
 - Use `@x/` only for explicit cross-slice contracts.
-- Prefer type-only re-exports and keep the exposed surface minimal.
+- Allow only type imports and type re-exports through `@x/`; keep the exposed surface minimal.
+- Receive cross-slice runtime dependencies through function arguments, wired by consumers in higher layers.
 
 ## `index.ts`
 

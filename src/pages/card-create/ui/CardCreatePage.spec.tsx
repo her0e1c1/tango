@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider, useNavigate } from "react-router-do
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createDeck } from "@/entities/deck";
+import { createDeck, getDecks } from "@/entities/deck";
 import { replaceRemoteCards, replaceRemoteDecks } from "@/test/entityFixtures";
 import { getCards } from "@/entities/card";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
@@ -119,7 +119,7 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
     expect(await screen.findByRole("heading", { name: "Card list destination" })).toBeVisible();
-    expect(getCards().find((card) => card.frontText === "Tagged front")).toMatchObject({
+    expect(getCards(getDecks()).find((card) => card.frontText === "Tagged front")).toMatchObject({
       deckId: deck.id,
       tags: ["chapter-1"],
     });
@@ -241,7 +241,7 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
     expect(screen.queryByText("Created card “Discarded while pending”.")).not.toBeInTheDocument();
-    expect(getCards().some((card) => card.frontText === "Discarded while pending")).toBe(true);
+    expect(getCards(getDecks()).some((card) => card.frontText === "Discarded while pending")).toBe(true);
   });
 
   it("prioritizes save success over an unanswered leave confirmation dialog", async () => {

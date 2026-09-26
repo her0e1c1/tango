@@ -5,7 +5,7 @@ import { showToast } from "@/shared/ui/toast";
 export async function resumeStudy(deckId: string): Promise<boolean> {
   const uid = getAuthUid();
   try {
-    touchStudySession(deckId);
+    touchStudySession(deckId, getAuthUid);
     // Recheck identity after queued auth changes before allowing navigation.
     await Promise.resolve();
     return getAuthUid() === uid;

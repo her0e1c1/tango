@@ -1,3 +1,4 @@
+import type { Deck } from "@/entities/deck/@x/card";
 import type {
   CardCreate,
   CardCreateInput,
@@ -117,9 +118,10 @@ export function writeCardFsrs(
     deckId: string;
     fsrs: FsrsState;
     answeredAt: number;
-  }
+  },
+  decks: readonly Pick<Deck, "id" | "uid">[]
 ) {
-  const card = findCardById(input.cardId);
+  const card = findCardById(input.cardId, decks);
   instantSchema.parse(input.answeredAt);
   if (!(input.uid && card) || card.uid !== input.uid || card.deckId !== input.deckId || card.deletedAt !== null)
     throw new Error("Study Card does not match");
@@ -129,8 +131,8 @@ export function writeCardFsrs(
   });
 }
 
-function requireOwnedCard(uid: string, id: CardId) {
-  const card = findCardById(id);
+function requireOwnedCard(uid: string, id: CardId, decks: readonly Pick<Deck, "id" | "uid">[]) {
+  const card = findCardById(id, decks);
   if (card === undefined) throw new Error(`Card "${id}" was not found`);
   if (!uid || card.uid !== uid) throw new Error("Card owner does not match the authenticated user");
   return card;
@@ -140,22 +142,34 @@ export async function createOwnedCard(uid: string, card: CardCreateCommand): Pro
   await createCard(uid, { ...card, uid });
 }
 
-export async function editOwnedCard(uid: string, card: CardEditInput): Promise<void> {
-  requireOwnedCard(uid, card.id);
+export async function editOwnedCard(
+  uid: string,
+  card: CardEditInput,
+  decks: readonly Pick<Deck, "id" | "uid">[]
+): Promise<void> {
+  requireOwnedCard(uid, card.id, decks);
   await editCard(uid, { ...card, uid });
 }
 
-export async function mutateCards(uid: string, mutations: CardMutation[]): Promise<void> {
+export async function mutateCards(
+  uid: string,
+  mutations: CardMutation[],
+  decks: readonly Pick<Deck, "id" | "uid">[]
+): Promise<void> {
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
-      mutation.kind === "create" ? createOwnedCard(uid, mutation.card) : editOwnedCard(uid, mutation.card)
+      mutation.kind === "create" ? createOwnedCard(uid, mutation.card) : editOwnedCard(uid, mutation.card, decks)
     )
   );
   const failure = results.find((result) => result.status === "rejected");
   if (failure?.status === "rejected") throw failure.reason;
 }
 
-export async function deleteOwnedCard(uid: string, id: CardId): Promise<void> {
-  requireOwnedCard(uid, id);
+export async function deleteOwnedCard(
+  uid: string,
+  id: CardId,
+  decks: readonly Pick<Deck, "id" | "uid">[]
+): Promise<void> {
+  requireOwnedCard(uid, id, decks);
   await deleteCard(uid, { id, uid });
 }

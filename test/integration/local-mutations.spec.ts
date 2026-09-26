@@ -10,7 +10,7 @@ import {
   getDocsFromCache,
   waitForPendingWrites,
 } from "firebase/firestore";
-import { replaceAuthSession } from "@/entities/auth";
+import { replaceAuthSession, getAuthUid } from "@/entities/auth";
 import { createCard, deleteCard, editCard, getCards } from "@/entities/card";
 import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { getStudySession, startStudy } from "@/entities/study-session";
@@ -19,7 +19,7 @@ import type { StudyRating } from "@/entities/study-answer";
 import type { StudySession } from "@/entities/study-session";
 
 function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating, answeredAt: number) {
-  const card = getCards().find(({ id }) => id === session.cardOrderIds[session.currentIndex]);
+  const card = getCards(getDecks()).find(({ id }) => id === session.cardOrderIds[session.currentIndex]);
   if (!card) throw new Error("Missing card");
   const fsrs = calculateFsrsState(card.fsrs, rating, answeredAt);
   return saveStudyOperation(
@@ -74,15 +74,15 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     const second = cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" });
     await createCard("uid", first);
     await createCard("uid", second);
-    await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
-    await editCard("uid", { id: first.id, frontText: "Edited offline" });
+    await vi.waitFor(() => expect(getCards(getDecks()).filter((card) => card.deckId === deckId)).toHaveLength(2));
+    await editCard("uid", { id: first.id, frontText: "Edited offline" }, getDecks());
     await vi.waitFor(async () =>
       expect((await getDocFromCache(doc(testDb, "card", first.id))).data()?.frontText).toBe("Edited offline")
     );
-    await deleteCard("uid", first.id);
-    await vi.waitFor(() => expect(getCards().some((card) => card.id === first.id)).toBe(false));
+    await deleteCard("uid", first.id, getDecks());
+    await vi.waitFor(() => expect(getCards(getDecks()).some((card) => card.id === first.id)).toBe(false));
     await deleteDeck("uid", deckId);
-    await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toEqual([]));
+    await vi.waitFor(() => expect(getCards(getDecks()).filter((card) => card.deckId === deckId)).toEqual([]));
   });
 
   it("saves one answer, state and session advancement atomically while offline", async () => {
@@ -90,8 +90,8 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
     const cards = [0, 1].map(() => cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" }));
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
     await Promise.all(cards.map((card) => createCard("uid", card)));
-    await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
-    startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
+    await vi.waitFor(() => expect(getCards(getDecks()).filter((card) => card.deckId === deckId)).toHaveLength(2));
+    startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" }, getAuthUid);
     await vi.waitFor(() => expect(getStudySession(deckId)).toBeDefined());
     const session = getStudySession(deckId);
     if (!session) throw new Error("Missing session");
@@ -106,13 +106,13 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTEN
       updatedAt: null,
       fsrs: { reps: 1, lastReviewedAt: answeredAt, dueAt: answeredAt + 600_000 },
     });
-    const savedSchedule = getCards().find((card) => card.id === cards[0]?.id)?.fsrs;
+    const savedSchedule = getCards(getDecks()).find((card) => card.id === cards[0]?.id)?.fsrs;
     expect(savedSchedule).toBeDefined();
     stop();
     const subscription = startFirestoreSubscriptions("uid");
     ({ stop } = subscription);
     await subscription.ready;
-    expect(getCards().find((card) => card.id === cards[0]?.id)?.fsrs).toEqual(savedSchedule);
+    expect(getCards(getDecks()).find((card) => card.id === cards[0]?.id)?.fsrs).toEqual(savedSchedule);
     expect(() => saveStudyAnswer("uid", session, "good", answeredAt)).toThrow("session does not match");
     const final = getStudySession(deckId);
     if (!final) throw new Error("Missing final position");

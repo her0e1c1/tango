@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { editCard, getCards, mutateCards } from "@/entities/card";
-import { createDeck } from "@/entities/deck";
+import { createDeck, getDecks } from "@/entities/deck";
 import { replaceRemoteCards, replaceRemoteDecks } from "@/test/entityFixtures";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { actAsync } from "@/test/act";
@@ -48,8 +48,9 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    useCard(id: Parameters<typeof actual.useCard>[0]) {
-      const storedCard = actual.useCard(id);
+    useCard(...args: Parameters<typeof actual.useCard>) {
+      const [id] = args;
+      const storedCard = actual.useCard(...args);
       return mocks.remoteCard?.id === id ? mocks.remoteCard : storedCard;
     },
     editCard: vi.fn(async (...args: Parameters<typeof actual.editCard>) => {
@@ -97,12 +98,16 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     mocks.beforeValidation = undefined;
     mocks.remoteCard = undefined;
     await createDeck("user-id", createLocalDeck({ id: deckId }));
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" }),
-      },
-    ]);
+    await mutateCards(
+      "user-id",
+      [
+        {
+          kind: "create",
+          card: createLocalCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" }),
+        },
+      ],
+      getDecks()
+    );
   });
 
   it("renders the stored card editor in the application shell", () => {
@@ -115,11 +120,15 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
 
   it("CARD-MANAGEMENT-01 saves same-Deck Card tag selections while preserving existing Card tags", async () => {
     replaceRemoteDecks([createLocalDeck({ id: deckId }), createLocalDeck({ id: "other-deck" })]);
-    await mutateCards("user-id", [
-      { kind: "create", card: createLocalCard({ id: "source", deckId, tags: ["chapter-1", "exam"] }) },
-      { kind: "create", card: createLocalCard({ id: "other", deckId: "other-deck", tags: ["other-only"] }) },
-    ]);
-    await editCard("user-id", { id: cardId, tags: ["legacy"] });
+    await mutateCards(
+      "user-id",
+      [
+        { kind: "create", card: createLocalCard({ id: "source", deckId, tags: ["chapter-1", "exam"] }) },
+        { kind: "create", card: createLocalCard({ id: "other", deckId: "other-deck", tags: ["other-only"] }) },
+      ],
+      getDecks()
+    );
+    await editCard("user-id", { id: cardId, tags: ["legacy"] }, getDecks());
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
 
@@ -137,12 +146,12 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
-    expect(getCards().find((card) => card.id === cardId)?.tags).toEqual(["legacy", "exam"]);
+    expect(getCards(getDecks()).find((card) => card.id === cardId)?.tags).toEqual(["legacy", "exam"]);
   });
 
   it("CARD-MANAGEMENT-01 retains existing tags when no other Card supplies candidates", async () => {
     replaceRemoteDecks([createLocalDeck({ id: deckId })]);
-    await editCard("user-id", { id: cardId, tags: ["legacy"] });
+    await editCard("user-id", { id: cardId, tags: ["legacy"] }, getDecks());
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
     expect(screen.getAllByRole("checkbox")).toHaveLength(1);
@@ -159,12 +168,16 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
 
     expect(screen.getByRole("heading", { level: 1, name: "Card not found" })).toBeVisible();
     await actAsync(async () => {
-      await mutateCards("user-id", [
-        {
-          kind: "create",
-          card: createLocalCard({ id: delayedCardId, deckId, frontText: "Delayed front", backText: "Delayed back" }),
-        },
-      ]);
+      await mutateCards(
+        "user-id",
+        [
+          {
+            kind: "create",
+            card: createLocalCard({ id: delayedCardId, deckId, frontText: "Delayed front", backText: "Delayed back" }),
+          },
+        ],
+        getDecks()
+      );
     });
 
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Delayed front");
@@ -255,12 +268,16 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await actAsync(async () => write.resolve());
 
     expect(await screen.findByText("Updated card “Front text”.")).toBeVisible();
-    expect(editCard).toHaveBeenCalledExactlyOnceWith("user-id", {
-      id: cardId,
-      frontText: "Front text",
-      backText: "Back text",
-      tags: [],
-    });
+    expect(editCard).toHaveBeenCalledExactlyOnceWith(
+      "user-id",
+      {
+        id: cardId,
+        frontText: "Front text",
+        backText: "Back text",
+        tags: [],
+      },
+      getDecks()
+    );
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
     await actAsync(async () => view.router.navigate(-1));
     expect(await screen.findByRole("heading", { name: "Previous page" })).toBeVisible();
@@ -333,12 +350,16 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
   });
 
   it("initializes a different Card and ignores navigation from the previous Card's save", async () => {
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({ id: "other-card", deckId, frontText: "Other front", backText: "Other back" }),
-      },
-    ]);
+    await mutateCards(
+      "user-id",
+      [
+        {
+          kind: "create",
+          card: createLocalCard({ id: "other-card", deckId, frontText: "Other front", backText: "Other back" }),
+        },
+      ],
+      getDecks()
+    );
     const write = Promise.withResolvers<void>();
     mocks.beforeCardWrite = () => write.promise;
     const view = renderPage();

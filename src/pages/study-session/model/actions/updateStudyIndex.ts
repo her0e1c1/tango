@@ -10,7 +10,7 @@ export async function updateStudyIndex(deckId: string, targetIndex: number): Pro
   store.setState({ isSaving: true });
   try {
     // Keep the interaction locked through this turn even though write acceptance is synchronous.
-    const accepted = setStudySessionIndex(deckId, targetIndex);
+    const accepted = setStudySessionIndex(deckId, targetIndex, getAuthUid);
     await Promise.resolve();
     if (accepted && store.getState().owner === owner) hideBackText();
   } catch {

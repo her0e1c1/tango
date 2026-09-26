@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
-import { createDeck, deleteDeck } from "@/entities/deck";
+import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions } from "@/entities/study-session";
 import { startStudy } from "@/test/entityFixtures";
@@ -44,7 +44,8 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
     await Promise.all(decks.map((deck) => createDeck("user-id", deck)));
     await mutateCards(
       "user-id",
-      cards.map((card) => ({ kind: "create" as const, card }))
+      cards.map((card) => ({ kind: "create" as const, card })),
+      getDecks()
     );
 
     vi.setSystemTime(100);

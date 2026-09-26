@@ -45,7 +45,7 @@ describe("NAVIGATION-06 Deck navigation through App, router, and local Entities"
 
   it.each(cases)("opens only $id Cards and preserves the destination on direct entry", async (selected) => {
     const decksBefore = structuredClone(getDecks());
-    const cardsBefore = structuredClone(getCards());
+    const cardsBefore = structuredClone(getCards(getDecks()));
     const savedDecks = localStorage.getItem("tango-local-decks");
     const savedCards = localStorage.getItem("tango-local-cards");
     const router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
@@ -68,7 +68,7 @@ describe("NAVIGATION-06 Deck navigation through App, router, and local Entities"
       expect(screen.queryByRole("button", { name: `View ${other.frontText}` })).not.toBeInTheDocument();
     }
     expect(getDecks()).toEqual(decksBefore);
-    expect(getCards()).toEqual(cardsBefore);
+    expect(getCards(getDecks())).toEqual(cardsBefore);
     expect(localStorage.getItem("tango-local-decks")).toBe(savedDecks);
     expect(localStorage.getItem("tango-local-cards")).toBe(savedCards);
     directView.unmount();

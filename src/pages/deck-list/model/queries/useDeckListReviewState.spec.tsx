@@ -19,7 +19,10 @@ vi.mock("@/entities/card", async (original) => ({
   ...(await original<typeof import("@/entities/card")>()),
   useCards: () => input.cards,
 }));
-vi.mock("@/entities/deck", () => ({ useDecks: () => input.decks }));
+vi.mock("@/entities/deck", async (original) => ({
+  ...(await original<typeof import("@/entities/deck")>()),
+  useDecks: () => input.decks,
+}));
 vi.mock("@/entities/preference", () => ({ usePreferences: () => input.preferences }));
 vi.mock("@/entities/study-session", async (original) => ({
   ...(await original<typeof import("@/entities/study-session")>()),

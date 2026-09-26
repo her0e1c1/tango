@@ -1,8 +1,8 @@
-import { getCards } from "@/entities/card";
+import { getCards, classifyFsrsState } from "@/entities/card";
 import { buildStudyCardOrder } from "../queries/buildStudyCardOrder";
 import { showToast } from "@/shared/ui/toast";
 import { getAuthUid } from "@/entities/auth";
-import { type DeckId, getDecks } from "@/entities/deck";
+import { type DeckId, getDecks, isDeckTagSelectionMatching } from "@/entities/deck";
 import { getPreferences } from "@/entities/preference";
 import { selectStudyCards, startStudy } from "@/entities/study-session";
 import type { DeckFilterValues } from "@/features/deck-filter";
@@ -19,16 +19,19 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   // Use the current draft even when its autosave has not reached the Deck yet.
   const now = Date.now();
   const cards = selectStudyCards(
-    getCards().filter((card) => card.deckId === deckId),
+    getCards(getDecks()).filter((card) => card.deckId === deckId),
     filter,
-    study.useCardInterval,
+    { useCardInterval: study.useCardInterval, classifyFsrsState, isDeckTagSelectionMatching },
     now
   );
   if (cards.length === 0) return;
   starting = true;
   try {
     // Keep the interaction locked through this turn even though write acceptance is synchronous.
-    const sessionId = startStudy({ deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now });
+    const sessionId = startStudy(
+      { deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now },
+      getAuthUid
+    );
     await Promise.resolve();
     return sessionId;
   } catch {

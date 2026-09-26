@@ -1,3 +1,4 @@
+import { getDecks } from "@/entities/deck";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
@@ -39,12 +40,16 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
       });
 
       expect(saved).toEqual(values);
-      expect(editCard).toHaveBeenCalledWith(uid ?? "", {
-        id: card.id,
-        frontText: "Edited front",
-        backText: "Edited back",
-        tags: ["custom-tag"],
-      });
+      expect(editCard).toHaveBeenCalledWith(
+        uid ?? "",
+        {
+          id: card.id,
+          frontText: "Edited front",
+          backText: "Edited back",
+          tags: ["custom-tag"],
+        },
+        getDecks()
+      );
     }
   );
 
@@ -78,6 +83,6 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 card edit submission", () => {
     await actAsync(async () => {
       expect(await submit(input)).toEqual(input.values);
     });
-    expect(editCard).toHaveBeenLastCalledWith("opening-user", { id: "card-id", ...input.values });
+    expect(editCard).toHaveBeenLastCalledWith("opening-user", { id: "card-id", ...input.values }, getDecks());
   });
 });

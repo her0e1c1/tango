@@ -17,7 +17,6 @@ import { isStudySessionPositionUnchanged } from "../model/rules";
 import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionSnapshot, StudyHistoryRecord, StudyHistoryPeriod } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
-import { getAuthUid } from "@/entities/auth/@x/study-session";
 import { setStudySessionSyncError, getStudySession, studySessionStore, setStudySessionOwner } from "../model/store";
 
 // Writes are queued locally; callers do not wait for server acknowledgement, including offline.
@@ -117,24 +116,27 @@ export function subscribeStudyHistory(
   return stopStore;
 }
 
-function requireOwner(session: StudySession): void {
+function requireOwner(session: StudySession, getAuthUid: () => string): void {
   if (session.remote.uid !== getAuthUid()) throw new Error("Study session owner changed");
 }
 
-export function startStudy({
-  deckId,
-  cardOrderIds,
-  uid,
-  now = Date.now(),
-}: {
-  deckId: string;
-  cardOrderIds: string[];
-  uid: string;
-  now?: number;
-}): string | undefined {
+export function startStudy(
+  {
+    deckId,
+    cardOrderIds,
+    uid,
+    now = Date.now(),
+  }: {
+    deckId: string;
+    cardOrderIds: string[];
+    uid: string;
+    now?: number;
+  },
+  getAuthUid: () => string
+): string | undefined {
   if (!uid || uid !== getAuthUid()) throw new Error("Study session owner changed");
   const previous = getStudySession(deckId);
-  if (previous) requireOwner(previous);
+  if (previous) requireOwner(previous, getAuthUid);
   const session: StudySession = {
     sessionId: crypto.getRandomValues(new Uint32Array(4)).join("-"),
     deckId,
@@ -148,7 +150,7 @@ export function startStudy({
   return session.sessionId;
 }
 
-export function setStudySessionIndex(deckId: string, currentIndex: number): boolean {
+export function setStudySessionIndex(deckId: string, currentIndex: number, getAuthUid: () => string): boolean {
   const session = getStudySession(deckId);
   if (
     !(session && Number.isInteger(currentIndex)) ||
@@ -156,15 +158,15 @@ export function setStudySessionIndex(deckId: string, currentIndex: number): bool
     currentIndex >= session.cardOrderIds.length
   )
     return false;
-  requireOwner(session);
+  requireOwner(session, getAuthUid);
   updateStudySession({ ...session, currentIndex }, null);
   return true;
 }
 
-export function moveStudySession(previous: StudySession): boolean {
+export function moveStudySession(previous: StudySession, getAuthUid: () => string): boolean {
   const current = getStudySession(previous.deckId);
   if (!isStudySessionPositionUnchanged(previous, current)) return false;
-  requireOwner(previous);
+  requireOwner(previous, getAuthUid);
   const completed = previous.currentIndex + 1 === previous.cardOrderIds.length;
   updateStudySession(
     { ...previous, currentIndex: completed ? previous.currentIndex : previous.currentIndex + 1 },
@@ -173,17 +175,17 @@ export function moveStudySession(previous: StudySession): boolean {
   return true;
 }
 
-export function abandonStudySession(deckId: string): void {
+export function abandonStudySession(deckId: string, getAuthUid: () => string): void {
   const session = getStudySession(deckId);
   if (!session) return;
-  requireOwner(session);
+  requireOwner(session, getAuthUid);
   updateStudySession(session, "abandoned");
 }
 
-export function touchStudySession(deckId: string): void {
+export function touchStudySession(deckId: string, getAuthUid: () => string): void {
   const session = getStudySession(deckId);
   if (!session) return;
-  requireOwner(session);
+  requireOwner(session, getAuthUid);
   void updateDoc(doc(db, "studySession", session.sessionId), {
     lastStudiedAt: Date.now(),
     updatedAt: serverTimestamp(),

@@ -1,3 +1,4 @@
+import { getDecks } from "@/entities/deck";
 import fs from "node:fs";
 import { initializeTestEnvironment, type RulesTestEnvironment } from "@firebase/rules-unit-testing";
 import { beforeAll, beforeEach, afterAll, afterEach, describe, expect, it, vi } from "vitest";
@@ -69,17 +70,19 @@ describe("Card FSRS persistence", () => {
   it("[FIRESTORE-CARD-FSRS-01] restores null and rated Cards through one subscription", async () => {
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid }));
     await start();
-    expect(getCards()).toMatchObject([{ id: "card", fsrs: null }]);
+    expect(getCards(getDecks())).toMatchObject([{ id: "card", fsrs: null }]);
     await updateDoc(doc(connection.db, "card", "card"), { fsrs, updatedAt: serverTimestamp() });
-    await vi.waitFor(() => expect(getCards()).toMatchObject([{ id: "card", fsrs, updatedAt: expect.any(Number) }]));
+    await vi.waitFor(() =>
+      expect(getCards(getDecks())).toMatchObject([{ id: "card", fsrs, updatedAt: expect.any(Number) }])
+    );
   });
   it("[FIRESTORE-CARD-FSRS-02] restores only the active UID and clears Cards on stop", async () => {
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid, fsrs }));
     await seed("card", "foreign", createCard({ id: "foreign", uid: "other", fsrs }));
     await start();
-    expect(getCards()).toMatchObject([{ id: "card", fsrs }]);
+    expect(getCards(getDecks())).toMatchObject([{ id: "card", fsrs }]);
     stop();
-    expect(getCards()).toEqual([]);
+    expect(getCards(getDecks())).toEqual([]);
   });
   it.each([
     {},
@@ -106,14 +109,14 @@ describe("Card FSRS persistence", () => {
       updatedAt: serverTimestamp(),
     });
     await expect(start()).rejects.toBeDefined();
-    expect(getCards()).toEqual([]);
+    expect(getCards(getDecks())).toEqual([]);
   });
   it("[FIRESTORE-CARD-FSRS-04] hides deleted Card state without changing other Cards", async () => {
     for (const id of ["first", "second"]) await seed("card", id, createCard({ id, deckId: "deck", uid, fsrs }));
     await start();
-    await deleteCard(uid, "first");
-    await vi.waitFor(() => expect(getCards().map((card) => card.id)).toEqual(["second"]));
-    expect(getCards()[0]?.fsrs).toEqual(fsrs);
+    await deleteCard(uid, "first", getDecks());
+    await vi.waitFor(() => expect(getCards(getDecks()).map((card) => card.id)).toEqual(["second"]));
+    expect(getCards(getDecks())[0]?.fsrs).toEqual(fsrs);
   });
   it("[FIRESTORE-CARD-FSRS-05] surfaces a denied subscription", async () => {
     await expect(start("another-owner")).rejects.toBeDefined();
@@ -122,8 +125,8 @@ describe("Card FSRS persistence", () => {
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid, fsrs }));
     await start();
     await disableNetwork(connection.db);
-    await deleteCard(uid, "card");
-    await vi.waitFor(() => expect(getCards()).toEqual([]));
+    await deleteCard(uid, "card", getDecks());
+    await vi.waitFor(() => expect(getCards(getDecks())).toEqual([]));
     await enableNetwork(connection.db);
     await waitForPendingWrites(connection.db);
     expect((await getDoc(doc(connection.db, "card", "card"))).data()?.deletedAt).toEqual(expect.any(Number));

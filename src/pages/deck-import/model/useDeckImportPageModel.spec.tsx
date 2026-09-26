@@ -45,7 +45,7 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
       .mockImplementation(async (uid, mutations) => {
         await Promise.resolve();
         replaceRemoteCards([
-          ...getCards().filter((card) => !mutations.some((mutation) => mutation.card.id === card.id)),
+          ...getCards(getDecks()).filter((card) => !mutations.some((mutation) => mutation.card.id === card.id)),
           ...mutations.flatMap((mutation) =>
             mutation.kind === "create"
               ? [
@@ -82,9 +82,11 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
       });
       await waitFor(() => expect(controls.navigate).toHaveBeenCalled());
       expect(createDeck).toHaveBeenCalledWith(uid, expect.objectContaining({ name: "deck.csv" }));
-      expect(mutateCards).toHaveBeenCalledWith(uid, [
-        expect.objectContaining({ kind: "create", card: expect.objectContaining({ frontText: "front" }) }),
-      ]);
+      expect(mutateCards).toHaveBeenCalledWith(
+        uid,
+        [expect.objectContaining({ kind: "create", card: expect.objectContaining({ frontText: "front" }) })],
+        getDecks()
+      );
     }
   );
 
@@ -97,7 +99,7 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     }
 
     const decks = getDecks();
-    const cards = getCards();
+    const cards = getCards(getDecks());
     expect(decks).toHaveLength(2);
     expect(new Set(decks.map((deck) => deck.id)).size).toBe(2);
     expect(decks.every((deck) => deck.name === "same.csv")).toBe(true);

@@ -1,3 +1,4 @@
+import { getDecks } from "@/entities/deck";
 import { getAuthUid } from "@/entities/auth";
 import { editCard, type CardContentInput, type CardId } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
@@ -17,7 +18,7 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<C
   };
 
   try {
-    await editCard(getAuthUid(), input);
+    await editCard(getAuthUid(), input, getDecks());
   } catch {
     showToast({ messageKey: "toast.saveFailure", tone: "error" });
     return;

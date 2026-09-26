@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { mutateCards } from "@/entities/card";
-import { createDeck } from "@/entities/deck";
+import { createDeck, getDecks } from "@/entities/deck";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({
@@ -66,29 +66,33 @@ describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MAN
       })
     );
     await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({
-          id: cardId,
-          deckId,
-          frontText: "Front one",
-          backText: "Back one",
-          tags: ["typescript"],
-          uniqueKey: "card-one",
-        }),
-      },
-      {
-        kind: "create",
-        card: createLocalCard({
-          id: nextCardId,
-          deckId: nextDeckId,
-          frontText: "Front two",
-          backText: "Back two",
-          uniqueKey: "card-two",
-        }),
-      },
-    ]);
+    await mutateCards(
+      "user-id",
+      [
+        {
+          kind: "create",
+          card: createLocalCard({
+            id: cardId,
+            deckId,
+            frontText: "Front one",
+            backText: "Back one",
+            tags: ["typescript"],
+            uniqueKey: "card-one",
+          }),
+        },
+        {
+          kind: "create",
+          card: createLocalCard({
+            id: nextCardId,
+            deckId: nextDeckId,
+            frontText: "Front two",
+            backText: "Back two",
+            uniqueKey: "card-two",
+          }),
+        },
+      ],
+      getDecks()
+    );
   });
 
   it("renders stored cards and navigates to the selected card editor", async () => {
@@ -138,7 +142,8 @@ describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MAN
             uniqueKey: `tag-card-${suffix}`,
           }),
         };
-      })
+      }),
+      getDecks()
     );
     renderPage();
 
@@ -217,18 +222,22 @@ describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MAN
         cardFilter: { selectedTags: ["missing"], tagAndFilter: true },
       })
     );
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({
-          id: "card-diff-8",
-          deckId: filteredDeckId,
-          frontText: "High diff",
-          tags: ["react"],
-          uniqueKey: "card-diff-8",
-        }),
-      },
-    ]);
+    await mutateCards(
+      "user-id",
+      [
+        {
+          kind: "create",
+          card: createLocalCard({
+            id: "card-diff-8",
+            deckId: filteredDeckId,
+            frontText: "High diff",
+            tags: ["react"],
+            uniqueKey: "card-diff-8",
+          }),
+        },
+      ],
+      getDecks()
+    );
 
     renderPage(`/deck/${filteredDeckId}`);
 

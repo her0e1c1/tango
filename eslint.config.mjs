@@ -17,6 +17,16 @@ const nonProductionFiles = ["src/**/*.{spec,test,stories}.{ts,tsx}"];
 // Stories share those production exemptions, but only spec and test modules use Vitest and Testing Library semantics.
 const vitestFiles = ["src/**/*.{spec,test}.{ts,tsx}", "test/integration/**/*.{spec,test}.{ts,tsx}"];
 const playwrightFiles = ["test/e2e/**/*.{ts,tsx}", "playwright.config.ts"];
+// Static import restrictions do not inspect dynamic loaders or test module mocks.
+const crossSliceRuntimeRestrictions = [{
+  selector: [
+    "ImportExpression[source.value=/\\/@x(\\/|$)/]",
+    "CallExpression[callee.name='require'][arguments.0.value=/\\/@x(\\/|$)/]",
+    "TSImportEqualsDeclaration[importKind!='type'][moduleReference.expression.value=/\\/@x(\\/|$)/]",
+    "CallExpression[callee.object.name='vi'][callee.property.name=/^(mock|doMock|unmock|doUnmock|importActual|importMock)$/][arguments.0.value=/\\/@x(\\/|$)/]",
+  ].join(", "),
+  message: "Cross-slice @x contracts cannot be loaded or mocked at runtime.",
+}];
 // no-restricted-imports uses gitignore patterns: a directory also matches its descendants.
 const apiImports = {
   group: ["../**/api", "@/**/api"],
@@ -51,6 +61,7 @@ export default defineConfig(
       parser: tsParser,
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
     },
+    rules: { "no-restricted-syntax": ["error", ...crossSliceRuntimeRestrictions] },
   },
   // Hook correctness and React Compiler compatibility must hold in production, tests, and stories alike.
   {
@@ -63,6 +74,7 @@ export default defineConfig(
       // Match identifiers rather than imports alone so qualified calls such as React.useMemo cannot bypass the policy.
       "no-restricted-syntax": [
         "error",
+        ...crossSliceRuntimeRestrictions,
         {
           selector: "Identifier[name='useCallback']",
           message: "Do not use useCallback; rely on React Compiler memoization.",
@@ -72,6 +84,29 @@ export default defineConfig(
           message: "Do not use useMemo; rely on React Compiler memoization.",
         },
       ],
+    },
+  },
+  // Keep cross-slice contracts type-only independently of the narrower UI import policies below.
+  {
+    files: [...sourceFiles, ...vitestFiles, ...playwrightFiles],
+    plugins: { "@typescript-eslint": tseslint },
+    rules: {
+      "@typescript-eslint/no-restricted-imports": ["error", {
+        patterns: [{
+          group: ["**/@x", "**/@x/**"],
+          allowTypeImports: true,
+          message: "Cross-slice @x contracts are type-only; receive runtime dependencies through function arguments.",
+        }],
+      }],
+    },
+  },
+  {
+    files: ["src/entities/*/@x/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": ["error", {
+        selector: "Program > :not(ExportNamedDeclaration[exportKind='type']):not(ExportAllDeclaration[exportKind='type'])",
+        message: "Cross-slice @x modules may contain only type re-exports.",
+      }],
     },
   },
   // Steiger owns FSD dependency direction and public APIs.

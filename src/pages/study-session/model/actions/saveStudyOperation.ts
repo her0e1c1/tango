@@ -21,7 +21,7 @@ export function saveStudyOperation(input: StudyOperation, session: StudySession)
     session.cardOrderIds.length !== operation.cardCount
   )
     throw new Error("Study session does not match");
-  const card = getCards().find(({ id }) => id === operation.cardId);
+  const card = getCards(getDecks()).find(({ id }) => id === operation.cardId);
   const deck = getDecks().find(({ id }) => id === operation.deckId);
   if (card?.uid !== operation.uid || deck?.uid !== operation.uid || card.deckId !== deck.id)
     throw new Error("Study references do not match");
@@ -32,7 +32,7 @@ export function saveStudyOperation(input: StudyOperation, session: StudySession)
     operation.currentIndex + 1
   );
   if (operation.rating !== undefined && operation.fsrs !== undefined) {
-    writeCardFsrs(batch, { ...operation, fsrs: operation.fsrs });
+    writeCardFsrs(batch, { ...operation, fsrs: operation.fsrs }, getDecks());
     writeStudyAnswer(batch, { ...operation, rating: operation.rating });
   }
   void batch.commit().catch(() => undefined);

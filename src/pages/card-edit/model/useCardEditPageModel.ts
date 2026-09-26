@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { type Card, useCard, useCardsByDeckId } from "@/entities/card";
-import { useDeck } from "@/entities/deck";
+import { useDeck, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import {
   addCardTag,
@@ -24,7 +24,7 @@ import { useCardEditFormState } from "./useCardEditFormState";
 
 export function useCardEditRouteModel(cardId: string | undefined) {
   if (cardId == null) throw new Error("invalid card id");
-  const card = useCard(cardId);
+  const card = useCard(cardId, useDecks());
   return { cardId, card };
 }
 
@@ -64,7 +64,7 @@ export function useCardEditPageModel(card: Card) {
   }, [card.backText, card.frontText, card.tags, cardListPath, guard, navigate, pending]);
   const tagValues = useWatch({ control: form.control, name: "tags" });
   const { tagRowIds, setTagRowIds } = useCardTagState(form.getValues("tags"));
-  const { tags: availableTags } = useCardsByDeckId(snapshot.deckId);
+  const { tags: availableTags } = useCardsByDeckId(snapshot.deckId, useDecks());
   const preview = useCardPreviewContent(form.control, deck?.category ?? "", preferences.appearance.darkMode);
 
   return {

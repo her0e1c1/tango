@@ -3,7 +3,7 @@ import type { DeckId, RemoteDeckCreateInput } from "@/entities/deck";
 
 import { getAuthUid } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
-import { createDeck } from "@/entities/deck";
+import { createDeck, getDecks } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import sampleCards from "../../../../../sample/build/output.json";
 
@@ -34,7 +34,7 @@ export async function addSampleDeck() {
   const uid = getAuthUid();
   const sample = prepareSampleDeck(uid);
   await createDeck(uid, sample.destination);
-  if (sample.mutations.length > 0) await mutateCards(uid, sample.mutations);
+  if (sample.mutations.length > 0) await mutateCards(uid, sample.mutations, getDecks());
   updatePreferences({ loadSample: false });
 
   return {

@@ -10,7 +10,7 @@ export function requestDeletion(deckId: Deck["id"]): void {
   requestDeckDeletion(deckId, {
     pending: deckEditPageStore.getState().deletionId !== undefined,
     decks: getDecks(),
-    cards: getCards(),
+    cards: getCards(getDecks()),
     setTarget: (deletionTarget) => deckEditPageStore.setState({ deletionTarget }),
   });
 }

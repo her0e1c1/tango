@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "@/app/App";
 import { appRoutes } from "@/app/routes";
-import { replaceAuthSession } from "@/entities/auth";
+import { replaceAuthSession, getAuthUid } from "@/entities/auth";
 import { createCard, getCards } from "@/entities/card";
 import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { getPreferences, updatePreferences } from "@/entities/preference";
@@ -35,7 +35,7 @@ async function seedLocalDeck(deck: ReturnType<typeof createLocalDeck>, cards: Re
 function savedState(deckId: string) {
   return structuredClone({
     decks: getDecks(),
-    cards: getCards(),
+    cards: getCards(getDecks()),
     preferences: getPreferences(),
     session: getStudySession(deckId),
     persisted: {
@@ -76,7 +76,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     );
     await seedLocalDeck(deck, cards);
     startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
-    setStudySessionIndex(deck.id, 1);
+    setStudySessionIndex(deck.id, 1, getAuthUid);
     const before = savedState(deck.id);
     let router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
     let view = render(<App router={router} />);
@@ -224,7 +224,7 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     await seedLocalDeck(deck, cards);
     updatePreferences({ study: { cardInterval: 1, defaultAutoPlay: true } });
     startStudy(deck.id, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, "user-id");
-    setStudySessionIndex(deck.id, 1);
+    setStudySessionIndex(deck.id, 1, getAuthUid);
     const before = savedState(deck.id);
     vi.useFakeTimers();
     const router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });

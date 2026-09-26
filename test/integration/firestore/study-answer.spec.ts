@@ -1,3 +1,4 @@
+import { getDecks } from "@/entities/deck";
 import { calculateFsrsState, getCards, subscribeCards, clearRemoteCards } from "@/entities/card";
 import { parseCardDocument } from "@/entities/card/api/document";
 import fs from "node:fs";
@@ -74,7 +75,7 @@ function operation(overrides: Partial<StudyOperation> = {}): StudyOperation {
     rating === undefined
       ? undefined
       : calculateFsrsState(
-          getCards().find((card) => card.id === (overrides.cardId ?? "card-0"))?.fsrs ?? null,
+          getCards(getDecks()).find((card) => card.id === (overrides.cardId ?? "card-0"))?.fsrs ?? null,
           rating,
           overrides.answeredAt ?? 2000
         );

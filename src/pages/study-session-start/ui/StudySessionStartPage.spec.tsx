@@ -1,5 +1,4 @@
 import "@/test/mockFirestorePersistence";
-vi.mock("@/entities/auth/@x/study-session", () => ({ getAuthUid: () => "user-id" }));
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
@@ -35,7 +34,6 @@ vi.mock("@/entities/auth", () => ({
 vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
   editDeck: mocks.editDeck,
-  isDeckTagSelectionMatching: () => true,
   useDeck: () => mocks.deck ?? undefined,
   getDecks: () => (mocks.deck === null ? [] : [mocks.deck]),
 }));

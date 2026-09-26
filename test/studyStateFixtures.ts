@@ -8,4 +8,6 @@ export function seedCardFsrs(cardId: string, dueAt: number) {
   return fsrs;
 }
 
-export { calculateFsrsState } from "@/entities/card/model/fsrsRules";
+export { calculateFsrsState, classifyFsrsState } from "@/entities/card/model/fsrsRules";
+
+export { isDeckTagSelectionMatching } from "@/entities/deck";

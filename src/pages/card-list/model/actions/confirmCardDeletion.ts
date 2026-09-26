@@ -1,3 +1,4 @@
+import { getDecks } from "@/entities/deck";
 import { getAuthUid } from "@/entities/auth";
 import { deleteCard } from "@/entities/card";
 import { showToast } from "@/shared/ui/toast";
@@ -10,7 +11,7 @@ export async function confirmCardDeletion(): Promise<void> {
   cardListStore.setState({ mutationId });
   try {
     const uid = getAuthUid();
-    await deleteCard(uid, deletionTarget.id);
+    await deleteCard(uid, deletionTarget.id, getDecks());
     if (cardListStore.getState().mutationId !== mutationId) return;
     showToast({
       messageKey: "cardList.toast.deleted",

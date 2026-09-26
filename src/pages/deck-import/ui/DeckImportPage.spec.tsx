@@ -56,7 +56,7 @@ import { DeckImportPage } from "./DeckImportPage";
 
 const DeckListDestination = () => {
   const decks = useDecks();
-  const cards = useCards();
+  const cards = useCards(useDecks());
   return (
     <>
       <h1>Deck list destination</h1>

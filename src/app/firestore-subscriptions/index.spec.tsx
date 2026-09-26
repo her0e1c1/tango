@@ -85,7 +85,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
 import { startFirestoreSubscriptions } from ".";
 
 const RepositoryView = () => {
-  const cards = useCards();
+  const cards = useCards(useDecks());
   const decks = useDecks();
   return (
     <>

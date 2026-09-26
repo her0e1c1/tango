@@ -1,5 +1,5 @@
 import { filterCardsByTags, useCards } from "@/entities/card";
-import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
+import { type Deck, getCategory, isHighlightLanguage, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import type { DeckFilterValues } from "@/features/deck-filter";
 import { buildCardPlayerHelpRows } from "@/features/card-player";
@@ -11,7 +11,7 @@ export function useDeckViewQuery(
   cardId: string | undefined,
   showBackText: boolean
 ) {
-  const deckCards = useCards().filter((candidate) => candidate.deckId === deck.id);
+  const deckCards = useCards(useDecks()).filter((candidate) => candidate.deckId === deck.id);
   const preferences = usePreferences();
   const cards = filterCardsByTags(deckCards, filter);
   const { index, card } = getDeckViewPosition(cards, cardId);

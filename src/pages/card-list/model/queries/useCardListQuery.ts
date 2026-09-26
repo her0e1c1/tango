@@ -1,5 +1,5 @@
 import { filterCardsByTags, useCardsByDeckId } from "@/entities/card";
-import { type Deck, getCategory, isHighlightLanguage } from "@/entities/deck";
+import { type Deck, getCategory, isHighlightLanguage, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 
 import type { DeckFilterValues } from "@/features/deck-filter";
@@ -15,7 +15,7 @@ interface CardListQueryOptions {
 
 export const useCardListQuery = ({ deck, filter, shownCard, sortOrder }: CardListQueryOptions) => {
   const preferences = usePreferences();
-  const { cards: deckCards, tags } = useCardsByDeckId(deck.id);
+  const { cards: deckCards, tags } = useCardsByDeckId(deck.id, useDecks());
   const matchingCards = filterCardsByTags(deckCards, filter);
   const cards = sortOrder === "newest" ? matchingCards.toSorted((a, b) => b.createdAt - a.createdAt) : matchingCards;
   const rawCount = deckCards.length;

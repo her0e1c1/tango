@@ -27,7 +27,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { replaceAuthSession } from "@/entities/auth";
+import { replaceAuthSession, getAuthUid } from "@/entities/auth";
 import { getCards, subscribeCards } from "@/entities/card";
 import { editDeck, getDecks, subscribeDecks } from "@/entities/deck";
 import {
@@ -173,7 +173,7 @@ describe("Firestore synchronization contracts", () => {
     await startContent();
     await serverBarrier("deck");
     expect(getDecks()).toEqual([]);
-    expect(getCards()).toEqual([]);
+    expect(getCards(getDecks())).toEqual([]);
     const batch = writeBatch(remote);
     for (const id of ["deck", "unchanged"]) batch.set(doc(remote, "deck", id), deckData(id));
     for (const id of ["a", "b"]) batch.set(doc(remote, "card", id), cardData(id));
@@ -181,18 +181,18 @@ describe("Firestore synchronization contracts", () => {
     const boundary = (await getDoc(doc(remote, "card", "a"))).data()?.updatedAt as Timestamp;
     expect(boundary).toEqual((await getDoc(doc(remote, "card", "b"))).data()?.updatedAt);
     await vi.waitFor(() => {
-      expect(getCards()).toHaveLength(2);
+      expect(getCards(getDecks())).toHaveLength(2);
       expect(getDecks()).toHaveLength(2);
     });
     await serverBarrier("card");
     await updateDoc(doc(remote, "card", "a"), { frontText: "first edit", updatedAt: serverTimestamp() });
-    await vi.waitFor(() => expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("first edit"));
+    await vi.waitFor(() => expect(getCards(getDecks()).find(({ id }) => id === "a")?.frontText).toBe("first edit"));
     await serverBarrier("card");
     await updateDoc(doc(remote, "card", "b"), { frontText: "second edit", updatedAt: serverTimestamp() });
-    await vi.waitFor(() => expect(getCards().find(({ id }) => id === "b")?.frontText).toBe("second edit"));
-    expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("first edit");
+    await vi.waitFor(() => expect(getCards(getDecks()).find(({ id }) => id === "b")?.frontText).toBe("second edit"));
+    expect(getCards(getDecks()).find(({ id }) => id === "a")?.frontText).toBe("first edit");
     await serverBarrier("card");
-    expect(getCards().map(({ id }) => id)).toEqual(["a", "b"]);
+    expect(getCards(getDecks()).map(({ id }) => id)).toEqual(["a", "b"]);
   });
 
   it.each(["card", "deck"])("[FIRESTORE-INCREMENTAL-SYNC-02] applies a remote %s tombstone", async (kind) => {
@@ -201,13 +201,13 @@ describe("Firestore synchronization contracts", () => {
     await setDoc(doc(remote, "card", "a"), cardData("a"));
     await setDoc(doc(remote, "card", "other"), cardData("other", "other"));
     await startContent();
-    await vi.waitFor(() => expect(getCards()).toHaveLength(2));
+    await vi.waitFor(() => expect(getCards(getDecks())).toHaveLength(2));
     await serverBarrier("card");
     await updateDoc(doc(remote, kind, kind === "deck" ? "deck" : "a"), {
       deletedAt: 1000,
       updatedAt: serverTimestamp(),
     });
-    await vi.waitFor(() => expect(getCards().map(({ id }) => id)).toEqual(["other"]));
+    await vi.waitFor(() => expect(getCards(getDecks()).map(({ id }) => id)).toEqual(["other"]));
     expect((await getDoc(doc(remote, kind, kind === "deck" ? "deck" : "a"))).data()?.deletedAt).toBe(1000);
   });
 
@@ -215,7 +215,7 @@ describe("Firestore synchronization contracts", () => {
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     for (const id of ["a", "b", "unchanged"]) await setDoc(doc(remote, "card", id), cardData(id));
     await startContent();
-    await vi.waitFor(() => expect(getCards()).toHaveLength(3));
+    await vi.waitFor(() => expect(getCards(getDecks())).toHaveLength(3));
     stopContent();
     const batch = writeBatch(remote);
     batch.update(doc(remote, "card", "a"), { frontText: "changed", updatedAt: serverTimestamp() });
@@ -224,8 +224,8 @@ describe("Firestore synchronization contracts", () => {
     await batch.commit();
     await startContent();
     await vi.waitFor(() => {
-      expect(getCards().map(({ id }) => id)).toEqual(["a", "c", "unchanged"]);
-      expect(getCards().find(({ id }) => id === "a")?.frontText).toBe("changed");
+      expect(getCards(getDecks()).map(({ id }) => id)).toEqual(["a", "c", "unchanged"]);
+      expect(getCards(getDecks()).find(({ id }) => id === "a")?.frontText).toBe("changed");
     });
     expect(errors).toEqual([]);
   });
@@ -290,7 +290,7 @@ describe("Firestore synchronization contracts", () => {
       )
     );
     stops.push(subscribeStudySessions(uid, onError));
-    startStudy({ uid, deckId: "deck", cardOrderIds: ["a", "b"], now: 1000 });
+    startStudy({ uid, deckId: "deck", cardOrderIds: ["a", "b"], now: 1000 }, getAuthUid);
     await vi.waitFor(() => {
       expect(started).toHaveLength(1);
       expect(getStudySession("deck")?.lastStudiedAt).toBe(1000);

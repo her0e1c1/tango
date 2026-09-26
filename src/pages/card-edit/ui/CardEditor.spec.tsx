@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { mutateCards, useCard } from "@/entities/card";
-import { CATEGORY, createDeck } from "@/entities/deck";
+import { CATEGORY, createDeck, useDecks, getDecks } from "@/entities/deck";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 
@@ -72,7 +72,7 @@ const AvailableCardEditorHarness = (props: { card: Card; onCancel: () => void; o
 };
 
 const StoredCardEditorHarness = (props: { cardId: CardId; onCancel: () => void; onSaved: () => void }) => {
-  const card = useCard(props.cardId);
+  const card = useCard(props.cardId, useDecks());
   return card === undefined ? null : (
     <AvailableCardEditorHarness card={card} onCancel={props.onCancel} onSaved={props.onSaved} />
   );
@@ -94,18 +94,22 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
     await createDeck("user-id", createLocalDeck({ id: deckId }));
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({
-          id: cardId,
-          deckId,
-          frontText: "Front text",
-          backText: "Back text",
-          tags: ["language"],
-        }),
-      },
-    ]);
+    await mutateCards(
+      "user-id",
+      [
+        {
+          kind: "create",
+          card: createLocalCard({
+            id: cardId,
+            deckId,
+            frontText: "Front text",
+            backText: "Back text",
+            tags: ["language"],
+          }),
+        },
+      ],
+      getDecks()
+    );
   });
 
   it("restores successfully saved form values from the Card Entity", async () => {
@@ -177,12 +181,16 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "Unsaved front");
 
-    await mutateCards("user-id", [
-      {
-        kind: "edit",
-        card: { id: cardId, frontText: "Subscription front", backText: "Subscription back" },
-      },
-    ]);
+    await mutateCards(
+      "user-id",
+      [
+        {
+          kind: "edit",
+          card: { id: cardId, frontText: "Subscription front", backText: "Subscription back" },
+        },
+      ],
+      getDecks()
+    );
 
     expect(frontText).toHaveValue("Unsaved front");
     await userEvent.click(screen.getByRole("tab", { name: "Back" }));

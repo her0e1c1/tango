@@ -1,4 +1,4 @@
-import { getDecks } from "@/entities/deck/@x/card";
+import type { Deck } from "@/entities/deck/@x/card";
 import { createStore } from "zustand/vanilla";
 
 import { cardIdSchema } from "./schema";
@@ -10,15 +10,14 @@ interface CardState {
 
 export const cardStore = createStore<CardState>(() => ({ remoteCards: [] }));
 
-export function getCards(): Card[] {
+export function getCards(decks: readonly Pick<Deck, "id" | "uid">[]): Card[] {
   const { remoteCards } = cardStore.getState();
-  const decks = getDecks();
   return remoteCards.filter((card) => decks.some((deck) => deck.id === card.deckId && deck.uid === card.uid));
 }
 
-export const findCardById = (id: CardId): Card | undefined => {
+export const findCardById = (id: CardId, decks: readonly Pick<Deck, "id" | "uid">[]): Card | undefined => {
   const cardId = cardIdSchema.parse(id);
-  return getCards().find((card) => card.id === cardId);
+  return getCards(decks).find((card) => card.id === cardId);
 };
 
 export const clearRemoteCards = (): void => {

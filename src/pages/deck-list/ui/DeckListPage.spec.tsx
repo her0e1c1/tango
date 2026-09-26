@@ -1,5 +1,5 @@
+import { getAuthUid } from "@/entities/auth";
 import "@/test/mockFirestorePersistence";
-vi.mock("@/entities/auth/@x/study-session", () => ({ getAuthUid: () => mocks.uid }));
 import { setStudySessionIndex } from "@/entities/study-session";
 import type { Preferences } from "@/entities/preference";
 
@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { mutateCards } from "@/entities/card";
-import { createDeck, deleteDeck } from "@/entities/deck";
+import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import { startStudy } from "@/test/entityFixtures";
 import { actAsync } from "@/test/act";
@@ -99,10 +99,14 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
     mocks.uid = "user-id";
     await createDeck("user-id", activeDeck);
     await createDeck("user-id", freshDeck);
-    await mutateCards("user-id", [
-      { kind: "create", card: activeCard },
-      { kind: "create", card: freshCard },
-    ]);
+    await mutateCards(
+      "user-id",
+      [
+        { kind: "create", card: activeCard },
+        { kind: "create", card: freshCard },
+      ],
+      getDecks()
+    );
     startStudy(activeDeck.id, [activeCard], mocks.preferences.study, mocks.uid);
   });
 
@@ -191,10 +195,10 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
 
   it("refreshes recency before Continue navigates while preserving the current card", async () => {
     const nextCard = createLocalCard({ id: "next-card", deckId: activeDeck.id, uniqueKey: "next-card" });
-    await mutateCards("user-id", [{ kind: "create", card: nextCard }]);
+    await mutateCards("user-id", [{ kind: "create", card: nextCard }], getDecks());
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
     startStudy(activeDeck.id, [activeCard, nextCard], { ...mocks.preferences.study, shuffled: false }, mocks.uid);
-    setStudySessionIndex(activeDeck.id, 1);
+    setStudySessionIndex(activeDeck.id, 1, getAuthUid);
     now.mockReturnValue(2000);
     startStudy(freshDeck.id, [freshCard], mocks.preferences.study, mocks.uid);
     const router = createMemoryRouter([

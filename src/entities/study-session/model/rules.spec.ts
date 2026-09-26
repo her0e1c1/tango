@@ -1,4 +1,4 @@
-import { calculateFsrsState } from "@/test/studyStateFixtures";
+import { calculateFsrsState, classifyFsrsState, isDeckTagSelectionMatching } from "@/test/studyStateFixtures";
 import { describe, expect, it, vi } from "vitest";
 import { createCard, createDeck } from "@/test/factories";
 
@@ -30,13 +30,23 @@ describe("study card selection [STUDY-SESSION-01]", () => {
       { ...card, id: "other-tag", tags: ["other"] },
       { ...card, id: "future", fsrs: { ...due, dueAt: due.dueAt + 1 } },
     ];
-    const selected = selectStudyCardsWithDeadline(cards, deck, useInterval, due.dueAt);
+    const selected = selectStudyCardsWithDeadline(
+      cards,
+      deck,
+      { useCardInterval: useInterval, classifyFsrsState, isDeckTagSelectionMatching },
+      due.dueAt
+    );
     expect(selected.cards.map(({ id }) => id)).toEqual(useInterval ? ["due", "new"] : ["due", "new", "future"]);
     expect(selected.nextDueAt).toBe(useInterval ? due.dueAt + 1 : undefined);
   });
   it("rejects malformed FSRS state instead of classifying it as new", () => {
     expect(() =>
-      selectStudyCardsWithDeadline([{ ...card, fsrs: { ...due, reps: 0 } }], deck, true, due.dueAt)
+      selectStudyCardsWithDeadline(
+        [{ ...card, fsrs: { ...due, reps: 0 } }],
+        deck,
+        { useCardInterval: true, classifyFsrsState, isDeckTagSelectionMatching },
+        due.dueAt
+      )
     ).toThrow();
   });
 });

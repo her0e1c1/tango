@@ -10,9 +10,9 @@ import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { replaceAuthSession } from "@/entities/auth";
+import { replaceAuthSession, getAuthUid } from "@/entities/auth";
 import { deleteCard, mutateCards } from "@/entities/card";
-import { createDeck } from "@/entities/deck";
+import { createDeck, getDecks } from "@/entities/deck";
 import { clearStudySessions, getStudySession, subscribeStudySessions } from "@/entities/study-session";
 import { startStudy } from "@/test/entityFixtures";
 import { dismissToast, ToastViewport } from "@/shared/ui/toast";
@@ -151,10 +151,14 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     mocks.toggleShowSkip.mockReset();
     mocks.toggleShowSwipeButtonList.mockReset();
     await createDeck("user-id", deck);
-    await mutateCards("user-id", [
-      { kind: "create", card: firstCard },
-      { kind: "create", card: secondCard },
-    ]);
+    await mutateCards(
+      "user-id",
+      [
+        { kind: "create", card: firstCard },
+        { kind: "create", card: secondCard },
+      ],
+      getDecks()
+    );
     startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
   });
 
@@ -187,7 +191,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
   });
 
   it("shows four ratings and prevents backward slider movement", () => {
-    setStudySessionIndex(deckId, 1);
+    setStudySessionIndex(deckId, 1, getAuthUid);
     renderPage();
     expect(screen.getByText("Again")).toBeVisible();
     expect(screen.getByText("Hard")).toBeVisible();
@@ -460,7 +464,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
   });
 
   it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
-    setStudySessionIndex(deckId, 1);
+    setStudySessionIndex(deckId, 1, getAuthUid);
     renderPage(`/deck/${deckId}/study`, "/previous");
 
     fireEvent.click(screen.getByRole("button", { name: "Swipe up" }));
@@ -608,8 +612,8 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
   });
 
   it("shows loading feedback while active session cards are unavailable", async () => {
-    await deleteCard("user-id", firstCard.id);
-    await deleteCard("user-id", secondCard.id);
+    await deleteCard("user-id", firstCard.id, getDecks());
+    await deleteCard("user-id", secondCard.id, getDecks());
     clearStudySessions();
     startStudy(deckId, [firstCard], mocks.preferences.study, "user-id");
 
@@ -693,7 +697,7 @@ vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
           answeredAt: operation.answeredAt,
         })
       ).catch(() => undefined);
-      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
+      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt }, getAuthUid);
       return {
         session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
         endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,

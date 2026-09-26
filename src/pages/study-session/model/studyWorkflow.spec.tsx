@@ -1,5 +1,5 @@
+import { getAuthUid } from "@/entities/auth";
 import "@/test/mockFirestorePersistence";
-vi.mock("@/entities/auth/@x/study-session", () => ({ getAuthUid: () => mocks.uid }));
 import { restoreStudySession } from "@/test/entityFixtures";
 import { setStudySessionIndex } from "@/entities/study-session";
 import type { Card } from "@/entities/card";
@@ -200,7 +200,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("completes the final Card without waiting for server acknowledgement", async () => {
-    setStudySessionIndex(deckId, 1);
+    setStudySessionIndex(deckId, 1, getAuthUid);
     mocks.persistOperation.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
@@ -292,7 +292,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       void result.current.swipeRight();
     });
     vi.mocked(Date.now).mockReturnValue(946_684_800_100);
-    touchStudySession(deckId);
+    touchStudySession(deckId, getAuthUid);
     await actAsync(async () => {
       request.resolve();
       await request.promise;
@@ -335,7 +335,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
 
   it.each([1, 0])("ignores backward slider movement at index %s without saving or hiding the answer", async (index) => {
     mocks.preferences = createPreferences({ cardSwipeLeft: "DoNothing", showSwipeFeedback: true });
-    setStudySessionIndex(deckId, index);
+    setStudySessionIndex(deckId, index, getAuthUid);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     await actAsync(async () => result.current.toggleBackText());
     const session = getStudySession(deckId);
@@ -352,7 +352,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("completes after the final Card is persisted and preserves the session Card count", async () => {
-    setStudySessionIndex(deckId, 1);
+    setStudySessionIndex(deckId, 1, getAuthUid);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
 
     if (result.current.query.status !== "studying") throw new Error("Expected an active Study state");
@@ -365,7 +365,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("shows a restored final Card instead of completion after a cloud rejection", async () => {
-    setStudySessionIndex(deckId, 1);
+    setStudySessionIndex(deckId, 1, getAuthUid);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     const previous = getStudySession(deckId);
     if (!previous) throw new Error("Expected the final Card");
@@ -379,7 +379,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("allows an explicit retry after Firestore rolls back a failed final Card save", async () => {
-    setStudySessionIndex(deckId, 1);
+    setStudySessionIndex(deckId, 1, getAuthUid);
     const previous = getStudySession(deckId);
     if (!previous) throw new Error("Expected the final Card");
     mocks.persistOperation.mockRejectedValueOnce(new Error("write failed"));
@@ -436,7 +436,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   it.each(["same Deck", "other Deck", "other UID"])(
     "starts %s with fresh presentation on the first render",
     async (destination) => {
-      setStudySessionIndex(deckId, 1);
+      setStudySessionIndex(deckId, 1, getAuthUid);
       const { result: firstResult, unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
       await actAsync(async () => firstResult.current.swipeRight());
       act(firstResult.current.openHelp);
@@ -467,7 +467,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   );
 
   it("hides old completion before effects when the mounted Page changes UID", async () => {
-    setStudySessionIndex(deckId, 1);
+    setStudySessionIndex(deckId, 1, getAuthUid);
     const presentations: unknown[] = [];
     const { result, rerender } = renderHook(() => {
       const model = useStudySessionPageModel(deckId);
@@ -485,7 +485,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it("ignores an old server acknowledgement after entering another Deck", async () => {
-    setStudySessionIndex(deckId, 1);
+    setStudySessionIndex(deckId, 1, getAuthUid);
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
     const { result: firstResult, unmount: unmountFirst } = renderHook(() => useStudySessionPageModel(deckId));
@@ -571,7 +571,7 @@ vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
           answeredAt: operation.answeredAt,
         })
       ).catch(() => undefined);
-      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
+      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt }, getAuthUid);
       return {
         session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
         endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,
