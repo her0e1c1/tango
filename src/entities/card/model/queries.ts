@@ -27,3 +27,10 @@ export const mustFindCardById = (id: CardId): Card => {
 export function findCardsByDeckId(deckId: string): Card[] {
   return filterCardsByDeckId(getCards(), deckId);
 }
+
+export function requireOwnedCard(uid: string, id: CardId) {
+  const card = findCardById(id);
+  if (card === undefined) throw new Error(`Card "${id}" was not found`);
+  if (!uid || card.uid !== uid) throw new Error("Card owner does not match the authenticated user");
+  return card;
+}

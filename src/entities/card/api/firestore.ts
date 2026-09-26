@@ -28,7 +28,7 @@ import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { applyCardSnapshot } from "../model/store";
 import { fsrsStateSchema, instantSchema, type FsrsState } from "../model/fsrs";
-import { findCardById } from "../model/queries";
+import { findCardById, requireOwnedCard } from "../model/queries";
 
 const CARD_COLLECTION = "card";
 
@@ -131,13 +131,6 @@ export function writeCardFsrs(
     fsrs: fsrsStateSchema.parse(input.fsrs),
     updatedAt: serverTimestamp(),
   });
-}
-
-function requireOwnedCard(uid: string, id: CardId) {
-  const card = findCardById(id);
-  if (card === undefined) throw new Error(`Card "${id}" was not found`);
-  if (!uid || card.uid !== uid) throw new Error("Card owner does not match the authenticated user");
-  return card;
 }
 
 export async function createOwnedCard(uid: string, card: CardCreateCommand): Promise<void> {
