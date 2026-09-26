@@ -13,8 +13,8 @@ import { deckListStore, type DeckListBootstrapStatus } from "../store";
 
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
-function summarizeDeck(cards: Card[], deck: Deck, now: number) {
-  const selected = selectStudyCardsWithDeadline(cards, deck, true, now);
+function summarizeDeck(deck: Deck, now: number) {
+  const selected = selectStudyCardsWithDeadline(deck.id, deck, true, now);
   let due = 0;
   let newCount = 0;
   let earliestDueAt: number | undefined;
@@ -72,7 +72,7 @@ function buildDeckListSections(
   const totals = { due: 0, new: 0 };
   const buildItem = (deck: Deck) => {
     const deckCards = cardsByDeck.get(deck.id) ?? [];
-    const review = enabled ? summarizeDeck(deckCards, deck, now) : undefined;
+    const review = enabled ? summarizeDeck(deck, now) : undefined;
     if (review) {
       totals.due += review.due;
       totals.new += review.new;

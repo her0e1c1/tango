@@ -24,9 +24,12 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
-  findCardsByDeckId: (deckId: string) => mocks.cards.filter((card) => card.deckId === deckId),
   useCards: () => mocks.cards,
   useCardsByDeckId: () => ({ cards: mocks.cards, tags: mocks.tags }),
+}));
+vi.mock("@/entities/card/@x/study-session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/card/@x/study-session")>()),
+  findCardsByDeckId: (deckId: string) => mocks.cards.filter((card) => card.deckId === deckId),
 }));
 vi.mock("@/entities/auth", () => ({
   useAuth: () => ({ uid: "user-id", isAnonymous: false }),

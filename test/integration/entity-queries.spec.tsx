@@ -1,8 +1,9 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { clearRemoteCards, findCardsByDeckId, getCards, useCards } from "@/entities/card";
+import { calculateFsrsState, clearRemoteCards, findCardsByDeckId, getCards, useCards } from "@/entities/card";
 import { clearRemoteDecks } from "@/entities/deck";
+import { selectStudyCardsWithDeadline } from "@/entities/study-session";
 import { requestDeckDeletion } from "@/features/deck-deletion";
 import { createCard, createDeck } from "@/test/factories";
 import { replaceRemoteCards, replaceRemoteDecks } from "@/test/utils/entityFixtures";
@@ -12,6 +13,45 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 beforeEach(() => {
   clearRemoteCards();
   clearRemoteDecks();
+});
+
+describe("Study selection queries [STUDY-SESSION-01 STUDY-SESSION-02]", () => {
+  it("reads current visible cards for the deck while respecting the draft and deadline", () => {
+    const deck = createDeck({ selectedTags: ["saved"] });
+    const otherDeck = createDeck({ id: "other" });
+    replaceRemoteDecks([deck, otherDeck]);
+    const draft = { selectedTags: ["draft"], tagAndFilter: false };
+    const card = createCard({ tags: ["draft"] });
+    const future = createCard({
+      id: "future",
+      tags: ["draft"],
+      fsrs: { ...calculateFsrsState(null, "good", 0), dueAt: 2000 },
+    });
+    replaceRemoteCards([
+      card,
+      future,
+      createCard({ id: "saved", tags: ["saved"] }),
+      createCard({ id: "other-deck", deckId: otherDeck.id, tags: ["draft"] }),
+      createCard({ id: "other-owner", uid: "other", tags: ["draft"] }),
+    ]);
+
+    expect(selectStudyCardsWithDeadline(deck.id, draft, true, 1000)).toEqual({
+      cards: [card],
+      nextDueAt: 2000,
+    });
+    expect(selectStudyCardsWithDeadline(deck.id, draft, true, 2000)).toEqual({
+      cards: [card, future],
+      nextDueAt: undefined,
+    });
+    expect(selectStudyCardsWithDeadline(deck.id, draft, false, 1000).cards).toEqual([card, future]);
+
+    replaceRemoteCards([future]);
+
+    expect(selectStudyCardsWithDeadline(deck.id, draft, true, 1000)).toEqual({
+      cards: [],
+      nextDueAt: 2000,
+    });
+  });
 });
 
 afterEach(() => cleanup());

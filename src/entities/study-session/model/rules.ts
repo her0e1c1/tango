@@ -38,15 +38,6 @@ export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCar
   return { cards: selected, nextDueAt };
 }
 
-export function selectStudyCards<TCard extends StudyCardSelectionCard>(
-  cards: readonly TCard[],
-  deck: StudyCardSelectionDeck,
-  useCardInterval: boolean,
-  now = Date.now()
-): TCard[] {
-  return selectStudyCardsWithDeadline(cards, deck, useCardInterval, now).cards;
-}
-
 // Resolves whether an active session can study now, is waiting for Cards, or is invalid.
 export const resolveStudySession = <Card extends { id: string }>(
   session: StudySession | undefined,

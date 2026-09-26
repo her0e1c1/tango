@@ -14,8 +14,8 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
   findDeckById: (id: string) => (mocks.deck?.id === id ? mocks.deck : undefined),
 }));
-vi.mock("@/entities/card", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/entities/card")>()),
+vi.mock("@/entities/card/@x/study-session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/card/@x/study-session")>()),
   findCardsByDeckId: (deckId: string) =>
     (mocks.cards ?? [createCard({ id: "card", deckId: "deck" })]).filter((card) => card.deckId === deckId),
 }));
