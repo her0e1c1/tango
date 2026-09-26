@@ -1,4 +1,5 @@
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { getAuthUid } from "@/entities/auth";
 import type React from "react";
 

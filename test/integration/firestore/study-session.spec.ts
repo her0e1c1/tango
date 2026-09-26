@@ -401,8 +401,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       const final = getStudySession(deckId);
       if (final === undefined) throw new Error("Expected the latest session");
       expect(final.sessionId).toBe(started.sessionId);
-      const result =
-        await (endReason === "completed" ? saveStudyOperation(skipOperation(final), final) : abandonStudySession(deckId));
+      const result = await (endReason === "completed"
+        ? saveStudyOperation(skipOperation(final), final)
+        : abandonStudySession(deckId));
       expect(result?.endReason).toBe(endReason === "completed" ? "completed" : undefined);
       await waitForPendingWrites(testDb);
       const ended = (await readSession(started.sessionId)).data();

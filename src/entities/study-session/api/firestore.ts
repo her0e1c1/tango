@@ -40,10 +40,7 @@ async function createStudySession(session: StudySession, previous: StudySession 
   await settleFirestoreWrite(batch.commit());
 }
 
-async function updateStudySession(
-  session: StudySession,
-  endReason: StudySessionSnapshot["endReason"]
-): Promise<void> {
+async function updateStudySession(session: StudySession, endReason: StudySessionSnapshot["endReason"]): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
