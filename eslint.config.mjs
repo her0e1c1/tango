@@ -42,6 +42,56 @@ const pageRouteImports = ["react-router", "react-router-dom"].map((name) => ({
   message: "Import useParams only in *Page components under src/pages/*/ui/.",
 }));
 
+const legacyRuntimeEntityCrossImports = [
+  { file: "src/entities/card/model/hooks.ts", source: "@/entities/deck/@x/card", names: new Set(["useDecks"]) },
+  { file: "src/entities/card/model/store.ts", source: "@/entities/deck/@x/card", names: new Set(["getDecks"]) },
+  {
+    file: "src/entities/study-session/api/firestore.ts",
+    source: "@/entities/auth/@x/study-session",
+    names: new Set(["getAuthUid"]),
+  },
+  {
+    file: "src/entities/study-session/model/rules.ts",
+    source: "@/entities/card/@x/study-session",
+    names: new Set(["classifyFsrsState"]),
+  },
+  {
+    file: "src/entities/study-session/model/rules.ts",
+    source: "@/entities/deck/@x/study-session",
+    names: new Set(["isDeckTagSelectionMatching"]),
+  },
+];
+
+const typeOnlyEntityCrossImportsRule = {
+  meta: {
+    type: "problem",
+    schema: [],
+    messages: { runtime: "Use @x only with import type; runtime cross-Entity imports are not allowed." },
+  },
+  create(context) {
+    return {
+      ImportDeclaration(node) {
+        const source = node.source.value;
+        if (typeof source !== "string" || !/^@\/entities\/[^/]+\/@x\/[^/]+$/.test(source) || node.importKind === "type")
+          return;
+
+        const filename = context.filename.replaceAll("\\", "/");
+        const allowed = legacyRuntimeEntityCrossImports.find(
+          (entry) => filename.endsWith(entry.file) && entry.source === source
+        );
+        const runtimeNames = node.specifiers.flatMap((specifier) => {
+          if (specifier.type === "ImportSpecifier" && specifier.importKind === "type") return [];
+          if (specifier.type === "ImportSpecifier") return [specifier.imported.name];
+          return ["*"];
+        });
+
+        if (runtimeNames.length > 0 && allowed && runtimeNames.every((name) => allowed.names.has(name))) return;
+        context.report({ node, messageId: "runtime" });
+      },
+    };
+  },
+};
+
 // Flat config composes every matching block. Shared React and parsing checks come first, followed by narrower policies.
 export default defineConfig(
   { linterOptions: { noInlineConfig: true } },
@@ -57,7 +107,9 @@ export default defineConfig(
     files: sourceFiles,
     // React Compiler is enabled in Vite, so this preset checks both Hooks semantics and compiler-incompatible patterns.
     extends: [reactHooks.configs.flat["recommended-latest"]],
+    plugins: { tango: { rules: { "type-only-x-imports": typeOnlyEntityCrossImportsRule } } },
     rules: {
+      "tango/type-only-x-imports": "error",
       // React Compiler owns routine memoization, so manual caches would duplicate its work and add dependency lists
       // that can become stale.
       // Match identifiers rather than imports alone so qualified calls such as React.useMemo cannot bypass the policy.
