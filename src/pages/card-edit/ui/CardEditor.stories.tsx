@@ -210,8 +210,7 @@ export const RetrySave: Story = {
       await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
       await expect(persistCard).toHaveBeenLastCalledWith(
         APP_STORY_UID,
-        expect.objectContaining({ id: editingCard.id, frontText: "Retry front", backText: "Back text" }),
-        expect.any(Function)
+        expect.objectContaining({ id: editingCard.id, frontText: "Retry front", backText: "Back text" })
       );
     });
   },

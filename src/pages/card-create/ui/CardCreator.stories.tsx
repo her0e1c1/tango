@@ -135,8 +135,7 @@ export const CreateSuccess: Story = {
           backText: "Back value",
           tags: [],
           deckId: creationDeck.id,
-        }),
-        expect.any(Function)
+        })
       );
     });
   },
