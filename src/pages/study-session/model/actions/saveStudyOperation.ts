@@ -1,8 +1,7 @@
-import { settleFirestoreWrite } from "@/shared/api";
 import { writeCardFsrs, getCards } from "@/entities/card";
 import { writeStudyAnswer } from "@/entities/study-answer";
 import { getDecks } from "@/entities/deck";
-import { db, writeBatch } from "@/shared/firebase";
+import { auth, db, writeBatch } from "@/shared/firebase";
 import { getAuthUid } from "@/entities/auth";
 import { getStudySession, writeStudySessionPosition, type StudySession } from "@/entities/study-session";
 import { studyOperationSchema, type StudyOperation } from "../studyOperation";
@@ -36,6 +35,8 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
     writeCardFsrs(batch, { ...operation, fsrs: operation.fsrs });
     writeStudyAnswer(batch, { ...operation, rating: operation.rating });
   }
-  await settleFirestoreWrite(batch.commit());
+  const write = batch.commit();
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
   return result;
 }

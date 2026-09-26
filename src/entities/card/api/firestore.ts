@@ -1,4 +1,3 @@
-import { settleFirestoreWrite } from "@/shared/api";
 import type {
   CardCreate,
   CardCreateInput,
@@ -23,7 +22,7 @@ import {
   where,
   type WriteBatch,
 } from "firebase/firestore";
-import { db } from "@/shared/firebase";
+import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
@@ -67,7 +66,9 @@ const createCardDocument = async (card: CardCreate): Promise<void> => {
   }
   const createdAt = Date.now();
   const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: serverTimestamp() });
-  await settleFirestoreWrite(setDoc(reference, document));
+  const write = setDoc(reference, document);
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 };
 
 /** Validates Card ownership before creating its Firestore document. */
@@ -86,7 +87,9 @@ const updateCardDocument = async (card: CardEdit): Promise<void> => {
     updatedAt: serverTimestamp(),
   });
   const reference = doc(db, CARD_COLLECTION, card.id);
-  await settleFirestoreWrite(updateDoc(reference, document));
+  const write = updateDoc(reference, document);
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 };
 
 /** Validates Card ownership before editing its Firestore document. */
@@ -99,7 +102,9 @@ const editCard = async (uid: string, card: EditCardInput["card"]): Promise<void>
 const removeCardDocument = async (id: string): Promise<void> => {
   const deletedAt = Date.now();
   const reference = doc(db, CARD_COLLECTION, id);
-  await settleFirestoreWrite(updateDoc(reference, { updatedAt: serverTimestamp(), deletedAt }));
+  const write = updateDoc(reference, { updatedAt: serverTimestamp(), deletedAt });
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 };
 
 /** Validates Card ownership before tombstoning its Firestore document. */

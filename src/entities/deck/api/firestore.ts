@@ -1,4 +1,3 @@
-import { settleFirestoreWrite } from "@/shared/api";
 import type { z } from "zod";
 import type { DeckId, RemoteDeckCreateInput } from "../model/types";
 import {
@@ -12,7 +11,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { db } from "@/shared/firebase";
+import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
   authenticatedUidSchema,
@@ -52,7 +51,9 @@ export async function createDeck(uid: string, deck: RemoteDeckCreateInput): Prom
   const createdAt = Date.now();
   const document = toDeckDocument(input.uid, input.deck, createdAt);
   const reference = doc(db, DECK_COLLECTION, input.deck.id);
-  await settleFirestoreWrite(setDoc(reference, document));
+  const write = setDoc(reference, document);
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
 
 export async function editDeck(uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> {
@@ -69,7 +70,9 @@ export async function editDeck(uid: string, deck: z.input<typeof deckEditSchema>
     convertToBr: input.deck.convertToBr,
   });
   const reference = doc(db, DECK_COLLECTION, input.deck.id);
-  await settleFirestoreWrite(updateDoc(reference, document));
+  const write = updateDoc(reference, document);
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
 
 export async function deleteDeck(uid: string, deckId: DeckId): Promise<void> {
@@ -79,5 +82,7 @@ export async function deleteDeck(uid: string, deckId: DeckId): Promise<void> {
   // This keeps deletion atomic and offline-capable for decks of any size.
   const reference = doc(db, DECK_COLLECTION, id);
   const deletedAt = Date.now();
-  await settleFirestoreWrite(updateDoc(reference, { deletedAt, updatedAt: serverTimestamp() }));
+  const write = updateDoc(reference, { deletedAt, updatedAt: serverTimestamp() });
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }

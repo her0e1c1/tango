@@ -1,4 +1,3 @@
-import { settleFirestoreWrite } from "@/shared/api";
 import {
   onSnapshot,
   collection,
@@ -11,7 +10,7 @@ import {
   writeBatch,
   type WriteBatch,
 } from "firebase/firestore";
-import { db } from "@/shared/firebase";
+import { auth, db } from "@/shared/firebase";
 import { applyStudySessionSnapshot } from "../model/store";
 import { getStudyHistory } from "../model/rules";
 import { studySessionSchema } from "../model/schema";
@@ -37,21 +36,23 @@ async function createStudySession(session: StudySession, previous: StudySession 
     const previousReference = doc(db, "studySession", previous.sessionId);
     batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: serverTimestamp() });
   }
-  await settleFirestoreWrite(batch.commit());
+  const write = batch.commit();
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
 
 async function updateStudySession(session: StudySession, endReason: StudySessionSnapshot["endReason"]): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
-  await settleFirestoreWrite(
-    updateDoc(reference, {
-      ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
-      ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
-      lastStudiedAt: Date.now(),
-      updatedAt: serverTimestamp(),
-    })
-  );
+  const write = updateDoc(reference, {
+    ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
+    ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
+    lastStudiedAt: Date.now(),
+    updatedAt: serverTimestamp(),
+  });
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
 
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
@@ -173,7 +174,10 @@ export async function touchStudySession(deckId: string): Promise<void> {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
-  await settleFirestoreWrite(
-    updateDoc(doc(db, "studySession", session.sessionId), { lastStudiedAt: Date.now(), updatedAt: serverTimestamp() })
-  );
+  const write = updateDoc(doc(db, "studySession", session.sessionId), {
+    lastStudiedAt: Date.now(),
+    updatedAt: serverTimestamp(),
+  });
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
