@@ -24,20 +24,22 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardViewPage } from "./CardViewPage";
 
-describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
-  const deckId = "card-view-deck";
-  const cardId = "card-id";
-  const renderPage = (path = `/card/${cardId}`) =>
-    render(
-      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
-        <Routes>
-          <Route path="/previous" element={<h1>Previous page</h1>} />
-          <Route path="/" element={<h1>Deck list destination</h1>} />
-          <Route path="/card/:id" element={<CardViewPage />} />
-        </Routes>
-      </MemoryRouter>
-    );
+const deckId = "card-view-deck";
 
+const cardId = "card-id";
+
+const renderPage = (path = `/card/${cardId}`) =>
+  render(
+    <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+      <Routes>
+        <Route path="/previous" element={<h1>Previous page</h1>} />
+        <Route path="/" element={<h1>Deck list destination</h1>} />
+        <Route path="/card/:id" element={<CardViewPage />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
   beforeEach(async () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
@@ -50,13 +52,25 @@ describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
     ]);
   });
 
+  registerRendersTheStoredCardAnswerInTheApplicationShell();
+
+  registerUpdatesTheAnswerWhenTheRouteSelectsAnotherCardWithoutRemounting();
+
+  registerNavigatesWithBothRecoveryActionsWhenTheCardIsUnavailable();
+
+  registerRejectsARouteWithoutACardId();
+});
+
+function registerRendersTheStoredCardAnswerInTheApplicationShell() {
   it("renders the stored card answer in the application shell", () => {
     renderPage();
 
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Back text");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
+}
 
+function registerUpdatesTheAnswerWhenTheRouteSelectsAnotherCardWithoutRemounting() {
   it("updates the answer when the route selects another card without remounting", async () => {
     await mutateCards("user-id", [
       {
@@ -80,7 +94,9 @@ describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
     expect(screen.getByRole("region", { name: "Card answer" })).toHaveTextContent("Second answer");
     expect(screen.getByRole("region", { name: "Card answer" })).not.toHaveTextContent("Back text");
   });
+}
 
+function registerNavigatesWithBothRecoveryActionsWhenTheCardIsUnavailable() {
   it("navigates with both recovery actions when the card is unavailable", async () => {
     const view = renderPage("/card/missing-card");
 
@@ -94,7 +110,9 @@ describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
+}
 
+function registerRejectsARouteWithoutACardId() {
   it("rejects a route without a card id", () => {
     expect(() =>
       render(
@@ -104,4 +122,4 @@ describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
       )
     ).toThrowError("invalid card id");
   });
-});
+}

@@ -22,6 +22,34 @@ const card = createCard({ id: "card-id", frontText: "Front", backText: "Back", t
 const otherCard = createCard({ id: "other-id", frontText: "Other", backText: "Other back", tags: ["two"] });
 
 describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [CARD-LIST-ACTIONS-02]", () => {
+  registerRendersTheHeadingZeroCountAndCollapsedNoFilterSummary();
+
+  registerPreservesALongSelectedTagWithoutChangingItsText();
+
+  registerRemovesOneSelectedTagFromThePersistentFilterSummary();
+
+  registerRemovesASelectedTagViaKeyboardAndKeepsVisibleFocusOnTheRemainingTag();
+
+  registerRemovesTheFinalSelectedTagViaKeyboardAndMovesFocusToTheFiltersHeadingSummary();
+
+  registerMaintainsFocusOrderThroughChipsWithoutAlteringFiltersDuringTabNavigation();
+
+  registerShowsFilterDisclosureState();
+
+  registerKeepsOnlyOneMenuOpenAndRemovesItWithAMissingRow();
+
+  registerPreservesTheSTargetAndFocusAcrossReorderAndOtherRowChanges();
+
+  registerPreservesCardDisplayAndOverlayCloseCallbacks();
+
+  registerRendersEmptyStateWithAddCardActionForNoCards();
+
+  registerRendersEmptyStateWithClearFiltersActionForFilterZero();
+
+  registerRendersIntervalZeroEmptyStateWithoutClearFiltersAction();
+});
+
+function registerRendersTheHeadingZeroCountAndCollapsedNoFilterSummary() {
   it("renders the heading, zero count, and collapsed no-filter summary", () => {
     render(<CardList cards={[]} filterSlot={<div>Controls</div>} />);
 
@@ -32,7 +60,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     expect(screen.getByText("Filters")).toBeVisible();
     expect(screen.queryByText(/no cards/i)).not.toBeInTheDocument();
   });
+}
 
+function registerPreservesALongSelectedTagWithoutChangingItsText() {
   it("preserves a long selected tag without changing its text", () => {
     const longTag = `tag-${"unbroken".repeat(30)}`;
     render(<CardList cards={[card]} filter={{ selectedTags: [longTag] }} />);
@@ -40,7 +70,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
 
     expect(chip).toHaveTextContent(longTag);
   });
+}
 
+function registerRemovesOneSelectedTagFromThePersistentFilterSummary() {
   it("removes one selected tag from the persistent filter summary", async () => {
     const onRemoveTag = vi.fn();
     render(<CardList cards={[card]} filter={{ selectedTags: ["one", "two"] }} onRemoveTag={onRemoveTag} />);
@@ -48,7 +80,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     await userEvent.click(screen.getByRole("button", { name: "Remove one filter" }));
     expect(onRemoveTag).toHaveBeenCalledExactlyOnceWith("one");
   });
+}
 
+function registerRemovesASelectedTagViaKeyboardAndKeepsVisibleFocusOnTheRemainingTag() {
   it("removes a selected tag via keyboard and keeps visible focus on the remaining tag", async () => {
     const user = userEvent.setup();
     const onRemoveTag = vi.fn();
@@ -80,7 +114,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     await user.tab();
     expect(screen.getByRole("button", { name: "View Front" })).toHaveFocus();
   });
+}
 
+function registerRemovesTheFinalSelectedTagViaKeyboardAndMovesFocusToTheFiltersHeadingSummary() {
   it("removes the final selected tag via keyboard and moves focus to the filters heading summary", async () => {
     const user = userEvent.setup();
     const onRemoveTag = vi.fn();
@@ -113,7 +149,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     expect(summary).toHaveFocus();
     expect(summary).toHaveAccessibleName(/Filters\s*No filters/);
   });
+}
 
+function registerMaintainsFocusOrderThroughChipsWithoutAlteringFiltersDuringTabNavigation() {
   it("maintains focus order through chips without altering filters during tab navigation", async () => {
     const user = userEvent.setup();
     render(<CardList cards={[card]} filter={{ selectedTags: ["one", "two"] }} />);
@@ -128,12 +166,16 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     await user.tab({ shift: true });
     expect(oneChip).toHaveFocus();
   });
+}
 
+function registerShowsFilterDisclosureState() {
   it("shows filter disclosure state", () => {
     render(<CardList cards={[card]} />);
     expect(screen.getByText("Filters")).toBeVisible();
   });
+}
 
+function registerKeepsOnlyOneMenuOpenAndRemovesItWithAMissingRow() {
   it("keeps only one menu open and removes it with a missing row", async () => {
     const view = render(<CardList cards={[card, otherCard]} />);
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Front" }));
@@ -148,7 +190,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     view.rerender(<CardList cards={[card, otherCard]} />);
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
+}
 
+function registerPreservesTheSTargetAndFocusAcrossReorderAndOtherRowChanges() {
   it.each(["view", "edit"])(
     "preserves the %s target and focus across reorder and other row changes",
     async (target) => {
@@ -170,7 +214,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
       expect(target === "view" ? onShowCard : goToEdit).toHaveBeenCalledExactlyOnceWith(card.id);
     }
   );
+}
 
+function registerPreservesCardDisplayAndOverlayCloseCallbacks() {
   it("preserves card display and overlay close callbacks", () => {
     const onShowCard = vi.fn();
     const onClose = vi.fn();
@@ -182,7 +228,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     expect(onClose).toHaveBeenCalledOnce();
     expect(screen.getByText("Overlay back")).toBeInTheDocument();
   });
+}
 
+function registerRendersEmptyStateWithAddCardActionForNoCards() {
   it("renders empty state with Add card action for no-cards", async () => {
     const onAdd = vi.fn();
     render(
@@ -200,7 +248,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     await userEvent.click(screen.getByRole("button", { name: "Add card" }));
     expect(onAdd).toHaveBeenCalledOnce();
   });
+}
 
+function registerRendersEmptyStateWithClearFiltersActionForFilterZero() {
   it("renders empty state with Clear filters action for filter-zero", async () => {
     const onClear = vi.fn();
     render(
@@ -217,7 +267,9 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
     expect(onClear).toHaveBeenCalledOnce();
   });
+}
 
+function registerRendersIntervalZeroEmptyStateWithoutClearFiltersAction() {
   it("renders interval-zero empty state without Clear filters action", () => {
     render(
       <CardList
@@ -231,4 +283,4 @@ describe("CardList [CARD-VIEW-01] [CARD-LIST-ACTIONS-01] [CARD-MANAGEMENT-08] [C
     expect(screen.getByRole("heading", { level: 2, name: "No cards due for review" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
   });
-});
+}

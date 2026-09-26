@@ -6,6 +6,13 @@ import { fsrsStateSchema } from "./fsrs";
 
 const at = Date.UTC(2026, 8, 22);
 describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", () => {
+  registerSavesAndRestoresSWithoutChangingTheNextCalculation();
+  registerKeepsLibraryLapseSemanticsAcrossLearningReviewAndRelearning();
+  registerContinuesSerializedStateExactlyLikeThePinnedSchedulerAcrossRatingPhases();
+  registerClassifiesAbsenceAsNewWithoutFabricatingDifficulty();
+});
+
+function registerSavesAndRestoresSWithoutChangingTheNextCalculation() {
   it.each(["again", "hard", "good", "easy"] as const)(
     "saves and restores %s without changing the next calculation",
     (rating) => {
@@ -17,6 +24,9 @@ describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", ()
       expect(calculateFsrsState(saved, "good", fsrs.dueAt)).toEqual(calculateFsrsState(fsrs, "good", fsrs.dueAt));
     }
   );
+}
+
+function registerKeepsLibraryLapseSemanticsAcrossLearningReviewAndRelearning() {
   it("keeps library lapse semantics across learning, review and relearning", () => {
     const learning = calculateFsrsState(null, "again", at);
     expect(learning.state).toBe("learning");
@@ -29,6 +39,9 @@ describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", ()
     expect(relearning.reps).toBe(3);
     expect(getStudyRetrievability(review, review.lastReviewedAt)).toBe(1);
   });
+}
+
+function registerContinuesSerializedStateExactlyLikeThePinnedSchedulerAcrossRatingPhases() {
   it("continues serialized state exactly like the pinned scheduler across rating phases", () => {
     const library = createScheduler({
       request_retention: 0.9,
@@ -63,7 +76,10 @@ describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", ()
       saved = JSON.parse(JSON.stringify(saved)) as typeof saved;
     }
   });
+}
+
+function registerClassifiesAbsenceAsNewWithoutFabricatingDifficulty() {
   it("classifies absence as new without fabricating difficulty", () => {
     expect(classifyFsrsState(null, at)).toEqual({ status: "new" });
   });
-});
+}

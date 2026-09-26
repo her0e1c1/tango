@@ -1,4 +1,4 @@
-export { CardPlayer } from "./ui/CardPlayer";
+export { CardPlayer, type CardPlayerProps } from "./ui/CardPlayer";
 export { CardOverlay } from "./ui/CardOverlay";
 export { shouldIgnoreCardShortcut } from "./lib/shouldIgnoreCardShortcut";
 export { buildCardPlayerHelpRows } from "./model/queries/buildCardPlayerHelpRows";

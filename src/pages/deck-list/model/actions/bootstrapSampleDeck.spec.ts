@@ -84,6 +84,18 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
     repository.createDeckError = false;
   });
 
+  registerPersistsTheSampleLocallyWithoutASignedInUser();
+
+  registerPreservesExistingStorageWithoutAddingASample();
+
+  registerDoesNotAddASampleWhenAutomaticLoadingIsDisabled();
+
+  registerConvergesRepeatedBootstrapAttemptsAndStaysDisabledAfterTheSampleIsRemoved();
+
+  registerSetsErrorStatusOnFailureAndAllowsRetry();
+});
+
+function registerPersistsTheSampleLocallyWithoutASignedInUser() {
   it("persists the sample locally without a signed-in user", async () => {
     repository.uid = "anonymous-uid";
 
@@ -96,7 +108,9 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
     expect(repository.cards.length).toBeGreaterThan(0);
     expect(repository.cards.every((card) => card.deckId === `${repository.uid}-sample-v1`)).toBe(true);
   });
+}
 
+function registerPreservesExistingStorageWithoutAddingASample() {
   it("preserves existing storage without adding a sample", async () => {
     const existingDeck = createDeck({ id: "existing-deck", uid: repository.uid, name: "Existing Deck" });
     repository.decks = [existingDeck];
@@ -107,7 +121,9 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
     expect(repository.cards).toEqual([]);
     expect(repository.loadSample).toBe(true);
   });
+}
 
+function registerDoesNotAddASampleWhenAutomaticLoadingIsDisabled() {
   it("does not add a sample when automatic loading is disabled", async () => {
     repository.loadSample = false;
 
@@ -116,7 +132,9 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
     expect(repository.decks).toEqual([]);
     expect(repository.cards).toEqual([]);
   });
+}
 
+function registerConvergesRepeatedBootstrapAttemptsAndStaysDisabledAfterTheSampleIsRemoved() {
   it("converges repeated bootstrap attempts and stays disabled after the sample is removed", async () => {
     await Promise.all([bootstrapSampleDeck(), bootstrapSampleDeck()]);
 
@@ -132,7 +150,9 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
     expect(repository.cards).toEqual([]);
     expect(deckListStore.getState().bootstrapStatus).toBe("done");
   });
+}
 
+function registerSetsErrorStatusOnFailureAndAllowsRetry() {
   it("sets error status on failure and allows retry", async () => {
     repository.createDeckError = true;
     await bootstrapSampleDeck();
@@ -147,4 +167,4 @@ describe("bootstrapSampleDeck [DECK-IMPORT-07]", () => {
     expect(repository.loadSample).toBe(false);
     expect(repository.decks).toHaveLength(1);
   });
-});
+}

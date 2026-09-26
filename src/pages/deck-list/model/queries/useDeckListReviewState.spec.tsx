@@ -70,6 +70,16 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
     vi.useRealTimers();
   });
 
+  registerGroupsOnceSortsDueBeforeNewCountsActiveDataRatherThanSessionLengthAndKeepsFutureAndEmptyStates();
+
+  registerAppliesSavedTagFiltersANDSWithoutMaximumOrShuffle();
+
+  registerRefreshesAllDecksAtDeadlinesWithOneTimerAndReleasesItOnUnmount();
+
+  registerReevaluatesOnFocusVisibilityAndChangesToCardsFiltersSessionsAndPreference();
+});
+
+function registerGroupsOnceSortsDueBeforeNewCountsActiveDataRatherThanSessionLengthAndKeepsFutureAndEmptyStates() {
   it("groups once, sorts due before new, counts active data rather than session length and keeps future and empty states", () => {
     const before = structuredClone(input);
     const { result } = renderHook(useDeckListState);
@@ -85,7 +95,9 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
     ]);
     expect(input).toEqual(before);
   });
+}
 
+function registerAppliesSavedTagFiltersANDSWithoutMaximumOrShuffle() {
   it.each([false, true])("applies saved tag filters (AND=%s) without maximum or shuffle", (tagAndFilter) => {
     input.sessions = {};
     input.decks = [createDeck({ id: "filter", selectedTags: ["a", "b"], tagAndFilter })];
@@ -99,7 +111,9 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
     expect(result.current.totals).toEqual({ due: 1, new: tagAndFilter ? 1 : 2 });
     expect(result.current.nextDueAt).toBeUndefined();
   });
+}
 
+function registerRefreshesAllDecksAtDeadlinesWithOneTimerAndReleasesItOnUnmount() {
   it("refreshes all decks at deadlines with one timer and releases it on unmount", () => {
     const { result, unmount } = renderHook(useDeckListState);
     expect(vi.getTimerCount()).toBe(1);
@@ -110,7 +124,9 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
     unmount();
     expect(vi.getTimerCount()).toBe(0);
   });
+}
 
+function registerReevaluatesOnFocusVisibilityAndChangesToCardsFiltersSessionsAndPreference() {
   it("reevaluates on focus, visibility and changes to cards, filters, sessions and preference", () => {
     const { result, rerender } = renderHook(useDeckListState);
     vi.setSystemTime(2000);
@@ -136,4 +152,4 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
     expect(result.current.other).toHaveLength(8);
     expect(result.current.other.every((item) => item.review === undefined)).toBe(true);
   });
-});
+}

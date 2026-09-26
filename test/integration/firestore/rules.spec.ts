@@ -49,34 +49,21 @@ const setDoc = (reference: DocumentReference, data: DocumentData) =>
 const updateDoc = (reference: DocumentReference, data: DocumentData) =>
   updateDocument(reference, { ...data, updatedAt: serverTimestamp() });
 
+let testEnv: RulesTestEnvironment;
+
+const createData = async (path: string, id: string, data: object) => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, path, id), data);
+  });
+};
+
 describe("Firestore ownership and guest write restrictions", () => {
-  let testEnv: RulesTestEnvironment;
+  beforeAll(initializeTestEnvironmentState);
 
-  const createData = async (path: string, id: string, data: object) => {
-    await testEnv.withSecurityRulesDisabled(async (context) => {
-      const db = context.firestore();
-      await setDoc(doc(db, path, id), data);
-    });
-  };
+  beforeEach(resetTestState1);
 
-  beforeAll(async () => {
-    testEnv = await initializeTestEnvironment({
-      projectId: "test-rule",
-      firestore: {
-        rules: fs.readFileSync("./firestore.rules", "utf8"),
-        host: import.meta.env.VITE_DB_HOST,
-        port: Number.parseInt(import.meta.env.VITE_DB_PORT, 10),
-      },
-    });
-  });
-
-  beforeEach(async () => {
-    await testEnv.clearFirestore();
-  });
-
-  afterAll(async () => {
-    await testEnv.cleanup();
-  });
+  afterAll(cleanupTestEnvironment2);
 
   describe("StudySession", () => {
     const sessionData = () => ({
@@ -641,23 +628,7 @@ describe("Firestore ownership and guest write restrictions", () => {
     });
   });
 
-  it.each(["other-user", "anonymous", "unauthenticated"])(
-    "[FIRESTORE-RULES-DECK-23] rejects unsafe deck queries from %s",
-    async (actor) => {
-      await createData("deck", "private", { uid: "uid", isPublic: false, deletedAt: null });
-      await createData("deck", "public", { uid: "uid", isPublic: true, deletedAt: null });
-      const db =
-        actor === "unauthenticated"
-          ? testEnv.unauthenticatedContext().firestore()
-          : testEnv
-              .authenticatedContext(actor, {
-                firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
-              })
-              .firestore();
-      await assertFails(getDocs(firestoreCollection(db, "deck")));
-      await assertFails(getDocs(query(firestoreCollection(db, "deck"), where("uid", "==", "uid"))));
-    }
-  );
+  registerRejectsUnsafeDeckQueriesFromS();
 
   describe("Card FSRS", () => {
     const card = { uid: "owner", deckId: "deck", fsrs: null, createdAt: 1000, updatedAt: 1000, deletedAt: null };
@@ -730,3 +701,42 @@ describe("Firestore ownership and guest write restrictions", () => {
     });
   });
 });
+
+function registerRejectsUnsafeDeckQueriesFromS() {
+  it.each(["other-user", "anonymous", "unauthenticated"])(
+    "[FIRESTORE-RULES-DECK-23] rejects unsafe deck queries from %s",
+    async (actor) => {
+      await createData("deck", "private", { uid: "uid", isPublic: false, deletedAt: null });
+      await createData("deck", "public", { uid: "uid", isPublic: true, deletedAt: null });
+      const db =
+        actor === "unauthenticated"
+          ? testEnv.unauthenticatedContext().firestore()
+          : testEnv
+              .authenticatedContext(actor, {
+                firebase: { sign_in_provider: actor === "anonymous" ? "anonymous" : "google.com", identities: {} },
+              })
+              .firestore();
+      await assertFails(getDocs(firestoreCollection(db, "deck")));
+      await assertFails(getDocs(query(firestoreCollection(db, "deck"), where("uid", "==", "uid"))));
+    }
+  );
+}
+
+async function initializeTestEnvironmentState() {
+  testEnv = await initializeTestEnvironment({
+    projectId: "test-rule",
+    firestore: {
+      rules: fs.readFileSync("./firestore.rules", "utf8"),
+      host: import.meta.env.VITE_DB_HOST,
+      port: Number.parseInt(import.meta.env.VITE_DB_PORT, 10),
+    },
+  });
+}
+
+async function resetTestState1() {
+  await testEnv.clearFirestore();
+}
+
+async function cleanupTestEnvironment2() {
+  await testEnv.cleanup();
+}

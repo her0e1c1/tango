@@ -25,6 +25,48 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     dismissToast();
   });
 
+  registerPrimesAnEmptyPoliteLiveRegionBeforeANotificationIsActive();
+
+  registerPublishesNonErrorContentIntoTheAlreadyMountedPoliteLiveRegion();
+
+  registerAnnouncesErrorsOnlyThroughASiblingAssertiveRegion();
+
+  registerReplacesTheAnnouncedContentWhenTheSameMessageIsShownAgain();
+
+  registerAnnouncesSNotificationsWithANonColorCue();
+
+  registerTranslatesTheVisibleMessageAndAccessiblePresentationInPlaceWhenTheLanguageChanges();
+
+  registerDisplaysAndAnnouncesAnImportCountInSForSCards();
+
+  registerIncludesLocalizedFailureGuidanceInBothTheVisibleMessageAndItsAnnouncement();
+
+  registerDismissesTheActiveNotificationFromItsCloseButton();
+
+  registerUsesAConnectedApplicationFallbackWhenNavigationRemovesTheOriginalFocusTarget();
+
+  registerSupportsNonInteractiveNotifications();
+
+  registerShowsVisualContentWhileAnnouncingItsTextualMeaning();
+
+  registerAutomaticallyDismissesSNotificationsAfterFourSeconds();
+
+  registerKeepsWarningNotificationsUntilTheUserDismissesOrReplacesThem();
+
+  registerUsesAnExplicitDurationOverride();
+
+  registerRestoresFocusBeforeReplacingAGlobalNotification();
+
+  registerRestoresFocusWhenAFocusedGlobalNotificationTimesOut();
+
+  registerDoesNotTakeFocusBackWhenFocusHasMovedOutsideTheGlobalNotification();
+
+  registerShowsOnlyTheLatestNotificationAndIgnoresAnOlderId();
+
+  registerDoesNotLetAnOlderTimerDismissAReplacement();
+});
+
+function registerPrimesAnEmptyPoliteLiveRegionBeforeANotificationIsActive() {
   it("primes an empty polite live region before a notification is active", () => {
     render(<ToastViewport />);
 
@@ -32,7 +74,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
+}
 
+function registerPublishesNonErrorContentIntoTheAlreadyMountedPoliteLiveRegion() {
   it("publishes non-error content into the already-mounted polite live region", () => {
     render(<ToastViewport />);
     const primedStatus = screen.getByRole("status");
@@ -42,7 +86,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.getByRole("status")).toBe(primedStatus);
     expect(primedStatus).toHaveTextContent("Success: Signed in.");
   });
+}
 
+function registerAnnouncesErrorsOnlyThroughASiblingAssertiveRegion() {
   it("announces errors only through a sibling assertive region", () => {
     render(<ToastViewport />);
     const primedStatus = screen.getByRole("status", { name: "Toast notifications" });
@@ -61,7 +107,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.getByRole("status")).toBe(primedStatus);
     expect(primedStatus).toHaveTextContent("Success: Signed in.");
   });
+}
 
+function registerReplacesTheAnnouncedContentWhenTheSameMessageIsShownAgain() {
   it("replaces the announced content when the same message is shown again", () => {
     render(<ToastViewport />);
     const status = screen.getByRole("status", { name: "Toast notifications" });
@@ -73,7 +121,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.getByRole("status", { name: "Toast notifications" })).toBe(status);
     expect(within(status).getByText("Success: Signed in.")).not.toBe(firstAnnouncement);
   });
+}
 
+function registerAnnouncesSNotificationsWithANonColorCue() {
   it.each([
     ["neutral", "Information", "status", "polite"],
     ["success", "Success", "status", "polite"],
@@ -88,7 +138,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(toast).toHaveAttribute("aria-live", live);
     expect(toast).toHaveAttribute("aria-atomic", "true");
   });
+}
 
+function registerTranslatesTheVisibleMessageAndAccessiblePresentationInPlaceWhenTheLanguageChanges() {
   it("translates the visible message and accessible presentation in place when the language changes", async () => {
     vi.useFakeTimers();
     render(<ToastViewport />);
@@ -115,7 +167,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(status).toBeEmptyDOMElement();
     expect(screen.queryByText("2枚のカードをインポートしました。")).not.toBeInTheDocument();
   });
+}
 
+function registerDisplaysAndAnnouncesAnImportCountInSForSCards() {
   it.each([
     ["en", 1, "Imported 1 card."],
     ["en", 2, "Imported 2 cards."],
@@ -130,7 +184,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.getByText(expected)).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(expected);
   });
+}
 
+function registerIncludesLocalizedFailureGuidanceInBothTheVisibleMessageAndItsAnnouncement() {
   it("includes localized failure guidance in both the visible message and its announcement", () => {
     render(<ToastViewport />);
 
@@ -142,7 +198,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.getByText("You do not have permission to import this data.")).toBeVisible();
     expect(screen.getByRole("alert")).toHaveTextContent("Error: You do not have permission to import this data.");
   });
+}
 
+function registerDismissesTheActiveNotificationFromItsCloseButton() {
   it("dismisses the active notification from its close button", () => {
     render(
       <>
@@ -161,7 +219,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
+}
 
+function registerUsesAConnectedApplicationFallbackWhenNavigationRemovesTheOriginalFocusTarget() {
   it("uses a connected application fallback when navigation removes the original focus target", () => {
     const Harness = () => {
       const [sourceRoute, setSourceRoute] = React.useState(true);
@@ -194,7 +254,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
 
     expect(screen.getByRole("main")).toHaveFocus();
   });
+}
 
+function registerSupportsNonInteractiveNotifications() {
   it("supports non-interactive notifications", () => {
     render(<ToastViewport />);
     displayToast({ messageKey: "studySession.feedback.swipedRight", dismissible: false, durationMs: 900 });
@@ -202,7 +264,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.getByRole("status")).toHaveTextContent("Swiped right");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
+}
 
+function registerShowsVisualContentWhileAnnouncingItsTextualMeaning() {
   it("shows visual content while announcing its textual meaning", () => {
     render(<ToastViewport />);
     displayToast({
@@ -216,7 +280,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.getByRole("status")).toHaveTextContent("Information: Swiped right");
     expect(screen.getAllByText("Swiped right")).toHaveLength(1);
   });
+}
 
+function registerAutomaticallyDismissesSNotificationsAfterFourSeconds() {
   it.each(["neutral", "success", "error"] as const)(
     "automatically dismisses %s notifications after four seconds",
     (tone) => {
@@ -232,7 +298,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
       expect(screen.queryByText(message)).not.toBeInTheDocument();
     }
   );
+}
 
+function registerKeepsWarningNotificationsUntilTheUserDismissesOrReplacesThem() {
   it("keeps warning notifications until the user dismisses or replaces them", () => {
     vi.useFakeTimers();
     render(<ToastViewport />);
@@ -242,7 +310,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
 
     expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
   });
+}
 
+function registerUsesAnExplicitDurationOverride() {
   it("uses an explicit duration override", () => {
     vi.useFakeTimers();
     render(<ToastViewport />);
@@ -253,7 +323,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     act(() => vi.advanceTimersByTime(1));
     expect(screen.queryByText("Swiped up")).not.toBeInTheDocument();
   });
+}
 
+function registerRestoresFocusBeforeReplacingAGlobalNotification() {
   it("restores focus before replacing a global notification", () => {
     render(
       <>
@@ -274,7 +346,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     fireEvent.click(secondDismissButton);
     expect(trigger).toHaveFocus();
   });
+}
 
+function registerRestoresFocusWhenAFocusedGlobalNotificationTimesOut() {
   it("restores focus when a focused global notification times out", () => {
     vi.useFakeTimers();
     render(
@@ -293,7 +367,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
+}
 
+function registerDoesNotTakeFocusBackWhenFocusHasMovedOutsideTheGlobalNotification() {
   it("does not take focus back when focus has moved outside the global notification", () => {
     render(
       <>
@@ -312,7 +388,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
 
     expect(nextControl).toHaveFocus();
   });
+}
 
+function registerShowsOnlyTheLatestNotificationAndIgnoresAnOlderId() {
   it("shows only the latest notification and ignores an older id", () => {
     render(<ToastViewport />);
     const firstId = displayToast({ messageKey: "account.toast.signInSuccess" });
@@ -326,7 +404,9 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     expect(screen.getByText("Signed out.")).toBeVisible();
     expect(secondDismissButton).toHaveFocus();
   });
+}
 
+function registerDoesNotLetAnOlderTimerDismissAReplacement() {
   it("does not let an older timer dismiss a replacement", () => {
     vi.useFakeTimers();
     render(<ToastViewport />);
@@ -339,4 +419,4 @@ describe("Toast [ACCOUNT-05] [STUDY-ACTIONS-01] [ACCOUNT-02] [DECK-IMPORT-04] [D
     act(() => vi.advanceTimersByTime(500));
     expect(screen.queryByText("Signed in.")).not.toBeInTheDocument();
   });
-});
+}

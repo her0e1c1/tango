@@ -1,7 +1,14 @@
 import * as React from "react";
 import cx from "classnames";
 import { useTranslation } from "react-i18next";
-import { type FieldError, type UseFormReturn, useController, useFormState } from "react-hook-form";
+import {
+  type FieldError,
+  type FieldErrors,
+  type ControllerRenderProps,
+  type UseFormReturn,
+  useController,
+  useFormState,
+} from "react-hook-form";
 import { AiOutlineExpandAlt, AiOutlineRight } from "react-icons/ai";
 
 import { focusableElementSelector } from "@/shared/lib/focusableElementSelector";
@@ -39,46 +46,7 @@ interface CardFieldsDialogProps {
 const CardFieldsDialog = ({ title, expanded = false, closeLabel, onClose, children }: CardFieldsDialogProps) => {
   const { t } = useTranslation();
   const titleId = React.useId();
-  const dialogRef = React.useRef<HTMLDivElement>(null);
-  const closeRef = React.useRef<HTMLButtonElement>(null);
-  useToastModalFocusTarget(dialogRef, closeRef);
-
-  React.useEffect(() => {
-    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      if (previousFocus?.isConnected) previousFocus.focus();
-    };
-  }, []);
-
-  const handleKeyDown = React.useEffectEvent((event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      onClose();
-    } else if (event.key === "Tab") {
-      const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
-      const [first] = focusable;
-      const last = focusable.at(-1);
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last?.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first?.focus();
-      }
-    }
-  });
-
-  React.useEffect(() => {
-    const dialog = dialogRef.current;
-    if (dialog === null) return;
-    dialog.addEventListener("keydown", handleKeyDown);
-    return () => dialog.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  const { dialogRef, closeRef } = useCardFieldsDialog(onClose);
 
   return (
     <div
@@ -160,64 +128,128 @@ const CardSideError = ({ error, side, id }: { error: FieldError | undefined; sid
   );
 };
 
-export const CardFields = ({
-  availableTags,
-  tagRowIds,
-  tagOptions,
-  onAddTag,
-  onRenameTag,
-  onRemoveTag,
-  onSelectTag,
-  preview,
-  form,
-}: CardFieldsProps) => {
+export function CardFields(props: CardFieldsProps) {
+  return (
+    <>
+      <CardTextFields form={props.form} preview={props.preview} />
+      <CardTagFields {...props} />
+    </>
+  );
+}
+
+function useCardFieldsDialog(onClose: () => void) {
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const closeRef = React.useRef<HTMLButtonElement>(null);
+  useToastModalFocusTarget(dialogRef, closeRef);
+
+  React.useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, []);
+
+  const handleKeyDown = React.useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+    } else if (event.key === "Tab") {
+      const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
+      const [first] = focusable;
+      const last = focusable.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    }
+  });
+
+  React.useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog === null) return;
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => dialog.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  return { dialogRef, closeRef };
+}
+
+interface CardSideView {
+  name: CardSide;
+  title: string;
+  label: string;
+  field: ControllerRenderProps<CardFormFields, CardSide>;
+}
+interface CardSideTabsProps {
+  sides: readonly CardSideView[];
+  id: string;
+  activeSide: CardSide;
+  errors: FieldErrors<CardFormFields>;
+  onSelect: (side: CardSide) => void;
+  frontTabRef: React.RefObject<HTMLButtonElement | null>;
+  backTabRef: React.RefObject<HTMLButtonElement | null>;
+}
+function CardTextFields({ form, preview }: Pick<CardFieldsProps, "form" | "preview">) {
   const { t } = useTranslation();
   const formState = useFormState({ control: form.control });
-  const { field: frontField } = useController({ name: "frontText", control: form.control });
-  const { field: backField } = useController({ name: "backText", control: form.control });
-  const { field: tagsField } = useController({ name: "tags", control: form.control });
-  const [activeSide, setActiveSide] = React.useState<CardSide>("frontText");
   const [expanded, setExpanded] = React.useState(false);
-  const [openTagOptions, setOpenTagOptions] = React.useState<readonly string[] | null>(null);
-  const [validation, setValidation] = React.useState<{ count: number; side: CardSide | null }>({
-    count: formState.submitCount,
-    side: null,
-  });
+  const { activeSide, setActiveSide } = useCardSideSelection(form, formState);
   const id = React.useId();
   const frontTabRef = React.useRef<HTMLButtonElement>(null);
   const backTabRef = React.useRef<HTMLButtonElement>(null);
 
-  const invalidSide = (["frontText", "backText"] as const).find((side) => formState.errors[side]) ?? null;
-
-  // A failed submission must reveal its first invalid side before React Hook Form can focus that input.
-  if (validation.count !== formState.submitCount) {
-    setValidation({ count: formState.submitCount, side: invalidSide });
-    if (invalidSide) setActiveSide(invalidSide);
-  }
-  React.useEffect(() => {
-    if (validation.side) form.setFocus(validation.side);
-  }, [form, validation]);
-
-  const sides = [
-    {
-      name: "frontText",
-      title: t("cardForm.front.title"),
-      label: t("cardForm.front.label"),
-      field: frontField,
-    },
-    {
-      name: "backText",
-      title: t("cardForm.backSide.title"),
-      label: t("cardForm.backSide.label"),
-      field: backField,
-    },
-  ] as const;
+  const sides = useCardSides(form);
   const active = activeSide === "frontText" ? sides[0] : sides[1];
   const activeError = formState.errors[activeSide];
   const expandedErrorId = `${id}-expanded-error`;
-  const tags = tagsField.value;
-  const tagsSummaryId = `${id}-tags-summary`;
 
+  return (
+    <>
+      <section className="min-w-0 space-y-3" aria-label={t("cardForm.content")}>
+        <CardSideTabs
+          sides={sides}
+          id={id}
+          activeSide={activeSide}
+          errors={formState.errors}
+          onSelect={setActiveSide}
+          frontTabRef={frontTabRef}
+          backTabRef={backTabRef}
+        />
+        {sides.map((side) => (
+          <CardSidePanel
+            key={side.name}
+            side={side}
+            id={id}
+            activeSide={activeSide}
+            error={formState.errors[side.name]}
+            onExpand={() => setExpanded(true)}
+            preview={preview}
+          />
+        ))}
+      </section>
+      {expanded && (
+        <ExpandedCardSide
+          active={active}
+          error={activeError}
+          errorId={expandedErrorId}
+          onClose={() => setExpanded(false)}
+          preview={preview}
+        />
+      )}
+    </>
+  );
+}
+
+function CardSideTabs({ sides, id, activeSide, errors, onSelect, frontTabRef, backTabRef }: CardSideTabsProps) {
+  const { t } = useTranslation();
   const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     let nextSide: CardSide;
     if (event.key === "Home") nextSide = "frontText";
@@ -226,120 +258,158 @@ export const CardFields = ({
       nextSide = activeSide === "frontText" ? "backText" : "frontText";
     } else return;
     event.preventDefault();
-    setActiveSide(nextSide);
+    onSelect(nextSide);
     (nextSide === "frontText" ? frontTabRef : backTabRef).current?.focus();
   };
+  return (
+    <div role="tablist" aria-label={t("cardForm.content")} className="flex gap-1 rounded-control bg-surface-muted p-1">
+      {sides.map((side) => (
+        <button
+          key={side.name}
+          ref={side.name === "frontText" ? frontTabRef : backTabRef}
+          type="button"
+          role="tab"
+          id={`${id}-${side.name}-tab`}
+          aria-controls={`${id}-${side.name}-panel`}
+          aria-selected={activeSide === side.name}
+          aria-describedby={errors[side.name] ? `${id}-${side.name}-error` : undefined}
+          tabIndex={activeSide === side.name ? 0 : -1}
+          onClick={() => onSelect(side.name)}
+          onKeyDown={handleTabKeyDown}
+          className={cx(
+            "min-h-touch min-w-0 flex-1 rounded-control px-3 py-2 text-body font-semibold",
+            activeSide === side.name
+              ? "bg-surface text-accent-primary shadow-surface"
+              : "text-ink-muted hover:bg-surface"
+          )}
+        >
+          {side.title}
+          {errors[side.name] != null && (
+            <span aria-hidden="true" className="ml-2 text-danger">
+              ●
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
 
+function CardSidePanel({
+  side,
+  id,
+  activeSide,
+  error,
+  onExpand,
+  preview,
+}: {
+  side: CardSideView;
+  id: string;
+  activeSide: CardSide;
+  error: FieldError | undefined;
+  onExpand: () => void;
+  preview: React.ReactNode;
+}) {
+  const { t } = useTranslation();
+
+  const inputId = `${id}-${side.name}`;
+  const errorId = `${inputId}-error`;
+  return (
+    <div
+      key={side.name}
+      role="tabpanel"
+      id={`${inputId}-panel`}
+      aria-labelledby={`${inputId}-tab`}
+      hidden={activeSide !== side.name}
+      className="space-y-2"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <label htmlFor={inputId} className="text-caption font-medium text-ink-muted">
+          {side.label}
+        </label>
+        <button
+          type="button"
+          aria-label={t("cardForm.expandSide", { side: side.title })}
+          onClick={onExpand}
+          className="inline-flex min-h-touch items-center gap-2 rounded-control px-3 text-caption font-semibold text-accent-primary hover:bg-surface-muted"
+        >
+          <AiOutlineExpandAlt aria-hidden="true" />
+          {t("cardForm.expand")}
+        </button>
+      </div>
+      <Textarea
+        {...side.field}
+        id={inputId}
+        rows={12}
+        className="min-h-[min(45dvh,24rem)] text-lg leading-relaxed"
+        aria-invalid={error != null || undefined}
+        aria-describedby={error ? errorId : undefined}
+      />
+      {side.name === "backText" && <BackPreview>{preview}</BackPreview>}
+      <CardSideError error={error} side={side.name} id={errorId} />
+    </div>
+  );
+}
+
+function ExpandedCardSide({
+  active,
+  error,
+  errorId,
+  onClose,
+  preview,
+}: {
+  active: CardSideView;
+  error: FieldError | undefined;
+  errorId: string;
+  onClose: () => void;
+  preview: React.ReactNode;
+}) {
+  return (
+    <CardFieldsDialog title={active.label} expanded onClose={onClose}>
+      <div className="flex h-full min-h-0 flex-col gap-2">
+        {/* Keep the registered focus target in its tab while both editors share the same form value. */}
+        <Textarea
+          value={active.field.value}
+          onChange={active.field.onChange}
+          onBlur={active.field.onBlur}
+          aria-label={active.label}
+          aria-invalid={error != null || undefined}
+          aria-describedby={error ? errorId : undefined}
+          className="min-h-48 flex-1 resize-none text-xl leading-relaxed"
+        />
+        {active.name === "backText" && <BackPreview>{preview}</BackPreview>}
+        <CardSideError error={error} side={active.name} id={errorId} />
+      </div>
+    </CardFieldsDialog>
+  );
+}
+
+function CardTagFields({
+  availableTags,
+  tagRowIds,
+  tagOptions,
+  onAddTag,
+  onRenameTag,
+  onRemoveTag,
+  onSelectTag,
+  form,
+}: Omit<CardFieldsProps, "preview">) {
+  const { t } = useTranslation();
+  const formState = useFormState({ control: form.control });
+  const { field: tagsField } = useController({ name: "tags", control: form.control });
+  const [openTagOptions, setOpenTagOptions] = React.useState<readonly string[] | null>(null);
+  const id = React.useId();
+  const tags = tagsField.value;
   return (
     <>
-      <section className="min-w-0 space-y-3" aria-label={t("cardForm.content")}>
-        <div
-          role="tablist"
-          aria-label={t("cardForm.content")}
-          className="flex gap-1 rounded-control bg-surface-muted p-1"
-        >
-          {sides.map((side) => (
-            <button
-              key={side.name}
-              ref={side.name === "frontText" ? frontTabRef : backTabRef}
-              type="button"
-              role="tab"
-              id={`${id}-${side.name}-tab`}
-              aria-controls={`${id}-${side.name}-panel`}
-              aria-selected={activeSide === side.name}
-              aria-describedby={formState.errors[side.name] ? `${id}-${side.name}-error` : undefined}
-              tabIndex={activeSide === side.name ? 0 : -1}
-              onClick={() => setActiveSide(side.name)}
-              onKeyDown={handleTabKeyDown}
-              className={cx(
-                "min-h-touch min-w-0 flex-1 rounded-control px-3 py-2 text-body font-semibold",
-                activeSide === side.name
-                  ? "bg-surface text-accent-primary shadow-surface"
-                  : "text-ink-muted hover:bg-surface"
-              )}
-            >
-              {side.title}
-              {formState.errors[side.name] != null && (
-                <span aria-hidden="true" className="ml-2 text-danger">
-                  ●
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-        {sides.map((side) => {
-          const inputId = `${id}-${side.name}`;
-          const errorId = `${inputId}-error`;
-          const error = formState.errors[side.name];
-          return (
-            <div
-              key={side.name}
-              role="tabpanel"
-              id={`${inputId}-panel`}
-              aria-labelledby={`${inputId}-tab`}
-              hidden={activeSide !== side.name}
-              className="space-y-2"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <label htmlFor={inputId} className="text-caption font-medium text-ink-muted">
-                  {side.label}
-                </label>
-                <button
-                  type="button"
-                  aria-label={t("cardForm.expandSide", { side: side.title })}
-                  onClick={() => setExpanded(true)}
-                  className="inline-flex min-h-touch items-center gap-2 rounded-control px-3 text-caption font-semibold text-accent-primary hover:bg-surface-muted"
-                >
-                  <AiOutlineExpandAlt aria-hidden="true" />
-                  {t("cardForm.expand")}
-                </button>
-              </div>
-              <Textarea
-                {...side.field}
-                id={inputId}
-                rows={12}
-                className="min-h-[min(45dvh,24rem)] text-lg leading-relaxed"
-                aria-invalid={error != null || undefined}
-                aria-describedby={error ? errorId : undefined}
-              />
-              {side.name === "backText" && <BackPreview>{preview}</BackPreview>}
-              <CardSideError error={error} side={side.name} id={errorId} />
-            </div>
-          );
-        })}
-      </section>
-      <button
-        type="button"
-        aria-label={t("cardForm.tags.edit")}
-        aria-describedby={tagsSummaryId}
-        aria-haspopup="dialog"
-        aria-expanded={openTagOptions !== null}
-        onClick={() => {
-          // Keep imported tags in the open list even after deselection so they can be selected again.
-          setOpenTagOptions(tagOptions);
-        }}
-        className="flex min-h-14 w-full min-w-0 items-center gap-2 rounded-control border border-border bg-surface px-3 py-2 text-left hover:bg-surface-muted"
-      >
-        <span className="shrink-0 text-caption text-ink-muted">{t("cardForm.tags.title")}</span>
-        <span className="flex min-w-0 flex-1 items-center gap-1">
-          {tags.length === 0 && (
-            <span className="truncate text-caption text-ink-muted">{t("cardForm.tags.empty")}</span>
-          )}
-          {tags.slice(0, 2).map((tag, index) => (
-            <span
-              key={tagRowIds[index]}
-              className="max-w-28 truncate rounded bg-accent-primary/10 px-2 py-1 text-xs text-accent-primary"
-            >
-              {tag}
-            </span>
-          ))}
-          {tags.length > 2 && <span className="shrink-0 text-caption text-ink-muted">+{tags.length - 2}</span>}
-        </span>
-        <AiOutlineRight className="shrink-0 text-accent-primary" aria-hidden="true" />
-        <span id={tagsSummaryId} className="sr-only">
-          {tags.length === 0 ? t("cardForm.tags.empty") : tags.join(", ")}
-        </span>
-      </button>
+      <CardTagsSummary
+        tagsSummaryId={`${id}-tags-summary`}
+        open={openTagOptions !== null}
+        onOpen={() => setOpenTagOptions(tagOptions)}
+        tags={tags}
+        tagRowIds={tagRowIds}
+      />
+
       {formState.errors.tags !== undefined && openTagOptions === null && (
         <p role="alert" className="text-caption text-danger">
           {t("cardForm.tags.invalid")}
@@ -352,51 +422,19 @@ export const CardFields = ({
           onClose={() => setOpenTagOptions(null)}
         >
           <div className="mb-4 space-y-3">
-            {tags.map((tag, index) => {
-              const error = formState.errors.tags?.[index];
-              const rowId = `${id}-tag-${index.toString()}`;
-              return (
-                <div key={tagRowIds[index]} className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <label className="min-w-0 flex-1 text-caption" htmlFor={rowId}>
-                      {t("cardForm.tags.name", { count: index + 1 })}
-                      <Input
-                        id={rowId}
-                        value={tag}
-                        onChange={(event) => onRenameTag(index, event.target.value)}
-                        onBlur={tagsField.onBlur}
-                        onKeyDown={(event) => {
-                          // Enter edits the draft; only the Card's submit button saves it.
-                          if (event.key === "Enter") event.preventDefault();
-                        }}
-                        aria-invalid={error !== undefined || undefined}
-                        aria-describedby={error ? `${rowId}-error` : undefined}
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      className="min-h-touch shrink-0 rounded-control px-3 text-danger hover:bg-surface-muted"
-                      aria-label={t("cardForm.tags.remove", { count: index + 1 })}
-                      onClick={(event) => {
-                        const container = event.currentTarget.closest('[role="dialog"]');
-                        const inputs = container?.querySelectorAll<HTMLInputElement>('input[type="text"]');
-                        const next = inputs?.[index + 1] ?? inputs?.[index - 1];
-                        if (next) next.focus();
-                        else container?.querySelector<HTMLButtonElement>("[data-add-tag]")?.focus();
-                        onRemoveTag(index);
-                      }}
-                    >
-                      {t("cardForm.tags.removeAction")}
-                    </button>
-                  </div>
-                  {error !== undefined && (
-                    <p id={`${rowId}-error`} role="alert" className="text-caption text-danger">
-                      {t(error.message === "duplicate" ? "cardForm.tags.duplicate" : "cardForm.tags.required")}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
+            {tags.map((tag, index) => (
+              <CardTagRow
+                key={tagRowIds[index]}
+                tag={tag}
+                index={index}
+                id={id}
+                tagRowIds={tagRowIds}
+                error={formState.errors.tags?.[index]}
+                onRenameTag={onRenameTag}
+                onRemoveTag={onRemoveTag}
+                onBlur={tagsField.onBlur}
+              />
+            ))}
             <button
               type="button"
               data-add-tag
@@ -421,24 +459,158 @@ export const CardFields = ({
           </fieldset>
         </CardFieldsDialog>
       )}
-      {expanded ? (
-        <CardFieldsDialog title={active.label} expanded onClose={() => setExpanded(false)}>
-          <div className="flex h-full min-h-0 flex-col gap-2">
-            {/* Keep the registered focus target in its tab while both editors share the same form value. */}
-            <Textarea
-              value={active.field.value}
-              onChange={active.field.onChange}
-              onBlur={active.field.onBlur}
-              aria-label={active.label}
-              aria-invalid={activeError != null || undefined}
-              aria-describedby={activeError ? expandedErrorId : undefined}
-              className="min-h-48 flex-1 resize-none text-xl leading-relaxed"
-            />
-            {activeSide === "backText" && <BackPreview>{preview}</BackPreview>}
-            <CardSideError error={activeError} side={activeSide} id={expandedErrorId} />
-          </div>
-        </CardFieldsDialog>
-      ) : null}
     </>
   );
-};
+}
+
+function CardTagsSummary({
+  tagsSummaryId,
+  open,
+  onOpen,
+  tags,
+  tagRowIds,
+}: {
+  tagsSummaryId: string;
+  open: boolean;
+  onOpen: () => void;
+  tags: string[];
+  tagRowIds: readonly string[];
+}) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      aria-label={t("cardForm.tags.edit")}
+      aria-describedby={tagsSummaryId}
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      onClick={onOpen}
+      className="flex min-h-14 w-full min-w-0 items-center gap-2 rounded-control border border-border bg-surface px-3 py-2 text-left hover:bg-surface-muted"
+    >
+      <span className="shrink-0 text-caption text-ink-muted">{t("cardForm.tags.title")}</span>
+      <span className="flex min-w-0 flex-1 items-center gap-1">
+        {tags.length === 0 && <span className="truncate text-caption text-ink-muted">{t("cardForm.tags.empty")}</span>}
+        {tags.slice(0, 2).map((tag, index) => (
+          <span
+            key={tagRowIds[index]}
+            className="max-w-28 truncate rounded bg-accent-primary/10 px-2 py-1 text-xs text-accent-primary"
+          >
+            {tag}
+          </span>
+        ))}
+        {tags.length > 2 && <span className="shrink-0 text-caption text-ink-muted">+{tags.length - 2}</span>}
+      </span>
+      <AiOutlineRight className="shrink-0 text-accent-primary" aria-hidden="true" />
+      <span id={tagsSummaryId} className="sr-only">
+        {tags.length === 0 ? t("cardForm.tags.empty") : tags.join(", ")}
+      </span>
+    </button>
+  );
+}
+
+function CardTagRow({
+  tag,
+  index,
+  id,
+  tagRowIds,
+  error,
+  onRenameTag,
+  onRemoveTag,
+  onBlur,
+}: {
+  tag: string;
+  index: number;
+  id: string;
+  tagRowIds: readonly string[];
+  error: FieldError | undefined;
+  onRenameTag: CardFieldsProps["onRenameTag"];
+  onRemoveTag: CardFieldsProps["onRemoveTag"];
+  onBlur: () => void;
+}) {
+  const { t } = useTranslation();
+  const rowId = `${id}-tag-${index.toString()}`;
+  return (
+    <div key={tagRowIds[index]} className="space-y-1">
+      <div className="flex items-center gap-2">
+        <label className="min-w-0 flex-1 text-caption" htmlFor={rowId}>
+          {t("cardForm.tags.name", { count: index + 1 })}
+          <Input
+            id={rowId}
+            value={tag}
+            onChange={(event) => onRenameTag(index, event.target.value)}
+            onBlur={onBlur}
+            onKeyDown={(event) => {
+              // Enter edits the draft; only the Card's submit button saves it.
+              if (event.key === "Enter") event.preventDefault();
+            }}
+            aria-invalid={error !== undefined || undefined}
+            aria-describedby={error ? `${rowId}-error` : undefined}
+          />
+        </label>
+        <button
+          type="button"
+          className="min-h-touch shrink-0 rounded-control px-3 text-danger hover:bg-surface-muted"
+          aria-label={t("cardForm.tags.remove", { count: index + 1 })}
+          onClick={(event) => {
+            const container = event.currentTarget.closest('[role="dialog"]');
+            const inputs = container?.querySelectorAll<HTMLInputElement>('input[type="text"]');
+            const next = inputs?.[index + 1] ?? inputs?.[index - 1];
+            if (next) next.focus();
+            else container?.querySelector<HTMLButtonElement>("[data-add-tag]")?.focus();
+            onRemoveTag(index);
+          }}
+        >
+          {t("cardForm.tags.removeAction")}
+        </button>
+      </div>
+      {error !== undefined && (
+        <p id={`${rowId}-error`} role="alert" className="text-caption text-danger">
+          {t(error.message === "duplicate" ? "cardForm.tags.duplicate" : "cardForm.tags.required")}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function useCardSides(form: UseFormReturn<CardFormFields>) {
+  const { t } = useTranslation();
+  const { field: frontField } = useController({ name: "frontText", control: form.control });
+  const { field: backField } = useController({ name: "backText", control: form.control });
+  return [
+    {
+      name: "frontText",
+      title: t("cardForm.front.title"),
+      label: t("cardForm.front.label"),
+      field: frontField,
+    },
+    {
+      name: "backText",
+      title: t("cardForm.backSide.title"),
+      label: t("cardForm.backSide.label"),
+      field: backField,
+    },
+  ] as const;
+}
+
+function useCardSideSelection(
+  form: UseFormReturn<CardFormFields>,
+  formState: import("react-hook-form").UseFormStateReturn<CardFormFields>
+) {
+  const [activeSide, setActiveSide] = React.useState<CardSide>("frontText");
+  const [validation, setValidation] = React.useState<{ count: number; side: CardSide | null }>({
+    count: formState.submitCount,
+    side: null,
+  });
+  const invalidSide = (["frontText", "backText"] as const).find((side) => formState.errors[side]) ?? null;
+
+  // A failed submission must reveal its first invalid side before React Hook Form can focus that input.
+  if (validation.count !== formState.submitCount) {
+    setValidation({ count: formState.submitCount, side: invalidSide });
+    if (invalidSide) setActiveSide(invalidSide);
+  }
+  React.useEffect(() => {
+    if (validation.side) form.setFocus(validation.side);
+  }, [form, validation]);
+
+  return { activeSide, setActiveSide };
+}

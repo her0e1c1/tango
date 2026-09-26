@@ -44,6 +44,36 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
     updatePreferences(defaultPreferences);
   });
 
+  registerPersistsViewModeWithoutChangingOtherPreferences();
+
+  registerPersistsHidingAndRestoringTheViewEditLink();
+
+  registerShowsTheStudySkipControlByDefault();
+
+  registerKeepsBackTextSwipeOverlaysOffByDefault();
+
+  registerShowsTheStudyHelpShortcutByDefault();
+
+  registerUpdatesEachPreferenceGroupWithoutResettingOtherSettings();
+
+  registerUpdatesAndPersistsTheSLanguageWithoutResettingOtherPreferences();
+
+  registerValidatesNumericRangesDuringUpdates();
+
+  registerUpdatesPreferencesThroughThePublicHelpers();
+
+  registerPersistsPreferenceChanges();
+
+  registerHydratesVersion1PreferencesWithDefaultsForAdditiveFields();
+
+  registerHydratesTheVersion1MappingWithUpUpWithoutResettingOtherPreferences();
+
+  registerDiscardsVersion2PreferencesWithoutMigration();
+
+  registerUsesCurrentDefaultsForS();
+});
+
+function registerPersistsViewModeWithoutChangingOtherPreferences() {
   it("persists view mode without changing other preferences", async () => {
     const before = preferencesStore.getState().preferences;
     toggleViewMode();
@@ -56,7 +86,9 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
     await preferencesStore.persist.rehydrate();
     expect(preferencesStore.getState().preferences).toEqual(before);
   });
+}
 
+function registerPersistsHidingAndRestoringTheViewEditLink() {
   it("persists hiding and restoring the view edit link", async () => {
     expect(preferencesStore.getState().preferences.controls.showEditLink).toBe(true);
     toggleShowEditLink();
@@ -65,19 +97,27 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
     toggleShowEditLink();
     expect(preferencesStore.getState().preferences.controls.showEditLink).toBe(true);
   });
+}
 
+function registerShowsTheStudySkipControlByDefault() {
   it("shows the study skip control by default", () => {
     expect(defaultPreferences.controls.showSkip).toBe(true);
   });
+}
 
+function registerKeepsBackTextSwipeOverlaysOffByDefault() {
   it("keeps back text swipe overlays off by default", () => {
     expect(defaultPreferences.controls.showBackTextSwipeOverlays).toBe(false);
   });
+}
 
+function registerShowsTheStudyHelpShortcutByDefault() {
   it("shows the study Help shortcut by default", () => {
     expect(defaultPreferences.controls.showHelp).toBe(true);
   });
+}
 
+function registerUpdatesEachPreferenceGroupWithoutResettingOtherSettings() {
   it("updates each preference group without resetting other settings", () => {
     const store = preferencesStore;
 
@@ -106,7 +146,9 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
       },
     });
   });
+}
 
+function registerUpdatesAndPersistsTheSLanguageWithoutResettingOtherPreferences() {
   it.each(["system", "en", "ja"] as const)(
     "updates and persists the %s language without resetting other preferences",
     (language) => {
@@ -127,7 +169,9 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
       });
     }
   );
+}
 
+function registerValidatesNumericRangesDuringUpdates() {
   it("validates numeric ranges during updates", () => {
     const store = preferencesStore;
 
@@ -142,7 +186,9 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
     expect(store.getState().preferences.study.cardInterval).toBe(defaultPreferences.study.cardInterval);
     expect(store.getState().preferences.appearance.sizeBackText).toBe(defaultPreferences.appearance.sizeBackText);
   });
+}
 
+function registerUpdatesPreferencesThroughThePublicHelpers() {
   it("updates preferences through the public helpers", () => {
     setDarkMode(true);
     updatePreferences({ loadSample: false, study: { cardInterval: 15 } });
@@ -167,7 +213,9 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
       },
     });
   });
+}
 
+function registerPersistsPreferenceChanges() {
   it("persists preference changes", () => {
     const storage = useMemoryStorage();
 
@@ -193,7 +241,9 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
       version: 1,
     });
   });
+}
 
+function registerHydratesVersion1PreferencesWithDefaultsForAdditiveFields() {
   it("hydrates version 1 preferences with defaults for additive fields", async () => {
     const {
       language: _language,
@@ -233,7 +283,9 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
       },
     });
   });
+}
 
+function registerHydratesTheVersion1MappingWithUpUpWithoutResettingOtherPreferences() {
   it.each([
     { up: "GoToNextCardMastered", expectedUp: "RateEasy", expectedRight: "RateGood" },
     { up: "GoBack", expectedUp: "GoBack", expectedRight: "GoToNextCard" },
@@ -269,7 +321,9 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
       });
     }
   );
+}
 
+function registerDiscardsVersion2PreferencesWithoutMigration() {
   it("discards version 2 preferences without migration", async () => {
     useMemoryStorage({
       "tango-config": JSON.stringify({
@@ -296,7 +350,9 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
 
     expect(preferencesStore.getState().preferences).toEqual(defaultPreferences);
   });
+}
 
+function registerUsesCurrentDefaultsForS() {
   it.each([
     ["malformed JSON", "not-json"],
     ["schema mismatch", JSON.stringify({ state: { preferences: "invalid" }, version: 1 })],
@@ -308,4 +364,4 @@ describe("preferences store [STUDY-CONTROLS-09] [SETTINGS-06] [NAVIGATION-14]", 
 
     expect(preferencesStore.getState().preferences).toEqual(defaultPreferences);
   });
-});
+}

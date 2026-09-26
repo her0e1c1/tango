@@ -26,97 +26,103 @@ async function hasPendingChanges(uid: string): Promise<boolean> {
   return snapshots.some((snapshot) => snapshot.metadata.hasPendingWrites);
 }
 
+interface AuthLifecycle {
+  active: boolean;
+  generation: number;
+  subscription: ({ uid: string } & ReturnType<typeof startFirestoreSubscriptions>) | undefined;
+  bootstrap: Promise<unknown> | undefined;
+}
+
+const isCurrent = (state: AuthLifecycle, value: number) => state.active && value === state.generation;
+
+function stopSubscriptions(state: AuthLifecycle) {
+  state.subscription?.stop();
+  state.subscription = undefined;
+}
+
+async function prepareAuthChange(state: AuthLifecycle, nextUser: User | null) {
+  await initialNetworkStopped;
+  const previous = auth.currentUser;
+  if (previous?.uid === nextUser?.uid) return;
+  if (previous && !previous.isAnonymous) {
+    // Close editing before checking both this run's writes and writes restored from the SDK cache.
+    replaceAuthSession({ status: "initializing" });
+    try {
+      if (await hasPendingChanges(previous.uid)) throw new Error("Sync changes before signing out");
+    } catch (error) {
+      replaceAuthSession(authSessionFromUser(previous));
+      throw error;
+    }
+  }
+  await disableNetwork(db);
+  state.generation += 1;
+  stopSubscriptions(state);
+  replaceAuthSession({ status: "initializing" });
+}
+
+async function bootstrapAnonymousSession(state: AuthLifecycle): Promise<void> {
+  stopSubscriptions(state);
+  replaceAuthSession({ status: "authenticating", attemptId: Symbol("anonymous-auth") });
+  state.bootstrap ??= signInAnonymously(auth).finally(() => {
+    state.bootstrap = undefined;
+  });
+  await state.bootstrap;
+}
+
+async function restoreUserSession(state: AuthLifecycle, user: User, generation: number): Promise<void> {
+  if (state.subscription?.uid !== user.uid) {
+    stopSubscriptions(state);
+    state.subscription = { uid: user.uid, ...startFirestoreSubscriptions(user.uid) };
+  }
+  await state.subscription.ready;
+  if (!isCurrent(state, generation)) return;
+  replaceAuthSession(authSessionFromUser(user));
+}
+
+async function activate(state: AuthLifecycle, user: User | null): Promise<void> {
+  state.generation += 1;
+  const generation = state.generation;
+  try {
+    await initialNetworkStopped;
+    if (!isCurrent(state, generation)) return;
+    await (user && !user.isAnonymous ? enableNetwork(db) : disableNetwork(db));
+    if (!isCurrent(state, generation)) return;
+    if (user === null) {
+      await bootstrapAnonymousSession(state);
+      return;
+    }
+    await restoreUserSession(state, user, generation);
+  } catch (error) {
+    if (isCurrent(state, generation)) replaceAuthSession({ status: "error", error });
+  }
+}
+
 export function startAuthSession(): () => void {
-  let active = true;
-  let generation = 0;
-  const isCurrent = (value: number) => active && value === generation;
-  let subscription: ({ uid: string } & ReturnType<typeof startFirestoreSubscriptions>) | undefined;
-  let bootstrap: Promise<unknown> | undefined;
-  const stopSubscriptions = () => {
-    subscription?.stop();
-    subscription = undefined;
-  };
-  const reportError = (error: unknown) => {
-    if (active) replaceAuthSession({ status: "error", error });
-  };
+  const state: AuthLifecycle = { active: true, generation: 0, subscription: undefined, bootstrap: undefined };
   const stopBefore = beforeAuthStateChanged(
     auth,
-    async (nextUser) => {
-      await initialNetworkStopped;
-      const previous = auth.currentUser;
-      if (previous?.uid === nextUser?.uid) return;
-      if (previous && !previous.isAnonymous) {
-        // Close editing before checking both this run's writes and writes restored from the SDK cache.
-        replaceAuthSession({ status: "initializing" });
-        try {
-          if (await hasPendingChanges(previous.uid)) throw new Error("Sync changes before signing out");
-        } catch (error) {
-          replaceAuthSession(authSessionFromUser(previous));
-          throw error;
-        }
-      }
-      await disableNetwork(db);
-      generation += 1;
-      stopSubscriptions();
-      replaceAuthSession({ status: "initializing" });
-    },
+    (nextUser) => prepareAuthChange(state, nextUser),
     () => {
       // A later Firebase blocking callback may abort the change; restore the still-current identity.
       const user = auth.currentUser;
-      if (user) void activate(user);
+      if (user) void activate(state, user);
     }
   );
-
-  async function bootstrapAnonymousSession(): Promise<void> {
-    stopSubscriptions();
-    replaceAuthSession({ status: "authenticating", attemptId: Symbol("anonymous-auth") });
-    bootstrap ??= signInAnonymously(auth).finally(() => {
-      bootstrap = undefined;
-    });
-    await bootstrap;
-  }
-
-  async function restoreUserSession(user: User, currentGeneration: number): Promise<void> {
-    if (subscription?.uid !== user.uid) {
-      stopSubscriptions();
-      subscription = { uid: user.uid, ...startFirestoreSubscriptions(user.uid) };
-    }
-    await subscription.ready;
-    if (!isCurrent(currentGeneration)) return;
-    replaceAuthSession(authSessionFromUser(user));
-  }
-
-  async function activate(user: User | null): Promise<void> {
-    generation += 1;
-    const currentGeneration = generation;
-    try {
-      await initialNetworkStopped;
-      if (!isCurrent(currentGeneration)) return;
-      await (user && !user.isAnonymous ? enableNetwork(db) : disableNetwork(db));
-      if (!isCurrent(currentGeneration)) return;
-      if (user === null) {
-        await bootstrapAnonymousSession();
-        return;
-      }
-      await restoreUserSession(user, currentGeneration);
-    } catch (error) {
-      if (isCurrent(currentGeneration)) reportError(error);
-    }
-  }
-
   const stopAuth = onIdTokenChanged(
     auth,
     (user) => {
-      void activate(user);
+      void activate(state, user);
     },
-    reportError
+    (error) => {
+      if (state.active) replaceAuthSession({ status: "error", error });
+    }
   );
   return () => {
-    active = false;
-    generation += 1;
+    state.active = false;
+    state.generation += 1;
     stopAuth();
     stopBefore();
-    stopSubscriptions();
+    stopSubscriptions(state);
     if (getAuthSession().status !== "error") replaceAuthSession({ status: "initializing" });
   };
 }

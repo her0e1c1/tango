@@ -69,6 +69,32 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     vi.restoreAllMocks();
   });
 
+  registerWaitsForBothReadsDisplaysCachedValuesAndRendersEveryDate();
+
+  registerDoesNotCountAFailedReadAsZeroAndRetriesBothReadsWithANewlyCalculatedPeriod();
+
+  registerRecalculatesTheSharedPeriodOnRetryAfterTheCalendarDayChanges();
+
+  registerRefreshesTheCalendarAtMidnightWhilePreservingCustomDatesS();
+
+  registerKeepsCustomRangeResultsAndSubscriptionsAtMidnightButRetriesExplicitly();
+
+  registerUsesTheURLForFilteringBackForwardAndIgnoresPreviousDeckAndUIDCallbacks();
+
+  registerWaitsForDeckInitializationBeforeDeclaringURLSelectionSUnavailable();
+
+  registerRemovesDeletedDeckCountsAndTranslatesUIWithoutChangingTheSelectedDeck();
+
+  registerSelects7And90DaysKeepsAllDailyValuesAndIgnoresDelayedResultsFromThePreviousPeriod();
+
+  registerAppliesInclusiveCustomDatesPreservesThemOnDeckChangesAndRetryAndRestoresURLNavigation();
+
+  registerRejectsInvalidDraftsWithoutReplacingTheDisplayedPeriod();
+
+  registerDoesNotSubstituteADefaultPeriodForAnInvalidURLS();
+});
+
+function registerWaitsForBothReadsDisplaysCachedValuesAndRendersEveryDate() {
   it("waits for both reads, displays cached values, and renders every date", async () => {
     renderPage();
     expect(screen.getByRole("status")).toHaveTextContent("Loading");
@@ -94,7 +120,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
         .map((cell) => cell.textContent)
     ).toEqual(["1", "1"]);
   });
+}
 
+function registerDoesNotCountAFailedReadAsZeroAndRetriesBothReadsWithANewlyCalculatedPeriod() {
   it("does not count a failed read as zero and retries both reads with a newly calculated period", async () => {
     const user = userEvent.setup();
     renderPage();
@@ -112,7 +140,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     emit();
     expect(screen.getByText("No study records in this period.")).toBeVisible();
   });
+}
 
+function registerRecalculatesTheSharedPeriodOnRetryAfterTheCalendarDayChanges() {
   it("recalculates the shared period on retry after the calendar day changes", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 8, 21, 12));
@@ -125,7 +155,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     expect(screen.getByRole("row", { name: "Oct 21, 2026 1 1" })).toBeVisible();
     expect(screen.getByText("Sep 22, 2026 – Oct 21, 2026")).toBeVisible();
   });
+}
 
+function registerRefreshesTheCalendarAtMidnightWhilePreservingCustomDatesS() {
   it.each([
     ["days=7", new Date(2026, 8, 16).getTime(), new Date(2026, 8, 23).getTime(), ["2026-09-16", "2026-09-22"]],
     [
@@ -150,7 +182,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
       expect(screen.getByLabelText("End date")).toHaveValue(endDate);
     }
   );
+}
 
+function registerKeepsCustomRangeResultsAndSubscriptionsAtMidnightButRetriesExplicitly() {
   it("keeps custom-range results and subscriptions at midnight but retries explicitly", () => {
     vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
     vi.setSystemTime(new Date(2026, 8, 21, 23, 59, 59));
@@ -172,7 +206,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     expect(screen.getByLabelText("Start date")).toHaveValue("2026-09-20");
     expect(screen.getByLabelText("End date")).toHaveValue("2026-09-21");
   });
+}
 
+function registerUsesTheURLForFilteringBackForwardAndIgnoresPreviousDeckAndUIDCallbacks() {
   it("uses the URL for filtering, back/forward, and ignores previous deck and UID callbacks", async () => {
     const user = userEvent.setup();
     const { router } = renderPage();
@@ -215,7 +251,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     await actAsync(() => router.navigate("/"));
     expect(subscriptions.every((sub) => sub.stop.mock.calls.length === 1)).toBe(true);
   });
+}
 
+function registerWaitsForDeckInitializationBeforeDeclaringURLSelectionSUnavailable() {
   it.each(["missing", ""])(
     "waits for Deck initialization before declaring URL selection %s unavailable",
     async (deckId) => {
@@ -230,7 +268,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
       expect(router.state.location.search).toBe("");
     }
   );
+}
 
+function registerRemovesDeletedDeckCountsAndTranslatesUIWithoutChangingTheSelectedDeck() {
   it("removes deleted Deck counts and translates UI without changing the selected Deck", async () => {
     renderPage(`/study-history?deckId=${encodeURIComponent(first.id)}`);
     emit([completedRecord()]);
@@ -242,7 +282,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("対象のデッキを表示できません");
   });
+}
 
+function registerSelects7And90DaysKeepsAllDailyValuesAndIgnoresDelayedResultsFromThePreviousPeriod() {
   it("selects 7 and 90 days, keeps all daily values, and ignores delayed results from the previous period", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 8, 22, 12));
@@ -282,7 +324,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     expect(screen.getAllByRole("row")).toHaveLength(8);
     expect(screen.getByRole("row", { name: "Sep 16, 2026 0 0" })).toBeVisible();
   });
+}
 
+function registerAppliesInclusiveCustomDatesPreservesThemOnDeckChangesAndRetryAndRestoresURLNavigation() {
   it("applies inclusive custom dates, preserves them on Deck changes and retry, and restores URL navigation", async () => {
     const user = userEvent.setup();
     const { router } = renderPage();
@@ -330,7 +374,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     await actAsync(() => router.navigate(1));
     expect(screen.getByRole("button", { name: "7 days" })).toHaveAttribute("aria-pressed", "true");
   });
+}
 
+function registerRejectsInvalidDraftsWithoutReplacingTheDisplayedPeriod() {
   it("rejects invalid drafts without replacing the displayed period", async () => {
     const user = userEvent.setup();
     const { router } = renderPage("/study-history?start=2026-01-01&end=2026-01-02");
@@ -344,7 +390,9 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
     await user.click(screen.getByRole("button", { name: "Apply" }));
     expect(screen.getByRole("alert")).toHaveTextContent("End date must be today or earlier.");
   });
+}
 
+function registerDoesNotSubstituteADefaultPeriodForAnInvalidURLS() {
   it.each(["days=invalid", "start=2026-02-30&end=2026-03-01", "start=2026-01-01", "start=2026-01-02&end=2026-01-01"])(
     "does not substitute a default period for an invalid URL (%s)",
     async (query) => {
@@ -356,4 +404,4 @@ describe("STUDY-SESSION-09 STUDY-SESSION-10 STUDY-SESSION-11 STUDY-SESSION-12 ST
       expect(screen.getByText("No study records in this period.")).toBeVisible();
     }
   );
-});
+}

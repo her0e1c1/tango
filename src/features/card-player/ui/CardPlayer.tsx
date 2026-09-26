@@ -114,12 +114,6 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
   const swipeTitle = props.showSwipeControls
     ? t("studySession.toolbar.swipeControls.hide")
     : t("studySession.toolbar.swipeControls.show");
-  let playbackTitle = t(
-    props.showPlaybackControls
-      ? "studySession.toolbar.playbackControls.hide"
-      : "studySession.toolbar.playbackControls.show"
-  );
-  if (!props.playbackControlsAvailable) playbackTitle = t("studySession.toolbar.playbackUnavailable");
   const cardDetailsTitle = props.showCardDetails
     ? t("studySession.toolbar.cardDetails.hide")
     : t("studySession.toolbar.cardDetails.show");
@@ -141,23 +135,7 @@ const StudyModeActions: React.FC<StudyModeActionsProps> = (props) => {
       >
         <MdSwipe aria-hidden="true" className="text-xl" />
       </button>
-      <button
-        type="button"
-        aria-label={t("studySession.toolbar.playbackControls.label")}
-        aria-pressed={props.showPlaybackControls}
-        aria-disabled={!props.playbackControlsAvailable}
-        aria-describedby={!props.playbackControlsAvailable ? props.playbackDescriptionId : undefined}
-        title={playbackTitle}
-        className={cx(
-          toolbarButtonClass,
-          props.showPlaybackControls && "bg-surface-muted text-accent-primary",
-          !props.playbackControlsAvailable && "cursor-not-allowed opacity-50"
-        )}
-        onClick={props.playbackControlsAvailable ? props.onTogglePlaybackControls : undefined}
-        onKeyDown={props.onEscape}
-      >
-        <AiOutlinePlayCircle aria-hidden="true" className="text-xl" />
-      </button>
+      <PlaybackToggle {...props} />
       {props.onToggleSkipControls !== undefined ? (
         <button
           type="button"
@@ -321,8 +299,6 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
   const actionsId = React.useId();
   const playbackDescriptionId = React.useId();
   const triggerRef = React.useRef<HTMLButtonElement>(null);
-  const copy = getStudyToolbarCopy(t, props);
-
   const closeOnEscape: React.KeyboardEventHandler<HTMLButtonElement> = (event) => {
     if (event.key !== "Escape" || !props.open) return;
     event.preventDefault();
@@ -351,77 +327,21 @@ const StudyToolbar: React.FC<StudyToolbarProps> = ({ ref: helpTriggerRef, ...pro
       >
         <AiOutlineLeft aria-hidden="true" className="text-xl" />
       </button>
-      <div
-        data-testid="toolbar-shortcuts"
-        className="absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] top-0 flex flex-row-reverse items-center gap-1"
-      >
-        <button
-          ref={triggerRef}
-          type="button"
-          aria-label={copy.actionToggleLabel}
-          aria-expanded={props.open}
-          aria-controls={actionsId}
-          className={toolbarButtonClass}
-          onClick={props.onToggleOpen}
-          onKeyDown={closeOnEscape}
-        >
-          {props.open ? (
-            <AiOutlineClose aria-hidden="true" className="text-xl" />
-          ) : (
-            <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
-          )}
-        </button>
-        <ToolbarHelp
-          open={props.open}
-          showHelp={props.showHelp}
-          onToggleHelp={props.onToggleHelp}
-          onOpenHelp={props.onOpenHelp}
-          helpRef={helpTriggerRef}
-          {...(props.helpTriggerLabel !== undefined ? { helpTriggerLabel: props.helpTriggerLabel } : {})}
-          onEscape={closeOnEscape}
-        />
-        <ToolbarViewMode
-          open={props.open}
-          showViewMode={props.showViewMode}
-          viewMode={props.viewMode}
-          onToggleShowViewMode={props.onToggleShowViewMode}
-          onToggleViewMode={props.onToggleViewMode}
-          onEscape={closeOnEscape}
-        />
-        <ToolbarEditLink
-          open={props.open}
-          {...(props.editLink !== undefined ? { editLink: props.editLink } : {})}
-          onEscape={closeOnEscape}
-        />
-      </div>
+      <ToolbarShortcuts
+        {...props}
+        actionsId={actionsId}
+        triggerRef={triggerRef}
+        helpTriggerRef={helpTriggerRef}
+        closeOnEscape={closeOnEscape}
+      />
       {props.open ? (
         // Move secondary actions below the shortcuts before they can overlap on narrow screens.
-        <fieldset
-          id={actionsId}
-          aria-label={t("studySession.toolbar.actions.label")}
-          className={cx(
-            "pointer-events-none m-0 flex min-h-touch min-w-0 items-center justify-end border-0 p-0",
-            props.viewMode
-              ? "px-shell-gutter pt-[calc(var(--spacing-touch)+0.25rem)]"
-              : props.editLink === undefined
-                ? "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] max-[419px]:absolute max-[419px]:inset-x-0 max-[419px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[419px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
-                : "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*4+1rem)] max-[499px]:absolute max-[499px]:inset-x-0 max-[499px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[499px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
-          )}
-        >
-          <StudyModeActions
-            showCardDetails={props.showCardDetails}
-            showSwipeControls={props.showSwipeControls}
-            showPlaybackControls={props.showPlaybackControls}
-            {...(props.showSkipControls !== undefined ? { showSkipControls: props.showSkipControls } : {})}
-            playbackControlsAvailable={props.playbackControlsAvailable}
-            playbackDescriptionId={playbackDescriptionId}
-            onEscape={closeOnEscape}
-            onToggleCardDetails={props.onToggleCardDetails}
-            onToggleSwipeControls={props.onToggleSwipeControls}
-            onTogglePlaybackControls={props.onTogglePlaybackControls}
-            {...(props.onToggleSkipControls !== undefined ? { onToggleSkipControls: props.onToggleSkipControls } : {})}
-          />
-        </fieldset>
+        <ToolbarActions
+          {...props}
+          actionsId={actionsId}
+          playbackDescriptionId={playbackDescriptionId}
+          closeOnEscape={closeOnEscape}
+        />
       ) : null}
       {!props.playbackControlsAvailable ? (
         <span id={playbackDescriptionId} className="sr-only">
@@ -641,20 +561,200 @@ function clickCardSurface(
 }
 
 export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
-  const { t } = useTranslation();
   const viewMode = props.viewMode && !props.showBackText;
-  const readingSurface = getReadingSurface(
-    viewMode,
-    props.showBackText,
-    props.answerLabel ?? t("studySession.answerAria"),
-    t("studySession.frontAria")
-  );
   const [studyActionsOpen, setStudyActionsOpen] = React.useState(false);
   // Safari does not focus pointer-activated buttons by default, so Help must restore this explicit trigger.
   const helpTriggerRef = React.useRef<HTMLButtonElement>(null);
   const restoreHelpTriggerFocus = () => {
     if (helpTriggerRef.current?.isConnected) helpTriggerRef.current.focus();
   };
+
+  // The answer owns the reading surface, so session chrome stays unmounted until the front returns.
+  const showStudyChrome = !props.showBackText;
+
+  return (
+    <div
+      className={cx(
+        "relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink",
+        viewMode && "[@media(max-height:450px)]:overflow-y-auto"
+      )}
+      style={studyLayoutStyles}
+    >
+      {showStudyChrome ? (
+        <StudyToolbar
+          {...props}
+          ref={helpTriggerRef}
+          {...(props.help.triggerLabel !== undefined ? { helpTriggerLabel: props.help.triggerLabel } : {})}
+          viewMode={viewMode}
+          open={studyActionsOpen}
+          onOpenHelp={props.help.onOpen}
+          onToggleOpen={() => setStudyActionsOpen((open) => !open)}
+        />
+      ) : null}
+      {viewMode && props.showCardDetails && props.cardOverlaySlot != null ? (
+        <div data-study-card-overlay="" className="relative h-touch shrink-0">
+          {props.cardOverlaySlot}
+        </div>
+      ) : null}
+      <PlayerSurface {...props} viewMode={viewMode} studyActionsOpen={studyActionsOpen} />
+      <Controls
+        viewMode={viewMode}
+        showBackText={props.showBackText}
+        showSwipeControls={props.showSwipeControls}
+        showPlaybackControls={props.showPlaybackControls}
+        playbackControlsAvailable={props.playbackControlsAvailable}
+        swipeButtonList={props.swipeButtonList}
+        controller={props.controller}
+        actionSlot={props.actionSlot}
+      />
+      {props.help.open ? (
+        <StudyHelpDialog {...props.help} restoreTriggerFocus={restoreHelpTriggerFocus} onClose={props.help.onClose} />
+      ) : null}
+    </div>
+  );
+};
+
+function PlaybackToggle(
+  props: Pick<
+    StudyModeActionsProps,
+    | "showPlaybackControls"
+    | "playbackControlsAvailable"
+    | "playbackDescriptionId"
+    | "onTogglePlaybackControls"
+    | "onEscape"
+  >
+) {
+  const { t } = useTranslation();
+  let playbackTitle = t(
+    props.showPlaybackControls
+      ? "studySession.toolbar.playbackControls.hide"
+      : "studySession.toolbar.playbackControls.show"
+  );
+  if (!props.playbackControlsAvailable) playbackTitle = t("studySession.toolbar.playbackUnavailable");
+  return (
+    <button
+      type="button"
+      aria-label={t("studySession.toolbar.playbackControls.label")}
+      aria-pressed={props.showPlaybackControls}
+      aria-disabled={!props.playbackControlsAvailable}
+      aria-describedby={!props.playbackControlsAvailable ? props.playbackDescriptionId : undefined}
+      title={playbackTitle}
+      className={cx(
+        toolbarButtonClass,
+        props.showPlaybackControls && "bg-surface-muted text-accent-primary",
+        !props.playbackControlsAvailable && "cursor-not-allowed opacity-50"
+      )}
+      onClick={props.playbackControlsAvailable ? props.onTogglePlaybackControls : undefined}
+      onKeyDown={props.onEscape}
+    >
+      <AiOutlinePlayCircle aria-hidden="true" className="text-xl" />
+    </button>
+  );
+}
+
+function ToolbarShortcuts({
+  actionsId,
+  triggerRef,
+  helpTriggerRef,
+  closeOnEscape,
+  ...props
+}: Omit<StudyToolbarProps, "ref"> & {
+  actionsId: string;
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
+  helpTriggerRef: React.RefObject<HTMLButtonElement | null> | undefined;
+  closeOnEscape: React.KeyboardEventHandler<HTMLButtonElement>;
+}) {
+  const { t } = useTranslation();
+  const copy = getStudyToolbarCopy(t, props);
+  return (
+    <div
+      data-testid="toolbar-shortcuts"
+      className="absolute right-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))] top-0 flex flex-row-reverse items-center gap-1"
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-label={copy.actionToggleLabel}
+        aria-expanded={props.open}
+        aria-controls={actionsId}
+        className={toolbarButtonClass}
+        onClick={props.onToggleOpen}
+        onKeyDown={closeOnEscape}
+      >
+        {props.open ? (
+          <AiOutlineClose aria-hidden="true" className="text-xl" />
+        ) : (
+          <AiOutlineEllipsis aria-hidden="true" className="text-xl" />
+        )}
+      </button>
+      <ToolbarHelp
+        open={props.open}
+        showHelp={props.showHelp}
+        onToggleHelp={props.onToggleHelp}
+        onOpenHelp={props.onOpenHelp}
+        helpRef={helpTriggerRef}
+        {...(props.helpTriggerLabel !== undefined ? { helpTriggerLabel: props.helpTriggerLabel } : {})}
+        onEscape={closeOnEscape}
+      />
+      <ToolbarViewMode
+        open={props.open}
+        showViewMode={props.showViewMode}
+        viewMode={props.viewMode}
+        onToggleShowViewMode={props.onToggleShowViewMode}
+        onToggleViewMode={props.onToggleViewMode}
+        onEscape={closeOnEscape}
+      />
+      <ToolbarEditLink
+        open={props.open}
+        {...(props.editLink !== undefined ? { editLink: props.editLink } : {})}
+        onEscape={closeOnEscape}
+      />
+    </div>
+  );
+}
+
+function ToolbarActions({
+  actionsId,
+  playbackDescriptionId,
+  closeOnEscape,
+  ...props
+}: Omit<StudyToolbarProps, "ref"> & {
+  actionsId: string;
+  playbackDescriptionId: string;
+  closeOnEscape: React.KeyboardEventHandler<HTMLButtonElement>;
+}) {
+  const { t } = useTranslation();
+  return (
+    <fieldset
+      id={actionsId}
+      aria-label={t("studySession.toolbar.actions.label")}
+      className={cx(
+        "pointer-events-none m-0 flex min-h-touch min-w-0 items-center justify-end border-0 p-0",
+        props.viewMode
+          ? "px-shell-gutter pt-[calc(var(--spacing-touch)+0.25rem)]"
+          : props.editLink === undefined
+            ? "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*3+0.75rem)] max-[419px]:absolute max-[419px]:inset-x-0 max-[419px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[419px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+            : "pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right)+var(--spacing-touch)*4+1rem)] max-[499px]:absolute max-[499px]:inset-x-0 max-[499px]:top-[calc(var(--spacing-touch)+0.25rem)] max-[499px]:pr-[calc(var(--spacing-shell-gutter)+env(safe-area-inset-right))]"
+      )}
+    >
+      <StudyModeActions
+        showCardDetails={props.showCardDetails}
+        showSwipeControls={props.showSwipeControls}
+        showPlaybackControls={props.showPlaybackControls}
+        {...(props.showSkipControls !== undefined ? { showSkipControls: props.showSkipControls } : {})}
+        playbackControlsAvailable={props.playbackControlsAvailable}
+        playbackDescriptionId={playbackDescriptionId}
+        onEscape={closeOnEscape}
+        onToggleCardDetails={props.onToggleCardDetails}
+        onToggleSwipeControls={props.onToggleSwipeControls}
+        onTogglePlaybackControls={props.onTogglePlaybackControls}
+        {...(props.onToggleSkipControls !== undefined ? { onToggleSkipControls: props.onToggleSkipControls } : {})}
+      />
+    </fieldset>
+  );
+}
+
+function useCardSurface(props: CardPlayerProps, viewMode: boolean) {
   const surfaceRef = React.useRef<HTMLDivElement | null>(null);
   React.useEffect(() => {
     if (surfaceRef.current !== null) surfaceRef.current.scrollTop = 0;
@@ -662,6 +762,33 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
   React.useEffect(() => {
     if (viewMode) surfaceRef.current?.focus({ preventScroll: true });
   }, [viewMode]);
+  const { suppressTrailingCardClick, stopTrailingCardClick } = useTrailingCardClick();
+
+  const allowVerticalSwipe = !viewMode && !props.showBackText;
+  const allowHorizontalSwipe = !viewMode && (!props.showBackText || props.allowBackHorizontalSwipe);
+  const swipeHandlers = useSwipeable({
+    onSwiped: suppressTrailingCardClick,
+    ...(allowHorizontalSwipe ? { onSwipedLeft: props.onSwipeLeft, onSwipedRight: props.onSwipeRight } : {}),
+    ...(allowVerticalSwipe ? { onSwipedUp: props.onSwipeUp, onSwipedDown: props.onSwipeDown } : {}),
+    trackMouse: true,
+  });
+
+  const startPrimaryMouseSwipe: React.MouseEventHandler<HTMLDivElement> = (event) => {
+    // react-swipeable tracks every mouse button by default, but only the primary button may change study progress.
+    if (event.button === 0) swipeHandlers.onMouseDown?.(event);
+  };
+
+  const cardGestureHandlers = {
+    ...swipeHandlers,
+    onClickCapture: stopTrailingCardClick,
+    onClick: (event: React.MouseEvent<HTMLDivElement>) => clickCardSurface(event, viewMode, props),
+    onMouseDown: startPrimaryMouseSwipe,
+  };
+
+  return { surfaceRef, swipeHandlers, cardGestureHandlers };
+}
+
+function useTrailingCardClick() {
   const suppressCardClick = React.useRef(false);
   const suppressCardClickTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -682,20 +809,6 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
     }, 0);
   };
 
-  const allowVerticalSwipe = !viewMode && !props.showBackText;
-  const allowHorizontalSwipe = !viewMode && (!props.showBackText || props.allowBackHorizontalSwipe);
-  const swipeHandlers = useSwipeable({
-    onSwiped: suppressTrailingCardClick,
-    ...(allowHorizontalSwipe ? { onSwipedLeft: props.onSwipeLeft, onSwipedRight: props.onSwipeRight } : {}),
-    ...(allowVerticalSwipe ? { onSwipedUp: props.onSwipeUp, onSwipedDown: props.onSwipeDown } : {}),
-    trackMouse: true,
-  });
-
-  const startPrimaryMouseSwipe: React.MouseEventHandler<HTMLDivElement> = (event) => {
-    // react-swipeable tracks every mouse button by default, but only the primary button may change study progress.
-    if (event.button === 0) swipeHandlers.onMouseDown?.(event);
-  };
-
   const stopTrailingCardClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
     // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
     if (!suppressCardClick.current) return;
@@ -707,85 +820,38 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
     event.stopPropagation();
   };
 
-  const cardGestureHandlers = {
-    ...swipeHandlers,
-    onClickCapture: stopTrailingCardClick,
-    onClick: (event: React.MouseEvent<HTMLDivElement>) => clickCardSurface(event, viewMode, props),
-    onMouseDown: startPrimaryMouseSwipe,
-  };
+  return { suppressTrailingCardClick, stopTrailingCardClick };
+}
 
-  // The answer owns the reading surface, so session chrome stays unmounted until the front returns.
-  const showStudyChrome = !props.showBackText;
-
+function PlayerSurface({ studyActionsOpen, ...props }: CardPlayerProps & { studyActionsOpen: boolean }) {
+  const viewMode = props.viewMode;
+  const { t } = useTranslation();
+  const readingSurface = getReadingSurface(
+    viewMode,
+    props.showBackText,
+    props.answerLabel ?? t("studySession.answerAria"),
+    t("studySession.frontAria")
+  );
+  const { surfaceRef, swipeHandlers, cardGestureHandlers } = useCardSurface(props, viewMode);
   return (
     <div
-      className={cx(
-        "relative flex h-full min-h-0 flex-1 flex-col bg-canvas text-ink",
-        viewMode && "[@media(max-height:450px)]:overflow-y-auto"
-      )}
-      style={studyLayoutStyles}
+      {...readingSurface}
+      {...cardGestureHandlers}
+      ref={(element) => {
+        surfaceRef.current = element;
+        swipeHandlers.ref(element);
+      }}
     >
-      {showStudyChrome ? (
-        <StudyToolbar
-          {...props}
-          ref={helpTriggerRef}
-          {...(props.help.triggerLabel !== undefined ? { helpTriggerLabel: props.help.triggerLabel } : {})}
-          viewMode={viewMode}
-          onToggleViewMode={props.onToggleViewMode}
-          open={studyActionsOpen}
-          showViewMode={props.showViewMode}
-          onToggleShowViewMode={props.onToggleShowViewMode}
-          showHelp={props.showHelp}
-          showCardDetails={props.showCardDetails}
-          showSwipeControls={props.showSwipeControls}
-          showPlaybackControls={props.showPlaybackControls}
-          playbackControlsAvailable={props.playbackControlsAvailable}
-          onOpenHelp={props.help.onOpen}
-          onToggleHelp={props.onToggleHelp}
-          onToggleOpen={() => setStudyActionsOpen((open) => !open)}
-          onToggleCardDetails={props.onToggleCardDetails}
-          onBack={props.onBack}
-          onToggleSwipeControls={props.onToggleSwipeControls}
-          onTogglePlaybackControls={props.onTogglePlaybackControls}
-        />
-      ) : null}
-      {viewMode && props.showCardDetails && props.cardOverlaySlot != null ? (
-        <div data-study-card-overlay="" className="relative h-touch shrink-0">
-          {props.cardOverlaySlot}
-        </div>
-      ) : null}
-      <div
-        {...readingSurface}
-        {...cardGestureHandlers}
-        ref={(element) => {
-          surfaceRef.current = element;
-          swipeHandlers.ref(element);
-        }}
-      >
-        <CardContent
-          viewMode={viewMode}
-          showBackText={props.showBackText}
-          hideCardOverlayOnNarrowScreen={studyActionsOpen}
-          hasEditLink={props.editLink !== undefined}
-          backTextSlot={props.backTextSlot}
-          frontTextSlot={props.frontTextSlot}
-          cardOverlaySlot={props.showCardDetails ? props.cardOverlaySlot : undefined}
-          backTextOverlay={props.backTextOverlay}
-        />
-      </div>
-      <Controls
+      <CardContent
         viewMode={viewMode}
         showBackText={props.showBackText}
-        showSwipeControls={props.showSwipeControls}
-        showPlaybackControls={props.showPlaybackControls}
-        playbackControlsAvailable={props.playbackControlsAvailable}
-        swipeButtonList={props.swipeButtonList}
-        controller={props.controller}
-        actionSlot={props.actionSlot}
+        hideCardOverlayOnNarrowScreen={studyActionsOpen}
+        hasEditLink={props.editLink !== undefined}
+        backTextSlot={props.backTextSlot}
+        frontTextSlot={props.frontTextSlot}
+        cardOverlaySlot={props.showCardDetails ? props.cardOverlaySlot : undefined}
+        backTextOverlay={props.backTextOverlay}
       />
-      {props.help.open ? (
-        <StudyHelpDialog {...props.help} restoreTriggerFocus={restoreHelpTriggerFocus} onClose={props.help.onClose} />
-      ) : null}
     </div>
   );
-};
+}

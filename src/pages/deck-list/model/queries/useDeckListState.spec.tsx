@@ -67,6 +67,12 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
     vi.useRealTimers();
   });
 
+  registerPutsActiveDecksInRecentOrderAndInactiveDecksInNameOrder();
+
+  registerDerivesEmptyReasonAcrossCheckingErrorConfirmedEmptyAndDeckPresentStates();
+});
+
+function registerPutsActiveDecksInRecentOrderAndInactiveDecksInNameOrder() {
   it("puts active Decks in recent order and inactive Decks in name order", () => {
     const { result } = renderHook(() => useDeckListState());
     const sections = result.current;
@@ -84,7 +90,9 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
     expect(sections.visibleCount).toBe(4);
     expect(sections.emptyReason).toBeUndefined();
   });
+}
 
+function registerDerivesEmptyReasonAcrossCheckingErrorConfirmedEmptyAndDeckPresentStates() {
   it("derives emptyReason across checking, error, confirmed-empty, and deck-present states", async () => {
     // 1. Deck-present state
     expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBeUndefined();
@@ -113,4 +121,4 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
     });
     expect(renderHook(() => useDeckListState()).result.current.emptyReason).toBe("confirmed-empty");
   });
-});
+}

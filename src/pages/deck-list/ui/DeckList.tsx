@@ -118,45 +118,17 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-baseline gap-3">
-          <h1 className="break-words text-title font-semibold text-ink">{t("deckList.title")}</h1>
-          <span className="shrink-0 text-caption text-ink-muted">{t("deckList.count", { count: total })}</span>
-        </div>
-        <ActionsMenu
-          mobileSheet
-          groupLabel={t("deckList.listActions")}
-          triggerLabel={t("deckList.listActions")}
-          menuLabel={t("deckList.listActions")}
-          triggerContent={
-            <>
-              <AiOutlinePlus aria-hidden="true" />
-              {t("deckList.listActions")}
-              <AiOutlineDown aria-hidden="true" />
-            </>
-          }
-          open={actionsOpen}
-          onToggle={() => {
-            closeMenu();
-            setActionsOpen((open) => !open);
-          }}
-          onClose={() => setActionsOpen(false)}
-          items={[
-            {
-              key: "create",
-              label: t("deckList.create"),
-              icon: <AiOutlinePlus aria-hidden="true" />,
-              onSelect: props.onCreateDeck,
-            },
-            {
-              key: "import",
-              label: t("deckList.import"),
-              icon: <AiOutlineUpload aria-hidden="true" />,
-              onSelect: props.onImportDeck,
-            },
-          ]}
-        />
-      </div>
+      <DeckListHeader
+        total={total}
+        actionsOpen={actionsOpen}
+        onToggleActions={() => {
+          closeMenu();
+          setActionsOpen((open) => !open);
+        }}
+        onCloseActions={() => setActionsOpen(false)}
+        onCreateDeck={props.onCreateDeck}
+        onImportDeck={props.onImportDeck}
+      />
       {total > 0 && props.sections.totals !== undefined && (
         <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-caption text-ink">
           <p>{t("deckList.reviewCounts", props.sections.totals)}</p>
@@ -207,3 +179,59 @@ export const DeckList: React.FC<DeckListProps> = (props) => {
     </>
   );
 };
+
+function DeckListHeader({
+  total,
+  actionsOpen,
+  onToggleActions,
+  onCloseActions,
+  onCreateDeck,
+  onImportDeck,
+}: {
+  total: number;
+  actionsOpen: boolean;
+  onToggleActions: () => void;
+  onCloseActions: () => void;
+  onCreateDeck: () => void;
+  onImportDeck: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-baseline gap-3">
+        <h1 className="break-words text-title font-semibold text-ink">{t("deckList.title")}</h1>
+        <span className="shrink-0 text-caption text-ink-muted">{t("deckList.count", { count: total })}</span>
+      </div>
+      <ActionsMenu
+        mobileSheet
+        groupLabel={t("deckList.listActions")}
+        triggerLabel={t("deckList.listActions")}
+        menuLabel={t("deckList.listActions")}
+        triggerContent={
+          <>
+            <AiOutlinePlus aria-hidden="true" />
+            {t("deckList.listActions")}
+            <AiOutlineDown aria-hidden="true" />
+          </>
+        }
+        open={actionsOpen}
+        onToggle={onToggleActions}
+        onClose={onCloseActions}
+        items={[
+          {
+            key: "create",
+            label: t("deckList.create"),
+            icon: <AiOutlinePlus aria-hidden="true" />,
+            onSelect: onCreateDeck,
+          },
+          {
+            key: "import",
+            label: t("deckList.import"),
+            icon: <AiOutlineUpload aria-hidden="true" />,
+            onSelect: onImportDeck,
+          },
+        ]}
+      />
+    </div>
+  );
+}

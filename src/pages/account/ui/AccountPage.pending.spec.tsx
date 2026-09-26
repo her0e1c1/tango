@@ -23,16 +23,7 @@ vi.mock("@/shared/firebase", () => ({ auth: mocks.auth }));
 vi.mock("firebase/auth");
 
 describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 AccountPage pending lifetime", () => {
-  beforeEach(async () => {
-    await getI18n().changeLanguage("en");
-    dismissToast();
-    accountPageStore.setState(accountPageStore.getInitialState(), true);
-    vi.mocked(linkWithPopup).mockReset();
-    vi.mocked(linkWithPopup).mockResolvedValue({ user: {} } as never);
-    vi.mocked(signOut).mockReset();
-    vi.mocked(signOut).mockResolvedValue(undefined);
-    updatePreferences(createPreferences({ appearance: { darkMode: false } }));
-  });
+  beforeEach(resetTestState);
 
   describe.each([
     { operation: "signIn", button: "Sign in with Google", success: "Signed in.", failure: "Unable to sign in." },
@@ -98,3 +89,14 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 AccountPage pending lifetime", () => 
     );
   });
 });
+
+async function resetTestState() {
+  await getI18n().changeLanguage("en");
+  dismissToast();
+  accountPageStore.setState(accountPageStore.getInitialState(), true);
+  vi.mocked(linkWithPopup).mockReset();
+  vi.mocked(linkWithPopup).mockResolvedValue({ user: {} } as never);
+  vi.mocked(signOut).mockReset();
+  vi.mocked(signOut).mockResolvedValue(undefined);
+  updatePreferences(createPreferences({ appearance: { darkMode: false } }));
+}

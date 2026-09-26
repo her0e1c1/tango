@@ -43,25 +43,44 @@ vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "uid" } },
 }));
 
+const db = getFirestore();
+
+const newCard = createCard({
+  frontText: "front text",
+  backText: "back text",
+  uid: "uid",
+  createdAt: 0,
+  updatedAt: 0,
+  deletedAt: null,
+});
+
+// card needs to belong to its deck
+const initDeck = async () => {
+  const id = uuid();
+  await createDeckCommand("uid", createRemoteDeckInput({ id }));
+  replaceRemoteDecks([createDeck({ id, uid: "uid" })]);
+  return id;
+};
+
 describe("firestore/card", { retry: 3 }, () => {
-  const db = getFirestore();
-  const newCard = createCard({
-    frontText: "front text",
-    backText: "back text",
-    uid: "uid",
-    createdAt: 0,
-    updatedAt: 0,
-    deletedAt: null,
-  });
+  registerShouldCreateACard();
 
-  // card needs to belong to its deck
-  const initDeck = async () => {
-    const id = uuid();
-    await createDeckCommand("uid", createRemoteDeckInput({ id }));
-    replaceRemoteDecks([createDeck({ id, uid: "uid" })]);
-    return id;
-  };
+  registerShouldUpdateACard();
 
+  registerExcludesPersonalStudyFieldsFromNewCardWrites();
+
+  registerPreservesARatedCardWhenRetryingAPreparedCreate();
+
+  registerReportsFailedImportedCardsWhilePersistingValidCards();
+
+  registerDoesNotRecreateAnExistingCardDeletedAfterImportPlanning();
+
+  registerShouldLogicalRemoveACard();
+
+  registerShouldExistsACard();
+});
+
+function registerShouldCreateACard() {
   it("[FIRESTORE-CARD-01] should create a card", async () => {
     const deckId = await initDeck();
     const c = {
@@ -87,7 +106,9 @@ describe("firestore/card", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });
+}
 
+function registerShouldUpdateACard() {
   it("[FIRESTORE-CARD-02] should update a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
@@ -112,7 +133,9 @@ describe("firestore/card", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });
+}
 
+function registerExcludesPersonalStudyFieldsFromNewCardWrites() {
   it("[FIRESTORE-CARD-03] excludes personal study fields from new Card writes", async () => {
     const deckId = await initDeck();
     const card = {
@@ -129,7 +152,9 @@ describe("firestore/card", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("difficulty");
     expect(data).not.toHaveProperty("numberOfSeen");
   });
+}
 
+function registerPreservesARatedCardWhenRetryingAPreparedCreate() {
   it("[FIRESTORE-CARD-04] preserves a rated Card when retrying a prepared create", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
@@ -146,7 +171,9 @@ describe("firestore/card", { retry: 3 }, () => {
 
     expect((await getDoc(reference)).data()).toEqual(rated);
   });
+}
 
+function registerReportsFailedImportedCardsWhilePersistingValidCards() {
   it("[FIRESTORE-CARD-05] reports failed imported Cards while persisting valid Cards", async () => {
     const deckId = await initDeck();
     const valid = { ...newCard, deckId, id: uuid(), frontText: "valid" };
@@ -162,7 +189,9 @@ describe("firestore/card", { retry: 3 }, () => {
     const data = (await getDoc(doc(db, "card", valid.id))).data();
     expect(data).toEqual({ ...valid, createdAt: expect.any(Number), updatedAt: expect.any(Timestamp) });
   });
+}
 
+function registerDoesNotRecreateAnExistingCardDeletedAfterImportPlanning() {
   it("[FIRESTORE-CARD-06] does not recreate an existing Card deleted after import planning", async () => {
     const deckId = await initDeck();
     const card = { ...newCard, deckId, id: uuid(), frontText: "planned update" };
@@ -177,7 +206,9 @@ describe("firestore/card", { retry: 3 }, () => {
     const ownedCards = await getDocs(query(collection(db, "card"), where("uid", "==", "uid")));
     expect(ownedCards.docs.find((snapshot) => snapshot.id === card.id)?.data().deletedAt).toEqual(expect.any(Number));
   });
+}
 
+function registerShouldLogicalRemoveACard() {
   it("[FIRESTORE-CARD-07] should logical-remove a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
@@ -188,11 +219,13 @@ describe("firestore/card", { retry: 3 }, () => {
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...created, updatedAt: expect.any(Timestamp), deletedAt: expect.any(Number) });
   });
+}
 
+function registerShouldExistsACard() {
   it("[FIRESTORE-CARD-08] should exists a card", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);
     expect((await getDoc(doc(db, "card", c.id))).exists()).toBe(true);
   });
-});
+}

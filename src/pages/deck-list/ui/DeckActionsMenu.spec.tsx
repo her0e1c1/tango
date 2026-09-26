@@ -54,6 +54,22 @@ const DisableableMenu: React.FC = () => {
 };
 
 describe("STUDY-SESSION-10 NAVIGATION-06 NAVIGATION-08 DeckActionsMenu", () => {
+  registerOpensAnAccessibleMenuAndRoutesEachAction();
+
+  registerOmitsRestartForInactiveDecks();
+
+  registerSupportsArrowNavigationAndReturnsFocusToTheTriggerOnEscape();
+
+  registerKeepsManagementActionsActiveWhenAnAmbiguousBlurSettlesInsideTheMenu();
+
+  registerClosesWhenAnAmbiguousBlurSettlesOnAnExternalElement();
+
+  registerDisablesItsTriggerAndHidesAControlledOpenMenu();
+
+  registerClosesControlledStateWhenDisabledSoTheMenuStaysClosedWhenReEnabled();
+});
+
+function registerOpensAnAccessibleMenuAndRoutesEachAction() {
   it("opens an accessible menu and routes each action", () => {
     const actions = {
       onView: vi.fn(),
@@ -89,7 +105,9 @@ describe("STUDY-SESSION-10 NAVIGATION-06 NAVIGATION-08 DeckActionsMenu", () => {
     fireEvent.click(deleteItem);
     expect(actions.onDelete).toHaveBeenCalledOnce();
   });
+}
 
+function registerOmitsRestartForInactiveDecks() {
   it("omits Restart for inactive decks", () => {
     render(<ControlledMenu deckName="History" />);
 
@@ -105,7 +123,9 @@ describe("STUDY-SESSION-10 NAVIGATION-06 NAVIGATION-08 DeckActionsMenu", () => {
       "Close menu",
     ]);
   });
+}
 
+function registerSupportsArrowNavigationAndReturnsFocusToTheTriggerOnEscape() {
   it("supports arrow navigation and returns focus to the trigger on Escape", async () => {
     render(<ControlledMenu deckName="Design" onRestart={vi.fn()} />);
     const trigger = screen.getByRole("button", { name: "Open actions for Design" });
@@ -122,7 +142,9 @@ describe("STUDY-SESSION-10 NAVIGATION-06 NAVIGATION-08 DeckActionsMenu", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
+}
 
+function registerKeepsManagementActionsActiveWhenAnAmbiguousBlurSettlesInsideTheMenu() {
   it("keeps management actions active when an ambiguous blur settles inside the menu", async () => {
     const actions = {
       onDownload: vi.fn(),
@@ -152,7 +174,9 @@ describe("STUDY-SESSION-10 NAVIGATION-06 NAVIGATION-08 DeckActionsMenu", () => {
       expect(action).toHaveBeenCalledOnce();
     }
   });
+}
 
+function registerClosesWhenAnAmbiguousBlurSettlesOnAnExternalElement() {
   it("closes when an ambiguous blur settles on an external element", async () => {
     render(
       <>
@@ -175,14 +199,18 @@ describe("STUDY-SESSION-10 NAVIGATION-06 NAVIGATION-08 DeckActionsMenu", () => {
     await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
     expect(externalTarget).toHaveFocus();
   });
+}
 
+function registerDisablesItsTriggerAndHidesAControlledOpenMenu() {
   it("disables its trigger and hides a controlled open menu", () => {
     render(<DeckActionsMenu deckName="Physics" open disabled onToggle={vi.fn()} onClose={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "Open actions for Physics" })).toBeDisabled();
     expect(screen.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
   });
+}
 
+function registerClosesControlledStateWhenDisabledSoTheMenuStaysClosedWhenReEnabled() {
   it("closes controlled state when disabled so the menu stays closed when re-enabled", () => {
     render(<DisableableMenu />);
     const trigger = screen.getByRole("button", { name: "Open actions for Physics" });
@@ -199,4 +227,4 @@ describe("STUDY-SESSION-10 NAVIGATION-06 NAVIGATION-08 DeckActionsMenu", () => {
     expect(trigger).not.toBeDisabled();
     expect(screen.queryByRole("menu", { name: "Actions for Physics" })).not.toBeInTheDocument();
   });
-});
+}

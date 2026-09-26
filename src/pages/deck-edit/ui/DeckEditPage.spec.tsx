@@ -50,27 +50,28 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { DeckEditPage } from "./DeckEditPage";
 
-describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 NAVIGATION-07 DECK-MANAGEMENT-08)", () => {
-  const deckId = "deck-id";
-  const renderPage = (path = `/deck/${deckId}/edit`) => {
-    const router = createMemoryRouter(
-      [
-        { path: "/previous", element: <h1>Previous page</h1> },
-        { path: "/", element: <h1>Deck list</h1> },
-        { path: "/deck/:id/edit", element: <DeckEditPage /> },
-      ],
-      { initialEntries: ["/previous", path], initialIndex: 1 }
-    );
-    const renderRouter = () => (
-      <>
-        <RouterProvider router={router} />
-        <ToastViewport />
-      </>
-    );
-    const view = render(renderRouter());
-    return Object.assign(view, { router, rerenderRouter: () => view.rerender(renderRouter()) });
-  };
+const deckId = "deck-id";
 
+const renderPage = (path = `/deck/${deckId}/edit`) => {
+  const router = createMemoryRouter(
+    [
+      { path: "/previous", element: <h1>Previous page</h1> },
+      { path: "/", element: <h1>Deck list</h1> },
+      { path: "/deck/:id/edit", element: <DeckEditPage /> },
+    ],
+    { initialEntries: ["/previous", path], initialIndex: 1 }
+  );
+  const renderRouter = () => (
+    <>
+      <RouterProvider router={router} />
+      <ToastViewport />
+    </>
+  );
+  const view = render(renderRouter());
+  return Object.assign(view, { router, rerenderRouter: () => view.rerender(renderRouter()) });
+};
+
+describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 NAVIGATION-07 DECK-MANAGEMENT-08)", () => {
   beforeEach(async () => {
     dismissToast();
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
@@ -82,6 +83,34 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     await createDeck("user-id", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr: false }));
   });
 
+  registerRendersTheStoredDeckEditorInTheApplicationShell();
+
+  registerInitializesTheEditorWhenTheRouteDeckArrivesAfterMount();
+
+  registerResetsPageOwnedStateWhenNavigatingToADifferentDeck();
+
+  registerNavigatesToTheDeckListAfterSaving();
+
+  registerNavigatesToTheDeckListAfterCancellation();
+
+  registerBlocksCancellationWhileTheDeckFormIsDirty();
+
+  registerKeepsTheOpeningDeckSnapshotAndDisablesTheEditorWhileSaving();
+
+  registerDoesNotNavigateWhenSavingFinishesAfterThePageUnmounts();
+
+  registerShowsNavigationConfirmationAboveAnOpenDeletionDialog();
+
+  registerDeletesTheDeckFromItsSettingsPageAfterConfirmation();
+
+  registerKeepsTheNewDeletionDialogPendingWhenAnEarlierVisitFinishes();
+
+  registerNavigatesWithBothRecoveryActionsWhenTheDeckIsUnavailable();
+
+  registerRejectsARouteWithoutADeckId();
+});
+
+function registerRendersTheStoredDeckEditorInTheApplicationShell() {
   it("renders the stored deck editor in the application shell", () => {
     renderPage();
 
@@ -89,7 +118,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
+}
 
+function registerInitializesTheEditorWhenTheRouteDeckArrivesAfterMount() {
   it("initializes the editor when the route Deck arrives after mount", async () => {
     const delayedDeckId = "delayed-deck";
     renderPage(`/deck/${delayedDeckId}/edit`);
@@ -101,7 +132,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
 
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Delayed deck");
   });
+}
 
+function registerResetsPageOwnedStateWhenNavigatingToADifferentDeck() {
   it("resets page-owned state when navigating to a different Deck", async () => {
     const nextDeckId = "next-deck";
     await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
@@ -130,7 +163,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Next deck");
     expect(screen.queryByRole("alertdialog", { name: "Discard unsaved changes?" })).not.toBeInTheDocument();
   });
+}
 
+function registerNavigatesToTheDeckListAfterSaving() {
   it("navigates to the deck list after saving", async () => {
     renderPage();
 
@@ -141,7 +176,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Updated deck “Saved deck”.")).toBeVisible();
   });
+}
 
+function registerNavigatesToTheDeckListAfterCancellation() {
   it("navigates to the deck list after cancellation", async () => {
     renderPage();
 
@@ -149,7 +186,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
+}
 
+function registerBlocksCancellationWhileTheDeckFormIsDirty() {
   it("blocks cancellation while the Deck form is dirty", async () => {
     renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });
@@ -162,7 +201,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
 
     expect(name).toHaveValue("Unsaved deck");
   });
+}
 
+function registerKeepsTheOpeningDeckSnapshotAndDisablesTheEditorWhileSaving() {
   it("keeps the opening Deck snapshot and disables the editor while saving", async () => {
     let resolveWrite: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>
@@ -189,7 +230,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
+}
 
+function registerDoesNotNavigateWhenSavingFinishesAfterThePageUnmounts() {
   it("does not navigate when saving finishes after the Page unmounts", async () => {
     let resolveWrite: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>
@@ -207,7 +250,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
 
     expect(view.router.state.location.pathname).toBe(openingPath);
   });
+}
 
+function registerShowsNavigationConfirmationAboveAnOpenDeletionDialog() {
   it("shows navigation confirmation above an open deletion dialog", async () => {
     const view = renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });
@@ -226,7 +271,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     expect(screen.getByRole("alertdialog", { name: "Delete deck?" })).toBeVisible();
     expect(name).toHaveValue("Unsaved deck");
   });
+}
 
+function registerDeletesTheDeckFromItsSettingsPageAfterConfirmation() {
   it("deletes the deck from its settings page after confirmation", async () => {
     renderPage();
 
@@ -249,7 +296,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     expect(screen.getByText("Deleted deck “Deck name”.")).toBeVisible();
     expect(screen.queryByRole("alertdialog", { name: "Discard unsaved changes?" })).not.toBeInTheDocument();
   });
+}
 
+function registerKeepsTheNewDeletionDialogPendingWhenAnEarlierVisitFinishes() {
   it("keeps the new deletion dialog pending when an earlier visit finishes", async () => {
     const nextDeckId = "next-deletion-deck";
     await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
@@ -286,7 +335,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Deleted deck “Next deck”.")).toBeVisible();
   });
+}
 
+function registerNavigatesWithBothRecoveryActionsWhenTheDeckIsUnavailable() {
   it("navigates with both recovery actions when the deck is unavailable", async () => {
     const view = renderPage("/deck/missing-deck/edit");
 
@@ -300,7 +351,9 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
+}
 
+function registerRejectsARouteWithoutADeckId() {
   it("rejects a route without a deck id", () => {
     expect(() =>
       render(
@@ -310,4 +363,4 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
       )
     ).toThrowError("invalid deck id");
   });
-});
+}

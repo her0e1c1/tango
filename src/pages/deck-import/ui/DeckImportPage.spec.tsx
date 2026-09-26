@@ -103,11 +103,37 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     controls.setDarkMode.mockReset();
   });
 
+  registerHasNoDestinationSelectorForAnonymousImports();
+
+  registerTranslatesCachedCSVDiagnosticsWithoutReadingAgainOrChangingTheSelectedSource();
+
+  registerLocalizesInvalidUTF8AndRecoversWithAValidFile();
+
+  registerRetainsPreparedImportIdentitiesWhenThePreviewLanguageChanges();
+
+  registerRendersTheImportScreenInTheApplicationShell();
+
+  registerOpensDestinationWithTheKeyShortcut();
+
+  registerSavesAReviewedLocalCSVBeforeNavigatingToTheDeckList();
+
+  registerShowsAFailedSaveInPlaceAndRetriesTheSameImport();
+
+  registerReviewsTheSampleDeckAndWaitsForTheCommonSaveBeforeNavigating();
+
+  registerPreservesAnAppOwnedImportFailureWhenLeavingTheImportPage();
+
+  registerShowsAnAppOwnedImportFailureThatArrivesAfterLeavingTheImportPage();
+});
+
+function registerHasNoDestinationSelectorForAnonymousImports() {
   it("has no destination selector for anonymous imports", () => {
     renderPage();
     expect(screen.queryByRole("radio", { name: /Local only/ })).not.toBeInTheDocument();
   });
+}
 
+function registerTranslatesCachedCSVDiagnosticsWithoutReadingAgainOrChangingTheSelectedSource() {
   it("translates cached CSV diagnostics without reading again or changing the selected source", async () => {
     renderPage();
     const file = new File([], "日本語.csv", { type: "text/csv" });
@@ -132,7 +158,9 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     expect(deckImportStore.getState().source).toBe(source);
     expect(file.arrayBuffer).toHaveBeenCalledOnce();
   });
+}
 
+function registerLocalizesInvalidUTF8AndRecoversWithAValidFile() {
   it("localizes invalid UTF-8 and recovers with a valid file", async () => {
     renderPage();
     await selectLocalFile("previous.csv");
@@ -154,7 +182,9 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
     expect(await screen.findByText("front: 日本語�")).toBeVisible();
   });
+}
 
+function registerRetainsPreparedImportIdentitiesWhenThePreviewLanguageChanges() {
   it("retains prepared import identities when the preview language changes", async () => {
     renderPage();
     await selectLocalFile("language.csv", "回答");
@@ -166,14 +196,18 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
     expect(screen.getByText("front: 回答")).toBeVisible();
   });
+}
 
+function registerRendersTheImportScreenInTheApplicationShell() {
   it("renders the import screen in the application shell", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Add a deck" })).toBeVisible();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
+}
 
+function registerOpensDestinationWithTheKeyShortcut() {
   it.each([
     { key: "t", destination: "Deck list destination" },
     { key: "s", destination: "Settings destination" },
@@ -184,7 +218,9 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
 
     expect(screen.getByRole("heading", { level: 1, name: destination })).toBeVisible();
   });
+}
 
+function registerSavesAReviewedLocalCSVBeforeNavigatingToTheDeckList() {
   it("saves a reviewed local CSV before navigating to the Deck list", async () => {
     const name = "page-behavior-import.csv";
     renderPage();
@@ -200,7 +236,9 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     expect(screen.getByText("front: saved back")).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent("Imported 1 card.");
   });
+}
 
+function registerShowsAFailedSaveInPlaceAndRetriesTheSameImport() {
   it("shows a failed save in place and retries the same import", async () => {
     const name = "page-behavior-retry.csv";
     renderPage();
@@ -219,7 +257,9 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     expect(screen.getByText("front: retry back")).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent("Imported 1 card.");
   });
+}
 
+function registerReviewsTheSampleDeckAndWaitsForTheCommonSaveBeforeNavigating() {
   it("reviews the sample deck and waits for the common save before navigating", async () => {
     const request = Promise.withResolvers<void>();
     renderPage();
@@ -237,7 +277,9 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     expect(screen.getByText("deck-sample.csv")).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent("Imported 11 cards.");
   });
+}
 
+function registerPreservesAnAppOwnedImportFailureWhenLeavingTheImportPage() {
   it("preserves an App-owned import failure when leaving the import page", async () => {
     renderPage();
     await selectLocalFile("page-behavior-leave.csv");
@@ -250,7 +292,9 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     expect(screen.getByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
     expect(screen.getByRole("alert")).toHaveTextContent("Import failed.");
   });
+}
 
+function registerShowsAnAppOwnedImportFailureThatArrivesAfterLeavingTheImportPage() {
   it("shows an App-owned import failure that arrives after leaving the import page", async () => {
     const request = Promise.withResolvers<void>();
     renderPage();
@@ -269,4 +313,4 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
 
     expect(screen.getByRole("alert")).toHaveTextContent("Import failed.");
   });
-});
+}

@@ -65,24 +65,25 @@ const StoredDeckFormHarness = (props: { deckId: DeckId }) => {
   return deck === undefined ? null : <AvailableDeckFormHarness deck={deck} />;
 };
 
-describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageModel", () => {
-  const deckId = "deck-id";
-  const renderForm = () => {
-    const router = createMemoryRouter(
-      [
-        { path: "/", element: <h1>Deck list</h1> },
-        { path: "/edit", element: <StoredDeckFormHarness deckId={deckId} /> },
-      ],
-      { initialEntries: ["/edit"] }
-    );
-    return render(
-      <>
-        <RouterProvider router={router} />
-        <ToastViewport />
-      </>
-    );
-  };
+const deckId = "deck-id";
 
+const renderForm = () => {
+  const router = createMemoryRouter(
+    [
+      { path: "/", element: <h1>Deck list</h1> },
+      { path: "/edit", element: <StoredDeckFormHarness deckId={deckId} /> },
+    ],
+    { initialEntries: ["/edit"] }
+  );
+  return render(
+    <>
+      <RouterProvider router={router} />
+      <ToastViewport />
+    </>
+  );
+};
+
+describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageModel", () => {
   beforeEach(() => {
     dismissToast();
     authControls.uid = "user-id";
@@ -92,6 +93,22 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     replaceRemoteDecks([createLocalDeck({ id: deckId, name: "Deck name", category: "language", convertToBr: false })]);
   });
 
+  registerRestoresSuccessfullySavedFormValuesFromTheDeckEntity();
+
+  registerReadsTheCurrentAuthenticatedUserWhenSubmissionStarts();
+
+  registerDisablesEveryEditAndExitControlWhileSaving();
+
+  registerRemovesAClearedOptionalURLFromTheStoredDeck();
+
+  registerKeepsTheDraftAndSavesItAfterAnExplicitRetry();
+
+  registerKeepsTheOpeningFormValuesWhenTheDeckEntityRefreshes();
+
+  registerKeepsStoredValuesUnchangedWhenValidationRejectsTheForm();
+});
+
+function registerRestoresSuccessfullySavedFormValuesFromTheDeckEntity() {
   it("restores successfully saved form values from the Deck Entity", async () => {
     const view = renderForm();
     await userEvent.click(screen.getByText("More settings"));
@@ -113,7 +130,9 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     expect(screen.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
     expect(screen.getByRole("combobox")).toHaveValue("science");
   });
+}
 
+function registerReadsTheCurrentAuthenticatedUserWhenSubmissionStarts() {
   it("reads the current authenticated user when submission starts", async () => {
     renderForm();
     authControls.uid = "latest-user";
@@ -123,7 +142,9 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
     expect(writeControls.writes).toEqual([]);
   });
+}
 
+function registerDisablesEveryEditAndExitControlWhileSaving() {
   it("disables every edit and exit control while saving", async () => {
     let finishSave: () => void = () => undefined;
     writeControls.beforeWrite = () =>
@@ -140,7 +161,9 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     finishSave();
     expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
   });
+}
 
+function registerRemovesAClearedOptionalURLFromTheStoredDeck() {
   it("removes a cleared optional URL from the stored Deck", async () => {
     replaceRemoteDecks([createLocalDeck({ id: deckId, name: "Deck name", url: "https://example.com/deck.csv" })]);
     const view = renderForm();
@@ -154,7 +177,9 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     await userEvent.click(screen.getByText("More settings"));
     expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveValue("");
   });
+}
 
+function registerKeepsTheDraftAndSavesItAfterAnExplicitRetry() {
   it("keeps the draft and saves it after an explicit retry", async () => {
     writeControls.nextError = new Error("write failed");
     const view = renderForm();
@@ -172,7 +197,9 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     renderForm();
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Retry deck");
   });
+}
 
+function registerKeepsTheOpeningFormValuesWhenTheDeckEntityRefreshes() {
   it("keeps the opening form values when the Deck Entity refreshes", async () => {
     renderForm();
     const name = screen.getByRole("textbox", { name: "Name" });
@@ -184,7 +211,9 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     expect(name).toHaveValue("Unsaved deck");
     expect(screen.getByRole("combobox")).toHaveValue("language");
   });
+}
 
+function registerKeepsStoredValuesUnchangedWhenValidationRejectsTheForm() {
   it("keeps stored values unchanged when validation rejects the form", async () => {
     const view = renderForm();
     await userEvent.click(screen.getByText("More settings"));
@@ -208,4 +237,4 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     await userEvent.click(screen.getByText("More settings"));
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
   });
-});
+}

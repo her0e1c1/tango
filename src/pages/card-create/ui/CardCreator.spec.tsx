@@ -89,6 +89,18 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     });
   });
 
+  registerSavesTheEnteredCard();
+
+  registerKeepsBothInputsAfterRejectionAndRetriesWithANewCardIdentity();
+
+  registerSavesOneCardForImmediatelyRepeatedClicks();
+
+  registerDisablesRepeatedClicksWhileAsynchronousValidationIsPending();
+
+  registerDisablesRepeatedClicksUntilThePendingSaveFinishes();
+});
+
+function registerSavesTheEnteredCard() {
   it("saves the entered Card", async () => {
     render(<CardCreatorHarness />);
     await enterRequiredValues();
@@ -110,7 +122,9 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     ]);
     expect(savedCards[0]?.card.uniqueKey).toBe(savedCards[0]?.card.id);
   });
+}
 
+function registerKeepsBothInputsAfterRejectionAndRetriesWithANewCardIdentity() {
   it("keeps both inputs after rejection and retries with a new Card identity", async () => {
     let rejectedCardId: string | undefined;
     writes.createCard.mockImplementationOnce((_uid, card) => {
@@ -143,7 +157,9 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     expect(savedCards[0]?.card.id).not.toBe(rejectedCardId);
     expect(savedCards[0]?.card.uniqueKey).toBe(savedCards[0]?.card.id);
   });
+}
 
+function registerSavesOneCardForImmediatelyRepeatedClicks() {
   it("saves one Card for immediately repeated clicks", async () => {
     const write = deferred();
     writes.createCard.mockImplementation(async (uid, card) => {
@@ -163,7 +179,9 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
     expect(savedCards).toHaveLength(1);
   });
+}
 
+function registerDisablesRepeatedClicksWhileAsynchronousValidationIsPending() {
   it("disables repeated clicks while asynchronous validation is pending", async () => {
     const ready = deferred();
     validation.ready = ready.promise;
@@ -179,7 +197,9 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
     expect(savedCards).toHaveLength(1);
   });
+}
 
+function registerDisablesRepeatedClicksUntilThePendingSaveFinishes() {
   it("disables repeated clicks until the pending save finishes", async () => {
     const write = deferred();
     writes.createCard.mockImplementation(async (uid, card) => {
@@ -200,4 +220,4 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CardCreator",
     await waitFor(() => expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled());
     expect(savedCards).toHaveLength(1);
   });
-});
+}

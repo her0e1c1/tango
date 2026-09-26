@@ -18,94 +18,11 @@ export interface DestructiveActionDialogProps {
 
 export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (props) => {
   const { t } = useTranslation();
-  const dialogRef = React.useRef<HTMLDivElement>(null);
-  const cancelRef = React.useRef<HTMLButtonElement>(null);
-  const targetNameRef = React.useRef<HTMLSpanElement>(null);
-  const confirmingRef = React.useRef(false);
   const titleId = React.useId();
   const targetId = React.useId();
   const descriptionId = React.useId();
-  useToastModalFocusTarget(dialogRef, targetNameRef);
-
-  React.useEffect(() => {
-    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    cancelRef.current?.focus();
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      if (previouslyFocused?.isConnected) previouslyFocused.focus();
-    };
-  }, []);
-
-  React.useLayoutEffect(() => {
-    if (!props.pending) return;
-    // Both actions become disabled while pending, so focus must move before the browser can drop it outside the modal.
-    targetNameRef.current?.focus();
-  }, [props.pending]);
-
-  const handleDialogTabKey = (event: KeyboardEvent) => {
-    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
-    if (focusable.length === 0) {
-      event.preventDefault();
-      return;
-    }
-    const [first] = focusable;
-    const last = focusable.at(-1);
-    if (first == null || last == null) return;
-
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
-
-  const handleCancel = () => {
-    // A started deletion cannot be cancelled, even before its pending prop reaches this render.
-    if (props.pending || confirmingRef.current) return;
-    props.onCancel();
-  };
-
-  const handleKeyDownEvent = React.useEffectEvent((event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      handleCancel();
-      return;
-    }
-    if (event.key === "Tab") {
-      handleDialogTabKey(event);
-    }
-  });
-
-  React.useEffect(() => {
-    const dialog = dialogRef.current;
-    if (dialog === null) return;
-    dialog.addEventListener("keydown", handleKeyDownEvent);
-    return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
-  }, []);
-
   const describedBy = `${targetId} ${descriptionId}`;
-
-  const handleConfirm = () => {
-    if (props.pending || confirmingRef.current) return;
-    confirmingRef.current = true;
-    try {
-      void Promise.resolve(props.onConfirm())
-        .catch(() => {
-          // Prevent unhandled floating promise rejections. Callers own failure reporting and retry state.
-        })
-        .finally(() => {
-          confirmingRef.current = false;
-        });
-    } catch (error) {
-      confirmingRef.current = false;
-      throw error;
-    }
-  };
+  const { dialogRef, cancelRef, targetNameRef, handleCancel, handleConfirm } = useDestructiveDialog(props);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-canvas/70 px-shell-gutter py-6">
@@ -155,3 +72,94 @@ export const DestructiveActionDialog: React.FC<DestructiveActionDialogProps> = (
     </div>
   );
 };
+
+function useDestructiveDialog(props: DestructiveActionDialogProps) {
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const targetNameRef = React.useRef<HTMLSpanElement>(null);
+  const confirmingRef = React.useRef(false);
+  useToastModalFocusTarget(dialogRef, targetNameRef);
+
+  useInitialDialogFocus(cancelRef);
+
+  React.useLayoutEffect(() => {
+    if (!props.pending) return;
+    // Both actions become disabled while pending, so focus must move before the browser can drop it outside the modal.
+    targetNameRef.current?.focus();
+  }, [props.pending]);
+
+  const handleCancel = () => {
+    // A started deletion cannot be cancelled, even before its pending prop reaches this render.
+    if (props.pending || confirmingRef.current) return;
+    props.onCancel();
+  };
+
+  const handleKeyDownEvent = React.useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleCancel();
+      return;
+    }
+    if (event.key === "Tab") {
+      handleDialogTabKey(event, dialogRef);
+    }
+  });
+
+  React.useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog === null) return;
+    dialog.addEventListener("keydown", handleKeyDownEvent);
+    return () => dialog.removeEventListener("keydown", handleKeyDownEvent);
+  }, []);
+
+  const handleConfirm = () => {
+    if (props.pending || confirmingRef.current) return;
+    confirmingRef.current = true;
+    try {
+      void Promise.resolve(props.onConfirm())
+        .catch(() => {
+          // Prevent unhandled floating promise rejections. Callers own failure reporting and retry state.
+        })
+        .finally(() => {
+          confirmingRef.current = false;
+        });
+    } catch (error) {
+      confirmingRef.current = false;
+      throw error;
+    }
+  };
+  return { dialogRef, cancelRef, targetNameRef, handleCancel, handleConfirm };
+}
+
+function handleDialogTabKey(event: KeyboardEvent, dialogRef: React.RefObject<HTMLDivElement | null>) {
+  const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
+  if (focusable.length === 0) {
+    event.preventDefault();
+    return;
+  }
+  const [first] = focusable;
+  const last = focusable.at(-1);
+  if (first == null || last == null) return;
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function useInitialDialogFocus(cancelRef: React.RefObject<HTMLButtonElement | null>) {
+  React.useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    cancelRef.current?.focus();
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+    };
+  }, [cancelRef]);
+}

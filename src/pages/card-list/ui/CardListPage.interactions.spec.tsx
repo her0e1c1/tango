@@ -121,6 +121,32 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     });
   });
 
+  registerSortsByCreationTimeWithStableTiesAndRestoresTheLiveStandardOrderWithoutWrites();
+
+  registerRetainsSortingForEmptyFilteredResultsAndPermitsSortingDuringFilterAutosave();
+
+  registerRemovesASelectedTagViaKeyboardKeepsFocusOnTheRemainingChipAndContinuesTabNavigation();
+
+  registerRemovesTheFinalSelectedTagViaKeyboardAndMovesFocusToTheClosedFiltersSummary();
+
+  registerKeepsChipsUsableDuringAutosaveAndDoesNotStealFocusWhenSavingFinishes();
+
+  registerPreservesFocusAndDoesNotAlterFilterStateWhenTabbingThroughTagsWithoutRemovingThem();
+
+  registerCoordinatesCardViewAndEditNavigation();
+
+  registerRendersALanguageCardAnswerInTheOverlay();
+
+  registerKeepsTheConfirmationSnapshotWhenTheCardDisappearsConfirmedS();
+
+  registerClosesAFailedDeletionAndRetriesAfterReopeningTheSameCard();
+
+  registerIgnoresMutationOutcomeAfterLeavingThePage();
+
+  registerKeepsTheNewMutationAndDialogPendingWhenAnOldMutationEndsInOutcomeAfterRevisiting();
+});
+
+function registerSortsByCreationTimeWithStableTiesAndRestoresTheLiveStandardOrderWithoutWrites() {
   it("sorts by creation time with stable ties and restores the live standard order without writes", async () => {
     const oldest = createCard({ ...card, createdAt: 1000, updatedAt: 9000 });
     const newest = createCard({ ...card, id: "new", frontText: "New", createdAt: 3000 });
@@ -154,7 +180,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     expect(mocks.editDeck).not.toHaveBeenCalled();
     expect(mocks.deleteCard).not.toHaveBeenCalled();
   });
+}
 
+function registerRetainsSortingForEmptyFilteredResultsAndPermitsSortingDuringFilterAutosave() {
   it("retains sorting for empty filtered results and permits sorting during filter autosave", async () => {
     const saving = Promise.withResolvers<void>();
     mocks.editDeck.mockReturnValue(saving.promise);
@@ -176,7 +204,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     expect(screen.getByRole("checkbox", { name: "typescript" })).toBeVisible();
     expect(screen.getByRole("checkbox", { name: "react" })).toBeVisible();
   });
+}
 
+function registerRemovesASelectedTagViaKeyboardKeepsFocusOnTheRemainingChipAndContinuesTabNavigation() {
   it("removes a selected tag via keyboard, keeps focus on the remaining chip, and continues Tab navigation", async () => {
     const user = userEvent.setup();
     const otherMatchingCard = createCard({
@@ -208,7 +238,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       cardFilter: { selectedTags: ["react"], tagAndFilter: false },
     });
   });
+}
 
+function registerRemovesTheFinalSelectedTagViaKeyboardAndMovesFocusToTheClosedFiltersSummary() {
   it("removes the final selected tag via keyboard and moves focus to the closed filters summary", async () => {
     const user = userEvent.setup();
     renderCardList({ deck: { ...deck, cardFilter: { selectedTags: ["react"], tagAndFilter: false } } });
@@ -231,7 +263,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       cardFilter: { selectedTags: [], tagAndFilter: false },
     });
   });
+}
 
+function registerKeepsChipsUsableDuringAutosaveAndDoesNotStealFocusWhenSavingFinishes() {
   it("keeps chips usable during autosave and does not steal focus when saving finishes", async () => {
     let resolveSave: () => void = vi.fn();
     mocks.editDeck.mockImplementationOnce(
@@ -271,7 +305,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       cardFilter: { selectedTags: [], tagAndFilter: false },
     });
   });
+}
 
+function registerPreservesFocusAndDoesNotAlterFilterStateWhenTabbingThroughTagsWithoutRemovingThem() {
   it("preserves focus and does not alter filter state when tabbing through tags without removing them", async () => {
     const user = userEvent.setup();
     renderCardList();
@@ -289,7 +325,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
 
     expect(mocks.editDeck).not.toHaveBeenCalled();
   });
+}
 
+function registerCoordinatesCardViewAndEditNavigation() {
   it("coordinates Card view and edit navigation", async () => {
     renderCardList();
 
@@ -301,7 +339,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Card editor destination" })).toBeVisible();
   });
+}
 
+function registerRendersALanguageCardAnswerInTheOverlay() {
   it("renders a language Card answer in the overlay", async () => {
     const languageCard = createCard({ ...card, backText: "const answer = 42;", tags: ["typescript"] });
     renderCardList({
@@ -314,7 +354,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
 
     expect(screen.getByLabelText("Close card")).toHaveTextContent(languageCard.backText);
   });
+}
 
+function registerKeepsTheConfirmationSnapshotWhenTheCardDisappearsConfirmedS() {
   it.each([true, false])(
     "keeps the confirmation snapshot when the Card disappears (confirmed: %s)",
     async (confirmed) => {
@@ -354,7 +396,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
     }
   );
+}
 
+function registerClosesAFailedDeletionAndRetriesAfterReopeningTheSameCard() {
   it("closes a failed deletion and retries after reopening the same Card", async () => {
     mocks.deleteCard.mockRejectedValueOnce(new Error("delete failed"));
     renderCardList();
@@ -374,7 +418,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     expect(mocks.deleteCard).toHaveBeenCalledTimes(2);
     expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
   });
+}
 
+function registerIgnoresMutationOutcomeAfterLeavingThePage() {
   it.each(staleMutationCases)("ignores $mutation $outcome after leaving the page", async ({ outcome }) => {
     const write = Promise.withResolvers<void>();
     const save = mocks.deleteCard;
@@ -398,7 +444,9 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Actions" })).toBeEnabled();
   });
+}
 
+function registerKeepsTheNewMutationAndDialogPendingWhenAnOldMutationEndsInOutcomeAfterRevisiting() {
   it.each(staleMutationCases)(
     "keeps the new mutation and dialog pending when an old $mutation ends in $outcome after revisiting",
     async ({ outcome }) => {
@@ -446,4 +494,4 @@ describe("CARD-VIEW-02 CARD-MANAGEMENT-02 CARD-MANAGEMENT-08 CARD-MANAGEMENT-03 
       expect(screen.getByText("Deleted card “Front”.")).toBeVisible();
     }
   );
-});
+}

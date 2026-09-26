@@ -85,20 +85,8 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
   const toast = useStore(toastStore, (state) => state.current);
   const message = toast === undefined ? "" : t(toast.messageKey, toast.messageParams ?? {});
   const modalActive = useStore(toastStore, (state) => state.modalFocusTargets.length > 0);
-  const visualTargetRef = React.useRef<HTMLDivElement>(null);
   useAutoDismiss(toast);
-
-  React.useLayoutEffect(() => {
-    const focusFallbackTarget = focusFallbackRef?.current;
-    if (focusFallbackTarget === undefined || focusFallbackTarget === null) return;
-    return registerToastFocusFallbackTarget(focusFallbackTarget);
-  }, [focusFallbackRef]);
-
-  React.useLayoutEffect(() => {
-    const visualTarget = visualTargetRef.current;
-    if (toast === undefined || visualTarget === null) return;
-    return registerToastVisualTarget(toast.id, visualTarget);
-  }, [toast]);
+  const visualTargetRef = useToastFocusTargets(toast, focusFallbackRef);
 
   const renderAnnouncement = (activeToast: ToastState) => (
     <span key={activeToast.id}>{`${t(tonePresentation[activeToast.tone].labelKey)}: ${message}`}</span>
@@ -148,3 +136,24 @@ export const ToastViewport = <T extends HTMLElement = HTMLElement>({
     </>
   );
 };
+
+function useToastFocusTargets<T extends HTMLElement>(
+  toast: ToastState | undefined,
+  focusFallbackRef: React.RefObject<T | null> | undefined
+) {
+  const visualTargetRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    const focusFallbackTarget = focusFallbackRef?.current;
+    if (focusFallbackTarget === undefined || focusFallbackTarget === null) return;
+    return registerToastFocusFallbackTarget(focusFallbackTarget);
+  }, [focusFallbackRef]);
+
+  React.useLayoutEffect(() => {
+    const visualTarget = visualTargetRef.current;
+    if (toast === undefined || visualTarget === null) return;
+    return registerToastVisualTarget(toast.id, visualTarget);
+  }, [toast]);
+
+  return visualTargetRef;
+}

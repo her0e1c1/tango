@@ -12,155 +12,92 @@ import type { Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import * as Papa from "papaparse";
 
+type SampleCard = (typeof sampleCards)[number];
+
+const sampleName = "deck-sample.csv";
+
+const byKey = (left: SampleCard, right: SampleCard) => left.uniqueKey.localeCompare(right.uniqueKey);
+
+const expectedCards = [...sampleCards].sort(byKey);
+
+const previewSample = async (page: Page) => {
+  await page.goto("/import");
+  await page.getByRole("button", { name: "Sample deck", exact: true }).click();
+  await page.getByRole("button", { name: "Try this example", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Review import", exact: true })).toBeVisible();
+  await expect(page.getByText(`${sampleCards.length} valid`, { exact: true })).toBeVisible();
+};
+
+const confirmSample = (page: Page) =>
+  page.getByRole("button", { name: `Add ${sampleCards.length} cards`, exact: true }).click();
+
 test.describe("import-sample", () => {
-  type SampleCard = (typeof sampleCards)[number];
+  registerAFreshAnonymousSessionKeepsTheImportedSampleDeckLocal();
 
-  const sampleName = "deck-sample.csv";
+  registerALocalSampleDeckPreservesEveryCardAndCanBeStudiedAfterReload();
 
-  const byKey = (left: SampleCard, right: SampleCard) => left.uniqueKey.localeCompare(right.uniqueKey);
-
-  const expectedCards = [...sampleCards].sort(byKey);
-
-  const documentsForUid = async (collection: "deck" | "card", uid: string) =>
-    (await listDocuments(collection)).filter((document) => document.fields.uid?.stringValue === uid);
-
-  const previewSample = async (page: Page) => {
-    await page.goto("/import");
-    await page.getByRole("button", { name: "Sample deck", exact: true }).click();
-    await page.getByRole("button", { name: "Try this example", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Review import", exact: true })).toBeVisible();
-    await expect(page.getByText(`${sampleCards.length} valid`, { exact: true })).toBeVisible();
-  };
-
-  const confirmSample = (page: Page) =>
-    page.getByRole("button", { name: `Add ${sampleCards.length} cards`, exact: true }).click();
-
-  test("DECK-IMPORT-10 A fresh anonymous session keeps the imported Sample deck local", async ({ fixture, page }) => {
-    await fixture.apply(page, { auth: false });
-    await previewSample(page);
-    await confirmSample(page);
-    await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
-
-    await page.getByRole("button", { name: "Open account", exact: true }).click();
-    await expect(page.getByText("Anonymous account", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Sign in with Google", exact: true })).toBeVisible();
-    const uid = (
-      await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent()
-    )?.trim();
-    if (!uid) throw new Error("The anonymous account has no User ID");
-    expect(
-      (await downloadDeckCards(page, sampleName)).sort((a, b) => String(a.uniqueKey).localeCompare(String(b.uniqueKey)))
-    ).toEqual(expectedCards);
-    expect(await documentsForUid("deck", uid)).toEqual([]);
-    expect(await documentsForUid("card", uid)).toEqual([]);
-
-    await page.getByRole("button", { name: "tango", exact: true }).click();
-    await expect(page).toHaveURL(/\/$/);
-    await page.reload();
-    await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
-    await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
-  });
-
-  test("DECK-IMPORT-08 A local Sample deck preserves every card and can be studied after reload", async ({
-    fixture,
-    page,
-  }) => {
-    const { uid } = fixture.user();
-    await fixture.apply(page);
-    await previewSample(page);
-    await page.goto("/");
-    await expect(page.getByRole("article")).toHaveCount(0);
-    await previewSample(page);
-    expect(await documentsForUid("deck", uid)).toEqual([]);
-    expect(await documentsForUid("card", uid)).toEqual([]);
-
-    await confirmSample(page);
-    await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
-    await page.reload();
-    await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
-    await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
-    await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
-
-    expect(
-      (await downloadDeckCards(page, sampleName)).sort((a, b) => String(a.uniqueKey).localeCompare(String(b.uniqueKey)))
-    ).toEqual(expectedCards);
-    expect(await documentsForUid("deck", uid)).toEqual([]);
-    expect(await documentsForUid("card", uid)).toEqual([]);
-
-    await page.goto("/");
-    await page.getByRole("button", { name: `Study ${sampleName}`, exact: true }).click();
-    await page.getByRole("button", { name: /^Start \d+ cards$/u }).click();
-    await page.locator("#frontText").click();
-    await expect(page.getByRole("region", { name: "Study answer" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Study answer" })).toContainText("import pytest");
-  });
-
-  test("DECK-IMPORT-09 A linked account syncs every Sample deck card without duplicates", async ({ fixture, page }) => {
-    const { uid } = fixture.user();
-    await fixture.apply(page, { auth: { linked: true } });
-    await previewSample(page);
-    await confirmSample(page);
-    await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
-    await page.reload();
-    await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
-    await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
-    await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
-
-    await expect
-      .poll(async () => (await documentsForUid("deck", uid)).map(({ fields }) => fields.name?.stringValue))
-      .toEqual([sampleName]);
-    const [savedDeck] = await documentsForUid("deck", uid);
-    if (!savedDeck) throw new Error("Missing imported Deck");
-    await expect.poll(async () => (await documentsForUid("card", uid)).length).toBe(sampleCards.length);
-    const cards = await documentsForUid("card", uid);
-    expect(cards).toHaveLength(sampleCards.length);
-    expect(cards.every((card) => card.fields.deckId?.stringValue === documentId(savedDeck))).toBe(true);
-    const contents = cards.map(({ fields }) => ({
-      frontText: fields.frontText?.stringValue ?? "",
-      backText: fields.backText?.stringValue ?? "",
-      tags: fields.tags?.arrayValue?.values?.map((tag) => String(tag.stringValue)) ?? [],
-      uniqueKey: fields.uniqueKey?.stringValue ?? "",
-    }));
-    expect(contents.sort(byKey)).toEqual(expectedCards);
-    await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
-  });
+  registerALinkedAccountSyncsEverySampleDeckCardWithoutDuplicates();
 });
 
+const readSampleState = async (page: Page, sampleDeckId: string) => {
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Open cards in Sample Deck", exact: true })).toHaveCount(1);
+  await page.getByRole("button", { name: "Open cards in Sample Deck", exact: true }).click();
+  await expect(page).toHaveURL(`/deck/${sampleDeckId}`);
+  const names = await page.getByRole("button", { name: /^View / }).allTextContents();
+  const contents = await downloadDeckCards(page, "Sample Deck");
+  return { names, contents };
+};
+
+const csvFile = (name: string, rows: readonly string[]) => ({
+  name,
+  mimeType: "text/csv",
+  buffer: Buffer.from(rows.join("\n")),
+});
+
+const validCsv = (namespace: string) =>
+  csvFile(`${namespace}.csv`, [
+    `"front ${namespace} one","back ${namespace} one","tag-${namespace}","${namespace}-key-1"`,
+    `"front ${namespace} two","back ${namespace} two","","${namespace}-key-2"`,
+  ]);
+
+const examples = [
+  {
+    label: "Basic",
+    file: "basic-sample.csv",
+    count: 3,
+    local: false,
+    representativeRow: ["apple", "りんご", "果物", "apple-001"],
+  },
+  {
+    label: "Math",
+    file: "math-sample.csv",
+    count: 2,
+    local: false,
+    representativeRow: ["半径 $r$ の円の面積は？", "$\\pi r^2$", "math", "circle-area"],
+  },
+  {
+    label: "Markdown",
+    file: "markdown-sample.csv",
+    count: 2,
+    local: false,
+    representativeRow: ["Markdownで強調するには？", "**重要**な語句を強調します。", "md", "markdown-source"],
+  },
+  {
+    label: "Sample deck",
+    file: "deck-sample.csv",
+    count: 11,
+    local: false,
+    representativeRow: [
+      "What is bisect_left?",
+      expect.stringContaining("def my_bisect_left(sl, a):\n    lo, hi = 0, len(sl)"),
+      "py,binarysearch",
+      "test/binarysearch/test_bisect_left.py",
+    ],
+  },
+];
+
 test.describe("import", () => {
-  const readSampleState = async (page: Page, sampleDeckId: string) => {
-    await page.goto("/");
-    await expect(page.getByRole("button", { name: "Open cards in Sample Deck", exact: true })).toHaveCount(1);
-    await page.getByRole("button", { name: "Open cards in Sample Deck", exact: true }).click();
-    await expect(page).toHaveURL(`/deck/${sampleDeckId}`);
-    const names = await page.getByRole("button", { name: /^View / }).allTextContents();
-    const contents = await downloadDeckCards(page, "Sample Deck");
-    return { names, contents };
-  };
-
-  const documentsForUid = async (collection: "deck" | "card", uid: string) =>
-    (await listDocuments(collection)).filter((document) => document.fields.uid?.stringValue === uid);
-
-  const csvFile = (name: string, rows: readonly string[]) => ({
-    name,
-    mimeType: "text/csv",
-    buffer: Buffer.from(rows.join("\n")),
-  });
-
-  const validCsv = (namespace: string) =>
-    csvFile(`${namespace}.csv`, [
-      `"front ${namespace} one","back ${namespace} one","tag-${namespace}","${namespace}-key-1"`,
-      `"front ${namespace} two","back ${namespace} two","","${namespace}-key-2"`,
-    ]);
-
   test("DECK-IMPORT-01 A valid CSV is previewed without persistence", async ({ fixture, page, namespace }) => {
     const { uid } = fixture.user();
     await fixture.apply(page);
@@ -325,42 +262,6 @@ test.describe("import", () => {
     await page.reload();
     expect(await documentsForUid("card", uid)).toEqual([]);
   });
-
-  const examples = [
-    {
-      label: "Basic",
-      file: "basic-sample.csv",
-      count: 3,
-      local: false,
-      representativeRow: ["apple", "りんご", "果物", "apple-001"],
-    },
-    {
-      label: "Math",
-      file: "math-sample.csv",
-      count: 2,
-      local: false,
-      representativeRow: ["半径 $r$ の円の面積は？", "$\\pi r^2$", "math", "circle-area"],
-    },
-    {
-      label: "Markdown",
-      file: "markdown-sample.csv",
-      count: 2,
-      local: false,
-      representativeRow: ["Markdownで強調するには？", "**重要**な語句を強調します。", "md", "markdown-source"],
-    },
-    {
-      label: "Sample deck",
-      file: "deck-sample.csv",
-      count: 11,
-      local: false,
-      representativeRow: [
-        "What is bisect_left?",
-        expect.stringContaining("def my_bisect_left(sl, a):\n    lo, hi = 0, len(sl)"),
-        "py,binarysearch",
-        "test/binarysearch/test_bisect_left.py",
-      ],
-    },
-  ];
   // Each example gets a fresh browser context and UID instead of accumulating reloads and pending streams.
   for (const example of examples) {
     test(`DECK-IMPORT-06 ${example.label} supports preview, download, and destination-aware import`, async ({
@@ -438,3 +339,111 @@ test.describe("import", () => {
     expect(reloadedSample).toEqual(initialSample);
   });
 });
+
+const documentsForUid = async (collection: "deck" | "card", uid: string) =>
+  (await listDocuments(collection)).filter((document) => document.fields.uid?.stringValue === uid);
+
+function registerAFreshAnonymousSessionKeepsTheImportedSampleDeckLocal() {
+  test("DECK-IMPORT-10 A fresh anonymous session keeps the imported Sample deck local", async ({ fixture, page }) => {
+    await fixture.apply(page, { auth: false });
+    await previewSample(page);
+    await confirmSample(page);
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Open account", exact: true }).click();
+    await expect(page.getByText("Anonymous account", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign in with Google", exact: true })).toBeVisible();
+    const uid = (
+      await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").textContent()
+    )?.trim();
+    if (!uid) throw new Error("The anonymous account has no User ID");
+    expect(
+      (await downloadDeckCards(page, sampleName)).sort((a, b) => String(a.uniqueKey).localeCompare(String(b.uniqueKey)))
+    ).toEqual(expectedCards);
+    expect(await documentsForUid("deck", uid)).toEqual([]);
+    expect(await documentsForUid("card", uid)).toEqual([]);
+
+    await page.getByRole("button", { name: "tango", exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await page.reload();
+    await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
+    await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
+  });
+}
+
+function registerALocalSampleDeckPreservesEveryCardAndCanBeStudiedAfterReload() {
+  test("DECK-IMPORT-08 A local Sample deck preserves every card and can be studied after reload", async ({
+    fixture,
+    page,
+  }) => {
+    const { uid } = fixture.user();
+    await fixture.apply(page);
+    await previewSample(page);
+    await page.goto("/");
+    await expect(page.getByRole("article")).toHaveCount(0);
+    await previewSample(page);
+    expect(await documentsForUid("deck", uid)).toEqual([]);
+    expect(await documentsForUid("card", uid)).toEqual([]);
+
+    await confirmSample(page);
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
+    await page.reload();
+    await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
+    await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
+    await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
+
+    expect(
+      (await downloadDeckCards(page, sampleName)).sort((a, b) => String(a.uniqueKey).localeCompare(String(b.uniqueKey)))
+    ).toEqual(expectedCards);
+    expect(await documentsForUid("deck", uid)).toEqual([]);
+    expect(await documentsForUid("card", uid)).toEqual([]);
+
+    await page.goto("/");
+    await page.getByRole("button", { name: `Study ${sampleName}`, exact: true }).click();
+    await page.getByRole("button", { name: /^Start \d+ cards$/u }).click();
+    await page.locator("#frontText").click();
+    await expect(page.getByRole("region", { name: "Study answer" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Study answer" })).toContainText("import pytest");
+  });
+}
+
+function registerALinkedAccountSyncsEverySampleDeckCardWithoutDuplicates() {
+  test("DECK-IMPORT-09 A linked account syncs every Sample deck card without duplicates", async ({ fixture, page }) => {
+    const { uid } = fixture.user();
+    await fixture.apply(page, { auth: { linked: true } });
+    await previewSample(page);
+    await confirmSample(page);
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("status").filter({ hasText: `Imported ${sampleCards.length} cards.` })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Decks", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true })).toBeVisible();
+    await page.reload();
+    await page.getByRole("button", { name: `Open cards in ${sampleName}`, exact: true }).click();
+    await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
+    await expect(page.getByText("What is bisect_left?", { exact: true })).toBeVisible();
+
+    await expect
+      .poll(async () => (await documentsForUid("deck", uid)).map(({ fields }) => fields.name?.stringValue))
+      .toEqual([sampleName]);
+    const [savedDeck] = await documentsForUid("deck", uid);
+    if (!savedDeck) throw new Error("Missing imported Deck");
+    await expect.poll(async () => (await documentsForUid("card", uid)).length).toBe(sampleCards.length);
+    const cards = await documentsForUid("card", uid);
+    expect(cards).toHaveLength(sampleCards.length);
+    expect(cards.every((card) => card.fields.deckId?.stringValue === documentId(savedDeck))).toBe(true);
+    const contents = cards.map(({ fields }) => ({
+      frontText: fields.frontText?.stringValue ?? "",
+      backText: fields.backText?.stringValue ?? "",
+      tags: fields.tags?.arrayValue?.values?.map((tag) => String(tag.stringValue)) ?? [],
+      uniqueKey: fields.uniqueKey?.stringValue ?? "",
+    }));
+    expect(contents.sort(byKey)).toEqual(expectedCards);
+    await expect(page.getByRole("article")).toHaveCount(sampleCards.length);
+  });
+}

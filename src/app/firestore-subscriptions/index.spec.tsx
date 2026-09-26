@@ -35,44 +35,7 @@ vi.mock("firebase/firestore", async (importOriginal) => {
         publishSnapshot({ docs: [], metadata: { fromCache: true, hasPendingWrites: false } });
         return () => undefined;
       }
-      const deckId = `deck-${request.uid}`;
-      const document =
-        request.collectionName === "deck"
-          ? {
-              id: deckId,
-              data: () => ({
-                name: `Deck for ${request.uid}`,
-                isPublic: false,
-                uid: request.uid,
-                createdAt: 1,
-                updatedAt: actual.Timestamp.fromMillis(2),
-                fsrs: null,
-                deletedAt: null,
-                difficultyMax: null,
-                difficultyMin: null,
-                selectedTags: [],
-                tagAndFilter: false,
-                category: "",
-                convertToBr: false,
-              }),
-            }
-          : {
-              id: `card-${request.uid}`,
-              data: () => ({
-                frontText: `Front for ${request.uid}`,
-                backText: `Back for ${request.uid}`,
-                tags: [],
-                uniqueKey: `key-${request.uid}`,
-                deckId,
-                uid: request.uid,
-                createdAt: 1,
-                updatedAt: actual.Timestamp.fromMillis(2),
-                fsrs: null,
-                deletedAt: null,
-                difficulty: 5,
-                numberOfSeen: 0,
-              }),
-            };
+      const document = createSubscriptionDocument(request, actual);
       publishSnapshot({
         docs: [document],
         metadata: { fromCache: true, hasPendingWrites: false },
@@ -96,10 +59,54 @@ const RepositoryView = () => {
 };
 
 describe("Firestore subscriptions [PERSISTENCE-01 PERSISTENCE-04 ACCOUNT-03]", () => {
-  beforeEach(() => {
-    clearRemoteCards();
-    clearRemoteDecks();
-  });
+  beforeEach(resetTestState);
+  registerPublishesCachedDataForSAndClearsItOnCleanup();
+  registerReplacesTheVisibleUIDAfterStoppingTheOldSubscriptions();
+});
+
+function createSubscriptionDocument(request: FirestoreQuery, actual: typeof import("firebase/firestore")) {
+  const deckId = `deck-${request.uid}`;
+  const document =
+    request.collectionName === "deck"
+      ? {
+          id: deckId,
+          data: () => ({
+            name: `Deck for ${request.uid}`,
+            isPublic: false,
+            uid: request.uid,
+            createdAt: 1,
+            updatedAt: actual.Timestamp.fromMillis(2),
+            fsrs: null,
+            deletedAt: null,
+            difficultyMax: null,
+            difficultyMin: null,
+            selectedTags: [],
+            tagAndFilter: false,
+            category: "",
+            convertToBr: false,
+          }),
+        }
+      : {
+          id: `card-${request.uid}`,
+          data: () => ({
+            frontText: `Front for ${request.uid}`,
+            backText: `Back for ${request.uid}`,
+            tags: [],
+            uniqueKey: `key-${request.uid}`,
+            deckId,
+            uid: request.uid,
+            createdAt: 1,
+            updatedAt: actual.Timestamp.fromMillis(2),
+            fsrs: null,
+            deletedAt: null,
+            difficulty: 5,
+            numberOfSeen: 0,
+          }),
+        };
+  return document;
+}
+
+function registerPublishesCachedDataForSAndClearsItOnCleanup() {
   it.each(["anonymous-uid", "linked-uid"])("publishes cached data for %s and clears it on cleanup", async (uid) => {
     const { stop } = startFirestoreSubscriptions(uid);
     render(<RepositoryView />);
@@ -109,6 +116,9 @@ describe("Firestore subscriptions [PERSISTENCE-01 PERSISTENCE-04 ACCOUNT-03]", (
     expect(screen.queryByText(`Deck for ${uid}`)).not.toBeInTheDocument();
     expect(screen.queryByText(`Front for ${uid}`)).not.toBeInTheDocument();
   });
+}
+
+function registerReplacesTheVisibleUIDAfterStoppingTheOldSubscriptions() {
   it("replaces the visible UID after stopping the old subscriptions", async () => {
     const { stop: stopFirst } = startFirestoreSubscriptions("first");
     render(<RepositoryView />);
@@ -121,4 +131,9 @@ describe("Firestore subscriptions [PERSISTENCE-01 PERSISTENCE-04 ACCOUNT-03]", (
     expect(await screen.findByText("Deck for second")).toBeVisible();
     act(() => stopSecond());
   });
-});
+}
+
+function resetTestState() {
+  clearRemoteCards();
+  clearRemoteDecks();
+}

@@ -29,12 +29,15 @@ vi.mock("@/entities/preference", () => ({
 }));
 
 describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () => {
-  beforeEach(() => {
-    repository.preferences = createPreferences({
-      study: { useCardInterval: true, cardInterval: 1 },
-    });
-  });
+  beforeEach(resetTestState);
 
+  registerDerivesEmptyReasonAcrossNoCardsFilterZeroAndPopulatedStates();
+  registerReportsNoCardsWhenTheDeckHasNoCards();
+  registerReportsFilterZeroWhenCardsExistButDoNotMatchTheTagFilter();
+  registerIncludesMatchingCardsScheduledForFutureReview();
+});
+
+function registerDerivesEmptyReasonAcrossNoCardsFilterZeroAndPopulatedStates() {
   it("derives emptyReason across no-cards, filter-zero, and populated states", () => {
     const deck = createDeck({ id: "deck-1" });
     const emptyFilter = {
@@ -43,40 +46,13 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
     };
 
     repository.cards = [createCard({ id: "c-1", deckId: "deck-1" })];
-    expect(
-      renderHook(() =>
-        useCardListQuery({
-          deck,
-          filter: emptyFilter,
-          shownCard: undefined,
-          sortOrder: "standard",
-        })
-      ).result.current.emptyReason
-    ).toBeUndefined();
+    expect(readEmptyReason(deck, emptyFilter)).toBeUndefined();
 
     repository.cards = [];
-    expect(
-      renderHook(() =>
-        useCardListQuery({
-          deck,
-          filter: emptyFilter,
-          shownCard: undefined,
-          sortOrder: "standard",
-        })
-      ).result.current.emptyReason
-    ).toBe("no-cards");
+    expect(readEmptyReason(deck, emptyFilter)).toBe("no-cards");
 
     repository.cards = [createCard({ id: "c-1", deckId: "deck-1" })];
-    expect(
-      renderHook(() =>
-        useCardListQuery({
-          deck,
-          filter: { ...emptyFilter, selectedTags: ["missing"] },
-          shownCard: undefined,
-          sortOrder: "standard",
-        })
-      ).result.current.emptyReason
-    ).toBe("filter-zero");
+    expect(readEmptyReason(deck, { ...emptyFilter, selectedTags: ["missing"] })).toBe("filter-zero");
     const fsrs = { ...calculateFsrsState(null, "good", 0), dueAt: Date.now() + 100_000 };
 
     repository.cards = [
@@ -86,18 +62,11 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
         deckId: "deck-1",
       }),
     ];
-    expect(
-      renderHook(() =>
-        useCardListQuery({
-          deck,
-          filter: emptyFilter,
-          shownCard: undefined,
-          sortOrder: "standard",
-        })
-      ).result.current.emptyReason
-    ).toBeUndefined();
+    expect(readEmptyReason(deck, emptyFilter)).toBeUndefined();
   });
+}
 
+function registerReportsNoCardsWhenTheDeckHasNoCards() {
   it("reports no-cards when the deck has no cards", () => {
     repository.cards = [];
     const deck = createDeck({ id: "deck-1" });
@@ -119,7 +88,9 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
     expect(result.current.visibleCount).toBe(0);
     expect(result.current.emptyReason).toBe("no-cards");
   });
+}
 
+function registerReportsFilterZeroWhenCardsExistButDoNotMatchTheTagFilter() {
   it("reports filter-zero when cards exist but do not match the tag filter", () => {
     repository.cards = [
       createCard({
@@ -146,7 +117,9 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
     expect(result.current.visibleCount).toBe(0);
     expect(result.current.emptyReason).toBe("filter-zero");
   });
+}
 
+function registerIncludesMatchingCardsScheduledForFutureReview() {
   it("includes matching cards scheduled for future review", () => {
     const fsrs = { ...calculateFsrsState(null, "good", 0), dueAt: Date.now() + 100_000 };
     repository.cards = [
@@ -175,4 +148,18 @@ describe("useCardListQuery [CARD-FILTER-01 CARD-FILTER-03 CARD-FILTER-04]", () =
     expect(result.current.visibleCount).toBe(1);
     expect(result.current.emptyReason).toBeUndefined();
   });
-});
+}
+
+function resetTestState() {
+  repository.preferences = createPreferences({
+    study: { useCardInterval: true, cardInterval: 1 },
+  });
+}
+
+function readEmptyReason(
+  deck: ReturnType<typeof createDeck>,
+  filter: { selectedTags: string[]; tagAndFilter: boolean }
+) {
+  return renderHook(() => useCardListQuery({ deck, filter, shownCard: undefined, sortOrder: "standard" })).result
+    .current.emptyReason;
+}

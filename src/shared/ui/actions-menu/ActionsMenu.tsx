@@ -92,76 +92,8 @@ const handleNavigationKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
  */
 export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
   const { t } = useTranslation();
-  /**
-   * Returns keyboard focus to the button that opened this actions menu.
-   * Closing an item or tabbing away therefore leaves focus at a predictable control.
-   */
-  const focusTrigger = (menu: HTMLElement) => {
-    const trigger = menu.parentElement?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]');
-    trigger?.focus();
-  };
-
-  /**
-   * Wraps a menu action so selecting it also closes the menu and restores trigger focus.
-   * Items can omit their action while still receiving the same predictable menu cleanup.
-   */
-  const run = (action?: () => void) => (event: React.MouseEvent<HTMLButtonElement>) => {
-    const menu = event.currentTarget.closest<HTMLElement>('[role="menu"]');
-    action?.();
-    props.onClose();
-    if (menu != null) focusTrigger(menu);
-  };
-
-  /**
-   * Handles the toggle callback for the application.
-   * The handler translates the event or asynchronous result into the next state change or
-   * operation.
-   */
-  const handleToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
-    const root = event.currentTarget.parentElement;
-    props.onToggle();
-    if (!props.open) queueMicrotask(() => root?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus());
-  };
-
-  /**
-   * Handles the menu key down callback for the application.
-   * The handler translates the event or asynchronous result into the next state change or
-   * operation.
-   */
-  const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      props.onClose();
-      focusTrigger(event.currentTarget);
-      return;
-    }
-    if (event.key === "Tab") {
-      event.preventDefault();
-      const menu = event.currentTarget;
-      props.onClose();
-      focusAdjacentToTrigger(menu, event.shiftKey ? -1 : 1);
-      return;
-    }
-    handleNavigationKey(event);
-  };
-
-  /**
-   * Handles the blur callback for the application.
-   * The handler translates the event or asynchronous result into the next state change or
-   * operation.
-   */
-  const handleBlur = (event: React.FocusEvent<HTMLFieldSetElement>) => {
-    const root = event.currentTarget;
-    if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
-    const menu = root.querySelector<HTMLElement>('[role="menu"]');
-
-    // Defer closing until a pending click can run; closing during blur would unmount its menu item first.
-    setTimeout(() => {
-      if (root.isConnected && menu?.isConnected && root.contains(menu) && !root.contains(document.activeElement)) {
-        props.onClose();
-      }
-    }, 0);
-  };
+  const handleToggle = (event: React.MouseEvent<HTMLButtonElement>) => toggleMenu(event, props.onToggle, props.open);
+  const handleBlur = (event: React.FocusEvent<HTMLFieldSetElement>) => closeOnBlur(event, props.onClose);
 
   const isOpen = props.open && !props.disabled;
 
@@ -197,46 +129,111 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = (props) => {
         />
       )}
       {isOpen ? (
-        <div
-          role="menu"
-          aria-label={props.menuLabel}
-          className={props.mobileSheet ? mobileSheetClassName : menuClassName}
-          onKeyDown={handleMenuKeyDown}
-        >
-          {props.mobileSheet === true && (
-            <div
-              role="presentation"
-              className="px-3 py-3 text-caption font-semibold break-words text-ink-muted sm:hidden"
-            >
-              {props.menuLabel}
-            </div>
-          )}
-          {props.items.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              role="menuitem"
-              tabIndex={-1}
-              className={item.danger ? `${itemClassName} text-danger` : itemClassName}
-              onClick={run(item.onSelect)}
-            >
-              {item.icon}
-              {item.label}
-            </button>
-          ))}
-          {props.mobileSheet === true && (
-            <button
-              type="button"
-              role="menuitem"
-              tabIndex={-1}
-              className={`${itemClassName} mt-2 border-t border-border sm:hidden`}
-              onClick={run()}
-            >
-              {t("actionsMenu.close")}
-            </button>
-          )}
-        </div>
+        <MenuOptions
+          items={props.items}
+          mobileSheet={props.mobileSheet}
+          menuLabel={props.menuLabel}
+          onClose={props.onClose}
+        />
       ) : null}
     </fieldset>
   );
 };
+
+const focusTrigger = (menu: HTMLElement) => {
+  const trigger = menu.parentElement?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]');
+  trigger?.focus();
+};
+
+function runMenuAction(event: React.MouseEvent<HTMLButtonElement>, onClose: () => void, action?: () => void) {
+  const menu = event.currentTarget.closest<HTMLElement>('[role="menu"]');
+  action?.();
+  onClose();
+  if (menu != null) focusTrigger(menu);
+}
+
+function toggleMenu(event: React.MouseEvent<HTMLButtonElement>, onToggle: () => void, open: boolean) {
+  const root = event.currentTarget.parentElement;
+  onToggle();
+  if (!open) queueMicrotask(() => root?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus());
+}
+
+function handleMenuKey(event: React.KeyboardEvent<HTMLDivElement>, onClose: () => void) {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    onClose();
+    focusTrigger(event.currentTarget);
+    return;
+  }
+  if (event.key === "Tab") {
+    event.preventDefault();
+    const menu = event.currentTarget;
+    onClose();
+    focusAdjacentToTrigger(menu, event.shiftKey ? -1 : 1);
+    return;
+  }
+  handleNavigationKey(event);
+}
+
+function closeOnBlur(event: React.FocusEvent<HTMLFieldSetElement>, onClose: () => void) {
+  const root = event.currentTarget;
+  if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
+  const menu = root.querySelector<HTMLElement>('[role="menu"]');
+
+  // Defer closing until a pending click can run; closing during blur would unmount its menu item first.
+  setTimeout(() => {
+    if (root.isConnected && menu?.isConnected && root.contains(menu) && !root.contains(document.activeElement)) {
+      onClose();
+    }
+  }, 0);
+}
+
+function MenuOptions(props: {
+  items: ActionsMenuItem[];
+  mobileSheet: boolean | undefined;
+  menuLabel: string;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const run = (action?: () => void) => (event: React.MouseEvent<HTMLButtonElement>) =>
+    runMenuAction(event, props.onClose, action);
+  const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => handleMenuKey(event, props.onClose);
+  return (
+    <div
+      role="menu"
+      aria-label={props.menuLabel}
+      className={props.mobileSheet ? mobileSheetClassName : menuClassName}
+      onKeyDown={handleMenuKeyDown}
+    >
+      {props.mobileSheet === true && (
+        <div role="presentation" className="px-3 py-3 text-caption font-semibold break-words text-ink-muted sm:hidden">
+          {props.menuLabel}
+        </div>
+      )}
+      {props.items.map((item) => (
+        <button
+          key={item.key}
+          type="button"
+          role="menuitem"
+          tabIndex={-1}
+          className={item.danger ? `${itemClassName} text-danger` : itemClassName}
+          onClick={run(item.onSelect)}
+        >
+          {item.icon}
+          {item.label}
+        </button>
+      ))}
+      {props.mobileSheet === true && (
+        <button
+          type="button"
+          role="menuitem"
+          tabIndex={-1}
+          className={`${itemClassName} mt-2 border-t border-border sm:hidden`}
+          onClick={run()}
+        >
+          {t("actionsMenu.close")}
+        </button>
+      )}
+    </div>
+  );
+}

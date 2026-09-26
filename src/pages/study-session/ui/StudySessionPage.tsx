@@ -14,34 +14,13 @@ import { StudyCompletion } from "./StudyCompletion";
 
 const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
   const { t } = useTranslation();
-  const {
-    goBack,
-    finish,
-    toggleViewMode,
-    toggleShowViewMode,
-    toggleShowHelp,
-    toggleShowCardDetails,
-    toggleShowPlaybackControls,
-    toggleShowSkip,
-    toggleShowSwipeButtonList,
-    query,
-    pageState,
-    toggleBackText,
-    toggleAutoPlay,
-    openHelp,
-    closeHelp,
-    changeIndex,
-    skip,
-    swipeUp,
-    swipeDown,
-    swipeLeft,
-    swipeRight,
-  } = useStudySessionPageModel(deckId);
+  const model = useStudySessionPageModel(deckId);
+  const { query, pageState } = model;
 
   if (pageState.completion != null) {
     return (
       <AppLayout showHeader>
-        <StudyCompletion cardCount={pageState.completion.cardCount} onClickBack={finish} />
+        <StudyCompletion cardCount={pageState.completion.cardCount} onClickBack={model.finish} />
       </AppLayout>
     );
   }
@@ -55,47 +34,14 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
   }
 
   const blocked = pageState.swipePending;
-  const swipeActions = {
-    disabled: blocked,
-    captions: {
-      cardSwipeUp: t(`studySession.actionLabels.${query.swipeActions.cardSwipeUp}`),
-      cardSwipeDown: t(`studySession.actionLabels.${query.swipeActions.cardSwipeDown}`),
-      cardSwipeLeft: t(`studySession.actionLabels.${query.swipeActions.cardSwipeLeft}`),
-      cardSwipeRight: t(`studySession.actionLabels.${query.swipeActions.cardSwipeRight}`),
-    },
-    onClickUp: swipeUp,
-    onClickDown: swipeDown,
-    onClickLeft: swipeLeft,
-    onClickRight: swipeRight,
-  };
+  const swipeActions = getSwipeActions(query.swipeActions, model, blocked, t);
 
   return (
     <AppLayout fullscreen showHeader={false}>
       <CardPlayer
+        {...getStudyPlayerControls({ ...model, query })}
         cardKey={query.card.id}
-        viewMode={query.viewMode}
-        onToggleViewMode={toggleViewMode}
-        onBack={goBack}
-        onToggleCardDetails={toggleShowCardDetails}
-        onToggleHelp={toggleShowHelp}
-        onToggleSwipeControls={toggleShowSwipeButtonList}
-        onTogglePlaybackControls={toggleShowPlaybackControls}
-        onToggleSkipControls={toggleShowSkip}
         showBackText={pageState.showBackText}
-        showViewMode={query.showViewMode}
-        onToggleShowViewMode={toggleShowViewMode}
-        showHelp={query.showHelp}
-        showCardDetails={query.showCardDetails}
-        showSwipeControls={query.showSwipeButtonList}
-        showPlaybackControls={query.showPlaybackControls}
-        showSkipControls={query.showSkip}
-        playbackControlsAvailable={query.playbackControlsAvailable}
-        help={{
-          open: pageState.helpOpen,
-          rows: query.helpRows,
-          onOpen: openHelp,
-          onClose: closeHelp,
-        }}
         onSwipeUp={swipeActions.onClickUp}
         onSwipeDown={swipeActions.onClickDown}
         onSwipeLeft={swipeActions.onClickLeft}
@@ -113,24 +59,16 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
             viewMode={query.viewMode}
             category={query.card.category}
             text={query.card.frontText}
-            onClick={toggleBackText}
+            onClick={model.toggleBackText}
           />
         }
         cardOverlaySlot={<CardOverlay fsrs={query.card.fsrs} />}
-        backTextSlot={<CardView {...query.card.back} onClick={toggleBackText} variant="bare" />}
+        backTextSlot={<CardView {...query.card.back} onClick={model.toggleBackText} variant="bare" />}
         actionSlot={
           (!pageState.showBackText || blocked) && (pageState.swipePending || query.showSkip) ? (
-            <StudySaveControls pending={pageState.swipePending} showSkip={query.showSkip} onSkip={skip} />
+            <StudySaveControls pending={pageState.swipePending} showSkip={query.showSkip} onSkip={model.skip} />
           ) : undefined
         }
-        controller={{
-          disabled: blocked,
-          autoPlay: pageState.autoPlay,
-          index: query.session.currentIndex,
-          numberOfCards: query.session.cardCount,
-          onChange: changeIndex,
-          onToggleAutoPlay: toggleAutoPlay,
-        }}
         swipeButtonList={swipeActions}
       />
     </AppLayout>
@@ -151,3 +89,89 @@ export const StudySessionPage: React.FC = () => {
   // Study state belongs to one route Deck, so id changes start a fresh Page lifecycle.
   return <StudySessionContainer key={deckId} deckId={deckId} />;
 };
+
+interface StudyPlayerControls {
+  pageState: { helpOpen: boolean; autoPlay: boolean; swipePending: boolean };
+  openHelp: () => void;
+  closeHelp: () => void;
+  changeIndex: (index: number) => void;
+  toggleAutoPlay: () => void;
+
+  query: {
+    session: { currentIndex: number; cardCount: number };
+    helpRows: import("@/features/card-player").CardPlayerProps["help"]["rows"];
+    viewMode: boolean;
+    showViewMode: boolean;
+    showHelp: boolean;
+    showCardDetails: boolean;
+    showSwipeButtonList: boolean;
+    showPlaybackControls: boolean;
+    showSkip: boolean;
+    playbackControlsAvailable: boolean;
+  };
+  toggleViewMode: () => void;
+  goBack: () => void;
+  toggleShowCardDetails: () => void;
+  toggleShowHelp: () => void;
+  toggleShowSwipeButtonList: () => void;
+  toggleShowPlaybackControls: () => void;
+  toggleShowSkip: () => void;
+  toggleShowViewMode: () => void;
+}
+
+function getStudyPlayerControls(model: StudyPlayerControls) {
+  return {
+    help: {
+      open: model.pageState.helpOpen,
+      rows: model.query.helpRows,
+      onOpen: model.openHelp,
+      onClose: model.closeHelp,
+    },
+    controller: {
+      disabled: model.pageState.swipePending,
+      autoPlay: model.pageState.autoPlay,
+      index: model.query.session.currentIndex,
+      numberOfCards: model.query.session.cardCount,
+      onChange: model.changeIndex,
+      onToggleAutoPlay: model.toggleAutoPlay,
+    },
+
+    viewMode: model.query.viewMode,
+    onToggleViewMode: model.toggleViewMode,
+    onBack: model.goBack,
+    onToggleCardDetails: model.toggleShowCardDetails,
+    onToggleHelp: model.toggleShowHelp,
+    onToggleSwipeControls: model.toggleShowSwipeButtonList,
+    onTogglePlaybackControls: model.toggleShowPlaybackControls,
+    onToggleSkipControls: model.toggleShowSkip,
+    showViewMode: model.query.showViewMode,
+    onToggleShowViewMode: model.toggleShowViewMode,
+    showHelp: model.query.showHelp,
+    showCardDetails: model.query.showCardDetails,
+    showSwipeControls: model.query.showSwipeButtonList,
+    showPlaybackControls: model.query.showPlaybackControls,
+    showSkipControls: model.query.showSkip,
+    playbackControlsAvailable: model.query.playbackControlsAvailable,
+  };
+}
+
+function getSwipeActions(
+  actions: import("@/entities/preference").Preferences["controls"],
+  model: { swipeUp: () => void; swipeDown: () => void; swipeLeft: () => void; swipeRight: () => void },
+  blocked: boolean,
+  t: import("i18next").TFunction
+) {
+  return {
+    disabled: blocked,
+    captions: {
+      cardSwipeUp: t(`studySession.actionLabels.${actions.cardSwipeUp}`),
+      cardSwipeDown: t(`studySession.actionLabels.${actions.cardSwipeDown}`),
+      cardSwipeLeft: t(`studySession.actionLabels.${actions.cardSwipeLeft}`),
+      cardSwipeRight: t(`studySession.actionLabels.${actions.cardSwipeRight}`),
+    },
+    onClickUp: model.swipeUp,
+    onClickDown: model.swipeDown,
+    onClickLeft: model.swipeLeft,
+    onClickRight: model.swipeRight,
+  };
+}

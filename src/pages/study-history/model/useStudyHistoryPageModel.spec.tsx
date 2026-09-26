@@ -44,6 +44,13 @@ describe("STUDY-SESSION-13 answer history lifecycle", () => {
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null });
     replaceRemoteDecks([createDeck({ id: "deck", uid: "uid" })]);
   });
+  registerRejectsStaleDeckPeriodUIDAndRetryResponsesWhileRetainingSessionSummaries();
+  registerDistinguishesSWithoutResubscribingUnchangedCriteria();
+  registerUpdatesTheVisibleSummaryFromSuccessiveSnapshotsAndIgnoresNotificationsAfterUnmount();
+  registerHandlesSynchronousSubscriptionFailuresWithoutBreakingThePage();
+});
+
+function registerRejectsStaleDeckPeriodUIDAndRetryResponsesWhileRetainingSessionSummaries() {
   it("rejects stale Deck, period, UID and retry responses while retaining Session summaries", async () => {
     const { result } = renderHook(useStudyHistoryPageModel, { wrapper });
     expect(result.current.answerHistory.status).toBe("loading");
@@ -72,6 +79,9 @@ describe("STUDY-SESSION-13 answer history lifecycle", () => {
     await waitFor(() => expect(result.current.answerHistory.status).toBe("empty"));
     expect(subscriptions[5]?.input.uid).toBe("next");
   });
+}
+
+function registerDistinguishesSWithoutResubscribingUnchangedCriteria() {
   it.each([
     ["cache-limited", { source: "cache" as const }],
     ["truncated", { truncated: true }],
@@ -85,6 +95,9 @@ describe("STUDY-SESSION-13 answer history lifecycle", () => {
     rerender();
     expect(subscriptions).toHaveLength(1);
   });
+}
+
+function registerUpdatesTheVisibleSummaryFromSuccessiveSnapshotsAndIgnoresNotificationsAfterUnmount() {
   it("updates the visible summary from successive snapshots and ignores notifications after unmount", () => {
     const { result, unmount } = renderHook(useStudyHistoryPageModel, { wrapper });
     const subscription = subscriptions[0];
@@ -114,6 +127,9 @@ describe("STUDY-SESSION-13 answer history lifecycle", () => {
     act(() => subscription.resolve(empty));
     expect(result.current.answerHistory.summary?.ratedAnswerCount).toBe(1);
   });
+}
+
+function registerHandlesSynchronousSubscriptionFailuresWithoutBreakingThePage() {
   it("handles synchronous subscription failures without breaking the Page", () => {
     vi.mocked(subscribeStudyAnswerHistory).mockImplementationOnce(() => {
       throw new Error("Owner changed");
@@ -122,4 +138,4 @@ describe("STUDY-SESSION-13 answer history lifecycle", () => {
     expect(result.current.answerHistory.status).toBe("error");
     expect(result.current.status).toBe("ready");
   });
-});
+}

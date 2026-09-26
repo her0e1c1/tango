@@ -63,29 +63,31 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { CardEditPage } from "./CardEditPage";
 
-describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 CARD-MANAGEMENT-10 CardEditPage", () => {
-  const deckId = "card-edit-deck";
-  const cardId = "card-id";
-  const renderPage = (path = `/card/${cardId}/edit`) => {
-    const router = createMemoryRouter(
-      [
-        { path: "/previous", element: <h1>Previous page</h1> },
-        { path: "/", element: <h1>Deck list</h1> },
-        { path: "/deck/:id", element: <h1>Card list</h1> },
-        { path: "/card/:id/edit", element: <CardEditPage /> },
-      ],
-      { initialEntries: ["/previous", path], initialIndex: 1 }
-    );
-    const renderRouter = () => (
-      <>
-        <RouterProvider router={router} />
-        <ToastViewport />
-      </>
-    );
-    const view = render(renderRouter());
-    return Object.assign(view, { router, rerenderRouter: () => view.rerender(renderRouter()) });
-  };
+const deckId = "card-edit-deck";
 
+const cardId = "card-id";
+
+const renderPage = (path = `/card/${cardId}/edit`) => {
+  const router = createMemoryRouter(
+    [
+      { path: "/previous", element: <h1>Previous page</h1> },
+      { path: "/", element: <h1>Deck list</h1> },
+      { path: "/deck/:id", element: <h1>Card list</h1> },
+      { path: "/card/:id/edit", element: <CardEditPage /> },
+    ],
+    { initialEntries: ["/previous", path], initialIndex: 1 }
+  );
+  const renderRouter = () => (
+    <>
+      <RouterProvider router={router} />
+      <ToastViewport />
+    </>
+  );
+  const view = render(renderRouter());
+  return Object.assign(view, { router, rerenderRouter: () => view.rerender(renderRouter()) });
+};
+
+describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 CARD-MANAGEMENT-10 CardEditPage", () => {
   beforeEach(async () => {
     replaceRemoteCards([]);
     dismissToast();
@@ -105,6 +107,42 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     ]);
   });
 
+  registerRendersTheStoredCardEditorInTheApplicationShell();
+
+  registerSavesSameDeckCardTagSelectionsWhilePreservingExistingCardTags();
+
+  registerRetainsExistingTagsWhenNoOtherCardSuppliesCandidates();
+
+  registerInitializesTheEditorWhenTheRouteCardArrivesAfterMount();
+
+  registerReplacesTheEditorWithItsCardListAfterSaving();
+
+  registerReturnsToThePreviousPageAfterCancellation();
+
+  registerProtectsDirtyCardInputWhenCancellationIsRequested();
+
+  registerKeepsTheOpeningCardSnapshotAndStaysPendingUntilTheSubmittedSnapshotIsObserved();
+
+  registerDisablesRepeatedSaveAttemptsDuringValidationAndPersistence();
+
+  registerKeepsEditedValuesAfterAFailedSaveAndAllowsAnExplicitRetry();
+
+  registerAllowsCorrectedValuesToBeSavedAfterValidationFails();
+
+  registerDoesNotReviveTheEditorAfterALateSuccess();
+
+  registerDoesNotReviveTheEditorAfterALateFailure();
+
+  registerInitializesADifferentCardAndIgnoresNavigationFromThePreviousCardSSave();
+
+  registerRetainsTheSharedFailureToastWhenCancellingAndUnmountingTheEditor();
+
+  registerNavigatesWithBothRecoveryActionsWhenTheCardIsUnavailable();
+
+  registerRejectsARouteWithoutACardId();
+});
+
+function registerRendersTheStoredCardEditorInTheApplicationShell() {
   it("renders the stored card editor in the application shell", () => {
     renderPage();
 
@@ -112,7 +150,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front text");
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
+}
 
+function registerSavesSameDeckCardTagSelectionsWhilePreservingExistingCardTags() {
   it("CARD-MANAGEMENT-01 saves same-Deck Card tag selections while preserving existing Card tags", async () => {
     replaceRemoteDecks([createLocalDeck({ id: deckId }), createLocalDeck({ id: "other-deck" })]);
     await mutateCards("user-id", [
@@ -139,7 +179,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
     expect(getCards().find((card) => card.id === cardId)?.tags).toEqual(["legacy", "exam"]);
   });
+}
 
+function registerRetainsExistingTagsWhenNoOtherCardSuppliesCandidates() {
   it("CARD-MANAGEMENT-01 retains existing tags when no other Card supplies candidates", async () => {
     replaceRemoteDecks([createLocalDeck({ id: deckId })]);
     await editCard("user-id", { id: cardId, tags: ["legacy"] });
@@ -152,7 +194,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await userEvent.click(screen.getByRole("checkbox", { name: "legacy" }));
     expect(screen.getByRole("checkbox", { name: "legacy" })).toBeChecked();
   });
+}
 
+function registerInitializesTheEditorWhenTheRouteCardArrivesAfterMount() {
   it("initializes the editor when the route Card arrives after mount", async () => {
     const delayedCardId = "delayed-card";
     renderPage(`/card/${delayedCardId}/edit`);
@@ -171,7 +215,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await userEvent.click(screen.getByRole("tab", { name: "Back" }));
     expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Delayed back");
   });
+}
 
+function registerReplacesTheEditorWithItsCardListAfterSaving() {
   it("replaces the editor with its Card list after saving", async () => {
     const view = renderPage();
 
@@ -185,7 +231,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
     expect(screen.getByText("Updated card “Saved front”.")).toBeVisible();
   });
+}
 
+function registerReturnsToThePreviousPageAfterCancellation() {
   it("returns to the previous page after cancellation", async () => {
     renderPage();
 
@@ -193,7 +241,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
 
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
+}
 
+function registerProtectsDirtyCardInputWhenCancellationIsRequested() {
   it("protects dirty Card input when cancellation is requested", async () => {
     renderPage();
     const frontText = screen.getByRole("textbox", { name: "Front text" });
@@ -206,7 +256,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
 
     expect(frontText).toHaveValue("Unsaved front");
   });
+}
 
+function registerKeepsTheOpeningCardSnapshotAndStaysPendingUntilTheSubmittedSnapshotIsObserved() {
   it("keeps the opening Card snapshot and stays pending until the submitted snapshot is observed", async () => {
     let resolveWrite: () => void = () => undefined;
     mocks.beforeCardWrite = () =>
@@ -233,7 +285,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(screen.getByRole("heading", { level: 1, name: "Edit card" })).toBeVisible();
   });
+}
 
+function registerDisablesRepeatedSaveAttemptsDuringValidationAndPersistence() {
   it("disables repeated save attempts during validation and persistence", async () => {
     const validation = Promise.withResolvers<void>();
     const write = Promise.withResolvers<void>();
@@ -265,7 +319,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await actAsync(async () => view.router.navigate(-1));
     expect(await screen.findByRole("heading", { name: "Previous page" })).toBeVisible();
   });
+}
 
+function registerKeepsEditedValuesAfterAFailedSaveAndAllowsAnExplicitRetry() {
   it("keeps edited values after a failed save and allows an explicit retry", async () => {
     const write = Promise.withResolvers<void>();
     mocks.beforeCardWrite = () => write.promise;
@@ -286,7 +342,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(await screen.findByText("Updated card “Edited front”.")).toBeVisible();
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
   });
+}
 
+function registerAllowsCorrectedValuesToBeSavedAfterValidationFails() {
   it("allows corrected values to be saved after validation fails", async () => {
     renderPage();
     const front = screen.getByRole("textbox", { name: "Front text" });
@@ -301,7 +359,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(await screen.findByText("Updated card “Corrected front”.")).toBeVisible();
     expect(await screen.findByRole("heading", { name: "Card list" })).toBeVisible();
   });
+}
 
+function registerDoesNotReviveTheEditorAfterALateSuccess() {
   it("does not revive the editor after a late success", async () => {
     const write = Promise.withResolvers<void>();
     mocks.beforeCardWrite = () => write.promise;
@@ -316,7 +376,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.queryByText("Updated card “Front text”.")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Previous page" })).toBeVisible();
   });
+}
 
+function registerDoesNotReviveTheEditorAfterALateFailure() {
   it("does not revive the editor after a late failure", async () => {
     const write = Promise.withResolvers<void>();
     mocks.beforeCardWrite = () => write.promise;
@@ -331,7 +393,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(await screen.findByText("Unable to save changes. Try again.")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Previous page" })).toBeVisible();
   });
+}
 
+function registerInitializesADifferentCardAndIgnoresNavigationFromThePreviousCardSSave() {
   it("initializes a different Card and ignores navigation from the previous Card's save", async () => {
     await mutateCards("user-id", [
       {
@@ -351,7 +415,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Other front");
     expect(view.router.state.location.pathname).toBe("/card/other-card/edit");
   });
+}
 
+function registerRetainsTheSharedFailureToastWhenCancellingAndUnmountingTheEditor() {
   it("retains the shared failure toast when cancelling and unmounting the editor", async () => {
     mocks.beforeCardWrite = () => Promise.reject(new Error("write failed"));
     renderPage();
@@ -361,7 +427,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     expect(await screen.findByRole("heading", { name: "Previous page" })).toBeVisible();
     expect(screen.getByText("Unable to save changes. Try again.")).toBeVisible();
   });
+}
 
+function registerNavigatesWithBothRecoveryActionsWhenTheCardIsUnavailable() {
   it("navigates with both recovery actions when the card is unavailable", async () => {
     const view = renderPage("/card/missing-card/edit");
 
@@ -375,7 +443,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
+}
 
+function registerRejectsARouteWithoutACardId() {
   it("rejects a route without a card id", () => {
     expect(() =>
       render(
@@ -385,4 +455,4 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
       )
     ).toThrowError("invalid card id");
   });
-});
+}

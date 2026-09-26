@@ -18,6 +18,7 @@ import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes, useNavigationGuard } from "@/shared/router";
 import { showToast } from "@/shared/ui/toast";
 
+import { isCardEditAcknowledged } from "./queries/isCardEditAcknowledged";
 import { submit } from "./actions/submit";
 import { getCardEditInfo } from "./queries/getCardEditInfo";
 import { useCardEditFormState } from "./useCardEditFormState";
@@ -45,14 +46,7 @@ export function useCardEditPageModel(card: Card) {
     if (submitted !== undefined && isMounted()) setPending(submitted);
   });
   useEffect(() => {
-    if (
-      pending === undefined ||
-      card.frontText !== pending.frontText ||
-      card.backText !== pending.backText ||
-      card.tags.length !== pending.tags.length ||
-      card.tags.some((tag, index) => tag !== pending.tags[index])
-    )
-      return;
+    if (!isCardEditAcknowledged(card, pending)) return;
     showToast({
       messageKey: "cardForm.toast.updated",
       messageParams: { name: pending.frontText },
@@ -61,7 +55,7 @@ export function useCardEditPageModel(card: Card) {
     void guard.allowNavigation({ historyAction: "REPLACE", to: cardListPath }, () =>
       navigate(cardListPath, { replace: true })
     );
-  }, [card.backText, card.frontText, card.tags, cardListPath, guard, navigate, pending]);
+  }, [card, cardListPath, guard, navigate, pending]);
   const tagValues = useWatch({ control: form.control, name: "tags" });
   const { tagRowIds, setTagRowIds } = useCardTagState(form.getValues("tags"));
   const { tags: availableTags } = useCardsByDeckId(snapshot.deckId);

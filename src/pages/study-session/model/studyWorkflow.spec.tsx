@@ -63,28 +63,63 @@ const cards: Card[] = ["card-1", "card-2"].map((id) => ({
 }));
 
 describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-03] [STUDY-SESSION-04] [STUDY-SESSION-05] [STUDY-SESSION-06] [STUDY-ACTIONS-05] [STUDY-CONTROLS-04]", () => {
-  beforeEach(() => {
-    mocks.uid = "user-1";
-    clearStudySessions();
-    localStorage.clear();
-    vi.clearAllMocks();
-    mocks.persistOperation.mockResolvedValue(undefined);
-    mocks.cards = cards;
-    mocks.deck = createDeck({ id: deckId, category: "raw" });
-    mocks.preferences = createPreferences({
-      cardInterval: 1,
-      defaultAutoPlay: false,
-      showSwipeFeedback: true,
-      cardSwipeRight: "RateGood",
-    });
-    startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
-  });
+  beforeEach(resetTestState);
 
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-  });
+  afterEach(restoreTestState1);
 
+  registerCoordinatesDisplayStatePersistenceAndSessionProgression();
+  registerPreservesTheSessionWhileTheCardCacheIsEmpty();
+  registerReportsPersistedControlVisibilityAndPlaybackAvailability();
+  registerReportsInvalidWhenNoActiveSessionExists();
+  registerAdvancesTheSessionWhileAutoplayIsEnabled();
+  registerDoesNotAdvanceARestartedSessionWithAnOldAutoplayTimer();
+  registerPreservesResumableProgressWhenTheCurrentCardIsAbsentFromAPartialCache();
+  registerKeepsLocalProgressionWhenServerAcknowledgementFails();
+  registerCompletesTheFinalCardWithoutWaitingForServerAcknowledgement();
+  registerDoesNotWaitForUnresolvedServerAcknowledgementBeforeTheNextSwipe();
+  registerPublishesLocalSwipeFeedbackWithoutWaitingForServerAcknowledgement();
+  registerSerializesControllerMovementBehindThePendingAnswer();
+  registerDoesNotCompleteAFinalCardWhenTheActiveSessionIsReplacedDuringTheWrite();
+  registerAdvancesAfterATimestampOnlySessionTouchDuringTheWrite();
+  registerHandlesDoNothingAndGoBackWithoutWritingProgress();
+  registerDoesNotShowSwipeFeedbackWhenThePreferenceIsDisabled();
+  registerIgnoresBackwardSliderMovementAtIndexSWithoutSavingOrHidingTheAnswer();
+  registerCompletesAfterTheFinalCardIsPersistedAndPreservesTheSessionCardCount();
+  registerShowsARestoredFinalCardInsteadOfCompletionAfterACloudRejection();
+  registerAllowsAnExplicitRetryAfterFirestoreRollsBackAFailedFinalCardSave();
+  registerReadsTheCurrentCardsAndActionMappingWhenAPreviouslyBoundCallbackIsUsed();
+  registerDoesNotKeepASaveLockAcrossSameDeckReentryWhileAcknowledgementIsPending();
+  registerStartsSWithFreshPresentationOnTheFirstRender();
+  registerHidesOldCompletionBeforeEffectsWhenTheMountedPageChangesUID();
+  registerIgnoresAnOldServerAcknowledgementAfterEnteringAnotherDeck();
+  registerPausesOnlyTheTimerDuringHelpAndRespectsExplicitPlaybackStop();
+  registerCancelsTheDepartedVisitSTimerBeforeContinuingTheSameDeck();
+});
+
+vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
+  const { moveStudySession } = await import("@/entities/study-session");
+  return {
+    saveStudyOperation: (
+      operation: import("./studyOperation").StudyOperation,
+      session: import("@/entities/study-session").StudySession
+    ) => {
+      void Promise.resolve(
+        mocks.persistOperation(operation.uid, {
+          fsrs: operation.fsrs,
+          cardId: operation.cardId,
+          answeredAt: operation.answeredAt,
+        })
+      ).catch(() => undefined);
+      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
+      return {
+        session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
+        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,
+      };
+    },
+  };
+});
+
+function registerCoordinatesDisplayStatePersistenceAndSessionProgression() {
   it("coordinates display state, persistence, and session progression", async () => {
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     expect(result.current.query).toMatchObject({
@@ -107,7 +142,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeRight");
     expect(mocks.persistOperation).toHaveBeenCalledWith("user-1", expect.objectContaining({ cardId: "card-1" }));
   });
+}
 
+function registerPreservesTheSessionWhileTheCardCacheIsEmpty() {
   it("preserves the session while the Card cache is empty", () => {
     mocks.cards = [];
     const session = getStudySession(deckId);
@@ -115,7 +152,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(result.current.query.status).toBe("preparing");
     expect(getStudySession(deckId)).toEqual(session);
   });
+}
 
+function registerReportsPersistedControlVisibilityAndPlaybackAvailability() {
   it("reports persisted control visibility and playback availability", () => {
     mocks.preferences = createPreferences({
       cardInterval: 0,
@@ -137,7 +176,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       playbackControlsAvailable: false,
     });
   });
+}
 
+function registerReportsInvalidWhenNoActiveSessionExists() {
   it("reports invalid when no active session exists", async () => {
     clearStudySessions();
     mocks.cards = [];
@@ -147,7 +188,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(result.current.query.status).toBe("invalid");
     await waitFor(() => expect(getStudySession(deckId)).toBeUndefined());
   });
+}
 
+function registerAdvancesTheSessionWhileAutoplayIsEnabled() {
   it("advances the session while autoplay is enabled", async () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
@@ -163,7 +206,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       card: { frontText: "card-2" },
     });
   });
+}
 
+function registerDoesNotAdvanceARestartedSessionWithAnOldAutoplayTimer() {
   it("does not advance a restarted session with an old autoplay timer", () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
@@ -179,7 +224,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
 
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
   });
+}
 
+function registerPreservesResumableProgressWhenTheCurrentCardIsAbsentFromAPartialCache() {
   it("preserves resumable progress when the current Card is absent from a partial cache", () => {
     mocks.cards = cards.slice(1);
     const session = getStudySession(deckId);
@@ -188,7 +235,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(result.current.query.status).toBe("invalid");
     expect(getStudySession(deckId)).toEqual(session);
   });
+}
 
+function registerKeepsLocalProgressionWhenServerAcknowledgementFails() {
   it("keeps local progression when server acknowledgement fails", async () => {
     mocks.persistOperation.mockRejectedValueOnce(new Error("write failed"));
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
@@ -198,7 +247,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeRight");
   });
+}
 
+function registerCompletesTheFinalCardWithoutWaitingForServerAcknowledgement() {
   it("completes the final Card without waiting for server acknowledgement", async () => {
     setStudySessionIndex(deckId, 1);
     mocks.persistOperation.mockRejectedValueOnce(new Error("write failed"));
@@ -209,7 +260,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)).toBeUndefined();
     expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
   });
+}
 
+function registerDoesNotWaitForUnresolvedServerAcknowledgementBeforeTheNextSwipe() {
   it("does not wait for unresolved server acknowledgement before the next swipe", async () => {
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
@@ -224,7 +277,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     request.resolve();
     await request.promise;
   });
+}
 
+function registerPublishesLocalSwipeFeedbackWithoutWaitingForServerAcknowledgement() {
   it("publishes local swipe feedback without waiting for server acknowledgement", async () => {
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
@@ -240,7 +295,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(mocks.onSwipeFeedback).toHaveBeenCalledOnce();
   });
+}
 
+function registerSerializesControllerMovementBehindThePendingAnswer() {
   it("serializes controller movement behind the pending answer", async () => {
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
@@ -260,7 +317,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(mocks.onSwipeFeedback).toHaveBeenCalledOnce();
   });
+}
 
+function registerDoesNotCompleteAFinalCardWhenTheActiveSessionIsReplacedDuringTheWrite() {
   it("does not complete a final Card when the active session is replaced during the write", async () => {
     clearStudySessions();
     startStudy(deckId, cards.slice(0, 1), { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
@@ -281,7 +340,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(result.current.query.status).toBe("studying");
     expect(getStudySession(deckId)).toBeDefined();
   });
+}
 
+function registerAdvancesAfterATimestampOnlySessionTouchDuringTheWrite() {
   it("advances after a timestamp-only session touch during the write", async () => {
     vi.spyOn(Date, "now").mockReturnValue(946_684_800_000);
     const request = Promise.withResolvers<void>();
@@ -301,7 +362,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeRight");
   });
+}
 
+function registerHandlesDoNothingAndGoBackWithoutWritingProgress() {
   it("handles DoNothing and GoBack without writing progress", async () => {
     mocks.preferences = createPreferences({
       showSwipeFeedback: true,
@@ -319,7 +382,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)).toBeUndefined();
     expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeLeft");
   });
+}
 
+function registerDoesNotShowSwipeFeedbackWhenThePreferenceIsDisabled() {
   it("does not show swipe feedback when the preference is disabled", async () => {
     mocks.preferences = createPreferences({
       showSwipeFeedback: false,
@@ -332,7 +397,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
+}
 
+function registerIgnoresBackwardSliderMovementAtIndexSWithoutSavingOrHidingTheAnswer() {
   it.each([1, 0])("ignores backward slider movement at index %s without saving or hiding the answer", async (index) => {
     mocks.preferences = createPreferences({ cardSwipeLeft: "DoNothing", showSwipeFeedback: true });
     setStudySessionIndex(deckId, index);
@@ -350,7 +417,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(mocks.persistOperation).not.toHaveBeenCalled();
     expect(mocks.onSwipeFeedback).not.toHaveBeenCalled();
   });
+}
 
+function registerCompletesAfterTheFinalCardIsPersistedAndPreservesTheSessionCardCount() {
   it("completes after the final Card is persisted and preserves the session Card count", async () => {
     setStudySessionIndex(deckId, 1);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
@@ -363,7 +432,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(getStudySession(deckId)).toBeUndefined();
     expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
   });
+}
 
+function registerShowsARestoredFinalCardInsteadOfCompletionAfterACloudRejection() {
   it("shows a restored final Card instead of completion after a cloud rejection", async () => {
     setStudySessionIndex(deckId, 1);
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
@@ -377,7 +448,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     await actAsync(async () => result.current.swipeRight());
     expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
   });
+}
 
+function registerAllowsAnExplicitRetryAfterFirestoreRollsBackAFailedFinalCardSave() {
   it("allows an explicit retry after Firestore rolls back a failed final Card save", async () => {
     setStudySessionIndex(deckId, 1);
     const previous = getStudySession(deckId);
@@ -395,7 +468,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     await actAsync(async () => result.current.swipeRight());
     expect(result.current.pageState.completion).toEqual({ cardCount: 2 });
   });
+}
 
+function registerReadsTheCurrentCardsAndActionMappingWhenAPreviouslyBoundCallbackIsUsed() {
   it("reads the current Cards and action mapping when a previously bound callback is used", async () => {
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     const swipe = result.current.swipeRight;
@@ -411,7 +486,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     await actAsync(async () => swipe());
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
+}
 
+function registerDoesNotKeepASaveLockAcrossSameDeckReentryWhileAcknowledgementIsPending() {
   it("does not keep a save lock across same-Deck reentry while acknowledgement is pending", async () => {
     const request = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(request.promise);
@@ -432,7 +509,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     request.resolve();
     await request.promise;
   });
+}
 
+function registerStartsSWithFreshPresentationOnTheFirstRender() {
   it.each(["same Deck", "other Deck", "other UID"])(
     "starts %s with fresh presentation on the first render",
     async (destination) => {
@@ -465,7 +544,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       expect(nextResult.current.pageState.completion).toBeUndefined();
     }
   );
+}
 
+function registerHidesOldCompletionBeforeEffectsWhenTheMountedPageChangesUID() {
   it("hides old completion before effects when the mounted Page changes UID", async () => {
     setStudySessionIndex(deckId, 1);
     const presentations: unknown[] = [];
@@ -483,7 +564,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(presentations[0]).toMatchObject({ completion: undefined, autoPlay: true, helpOpen: false });
     expect(result.current.pageState.completion).toBeUndefined();
   });
+}
 
+function registerIgnoresAnOldServerAcknowledgementAfterEnteringAnotherDeck() {
   it("ignores an old server acknowledgement after entering another Deck", async () => {
     setStudySessionIndex(deckId, 1);
     const request = Promise.withResolvers<void>();
@@ -506,7 +589,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(nextResult.current.pageState).toMatchObject({ completion: undefined, helpOpen: true });
     expect(mocks.onSwipeFeedback).toHaveBeenCalledOnce();
   });
+}
 
+function registerPausesOnlyTheTimerDuringHelpAndRespectsExplicitPlaybackStop() {
   it("pauses only the timer during Help and respects explicit playback stop", async () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
@@ -536,7 +621,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     });
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
+}
 
+function registerCancelsTheDepartedVisitSTimerBeforeContinuingTheSameDeck() {
   it("cancels the departed visit's timer before continuing the same Deck", async () => {
     vi.useFakeTimers();
     mocks.preferences = createPreferences({ cardInterval: 1, defaultAutoPlay: true });
@@ -555,27 +642,26 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     });
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
-});
+}
 
-vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
-  const { moveStudySession } = await import("@/entities/study-session");
-  return {
-    saveStudyOperation: (
-      operation: import("./studyOperation").StudyOperation,
-      session: import("@/entities/study-session").StudySession
-    ) => {
-      void Promise.resolve(
-        mocks.persistOperation(operation.uid, {
-          fsrs: operation.fsrs,
-          cardId: operation.cardId,
-          answeredAt: operation.answeredAt,
-        })
-      ).catch(() => undefined);
-      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
-      return {
-        session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
-        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,
-      };
-    },
-  };
-});
+function resetTestState() {
+  mocks.uid = "user-1";
+  clearStudySessions();
+  localStorage.clear();
+  vi.clearAllMocks();
+  mocks.persistOperation.mockResolvedValue(undefined);
+  mocks.cards = cards;
+  mocks.deck = createDeck({ id: deckId, category: "raw" });
+  mocks.preferences = createPreferences({
+    cardInterval: 1,
+    defaultAutoPlay: false,
+    showSwipeFeedback: true,
+    cardSwipeRight: "RateGood",
+  });
+  startStudy(deckId, cards, { shuffled: false, maxNumberOfCardsToLearn: 0 }, mocks.uid);
+}
+
+function restoreTestState1() {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+}

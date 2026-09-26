@@ -86,18 +86,7 @@ export const prepareAppStory = async ({
   }
   if (abortSignal.aborted) return;
 
-  // Page stores deliberately survive navigation in production; a new Story starts a separate scenario.
-  accountPageStore.setState(accountPageStore.getInitialState(), true);
-  cardListStore.setState(cardListStore.getInitialState(), true);
-  deckCreatePageStore.setState(deckCreatePageStore.getInitialState(), true);
-  deckEditPageStore.setState(deckEditPageStore.getInitialState(), true);
-  deckImportStore.setState(deckImportStore.getInitialState(), true);
-  deckListStore.setState(deckListStore.getInitialState(), true);
-  deckViewStore.setState(deckViewStore.getInitialState(), true);
-  studySessionPageStore.setState(studySessionPageStore.getInitialState(), true);
-  pendingFilters.clear();
-  dismissToast();
-  clearStudySessions();
+  resetPageStoryState();
 
   replaceAuthSession({
     status: "authenticated",
@@ -144,3 +133,18 @@ export const withPageStory: Decorator = (Story, context) => {
     </MemoryRouter>
   );
 };
+
+function resetPageStoryState() {
+  // Page stores deliberately survive navigation in production; a new Story starts a separate scenario.
+  accountPageStore.setState(accountPageStore.getInitialState(), true);
+  cardListStore.setState(cardListStore.getInitialState(), true);
+  deckCreatePageStore.setState(deckCreatePageStore.getInitialState(), true);
+  deckEditPageStore.setState(deckEditPageStore.getInitialState(), true);
+  deckImportStore.setState(deckImportStore.getInitialState(), true);
+  deckListStore.setState(deckListStore.getInitialState(), true);
+  deckViewStore.setState(deckViewStore.getInitialState(), true);
+  studySessionPageStore.setState(studySessionPageStore.getInitialState(), true);
+  pendingFilters.clear();
+  dismissToast();
+  clearStudySessions();
+}

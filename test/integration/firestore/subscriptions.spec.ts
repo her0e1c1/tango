@@ -29,6 +29,14 @@ describe("Query realtime subscriptions", () => {
     await Promise.all(getApps().map(deleteApp));
   });
 
+  registerLoadsCardContentFromTheInitialSnapshot();
+
+  registerDeliversInitialUpdateAndDeleteSnapshotsWithoutACursor();
+
+  registerStopsChangingStoresAfterUnsubscribe();
+});
+
+function registerLoadsCardContentFromTheInitialSnapshot() {
   it("[FIRESTORE-SUBSCRIPTIONS-01] loads Card content from the initial snapshot", async () => {
     const uid = "uid";
     const deck = createDeckFixture({ id: crypto.randomUUID(), uid, name: "Fetched Deck" });
@@ -55,7 +63,9 @@ describe("Query realtime subscriptions", () => {
       stopCards();
     }
   });
+}
 
+function registerDeliversInitialUpdateAndDeleteSnapshotsWithoutACursor() {
   it("[FIRESTORE-SUBSCRIPTIONS-02] delivers initial, update, and delete snapshots without a cursor", async () => {
     const uid = "uid";
     const errors: Error[] = [];
@@ -97,7 +107,9 @@ describe("Query realtime subscriptions", () => {
       stopDecks();
     }
   });
+}
 
+function registerStopsChangingStoresAfterUnsubscribe() {
   it("[FIRESTORE-SUBSCRIPTIONS-03] stops changing stores after unsubscribe", async () => {
     const uid = "uid";
     const errors: Error[] = [];
@@ -132,4 +144,4 @@ describe("Query realtime subscriptions", () => {
     );
     expect(errors).toEqual([]);
   });
-});
+}

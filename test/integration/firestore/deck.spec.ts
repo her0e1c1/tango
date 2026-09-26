@@ -38,15 +38,31 @@ vi.mock("@/shared/firebase", async () => ({
   auth: { currentUser: { uid: "uid" } },
 }));
 
-describe.concurrent("firestore/deck", { retry: 3 }, () => {
-  const db = getFirestore();
-  const newDeck = createDeckFixture({
-    name: "new deck name",
-    uid: "uid",
-    createdAt: 0,
-    updatedAt: 0,
-  });
+const db = getFirestore();
 
+const newDeck = createDeckFixture({
+  name: "new deck name",
+  uid: "uid",
+  createdAt: 0,
+  updatedAt: 0,
+});
+
+describe.concurrent("firestore/deck", { retry: 3 }, () => {
+  registerShouldCreateADeckAndCheckIfExists();
+
+  registerShouldUpdateADeck();
+
+  registerPreservesAnOmittedURLAndRemovesAClearedURL();
+
+  registerTombstonesTheParentWithoutRewritingChildDocuments();
+
+  registerTombstonesAnEmptyDeck();
+
+  // Child tombstoning is not implemented by the current parent-only deletion operation.
+  registerLeavesTheDeckAndAllChildCardsUnchangedWhenTheDeleteBatchIsRejected();
+});
+
+function registerShouldCreateADeckAndCheckIfExists() {
   it("[FIRESTORE-DECK-01] should create a deck and check if exists", async () => {
     const d = {
       id: uuid(),
@@ -70,7 +86,9 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("cardOrderIds");
     expect((await getDoc(doc(db, "deck", d.id))).exists()).toBe(true);
   });
+}
 
+function registerShouldUpdateADeck() {
   it("[FIRESTORE-DECK-02] should update a deck", async () => {
     const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
     await createDeck("uid", d);
@@ -92,7 +110,9 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("currentIndex");
     expect(data).not.toHaveProperty("cardOrderIds");
   });
+}
 
+function registerPreservesAnOmittedURLAndRemovesAClearedURL() {
   it("[FIRESTORE-DECK-03] preserves an omitted URL and removes a cleared URL", async () => {
     const deck = createRemoteDeckInput({
       id: uuid(),
@@ -107,7 +127,9 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await editDeck("uid", { id: deck.id, url: null });
     expect((await getDoc(doc(db, "deck", deck.id))).data()).not.toHaveProperty("url");
   });
+}
 
+function registerTombstonesTheParentWithoutRewritingChildDocuments() {
   it("[FIRESTORE-DECK-04] tombstones the parent without rewriting child documents", async () => {
     const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
     const cards = [
@@ -134,7 +156,9 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       cards.map(async (card) => expect((await getDoc(doc(db, "card", card.id))).data()?.deletedAt).toBeNull())
     );
   });
+}
 
+function registerTombstonesAnEmptyDeck() {
   it("[FIRESTORE-DECK-05] tombstones an empty Deck", async () => {
     const deck = createRemoteDeckInput({ id: uuid() });
     await createDeck("uid", deck);
@@ -147,7 +171,8 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(deleted.exists()).toBe(true);
     expect(deleted.data()).toEqual({ ...before, deletedAt: expect.any(Number), updatedAt: expect.any(Timestamp) });
   });
+}
 
-  // Child tombstoning is not implemented by the current parent-only deletion operation.
+function registerLeavesTheDeckAndAllChildCardsUnchangedWhenTheDeleteBatchIsRejected() {
   it.todo("[FIRESTORE-DECK-06] leaves the Deck and all child Cards unchanged when the delete batch is rejected");
-});
+}

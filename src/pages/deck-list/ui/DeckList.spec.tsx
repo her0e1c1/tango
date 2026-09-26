@@ -36,6 +36,32 @@ const sections = {
 } satisfies DeckListProps["sections"];
 
 describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
+  registerGroupsActiveDecksBeforeOtherDecksWithVisibleHeadings();
+
+  registerKeepsInactiveDecksAvailableAndOmitsEmptyGroups();
+
+  registerShowsReadyDecksBetweenStudyingAndOtherDecks();
+
+  registerClosesTheMobileSheetThroughItsSWithoutRunningAnAction();
+
+  registerOpensOneDeckActionsMenuAtATime();
+
+  registerKeepsTheListAndDeckMenusMutuallyExclusive();
+
+  registerReportsCreateAndImportIntentsAndClosesTheListMenu();
+
+  registerSupportsKeyboardSelectionAndEscapeWithoutExecutingAnAction();
+
+  registerKeepsListActionsAvailableWhenEmpty();
+
+  registerRendersCheckingStatusWithoutConfirmedEmptyGuidance();
+
+  registerRendersBootstrapErrorWithRetryCreateDeckAndImportActions();
+
+  registerLocalizesFixedCopyWithoutTranslatingUserCreatedDeckNames();
+});
+
+function registerGroupsActiveDecksBeforeOtherDecksWithVisibleHeadings() {
   it("groups active decks before other decks with visible headings", () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
@@ -50,7 +76,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(within(list).getByRole("heading", { name: "Other decks 1 deck" })).toBeVisible();
     expect(within(list).queryByRole("region", { name: "Ready to study" })).not.toBeInTheDocument();
   });
+}
 
+function registerKeepsInactiveDecksAvailableAndOmitsEmptyGroups() {
   it("keeps inactive decks available and omits empty groups", () => {
     render(
       <DeckList
@@ -66,7 +94,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(screen.queryByRole("region", { name: "Ready to study" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Continue Active deck" })).not.toBeInTheDocument();
   });
+}
 
+function registerShowsReadyDecksBetweenStudyingAndOtherDecks() {
   it("shows ready decks between studying and other decks", () => {
     const readyDeck = createDeck({ id: "ready", name: "Ready deck" });
     render(
@@ -90,7 +120,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(within(readyGroup).getByRole("button", { name: "Review Ready deck" })).toBeVisible();
     expect(within(list).getAllByRole("article")).toHaveLength(3);
   });
+}
 
+function registerClosesTheMobileSheetThroughItsSWithoutRunningAnAction() {
   it.each(["button", "menuitem"] as const)(
     "closes the mobile sheet through its %s without running an action",
     async (role) => {
@@ -106,7 +138,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
       expect(importDeck).not.toHaveBeenCalled();
     }
   );
+}
 
+function registerOpensOneDeckActionsMenuAtATime() {
   it("opens one deck actions menu at a time", () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
@@ -117,7 +151,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(screen.queryByRole("menu", { name: "Actions for Active deck" })).not.toBeInTheDocument();
     expect(screen.getByRole("menu", { name: "Actions for Other deck" })).toBeInTheDocument();
   });
+}
 
+function registerKeepsTheListAndDeckMenusMutuallyExclusive() {
   it("keeps the list and deck menus mutually exclusive", async () => {
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
 
@@ -130,7 +166,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(screen.getAllByRole("menu")).toHaveLength(1);
     expect(screen.getByRole("menu", { name: "Actions for Other deck" })).toBeVisible();
   });
+}
 
+function registerReportsCreateAndImportIntentsAndClosesTheListMenu() {
   it("reports create and import intents and closes the list menu", async () => {
     const create = vi.fn();
     const importDeck = vi.fn();
@@ -150,7 +188,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(create).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
+}
 
+function registerSupportsKeyboardSelectionAndEscapeWithoutExecutingAnAction() {
   it("supports keyboard selection and Escape without executing an action", async () => {
     const create = vi.fn();
     const importDeck = vi.fn();
@@ -169,7 +209,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(create).not.toHaveBeenCalled();
     expect(importDeck).not.toHaveBeenCalled();
   });
+}
 
+function registerKeepsListActionsAvailableWhenEmpty() {
   it("keeps list actions available when empty", async () => {
     render(
       <DeckList
@@ -191,7 +233,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(screen.getByRole("menuitem", { name: "Create deck" })).toBeEnabled();
     expect(screen.getByRole("menuitem", { name: "Import decks" })).toBeEnabled();
   });
+}
 
+function registerRendersCheckingStatusWithoutConfirmedEmptyGuidance() {
   it("renders checking status without confirmed empty guidance", () => {
     render(
       <DeckList
@@ -207,7 +251,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Checking for sample deck…");
     expect(screen.queryByRole("heading", { name: "No decks yet" })).not.toBeInTheDocument();
   });
+}
 
+function registerRendersBootstrapErrorWithRetryCreateDeckAndImportActions() {
   it("renders bootstrap error with Retry, Create deck, and Import actions", async () => {
     const onRetry = vi.fn();
     const create = vi.fn();
@@ -236,7 +282,9 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     await userEvent.click(screen.getByRole("button", { name: "Import decks" }));
     expect(importDeck).toHaveBeenCalledTimes(1);
   });
+}
 
+function registerLocalizesFixedCopyWithoutTranslatingUserCreatedDeckNames() {
   it("localizes fixed copy without translating user-created deck names", async () => {
     await getI18n().changeLanguage("ja");
     render(<DeckList sections={sections} onCreateDeck={onCreateDeck} onImportDeck={onImportDeck} />);
@@ -250,4 +298,4 @@ describe("SETTINGS-04 NAVIGATION-06 NAVIGATION-17 DeckList", () => {
     expect(screen.getByRole("article", { name: otherDeck.name })).toBeVisible();
     expect(screen.getByRole("button", { name: `${activeDeck.name}の操作を開く` })).toBeInTheDocument();
   });
-});
+}

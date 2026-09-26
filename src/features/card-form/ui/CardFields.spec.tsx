@@ -57,6 +57,32 @@ const FormHarness = ({
 };
 
 describe("CARD-MANAGEMENT-01 CardFields editing", () => {
+  registerKeepsBothDraftsAcrossTabsAndExpandedEditingThenSubmitsTheSelectedTags();
+
+  registerSwitchesSidesWithArrowAndEndpointKeysWhileKeepingTabFocus();
+});
+
+describe("CARD-MANAGEMENT-10 CardFields validation", () => {
+  registerRevealsAndFocusesAnInvalidBackWhilePreservingTheValidFront();
+});
+
+describe("SETTINGS-08 Card validation language changes", () => {
+  registerTranslatesUnknownValidationErrorsInPlaceIncludingTheExpandedEditor();
+
+  registerUpdatesAnExistingErrorWithoutLosingTheOtherDraftOrCustomTags();
+});
+
+describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 unsaved answer preview", () => {
+  registerPreviewsAnIncompleteDraftWithoutSubmittingValidatingOrReplacingTheInput();
+
+  registerRendersLiveMathDraftsAndPreservesValidationDirtyStateAndExpandedInputIdentity();
+
+  registerUsesLanguageAndDarkDarkFromCurrentRenderingContext();
+
+  registerUpdatesAnOpenPreviewWhenTagsChangeAndFallsBackToTheDeckCategory();
+});
+
+function registerKeepsBothDraftsAcrossTabsAndExpandedEditingThenSubmitsTheSelectedTags() {
   it("keeps both drafts across tabs and expanded editing, then submits the selected tags", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -100,7 +126,9 @@ describe("CARD-MANAGEMENT-01 CardFields editing", () => {
       tags: ["language", "custom", "math"],
     });
   });
+}
 
+function registerSwitchesSidesWithArrowAndEndpointKeysWhileKeepingTabFocus() {
   it("switches sides with arrow and endpoint keys while keeping tab focus", async () => {
     const user = userEvent.setup();
     render(<FormHarness />);
@@ -118,9 +146,9 @@ describe("CARD-MANAGEMENT-01 CardFields editing", () => {
     await user.keyboard("{ArrowLeft}");
     expect(front).toHaveFocus();
   });
-});
+}
 
-describe("CARD-MANAGEMENT-10 CardFields validation", () => {
+function registerRevealsAndFocusesAnInvalidBackWhilePreservingTheValidFront() {
   it("reveals and focuses an invalid Back while preserving the valid Front", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -144,9 +172,9 @@ describe("CARD-MANAGEMENT-10 CardFields validation", () => {
     await user.click(screen.getByRole("tab", { name: "Front" }));
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front");
   });
-});
+}
 
-describe("SETTINGS-08 Card validation language changes", () => {
+function registerTranslatesUnknownValidationErrorsInPlaceIncludingTheExpandedEditor() {
   it("translates unknown validation errors in place, including the expanded editor", async () => {
     const user = userEvent.setup();
     render(<FormHarness errors={{ frontText: { type: "server", message: "Internal validation details" } }} />);
@@ -167,7 +195,9 @@ describe("SETTINGS-08 Card validation language changes", () => {
     expect(front).toHaveValue("Front");
     expect(expanded).toHaveValue("Front");
   });
+}
 
+function registerUpdatesAnExistingErrorWithoutLosingTheOtherDraftOrCustomTags() {
   it("updates an existing error without losing the other draft or custom tags", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -201,9 +231,9 @@ describe("SETTINGS-08 Card validation language changes", () => {
       tags: ["language", "custom"],
     });
   });
-});
+}
 
-describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 unsaved answer preview", () => {
+function registerPreviewsAnIncompleteDraftWithoutSubmittingValidatingOrReplacingTheInput() {
   it("previews an incomplete draft without submitting, validating, or replacing the input", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -225,7 +255,9 @@ describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 unsaved answer preview", () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
+}
 
+function registerRendersLiveMathDraftsAndPreservesValidationDirtyStateAndExpandedInputIdentity() {
   it("renders live math drafts and preserves validation, dirty state, and expanded input identity", async () => {
     const user = userEvent.setup();
     render(<FormHarness deckCategory="math" errors={{ frontText: { type: "custom" } }} />);
@@ -252,7 +284,9 @@ describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 unsaved answer preview", () => {
     await user.click(screen.getByRole("tab", { name: "Front" }));
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveAccessibleDescription("Front text is required.");
   });
+}
 
+function registerUsesLanguageAndDarkDarkFromCurrentRenderingContext() {
   it.each([
     { deckCategory: "python", tags: [], language: "python", dark: false },
     { deckCategory: "math", tags: ["custom", "typescript", "python"], language: "typescript", dark: true },
@@ -271,7 +305,9 @@ describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 unsaved answer preview", () => {
     rerender(<FormHarness values={values} deckCategory={deckCategory} dark={!dark} />);
     expect(within(preview).getByRole("code")).toHaveAttribute("data-theme", dark ? "light" : "dark");
   });
+}
 
+function registerUpdatesAnOpenPreviewWhenTagsChangeAndFallsBackToTheDeckCategory() {
   it("updates an open preview when tags change and falls back to the Deck category", async () => {
     const user = userEvent.setup();
     render(<FormHarness deckCategory="math" values={{ frontText: "", backText: "**Draft**", tags: ["python"] }} />);
@@ -292,4 +328,4 @@ describe("CARD-MANAGEMENT-15 CARD-MANAGEMENT-16 unsaved answer preview", () => {
     expect(screen.getByRole("button", { name: "プレビューを閉じる" })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("region", { name: "解答プレビュー" })).toBeInTheDocument();
   });
-});
+}

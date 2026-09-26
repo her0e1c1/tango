@@ -26,8 +26,7 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
   return (
     <AppLayout fullscreen showHeader={false} scroll={false}>
       <CardPlayer
-        viewMode={model.controls.viewMode}
-        onToggleViewMode={model.toggleViewMode}
+        {...getDeckPlayerControls(model, t)}
         cardKey={model.card.id}
         allowBackHorizontalSwipe
         answerLabel={t("deckView.answerAria")}
@@ -36,40 +35,10 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
         editLink={{
           visible: model.controls.showEditLink,
           onToggle: model.toggleShowEditLink,
-          element: (
-            <Link
-              to={routes.cardForm.to(model.card.id)}
-              aria-label={t("cardForm.edit.title")}
-              title={t("cardForm.edit.title")}
-              className="pointer-events-auto inline-flex size-touch shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <AiOutlineEdit aria-hidden="true" className="text-xl" />
-            </Link>
-          ),
+          element: <EditCardLink cardId={model.card.id} />,
         }}
-        showViewMode={model.controls.showViewMode}
-        onToggleShowViewMode={model.toggleShowViewMode}
-        showHelp={model.controls.showHelp}
-        showCardDetails={model.controls.showCardDetails}
-        showSwipeControls={model.controls.showSwipeButtonList}
-        showPlaybackControls={model.controls.showPlaybackControls}
-        playbackControlsAvailable={model.playbackAvailable}
-        onBack={model.back}
-        onToggleHelp={model.toggleShowHelp}
-        onToggleCardDetails={model.toggleShowCardDetails}
-        onToggleSwipeControls={model.toggleShowSwipeButtonList}
-        onTogglePlaybackControls={model.toggleShowPlaybackControls}
         onSwipeLeft={model.previous}
         onSwipeRight={model.next}
-        help={{
-          open: model.helpOpen,
-          rows: model.helpRows,
-          onOpen: model.openHelp,
-          onClose: model.closeHelp,
-          triggerLabel: t("deckView.helpTrigger"),
-          title: t("deckView.helpTitle"),
-          description: t("deckView.helpDescription"),
-        }}
         frontTextSlot={
           <FrontText
             viewMode={model.controls.viewMode}
@@ -83,14 +52,6 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
           <BackText text={model.card.backText} category={model.category} code={model.code} dark={model.dark} />
         }
         cardOverlaySlot={<CardOverlay fsrs={model.card.fsrs} />}
-        controller={{
-          autoPlay: model.autoPlay,
-          index: model.index,
-          numberOfCards: model.total,
-          onChange: model.changeIndex,
-          onToggleAutoPlay: model.toggleAutoPlay,
-          progressLabel: t("deckView.progress"),
-        }}
         swipeButtonList={{
           disabledDirections: { cardSwipeUp: true, cardSwipeDown: true },
           onClickLeft: model.previous,
@@ -112,4 +73,84 @@ export function DeckViewPage() {
     );
   }
   return <DeckViewContainer key={model.ownerKey} deck={model.deck} />;
+}
+
+function EditCardLink({ cardId }: { cardId: string }) {
+  const { t } = useTranslation();
+  return (
+    <Link
+      to={routes.cardForm.to(cardId)}
+      aria-label={t("cardForm.edit.title")}
+      title={t("cardForm.edit.title")}
+      className="pointer-events-auto inline-flex size-touch shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors duration-fast ease-calm hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+    >
+      <AiOutlineEdit aria-hidden="true" className="text-xl" />
+    </Link>
+  );
+}
+
+interface DeckPlayerControls {
+  helpOpen: boolean;
+  helpRows: import("@/features/card-player").CardPlayerProps["help"]["rows"];
+  openHelp: () => void;
+  closeHelp: () => void;
+  autoPlay: boolean;
+  index: number;
+  total: number;
+  changeIndex: (index: number) => void;
+  toggleAutoPlay: () => void;
+
+  controls: {
+    viewMode: boolean;
+    showViewMode: boolean;
+    showHelp: boolean;
+    showCardDetails: boolean;
+    showSwipeButtonList: boolean;
+    showPlaybackControls: boolean;
+  };
+  playbackAvailable: boolean;
+  toggleViewMode: () => void;
+  toggleShowViewMode: () => void;
+  back: () => void;
+  toggleShowHelp: () => void;
+  toggleShowCardDetails: () => void;
+  toggleShowSwipeButtonList: () => void;
+  toggleShowPlaybackControls: () => void;
+}
+
+function getDeckPlayerControls(model: DeckPlayerControls, t: import("i18next").TFunction) {
+  return {
+    help: {
+      open: model.helpOpen,
+      rows: model.helpRows,
+      onOpen: model.openHelp,
+      onClose: model.closeHelp,
+      triggerLabel: t("deckView.helpTrigger"),
+      title: t("deckView.helpTitle"),
+      description: t("deckView.helpDescription"),
+    },
+    controller: {
+      autoPlay: model.autoPlay,
+      index: model.index,
+      numberOfCards: model.total,
+      onChange: model.changeIndex,
+      onToggleAutoPlay: model.toggleAutoPlay,
+      progressLabel: t("deckView.progress"),
+    },
+
+    viewMode: model.controls.viewMode,
+    onToggleViewMode: model.toggleViewMode,
+    showViewMode: model.controls.showViewMode,
+    onToggleShowViewMode: model.toggleShowViewMode,
+    showHelp: model.controls.showHelp,
+    showCardDetails: model.controls.showCardDetails,
+    showSwipeControls: model.controls.showSwipeButtonList,
+    showPlaybackControls: model.controls.showPlaybackControls,
+    playbackControlsAvailable: model.playbackAvailable,
+    onBack: model.back,
+    onToggleHelp: model.toggleShowHelp,
+    onToggleCardDetails: model.toggleShowCardDetails,
+    onToggleSwipeControls: model.toggleShowSwipeButtonList,
+    onTogglePlaybackControls: model.toggleShowPlaybackControls,
+  };
 }

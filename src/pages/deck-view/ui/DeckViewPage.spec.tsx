@@ -91,6 +91,34 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     data.pendingFilter = undefined;
   });
 
+  registerOpensTheCurrentCardEditorWithATranslatedIconLinkInS();
+
+  registerFlipsEitherFaceFixesKeyboardNavigationAndExitsBeyondEitherEnd();
+
+  registerStartsFromTheFirstFrontAfterRemounting();
+
+  registerUsesPendingFilterSelectionsWithTheSameTagRules();
+
+  registerIncludesFutureReviewCardsWhenTheReviewScheduleIsEnabled();
+
+  registerShowsRecoveryForEmptyAndMissingDecksWithoutActiveCardControls();
+
+  registerStartsStoppedEvenWithDefaultAutoplayAndAdvancesWithoutFlippingUntilExitingAfterTheLastCard();
+
+  registerPausesAutoplayAndBackgroundShortcutsDuringHelpThenStartsAFreshInterval();
+
+  registerRestartsTheWaitAfterManualMovementAndCancelsDepartedPlaybackOnReentry();
+
+  registerKeepsIntervalZeroViewingManualAndExplainsUnavailablePlayback();
+
+  registerMovesBothWaysWithTheSliderReservesItsKeysAndHidesControlsOnTheAnswer();
+
+  registerKeepsLinkedAnswerContentInteractiveWithoutFlippingTheCard();
+
+  registerTogglesViewModeFromTheToolbarButton();
+});
+
+function registerOpensTheCurrentCardEditorWithATranslatedIconLinkInS() {
   it.each([
     ["en", "Edit card"],
     ["ja", "カードを編集"],
@@ -106,7 +134,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     await userEvent.keyboard("{Enter}");
     expect(screen.getByRole("heading", { name: "Editor" })).toBeVisible();
   });
+}
 
+function registerFlipsEitherFaceFixesKeyboardNavigationAndExitsBeyondEitherEnd() {
   it("flips either face, fixes keyboard navigation, and exits beyond either end", async () => {
     const view = renderPage();
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
@@ -132,7 +162,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     await userEvent.click(screen.getByRole("button", { name: "Next card" }));
     expect(screen.getByRole("heading", { name: "Decks" })).toBeVisible();
   });
+}
 
+function registerStartsFromTheFirstFrontAfterRemounting() {
   it("starts from the first front after remounting", async () => {
     const view = renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Next card" }));
@@ -143,7 +175,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     await userEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
     expect(screen.getByRole("heading", { name: "Decks" })).toBeVisible();
   });
+}
 
+function registerUsesPendingFilterSelectionsWithTheSameTagRules() {
   it("uses pending filter selections with the same tag rules", () => {
     data.pendingFilter = { selectedTags: ["target"], tagAndFilter: false };
     data.cards.push(createLocalCard({ id: "excluded", deckId: "deck-1", frontText: "Excluded", tags: ["other"] }));
@@ -151,7 +185,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 1");
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
   });
+}
 
+function registerIncludesFutureReviewCardsWhenTheReviewScheduleIsEnabled() {
   it("[CARD-FILTER-01] includes future review cards when the review schedule is enabled", () => {
     data.preferences = createPreferences({ useCardInterval: true });
     data.cards = data.cards.map((card, index) =>
@@ -161,7 +197,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     expect(screen.getByLabelText("Viewing progress")).toHaveAttribute("aria-valuetext", "1 of 2");
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
   });
+}
 
+function registerShowsRecoveryForEmptyAndMissingDecksWithoutActiveCardControls() {
   it("shows recovery for empty and missing decks without active card controls", async () => {
     data.cards = [];
     const view = renderPage();
@@ -176,7 +214,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     await userEvent.click(screen.getByRole("button", { name: "Go home" }));
     expect(screen.getByRole("heading", { name: "Decks" })).toBeVisible();
   });
+}
 
+function registerStartsStoppedEvenWithDefaultAutoplayAndAdvancesWithoutFlippingUntilExitingAfterTheLastCard() {
   it("starts stopped even with default autoplay and advances without flipping until exiting after the last card", () => {
     vi.useFakeTimers();
     data.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 1 });
@@ -189,7 +229,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     act(() => vi.advanceTimersByTime(1000));
     expect(screen.getByRole("heading", { name: "Decks" })).toBeVisible();
   });
+}
 
+function registerPausesAutoplayAndBackgroundShortcutsDuringHelpThenStartsAFreshInterval() {
   it("pauses autoplay and background shortcuts during Help, then starts a fresh interval", () => {
     vi.useFakeTimers();
     data.preferences = createPreferences({ cardInterval: 1 });
@@ -210,7 +252,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     act(() => vi.advanceTimersByTime(1));
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
   });
+}
 
+function registerRestartsTheWaitAfterManualMovementAndCancelsDepartedPlaybackOnReentry() {
   it("restarts the wait after manual movement and cancels departed playback on reentry", () => {
     vi.useFakeTimers();
     data.preferences = createPreferences({ cardInterval: 1 });
@@ -226,7 +270,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("First prompt");
     expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
   });
+}
 
+function registerKeepsIntervalZeroViewingManualAndExplainsUnavailablePlayback() {
   it("keeps interval-zero viewing manual and explains unavailable playback", () => {
     vi.useFakeTimers();
     data.preferences = createPreferences({ cardInterval: 0, defaultAutoPlay: true });
@@ -239,7 +285,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     fireEvent.click(screen.getByRole("button", { name: "Open viewing help" }));
     expect(screen.getByRole("dialog")).toHaveTextContent("Autoplay is unavailable while the card interval is 0");
   });
+}
 
+function registerMovesBothWaysWithTheSliderReservesItsKeysAndHidesControlsOnTheAnswer() {
   it("moves both ways with the slider, reserves its keys, and hides controls on the answer", () => {
     renderPage();
     const slider = screen.getByRole("slider", { name: "Viewing progress" });
@@ -257,7 +305,9 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     expect(screen.getByRole("button", { name: "Card front" })).toHaveTextContent("Second prompt");
     expect(screen.getByRole("slider", { name: "Viewing progress" })).toHaveValue("1");
   });
+}
 
+function registerKeepsLinkedAnswerContentInteractiveWithoutFlippingTheCard() {
   it("keeps linked answer content interactive without flipping the card", async () => {
     data.deck = createLocalDeck({ id: "deck-1", category: "math" });
     data.cards[0] = createLocalCard({ ...data.cards[0], backText: "[Read details](#answer-details)" });
@@ -269,10 +319,12 @@ describe("NAVIGATION-08 NAVIGATION-09 NAVIGATION-10 NAVIGATION-11 NAVIGATION-12 
     expect(screen.getByRole("region", { name: "Card answer" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Card front" })).not.toBeInTheDocument();
   });
+}
 
+function registerTogglesViewModeFromTheToolbarButton() {
   it("toggles view mode from the toolbar button", () => {
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: "View mode" }));
     expect(toggleViewMode).toHaveBeenCalledOnce();
   });
-});
+}

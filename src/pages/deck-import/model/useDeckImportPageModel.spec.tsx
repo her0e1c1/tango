@@ -67,6 +67,22 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     controls.uid = "anonymous-uid";
   });
 
+  registerPreviewsAndImportsUsingTheSamePersistenceBoundaryForS();
+
+  registerSavesSameNameSelectionsAsDistinctDecksAfterTheirSnapshotsArrive();
+
+  registerDoesNotSaveInvalidCSVRows();
+
+  registerReusesSelectedIdentitiesWhenALocalSaveFails();
+
+  registerDoesNotImportASelectionPreparedByAnotherAccount();
+
+  registerKeepsAPendingImportLockedAcrossUnmountAndReentry();
+
+  registerPreviewsTheBuiltInCSVExampleWithoutWritingIt();
+});
+
+function registerPreviewsAndImportsUsingTheSamePersistenceBoundaryForS() {
   it.each(["anonymous-uid", "linked-uid"])(
     "previews and imports using the same persistence boundary for %s",
     async (uid) => {
@@ -87,7 +103,9 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
       ]);
     }
   );
+}
 
+function registerSavesSameNameSelectionsAsDistinctDecksAfterTheirSnapshotsArrive() {
   it("saves same-name selections as distinct Decks after their snapshots arrive", async () => {
     const { result } = renderHook(useDeckImportPageModel);
     for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -109,13 +127,17 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
       ]);
     }
   });
+}
 
+function registerDoesNotSaveInvalidCSVRows() {
   it("does not save invalid CSV rows", async () => {
     await selectDeckImportFile(new File(["front,back"], "invalid.csv"));
     expect(await importDeckPreview()).toBe(false);
     expect(createDeck).not.toHaveBeenCalled();
   });
+}
 
+function registerReusesSelectedIdentitiesWhenALocalSaveFails() {
   it("reuses selected identities when a local save fails", async () => {
     await selectDeckImportFile(csv());
     vi.mocked(mutateCards).mockRejectedValueOnce(new Error("local save failed"));
@@ -126,14 +148,18 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     expect(vi.mocked(createDeck).mock.calls[1]).toEqual(firstDeck);
     expect(vi.mocked(mutateCards).mock.calls[1]).toEqual(firstCards);
   });
+}
 
+function registerDoesNotImportASelectionPreparedByAnotherAccount() {
   it("does not import a selection prepared by another account", async () => {
     await selectDeckImportFile(csv());
     controls.uid = "another-uid";
     expect(await importDeckPreview()).toBe(false);
     expect(createDeck).not.toHaveBeenCalled();
   });
+}
 
+function registerKeepsAPendingImportLockedAcrossUnmountAndReentry() {
   it("keeps a pending import locked across unmount and reentry", async () => {
     let finish: () => void = () => undefined;
     vi.mocked(mutateCards).mockImplementationOnce(
@@ -170,10 +196,12 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     expect(controls.navigate).not.toHaveBeenCalled();
     expect(result.current.view.pending).toBe(false);
   });
+}
 
+function registerPreviewsTheBuiltInCSVExampleWithoutWritingIt() {
   it("previews the built-in CSV example without writing it", async () => {
     await selectDeckImportExample("basic");
     expect(deckImportStore.getState().source.kind).toBe("selected");
     expect(createDeck).not.toHaveBeenCalled();
   });
-});
+}

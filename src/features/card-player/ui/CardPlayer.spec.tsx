@@ -65,6 +65,30 @@ const swipeWithMouse = (
 };
 
 describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07] [STUDY-ACTIONS-01] [STUDY-CONTROLS-04] [NAVIGATION-14]", () => {
+  registerIgnoresReadingGesturesAndTheirTrailingClickWhileKeepingExplicitButtonsActive();
+  registerKeepsViewModeActiveWhileTheFrontTextHasASelection();
+  registerExitsReadingOnATapButReservesSpaceForScrolling();
+  registerKeepsTheReadingPreferenceFromChangingAnswerGestures();
+  registerUsesTheEditShortcutSlotToToggleVisibilityOnlyWhileActionsAreOpen();
+  registerHidesTheEditLinkOnTheAnswerAndDoesNotAddEditingToStudy();
+  registerShowsOnlyTheAnswerOnTheBack();
+  registerRunsConfiguredBackTextEdgeActionsWithoutClickingTheAnswer();
+  registerForwardsEdgeWheelInputToAnswerScrollingWithoutRunningTheAction();
+  registerKeepsHelpAvailableWhileOpeningTheRemainingStudyActions();
+  registerKeepsTheHelpVisibilityToggleMountedWhileVisibilityChanges();
+  registerPlacesViewModeOnTheToolbarToTheLeftOfTheHelpIconAndTogglesItOnAndOff();
+  registerComposesVisibleShortcutsO();
+  registerShowsAndHidesAllCardDetailsFromThePersistedPreferenceValue();
+  registerDescribesHiddenControlsAndKeepsTheUnavailablePlaybackToggleDisabled();
+  registerShowsOnlyTheSelectedBottomControlGroups();
+  registerIgnoresHorizontalAndVerticalSwipesOnTheBackText();
+  registerReportsAVerticalSwipePerformedOnTheFrontText();
+  registerTreatsAPrimaryButtonMouseSwipeAsOnlyASwipe();
+  registerIgnoresNonPrimaryMouseDragsOnTheFrontText();
+  registerKeepsAMouseDragFromSwipingOrClickingTheBackText();
+});
+
+function registerIgnoresReadingGesturesAndTheirTrailingClickWhileKeepingExplicitButtonsActive() {
   it("ignores reading gestures and their trailing click while keeping explicit buttons active", () => {
     const props = toolbarProps();
     const onSwipeUp = vi.fn();
@@ -90,7 +114,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     fireEvent.click(screen.getByRole("button", { name: "Swipe left" }));
     expect(onSwipeLeft).toHaveBeenCalledOnce();
   });
+}
 
+function registerKeepsViewModeActiveWhileTheFrontTextHasASelection() {
   it("keeps view mode active while the front text has a selection", () => {
     const props = toolbarProps();
     render(<CardPlayer {...props} viewMode frontTextSlot={<div>Selectable front</div>} />);
@@ -108,7 +134,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     fireEvent.click(text);
     expect(props.onToggleViewMode).toHaveBeenCalledOnce();
   });
+}
 
+function registerExitsReadingOnATapButReservesSpaceForScrolling() {
   it("exits reading on a tap, but reserves Space for scrolling", () => {
     const props = toolbarProps();
     render(<CardPlayer {...props} viewMode frontTextSlot={<div>Long front</div>} />);
@@ -120,7 +148,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     fireEvent.click(screen.getByText("Long front"));
     expect(props.onToggleViewMode).toHaveBeenCalledTimes(1);
   });
+}
 
+function registerKeepsTheReadingPreferenceFromChangingAnswerGestures() {
   it("keeps the reading preference from changing answer gestures", () => {
     const onSwipeLeft = vi.fn();
     const onAnswerClick = vi.fn();
@@ -140,7 +170,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     swipeLeft(screen.getByText("Answer"));
     expect(onSwipeLeft).toHaveBeenCalledOnce();
   });
+}
 
+function registerUsesTheEditShortcutSlotToToggleVisibilityOnlyWhileActionsAreOpen() {
   it("uses the edit shortcut slot to toggle visibility only while actions are open", async () => {
     function Player() {
       const [visible, setVisible] = useState(true);
@@ -171,7 +203,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     await userEvent.keyboard("{Escape}");
     expect(screen.getByRole("link", { name: "Edit current card" })).toBeVisible();
   });
+}
 
+function registerHidesTheEditLinkOnTheAnswerAndDoesNotAddEditingToStudy() {
   it("hides the edit link on the answer and does not add editing to Study", () => {
     const props = toolbarProps();
     const view = render(
@@ -186,7 +220,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
     expect(screen.queryByRole("button", { name: "Edit link" })).not.toBeInTheDocument();
   });
+}
 
+function registerShowsOnlyTheAnswerOnTheBack() {
   it("shows only the answer on the back", () => {
     render(
       <CardPlayer
@@ -215,7 +251,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
+}
 
+function registerRunsConfiguredBackTextEdgeActionsWithoutClickingTheAnswer() {
   it("runs configured back-text edge actions without clicking the answer", () => {
     const onBackClick = vi.fn();
     const onClickLeft = vi.fn();
@@ -254,7 +292,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(screen.queryByRole("button", { name: "Swipe right" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Study answer" })).not.toBeInTheDocument();
   });
+}
 
+function registerForwardsEdgeWheelInputToAnswerScrollingWithoutRunningTheAction() {
   it("forwards edge wheel input to answer scrolling without running the action", () => {
     const onClickLeft = vi.fn();
     render(
@@ -274,7 +314,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(leftOverlay).toHaveClass("touch-pan-y");
     expect(onClickLeft).not.toHaveBeenCalled();
   });
+}
 
+function registerKeepsHelpAvailableWhileOpeningTheRemainingStudyActions() {
   it("STUDY-CONTROLS-05 keeps Help available while opening the remaining study actions", async () => {
     const user = userEvent.setup();
     const onBack = vi.fn();
@@ -304,31 +346,8 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
 
     fireEvent.click(openActions);
 
-    const closeActions = screen.getByRole("button", { name: "Close card actions" });
-    const back = screen.getByRole("button", { name: "Back to deck list" });
-    const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
-    const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
-    const skipToggle = screen.getByRole("button", { name: "Skip control" });
-    const detailsToggle = screen.getByRole("button", { name: "Card details" });
-    const helpToggle = screen.getByRole("button", { name: "Help button" });
-    const actions = screen.getByRole("group", { name: "Card actions" });
-    expect(closeActions).toHaveAttribute("aria-expanded", "true");
-    expect(back).toBeVisible();
-    expect(helpToggle).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
-    expect(helpToggle).toHaveAttribute("aria-pressed", "true");
-    expect(helpToggle).toHaveAttribute("title", "Hide help button");
-    expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
-    expect(playbackToggle).toHaveAttribute("aria-pressed", "true");
-    expect(skipToggle).toHaveAttribute("aria-pressed", "true");
-    expect(detailsToggle).toHaveAttribute("aria-pressed", "true");
-    expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
-    expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
-    expect(skipToggle).toHaveAttribute("title", "Hide skip control");
-    expect(detailsToggle).toHaveAttribute("title", "Hide card details");
-    expect(actions).not.toContainElement(helpToggle);
-    expect(actions).not.toContainElement(back);
-    expect(actions).not.toContainElement(screen.getByText("Card metadata"));
+    const { closeActions, helpToggle, back, swipeToggle, playbackToggle, skipToggle, detailsToggle } =
+      expectOpenStudyActions();
 
     closeActions.focus();
     await user.tab();
@@ -351,7 +370,38 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(screen.queryByRole("group", { name: "Card actions" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open study help" })).toBeVisible();
   });
+}
 
+function expectOpenStudyActions() {
+  const closeActions = screen.getByRole("button", { name: "Close card actions" });
+  const back = screen.getByRole("button", { name: "Back to deck list" });
+  const swipeToggle = screen.getByRole("button", { name: "Swipe controls" });
+  const playbackToggle = screen.getByRole("button", { name: "Playback controls" });
+  const skipToggle = screen.getByRole("button", { name: "Skip control" });
+  const detailsToggle = screen.getByRole("button", { name: "Card details" });
+  const helpToggle = screen.getByRole("button", { name: "Help button" });
+  const actions = screen.getByRole("group", { name: "Card actions" });
+  expect(closeActions).toHaveAttribute("aria-expanded", "true");
+  expect(back).toBeVisible();
+  expect(helpToggle).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Open study help" })).not.toBeInTheDocument();
+  expect(helpToggle).toHaveAttribute("aria-pressed", "true");
+  expect(helpToggle).toHaveAttribute("title", "Hide help button");
+  expect(swipeToggle).toHaveAttribute("aria-pressed", "true");
+  expect(playbackToggle).toHaveAttribute("aria-pressed", "true");
+  expect(skipToggle).toHaveAttribute("aria-pressed", "true");
+  expect(detailsToggle).toHaveAttribute("aria-pressed", "true");
+  expect(swipeToggle).toHaveAttribute("title", "Hide swipe controls");
+  expect(playbackToggle).toHaveAttribute("title", "Hide playback controls");
+  expect(skipToggle).toHaveAttribute("title", "Hide skip control");
+  expect(detailsToggle).toHaveAttribute("title", "Hide card details");
+  expect(actions).not.toContainElement(helpToggle);
+  expect(actions).not.toContainElement(back);
+  expect(actions).not.toContainElement(screen.getByText("Card metadata"));
+  return { closeActions, helpToggle, back, swipeToggle, playbackToggle, skipToggle, detailsToggle };
+}
+
+function registerKeepsTheHelpVisibilityToggleMountedWhileVisibilityChanges() {
   it("STUDY-CONTROLS-05 keeps the Help visibility toggle mounted while visibility changes", () => {
     const onToggleHelp = vi.fn();
     const props = toolbarProps();
@@ -377,7 +427,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     fireEvent.click(hiddenHelpToggle);
     expect(onToggleHelp).toHaveBeenCalledOnce();
   });
+}
 
+function registerPlacesViewModeOnTheToolbarToTheLeftOfTheHelpIconAndTogglesItOnAndOff() {
   it("places view mode on the toolbar to the left of the Help icon and toggles it on and off", () => {
     const onToggleViewMode = vi.fn();
     const props = toolbarProps();
@@ -385,16 +437,7 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
       <CardPlayer {...props} viewMode={false} onToggleViewMode={onToggleViewMode} frontTextSlot={<div>Front</div>} />
     );
 
-    const viewModeButton = screen.getByRole("button", { name: "View mode" });
-    expect(viewModeButton).toBeVisible();
-    expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
-    expect(viewModeButton).toHaveAttribute("title", "Enter view mode");
-    expect(screen.getByTestId("toolbar-shortcuts")).toContainElement(
-      screen.getByRole("button", { name: "Open study help" })
-    );
-    expect(screen.getByTestId("toolbar-shortcuts")).toContainElement(
-      screen.getByRole("button", { name: /card actions/ })
-    );
+    const viewModeButton = expectViewModeShortcut();
 
     fireEvent.click(viewModeButton);
     expect(onToggleViewMode).toHaveBeenCalledOnce();
@@ -432,7 +475,23 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     fireEvent.keyDown(screen.getByRole("button", { name: "View mode" }), { key: "Escape" });
     expect(screen.getByRole("button", { name: "Open card actions" })).toHaveFocus();
   });
+}
 
+function expectViewModeShortcut() {
+  const viewModeButton = screen.getByRole("button", { name: "View mode" });
+  expect(viewModeButton).toBeVisible();
+  expect(viewModeButton).toHaveAttribute("aria-pressed", "false");
+  expect(viewModeButton).toHaveAttribute("title", "Enter view mode");
+  expect(screen.getByTestId("toolbar-shortcuts")).toContainElement(
+    screen.getByRole("button", { name: "Open study help" })
+  );
+  expect(screen.getByTestId("toolbar-shortcuts")).toContainElement(
+    screen.getByRole("button", { name: /card actions/ })
+  );
+  return viewModeButton;
+}
+
+function registerComposesVisibleShortcutsO() {
   it.each([
     { showHelp: true, showViewMode: true, showEdit: true },
     { showHelp: false, showViewMode: true, showEdit: true },
@@ -473,7 +532,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(within(shortcuts).queryAllByRole("button")).toHaveLength(1 + Number(showHelp) + Number(showViewMode));
     expect(within(shortcuts).queryAllByRole("link")).toHaveLength(Number(showEdit));
   });
+}
 
+function registerShowsAndHidesAllCardDetailsFromThePersistedPreferenceValue() {
   it("shows and hides all card details from the persisted preference value", () => {
     const { rerender } = render(
       <CardPlayer
@@ -509,7 +570,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(screen.getByRole("button", { name: "Card details" })).toHaveAttribute("title", "Hide card details");
     expect(screen.getByText("Difficulty, seen count, and last seen")).toBeVisible();
   });
+}
 
+function registerDescribesHiddenControlsAndKeepsTheUnavailablePlaybackToggleDisabled() {
   it("describes hidden controls and keeps the unavailable playback toggle disabled", () => {
     const onTogglePlaybackControls = vi.fn();
     render(
@@ -540,7 +603,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     fireEvent.click(playbackToggle);
     expect(onTogglePlaybackControls).not.toHaveBeenCalled();
   });
+}
 
+function registerShowsOnlyTheSelectedBottomControlGroups() {
   it("shows only the selected bottom control groups", () => {
     const { rerender } = render(
       <CardPlayer
@@ -568,7 +633,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(screen.getByRole("button", { name: "Swipe left" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
+}
 
+function registerIgnoresHorizontalAndVerticalSwipesOnTheBackText() {
   it("ignores horizontal and vertical swipes on the back text", () => {
     const onSwipeLeft = vi.fn();
     const onSwipeUp = vi.fn();
@@ -589,7 +656,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(onSwipeLeft).not.toHaveBeenCalled();
     expect(onSwipeUp).not.toHaveBeenCalled();
   });
+}
 
+function registerReportsAVerticalSwipePerformedOnTheFrontText() {
   it("reports a vertical swipe performed on the front text", () => {
     const onSwipeUp = vi.fn();
     render(
@@ -605,7 +674,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
 
     expect(onSwipeUp).toHaveBeenCalledOnce();
   });
+}
 
+function registerTreatsAPrimaryButtonMouseSwipeAsOnlyASwipe() {
   it("treats a primary-button mouse swipe as only a swipe", () => {
     const onSwipeUp = vi.fn();
     const onFrontClick = vi.fn();
@@ -628,7 +699,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(onSwipeUp).toHaveBeenCalledOnce();
     expect(onFrontClick).not.toHaveBeenCalled();
   });
+}
 
+function registerIgnoresNonPrimaryMouseDragsOnTheFrontText() {
   it("ignores non-primary mouse drags on the front text", () => {
     const onSwipeUp = vi.fn();
     render(<CardPlayer {...toolbarProps()} frontTextSlot={<div>Front</div>} onSwipeUp={onSwipeUp} />);
@@ -639,7 +712,9 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
 
     expect(onSwipeUp).not.toHaveBeenCalled();
   });
+}
 
+function registerKeepsAMouseDragFromSwipingOrClickingTheBackText() {
   it("keeps a mouse drag from swiping or clicking the back text", () => {
     const onSwipeLeft = vi.fn();
     const onBackClick = vi.fn();
@@ -663,4 +738,4 @@ describe("CardPlayer [STUDY-CONTROLS-05] [STUDY-CONTROLS-06] [STUDY-CONTROLS-07]
     expect(onSwipeLeft).not.toHaveBeenCalled();
     expect(onBackClick).not.toHaveBeenCalled();
   });
-});
+}

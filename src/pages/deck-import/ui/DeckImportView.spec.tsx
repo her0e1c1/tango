@@ -20,6 +20,26 @@ const preview = {
 } satisfies NonNullable<DeckImportViewProps["preview"]>;
 
 describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-09]", () => {
+  registerLocalizesPreviewFailureSAndUpdatesItInPlace();
+
+  registerLocalizesEachCachedDiagnosticWhileKeepingLiteralUserContext();
+
+  registerShowsFileSelectionFirstAndKeepsFormatDetailsOptional();
+
+  registerLocksFileSelectionWhileImportingAndHasNoStorageSelector();
+
+  registerUsesTheSamePreviewAndDownloadControlsForS();
+
+  registerForwardsSelectedFilesAndAllowsSelectingACorrectedFileAfterReview();
+
+  registerShowsCardContentsAndRequiresExplicitConfirmation();
+
+  registerBlocksAllCardsWhenAnyRowIsInvalidAndExplainsHowToRecover();
+
+  registerExplainsPreparationFailuresAndLeavesSelectionAvailable();
+});
+
+function registerLocalizesPreviewFailureSAndUpdatesItInPlace() {
   it.each([
     [new ImportFailure("authentication"), "アカウントへのインポートには認証済みユーザーが必要です。"],
     [new ImportFailure("account-changed"), "アカウントが変わりました。CSVファイルや例をもう一度選んでください。"],
@@ -38,7 +58,9 @@ describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-
     expect(alert).toHaveTextContent(message);
     expect(alert).not.toHaveTextContent("private server details");
   });
+}
 
+function registerLocalizesEachCachedDiagnosticWhileKeepingLiteralUserContext() {
   it("localizes each cached diagnostic while keeping literal user context", async () => {
     render(
       <DeckImportView
@@ -68,7 +90,9 @@ describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-
     expect(alert).toHaveTextContent("フィールドの閉じ引用符の形式が正しくありません。");
     expect(alert).toHaveTextContent("CSVを解析できませんでした。形式を確認してください。");
   });
+}
 
+function registerShowsFileSelectionFirstAndKeepsFormatDetailsOptional() {
   it("shows file selection first and keeps format details optional", async () => {
     render(<DeckImportView examples={deckImportExamples} />);
     expect(screen.getByRole("heading", { level: 1, name: "Add a deck" })).toBeVisible();
@@ -78,14 +102,18 @@ describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-
     await userEvent.click(screen.getByText("CSV format"));
     expect(screen.getByText(/Four columns without a header/)).toBeVisible();
   });
+}
 
+function registerLocksFileSelectionWhileImportingAndHasNoStorageSelector() {
   it("locks file selection while importing and has no storage selector", () => {
     render(<DeckImportView examples={deckImportExamples} pending />);
     expect(screen.queryByRole("group", { name: "Save to" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try this example" })).toBeDisabled();
     expect(screen.getByLabelText("Upload a csv file")).toBeDisabled();
   });
+}
 
+function registerUsesTheSamePreviewAndDownloadControlsForS() {
   it.each([
     ["Basic", "basic"],
     ["Math", "math"],
@@ -109,7 +137,9 @@ describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-
     await userEvent.keyboard("{Enter}");
     expect(onDownloadExample).toHaveBeenCalledWith(id);
   });
+}
 
+function registerForwardsSelectedFilesAndAllowsSelectingACorrectedFileAfterReview() {
   it("forwards selected files and allows selecting a corrected file after review", () => {
     const onChange = vi.fn();
     const file = new File(["front,back,,key"], "deck.csv");
@@ -120,7 +150,9 @@ describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-
     fireEvent.change(screen.getByLabelText("Upload a csv file"), { target: { files: [file] } });
     expect(onChange).toHaveBeenCalledTimes(2);
   });
+}
 
+function registerShowsCardContentsAndRequiresExplicitConfirmation() {
   it("shows card contents and requires explicit confirmation", async () => {
     const onImport = vi.fn();
     const onChooseAgain = vi.fn();
@@ -143,7 +175,9 @@ describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-
     await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
     expect(onImport).toHaveBeenCalledOnce();
   });
+}
 
+function registerBlocksAllCardsWhenAnyRowIsInvalidAndExplainsHowToRecover() {
   it("blocks all cards when any row is invalid and explains how to recover", () => {
     render(
       <DeckImportView
@@ -168,7 +202,9 @@ describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-
     expect(screen.getByRole("alert")).toHaveTextContent("Choose a corrected CSV file to continue.");
     expect(screen.getByRole("button", { name: "Add 1 card" })).toBeDisabled();
   });
+}
 
+function registerExplainsPreparationFailuresAndLeavesSelectionAvailable() {
   it("explains preparation failures and leaves selection available", () => {
     render(<DeckImportView examples={deckImportExamples} previewError={new Error("file read failed")} />);
     expect(screen.getByRole("alert")).toHaveTextContent("The import preview could not be prepared.");
@@ -176,4 +212,4 @@ describe("DeckImportView [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-06 SETTINGS-
     expect(screen.getByLabelText("Upload a csv file")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Try this example" })).toBeEnabled();
   });
-});
+}

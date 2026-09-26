@@ -56,6 +56,26 @@ describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
     window.history.replaceState({}, "", "/");
   });
 
+  registerFollowsTheSavedThemeWhileTheApplicationIsMounted();
+
+  registerRendersTheHomeRoute();
+
+  registerRendersTheIndependentStudyHistoryRouteWithADeckQuery();
+
+  registerHostsNotificationsOutsideTheRouteTree();
+
+  registerRestoresFocusToTheApplicationShellWhenANotificationOutlivesItsSourceRoute();
+
+  registerMatchesTheStaticDeckCreateRouteInsteadOfTreatingNewAsADeckId();
+
+  registerMatchesTheCardCreateRouteWithinItsTargetDeck();
+
+  registerRecoversFromUnknownRoutes();
+
+  registerUsesTangoRecoveryFeedbackWhenARouteRenderFails();
+});
+
+function registerFollowsTheSavedThemeWhileTheApplicationIsMounted() {
   it("follows the saved theme while the application is mounted", () => {
     renderApp();
     expect(document.documentElement).not.toHaveClass("dark");
@@ -66,18 +86,24 @@ describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
 
     expect(document.documentElement).toHaveClass("dark");
   });
+}
 
+function registerRendersTheHomeRoute() {
   it("renders the home route", () => {
     renderApp();
 
     expect(screen.getByText("Deck list")).toBeInTheDocument();
   });
+}
 
+function registerRendersTheIndependentStudyHistoryRouteWithADeckQuery() {
   it("renders the independent study history route with a Deck query", () => {
     renderApp("/study-history?deckId=deck-id");
     expect(screen.getByText("Study history")).toBeInTheDocument();
   });
+}
 
+function registerHostsNotificationsOutsideTheRouteTree() {
   it("hosts notifications outside the route tree", () => {
     renderApp();
 
@@ -87,7 +113,9 @@ describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Success: Signed in.");
   });
+}
 
+function registerRestoresFocusToTheApplicationShellWhenANotificationOutlivesItsSourceRoute() {
   it("restores focus to the application shell when a notification outlives its source route", () => {
     renderApp("/unknown");
     const sourceAction = screen.getByRole("button", { name: "Go home" });
@@ -105,19 +133,25 @@ describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
 
     expect(screen.getByRole("main")).toHaveFocus();
   });
+}
 
+function registerMatchesTheStaticDeckCreateRouteInsteadOfTreatingNewAsADeckId() {
   it("matches the static Deck create route instead of treating new as a Deck id", () => {
     renderApp("/deck/new");
 
     expect(screen.getByText("Deck create")).toBeInTheDocument();
   });
+}
 
+function registerMatchesTheCardCreateRouteWithinItsTargetDeck() {
   it("matches the Card create route within its target Deck", () => {
     renderApp("/deck/deck-id/card/new");
 
     expect(screen.getByText("Card create")).toBeInTheDocument();
   });
+}
 
+function registerRecoversFromUnknownRoutes() {
   it("recovers from unknown routes", () => {
     const { router } = renderApp("/unknown");
 
@@ -126,7 +160,9 @@ describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
     expect(router.state.location.pathname).toBe("/");
     expect(screen.getByText("Deck list")).toBeInTheDocument();
   });
+}
 
+function registerUsesTangoRecoveryFeedbackWhenARouteRenderFails() {
   it("uses Tango recovery feedback when a route render fails", () => {
     routeMocks.accountThrows = true;
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -138,4 +174,4 @@ describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
     expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
     consoleError.mockRestore();
   });
-});
+}

@@ -47,46 +47,47 @@ const cards = ["first", "second", "third"].map((id, numberOfSeen) => ({ id, numb
 const waitForCloud = (assertion: () => void | Promise<void>) => vi.waitFor(assertion, { timeout: 10_000 });
 const readSession = (sessionId: string) => getDoc(doc(testDb, "studySession", sessionId));
 
-describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-04]", () => {
-  let stop: (() => void) | undefined;
-  let deckId: string;
+let stop: (() => void) | undefined;
 
-  beforeEach(() => {
-    clearStudySessions();
-    cardStore.setState({ remoteCards: [] });
-    deckStore.setState({ remoteDecks: [] });
-    preferencesStore.setState({ preferences: createPreferences({ study: preferences }) });
-    replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null });
-    deckId = crypto.randomUUID();
-  });
-  afterEach(async () => {
-    stop?.();
-    stop = undefined;
-    await disableNetwork(testDb);
-    await enableNetwork(testDb);
-    await waitForPendingWrites(testDb);
-    clearStudySessions();
-    cardStore.setState({ remoteCards: [] });
-    deckStore.setState({ remoteDecks: [] });
-    vi.restoreAllMocks();
-  });
-  afterAll(async () => {
-    await Promise.all(getApps().map(deleteApp));
-  });
+let deckId: string;
 
-  async function startRemote(): Promise<StudySession> {
-    const previousId = getStudySession(deckId)?.sessionId;
-    const sessionId = startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
-    if (typeof sessionId !== "string") throw new Error("Expected synchronous study acceptance");
-    await vi.waitUntil(() => {
-      const session = getStudySession(deckId);
-      return session !== undefined && (previousId === undefined || session.sessionId !== previousId);
-    });
+async function startRemote(): Promise<StudySession> {
+  const previousId = getStudySession(deckId)?.sessionId;
+  const sessionId = startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
+  if (typeof sessionId !== "string") throw new Error("Expected synchronous study acceptance");
+  await vi.waitUntil(() => {
     const session = getStudySession(deckId);
-    if (session === undefined) throw new Error("Expected a session");
-    return session;
-  }
+    return session !== undefined && (previousId === undefined || session.sessionId !== previousId);
+  });
+  const session = getStudySession(deckId);
+  if (session === undefined) throw new Error("Expected a session");
+  return session;
+}
 
+describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-04]", () => {
+  beforeEach(resetTestState);
+  afterEach(restoreTestState1);
+  afterAll(cleanupTestEnvironment2);
+
+  registerRestoresSavedOrderAndCursorAfterResubscribing();
+  registerAbandonsThePreviousSessionOnlyOnExplicitRestart();
+  registerCompletesTheFinalCardOnceAndPreservesLifecycleMetadata();
+  registerSyncsOfflineCreationProgressAndAbandonment();
+  registerRestartsOfflineWhileAnotherDeckHasPendingWrites();
+  registerIgnoresMalformedDocumentsWithoutBlockingStudy();
+  registerAdvancesOneCardWithoutApplyingAnOldInteractionTwice();
+  registerRefreshesRecencyWithoutChangingTheSavedRun();
+  registerRestoresTheNewestRunPerDeckDespiteUpdatesToOlderRuns();
+  registerDoesNotRestoreAnOlderRunAfterTheLatestRunIsS();
+  registerReflectsSavedProgressThroughTheExistingSubscription();
+  registerRemovesASavedSRunWithoutChangingAnotherDeck();
+  registerSyncsOfflineCompletionWithoutDuplicatingOrRestoringTheRun();
+  registerLeavesSavedSessionsUnchangedWhenStartingWithNoCardsExistingS();
+  registerRejectsInvalidCardOrderJSynchronouslyWithoutReplacingTheRun();
+  registerRejectsSSynchronouslyAfterTheOwnerChanges();
+});
+
+function registerRestoresSavedOrderAndCursorAfterResubscribing() {
   it("[FIRESTORE-STUDY-SESSION-01] restores saved order and cursor after resubscribing", async () => {
     const onError = vi.fn();
     stop = subscribeStudySessions("uid", onError);
@@ -118,7 +119,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect(getStudySession(deckId)?.lastStudiedAt).toBeGreaterThan(0);
     expect(onError).not.toHaveBeenCalled();
   });
+}
 
+function registerAbandonsThePreviousSessionOnlyOnExplicitRestart() {
   it("[FIRESTORE-STUDY-SESSION-02] abandons the previous session only on explicit restart", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const previous = await startRemote();
@@ -150,7 +153,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     });
     expect(next.sessionId).not.toBe(previous.sessionId);
   });
+}
 
+function registerCompletesTheFinalCardOnceAndPreservesLifecycleMetadata() {
   it("[FIRESTORE-STUDY-SESSION-03] completes the final Card once and preserves lifecycle metadata", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const started = await startRemote();
@@ -175,7 +180,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect(getStudySession(deckId)).toBeUndefined();
     expect((await readSession(started.sessionId)).data()).toEqual(completed);
   });
+}
 
+function registerSyncsOfflineCreationProgressAndAbandonment() {
   it("[FIRESTORE-STUDY-SESSION-04] syncs offline creation, progress and abandonment", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     await disableNetwork(testDb);
@@ -196,7 +203,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       session.sessionId,
     ]);
   });
+}
 
+function registerRestartsOfflineWhileAnotherDeckHasPendingWrites() {
   it("[FIRESTORE-STUDY-SESSION-05] restarts offline while another Deck has pending writes", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const deck = createDeck({ id: deckId, uid: "uid" });
@@ -234,7 +243,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect((await readSession(restarted?.sessionId ?? "missing")).data()?.endReason).toBeNull();
     expect((await readSession(previous?.sessionId ?? "missing")).data()?.endReason).toBe("abandoned");
   });
+}
 
+function registerIgnoresMalformedDocumentsWithoutBlockingStudy() {
   it("[FIRESTORE-STUDY-SESSION-06] ignores malformed documents without blocking study", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const valid = await startRemote();
@@ -254,7 +265,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect((await readSession(next.sessionId)).data()?.endReason).toBeNull();
     expect(onError).not.toHaveBeenCalled();
   });
+}
 
+function registerAdvancesOneCardWithoutApplyingAnOldInteractionTwice() {
   it("[FIRESTORE-STUDY-SESSION-07] advances one Card without applying an old interaction twice", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const started = await startRemote();
@@ -274,7 +287,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     expect(getStudySession(deckId)).toMatchObject({ sessionId: started.sessionId, currentIndex: 1 });
     expect((await readSession(started.sessionId)).data()).toEqual(advanced);
   });
+}
 
+function registerRefreshesRecencyWithoutChangingTheSavedRun() {
   it("[FIRESTORE-STUDY-SESSION-08] refreshes recency without changing the saved run", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const started = await startRemote();
@@ -306,7 +321,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       })
     );
   });
+}
 
+function registerRestoresTheNewestRunPerDeckDespiteUpdatesToOlderRuns() {
   it("[FIRESTORE-STUDY-SESSION-09] restores the newest run per Deck despite updates to older runs", async () => {
     const olderId = crypto.randomUUID();
     const latestId = crypto.randomUUID();
@@ -340,7 +357,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       expect(getStudySession(otherDeckId)).toMatchObject({ sessionId: otherId, currentIndex: 1 });
     });
   });
+}
 
+function registerDoesNotRestoreAnOlderRunAfterTheLatestRunIsS() {
   it.each(["completed", "abandoned"] as const)(
     "[FIRESTORE-STUDY-SESSION-10] does not restore an older run after the latest run is %s",
     async (endReason) => {
@@ -382,7 +401,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       expect(getStudySession(deckId)).toBeUndefined();
     }
   );
+}
 
+function registerReflectsSavedProgressThroughTheExistingSubscription() {
   it("[FIRESTORE-STUDY-SESSION-11] reflects saved progress through the existing subscription", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const started = await startRemote();
@@ -402,7 +423,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       })
     );
   });
+}
 
+function registerRemovesASavedSRunWithoutChangingAnotherDeck() {
   it.each(["completed", "abandoned"] as const)(
     "[FIRESTORE-STUDY-SESSION-12] removes a saved %s run without changing another Deck",
     async (endReason) => {
@@ -430,7 +453,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       expect((await readSession(other.sessionId)).data()).toMatchObject({ currentIndex: 0, endReason: null });
     }
   );
+}
 
+function registerSyncsOfflineCompletionWithoutDuplicatingOrRestoringTheRun() {
   it("[FIRESTORE-STUDY-SESSION-13] syncs offline completion without duplicating or restoring the run", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     await disableNetwork(testDb);
@@ -463,7 +488,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     await waitForCloud(() => expect(onReady).toHaveBeenCalled());
     expect(getStudySession(deckId)).toBeUndefined();
   });
+}
 
+function registerLeavesSavedSessionsUnchangedWhenStartingWithNoCardsExistingS() {
   it.each([false, true])(
     "[FIRESTORE-STUDY-SESSION-14] leaves saved sessions unchanged when starting with no Cards (existing: %s)",
     async (hasPrevious) => {
@@ -486,7 +513,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       expect(getStudySession(deckId)).toEqual(previous ? previousSession : undefined);
     }
   );
+}
 
+function registerRejectsInvalidCardOrderJSynchronouslyWithoutReplacingTheRun() {
   it.each([["first", "first"], [""]])(
     "[FIRESTORE-STUDY-SESSION-15] rejects invalid card order %j synchronously without replacing the run",
     async (...cardOrderIds) => {
@@ -504,7 +533,9 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       expect(getStudySession(deckId)).toEqual(started);
     }
   );
+}
 
+function registerRejectsSSynchronouslyAfterTheOwnerChanges() {
   it.each(["start", "index", "move", "abandon", "touch"] as const)(
     "[FIRESTORE-STUDY-SESSION-16] rejects %s synchronously after the owner changes",
     async (operation) => {
@@ -536,4 +567,29 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       expect(getStudySession(deckId)).toEqual(started);
     }
   );
-});
+}
+
+function resetTestState() {
+  clearStudySessions();
+  cardStore.setState({ remoteCards: [] });
+  deckStore.setState({ remoteDecks: [] });
+  preferencesStore.setState({ preferences: createPreferences({ study: preferences }) });
+  replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null });
+  deckId = crypto.randomUUID();
+}
+
+async function restoreTestState1() {
+  stop?.();
+  stop = undefined;
+  await disableNetwork(testDb);
+  await enableNetwork(testDb);
+  await waitForPendingWrites(testDb);
+  clearStudySessions();
+  cardStore.setState({ remoteCards: [] });
+  deckStore.setState({ remoteDecks: [] });
+  vi.restoreAllMocks();
+}
+
+async function cleanupTestEnvironment2() {
+  await Promise.all(getApps().map(deleteApp));
+}

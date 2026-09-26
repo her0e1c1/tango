@@ -33,6 +33,18 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
     vi.useRealTimers();
   });
 
+  registerAppliesDeadlinesOnlyToStudyWhileBrowsingStaysCompleteS();
+
+  registerWaitsSafelyForADeadlineBeyondTheBrowserTimeoutLimit();
+
+  registerHandlesClockMovementLateCallbacksReplacementAndCleanup();
+
+  registerRefreshesAfterForegroundReturnAndRemovesTheTimerWhenIntervalFilteringIsOff();
+  registerSamplesCurrentTimeOnSettingsAndDataChangesWithoutWaitingForATimer();
+  registerAcceptsEquivalentInputArraysRecreatedByTheConsumer();
+});
+
+function registerAppliesDeadlinesOnlyToStudyWhileBrowsingStaysCompleteS() {
   it.each(["start", "list", "view"] as const)(
     "applies deadlines only to study while browsing stays complete (%s)",
     (page) => {
@@ -51,7 +63,9 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
       expect(vi.getTimerCount()).toBe(0);
     }
   );
+}
 
+function registerWaitsSafelyForADeadlineBeyondTheBrowserTimeoutLimit() {
   it("waits safely for a deadline beyond the browser timeout limit", () => {
     setDeadline(now + 2 ** 32);
     const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
@@ -65,7 +79,9 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
     expect(vi.getTimerCount()).toBe(0);
     unmount();
   });
+}
 
+function registerHandlesClockMovementLateCallbacksReplacementAndCleanup() {
   it("handles clock movement, late callbacks, replacement and cleanup", () => {
     setDeadline(now + 120_000);
     const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
@@ -92,7 +108,9 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
     unmount();
     expect(vi.getTimerCount()).toBe(0);
   });
+}
 
+function registerRefreshesAfterForegroundReturnAndRemovesTheTimerWhenIntervalFilteringIsOff() {
   it("refreshes after foreground return and removes the timer when interval filtering is off", () => {
     const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
     act(() => {
@@ -108,6 +126,9 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
     expect(vi.getTimerCount()).toBe(0);
     unmount();
   });
+}
+
+function registerSamplesCurrentTimeOnSettingsAndDataChangesWithoutWaitingForATimer() {
   it("samples current time on settings and data changes without waiting for a timer", () => {
     updatePreferences(createPreferences({ study: { useCardInterval: false } }));
     const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
@@ -129,6 +150,9 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
     expect(result.current.cardsLength).toBe(1);
     unmount();
   });
+}
+
+function registerAcceptsEquivalentInputArraysRecreatedByTheConsumer() {
   it("accepts equivalent input arrays recreated by the consumer", () => {
     const { result, rerender, unmount } = renderHook(() =>
       useStudySessionStartState(deck.id, { ...deck, selectedTags: [...deck.selectedTags] })
@@ -139,4 +163,4 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
     expect(result.current.cardsLength).toBe(1);
     unmount();
   });
-});
+}

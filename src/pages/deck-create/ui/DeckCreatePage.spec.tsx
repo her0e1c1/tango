@@ -52,33 +52,33 @@ const LeaveRouteButton = () => {
   );
 };
 
-describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePage", () => {
-  const renderPage = (strictMode = false) => {
-    const router = createMemoryRouter(
-      [
-        { path: "/", element: <h1>Deck list destination</h1> },
-        {
-          path: "/deck/new",
-          element: (
-            <>
-              <LeaveRouteButton />
-              <DeckCreatePage />
-            </>
-          ),
-        },
-        { path: "/deck/:id", element: <h1>Card list destination</h1> },
-      ],
-      { initialEntries: ["/deck/new"] }
-    );
-    const page = (
-      <>
-        <RouterProvider router={router} />
-        <ToastViewport />
-      </>
-    );
-    return { ...render(strictMode ? <React.StrictMode>{page}</React.StrictMode> : page), router };
-  };
+const renderPage = (strictMode = false) => {
+  const router = createMemoryRouter(
+    [
+      { path: "/", element: <h1>Deck list destination</h1> },
+      {
+        path: "/deck/new",
+        element: (
+          <>
+            <LeaveRouteButton />
+            <DeckCreatePage />
+          </>
+        ),
+      },
+      { path: "/deck/:id", element: <h1>Card list destination</h1> },
+    ],
+    { initialEntries: ["/deck/new"] }
+  );
+  const page = (
+    <>
+      <RouterProvider router={router} />
+      <ToastViewport />
+    </>
+  );
+  return { ...render(strictMode ? <React.StrictMode>{page}</React.StrictMode> : page), router };
+};
 
+describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePage", () => {
   beforeEach(() => {
     dismissToast();
     mocks.uid = "user-id";
@@ -91,6 +91,32 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     mocks.setDarkMode.mockReset();
   });
 
+  registerCreatesARemoteEmptyDeckWithSourceSettingsAndOpensItsCardListUnderStrictMode();
+
+  registerCreatesAnAnonymousDeckWithoutADestinationSelector();
+
+  registerUsesTheCurrentAnonymousUIDAfterSigningOut();
+
+  registerOmitsAnEmptyOptionalSourceURLFromTheCreateInput();
+
+  registerReportsACreationFailureWithoutLockingTheFormForASpecialRetryFlow();
+
+  registerKeepsAFailedCreationNotificationDuringRetryAndReplacesItOnSuccess();
+
+  registerKeepsAFailedCreationNotificationWhenLeavingViaSAndReEntering();
+
+  registerSuppressesASecondSubmitWhileCreationIsPending();
+
+  registerDoesNotPublishALateSAfterLeavingThePage();
+
+  registerIsolatesAnOldSAfterReEnteringThePage();
+
+  registerReturnsToTheDeckListWithoutCreating();
+
+  registerKeepsDirtyInputOrDiscardsItBeforeCancellation();
+});
+
+function registerCreatesARemoteEmptyDeckWithSourceSettingsAndOpensItsCardListUnderStrictMode() {
   it("creates a remote empty Deck with source settings and opens its Card list under Strict Mode", async () => {
     renderPage(true);
     await userEvent.click(screen.getByText("More settings"));
@@ -111,7 +137,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
     expect(screen.getByText("Created deck “New deck”.")).toBeVisible();
   });
+}
 
+function registerCreatesAnAnonymousDeckWithoutADestinationSelector() {
   it("creates an anonymous Deck without a destination selector", async () => {
     mocks.uid = "anonymous";
     renderPage();
@@ -131,7 +159,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
       url: "https://example.com/local.csv",
     });
   });
+}
 
+function registerUsesTheCurrentAnonymousUIDAfterSigningOut() {
   it("uses the current anonymous UID after signing out", async () => {
     renderPage();
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Signed-out deck");
@@ -146,7 +176,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
       })
     );
   });
+}
 
+function registerOmitsAnEmptyOptionalSourceURLFromTheCreateInput() {
   it("omits an empty optional source URL from the create input", async () => {
     renderPage();
 
@@ -161,7 +193,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
       convertToBr: false,
     });
   });
+}
 
+function registerReportsACreationFailureWithoutLockingTheFormForASpecialRetryFlow() {
   it("reports a creation failure without locking the form for a special retry flow", async () => {
     mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
     renderPage();
@@ -192,7 +226,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
       url: "https://example.com/failed.csv",
     });
   });
+}
 
+function registerKeepsAFailedCreationNotificationDuringRetryAndReplacesItOnSuccess() {
   it("keeps a failed creation notification during retry and replaces it on success", async () => {
     const retry = Promise.withResolvers<void>();
     mocks.createDeck
@@ -220,7 +256,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(screen.getByText("Created deck “Retried deck”.")).toBeVisible();
     expect(screen.queryByText("Unable to create this deck.")).not.toBeInTheDocument();
   });
+}
 
+function registerKeepsAFailedCreationNotificationWhenLeavingViaSAndReEntering() {
   it.each(["Back to decks", "Leave route"])(
     "keeps a failed creation notification when leaving via %s and re-entering",
     async (leaveButton) => {
@@ -244,7 +282,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
       expect(screen.getByText("Unable to create this deck.")).toBeVisible();
     }
   );
+}
 
+function registerSuppressesASecondSubmitWhileCreationIsPending() {
   it("suppresses a second submit while creation is pending", async () => {
     let resolveCreate: (() => void) | undefined;
     mocks.createDeck.mockImplementation(
@@ -272,7 +312,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     });
     await waitFor(() => expect(screen.getByRole("heading", { name: "Card list destination" })).toBeVisible());
   });
+}
 
+function registerDoesNotPublishALateSAfterLeavingThePage() {
   it.each(["success", "failure"] as const)("does not publish a late %s after leaving the Page", async (outcome) => {
     const write = Promise.withResolvers<void>();
     mocks.createDeck.mockImplementationOnce(async (uid: string, input: CreateDeckInput) => {
@@ -297,7 +339,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(screen.queryByText("Created deck “Slow deck”.")).not.toBeInTheDocument();
     expect(screen.queryByText("Unable to create this deck.")).not.toBeInTheDocument();
   });
+}
 
+function registerIsolatesAnOldSAfterReEnteringThePage() {
   it.each(["success", "failure"] as const)("isolates an old %s after re-entering the Page", async (outcome) => {
     const oldWrite = Promise.withResolvers<void>();
     const newWrite = Promise.withResolvers<void>();
@@ -337,7 +381,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(await screen.findByRole("heading", { name: "Card list destination" })).toBeVisible();
     expect(screen.getByText("Created deck “Current deck”.")).toBeVisible();
   });
+}
 
+function registerReturnsToTheDeckListWithoutCreating() {
   it("returns to the Deck list without creating", async () => {
     renderPage();
 
@@ -346,7 +392,9 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
     expect(mocks.createDeck).not.toHaveBeenCalled();
   });
+}
 
+function registerKeepsDirtyInputOrDiscardsItBeforeCancellation() {
   it("keeps dirty input or discards it before cancellation", async () => {
     renderPage();
     const name = screen.getByRole("textbox", { name: "Name" });
@@ -360,4 +408,4 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByRole("heading", { name: "Deck list destination" })).toBeVisible();
   });
-});
+}

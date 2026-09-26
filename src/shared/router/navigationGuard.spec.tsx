@@ -64,6 +64,24 @@ const renderGuard = () => {
 };
 
 describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigationGuard", () => {
+  registerAllowsCleanNavigationAndIntentionalSuccessfulNavigation();
+
+  registerKeepsDirtyInputInPlaceOrResumesTheExactBlockedNavigation();
+
+  registerClearsASynchronousNoOpBeforeASameTurnUnrelatedNavigation();
+
+  registerResetsABlockedStateAndPrioritizesAllowedNavigationOverAnUnansweredPrompt();
+
+  registerDoesNotSpendAPendingSaveBypassOnAnUnrelatedBackNavigation();
+
+  registerRequestsBrowserNativeConfirmationOnlyWhileDirty();
+});
+
+describe("CARD-MANAGEMENT-13 pending navigation", () => {
+  registerKeepsTheRouteMountedUntilSavingFinishesEvenWhenDiscardIsRequested();
+});
+
+function registerAllowsCleanNavigationAndIntentionalSuccessfulNavigation() {
   it("allows clean navigation and intentional successful navigation", async () => {
     const view = renderGuard();
     await userEvent.click(screen.getByRole("link", { name: "Leave" }));
@@ -75,7 +93,9 @@ describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigation
     await userEvent.click(screen.getByRole("button", { name: "Save successfully" }));
     expect(await screen.findByRole("heading", { name: "Next page" })).toBeVisible();
   });
+}
 
+function registerKeepsDirtyInputInPlaceOrResumesTheExactBlockedNavigation() {
   it("keeps dirty input in place or resumes the exact blocked navigation", async () => {
     renderGuard();
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
@@ -92,7 +112,9 @@ describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigation
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByRole("heading", { name: "Next page" })).toBeVisible();
   });
+}
 
+function registerClearsASynchronousNoOpBeforeASameTurnUnrelatedNavigation() {
   it("clears a synchronous no-op before a same-turn unrelated navigation", async () => {
     renderGuard();
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
@@ -101,7 +123,9 @@ describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigation
     expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
     expect(screen.queryByRole("heading", { name: "Unrelated page" })).not.toBeInTheDocument();
   });
+}
 
+function registerResetsABlockedStateAndPrioritizesAllowedNavigationOverAnUnansweredPrompt() {
   it("resets a blocked state and prioritizes allowed navigation over an unanswered prompt", async () => {
     renderGuard();
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
@@ -113,7 +137,9 @@ describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigation
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Previous page" })).not.toBeInTheDocument();
   });
+}
 
+function registerDoesNotSpendAPendingSaveBypassOnAnUnrelatedBackNavigation() {
   it("does not spend a pending save bypass on an unrelated Back navigation", async () => {
     renderGuard();
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
@@ -122,7 +148,9 @@ describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigation
     expect(screen.getByRole("alertdialog", { name: "Discard unsaved changes?" })).toBeVisible();
     expect(screen.queryByRole("heading", { name: "Previous page" })).not.toBeInTheDocument();
   });
+}
 
+function registerRequestsBrowserNativeConfirmationOnlyWhileDirty() {
   it("requests browser-native confirmation only while dirty", async () => {
     const addListener = vi.spyOn(window, "addEventListener");
     const removeListener = vi.spyOn(window, "removeEventListener");
@@ -144,9 +172,9 @@ describe("DECK-MANAGEMENT-08 CARD-MANAGEMENT-09 CARD-MANAGEMENT-12 useNavigation
     addListener.mockRestore();
     removeListener.mockRestore();
   });
-});
+}
 
-describe("CARD-MANAGEMENT-13 pending navigation", () => {
+function registerKeepsTheRouteMountedUntilSavingFinishesEvenWhenDiscardIsRequested() {
   it("keeps the route mounted until saving finishes even when discard is requested", async () => {
     const PendingContext = React.createContext(true);
     const PendingRoute = () => <GuardedRoute pending={React.useContext(PendingContext)} />;
@@ -175,4 +203,4 @@ describe("CARD-MANAGEMENT-13 pending navigation", () => {
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByRole("heading", { name: "Next page" })).toBeVisible();
   });
-});
+}

@@ -28,6 +28,20 @@ const ControlledTagFilter: React.FC<{ tags: string[]; initialSelectedTags?: stri
 };
 
 describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
+  registerReportsTagClearAndExplicitMatchModeChangesWithADeduplicatedSelectionCount();
+  registerKeepsSelectedAndStaleTagsFirstWhileProgressivelyDisclosingUnselectedTags();
+  registerMovesKeyboardFocusThroughNewlyRevealedTagsAndKeepsItOnTheDisclosureWhenCollapsing();
+  registerMovesFocusToARemainingTagWhenDeselectionRemovesACollapsedChip();
+  registerMovesFocusToTheMatchControlsWhenTheLastStaleSelectedTagDisappears();
+  registerMovesFocusBeforeClearDisablesItself();
+  registerOmitsDisclosureWhenThereAreNoMoreThanEightUnselectedTags();
+  registerShowsASimpleEmptyStateWhenNoTagsAreAvailable();
+  registerBoundsALargeAllSelectedTagListWhileKeepingEverySelectionAvailable();
+  registerKeepsALongTagAvailableThroughItsNativeCheckbox();
+  registerKeepsTheExpandedFilterAndTagControlsMountedWhenTheLocaleChanges();
+});
+
+function registerReportsTagClearAndExplicitMatchModeChangesWithADeduplicatedSelectionCount() {
   it("reports tag, clear, and explicit match-mode changes with a deduplicated selection count", async () => {
     const user = userEvent.setup();
     const onSelectedTagsChange = vi.fn();
@@ -63,25 +77,29 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(onMatchAllChange).toHaveBeenNthCalledWith(1, true);
     expect(onMatchAllChange).toHaveBeenNthCalledWith(2, false);
   });
+}
 
+const disclosureTags = [
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
+  "two",
+];
+
+function registerKeepsSelectedAndStaleTagsFirstWhileProgressivelyDisclosingUnselectedTags() {
   it("keeps selected and stale tags first while progressively disclosing unselected tags", async () => {
     const user = userEvent.setup();
-    const tags = [
-      "one",
-      "two",
-      "three",
-      "four",
-      "five",
-      "six",
-      "seven",
-      "eight",
-      "nine",
-      "ten",
-      "eleven",
-      "twelve",
-      "two",
-    ];
-    render(<ControlledTagFilter tags={tags} initialSelectedTags={["stale", "four", "stale"]} />);
+
+    render(<ControlledTagFilter tags={disclosureTags} initialSelectedTags={["stale", "four", "stale"]} />);
 
     expect(tagNames()).toEqual(["stale", "four", "one", "two", "three", "five", "six", "seven", "eight", "nine"]);
     const showMore = screen.getByRole("button", { name: "Show 3 more tags" });
@@ -116,7 +134,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(screen.queryByRole("checkbox", { name: "eleven" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Show 2 more tags" })).toHaveAttribute("aria-expanded", "false");
   });
+}
 
+function registerMovesKeyboardFocusThroughNewlyRevealedTagsAndKeepsItOnTheDisclosureWhenCollapsing() {
   it("moves keyboard focus through newly revealed tags and keeps it on the disclosure when collapsing", async () => {
     const user = userEvent.setup();
     const tags = Array.from({ length: 12 }, (_, index) => `tag-${String(index + 1)}`);
@@ -140,7 +160,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(screen.getByRole("button", { name: "Show 4 more tags" })).toHaveFocus();
     expect(screen.queryByRole("checkbox", { name: "tag-9" })).not.toBeInTheDocument();
   });
+}
 
+function registerMovesFocusToARemainingTagWhenDeselectionRemovesACollapsedChip() {
   it("moves focus to a remaining tag when deselection removes a collapsed chip", async () => {
     const user = userEvent.setup();
     const tags = Array.from({ length: 12 }, (_, index) => `tag-${String(index + 1)}`);
@@ -152,7 +174,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(screen.queryByRole("checkbox", { name: "tag-12" })).not.toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "tag-1" })).toHaveFocus();
   });
+}
 
+function registerMovesFocusToTheMatchControlsWhenTheLastStaleSelectedTagDisappears() {
   it("moves focus to the match controls when the last stale selected tag disappears", async () => {
     const user = userEvent.setup();
     render(<ControlledTagFilter tags={[]} initialSelectedTags={["stale"]} />);
@@ -163,7 +187,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(screen.queryByRole("checkbox", { name: "stale" })).not.toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Any" })).toHaveFocus();
   });
+}
 
+function registerMovesFocusBeforeClearDisablesItself() {
   it("moves focus before Clear disables itself", async () => {
     const user = userEvent.setup();
     render(<ControlledTagFilter tags={["one"]} initialSelectedTags={["one"]} />);
@@ -173,7 +199,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(screen.getByRole("button", { name: "Clear" })).toBeDisabled();
     expect(screen.getByRole("radio", { name: "Any" })).toHaveFocus();
   });
+}
 
+function registerOmitsDisclosureWhenThereAreNoMoreThanEightUnselectedTags() {
   it("omits disclosure when there are no more than eight unselected tags", () => {
     render(
       <TagFilter
@@ -190,7 +218,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(screen.getAllByRole("checkbox")).toHaveLength(8);
     expect(screen.queryByRole("button", { name: /Show/ })).not.toBeInTheDocument();
   });
+}
 
+function registerShowsASimpleEmptyStateWhenNoTagsAreAvailable() {
   it("shows a simple empty state when no tags are available", () => {
     render(
       <TagFilter
@@ -207,7 +237,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(screen.queryByRole("button", { name: /Show/ })).not.toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "All" })).toBeChecked();
   });
+}
 
+function registerBoundsALargeAllSelectedTagListWhileKeepingEverySelectionAvailable() {
   it("bounds a large all-selected tag list while keeping every selection available", () => {
     const tags = Array.from({ length: 120 }, (_, index) => `tag-${String(index + 1)}`);
     render(
@@ -226,7 +258,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(screen.getByText("120 selected")).toBeVisible();
     expect(screen.queryByRole("button", { name: /Show/ })).not.toBeInTheDocument();
   });
+}
 
+function registerKeepsALongTagAvailableThroughItsNativeCheckbox() {
   it("keeps a long tag available through its native checkbox", () => {
     const longTag = "averylongunbrokentag".repeat(12);
     render(
@@ -241,7 +275,9 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
 
     expect(screen.getByRole("checkbox", { name: longTag })).toBeVisible();
   });
+}
 
+function registerKeepsTheExpandedFilterAndTagControlsMountedWhenTheLocaleChanges() {
   it("keeps the expanded filter and tag controls mounted when the locale changes", async () => {
     const user = userEvent.setup();
     const tags = Array.from({ length: 10 }, (_, index) => `tag-${String(index + 1)}`);
@@ -258,4 +294,4 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 TagFilter", () => {
     expect(screen.getByRole("checkbox", { name: "tag-9" })).toBe(revealedTag);
     expect(disclosure).toHaveAttribute("aria-expanded", "true");
   });
-});
+}
