@@ -35,7 +35,7 @@
   "auth": {
     "failure": {
       "title": "Unable to start Tango",
-      "description": "Authentication could not be initialized."
+      "description": "Authentication or saved data could not be initialized."
     },
     "starting": {
       "title": "Starting Tango…",

@@ -223,3 +223,4 @@
 | FIRESTORE-INCREMENTAL-SYNC-01 | read | 正常系 | [連続する差分で変更のないデータと同時刻の更新を保持する](./incremental-sync.md#firestore-incremental-sync-01) |
 | FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [購読中の論理削除を反映する](./incremental-sync.md#firestore-incremental-sync-02) |
 | FIRESTORE-INCREMENTAL-SYNC-03 | read | 正常系 | [購読再開後に停止中の変更を反映する](./incremental-sync.md#firestore-incremental-sync-03) |
+| FIRESTORE-INCREMENTAL-SYNC-04 | read | 正常系 | [数値の更新日時を持つ既存データから起動できる](./incremental-sync.md#firestore-incremental-sync-04) |

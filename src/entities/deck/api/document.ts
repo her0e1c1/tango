@@ -14,7 +14,8 @@ const deckDocumentSchema = z.object({
   isPublic: z.boolean(),
   uid: z.string(),
   createdAt: z.number(),
-  updatedAt: firestoreTimestampSchema,
+  // Existing cloud documents retain millisecond values until their next successful write.
+  updatedAt: z.union([z.number(), firestoreTimestampSchema]),
   deletedAt: z.number().nullable(),
   selectedTags: z.array(z.string()),
   tagAndFilter: z.boolean(),
@@ -36,7 +37,7 @@ export const toDeck = (id: DeckId, document: DeckDocument): Deck => {
   return omitUndefined({
     ...rest,
     id,
-    updatedAt: document.updatedAt.toDate().getTime(),
+    updatedAt: typeof document.updatedAt === "number" ? document.updatedAt : document.updatedAt.toDate().getTime(),
   });
 };
 

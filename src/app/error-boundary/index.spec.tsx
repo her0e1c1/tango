@@ -7,6 +7,8 @@ import "@testing-library/jest-dom/vitest";
 import React, { useEffect } from "react";
 
 import { AppErrorBoundary } from "./index";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import { RouteErrorFallback } from "../routes/RouteErrorFallback";
 
 const ApplicationContent = ({ crash = false }: { crash?: boolean }) => {
   if (crash) throw new Error("render failed");
@@ -45,6 +47,7 @@ describe("NAVIGATION-03 AppErrorBoundary", () => {
     expect(screen.getByRole("alert")).toBeVisible();
     expect(screen.getByRole("heading", { level: 1, name: "Something went wrong" })).toBeVisible();
     expect(screen.getByText(/Reload to try again, or clear the app cache/)).toBeVisible();
+    expect(screen.getByText(/render failed/)).toBeVisible();
     expect(screen.queryByText("Application content")).not.toBeInTheDocument();
     expect(onCaughtError).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
@@ -84,6 +87,10 @@ describe("NAVIGATION-04 unhandled browser errors", () => {
       Object.defineProperty(event, "reason", { value: reason });
       fireEvent(window, event);
       expect(screen.getByRole("alert")).toBeVisible();
+      const message = reason instanceof Error ? reason.message : typeof reason === "string" ? reason : "";
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        `Your data, sign-in, and settings are kept. ${message}`.trim()
+      );
       expect(event.defaultPrevented).toBe(false);
       expect(screen.queryByText("Application content")).not.toBeInTheDocument();
       const reset = screen.getByRole("button", { name: "Clear cache and reload" });
@@ -91,6 +98,7 @@ describe("NAVIGATION-04 unhandled browser errors", () => {
       fireEvent(window, new ErrorEvent("error", { error: new Error("duplicate") }));
       expect(reset).toHaveFocus();
       expect(screen.getAllByRole("alert")).toHaveLength(1);
+      expect(screen.getByRole("alert")).not.toHaveTextContent("duplicate");
     }
   );
 
@@ -108,6 +116,7 @@ describe("NAVIGATION-04 unhandled browser errors", () => {
     expect(screen.getByText("Application content")).toBeVisible();
     fireEvent(window, new ErrorEvent("error", { message: "timer failure" }));
     expect(screen.getByRole("alert")).toBeVisible();
+    expect(screen.getByText(/timer failure/)).toBeVisible();
     view.unmount();
     for (const type of ["error", "unhandledrejection"]) {
       const registrations = add.mock.calls.filter(([name]) => name === type);
@@ -143,4 +152,17 @@ describe("NAVIGATION-03 provider lifecycle and initial render failures", () => {
     );
     expect(screen.getByRole("alert")).toBeVisible();
   });
+});
+
+it("NAVIGATION-03 displays the original route failure with recovery actions", () => {
+  const router = createMemoryRouter([
+    {
+      path: "/",
+      element: <ApplicationContent crash />,
+      errorElement: <RouteErrorFallback />,
+    },
+  ]);
+  render(<RouterProvider router={router} />);
+  expect(screen.getByText(/render failed/)).toBeVisible();
+  expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
 });

@@ -22,12 +22,12 @@ import { StudySessionPage } from "@/pages/study-session";
 import { StudySessionStartPage } from "@/pages/study-session-start";
 import { routes } from "@/shared/router";
 
-import { AppErrorFallback } from "../error-boundary";
+import { RouteErrorFallback } from "./RouteErrorFallback";
 
 export const appRoutes = [
   {
     element: <Outlet />,
-    errorElement: <AppErrorFallback />,
+    errorElement: <RouteErrorFallback />,
     children: [
       { path: routes.deckList.path, element: <DeckListPage /> },
       { path: routes.deckCreate.path, element: <DeckCreatePage /> },
