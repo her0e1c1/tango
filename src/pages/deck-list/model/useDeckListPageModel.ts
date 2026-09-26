@@ -1,3 +1,4 @@
+import { getDeckListEmptyState } from "./queries/getDeckListEmptyState";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
@@ -47,12 +48,7 @@ export function useDeckListPageModel() {
   useKey("s", () => void navigate(routes.settings.to()));
   useKey("i", () => void navigate(routes.deckImport.to()));
 
-  const empty = deckListState.emptyReason
-    ? {
-        reason: deckListState.emptyReason,
-        onRetry: deckListState.emptyReason === "error" ? () => void bootstrapSampleDeck() : undefined,
-      }
-    : undefined;
+  const empty = getDeckListEmptyState(deckListState.emptyReason, () => void bootstrapSampleDeck());
 
   return {
     sections: {

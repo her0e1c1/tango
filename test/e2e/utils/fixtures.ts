@@ -163,6 +163,28 @@ export interface AnonymousAuthOptions {
   failSignUpOnce?: boolean;
 }
 
+async function fulfillAccountLookup(route: Route, activeUid: string, linked: boolean | undefined) {
+  const providerUserInfo = linked
+    ? [{ providerId: "google.com", rawId: activeUid, displayName: "E2E User" }]
+    : undefined;
+  await route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      kind: "identitytoolkit#GetAccountInfoResponse",
+      users: [
+        {
+          localId: activeUid,
+          providerUserInfo,
+          lastLoginAt: "1",
+          createdAt: "1",
+          lastRefreshAt: new Date().toISOString(),
+        },
+      ],
+    }),
+  });
+}
+
 export const routeAnonymousAuth = async (page: Page, uid: string, options: AnonymousAuthOptions | string = {}) => {
   const normalizedOptions = typeof options === "string" ? { nextUid: options } : options;
   let activeUid = uid;
@@ -184,26 +206,8 @@ export const routeAnonymousAuth = async (page: Page, uid: string, options: Anony
   await page.route("**/identitytoolkit.googleapis.com/**", async (route) => {
     const url = route.request().url();
     const linked = normalizedOptions.linked && activeUid === uid;
-    const providerUserInfo = linked
-      ? [{ providerId: "google.com", rawId: activeUid, displayName: "E2E User" }]
-      : undefined;
     if (url.includes("accounts:lookup")) {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          kind: "identitytoolkit#GetAccountInfoResponse",
-          users: [
-            {
-              localId: activeUid,
-              providerUserInfo,
-              lastLoginAt: "1",
-              createdAt: "1",
-              lastRefreshAt: new Date().toISOString(),
-            },
-          ],
-        }),
-      });
+      await fulfillAccountLookup(route, activeUid, linked);
       return;
     }
     if (url.includes("accounts:signUp") && shouldFailSignUp) {
@@ -406,41 +410,39 @@ const seedFixtureAuth = async (
   });
 };
 
+async function seedRemoteFixture(remote: FixtureState["remote"]) {
+  // Seed parent Decks first so every observable intermediate state preserves Card references.
+  await Promise.all(
+    remote.decks.map((deck) => setDocument("deck", deck.id, { ...deck, updatedAt: new Date(deck.updatedAt) }))
+  );
+  await Promise.all(
+    remote.cards.map((card) => setDocument("card", card.id, { ...card, updatedAt: new Date(card.updatedAt) }))
+  );
+  for (const session of Object.values(remote.studySessions)) {
+    const deck = remote.decks.find(({ id }) => id === session.deckId);
+    if (!deck?.uid) throw new Error("A server session requires an owned Deck");
+    await setDocument("studySession", session.sessionId, {
+      uid: deck.uid,
+      deckId: deck.id,
+      cardOrderIds: session.cardOrderIds,
+      currentIndex: session.currentIndex,
+      lastStudiedAt: session.lastStudiedAt,
+      startedAt: new Date(session.lastStudiedAt),
+      createdAt: new Date(session.lastStudiedAt),
+      updatedAt: new Date(session.lastStudiedAt),
+      endedAt: null,
+      endReason: null,
+    });
+  }
+}
+
 function createE2EFixture(
   source: FixtureSource,
   namespace: TestNamespace,
   userOverrides: Readonly<Record<string, string>> = {}
 ): E2EFixture {
   const namespaced = namespaceFixture(source, namespace, userOverrides);
-  const seedRemote = async () => {
-    // Seed parent Decks first so every observable intermediate state preserves Card references.
-    await Promise.all(
-      namespaced.state.remote.decks.map((deck) =>
-        setDocument("deck", deck.id, { ...deck, updatedAt: new Date(deck.updatedAt) })
-      )
-    );
-    await Promise.all(
-      namespaced.state.remote.cards.map((card) =>
-        setDocument("card", card.id, { ...card, updatedAt: new Date(card.updatedAt) })
-      )
-    );
-    for (const session of Object.values(namespaced.state.remote.studySessions)) {
-      const deck = namespaced.state.remote.decks.find(({ id }) => id === session.deckId);
-      if (!deck?.uid) throw new Error("A server session requires an owned Deck");
-      await setDocument("studySession", session.sessionId, {
-        uid: deck.uid,
-        deckId: deck.id,
-        cardOrderIds: session.cardOrderIds,
-        currentIndex: session.currentIndex,
-        lastStudiedAt: session.lastStudiedAt,
-        startedAt: new Date(session.lastStudiedAt),
-        createdAt: new Date(session.lastStudiedAt),
-        updatedAt: new Date(session.lastStudiedAt),
-        endedAt: null,
-        endReason: null,
-      });
-    }
-  };
+  const seedRemote = () => seedRemoteFixture(namespaced.state.remote);
 
   const seedPage = async (page: Page, options: FixturePageSeedOptions = {}) => {
     const selectedUser = requireLogicalValue(namespaced.users, "auth user", options.user);
@@ -612,6 +614,20 @@ const seedDeniedWriteTarget = async (collection: FirestoreCollection, id: string
   await setDocument("card", id, { id, uid, deckId, frontText: "Denied E2E Card" });
 };
 
+function getRequestedWriteId(body: string, target: { collection: FirestoreCollection; id?: string }) {
+  const collectionPath = `/documents/${target.collection}/`;
+  let requestedId = target.id;
+  if (requestedId === undefined) {
+    const pathIndex = body.indexOf(collectionPath);
+    if (pathIndex !== -1) {
+      const remainder = body.slice(pathIndex + collectionPath.length);
+      const idEnd = remainder.search(/[/"}]/);
+      requestedId = idEnd === -1 ? remainder : remainder.slice(0, idEnd);
+    }
+  }
+  return requestedId !== undefined && body.includes(`${collectionPath}${requestedId}`) ? requestedId : undefined;
+}
+
 export const failNextFirestoreWrite = async (
   page: Page,
   target: { collection: FirestoreCollection; id?: string }
@@ -652,17 +668,8 @@ export const failNextFirestoreWrite = async (
   const handler = async (route: Route) => {
     const body = route.request().postData() ?? "";
     const decodedBody = decodeURIComponent(body.replaceAll("+", "%20"));
-    const collectionPath = `/documents/${target.collection}/`;
-    let requestedId = target.id;
-    if (requestedId === undefined) {
-      const pathIndex = decodedBody.indexOf(collectionPath);
-      if (pathIndex !== -1) {
-        const remainder = decodedBody.slice(pathIndex + collectionPath.length);
-        const idEnd = remainder.search(/[/"}]/);
-        requestedId = idEnd === -1 ? remainder : remainder.slice(0, idEnd);
-      }
-    }
-    if (triggered || requestedId === undefined || !decodedBody.includes(`${collectionPath}${requestedId}`)) {
+    const requestedId = getRequestedWriteId(decodedBody, target);
+    if (triggered || requestedId === undefined) {
       await route.fallback();
       return;
     }

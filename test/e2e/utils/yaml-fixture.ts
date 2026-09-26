@@ -120,7 +120,9 @@ export interface NamespacedFixture {
   id: (logicalId: string) => string;
 }
 
-const caseIdFromTestTitle = (title: string) => /^([A-Z]+(?:-[A-Z]+)*-[0-9]{2,}) /u.exec(title)?.[1];
+const caseIdFromTestTitle = (title: string) => {
+  return /^[A-Z]+(?:-[A-Z]+)*-[0-9]{2,} /u.test(title) ? title.slice(0, title.indexOf(" ")) : undefined;
+};
 
 export const requireE2ECaseId = (title: string): string => {
   const caseId = caseIdFromTestTitle(title);

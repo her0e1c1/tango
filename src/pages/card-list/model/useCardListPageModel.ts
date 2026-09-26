@@ -1,5 +1,6 @@
+import { getCardListEmptyState } from "./queries/getCardListEmptyState";
+import { useCardListShortcuts } from "./actions/useCardListShortcuts";
 import { useNavigate } from "react-router-dom";
-import { useKey } from "react-use";
 import { useStore } from "zustand";
 import { useAuth } from "@/entities/auth";
 import type { CardId } from "@/entities/card";
@@ -53,25 +54,12 @@ export function useCardListPageModel(deck: Deck) {
     shownCard: state.shownCard,
     sortOrder: state.sortOrder,
   });
-  const goToDeckList = () => {
-    if (!controls.dialogOpen) void navigate(routes.deckList.to());
-  };
-  const goToSettings = () => {
-    if (!controls.dialogOpen) void navigate(routes.settings.to());
-  };
-  useKey("t", goToDeckList, undefined, [goToDeckList]);
-  useKey("s", goToSettings, undefined, [goToSettings]);
+  useCardListShortcuts(controls.dialogOpen);
 
   const goToCardCreate = () => void navigate(routes.cardCreate.to(deck.id));
   const clearFilters = () => clearDeckFilters(filterUpdate);
 
-  const empty = query.emptyReason
-    ? {
-        reason: query.emptyReason,
-        onAddCard: goToCardCreate,
-        onClearFilters: clearFilters,
-      }
-    : undefined;
+  const empty = getCardListEmptyState(query.emptyReason, goToCardCreate, clearFilters);
 
   return {
     ...state,
