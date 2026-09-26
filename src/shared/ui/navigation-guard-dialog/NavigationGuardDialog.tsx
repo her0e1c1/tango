@@ -37,12 +37,29 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
     };
   }, []);
 
+  const handleTabKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
+    const [first] = focusable;
+    const last = focusable.at(-1);
+    if (first == null || last == null) {
+      event.preventDefault();
+      return;
+    }
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
       event.preventDefault();
       onKeepEditing();
     } else if (event.key === "Tab") {
-      handleTabKey(event, dialogRef);
+      handleTabKey(event);
     }
   };
 
@@ -81,20 +98,3 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
     </div>
   );
 };
-
-function handleTabKey(event: React.KeyboardEvent<HTMLDivElement>, dialogRef: React.RefObject<HTMLDivElement | null>) {
-  const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
-  const [first] = focusable;
-  const last = focusable.at(-1);
-  if (first == null || last == null) {
-    event.preventDefault();
-    return;
-  }
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-  }
-}

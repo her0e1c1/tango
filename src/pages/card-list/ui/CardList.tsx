@@ -148,103 +148,9 @@ const CardListEmpty = ({ empty }: { empty: CardListEmptyProps }) => {
  */
 export const CardList: React.FC<CardListProps> = (props) => {
   const { t } = useTranslation();
-  const sortId = React.useId();
-
-  return (
-    <>
-      {props.overlay != null && (
-        <Overlay
-          position="center"
-          ariaLabel={t("cardList.closeCard")}
-          className="overflow-y-auto bg-surface-elevated"
-          {...(props.overlay.onClose !== undefined ? { onClick: props.overlay.onClose } : {})}
-        >
-          {props.overlay.content}
-        </Overlay>
-      )}
-
-      <CardListHeader
-        cards={props.cards}
-        {...(props.onAddCard ? { onAddCard: props.onAddCard } : {})}
-        disabled={Boolean(props.disabled)}
-      />
-
-      <label htmlFor={sortId} className="flex flex-wrap items-center gap-2 text-caption font-medium text-ink">
-        {t("cardList.sort.label")}
-        <Select
-          id={sortId}
-          className="w-auto"
-          value={props.sortOrder ?? "standard"}
-          disabled={props.sortDisabled}
-          onChange={(event) => props.onSortOrderChange?.(event.target.value === "newest" ? "newest" : "standard")}
-          options={[
-            { value: "standard", label: t("cardList.sort.standard") },
-            { value: "newest", label: t("cardList.sort.newest") },
-          ]}
-        />
-      </label>
-
-      <CardListFilters {...props} />
-
-      {props.cards.length > 0 ? (
-        <CardListRows
-          cards={props.cards}
-          disabled={Boolean(props.disabled)}
-          {...(props.card !== undefined ? { card: props.card } : {})}
-          {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
-        />
-      ) : props.empty ? (
-        <CardListEmpty empty={props.empty} />
-      ) : null}
-    </>
-  );
-};
-
-function CardListHeader(props: Pick<CardListProps, "cards" | "onAddCard" | "disabled">) {
-  const { t } = useTranslation();
-  const [actionsOpen, setActionsOpen] = React.useState(false);
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <h1 className="break-words text-title font-bold text-ink">{t("cardList.title")}</h1>
-      <div className="flex items-center gap-3">
-        <span className="shrink-0 text-caption text-ink-muted">
-          {t("cardList.count", { count: props.cards.length })}
-        </span>
-        {props.onAddCard !== undefined && (
-          <ActionsMenu
-            groupLabel={t("cardList.listActions")}
-            triggerLabel={t("cardList.listActions")}
-            menuLabel={t("cardList.listActions")}
-            triggerContent={
-              <>
-                {t("cardList.listActions")}
-                <AiOutlineDown aria-hidden="true" />
-              </>
-            }
-            open={actionsOpen}
-            disabled={Boolean(props.disabled)}
-            onToggle={() => setActionsOpen((open) => !open)}
-            onClose={() => setActionsOpen(false)}
-            items={[
-              {
-                key: "add",
-                label: t("cardList.add"),
-                icon: <AiOutlinePlus aria-hidden="true" />,
-                onSelect: () => props.onAddCard?.(),
-              },
-            ]}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CardListFilters(
-  props: Pick<CardListProps, "filter" | "filterDisabled" | "disabled" | "onRemoveTag" | "filterSlot">
-) {
-  const { t } = useTranslation();
   const filter = props.filter ?? emptyFilter;
+  const [actionsOpen, setActionsOpen] = React.useState(false);
+  const sortId = React.useId();
   const summaryRef = React.useRef<HTMLElement>(null);
   const tagRefs = React.useRef<Map<string, HTMLButtonElement>>(new Map());
 
@@ -269,48 +175,123 @@ function CardListFilters(
   };
 
   return (
-    <fieldset className="contents" disabled={props.filterDisabled ?? props.disabled}>
-      <div className="flex flex-col gap-2">
-        <details className="group rounded-surface border border-border bg-surface shadow-surface">
-          <summary
-            ref={summaryRef}
-            className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded-surface px-3 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden"
-          >
-            <span>{t("cardList.filters.title")}</span>
-            <span className="flex min-w-0 items-center gap-2">
-              <span className="min-w-0 truncate text-caption font-medium text-ink-muted">{filterLabel(filter, t)}</span>
-              <AiOutlineDown
-                aria-hidden="true"
-                className="shrink-0 text-ink-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
-                size={16}
-              />
-            </span>
-          </summary>
-          <div className="border-t border-border p-3">{props.filterSlot}</div>
-        </details>
-        {filter.selectedTags.length > 0 && (
-          <ul
-            aria-label={t("cardList.filters.selectedTags")}
-            className="flex min-w-0 max-w-full list-none flex-wrap gap-2 px-1"
-          >
-            {filter.selectedTags.map((tag) => (
-              <li key={tag} className="max-w-full">
-                <RemovableTag
-                  ref={(element) => {
-                    if (element) {
-                      tagRefs.current.set(tag, element);
-                    } else {
-                      tagRefs.current.delete(tag);
-                    }
-                  }}
-                  label={tag}
-                  onRemove={handleRemoveTag}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
+    <>
+      {props.overlay != null && (
+        <Overlay
+          position="center"
+          ariaLabel={t("cardList.closeCard")}
+          className="overflow-y-auto bg-surface-elevated"
+          {...(props.overlay.onClose !== undefined ? { onClick: props.overlay.onClose } : {})}
+        >
+          {props.overlay.content}
+        </Overlay>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="break-words text-title font-bold text-ink">{t("cardList.title")}</h1>
+        <div className="flex items-center gap-3">
+          <span className="shrink-0 text-caption text-ink-muted">
+            {t("cardList.count", { count: props.cards.length })}
+          </span>
+          {props.onAddCard !== undefined && (
+            <ActionsMenu
+              groupLabel={t("cardList.listActions")}
+              triggerLabel={t("cardList.listActions")}
+              menuLabel={t("cardList.listActions")}
+              triggerContent={
+                <>
+                  {t("cardList.listActions")}
+                  <AiOutlineDown aria-hidden="true" />
+                </>
+              }
+              open={actionsOpen}
+              disabled={Boolean(props.disabled)}
+              onToggle={() => setActionsOpen((open) => !open)}
+              onClose={() => setActionsOpen(false)}
+              items={[
+                {
+                  key: "add",
+                  label: t("cardList.add"),
+                  icon: <AiOutlinePlus aria-hidden="true" />,
+                  onSelect: () => props.onAddCard?.(),
+                },
+              ]}
+            />
+          )}
+        </div>
       </div>
-    </fieldset>
+
+      <label htmlFor={sortId} className="flex flex-wrap items-center gap-2 text-caption font-medium text-ink">
+        {t("cardList.sort.label")}
+        <Select
+          id={sortId}
+          className="w-auto"
+          value={props.sortOrder ?? "standard"}
+          disabled={props.sortDisabled}
+          onChange={(event) => props.onSortOrderChange?.(event.target.value === "newest" ? "newest" : "standard")}
+          options={[
+            { value: "standard", label: t("cardList.sort.standard") },
+            { value: "newest", label: t("cardList.sort.newest") },
+          ]}
+        />
+      </label>
+
+      <fieldset className="contents" disabled={props.filterDisabled ?? props.disabled}>
+        <div className="flex flex-col gap-2">
+          <details className="group rounded-surface border border-border bg-surface shadow-surface">
+            <summary
+              ref={summaryRef}
+              className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded-surface px-3 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden"
+            >
+              <span>{t("cardList.filters.title")}</span>
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="min-w-0 truncate text-caption font-medium text-ink-muted">
+                  {filterLabel(filter, t)}
+                </span>
+                <AiOutlineDown
+                  aria-hidden="true"
+                  className="shrink-0 text-ink-muted transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                  size={16}
+                />
+              </span>
+            </summary>
+            <div className="border-t border-border p-3">{props.filterSlot}</div>
+          </details>
+          {filter.selectedTags.length > 0 && (
+            <ul
+              aria-label={t("cardList.filters.selectedTags")}
+              className="flex min-w-0 max-w-full list-none flex-wrap gap-2 px-1"
+            >
+              {filter.selectedTags.map((tag) => (
+                <li key={tag} className="max-w-full">
+                  <RemovableTag
+                    ref={(element) => {
+                      if (element) {
+                        tagRefs.current.set(tag, element);
+                      } else {
+                        tagRefs.current.delete(tag);
+                      }
+                    }}
+                    label={tag}
+                    onRemove={handleRemoveTag}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </fieldset>
+
+      {props.cards.length > 0 ? (
+        <CardListRows
+          cards={props.cards}
+          disabled={Boolean(props.disabled)}
+          {...(props.card !== undefined ? { card: props.card } : {})}
+          {...(props.onShowCard !== undefined ? { onShowCard: props.onShowCard } : {})}
+        />
+      ) : props.empty ? (
+        <CardListEmpty empty={props.empty} />
+      ) : null}
+    </>
   );
-}
+};

@@ -37,7 +37,15 @@ export function MemoryState({ memory }: MemoryStateProps) {
   const { at, start, end, lastReviewedAt, dueAt, retrievability, dueRetrievability, isDue, target, points } = memory;
   const x = (time: number) => 44 + (296 * (time - start)) / (end - start);
   const y = (probability: number) => 204 - 140 * probability;
-  const { elapsed, divisor } = getElapsedFormat(i18n.language, end - start);
+  const span = end - start;
+  const unit = span < 3_600_000 ? "minute" : span < 172_800_000 ? "hour" : "day";
+  const divisor = unit === "minute" ? 60_000 : unit === "hour" ? 3_600_000 : 86_400_000;
+  const elapsed = new Intl.NumberFormat(i18n.language, {
+    style: "unit",
+    unit,
+    unitDisplay: "short",
+    maximumFractionDigits: 1,
+  });
   const path = points
     .map((point, index) => `${index === 0 ? "M" : "L"}${String(x(point.time))},${String(y(point.probability))}`)
     .join(" ");
@@ -136,16 +144,4 @@ export function MemoryState({ memory }: MemoryStateProps) {
       </dl>
     </section>
   );
-}
-
-function getElapsedFormat(language: string, span: number) {
-  const unit = span < 3_600_000 ? "minute" : span < 172_800_000 ? "hour" : "day";
-  const divisor = unit === "minute" ? 60_000 : unit === "hour" ? 3_600_000 : 86_400_000;
-  const elapsed = new Intl.NumberFormat(language, {
-    style: "unit",
-    unit,
-    unitDisplay: "short",
-    maximumFractionDigits: 1,
-  });
-  return { elapsed, divisor };
 }

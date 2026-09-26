@@ -53,7 +53,32 @@ const buttonClassName =
 export const Header: React.FC<HeaderProps> = (props) => {
   const labels = { ...defaultLabels, ...props.labels };
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const items = getHeaderItems(props, labels);
+  const items = [
+    {
+      key: "import",
+      label: labels.importDecks,
+      icon: <AiOutlineUpload aria-hidden="true" size={24} />,
+      onSelect: () => props.onClickImport?.(),
+    },
+    {
+      key: "account",
+      label: labels.openAccount,
+      icon: <AiOutlineUser aria-hidden="true" size={24} />,
+      onSelect: () => props.onClickAccount?.(),
+    },
+    {
+      key: "settings",
+      label: labels.openSettings,
+      icon: <AiFillSetting aria-hidden="true" size={24} />,
+      onSelect: () => props.onClickSettings?.(),
+    },
+    {
+      key: "appearance",
+      label: props.dark ? labels.switchToLightMode : labels.switchToDarkMode,
+      icon: props.dark ? <AiOutlineSun aria-hidden="true" size={24} /> : <AiFillMoon aria-hidden="true" size={24} />,
+      onSelect: () => props.onClickDarkMode?.(!props.dark),
+    },
+  ];
 
   return (
     <header
@@ -106,32 +131,3 @@ export const Header: React.FC<HeaderProps> = (props) => {
     </header>
   );
 };
-
-function getHeaderItems(props: HeaderProps, labels: HeaderLabels) {
-  return [
-    {
-      key: "import",
-      label: labels.importDecks,
-      icon: <AiOutlineUpload aria-hidden="true" size={24} />,
-      onSelect: () => props.onClickImport?.(),
-    },
-    {
-      key: "account",
-      label: labels.openAccount,
-      icon: <AiOutlineUser aria-hidden="true" size={24} />,
-      onSelect: () => props.onClickAccount?.(),
-    },
-    {
-      key: "settings",
-      label: labels.openSettings,
-      icon: <AiFillSetting aria-hidden="true" size={24} />,
-      onSelect: () => props.onClickSettings?.(),
-    },
-    {
-      key: "appearance",
-      label: props.dark ? labels.switchToLightMode : labels.switchToDarkMode,
-      icon: props.dark ? <AiOutlineSun aria-hidden="true" size={24} /> : <AiFillMoon aria-hidden="true" size={24} />,
-      onSelect: () => props.onClickDarkMode?.(!props.dark),
-    },
-  ];
-}

@@ -70,7 +70,10 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
   const { t } = useTranslation();
   const { deck, studySession, review } = props;
   const active = studySession != null;
-  const studyAction = getStudyAction(active, review);
+  let studyAction = "study" as "continue" | "review" | "studyNew" | "study";
+  if (active) studyAction = "continue";
+  else if (review?.due) studyAction = "review";
+  else if (review?.new) studyAction = "studyNew";
   const pending = props.isPending?.(deck.id) ?? false;
   const withId = (action?: (id: DeckId) => void) => () => action?.(deck.id);
   const statusId = React.useId();
@@ -87,15 +90,21 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
       )}
     >
       <div className="flex min-w-0 items-start gap-2">
-        <DeckCardTitle
-          deckName={deck.name}
-          cardCount={props.cardCount}
-          statusId={statusId}
-          progressId={progressId}
-          active={active}
-          pending={pending}
-          onClick={withId(props.onClickName)}
-        />
+        <div className="min-w-0 flex-1">
+          <button
+            type="button"
+            aria-label={t("deckList.openCards", { deckName: deck.name })}
+            aria-describedby={active ? `${statusId} ${progressId}` : statusId}
+            className="block min-h-touch w-full min-w-0 break-words rounded-control text-left text-body font-semibold text-ink hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            onClick={withId(props.onClickName)}
+            disabled={pending}
+          >
+            {deck.name}
+          </button>
+          <p id={statusId} className="mt-1 flex flex-wrap items-baseline gap-x-2 text-caption text-ink-muted">
+            <span>{t("deckList.cardCount", { count: props.cardCount })}</span>
+          </p>
+        </div>
         <DeckActionsMenu
           deckName={deck.name}
           open={props.openMenuDeckId === deck.id}
@@ -110,7 +119,24 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
           onDelete={withId(props.onClickDelete)}
         />
       </div>
-      {studySession != null && <DeckStudyProgress studySession={studySession} progressId={progressId} />}
+      {studySession != null && (
+        <div className="space-y-2">
+          <p id={progressId} className="text-caption text-accent-primary">
+            {t("deckList.studyPosition", {
+              position: studySession.currentIndex + 1,
+              total: studySession.cardOrderIds.length,
+            })}
+          </p>
+          <div aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-surface-muted">
+            <div
+              className="h-full rounded-full bg-accent-primary"
+              style={{
+                width: `${String(studySession.cardOrderIds.length === 0 ? 0 : (studySession.currentIndex / studySession.cardOrderIds.length) * 100)}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {review !== undefined && (
         <div className="min-w-0 text-caption text-ink-muted">
@@ -139,70 +165,3 @@ export const DeckListCard: React.FC<DeckListCardProps> = (props) => {
     </article>
   );
 };
-
-function DeckStudyProgress({ studySession, progressId }: { studySession: StudySession; progressId: string }) {
-  const { t } = useTranslation();
-  return (
-    <div className="space-y-2">
-      <p id={progressId} className="text-caption text-accent-primary">
-        {t("deckList.studyPosition", {
-          position: studySession.currentIndex + 1,
-          total: studySession.cardOrderIds.length,
-        })}
-      </p>
-      <div aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-surface-muted">
-        <div
-          className="h-full rounded-full bg-accent-primary"
-          style={{
-            width: `${String(studySession.cardOrderIds.length === 0 ? 0 : (studySession.currentIndex / studySession.cardOrderIds.length) * 100)}%`,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function getStudyAction(active: boolean, review: DeckListCardProps["review"]) {
-  let studyAction = "study" as "continue" | "review" | "studyNew" | "study";
-  if (active) studyAction = "continue";
-  else if (review?.due) studyAction = "review";
-  else if (review?.new) studyAction = "studyNew";
-  return studyAction;
-}
-
-function DeckCardTitle({
-  deckName,
-  cardCount,
-  statusId,
-  progressId,
-  active,
-  pending,
-  onClick,
-}: {
-  deckName: string;
-  cardCount: number;
-  statusId: string;
-  progressId: string;
-  active: boolean;
-  pending: boolean;
-  onClick: () => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="min-w-0 flex-1">
-      <button
-        type="button"
-        aria-label={t("deckList.openCards", { deckName: deckName })}
-        aria-describedby={active ? `${statusId} ${progressId}` : statusId}
-        className="block min-h-touch w-full min-w-0 break-words rounded-control text-left text-body font-semibold text-ink hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-        onClick={onClick}
-        disabled={pending}
-      >
-        {deckName}
-      </button>
-      <p id={statusId} className="mt-1 flex flex-wrap items-baseline gap-x-2 text-caption text-ink-muted">
-        <span>{t("deckList.cardCount", { count: cardCount })}</span>
-      </p>
-    </div>
-  );
-}

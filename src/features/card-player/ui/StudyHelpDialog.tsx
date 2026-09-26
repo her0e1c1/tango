@@ -119,12 +119,29 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
     };
   }, [restoreTriggerFocus]);
 
+  const trapFocus = (event: KeyboardEvent) => {
+    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
+    const [first] = focusable;
+    const last = focusable.at(-1);
+    if (first == null || last == null) {
+      event.preventDefault();
+      return;
+    }
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
   const handleKeyDownEvent = React.useEffectEvent((event: KeyboardEvent) => {
     if (event.key === "Escape") {
       event.preventDefault();
       props.onClose();
     } else if (event.key === "Tab") {
-      trapFocus(event, dialogRef);
+      trapFocus(event);
     }
   });
 
@@ -175,20 +192,3 @@ export const StudyHelpDialog: React.FC<StudyHelpDialogProps> = (props) => {
     </div>
   );
 };
-
-function trapFocus(event: KeyboardEvent, dialogRef: React.RefObject<HTMLDivElement | null>) {
-  const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableElementSelector) ?? []);
-  const [first] = focusable;
-  const last = focusable.at(-1);
-  if (first == null || last == null) {
-    event.preventDefault();
-    return;
-  }
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-  }
-}
