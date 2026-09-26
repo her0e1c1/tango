@@ -26,7 +26,7 @@
     }
   },
   "linter": {
-    "includes": ["**", "!**/*.spec.{ts,tsx}"],
+    "includes": ["**", "!**/*.spec.ts", "!**/*.tsx"],
     "rules": {
       "preset": "all",
       // Exceptions preserve established test, orchestration, and fire-and-forget conventions.
