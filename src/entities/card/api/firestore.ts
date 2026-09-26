@@ -70,7 +70,7 @@ const createCardDocument = async (card: CardCreate): Promise<void> => {
 };
 
 /** Validates Card ownership before creating its Firestore document. */
-export const createCard = async (uid: string, card: CardCreateInput): Promise<void> => {
+const createCard = async (uid: string, card: CardCreateInput): Promise<void> => {
   const input = createCardSchema.parse({ uid, card });
   await createCardDocument(input.card);
 };
@@ -90,7 +90,7 @@ const updateCardDocument = (card: CardEdit): Promise<void> => {
 };
 
 /** Validates Card ownership before editing its Firestore document. */
-export const editCard = async (uid: string, card: EditCardInput["card"]): Promise<void> => {
+const editCard = async (uid: string, card: EditCardInput["card"]): Promise<void> => {
   const input = editCardSchema.parse({ uid, card });
   await updateCardDocument(input.card);
 };
@@ -104,7 +104,7 @@ const removeCardDocument = (id: string): Promise<void> => {
 };
 
 /** Validates Card ownership before tombstoning its Firestore document. */
-export const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Promise<void> => {
+const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Promise<void> => {
   const input = deleteCardSchema.parse({ uid, card });
   await removeCardDocument(input.card.id);
 };

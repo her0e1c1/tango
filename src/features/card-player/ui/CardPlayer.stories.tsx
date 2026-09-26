@@ -6,7 +6,8 @@ import { expect, fireEvent, fn, userEvent, waitFor, within } from "storybook/tes
 
 import { CardView, FrontText } from "@/entities/card";
 import * as fixture from "@/storybook/fixture";
-import { dismissToast, showToast, ToastViewport } from "@/shared/ui/toast";
+import { showToast, ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { Layout } from "@/shared/ui/layout";
 
 import { CardOverlay } from "./CardOverlay";

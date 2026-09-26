@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createDeck, getDecks } from "@/entities/deck";
 import { mutateCards, getCards } from "@/entities/card";
-import { replaceRemoteDecks, replaceRemoteCards } from "@/test/entityFixtures";
+import { replaceRemoteDecks, replaceRemoteCards } from "@/test/utils/entityFixtures";
 import { createDeck as createDeckFixture, createCard as createCardFixture } from "@/test/factories";
 import { useDeckImportPageModel } from "./useDeckImportPageModel";
 import { deckImportStore } from "./store";

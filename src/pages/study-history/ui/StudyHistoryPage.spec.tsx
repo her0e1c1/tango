@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import { replaceAuthSession } from "@/entities/auth";
-import { replaceRemoteDecks } from "@/test/entityFixtures";
+import { replaceRemoteDecks } from "@/test/utils/entityFixtures";
 import { createDeck } from "@/test/factories";
 import { subscribeStudyHistory, type StudyHistoryRecord } from "@/entities/study-session";
 import { getI18n } from "react-i18next";

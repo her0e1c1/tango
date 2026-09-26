@@ -5,20 +5,24 @@
  */
 
 import type { CardId } from "@/entities/card";
-import { type RemoteCard, replaceRemoteCards } from "@/entities/card/testing";
 import type { Deck, DeckId } from "@/entities/deck";
-import { replaceRemoteDecks } from "@/entities/deck/testing";
 
 import type { Decorator, StoryContext } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { replaceAuthSession } from "@/entities/auth";
-import { type PreferencesFixture, replacePreferences } from "@/entities/preference/testing";
 import { clearStudySessions } from "@/entities/study-session";
-import { restoreStudySession } from "@/test/entityFixtures";
+import {
+  type RemoteCard,
+  type PreferencesFixture,
+  restoreStudySession,
+  replaceRemoteCards,
+  replaceRemoteDecks,
+  replacePreferences,
+} from "@/test/utils/entityFixtures";
 
 import { pendingFilters } from "@/features/deck-filter/model/store";
-import { dismissToast } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 
 import { accountPageStore } from "@/pages/account/model/store";
 import { cardListStore } from "@/pages/card-list/model/store";

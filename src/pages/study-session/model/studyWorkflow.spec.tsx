@@ -1,12 +1,12 @@
 import "@/test/mockFirestorePersistence";
 vi.mock("@/entities/auth/@x/study-session", () => ({ getAuthUid: () => mocks.uid }));
-import { restoreStudySession } from "@/test/entityFixtures";
+import { restoreStudySession } from "@/test/utils/entityFixtures";
 import { setStudySessionIndex } from "@/entities/study-session";
 import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import type { Preferences } from "@/entities/preference";
 import { clearStudySessions, getStudySession, touchStudySession } from "@/entities/study-session";
-import { startStudy } from "@/test/entityFixtures";
+import { startStudy } from "@/test/utils/entityFixtures";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -558,7 +558,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
 });
 
 vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
-  const { moveStudySession } = await import("@/entities/study-session");
+  const { applyStudySessionResult } = await import("@/test/utils/entityFixtures");
   return {
     saveStudyOperation: (
       operation: import("./studyOperation").StudyOperation,
@@ -571,11 +571,12 @@ vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
           answeredAt: operation.answeredAt,
         })
       ).catch(() => undefined);
-      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
-      return {
+      const result = {
         session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
-        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,
+        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? ("completed" as const) : null,
       };
+      applyStudySessionResult({ ...result.session, lastStudiedAt: operation.answeredAt }, result.endReason);
+      return result;
     },
   };
 });

@@ -3,7 +3,8 @@ import "@testing-library/jest-dom/vitest";
 import { getI18n } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
 
 import { accountPageStore as store } from "../store";

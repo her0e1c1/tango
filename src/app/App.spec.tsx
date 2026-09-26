@@ -8,7 +8,8 @@ import { createMemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { setDarkMode, updatePreferences } from "@/entities/preference";
-import { dismissToast, showToast } from "@/shared/ui/toast";
+import { showToast } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { createPreferences } from "@/test/factories";
 
 const routeMocks = vi.hoisted(() => ({ accountThrows: false }));

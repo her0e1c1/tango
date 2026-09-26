@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { replaceAuthSession } from "@/entities/auth";
 import { subscribeStudyAnswerHistory, type StudyAnswerHistory } from "@/entities/study-answer";
-import { replaceRemoteDecks } from "@/test/entityFixtures";
+import { replaceRemoteDecks } from "@/test/utils/entityFixtures";
 import { createDeck } from "@/test/factories";
 import { useStudyHistoryPageModel } from "./useStudyHistoryPageModel";
 

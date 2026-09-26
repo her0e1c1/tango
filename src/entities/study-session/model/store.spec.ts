@@ -10,7 +10,7 @@ import { Timestamp, type QuerySnapshot } from "firebase/firestore";
 import { subscribeStudyHistory, subscribeStudySessions } from "../api/firestore";
 import { applyStudySessionSnapshot } from "./store";
 import { useRemoteStudySessionsLoading } from "./hooks";
-import { startStudy, restoreStudySession } from "@/test/entityFixtures";
+import { startStudy, restoreStudySession } from "@/test/utils/entityFixtures";
 import { clearStudySessions, getStudySession, setStudySessionOwner, studySessionStore } from "./store";
 
 const STUDY_STORAGE_KEY = "tango-study";

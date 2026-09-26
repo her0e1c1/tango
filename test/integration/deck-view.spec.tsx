@@ -13,7 +13,7 @@ import { createCard, getCards } from "@/entities/card";
 import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
 import { getPreferences, updatePreferences } from "@/entities/preference";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
-import { startStudy } from "@/test/entityFixtures";
+import { startStudy } from "@/test/utils/entityFixtures";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));

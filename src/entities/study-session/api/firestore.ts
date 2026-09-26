@@ -13,7 +13,6 @@ import {
 import { db } from "@/shared/firebase";
 import { applyStudySessionSnapshot } from "../model/store";
 import { getStudyHistory } from "../model/rules";
-import { isStudySessionPositionUnchanged } from "../model/rules";
 import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionSnapshot, StudyHistoryRecord, StudyHistoryPeriod } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
@@ -41,7 +40,7 @@ function createStudySession(session: StudySession, previous?: StudySession): voi
   void batch.commit().catch(() => undefined);
 }
 
-export function updateStudySession(session: StudySession, endReason: StudySessionSnapshot["endReason"]): void {
+function updateStudySession(session: StudySession, endReason: StudySessionSnapshot["endReason"]): void {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
@@ -158,18 +157,6 @@ export function setStudySessionIndex(deckId: string, currentIndex: number): bool
     return false;
   requireOwner(session);
   updateStudySession({ ...session, currentIndex }, null);
-  return true;
-}
-
-export function moveStudySession(previous: StudySession): boolean {
-  const current = getStudySession(previous.deckId);
-  if (!isStudySessionPositionUnchanged(previous, current)) return false;
-  requireOwner(previous);
-  const completed = previous.currentIndex + 1 === previous.cardOrderIds.length;
-  updateStudySession(
-    { ...previous, currentIndex: completed ? previous.currentIndex : previous.currentIndex + 1 },
-    completed ? "completed" : null
-  );
   return true;
 }
 

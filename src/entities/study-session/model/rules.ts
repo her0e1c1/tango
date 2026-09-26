@@ -64,12 +64,6 @@ export const resolveStudySession = <Card extends { id: string }>(
   return { status: cards.length === 0 ? "preparing" : "invalid" };
 };
 
-// Confirms interaction identity and position while ignoring timestamps that may change during the same write.
-export const isStudySessionPositionUnchanged = (previous: StudySession, current: StudySession | undefined): boolean =>
-  current?.sessionId === previous.sessionId &&
-  current.currentIndex === previous.currentIndex &&
-  current.cardOrderIds[current.currentIndex] === previous.cardOrderIds[previous.currentIndex];
-
 export const canMoveStudySession = (session: StudySession): boolean =>
   session.currentIndex + 1 >= 0 && session.currentIndex + 1 < session.cardOrderIds.length;
 

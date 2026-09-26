@@ -23,10 +23,10 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { createCard as createCardCommand, deleteCard, editCard } from "@/entities/card/api/firestore";
+import { createCard as createCardCommand, deleteCard, editCard } from "@/entities/card";
 import { createDeck as createDeckCommand } from "@/entities/deck/api/firestore";
-import { replaceRemoteCards } from "@/entities/card/model/store";
-import { replaceRemoteDecks } from "@/entities/deck/model/store";
+import { replaceRemoteCards } from "@/test/utils/entityFixtures";
+import { replaceRemoteDecks } from "@/test/utils/entityFixtures";
 import * as Uuid from "uuid";
 import { createCard, createDeck, createRemoteDeckInput } from "@/test/factories";
 
@@ -88,7 +88,7 @@ describe("firestore/card", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
-  it("[FIRESTORE-CARD-02] should update a card", async () => {
+  it.each(["single", "batch"] as const)("[FIRESTORE-CARD-02] updates a card through %s editing", async (mode) => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);
@@ -102,10 +102,9 @@ describe("firestore/card", { retry: 3 }, () => {
       currentIndex: 1,
       cardOrderIds: ["card-1"],
     } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
-    await editCard("uid", n);
-    expect((await getDoc(doc(db, "card", n.id))).data()?.fsrs).toEqual(fsrs);
     replaceRemoteCards([{ ...c, fsrs }]);
-    await mutateCards("uid", [{ kind: "edit", card: n }]);
+    if (mode === "single") await editCard("uid", n);
+    else await mutateCards("uid", [{ kind: "edit", card: n }]);
     const data = (await getDoc(doc(db, "card", n.id))).data();
     expect(data).toEqual({ ...created, frontText: "updated", updatedAt: expect.any(Timestamp) });
     expect(data?.createdAt).toBe(created.createdAt);
@@ -169,7 +168,7 @@ describe("firestore/card", { retry: 3 }, () => {
     await createCardCommand("uid", card);
     replaceRemoteDecks([createDeck({ id: deckId, uid: "uid" })]);
     replaceRemoteCards([card]);
-    await deleteCard("uid", card);
+    await deleteCard("uid", card.id);
     await waitForPendingWrites(db);
 
     await mutateCards("uid", [{ kind: "edit", card }]).catch(() => undefined);
@@ -184,7 +183,8 @@ describe("firestore/card", { retry: 3 }, () => {
     await createCardCommand("uid", c);
     const created = (await getDoc(doc(db, "card", c.id))).data();
     if (created === undefined) throw new Error("Created Card was not found");
-    await deleteCard("uid", c);
+    replaceRemoteCards([c]);
+    await deleteCard("uid", c.id);
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...created, updatedAt: expect.any(Timestamp), deletedAt: expect.any(Number) });
   });

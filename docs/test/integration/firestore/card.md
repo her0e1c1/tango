@@ -48,7 +48,7 @@ Then:
 
 <a id="firestore-card-02"></a>
 
-### FIRESTORE-CARD-02 [TODO] Card の編集で作成日時と対象外フィールドを維持できる
+### FIRESTORE-CARD-02 Card の編集で作成日時と対象外フィールドを維持できる
 
 カテゴリ: `write`
 
@@ -56,7 +56,7 @@ Then:
 
 Given:
 
-- 本人の親 Deck と Card が存在し、Card は評価済みの有効な FSRS を持つ。
+- 本人の親 Deck と Card が存在し、アプリケーションでもその所有関係を参照できる。Card は評価済みの有効な FSRS を持つ。
 - 変更後とは異なる表面の本文と、裏面の本文・tags・uniqueKey・作成日時が保存されている。
 - 単独編集と一括変更に含まれる編集を、それぞれ同じ変更前の状態から確認する。
 
@@ -169,7 +169,7 @@ Then:
 
 Given:
 
-- 本人の親 Deck と Card が存在し、Card の内容と作成日時が保存されている。
+- 本人の親 Deck と Card が存在し、Card の内容と作成日時が保存されている。アプリケーションでも対象 Card の所有関係を参照できる。
 
 When:
 

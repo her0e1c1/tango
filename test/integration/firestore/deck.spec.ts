@@ -15,7 +15,7 @@ import {
   type DocumentReference,
   getFirestore,
 } from "firebase/firestore";
-import { createCard as createCardCommand } from "@/entities/card/api/firestore";
+import { createCard as createCardCommand } from "@/entities/card";
 import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
 import * as Uuid from "uuid";
 import { createCard, createDeck as createDeckFixture, createRemoteDeckInput } from "@/test/factories";

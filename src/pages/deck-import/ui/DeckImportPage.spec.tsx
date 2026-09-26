@@ -9,7 +9,8 @@ import "@testing-library/jest-dom/vitest";
 
 import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
 
 const controls = vi.hoisted(() => ({

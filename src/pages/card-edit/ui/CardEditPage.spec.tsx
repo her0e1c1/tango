@@ -10,8 +10,9 @@ import "@testing-library/jest-dom/vitest";
 
 import { editCard, getCards, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
-import { replaceRemoteCards, replaceRemoteDecks } from "@/test/entityFixtures";
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { replaceRemoteCards, replaceRemoteDecks } from "@/test/utils/entityFixtures";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
 import { createCard as createRemoteCard, createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 

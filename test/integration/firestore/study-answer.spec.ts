@@ -31,10 +31,10 @@ import { replaceAuthSession } from "@/entities/auth";
 import { saveStudyOperation as persistStudyOperation } from "@/pages/study-session/model/actions/saveStudyOperation";
 import type { StudyOperation } from "@/pages/study-session/model/studyOperation";
 
-import { editCard } from "@/entities/card/api/firestore";
+import { editCard } from "@/entities/card";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
-import { restoreStudySession } from "@/test/entityFixtures";
+import { restoreStudySession } from "@/test/utils/entityFixtures";
 import { createCard, createDeck } from "@/test/factories";
 
 const connection = vi.hoisted(() => ({ db: undefined as unknown as Firestore }));
@@ -391,7 +391,7 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect(calculateFsrsState(restored.fsrs, "good", 602_000)).toEqual(
       calculateFsrsState(input.fsrs ?? null, "good", 602_000)
     );
-    await editCard(uid, { id: "card-0", uid, frontText: "Edited" });
+    await editCard(uid, { id: "card-0", frontText: "Edited" });
     await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
     await saveStudyOperation(operation({ rating: undefined }));
     expect((await getDoc(stateReference())).data()?.fsrs).toEqual(data?.fsrs);
