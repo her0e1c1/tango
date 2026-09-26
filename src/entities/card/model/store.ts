@@ -25,10 +25,6 @@ export const clearRemoteCards = (): void => {
   cardStore.setState({ remoteCards: [] });
 };
 
-export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
-  cardStore.setState({ remoteCards });
-};
-
 export function applyCardSnapshot(cards: RemoteCard[]) {
   cardStore.setState({
     remoteCards: cards.filter((card) => card.deletedAt === null).sort((left, right) => left.id.localeCompare(right.id)),

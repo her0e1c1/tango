@@ -72,7 +72,7 @@ Every task that changes repository files must complete this workflow:
 
 - Keep specification case IDs in implementation titles and update those references when cases are moved or renumbered.
 - Do not add tests for non-application code. Assert observable behavior through the tested level's public boundary, not implementation details.
-- Design production interfaces for production requirements. Do not add or change parameters, dependency objects, callbacks, factories, optional overrides, or exports solely for tests or mocks; use test-side module mocks or spies instead.
+- Design production interfaces for production requirements. Do not add or change parameters, dependency objects, callbacks, factories, optional overrides, or exports solely for tests or mocks; use test-side module mocks or spies instead. Do not define testing-only functions, exports, or entry points (such as `testing.ts`) inside production code (`src/`); define test utilities separately under `test/` or test setup code when needed.
 
 ### Firestore Integration Tests
 

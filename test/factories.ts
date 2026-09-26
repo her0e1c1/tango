@@ -4,7 +4,7 @@
  * objects.
  */
 
-import type { RemoteCard } from "@/entities/card/testing";
+import type { Card as RemoteCard } from "@/entities/card";
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 import type { LanguagePreference, Preferences } from "@/entities/preference";
 

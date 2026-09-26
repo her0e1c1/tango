@@ -25,8 +25,7 @@ import {
 } from "firebase/firestore";
 import { createCard as createCardCommand, deleteCard, editCard } from "@/entities/card/api/firestore";
 import { createDeck as createDeckCommand } from "@/entities/deck/api/firestore";
-import { replaceRemoteCards } from "@/entities/card/model/store";
-import { replaceRemoteDecks } from "@/entities/deck/model/store";
+import { replaceRemoteCards, replaceRemoteDecks } from "@/test/entityFixtures";
 import * as Uuid from "uuid";
 import { createCard, createDeck, createRemoteDeckInput } from "@/test/factories";
 

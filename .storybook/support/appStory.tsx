@@ -4,18 +4,21 @@
  * normal containers, hooks, and route parameters.
  */
 
-import type { CardId } from "@/entities/card";
-import { type RemoteCard, replaceRemoteCards } from "@/entities/card/testing";
+import type { CardId, Card as RemoteCard } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
-import { replaceRemoteDecks } from "@/entities/deck/testing";
 
 import type { Decorator, StoryContext } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { replaceAuthSession } from "@/entities/auth";
-import { type PreferencesFixture, replacePreferences } from "@/entities/preference/testing";
 import { clearStudySessions } from "@/entities/study-session";
-import { restoreStudySession } from "@/test/entityFixtures";
+import {
+  replacePreferences,
+  replaceRemoteCards,
+  replaceRemoteDecks,
+  restoreStudySession,
+  type PreferencesFixture,
+} from "@/test/entityFixtures";
 
 import { pendingFilters } from "@/features/deck-filter/model/store";
 import { dismissToast } from "@/shared/ui/toast";

@@ -58,20 +58,6 @@ export const updatePreferences = (preferencesInput: PartialPreferences): void =>
   });
 };
 
-/** Replaces the whole snapshot so deterministic fixtures never inherit earlier store state. */
-export const replacePreferences = (input: PartialPreferences): void => {
-  const preferences = preferencesSchema.parse(input);
-  preferencesStore.setState({
-    preferences: {
-      ...preferences,
-      study: {
-        ...preferences.study,
-        selectedTags: [...preferences.study.selectedTags],
-      },
-    },
-  });
-};
-
 export function toggleShowViewMode(): void {
   updatePreferences({ controls: { showViewMode: !getPreferences().controls.showViewMode } });
 }
