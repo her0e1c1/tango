@@ -31,7 +31,12 @@
       // Exceptions preserve established test, orchestration, and fire-and-forget conventions.
       "complexity": {
         "noExcessiveCognitiveComplexity": "error",
-        "noExcessiveLinesPerFunction": "off",
+        "noExcessiveLinesPerFunction": {
+          "level": "error",
+          "options": {
+            "maxLines": 50
+          }
+        },
         "noForEach": "off",
         "noVoid": "off"
       },
