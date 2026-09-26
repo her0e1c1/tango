@@ -7,15 +7,11 @@ import { hideBackText } from "./hideBackText";
 export async function updateStudyIndex(deckId: string, targetIndex: number): Promise<void> {
   const { owner, isSaving } = store.getState();
   if (owner?.deckId !== deckId || owner.uid !== getAuthUid() || isSaving) return;
-  const onLocalError = () => {
-    if (store.getState().owner === owner && getAuthUid() === owner.uid)
-      showToast({ messageKey: "toast.saveFailure", tone: "error" });
-  };
   const session = getStudySession(deckId);
   if (session === undefined) return;
   store.setState({ isSaving: true });
   try {
-    const accepted = await setStudySessionIndex(deckId, targetIndex, onLocalError);
+    const accepted = await setStudySessionIndex(deckId, targetIndex);
     if (accepted && store.getState().owner === owner && getAuthUid() === owner.uid) hideBackText();
   } catch {
     if (store.getState().owner === owner && getAuthUid() === owner.uid)

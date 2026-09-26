@@ -16,11 +16,8 @@ export async function submit({
   const cardId = generateId();
 
   const uid = getAuthUid();
-  const onLocalError = () => {
-    if (getAuthUid() === uid) showToast({ messageKey: "cardForm.toast.createFailure", tone: "error" });
-  };
   try {
-    await createCard(uid, { ...values, id: cardId, uniqueKey: cardId, deckId }, onLocalError);
+    await createCard(uid, { ...values, id: cardId, uniqueKey: cardId, deckId });
   } catch {
     if (getAuthUid() === uid) showToast({ messageKey: "cardForm.toast.createFailure", tone: "error" });
     return;

@@ -35,8 +35,7 @@ function saveStudyAnswer(uid: string, session: StudySession, rating: StudyRating
       rating,
       fsrs,
     },
-    session,
-    onLocalError
+    session
   );
 }
 import { startFirestoreSubscriptions } from "@/app/firestore-subscriptions";
@@ -51,9 +50,7 @@ vi.mock("@/shared/firebase", async () => ({
 
 let stop: () => void = () => undefined;
 let deckId: string;
-const onLocalError = vi.fn();
 beforeEach(async () => {
-  onLocalError.mockClear();
   await disableNetwork(testDb);
   replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: true, displayName: null });
   const subscription = startFirestoreSubscriptions("uid");
@@ -71,30 +68,30 @@ afterEach(async () => {
 
 describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-05 STUDY-SESSION-07]", () => {
   it("completes anonymous Card writes without a server acknowledgement and hides every child after deleting its Deck", async () => {
-    await createDeck("uid", { id: deckId, name: "Offline" }, onLocalError);
+    await createDeck("uid", { id: deckId, name: "Offline" });
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
     const first = cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" });
     const second = cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" });
-    await createCard("uid", first, onLocalError);
-    await createCard("uid", second, onLocalError);
+    await createCard("uid", first);
+    await createCard("uid", second);
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
-    await editCard("uid", { id: first.id, frontText: "Edited offline" }, onLocalError);
+    await editCard("uid", { id: first.id, frontText: "Edited offline" });
     await vi.waitFor(async () =>
       expect((await getDocFromCache(doc(testDb, "card", first.id))).data()?.frontText).toBe("Edited offline")
     );
-    await deleteCard("uid", first.id, onLocalError);
+    await deleteCard("uid", first.id);
     await vi.waitFor(() => expect(getCards().some((card) => card.id === first.id)).toBe(false));
-    await deleteDeck("uid", deckId, onLocalError);
+    await deleteDeck("uid", deckId);
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toEqual([]));
   });
 
   it("saves one answer, state and session advancement atomically while offline", async () => {
-    await createDeck("uid", { id: deckId, name: "Study offline" }, onLocalError);
+    await createDeck("uid", { id: deckId, name: "Study offline" });
     const cards = [0, 1].map(() => cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" }));
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
-    await Promise.all(cards.map((card) => createCard("uid", card, onLocalError)));
+    await Promise.all(cards.map((card) => createCard("uid", card)));
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toHaveLength(2));
-    await startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" }, onLocalError);
+    await startStudy({ deckId, cardOrderIds: cards.map(({ id }) => id), uid: "uid" });
     await vi.waitFor(() => expect(getStudySession(deckId)).toBeDefined());
     const session = getStudySession(deckId);
     if (!session) throw new Error("Missing session");

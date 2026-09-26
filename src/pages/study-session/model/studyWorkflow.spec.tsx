@@ -337,23 +337,19 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     }
   );
 
-  it("completes an anonymous save without a snapshot and keeps later failures separate from a new save", async () => {
-    let onLocalError: ((error: unknown) => void) | undefined;
-    vi.spyOn(studyPersistence, "saveStudyOperation").mockImplementationOnce(async (_operation, session, onError) => {
-      onLocalError = onError;
+  it("completes an anonymous save without a snapshot and permits a new save", async () => {
+    vi.spyOn(studyPersistence, "saveStudyOperation").mockImplementationOnce(async (_operation, session) => {
       await Promise.resolve();
       return { session: { ...session, currentIndex: 1 }, endReason: null };
     });
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     await actAsync(async () => result.current.swipeRight());
     expect(result.current.pageState.swipePending).toBe(false);
-    act(() => onLocalError?.(new Error("local persistence failed")));
     expect(result.current.pageState.swipePending).toBe(false);
     expect(result.current.query).toMatchObject({ status: "studying", session: { currentIndex: 0 } });
     const retry = Promise.withResolvers<void>();
     mocks.persistOperation.mockReturnValueOnce(retry.promise);
     await actAsync(async () => result.current.swipeRight());
-    act(() => onLocalError?.(new Error("old local failure")));
     expect(result.current.pageState.swipePending).toBe(true);
     await actAsync(async () => {
       retry.resolve();

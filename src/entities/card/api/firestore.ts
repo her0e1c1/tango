@@ -1,4 +1,4 @@
-import { settleFirestoreWrite, type LocalWriteErrorHandler } from "@/shared/api";
+import { settleFirestoreWrite } from "@/shared/api";
 import type {
   CardCreate,
   CardCreateInput,
@@ -54,7 +54,7 @@ export function subscribeCards(uid: string, onError: (error: Error) => void, onR
 }
 
 /** Prepared imports retry the same IDs; a locally saved Card must never be initialized again. */
-const createCardDocument = async (card: CardCreate, onLocalError?: LocalWriteErrorHandler): Promise<void> => {
+const createCardDocument = async (card: CardCreate): Promise<void> => {
   const reference = doc(db, CARD_COLLECTION, card.id);
   const existing = await getDocFromCache(reference).catch((error: unknown) => {
     if (error instanceof FirebaseError && error.code === "unavailable") return;
@@ -67,21 +67,17 @@ const createCardDocument = async (card: CardCreate, onLocalError?: LocalWriteErr
   }
   const createdAt = Date.now();
   const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: serverTimestamp() });
-  await settleFirestoreWrite(setDoc(reference, document), onLocalError);
+  await settleFirestoreWrite(setDoc(reference, document));
 };
 
 /** Validates Card ownership before creating its Firestore document. */
-const createCard = async (
-  uid: string,
-  card: CardCreateInput,
-  onLocalError?: LocalWriteErrorHandler
-): Promise<void> => {
+const createCard = async (uid: string, card: CardCreateInput): Promise<void> => {
   const input = createCardSchema.parse({ uid, card });
-  await createCardDocument(input.card, onLocalError);
+  await createCardDocument(input.card);
 };
 
 /** Writes the editable Card fields and advances the update timestamp. */
-const updateCardDocument = async (card: CardEdit, onLocalError?: LocalWriteErrorHandler): Promise<void> => {
+const updateCardDocument = async (card: CardEdit): Promise<void> => {
   const document = omitUndefined({
     frontText: card.frontText,
     backText: card.backText,
@@ -90,34 +86,26 @@ const updateCardDocument = async (card: CardEdit, onLocalError?: LocalWriteError
     updatedAt: serverTimestamp(),
   });
   const reference = doc(db, CARD_COLLECTION, card.id);
-  await settleFirestoreWrite(updateDoc(reference, document), onLocalError);
+  await settleFirestoreWrite(updateDoc(reference, document));
 };
 
 /** Validates Card ownership before editing its Firestore document. */
-const editCard = async (
-  uid: string,
-  card: EditCardInput["card"],
-  onLocalError?: LocalWriteErrorHandler
-): Promise<void> => {
+const editCard = async (uid: string, card: EditCardInput["card"]): Promise<void> => {
   const input = editCardSchema.parse({ uid, card });
-  await updateCardDocument(input.card, onLocalError);
+  await updateCardDocument(input.card);
 };
 
 /** Tombstones a Card so synchronized readers can converge before hiding it. */
-const removeCardDocument = async (id: string, onLocalError?: LocalWriteErrorHandler): Promise<void> => {
+const removeCardDocument = async (id: string): Promise<void> => {
   const deletedAt = Date.now();
   const reference = doc(db, CARD_COLLECTION, id);
-  await settleFirestoreWrite(updateDoc(reference, { updatedAt: serverTimestamp(), deletedAt }), onLocalError);
+  await settleFirestoreWrite(updateDoc(reference, { updatedAt: serverTimestamp(), deletedAt }));
 };
 
 /** Validates Card ownership before tombstoning its Firestore document. */
-const deleteCard = async (
-  uid: string,
-  card: DeleteCardInput["card"],
-  onLocalError?: LocalWriteErrorHandler
-): Promise<void> => {
+const deleteCard = async (uid: string, card: DeleteCardInput["card"]): Promise<void> => {
   const input = deleteCardSchema.parse({ uid, card });
-  await removeCardDocument(input.card.id, onLocalError);
+  await removeCardDocument(input.card.id);
 };
 
 export function writeCardFsrs(
@@ -147,40 +135,26 @@ function requireOwnedCard(uid: string, id: CardId) {
   return card;
 }
 
-export async function createOwnedCard(
-  uid: string,
-  card: CardCreateCommand,
-  onLocalError?: LocalWriteErrorHandler
-): Promise<void> {
-  await createCard(uid, { ...card, uid }, onLocalError);
+export async function createOwnedCard(uid: string, card: CardCreateCommand): Promise<void> {
+  await createCard(uid, { ...card, uid });
 }
 
-export async function editOwnedCard(
-  uid: string,
-  card: CardEditInput,
-  onLocalError?: LocalWriteErrorHandler
-): Promise<void> {
+export async function editOwnedCard(uid: string, card: CardEditInput): Promise<void> {
   requireOwnedCard(uid, card.id);
-  await editCard(uid, { ...card, uid }, onLocalError);
+  await editCard(uid, { ...card, uid });
 }
 
-export async function mutateCards(
-  uid: string,
-  mutations: CardMutation[],
-  onLocalError?: LocalWriteErrorHandler
-): Promise<void> {
+export async function mutateCards(uid: string, mutations: CardMutation[]): Promise<void> {
   const results = await Promise.allSettled(
     mutations.map((mutation) =>
-      mutation.kind === "create"
-        ? createOwnedCard(uid, mutation.card, onLocalError)
-        : editOwnedCard(uid, mutation.card, onLocalError)
+      mutation.kind === "create" ? createOwnedCard(uid, mutation.card) : editOwnedCard(uid, mutation.card)
     )
   );
   const failure = results.find((result) => result.status === "rejected");
   if (failure?.status === "rejected") throw failure.reason;
 }
 
-export async function deleteOwnedCard(uid: string, id: CardId, onLocalError?: LocalWriteErrorHandler): Promise<void> {
+export async function deleteOwnedCard(uid: string, id: CardId): Promise<void> {
   requireOwnedCard(uid, id);
-  await deleteCard(uid, { id, uid }, onLocalError);
+  await deleteCard(uid, { id, uid });
 }

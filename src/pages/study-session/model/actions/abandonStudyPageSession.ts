@@ -9,15 +9,11 @@ export async function abandonStudyPageSession(deckId: string, direction?: SwipeD
   const uid = getAuthUid();
   const { owner, isSaving } = studySessionPageStore.getState();
   if (isSaving || owner?.uid !== uid || owner.deckId !== deckId) return false;
-  const onLocalError = () => {
-    if (studySessionPageStore.getState().owner === owner && getAuthUid() === uid)
-      showToast({ messageKey: "toast.saveFailure", tone: "error" });
-  };
   const session = getStudySession(deckId);
   if (session === undefined) return false;
   studySessionPageStore.setState({ isSaving: true });
   try {
-    await abandonStudySession(deckId, onLocalError);
+    await abandonStudySession(deckId);
     if (
       studySessionPageStore.getState().owner === owner &&
       getAuthUid() === uid &&

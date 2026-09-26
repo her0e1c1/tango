@@ -9,13 +9,13 @@ export async function importDeckPreview(): Promise<boolean> {
   if (status !== "idle" || source.kind !== "selected" || source.preparedImport === undefined) return false;
 
   const uid = getAuthUid();
-  const onLocalError = (error: unknown) => {
+  const notifyFailure = (error: unknown) => {
     if (getAuthUid() === uid)
       showToast({ messageKey: importFailureKey(error) ?? "deckImport.toast.failure", tone: "error" });
   };
   deckImportStore.setState({ status: "importing" });
   try {
-    await executePreparedDeckImport(source.preparedImport, onLocalError);
+    await executePreparedDeckImport(source.preparedImport);
     if (getAuthUid() !== uid) {
       if (deckImportStore.getState().source === source)
         deckImportStore.setState({ status: "idle", source: { kind: "empty" } });
@@ -23,7 +23,7 @@ export async function importDeckPreview(): Promise<boolean> {
     }
     return true;
   } catch (error: unknown) {
-    onLocalError(error);
+    notifyFailure(error);
     // Keep the prepared identities so retries cannot duplicate partially written data.
     if (deckImportStore.getState().source === source) deckImportStore.setState({ status: "idle" });
     return false;

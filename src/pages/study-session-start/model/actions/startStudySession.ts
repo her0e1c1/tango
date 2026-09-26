@@ -14,9 +14,6 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   const deck = getDecks().find(({ id }) => id === deckId);
   if (deck === undefined) return;
   const uid = getAuthUid();
-  const onLocalError = () => {
-    if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
-  };
   if (uid === "" || deck.uid !== uid) return;
   const { study } = getPreferences();
   // Use the current draft even when its autosave has not reached the Deck yet.
@@ -30,10 +27,7 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   if (cards.length === 0) return;
   starting = true;
   try {
-    const sessionId = await startStudy(
-      { deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now },
-      onLocalError
-    );
+    const sessionId = await startStudy({ deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now });
     return getAuthUid() === uid ? sessionId : undefined;
   } catch {
     if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });

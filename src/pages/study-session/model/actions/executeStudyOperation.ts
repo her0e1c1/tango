@@ -18,7 +18,7 @@ export async function executeStudyOperation(operation: StudyOperation): Promise<
   };
   studySessionPageStore.setState({ isSaving: true });
   try {
-    const result = await saveStudyOperation(operation, session, onError);
+    const result = await saveStudyOperation(operation, session);
     if (getAuthUid() !== operation.uid || studySessionPageStore.getState().owner !== owner) return;
     const latest = getStudySession(operation.deckId);
     if (latest !== undefined && latest.sessionId !== operation.sessionId) return;

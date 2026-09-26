@@ -81,12 +81,10 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
         await Promise.resolve(result.current.importPreview());
       });
       await waitFor(() => expect(controls.navigate).toHaveBeenCalled());
-      expect(createDeck).toHaveBeenCalledWith(uid, expect.objectContaining({ name: "deck.csv" }), expect.any(Function));
-      expect(mutateCards).toHaveBeenCalledWith(
-        uid,
-        [expect.objectContaining({ kind: "create", card: expect.objectContaining({ frontText: "front" }) })],
-        expect.any(Function)
-      );
+      expect(createDeck).toHaveBeenCalledWith(uid, expect.objectContaining({ name: "deck.csv" }));
+      expect(mutateCards).toHaveBeenCalledWith(uid, [
+        expect.objectContaining({ kind: "create", card: expect.objectContaining({ frontText: "front" }) }),
+      ]);
     }
   );
 

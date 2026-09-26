@@ -15,14 +15,11 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields): Pr
   }
 
   const uid = getAuthUid();
-  const onLocalError = () => {
-    if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
-  };
   const input = { ...values, id: deckId, url: values.url ?? null };
   const save = async (): Promise<void> => {
     const deck = mustFindDeckById(getDecks(), deckId);
     if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
-    await editDeck(uid, input, onLocalError);
+    await editDeck(uid, input);
   };
   const submission = save()
     .then(() => {

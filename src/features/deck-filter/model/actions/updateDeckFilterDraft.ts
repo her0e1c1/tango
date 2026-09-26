@@ -9,7 +9,7 @@ export function updateDeckFilterDraft(
   patch: Partial<DeckFilterValues>,
   { uid, deckId, draft, setState, scope = "study" }: UpdateDeckFilterOptions
 ): void {
-  const onLocalError = () => {
+  const notifyFailure = () => {
     if (getAuthUid() === uid) showToast({ messageKey: "deckFilter.saveError", tone: "error" });
   };
   const key = JSON.stringify([uid, deckId, scope]);
@@ -25,15 +25,11 @@ export function updateDeckFilterDraft(
     try {
       const deck = mustFindDeckById(getDecks(), deckId);
       if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
-      await editDeck(
-        uid,
-        scope === "card" ? { id: deckId, cardFilter: submitted } : { id: deckId, ...submitted },
-        onLocalError
-      );
+      await editDeck(uid, scope === "card" ? { id: deckId, cardFilter: submitted } : { id: deckId, ...submitted });
       if (pendingFilters.get(key)?.pending === pending) pendingFilters.delete(key);
     } catch {
       if (pendingFilters.get(key)?.pending === pending) pendingFilters.set(key, { key, draft: submitted });
-      onLocalError();
+      notifyFailure();
     }
   });
   const next = { key, draft: submitted, pending };

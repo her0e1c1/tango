@@ -4,11 +4,8 @@ import { showToast } from "@/shared/ui/toast";
 
 export async function resumeStudy(deckId: string): Promise<boolean> {
   const uid = getAuthUid();
-  const onLocalError = () => {
-    if (getAuthUid() === uid) showToast({ messageKey: "studySession.syncFailure", tone: "error" });
-  };
   try {
-    await touchStudySession(deckId, onLocalError);
+    await touchStudySession(deckId);
     return getAuthUid() === uid;
   } catch {
     if (getAuthUid() === uid) showToast({ messageKey: "studySession.syncFailure", tone: "error" });

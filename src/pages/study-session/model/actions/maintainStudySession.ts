@@ -14,5 +14,5 @@ export function maintainStudySession(deckId: DeckId): void {
   const onError = () => {
     if (getAuthUid() === uid) showToast({ messageKey: "studySession.syncFailure", tone: "error" });
   };
-  void touchStudySession(deckId, onError).catch(onError);
+  void touchStudySession(deckId).catch(onError);
 }

@@ -1,4 +1,4 @@
-import { settleFirestoreWrite, type LocalWriteErrorHandler } from "@/shared/api";
+import { settleFirestoreWrite } from "@/shared/api";
 import type { z } from "zod";
 import type { DeckId, RemoteDeckCreateInput } from "../model/types";
 import {
@@ -47,23 +47,15 @@ export function subscribeDecks(uid: string, onError: (error: Error) => void, onR
   );
 }
 
-export async function createDeck(
-  uid: string,
-  deck: RemoteDeckCreateInput,
-  onLocalError?: LocalWriteErrorHandler
-): Promise<void> {
+export async function createDeck(uid: string, deck: RemoteDeckCreateInput): Promise<void> {
   const input = createDeckSchema.parse({ uid, deck });
   const createdAt = Date.now();
   const document = toDeckDocument(input.uid, input.deck, createdAt);
   const reference = doc(db, DECK_COLLECTION, input.deck.id);
-  await settleFirestoreWrite(setDoc(reference, document), onLocalError);
+  await settleFirestoreWrite(setDoc(reference, document));
 }
 
-export async function editDeck(
-  uid: string,
-  deck: z.input<typeof deckEditSchema>,
-  onLocalError?: LocalWriteErrorHandler
-): Promise<void> {
+export async function editDeck(uid: string, deck: z.input<typeof deckEditSchema>): Promise<void> {
   const input = editDeckSchema.parse({ uid, deck });
   const document = omitUndefined({
     name: input.deck.name,
@@ -77,15 +69,15 @@ export async function editDeck(
     convertToBr: input.deck.convertToBr,
   });
   const reference = doc(db, DECK_COLLECTION, input.deck.id);
-  await settleFirestoreWrite(updateDoc(reference, document), onLocalError);
+  await settleFirestoreWrite(updateDoc(reference, document));
 }
 
-export async function deleteDeck(uid: string, deckId: DeckId, onLocalError?: LocalWriteErrorHandler): Promise<void> {
+export async function deleteDeck(uid: string, deckId: DeckId): Promise<void> {
   authenticatedUidSchema.parse(uid);
   const id = deckIdSchema.parse(deckId);
   // A parent tombstone hides all children, including Cards not yet present in this device's cache.
   // This keeps deletion atomic and offline-capable for decks of any size.
   const reference = doc(db, DECK_COLLECTION, id);
   const deletedAt = Date.now();
-  await settleFirestoreWrite(updateDoc(reference, { deletedAt, updatedAt: serverTimestamp() }), onLocalError);
+  await settleFirestoreWrite(updateDoc(reference, { deletedAt, updatedAt: serverTimestamp() }));
 }

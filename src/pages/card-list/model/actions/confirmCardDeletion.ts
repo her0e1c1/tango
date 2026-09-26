@@ -9,11 +9,8 @@ export async function confirmCardDeletion(): Promise<void> {
   const mutationId = Symbol();
   cardListStore.setState({ mutationId });
   const uid = getAuthUid();
-  const onLocalError = () => {
-    if (getAuthUid() === uid) showToast({ messageKey: "cardList.toast.deleteFailure", tone: "error" });
-  };
   try {
-    await deleteCard(uid, deletionTarget.id, onLocalError);
+    await deleteCard(uid, deletionTarget.id);
     if (cardListStore.getState().mutationId !== mutationId || getAuthUid() !== uid) return;
     showToast({
       messageKey: "cardList.toast.deleted",

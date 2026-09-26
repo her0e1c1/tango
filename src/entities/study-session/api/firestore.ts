@@ -1,4 +1,4 @@
-import { settleFirestoreWrite, type LocalWriteErrorHandler } from "@/shared/api";
+import { settleFirestoreWrite } from "@/shared/api";
 import {
   onSnapshot,
   collection,
@@ -20,11 +20,7 @@ import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite 
 import { getAuthUid } from "@/entities/auth/@x/study-session";
 import { setStudySessionSyncError, getStudySession, studySessionStore, setStudySessionOwner } from "../model/store";
 
-async function createStudySession(
-  session: StudySession,
-  previous: StudySession | undefined,
-  onLocalError?: LocalWriteErrorHandler
-): Promise<void> {
+async function createStudySession(session: StudySession, previous: StudySession | undefined): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   const now = Timestamp.now();
@@ -41,13 +37,12 @@ async function createStudySession(
     const previousReference = doc(db, "studySession", previous.sessionId);
     batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: serverTimestamp() });
   }
-  await settleFirestoreWrite(batch.commit(), onLocalError);
+  await settleFirestoreWrite(batch.commit());
 }
 
 async function updateStudySession(
   session: StudySession,
-  endReason: StudySessionSnapshot["endReason"],
-  onLocalError?: LocalWriteErrorHandler
+  endReason: StudySessionSnapshot["endReason"]
 ): Promise<void> {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
@@ -58,8 +53,7 @@ async function updateStudySession(
       ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
       lastStudiedAt: Date.now(),
       updatedAt: serverTimestamp(),
-    }),
-    onLocalError
+    })
   );
 }
 
@@ -131,20 +125,17 @@ function requireOwner(session: StudySession): void {
   if (session.remote.uid !== getAuthUid()) throw new Error("Study session owner changed");
 }
 
-export async function startStudy(
-  {
-    deckId,
-    cardOrderIds,
-    uid,
-    now = Date.now(),
-  }: {
-    deckId: string;
-    cardOrderIds: string[];
-    uid: string;
-    now?: number;
-  },
-  onLocalError?: LocalWriteErrorHandler
-): Promise<string | undefined> {
+export async function startStudy({
+  deckId,
+  cardOrderIds,
+  uid,
+  now = Date.now(),
+}: {
+  deckId: string;
+  cardOrderIds: string[];
+  uid: string;
+  now?: number;
+}): Promise<string | undefined> {
   if (!uid || uid !== getAuthUid()) throw new Error("Study session owner changed");
   const previous = getStudySession(deckId);
   if (previous) requireOwner(previous);
@@ -157,15 +148,11 @@ export async function startStudy(
     remote: { uid, startedAt: now },
   };
   if (session.cardOrderIds.length === 0) return;
-  await createStudySession(session, previous, onLocalError);
+  await createStudySession(session, previous);
   return session.sessionId;
 }
 
-export async function setStudySessionIndex(
-  deckId: string,
-  currentIndex: number,
-  onLocalError?: LocalWriteErrorHandler
-): Promise<boolean> {
+export async function setStudySessionIndex(deckId: string, currentIndex: number): Promise<boolean> {
   const session = getStudySession(deckId);
   if (
     !(session && Number.isInteger(currentIndex)) ||
@@ -174,23 +161,22 @@ export async function setStudySessionIndex(
   )
     return false;
   requireOwner(session);
-  await updateStudySession({ ...session, currentIndex }, null, onLocalError);
+  await updateStudySession({ ...session, currentIndex }, null);
   return true;
 }
 
-export async function abandonStudySession(deckId: string, onLocalError?: LocalWriteErrorHandler): Promise<void> {
+export async function abandonStudySession(deckId: string): Promise<void> {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
-  await updateStudySession(session, "abandoned", onLocalError);
+  await updateStudySession(session, "abandoned");
 }
 
-export async function touchStudySession(deckId: string, onLocalError?: LocalWriteErrorHandler): Promise<void> {
+export async function touchStudySession(deckId: string): Promise<void> {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
   await settleFirestoreWrite(
-    updateDoc(doc(db, "studySession", session.sessionId), { lastStudiedAt: Date.now(), updatedAt: serverTimestamp() }),
-    onLocalError
+    updateDoc(doc(db, "studySession", session.sessionId), { lastStudiedAt: Date.now(), updatedAt: serverTimestamp() })
   );
 }

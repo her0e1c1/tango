@@ -14,23 +14,19 @@ export async function submitDeckCreation(
   const mutationId = Symbol();
   store.setState({ mutationId });
   const uid = getAuthUid();
-  const onLocalError = () => {
+  const notifyFailure = () => {
     if (getAuthUid() === uid) showToast({ messageKey: "deckForm.toast.createFailure", tone: "error" });
   };
   try {
     const deckId = generateId();
-    await createDeck(
-      uid,
-      {
-        id: deckId,
-        name: values.name,
-        category: values.category,
-        convertToBr: values.convertToBr,
+    await createDeck(uid, {
+      id: deckId,
+      name: values.name,
+      category: values.category,
+      convertToBr: values.convertToBr,
 
-        ...(values.url === undefined ? {} : { url: values.url }),
-      },
-      onLocalError
-    );
+      ...(values.url === undefined ? {} : { url: values.url }),
+    });
     // Writes survive navigation, but resetting the store detaches their results.
     if (store.getState().mutationId !== mutationId) return;
     if (getAuthUid() !== uid) {
@@ -41,7 +37,7 @@ export async function submitDeckCreation(
   } catch {
     if (store.getState().mutationId === mutationId) {
       store.setState({ mutationId: undefined });
-      onLocalError();
+      notifyFailure();
     }
     return undefined;
   }

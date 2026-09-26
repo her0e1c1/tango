@@ -17,11 +17,8 @@ export async function submit({ cardId, values }: SubmitCardEditInput): Promise<C
   };
 
   const uid = getAuthUid();
-  const onLocalError = () => {
-    if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
-  };
   try {
-    await editCard(uid, input, onLocalError);
+    await editCard(uid, input);
   } catch {
     if (getAuthUid() === uid) showToast({ messageKey: "toast.saveFailure", tone: "error" });
     return;
