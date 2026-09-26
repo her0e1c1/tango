@@ -35,7 +35,7 @@
   "auth": {
     "failure": {
       "title": "Tango を起動できません",
-      "description": "認証を初期化できませんでした。"
+      "description": "認証または保存データを初期化できませんでした。"
     },
     "starting": {
       "title": "Tangoを起動しています…",

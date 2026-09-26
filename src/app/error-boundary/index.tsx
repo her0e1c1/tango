@@ -13,6 +13,7 @@ interface AppErrorBoundaryProps {
 
 interface AppErrorBoundaryState {
   hasError: boolean;
+  error?: unknown;
 }
 
 const reloadPage = () => {
@@ -30,12 +31,21 @@ function useRecoveryMessages() {
   return messages;
 }
 
-export function AppErrorFallback({ title, description }: { title?: string; description?: string }) {
+export function AppErrorFallback({
+  title,
+  description,
+  error,
+}: {
+  title?: string;
+  description?: string;
+  error?: unknown;
+}) {
   const messages = useRecoveryMessages();
+  const detail = error instanceof Error ? error.message : typeof error === "string" ? error : "";
   return (
     <RouteFeedback
       title={title ?? messages.title}
-      description={description ?? messages.description}
+      description={[description ?? messages.description, detail].filter(Boolean).join(" ")}
       tone="error"
       primaryAction={{ label: messages.reload, onClick: reloadPage }}
       secondaryAction={{
@@ -50,32 +60,36 @@ export function AppErrorFallback({ title, description }: { title?: string; descr
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
   override state: AppErrorBoundaryState = { hasError: false };
 
-  private readonly showFailure = () => {
-    this.setState((state) => (state.hasError ? null : { hasError: true }));
+  private readonly showFailure = (error: unknown) => {
+    this.setState((state) => (state.hasError ? null : { hasError: true, error }));
   };
 
   private readonly handleWindowError = (event: ErrorEvent) => {
     // Resource load events are not runtime exceptions.
-    if (event instanceof ErrorEvent) this.showFailure();
+    if (event instanceof ErrorEvent) this.showFailure(event.error ?? event.message);
+  };
+
+  private readonly handleRejection = (event: PromiseRejectionEvent) => {
+    this.showFailure(event.reason);
   };
 
   override componentDidMount(): void {
     window.addEventListener("error", this.handleWindowError);
-    window.addEventListener("unhandledrejection", this.showFailure);
+    window.addEventListener("unhandledrejection", this.handleRejection);
   }
 
   override componentWillUnmount(): void {
     window.removeEventListener("error", this.handleWindowError);
-    window.removeEventListener("unhandledrejection", this.showFailure);
+    window.removeEventListener("unhandledrejection", this.handleRejection);
   }
 
-  static getDerivedStateFromError(): AppErrorBoundaryState {
-    return { hasError: true };
+  static getDerivedStateFromError(error: unknown): AppErrorBoundaryState {
+    return { hasError: true, error };
   }
 
   override render(): ReactNode {
     if (!this.state.hasError) return this.props.children;
 
-    return <AppErrorFallback />;
+    return <AppErrorFallback error={this.state.error} />;
   }
 }

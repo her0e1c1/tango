@@ -27,6 +27,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { startFirestoreSubscriptions } from "@/app/firestore-subscriptions";
 import { replaceAuthSession } from "@/entities/auth";
 import { getCards, subscribeCards } from "@/entities/card";
 import { editDeck, getDecks, subscribeDecks } from "@/entities/deck";
@@ -168,6 +169,44 @@ describe("Firestore synchronization contracts", () => {
     await deleteApp(remoteApp);
   });
   afterAll(async () => environment.cleanup());
+
+  it("[FIRESTORE-INCREMENTAL-SYNC-04] starts with numeric timestamps and receives subsequent server timestamps", async () => {
+    await seed("deck", "deck", { ...deckData("deck"), updatedAt: 1000 });
+    await seed("card", "legacy", { ...cardData("legacy"), updatedAt: 2000 });
+    await seed("deck", "current", { ...deckData("current"), updatedAt: Timestamp.fromMillis(3000) });
+    await seed("card", "current", { ...cardData("current", "current"), updatedAt: Timestamp.fromMillis(4000) });
+    const subscriptions = startFirestoreSubscriptions(uid);
+    stops.push(subscriptions.stop);
+    await subscriptions.ready;
+    await serverBarrier("deck");
+    await serverBarrier("card");
+    expect(getDecks()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "deck", name: "deck", updatedAt: 1000 }),
+        expect.objectContaining({ id: "current", updatedAt: 3000 }),
+      ])
+    );
+    expect(getCards()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "legacy", frontText: "legacy", updatedAt: 2000 }),
+        expect.objectContaining({ id: "current", updatedAt: 4000 }),
+      ])
+    );
+    expect((await getDoc(doc(remote, "deck", "deck"))).data()?.updatedAt).toBe(1000);
+    expect((await getDoc(doc(remote, "card", "legacy"))).data()?.updatedAt).toBe(2000);
+    await updateDoc(doc(remote, "deck", "deck"), { name: "updated", updatedAt: serverTimestamp() });
+    await updateDoc(doc(remote, "card", "legacy"), { frontText: "updated", updatedAt: serverTimestamp() });
+    await serverBarrier("deck");
+    await serverBarrier("card");
+    expect(getDecks().find(({ id }) => id === "deck")).toMatchObject({
+      name: "updated",
+      updatedAt: expect.any(Number),
+    });
+    expect(getCards().find(({ id }) => id === "legacy")).toMatchObject({
+      frontText: "updated",
+      updatedAt: expect.any(Number),
+    });
+  });
 
   it("[FIRESTORE-INCREMENTAL-SYNC-01] merges consecutive snapshots without losing unchanged or same-timestamp documents", async () => {
     await startContent();

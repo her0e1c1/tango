@@ -11,6 +11,7 @@
 | FIRESTORE-INCREMENTAL-SYNC-01 | read | 正常系 | [連続する差分で変更のないデータと同時刻の更新を保持する](#firestore-incremental-sync-01) |
 | FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [購読中の論理削除を反映する](#firestore-incremental-sync-02) |
 | FIRESTORE-INCREMENTAL-SYNC-03 | read | 正常系 | [購読再開後に停止中の変更を反映する](#firestore-incremental-sync-03) |
+| FIRESTORE-INCREMENTAL-SYNC-04 | read | 正常系 | [数値の更新日時を持つ既存データから起動できる](#firestore-incremental-sync-04) |
 
 <a id="firestore-incremental-sync-01"></a>
 
@@ -71,3 +72,27 @@ When:
 Then:
 
 - A の編集と C の追加が表示され、B は表示されない。変更対象外の Card は残る。欠落・重複なくサーバーの現在の状態に一致する。
+
+<a id="firestore-incremental-sync-04"></a>
+
+### FIRESTORE-INCREMENTAL-SYNC-04 数値の更新日時を持つ既存データから起動できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- 本人の Deck と Card に、更新日時が従来の数値（ミリ秒）のものと現在の Timestamp のものが混在している。
+- 新しいクライアントには取得済みのデータがない。
+
+When:
+
+- 起動時の購読を開始し、初期取得の完了を待つ。
+- 別クライアントから従来の Deck と Card を編集し、更新日時を serverTimestamp で保存する。
+
+Then:
+
+- 初期取得が正常に完了し、両形式の Deck と Card の本文と更新日時を欠落なく参照できる。
+- 初期取得によってサーバーの既存データを書き換えない。
+- 編集後も同じ購読で新しい本文と数値に変換された更新日時を参照でき、購読エラーは発生しない。
