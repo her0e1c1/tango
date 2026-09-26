@@ -24,7 +24,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
-  getCards: () => mocks.cards,
+  findCardsByDeckId: (deckId: string) => mocks.cards.filter((card) => card.deckId === deckId),
   useCards: () => mocks.cards,
   useCardsByDeckId: () => ({ cards: mocks.cards, tags: mocks.tags }),
 }));
@@ -37,7 +37,11 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
   editDeck: mocks.editDeck,
   isDeckTagSelectionMatching: () => true,
   useDeck: () => mocks.deck ?? undefined,
-  getDecks: () => (mocks.deck === null ? [] : [mocks.deck]),
+  findDeckById: (id: string) => (mocks.deck?.id === id ? mocks.deck : undefined),
+  mustFindDeckById: (id: string) => {
+    if (mocks.deck?.id !== id) throw new Error(`Deck not found: ${id}`);
+    return mocks.deck;
+  },
 }));
 vi.mock("@/entities/preference", () => ({
   usePreferences: () => mocks.preferences,

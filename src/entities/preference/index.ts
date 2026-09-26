@@ -1,6 +1,6 @@
+export { getPreferences } from "./model/queries";
 export { usePreferences } from "./model/hooks";
 export {
-  getPreferences,
   setDarkMode,
   toggleShowCardDetails,
   toggleShowEditLink,

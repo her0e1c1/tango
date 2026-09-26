@@ -1,6 +1,6 @@
 import { writeCardFsrs, getCards } from "@/entities/card";
 import { writeStudyAnswer } from "@/entities/study-answer";
-import { getDecks } from "@/entities/deck";
+import { findDeckById } from "@/entities/deck";
 import { auth, db, writeBatch } from "@/shared/firebase";
 import { getAuthUid } from "@/entities/auth";
 import { getStudySession, writeStudySessionPosition, type StudySession } from "@/entities/study-session";
@@ -22,7 +22,7 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
   )
     throw new Error("Study session does not match");
   const card = getCards().find(({ id }) => id === operation.cardId);
-  const deck = getDecks().find(({ id }) => id === operation.deckId);
+  const deck = findDeckById(operation.deckId);
   if (card?.uid !== operation.uid || deck?.uid !== operation.uid || card.deckId !== deck.id)
     throw new Error("Study references do not match");
   const batch = writeBatch(db);

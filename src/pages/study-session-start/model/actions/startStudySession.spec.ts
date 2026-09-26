@@ -12,11 +12,12 @@ const mocks = vi.hoisted(() => ({ deck: null as Deck | null, cards: null as Card
 
 vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
-  getDecks: () => (mocks.deck === null ? [] : [mocks.deck]),
+  findDeckById: (id: string) => (mocks.deck?.id === id ? mocks.deck : undefined),
 }));
 vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
-  getCards: () => mocks.cards ?? [createCard({ id: "card", deckId: "deck" })],
+  findCardsByDeckId: (deckId: string) =>
+    (mocks.cards ?? [createCard({ id: "card", deckId: "deck" })]).filter((card) => card.deckId === deckId),
 }));
 vi.mock("@/entities/preference", () => ({
   getPreferences: () =>

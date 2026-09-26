@@ -1,5 +1,5 @@
 import { getAuthUid } from "@/entities/auth";
-import { type DeckId, editDeck, getDecks, mustFindDeckById } from "@/entities/deck";
+import { type DeckId, editDeck, mustFindDeckById } from "@/entities/deck";
 import type { DeckFormFields } from "@/features/deck-form";
 import { showToast } from "@/shared/ui/toast";
 
@@ -17,7 +17,7 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields): Pr
   const uid = getAuthUid();
   const input = { ...values, id: deckId, url: values.url ?? null };
   const save = async (): Promise<void> => {
-    const deck = mustFindDeckById(getDecks(), deckId);
+    const deck = mustFindDeckById(deckId);
     if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");
     await editDeck(uid, input);
   };

@@ -1,5 +1,5 @@
 import { showToast } from "@/shared/ui/toast";
-import { getDecks } from "@/entities/deck";
+import { getDecks, findDeckById } from "@/entities/deck";
 import { getPreferences, updatePreferences } from "@/entities/preference";
 import { getAuthUid } from "@/entities/auth";
 import { deckListStore } from "../store";
@@ -23,7 +23,7 @@ export async function bootstrapSampleDeck(): Promise<void> {
   try {
     await addSampleDeck();
     if (getAuthUid() !== uid) return;
-    if (getDecks().some((deck) => deck.id === sampleDeckId)) {
+    if (findDeckById(sampleDeckId) !== undefined) {
       updatePreferences({ loadSample: false });
       deckListStore.setState({ bootstrapStatus: "done" });
     }

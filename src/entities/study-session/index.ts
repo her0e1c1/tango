@@ -1,3 +1,4 @@
+export { getStudySession } from "./model/queries";
 export { useStudySession, useStudySessions, useRemoteStudySessionsLoading } from "./model/hooks";
 export {
   canMoveStudySession,
@@ -6,10 +7,7 @@ export {
   selectStudyCardsWithDeadline,
 } from "./model/rules";
 export type { StudySession } from "./model/types";
-export {
-  clearStudySessions,
-  getStudySession,
-} from "./model/store";
+export { clearStudySessions } from "./model/store";
 export {
   touchStudySession,
   subscribeStudySessions,

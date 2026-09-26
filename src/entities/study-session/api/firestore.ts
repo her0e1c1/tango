@@ -1,3 +1,4 @@
+import { getStudySession } from "../model/queries";
 import {
   onSnapshot,
   collection,
@@ -17,7 +18,7 @@ import { studySessionSchema } from "../model/schema";
 import type { StudySession, StudySessionSnapshot, StudyHistoryRecord, StudyHistoryPeriod } from "../model/types";
 import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
 import { getAuthUid } from "@/entities/auth/@x/study-session";
-import { setStudySessionSyncError, getStudySession, studySessionStore, setStudySessionOwner } from "../model/store";
+import { setStudySessionSyncError, studySessionStore, setStudySessionOwner } from "../model/store";
 
 async function createStudySession(session: StudySession, previous: StudySession | undefined): Promise<void> {
   const value = studySessionSchema.parse(session);

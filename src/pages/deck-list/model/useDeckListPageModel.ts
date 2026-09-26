@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useKey } from "react-use";
 
-import { useCards } from "@/entities/card";
 import { useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
@@ -24,14 +23,13 @@ import { useDeckListState } from "./queries/useDeckListState";
 export function useDeckListPageModel() {
   const navigate = useNavigate();
   const deckListState = useDeckListState();
-  const cards = useCards();
   const decks = useDecks();
   const { loadSample } = usePreferences();
   const isMounted = useMountedGuard();
   const deletion = useDeckDeletionState();
   const deletionTarget = getDeckDeletionTarget(deletion.target);
   const requestDeletion = (id: string) =>
-    requestDeckDeletion(id, { pending: deletion.pending, decks, cards, setTarget: deletion.setTarget });
+    requestDeckDeletion(id, { pending: deletion.pending, setTarget: deletion.setTarget });
   const cancelDeletion = () => cancelDeckDeletion({ pending: deletion.pending, setTarget: deletion.setTarget });
   const confirmDeletion = () =>
     confirmDeckDeletion({

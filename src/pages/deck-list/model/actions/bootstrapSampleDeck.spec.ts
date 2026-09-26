@@ -62,6 +62,7 @@ vi.mock("@/entities/deck", async (importOriginal) => {
       repository.decks = [...repository.decks.filter(({ id }) => id !== savedDeck.id), savedDeck];
     },
     getDecks: () => repository.decks,
+    findDeckById: (id: string) => repository.decks.find((deck) => deck.id === id),
   };
 });
 vi.mock("@/entities/preference", () => ({

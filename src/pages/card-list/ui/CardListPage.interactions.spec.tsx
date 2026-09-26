@@ -32,6 +32,11 @@ vi.mock("@/entities/card", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/card")>()),
   deleteCard: mocks.deleteCard,
   getCards: mocks.getCards,
+  mustFindCardById: (id: string) => {
+    const card = mocks.getCards().find((candidate) => candidate.id === id);
+    if (card === undefined) throw new Error(`Card not found: ${id}`);
+    return card;
+  },
   useCards: () => mocks.cards,
   useCardsByDeckId: () => ({
     cards: mocks.cards,
@@ -42,7 +47,10 @@ vi.mock("@/entities/deck", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/deck")>()),
   editDeck: mocks.editDeck,
   useDeck: () => mocks.deck,
-  getDecks: () => (mocks.deck ? [mocks.deck] : []),
+  mustFindDeckById: (id: string) => {
+    if (mocks.deck?.id !== id) throw new Error(`Deck not found: ${id}`);
+    return mocks.deck;
+  },
 }));
 vi.mock("@/entities/preference", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/entities/preference")>()),
