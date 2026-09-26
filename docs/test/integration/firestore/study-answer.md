@@ -58,7 +58,7 @@ When:
 Then:
 
 - scheduleは同じbatchで保存され、保存済み値は入力scheduleと一致する。
-- 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt と updatedAt は等しい Timestamp になる。Card の fsrs.reps は `1`、createdAt は `0`、updatedAt は `2000` となる。戻り値と保存 session の位置は `1` になる。
+- 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt は回答時刻、updatedAt はサーバー確定時刻の Timestamp になる。Card の fsrs.reps は `1`、createdAt は `0`、updatedAt はサーバー確定時刻の Timestamp となる。戻り値と保存 session の位置は `1` になる。
 
 <a id="firestore-study-answer-02"></a>
 
@@ -452,4 +452,4 @@ When:
 
 Then:
 
-- 復元した FSRS と次回計算結果は保存前と一致する。本文編集とスキップでは FSRS が変わらず回答も増えない。次回評価後は createdAt: 0、updatedAt: 602000、reps: 2 となる。不正な FSRS は parser が拒否する。
+- 復元した FSRS と次回計算結果は保存前と一致する。本文編集とスキップでは FSRS が変わらず回答も増えない。次回評価後は createdAt: 0、updatedAt: サーバー確定 Timestamp、reps: 2 となる。不正な FSRS は parser が拒否する。

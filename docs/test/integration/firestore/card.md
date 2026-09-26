@@ -18,7 +18,7 @@ Card の公開された保存操作を通して、内容の書込範囲、部分
 | FIRESTORE-CARD-03 | write | 正常系 | [Card 作成時に旧個人学習フィールドを除外する](#firestore-card-03) |
 | FIRESTORE-CARD-04 | write | 正常系 | [一括作成の再試行で既存 Card の学習状態を維持する](#firestore-card-04) |
 | FIRESTORE-CARD-05 | batch | 異常系 | [一部の入力失敗を返しつつ有効な Card を保存できる](#firestore-card-05) |
-| FIRESTORE-CARD-06 | write | 異常系 | [保存計画後に物理削除された Card を編集で再作成しない](#firestore-card-06) |
+| FIRESTORE-CARD-06 | write | 異常系 | [保存計画後に論理削除された Card を編集で復活させない](#firestore-card-06) |
 | FIRESTORE-CARD-07 | write | 正常系 | [Card の削除日時を保存し本文を維持できる](#firestore-card-07) |
 | FIRESTORE-CARD-08 | read | 正常系 | [作成した Card の存在を確認できる](#firestore-card-08) |
 
@@ -43,7 +43,7 @@ When:
 Then:
 
 - サーバー上に指定した ID・UID・親 Deck ID・本文・tags・uniqueKey が保存される。`deletedAt` と `fsrs` は `null` である。
-- `createdAt` と `updatedAt` は同じ数値である。
+- `createdAt` は数値、`updatedAt` はサーバー確定 Timestamp である。
 - `currentIndex` と `cardOrderIds` は保存されない。
 
 <a id="firestore-card-02"></a>
@@ -66,7 +66,7 @@ When:
 
 Then:
 
-- サーバー上の frontText は `updated`、`updatedAt` は数値になる。
+- サーバー上の frontText は `updated`、`updatedAt` はサーバー確定 Timestamp になる。
 - `createdAt`、FSRS、裏面の本文・tags・uniqueKey を含むその他の保存値は変わらない。
 - `currentIndex` と `cardOrderIds` は追加されない。
 
@@ -134,12 +134,12 @@ When:
 Then:
 
 - 操作は入力の失敗をエラーとして返し、すべて成功した結果にはしない。
-- 有効な Card はサーバー上に入力どおり保存され、createdAt と updatedAt は同じ数値になる。
+- 有効な Card はサーバー上に入力どおり保存され、createdAt は数値、updatedAt はサーバー確定 Timestamp になる。
 - 不正な Card の ID にはサーバー上の保存データが作成されない。
 
 <a id="firestore-card-06"></a>
 
-### FIRESTORE-CARD-06 保存計画後に物理削除された Card を編集で再作成しない
+### FIRESTORE-CARD-06 保存計画後に論理削除された Card を編集で復活させない
 
 カテゴリ: `write`
 
@@ -148,7 +148,7 @@ Then:
 Given:
 
 - 本人の親 Deck があり、既存の Card に対する編集内容が準備されている。
-- その後、編集対象の Card がサーバー上から物理削除され、保存先に存在しなくなっている。
+- その後、編集対象の Card は論理削除されている。
 - アプリケーションは削除前の Card の ID・所有者・所属 Deck を編集対象として保持しており、削除の通知はまだ反映されていない。
 
 When:
@@ -157,8 +157,7 @@ When:
 
 Then:
 
-- 書込エラーが通知される。
-- サーバー上に対象 ID の Card は存在せず、編集によって再作成されない。
+- サーバー上の対象 Card は deletedAt を保持する。本文編集によって削除状態は解除されない。
 
 <a id="firestore-card-07"></a>
 
@@ -178,7 +177,7 @@ When:
 
 Then:
 
-- サーバー上の document は残り、deletedAt と updatedAt が同じ数値になる。
+- サーバー上の document は残り、deletedAt は数値、updatedAt はサーバー確定 Timestamp になる。
 - createdAt とその他の保存値は変わらない。
 
 <a id="firestore-card-08"></a>

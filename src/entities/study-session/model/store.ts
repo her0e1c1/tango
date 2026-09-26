@@ -1,41 +1,77 @@
+import { compareStudySessionCreation } from "./rules";
 import type { DeckId } from "@/entities/deck/@x/study-session";
 import { createStore } from "zustand/vanilla";
 
-import type { StudySession, StudySessions } from "./types";
+import type { StudySession, StudySessions, StudySessionSnapshot } from "./types";
 
 interface StudySessionState {
   sessionsByDeckId: StudySessions;
   remoteLoading: boolean;
+  ownerUid: string | undefined;
+  history: StudySessionSnapshot[];
+  fromCache: boolean;
+  syncError: Error | null;
 }
 
-export const studySessionStore = createStore<StudySessionState>()(() => ({
+export const studySessionStore = createStore<StudySessionState>(() => ({
   sessionsByDeckId: {},
   remoteLoading: false,
+  ownerUid: undefined,
+  history: [],
+  fromCache: true,
+  syncError: null,
 }));
 
 export const getStudySession = (deckId: DeckId): StudySession | undefined =>
   studySessionStore.getState().sessionsByDeckId[deckId];
 
 export function clearStudySessions(): void {
-  studySessionStore.setState({ sessionsByDeckId: {}, remoteLoading: false });
+  studySessionStore.setState({
+    sessionsByDeckId: {},
+    remoteLoading: false,
+    ownerUid: undefined,
+    history: [],
+    fromCache: true,
+    syncError: null,
+  });
 }
 
 export function setStudySessionOwner(uid: string | undefined): void {
   studySessionStore.setState((state) => ({
     remoteLoading: uid !== undefined,
+    ownerUid: uid,
+    history: state.ownerUid === uid ? state.history : [],
+    fromCache: true,
+    syncError: null,
     sessionsByDeckId: Object.fromEntries(
       Object.entries(state.sessionsByDeckId).filter(([, session]) => session?.remote.uid === uid)
     ),
   }));
 }
 
-export function finishStudySessionLoading(): void {
-  studySessionStore.setState({ remoteLoading: false });
+export function setStudySessionSyncError(syncError: Error): void {
+  studySessionStore.setState({ remoteLoading: false, syncError });
 }
 
-export function replaceRemoteStudySessions(sessions: StudySession[]): void {
+export function applyStudySessionSnapshot(
+  uid: string,
+  result: { values: (StudySessionSnapshot | null)[]; fromCache: boolean }
+) {
+  if (studySessionStore.getState().ownerUid !== uid) return;
+  const history = result.values.filter((value) => value !== null);
+  const latest = new Map<string, StudySessionSnapshot>();
+  for (const record of history) {
+    const previous = latest.get(record.session.deckId);
+    if (!previous || compareStudySessionCreation(record.session, previous.session) > 0)
+      latest.set(record.session.deckId, record);
+  }
   studySessionStore.setState({
+    history,
+    sessionsByDeckId: Object.fromEntries(
+      [...latest.values()].filter(({ endReason }) => endReason === null).map(({ session }) => [session.deckId, session])
+    ),
     remoteLoading: false,
-    sessionsByDeckId: Object.fromEntries(sessions.map((session) => [session.deckId, session])),
+    fromCache: result.fromCache,
+    syncError: null,
   });
 }

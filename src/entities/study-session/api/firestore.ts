@@ -1,7 +1,8 @@
 import {
+  onSnapshot,
   collection,
   doc,
-  onSnapshot,
+  serverTimestamp,
   query,
   Timestamp,
   updateDoc,
@@ -10,22 +11,14 @@ import {
   type WriteBatch,
 } from "firebase/firestore";
 import { db } from "@/shared/firebase";
-import { compareStudySessionCreation, isStudySessionPositionUnchanged } from "../model/rules";
+import { applyStudySessionSnapshot } from "../model/store";
+import { getStudyHistory } from "../model/rules";
+import { isStudySessionPositionUnchanged } from "../model/rules";
 import { studySessionSchema } from "../model/schema";
-import type { StudySession } from "../model/types";
-import {
-  parseStudySessionDocument,
-  toStudySessionDocument,
-  toStudySessionWrite,
-  type StudySessionWrite,
-} from "./document";
+import type { StudySession, StudySessionSnapshot, StudyHistoryRecord, StudyHistoryPeriod } from "../model/types";
+import { parseStudySessionDocument, toStudySessionDocument, toStudySessionWrite } from "./document";
 import { getAuthUid } from "@/entities/auth/@x/study-session";
-import {
-  finishStudySessionLoading,
-  getStudySession,
-  replaceRemoteStudySessions,
-  setStudySessionOwner,
-} from "../model/store";
+import { setStudySessionSyncError, getStudySession, studySessionStore, setStudySessionOwner } from "../model/store";
 
 // Writes are queued locally; callers do not wait for server acknowledgement, including offline.
 function createStudySession(session: StudySession, previous?: StudySession): void {
@@ -38,51 +31,51 @@ function createStudySession(session: StudySession, previous?: StudySession): voi
     endedAt: null,
     endReason: null,
     createdAt: now,
-    updatedAt: now,
+    updatedAt: serverTimestamp(),
   });
   if (previous) {
     if (previous.remote.uid !== value.remote.uid) throw new Error("Study session owner changed");
     const previousReference = doc(db, "studySession", previous.sessionId);
-    batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: now });
+    batch.update(previousReference, { endReason: "abandoned", endedAt: now, updatedAt: serverTimestamp() });
   }
   void batch.commit().catch(() => undefined);
 }
 
-export function updateStudySession(session: StudySession, endReason: StudySessionWrite["endReason"]): void {
+export function updateStudySession(session: StudySession, endReason: StudySessionSnapshot["endReason"]): void {
   const value = studySessionSchema.parse(session);
   const reference = doc(db, "studySession", value.sessionId);
   // Progress never writes active lifecycle fields; a delayed update cannot reopen an ended run.
   void updateDoc(reference, {
     ...(endReason === "abandoned" ? {} : { currentIndex: value.currentIndex }),
     ...(endReason === null ? {} : { endReason, endedAt: Timestamp.now() }),
-    updatedAt: Timestamp.now(),
+    lastStudiedAt: Date.now(),
+    updatedAt: serverTimestamp(),
   }).catch(() => undefined);
 }
 
 export function subscribeStudySessions(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
   setStudySessionOwner(uid);
+  const reportError = (error: Error) => {
+    if (studySessionStore.getState().ownerUid !== uid) return;
+    setStudySessionSyncError(error);
+    onError(error);
+  };
   return onSnapshot(
     query(collection(db, "studySession"), where("uid", "==", uid)),
+    { includeMetadataChanges: true },
     (snapshot) => {
-      const latest = new Map<string, StudySessionWrite>();
-      for (const item of snapshot.docs) {
-        const parsed = parseStudySessionDocument(item.data());
-        if (parsed === undefined) continue;
-        const write = toStudySessionWrite(item.id, parsed);
-        const previous = latest.get(parsed.deckId);
-        if (previous === undefined || compareStudySessionCreation(write.session, previous.session) > 0) {
-          latest.set(parsed.deckId, write);
-        }
+      try {
+        const values = snapshot.docs.map((item) => {
+          const document = parseStudySessionDocument(item.data({ serverTimestamps: "estimate" }));
+          return document ? toStudySessionWrite(item.id, document) : null;
+        });
+        applyStudySessionSnapshot(uid, { values, fromCache: snapshot.metadata.fromCache });
+        onReady?.();
+      } catch (error) {
+        reportError(error instanceof Error ? error : new Error(String(error)));
       }
-      replaceRemoteStudySessions(
-        [...latest.values()].filter(({ endReason }) => endReason === null).map(({ session }) => session)
-      );
-      onReady?.();
     },
-    (error) => {
-      finishStudySessionLoading();
-      onError(error);
-    }
+    reportError
   );
 }
 
@@ -94,24 +87,10 @@ export function writeStudySessionPosition(batch: WriteBatch, session: StudySessi
   batch.update(reference, {
     currentIndex,
     ...(completed ? { endReason, endedAt: Timestamp.fromMillis(session.lastStudiedAt) } : {}),
-    updatedAt: Timestamp.fromMillis(session.lastStudiedAt),
+    lastStudiedAt: session.lastStudiedAt,
+    updatedAt: serverTimestamp(),
   });
   return { session: { ...session, currentIndex }, endReason };
-}
-
-export interface StudyHistoryRecord {
-  sessionId: string;
-  deckId: string;
-  startedAt: number;
-  endedAt: number | null;
-  endReason: "completed" | "abandoned" | null;
-  cardCount: number;
-  occurredAt: number;
-}
-
-export interface StudyHistoryPeriod {
-  start: number;
-  end: number;
 }
 
 export function subscribeStudyHistory(
@@ -124,43 +103,20 @@ export function subscribeStudyHistory(
   onRecords: (records: StudyHistoryRecord[], fromCache: boolean) => void,
   onError: (error: Error) => void
 ): () => void {
-  const field = metric === "started" ? "startedAt" : "endedAt";
-  return onSnapshot(
-    query(
-      collection(db, "studySession"),
-      where("uid", "==", uid),
-      ...(deckId === null ? [] : [where("deckId", "==", deckId)]),
-      ...(metric === "completed" ? [where("endReason", "==", "completed")] : []),
-      where(field, ">=", Timestamp.fromMillis(period.start)),
-      where(field, "<", Timestamp.fromMillis(period.end))
-    ),
-    { includeMetadataChanges: true },
-    (snapshot) => {
-      const records = snapshot.docs.flatMap((item) => {
-        // Estimates also permit legacy pending server timestamps to appear before acknowledgement.
-        const value = parseStudySessionDocument(item.data({ serverTimestamps: "estimate" }));
-        if (value === undefined) return [];
-        const occurredAt = metric === "started" ? value.startedAt : value.endedAt;
-        return occurredAt === null
-          ? []
-          : [
-              {
-                sessionId: item.id,
-                deckId: value.deckId,
-                startedAt: value.startedAt.seconds * 1000 + value.startedAt.nanoseconds / 1_000_000,
-                endedAt:
-                  value.endedAt === null ? null : value.endedAt.seconds * 1000 + value.endedAt.nanoseconds / 1_000_000,
-                endReason: value.endReason,
-                cardCount: value.cardOrderIds.length,
-                occurredAt: occurredAt.toDate().getTime(),
-              },
-            ];
-      });
-      onRecords(records, snapshot.metadata.fromCache);
-    },
-    onError
-  );
+  const receive = () => {
+    const state = studySessionStore.getState();
+    if (state.ownerUid !== uid || state.remoteLoading) return;
+    if (state.syncError) {
+      onError(state.syncError);
+      return;
+    }
+    onRecords(getStudyHistory(state.history, period, deckId, metric), state.fromCache);
+  };
+  const stopStore = studySessionStore.subscribe(receive);
+  receive();
+  return stopStore;
 }
+
 function requireOwner(session: StudySession): void {
   if (session.remote.uid !== getAuthUid()) throw new Error("Study session owner changed");
 }
@@ -228,5 +184,8 @@ export function touchStudySession(deckId: string): void {
   const session = getStudySession(deckId);
   if (!session) return;
   requireOwner(session);
-  void updateDoc(doc(db, "studySession", session.sessionId), { updatedAt: Timestamp.now() }).catch(() => undefined);
+  void updateDoc(doc(db, "studySession", session.sessionId), {
+    lastStudiedAt: Date.now(),
+    updatedAt: serverTimestamp(),
+  }).catch(() => undefined);
 }

@@ -7,6 +7,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  serverTimestamp,
   updateDoc,
   waitForPendingWrites,
   type Firestore,
@@ -34,7 +35,7 @@ describe("Card FSRS persistence", () => {
   const fsrs = calculateFsrsState(null, "easy", 1000);
   const seed = async (collectionName: string, id: string, data: object) =>
     environment.withSecurityRulesDisabled(async (context) => {
-      await setDoc(doc(context.firestore(), collectionName, id), data);
+      await setDoc(doc(context.firestore(), collectionName, id), { ...data, updatedAt: serverTimestamp() });
     });
   const start = (owner = uid) => {
     const subscription = startFirestoreSubscriptions(owner);
@@ -69,8 +70,8 @@ describe("Card FSRS persistence", () => {
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid }));
     await start();
     expect(getCards()).toMatchObject([{ id: "card", fsrs: null }]);
-    await updateDoc(doc(connection.db, "card", "card"), { fsrs, updatedAt: 1000 });
-    await vi.waitFor(() => expect(getCards()).toMatchObject([{ id: "card", fsrs, updatedAt: 1000 }]));
+    await updateDoc(doc(connection.db, "card", "card"), { fsrs, updatedAt: serverTimestamp() });
+    await vi.waitFor(() => expect(getCards()).toMatchObject([{ id: "card", fsrs, updatedAt: expect.any(Number) }]));
   });
   it("[FIRESTORE-CARD-FSRS-02] restores only the active UID and clears Cards on stop", async () => {
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid, fsrs }));
@@ -102,6 +103,7 @@ describe("Card FSRS persistence", () => {
     await setDoc(doc(connection.db, "card", "card"), {
       ...createCard({ id: "card", deckId: "deck", uid }),
       fsrs: invalid,
+      updatedAt: serverTimestamp(),
     });
     await expect(start()).rejects.toBeDefined();
     expect(getCards()).toEqual([]);

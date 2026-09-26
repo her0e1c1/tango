@@ -37,6 +37,7 @@
 | FIRESTORE-STUDY-SESSION-14 | write | 正常系 | [学習対象が0枚ならセッションを作成せず既存の学習も中断しない](#firestore-study-session-14) |
 | FIRESTORE-STUDY-SESSION-15 | write | 異常系 | [不正なカード順序を同期的に拒否し保存済みの学習を維持する](#firestore-study-session-15) |
 | FIRESTORE-STUDY-SESSION-16 | write | 異常系 | [所有者が変わった後の書込を同期的に拒否する](#firestore-study-session-16) |
+| FIRESTORE-STUDY-SESSION-17 | read | 正常系 | [同期時刻と学習日時を分離して履歴と再開状態を共有する](#firestore-study-session-17) |
 
 <a id="firestore-study-session-01"></a>
 
@@ -211,7 +212,7 @@ Then:
 Given:
 
 - 本人の未終了セッションが位置 `1` で保存されている。
-- 再開する時刻は、直前に保存した更新日時より後である。
+- 再開する時刻は、直前に保存した lastStudiedAt より後である。
 
 When:
 
@@ -219,7 +220,7 @@ When:
 
 Then:
 
-- 保存値のうち更新日時だけが再開時刻に変わり、session ID・カード順序・位置・開始日時・作成日時・終了状態は変わらない。
+- lastStudiedAt が再開時刻、updatedAt がサーバー確定時刻に変わり、session ID・カード順序・位置・開始日時・作成日時・終了状態は変わらない。
 - 再購読後も同じ session ID・順序・位置 `1` を取得でき、最終学習時刻は記録した再開時刻である。
 
 <a id="firestore-study-session-09"></a>
@@ -234,7 +235,7 @@ Given:
 
 - 本人の保存済みセッションが次の状態で存在し、メモリ上の学習状態は空である。時刻は比較用の Unix epoch からのミリ秒とする。
 
-| セッション | Deck | 開始日時・作成日時 | 更新日時 | 位置 | 終了状態 |
+| セッション | Deck | 開始日時・作成日時 | 最終学習日時 | 位置 | 終了状態 |
 | --- | --- | --- | --- | --- | --- |
 | 旧セッション | 対象 Deck | `1000` | `3000` | `1` | 未終了 |
 | 新セッション | 対象 Deck | `2000` | `2000` | `2` | 未終了 |
@@ -246,7 +247,7 @@ When:
 
 Then:
 
-- 対象 Deck は新セッションの ID と位置 `2` を再開対象にする。旧セッションの更新日時の方が新しくても選び直さない。
+- 対象 Deck は新セッションの ID と位置 `2` を再開対象にする。旧セッションの最終学習日時の方が新しくても選び直さない。
 - 別 Deck は別セッションの ID と位置 `1` を独立して復元できる。
 
 <a id="firestore-study-session-10"></a>
@@ -291,12 +292,12 @@ Given:
 
 When:
 
-- アプリケーションの進行操作を経由せず、SDK から保存済みセッションの位置を `1` に変更し、更新日時を設定する。
+- アプリケーションの進行操作を経由せず、SDK から保存済みセッションの位置を `1` に変更し、lastStudiedAt と serverTimestamp の updatedAt を設定する。
 
 Then:
 
 - 購読を解除・再登録せずに、再開対象の位置が `1` になる。
-- session ID とカード順序は変わらず、最終学習時刻は保存した更新日時になる。
+- session ID とカード順序は変わらず、最終学習時刻は保存した lastStudiedAt になる。
 
 <a id="firestore-study-session-12"></a>
 
@@ -418,3 +419,23 @@ Then:
 
 - 各操作は所有者変更のエラーを同期的に投げる。Adapter の拒否であり、Rules の認可は検証しない。
 - 対象 Deck の保存済みセッションは元の1件だけで、保存内容と再開対象は操作前と変わらない。
+
+<a id="firestore-study-session-17"></a>
+
+### FIRESTORE-STUDY-SESSION-17 同期時刻と学習日時を分離して履歴と再開状態を共有する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Store が空で、本人の開始履歴と完了履歴を購読している。StudySession のネットワーク購読はまだ開始していない。
+
+When:
+
+- StudySession の購読を明示的に開始してから、学習日時を過去の値として保存し、セッションを進めて完了する。一方の履歴購読だけを停止し、別 UID の履歴購読を追加する。
+
+Then:
+
+- 別 UID の履歴購読はレコードを通知せず、既存の Store の所有者や学習状態を変更しない。StudySession の購読開始後は再開状態と残った履歴の更新が継続する。最終学習日時は指定した発生時刻であり、updatedAt はサーバー Timestamp となる。終了済みセッションは履歴に残り、再開対象からは消える。

@@ -2,10 +2,16 @@
  * @file Exercises visible session state and preserves the legacy browser backup.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
+import { act, renderHook } from "@testing-library/react";
+import { deleteApp, getApp } from "firebase/app";
+import { Timestamp, type QuerySnapshot } from "firebase/firestore";
+import { subscribeStudyHistory, subscribeStudySessions } from "../api/firestore";
+import { applyStudySessionSnapshot } from "./store";
+import { useRemoteStudySessionsLoading } from "./hooks";
 import { startStudy, restoreStudySession } from "@/test/entityFixtures";
-import { clearStudySessions, getStudySession, replaceRemoteStudySessions, studySessionStore } from "./store";
+import { clearStudySessions, getStudySession, setStudySessionOwner, studySessionStore } from "./store";
 
 const STUDY_STORAGE_KEY = "tango-study";
 
@@ -73,7 +79,11 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     const retained = getStudySession("deck-2");
     if (!retained) throw new Error("Missing retained session");
 
-    replaceRemoteStudySessions([retained]);
+    setStudySessionOwner("uid");
+    applyStudySessionSnapshot("uid", {
+      values: [{ session: retained, endReason: null, endedAt: null }],
+      fromCache: false,
+    });
 
     expect(getStudySession("deck-1")).toBeUndefined();
     expect(getStudySession("deck-2")).toEqual(retained);
@@ -86,6 +96,123 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     expect(getStudySession("deck-1")).toBeUndefined();
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBe("legacy backup");
   });
+  it.each([false, true])(
+    "[UNIT-STORE-STUDY-11] retains progress and reports sync errors to current and later history readers (loaded=%s)",
+    async (loaded) => {
+      const expected = loaded
+        ? [
+            {
+              sessionId: "session-a",
+              deckId: "deck-a",
+              cardOrderIds: ["a1", "a2"],
+              currentIndex: 0,
+              lastStudiedAt: 100,
+              remote: { uid: "uid", startedAt: 10, createdAt: 10 },
+            },
+            {
+              sessionId: "session-b",
+              deckId: "deck-b",
+              cardOrderIds: ["b1", "b2", "b3"],
+              currentIndex: 1,
+              lastStudiedAt: 200,
+              remote: { uid: "uid", startedAt: 20, createdAt: 20 },
+            },
+          ]
+        : [];
+      const stopInitial = subscribeStudySessions("uid", vi.fn());
+      onTestFinished(stopInitial);
+      const initial = await currentListener();
+      initial.next({
+        metadata: { fromCache: true, hasPendingWrites: false },
+        docs: expected.map((session) => ({
+          id: session.sessionId,
+          data: () => ({
+            uid: "uid",
+            deckId: session.deckId,
+            cardOrderIds: session.cardOrderIds,
+            currentIndex: session.currentIndex,
+            lastStudiedAt: session.lastStudiedAt,
+            startedAt: Timestamp.fromMillis(session.remote.startedAt),
+            createdAt: Timestamp.fromMillis(session.remote.createdAt),
+            updatedAt: Timestamp.fromMillis(300),
+            endedAt: null,
+            endReason: null,
+          }),
+        })),
+      } as unknown as QuerySnapshot);
+      const input = { uid: "uid", period: { start: 0, end: 1000 }, deckId: null, metric: "started" as const };
+      const history = vi.fn();
+      const historyError = vi.fn();
+      onTestFinished(subscribeStudyHistory(input, history, historyError));
+      expect(history).toHaveBeenLastCalledWith(
+        expected.map((session) => ({
+          sessionId: session.sessionId,
+          deckId: session.deckId,
+          startedAt: session.remote.startedAt,
+          occurredAt: session.remote.startedAt,
+          endedAt: null,
+          endReason: null,
+          cardCount: session.cardOrderIds.length,
+        })),
+        true
+      );
+      stopInitial();
+
+      const failed = vi.fn();
+      const ready = vi.fn();
+      onTestFinished(subscribeStudySessions("uid", failed, ready));
+      const listener = await currentListener();
+      const { result } = renderHook(useRemoteStudySessionsLoading);
+      expect(result.current).toBe(true);
+      const error = new Error("Subscription unavailable");
+      act(() => listener.error(error));
+
+      expect(result.current).toBe(false);
+      expect([getStudySession("deck-a"), getStudySession("deck-b")].filter(Boolean)).toEqual(expected);
+      expect(failed).toHaveBeenCalledWith(error);
+      expect(historyError).toHaveBeenCalledWith(error);
+      expect(ready).not.toHaveBeenCalled();
+      const lateHistory = vi.fn();
+      const lateError = vi.fn();
+      onTestFinished(subscribeStudyHistory(input, lateHistory, lateError));
+      expect(lateError).toHaveBeenCalledWith(error);
+      expect(lateHistory).not.toHaveBeenCalled();
+    }
+  );
 });
 
-vi.mock("@/shared/firebase", () => ({ db: {} }));
+const observer = vi.hoisted(() => ({
+  current: undefined as { next: (snapshot: QuerySnapshot) => void; error: (error: Error) => void } | undefined,
+}));
+
+async function currentListener() {
+  await vi.waitFor(() => {
+    if (!observer.current) throw new Error("Waiting for subscription");
+  });
+  if (!observer.current) throw new Error("Missing subscription");
+  return observer.current;
+}
+
+vi.mock("firebase/firestore", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("firebase/firestore")>()),
+  onSnapshot: (
+    _query: unknown,
+    _options: unknown,
+    next: (snapshot: QuerySnapshot) => void,
+    error: (error: Error) => void
+  ) => {
+    const current = { next, error };
+    observer.current = current;
+    return () => {
+      if (observer.current === current) observer.current = undefined;
+    };
+  },
+}));
+
+vi.mock("@/shared/firebase", async () => {
+  const { initializeApp } = await import("firebase/app");
+  const { getFirestore } = await import("firebase/firestore");
+  return { db: getFirestore(initializeApp({ projectId: "unit-study-store" }, "unit-study-store")) };
+});
+
+afterAll(() => deleteApp(getApp("unit-study-store")));

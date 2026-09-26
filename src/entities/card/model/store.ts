@@ -4,7 +4,11 @@ import { createStore } from "zustand/vanilla";
 import { cardIdSchema } from "./schema";
 import type { Card, CardId, RemoteCard } from "./types";
 
-export const cardStore = createStore<{ remoteCards: Card[] }>()(() => ({ remoteCards: [] }));
+interface CardState {
+  remoteCards: Card[];
+}
+
+export const cardStore = createStore<CardState>(() => ({ remoteCards: [] }));
 
 export function getCards(): Card[] {
   const { remoteCards } = cardStore.getState();
@@ -24,3 +28,9 @@ export const clearRemoteCards = (): void => {
 export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
   cardStore.setState({ remoteCards });
 };
+
+export function applyCardSnapshot(cards: RemoteCard[]) {
+  cardStore.setState({
+    remoteCards: cards.filter((card) => card.deletedAt === null).sort((left, right) => left.id.localeCompare(right.id)),
+  });
+}

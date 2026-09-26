@@ -14,7 +14,7 @@
 | FIRESTORE-RULES-DECK-02 | read | 正常系 | [本人による Deck の取得を許可する](#firestore-rules-deck-02) |
 | FIRESTORE-RULES-DECK-03 | write | 正常系 | [本人による Deck の作成を許可する](#firestore-rules-deck-03) |
 | FIRESTORE-RULES-DECK-04 | write | 正常系 | [本人による Deck の更新を許可する](#firestore-rules-deck-04) |
-| FIRESTORE-RULES-DECK-05 | write | 正常系 | [本人による Deck の物理削除を許可する](#firestore-rules-deck-05) |
+| FIRESTORE-RULES-DECK-05 | write | 異常系 | [本人による Deck の物理削除を拒否する](#firestore-rules-deck-05) |
 | FIRESTORE-RULES-DECK-06 | read | 異常系 | [他ユーザーによる Deck の非公開データの取得を拒否する](#firestore-rules-deck-06) |
 | FIRESTORE-RULES-DECK-07 | read | 正常系 | [他ユーザーによる Deck の公開データの取得を許可する](#firestore-rules-deck-07) |
 | FIRESTORE-RULES-DECK-08 | write | 異常系 | [他ユーザーによる Deck の作成を拒否する](#firestore-rules-deck-08) |
@@ -34,6 +34,9 @@
 | FIRESTORE-RULES-DECK-22 | read | 正常系 | [本人の UID で絞った Deck 一覧取得を許可する](#firestore-rules-deck-22) |
 | FIRESTORE-RULES-DECK-23 | read | 異常系 | [権限を保証できない Deck 一覧取得を拒否する](#firestore-rules-deck-23) |
 | FIRESTORE-RULES-DECK-24 | read | 異常系 | [匿名認証による他人の非公開 Deck 取得を拒否する](#firestore-rules-deck-24) |
+| FIRESTORE-RULES-DECK-25 | write | 正常系 | [本人の論理削除と削除状態を保つ更新を許可する](#firestore-rules-deck-25) |
+| FIRESTORE-RULES-DECK-26 | write | 異常系 | [削除済み Deck の復活を拒否する](#firestore-rules-deck-26) |
+| FIRESTORE-RULES-DECK-27 | write | 異常系 | [Deck の書き込みにサーバー時刻を要求する](#firestore-rules-deck-27) |
 
 <a id="firestore-rules-deck-01"></a>
 
@@ -123,11 +126,11 @@ Then:
 
 <a id="firestore-rules-deck-05"></a>
 
-### FIRESTORE-RULES-DECK-05 本人による Deck の物理削除を許可する
+### FIRESTORE-RULES-DECK-05 本人による Deck の物理削除を拒否する
 
 カテゴリ: `write`
 
-区分: 正常系
+区分: 異常系
 
 Given:
 
@@ -140,7 +143,7 @@ When:
 
 Then:
 
-- 物理削除が許可される。
+- 物理削除は拒否され、document は残る。
 
 <a id="firestore-rules-deck-06"></a>
 
@@ -547,3 +550,64 @@ Then:
 - どちらの非公開 Deck も取得が拒否される。
 
 所有者と同じ UID の匿名認証に対する読取仕様は、このケースでは変更しない。
+
+<a id="firestore-rules-deck-25"></a>
+
+### FIRESTORE-RULES-DECK-25 本人の論理削除と削除状態を保つ更新を許可する
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- 非匿名認証の UID `uid` が所有する、`deletedAt: null` の Deck がある。
+
+When:
+
+- `updatedAt: serverTimestamp()` と `deletedAt: 1000` で論理削除し、その後、削除状態を保ったまま本文を更新する。
+
+Then:
+
+- 両方の更新が許可され、本人が取得した document は `deletedAt: 1000` と変更後の本文を保持する。
+
+<a id="firestore-rules-deck-26"></a>
+
+### FIRESTORE-RULES-DECK-26 削除済み Deck の復活を拒否する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- 非匿名認証の UID `uid` が所有する、`deletedAt: 1000` の Deck がある。
+
+When:
+
+- `updatedAt: serverTimestamp()` を指定し、次の操作をそれぞれ独立して試す。
+- `deletedAt: null` への部分更新、`deleteField()` による削除、`deletedAt` を省略した document 全体の上書き。
+
+Then:
+
+- 全操作が拒否され、本人が取得した document は本文・削除状態・更新日時を含めて変更前と一致する。
+
+<a id="firestore-rules-deck-27"></a>
+
+### FIRESTORE-RULES-DECK-27 Deck の書き込みにサーバー時刻を要求する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- 本人の Deck と必要な参照先を用意し、有効な保存内容がある。
+
+When:
+
+- SDK から updatedAt を数値、端末生成 Timestamp、または省略した値で保存する。続いて serverTimestamp を指定する。
+
+Then:
+
+- 前者を Rules が拒否し、serverTimestamp の書き込みだけを許可する。本文編集にも同じ制約が適用される。

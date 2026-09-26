@@ -19,6 +19,5 @@ export {
   abandonStudySession,
   writeStudySessionPosition,
   subscribeStudyHistory,
-  type StudyHistoryRecord,
-  type StudyHistoryPeriod,
 } from "./api/firestore";
+export type { StudyHistoryRecord, StudyHistoryPeriod } from "./model/types";

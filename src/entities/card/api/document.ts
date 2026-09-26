@@ -2,7 +2,7 @@ import type { CardId, RemoteCard } from "../model/types";
 import { z } from "zod";
 import { fsrsStateSchema } from "../model/fsrs";
 
-import { parseFirestoreDocument } from "@/shared/api";
+import { firestoreTimestampSchema, parseFirestoreDocument } from "@/shared/api";
 
 const cardDocumentSchema = z.object({
   // Older documents may duplicate the Firestore document id in their stored fields.
@@ -15,7 +15,7 @@ const cardDocumentSchema = z.object({
   deckId: z.string(),
   uid: z.string(),
   createdAt: z.number(),
-  updatedAt: z.number(),
+  updatedAt: firestoreTimestampSchema,
   deletedAt: z.number().nullable(),
 });
 
@@ -38,7 +38,7 @@ export const mapCardDocument = (id: CardId, document: CardDocument): RemoteCard 
     deckId: document.deckId,
     uid: document.uid,
     createdAt: document.createdAt,
-    updatedAt: document.updatedAt,
+    updatedAt: document.updatedAt.toDate().getTime(),
     deletedAt: document.deletedAt,
   };
   return card;

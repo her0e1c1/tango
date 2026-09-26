@@ -13,6 +13,7 @@
 | FIRESTORE-RULES-STUDY-SESSION-01 | batch | 正常系 | [本人が private session を作成・取得・更新できる](#firestore-rules-study-session-01) |
 | FIRESTORE-RULES-STUDY-SESSION-02 | batch | 異常系 | [公開 Deck でも他ユーザー・匿名・未認証から session にアクセスできない](#firestore-rules-study-session-02) |
 | FIRESTORE-RULES-STUDY-SESSION-03 | write | 異常系 | [本人でも session の所有者変更と物理削除はできない](#firestore-rules-study-session-03) |
+| FIRESTORE-RULES-STUDY-SESSION-04 | write | 異常系 | [StudySession の書き込みにサーバー時刻を要求する](#firestore-rules-study-session-04) |
 
 <a id="firestore-rules-study-session-01"></a>
 
@@ -76,3 +77,23 @@ When:
 Then:
 
 - 所有者変更と物理削除はどちらも拒否される。
+
+<a id="firestore-rules-study-session-04"></a>
+
+### FIRESTORE-RULES-STUDY-SESSION-04 StudySession の書き込みにサーバー時刻を要求する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- 本人の StudySession と必要な参照先を用意し、有効な保存内容がある。
+
+When:
+
+- SDK から updatedAt を数値、端末生成 Timestamp、または省略した値で保存する。続いて serverTimestamp を指定する。
+
+Then:
+
+- 前者を Rules が拒否し、serverTimestamp の書き込みだけを許可する。学習進行にも同じ制約が適用される。

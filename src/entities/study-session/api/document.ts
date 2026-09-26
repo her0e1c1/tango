@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import { z } from "zod";
 import { firestoreMetadataSchema, firestoreTimestampSchema } from "@/shared/api";
-import type { StudySession } from "../model/types";
+import type { StudySession, StudySessionSnapshot } from "../model/types";
 
 const studySessionDocumentSchema = firestoreMetadataSchema
   .extend({
@@ -13,6 +13,7 @@ const studySessionDocumentSchema = firestoreMetadataSchema
       .refine((ids) => new Set(ids).size === ids.length),
     currentIndex: z.number().int().nonnegative(),
     startedAt: firestoreTimestampSchema,
+    lastStudiedAt: z.number(),
     endedAt: firestoreTimestampSchema.nullable(),
     endReason: z.enum(["completed", "abandoned"]).nullable(),
   })
@@ -23,33 +24,29 @@ const studySessionDocumentSchema = firestoreMetadataSchema
 
 type StudySessionDocument = z.infer<typeof studySessionDocumentSchema>;
 
-export interface StudySessionWrite {
-  session: StudySession;
-  endReason: StudySessionDocument["endReason"];
-}
-
 export function parseStudySessionDocument(value: unknown): StudySessionDocument | undefined {
   const parsed = studySessionDocumentSchema.safeParse(value);
   return parsed.success ? parsed.data : undefined;
 }
 
-export function toStudySessionWrite(sessionId: string, document: StudySessionDocument): StudySessionWrite {
+export function toStudySessionWrite(sessionId: string, document: StudySessionDocument): StudySessionSnapshot {
   return {
     session: {
       sessionId,
       deckId: document.deckId,
       cardOrderIds: document.cardOrderIds,
       currentIndex: document.currentIndex,
-      // Client timestamps are available in local snapshots before cloud acknowledgement.
-      lastStudiedAt: document.updatedAt.toDate().getTime(),
+      lastStudiedAt: document.lastStudiedAt,
       remote: {
         uid: document.uid,
-        startedAt: document.startedAt.toDate().getTime(),
+        startedAt: document.startedAt.seconds * 1000 + document.startedAt.nanoseconds / 1_000_000,
         // Keep sub-millisecond precision when ordering runs by their authoritative creation time.
         createdAt: document.createdAt.seconds * 1000 + document.createdAt.nanoseconds / 1_000_000,
       },
     },
     endReason: document.endReason,
+    endedAt:
+      document.endedAt === null ? null : document.endedAt.seconds * 1000 + document.endedAt.nanoseconds / 1_000_000,
   };
 }
 
@@ -60,5 +57,6 @@ export function toStudySessionDocument(session: StudySession) {
     cardOrderIds: session.cardOrderIds,
     currentIndex: session.currentIndex,
     startedAt: Timestamp.fromMillis(session.remote.startedAt),
+    lastStudiedAt: session.lastStudiedAt,
   };
 }

@@ -1,6 +1,16 @@
 import type { z } from "zod";
 import type { DeckId, RemoteDeckCreateInput } from "../model/types";
-import { collection, deleteField, doc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
+import {
+  onSnapshot,
+  collection,
+  deleteField,
+  doc,
+  serverTimestamp,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
@@ -10,31 +20,31 @@ import {
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
-import { replaceRemoteDecks } from "../model/store";
+import { applyDeckSnapshot } from "../model/store";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
 
-// Do not filter `deletedAt == null` in the Firestore query.
-// A remote tombstone would otherwise leave the query as a removed change backed by the previous matching document,
-// so this client would not receive the updated tombstone itself. Hide tombstones only when publishing the active store.
-export const subscribeDecks = (uid: string, onError: (error: Error) => void, onReady?: () => void): (() => void) =>
-  onSnapshot(
+// Include tombstones; the Store exposes only active documents.
+export function subscribeDecks(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
+  return onSnapshot(
     query(collection(db, DECK_COLLECTION), where("uid", "==", uid)),
+    { includeMetadataChanges: true },
     (snapshot) => {
       try {
-        const decks = snapshot.docs.flatMap((document) => {
-          const deck = parseDeckDocument(document.id, document.data());
-          return deck.deletedAt === null ? [toDeck(document.id, deck)] : [];
+        const values = snapshot.docs.map((item) => {
+          const document = parseDeckDocument(item.id, item.data({ serverTimestamps: "estimate" }));
+          return document.deletedAt === null ? toDeck(item.id, document) : null;
         });
-        replaceRemoteDecks(decks);
+        applyDeckSnapshot(values);
         onReady?.();
-      } catch (cause) {
-        onError(cause instanceof Error ? cause : new Error(String(cause)));
+      } catch (error) {
+        onError(error instanceof Error ? error : new Error(String(error)));
       }
     },
     onError
   );
+}
 
 export function createDeck(uid: string, deck: RemoteDeckCreateInput): Promise<void> {
   const input = createDeckSchema.parse({ uid, deck });
@@ -51,7 +61,7 @@ export function editDeck(uid: string, deck: z.input<typeof deckEditSchema>): Pro
     name: input.deck.name,
     url: input.deck.url === null ? deleteField() : input.deck.url,
     isPublic: input.deck.isPublic,
-    updatedAt: Date.now(),
+    updatedAt: serverTimestamp(),
     selectedTags: input.deck.selectedTags,
     tagAndFilter: input.deck.tagAndFilter,
     cardFilter: input.deck.cardFilter,
@@ -70,6 +80,6 @@ export function deleteDeck(uid: string, deckId: DeckId): Promise<void> {
   // This keeps deletion atomic and offline-capable for decks of any size.
   const reference = doc(db, DECK_COLLECTION, id);
   const deletedAt = Date.now();
-  void updateDoc(reference, { deletedAt, updatedAt: deletedAt }).catch(() => undefined);
+  void updateDoc(reference, { deletedAt, updatedAt: serverTimestamp() }).catch(() => undefined);
   return Promise.resolve();
 }

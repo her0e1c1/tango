@@ -7,6 +7,8 @@ import {
   getDocFromServer,
   getFirestore,
   setDoc,
+  serverTimestamp,
+  Timestamp,
   updateDoc,
   waitForPendingWrites,
 } from "firebase/firestore";
@@ -77,9 +79,16 @@ async function relatedDocuments(deckId: string) {
     doc(testDb, "studyAnswer", crypto.randomUUID()),
     doc(testDb, "studySession", crypto.randomUUID()),
   ] as const;
-  await setDoc(references[0], { ...card, deletedAt: null });
-  await setDoc(references[1], { uid, deckId, cardId: card.id, rating: "good", answeredAt: 123 });
-  await setDoc(references[2], { uid, deckId, cardOrderIds: [card.id], currentIndex: 0 });
+  await setDoc(references[0], { ...card, deletedAt: null, updatedAt: serverTimestamp() });
+  await setDoc(references[1], {
+    uid,
+    deckId,
+    cardId: card.id,
+    rating: "good",
+    answeredAt: 123,
+    updatedAt: serverTimestamp(),
+  });
+  await setDoc(references[2], { uid, deckId, cardOrderIds: [card.id], currentIndex: 0, updatedAt: serverTimestamp() });
   const read = () => Promise.all(references.map(async (reference) => (await getDocFromServer(reference)).data()));
   return { read, before: await read() };
 }
@@ -119,7 +128,7 @@ describe("Card filter persistence", () => {
     const id = await seed();
     const before = await saved(id);
     await editDeck(uid, { id, cardFilter: value });
-    expect(await saved(id)).toEqual({ ...before, cardFilter: value, updatedAt: expect.any(Number) });
+    expect(await saved(id)).toEqual({ ...before, cardFilter: value, updatedAt: expect.any(Timestamp) });
     await restore([[id, value]]);
   });
 
@@ -128,7 +137,7 @@ describe("Card filter persistence", () => {
     const related = await relatedDocuments(id);
     const before = await saved(id);
     await editDeck(uid, { id, cardFilter: replacement });
-    expect(await saved(id)).toEqual({ ...before, cardFilter: replacement, updatedAt: expect.any(Number) });
+    expect(await saved(id)).toEqual({ ...before, cardFilter: replacement, updatedAt: expect.any(Timestamp) });
     await restore([[id, replacement]]);
     expect(await related.read()).toEqual(related.before);
   });
@@ -138,7 +147,7 @@ describe("Card filter persistence", () => {
     const related = await relatedDocuments(id);
     const before = await saved(id);
     await editDeck(uid, { id, cardFilter: empty });
-    expect(await saved(id)).toEqual({ ...before, cardFilter: empty, updatedAt: expect.any(Number) });
+    expect(await saved(id)).toEqual({ ...before, cardFilter: empty, updatedAt: expect.any(Timestamp) });
     await restore([[id, empty]]);
     expect(await related.read()).toEqual(related.before);
   });
@@ -183,7 +192,7 @@ describe("Card filter persistence", () => {
         mockUserToken: { user_id: uid, firebase: { sign_in_provider: "google.com", identities: {} } },
       });
       try {
-        await updateDoc(doc(writer, "deck", a), { cardFilter: value });
+        await updateDoc(doc(writer, "deck", a), { cardFilter: value, updatedAt: serverTimestamp() });
         await waitForPendingWrites(writer);
         expect((await getDocFromServer(doc(writer, "deck", a))).data()?.cardFilter).toEqual(value);
         await vi.waitFor(() => expect(filter(a)).toEqual(value));

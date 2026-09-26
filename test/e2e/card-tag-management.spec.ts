@@ -160,6 +160,8 @@ test("CARD-TAG-MANAGEMENT-05 keeps offline Card tag edits across reload and reco
   await page.getByRole("textbox", { name: "Tag name 1", exact: true }).fill("offline");
   await saveCard(page, card.deckId);
   await page.goto(`/card/${card.id}/edit`);
+  await openTags(page);
+  await expect(page.getByRole("textbox", { name: "Tag name 1", exact: true })).toHaveValue("offline");
   await page.reload();
   await openTags(page);
   await expect(page.getByRole("textbox", { name: "Tag name 1", exact: true })).toHaveValue("offline");

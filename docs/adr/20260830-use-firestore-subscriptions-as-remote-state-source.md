@@ -1,6 +1,8 @@
 # Firestore の購読をリモート状態の正とする
 
-Status: Accepted
+Status: Superseded
+
+後継: [Firestore SDK に同期と永続キャッシュを委ねる](./20260924-use-incremental-firestore-synchronization.md)。以下は当時の決定であり、同期責務と削除方針は後継 ADR で更新する。
 
 ## Decision
 

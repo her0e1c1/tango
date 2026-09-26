@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { serverTimestamp } from "firebase/firestore";
 
-import { parseFirestoreDocument } from "@/shared/api";
+import { firestoreTimestampSchema, parseFirestoreDocument } from "@/shared/api";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { cardFilterSchema, type deckCreateSchema } from "../model/schema";
 import type { Deck, DeckId } from "../model/types";
@@ -13,7 +14,7 @@ const deckDocumentSchema = z.object({
   isPublic: z.boolean(),
   uid: z.string(),
   createdAt: z.number(),
-  updatedAt: z.number(),
+  updatedAt: firestoreTimestampSchema,
   deletedAt: z.number().nullable(),
   selectedTags: z.array(z.string()),
   tagAndFilter: z.boolean(),
@@ -35,15 +36,16 @@ export const toDeck = (id: DeckId, document: DeckDocument): Deck => {
   return omitUndefined({
     ...rest,
     id,
+    updatedAt: document.updatedAt.toDate().getTime(),
   });
 };
 
 // Adds the authenticated actor as physical owner only when crossing the Firestore persistence boundary.
-export const toDeckDocument = (uid: string, deck: z.infer<typeof deckCreateSchema>, timestamp: number): DeckDocument =>
+export const toDeckDocument = (uid: string, deck: z.infer<typeof deckCreateSchema>, timestamp: number) =>
   omitUndefined({
     ...deck,
     uid,
     deletedAt: null,
     createdAt: timestamp,
-    updatedAt: timestamp,
+    updatedAt: serverTimestamp(),
   });

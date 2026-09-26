@@ -24,6 +24,8 @@
 
 ### 実行環境
 
+- Node の結合テストでは実際の Emulator の購読結果を確認する。SDK の永続キャッシュと再読み込みは、実ブラウザーの [Persistence E2E](../../e2e/persistence.md) で確認する。
+
 | 対象 | 接続・準備 |
 | --- | --- |
 | 保存・購読 Adapter | 既存の `test/initializeTestFirestore.ts` で project `test` に接続し、UID `uid`・非匿名 provider `google.com` の token を使用する |

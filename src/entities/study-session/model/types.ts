@@ -25,3 +25,24 @@ export interface StudySession {
 
 /** Currently loaded active progress, keyed by deck. */
 export type StudySessions = Partial<Record<DeckId, StudySession>>;
+
+export interface StudySessionSnapshot {
+  session: StudySession;
+  endReason: "completed" | "abandoned" | null;
+  endedAt: number | null;
+}
+
+export interface StudyHistoryRecord {
+  sessionId: string;
+  deckId: string;
+  startedAt: number;
+  endedAt: number | null;
+  endReason: "completed" | "abandoned" | null;
+  cardCount: number;
+  occurredAt: number;
+}
+
+export interface StudyHistoryPeriod {
+  start: number;
+  end: number;
+}

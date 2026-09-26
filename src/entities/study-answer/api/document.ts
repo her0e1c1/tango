@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import { serverTimestamp, Timestamp } from "firebase/firestore";
 import type { StudyAnswerInput, StudyAnswerRecord } from "../model/types";
 import { z } from "zod";
 import { studyRatingSchema } from "../model/schema";
@@ -24,7 +24,7 @@ const studyAnswerDocumentSchema = firestoreMetadataSchema
 
 export function createStudyAnswerDocument(input: StudyAnswerInput) {
   const answeredAt = Timestamp.fromMillis(input.answeredAt);
-  return studyAnswerDocumentSchema.parse({
+  const document = studyAnswerDocumentSchema.parse({
     uid: input.uid,
     sessionId: input.sessionId,
     deckId: input.deckId,
@@ -34,6 +34,7 @@ export function createStudyAnswerDocument(input: StudyAnswerInput) {
     createdAt: answeredAt,
     updatedAt: answeredAt,
   });
+  return { ...document, updatedAt: serverTimestamp() };
 }
 
 export function parseStudyAnswerRecord(id: string, data: unknown): StudyAnswerRecord | null {

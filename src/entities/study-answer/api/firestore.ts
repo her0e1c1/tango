@@ -57,7 +57,7 @@ export function subscribeStudyAnswerHistory(
       const records: StudyAnswerRecord[] = [];
       // Invalid documents still consume the requested limit.
       for (const document of snapshot.docs.slice(0, maximum)) {
-        const record = parseStudyAnswerRecord(document.id, document.data());
+        const record = parseStudyAnswerRecord(document.id, document.data({ serverTimestamps: "estimate" }));
         if (record === null) {
           invalidCount += 1;
         } else {

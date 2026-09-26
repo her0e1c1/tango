@@ -9,6 +9,7 @@ import "@/test/initializeTestFirestore";
 import { describe, expect, it, vi } from "vitest";
 import {
   doc,
+  Timestamp,
   getDoc as readServerDoc,
   waitForPendingWrites,
   type DocumentReference,
@@ -61,9 +62,8 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       ...toFirestoreDeck(newDeck),
       id: d.id,
       createdAt: expect.any(Number),
-      updatedAt: expect.any(Number),
+      updatedAt: expect.any(Timestamp),
     });
-    expect(data?.createdAt).toBe(data?.updatedAt);
     expect(data).not.toHaveProperty("tags");
     expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
@@ -85,7 +85,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     };
     await editDeck("uid", n);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
-    expect(data).toEqual({ ...created, name: "updated", updatedAt: expect.any(Number) });
+    expect(data).toEqual({ ...created, name: "updated", updatedAt: expect.any(Timestamp) });
     expect(data?.createdAt).toBe(created.createdAt);
     expect(data).not.toHaveProperty("tags");
     expect(data).not.toHaveProperty("localMode");
@@ -117,8 +117,18 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     await createDeck("uid", d);
     await Promise.all(cards.map((card) => createCardCommand("uid", card)));
 
+    const otherDeck = createRemoteDeckInput({ id: uuid() });
+    const otherCard = createCard({ id: uuid(), deckId: otherDeck.id, uid: "uid" });
+    await createDeck("uid", otherDeck);
+    await createCardCommand("uid", otherCard);
+    const references = [
+      doc(db, "deck", otherDeck.id),
+      ...[...cards, otherCard].map((card) => doc(db, "card", card.id)),
+    ];
+    const before = await Promise.all(references.map(async (reference) => (await getDoc(reference)).data()));
     await deleteDeck("uid", d.id);
 
+    expect(await Promise.all(references.map(async (reference) => (await getDoc(reference)).data()))).toEqual(before);
     expect((await getDoc(doc(db, "deck", d.id))).data()?.deletedAt).toEqual(expect.any(Number));
     await Promise.all(
       cards.map(async (card) => expect((await getDoc(doc(db, "card", card.id))).data()?.deletedAt).toBeNull())
@@ -135,7 +145,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
 
     const deleted = await getDoc(reference);
     expect(deleted.exists()).toBe(true);
-    expect(deleted.data()).toEqual({ ...before, deletedAt: expect.any(Number), updatedAt: expect.any(Number) });
+    expect(deleted.data()).toEqual({ ...before, deletedAt: expect.any(Number), updatedAt: expect.any(Timestamp) });
   });
 
   // Child tombstoning is not implemented by the current parent-only deletion operation.

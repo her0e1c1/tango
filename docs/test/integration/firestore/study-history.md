@@ -9,6 +9,8 @@ StudySession の開始・完了履歴と回答履歴を、期間・Deck・所有
 
 共通の実行・検証前提は [AGENTS.md](./AGENTS.md#共通前提) を参照する。
 
+購読中と再開後の変更反映は [同期](./incremental-sync.md) で確認する。
+
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
@@ -17,6 +19,8 @@ StudySession の開始・完了履歴と回答履歴を、期間・Deck・所有
 | FIRESTORE-STUDY-HISTORY-02 | read | 正常系 / 異常系 | [回答履歴の期間・順序・上限・cacheを確認する](#firestore-study-history-02) |
 | FIRESTORE-STUDY-HISTORY-03 | read | 異常系 | [回答履歴の入力境界を検証する](#firestore-study-history-03) |
 | FIRESTORE-STUDY-HISTORY-04 | batch | 正常系 | [回答の追加と同期状態を購読で受け取り解除後は更新しない](#firestore-study-history-04) |
+| FIRESTORE-STUDY-HISTORY-05 | read | 正常系 | [回答履歴の条件と表示上限を保ちながら追加回答を反映する](#firestore-study-history-05) |
+| FIRESTORE-STUDY-HISTORY-06 | read | 正常系 | [回答履歴の購読開始時の追加を取り込む](#firestore-study-history-06) |
 
 <a id="firestore-study-history-01"></a>
 
@@ -39,11 +43,11 @@ Given:
 | 対象 | 1 | start - 1 | start | abandoned |
 | 対象 | 1 | start + 1 | start + 1 | completed |
 
-- オンライン取得、対象 Deck の履歴を取得済みのオフライン取得、別 UID の取得を、独立した条件として確認する。
+- オンライン取得、対象 Deck の履歴を取得済みのオフライン取得、別 UID の StudySession 購読エラーの履歴への通知を、独立した条件として確認する。
 
 When:
 
-- 対象の通信状態・UID・Deck 条件で、公開された履歴購読を開始する。開始履歴と完了履歴はそれぞれ指定して取得する。
+- 対象 UID の StudySession 購読を明示的に開始し、対象の通信状態・UID・Deck 条件で Store の履歴購読を開始する。開始履歴と完了履歴はそれぞれ指定して取得する。
 
 Then:
 
@@ -59,7 +63,7 @@ Then:
 - started は開始日時、completed は完了日時を期間判定に使い、abandoned を完了に数えない。終了境界 `start + 1` は含めない。
 - 各 record の sessionId は文字列、cardCount は `1` である。対象 Deck の started record は startedAt `start`・endedAt `null`・endReason `null`、completed record は startedAt `start - 1`・endedAt `start`・endReason `completed` を持つ。
 - 本人のオフライン取得では、対象 Deck の開始履歴130件・完了履歴1件を cache の結果として返し、サーバーと同期済みの結果として扱わない。
-- 別 UID の取得では、公開されたエラー通知に `permission-denied` が届く。
+- 別 UID の StudySession 購読エラーの履歴への通知では、公開されたエラー通知に `permission-denied` が届く。
 - 130件という入力例を確認し、無制限の件数保証や負荷試験とは扱わない。
 
 <a id="firestore-study-history-02"></a>
@@ -148,3 +152,43 @@ Then:
 - 再接続後は同じ1件が server かつ同期済みとなる。回答内容が同じでも同期状態の変化を通知する。
 - 購読し直さず、別クライアントの追加を含む2件が表示される。
 - 解除後に受信側の独立した監視が server の again を確認した時点でも、解除済みの購読には通知が増えず good と easy の2件の結果が残る。
+
+<a id="firestore-study-history-05"></a>
+
+### FIRESTORE-STUDY-HISTORY-05 回答履歴の条件と表示上限を保ちながら追加回答を反映する
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- 本人の回答履歴を期間・Deck・要求件数を変えて購読する。要求上限は2件または1000件とする。
+
+When:
+
+- 購読中に要求件数より多い回答と、更新時刻は新しいが回答日時は古い回答を追加する。購読を続けてさらに過去日時の回答と最新日時の回答を順に追加する。
+
+Then:
+
+- 回答日時・ID の降順を保ち、最大要求件数まで表示して超過を通知する。別期間・Deck の値を混ぜず、過去日時の回答も対象スコープへ取り込む。上限到達後の連続追加でも並び順と超過判定を保ち、古い回答は表示へ戻らない。
+
+<a id="firestore-study-history-06"></a>
+
+### FIRESTORE-STUDY-HISTORY-06 回答履歴の購読開始時の追加を取り込む
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- 本人の対象期間には回答がない場合と既存回答がある場合をそれぞれ用意する。
+
+When:
+
+- 初回の履歴取得中に別クライアントから新しい回答を追加する。
+
+Then:
+
+- 購読結果が更新され、追加回答を欠落・重複なく返す。サーバー同期後は server かつ未送信なしとなる。

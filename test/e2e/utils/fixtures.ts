@@ -414,8 +414,16 @@ function createE2EFixture(
   const namespaced = namespaceFixture(source, namespace, userOverrides);
   const seedRemote = async () => {
     // Seed parent Decks first so every observable intermediate state preserves Card references.
-    await Promise.all(namespaced.state.remote.decks.map((deck) => setDocument("deck", deck.id, { ...deck })));
-    await Promise.all(namespaced.state.remote.cards.map((card) => setDocument("card", card.id, { ...card })));
+    await Promise.all(
+      namespaced.state.remote.decks.map((deck) =>
+        setDocument("deck", deck.id, { ...deck, updatedAt: new Date(deck.updatedAt) })
+      )
+    );
+    await Promise.all(
+      namespaced.state.remote.cards.map((card) =>
+        setDocument("card", card.id, { ...card, updatedAt: new Date(card.updatedAt) })
+      )
+    );
     for (const session of Object.values(namespaced.state.remote.studySessions)) {
       const deck = namespaced.state.remote.decks.find(({ id }) => id === session.deckId);
       if (!deck?.uid) throw new Error("A server session requires an owned Deck");
@@ -424,6 +432,7 @@ function createE2EFixture(
         deckId: deck.id,
         cardOrderIds: session.cardOrderIds,
         currentIndex: session.currentIndex,
+        lastStudiedAt: session.lastStudiedAt,
         startedAt: new Date(session.lastStudiedAt),
         createdAt: new Date(session.lastStudiedAt),
         updatedAt: new Date(session.lastStudiedAt),

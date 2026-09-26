@@ -4,7 +4,6 @@ import type {
   CardEdit,
   DeleteCardInput,
   EditCardInput,
-  RemoteCard,
   CardId,
   CardCreateCommand,
   CardEditInput,
@@ -13,9 +12,10 @@ import type {
 import { FirebaseError } from "firebase/app";
 import {
   getDocFromCache,
+  onSnapshot,
   collection,
   doc,
-  onSnapshot,
+  serverTimestamp,
   query,
   setDoc,
   updateDoc,
@@ -26,31 +26,31 @@ import { db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
+import { applyCardSnapshot } from "../model/store";
 import { fsrsStateSchema, instantSchema, type FsrsState } from "../model/fsrs";
-import { findCardById, replaceRemoteCards } from "../model/store";
+import { findCardById } from "../model/store";
 
 const CARD_COLLECTION = "card";
 
-// Do not filter `deletedAt == null` in the Firestore query.
-// A remote tombstone would otherwise leave the query as a removed change backed by the previous matching document,
-// so this client would not receive the updated tombstone itself. Hide tombstones only when publishing the active store.
-export const subscribeCards = (uid: string, onError: (error: Error) => void, onReady?: () => void): (() => void) =>
-  onSnapshot(
+// Include tombstones; the Store exposes only active documents.
+export function subscribeCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
+  return onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
+    { includeMetadataChanges: true },
     (snapshot) => {
       try {
-        replaceRemoteCards(
-          snapshot.docs
-            .map((document) => mapCardDocument(document.id, parseCardDocument(document.id, document.data())))
-            .filter((card) => card.deletedAt === null)
-        );
+        const values = snapshot.docs.map((item) => {
+          return mapCardDocument(item.id, parseCardDocument(item.id, item.data({ serverTimestamps: "estimate" })));
+        });
+        applyCardSnapshot(values);
         onReady?.();
-      } catch (cause) {
-        onError(cause instanceof Error ? cause : new Error(String(cause)));
+      } catch (error) {
+        onError(error instanceof Error ? error : new Error(String(error)));
       }
     },
     onError
   );
+}
 
 /** Prepared imports retry the same IDs; a locally saved Card must never be initialized again. */
 const createCardDocument = async (card: CardCreate): Promise<void> => {
@@ -60,12 +60,12 @@ const createCardDocument = async (card: CardCreate): Promise<void> => {
     throw error;
   });
   if (existing?.exists()) {
-    const saved = parseCardDocument(card.id, existing.data());
+    const saved = parseCardDocument(card.id, existing.data({ serverTimestamps: "estimate" }));
     if (saved.uid !== card.uid || saved.deckId !== card.deckId) throw new Error("Card identity does not match");
     return;
   }
   const createdAt = Date.now();
-  const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: createdAt } satisfies RemoteCard);
+  const document = omitUndefined({ ...card, fsrs: null, createdAt, updatedAt: serverTimestamp() });
   void setDoc(reference, document).catch(() => undefined);
 };
 
@@ -82,7 +82,7 @@ const updateCardDocument = (card: CardEdit): Promise<void> => {
     backText: card.backText,
     tags: card.tags,
     uniqueKey: card.uniqueKey,
-    updatedAt: Date.now(),
+    updatedAt: serverTimestamp(),
   });
   const reference = doc(db, CARD_COLLECTION, card.id);
   void updateDoc(reference, document).catch(() => undefined);
@@ -97,9 +97,9 @@ export const editCard = async (uid: string, card: EditCardInput["card"]): Promis
 
 /** Tombstones a Card so synchronized readers can converge before hiding it. */
 const removeCardDocument = (id: string): Promise<void> => {
-  const updatedAt = Date.now();
+  const deletedAt = Date.now();
   const reference = doc(db, CARD_COLLECTION, id);
-  void updateDoc(reference, { updatedAt, deletedAt: updatedAt }).catch(() => undefined);
+  void updateDoc(reference, { updatedAt: serverTimestamp(), deletedAt }).catch(() => undefined);
   return Promise.resolve();
 };
 
@@ -120,11 +120,12 @@ export function writeCardFsrs(
   }
 ) {
   const card = findCardById(input.cardId);
+  instantSchema.parse(input.answeredAt);
   if (!(input.uid && card) || card.uid !== input.uid || card.deckId !== input.deckId || card.deletedAt !== null)
     throw new Error("Study Card does not match");
   batch.update(doc(db, "card", input.cardId), {
     fsrs: fsrsStateSchema.parse(input.fsrs),
-    updatedAt: instantSchema.parse(input.answeredAt),
+    updatedAt: serverTimestamp(),
   });
 }
 

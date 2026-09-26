@@ -17,6 +17,9 @@
 | PERSISTENCE-04 | batch | 正常系 | [未ログインの変更をこのブラウザーだけに維持できる](#persistence-04) |
 | PERSISTENCE-05 | batch | 正常系 | [未ログインでもオフラインの Card 操作を再読み込み後まで維持できる](#persistence-05) |
 | PERSISTENCE-06 | batch | 正常系 | [オフラインで進めた学習を同期後に別ブラウザーで再開できる](#persistence-06) |
+| PERSISTENCE-07 | batch | 異常系 | [端末内のデータが失われてもサーバーから再取得できる](#persistence-07) |
+| PERSISTENCE-08 | read | 正常系 | [オフラインの再読み込みで保存済みの学習位置を復元できる](#persistence-08) |
+| PERSISTENCE-09 | batch | 正常系 | [画面を閉じている間の変更と論理削除を再開後に反映できる](#persistence-09) |
 
 <a id="persistence-01"></a>
 
@@ -44,7 +47,7 @@ Then:
 
 <a id="persistence-02"></a>
 
-### PERSISTENCE-02 [TODO] オフラインの変更を再接続後に同期できる
+### PERSISTENCE-02 オフラインの変更を再接続後に同期できる
 
 カテゴリ: `batch`
 
@@ -175,3 +178,66 @@ Then:
 - 確認用ブラウザーでもその次の Card から再開し、元の出題順を維持する。評価済みの Card に戻ったり、未回答の Card を飛ばしたりしない。
 - Good の学習結果が維持され、再接続や再開によって同じ回答を重複して記録しない。
 - 再接続だけで学習が完了・中止扱いになったり、別の新しい学習に置き換わったりしない。
+
+<a id="persistence-07"></a>
+
+### PERSISTENCE-07 端末内のデータが失われてもサーバーから再取得できる
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- Google アカウントの Deck と複数 Card を一度取得している。
+
+When:
+
+- 端末内の取得済みデータが失われた後、オンラインで一覧を開き直す。
+
+Then:
+
+- 全 Card をサーバーの内容で表示し、欠落・重複しない。
+
+<a id="persistence-08"></a>
+
+### PERSISTENCE-08 オフラインの再読み込みで保存済みの学習位置を復元できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`google-study-session-middle`](./fixture/google-study-session-middle.yaml)
+- Google アカウントの途中の学習を一度開き、端末内のデータを利用できる。
+
+When:
+
+- データの通信を切断し、学習画面を再読み込みする。
+
+Then:
+
+- 同じ Card と学習位置を表示する。最初からやり直したり、Deck や Card が消えたりしない。
+
+<a id="persistence-09"></a>
+
+### PERSISTENCE-09 画面を閉じている間の変更と論理削除を再開後に反映できる
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
+- Google アカウントの Deck と複数 Card を一度取得している。
+
+When:
+
+- 変更なしで一覧を再読み込みする。次に画面を閉じている間に別クライアントで1枚を編集し、別の1枚を論理削除して開き直す。再び画面を閉じ、親 Deck を論理削除して Deck 一覧を開き直す。
+
+Then:
+
+- 変更なしの再読み込みでは全 Card を重複なく表示する。編集した Card は新しい本文で表示し、削除した Card は表示しない。変更しなかった Card は残る。親 Deck の削除後は一覧から消え、再読み込みでも復活しない。サーバーには削除済みの Deck と Card が残る。

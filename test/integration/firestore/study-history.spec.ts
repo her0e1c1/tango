@@ -9,13 +9,14 @@ import {
   connectFirestoreEmulator,
   getFirestore,
   setDoc,
+  serverTimestamp,
   onSnapshot,
   collection,
   query,
   where,
 } from "firebase/firestore";
-import { afterAll, describe, expect, it, vi } from "vitest";
-import { subscribeStudyHistory, type StudyHistoryRecord } from "@/entities/study-session";
+import { afterAll, onTestFinished, describe, expect, it, vi } from "vitest";
+import { subscribeStudyHistory, subscribeStudySessions, type StudyHistoryRecord } from "@/entities/study-session";
 import { subscribeStudyAnswerHistory, writeStudyAnswer, type StudyAnswerHistory } from "@/entities/study-answer";
 import { auth } from "@/shared/firebase";
 import { testDb } from "@/test/initializeTestFirestore";
@@ -51,7 +52,8 @@ describe("Firestore history reads", () => {
       endedAt: endedAt === null ? null : Timestamp.fromMillis(endedAt),
       endReason,
       createdAt: Timestamp.fromMillis(startedAt),
-      updatedAt: Timestamp.fromMillis(endedAt ?? startedAt),
+      updatedAt: serverTimestamp(),
+      lastStudiedAt: endedAt ?? startedAt,
     });
     for (let i = 0; i < 130; i += 1)
       batch.set(doc(testDb, "studySession", crypto.randomUUID()), document(deckId, start, null, null));
@@ -68,7 +70,7 @@ describe("Firestore history reads", () => {
       const stop = subscribeStudyHistory(
         { uid: "uid", period, deckId: deck, metric },
         (value, cache) => {
-          if (cached || !cache) {
+          if (cache === cached) {
             records = value;
             fromCache = cache;
           }
@@ -90,6 +92,8 @@ describe("Firestore history reads", () => {
         stop();
       }
     }
+    const stopSessions = subscribeStudySessions("uid", () => undefined);
+    onTestFinished(stopSessions);
     expect((await read(null, "started")).records).toHaveLength(131);
     expect((await read(null, "completed")).records.map((record) => record.deckId).sort()).toEqual(
       [deckId, otherDeck].sort()
@@ -127,6 +131,9 @@ describe("Firestore history reads", () => {
     } finally {
       await enableNetwork(testDb);
     }
+    stopSessions();
+    const stopForeign = subscribeStudySessions("another-user", () => undefined);
+    onTestFinished(stopForeign);
     const denied = await new Promise<Error>((resolve, reject) => {
       const stop = subscribeStudyHistory(
         { uid: "another-user", period, deckId: null, metric: "started" },
@@ -195,7 +202,7 @@ describe("Bounded answer history", () => {
         answer: { type: "rating", rating },
         answeredAt: timestamp,
         createdAt: timestamp,
-        updatedAt: timestamp,
+        updatedAt: serverTimestamp(),
       });
     }
     await batch.commit();
@@ -299,7 +306,7 @@ describe("Bounded answer history", () => {
         answer: { type: "rating", rating: "easy" },
         answeredAt: timestamp,
         createdAt: timestamp,
-        updatedAt: timestamp,
+        updatedAt: serverTimestamp(),
       });
       await vi.waitFor(() => {
         expect(snapshots.at(-1)?.source).toBe("server");
@@ -326,7 +333,7 @@ describe("Bounded answer history", () => {
         answer: { type: "rating", rating: "again" },
         answeredAt: timestamp,
         createdAt: timestamp,
-        updatedAt: timestamp,
+        updatedAt: serverTimestamp(),
       });
       await vi.waitFor(() => expect(observed).toBe(true));
       expect(snapshots).toHaveLength(count);

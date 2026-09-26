@@ -244,3 +244,89 @@ test("PERSISTENCE-04 keeps guest edits local and rejects every cloud write", asy
   expect((await requireDocument("deck", legacyDeckId)).fields.name?.stringValue).toBe("Legacy deck");
   expect((await requireDocument("card", legacyCardId)).fields.frontText?.stringValue).toBe("Legacy card");
 });
+
+async function openStorageMaintenance(page: import("@playwright/test").Page) {
+  // Unload the SDK before evicting its cache, leaving the signed-in account intact.
+  await page.route("**/storage-maintenance", (route) =>
+    route.fulfill({ contentType: "text/html", body: "<html><body>Storage maintenance</body></html>" })
+  );
+  await page.goto("/storage-maintenance");
+  await page.evaluate(async () => {
+    for (const { name } of await indexedDB.databases()) {
+      if (!name?.startsWith("firestore/")) continue;
+      await new Promise<void>((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(name);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error("Firestore cache is still open"));
+      });
+    }
+  });
+}
+
+test("PERSISTENCE-07 reloads server data after the SDK cache is evicted", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}`);
+  for (const card of fixture.state.remote.cards)
+    await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
+  await openStorageMaintenance(page);
+  await page.goto(`/deck/${deck.id}`);
+  for (const card of fixture.state.remote.cards)
+    await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
+});
+
+test("PERSISTENCE-08 restores study progress from the SDK cache offline", async ({ fixture, page, browserErrors }) => {
+  const deck = fixture.deck();
+  const session = fixture.session();
+  const currentCard = fixture.card("card-2");
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}/study`);
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  browserErrors.allow(/console error: .*Could not reach Cloud Firestore backend/u);
+  browserErrors.allow(
+    /console error: Failed to load resource: .*ERR_INTERNET_DISCONNECTED.*\[http:\/\/(?:db|127\.0\.0\.1|localhost):[0-9]+\//iu
+  );
+  await page.route("http://db:*/**", (route) => route.abort("internetdisconnected"));
+  await page.reload();
+  await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
+  await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue(String(session.currentIndex));
+});
+
+test("PERSISTENCE-09 receives remote edits and tombstones after reopening", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const edited = fixture.card("card-1");
+  const deleted = fixture.card("card-2");
+  const unchanged = fixture.card("card-3");
+  await fixture.apply(page);
+  await page.route("**/storage-maintenance", (route) =>
+    route.fulfill({ contentType: "text/html", body: "<html><body>Closed</body></html>" })
+  );
+  await page.goto(`/deck/${deck.id}`);
+  for (const card of fixture.state.remote.cards) {
+    await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
+  }
+  await page.goto("/storage-maintenance");
+  await page.goto(`/deck/${deck.id}`);
+  for (const card of fixture.state.remote.cards)
+    await expect(page.getByRole("button", { name: `View ${card.frontText}` })).toBeVisible();
+
+  await page.goto("/storage-maintenance");
+  await setDocument("card", edited.id, { ...edited, frontText: "Changed while closed", updatedAt: new Date() });
+  await setDocument("card", deleted.id, { ...deleted, deletedAt: Date.now(), updatedAt: new Date() });
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("button", { name: "View Changed while closed" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `View ${deleted.frontText}` })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: `View ${unchanged.frontText}` })).toBeVisible();
+
+  await page.goto("/storage-maintenance");
+  await setDocument("deck", deck.id, { ...deck, deletedAt: Date.now(), updatedAt: new Date() });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "No decks yet" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "No decks yet" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toHaveCount(0);
+  expect((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue).toBeDefined();
+  expect((await requireDocument("card", deleted.id)).fields.deletedAt?.integerValue).toBeDefined();
+});

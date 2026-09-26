@@ -2,7 +2,11 @@ import { createStore } from "zustand/vanilla";
 
 import type { Deck } from "./types";
 
-export const deckStore = createStore<{ remoteDecks: Deck[] }>()(() => ({ remoteDecks: [] }));
+interface DeckState {
+  remoteDecks: Deck[];
+}
+
+export const deckStore = createStore<DeckState>(() => ({ remoteDecks: [] }));
 
 export function getDecks(): Deck[] {
   return deckStore.getState().remoteDecks;
@@ -15,3 +19,9 @@ export const clearRemoteDecks = (): void => {
 export const replaceRemoteDecks = (remoteDecks: Deck[]): void => {
   deckStore.setState({ remoteDecks });
 };
+
+export function applyDeckSnapshot(decks: (Deck | null)[]) {
+  deckStore.setState({
+    remoteDecks: decks.filter((deck) => deck !== null).sort((left, right) => left.id.localeCompare(right.id)),
+  });
+}

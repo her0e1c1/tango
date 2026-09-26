@@ -14,7 +14,7 @@
 | FIRESTORE-RULES-CARD-02 | read | 正常系 | [本人による Card の取得を許可する](#firestore-rules-card-02) |
 | FIRESTORE-RULES-CARD-03 | write | 正常系 | [本人による Card の作成を許可する](#firestore-rules-card-03) |
 | FIRESTORE-RULES-CARD-04 | write | 正常系 | [本人による Card の更新を許可する](#firestore-rules-card-04) |
-| FIRESTORE-RULES-CARD-05 | write | 正常系 | [本人による Card の物理削除を許可する](#firestore-rules-card-05) |
+| FIRESTORE-RULES-CARD-05 | write | 異常系 | [本人による Card の物理削除を拒否する](#firestore-rules-card-05) |
 | FIRESTORE-RULES-CARD-06 | read | 異常系 | [他ユーザーによる Card の非公開データの取得を拒否する](#firestore-rules-card-06) |
 | FIRESTORE-RULES-CARD-07 | read | 正常系 | [他ユーザーによる Card の公開データの取得を許可する](#firestore-rules-card-07) |
 | FIRESTORE-RULES-CARD-08 | write | 異常系 | [他ユーザーによる Card の作成を拒否する](#firestore-rules-card-08) |
@@ -34,6 +34,9 @@
 | FIRESTORE-RULES-CARD-22 | write | 正常系 / 異常系 | [公開 Card の FSRS を公開し他人の書込を拒否する](#firestore-rules-card-22) |
 | FIRESTORE-RULES-CARD-23 | write | 正常系 / 異常系 | [FSRS 外形と所有権・削除状態を確認する](#firestore-rules-card-23) |
 | FIRESTORE-RULES-CARD-24 | write | 異常系 | [評価更新で物理削除 Card を再作成しない](#firestore-rules-card-24) |
+| FIRESTORE-RULES-CARD-25 | write | 正常系 | [本人の論理削除と削除状態を保つ更新を許可する](#firestore-rules-card-25) |
+| FIRESTORE-RULES-CARD-26 | write | 異常系 | [削除済み Card の復活を拒否する](#firestore-rules-card-26) |
+| FIRESTORE-RULES-CARD-27 | write | 異常系 | [Card の書き込みにサーバー時刻を要求する](#firestore-rules-card-27) |
 
 <a id="firestore-rules-card-01"></a>
 
@@ -126,11 +129,11 @@ Then:
 
 <a id="firestore-rules-card-05"></a>
 
-### FIRESTORE-RULES-CARD-05 本人による Card の物理削除を許可する
+### FIRESTORE-RULES-CARD-05 本人による Card の物理削除を拒否する
 
 カテゴリ: `write`
 
-区分: 正常系
+区分: 異常系
 
 Given:
 
@@ -143,7 +146,7 @@ When:
 
 Then:
 
-- 物理削除が許可される。
+- 物理削除は拒否され、document は残る。
 
 <a id="firestore-rules-card-06"></a>
 
@@ -477,7 +480,7 @@ When:
 
 Then:
 
-- 読取・FSRS 更新・削除を許可し、UID・Deck・作成日時変更は拒否する。
+- 読取・FSRS 更新を許可し、物理削除と UID・Deck・作成日時変更は拒否する。
 
 <a id="firestore-rules-card-22"></a>
 
@@ -533,8 +536,71 @@ Given:
 
 When:
 
-- Card を物理削除した後、fsrs と updatedAt の部分更新を試す。
+- 管理者が事前に Card を物理削除した状態で、本人が fsrs と updatedAt の部分更新を試す。
 
 Then:
 
 - 更新は拒否され、Card は再作成されない。
+
+<a id="firestore-rules-card-25"></a>
+
+### FIRESTORE-RULES-CARD-25 本人の論理削除と削除状態を保つ更新を許可する
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- 非匿名認証の UID `uid` が所有する、`deletedAt: null` の Card がある。
+- Card の親 Deck も UID `uid` が所有し、Card の `fsrs: null` と `createdAt: 0` を維持する。
+
+When:
+
+- `updatedAt: serverTimestamp()` と `deletedAt: 1000` で論理削除し、その後、削除状態を保ったまま本文を更新する。
+
+Then:
+
+- 両方の更新が許可され、本人が取得した document は `deletedAt: 1000` と変更後の本文を保持する。
+
+<a id="firestore-rules-card-26"></a>
+
+### FIRESTORE-RULES-CARD-26 削除済み Card の復活を拒否する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- 非匿名認証の UID `uid` が所有する、`deletedAt: 1000` の Card がある。
+- Card の親 Deck も UID `uid` が所有し、Card の `fsrs: null` と `createdAt: 0` を維持する。
+
+When:
+
+- `updatedAt: serverTimestamp()` を指定し、次の操作をそれぞれ独立して試す。
+- `deletedAt: null` への部分更新、`deleteField()` による削除、`deletedAt` を省略した document 全体の上書き。
+
+Then:
+
+- 全操作が拒否され、本人が取得した document は本文・削除状態・更新日時を含めて変更前と一致する。
+
+<a id="firestore-rules-card-27"></a>
+
+### FIRESTORE-RULES-CARD-27 Card の書き込みにサーバー時刻を要求する
+
+カテゴリ: `write`
+
+区分: 異常系
+
+Given:
+
+- 本人の Card と必要な参照先を用意し、有効な保存内容がある。
+
+When:
+
+- SDK から updatedAt を数値、端末生成 Timestamp、または省略した値で保存する。続いて serverTimestamp を指定する。
+
+Then:
+
+- 前者を Rules が拒否し、serverTimestamp の書き込みだけを許可する。FSRS 更新にも同じ制約が適用される。

@@ -1,7 +1,7 @@
 import { classifyFsrsState, type FsrsState } from "@/entities/card/@x/study-session";
 import { isDeckTagSelectionMatching } from "@/entities/deck/@x/study-session";
 
-import type { StudySession } from "./types";
+import type { StudySession, StudyHistoryPeriod, StudyHistoryRecord, StudySessionSnapshot } from "./types";
 
 type ResolvedStudySession<Card> =
   | { status: "preparing" | "invalid" }
@@ -76,4 +76,29 @@ export const canMoveStudySession = (session: StudySession): boolean =>
 // Server creation time orders runs across devices without confusing it with domain or recent-study time.
 export function compareStudySessionCreation(left: StudySession, right: StudySession): number {
   return (left.remote.createdAt ?? 0) - (right.remote.createdAt ?? 0) || left.sessionId.localeCompare(right.sessionId);
+}
+
+export function getStudyHistory(
+  history: StudySessionSnapshot[],
+  period: StudyHistoryPeriod,
+  deckId: string | null,
+  metric: "started" | "completed"
+): StudyHistoryRecord[] {
+  return history.flatMap(({ session, endReason, endedAt }) => {
+    if (deckId !== null && session.deckId !== deckId) return [];
+    if (metric === "completed" && endReason !== "completed") return [];
+    const occurredAt = metric === "started" ? session.remote.startedAt : endedAt;
+    if (occurredAt === null || occurredAt < period.start || occurredAt >= period.end) return [];
+    return [
+      {
+        sessionId: session.sessionId,
+        deckId: session.deckId,
+        startedAt: session.remote.startedAt,
+        endedAt,
+        endReason,
+        cardCount: session.cardOrderIds.length,
+        occurredAt,
+      },
+    ];
+  });
 }
