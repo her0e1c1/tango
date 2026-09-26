@@ -32,7 +32,7 @@
     "lint:eslint": "eslint --max-warnings=0 'src/**/*.{ts,tsx}' 'test/integration/**/*.{spec,test}.{ts,tsx}' 'test/e2e/**/*.{ts,tsx}' playwright.config.ts",
     "lint:fsd": "steiger ./src",
     "lint:fix": "eslint --fix 'src/**/*.{ts,tsx}' 'test/integration/**/*.{spec,test}.{ts,tsx}' 'test/e2e/**/*.{ts,tsx}' playwright.config.ts && biome lint --write . && knip --fix --allow-remove-files && npm run lint:markdown:fix",
-    "lint:knip": "knip && knip --production && knip --strict --dependencies",
+    "lint:knip": "knip && knip --strict",
     "lint:markdown": "markdownlint-cli2",
     "lint:markdown:fix": "markdownlint-cli2 --fix",
     "lint:tsc": "node node_modules/@typescript/native/bin/tsc",
