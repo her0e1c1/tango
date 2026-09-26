@@ -123,6 +123,39 @@ test("DECK-MANAGEMENT-02 deletes one Deck and preserves unrelated Deck data", as
   await expect(page.getByRole("button", { name: `Continue ${otherDeck.name}` })).toBeVisible();
 });
 
+test("DECK-MANAGEMENT-02 preserves deletion success when session cleanup is rejected", async ({
+  fixture,
+  page,
+  browserErrors,
+}) => {
+  const deck = fixture.deck("deck-a");
+  await fixture.apply(page);
+  await page.goto("/");
+  const fault = await failNextFirestoreWrite(page, { collection: "studySession" });
+  allowExpectedFirestoreWriteFailure(browserErrors);
+  try {
+    const dialog = await openDeckDeleteDialog(page, deck.name);
+    await dialog.getByRole("button", { name: "Delete deck" }).click();
+    await expect(dialog).not.toBeVisible();
+    await fault.waitForFailure();
+    await expect(page.getByRole("alert")).toContainText(
+      "The deck was deleted, but its study session could not be closed."
+    );
+    await expect(
+      page.getByText("Unable to delete this deck. Check your connection and try again.", { exact: true })
+    ).toHaveCount(0);
+    await expect(page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true })).toHaveCount(0);
+    await expect
+      .poll(async () => Number((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue ?? 0))
+      .toBeGreaterThan(0);
+    await page.reload();
+    await expect(page.getByRole("button", { name: `Open cards in ${deck.name}`, exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: `Continue ${deck.name}`, exact: true })).toHaveCount(0);
+  } finally {
+    await fault.dispose();
+  }
+});
+
 test("DECK-MANAGEMENT-03 cancels Deck deletion and preserves all related data", async ({ fixture, page }) => {
   const deck = fixture.deck();
   const { cards } = fixture.state.remote;

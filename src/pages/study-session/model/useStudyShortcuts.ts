@@ -1,7 +1,6 @@
 import { useKey, useLatest } from "react-use";
-import { getPreferences, toggleShowSwipeButtonList } from "@/entities/preference";
+import { getPreferences, toggleShowSwipeButtonList, type SwipeDirection } from "@/entities/preference";
 import { shouldIgnoreCardShortcut } from "@/features/card-player";
-import { swipeCard } from "./actions/swipeCard";
 import { toggleBackText } from "./actions/toggleBackText";
 import { toggleAutoPlay } from "./actions/toggleAutoPlay";
 
@@ -18,12 +17,12 @@ const isDirectionalStudyAction = (action: StudyShortcutAction): boolean =>
   action === "swipeUp" || action === "swipeDown" || action === "swipeLeft" || action === "swipeRight";
 
 export function useStudyShortcuts({
-  deckId,
+  onSwipe,
   status,
   helpOpen,
   showBackText,
 }: {
-  deckId: string;
+  onSwipe: (direction: SwipeDirection) => void;
   status: "studying" | "preparing" | "invalid";
   helpOpen: boolean;
   showBackText: boolean;
@@ -33,10 +32,10 @@ export function useStudyShortcuts({
     helpOpen,
     showBackText,
     actions: {
-      swipeUp: () => void swipeCard(deckId, "cardSwipeUp"),
-      swipeDown: () => void swipeCard(deckId, "cardSwipeDown"),
-      swipeLeft: () => void swipeCard(deckId, "cardSwipeLeft"),
-      swipeRight: () => void swipeCard(deckId, "cardSwipeRight"),
+      swipeUp: () => onSwipe("cardSwipeUp"),
+      swipeDown: () => onSwipe("cardSwipeDown"),
+      swipeLeft: () => onSwipe("cardSwipeLeft"),
+      swipeRight: () => onSwipe("cardSwipeRight"),
       toggleBackText,
       toggleAutoPlay,
       toggleSwipeButtonList: toggleShowSwipeButtonList,

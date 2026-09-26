@@ -23,9 +23,10 @@ const mocks = vi.hoisted(() => ({
   deck: undefined as Deck | undefined,
   persistOperation: vi.fn(),
   onSwipeFeedback: vi.fn(),
+  navigate: vi.fn(),
 }));
 
-vi.mock("react-router-dom", () => ({ useNavigate: () => vi.fn() }));
+vi.mock("react-router-dom", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 vi.mock("@/entities/auth", () => ({ useAuth: () => ({ uid: mocks.uid }), getAuthUid: () => mocks.uid }));
 vi.mock("@/entities/preference", async (importOriginal) => ({
@@ -263,7 +264,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   });
 
   it.each([true, false])(
-    "keeps the final Card while a local completion awaits acknowledgement (saved: %s)",
+    "renders the subscribed state while a final answer awaits acknowledgement (saved: %s)",
     async (saved) => {
       await setStudySessionIndex(deckId, 1);
       const previous = getStudySession(deckId);
@@ -273,7 +274,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
       const { result } = renderHook(() => useStudySessionPageModel(deckId));
       await actAsync(async () => result.current.swipeRight());
       act(() => clearStudySessions());
-      expect(result.current.query).toMatchObject({ status: "studying", card: { frontText: "card-2" } });
+      expect(result.current.query.status).toBe("invalid");
       expect(result.current.pageState).toMatchObject({ swipePending: true, completion: undefined });
       await actAsync(async () => {
         if (saved) request.resolve();
@@ -282,9 +283,10 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
         }
         await request.promise.catch(() => undefined);
       });
-      expect(result.current.pageState.swipePending).toBe(!saved);
+      expect(result.current.pageState.swipePending).toBe(false);
       expect(result.current.pageState.completion).toEqual(saved ? { cardCount: 2 } : undefined);
-      expect(result.current.query.status).toBe(saved ? "invalid" : "studying");
+      expect(result.current.query.status).toBe("invalid");
+      expect(mocks.navigate).not.toHaveBeenCalled();
       if (!saved) {
         act(() => restoreStudySession(previous));
         await actAsync(async () => result.current.swipeRight());
@@ -294,7 +296,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
   );
 
   it.each(["answer", "index", "abandon"] as const)(
-    "waits for rollback before unlocking a rejected %s",
+    "unlocks a rejected %s without waiting for a rollback snapshot",
     async (operation) => {
       const previous = getStudySession(deckId);
       if (!previous) throw new Error("Expected active session");
@@ -323,10 +325,9 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
         request.reject(new Error("permission-denied"));
         await request.promise.catch(() => undefined);
       });
-      expect(result.current.query).toMatchObject({ status: "studying", card: { frontText: "card-1" } });
-      expect(result.current.pageState.swipePending).toBe(true);
-      await actAsync(async () => result.current.swipeRight());
-      expect(result.current.pageState.swipePending).toBe(true);
+      expect(result.current.pageState.swipePending).toBe(false);
+      expect(mocks.navigate).not.toHaveBeenCalled();
+      expect(result.current.query.status).toBe(operation === "abandon" ? "invalid" : "studying");
       act(() => restoreStudySession(previous));
       expect(result.current.pageState.swipePending).toBe(false);
       expect(result.current.query).toMatchObject({ status: "studying", session: { currentIndex: 0 } });
@@ -336,7 +337,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     }
   );
 
-  it("releases an anonymous save after local persistence fails without a success snapshot", async () => {
+  it("completes an anonymous save without a snapshot and keeps later failures separate from a new save", async () => {
     let onLocalError: ((error: unknown) => void) | undefined;
     vi.spyOn(studyPersistence, "saveStudyOperation").mockImplementationOnce(async (_operation, session, onError) => {
       onLocalError = onError;
@@ -345,7 +346,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     });
     const { result } = renderHook(() => useStudySessionPageModel(deckId));
     await actAsync(async () => result.current.swipeRight());
-    expect(result.current.pageState.swipePending).toBe(true);
+    expect(result.current.pageState.swipePending).toBe(false);
     act(() => onLocalError?.(new Error("local persistence failed")));
     expect(result.current.pageState.swipePending).toBe(false);
     expect(result.current.query).toMatchObject({ status: "studying", session: { currentIndex: 0 } });
@@ -418,6 +419,7 @@ describe("Study Page model [STUDY-ACTIONS-04] [STUDY-ACTIONS-01] [STUDY-SESSION-
     expect(mocks.persistOperation).not.toHaveBeenCalled();
     expect(getStudySession(deckId)).toBeUndefined();
     expect(mocks.onSwipeFeedback).toHaveBeenCalledExactlyOnceWith("cardSwipeLeft");
+    expect(mocks.navigate).toHaveBeenCalledWith("/", { replace: true });
   });
 
   it("does not show swipe feedback when the preference is disabled", async () => {

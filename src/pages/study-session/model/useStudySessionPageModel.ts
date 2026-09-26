@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { useStore } from "zustand";
 import { useNavigate } from "react-router-dom";
 import {
+  type SwipeDirection,
   toggleViewMode,
   toggleShowViewMode,
   toggleShowHelp,
@@ -14,7 +14,6 @@ import { routes } from "@/shared/router";
 import { useStudyShortcuts } from "./useStudyShortcuts";
 import { useAuth } from "@/entities/auth";
 import type { DeckId } from "@/entities/deck";
-import { clearSettledStudySession } from "./actions/clearSettledStudySession";
 import { closeHelp } from "./actions/closeHelp";
 import { enterStudySessionPage } from "./actions/enterStudySessionPage";
 import { maintainStudySession } from "./actions/maintainStudySession";
@@ -27,45 +26,24 @@ import { useAutoPlay } from "./actions/useAutoPlay";
 import { useStudyQuery } from "./queries/useStudyQuery";
 import { useStudySessionPageState } from "./queries/useStudySessionPageState";
 import { skipCard } from "./actions/skipCard";
-import { showStudyResult } from "./actions/showStudyResult";
-import { studySessionPageStore } from "./store";
 
 export function useStudySessionPageModel(deckId: DeckId) {
   const navigate = useNavigate();
   const { uid } = useAuth();
   const query = useStudyQuery(deckId);
   const pageState = useStudySessionPageState(uid, deckId);
-  const pendingResult = useStore(studySessionPageStore, (state) => state.pendingResult);
-  useEffect(clearSettledStudySession, [uid, query.savingSnapshot, query.awaitingRollback]);
   useEffect(() => enterStudySessionPage(uid, deckId), [uid, deckId]);
   useEffect(() => maintainStudySession(deckId), [deckId, query.sessionState.status]);
   useAutoPlay(query.sessionState);
+  const swipe = async (direction: SwipeDirection) => {
+    if (await swipeCard(deckId, direction)) await navigate(routes.deckList.to(), { replace: true });
+  };
   useStudyShortcuts({
-    deckId,
+    onSwipe: (direction) => void swipe(direction),
     status: query.status,
     helpOpen: pageState.helpOpen,
     showBackText: pageState.showBackText,
   });
-  useEffect(() => {
-    if (pendingResult?.deckId !== deckId) return;
-    const reflected = pendingResult.completed
-      ? query.sessionId !== pendingResult.sessionId
-      : query.sessionState.status === "studying" &&
-        query.sessionState.session.sessionId === pendingResult.sessionId &&
-        query.sessionState.session.currentIndex === pendingResult.currentIndex;
-    if (!reflected) return;
-    showStudyResult(pendingResult.completed, pendingResult.cardCount, pendingResult.direction);
-    studySessionPageStore.setState({
-      isSaving: false,
-      pendingResult: undefined,
-      savingSession: undefined,
-      saveToken: undefined,
-    });
-  }, [deckId, pendingResult, query.sessionId, query.sessionState]);
-  useEffect(() => {
-    if (query.status !== "invalid" || pageState.completion != null || pageState.swipePending) return;
-    void navigate(routes.deckList.to(), { replace: true });
-  }, [navigate, query.status, pageState.completion, pageState.swipePending]);
 
   return {
     goBack: () => void navigate(routes.deckList.to()),
@@ -85,9 +63,9 @@ export function useStudySessionPageModel(deckId: DeckId) {
     closeHelp,
     changeIndex: (index: number) => void updateStudyIndex(deckId, index),
     skip: () => void skipCard(deckId),
-    swipeUp: () => void swipeCard(deckId, "cardSwipeUp"),
-    swipeDown: () => void swipeCard(deckId, "cardSwipeDown"),
-    swipeLeft: () => void swipeCard(deckId, "cardSwipeLeft"),
-    swipeRight: () => void swipeCard(deckId, "cardSwipeRight"),
+    swipeUp: () => void swipe("cardSwipeUp"),
+    swipeDown: () => void swipe("cardSwipeDown"),
+    swipeLeft: () => void swipe("cardSwipeLeft"),
+    swipeRight: () => void swipe("cardSwipeRight"),
   };
 }

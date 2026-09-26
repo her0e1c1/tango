@@ -1,6 +1,3 @@
-import { useStore } from "zustand";
-import { useAuth } from "@/entities/auth";
-import { studySessionPageStore } from "../store";
 import { useCards } from "@/entities/card";
 import type { Card } from "@/entities/card";
 import { getCategory, isHighlightLanguage, useDeck } from "@/entities/deck";
@@ -14,15 +11,7 @@ export const useStudyQuery = (deckId: string) => {
   const cards = useCards();
   const deck = useDeck(deckId);
   const preferences = usePreferences();
-  const remoteSession = useStudySession(deckId);
-  const { uid } = useAuth();
-  const savingSession = useStore(studySessionPageStore, (state) => state.savingSession);
-  const savingSnapshot = useStudySession(savingSession?.deckId ?? deckId);
-  const awaitingRollback = useStore(studySessionPageStore, (state) => state.awaitingRollback);
-  // A local completion snapshot can remove the session before the server accepts the final answer.
-  const retainedSession =
-    savingSession?.deckId === deckId && savingSession.remote.uid === uid ? savingSession : undefined;
-  const session = awaitingRollback ? (retainedSession ?? remoteSession) : (remoteSession ?? retainedSession);
+  const session = useStudySession(deckId);
   const remoteLoading = useRemoteStudySessionsLoading();
   const sessionState =
     session === undefined && remoteLoading ? { status: "preparing" as const } : resolveStudySession(session, cards);
@@ -40,9 +29,6 @@ export const useStudyQuery = (deckId: string) => {
     helpRows: buildCardPlayerHelpRows(preferences),
   };
   const query = {
-    savingSnapshot,
-    awaitingRollback,
-    sessionId: remoteSession?.sessionId,
     cards,
     preferences,
     sessionState,

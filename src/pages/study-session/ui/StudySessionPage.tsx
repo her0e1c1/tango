@@ -47,10 +47,14 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
   }
 
   if (query.status !== "studying") {
-    return query.status === "preparing" ? (
+    return query.status === "preparing" || pageState.swipePending ? (
       <RouteFeedback title={t("studySession.loading")} tone="loading" />
     ) : (
-      <RouteFeedback title={t("studySession.unavailable")} tone="not-found" />
+      <RouteFeedback
+        title={t("studySession.unavailable")}
+        tone="not-found"
+        primaryAction={{ label: t("studySession.completion.back"), onClick: goBack }}
+      />
     );
   }
 

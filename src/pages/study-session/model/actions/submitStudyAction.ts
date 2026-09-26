@@ -11,22 +11,21 @@ export async function submitStudyAction(
   deckId: string,
   action: SwipeAction,
   direction?: SwipeDirection
-): Promise<void> {
+): Promise<boolean> {
   const uid = getAuthUid();
   const { owner, isSaving } = studySessionPageStore.getState();
-  if (isSaving || owner?.uid !== uid || owner.deckId !== deckId) return;
+  if (isSaving || owner?.uid !== uid || owner.deckId !== deckId) return false;
   const session = getStudySession(deckId);
-  if (session === undefined) return;
+  if (session === undefined) return false;
   const cards = getCards();
   const plan = planStudySessionSwipe(session, cards, action);
-  if (plan.effect === "none") return;
+  if (plan.effect === "none") return false;
   if (plan.effect === "exit") {
-    await abandonStudyPageSession(deckId, direction);
-    return;
+    return abandonStudyPageSession(deckId, direction);
   }
   const cardId = session.cardOrderIds[session.currentIndex];
   const card = cards.find(({ id }) => id === cardId);
-  if (card === undefined) return;
+  if (card === undefined) return false;
   const answeredAt = Date.now();
   await executeStudyOperation({
     id: crypto.randomUUID(),
@@ -42,4 +41,5 @@ export async function submitStudyAction(
       : { rating: plan.rating, fsrs: calculateFsrsState(card.fsrs, plan.rating, answeredAt) }),
     ...(direction === undefined || !getPreferences().appearance.showSwipeFeedback ? {} : { direction }),
   });
+  return false;
 }

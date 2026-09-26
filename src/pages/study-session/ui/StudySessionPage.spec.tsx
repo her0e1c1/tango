@@ -14,7 +14,7 @@ import { replaceAuthSession } from "@/entities/auth";
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession, subscribeStudySessions } from "@/entities/study-session";
-import { startStudy } from "@/test/utils/entityFixtures";
+import { startStudy, restoreStudySession } from "@/test/utils/entityFixtures";
 import { ToastViewport } from "@/shared/ui/toast";
 import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
@@ -334,6 +334,31 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.getByText("Front one")).toBeVisible();
     fireEvent.keyDown(window, { key: "ArrowRight" });
     expect(await screen.findByText("Front two")).toBeVisible();
+  });
+
+  it("keeps the route available for a final-answer rollback after releasing the save lock", async () => {
+    mocks.preferences = createPreferences({ cardSwipeRight: "RateGood" });
+    await setStudySessionIndex(deckId, 1);
+    const previous = getStudySession(deckId);
+    if (!previous) throw new Error("Expected final Card");
+    const request = Promise.withResolvers<void>();
+    mocks.persistOperation.mockReturnValueOnce(request.promise);
+    renderPage();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    act(() => clearStudySessions());
+    expect(screen.queryByText("Front two")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Study session unavailable." })).not.toBeInTheDocument();
+    await actAsync(async () => {
+      request.reject(new Error("permission-denied"));
+      await request.promise.catch(() => undefined);
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to save progress. Check your connection and retry.");
+    expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
+    act(() => restoreStudySession(previous));
+    expect(screen.getByText("Front two")).toBeVisible();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    await waitFor(() => expect(screen.queryByText("Front two")).not.toBeInTheDocument());
   });
 
   it("uses the latest locale when persistence resolves after a language change", async () => {
@@ -667,10 +692,12 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     stop();
   });
 
-  it("returns to the deck list when no active session exists", async () => {
+  it("keeps an absent session on the route until the user returns to the deck list", async () => {
     clearStudySessions();
     renderPage();
-
+    expect(screen.getByRole("heading", { name: "Study session unavailable." })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Back to deck list" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
   });
 
