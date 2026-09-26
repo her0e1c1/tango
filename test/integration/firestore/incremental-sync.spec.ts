@@ -55,138 +55,87 @@ vi.mock("@/shared/firebase", () => ({
 
 const token = { firebase: { sign_in_provider: "google.com", identities: {} } } as const;
 
-let environment: RulesTestEnvironment;
-
-let remote: Firestore;
-
-let remoteApp: ReturnType<typeof initializeApp>;
-
-let stops: (() => void)[];
-
-let uid: string;
-
-const errors: Error[] = [];
-
-const onError = (error: Error) => errors.push(error);
-
-const deckData = (id: string) => ({
-  ...createDeck({ id, uid, name: id }),
-  deletedAt: null,
-  updatedAt: serverTimestamp(),
-});
-
-const cardData = (id: string, deckId = "deck") => ({
-  ...createCard({ id, uid, deckId, frontText: id }),
-  updatedAt: serverTimestamp(),
-});
-
-const answerData = (answeredAt: number, deckId = "deck") => ({
-  uid,
-  deckId,
-  sessionId: "session",
-  cardId: "card",
-  answer: { type: "rating", rating: "good" },
-  answeredAt: Timestamp.fromMillis(answeredAt),
-  createdAt: Timestamp.fromMillis(answeredAt),
-  updatedAt: serverTimestamp(),
-});
-
-const seed = (name: string, id: string, data: DocumentData) =>
-  environment.withSecurityRulesDisabled(async (context) => {
-    await setDoc(doc(context.firestore(), name, id), data);
+describe("Firestore synchronization contracts", () => {
+  let environment: RulesTestEnvironment;
+  let remote: Firestore;
+  let remoteApp: ReturnType<typeof initializeApp>;
+  let stops: (() => void)[];
+  let uid: string;
+  const errors: Error[] = [];
+  const onError = (error: Error) => errors.push(error);
+  const deckData = (id: string) => ({
+    ...createDeck({ id, uid, name: id }),
+    deletedAt: null,
+    updatedAt: serverTimestamp(),
   });
-
-async function startContent() {
-  await Promise.all([
-    new Promise<void>((resolve, reject) => stops.push(subscribeDecks(uid, reject, resolve))),
-    new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve))),
-  ]);
-}
-
-function stopContent() {
-  for (const stop of stops) stop();
-  stops = [];
-}
-
-// An independent listener establishes that the receiving SDK has observed the server result.
-async function serverBarrier(name: string) {
-  await new Promise<void>((resolve, reject) => {
-    const stop = onSnapshot(
-      query(collection(connection.db, name), where("uid", "==", uid)),
-      { includeMetadataChanges: true },
-      (snapshot) => {
-        if (!snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites) {
-          stop();
-          resolve();
-        }
+  const cardData = (id: string, deckId = "deck") => ({
+    ...createCard({ id, uid, deckId, frontText: id }),
+    updatedAt: serverTimestamp(),
+  });
+  const answerData = (answeredAt: number, deckId = "deck") => ({
+    uid,
+    deckId,
+    sessionId: "session",
+    cardId: "card",
+    answer: { type: "rating", rating: "good" },
+    answeredAt: Timestamp.fromMillis(answeredAt),
+    createdAt: Timestamp.fromMillis(answeredAt),
+    updatedAt: serverTimestamp(),
+  });
+  const seed = (name: string, id: string, data: DocumentData) =>
+    environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), name, id), data);
+    });
+  async function startContent() {
+    await Promise.all([
+      new Promise<void>((resolve, reject) => stops.push(subscribeDecks(uid, reject, resolve))),
+      new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve))),
+    ]);
+  }
+  function stopContent() {
+    for (const stop of stops) stop();
+    stops = [];
+  }
+  // An independent listener establishes that the receiving SDK has observed the server result.
+  async function serverBarrier(name: string) {
+    await new Promise<void>((resolve, reject) => {
+      const stop = onSnapshot(
+        query(collection(connection.db, name), where("uid", "==", uid)),
+        { includeMetadataChanges: true },
+        (snapshot) => {
+          if (!snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites) {
+            stop();
+            resolve();
+          }
+        },
+        reject
+      );
+      stops.push(stop);
+    });
+  }
+  function history(limit = 1000, deckId: string | null = "deck", from = 0, to = 10_000) {
+    let current: StudyAnswerHistory | undefined;
+    const stop = subscribeStudyAnswerHistory(
+      { uid, from, to, deckId, limit },
+      (value) => {
+        current = value;
       },
-      reject
+      onError
     );
     stops.push(stop);
-  });
-}
-
-function history(limit = 1000, deckId: string | null = "deck", from = 0, to = 10_000) {
-  let current: StudyAnswerHistory | undefined;
-  const stop = subscribeStudyAnswerHistory(
-    { uid, from, to, deckId, limit },
-    (value) => {
-      current = value;
-    },
-    onError
-  );
-  stops.push(stop);
-  return { get: () => current, stop };
-}
-
-async function serverHistory(view: ReturnType<typeof history>, length: number) {
-  await vi.waitFor(
-    () => {
-      if (errors.length) throw errors[0];
-      const value = view.get();
-      if (value?.source !== "server" || value.hasPendingWrites || value.records.length !== length)
-        throw new Error("History has not synchronized");
-    },
-    { timeout: 10_000 }
-  );
-}
-
-async function expectServerUpdateTime(kind: "deck" | "card" | "studySession" | "studyAnswer") {
-  await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
-  const data: DocumentData = {
-    deck: deckData("new"),
-    card: cardData("new"),
-    studyAnswer: answerData(1000),
-    studySession: {
-      uid,
-      deckId: "deck",
-      cardOrderIds: ["a", "b"],
-      currentIndex: 0,
-      startedAt: Timestamp.fromMillis(1000),
-      lastStudiedAt: 1000,
-      createdAt: Timestamp.fromMillis(1000),
-      endedAt: null,
-      endReason: null,
-      updatedAt: serverTimestamp(),
-    },
-  }[kind];
-  const reference = doc(remote, kind, "new");
-  for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined]) {
-    const invalid = Object.fromEntries(
-      Object.entries({ ...data, updatedAt }).filter(([, value]) => value !== undefined)
+    return { get: () => current, stop };
+  }
+  async function serverHistory(view: ReturnType<typeof history>, length: number) {
+    await vi.waitFor(
+      () => {
+        if (errors.length) throw errors[0];
+        const value = view.get();
+        if (value?.source !== "server" || value.hasPendingWrites || value.records.length !== length)
+          throw new Error("History has not synchronized");
+      },
+      { timeout: 10_000 }
     );
-    await assertFails(setDoc(reference, invalid));
   }
-  await assertSucceeds(setDoc(reference, data));
-  if (kind !== "studyAnswer") {
-    const fields = { deck: { name: "edited" }, card: { fsrs: {} }, studySession: { currentIndex: 1 } }[kind];
-    for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined])
-      await assertFails(updateDoc(reference, { ...fields, ...(updatedAt === undefined ? {} : { updatedAt }) }));
-    await assertSucceeds(updateDoc(reference, { ...fields, updatedAt: serverTimestamp() }));
-  }
-}
-
-describe("Firestore synchronization contracts", () => {
   beforeAll(async () => {
     environment = await initializeTestEnvironment({
       projectId: "test-incremental-sync",
@@ -220,32 +169,6 @@ describe("Firestore synchronization contracts", () => {
   });
   afterAll(async () => environment.cleanup());
 
-  registerMergesConsecutiveSnapshotsWithoutLosingUnchangedOrSameTimestampDocuments();
-
-  registerAppliesARemoteSTombstone();
-
-  registerReceivesStoppedChangesWhenSubscribingAgain();
-
-  registerRollsBackPendingEditsWithClockOffsetS();
-
-  registerReceivesTheCompleteRepairedSnapshotAfterAValidationError();
-
-  registerSharesEndedSessionsWithHistoryWhilePreservingEventTimes();
-
-  registerMergesMoreThanSNewAnswersAndKeepsHistoryScopesIndependent();
-
-  registerReceivesAnswersArrivingWhenTheListenerStartsExistingS();
-
-  registerRequiresServerUpdateTimesForDeckWrites();
-
-  registerRequiresServerUpdateTimesForCardWrites();
-
-  registerRequiresServerUpdateTimesForStudySessionWrites();
-
-  registerRequiresServerUpdateTimesForStudyAnswerWrites();
-});
-
-function registerMergesConsecutiveSnapshotsWithoutLosingUnchangedOrSameTimestampDocuments() {
   it("[FIRESTORE-INCREMENTAL-SYNC-01] merges consecutive snapshots without losing unchanged or same-timestamp documents", async () => {
     await startContent();
     await serverBarrier("deck");
@@ -271,9 +194,7 @@ function registerMergesConsecutiveSnapshotsWithoutLosingUnchangedOrSameTimestamp
     await serverBarrier("card");
     expect(getCards().map(({ id }) => id)).toEqual(["a", "b"]);
   });
-}
 
-function registerAppliesARemoteSTombstone() {
   it.each(["card", "deck"])("[FIRESTORE-INCREMENTAL-SYNC-02] applies a remote %s tombstone", async (kind) => {
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     await setDoc(doc(remote, "deck", "other"), deckData("other"));
@@ -289,9 +210,7 @@ function registerAppliesARemoteSTombstone() {
     await vi.waitFor(() => expect(getCards().map(({ id }) => id)).toEqual(["other"]));
     expect((await getDoc(doc(remote, kind, kind === "deck" ? "deck" : "a"))).data()?.deletedAt).toBe(1000);
   });
-}
 
-function registerReceivesStoppedChangesWhenSubscribingAgain() {
   it("[FIRESTORE-INCREMENTAL-SYNC-03] receives stopped changes when subscribing again", async () => {
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     for (const id of ["a", "b", "unchanged"]) await setDoc(doc(remote, "card", id), cardData(id));
@@ -310,9 +229,7 @@ function registerReceivesStoppedChangesWhenSubscribingAgain() {
     });
     expect(errors).toEqual([]);
   });
-}
 
-function registerRollsBackPendingEditsWithClockOffsetS() {
   it.each([-31_536_000_000, 31_536_000_000])(
     "[FIRESTORE-SNAPSHOT-12] rolls back pending edits with clock offset %s",
     async (offset) => {
@@ -333,9 +250,7 @@ function registerRollsBackPendingEditsWithClockOffsetS() {
       await vi.waitFor(() => expect(getDecks().some(({ name }) => name === "pending")).toBe(false));
     }
   );
-}
 
-function registerReceivesTheCompleteRepairedSnapshotAfterAValidationError() {
   it("[FIRESTORE-SNAPSHOT-13] receives the complete repaired snapshot after a validation error", async () => {
     await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
     stops.push(subscribeDecks(uid, onError));
@@ -352,9 +267,7 @@ function registerReceivesTheCompleteRepairedSnapshotAfterAValidationError() {
     await updateDoc(doc(remote, "deck", "invalid"), { name: "repaired", updatedAt: serverTimestamp() });
     await vi.waitFor(() => expect(getDecks().map(({ name }) => name)).toEqual(["changed", "repaired"]));
   });
-}
 
-function registerSharesEndedSessionsWithHistoryWhilePreservingEventTimes() {
   it("[FIRESTORE-STUDY-SESSION-17] shares ended sessions with history while preserving event times", async () => {
     let started: StudyHistoryRecord[] = [];
     let completed: StudyHistoryRecord[] = [];
@@ -402,9 +315,7 @@ function registerSharesEndedSessionsWithHistoryWhilePreservingEventTimes() {
     });
     expect(errors).toEqual([]);
   });
-}
 
-function registerMergesMoreThanSNewAnswersAndKeepsHistoryScopesIndependent() {
   it.each([2, 1000])(
     "[FIRESTORE-STUDY-HISTORY-05] merges more than %s new answers and keeps history scopes independent",
     async (maximum) => {
@@ -445,9 +356,7 @@ function registerMergesMoreThanSNewAnswersAndKeepsHistoryScopesIndependent() {
     },
     30_000
   );
-}
 
-function registerReceivesAnswersArrivingWhenTheListenerStartsExistingS() {
   it.each([false, true])(
     "[FIRESTORE-STUDY-HISTORY-06] receives answers arriving when the listener starts (existing=%s)",
     async (existing) => {
@@ -477,32 +386,59 @@ function registerReceivesAnswersArrivingWhenTheListenerStartsExistingS() {
       await added;
     }
   );
-}
 
-function registerRequiresServerUpdateTimesForDeckWrites() {
+  async function expectServerUpdateTime(kind: "deck" | "card" | "studySession" | "studyAnswer") {
+    await setDoc(doc(remote, "deck", "deck"), deckData("deck"));
+    const data: DocumentData = {
+      deck: deckData("new"),
+      card: cardData("new"),
+      studyAnswer: answerData(1000),
+      studySession: {
+        uid,
+        deckId: "deck",
+        cardOrderIds: ["a", "b"],
+        currentIndex: 0,
+        startedAt: Timestamp.fromMillis(1000),
+        lastStudiedAt: 1000,
+        createdAt: Timestamp.fromMillis(1000),
+        endedAt: null,
+        endReason: null,
+        updatedAt: serverTimestamp(),
+      },
+    }[kind];
+    const reference = doc(remote, kind, "new");
+    for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined]) {
+      const invalid = Object.fromEntries(
+        Object.entries({ ...data, updatedAt }).filter(([, value]) => value !== undefined)
+      );
+      await assertFails(setDoc(reference, invalid));
+    }
+    await assertSucceeds(setDoc(reference, data));
+    if (kind !== "studyAnswer") {
+      const fields = { deck: { name: "edited" }, card: { fsrs: {} }, studySession: { currentIndex: 1 } }[kind];
+      for (const updatedAt of [1000, Timestamp.fromMillis(1000), undefined])
+        await assertFails(updateDoc(reference, { ...fields, ...(updatedAt === undefined ? {} : { updatedAt }) }));
+      await assertSucceeds(updateDoc(reference, { ...fields, updatedAt: serverTimestamp() }));
+    }
+  }
+
   it("[FIRESTORE-RULES-DECK-27] requires server update times for deck writes", async () => {
     await expectServerUpdateTime("deck");
     expect((await getDoc(doc(remote, "deck", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
-}
 
-function registerRequiresServerUpdateTimesForCardWrites() {
   it("[FIRESTORE-RULES-CARD-27] requires server update times for card writes", async () => {
     await expectServerUpdateTime("card");
     expect((await getDoc(doc(remote, "card", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
-}
 
-function registerRequiresServerUpdateTimesForStudySessionWrites() {
   it("[FIRESTORE-RULES-STUDY-SESSION-04] requires server update times for studySession writes", async () => {
     await expectServerUpdateTime("studySession");
     expect((await getDoc(doc(remote, "studySession", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
-}
 
-function registerRequiresServerUpdateTimesForStudyAnswerWrites() {
   it("[FIRESTORE-RULES-STUDY-ANSWER-05] requires server update times for studyAnswer writes", async () => {
     await expectServerUpdateTime("studyAnswer");
     expect((await getDoc(doc(remote, "studyAnswer", "new"))).data()?.updatedAt).toBeInstanceOf(Timestamp);
   });
-}
+});

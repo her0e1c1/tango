@@ -11,10 +11,18 @@ import { I18nProvider } from ".";
 import { appI18n } from "./instance";
 import { resolveEffectiveLanguage } from "./locale";
 
-let browserLanguage = "en-US";
-
 describe("resolveEffectiveLanguage", () => {
-  registerResolvesSWithBrowserLocaleSToS();
+  it.each([
+    ["en", "ja-JP", "en"],
+    ["ja", "en-US", "ja"],
+    ["system", "ja", "ja"],
+    ["system", "ja-JP", "ja"],
+    ["system", "en-GB", "en"],
+    ["system", "fr-FR", "en"],
+    ["system", undefined, "en"],
+  ] as const)("resolves %s with browser locale %s to %s", (preference, browserLanguage, expected) => {
+    expect(resolveEffectiveLanguage(preference, browserLanguage)).toBe(expected);
+  });
 });
 
 const StatefulCopy = () => {
@@ -33,6 +41,8 @@ const StatefulCopy = () => {
 };
 
 describe("I18nProvider", () => {
+  let browserLanguage = "en-US";
+
   beforeEach(() => {
     browserLanguage = "en-US";
     vi.spyOn(window.navigator, "language", "get").mockImplementation(() => browserLanguage);
@@ -45,30 +55,6 @@ describe("I18nProvider", () => {
     vi.restoreAllMocks();
   });
 
-  registerStartsFromDeterministicEnglishAndSynchronizesAnExplicitLanguageWithHtml();
-
-  registerFollowsBrowserLanguageChangesWhileSystemIsSelectedWithoutRemountingChildren();
-
-  registerIgnoresBrowserLanguageChangesWhileAnExplicitLanguageIsSelected();
-
-  registerRemovesTheBrowserListenerWhenTheProviderUnmounts();
-});
-
-function registerResolvesSWithBrowserLocaleSToS() {
-  it.each([
-    ["en", "ja-JP", "en"],
-    ["ja", "en-US", "ja"],
-    ["system", "ja", "ja"],
-    ["system", "ja-JP", "ja"],
-    ["system", "en-GB", "en"],
-    ["system", "fr-FR", "en"],
-    ["system", undefined, "en"],
-  ] as const)("resolves %s with browser locale %s to %s", (preference, browserLanguage, expected) => {
-    expect(resolveEffectiveLanguage(preference, browserLanguage)).toBe(expected);
-  });
-}
-
-function registerStartsFromDeterministicEnglishAndSynchronizesAnExplicitLanguageWithHtml() {
   it("starts from deterministic English and synchronizes an explicit language with html[lang]", () => {
     expect(appI18n.t("settings.title")).toBe("Settings");
 
@@ -82,9 +68,7 @@ function registerStartsFromDeterministicEnglishAndSynchronizesAnExplicitLanguage
     expect(screen.getByText("設定")).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute("lang", "ja");
   });
-}
 
-function registerFollowsBrowserLanguageChangesWhileSystemIsSelectedWithoutRemountingChildren() {
   it("follows browser language changes while System is selected without remounting children", () => {
     updatePreferences({ language: "system" });
     render(
@@ -101,9 +85,7 @@ function registerFollowsBrowserLanguageChangesWhileSystemIsSelectedWithoutRemoun
     expect(screen.getByRole("textbox", { name: "Draft" })).toHaveValue("preserved");
     expect(document.documentElement).toHaveAttribute("lang", "ja");
   });
-}
 
-function registerIgnoresBrowserLanguageChangesWhileAnExplicitLanguageIsSelected() {
   it("ignores browser language changes while an explicit language is selected", () => {
     render(
       <I18nProvider>
@@ -117,9 +99,7 @@ function registerIgnoresBrowserLanguageChangesWhileAnExplicitLanguageIsSelected(
     expect(screen.getByText("Settings")).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute("lang", "en");
   });
-}
 
-function registerRemovesTheBrowserListenerWhenTheProviderUnmounts() {
   it("removes the browser listener when the provider unmounts", () => {
     updatePreferences({ language: "system" });
     const { unmount } = render(
@@ -137,4 +117,4 @@ function registerRemovesTheBrowserListenerWhenTheProviderUnmounts() {
     expect(appI18n.resolvedLanguage).toBe("en");
     expect(document.documentElement).toHaveAttribute("lang", "en");
   });
-}
+});

@@ -97,105 +97,67 @@ const DeckListDestination = () => {
   );
 };
 
-const deckId = "deck-id";
-
-const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
-
-const firstCard = createLocalCard({
-  id: "first-card",
-  deckId,
-  frontText: "Front one",
-  backText: "Back one",
-  uniqueKey: "first-card",
-});
-
-const secondCard = createLocalCard({
-  id: "second-card",
-  deckId,
-  frontText: "Front two",
-  backText: "Back two",
-  uniqueKey: "second-card",
-});
-
-const renderPage = (path = `/deck/${deckId}/study`, previousPath?: string) => {
-  const initialEntries = previousPath === undefined ? [path] : [previousPath, path];
-  return render(
-    <>
-      <MemoryRouter initialEntries={initialEntries} initialIndex={initialEntries.length - 1}>
-        <Routes>
-          <Route path="/" element={<DeckListDestination />} />
-          <Route path="/previous" element={<h1>Previous destination</h1>} />
-          <Route path="/deck/:id/study" element={<StudySessionPage />} />
-        </Routes>
-      </MemoryRouter>
-      <ToastViewport />
-    </>
-  );
-};
-
-const openStudyActions = () => {
-  fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
-  return screen.getByRole("group", { name: "Card actions" });
-};
-
 describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION-03] [SETTINGS-04] [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-SESSION-05] [STUDY-CONTROLS-04]", () => {
-  beforeEach(resetTestState);
-
-  registerExitsViewModeOnceForAHeldEnterWithoutRevealingTheAnswer();
-  registerRendersTheActiveSessionFromStoredEntityState();
-  registerShowsFourRatingsAndPreventsBackwardSliderMovement();
-  registerAllowsTheProgressSliderToAdvanceAndPreventsReturningToTheSkippedCard();
-  registerRevealsTheAnswerFromEnterWithAnonymousS();
-  registerIgnoresDirectionalShortcutsWhileShowingTheAnswer();
-  registerRunsAConfiguredBackTextEdgeActionAndShowsTheNextCardFront();
-  registerKeepsSpaceNativeWhileTheAnswerScrollingSurfaceIsFocused();
-  registerKeepsTheArrowRightShortcutActiveWhileTheFrontCardIsFocused();
-  registerShowsSuccessfulSwipeFeedbackThroughTheSharedToastViewport();
-  registerUsesTheLatestLocaleWhenPersistenceResolvesAfterALanguageChange();
-  registerShowsConfiguredHelpRowsWithoutLettingDialogKeysChangeStudyState();
-  registerUpdatesSemanticHelpLabelsWithoutResettingTheMountedSessionOrControls();
-  registerPausesAutoplayWhileHelpIsOpenAndResumesWithoutChangingItsExplicitState();
-  registerReturnsFromADeepLinkedStudyToTheDeckListWithoutChangingTheResumableSession();
-  registerKeepsTheCompletionScreenOnTheStudyRouteAndDisablesStudyShortcuts();
-  registerKeepsStudyActionsAvailableWhileTheHeaderStaysHidden();
-  registerDelegatesVisibilityTogglesToPersistedPreferenceActions();
-  registerShowsAndHidesTheSkipButtonFromPreferences();
-  registerUsesSVisibilityWithSWithoutRunningAStudyShortcut();
-  registerKeepsTheSwipeVisibilityShortcutActiveWhileAToolbarButtonIsFocused();
-  registerKeepsSNativeToTheFocusedProgressSlider();
-  registerRendersTheSelectedVisibilityCombination();
-  registerDisablesPlaybackVisibilityWhenTheCardIntervalIsZero();
-  registerShowsLoadingFeedbackWhileActiveSessionCardsAreUnavailable();
-  registerStaysOnADirectStudyRouteUntilTheSavedSessionArrives();
-  registerReturnsToTheDeckListWhenNoActiveSessionExists();
-  registerShowsRouteFeedbackWhenTheDeckEntityIsUnavailable();
-  registerRejectsARouteWithoutADeckId();
-});
-
-vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
-  const { moveStudySession } = await import("@/entities/study-session");
-  return {
-    saveStudyOperation: (
-      operation: import("../model/studyOperation").StudyOperation,
-      session: import("@/entities/study-session").StudySession
-    ) => {
-      void Promise.resolve(
-        mocks.persistOperation(operation.uid, {
-          fsrs: operation.fsrs,
-          cardId: operation.cardId,
-          answeredAt: operation.answeredAt,
-        })
-      ).catch(() => undefined);
-      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
-      return {
-        session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
-        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,
-      };
-    },
+  const deckId = "deck-id";
+  const deck = createLocalDeck({ id: deckId, name: "Study deck", category: "raw" });
+  const firstCard = createLocalCard({
+    id: "first-card",
+    deckId,
+    frontText: "Front one",
+    backText: "Back one",
+    uniqueKey: "first-card",
+  });
+  const secondCard = createLocalCard({
+    id: "second-card",
+    deckId,
+    frontText: "Front two",
+    backText: "Back two",
+    uniqueKey: "second-card",
+  });
+  const renderPage = (path = `/deck/${deckId}/study`, previousPath?: string) => {
+    const initialEntries = previousPath === undefined ? [path] : [previousPath, path];
+    return render(
+      <>
+        <MemoryRouter initialEntries={initialEntries} initialIndex={initialEntries.length - 1}>
+          <Routes>
+            <Route path="/" element={<DeckListDestination />} />
+            <Route path="/previous" element={<h1>Previous destination</h1>} />
+            <Route path="/deck/:id/study" element={<StudySessionPage />} />
+          </Routes>
+        </MemoryRouter>
+        <ToastViewport />
+      </>
+    );
   };
-});
+  const openStudyActions = () => {
+    fireEvent.click(screen.getByRole("button", { name: "Open card actions" }));
+    return screen.getByRole("group", { name: "Card actions" });
+  };
 
-function registerExitsViewModeOnceForAHeldEnterWithoutRevealingTheAnswer() {
+  beforeEach(async () => {
+    document.documentElement.lang = "en";
+    replaceAuthSession({ status: "authenticated", uid: "user-id", isAnonymous: false, displayName: null });
+    clearStudySessions();
+    dismissToast();
+    mocks.preferences = createPreferences({ appearance: { darkMode: false } });
+    mocks.persistOperation.mockReset().mockResolvedValue(undefined);
+    mocks.abandonStudySession.mockReset();
+    mocks.setDarkMode.mockReset();
+    mocks.touchStudySession.mockReset();
+    mocks.toggleViewMode.mockReset();
+    mocks.toggleShowCardDetails.mockReset();
+    mocks.toggleShowHelp.mockReset();
+    mocks.toggleShowPlaybackControls.mockReset();
+    mocks.toggleShowSkip.mockReset();
+    mocks.toggleShowSwipeButtonList.mockReset();
+    await createDeck("user-id", deck);
+    await mutateCards("user-id", [
+      { kind: "create", card: firstCard },
+      { kind: "create", card: secondCard },
+    ]);
+    startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
+  });
+
   it("exits view mode once for a held Enter without revealing the answer", () => {
     mocks.preferences.controls.viewMode = true;
     mocks.toggleViewMode.mockImplementation(() => {
@@ -212,9 +174,7 @@ function registerExitsViewModeOnceForAHeldEnterWithoutRevealingTheAnswer() {
     fireEvent.keyDown(window, { key: "Enter" });
     expect(screen.getByText("Back one")).toBeVisible();
   });
-}
 
-function registerRendersTheActiveSessionFromStoredEntityState() {
   it("renders the active session from stored Entity state", () => {
     renderPage();
 
@@ -225,9 +185,7 @@ function registerRendersTheActiveSessionFromStoredEntityState() {
     expect(screen.getByText("Front one")).toBeVisible();
     expect(screen.getByText("not studied yet")).toBeVisible();
   });
-}
 
-function registerShowsFourRatingsAndPreventsBackwardSliderMovement() {
   it("shows four ratings and prevents backward slider movement", () => {
     setStudySessionIndex(deckId, 1);
     renderPage();
@@ -241,9 +199,7 @@ function registerShowsFourRatingsAndPreventsBackwardSliderMovement() {
     expect(screen.getByText("Front two")).toBeVisible();
     expect(mocks.persistOperation).not.toHaveBeenCalled();
   });
-}
 
-function registerAllowsTheProgressSliderToAdvanceAndPreventsReturningToTheSkippedCard() {
   it("allows the progress slider to advance and prevents returning to the skipped Card", async () => {
     renderPage();
     const slider = screen.getByRole("slider", { name: "Study progress" });
@@ -259,9 +215,7 @@ function registerAllowsTheProgressSliderToAdvanceAndPreventsReturningToTheSkippe
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
     expect(mocks.persistOperation).not.toHaveBeenCalled();
   });
-}
 
-function registerRevealsTheAnswerFromEnterWithAnonymousS() {
   it.each([false, true])("reveals the answer from Enter with anonymous=%s", (isAnonymous) => {
     replaceAuthSession({ status: "authenticated", uid: "user-id", isAnonymous, displayName: null });
     renderPage();
@@ -279,9 +233,7 @@ function registerRevealsTheAnswerFromEnterWithAnonymousS() {
     expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
-}
 
-function registerIgnoresDirectionalShortcutsWhileShowingTheAnswer() {
   it("ignores directional shortcuts while showing the answer", async () => {
     mocks.preferences = createPreferences({
       controls: {
@@ -301,9 +253,7 @@ function registerIgnoresDirectionalShortcutsWhileShowingTheAnswer() {
     expect(mocks.persistOperation).not.toHaveBeenCalled();
     expect(getStudySession(deckId)?.currentIndex).toBe(0);
   });
-}
 
-function registerRunsAConfiguredBackTextEdgeActionAndShowsTheNextCardFront() {
   it("runs a configured back-text edge action and shows the next card front", async () => {
     mocks.preferences = createPreferences({
       controls: {
@@ -325,9 +275,7 @@ function registerRunsAConfiguredBackTextEdgeActionAndShowsTheNextCardFront() {
     );
     expect(getStudySession(deckId)?.currentIndex).toBe(1);
   });
-}
 
-function registerKeepsSpaceNativeWhileTheAnswerScrollingSurfaceIsFocused() {
   it("keeps Space native while the answer scrolling surface is focused", async () => {
     const user = userEvent.setup();
     renderPage();
@@ -340,9 +288,7 @@ function registerKeepsSpaceNativeWhileTheAnswerScrollingSurfaceIsFocused() {
 
     expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
   });
-}
 
-function registerKeepsTheArrowRightShortcutActiveWhileTheFrontCardIsFocused() {
   it("keeps the ArrowRight shortcut active while the front card is focused", async () => {
     const user = userEvent.setup();
     renderPage();
@@ -355,9 +301,7 @@ function registerKeepsTheArrowRightShortcutActiveWhileTheFrontCardIsFocused() {
     expect(mocks.persistOperation).toHaveBeenCalledOnce();
     expect(screen.queryByText("Front one")).not.toBeInTheDocument();
   });
-}
 
-function registerShowsSuccessfulSwipeFeedbackThroughTheSharedToastViewport() {
   it("shows successful swipe feedback through the shared Toast viewport", async () => {
     mocks.preferences = createPreferences({
       appearance: { darkMode: false, showSwipeFeedback: true },
@@ -377,9 +321,7 @@ function registerShowsSuccessfulSwipeFeedbackThroughTheSharedToastViewport() {
     expect(screen.getAllByText("Swiped right")).toHaveLength(1);
     expect(screen.queryByRole("button", { name: "Dismiss notification" })).not.toBeInTheDocument();
   });
-}
 
-function registerUsesTheLatestLocaleWhenPersistenceResolvesAfterALanguageChange() {
   it("uses the latest locale when persistence resolves after a language change", async () => {
     mocks.preferences = createPreferences({
       appearance: { darkMode: false, showSwipeFeedback: true },
@@ -406,9 +348,7 @@ function registerUsesTheLatestLocaleWhenPersistenceResolvesAfterALanguageChange(
     expect(screen.queryByText("Swiped right")).not.toBeInTheDocument();
     expect(screen.getByText("Front two")).toBeVisible();
   });
-}
 
-function registerShowsConfiguredHelpRowsWithoutLettingDialogKeysChangeStudyState() {
   it("shows configured Help rows without letting dialog keys change Study state", () => {
     mocks.preferences = createPreferences({
       controls: {
@@ -453,9 +393,7 @@ function registerShowsConfiguredHelpRowsWithoutLettingDialogKeysChangeStudyState
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
-}
 
-function registerUpdatesSemanticHelpLabelsWithoutResettingTheMountedSessionOrControls() {
   it("updates semantic Help labels without resetting the mounted session or controls", () => {
     mocks.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 60 });
     clearStudySessions();
@@ -479,9 +417,7 @@ function registerUpdatesSemanticHelpLabelsWithoutResettingTheMountedSessionOrCon
     expect(screen.getByText("Front one")).toBe(cardBeforeLanguageChange);
     expect(getStudySession(deckId)).toEqual(sessionBeforeLanguageChange);
   });
-}
 
-function registerPausesAutoplayWhileHelpIsOpenAndResumesWithoutChangingItsExplicitState() {
   it("pauses autoplay while Help is open and resumes without changing its explicit state", async () => {
     mocks.preferences = createPreferences({ defaultAutoPlay: true, cardInterval: 1 });
     clearStudySessions();
@@ -510,9 +446,7 @@ function registerPausesAutoplayWhileHelpIsOpenAndResumesWithoutChangingItsExplic
       vi.useRealTimers();
     }
   });
-}
 
-function registerReturnsFromADeepLinkedStudyToTheDeckListWithoutChangingTheResumableSession() {
   it("returns from a deep-linked Study to the Deck list without changing the resumable session", () => {
     renderPage();
     const sessionBeforeExit = getStudySession(deckId);
@@ -524,9 +458,7 @@ function registerReturnsFromADeepLinkedStudyToTheDeckListWithoutChangingTheResum
     expect(getStudySession(deckId)).toEqual(sessionBeforeExit);
     expect(mocks.abandonStudySession).not.toHaveBeenCalled();
   });
-}
 
-function registerKeepsTheCompletionScreenOnTheStudyRouteAndDisablesStudyShortcuts() {
   it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
     setStudySessionIndex(deckId, 1);
     renderPage(`/deck/${deckId}/study`, "/previous");
@@ -548,9 +480,7 @@ function registerKeepsTheCompletionScreenOnTheStudyRouteAndDisablesStudyShortcut
     expect(screen.getByRole("heading", { level: 1, name: "Previous destination" })).toBeVisible();
     expect(screen.queryByRole("heading", { level: 1, name: "Study complete" })).not.toBeInTheDocument();
   });
-}
 
-function registerKeepsStudyActionsAvailableWhileTheHeaderStaysHidden() {
   it("keeps study actions available while the Header stays hidden", () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
 
@@ -562,9 +492,7 @@ function registerKeepsStudyActionsAvailableWhileTheHeaderStaysHidden() {
     expect(screen.getByRole("button", { name: "Back to deck list" })).toBeVisible();
     expect(screen.getByText("not studied yet")).toBeVisible();
   });
-}
 
-function registerDelegatesVisibilityTogglesToPersistedPreferenceActions() {
   it("delegates visibility toggles to persisted preference actions", () => {
     renderPage();
     openStudyActions();
@@ -581,9 +509,7 @@ function registerDelegatesVisibilityTogglesToPersistedPreferenceActions() {
     expect(mocks.toggleShowSkip).toHaveBeenCalledOnce();
     expect(mocks.toggleShowCardDetails).toHaveBeenCalledOnce();
   });
-}
 
-function registerShowsAndHidesTheSkipButtonFromPreferences() {
   it("shows and hides the skip button from preferences", () => {
     mocks.preferences = createPreferences({ controls: { showSkip: false } });
     const { unmount } = renderPage();
@@ -594,9 +520,7 @@ function registerShowsAndHidesTheSkipButtonFromPreferences() {
     renderPage();
     expect(screen.getByRole("button", { name: "Skip" })).toBeVisible();
   });
-}
 
-function registerUsesSVisibilityWithSWithoutRunningAStudyShortcut() {
   it.each([
     ["swipe", "Swipe controls", "{Enter}"],
     ["swipe", "Swipe controls", " "],
@@ -615,9 +539,7 @@ function registerUsesSVisibilityWithSWithoutRunningAStudyShortcut() {
     expect(screen.queryByText("Back one")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
   });
-}
 
-function registerKeepsTheSwipeVisibilityShortcutActiveWhileAToolbarButtonIsFocused() {
   it("keeps the swipe visibility shortcut active while a toolbar button is focused", async () => {
     const user = userEvent.setup();
     renderPage();
@@ -630,9 +552,7 @@ function registerKeepsTheSwipeVisibilityShortcutActiveWhileAToolbarButtonIsFocus
     expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
     expect(mocks.persistOperation).not.toHaveBeenCalled();
   });
-}
 
-function registerKeepsSNativeToTheFocusedProgressSlider() {
   it.each(["{ArrowUp}", "{ArrowDown}", "{ArrowLeft}", "{ArrowRight}"])(
     "keeps %s native to the focused progress slider",
     async (key) => {
@@ -654,9 +574,7 @@ function registerKeepsSNativeToTheFocusedProgressSlider() {
       expect(mocks.persistOperation).not.toHaveBeenCalled();
     }
   );
-}
 
-function registerRendersTheSelectedVisibilityCombination() {
   it("renders the selected visibility combination", () => {
     mocks.preferences = createPreferences({
       controls: { showCardDetails: false, showSwipeButtonList: false, showPlaybackControls: false },
@@ -673,9 +591,7 @@ function registerRendersTheSelectedVisibilityCombination() {
     expect(screen.queryByText("not studied yet")).not.toBeInTheDocument();
     expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();
   });
-}
 
-function registerDisablesPlaybackVisibilityWhenTheCardIntervalIsZero() {
   it("disables playback visibility when the card interval is zero", () => {
     mocks.preferences = createPreferences({ cardInterval: 0 });
 
@@ -690,9 +606,7 @@ function registerDisablesPlaybackVisibilityWhenTheCardIntervalIsZero() {
     );
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
-}
 
-function registerShowsLoadingFeedbackWhileActiveSessionCardsAreUnavailable() {
   it("shows loading feedback while active session cards are unavailable", async () => {
     await deleteCard("user-id", firstCard.id);
     await deleteCard("user-id", secondCard.id);
@@ -703,9 +617,7 @@ function registerShowsLoadingFeedbackWhileActiveSessionCardsAreUnavailable() {
 
     expect(screen.getByRole("heading", { name: "Loading…" })).toBeVisible();
   });
-}
 
-function registerStaysOnADirectStudyRouteUntilTheSavedSessionArrives() {
   it("stays on a direct study route until the saved session arrives", async () => {
     const saved = getStudySession(deckId);
     if (saved === undefined) throw new Error("Expected a saved session");
@@ -740,18 +652,14 @@ function registerStaysOnADirectStudyRouteUntilTheSavedSessionArrives() {
     expect(screen.queryByRole("heading", { name: "Deck list destination" })).not.toBeInTheDocument();
     stop();
   });
-}
 
-function registerReturnsToTheDeckListWhenNoActiveSessionExists() {
   it("returns to the deck list when no active session exists", async () => {
     clearStudySessions();
     renderPage();
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list destination" })).toBeVisible();
   });
-}
 
-function registerShowsRouteFeedbackWhenTheDeckEntityIsUnavailable() {
   it("shows route feedback when the Deck Entity is unavailable", () => {
     renderPage("/deck/missing-deck/study");
 
@@ -759,9 +667,7 @@ function registerShowsRouteFeedbackWhenTheDeckEntityIsUnavailable() {
     expect(mocks.abandonStudySession).not.toHaveBeenCalled();
     expect(mocks.touchStudySession).not.toHaveBeenCalled();
   });
-}
 
-function registerRejectsARouteWithoutADeckId() {
   it("rejects a route without a deck id", () => {
     expect(() =>
       render(
@@ -771,28 +677,27 @@ function registerRejectsARouteWithoutADeckId() {
       )
     ).toThrowError("invalid deck id");
   });
-}
+});
 
-async function resetTestState() {
-  document.documentElement.lang = "en";
-  replaceAuthSession({ status: "authenticated", uid: "user-id", isAnonymous: false, displayName: null });
-  clearStudySessions();
-  dismissToast();
-  mocks.preferences = createPreferences({ appearance: { darkMode: false } });
-  mocks.persistOperation.mockReset().mockResolvedValue(undefined);
-  mocks.abandonStudySession.mockReset();
-  mocks.setDarkMode.mockReset();
-  mocks.touchStudySession.mockReset();
-  mocks.toggleViewMode.mockReset();
-  mocks.toggleShowCardDetails.mockReset();
-  mocks.toggleShowHelp.mockReset();
-  mocks.toggleShowPlaybackControls.mockReset();
-  mocks.toggleShowSkip.mockReset();
-  mocks.toggleShowSwipeButtonList.mockReset();
-  await createDeck("user-id", deck);
-  await mutateCards("user-id", [
-    { kind: "create", card: firstCard },
-    { kind: "create", card: secondCard },
-  ]);
-  startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
-}
+vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
+  const { moveStudySession } = await import("@/entities/study-session");
+  return {
+    saveStudyOperation: (
+      operation: import("../model/studyOperation").StudyOperation,
+      session: import("@/entities/study-session").StudySession
+    ) => {
+      void Promise.resolve(
+        mocks.persistOperation(operation.uid, {
+          fsrs: operation.fsrs,
+          cardId: operation.cardId,
+          answeredAt: operation.answeredAt,
+        })
+      ).catch(() => undefined);
+      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
+      return {
+        session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
+        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,
+      };
+    },
+  };
+});

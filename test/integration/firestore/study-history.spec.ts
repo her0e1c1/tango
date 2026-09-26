@@ -31,40 +31,6 @@ afterAll(async () => {
 });
 
 describe("Firestore history reads", () => {
-  registerReadsPeriodAndDeckFiltersOnlineAndFromCache();
-});
-
-async function readAnswerHistory(input: Parameters<typeof subscribeStudyAnswerHistory>[0], cached = false) {
-  let history: StudyAnswerHistory | undefined;
-  let failure: Error | undefined;
-  const stop = subscribeStudyAnswerHistory(
-    input,
-    (value) => {
-      if (cached || value.source === "server") history = value;
-    },
-    (error) => {
-      failure = error;
-    }
-  );
-  try {
-    await vi.waitFor(() => {
-      if (failure) throw failure;
-      if (!history) throw new Error("Waiting for history snapshot");
-    });
-    if (!history) throw new Error("Missing history snapshot");
-    return history;
-  } finally {
-    stop();
-  }
-}
-
-describe("Bounded answer history", () => {
-  registerReadsBoundedAnswersInStableOrderWithSourceMetadata();
-  registerRejectsInvalidBoundsAndForeignOwnersBeforeSubscribing();
-  registerStreamsLocalWritesAcknowledgementsAndRemoteChangesUntilStopped();
-});
-
-function registerReadsPeriodAndDeckFiltersOnlineAndFromCache() {
   it("[FIRESTORE-STUDY-HISTORY-01] reads period and Deck filters online and from cache", async () => {
     // A unique narrow interval isolates this query from other emulator tests without limiting record count.
     const start = Date.now() + 1_000_000_000;
@@ -185,9 +151,33 @@ function registerReadsPeriodAndDeckFiltersOnlineAndFromCache() {
     });
     expect(denied).toMatchObject({ code: "permission-denied" });
   }, 30_000);
+});
+
+async function readAnswerHistory(input: Parameters<typeof subscribeStudyAnswerHistory>[0], cached = false) {
+  let history: StudyAnswerHistory | undefined;
+  let failure: Error | undefined;
+  const stop = subscribeStudyAnswerHistory(
+    input,
+    (value) => {
+      if (cached || value.source === "server") history = value;
+    },
+    (error) => {
+      failure = error;
+    }
+  );
+  try {
+    await vi.waitFor(() => {
+      if (failure) throw failure;
+      if (!history) throw new Error("Waiting for history snapshot");
+    });
+    if (!history) throw new Error("Missing history snapshot");
+    return history;
+  } finally {
+    stop();
+  }
 }
 
-function registerReadsBoundedAnswersInStableOrderWithSourceMetadata() {
+describe("Bounded answer history", () => {
   it("[FIRESTORE-STUDY-HISTORY-02] reads bounded answers in stable order with source metadata", async () => {
     const from = Date.now() + 2_000_000_000;
     const deckId = crypto.randomUUID();
@@ -241,9 +231,7 @@ function registerReadsBoundedAnswersInStableOrderWithSourceMetadata() {
       await enableNetwork(testDb);
     }
   });
-}
 
-function registerRejectsInvalidBoundsAndForeignOwnersBeforeSubscribing() {
   it("[FIRESTORE-STUDY-HISTORY-03] rejects invalid bounds and foreign owners before subscribing", () => {
     const input = { uid: "uid", from: 100, to: 200, deckId: null, limit: 10 };
     for (const invalid of [
@@ -261,9 +249,6 @@ function registerRejectsInvalidBoundsAndForeignOwnersBeforeSubscribing() {
       expect(() => subscribeStudyAnswerHistory({ ...input, ...invalid }, vi.fn(), vi.fn())).toThrow();
     }
   });
-}
-
-function registerStreamsLocalWritesAcknowledgementsAndRemoteChangesUntilStopped() {
   it("[FIRESTORE-STUDY-HISTORY-04] streams local writes, acknowledgements and remote changes until stopped", async () => {
     const from = Date.now() + 3_000_000_000;
     const deckId = crypto.randomUUID();
@@ -362,4 +347,4 @@ function registerStreamsLocalWritesAcknowledgementsAndRemoteChangesUntilStopped(
       await deleteApp(remoteApp);
     }
   }, 20_000);
-}
+});

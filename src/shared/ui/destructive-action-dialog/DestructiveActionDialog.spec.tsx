@@ -23,30 +23,6 @@ afterEach(() => {
 });
 
 describe("DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 CARD-MANAGEMENT-08 DestructiveActionDialog", () => {
-  registerLabelsTheAlertDialogWithTheTargetAndExplanation();
-
-  registerFocusesCancelFirstTrapsTabAndClosesWithEscape();
-
-  registerExcludesDisabledControlsAndIncludesExplicitTabStopsInTheFocusTrap();
-
-  registerPreservesTheDialogSUnfilteredSDescendantSemantics();
-
-  registerRestoresFocusToTheControlThatOpenedIt();
-
-  registerAnnouncesPendingWorkAndPreventsConfirmationCancelAndEscape();
-
-  registerKeepsFocusInsideWhenConfirmationTransitionsToPending();
-
-  registerKeepsAPersistentToastNonInteractiveWhileTheDialogIsOpen();
-
-  registerPreventsDuplicateConfirmationBeforePendingPropsUpdate();
-
-  registerSupportsSynchronousOnConfirmCallbacks();
-
-  registerHandlesRejectedOnConfirmPromisesWithoutUnhandledPromiseRejections();
-});
-
-function registerLabelsTheAlertDialogWithTheTargetAndExplanation() {
   it("labels the alert dialog with the target and explanation", () => {
     render(<DestructiveActionDialog {...defaultProps} />);
 
@@ -54,9 +30,7 @@ function registerLabelsTheAlertDialogWithTheTargetAndExplanation() {
     expect(dialog).toHaveAccessibleDescription(expect.stringContaining("Japanese verbs"));
     expect(dialog).toHaveAccessibleDescription(expect.stringContaining("cannot be undone"));
   });
-}
 
-function registerFocusesCancelFirstTrapsTabAndClosesWithEscape() {
   it("focuses Cancel first, traps Tab, and closes with Escape", async () => {
     const onCancel = vi.fn();
     render(<DestructiveActionDialog {...defaultProps} onCancel={onCancel} />);
@@ -75,9 +49,7 @@ function registerFocusesCancelFirstTrapsTabAndClosesWithEscape() {
     fireEvent.keyDown(cancel, { key: "Escape" });
     expect(onCancel).toHaveBeenCalledOnce();
   });
-}
 
-function registerExcludesDisabledControlsAndIncludesExplicitTabStopsInTheFocusTrap() {
   it("excludes disabled controls and includes explicit tab stops in the focus trap", async () => {
     render(
       <DestructiveActionDialog
@@ -107,9 +79,7 @@ function registerExcludesDisabledControlsAndIncludesExplicitTabStopsInTheFocusTr
     await userEvent.tab({ shift: true });
     expect(confirm).toHaveFocus();
   });
-}
 
-function registerPreservesTheDialogSUnfilteredSDescendantSemantics() {
   it.each([
     [
       "hidden",
@@ -130,9 +100,7 @@ function registerPreservesTheDialogSUnfilteredSDescendantSemantics() {
     expect(fireEvent.keyDown(cancel, { key: "Tab", shiftKey: true })).toBe(true);
     expect(cancel).toHaveFocus();
   });
-}
 
-function registerRestoresFocusToTheControlThatOpenedIt() {
   it("restores focus to the control that opened it", async () => {
     const Example = () => {
       const [open, setOpen] = React.useState(false);
@@ -153,9 +121,7 @@ function registerRestoresFocusToTheControlThatOpenedIt() {
 
     expect(trigger).toHaveFocus();
   });
-}
 
-function registerAnnouncesPendingWorkAndPreventsConfirmationCancelAndEscape() {
   it("announces pending work and prevents confirmation, Cancel, and Escape", async () => {
     const onConfirm = vi.fn();
     const onCancel = vi.fn();
@@ -171,9 +137,7 @@ function registerAnnouncesPendingWorkAndPreventsConfirmationCancelAndEscape() {
     expect(onConfirm).not.toHaveBeenCalled();
     expect(onCancel).not.toHaveBeenCalled();
   });
-}
 
-function registerKeepsFocusInsideWhenConfirmationTransitionsToPending() {
   it("keeps focus inside when confirmation transitions to pending", async () => {
     const Example = () => {
       const [pending, setPending] = React.useState(false);
@@ -192,9 +156,7 @@ function registerKeepsFocusInsideWhenConfirmationTransitionsToPending() {
     await userEvent.tab();
     expect(target).toHaveFocus();
   });
-}
 
-function registerKeepsAPersistentToastNonInteractiveWhileTheDialogIsOpen() {
   it("keeps a persistent Toast non-interactive while the dialog is open", async () => {
     const Example = () => {
       const [open, setOpen] = React.useState(false);
@@ -229,9 +191,7 @@ function registerKeepsAPersistentToastNonInteractiveWhileTheDialogIsOpen() {
     act(() => dismissToast(toastId));
     expect(screen.getByText("Japanese verbs")).toHaveFocus();
   });
-}
 
-function registerPreventsDuplicateConfirmationBeforePendingPropsUpdate() {
   it("prevents duplicate confirmation before pending props update", () => {
     const onConfirm = vi.fn(
       () =>
@@ -251,9 +211,7 @@ function registerPreventsDuplicateConfirmationBeforePendingPropsUpdate() {
     expect(onConfirm).toHaveBeenCalledOnce();
     expect(onCancel).not.toHaveBeenCalled();
   });
-}
 
-function registerSupportsSynchronousOnConfirmCallbacks() {
   it("supports synchronous onConfirm callbacks", () => {
     const onConfirm = vi.fn();
     render(<DestructiveActionDialog {...defaultProps} onConfirm={onConfirm} />);
@@ -262,9 +220,7 @@ function registerSupportsSynchronousOnConfirmCallbacks() {
     fireEvent.click(confirm);
     expect(onConfirm).toHaveBeenCalledOnce();
   });
-}
 
-function registerHandlesRejectedOnConfirmPromisesWithoutUnhandledPromiseRejections() {
   it("handles rejected onConfirm promises without unhandled promise rejections", async () => {
     let unhandledRejection: unknown;
     const listener = (event: PromiseRejectionEvent) => {
@@ -286,4 +242,4 @@ function registerHandlesRejectedOnConfirmPromisesWithoutUnhandledPromiseRejectio
     window.removeEventListener("unhandledrejection", listener);
     expect(unhandledRejection).toBeUndefined();
   });
-}
+});

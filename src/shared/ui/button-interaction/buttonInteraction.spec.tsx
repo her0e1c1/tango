@@ -25,20 +25,6 @@ function NestedTestButton({ onClick }: { onClick?: () => void }) {
 }
 
 describe("useButtonInteraction", () => {
-  registerActivatesACustomButtonOnceForADirectEnterKeyPress();
-
-  registerPreventsScrollingOnSpaceKeydownAndActivatesOnceOnKeyup();
-
-  registerPreservesAPendingSpaceActivationAcrossRerenders();
-
-  registerCancelsAPendingSpaceActivationOnBlur();
-
-  registerDoesNotActivateACustomButtonFromDescendantKeyboardEvents();
-
-  registerDoesNotExposeNonInteractiveContainersAsButtons();
-});
-
-function registerActivatesACustomButtonOnceForADirectEnterKeyPress() {
   it("activates a custom button once for a direct Enter key press", () => {
     const onClick = vi.fn();
     render(<TestButton onClick={onClick} />);
@@ -49,9 +35,7 @@ function registerActivatesACustomButtonOnceForADirectEnterKeyPress() {
 
     expect(onClick).toHaveBeenCalledOnce();
   });
-}
 
-function registerPreventsScrollingOnSpaceKeydownAndActivatesOnceOnKeyup() {
   it("prevents scrolling on Space keydown and activates once on keyup", () => {
     const onClick = vi.fn();
     render(<TestButton onClick={onClick} />);
@@ -64,9 +48,7 @@ function registerPreventsScrollingOnSpaceKeydownAndActivatesOnceOnKeyup() {
 
     expect(onClick).toHaveBeenCalledOnce();
   });
-}
 
-function registerPreservesAPendingSpaceActivationAcrossRerenders() {
   it("preserves a pending Space activation across rerenders", () => {
     const onClick = vi.fn();
     const view = render(<TestButton onClick={onClick} />);
@@ -77,9 +59,7 @@ function registerPreservesAPendingSpaceActivationAcrossRerenders() {
 
     expect(onClick).toHaveBeenCalledOnce();
   });
-}
 
-function registerCancelsAPendingSpaceActivationOnBlur() {
   it("cancels a pending Space activation on blur", () => {
     const onClick = vi.fn();
     render(<TestButton onClick={onClick} />);
@@ -91,9 +71,7 @@ function registerCancelsAPendingSpaceActivationOnBlur() {
 
     expect(onClick).not.toHaveBeenCalled();
   });
-}
 
-function registerDoesNotActivateACustomButtonFromDescendantKeyboardEvents() {
   it("does not activate a custom button from descendant keyboard events", () => {
     const onClick = vi.fn();
     render(<NestedTestButton onClick={onClick} />);
@@ -105,13 +83,11 @@ function registerDoesNotActivateACustomButtonFromDescendantKeyboardEvents() {
 
     expect(onClick).not.toHaveBeenCalled();
   });
-}
 
-function registerDoesNotExposeNonInteractiveContainersAsButtons() {
   it("does not expose non-interactive containers as buttons", () => {
     render(<TestButton />);
 
     expect(screen.queryAllByRole("button")).toHaveLength(0);
     expect(screen.getByText("Test Button")).not.toHaveAttribute("tabindex");
   });
-}
+});

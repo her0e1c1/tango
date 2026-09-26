@@ -42,35 +42,34 @@ const LeaveRouteButton = () => {
   );
 };
 
-const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
-
-const renderPage = (deckId = deck.id) => {
-  const router = createMemoryRouter(
-    [
-      { path: "/", element: <h1>Deck list destination</h1> },
-      {
-        path: "/deck/:id/card/new",
-        element: (
-          <>
-            <LeaveRouteButton />
-            <CardCreatePage />
-          </>
-        ),
-      },
-      { path: "/deck/:id", element: <h1>Card list destination</h1> },
-    ],
-    { initialEntries: [`/deck/${deckId}/card/new`] }
-  );
-  const view = render(
-    <>
-      <RouterProvider router={router} />
-      <ToastViewport />
-    </>
-  );
-  return Object.assign(view, { router });
-};
-
 describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEMENT-11 CARD-MANAGEMENT-12 CARD-MANAGEMENT-13 CARD-MANAGEMENT-14 CardCreatePage", () => {
+  const deck = createLocalDeck({ id: "target-deck", name: "Target deck" });
+  const renderPage = (deckId = deck.id) => {
+    const router = createMemoryRouter(
+      [
+        { path: "/", element: <h1>Deck list destination</h1> },
+        {
+          path: "/deck/:id/card/new",
+          element: (
+            <>
+              <LeaveRouteButton />
+              <CardCreatePage />
+            </>
+          ),
+        },
+        { path: "/deck/:id", element: <h1>Card list destination</h1> },
+      ],
+      { initialEntries: [`/deck/${deckId}/card/new`] }
+    );
+    const view = render(
+      <>
+        <RouterProvider router={router} />
+        <ToastViewport />
+      </>
+    );
+    return Object.assign(view, { router });
+  };
+
   beforeEach(async () => {
     replaceRemoteCards([]);
     dismissToast();
@@ -79,32 +78,6 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
     await createDeck("user-id", deck);
   });
 
-  registerShowsTheTargetDeckContextAndCancelsToItsCardListWhenClean();
-
-  registerCreatesACardAndKeepsItsSuccessNotificationAcrossNavigation();
-
-  registerCreatesACardWithTagsFromCardsInTheSameDeck();
-
-  registerOffersNoFallbackTagsWhenTheDeckHasNoCards();
-
-  registerShowsRouteRecoveryWhenTheTargetDeckIsUnavailable();
-
-  registerStaysOnTheCreationPageWithBothInputsWhenSavingFails();
-
-  registerConfirmsBeforeLeavingWhenInputIsDirtyRetainsInputOnKeepEditingAndDiscardsOnConfirm();
-
-  registerDoesNotConfirmWhenDirtyInputIsRevertedBackToEmpty();
-
-  registerConfirmsWhenLeavingDuringCreationWithSubmittingDescriptionAndNavigatesUponCompletion();
-
-  registerAllowsDiscardingChangesWhileCreationIsPendingWithoutRevivingTheUnmountedPage();
-
-  registerPrioritizesSaveSuccessOverAnUnansweredLeaveConfirmationDialog();
-
-  registerKeepsConfirmationDialogOpenWhenSaveFailsWhileUnansweredAllowingRetryAfterKeepEditing();
-});
-
-function registerShowsTheTargetDeckContextAndCancelsToItsCardListWhenClean() {
   it("shows the target Deck context and cancels to its Card list when clean", async () => {
     renderPage();
 
@@ -113,9 +86,7 @@ function registerShowsTheTargetDeckContextAndCancelsToItsCardListWhenClean() {
 
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
   });
-}
 
-function registerCreatesACardAndKeepsItsSuccessNotificationAcrossNavigation() {
   it("creates a Card and keeps its success notification across navigation", async () => {
     renderPage();
 
@@ -127,9 +98,7 @@ function registerCreatesACardAndKeepsItsSuccessNotificationAcrossNavigation() {
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
     expect(screen.getByText("Created card “Created front”.")).toBeVisible();
   });
-}
 
-function registerCreatesACardWithTagsFromCardsInTheSameDeck() {
   it("CARD-MANAGEMENT-05 creates a Card with tags from Cards in the same Deck", async () => {
     replaceRemoteDecks([deck, createLocalDeck({ id: "other-deck" })]);
     replaceRemoteCards([
@@ -155,9 +124,7 @@ function registerCreatesACardWithTagsFromCardsInTheSameDeck() {
       tags: ["chapter-1"],
     });
   });
-}
 
-function registerOffersNoFallbackTagsWhenTheDeckHasNoCards() {
   it("CARD-MANAGEMENT-05 offers no fallback tags when the Deck has no Cards", async () => {
     replaceRemoteDecks([deck]);
     renderPage();
@@ -165,17 +132,13 @@ function registerOffersNoFallbackTagsWhenTheDeckHasNoCards() {
     expect(screen.getByRole("dialog", { name: "Select tags" })).toBeVisible();
     expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
   });
-}
 
-function registerShowsRouteRecoveryWhenTheTargetDeckIsUnavailable() {
   it("shows route recovery when the target Deck is unavailable", () => {
     renderPage("missing-deck");
 
     expect(screen.getByRole("heading", { level: 1, name: "Deck not found" })).toBeVisible();
   });
-}
 
-function registerStaysOnTheCreationPageWithBothInputsWhenSavingFails() {
   it("stays on the creation Page with both inputs when saving fails", async () => {
     writes.rejected = true;
     renderPage();
@@ -192,9 +155,7 @@ function registerStaysOnTheCreationPageWithBothInputsWhenSavingFails() {
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Retained front");
     expect(screen.getByRole("button", { name: "Create card" })).toBeEnabled();
   });
-}
 
-function registerConfirmsBeforeLeavingWhenInputIsDirtyRetainsInputOnKeepEditingAndDiscardsOnConfirm() {
   it("confirms before leaving when input is dirty, retains input on keep editing, and discards on confirm", async () => {
     renderPage();
     const frontText = screen.getByRole("textbox", { name: "Front text" });
@@ -214,9 +175,7 @@ function registerConfirmsBeforeLeavingWhenInputIsDirtyRetainsInputOnKeepEditingA
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
   });
-}
 
-function registerDoesNotConfirmWhenDirtyInputIsRevertedBackToEmpty() {
   it("does not confirm when dirty input is reverted back to empty", async () => {
     renderPage();
     const frontText = screen.getByRole("textbox", { name: "Front text" });
@@ -228,9 +187,7 @@ function registerDoesNotConfirmWhenDirtyInputIsRevertedBackToEmpty() {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
   });
-}
 
-function registerConfirmsWhenLeavingDuringCreationWithSubmittingDescriptionAndNavigatesUponCompletion() {
   it("confirms when leaving during creation with submitting description and navigates upon completion", async () => {
     const defer = Promise.withResolvers<void>();
     writes.pending = defer.promise;
@@ -261,9 +218,7 @@ function registerConfirmsWhenLeavingDuringCreationWithSubmittingDescriptionAndNa
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
     expect(screen.getByText("Created card “Submitting front”.")).toBeVisible();
   });
-}
 
-function registerAllowsDiscardingChangesWhileCreationIsPendingWithoutRevivingTheUnmountedPage() {
   it("allows discarding changes while creation is pending without reviving the unmounted Page", async () => {
     const defer = Promise.withResolvers<void>();
     writes.pending = defer.promise;
@@ -288,9 +243,7 @@ function registerAllowsDiscardingChangesWhileCreationIsPendingWithoutRevivingThe
     expect(screen.queryByText("Created card “Discarded while pending”.")).not.toBeInTheDocument();
     expect(getCards().some((card) => card.frontText === "Discarded while pending")).toBe(true);
   });
-}
 
-function registerPrioritizesSaveSuccessOverAnUnansweredLeaveConfirmationDialog() {
   it("prioritizes save success over an unanswered leave confirmation dialog", async () => {
     const defer = Promise.withResolvers<void>();
     writes.pending = defer.promise;
@@ -314,9 +267,7 @@ function registerPrioritizesSaveSuccessOverAnUnansweredLeaveConfirmationDialog()
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(screen.getByText("Created card “Conflicting front”.")).toBeVisible();
   });
-}
 
-function registerKeepsConfirmationDialogOpenWhenSaveFailsWhileUnansweredAllowingRetryAfterKeepEditing() {
   it("keeps confirmation dialog open when save fails while unanswered, allowing retry after keep editing", async () => {
     const defer = Promise.withResolvers<void>();
     writes.pending = defer.promise;
@@ -350,4 +301,4 @@ function registerKeepsConfirmationDialogOpenWhenSaveFailsWhileUnansweredAllowing
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
     expect(screen.getByText("Created card “Failing front”.")).toBeVisible();
   });
-}
+});

@@ -34,30 +34,26 @@ const NextDeckButton = () => {
   );
 };
 
-const deckId = "deck-id";
-
-const nextDeckId = "next-deck";
-
-const cardId = "card-id";
-
-const nextCardId = "next-card";
-
-const renderPage = (path = `/deck/${deckId}`) =>
-  render(
-    <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
-      <NextDeckButton />
-      <Routes>
-        <Route path="/previous" element={<h1>Previous page</h1>} />
-        <Route path="/" element={<h1>Deck list destination</h1>} />
-        <Route path="/settings" element={<h1>Settings destination</h1>} />
-        <Route path="/card/:id/edit" element={<h1>Card editor destination</h1>} />
-        <Route path="/deck/:id/card/new" element={<h1>Card creator destination</h1>} />
-        <Route path="/deck/:id" element={<CardListPage />} />
-      </Routes>
-    </MemoryRouter>
-  );
-
 describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MANAGEMENT-05 CARD-LIST-ACTIONS-03 CardListPage", () => {
+  const deckId = "deck-id";
+  const nextDeckId = "next-deck";
+  const cardId = "card-id";
+  const nextCardId = "next-card";
+  const renderPage = (path = `/deck/${deckId}`) =>
+    render(
+      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+        <NextDeckButton />
+        <Routes>
+          <Route path="/previous" element={<h1>Previous page</h1>} />
+          <Route path="/" element={<h1>Deck list destination</h1>} />
+          <Route path="/settings" element={<h1>Settings destination</h1>} />
+          <Route path="/card/:id/edit" element={<h1>Card editor destination</h1>} />
+          <Route path="/deck/:id/card/new" element={<h1>Card creator destination</h1>} />
+          <Route path="/deck/:id" element={<CardListPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
   beforeEach(async () => {
     mocks.preferences = createPreferences();
     mocks.setDarkMode.mockReset();
@@ -95,30 +91,6 @@ describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MAN
     ]);
   });
 
-  registerRendersStoredCardsAndNavigatesToTheSelectedCardEditor();
-
-  registerNavigatesToCardCreationForTheCurrentDeck();
-
-  registerRemovesASelectedTagFromTheVisibleFilter();
-
-  registerUsesTheSharedProgressiveTagFilter();
-
-  registerResetsSortingOnADeckChangeAndAfterLeavingThePage();
-
-  registerNavigatesFromBothRouteShortcuts();
-
-  registerResetsTheShownCardWhenNavigationChangesTheRouteDeck();
-
-  registerNavigatesWithBothRecoveryActionsWhenTheDeckIsUnavailable();
-
-  registerRendersEmptyRecoveryWhenDeckHasNoCardsAndNavigatesToCardCreator();
-
-  registerRendersFilterZeroRecoveryAndClearsFiltersWhenCardsMatchZero();
-
-  registerRejectsARouteWithoutADeckId();
-});
-
-function registerRendersStoredCardsAndNavigatesToTheSelectedCardEditor() {
   it("renders stored cards and navigates to the selected card editor", async () => {
     renderPage();
 
@@ -130,9 +102,7 @@ function registerRendersStoredCardsAndNavigatesToTheSelectedCardEditor() {
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Card editor destination" })).toBeVisible();
   });
-}
 
-function registerNavigatesToCardCreationForTheCurrentDeck() {
   it("navigates to Card creation for the current Deck", async () => {
     renderPage();
 
@@ -141,9 +111,7 @@ function registerNavigatesToCardCreationForTheCurrentDeck() {
 
     expect(await screen.findByRole("heading", { level: 1, name: "Card creator destination" })).toBeVisible();
   });
-}
 
-function registerRemovesASelectedTagFromTheVisibleFilter() {
   it("removes a selected tag from the visible filter", async () => {
     renderPage();
 
@@ -154,9 +122,7 @@ function registerRemovesASelectedTagFromTheVisibleFilter() {
     );
     expect(screen.getByText("No filters")).toBeVisible();
   });
-}
 
-function registerUsesTheSharedProgressiveTagFilter() {
   it("uses the shared progressive tag filter", async () => {
     await mutateCards(
       "user-id",
@@ -183,9 +149,7 @@ function registerUsesTheSharedProgressiveTagFilter() {
     await userEvent.click(screen.getByRole("button", { name: "Show 4 more tags" }));
     expect(screen.getByRole("checkbox", { name: "tag-12" })).toBeVisible();
   });
-}
 
-function registerResetsSortingOnADeckChangeAndAfterLeavingThePage() {
   it("resets sorting on a Deck change and after leaving the Page", async () => {
     const view = renderPage();
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort order" }), "newest");
@@ -196,9 +160,7 @@ function registerResetsSortingOnADeckChangeAndAfterLeavingThePage() {
     renderPage();
     expect(screen.getByRole("combobox", { name: "Sort order" })).toHaveValue("standard");
   });
-}
 
-function registerNavigatesFromBothRouteShortcuts() {
   it("navigates from both route shortcuts", async () => {
     const view = renderPage();
     fireEvent.keyDown(window, { key: "t" });
@@ -209,9 +171,7 @@ function registerNavigatesFromBothRouteShortcuts() {
     fireEvent.keyDown(window, { key: "s" });
     expect(await screen.findByRole("heading", { level: 1, name: "Settings destination" })).toBeVisible();
   });
-}
 
-function registerResetsTheShownCardWhenNavigationChangesTheRouteDeck() {
   it("resets the shown card when navigation changes the route deck", async () => {
     renderPage();
 
@@ -223,9 +183,7 @@ function registerResetsTheShownCardWhenNavigationChangesTheRouteDeck() {
     expect(await screen.findByRole("button", { name: "View Front two" })).toBeVisible();
     expect(screen.queryByLabelText("Close card")).not.toBeInTheDocument();
   });
-}
 
-function registerNavigatesWithBothRecoveryActionsWhenTheDeckIsUnavailable() {
   it("navigates with both recovery actions when the deck is unavailable", async () => {
     const view = renderPage("/deck/missing-deck");
 
@@ -238,9 +196,7 @@ function registerNavigatesWithBothRecoveryActionsWhenTheDeckIsUnavailable() {
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
-}
 
-function registerRendersEmptyRecoveryWhenDeckHasNoCardsAndNavigatesToCardCreator() {
   it("renders empty recovery when deck has no cards and navigates to card creator", async () => {
     const emptyDeckId = "empty-deck-id";
     await createDeck("user-id", createLocalDeck({ id: emptyDeckId, name: "Empty deck" }));
@@ -250,9 +206,7 @@ function registerRendersEmptyRecoveryWhenDeckHasNoCardsAndNavigatesToCardCreator
     await userEvent.click(screen.getByRole("button", { name: "Add card" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Card creator destination" })).toBeVisible();
   });
-}
 
-function registerRendersFilterZeroRecoveryAndClearsFiltersWhenCardsMatchZero() {
   it("renders filter-zero recovery and clears filters when cards match zero", async () => {
     const filteredDeckId = "filtered-deck-id";
     await createDeck(
@@ -282,9 +236,7 @@ function registerRendersFilterZeroRecoveryAndClearsFiltersWhenCardsMatchZero() {
     await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
     expect(await screen.findByRole("button", { name: "View High diff" })).toBeVisible();
   });
-}
 
-function registerRejectsARouteWithoutADeckId() {
   it("rejects a route without a deck id", () => {
     expect(() =>
       render(
@@ -294,4 +246,4 @@ function registerRejectsARouteWithoutADeckId() {
       )
     ).toThrowError("invalid deck id");
   });
-}
+});

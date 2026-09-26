@@ -118,48 +118,55 @@ const answerData = () => ({
   updatedAt: Timestamp.fromMillis(2000),
 });
 
-let environment: RulesTestEnvironment;
-
-let stopStates: () => void = () => undefined;
-
-const stateReference = (cardId = "card-0") => doc(connection.db, "card", cardId);
-
-const hasState = async (cardId = "card-0") =>
-  (await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)))).docs.some(
-    (document) => document.id === cardId && document.data().fsrs !== null
-  );
-
-const answers = () => getDocs(query(collection(connection.db, "studyAnswer"), where("uid", "==", uid)));
-
 describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-05]", () => {
-  afterEach(restoreTestState);
-  beforeAll(initializeTestEnvironmentState1);
-  beforeEach(resetTestState2);
-  afterAll(cleanupTestEnvironment3);
+  let environment: RulesTestEnvironment;
+  let stopStates: () => void = () => undefined;
+  afterEach(() => {
+    stopStates();
+    clearRemoteCards();
+  });
+  beforeAll(async () => {
+    environment = await initializeTestEnvironment({
+      projectId: "test-study-answer",
+      firestore: {
+        rules: fs.readFileSync("firestore.rules", "utf8"),
+        host: import.meta.env.VITE_DB_HOST,
+        port: Number(import.meta.env.VITE_DB_PORT),
+      },
+    });
+    connection.db = environment.authenticatedContext(uid, linkedToken).firestore() as unknown as Firestore;
+  });
+  beforeEach(async () => {
+    await environment.clearFirestore();
+    cardStore.setState({ remoteCards: cardIds.map((id) => createCard({ id, deckId, uid })) });
+    deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid })] });
+    replaceAuthSession({ status: "authenticated", uid, isAnonymous: false, displayName: null });
+    await setDoc(doc(connection.db, "deck", deckId), { uid, isPublic: true });
+    await Promise.all(
+      cardIds.map((id) =>
+        setDoc(doc(connection.db, "card", id), {
+          ...createCard({ id, uid, deckId }),
+        })
+      )
+    );
+    await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
+    // The emulator reset does not clear this client's cache between examples.
+    await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
+    await new Promise<void>((resolve, reject) => {
+      stopStates = subscribeCards(uid, reject, resolve);
+    });
+  });
+  afterAll(async () => {
+    await environment.cleanup();
+  });
 
-  registerRecordsSWithProgressAndOneAdvance();
-  registerRejectsStalePositionsWithoutAnotherAnswer();
-  registerPreservesCardContentAndCreationTimeWhenRating();
-  registerRecordsTenAnswersAndCompletes();
-  registerPreservesAnswersAcrossAbandonmentAndRestart();
-  registerSkipsWithoutAStateOrAnswer();
-  registerCompletesAFinalSkipWithoutAnAnswer();
-  registerSavesDespiteAnOfflineBrowserFlag();
-  registerRejectsMissingSessionsAndChangedAuthentication();
-  registerRetriesDeniedWritesWithoutPartialProgress();
-  registerQueriesByS();
-  registerRejectsAnAnswerOwnedByAnotherUID();
-  registerLeavesPayloadAndReferencesToTheApplication();
-  registerAllowsStandaloneAnswersWithoutTransitions();
-  registerRecordsValidFSRSStateForS();
-  registerRestrictsSessionOwnershipNotTransitions();
-  registerDeniesAnswerUpdatesOverwritesAndDeletion();
-  registerDeniesReadingMissingAnswerIDs();
-  registerDeniesS();
-  registerRestoresFSRSAndPreservesItAcrossContentEditsAndSkip();
-});
+  const stateReference = (cardId = "card-0") => doc(connection.db, "card", cardId);
+  const hasState = async (cardId = "card-0") =>
+    (await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)))).docs.some(
+      (document) => document.id === cardId && document.data().fsrs !== null
+    );
+  const answers = () => getDocs(query(collection(connection.db, "studyAnswer"), where("uid", "==", uid)));
 
-function registerRecordsSWithProgressAndOneAdvance() {
   it.each(["again", "hard", "good", "easy"] as const)(
     "[FIRESTORE-STUDY-ANSWER-01] records %s with progress and one advance",
     async (rating) => {
@@ -187,9 +194,7 @@ function registerRecordsSWithProgressAndOneAdvance() {
       expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     }
   );
-}
 
-function registerRejectsStalePositionsWithoutAnotherAnswer() {
   it("[FIRESTORE-STUDY-ANSWER-02] rejects stale positions without another answer", async () => {
     const input = operation();
     await saveStudyOperation(input);
@@ -197,9 +202,7 @@ function registerRejectsStalePositionsWithoutAnotherAnswer() {
     expect((await answers()).size).toBe(1);
     expect((await getDoc(stateReference(input.cardId))).data()?.fsrs.reps).toBe(1);
   });
-}
 
-function registerPreservesCardContentAndCreationTimeWhenRating() {
   it("[FIRESTORE-STUDY-ANSWER-03] preserves Card content and creation time when rating", async () => {
     const input = operation();
     await updateDoc(doc(connection.db, "card", input.cardId), { frontText: "Edited", updatedAt: 500 });
@@ -212,9 +215,7 @@ function registerPreservesCardContentAndCreationTimeWhenRating() {
     });
     expect((await getDoc(stateReference())).data()?.createdAt).toBe(0);
   });
-}
 
-function registerRecordsTenAnswersAndCompletes() {
   it("[FIRESTORE-STUDY-ANSWER-04] records ten answers and completes", async () => {
     let final = operation();
     for (const [index, cardId] of cardIds.entries()) {
@@ -229,9 +230,7 @@ function registerRecordsTenAnswersAndCompletes() {
     });
     expect((await answers()).size).toBe(10);
   });
-}
 
-function registerPreservesAnswersAcrossAbandonmentAndRestart() {
   it("[FIRESTORE-STUDY-ANSWER-05] preserves answers across abandonment and restart", async () => {
     const first = operation();
     await saveStudyOperation(first);
@@ -250,9 +249,7 @@ function registerPreservesAnswersAcrossAbandonmentAndRestart() {
     expect((await answers()).size).toBe(2);
     expect((await getDoc(stateReference(first.cardId))).data()?.fsrs.reps).toBe(2);
   });
-}
 
-function registerSkipsWithoutAStateOrAnswer() {
   it("[FIRESTORE-STUDY-ANSWER-06] skips without a state or answer", async () => {
     await saveStudyOperation(operation({ rating: undefined }));
     expect((await answers()).size).toBe(0);
@@ -260,9 +257,7 @@ function registerSkipsWithoutAStateOrAnswer() {
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     await expect(saveStudyOperation(operation())).rejects.toBeDefined();
   });
-}
 
-function registerCompletesAFinalSkipWithoutAnAnswer() {
   it("[FIRESTORE-STUDY-ANSWER-07] completes a final skip without an answer", async () => {
     await updateDoc(doc(connection.db, "studySession", sessionId), { currentIndex: 9 });
     const input = operation({ cardId: "card-9", currentIndex: 9, rating: undefined });
@@ -271,9 +266,7 @@ function registerCompletesAFinalSkipWithoutAnAnswer() {
     expect(await hasState("card-9")).toBe(false);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.endReason).toBe("completed");
   });
-}
 
-function registerSavesDespiteAnOfflineBrowserFlag() {
   it("[FIRESTORE-STUDY-ANSWER-08] saves despite an offline browser flag", async () => {
     const online = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
     try {
@@ -283,9 +276,7 @@ function registerSavesDespiteAnOfflineBrowserFlag() {
     }
     expect((await answers()).size).toBe(1);
   });
-}
 
-function registerRejectsMissingSessionsAndChangedAuthentication() {
   it("[FIRESTORE-STUDY-ANSWER-09] rejects missing sessions and changed authentication", async () => {
     await saveStudyOperation(operation({ sessionId: "not-saved" })).catch(() => undefined);
     replaceAuthSession({ status: "authenticated", uid: "other-user", isAnonymous: false, displayName: null });
@@ -293,9 +284,7 @@ function registerRejectsMissingSessionsAndChangedAuthentication() {
     expect((await answers()).size).toBe(0);
     expect(await hasState()).toBe(false);
   });
-}
 
-function registerRetriesDeniedWritesWithoutPartialProgress() {
   it("[FIRESTORE-STUDY-ANSWER-10] retries denied writes without partial progress", async () => {
     const input = operation();
     await environment.withSecurityRulesDisabled(async (context) => {
@@ -313,9 +302,7 @@ function registerRetriesDeniedWritesWithoutPartialProgress() {
       Timestamp.fromMillis(2000)
     );
   });
-}
 
-function registerQueriesByS() {
   it.each(["sessionId", "cardId", "deckId"] as const)("[FIRESTORE-STUDY-ANSWER-11] queries by %s", async (field) => {
     const input = operation();
     await saveStudyOperation(input);
@@ -325,34 +312,26 @@ function registerQueriesByS() {
     expect(result.docs.map(({ id }) => id)).toEqual([input.id]);
     await assertFails(getDocs(query(collection(connection.db, "studyAnswer"), where(field, "==", input[field]))));
   });
-}
 
-function registerRejectsAnAnswerOwnedByAnotherUID() {
   it("[FIRESTORE-STUDY-ANSWER-12] rejects an answer owned by another UID", async () => {
     await assertFails(setDoc(doc(collection(connection.db, "studyAnswer")), { ...answerData(), uid: "other" }));
     expect((await answers()).size).toBe(0);
   });
-}
 
-function registerLeavesPayloadAndReferencesToTheApplication() {
   it("[FIRESTORE-STUDY-ANSWER-13] leaves payload and references to the application", async () => {
     const reference = doc(collection(connection.db, "studyAnswer"));
     const data = { uid, sessionId: "missing", cardId: "missing", answer: { type: "text", text: "custom" } };
     await assertSucceeds(setDoc(reference, data));
     expect((await getDoc(reference)).data()).toEqual({ ...data, updatedAt: expect.any(Timestamp) });
   });
-}
 
-function registerAllowsStandaloneAnswersWithoutTransitions() {
   it("[FIRESTORE-STUDY-ANSWER-14] allows standalone answers without transitions", async () => {
     await assertSucceeds(setDoc(doc(collection(connection.db, "studyAnswer")), answerData()));
     expect((await answers()).size).toBe(1);
     expect(await hasState()).toBe(false);
     expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
   });
-}
 
-function registerRecordsValidFSRSStateForS() {
   it.each(["again", "hard", "good", "easy"] as const)(
     "[FIRESTORE-STUDY-ANSWER-15] records valid FSRS state for %s",
     async (rating) => {
@@ -363,9 +342,7 @@ function registerRecordsValidFSRSStateForS() {
       expect(saved.fsrs?.reps).toBe(1);
     }
   );
-}
 
-function registerRestrictsSessionOwnershipNotTransitions() {
   it("[FIRESTORE-STUDY-ANSWER-16] restricts session ownership, not transitions", async () => {
     const reference = doc(connection.db, "studySession", sessionId);
     await assertFails(updateDoc(reference, { uid: "other" }));
@@ -375,9 +352,7 @@ function registerRestrictsSessionOwnershipNotTransitions() {
     await assertFails(updateDoc(doc(otherDb, "studySession", sessionId), { currentIndex: 1 }));
     await assertFails(deleteDoc(reference));
   });
-}
 
-function registerDeniesAnswerUpdatesOverwritesAndDeletion() {
   it("[FIRESTORE-STUDY-ANSWER-17] denies answer updates, overwrites and deletion", async () => {
     const input = operation();
     await saveStudyOperation(input);
@@ -386,15 +361,11 @@ function registerDeniesAnswerUpdatesOverwritesAndDeletion() {
     await assertFails(setDoc(reference, answerData()));
     await assertFails(deleteDoc(reference));
   });
-}
 
-function registerDeniesReadingMissingAnswerIDs() {
   it("[FIRESTORE-STUDY-ANSWER-18] denies reading missing answer IDs", async () => {
     await assertFails(getDoc(doc(connection.db, "studyAnswer", "missing-answer")));
   });
-}
 
-function registerDeniesS() {
   it.each(["other-user", "anonymous", "unauthenticated"])("[FIRESTORE-STUDY-ANSWER-19] denies %s", async (actor) => {
     const input = operation();
     await saveStudyOperation(input);
@@ -409,9 +380,6 @@ function registerDeniesS() {
     await assertFails(getDocs(query(collection(db, "studyAnswer"), where("uid", "==", uid))));
     await assertFails(setDoc(doc(collection(db, "studyAnswer")), answerData()));
   });
-}
-
-function registerRestoresFSRSAndPreservesItAcrossContentEditsAndSkip() {
   it("[FIRESTORE-STUDY-ANSWER-20] restores FSRS and preserves it across content edits and skip", async () => {
     const reference = doc(connection.db, "card", "card-0");
     await setDoc(reference, createCard({ id: "card-0", uid, deckId }));
@@ -437,46 +405,4 @@ function registerRestoresFSRSAndPreservesItAcrossContentEditsAndSkip() {
       fsrs: { reps: 2 },
     });
   });
-}
-
-function restoreTestState() {
-  stopStates();
-  clearRemoteCards();
-}
-
-async function initializeTestEnvironmentState1() {
-  environment = await initializeTestEnvironment({
-    projectId: "test-study-answer",
-    firestore: {
-      rules: fs.readFileSync("firestore.rules", "utf8"),
-      host: import.meta.env.VITE_DB_HOST,
-      port: Number(import.meta.env.VITE_DB_PORT),
-    },
-  });
-  connection.db = environment.authenticatedContext(uid, linkedToken).firestore() as unknown as Firestore;
-}
-
-async function resetTestState2() {
-  await environment.clearFirestore();
-  cardStore.setState({ remoteCards: cardIds.map((id) => createCard({ id, deckId, uid })) });
-  deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid })] });
-  replaceAuthSession({ status: "authenticated", uid, isAnonymous: false, displayName: null });
-  await setDoc(doc(connection.db, "deck", deckId), { uid, isPublic: true });
-  await Promise.all(
-    cardIds.map((id) =>
-      setDoc(doc(connection.db, "card", id), {
-        ...createCard({ id, uid, deckId }),
-      })
-    )
-  );
-  await setDoc(doc(connection.db, "studySession", sessionId), sessionData());
-  // The emulator reset does not clear this client's cache between examples.
-  await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
-  await new Promise<void>((resolve, reject) => {
-    stopStates = subscribeCards(uid, reject, resolve);
-  });
-}
-
-async function cleanupTestEnvironment3() {
-  await environment.cleanup();
-}
+});

@@ -107,22 +107,6 @@ describe("Card filter persistence", () => {
     await Promise.all(getApps().map(deleteApp));
   });
 
-  registerDefaultsIndependentlyWithCardsS();
-
-  registerSavesAndRestoresSelectedTagsTagAndFilter();
-
-  registerReplacesSelectionsWithoutChangingStudyData();
-
-  registerPersistsClearedFiltersWithoutChangingStudyData();
-
-  registerIsolatesDeckChangesSelectedTags();
-
-  registerKeepsBrowsingFiltersWhenStudyTagsChange();
-
-  registerReceivesIndependentConnectionUpdatesSelectedTags();
-});
-
-function registerDefaultsIndependentlyWithCardsS() {
   it.each([false, true])("[FIRESTORE-CARD-FILTER-01] defaults independently with cards: %s", async (withCards) => {
     const id = await seed();
     const other = await seed({ selectedTags: ["tag-other"], tagAndFilter: true });
@@ -135,9 +119,7 @@ function registerDefaultsIndependentlyWithCardsS() {
     expect(await saved(id)).toEqual(before);
     expect(await saved(id)).not.toHaveProperty("cardFilter");
   });
-}
 
-function registerSavesAndRestoresSelectedTagsTagAndFilter() {
   it.each([
     { selectedTags: ["tag-a"], tagAndFilter: false },
     original,
@@ -149,9 +131,7 @@ function registerSavesAndRestoresSelectedTagsTagAndFilter() {
     expect(await saved(id)).toEqual({ ...before, cardFilter: value, updatedAt: expect.any(Timestamp) });
     await restore([[id, value]]);
   });
-}
 
-function registerReplacesSelectionsWithoutChangingStudyData() {
   it("[FIRESTORE-CARD-FILTER-03] replaces selections without changing study data", async () => {
     const id = await seed(original);
     const related = await relatedDocuments(id);
@@ -161,9 +141,7 @@ function registerReplacesSelectionsWithoutChangingStudyData() {
     await restore([[id, replacement]]);
     expect(await related.read()).toEqual(related.before);
   });
-}
 
-function registerPersistsClearedFiltersWithoutChangingStudyData() {
   it("[FIRESTORE-CARD-FILTER-04] persists cleared filters without changing study data", async () => {
     const id = await seed(original);
     const related = await relatedDocuments(id);
@@ -173,9 +151,7 @@ function registerPersistsClearedFiltersWithoutChangingStudyData() {
     await restore([[id, empty]]);
     expect(await related.read()).toEqual(related.before);
   });
-}
 
-function registerIsolatesDeckChangesSelectedTags() {
   it.each([{ selectedTags: ["tag-c"], tagAndFilter: false }, empty])(
     "[FIRESTORE-CARD-FILTER-05] isolates Deck changes: $selectedTags",
     async (value) => {
@@ -194,9 +170,7 @@ function registerIsolatesDeckChangesSelectedTags() {
       expect(await Promise.all([saved(b), saved(c)])).toEqual(unchanged);
     }
   );
-}
 
-function registerKeepsBrowsingFiltersWhenStudyTagsChange() {
   it("[FIRESTORE-CARD-FILTER-06] keeps browsing filters when study tags change", async () => {
     const browse = { selectedTags: ["browse-a", "browse-b"], tagAndFilter: true };
     const id = await seed(browse);
@@ -204,9 +178,7 @@ function registerKeepsBrowsingFiltersWhenStudyTagsChange() {
     expect(await saved(id)).toMatchObject({ cardFilter: browse, selectedTags: ["study-b"], tagAndFilter: false });
     await restore([[id, browse]]);
   });
-}
 
-function registerReceivesIndependentConnectionUpdatesSelectedTags() {
   it.each([{ selectedTags: ["tag-c", "tag-d"], tagAndFilter: true }, empty])(
     "[FIRESTORE-CARD-FILTER-07] receives independent connection updates: $selectedTags",
     async (value) => {
@@ -231,4 +203,4 @@ function registerReceivesIndependentConnectionUpdatesSelectedTags() {
       }
     }
   );
-}
+});

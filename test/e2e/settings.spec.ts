@@ -331,7 +331,29 @@ test("SETTINGS-04 Explicit Japanese language is auto-saved across reload", async
 test.describe("ja-JP browser locale", () => {
   test.use({ locale: "ja-JP" });
 
-  registerSystemLanguageResolvesTheBrowserLocaleAcrossReload();
+  test("SETTINGS-05 System language resolves the browser locale across reload", async ({ fixture, page }) => {
+    await fixture.apply(page);
+    await page.goto("/settings");
+
+    const language = page.getByRole("combobox", { name: "Language" });
+    await expect(language).toHaveValue("en");
+    await language.selectOption("system");
+
+    const systemLanguage = page.getByRole("combobox", { name: "言語" });
+    await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+    await expect(systemLanguage).toHaveValue("system");
+    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+    await expect
+      .poll(() =>
+        page.evaluate(() => JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.language)
+      )
+      .toBe("system");
+
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
+    await expect(systemLanguage).toHaveValue("system");
+    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  });
 });
 
 const verifyCommitLink = async (page: Page) => {
@@ -518,29 +540,3 @@ test("SETTINGS-09 Cached CSV diagnostics follow the current language", async ({ 
   await expect(page.getByRole("button", { name: "1枚のカードを追加", exact: true })).toBeDisabled();
   await expect(page).toHaveURL(/\/import$/);
 });
-
-function registerSystemLanguageResolvesTheBrowserLocaleAcrossReload() {
-  test("SETTINGS-05 System language resolves the browser locale across reload", async ({ fixture, page }) => {
-    await fixture.apply(page);
-    await page.goto("/settings");
-
-    const language = page.getByRole("combobox", { name: "Language" });
-    await expect(language).toHaveValue("en");
-    await language.selectOption("system");
-
-    const systemLanguage = page.getByRole("combobox", { name: "言語" });
-    await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
-    await expect(systemLanguage).toHaveValue("system");
-    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
-    await expect
-      .poll(() =>
-        page.evaluate(() => JSON.parse(localStorage.getItem("tango-config") ?? "{}").state?.preferences?.language)
-      )
-      .toBe("system");
-
-    await page.reload();
-    await expect(page.getByRole("heading", { level: 1, name: "設定" })).toBeVisible();
-    await expect(systemLanguage).toHaveValue("system");
-    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
-  });
-}

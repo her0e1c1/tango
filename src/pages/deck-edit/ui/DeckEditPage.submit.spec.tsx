@@ -47,9 +47,9 @@ const createDeckEditRouter = (deckId: string) =>
     { initialEntries: [`/deck/${deckId}/edit`] }
   );
 
-const deckId = "deck-edit-submit-deck";
-
 describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
+  const deckId = "deck-edit-submit-deck";
+
   beforeEach(async () => {
     dismissToast();
     mocks.beforeDeckWrite = undefined;
@@ -58,18 +58,6 @@ describe("DeckEditPage submission [DECK-MANAGEMENT-01]", () => {
     await createDeck("user-id", createLocalDeck({ id: deckId, name: "Deck name" }));
   });
 
-  registerStartsOneSaveForSameTickSubmitsWhileAsynchronousValidationIsPending();
-
-  registerSavesACorrectedDraftAfterValidationRejectsTheFirstSubmission();
-
-  registerKeepsTheNewEditorSubmissionPendingWhenAnEarlierVisitFinishesS();
-
-  registerDoesNotSubmitAReplacedFormWhenItsAsynchronousValidationFinishes();
-
-  registerPublishesSuccessAfterPageUnmountWithoutNavigatingTheOldVisit();
-});
-
-function registerStartsOneSaveForSameTickSubmitsWhileAsynchronousValidationIsPending() {
   it("starts one save for same-tick submits while asynchronous validation is pending", async () => {
     let finishSave: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>
@@ -93,9 +81,7 @@ function registerStartsOneSaveForSameTickSubmitsWhileAsynchronousValidationIsPen
     await actAsync(async () => finishSave());
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
   });
-}
 
-function registerSavesACorrectedDraftAfterValidationRejectsTheFirstSubmission() {
   it("saves a corrected draft after validation rejects the first submission", async () => {
     const router = createDeckEditRouter(deckId);
     render(
@@ -115,9 +101,7 @@ function registerSavesACorrectedDraftAfterValidationRejectsTheFirstSubmission() 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Updated deck “Corrected deck”.")).toBeVisible();
   });
-}
 
-function registerKeepsTheNewEditorSubmissionPendingWhenAnEarlierVisitFinishesS() {
   it.each(["deck-edit-submit-deck", "another-deck"])(
     "keeps the new editor submission pending when an earlier visit finishes (%s)",
     async (nextDeckId) => {
@@ -159,9 +143,7 @@ function registerKeepsTheNewEditorSubmissionPendingWhenAnEarlierVisitFinishesS()
       expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     }
   );
-}
 
-function registerDoesNotSubmitAReplacedFormWhenItsAsynchronousValidationFinishes() {
   it("does not submit a replaced form when its asynchronous validation finishes", async () => {
     const oldRouter = createDeckEditRouter(deckId);
     const view = render(<RouterProvider router={oldRouter} />);
@@ -178,9 +160,7 @@ function registerDoesNotSubmitAReplacedFormWhenItsAsynchronousValidationFinishes
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(mocks.editCalls).toBe(1);
   });
-}
 
-function registerPublishesSuccessAfterPageUnmountWithoutNavigatingTheOldVisit() {
   it("publishes success after Page unmount without navigating the old visit", async () => {
     let finishSave: () => void = () => undefined;
     mocks.beforeDeckWrite = () =>
@@ -200,4 +180,4 @@ function registerPublishesSuccessAfterPageUnmountWithoutNavigatingTheOldVisit() 
     expect(router.state.location.pathname).toBe(openingPath);
     expect(await screen.findByText("Updated deck “Deck name”.")).toBeVisible();
   });
-}
+});

@@ -54,45 +54,41 @@ const StudyDestination = () => {
   );
 };
 
-const activeDeck = createLocalDeck({ id: "active-deck", name: "Active deck" });
-
-const freshDeck = createLocalDeck({ id: "fresh-deck", name: "Fresh deck" });
-
-const activeCard = createLocalCard({
-  id: "active-card",
-  deckId: activeDeck.id,
-  frontText: "Active front",
-  uniqueKey: "active-card",
-});
-
-const freshCard = createLocalCard({
-  id: "fresh-card",
-  deckId: freshDeck.id,
-  frontText: "Fresh front",
-  uniqueKey: "fresh-card",
-});
-
-const renderPage = () =>
-  render(
-    <>
-      <MemoryRouter initialEntries={["/"]}>
-        <Routes>
-          <Route path="/" element={<DeckListPage />} />
-          <Route path="/deck/new" element={<h1>Deck creator destination</h1>} />
-          <Route path="/settings" element={<h1>Settings destination</h1>} />
-          <Route path="/import" element={<h1>Import destination</h1>} />
-          <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
-          <Route path="/deck/:id/study" element={<h1>Study destination</h1>} />
-          <Route path="/deck/:id/start" element={<h1>Study start destination</h1>} />
-          <Route path="/deck/:id/view" element={<h1>Deck view destination</h1>} />
-          <Route path="/deck/:id/edit" element={<h1>Deck editor destination</h1>} />
-        </Routes>
-      </MemoryRouter>
-      <ToastViewport />
-    </>
-  );
-
 describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03 DECK-MANAGEMENT-04 DECK-TRANSFER-01 NAVIGATION-08 STUDY-SESSION-03 DeckListPage", () => {
+  const activeDeck = createLocalDeck({ id: "active-deck", name: "Active deck" });
+  const freshDeck = createLocalDeck({ id: "fresh-deck", name: "Fresh deck" });
+  const activeCard = createLocalCard({
+    id: "active-card",
+    deckId: activeDeck.id,
+    frontText: "Active front",
+    uniqueKey: "active-card",
+  });
+  const freshCard = createLocalCard({
+    id: "fresh-card",
+    deckId: freshDeck.id,
+    frontText: "Fresh front",
+    uniqueKey: "fresh-card",
+  });
+  const renderPage = () =>
+    render(
+      <>
+        <MemoryRouter initialEntries={["/"]}>
+          <Routes>
+            <Route path="/" element={<DeckListPage />} />
+            <Route path="/deck/new" element={<h1>Deck creator destination</h1>} />
+            <Route path="/settings" element={<h1>Settings destination</h1>} />
+            <Route path="/import" element={<h1>Import destination</h1>} />
+            <Route path="/deck/:id" element={<h1>Card list destination</h1>} />
+            <Route path="/deck/:id/study" element={<h1>Study destination</h1>} />
+            <Route path="/deck/:id/start" element={<h1>Study start destination</h1>} />
+            <Route path="/deck/:id/view" element={<h1>Deck view destination</h1>} />
+            <Route path="/deck/:id/edit" element={<h1>Deck editor destination</h1>} />
+          </Routes>
+        </MemoryRouter>
+        <ToastViewport />
+      </>
+    );
+
   beforeEach(async () => {
     dismissToast();
     clearStudySessions();
@@ -114,28 +110,6 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
     vi.restoreAllMocks();
   });
 
-  registerShowsHeldDataCountsAndOpensStudyNewWithoutReplacingAnActiveSession();
-
-  registerNavigatesFromEachVisibleDeckAction();
-
-  registerNavigatesFromTheSListAction();
-
-  registerRejectsDeletingADeckAfterIdentityChangesAtConfirmationS();
-
-  registerRefreshesRecencyBeforeContinueNavigatesWhilePreservingTheCurrentCard();
-
-  registerCancelsContinueNavigationAfterAQueuedS();
-
-  registerDownloadsAVisibleDeck();
-
-  registerClosesAFailedDeletionAndRetriesAfterReopeningTheSameDeck();
-
-  registerNavigatesFromBothRouteShortcuts();
-
-  registerRendersAnEmptyListAfterAllDecksAreRemoved();
-});
-
-function registerShowsHeldDataCountsAndOpensStudyNewWithoutReplacingAnActiveSession() {
   it("shows held-data counts and opens Study new without replacing an active session", async () => {
     mocks.preferences = createPreferences({ useCardInterval: true });
     const session = getStudySession(activeDeck.id);
@@ -150,9 +124,7 @@ function registerShowsHeldDataCountsAndOpensStudyNewWithoutReplacingAnActiveSess
     expect(getStudySession(freshDeck.id)).toBeUndefined();
     expect(getStudySession(activeDeck.id)).toEqual(session);
   });
-}
 
-function registerNavigatesFromEachVisibleDeckAction() {
   it("navigates from each visible Deck action", async () => {
     let view = renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Open cards in Active deck" }));
@@ -174,9 +146,7 @@ function registerNavigatesFromEachVisibleDeckAction() {
     await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Deck editor destination" })).toBeVisible();
   });
-}
 
-function registerNavigatesFromTheSListAction() {
   it.each([
     ["View cards in Active deck", "Deck view destination"],
     ["View cards in Fresh deck", "Deck view destination"],
@@ -197,9 +167,7 @@ function registerNavigatesFromTheSListAction() {
 
     expect(await screen.findByRole("heading", { level: 1, name: destination })).toBeVisible();
   });
-}
 
-function registerRejectsDeletingADeckAfterIdentityChangesAtConfirmationS() {
   it.each(["latest-user", ""])("rejects deleting a Deck after identity changes at confirmation (%s)", async (uid) => {
     renderPage();
 
@@ -220,9 +188,7 @@ function registerRejectsDeletingADeckAfterIdentityChangesAtConfirmationS() {
     expect(await screen.findByRole("alert")).toBeVisible();
     expect(screen.getByRole("button", { name: "Open cards in Fresh deck" })).toBeVisible();
   });
-}
 
-function registerRefreshesRecencyBeforeContinueNavigatesWhilePreservingTheCurrentCard() {
   it("refreshes recency before Continue navigates while preserving the current card", async () => {
     const nextCard = createLocalCard({ id: "next-card", deckId: activeDeck.id, uniqueKey: "next-card" });
     await mutateCards("user-id", [{ kind: "create", card: nextCard }]);
@@ -257,9 +223,7 @@ function registerRefreshesRecencyBeforeContinueNavigatesWhilePreservingTheCurren
       screen.getAllByRole("button", { name: /^Continue / }).map((button) => button.getAttribute("aria-label"))
     ).toEqual(["Continue Active deck", "Continue Fresh deck"]);
   });
-}
 
-function registerCancelsContinueNavigationAfterAQueuedS() {
   it.each(["identity change", "unmount"])(
     "[STUDY-SESSION-03] cancels Continue navigation after a queued %s",
     async (change) => {
@@ -279,9 +243,7 @@ function registerCancelsContinueNavigationAfterAQueuedS() {
       expect(router.state.location.pathname).toBe("/");
     }
   );
-}
 
-function registerDownloadsAVisibleDeck() {
   it("downloads a visible Deck", async () => {
     renderPage();
 
@@ -294,9 +256,7 @@ function registerDownloadsAVisibleDeck() {
       "text/plain;charset=utf-8"
     );
   });
-}
 
-function registerClosesAFailedDeletionAndRetriesAfterReopeningTheSameDeck() {
   it("closes a failed deletion and retries after reopening the same Deck", async () => {
     mocks.deleteDeck.mockRejectedValueOnce(new Error("delete failed"));
     renderPage();
@@ -318,9 +278,7 @@ function registerClosesAFailedDeletionAndRetriesAfterReopeningTheSameDeck() {
     await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "Delete deck?" })).not.toBeInTheDocument());
     expect(mocks.deleteDeck).toHaveBeenCalledTimes(2);
   });
-}
 
-function registerNavigatesFromBothRouteShortcuts() {
   it("navigates from both route shortcuts", async () => {
     const view = renderPage();
     fireEvent.keyDown(window, { key: "s" });
@@ -331,9 +289,7 @@ function registerNavigatesFromBothRouteShortcuts() {
     fireEvent.keyDown(window, { key: "i" });
     expect(await screen.findByRole("heading", { level: 1, name: "Import destination" })).toBeVisible();
   });
-}
 
-function registerRendersAnEmptyListAfterAllDecksAreRemoved() {
   it("renders an empty list after all Decks are removed", async () => {
     mocks.preferences.loadSample = false;
     await deleteDeck("user-id", activeDeck.id);
@@ -346,4 +302,4 @@ function registerRendersAnEmptyListAfterAllDecksAreRemoved() {
     expect(screen.getByRole("heading", { level: 2, name: "No decks yet" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Create deck" })).toBeVisible();
   });
-}
+});

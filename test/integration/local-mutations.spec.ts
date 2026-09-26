@@ -67,12 +67,6 @@ afterEach(async () => {
 });
 
 describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-02 PERSISTENCE-04 STUDY-SESSION-05]", () => {
-  registerCompletesOfflineCardWritesAndHidesEveryChildAfterDeletingItsDeck();
-
-  registerSavesOneAnswerStateAndSessionAdvancementAtomicallyWhileOffline();
-});
-
-function registerCompletesOfflineCardWritesAndHidesEveryChildAfterDeletingItsDeck() {
   it("completes offline Card writes and hides every child after deleting its Deck", async () => {
     await createDeck("uid", { id: deckId, name: "Offline" });
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));
@@ -90,9 +84,7 @@ function registerCompletesOfflineCardWritesAndHidesEveryChildAfterDeletingItsDec
     await deleteDeck("uid", deckId);
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toEqual([]));
   });
-}
 
-function registerSavesOneAnswerStateAndSessionAdvancementAtomicallyWhileOffline() {
   it("saves one answer, state and session advancement atomically while offline", async () => {
     await createDeck("uid", { id: deckId, name: "Study offline" });
     const cards = [0, 1].map(() => cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" }));
@@ -132,4 +124,4 @@ function registerSavesOneAnswerStateAndSessionAdvancementAtomicallyWhileOffline(
     const synced = await getDocsFromCache(collection(testDb, "studyAnswer"));
     expect(synced.docs.filter((item) => item.data().sessionId === session.sessionId)).toHaveLength(2);
   });
-}
+});

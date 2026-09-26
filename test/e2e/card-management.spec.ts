@@ -10,178 +10,13 @@ import {
 import { createAnonymousDeck, downloadDeckCards } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
 
-const beginCardCreation = async (page: Page, deckId: string, frontText: string) => {
-  await page.goto(`/deck/${deckId}`);
-  await page.getByRole("button", { name: "Actions", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Add card" }).click();
-  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
-  await page.getByRole("tab", { name: "Back", exact: true }).click();
-  await page.getByRole("textbox", { name: "Back text" }).fill("Pending back");
-  const write = await holdCardWrite(page);
-  await page.getByRole("button", { name: "Create card", exact: true }).click();
-  await write.arrived;
-  return write;
-};
-
-const expectCreatedCard = async (page: Page, deckId: string, frontText: string) => {
-  await expect(page).toHaveURL(`/deck/${deckId}`);
-  await expect(page.getByRole("alertdialog")).toHaveCount(0);
-  await expect(page.getByRole("status", { name: "Toast notifications" })).toContainText(`Created card “${frontText}”.`);
-  await expect
-    .poll(async () =>
-      (await listDocuments("card"))
-        .filter(
-          (document) =>
-            document.fields.deckId?.stringValue === deckId && document.fields.frontText?.stringValue === frontText
-        )
-        .map((document) => document.fields.backText?.stringValue)
-    )
-    .toEqual(["Pending back"]);
-  await page.reload();
-  await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
-};
-
-// Hold the outgoing write without cancelling it; the SDK must still settle it after SPA navigation.
-const holdCardWrite = async (page: Page, cardId = "") => {
-  const arrived = Promise.withResolvers<void>();
-  const released = Promise.withResolvers<void>();
-  let held = false;
-  await page.route("**/google.firestore.v1.Firestore/Write/channel**", async (route) => {
-    const body = decodeURIComponent((route.request().postData() ?? "").replaceAll("+", "%20"));
-    if (!held && body.includes(`/documents/card/${cardId}`)) {
-      held = true;
-      arrived.resolve();
-      await released.promise;
-    }
-    await route.fallback();
-  });
-  return { arrived: arrived.promise, release: () => released.resolve() };
-};
-
 test.describe("card-resilience", () => {
-  registerRetriesTheSameCardDeletionAfterFirestoreRollback();
+  const openCardDeleteDialog = async (page: Page, frontText: string) => {
+    await page.getByRole("button", { name: `Open actions for ${frontText}` }).click();
+    await page.getByRole("menuitem", { name: "Delete" }).click();
+    return page.getByRole("alertdialog", { name: "Delete card?" });
+  };
 
-  registerConfirmsBeforeDiscardingAnUnsavedCardEdit();
-
-  registerConfirmsBeforeDiscardingAnUnsavedCardCreate();
-
-  registerCompletesCacheCreationWhileTheCloudWriteIsPending();
-
-  registerKeepsAQueuedCreationAfterNavigatingAway();
-
-  registerRemovesRejectedQueuedCreationAfterLeavingTheForm();
-});
-
-const toggleTag = async (page: Page, name: string) => {
-  const checkbox = page.getByRole("checkbox", { name, exact: true });
-  if ((await checkbox.count()) === 0) {
-    await page.getByRole("button", { name: "Add tag", exact: true }).click();
-    await page
-      .getByRole("textbox", { name: /^Tag name / })
-      .last()
-      .fill(name);
-  } else {
-    await checkbox.locator("xpath=parent::label").click();
-  }
-  return checkbox;
-};
-
-test.describe("card", () => {
-  registerPersistsEditedFrontBackAndTagsAcrossReload();
-
-  registerDeletesACardAndDoesNotReloadItAsActive();
-
-  registerCancelsDeletionRestoresFocusAndPreservesPersistentData();
-
-  registerRetriesTheSameCardEditAfterFirestoreRollback();
-
-  registerCreatesOneRemoteCardAndKeepsItAcrossReload();
-
-  registerCreatesOneLocalCardAndKeepsItAcrossReload();
-
-  registerRevealsTheFirstInvalidSideWithoutSavingEmptyText();
-
-  registerPreviewsAnUnsavedAnswerWhileCreatingAnIncompleteCard();
-
-  registerPreviewsCurrentAnswerTagsWithoutSavingTheEditedCard();
-});
-
-test("CARD-MANAGEMENT-07 retries a rejected remote Card create with a new ID and no duplicate", async ({
-  fixture,
-  page,
-  browserErrors,
-  namespace,
-}) => {
-  const deck = fixture.deck();
-  const frontText = `${namespace.caseId} retry front`;
-  const backText = `${namespace.caseId} retry back`;
-  await fixture.apply(page);
-  await page.goto(`/deck/${deck.id}`);
-  await page.getByRole("button", { name: "Actions", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Add card" }).click();
-  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
-
-  let attemptedCardId: string | undefined;
-  page.on("request", (request) => {
-    if (!request.url().includes("google.firestore.v1.Firestore/Write/channel")) return;
-    const body = decodeURIComponent((request.postData() ?? "").replaceAll("+", "%20"));
-    attemptedCardId ??= /\/documents\/card\/([a-zA-Z0-9-]+)/.exec(body)?.[1];
-  });
-  const fault = await failNextFirestoreWrite(page, { collection: "card" });
-  allowExpectedFirestoreWriteFailure(browserErrors);
-  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
-  await page.getByRole("tab", { name: "Back", exact: true }).click();
-  await page.getByRole("textbox", { name: "Back text" }).fill(backText);
-  await page.getByRole("button", { name: "Create card" }).click();
-  await expect.poll(fault.wasTriggered).toBe(true);
-  await fault.waitForFailure();
-  await fault.dispose();
-  expect(attemptedCardId).toBeDefined();
-
-  await page.goto(`/deck/${deck.id}/card/new`);
-  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
-  await page.getByRole("tab", { name: "Back", exact: true }).click();
-  await page.getByRole("textbox", { name: "Back text" }).fill(backText);
-  await page.getByRole("button", { name: "Create card" }).click();
-  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
-  await expect(page.getByRole("alert")).toHaveCount(0);
-  await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
-  await page.reload();
-
-  await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
-  await expect
-    .poll(
-      async () =>
-        (await listDocuments("card")).filter(
-          ({ fields }) =>
-            fields.deckId?.stringValue === deck.id &&
-            fields.uid?.stringValue === deck.uid &&
-            fields.frontText?.stringValue === frontText
-        ).length
-    )
-    .toBe(1);
-  const created = (await listDocuments("card")).filter(
-    ({ fields }) =>
-      fields.deckId?.stringValue === deck.id &&
-      fields.uid?.stringValue === deck.uid &&
-      fields.frontText?.stringValue === frontText
-  );
-  expect(created).toHaveLength(1);
-  const [createdCard] = created;
-  if (createdCard === undefined) throw new Error("Created remote Card was not found");
-  expect(documentId(createdCard)).not.toBe(attemptedCardId);
-  expect(createdCard.fields.backText?.stringValue).toBe(backText);
-  expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
-  await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(1);
-});
-
-const openCardDeleteDialog = async (page: Page, frontText: string) => {
-  await page.getByRole("button", { name: `Open actions for ${frontText}` }).click();
-  await page.getByRole("menuitem", { name: "Delete" }).click();
-  return page.getByRole("alertdialog", { name: "Delete card?" });
-};
-
-function registerRetriesTheSameCardDeletionAfterFirestoreRollback() {
   test("CARD-MANAGEMENT-08 retries the same Card deletion after Firestore rollback", async ({
     fixture,
     page,
@@ -210,9 +45,7 @@ function registerRetriesTheSameCardDeletionAfterFirestoreRollback() {
       .poll(async () => (await requireDocument("card", card.id)).fields.deletedAt?.integerValue)
       .not.toBeUndefined();
   });
-}
 
-function registerConfirmsBeforeDiscardingAnUnsavedCardEdit() {
   test("CARD-MANAGEMENT-09 confirms before discarding an unsaved Card edit", async ({ fixture, page, namespace }) => {
     const deck = fixture.deck();
     const card = fixture.card();
@@ -237,9 +70,7 @@ function registerConfirmsBeforeDiscardingAnUnsavedCardEdit() {
       .poll(async () => (await requireDocument("card", card.id)).fields.frontText?.stringValue)
       .toBe(card.frontText);
   });
-}
 
-function registerConfirmsBeforeDiscardingAnUnsavedCardCreate() {
   test("CARD-MANAGEMENT-11 confirms before discarding an unsaved Card create", async ({ fixture, page, namespace }) => {
     const deck = fixture.deck();
     const unsavedFrontText = `${namespace.caseId} unsaved front`;
@@ -268,9 +99,40 @@ function registerConfirmsBeforeDiscardingAnUnsavedCardCreate() {
     await expect(page).toHaveURL(`/deck/${deck.id}`);
     await expect(page.getByRole("button", { name: `View ${unsavedFrontText}` })).toHaveCount(0);
   });
-}
 
-function registerCompletesCacheCreationWhileTheCloudWriteIsPending() {
+  const beginCardCreation = async (page: Page, deckId: string, frontText: string) => {
+    await page.goto(`/deck/${deckId}`);
+    await page.getByRole("button", { name: "Actions", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Add card" }).click();
+    await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
+    await page.getByRole("tab", { name: "Back", exact: true }).click();
+    await page.getByRole("textbox", { name: "Back text" }).fill("Pending back");
+    const write = await holdCardWrite(page);
+    await page.getByRole("button", { name: "Create card", exact: true }).click();
+    await write.arrived;
+    return write;
+  };
+
+  const expectCreatedCard = async (page: Page, deckId: string, frontText: string) => {
+    await expect(page).toHaveURL(`/deck/${deckId}`);
+    await expect(page.getByRole("alertdialog")).toHaveCount(0);
+    await expect(page.getByRole("status", { name: "Toast notifications" })).toContainText(
+      `Created card “${frontText}”.`
+    );
+    await expect
+      .poll(async () =>
+        (await listDocuments("card"))
+          .filter(
+            (document) =>
+              document.fields.deckId?.stringValue === deckId && document.fields.frontText?.stringValue === frontText
+          )
+          .map((document) => document.fields.backText?.stringValue)
+      )
+      .toEqual(["Pending back"]);
+    await page.reload();
+    await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toBeVisible();
+  };
+
   test("CARD-MANAGEMENT-12 completes cache creation while the cloud write is pending", async ({
     fixture,
     page,
@@ -290,9 +152,7 @@ function registerCompletesCacheCreationWhileTheCloudWriteIsPending() {
       write.release();
     }
   });
-}
 
-function registerKeepsAQueuedCreationAfterNavigatingAway() {
   test("CARD-MANAGEMENT-13 keeps a queued creation after navigating away", async ({ fixture, page, namespace }) => {
     const deck = fixture.deck();
     const frontText = `${namespace.caseId} background front`;
@@ -315,9 +175,7 @@ function registerKeepsAQueuedCreationAfterNavigatingAway() {
       write.release();
     }
   });
-}
 
-function registerRemovesRejectedQueuedCreationAfterLeavingTheForm() {
   test("CARD-MANAGEMENT-14 removes rejected queued creation after leaving the form", async ({
     fixture,
     page,
@@ -343,9 +201,46 @@ function registerRemovesRejectedQueuedCreationAfterLeavingTheForm() {
       await fault.dispose();
     }
   });
-}
 
-function registerPersistsEditedFrontBackAndTagsAcrossReload() {
+  // Hold the outgoing write without cancelling it; the SDK must still settle it after SPA navigation.
+  const holdCardWrite = async (page: Page, cardId = "") => {
+    const arrived = Promise.withResolvers<void>();
+    const released = Promise.withResolvers<void>();
+    let held = false;
+    await page.route("**/google.firestore.v1.Firestore/Write/channel**", async (route) => {
+      const body = decodeURIComponent((route.request().postData() ?? "").replaceAll("+", "%20"));
+      if (!held && body.includes(`/documents/card/${cardId}`)) {
+        held = true;
+        arrived.resolve();
+        await released.promise;
+      }
+      await route.fallback();
+    });
+    return { arrived: arrived.promise, release: () => released.resolve() };
+  };
+});
+
+test.describe("card", () => {
+  const openCardDeleteDialog = async (page: Page, frontText: string) => {
+    await page.getByRole("button", { name: `Open actions for ${frontText}` }).click();
+    await page.getByRole("menuitem", { name: "Delete" }).click();
+    return page.getByRole("alertdialog", { name: "Delete card?" });
+  };
+
+  const toggleTag = async (page: Page, name: string) => {
+    const checkbox = page.getByRole("checkbox", { name, exact: true });
+    if ((await checkbox.count()) === 0) {
+      await page.getByRole("button", { name: "Add tag", exact: true }).click();
+      await page
+        .getByRole("textbox", { name: /^Tag name / })
+        .last()
+        .fill(name);
+    } else {
+      await checkbox.locator("xpath=parent::label").click();
+    }
+    return checkbox;
+  };
+
   test("CARD-MANAGEMENT-01 persists edited front, back, and tags across reload", async ({
     fixture,
     page,
@@ -402,9 +297,7 @@ function registerPersistsEditedFrontBackAndTagsAcrossReload() {
     expect(after.fields).toMatchObject(preservedFields);
     expect(documentId(after)).toBe(card.id);
   });
-}
 
-function registerDeletesACardAndDoesNotReloadItAsActive() {
   test("CARD-MANAGEMENT-02 deletes a Card and does not reload it as active", async ({ fixture, page }) => {
     const deck = fixture.deck();
     const card = fixture.card();
@@ -422,9 +315,7 @@ function registerDeletesACardAndDoesNotReloadItAsActive() {
       .poll(async () => (await requireDocument("card", card.id)).fields.deletedAt?.integerValue)
       .not.toBeUndefined();
   });
-}
 
-function registerCancelsDeletionRestoresFocusAndPreservesPersistentData() {
   test("CARD-MANAGEMENT-03 cancels deletion, restores focus, and preserves persistent data", async ({
     fixture,
     page,
@@ -445,9 +336,7 @@ function registerCancelsDeletionRestoresFocusAndPreservesPersistentData() {
     await expect(trigger).toBeFocused();
     expect(await requireDocument("card", card.id)).toEqual(before);
   });
-}
 
-function registerRetriesTheSameCardEditAfterFirestoreRollback() {
   test("CARD-MANAGEMENT-04 retries the same Card edit after Firestore rollback", async ({
     fixture,
     page,
@@ -496,9 +385,7 @@ function registerRetriesTheSameCardEditAfterFirestoreRollback() {
     expect(after.fields).toMatchObject(preservedFields);
     expect(documentId(after)).toBe(card.id);
   });
-}
 
-function registerCreatesOneRemoteCardAndKeepsItAcrossReload() {
   test("CARD-MANAGEMENT-05 creates one remote Card and keeps it across reload", async ({
     fixture,
     page,
@@ -570,9 +457,7 @@ function registerCreatesOneRemoteCardAndKeepsItAcrossReload() {
     expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
     await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(1);
   });
-}
 
-function registerCreatesOneLocalCardAndKeepsItAcrossReload() {
   test("CARD-MANAGEMENT-06 creates one local Card and keeps it across reload", async ({ fixture, page, namespace }) => {
     const frontText =
       `${namespace.caseId} local front. ${"This paragraph explains a useful idea with enough detail to study later. ".repeat(26)}`.slice(
@@ -653,9 +538,7 @@ function registerCreatesOneLocalCardAndKeepsItAcrossReload() {
       )
     ).toEqual([]);
   });
-}
 
-function registerRevealsTheFirstInvalidSideWithoutSavingEmptyText() {
   test("CARD-MANAGEMENT-10 reveals the first invalid side without saving empty text", async ({ fixture, page }) => {
     const deck = fixture.deck();
     const card = fixture.card();
@@ -685,9 +568,7 @@ function registerRevealsTheFirstInvalidSideWithoutSavingEmptyText() {
     await expect(page.getByRole("textbox", { name: "Back text" })).toHaveValue("");
     expect(await requireDocument("card", card.id)).toEqual(before);
   });
-}
 
-function registerPreviewsAnUnsavedAnswerWhileCreatingAnIncompleteCard() {
   test("CARD-MANAGEMENT-15 previews an unsaved answer while creating an incomplete Card", async ({ fixture, page }) => {
     await fixture.apply(page);
     const local = await createAnonymousDeck(page);
@@ -738,9 +619,7 @@ function registerPreviewsAnUnsavedAnswerWhileCreatingAnIncompleteCard() {
     await page.reload();
     expect(await downloadDeckCards(page, deck.name)).toEqual(before);
   });
-}
 
-function registerPreviewsCurrentAnswerTagsWithoutSavingTheEditedCard() {
   test("CARD-MANAGEMENT-16 previews current answer tags without saving the edited Card", async ({ fixture, page }) => {
     await fixture.apply(page);
     const local = await createAnonymousDeck(page);
@@ -800,4 +679,73 @@ function registerPreviewsCurrentAnswerTagsWithoutSavingTheEditedCard() {
     await page.reload();
     expect(await downloadDeckCards(page, deck.name)).toEqual(before);
   });
-}
+});
+
+test("CARD-MANAGEMENT-07 retries a rejected remote Card create with a new ID and no duplicate", async ({
+  fixture,
+  page,
+  browserErrors,
+  namespace,
+}) => {
+  const deck = fixture.deck();
+  const frontText = `${namespace.caseId} retry front`;
+  const backText = `${namespace.caseId} retry back`;
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}`);
+  await page.getByRole("button", { name: "Actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Add card" }).click();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}/card/new$`));
+
+  let attemptedCardId: string | undefined;
+  page.on("request", (request) => {
+    if (!request.url().includes("google.firestore.v1.Firestore/Write/channel")) return;
+    const body = decodeURIComponent((request.postData() ?? "").replaceAll("+", "%20"));
+    attemptedCardId ??= /\/documents\/card\/([a-zA-Z0-9-]+)/.exec(body)?.[1];
+  });
+  const fault = await failNextFirestoreWrite(page, { collection: "card" });
+  allowExpectedFirestoreWriteFailure(browserErrors);
+  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
+  await page.getByRole("textbox", { name: "Back text" }).fill(backText);
+  await page.getByRole("button", { name: "Create card" }).click();
+  await expect.poll(fault.wasTriggered).toBe(true);
+  await fault.waitForFailure();
+  await fault.dispose();
+  expect(attemptedCardId).toBeDefined();
+
+  await page.goto(`/deck/${deck.id}/card/new`);
+  await page.getByRole("textbox", { name: "Front text" }).fill(frontText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
+  await page.getByRole("textbox", { name: "Back text" }).fill(backText);
+  await page.getByRole("button", { name: "Create card" }).click();
+  await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: `Created card “${frontText}”.` })).toBeVisible();
+  await page.reload();
+
+  await expect(page.getByRole("button", { name: `View ${frontText}` })).toBeVisible();
+  await expect
+    .poll(
+      async () =>
+        (await listDocuments("card")).filter(
+          ({ fields }) =>
+            fields.deckId?.stringValue === deck.id &&
+            fields.uid?.stringValue === deck.uid &&
+            fields.frontText?.stringValue === frontText
+        ).length
+    )
+    .toBe(1);
+  const created = (await listDocuments("card")).filter(
+    ({ fields }) =>
+      fields.deckId?.stringValue === deck.id &&
+      fields.uid?.stringValue === deck.uid &&
+      fields.frontText?.stringValue === frontText
+  );
+  expect(created).toHaveLength(1);
+  const [createdCard] = created;
+  if (createdCard === undefined) throw new Error("Created remote Card was not found");
+  expect(documentId(createdCard)).not.toBe(attemptedCardId);
+  expect(createdCard.fields.backText?.stringValue).toBe(backText);
+  expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
+  await expect(page.getByRole("button", { name: `View ${frontText}`, exact: true })).toHaveCount(1);
+});

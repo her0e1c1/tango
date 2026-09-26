@@ -55,30 +55,6 @@ describe("ACCOUNT-01 ACCOUNT-02 ACCOUNT-03 SETTINGS-04 AccountPage", () => {
     updatePreferences(createPreferences({ appearance: { darkMode: false } }));
   });
 
-  registerShowsTheAnonymousIdentityAndOffersGoogleSignIn();
-
-  registerShowsTheLinkedIdentityAndOffersSignOut();
-
-  registerKeepsSignOutPendingWhenTheEarlierSignInFinishesDuringAnAuthTransition();
-
-  registerUpdatesFixedCopyInPlaceWithoutTranslatingLinkedIdentityData();
-
-  registerNavigatesHomeWhenTheUserPressesTheRouteShortcut();
-
-  registerLetsTheUserRetryAFailedSignIn();
-
-  registerLetsTheUserRetryAFailedSignOut();
-
-  registerKeepsAHandledSignInFailureVisibleGloballyAfterLeavingTheAccountPage();
-
-  registerShowsASignInFailureThatArrivesAfterLeavingTheAccountPage();
-
-  registerShowsASignOutFailureThatArrivesAfterLeavingTheAccountPage();
-
-  registerShowsLocalizedJapaneseToastMessagesWhenActiveLanguageIsSetToJa();
-});
-
-function registerShowsTheAnonymousIdentityAndOffersGoogleSignIn() {
   it("shows the anonymous identity and offers Google sign-in", () => {
     renderPage();
 
@@ -88,9 +64,7 @@ function registerShowsTheAnonymousIdentityAndOffersGoogleSignIn() {
     expect(screen.getByText("anonymous-user")).toBeVisible();
     expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
   });
-}
 
-function registerShowsTheLinkedIdentityAndOffersSignOut() {
   it("shows the linked identity and offers sign-out", () => {
     replaceAuthSession({
       displayName: "Test User",
@@ -105,9 +79,7 @@ function registerShowsTheLinkedIdentityAndOffersSignOut() {
     expect(screen.getByText("linked-user")).toBeVisible();
     expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
   });
-}
 
-function registerKeepsSignOutPendingWhenTheEarlierSignInFinishesDuringAnAuthTransition() {
   it("keeps sign-out pending when the earlier sign-in finishes during an auth transition", async () => {
     const signInRequest = Promise.withResolvers<Awaited<ReturnType<typeof linkWithPopup>>>();
     const signOutRequest = Promise.withResolvers<void>();
@@ -157,9 +129,7 @@ function registerKeepsSignOutPendingWhenTheEarlierSignInFinishesDuringAnAuthTran
     expect(screen.getByText("new-anonymous-user")).toBeVisible();
     expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeEnabled();
   });
-}
 
-function registerUpdatesFixedCopyInPlaceWithoutTranslatingLinkedIdentityData() {
   it("updates fixed copy in place without translating linked identity data", async () => {
     replaceAuthSession({
       displayName: "Test User",
@@ -183,9 +153,7 @@ function registerUpdatesFixedCopyInPlaceWithoutTranslatingLinkedIdentityData() {
     expect(screen.getByText("Test User")).toBe(displayName);
     expect(screen.getByText("linked-user")).toBeVisible();
   });
-}
 
-function registerNavigatesHomeWhenTheUserPressesTheRouteShortcut() {
   it("navigates home when the user presses the route shortcut", async () => {
     renderPage();
 
@@ -193,9 +161,7 @@ function registerNavigatesHomeWhenTheUserPressesTheRouteShortcut() {
 
     expect(await screen.findByText("Home Page")).toBeVisible();
   });
-}
 
-function registerLetsTheUserRetryAFailedSignIn() {
   it("lets the user retry a failed sign-in", async () => {
     vi.mocked(linkWithPopup)
       .mockRejectedValueOnce(new Error("Sign-in failed"))
@@ -210,9 +176,7 @@ function registerLetsTheUserRetryAFailedSignIn() {
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
     expect(screen.getByRole("status")).toHaveTextContent("Signed in.");
   });
-}
 
-function registerLetsTheUserRetryAFailedSignOut() {
   it("lets the user retry a failed sign-out", async () => {
     replaceAuthSession({
       displayName: "Test User",
@@ -231,9 +195,7 @@ function registerLetsTheUserRetryAFailedSignOut() {
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
     expect(screen.getByRole("status")).toHaveTextContent("Signed out.");
   });
-}
 
-function registerKeepsAHandledSignInFailureVisibleGloballyAfterLeavingTheAccountPage() {
   it("keeps a handled sign-in failure visible globally after leaving the Account page", async () => {
     vi.mocked(linkWithPopup).mockRejectedValueOnce(new Error("Sign-in failed"));
     renderPage();
@@ -246,9 +208,7 @@ function registerKeepsAHandledSignInFailureVisibleGloballyAfterLeavingTheAccount
     expect(await screen.findByText("Home Page")).toBeVisible();
     expect(screen.getByRole("alert")).toHaveTextContent("Unable to sign in.");
   });
-}
 
-function registerShowsASignInFailureThatArrivesAfterLeavingTheAccountPage() {
   it("shows a sign-in failure that arrives after leaving the Account page", async () => {
     const request = Promise.withResolvers<never>();
     vi.mocked(linkWithPopup).mockReturnValue(request.promise);
@@ -265,9 +225,7 @@ function registerShowsASignInFailureThatArrivesAfterLeavingTheAccountPage() {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Unable to sign in.");
   });
-}
 
-function registerShowsASignOutFailureThatArrivesAfterLeavingTheAccountPage() {
   it("shows a sign-out failure that arrives after leaving the Account page", async () => {
     replaceAuthSession({
       displayName: "Test User",
@@ -290,9 +248,7 @@ function registerShowsASignOutFailureThatArrivesAfterLeavingTheAccountPage() {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Unable to sign out.");
   });
-}
 
-function registerShowsLocalizedJapaneseToastMessagesWhenActiveLanguageIsSetToJa() {
   it("shows localized Japanese toast messages when active language is set to ja", async () => {
     await getI18n().changeLanguage("ja");
     renderPage();
@@ -300,4 +256,4 @@ function registerShowsLocalizedJapaneseToastMessagesWhenActiveLanguageIsSetToJa(
     await userEvent.click(screen.getByRole("button", { name: "Googleでログイン" }));
     expect(screen.getByRole("status", { name: "トースト通知" })).toHaveTextContent("ログインしました。");
   });
-}
+});

@@ -48,26 +48,6 @@ describe("NAVIGATION-17 NAVIGATION-08 DeckListCard [STUDY-SESSION-03]", () => {
     vi.useRealTimers();
   });
 
-  registerDistinguishesZeroCountDecksSCards();
-
-  registerOpensStudySettingsForDueSAndNewS();
-
-  registerRendersCompactProgressForAnActiveDeck();
-
-  registerDoesNotShowTheRemoteModeIconForALocalDeck();
-
-  registerShowsTheRestoredPositionWithoutInventingALastStudiedTime();
-
-  registerRendersTheCardCountAndStudyActionForAnInactiveDeck();
-
-  registerPassesTheDeckIdToNavigationAndManagementActions();
-
-  registerRoutesInactiveStudyWithoutOpeningTheRow();
-
-  registerMakesOnlyThePendingDeckRowUnavailable();
-});
-
-function registerDistinguishesZeroCountDecksSCards() {
   it.each([
     [0, undefined, "No cards held on this device"],
     [3, undefined, "No cards match saved filters"],
@@ -83,9 +63,7 @@ function registerDistinguishesZeroCountDecksSCards() {
     expect(screen.getByText(note)).toBeVisible();
     expect(screen.getByRole("button", { name: "Study Deck name" })).toBeEnabled();
   });
-}
 
-function registerOpensStudySettingsForDueSAndNewS() {
   it.each([
     [1, 2, "Review Deck name"],
     [0, 2, "Study new cards in Deck name"],
@@ -102,9 +80,7 @@ function registerOpensStudySettingsForDueSAndNewS() {
     fireEvent.click(screen.getByRole("button", { name: label }));
     expect(onClickStudy).toHaveBeenCalledWith(deck.id);
   });
-}
 
-function registerRendersCompactProgressForAnActiveDeck() {
   it("renders compact progress for an active deck", () => {
     render(
       <DeckListCard
@@ -130,17 +106,13 @@ function registerRendersCompactProgressForAnActiveDeck() {
     );
     expect(screen.getByRole("button", { name: "Continue Deck name" })).toBeInTheDocument();
   });
-}
 
-function registerDoesNotShowTheRemoteModeIconForALocalDeck() {
   it("does not show the remote mode icon for a local deck", () => {
     render(<DeckListCard deck={createLocalDeck()} cardCount={0} />);
 
     expect(screen.queryByLabelText("Remote deck")).not.toBeInTheDocument();
   });
-}
 
-function registerShowsTheRestoredPositionWithoutInventingALastStudiedTime() {
   it("shows the restored position without inventing a last-studied time", () => {
     render(
       <DeckListCard
@@ -161,9 +133,7 @@ function registerShowsTheRestoredPositionWithoutInventingALastStudiedTime() {
     );
     expect(screen.getByRole("button", { name: "Continue Deck name" })).toBeVisible();
   });
-}
 
-function registerRendersTheCardCountAndStudyActionForAnInactiveDeck() {
   it("renders the card count and Study action for an inactive deck", () => {
     render(<ControlledDeckListCard deck={deck} cardCount={8} />);
 
@@ -174,9 +144,7 @@ function registerRendersTheCardCountAndStudyActionForAnInactiveDeck() {
     fireEvent.click(screen.getByRole("button", { name: "Open actions for Deck name" }));
     expect(screen.queryByRole("menuitem", { name: "Restart" })).not.toBeInTheDocument();
   });
-}
 
-function registerPassesTheDeckIdToNavigationAndManagementActions() {
   it("passes the deck id to navigation and management actions", () => {
     const actions = {
       onClickName: vi.fn(),
@@ -227,9 +195,7 @@ function registerPassesTheDeckIdToNavigationAndManagementActions() {
     expect(actions.onClickEdit).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(actions.onClickDelete).toHaveBeenCalledExactlyOnceWith(deck.id);
   });
-}
 
-function registerRoutesInactiveStudyWithoutOpeningTheRow() {
   it("routes inactive Study without opening the row", () => {
     const onClickName = vi.fn();
     const onClickStudy = vi.fn();
@@ -240,9 +206,7 @@ function registerRoutesInactiveStudyWithoutOpeningTheRow() {
     expect(onClickStudy).toHaveBeenCalledExactlyOnceWith(deck.id);
     expect(onClickName).not.toHaveBeenCalled();
   });
-}
 
-function registerMakesOnlyThePendingDeckRowUnavailable() {
   it("makes only the pending Deck row unavailable", () => {
     const otherDeck = createDeck({ id: "other-deck", name: "Other deck" });
     render(
@@ -260,4 +224,4 @@ function registerMakesOnlyThePendingDeckRowUnavailable() {
     expect(screen.getByRole("button", { name: "Study Other deck" })).not.toBeDisabled();
     expect(screen.getByRole("button", { name: "Open actions for Other deck" })).not.toBeDisabled();
   });
-}
+});

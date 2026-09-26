@@ -87,35 +87,18 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   });
   afterEach(() => stop());
 
-  registerKeepsAnonymousStartupOfflineBeforeMakingEditingAvailable();
-  registerEnablesSyncAfterTheSameUIDIsLinked();
-  registerBlocksSignoutWhileRestoredCacheChangesArePending();
-  registerStopsNetworkingAndOldSubscriptionsBeforeSwitchingIdentity();
-  registerWaitsForCachedDataThroughASameUIDTokenRefresh();
-  registerIgnoresAnOldIdentitySDelayedStartupFailure();
-  registerReportsASharedAnonymousBootstrapFailureAfterRepeatedInitializationNotifications();
-  registerRestoresTheCurrentAccountAfterALaterAuthCallbackAbortsTheSwitch();
-});
-
-function registerKeepsAnonymousStartupOfflineBeforeMakingEditingAvailable() {
   it("keeps anonymous startup offline before making editing available", async () => {
     await publish(user("anonymous"));
     expect(control.network).toBe(false);
     expect(control.subscribed).toBe("anonymous");
     expect(getAuthSession()).toMatchObject({ uid: "anonymous", isAnonymous: true });
   });
-}
-
-function registerEnablesSyncAfterTheSameUIDIsLinked() {
   it("enables sync after the same UID is linked", async () => {
     await publish(user("same"));
     await publish(user("same", false));
     await vi.waitFor(() => expect(control.network).toBe(true));
     expect(getAuthSession()).toMatchObject({ uid: "same", isAnonymous: false });
   });
-}
-
-function registerBlocksSignoutWhileRestoredCacheChangesArePending() {
   it("blocks signout while restored cache changes are pending", async () => {
     await publish(user("account", false));
     control.pending = true;
@@ -123,9 +106,6 @@ function registerBlocksSignoutWhileRestoredCacheChangesArePending() {
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" });
     expect(control.subscribed).toBe("account");
   });
-}
-
-function registerStopsNetworkingAndOldSubscriptionsBeforeSwitchingIdentity() {
   it("stops networking and old subscriptions before switching identity", async () => {
     await publish(user("account", false));
     await control.before?.(null);
@@ -136,9 +116,6 @@ function registerStopsNetworkingAndOldSubscriptionsBeforeSwitchingIdentity() {
     await publish(null);
     expect(control.anonymous).toHaveBeenCalledOnce();
   });
-}
-
-function registerWaitsForCachedDataThroughASameUIDTokenRefresh() {
   it("waits for cached data through a same-UID token refresh", async () => {
     const ready = Promise.withResolvers<void>();
     control.ready = ready.promise;
@@ -151,9 +128,6 @@ function registerWaitsForCachedDataThroughASameUIDTokenRefresh() {
     ready.resolve();
     await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "same" }));
   });
-}
-
-function registerIgnoresAnOldIdentitySDelayedStartupFailure() {
   it("ignores an old identity's delayed startup failure", async () => {
     const oldReady = Promise.withResolvers<void>();
     control.ready = oldReady.promise;
@@ -169,9 +143,6 @@ function registerIgnoresAnOldIdentitySDelayedStartupFailure() {
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "new" });
     expect(control.subscribed).toBe("new");
   });
-}
-
-function registerReportsASharedAnonymousBootstrapFailureAfterRepeatedInitializationNotifications() {
   it("reports a shared anonymous bootstrap failure after repeated initialization notifications", async () => {
     const bootstrap = Promise.withResolvers<void>();
     control.anonymous.mockReturnValueOnce(bootstrap.promise);
@@ -184,9 +155,6 @@ function registerReportsASharedAnonymousBootstrapFailureAfterRepeatedInitializat
     expect(control.network).toBe(false);
     expect(control.subscribed).toBe("");
   });
-}
-
-function registerRestoresTheCurrentAccountAfterALaterAuthCallbackAbortsTheSwitch() {
   it("restores the current account after a later auth callback aborts the switch", async () => {
     await publish(user("account", false));
     await control.before?.(null);
@@ -197,4 +165,4 @@ function registerRestoresTheCurrentAccountAfterALaterAuthCallbackAbortsTheSwitch
     expect(control.network).toBe(true);
     expect(control.subscribed).toBe("account");
   });
-}
+});

@@ -15,16 +15,15 @@ vi.mock("@/shared/ui/toast", () => ({ showToast: vi.fn() }));
 vi.mock("@/entities/card", () => ({ mutateCards: vi.fn() }));
 vi.mock("@/entities/deck", () => ({ createDeck: vi.fn() }));
 
-const row = {
-  rowNumber: 1,
-  card: { frontText: "front", backText: "back", tags: ["tag"], uniqueKey: "key-1" },
-};
-
-const rows = [row];
-
-const file = (name: string) => new File(["front,back,tag,key-1"], name, { type: "text/csv" });
-
 describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-IMPORT-04]", () => {
+  const row = {
+    rowNumber: 1,
+    card: { frontText: "front", backText: "back", tags: ["tag"], uniqueKey: "key-1" },
+  };
+  const rows = [row];
+
+  const file = (name: string) => new File(["front,back,tag,key-1"], name, { type: "text/csv" });
+
   beforeEach(() => {
     deckImportStore.setState(deckImportStore.getInitialState(), true);
     vi.mocked(getAuthUid).mockReturnValue("uid");
@@ -34,18 +33,6 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     vi.mocked(generateId).mockReset().mockReturnValueOnce("deck").mockReturnValue("card");
   });
 
-  registerRejectsInvalidUTF8BytesJBeforeParsingAndReleasesTheSelectionLock();
-
-  registerPassesValidJapaneseAndLiteralReplacementCharactersToTheCSVParserUnchanged();
-
-  registerPreviewsARemoteCSVBeforeSavingItsDeckAndCards();
-
-  registerImportsUsingTheAnonymousUID();
-
-  registerUsesTheSameAPIForAnonymousImports();
-});
-
-function registerRejectsInvalidUTF8BytesJBeforeParsingAndReleasesTheSelectionLock() {
   it.each([[0x82, 0xa0], [0xc3], [0xc0, 0xaf], [0xed, 0xa0, 0x80]])(
     "rejects invalid UTF-8 bytes %j before parsing and releases the selection lock",
     async (...bytes) => {
@@ -62,17 +49,13 @@ function registerRejectsInvalidUTF8BytesJBeforeParsingAndReleasesTheSelectionLoc
       expect(await importDeckPreview()).toBe(true);
     }
   );
-}
 
-function registerPassesValidJapaneseAndLiteralReplacementCharactersToTheCSVParserUnchanged() {
   it("passes valid Japanese and literal replacement characters to the CSV parser unchanged", async () => {
     const text = "日本語�,回答�,タグ,key";
     await selectDeckImportFile(new File([text], "valid.csv"));
     expect(parseCsv).toHaveBeenCalledWith(text);
   });
-}
 
-function registerPreviewsARemoteCSVBeforeSavingItsDeckAndCards() {
   it("previews a remote CSV before saving its Deck and Cards", async () => {
     await selectDeckImportFile(file("deck.csv"));
     expect(createDeck).not.toHaveBeenCalled();
@@ -87,9 +70,7 @@ function registerPreviewsARemoteCSVBeforeSavingItsDeckAndCards() {
       },
     ]);
   });
-}
 
-function registerImportsUsingTheAnonymousUID() {
   it("imports using the anonymous UID", async () => {
     vi.mocked(getAuthUid).mockReturnValue("anonymous-uid");
     vi.mocked(generateId).mockReset().mockReturnValueOnce("local-deck").mockReturnValue("local-card");
@@ -105,9 +86,7 @@ function registerImportsUsingTheAnonymousUID() {
       },
     ]);
   });
-}
 
-function registerUsesTheSameAPIForAnonymousImports() {
   it("uses the same API for anonymous imports", async () => {
     vi.mocked(getAuthUid).mockReturnValue("anonymous-uid");
     await selectDeckImportFile(file("guest.csv"));
@@ -118,4 +97,4 @@ function registerUsesTheSameAPIForAnonymousImports() {
       { kind: "create", card: { ...row.card, id: "card", deckId: "deck" } },
     ]);
   });
-}
+});

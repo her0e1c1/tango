@@ -67,30 +67,6 @@ const labels = {
 };
 
 describe("ActionsMenu", () => {
-  registerRendersSuppliedLabelsAndRunsItemsBeforeReturningFocus();
-
-  registerSupportsWrappingArrowsHomeEndAndEscape();
-
-  registerKeepsMenuItemsOutOfTheTabSequenceAndMovesTabToTheNextExternalControl();
-
-  registerMovesShiftTabToThePreviousExternalControlBeforeTheTrigger();
-
-  registerSkipsDisabledHiddenAndInertControlsBeforeFocusingAnExplicitTabStop();
-
-  registerKeepsTheMenuOpenWhenAnAmbiguousBlurSettlesInside();
-
-  registerKeepsEditActiveWhenAnAmbiguousBlurMicrotaskRunsBeforeTheClick();
-
-  registerKeepsANewlyOpenedSiblingMenuOpenAfterAStaleBlurTimerRuns();
-
-  registerDoesNotCloseAfterItsRootUnmountsDuringAnAmbiguousBlur();
-
-  registerClosesWhenAnAmbiguousBlurSettlesOutside();
-
-  registerDisablesTheTriggerAndHidesAnOpenMenu();
-});
-
-function registerRendersSuppliedLabelsAndRunsItemsBeforeReturningFocus() {
   it("renders supplied labels and runs items before returning focus", async () => {
     const edit = vi.fn();
     const remove = vi.fn();
@@ -111,9 +87,7 @@ function registerRendersSuppliedLabelsAndRunsItemsBeforeReturningFocus() {
     expect(remove).toHaveBeenCalledOnce();
     await waitFor(() => expect(trigger).toHaveFocus());
   });
-}
 
-function registerSupportsWrappingArrowsHomeEndAndEscape() {
   it("supports wrapping arrows, Home, End, and Escape", async () => {
     render(<ControlledMenu {...labels} items={items()} />);
     const trigger = screen.getByRole("button", { name: labels.triggerLabel });
@@ -134,9 +108,7 @@ function registerSupportsWrappingArrowsHomeEndAndEscape() {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
-}
 
-function registerKeepsMenuItemsOutOfTheTabSequenceAndMovesTabToTheNextExternalControl() {
   it("keeps menu items out of the Tab sequence and moves Tab to the next external control", async () => {
     render(
       <>
@@ -157,9 +129,7 @@ function registerKeepsMenuItemsOutOfTheTabSequenceAndMovesTabToTheNextExternalCo
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next control" })).toHaveFocus();
   });
-}
 
-function registerMovesShiftTabToThePreviousExternalControlBeforeTheTrigger() {
   it("moves Shift+Tab to the previous external control before the trigger", async () => {
     render(
       <>
@@ -177,9 +147,7 @@ function registerMovesShiftTabToThePreviousExternalControlBeforeTheTrigger() {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Previous control" })).toHaveFocus();
   });
-}
 
-function registerSkipsDisabledHiddenAndInertControlsBeforeFocusingAnExplicitTabStop() {
   it("skips disabled, hidden, and inert controls before focusing an explicit tab stop", async () => {
     render(
       <>
@@ -207,9 +175,7 @@ function registerSkipsDisabledHiddenAndInertControlsBeforeFocusingAnExplicitTabS
 
     expect(screen.getByText("Explicit tab stop")).toHaveFocus();
   });
-}
 
-function registerKeepsTheMenuOpenWhenAnAmbiguousBlurSettlesInside() {
   it("keeps the menu open when an ambiguous blur settles inside", async () => {
     render(<ControlledMenu {...labels} items={items()} />);
     fireEvent.click(screen.getByRole("button", { name: labels.triggerLabel }));
@@ -225,9 +191,7 @@ function registerKeepsTheMenuOpenWhenAnAmbiguousBlurSettlesInside() {
     expect(screen.getByRole("menu", { name: labels.menuLabel })).toBeInTheDocument();
     expect(remove).toHaveFocus();
   });
-}
 
-function registerKeepsEditActiveWhenAnAmbiguousBlurMicrotaskRunsBeforeTheClick() {
   it("keeps Edit active when an ambiguous blur microtask runs before the click", async () => {
     const editAction = vi.fn();
     render(<ControlledMenu {...labels} items={items(editAction)} />);
@@ -253,9 +217,7 @@ function registerKeepsEditActiveWhenAnAmbiguousBlurMicrotaskRunsBeforeTheClick()
       vi.useRealTimers();
     }
   });
-}
 
-function registerKeepsANewlyOpenedSiblingMenuOpenAfterAStaleBlurTimerRuns() {
   it("keeps a newly opened sibling menu open after a stale blur timer runs", async () => {
     render(<SharedOpenMenus />);
     fireEvent.click(screen.getByRole("button", { name: "Open first actions" }));
@@ -275,9 +237,7 @@ function registerKeepsANewlyOpenedSiblingMenuOpenAfterAStaleBlurTimerRuns() {
       vi.useRealTimers();
     }
   });
-}
 
-function registerDoesNotCloseAfterItsRootUnmountsDuringAnAmbiguousBlur() {
   it("does not close after its root unmounts during an ambiguous blur", () => {
     const onClose = vi.fn();
     const view = render(<ActionsMenu {...labels} items={items()} open onToggle={vi.fn()} onClose={onClose} />);
@@ -295,9 +255,7 @@ function registerDoesNotCloseAfterItsRootUnmountsDuringAnAmbiguousBlur() {
       vi.useRealTimers();
     }
   });
-}
 
-function registerClosesWhenAnAmbiguousBlurSettlesOutside() {
   it("closes when an ambiguous blur settles outside", async () => {
     render(
       <>
@@ -318,13 +276,11 @@ function registerClosesWhenAnAmbiguousBlurSettlesOutside() {
     await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
     expect(external).toHaveFocus();
   });
-}
 
-function registerDisablesTheTriggerAndHidesAnOpenMenu() {
   it("disables the trigger and hides an open menu", () => {
     render(<ActionsMenu {...labels} items={items()} open disabled onToggle={vi.fn()} onClose={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: labels.triggerLabel })).toBeDisabled();
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
-}
+});

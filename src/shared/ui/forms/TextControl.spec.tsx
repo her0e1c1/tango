@@ -15,28 +15,6 @@ import { Select } from "./Select";
 import { Textarea } from "./Textarea";
 
 describe("shared text controls", () => {
-  registerForwardsAnIdSoExternalLabelsCanNameTheInput();
-
-  registerKeepsNativeInputValuesRefsAndHandlers();
-
-  registerKeepsNativeSelectValuesRefsAndHandlers();
-
-  registerKeepsNativeTextareaValuesRefsAndHandlers();
-
-  registerForwardsInvalidStateToNativeTextControls();
-
-  registerForwardsDisabledReadOnlyPlaceholderAndTypeInputBehavior();
-
-  registerForwardsTheDisabledStateToASelect();
-
-  registerForwardsDisabledReadOnlyAndPlaceholderTextareaBehavior();
-
-  registerKeepsEachFocusableControlOnTheNativeFocusPath();
-
-  registerReportsNativeInvalidStateForTheS();
-});
-
-function registerForwardsAnIdSoExternalLabelsCanNameTheInput() {
   it("forwards an id so external labels can name the input", () => {
     render(
       <>
@@ -47,9 +25,7 @@ function registerForwardsAnIdSoExternalLabelsCanNameTheInput() {
 
     expect(screen.getByRole("textbox", { name: "GitHub access token" })).toHaveAttribute("id", "github-token");
   });
-}
 
-function registerKeepsNativeInputValuesRefsAndHandlers() {
   it("keeps native input values, refs, and handlers", () => {
     const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
@@ -65,9 +41,7 @@ function registerKeepsNativeInputValuesRefsAndHandlers() {
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
-}
 
-function registerKeepsNativeSelectValuesRefsAndHandlers() {
   it("keeps native select values, refs, and handlers", () => {
     const ref = createRef<HTMLSelectElement>();
     const onChange = vi.fn();
@@ -95,9 +69,7 @@ function registerKeepsNativeSelectValuesRefsAndHandlers() {
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
-}
 
-function registerKeepsNativeTextareaValuesRefsAndHandlers() {
   it("keeps native textarea values, refs, and handlers", () => {
     const ref = createRef<HTMLTextAreaElement>();
     const onChange = vi.fn();
@@ -113,9 +85,7 @@ function registerKeepsNativeTextareaValuesRefsAndHandlers() {
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
-}
 
-function registerForwardsInvalidStateToNativeTextControls() {
   it("forwards invalid state to native text controls", () => {
     render(
       <>
@@ -128,9 +98,7 @@ function registerForwardsInvalidStateToNativeTextControls() {
       expect(control).toHaveAttribute("aria-invalid", "true");
     }
   });
-}
 
-function registerForwardsDisabledReadOnlyPlaceholderAndTypeInputBehavior() {
   it("forwards disabled, read-only, placeholder, and type input behavior", () => {
     render(<Input disabled readOnly placeholder="Deck title" type="email" defaultValue="not-an-email" />);
 
@@ -140,9 +108,7 @@ function registerForwardsDisabledReadOnlyPlaceholderAndTypeInputBehavior() {
     expect(input).toHaveAttribute("placeholder", "Deck title");
     expect(input).toHaveAttribute("type", "email");
   });
-}
 
-function registerForwardsTheDisabledStateToASelect() {
   it("forwards the disabled state to a select", () => {
     render(<Select disabled defaultValue="primary" options={[{ label: "Primary", value: "primary" }]} />);
 
@@ -150,9 +116,7 @@ function registerForwardsTheDisabledStateToASelect() {
     expect(select).toBeDisabled();
     expect(select).toHaveValue("primary");
   });
-}
 
-function registerForwardsDisabledReadOnlyAndPlaceholderTextareaBehavior() {
   it("forwards disabled, read-only, and placeholder textarea behavior", () => {
     render(<Textarea disabled readOnly placeholder="Card details" defaultValue="Long-form content" />);
 
@@ -161,9 +125,7 @@ function registerForwardsDisabledReadOnlyAndPlaceholderTextareaBehavior() {
     expect(textarea).toHaveAttribute("readonly");
     expect(textarea).toHaveAttribute("placeholder", "Card details");
   });
-}
 
-function registerKeepsEachFocusableControlOnTheNativeFocusPath() {
   it("keeps each focusable control on the native focus path", () => {
     render(
       <>
@@ -179,9 +141,7 @@ function registerKeepsEachFocusableControlOnTheNativeFocusPath() {
       expect(control).toHaveFocus();
     }
   });
-}
 
-function registerReportsNativeInvalidStateForTheS() {
   it.each([
     ["input", "textbox", () => render(<Input required defaultValue="" />)],
     [
@@ -196,4 +156,4 @@ function registerReportsNativeInvalidStateForTheS() {
 
     expect(element).toBeInvalid();
   });
-}
+});

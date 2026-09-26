@@ -3,12 +3,6 @@ import { describe, expect, it } from "vitest";
 import { routes } from "./routes";
 
 describe("NAVIGATION-06 NAVIGATION-08 routes", () => {
-  registerKeepsSInsideOnePathParameterForEveryIDRoute();
-
-  registerDefinesEveryPageRouteAndBuildsItsDestination();
-});
-
-function registerKeepsSInsideOnePathParameterForEveryIDRoute() {
   it.each([
     ["plan", "plan"],
     ["plan?draft=1", "plan%3Fdraft%3D1"],
@@ -34,9 +28,7 @@ function registerKeepsSInsideOnePathParameterForEveryIDRoute() {
       `/card/${encodedId}/edit`,
     ]);
   });
-}
 
-function registerDefinesEveryPageRouteAndBuildsItsDestination() {
   it("defines every page route and builds its destination", () => {
     expect([
       [routes.deckList.path, routes.deckList.to()],
@@ -70,4 +62,4 @@ function registerDefinesEveryPageRouteAndBuildsItsDestination() {
       ["*"],
     ]);
   });
-}
+});

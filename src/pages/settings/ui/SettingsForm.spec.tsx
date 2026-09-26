@@ -29,22 +29,6 @@ const SettingsFormHarness: React.FC<{ values?: Preferences }> = ({ values = defa
 };
 
 describe("SETTINGS-01 SETTINGS-02 SETTINGS-04 SettingsForm", () => {
-  registerGroupsEveryAutoSavedSettingInTheUnifiedSettingsList();
-
-  registerRendersAndUpdatesSwitchesAndNumericSlidersThroughRHFRegistration();
-
-  registerPreservesSchedulingDescriptionsAndMetadata();
-
-  registerKeepsSectionHeadingRelationshipsUniqueAcrossMultipleInstances();
-
-  registerRendersJapanesePresentationAndAccessibleValueTextFromTheActiveLocale();
-});
-
-describe("SETTINGS-02 maximum card count presentation", () => {
-  registerExplainsZeroAndPreservesPositiveCountsInLocale();
-});
-
-function registerGroupsEveryAutoSavedSettingInTheUnifiedSettingsList() {
   it("groups every auto-saved setting in the unified settings list", () => {
     render(<SettingsFormHarness />);
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
@@ -56,9 +40,7 @@ function registerGroupsEveryAutoSavedSettingInTheUnifiedSettingsList() {
     expect(screen.queryByRole("region", { name: "Account" })).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Advanced" })).toBeInTheDocument();
   });
-}
 
-function registerRendersAndUpdatesSwitchesAndNumericSlidersThroughRHFRegistration() {
   it("renders and updates switches and numeric sliders through RHF registration", async () => {
     render(<SettingsFormHarness />);
     const playback = screen.getByRole("checkbox", { name: "Show playback controls" });
@@ -93,9 +75,7 @@ function registerRendersAndUpdatesSwitchesAndNumericSlidersThroughRHFRegistratio
     expect(maximumCards).toHaveAttribute("aria-valuetext", "31 cards");
     expect(screen.getByText("31")).toBeInTheDocument();
   });
-}
 
-function registerPreservesSchedulingDescriptionsAndMetadata() {
   it("preserves scheduling descriptions and metadata", () => {
     render(<SettingsFormHarness />);
     expect(screen.getByRole("checkbox", { name: "Respect review schedule" })).toBeChecked();
@@ -111,9 +91,7 @@ function registerPreservesSchedulingDescriptionsAndMetadata() {
     );
     expect(details).not.toHaveTextContent("Main branch");
   });
-}
 
-function registerKeepsSectionHeadingRelationshipsUniqueAcrossMultipleInstances() {
   it("keeps section heading relationships unique across multiple instances", () => {
     render(
       <>
@@ -126,9 +104,7 @@ function registerKeepsSectionHeadingRelationshipsUniqueAcrossMultipleInstances()
       expect(screen.getAllByRole("heading", { level: 2, name })).toHaveLength(2);
     }
   });
-}
 
-function registerRendersJapanesePresentationAndAccessibleValueTextFromTheActiveLocale() {
   it("renders Japanese presentation and accessible value text from the active locale", async () => {
     await getI18n().changeLanguage("ja");
 
@@ -141,9 +117,9 @@ function registerRendersJapanesePresentationAndAccessibleValueTextFromTheActiveL
     expect(screen.getByRole("slider", { name: "最大カード数" })).toHaveAttribute("aria-valuetext", "24枚");
     expect(screen.getByRole("slider", { name: "自動再生の間隔" })).toHaveAttribute("aria-valuetext", "7秒");
   });
-}
+});
 
-function registerExplainsZeroAndPreservesPositiveCountsInLocale() {
+describe("SETTINGS-02 maximum card count presentation", () => {
   it.each([
     {
       locale: "en",
@@ -189,4 +165,4 @@ function registerExplainsZeroAndPreservesPositiveCountsInLocale() {
       expect(screen.getByText(allMatching)).toBeVisible();
     }
   );
-}
+});

@@ -17,37 +17,13 @@ describe("ACCOUNT-01 ACCOUNT-02 signInWithGoogle", () => {
     mocks.auth.currentUser = { isAnonymous: true };
   });
 
-  registerReturnsTheLinkedUser();
-
-  registerRecoversACredentialFromAFirebaseLinkingError();
-
-  registerRejectsLoginWithoutAnAnonymousUser();
-
-  registerRejectsLoginForANonAnonymousUser();
-
-  registerPreservesNonFirebaseLinkingErrors();
-
-  registerPreservesFirebaseLinkingErrorsWithoutACredential();
-
-  registerPropagatesCredentialRecoveryFailures();
-});
-
-it("ACCOUNT-03 signs out through Firebase Auth", async () => {
-  await signOutCurrentUser();
-
-  expect(signOut).toHaveBeenCalledWith(mocks.auth);
-});
-
-function registerReturnsTheLinkedUser() {
   it("returns the linked user", async () => {
     const user = { uid: "uid-a" };
     vi.mocked(linkWithPopup).mockResolvedValue({ user } as never);
 
     await expect(signInWithGoogle()).resolves.toBe(user);
   });
-}
 
-function registerRecoversACredentialFromAFirebaseLinkingError() {
   it("recovers a credential from a Firebase linking error", async () => {
     const error = new FirebaseError("auth/credential-already-in-use", "already linked");
     const credential = { providerId: "google.com", signInMethod: "google.com" };
@@ -60,36 +36,28 @@ function registerRecoversACredentialFromAFirebaseLinkingError() {
 
     expect(signInWithCredential).toHaveBeenCalledWith(mocks.auth, credential);
   });
-}
 
-function registerRejectsLoginWithoutAnAnonymousUser() {
   it("rejects login without an anonymous user", async () => {
     mocks.auth.currentUser = null;
 
     await expect(signInWithGoogle()).rejects.toThrow("Anonymous user is required before Google sign-in");
     expect(linkWithPopup).not.toHaveBeenCalled();
   });
-}
 
-function registerRejectsLoginForANonAnonymousUser() {
   it("rejects login for a non-anonymous user", async () => {
     mocks.auth.currentUser = { isAnonymous: false };
 
     await expect(signInWithGoogle()).rejects.toThrow("Anonymous user is required before Google sign-in");
     expect(linkWithPopup).not.toHaveBeenCalled();
   });
-}
 
-function registerPreservesNonFirebaseLinkingErrors() {
   it("preserves non-Firebase linking errors", async () => {
     const error = new Error("popup failed");
     vi.mocked(linkWithPopup).mockRejectedValue(error);
 
     await expect(signInWithGoogle()).rejects.toBe(error);
   });
-}
 
-function registerPreservesFirebaseLinkingErrorsWithoutACredential() {
   it("preserves Firebase linking errors without a credential", async () => {
     const error = new FirebaseError("auth/popup-closed-by-user", "Popup closed");
     vi.mocked(linkWithPopup).mockRejectedValue(error);
@@ -97,9 +65,7 @@ function registerPreservesFirebaseLinkingErrorsWithoutACredential() {
 
     await expect(signInWithGoogle()).rejects.toBe(error);
   });
-}
 
-function registerPropagatesCredentialRecoveryFailures() {
   it("propagates credential recovery failures", async () => {
     const linkingError = new FirebaseError("auth/credential-already-in-use", "already linked");
     const recoveryError = new Error("credential recovery failed");
@@ -109,4 +75,10 @@ function registerPropagatesCredentialRecoveryFailures() {
 
     await expect(signInWithGoogle()).rejects.toBe(recoveryError);
   });
-}
+});
+
+it("ACCOUNT-03 signs out through Firebase Auth", async () => {
+  await signOutCurrentUser();
+
+  expect(signOut).toHaveBeenCalledWith(mocks.auth);
+});

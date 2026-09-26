@@ -28,26 +28,20 @@ vi.mock("@/shared/firebase", () => ({
   },
 }));
 
-let environment: RulesTestEnvironment;
-
-let uid: string;
-
-let stop: () => void = () => undefined;
-
-const fsrs = calculateFsrsState(null, "easy", 1000);
-
-const seed = async (collectionName: string, id: string, data: object) =>
-  environment.withSecurityRulesDisabled(async (context) => {
-    await setDoc(doc(context.firestore(), collectionName, id), { ...data, updatedAt: serverTimestamp() });
-  });
-
-const start = (owner = uid) => {
-  const subscription = startFirestoreSubscriptions(owner);
-  stop = subscription.stop;
-  return subscription.ready;
-};
-
 describe("Card FSRS persistence", () => {
+  let environment: RulesTestEnvironment;
+  let uid: string;
+  let stop: () => void = () => undefined;
+  const fsrs = calculateFsrsState(null, "easy", 1000);
+  const seed = async (collectionName: string, id: string, data: object) =>
+    environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), collectionName, id), { ...data, updatedAt: serverTimestamp() });
+    });
+  const start = (owner = uid) => {
+    const subscription = startFirestoreSubscriptions(owner);
+    stop = subscription.stop;
+    return subscription.ready;
+  };
   beforeAll(async () => {
     environment = await initializeTestEnvironment({
       projectId: "test-card-fsrs",
@@ -72,15 +66,6 @@ describe("Card FSRS persistence", () => {
     await environment.cleanup();
   });
 
-  registerRestoresNullAndRatedCardsThroughOneSubscription();
-  registerRestoresOnlyTheActiveUIDAndClearsCardsOnStop();
-  registerRejectsInvalidPersistedFSRSJ();
-  registerHidesDeletedCardStateWithoutChangingOtherCards();
-  registerSurfacesADeniedSubscription();
-  registerPreservesOfflineDeletionAfterReconnect();
-});
-
-function registerRestoresNullAndRatedCardsThroughOneSubscription() {
   it("[FIRESTORE-CARD-FSRS-01] restores null and rated Cards through one subscription", async () => {
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid }));
     await start();
@@ -88,9 +73,6 @@ function registerRestoresNullAndRatedCardsThroughOneSubscription() {
     await updateDoc(doc(connection.db, "card", "card"), { fsrs, updatedAt: serverTimestamp() });
     await vi.waitFor(() => expect(getCards()).toMatchObject([{ id: "card", fsrs, updatedAt: expect.any(Number) }]));
   });
-}
-
-function registerRestoresOnlyTheActiveUIDAndClearsCardsOnStop() {
   it("[FIRESTORE-CARD-FSRS-02] restores only the active UID and clears Cards on stop", async () => {
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid, fsrs }));
     await seed("card", "foreign", createCard({ id: "foreign", uid: "other", fsrs }));
@@ -99,9 +81,6 @@ function registerRestoresOnlyTheActiveUIDAndClearsCardsOnStop() {
     stop();
     expect(getCards()).toEqual([]);
   });
-}
-
-function registerRejectsInvalidPersistedFSRSJ() {
   it.each([
     {},
     { ...fsrs, extra: true },
@@ -129,9 +108,6 @@ function registerRejectsInvalidPersistedFSRSJ() {
     await expect(start()).rejects.toBeDefined();
     expect(getCards()).toEqual([]);
   });
-}
-
-function registerHidesDeletedCardStateWithoutChangingOtherCards() {
   it("[FIRESTORE-CARD-FSRS-04] hides deleted Card state without changing other Cards", async () => {
     for (const id of ["first", "second"]) await seed("card", id, createCard({ id, deckId: "deck", uid, fsrs }));
     await start();
@@ -139,15 +115,9 @@ function registerHidesDeletedCardStateWithoutChangingOtherCards() {
     await vi.waitFor(() => expect(getCards().map((card) => card.id)).toEqual(["second"]));
     expect(getCards()[0]?.fsrs).toEqual(fsrs);
   });
-}
-
-function registerSurfacesADeniedSubscription() {
   it("[FIRESTORE-CARD-FSRS-05] surfaces a denied subscription", async () => {
     await expect(start("another-owner")).rejects.toBeDefined();
   });
-}
-
-function registerPreservesOfflineDeletionAfterReconnect() {
   it("[FIRESTORE-CARD-FSRS-06] preserves offline deletion after reconnect", async () => {
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid, fsrs }));
     await start();
@@ -158,4 +128,4 @@ function registerPreservesOfflineDeletionAfterReconnect() {
     await waitForPendingWrites(connection.db);
     expect((await getDoc(doc(connection.db, "card", "card"))).data()?.deletedAt).toEqual(expect.any(Number));
   });
-}
+});

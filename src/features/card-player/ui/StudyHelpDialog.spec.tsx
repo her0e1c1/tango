@@ -37,16 +37,6 @@ const Harness: React.FC = () => {
 afterEach(() => dismissToast());
 
 describe("STUDY-CONTROLS-04 StudyHelpDialog", () => {
-  registerProvidesModalSemanticsAndFocusesASafeCloseControl();
-
-  registerTrapsFocusClosesOnEscapeAndReturnsFocusToTheHelpTriggerAfterAPointerClick();
-
-  registerKeepsAPersistentToastNonInteractiveAndRestoresProgrammaticDismissalInsideTheModal();
-
-  registerRestoresPersistentToastInteractionAfterStrictModeModalCleanup();
-});
-
-function registerProvidesModalSemanticsAndFocusesASafeCloseControl() {
   it("provides modal semantics and focuses a safe close control", async () => {
     const user = userEvent.setup();
     render(<Harness />);
@@ -61,9 +51,7 @@ function registerProvidesModalSemanticsAndFocusesASafeCloseControl() {
     expect(screen.getByText("Arrow Up / Swipe Up")).toBeVisible();
     expect(screen.getByRole("button", { name: "Close help" })).toHaveFocus();
   });
-}
 
-function registerTrapsFocusClosesOnEscapeAndReturnsFocusToTheHelpTriggerAfterAPointerClick() {
   it("traps focus, closes on Escape, and returns focus to the Help trigger after a pointer click", async () => {
     render(<Harness />);
     const trigger = screen.getByRole("button", { name: "Open study help" });
@@ -81,9 +69,7 @@ function registerTrapsFocusClosesOnEscapeAndReturnsFocusToTheHelpTriggerAfterAPo
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await waitFor(() => expect(trigger).toHaveFocus());
   });
-}
 
-function registerKeepsAPersistentToastNonInteractiveAndRestoresProgrammaticDismissalInsideTheModal() {
   it("keeps a persistent Toast non-interactive and restores programmatic dismissal inside the modal", async () => {
     const user = userEvent.setup();
     render(
@@ -110,9 +96,7 @@ function registerKeepsAPersistentToastNonInteractiveAndRestoresProgrammaticDismi
     act(() => dismissToast(toastId));
     expect(close).toHaveFocus();
   });
-}
 
-function registerRestoresPersistentToastInteractionAfterStrictModeModalCleanup() {
   it("restores persistent Toast interaction after Strict Mode modal cleanup", async () => {
     const user = userEvent.setup();
     render(
@@ -133,4 +117,4 @@ function registerRestoresPersistentToastInteractionAfterStrictModeModalCleanup()
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Dismiss notification" })).toBeVisible();
   });
-}
+});

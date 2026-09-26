@@ -78,19 +78,17 @@ const StoredCardEditorHarness = (props: { cardId: CardId; onCancel: () => void; 
   );
 };
 
-const deckId = "card-edit-deck";
-
-const cardId = "card-id";
-
-const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
-  render(
-    <>
-      <StoredCardEditorHarness cardId={cardId} onCancel={onCancel} onSaved={onSaved} />
-      <ToastViewport />
-    </>
-  );
-
 describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 CardEditor", () => {
+  const deckId = "card-edit-deck";
+  const cardId = "card-id";
+  const renderForm = (onSaved = vi.fn(), onCancel = vi.fn()) =>
+    render(
+      <>
+        <StoredCardEditorHarness cardId={cardId} onCancel={onCancel} onSaved={onSaved} />
+        <ToastViewport />
+      </>
+    );
+
   beforeEach(async () => {
     dismissToast();
     writeControls.beforeWrite = undefined;
@@ -110,18 +108,6 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 
     ]);
   });
 
-  registerRestoresSuccessfullySavedFormValuesFromTheCardEntity();
-
-  registerDisablesEveryEditAndExitControlWhileSaving();
-
-  registerKeepsTheDraftAndSavesItAfterAnExplicitRetry();
-
-  registerKeepsTheOpeningSnapshotWhenTheCardEntityRefreshes();
-
-  registerKeepsStoredValuesUnchangedWhenValidationRejectsTheForm();
-});
-
-function registerRestoresSuccessfullySavedFormValuesFromTheCardEntity() {
   it("restores successfully saved form values from the Card Entity", async () => {
     const onSaved = vi.fn();
     const view = renderForm(onSaved);
@@ -147,9 +133,7 @@ function registerRestoresSuccessfullySavedFormValuesFromTheCardEntity() {
     await userEvent.click(screen.getByRole("button", { name: "Edit tags" }));
     expect(screen.getByRole("checkbox", { name: "math" })).toBeChecked();
   });
-}
 
-function registerDisablesEveryEditAndExitControlWhileSaving() {
   it("disables every edit and exit control while saving", async () => {
     let finishSave: () => void = () => undefined;
     writeControls.beforeWrite = () =>
@@ -167,9 +151,7 @@ function registerDisablesEveryEditAndExitControlWhileSaving() {
     finishSave();
     await waitFor(() => expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled());
   });
-}
 
-function registerKeepsTheDraftAndSavesItAfterAnExplicitRetry() {
   it("keeps the draft and saves it after an explicit retry", async () => {
     writeControls.nextError = new Error("write failed");
     const onSaved = vi.fn();
@@ -188,9 +170,7 @@ function registerKeepsTheDraftAndSavesItAfterAnExplicitRetry() {
     renderForm();
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Retry front");
   });
-}
 
-function registerKeepsTheOpeningSnapshotWhenTheCardEntityRefreshes() {
   it("keeps the opening snapshot when the Card Entity refreshes", async () => {
     renderForm();
     const frontText = screen.getByRole("textbox", { name: "Front text" });
@@ -208,9 +188,7 @@ function registerKeepsTheOpeningSnapshotWhenTheCardEntityRefreshes() {
     await userEvent.click(screen.getByRole("tab", { name: "Back" }));
     expect(screen.getByRole("textbox", { name: "Back text" })).toHaveValue("Back text");
   });
-}
 
-function registerKeepsStoredValuesUnchangedWhenValidationRejectsTheForm() {
   it("keeps stored values unchanged when validation rejects the form", async () => {
     const view = renderForm();
     await userEvent.clear(screen.getByRole("textbox", { name: "Front text" }));
@@ -226,4 +204,4 @@ function registerKeepsStoredValuesUnchangedWhenValidationRejectsTheForm() {
     renderForm();
     expect(screen.getByRole("textbox", { name: "Front text" })).toHaveValue("Front text");
   });
-}
+});

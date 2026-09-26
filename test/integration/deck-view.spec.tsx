@@ -48,18 +48,21 @@ function savedState(deckId: string) {
 }
 
 describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 Deck View through App, routes, local Entities, and persistence", () => {
-  beforeEach(resetTestState);
+  beforeEach(() => {
+    replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
+    updatePreferences(createPreferences({ loadSample: false, language: "en" }));
+    clearStudySessions();
+  });
 
-  afterEach(restoreTestState1);
+  afterEach(async () => {
+    vi.useRealTimers();
+    cleanup();
+    for (const deckId of ownedDeckIds) await deleteDeck("user-id", deckId);
+    ownedDeckIds.length = 0;
+    clearStudySessions();
+    replaceAuthSession({ status: "initializing" });
+  });
 
-  registerKeepsAnExistingStudyResumePointAndSavedDataUnchangedAcrossViewingReloadReentryAndBothExits();
-  registerViewsEveryTagMatchInStandardOrderDespiteTheStudyLimitAndShuffleWithoutCreatingASession();
-  registerOpensTheIntendedLocalDeckFromADirectEncodedViewURLWithoutWritingSavedData();
-  registerPersistsExplicitSharedDisplayChangesWhilePreservingTheSavedStudyResumePoint();
-  registerDoesNotPersistLocalViewingPlaybackOrBidirectionalSliderMovement();
-});
-
-function registerKeepsAnExistingStudyResumePointAndSavedDataUnchangedAcrossViewingReloadReentryAndBothExits() {
   it("keeps an existing study resume point and saved data unchanged across viewing, reload, reentry, and both exits", async () => {
     const deck = createLocalDeck({ id: "view-local", name: "Local View Deck" });
     const cards = ["First", "Second", "Third"].map((name, index) =>
@@ -122,9 +125,7 @@ function registerKeepsAnExistingStudyResumePointAndSavedDataUnchangedAcrossViewi
     view.unmount();
     router.dispose();
   });
-}
 
-function registerViewsEveryTagMatchInStandardOrderDespiteTheStudyLimitAndShuffleWithoutCreatingASession() {
   it("[CARD-FILTER-07] views every tag match in standard order despite the study limit and shuffle without creating a session", async () => {
     const deck = createLocalDeck({
       id: "view-filtered",
@@ -166,9 +167,7 @@ function registerViewsEveryTagMatchInStandardOrderDespiteTheStudyLimitAndShuffle
     view.unmount();
     router.dispose();
   });
-}
 
-function registerOpensTheIntendedLocalDeckFromADirectEncodedViewURLWithoutWritingSavedData() {
   it("opens the intended local deck from a direct encoded View URL without writing saved data", async () => {
     const deck = createLocalDeck({ id: "view?draft=1#chapter", name: "Encoded View Deck" });
     await seedLocalDeck(deck, [
@@ -186,9 +185,7 @@ function registerOpensTheIntendedLocalDeckFromADirectEncodedViewURLWithoutWritin
     view.unmount();
     router.dispose();
   });
-}
 
-function registerPersistsExplicitSharedDisplayChangesWhilePreservingTheSavedStudyResumePoint() {
   it("persists explicit shared display changes while preserving the saved study resume point", async () => {
     const deck = createLocalDeck({ id: "shared-controls", name: "Shared controls" });
     const cards = [createLocalCard({ id: "shared-card", deckId: deck.id, frontText: "Shared prompt" })];
@@ -218,9 +215,7 @@ function registerPersistsExplicitSharedDisplayChangesWhilePreservingTheSavedStud
     view.unmount();
     router.dispose();
   });
-}
 
-function registerDoesNotPersistLocalViewingPlaybackOrBidirectionalSliderMovement() {
   it("does not persist local viewing playback or bidirectional slider movement", async () => {
     const deck = createLocalDeck({ id: "playback-local", name: "Playback" });
     const cards = ["One", "Two", "Three"].map((name) =>
@@ -249,19 +244,4 @@ function registerDoesNotPersistLocalViewingPlaybackOrBidirectionalSliderMovement
     act(() => vi.advanceTimersByTime(2000));
     expect(savedState(deck.id)).toEqual(before);
   });
-}
-
-function resetTestState() {
-  replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
-  updatePreferences(createPreferences({ loadSample: false, language: "en" }));
-  clearStudySessions();
-}
-
-async function restoreTestState1() {
-  vi.useRealTimers();
-  cleanup();
-  for (const deckId of ownedDeckIds) await deleteDeck("user-id", deckId);
-  ownedDeckIds.length = 0;
-  clearStudySessions();
-  replaceAuthSession({ status: "initializing" });
-}
+});

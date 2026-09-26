@@ -25,56 +25,20 @@ const startSession = (deckId: string, cardOrderIds: string[]): void => {
   );
 };
 
-const store = studySessionStore;
-
 describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
-  beforeEach(resetTestState);
+  const store = studySessionStore;
 
-  afterEach(restoreTestState1);
-
-  registerKeepsIndependentStudySessionsForMultipleDecks();
-  registerRemovesSessionsAbsentFromTheLatestSnapshotWhileRetainingOtherProgress();
-  registerClearsTheVisibleSessionWithoutDeletingTheLegacyBackup();
-  registerRetainsProgressAndReportsSyncErrorsToCurrentAndLaterHistoryReadersLoadedS();
-});
-
-const observer = vi.hoisted(() => ({
-  current: undefined as { next: (snapshot: QuerySnapshot) => void; error: (error: Error) => void } | undefined,
-}));
-
-async function currentListener() {
-  await vi.waitFor(() => {
-    if (!observer.current) throw new Error("Waiting for subscription");
+  beforeEach(() => {
+    store.setState({ sessionsByDeckId: {} });
+    localStorage.clear();
   });
-  if (!observer.current) throw new Error("Missing subscription");
-  return observer.current;
-}
 
-vi.mock("firebase/firestore", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("firebase/firestore")>()),
-  onSnapshot: (
-    _query: unknown,
-    _options: unknown,
-    next: (snapshot: QuerySnapshot) => void,
-    error: (error: Error) => void
-  ) => {
-    const current = { next, error };
-    observer.current = current;
-    return () => {
-      if (observer.current === current) observer.current = undefined;
-    };
-  },
-}));
+  afterEach(() => {
+    vi.useRealTimers();
+    clearStudySessions();
+    vi.unstubAllGlobals();
+  });
 
-vi.mock("@/shared/firebase", async () => {
-  const { initializeApp } = await import("firebase/app");
-  const { getFirestore } = await import("firebase/firestore");
-  return { db: getFirestore(initializeApp({ projectId: "unit-study-store" }, "unit-study-store")) };
-});
-
-afterAll(() => deleteApp(getApp("unit-study-store")));
-
-function registerKeepsIndependentStudySessionsForMultipleDecks() {
   it("keeps independent study sessions for multiple decks", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
@@ -102,9 +66,7 @@ function registerKeepsIndependentStudySessionsForMultipleDecks() {
       },
     });
   });
-}
 
-function registerRemovesSessionsAbsentFromTheLatestSnapshotWhileRetainingOtherProgress() {
   it("[UNIT-STORE-STUDY-02] removes sessions absent from the latest snapshot while retaining other progress", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
@@ -126,9 +88,7 @@ function registerRemovesSessionsAbsentFromTheLatestSnapshotWhileRetainingOtherPr
     expect(getStudySession("deck-1")).toBeUndefined();
     expect(getStudySession("deck-2")).toEqual(retained);
   });
-}
 
-function registerClearsTheVisibleSessionWithoutDeletingTheLegacyBackup() {
   it("clears the visible session without deleting the legacy backup", () => {
     localStorage.setItem(STUDY_STORAGE_KEY, "legacy backup");
     startSession("deck-1", ["card-1"]);
@@ -136,17 +96,50 @@ function registerClearsTheVisibleSessionWithoutDeletingTheLegacyBackup() {
     expect(getStudySession("deck-1")).toBeUndefined();
     expect(localStorage.getItem(STUDY_STORAGE_KEY)).toBe("legacy backup");
   });
-}
-
-function registerRetainsProgressAndReportsSyncErrorsToCurrentAndLaterHistoryReadersLoadedS() {
   it.each([false, true])(
     "[UNIT-STORE-STUDY-11] retains progress and reports sync errors to current and later history readers (loaded=%s)",
     async (loaded) => {
-      const expected = expectedCachedSessions(loaded);
+      const expected = loaded
+        ? [
+            {
+              sessionId: "session-a",
+              deckId: "deck-a",
+              cardOrderIds: ["a1", "a2"],
+              currentIndex: 0,
+              lastStudiedAt: 100,
+              remote: { uid: "uid", startedAt: 10, createdAt: 10 },
+            },
+            {
+              sessionId: "session-b",
+              deckId: "deck-b",
+              cardOrderIds: ["b1", "b2", "b3"],
+              currentIndex: 1,
+              lastStudiedAt: 200,
+              remote: { uid: "uid", startedAt: 20, createdAt: 20 },
+            },
+          ]
+        : [];
       const stopInitial = subscribeStudySessions("uid", vi.fn());
       onTestFinished(stopInitial);
       const initial = await currentListener();
-      publishCachedSessions(initial, expected);
+      initial.next({
+        metadata: { fromCache: true, hasPendingWrites: false },
+        docs: expected.map((session) => ({
+          id: session.sessionId,
+          data: () => ({
+            uid: "uid",
+            deckId: session.deckId,
+            cardOrderIds: session.cardOrderIds,
+            currentIndex: session.currentIndex,
+            lastStudiedAt: session.lastStudiedAt,
+            startedAt: Timestamp.fromMillis(session.remote.startedAt),
+            createdAt: Timestamp.fromMillis(session.remote.createdAt),
+            updatedAt: Timestamp.fromMillis(300),
+            endedAt: null,
+            endReason: null,
+          }),
+        })),
+      } as unknown as QuerySnapshot);
       const input = { uid: "uid", period: { start: 0, end: 1000 }, deckId: null, metric: "started" as const };
       const history = vi.fn();
       const historyError = vi.fn();
@@ -186,69 +179,40 @@ function registerRetainsProgressAndReportsSyncErrorsToCurrentAndLaterHistoryRead
       expect(lateHistory).not.toHaveBeenCalled();
     }
   );
+});
+
+const observer = vi.hoisted(() => ({
+  current: undefined as { next: (snapshot: QuerySnapshot) => void; error: (error: Error) => void } | undefined,
+}));
+
+async function currentListener() {
+  await vi.waitFor(() => {
+    if (!observer.current) throw new Error("Waiting for subscription");
+  });
+  if (!observer.current) throw new Error("Missing subscription");
+  return observer.current;
 }
 
-function publishCachedSessions(
-  initial: { next: (snapshot: QuerySnapshot) => void; error: (error: Error) => void },
-  expected: {
-    sessionId: string;
-    deckId: string;
-    cardOrderIds: string[];
-    currentIndex: number;
-    lastStudiedAt: number;
-    remote: { uid: string; startedAt: number; createdAt: number };
-  }[]
-) {
-  initial.next({
-    metadata: { fromCache: true, hasPendingWrites: false },
-    docs: expected.map((session) => ({
-      id: session.sessionId,
-      data: () => ({
-        uid: "uid",
-        deckId: session.deckId,
-        cardOrderIds: session.cardOrderIds,
-        currentIndex: session.currentIndex,
-        lastStudiedAt: session.lastStudiedAt,
-        startedAt: Timestamp.fromMillis(session.remote.startedAt),
-        createdAt: Timestamp.fromMillis(session.remote.createdAt),
-        updatedAt: Timestamp.fromMillis(300),
-        endedAt: null,
-        endReason: null,
-      }),
-    })),
-  } as unknown as QuerySnapshot);
-}
+vi.mock("firebase/firestore", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("firebase/firestore")>()),
+  onSnapshot: (
+    _query: unknown,
+    _options: unknown,
+    next: (snapshot: QuerySnapshot) => void,
+    error: (error: Error) => void
+  ) => {
+    const current = { next, error };
+    observer.current = current;
+    return () => {
+      if (observer.current === current) observer.current = undefined;
+    };
+  },
+}));
 
-function expectedCachedSessions(loaded: boolean) {
-  return loaded
-    ? [
-        {
-          sessionId: "session-a",
-          deckId: "deck-a",
-          cardOrderIds: ["a1", "a2"],
-          currentIndex: 0,
-          lastStudiedAt: 100,
-          remote: { uid: "uid", startedAt: 10, createdAt: 10 },
-        },
-        {
-          sessionId: "session-b",
-          deckId: "deck-b",
-          cardOrderIds: ["b1", "b2", "b3"],
-          currentIndex: 1,
-          lastStudiedAt: 200,
-          remote: { uid: "uid", startedAt: 20, createdAt: 20 },
-        },
-      ]
-    : [];
-}
+vi.mock("@/shared/firebase", async () => {
+  const { initializeApp } = await import("firebase/app");
+  const { getFirestore } = await import("firebase/firestore");
+  return { db: getFirestore(initializeApp({ projectId: "unit-study-store" }, "unit-study-store")) };
+});
 
-function resetTestState() {
-  store.setState({ sessionsByDeckId: {} });
-  localStorage.clear();
-}
-
-function restoreTestState1() {
-  vi.useRealTimers();
-  clearStudySessions();
-  vi.unstubAllGlobals();
-}
+afterAll(() => deleteApp(getApp("unit-study-store")));

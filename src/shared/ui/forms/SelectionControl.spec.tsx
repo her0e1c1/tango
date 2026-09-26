@@ -17,39 +17,13 @@ import { Tag } from "./Tag";
 import { Upload } from "./Upload";
 
 describe("shared selection controls", () => {
-  registerForwardsAccessibleNamingPropsToTheSwitchInput();
-
-  registerForwardsAccessibleNamingAndValueTextToTheSliderInput();
-
-  registerKeepsTheSliderControlledValueNativeHandlersAndInputRef();
-
-  registerKeepsTheSwitchCheckedStateNativeValueHandlersAndInputRef();
-
-  registerShowsTagSelectionThroughNativeCheckedState();
-
-  registerLetsNativeCheckedStateDriveTheMarkerForUncontrolledTags();
-
-  registerKeepsTagNativeValuesHandlersAndInputRef();
-
-  registerKeepsSwitchAndTagInputsKeyboardFocusableAndActivatesThemWithSpace();
-
-  registerPassesTheChosenNativeFileToTheUnchangedUploadCallback();
-
-  registerPresentsTheChosenFileFromControlledPropsWithoutStoringNativeFileState();
-
-  registerDisablesEveryNativeControl();
-});
-
-function registerForwardsAccessibleNamingPropsToTheSwitchInput() {
   it("forwards accessible naming props to the switch input", () => {
     render(<Switch id="dark-mode" aria-label="Dark mode" aria-describedby="dark-mode-description" />);
 
     expect(screen.getByRole("checkbox", { name: "Dark mode" })).toHaveAttribute("id", "dark-mode");
     expect(screen.getByRole("checkbox")).toHaveAttribute("aria-describedby", "dark-mode-description");
   });
-}
 
-function registerForwardsAccessibleNamingAndValueTextToTheSliderInput() {
   it("forwards accessible naming and value text to the slider input", () => {
     render(
       <Slider
@@ -69,9 +43,7 @@ function registerForwardsAccessibleNamingAndValueTextToTheSliderInput() {
     expect(slider).toHaveAttribute("aria-describedby", "autoplay-interval-description");
     expect(slider).toHaveAttribute("aria-valuetext", "7 seconds");
   });
-}
 
-function registerKeepsTheSliderControlledValueNativeHandlersAndInputRef() {
   it("keeps the slider controlled value, native handlers, and input ref", () => {
     const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
@@ -87,9 +59,7 @@ function registerKeepsTheSliderControlledValueNativeHandlersAndInputRef() {
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
-}
 
-function registerKeepsTheSwitchCheckedStateNativeValueHandlersAndInputRef() {
   it("keeps the switch checked state, native value, handlers, and input ref", () => {
     const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
@@ -105,18 +75,14 @@ function registerKeepsTheSwitchCheckedStateNativeValueHandlersAndInputRef() {
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
-}
 
-function registerShowsTagSelectionThroughNativeCheckedState() {
   it("shows tag selection through native checked state", () => {
     render(<Tag checked label="Biology" />);
 
     const input = screen.getByRole("checkbox", { name: "Biology" });
     expect(input).toBeChecked();
   });
-}
 
-function registerLetsNativeCheckedStateDriveTheMarkerForUncontrolledTags() {
   it("lets native checked state drive the marker for uncontrolled tags", () => {
     const onChange = vi.fn();
     render(<Tag label="Biology" onChange={onChange} />);
@@ -128,9 +94,7 @@ function registerLetsNativeCheckedStateDriveTheMarkerForUncontrolledTags() {
     expect(input).toBeChecked();
     expect(onChange).toHaveBeenCalledOnce();
   });
-}
 
-function registerKeepsTagNativeValuesHandlersAndInputRef() {
   it("keeps tag native values, handlers, and input ref", () => {
     const ref = createRef<HTMLInputElement>();
     const onChange = vi.fn();
@@ -146,9 +110,7 @@ function registerKeepsTagNativeValuesHandlersAndInputRef() {
     expect(onChange).toHaveBeenCalledOnce();
     expect(onBlur).toHaveBeenCalledOnce();
   });
-}
 
-function registerKeepsSwitchAndTagInputsKeyboardFocusableAndActivatesThemWithSpace() {
   it("keeps switch and tag inputs keyboard focusable and activates them with Space", async () => {
     const user = userEvent.setup();
     const onSwitchChange = vi.fn();
@@ -171,9 +133,7 @@ function registerKeepsSwitchAndTagInputsKeyboardFocusableAndActivatesThemWithSpa
     await user.keyboard(" ");
     expect(onTagChange).toHaveBeenCalledOnce();
   });
-}
 
-function registerPassesTheChosenNativeFileToTheUnchangedUploadCallback() {
   it("passes the chosen native file to the unchanged upload callback", () => {
     const onChange = vi.fn();
     const file = new File(["front,back"], "biology.csv", { type: "text/csv" });
@@ -185,9 +145,7 @@ function registerPassesTheChosenNativeFileToTheUnchangedUploadCallback() {
     expect(input?.files?.[0]).toBe(file);
     expect(onChange).toHaveBeenCalledExactlyOnceWith(file);
   });
-}
 
-function registerPresentsTheChosenFileFromControlledPropsWithoutStoringNativeFileState() {
   it("presents the chosen file from controlled props without storing native file state", () => {
     const view = render(<Upload fileName="biology.csv" />);
 
@@ -197,9 +155,7 @@ function registerPresentsTheChosenFileFromControlledPropsWithoutStoringNativeFil
     view.rerender(<Upload />);
     expect(screen.queryByText("biology.csv")).not.toBeInTheDocument();
   });
-}
 
-function registerDisablesEveryNativeControl() {
   it("disables every native control", () => {
     const { unmount } = render(<Slider disabled value="3" />);
     const sliderInput = screen.getByRole("slider");
@@ -220,4 +176,4 @@ function registerDisablesEveryNativeControl() {
     const uploadInput = screen.getByLabelText("Upload a csv file");
     expect(uploadInput).toBeDisabled();
   });
-}
+});

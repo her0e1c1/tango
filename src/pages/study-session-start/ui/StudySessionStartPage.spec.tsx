@@ -59,23 +59,21 @@ const StudySessionDestination = () => {
   );
 };
 
-const deckId = "deck-id";
-
-const cardId = "card-id";
-
-const renderPage = (path = `/deck/${deckId}/start`) =>
-  render(
-    <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
-      <Routes>
-        <Route path="/previous" element={<h1>Previous page</h1>} />
-        <Route path="/" element={<h1>Deck list</h1>} />
-        <Route path="/deck/:id/start" element={<StudySessionStartPage />} />
-        <Route path="/deck/:id/study" element={<StudySessionDestination />} />
-      </Routes>
-    </MemoryRouter>
-  );
-
 describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPage", () => {
+  const deckId = "deck-id";
+  const cardId = "card-id";
+  const renderPage = (path = `/deck/${deckId}/start`) =>
+    render(
+      <MemoryRouter initialEntries={["/previous", path]} initialIndex={1}>
+        <Routes>
+          <Route path="/previous" element={<h1>Previous page</h1>} />
+          <Route path="/" element={<h1>Deck list</h1>} />
+          <Route path="/deck/:id/start" element={<StudySessionStartPage />} />
+          <Route path="/deck/:id/study" element={<StudySessionDestination />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
   beforeEach(() => {
     clearStudySessions();
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 1 } });
@@ -85,26 +83,6 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
     vi.clearAllMocks();
   });
 
-  registerComposesRouteDataTheApplicationShellAndTheStudyView();
-
-  registerStartsFromEnterOnlyOutsideInteractiveControls();
-
-  registerUpdatesTheSessionSizeImmediatelyWhenATagFilterChanges();
-
-  registerRevealsAdditionalTagsAndPersistsANewlySelectedTag();
-
-  registerCreatesAStudySessionBeforeNavigatingToIt();
-
-  registerUsesCurrentCardsAndPreferencesWhenStartingFromTheDisplayedFilterDraft();
-
-  registerStaysOnTheStartPageWhenNoCardsMatch();
-
-  registerNavigatesWithBothRecoveryActionsWhenTheDeckIsUnavailable();
-
-  registerRejectsARouteWithoutADeckId();
-});
-
-function registerComposesRouteDataTheApplicationShellAndTheStudyView() {
   it("composes route data, the application shell, and the study view", () => {
     renderPage();
 
@@ -112,9 +90,7 @@ function registerComposesRouteDataTheApplicationShellAndTheStudyView() {
     expect(screen.getByRole("button", { name: "Start 1 card" })).toBeVisible();
     expect(screen.getByRole("button", { name: "tango" })).toBeVisible();
   });
-}
 
-function registerStartsFromEnterOnlyOutsideInteractiveControls() {
   it("starts from Enter only outside interactive controls", async () => {
     renderPage();
 
@@ -125,9 +101,7 @@ function registerStartsFromEnterOnlyOutsideInteractiveControls() {
     expect(await screen.findByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
-}
 
-function registerUpdatesTheSessionSizeImmediatelyWhenATagFilterChanges() {
   it("updates the session size immediately when a tag filter changes", async () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false }, study: { maxNumberOfCardsToLearn: 0 } });
     mocks.cards = [
@@ -152,9 +126,7 @@ function registerUpdatesTheSessionSizeImmediatelyWhenATagFilterChanges() {
       tagAndFilter: false,
     });
   });
-}
 
-function registerRevealsAdditionalTagsAndPersistsANewlySelectedTag() {
   it("reveals additional tags and persists a newly selected tag", async () => {
     mocks.tags = Array.from({ length: 12 }, (_, index) => `tag-${index + 1}`);
     renderPage();
@@ -169,9 +141,7 @@ function registerRevealsAdditionalTagsAndPersistsANewlySelectedTag() {
       tagAndFilter: false,
     });
   });
-}
 
-function registerCreatesAStudySessionBeforeNavigatingToIt() {
   it("creates a study session before navigating to it", async () => {
     renderPage();
 
@@ -180,9 +150,7 @@ function registerCreatesAStudySessionBeforeNavigatingToIt() {
     expect(await screen.findByRole("heading", { level: 1, name: "Study session" })).toBeVisible();
     expect(screen.getByText(`Studying ${cardId}`)).toBeVisible();
   });
-}
 
-function registerUsesCurrentCardsAndPreferencesWhenStartingFromTheDisplayedFilterDraft() {
   it("uses current Cards and preferences when starting from the displayed filter draft", async () => {
     renderPage();
     const start = screen.getByRole("button", { name: "Start 1 card" });
@@ -194,9 +162,7 @@ function registerUsesCurrentCardsAndPreferencesWhenStartingFromTheDisplayedFilte
     expect(await screen.findByRole("heading", { name: "Study session" })).toBeVisible();
     expect(screen.getByText("Studying latest-first, latest-second")).toBeVisible();
   });
-}
 
-function registerStaysOnTheStartPageWhenNoCardsMatch() {
   it("stays on the start page when no cards match", () => {
     mocks.cards = [];
     renderPage();
@@ -207,9 +173,7 @@ function registerStaysOnTheStartPageWhenNoCardsMatch() {
     expect(screen.getByRole("button", { name: "Start 0 cards" })).toBeDisabled();
     expect(screen.queryByRole("heading", { level: 1, name: "Study session" })).not.toBeInTheDocument();
   });
-}
 
-function registerNavigatesWithBothRecoveryActionsWhenTheDeckIsUnavailable() {
   it("navigates with both recovery actions when the deck is unavailable", async () => {
     mocks.deck = null;
     const view = renderPage();
@@ -224,9 +188,7 @@ function registerNavigatesWithBothRecoveryActionsWhenTheDeckIsUnavailable() {
     await userEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Previous page" })).toBeVisible();
   });
-}
 
-function registerRejectsARouteWithoutADeckId() {
   it("rejects a route without a deck id", () => {
     expect(() =>
       render(
@@ -236,4 +198,4 @@ function registerRejectsARouteWithoutADeckId() {
       )
     ).toThrowError("invalid deck id");
   });
-}
+});

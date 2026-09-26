@@ -77,31 +77,6 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
     writeControls.write = undefined;
   });
 
-  registerAutomaticallySavesEachChangeWithoutASaveButton();
-
-  registerKeepsControlsEditableAndPersistsRapidChangesInOrder();
-
-  registerPreservesPendingSelectionsAndWriteOrderWhenMovingToAnotherPage();
-
-  registerRetainsASaveThatFailsAfterLeavingThePageAndRetriesAllFiltersOnTheNextVisit();
-
-  registerKeepsTheOpeningSnapshotWhenTheSameDeckSubscriptionChanges();
-
-  registerStartsFromTheNewSnapshotWhenTheDeckIdChanges();
-});
-
-describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
-  beforeEach(() => {
-    writeControls.calls = [];
-    writeControls.write = undefined;
-  });
-
-  registerKeepsBrowsingSavesAcrossPageChangesWithoutLeakingThemIntoStudyFilters();
-
-  registerFollowsSavedBrowsingChangesAndClearingWithoutCopyingStudyConditions();
-});
-
-function registerAutomaticallySavesEachChangeWithoutASaveButton() {
   it("automatically saves each change without a save button", async () => {
     const deck = createRemoteDeck({ id: "filter-deck", selectedTags: [] });
     render(<DeckFilterHarness deck={deck} />);
@@ -117,9 +92,7 @@ function registerAutomaticallySavesEachChangeWithoutASaveButton() {
       tagAndFilter: false,
     });
   });
-}
 
-function registerKeepsControlsEditableAndPersistsRapidChangesInOrder() {
   it("keeps controls editable and persists rapid changes in order", async () => {
     const firstWrite = Promise.withResolvers<void>();
     let persisted: Parameters<EditDeck>[1] | undefined;
@@ -138,9 +111,7 @@ function registerKeepsControlsEditableAndPersistsRapidChangesInOrder() {
     await actAsync(async () => firstWrite.resolve());
     await waitFor(() => expect(persisted).toMatchObject({ selectedTags: ["tag2"] }));
   });
-}
 
-function registerPreservesPendingSelectionsAndWriteOrderWhenMovingToAnotherPage() {
   it("preserves pending selections and write order when moving to another Page", async () => {
     const firstWrite = Promise.withResolvers<void>();
     let persisted: Parameters<EditDeck>[1] | undefined;
@@ -161,9 +132,7 @@ function registerPreservesPendingSelectionsAndWriteOrderWhenMovingToAnotherPage(
     await actAsync(async () => firstWrite.resolve());
     await waitFor(() => expect(persisted).toMatchObject({ selectedTags: ["tag2"] }));
   });
-}
 
-function registerRetainsASaveThatFailsAfterLeavingThePageAndRetriesAllFiltersOnTheNextVisit() {
   it("retains a save that fails after leaving the Page and retries all filters on the next visit", async () => {
     const failedWrite = Promise.withResolvers<void>();
     writeControls.write = vi.fn().mockReturnValueOnce(failedWrite.promise).mockResolvedValueOnce(undefined);
@@ -178,9 +147,7 @@ function registerRetainsASaveThatFailsAfterLeavingThePageAndRetriesAllFiltersOnT
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
     expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ selectedTags: ["tag1", "tag2"] });
   });
-}
 
-function registerKeepsTheOpeningSnapshotWhenTheSameDeckSubscriptionChanges() {
   it("keeps the opening snapshot when the same Deck subscription changes", () => {
     const deck = createRemoteDeck({ id: "filter-deck", selectedTags: ["tag1"], updatedAt: 1 });
     const view = render(<DeckFilterHarness deck={deck} />);
@@ -189,9 +156,7 @@ function registerKeepsTheOpeningSnapshotWhenTheSameDeckSubscriptionChanges() {
 
     expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
   });
-}
 
-function registerStartsFromTheNewSnapshotWhenTheDeckIdChanges() {
   it("starts from the new snapshot when the Deck id changes", () => {
     const view = render(<DeckFilterHarness deck={createRemoteDeck({ id: "first", selectedTags: ["tag1"] })} />);
 
@@ -199,9 +164,14 @@ function registerStartsFromTheNewSnapshotWhenTheDeckIdChanges() {
 
     expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
   });
-}
+});
 
-function registerKeepsBrowsingSavesAcrossPageChangesWithoutLeakingThemIntoStudyFilters() {
+describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
+  beforeEach(() => {
+    writeControls.calls = [];
+    writeControls.write = undefined;
+  });
+
   it("keeps browsing saves across page changes without leaking them into study filters", async () => {
     const write = Promise.withResolvers<void>();
     writeControls.write = () => write.promise;
@@ -227,9 +197,7 @@ function registerKeepsBrowsingSavesAcrossPageChangesWithoutLeakingThemIntoStudyF
       })
     );
   });
-}
 
-function registerFollowsSavedBrowsingChangesAndClearingWithoutCopyingStudyConditions() {
   it("follows saved browsing changes and clearing without copying study conditions", () => {
     const deck = createRemoteDeck({ id: "browse-live", selectedTags: ["tag2"], tagAndFilter: true });
     const view = render(<DeckFilterHarness deck={deck} scope="card" />);
@@ -246,4 +214,4 @@ function registerFollowsSavedBrowsingChangesAndClearingWithoutCopyingStudyCondit
     expect(screen.getByRole("checkbox", { name: "tag2" })).not.toBeChecked();
     expect(screen.getByRole("radio", { name: "Any" })).toBeChecked();
   });
-}
+});
