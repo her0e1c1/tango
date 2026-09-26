@@ -720,7 +720,7 @@ test("CARD-MANAGEMENT-07 retries a rejected remote Card create with a new ID and
   page.on("request", (request) => {
     if (!request.url().includes("google.firestore.v1.Firestore/Write/channel")) return;
     const body = decodeURIComponent((request.postData() ?? "").replaceAll("+", "%20"));
-    attemptedCardId ??= /\/documents\/card\/([a-zA-Z0-9-]+)/.exec(body)?.[1];
+    attemptedCardId ??= body.match(/\/documents\/card\/([a-zA-Z0-9-]+)/)?.[1];
   });
   const fault = await failNextFirestoreWrite(page, { collection: "card" });
   allowExpectedFirestoreWriteFailure(browserErrors);

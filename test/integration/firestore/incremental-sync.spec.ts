@@ -240,11 +240,14 @@ describe("Firestore synchronization contracts", () => {
       await disableNetwork(connection.db);
       const now = Date.now();
       const clock = vi.spyOn(Date, "now").mockReturnValue(now + offset);
-      await editDeck(uid, { id: "deck", name: "pending" });
+      const rejected = expect(editDeck(uid, { id: "deck", name: "pending" })).rejects.toMatchObject({
+        code: "permission-denied",
+      });
       clock.mockRestore();
       await vi.waitFor(() => expect(getDecks().find(({ id }) => id === "deck")?.name).toBe("pending"));
       await seed("deck", "deck", { ...deckData("deck"), uid: "different-owner" });
       await enableNetwork(connection.db);
+      await rejected;
       await waitForPendingWrites(connection.db);
       await serverBarrier("deck");
       await vi.waitFor(() => expect(getDecks().some(({ name }) => name === "pending")).toBe(false));
@@ -290,7 +293,7 @@ describe("Firestore synchronization contracts", () => {
       )
     );
     stops.push(subscribeStudySessions(uid, onError));
-    startStudy({ uid, deckId: "deck", cardOrderIds: ["a", "b"], now: 1000 });
+    await startStudy({ uid, deckId: "deck", cardOrderIds: ["a", "b"], now: 1000 });
     await vi.waitFor(() => {
       expect(started).toHaveLength(1);
       expect(getStudySession("deck")?.lastStudiedAt).toBe(1000);
