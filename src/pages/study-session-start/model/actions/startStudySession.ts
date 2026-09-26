@@ -17,7 +17,7 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   const { study } = getPreferences();
   // Use the current draft even when its autosave has not reached the Deck yet.
   const now = Date.now();
-  const { cards } = selectStudyCardsWithDeadline(deckId, filter, study.useCardInterval, now);
+  const { cards } = selectStudyCardsWithDeadline(deckId, now, filter);
   if (cards.length === 0) return;
   starting = true;
   try {

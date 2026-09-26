@@ -1,6 +1,7 @@
 import { findCardsByDeckId } from "@/entities/card/@x/study-session";
 import { selectStudyCardsWithDeadline as selectCardsWithDeadline } from "./rules";
-import type { DeckId } from "@/entities/deck/@x/study-session";
+import { findDeckById, type DeckId } from "@/entities/deck/@x/study-session";
+import { getPreferences } from "@/entities/preference/@x/study-session";
 import { studySessionStore } from "./store";
 import type { StudySession } from "./types";
 
@@ -9,9 +10,10 @@ export const getStudySession = (deckId: DeckId): StudySession | undefined =>
 
 export function selectStudyCardsWithDeadline(
   deckId: DeckId,
-  filter: { selectedTags: readonly string[]; tagAndFilter: boolean },
-  useCardInterval: boolean,
-  now: number
+  now: number,
+  draft?: { selectedTags: readonly string[]; tagAndFilter: boolean }
 ) {
-  return selectCardsWithDeadline(findCardsByDeckId(deckId), filter, useCardInterval, now);
+  const filter = draft ?? findDeckById(deckId);
+  if (filter === undefined) return { cards: [], nextDueAt: undefined };
+  return selectCardsWithDeadline(findCardsByDeckId(deckId), filter, getPreferences().study.useCardInterval, now);
 }

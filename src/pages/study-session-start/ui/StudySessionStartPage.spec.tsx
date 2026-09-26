@@ -51,6 +51,7 @@ vi.mock("@/entities/preference", () => ({
   getPreferences: () => mocks.preferences,
   setDarkMode: mocks.setDarkMode,
 }));
+vi.mock("@/entities/preference/@x/study-session", () => ({ getPreferences: () => mocks.preferences }));
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 
 import { StudySessionStartPage } from "./StudySessionStartPage";

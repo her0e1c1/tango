@@ -3,9 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { calculateFsrsState, clearRemoteCards, findCardsByDeckId, getCards, useCards } from "@/entities/card";
 import { clearRemoteDecks } from "@/entities/deck";
+import { updatePreferences } from "@/entities/preference";
 import { selectStudyCardsWithDeadline } from "@/entities/study-session";
 import { requestDeckDeletion } from "@/features/deck-deletion";
-import { createCard, createDeck } from "@/test/factories";
+import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { replaceRemoteCards, replaceRemoteDecks } from "@/test/utils/entityFixtures";
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
@@ -13,9 +14,28 @@ vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 beforeEach(() => {
   clearRemoteCards();
   clearRemoteDecks();
+  updatePreferences(createPreferences({ study: { useCardInterval: true } }));
 });
 
 describe("Study selection queries [STUDY-SESSION-01 STUDY-SESSION-02]", () => {
+  it("uses the latest saved deck filter when no draft is supplied", () => {
+    const deck = createDeck({ selectedTags: ["first"] });
+    const first = createCard({ id: "first", tags: ["first"] });
+    const second = createCard({ id: "second", tags: ["second"] });
+    replaceRemoteDecks([deck]);
+    replaceRemoteCards([first, second]);
+
+    expect(selectStudyCardsWithDeadline(deck.id, 1000).cards).toEqual([first]);
+
+    replaceRemoteDecks([{ ...deck, selectedTags: ["second"] }]);
+
+    expect(selectStudyCardsWithDeadline(deck.id, 1000).cards).toEqual([second]);
+
+    clearRemoteDecks();
+
+    expect(selectStudyCardsWithDeadline(deck.id, 1000)).toEqual({ cards: [], nextDueAt: undefined });
+  });
+
   it("reads current visible cards for the deck while respecting the draft and deadline", () => {
     const deck = createDeck({ selectedTags: ["saved"] });
     const otherDeck = createDeck({ id: "other" });
@@ -35,19 +55,21 @@ describe("Study selection queries [STUDY-SESSION-01 STUDY-SESSION-02]", () => {
       createCard({ id: "other-owner", uid: "other", tags: ["draft"] }),
     ]);
 
-    expect(selectStudyCardsWithDeadline(deck.id, draft, true, 1000)).toEqual({
+    expect(selectStudyCardsWithDeadline(deck.id, 1000, draft)).toEqual({
       cards: [card],
       nextDueAt: 2000,
     });
-    expect(selectStudyCardsWithDeadline(deck.id, draft, true, 2000)).toEqual({
+    expect(selectStudyCardsWithDeadline(deck.id, 2000, draft)).toEqual({
       cards: [card, future],
       nextDueAt: undefined,
     });
-    expect(selectStudyCardsWithDeadline(deck.id, draft, false, 1000).cards).toEqual([card, future]);
+    updatePreferences({ study: { useCardInterval: false } });
+    expect(selectStudyCardsWithDeadline(deck.id, 1000, draft).cards).toEqual([card, future]);
+    updatePreferences({ study: { useCardInterval: true } });
 
     replaceRemoteCards([future]);
 
-    expect(selectStudyCardsWithDeadline(deck.id, draft, true, 1000)).toEqual({
+    expect(selectStudyCardsWithDeadline(deck.id, 1000, draft)).toEqual({
       cards: [],
       nextDueAt: 2000,
     });

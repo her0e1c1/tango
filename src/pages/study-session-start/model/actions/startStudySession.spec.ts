@@ -26,6 +26,11 @@ vi.mock("@/entities/preference", () => ({
     }),
 }));
 
+vi.mock("@/entities/preference/@x/study-session", async () => {
+  const { getPreferences } = await import("@/entities/preference");
+  return { getPreferences };
+});
+
 vi.mock("@/entities/study-session/api/firestore", () => ({
   startStudy: ({
     deckId,
