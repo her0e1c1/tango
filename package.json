@@ -74,7 +74,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^8.0.6",
     "@biomejs/biome": "2.5.14",
     "@feature-sliced/steiger-plugin": "^0.7.0",
     "@firebase/rules-unit-testing": "^5.0.2",
