@@ -8,5 +8,16 @@
     "MD013": false,
     "MD033": false,
     "MD034": false
-  }
+  },
+  "overrides": [
+    {
+      "filter": [
+        "docs/adr/*.md"
+      ],
+      "config": {
+        "MD041": false
+      },
+      "combine": "merge"
+    }
+  ]
 }
