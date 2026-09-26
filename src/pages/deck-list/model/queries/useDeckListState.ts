@@ -13,8 +13,9 @@ import { deckListStore, type DeckListBootstrapStatus } from "../store";
 
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
-function summarizeDeck(deckId: DeckId, now: number) {
-  const selected = selectStudyCardsWithDeadline(deckId, now);
+function summarizeDeck(deckId: DeckId) {
+  const selected = selectStudyCardsWithDeadline(deckId);
+  const now = Date.now();
   let due = 0;
   let newCount = 0;
   let earliestDueAt: number | undefined;
@@ -48,20 +49,17 @@ function deriveDeckListEmptyReason({
   return "confirmed-empty";
 }
 
-function buildDeckListSections(
-  {
-    decks,
-    cards,
-    sessionsByDeckId,
-    enabled,
-  }: {
-    decks: Deck[];
-    cards: Card[];
-    sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
-    enabled: boolean;
-  },
-  now: number
-) {
+function buildDeckListSections({
+  decks,
+  cards,
+  sessionsByDeckId,
+  enabled,
+}: {
+  decks: Deck[];
+  cards: Card[];
+  sessionsByDeckId: Partial<Record<DeckId, StudySession>>;
+  enabled: boolean;
+}) {
   const cardsByDeck = new Map<DeckId, Card[]>();
   for (const card of cards) {
     const group = cardsByDeck.get(card.deckId) ?? [];
@@ -72,7 +70,7 @@ function buildDeckListSections(
   const totals = { due: 0, new: 0 };
   const buildItem = (deck: Deck) => {
     const deckCards = cardsByDeck.get(deck.id) ?? [];
-    const review = enabled ? summarizeDeck(deck.id, now) : undefined;
+    const review = enabled ? summarizeDeck(deck.id) : undefined;
     if (review) {
       totals.due += review.due;
       totals.new += review.new;
@@ -102,9 +100,10 @@ export const useDeckListState = () => {
   const preferences = usePreferences();
   const { bootstrapStatus } = useStore(deckListStore);
 
-  const sections = useDeadlineQuery(buildDeckListSections, [
-    { decks, cards, sessionsByDeckId, enabled: preferences.study.useCardInterval },
-  ]);
+  const sections = useDeadlineQuery(
+    (input, _now) => buildDeckListSections(input),
+    [{ decks, cards, sessionsByDeckId, enabled: preferences.study.useCardInterval }]
+  );
 
   const rawCount = decks.length;
   const visibleCount = sections.studying.length + sections.reviewNow.length + sections.other.length;

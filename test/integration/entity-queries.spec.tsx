@@ -18,6 +18,12 @@ beforeEach(() => {
 });
 
 describe("Study selection queries [STUDY-SESSION-01 STUDY-SESSION-02]", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
+  });
+  afterEach(() => vi.useRealTimers());
+
   it("uses the latest saved deck filter when no draft is supplied", () => {
     const deck = createDeck({ selectedTags: ["first"] });
     const first = createCard({ id: "first", tags: ["first"] });
@@ -25,15 +31,15 @@ describe("Study selection queries [STUDY-SESSION-01 STUDY-SESSION-02]", () => {
     replaceRemoteDecks([deck]);
     replaceRemoteCards([first, second]);
 
-    expect(selectStudyCardsWithDeadline(deck.id, 1000).cards).toEqual([first]);
+    expect(selectStudyCardsWithDeadline(deck.id).cards).toEqual([first]);
 
     replaceRemoteDecks([{ ...deck, selectedTags: ["second"] }]);
 
-    expect(selectStudyCardsWithDeadline(deck.id, 1000).cards).toEqual([second]);
+    expect(selectStudyCardsWithDeadline(deck.id).cards).toEqual([second]);
 
     clearRemoteDecks();
 
-    expect(selectStudyCardsWithDeadline(deck.id, 1000)).toEqual({ cards: [], nextDueAt: undefined });
+    expect(selectStudyCardsWithDeadline(deck.id)).toEqual({ cards: [], nextDueAt: undefined });
   });
 
   it("reads current visible cards for the deck while respecting the draft and deadline", () => {
@@ -55,21 +61,23 @@ describe("Study selection queries [STUDY-SESSION-01 STUDY-SESSION-02]", () => {
       createCard({ id: "other-owner", uid: "other", tags: ["draft"] }),
     ]);
 
-    expect(selectStudyCardsWithDeadline(deck.id, 1000, draft)).toEqual({
+    expect(selectStudyCardsWithDeadline(deck.id, draft)).toEqual({
       cards: [card],
       nextDueAt: 2000,
     });
-    expect(selectStudyCardsWithDeadline(deck.id, 2000, draft)).toEqual({
+    vi.setSystemTime(2000);
+    expect(selectStudyCardsWithDeadline(deck.id, draft)).toEqual({
       cards: [card, future],
       nextDueAt: undefined,
     });
+    vi.setSystemTime(1000);
     updatePreferences({ study: { useCardInterval: false } });
-    expect(selectStudyCardsWithDeadline(deck.id, 1000, draft).cards).toEqual([card, future]);
+    expect(selectStudyCardsWithDeadline(deck.id, draft).cards).toEqual([card, future]);
     updatePreferences({ study: { useCardInterval: true } });
 
     replaceRemoteCards([future]);
 
-    expect(selectStudyCardsWithDeadline(deck.id, 1000, draft)).toEqual({
+    expect(selectStudyCardsWithDeadline(deck.id, draft)).toEqual({
       cards: [],
       nextDueAt: 2000,
     });

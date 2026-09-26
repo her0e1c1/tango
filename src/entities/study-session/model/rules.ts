@@ -20,7 +20,7 @@ interface StudyCardSelectionDeck {
 }
 
 // Eligibility stays in input order; only session creation applies order, shuffle and limits.
-export function selectStudyCardsWithDeadline<TCard extends StudyCardSelectionCard>(
+export function calculateStudyCardSelection<TCard extends StudyCardSelectionCard>(
   cards: readonly TCard[],
   deck: StudyCardSelectionDeck,
   useCardInterval: boolean,

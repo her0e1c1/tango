@@ -16,9 +16,9 @@ export async function startStudySession(deckId: DeckId, filter: DeckFilterValues
   if (uid === "" || deck.uid !== uid) return;
   const { study } = getPreferences();
   // Use the current draft even when its autosave has not reached the Deck yet.
-  const now = Date.now();
-  const { cards } = selectStudyCardsWithDeadline(deckId, now, filter);
+  const { cards } = selectStudyCardsWithDeadline(deckId, filter);
   if (cards.length === 0) return;
+  const now = Date.now();
   starting = true;
   try {
     const sessionId = await startStudy({ deckId, cardOrderIds: buildStudyCardOrder(cards, study, now), uid, now });
