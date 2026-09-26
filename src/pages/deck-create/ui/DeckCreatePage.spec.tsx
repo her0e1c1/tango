@@ -8,9 +8,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck as createDeckFixture, createPreferences } from "@/test/factories";
-import { replaceRemoteDecks } from "@/test/entityFixtures";
+import { replaceRemoteDecks } from "@/test/utils/entityFixtures";
 import { actAsync } from "@/test/act";
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 
 const mocks = vi.hoisted(() => ({
   uid: "user-id",

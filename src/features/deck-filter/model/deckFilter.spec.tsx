@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { actAsync } from "@/test/act";
-import { replaceRemoteDecks } from "@/test/entityFixtures";
+import { replaceRemoteDecks } from "@/test/utils/entityFixtures";
 
 import type { Deck } from "@/entities/deck";
 import { createDeck as buildRemoteDeck } from "@/test/factories";

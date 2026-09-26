@@ -16,6 +16,7 @@ import {
   updateDoc,
   waitForPendingWrites,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { replaceAuthSession } from "@/entities/auth";
 import { cardStore } from "@/entities/card/model/store";
@@ -25,13 +26,13 @@ import {
   abandonStudySession,
   clearStudySessions,
   getStudySession,
-  moveStudySession,
+  writeStudySessionPosition,
   setStudySessionIndex,
   startStudy,
   subscribeStudySessions,
   touchStudySession,
 } from "@/entities/study-session";
-import { updateStudySession } from "@/entities/study-session/api/firestore";
+import { saveStudyOperation } from "@/pages/study-session/model/actions/saveStudyOperation";
 import type { StudySession } from "@/entities/study-session/model/types";
 import { startStudySession } from "@/pages/study-session-start/model/actions/startStudySession";
 import { createCard, createDeck, createPreferences } from "@/test/factories";
@@ -40,12 +41,28 @@ import { testDb } from "@/test/initializeTestFirestore";
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
   auth: { currentUser: { uid: "uid" } },
+  writeBatch: (await import("firebase/firestore")).writeBatch,
 }));
 
 const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
 const cards = ["first", "second", "third"].map((id, numberOfSeen) => ({ id, numberOfSeen, difficulty: 5 }));
 const waitForCloud = (assertion: () => void | Promise<void>) => vi.waitFor(assertion, { timeout: 10_000 });
 const readSession = (sessionId: string) => getDoc(doc(testDb, "studySession", sessionId));
+
+function skipOperation(session: StudySession) {
+  const cardId = session.cardOrderIds[session.currentIndex];
+  if (cardId === undefined) throw new Error("Expected an active Card");
+  return {
+    id: crypto.randomUUID(),
+    uid: session.remote.uid,
+    deckId: session.deckId,
+    sessionId: session.sessionId,
+    cardId,
+    currentIndex: session.currentIndex,
+    cardCount: session.cardOrderIds.length,
+    answeredAt: Date.now(),
+  };
+}
 
 describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [STUDY-SESSION-04]", () => {
   let stop: (() => void) | undefined;
@@ -58,6 +75,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     preferencesStore.setState({ preferences: createPreferences({ study: preferences }) });
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null });
     deckId = crypto.randomUUID();
+    deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid: "uid" })] });
+    cardStore.setState({ remoteCards: cards.map(({ id }) => createCard({ id, deckId, uid: "uid" })) });
   });
   afterEach(async () => {
     stop?.();
@@ -160,7 +179,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(2));
     const final = getStudySession(deckId);
     if (final === undefined) throw new Error("Expected the final Card");
-    expect(moveStudySession(final)).toBe(true);
+    const operation = skipOperation(final);
+    expect(saveStudyOperation(operation, final).endReason).toBe("completed");
     await waitForPendingWrites(testDb);
     const completed = (await readSession(started.sessionId)).data();
     expect(completed).toMatchObject({
@@ -170,7 +190,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       createdAt: original?.createdAt,
       startedAt: original?.startedAt,
     });
-    expect(moveStudySession(final)).toBe(false);
+    await waitForCloud(() => expect(getStudySession(deckId)).toBeUndefined());
+    expect(() => saveStudyOperation(operation, final)).toThrow("Study session does not match");
     await waitForPendingWrites(testDb);
     expect(getStudySession(deckId)).toBeUndefined();
     expect((await readSession(started.sessionId)).data()).toEqual(completed);
@@ -258,7 +279,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
   it("[FIRESTORE-STUDY-SESSION-07] advances one Card without applying an old interaction twice", async () => {
     stop = subscribeStudySessions("uid", vi.fn());
     const started = await startRemote();
-    expect(moveStudySession(started)).toBe(true);
+    const operation = skipOperation(started);
+    expect(saveStudyOperation(operation, started).session.currentIndex).toBe(1);
     await waitForPendingWrites(testDb);
     await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
     const advanced = (await readSession(started.sessionId)).data();
@@ -269,7 +291,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       endedAt: null,
       endReason: null,
     });
-    expect(moveStudySession(started)).toBe(false);
+    expect(() => saveStudyOperation(operation, started)).toThrow("Study session does not match");
     await waitForPendingWrites(testDb);
     expect(getStudySession(deckId)).toMatchObject({ sessionId: started.sessionId, currentIndex: 1 });
     expect((await readSession(started.sessionId)).data()).toEqual(advanced);
@@ -361,13 +383,16 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       const final = getStudySession(deckId);
       if (final === undefined) throw new Error("Expected the latest session");
       expect(final.sessionId).toBe(started.sessionId);
-      const completed = endReason === "completed" ? moveStudySession(final) : abandonStudySession(deckId);
-      expect(completed).toBe(endReason === "completed" ? true : undefined);
+      const result =
+        endReason === "completed" ? saveStudyOperation(skipOperation(final), final) : abandonStudySession(deckId);
+      expect(result?.endReason).toBe(endReason === "completed" ? "completed" : undefined);
       await waitForPendingWrites(testDb);
       const ended = (await readSession(started.sessionId)).data();
       expect(ended).toMatchObject({ endReason, endedAt: expect.any(Timestamp) });
       // A delayed progress write must not reopen the ended run or revive an older one.
-      updateStudySession(final, null);
+      const delayed = writeBatch(testDb);
+      writeStudySessionPosition(delayed, final, final.currentIndex);
+      await delayed.commit();
       await waitForPendingWrites(testDb);
       expect((await readSession(started.sessionId)).data()).toMatchObject({
         endReason,
@@ -439,7 +464,8 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(2));
     const final = getStudySession(deckId);
     if (final === undefined) throw new Error("Expected the final Card");
-    expect(moveStudySession(final)).toBe(true);
+    const operation = skipOperation(final);
+    expect(saveStudyOperation(operation, final).endReason).toBe("completed");
     expect((await getDocFromCache(doc(testDb, "studySession", started.sessionId))).data()).toMatchObject({
       currentIndex: 2,
       endReason: "completed",
@@ -505,7 +531,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     }
   );
 
-  it.each(["start", "index", "move", "abandon", "touch"] as const)(
+  it.each(["start", "index", "save", "abandon", "touch"] as const)(
     "[FIRESTORE-STUDY-SESSION-16] rejects %s synchronously after the owner changes",
     async (operation) => {
       stop = subscribeStudySessions("uid", vi.fn());
@@ -519,14 +545,14 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
             return startStudy({ deckId, cardOrderIds: ["first"], uid: "uid" });
           case "index":
             return setStudySessionIndex(deckId, 1);
-          case "move":
-            return moveStudySession(started);
+          case "save":
+            return saveStudyOperation(skipOperation(started), started);
           case "abandon":
             return abandonStudySession(deckId);
           case "touch":
             return touchStudySession(deckId);
         }
-      }).toThrow("Study session owner changed");
+      }).toThrow(operation === "save" ? "Study user changed" : "Study session owner changed");
       await waitForPendingWrites(testDb);
       const documents = await getDocs(
         query(collection(testDb, "studySession"), where("uid", "==", "uid"), where("deckId", "==", deckId))

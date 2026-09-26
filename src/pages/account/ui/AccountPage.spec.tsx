@@ -8,7 +8,8 @@ import "@testing-library/jest-dom/vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { updatePreferences } from "@/entities/preference";
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
 import { createPreferences } from "@/test/factories";
 

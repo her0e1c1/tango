@@ -9,8 +9,9 @@ import "@testing-library/jest-dom/vitest";
 
 import { CATEGORY, useDeck } from "@/entities/deck";
 import { DeckForm } from "@/features/deck-form";
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
-import { replaceRemoteDecks } from "@/test/entityFixtures";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
+import { replaceRemoteDecks } from "@/test/utils/entityFixtures";
 import { createLocalDeck } from "@/test/factories";
 
 import { useDeckEditPageModel } from "./useDeckEditPageModel";

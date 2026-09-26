@@ -14,8 +14,9 @@ import { replaceAuthSession } from "@/entities/auth";
 import { deleteCard, mutateCards } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession, subscribeStudySessions } from "@/entities/study-session";
-import { startStudy } from "@/test/entityFixtures";
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { startStudy } from "@/test/utils/entityFixtures";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -680,7 +681,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
 });
 
 vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
-  const { moveStudySession } = await import("@/entities/study-session");
+  const { applyStudySessionResult } = await import("@/test/utils/entityFixtures");
   return {
     saveStudyOperation: (
       operation: import("../model/studyOperation").StudyOperation,
@@ -693,11 +694,12 @@ vi.mock("@/pages/study-session/model/actions/saveStudyOperation", async () => {
           answeredAt: operation.answeredAt,
         })
       ).catch(() => undefined);
-      void moveStudySession({ ...session, lastStudiedAt: operation.answeredAt });
-      return {
+      const result = {
         session: { ...session, currentIndex: Math.min(session.currentIndex + 1, session.cardOrderIds.length - 1) },
-        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? "completed" : null,
+        endReason: session.currentIndex + 1 === session.cardOrderIds.length ? ("completed" as const) : null,
       };
+      applyStudySessionResult({ ...result.session, lastStudiedAt: operation.answeredAt }, result.endReason);
+      return result;
     },
   };
 });

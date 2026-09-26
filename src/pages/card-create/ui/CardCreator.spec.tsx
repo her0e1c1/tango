@@ -10,7 +10,8 @@ import "@testing-library/jest-dom/vitest";
 import { BackText, type CardContentInput, cardContentInputSchema } from "@/entities/card";
 import { useCardPreviewContent } from "@/features/card-form";
 import { CATEGORY, createDeck } from "@/entities/deck";
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { createLocalDeck } from "@/test/factories";
 
 const writes = vi.hoisted(() => ({

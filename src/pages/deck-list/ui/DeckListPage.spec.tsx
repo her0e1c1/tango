@@ -12,9 +12,10 @@ import "@testing-library/jest-dom/vitest";
 import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
-import { startStudy } from "@/test/entityFixtures";
+import { startStudy } from "@/test/utils/entityFixtures";
 import { actAsync } from "@/test/act";
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 const mocks = vi.hoisted(() => ({

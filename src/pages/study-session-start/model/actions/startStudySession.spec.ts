@@ -6,7 +6,7 @@ import type { Card } from "@/entities/card";
 import type { Deck } from "@/entities/deck";
 import { createCard, createDeck, createPreferences } from "@/test/factories";
 import { startStudySession } from "./startStudySession";
-import { restoreStudySession } from "@/test/entityFixtures";
+import { restoreStudySession } from "@/test/utils/entityFixtures";
 
 const mocks = vi.hoisted(() => ({ deck: null as Deck | null, cards: null as Card[] | null, useCardInterval: false }));
 

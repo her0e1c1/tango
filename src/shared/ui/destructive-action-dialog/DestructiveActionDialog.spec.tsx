@@ -4,7 +4,8 @@ import "@testing-library/jest-dom/vitest";
 import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { dismissToast, showToast, ToastViewport } from "../toast";
+import { showToast, ToastViewport } from "../toast";
+import { dismissToast } from "@/test/utils/toast";
 import { DestructiveActionDialog } from "./DestructiveActionDialog";
 
 const defaultProps = {

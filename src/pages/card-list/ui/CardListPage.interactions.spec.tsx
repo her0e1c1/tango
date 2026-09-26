@@ -8,7 +8,8 @@ import "@testing-library/jest-dom/vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
 import { createCard, createDeck, createPreferences } from "@/test/factories";
 

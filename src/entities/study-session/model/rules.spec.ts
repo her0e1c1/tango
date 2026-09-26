@@ -2,12 +2,7 @@ import { calculateFsrsState } from "@/test/studyStateFixtures";
 import { describe, expect, it, vi } from "vitest";
 import { createCard, createDeck } from "@/test/factories";
 
-import {
-  canMoveStudySession,
-  isStudySessionPositionUnchanged,
-  resolveStudySession,
-  selectStudyCardsWithDeadline,
-} from "./rules";
+import { canMoveStudySession, resolveStudySession, selectStudyCardsWithDeadline } from "./rules";
 import type { StudySession } from "./types";
 
 const session: StudySession = {
@@ -69,24 +64,6 @@ describe("resolveStudySession [STUDY-ACTIONS-03]", () => {
     expect(resolveStudySession(undefined, cards)).toEqual({ status: "invalid" });
     expect(resolveStudySession({ ...session, cardOrderIds: [] }, [])).toEqual({ status: "invalid" });
     expect(resolveStudySession(session, cards)).toEqual({ status: "invalid" });
-  });
-});
-
-describe("isStudySessionPositionUnchanged [STUDY-ACTIONS-05]", () => {
-  it("ignores timestamp-only changes", () => {
-    expect(isStudySessionPositionUnchanged(session, { ...session, lastStudiedAt: 1 })).toBe(true);
-  });
-
-  it("detects a replaced session, changed index, active card, or removed session", () => {
-    expect(isStudySessionPositionUnchanged(session, { ...session, sessionId: "session-2" })).toBe(false);
-    expect(isStudySessionPositionUnchanged(session, { ...session, currentIndex: 2 })).toBe(false);
-    expect(
-      isStudySessionPositionUnchanged(session, {
-        ...session,
-        cardOrderIds: ["card-1", "card-3", "card-2"],
-      })
-    ).toBe(false);
-    expect(isStudySessionPositionUnchanged(session, undefined)).toBe(false);
   });
 });
 

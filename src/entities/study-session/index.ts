@@ -14,7 +14,6 @@ export {
   touchStudySession,
   subscribeStudySessions,
   startStudy,
-  moveStudySession,
   setStudySessionIndex,
   abandonStudySession,
   writeStudySessionPosition,

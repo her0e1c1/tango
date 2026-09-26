@@ -4,7 +4,8 @@ import * as React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { dismissToast, showToast, ToastViewport } from "@/shared/ui/toast";
+import { showToast, ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 
 import { StudyHelpDialog } from "./StudyHelpDialog";
 

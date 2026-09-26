@@ -6,9 +6,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { createDeck } from "@/entities/deck";
-import { replaceRemoteCards, replaceRemoteDecks } from "@/test/entityFixtures";
+import { replaceRemoteCards, replaceRemoteDecks } from "@/test/utils/entityFixtures";
 import { getCards } from "@/entities/card";
-import { dismissToast, ToastViewport } from "@/shared/ui/toast";
+import { ToastViewport } from "@/shared/ui/toast";
+import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
 import { createLocalCard, createLocalDeck } from "@/test/factories";
 

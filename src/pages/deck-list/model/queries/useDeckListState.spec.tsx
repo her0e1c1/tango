@@ -7,7 +7,7 @@ import { mutateCards } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions } from "@/entities/study-session";
-import { startStudy } from "@/test/entityFixtures";
+import { startStudy } from "@/test/utils/entityFixtures";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
 import { deckListStore } from "../store";
