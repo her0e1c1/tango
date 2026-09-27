@@ -1,8 +1,10 @@
-import { Component, type ReactNode, useLayoutEffect } from "react";
+import { Component, type ReactNode, useLayoutEffect, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 import { appI18n } from "../i18n/instance";
 import { getRecoveryMessages } from "../i18n/resources";
+
+import { clearLocalDataAndReload } from "./clear-local-data";
 
 import { RouteFeedback } from "@/shared/ui/route-feedback";
 
@@ -40,13 +42,36 @@ export function AppErrorFallback({
   error?: unknown;
 }) {
   const messages = useRecoveryMessages();
+  const [clearing, setClearing] = useState(false);
+  const [clearFailed, setClearFailed] = useState(false);
+  const clearData = () => {
+    setClearing(true);
+    setClearFailed(false);
+    void clearLocalDataAndReload().catch(() => {
+      setClearing(false);
+      setClearFailed(true);
+    });
+  };
   const detail = error instanceof Error ? error.message : typeof error === "string" ? error : "";
   return (
     <RouteFeedback
       title={title ?? messages.title}
-      description={[description, messages.description, detail].filter(Boolean).join(" ")}
+      description={[
+        description,
+        messages.description,
+        detail,
+        clearing && messages.clearing,
+        clearFailed && messages.clearFailed,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       tone="error"
-      primaryAction={{ label: messages.reload, onClick: reloadPage }}
+      {...(clearing
+        ? {}
+        : {
+            primaryAction: { label: messages.reload, onClick: reloadPage },
+            secondaryAction: { label: messages.clearLocalData, onClick: clearData, variant: "destructive" },
+          })}
     />
   );
 }
