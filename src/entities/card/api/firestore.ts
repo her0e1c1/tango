@@ -1,4 +1,3 @@
-import type { FsrsState } from "../model/types";
 import type {
   CardCreate,
   CardCreateInput,
@@ -28,7 +27,7 @@ import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { applyCardSnapshot } from "../model/store";
-import { fsrsStateSchema, instantSchema } from "../model/fsrs";
+import { fsrsStateSchema, instantSchema, type FsrsState } from "../model/fsrs";
 import { findCardById } from "../model/store";
 
 const CARD_COLLECTION = "card";

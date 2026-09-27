@@ -1,3 +1,5 @@
+import type { StudyRating } from "./schema";
+
 export interface StudyAnswerRecord {
   /** Stable identity of the answer event. */
   id: string;
@@ -8,7 +10,7 @@ export interface StudyAnswerRecord {
   /** Answer time in Unix milliseconds. */
   answeredAt: number;
   /** Recall grade selected for this answer. */
-  rating: "again" | "hard" | "good" | "easy";
+  rating: StudyRating;
 }
 
 export interface StudyAnswerInput extends StudyAnswerRecord {

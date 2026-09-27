@@ -1,11 +1,14 @@
+import type { CardId } from "@/entities/card/@x/study-session";
+import type { DeckId } from "@/entities/deck/@x/study-session";
+
 /** Progress for one active study run. Restarting a deck creates a new run. */
 export interface StudySession {
   /** Identifies the run so delayed operations cannot update its replacement. */
   readonly sessionId: string;
   /** The deck whose progress this session tracks. Also the key in StudySessions. */
-  deckId: string;
+  deckId: DeckId;
   /** Card order fixed at the start; resuming does not select or shuffle cards again. */
-  cardOrderIds: string[];
+  cardOrderIds: CardId[];
   /** Zero-based position in cardOrderIds. Completed runs leave the active session map. */
   currentIndex: number;
   /** Last use in Unix milliseconds, used to order recently studied decks. */
@@ -22,7 +25,7 @@ export interface StudySession {
 }
 
 /** Currently loaded active progress, keyed by deck. */
-export type StudySessions = Partial<Record<string, StudySession>>;
+export type StudySessions = Partial<Record<DeckId, StudySession>>;
 
 export interface StudySessionSnapshot {
   /** Progress captured for persistence. */

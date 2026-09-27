@@ -1,7 +1,6 @@
-import type { FsrsState } from "./types";
 import { createEmptyCard, fsrs as createScheduler, Rating, State, type Card as FsrsCard } from "ts-fsrs";
 import type { StudyRating } from "@/entities/study-answer/@x/card";
-import { instantSchema, fsrsStateSchema } from "./fsrs";
+import { instantSchema, fsrsStateSchema, type FsrsState } from "./fsrs";
 
 const scheduler = createScheduler({
   request_retention: 0.9,
