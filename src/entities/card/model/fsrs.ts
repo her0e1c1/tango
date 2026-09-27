@@ -16,5 +16,3 @@ export const fsrsStateSchema = z
   })
   .strict()
   .refine((schedule) => schedule.lapses <= schedule.reps, "Lapses cannot exceed reviews");
-
-export type FsrsState = z.infer<typeof fsrsStateSchema>;

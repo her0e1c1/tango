@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { fsrsStateSchema } from "./fsrs";
 
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
@@ -34,16 +33,10 @@ const cardCreateFieldsSchema = cardContentSchema.extend({
   deletedAt: z.number().nullable().default(null),
 });
 
-export const cardCreateSchema = cardCreateFieldsSchema.extend({ uid: cardUidSchema });
+const cardCreateSchema = cardCreateFieldsSchema.extend({ uid: cardUidSchema });
 
-export const cardSchema = cardCreateSchema.extend({
-  fsrs: fsrsStateSchema.nullable(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
-});
-
-export const cardContentEditSchema = cardContentSchema.partial().extend({ id: cardIdSchema });
-export const cardEditSchema = cardContentEditSchema.extend({ uid: cardUidSchema });
+const cardContentEditSchema = cardContentSchema.partial().extend({ id: cardIdSchema });
+const cardEditSchema = cardContentEditSchema.extend({ uid: cardUidSchema });
 const cardIdentitySchema = z.object({ id: cardIdSchema, uid: cardUidSchema });
 
 // Ownership is established by the authenticated session and must never be selectable by a remote mutation payload.

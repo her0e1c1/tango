@@ -1,13 +1,15 @@
-import type { z } from "zod";
-
-import type { cardFilterSchema, deckCreateSchema, deckIdSchema } from "./schema";
-
-export type CardFilter = z.infer<typeof cardFilterSchema>;
+/** Independent tag conditions used when browsing Cards. */
+export interface CardFilter {
+  /** Selected tags; an empty collection does not restrict Cards. */
+  selectedTags: string[];
+  /** True requires every selected tag; false requires any selected tag. */
+  tagAndFilter: boolean;
+}
 
 /** Deck rendering category or syntax-highlighting language. */
 export type Category = string;
 /** Stable identifier shared by Deck boundaries and dependent Entities. */
-export type DeckId = z.infer<typeof deckIdSchema>;
+export type DeckId = string;
 
 /** Deck data used throughout the application, including the fields needed by its persistence mode. */
 export type Deck = {
@@ -31,8 +33,20 @@ export type Deck = {
   createdAt: number;
   /** Unix epoch time in milliseconds when the Deck was last changed. */
   updatedAt: number;
+  /** Firebase UID of the Deck owner, including anonymous users. */
   uid: string;
 };
 
 /** Owner-free input accepted at the remote Deck creation boundary. */
-export type RemoteDeckCreateInput = z.input<typeof deckCreateSchema>;
+export type RemoteDeckCreateInput = Pick<Deck, "id" | "name" | "url" | "cardFilter"> & {
+  /** Public visibility; omitted or undefined defaults to false. */
+  isPublic?: boolean | undefined;
+  /** Study tag selection; omitted or undefined defaults to an empty collection. */
+  selectedTags?: string[] | undefined;
+  /** Study tag matching mode; omitted or undefined defaults to OR matching. */
+  tagAndFilter?: boolean | undefined;
+  /** Rendering category; omitted or undefined defaults to an empty string. */
+  category?: Category | undefined;
+  /** Line-break conversion; omitted or undefined defaults to false. */
+  convertToBr?: boolean | undefined;
+};
