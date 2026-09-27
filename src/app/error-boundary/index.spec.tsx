@@ -46,7 +46,8 @@ describe("NAVIGATION-03 AppErrorBoundary", () => {
 
     expect(screen.getByRole("alert")).toBeVisible();
     expect(screen.getByRole("heading", { level: 1, name: "Something went wrong" })).toBeVisible();
-    expect(screen.getByText(/Reload to try again, or clear the app cache/)).toBeVisible();
+    expect(screen.getByText(/use your browser's site settings to delete Tango's site data/)).toBeVisible();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(screen.getByText(/render failed/)).toBeVisible();
     expect(screen.queryByText("Application content")).not.toBeInTheDocument();
     expect(onCaughtError).toHaveBeenCalledOnce();
@@ -65,6 +66,7 @@ it("NAVIGATION-03 uses the initialized locale outside I18nProvider", async () =>
   expect(screen.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
   expect(screen.getByRole("button", { name: "再読み込み" })).toBeVisible();
   expect(document.documentElement).toHaveAttribute("lang", "ja");
+  expect(screen.getByText(/匿名ユーザーのデータは復元できません/)).toBeVisible();
   await actAsync(() => appI18n.changeLanguage("en"));
   expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
   expect(document.documentElement).toHaveAttribute("lang", "en");
@@ -88,12 +90,10 @@ describe("NAVIGATION-04 unhandled browser errors", () => {
       fireEvent(window, event);
       expect(screen.getByRole("alert")).toBeVisible();
       const message = reason instanceof Error ? reason.message : typeof reason === "string" ? reason : "";
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        `Your data, sign-in, and settings are kept. ${message}`.trim()
-      );
+      expect(screen.getByRole("alert")).toHaveTextContent(`Anonymous data cannot be recovered. ${message}`.trim());
       expect(event.defaultPrevented).toBe(false);
       expect(screen.queryByText("Application content")).not.toBeInTheDocument();
-      const reset = screen.getByRole("button", { name: "Clear cache and reload" });
+      const reset = screen.getByRole("button", { name: "Reload" });
       reset.focus();
       fireEvent(window, new ErrorEvent("error", { error: new Error("duplicate") }));
       expect(reset).toHaveFocus();

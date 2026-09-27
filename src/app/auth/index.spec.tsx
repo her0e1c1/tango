@@ -27,8 +27,10 @@ describe("Authentication feedback [ACCOUNT-04 SETTINGS-04]", () => {
     );
     expect(screen.getByText("Unable to start Tango")).toBeVisible();
     expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Clear cache and reload" })).toBeVisible();
-    expect(screen.getByText("Authentication or saved data could not be initialized. storage failure")).toBeVisible();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByText(/use your browser's site settings/)).toBeVisible();
+    expect(screen.getByText(/Authentication or saved data could not be initialized.*storage failure/)).toBeVisible();
+    expect(screen.getByText(/Anonymous data cannot be recovered/)).toBeVisible();
     expect(screen.queryByText("Ready")).not.toBeInTheDocument();
   });
 });

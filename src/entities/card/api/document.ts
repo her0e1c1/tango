@@ -15,8 +15,7 @@ const cardDocumentSchema = z.object({
   deckId: z.string(),
   uid: z.string(),
   createdAt: z.number(),
-  // Existing cloud documents retain millisecond values until their next successful write.
-  updatedAt: z.union([z.number(), firestoreTimestampSchema]),
+  updatedAt: firestoreTimestampSchema,
   deletedAt: z.number().nullable(),
 });
 
@@ -39,7 +38,7 @@ export const mapCardDocument = (id: CardId, document: CardDocument): RemoteCard 
     deckId: document.deckId,
     uid: document.uid,
     createdAt: document.createdAt,
-    updatedAt: typeof document.updatedAt === "number" ? document.updatedAt : document.updatedAt.toDate().getTime(),
+    updatedAt: document.updatedAt.toDate().getTime(),
     deletedAt: document.deletedAt,
   };
   return card;

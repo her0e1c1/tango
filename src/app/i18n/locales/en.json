@@ -27,10 +27,8 @@
   "errorBoundary": {
     "language": "en",
     "title": "Something went wrong",
-    "description": "Reload to try again, or clear the app cache and reload. Your data, sign-in, and settings are kept.",
-    "reload": "Reload",
-    "clearCache": "Clear cache and reload",
-    "clearCacheFailed": "Unable to clear the app cache. Check your browser's storage permissions and try again."
+    "description": "Reload to try again. If the problem persists, use your browser's site settings to delete Tango's site data, then reopen Tango. Clearing site data signs you out and permanently deletes this browser's decks, cards, study data, pending changes, and settings. Anonymous data cannot be recovered.",
+    "reload": "Reload"
   },
   "auth": {
     "failure": {

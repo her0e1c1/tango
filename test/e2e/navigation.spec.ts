@@ -610,51 +610,40 @@ test("NAVIGATION-02 Screen shortcuts navigate to their configured routes", async
   expect(await requireDocument("card", card.id)).toEqual(cardBefore);
 });
 
-test("NAVIGATION-03 The outer error boundary keeps the locale and supports reload and cache recovery", async ({
+test("NAVIGATION-03 Recovery offers only reload and manual site-data guidance while preserving anonymous data", async ({
   fixture,
   page,
   browserErrors,
 }) => {
-  const { uid } = fixture.user();
-  await fixture.apply(page);
-  await page.goto("/settings");
+  await fixture.apply(page, { auth: false, preferences: false });
+  const { deck, first } = await createAnonymousDeck(page);
+  await page.goto("/account");
+  const uid = await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").innerText();
+  await page.goto("/settings?recovery=reload#preserved");
   await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
-  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await page.evaluate(() => {
+    localStorage.setItem("recovery-marker", "keep");
+    sessionStorage.setItem("recovery-marker", "keep");
+  });
   browserErrors.allow(/E2E_RENDER_FAILURE/);
   await failNextThemeUpdate(page);
   await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
   await expect(page.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
-  await expect(page.getByText(/再読み込みするか、アプリのキャッシュを削除して再読み込みしてください。/)).toBeVisible();
+  await expect(page.getByText(/ブラウザーのサイト設定で Tango のサイトデータを削除/)).toBeVisible();
+  await expect(page.getByText(/匿名ユーザーのデータは復元できません/)).toBeVisible();
+  await expect(page.getByRole("button")).toHaveCount(1);
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
-  await page.getByRole("button", { name: "再読み込み", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "設定", exact: true })).toBeVisible();
-
-  await page.evaluate(async () => {
-    localStorage.setItem("unrelated-reset-marker", "keep");
-    const scope = `${window.location.origin}/`;
-    await navigator.serviceWorker.ready;
-    const name = (await caches.keys()).find((key) => key.startsWith("workbox-precache-") && key.endsWith(scope));
-    if (!name) throw new Error("Expected Tango's precache");
-    const cache = await caches.open(name);
-    await cache.put("/__reset-marker__", new Response("stale"));
-    const unrelated = await caches.open("unrelated-reset-cache");
-    await unrelated.put("/__unrelated-reset-marker__", new Response("keep"));
-  });
-  await failNextThemeUpdate(page);
-  await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
-  const reset = page.getByRole("button", { name: "キャッシュを削除して再読み込み" });
-  await expect(reset).toBeVisible();
   const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
-  await reset.click();
-  await expect(page).toHaveURL(/\/settings$/);
-  await expect(page.getByRole("heading", { level: 1, name: "設定", exact: true })).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await page.getByRole("button", { name: "再読み込み", exact: true }).click();
+  await expect(page).toHaveURL(/\/settings\?recovery=reload#preserved$/);
+  await expect(page.getByRole("heading", { name: "設定", exact: true })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
-  expect(await page.evaluate(() => localStorage.getItem("unrelated-reset-marker"))).toBe("keep");
-  expect(await page.evaluate(async () => (await caches.match("/__reset-marker__")) !== undefined)).toBe(false);
-  expect(await page.evaluate(async () => (await caches.match("/__unrelated-reset-marker__"))?.text())).toBe("keep");
+  expect(await page.evaluate(() => localStorage.getItem("recovery-marker"))).toBe("keep");
+  expect(await page.evaluate(() => sessionStorage.getItem("recovery-marker"))).toBe("keep");
   await page.goto("/account");
   await expect(page.getByText(uid, { exact: true })).toBeVisible();
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByText(first.frontText, { exact: true })).toBeVisible();
 });
 
 test("NAVIGATION-04 Unhandled browser errors share recovery without clearing data", async ({
@@ -696,14 +685,13 @@ test("NAVIGATION-04 Unhandled browser errors share recovery without clearing dat
   await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
 });
 
-test("NAVIGATION-05 Corrupt PWA cache fails startup until cache recovery reloads the healthy application", async ({
+test("NAVIGATION-05 Corrupt PWA cache shows manual recovery guidance without deleting data", async ({
   fixture,
   page,
   browserErrors,
 }) => {
   const deck = fixture.deck();
   const card = fixture.card();
-  const { uid } = fixture.user();
   await fixture.apply(page);
   const deckBefore = await requireDocument("deck", deck.id);
   const cardBefore = await requireDocument("card", card.id);
@@ -744,21 +732,16 @@ test("NAVIGATION-05 Corrupt PWA cache fails startup until cache recovery reloads
 
   await Promise.all([page.waitForEvent("load"), page.getByRole("button", { name: "Reload", exact: true }).click()]);
   await expect(page.getByRole("heading", { name: "Something went wrong", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Clear cache and reload", exact: true }).click();
-
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { name: "Decks", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Something went wrong", exact: true })).toHaveCount(0);
+  await expect(page.getByText(/use your browser's site settings to delete Tango's site data/)).toBeVisible();
+  await expect(page.getByText(/Anonymous data cannot be recovered/)).toBeVisible();
+  await expect(page.getByRole("button")).toHaveCount(1);
   expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
   expect(
     await page.evaluate(async (path) => {
       const response = await caches.match(path, { ignoreSearch: true });
       return (await response?.text())?.includes("E2E INVALID CACHE TOKEN") ?? false;
     }, assetPath)
-  ).toBe(false);
-  await page.goto("/account");
-  await expect(page.getByText(uid, { exact: true })).toBeVisible();
+  ).toBe(true);
   expect(await requireDocument("deck", deck.id)).toEqual(deckBefore);
   expect(await requireDocument("card", card.id)).toEqual(cardBefore);
 });
