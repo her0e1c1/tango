@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { DeckId, RemoteDeckCreateInput } from "../model/types";
+import type { Deck, DeckId, RemoteDeckCreateInput } from "../model/types";
 import {
   onSnapshot,
   collection,
@@ -20,23 +20,23 @@ import {
   deckIdSchema,
   editDeckSchema,
 } from "../model/schema";
-import { applyDeckSnapshot } from "../model/store";
+import { setRemoteDecks } from "../model/store";
 import { parseDeckDocument, toDeck, toDeckDocument } from "./document";
 
 const DECK_COLLECTION = "deck";
 
-// Include tombstones; the Store exposes only active documents.
+// Include tombstones in the query, but expose only active documents to the Store.
 export function subscribeDecks(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
   return onSnapshot(
     query(collection(db, DECK_COLLECTION), where("uid", "==", uid)),
     { includeMetadataChanges: true },
     (snapshot) => {
       try {
-        const values = snapshot.docs.map((item) => {
+        const decks: Deck[] = snapshot.docs.flatMap((item) => {
           const document = parseDeckDocument(item.id, item.data({ serverTimestamps: "estimate" }));
-          return document.deletedAt === null ? toDeck(item.id, document) : null;
+          return document.deletedAt === null ? [toDeck(item.id, document)] : [];
         });
-        applyDeckSnapshot(values);
+        setRemoteDecks(decks);
         onReady?.();
       } catch (error) {
         onError(error instanceof Error ? error : new Error(String(error)));
