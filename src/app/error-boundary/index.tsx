@@ -1,11 +1,7 @@
-import { Component, type ReactNode, useLayoutEffect } from "react";
+import { Component, type ReactNode } from "react";
+import { AppErrorFallback } from "./AppErrorFallback";
 
-import { useTranslation } from "react-i18next";
-import { appI18n } from "../i18n/instance";
-import { getRecoveryMessages } from "../i18n/resources";
-import { clearCacheAndReload } from "./clear-cache";
-
-import { RouteFeedback } from "@/shared/ui/route-feedback";
+export { AppErrorFallback } from "./AppErrorFallback";
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
@@ -16,62 +12,13 @@ interface AppErrorBoundaryState {
   error?: unknown;
 }
 
-const reloadPage = () => {
-  // A full reload discards the failed React tree; resetting only the boundary could render the same fault again.
-  window.location.reload();
-};
-
-function useRecoveryMessages() {
-  // The standalone instance retains the active locale without reading persisted preferences.
-  const { i18n } = useTranslation(undefined, { i18n: appI18n });
-  const messages = getRecoveryMessages(i18n.resolvedLanguage);
-  useLayoutEffect(() => {
-    document.documentElement.lang = messages.language;
-  }, [messages.language]);
-  return messages;
-}
-
-export function AppErrorFallback({
-  title,
-  description,
-  error,
-}: {
-  title?: string;
-  description?: string;
-  error?: unknown;
-}) {
-  const messages = useRecoveryMessages();
-  const detail = error instanceof Error ? error.message : typeof error === "string" ? error : "";
-  return (
-    <RouteFeedback
-      title={title ?? messages.title}
-      description={[description ?? messages.description, detail].filter(Boolean).join(" ")}
-      tone="error"
-      primaryAction={{ label: messages.reload, onClick: reloadPage }}
-      secondaryAction={{
-        label: messages.clearCache,
-        onClick: () => void clearCacheAndReload(messages.language),
-      }}
-    />
-  );
-}
-
 // biome-ignore lint/style/useReactFunctionComponents: React requires a class to define an Error Boundary without another dependency.
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
   override state: AppErrorBoundaryState = { hasError: false };
 
-  private readonly showFailure = (error: unknown) => {
-    this.setState((state) => (state.hasError ? null : { hasError: true, error }));
-  };
-
-  private readonly handleWindowError = (event: ErrorEvent) => {
-    // Resource load events are not runtime exceptions.
-    if (event instanceof ErrorEvent) this.showFailure(event.error ?? event.message);
-  };
-
-  private readonly handleRejection = (event: PromiseRejectionEvent) => {
-    this.showFailure(event.reason);
-  };
+  static getDerivedStateFromError(error: unknown): AppErrorBoundaryState {
+    return { hasError: true, error };
+  }
 
   override componentDidMount(): void {
     window.addEventListener("error", this.handleWindowError);
@@ -83,9 +30,23 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     window.removeEventListener("unhandledrejection", this.handleRejection);
   }
 
-  static getDerivedStateFromError(error: unknown): AppErrorBoundaryState {
-    return { hasError: true, error };
-  }
+  private readonly showFailure = (error: unknown) => {
+    // Keep the first failure and avoid interrupting recovery when more errors arrive.
+    this.setState((state) => {
+      if (state.hasError) return null;
+      return { hasError: true, error };
+    });
+  };
+
+  private readonly handleWindowError = (event: ErrorEvent) => {
+    // Resource load events are not runtime exceptions.
+    if (!(event instanceof ErrorEvent)) return;
+    this.showFailure(event.error ?? event.message);
+  };
+
+  private readonly handleRejection = (event: PromiseRejectionEvent) => {
+    this.showFailure(event.reason);
+  };
 
   override render(): ReactNode {
     if (!this.state.hasError) return this.props.children;
