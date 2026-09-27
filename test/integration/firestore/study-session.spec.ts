@@ -69,13 +69,15 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
 
   beforeEach(() => {
     clearStudySessions();
-    cardStore.setState({ remoteCards: [] });
+    cardStore.setState({ cardsById: {} });
     deckStore.setState({ remoteDecks: [] });
     preferencesStore.setState({ preferences: createPreferences({ study: preferences }) });
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous: false, displayName: null });
     deckId = crypto.randomUUID();
     deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid: "uid" })] });
-    cardStore.setState({ remoteCards: cards.map(({ id }) => createCard({ id, deckId, uid: "uid" })) });
+    cardStore.setState({
+      cardsById: Object.fromEntries(cards.map(({ id }) => [id, createCard({ id, deckId, uid: "uid" })])),
+    });
   });
   afterEach(async () => {
     stop?.();
@@ -84,7 +86,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     await enableNetwork(testDb);
     await waitForPendingWrites(testDb);
     clearStudySessions();
-    cardStore.setState({ remoteCards: [] });
+    cardStore.setState({ cardsById: {} });
     deckStore.setState({ remoteDecks: [] });
     vi.restoreAllMocks();
   });
@@ -237,7 +239,12 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     );
     deckStore.setState({ remoteDecks: [deck, otherDeck] });
     cardStore.setState({
-      remoteCards: [...cards.map((card) => createCard({ ...card, uid: "uid", deckId })), ...otherCards],
+      cardsById: Object.fromEntries(
+        [...cards.map((card) => createCard({ ...card, uid: "uid", deckId })), ...otherCards].map((card) => [
+          card.id,
+          card,
+        ])
+      ),
     });
     expect(await startStudySession(deck.id, getStudyFilter(deck))).toEqual(expect.any(String));
     await waitForCloud(() => expect(getStudySession(deckId)).toBeDefined());

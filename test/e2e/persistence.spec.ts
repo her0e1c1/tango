@@ -253,7 +253,7 @@ async function openStorageMaintenance(page: import("@playwright/test").Page) {
   await page.goto("/storage-maintenance");
   await page.evaluate(async () => {
     for (const { name } of await indexedDB.databases()) {
-      if (!name?.startsWith("firestore/")) continue;
+      if (!(name?.startsWith("firestore/") || name === "tango-card-replica")) continue;
       await new Promise<void>((resolve, reject) => {
         const request = indexedDB.deleteDatabase(name);
         request.onsuccess = () => resolve();
@@ -264,7 +264,10 @@ async function openStorageMaintenance(page: import("@playwright/test").Page) {
   });
 }
 
-test("PERSISTENCE-07 reloads server data after the SDK cache is evicted", async ({ fixture, page }) => {
+test("PERSISTENCE-07 reloads server data after the SDK cache and Card replica are evicted", async ({
+  fixture,
+  page,
+}) => {
   const deck = fixture.deck();
   await fixture.apply(page);
   await page.goto(`/deck/${deck.id}`);

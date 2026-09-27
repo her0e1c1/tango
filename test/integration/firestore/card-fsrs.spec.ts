@@ -125,10 +125,11 @@ describe("Card FSRS persistence", () => {
     const deletion = deleteCard(uid, "card").then(() => {
       settled = true;
     });
-    await vi.waitFor(() => expect(getCards()).toEqual([]));
+    expect(getCards()).toMatchObject([{ id: "card", fsrs }]);
     expect(settled).toBe(false);
     await enableNetwork(connection.db);
     await deletion;
+    await vi.waitFor(() => expect(getCards()).toEqual([]));
     await waitForPendingWrites(connection.db);
     expect((await getDoc(doc(connection.db, "card", "card"))).data()?.deletedAt).toEqual(expect.any(Number));
   });

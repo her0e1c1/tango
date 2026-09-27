@@ -44,3 +44,24 @@ export const mapCardDocument = (id: CardId, document: CardDocument): RemoteCard 
   };
   return card;
 };
+
+export const cardReplicaMetadataSchema = z.object({
+  uid: z.string().min(1),
+  lastUpdatedAt: z.number().nullable(),
+  version: z.literal(1),
+  count: z.number().int().nonnegative(),
+});
+
+export interface CardReplicaMetadata {
+  /** Firebase UID owning all records in this replica. */
+  uid: string;
+  /** Inclusive server-confirmed read checkpoint in Unix milliseconds, or null for a full read. */
+  lastUpdatedAt: number | null;
+  /** Version of the persisted Card replica schema. */
+  version: number;
+}
+
+export const cardReplicaSchema = cardDocumentSchema.extend({
+  id: z.string().min(1),
+  updatedAt: z.number(),
+});

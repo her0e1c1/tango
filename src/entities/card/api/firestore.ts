@@ -2,6 +2,9 @@ import type { CardId, CardCreateCommand, CardEditInput, CardMutation } from "../
 import { FirebaseError } from "firebase/app";
 import {
   getDocFromCache,
+  Timestamp,
+  type QuerySnapshot,
+  type QueryDocumentSnapshot,
   onSnapshot,
   collection,
   doc,
@@ -15,28 +18,87 @@ import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
-import { applyCardSnapshot, findCardById } from "../model/store";
+import { applyCardChanges, findCardById } from "../model/store";
+
+import { cardReplicaSession, restoreCardReplica, saveConfirmedCards } from "./replica";
 
 const CARD_COLLECTION = "card";
 
+interface CardSubscription {
+  uid: string;
+  generation: number;
+  lastUpdatedAt: number | null;
+  maximumSeen: number | null;
+  changes: Map<string, QueryDocumentSnapshot>;
+  onReady: (() => void) | undefined;
+}
+
+async function receiveCardSnapshot(state: CardSubscription, snapshot: QuerySnapshot): Promise<void> {
+  if (state.generation !== cardReplicaSession.generation) return;
+  for (const change of snapshot.docChanges({ includeMetadataChanges: true })) {
+    // Leaving the query window is not a domain deletion, including after a rejected write.
+    if (change.type === "removed" || change.doc.metadata.hasPendingWrites) state.changes.delete(change.doc.id);
+    else state.changes.set(change.doc.id, change.doc);
+  }
+  if (snapshot.metadata.fromCache) return;
+  const documents = [...state.changes.values()].map((item) => ({
+    id: item.id,
+    document: parseCardDocument(item.id, item.data()),
+  }));
+  const cards = documents.map(({ id, document }) => mapCardDocument(id, document));
+  for (const { document } of documents) {
+    // Legacy numeric timestamps are imported on full sync, never used as server checkpoints.
+    if (typeof document.updatedAt !== "number")
+      state.maximumSeen = Math.max(state.maximumSeen ?? 0, document.updatedAt.toDate().getTime());
+  }
+  const checkpoint = snapshot.metadata.hasPendingWrites ? state.lastUpdatedAt : state.maximumSeen;
+  await saveConfirmedCards(state.uid, cards, checkpoint);
+  if (state.generation !== cardReplicaSession.generation) return;
+  applyCardChanges(cards);
+  state.lastUpdatedAt = checkpoint;
+  state.changes.clear();
+  state.onReady?.();
+}
+
 // Include tombstones; the Store exposes only active documents.
 export function subscribeCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  return onSnapshot(
-    query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
-    { includeMetadataChanges: true },
-    (snapshot) => {
-      try {
-        const values = snapshot.docs.map((item) => {
-          return mapCardDocument(item.id, parseCardDocument(item.id, item.data({ serverTimestamps: "estimate" })));
-        });
-        applyCardSnapshot(values);
-        onReady?.();
-      } catch (error) {
-        onError(error instanceof Error ? error : new Error(String(error)));
-      }
-    },
-    onError
-  );
+  const restored = restoreCardReplica(uid);
+  const generation = cardReplicaSession.generation;
+  let stop: (() => void) | undefined;
+  const report = (error: unknown) => {
+    if (generation === cardReplicaSession.generation)
+      onError(error instanceof Error ? error : new Error(String(error)));
+  };
+  async function start() {
+    const metadata = await restored;
+    if (generation !== cardReplicaSession.generation) return;
+    if (generation === cardReplicaSession.restoredGeneration) onReady?.();
+    const constraints = [where("uid", "==", uid)];
+    if (metadata.lastUpdatedAt !== null)
+      constraints.push(where("updatedAt", ">=", Timestamp.fromMillis(metadata.lastUpdatedAt)));
+    const state: CardSubscription = {
+      uid,
+      generation,
+      lastUpdatedAt: metadata.lastUpdatedAt,
+      maximumSeen: metadata.lastUpdatedAt,
+      changes: new Map(),
+      onReady,
+    };
+    let queue = Promise.resolve();
+    stop = onSnapshot(
+      query(collection(db, CARD_COLLECTION), ...constraints),
+      { includeMetadataChanges: true },
+      (snapshot) => {
+        queue = queue.then(() => receiveCardSnapshot(state, snapshot)).catch(report);
+      },
+      report
+    );
+  }
+  void start().catch(report);
+  return () => {
+    if (generation === cardReplicaSession.generation) cardReplicaSession.generation += 1;
+    stop?.();
+  };
 }
 
 export async function createCard(uid: string, card: CardCreateCommand): Promise<void> {

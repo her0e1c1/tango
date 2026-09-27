@@ -21,7 +21,7 @@ vi.mock("@/shared/firebase", async () => ({
 
 describe("Query realtime subscriptions", () => {
   beforeEach(() => {
-    cardStore.setState({ remoteCards: [] });
+    cardStore.setState({ cardsById: {} });
     deckStore.setState({ remoteDecks: [] });
   });
 
@@ -46,7 +46,7 @@ describe("Query realtime subscriptions", () => {
     const stopCards = subscribeCards(uid, onError);
     try {
       await vi.waitFor(() => {
-        expect(cardStore.getState().remoteCards).toContainEqual(
+        expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
           expect.objectContaining({ id: card.id, frontText: "Fetched Card" })
         );
       });
@@ -71,7 +71,7 @@ describe("Query realtime subscriptions", () => {
       });
       await mutateCards(uid, [{ kind: "create", card }]);
       await vi.waitFor(() => {
-        expect(cardStore.getState().remoteCards).toContainEqual(expect.objectContaining({ id: card.id }));
+        expect(Object.values(cardStore.getState().cardsById)).toContainEqual(expect.objectContaining({ id: card.id }));
       });
 
       await editDeck(uid, { ...deck, name: "Updated" });
@@ -80,7 +80,7 @@ describe("Query realtime subscriptions", () => {
         expect(deckStore.getState().remoteDecks).toContainEqual(
           expect.objectContaining({ id: deck.id, name: "Updated" })
         );
-        expect(cardStore.getState().remoteCards).toContainEqual(
+        expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
           expect.objectContaining({ id: card.id, frontText: "Updated" })
         );
       });
@@ -89,7 +89,9 @@ describe("Query realtime subscriptions", () => {
       await deleteDeck(uid, deck.id);
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks.find((candidate) => candidate.id === deck.id)).toBeUndefined();
-        expect(cardStore.getState().remoteCards.find((candidate) => candidate.id === card.id)).toBeUndefined();
+        expect(
+          Object.values(cardStore.getState().cardsById).find((candidate) => candidate.id === card.id)
+        ).toBeUndefined();
       });
       expect(errors).toEqual([]);
     } finally {
@@ -114,7 +116,7 @@ describe("Query realtime subscriptions", () => {
     });
     await mutateCards(uid, [{ kind: "create", card }]);
     await vi.waitFor(() => {
-      expect(cardStore.getState().remoteCards).toContainEqual(
+      expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
         expect.objectContaining({ id: card.id, frontText: "Before stop" })
       );
     });
@@ -127,7 +129,7 @@ describe("Query realtime subscriptions", () => {
     expect(deckStore.getState().remoteDecks).toContainEqual(
       expect.objectContaining({ id: deck.id, name: "Before stop" })
     );
-    expect(cardStore.getState().remoteCards).toContainEqual(
+    expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
       expect.objectContaining({ id: card.id, frontText: "Before stop" })
     );
     expect(errors).toEqual([]);

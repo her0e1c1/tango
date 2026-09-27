@@ -137,7 +137,7 @@ describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-0
   });
   beforeEach(async () => {
     await environment.clearFirestore();
-    cardStore.setState({ remoteCards: cardIds.map((id) => createCard({ id, deckId, uid })) });
+    cardStore.setState({ cardsById: Object.fromEntries(cardIds.map((id) => [id, createCard({ id, deckId, uid })])) });
     deckStore.setState({ remoteDecks: [createDeck({ id: deckId, uid })] });
     replaceAuthSession({ status: "authenticated", uid, isAnonymous: false, displayName: null });
     await setDoc(doc(connection.db, "deck", deckId), { uid, isPublic: true });

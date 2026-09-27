@@ -6,9 +6,11 @@ import { cardStore } from "./store";
 import type { Card, CardId } from "./types";
 
 export const useCards = (): Card[] => {
-  const { remoteCards } = useStore(cardStore);
+  const { cardsById } = useStore(cardStore);
   const decks = useDecks();
-  return remoteCards.filter((card) => decks.some((deck) => deck.id === card.deckId && deck.uid === card.uid));
+  return Object.values(cardsById)
+    .filter((card) => decks.some((deck) => deck.id === card.deckId && deck.uid === card.uid))
+    .sort((left, right) => left.id.localeCompare(right.id));
 };
 
 export const useCard = (id: CardId | undefined): Card | undefined => useCards().find((card) => card.id === id);
