@@ -110,6 +110,7 @@ describe("Card operation schemas [CARD-VIEW-01]", () => {
         backText: card.backText,
         tags: card.tags,
         uniqueKey: card.uniqueKey,
+        fsrs: null,
       },
     });
     expect(() => editCardSchema.parse({ uid: "uid-b", card })).toThrow("owner does not match");

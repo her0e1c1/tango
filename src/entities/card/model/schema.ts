@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fsrsStateSchema } from "./fsrs";
 
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
@@ -51,6 +52,8 @@ const cardContentEditSchema = cardContentSchema.partial().extend({
   id: cardIdSchema,
 });
 const cardEditSchema = cardContentEditSchema.extend({
+  /** Review schedule update; omitted preserves the schedule and null resets it. */
+  fsrs: fsrsStateSchema.nullable().optional(),
   /** Non-empty Firebase UID of the Card owner. */
   uid: cardUidSchema,
 });

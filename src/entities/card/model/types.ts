@@ -81,6 +81,8 @@ export type CardEditInput = {
   tags?: string[] | undefined;
   /** Non-blank import identity; omitted or undefined preserves the current value. */
   uniqueKey?: string | undefined;
+  /** Review schedule update; omitted or undefined preserves the schedule and null resets it. */
+  fsrs?: FsrsState | null | undefined;
 };
 /** Create or edit command applied during a bulk Card mutation. */
 export type CardMutation =

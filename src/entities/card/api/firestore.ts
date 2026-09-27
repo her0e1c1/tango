@@ -1,4 +1,4 @@
-import type { CardId, CardCreateCommand, CardEditInput, CardMutation, FsrsState } from "../model/types";
+import type { CardId, CardCreateCommand, CardEditInput, CardMutation } from "../model/types";
 import { FirebaseError } from "firebase/app";
 import {
   getDocFromCache,
@@ -10,14 +10,12 @@ import {
   setDoc,
   updateDoc,
   where,
-  type WriteBatch,
 } from "firebase/firestore";
 import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { applyCardSnapshot, findCardById } from "../model/store";
-import { fsrsStateSchema, instantSchema } from "../model/fsrs";
 
 const CARD_COLLECTION = "card";
 
@@ -70,6 +68,7 @@ export async function editCard(uid: string, card: CardEditInput): Promise<void> 
     backText: input.card.backText,
     tags: input.card.tags,
     uniqueKey: input.card.uniqueKey,
+    fsrs: input.card.fsrs,
     updatedAt: serverTimestamp(),
   });
   const reference = doc(db, CARD_COLLECTION, input.card.id);
@@ -86,26 +85,6 @@ export async function deleteCard(uid: string, id: CardId): Promise<void> {
   const write = updateDoc(reference, { updatedAt: serverTimestamp(), deletedAt });
   if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
   else await write;
-}
-
-export function writeCardFsrs(
-  batch: WriteBatch,
-  input: {
-    uid: string;
-    cardId: string;
-    deckId: string;
-    fsrs: FsrsState;
-    answeredAt: number;
-  }
-) {
-  const card = findCardById(input.cardId);
-  instantSchema.parse(input.answeredAt);
-  if (!(input.uid && card) || card.uid !== input.uid || card.deckId !== input.deckId || card.deletedAt !== null)
-    throw new Error("Study Card does not match");
-  batch.update(doc(db, "card", input.cardId), {
-    fsrs: fsrsStateSchema.parse(input.fsrs),
-    updatedAt: serverTimestamp(),
-  });
 }
 
 function requireOwnedCard(uid: string, id: CardId) {

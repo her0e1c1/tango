@@ -11,7 +11,7 @@
 ## 対象データと操作
 
 各ケースでは、本人の公開 Deck `deck`、Card `card-0`〜`card-9`、未終了の session `session` を初期状態として準備する。
-4評価の受理済み操作は計算済み FSRS を保持し、Card・Answer・Session を同一 batch で保存する。Card の本文と createdAt は維持し、fsrs と updatedAt だけを更新する。
+4評価の受理済み操作は計算済み FSRS を保持し、Card・Answer・Session を独立して書き込み、全件の結果を待つ。一部の保存に失敗しても、成功した保存は取り消さず、状態のずれを許容する。Card の本文と createdAt は維持し、fsrs と updatedAt だけを更新する。
 操作の ID は UUID、通常の回答日時は `2000` とする。
 
 ## テストケース
@@ -26,8 +26,8 @@
 | FIRESTORE-STUDY-ANSWER-06 | batch | 正常系 / 異常系 | [途中のスキップは Session だけを前進する](#firestore-study-answer-06) |
 | FIRESTORE-STUDY-ANSWER-07 | batch | 正常系 | [最後のスキップは回答を作らず session を完了する](#firestore-study-answer-07) |
 | FIRESTORE-STUDY-ANSWER-08 | write | 正常系 | [ブラウザのオフライン判定だけで保存を止めない](#firestore-study-answer-08) |
-| FIRESTORE-STUDY-ANSWER-09 | batch | 異常系 | [存在しない session と認証変更で部分保存を残さない](#firestore-study-answer-09) |
-| FIRESTORE-STUDY-ANSWER-10 | batch | 異常系 | [書込拒否後に同じ操作を再試行できる](#firestore-study-answer-10) |
+| FIRESTORE-STUDY-ANSWER-09 | batch | 異常系 | [session 保存失敗時は先行保存を残し認証変更後の操作を拒否する](#firestore-study-answer-09) |
+| FIRESTORE-STUDY-ANSWER-10 | batch | 異常系 | [Card の書込拒否時も回答と session の保存を残す](#firestore-study-answer-10) |
 | FIRESTORE-STUDY-ANSWER-11 | read | 正常系 / 異常系 | [所有者条件を付けて session・Card・Deck ごとの回答を取得する](#firestore-study-answer-11) |
 | FIRESTORE-STUDY-ANSWER-12 | write | 異常系 | [別 UID の回答作成を拒否する](#firestore-study-answer-12) |
 | FIRESTORE-STUDY-ANSWER-13 | write | 正常系 | [回答形式と参照先の検証は Rules では強制しない](#firestore-study-answer-13) |
@@ -38,6 +38,7 @@
 | FIRESTORE-STUDY-ANSWER-18 | read | 異常系 | [存在しない回答 ID の読取を拒否する](#firestore-study-answer-18) |
 | FIRESTORE-STUDY-ANSWER-19 | batch | 異常系 | [公開 Deck でも第三者・匿名・未認証に回答を公開しない](#firestore-study-answer-19) |
 | FIRESTORE-STUDY-ANSWER-20 | batch | 正常系 | [FSRS を復元し本文編集とスキップで維持する](#firestore-study-answer-20) |
+| FIRESTORE-STUDY-ANSWER-21 | batch | 異常系 | [不正な回答時刻を保存開始前に拒否する](#firestore-study-answer-21) |
 
 <a id="firestore-study-answer-01"></a>
 
@@ -57,7 +58,7 @@ When:
 
 Then:
 
-- scheduleは同じbatchで保存され、保存済み値は入力scheduleと一致する。
+- FSRS は Card の通常の更新操作で保存され、保存済み値は入力 FSRS と一致する。
 - 操作 ID の回答 document に UID・sessionId・deckId・cardId と指定した rating を保存する。answeredAt は入力時刻の Timestamp、createdAt は回答時刻、updatedAt はサーバー確定時刻の Timestamp になる。Card の fsrs.reps は `1`、createdAt は `0`、updatedAt はサーバー確定時刻の Timestamp となる。戻り値と保存 session の位置は `1` になる。
 
 <a id="firestore-study-answer-02"></a>
@@ -206,7 +207,7 @@ SDK の通信遮断やオフライン queue の検証ではない。
 
 <a id="firestore-study-answer-09"></a>
 
-### FIRESTORE-STUDY-ANSWER-09 存在しない session と認証変更で部分保存を残さない
+### FIRESTORE-STUDY-ANSWER-09 session 保存失敗時は先行保存を残し認証変更後の操作を拒否する
 
 カテゴリ: `batch`
 
@@ -214,7 +215,7 @@ SDK の通信遮断やオフライン queue の検証ではない。
 
 Given:
 
-- 本人の通常の session は存在するが、別 ID `not-saved` は存在しない。
+- 本人の通常の session は存在するが、別 ID `not-saved` は Firestore に存在しない。端末側には `not-saved` の位置 `0` と対象 Card の順序が残っている。
 
 When:
 
@@ -222,13 +223,12 @@ When:
 
 Then:
 
-- 最初の呼び出しはエラーになり、認証変更後は `user changed` を含むエラーになる。回答は0件、FSRS は null のままである。
-
-不存在の検証ではテストの準備処理も対象 session を取得する。アプリケーションが独自の不存在エラーを返す保証ではない。
+- 最初の呼び出しはエラーになるが、入力と一致する FSRS と `not-saved` を参照する回答1件は保存される。不存在の session は作成されず、元の session の位置は `0` のままである。
+- 認証変更後は `user changed` を含むエラーになり、追加の回答は保存されない。
 
 <a id="firestore-study-answer-10"></a>
 
-### FIRESTORE-STUDY-ANSWER-10 書込拒否後に同じ操作を再試行できる
+### FIRESTORE-STUDY-ANSWER-10 Card の書込拒否時も回答と session の保存を残す
 
 カテゴリ: `batch`
 
@@ -246,7 +246,8 @@ Then:
 
 - 保存操作の Promise は Rules の `permission-denied` で reject する。
 
-- 最初の保存はエラーになり、回答は0件、session の位置は `0` のままで FSRS は null のままである。再試行後は同じ操作 ID の回答に answeredAt `2000` の Timestamp が保存される。
+- Card の保存は拒否され FSRS は null のままだが、回答1件と session の位置 `1` は保存される。回答の answeredAt は `2000` の Timestamp である。
+- 親 Deck の UID を戻して同じ操作を再試行しても、保存済み位置と合わないため `session does not match` で拒否し、回答を増やさない。
 
 <a id="firestore-study-answer-11"></a>
 
@@ -456,3 +457,24 @@ When:
 Then:
 
 - 復元した FSRS と次回計算結果は保存前と一致する。本文編集とスキップでは FSRS が変わらず回答も増えない。次回評価後は createdAt: 0、updatedAt: サーバー確定 Timestamp、reps: 2 となる。不正な FSRS は parser が拒否する。
+
+<a id="firestore-study-answer-21"></a>
+
+### FIRESTORE-STUDY-ANSWER-21 不正な回答時刻を保存開始前に拒否する
+
+カテゴリ: `batch`
+
+区分: 異常系
+
+Given:
+
+- 本人の Card と位置 `0` の session が存在し、有効な FSRS を含む評価操作がある。
+- 回答時刻は `-1`、`0.5`、`253402300800000` の3通りとする。負数、整数ミリ秒ではない値、許容上限を超える値に該当する。
+
+When:
+
+- アプリケーションの学習操作で保存する。
+
+Then:
+
+- Adapter の入力検証で拒否する。Card の FSRS は null、回答は0件、session の位置は `0` のままである。

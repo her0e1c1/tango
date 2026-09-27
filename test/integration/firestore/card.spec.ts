@@ -98,10 +98,11 @@ describe("firestore/card", { retry: 3 }, () => {
     if (created === undefined) throw new Error("Created Card was not found");
     const n = {
       ...c,
+      fsrs: undefined,
       frontText: "updated",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies Omit<Card, "fsrs"> & { fsrs: undefined; currentIndex: number; cardOrderIds: string[] };
     replaceRemoteCards([{ ...c, fsrs }]);
     if (mode === "single") await editCard("uid", n);
     else await mutateCards("uid", [{ kind: "edit", card: n }]);

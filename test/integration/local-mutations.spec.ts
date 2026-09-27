@@ -45,7 +45,6 @@ import { testDb } from "@/test/initializeTestFirestore";
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
   auth: { currentUser: { uid: "uid", isAnonymous: true } },
-  writeBatch: (await import("firebase/firestore")).writeBatch,
 }));
 
 let stop: () => void = () => undefined;
@@ -85,7 +84,7 @@ describe("Firestore cache mutations [CARD-MANAGEMENT-02 PERSISTENCE-05 STUDY-SES
     await vi.waitFor(() => expect(getCards().filter((card) => card.deckId === deckId)).toEqual([]));
   });
 
-  it("saves one answer, state and session advancement atomically while offline", async () => {
+  it("saves one answer, state and session advancement while offline", async () => {
     await createDeck("uid", { id: deckId, name: "Study offline" });
     const cards = [0, 1].map(() => cardFixture({ id: crypto.randomUUID(), deckId, uid: "uid" }));
     await vi.waitFor(() => expect(getDecks().some((deck) => deck.id === deckId)).toBe(true));

@@ -43,7 +43,6 @@ vi.mock("@/shared/firebase", async () => ({
   get db() {
     return connection.db;
   },
-  writeBatch: (await import("firebase/firestore")).writeBatch,
 }));
 
 const setDoc = (reference: DocumentReference, data: DocumentData) =>
@@ -118,7 +117,7 @@ const answerData = () => ({
   updatedAt: Timestamp.fromMillis(2000),
 });
 
-describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-05]", () => {
+describe("StudyAnswer persistence and access [STUDY-ACTIONS-01] [STUDY-ACTIONS-02] [STUDY-ACTIONS-03] [STUDY-ACTIONS-05]", () => {
   let environment: RulesTestEnvironment;
   let stopStates: () => void = () => undefined;
   afterEach(() => {
@@ -277,27 +276,43 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
     expect((await answers()).size).toBe(1);
   });
 
-  it("[FIRESTORE-STUDY-ANSWER-09] rejects missing sessions and changed authentication", async () => {
-    await saveStudyOperation(operation({ sessionId: "not-saved" })).catch(() => undefined);
+  it("[FIRESTORE-STUDY-ANSWER-09] preserves earlier writes when session saving fails and rejects changed authentication", async () => {
+    const input = operation({ sessionId: "not-saved" });
+    const session = {
+      sessionId: input.sessionId,
+      deckId,
+      currentIndex: 0,
+      cardOrderIds: cardIds,
+      lastStudiedAt: 1000,
+      remote: { uid, startedAt: 1000 },
+    };
+    restoreStudySession(session);
+    await expect(persistStudyOperation(input, session)).rejects.toBeDefined();
+    expect((await getDoc(stateReference())).data()?.fsrs).toEqual(input.fsrs);
+    expect((await getDoc(doc(connection.db, "studyAnswer", input.id))).data()?.sessionId).toBe("not-saved");
+    await environment.withSecurityRulesDisabled(async (context) => {
+      expect((await getDoc(doc(context.firestore(), "studySession", "not-saved"))).exists()).toBe(false);
+    });
+    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
     replaceAuthSession({ status: "authenticated", uid: "other-user", isAnonymous: false, displayName: null });
     await expect(saveStudyOperation(operation())).rejects.toThrow("user changed");
-    expect((await answers()).size).toBe(0);
-    expect(await hasState()).toBe(false);
+    expect((await answers()).size).toBe(1);
+    expect(await hasState()).toBe(true);
   });
 
-  it("[FIRESTORE-STUDY-ANSWER-10] retries denied writes without partial progress", async () => {
+  it("[FIRESTORE-STUDY-ANSWER-10] keeps the answer and position when the Card write is denied", async () => {
     const input = operation();
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid: "another-owner" });
     });
     await expect(saveStudyOperation(input)).rejects.toMatchObject({ code: "permission-denied" });
-    expect((await answers()).size).toBe(0);
-    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
+    expect((await answers()).size).toBe(1);
+    expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(1);
     expect(await hasState(input.cardId)).toBe(false);
     await environment.withSecurityRulesDisabled(async (context) => {
       await updateDoc(doc(context.firestore(), "deck", deckId), { uid });
     });
-    await saveStudyOperation(input);
+    await expect(saveStudyOperation(input)).rejects.toThrow("session does not match");
     expect((await getDoc(doc(connection.db, "studyAnswer", input.id))).data()?.answeredAt).toEqual(
       Timestamp.fromMillis(2000)
     );
@@ -405,4 +420,14 @@ describe("StudyAnswer atomic persistence and access [STUDY-ACTIONS-01] [STUDY-AC
       fsrs: { reps: 2 },
     });
   });
+  it.each([-1, 0.5, 253_402_300_800_000])(
+    "[FIRESTORE-STUDY-ANSWER-21] rejects invalid answer time %s before saving",
+    async (answeredAt) => {
+      const input = { ...operation(), answeredAt };
+      await expect(saveStudyOperation(input)).rejects.toBeDefined();
+      expect((await getDoc(stateReference())).data()?.fsrs).toBeNull();
+      expect((await answers()).size).toBe(0);
+      expect((await getDoc(doc(connection.db, "studySession", sessionId))).data()?.currentIndex).toBe(0);
+    }
+  );
 });
