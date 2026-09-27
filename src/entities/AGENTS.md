@@ -27,7 +27,7 @@
 
 - Create this file only when multiple consumers share the types.
 - Do not split identical shapes into boundary-specific aliases.
-- Keep this file self-contained: do not import other files or packages, including type-only imports, inline import types, dynamic imports, or re-exports. Define domain contracts here; schemas may consume these types.
+- Use type-only import declarations and type-only re-exports in this file.
 - Document every declared field with an English specification comment, including nested fields and union members. Explain its meaning, constraints, units, and omitted/null/default semantics where applicable. Mapped and utility types may reuse documented fields.
 - Keep these contracts aligned with runtime schemas without weakening validation.
 

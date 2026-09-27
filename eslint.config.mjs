@@ -170,15 +170,9 @@ export default defineConfig(
   {
     files: ["src/entities/*/model/types.ts"],
     rules: {
-      "no-restricted-syntax": [
-        "error",
-        { selector: "Identifier[name='useCallback']", message: "Do not use useCallback; rely on React Compiler memoization." },
-        { selector: "Identifier[name='useMemo']", message: "Do not use useMemo; rely on React Compiler memoization." },
-        {
-          selector: "ImportDeclaration, ImportExpression, TSImportType, TSImportEqualsDeclaration, ExportNamedDeclaration[source], ExportAllDeclaration, CallExpression[callee.name='require']",
-          message: "Entity model/types.ts must be self-contained; imports and re-exports are forbidden.",
-        },
-      ],
+      "no-restricted-imports": ["error", {
+        patterns: [{ regex: ".", allowTypeImports: true, message: "Entity model/types.ts may only import types." }],
+      }],
     },
   },
   // Queries may read stores, but cannot depend on state-changing actions. Type contracts remain legal.
