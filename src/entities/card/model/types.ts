@@ -45,7 +45,7 @@ export type CardContentInput = {
   tags: string[];
 };
 /** Validated payload used to create a remote Card document. */
-export type CardCreate = CardContentInput & {
+type CardCreate = CardContentInput & {
   /** Non-blank identity used to match imported content. */
   uniqueKey: string;
   /** Non-empty stable identity of the Card document. */
@@ -57,13 +57,11 @@ export type CardCreate = CardContentInput & {
   /** Deletion time in Unix milliseconds; null means active. */
   deletedAt: number | null;
 };
-/** Input accepted at the remote Card creation boundary. */
-export type CardCreateInput = Omit<CardCreate, "deletedAt"> & {
+/** Input accepted at the owner-free Card creation boundary. */
+type CardContentCreateInput = Omit<CardCreate, "uid" | "deletedAt"> & {
   /** Deletion time in Unix milliseconds; omitted or undefined defaults to null (active). */
   deletedAt?: number | null | undefined;
 };
-/** Input accepted at the owner-free Card creation boundary. */
-type CardContentCreateInput = Omit<CardCreateInput, "uid">;
 /** Owner-free fields accepted by the single-Card creation workflow. */
 export type CardCreateCommand = Pick<
   CardContentCreateInput,
@@ -71,13 +69,8 @@ export type CardCreateCommand = Pick<
 >;
 /** Validated stable identifier for a Card. */
 export type CardId = string;
-/** Validated editable fields for a remote Card. */
-export type CardEdit = CardContentEdit & {
-  /** Non-empty Firebase UID of the Card owner. */
-  uid: string;
-};
-/** Validated partial edit for a owner-free Card. */
-type CardContentEdit = {
+/** Persistence-agnostic Card edit accepted by mutation orchestration. */
+export type CardEditInput = {
   /** Non-empty stable identity of the Card to update. */
   id: CardId;
   /** Non-blank question content; omitted or undefined preserves the current value. */
@@ -88,18 +81,16 @@ type CardContentEdit = {
   tags?: string[] | undefined;
   /** Non-blank import identity; omitted or undefined preserves the current value. */
   uniqueKey?: string | undefined;
+  /** Review schedule update; omitted or undefined preserves the schedule and null resets it. */
+  fsrs?: FsrsState | null | undefined;
 };
-/** Persistence-agnostic Card edit accepted by mutation orchestration. */
-export type CardEditInput = CardContentEdit;
-/** Create payload accepted by a bulk Card mutation. */
-type CardMutationCreateInput = CardContentCreateInput;
 /** Create or edit command applied during a bulk Card mutation. */
 export type CardMutation =
   | {
       /** Selects creation of a new Card. */
       kind: "create";
       /** Owner-free creation payload; the workflow supplies ownership. */
-      card: CardMutationCreateInput;
+      card: CardContentCreateInput;
     }
   | {
       /** Selects a partial update to an existing Card. */
@@ -109,22 +100,3 @@ export type CardMutation =
     };
 /** User-editable Card content independent of identity and persistence metadata. */
 export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
-/** Validated owner and Card payload for a remote edit command. */
-export type EditCardInput = {
-  /** Confirmed Firebase UID, which must match the payload owner. */
-  uid: string;
-  /** Validated identity, ownership, and partial content update. */
-  card: CardEdit;
-};
-/** Validated owner and Card identity for a remote delete command. */
-export type DeleteCardInput = {
-  /** Confirmed Firebase UID, which must match the payload owner. */
-  uid: string;
-  /** Identity and ownership of the Card to delete. */
-  card: {
-    /** Non-empty stable identity of the Card to delete. */
-    id: CardId;
-    /** Non-empty Firebase UID of the Card owner. */
-    uid: string;
-  };
-};

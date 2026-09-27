@@ -5,7 +5,7 @@
  */
 
 import { calculateFsrsState, mutateCards, type Card } from "@/entities/card";
-import type { CardCreateInput, RemoteCard } from "@/entities/card/model/types";
+import type { RemoteCard } from "@/entities/card/model/types";
 
 import "@/test/initializeTestFirestore";
 import { describe, expect, it, vi } from "vitest";
@@ -74,7 +74,7 @@ describe("firestore/card", { retry: 3 }, () => {
       uniqueKey: "unique-key",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies CardCreateInput & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies Parameters<typeof createCardCommand>[1] & { uid: string; currentIndex: number; cardOrderIds: string[] };
     await createCardCommand("uid", c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({
@@ -98,10 +98,11 @@ describe("firestore/card", { retry: 3 }, () => {
     if (created === undefined) throw new Error("Created Card was not found");
     const n = {
       ...c,
+      fsrs: undefined,
       frontText: "updated",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies Card & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies Omit<Card, "fsrs"> & { fsrs: undefined; currentIndex: number; cardOrderIds: string[] };
     replaceRemoteCards([{ ...c, fsrs }]);
     if (mode === "single") await editCard("uid", n);
     else await mutateCards("uid", [{ kind: "edit", card: n }]);

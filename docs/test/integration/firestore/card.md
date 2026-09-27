@@ -62,7 +62,7 @@ Given:
 
 When:
 
-- 対象の編集操作で frontText を `updated` に変更する。編集入力には Card 内容ではない `currentIndex: 1` と `cardOrderIds: ["card-1"]` も含める。
+- 対象の編集操作で frontText を `updated` に変更する。FSRS の更新値は指定しない。編集入力には Card 内容ではない `currentIndex: 1` と `cardOrderIds: ["card-1"]` も含める。
 
 Then:
 

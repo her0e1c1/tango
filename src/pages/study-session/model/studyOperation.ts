@@ -1,4 +1,4 @@
-import { fsrsStateSchema } from "@/entities/card";
+import { fsrsStateSchema, instantSchema } from "@/entities/card";
 import { z } from "zod";
 import { studyRatingSchema } from "@/entities/study-answer";
 
@@ -11,7 +11,7 @@ export const studyOperationSchema = z
     cardId: z.string().min(1),
     currentIndex: z.number().int().nonnegative(),
     cardCount: z.number().int().positive(),
-    answeredAt: z.number().nonnegative(),
+    answeredAt: instantSchema,
     rating: studyRatingSchema.optional(),
     fsrs: fsrsStateSchema.optional(),
     direction: z.enum(["cardSwipeUp", "cardSwipeDown", "cardSwipeLeft", "cardSwipeRight"]).optional(),

@@ -1,7 +1,7 @@
 import {
   doc,
   Timestamp,
-  type WriteBatch,
+  setDoc,
   collection,
   documentId,
   onSnapshot,
@@ -15,9 +15,11 @@ import type { StudyAnswerHistory, StudyAnswerInput, StudyAnswerRecord } from "..
 import { createStudyAnswerDocument, parseStudyAnswerRecord } from "./document";
 import { z } from "zod";
 
-export function writeStudyAnswer(batch: WriteBatch, input: StudyAnswerInput) {
+export async function writeStudyAnswer(input: StudyAnswerInput): Promise<void> {
   const document = createStudyAnswerDocument(input);
-  batch.set(doc(db, "studyAnswer", input.id), document);
+  const write = setDoc(doc(db, "studyAnswer", input.id), document);
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
 }
 
 const studyAnswerHistoryInputSchema = z

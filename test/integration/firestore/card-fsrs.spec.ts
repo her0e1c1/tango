@@ -8,11 +8,10 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
-  updateDoc,
   waitForPendingWrites,
   type Firestore,
 } from "firebase/firestore";
-import { calculateFsrsState, getCards, deleteCard } from "@/entities/card";
+import { calculateFsrsState, getCards, deleteCard, editCard } from "@/entities/card";
 import { startFirestoreSubscriptions } from "@/app/firestore-subscriptions";
 import { createCard, createDeck } from "@/test/factories";
 
@@ -70,7 +69,7 @@ describe("Card FSRS persistence", () => {
     await seed("card", "card", createCard({ id: "card", deckId: "deck", uid }));
     await start();
     expect(getCards()).toMatchObject([{ id: "card", fsrs: null }]);
-    await updateDoc(doc(connection.db, "card", "card"), { fsrs, updatedAt: serverTimestamp() });
+    await editCard(uid, { id: "card", fsrs });
     await vi.waitFor(() => expect(getCards()).toMatchObject([{ id: "card", fsrs, updatedAt: expect.any(Number) }]));
   });
   it("[FIRESTORE-CARD-FSRS-02] restores only the active UID and clears Cards on stop", async () => {

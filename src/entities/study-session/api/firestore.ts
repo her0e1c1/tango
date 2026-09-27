@@ -8,7 +8,6 @@ import {
   updateDoc,
   where,
   writeBatch,
-  type WriteBatch,
 } from "firebase/firestore";
 import { auth, db } from "@/shared/firebase";
 import { applyStudySessionSnapshot } from "../model/store";
@@ -81,17 +80,19 @@ export function subscribeStudySessions(uid: string, onError: (error: Error) => v
   );
 }
 
-export function writeStudySessionPosition(batch: WriteBatch, session: StudySession, targetIndex: number) {
+export async function writeStudySessionPosition(session: StudySession, targetIndex: number) {
   const completed = targetIndex === session.cardOrderIds.length;
   const currentIndex = completed ? targetIndex - 1 : targetIndex;
   const endReason = completed ? "completed" : null;
   const reference = doc(db, "studySession", session.sessionId);
-  batch.update(reference, {
+  const write = updateDoc(reference, {
     currentIndex,
     ...(completed ? { endReason, endedAt: Timestamp.fromMillis(session.lastStudiedAt) } : {}),
     lastStudiedAt: session.lastStudiedAt,
     updatedAt: serverTimestamp(),
   });
+  if (auth.currentUser?.isAnonymous) void write.catch(globalThis.reportError);
+  else await write;
   return { session: { ...session, currentIndex }, endReason };
 }
 

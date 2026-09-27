@@ -17,7 +17,6 @@ import {
   updateDoc,
   waitForPendingWrites,
   where,
-  writeBatch,
 } from "firebase/firestore";
 import { replaceAuthSession } from "@/entities/auth";
 import { cardStore } from "@/entities/card/model/store";
@@ -42,7 +41,6 @@ import { testDb } from "@/test/initializeTestFirestore";
 vi.mock("@/shared/firebase", async () => ({
   db: (await import("@/test/initializeTestFirestore")).testDb,
   auth: { currentUser: { uid: "uid" } },
-  writeBatch: (await import("firebase/firestore")).writeBatch,
 }));
 
 const preferences = { shuffled: false, maxNumberOfCardsToLearn: 0 };
@@ -410,9 +408,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       const ended = (await readSession(started.sessionId)).data();
       expect(ended).toMatchObject({ endReason, endedAt: expect.any(Timestamp) });
       // A delayed progress write must not reopen the ended run or revive an older one.
-      const delayed = writeBatch(testDb);
-      writeStudySessionPosition(delayed, final, final.currentIndex);
-      await delayed.commit();
+      await writeStudySessionPosition(final, final.currentIndex);
       await waitForPendingWrites(testDb);
       expect((await readSession(started.sessionId)).data()).toMatchObject({
         endReason,

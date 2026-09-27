@@ -83,8 +83,8 @@
 | FIRESTORE-STUDY-ANSWER-06 | batch | 正常系 / 異常系 | [途中のスキップは Session だけを前進する](./study-answer.md#firestore-study-answer-06) |
 | FIRESTORE-STUDY-ANSWER-07 | batch | 正常系 | [最後のスキップは回答を作らず session を完了する](./study-answer.md#firestore-study-answer-07) |
 | FIRESTORE-STUDY-ANSWER-08 | write | 正常系 | [ブラウザのオフライン判定だけで保存を止めない](./study-answer.md#firestore-study-answer-08) |
-| FIRESTORE-STUDY-ANSWER-09 | batch | 異常系 | [存在しない session と認証変更で部分保存を残さない](./study-answer.md#firestore-study-answer-09) |
-| FIRESTORE-STUDY-ANSWER-10 | batch | 異常系 | [書込拒否後に同じ操作を再試行できる](./study-answer.md#firestore-study-answer-10) |
+| FIRESTORE-STUDY-ANSWER-09 | batch | 異常系 | [session 保存失敗時は先行保存を残し認証変更後の操作を拒否する](./study-answer.md#firestore-study-answer-09) |
+| FIRESTORE-STUDY-ANSWER-10 | batch | 異常系 | [Card の書込拒否時も回答と session の保存を残す](./study-answer.md#firestore-study-answer-10) |
 | FIRESTORE-STUDY-ANSWER-11 | read | 正常系 / 異常系 | [所有者条件を付けて session・Card・Deck ごとの回答を取得する](./study-answer.md#firestore-study-answer-11) |
 | FIRESTORE-STUDY-ANSWER-12 | write | 異常系 | [別 UID の回答作成を拒否する](./study-answer.md#firestore-study-answer-12) |
 | FIRESTORE-STUDY-ANSWER-13 | write | 正常系 | [回答形式と参照先の検証は Rules では強制しない](./study-answer.md#firestore-study-answer-13) |
@@ -95,6 +95,7 @@
 | FIRESTORE-STUDY-ANSWER-18 | read | 異常系 | [存在しない回答 ID の読取を拒否する](./study-answer.md#firestore-study-answer-18) |
 | FIRESTORE-STUDY-ANSWER-19 | batch | 異常系 | [公開 Deck でも第三者・匿名・未認証に回答を公開しない](./study-answer.md#firestore-study-answer-19) |
 | FIRESTORE-STUDY-ANSWER-20 | batch | 正常系 | [FSRS を復元し本文編集とスキップで維持する](./study-answer.md#firestore-study-answer-20) |
+| FIRESTORE-STUDY-ANSWER-21 | batch | 異常系 | [不正な回答時刻を保存開始前に拒否する](./study-answer.md#firestore-study-answer-21) |
 
 ### subscriptions
 

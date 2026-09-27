@@ -340,9 +340,7 @@ describe("Firestore synchronization contracts", () => {
     stops.push(subscribeStudyHistory({ ...input, uid: "another-owner", metric: "started" }, foreignHistory, onError));
     const session = getStudySession("deck");
     if (!session) throw new Error("Missing session");
-    const batch = writeBatch(connection.db);
-    writeStudySessionPosition(batch, { ...session, lastStudiedAt: 2000 }, 2);
-    await batch.commit();
+    await writeStudySessionPosition({ ...session, lastStudiedAt: 2000 }, 2);
     await vi.waitFor(() => {
       expect(completed).toHaveLength(1);
       expect(getStudySession("deck")).toBeUndefined();

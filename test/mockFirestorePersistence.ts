@@ -42,7 +42,7 @@ vi.mock("@/entities/card/api/firestore", async (original) => {
   const { createCardSchema } = await import("@/entities/card/model/schema");
   const operations = {
     ...actual,
-    createOwnedCard: async (uid: string, input: import("@/entities/card/model/types").CardCreateCommand) => {
+    createCard: async (uid: string, input: import("@/entities/card/model/types").CardCreateCommand) => {
       await Promise.resolve();
       const card = {
         ...createCardSchema.parse({ uid, card: { ...input, uid } }).card,
@@ -54,13 +54,13 @@ vi.mock("@/entities/card/api/firestore", async (original) => {
         remoteCards: [...state.remoteCards.filter((value) => value.id !== card.id), card],
       }));
     },
-    editOwnedCard: async (_uid: string, input: { id: string }) => {
+    editCard: async (_uid: string, input: { id: string }) => {
       await Promise.resolve();
       cardStore.setState((state) => ({
         remoteCards: state.remoteCards.map((card) => (card.id === input.id ? { ...card, ...input } : card)),
       }));
     },
-    deleteOwnedCard: async (_uid: string, id: string) => {
+    deleteCard: async (_uid: string, id: string) => {
       await Promise.resolve();
       cardStore.setState((state) => ({ remoteCards: state.remoteCards.filter((card) => card.id !== id) }));
     },
@@ -69,8 +69,8 @@ vi.mock("@/entities/card/api/firestore", async (original) => {
       await Promise.all(
         mutations.map((mutation) =>
           mutation.kind === "create"
-            ? operations.createOwnedCard(uid, mutation.card)
-            : operations.editOwnedCard(uid, mutation.card)
+            ? operations.createCard(uid, mutation.card)
+            : operations.editCard(uid, mutation.card)
         )
       );
     },

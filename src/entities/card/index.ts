@@ -1,11 +1,5 @@
 export { useCards, useCard, useCardsByDeckId } from "./model/hooks";
-export { subscribeCards } from "./api/firestore";
-export {
-  createOwnedCard as createCard,
-  deleteOwnedCard as deleteCard,
-  editOwnedCard as editCard,
-  mutateCards,
-} from "./api/firestore";
+export { subscribeCards, createCard, deleteCard, editCard, mutateCards } from "./api/firestore";
 export { cardContentInputSchema } from "./model/schema";
 export { clearRemoteCards, getCards } from "./model/store";
 export type {
@@ -27,5 +21,4 @@ export { CardView } from "./ui/CardView";
 export { FrontText } from "./ui/FrontText";
 
 export { calculateFsrsState, classifyFsrsState, getStudyRetrievability, studyRetentionTarget } from "./model/fsrsRules";
-export { fsrsStateSchema } from "./model/fsrs";
-export { writeCardFsrs } from "./api/firestore";
+export { fsrsStateSchema, instantSchema } from "./model/fsrs";

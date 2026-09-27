@@ -269,8 +269,7 @@ describe("Bounded answer history", () => {
     try {
       await vi.waitFor(() => expect(snapshots.at(-1)).toMatchObject({ source: "server", records: [] }));
       await disableNetwork(testDb);
-      const batch = writeBatch(testDb);
-      writeStudyAnswer(batch, {
+      const committed = writeStudyAnswer({
         id: crypto.randomUUID(),
         uid: "uid",
         deckId,
@@ -279,7 +278,6 @@ describe("Bounded answer history", () => {
         rating: "good",
         answeredAt: from,
       });
-      const committed = batch.commit();
       await vi.waitFor(() =>
         expect(snapshots.at(-1)).toMatchObject({
           source: "cache",
