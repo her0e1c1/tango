@@ -291,8 +291,8 @@ describe("Confirmed Card replica", () => {
       const changes = vi.spyOn(QuerySnapshot.prototype, "docChanges");
       start();
       if (source === "cached") {
-        await vi.waitFor(() =>
-          expect(changes.mock.contexts.some((snapshot) => snapshot.metadata.fromCache)).toBe(true)
+        await vi.waitUntil(() =>
+          changes.mock.contexts.some((snapshot) => snapshot instanceof QuerySnapshot && snapshot.metadata.fromCache)
         );
         await enableNetwork(connection.db);
       }
@@ -300,23 +300,24 @@ describe("Confirmed Card replica", () => {
       changes.mockRestore();
       expect(getCards().map(({ frontText }) => frontText)).toEqual(["old"]);
       await checkpoint(1000);
+      let rejection: unknown;
       if (source === "repair") {
-        await updateDoc(doc(connection.db, "card", "invalid"), { fsrs: null, updatedAt: serverTimestamp() });
-        await loaded(["invalid", "old"]);
-        expect(getCards().find(({ id }) => id === "old")?.frontText).toBe("edited");
-        return;
+        await seed([card("invalid", 3000)]);
+      } else {
+        await disableNetwork(connection.db);
+        const rejected = updateDoc(doc(connection.db, "card", "old"), {
+          frontText: "pending",
+          createdAt: -1,
+          updatedAt: serverTimestamp(),
+        }).catch((error: unknown) => error);
+        await localPending();
+        // Move the server document below the active query boundary while the local write is pending.
+        await seed([card("old", 500), card("invalid", 3000)]);
+        await enableNetwork(connection.db);
+        rejection = await rejected;
       }
-      await disableNetwork(connection.db);
-      const rejected = updateDoc(doc(connection.db, "card", "old"), {
-        frontText: "pending",
-        createdAt: -1,
-        updatedAt: serverTimestamp(),
-      }).catch((error: unknown) => error);
-      await localPending();
-      // Move the server document below the active query boundary while the local write is pending.
-      await seed([card("old", 500), card("invalid", 3000)]);
-      await enableNetwork(connection.db);
-      await expect(rejected).resolves.toMatchObject({ code: "permission-denied" });
+      const denied = expect.objectContaining({ code: "permission-denied" });
+      expect(rejection).toEqual(source === "repair" ? undefined : denied);
       await loaded(["invalid", "old"]);
       await vi.waitFor(() => expect(getCards().find(({ id }) => id === "old")?.frontText).toBe("edited"));
       await checkpoint(3000);
