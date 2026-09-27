@@ -5,7 +5,7 @@
  */
 
 import { calculateFsrsState, mutateCards, type Card } from "@/entities/card";
-import type { CardCreateInput, RemoteCard } from "@/entities/card/model/types";
+import type { RemoteCard } from "@/entities/card/model/types";
 
 import "@/test/initializeTestFirestore";
 import { describe, expect, it, vi } from "vitest";
@@ -74,7 +74,7 @@ describe("firestore/card", { retry: 3 }, () => {
       uniqueKey: "unique-key",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies CardCreateInput & { currentIndex: number; cardOrderIds: string[] };
+    } satisfies Parameters<typeof createCardCommand>[1] & { uid: string; currentIndex: number; cardOrderIds: string[] };
     await createCardCommand("uid", c);
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({
