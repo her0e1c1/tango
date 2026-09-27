@@ -19,10 +19,8 @@ export type Deck = {
   url?: string | undefined;
   /** Whether the Deck is marked for public visibility; local Decks normally keep this disabled. */
   isPublic: boolean;
-  /** Card tags used for study; an empty collection means that tags do not restrict Cards. */
-  selectedTags: string[];
-  /** Uses AND matching when true and OR matching when false for {@link selectedTags}. */
-  tagAndFilter: boolean;
+  /** Conditions used to select Cards when starting a study session. */
+  studyFilter?: CardFilter | undefined;
   /** Independent browsing conditions; an unset filter displays every Card. */
   cardFilter?: CardFilter | undefined;
   /** Fallback rendering category when no supported Card tag supplies a more specific category. */

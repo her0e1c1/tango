@@ -85,7 +85,10 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
   it("does not show a previous account's rejected filter save", async () => {
     const pending = Promise.withResolvers<void>();
     writeControls.write = () => pending.promise;
-    const deck = createRemoteDeck({ id: "account-switch-filter", selectedTags: [] });
+    const deck = createRemoteDeck({
+      id: "account-switch-filter",
+      studyFilter: { selectedTags: [], tagAndFilter: false },
+    });
     render(
       <>
         <DeckFilterHarness deck={deck} />
@@ -102,18 +105,17 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
   });
 
   it("automatically saves each change without a save button", async () => {
-    const deck = createRemoteDeck({ id: "filter-deck", selectedTags: [] });
+    const deck = createRemoteDeck({ id: "filter-deck", studyFilter: { selectedTags: [], tagAndFilter: false } });
     render(<DeckFilterHarness deck={deck} />);
 
     expect(writeControls.calls).toEqual([]);
     expect(screen.queryByRole("button", { name: "Save filters" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
-    expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ selectedTags: ["tag1"] });
+    expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ studyFilter: { selectedTags: ["tag1"] } });
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
     expect(writeControls.calls.at(-1)?.[1]).toEqual({
       id: "filter-deck",
-      selectedTags: ["tag1", "tag2"],
-      tagAndFilter: false,
+      studyFilter: { selectedTags: ["tag1", "tag2"], tagAndFilter: false },
     });
   });
 
@@ -121,10 +123,15 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
     const firstWrite = Promise.withResolvers<void>();
     let persisted: Parameters<EditDeck>[1] | undefined;
     writeControls.write = async (_uid, value) => {
-      if (value.selectedTags?.includes("tag1") && !value.selectedTags?.includes("tag2")) await firstWrite.promise;
+      if (value.studyFilter?.selectedTags?.includes("tag1") && !value.studyFilter?.selectedTags?.includes("tag2"))
+        await firstWrite.promise;
       persisted = value;
     };
-    render(<DeckFilterHarness deck={createRemoteDeck({ id: "filter-deck", selectedTags: [] })} />);
+    render(
+      <DeckFilterHarness
+        deck={createRemoteDeck({ id: "filter-deck", studyFilter: { selectedTags: [], tagAndFilter: false } })}
+      />
+    );
     const maximum = screen.getByRole("checkbox", { name: "tag1" });
     await userEvent.click(maximum);
     expect(maximum).toBeEnabled();
@@ -133,7 +140,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
     expect(maximum).not.toBeChecked();
     expect(persisted).toBeUndefined();
     await actAsync(async () => firstWrite.resolve());
-    await waitFor(() => expect(persisted).toMatchObject({ selectedTags: ["tag2"] }));
+    await waitFor(() => expect(persisted).toMatchObject({ studyFilter: { selectedTags: ["tag2"] } }));
   });
 
   it("preserves pending selections and write order when moving to another Page", async () => {
@@ -143,7 +150,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
       await firstWrite.promise;
       persisted = value;
     };
-    const deck = createRemoteDeck({ id: "navigation-deck", selectedTags: [] });
+    const deck = createRemoteDeck({ id: "navigation-deck", studyFilter: { selectedTags: [], tagAndFilter: false } });
     const view = render(<DeckFilterHarness deck={deck} />);
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
@@ -154,7 +161,7 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
     expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
     await actAsync(async () => firstWrite.resolve());
-    await waitFor(() => expect(persisted).toMatchObject({ selectedTags: ["tag2"] }));
+    await waitFor(() => expect(persisted).toMatchObject({ studyFilter: { selectedTags: ["tag2"] } }));
   });
 
   it("retains a save that fails after leaving the Page and retries all filters on the next visit", async () => {
@@ -169,22 +176,38 @@ describe("CARD-LIST-ACTIONS-01 STUDY-SESSION-08 DeckFilterForm with individual d
     render(<DeckFilterHarness deck={deck} />);
     expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
     await userEvent.click(screen.getByRole("checkbox", { name: "tag2" }));
-    expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ selectedTags: ["tag1", "tag2"] });
+    expect(writeControls.calls.at(-1)?.[1]).toMatchObject({ studyFilter: { selectedTags: ["tag1", "tag2"] } });
   });
 
   it("keeps the opening snapshot when the same Deck subscription changes", () => {
-    const deck = createRemoteDeck({ id: "filter-deck", selectedTags: ["tag1"], updatedAt: 1 });
+    const deck = createRemoteDeck({
+      id: "filter-deck",
+      studyFilter: { selectedTags: ["tag1"], tagAndFilter: false },
+      updatedAt: 1,
+    });
     const view = render(<DeckFilterHarness deck={deck} />);
 
-    view.rerender(<DeckFilterHarness deck={{ ...deck, selectedTags: ["tag2"], updatedAt: 2 }} />);
+    view.rerender(
+      <DeckFilterHarness
+        deck={{ ...deck, studyFilter: { selectedTags: ["tag2"], tagAndFilter: false }, updatedAt: 2 }}
+      />
+    );
 
     expect(screen.getByRole("checkbox", { name: "tag1" })).toBeChecked();
   });
 
   it("starts from the new snapshot when the Deck id changes", () => {
-    const view = render(<DeckFilterHarness deck={createRemoteDeck({ id: "first", selectedTags: ["tag1"] })} />);
+    const view = render(
+      <DeckFilterHarness
+        deck={createRemoteDeck({ id: "first", studyFilter: { selectedTags: ["tag1"], tagAndFilter: false } })}
+      />
+    );
 
-    view.rerender(<DeckFilterHarness deck={createRemoteDeck({ id: "second", selectedTags: ["tag2"] })} />);
+    view.rerender(
+      <DeckFilterHarness
+        deck={createRemoteDeck({ id: "second", studyFilter: { selectedTags: ["tag2"], tagAndFilter: false } })}
+      />
+    );
 
     expect(screen.getByRole("checkbox", { name: "tag2" })).toBeChecked();
   });
@@ -201,7 +224,10 @@ describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
   it("keeps browsing saves across page changes without leaking them into study filters", async () => {
     const write = Promise.withResolvers<void>();
     writeControls.write = () => write.promise;
-    const deck = createRemoteDeck({ id: "browse-pending", selectedTags: ["tag2"], tagAndFilter: true });
+    const deck = createRemoteDeck({
+      id: "browse-pending",
+      studyFilter: { selectedTags: ["tag2"], tagAndFilter: true },
+    });
     const { unmount: unmountList } = render(<DeckFilterHarness deck={deck} scope="card" />);
     expect(screen.getByRole("checkbox", { name: "tag2" })).not.toBeChecked();
     await userEvent.click(screen.getByRole("checkbox", { name: "tag1" }));
@@ -225,7 +251,7 @@ describe("CARD-FILTER-01 CARD-FILTER-05 browsing drafts", () => {
   });
 
   it("follows saved browsing changes and clearing without copying study conditions", () => {
-    const deck = createRemoteDeck({ id: "browse-live", selectedTags: ["tag2"], tagAndFilter: true });
+    const deck = createRemoteDeck({ id: "browse-live", studyFilter: { selectedTags: ["tag2"], tagAndFilter: true } });
     const view = render(<DeckFilterHarness deck={deck} scope="card" />);
     expect(screen.getByRole("radio", { name: "Any" })).toBeChecked();
     view.rerender(

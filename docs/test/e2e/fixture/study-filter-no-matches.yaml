@@ -4,5 +4,7 @@ remote:
     - id: deck-1
       uid: user-1
       name: Filtered Study Deck
-      selectedTags: [missing]
+      studyFilter:
+        selectedTags: [missing]
+        tagAndFilter: false
       category: English

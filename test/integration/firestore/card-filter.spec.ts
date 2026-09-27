@@ -49,8 +49,7 @@ async function seed(cardFilter?: CardFilter) {
     id,
     name: "Browse deck",
     url: "https://example.com/deck",
-    selectedTags: ["study-a"],
-    tagAndFilter: true,
+    studyFilter: { selectedTags: ["study-a"], tagAndFilter: true },
     ...(cardFilter === undefined ? {} : { cardFilter }),
   });
   await saved(id);
@@ -174,9 +173,16 @@ describe("Card filter persistence", () => {
   it("[FIRESTORE-CARD-FILTER-06] keeps browsing filters when study tags change", async () => {
     const browse = { selectedTags: ["browse-a", "browse-b"], tagAndFilter: true };
     const id = await seed(browse);
-    await editDeck(uid, { id, selectedTags: ["study-b"], tagAndFilter: false });
-    expect(await saved(id)).toMatchObject({ cardFilter: browse, selectedTags: ["study-b"], tagAndFilter: false });
+    await editDeck(uid, { id, studyFilter: { selectedTags: ["study-b"], tagAndFilter: false } });
+    expect(await saved(id)).toMatchObject({
+      cardFilter: browse,
+      studyFilter: { selectedTags: ["study-b"], tagAndFilter: false },
+    });
     await restore([[id, browse]]);
+    expect(getDecks().find((deck) => deck.id === id)?.studyFilter).toEqual({
+      selectedTags: ["study-b"],
+      tagAndFilter: false,
+    });
   });
 
   it.each([{ selectedTags: ["tag-c", "tag-d"], tagAndFilter: true }, empty])(

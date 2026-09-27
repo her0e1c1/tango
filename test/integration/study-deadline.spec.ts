@@ -1,3 +1,4 @@
+import { getCardFilter, getStudyFilter } from "@/entities/deck";
 import { seedCardFsrs } from "@/test/studyStateFixtures";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,7 +13,7 @@ import { useDeckViewQuery } from "@/pages/deck-view/model/queries/useDeckViewQue
 
 vi.mock("@/shared/firebase", () => ({ auth: {}, db: {} }));
 const now = Date.parse("2026-09-21T00:00:00Z");
-const deck = createDeck({ id: "deck", uid: "uid", selectedTags: [] });
+const deck = createDeck({ id: "deck", uid: "uid", studyFilter: { selectedTags: [], tagAndFilter: false } });
 function setDeadline(dueAt: number) {
   cardStore.setState({
     remoteCards: [createCard({ id: "card", deckId: deck.id, uid: "uid" })],
@@ -37,9 +38,14 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
     "applies deadlines only to study while browsing stays complete (%s)",
     (page) => {
       const { result, unmount } = renderHook(() => {
-        const start = useStudySessionStartState(deck.id, deck);
-        const list = useCardListQuery({ deck, filter: deck, shownCard: undefined, sortOrder: "standard" });
-        const view = useDeckViewQuery(deck, deck, "card", false);
+        const start = useStudySessionStartState(deck.id, getStudyFilter(deck));
+        const list = useCardListQuery({
+          deck,
+          filter: getCardFilter(deck),
+          shownCard: undefined,
+          sortOrder: "standard",
+        });
+        const view = useDeckViewQuery(deck, getCardFilter(deck), "card", false);
         return page === "start" ? start.cardsLength : page === "list" ? list.cards.length : view.total;
       });
       expect(result.current).toBe(page === "start" ? 0 : 1);
@@ -54,7 +60,7 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
 
   it("waits safely for a deadline beyond the browser timeout limit", () => {
     setDeadline(now + 2 ** 32);
-    const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
+    const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, getStudyFilter(deck)));
     act(() => vi.advanceTimersByTime(2 ** 31 - 1));
     expect(result.current.cardsLength).toBe(0);
     expect(vi.getTimerCount()).toBe(1);
@@ -68,7 +74,7 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
 
   it("handles clock movement, late callbacks, replacement and cleanup", () => {
     setDeadline(now + 120_000);
-    const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
+    const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, getStudyFilter(deck)));
     expect(result.current.cardsLength).toBe(0);
     expect(vi.getTimerCount()).toBe(1);
     act(() => vi.advanceTimersByTime(60_000));
@@ -94,7 +100,7 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
   });
 
   it("refreshes after foreground return and removes the timer when interval filtering is off", () => {
-    const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
+    const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, getStudyFilter(deck)));
     act(() => {
       vi.setSystemTime(now + 1000);
       document.dispatchEvent(new Event("visibilitychange"));
@@ -110,7 +116,7 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
   });
   it("samples current time on settings and data changes without waiting for a timer", () => {
     updatePreferences(createPreferences({ study: { useCardInterval: false } }));
-    const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, deck));
+    const { result, unmount } = renderHook(() => useStudySessionStartState(deck.id, getStudyFilter(deck)));
     expect(result.current.cardsLength).toBe(1);
     act(() => {
       vi.setSystemTime(now + 2000);
@@ -131,7 +137,10 @@ describe("mounted deadline consumers [STUDY-SESSION-01 CARD-FILTER-01]", () => {
   });
   it("accepts equivalent input arrays recreated by the consumer", () => {
     const { result, rerender, unmount } = renderHook(() =>
-      useStudySessionStartState(deck.id, { ...deck, selectedTags: [...deck.selectedTags] })
+      useStudySessionStartState(deck.id, {
+        ...getStudyFilter(deck),
+        selectedTags: [...getStudyFilter(deck).selectedTags],
+      })
     );
     expect(result.current.cardsLength).toBe(0);
     rerender();

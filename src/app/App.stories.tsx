@@ -29,7 +29,7 @@ const pageStoryDecks: Deck[] = [
     uid: APP_STORY_UID,
     name: "Japanese starter",
     category: "markdown",
-    selectedTags: ["greeting"],
+    studyFilter: { selectedTags: ["greeting"], tagAndFilter: false },
     url: "https://example.com/decks/starter.csv",
     createdAt: timestamp - 14 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp,

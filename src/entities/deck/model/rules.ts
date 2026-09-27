@@ -74,3 +74,7 @@ export const mustFindDeckById = <TDeck extends { id: DeckId }>(decks: readonly T
 export function getCardFilter(deck: Deck): CardFilter {
   return deck.cardFilter ?? { selectedTags: [], tagAndFilter: false };
 }
+
+export function getStudyFilter(deck: Deck): CardFilter {
+  return deck.studyFilter ?? { selectedTags: [], tagAndFilter: false };
+}

@@ -122,8 +122,7 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
     expect(screen.getByText("1 card matches your filters.")).toBeVisible();
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deckId,
-      selectedTags: ["tag"],
-      tagAndFilter: false,
+      studyFilter: { selectedTags: ["tag"], tagAndFilter: false },
     });
   });
 
@@ -137,8 +136,7 @@ describe("STUDY-SESSION-01 STUDY-SESSION-02 STUDY-SESSION-08 StudySessionStartPa
 
     expect(mocks.editDeck).toHaveBeenCalledWith("user-id", {
       id: deckId,
-      selectedTags: ["tag-12"],
-      tagAndFilter: false,
+      studyFilter: { selectedTags: ["tag-12"], tagAndFilter: false },
     });
   });
 

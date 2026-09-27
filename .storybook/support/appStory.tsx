@@ -53,7 +53,8 @@ export interface AppStoryParameters {
 
 const cloneDeck = (deck: Deck): Deck => ({
   ...deck,
-  selectedTags: [...deck.selectedTags],
+  studyFilter: deck.studyFilter && { ...deck.studyFilter, selectedTags: [...deck.studyFilter.selectedTags] },
+  cardFilter: deck.cardFilter && { ...deck.cardFilter, selectedTags: [...deck.cardFilter.selectedTags] },
 });
 
 const cloneCard = (card: RemoteCard): RemoteCard => ({

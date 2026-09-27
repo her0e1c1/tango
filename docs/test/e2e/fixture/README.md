@@ -34,8 +34,7 @@
 省略 field は次の値で正規化する。
 
 - `isPublic: false`
-- `selectedTags: []`
-- `tagAndFilter: false`
+- `studyFilter: { selectedTags: [], tagAndFilter: false }`
 - `category: ""`
 - `convertToBr: false`
 - `createdAt: 0`
