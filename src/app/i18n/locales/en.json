@@ -27,7 +27,8 @@
   "errorBoundary": {
     "language": "en",
     "title": "Something went wrong",
-    "description": "Reload to try again. If local database data prevents startup, clear the local database and reload. This permanently deletes cached documents and unsynced changes, including anonymous decks, cards and study data. Anonymous data cannot be recovered. Your sign-in, settings and app cache are kept. If the app cache itself is broken, delete Tango's site data in your browser's site settings.",
+    "description": "Reload to try again. If the problem persists, delete Tango's site data in your browser's site settings. This signs you out and permanently deletes local data and unsynced changes. Anonymous data cannot be recovered.",
+    "localDataDescription": "Reload to try again. If local database data prevents startup, clear the local database and reload. This permanently deletes cached documents and unsynced changes, including anonymous decks, cards and study data. Anonymous data cannot be recovered. Your sign-in, settings and app cache are kept. If the app cache itself is broken, delete Tango's site data in your browser's site settings.",
     "reload": "Reload",
     "clearLocalData": "Clear local database and reload",
     "clearing": "Clearing local database…",

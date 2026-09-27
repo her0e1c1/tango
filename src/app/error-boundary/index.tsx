@@ -36,10 +36,12 @@ export function AppErrorFallback({
   title,
   description,
   error,
+  allowLocalDataReset = false,
 }: {
   title?: string;
   description?: string;
   error?: unknown;
+  allowLocalDataReset?: boolean;
 }) {
   const messages = useRecoveryMessages();
   const [clearing, setClearing] = useState(false);
@@ -58,7 +60,7 @@ export function AppErrorFallback({
       title={title ?? messages.title}
       description={[
         description,
-        messages.description,
+        allowLocalDataReset ? messages.localDataDescription : messages.description,
         detail,
         clearing && messages.clearing,
         clearFailed && messages.clearFailed,
@@ -70,7 +72,15 @@ export function AppErrorFallback({
         ? {}
         : {
             primaryAction: { label: messages.reload, onClick: reloadPage },
-            secondaryAction: { label: messages.clearLocalData, onClick: clearData, variant: "destructive" },
+            ...(allowLocalDataReset
+              ? {
+                  secondaryAction: {
+                    label: messages.clearLocalData,
+                    onClick: clearData,
+                    variant: "destructive" as const,
+                  },
+                }
+              : {}),
           })}
     />
   );

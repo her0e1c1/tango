@@ -610,7 +610,7 @@ test("NAVIGATION-02 Screen shortcuts navigate to their configured routes", async
   expect(await requireDocument("card", card.id)).toEqual(cardBefore);
 });
 
-test("NAVIGATION-03 Recovery offers local database deletion while ordinary reload preserves anonymous data", async ({
+test("NAVIGATION-03 Generic recovery offers only reload and preserves anonymous data", async ({
   fixture,
   page,
   browserErrors,
@@ -629,9 +629,9 @@ test("NAVIGATION-03 Recovery offers local database deletion while ordinary reloa
   await failNextThemeUpdate(page);
   await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
   await expect(page.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
-  await expect(page.getByText(/ローカル DB のデータが原因で起動できない場合/)).toBeVisible();
+  await expect(page.getByText(/再読み込みしてお試しください/)).toBeVisible();
   await expect(page.getByText(/匿名データは復元できません/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /ローカル DB を削除|Clear local database/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /ローカル DB を削除|Clear local database/ })).toHaveCount(0);
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
   await page.getByRole("button", { name: "再読み込み", exact: true }).click();
@@ -674,6 +674,7 @@ test("NAVIGATION-04 Unhandled browser errors share recovery without clearing dat
       }
     }, failure);
     await expect(page.getByRole("alert")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Clear local database and reload" })).toHaveCount(0);
     expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
     await page.getByRole("button", { name: "Reload", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
@@ -734,7 +735,7 @@ test("NAVIGATION-05 Corrupt PWA cache shows manual recovery guidance without del
   await expect(page.getByRole("heading", { name: "Something went wrong", exact: true })).toBeVisible();
   await expect(page.getByText(/delete Tango's site data in your browser's site settings/)).toBeVisible();
   await expect(page.getByText(/Anonymous data cannot be recovered/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /ローカル DB を削除|Clear local database/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /ローカル DB を削除|Clear local database/ })).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
   expect(
     await page.evaluate(async (path) => {
@@ -746,71 +747,38 @@ test("NAVIGATION-05 Corrupt PWA cache shows manual recovery guidance without del
   expect(await requireDocument("card", card.id)).toEqual(cardBefore);
 });
 
-test("NAVIGATION-22 Clears corrupt Firestore persistence while retaining authentication and other storage", async ({
-  fixture,
-  page,
-}) => {
+test("NAVIGATION-22 Clears anonymous local data after storage initialization fails", async ({ fixture, page }) => {
   await fixture.apply(page, { auth: false, preferences: false });
+  await page.clock.setFixedTime(new Date("2026-01-02T03:04:05Z"));
   const { deck } = await createAnonymousDeck(page);
   await startAnonymousStudy(page, deck.id);
   await page.goto("/account");
   const uid = await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").innerText();
   await page.goto("/settings?recovery=local#preserved");
   await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
-  await page.evaluate(async (deckId) => {
+  await page.evaluate(async () => {
     localStorage.setItem("recovery-marker", "keep");
     sessionStorage.setItem("recovery-marker", "keep");
+    sessionStorage.setItem("fail-storage-read", "true");
     await navigator.serviceWorker.ready;
     await (await caches.open("recovery-marker")).put("/recovery-marker", new Response("keep"));
-    const database = (await indexedDB.databases()).find(
-      ({ name }) => name?.startsWith("firestore/") && name.endsWith("/main")
-    );
-    if (!database?.name) throw new Error("Expected Firestore persistence");
-    const databaseName = database.name;
-    await new Promise<void>((resolve, reject) => {
-      const open = indexedDB.open(databaseName);
-      open.onerror = () => reject(open.error);
-      open.onsuccess = () => {
-        const db = open.result;
-        const transaction = db.transaction(["mutations", "documentOverlays"], "readwrite");
-        let changed = false;
-        for (const store of ["mutations", "documentOverlays"]) {
-          const cursor = transaction.objectStore(store).openCursor();
-          cursor.onsuccess = () => {
-            const row = cursor.result;
-            if (!row) return;
-            type Mutation = { update?: { name: string; fields: Record<string, unknown> } };
-            const saved = row.value as { mutations?: Mutation[]; overlayMutation?: Mutation };
-            const mutations = saved.mutations ?? (saved.overlayMutation ? [saved.overlayMutation] : []);
-            for (const mutation of mutations) {
-              const document = mutation.update;
-              if (document?.name.endsWith(`/deck/${deckId}`)) {
-                document.fields.name = { integerValue: "1" };
-                changed = true;
-              }
-            }
-            row.update(saved);
-            row.continue();
-          };
-        }
-        transaction.oncomplete = () => {
-          db.close();
-          if (changed) resolve();
-          else reject(new Error("Expected an anonymous pending Deck write"));
-        };
-        transaction.onabort = () => {
-          db.close();
-          reject(transaction.error);
-        };
-      };
-    });
-  }, deck.id);
+  });
+  await page.addInitScript(() => {
+    // Fail conversion of the dates created through the UI, without accessing SDK storage or records.
+    const getTime = Date.prototype.getTime;
+    Date.prototype.getTime = function () {
+      const value = getTime.call(this);
+      if (sessionStorage.getItem("fail-storage-read") && value === Date.parse("2026-01-02T03:04:05Z")) {
+        throw new Error("E2E_SAVED_DATE_FAILURE");
+      }
+      return value;
+    };
+  });
   const originalUrl = page.url();
   const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
   await page.reload();
   await expect(page.getByRole("button", { name: "ローカル DB を削除して再読み込み" })).toBeVisible();
-  await page.getByRole("button", { name: "再読み込み", exact: true }).click();
-  await expect(page.getByRole("button", { name: "ローカル DB を削除して再読み込み" })).toBeVisible();
+  await page.evaluate(() => sessionStorage.removeItem("fail-storage-read"));
   await expect(page.getByText(/匿名データは復元できません/)).toBeVisible();
   await page.getByRole("button", { name: "ローカル DB を削除して再読み込み" }).click();
   await expect(page.getByRole("heading", { name: "設定", exact: true })).toBeVisible();

@@ -4,6 +4,7 @@ import { collection, disableNetwork, enableNetwork, getDocsFromCache, query, whe
 import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 import { auth, db } from "@/shared/firebase";
 import { startFirestoreSubscriptions } from "../firestore-subscriptions";
+import { FirestoreInitializationError } from "./firestore-initialization-error";
 
 // This is the first operation on the Firestore client, before any reads or restored writes can start networking.
 const initialNetworkStopped = disableNetwork(db);
@@ -82,18 +83,25 @@ async function restoreUserSession(state: AuthLifecycle, user: User, generation: 
 async function activate(state: AuthLifecycle, user: User | null): Promise<void> {
   state.generation += 1;
   const generation = state.generation;
+  let initializingFirestore = true;
   try {
     await initialNetworkStopped;
     if (!isCurrent(state, generation)) return;
     await (user && !user.isAnonymous ? enableNetwork(db) : disableNetwork(db));
     if (!isCurrent(state, generation)) return;
     if (user === null) {
+      initializingFirestore = false;
       await bootstrapAnonymousSession(state);
       return;
     }
     await restoreUserSession(state, user, generation);
   } catch (error) {
-    if (isCurrent(state, generation)) replaceAuthSession({ status: "error", error });
+    if (isCurrent(state, generation)) {
+      replaceAuthSession({
+        status: "error",
+        error: initializingFirestore ? new FirestoreInitializationError(error) : error,
+      });
+    }
   }
 }
 

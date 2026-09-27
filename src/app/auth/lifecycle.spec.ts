@@ -60,6 +60,7 @@ vi.mock("../firestore-subscriptions", () => ({
 }));
 
 import { startAuthSession } from "./lifecycle";
+import { FirestoreInitializationError } from "./firestore-initialization-error";
 const user = (uid: string, isAnonymous = true) => ({ uid, isAnonymous, providerData: [] }) as unknown as User;
 let stop: () => void = () => undefined;
 async function publish(value: User | null) {
@@ -167,5 +168,21 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" }));
     expect(control.network).toBe(true);
     expect(control.subscribed).toBe("account");
+  });
+  it("NAVIGATION-22 identifies subscription startup failures for local data recovery", async () => {
+    const ready = Promise.withResolvers<void>();
+    control.ready = ready.promise;
+    control.auth.currentUser = user("anonymous");
+    control.observe?.(control.auth.currentUser);
+    await vi.waitFor(() => expect(control.subscribed).toBe("anonymous"));
+    const cause = new Error("cached data could not be loaded");
+    ready.reject(cause);
+    await vi.waitFor(() =>
+      expect(getAuthSession()).toMatchObject({
+        status: "error",
+        error: expect.any(FirestoreInitializationError),
+      })
+    );
+    expect(getAuthSession()).toMatchObject({ error: { message: cause.message, cause } });
   });
 });
