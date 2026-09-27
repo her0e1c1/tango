@@ -167,6 +167,14 @@ export default defineConfig(
       "no-restricted-imports": ["error", { paths: pageRouteImports, patterns: [apiImports] }],
     },
   },
+  {
+    files: ["src/entities/*/model/types.ts"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [{ regex: ".", allowTypeImports: true, message: "Entity model/types.ts may only import types." }],
+      }],
+    },
+  },
   // Queries may read stores, but cannot depend on state-changing actions. Type contracts remain legal.
   {
     files: ["src/{pages,features}/*/model/queries/**/*.{ts,tsx}"],

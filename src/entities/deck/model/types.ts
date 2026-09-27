@@ -31,6 +31,7 @@ export type Deck = {
   createdAt: number;
   /** Unix epoch time in milliseconds when the Deck was last changed. */
   updatedAt: number;
+  /** Firebase UID of the Deck owner, including anonymous users. */
   uid: string;
 };
 

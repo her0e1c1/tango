@@ -38,7 +38,19 @@ export type CardEditInput = CardContentEdit;
 /** Create payload accepted by a bulk Card mutation. */
 type CardMutationCreateInput = CardContentCreateInput;
 /** Create or edit command applied during a bulk Card mutation. */
-export type CardMutation = { kind: "create"; card: CardMutationCreateInput } | { kind: "edit"; card: CardEditInput };
+export type CardMutation =
+  | {
+      /** Selects creation of a new Card. */
+      kind: "create";
+      /** Owner-free creation payload; the workflow supplies ownership. */
+      card: CardMutationCreateInput;
+    }
+  | {
+      /** Selects a partial update to an existing Card. */
+      kind: "edit";
+      /** Identity and content fields to update. */
+      card: CardEditInput;
+    };
 /** User-editable Card content independent of identity and persistence metadata. */
 export type CardRaw = Pick<Card, "frontText" | "backText" | "uniqueKey" | "tags">;
 /** Validated owner and Card payload for a remote edit command. */

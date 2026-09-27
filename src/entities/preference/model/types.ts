@@ -20,11 +20,16 @@ type SwipeState = Pick<ControlPreferences, "cardSwipeUp" | "cardSwipeDown" | "ca
 /** Gesture direction that can be mapped to a study control action. */
 export type SwipeDirection = keyof SwipeState;
 
-/** Partial updates for each top-level preference field. */
+/** Partial updates; omitted fields preserve their saved values. */
 export type PartialPreferences = {
+  /** Updates sample Deck loading. */
   loadSample?: Preferences["loadSample"];
+  /** Updates the locale selection. */
   language?: Preferences["language"];
+  /** Updates only the supplied visual settings. */
   appearance?: Partial<Preferences["appearance"]>;
+  /** Updates only the supplied study settings. */
   study?: Partial<Preferences["study"]>;
+  /** Updates only the supplied controls and gesture assignments. */
   controls?: Partial<Preferences["controls"]>;
 };
