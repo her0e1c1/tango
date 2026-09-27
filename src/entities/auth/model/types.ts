@@ -57,14 +57,13 @@ export type AuthSessionState =
       status: "authenticated";
     } & AuthenticatedSession)
   /**
-   * Authentication startup failed.
-   *
-   * This currently covers failures while clearing Study state before anonymous
-   * bootstrap or while starting anonymous authentication.
+   * Authentication or its Firestore data initialization failed.
    */
   | {
       /** Authentication lifecycle discriminant. */
       status: "error";
+      /** Initialization source used to choose recovery without changing the original error. */
+      source: "auth" | "firestore";
       /** Original startup failure retained for error handling. */
       error: unknown;
     };

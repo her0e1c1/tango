@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import { replaceAuthSession } from "@/entities/auth";
 import { AuthProvider } from "./index";
-import { FirestoreInitializationError } from "./firestore-initialization-error";
 vi.mock("@/shared/firebase", () => ({ auth: {} }));
 vi.mock("./lifecycle", () => ({ startAuthSession: () => () => undefined }));
 describe("Authentication feedback [ACCOUNT-04 SETTINGS-04]", () => {
@@ -20,7 +19,7 @@ describe("Authentication feedback [ACCOUNT-04 SETTINGS-04]", () => {
     expect(screen.getByText("Ready")).toBeVisible();
   });
   it("NAVIGATION-22 offers local data recovery on Firestore initialization failure", () => {
-    replaceAuthSession({ status: "error", error: new FirestoreInitializationError(new Error("storage failure")) });
+    replaceAuthSession({ status: "error", source: "firestore", error: new Error("storage failure") });
     render(
       <AuthProvider>
         <p>Ready</p>
@@ -35,7 +34,7 @@ describe("Authentication feedback [ACCOUNT-04 SETTINGS-04]", () => {
     expect(screen.queryByText("Ready")).not.toBeInTheDocument();
   });
   it("NAVIGATION-03 keeps authentication failures reload-only", () => {
-    replaceAuthSession({ status: "error", error: new Error("sign-in failed") });
+    replaceAuthSession({ status: "error", source: "auth", error: new Error("sign-in failed") });
     render(
       <AuthProvider>
         <p>Ready</p>

@@ -50,7 +50,7 @@ describe("useAuth [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04]", () => {
   });
 
   it.each([
-    { status: "error" as const, error: new Error("authentication failed") },
+    { status: "error" as const, source: "auth" as const, error: new Error("authentication failed") },
     { status: "initializing" as const },
     { status: "unauthenticated" as const },
     { status: "authenticating" as const, attemptId: Symbol("attempt") },

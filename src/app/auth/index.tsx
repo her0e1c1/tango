@@ -6,7 +6,6 @@ import { RouteFeedback } from "@/shared/ui/route-feedback";
 
 import { AppErrorFallback } from "../error-boundary";
 import { startAuthSession } from "./lifecycle";
-import { FirestoreInitializationError } from "./firestore-initialization-error";
 
 export interface AuthProviderProps {
   children: React.ReactNode;
@@ -37,7 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         title={t("auth.failure.title")}
         description={t("auth.failure.description")}
         error={authState.error}
-        allowLocalDataReset={authState.error instanceof FirestoreInitializationError}
+        allowLocalDataReset={authState.source === "firestore"}
       />
     );
   }

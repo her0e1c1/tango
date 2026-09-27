@@ -60,7 +60,6 @@ vi.mock("../firestore-subscriptions", () => ({
 }));
 
 import { startAuthSession } from "./lifecycle";
-import { FirestoreInitializationError } from "./firestore-initialization-error";
 const user = (uid: string, isAnonymous = true) => ({ uid, isAnonymous, providerData: [] }) as unknown as User;
 let stop: () => void = () => undefined;
 async function publish(value: User | null) {
@@ -154,7 +153,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     await publish(null);
     const error = new Error("anonymous sign-in failed");
     bootstrap.reject(error);
-    await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "error", error }));
+    await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "error", source: "auth", error }));
     expect(control.anonymous).toHaveBeenCalledOnce();
     expect(control.network).toBe(false);
     expect(control.subscribed).toBe("");
@@ -180,9 +179,11 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     await vi.waitFor(() =>
       expect(getAuthSession()).toMatchObject({
         status: "error",
-        error: expect.any(FirestoreInitializationError),
+        source: "firestore",
+        error: cause,
       })
     );
-    expect(getAuthSession()).toMatchObject({ error: { message: cause.message, cause } });
+    const session = getAuthSession();
+    expect(session.status === "error" && session.error).toBe(cause);
   });
 });
