@@ -39,13 +39,13 @@ vi.mock("@/entities/deck/api/firestore", async (original) => {
 vi.mock("@/entities/card/api/firestore", async (original) => {
   const actual = await original<typeof import("@/entities/card/api/firestore")>();
   const { cardStore } = await import("@/entities/card/model/store");
-  const { cardCreateSchema } = await import("@/entities/card/model/schema");
+  const { createCardSchema } = await import("@/entities/card/model/schema");
   const operations = {
     ...actual,
     createOwnedCard: async (uid: string, input: import("@/entities/card/model/types").CardCreateCommand) => {
       await Promise.resolve();
       const card = {
-        ...cardCreateSchema.parse({ ...input, uid }),
+        ...createCardSchema.parse({ uid, card: { ...input, uid } }).card,
         fsrs: null,
         createdAt: Date.now(),
         updatedAt: Date.now(),
