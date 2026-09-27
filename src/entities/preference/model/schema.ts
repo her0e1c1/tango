@@ -40,9 +40,9 @@ const DEFAULT_CONTROLS = {
 const DEFAULT_LOAD_SAMPLE = true;
 const DEFAULT_LANGUAGE = "system" as const;
 
-export const languagePreferenceSchema = z.enum(["system", "en", "ja"]);
+const languagePreferenceSchema = z.enum(["system", "en", "ja"]);
 
-export const swipeActionSchema = z.enum([
+const swipeActionSchema = z.enum([
   "DoNothing",
   "GoBack",
   "GoToNextCard",
@@ -95,7 +95,7 @@ const studyPreferencesSchema = z
   })
   .catch(DEFAULT_STUDY);
 
-export const controlPreferencesSchema = z
+const controlPreferencesSchema = z
   .object({
     /** Whether the study view mode is active. */
     viewMode: z.boolean().catch(DEFAULT_CONTROLS.viewMode),

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { fsrsStateSchema } from "./fsrs";
 
 import { isNonBlank } from "@/shared/lib/isNonBlank";
 
@@ -42,25 +41,16 @@ const cardCreateFieldsSchema = cardContentSchema.extend({
   deletedAt: z.number().nullable().default(null),
 });
 
-export const cardCreateSchema = cardCreateFieldsSchema.extend({
+const cardCreateSchema = cardCreateFieldsSchema.extend({
   /** Non-empty Firebase UID of the Card owner. */
   uid: cardUidSchema,
 });
 
-export const cardSchema = cardCreateSchema.extend({
-  /** Review schedule; null means the Card has not been reviewed. */
-  fsrs: fsrsStateSchema.nullable(),
-  /** Document creation time in Unix milliseconds. */
-  createdAt: z.number(),
-  /** Last modification time in Unix milliseconds. */
-  updatedAt: z.number(),
-});
-
-export const cardContentEditSchema = cardContentSchema.partial().extend({
+const cardContentEditSchema = cardContentSchema.partial().extend({
   /** Stable identity of the Card to update. */
   id: cardIdSchema,
 });
-export const cardEditSchema = cardContentEditSchema.extend({
+const cardEditSchema = cardContentEditSchema.extend({
   /** Non-empty Firebase UID of the Card owner. */
   uid: cardUidSchema,
 });

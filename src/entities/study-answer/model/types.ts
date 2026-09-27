@@ -1,4 +1,13 @@
-import type { StudyRating } from "./schema";
+/** Recall grade selected for a study answer. */
+export type StudyRating =
+  /** Recall failed and the Card needs another attempt. */
+  | "again"
+  /** Recall succeeded with difficulty. */
+  | "hard"
+  /** Recall succeeded with normal effort. */
+  | "good"
+  /** Recall succeeded easily. */
+  | "easy";
 
 export interface StudyAnswerRecord {
   /** Stable identity of the answer event. */
