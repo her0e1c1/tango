@@ -20,7 +20,10 @@ export function getCards(): Card[] {
 
 export const findCardById = (id: CardId): Card | undefined => {
   const cardId = cardIdSchema.parse(id);
-  return getCards().find((card) => card.id === cardId);
+  const card = Object.hasOwn(cardStore.getState().cardsById, cardId)
+    ? cardStore.getState().cardsById[cardId]
+    : undefined;
+  return card && getDecks().some((deck) => deck.id === card.deckId && deck.uid === card.uid) ? card : undefined;
 };
 
 export const clearRemoteCards = (): void => {

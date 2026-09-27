@@ -1,9 +1,7 @@
 import { cardReplicaMetadataSchema, cardReplicaSchema, type CardReplicaMetadata } from "./document";
-import { applyCardChanges, clearRemoteCards } from "../model/store";
 import type { RemoteCard } from "../model/types";
 
 const REPLICA_DATABASE = "tango-card-replica";
-export const cardReplicaSession = { generation: 0, restoredGeneration: 0 };
 
 function openCardReplica(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -41,23 +39,9 @@ async function readCardReplica() {
   }
 }
 
-async function resetCardReplica(uid: string, generation: number): Promise<void> {
-  const database = await openCardReplica();
-  try {
-    if (generation !== cardReplicaSession.generation) return;
-    const transaction = database.transaction(["cards", "metadata"], "readwrite");
-    transaction.objectStore("cards").clear();
-    transaction.objectStore("metadata").put({ uid, lastUpdatedAt: null, version: 1, count: 0 }, "replica");
-    await completeReplicaTransaction(transaction);
-  } finally {
-    database.close();
-  }
-}
-
-export async function restoreCardReplica(uid: string): Promise<CardReplicaMetadata> {
-  cardReplicaSession.generation += 1;
-  const generation = cardReplicaSession.generation;
-  clearRemoteCards();
+export async function restoreCardReplica(
+  uid: string
+): Promise<{ metadata: CardReplicaMetadata; cards: RemoteCard[] } | null> {
   try {
     const saved = await readCardReplica();
     const metadata = cardReplicaMetadataSchema.parse(saved.metadata);
@@ -70,37 +54,34 @@ export async function restoreCardReplica(uid: string): Promise<CardReplicaMetada
       cards.some((card) => card.uid !== uid) ||
       !checkpointMatches
     )
-      throw new Error("Card replica ownership or completeness does not match");
-    if (generation === cardReplicaSession.generation) {
-      applyCardChanges(cards);
-      cardReplicaSession.restoredGeneration = generation;
-    }
-    return metadata;
+      return null;
+    return { metadata, cards };
   } catch {
-    // Missing, incompatible or corrupt replicas must never leave a usable checkpoint behind.
-    if (generation === cardReplicaSession.generation) await resetCardReplica(uid, generation).catch(() => undefined);
-    return { uid, lastUpdatedAt: null, version: 1 };
+    return null;
   }
 }
 
 export async function saveConfirmedCards(
   uid: string,
   cards: readonly RemoteCard[],
-  lastUpdatedAt: number | null
+  lastUpdatedAt: number | null,
+  { replace, signal }: { replace: boolean; signal: AbortSignal }
 ): Promise<void> {
   const database = await openCardReplica();
   try {
+    if (signal.aborted) return;
     const transaction = database.transaction(["cards", "metadata"], "readwrite");
     const completed = completeReplicaTransaction(transaction);
     const metadataStore = transaction.objectStore("metadata");
     const request = metadataStore.get("replica");
     request.onsuccess = () => {
       const saved = cardReplicaMetadataSchema.safeParse(request.result);
-      if (!saved.success || saved.data.uid !== uid || cards.some((card) => card.uid !== uid)) {
+      if ((!replace && (!saved.success || saved.data.uid !== uid)) || cards.some((card) => card.uid !== uid)) {
         transaction.abort();
         return;
       }
       const store = transaction.objectStore("cards");
+      if (replace) store.clear();
       for (const card of cards) store.put(card);
       const count = store.count();
       count.onsuccess = () => metadataStore.put({ uid, lastUpdatedAt, version: 1, count: count.result }, "replica");

@@ -6,8 +6,10 @@ import {
   disableNetwork,
   doc,
   enableNetwork,
+  getDocs,
   onSnapshot,
   query,
+  QuerySnapshot,
   serverTimestamp,
   setDoc,
   Timestamp,
@@ -241,8 +243,10 @@ describe("Confirmed Card replica", () => {
       await waitForPendingWrites(connection.db);
       await loaded(["boundary", "old"]);
       stop();
-      await restoreCardReplica(uid);
-      expect(getCards().map(({ frontText }) => frontText)).toEqual(["boundary", "old"]);
+      expect((await restoreCardReplica(uid))?.cards.map(({ frontText }) => frontText).sort()).toEqual([
+        "boundary",
+        "old",
+      ]);
     }
   );
 
@@ -268,24 +272,56 @@ describe("Confirmed Card replica", () => {
     expect((await readReplica()).cards.find(({ id }) => id === "old")?.frontText).toBe("old");
   });
 
-  it("[FIRESTORE-CARD-REPLICA-05] retries the complete unapplied window after validation repair", async () => {
-    await seed([card("old")]);
-    start();
-    await loaded(["old"]);
-    await checkpoint(1000);
-    stop();
-    start();
-    await seed([
-      { ...card("old", 2000), frontText: "edited" },
-      { ...card("invalid", 2000), fsrs: {} as never },
-    ]);
-    await vi.waitFor(() => expect(errors.length).toBeGreaterThan(0));
-    expect(getCards().map(({ frontText }) => frontText)).toEqual(["old"]);
-    await checkpoint(1000);
-    await updateDoc(doc(connection.db, "card", "invalid"), { fsrs: null, updatedAt: serverTimestamp() });
-    await loaded(["invalid", "old"]);
-    expect(getCards().find(({ id }) => id === "old")?.frontText).toBe("edited");
-  });
+  it.each(["repair", "live", "cached"])(
+    "[FIRESTORE-CARD-REPLICA-05] retries the complete unapplied window: %s",
+    async (source) => {
+      await seed([card("old")]);
+      start();
+      await loaded(["old"]);
+      await checkpoint(1000);
+      stop();
+      await seed([
+        { ...card("old", 2000), frontText: "edited" },
+        { ...card("invalid", 2000), fsrs: {} as never },
+      ]);
+      if (source === "cached") {
+        await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
+        await disableNetwork(connection.db);
+      }
+      const changes = vi.spyOn(QuerySnapshot.prototype, "docChanges");
+      start();
+      if (source === "cached") {
+        await vi.waitFor(() =>
+          expect(changes.mock.contexts.some((snapshot) => snapshot.metadata.fromCache)).toBe(true)
+        );
+        await enableNetwork(connection.db);
+      }
+      await vi.waitFor(() => expect(errors.length).toBeGreaterThan(0));
+      changes.mockRestore();
+      expect(getCards().map(({ frontText }) => frontText)).toEqual(["old"]);
+      await checkpoint(1000);
+      if (source === "repair") {
+        await updateDoc(doc(connection.db, "card", "invalid"), { fsrs: null, updatedAt: serverTimestamp() });
+        await loaded(["invalid", "old"]);
+        expect(getCards().find(({ id }) => id === "old")?.frontText).toBe("edited");
+        return;
+      }
+      await disableNetwork(connection.db);
+      const rejected = updateDoc(doc(connection.db, "card", "old"), {
+        frontText: "pending",
+        createdAt: -1,
+        updatedAt: serverTimestamp(),
+      }).catch((error: unknown) => error);
+      await localPending();
+      // Move the server document below the active query boundary while the local write is pending.
+      await seed([card("old", 500), card("invalid", 3000)]);
+      await enableNetwork(connection.db);
+      await expect(rejected).resolves.toMatchObject({ code: "permission-denied" });
+      await loaded(["invalid", "old"]);
+      await vi.waitFor(() => expect(getCards().find(({ id }) => id === "old")?.frontText).toBe("edited"));
+      await checkpoint(3000);
+    }
+  );
 
   it("[FIRESTORE-CARD-REPLICA-06] cancels a restoring owner before switching UID", async () => {
     await seed([card("a")]);
@@ -325,12 +361,16 @@ describe("Confirmed Card replica", () => {
       return request;
     });
     await expect(
-      saveConfirmedCards(uid, [createCard({ id: "old", uid, frontText: "new", updatedAt: 2000 })], 2000)
+      saveConfirmedCards(uid, [createCard({ id: "old", uid, frontText: "new", updatedAt: 2000 })], 2000, {
+        replace: false,
+        signal: new AbortController().signal,
+      })
     ).rejects.toBeDefined();
     failure.mockRestore();
     clearRemoteCards();
-    expect(await restoreCardReplica(uid)).toMatchObject({ lastUpdatedAt: 1000 });
-    expect(getCards().map(({ frontText }) => frontText)).toEqual(["old"]);
+    const restored = await restoreCardReplica(uid);
+    expect(restored?.metadata).toMatchObject({ lastUpdatedAt: 1000 });
+    expect(restored?.cards.map(({ frontText }) => frontText)).toEqual(["old"]);
   });
 
   it("[FIRESTORE-CARD-REPLICA-08] processes only the changed Card among 1000 records", async () => {

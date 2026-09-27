@@ -52,14 +52,7 @@ export const cardReplicaMetadataSchema = z.object({
   count: z.number().int().nonnegative(),
 });
 
-export interface CardReplicaMetadata {
-  /** Firebase UID owning all records in this replica. */
-  uid: string;
-  /** Inclusive server-confirmed read checkpoint in Unix milliseconds, or null for a full read. */
-  lastUpdatedAt: number | null;
-  /** Version of the persisted Card replica schema. */
-  version: number;
-}
+export type CardReplicaMetadata = z.infer<typeof cardReplicaMetadataSchema>;
 
 export const cardReplicaSchema = cardDocumentSchema.extend({
   id: z.string().min(1),

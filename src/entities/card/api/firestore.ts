@@ -20,60 +20,72 @@ import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { applyCardChanges, applyCardSnapshot, clearRemoteCards, findCardById } from "../model/store";
 
-import { cardReplicaSession, restoreCardReplica, saveConfirmedCards } from "./replica";
+import { restoreCardReplica, saveConfirmedCards } from "./replica";
 
 const CARD_COLLECTION = "card";
 
 interface CardSubscription {
   uid: string;
-  generation: number;
+  signal: AbortSignal;
+  replace: boolean;
   lastUpdatedAt: number | null;
-  maximumSeen: number | null;
-  changes: Map<string, QueryDocumentSnapshot>;
+  changes: Map<string, { document: QueryDocumentSnapshot; confirmed: boolean }>;
   onReady: (() => void) | undefined;
 }
 
 async function receiveCardSnapshot(state: CardSubscription, snapshot: QuerySnapshot): Promise<void> {
-  if (state.generation !== cardReplicaSession.generation) return;
+  if (state.signal.aborted) return;
   for (const change of snapshot.docChanges({ includeMetadataChanges: true })) {
+    const previous = state.changes.get(change.doc.id);
+    // Keep an unapplied confirmed value through later local or query-window events.
+    if (
+      previous?.confirmed &&
+      (snapshot.metadata.fromCache || change.type === "removed" || change.doc.metadata.hasPendingWrites)
+    )
+      continue;
     // Leaving the query window is not a domain deletion, including after a rejected write.
     if (change.type === "removed" || change.doc.metadata.hasPendingWrites) state.changes.delete(change.doc.id);
-    else state.changes.set(change.doc.id, change.doc);
+    else state.changes.set(change.doc.id, { document: change.doc, confirmed: !snapshot.metadata.fromCache });
   }
   if (snapshot.metadata.fromCache) return;
-  const documents = [...state.changes.values()].map((item) => ({
+  // A metadata-only server event can confirm cached candidates without new document changes.
+  for (const change of state.changes.values()) change.confirmed = true;
+  const documents = [...state.changes.values()].map(({ document: item }) => ({
     id: item.id,
     document: parseCardDocument(item.id, item.data()),
   }));
   const cards = documents.map(({ id, document }) => mapCardDocument(id, document));
-  for (const { document } of documents) {
-    // Legacy numeric timestamps are imported on full sync, never used as server checkpoints.
-    if (typeof document.updatedAt !== "number")
-      state.maximumSeen = Math.max(state.maximumSeen ?? 0, document.updatedAt.toDate().getTime());
-  }
-  const checkpoint = snapshot.metadata.hasPendingWrites ? state.lastUpdatedAt : state.maximumSeen;
-  await saveConfirmedCards(state.uid, cards, checkpoint);
-  if (state.generation !== cardReplicaSession.generation) return;
+  // Legacy numeric timestamps are imported on full sync, never used as server checkpoints.
+  const checkpoint = snapshot.metadata.hasPendingWrites
+    ? state.lastUpdatedAt
+    : documents.reduce(
+        (latest, { document }) =>
+          typeof document.updatedAt === "number"
+            ? latest
+            : Math.max(latest ?? 0, document.updatedAt.toDate().getTime()),
+        state.lastUpdatedAt
+      );
+  await saveConfirmedCards(state.uid, cards, checkpoint, { replace: state.replace, signal: state.signal });
+  state.signal.throwIfAborted();
   applyCardChanges(cards);
   state.lastUpdatedAt = checkpoint;
+  state.replace = false;
   state.changes.clear();
   state.onReady?.();
 }
 
 // Anonymous data lives exclusively in the SDK cache, including pending writes.
 function subscribeLocalCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
-  cardReplicaSession.generation += 1;
-  const generation = cardReplicaSession.generation;
+  let active = true;
   clearRemoteCards();
   const report = (error: unknown) => {
-    if (generation === cardReplicaSession.generation)
-      onError(error instanceof Error ? error : new Error(String(error)));
+    if (active) onError(error instanceof Error ? error : new Error(String(error)));
   };
   const stop = onSnapshot(
     query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
     { includeMetadataChanges: true },
     (snapshot) => {
-      if (generation !== cardReplicaSession.generation) return;
+      if (!active) return;
       try {
         const cards = snapshot.docs.map((item) =>
           mapCardDocument(item.id, parseCardDocument(item.id, item.data({ serverTimestamps: "estimate" })))
@@ -87,7 +99,7 @@ function subscribeLocalCards(uid: string, onError: (error: Error) => void, onRea
     report
   );
   return () => {
-    if (generation === cardReplicaSession.generation) cardReplicaSession.generation += 1;
+    active = false;
     stop();
   };
 }
@@ -95,25 +107,28 @@ function subscribeLocalCards(uid: string, onError: (error: Error) => void, onRea
 // Include tombstones; the Store exposes only active documents.
 export function subscribeCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
   if (auth.currentUser?.isAnonymous) return subscribeLocalCards(uid, onError, onReady);
-  const restored = restoreCardReplica(uid);
-  const generation = cardReplicaSession.generation;
+  const controller = new AbortController();
+  const { signal } = controller;
+  clearRemoteCards();
   let stop: (() => void) | undefined;
   const report = (error: unknown) => {
-    if (generation === cardReplicaSession.generation)
-      onError(error instanceof Error ? error : new Error(String(error)));
+    if (!signal.aborted) onError(error instanceof Error ? error : new Error(String(error)));
   };
   async function start() {
-    const metadata = await restored;
-    if (generation !== cardReplicaSession.generation) return;
-    if (generation === cardReplicaSession.restoredGeneration) onReady?.();
+    const restored = await restoreCardReplica(uid);
+    if (signal.aborted) return;
+    if (restored) {
+      applyCardChanges(restored.cards);
+      onReady?.();
+    }
+    const lastUpdatedAt = restored?.metadata.lastUpdatedAt ?? null;
     const constraints = [where("uid", "==", uid)];
-    if (metadata.lastUpdatedAt !== null)
-      constraints.push(where("updatedAt", ">=", Timestamp.fromMillis(metadata.lastUpdatedAt)));
+    if (lastUpdatedAt !== null) constraints.push(where("updatedAt", ">=", Timestamp.fromMillis(lastUpdatedAt)));
     const state: CardSubscription = {
       uid,
-      generation,
-      lastUpdatedAt: metadata.lastUpdatedAt,
-      maximumSeen: metadata.lastUpdatedAt,
+      signal,
+      replace: restored === null,
+      lastUpdatedAt,
       changes: new Map(),
       onReady,
     };
@@ -129,7 +144,7 @@ export function subscribeCards(uid: string, onError: (error: Error) => void, onR
   }
   void start().catch(report);
   return () => {
-    if (generation === cardReplicaSession.generation) cardReplicaSession.generation += 1;
+    controller.abort();
     stop?.();
   };
 }
