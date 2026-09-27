@@ -1,3 +1,4 @@
+import { getStudyFilter } from "@/entities/deck";
 import { calculateFsrsState } from "@/entities/card";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { replaceAuthSession } from "@/entities/auth";
@@ -65,13 +66,13 @@ describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PE
     replaceAuthSession({ status: "authenticated", uid: "uid", isAnonymous, displayName: null });
     const deck = createDeck({ id: "deck", uid: "uid" });
     mocks.deck = deck;
-    expect(await startStudySession(deck.id, deck)).toEqual(expect.any(String));
+    expect(await startStudySession(deck.id, getStudyFilter(deck))).toEqual(expect.any(String));
     expect(getStudySession(deck.id)).toMatchObject({ cardOrderIds: ["card"], currentIndex: 0, remote: { uid: "uid" } });
   });
   it("rejects a different account after an identity switch before Start", async () => {
     const deck = createDeck({ id: "deck", uid: "uid" });
     replaceAuthSession({ status: "authenticated", uid: "current", isAnonymous: false, displayName: null });
-    expect(await startStudySession(deck.id, deck)).toBeUndefined();
+    expect(await startStudySession(deck.id, getStudyFilter(deck))).toBeUndefined();
     expect(getStudySession("deck")).toBeUndefined();
   });
   afterEach(() => vi.useRealTimers());
@@ -89,10 +90,10 @@ describe("Study start persistence mode [STUDY-SESSION-01] [STUDY-SESSION-07] [PE
       }),
     ];
     const deck = createDeck({ id: "deck", uid: "uid" });
-    expect(await startStudySession(deck.id, deck)).toBeUndefined();
+    expect(await startStudySession(deck.id, getStudyFilter(deck))).toBeUndefined();
     expect(getStudySession(deck.id)).toBeUndefined();
     vi.setSystemTime(now + 1000);
-    expect(await startStudySession(deck.id, deck)).toEqual(expect.any(String));
+    expect(await startStudySession(deck.id, getStudyFilter(deck))).toEqual(expect.any(String));
     expect(getStudySession(deck.id)?.cardOrderIds).toEqual(["future"]);
   });
 });

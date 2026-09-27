@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
 import { mutateCards } from "@/entities/card";
-import { createDeck, deleteDeck } from "@/entities/deck";
+import { createDeck, deleteDeck, getStudyFilter } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import { startStudy } from "@/test/utils/entityFixtures";
@@ -21,12 +21,9 @@ const preferences = createPreferences({
 const deck = createLocalDeck({
   id: "study-start-deck",
   name: "Japanese vocabulary",
-  selectedTags: ["eligible"],
+  studyFilter: { selectedTags: ["eligible"], tagAndFilter: false },
 });
-const filter = {
-  selectedTags: deck.selectedTags,
-  tagAndFilter: deck.tagAndFilter,
-};
+const filter = getStudyFilter(deck);
 const eligibleCard = createLocalCard({
   id: "eligible-card",
   deckId: deck.id,

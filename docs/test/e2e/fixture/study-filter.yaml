@@ -8,7 +8,9 @@ remote:
     - id: deck-1
       uid: user-1
       name: Filtered Study Deck
-      selectedTags: [target]
+      studyFilter:
+        selectedTags: [target]
+        tagAndFilter: false
       category: English
   cards:
     - id: card-1

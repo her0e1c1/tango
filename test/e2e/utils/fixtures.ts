@@ -495,23 +495,20 @@ const firestoreValue = (value: unknown): object => {
   throw new Error(`Unsupported Firestore fixture value: ${String(value)}`);
 };
 
+interface FirestoreValue {
+  mapValue?: { fields?: Record<string, FirestoreValue> };
+  arrayValue?: { values?: FirestoreValue[] };
+  booleanValue?: boolean;
+  doubleValue?: number;
+  integerValue?: string;
+  nullValue?: null;
+  stringValue?: string;
+  timestampValue?: string;
+}
+
 export interface FirestoreDocument {
   name: string;
-  fields: Partial<
-    Record<
-      string,
-      {
-        mapValue?: { fields?: Record<string, { stringValue?: string; integerValue?: string; doubleValue?: number }> };
-        arrayValue?: { values?: Record<string, unknown>[] };
-        booleanValue?: boolean;
-        doubleValue?: number;
-        integerValue?: string;
-        nullValue?: null;
-        stringValue?: string;
-        timestampValue?: string;
-      }
-    >
-  >;
+  fields: Partial<Record<string, FirestoreValue>>;
 }
 
 export const setDocument = async (collection: FirestoreCollection, id: string, document: Record<string, unknown>) => {

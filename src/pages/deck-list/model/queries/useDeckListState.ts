@@ -4,7 +4,7 @@ import { groupDecksByStudyStatus } from "./groupDecksByStudyStatus";
 import { useStore } from "zustand";
 
 import type { Card } from "@/entities/card";
-import { type Deck, type DeckId, useDecks } from "@/entities/deck";
+import { getStudyFilter, type Deck, type DeckId, useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { selectStudyCardsWithDeadline, type StudySession, useStudySessions } from "@/entities/study-session";
 import { useDeadlineQuery } from "@/shared/lib/useDeadlineQuery";
@@ -14,7 +14,7 @@ import { deckListStore, type DeckListBootstrapStatus } from "../store";
 const compareDeckNames = (left: Deck, right: Deck): number => left.name.localeCompare(right.name);
 
 function summarizeDeck(cards: Card[], deck: Deck, now: number) {
-  const selected = selectStudyCardsWithDeadline(cards, deck, true, now);
+  const selected = selectStudyCardsWithDeadline(cards, getStudyFilter(deck), true, now);
   let due = 0;
   let newCount = 0;
   let earliestDueAt: number | undefined;

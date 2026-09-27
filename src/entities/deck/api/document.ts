@@ -17,8 +17,7 @@ const deckDocumentSchema = z.object({
   // Existing cloud documents retain millisecond values until their next successful write.
   updatedAt: z.union([z.number(), firestoreTimestampSchema]),
   deletedAt: z.number().nullable(),
-  selectedTags: z.array(z.string()),
-  tagAndFilter: z.boolean(),
+  studyFilter: cardFilterSchema.optional(),
   cardFilter: cardFilterSchema.optional(),
   category: z.string(),
   convertToBr: z.boolean(),

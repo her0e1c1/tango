@@ -18,8 +18,6 @@ describe("Deck operation schemas [CARD-LIST-ACTIONS-01]", () => {
           name: "Deck",
 
           isPublic: false,
-          selectedTags: [],
-          tagAndFilter: false,
           category: "",
           convertToBr: false,
         },

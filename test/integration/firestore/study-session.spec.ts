@@ -1,3 +1,4 @@
+import { getStudyFilter } from "@/entities/deck";
 import "@/test/initializeTestFirestore";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
@@ -240,7 +241,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
     cardStore.setState({
       remoteCards: [...cards.map((card) => createCard({ ...card, uid: "uid", deckId })), ...otherCards],
     });
-    expect(await startStudySession(deck.id, deck)).toEqual(expect.any(String));
+    expect(await startStudySession(deck.id, getStudyFilter(deck))).toEqual(expect.any(String));
     await waitForCloud(() => expect(getStudySession(deckId)).toBeDefined());
     await setStudySessionIndex(deckId, 1);
     await waitForCloud(() => expect(getStudySession(deckId)?.currentIndex).toBe(1));
@@ -257,7 +258,7 @@ describe("StudySession cloud lifecycle [STUDY-SESSION-01] [STUDY-SESSION-03] [ST
       expect(getStudySession(otherDeck.id)?.cardOrderIds).toEqual(otherCards.map(({ id }) => id))
     );
     let settled = false;
-    const restart = startStudySession(deck.id, deck).then((value) => {
+    const restart = startStudySession(deck.id, getStudyFilter(deck)).then((value) => {
       settled = true;
       return value;
     });

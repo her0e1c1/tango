@@ -1,4 +1,4 @@
-import { getCardFilter, type Deck } from "@/entities/deck";
+import { getCardFilter, getStudyFilter, type Deck } from "@/entities/deck";
 import { pendingFilters } from "../store";
 import type { DeckFilterDraft, DeckFilterScope } from "../types";
 
@@ -8,7 +8,7 @@ export const getInitialDeckFilterDraft = (
   scope: DeckFilterScope = "study"
 ): DeckFilterDraft => {
   const key = JSON.stringify([uid, deck.id, scope]);
-  const filter = scope === "card" ? getCardFilter(deck) : deck;
+  const filter = scope === "card" ? getCardFilter(deck) : getStudyFilter(deck);
   return (
     pendingFilters.get(key) ?? {
       key,

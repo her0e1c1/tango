@@ -4,7 +4,7 @@ import { createAnonymousDeck, startAnonymousStudy } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
 
 const readSelectedTags = async (deckId: string): Promise<string[]> =>
-  ((await requireDocument("deck", deckId)).fields.selectedTags?.arrayValue?.values ?? [])
+  ((await requireDocument("deck", deckId)).fields.studyFilter?.mapValue?.fields?.selectedTags?.arrayValue?.values ?? [])
     .map((value) => value.stringValue)
     .filter((value): value is string => value !== undefined);
 

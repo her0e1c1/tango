@@ -19,7 +19,10 @@ vi.mock("@/entities/card", async (original) => ({
   ...(await original<typeof import("@/entities/card")>()),
   useCards: () => input.cards,
 }));
-vi.mock("@/entities/deck", () => ({ useDecks: () => input.decks }));
+vi.mock("@/entities/deck", async (original) => ({
+  ...(await original<typeof import("@/entities/deck")>()),
+  useDecks: () => input.decks,
+}));
 vi.mock("@/entities/preference", () => ({ usePreferences: () => input.preferences }));
 vi.mock("@/entities/study-session", async (original) => ({
   ...(await original<typeof import("@/entities/study-session")>()),
@@ -42,7 +45,11 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
     vi.setSystemTime(1000);
     input.preferences = createPreferences({ useCardInterval: true, maxNumberOfCardsToLearn: 1, shuffled: true });
     input.decks = ["new", "due-z", "due-a", "early", "future", "empty", "filtered", "active"].map((id) =>
-      createDeck({ id, name: id, ...(id === "filtered" ? { selectedTags: ["selected"] } : {}) })
+      createDeck({
+        id,
+        name: id,
+        ...(id === "filtered" ? { studyFilter: { selectedTags: ["selected"], tagAndFilter: false } } : {}),
+      })
     );
     input.cards = [
       card("new"),
@@ -88,7 +95,7 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
 
   it.each([false, true])("applies saved tag filters (AND=%s) without maximum or shuffle", (tagAndFilter) => {
     input.sessions = {};
-    input.decks = [createDeck({ id: "filter", selectedTags: ["a", "b"], tagAndFilter })];
+    input.decks = [createDeck({ id: "filter", studyFilter: { selectedTags: ["a", "b"], tagAndFilter } })];
     input.cards = [
       card("filter", 1000, { tags: ["a", "b"] }),
       card("filter", undefined, { tags: ["a", "b"] }),
@@ -122,7 +129,10 @@ describe("NAVIGATION-17 NAVIGATION-18 held review counts", () => {
     input.cards = [...input.cards, card("new")];
     rerender();
     expect(result.current.totals?.new).toBe(4);
-    input.decks = input.decks.map((deck) => ({ ...deck, selectedTags: ["missing"] }));
+    input.decks = input.decks.map((deck) => ({
+      ...deck,
+      studyFilter: { selectedTags: ["missing"], tagAndFilter: false },
+    }));
     rerender();
     expect(result.current.totals).toEqual({ due: 0, new: 0 });
     expect(result.current.studying).toHaveLength(1);

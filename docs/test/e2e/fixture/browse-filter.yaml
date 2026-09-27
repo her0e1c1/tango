@@ -12,12 +12,16 @@ remote:
     - id: deck-mixed
       uid: user-1
       name: Browse Filter Deck
-      selectedTags: [target]
+      studyFilter:
+        selectedTags: [target]
+        tagAndFilter: false
       category: English
     - id: deck-future
       uid: user-1
       name: Future Only Deck
-      selectedTags: [target]
+      studyFilter:
+        selectedTags: [target]
+        tagAndFilter: false
       category: English
   cards:
     - id: card-due
