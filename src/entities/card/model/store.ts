@@ -38,3 +38,9 @@ export function applyCardChanges(cards: readonly RemoteCard[]): void {
     return { cardsById: next };
   });
 }
+
+export function applyCardSnapshot(cards: readonly RemoteCard[]): void {
+  cardStore.setState({
+    cardsById: Object.fromEntries(cards.filter((card) => card.deletedAt === null).map((card) => [card.id, card])),
+  });
+}

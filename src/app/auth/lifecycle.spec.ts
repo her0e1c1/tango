@@ -97,6 +97,8 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     await publish(user("same"));
     await publish(user("same", false));
     await vi.waitFor(() => expect(control.network).toBe(true));
+    expect(control.stops).toEqual(["same"]);
+    expect(control.subscribed).toBe("same");
     expect(getAuthSession()).toMatchObject({ uid: "same", isAnonymous: false });
   });
   it("blocks signout while restored cache changes are pending", async () => {
@@ -127,6 +129,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     expect(getAuthSession().status).toBe("initializing");
     ready.resolve();
     await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "same" }));
+    expect(control.stops).toEqual([]);
   });
   it("ignores an old identity's delayed startup failure", async () => {
     const oldReady = Promise.withResolvers<void>();

@@ -240,3 +240,4 @@
 | FIRESTORE-CARD-REPLICA-08 | read | 正常系 | [少数更新の処理件数を Card 総数から独立させる](./card-replica.md#firestore-card-replica-08) |
 | FIRESTORE-CARD-REPLICA-09 | read | 正常系 | [cache のみでは checkpoint を進めない](./card-replica.md#firestore-card-replica-09) |
 | FIRESTORE-CARD-REPLICA-10 | read | 正常系 | [FSRS は確定後に反映する](./card-replica.md#firestore-card-replica-10) |
+| FIRESTORE-CARD-REPLICA-11 | batch | 正常系 | [匿名は replica を使わずローカル変更を表示する](./card-replica.md#firestore-card-replica-11) |

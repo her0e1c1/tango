@@ -2,7 +2,7 @@
 
 ## 目的
 
-サーバー確定 Card の IndexedDB 保存・差分購読・復旧を検証する。Firestore は実 Emulator、IndexedDB は transaction を実装するテスト用データベースを使用し、ブラウザー再読み込みは Persistence E2E で確認する。
+通常アカウントのサーバー確定 Card の IndexedDB 保存・差分購読・復旧を検証する。Firestore は実 Emulator、IndexedDB は transaction を実装するテスト用データベースを使用し、ブラウザー再読み込みは Persistence E2E で確認する。
 
 ## テストケース
 
@@ -18,6 +18,7 @@
 | FIRESTORE-CARD-REPLICA-08 | read | 正常系 | [少数更新の処理件数を Card 総数から独立させる](#firestore-card-replica-08) |
 | FIRESTORE-CARD-REPLICA-09 | read | 正常系 | [cache のみでは checkpoint を進めない](#firestore-card-replica-09) |
 | FIRESTORE-CARD-REPLICA-10 | read | 正常系 | [FSRS は確定後に反映する](#firestore-card-replica-10) |
+| FIRESTORE-CARD-REPLICA-11 | batch | 正常系 | [匿名は replica を使わずローカル変更を表示する](#firestore-card-replica-11) |
 
 <a id="firestore-card-replica-01"></a>
 
@@ -218,3 +219,24 @@ When:
 Then:
 
 - pending 中は未評価のままで、サーバー確定後に FSRS と checkpoint を保存する。
+
+<a id="firestore-card-replica-11"></a>
+
+### FIRESTORE-CARD-REPLICA-11 匿名は replica を使わずローカル変更を表示する
+
+カテゴリ: `batch`
+
+区分: 正常系
+
+Given:
+
+- 匿名 UID の SDK 通信を停止しており、Card replica は存在しない。
+
+When:
+
+- 購読を開始して Card を作成・編集し、メモリを空にして再購読する。続いて Card を削除する。
+
+Then:
+
+- サーバー応答を待たず、空状態から起動し、作成・編集・削除と再購読後の内容をローカル snapshot から表示できる。
+- Card replica と checkpoint の IndexedDB データベースを作成しない。

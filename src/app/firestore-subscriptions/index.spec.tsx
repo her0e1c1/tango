@@ -19,7 +19,10 @@ import "@testing-library/jest-dom/vitest";
 import { clearRemoteCards, useCards } from "@/entities/card";
 import { clearRemoteDecks, useDecks } from "@/entities/deck";
 
-vi.mock("@/shared/firebase", () => ({ db: { app: { options: { projectId: "unit-app" } } } }));
+vi.mock("@/shared/firebase", () => ({
+  auth: { currentUser: null },
+  db: { app: { options: { projectId: "unit-app" } } },
+}));
 vi.mock("firebase/firestore", async (importOriginal) => {
   const actual = await importOriginal<typeof import("firebase/firestore")>();
   return {

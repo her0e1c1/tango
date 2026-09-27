@@ -29,7 +29,7 @@ async function hasPendingChanges(uid: string): Promise<boolean> {
 interface AuthLifecycle {
   active: boolean;
   generation: number;
-  subscription: ({ uid: string } & ReturnType<typeof startFirestoreSubscriptions>) | undefined;
+  subscription: ({ uid: string; isAnonymous: boolean } & ReturnType<typeof startFirestoreSubscriptions>) | undefined;
   bootstrap: Promise<unknown> | undefined;
 }
 
@@ -70,9 +70,9 @@ async function bootstrapAnonymousSession(state: AuthLifecycle): Promise<void> {
 }
 
 async function restoreUserSession(state: AuthLifecycle, user: User, generation: number): Promise<void> {
-  if (state.subscription?.uid !== user.uid) {
+  if (state.subscription?.uid !== user.uid || state.subscription.isAnonymous !== user.isAnonymous) {
     stopSubscriptions(state);
-    state.subscription = { uid: user.uid, ...startFirestoreSubscriptions(user.uid) };
+    state.subscription = { uid: user.uid, isAnonymous: user.isAnonymous, ...startFirestoreSubscriptions(user.uid) };
   }
   await state.subscription.ready;
   if (!isCurrent(state, generation)) return;

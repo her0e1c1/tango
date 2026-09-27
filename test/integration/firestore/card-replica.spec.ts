@@ -18,19 +18,31 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { clearRemoteCards, getCards, subscribeCards, calculateFsrsState } from "@/entities/card";
+import {
+  clearRemoteCards,
+  getCards,
+  subscribeCards,
+  calculateFsrsState,
+  createCard as saveCard,
+  editCard,
+  deleteCard,
+} from "@/entities/card";
 import { restoreCardReplica, saveConfirmedCards } from "@/entities/card/api/replica";
 import * as documents from "@/entities/card/api/document";
 import * as store from "@/entities/card/model/store";
 import { replaceRemoteDecks } from "@/test/utils/entityFixtures";
 import { createCard, createDeck } from "@/test/factories";
 
-const connection = vi.hoisted(() => ({ db: undefined as unknown as Firestore }));
+const connection = vi.hoisted(() => ({ db: undefined as unknown as Firestore, isAnonymous: false }));
 vi.mock("@/shared/firebase", () => ({
   get db() {
     return connection.db;
   },
-  auth: { currentUser: null },
+  auth: {
+    get currentUser() {
+      return { isAnonymous: connection.isAnonymous };
+    },
+  },
 }));
 
 async function replicaDatabase() {
@@ -114,6 +126,7 @@ describe("Confirmed Card replica", () => {
   beforeEach(async () => {
     await environment.clearFirestore();
     uid = crypto.randomUUID();
+    connection.isAnonymous = false;
     connection.db = environment
       .authenticatedContext(uid, {
         firebase: { sign_in_provider: "google.com", identities: {} },
@@ -376,5 +389,22 @@ describe("Confirmed Card replica", () => {
     await write;
     await vi.waitFor(() => expect(getCards()[0]?.fsrs).toEqual(fsrs));
     expect((await readReplica()).cards[0]?.fsrs).toEqual(fsrs);
+  });
+  it("[FIRESTORE-CARD-REPLICA-11] keeps anonymous pending changes exclusively in the SDK cache", async () => {
+    connection.isAnonymous = true;
+    await disableNetwork(connection.db);
+    await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
+    expect(getCards()).toEqual([]);
+    await saveCard(uid, createCard({ id: "local", uid, deckId: "deck", frontText: "created" }));
+    await loaded(["local"]);
+    await editCard(uid, { id: "local", frontText: "edited" });
+    await vi.waitFor(() => expect(getCards()[0]?.frontText).toBe("edited"));
+    stop();
+    clearRemoteCards();
+    await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
+    expect(getCards()[0]?.frontText).toBe("edited");
+    await deleteCard(uid, "local");
+    await loaded([]);
+    expect(await indexedDB.databases()).toEqual([]);
   });
 });

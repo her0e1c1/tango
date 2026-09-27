@@ -18,7 +18,7 @@ import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import { mapCardDocument, parseCardDocument } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
-import { applyCardChanges, findCardById } from "../model/store";
+import { applyCardChanges, applyCardSnapshot, clearRemoteCards, findCardById } from "../model/store";
 
 import { cardReplicaSession, restoreCardReplica, saveConfirmedCards } from "./replica";
 
@@ -60,8 +60,41 @@ async function receiveCardSnapshot(state: CardSubscription, snapshot: QuerySnaps
   state.onReady?.();
 }
 
+// Anonymous data lives exclusively in the SDK cache, including pending writes.
+function subscribeLocalCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
+  cardReplicaSession.generation += 1;
+  const generation = cardReplicaSession.generation;
+  clearRemoteCards();
+  const report = (error: unknown) => {
+    if (generation === cardReplicaSession.generation)
+      onError(error instanceof Error ? error : new Error(String(error)));
+  };
+  const stop = onSnapshot(
+    query(collection(db, CARD_COLLECTION), where("uid", "==", uid)),
+    { includeMetadataChanges: true },
+    (snapshot) => {
+      if (generation !== cardReplicaSession.generation) return;
+      try {
+        const cards = snapshot.docs.map((item) =>
+          mapCardDocument(item.id, parseCardDocument(item.id, item.data({ serverTimestamps: "estimate" })))
+        );
+        applyCardSnapshot(cards);
+        onReady?.();
+      } catch (error) {
+        report(error);
+      }
+    },
+    report
+  );
+  return () => {
+    if (generation === cardReplicaSession.generation) cardReplicaSession.generation += 1;
+    stop();
+  };
+}
+
 // Include tombstones; the Store exposes only active documents.
 export function subscribeCards(uid: string, onError: (error: Error) => void, onReady?: () => void): () => void {
+  if (auth.currentUser?.isAnonymous) return subscribeLocalCards(uid, onError, onReady);
   const restored = restoreCardReplica(uid);
   const generation = cardReplicaSession.generation;
   let stop: (() => void) | undefined;
