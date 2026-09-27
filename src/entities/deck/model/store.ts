@@ -16,8 +16,8 @@ export const clearRemoteDecks = (): void => {
   deckStore.setState({ remoteDecks: [] });
 };
 
-export function applyDeckSnapshot(decks: (Deck | null)[]) {
+export function setRemoteDecks(decks: Deck[]) {
   deckStore.setState({
-    remoteDecks: decks.filter((deck) => deck !== null).sort((left, right) => left.id.localeCompare(right.id)),
+    remoteDecks: decks.toSorted((left, right) => left.id.localeCompare(right.id)),
   });
 }
