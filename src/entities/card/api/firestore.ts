@@ -55,14 +55,10 @@ async function receiveCardSnapshot(state: CardSubscription, snapshot: QuerySnaps
     document: parseCardDocument(item.id, item.data()),
   }));
   const cards = documents.map(({ id, document }) => mapCardDocument(id, document));
-  // Legacy numeric timestamps are imported on full sync, never used as server checkpoints.
   const checkpoint = snapshot.metadata.hasPendingWrites
     ? state.lastUpdatedAt
     : documents.reduce(
-        (latest, { document }) =>
-          typeof document.updatedAt === "number"
-            ? latest
-            : Math.max(latest ?? 0, document.updatedAt.toDate().getTime()),
+        (latest, { document }) => Math.max(latest ?? 0, document.updatedAt.toDate().getTime()),
         state.lastUpdatedAt
       );
   await saveConfirmedCards(state.uid, cards, checkpoint, { replace: state.replace, signal: state.signal });
