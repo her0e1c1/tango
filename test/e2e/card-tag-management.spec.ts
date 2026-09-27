@@ -168,6 +168,11 @@ test("CARD-TAG-MANAGEMENT-05 keeps offline Card tag edits across reload and reco
   await context.setOffline(false);
   await expect.poll(() => readTags(card.id)).toEqual(["offline", "kept"]);
   await expect(page).toHaveURL(`/card/${card.id}/edit`);
+  await page.goto(`/deck/${card.deckId}`);
+  await expect(
+    page.getByRole("article").filter({ hasText: card.frontText }).getByText("offline", { exact: true })
+  ).toBeVisible();
+  await page.goto(`/card/${card.id}/edit`);
   await page.reload();
   await openTags(page);
   await expect(page.getByRole("textbox", { name: "Tag name 1", exact: true })).toHaveValue("offline");
