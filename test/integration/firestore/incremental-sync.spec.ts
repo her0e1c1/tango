@@ -202,10 +202,12 @@ describe("Firestore synchronization contracts", () => {
       name: "updated",
       updatedAt: expect.any(Number),
     });
-    expect(getCards().find(({ id }) => id === "legacy")).toMatchObject({
-      frontText: "updated",
-      updatedAt: expect.any(Number),
-    });
+    await vi.waitFor(() =>
+      expect(getCards().find(({ id }) => id === "legacy")).toMatchObject({
+        frontText: "updated",
+        updatedAt: expect.any(Number),
+      })
+    );
   });
 
   it("[FIRESTORE-INCREMENTAL-SYNC-01] merges consecutive snapshots without losing unchanged or same-timestamp documents", async () => {

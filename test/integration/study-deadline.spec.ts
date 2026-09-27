@@ -16,7 +16,7 @@ const now = Date.parse("2026-09-21T00:00:00Z");
 const deck = createDeck({ id: "deck", uid: "uid", studyFilter: { selectedTags: [], tagAndFilter: false } });
 function setDeadline(dueAt: number) {
   cardStore.setState({
-    remoteCards: [createCard({ id: "card", deckId: deck.id, uid: "uid" })],
+    cardsById: { card: createCard({ id: "card", deckId: deck.id, uid: "uid" }) },
   });
   seedCardFsrs("card", dueAt);
 }

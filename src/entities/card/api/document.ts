@@ -44,3 +44,17 @@ export const mapCardDocument = (id: CardId, document: CardDocument): RemoteCard 
   };
   return card;
 };
+
+export const cardReplicaMetadataSchema = z.object({
+  uid: z.string().min(1),
+  lastUpdatedAt: z.number().nullable(),
+  version: z.literal(1),
+  count: z.number().int().nonnegative(),
+});
+
+export type CardReplicaMetadata = z.infer<typeof cardReplicaMetadataSchema>;
+
+export const cardReplicaSchema = cardDocumentSchema.extend({
+  id: z.string().min(1),
+  updatedAt: z.number(),
+});

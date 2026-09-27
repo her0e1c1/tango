@@ -225,3 +225,19 @@
 | FIRESTORE-INCREMENTAL-SYNC-02 | batch | 正常系 | [購読中の論理削除を反映する](./incremental-sync.md#firestore-incremental-sync-02) |
 | FIRESTORE-INCREMENTAL-SYNC-03 | read | 正常系 | [購読再開後に停止中の変更を反映する](./incremental-sync.md#firestore-incremental-sync-03) |
 | FIRESTORE-INCREMENTAL-SYNC-04 | read | 正常系 | [数値の更新日時を持つ既存データから起動できる](./incremental-sync.md#firestore-incremental-sync-04) |
+
+### card-replica
+
+| ID | カテゴリ | 区分 | テストケース |
+| --- | --- | --- | --- |
+| FIRESTORE-CARD-REPLICA-01 | read | 正常系 | [同一時刻の境界と停止中の変更を差分復元する](./card-replica.md#firestore-card-replica-01) |
+| FIRESTORE-CARD-REPLICA-02 | read | 異常系 | [失われた replica と不正な metadata を全件取得で復旧する](./card-replica.md#firestore-card-replica-02) |
+| FIRESTORE-CARD-REPLICA-03 | read | 異常系 | [pending の更新と拒否で確定値を維持する](./card-replica.md#firestore-card-replica-03) |
+| FIRESTORE-CARD-REPLICA-04 | read | 異常系 | [pending のまま停止して拒否されても確定値を復元する](./card-replica.md#firestore-card-replica-04) |
+| FIRESTORE-CARD-REPLICA-05 | read | 異常系 | [不正 document を部分適用せず修復後に復帰する](./card-replica.md#firestore-card-replica-05) |
+| FIRESTORE-CARD-REPLICA-06 | read | 正常系 | [UID 切替と復元中の停止で古い Card を表示しない](./card-replica.md#firestore-card-replica-06) |
+| FIRESTORE-CARD-REPLICA-07 | read | 異常系 | [transaction 失敗で checkpoint だけ先行しない](./card-replica.md#firestore-card-replica-07) |
+| FIRESTORE-CARD-REPLICA-08 | read | 正常系 | [少数更新の処理件数を Card 総数から独立させる](./card-replica.md#firestore-card-replica-08) |
+| FIRESTORE-CARD-REPLICA-09 | read | 正常系 | [cache のみでは checkpoint を進めない](./card-replica.md#firestore-card-replica-09) |
+| FIRESTORE-CARD-REPLICA-10 | read | 正常系 | [FSRS は確定後に反映する](./card-replica.md#firestore-card-replica-10) |
+| FIRESTORE-CARD-REPLICA-11 | batch | 正常系 | [匿名は replica を使わずローカル変更を表示する](./card-replica.md#firestore-card-replica-11) |

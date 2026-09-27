@@ -51,18 +51,22 @@ vi.mock("@/entities/card/api/firestore", async (original) => {
         updatedAt: Date.now(),
       };
       cardStore.setState((state) => ({
-        remoteCards: [...state.remoteCards.filter((value) => value.id !== card.id), card],
+        cardsById: { ...state.cardsById, [card.id]: card },
       }));
     },
     editCard: async (_uid: string, input: { id: string }) => {
       await Promise.resolve();
       cardStore.setState((state) => ({
-        remoteCards: state.remoteCards.map((card) => (card.id === input.id ? { ...card, ...input } : card)),
+        cardsById: Object.fromEntries(
+          Object.values(state.cardsById).map((card) => [card.id, card.id === input.id ? { ...card, ...input } : card])
+        ),
       }));
     },
     deleteCard: async (_uid: string, id: string) => {
       await Promise.resolve();
-      cardStore.setState((state) => ({ remoteCards: state.remoteCards.filter((card) => card.id !== id) }));
+      cardStore.setState((state) => ({
+        cardsById: Object.fromEntries(Object.entries(state.cardsById).filter(([key]) => key !== id)),
+      }));
     },
     subscribeCards: () => () => undefined,
     mutateCards: async (uid: string, mutations: import("@/entities/card").CardMutation[]) => {

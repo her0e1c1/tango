@@ -41,7 +41,7 @@ export function startStudy(
 }
 
 export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
-  cardStore.setState({ remoteCards });
+  cardStore.setState({ cardsById: Object.fromEntries(remoteCards.map((card) => [card.id, card])) });
 };
 
 export const replaceRemoteDecks = (remoteDecks: Deck[]): void => {

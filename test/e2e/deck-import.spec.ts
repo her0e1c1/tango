@@ -317,9 +317,12 @@ test.describe("import", () => {
     const fault = await failNextFirestoreWrite(page, { collection: "card" });
 
     await page.getByRole("button", { name: /^Add \d+ cards?$/u }).click();
-    await expect(page).toHaveURL(/\/$/);
     await expect.poll(fault.wasTriggered).toBe(true);
     await fault.waitForFailure();
+    await expect(page.getByRole("alert")).toContainText("You do not have permission to import this data.");
+    await expect(page).toHaveURL(/\/import$/);
+    await expect(page.getByRole("status").filter({ hasText: "Imported 1 card." })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Add \d+ cards?$/u })).toBeEnabled();
     await fault.dispose();
     expect(await documentsForUid("card", uid)).toEqual([]);
     expect(await documentsForUid("deck", uid)).toHaveLength(1);

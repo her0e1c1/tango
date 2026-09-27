@@ -65,7 +65,8 @@
 - Only `document.ts` and `firestore.ts` may be created under `api/`.
 - `document.ts` defines persistence document types and conversions.
 - `firestore.ts` defines Entity-specific Firestore access.
-- Account is the only exception: `entities/auth/api/` may additionally contain external sign-in/sign-out calls.
+- `entities/auth/api/` may additionally contain external sign-in/sign-out calls.
+- `entities/card/api/replica.ts` owns the confirmed Card IndexedDB replica and checkpoint; keep it separate from Firestore transport.
 - Do not create any other implementation files or tests under `api/`; Entity APIs are covered by integration tests.
 
 ## `ui/`

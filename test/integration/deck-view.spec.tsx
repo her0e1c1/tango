@@ -218,8 +218,8 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
 
   it("does not persist local viewing playback or bidirectional slider movement", async () => {
     const deck = createLocalDeck({ id: "playback-local", name: "Playback" });
-    const cards = ["One", "Two", "Three"].map((name) =>
-      createLocalCard({ id: name, deckId: deck.id, frontText: name, uniqueKey: name })
+    const cards = ["One", "Two", "Three"].map((name, index) =>
+      createLocalCard({ id: `playback-card-${index}`, deckId: deck.id, frontText: name, uniqueKey: name })
     );
     await seedLocalDeck(deck, cards);
     updatePreferences({ study: { cardInterval: 1, defaultAutoPlay: true } });

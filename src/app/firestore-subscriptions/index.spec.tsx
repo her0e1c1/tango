@@ -5,6 +5,10 @@ interface FirestoreQuery {
 
 interface FirestoreSnapshot {
   docs: { id: string; data: () => Record<string, unknown> }[];
+  docChanges?: () => {
+    type: string;
+    doc: { id: string; data: () => Record<string, unknown>; metadata: { hasPendingWrites: boolean } };
+  }[];
   metadata: { fromCache: boolean; hasPendingWrites: boolean };
 }
 
@@ -15,7 +19,10 @@ import "@testing-library/jest-dom/vitest";
 import { clearRemoteCards, useCards } from "@/entities/card";
 import { clearRemoteDecks, useDecks } from "@/entities/deck";
 
-vi.mock("@/shared/firebase", () => ({ db: { app: { options: { projectId: "unit-app" } } } }));
+vi.mock("@/shared/firebase", () => ({
+  auth: { currentUser: null },
+  db: { app: { options: { projectId: "unit-app" } } },
+}));
 vi.mock("firebase/firestore", async (importOriginal) => {
   const actual = await importOriginal<typeof import("firebase/firestore")>();
   return {
@@ -74,7 +81,8 @@ vi.mock("firebase/firestore", async (importOriginal) => {
             };
       publishSnapshot({
         docs: [document],
-        metadata: { fromCache: true, hasPendingWrites: false },
+        docChanges: () => [{ type: "added", doc: { ...document, metadata: { hasPendingWrites: false } } }],
+        metadata: { fromCache: false, hasPendingWrites: false },
       });
       return () => undefined;
     },
@@ -99,11 +107,11 @@ describe("Firestore subscriptions [PERSISTENCE-01 PERSISTENCE-04 ACCOUNT-03]", (
     clearRemoteCards();
     clearRemoteDecks();
   });
-  it.each(["anonymous-uid", "linked-uid"])("publishes cached data for %s and clears it on cleanup", async (uid) => {
+  it.each(["anonymous-uid", "linked-uid"])("publishes confirmed data for %s and clears it on cleanup", async (uid) => {
     const { stop } = startFirestoreSubscriptions(uid);
     render(<RepositoryView />);
     expect(await screen.findByText(`Deck for ${uid}`)).toBeVisible();
-    expect(screen.getByText(`Front for ${uid}`)).toBeVisible();
+    expect(await screen.findByText(`Front for ${uid}`)).toBeVisible();
     act(() => stop());
     expect(screen.queryByText(`Deck for ${uid}`)).not.toBeInTheDocument();
     expect(screen.queryByText(`Front for ${uid}`)).not.toBeInTheDocument();
