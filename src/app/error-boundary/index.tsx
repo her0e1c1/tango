@@ -6,7 +6,7 @@ import { getRecoveryMessages } from "../i18n/resources";
 
 import { clearLocalDataAndReload } from "./clear-local-data";
 
-import { RouteFeedback } from "@/shared/ui/route-feedback";
+import { RouteFeedback, type RouteFeedbackProps } from "@/shared/ui/route-feedback";
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
@@ -32,58 +32,49 @@ function useRecoveryMessages() {
   return messages;
 }
 
-export function AppErrorFallback({
-  title,
-  description,
-  error,
-  allowLocalDataReset = false,
-}: {
+interface AppErrorFallbackProps {
   title?: string;
   description?: string;
   error?: unknown;
   allowLocalDataReset?: boolean;
-}) {
+}
+
+export function AppErrorFallback({ title, description, error, allowLocalDataReset = false }: AppErrorFallbackProps) {
   const messages = useRecoveryMessages();
-  const [clearing, setClearing] = useState(false);
-  const [clearFailed, setClearFailed] = useState(false);
-  const clearData = () => {
-    setClearing(true);
-    setClearFailed(false);
-    void clearLocalDataAndReload().catch(() => {
-      setClearing(false);
-      setClearFailed(true);
-    });
-  };
+  const [status, setStatus] = useState<"idle" | "clearing" | "failed">("idle");
+
+  function clearData() {
+    setStatus("clearing");
+    void clearLocalDataAndReload().catch(() => setStatus("failed"));
+  }
+
   const detail = error instanceof Error ? error.message : typeof error === "string" ? error : "";
-  return (
-    <RouteFeedback
-      title={title ?? messages.title}
-      description={[
-        description,
-        allowLocalDataReset ? messages.localDataDescription : messages.description,
-        detail,
-        clearing && messages.clearing,
-        clearFailed && messages.clearFailed,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-      tone="error"
-      {...(clearing
-        ? {}
-        : {
-            primaryAction: { label: messages.reload, onClick: reloadPage },
-            ...(allowLocalDataReset
-              ? {
-                  secondaryAction: {
-                    label: messages.clearLocalData,
-                    onClick: clearData,
-                    variant: "destructive" as const,
-                  },
-                }
-              : {}),
-          })}
-    />
-  );
+  const feedback: RouteFeedbackProps = {
+    title: title ?? messages.title,
+    description: [
+      description,
+      allowLocalDataReset ? messages.localDataDescription : messages.description,
+      detail,
+      status === "clearing" && messages.clearing,
+      status === "failed" && messages.clearFailed,
+    ]
+      .filter(Boolean)
+      .join(" "),
+    tone: "error",
+  };
+
+  if (status !== "clearing") {
+    feedback.primaryAction = { label: messages.reload, onClick: reloadPage };
+    if (allowLocalDataReset) {
+      feedback.secondaryAction = {
+        label: messages.clearLocalData,
+        onClick: clearData,
+        variant: "destructive",
+      };
+    }
+  }
+
+  return <RouteFeedback {...feedback} />;
 }
 
 // biome-ignore lint/style/useReactFunctionComponents: React requires a class to define an Error Boundary without another dependency.
