@@ -2,7 +2,7 @@ import "@/test/mockFirestorePersistence";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { mutateCards } from "@/entities/card";
+import { createCard } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { setDarkMode, updatePreferences } from "@/entities/preference";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
@@ -24,7 +24,7 @@ describe("CARD-VIEW-04 CARD-VIEW-05 useCardViewState", () => {
   beforeEach(async () => {
     updatePreferences(createPreferences({ appearance: { darkMode: true } }));
     await createDeck("user-id", deck);
-    await mutateCards("user-id", [{ kind: "create", card }]);
+    await createCard("user-id", card);
   });
 
   afterEach(async () => {

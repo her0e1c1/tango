@@ -2,7 +2,7 @@ import { showToast } from "@/shared/ui/toast";
 import { generateId } from "@/shared/lib/generateId";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getAuthUid } from "@/entities/auth";
-import { mutateCards } from "@/entities/card";
+import { createCard } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { parseCsv } from "../../lib/cardCsv";
 import { deckImportStore } from "../store";
@@ -13,7 +13,7 @@ vi.mock("@/shared/lib/generateId", () => ({ generateId: vi.fn() }));
 vi.mock("@/entities/auth", () => ({ getAuthUid: vi.fn() }));
 vi.mock("../../lib/cardCsv", () => ({ parseCsv: vi.fn() }));
 vi.mock("@/shared/ui/toast", () => ({ showToast: vi.fn() }));
-vi.mock("@/entities/card", () => ({ mutateCards: vi.fn() }));
+vi.mock("@/entities/card", () => ({ createCard: vi.fn() }));
 vi.mock("@/entities/deck", () => ({ createDeck: vi.fn() }));
 
 describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-IMPORT-04]", () => {
@@ -30,7 +30,7 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     vi.mocked(getAuthUid).mockReturnValue("uid");
     vi.mocked(parseCsv).mockReset().mockResolvedValue({ rows, skippedRows: [], issues: [], invalidCount: 0 });
     vi.mocked(createDeck).mockReset();
-    vi.mocked(mutateCards).mockReset();
+    vi.mocked(createCard).mockReset();
     vi.mocked(generateId).mockReset().mockReturnValueOnce("deck").mockReturnValue("card");
   });
 
@@ -45,14 +45,14 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
       expect(deckImportStore.getState()).toMatchObject({ status: "idle", source: { kind: "error" } });
       expect(await importDeckPreview()).toBe(false);
       expect(createDeck).not.toHaveBeenCalled();
-      expect(mutateCards).not.toHaveBeenCalled();
+      expect(createCard).not.toHaveBeenCalled();
       await selectDeckImportFile(file("recovered.csv"));
       expect(await importDeckPreview()).toBe(true);
     }
   );
 
   it("passes valid Japanese and literal replacement characters to the CSV parser unchanged", async () => {
-    const text = "日本語�,回答�,タグ,key";
+    const text = "日本語,回答,タグ,key";
     await selectDeckImportFile(new File([text], "valid.csv"));
     expect(parseCsv).toHaveBeenCalledWith(text);
   });
@@ -60,16 +60,11 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
   it("previews a remote CSV before saving its Deck and Cards", async () => {
     await selectDeckImportFile(file("deck.csv"));
     expect(createDeck).not.toHaveBeenCalled();
-    expect(mutateCards).not.toHaveBeenCalled();
+    expect(createCard).not.toHaveBeenCalled();
     await expect(importDeckPreview()).resolves.toBe(true);
 
     expect(createDeck).toHaveBeenCalledWith("uid", { id: "deck", name: "deck.csv" });
-    expect(mutateCards).toHaveBeenCalledWith("uid", [
-      {
-        kind: "create",
-        card: { ...row.card, id: "card", deckId: "deck" },
-      },
-    ]);
+    expect(createCard).toHaveBeenCalledWith("uid", { ...row.card, id: "card", deckId: "deck" });
   });
 
   it.each(["success", "failure"])("detaches an old account import on %s and permits a new import", async (outcome) => {
@@ -96,12 +91,7 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     await expect(importDeckPreview()).resolves.toBe(true);
 
     expect(createDeck).toHaveBeenCalledWith("anonymous-uid", { id: "local-deck", name: "local.csv" });
-    expect(mutateCards).toHaveBeenCalledWith("anonymous-uid", [
-      {
-        kind: "create",
-        card: { ...row.card, id: "local-card", deckId: "local-deck" },
-      },
-    ]);
+    expect(createCard).toHaveBeenCalledWith("anonymous-uid", { ...row.card, id: "local-card", deckId: "local-deck" });
   });
 
   it("uses the same API for anonymous imports", async () => {
@@ -110,8 +100,6 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     await expect(importDeckPreview()).resolves.toBe(true);
 
     expect(createDeck).toHaveBeenCalledWith("anonymous-uid", { id: "deck", name: "guest.csv" });
-    expect(mutateCards).toHaveBeenCalledWith("anonymous-uid", [
-      { kind: "create", card: { ...row.card, id: "card", deckId: "deck" } },
-    ]);
+    expect(createCard).toHaveBeenCalledWith("anonymous-uid", { ...row.card, id: "card", deckId: "deck" });
   });
 });

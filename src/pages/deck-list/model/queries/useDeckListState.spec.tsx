@@ -3,7 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
-import { mutateCards } from "@/entities/card";
+import { createCard } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions } from "@/entities/study-session";
@@ -42,10 +42,7 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
     replaceAuthSession({ status: "authenticated", uid: "user-id", displayName: null, isAnonymous: true });
     clearStudySessions();
     await Promise.all(decks.map((deck) => createDeck("user-id", deck)));
-    await mutateCards(
-      "user-id",
-      cards.map((card) => ({ kind: "create" as const, card }))
-    );
+    await Promise.all(cards.map((card) => createCard("user-id", card)));
 
     vi.setSystemTime(100);
     startStudy("active-old", cardsForDeck("active-old"), studyPreferences, "user-id");

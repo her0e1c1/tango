@@ -92,6 +92,7 @@ describe("NAVIGATION-22 Application startup recovery", () => {
     const pendingImport = new Promise<never>((_resolve, reject) => {
       fail = reject;
     });
+    vi.resetModules();
     vi.doMock("@/shared/firebase", () => pendingImport);
     await actAsync(async () => {
       await import("./main");

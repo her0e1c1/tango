@@ -4,7 +4,7 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
-import { mutateCards } from "@/entities/card";
+import { createCard } from "@/entities/card";
 import { createDeck, deleteDeck, getStudyFilter } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
@@ -54,11 +54,9 @@ describe("useStudySessionStartState [STUDY-SESSION-01]", () => {
     clearStudySessions();
     updatePreferences(preferences);
     await createDeck("user-id", deck);
-    await mutateCards("user-id", [
-      { kind: "create", card: eligibleCard },
-      { kind: "create", card: laterCard },
-      { kind: "create", card: futureCard },
-    ]);
+    await createCard("user-id", eligibleCard);
+    await createCard("user-id", laterCard);
+    await createCard("user-id", futureCard);
     seedCardFsrs(futureCard.id, 253_402_300_799_999);
   });
 

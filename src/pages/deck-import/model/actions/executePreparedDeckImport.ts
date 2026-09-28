@@ -1,5 +1,5 @@
 import { getAuthUid } from "@/entities/auth";
-import { mutateCards, type CardMutation } from "@/entities/card";
+import { createCard, editCard, type CardMutation } from "@/entities/card";
 import { createDeck, type RemoteDeckCreateInput } from "@/entities/deck";
 import { ImportFailure } from "../../lib/importFailure";
 
@@ -13,5 +13,13 @@ export async function executePreparedDeckImport(prepared: PreparedDeckImport): P
   const uid = getAuthUid();
   if (prepared.uid !== uid) throw new ImportFailure("account-changed");
   await createDeck(uid, prepared.destination);
-  if (prepared.mutations.length > 0) await mutateCards(uid, prepared.mutations);
+  if (prepared.mutations.length > 0) {
+    const results = await Promise.allSettled(
+      prepared.mutations.map((mutation) =>
+        mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
+      )
+    );
+    const failure = results.find((result) => result.status === "rejected");
+    if (failure?.status === "rejected") throw failure.reason;
+  }
 }

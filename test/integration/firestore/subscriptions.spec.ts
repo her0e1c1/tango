@@ -8,7 +8,7 @@ import "@/test/initializeTestFirestore";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteApp, getApps } from "firebase/app";
 
-import { deleteCard, editCard, mutateCards, subscribeCards } from "@/entities/card";
+import { createCard as createCardCommand, deleteCard, editCard, subscribeCards } from "@/entities/card";
 import { createDeck, deleteDeck, editDeck, subscribeDecks } from "@/entities/deck";
 import { cardStore } from "@/entities/card/model/store";
 import { deckStore } from "@/entities/deck/model/store";
@@ -40,7 +40,7 @@ describe("Query realtime subscriptions", () => {
     });
     await createDeck(uid, createRemoteDeckInput({ id: deck.id, name: deck.name }));
     deckStore.setState({ remoteDecks: [deck] });
-    await mutateCards(uid, [{ kind: "create", card }]);
+    await createCardCommand(uid, card);
 
     const onError = vi.fn();
     const stopCards = subscribeCards(uid, onError);
@@ -69,7 +69,7 @@ describe("Query realtime subscriptions", () => {
       await vi.waitFor(() => {
         expect(deckStore.getState().remoteDecks).toContainEqual(expect.objectContaining({ id: deck.id }));
       });
-      await mutateCards(uid, [{ kind: "create", card }]);
+      await createCardCommand(uid, card);
       await vi.waitFor(() => {
         expect(Object.values(cardStore.getState().cardsById)).toContainEqual(expect.objectContaining({ id: card.id }));
       });
@@ -114,7 +114,7 @@ describe("Query realtime subscriptions", () => {
         expect.objectContaining({ id: deck.id, name: "Before stop" })
       );
     });
-    await mutateCards(uid, [{ kind: "create", card }]);
+    await createCardCommand(uid, card);
     await vi.waitFor(() => {
       expect(Object.values(cardStore.getState().cardsById)).toContainEqual(
         expect.objectContaining({ id: card.id, frontText: "Before stop" })

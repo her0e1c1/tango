@@ -7,7 +7,7 @@ import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { mutateCards } from "@/entities/card";
+import { createCard } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -66,29 +66,27 @@ describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MAN
       })
     );
     await createDeck("user-id", createLocalDeck({ id: nextDeckId, name: "Next deck" }));
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({
-          id: cardId,
-          deckId,
-          frontText: "Front one",
-          backText: "Back one",
-          tags: ["typescript"],
-          uniqueKey: "card-one",
-        }),
-      },
-      {
-        kind: "create",
-        card: createLocalCard({
-          id: nextCardId,
-          deckId: nextDeckId,
-          frontText: "Front two",
-          backText: "Back two",
-          uniqueKey: "card-two",
-        }),
-      },
-    ]);
+    await createCard(
+      "user-id",
+      createLocalCard({
+        id: cardId,
+        deckId,
+        frontText: "Front one",
+        backText: "Back one",
+        tags: ["typescript"],
+        uniqueKey: "card-one",
+      })
+    );
+    await createCard(
+      "user-id",
+      createLocalCard({
+        id: nextCardId,
+        deckId: nextDeckId,
+        frontText: "Front two",
+        backText: "Back two",
+        uniqueKey: "card-two",
+      })
+    );
   });
 
   it("renders stored cards and navigates to the selected card editor", async () => {
@@ -124,20 +122,19 @@ describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MAN
   });
 
   it("uses the shared progressive tag filter", async () => {
-    await mutateCards(
-      "user-id",
+    await Promise.all(
       Array.from({ length: 12 }, (_, index) => {
         const suffix = String(index + 1).padStart(2, "0");
-        return {
-          kind: "create" as const,
-          card: createLocalCard({
+        return createCard(
+          "user-id",
+          createLocalCard({
             id: `tag-card-${suffix}`,
             deckId,
             frontText: `Tagged card ${suffix}`,
             tags: [`tag-${suffix}`],
             uniqueKey: `tag-card-${suffix}`,
-          }),
-        };
+          })
+        );
       })
     );
     renderPage();
@@ -217,18 +214,16 @@ describe("NAVIGATION-02 NAVIGATION-07 CARD-VIEW-01 CARD-LIST-ACTIONS-01 CARD-MAN
         cardFilter: { selectedTags: ["missing"], tagAndFilter: true },
       })
     );
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({
-          id: "card-diff-8",
-          deckId: filteredDeckId,
-          frontText: "High diff",
-          tags: ["react"],
-          uniqueKey: "card-diff-8",
-        }),
-      },
-    ]);
+    await createCard(
+      "user-id",
+      createLocalCard({
+        id: "card-diff-8",
+        deckId: filteredDeckId,
+        frontText: "High diff",
+        tags: ["react"],
+        uniqueKey: "card-diff-8",
+      })
+    );
 
     renderPage(`/deck/${filteredDeckId}`);
 

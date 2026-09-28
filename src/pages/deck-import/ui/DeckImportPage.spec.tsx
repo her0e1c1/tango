@@ -28,7 +28,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    mutateCards: async (...arguments_: Parameters<typeof actual.mutateCards>) => {
+    createCard: async (...arguments_: Parameters<typeof actual.createCard>) => {
       const wait = controls.nextMutationWait;
       controls.nextMutationWait = undefined;
       if (wait !== undefined) await wait;
@@ -37,7 +37,7 @@ vi.mock("@/entities/card", async (importOriginal) => {
         controls.nextMutationError = undefined;
         throw error;
       }
-      return actual.mutateCards(...arguments_);
+      return actual.createCard(...arguments_);
     },
   };
 });

@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
-import { deleteCard, mutateCards } from "@/entities/card";
+import { createCard, deleteCard } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession, subscribeStudySessions } from "@/entities/study-session";
 import { startStudy, restoreStudySession } from "@/test/utils/entityFixtures";
@@ -152,10 +152,8 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     mocks.toggleShowSkip.mockReset();
     mocks.toggleShowSwipeButtonList.mockReset();
     await createDeck("user-id", deck);
-    await mutateCards("user-id", [
-      { kind: "create", card: firstCard },
-      { kind: "create", card: secondCard },
-    ]);
+    await createCard("user-id", firstCard);
+    await createCard("user-id", secondCard);
     startStudy(deckId, [firstCard, secondCard], mocks.preferences.study, "user-id");
   });
 

@@ -1,4 +1,4 @@
-import type { CardId, CardCreateCommand, CardEditInput, CardMutation } from "../model/types";
+import type { CardId, CardCreateCommand, CardEditInput } from "../model/types";
 import { FirebaseError } from "firebase/app";
 import {
   getDocFromCache,
@@ -198,14 +198,4 @@ function requireOwnedCard(uid: string, id: CardId) {
   if (card === undefined) throw new Error(`Card "${id}" was not found`);
   if (!uid || card.uid !== uid) throw new Error("Card owner does not match the authenticated user");
   return card;
-}
-
-export async function mutateCards(uid: string, mutations: CardMutation[]): Promise<void> {
-  const results = await Promise.allSettled(
-    mutations.map((mutation) =>
-      mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
-    )
-  );
-  const failure = results.find((result) => result.status === "rejected");
-  if (failure?.status === "rejected") throw failure.reason;
 }

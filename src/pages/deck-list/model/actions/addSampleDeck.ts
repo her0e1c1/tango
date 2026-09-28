@@ -2,7 +2,7 @@ import type { CardMutation } from "@/entities/card";
 import type { DeckId, RemoteDeckCreateInput } from "@/entities/deck";
 
 import { getAuthUid } from "@/entities/auth";
-import { mutateCards } from "@/entities/card";
+import { createCard, editCard } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import sampleCards from "../../../../../sample/build/output.json";
@@ -34,7 +34,15 @@ export async function addSampleDeck() {
   const uid = getAuthUid();
   const sample = prepareSampleDeck(uid);
   await createDeck(uid, sample.destination);
-  if (sample.mutations.length > 0) await mutateCards(uid, sample.mutations);
+  if (sample.mutations.length > 0) {
+    const results = await Promise.allSettled(
+      sample.mutations.map((mutation) =>
+        mutation.kind === "create" ? createCard(uid, mutation.card) : editCard(uid, mutation.card)
+      )
+    );
+    const failure = results.find((result) => result.status === "rejected");
+    if (failure?.status === "rejected") throw failure.reason;
+  }
   updatePreferences({ loadSample: false });
 
   return {
