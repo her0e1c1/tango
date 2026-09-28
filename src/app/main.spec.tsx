@@ -16,6 +16,8 @@ vi.mock("./error-boundary/clear-local-data", () => ({
   clearLocalDataBeforeStartup: startup.clear,
   clearLocalDataAndReload: startup.retry,
 }));
+vi.mock("./App", () => ({ default: () => null }));
+vi.mock("./routes", () => ({ appRoutes: [{ path: "*", element: null }] }));
 vi.mock("react-dom/client", async (importOriginal) => {
   const original = await importOriginal<typeof import("react-dom/client")>();
   return {
@@ -30,7 +32,7 @@ vi.mock("react-dom/client", async (importOriginal) => {
 
 beforeEach(() => {
   vi.resetModules();
-  vi.doMock("./render-app", () => {
+  vi.doMock("@/shared/firebase", () => {
     startup.start();
     return {};
   });
