@@ -1,20 +1,28 @@
 import "./styles/index.css";
-import "@/shared/firebase";
-import React from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter } from "react-router-dom";
-import App from "./App";
-import { AppErrorBoundary } from "./error-boundary";
-import { appRoutes } from "./routes";
+import { AppErrorFallback } from "./error-boundary";
+import { clearLocalDataBeforeStartup, isLocalDataResetRequested } from "./error-boundary/clear-local-data";
+import { getRecoveryMessages } from "./i18n/resources";
 
-const router = createBrowserRouter(appRoutes);
-const root = document.getElementById("root");
-if (root == null) throw new Error("Missing root element");
+async function startApplication(): Promise<void> {
+  let resetting = false;
+  try {
+    resetting = isLocalDataResetRequested();
+    if (resetting) await clearLocalDataBeforeStartup();
+    resetting = false;
+    // No Firebase or persisted application state may initialize until the requested reset completes.
+    await import("./render-app");
+  } catch (error) {
+    const root = document.getElementById("root");
+    if (root === null) throw error;
+    createRoot(root).render(
+      <AppErrorFallback
+        error={error}
+        allowLocalDataReset={resetting}
+        description={resetting ? getRecoveryMessages("en").clearFailed : ""}
+      />
+    );
+  }
+}
 
-createRoot(root).render(
-  <React.StrictMode>
-    <AppErrorBoundary>
-      <App router={router} />
-    </AppErrorBoundary>
-  </React.StrictMode>
-);
+void startApplication();

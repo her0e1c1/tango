@@ -29,6 +29,7 @@ Deck、Card 一覧、閲覧、および全ページの主要画面の表示・�
 | NAVIGATION-19 | write | 正常系 | [view mode で長い表面を読みながら移動を防止できる](#navigation-19) |
 | NAVIGATION-20 | write | 正常系 | [閲覧の view mode 終了後に通常の表裏操作へ戻れる](#navigation-20) |
 | NAVIGATION-21 | write | 正常系 | [view mode 中も閲覧ボタンと自動再生を使える](#navigation-21) |
+| NAVIGATION-22 | batch | 異常系 | [保存データの初期化失敗からローカルデータを削除して再起動する](#navigation-22) |
 
 <a id="navigation-01"></a>
 
@@ -571,7 +572,7 @@ Then:
 
 <a id="navigation-22"></a>
 
-### NAVIGATION-22 保存データの初期化失敗からローカル DB を削除して再起動する
+### NAVIGATION-22 保存データの初期化失敗からローカルデータを削除して再起動する
 
 カテゴリ: `batch`
 
@@ -582,16 +583,17 @@ Given:
 - Fixture: [`empty`](./fixture/empty.yaml)
 - 匿名ユーザーの Deck・Card・学習データが Firestore の永続キャッシュに保存されている。
 - 保存データの初期化または購読開始時に読み込みが失敗する。
-- 設定、認証、アプリのキャッシュと追加のブラウザー保存データがある。
+- 設定、認証、Card replica を含む IndexedDB、localStorage、sessionStorage と PWA キャッシュがある。
 
 When:
 
-- 保存データの読み込み失敗による復旧画面で、警告を読んでローカル DB の削除を選択する。
+- 保存データの読み込み失敗による復旧画面で、警告を読んでローカルデータの削除を選択する。
 
 Then:
 
-- Firestore の保存済みデータと未同期の変更を削除して元の URL で再起動し、アプリを再び利用できる。
-- 削除前に保存済みデータと未同期の変更が失われ、匿名データを復元できないことを明示する。
+- Tango origin の全 IndexedDB（Firestore・認証・Card replica を含む）・localStorage・sessionStorage を削除して元の URL で起動する。
+- 削除前にログアウト・設定初期化・保存データと未同期変更の消失を警告し、匿名データを復元できないことを明示する。
 - 匿名ユーザーの Deck・Card・学習データは再読み込み後も復活しない。
-- 同じ認証 UID、言語設定、アプリのキャッシュ、追加の保存データは保持する。
-- 削除中は復旧操作を重ねて実行できない。失敗時は自動再読み込みせず、他の Tango のタブを閉じて再試行するよう表示する。
+- 以前の認証 UID・言語設定・追加の保存データは残らず、新しい匿名ユーザーと既定の設定で利用できる。起動に必要な保存領域が再作成されても以前のデータは復元されない。
+- Service Worker の登録と Cache Storage の内容は保持する。
+- 削除中は復旧操作を重ねて実行できない。削除失敗時はアプリを起動せず、他の Tango のタブを閉じて再試行するよう表示する。

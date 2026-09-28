@@ -49,7 +49,7 @@ describe("NAVIGATION-03 AppErrorBoundary", () => {
 
     expect(screen.getByRole("alert")).toBeVisible();
     expect(screen.getByRole("heading", { level: 1, name: "Something went wrong" })).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Clear local database and reload" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Clear local data and reload" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(screen.getByText(/render failed/)).toBeVisible();
     expect(screen.queryByText("Application content")).not.toBeInTheDocument();
@@ -176,14 +176,14 @@ it("NAVIGATION-22 prevents overlapping recovery actions and offers retry after d
   const deletion = Promise.withResolvers<void>();
   vi.mocked(clearLocalDataAndReload).mockReturnValueOnce(deletion.promise);
   render(<AppErrorFallback allowLocalDataReset />);
-  fireEvent.click(screen.getByRole("button", { name: "Clear local database and reload" }));
+  fireEvent.click(screen.getByRole("button", { name: "Clear local data and reload" }));
   expect(screen.queryAllByRole("button")).toHaveLength(0);
-  expect(screen.getByText(/Clearing local database/)).toBeVisible();
+  expect(screen.getByText(/Clearing local data/)).toBeVisible();
   await actAsync(async () => {
     deletion.reject(new Error("failed-precondition"));
     await deletion.promise.catch(() => undefined);
   });
   expect(screen.getByText(/Close other Tango tabs or windows and try again/)).toBeVisible();
   expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
-  expect(screen.getByRole("button", { name: "Clear local database and reload" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "Clear local data and reload" })).toBeVisible();
 });

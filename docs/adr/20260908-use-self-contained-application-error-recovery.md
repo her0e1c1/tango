@@ -1,3 +1,3 @@
-単一 React root の Provider・Router 外に AppErrorBoundary を置き、route・認証エラーと独立した復旧 UI を共有する。専用 bootstrap は作らず、Service Worker は script 登録する。
+単一 React root の Provider・Router 外に AppErrorBoundary を置き、route・認証エラーと独立した復旧 UI を共有する。Service Worker の script 登録と Cache Storage は変更しない。
 Boundary は未処理の error・unhandledrejection を監視し、想定内の失敗は通常処理する。復旧 UI は Auth・Firestore・Router に依存せず、Provider 外 i18n を使う。
-通常の Reload はデータを保持する。ローカル DB の削除操作は Firestore 初期化・購読開始の失敗時だけ表示し、描画・ルート・認証自体の失敗では Reload のみを提供する。削除では匿名データ・未同期の変更が失われることを警告し、Firestore の terminate → clearIndexedDbPersistence → Reload の順で実行する。認証・設定・PWA キャッシュを保持し、削除失敗時は復旧画面から再試行する。
+通常の Reload はデータを保持する。Firestore 初期化・購読開始の失敗時には、ログアウト・設定初期化・匿名データと未同期変更の消失を警告して削除操作を提供する。明示的な削除要求を保存して再読み込みし、Firebase 起動前に全 IndexedDB（Card replica を含む）・localStorage・sessionStorage を削除する。失敗時は起動せず再試行を案内し、Service Worker と PWA キャッシュは保持する。

@@ -1,57 +1,66 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { clearLocalDataAndReload, clearLocalDataBeforeStartup, isLocalDataResetRequested } from "./clear-local-data";
 
-const mocks = vi.hoisted(() => ({ terminate: vi.fn(), clear: vi.fn(), reload: vi.fn(), db: {} }));
-vi.mock("firebase/firestore", () => ({ terminate: mocks.terminate, clearIndexedDbPersistence: mocks.clear }));
-vi.mock("@/shared/firebase", () => ({ db: mocks.db }));
+async function createDatabase(name: string): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(name);
+    request.onupgradeneeded = () => request.result.createObjectStore("records");
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
 
 beforeEach(() => {
-  vi.resetModules();
-  mocks.terminate.mockReset().mockResolvedValue(undefined);
-  mocks.clear.mockReset().mockResolvedValue(undefined);
-  mocks.reload.mockReset();
-  vi.stubGlobal("window", { location: { reload: mocks.reload } });
+  localStorage.clear();
+  sessionStorage.clear();
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
-describe("NAVIGATION-22 Local database recovery", () => {
-  it("waits for termination and persistence deletion before reloading", async () => {
-    const stopped = Promise.withResolvers<void>();
-    const cleared = Promise.withResolvers<void>();
-    mocks.terminate.mockReturnValue(stopped.promise);
-    mocks.clear.mockReturnValue(cleared.promise);
-    const { clearLocalDataAndReload } = await import("./clear-local-data");
-    const operation = clearLocalDataAndReload();
-    expect(clearLocalDataAndReload()).toBe(operation);
-    await vi.waitFor(() => expect(mocks.terminate).toHaveBeenCalledWith(mocks.db));
-    expect(mocks.clear).not.toHaveBeenCalled();
-    stopped.resolve();
-    await vi.waitFor(() => expect(mocks.clear).toHaveBeenCalledWith(mocks.db));
-    expect(mocks.reload).not.toHaveBeenCalled();
-    cleared.resolve();
-    await operation;
-    expect(mocks.reload).toHaveBeenCalledOnce();
+describe("NAVIGATION-22 Local data recovery", () => {
+  it("requests a reload before deleting storage held by the running application", async () => {
+    const reload = vi.fn();
+    vi.stubGlobal("window", { location: { reload } });
+    localStorage.setItem("settings", "old");
+    expect(isLocalDataResetRequested()).toBe(false);
+    await clearLocalDataAndReload();
+    expect(isLocalDataResetRequested()).toBe(true);
+    expect(localStorage.getItem("settings")).toBe("old");
+    expect(reload).toHaveBeenCalledOnce();
   });
 
-  it("keeps failed deletion on the recovery page and retries the terminated instance", async () => {
-    mocks.clear.mockRejectedValueOnce(new Error("failed-precondition"));
-    const { clearLocalDataAndReload } = await import("./clear-local-data");
-    await expect(clearLocalDataAndReload()).rejects.toThrow("failed-precondition");
-    expect(mocks.reload).not.toHaveBeenCalled();
-    await clearLocalDataAndReload();
-    expect(mocks.terminate).toHaveBeenCalledOnce();
-    expect(mocks.reload).toHaveBeenCalledOnce();
+  it("removes every database and both storage areas before allowing startup", async () => {
+    for (const name of ["firestore-cache", "authentication", "tango-card-replica", "other-data"]) {
+      (await createDatabase(name)).close();
+    }
+    localStorage.setItem("settings", "old");
+    sessionStorage.setItem("session", "old");
+    await clearLocalDataBeforeStartup();
+    expect(await indexedDB.databases()).toEqual([]);
+    expect(localStorage.length).toBe(0);
+    expect(sessionStorage.length).toBe(0);
   });
 
-  it("does not delete persistence after failed termination and permits another attempt", async () => {
-    let stopped: Promise<void> | undefined;
-    mocks.terminate.mockImplementation(() => (stopped ??= Promise.reject(new Error("termination failed"))));
-    const { clearLocalDataAndReload } = await import("./clear-local-data");
-    await expect(clearLocalDataAndReload()).rejects.toThrow("termination failed");
-    expect(mocks.clear).not.toHaveBeenCalled();
-    expect(mocks.reload).not.toHaveBeenCalled();
-    await clearLocalDataAndReload();
-    expect(mocks.terminate).toHaveBeenCalledOnce();
-    expect(mocks.clear).toHaveBeenCalledWith(mocks.db);
-    expect(mocks.reload).toHaveBeenCalledOnce();
+  it("keeps a blocked reset retryable and clears storage after the other connection closes", async () => {
+    const database = await createDatabase("other-tab");
+    localStorage.setItem("settings", "old");
+    sessionStorage.setItem("session", "old");
+    await expect(clearLocalDataBeforeStartup()).rejects.toThrow("Close other Tango tabs");
+    expect(localStorage.getItem("settings")).toBe("old");
+    expect(sessionStorage.getItem("session")).toBe("old");
+    database.close();
+    await clearLocalDataBeforeStartup();
+    expect(await indexedDB.databases()).toEqual([]);
+    expect(localStorage.length).toBe(0);
+    expect(sessionStorage.length).toBe(0);
+  });
+
+  it("does not clear remaining storage if database enumeration fails", async () => {
+    vi.spyOn(indexedDB, "databases").mockRejectedValueOnce(new Error("storage unavailable"));
+    sessionStorage.setItem("session", "old");
+    await expect(clearLocalDataBeforeStartup()).rejects.toThrow("storage unavailable");
+    expect(sessionStorage.getItem("session")).toBe("old");
   });
 });
