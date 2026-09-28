@@ -46,6 +46,8 @@ afterEach(async () => {
     for (const root of startup.roots.splice(0)) root.unmount();
   });
   document.body.innerHTML = "";
+  document.documentElement.lang = "en";
+  vi.restoreAllMocks();
 });
 
 describe("NAVIGATION-22 Application startup recovery", () => {
@@ -60,10 +62,12 @@ describe("NAVIGATION-22 Application startup recovery", () => {
       await import("./main");
     });
     expect(startup.start).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent("Starting Tango…");
     await actAsync(async () => {
       finish();
     });
     expect(await screen.findByText("Application ready")).toBeVisible();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("shows retry feedback and prevents startup when deletion fails", async () => {
@@ -84,13 +88,20 @@ describe("NAVIGATION-22 Application startup recovery", () => {
 
   it("routes a failed startup import to non-destructive boundary feedback", async () => {
     startup.requested.mockReturnValue(false);
-    vi.doMock("@/shared/firebase", () => {
-      throw new Error("Startup import failed");
+    let fail = (_error: Error) => {};
+    const pendingImport = new Promise<never>((_resolve, reject) => {
+      fail = reject;
     });
+    vi.doMock("@/shared/firebase", () => pendingImport);
     await actAsync(async () => {
       await import("./main");
     });
+    expect(screen.getByRole("status")).toHaveTextContent("Starting Tango…");
+    await actAsync(async () => {
+      fail(new Error("Startup import failed"));
+    });
     expect(await screen.findByRole("alert")).toBeVisible();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Clear local data and reload" })).not.toBeInTheDocument();
   });
@@ -111,12 +122,24 @@ describe("NAVIGATION-22 Application startup recovery", () => {
     expect(startup.clear).not.toHaveBeenCalled();
   });
 
+  it("announces pending startup in the browser language", async () => {
+    vi.spyOn(navigator, "language", "get").mockReturnValue("ja-JP");
+    startup.clear.mockReturnValue(new Promise<void>(() => {}));
+    await actAsync(async () => {
+      await import("./main");
+    });
+    expect(screen.getByRole("status")).toHaveTextContent("Tango を起動しています…");
+    expect(document.documentElement).toHaveAttribute("lang", "ja");
+    expect(startup.start).not.toHaveBeenCalled();
+  });
+
   it("starts without deleting storage when no reset was requested", async () => {
     startup.requested.mockReturnValue(false);
     await actAsync(async () => {
       await import("./main");
     });
     expect(await screen.findByText("Application ready")).toBeVisible();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(startup.clear).not.toHaveBeenCalled();
   });
 });

@@ -26,6 +26,7 @@
   },
   "errorBoundary": {
     "language": "en",
+    "starting": "Starting Tango…",
     "title": "Something went wrong",
     "description": "Reload to try again. If the problem persists, delete Tango's site data in your browser's site settings. This signs you out and permanently deletes local data and unsynced changes. Anonymous data cannot be recovered.",
     "localDataDescription": "Reload to try again. If saved data prevents startup, clear local data and reload. This signs you out, resets settings and permanently deletes all Tango IndexedDB data, localStorage and sessionStorage, including anonymous decks, cards, study data and unsynced changes. Anonymous data cannot be recovered. The Service Worker and app cache are kept.",
