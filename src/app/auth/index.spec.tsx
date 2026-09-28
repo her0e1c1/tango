@@ -18,8 +18,8 @@ describe("Authentication feedback [ACCOUNT-04 SETTINGS-04]", () => {
     act(() => replaceAuthSession({ status: "authenticated", uid: "anonymous", isAnonymous: true, displayName: null }));
     expect(screen.getByText("Ready")).toBeVisible();
   });
-  it("offers shared recovery on initialization failure", () => {
-    replaceAuthSession({ status: "error", error: new Error("storage failure") });
+  it("NAVIGATION-22 offers local data recovery on Firestore initialization failure", () => {
+    replaceAuthSession({ status: "error", source: "firestore", error: new Error("storage failure") });
     render(
       <AuthProvider>
         <p>Ready</p>
@@ -27,8 +27,22 @@ describe("Authentication feedback [ACCOUNT-04 SETTINGS-04]", () => {
     );
     expect(screen.getByText("Unable to start Tango")).toBeVisible();
     expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Clear cache and reload" })).toBeVisible();
-    expect(screen.getByText("Authentication or saved data could not be initialized. storage failure")).toBeVisible();
+    expect(screen.getAllByRole("button")).toHaveLength(2);
+    expect(screen.getByText(/The Service Worker and app cache are kept/)).toBeVisible();
+    expect(screen.getByText(/Authentication or saved data could not be initialized.*storage failure/)).toBeVisible();
+    expect(screen.getByText(/Anonymous data cannot be recovered/)).toBeVisible();
     expect(screen.queryByText("Ready")).not.toBeInTheDocument();
+  });
+  it("NAVIGATION-03 keeps authentication failures reload-only", () => {
+    replaceAuthSession({ status: "error", source: "auth", error: new Error("sign-in failed") });
+    render(
+      <AuthProvider>
+        <p>Ready</p>
+      </AuthProvider>
+    );
+    expect(screen.getByText(/sign-in failed/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "Clear local data and reload" })).not.toBeInTheDocument();
   });
 });

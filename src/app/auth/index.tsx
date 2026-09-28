@@ -36,6 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         title={t("auth.failure.title")}
         description={t("auth.failure.description")}
         error={authState.error}
+        allowLocalDataReset={authState.source === "firestore"}
       />
     );
   }

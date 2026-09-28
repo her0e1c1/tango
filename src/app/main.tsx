@@ -1,20 +1,19 @@
 import "./styles/index.css";
-import "@/shared/firebase";
-import React from "react";
+import React, { Suspense } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter } from "react-router-dom";
-import App from "./App";
 import { AppErrorBoundary } from "./error-boundary";
-import { appRoutes } from "./routes";
+import { ApplicationStartup } from "./error-boundary/ApplicationStartup";
+import { StartupFallback } from "./error-boundary/StartupFallback";
 
-const router = createBrowserRouter(appRoutes);
 const root = document.getElementById("root");
-if (root == null) throw new Error("Missing root element");
+if (root === null) throw new Error("Missing root element");
 
 createRoot(root).render(
   <React.StrictMode>
     <AppErrorBoundary>
-      <App router={router} />
+      <Suspense fallback={<StartupFallback />}>
+        <ApplicationStartup />
+      </Suspense>
     </AppErrorBoundary>
   </React.StrictMode>
 );

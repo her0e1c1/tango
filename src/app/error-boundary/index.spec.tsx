@@ -6,7 +6,10 @@ import "@testing-library/jest-dom/vitest";
 
 import React, { useEffect } from "react";
 
-import { AppErrorBoundary } from "./index";
+import { clearLocalDataAndReload } from "./clear-local-data";
+vi.mock("./clear-local-data", () => ({ clearLocalDataAndReload: vi.fn(), isLocalDataResetRequested: () => false }));
+
+import { AppErrorBoundary, AppErrorFallback } from "./index";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { RouteErrorFallback } from "../routes/RouteErrorFallback";
 
@@ -46,7 +49,8 @@ describe("NAVIGATION-03 AppErrorBoundary", () => {
 
     expect(screen.getByRole("alert")).toBeVisible();
     expect(screen.getByRole("heading", { level: 1, name: "Something went wrong" })).toBeVisible();
-    expect(screen.getByText(/Reload to try again, or clear the app cache/)).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Clear local data and reload" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(screen.getByText(/render failed/)).toBeVisible();
     expect(screen.queryByText("Application content")).not.toBeInTheDocument();
     expect(onCaughtError).toHaveBeenCalledOnce();
@@ -65,6 +69,7 @@ it("NAVIGATION-03 uses the initialized locale outside I18nProvider", async () =>
   expect(screen.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
   expect(screen.getByRole("button", { name: "再読み込み" })).toBeVisible();
   expect(document.documentElement).toHaveAttribute("lang", "ja");
+  expect(screen.getByText(/匿名データは復元できません/)).toBeVisible();
   await actAsync(() => appI18n.changeLanguage("en"));
   expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
   expect(document.documentElement).toHaveAttribute("lang", "en");
@@ -88,12 +93,11 @@ describe("NAVIGATION-04 unhandled browser errors", () => {
       fireEvent(window, event);
       expect(screen.getByRole("alert")).toBeVisible();
       const message = reason instanceof Error ? reason.message : typeof reason === "string" ? reason : "";
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        `Your data, sign-in, and settings are kept. ${message}`.trim()
-      );
+      expect(screen.getByRole("alert")).toHaveTextContent(`Anonymous data cannot be recovered. ${message}`.trim());
       expect(event.defaultPrevented).toBe(false);
+      expect(screen.getAllByRole("button")).toHaveLength(1);
       expect(screen.queryByText("Application content")).not.toBeInTheDocument();
-      const reset = screen.getByRole("button", { name: "Clear cache and reload" });
+      const reset = screen.getByRole("button", { name: "Reload" });
       reset.focus();
       fireEvent(window, new ErrorEvent("error", { error: new Error("duplicate") }));
       expect(reset).toHaveFocus();
@@ -165,4 +169,21 @@ it("NAVIGATION-03 displays the original route failure with recovery actions", ()
   render(<RouterProvider router={router} />);
   expect(screen.getByText(/render failed/)).toBeVisible();
   expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+  expect(screen.getAllByRole("button")).toHaveLength(1);
+});
+
+it("NAVIGATION-22 prevents overlapping recovery actions and offers retry after deletion fails", async () => {
+  const deletion = Promise.withResolvers<void>();
+  vi.mocked(clearLocalDataAndReload).mockReturnValueOnce(deletion.promise);
+  render(<AppErrorFallback allowLocalDataReset />);
+  fireEvent.click(screen.getByRole("button", { name: "Clear local data and reload" }));
+  expect(screen.queryAllByRole("button")).toHaveLength(0);
+  expect(screen.getByText(/Clearing local data/)).toBeVisible();
+  await actAsync(async () => {
+    deletion.reject(new Error("failed-precondition"));
+    await deletion.promise.catch(() => undefined);
+  });
+  expect(screen.getByText(/Close other Tango tabs or windows and try again/)).toBeVisible();
+  expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "Clear local data and reload" })).toBeVisible();
 });

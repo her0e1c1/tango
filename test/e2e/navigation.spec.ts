@@ -610,51 +610,40 @@ test("NAVIGATION-02 Screen shortcuts navigate to their configured routes", async
   expect(await requireDocument("card", card.id)).toEqual(cardBefore);
 });
 
-test("NAVIGATION-03 The outer error boundary keeps the locale and supports reload and cache recovery", async ({
+test("NAVIGATION-03 Generic recovery offers only reload and preserves anonymous data", async ({
   fixture,
   page,
   browserErrors,
 }) => {
-  const { uid } = fixture.user();
-  await fixture.apply(page);
-  await page.goto("/settings");
+  await fixture.apply(page, { auth: false, preferences: false });
+  const { deck, first } = await createAnonymousDeck(page);
+  await page.goto("/account");
+  const uid = await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").innerText();
+  await page.goto("/settings?recovery=reload#preserved");
   await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
-  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await page.evaluate(() => {
+    localStorage.setItem("recovery-marker", "keep");
+    sessionStorage.setItem("recovery-marker", "keep");
+  });
   browserErrors.allow(/E2E_RENDER_FAILURE/);
   await failNextThemeUpdate(page);
   await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
   await expect(page.getByRole("heading", { name: "問題が発生しました" })).toBeVisible();
-  await expect(page.getByText(/再読み込みするか、アプリのキャッシュを削除して再読み込みしてください。/)).toBeVisible();
+  await expect(page.getByText(/再読み込みしてお試しください/)).toBeVisible();
+  await expect(page.getByText(/匿名データは復元できません/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /ローカルデータを削除|Clear local data/ })).toHaveCount(0);
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
-  await page.getByRole("button", { name: "再読み込み", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "設定", exact: true })).toBeVisible();
-
-  await page.evaluate(async () => {
-    localStorage.setItem("unrelated-reset-marker", "keep");
-    const scope = `${window.location.origin}/`;
-    await navigator.serviceWorker.ready;
-    const name = (await caches.keys()).find((key) => key.startsWith("workbox-precache-") && key.endsWith(scope));
-    if (!name) throw new Error("Expected Tango's precache");
-    const cache = await caches.open(name);
-    await cache.put("/__reset-marker__", new Response("stale"));
-    const unrelated = await caches.open("unrelated-reset-cache");
-    await unrelated.put("/__unrelated-reset-marker__", new Response("keep"));
-  });
-  await failNextThemeUpdate(page);
-  await page.getByRole("checkbox", { name: "ダークモード" }).locator("xpath=parent::label").click();
-  const reset = page.getByRole("button", { name: "キャッシュを削除して再読み込み" });
-  await expect(reset).toBeVisible();
   const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
-  await reset.click();
-  await expect(page).toHaveURL(/\/settings$/);
-  await expect(page.getByRole("heading", { level: 1, name: "設定", exact: true })).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+  await page.getByRole("button", { name: "再読み込み", exact: true }).click();
+  await expect(page).toHaveURL(/\/settings\?recovery=reload#preserved$/);
+  await expect(page.getByRole("heading", { name: "設定", exact: true })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
-  expect(await page.evaluate(() => localStorage.getItem("unrelated-reset-marker"))).toBe("keep");
-  expect(await page.evaluate(async () => (await caches.match("/__reset-marker__")) !== undefined)).toBe(false);
-  expect(await page.evaluate(async () => (await caches.match("/__unrelated-reset-marker__"))?.text())).toBe("keep");
+  expect(await page.evaluate(() => localStorage.getItem("recovery-marker"))).toBe("keep");
+  expect(await page.evaluate(() => sessionStorage.getItem("recovery-marker"))).toBe("keep");
   await page.goto("/account");
   await expect(page.getByText(uid, { exact: true })).toBeVisible();
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByText(first.frontText, { exact: true })).toBeVisible();
 });
 
 test("NAVIGATION-04 Unhandled browser errors share recovery without clearing data", async ({
@@ -685,6 +674,7 @@ test("NAVIGATION-04 Unhandled browser errors share recovery without clearing dat
       }
     }, failure);
     await expect(page.getByRole("alert")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Clear local data and reload" })).toHaveCount(0);
     expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
     await page.getByRole("button", { name: "Reload", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
@@ -696,14 +686,13 @@ test("NAVIGATION-04 Unhandled browser errors share recovery without clearing dat
   await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
 });
 
-test("NAVIGATION-05 Corrupt PWA cache fails startup until cache recovery reloads the healthy application", async ({
+test("NAVIGATION-05 Corrupt PWA cache shows manual recovery guidance without deleting data", async ({
   fixture,
   page,
   browserErrors,
 }) => {
   const deck = fixture.deck();
   const card = fixture.card();
-  const { uid } = fixture.user();
   await fixture.apply(page);
   const deckBefore = await requireDocument("deck", deck.id);
   const cardBefore = await requireDocument("card", card.id);
@@ -717,22 +706,21 @@ test("NAVIGATION-05 Corrupt PWA cache fails startup until cache recovery reloads
     const name = (await caches.keys()).find((key) => key.startsWith("workbox-precache-") && key.endsWith(scope));
     if (!name) throw new Error("Expected Tango's precache");
     const cache = await caches.open(name);
-    const script = document.querySelector<HTMLScriptElement>('script[type="module"][src]');
-    if (!script) throw new Error("Expected the production application module");
-    const pathname = new URL(script.src).pathname;
-    const request = (await cache.keys()).find((key) => new URL(key.url).pathname === pathname);
-    if (!request) throw new Error("Expected the cached application module");
-    const response = await cache.match(request);
-    if (!response) throw new Error("Expected the cached module response");
-    const source = await response.text();
-    // Keep React and the recovery UI usable, but corrupt a startup effect's class token in the real cached bundle.
-    const corrupted = source.replace(
-      /\.classList\.toggle\((["'`])dark\1\s*,/,
-      '.classList.toggle("E2E INVALID CACHE TOKEN",'
-    );
-    if (corrupted === source) throw new Error("Could not corrupt the cached startup class token");
-    await cache.put(request, new Response(corrupted, { headers: response.headers }));
-    return pathname;
+    for (const request of await cache.keys()) {
+      if (!new URL(request.url).pathname.endsWith(".js")) continue;
+      const response = await cache.match(request);
+      if (!response) continue;
+      const source = await response.text();
+      // Keep React and recovery usable while corrupting a startup effect in the actual cached application.
+      const corrupted = source.replace(
+        /\.classList\.toggle\((["'`])dark\1\s*,/,
+        '.classList.toggle("E2E INVALID CACHE TOKEN",'
+      );
+      if (corrupted === source) continue;
+      await cache.put(request, new Response(corrupted, { headers: response.headers }));
+      return new URL(request.url).pathname;
+    }
+    throw new Error("Could not find the cached startup class token");
   });
   browserErrors.allow(/E2E INVALID CACHE TOKEN/);
 
@@ -744,23 +732,88 @@ test("NAVIGATION-05 Corrupt PWA cache fails startup until cache recovery reloads
 
   await Promise.all([page.waitForEvent("load"), page.getByRole("button", { name: "Reload", exact: true }).click()]);
   await expect(page.getByRole("heading", { name: "Something went wrong", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Clear cache and reload", exact: true }).click();
-
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { name: "Decks", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Something went wrong", exact: true })).toHaveCount(0);
+  await expect(page.getByText(/delete Tango's site data in your browser's site settings/)).toBeVisible();
+  await expect(page.getByText(/Anonymous data cannot be recovered/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /ローカルデータを削除|Clear local data/ })).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
   expect(
     await page.evaluate(async (path) => {
       const response = await caches.match(path, { ignoreSearch: true });
       return (await response?.text())?.includes("E2E INVALID CACHE TOKEN") ?? false;
     }, assetPath)
-  ).toBe(false);
-  await page.goto("/account");
-  await expect(page.getByText(uid, { exact: true })).toBeVisible();
+  ).toBe(true);
   expect(await requireDocument("deck", deck.id)).toEqual(deckBefore);
   expect(await requireDocument("card", card.id)).toEqual(cardBefore);
+});
+
+test("NAVIGATION-22 Clears anonymous local data after storage initialization fails", async ({ fixture, page }) => {
+  await fixture.apply(page, { auth: false, preferences: false });
+  await page.clock.setFixedTime(new Date("2026-01-02T03:04:05Z"));
+  const { deck } = await createAnonymousDeck(page);
+  await startAnonymousStudy(page, deck.id);
+  await page.goto("/account");
+  const uid = await page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd").innerText();
+  await page.goto("/settings?recovery=local#preserved");
+  await page.getByRole("combobox", { name: "Language" }).selectOption("ja");
+  await page.evaluate(async () => {
+    localStorage.setItem("recovery-marker", "keep");
+    sessionStorage.setItem("recovery-marker", "keep");
+    for (const name of ["tango-card-replica", "recovery-other-database"]) {
+      await new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open(name);
+        request.onupgradeneeded = () => request.result.createObjectStore("recovery-marker");
+        request.onsuccess = () => {
+          request.result.close();
+          resolve();
+        };
+        request.onerror = () => reject(request.error);
+      });
+    }
+    sessionStorage.setItem("fail-storage-read", "true");
+    await navigator.serviceWorker.ready;
+    await (await caches.open("recovery-marker")).put("/recovery-marker", new Response("keep"));
+  });
+  await page.addInitScript(() => {
+    // Fail conversion of the dates created through the UI, without accessing SDK storage or records.
+    const getTime = Date.prototype.getTime;
+    Date.prototype.getTime = function () {
+      const value = getTime.call(this);
+      if (sessionStorage.getItem("fail-storage-read") && value === Date.parse("2026-01-02T03:04:05Z")) {
+        throw new Error("E2E_SAVED_DATE_FAILURE");
+      }
+      return value;
+    };
+  });
+  const originalUrl = page.url();
+  const worker = await page.evaluate(async () => (await navigator.serviceWorker.ready).active?.scriptURL);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "ローカルデータを削除して再読み込み" })).toBeVisible();
+  await page.evaluate(() => sessionStorage.removeItem("fail-storage-read"));
+  await expect(page.getByText(/匿名データは復元できません/)).toBeVisible();
+  await page.getByRole("button", { name: "ローカルデータを削除して再読み込み" }).click();
+  await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+  await expect(page).toHaveURL(originalUrl);
+  await expect(page.getByRole("combobox", { name: "Language" })).not.toHaveValue("ja");
+  expect(await page.evaluate(async () => (await indexedDB.databases()).map(({ name }) => name))).not.toContain(
+    "tango-card-replica"
+  );
+  expect(await page.evaluate(async () => (await indexedDB.databases()).map(({ name }) => name))).not.toContain(
+    "recovery-other-database"
+  );
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.ready).active?.scriptURL)).toBe(worker);
+  expect(await page.evaluate(() => localStorage.getItem("recovery-marker"))).toBeNull();
+  expect(await page.evaluate(() => sessionStorage.length)).toBe(0);
+  expect(await page.evaluate(async () => (await caches.match("/recovery-marker"))?.text())).toBe("keep");
+  await page.goto("/account");
+  await expect(page.getByText(uid, { exact: true })).toHaveCount(0);
+  const newUid = page.getByText("User ID", { exact: true }).locator("xpath=parent::*").locator("dd");
+  await expect(newUid).toHaveText(/\S+/);
+  await expect(newUid).not.toHaveText(uid);
+  await page.goto("/");
+  await expect(page.getByRole("article", { name: deck.name, exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Decks", exact: true })).toBeVisible();
+  await expect(page.getByRole("article", { name: deck.name, exact: true })).toHaveCount(0);
 });
 
 const enterViewMode = async (page: Page) => {

@@ -82,18 +82,26 @@ async function restoreUserSession(state: AuthLifecycle, user: User, generation: 
 async function activate(state: AuthLifecycle, user: User | null): Promise<void> {
   state.generation += 1;
   const generation = state.generation;
+  let initializingFirestore = true;
   try {
     await initialNetworkStopped;
     if (!isCurrent(state, generation)) return;
     await (user && !user.isAnonymous ? enableNetwork(db) : disableNetwork(db));
     if (!isCurrent(state, generation)) return;
     if (user === null) {
+      initializingFirestore = false;
       await bootstrapAnonymousSession(state);
       return;
     }
     await restoreUserSession(state, user, generation);
   } catch (error) {
-    if (isCurrent(state, generation)) replaceAuthSession({ status: "error", error });
+    if (isCurrent(state, generation)) {
+      replaceAuthSession({
+        status: "error",
+        source: initializingFirestore ? "firestore" : "auth",
+        error,
+      });
+    }
   }
 }
 
@@ -114,7 +122,7 @@ export function startAuthSession(): () => void {
       void activate(state, user);
     },
     (error) => {
-      if (state.active) replaceAuthSession({ status: "error", error });
+      if (state.active) replaceAuthSession({ status: "error", source: "auth", error });
     }
   );
   return () => {

@@ -63,7 +63,7 @@ describe("getAuthUid [ACCOUNT-01] [ACCOUNT-03] [ACCOUNT-04] [DECK-MANAGEMENT-07]
     { status: "initializing" as const },
     { status: "unauthenticated" as const },
     { status: "authenticating" as const, attemptId: Symbol("attempt-a") },
-    { status: "error" as const, error: new Error("authentication failed") },
+    { status: "error" as const, source: "auth" as const, error: new Error("authentication failed") },
   ])("returns an empty string when the session is $status", (session) => {
     replaceAuthSession(session);
 

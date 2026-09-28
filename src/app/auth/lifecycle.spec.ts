@@ -153,7 +153,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     await publish(null);
     const error = new Error("anonymous sign-in failed");
     bootstrap.reject(error);
-    await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "error", error }));
+    await vi.waitFor(() => expect(getAuthSession()).toEqual({ status: "error", source: "auth", error }));
     expect(control.anonymous).toHaveBeenCalledOnce();
     expect(control.network).toBe(false);
     expect(control.subscribed).toBe("");
@@ -167,5 +167,23 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     await vi.waitFor(() => expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" }));
     expect(control.network).toBe(true);
     expect(control.subscribed).toBe("account");
+  });
+  it("NAVIGATION-22 identifies subscription startup failures for local data recovery", async () => {
+    const ready = Promise.withResolvers<void>();
+    control.ready = ready.promise;
+    control.auth.currentUser = user("anonymous");
+    control.observe?.(control.auth.currentUser);
+    await vi.waitFor(() => expect(control.subscribed).toBe("anonymous"));
+    const cause = new Error("cached data could not be loaded");
+    ready.reject(cause);
+    await vi.waitFor(() =>
+      expect(getAuthSession()).toMatchObject({
+        status: "error",
+        source: "firestore",
+        error: cause,
+      })
+    );
+    const session = getAuthSession();
+    expect(session.status === "error" && session.error).toBe(cause);
   });
 });
