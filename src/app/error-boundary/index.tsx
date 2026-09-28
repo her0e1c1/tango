@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { appI18n } from "../i18n/instance";
 import { getRecoveryMessages } from "../i18n/resources";
 
-import { clearLocalDataAndReload } from "./clear-local-data";
+import { clearLocalDataAndReload, isLocalDataResetRequested } from "./clear-local-data";
 
 import { RouteFeedback, type RouteFeedbackProps } from "@/shared/ui/route-feedback";
 
@@ -111,6 +111,18 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   override render(): ReactNode {
     if (!this.state.hasError) return this.props.children;
 
-    return <AppErrorFallback error={this.state.error} />;
+    let resetting = false;
+    try {
+      resetting = isLocalDataResetRequested();
+    } catch {
+      // Storage access may be the startup failure; recovery must still render without it.
+    }
+    return (
+      <AppErrorFallback
+        error={this.state.error}
+        allowLocalDataReset={resetting}
+        description={resetting ? getRecoveryMessages(appI18n.resolvedLanguage).clearFailed : ""}
+      />
+    );
   }
 }

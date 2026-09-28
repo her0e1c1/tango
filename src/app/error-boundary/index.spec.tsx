@@ -7,7 +7,7 @@ import "@testing-library/jest-dom/vitest";
 import React, { useEffect } from "react";
 
 import { clearLocalDataAndReload } from "./clear-local-data";
-vi.mock("./clear-local-data", () => ({ clearLocalDataAndReload: vi.fn() }));
+vi.mock("./clear-local-data", () => ({ clearLocalDataAndReload: vi.fn(), isLocalDataResetRequested: () => false }));
 
 import { AppErrorBoundary, AppErrorFallback } from "./index";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";

@@ -16,14 +16,14 @@ vi.mock("./error-boundary/clear-local-data", () => ({
   clearLocalDataBeforeStartup: startup.clear,
   clearLocalDataAndReload: startup.retry,
 }));
-vi.mock("./App", () => ({ default: () => null }));
+vi.mock("./App", () => ({ default: () => <p>Application ready</p> }));
 vi.mock("./routes", () => ({ appRoutes: [{ path: "*", element: null }] }));
 vi.mock("react-dom/client", async (importOriginal) => {
   const original = await importOriginal<typeof import("react-dom/client")>();
   return {
     ...original,
     createRoot: (...args: Parameters<typeof original.createRoot>) => {
-      const root = original.createRoot(...args);
+      const root = original.createRoot(args[0], { ...args[1], onCaughtError: () => {} });
       startup.roots.push(root);
       return root;
     },
@@ -56,10 +56,14 @@ describe("NAVIGATION-22 Application startup recovery", () => {
         finish = resolve;
       })
     );
-    await import("./main");
+    await actAsync(async () => {
+      await import("./main");
+    });
     expect(startup.start).not.toHaveBeenCalled();
-    finish();
-    await vi.waitFor(() => expect(startup.start).toHaveBeenCalledOnce());
+    await actAsync(async () => {
+      finish();
+    });
+    expect(await screen.findByText("Application ready")).toBeVisible();
   });
 
   it("shows retry feedback and prevents startup when deletion fails", async () => {
@@ -78,10 +82,41 @@ describe("NAVIGATION-22 Application startup recovery", () => {
     expect(startup.start).not.toHaveBeenCalled();
   });
 
+  it("routes a failed startup import to non-destructive boundary feedback", async () => {
+    startup.requested.mockReturnValue(false);
+    vi.doMock("@/shared/firebase", () => {
+      throw new Error("Startup import failed");
+    });
+    await actAsync(async () => {
+      await import("./main");
+    });
+    expect(await screen.findByRole("alert")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Clear local data and reload" })).not.toBeInTheDocument();
+  });
+
+  it("keeps recovery available when reading the reset request fails", async () => {
+    startup.requested.mockImplementation(() => {
+      throw new DOMException("Storage denied", "SecurityError");
+    });
+    await actAsync(async () => {
+      await import("./main");
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "delete Tango's site data in your browser's site settings"
+    );
+    expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Clear local data and reload" })).not.toBeInTheDocument();
+    expect(startup.start).not.toHaveBeenCalled();
+    expect(startup.clear).not.toHaveBeenCalled();
+  });
+
   it("starts without deleting storage when no reset was requested", async () => {
     startup.requested.mockReturnValue(false);
-    await import("./main");
-    await vi.waitFor(() => expect(startup.start).toHaveBeenCalledOnce());
+    await actAsync(async () => {
+      await import("./main");
+    });
+    expect(await screen.findByText("Application ready")).toBeVisible();
     expect(startup.clear).not.toHaveBeenCalled();
   });
 });
