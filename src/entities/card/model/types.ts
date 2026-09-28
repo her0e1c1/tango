@@ -1,8 +1,29 @@
-import type { z } from "zod";
-import type { fsrsStateSchema } from "./schema";
-
 /** FSRS-6.0 review state; all instants are Unix milliseconds. */
-export type FsrsState = z.infer<typeof fsrsStateSchema>;
+export type FsrsState = {
+  /** Current scheduling phase after a review. */
+  state: /** Initial learning steps before entering the regular review schedule. */
+    | "learning"
+    /** Regular review schedule after completing learning steps. */
+    | "review"
+    /** Learning steps repeated after a lapse during review. */
+    | "relearning";
+  /** Next review time in Unix milliseconds. */
+  dueAt: number;
+  /** Positive memory stability in days. */
+  stability: number;
+  /** Memory difficulty from 1 through 10. */
+  difficulty: number;
+  /** Most recent review time in Unix milliseconds. */
+  lastReviewedAt: number;
+  /** Positive integer count of completed reviews. */
+  reps: number;
+  /** Non-negative integer lapse count, no greater than reps. */
+  lapses: number;
+  /** Scheduled interval in days, from 0 through 36,500. */
+  scheduledDays: number;
+  /** Non-negative integer index of the learning step. */
+  learningSteps: number;
+};
 
 /** Firestore-backed Card data whose ownership and deletion metadata must remain at the Entity boundary. */
 export type RemoteCard = CardCreate & {
