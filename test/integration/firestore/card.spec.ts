@@ -4,7 +4,7 @@
  * "should update a card", and "should import cards".
  */
 
-import { calculateFsrsState, mutateCards, type Card } from "@/entities/card";
+import { calculateFsrsState, type Card } from "@/entities/card";
 import type { RemoteCard } from "@/entities/card/model/types";
 
 import "@/test/initializeTestFirestore";
@@ -88,7 +88,7 @@ describe("firestore/card", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
-  it.each(["single", "batch"] as const)("[FIRESTORE-CARD-02] updates a card through %s editing", async (mode) => {
+  it("[FIRESTORE-CARD-02] updates a card through editing", async () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid() };
     await createCardCommand("uid", c);
@@ -104,8 +104,7 @@ describe("firestore/card", { retry: 3 }, () => {
       cardOrderIds: ["card-1"],
     } satisfies Omit<Card, "fsrs"> & { fsrs: undefined; currentIndex: number; cardOrderIds: string[] };
     replaceRemoteCards([{ ...c, fsrs }]);
-    if (mode === "single") await editCard("uid", n);
-    else await mutateCards("uid", [{ kind: "edit", card: n }]);
+    await editCard("uid", n);
     const data = (await getDoc(doc(db, "card", n.id))).data();
     expect(data).toEqual({ ...created, frontText: "updated", updatedAt: expect.any(Timestamp) });
     expect(data?.createdAt).toBe(created.createdAt);
@@ -134,7 +133,7 @@ describe("firestore/card", { retry: 3 }, () => {
     const deckId = await initDeck();
     const c = { ...newCard, deckId, id: uuid(), frontText: "upserted" };
 
-    await mutateCards("uid", [{ kind: "create", card: c }]);
+    await createCardCommand("uid", c);
 
     const data = (await getDoc(doc(db, "card", c.id))).data();
     expect(data).toEqual({ ...c, createdAt: expect.any(Number), updatedAt: expect.any(Timestamp) });
@@ -142,7 +141,7 @@ describe("firestore/card", { retry: 3 }, () => {
     await updateDoc(reference, { fsrs: calculateFsrsState(null, "good", 1000), updatedAt: serverTimestamp() });
     const rated = (await getDoc(reference)).data();
 
-    await mutateCards("uid", [{ kind: "create", card: c }]);
+    await createCardCommand("uid", c);
 
     expect((await getDoc(reference)).data()).toEqual(rated);
   });
@@ -153,10 +152,10 @@ describe("firestore/card", { retry: 3 }, () => {
     const invalid = { ...newCard, deckId, id: uuid(), frontText: 42 } as unknown as RemoteCard;
 
     await expect(
-      mutateCards("uid", [
-        { kind: "create", card: valid },
-        { kind: "create", card: invalid },
-      ])
+      Promise.allSettled([createCardCommand("uid", valid), createCardCommand("uid", invalid)]).then((results) => {
+        const failure = results.find((result) => result.status === "rejected");
+        if (failure?.status === "rejected") throw failure.reason;
+      })
     ).rejects.toThrow();
 
     const data = (await getDoc(doc(db, "card", valid.id))).data();
@@ -172,7 +171,7 @@ describe("firestore/card", { retry: 3 }, () => {
     await deleteCard("uid", card.id);
     await waitForPendingWrites(db);
 
-    await mutateCards("uid", [{ kind: "edit", card }]);
+    await editCard("uid", card);
     await waitForPendingWrites(db);
     const ownedCards = await getDocs(query(collection(db, "card"), where("uid", "==", "uid")));
     expect(ownedCards.docs.find((snapshot) => snapshot.id === card.id)?.data().deletedAt).toEqual(expect.any(Number));

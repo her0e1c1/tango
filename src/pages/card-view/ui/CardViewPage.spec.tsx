@@ -7,7 +7,7 @@ import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { mutateCards } from "@/entities/card";
+import { createCard } from "@/entities/card";
 import { createDeck } from "@/entities/deck";
 import { createLocalCard, createLocalDeck, createPreferences } from "@/test/factories";
 
@@ -42,12 +42,10 @@ describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
     mocks.preferences = createPreferences({ appearance: { darkMode: false } });
     mocks.setDarkMode.mockReset();
     await createDeck("user-id", createLocalDeck({ id: deckId, category: "raw" }));
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" }),
-      },
-    ]);
+    await createCard(
+      "user-id",
+      createLocalCard({ id: cardId, deckId, frontText: "Front text", backText: "Back text" })
+    );
   });
 
   it("renders the stored card answer in the application shell", () => {
@@ -58,12 +56,7 @@ describe("CARD-VIEW-04 CARD-VIEW-05 CardViewPage", () => {
   });
 
   it("updates the answer when the route selects another card without remounting", async () => {
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({ id: "second-card", deckId, backText: "Second answer" }),
-      },
-    ]);
+    await createCard("user-id", createLocalCard({ id: "second-card", deckId, backText: "Second answer" }));
     render(
       <MemoryRouter initialEntries={[`/card/${cardId}`]}>
         <Link to="/card/second-card">View second card</Link>

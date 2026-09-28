@@ -69,15 +69,6 @@ vi.mock("@/entities/card/api/firestore", async (original) => {
       }));
     },
     subscribeCards: () => () => undefined,
-    mutateCards: async (uid: string, mutations: import("@/entities/card").CardMutation[]) => {
-      await Promise.all(
-        mutations.map((mutation) =>
-          mutation.kind === "create"
-            ? operations.createCard(uid, mutation.card)
-            : operations.editCard(uid, mutation.card)
-        )
-      );
-    },
   };
   return operations;
 });

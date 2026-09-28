@@ -1,4 +1,4 @@
-import type { Card, CardMutation } from "@/entities/card";
+import type { Card } from "@/entities/card";
 import type { Deck, RemoteDeckCreateInput } from "@/entities/deck";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -18,20 +18,17 @@ vi.mock("@/entities/card", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/entities/card")>();
   return {
     ...actual,
-    mutateCards: async (uid: string, mutations: CardMutation[]) => {
+    createCard: async (uid: string, card: Parameters<typeof actual.createCard>[1]) => {
       await Promise.resolve();
-      for (const mutation of mutations) {
-        if (mutation.kind !== "create") continue;
-        const saved: Card = {
-          ...mutation.card,
-          uid,
-          deletedAt: mutation.card.deletedAt ?? null,
-          fsrs: null,
-          createdAt: 0,
-          updatedAt: 0,
-        };
-        repository.cards = [...repository.cards.filter(({ id }) => id !== saved.id), saved];
-      }
+      const saved: Card = {
+        ...card,
+        uid,
+        deletedAt: null,
+        fsrs: null,
+        createdAt: 0,
+        updatedAt: 0,
+      };
+      repository.cards = [...repository.cards.filter(({ id }) => id !== saved.id), saved];
     },
     useCards: () => repository.cards,
   };

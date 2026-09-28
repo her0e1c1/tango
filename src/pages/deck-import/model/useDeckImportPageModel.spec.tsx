@@ -2,7 +2,7 @@ import { actAsync } from "@/test/act";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createDeck, getDecks } from "@/entities/deck";
-import { mutateCards, getCards } from "@/entities/card";
+import { createCard, getCards } from "@/entities/card";
 import { replaceRemoteDecks, replaceRemoteCards } from "@/test/utils/entityFixtures";
 import { createDeck as createDeckFixture, createCard as createCardFixture } from "@/test/factories";
 import { useDeckImportPageModel } from "./useDeckImportPageModel";
@@ -21,7 +21,7 @@ vi.mock("@/entities/deck", async (original) => ({
 }));
 vi.mock("@/entities/card", async (original) => ({
   ...(await original<typeof import("@/entities/card")>()),
-  mutateCards: vi.fn(),
+  createCard: vi.fn(),
 }));
 
 const csv = (name = "deck.csv") => new File(["front,back,tag,key"], name, { type: "text/csv" });
@@ -40,27 +40,21 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
           createDeckFixture({ id: input.id, name: input.name, uid }),
         ]);
       });
-    vi.mocked(mutateCards)
+    vi.mocked(createCard)
       .mockReset()
-      .mockImplementation(async (uid, mutations) => {
+      .mockImplementation(async (uid, card) => {
         await Promise.resolve();
         replaceRemoteCards([
-          ...getCards().filter((card) => !mutations.some((mutation) => mutation.card.id === card.id)),
-          ...mutations.flatMap((mutation) =>
-            mutation.kind === "create"
-              ? [
-                  createCardFixture({
-                    id: mutation.card.id,
-                    deckId: mutation.card.deckId,
-                    uid,
-                    frontText: mutation.card.frontText,
-                    backText: mutation.card.backText,
-                    tags: mutation.card.tags,
-                    uniqueKey: mutation.card.uniqueKey,
-                  }),
-                ]
-              : []
-          ),
+          ...getCards().filter((item) => item.id !== card.id),
+          createCardFixture({
+            id: card.id,
+            deckId: card.deckId,
+            uid,
+            frontText: card.frontText,
+            backText: card.backText,
+            tags: card.tags,
+            uniqueKey: card.uniqueKey,
+          }),
         ]);
       });
     deckImportStore.setState(deckImportStore.getInitialState(), true);
@@ -82,9 +76,7 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
       });
       await waitFor(() => expect(controls.navigate).toHaveBeenCalled());
       expect(createDeck).toHaveBeenCalledWith(uid, expect.objectContaining({ name: "deck.csv" }));
-      expect(mutateCards).toHaveBeenCalledWith(uid, [
-        expect.objectContaining({ kind: "create", card: expect.objectContaining({ frontText: "front" }) }),
-      ]);
+      expect(createCard).toHaveBeenCalledWith(uid, expect.objectContaining({ frontText: "front" }));
     }
   );
 
@@ -118,13 +110,13 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
 
   it("reuses selected identities when a local save fails", async () => {
     await selectDeckImportFile(csv());
-    vi.mocked(mutateCards).mockRejectedValueOnce(new Error("local save failed"));
+    vi.mocked(createCard).mockRejectedValueOnce(new Error("local save failed"));
     expect(await importDeckPreview()).toBe(false);
     const firstDeck = vi.mocked(createDeck).mock.calls[0]?.slice(0, 2);
-    const firstCards = vi.mocked(mutateCards).mock.calls[0]?.slice(0, 2);
+    const firstCards = vi.mocked(createCard).mock.calls[0]?.slice(0, 2);
     expect(await importDeckPreview()).toBe(true);
     expect(vi.mocked(createDeck).mock.calls[1]?.slice(0, 2)).toEqual(firstDeck);
-    expect(vi.mocked(mutateCards).mock.calls[1]?.slice(0, 2)).toEqual(firstCards);
+    expect(vi.mocked(createCard).mock.calls[1]?.slice(0, 2)).toEqual(firstCards);
   });
 
   it("does not import a selection prepared by another account", async () => {
@@ -136,7 +128,7 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
 
   it("keeps a pending import locked across unmount and reentry", async () => {
     let finish: () => void = () => undefined;
-    vi.mocked(mutateCards).mockImplementationOnce(
+    vi.mocked(createCard).mockImplementationOnce(
       () =>
         new Promise<void>((resolve) => {
           finish = resolve;
@@ -147,25 +139,21 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
       await selectDeckImportFile(csv());
     });
     act(() => view.result.current.importPreview());
-    await waitFor(() => expect(mutateCards).toHaveBeenCalledOnce());
+    await waitFor(() => expect(createCard).toHaveBeenCalledOnce());
     view.unmount();
     const { result } = renderHook(useDeckImportPageModel);
     expect(result.current.view.pending).toBe(true);
     await actAsync(async () => {
       await Promise.resolve(result.current.importPreview());
     });
-    expect(mutateCards).toHaveBeenCalledOnce();
+    expect(createCard).toHaveBeenCalledOnce();
     await actAsync(async () => finish());
     expect(result.current.view.pending).toBe(true);
     act(() => {
-      const mutations = vi.mocked(mutateCards).mock.calls[0]?.[1] ?? [];
-      replaceRemoteCards(
-        mutations.flatMap((mutation) =>
-          mutation.kind === "create"
-            ? [createCardFixture({ ...mutation.card, deletedAt: mutation.card.deletedAt ?? null, uid: controls.uid })]
-            : []
-        )
-      );
+      const card = vi.mocked(createCard).mock.calls[0]?.[1];
+      if (card) {
+        replaceRemoteCards([createCardFixture({ ...card, deletedAt: null, uid: controls.uid })]);
+      }
     });
     expect(controls.navigate).not.toHaveBeenCalled();
     expect(result.current.view.pending).toBe(false);

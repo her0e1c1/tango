@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { mutateCards, useCard } from "@/entities/card";
+import { createCard, editCard, useCard } from "@/entities/card";
 import { CATEGORY, createDeck } from "@/entities/deck";
 import { ToastViewport } from "@/shared/ui/toast";
 import { dismissToast } from "@/test/utils/toast";
@@ -95,18 +95,16 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 
     writeControls.beforeWrite = undefined;
     writeControls.nextError = undefined;
     await createDeck("user-id", createLocalDeck({ id: deckId }));
-    await mutateCards("user-id", [
-      {
-        kind: "create",
-        card: createLocalCard({
-          id: cardId,
-          deckId,
-          frontText: "Front text",
-          backText: "Back text",
-          tags: ["language"],
-        }),
-      },
-    ]);
+    await createCard(
+      "user-id",
+      createLocalCard({
+        id: cardId,
+        deckId,
+        frontText: "Front text",
+        backText: "Back text",
+        tags: ["language"],
+      })
+    );
   });
 
   it("restores successfully saved form values from the Card Entity", async () => {
@@ -178,12 +176,7 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-10 
     await userEvent.clear(frontText);
     await userEvent.type(frontText, "Unsaved front");
 
-    await mutateCards("user-id", [
-      {
-        kind: "edit",
-        card: { id: cardId, frontText: "Subscription front", backText: "Subscription back" },
-      },
-    ]);
+    await editCard("user-id", { id: cardId, frontText: "Subscription front", backText: "Subscription back" });
 
     expect(frontText).toHaveValue("Unsaved front");
     await userEvent.click(screen.getByRole("tab", { name: "Back" }));

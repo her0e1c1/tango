@@ -9,7 +9,7 @@ import { createMemoryRouter, Link, MemoryRouter, Route, RouterProvider, Routes, 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { mutateCards } from "@/entities/card";
+import { createCard } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import { startStudy } from "@/test/utils/entityFixtures";
@@ -100,10 +100,8 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
     mocks.uid = "user-id";
     await createDeck("user-id", activeDeck);
     await createDeck("user-id", freshDeck);
-    await mutateCards("user-id", [
-      { kind: "create", card: activeCard },
-      { kind: "create", card: freshCard },
-    ]);
+    await createCard("user-id", activeCard);
+    await createCard("user-id", freshCard);
     startStudy(activeDeck.id, [activeCard], mocks.preferences.study, mocks.uid);
   });
 
@@ -192,7 +190,7 @@ describe("NAVIGATION-17 NAVIGATION-02 NAVIGATION-06 DECK-MANAGEMENT-02 DECK-MANA
 
   it("refreshes recency before Continue navigates while preserving the current card", async () => {
     const nextCard = createLocalCard({ id: "next-card", deckId: activeDeck.id, uniqueKey: "next-card" });
-    await mutateCards("user-id", [{ kind: "create", card: nextCard }]);
+    await createCard("user-id", nextCard);
     const now = vi.spyOn(Date, "now").mockReturnValue(1000);
     startStudy(activeDeck.id, [activeCard, nextCard], { ...mocks.preferences.study, shuffled: false }, mocks.uid);
     void setStudySessionIndex(activeDeck.id, 1);
