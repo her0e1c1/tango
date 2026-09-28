@@ -1,6 +1,6 @@
 import type { CardId, RemoteCard } from "../model/types";
 import { z } from "zod";
-import { fsrsStateSchema } from "../model/fsrs";
+import { fsrsStateSchema } from "../model/schema";
 
 import { firestoreTimestampSchema, parseFirestoreDocument } from "@/shared/api";
 

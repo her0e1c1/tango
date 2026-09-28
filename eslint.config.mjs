@@ -191,7 +191,7 @@ export default defineConfig(
     },
   },
   {
-    files: ["src/{pages,features,entities}/*/model/{schema,rules,defaults,fsrsRules}.ts"],
+    files: ["src/{pages,features,entities}/*/model/{schema,rules,defaults,fsrs}.ts"],
     rules: {
       "no-restricted-imports": ["error", {
         paths: pageRouteImports,

@@ -20,5 +20,5 @@ export { BackText } from "./ui/BackText";
 export { CardView } from "./ui/CardView";
 export { FrontText } from "./ui/FrontText";
 
-export { calculateFsrsState, classifyFsrsState, getStudyRetrievability, studyRetentionTarget } from "./model/fsrsRules";
-export { fsrsStateSchema, instantSchema } from "./model/fsrs";
+export { calculateFsrsState, classifyFsrsState, getStudyRetrievability, studyRetentionTarget } from "./model/fsrs";
+export { fsrsStateSchema, instantSchema } from "./model/schema";

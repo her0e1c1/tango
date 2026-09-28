@@ -1,13 +1,13 @@
 import { createEmptyCard, fsrs as createScheduler, Rating } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
-import { calculateFsrsState, classifyFsrsState, getStudyRetrievability } from "./fsrsRules";
+import { calculateFsrsState, classifyFsrsState, getStudyRetrievability } from "./fsrs";
 
-import { fsrsStateSchema } from "./fsrs";
+import { fsrsStateSchema } from "./schema";
 
 const at = Date.UTC(2026, 8, 22);
 describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", () => {
   it.each(["again", "hard", "good", "easy"] as const)(
-    "saves and restores %s without changing the next calculation",
+    "UNIT-FSRS-SCHEDULING-01 UNIT-FSRS-SCHEDULING-03 saves and restores %s without changing the next calculation",
     (rating) => {
       const fsrs = calculateFsrsState(null, rating, at);
       const saved = fsrsStateSchema.parse(JSON.parse(JSON.stringify(fsrs)));
@@ -17,7 +17,7 @@ describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", ()
       expect(calculateFsrsState(saved, "good", fsrs.dueAt)).toEqual(calculateFsrsState(fsrs, "good", fsrs.dueAt));
     }
   );
-  it("keeps library lapse semantics across learning, review and relearning", () => {
+  it("UNIT-FSRS-SCHEDULING-02 UNIT-FSRS-RETRIEVABILITY-01 keeps library lapse semantics across learning, review and relearning", () => {
     const learning = calculateFsrsState(null, "again", at);
     expect(learning.state).toBe("learning");
     expect(learning.lapses).toBe(0);
@@ -29,7 +29,7 @@ describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", ()
     expect(relearning.reps).toBe(3);
     expect(getStudyRetrievability(review, review.lastReviewedAt)).toBe(1);
   });
-  it("continues serialized state exactly like the pinned scheduler across rating phases", () => {
+  it("UNIT-FSRS-SCHEDULING-03 continues serialized state exactly like the pinned scheduler across rating phases", () => {
     const library = createScheduler({
       request_retention: 0.9,
       enable_fuzz: false,
@@ -63,7 +63,7 @@ describe("Card study state [STUDY-SESSION-01 STUDY-ACTIONS-01 CARD-VIEW-06]", ()
       saved = JSON.parse(JSON.stringify(saved)) as typeof saved;
     }
   });
-  it("classifies absence as new without fabricating difficulty", () => {
+  it("UNIT-FSRS-CLASSIFICATION-01 classifies absence as new without fabricating difficulty", () => {
     expect(classifyFsrsState(null, at)).toEqual({ status: "new" });
   });
 });
