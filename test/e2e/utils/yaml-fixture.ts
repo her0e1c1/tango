@@ -1,4 +1,5 @@
-import { fsrsStateSchema } from "@/entities/card/model/fsrs";
+// Playwright loads fixtures in Node; the Card barrel also initializes Vite-only Firebase code.
+import { fsrsStateSchema } from "@/entities/card/model/schema";
 import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import path from "node:path";
 

@@ -1,4 +1,4 @@
-import { calculateFsrsState } from "@/entities/card/model/fsrsRules";
+import { calculateFsrsState } from "@/entities/card";
 import { cardStore } from "@/entities/card/model/store";
 export function seedCardFsrs(cardId: string, dueAt: number) {
   const fsrs = { ...calculateFsrsState(null, "good", 0), dueAt };
@@ -10,4 +10,4 @@ export function seedCardFsrs(cardId: string, dueAt: number) {
   return fsrs;
 }
 
-export { calculateFsrsState } from "@/entities/card/model/fsrsRules";
+export { calculateFsrsState } from "@/entities/card";
