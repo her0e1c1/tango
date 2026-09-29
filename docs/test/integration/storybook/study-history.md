@@ -1,31 +1,26 @@
-# Study History Storybook 結合テスト仕様書
+# 学習履歴画面 Storybook 結合テスト仕様書
 
 ## 目的
 
-期間指定、日別表、最近のセッション、集計グラフの表示と開閉を確認する。
-表示用の履歴データと公開 callback を境界とし、履歴の実取得、集計データの正しさ、期間変更後の再取得は対象外とする。
-
-関連 E2E: [study-session](../../e2e/study-session.md)。
-
-書式・実行前提は [AGENTS.md](./AGENTS.md) を参照する。
+学習履歴画面を入口とした `play` で、期間の選択と、集計・グラフ・日別表・セッション一覧の連動を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-STUDY-HISTORY-01 | interaction | 正常系 | [プリセットの選択要求を通知する](#storybook-study-history-01) |
-| STORYBOOK-STUDY-HISTORY-02 | interaction | 正常系 | [任意期間の入力欄を開く](#storybook-study-history-02) |
-| STORYBOOK-STUDY-HISTORY-03 | interaction | 正常系 | [折りたたんだ日別表を30日単位で開く](#storybook-study-history-03) |
-| STORYBOOK-STUDY-HISTORY-04 | interaction | 正常系 | [日別表の古い日付のページへ進む](#storybook-study-history-04) |
-| STORYBOOK-STUDY-HISTORY-05 | render | 正常系 | [最近のセッションの終了状態を区別する](#storybook-study-history-05) |
-| STORYBOOK-STUDY-HISTORY-06 | render | 正常系 | [最近のセッションの状態を日本語で表示する](#storybook-study-history-06) |
-| STORYBOOK-STUDY-HISTORY-07 | interaction | 正常系 | [最近のセッションを全件展開する](#storybook-study-history-07) |
+| STORYBOOK-STUDY-HISTORY-01 | interaction | 正常系 | [期間プリセットを集計表示へ反映する](#storybook-study-history-01) |
+| STORYBOOK-STUDY-HISTORY-02 | interaction | 正常系 | [任意期間を入力する](#storybook-study-history-02) |
+| STORYBOOK-STUDY-HISTORY-03 | interaction | 正常系 | [日別表を30日単位で開く](#storybook-study-history-03) |
+| STORYBOOK-STUDY-HISTORY-04 | interaction | 正常系 | [日別表の古い日付へ進む](#storybook-study-history-04) |
+| STORYBOOK-STUDY-HISTORY-05 | render | 正常系 | [セッションの終了状態を区別する](#storybook-study-history-05) |
+| STORYBOOK-STUDY-HISTORY-06 | render | 正常系 | [セッションの状態を日本語で表示する](#storybook-study-history-06) |
+| STORYBOOK-STUDY-HISTORY-07 | interaction | 正常系 | [最近のセッションをすべて展開する](#storybook-study-history-07) |
 | STORYBOOK-STUDY-HISTORY-08 | render | 正常系 | [30日分の集計グラフを表示する](#storybook-study-history-08) |
-| STORYBOOK-STUDY-HISTORY-09 | render | 正常系 | [90日分のグラフに集約単位を表示する](#storybook-study-history-09) |
+| STORYBOOK-STUDY-HISTORY-09 | render | 正常系 | [90日分のグラフに集約単位を示す](#storybook-study-history-09) |
 
 <a id="storybook-study-history-01"></a>
 
-### STORYBOOK-STUDY-HISTORY-01 プリセットの選択要求を通知する
+### STORYBOOK-STUDY-HISTORY-01 [TODO] 期間プリセットを集計表示へ反映する
 
 カテゴリ: `interaction`
 
@@ -33,20 +28,19 @@
 
 Given:
 
-- 30 days が選択済みの期間選択を表示し、そのボタンの aria-pressed は true である。
+- 学習履歴画面に選択期間の内外の記録がある。
 
 When:
 
-- 7 days を押す。
+- 別の期間プリセットを選ぶ。
 
 Then:
 
-- 公開された期間選択 callback に 7 が渡される。
-- この通知だけで、履歴の再取得や呼出側から与えられる選択状態の更新を保証しない。
+- 選択状態と表示期間が変わり、その期間の記録に対応する集計が表示される。
 
 <a id="storybook-study-history-02"></a>
 
-### STORYBOOK-STUDY-HISTORY-02 [TODO] 任意期間の入力欄を開く
+### STORYBOOK-STUDY-HISTORY-02 [TODO] 任意期間を入力する
 
 カテゴリ: `interaction`
 
@@ -54,20 +48,19 @@ Then:
 
 Given:
 
-- 開始日は2026-09-01、終了日は2026-09-22であり、任意期間の入力を閉じている。
+- 学習履歴画面で期間プリセットを表示している。
 
 When:
 
-- Custom range を押す。
+- 任意期間を選ぶ。
 
 Then:
 
-- Start date と End date の入力欄が表示される。
-- 開く前の開始日と終了日がそれぞれの入力欄に保たれる。
+- 開始日と終了日の入力欄が表示され、指定した期間を選べる。
 
 <a id="storybook-study-history-03"></a>
 
-### STORYBOOK-STUDY-HISTORY-03 折りたたんだ日別表を30日単位で開く
+### STORYBOOK-STUDY-HISTORY-03 [TODO] 日別表を30日単位で開く
 
 カテゴリ: `interaction`
 
@@ -75,19 +68,19 @@ Then:
 
 Given:
 
-- 開始・完了が各1件の日別データ90日分があり、日別表は閉じている。
+- 学習履歴画面に30日を超える日別データがあり、日別表は折りたたまれている。
 
 When:
 
-- Show daily counts · 90 days を押す。
+- 日別表を開く。
 
 Then:
 
-- 見出し行1行と日別データ30行が表示される。
+- 30日分の日別行と、残りの日付を確認する操作が表示される。
 
 <a id="storybook-study-history-04"></a>
 
-### STORYBOOK-STUDY-HISTORY-04 [TODO] 日別表の古い日付のページへ進む
+### STORYBOOK-STUDY-HISTORY-04 [TODO] 日別表の古い日付へ進む
 
 カテゴリ: `interaction`
 
@@ -95,21 +88,19 @@ Then:
 
 Given:
 
-- 日付と開始・完了件数を区別できる90日分の日別表があり、最初の30日分を表示している。
+- 学習履歴画面の日別表に30日を超えるデータがある。
 
 When:
 
-- Older dates を押す。
+- 古い日付のページへ進む。
 
 Then:
 
-- 31–60 of 90 days の範囲表示になる。
-- 古い日付側の次の30日分が表示され、日付と開始・完了件数は与えられた日別データに一致する。
-- 前のページの30日分が残ったり、同じ日付が重複したりしない。
+- 現在のページと異なる古い日付の行が表示され、日付に対応した値を確認できる。
 
 <a id="storybook-study-history-05"></a>
 
-### STORYBOOK-STUDY-HISTORY-05 最近のセッションの終了状態を区別する
+### STORYBOOK-STUDY-HISTORY-05 [TODO] セッションの終了状態を区別する
 
 カテゴリ: `render`
 
@@ -117,20 +108,19 @@ Then:
 
 Given:
 
-- 完了・中止・未完了の3セッションがあり、未完了の終了日時はない。
+- 完了・中断など異なる終了状態の学習セッションがある。
 
 When:
 
-- 最近のセッションを表示する。
+- 学習履歴画面を開く。
 
 Then:
 
-- 3件の項目と Completed、Abandoned、Unfinished が表示される。
-- 終了日時がない項目に対応する — が表示される。
+- 最近のセッションにそれぞれの状態が区別して表示される。
 
 <a id="storybook-study-history-06"></a>
 
-### STORYBOOK-STUDY-HISTORY-06 最近のセッションの状態を日本語で表示する
+### STORYBOOK-STUDY-HISTORY-06 [TODO] セッションの状態を日本語で表示する
 
 カテゴリ: `render`
 
@@ -138,19 +128,19 @@ Then:
 
 Given:
 
-- 完了・中止・未完了の3セッションがあり、日本語のモバイル表示を使用している。
+- 日本語の表示設定で、終了状態の異なる学習セッションがある。
 
 When:
 
-- 最近のセッションを表示する。
+- 学習履歴画面を開く。
 
 Then:
 
-- 「最近のセッション」「未完了」「完了」「中止」が表示される。
+- 状態は日本語で表示され、Deck 名などのユーザー入力は変更されない。
 
 <a id="storybook-study-history-07"></a>
 
-### STORYBOOK-STUDY-HISTORY-07 最近のセッションを全件展開する
+### STORYBOOK-STUDY-HISTORY-07 [TODO] 最近のセッションをすべて展開する
 
 カテゴリ: `interaction`
 
@@ -158,20 +148,19 @@ Then:
 
 Given:
 
-- 完了セッション10件があり、初期状態は3件に折りたたまれている。
+- 学習履歴画面で最近のセッションの一部が折りたたまれている。
 
 When:
 
-- Show all 10 sessions を押す。
+- 全件を表示する操作を選ぶ。
 
 Then:
 
-- 表示件数が3件から10件になる。
-- Show fewer sessions は展開済みで、aria-controls が表示中の list の ID を参照する。
+- 隠れていたセッションも表示され、各セッションの内容を確認できる。
 
 <a id="storybook-study-history-08"></a>
 
-### STORYBOOK-STUDY-HISTORY-08 30日分の集計グラフを表示する
+### STORYBOOK-STUDY-HISTORY-08 [TODO] 30日分の集計グラフを表示する
 
 カテゴリ: `render`
 
@@ -179,19 +168,19 @@ Then:
 
 Given:
 
-- 30日分のグラフ用データと開始2件・完了3件の集計値がある。
+- 学習履歴画面の対象期間は30日で、期間内に記録がある。
 
 When:
 
-- 集計を表示する。
+- グラフを確認する。
 
 Then:
 
-- img role のグラフが表示される。各点の座標や集計の計算自体はこの表示契約の対象外とする。
+- 対象期間の集計を示すグラフと、期間・値を理解できる表示がある。
 
 <a id="storybook-study-history-09"></a>
 
-### STORYBOOK-STUDY-HISTORY-09 90日分のグラフに集約単位を表示する
+### STORYBOOK-STUDY-HISTORY-09 [TODO] 90日分のグラフに集約単位を示す
 
 カテゴリ: `render`
 
@@ -199,12 +188,12 @@ Then:
 
 Given:
 
-- 90日分のグラフ用データと開始90件・完了45件の集計値がある。
+- 学習履歴画面の対象期間は90日で、期間内に記録がある。
 
 When:
 
-- 集計を表示する。
+- グラフを確認する。
 
 Then:
 
-- Study counts per 7 days が表示される。
+- 集約されたグラフに集約単位が表示され、1日分の値と誤認しない。
