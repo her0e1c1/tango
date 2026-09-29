@@ -65,3 +65,25 @@ export const Dark: Story = {
   ...LongDeckName,
   globals: { theme: "dark" },
 };
+
+export const Tablet: Story = {
+  ...LongDeckName,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Default,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...LongDeckName,
+  args: { ...LongDeckName.args, pending: false },
+  argTypes: { pending: { control: "boolean" } },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  ...LongDeckName,
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

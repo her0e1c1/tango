@@ -65,3 +65,40 @@ export const Dark: Story = {
   args: { position: "center", children: "Dark-mode overlay surface" },
   globals: { theme: "dark" },
 };
+
+export const Tablet: Story = {
+  ...Center,
+  render: (args) => (
+    <div className="grid grid-cols-2 gap-4 p-4">
+      {(["center", "top", "bottom", "left", "right"] as const).map((position) => (
+        <section
+          key={position}
+          aria-label={`${position} overlay example`}
+          className="relative h-40 border border-border"
+        >
+          <Overlay {...args} position={position}>
+            {position} content
+          </Overlay>
+        </section>
+      ))}
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...LongMobile,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...LongMobile,
+  args: { ...LongMobile.args, variant: "surface" },
+  argTypes: { variant: { control: "radio", options: ["surface", "transparent"] } },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  ...LongMobile,
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

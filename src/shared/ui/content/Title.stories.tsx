@@ -35,3 +35,35 @@ export const Long: Story = {
 export const Dark: Story = {
   globals: { theme: "dark" },
 };
+
+export const Tablet: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Title {...args}>長い日本語のタイトルを狭い領域でも読み取れることを確認します</Title>
+      <Title {...args}>{"ContinuousTitle123".repeat(12)}</Title>
+    </div>
+  ),
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Title {...args}>Short title</Title>
+      <Title {...args} {...Long.args} />
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Long,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

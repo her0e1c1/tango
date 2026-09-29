@@ -401,3 +401,28 @@ function reorderedRowStory(edit: boolean): Story {
 }
 export const ReorderedView = reorderedRowStory(false);
 export const ReorderedEdit = reorderedRowStory(true);
+
+export const Tablet: Story = {
+  ...Long,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Long,
+  play: async ({ canvas, userEvent }) => {
+    const [trigger] = canvas.getAllByRole("button", { name: /^Open actions for / });
+    if (!trigger) throw new Error("A card menu is required");
+    await userEvent.click(trigger);
+  },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Long,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const MobileDarkEmpty: Story = {
+  args: FilterZero.args ?? {},
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

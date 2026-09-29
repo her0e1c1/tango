@@ -38,3 +38,43 @@ export const Dark: Story = {
     theme: "dark",
   },
 };
+
+export const Mobile: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Logo {...args} />
+      <Logo {...args} markOnly />
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Logo {...args} />
+      <Logo {...args} markOnly />
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Logo {...args} />
+      <Logo {...args} markOnly />
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Logo {...args} />
+      <Logo {...args} markOnly />
+    </div>
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

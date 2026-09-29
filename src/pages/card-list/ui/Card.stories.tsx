@@ -35,3 +35,21 @@ export const ActionsOpen: Story = { args: { menuOpen: true } };
 export const Pending: Story = { args: { disabled: true } };
 export const Mobile: Story = { globals: { viewport: { value: "iphonex", isRotated: false } } };
 export const Dark: Story = { globals: { theme: "dark" } };
+
+export const Tablet: Story = {
+  args: { card: { ...fixture.card.long, tags: fixture.card.longTags.tags } },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Tablet,
+  args: { ...Tablet.args, menuOpen: true },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Tablet,
+  args: { ...Tablet.args, disabled: false },
+  argTypes: { disabled: { control: "boolean" } },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

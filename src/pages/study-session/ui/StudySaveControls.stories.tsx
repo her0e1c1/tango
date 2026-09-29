@@ -19,3 +19,41 @@ export const Default: Story = {
   },
 };
 export const Saving: Story = { args: { pending: true } };
+
+export const Mobile: Story = {
+  args: meta.args,
+  globals: { theme: "light", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  args: meta.args,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: meta.args,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const Dark: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <StudySaveControls {...args} />
+      <StudySaveControls {...args} pending />
+    </div>
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Dark,
+  parameters: { locale: "ja" },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

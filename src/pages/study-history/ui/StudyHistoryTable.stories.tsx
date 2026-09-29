@@ -43,3 +43,20 @@ export const MobileJapanese: Story = {
   },
 };
 export const Dark: Story = { globals: { theme: "dark" } };
+
+export const Tablet: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByText("Show daily counts · 90 days"));
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Tablet,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...MobileJapanese,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

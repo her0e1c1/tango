@@ -62,3 +62,19 @@ export const MobileJapanese: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 export const Dark: Story = { args: { preset: "custom" }, globals: { theme: "dark" } };
+
+export const Tablet: Story = {
+  ...Custom,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Custom,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Invalid,
+  parameters: { locale: "ja" },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

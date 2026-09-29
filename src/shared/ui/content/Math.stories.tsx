@@ -41,3 +41,27 @@ export const Dark: Story = {
   ...Markdown,
   globals: { theme: "dark" },
 };
+
+export const Tablet: Story = {
+  args: {
+    text: `${fixture.math.markdown}\n${WideMobile.args?.text}\n\n| Name | Value |\n| --- | --- |\n| Formula | A long table value |`,
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: { text: `${fixture.math.inline}\n${fixture.math.markdown}\n${fixture.math.block}\n${fixture.math.block}` },
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-2xl min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Tablet,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

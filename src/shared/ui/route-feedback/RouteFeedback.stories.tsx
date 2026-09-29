@@ -46,3 +46,44 @@ export const Dark: Story = {
   args: { title: "Starting Tango…", tone: "loading" },
   globals: { theme: "dark" },
 };
+
+export const Mobile: Story = {
+  ...ErrorState,
+  args: {
+    ...ErrorState.args,
+    description:
+      "Authentication could not be initialized. Please check your connection and try loading this page again. ".repeat(
+        4
+      ),
+  },
+  globals: { theme: "light", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  ...NotFound,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Mobile,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-2xl min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Mobile,
+  argTypes: { tone: { control: "radio", options: ["loading", "error", "not-found"] } },
+  render: (args) => (
+    <RouteFeedback
+      {...meta.args}
+      {...(args.tone === "error" ? Mobile.args : args.tone === "not-found" ? NotFound.args : {})}
+    />
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

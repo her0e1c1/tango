@@ -90,3 +90,40 @@ export const ChangePosition: Story = {
     });
   },
 };
+
+export const Mobile: Story = {
+  ...Default,
+  globals: { theme: "light", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      {[0, 12, 24].map((index) => (
+        <InteractiveController {...args} key={index} index={index} />
+      ))}
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Default,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const Dark: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <InteractiveController {...args} />
+      <InteractiveController {...args} autoPlay />
+      <InteractiveController {...args} disabled />
+    </div>
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Saving,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

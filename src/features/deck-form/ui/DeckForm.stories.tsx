@@ -163,3 +163,28 @@ export const JapaneseMobileCreate: Story = {
   parameters: { locale: "ja" },
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };
+
+export const Tablet: Story = {
+  ...LongContent,
+  play: async (context) => {
+    await ExpandedSettings.play?.(context);
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...LongContent,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...LongContent,
+  args: { ...LongContent.args, validationError: true },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const DarkSaving: Story = {
+  args: { mode: "edit", isSaving: true },
+  argTypes: { mode: { control: "radio", options: ["create", "edit"] } },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

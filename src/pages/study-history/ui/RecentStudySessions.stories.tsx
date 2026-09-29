@@ -73,3 +73,27 @@ export const MoreSessions: Story = {
     });
   },
 };
+
+export const Tablet: Story = {
+  args: {
+    sessions: Array.from({ length: 10 }, (_, index) => ({
+      ...meta.args.sessions[index % 3]!,
+      sessionId: String(index),
+    })),
+  },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Show all 10 sessions" }));
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: meta.args,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  args: meta.args,
+  parameters: { locale: "ja" },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

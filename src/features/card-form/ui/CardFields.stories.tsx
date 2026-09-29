@@ -496,3 +496,50 @@ export const InvalidTagNames: Story = {
     });
   },
 };
+
+export const Tablet: Story = {
+  ...LongContent,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...LongContent,
+  play: async ({ canvas, userEvent, step }) => {
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Expand Back" }));
+    const dialog = within(canvas.getByRole("dialog"));
+    const previewButton = dialog.getByRole("button", { name: "Preview answer" });
+    await step("STORYBOOK-CARD-EDIT-02 Keep focus inside expanded editing with a closed preview", async () => {
+      previewButton.focus();
+      await userEvent.tab();
+      await expect(dialog.getByRole("button", { name: "Done" })).toHaveFocus();
+      await userEvent.tab({ shift: true });
+      await expect(previewButton).toHaveFocus();
+    });
+    await userEvent.click(previewButton);
+  },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  args: {
+    dark: true,
+    validationError: true,
+    deckCategory: "math",
+    card: { ...longCard, tags: [...longCard.tags, "math"], backText: fixture.math.markdown },
+  },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
+  },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const LandscapeExpanded: Story = {
+  ...Desktop,
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

@@ -346,3 +346,53 @@ export const ReselectFile: Story = {
     });
   },
 };
+
+const longPreview: DeckImportPreview = {
+  ...preview,
+  deckName: "a-long-file-name-describing-the-entire-study-collection.csv",
+  analysis: {
+    ...preview.analysis,
+    rows: preview.analysis.rows.map((row) => ({
+      ...row,
+      card: { ...row.card, frontText: row.card.frontText.repeat(40), backText: row.card.backText.repeat(80) },
+    })),
+  },
+};
+
+export const Tablet: Story = {
+  args: { preview: longPreview },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: { onSelectExample: fn(), onDownloadExample: fn() },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByText("CSV format", { exact: true }));
+  },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  parameters: { locale: "ja" },
+  args: {
+    dark: true,
+    preview: {
+      ...longPreview,
+      analysis: {
+        ...longPreview.analysis,
+        invalidCount: 1,
+        issues: [{ rowNumber: 3, diagnostic: { kind: "columns", count: 3 } }],
+      },
+    },
+  },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const DarkPending: Story = {
+  args: { ...Pending.args, dark: true, validating: false },
+  argTypes: { validating: { control: "boolean" } },
+  render: (args) => (
+    <DeckImportView {...args} preview={args.validating ? undefined : args.preview} pending={!args.validating} />
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

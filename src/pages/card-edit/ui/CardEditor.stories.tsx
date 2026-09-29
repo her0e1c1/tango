@@ -215,3 +215,32 @@ export const RetrySave: Story = {
     });
   },
 };
+
+export const Tablet: Story = {
+  ...LongValues,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...LongValues,
+  play: async ({ canvas, userEvent, step }) => {
+    await step("STORYBOOK-CARD-EDIT-01 Reach a long answer preview with the keyboard", async () => {
+      await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
+      await userEvent.tab();
+      const preview = canvas.getByRole("region", { name: "Answer preview" });
+      await expect(preview).toHaveFocus();
+    });
+  },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  args: { card: longCard, validationError: true },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const DarkSaving: Story = {
+  args: { card: longCard, isSaving: true },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

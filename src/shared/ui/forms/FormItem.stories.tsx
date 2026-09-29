@@ -103,3 +103,62 @@ export const NarrowMobile: Story = {
   },
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };
+
+export const Tablet: Story = {
+  ...HelpAndError,
+  args: {
+    ...HelpAndError.args,
+    label: "A long label explaining the deck name for this collection",
+    help: "This name appears in your library and study history. ".repeat(4),
+    error: "Please enter a descriptive name before continuing with this collection.",
+  },
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <FormItem label="Name" inputId="desktop-name">
+        <Input id="desktop-name" defaultValue="Biology" />
+      </FormItem>
+      <FormItem label="Category" inputId="desktop-category">
+        <Select id="desktop-category" options={[{ label: "Biology", value: "biology" }]} />
+      </FormItem>
+      <FormItem label="Enabled" inputId="desktop-enabled">
+        <Switch id="desktop-enabled" />
+      </FormItem>
+      <FormItem {...args} />
+    </div>
+  ),
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-2xl min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Tablet,
+  args: {
+    ...Tablet.args,
+    col: true,
+    children: (
+      <Input
+        id="storybook-deck-name"
+        aria-describedby="storybook-deck-name-error"
+        defaultValue="A long value for the current biology collection"
+      />
+    ),
+  },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

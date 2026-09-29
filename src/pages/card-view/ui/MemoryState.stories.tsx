@@ -24,3 +24,33 @@ export const MobileJapanese: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 export const Dark: Story = { ...Overdue, globals: { theme: "dark" } };
+
+export const Tablet: Story = {
+  ...ShortTerm,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-2xl min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Overdue,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-2xl min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...CoincidentMarkers,
+  parameters: { locale: "ja" },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

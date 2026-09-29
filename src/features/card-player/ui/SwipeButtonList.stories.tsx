@@ -56,3 +56,24 @@ export const DisabledDirectionKeyboard: Story = {
     });
   },
 };
+
+export const Mobile: Story = {
+  ...Ratings,
+  globals: { theme: "light", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  ...Ratings,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...PreviousDisabled,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Ratings,
+  args: { ...Ratings.args, disabledDirections: { cardSwipeLeft: true } },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

@@ -25,3 +25,30 @@ export const Long: Story = {
 };
 
 export const Dark: Story = { args: { children: "Muted dark-mode description" }, globals: { theme: "dark" } };
+
+export const Tablet: Story = {
+  ...Long,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Description {...args} {...Short.args} />
+      <Description {...args} {...Long.args} />
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  args: { children: "学習を続ける前に表示内容と選択した条件を確認してください。".repeat(12) },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

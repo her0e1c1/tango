@@ -316,3 +316,32 @@ export const OnePendingDeck: Story = {
     });
   },
 };
+
+export const Desktop: Story = {
+  args: {
+    sections: {
+      ...reviewSections,
+      studying: reviewSections.studying.map((item) => ({
+        ...item,
+        deck: { ...item.deck, name: fixture.deck.tooLongName.name },
+      })),
+      reviewNow:
+        reviewSections.reviewNow?.map((item) => ({
+          ...item,
+          deck: { ...item.deck, name: fixture.deck.tooLongName.name },
+        })) ?? [],
+    },
+  },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Desktop,
+  parameters: { locale: "ja" },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const MobileDarkError: Story = {
+  ...BootstrapError,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

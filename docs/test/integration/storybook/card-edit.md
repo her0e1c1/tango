@@ -29,6 +29,8 @@ Card 編集画面を入口とした `play` で、既存 Card の両面・タグ�
 | STORYBOOK-CARD-FORM-23 | interaction | 異常系 | [保存失敗後に同じ下書きを再送信する](#storybook-card-form-23) |
 | STORYBOOK-CARD-FORM-24 | interaction | 正常系 | [確認なしのタグ編集を下書きへ即時反映する](#storybook-card-form-24) |
 | STORYBOOK-CARD-FORM-25 | interaction | 異常系 | [空白や重複したタグ名で保存しない](#storybook-card-form-25) |
+| STORYBOOK-CARD-EDIT-01 | interaction | 正常系 | [長い解答プレビューへキーボードで移動する](#storybook-card-edit-01) |
+| STORYBOOK-CARD-EDIT-02 | interaction | 正常系 | [プレビューを閉じた拡大編集内でフォーカスを循環させる](#storybook-card-edit-02) |
 
 <a id="storybook-card-form-01"></a>
 
@@ -449,3 +451,43 @@ When:
 Then:
 
 - 空白と重複には該当入力のエラーが表示され、有効な名前に直すと確認画面なしに保存できる。
+
+<a id="storybook-card-edit-01"></a>
+
+### STORYBOOK-CARD-EDIT-01 [TODO] 長い解答プレビューへキーボードで移動する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card 編集画面で、プレビュー領域の高さを超える長い裏面の下書きを表示している。
+
+When:
+
+- 裏面の解答プレビューを開き、Tab を押す。
+
+Then:
+
+- 入力や保存操作へ飛ばされず、長文のプレビュー領域にフォーカスが移る。
+
+<a id="storybook-card-edit-02"></a>
+
+### STORYBOOK-CARD-EDIT-02 [TODO] プレビューを閉じた拡大編集内でフォーカスを循環させる
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Card 編集画面で裏面の拡大入力を開き、解答プレビューは閉じている。
+
+When:
+
+- 解答プレビューの表示ボタンから Tab を押し、続けて Shift+Tab を押す。
+
+Then:
+
+- Tab で拡大入力の完了ボタンへ移り、Shift+Tab でプレビューの表示ボタンへ戻る。非表示の領域やダイアログの外へフォーカスが移らない。

@@ -310,3 +310,36 @@ export const LanguageChange: Story = {
     });
   },
 };
+
+export const Tablet: Story = {
+  args: {
+    tags: manyTags.map((tag, index) => (index === 0 ? "Long tag name for a collection of study materials" : tag)),
+    selectedTags: ["tag-2", "tag-3"],
+  },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /Show .* more tags/ }));
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Selected,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  parameters: { locale: "ja" },
+  args: {
+    tags: ["長い日本語の学習タグと復習する内容", "基礎", "応用"],
+    selectedTags: ["基礎", "応用"],
+    matchAll: true,
+  },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

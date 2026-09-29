@@ -63,3 +63,41 @@ export const ScrollableMobileDark: Story = {
     viewport: { value: "iphonex", isRotated: false },
   },
 };
+
+export const Mobile: Story = {
+  ...Center,
+  globals: { theme: "light", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  ...ScrollableMobileDark,
+  args: {
+    ...ScrollableMobileDark.args,
+    children: (
+      <div className="space-y-6 p-4">
+        {Array.from({ length: 20 }, (_, index) => (
+          <section key={index}>
+            <h2 className="text-title font-semibold">A long heading for reading section {index + 1}</h2>
+            <p>{"Readable text within the available content surface. ".repeat(12)}</p>
+          </section>
+        ))}
+      </div>
+    ),
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Center,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Tablet,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  ...Tablet,
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

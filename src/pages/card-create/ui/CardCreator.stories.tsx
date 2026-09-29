@@ -19,13 +19,14 @@ import { withPageLayout } from "@/storybook/PageLayoutDecorator";
 import { CardCreator } from "./CardCreator";
 
 interface CardCreatorStoryProps {
+  initialValues?: CardFormFields;
   isSaving: boolean;
   onCancel: () => void;
   onSubmit: (values: CardFormFields) => Promise<void>;
 }
 
-const CardCreatorStory = ({ isSaving, onCancel, onSubmit }: CardCreatorStoryProps) => {
-  const form = useForm<CardFormFields>({ defaultValues: { frontText: "", backText: "", tags: [] } });
+const CardCreatorStory = ({ initialValues, isSaving, onCancel, onSubmit }: CardCreatorStoryProps) => {
+  const form = useForm<CardFormFields>({ defaultValues: initialValues ?? { frontText: "", backText: "", tags: [] } });
 
   useEffect(() => {
     if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
@@ -192,3 +193,40 @@ function createPendingStory(stage: "immediate" | "validation" | "persistence"): 
 export const ImmediateRepeatedCreation = createPendingStory("immediate");
 export const PendingCreationValidation = createPendingStory("validation");
 export const PendingCreationSave = createPendingStory("persistence");
+
+const longValues: CardFormFields = {
+  frontText: "A long question with detailed context. ".repeat(20),
+  backText: "An answer explaining the reasoning in detail. ".repeat(30),
+  tags: ["Long tag describing the subject", "Vocabulary", "Review"],
+};
+
+export const Tablet: Story = {
+  args: {
+    initialValues: longValues,
+  },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("tab", { name: "Back" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Preview answer" }));
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: {
+    initialValues: longValues,
+  },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Desktop,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const DarkSaving: Story = {
+  args: {
+    initialValues: longValues,
+    isSaving: true,
+  },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
