@@ -12,7 +12,8 @@
   "formatter": {
     "includes": ["src/**", "test/**", ".storybook/**", "scripts/**"],
     "indentStyle": "space",
-    "lineWidth": 120
+    "lineWidth": 120,
+    "lineEnding": "lf"
   },
   "javascript": {
     "globals": ["__APP_VERSION__", "__COMMIT_HASH__"],
