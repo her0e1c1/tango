@@ -1,0 +1,29 @@
+# CardEditor
+
+カード編集の表示仕様。既存値、カード情報、エラーと送信状態をStory側で準備する。
+
+Storybook: `Pages/Card Edit/CardEditor`。
+
+[コンポーネント](../../src/pages/card-edit/ui/CardEditor.tsx) / [Story](../../src/pages/card-edit/ui/CardEditor.stories.tsx) / [一覧・共通前提](./README.md)
+
+## Story仕様
+
+| Story | 入力・表示条件 | 期待する表示・操作 |
+| --- | --- | --- |
+| `Default` | 既存の表裏、タグ、カード情報を渡す。 | 編集値とカード情報、保存・取消の操作を表示する。 |
+| `Saving` | 編集フォームの送信を待機させる。 | 保存中を表示し、入力と保存・取消・戻る操作を無効にする。 |
+| `ValidationError` | 表裏の入力エラーを渡す。 | 対象のエラーを確認できる。 |
+| `LongValues` | 長い表裏とタグを渡す。 | 編集値が操作領域を押し出さない。 |
+| `Dark` | 暗いテーマで長い編集値を表示する。 | 入力、補足情報、操作を判別できる。 |
+| `Mobile` | モバイル幅で長い編集値を表示する。 | 入力と操作を画面幅内で確認できる。 |
+
+## 同じファイルにある結合Story
+
+次のStoryは部品単体の表示仕様とは分け、[結合テスト仕様](../test/integration/storybook/README.md)で扱う。ここでは対応先だけを示し、保存・通知などの結合契約を重複定義しない。
+
+| Story | 対象外となる境界 |
+| --- | --- |
+| `PendingSave` | 編集action、保存境界と完了通知を組み合わせるStory。 |
+| `ExternalUpdate` | 編集用modelの外部更新と下書き保持を確認するStory。 |
+| `BothSidesInvalid` | 編集用modelの検証と送信抑止を確認するStory。 |
+| `RetrySave` | 保存失敗、通知、編集actionの再試行を組み合わせるStory。 |
