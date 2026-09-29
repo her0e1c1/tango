@@ -55,3 +55,42 @@ export const NarrowViewport: Story = {
   },
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };
+
+export const Tablet: Story = {
+  ...LongValue,
+  args: { ...LongValue.args, defaultValue: (String(LongValue.args?.defaultValue) + "\n").repeat(8) },
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...LongValue,
+  args: { ...LongValue.args, defaultValue: (String(LongValue.args?.defaultValue) + "\n").repeat(20) },
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Textarea {...args} {...LongValue.args} />
+      <Textarea {...args} placeholder="Enter a value" defaultValue="" />
+      <Textarea {...args} defaultValue="Read-only value" readOnly />
+      <Textarea {...args} defaultValue="Disabled value" disabled />
+      <Textarea {...args} defaultValue="" required />
+    </div>
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

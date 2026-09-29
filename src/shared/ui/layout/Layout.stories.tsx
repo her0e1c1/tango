@@ -78,3 +78,68 @@ export const MobileDarkFullscreen: Story = {
     viewport: { value: "iphonex", isRotated: false },
   },
 };
+
+export const Mobile: Story = {
+  args: {
+    ...FixedHeaderLongContent.args,
+    children: Array.from({ length: 20 }, (_, index) => (
+      <section key={index}>
+        <h2 className="text-title font-semibold">A long heading for reading section {index + 1}</h2>
+        <p>{"Readable text within the available content surface. ".repeat(12)}</p>
+      </section>
+    )),
+  },
+  globals: { theme: "light", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  args: {
+    ...FixedHeaderLongContent.args,
+    children: Array.from({ length: 20 }, (_, index) => (
+      <section key={index}>
+        <h2 className="text-title font-semibold">A long heading for reading section {index + 1}</h2>
+        <p>{"Readable text within the available content surface. ".repeat(12)}</p>
+      </section>
+    )),
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: {
+    ...FixedHeaderLongContent.args,
+    children: Array.from({ length: 20 }, (_, index) => (
+      <section key={index}>
+        <h2 className="text-title font-semibold">A long heading for reading section {index + 1}</h2>
+        <p>{"Readable text within the available content surface. ".repeat(12)}</p>
+      </section>
+    )),
+  },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  args: {
+    ...FixedHeaderLongContent.args,
+    children: Array.from({ length: 20 }, (_, index) => (
+      <section key={index}>
+        <h2 className="text-title font-semibold">A long heading for reading section {index + 1}</h2>
+        <p>{"Readable text within the available content surface. ".repeat(12)}</p>
+      </section>
+    )),
+  },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  args: {
+    ...FixedHeaderLongContent.args,
+    children: Array.from({ length: 20 }, (_, index) => (
+      <section key={index}>
+        <h2 className="text-title font-semibold">A long heading for reading section {index + 1}</h2>
+        <p>{"Readable text within the available content surface. ".repeat(12)}</p>
+      </section>
+    )),
+  },
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

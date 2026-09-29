@@ -41,3 +41,50 @@ export const Dark: Story = {
   args: { ...LongCode.args, dark: true },
   globals: { theme: "dark" },
 };
+
+export const Tablet: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <CardView {...args} {...LongPlainText.args} variant="bare" />
+      <CardView {...args} variant="bare" {...LongCode.args} />
+      <CardView {...args} {...LongMath.args} variant="bare" />
+    </div>
+  ),
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <CardView {...args} {...LongPlainText.args} variant="bare" />
+      <CardView {...args} variant="bare" {...LongCode.args} />
+      <CardView {...args} {...LongMath.args} variant="bare" />
+    </div>
+  ),
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-2xl min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <CardView {...args} {...LongPlainText.args} variant="bare" />
+      <CardView {...args} variant="bare" {...LongCode.args} dark />
+      <CardView {...args} {...LongMath.args} variant="bare" />
+    </div>
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

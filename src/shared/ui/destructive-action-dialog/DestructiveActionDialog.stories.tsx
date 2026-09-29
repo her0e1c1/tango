@@ -50,3 +50,26 @@ export const Mobile: Story = {
 };
 
 export const Dark: Story = { globals: { theme: "dark" } };
+
+export const Tablet: Story = {
+  ...Card,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Deck,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Card,
+  args: { ...Card.args, pending: false },
+  argTypes: { pending: { control: "boolean" } },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  ...Card,
+  args: { ...Card.args, targetName: String(Card.args?.targetName).repeat(5) },
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

@@ -83,3 +83,23 @@ export const Mobile375DarkEmpty: Story = {
   },
   globals: { theme: "dark", viewport: { value: "iphonex", isRotated: false } },
 };
+
+export const Tablet: Story = {
+  ...Mobile320LongDeck,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...ManyCardsAndCombinedFilters,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Mobile320LongDeck,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  ...Mobile320LongDeck,
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

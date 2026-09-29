@@ -49,3 +49,40 @@ export const LightAndDark: Story = {
     </div>
   ),
 };
+
+export const Mobile: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <TagLabel {...args} {...LongLabel.args} />
+      <TagLabel {...args} {...LongLabel.args} selected />
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  ...Mobile,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <TagLabel {...args} />
+      <TagLabel {...args} {...LongLabel.args} />
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Mobile,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

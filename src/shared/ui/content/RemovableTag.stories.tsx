@@ -46,3 +46,24 @@ export const Mobile: Story = {
 export const Dark: Story = {
   globals: { theme: "dark" },
 };
+
+export const Tablet: Story = {
+  ...LongLabel,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      {["TypeScript", "Biology", "Long label for a collection of study cards"].map((label) => (
+        <RemovableTag {...args} key={label} label={label} />
+      ))}
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...LongLabel,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

@@ -31,7 +31,7 @@ const meta = {
   parameters: { layout: "centered" },
   decorators: [
     (StoryComponent) => (
-      <div className="flex min-h-20 w-80 items-center justify-end rounded-surface border border-border bg-surface px-3 shadow-surface">
+      <div className="flex min-h-20 w-full max-w-80 items-center justify-end rounded-surface border border-border bg-surface px-3 shadow-surface">
         <StoryComponent />
       </div>
     ),
@@ -97,4 +97,39 @@ export const MobileSheet: Story = {
   args: { open: true, mobileSheet: true },
   render: (args) => <ActionsMenuStory {...args} />,
   globals: { viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  decorators: [
+    (StoryComponent) => (
+      <div className="flex w-full justify-end">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  ...Open,
+  render: (args) => <ActionsMenuStory {...args} />,
+  parameters: { layout: "padded" },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Open,
+  render: (args) => <ActionsMenuStory {...args} />,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...MobileSheet,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  ...Open,
+  args: {
+    ...Open.args,
+    items: meta.args.items.map((item) => ({ ...item, label: `${item.label} this document and its associated cards` })),
+  },
+  render: (args) => <ActionsMenuStory {...args} />,
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
 };

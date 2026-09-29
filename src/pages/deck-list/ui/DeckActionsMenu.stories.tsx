@@ -207,3 +207,25 @@ export const PendingCycle: Story = {
     });
   },
 };
+
+export const Tablet: Story = {
+  args: { ...LongDeckName.args, onRestart: fn() },
+  render: (args) => <DeckActionsMenuStory {...args} />,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Open,
+  render: (args) => <DeckActionsMenuStory {...args} />,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Tablet,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  ...Tablet,
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

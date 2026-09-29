@@ -1,3 +1,4 @@
+import { useState, type ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Outer } from "./Outer";
@@ -46,4 +47,51 @@ export const MobileDarkLongContent: Story = {
     theme: "dark",
     viewport: { value: "iphonex", isRotated: false },
   },
+};
+
+function OuterLengths(args: ComponentProps<typeof Outer>) {
+  const [long, setLong] = useState(false);
+  return (
+    <Outer {...args}>
+      <div className="p-4 text-ink">
+        <label>
+          <input type="checkbox" checked={long} onChange={(event) => setLong(event.target.checked)} /> Long content
+        </label>
+        {long ? args.children : <p>Short content on the application canvas.</p>}
+      </div>
+    </Outer>
+  );
+}
+
+export const Mobile: Story = {
+  ...MobileDarkLongContent,
+  args: {
+    children: (
+      <div className="space-y-6 p-4 text-ink">
+        {Array.from({ length: 20 }, (_, index) => (
+          <section key={index}>
+            <h2 className="text-title font-semibold">A long heading for reading section {index + 1}</h2>
+            <p>{"Readable text within the available content surface. ".repeat(12)}</p>
+          </section>
+        ))}
+      </div>
+    ),
+  },
+  globals: { theme: "light", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Tablet: Story = {
+  ...Mobile,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Mobile,
+  render: (args) => <OuterLengths {...args} />,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Mobile,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
 };

@@ -76,3 +76,36 @@ export const NarrowViewport: Story = {
   args: { checked: true, label: "Selected on mobile", round: true },
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };
+
+export const Tablet: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      {[{ small: true }, {}, { large: true }].map((size, index) => (
+        <Tag {...args} {...LongLabel.args} {...size} key={index} />
+      ))}
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Tag {...args} onChange={fn()} />
+      <Tag {...args} checked onChange={fn()} />
+      <Tag {...args} disabled />
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Tag {...args} {...LongLabel.args} onChange={fn()} />
+      <Tag {...args} {...LongLabel.args} checked onChange={fn()} />
+      <Tag {...args} {...LongLabel.args} disabled />
+    </div>
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

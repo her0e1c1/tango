@@ -302,3 +302,35 @@ export const JapaneseIntervalOffHidden = intervalStory(true, false, false);
 export const JapaneseIntervalOffVisible = intervalStory(true, false, true);
 export const JapaneseIntervalOnHidden = intervalStory(true, true, false);
 export const JapaneseIntervalOnVisible = intervalStory(true, true, true);
+
+export const Tablet: Story = {
+  parameters: { locale: "ja" },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByText("詳細設定", { exact: true }));
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...LongContent,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByText("Advanced", { exact: true }));
+  },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...LongContent,
+  parameters: { locale: "ja" },
+  args: {
+    ...LongContent.args,
+    preferences: {
+      ...fixture.preferences.default,
+      study: { ...fixture.preferences.default.study, maxNumberOfCardsToLearn: 0, cardInterval: 0 },
+    },
+  },
+  play: async (context) => {
+    await Tablet.play?.(context);
+  },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

@@ -59,3 +59,24 @@ export const MobileJapanese: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };
 export const Dark: Story = { globals: { theme: "dark" } };
+
+export const Tablet: Story = {
+  args: NinetyDays.args ?? {},
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: meta.args,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  args: NinetyDays.args ?? {},
+  parameters: { locale: "ja" },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const DarkEmpty: Story = {
+  ...Empty,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

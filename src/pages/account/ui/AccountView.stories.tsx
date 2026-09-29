@@ -103,3 +103,26 @@ export const Mobile: Story = {
   ...LongIdentity,
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };
+
+export const Tablet: Story = {
+  ...LongIdentity,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: SignedIn.args ?? {},
+  argTypes: { isLoggedIn: { control: "boolean" } },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...LongIdentity,
+  parameters: { locale: "ja" },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const DarkPending: Story = {
+  args: { ...SignedIn.args, signInPending: true, signOutPending: true },
+  argTypes: { isLoggedIn: { control: "boolean" } },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

@@ -69,3 +69,46 @@ export const NarrowViewport: Story = {
   args: { value: "55" },
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };
+
+export const Tablet: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      {["0", "50", "100"].map((value) => (
+        <InteractiveSlider {...args} key={value} value={value} />
+      ))}
+    </div>
+  ),
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: { value: "40" },
+  render: (args) => <InteractiveSlider {...args} />,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      {["0", "50", "100"].map((value) => (
+        <InteractiveSlider {...args} key={value} value={value} />
+      ))}
+      <Slider {...args} value="40" disabled />
+    </div>
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

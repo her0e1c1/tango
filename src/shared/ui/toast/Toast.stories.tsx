@@ -89,3 +89,26 @@ export const Dark: Story = {
 export const WithParameters: Story = {
   args: { tone: "success", messageKey: "deckImport.toast.imported", messageParams: { count: 3 } },
 };
+
+export const Tablet: Story = {
+  ...LongCardCreated,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Neutral,
+  argTypes: { tone: { control: "radio", options: ["neutral", "success", "warning", "error"] } },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...LongCardCreatedJapanese,
+  args: { ...LongCardCreatedJapanese.args, messageParams: { name: "長い名前の学習カードと詳しい説明".repeat(20) } },
+  argTypes: { tone: { control: "radio", options: ["neutral", "success", "warning", "error"] } },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  ...LongCardCreated,
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

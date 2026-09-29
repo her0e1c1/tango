@@ -149,6 +149,8 @@
 | STORYBOOK-CARD-FORM-23 | interaction | 異常系 | [保存失敗後に同じ下書きを再送信する](./card-edit.md#storybook-card-form-23) |
 | STORYBOOK-CARD-FORM-24 | interaction | 正常系 | [確認なしのタグ編集を下書きへ即時反映する](./card-edit.md#storybook-card-form-24) |
 | STORYBOOK-CARD-FORM-25 | interaction | 異常系 | [空白や重複したタグ名で保存しない](./card-edit.md#storybook-card-form-25) |
+| STORYBOOK-CARD-EDIT-01 | interaction | 正常系 | [長い解答プレビューへキーボードで移動する](./card-edit.md#storybook-card-edit-01) |
+| STORYBOOK-CARD-EDIT-02 | interaction | 正常系 | [プレビューを閉じた拡大編集内でフォーカスを循環させる](./card-edit.md#storybook-card-edit-02) |
 
 ## Card 閲覧画面
 

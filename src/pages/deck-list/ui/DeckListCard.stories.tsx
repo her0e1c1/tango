@@ -205,3 +205,23 @@ export const LocalDeck: Story = {
     });
   },
 };
+
+export const Tablet: Story = {
+  args: { ...TooLongName.args, ...WithStudyProgress.args },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  args: { ...DueCards.args, openMenuDeckId: fixture.deck.default.id },
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  args: { ...Tablet.args, ...DueCards.args },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const DarkPending: Story = {
+  args: { ...TooLongName.args, ...DueCards.args, ...Pending.args },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

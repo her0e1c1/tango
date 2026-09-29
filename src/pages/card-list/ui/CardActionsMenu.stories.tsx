@@ -116,3 +116,20 @@ export const DisabledMenuContract: Story = {
     });
   },
 };
+
+export const Tablet: Story = {
+  ...LongCardText,
+  render: (args) => <CardActionsMenuStory {...args} />,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Open,
+  render: (args) => <CardActionsMenuStory {...args} />,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Tablet,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

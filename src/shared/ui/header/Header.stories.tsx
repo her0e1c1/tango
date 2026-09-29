@@ -32,3 +32,18 @@ export const MobileDarkFixed: Story = {
 };
 
 export const Mobile: Story = { globals: { viewport: { value: "iphone5", isRotated: false } } };
+
+export const Tablet: Story = {
+  ...Default,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...Default,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  args: { dark: true, fixed: false },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

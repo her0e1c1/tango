@@ -54,3 +54,29 @@ export const Mobile: Story = {
 export const Dark: Story = {
   globals: { theme: "dark" },
 };
+
+export const Tablet: Story = {
+  ...English,
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...English,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  parameters: { locale: "ja" },
+  args: {
+    rows: [
+      ...rows.filter((row) => row.control !== "autoPlay" && row.control !== "playbackControls"),
+      ...(UnavailableControls.args?.rows ?? []),
+    ],
+  },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const Landscape: Story = {
+  ...English,
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

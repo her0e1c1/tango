@@ -110,3 +110,37 @@ export const Dark: Story = {
   ...MultipleRows,
   globals: { theme: "dark" },
 };
+
+export const Tablet: Story = {
+  ...LongContent,
+  render: (args) => (
+    <SettingsSection {...args}>
+      {args.children}
+      <SettingsRow
+        inputId="extra-setting"
+        label="Another setting"
+        description="Additional explanation for the next setting"
+      >
+        <Switch id="extra-setting" />
+      </SettingsRow>
+    </SettingsSection>
+  ),
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <SettingsSection {...args} />
+      <SettingsRow inputId="standalone-setting" label="Standalone setting" description="An independent setting row">
+        <Switch id="standalone-setting" />
+      </SettingsRow>
+    </div>
+  ),
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Tablet,
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

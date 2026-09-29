@@ -81,3 +81,39 @@ export const Mobile: Story = {
 };
 
 export const Dark: Story = { ...ManyTagsSelected, globals: { theme: "dark" } };
+
+export const Tablet: Story = {
+  ...ManyTagsSelected,
+  args: {
+    ...ManyTagsSelected.args,
+    tags: Array.from({ length: 40 }, (_, index) => `Long study tag for collection ${index + 1}`),
+    selectedTags: [
+      "Long study tag for collection 2",
+      "Long study tag for collection 17",
+      "Long study tag for collection 31",
+    ],
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...ManyTagsSelected,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Tablet,
+  args: {
+    ...Tablet.args,
+    selectedTags: ["Unavailable selected tag", "Long study tag for collection 1"],
+    tagAndFilter: true,
+  },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

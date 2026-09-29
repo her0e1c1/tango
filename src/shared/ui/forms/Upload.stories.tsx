@@ -40,3 +40,44 @@ export const NarrowViewport: Story = {
   args: { fileName: "a-long-file-name-on-a-narrow-mobile-viewport.csv" },
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };
+
+export const Tablet: Story = {
+  ...NarrowViewport,
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Upload {...args} />
+      <Upload {...args} fileName="biology-cards.csv" />
+      <Upload {...args} disabled />
+    </div>
+  ),
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Upload {...args} />
+      <Upload {...args} {...NarrowViewport.args} />
+      <Upload {...args} disabled />
+    </div>
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};

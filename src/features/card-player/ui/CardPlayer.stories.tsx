@@ -896,3 +896,32 @@ export const HelpWithNotification: Story = {
     });
   },
 };
+
+export const Tablet: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Open card actions" }));
+  },
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  ...ViewModeLongFront,
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  ...Tablet,
+  args: { playbackControlsAvailable: false },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const MobileDarkAnswer: Story = {
+  ...DarkCodeAnswer,
+  args: { ...DarkCodeAnswer.args, backTextOverlay: { onClickLeft: fn(), onClickRight: fn() } },
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
+
+export const LandscapeAnswer: Story = {
+  args: AnswerSwipeOverlays.args ?? {},
+  globals: { theme: "light", viewport: { value: "landscape812", isRotated: false } },
+};

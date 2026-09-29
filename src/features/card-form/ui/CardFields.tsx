@@ -141,8 +141,9 @@ const BackPreview = ({ children }: { children: React.ReactNode }) => {
       <section
         id={id}
         hidden={!open}
+        tabIndex={open ? 0 : -1}
         aria-label={t("cardForm.preview.title")}
-        className="max-h-[45dvh] overflow-auto rounded-control border border-border"
+        className="max-h-[45dvh] overflow-auto rounded-control border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         {open ? children : null}
       </section>

@@ -55,3 +55,47 @@ export const NarrowViewport: Story = {
   args: { defaultValue: "A long value on a narrow mobile viewport" },
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };
+
+export const Tablet: Story = {
+  ...LongValue,
+  args: { ...LongValue.args, defaultValue: String(LongValue.args?.defaultValue).repeat(8) },
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
+};
+
+export const Desktop: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Input {...args} defaultValue="Editable value" />
+      <Input {...args} defaultValue="Read-only value" readOnly />
+      <Input {...args} defaultValue="Disabled value" disabled />
+    </div>
+  ),
+  decorators: [
+    (StoryComponent) => (
+      <div className="max-w-sm min-w-0">
+        <StoryComponent />
+      </div>
+    ),
+  ],
+  globals: { theme: "light", viewport: { value: "desktop1280", isRotated: false } },
+};
+
+export const MobileDark: Story = {
+  render: (args) => (
+    <div className="grid min-w-0 gap-4">
+      <Input {...args} {...LongValue.args} />
+      <Input {...args} placeholder="Enter a value" defaultValue="" />
+      <Input {...args} defaultValue="Read-only value" readOnly />
+      <Input {...args} defaultValue="Disabled value" disabled />
+      <Input {...args} defaultValue="" required />
+    </div>
+  ),
+  globals: { theme: "dark", viewport: { value: "iphone5", isRotated: false } },
+};
