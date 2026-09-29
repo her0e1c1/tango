@@ -1,30 +1,35 @@
-# Storybook Integration Specification Instructions
+# Storybook 画面結合テスト仕様書の記述規約
 
-## 検証境界と書式
+## 画面単位の仕様
 
-- Storybook の `play` が確認する公開 UI 契約を記述する。利用者の一連の導線は `docs/test/e2e`、保存・購読・Rules は `docs/test/integration/firestore` で扱う。
-- 文書構成、日本語の Given / When / Then、ID だけでの対応付けは [共通規約](../../AGENTS.md) に従う。仕様書と README に Story ファイル・named export・元テスト名・実装対応表を記載しない。
-- ID は `STORYBOOK-<大文字の仕様ファイル名>-<NN>` とし、各ファイルで `01` から文書順に欠番なく採番する。索引・anchor・見出しをそろえ、README にはケース一覧だけを置く。
-- カテゴリは表示・属性を確認する `render` と、操作結果を確認する `interaction` とする。区分は [共通規約](../../AGENTS.md#正常系異常系の区分) に従い、カテゴリと分ける。
-- Given には表示データ・選択状態・フォームエラーなどを直接記述する。E2E fixture や専用 fixture ファイルを追加しない。Given / When / Then は各1ブロックとし、独立した振る舞いは別ケースにする。
-- 一つの `play` で複数ケースを確認してよい。先行操作で Given の状態を準備できるが、各ケースが独立したテストとして実行されることを意味しない。表示バリエーションは Story 名ではなく、入力と期待結果で区別する。
-- 対象は Pages / Features の利用者向け UI と、ルート・レイアウトの結合である。Shared の汎用部品単独ではなく、実際の利用側 UI と子コンポーネント・フォームを組み合わせて確認する。
-- フォーム値、表示・読み上げ名、操作可否、フォーカス、公開 callback の通知を観測する。内部 helper、private state、分岐・呼出回数・coverage だけを根拠にケースを増やさない。
-- 実際の遷移や通知 UI を確認するケースでは Page・router・model/action・通知 UI を組み合わせ、認証・保存など契約外の境界だけを置き換える。検証対象の UI・フォームを mock せず、テスト専用の本番インターフェースを追加しない。
-- 公開 callback の通知は保存成功・実遷移・ダウンロード内容の証拠ではない。それぞれを保証する場合は、その結果を観測できる境界の仕様を使う。
-- 未実装または期待結果の一部が未検証のケースは、共通規約に従い見出しに `[TODO]` を付ける。状態行・索引への重複表示・古い検証状況表は作らない。ID が存在すること、描画のみ・準備操作のみの Story、skip を、検証済みと数えない。
+- このディレクトリは各画面を入口にした Storybook の `play` の結合テスト仕様とする。仕様書は `src/pages` の画面名に対応する一画面一ファイルとし、作成・編集・一覧・閲覧・学習開始・学習を分ける。仕様ファイルと Story ファイルの一対一対応は要求しない。
+- フォーム、タグ選択、Card player、再生操作、ヘルプ、レイアウトは独立した仕様書にせず、利用する画面の操作・表示として記述する。別画面でも必要な契約は、その画面からの操作として追加する。
+- Page と、その画面が使う model/action・フォーム・子コンポーネント・状態管理を結合した結果を対象にする。遷移は router と遷移先の表示、通知は実際の通知領域まで確認する。
+- 独立した部品の描画、props の差し替え、callback の呼び出しだけでは画面の結合テストを満たさない。Page や検証対象の model/action を mock して結果を作らない。
+- 認証・通信・保存など画面の契約外の I/O は Story 側で成功・失敗・待機を用意してよい。画面内の CSV 解析や入力検証など、検証対象の連携を置き換えない。テストのためだけに本番インターフェースを追加しない。
+- 一つの画面で準備した状態から操作し、その結果までを確認する。長い画面横断の利用者導線は `docs/test/e2e`、実際の保存・購読・Rules は `docs/test/integration/firestore` に置く。境界の成功応答、一覧への反映、成功通知を、サーバーへの実保存や再読込後の復元の証拠としない。
 
-## Storybook の初期化と fixture
+## 書式と ID
 
-- [`preview.ts`](../../../../.storybook/preview.ts) の実際の i18n とアプリ CSS を使用する。通常は英語で、日本語ケースだけ `parameters.locale = "ja"` を設定する。`beforeEach` で言語変更を await してから表示する。Canvas は共有 instance と document の言語を合わせ、複数言語を同時表示する Docs は言語別 instance と各 Story の `lang` を使う。
-- 入力値、フォームエラー、空状態、認証状態、callback の spy は Story 側で用意する。ルート Story は既存の [`appStory.tsx`](../../../../.storybook/support/appStory.tsx) の `prepareAppStory` を `beforeEach` から呼び出し、表示前に reset / seed する。Story で実行する CSV 読み取りが進行中なら、その完了を待ってから、Page の共有 store も初期値に戻す。待機用の購読は完了または Story の中断時に解除する。実認証・Firebase 保存はこの Story の契約外であり、他 Page の処理完了を横断的に監視しない。導入版では globals / args 更新でも `beforeEach` が呼ばれるため、実行単位の `abortSignal` で準備済みかを判定する。cleanup は準備済み判定だけを解除し、play 終了後の画面は消さない。loader や通常の再描画では初期化しない。
-- ルート専用 fixture は [`App.stories.tsx`](../../../../src/app/App.stories.tsx) に置き、各 Story の `parameters.page` にパスと状態を明示する。Session の ID・開始日時・最終学習日時も固定値を指定する。現在のルート fixture は未学習カード（`fsrs: null`）を使用し、期限判定に依存しない。日時を表示する UI Story は固定日時、記憶状態の Story は明示的な判定時刻を使用する。期限依存の fixture を追加する場合は判定用の時計も Story の lifecycle 内で合わせる。
-- フォーム、選択状態、spy 履歴、共有 store、言語、スクロール位置を実行単位で分離し、実行順に依存させない。スクロールのケースは実際にスクロールできる高さで実行し、終了時に位置を戻す。モバイルの既存表示例は iPhone X の viewport を使う。Strict Mode などの描画条件は Story 側で設定し、ケースに内部の実行回数を書かない。
+- [共通規約](../../AGENTS.md) のテンプレートに従い、目的、ケース一覧、ID の anchor と見出し、カテゴリ、区分、日本語の Given / When / Then だけを記述する。README は画面別のケース索引とし、Story 名・export 名・実装対応表は書かない。
+- Given は対象画面、表示データ、入力、認証状態、外部処理の結果など必要な状態を明示する。When は利用者の操作または外部からの事象、Then は表示・選択・入力保持・フォーカス・操作可否・遷移先など観測できる結果にする。
+- 表示を確認するケースは `render`、操作や入力に伴う結果は `interaction` とする。正常系・異常系はカテゴリとは別に記述する。
+- 新しい ID は `STORYBOOK-<大文字の画面名>-<NN>` とする。既存 ID は画面別への移動後も維持し、同じ ID を別のファイルへ重複定義しない。旧部品名の接頭辞と、その分割によるファイル内の欠番は維持し、移動だけの改番で既存 play の参照を切らない。新規ケースは画面名の接頭辞で 01 から連番にする。
+- 各ケースは対象画面からの play で Given / When / Then 全体を確認する。複数ケースを一つの play で確認してよく、各 step の先頭に該当 ID を置く。
+- 画面を入口とした検証が未実装、または期待結果が一部未検証なら、見出しの ID 直後にだけ `[TODO]` を付ける。既存の部品 play に同じ ID があっても、この印を外す根拠にしない。画面 play を実装して内容を検証した変更で外す。
+- この再編では既存のルート play が確認するケース以外を `[TODO]` とする。これは以前の部品テストの失敗を意味しない。ID の存在も、印がないことも、テストの実行成功を保証しない。
 
-## 実行と変更時の確認
+## Story の準備と共通確認
 
-- 実装は `src/**/*.stories.tsx` の `play` に置き、`test/integration/storybook` へ複製しない。既存の `vitest.config.ts` の `storybook` project と Chromium browser を使い、jsdom のテストとは区別する。
-- Firebase は既存の `.storybook/main.ts` による差し替えを使う。接続成功・実認証・実保存を、ルート Story であることだけを理由に保証しない。
-- `npm run lint:test-specs` と `npm run lint:markdown` で参照と文書形式を確認する。参照チェックは文字列の先頭の ID を照合するだけであり、play の実行・継承・実行条件・Given / When / Then の網羅性を判定しない。
-- `npm run test:storybook` で動作を検証する。個別表示は `npm run storybook` を使う。`npm run build:storybook` の成功だけを play の成功と扱わない。
-- play の追加・変更・回帰テスト追加と同じ変更で、仕様と索引を更新する。仕様作成だけで既存 Vitest テストを削除せず、代替 play の実装・実行で同じ UI 契約を確認する。UI 以外の契約は適切な層に残す。
+- 実際の i18n とアプリ CSS を使う。言語、認証状態、共有 store、入力、選択、spy 履歴、スクロール位置は実行単位で分離する。描画のみ・準備操作のみの Story を検証済みとして扱わない。
+- 既存の `.storybook/support/appStory.tsx` の準備処理を利用し、ルートと状態を Story 側に用意する。準備は表示前に完了し、進行中の CSV 読み取りの後に状態を初期化する。共有状態を通常の再描画でリセットせず、play 終了後の画面は保持する。
+- Card、Deck、セッション、学習履歴には固定の ID と日時を使う。復習期限の判定が必要なケースは判定時刻も固定する。未学習 Card だけの準備を復習期限の検証の代わりにしない。
+- 非同期の操作は結果の表示を待って確認し、固定時間の待機だけで成功としない。失敗時は安全な案内、必要な入力の保持、再試行可能な状態を確認する。
+- 各画面で名前付きの操作を使い、キーボードで必要な操作に到達できること、モーダルが閉じた後のフォーカス、ヘッダーと本文の重なりを契約に応じて確認する。狭い画面での契約は viewport を固定する。
+
+## 実装と確認
+
+- play は既存の `src/**/*.stories.tsx` に置き、`test/integration/storybook` へ複製しない。画面 Story は既存のルート Story を利用でき、仕様のためだけに Story の分割や新しいテスト基盤を要求しない。
+- `npm run lint:test-specs` と `npm run lint:markdown` で参照と形式を確認する。参照 linter は ID 文字列を照合するだけであり、画面から実行しているか、期待結果を網羅しているかまでは確認しない。
+- `npm run test:storybook` の既存の Vitest Storybook project と Chromium で play を実行する。`npm run build:storybook` の成功を play の成功と扱わない。
+- 仕様変更だけを理由に既存の部品 Story や Vitest テストを削除しない。部品の回帰テストと画面の結合テストの検証範囲を区別し、追加・変更したケースと README の索引をそろえる。

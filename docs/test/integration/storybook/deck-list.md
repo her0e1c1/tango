@@ -1,51 +1,45 @@
-# Deck List Storybook 結合テスト仕様書
+# Deck 一覧画面 Storybook 結合テスト仕様書
 
 ## 目的
 
-一覧の状態、操作要求、復習件数、メニューの排他とフォーカス、処理中の操作抑止を確認する。
-
-## 検証境界
-
-DeckList と実際の DeckListCard / DeckActionsMenu を組み合わせ、表示データと callback を境界にする。実際の画面遷移、ダウンロード内容、件数集計と永続化は対象外。
-
-書式・実行前提は [README](./README.md)、関連 E2E は [navigation](../../e2e/navigation.md) と [study-session](../../e2e/study-session.md) を参照する。
-
-未実装のケースは見出しの `[TODO]` で示す。
+Deck 一覧画面を入口とした `play` で、一覧の表示、Deck ごとの操作、追加導線、メニューとヘッダーの振る舞いを確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
-| STORYBOOK-DECK-LIST-01 | interaction | 正常系 | [Deck 作成を要求する](#storybook-deck-list-01) |
-| STORYBOOK-DECK-LIST-02 | interaction | 正常系 | [Deck インポートを要求する](#storybook-deck-list-02) |
+| STORYBOOK-DECK-LIST-01 | interaction | 正常系 | [Deck 作成画面を開く](#storybook-deck-list-01) |
+| STORYBOOK-DECK-LIST-02 | interaction | 正常系 | [Deck インポート画面を開く](#storybook-deck-list-02) |
 | STORYBOOK-DECK-LIST-03 | render | 正常系 | [固定文言だけを日本語にする](#storybook-deck-list-03) |
-| STORYBOOK-DECK-LIST-04 | interaction | 正常系 | [Deck の閲覧を要求する](#storybook-deck-list-04) |
+| STORYBOOK-DECK-LIST-04 | interaction | 正常系 | [選んだ Deck を閲覧する](#storybook-deck-list-04) |
 | STORYBOOK-DECK-LIST-05 | render | 正常系 | [空の一覧にも追加導線を表示する](#storybook-deck-list-05) |
 | STORYBOOK-DECK-LIST-06 | render | 正常系 | [復習対象・新規件数と説明を表示する](#storybook-deck-list-06) |
-| STORYBOOK-DECK-LIST-07 | interaction | 正常系 | [ダウンロードを要求してメニューを閉じる](#storybook-deck-list-07) |
-| STORYBOOK-DECK-LIST-08 | interaction | 正常系 | [学習履歴を要求する](#storybook-deck-list-08) |
+| STORYBOOK-DECK-LIST-07 | interaction | 正常系 | [ダウンロード操作後にメニューを閉じる](#storybook-deck-list-07) |
+| STORYBOOK-DECK-LIST-08 | interaction | 正常系 | [学習履歴画面を開く](#storybook-deck-list-08) |
 | STORYBOOK-DECK-LIST-09 | render | 正常系 | [学習中と未開始を一つの一覧に表示する](#storybook-deck-list-09) |
 | STORYBOOK-DECK-LIST-10 | interaction | 正常系 | [複数のメニューを同時に開かない](#storybook-deck-list-10) |
 | STORYBOOK-DECK-LIST-11 | interaction | 正常系 | [追加メニューをキーボードで開閉する](#storybook-deck-list-11) |
-| STORYBOOK-DECK-LIST-12 | interaction | 正常系 | [作成要求後に追加ボタンへ戻る](#storybook-deck-list-12) |
+| STORYBOOK-DECK-LIST-12 | interaction | 正常系 | [作成操作後に追加メニューを残さない](#storybook-deck-list-12) |
 | STORYBOOK-DECK-LIST-13 | render | 正常系 | [確認中に空の一覧と断定しない](#storybook-deck-list-13) |
-| STORYBOOK-DECK-LIST-14 | interaction | 異常系 | [初期データ取得失敗から操作を選ぶ](#storybook-deck-list-14) |
+| STORYBOOK-DECK-LIST-14 | interaction | 異常系 | [初期データ取得失敗から復旧操作を選ぶ](#storybook-deck-list-14) |
 | STORYBOOK-DECK-LIST-15 | interaction | 正常系 | [復習対象0件の理由を区別する](#storybook-deck-list-15) |
-| STORYBOOK-DECK-LIST-16 | interaction | 正常系 | [復習と新規学習を区別して要求する](#storybook-deck-list-16) |
+| STORYBOOK-DECK-LIST-16 | interaction | 正常系 | [復習と新規学習を区別して開始する](#storybook-deck-list-16) |
 | STORYBOOK-DECK-LIST-17 | render | 正常系 | [学習位置を表示する](#storybook-deck-list-17) |
-| STORYBOOK-DECK-LIST-18 | interaction | 正常系 | [Study で行の閲覧を起動しない](#storybook-deck-list-18) |
-| STORYBOOK-DECK-LIST-19 | interaction | 正常系 | [各操作に対象 ID を渡す](#storybook-deck-list-19) |
+| STORYBOOK-DECK-LIST-18 | interaction | 正常系 | [学習操作で閲覧画面を開かない](#storybook-deck-list-18) |
+| STORYBOOK-DECK-LIST-19 | interaction | 正常系 | [各操作を選んだ Deck に適用する](#storybook-deck-list-19) |
 | STORYBOOK-DECK-LIST-20 | render | 正常系 | [ローカル Deck にリモート表示を付けない](#storybook-deck-list-20) |
-| STORYBOOK-DECK-LIST-21 | render | 正常系 | [処理中の行だけを無効にする](#storybook-deck-list-21) |
-| STORYBOOK-DECK-LIST-22 | render | 正常系 | [未開始なら Restart を表示しない](#storybook-deck-list-22) |
+| STORYBOOK-DECK-LIST-21 | render | 正常系 | [処理中の Deck だけを操作不可にする](#storybook-deck-list-21) |
+| STORYBOOK-DECK-LIST-22 | render | 正常系 | [未開始なら再開し直す操作を表示しない](#storybook-deck-list-22) |
 | STORYBOOK-DECK-LIST-23 | interaction | 正常系 | [メニューを矢印キーで移動する](#storybook-deck-list-23) |
 | STORYBOOK-DECK-LIST-24 | interaction | 正常系 | [メニュー内のフォーカス移動で操作を失わない](#storybook-deck-list-24) |
-| STORYBOOK-DECK-LIST-25 | interaction | 正常系 | [外へ移ったフォーカスを奪わない](#storybook-deck-list-25) |
-| STORYBOOK-DECK-LIST-26 | interaction | 正常系 | [再有効化してもメニューを閉じたままにする](#storybook-deck-list-26) |
+| STORYBOOK-DECK-LIST-25 | interaction | 正常系 | [メニューの外へ移ったフォーカスを奪わない](#storybook-deck-list-25) |
+| STORYBOOK-DECK-LIST-26 | interaction | 正常系 | [操作が再び有効になってもメニューを開かない](#storybook-deck-list-26) |
+| STORYBOOK-APP-LAYOUT-01 | interaction | 正常系 | [固定ヘッダーと本文を重ねずにスクロールする](#storybook-app-layout-01) |
+| STORYBOOK-APP-LAYOUT-02 | render | 正常系 | [初期表示でヘッダーと本文を重ねない](#storybook-app-layout-02) |
 
 <a id="storybook-deck-list-01"></a>
 
-### STORYBOOK-DECK-LIST-01 Deck 作成を要求する
+### STORYBOOK-DECK-LIST-01 [TODO] Deck 作成画面を開く
 
 カテゴリ: `interaction`
 
@@ -53,19 +47,19 @@ DeckList と実際の DeckListCard / DeckActionsMenu を組み合わせ、表示
 
 Given:
 
-- 作成・インポート callback を渡す。
+- Deck 一覧画面の追加メニューを操作できる。
 
 When:
 
-- Add を開き、Create deck を選ぶ。
+- 追加メニューから作成を選ぶ。
 
 Then:
 
-- 作成 callback が一度通知され、メニューが閉じる。
+- Deck 作成画面と名前の入力欄が表示される。
 
 <a id="storybook-deck-list-02"></a>
 
-### STORYBOOK-DECK-LIST-02 Deck インポートを要求する
+### STORYBOOK-DECK-LIST-02 [TODO] Deck インポート画面を開く
 
 カテゴリ: `interaction`
 
@@ -73,19 +67,19 @@ Then:
 
 Given:
 
-- 作成・インポート callback を渡す。
+- Deck 一覧画面の追加メニューを操作できる。
 
 When:
 
-- Add を開き、Import decks を選ぶ。
+- 追加メニューからインポートを選ぶ。
 
 Then:
 
-- インポート callback が一度通知され、メニューが閉じる。
+- Deck インポート画面とファイル選択が表示される。
 
 <a id="storybook-deck-list-03"></a>
 
-### STORYBOOK-DECK-LIST-03 固定文言だけを日本語にする
+### STORYBOOK-DECK-LIST-03 [TODO] 固定文言だけを日本語にする
 
 カテゴリ: `render`
 
@@ -93,19 +87,19 @@ Then:
 
 Given:
 
-- 日本語 locale でユーザーが名付けた Deck を渡す。
+- 表示言語は日本語で、名前が Japanese verbs の Deck がある。
 
 When:
 
-- 一覧を描画する。
+- Deck 一覧画面を開く。
 
 Then:
 
-- 固定文言は日本語になり、Deck 名は元の文字列を保持する。
+- 見出しと操作名は日本語になり、Deck 名は Japanese verbs のままである。
 
 <a id="storybook-deck-list-04"></a>
 
-### STORYBOOK-DECK-LIST-04 Deck の閲覧を要求する
+### STORYBOOK-DECK-LIST-04 [TODO] 選んだ Deck を閲覧する
 
 カテゴリ: `interaction`
 
@@ -113,19 +107,19 @@ Then:
 
 Given:
 
-- Deck 閲覧と Card 一覧への callback を区別して渡す。
+- 名前の異なる二つの Deck が一覧にある。
 
 When:
 
-- 先頭 Deck のメニューから View を選ぶ。
+- 片方の Deck の閲覧操作を選ぶ。
 
 Then:
 
-- Deck 閲覧 callback に対象 ID を渡し、Card 一覧 callback は通知しない。
+- 選んだ Deck の閲覧画面が表示され、他方の Card は表示されない。
 
 <a id="storybook-deck-list-05"></a>
 
-### STORYBOOK-DECK-LIST-05 空の一覧にも追加導線を表示する
+### STORYBOOK-DECK-LIST-05 [TODO] 空の一覧にも追加導線を表示する
 
 カテゴリ: `render`
 
@@ -133,19 +127,19 @@ Then:
 
 Given:
 
-- Deck が0件で、空状態が確定している。
+- Deck の取得が完了し、Deck が一つもない。
 
 When:
 
-- 一覧を描画して Add を開く。
+- Deck 一覧画面を開く。
 
 Then:
 
-- 0 decks、No decks yet、Create deck の導線を表示する。メニューの Create deck / Import decks は有効である。
+- 空状態の案内と、作成・インポートを選べる追加操作が表示される。
 
 <a id="storybook-deck-list-06"></a>
 
-### STORYBOOK-DECK-LIST-06 復習対象・新規件数と説明を表示する
+### STORYBOOK-DECK-LIST-06 [TODO] 復習対象・新規件数と説明を表示する
 
 カテゴリ: `render`
 
@@ -153,19 +147,19 @@ Then:
 
 Given:
 
-- 復習対象5件、新規5件の Deck を用意する。
+- 復習対象が2件、新規が3件の Deck がある。
 
 When:
 
-- 一覧を描画して About counts を開く。
+- Deck 一覧画面を開く。
 
 Then:
 
-- 5 due / 5 new と件数の説明を表示する。
+- 復習対象2件と新規3件を区別し、それぞれの意味を確認できる。
 
 <a id="storybook-deck-list-07"></a>
 
-### STORYBOOK-DECK-LIST-07 ダウンロードを要求してメニューを閉じる
+### STORYBOOK-DECK-LIST-07 [TODO] ダウンロード操作後にメニューを閉じる
 
 カテゴリ: `interaction`
 
@@ -173,19 +167,19 @@ Then:
 
 Given:
 
-- Japanese verbs のメニューが閉じており、開閉を Story 側に反映する。
+- ダウンロード可能な Deck のメニューを開いている。
 
 When:
 
-- メニューから Download を選ぶ。
+- ダウンロードを選ぶ。
 
 Then:
 
-- ダウンロード callback が一度通知され、メニューが閉じる。
+- 選んだ Deck のダウンロード処理が開始され、メニューが閉じる。ファイル内容の保証はこの画面の範囲に含めない。
 
 <a id="storybook-deck-list-08"></a>
 
-### STORYBOOK-DECK-LIST-08 学習履歴を要求する
+### STORYBOOK-DECK-LIST-08 [TODO] 学習履歴画面を開く
 
 カテゴリ: `interaction`
 
@@ -193,15 +187,15 @@ Then:
 
 Given:
 
-- 学習履歴 callback を渡す。
+- Deck 一覧画面を表示している。
 
 When:
 
-- メニューから Study history を選ぶ。
+- 学習履歴の操作を選ぶ。
 
 Then:
 
-- 学習履歴 callback が一度通知される。
+- 学習履歴画面が表示される。
 
 <a id="storybook-deck-list-09"></a>
 
@@ -213,20 +207,19 @@ Then:
 
 Given:
 
-- 学習中 Active deck と未開始 Other deck の2件、未開始だけの1件を別条件にする。
+- 学習を中断した Deck と、未開始の Deck がある。
 
 When:
 
-- 一覧を描画する。
+- Deck 一覧画面を開く。
 
 Then:
 
-- 2件なら一つの Decks 領域に Active deck、Other deck の順で article を表示し、グループ見出しは作らない。
-- 未開始だけでも行を表示し、存在しない学習中 Deck の Continue は表示しない。
+- 両方の Deck が同じ一覧に表示され、学習中の Deck を区別できる。
 
 <a id="storybook-deck-list-10"></a>
 
-### STORYBOOK-DECK-LIST-10 複数のメニューを同時に開かない
+### STORYBOOK-DECK-LIST-10 [TODO] 複数のメニューを同時に開かない
 
 カテゴリ: `interaction`
 
@@ -234,19 +227,19 @@ Then:
 
 Given:
 
-- 複数 Deck の一覧を表示する。
+- 二つの Deck があり、片方のメニューが開いている。
 
 When:
 
-- Deck A、Deck B、Add、Deck A の順でメニューを開く。
+- もう片方のメニューを開く。
 
 Then:
 
-- 直前のメニューは閉じ、最後に開いた一つだけを表示する。
+- 後から開いたメニューだけが表示される。
 
 <a id="storybook-deck-list-11"></a>
 
-### STORYBOOK-DECK-LIST-11 追加メニューをキーボードで開閉する
+### STORYBOOK-DECK-LIST-11 [TODO] 追加メニューをキーボードで開閉する
 
 カテゴリ: `interaction`
 
@@ -254,19 +247,19 @@ Then:
 
 Given:
 
-- Add にフォーカスしている。
+- Deck 一覧画面の追加ボタンにフォーカスしている。
 
 When:
 
-- Enter、ArrowDown、Escape を押す。
+- Enter で開き、Escape で閉じる。
 
 Then:
 
-- Create deck、Import decks の順にフォーカスし、Escape で閉じて Add へ戻る。作成・インポートは要求しない。
+- 作成・インポートを選べるメニューが開閉し、閉じると追加ボタンへフォーカスが戻る。
 
 <a id="storybook-deck-list-12"></a>
 
-### STORYBOOK-DECK-LIST-12 作成要求後に追加ボタンへ戻る
+### STORYBOOK-DECK-LIST-12 [TODO] 作成操作後に追加メニューを残さない
 
 カテゴリ: `interaction`
 
@@ -274,19 +267,19 @@ Then:
 
 Given:
 
-- Add メニューを開いている。
+- 追加メニューを開いている。
 
 When:
 
-- Create deck を選ぶ。
+- 作成を選んでから一覧へ戻る。
 
 Then:
 
-- 作成のみを要求し、メニューが閉じて Add にフォーカスが戻る。
+- 追加メニューは閉じており、追加ボタンから再び操作できる。
 
 <a id="storybook-deck-list-13"></a>
 
-### STORYBOOK-DECK-LIST-13 確認中に空の一覧と断定しない
+### STORYBOOK-DECK-LIST-13 [TODO] 確認中に空の一覧と断定しない
 
 カテゴリ: `render`
 
@@ -294,19 +287,19 @@ Then:
 
 Given:
 
-- 表示0件だが、初期データを確認中である。
+- 最初の Deck 取得がまだ完了していない。
 
 When:
 
-- 一覧を描画する。
+- Deck 一覧画面を開く。
 
 Then:
 
-- status に Checking for sample deck… を表示し、No decks yet は表示しない。
+- 取得待ちが示され、Deck が存在しないという空状態の案内は表示されない。
 
 <a id="storybook-deck-list-14"></a>
 
-### STORYBOOK-DECK-LIST-14 初期データ取得失敗から操作を選ぶ
+### STORYBOOK-DECK-LIST-14 [TODO] 初期データ取得失敗から復旧操作を選ぶ
 
 カテゴリ: `interaction`
 
@@ -314,19 +307,19 @@ Then:
 
 Given:
 
-- 初期データ取得に失敗し、Deck は0件で、各操作 callback を渡している。
+- 最初の Deck 取得に失敗し、復旧方法の案内がある。
 
 When:
 
-- Retry、Create deck、Import decks の各操作を行う。
+- 案内された再試行操作を選び、取得が成功する。
 
 Then:
 
-- alert と Unable to load sample deck を表示し、選んだ操作の callback を通知する。再取得成功や実遷移は確認しない。
+- 失敗表示が解消され、取得した Deck を一覧で操作できる。
 
 <a id="storybook-deck-list-15"></a>
 
-### STORYBOOK-DECK-LIST-15 復習対象0件の理由を区別する
+### STORYBOOK-DECK-LIST-15 [TODO] 復習対象0件の理由を区別する
 
 カテゴリ: `interaction`
 
@@ -334,19 +327,19 @@ Then:
 
 Given:
 
-- 復習対象・新規とも0件とし、保持0件、保持3件で次回時刻なし、保持3件で次回時刻ありを個別に用意する。
+- 未評価の Card だけがある Deck と、次の復習期限を待つ Deck がある。
 
 When:
 
-- No due or new cards を開く。
+- 各 Deck の復習対象0件の説明を開く。
 
 Then:
 
-- 初期状態では隠れていた説明が開き、端末上に Card がない、保存済みフィルターに一致しない、次回復習日時をそれぞれ示す。Study は有効である。
+- 新規学習が必要な状態と、復習期限を待つ状態を区別する説明が表示される。
 
 <a id="storybook-deck-list-16"></a>
 
-### STORYBOOK-DECK-LIST-16 復習と新規学習を区別して要求する
+### STORYBOOK-DECK-LIST-16 [TODO] 復習と新規学習を区別して開始する
 
 カテゴリ: `interaction`
 
@@ -354,19 +347,19 @@ Then:
 
 Given:
 
-- Deck name の復習対象1件・新規2件と、復習対象0件・新規2件を別条件にする。
+- 復習対象と新規 Card の両方がある Deck を表示している。
 
 When:
 
-- 主操作を押す。
+- 復習と新規学習を、それぞれ独立した操作例として選ぶ。
 
 Then:
 
-- 前者は Review Deck name、後者は Study new cards in Deck name という名前になり、学習開始 callback に対象 ID を渡す。
+- 選んだ学習種別の開始画面が表示される。
 
 <a id="storybook-deck-list-17"></a>
 
-### STORYBOOK-DECK-LIST-17 学習位置を表示する
+### STORYBOOK-DECK-LIST-17 [TODO] 学習位置を表示する
 
 カテゴリ: `render`
 
@@ -374,20 +367,19 @@ Then:
 
 Given:
 
-- 保持8件・学習対象3件の index 1 と、保持2件・対象2件の index 1・最終学習時刻不明を別条件にする。
+- 中断したセッションで全5件のうち3件目まで進んでいる。
 
 When:
 
-- Deck 行を描画する。
+- Deck 一覧画面を開く。
 
 Then:
 
-- 前者は 8 cards / Studying · Card 2 of 3 を表示し、一覧を開くボタンの説明に関連付ける。カテゴリや progressbar は表示しない。
-- 後者は 2 cards / Studying · Card 2 of 2 を説明に使い、不明な時刻を補わない。両方に Continue を表示する。
+- その Deck の学習位置が他の Deck と取り違えられずに表示される。
 
 <a id="storybook-deck-list-18"></a>
 
-### STORYBOOK-DECK-LIST-18 Study で行の閲覧を起動しない
+### STORYBOOK-DECK-LIST-18 [TODO] 学習操作で閲覧画面を開かない
 
 カテゴリ: `interaction`
 
@@ -395,19 +387,19 @@ Then:
 
 Given:
 
-- 未開始の Deck name を表示し、学習と行の閲覧に別の callback を渡す。
+- Deck の行と学習操作が同時に表示されている。
 
 When:
 
-- Study Deck name を押す。
+- その行の学習操作を選ぶ。
 
 Then:
 
-- 保持件数と Study を表示し、学習開始 callback だけに対象 ID を渡す。行を開く callback は通知しない。
+- 対象 Deck の学習開始画面が表示され、行の閲覧画面へ二重に遷移しない。
 
 <a id="storybook-deck-list-19"></a>
 
-### STORYBOOK-DECK-LIST-19 各操作に対象 ID を渡す
+### STORYBOOK-DECK-LIST-19 [TODO] 各操作を選んだ Deck に適用する
 
 カテゴリ: `interaction`
 
@@ -415,19 +407,19 @@ Then:
 
 Given:
 
-- ID deck-id の学習中 Deck に各操作 callback を渡す。
+- 名前と内容の異なる二つの Deck がある。
 
 When:
 
-- 名前、Continue、メニューの View / Restart / Download / Edit / Delete をそれぞれ操作する。
+- 片方の閲覧・編集・学習を、独立した操作例として選ぶ。
 
 Then:
 
-- 各操作の callback に deck-id を渡し、未開始用の Study は通知しない。View は独立した行内ボタンではなくメニューから選べる。
+- いずれも選んだ Deck の名前と内容を持つ画面が表示される。
 
 <a id="storybook-deck-list-20"></a>
 
-### STORYBOOK-DECK-LIST-20 ローカル Deck にリモート表示を付けない
+### STORYBOOK-DECK-LIST-20 [TODO] ローカル Deck にリモート表示を付けない
 
 カテゴリ: `render`
 
@@ -435,19 +427,19 @@ Then:
 
 Given:
 
-- ローカル Deck を用意する。
+- ローカルのみで利用する Deck がある。
 
 When:
 
-- 行を描画する。
+- Deck 一覧画面を開く。
 
 Then:
 
-- Remote deck のアイコンを表示しない。
+- その Deck にリモート同期済みと誤認させる表示が付かない。
 
 <a id="storybook-deck-list-21"></a>
 
-### STORYBOOK-DECK-LIST-21 処理中の行だけを無効にする
+### STORYBOOK-DECK-LIST-21 [TODO] 処理中の Deck だけを操作不可にする
 
 カテゴリ: `render`
 
@@ -455,19 +447,19 @@ Then:
 
 Given:
 
-- 2件中1件だけが処理中である。
+- 二つの Deck のうち片方だけが処理中である。
 
 When:
 
-- 両方の行を描画する。
+- Deck 一覧画面を確認する。
 
 Then:
 
-- 処理中の行は aria-busy が true で、名前、Study、メニューが無効になる。もう一方は同じ操作が有効なままである。
+- 処理中の Deck の操作は無効になり、もう片方は操作できる。
 
 <a id="storybook-deck-list-22"></a>
 
-### STORYBOOK-DECK-LIST-22 未開始なら Restart を表示しない
+### STORYBOOK-DECK-LIST-22 [TODO] 未開始なら再開し直す操作を表示しない
 
 カテゴリ: `render`
 
@@ -475,19 +467,19 @@ Then:
 
 Given:
 
-- 再開するセッションがない Deck のメニューを開く。
+- 学習セッションを開始していない Deck がある。
 
 When:
 
-- メニューを描画する。
+- その Deck のメニューを開く。
 
 Then:
 
-- View、Download、Edit、Study history、Delete の順に表示し、Restart は表示しない。
+- Restart は表示されず、学習を開始する操作を選べる。
 
 <a id="storybook-deck-list-23"></a>
 
-### STORYBOOK-DECK-LIST-23 メニューを矢印キーで移動する
+### STORYBOOK-DECK-LIST-23 [TODO] メニューを矢印キーで移動する
 
 カテゴリ: `interaction`
 
@@ -495,19 +487,19 @@ Then:
 
 Given:
 
-- Restart が利用でき、メニューは閉じている。
+- Deck の操作メニューを開き、先頭項目にフォーカスしている。
 
 When:
 
-- メニューを開き、ArrowDown、Escape を押す。
+- 上下の矢印キーを押す。
 
 Then:
 
-- 開いた直後は View、ArrowDown 後は Restart にフォーカスする。Escape で閉じ、開くボタンへ戻る。
+- メニュー内の有効な項目にフォーカスが移り、移動だけでは操作を実行しない。
 
 <a id="storybook-deck-list-24"></a>
 
-### STORYBOOK-DECK-LIST-24 メニュー内のフォーカス移動で操作を失わない
+### STORYBOOK-DECK-LIST-24 [TODO] メニュー内のフォーカス移動で操作を失わない
 
 カテゴリ: `interaction`
 
@@ -515,19 +507,19 @@ Then:
 
 Given:
 
-- View にフォーカスし、Download / Edit / Delete を個別の対象条件にする。
+- Deck の操作メニューが開いている。
 
 When:
 
-- 一時的にフォーカスを外した後、同じメニュー内の対象へ移して選ぶ。
+- メニュー内の別項目へフォーカスを移し、その項目を選ぶ。
 
 Then:
 
-- 移動中に操作不能にならず、対象 callback を一度通知する。
+- 移動中にメニューが閉じず、選んだ操作を実行できる。
 
 <a id="storybook-deck-list-25"></a>
 
-### STORYBOOK-DECK-LIST-25 外へ移ったフォーカスを奪わない
+### STORYBOOK-DECK-LIST-25 [TODO] メニューの外へ移ったフォーカスを奪わない
 
 カテゴリ: `interaction`
 
@@ -535,19 +527,19 @@ Then:
 
 Given:
 
-- 開いたメニュー内にフォーカスし、外側にも操作可能なボタンがある。
+- Deck のメニューが開いている。
 
 When:
 
-- メニューから外側のボタンへフォーカスを移す。
+- メニュー外の別の操作へフォーカスを移す。
 
 Then:
 
-- メニューは閉じ、フォーカスは外側のボタンに残る。
+- メニューは閉じ、移動先のフォーカスが維持される。
 
 <a id="storybook-deck-list-26"></a>
 
-### STORYBOOK-DECK-LIST-26 再有効化してもメニューを閉じたままにする
+### STORYBOOK-DECK-LIST-26 [TODO] 操作が再び有効になってもメニューを開かない
 
 カテゴリ: `interaction`
 
@@ -555,12 +547,52 @@ Then:
 
 Given:
 
-- メニューを開いている。
+- Deck の操作が処理中になり、メニューが閉じている。
 
 When:
 
-- 無効状態へ変更し、その後有効状態に戻す。
+- 処理が完了する。
 
 Then:
 
-- 無効化時は開くボタンが無効になり、メニューが消える。再有効化ではボタンだけが有効に戻り、メニューは閉じたままである。
+- 操作は再び有効になり、メニューは利用者が開くまで閉じたままである。
+
+<a id="storybook-app-layout-01"></a>
+
+### STORYBOOK-APP-LAYOUT-01 [TODO] 固定ヘッダーと本文を重ねずにスクロールする
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- Deck 一覧画面に縦スクロールが必要な件数の Deck があり、ヘッダーが固定される表示条件である。
+
+When:
+
+- 本文を下へスクロールする。
+
+Then:
+
+- ヘッダーは同じ位置に留まり、先頭の本文や操作を覆わない。
+
+<a id="storybook-app-layout-02"></a>
+
+### STORYBOOK-APP-LAYOUT-02 [TODO] 初期表示でヘッダーと本文を重ねない
+
+カテゴリ: `render`
+
+区分: 正常系
+
+Given:
+
+- 通常の Deck 一覧画面を開く。
+
+When:
+
+- ヘッダーと最初の Deck を確認する。
+
+Then:
+
+- 本文はヘッダーの下に配置され、ヘッダーと重ならない。
