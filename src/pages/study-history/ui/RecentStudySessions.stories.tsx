@@ -5,6 +5,7 @@ import { RecentStudySessions } from "./RecentStudySessions";
 const meta = {
   title: "Pages/Study History/Recent sessions",
   component: RecentStudySessions,
+  tags: ["autodocs"],
   args: {
     sessions: (["completed", "abandoned", null] as const).map((endReason, index) => ({
       sessionId: String(index),

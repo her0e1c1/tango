@@ -10,6 +10,7 @@ const days = Array.from({ length: 90 }, (_, index) => ({
 const meta = {
   title: "Pages/Study History/Daily table",
   component: StudyHistoryTable,
+  tags: ["autodocs"],
   args: { days },
   decorators: [
     (Story) => (

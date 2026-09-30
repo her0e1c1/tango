@@ -6,11 +6,15 @@ import { NavigationGuardDialog } from "./NavigationGuardDialog";
 const meta = {
   title: "Shared/Router/NavigationGuardDialog",
   component: NavigationGuardDialog,
+  tags: ["autodocs"],
   args: {
     onDiscardChanges: fn(),
     onKeepEditing: fn(),
   },
-  parameters: { layout: "fullscreen" },
+  parameters: {
+    layout: "fullscreen",
+    docs: { story: { inline: false, height: "400px" } },
+  },
 } satisfies Meta<typeof NavigationGuardDialog>;
 
 export default meta;

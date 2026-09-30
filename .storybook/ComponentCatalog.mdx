@@ -1,0 +1,618 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import * as CodeStories from "../src/shared/ui/content/Code.stories.tsx";
+import * as DescriptionStories from "../src/shared/ui/content/Description.stories.tsx";
+import * as LogoStories from "../src/shared/ui/logo/Logo.stories.tsx";
+import * as MathStories from "../src/shared/ui/content/Math.stories.tsx";
+import * as RemovableTagStories from "../src/shared/ui/content/RemovableTag.stories.tsx";
+import * as StyleStories from "../src/shared/ui/content/Style.stories.tsx";
+import * as TagLabelStories from "../src/shared/ui/content/TagLabel.stories.tsx";
+import * as TitleStories from "../src/shared/ui/content/Title.stories.tsx";
+import * as DestructiveActionDialogStories from "../src/shared/ui/destructive-action-dialog/DestructiveActionDialog.stories.tsx";
+import * as OverlayStories from "../src/shared/ui/feedback/Overlay.stories.tsx";
+import * as RouteFeedbackStories from "../src/shared/ui/route-feedback/RouteFeedback.stories.tsx";
+import * as ToastStories from "../src/shared/ui/toast/Toast.stories.tsx";
+import * as ButtonStories from "../src/shared/ui/button/Button.stories.tsx";
+import * as FormItemStories from "../src/shared/ui/forms/FormItem.stories.tsx";
+import * as InputStories from "../src/shared/ui/forms/Input.stories.tsx";
+import * as SelectStories from "../src/shared/ui/forms/Select.stories.tsx";
+import * as SliderStories from "../src/shared/ui/forms/Slider.stories.tsx";
+import * as SwitchStories from "../src/shared/ui/forms/Switch.stories.tsx";
+import * as TagStories from "../src/shared/ui/forms/Tag.stories.tsx";
+import * as TextareaStories from "../src/shared/ui/forms/Textarea.stories.tsx";
+import * as UploadStories from "../src/shared/ui/forms/Upload.stories.tsx";
+import * as FullScreenStories from "../src/shared/ui/full-screen/FullScreen.stories.tsx";
+import * as HeaderStories from "../src/shared/ui/header/Header.stories.tsx";
+import * as LayoutStories from "../src/shared/ui/layout/Layout.stories.tsx";
+import * as MainStories from "../src/shared/ui/main/Main.stories.tsx";
+import * as OuterStories from "../src/shared/ui/outer/Outer.stories.tsx";
+import * as ActionsMenuStories from "../src/shared/ui/actions-menu/ActionsMenu.stories.tsx";
+import * as NavigationGuardDialogStories from "../src/shared/ui/navigation-guard-dialog/NavigationGuardDialog.stories.tsx";
+import * as BackTextStories from "../src/entities/card/ui/BackText.stories.tsx";
+import * as CardViewStories from "../src/entities/card/ui/CardView.stories.tsx";
+import * as FrontTextStories from "../src/entities/card/ui/FrontText.stories.tsx";
+import * as CardFieldsStories from "../src/features/card-form/ui/CardFields.stories.tsx";
+import * as CardOverlayStories from "../src/features/card-player/ui/CardOverlay.stories.tsx";
+import * as CardPlayerStories from "../src/features/card-player/ui/CardPlayer.stories.tsx";
+import * as ControllerStories from "../src/features/card-player/ui/Controller.stories.tsx";
+import * as StudyHelpDialogStories from "../src/features/card-player/ui/StudyHelpDialog.stories.tsx";
+import * as SwipeButtonListStories from "../src/features/card-player/ui/SwipeButtonList.stories.tsx";
+import * as DeckDeletionDialogStories from "../src/features/deck-deletion/ui/DeckDeletionDialog.stories.tsx";
+import * as DeckFilterFormStories from "../src/features/deck-filter/ui/DeckFilterForm.stories.tsx";
+import * as TagFilterStories from "../src/features/deck-filter/ui/TagFilter.stories.tsx";
+import * as DeckFormStories from "../src/features/deck-form/ui/DeckForm.stories.tsx";
+import * as AccountViewStories from "../src/pages/account/ui/AccountView.stories.tsx";
+import * as CardCreatorStories from "../src/pages/card-create/ui/CardCreator.stories.tsx";
+import * as CardEditorStories from "../src/pages/card-edit/ui/CardEditor.stories.tsx";
+import * as CardStories from "../src/pages/card-list/ui/Card.stories.tsx";
+import * as CardActionsMenuStories from "../src/pages/card-list/ui/CardActionsMenu.stories.tsx";
+import * as CardListStories from "../src/pages/card-list/ui/CardList.stories.tsx";
+import * as MemoryStateStories from "../src/pages/card-view/ui/MemoryState.stories.tsx";
+import * as DeckImportViewStories from "../src/pages/deck-import/ui/DeckImportView.stories.tsx";
+import * as DeckActionsMenuStories from "../src/pages/deck-list/ui/DeckActionsMenu.stories.tsx";
+import * as DeckListStories from "../src/pages/deck-list/ui/DeckList.stories.tsx";
+import * as DeckListCardStories from "../src/pages/deck-list/ui/DeckListCard.stories.tsx";
+import * as SettingsFormStories from "../src/pages/settings/ui/SettingsForm.stories.tsx";
+import * as SettingsSectionStories from "../src/pages/settings/ui/SettingsSection.stories.tsx";
+import * as StudyHistoryTableStories from "../src/pages/study-history/ui/StudyHistoryTable.stories.tsx";
+import * as StudyHistoryPeriodPickerStories from "../src/pages/study-history/ui/StudyHistoryPeriodPicker.stories.tsx";
+import * as RecentStudySessionsStories from "../src/pages/study-history/ui/RecentStudySessions.stories.tsx";
+import * as StudyHistorySummaryStories from "../src/pages/study-history/ui/StudyHistorySummary.stories.tsx";
+import * as StudySessionStartStories from "../src/pages/study-session-start/ui/StudySessionStart.stories.tsx";
+import * as StudyCompletionStories from "../src/pages/study-session/ui/StudyCompletion.stories.tsx";
+import * as StudySaveControlsStories from "../src/pages/study-session/ui/StudySaveControls.stories.tsx";
+
+<Meta title="Catalog/Components" />
+
+# Component catalog
+
+Explore the UI components used in Tango. Each entry includes a short description, a representative story, and a link to its full documentation.
+
+Previews reuse the existing story fixtures and callbacks. They illustrate UI states rather than real authentication, persistence, or navigation. The toast preview keeps its message visible for inspection.
+
+- [Shared](#shared)
+- [Entities](#entities)
+- [Features](#features)
+- [Pages](#pages)
+
+<h2 id="shared">Shared</h2>
+
+### Navigation
+
+#### ActionsMenu
+
+A reusable action menu with selectable items and disabled states.
+
+[View all states and props](?path=/docs/shared-navigation-actionsmenu--docs)
+
+<Canvas of={ActionsMenuStories.Default} meta={ActionsMenuStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+### Forms
+
+#### Button
+
+Labeled actions with visual variants, sizes, loading, and disabled states.
+
+[View all states and props](?path=/docs/shared-forms-button--docs)
+
+<Canvas of={ButtonStories.VariantAndSize} meta={ButtonStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### FormItem
+
+Groups a field label, supporting text, validation feedback, and an input control.
+
+[View all states and props](?path=/docs/shared-forms-formitem--docs)
+
+<Canvas of={FormItemStories.Default} meta={FormItemStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Input
+
+A single-line text input with standard field attributes and states.
+
+[View all states and props](?path=/docs/shared-forms-input--docs)
+
+<Canvas of={InputStories.Default} meta={InputStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Select
+
+A selection control that displays available options and the current value.
+
+[View all states and props](?path=/docs/shared-forms-select--docs)
+
+<Canvas of={SelectStories.Default} meta={SelectStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Slider
+
+A numeric range control that displays a value and reports changes.
+
+[View all states and props](?path=/docs/shared-forms-slider--docs)
+
+<Canvas of={SliderStories.Default} meta={SliderStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Switch
+
+An on/off control that reports changes to its caller.
+
+[View all states and props](?path=/docs/shared-forms-switch--docs)
+
+<Canvas of={SwitchStories.Default} meta={SwitchStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Tag
+
+A selectable tag that displays and reports its selection state.
+
+[View all states and props](?path=/docs/shared-forms-tag--docs)
+
+<Canvas of={TagStories.Default} meta={TagStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Textarea
+
+A multiline text input with standard field attributes and states.
+
+[View all states and props](?path=/docs/shared-forms-textarea--docs)
+
+<Canvas of={TextareaStories.Default} meta={TextareaStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Upload
+
+A file selection control that displays the selected file name.
+
+[View all states and props](?path=/docs/shared-forms-upload--docs)
+
+<Canvas of={UploadStories.Default} meta={UploadStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+### Content
+
+#### Code
+
+Read-only source code with syntax highlighting.
+
+[View all states and props](?path=/docs/shared-content-code--docs)
+
+<Canvas of={CodeStories.Python} meta={CodeStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Description
+
+Readable supporting text for a heading or primary content.
+
+[View all states and props](?path=/docs/shared-content-description--docs)
+
+<Canvas of={DescriptionStories.Default} meta={DescriptionStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### MathContent
+
+Read-only text containing inline or block mathematical notation.
+
+[View all states and props](?path=/docs/shared-content-math--docs)
+
+<Canvas of={MathStories.Inline} meta={MathStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### RemovableTag
+
+A tag label with a removal callback.
+
+[View all states and props](?path=/docs/shared-content-removabletag--docs)
+
+<Canvas of={RemovableTagStories.Default} meta={RemovableTagStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Style
+
+Shared typography for inline or block content, with an optional click callback.
+
+[View all states and props](?path=/docs/shared-content-style--docs)
+
+<Canvas of={StyleStories.Inline} meta={StyleStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### TagLabel
+
+A read-only tag label.
+
+[View all states and props](?path=/docs/shared-content-taglabel--docs)
+
+<Canvas of={TagLabelStories.Default} meta={TagLabelStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Title
+
+A content heading with an optional click callback.
+
+[View all states and props](?path=/docs/shared-content-title--docs)
+
+<Canvas of={TitleStories.Default} meta={TitleStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Logo
+
+The Tango wordmark and standalone brand mark.
+
+[View all states and props](?path=/docs/shared-content-logo--docs)
+
+<Canvas of={LogoStories.Wordmark} meta={LogoStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+### Feedback
+
+#### DestructiveActionDialog
+
+Confirms an irreversible action by showing its target, impact, and cancel or confirm options.
+
+[View all states and props](?path=/docs/shared-feedback-destructiveactiondialog--docs)
+
+<Canvas of={DestructiveActionDialogStories.Deck} meta={DestructiveActionDialogStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Overlay
+
+Positions content over a surface at its center or edges.
+
+[View all states and props](?path=/docs/shared-feedback-overlay--docs)
+
+<Canvas of={OverlayStories.Center} meta={OverlayStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### RouteFeedback
+
+Loading, startup failure, and missing-resource feedback with recovery actions.
+
+[View all states and props](?path=/docs/shared-feedback-routefeedback--docs)
+
+<Canvas of={RouteFeedbackStories.Loading} meta={RouteFeedbackStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### ToastViewport
+
+Transient notification messages with tone, content, and dismissal options.
+
+[View all states and props](?path=/docs/shared-feedback-toast--docs)
+
+<Canvas of={ToastStories.Neutral} meta={ToastStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+### Layout
+
+#### FullScreen
+
+A viewport-sized surface with centering and internal scrolling options.
+
+[View all states and props](?path=/docs/shared-layout-fullscreen--docs)
+
+<Canvas of={FullScreenStories.Default} meta={FullScreenStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Header
+
+Application header content with standard and fixed positioning.
+
+[View all states and props](?path=/docs/shared-layout-header--docs)
+
+<Canvas of={HeaderStories.Default} meta={HeaderStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Layout
+
+A reusable shell that combines the header and main content area.
+
+[View all states and props](?path=/docs/shared-layout-layout--docs)
+
+<Canvas of={LayoutStories.Default} meta={LayoutStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Main
+
+A main content surface with consistent width, spacing, and background.
+
+[View all states and props](?path=/docs/shared-layout-main--docs)
+
+<Canvas of={MainStories.Default} meta={MainStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### Outer
+
+The outer page background and standard scrolling surface.
+
+[View all states and props](?path=/docs/shared-layout-outer--docs)
+
+<Canvas of={OuterStories.Default} meta={OuterStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+### Router
+
+#### NavigationGuardDialog
+
+Offers a choice between continuing to edit and discarding unsaved changes.
+
+[View all states and props](?path=/docs/shared-router-navigationguarddialog--docs)
+
+<Canvas of={NavigationGuardDialogStories.Default} meta={NavigationGuardDialogStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+<h2 id="entities">Entities</h2>
+
+### Card
+
+#### BackText
+
+Card answer content rendered as plain text, code, or mathematical notation.
+
+[View all states and props](?path=/docs/entities-card-backtext--docs)
+
+<Canvas of={BackTextStories.Default} meta={BackTextStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### CardView
+
+A card content surface for plain text, code, or mathematical notation.
+
+[View all states and props](?path=/docs/entities-card-cardview--docs)
+
+<Canvas of={CardViewStories.Default} meta={CardViewStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+#### FrontText
+
+Card question content with plain text, math, and reading-mode presentations.
+
+[View all states and props](?path=/docs/entities-card-fronttext--docs)
+
+<Canvas of={FrontTextStories.Default} meta={FrontTextStories} sourceState="none" story={{ inline: false, height: "400px" }} />
+
+<h2 id="features">Features</h2>
+
+### Card Form
+
+#### CardFields
+
+Card question and answer fields, tag editing, expanded inputs, and content previews.
+
+[View all states and props](?path=/docs/features-card-form-cardfields--docs)
+
+<Canvas of={CardFieldsStories.Default} meta={CardFieldsStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Card Player
+
+#### CardOverlay
+
+Supplementary card information, including supplied difficulty and last-study details.
+
+[View all states and props](?path=/docs/features-card-player-cardoverlay--docs)
+
+<Canvas of={CardOverlayStories.Default} meta={CardOverlayStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### CardPlayer
+
+Composes card faces, playback controls, reading mode, and study help.
+
+[View all states and props](?path=/docs/features-card-player-cardplayer--docs)
+
+<Canvas of={CardPlayerStories.Default} meta={CardPlayerStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### Controller
+
+Playback and card-position controls that report user requests.
+
+[View all states and props](?path=/docs/features-card-player-controller--docs)
+
+<Canvas of={ControllerStories.Default} meta={ControllerStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### StudyHelpDialog
+
+Explains the supplied study actions and their control assignments.
+
+[View all states and props](?path=/docs/features-card-player-studyhelpdialog--docs)
+
+<Canvas of={StudyHelpDialogStories.English} meta={StudyHelpDialogStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### SwipeButtonList
+
+Directional study buttons with labels, disabled states, and action callbacks.
+
+[View all states and props](?path=/docs/features-card-player-swipebuttonlist--docs)
+
+<Canvas of={SwipeButtonListStories.Default} meta={SwipeButtonListStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Deck Deletion
+
+#### DeckDeletionDialog
+
+Confirms deletion of a deck and its cards, reporting confirmation or cancellation.
+
+[View all states and props](?path=/docs/features-deck-deletion-deckdeletiondialog--docs)
+
+<Canvas of={DeckDeletionDialogStories.Default} meta={DeckDeletionDialogStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Deck Filter
+
+#### DeckFilterForm
+
+Combines tag-based filter inputs and reports selected conditions.
+
+[View all states and props](?path=/docs/features-deck-filter-deckfilterform--docs)
+
+<Canvas of={DeckFilterFormStories.Default} meta={DeckFilterFormStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### TagFilter
+
+Tag selection, AND/OR conditions, and expandable tag candidates.
+
+[View all states and props](?path=/docs/features-deck-filter-tagfilter--docs)
+
+<Canvas of={TagFilterStories.Collapsed} meta={TagFilterStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Deck Form
+
+#### DeckForm
+
+A deck creation or editing form with validation and submission states.
+
+[View all states and props](?path=/docs/features-deck-form-deckform--docs)
+
+<Canvas of={DeckFormStories.Create} meta={DeckFormStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+<h2 id="pages">Pages</h2>
+
+### Account
+
+#### AccountView
+
+Account identity, authentication status, and sign-in or sign-out controls.
+
+[View all states and props](?path=/docs/pages-account-accountview--docs)
+
+<Canvas of={AccountViewStories.NoDisplayName} meta={AccountViewStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Card Create
+
+#### CardCreator
+
+A card creation form with editable content and submission feedback.
+
+[View all states and props](?path=/docs/pages-card-create-cardcreator--docs)
+
+<Canvas of={CardCreatorStories.Default} meta={CardCreatorStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Card Edit
+
+#### CardEditor
+
+A card editing form with existing values, card details, errors, and submission states.
+
+[View all states and props](?path=/docs/pages-card-edit-cardeditor--docs)
+
+<Canvas of={CardEditorStories.Default} meta={CardEditorStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Card List
+
+#### Card
+
+A card-list row with question content, tags, actions, and availability states.
+
+[View all states and props](?path=/docs/pages-card-list-card--docs)
+
+<Canvas of={CardStories.Default} meta={CardStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### CardActionsMenu
+
+Edit and delete requests for a card in the card list.
+
+[View all states and props](?path=/docs/pages-card-list-cardactionsmenu--docs)
+
+<Canvas of={CardActionsMenuStories.Default} meta={CardActionsMenuStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### CardList
+
+A supplied card list with counts, empty states, filters, and a reading area.
+
+[View all states and props](?path=/docs/pages-card-list-cardlist--docs)
+
+<Canvas of={CardListStories.Default} meta={CardListStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### CardView
+
+#### MemoryState
+
+Supplied memory probabilities, dates, curves, and learning targets.
+
+[View all states and props](?path=/docs/pages-cardview-memorystate--docs)
+
+<Canvas of={MemoryStateStories.ShortTerm} meta={MemoryStateStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Deck Import
+
+#### DeckImportView
+
+File selection, import examples, supplied analysis results, and error feedback.
+
+[View all states and props](?path=/docs/pages-deck-import-deckimportview--docs)
+
+<Canvas of={DeckImportViewStories.Default} meta={DeckImportViewStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Deck List
+
+#### DeckActionsMenu
+
+Deck action choices that report the selected operation.
+
+[View all states and props](?path=/docs/pages-deck-list-deckactionsmenu--docs)
+
+<Canvas of={DeckActionsMenuStories.Default} meta={DeckActionsMenuStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### DeckList
+
+A categorized deck list with empty states, supplied review totals, and list actions.
+
+[View all states and props](?path=/docs/pages-deck-list-decklist--docs)
+
+<Canvas of={DeckListStories.Default} meta={DeckListStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### DeckListCard
+
+A deck-list card with card counts, study progress, review prompts, and actions.
+
+[View all states and props](?path=/docs/pages-deck-list-decklistcard--docs)
+
+<Canvas of={DeckListCardStories.Default} meta={DeckListCardStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Settings
+
+#### SettingsForm
+
+Application settings, supporting descriptions, version information, and save guidance.
+
+[View all states and props](?path=/docs/pages-settings-settingsform--docs)
+
+<Canvas of={SettingsFormStories.Default} meta={SettingsFormStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### SettingsSection / SettingsRow
+
+A settings section and its labeled control rows with supporting descriptions.
+
+[View all states and props](?path=/docs/pages-settings-settingssection--docs)
+
+<Canvas of={SettingsSectionStories.Default} meta={SettingsSectionStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Study History
+
+#### RecentStudySessions
+
+Recent study sessions with status, dates, and card counts.
+
+[View all states and props](?path=/docs/pages-study-history-recent-sessions--docs)
+
+<Canvas of={RecentStudySessionsStories.Default} meta={RecentStudySessionsStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### StudyHistoryPeriodPicker
+
+Study-history period selection, custom date inputs, and supplied validation errors.
+
+[View all states and props](?path=/docs/pages-study-history-period-picker--docs)
+
+<Canvas of={StudyHistoryPeriodPickerStories.Custom} meta={StudyHistoryPeriodPickerStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### StudyHistorySummary
+
+Supplied study totals and an aggregated history chart.
+
+[View all states and props](?path=/docs/pages-study-history-summary--docs)
+
+<Canvas of={StudyHistorySummaryStories.Default} meta={StudyHistorySummaryStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### StudyHistoryTable
+
+Expandable daily study counts with pagination.
+
+[View all states and props](?path=/docs/pages-study-history-daily-table--docs)
+
+<Canvas of={StudyHistoryTableStories.Empty} meta={StudyHistoryTableStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Study Session Start
+
+#### StudySessionStart
+
+Deck details, supplied study counts, filter inputs, and a start action.
+
+[View all states and props](?path=/docs/pages-study-session-start-studysessionstart--docs)
+
+<Canvas of={StudySessionStartStories.Default} meta={StudySessionStartStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+### Study Session
+
+#### StudyCompletion
+
+Study completion feedback with the card count and a return action.
+
+[View all states and props](?path=/docs/pages-study-session-studycompletion--docs)
+
+<Canvas of={StudyCompletionStories.Default} meta={StudyCompletionStories} sourceState="none" story={{ inline: false, height: "640px" }} />
+
+#### StudySaveControls
+
+A skip action with pending-state feedback.
+
+[View all states and props](?path=/docs/pages-study-session-studysavecontrols--docs)
+
+<Canvas of={StudySaveControlsStories.Saving} meta={StudySaveControlsStories} sourceState="none" story={{ inline: false, height: "640px" }} />

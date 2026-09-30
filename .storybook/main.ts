@@ -7,7 +7,7 @@ import { withoutPwaPlugins } from "./vitePlugins.js";
 const storybookFirebase = fileURLToPath(new URL("./support/firebase.ts", import.meta.url));
 
 const config: StorybookConfig = {
-  stories: ["../src/**/*.stories.tsx"],
+  stories: ["./ComponentCatalog.mdx", "../src/**/*.stories.tsx"],
   staticDirs: ["../public"],
   addons: ["@storybook/addon-a11y", "@storybook/addon-docs", "@storybook/addon-themes", "@storybook/addon-vitest"],
   framework: "@storybook/react-vite",

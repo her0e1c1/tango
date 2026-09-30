@@ -7,6 +7,7 @@ import { StudyCompletion } from "./StudyCompletion";
 const meta = {
   title: "Pages/Study Session/StudyCompletion",
   component: StudyCompletion,
+  tags: ["autodocs"],
   decorators: [withPageLayout],
   args: {
     cardCount: 12,

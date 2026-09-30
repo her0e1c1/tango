@@ -5,6 +5,7 @@ import { StudySaveControls } from "./StudySaveControls";
 const meta = {
   title: "Pages/Study Session/StudySaveControls",
   component: StudySaveControls,
+  tags: ["autodocs"],
   args: { pending: false, onSkip: fn() },
 } satisfies Meta<typeof StudySaveControls>;
 export default meta;
