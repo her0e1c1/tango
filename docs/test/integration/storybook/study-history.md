@@ -20,7 +20,7 @@
 
 <a id="storybook-study-history-01"></a>
 
-### STORYBOOK-STUDY-HISTORY-01 [TODO] 期間プリセットを集計表示へ反映する
+### STORYBOOK-STUDY-HISTORY-01 期間プリセットを集計表示へ反映する
 
 カテゴリ: `interaction`
 
@@ -40,7 +40,7 @@ Then:
 
 <a id="storybook-study-history-02"></a>
 
-### STORYBOOK-STUDY-HISTORY-02 [TODO] 任意期間を入力する
+### STORYBOOK-STUDY-HISTORY-02 任意期間を入力する
 
 カテゴリ: `interaction`
 
@@ -60,7 +60,7 @@ Then:
 
 <a id="storybook-study-history-03"></a>
 
-### STORYBOOK-STUDY-HISTORY-03 [TODO] 日別表を30日単位で開く
+### STORYBOOK-STUDY-HISTORY-03 日別表を30日単位で開く
 
 カテゴリ: `interaction`
 
@@ -80,7 +80,7 @@ Then:
 
 <a id="storybook-study-history-04"></a>
 
-### STORYBOOK-STUDY-HISTORY-04 [TODO] 日別表の古い日付へ進む
+### STORYBOOK-STUDY-HISTORY-04 日別表の古い日付へ進む
 
 カテゴリ: `interaction`
 
@@ -100,7 +100,7 @@ Then:
 
 <a id="storybook-study-history-05"></a>
 
-### STORYBOOK-STUDY-HISTORY-05 [TODO] セッションの終了状態を区別する
+### STORYBOOK-STUDY-HISTORY-05 セッションの終了状態を区別する
 
 カテゴリ: `render`
 
@@ -120,7 +120,7 @@ Then:
 
 <a id="storybook-study-history-06"></a>
 
-### STORYBOOK-STUDY-HISTORY-06 [TODO] セッションの状態を日本語で表示する
+### STORYBOOK-STUDY-HISTORY-06 セッションの状態を日本語で表示する
 
 カテゴリ: `render`
 
@@ -140,7 +140,7 @@ Then:
 
 <a id="storybook-study-history-07"></a>
 
-### STORYBOOK-STUDY-HISTORY-07 [TODO] 最近のセッションをすべて展開する
+### STORYBOOK-STUDY-HISTORY-07 最近のセッションをすべて展開する
 
 カテゴリ: `interaction`
 
@@ -160,7 +160,7 @@ Then:
 
 <a id="storybook-study-history-08"></a>
 
-### STORYBOOK-STUDY-HISTORY-08 [TODO] 30日分の集計グラフを表示する
+### STORYBOOK-STUDY-HISTORY-08 30日分の集計グラフを表示する
 
 カテゴリ: `render`
 
@@ -180,7 +180,7 @@ Then:
 
 <a id="storybook-study-history-09"></a>
 
-### STORYBOOK-STUDY-HISTORY-09 [TODO] 90日分のグラフに集約単位を示す
+### STORYBOOK-STUDY-HISTORY-09 90日分のグラフに集約単位を示す
 
 カテゴリ: `render`
 

@@ -17,7 +17,7 @@ Card 作成画面を入口とした `play` で、対象 Deck への Card 作成�
 
 <a id="storybook-card-form-05"></a>
 
-### STORYBOOK-CARD-FORM-05 [TODO] 入力した両面で Card を作成する
+### STORYBOOK-CARD-FORM-05 入力した両面で Card を作成する
 
 カテゴリ: `interaction`
 
@@ -37,7 +37,7 @@ Then:
 
 <a id="storybook-card-form-17"></a>
 
-### STORYBOOK-CARD-FORM-17 [TODO] 作成成功を画面で通知する
+### STORYBOOK-CARD-FORM-17 作成成功を画面で通知する
 
 カテゴリ: `interaction`
 
@@ -57,7 +57,7 @@ Then:
 
 <a id="storybook-card-form-18"></a>
 
-### STORYBOOK-CARD-FORM-18 [TODO] 作成失敗後に入力を保って再試行する
+### STORYBOOK-CARD-FORM-18 作成失敗後に入力を保って再試行する
 
 カテゴリ: `interaction`
 
@@ -77,7 +77,7 @@ Then:
 
 <a id="storybook-card-form-19"></a>
 
-### STORYBOOK-CARD-FORM-19 [TODO] 作成中の連続操作を抑止する
+### STORYBOOK-CARD-FORM-19 作成中の連続操作を抑止する
 
 カテゴリ: `interaction`
 
@@ -97,7 +97,7 @@ Then:
 
 <a id="storybook-card-create-01"></a>
 
-### STORYBOOK-CARD-CREATE-01 [TODO] 未入力のまま Card を作成しない
+### STORYBOOK-CARD-CREATE-01 未入力のまま Card を作成しない
 
 カテゴリ: `interaction`
 
@@ -117,7 +117,7 @@ Then:
 
 <a id="storybook-card-create-02"></a>
 
-### STORYBOOK-CARD-CREATE-02 [TODO] 下書きを保存せず解答を確認する
+### STORYBOOK-CARD-CREATE-02 下書きを保存せず解答を確認する
 
 カテゴリ: `interaction`
 

@@ -34,7 +34,7 @@ Card 編集画面を入口とした `play` で、既存 Card の両面・タグ�
 
 <a id="storybook-card-form-01"></a>
 
-### STORYBOOK-CARD-FORM-01 [TODO] タブを切り替えても表面の入力を保持する
+### STORYBOOK-CARD-FORM-01 タブを切り替えても表面の入力を保持する
 
 カテゴリ: `interaction`
 
@@ -54,7 +54,7 @@ Then:
 
 <a id="storybook-card-form-02"></a>
 
-### STORYBOOK-CARD-FORM-02 [TODO] 編集する Card のタグを選ぶ
+### STORYBOOK-CARD-FORM-02 編集する Card のタグを選ぶ
 
 カテゴリ: `interaction`
 
@@ -74,7 +74,7 @@ Then:
 
 <a id="storybook-card-form-03"></a>
 
-### STORYBOOK-CARD-FORM-03 [TODO] 日本語の入力エラーを関連付ける
+### STORYBOOK-CARD-FORM-03 日本語の入力エラーを関連付ける
 
 カテゴリ: `interaction`
 
@@ -94,7 +94,7 @@ Then:
 
 <a id="storybook-card-form-04"></a>
 
-### STORYBOOK-CARD-FORM-04 [TODO] 解答プレビューを開く
+### STORYBOOK-CARD-FORM-04 解答プレビューを開く
 
 カテゴリ: `interaction`
 
@@ -114,7 +114,7 @@ Then:
 
 <a id="storybook-card-form-06"></a>
 
-### STORYBOOK-CARD-FORM-06 [TODO] 拡大編集後も両面の下書きを保つ
+### STORYBOOK-CARD-FORM-06 拡大編集後も両面の下書きを保つ
 
 カテゴリ: `interaction`
 
@@ -134,7 +134,7 @@ Then:
 
 <a id="storybook-card-form-07"></a>
 
-### STORYBOOK-CARD-FORM-07 [TODO] 独自タグの選択と要約を保って保存する
+### STORYBOOK-CARD-FORM-07 独自タグの選択と要約を保って保存する
 
 カテゴリ: `interaction`
 
@@ -154,7 +154,7 @@ Then:
 
 <a id="storybook-card-form-08"></a>
 
-### STORYBOOK-CARD-FORM-08 [TODO] キーボードで編集面を切り替える
+### STORYBOOK-CARD-FORM-08 キーボードで編集面を切り替える
 
 カテゴリ: `interaction`
 
@@ -174,7 +174,7 @@ Then:
 
 <a id="storybook-card-form-09"></a>
 
-### STORYBOOK-CARD-FORM-09 [TODO] 裏面エラーのある入力欄を開く
+### STORYBOOK-CARD-FORM-09 裏面エラーのある入力欄を開く
 
 カテゴリ: `interaction`
 
@@ -194,7 +194,7 @@ Then:
 
 <a id="storybook-card-form-10"></a>
 
-### STORYBOOK-CARD-FORM-10 [TODO] 未知のエラーを安全な翻訳文で表示する
+### STORYBOOK-CARD-FORM-10 未知のエラーを安全な翻訳文で表示する
 
 カテゴリ: `interaction`
 
@@ -214,7 +214,7 @@ Then:
 
 <a id="storybook-card-form-11"></a>
 
-### STORYBOOK-CARD-FORM-11 [TODO] 言語変更後も下書きとタグを保つ
+### STORYBOOK-CARD-FORM-11 言語変更後も下書きとタグを保つ
 
 カテゴリ: `interaction`
 
@@ -234,7 +234,7 @@ Then:
 
 <a id="storybook-card-form-12"></a>
 
-### STORYBOOK-CARD-FORM-12 [TODO] 不完全な下書きを保存せずプレビューする
+### STORYBOOK-CARD-FORM-12 不完全な下書きを保存せずプレビューする
 
 カテゴリ: `interaction`
 
@@ -254,7 +254,7 @@ Then:
 
 <a id="storybook-card-form-13"></a>
 
-### STORYBOOK-CARD-FORM-13 [TODO] 拡大編集の変更を数式プレビューへ反映する
+### STORYBOOK-CARD-FORM-13 拡大編集の変更を数式プレビューへ反映する
 
 カテゴリ: `interaction`
 
@@ -274,7 +274,7 @@ Then:
 
 <a id="storybook-card-form-14"></a>
 
-### STORYBOOK-CARD-FORM-14 [TODO] 表示条件に応じてコードを表示する
+### STORYBOOK-CARD-FORM-14 表示条件に応じてコードを表示する
 
 カテゴリ: `interaction`
 
@@ -294,7 +294,7 @@ Then:
 
 <a id="storybook-card-form-15"></a>
 
-### STORYBOOK-CARD-FORM-15 [TODO] タグ変更をプレビューへ反映する
+### STORYBOOK-CARD-FORM-15 タグ変更をプレビューへ反映する
 
 カテゴリ: `interaction`
 
@@ -314,7 +314,7 @@ Then:
 
 <a id="storybook-card-form-16"></a>
 
-### STORYBOOK-CARD-FORM-16 [TODO] 言語が変わってもプレビューを開いておく
+### STORYBOOK-CARD-FORM-16 言語が変わってもプレビューを開いておく
 
 カテゴリ: `interaction`
 
@@ -334,7 +334,7 @@ Then:
 
 <a id="storybook-card-form-20"></a>
 
-### STORYBOOK-CARD-FORM-20 [TODO] 保存中は編集と離脱を無効にする
+### STORYBOOK-CARD-FORM-20 保存中は編集と離脱を無効にする
 
 カテゴリ: `interaction`
 
@@ -354,7 +354,7 @@ Then:
 
 <a id="storybook-card-form-21"></a>
 
-### STORYBOOK-CARD-FORM-21 [TODO] 外部更新で編集中の下書きを上書きしない
+### STORYBOOK-CARD-FORM-21 外部更新で編集中の下書きを上書きしない
 
 カテゴリ: `interaction`
 
@@ -374,7 +374,7 @@ Then:
 
 <a id="storybook-card-form-22"></a>
 
-### STORYBOOK-CARD-FORM-22 [TODO] 両面が不正なら表面から修正する
+### STORYBOOK-CARD-FORM-22 両面が不正なら表面から修正する
 
 カテゴリ: `interaction`
 
@@ -394,7 +394,7 @@ Then:
 
 <a id="storybook-card-form-23"></a>
 
-### STORYBOOK-CARD-FORM-23 [TODO] 保存失敗後に同じ下書きを再送信する
+### STORYBOOK-CARD-FORM-23 保存失敗後に同じ下書きを再送信する
 
 カテゴリ: `interaction`
 
@@ -414,7 +414,7 @@ Then:
 
 <a id="storybook-card-form-24"></a>
 
-### STORYBOOK-CARD-FORM-24 [TODO] 確認なしのタグ編集を下書きへ即時反映する
+### STORYBOOK-CARD-FORM-24 確認なしのタグ編集を下書きへ即時反映する
 
 カテゴリ: `interaction`
 
@@ -434,7 +434,7 @@ Then:
 
 <a id="storybook-card-form-25"></a>
 
-### STORYBOOK-CARD-FORM-25 [TODO] 空白や重複したタグ名で保存しない
+### STORYBOOK-CARD-FORM-25 空白や重複したタグ名で保存しない
 
 カテゴリ: `interaction`
 
@@ -454,7 +454,7 @@ Then:
 
 <a id="storybook-card-edit-01"></a>
 
-### STORYBOOK-CARD-EDIT-01 [TODO] 長い解答プレビューへキーボードで移動する
+### STORYBOOK-CARD-EDIT-01 長い解答プレビューへキーボードで移動する
 
 カテゴリ: `interaction`
 
@@ -474,7 +474,7 @@ Then:
 
 <a id="storybook-card-edit-02"></a>
 
-### STORYBOOK-CARD-EDIT-02 [TODO] プレビューを閉じた拡大編集内でフォーカスを循環させる
+### STORYBOOK-CARD-EDIT-02 プレビューを閉じた拡大編集内でフォーカスを循環させる
 
 カテゴリ: `interaction`
 

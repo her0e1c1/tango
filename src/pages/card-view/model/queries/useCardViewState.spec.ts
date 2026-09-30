@@ -35,6 +35,7 @@ describe("CARD-VIEW-04 CARD-VIEW-05 useCardViewState", () => {
     const { result } = renderHook(() => useCardViewState(card.id));
 
     expect(result.current).toEqual({
+      frontText: card.frontText,
       fsrs: null,
       text: "const answer = 42;",
       category: "typescript",

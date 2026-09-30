@@ -27,6 +27,7 @@ export const useCardListQuery = ({ deck, filter, shownCard, sortOrder }: CardLis
     shownCard == null || category == null
       ? undefined
       : {
+          frontText: shownCard.frontText,
           text: shownCard.backText,
           category,
           code: isHighlightLanguage(category),

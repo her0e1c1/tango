@@ -629,7 +629,8 @@ function clickCardSurface(
   props: Pick<CardPlayerProps, "showBackText" | "onAnswerClick" | "onToggleViewMode">
 ): void {
   if (event.button !== 0) return;
-  if (event.target instanceof Element && event.target.closest("a, button, input, select, textarea")) return;
+  if (event.target instanceof Element && event.target.closest("a, button, [role='button'], input, select, textarea"))
+    return;
   if (!viewMode) {
     if (props.showBackText) props.onAnswerClick?.();
     return;

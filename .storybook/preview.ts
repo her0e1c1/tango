@@ -8,10 +8,17 @@ import { appI18n } from "../src/app/i18n/instance";
 import { INITIAL_VIEWPORTS } from "./support/storybookViewports";
 import "../src/app/styles/index.css";
 
-// Mock external authentication and Card persistence; forms, actions, and notifications remain real.
+// Mock external I/O; forms, actions, and notifications remain real.
 sb.mock("../src/entities/auth/api/signInWithGoogle.ts");
 sb.mock("../src/entities/auth/api/signOutCurrentUser.ts");
 sb.mock("../src/entities/card/api/firestore.ts", { spy: true });
+sb.mock("../src/entities/deck/api/firestore.ts", { spy: true });
+sb.mock("../src/entities/study-session/api/firestore.ts", { spy: true });
+sb.mock("../src/entities/study-answer/api/firestore.ts", { spy: true });
+sb.mock("../src/shared/files/downloadTextFile.ts");
+// Firebase's facade uses export-star declarations that Storybook's static automocker cannot analyze.
+sb.mock("@firebase/auth", { spy: true });
+sb.mock("@firebase/firestore", { spy: true });
 
 // Docs mounts English and Japanese stories together; each language needs its own instance.
 const docsI18n = {

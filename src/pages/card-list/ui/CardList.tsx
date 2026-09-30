@@ -260,7 +260,7 @@ export const CardList: React.FC<CardListProps> = (props) => {
           {filter.selectedTags.length > 0 && (
             <ul
               aria-label={t("cardList.filters.selectedTags")}
-              className="flex min-w-0 max-w-full list-none flex-wrap gap-2 px-1"
+              className="flex max-h-48 min-w-0 max-w-full list-none flex-wrap gap-2 overflow-y-auto px-1"
             >
               {filter.selectedTags.map((tag) => (
                 <li key={tag} className="max-w-full">

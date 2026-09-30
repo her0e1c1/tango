@@ -25,7 +25,7 @@
 
 <a id="storybook-account-01"></a>
 
-### STORYBOOK-ACCOUNT-01 [TODO] 匿名アカウントからログインする
+### STORYBOOK-ACCOUNT-01 匿名アカウントからログインする
 
 カテゴリ: `interaction`
 
@@ -45,7 +45,7 @@ Then:
 
 <a id="storybook-account-02"></a>
 
-### STORYBOOK-ACCOUNT-02 [TODO] ログアウトする
+### STORYBOOK-ACCOUNT-02 ログアウトする
 
 カテゴリ: `interaction`
 
@@ -65,7 +65,7 @@ Then:
 
 <a id="storybook-account-03"></a>
 
-### STORYBOOK-ACCOUNT-03 [TODO] ログイン待機中の操作を無効にする
+### STORYBOOK-ACCOUNT-03 ログイン待機中の操作を無効にする
 
 カテゴリ: `interaction`
 
@@ -85,7 +85,7 @@ Then:
 
 <a id="storybook-account-04"></a>
 
-### STORYBOOK-ACCOUNT-04 [TODO] ログアウト待機中の操作を無効にする
+### STORYBOOK-ACCOUNT-04 ログアウト待機中の操作を無効にする
 
 カテゴリ: `interaction`
 
@@ -105,7 +105,7 @@ Then:
 
 <a id="storybook-account-05"></a>
 
-### STORYBOOK-ACCOUNT-05 [TODO] アカウント画面を日本語で表示する
+### STORYBOOK-ACCOUNT-05 アカウント画面を日本語で表示する
 
 カテゴリ: `render`
 

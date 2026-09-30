@@ -61,6 +61,7 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
         onTogglePlaybackControls={model.toggleShowPlaybackControls}
         onSwipeLeft={model.previous}
         onSwipeRight={model.next}
+        backTextOverlay={{ onClickLeft: model.previous, onClickRight: model.next }}
         help={{
           open: model.helpOpen,
           rows: model.helpRows,

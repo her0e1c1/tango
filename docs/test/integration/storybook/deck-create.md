@@ -16,7 +16,7 @@ Deck 作成画面を入口とした `play` で、新しい Deck の入力、詳�
 
 <a id="storybook-deck-form-01"></a>
 
-### STORYBOOK-DECK-FORM-01 [TODO] 名前とカテゴリを入力する
+### STORYBOOK-DECK-FORM-01 名前とカテゴリを入力する
 
 カテゴリ: `interaction`
 
@@ -36,7 +36,7 @@ Then:
 
 <a id="storybook-deck-form-02"></a>
 
-### STORYBOOK-DECK-FORM-02 [TODO] 詳細設定を開き直しても入力を保持する
+### STORYBOOK-DECK-FORM-02 詳細設定を開き直しても入力を保持する
 
 カテゴリ: `interaction`
 
@@ -56,7 +56,7 @@ Then:
 
 <a id="storybook-deck-form-03"></a>
 
-### STORYBOOK-DECK-FORM-03 [TODO] 詳細項目の入力エラーを表示する
+### STORYBOOK-DECK-FORM-03 詳細項目の入力エラーを表示する
 
 カテゴリ: `interaction`
 
@@ -76,7 +76,7 @@ Then:
 
 <a id="storybook-deck-create-01"></a>
 
-### STORYBOOK-DECK-CREATE-01 [TODO] 作成の成功後に新しい Deck を確認する
+### STORYBOOK-DECK-CREATE-01 作成の成功後に新しい Deck を確認する
 
 カテゴリ: `interaction`
 
@@ -96,7 +96,7 @@ Then:
 
 <a id="storybook-deck-create-02"></a>
 
-### STORYBOOK-DECK-CREATE-02 [TODO] 作成に失敗しても入力を保持する
+### STORYBOOK-DECK-CREATE-02 作成に失敗しても入力を保持する
 
 カテゴリ: `interaction`
 

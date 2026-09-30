@@ -48,7 +48,7 @@ Card 一覧画面を入口とした `play` で、対象 Deck の一覧、閲覧�
 
 <a id="storybook-card-list-01"></a>
 
-### STORYBOOK-CARD-LIST-01 [TODO] Card 作成画面を開く
+### STORYBOOK-CARD-LIST-01 Card 作成画面を開く
 
 カテゴリ: `interaction`
 
@@ -68,7 +68,7 @@ Then:
 
 <a id="storybook-card-list-02"></a>
 
-### STORYBOOK-CARD-LIST-02 [TODO] Card 未作成の空状態を表示する
+### STORYBOOK-CARD-LIST-02 Card 未作成の空状態を表示する
 
 カテゴリ: `render`
 
@@ -88,7 +88,7 @@ Then:
 
 <a id="storybook-card-list-03"></a>
 
-### STORYBOOK-CARD-LIST-03 [TODO] フィルターによる0件状態を表示する
+### STORYBOOK-CARD-LIST-03 フィルターによる0件状態を表示する
 
 カテゴリ: `render`
 
@@ -108,7 +108,7 @@ Then:
 
 <a id="storybook-card-list-04"></a>
 
-### STORYBOOK-CARD-LIST-04 [TODO] 学習の復習期限で閲覧を0件にしない
+### STORYBOOK-CARD-LIST-04 学習の復習期限で閲覧を0件にしない
 
 カテゴリ: `render`
 
@@ -128,7 +128,7 @@ Then:
 
 <a id="storybook-card-list-05"></a>
 
-### STORYBOOK-CARD-LIST-05 [TODO] 選んだ Card を閲覧する
+### STORYBOOK-CARD-LIST-05 選んだ Card を閲覧する
 
 カテゴリ: `interaction`
 
@@ -148,7 +148,7 @@ Then:
 
 <a id="storybook-card-list-06"></a>
 
-### STORYBOOK-CARD-LIST-06 [TODO] 選択タグを解除して一覧を更新する
+### STORYBOOK-CARD-LIST-06 選択タグを解除して一覧を更新する
 
 カテゴリ: `interaction`
 
@@ -168,7 +168,7 @@ Then:
 
 <a id="storybook-card-list-07"></a>
 
-### STORYBOOK-CARD-LIST-07 [TODO] Card の拡大表示を閉じる
+### STORYBOOK-CARD-LIST-07 Card の拡大表示を閉じる
 
 カテゴリ: `interaction`
 
@@ -188,7 +188,7 @@ Then:
 
 <a id="storybook-card-list-08"></a>
 
-### STORYBOOK-CARD-LIST-08 [TODO] 標準順に戻す
+### STORYBOOK-CARD-LIST-08 標準順に戻す
 
 カテゴリ: `interaction`
 
@@ -208,7 +208,7 @@ Then:
 
 <a id="storybook-card-list-09"></a>
 
-### STORYBOOK-CARD-LIST-09 [TODO] メニューから Card を編集する
+### STORYBOOK-CARD-LIST-09 メニューから Card を編集する
 
 カテゴリ: `interaction`
 
@@ -228,7 +228,7 @@ Then:
 
 <a id="storybook-card-list-10"></a>
 
-### STORYBOOK-CARD-LIST-10 [TODO] 空の理由を断定できない間は誤案内しない
+### STORYBOOK-CARD-LIST-10 空の理由を断定できない間は誤案内しない
 
 カテゴリ: `render`
 
@@ -248,7 +248,7 @@ Then:
 
 <a id="storybook-card-list-11"></a>
 
-### STORYBOOK-CARD-LIST-11 [TODO] 長い選択タグの名前を確認できる
+### STORYBOOK-CARD-LIST-11 長い選択タグの名前を確認できる
 
 カテゴリ: `render`
 
@@ -268,7 +268,7 @@ Then:
 
 <a id="storybook-card-list-12"></a>
 
-### STORYBOOK-CARD-LIST-12 [TODO] タグ解除後に残るタグへフォーカスを移す
+### STORYBOOK-CARD-LIST-12 タグ解除後に残るタグへフォーカスを移す
 
 カテゴリ: `interaction`
 
@@ -288,7 +288,7 @@ Then:
 
 <a id="storybook-card-list-13"></a>
 
-### STORYBOOK-CARD-LIST-13 [TODO] 最後のタグ解除後はフィルターへ戻る
+### STORYBOOK-CARD-LIST-13 最後のタグ解除後はフィルターへ戻る
 
 カテゴリ: `interaction`
 
@@ -308,7 +308,7 @@ Then:
 
 <a id="storybook-card-list-14"></a>
 
-### STORYBOOK-CARD-LIST-14 [TODO] Tab 移動だけでは選択を変えない
+### STORYBOOK-CARD-LIST-14 Tab 移動だけでは選択を変えない
 
 カテゴリ: `interaction`
 
@@ -328,7 +328,7 @@ Then:
 
 <a id="storybook-card-list-15"></a>
 
-### STORYBOOK-CARD-LIST-15 [TODO] メニューを一つに保ち対象の削除で閉じる
+### STORYBOOK-CARD-LIST-15 メニューを一つに保ち対象の削除で閉じる
 
 カテゴリ: `interaction`
 
@@ -348,7 +348,7 @@ Then:
 
 <a id="storybook-card-list-16"></a>
 
-### STORYBOOK-CARD-LIST-16 [TODO] 並べ替え後も選んだ Card を操作する
+### STORYBOOK-CARD-LIST-16 並べ替え後も選んだ Card を操作する
 
 カテゴリ: `interaction`
 
@@ -368,7 +368,7 @@ Then:
 
 <a id="storybook-card-list-17"></a>
 
-### STORYBOOK-CARD-LIST-17 [TODO] 空状態から Card 作成を始める
+### STORYBOOK-CARD-LIST-17 空状態から Card 作成を始める
 
 カテゴリ: `interaction`
 
@@ -388,7 +388,7 @@ Then:
 
 <a id="storybook-card-list-18"></a>
 
-### STORYBOOK-CARD-LIST-18 [TODO] 0件状態からフィルターを解除する
+### STORYBOOK-CARD-LIST-18 0件状態からフィルターを解除する
 
 カテゴリ: `interaction`
 
@@ -408,7 +408,7 @@ Then:
 
 <a id="storybook-card-list-19"></a>
 
-### STORYBOOK-CARD-LIST-19 [TODO] 行の編集操作で対象を取り違えない
+### STORYBOOK-CARD-LIST-19 行の編集操作で対象を取り違えない
 
 カテゴリ: `interaction`
 
@@ -428,7 +428,7 @@ Then:
 
 <a id="storybook-card-list-20"></a>
 
-### STORYBOOK-CARD-LIST-20 [TODO] 処理中の Card を操作させない
+### STORYBOOK-CARD-LIST-20 処理中の Card を操作させない
 
 カテゴリ: `render`
 
@@ -436,7 +436,7 @@ Then:
 
 Given:
 
-- 一覧の一つの Card が処理中で、他の Card は処理中ではない。
+- 一覧の一つの Card の削除を確定し、確認モーダルで処理結果を待っている。
 
 When:
 
@@ -444,11 +444,12 @@ When:
 
 Then:
 
-- 処理中の行の操作は無効になり、他の Card は操作できる。
+- 削除処理中は対象の再操作と背景の Card 操作を受け付けない。
+- 処理が完了するとモーダルが閉じ、残った Card を操作できる。
 
 <a id="storybook-card-list-21"></a>
 
-### STORYBOOK-CARD-LIST-21 [TODO] 選んだ Card の削除を開始する
+### STORYBOOK-CARD-LIST-21 選んだ Card の削除を開始する
 
 カテゴリ: `interaction`
 
@@ -468,7 +469,7 @@ Then:
 
 <a id="storybook-card-list-22"></a>
 
-### STORYBOOK-CARD-LIST-22 [TODO] 操作不可の Card にメニューを開かない
+### STORYBOOK-CARD-LIST-22 操作不可の Card にメニューを開かない
 
 カテゴリ: `render`
 
@@ -488,7 +489,7 @@ Then:
 
 <a id="storybook-deck-filter-01"></a>
 
-### STORYBOOK-DECK-FILTER-01 [TODO] 閲覧タグをまとめて解除する
+### STORYBOOK-DECK-FILTER-01 閲覧タグをまとめて解除する
 
 カテゴリ: `interaction`
 
@@ -508,7 +509,7 @@ Then:
 
 <a id="storybook-deck-filter-02"></a>
 
-### STORYBOOK-DECK-FILTER-02 [TODO] 折りたたまれたタグを表示する
+### STORYBOOK-DECK-FILTER-02 折りたたまれたタグを表示する
 
 カテゴリ: `interaction`
 
@@ -528,7 +529,7 @@ Then:
 
 <a id="storybook-deck-filter-03"></a>
 
-### STORYBOOK-DECK-FILTER-03 [TODO] タグ選択を一覧へ反映する
+### STORYBOOK-DECK-FILTER-03 タグ選択を一覧へ反映する
 
 カテゴリ: `interaction`
 
@@ -548,7 +549,7 @@ Then:
 
 <a id="storybook-deck-filter-04"></a>
 
-### STORYBOOK-DECK-FILTER-04 [TODO] 同じタグを重複して表示しない
+### STORYBOOK-DECK-FILTER-04 同じタグを重複して表示しない
 
 カテゴリ: `interaction`
 
@@ -568,7 +569,7 @@ Then:
 
 <a id="storybook-deck-filter-05"></a>
 
-### STORYBOOK-DECK-FILTER-05 [TODO] Any と All で絞り込み結果を変える
+### STORYBOOK-DECK-FILTER-05 Any と All で絞り込み結果を変える
 
 カテゴリ: `interaction`
 
@@ -588,7 +589,7 @@ Then:
 
 <a id="storybook-deck-filter-06"></a>
 
-### STORYBOOK-DECK-FILTER-06 [TODO] 候補から消えた選択タグも解除できる
+### STORYBOOK-DECK-FILTER-06 候補から消えた選択タグも解除できる
 
 カテゴリ: `interaction`
 
@@ -608,7 +609,7 @@ Then:
 
 <a id="storybook-deck-filter-07"></a>
 
-### STORYBOOK-DECK-FILTER-07 [TODO] 追加表示したタグをキーボードで選ぶ
+### STORYBOOK-DECK-FILTER-07 追加表示したタグをキーボードで選ぶ
 
 カテゴリ: `interaction`
 
@@ -628,7 +629,7 @@ Then:
 
 <a id="storybook-deck-filter-08"></a>
 
-### STORYBOOK-DECK-FILTER-08 [TODO] 解除で隠れるタグからフォーカスを移す
+### STORYBOOK-DECK-FILTER-08 解除で隠れるタグからフォーカスを移す
 
 カテゴリ: `interaction`
 
@@ -648,7 +649,7 @@ Then:
 
 <a id="storybook-deck-filter-09"></a>
 
-### STORYBOOK-DECK-FILTER-09 [TODO] 最後の候補外タグを解除する
+### STORYBOOK-DECK-FILTER-09 最後の候補外タグを解除する
 
 カテゴリ: `interaction`
 
@@ -668,7 +669,7 @@ Then:
 
 <a id="storybook-deck-filter-10"></a>
 
-### STORYBOOK-DECK-FILTER-10 [TODO] Clear が無効になる前にフォーカスを移す
+### STORYBOOK-DECK-FILTER-10 Clear が無効になる前にフォーカスを移す
 
 カテゴリ: `interaction`
 
@@ -688,7 +689,7 @@ Then:
 
 <a id="storybook-deck-filter-11"></a>
 
-### STORYBOOK-DECK-FILTER-11 [TODO] 8件以下では追加表示操作を出さない
+### STORYBOOK-DECK-FILTER-11 8件以下では追加表示操作を出さない
 
 カテゴリ: `render`
 
@@ -708,7 +709,7 @@ Then:
 
 <a id="storybook-deck-filter-12"></a>
 
-### STORYBOOK-DECK-FILTER-12 [TODO] タグ候補がなくても一致条件を保持する
+### STORYBOOK-DECK-FILTER-12 タグ候補がなくても一致条件を保持する
 
 カテゴリ: `render`
 
@@ -728,7 +729,7 @@ Then:
 
 <a id="storybook-deck-filter-13"></a>
 
-### STORYBOOK-DECK-FILTER-13 [TODO] 大量の選択タグをスクロールして確認する
+### STORYBOOK-DECK-FILTER-13 大量の選択タグをスクロールして確認する
 
 カテゴリ: `render`
 
@@ -748,7 +749,7 @@ Then:
 
 <a id="storybook-deck-filter-14"></a>
 
-### STORYBOOK-DECK-FILTER-14 [TODO] 長い候補タグ名を確認できる
+### STORYBOOK-DECK-FILTER-14 長い候補タグ名を確認できる
 
 カテゴリ: `render`
 
@@ -768,7 +769,7 @@ Then:
 
 <a id="storybook-deck-filter-15"></a>
 
-### STORYBOOK-DECK-FILTER-15 [TODO] 言語が変わってもタグの展開を保つ
+### STORYBOOK-DECK-FILTER-15 言語が変わってもタグの展開を保つ
 
 カテゴリ: `interaction`
 

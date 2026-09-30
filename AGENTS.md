@@ -82,7 +82,7 @@ Every task that changes repository files must complete this workflow:
 
 ### Storybook Integration Tests
 
-- Verify public UI contracts from `docs/test/integration/storybook` with `play` functions in `src/**/*.stories.tsx`. Do not duplicate stories under `test/integration`.
+- Verify public UI contracts from `docs/test/integration/storybook` with `play` functions in `test/integration/storybook/**/*.stories.tsx`. Keep component stories under `src` and avoid duplicating screen integration stories there.
 - Prefix the relevant `play` step labels with their specification IDs. A shared play may reference multiple IDs, and inherited plays may share the same IDs. Keep these references aligned with specification changes.
 - Test observable UI behavior with real composed components and forms. Mock only boundaries outside the contract, using story-side setup and public callback spies; do not add production interfaces solely for tests.
 - Update the corresponding specification when adding or changing a play, including regressions. Rendering-only stories and setup-only plays do not verify behavior; a callback notification does not prove persistence or navigation.

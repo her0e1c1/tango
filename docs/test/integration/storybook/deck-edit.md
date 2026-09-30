@@ -17,7 +17,7 @@ Deck 編集画面を入口とした `play` で、既存 Deck の表示・編集�
 
 <a id="storybook-deck-form-04"></a>
 
-### STORYBOOK-DECK-FORM-04 [TODO] 確認して Deck を削除する
+### STORYBOOK-DECK-FORM-04 確認して Deck を削除する
 
 カテゴリ: `interaction`
 
@@ -37,7 +37,7 @@ Then:
 
 <a id="storybook-deck-form-05"></a>
 
-### STORYBOOK-DECK-FORM-05 [TODO] 削除を取り消して編集を続ける
+### STORYBOOK-DECK-FORM-05 削除を取り消して編集を続ける
 
 カテゴリ: `interaction`
 
@@ -57,7 +57,7 @@ Then:
 
 <a id="storybook-deck-form-06"></a>
 
-### STORYBOOK-DECK-FORM-06 [TODO] 削除処理中は再確定と取消しを受け付けない
+### STORYBOOK-DECK-FORM-06 削除処理中は再確定と取消しを受け付けない
 
 カテゴリ: `interaction`
 
@@ -77,7 +77,7 @@ Then:
 
 <a id="storybook-deck-edit-01"></a>
 
-### STORYBOOK-DECK-EDIT-01 [TODO] 選んだ Deck の保存済み内容を編集する
+### STORYBOOK-DECK-EDIT-01 選んだ Deck の保存済み内容を編集する
 
 カテゴリ: `render`
 
@@ -97,7 +97,7 @@ Then:
 
 <a id="storybook-deck-edit-02"></a>
 
-### STORYBOOK-DECK-EDIT-02 [TODO] 変更した名前を一覧へ反映する
+### STORYBOOK-DECK-EDIT-02 変更した名前を一覧へ反映する
 
 カテゴリ: `interaction`
 
@@ -117,7 +117,7 @@ Then:
 
 <a id="storybook-deck-edit-03"></a>
 
-### STORYBOOK-DECK-EDIT-03 [TODO] 保存失敗後も編集値を保持する
+### STORYBOOK-DECK-EDIT-03 保存失敗後も編集値を保持する
 
 カテゴリ: `interaction`
 

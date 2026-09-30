@@ -14,7 +14,7 @@
 
 <a id="storybook-study-session-start-01"></a>
 
-### STORYBOOK-STUDY-SESSION-START-01 [TODO] 学習を開始する
+### STORYBOOK-STUDY-SESSION-START-01 学習を開始する
 
 カテゴリ: `interaction`
 
@@ -34,7 +34,7 @@ Then:
 
 <a id="storybook-study-session-start-02"></a>
 
-### STORYBOOK-STUDY-SESSION-START-02 [TODO] 対象がない場合に理由を示す
+### STORYBOOK-STUDY-SESSION-START-02 対象がない場合に理由を示す
 
 カテゴリ: `render`
 
@@ -54,7 +54,7 @@ Then:
 
 <a id="storybook-study-session-start-03"></a>
 
-### STORYBOOK-STUDY-SESSION-START-03 [TODO] 開始に失敗した場合に復旧できる
+### STORYBOOK-STUDY-SESSION-START-03 開始に失敗した場合に復旧できる
 
 カテゴリ: `interaction`
 
