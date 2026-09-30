@@ -11,6 +11,7 @@ const days = Array.from({ length: 30 }, (_, index) => ({
 const meta = {
   title: "Pages/Study History/Summary",
   component: StudyHistorySummary,
+  tags: ["autodocs"],
   args: { chart: getStudyHistoryChart(days), started: 2, completed: 3 },
   decorators: [
     (Story) => (

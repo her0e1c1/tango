@@ -57,7 +57,7 @@ const preview: Preview = {
     },
     options: {
       storySort: {
-        order: ["Integration", "Pages", "Features", "Shared"],
+        order: ["Catalog", "Integration", "Pages", "Features", "Shared"],
       },
     },
     viewport: {

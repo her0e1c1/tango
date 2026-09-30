@@ -22,6 +22,7 @@ function PeriodPickerStory(args: ComponentProps<typeof StudyHistoryPeriodPicker>
 const meta = {
   title: "Pages/Study History/Period picker",
   component: StudyHistoryPeriodPicker,
+  tags: ["autodocs"],
   args: {
     preset: 30,
     maxDate: "2026-09-22",
