@@ -14,7 +14,7 @@ Card 閲覧画面を入口とした `play` で、指定した一枚の Card の�
 
 <a id="storybook-card-view-01"></a>
 
-### STORYBOOK-CARD-VIEW-01 [TODO] 指定した Card の両面を読む
+### STORYBOOK-CARD-VIEW-01 指定した Card の両面を読む
 
 カテゴリ: `interaction`
 
@@ -34,7 +34,7 @@ Then:
 
 <a id="storybook-card-view-02"></a>
 
-### STORYBOOK-CARD-VIEW-02 [TODO] 表示している Card を編集する
+### STORYBOOK-CARD-VIEW-02 表示している Card を編集する
 
 カテゴリ: `interaction`
 
@@ -54,7 +54,7 @@ Then:
 
 <a id="storybook-card-view-03"></a>
 
-### STORYBOOK-CARD-VIEW-03 [TODO] 存在しない Card を案内する
+### STORYBOOK-CARD-VIEW-03 存在しない Card を案内する
 
 カテゴリ: `render`
 

@@ -24,7 +24,7 @@
 
 <a id="storybook-study-controls-01"></a>
 
-### STORYBOOK-STUDY-CONTROLS-01 [TODO] 再生を開始して一時停止表示にする
+### STORYBOOK-STUDY-CONTROLS-01 再生を開始して一時停止表示にする
 
 カテゴリ: `interaction`
 
@@ -44,7 +44,7 @@ Then:
 
 <a id="storybook-study-controls-02"></a>
 
-### STORYBOOK-STUDY-CONTROLS-02 [TODO] Card を評価せずスキップする
+### STORYBOOK-STUDY-CONTROLS-02 Card を評価せずスキップする
 
 カテゴリ: `interaction`
 
@@ -64,7 +64,7 @@ Then:
 
 <a id="storybook-study-controls-03"></a>
 
-### STORYBOOK-STUDY-CONTROLS-03 [TODO] Enter で再生を開始する
+### STORYBOOK-STUDY-CONTROLS-03 Enter で再生を開始する
 
 カテゴリ: `interaction`
 
@@ -84,7 +84,7 @@ Then:
 
 <a id="storybook-study-controls-04"></a>
 
-### STORYBOOK-STUDY-CONTROLS-04 [TODO] スライダーで表示位置を変える
+### STORYBOOK-STUDY-CONTROLS-04 スライダーで表示位置を変える
 
 カテゴリ: `interaction`
 
@@ -104,7 +104,7 @@ Then:
 
 <a id="storybook-study-controls-05"></a>
 
-### STORYBOOK-STUDY-CONTROLS-05 [TODO] 無効な方向操作を Tab 移動から除く
+### STORYBOOK-STUDY-CONTROLS-05 無効な方向操作を Tab 移動から除く
 
 カテゴリ: `interaction`
 
@@ -124,7 +124,7 @@ Then:
 
 <a id="storybook-study-controls-06"></a>
 
-### STORYBOOK-STUDY-CONTROLS-06 [TODO] Enter で有効な方向操作を実行する
+### STORYBOOK-STUDY-CONTROLS-06 Enter で有効な方向操作を実行する
 
 カテゴリ: `interaction`
 
@@ -144,7 +144,7 @@ Then:
 
 <a id="storybook-study-controls-07"></a>
 
-### STORYBOOK-STUDY-CONTROLS-07 [TODO] 学習ヘルプをモーダルとして開く
+### STORYBOOK-STUDY-CONTROLS-07 学習ヘルプをモーダルとして開く
 
 カテゴリ: `interaction`
 
@@ -164,7 +164,7 @@ Then:
 
 <a id="storybook-study-controls-08"></a>
 
-### STORYBOOK-STUDY-CONTROLS-08 [TODO] ヘルプ内にフォーカスを保ち Escape で戻る
+### STORYBOOK-STUDY-CONTROLS-08 ヘルプ内にフォーカスを保ち Escape で戻る
 
 カテゴリ: `interaction`
 
@@ -184,7 +184,7 @@ Then:
 
 <a id="storybook-study-controls-09"></a>
 
-### STORYBOOK-STUDY-CONTROLS-09 [TODO] ヘルプ表示中は背景の通知を操作させない
+### STORYBOOK-STUDY-CONTROLS-09 ヘルプ表示中は背景の通知を操作させない
 
 カテゴリ: `interaction`
 
@@ -204,7 +204,7 @@ Then:
 
 <a id="storybook-study-controls-10"></a>
 
-### STORYBOOK-STUDY-CONTROLS-10 [TODO] ヘルプを閉じて通知の操作を戻す
+### STORYBOOK-STUDY-CONTROLS-10 ヘルプを閉じて通知の操作を戻す
 
 カテゴリ: `interaction`
 
@@ -224,7 +224,7 @@ Then:
 
 <a id="storybook-study-session-01"></a>
 
-### STORYBOOK-STUDY-SESSION-01 [TODO] 解答を確認して評価すると次へ進む
+### STORYBOOK-STUDY-SESSION-01 解答を確認して評価すると次へ進む
 
 カテゴリ: `interaction`
 
@@ -244,7 +244,7 @@ Then:
 
 <a id="storybook-study-session-02"></a>
 
-### STORYBOOK-STUDY-SESSION-02 [TODO] 最後の Card を終えると完了を表示する
+### STORYBOOK-STUDY-SESSION-02 最後の Card を終えると完了を表示する
 
 カテゴリ: `interaction`
 
@@ -264,7 +264,7 @@ Then:
 
 <a id="storybook-study-session-03"></a>
 
-### STORYBOOK-STUDY-SESSION-03 [TODO] 回答処理の失敗を成功と扱わない
+### STORYBOOK-STUDY-SESSION-03 回答処理の失敗を成功と扱わない
 
 カテゴリ: `interaction`
 

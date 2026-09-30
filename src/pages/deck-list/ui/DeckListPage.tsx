@@ -25,6 +25,7 @@ export const DeckListPage: React.FC = () => {
         onCreateDeck={model.createDeck}
         onImportDeck={model.importDeck}
         deckCard={{
+          isPending: (id) => model.deletionPending && model.deletionTarget?.deckId === id,
           onClickEdit: model.editDeck,
           onClickName: model.openDeck,
           onClickView: model.viewDeck,

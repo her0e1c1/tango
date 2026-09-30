@@ -5,7 +5,7 @@ export type CardListSortOrder = "standard" | "newest";
 
 export interface CardListState {
   sortOrder: CardListSortOrder;
-  shownCard: Pick<Card, "backText" | "tags"> | undefined;
+  shownCard: Pick<Card, "frontText" | "backText" | "tags"> | undefined;
   deletionTarget: Pick<Card, "id" | "frontText"> | undefined;
   mutationId: symbol | undefined;
 }

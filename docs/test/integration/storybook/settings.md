@@ -22,7 +22,7 @@
 
 <a id="storybook-settings-01"></a>
 
-### STORYBOOK-SETTINGS-01 [TODO] 設定画面を日本語で表示する
+### STORYBOOK-SETTINGS-01 設定画面を日本語で表示する
 
 カテゴリ: `render`
 
@@ -42,7 +42,7 @@ Then:
 
 <a id="storybook-settings-02"></a>
 
-### STORYBOOK-SETTINGS-02 [TODO] 再生操作の表示設定を切り替える
+### STORYBOOK-SETTINGS-02 再生操作の表示設定を切り替える
 
 カテゴリ: `interaction`
 
@@ -62,7 +62,7 @@ Then:
 
 <a id="storybook-settings-03"></a>
 
-### STORYBOOK-SETTINGS-03 [TODO] スワイプ操作の表示設定を切り替える
+### STORYBOOK-SETTINGS-03 スワイプ操作の表示設定を切り替える
 
 カテゴリ: `interaction`
 
@@ -82,7 +82,7 @@ Then:
 
 <a id="storybook-settings-04"></a>
 
-### STORYBOOK-SETTINGS-04 [TODO] 設定とアカウント操作を分離する
+### STORYBOOK-SETTINGS-04 設定とアカウント操作を分離する
 
 カテゴリ: `render`
 
@@ -102,7 +102,7 @@ Then:
 
 <a id="storybook-settings-05"></a>
 
-### STORYBOOK-SETTINGS-05 [TODO] 入力変更を画面へ反映する
+### STORYBOOK-SETTINGS-05 入力変更を画面へ反映する
 
 カテゴリ: `interaction`
 
@@ -122,7 +122,7 @@ Then:
 
 <a id="storybook-settings-06"></a>
 
-### STORYBOOK-SETTINGS-06 [TODO] 復習の説明とバージョン情報を表示する
+### STORYBOOK-SETTINGS-06 復習の説明とバージョン情報を表示する
 
 カテゴリ: `render`
 
@@ -142,7 +142,7 @@ Then:
 
 <a id="storybook-settings-07"></a>
 
-### STORYBOOK-SETTINGS-07 [TODO] ラベルと説明を対応する入力に関連付ける
+### STORYBOOK-SETTINGS-07 ラベルと説明を対応する入力に関連付ける
 
 カテゴリ: `render`
 
@@ -162,7 +162,7 @@ Then:
 
 <a id="storybook-settings-08"></a>
 
-### STORYBOOK-SETTINGS-08 [TODO] 日本語の操作名と読み上げ値を表示する
+### STORYBOOK-SETTINGS-08 日本語の操作名と読み上げ値を表示する
 
 カテゴリ: `render`
 
@@ -182,7 +182,7 @@ Then:
 
 <a id="storybook-settings-09"></a>
 
-### STORYBOOK-SETTINGS-09 [TODO] 最大カード数0を全件として説明する
+### STORYBOOK-SETTINGS-09 最大カード数0を全件として説明する
 
 カテゴリ: `interaction`
 
@@ -202,7 +202,7 @@ Then:
 
 <a id="storybook-settings-10"></a>
 
-### STORYBOOK-SETTINGS-10 [TODO] 再生間隔の境界値を説明する
+### STORYBOOK-SETTINGS-10 再生間隔の境界値を説明する
 
 カテゴリ: `interaction`
 

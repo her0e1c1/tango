@@ -7,6 +7,7 @@ const buildCardViewState = (card: Card, deck: Deck, dark: boolean) => {
   const category = getCategory(deck.category, card.tags);
 
   return {
+    frontText: card.frontText,
     text: card.backText,
     category,
     code: isHighlightLanguage(category),

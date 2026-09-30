@@ -23,7 +23,7 @@ Deck インポート画面を入口とした `play` で、CSV とサンプルの
 
 <a id="storybook-import-01"></a>
 
-### STORYBOOK-IMPORT-01 [TODO] 初期画面に保存先選択を表示しない
+### STORYBOOK-IMPORT-01 初期画面に保存先選択を表示しない
 
 カテゴリ: `render`
 
@@ -63,7 +63,7 @@ Then:
 
 <a id="storybook-import-03"></a>
 
-### STORYBOOK-IMPORT-03 [TODO] 日本語の診断と無効な確定操作を表示する
+### STORYBOOK-IMPORT-03 日本語の診断と無効な確定操作を表示する
 
 カテゴリ: `interaction`
 
@@ -83,7 +83,7 @@ Then:
 
 <a id="storybook-import-04"></a>
 
-### STORYBOOK-IMPORT-04 [TODO] プレビュー失敗を安全な日本語にする
+### STORYBOOK-IMPORT-04 プレビュー失敗を安全な日本語にする
 
 カテゴリ: `interaction`
 
@@ -103,7 +103,7 @@ Then:
 
 <a id="storybook-import-05"></a>
 
-### STORYBOOK-IMPORT-05 [TODO] 診断を翻訳してユーザー入力を保持する
+### STORYBOOK-IMPORT-05 診断を翻訳してユーザー入力を保持する
 
 カテゴリ: `interaction`
 
@@ -123,7 +123,7 @@ Then:
 
 <a id="storybook-import-06"></a>
 
-### STORYBOOK-IMPORT-06 [TODO] CSV 形式の説明を開く
+### STORYBOOK-IMPORT-06 CSV 形式の説明を開く
 
 カテゴリ: `interaction`
 
@@ -143,7 +143,7 @@ Then:
 
 <a id="storybook-import-07"></a>
 
-### STORYBOOK-IMPORT-07 [TODO] インポート処理中の選択を無効にする
+### STORYBOOK-IMPORT-07 インポート処理中の選択を無効にする
 
 カテゴリ: `render`
 
@@ -163,7 +163,7 @@ Then:
 
 <a id="storybook-import-08"></a>
 
-### STORYBOOK-IMPORT-08 [TODO] 選んだサンプルを試す
+### STORYBOOK-IMPORT-08 選んだサンプルを試す
 
 カテゴリ: `interaction`
 
@@ -183,7 +183,7 @@ Then:
 
 <a id="storybook-import-09"></a>
 
-### STORYBOOK-IMPORT-09 [TODO] プレビュー後もファイルを選び直す
+### STORYBOOK-IMPORT-09 プレビュー後もファイルを選び直す
 
 カテゴリ: `interaction`
 
@@ -203,7 +203,7 @@ Then:
 
 <a id="storybook-import-10"></a>
 
-### STORYBOOK-IMPORT-10 [TODO] 内容確認とインポート確定を区別する
+### STORYBOOK-IMPORT-10 内容確認とインポート確定を区別する
 
 カテゴリ: `interaction`
 
@@ -223,7 +223,7 @@ Then:
 
 <a id="storybook-import-11"></a>
 
-### STORYBOOK-IMPORT-11 [TODO] 不正な行があれば確定を止める
+### STORYBOOK-IMPORT-11 不正な行があれば確定を止める
 
 カテゴリ: `interaction`
 
@@ -243,7 +243,7 @@ Then:
 
 <a id="storybook-import-12"></a>
 
-### STORYBOOK-IMPORT-12 [TODO] 準備失敗後もファイルを選び直す
+### STORYBOOK-IMPORT-12 準備失敗後もファイルを選び直す
 
 カテゴリ: `interaction`
 

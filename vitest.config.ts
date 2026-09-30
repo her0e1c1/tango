@@ -47,8 +47,13 @@ export default mergeConfig(
         },
         {
           extends: true,
+          define: {
+            __APP_VERSION__: JSON.stringify('1.2.3'),
+            __COMMIT_HASH__: JSON.stringify('0123456789abcdef0123456789abcdef01234567'),
+          },
           optimizeDeps: {
             include: ['storybook/test'],
+            exclude: ['firebase/auth', 'firebase/firestore'],
           },
           plugins: [
             storybookTest({

@@ -39,7 +39,7 @@ Deck 一覧画面を入口とした `play` で、一覧の表示、Deck ごと�
 
 <a id="storybook-deck-list-01"></a>
 
-### STORYBOOK-DECK-LIST-01 [TODO] Deck 作成画面を開く
+### STORYBOOK-DECK-LIST-01 Deck 作成画面を開く
 
 カテゴリ: `interaction`
 
@@ -59,7 +59,7 @@ Then:
 
 <a id="storybook-deck-list-02"></a>
 
-### STORYBOOK-DECK-LIST-02 [TODO] Deck インポート画面を開く
+### STORYBOOK-DECK-LIST-02 Deck インポート画面を開く
 
 カテゴリ: `interaction`
 
@@ -79,7 +79,7 @@ Then:
 
 <a id="storybook-deck-list-03"></a>
 
-### STORYBOOK-DECK-LIST-03 [TODO] 固定文言だけを日本語にする
+### STORYBOOK-DECK-LIST-03 固定文言だけを日本語にする
 
 カテゴリ: `render`
 
@@ -99,7 +99,7 @@ Then:
 
 <a id="storybook-deck-list-04"></a>
 
-### STORYBOOK-DECK-LIST-04 [TODO] 選んだ Deck を閲覧する
+### STORYBOOK-DECK-LIST-04 選んだ Deck を閲覧する
 
 カテゴリ: `interaction`
 
@@ -119,7 +119,7 @@ Then:
 
 <a id="storybook-deck-list-05"></a>
 
-### STORYBOOK-DECK-LIST-05 [TODO] 空の一覧にも追加導線を表示する
+### STORYBOOK-DECK-LIST-05 空の一覧にも追加導線を表示する
 
 カテゴリ: `render`
 
@@ -139,7 +139,7 @@ Then:
 
 <a id="storybook-deck-list-06"></a>
 
-### STORYBOOK-DECK-LIST-06 [TODO] 復習対象・新規件数と説明を表示する
+### STORYBOOK-DECK-LIST-06 復習対象・新規件数と説明を表示する
 
 カテゴリ: `render`
 
@@ -159,7 +159,7 @@ Then:
 
 <a id="storybook-deck-list-07"></a>
 
-### STORYBOOK-DECK-LIST-07 [TODO] ダウンロード操作後にメニューを閉じる
+### STORYBOOK-DECK-LIST-07 ダウンロード操作後にメニューを閉じる
 
 カテゴリ: `interaction`
 
@@ -179,7 +179,7 @@ Then:
 
 <a id="storybook-deck-list-08"></a>
 
-### STORYBOOK-DECK-LIST-08 [TODO] 学習履歴画面を開く
+### STORYBOOK-DECK-LIST-08 学習履歴画面を開く
 
 カテゴリ: `interaction`
 
@@ -199,7 +199,7 @@ Then:
 
 <a id="storybook-deck-list-09"></a>
 
-### STORYBOOK-DECK-LIST-09 [TODO] 学習中と未開始を一つの一覧に表示する
+### STORYBOOK-DECK-LIST-09 学習中と未開始を一つの一覧に表示する
 
 カテゴリ: `render`
 
@@ -219,7 +219,7 @@ Then:
 
 <a id="storybook-deck-list-10"></a>
 
-### STORYBOOK-DECK-LIST-10 [TODO] 複数のメニューを同時に開かない
+### STORYBOOK-DECK-LIST-10 複数のメニューを同時に開かない
 
 カテゴリ: `interaction`
 
@@ -239,7 +239,7 @@ Then:
 
 <a id="storybook-deck-list-11"></a>
 
-### STORYBOOK-DECK-LIST-11 [TODO] 追加メニューをキーボードで開閉する
+### STORYBOOK-DECK-LIST-11 追加メニューをキーボードで開閉する
 
 カテゴリ: `interaction`
 
@@ -259,7 +259,7 @@ Then:
 
 <a id="storybook-deck-list-12"></a>
 
-### STORYBOOK-DECK-LIST-12 [TODO] 作成操作後に追加メニューを残さない
+### STORYBOOK-DECK-LIST-12 作成操作後に追加メニューを残さない
 
 カテゴリ: `interaction`
 
@@ -279,7 +279,7 @@ Then:
 
 <a id="storybook-deck-list-13"></a>
 
-### STORYBOOK-DECK-LIST-13 [TODO] 確認中に空の一覧と断定しない
+### STORYBOOK-DECK-LIST-13 確認中に空の一覧と断定しない
 
 カテゴリ: `render`
 
@@ -299,7 +299,7 @@ Then:
 
 <a id="storybook-deck-list-14"></a>
 
-### STORYBOOK-DECK-LIST-14 [TODO] 初期データ取得失敗から復旧操作を選ぶ
+### STORYBOOK-DECK-LIST-14 初期データ取得失敗から復旧操作を選ぶ
 
 カテゴリ: `interaction`
 
@@ -319,7 +319,7 @@ Then:
 
 <a id="storybook-deck-list-15"></a>
 
-### STORYBOOK-DECK-LIST-15 [TODO] 復習対象0件の理由を区別する
+### STORYBOOK-DECK-LIST-15 復習対象0件の理由を区別する
 
 カテゴリ: `interaction`
 
@@ -331,15 +331,16 @@ Given:
 
 When:
 
-- 各 Deck の復習対象0件の説明を開く。
+- 各 Deck の件数と学習操作を確認し、復習期限を待つ Deck の説明を開く。
 
 Then:
 
-- 新規学習が必要な状態と、復習期限を待つ状態を区別する説明が表示される。
+- 未評価の Card がある Deck には復習0件と新規件数、新規学習の操作が表示される。
+- 復習期限を待つ Deck には対象がない案内と次の復習期限が表示される。
 
 <a id="storybook-deck-list-16"></a>
 
-### STORYBOOK-DECK-LIST-16 [TODO] 復習と新規学習を区別して開始する
+### STORYBOOK-DECK-LIST-16 復習と新規学習を区別して開始する
 
 カテゴリ: `interaction`
 
@@ -347,19 +348,19 @@ Then:
 
 Given:
 
-- 復習対象と新規 Card の両方がある Deck を表示している。
+- 復習対象と新規 Card の両方がある Deck と、新規 Card だけがある Deck を表示している。
 
 When:
 
-- 復習と新規学習を、それぞれ独立した操作例として選ぶ。
+- それぞれ独立した操作例として、復習対象のある Deck の復習操作と、新規 Card だけの Deck の新規学習操作を選ぶ。
 
 Then:
 
-- 選んだ学習種別の開始画面が表示される。
+- 選んだ Deck の学習開始画面が表示され、別の Deck が対象にならない。
 
 <a id="storybook-deck-list-17"></a>
 
-### STORYBOOK-DECK-LIST-17 [TODO] 学習位置を表示する
+### STORYBOOK-DECK-LIST-17 学習位置を表示する
 
 カテゴリ: `render`
 
@@ -379,7 +380,7 @@ Then:
 
 <a id="storybook-deck-list-18"></a>
 
-### STORYBOOK-DECK-LIST-18 [TODO] 学習操作で閲覧画面を開かない
+### STORYBOOK-DECK-LIST-18 学習操作で閲覧画面を開かない
 
 カテゴリ: `interaction`
 
@@ -399,7 +400,7 @@ Then:
 
 <a id="storybook-deck-list-19"></a>
 
-### STORYBOOK-DECK-LIST-19 [TODO] 各操作を選んだ Deck に適用する
+### STORYBOOK-DECK-LIST-19 各操作を選んだ Deck に適用する
 
 カテゴリ: `interaction`
 
@@ -419,7 +420,7 @@ Then:
 
 <a id="storybook-deck-list-20"></a>
 
-### STORYBOOK-DECK-LIST-20 [TODO] ローカル Deck にリモート表示を付けない
+### STORYBOOK-DECK-LIST-20 ローカル Deck にリモート表示を付けない
 
 カテゴリ: `render`
 
@@ -439,7 +440,7 @@ Then:
 
 <a id="storybook-deck-list-21"></a>
 
-### STORYBOOK-DECK-LIST-21 [TODO] 処理中の Deck だけを操作不可にする
+### STORYBOOK-DECK-LIST-21 処理中の Deck だけを操作不可にする
 
 カテゴリ: `render`
 
@@ -459,7 +460,7 @@ Then:
 
 <a id="storybook-deck-list-22"></a>
 
-### STORYBOOK-DECK-LIST-22 [TODO] 未開始なら再開し直す操作を表示しない
+### STORYBOOK-DECK-LIST-22 未開始なら再開し直す操作を表示しない
 
 カテゴリ: `render`
 
@@ -479,7 +480,7 @@ Then:
 
 <a id="storybook-deck-list-23"></a>
 
-### STORYBOOK-DECK-LIST-23 [TODO] メニューを矢印キーで移動する
+### STORYBOOK-DECK-LIST-23 メニューを矢印キーで移動する
 
 カテゴリ: `interaction`
 
@@ -499,7 +500,7 @@ Then:
 
 <a id="storybook-deck-list-24"></a>
 
-### STORYBOOK-DECK-LIST-24 [TODO] メニュー内のフォーカス移動で操作を失わない
+### STORYBOOK-DECK-LIST-24 メニュー内のフォーカス移動で操作を失わない
 
 カテゴリ: `interaction`
 
@@ -519,7 +520,7 @@ Then:
 
 <a id="storybook-deck-list-25"></a>
 
-### STORYBOOK-DECK-LIST-25 [TODO] メニューの外へ移ったフォーカスを奪わない
+### STORYBOOK-DECK-LIST-25 メニューの外へ移ったフォーカスを奪わない
 
 カテゴリ: `interaction`
 
@@ -539,7 +540,7 @@ Then:
 
 <a id="storybook-deck-list-26"></a>
 
-### STORYBOOK-DECK-LIST-26 [TODO] 操作が再び有効になってもメニューを開かない
+### STORYBOOK-DECK-LIST-26 操作が再び有効になってもメニューを開かない
 
 カテゴリ: `interaction`
 
@@ -559,7 +560,7 @@ Then:
 
 <a id="storybook-app-layout-01"></a>
 
-### STORYBOOK-APP-LAYOUT-01 [TODO] 固定ヘッダーと本文を重ねずにスクロールする
+### STORYBOOK-APP-LAYOUT-01 固定ヘッダーと本文を重ねずにスクロールする
 
 カテゴリ: `interaction`
 
@@ -579,7 +580,7 @@ Then:
 
 <a id="storybook-app-layout-02"></a>
 
-### STORYBOOK-APP-LAYOUT-02 [TODO] 初期表示でヘッダーと本文を重ねない
+### STORYBOOK-APP-LAYOUT-02 初期表示でヘッダーと本文を重ねない
 
 カテゴリ: `render`
 

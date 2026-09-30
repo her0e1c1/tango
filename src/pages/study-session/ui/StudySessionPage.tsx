@@ -61,6 +61,12 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
   const blocked = pageState.swipePending;
   const swipeActions = {
     disabled: blocked,
+    disabledDirections: {
+      cardSwipeUp: query.swipeActions.cardSwipeUp === "DoNothing",
+      cardSwipeDown: query.swipeActions.cardSwipeDown === "DoNothing",
+      cardSwipeLeft: query.swipeActions.cardSwipeLeft === "DoNothing",
+      cardSwipeRight: query.swipeActions.cardSwipeRight === "DoNothing",
+    },
     captions: {
       cardSwipeUp: t(`studySession.actionLabels.${query.swipeActions.cardSwipeUp}`),
       cardSwipeDown: t(`studySession.actionLabels.${query.swipeActions.cardSwipeDown}`),

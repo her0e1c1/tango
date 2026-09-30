@@ -6,7 +6,7 @@ import { expect, mocked, waitFor } from "storybook/test";
 import type { User } from "firebase/auth";
 import { signInWithGoogle, signOutCurrentUser } from "@/entities/auth";
 import { replaceAuthSession } from "@/entities/auth";
-import { appI18n } from "./i18n/instance";
+import { appI18n } from "@/app/i18n/instance";
 
 import { ToastViewport } from "@/shared/ui/toast";
 import { routes } from "@/shared/router";
@@ -15,7 +15,7 @@ import type { CardId } from "@/entities/card";
 import type { Deck, DeckId } from "@/entities/deck";
 import { createCard, createDeck, createPreferences } from "@/test/factories";
 
-import { appRoutes } from "./routes";
+import { appRoutes } from "@/app/routes";
 
 const PAGE_STORY_DECK_ID: DeckId = "storybook-japanese";
 const PAGE_STORY_SECONDARY_DECK_ID: DeckId = "storybook-math";

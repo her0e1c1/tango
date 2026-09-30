@@ -28,7 +28,7 @@ function readCases(directory: string) {
 for (const [directory, testDirectory, pattern] of [
   ["docs/test/e2e", "test/e2e", /\.spec\.tsx?$/u],
   ["docs/test/integration/firestore", "test/integration/firestore", /\.spec\.tsx?$/u],
-  ["docs/test/integration/storybook", "src", /\.stories\.tsx?$/u],
+  ["docs/test/integration/storybook", "test/integration/storybook", /\.stories\.tsx?$/u],
 ] as const) {
   const source = files(testDirectory, pattern).map(read).join("\n");
   const prefixes = source.matchAll(/["'`]((?:\[?[A-Z]+(?:-[A-Z]+)*-[0-9]{2,}\]?(?:\s+|(?=["'`])))+)/gu);

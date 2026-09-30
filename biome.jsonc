@@ -139,7 +139,7 @@
   },
   "overrides": [
     {
-      "includes": ["src/**/*.stories.tsx"],
+      "includes": ["src/**/*.stories.tsx", "test/integration/storybook/**/*.stories.tsx"],
       "linter": {
         "rules": {
           // TypeScript ESLint resolves storybook/test thenables; keep one owner for Story promise diagnostics.
