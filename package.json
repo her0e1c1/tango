@@ -114,7 +114,7 @@
     "knip": "^6.32.1",
     "markdownlint-cli2": "^0.23.3",
     "postcss": "^8.5.26",
-    "steiger": "^0.6.0",
+    "steiger": "^0.7.0",
     "storybook": "^10.5.10",
     "typescript": "^5.9.3",
     "uuid": "^14.0.1",
