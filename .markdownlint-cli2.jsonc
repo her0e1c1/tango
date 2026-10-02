@@ -2,6 +2,7 @@
   "globs": [
     "**/*.md",
     "!node_modules/**",
+    "!.stryker-tmp/**",
     "!.worktrees/**"
   ],
   "config": {
