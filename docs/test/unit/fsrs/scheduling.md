@@ -17,7 +17,7 @@
 
 <a id="unit-fsrs-scheduling-01"></a>
 
-### UNIT-FSRS-SCHEDULING-01 [TODO] 未評価の Card を選択した評価で学習開始する
+### UNIT-FSRS-SCHEDULING-01 未評価の Card を選択した評価で学習開始する
 
 カテゴリ: `write`
 
@@ -42,7 +42,7 @@ Then:
 
 <a id="unit-fsrs-scheduling-02"></a>
 
-### UNIT-FSRS-SCHEDULING-02 [TODO] 学習段階に応じて状態と忘却回数を更新する
+### UNIT-FSRS-SCHEDULING-02 学習段階に応じて状態と忘却回数を更新する
 
 カテゴリ: `write`
 
@@ -76,7 +76,7 @@ Then:
 
 <a id="unit-fsrs-scheduling-03"></a>
 
-### UNIT-FSRS-SCHEDULING-03 [TODO] 復元した学習状態から同じ計算結果で学習を継続する
+### UNIT-FSRS-SCHEDULING-03 復元した学習状態から同じ計算結果で学習を継続する
 
 カテゴリ: `write`
 
@@ -108,7 +108,7 @@ Then:
 
 <a id="unit-fsrs-scheduling-04"></a>
 
-### UNIT-FSRS-SCHEDULING-04 [TODO] 不正な状態や回答時刻で更新結果を作らない
+### UNIT-FSRS-SCHEDULING-04 不正な状態や回答時刻で更新結果を作らない
 
 カテゴリ: `write`
 

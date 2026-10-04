@@ -70,7 +70,7 @@ Then:
 
 <a id="unit-store-card-03"></a>
 
-### UNIT-STORE-CARD-03 [TODO] 所属デックと所有者が一致するカードだけを提供する
+### UNIT-STORE-CARD-03 所属デックと所有者が一致するカードだけを提供する
 
 カテゴリ: `visibility`
 

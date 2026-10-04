@@ -24,7 +24,7 @@
 
 <a id="unit-store-pref-01"></a>
 
-### UNIT-STORE-PREF-01 [TODO] 保存設定がない初回利用では標準の設定を提供する
+### UNIT-STORE-PREF-01 保存設定がない初回利用では標準の設定を提供する
 
 カテゴリ: `initial`
 
@@ -40,11 +40,11 @@ When:
 
 Then:
 
-言語は system、ダークモードと View Mode はオフ、学習枚数上限は 10、カード間隔は 60、選択タグは空である。Help・編集リンク・スキップは表示する設定で、裏面テキストのスワイプオーバーレイは表示しない設定である。スワイプの上・下・左・右にはそれぞれ Easy・Hard・Again・Good が割り当てられる。
+言語は system、サンプルデックの読み込みは有効、ダークモード・全画面・スワイプ時フィードバックはオフ、裏面文字サイズは 0、カード変更時に裏面を隠す設定はオンである。学習枚数上限は 10、カード間隔は 60、選択タグは空であり、シャッフル・復習期日による選定・裏面表示の保持・自動再生での開始はオフである。View Mode はオフで、その切り替えボタン・Help・編集リンク・スキップ・スワイプボタン・再生コントロール・カード詳細は表示する設定で、裏面テキストのスワイプオーバーレイは表示しない設定である。スワイプの上・下・左・右にはそれぞれ Easy・Hard・Again・Good が割り当てられる。
 
 <a id="unit-store-pref-02"></a>
 
-### UNIT-STORE-PREF-02 [TODO] 一部の設定を変更しても未指定の設定を維持する
+### UNIT-STORE-PREF-02 一部の設定を変更しても未指定の設定を維持する
 
 カテゴリ: `state-change`
 
@@ -52,7 +52,7 @@ Then:
 
 Given:
 
-言語 en、ダークモードオン、学習枚数上限 25、カード間隔 15、選択タグ typescript、Help 非表示に変更済みである。
+言語 en、サンプルデック読み込み無効、ダークモードオン、学習枚数上限 25、カード間隔 15、選択タグ typescript、Help 非表示に変更済みである。同一グループ内の対象外の設定も既定値から変更し、編集リンクは表示する設定である。
 
 When:
 
@@ -65,6 +65,7 @@ When:
 | 学習 | 学習枚数上限を 20 にする |
 | 操作表示 | 編集リンクを非表示にする |
 | 選択タグ | go のみにする、または空にする |
+| サンプルデック | 読み込みを有効にする |
 
 Then:
 
@@ -72,7 +73,7 @@ Then:
 
 <a id="unit-store-pref-03"></a>
 
-### UNIT-STORE-PREF-03 [TODO] 切り替え操作は対象設定だけをオン・オフする
+### UNIT-STORE-PREF-03 切り替え操作は対象設定だけをオン・オフする
 
 カテゴリ: `state-change`
 
@@ -80,7 +81,7 @@ Then:
 
 Given:
 
-対象設定がオンの場合とオフの場合を用意し、言語やカード間隔などの対象外の設定も既定値から変更しておく。対象は View Mode、編集リンク、Help、スキップ、スワイプボタン、再生コントロール、カード詳細である。
+対象設定がオンの場合とオフの場合を用意し、言語やカード間隔などの対象外の設定も既定値から変更しておく。対象は View Mode、View Mode 切り替えボタンの表示、編集リンク、Help、スキップ、スワイプボタン、再生コントロール、カード詳細である。
 
 When:
 
@@ -92,7 +93,7 @@ Then:
 
 <a id="unit-store-pref-04"></a>
 
-### UNIT-STORE-PREF-04 [TODO] 変更した設定を再起動後も利用できる
+### UNIT-STORE-PREF-04 変更した設定を再起動後も利用できる
 
 カテゴリ: `persistence`
 
@@ -112,7 +113,7 @@ Then:
 
 <a id="unit-store-pref-05"></a>
 
-### UNIT-STORE-PREF-05 [TODO] 数値設定の境界を受け付け、不正値だけを既定値へ戻す
+### UNIT-STORE-PREF-05 数値設定の境界を受け付け、不正値だけを既定値へ戻す
 
 カテゴリ: `validation`
 
@@ -138,7 +139,7 @@ Then:
 
 <a id="unit-store-pref-06"></a>
 
-### UNIT-STORE-PREF-06 [TODO] 互換性のある保存設定は不足・不正な項目だけを補完する
+### UNIT-STORE-PREF-06 互換性のある保存設定は不足・不正な項目だけを補完する
 
 カテゴリ: `persistence`
 
@@ -153,6 +154,7 @@ Given:
 | 言語・View Mode・Help・編集リンク・スキップ・裏面オーバーレイの項目がない | 各項目の標準設定 |
 | 学習枚数上限だけが 101 | 学習枚数上限 10 |
 | 言語だけが未対応の値 | 言語 system |
+| 言語だけが空文字 | 言語 system |
 | 外観設定のグループがない | ダークモード・全画面・スワイプ時フィードバックはオフ、裏面文字サイズは 0、カード変更時に裏面を隠す設定はオン |
 
 When:
@@ -180,6 +182,7 @@ Given:
 | GoToNextCardMastered / GoToNextCardNotMastered / GoToPrevCard / GoToNextCard | RateEasy / RateHard / RateAgain / RateGood |
 | GoBack / GoToNextCardNotMastered / GoToPrevCard / GoToNextCard | GoBack / RateHard / RateAgain / GoToNextCard |
 | RateHard / GoToNextCardNotMastered / GoToPrevCard / GoToNextCard | RateHard / RateHard / RateAgain / GoToNextCard |
+| RateGood / RateAgain / RateEasy / RateHard | RateGood / RateAgain / RateEasy / RateHard |
 
 When:
 
@@ -216,7 +219,7 @@ Then:
 
 <a id="unit-store-pref-09"></a>
 
-### UNIT-STORE-PREF-09 [TODO] 確定したタグ選択は入力元の後編集で変わらない
+### UNIT-STORE-PREF-09 確定したタグ選択は入力元の後編集で変わらない
 
 カテゴリ: `state-change`
 

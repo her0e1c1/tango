@@ -38,7 +38,7 @@ Then:
 
 <a id="unit-fsrs-classification-02"></a>
 
-### UNIT-FSRS-CLASSIFICATION-02 [TODO] 期限と基準時刻の境界で復習対象を判定する
+### UNIT-FSRS-CLASSIFICATION-02 期限と基準時刻の境界で復習対象を判定する
 
 カテゴリ: `read`
 
@@ -68,7 +68,7 @@ Then:
 
 <a id="unit-fsrs-classification-03"></a>
 
-### UNIT-FSRS-CLASSIFICATION-03 [TODO] 不正な状態を新規や復習予定に読み替えない
+### UNIT-FSRS-CLASSIFICATION-03 不正な状態を新規や復習予定に読み替えない
 
 カテゴリ: `read`
 
@@ -90,7 +90,7 @@ Then:
 
 <a id="unit-fsrs-classification-04"></a>
 
-### UNIT-FSRS-CLASSIFICATION-04 [TODO] 不正な基準時刻では復習状態を判定しない
+### UNIT-FSRS-CLASSIFICATION-04 不正な基準時刻では復習状態を判定しない
 
 カテゴリ: `read`
 

@@ -38,18 +38,43 @@ function allowOfflineErrors(errors: BrowserErrorCollector) {
   );
 }
 
-test("CARD-TAG-MANAGEMENT-01 directly edits only the current Card and persists on Save", async ({ fixture, page }) => {
+test("CARD-TAG-MANAGEMENT-01 directly edits only the current Card and persists on Save", async ({
+  fixture,
+  page,
+  namespace,
+}) => {
   await fixture.apply(page);
   const card = fixture.card("card-target-first");
   const allCards = fixture.state.remote.cards;
   const before = await Promise.all(allCards.map((item) => requireDocument("card", item.id)));
+  const changed = {
+    frontText: `${namespace.caseId} edited front`,
+    backText: `${namespace.caseId} edited back`,
+  };
   await page.goto(`/card/${card.id}/edit`);
+  const frontText = page.getByRole("textbox", { name: "Front text" });
+  await frontText.fill(changed.frontText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
+  const backText = page.getByRole("textbox", { name: "Back text" });
+  await backText.fill(changed.backText);
   await openTags(page);
   const name = page.getByRole("textbox", { name: "Tag name 1", exact: true });
   await name.fill("rename");
   await name.press("d");
   await expect(name).toBeFocused();
   await expect(name).toHaveValue("renamed");
+  await name.fill(" renamed ");
+  await expect(name).toHaveValue(" renamed ");
+  await name.press("Enter");
+  await expect(name).toBeFocused();
+  await expect(name).toHaveValue(" renamed ");
+  await expect(page).toHaveURL(`/card/${card.id}/edit`);
+  expect(await Promise.all(allCards.map((item) => requireDocument("card", item.id)))).toEqual(before);
+  await page.getByRole("button", { name: "Close tag editor", exact: true }).click();
+  await expect(backText).toHaveValue(changed.backText);
+  await page.getByRole("tab", { name: "Front", exact: true }).click();
+  await expect(frontText).toHaveValue(changed.frontText);
+  await openTags(page);
   await page.getByRole("button", { name: "Remove tag 2", exact: true }).click();
   await expect(page.getByRole("textbox", { name: /^Tag name / })).toHaveCount(1);
   await addTag(page, " renamed ");
@@ -65,6 +90,9 @@ test("CARD-TAG-MANAGEMENT-01 directly edits only the current Card and persists o
   expect(await Promise.all(allCards.map((item) => requireDocument("card", item.id)))).toEqual(before);
   await saveCard(page, card.deckId);
   await expect.poll(() => readTags(card.id)).toEqual(["renamed", "new tag"]);
+  const saved = await requireDocument("card", card.id);
+  expect(saved.fields.frontText?.stringValue).toBe(changed.frontText);
+  expect(saved.fields.backText?.stringValue).toBe(changed.backText);
   const otherCards = allCards.filter((item) => item.id !== card.id);
   expect(await Promise.all(otherCards.map((item) => requireDocument("card", item.id)))).toEqual(
     before.filter((_, index) => allCards[index]?.id !== card.id)
@@ -72,6 +100,9 @@ test("CARD-TAG-MANAGEMENT-01 directly edits only the current Card and persists o
   expect((await requireDocument("deck", card.deckId)).fields.tags).toBeUndefined();
   await page.reload();
   await page.goto(`/card/${card.id}/edit`);
+  await expect(frontText).toHaveValue(changed.frontText);
+  await page.getByRole("tab", { name: "Back", exact: true }).click();
+  await expect(backText).toHaveValue(changed.backText);
   await openTags(page);
   await expect(page.getByRole("textbox", { name: "Tag name 1", exact: true })).toHaveValue("renamed");
   await expect(page.getByRole("textbox", { name: "Tag name 2", exact: true })).toHaveValue("new tag");
