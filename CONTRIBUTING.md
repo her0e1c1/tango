@@ -3,7 +3,8 @@
 ## Development Workflow
 
 - Refer to [README.md](README.md#development) for initial setup and running the dev server.
-- Start your changes from the latest `origin/main`.
+- Always create a dedicated branch (or git worktree) from `origin/main` for your changes.
+- Do not commit directly to `main`.
 - Write comments, commit messages, PR titles, and PR descriptions in English.
 - Follow Conventional Commits format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `test:`).
 
