@@ -1,7 +1,6 @@
 name: Mutation testing
 
 on:
-  workflow_call:
   workflow_dispatch:
     inputs:
       mutate:

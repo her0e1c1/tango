@@ -105,9 +105,8 @@ is `coverage/mutation/mutation.json`. A mutation score below 80% fails the comma
 The failing threshold is configured in `stryker.config.json` under `thresholds.break`.
 Mutation testing runs separately from `mise run check` because it reruns tests for individual code changes.
 Full runs can take substantially longer when mutations affect module initialization; use `--mutate` for routine
-feedback on changed modules. The **Test** GitHub Actions workflow runs the full configured mutation scope when TypeScript,
-Stryker configuration, or mutation-related CI workflows change, and requires it to pass the final **Test** check.
-The **Mutation testing** workflow can also be run manually with an optional `mutate` file pattern.
+feedback on changed modules. The **Mutation testing** GitHub Actions workflow runs only on manual dispatch,
+with an optional `mutate` file pattern. PR checks do not run mutation testing.
 Both reports are uploaded as an artifact even when the mutation score fails the threshold.
 
 ### E2E Test
