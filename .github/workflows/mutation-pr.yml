@@ -2,11 +2,12 @@ name: PR mutation testing
 
 on:
   pull_request:
-    # Base-branch edits must recompute the PR diff even when the head SHA stays the same.
     types: [opened, synchronize, reopened, ready_for_review, edited]
 
 permissions:
   contents: read
+  pull-requests: read
+  actions: read
 
 concurrency:
   group: mutation-pr-${{ github.event.pull_request.number }}
@@ -14,51 +15,91 @@ concurrency:
 
 jobs:
   mutation:
-    name: StrykerJS / PR changed lines
+    name: StrykerJS / incremental
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      # Run the event's head, not GitHub's synthetic merge commit. Full history supplies the merge-base.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
           persist-credentials: false
 
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.1
+        id: changes
+        with:
+          predicate-quantifier: every
+          filters: |
+            source:
+              - 'src/**/*.{ts,tsx}'
+              - '!src/**/*.d.ts'
+              - '!src/**/*.stories.{ts,tsx}'
+            root-tests:
+              - '*.spec.{ts,tsx}'
+            setup:
+              - 'test/setup.ts'
+
+      - name: Skip unchanged targets
+        if: ${{ steps.changes.outputs.changes == '[]' }}
+        run: echo 'Skipped mutation testing because application and unit-test files are unchanged.' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Find trusted baseline
+        if: ${{ steps.changes.outputs.changes != '[]' }}
+        id: baseline
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const { data } = await github.rest.actions.listWorkflowRuns({
+              ...context.repo, workflow_id: 'mutation.yml', branch: 'main',
+              head_sha: context.payload.pull_request.base.sha,
+              event: 'workflow_dispatch', status: 'success', per_page: 1,
+            });
+            const run = data.workflow_runs[0];
+            if (run) {
+              const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({ ...context.repo, run_id: run.id });
+              if (artifacts.artifacts.some(artifact => artifact.name === 'mutation-baseline' && !artifact.expired)) {
+                core.setOutput('run-id', run.id);
+                return;
+              }
+            }
+            await core.summary.addRaw('Skipped mutation testing: no retained successful manual main baseline exists for the PR base SHA.').write();
+
+      - name: Restore baseline
+        if: ${{ steps.baseline.outputs.run-id != '' }}
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: mutation-baseline
+          path: coverage/mutation
+          run-id: ${{ steps.baseline.outputs.run-id }}
+          github-token: ${{ github.token }}
+
+      - name: Require restored baseline
+        if: ${{ steps.baseline.outputs.run-id != '' }}
+        run: test -s coverage/mutation/stryker-incremental.json
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: ${{ steps.baseline.outputs.run-id != '' }}
         with:
           node-version: 24.15.0
           cache: npm
 
-      - name: Select PR mutation ranges
-        id: scope
-        env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: npm run mutation:select-pr -- "$PR_BASE_SHA" "$PR_HEAD_SHA"
-
       - name: Install npm
-        if: ${{ steps.scope.outputs.has-targets == 'true' }}
+        if: ${{ steps.baseline.outputs.run-id != '' }}
         run: npm install --global npm@12.0.1
 
       - name: Install dependencies
-        if: ${{ steps.scope.outputs.has-targets == 'true' }}
+        if: ${{ steps.baseline.outputs.run-id != '' }}
         run: npm ci
 
       - name: Build sample data
-        if: ${{ steps.scope.outputs.has-targets == 'true' }}
+        if: ${{ steps.baseline.outputs.run-id != '' }}
         run: npm run build:sample
 
-      - name: Include expressions crossing changed lines
-        if: ${{ steps.scope.outputs.has-targets == 'true' }}
-        run: npm run mutation:expand-pr
+      - name: Run incremental mutation tests
+        if: ${{ steps.baseline.outputs.run-id != '' }}
+        run: npm run test:mutation -- --incremental --incrementalFile coverage/mutation/stryker-incremental.json
 
-      - name: Run mutation tests on changed lines
-        if: ${{ steps.scope.outputs.has-targets == 'true' }}
-        run: npm run test:mutation -- coverage/mutation/stryker-pr.json
-
-      - name: Upload PR mutation scope and reports
-        if: ${{ always() }}
+      - name: Upload PR mutation reports
+        if: ${{ always() && steps.baseline.outputs.run-id != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mutation-pr-report

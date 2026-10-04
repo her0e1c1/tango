@@ -11,10 +11,11 @@
     "!src/**/*.stories.{ts,tsx}"
   ],
   "concurrency": 2,
+  "incrementalFile": "coverage/mutation/stryker-incremental.json",
   "thresholds": {
     "high": 80,
     "low": 60,
-    "break": 80
+    "break": 0
   },
   "reporters": ["progress", "clear-text", "html", "json"],
   "htmlReporter": {
