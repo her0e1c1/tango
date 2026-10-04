@@ -439,6 +439,40 @@ test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport wit
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Pause", exact: true }).click();
+  const completion = page.getByRole("region", { name: "Study complete", exact: true });
+  await expect(completion).toHaveCount(0);
   await page.getByRole("button", { name: "Swipe right", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Back to deck list", exact: true })).toBeVisible();
+  await expect(completion).toBeVisible();
+  await expect(completion.getByText("You studied 1 card.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("slider", { name: "Study progress" })).toHaveCount(0);
+});
+
+test("PERSISTENCE-10 retains the recovery warning on quarantined Card view and edit links", async ({
+  fixture,
+  page,
+}, testInfo) => {
+  await fixture.seedPage(page);
+  const { deck, first, second } = await createAnonymousDeck(page);
+  await setCachedCardFsrs(page, second.id);
+  await page.goto(`/deck/${deck.id}`);
+  await expect(page.getByRole("button", { name: `View ${first.frontText}` })).toBeVisible();
+  const warning = page.getByText(
+    "Some saved cards could not be loaded (1). Their saved data is unchanged. Other saved data is still available."
+  );
+  for (const suffix of ["", "/edit"]) {
+    await page.goto(`/card/${second.id}${suffix}`);
+    await expect(page.getByRole("heading", { name: "Card not found", exact: true })).toBeVisible();
+    await expect(warning).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Card not found", exact: true })).toBeVisible();
+    await expect(warning).toBeVisible();
+    await testInfo.attach(suffix === "" ? "quarantined-card-view" : "quarantined-card-edit", {
+      body: await page.screenshot(),
+      contentType: "image/png",
+    });
+    await page.getByRole("button", { name: "Go home", exact: true }).click();
+    await expect(page).toHaveURL("/");
+    await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
+    await expect(warning).toBeVisible();
+  }
 });

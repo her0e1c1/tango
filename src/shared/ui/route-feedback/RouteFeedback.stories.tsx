@@ -42,6 +42,19 @@ export const NotFound: Story = {
   },
 };
 
+export const CustomLayout: Story = {
+  ...NotFound,
+  args: {
+    ...NotFound.args,
+    layout: ({ children }) => (
+      <div className="flex min-h-dvh flex-col gap-4 bg-surface p-4">
+        <p role="status">Some saved data could not be loaded. Its saved data is unchanged.</p>
+        {children}
+      </div>
+    ),
+  },
+};
+
 export const Dark: Story = {
   args: { title: "Starting Tango…", tone: "loading" },
   globals: { theme: "dark" },
