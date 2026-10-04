@@ -38,6 +38,9 @@ jobs:
             typescript:
               - '**/*.ts'
               - '**/*.tsx'
+              - 'stryker.config.json'
+              - '.github/workflows/mutation.yml'
+              - '.github/workflows/test.yml'
 
   dependency-review:
     name: Dependency Review
@@ -70,6 +73,12 @@ jobs:
     if: ${{ needs.changes.outputs.run-tests == 'true' }}
     name: Storybook
     uses: ./.github/workflows/storybook.yaml
+
+  mutation:
+    needs: changes
+    if: ${{ needs.changes.outputs.run-tests == 'true' }}
+    name: Mutation
+    uses: ./.github/workflows/mutation.yml
 
   linter:
     name: Linter
@@ -150,7 +159,7 @@ jobs:
   test:
     name: Test
     if: ${{ always() }}
-    needs: [changes, checks, linter, dependency-review, e2e, integration, storybook]
+    needs: [changes, checks, linter, dependency-review, e2e, integration, storybook, mutation]
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
@@ -164,6 +173,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           INTEGRATION_RESULT: ${{ needs.integration.result }}
           STORYBOOK_RESULT: ${{ needs.storybook.result }}
+          MUTATION_RESULT: ${{ needs.mutation.result }}
         run: |
           test "$CHANGES_RESULT" = success
           test "$LINTER_RESULT" = success
@@ -176,6 +186,7 @@ jobs:
           test "$E2E_RESULT" = "$expected"
           test "$INTEGRATION_RESULT" = "$expected"
           test "$STORYBOOK_RESULT" = "$expected"
+          test "$MUTATION_RESULT" = "$expected"
           if [ "$EVENT_NAME" = pull_request ]; then
             test "$DEPENDENCY_REVIEW_RESULT" = success
           else
