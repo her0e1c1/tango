@@ -9,6 +9,7 @@ const startup = vi.hoisted(() => ({
   clear: vi.fn(),
   retry: vi.fn(),
   start: vi.fn(),
+  firebaseReady: undefined as Promise<void> | undefined,
   roots: [] as Root[],
 }));
 vi.mock("./error-boundary/clear-local-data", () => ({
@@ -32,8 +33,10 @@ vi.mock("react-dom/client", async (importOriginal) => {
 
 beforeEach(() => {
   vi.resetModules();
-  vi.doMock("@/shared/firebase", () => {
+  startup.firebaseReady = undefined;
+  vi.doMock("@/shared/firebase", async () => {
     startup.start();
+    await startup.firebaseReady;
     return {};
   });
   vi.clearAllMocks();
@@ -92,8 +95,7 @@ describe("NAVIGATION-22 Application startup recovery", () => {
     const pendingImport = new Promise<never>((_resolve, reject) => {
       fail = reject;
     });
-    vi.resetModules();
-    vi.doMock("@/shared/firebase", () => pendingImport);
+    startup.firebaseReady = pendingImport;
     await actAsync(async () => {
       await import("./main");
     });

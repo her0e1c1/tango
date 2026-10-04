@@ -18,6 +18,7 @@
     "test": "npm run test:unit",
     "test:coverage": "vitest run --project=unit --coverage",
     "test:unit": "vitest run --project=unit",
+    "test:mutation": "stryker run",
     "test:integration": "vitest run --project=integration --no-file-parallelism",
     "test:sample": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint py.test base",
     "test:storybook": "vitest run --project=storybook",
@@ -85,9 +86,11 @@
     "@storybook/addon-a11y": "^10.6.1",
     "@storybook/addon-docs": "^10.6.0",
     "@storybook/addon-themes": "^10.6.0",
-    "@storybook/addon-vitest": "^10.6.0",
+    "@storybook/addon-vitest": "^10.6.1",
     "@storybook/react": "^10.6.0",
     "@storybook/react-vite": "^10.6.1",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "*",
@@ -123,6 +126,8 @@
     "yaml": "^2.9.1"
   },
   "overrides": {
+    "@grpc/grpc-js": "^1.14.5",
+    "basic-ftp": "^6.2.1",
     "markdownlint-cli2": {
       "smol-toml": "^1.7.1"
     }

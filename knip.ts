@@ -3,6 +3,9 @@ import type { KnipConfig } from "knip";
 const config: KnipConfig = {
   // These files are loaded externally; plugins discover the application, test, and other tooling entry points.
   entry: ["steiger.config.ts"],
+  vitest: {
+    config: ["vitest.config.ts", "vitest.mutation.config.ts"],
+  },
   project: [
     "src/**/*.{ts,tsx,css,scss,sass,mdx}!",
     "test/**/*.{ts,tsx}",

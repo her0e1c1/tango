@@ -82,6 +82,31 @@ The terminal summary, HTML report, LCOV data, and JSON summary are written to `c
 `coverage/index.html` for details after a failure. These percentages cover Vitest only: sample Python tests use
 pytest, and browser behavior is tested separately with Playwright.
 
+### Mutation Testing
+
+[StrykerJS](https://stryker-mutator.io/docs/stryker-js/) changes application code and checks whether the existing
+Vitest unit tests detect each change:
+
+```bash
+mise run test-mutation
+# Limit a run to a changed module.
+mise run test-mutation -- --mutate src/entities/study-session/model/rules.ts
+# Check instrumentation and the initial test run without testing individual mutants.
+mise run test-mutation -- --dryRunOnly
+```
+
+Mutation testing covers `src/**/*.{ts,tsx}`; specs, stories, and declaration files are excluded.
+It uses the unit suite with two test runners and does not run Storybook, Playwright, Firestore integration,
+or sample Python tests. The task builds the sample data needed by unit tests before starting Stryker.
+After that build, `npm run test:mutation -- --mutate <path>` also supports focused runs.
+
+Open `coverage/mutation/index.html` to inspect surviving mutants and uncovered code. The machine-readable report
+is `coverage/mutation/mutation.json`. Scores are reported without a failing score threshold during this initial rollout.
+Mutation testing runs separately from `mise run check` because it reruns tests for individual code changes.
+Full runs can take substantially longer when mutations affect module initialization; use `--mutate` for routine
+feedback on changed modules. The **Mutation testing** GitHub Actions workflow can also be run manually with an optional
+`mutate` file pattern and uploads both reports as an artifact.
+
 ### E2E Test
 
 Playwright runs the browser-level acceptance suite documented in `docs/test/e2e/`. `mise run e2e` starts isolated

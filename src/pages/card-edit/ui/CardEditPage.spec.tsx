@@ -172,7 +172,9 @@ describe("CARD-MANAGEMENT-01 CARD-MANAGEMENT-04 CARD-VIEW-05 CARD-MANAGEMENT-09 
 
     await userEvent.clear(screen.getByRole("textbox", { name: "Front text" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Front text" }), "Saved front");
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    await actAsync(async () => {
+      await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    });
 
     expect(await screen.findByRole("heading", { level: 1, name: "Card list" })).toBeVisible();
     expect(view.router.state.location.pathname).toBe(`/deck/${deckId}`);
