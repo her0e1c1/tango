@@ -446,6 +446,8 @@ test.describe("card", () => {
     expect(tagsBounds.y + tagsBounds.height).toBe(viewport.height);
     await expect(tagsDialog.getByRole("checkbox", { name: "python" })).toHaveCount(0);
     await toggleTag(page, "chapter-1");
+    await tagsDialog.getByRole("button", { name: "Add tag" }).click();
+    await tagsDialog.getByRole("textbox", { name: "Tag name 2", exact: true }).fill(" new tag ");
     await tagsDialog.getByRole("button", { name: "Close tag editor" }).click();
     await page.getByRole("button", { name: "Create card" }).dblclick();
     await expect(page).toHaveURL(new RegExp(`/deck/${deck.id}$`));
@@ -471,7 +473,10 @@ test.describe("card", () => {
     expect(created).toHaveLength(1);
     const [createdCard] = created;
     if (createdCard === undefined) throw new Error("Created remote Card was not found");
-    expect(createdCard.fields.tags?.arrayValue?.values).toEqual([{ stringValue: "chapter-1" }]);
+    expect(createdCard.fields.tags?.arrayValue?.values).toEqual([
+      { stringValue: "chapter-1" },
+      { stringValue: "new tag" },
+    ]);
     expect(createdCard.fields.deckId?.stringValue).toBe(deck.id);
     expect(createdCard.fields.uid?.stringValue).toBe(deck.uid);
     expect(createdCard.fields.uniqueKey?.stringValue).toBe(documentId(createdCard));
