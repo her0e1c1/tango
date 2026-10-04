@@ -3,8 +3,7 @@
 ## Development Workflow
 
 - Refer to [README.md](README.md#development) for initial setup and running the dev server.
-- Develop in a task-specific worktree and branch. Reuse a suitable worktree and branch for the same task; create a new worktree from freshly fetched `origin/main` only when needed, following [AGENTS.md](AGENTS.md).
-- Do not develop in shared checkouts or on `main` or `develop`; preserve unrelated work and other tasks' worktrees and branches.
+- Start your changes from the latest `origin/main`.
 - Write comments, commit messages, PR titles, and PR descriptions in English.
 - Follow Conventional Commits format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `test:`).
 
