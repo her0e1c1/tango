@@ -249,10 +249,12 @@ export const InvalidTags: Story = {
       for (const [value, message] of [
         [" ", "Tag name is required."],
         ["custom", "Tag names must be unique."],
+        [" custom ", "Tag names must be unique."],
       ] as const) {
         const input = canvas.getByRole("textbox", { name: "Tag name 3" });
         await userEvent.clear(input);
         await userEvent.type(input, value);
+        await userEvent.tab();
         await expect(input).toHaveAccessibleDescription(message);
         await userEvent.keyboard("{Escape}");
         await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
@@ -261,10 +263,15 @@ export const InvalidTags: Story = {
       }
       const input = canvas.getByRole("textbox", { name: "Tag name 3" });
       await userEvent.clear(input);
-      await userEvent.type(input, "new");
+      await userEvent.type(input, " new tag ");
       await userEvent.keyboard("{Escape}");
       await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
       await expect(await canvas.findByRole("heading", { name: "Cards" })).toBeVisible();
+      await expect(
+        within(canvas.getByRole("button", { name: "View Front" }).closest("article")!).getByText("new tag", {
+          exact: true,
+        })
+      ).toBeVisible();
     });
   },
 };

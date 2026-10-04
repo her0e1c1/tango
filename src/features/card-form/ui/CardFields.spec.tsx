@@ -120,6 +120,106 @@ describe("CARD-MANAGEMENT-01 CardFields editing", () => {
   });
 });
 
+describe("CARD-TAG-MANAGEMENT-01 CARD-TAG-MANAGEMENT-03 CardFields tag input", () => {
+  it("removes a padded draft tag by clicking its candidate before leaving the input", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    const saved = " custom ";
+    render(<FormHarness onSubmit={onSubmit} values={{ ...initialValues, tags: [saved] }} />);
+    await user.click(screen.getByRole("button", { name: "Edit tags" }));
+    await user.click(screen.getByRole("button", { name: "Add tag" }));
+    await user.type(screen.getByRole("textbox", { name: "Tag name 2" }), " new tag ");
+    await user.click(within(screen.getByRole("dialog")).getByText("new tag", { exact: true }));
+    expect(screen.queryByRole("textbox", { name: "Tag name 2" })).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Tag name 1" })).toHaveValue(saved);
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).toHaveBeenCalledWith({ ...initialValues, tags: [saved] });
+  });
+
+  it("trims the edited name without losing a click on another candidate", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<FormHarness onSubmit={onSubmit} values={{ ...initialValues, tags: [] }} />);
+    await user.click(screen.getByRole("button", { name: "Edit tags" }));
+    await user.click(screen.getByRole("button", { name: "Add tag" }));
+    await user.type(screen.getByRole("textbox", { name: "Tag name 1" }), " new tag ");
+    await user.click(within(screen.getByRole("dialog")).getByText("math", { exact: true }));
+    expect(screen.getByRole("textbox", { name: "Tag name 1" })).toHaveValue("new tag");
+    expect(screen.getByRole("checkbox", { name: "math" })).toBeChecked();
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).toHaveBeenCalledWith({ ...initialValues, tags: ["new tag", "math"] });
+  });
+
+  it("keeps the existing tag when the padded duplicate draft candidate is deselected", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<FormHarness onSubmit={onSubmit} values={{ ...initialValues, tags: ["custom"] }} />);
+    await user.click(screen.getByRole("button", { name: "Edit tags" }));
+    await user.click(screen.getByRole("button", { name: "Add tag" }));
+    await user.type(screen.getByRole("textbox", { name: "Tag name 2" }), " custom ");
+    await user.click(within(screen.getByRole("dialog")).getByText(" custom ", { normalizer: (text) => text }));
+    expect(screen.queryByRole("textbox", { name: "Tag name 2" })).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Tag name 1" })).toHaveValue("custom");
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).toHaveBeenCalledWith({ ...initialValues, tags: ["custom"] });
+  });
+
+  it.each(["Close tag editor", "Escape"])("trims edited input on %s while preserving literal tags", async (close) => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    const saved = " custom ";
+    render(<FormHarness onSubmit={onSubmit} values={{ ...initialValues, tags: [saved] }} />);
+    await user.click(screen.getByRole("button", { name: "Edit tags" }));
+    await user.click(screen.getByRole("textbox", { name: "Tag name 1" }));
+    await user.tab();
+    expect(screen.getByRole("textbox", { name: "Tag name 1" })).toHaveValue(saved);
+    await user.click(screen.getByRole("checkbox", { name: "custom" }));
+    await user.click(screen.getByRole("checkbox", { name: "custom" }));
+    await user.click(screen.getByRole("button", { name: "Add tag" }));
+    const input = screen.getByRole("textbox", { name: "Tag name 2" });
+    await user.type(input, "  Mixed Case, e\u0301 日本語  ");
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue("  Mixed Case, e\u0301 日本語  ");
+    await user.keyboard("{Enter}");
+    expect(onSubmit).not.toHaveBeenCalled();
+    if (close === "Escape") await user.keyboard("{Escape}");
+    else await user.click(screen.getByRole("button", { name: close }));
+    expect(screen.getByRole("button", { name: "Edit tags" })).toHaveAccessibleDescription(
+      "custom , Mixed Case, e\u0301 日本語"
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).toHaveBeenCalledWith({ ...initialValues, tags: [saved, "Mixed Case, e\u0301 日本語"] });
+  });
+
+  it.each([
+    [" \t ", "Tag name is required."],
+    [" custom ", "Tag names must be unique."],
+  ])("rejects %j after trimming and accepts a correction", async (value, message) => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<FormHarness onSubmit={onSubmit} />);
+    await user.click(screen.getByRole("button", { name: "Edit tags" }));
+    await user.click(screen.getByRole("button", { name: "Add tag" }));
+    const input = screen.getByRole("textbox", { name: "Tag name 3" });
+    await user.type(input, value);
+    await user.tab();
+    expect(input).toHaveAccessibleDescription(message);
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Edit tags" }));
+    const corrected = screen.getByRole("textbox", { name: "Tag name 3" });
+    await user.clear(corrected);
+    await user.type(corrected, " new tag ");
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).toHaveBeenCalledWith({ ...initialValues, tags: ["language", "custom", "new tag"] });
+  });
+});
+
 describe("CARD-MANAGEMENT-10 CardFields validation", () => {
   it("reveals and focuses an invalid Back while preserving the valid Front", async () => {
     const user = userEvent.setup();

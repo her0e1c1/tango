@@ -16,7 +16,8 @@ export function useCardTagForm(form: UseFormReturn<CardContentInput>) {
     tagRowIds,
     tagOptions: getCardTagOptions([], tagValues),
     onAddTag: () => addCardTag("", form.getValues, form.setValue, setTagRowIds),
-    onRenameTag: (index: number, name: string) => renameCardTag(index, name, form.getValues, form.setValue),
+    onRenameTag: (index: number, name: string, trim = false) =>
+      renameCardTag({ index, name, trim }, form.getValues, form.setValue),
     onRemoveTag: (index: number) => removeCardTag(index, form.getValues, form.setValue, setTagRowIds),
     onSelectTag: (tag: string, selected: boolean) =>
       selectCardTag({ name: tag, selected }, form.getValues, form.setValue, setTagRowIds),

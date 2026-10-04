@@ -11,7 +11,7 @@ export interface CardCreatorProps {
   tagRowIds: readonly string[];
   tagOptions: readonly string[];
   onAddTag: () => void;
-  onRenameTag: (index: number, name: string) => void;
+  onRenameTag: (index: number, name: string, trim?: boolean) => void;
   onRemoveTag: (index: number) => void;
   onSelectTag: (tag: string, selected: boolean) => void;
   preview: React.ReactNode;

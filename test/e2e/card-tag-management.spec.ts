@@ -52,11 +52,19 @@ test("CARD-TAG-MANAGEMENT-01 directly edits only the current Card and persists o
   await expect(name).toHaveValue("renamed");
   await page.getByRole("button", { name: "Remove tag 2", exact: true }).click();
   await expect(page.getByRole("textbox", { name: /^Tag name / })).toHaveCount(1);
-  await addTag(page, "new");
+  await addTag(page, " renamed ");
+  await page.locator('label:has(input[type="checkbox"][value=" renamed "])').click();
+  await expect(page.getByRole("textbox", { name: /^Tag name / })).toHaveCount(1);
+  await expect(name).toHaveValue("renamed");
+  await addTag(page, " new tag ");
+  await expect(page.getByRole("textbox", { name: "Tag name 2", exact: true })).toBeFocused();
+  await page.getByRole("dialog").getByText("new tag", { exact: true }).click();
+  await expect(page.getByRole("textbox", { name: /^Tag name / })).toHaveCount(1);
+  await addTag(page, " new tag ");
   await expect(page.getByRole("alertdialog")).toHaveCount(0);
   expect(await Promise.all(allCards.map((item) => requireDocument("card", item.id)))).toEqual(before);
   await saveCard(page, card.deckId);
-  await expect.poll(() => readTags(card.id)).toEqual(["renamed", "new"]);
+  await expect.poll(() => readTags(card.id)).toEqual(["renamed", "new tag"]);
   const otherCards = allCards.filter((item) => item.id !== card.id);
   expect(await Promise.all(otherCards.map((item) => requireDocument("card", item.id)))).toEqual(
     before.filter((_, index) => allCards[index]?.id !== card.id)
@@ -66,7 +74,7 @@ test("CARD-TAG-MANAGEMENT-01 directly edits only the current Card and persists o
   await page.goto(`/card/${card.id}/edit`);
   await openTags(page);
   await expect(page.getByRole("textbox", { name: "Tag name 1", exact: true })).toHaveValue("renamed");
-  await expect(page.getByRole("textbox", { name: "Tag name 2", exact: true })).toHaveValue("new");
+  await expect(page.getByRole("textbox", { name: "Tag name 2", exact: true })).toHaveValue("new tag");
 });
 
 test("CARD-TAG-MANAGEMENT-02 discards tag drafts with the Card", async ({ fixture, page }) => {
@@ -88,7 +96,7 @@ test("CARD-TAG-MANAGEMENT-02 discards tag drafts with the Card", async ({ fixtur
   await expect(page.getByRole("textbox", { name: "Tag name 1", exact: true })).toHaveValue("shared");
 });
 
-for (const invalid of [" ", "kept"]) {
+for (const invalid of [" ", "kept", " kept "]) {
   test(`CARD-TAG-MANAGEMENT-03 validates tag name ${JSON.stringify(invalid)} without confirmation`, async ({
     fixture,
     page,
@@ -99,6 +107,7 @@ for (const invalid of [" ", "kept"]) {
     await openTags(page);
     const input = page.getByRole("textbox", { name: "Tag name 1", exact: true });
     await input.fill(invalid);
+    await input.press("Tab");
     await expect(page.getByRole("alert")).toContainText(
       invalid === " " ? "Tag name is required." : "Tag names must be unique."
     );

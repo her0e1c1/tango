@@ -19,7 +19,7 @@ export interface CardFieldsProps {
   tagRowIds: readonly string[];
   tagOptions: readonly string[];
   onAddTag: () => void;
-  onRenameTag: (index: number, name: string) => void;
+  onRenameTag: (index: number, name: string, trim?: boolean) => void;
   onRemoveTag: (index: number) => void;
   onSelectTag: (tag: string, selected: boolean) => void;
   preview: React.ReactNode;
@@ -187,6 +187,8 @@ export const CardFields = ({
   const id = React.useId();
   const frontTabRef = React.useRef<HTMLButtonElement>(null);
   const backTabRef = React.useRef<HTMLButtonElement>(null);
+  const focusedTagValue = React.useRef("");
+  const pendingTagEdit = React.useRef<{ index: number; name: string } | null>(null);
 
   const invalidSide = (["frontText", "backText"] as const).find((side) => formState.errors[side]) ?? null;
 
@@ -218,6 +220,20 @@ export const CardFields = ({
   const expandedErrorId = `${id}-expanded-error`;
   const tags = tagsField.value;
   const tagsSummaryId = `${id}-tags-summary`;
+
+  const finishTagEdit = () => {
+    const edit = pendingTagEdit.current;
+    pendingTagEdit.current = null;
+    if (edit !== null) onRenameTag(edit.index, edit.name, true);
+  };
+
+  const handleTagBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    // Renaming a candidate during focus transfer would remove the target before its click completes.
+    if (!(event.relatedTarget instanceof HTMLInputElement && event.relatedTarget.type === "checkbox")) {
+      finishTagEdit();
+    }
+    tagsField.onBlur();
+  };
 
   const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     let nextSide: CardSide;
@@ -350,7 +366,12 @@ export const CardFields = ({
         <CardFieldsDialog
           title={t("cardForm.tags.select")}
           closeLabel={t("cardForm.tags.close")}
-          onClose={() => setOpenTagOptions(null)}
+          onClose={() => {
+            // Escape must finish the focused edit before unmounting its input.
+            if (document.activeElement instanceof HTMLInputElement) document.activeElement.blur();
+            finishTagEdit();
+            setOpenTagOptions(null);
+          }}
         >
           <div className="mb-4 space-y-3">
             {tags.map((tag, index) => {
@@ -365,7 +386,16 @@ export const CardFields = ({
                         id={rowId}
                         value={tag}
                         onChange={(event) => onRenameTag(index, event.target.value)}
-                        onBlur={tagsField.onBlur}
+                        onFocus={(event) => {
+                          focusedTagValue.current = event.target.value;
+                        }}
+                        onBlur={(event) => {
+                          // Preserve untouched saved values and allow internal spaces while typing or composing.
+                          if (event.target.value !== focusedTagValue.current) {
+                            pendingTagEdit.current = { index, name: event.target.value };
+                          }
+                          handleTagBlur(event);
+                        }}
                         onKeyDown={(event) => {
                           // Enter edits the draft; only the Card's submit button saves it.
                           if (event.key === "Enter") event.preventDefault();
@@ -407,7 +437,18 @@ export const CardFields = ({
               {t("cardForm.tags.add")}
             </button>
           </div>
-          <fieldset className="flex flex-wrap gap-2" aria-label={t("cardForm.tags.title")}>
+          <fieldset
+            className="flex flex-wrap gap-2"
+            aria-label={t("cardForm.tags.title")}
+            onPointerDownCapture={(event) => {
+              if (event.button !== 0 || !(event.target instanceof HTMLElement)) return;
+              const input = event.target.closest("label")?.querySelector<HTMLInputElement>('input[type="checkbox"]');
+              if (!input) return;
+              // A label's mouse-down otherwise blurs to the body before forwarding its checkbox click.
+              event.preventDefault();
+              input.focus();
+            }}
+          >
             {[...new Set([...openTagOptions, ...availableTags, ...tagOptions])].map((tag) => (
               <Tag
                 key={tag}
@@ -415,8 +456,19 @@ export const CardFields = ({
                 value={tag}
                 wrap
                 checked={tags.includes(tag)}
-                onChange={(event) => onSelectTag(tag, event.target.checked)}
-                onBlur={tagsField.onBlur}
+                onChange={(event) => {
+                  const selected = event.target.checked;
+                  const edit = pendingTagEdit.current;
+                  if (!selected && edit?.name === tag) {
+                    // Cancel only the edited row before trim can merge its name with a saved tag.
+                    pendingTagEdit.current = null;
+                    onRemoveTag(edit.index);
+                  } else {
+                    finishTagEdit();
+                    onSelectTag(edit?.name === tag ? tag.trim() : tag, selected);
+                  }
+                }}
+                onBlur={handleTagBlur}
               />
             ))}
           </fieldset>
