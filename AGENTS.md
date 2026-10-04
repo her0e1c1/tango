@@ -2,8 +2,11 @@
 
 - Be simple.
 - Do not suppress Knip findings with `@public`, `@ignore`, `ignore*` settings, or exclusion patterns. Remove unused code or dependencies, and configure actual application and tooling entry points instead.
-- Before editing, fetch `origin/main` and create a `git worktree` at `.worktrees/$BRANCH` from it. Never work directly on `main`.
-- Before creating or updating a pull request, fetch the latest base branch and rebase the working branch onto it. Verify that the PR diff contains only task-related changes, removing unrelated commits or changes before pushing.
+- Develop in a task-specific worktree and branch. Inspect the current checkout and registered worktrees first; reuse a suitable worktree for the same task, including one provided by the environment. Continue an existing PR on its branch; if implementation needs a branch, create it in that worktree without resetting existing work.
+- Create a new worktree from freshly fetched `origin/main` only when no suitable task worktree exists. Use the environment's worktree mechanism or the repository's top-level `.worktrees/$BRANCH`; never create nested worktrees.
+- Do not develop in shared checkouts or on `main` or `develop`. Preserve uncommitted changes, and do not reset, clean, stash, or repurpose unrelated work or use a worktree or branch active in another task.
+- Reading files and diffs requires no new worktree or branch. Use a suitable task worktree when investigation requires checkout changes, tests, or reproduction.
+- Before creating or updating a pull request, fetch the latest base branch and rebase the working branch onto it with a clean working tree. Verify that the PR diff contains only task-related changes, and rerun required validation after rebasing. If rebasing requires a force push, use `--force-with-lease` only on the task branch; never rewrite shared branches.
 - Do not commit files ignored by `.gitignore`.
 - Do not add files under `docs` unless the user explicitly requests them.
 - Follow `CONTRIBUTING.md` when creating GitHub issues.
@@ -11,7 +14,7 @@
 - Write comments, commit messages, pull request titles, and pull request descriptions in English.
 - If `gh` fails in the sandbox, rerun it outside the sandbox.
 - Before finishing non-documentation changes, run `mise run check`.
-- Always commit and push worktree changes, then create a pull request.
+- For repository changes, commit and push, then create or update a pull request. Report-only investigations require no commit or pull request.
 
 ## Mandatory Review Gate
 
