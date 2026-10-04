@@ -18,5 +18,5 @@
   "jsonReporter": {
     "fileName": "coverage/mutation/mutation.json"
   },
-  "ignorePatterns": ["/.worktrees", "/coverage", "/build", "/storybook-static", "/test-results", "/playwright-report"]
+  "ignorePatterns": ["/.worktrees", "/.pnpm-store", "/coverage", "/build", "/storybook-static", "/test-results", "/playwright-report"]
 }
