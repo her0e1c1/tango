@@ -1,0 +1,66 @@
+name: PR mutation testing
+
+on:
+  pull_request:
+    # Base-branch edits must recompute the PR diff even when the head SHA stays the same.
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  mutation:
+    name: StrykerJS / PR changed lines
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      # Run the event's head, not GitHub's synthetic merge commit. Full history supplies the merge-base.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.15.0
+          cache: npm
+
+      - name: Select PR mutation ranges
+        id: scope
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npm run mutation:select-pr -- "$PR_BASE_SHA" "$PR_HEAD_SHA"
+
+      - name: Install npm
+        if: ${{ steps.scope.outputs.has-targets == 'true' }}
+        run: npm install --global npm@12.0.1
+
+      - name: Install dependencies
+        if: ${{ steps.scope.outputs.has-targets == 'true' }}
+        run: npm ci
+
+      - name: Build sample data
+        if: ${{ steps.scope.outputs.has-targets == 'true' }}
+        run: npm run build:sample
+
+      - name: Include expressions crossing changed lines
+        if: ${{ steps.scope.outputs.has-targets == 'true' }}
+        run: npm run mutation:expand-pr
+
+      - name: Run mutation tests on changed lines
+        if: ${{ steps.scope.outputs.has-targets == 'true' }}
+        run: npm run test:mutation -- coverage/mutation/stryker-pr.json
+
+      - name: Upload PR mutation scope and reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mutation-pr-report
+          path: coverage/mutation/
+          if-no-files-found: warn

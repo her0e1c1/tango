@@ -106,9 +106,43 @@ The failing threshold is configured in `stryker.config.json` under `thresholds.b
 Mutation testing runs separately from `mise run check` because it reruns tests for individual code changes.
 Full runs can take substantially longer when mutations affect module initialization; use `--mutate` for routine
 feedback on changed modules. The **Mutation testing** GitHub Actions workflow runs independently on pushes to `main`,
-and supports manual dispatch with an optional `mutate` file pattern. PR checks do not run mutation testing,
-and deployment does not wait for its result.
+and supports manual dispatch with an optional `mutate` file pattern. Deployment does not wait for its result.
 Both reports are uploaded as an artifact even when the mutation score fails the threshold.
+
+The separate **PR mutation testing** workflow checks the exact PR head on opening, reopening, editing (including
+base-branch changes), becoming ready for review, and every new commit.
+It compares the event's base/head SHAs using their merge-base, then passes zero-context added/modified line ranges
+within the configured application scope to StrykerJS 10. It keeps the 80% threshold and disables incremental reuse.
+The initial dry run still executes the unit suite; mutation scope does not restrict the suite to changed tests.
+Stryker requires a mutant's entire AST node to fit within a selected range. After dependency installation, Babel
+adds precise line/column ranges for the innermost multiline expressions crossing the original changed code lines.
+Expansion stops at functions, blocks, objects, arrays, JSX containers, imports, and type syntax. Expressions
+containing those containers are not expanded, and expanded ranges do not cause further expansion.
+A partly changed comparison spanning two lines
+is therefore included without selecting the rest of its function. Comment-only lines do not trigger expansion.
+Container mutations spanning unchanged lines remain outside this focused check.
+Deleted lines/files and pure renames have no new lines to mutate;
+edited renames use the new path and changed lines. Added files use all their lines. Test-, story-, declaration-,
+configuration-, or documentation-only PRs skip mutation testing successfully. Changed comments/imports/types can
+also produce zero mutants. Original changed lines and final ranges are reported in `coverage/mutation/pr-scope.json`
+and uploaded with the reports. Parsing or checkout mismatches fail expansion without broader fallback.
+An unavailable base/head or merge-base fails selection, without falling back to broader mutation testing.
+Checkout retrieves full history; rerun after fixing unavailable history. Unsupported glob/range characters in
+target paths and non-regular target files fail selection to prevent accidental scope expansion.
+Superseded runs for the same PR are canceled. The workflow uses `pull_request`, read-only contents permission,
+no secrets, and no persisted checkout credentials, including for fork PRs.
+
+To inspect the same selection locally, check out the desired head and pass full commit SHAs:
+
+```bash
+npm run mutation:select-pr -- <base-sha> <head-sha>
+# Only run this when pr-scope.json lists ranges, after building sample data.
+npm run mutation:expand-pr
+npm run test:mutation -- coverage/mutation/stryker-pr.json
+```
+
+This score describes selected changed-line and expression mutants, not overall application quality. Existing main/manual full
+runs remain unchanged; no new full-run schedule is configured.
 
 ### E2E Test
 
