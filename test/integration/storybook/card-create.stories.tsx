@@ -1,5 +1,5 @@
 import type { StoryObj } from "@storybook/react-vite";
-import { expect, mocked, waitFor } from "storybook/test";
+import { expect, mocked, waitFor, within } from "storybook/test";
 import { createCard } from "@/entities/card";
 import { routeMeta, state, deck } from "./support";
 
@@ -21,11 +21,16 @@ export const Create: Story = {
     const { canvas, userEvent, step } = context;
     await step("STORYBOOK-CARD-FORM-05 Create a card and read it from the target deck", async () => {
       await fill(context);
+      await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Add tag" }));
+      await userEvent.type(canvas.getByRole("textbox", { name: "Tag name 1" }), " new tag ");
+      await userEvent.keyboard("{Escape}");
       await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
       await expect(await canvas.findByRole("status", { name: "Toast notifications" })).toHaveTextContent(
         "Created card “Hello”."
       );
       await expect(await canvas.findByRole("heading", { name: "Cards" })).toBeVisible();
+      await expect(within(canvas.getByRole("article")).getByText("new tag", { exact: true })).toBeVisible();
       await userEvent.click(canvas.getByRole("button", { name: "View Hello" }));
       await expect(await canvas.findByRole("button", { name: "Close card" })).toHaveTextContent("Hola");
     });

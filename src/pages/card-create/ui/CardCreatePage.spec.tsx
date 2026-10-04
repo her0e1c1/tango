@@ -116,13 +116,15 @@ describe("CARD-MANAGEMENT-05 CARD-MANAGEMENT-06 CARD-MANAGEMENT-07 CARD-MANAGEME
     expect(screen.queryByRole("checkbox", { name: "math" })).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox", { name: "other-only" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("checkbox", { name: "chapter-1" }));
-    await userEvent.click(screen.getByRole("button", { name: "Close tag editor" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add tag" }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Tag name 2" }), " new tag ");
+    await userEvent.keyboard("{Escape}");
     await userEvent.click(screen.getByRole("button", { name: "Create card" }));
 
     expect(await screen.findByRole("heading", { name: "Card list destination" })).toBeVisible();
     expect(getCards().find((card) => card.frontText === "Tagged front")).toMatchObject({
       deckId: deck.id,
-      tags: ["chapter-1"],
+      tags: ["chapter-1", "new tag"],
     });
   });
 

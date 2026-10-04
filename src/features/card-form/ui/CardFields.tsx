@@ -19,7 +19,7 @@ export interface CardFieldsProps {
   tagRowIds: readonly string[];
   tagOptions: readonly string[];
   onAddTag: () => void;
-  onRenameTag: (index: number, name: string) => void;
+  onRenameTag: (index: number, name: string, trim?: boolean) => void;
   onRemoveTag: (index: number) => void;
   onSelectTag: (tag: string, selected: boolean) => void;
   preview: React.ReactNode;
@@ -187,6 +187,7 @@ export const CardFields = ({
   const id = React.useId();
   const frontTabRef = React.useRef<HTMLButtonElement>(null);
   const backTabRef = React.useRef<HTMLButtonElement>(null);
+  const focusedTagValue = React.useRef("");
 
   const invalidSide = (["frontText", "backText"] as const).find((side) => formState.errors[side]) ?? null;
 
@@ -350,7 +351,11 @@ export const CardFields = ({
         <CardFieldsDialog
           title={t("cardForm.tags.select")}
           closeLabel={t("cardForm.tags.close")}
-          onClose={() => setOpenTagOptions(null)}
+          onClose={() => {
+            // Escape must finish the focused edit before unmounting its input.
+            if (document.activeElement instanceof HTMLInputElement) document.activeElement.blur();
+            setOpenTagOptions(null);
+          }}
         >
           <div className="mb-4 space-y-3">
             {tags.map((tag, index) => {
@@ -365,7 +370,16 @@ export const CardFields = ({
                         id={rowId}
                         value={tag}
                         onChange={(event) => onRenameTag(index, event.target.value)}
-                        onBlur={tagsField.onBlur}
+                        onFocus={(event) => {
+                          focusedTagValue.current = event.target.value;
+                        }}
+                        onBlur={(event) => {
+                          // Preserve untouched saved values and allow internal spaces while typing or composing.
+                          if (event.target.value !== focusedTagValue.current) {
+                            onRenameTag(index, event.target.value, true);
+                          }
+                          tagsField.onBlur();
+                        }}
                         onKeyDown={(event) => {
                           // Enter edits the draft; only the Card's submit button saves it.
                           if (event.key === "Enter") event.preventDefault();

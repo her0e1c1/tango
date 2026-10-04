@@ -29,11 +29,12 @@ Given:
 
 When:
 
-- 表面 Hello と裏面 Hola を入力して作成する。
+- 表面 Hello と裏面 Hola、前後空白のある新規タグ名を入力し、Escape でタグ編集を閉じて作成する。
 
 Then:
 
 - 作成成功が表示され、対象 Deck の一覧から Hello の Card を選んで Hola を確認できる。
+- 新規タグ名の前後空白だけを除き、内部の空白は保持して一覧に表示する。
 
 <a id="storybook-card-form-17"></a>
 
