@@ -36,6 +36,26 @@ mise run init
 This installs the pinned Node.js and npm versions, creates `.env` from `.env.example` if it does not already exist,
 and installs npm packages.
 
+### Codex cloud setup
+
+For Linux x64 Codex cloud machines with this checkout mounted at `/workspace/tango`, run:
+
+```bash
+bash .codex/cloud/install.sh
+```
+
+The cloud image must provide Python, `uv`, and Java 21. The script prepares the pinned Node.js, npm, and Hadolint tools,
+installs frozen npm dependencies and hash-verified Python dependencies, generates sample data, and downloads
+Chromium and the Firestore emulator. Tools, caches, and local configuration live under `/workspace/tango-cloud`.
+
+Follow the [cloud startup instructions](./.codex/cloud/start.md) to start the application and local Firebase
+emulators, verify readiness, and run the development checks. This workflow runs the sample generator and
+emulators directly on the host when Docker build networking is unavailable.
+
+Codex environment settings can use the complete installation script as `install_script` and the startup
+instructions as `start_skill`. Review and publication happen in environment settings; creating a pull request
+does not publish an environment.
+
 ### Start Server
 
 ```bash
