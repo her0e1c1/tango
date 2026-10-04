@@ -94,13 +94,14 @@ function expand(file: string, changed: Location[], head: string) {
 
 const scopePath = "coverage/mutation/pr-scope.json";
 const configPath = "coverage/mutation/stryker-pr.json";
+const configSource = readFileSync(configPath, "utf8");
+rmSync(configPath);
 const scope = JSON.parse(readFileSync(scopePath, "utf8")) as {
   head: string;
   mutate: string[];
   changedLines?: string[];
 };
-const config = JSON.parse(readFileSync(configPath, "utf8")) as { mutate: string[] };
-rmSync(configPath);
+const config = JSON.parse(configSource) as { mutate: string[] };
 if (execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() !== scope.head) {
   throw new Error("Check out the selected PR head before expanding mutations.");
 }
