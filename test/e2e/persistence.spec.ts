@@ -389,3 +389,56 @@ for (const allInvalid of [false, true]) {
     }
   });
 }
+
+test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport with an invalid Card", async ({
+  fixture,
+  page,
+}, testInfo) => {
+  const viewport = { width: 390, height: 844 };
+  await fixture.seedPage(page);
+  const { deck, first, second } = await createAnonymousDeck(page);
+  await setCachedCardFsrs(page, second.id);
+  await page.goto(`/deck/${deck.id}/start`);
+  await page.getByRole("button", { name: "Start 1 card", exact: true }).click();
+  await page.setViewportSize(viewport);
+  await expect(page.locator("#frontText")).toHaveText(first.frontText);
+  const warning = page.getByText(
+    "Some saved cards could not be loaded (1). Their saved data is unchanged. Other saved data is still available."
+  );
+  const controls = [
+    { name: "warning", locator: warning },
+    { name: "front", locator: page.locator("#frontText") },
+    ...["Swipe left", "Swipe down", "Swipe right", "Swipe up", "Play"].map((name) => ({
+      name,
+      locator: page.getByRole("button", { name, exact: true }),
+    })),
+    { name: "Study progress", locator: page.getByRole("slider", { name: "Study progress" }) },
+  ];
+  const geometry = [];
+  for (const control of controls) {
+    await expect(control.locator).toBeVisible();
+    const bounds = await control.locator.boundingBox();
+    if (bounds === null) throw new Error(`${control.name} has no visible bounds`);
+    geometry.push({ name: control.name, ...bounds });
+  }
+  await testInfo.attach("mobile-study-geometry", {
+    body: Buffer.from(JSON.stringify({ viewport, geometry })),
+    contentType: "application/json",
+  });
+  for (const bounds of geometry) {
+    expect(bounds.x, bounds.name).toBeGreaterThanOrEqual(0);
+    expect(bounds.y, bounds.name).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width, bounds.name).toBeLessThanOrEqual(viewport.width);
+    expect(bounds.y + bounds.height, bounds.name).toBeLessThanOrEqual(viewport.height);
+  }
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await testInfo.attach("mobile-study-before-interaction", {
+    body: await page.screenshot(),
+    contentType: "image/png",
+  });
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await page.getByRole("button", { name: "Swipe right", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Back to deck list", exact: true })).toBeVisible();
+});
