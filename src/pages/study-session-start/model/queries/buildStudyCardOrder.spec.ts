@@ -48,18 +48,25 @@ describe("due ordering [STUDY-SESSION-01]", () => {
   const saved = calculateFsrsState(null, "good", now - 600_000);
   it.each([false, true])("limits the oldest due cards before shuffling=%s", (shuffled) => {
     const cards = [
-      { ...card, id: "new" },
+      { ...card, id: "z-new" },
       { ...card, id: "equal", fsrs: { ...saved, dueAt: now } },
       { ...card, id: "oldest", fsrs: { ...saved, dueAt: now - 2 } },
       { ...card, id: "tie", fsrs: { ...saved, dueAt: now - 2 } },
       { ...card, id: "future", fsrs: { ...saved, dueAt: now + 1 } },
+      { ...card, id: "a-new" },
     ];
     expect(
       new Set(buildStudyCardOrder(cards, { useCardInterval: true, shuffled, maxNumberOfCardsToLearn: 2 }, now))
     ).toEqual(new Set(["oldest", "tie"]));
     expect(
       buildStudyCardOrder(cards, { useCardInterval: true, shuffled: false, maxNumberOfCardsToLearn: 0 }, now)
-    ).toEqual(["oldest", "tie", "equal", "new"]);
+    ).toEqual(["oldest", "tie", "equal", "z-new", "a-new"]);
+    expect(
+      buildStudyCardOrder(cards, { useCardInterval: true, shuffled: false, maxNumberOfCardsToLearn: 4 }, now)
+    ).toEqual(["oldest", "tie", "equal", "z-new"]);
+    expect(
+      new Set(buildStudyCardOrder(cards, { useCardInterval: true, shuffled, maxNumberOfCardsToLearn: 4 }, now))
+    ).toEqual(new Set(["oldest", "tie", "equal", "z-new"]));
     expect(
       buildStudyCardOrder(cards, { useCardInterval: false, shuffled: false, maxNumberOfCardsToLearn: 0 }, now)
     ).toEqual(cards.map(({ id }) => id));
