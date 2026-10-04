@@ -19,6 +19,7 @@ function DeckViewContainer({ deck }: { deck: Deck }) {
   if (model.card === undefined)
     return (
       <RouteFeedback
+        layout={AppLayout}
         title={t(model.hasCards ? "deckView.empty" : "cardList.empty.noCardsTitle")}
         primaryAction={{ label: t("deckView.back"), onClick: model.back }}
       />

@@ -476,3 +476,35 @@ test("PERSISTENCE-10 retains the recovery warning on quarantined Card view and e
     await expect(warning).toBeVisible();
   }
 });
+
+test("PERSISTENCE-10 retains the warning on a Deck view with all Cards quarantined", async ({
+  fixture,
+  page,
+}, testInfo) => {
+  await fixture.seedPage(page);
+  const { deck, first, second } = await createAnonymousDeck(page);
+  await page.goto(`/deck/${deck.id}/view`);
+  await expect(page.getByRole("button", { name: "Card front", exact: true })).toHaveText(first.frontText);
+  await expect(page.getByText(/Some saved cards could not be loaded/)).toHaveCount(0);
+
+  await setCachedCardFsrs(page, first.id);
+  await setCachedCardFsrs(page, second.id);
+  await page.goto(`/deck/${deck.id}/view`);
+  const warning = page.getByText(
+    "Some saved cards could not be loaded (2). Their saved data is unchanged. Other saved data is still available."
+  );
+  await expect(page.getByRole("heading", { name: "No cards yet", exact: true })).toBeVisible();
+  await expect(warning).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "No cards yet", exact: true })).toBeVisible();
+  await expect(warning).toBeVisible();
+  await expect(page.getByRole("button", { name: "Next card", exact: true })).toHaveCount(0);
+  await testInfo.attach("all-quarantined-deck-view", {
+    body: await page.screenshot(),
+    contentType: "image/png",
+  });
+  await page.getByRole("button", { name: "Back to deck list", exact: true }).click();
+  await expect(page).toHaveURL("/");
+  await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
+  await expect(warning).toBeVisible();
+});
