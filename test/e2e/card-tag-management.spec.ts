@@ -52,6 +52,14 @@ test("CARD-TAG-MANAGEMENT-01 directly edits only the current Card and persists o
   await expect(name).toHaveValue("renamed");
   await page.getByRole("button", { name: "Remove tag 2", exact: true }).click();
   await expect(page.getByRole("textbox", { name: /^Tag name / })).toHaveCount(1);
+  await addTag(page, " renamed ");
+  await page.locator('label:has(input[type="checkbox"][value=" renamed "])').click();
+  await expect(page.getByRole("textbox", { name: /^Tag name / })).toHaveCount(1);
+  await expect(name).toHaveValue("renamed");
+  await addTag(page, " new tag ");
+  await expect(page.getByRole("textbox", { name: "Tag name 2", exact: true })).toBeFocused();
+  await page.getByRole("dialog").getByText("new tag", { exact: true }).click();
+  await expect(page.getByRole("textbox", { name: /^Tag name / })).toHaveCount(1);
   await addTag(page, " new tag ");
   await expect(page.getByRole("alertdialog")).toHaveCount(0);
   expect(await Promise.all(allCards.map((item) => requireDocument("card", item.id)))).toEqual(before);

@@ -24,6 +24,10 @@ export const Create: Story = {
       await userEvent.click(canvas.getByRole("button", { name: "Edit tags" }));
       await userEvent.click(canvas.getByRole("button", { name: "Add tag" }));
       await userEvent.type(canvas.getByRole("textbox", { name: "Tag name 1" }), " new tag ");
+      await userEvent.click(within(canvas.getByRole("dialog")).getByText("new tag", { exact: true }));
+      await expect(canvas.queryByRole("textbox", { name: "Tag name 1" })).not.toBeInTheDocument();
+      await userEvent.click(canvas.getByRole("button", { name: "Add tag" }));
+      await userEvent.type(canvas.getByRole("textbox", { name: "Tag name 1" }), " new tag ");
       await userEvent.keyboard("{Escape}");
       await userEvent.click(canvas.getByRole("button", { name: "Create card" }));
       await expect(await canvas.findByRole("status", { name: "Toast notifications" })).toHaveTextContent(
