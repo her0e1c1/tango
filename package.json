@@ -2,7 +2,6 @@
   "name": "tango-web",
   "version": "2.2.0",
   "private": true,
-  "workspaces": ["vendor/braces"],
   "packageManager": "npm@12.0.1",
   "engines": {
     "node": ">=24.15.0 <25"
