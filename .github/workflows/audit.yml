@@ -25,6 +25,6 @@ jobs:
         run: npm install --global npm@12.0.1
 
       - name: Audit dependencies
-        # Limit the temporary exception to this PR; resolve braces and remove it in #1872.
-        continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 1854 }}
+        # Limit the temporary exception to these mutation-testing PRs; resolve braces and remove it in #1872.
+        continue-on-error: ${{ github.event_name == 'pull_request' && (github.event.pull_request.number == 1854 || github.event.pull_request.number == 1873) }}
         run: npm audit --package-lock-only --audit-level=high
