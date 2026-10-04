@@ -2,6 +2,7 @@
   "name": "tango-web",
   "version": "2.2.0",
   "private": true,
+  "workspaces": ["vendor/braces"],
   "packageManager": "npm@12.0.1",
   "engines": {
     "node": ">=24.15.0 <25"
@@ -86,7 +87,7 @@
     "@storybook/addon-a11y": "^10.6.1",
     "@storybook/addon-docs": "^10.6.0",
     "@storybook/addon-themes": "^10.6.0",
-    "@storybook/addon-vitest": "^10.6.0",
+    "@storybook/addon-vitest": "^10.6.1",
     "@storybook/react": "^10.6.0",
     "@storybook/react-vite": "^10.6.1",
     "@stryker-mutator/core": "10.0.0",
@@ -126,6 +127,8 @@
     "yaml": "^2.9.1"
   },
   "overrides": {
+    "@grpc/grpc-js": "^1.14.5",
+    "basic-ftp": "^6.2.1",
     "markdownlint-cli2": {
       "smol-toml": "^1.7.1"
     }

@@ -11,6 +11,7 @@ RUN npm install -g npm@11.6.0
 FROM base AS deps
 
 COPY package.json package-lock.json ./
+COPY vendor/braces ./vendor/braces
 
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
