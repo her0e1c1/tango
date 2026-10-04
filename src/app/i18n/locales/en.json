@@ -1,4 +1,7 @@
 {
+  "savedCards": {
+    "invalid": "Some saved cards could not be loaded ({{count}}). Their saved data is unchanged. Other saved data is still available."
+  },
   "memory": {
     "title": "Memory state",
     "empty": "No FSRS memory state yet. It will appear after a rated study answer.",

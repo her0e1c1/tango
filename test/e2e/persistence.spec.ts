@@ -11,6 +11,7 @@ import {
 } from "./utils/fixtures";
 import { createAnonymousDeck } from "./utils/ui-helpers";
 import { installApplicationCacheForOfflineReload } from "./utils/offline-cache";
+import { setCachedCardFsrs } from "./utils/corrupt-card-cache";
 
 test("PERSISTENCE-03 reflects a remote Card edit in another open client without reload", async ({
   baseURL,
@@ -333,3 +334,58 @@ test("PERSISTENCE-09 receives remote edits and tombstones after reopening", asyn
   expect((await requireDocument("deck", deck.id)).fields.deletedAt?.integerValue).toBeDefined();
   expect((await requireDocument("card", deleted.id)).fields.deletedAt?.integerValue).toBeDefined();
 });
+
+for (const allInvalid of [false, true]) {
+  test(`PERSISTENCE-10 starts after reopening ${allInvalid ? "all" : "one"} malformed local Cards`, async ({
+    fixture,
+    page,
+  }, testInfo) => {
+    await fixture.seedPage(page);
+    const { deck, first, second } = await createAnonymousDeck(page);
+    await page.goto(`/deck/${deck.id}`);
+    await expect(page.getByRole("button", { name: `View ${first.frontText}` })).toBeVisible();
+    await expect(page.getByRole("button", { name: `View ${second.frontText}` })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("button", { name: `View ${first.frontText}` })).toBeVisible();
+    await expect(page.getByRole("button", { name: `View ${second.frontText}` })).toBeVisible();
+
+    await setCachedCardFsrs(page, second.id);
+    if (allInvalid) await setCachedCardFsrs(page, first.id);
+    await page.goto("/");
+    await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
+    const warning = `Some saved cards could not be loaded (${allInvalid ? 2 : 1}). Their saved data is unchanged. Other saved data is still available.`;
+    await expect(page.getByText(warning)).toBeVisible();
+    await page.getByRole("button", { name: `Open cards in ${deck.name}` }).click();
+    await expect(page.getByRole("button", { name: `View ${first.frontText}` })).toHaveCount(allInvalid ? 0 : 1);
+    await expect(page.getByRole("button", { name: `View ${second.frontText}` })).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole("button", { name: `View ${first.frontText}` })).toHaveCount(allInvalid ? 0 : 1);
+    await expect(page.getByRole("button", { name: `View ${second.frontText}` })).toHaveCount(0);
+    await expect(page.getByText(warning)).toBeVisible();
+    const warningBounds = await page.getByText(warning).boundingBox();
+    const headerBounds = await page
+      .locator("header")
+      .filter({ has: page.getByRole("button", { name: "tango", exact: true }) })
+      .boundingBox();
+    expect(warningBounds).not.toBeNull();
+    expect(headerBounds).not.toBeNull();
+    expect(warningBounds!.y).toBeGreaterThanOrEqual(headerBounds!.y + headerBounds!.height);
+    await testInfo.attach("partial-startup-after-reload", {
+      body: await page.screenshot(),
+      contentType: "image/png",
+    });
+
+    await setCachedCardFsrs(page, second.id, null);
+    await page.goto(`/deck/${deck.id}`);
+    await expect(page.getByRole("button", { name: `View ${second.frontText}` })).toBeVisible();
+    await expect(page.getByRole("button", { name: `View ${first.frontText}` })).toHaveCount(allInvalid ? 0 : 1);
+    await expect(page.getByText(warning)).toHaveCount(0);
+    if (allInvalid) {
+      await expect(
+        page.getByText(
+          "Some saved cards could not be loaded (1). Their saved data is unchanged. Other saved data is still available."
+        )
+      ).toBeVisible();
+    }
+  });
+}

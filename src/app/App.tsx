@@ -6,7 +6,9 @@
 
 import React from "react";
 import { RouterProvider } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
+import { useInvalidCardIds } from "@/entities/card";
 import { usePreferences } from "@/entities/preference";
 import { ToastViewport } from "@/shared/ui/toast";
 
@@ -22,6 +24,8 @@ interface AppProps {
  * Reads display settings and installs the application routes.
  */
 const AppShell: React.FC<AppProps> = ({ router }) => {
+  const { t } = useTranslation();
+  const invalidCardIds = useInvalidCardIds();
   const { darkMode } = usePreferences().appearance;
   const focusFallbackRef = React.useRef<HTMLElement>(null);
 
@@ -36,6 +40,14 @@ const AppShell: React.FC<AppProps> = ({ router }) => {
         // This landmark survives route replacement so removing a focused Toast never leaves focus on the document body.
         tabIndex={-1}
       >
+        {invalidCardIds.length > 0 && (
+          <p
+            role="status"
+            className="mx-auto mb-4 mt-[calc(var(--spacing-touch)+2rem+env(safe-area-inset-top))] max-w-reading rounded-surface border border-warning bg-surface px-4 py-3 text-body text-ink"
+          >
+            {t("savedCards.invalid", { count: invalidCardIds.length })}
+          </p>
+        )}
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>

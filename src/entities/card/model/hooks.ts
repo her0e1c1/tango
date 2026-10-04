@@ -5,6 +5,8 @@ import { filterCardsByDeckId, filterTagsByDeckId } from "./rules";
 import { cardStore } from "./store";
 import type { Card, CardId } from "./types";
 
+export const useInvalidCardIds = (): readonly CardId[] => useStore(cardStore, (state) => state.invalidCardIds);
+
 export const useCards = (): Card[] => {
   const { cardsById } = useStore(cardStore);
   const decks = useDecks();

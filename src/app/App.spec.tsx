@@ -11,8 +11,12 @@ import { setDarkMode, updatePreferences } from "@/entities/preference";
 import { showToast } from "@/shared/ui/toast";
 import { dismissToast } from "@/test/utils/toast";
 import { createPreferences } from "@/test/factories";
+import { clearRemoteCards } from "@/entities/card";
+import { replaceInvalidCardIds } from "@/test/utils/entityFixtures";
 
 const routeMocks = vi.hoisted(() => ({ accountThrows: false }));
+
+vi.mock("@/shared/firebase", () => ({ auth: { currentUser: null }, db: {} }));
 
 vi.mock("@/app/auth", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -50,6 +54,7 @@ const renderApp = (path = "/") => {
 
 describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
   beforeEach(() => {
+    clearRemoteCards();
     dismissToast();
     routeMocks.accountThrows = false;
     updatePreferences(createPreferences({ appearance: { darkMode: false } }));
@@ -72,6 +77,17 @@ describe("App [ACCOUNT-02] [STUDY-SESSION-10]", () => {
     renderApp();
 
     expect(screen.getByText("Deck list")).toBeInTheDocument();
+  });
+
+  it("PERSISTENCE-10 shows local read diagnostics and clears them with the subscription", () => {
+    replaceInvalidCardIds(["invalid-card"]);
+    renderApp();
+    const warning =
+      "Some saved cards could not be loaded (1). Their saved data is unchanged. Other saved data is still available.";
+    expect(screen.getByText(warning)).toBeVisible();
+    expect(screen.getByText("Deck list")).toBeVisible();
+    act(() => clearRemoteCards());
+    expect(screen.queryByText(warning)).not.toBeInTheDocument();
   });
 
   it("renders the independent study history route with a Deck query", () => {

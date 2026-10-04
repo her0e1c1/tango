@@ -6,9 +6,10 @@ import type { Card, CardId, RemoteCard } from "./types";
 
 interface CardState {
   cardsById: Record<CardId, RemoteCard>;
+  invalidCardIds: readonly CardId[];
 }
 
-export const cardStore = createStore<CardState>(() => ({ cardsById: {} }));
+export const cardStore = createStore<CardState>(() => ({ cardsById: {}, invalidCardIds: [] }));
 
 export function getCards(): Card[] {
   const { cardsById } = cardStore.getState();
@@ -27,7 +28,7 @@ export const findCardById = (id: CardId): Card | undefined => {
 };
 
 export const clearRemoteCards = (): void => {
-  cardStore.setState({ cardsById: {} });
+  cardStore.setState({ cardsById: {}, invalidCardIds: [] });
 };
 
 export function applyCardChanges(cards: readonly RemoteCard[]): void {
@@ -42,8 +43,9 @@ export function applyCardChanges(cards: readonly RemoteCard[]): void {
   });
 }
 
-export function applyCardSnapshot(cards: readonly RemoteCard[]): void {
+export function applyCardSnapshot(cards: readonly RemoteCard[], invalidCardIds: readonly CardId[] = []): void {
   cardStore.setState({
     cardsById: Object.fromEntries(cards.filter((card) => card.deletedAt === null).map((card) => [card.id, card])),
+    invalidCardIds: [...invalidCardIds],
   });
 }
