@@ -25,6 +25,20 @@ describe("CARD-VIEW-06 memory chart snapshot", () => {
       expect(state.dueAt).toBe(schedule.dueAt);
     }
   );
+  it("keeps a returning card's curve chronological with its saved markers inside the window", () => {
+    const now = Date.UTC(2026, 8, 21, 1);
+    const state = getMemoryState(schedule, now);
+    if (state === undefined) throw new Error("Expected memory state");
+
+    expect(state.points.map(({ time }) => time)).toEqual(expect.arrayContaining([at, now, schedule.dueAt]));
+    let previousTime = Number.NEGATIVE_INFINITY;
+    for (const point of state.points) {
+      expect(point.time).toBeGreaterThan(previousTime);
+      expect(point.time).toBeGreaterThanOrEqual(state.start);
+      expect(point.time).toBeLessThanOrEqual(state.end);
+      previousTime = point.time;
+    }
+  });
   it("leaves missing FSRS state empty", () => {
     expect(getMemoryState(null, at)).toBeUndefined();
   });

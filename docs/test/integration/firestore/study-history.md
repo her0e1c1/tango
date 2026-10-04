@@ -79,6 +79,7 @@ Given:
 - 本人の回答が保存されている。対象期間の開始時刻に、対象 Deck の again / hard / good / easy の4回答と別 Deck の1回答がある。
 - 対象 Deck には、期間開始前・終了境界の回答が各1件と、不正な rating を持つ期間内の回答が1件ある。
 - 同時刻の回答は異なる document ID を持つ。不正 rating は保存データを読む Adapter の検証対象とする。
+- 独立した取得期間として、対象 Deck に `2040-01-01T00:00:00.500Z` の正常な回答が1件ある。
 - 次の取得条件をそれぞれ独立して確認する。
 
 | 取得条件 | 前提 |
@@ -95,6 +96,7 @@ When:
 Then:
 
 - answeredAt 降順、同時刻は document ID 降順で返す。半開区間外を除き、上限10件では Deck 指定ありで正常4件・指定なしで正常5件を返す。
+- 独立した取得期間の回答は、保存された document ID・Deck・session・rating を保持し、answeredAt を Unix ミリ秒 `2208988800500` として返す。
 - 不正回答を正常な回答へ補完せず、invalidCount で知らせる。上限2件では truncated、全件取得では非 truncated となる。
 - オンラインの結果は server、オフラインと匿名の結果は cache と区別される。cache にない範囲は cache の0件となり、サーバー上にも履歴がないとは断定しない。
 

@@ -1,6 +1,6 @@
 import "@/test/mockFirestorePersistence";
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { calculateFsrsState } from "@/entities/card";
 import { getMemoryState } from "../model/queries/getMemoryState";
@@ -20,6 +20,20 @@ describe("CARD-VIEW-06 memory presentation", () => {
     expect(screen.getByText("Last review")).toBeVisible();
     expect(screen.getByText("Target retention")).toBeVisible();
     expect(screen.getByText(/FSRS estimates/, { selector: "p" })).toBeVisible();
+  });
+  it("keeps the rated summary and curve visible when returning an hour after the first review", () => {
+    const reviewedAt = Date.UTC(2026, 8, 21);
+    const schedule = calculateFsrsState(null, "good", reviewedAt);
+    render(<MemoryState memory={getMemoryState(schedule, Date.UTC(2026, 8, 21, 1))} />);
+
+    const chart = screen.getByRole("img", { name: /Forgetting curve/ });
+    expect(chart).toBeVisible();
+    expect(screen.getByText(/Estimated recall:/)).toBeVisible();
+    expect(screen.getByText(/As of /, { selector: "p" })).toBeVisible();
+    expect(screen.getByText("Last review")).toBeVisible();
+    expect(screen.getByText("Target retention")).toBeVisible();
+    expect(within(chart).getByText("Snapshot")).toBeVisible();
+    expect(within(chart).getByText("Next review")).toBeVisible();
   });
   it("shows an empty state with no curve or invented percentage", () => {
     render(<MemoryState memory={undefined} />);

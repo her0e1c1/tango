@@ -182,7 +182,20 @@ describe("Bounded answer history", () => {
     const from = Date.now() + 2_000_000_000;
     const deckId = crypto.randomUUID();
     const prefix = crypto.randomUUID();
+    const millisecondId = `${prefix}-milliseconds`;
+    const millisecondTime = Date.UTC(2040, 0, 1) + 500;
+    const millisecondTimestamp = Timestamp.fromMillis(millisecondTime);
     const batch = writeBatch(testDb);
+    batch.set(doc(testDb, "studyAnswer", millisecondId), {
+      uid: "uid",
+      deckId,
+      sessionId: "millisecond-session",
+      cardId: "card",
+      answer: { type: "rating", rating: "good" },
+      answeredAt: millisecondTimestamp,
+      createdAt: millisecondTimestamp,
+      updatedAt: serverTimestamp(),
+    });
     for (const [id, rating, time, deck] of [
       ["a", "again", from, deckId],
       ["b", "hard", from, deckId],
@@ -214,6 +227,16 @@ describe("Bounded answer history", () => {
     const bounded = await readAnswerHistory({ ...input, limit: 2 });
     expect(bounded).toMatchObject({ truncated: true, invalidCount: 1 });
     expect(bounded.records.map((record) => record.id)).toEqual([`${prefix}-d`]);
+    const milliseconds = await readAnswerHistory({ ...input, from: millisecondTime, to: millisecondTime + 1 });
+    expect(milliseconds.records).toEqual([
+      {
+        id: millisecondId,
+        deckId,
+        sessionId: "millisecond-session",
+        answeredAt: 2_208_988_800_500,
+        rating: "good",
+      },
+    ]);
     await disableNetwork(testDb);
     try {
       expect(await readAnswerHistory(input, true)).toMatchObject({ source: "cache", records: online.records });

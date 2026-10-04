@@ -62,6 +62,24 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
       });
     });
 
+    it("keeps an empty tag column as an untagged valid Card", async () => {
+      expect(await parseCsv("front,back,,key")).toEqual({
+        rows: [{ rowNumber: 1, card: { frontText: "front", backText: "back", tags: [], uniqueKey: "key" } }],
+        skippedRows: [],
+        issues: [],
+        invalidCount: 0,
+      });
+    });
+
+    it("counts a three-column row as invalid and retains its diagnostic", async () => {
+      expect(await parseCsv("front,back,key")).toEqual({
+        rows: [],
+        skippedRows: [],
+        issues: [{ rowNumber: 1, diagnostic: { kind: "columns", count: 3 }, context: '["front","back","key"]' }],
+        invalidCount: 1,
+      });
+    });
+
     it("rejects unsupported input at the parser boundary", async () => {
       // @ts-expect-error Verifies the runtime boundary for untyped callers.
       await expect(parseCsv({ content: "front,back" })).rejects.toThrow("CSV content must be a string");
