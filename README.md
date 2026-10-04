@@ -101,11 +101,14 @@ or sample Python tests. The task builds the sample data needed by unit tests bef
 After that build, `npm run test:mutation -- --mutate <path>` also supports focused runs.
 
 Open `coverage/mutation/index.html` to inspect surviving mutants and uncovered code. The machine-readable report
-is `coverage/mutation/mutation.json`. Scores are reported without a failing score threshold during this initial rollout.
+is `coverage/mutation/mutation.json`. A mutation score below 80% fails the command; 80% or higher passes.
+The failing threshold is configured in `stryker.config.json` under `thresholds.break`.
 Mutation testing runs separately from `mise run check` because it reruns tests for individual code changes.
 Full runs can take substantially longer when mutations affect module initialization; use `--mutate` for routine
-feedback on changed modules. The **Mutation testing** GitHub Actions workflow can also be run manually with an optional
-`mutate` file pattern and uploads both reports as an artifact.
+feedback on changed modules. The **Mutation testing** GitHub Actions workflow runs independently on pushes to `main`,
+and supports manual dispatch with an optional `mutate` file pattern. PR checks do not run mutation testing,
+and deployment does not wait for its result.
+Both reports are uploaded as an artifact even when the mutation score fails the threshold.
 
 ### E2E Test
 

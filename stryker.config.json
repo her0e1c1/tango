@@ -11,6 +11,11 @@
     "!src/**/*.stories.{ts,tsx}"
   ],
   "concurrency": 2,
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": 80
+  },
   "reporters": ["progress", "clear-text", "html", "json"],
   "htmlReporter": {
     "fileName": "coverage/mutation/index.html"
