@@ -95,7 +95,7 @@ mise run test-mutation -- --incremental
 
 Mutation testing uses the unit suite and covers application TypeScript files, excluding specs, stories, and
 declarations. It runs separately from `mise run check`. Scores below 80% are reported without failing the command
-(`thresholds.break: 0`); execution and configuration errors still fail.
+(`thresholds.break: 0`). Actions emits a warning below 80%; execution and configuration errors still fail.
 
 The **Mutation testing** workflow runs only by manual dispatch on `main`. It forces a full run and saves a baseline.
 The **PR mutation testing** workflow uses StrykerJS's standard [incremental mode](https://stryker-mutator.io/docs/stryker-js/incremental/).

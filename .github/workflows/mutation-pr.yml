@@ -98,6 +98,18 @@ jobs:
         if: ${{ steps.baseline.outputs.run-id != '' }}
         run: npm run test:mutation -- --incremental --incrementalFile coverage/mutation/stryker-incremental.json
 
+      - name: Warn on low mutation score
+        if: ${{ steps.baseline.outputs.run-id != '' }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import { calculateMetrics } from 'mutation-testing-metrics';
+          const report = JSON.parse(readFileSync('coverage/mutation/mutation.json', 'utf8'));
+          const { metrics: { mutationScore } } = calculateMetrics(report.files);
+          const { thresholds: { high } } = JSON.parse(readFileSync('stryker.config.json', 'utf8'));
+          if (mutationScore < high) console.log(`::warning::Mutation score ${mutationScore.toFixed(2)}% is below ${high}%.`);
+          NODE
+
       - name: Upload PR mutation reports
         if: ${{ always() && steps.baseline.outputs.run-id != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
