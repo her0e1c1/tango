@@ -13,7 +13,7 @@ export const pwaOptions = {
   // Precache these extra files from public/ even though globPatterns omits images.
   // Files referenced by manifest.icons are included automatically through the
   // plugin's default includeManifestIcons behavior, so they need not be repeated.
-  includeAssets: ["favicon.ico", "apple-touch-icon.png"],
+  includeAssets: ["favicon.ico", "apple-touch-icon.png", "tango-logo.svg", "tango-logo-dark.svg"],
 
   // Installation metadata, not React page content or service-worker cache rules.
   manifest: {
