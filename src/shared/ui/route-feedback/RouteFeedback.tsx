@@ -23,6 +23,7 @@ export interface RouteFeedbackProps {
   tone?: RouteFeedbackTone;
   primaryAction?: RouteFeedbackAction;
   secondaryAction?: RouteFeedbackAction;
+  layout?: React.ComponentType<{ children?: React.ReactNode }>;
 }
 
 /**
@@ -43,9 +44,10 @@ const ActionButton = ({ action, defaultVariant }: { action: RouteFeedbackAction;
 export const RouteFeedback: React.FC<RouteFeedbackProps> = (props) => {
   const tone = props.tone ?? "loading";
   const role = tone === "error" ? "alert" : "status";
+  const FeedbackLayout = props.layout ?? Layout;
 
   return (
-    <Layout>
+    <FeedbackLayout>
       <section
         role={role}
         aria-live={tone === "error" ? "assertive" : "polite"}
@@ -60,6 +62,6 @@ export const RouteFeedback: React.FC<RouteFeedbackProps> = (props) => {
           </div>
         ) : null}
       </section>
-    </Layout>
+    </FeedbackLayout>
   );
 };

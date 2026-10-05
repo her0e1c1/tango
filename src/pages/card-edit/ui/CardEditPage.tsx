@@ -41,7 +41,11 @@ export const CardEditPage: React.FC = () => {
 
   if (card == null) {
     return (
-      <RouteNotFound title={t("cardForm.cardNotFound.title")} description={t("cardForm.cardNotFound.description")} />
+      <RouteNotFound
+        layout={AppLayout}
+        title={t("cardForm.cardNotFound.title")}
+        description={t("cardForm.cardNotFound.description")}
+      />
     );
   }
 

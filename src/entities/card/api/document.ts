@@ -44,6 +44,17 @@ export const mapCardDocument = (id: CardId, document: CardDocument): RemoteCard 
   return card;
 };
 
+export function parseLocalCardDocuments(documents: readonly { id: CardId; value: unknown }[]) {
+  const cards: RemoteCard[] = [];
+  const invalidCardIds: CardId[] = [];
+  for (const { id, value } of documents) {
+    const parsed = cardDocumentSchema.safeParse(value);
+    if (parsed.success) cards.push(mapCardDocument(id, parsed.data));
+    else invalidCardIds.push(id);
+  }
+  return { cards, invalidCardIds };
+}
+
 export const cardReplicaMetadataSchema = z.object({
   uid: z.string().min(1),
   lastUpdatedAt: z.number().nullable(),

@@ -60,21 +60,41 @@ export const installApplicationCacheForOfflineReload = async (page: Page, baseUR
     });
   };
   const context = page.context();
-  await context.route(workerUrl, serveWorker);
   // A service-worker-controlled document needs explicit permission to reach the two Docker-local emulators while
   // online. The grant is restricted to the app origin and context.setOffline(true) still disconnects every request.
   await context.grantPermissions(["local-network-access"], { origin: new URL(baseURL).origin });
 
-  // Vite has no production PWA worker. This test-only same-origin cache exists solely so an offline reload exercises
+  const hasProductionWorker = await page.evaluate(() =>
+    [...document.scripts].some((script) => new URL(script.src, location.href).pathname === "/registerSW.js")
+  );
+  if (hasProductionWorker) {
+    // Production previews already precache the app. Replacing that root-scope worker races the next reload:
+    // ready can resolve for the old controller before the test worker has cached the document.
+    await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.ready;
+      if (registration.active?.scriptURL !== new URL("/sw.js", location.href).href)
+        throw new Error("The production app cache must use its own active service worker");
+    });
+    return async () => undefined;
+  }
+  await context.route(workerUrl, serveWorker);
+
+  // Vite dev has no PWA worker. This test-only same-origin cache exists solely so an offline reload exercises
   // Firestore persistence while context.setOffline(true) still disconnects Firestore, Auth, and every other network.
   await page.evaluate(async (url) => {
     if (!window.isSecureContext)
       throw new Error("The E2E app origin must be secure enough to register a service worker");
     await navigator.serviceWorker.register(url, { scope: "/" });
     await navigator.serviceWorker.ready;
-    if (navigator.serviceWorker.controller !== null) return;
+    if (navigator.serviceWorker.controller?.scriptURL === url) return;
     await new Promise<void>((resolve) => {
-      navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true });
+      const onChange = () => {
+        if (navigator.serviceWorker.controller?.scriptURL !== url) return;
+        navigator.serviceWorker.removeEventListener("controllerchange", onChange);
+        resolve();
+      };
+      navigator.serviceWorker.addEventListener("controllerchange", onChange);
+      onChange();
     });
   }, workerUrl);
 

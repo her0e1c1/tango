@@ -44,6 +44,10 @@ export const replaceRemoteCards = (remoteCards: RemoteCard[]): void => {
   cardStore.setState({ cardsById: Object.fromEntries(remoteCards.map((card) => [card.id, card])) });
 };
 
+export const replaceInvalidCardIds = (invalidCardIds: readonly string[]): void => {
+  cardStore.setState({ invalidCardIds });
+};
+
 export const replaceRemoteDecks = (remoteDecks: Deck[]): void => {
   deckStore.setState({ remoteDecks });
 };

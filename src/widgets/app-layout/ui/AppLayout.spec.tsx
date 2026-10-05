@@ -1,13 +1,17 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider, useLocation } from "react-router-dom";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { updatePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
+import { clearRemoteCards } from "@/entities/card";
+import { replaceInvalidCardIds } from "@/test/utils/entityFixtures";
 
 import { AppLayout } from "./AppLayout";
+
+vi.mock("@/shared/firebase", () => ({ auth: { currentUser: null }, db: {} }));
 
 const CurrentLocation = () => {
   const location = useLocation();
@@ -34,7 +38,19 @@ const renderLayout = () => {
 
 describe("AppLayout", () => {
   beforeEach(() => {
+    clearRemoteCards();
     updatePreferences(createPreferences({ appearance: { darkMode: false } }));
+  });
+
+  it("PERSISTENCE-10 shows local read diagnostics and clears them with the subscription", () => {
+    replaceInvalidCardIds(["invalid-card"]);
+    renderLayout();
+    const warning =
+      "Some saved cards could not be loaded (1). Their saved data is unchanged. Other saved data is still available.";
+    expect(screen.getByText(warning)).toBeVisible();
+    expect(screen.getByLabelText("Current location")).toBeVisible();
+    act(() => clearRemoteCards());
+    expect(screen.queryByText(warning)).not.toBeInTheDocument();
   });
 
   it("navigates from every application header destination", async () => {

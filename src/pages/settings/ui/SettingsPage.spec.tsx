@@ -1,12 +1,14 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
 import { updatePreferences } from "@/entities/preference";
 import { createPreferences } from "@/test/factories";
 
 import { SettingsPage } from "./SettingsPage";
+
+vi.mock("@/shared/firebase", () => ({ auth: { currentUser: null }, db: {} }));
 
 const renderPage = () => {
   const router = createMemoryRouter(

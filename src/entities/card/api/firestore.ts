@@ -16,7 +16,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
-import { mapCardDocument, parseCardDocument } from "./document";
+import { mapCardDocument, parseCardDocument, parseLocalCardDocuments } from "./document";
 import { createCardSchema, deleteCardSchema, editCardSchema } from "../model/schema";
 import { applyCardChanges, applyCardSnapshot, clearRemoteCards, findCardById } from "../model/store";
 
@@ -83,10 +83,11 @@ function subscribeLocalCards(uid: string, onError: (error: Error) => void, onRea
     (snapshot) => {
       if (!active) return;
       try {
-        const cards = snapshot.docs.map((item) =>
-          mapCardDocument(item.id, parseCardDocument(item.id, item.data({ serverTimestamps: "estimate" })))
+        const { cards, invalidCardIds } = parseLocalCardDocuments(
+          snapshot.docs.map((item) => ({ id: item.id, value: item.data({ serverTimestamps: "estimate" }) }))
         );
-        applyCardSnapshot(cards);
+        // A partial local snapshot is usable; retain diagnostics without rewriting the invalid saved documents.
+        applyCardSnapshot(cards, invalidCardIds);
         onReady?.();
       } catch (error) {
         report(error);

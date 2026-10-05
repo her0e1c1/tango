@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { setDarkMode, usePreferences } from "@/entities/preference";
+import { useInvalidCardIds } from "@/entities/card";
 import { routes } from "@/shared/router";
 import { Layout } from "@/shared/ui/layout";
 
@@ -12,8 +13,9 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const preferences = usePreferences();
+  const invalidCardIds = useInvalidCardIds();
   // Application navigation must remain available while the page-owned shell scrolls.
-  const { fixedHeader = true, ...layoutProps } = props;
+  const { fixedHeader = true, children, ...layoutProps } = props;
 
   return (
     <Layout
@@ -37,6 +39,17 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
         onClickStudyHistory: () => void navigate(routes.studyHistory.to()),
         onClickSettings: () => void navigate(routes.settings.to()),
       }}
-    />
+    >
+      {invalidCardIds.length > 0 && (
+        // Keep the warning inside the viewport-sized flex layout so full-screen controls use the remaining height.
+        <p
+          className="mx-shell-gutter my-4 shrink-0 rounded-surface border border-warning bg-surface px-4 py-3 text-body text-ink"
+          role="status"
+        >
+          {t("savedCards.invalid", { count: invalidCardIds.length })}
+        </p>
+      )}
+      {children}
+    </Layout>
   );
 };
