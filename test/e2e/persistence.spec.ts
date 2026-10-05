@@ -483,8 +483,9 @@ test("PERSISTENCE-10 retains the warning on a Deck view with all Cards quarantin
 }, testInfo) => {
   await fixture.seedPage(page);
   const { deck, first, second } = await createAnonymousDeck(page);
+  const firstById = [first, second].toSorted((left, right) => left.id.localeCompare(right.id))[0]!;
   await page.goto(`/deck/${deck.id}/view`);
-  await expect(page.getByRole("button", { name: "Card front", exact: true })).toHaveText(first.frontText);
+  await expect(page.getByRole("button", { name: "Card front", exact: true })).toHaveText(firstById.frontText);
   await expect(page.getByText(/Some saved cards could not be loaded/)).toHaveCount(0);
 
   await setCachedCardFsrs(page, first.id);
