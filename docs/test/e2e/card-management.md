@@ -261,10 +261,12 @@ Given:
 When:
 
 - Header から Deck 一覧への離脱を試み、Keep editing を選択した後、再度離脱して Discard changes を選択する。
+- 離脱確認 dialog で Tab と Shift+Tab による移動を確認し、Escape でも離脱を取り消す。
 
 Then:
 
 - 最初の離脱は取り消され、変更した front text が編集画面に維持される。
+- Tab と Shift+Tab の focus は dialog 内の操作を循環し、Escape では Keep editing と同様に入力を保持したまま dialog を閉じ、離脱を試みた操作へ focus が戻る。
 - 離脱確認 dialog 表示中は、通知が重なっていても dialog の操作を妨げない。
 - dialog 表示中に通知が消えるか置き換わっても、focus は Keep editing に維持される。
 - 2回目の離脱では Deck 一覧へ1回だけ遷移する。

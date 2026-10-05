@@ -2,13 +2,19 @@ import type { User } from "firebase/auth";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getAuthSession, replaceAuthSession } from "@/entities/auth";
 
+type CacheConstraint = { field: string; operator: string; value: string };
+type CacheCollection = { name: string };
+type CacheQuery = { collection: CacheCollection; constraints: CacheConstraint[] };
+
 const control = vi.hoisted(() => ({
   auth: { currentUser: null as User | null },
   observe: undefined as ((user: User | null) => void) | undefined,
+  authError: undefined as ((error: Error) => void) | undefined,
   before: undefined as ((user: User | null) => Promise<void>) | undefined,
   abort: undefined as (() => void) | undefined,
   network: true,
-  pending: false,
+  pendingChanges: [] as { collection: string; uid: string }[],
+  cacheRead: Promise.resolve() as Promise<void>,
   subscribed: "",
   ready: Promise.resolve() as Promise<void>,
   stops: [] as string[],
@@ -16,10 +22,12 @@ const control = vi.hoisted(() => ({
 }));
 vi.mock("@/shared/firebase", () => ({ auth: control.auth, db: {} }));
 vi.mock("firebase/auth", () => ({
-  onIdTokenChanged: (_auth: unknown, callback: (user: User | null) => void) => {
+  onIdTokenChanged: (_auth: unknown, callback: (user: User | null) => void, error: (error: Error) => void) => {
     control.observe = callback;
+    control.authError = error;
     return () => {
       control.observe = undefined;
+      control.authError = undefined;
     };
   },
   beforeAuthStateChanged: (_auth: unknown, callback: (user: User | null) => Promise<void>, abort: () => void) => {
@@ -41,10 +49,24 @@ vi.mock("firebase/firestore", () => ({
     control.network = true;
     return Promise.resolve();
   },
-  collection: vi.fn(),
-  query: vi.fn(),
-  where: vi.fn(),
-  getDocsFromCache: async () => ({ metadata: { hasPendingWrites: control.pending } }),
+  collection: (_db: unknown, name: string): CacheCollection => ({ name }),
+  query: (collection: CacheCollection, ...constraints: CacheConstraint[]): CacheQuery => ({ collection, constraints }),
+  where: (field: string, operator: string, value: string): CacheConstraint => ({ field, operator, value }),
+  getDocsFromCache: async (query: CacheQuery) => {
+    await control.cacheRead;
+    return {
+      metadata: {
+        hasPendingWrites: control.pendingChanges.some(
+          (change) =>
+            change.collection === query.collection.name &&
+            query.constraints.every(
+              (constraint) =>
+                constraint.field === "uid" && constraint.operator === "==" && change.uid === constraint.value
+            )
+        ),
+      },
+    };
+  },
 }));
 vi.mock("../firestore-subscriptions", () => ({
   startFirestoreSubscriptions: (uid: string) => {
@@ -60,7 +82,8 @@ vi.mock("../firestore-subscriptions", () => ({
 }));
 
 import { startAuthSession } from "./lifecycle";
-const user = (uid: string, isAnonymous = true) => ({ uid, isAnonymous, providerData: [] }) as unknown as User;
+const user = (uid: string, isAnonymous = true, displayName: string | null = null) =>
+  ({ uid, isAnonymous, providerData: [{ displayName }] }) as unknown as User;
 let stop: () => void = () => undefined;
 async function publish(value: User | null) {
   control.auth.currentUser = value;
@@ -77,7 +100,8 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   beforeEach(() => {
     control.auth.currentUser = null;
     control.network = false;
-    control.pending = false;
+    control.pendingChanges = [];
+    control.cacheRead = Promise.resolve();
     control.ready = Promise.resolve();
     control.subscribed = "";
     control.stops = [];
@@ -95,19 +119,93 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
   });
   it("enables sync after the same UID is linked", async () => {
     await publish(user("same"));
-    await publish(user("same", false));
+    await publish(user("same", false, "Account Owner"));
     await vi.waitFor(() => expect(control.network).toBe(true));
     expect(control.stops).toEqual(["same"]);
     expect(control.subscribed).toBe("same");
-    expect(getAuthSession()).toMatchObject({ uid: "same", isAnonymous: false });
+    expect(getAuthSession()).toEqual({
+      status: "authenticated",
+      uid: "same",
+      isAnonymous: false,
+      displayName: "Account Owner",
+    });
   });
-  it("blocks signout while restored cache changes are pending", async () => {
+  it("ACCOUNT-03 blocks signout while restored cache changes are pending in all collections", async () => {
     await publish(user("account", false));
-    control.pending = true;
+    control.pendingChanges = ["deck", "card", "studySession", "studyAnswer"].map((collection) => ({
+      collection,
+      uid: "account",
+    }));
     await expect(control.before?.(null)).rejects.toThrow("Sync changes");
     expect(getAuthSession()).toMatchObject({ status: "authenticated", uid: "account" });
     expect(control.subscribed).toBe("account");
+    expect(control.stops).toEqual([]);
+    expect(control.network).toBe(true);
   });
+  it.each(["deck", "card", "studySession", "studyAnswer"])(
+    "ACCOUNT-03 blocks signout when only the current account's %s changes are pending",
+    async (collection) => {
+      await publish(user("account", false, "Account Owner"));
+      control.pendingChanges = [{ collection, uid: "account" }];
+
+      await expect(control.before?.(null)).rejects.toThrow("Sync changes");
+
+      expect(getAuthSession()).toEqual({
+        status: "authenticated",
+        uid: "account",
+        isAnonymous: false,
+        displayName: "Account Owner",
+      });
+      expect(control.auth.currentUser?.uid).toBe("account");
+      expect(control.subscribed).toBe("account");
+      expect(control.stops).toEqual([]);
+      expect(control.network).toBe(true);
+    }
+  );
+  it("ACCOUNT-03 permits signout when cached pending changes belong only to another account", async () => {
+    await publish(user("account", false));
+    control.pendingChanges = ["deck", "card", "studySession", "studyAnswer"].map((collection) => ({
+      collection,
+      uid: "other-account",
+    }));
+
+    await expect(control.before?.(null)).resolves.toBeUndefined();
+
+    expect(control.auth.currentUser?.uid).toBe("account");
+    expect(control.network).toBe(false);
+    expect(control.subscribed).toBe("");
+    expect(control.stops).toEqual(["account"]);
+    expect(getAuthSession().status).toBe("initializing");
+  });
+  it.each(["pending changes", "cache read failure"])(
+    "ACCOUNT-03 closes editing while checking sync and restores the account after %s",
+    async (outcome) => {
+      await publish(user("account", false, "Account Owner"));
+      const cacheRead = Promise.withResolvers<void>();
+      control.cacheRead = cacheRead.promise;
+      control.pendingChanges = [{ collection: "card", uid: "account" }];
+      const expectedError = outcome === "pending changes" ? "Sync changes" : "cache read failed";
+      const authChange = control.before?.(null);
+
+      await vi.waitFor(() => expect(getAuthSession().status).toBe("initializing"));
+      expect(control.subscribed).toBe("account");
+      expect(control.network).toBe(true);
+      expect(control.stops).toEqual([]);
+      if (outcome === "pending changes") cacheRead.resolve();
+      else cacheRead.reject(new Error(expectedError));
+      await expect(authChange).rejects.toThrow(expectedError);
+
+      expect(getAuthSession()).toEqual({
+        status: "authenticated",
+        uid: "account",
+        isAnonymous: false,
+        displayName: "Account Owner",
+      });
+      expect(control.subscribed).toBe("account");
+      expect(control.network).toBe(true);
+      expect(control.stops).toEqual([]);
+    }
+  );
   it("stops networking and old subscriptions before switching identity", async () => {
     await publish(user("account", false));
     await control.before?.(null);
@@ -158,6 +256,46 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     expect(control.network).toBe(false);
     expect(control.subscribed).toBe("");
   });
+  it("ACCOUNT-04 reports the auth observer failure and retains the error after cleanup", () => {
+    const error = new Error("auth observer failed");
+    control.authError?.(error);
+    expect(getAuthSession()).toEqual({ status: "error", source: "auth", error });
+
+    stop();
+
+    expect(getAuthSession()).toEqual({ status: "error", source: "auth", error });
+  });
+  it.each(["success", "failure"])(
+    "ACCOUNT-04 prevents a delayed subscription startup %s from publishing after cleanup",
+    async (outcome) => {
+      const ready = Promise.withResolvers<void>();
+      control.ready = ready.promise;
+      control.auth.currentUser = user("account", false);
+      control.observe?.(control.auth.currentUser);
+      await vi.waitFor(() => expect(control.subscribed).toBe("account"));
+
+      stop();
+      expect(getAuthSession()).toEqual({ status: "initializing" });
+      expect(control.subscribed).toBe("");
+      expect(control.stops).toEqual(["account"]);
+      if (outcome === "success") ready.resolve();
+      else ready.reject(new Error("late subscription failure"));
+      await ready.promise.catch(() => undefined);
+      await Promise.resolve();
+
+      expect(getAuthSession()).toEqual({ status: "initializing" });
+      expect(control.subscribed).toBe("");
+    }
+  );
+  it("ACCOUNT-03 returns a successful authenticated lifecycle to initialization after cleanup", async () => {
+    await publish(user("account", false));
+
+    stop();
+
+    expect(getAuthSession()).toEqual({ status: "initializing" });
+    expect(control.subscribed).toBe("");
+    expect(control.stops).toEqual(["account"]);
+  });
   it("restores the current account after a later auth callback aborts the switch", async () => {
     await publish(user("account", false));
     await control.before?.(null);
@@ -185,5 +323,7 @@ describe("Authentication and sync lifecycle [ACCOUNT-01 ACCOUNT-03 ACCOUNT-04 PE
     );
     const session = getAuthSession();
     expect(session.status === "error" && session.error).toBe(cause);
+    stop();
+    expect(getAuthSession()).toEqual(session);
   });
 });

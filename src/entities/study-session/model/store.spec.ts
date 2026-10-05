@@ -9,7 +9,7 @@ import { deleteApp, getApp } from "firebase/app";
 import { Timestamp, type QuerySnapshot } from "firebase/firestore";
 import { subscribeStudyHistory, subscribeStudySessions } from "../api/firestore";
 import { applyStudySessionSnapshot } from "./store";
-import { useRemoteStudySessionsLoading } from "./hooks";
+import { useRemoteStudySessionsLoading, useStudySession, useStudySessions } from "./hooks";
 import { startStudy, restoreStudySession } from "@/test/utils/entityFixtures";
 import { clearStudySessions, getStudySession, setStudySessionOwner, studySessionStore } from "./store";
 
@@ -88,6 +88,73 @@ describe("study store [STUDY-SESSION-01] [STUDY-ACTIONS-04]", () => {
     expect(getStudySession("deck-1")).toBeUndefined();
     expect(getStudySession("deck-2")).toEqual(retained);
   });
+
+  it.each([
+    ["uid-a", true, true],
+    ["uid-b", false, true],
+    [undefined, false, false],
+  ] as const)(
+    "[UNIT-STORE-STUDY-04] preserves only the new owner's sessions and loading state (owner=%s)",
+    async (ownerUid, retained, loading) => {
+      const expected = [
+        {
+          sessionId: "session-a",
+          deckId: "deck-a",
+          cardOrderIds: ["a3", "a1", "a2"],
+          currentIndex: 1,
+          lastStudiedAt: 300,
+          remote: { uid: "uid-a", startedAt: 100, createdAt: 100 },
+        },
+        {
+          sessionId: "session-b",
+          deckId: "deck-b",
+          cardOrderIds: ["b2", "b1"],
+          currentIndex: 0,
+          lastStudiedAt: 500,
+          remote: { uid: "uid-a", startedAt: 200, createdAt: 200 },
+        },
+      ];
+      onTestFinished(subscribeStudySessions("uid-a", vi.fn()));
+      const listener = await currentListener();
+      listener.next({
+        metadata: { fromCache: false, hasPendingWrites: false },
+        docs: expected.map((session) => ({
+          id: session.sessionId,
+          data: () => ({
+            uid: "uid-a",
+            deckId: session.deckId,
+            cardOrderIds: session.cardOrderIds,
+            currentIndex: session.currentIndex,
+            lastStudiedAt: session.lastStudiedAt,
+            startedAt: Timestamp.fromMillis(session.remote.startedAt),
+            createdAt: Timestamp.fromMillis(session.remote.createdAt),
+            updatedAt: Timestamp.fromMillis(600),
+            endedAt: null,
+            endReason: null,
+          }),
+        })),
+      } as unknown as QuerySnapshot);
+      const sessions = { "deck-a": expected[0], "deck-b": expected[1] };
+      const { result } = renderHook(() => ({
+        sessions: useStudySessions(),
+        deckA: useStudySession("deck-a"),
+        deckB: useStudySession("deck-b"),
+        loading: useRemoteStudySessionsLoading(),
+      }));
+      expect(result.current).toEqual({ sessions, deckA: expected[0], deckB: expected[1], loading: false });
+
+      act(() => setStudySessionOwner(ownerUid));
+
+      expect(result.current).toEqual({
+        sessions: retained ? sessions : {},
+        deckA: retained ? expected[0] : undefined,
+        deckB: retained ? expected[1] : undefined,
+        loading,
+      });
+      expect(getStudySession("deck-a")).toEqual(retained ? expected[0] : undefined);
+      expect(getStudySession("deck-b")).toEqual(retained ? expected[1] : undefined);
+    }
+  );
 
   it("clears the visible session without deleting the legacy backup", () => {
     localStorage.setItem(STUDY_STORAGE_KEY, "legacy backup");

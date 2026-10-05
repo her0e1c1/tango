@@ -220,7 +220,102 @@ describe("CARD-TAG-MANAGEMENT-01 CARD-TAG-MANAGEMENT-03 CardFields tag input", (
   });
 });
 
+describe("CARD-TAG-MANAGEMENT-01 CardFields tag save boundary", () => {
+  it("preserves the tag and text drafts on Enter until the Card is explicitly saved", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<FormHarness onSubmit={onSubmit} />);
+    const front = screen.getByRole("textbox", { name: "Front text" });
+    await user.clear(front);
+    await user.type(front, "Updated front");
+    await user.click(screen.getByRole("tab", { name: "Back" }));
+    const back = screen.getByRole("textbox", { name: "Back text" });
+    await user.clear(back);
+    await user.type(back, "Updated back");
+    await user.click(screen.getByRole("button", { name: "Edit tags" }));
+    const dialog = screen.getByRole("dialog", { name: "Select tags" });
+    const tagName = within(dialog).getByRole("textbox", { name: "Tag name 1" });
+    await user.clear(tagName);
+    await user.type(tagName, "renamed");
+
+    await user.keyboard("{Enter}");
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(dialog).toBeVisible();
+    expect(tagName).toHaveFocus();
+    expect(tagName).toHaveValue("renamed");
+    expect(within(dialog).getByRole("textbox", { name: "Tag name 2" })).toHaveValue("custom");
+    await user.click(within(dialog).getByRole("button", { name: "Close tag editor" }));
+    expect(screen.getByRole("button", { name: "Edit tags" })).toHaveAccessibleDescription("renamed, custom");
+    expect(back).toHaveValue("Updated back");
+    await user.click(screen.getByRole("tab", { name: "Front" }));
+    expect(front).toHaveValue("Updated front");
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(onSubmit).toHaveBeenCalledExactlyOnceWith({
+      frontText: "Updated front",
+      backText: "Updated back",
+      tags: ["renamed", "custom"],
+    });
+  });
+});
+
 describe("CARD-MANAGEMENT-10 CardFields validation", () => {
+  it("shows both tab errors and clears only the corrected side before saving valid drafts", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<FormHarness onSubmit={onSubmit} />);
+    const frontTab = screen.getByRole("tab", { name: "Front" });
+    const backTab = screen.getByRole("tab", { name: "Back" });
+    expect(within(frontTab).queryByText("●")).not.toBeInTheDocument();
+    expect(within(backTab).queryByText("●")).not.toBeInTheDocument();
+    const front = screen.getByRole("textbox", { name: "Front text" });
+    await user.clear(front);
+    await user.click(backTab);
+    const back = screen.getByRole("textbox", { name: "Back text" });
+    await user.clear(back);
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("Front text is required.")).toBeVisible();
+    expect(within(frontTab).getByText("●")).toBeVisible();
+    expect(within(backTab).getByText("●")).toBeVisible();
+    expect(frontTab).toHaveAccessibleDescription("Front text is required.");
+    expect(backTab).toHaveAccessibleDescription("Back text is required.");
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    await user.type(front, "Corrected front");
+
+    expect(within(frontTab).queryByText("●")).not.toBeInTheDocument();
+    expect(frontTab).not.toHaveAccessibleDescription();
+    expect(within(backTab).getByText("●")).toBeVisible();
+    expect(backTab).toHaveAccessibleDescription("Back text is required.");
+    await user.click(backTab);
+    expect(back).toHaveValue("");
+    expect(back).toHaveAccessibleDescription("Back text is required.");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    await user.type(back, "Corrected back");
+
+    expect(within(backTab).queryByText("●")).not.toBeInTheDocument();
+    expect(backTab).not.toHaveAccessibleDescription();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).toHaveBeenCalledExactlyOnceWith({
+      frontText: "Corrected front",
+      backText: "Corrected back",
+      tags: ["language", "custom"],
+    });
+    expect(backTab).toHaveAttribute("aria-selected", "true");
+    expect(back).toBeVisible();
+    expect(back).toHaveValue("Corrected back");
+    await user.click(frontTab);
+    expect(front).toBeVisible();
+    expect(front).toHaveValue("Corrected front");
+  });
+
   it("reveals and focuses an invalid Back while preserving the valid Front", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();

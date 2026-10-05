@@ -1,4 +1,11 @@
-import { createEmptyCard, fsrs as createScheduler, Rating, State, type Card as FsrsCard } from "ts-fsrs";
+import {
+  computeDecayFactor,
+  createEmptyCard,
+  fsrs as createScheduler,
+  Rating,
+  State,
+  type Card as FsrsCard,
+} from "ts-fsrs";
 import type { StudyRating } from "@/entities/study-answer/@x/card";
 import { instantSchema, fsrsStateSchema } from "./schema";
 import type { FsrsState } from "./types";
@@ -52,9 +59,10 @@ export function classifyFsrsState(
   fsrs: FsrsState | null,
   now: number
 ): { status: "new" } | { status: "due" | "future"; dueAt: number } {
+  const at = instantSchema.parse(now);
   if (fsrs === null) return { status: "new" };
   const { dueAt } = fsrsStateSchema.parse(fsrs);
-  return { status: dueAt <= now ? "due" : "future", dueAt };
+  return { status: dueAt <= at ? "due" : "future", dueAt };
 }
 
 export const studyRetentionTarget = scheduler.parameters.request_retention;
@@ -63,5 +71,7 @@ export function getStudyRetrievability(schedule: FsrsState, at: number): number 
   const saved = fsrsStateSchema.parse(schedule);
   // Preserve fractional days so memory strength changes continuously between reviews.
   const elapsedDays = Math.max(0, instantSchema.parse(at) - saved.lastReviewedAt) / 86_400_000;
-  return scheduler.forgetting_curve(elapsedDays, saved.stability);
+  const { decay, factor } = computeDecayFactor(scheduler.parameters.w);
+  // The library rounds probabilities to eight decimals, obscuring changes at millisecond boundaries.
+  return (1 + (factor * elapsedDays) / saved.stability) ** decay;
 }

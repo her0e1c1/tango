@@ -92,7 +92,7 @@ Then:
 
 <a id="unit-store-study-04"></a>
 
-### UNIT-STORE-STUDY-04 [TODO] 所有者を変更したら一致しない学習の続きを提供しない
+### UNIT-STORE-STUDY-04 所有者を変更したら一致しない学習の続きを提供しない
 
 カテゴリ: `scope-reset`
 

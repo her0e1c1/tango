@@ -14,20 +14,29 @@ const session: StudySession = {
   remote: { uid: "uid", startedAt: 0 },
 };
 
-describe("study card selection [STUDY-SESSION-01]", () => {
+describe("study card selection [STUDY-SESSION-01] [NAVIGATION-17] [NAVIGATION-18]", () => {
   const filter = { selectedTags: ["selected"], tagAndFilter: false };
   const due = calculateFsrsState(null, "good", 0);
   const card = { ...createCard({ id: "due", tags: ["selected"] }), fsrs: due };
   it.each([true, false])("applies tags and deadlines with interval=%s", (useInterval) => {
     const cards = [
       card,
+      { ...card, id: "future-latest", fsrs: { ...due, dueAt: due.dueAt + 30 } },
       { ...card, id: "new", fsrs: null },
       { ...card, id: "other-tag", tags: ["other"] },
-      { ...card, id: "future", fsrs: { ...due, dueAt: due.dueAt + 1 } },
+      { ...card, id: "other-tag-future", tags: ["other"], fsrs: { ...due, dueAt: due.dueAt + 1 } },
+      { ...card, id: "future-earliest", fsrs: { ...due, dueAt: due.dueAt + 10 } },
+      { ...card, id: "future-middle", fsrs: { ...due, dueAt: due.dueAt + 20 } },
     ];
+    const before = structuredClone(cards);
+
     const selected = selectStudyCardsWithDeadline(cards, filter, useInterval, due.dueAt);
-    expect(selected.cards.map(({ id }) => id)).toEqual(useInterval ? ["due", "new"] : ["due", "new", "future"]);
-    expect(selected.nextDueAt).toBe(useInterval ? due.dueAt + 1 : undefined);
+
+    expect(selected.cards.map(({ id }) => id)).toEqual(
+      useInterval ? ["due", "new"] : ["due", "future-latest", "new", "future-earliest", "future-middle"]
+    );
+    expect(selected.nextDueAt).toBe(useInterval ? due.dueAt + 10 : undefined);
+    expect(cards).toEqual(before);
   });
   it("rejects malformed FSRS state instead of classifying it as new", () => {
     expect(() =>

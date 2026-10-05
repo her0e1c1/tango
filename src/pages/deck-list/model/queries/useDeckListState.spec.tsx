@@ -3,7 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { replaceAuthSession } from "@/entities/auth";
-import { createCard } from "@/entities/card";
+import { calculateFsrsState, createCard, editCard } from "@/entities/card";
 import { createDeck, deleteDeck } from "@/entities/deck";
 import { updatePreferences } from "@/entities/preference";
 import { clearStudySessions } from "@/entities/study-session";
@@ -80,6 +80,21 @@ describe("NAVIGATION-06 STUDY-SESSION-03 useDeckListState", () => {
     expect(sections.rawCount).toBe(4);
     expect(sections.visibleCount).toBe(4);
     expect(sections.emptyReason).toBeUndefined();
+  });
+
+  it("NAVIGATION-17 orders overdue Decks by each Deck's earliest saved deadline", async () => {
+    const schedule = calculateFsrsState(null, "good", 0);
+    await Promise.all([
+      editCard("user-id", { id: "other-z-1", fsrs: { ...schedule, dueAt: 500 } }),
+      editCard("user-id", { id: "other-z-2", fsrs: { ...schedule, dueAt: 900 } }),
+      editCard("user-id", { id: "other-a-1", fsrs: { ...schedule, dueAt: 700 } }),
+    ]);
+    updatePreferences({ study: { useCardInterval: true } });
+    vi.setSystemTime(1000);
+
+    const { result } = renderHook(useDeckListState);
+    expect(result.current.reviewNow.map(({ deck }) => deck.id)).toEqual(["other-z", "other-a"]);
+    expect(result.current.reviewNow.map(({ review }) => review?.due)).toEqual([2, 1]);
   });
 
   it("derives emptyReason across checking, error, confirmed-empty, and deck-present states", async () => {

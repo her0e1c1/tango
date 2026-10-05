@@ -57,7 +57,7 @@ Then:
 Given:
 
 - Fixture: [`empty`](./fixture/empty.yaml)
-- 必須の uniqueKey が空の行を含む CSV がある。
+- 必須の uniqueKey が空の行を含む CSV と、必須の4列に足りない行を含む CSV を、それぞれ独立した入力例として用意する。
 - CSV に対応する Deck と Card はまだ存在しない。
 
 When:
@@ -67,6 +67,7 @@ When:
 Then:
 
 - 不正な行と理由が入力エラーとして画面内に表示される。
+- 必須列に足りない行を正常な Card へ補完せず、不正な行数に数える。
 - Import 操作は無効のままになる。
 - Deck と Card は追加されない。
 

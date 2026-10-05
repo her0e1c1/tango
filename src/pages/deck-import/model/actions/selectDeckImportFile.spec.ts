@@ -83,6 +83,37 @@ describe("Deck import selection and saving [DECK-IMPORT-01 DECK-IMPORT-03 DECK-I
     await expect(importDeckPreview()).resolves.toBe(true);
   });
 
+  it.each(["success", "failure"])(
+    "discards a file read that finishes with %s after changing accounts",
+    async (outcome) => {
+      const previous = file("previous-account.csv");
+      const bytes = await previous.arrayBuffer();
+      const pending = Promise.withResolvers<ArrayBuffer>();
+      Object.defineProperty(previous, "arrayBuffer", { value: () => pending.promise });
+
+      const selection = selectDeckImportFile(previous);
+      expect(deckImportStore.getState().status).toBe("validating");
+      vi.mocked(getAuthUid).mockReturnValue("next-user");
+      if (outcome === "failure") pending.reject(new Error("Previous account's file could not be read"));
+      else pending.resolve(bytes);
+      await selection;
+
+      expect(deckImportStore.getState()).toMatchObject({ status: "idle", source: { kind: "empty" } });
+      await expect(importDeckPreview()).resolves.toBe(false);
+      expect(createDeck).not.toHaveBeenCalled();
+      expect(createCard).not.toHaveBeenCalled();
+
+      await selectDeckImportFile(file("new-account.csv"));
+      expect(deckImportStore.getState()).toMatchObject({
+        status: "idle",
+        source: { kind: "selected", preview: { deckName: "new-account.csv" } },
+      });
+      await expect(importDeckPreview()).resolves.toBe(true);
+      expect(createDeck).toHaveBeenCalledWith("next-user", expect.objectContaining({ name: "new-account.csv" }));
+      expect(createCard).toHaveBeenCalledWith("next-user", expect.objectContaining({ frontText: "front" }));
+    }
+  );
+
   it("imports using the anonymous UID", async () => {
     vi.mocked(getAuthUid).mockReturnValue("anonymous-uid");
     vi.mocked(generateId).mockReset().mockReturnValueOnce("local-deck").mockReturnValue("local-card");

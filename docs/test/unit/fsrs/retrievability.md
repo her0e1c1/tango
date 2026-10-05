@@ -17,7 +17,7 @@
 
 <a id="unit-fsrs-retrievability-01"></a>
 
-### UNIT-FSRS-RETRIEVABILITY-01 [TODO] 最終評価以前の有効な時刻では想起確率を1とする
+### UNIT-FSRS-RETRIEVABILITY-01 最終評価以前の有効な時刻では想起確率を1とする
 
 カテゴリ: `read`
 
@@ -40,7 +40,7 @@ Then:
 
 <a id="unit-fsrs-retrievability-02"></a>
 
-### UNIT-FSRS-RETRIEVABILITY-02 [TODO] 1日未満の経過時間も想起確率に反映する
+### UNIT-FSRS-RETRIEVABILITY-02 1日未満の経過時間も想起確率に反映する
 
 カテゴリ: `read`
 
@@ -64,7 +64,7 @@ Then:
 
 <a id="unit-fsrs-retrievability-03"></a>
 
-### UNIT-FSRS-RETRIEVABILITY-03 [TODO] 安定性に対応する90%の想起確率を返す
+### UNIT-FSRS-RETRIEVABILITY-03 安定性に対応する90%の想起確率を返す
 
 カテゴリ: `read`
 
@@ -87,7 +87,7 @@ Then:
 
 <a id="unit-fsrs-retrievability-04"></a>
 
-### UNIT-FSRS-RETRIEVABILITY-04 [TODO] 不正な状態や計算時刻を正常な確率に読み替えない
+### UNIT-FSRS-RETRIEVABILITY-04 不正な状態や計算時刻を正常な確率に読み替えない
 
 カテゴリ: `read`
 

@@ -196,27 +196,40 @@ test.describe("import", () => {
     expect(await documentsForUid("card", uid)).toEqual([]);
   });
 
-  test("DECK-IMPORT-02 Invalid CSV rows block persistence", async ({ fixture, page, namespace }) => {
-    const { uid } = fixture.user();
-    await fixture.apply(page);
-    await page.goto("/import");
-    await page
-      .getByLabel("Upload a csv file")
-      .setInputFiles(
-        csvFile(`${namespace.id("invalid")}.csv`, [
-          `"valid front","valid back","","${namespace.id("valid-key")}"`,
-          '"invalid front","invalid back","tag",""',
-        ])
-      );
+  for (const invalid of [
+    {
+      name: "Blank unique keys",
+      row: '"invalid front","invalid back","tag",""',
+      message: "Unique key is required.",
+    },
+    {
+      name: "Three-column rows",
+      row: '"invalid front","invalid back","key"',
+      message: "Expected 4 columns, found 3.",
+    },
+  ]) {
+    test(`DECK-IMPORT-02 ${invalid.name} block persistence`, async ({ fixture, page, namespace }) => {
+      const { uid } = fixture.user();
+      await fixture.apply(page);
+      await page.goto("/import");
+      await page
+        .getByLabel("Upload a csv file")
+        .setInputFiles(
+          csvFile(`${namespace.id("invalid")}.csv`, [
+            `"valid front","valid back","","${namespace.id("valid-key")}"`,
+            invalid.row,
+          ])
+        );
 
-    const validation = page.getByRole("alert");
-    await expect(validation).toContainText("Row 2");
-    await expect(validation).toContainText("Unique key is required.");
-    await expect(page.getByText("1 invalid")).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Add \d+ cards?$/u })).toBeDisabled();
-    expect(await documentsForUid("deck", uid)).toEqual([]);
-    expect(await documentsForUid("card", uid)).toEqual([]);
-  });
+      const validation = page.getByRole("alert");
+      await expect(validation).toContainText("Row 2");
+      await expect(validation).toContainText(invalid.message);
+      await expect(page.getByText("1 invalid")).toBeVisible();
+      await expect(page.getByRole("button", { name: /^Add \d+ cards?$/u })).toBeDisabled();
+      expect(await documentsForUid("deck", uid)).toEqual([]);
+      expect(await documentsForUid("card", uid)).toEqual([]);
+    });
+  }
 
   test("DECK-IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, namespace }) => {
     const { uid } = fixture.user();

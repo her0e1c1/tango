@@ -57,12 +57,31 @@ test.describe("card-resilience", () => {
     const frontText = page.getByRole("textbox", { name: "Front text" });
     await frontText.fill(unsavedFrontText);
 
-    await page.getByRole("button", { name: "tango" }).click();
+    const leaveTrigger = page.getByRole("button", { name: "tango", exact: true });
+    await leaveTrigger.click();
     const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
-    await dialog.getByRole("button", { name: "Keep editing" }).click();
+    const keepEditing = dialog.getByRole("button", { name: "Keep editing" });
+    const discardChanges = dialog.getByRole("button", { name: "Discard changes" });
+    await expect(keepEditing).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(discardChanges).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(keepEditing).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(discardChanges).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(keepEditing).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(page).toHaveURL(`/card/${card.id}/edit`);
     await expect(frontText).toHaveValue(unsavedFrontText);
-    await page.getByRole("button", { name: "tango" }).click();
-    await dialog.getByRole("button", { name: "Discard changes" }).click();
+    await expect(leaveTrigger).toBeFocused();
+
+    await leaveTrigger.click();
+    await keepEditing.click();
+    await expect(frontText).toHaveValue(unsavedFrontText);
+    await leaveTrigger.click();
+    await discardChanges.click();
 
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole("button", { name: `Open cards in ${deck.name}` })).toBeVisible();
@@ -577,7 +596,13 @@ test.describe("card", () => {
     await page.getByRole("textbox", { name: "Back text" }).fill("");
     await page.getByRole("button", { name: "Save changes" }).click();
 
-    await expect(page.getByRole("tab", { name: "Front", exact: true })).toHaveAttribute("aria-selected", "true");
+    const frontTab = page.getByRole("tab", { name: "Front", exact: true });
+    const backTab = page.getByRole("tab", { name: "Back", exact: true });
+    await expect(frontTab).toHaveAttribute("aria-selected", "true");
+    await expect(frontTab.getByText("●", { exact: true })).toBeVisible();
+    await expect(backTab.getByText("●", { exact: true })).toBeVisible();
+    await expect(frontTab).toHaveAccessibleDescription("Front text is required.");
+    await expect(backTab).toHaveAccessibleDescription("Back text is required.");
     await expect(page.getByRole("textbox", { name: "Front text" })).toBeFocused();
     await expect(page.getByText("Front text is required.")).toBeVisible();
     await page.getByRole("tab", { name: "Back", exact: true }).click();
