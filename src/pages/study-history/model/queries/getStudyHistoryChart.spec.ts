@@ -71,6 +71,51 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 study history chart", () => {
   });
 
   it.each([
+    { length: 31, bucketSize: 1 },
+    { length: 32, bucketSize: 7 },
+    { length: 180, bucketSize: 7 },
+    { length: 181, bucketSize: 30 },
+    { length: 366, bucketSize: 30 },
+  ])("groups the $length-day range into $bucketSize-day intervals", ({ length, bucketSize }) => {
+    const days = emptyDays("2026-01-03", length).map((day) => ({ ...day, started: 1, completed: 2 }));
+
+    const chart = getStudyHistoryChart(days);
+
+    expect(chart.bucketSize).toBe(bucketSize);
+    expect(chart.buckets).toEqual(
+      Array.from({ length: Math.ceil(length / bucketSize) }, (_, index) => {
+        const first = index * bucketSize;
+        const last = Math.min(first + bucketSize, length) - 1;
+        const count = last - first + 1;
+        return { date: days[first]!.date, endDate: days[last]!.date, started: count, completed: count * 2 };
+      })
+    );
+  });
+
+  it.each([367, 768, 1000])("covers the entire %i-day range in at most 24 intervals", (length) => {
+    const days = emptyDays("2026-01-03", length).map((day) => ({ ...day, started: 1, completed: 2 }));
+
+    const chart = getStudyHistoryChart(days);
+
+    expect(chart.buckets.length).toBeGreaterThan(0);
+    expect(chart.buckets.length).toBeLessThanOrEqual(24);
+    let nextDay = 0;
+    for (const interval of chart.buckets) {
+      const lastDay = days.findIndex((day) => day.date === interval.endDate);
+      expect(lastDay).toBeGreaterThanOrEqual(nextDay);
+      const count = lastDay - nextDay + 1;
+      expect(interval).toEqual({
+        date: days[nextDay]!.date,
+        endDate: days[lastDay]!.date,
+        started: count,
+        completed: count * 2,
+      });
+      nextDay = lastDay + 1;
+    }
+    expect(nextDay).toBe(length);
+  });
+
+  it.each([
     {
       preset: 7,
       start: "2026-03-25",
