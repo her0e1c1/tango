@@ -89,26 +89,26 @@ Vitest unit tests detect each change:
 
 ```bash
 mise run test-mutation
-# Limit a run to a changed module.
-mise run test-mutation -- --mutate src/entities/study-session/model/rules.ts
-# Check instrumentation and the initial test run without testing individual mutants.
-mise run test-mutation -- --dryRunOnly
+# Reuse a previous local report.
+mise run test-mutation -- --incremental
 ```
 
-Mutation testing covers `src/**/*.{ts,tsx}`; specs, stories, and declaration files are excluded.
-It uses the unit suite with two test runners and does not run Storybook, Playwright, Firestore integration,
-or sample Python tests. The task builds the sample data needed by unit tests before starting Stryker.
-After that build, `npm run test:mutation -- --mutate <path>` also supports focused runs.
+Mutation testing uses the unit suite and covers application TypeScript files, excluding specs, stories, and
+declarations. It runs separately from `mise run check`. Scores below 80% are reported without failing the command
+(`thresholds.break: 0`). Actions emits a warning below 80%; execution and configuration errors still fail.
 
-Open `coverage/mutation/index.html` to inspect surviving mutants and uncovered code. The machine-readable report
-is `coverage/mutation/mutation.json`. A mutation score below 80% fails the command; 80% or higher passes.
-The failing threshold is configured in `stryker.config.json` under `thresholds.break`.
-Mutation testing runs separately from `mise run check` because it reruns tests for individual code changes.
-Full runs can take substantially longer when mutations affect module initialization; use `--mutate` for routine
-feedback on changed modules. The **Mutation testing** GitHub Actions workflow runs independently on pushes to `main`,
-and supports manual dispatch with an optional `mutate` file pattern. PR checks do not run mutation testing,
-and deployment does not wait for its result.
-Both reports are uploaded as an artifact even when the mutation score fails the threshold.
+The **Mutation testing** workflow runs only by manual dispatch on `main`. It forces a full run and saves a baseline.
+The **PR mutation testing** workflow uses StrykerJS's standard [incremental mode](https://stryker-mutator.io/docs/stryker-js/incremental/).
+It restores only a retained baseline from a successful manual `main` run at the PR's exact base SHA. Without that
+baseline, or without application/unit-test file changes, it skips with a reason before installing dependencies.
+PR reports are saved for inspection and never used as trusted baselines. Both workflows use read-only permissions
+and do not persist checkout credentials.
+
+Incremental mode reuses previous mutant results and detects code/test changes; it is not a strict changed-line
+selection and still needs the initial unit-test run. Dependency, configuration, and environment changes are not
+automatically detected; refresh the baseline manually when needed. A local incremental run without a report starts
+a full run. HTML, JSON, and incremental reports live under the Git-ignored `coverage/mutation/` and are saved in
+Actions artifacts.
 
 ### E2E Test
 
