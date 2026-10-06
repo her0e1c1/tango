@@ -7,6 +7,8 @@ export default mergeConfig(
   defineConfig({
     test: {
       name: "unit",
+      // Avoid appending a GitHub test summary for every mutant run.
+      reporters: ["default"],
       globals: true,
       setupFiles: ["./test/setup.ts"],
       include: ["src/**/*.spec.{ts,tsx}", "*.spec.{ts,tsx}"],
