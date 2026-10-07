@@ -41,7 +41,7 @@ Then:
 
 - 登録タグ `tags` は入力に含まれていても新たに保存されない。
 
-- サーバー上に指定した ID・UID・name と既定の Deck 設定を保存する。難易度範囲は `1`〜`10`、`deletedAt` は `null` である。
+- サーバー上に指定した ID・UID・name と既定の Deck 設定を保存する。`isPublic` は `false`、`category` は空文字列、`convertToBr` は `false`、`deletedAt` は `null` である。
 - `createdAt` は数値、`updatedAt` はサーバー確定 Timestamp であり、document が存在する。
 - `localMode`、`currentIndex`、`cardOrderIds` は保存しない。
 
