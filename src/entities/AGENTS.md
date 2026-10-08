@@ -28,8 +28,8 @@
 - Create this file only when multiple consumers share the types.
 - Do not split identical shapes into boundary-specific aliases.
 - Use type-only import declarations and type-only re-exports in this file.
-- Reuse existing domain types through type-only imports, including cross-slice `@x` contracts. Use Zod inference when a schema already defines the type instead of duplicating its shape.
-- Document every declared field with an English specification comment, including nested fields and union members. Explain its meaning, constraints, units, and omitted/null/default semantics where applicable. Schema-inferred, mapped, and utility types may reuse fields documented at their definitions.
+- Define shared Entity model types explicitly without importing or inferring them from runtime schemas. Reuse existing domain types through type-only imports, including cross-slice `@x` contracts.
+- Document every declared field with an English specification comment, including nested fields and union members. Explain its meaning, constraints, units, and omitted/null/default semantics where applicable. Mapped and utility types may reuse fields documented at their definitions.
 - Keep these contracts aligned with runtime schemas without weakening validation.
 
 ## `model/rules.ts`
