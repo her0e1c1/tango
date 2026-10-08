@@ -110,6 +110,37 @@ automatically detected; refresh the baseline manually when needed. A local incre
 a full run. HTML, JSON, and incremental reports live under the Git-ignored `coverage/mutation/` and are saved in
 Actions artifacts.
 
+### Complexity measurements
+
+```bash
+npm run complexity
+npm run complexity -- src/pages/card-edit
+# Save only the JSON report (without npm's script banner).
+npm run --silent complexity > /tmp/tango-complexity.json
+```
+
+This optional command uses existing analysis tools and does not enforce limits or run in CI.
+The default scope is all TypeScript and TSX files in `src`, including specs and stories;
+arguments select files or directories. It does not apply the application's lint configuration or inline suppressions.
+
+- **CC**: [ESLint's classic cyclomatic complexity](https://eslint.org/docs/latest/rules/complexity),
+  reported per function (including callbacks and implicit class initialization functions) in native messages.
+  This is independent of Biome's existing Cognitive Complexity limit introduced by #536.
+- **Nesting**: [ESLint's `max-depth`](https://eslint.org/docs/latest/rules/max-depth) reports each counted
+  control block's positive depth at its source location. Function boundaries reset depth; `else if` does not
+  add a level. These are block measurements, not a per-function maximum or JSX/lexical nesting inventory.
+  Functions without counted blocks have no depth diagnostic.
+- **Dependencies**: [Madge](https://github.com/pahen/madge) supplies distinct resolved direct local module
+  dependencies per file, including re-exports, type imports, and statically resolvable dynamic imports.
+  It uses `tsconfig.json` aliases and follows dependencies beyond selected directories. The count excludes
+  npm packages and unresolved imports; inspect `dependencyWarnings` for skipped paths or resolution errors.
+  It is a count of the reported edges, not a guarantee of complete runtime dependencies.
+- **Call targets**: `null` with an explanation. These tools do not resolve function call targets;
+  module dependency counts are not substituted for function fan-out.
+
+The report preserves ESLint messages and locations rather than implementing a custom parser. Measurement
+warnings exit successfully; ESLint errors, missing targets, and tool failures exit unsuccessfully.
+
 ### E2E Test
 
 Playwright runs the browser-level acceptance suite documented in `docs/test/e2e/`. `mise run e2e` starts isolated

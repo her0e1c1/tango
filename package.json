@@ -7,6 +7,7 @@
     "node": ">=24.15.0 <25"
   },
   "scripts": {
+    "complexity": "node scripts/complexity.mjs",
     "start": "vite dev",
     "build": "vite build",
     "build:sample": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base",
@@ -115,6 +116,7 @@
     "firebase-tools": "^15.32.0",
     "jsdom": "^29.1.1",
     "knip": "^6.32.1",
+    "madge": "8.0.0",
     "markdownlint-cli2": "^0.23.3",
     "postcss": "^8.5.26",
     "steiger": "^0.7.0",
