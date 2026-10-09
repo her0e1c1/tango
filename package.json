@@ -116,7 +116,7 @@
     "jsdom": "^29.1.1",
     "knip": "^6.32.1",
     "markdownlint-cli2": "^0.23.3",
-    "postcss": "^8.5.26",
+    "postcss": "^8.5.29",
     "steiger": "^0.7.0",
     "storybook": "^10.5.10",
     "typescript": "^5.9.3",
