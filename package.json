@@ -30,6 +30,7 @@
     "lint": "npm run lint:tsc && npm run lint:eslint && npm run lint:biome && npm run lint:fsd && npm run lint:knip && npm run lint:test-specs && npm run lint:markdown",
     "lint:biome": "biome lint --error-on-warnings .",
     "lint:madge": "madge --extensions ts,tsx --ts-config tsconfig.json --warning src",
+    "lint:madge:circular": "madge --extensions ts,tsx --ts-config tsconfig.json --warning --circular src",
     "lint:test-specs": "node scripts/lint-test-specs.ts",
     "lint:eslint": "eslint --max-warnings=0 'src/**/*.{ts,tsx}' 'test/integration/**/*.{spec,test}.{ts,tsx}' 'test/integration/storybook/**/*.{ts,tsx}' 'test/e2e/**/*.{ts,tsx}' playwright.config.ts",
     "lint:fsd": "steiger ./src",

@@ -116,13 +116,16 @@ Actions artifacts.
 npm run lint:madge
 npm run --silent lint:madge -- --json > /tmp/tango-dependencies.json
 npm run lint:madge -- --summary
+npm run lint:madge:circular
 ```
 
 [Madge](https://github.com/pahen/madge) directly lists local module dependencies from `src` TS/TSX files,
 including specs, stories and type imports, using `tsconfig.json` aliases. It follows imports beyond `src`;
 npm packages and unresolved imports are excluded. `--summary` shows dependency counts and skipped-file warnings;
-`--json` outputs the graph without warnings. CI logs the summary without enforcing dependency-count or cycle
-limits; tool failures still fail. The command is separate from `npm run lint` and does not measure function
+`--json` outputs the graph without warnings. CI logs the summary without enforcing dependency-count limits,
+then runs `lint:madge:circular`: zero detected cycles succeeds; any detected cycle fails. Tool failures also
+fail, and skipped-file warnings remain visible; unresolved imports are outside the cycle check. These commands
+are separate from `npm run lint` and do not measure function
 complexity or call targets. See [#1892](https://github.com/her0e1c1/tango/issues/1892) for the initial metric
 research; this command implements only file dependencies.
 

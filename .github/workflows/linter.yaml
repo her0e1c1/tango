@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       lightweight:
-        description: Report dependencies and check Markdown and test specifications
+        description: Report dependencies, check cycles, Markdown and test specifications
         type: boolean
         default: false
   workflow_dispatch:
@@ -32,6 +32,9 @@ jobs:
       - name: Report module dependencies with Madge
         # Report counts without introducing quality thresholds; tool execution failures remain visible.
         run: npm run lint:madge -- --summary
+
+      - name: Reject circular module dependencies
+        run: npm run lint:madge:circular
 
       - name: Check Markdown and test specifications
         if: ${{ inputs.lightweight }}
