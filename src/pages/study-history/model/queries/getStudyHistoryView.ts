@@ -13,31 +13,30 @@ export function getStudyHistoryView(
   // Authentication becomes ready only after the current UID's Deck cache snapshot has loaded.
   const visibleDecks = decks.filter((deck) => deck.uid === uid);
   const selectedDecks = visibleDecks.filter((deck) => deckId === null || deck.id === deckId);
-  const { result } = state;
+  const { result, period } = state;
+  const { started, completed } = result ?? {};
   let status = "ready";
-  if (state.period === null) status = "invalidRange";
+  if (period === null) status = "invalidRange";
   else if (uid === "") status = "loading";
   else if (deckId !== null && selectedDecks.length === 0) status = "unavailable";
   else if (result?.error) status = "error";
-  else if (!result?.started || !result.completed) status = "loading";
-  const summary =
-    status === "ready" && result?.started && result.completed && state.period
-      ? aggregateStudyHistory(
-          state.period,
-          result.started.records,
-          result.completed.records,
-          new Set(selectedDecks.map((deck) => deck.id))
-        )
-      : null;
+  else if (!started || !completed) status = "loading";
+  const fromCache = Boolean(started?.fromCache || completed?.fromCache);
+  if (status !== "ready" || !started || !completed || !period) {
+    return { decks: visibleDecks, status, fromCache, recentSessions: [], summary: null, chart: null };
+  }
+  const summary = aggregateStudyHistory(
+    period,
+    started.records,
+    completed.records,
+    new Set(selectedDecks.map((deck) => deck.id))
+  );
   return {
     decks: visibleDecks,
     status,
-    fromCache: Boolean(result?.started?.fromCache || result?.completed?.fromCache),
-    recentSessions:
-      status === "ready" && result?.started && result.completed && state.period
-        ? getRecentStudySessions(state.period, result.started.records, result.completed.records, selectedDecks)
-        : [],
+    fromCache,
+    recentSessions: getRecentStudySessions(period, started.records, completed.records, selectedDecks),
     summary,
-    chart: summary ? getStudyHistoryChart(summary.days) : null,
+    chart: getStudyHistoryChart(summary.days),
   };
 }

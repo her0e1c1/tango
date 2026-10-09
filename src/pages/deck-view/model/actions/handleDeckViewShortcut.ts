@@ -7,8 +7,8 @@ import { flipCard } from "./flipCard";
 import { moveCard } from "./moveCard";
 import { toggleAutoPlay } from "./toggleAutoPlay";
 
-export function handleDeckViewShortcut(event: KeyboardEvent, cards: readonly Card[]): "boundary" | undefined {
-  if (
+function shouldIgnoreDeckViewShortcut(event: KeyboardEvent, cards: readonly Card[]): boolean {
+  return (
     event.altKey ||
     event.ctrlKey ||
     event.metaKey ||
@@ -16,8 +16,11 @@ export function handleDeckViewShortcut(event: KeyboardEvent, cards: readonly Car
     deckViewStore.getState().helpOpen ||
     cards.length === 0 ||
     shouldIgnoreCardShortcut(event)
-  )
-    return;
+  );
+}
+
+export function handleDeckViewShortcut(event: KeyboardEvent, cards: readonly Card[]): "boundary" | undefined {
+  if (shouldIgnoreDeckViewShortcut(event, cards)) return;
   const state = deckViewStore.getState();
   const card = getDeckViewPosition(cards, state.cardId).card;
   const showBackText = card !== undefined && card.id === state.cardId && state.showBackText;

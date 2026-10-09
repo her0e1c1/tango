@@ -5,9 +5,7 @@ import { getAuthUid } from "@/entities/auth";
 import { getStudySession, writeStudySessionPosition, type StudySession } from "@/entities/study-session";
 import { studyOperationSchema, type StudyOperation } from "../studyOperation";
 
-export async function saveStudyOperation(input: StudyOperation, session: StudySession) {
-  const operation = studyOperationSchema.parse(input);
-  if (operation.uid === "" || getAuthUid() !== operation.uid) throw new Error("Study user changed");
+function assertMatchingStudySession(operation: StudyOperation, session: StudySession): void {
   const current = getStudySession(operation.deckId);
   if (
     current?.sessionId !== session.sessionId ||
@@ -20,6 +18,12 @@ export async function saveStudyOperation(input: StudyOperation, session: StudySe
     session.cardOrderIds.length !== operation.cardCount
   )
     throw new Error("Study session does not match");
+}
+
+export async function saveStudyOperation(input: StudyOperation, session: StudySession) {
+  const operation = studyOperationSchema.parse(input);
+  if (operation.uid === "" || getAuthUid() !== operation.uid) throw new Error("Study user changed");
+  assertMatchingStudySession(operation, session);
   const card = getCards().find(({ id }) => id === operation.cardId);
   const deck = getDecks().find(({ id }) => id === operation.deckId);
   if (card?.uid !== operation.uid || deck?.uid !== operation.uid || card.deckId !== deck.id || card.deletedAt !== null)

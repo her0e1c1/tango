@@ -75,7 +75,7 @@ export function StudyHistoryPage() {
             <Button onClick={model.retry}>{t("studyHistory.retry")}</Button>
           </div>
         )}
-        {model.summary !== null && model.chart !== null && (
+        {model.summary !== null && (
           <>
             {model.fromCache ? <p className="text-caption text-ink-muted">{t("studyHistory.cacheHelp")}</p> : null}
             <StudyHistorySummary
