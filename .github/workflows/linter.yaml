@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       lightweight:
-        description: Run only Markdown and test-specification checks
+        description: Report dependencies and check Markdown and test specifications
         type: boolean
         default: false
   workflow_dispatch:
