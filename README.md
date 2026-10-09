@@ -115,31 +115,20 @@ Actions artifacts.
 ```bash
 npm run complexity
 npm run complexity -- src/pages/card-edit
-# Save only the JSON report (without npm's script banner).
 npm run --silent complexity > /tmp/tango-complexity.json
 ```
 
-This optional command uses existing analysis tools and does not enforce limits or run in CI.
-The default scope is all TypeScript and TSX files in `src`, including specs and stories;
-arguments select files or directories. It does not apply the application's lint configuration or inline suppressions.
+This optional JSON report defaults to all `src` TS/TSX files, including specs and stories; arguments select files
+or directories. It does not enforce limits or run in CI.
 
-- **CC**: [ESLint's classic cyclomatic complexity](https://eslint.org/docs/latest/rules/complexity),
-  reported per function (including callbacks and implicit class initialization functions) in native messages.
-  This is independent of Biome's existing Cognitive Complexity limit introduced by #536.
-- **Nesting**: [ESLint's `max-depth`](https://eslint.org/docs/latest/rules/max-depth) reports each counted
-  control block's positive depth at its source location. Function boundaries reset depth; `else if` does not
-  add a level. These are block measurements, not a per-function maximum or JSX/lexical nesting inventory.
-  Functions without counted blocks have no depth diagnostic.
-- **Dependencies**: [Madge](https://github.com/pahen/madge) supplies distinct resolved direct local module
-  dependencies per file, including re-exports, type imports, and statically resolvable dynamic imports.
-  It uses `tsconfig.json` aliases and follows dependencies beyond selected directories. The count excludes
-  npm packages and unresolved imports; inspect `dependencyWarnings` for skipped paths or resolution errors.
-  It is a count of the reported edges, not a guarantee of complete runtime dependencies.
-- **Call targets**: `null` with an explanation. These tools do not resolve function call targets;
-  module dependency counts are not substituted for function fan-out.
+ESLint reports classic CC per function and positive control-block depths, not per-function maximum or JSX depth.
+Cognitive Complexity remains in the existing Biome lint (#536). Madge counts distinct resolved direct local
+dependencies, including type imports, and follows imports beyond selected directories. Npm and unresolved imports
+are excluded: inspect `dependencyWarnings`. Function call targets are unavailable (`callTargets: null`).
 
-The report preserves ESLint messages and locations rather than implementing a custom parser. Measurement
-warnings exit successfully; ESLint errors, missing targets, and tool failures exit unsuccessfully.
+Measurement warnings succeed; invalid targets, syntax errors and tool failures fail. Use the numbers as review
+clues, not a quality score. See [#1892](https://github.com/her0e1c1/tango/issues/1892#issuecomment-6072078141)
+for definitions, tool selection and limitations.
 
 ### E2E Test
 
