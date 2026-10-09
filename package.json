@@ -112,7 +112,7 @@
     "eslint-plugin-storybook": "^10.6.1",
     "eslint-plugin-testing-library": "^7.16.2",
     "fake-indexeddb": "^6.2.5",
-    "firebase-tools": "^15.32.0",
+    "firebase-tools": "^15.32.1",
     "jsdom": "^29.1.1",
     "knip": "^6.40.0",
     "markdownlint-cli2": "^0.23.3",
