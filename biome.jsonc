@@ -26,7 +26,7 @@
     }
   },
   "linter": {
-    "includes": ["**", "!**/*.spec.ts", "!**/*.tsx"],
+    "includes": ["**", "!**/*.spec.{ts,tsx}"],
     "rules": {
       "preset": "all",
       // Exceptions preserve established test, orchestration, and fire-and-forget conventions.
@@ -173,6 +173,46 @@
           "style": {
             "noCommonJs": "off",
             "noProcessEnv": "off"
+          }
+        }
+      }
+    },
+    {
+      // TSX gains only Cognitive Complexity; presets do not reset explicitly inherited rules.
+      "includes": ["**/*.tsx"],
+      "linter": {
+        "rules": {
+          "preset": "none",
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "error",
+            "noExcessiveLinesPerFunction": "off"
+          },
+          "correctness": {
+            "noUndeclaredDependencies": "off"
+          },
+          "nursery": {
+            "noFloatingPromises": "off",
+            "noMisusedPromises": "off",
+            "useAwaitThenable": "off",
+            "useExhaustiveSwitchCases": "off",
+            "noPlaywrightMissingAwait": "off",
+            "noPlaywrightWaitForTimeout": "off",
+            "noPlaywrightForceOption": "off",
+            "noConditionalExpect": "off"
+          },
+          "security": {
+            "noSecrets": "off"
+          },
+          "style": {
+            "useFilenamingConvention": "off",
+            "useNamingConvention": "off"
+          },
+          "suspicious": {
+            "noDeprecatedImports": "off",
+            "noImportCycles": "off",
+            "noLeakedRender": "off",
+            "noSkippedTests": "off",
+            "noUnnecessaryConditions": "off"
           }
         }
       }
