@@ -38,6 +38,7 @@ jobs:
             typescript:
               - '**/*.ts'
               - '**/*.tsx'
+              - 'eslint.config.mjs'
 
   dependency-review:
     name: Dependency Review

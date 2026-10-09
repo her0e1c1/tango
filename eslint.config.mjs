@@ -53,7 +53,7 @@ export default defineConfig(
       parser: tsParser,
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
     },
-    rules: { "max-depth": "error" },
+    rules: { complexity: "error", "max-depth": "error" },
   },
   // Hook correctness and React Compiler compatibility must hold in production, tests, and stories alike.
   {
