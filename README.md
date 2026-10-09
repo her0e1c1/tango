@@ -123,7 +123,8 @@ including specs, stories and type imports, using `tsconfig.json` aliases. It fol
 npm packages and unresolved imports are excluded. `--summary` shows dependency counts and skipped-file warnings;
 `--json` outputs the graph without warnings. CI logs the summary without enforcing dependency-count or cycle
 limits; tool failures still fail. The command is separate from `npm run lint` and does not measure function
-complexity or call targets. See [#1892](https://github.com/her0e1c1/tango/issues/1892) for research.
+complexity or call targets. See [#1892](https://github.com/her0e1c1/tango/issues/1892) for the initial metric
+research; this command implements only file dependencies.
 
 ### E2E Test
 
