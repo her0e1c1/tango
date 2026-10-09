@@ -49,6 +49,7 @@ export default defineConfig(
   { linterOptions: { noInlineConfig: true } },
   {
     files: [...sourceFiles, ...vitestFiles, ...playwrightFiles, ...integrationStoryFiles],
+    rules: { complexity: "error" },
     languageOptions: {
       parser: tsParser,
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
