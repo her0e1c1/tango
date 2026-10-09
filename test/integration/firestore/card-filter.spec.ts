@@ -48,10 +48,11 @@ async function seed(cardFilter?: CardFilter) {
   await createDeck(uid, {
     id,
     name: "Browse deck",
-    url: "https://example.com/deck",
     studyFilter: { selectedTags: ["study-a"], tagAndFilter: true },
     ...(cardFilter === undefined ? {} : { cardFilter }),
   });
+  // Seed a retired field directly so filter edits still prove preservation of legacy data.
+  await updateDoc(doc(testDb, "deck", id), { url: "https://example.com/deck", updatedAt: serverTimestamp() });
   await saved(id);
   await vi.waitFor(() => {
     if (JSON.stringify(filter(id)) !== JSON.stringify(cardFilter ?? empty))

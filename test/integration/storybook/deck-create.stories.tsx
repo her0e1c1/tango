@@ -21,26 +21,12 @@ export const Inputs: Story = {
     });
     await step("STORYBOOK-DECK-FORM-02 Preserve hidden import formatting inputs", async () => {
       await userEvent.click(canvas.getByText(/More settings/));
-      await userEvent.type(canvas.getByRole("textbox", { name: "Source URL" }), "https://example.com/deck.csv");
       await userEvent.click(canvas.getByRole("checkbox", { name: "Convert line breaks" }));
       await userEvent.click(canvas.getByText(/More settings/));
-      await expect(canvas.getByRole("textbox", { name: "Source URL" })).not.toBeVisible();
+      await expect(canvas.getByRole("checkbox", { name: "Convert line breaks", hidden: true })).not.toBeVisible();
       await userEvent.click(canvas.getByText(/More settings/));
-      await expect(canvas.getByRole("textbox", { name: "Source URL" })).toHaveValue("https://example.com/deck.csv");
       await expect(canvas.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
-    });
-  },
-};
-export const InvalidUrl: Story = {
-  play: async ({ canvas, userEvent, step }) => {
-    await step("STORYBOOK-DECK-FORM-03 Reveal an invalid source URL on submit", async () => {
-      await userEvent.type(await canvas.findByRole("textbox", { name: "Name" }), "New deck");
-      await userEvent.click(canvas.getByText(/More settings/));
-      await userEvent.type(canvas.getByRole("textbox", { name: "Source URL" }), "invalid");
-      await userEvent.click(canvas.getByRole("button", { name: "Create deck" }));
-      await expect(await canvas.findByText("Enter a valid URL.")).toBeVisible();
-      await expect(canvas.getByRole("textbox", { name: "Source URL" })).toHaveAttribute("aria-invalid", "true");
-      await expect(canvas.queryByText(/Created deck/)).not.toBeInTheDocument();
+      await expect(canvas.queryByLabelText("Source URL", { exact: true })).not.toBeInTheDocument();
     });
   },
 };

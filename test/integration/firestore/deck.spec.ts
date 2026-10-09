@@ -14,9 +14,12 @@ import {
   waitForPendingWrites,
   type DocumentReference,
   getFirestore,
+  getDocFromServer,
+  updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { createCard as createCardCommand } from "@/entities/card";
-import { createDeck, deleteDeck, editDeck } from "@/entities/deck/api/firestore";
+import { createDeck, deleteDeck, editDeck, subscribeDecks, getDecks, clearRemoteDecks } from "@/entities/deck";
 import * as Uuid from "uuid";
 import { createCard, createDeck as createDeckFixture, createRemoteDeckInput } from "@/test/factories";
 
@@ -53,9 +56,10 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       name: "new deck name",
 
       tags: ["obsolete"],
+      url: "https://example.com/retired",
       currentIndex: 1,
       cardOrderIds: ["card-1"],
-    } satisfies RemoteDeckCreateInput & { currentIndex: number; cardOrderIds: string[]; tags: string[] };
+    } satisfies RemoteDeckCreateInput & { currentIndex: number; cardOrderIds: string[]; tags: string[]; url: string };
     await createDeck("uid", d);
     const data = (await getDoc(doc(db, "deck", d.id))).data();
     expect(data).toEqual({
@@ -64,6 +68,7 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
       createdAt: expect.any(Number),
       updatedAt: expect.any(Timestamp),
     });
+    expect(data).not.toHaveProperty("url");
     expect(data).not.toHaveProperty("tags");
     expect(data).not.toHaveProperty("localMode");
     expect(data).not.toHaveProperty("currentIndex");
@@ -93,20 +98,43 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
-  it("[FIRESTORE-DECK-03] preserves an omitted URL and removes a cleared URL", async () => {
-    const deck = createRemoteDeckInput({
-      id: uuid(),
-      name: newDeck.name,
-      url: "https://example.com/deck",
-    });
-    await createDeck("uid", deck);
-
-    await editDeck("uid", { id: deck.id, name: "updated" });
-    expect((await getDoc(doc(db, "deck", deck.id))).data()).toMatchObject({ url: deck.url });
-
-    await editDeck("uid", { id: deck.id, url: null });
-    expect((await getDoc(doc(db, "deck", deck.id))).data()).not.toHaveProperty("url");
-  });
+  it.sequential.each([undefined, "https://example.com/deck", "not-a-url", null, 42])(
+    "[FIRESTORE-DECK-03] ignores retired URL %s while preserving its stored value through edits",
+    async (url) => {
+      clearRemoteDecks();
+      const deck = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
+      await createDeck("uid", deck);
+      const reference = doc(db, "deck", deck.id);
+      // Only the test seeds retired fields; the application must never write them.
+      if (url !== undefined) await updateDoc(reference, { url, updatedAt: serverTimestamp() });
+      const before = (await getDocFromServer(reference)).data();
+      const errors: Error[] = [];
+      const unsubscribe = subscribeDecks("uid", (error) => errors.push(error));
+      try {
+        await vi.waitFor(() => {
+          expect(getDecks().find((value) => value.id === deck.id)).toMatchObject({ name: deck.name });
+        });
+        expect(getDecks().find((value) => value.id === deck.id)).not.toHaveProperty("url");
+        for (const ignoredUrl of [null, "https://example.com/replacement"]) {
+          const input = { id: deck.id, name: "updated", category: "math", url: ignoredUrl };
+          await editDeck("uid", input);
+          const saved = (await getDocFromServer(reference)).data();
+          expect(saved).toEqual({ ...before, name: "updated", category: "math", updatedAt: expect.any(Timestamp) });
+          await vi.waitFor(() => {
+            expect(getDecks().find((value) => value.id === deck.id)).toMatchObject({
+              name: "updated",
+              category: "math",
+            });
+          });
+          expect(getDecks().find((value) => value.id === deck.id)).not.toHaveProperty("url");
+        }
+        expect(errors).toEqual([]);
+      } finally {
+        unsubscribe();
+        clearRemoteDecks();
+      }
+    }
+  );
 
   it("[FIRESTORE-DECK-04] tombstones the parent without rewriting child documents", async () => {
     const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });

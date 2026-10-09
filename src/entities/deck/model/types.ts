@@ -16,8 +16,6 @@ export type Deck = {
   id: DeckId;
   /** Human-readable label shown wherever a Deck is selected or summarized. */
   name: string;
-  /** Optional source location retained for Decks whose content originates from an external resource. */
-  url?: string | undefined;
   /** Whether the Deck is marked for public visibility; local Decks normally keep this disabled. */
   isPublic: boolean;
   /** Conditions used to select Cards when starting a study session. */
@@ -42,8 +40,6 @@ export type RemoteDeckCreateInput = {
   id: DeckId;
   /** Deck label; validation trims whitespace and requires a non-empty value. */
   name: string;
-  /** Optional source URL; when supplied, it must be a valid URL. */
-  url?: string | undefined;
   /** Public visibility; omitted or undefined defaults to false. */
   isPublic?: boolean | undefined;
   /** Optional study conditions; an unset filter does not restrict Cards by tag. */

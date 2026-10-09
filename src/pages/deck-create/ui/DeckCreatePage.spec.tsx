@@ -92,12 +92,11 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     mocks.setDarkMode.mockReset();
   });
 
-  it("creates a remote empty Deck with source settings and opens its Card list under Strict Mode", async () => {
+  it("creates a remote empty Deck with formatting settings and opens its Card list under Strict Mode", async () => {
     renderPage(true);
     await userEvent.click(screen.getByText("More settings"));
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "New deck");
-    await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "https://example.com/deck.csv");
     await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
@@ -107,7 +106,6 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
       name: "New deck",
       category: "",
       convertToBr: true,
-      url: "https://example.com/deck.csv",
     });
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
     expect(screen.getByText("Created deck “New deck”.")).toBeVisible();
@@ -119,7 +117,6 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     await userEvent.click(screen.getByText("More settings"));
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Local deck");
-    await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "https://example.com/local.csv");
     await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
@@ -129,7 +126,6 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
       name: "Local deck",
       category: "",
       convertToBr: true,
-      url: "https://example.com/local.csv",
     });
   });
 
@@ -148,9 +144,11 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     );
   });
 
-  it("omits an empty optional source URL from the create input", async () => {
+  it("creates a Deck without a source URL control or save input", async () => {
     renderPage();
 
+    await userEvent.click(screen.getByText("More settings"));
+    expect(screen.queryByLabelText("Source URL", { exact: true })).not.toBeInTheDocument();
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "No source deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
@@ -169,19 +167,16 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     await userEvent.click(screen.getByText("More settings"));
     const name = screen.getByRole("textbox", { name: "Name" });
     const category = screen.getByRole("combobox");
-    const sourceUrl = screen.getByRole("textbox", { name: "Source URL" });
     const convertLineBreaks = screen.getByRole("checkbox", { name: "Convert line breaks" });
 
     await userEvent.type(name, "Failed deck");
     await userEvent.selectOptions(category, "typescript");
-    await userEvent.type(sourceUrl, "https://example.com/failed.csv");
     await userEvent.click(convertLineBreaks);
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
     expect(await screen.findByText("Unable to create this deck.")).toBeVisible();
     expect(name).toHaveValue("Failed deck");
     expect(category).toHaveValue("typescript");
-    expect(sourceUrl).toHaveValue("https://example.com/failed.csv");
     expect(convertLineBreaks).toBeChecked();
     expect(mocks.generateId).toHaveBeenCalledOnce();
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
@@ -190,7 +185,6 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
       name: "Failed deck",
       category: "typescript",
       convertToBr: true,
-      url: "https://example.com/failed.csv",
     });
   });
 

@@ -15,7 +15,7 @@ Deck の公開された保存操作を通して、作成・部分更新・論理
 | --- | --- | --- | --- |
 | FIRESTORE-DECK-01 | write | 正常系 | [Deck の保存対象だけを新規作成できる](#firestore-deck-01) |
 | FIRESTORE-DECK-02 | write | 正常系 | [Deck の編集で作成日時と対象外フィールドを維持できる](#firestore-deck-02) |
-| FIRESTORE-DECK-03 | write | 正常系 | [URL の省略と明示的なクリアを区別できる](#firestore-deck-03) |
+| FIRESTORE-DECK-03 | write | 正常系 | [廃止した URL を無視し保存済み値を保持する](#firestore-deck-03) |
 | FIRESTORE-DECK-04 | batch | 正常系 | [Deck を論理削除して子 Card の保存内容を保持する](#firestore-deck-04) |
 | FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](#firestore-deck-05) |
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06) |
@@ -43,7 +43,7 @@ Then:
 
 - サーバー上に指定した ID・UID・name と既定の Deck 設定を保存する。`isPublic` は `false`、`category` は空文字列、`convertToBr` は `false`、`deletedAt` は `null` である。
 - `createdAt` は数値、`updatedAt` はサーバー確定 Timestamp であり、document が存在する。
-- `localMode`、`currentIndex`、`cardOrderIds` は保存しない。
+- `url`、`localMode`、`currentIndex`、`cardOrderIds` は入力に含まれていても保存しない。
 
 <a id="firestore-deck-02"></a>
 
@@ -70,7 +70,7 @@ Then:
 
 <a id="firestore-deck-03"></a>
 
-### FIRESTORE-DECK-03 [TODO] URL の省略と明示的なクリアを区別できる
+### FIRESTORE-DECK-03 廃止した URL を無視し保存済み値を保持する
 
 カテゴリ: `write`
 
@@ -78,21 +78,25 @@ Then:
 
 Given:
 
-- 本人の Deck に URL `https://example.com/deck` が保存されている。
-- 次の入力を、それぞれ同じ保存済み状態から独立して確認する。
+- 本人の Deck に、次のいずれかの旧 `url` フィールドが保存されている。各状態は独立して確認する。
 
-| 編集入力 | 保存後の URL |
+| 保存済み URL | 編集後の保存済み URL |
 | --- | --- |
-| name だけを変更し、URL を指定しない | 保存済みの URL を維持する |
-| `url: null` を指定する | `url` フィールドが存在しない |
+| フィールドなし | フィールドなし |
+| `https://example.com/deck` | 元の文字列 |
+| `not-a-url` | 元の文字列 |
+| `null` | `null` |
+| `42` | `42` |
 
 When:
 
-- 対象の編集入力を公開された Deck の編集操作で保存する。
+- Deck を購読し、名前とカテゴリを編集する。
+- 編集入力に旧 `url: null`、続いて別の URL 文字列を追加して保存する。
 
 Then:
 
-- サーバー上の URL は表の結果となり、省略を削除要求として扱わない。
+- 購読で取得する Deck に URL は含まれず、旧値の形式を理由に読取を拒否しない。
+- 編集した名前とカテゴリを取得でき、サーバー上の旧 URL は表のとおり保持される。旧 URL 入力を削除や変更の要求として扱わない。
 
 <a id="firestore-deck-04"></a>
 

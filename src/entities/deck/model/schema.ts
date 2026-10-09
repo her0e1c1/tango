@@ -13,8 +13,6 @@ export const cardFilterSchema = z.object({
 const editableDeckFieldsSchema = z.object({
   /** Deck label; validation trims whitespace and requires a non-empty value. */
   name: z.string().trim().min(1, "Deck name is required."),
-  /** Optional source URL; when supplied, it must be a valid URL. */
-  url: z.url("Enter a valid URL.").optional(),
   /** Whether the Deck is marked for public visibility. */
   isPublic: z.boolean(),
   /** Optional conditions for selecting Cards at study start; an unset filter does not restrict Cards by tag. */
@@ -30,7 +28,6 @@ const editableDeckFieldsSchema = z.object({
 export const deckFormSchema = editableDeckFieldsSchema.pick({
   name: true,
   category: true,
-  url: true,
   convertToBr: true,
 });
 
@@ -49,7 +46,6 @@ export const deckCreateSchema = deckCreateFieldsSchema;
 
 export const deckEditSchema = editableDeckFieldsSchema.partial().extend({
   id: deckIdSchema,
-  url: editableDeckFieldsSchema.shape.url.nullable(),
 });
 
 export const createDeckSchema = z.object({ uid: authenticatedUidSchema, deck: deckCreateSchema });

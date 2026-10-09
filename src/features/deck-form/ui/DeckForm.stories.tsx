@@ -38,11 +38,10 @@ const DeckFormStory = ({ deck, isSaving, mode, validationError, onCancel, onDele
   const form = useForm<DeckFormFields>({
     defaultValues:
       mode === "create"
-        ? { name: "", category: "", url: undefined, convertToBr: false }
+        ? { name: "", category: "", convertToBr: false }
         : {
             name: deck.name,
             category: deck.category,
-            url: deck.url ?? undefined,
             convertToBr: deck.convertToBr,
           },
   });
@@ -50,7 +49,6 @@ const DeckFormStory = ({ deck, isSaving, mode, validationError, onCancel, onDele
   useEffect(() => {
     if (validationError) {
       form.setError("name", { type: "too_small", message: "Deck name is required." });
-      form.setError("url", { message: "Enter a valid URL." });
     }
     if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();
   }, [form, isSaving, validationError]);
@@ -79,7 +77,6 @@ const DeckFormStory = ({ deck, isSaving, mode, validationError, onCancel, onDele
 
 const longDeck = {
   ...fixture.deck.tooLongName,
-  url: `https://example.com/${"deeply-nested/".repeat(12)}deck.csv`,
 };
 
 const meta = {
@@ -103,15 +100,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Create: Story = {};
 export const Edit: Story = { args: { mode: "edit" } };
-export const ValidationError: Story = {
-  args: { validationError: true },
-  play: async ({ canvas, step }) => {
-    await step("STORYBOOK-DECK-FORM-03 Show validation errors", async () => {
-      await expect(canvas.getByRole("textbox", { name: "Source URL" })).toBeVisible();
-      await expect(canvas.getByText("Enter a valid URL.")).toBeVisible();
-    });
-  },
-};
+export const ValidationError: Story = { args: { validationError: true } };
 export const Creating: Story = { args: { isSaving: true } };
 export const Saving: Story = { args: { mode: "edit", isSaving: true } };
 export const LongContent: Story = { args: { mode: "edit", deck: longDeck } };
@@ -129,18 +118,14 @@ export const Interaction: Story = {
 
     await step("STORYBOOK-DECK-FORM-02 Preserve advanced settings", async () => {
       await userEvent.click(canvas.getByText("More settings"));
-      const sourceUrl = canvas.getByRole("textbox", { name: "Source URL" });
-      await userEvent.type(sourceUrl, "https://example.com/deck.csv");
-      await expect(sourceUrl).toHaveValue("https://example.com/deck.csv");
 
       const convertLineBreaks = canvas.getByRole("checkbox", { name: "Convert line breaks" });
       await userEvent.click(convertLineBreaks);
       await expect(convertLineBreaks).toBeChecked();
 
       await userEvent.click(canvas.getByText("More settings"));
-      await expect(sourceUrl).not.toBeVisible();
+      await expect(convertLineBreaks).not.toBeVisible();
       await userEvent.click(canvas.getByText("More settings"));
-      await expect(sourceUrl).toHaveValue("https://example.com/deck.csv");
       await expect(convertLineBreaks).toBeChecked();
     });
   },
