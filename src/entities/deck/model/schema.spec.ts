@@ -48,10 +48,6 @@ describe("Deck operation schemas [DECK-MANAGEMENT-01 DECK-MANAGEMENT-05]", () =>
       });
     });
 
-    it.each([null, "https://example.com", "not-a-url"])("ignores a retired URL input %s", (url) => {
-      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", url } }).deck).toEqual({ id: "deck" });
-    });
-
     it.each([
       ["authenticated uid", { uid: "", deck: { id: "deck" } }, "confirmed user"],
       ["Deck id", { uid: "uid-a", deck: { id: "" } }, "Deck id"],

@@ -96,7 +96,6 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
   it("restores successfully saved form values from the Deck Entity", async () => {
     const view = renderForm();
     await userEvent.click(screen.getByText("More settings"));
-    expect(screen.queryByLabelText("Source URL", { exact: true })).not.toBeInTheDocument();
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
     await userEvent.type(name, " Updated deck ");

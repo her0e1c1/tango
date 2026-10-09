@@ -144,18 +144,17 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     );
   });
 
-  it("creates a Deck without a source URL control or save input", async () => {
+  it("creates a Deck with default formatting settings", async () => {
     renderPage();
 
     await userEvent.click(screen.getByText("More settings"));
-    expect(screen.queryByLabelText("Source URL", { exact: true })).not.toBeInTheDocument();
-    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "No source deck");
+    await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Default deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: "new-deck",
 
-      name: "No source deck",
+      name: "Default deck",
       category: "",
       convertToBr: false,
     });

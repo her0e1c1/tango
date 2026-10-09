@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | FIRESTORE-DECK-01 | write | 正常系 | [Deck の保存対象だけを新規作成できる](./deck.md#firestore-deck-01) |
 | FIRESTORE-DECK-02 | write | 正常系 | [Deck の編集で作成日時と対象外フィールドを維持できる](./deck.md#firestore-deck-02) |
-| FIRESTORE-DECK-03 | write | 正常系 | [廃止した URL を無視し保存済み値を保持する](./deck.md#firestore-deck-03) |
+| FIRESTORE-DECK-03 | write | 正常系 | [部分編集を保存して設定を購読へ反映する](./deck.md#firestore-deck-03) |
 | FIRESTORE-DECK-04 | batch | 正常系 | [Deck を論理削除して子 Card の保存内容を保持する](./deck.md#firestore-deck-04) |
 | FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](./deck.md#firestore-deck-05) |
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](./deck.md#firestore-deck-06) |

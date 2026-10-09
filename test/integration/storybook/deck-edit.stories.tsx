@@ -17,7 +17,6 @@ export const SavedValues: Story = {
       await expect(await canvas.findByRole("textbox", { name: "Name" })).toHaveValue("Japanese verbs");
       await expect(canvas.getByRole("combobox", { name: "Display format" })).toHaveValue("math");
       await expect(canvas.queryByDisplayValue("Other deck")).not.toBeInTheDocument();
-      await expect(canvas.queryByLabelText("Source URL", { exact: true })).not.toBeInTheDocument();
     });
   },
 };

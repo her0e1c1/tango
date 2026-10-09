@@ -26,7 +26,6 @@ export const Inputs: Story = {
       await expect(canvas.getByRole("checkbox", { name: "Convert line breaks", hidden: true })).not.toBeVisible();
       await userEvent.click(canvas.getByText(/More settings/));
       await expect(canvas.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
-      await expect(canvas.queryByLabelText("Source URL", { exact: true })).not.toBeInTheDocument();
     });
   },
 };

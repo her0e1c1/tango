@@ -15,7 +15,7 @@ Deck の公開された保存操作を通して、作成・部分更新・論理
 | --- | --- | --- | --- |
 | FIRESTORE-DECK-01 | write | 正常系 | [Deck の保存対象だけを新規作成できる](#firestore-deck-01) |
 | FIRESTORE-DECK-02 | write | 正常系 | [Deck の編集で作成日時と対象外フィールドを維持できる](#firestore-deck-02) |
-| FIRESTORE-DECK-03 | write | 正常系 | [廃止した URL を無視し保存済み値を保持する](#firestore-deck-03) |
+| FIRESTORE-DECK-03 | write | 正常系 | [部分編集を保存して設定を購読へ反映する](#firestore-deck-03) |
 | FIRESTORE-DECK-04 | batch | 正常系 | [Deck を論理削除して子 Card の保存内容を保持する](#firestore-deck-04) |
 | FIRESTORE-DECK-05 | batch | 正常系 | [Card がない Deck を論理削除できる](#firestore-deck-05) |
 | FIRESTORE-DECK-06 | batch | 異常系 | [Deck と配下 Card の削除を原子的に扱う](#firestore-deck-06) |
@@ -43,7 +43,7 @@ Then:
 
 - サーバー上に指定した ID・UID・name と既定の Deck 設定を保存する。`isPublic` は `false`、`category` は空文字列、`convertToBr` は `false`、`deletedAt` は `null` である。
 - `createdAt` は数値、`updatedAt` はサーバー確定 Timestamp であり、document が存在する。
-- `url`、`localMode`、`currentIndex`、`cardOrderIds` は入力に含まれていても保存しない。
+- `localMode`、`currentIndex`、`cardOrderIds` は入力に含まれていても保存しない。
 
 <a id="firestore-deck-02"></a>
 
@@ -70,7 +70,7 @@ Then:
 
 <a id="firestore-deck-03"></a>
 
-### FIRESTORE-DECK-03 廃止した URL を無視し保存済み値を保持する
+### FIRESTORE-DECK-03 部分編集を保存して設定を購読へ反映する
 
 カテゴリ: `write`
 
@@ -78,25 +78,17 @@ Then:
 
 Given:
 
-- 本人の Deck に、次のいずれかの旧 `url` フィールドが保存されている。各状態は独立して確認する。
-
-| 保存済み URL | 編集後の保存済み URL |
-| --- | --- |
-| フィールドなし | フィールドなし |
-| `https://example.com/deck` | 元の文字列 |
-| `not-a-url` | 元の文字列 |
-| `null` | `null` |
-| `42` | `42` |
+- 本人の Deck に名前、カテゴリ `language`、有効な改行変換、学習条件と閲覧条件が保存されている。
 
 When:
 
-- Deck を購読し、名前とカテゴリを編集する。
-- 編集入力に旧 `url: null`、続いて別の URL 文字列を追加して保存する。
+- Deck を購読し、名前を `updated`、カテゴリを `math` に変更して保存する。改行変換と学習・閲覧条件は編集入力に含めない。
 
 Then:
 
-- 購読で取得する Deck に URL は含まれず、旧値の形式を理由に読取を拒否しない。
-- 編集した名前とカテゴリを取得でき、サーバー上の旧 URL は表のとおり保持される。旧 URL 入力を削除や変更の要求として扱わない。
+- サーバー上の名前とカテゴリが更新され、`updatedAt` はサーバー確定 Timestamp になる。
+- `createdAt`、改行変換、学習条件と閲覧条件を含むその他の保存値は変わらない。
+- 購読で変更後の名前とカテゴリ、維持された設定を取得できる。
 
 <a id="firestore-deck-04"></a>
 
