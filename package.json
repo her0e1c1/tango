@@ -76,7 +76,7 @@
   },
   "devDependencies": {
     "@babel/core": "^8.0.6",
-    "@biomejs/biome": "2.5.14",
+    "@biomejs/biome": "2.5.15",
     "@feature-sliced/steiger-plugin": "^0.8.0",
     "@firebase/auth": "^1.13.6",
     "@firebase/firestore": "^4.17.2",
