@@ -178,41 +178,28 @@
       }
     },
     {
-      // TSX gains only Cognitive Complexity; presets do not reset explicitly inherited rules.
+      // Enable recommended TSX checks without broad refactoring of established UI and Storybook patterns.
       "includes": ["**/*.tsx"],
       "linter": {
         "rules": {
-          "preset": "none",
+          "preset": "recommended",
           "complexity": {
             "noExcessiveCognitiveComplexity": "error",
             "noExcessiveLinesPerFunction": "off"
           },
-          "correctness": {
-            "noUndeclaredDependencies": "off"
-          },
           "nursery": {
-            "noFloatingPromises": "off",
-            "noMisusedPromises": "off",
-            "useAwaitThenable": "off",
-            "useExhaustiveSwitchCases": "off",
-            "noPlaywrightMissingAwait": "off",
-            "noPlaywrightWaitForTimeout": "off",
-            "noPlaywrightForceOption": "off",
-            "noConditionalExpect": "off"
+            "useAwaitThenable": "off"
           },
           "security": {
             "noSecrets": "off"
           },
           "style": {
-            "useFilenamingConvention": "off",
-            "useNamingConvention": "off"
+            "noNonNullAssertion": "off"
           },
           "suspicious": {
-            "noDeprecatedImports": "off",
-            "noImportCycles": "off",
-            "noLeakedRender": "off",
-            "noSkippedTests": "off",
-            "noUnnecessaryConditions": "off"
+            "noUnnecessaryConditions": "off",
+            "noConfusingVoidType": "off",
+            "noShadowRestrictedNames": "off"
           }
         }
       }

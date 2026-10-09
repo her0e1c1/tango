@@ -119,6 +119,16 @@ export const LanguageAndInputs: Story = {
   },
 };
 function maximumStory(japanese: boolean): Story {
+  const sliderLabel = japanese ? "最大カード数" : "Maximum cards";
+  const description = japanese ? /0 は.*すべてのカード/ : /0 includes all cards matching tags/;
+  const allMatchingText = japanese ? "条件に一致するすべてのカード" : "All matching cards";
+  const cases = [
+    { value: "0", spoken: allMatchingText, visible: allMatchingText },
+    { value: "1", spoken: japanese ? "1枚" : "1 card", visible: "1" },
+    { value: "2", spoken: japanese ? "2枚" : "2 cards", visible: "2" },
+    { value: "0", spoken: allMatchingText, visible: allMatchingText },
+  ];
+
   return {
     parameters: {
       locale: japanese ? "ja" : "en",
@@ -129,24 +139,14 @@ function maximumStory(japanese: boolean): Story {
     },
     play: async ({ canvas, step }) => {
       await step("STORYBOOK-SETTINGS-09 Describe all matching cards at zero", async () => {
-        const slider = await canvas.findByRole("slider", { name: japanese ? "最大カード数" : "Maximum cards" });
+        const slider = await canvas.findByRole("slider", { name: sliderLabel });
         await expect(slider).toHaveAttribute("min", "0");
         await expect(slider).toHaveAttribute("max", "100");
-        await expect(slider).toHaveAccessibleDescription(
-          japanese ? /0 は.*すべてのカード/ : /0 includes all cards matching tags/
-        );
-        for (const value of [0, 1, 2, 0]) {
-          await fireEvent.change(slider, { target: { value: String(value) } });
-          const text =
-            value === 0
-              ? japanese
-                ? "条件に一致するすべてのカード"
-                : "All matching cards"
-              : japanese
-                ? `${value}枚`
-                : `${value} ${value === 1 ? "card" : "cards"}`;
-          await expect(slider).toHaveAttribute("aria-valuetext", text);
-          await expect(canvas.getByText(value === 0 ? text : String(value), { exact: true })).toBeVisible();
+        await expect(slider).toHaveAccessibleDescription(description);
+        for (const { value, spoken, visible } of cases) {
+          await fireEvent.change(slider, { target: { value } });
+          await expect(slider).toHaveAttribute("aria-valuetext", spoken);
+          await expect(canvas.getByText(visible, { exact: true })).toBeVisible();
         }
       });
     },
@@ -155,6 +155,22 @@ function maximumStory(japanese: boolean): Story {
 export const Maximum = maximumStory(false);
 export const JapaneseMaximum = maximumStory(true);
 function intervalStory(japanese: boolean, autoPlay: boolean, playback: boolean): Story {
+  const sliderLabel = japanese ? "自動再生の間隔" : "Autoplay interval";
+  const autoPlayLabel = japanese ? "自動再生で開始" : "Start autoplay";
+  const playbackLabel = japanese ? "再生コントロールを表示" : "Show playback controls";
+  const description = japanese ? /0秒では自動送りを行わず/ : /At 0, cards do not advance automatically/;
+  const cases = japanese
+    ? [
+        { value: "0", spoken: "自動送りなし（0秒）", visible: "自動送りなし（0秒）" },
+        { value: "1", spoken: "1秒", visible: "1秒" },
+        { value: "60", spoken: "60秒", visible: "60秒" },
+      ]
+    : [
+        { value: "0", spoken: "No automatic advance (0 seconds)", visible: "No automatic advance (0s)" },
+        { value: "1", spoken: "1 second", visible: "1s" },
+        { value: "60", spoken: "60 seconds", visible: "60s" },
+      ];
+
   return {
     parameters: {
       locale: japanese ? "ja" : "en",
@@ -169,39 +185,17 @@ function intervalStory(japanese: boolean, autoPlay: boolean, playback: boolean):
     },
     play: async ({ canvas, step }) => {
       await step("STORYBOOK-SETTINGS-10 Describe interval boundaries without changing other settings", async () => {
-        const slider = await canvas.findByRole("slider", { name: japanese ? "自動再生の間隔" : "Autoplay interval" });
+        const slider = await canvas.findByRole("slider", { name: sliderLabel });
         await expect(slider).toHaveAttribute("min", "0");
         await expect(slider).toHaveAttribute("max", "60");
-        for (const value of [0, 1, 60]) {
-          await fireEvent.change(slider, { target: { value: String(value) } });
-          const text =
-            value === 0
-              ? japanese
-                ? "自動送りなし（0秒）"
-                : "No automatic advance (0 seconds)"
-              : japanese
-                ? `${value}秒`
-                : `${value} ${value === 1 ? "second" : "seconds"}`;
-          await expect(slider).toHaveAttribute("aria-valuetext", text);
-          await expect(
-            canvas.getByText(
-              value === 0 ? (japanese ? text : "No automatic advance (0s)") : japanese ? text : `${value}s`,
-              { exact: true }
-            )
-          ).toBeVisible();
-          await expect(
-            canvas.getByRole<HTMLInputElement>("checkbox", { name: japanese ? "自動再生で開始" : "Start autoplay" })
-              .checked
-          ).toBe(autoPlay);
-          await expect(
-            canvas.getByRole<HTMLInputElement>("checkbox", {
-              name: japanese ? "再生コントロールを表示" : "Show playback controls",
-            }).checked
-          ).toBe(playback);
+        for (const { value, spoken, visible } of cases) {
+          await fireEvent.change(slider, { target: { value } });
+          await expect(slider).toHaveAttribute("aria-valuetext", spoken);
+          await expect(canvas.getByText(visible, { exact: true })).toBeVisible();
+          await expect(canvas.getByRole<HTMLInputElement>("checkbox", { name: autoPlayLabel }).checked).toBe(autoPlay);
+          await expect(canvas.getByRole<HTMLInputElement>("checkbox", { name: playbackLabel }).checked).toBe(playback);
         }
-        await expect(slider).toHaveAccessibleDescription(
-          japanese ? /0秒では自動送りを行わず/ : /At 0, cards do not advance automatically/
-        );
+        await expect(slider).toHaveAccessibleDescription(description);
       });
     },
   };

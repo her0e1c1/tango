@@ -698,7 +698,6 @@ export const CardPlayer: React.FC<CardPlayerProps> = (props) => {
   };
 
   const stopTrailingCardClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: React refs are mutable; remove after biomejs/biome#11174.
     if (!suppressCardClick.current) return;
 
     suppressCardClick.current = false;

@@ -77,7 +77,7 @@ export function AppErrorFallback({ title, description, error, allowLocalDataRese
   return <RouteFeedback {...feedback} />;
 }
 
-// biome-ignore lint/style/useReactFunctionComponents: React requires a class to define an Error Boundary without another dependency.
+// React requires a class to define an Error Boundary without another dependency.
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
   override state: AppErrorBoundaryState = { hasError: false };
 

@@ -72,20 +72,24 @@ export const Failure: Story = {
 };
 
 function requiredNameStory(japanese: boolean): Story {
+  const nameLabel = japanese ? "デッキ名" : "Name";
+  const categoryLabel = japanese ? "表示形式" : "Display format";
+  const submitLabel = japanese ? "デッキを作成" : "Create deck";
+  const message = japanese ? "デッキ名は必須です。" : "Deck name is required.";
+
   return {
     parameters: { locale: japanese ? "ja" : "en" },
     play: async ({ canvas, userEvent, step }) => {
       await step(
         "STORYBOOK-DECK-CREATE-03 Reject empty and whitespace-only names in the current language",
         async () => {
-          const name = await canvas.findByRole("textbox", { name: japanese ? "デッキ名" : "Name" });
-          const category = canvas.getByRole("combobox", { name: japanese ? "表示形式" : "Display format" });
+          const name = await canvas.findByRole("textbox", { name: nameLabel });
+          const category = canvas.getByRole("combobox", { name: categoryLabel });
           await userEvent.selectOptions(category, "math");
           for (const value of ["", "   "]) {
             await userEvent.clear(name);
             if (value) await userEvent.type(name, value);
-            await userEvent.click(canvas.getByRole("button", { name: japanese ? "デッキを作成" : "Create deck" }));
-            const message = japanese ? "デッキ名は必須です。" : "Deck name is required.";
+            await userEvent.click(canvas.getByRole("button", { name: submitLabel }));
             await expect(await canvas.findByText(message)).toBeVisible();
             await expect(name).toHaveAttribute("aria-invalid", "true");
             await expect(name).toHaveAccessibleDescription(message);
