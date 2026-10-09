@@ -49,7 +49,7 @@ const DeckFormStory = ({ deck, isSaving, mode, validationError, onCancel, onDele
 
   useEffect(() => {
     if (validationError) {
-      form.setError("name", { message: "Deck name is required." });
+      form.setError("name", { type: "too_small", message: "Deck name is required." });
       form.setError("url", { message: "Enter a valid URL." });
     }
     if (isSaving) void form.handleSubmit(() => new Promise(() => undefined))();

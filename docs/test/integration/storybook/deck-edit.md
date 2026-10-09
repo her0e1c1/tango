@@ -14,6 +14,8 @@ Deck 編集画面を入口とした `play` で、既存 Deck の表示・編集�
 | STORYBOOK-DECK-EDIT-01 | render | 正常系 | [選んだ Deck の保存済み内容を編集する](#storybook-deck-edit-01) |
 | STORYBOOK-DECK-EDIT-02 | interaction | 正常系 | [変更した名前を一覧へ反映する](#storybook-deck-edit-02) |
 | STORYBOOK-DECK-EDIT-03 | interaction | 異常系 | [保存失敗後も編集値を保持する](#storybook-deck-edit-03) |
+| STORYBOOK-DECK-EDIT-04 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](#storybook-deck-edit-04) |
+| STORYBOOK-DECK-EDIT-05 | interaction | 異常系 | [表示中の名前エラーを言語変更に追従させる](#storybook-deck-edit-05) |
 
 <a id="storybook-deck-form-04"></a>
 
@@ -134,3 +136,45 @@ When:
 Then:
 
 - 失敗が表示され、変更中の名前が残り、再試行できる。
+
+<a id="storybook-deck-edit-04"></a>
+
+### STORYBOOK-DECK-EDIT-04 空欄と空白のみの名前に現在の言語でエラーを表示する
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- Deck 編集画面で英語または日本語を使用し、名前は空文字または空白のみ、表示形式は math にしている。各言語と各入力は独立した操作例とする。
+
+When:
+
+- 変更を保存を選ぶ。
+
+Then:
+
+- 英語では `Deck name is required.`、日本語では `デッキ名は必須です。` が表示され、名前の入力欄は不正な値としてこのエラーを説明に持つ。
+- 名前と表示形式の入力が保持され、保存先への操作は開始されない。
+
+<a id="storybook-deck-edit-05"></a>
+
+### STORYBOOK-DECK-EDIT-05 表示中の名前エラーを言語変更に追従させる
+
+カテゴリ: `interaction`
+
+区分: 異常系
+
+Given:
+
+- Deck 編集画面で System 言語設定を使用している。ブラウザー言語は英語、名前は空白のみ、表示形式は math で、変更を保存を選んだ後に名前の必須エラーが表示されている。名前の入力欄にフォーカスがある。
+
+When:
+
+- ブラウザー言語を日本語へ変更し、その後英語へ戻す。再送信はしない。
+
+Then:
+
+- 表示中のエラーと入力欄の説明が、日本語では `デッキ名は必須です。`、英語では `Deck name is required.` に切り替わる。
+- 同じ名前入力欄、エラーとの関連付け、フォーカス、名前と表示形式の入力が保持され、保存先への操作は開始されない。

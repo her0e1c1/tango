@@ -42,6 +42,8 @@
 | STORYBOOK-DECK-FORM-03 | interaction | 異常系 | [詳細項目の入力エラーを表示する](./deck-create.md#storybook-deck-form-03) |
 | STORYBOOK-DECK-CREATE-01 | interaction | 正常系 | [作成の成功後に新しい Deck を確認する](./deck-create.md#storybook-deck-create-01) |
 | STORYBOOK-DECK-CREATE-02 | interaction | 異常系 | [作成に失敗しても入力を保持する](./deck-create.md#storybook-deck-create-02) |
+| STORYBOOK-DECK-CREATE-03 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](./deck-create.md#storybook-deck-create-03) |
+| STORYBOOK-DECK-CREATE-04 | interaction | 異常系 | [表示中の名前エラーを言語変更に追従させる](./deck-create.md#storybook-deck-create-04) |
 
 ## Deck 編集画面
 
@@ -53,6 +55,8 @@
 | STORYBOOK-DECK-EDIT-01 | render | 正常系 | [選んだ Deck の保存済み内容を編集する](./deck-edit.md#storybook-deck-edit-01) |
 | STORYBOOK-DECK-EDIT-02 | interaction | 正常系 | [変更した名前を一覧へ反映する](./deck-edit.md#storybook-deck-edit-02) |
 | STORYBOOK-DECK-EDIT-03 | interaction | 異常系 | [保存失敗後も編集値を保持する](./deck-edit.md#storybook-deck-edit-03) |
+| STORYBOOK-DECK-EDIT-04 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](./deck-edit.md#storybook-deck-edit-04) |
+| STORYBOOK-DECK-EDIT-05 | interaction | 異常系 | [表示中の名前エラーを言語変更に追従させる](./deck-edit.md#storybook-deck-edit-05) |
 
 ## Deck インポート画面
 

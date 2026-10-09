@@ -20,6 +20,7 @@
   },
   "validation": {
     "required": {
+      "deckName": "Deck name is required.",
       "frontText": "Front text is required.",
       "backText": "Back text is required.",
       "uniqueKey": "Unique key is required.",
