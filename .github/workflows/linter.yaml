@@ -29,6 +29,10 @@ jobs:
 
       - run: npm ci
 
+      - name: Report module dependencies with Madge
+        # Report counts without introducing quality thresholds; tool execution failures remain visible.
+        run: npm run lint:madge -- --summary
+
       - name: Check Markdown and test specifications
         if: ${{ inputs.lightweight }}
         run: npm run lint:markdown && npm run lint:test-specs

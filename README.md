@@ -110,25 +110,20 @@ automatically detected; refresh the baseline manually when needed. A local incre
 a full run. HTML, JSON, and incremental reports live under the Git-ignored `coverage/mutation/` and are saved in
 Actions artifacts.
 
-### Complexity measurements
+### File dependencies
 
 ```bash
-npm run complexity
-npm run complexity -- src/pages/card-edit
-npm run --silent complexity > /tmp/tango-complexity.json
+npm run lint:madge
+npm run --silent lint:madge -- --json > /tmp/tango-dependencies.json
+npm run lint:madge -- --summary
 ```
 
-This optional JSON report defaults to all `src` TS/TSX files, including specs and stories; arguments select files
-or directories. It does not enforce limits or run in CI.
-
-ESLint reports classic CC per function and positive control-block depths, not per-function maximum or JSX depth.
-Cognitive Complexity remains in the existing Biome lint (#536). Madge counts distinct resolved direct local
-dependencies, including type imports, and follows imports beyond selected directories. Npm and unresolved imports
-are excluded: inspect `dependencyWarnings`. Function call targets are unavailable (`callTargets: null`).
-
-Measurement warnings succeed; invalid targets, syntax errors and tool failures fail. Use the numbers as review
-clues, not a quality score. See [#1892](https://github.com/her0e1c1/tango/issues/1892#issuecomment-6072078141)
-for definitions, tool selection and limitations.
+[Madge](https://github.com/pahen/madge) directly lists local module dependencies from `src` TS/TSX files,
+including specs, stories and type imports, using `tsconfig.json` aliases. It follows imports beyond `src`;
+npm packages and unresolved imports are excluded. `--summary` shows dependency counts and skipped-file warnings;
+`--json` outputs the graph without warnings. CI logs the summary without enforcing dependency-count or cycle
+limits; tool failures still fail. The command is separate from `npm run lint` and does not measure function
+complexity or call targets. See [#1892](https://github.com/her0e1c1/tango/issues/1892) for research.
 
 ### E2E Test
 

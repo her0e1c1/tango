@@ -7,7 +7,6 @@
     "node": ">=24.15.0 <25"
   },
   "scripts": {
-    "complexity": "node scripts/complexity.mjs",
     "start": "vite dev",
     "build": "vite build",
     "build:sample": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'python generate.py ./test -o build/output.json' base",
@@ -30,6 +29,7 @@
     "fmt:sample:fix": "docker compose -f sample/docker-compose.yml run --rm --remove-orphans --entrypoint 'ruff format' base",
     "lint": "npm run lint:tsc && npm run lint:eslint && npm run lint:biome && npm run lint:fsd && npm run lint:knip && npm run lint:test-specs && npm run lint:markdown",
     "lint:biome": "biome lint --error-on-warnings .",
+    "lint:madge": "madge --extensions ts,tsx --ts-config tsconfig.json --warning src",
     "lint:test-specs": "node scripts/lint-test-specs.ts",
     "lint:eslint": "eslint --max-warnings=0 'src/**/*.{ts,tsx}' 'test/integration/**/*.{spec,test}.{ts,tsx}' 'test/integration/storybook/**/*.{ts,tsx}' 'test/e2e/**/*.{ts,tsx}' playwright.config.ts",
     "lint:fsd": "steiger ./src",
