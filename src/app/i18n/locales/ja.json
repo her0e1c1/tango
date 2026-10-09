@@ -20,6 +20,7 @@
   },
   "validation": {
     "required": {
+      "deckName": "デッキ名は必須です。",
       "frontText": "表面のテキストは必須です。",
       "backText": "裏面のテキストは必須です。",
       "uniqueKey": "一意キーは必須です。",

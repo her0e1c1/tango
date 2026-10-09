@@ -234,7 +234,11 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
         <fieldset className="min-w-0 space-y-7 p-5 md:p-6" disabled={presentation.isSaving}>
           <BasicInformationSection
             categories={props.categories}
-            error={formState.errors.name?.message}
+            error={
+              formState.errors.name === undefined
+                ? undefined
+                : t(formState.errors.name.type === "too_small" ? "validation.required.deckName" : "validation.invalid")
+            }
             form={props.form}
             idPrefix={idPrefix}
           />
