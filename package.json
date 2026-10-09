@@ -114,7 +114,7 @@
     "fake-indexeddb": "^6.2.5",
     "firebase-tools": "^15.32.0",
     "jsdom": "^29.1.1",
-    "knip": "^6.32.1",
+    "knip": "^6.40.0",
     "markdownlint-cli2": "^0.23.3",
     "postcss": "^8.5.29",
     "steiger": "^0.7.0",
