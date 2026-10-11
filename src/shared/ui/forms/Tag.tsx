@@ -16,14 +16,11 @@ import { tagClassName } from "../content";
  */
 export const Tag: React.FC<{
   className?: string;
-  round?: boolean;
   small?: boolean;
   large?: boolean;
   label?: string;
   checked?: boolean;
   disabled?: boolean;
-  default?: boolean;
-  primary?: boolean;
   hidden?: boolean;
   wrap?: boolean;
   name?: string;

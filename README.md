@@ -44,6 +44,19 @@ mise run dev
 
 You can go to web UI and see data in firestore: http://localhost:4000/
 
+### Unused code checks
+
+`npm run lint` checks unused exports with Knip and unused local bindings with TypeScript/Biome.
+For production TSX, ESLint also enables [React-X's `no-unused-props`](https://eslint-react.xyz/docs/rules/no-unused-props)
+to report props declared locally but never used by a component. Tests and stories retain their existing checks.
+This experimental rule is pinned to the evaluated plugin version; upgrades should recheck its diagnostics.
+
+This is a file-local, best-effort check. Spreading or forwarding the props object and dynamic property access can
+hide unused declarations; imported types and arbitrary object properties are not covered. Review findings before
+removing shared or externally consumed contracts. A prop read by a component but never supplied by its callers is
+also outside this check: for example, `FormItem.text` is read in `props.text ?? props.children`, so it is not reported.
+Knip's export analysis does not detect those unused optional APIs either.
+
 ## Test
 
 The test task runs the application unit tests and sample Python tests:

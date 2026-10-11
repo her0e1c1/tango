@@ -73,7 +73,7 @@ export const LightAndDark: Story = {
 };
 
 export const NarrowViewport: Story = {
-  args: { checked: true, label: "Selected on mobile", round: true },
+  args: { checked: true, label: "Selected on mobile" },
   globals: { viewport: { value: "iphone5", isRotated: false } },
 };
 

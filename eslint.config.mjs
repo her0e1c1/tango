@@ -3,6 +3,7 @@ import * as tsParser from "@typescript-eslint/parser";
 import { defineConfig } from "eslint/config";
 import { createConfig as createBoundariesConfig } from "eslint-plugin-boundaries/config";
 import reactHooks from "eslint-plugin-react-hooks";
+import reactX from "eslint-plugin-react-x";
 import testingLibrary from "eslint-plugin-testing-library";
 import vitest from "@vitest/eslint-plugin";
 import playwright from "eslint-plugin-playwright";
@@ -117,6 +118,14 @@ export default defineConfig(
       // Allow that form without allowing void in value-producing expressions.
       "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
     },
+  },
+  {
+    files: ["src/**/*.tsx"],
+    ignores: nonProductionFiles,
+    plugins: { "react-x": reactX },
+    // Check declarations unused by the component, not options that callers never supply.
+    // Enable only this rule; Biome and react-hooks retain their existing responsibilities.
+    rules: { "react-x/no-unused-props": "error" },
   },
   {
     files: sourceFiles,
