@@ -276,7 +276,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
       await user.click(field);
       await user.keyboard("b b{ArrowLeft}{ArrowRight}{ArrowUp}{ArrowDown}{Enter}");
     }
-    expect(screen.getByRole("textbox", { name: "Notes", exact: true })).toHaveValue("b b");
+    expect(screen.getByRole("textbox", { name: /^Notes$/ })).toHaveValue("b b");
     expect(screen.getByRole("textbox", { name: "Summary" })).toHaveValue("b b\n");
     expect(screen.getByRole("textbox", { name: "Editable notes" })).toHaveTextContent("b b");
     expect(screen.getByText("Front one")).toBeVisible();
