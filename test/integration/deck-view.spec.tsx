@@ -10,7 +10,7 @@ import App from "@/app/App";
 import { appRoutes } from "@/app/routes";
 import { replaceAuthSession } from "@/entities/auth";
 import { createCard, getCards } from "@/entities/card";
-import { createDeck, deleteDeck, getDecks } from "@/entities/deck";
+import { createDeck, deleteDeck, editDeck, getDecks } from "@/entities/deck";
 import { getPreferences, updatePreferences } from "@/entities/preference";
 import { clearStudySessions, getStudySession } from "@/entities/study-session";
 import { startStudy } from "@/test/utils/entityFixtures";
@@ -84,13 +84,28 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
         uniqueKey: "2",
       }),
     ]);
-    const before = savedState(deck.id);
     const router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });
     const view = render(<App router={router} />);
 
     await userEvent.click(await screen.findByRole("button", { name: "Card front" }));
     let code = within(screen.getByRole("region", { name: "Card answer" })).getByRole("code");
     expect(within(code).getByText("interface")).toHaveClass("hljs-keyword");
+
+    await act(() => editDeck("user-id", { id: deck.id, category: "python" }));
+
+    expect(within(screen.getByRole("region", { name: "Card answer" })).getByRole("code")).toBe(code);
+    expect(code).toHaveClass("language-python");
+    expect(code).not.toHaveClass("language-typescript");
+    expect(code.textContent).toBe(typescript);
+    expect(within(code).queryByText("interface")).not.toBeInTheDocument();
+
+    await act(() => editDeck("user-id", { id: deck.id, category: "typescript" }));
+
+    expect(within(screen.getByRole("region", { name: "Card answer" })).getByRole("code")).toBe(code);
+    expect(code).toHaveClass("language-typescript");
+    expect(code).not.toHaveClass("language-python");
+    expect(within(code).getByText("interface")).toHaveClass("hljs-keyword");
+    const before = savedState(deck.id);
     await userEvent.keyboard("{ArrowRight}");
     await userEvent.click(screen.getByRole("button", { name: "Card front" }));
 
