@@ -14,7 +14,7 @@ import { Style } from "./Style";
 
 /**
  * Renders the Highlight user interface.
- * Highlights the supplied source text with its Prism language category and the selected light or
+ * Highlights the supplied source text with its Highlight.js language category and the selected light or
  * dark theme.
  */
 const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = ({ category, dark, text }) => {
@@ -28,10 +28,14 @@ const Highlight: React.FC<{ category: string; dark: boolean; text: string }> = (
     code.dataset.language = category;
     code.dataset.theme = dark ? "dark" : "light";
     delete code.dataset.highlighted;
+    const originalClasses = new Set(code.classList);
     hljs.highlightElement(code);
+    const languageClasses = [...code.classList].filter(
+      (name) => name.startsWith("language-") && !originalClasses.has(name)
+    );
     return () => {
       delete code.dataset.highlighted;
-      code.classList.remove("hljs");
+      code.classList.remove("hljs", ...languageClasses);
       code.textContent = text;
     };
   }, [category, dark, text]);
