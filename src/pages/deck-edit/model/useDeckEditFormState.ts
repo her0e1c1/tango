@@ -9,7 +9,6 @@ export function useDeckEditFormState(deck: Deck) {
     defaultValues: {
       name: deck.name,
       category: deck.category,
-      convertToBr: deck.convertToBr,
     },
     resolver: zodResolver(deckFormSchema),
   });

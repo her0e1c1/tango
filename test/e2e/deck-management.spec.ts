@@ -56,14 +56,7 @@ const openDeckDeleteDialog = async (page: Page, deckName: string) => {
   return page.getByRole("alertdialog", { name: "Delete deck?" });
 };
 
-// Click the visible Switch label because the Firebase emulator banner can intercept pointer events on its sr-only input.
-const clickCheckboxLabel = async (page: Page, name: string) => {
-  const checkbox = page.getByRole("checkbox", { name, exact: true });
-  await checkbox.locator("xpath=parent::label").click();
-  return checkbox;
-};
-
-test("DECK-MANAGEMENT-01 persists edited name, category, and formatting across reload", async ({
+test("DECK-MANAGEMENT-01 persists edited fields across reload without changing legacy settings", async ({
   fixture,
   page,
   namespace,
@@ -71,14 +64,15 @@ test("DECK-MANAGEMENT-01 persists edited name, category, and formatting across r
   const deck = fixture.deck();
   await fixture.apply(page);
   const updatedName = `${namespace.caseId} updated`;
+  const originalCards = (await listDocuments("card")).filter(({ fields }) => fields.deckId?.stringValue === deck.id);
 
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
   await page.getByRole("menuitem", { name: "Edit" }).click();
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(updatedName);
   await page.getByRole("combobox").selectOption("typescript");
-  await page.getByText("More settings").click();
-  await clickCheckboxLabel(page, "Convert line breaks");
+  await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
+  await expect(page.getByText("More settings")).toHaveCount(0);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Updated deck “${updatedName}”.` })).toBeVisible();
@@ -88,8 +82,12 @@ test("DECK-MANAGEMENT-01 persists edited name, category, and formatting across r
 
   await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue(updatedName);
   await expect(page.getByRole("combobox")).toHaveValue("typescript");
-  await page.getByText("More settings").click();
-  await expect(page.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
+  const savedDeck = await requireDocument("deck", deck.id);
+  expect(savedDeck.fields.convertToBr?.booleanValue).toBe(deck.convertToBr);
+  expect((await listDocuments("card")).filter(({ fields }) => fields.deckId?.stringValue === deck.id)).toEqual(
+    originalCards
+  );
 });
 
 test("DECK-MANAGEMENT-02 deletes one Deck and preserves unrelated Deck data", async ({ fixture, page }) => {
@@ -226,8 +224,8 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
   await page.getByRole("menuitem", { name: "Create deck" }).click();
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
-  await page.getByText("More settings").click();
-  await clickCheckboxLabel(page, "Convert line breaks");
+  await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
+  await expect(page.getByText("More settings")).toHaveCount(0);
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
   await expect(page.getByRole("status").filter({ hasText: `Created deck “${name}”.` })).toBeVisible();
@@ -255,12 +253,17 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
   );
   expect(owned.map(documentId)).toEqual([deckId]);
   expect(owned.map(({ fields }) => fields.category?.stringValue)).toEqual([category]);
-  expect(owned.map(({ fields }) => fields.convertToBr?.booleanValue)).toEqual([true]);
+  expect(owned.map(({ fields }) => fields.convertToBr?.booleanValue)).toEqual([false]);
   const ownedCardsForDeck = (await listDocuments("card")).filter(
     ({ fields }) => fields.uid?.stringValue === uid && fields.deckId?.stringValue === deckId
   );
   expect(ownedCardsForDeck).toEqual([]);
   await expect(page.getByRole("button", { name: `Open cards in ${name}`, exact: true })).toHaveCount(1);
+  await page.getByRole("button", { name: `Open actions for ${name}` }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue(name);
+  await expect(page.getByRole("combobox")).toHaveValue(category);
+  await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
 });
 
 test("DECK-MANAGEMENT-06 rolls back a rejected remote create without locking the form", async ({
@@ -280,8 +283,8 @@ test("DECK-MANAGEMENT-06 rolls back a rejected remote create without locking the
   allowExpectedFirestoreWriteFailure(browserErrors);
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
-  await page.getByText("More settings").click();
-  await clickCheckboxLabel(page, "Convert line breaks");
+  await expect(page.getByRole("checkbox", { name: "Convert line breaks", includeHidden: true })).toHaveCount(0);
+  await expect(page.getByText("More settings")).toHaveCount(0);
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();

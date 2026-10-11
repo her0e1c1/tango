@@ -6,7 +6,7 @@ import type { DeckFormFields } from "@/features/deck-form";
 
 export const useDeckCreateFormState = () => {
   const form = useForm<DeckFormFields>({
-    defaultValues: { name: "", category: "", convertToBr: false },
+    defaultValues: { name: "", category: "" },
     resolver: zodResolver(deckFormSchema),
   });
   return { form };

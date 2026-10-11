@@ -28,16 +28,17 @@ Deck を作成・編集・削除でき、失敗後も再試行できることを
 Given:
 
 - Fixture: [`remote-deck-with-cards`](./fixture/remote-deck-with-cards.yaml)
-- 認証済みユーザーが所有する編集対象の Deck が存在する。改行変換は無効になっている。
+- 認証済みユーザーが所有する編集対象の Deck が存在する。旧改行変換値が保存されている。
 
 When:
 
-- 対象 Deck の name、category を変更し、改行変換を有効にして保存し、画面を reload して編集画面を再度開く。
+- 対象 Deck の name、category を変更して保存し、画面を reload して編集画面を再度開く。
 
 Then:
 
 - Deck の更新成功が通知される。
-- 編集画面に変更後の name、category が表示され、改行変換の選択が保持される。
+- 編集画面に変更後の name、category が表示される。改行変換の操作・説明と空の詳細設定欄は表示されない。
+- 保存済みの旧改行変換値と Card 本文は変更されない。
 
 <a id="deck-management-02"></a>
 
@@ -134,13 +135,13 @@ Given:
 
 When:
 
-- Deck の作成画面で name、category、改行変換を入力し、保存した後、Deck 一覧を reload する。
+- Deck の作成画面で name、category を入力し、保存した後、Deck 一覧を reload する。
 
 Then:
 
 - Deck の作成成功が通知される。
 - 作成した空の Deck が reload 後も Deck 一覧に一つだけ表示される。
-- 編集画面でも入力した name、category、改行変換を確認できる。
+- 編集画面でも入力した name、category を確認できる。作成・編集画面に改行変換の操作・説明は表示されず、新規 Deck の旧改行変換値は既定の `false` になる。
 - 同期後も同じアカウントの Deck として利用でき、再読み込みや同期によって複製が増えない。
 
 <a id="deck-management-06"></a>
@@ -159,7 +160,7 @@ Given:
 
 When:
 
-- Deck の作成画面で name、category、改行変換を入力し、保存する。
+- Deck の作成画面で name、category を入力し、保存する。
 
 Then:
 

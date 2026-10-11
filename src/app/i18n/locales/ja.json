@@ -241,12 +241,6 @@
       "mathFormat": "数式（math）",
       "rawFormat": "プレーンテキスト（raw）"
     },
-    "importFormatting": {
-      "title": "その他の設定",
-      "description": "改行",
-      "convertLineBreaks": "改行を変換",
-      "convertLineBreaksHelp": "連続する2つの改行を1つの表示上の改行にまとめます。"
-    },
     "information": {
       "title": "デッキ情報",
       "id": "ID",

@@ -2,14 +2,14 @@
 
 ## 目的
 
-Deck 作成画面を入口とした `play` で、新しい Deck の入力、詳細設定、入力エラーと作成結果を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
+Deck 作成画面を入口とした `play` で、新しい Deck の入力、利用可能な設定、入力エラーと作成結果を確認する。検証境界と実行前提は [AGENTS.md](./AGENTS.md) に従う。
 
 ## テストケース
 
 | ID | カテゴリ | 区分 | テストケース |
 | --- | --- | --- | --- |
 | STORYBOOK-DECK-FORM-01 | interaction | 正常系 | [名前とカテゴリを入力する](#storybook-deck-form-01) |
-| STORYBOOK-DECK-FORM-02 | interaction | 正常系 | [詳細設定を開き直しても入力を保持する](#storybook-deck-form-02) |
+| STORYBOOK-DECK-FORM-02 | render | 正常系 | [効果のない改行変換設定を表示しない](#storybook-deck-form-02) |
 | STORYBOOK-DECK-CREATE-01 | interaction | 正常系 | [作成の成功後に新しい Deck を確認する](#storybook-deck-create-01) |
 | STORYBOOK-DECK-CREATE-02 | interaction | 異常系 | [作成に失敗しても入力を保持する](#storybook-deck-create-02) |
 | STORYBOOK-DECK-CREATE-03 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](#storybook-deck-create-03) |
@@ -37,23 +37,24 @@ Then:
 
 <a id="storybook-deck-form-02"></a>
 
-### STORYBOOK-DECK-FORM-02 詳細設定を開き直しても入力を保持する
+### STORYBOOK-DECK-FORM-02 効果のない改行変換設定を表示しない
 
-カテゴリ: `interaction`
+カテゴリ: `render`
 
 区分: 正常系
 
 Given:
 
-- Deck 作成画面で詳細設定を開き、改行変換を有効にしている。
+- Deck 作成画面を開いている。
 
 When:
 
-- 詳細設定を閉じ、再び開く。
+- 利用可能な入力項目を確認する。
 
 Then:
 
-- 閉じている間は詳細項目が隠れ、開くと改行変換の選択が保持されている。
+- 名前と表示形式を入力できる。
+- 改行変換の操作・説明と、空の詳細設定欄は表示されない。
 
 <a id="storybook-deck-create-01"></a>
 

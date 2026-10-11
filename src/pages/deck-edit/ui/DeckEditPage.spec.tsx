@@ -8,7 +8,7 @@ import { createMemoryRouter, Link, MemoryRouter, RouterProvider } from "react-ro
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 
-import { createDeck } from "@/entities/deck";
+import { createDeck, getDecks } from "@/entities/deck";
 import { ToastViewport } from "@/shared/ui/toast";
 import { dismissToast } from "@/test/utils/toast";
 import { actAsync } from "@/test/act";
@@ -132,15 +132,24 @@ describe("DeckEditPage (DECK-MANAGEMENT-01 DECK-MANAGEMENT-02 DECK-MANAGEMENT-03
     expect(screen.queryByRole("alertdialog", { name: "Discard unsaved changes?" })).not.toBeInTheDocument();
   });
 
-  it("navigates to the deck list after saving", async () => {
+  it.each([false, true])("saves other fields without changing legacy convertToBr=%s", async (convertToBr) => {
+    await createDeck("user-id", createLocalDeck({ id: deckId, name: "Deck name", category: "", convertToBr }));
     renderPage();
+    expect(screen.queryByRole("checkbox", { name: "Convert line breaks", hidden: true })).not.toBeInTheDocument();
+    expect(screen.queryByText("More settings")).not.toBeInTheDocument();
 
     await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Saved deck");
+    await userEvent.selectOptions(screen.getByRole("combobox"), "math");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Deck list" })).toBeVisible();
     expect(screen.getByText("Updated deck “Saved deck”.")).toBeVisible();
+    expect(getDecks().find((deck) => deck.id === deckId)).toMatchObject({
+      name: "Saved deck",
+      category: "math",
+      convertToBr,
+    });
   });
 
   it("navigates to the deck list after cancellation", async () => {

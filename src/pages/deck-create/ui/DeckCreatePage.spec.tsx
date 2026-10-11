@@ -92,20 +92,20 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     mocks.setDarkMode.mockReset();
   });
 
-  it("creates a remote empty Deck with formatting settings and opens its Card list under Strict Mode", async () => {
+  it("creates a remote empty Deck with its display format and opens its Card list under Strict Mode", async () => {
     renderPage(true);
-    await userEvent.click(screen.getByText("More settings"));
+    expect(screen.queryByRole("checkbox", { name: "Convert line breaks", hidden: true })).not.toBeInTheDocument();
+    expect(screen.queryByText("More settings")).not.toBeInTheDocument();
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "New deck");
-    await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
+    await userEvent.selectOptions(screen.getByRole("combobox"), "math");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: "new-deck",
 
       name: "New deck",
-      category: "",
-      convertToBr: true,
+      category: "math",
     });
     expect(await screen.findByRole("heading", { level: 1, name: "Card list destination" })).toBeVisible();
     expect(screen.getByText("Created deck “New deck”.")).toBeVisible();
@@ -114,10 +114,8 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
   it("creates an anonymous Deck without a destination selector", async () => {
     mocks.uid = "anonymous";
     renderPage();
-    await userEvent.click(screen.getByText("More settings"));
 
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Local deck");
-    await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("anonymous", {
@@ -125,7 +123,6 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
 
       name: "Local deck",
       category: "",
-      convertToBr: true,
     });
   });
 
@@ -147,7 +144,6 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
   it("creates a Deck with default formatting settings", async () => {
     renderPage();
 
-    await userEvent.click(screen.getByText("More settings"));
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Default deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
@@ -156,34 +152,28 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
 
       name: "Default deck",
       category: "",
-      convertToBr: false,
     });
   });
 
   it("reports a creation failure without locking the form for a special retry flow", async () => {
     mocks.createDeck.mockRejectedValueOnce(new Error("write failed"));
     renderPage();
-    await userEvent.click(screen.getByText("More settings"));
     const name = screen.getByRole("textbox", { name: "Name" });
     const category = screen.getByRole("combobox");
-    const convertLineBreaks = screen.getByRole("checkbox", { name: "Convert line breaks" });
 
     await userEvent.type(name, "Failed deck");
     await userEvent.selectOptions(category, "typescript");
-    await userEvent.click(convertLineBreaks);
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
 
     expect(await screen.findByText("Unable to create this deck.")).toBeVisible();
     expect(name).toHaveValue("Failed deck");
     expect(category).toHaveValue("typescript");
-    expect(convertLineBreaks).toBeChecked();
     expect(mocks.generateId).toHaveBeenCalledOnce();
     expect(mocks.createDeck).toHaveBeenCalledExactlyOnceWith("user-id", {
       id: "new-deck",
 
       name: "Failed deck",
       category: "typescript",
-      convertToBr: true,
     });
   });
 
@@ -310,7 +300,6 @@ describe("DECK-MANAGEMENT-05 DECK-MANAGEMENT-06 DECK-MANAGEMENT-07 DeckCreatePag
     unmount();
 
     renderPage(true);
-    await userEvent.click(screen.getByText("More settings"));
     await userEvent.type(screen.getByRole("textbox", { name: "Name" }), "Current deck");
     await userEvent.click(screen.getByRole("button", { name: "Create deck" }));
     await actAsync(async () => {

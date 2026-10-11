@@ -19,7 +19,7 @@ describe("Deck creation account guards [DECK-MANAGEMENT-05 DECK-MANAGEMENT-06]",
   it.each(["success", "failure"])("discards old-account %s and allows a new creation", async (outcome) => {
     const pending = Promise.withResolvers<void>();
     vi.mocked(createDeck).mockReturnValue(pending.promise);
-    const values = { name: "Deck", category: "raw", convertToBr: false };
+    const values = { name: "Deck", category: "raw" };
     const result = submitDeckCreation(values);
     auth.uid = "next-user";
     if (outcome === "failure") pending.reject(new Error("denied"));

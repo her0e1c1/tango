@@ -241,12 +241,6 @@
       "mathFormat": "Math (math)",
       "rawFormat": "Plain text (raw)"
     },
-    "importFormatting": {
-      "title": "More settings",
-      "description": "Line breaks",
-      "convertLineBreaks": "Convert line breaks",
-      "convertLineBreaksHelp": "Combine two consecutive line breaks into one displayed line break."
-    },
     "information": {
       "title": "Deck information",
       "id": "ID",

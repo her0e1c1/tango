@@ -24,7 +24,7 @@ export type Deck = {
   cardFilter?: CardFilter | undefined;
   /** Fallback rendering category when no supported Card tag supplies a more specific category. */
   category: Category;
-  /** Whether imported text should convert two consecutive line breaks into one HTML `<br />`. */
+  /** Legacy line-break setting retained in storage; current rendering ignores it. */
   convertToBr: boolean;
   /** Unix epoch time in milliseconds when the Deck was created. */
   createdAt: number;
@@ -48,6 +48,6 @@ export type RemoteDeckCreateInput = {
   cardFilter?: CardFilter | undefined;
   /** Rendering category; omitted or undefined defaults to an empty string. */
   category?: Category | undefined;
-  /** Line-break conversion; omitted or undefined defaults to false. */
+  /** Legacy line-break setting; omitted or undefined defaults to false. */
   convertToBr?: boolean | undefined;
 };

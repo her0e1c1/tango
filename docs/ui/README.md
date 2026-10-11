@@ -36,7 +36,6 @@
 | [Slider](./shared/slider.md) | `Shared/Forms/Slider` |
 | [Tag](./shared/tag.md) | `Shared/Forms/Tag` |
 | [Upload](./shared/upload.md) | `Shared/Forms/Upload` |
-| [FormItem](./shared/form-item.md) | `Shared/Forms/FormItem` |
 | [Code](./shared/code.md) | `Shared/Content/Code` |
 | [MathContent](./shared/math.md) | `Shared/Content/Math` |
 | [Style](./shared/style.md) | `Shared/Content/Style` |
