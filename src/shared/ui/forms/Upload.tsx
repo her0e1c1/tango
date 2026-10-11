@@ -47,6 +47,8 @@ export const Upload: React.FC<{
             if (e.target.files != null) {
               const [file] = e.target.files;
               if (file != null) {
+                // Allow the same file to trigger change again after a failed read or an edit.
+                e.target.value = "";
                 props.onChange?.(file);
               }
             }

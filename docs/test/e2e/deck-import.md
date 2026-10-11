@@ -18,6 +18,7 @@ CSV の内容を確認して取り込み、失敗後も再試行できること�
 | DECK-IMPORT-08 | batch | 正常系 | [Sample deck の全内容を匿名で取り込んで学習できる](#deck-import-08) |
 | DECK-IMPORT-09 | batch | 正常系 | [通常ユーザーの Sample deck を同期できる](#deck-import-09) |
 | DECK-IMPORT-10 | batch | 正常系 | [Google 未ログインの Sample deck をこのブラウザーだけに維持できる](#deck-import-10) |
+| DECK-IMPORT-11 | read | 異常系 | [同じ CSV を修正して再選択できる](#deck-import-11) |
 
 <a id="deck-import-01"></a>
 
@@ -278,3 +279,30 @@ Then:
 - 保存成功後は reload を待たずに Deck 一覧へ遷移し、対象の Deck と成功通知が表示される。
 - Deck とすべての Card はこのブラウザーだけで利用でき、クラウドには追加されない。
 - reload 後も対象 Deck を開いてすべての Card を表示できる。
+
+<a id="deck-import-11"></a>
+
+### DECK-IMPORT-11 同じ CSV を修正して再選択できる
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- Fixture: [`empty`](./fixture/empty.yaml)
+- 文字コードが不正な CSV を、同じパス・名前のまま修正できる。
+- CSV に対応する Deck と Card はまだ存在しない。
+
+When:
+
+- CSV を繰り返し選択して文字コードエラーを確認し、画面を離れずに同じファイルを UTF-8 の有効な内容に修正して再選択する。
+- preview を表示したままファイル選択を取り消す。
+- 同じファイルを必須の uniqueKey が空の内容へ変更して選び直した後、再び有効な内容へ修正して選び直す。
+
+Then:
+
+- 同じファイルを選ぶたびに読み取りと検証が行われ、文字コードエラー・行エラーから修正後の内容で preview と追加可否が更新される。
+- ファイル選択を取り消しても、現在の preview・エラー・追加可否は変わらない。
+- 表示するファイル名は維持される。ファイル選択欄はキーボードで操作でき、処理中は再選択できない。
+- 追加を確定するまで Deck と Card は保存されない。
