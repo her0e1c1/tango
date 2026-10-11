@@ -1,0 +1,4 @@
+name = "reviewer_simplicity"
+description = "Simplicity review."
+sandbox_mode = "read-only"
+developer_instructions = "Review the changes for simplicity."

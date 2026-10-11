@@ -13,13 +13,9 @@
 - Before finishing non-documentation changes, run `mise run check`.
 - Always commit and push worktree changes, then create a pull request.
 
-## Mandatory Review Gate
+## Review
 
-Every task that changes repository files must complete this workflow:
-
-1. Delegate a review to the custom `reviewer` subagent and wait for the result. Self-review is not a substitute.
-2. Fix all P0 findings; P1 and P2 fixes are optional. Re-review any fixes, with at most three review rounds in total.
-3. Stop when the latest changes have been reviewed with no P0 findings, or the three-round limit is reached. Report unresolved findings and unreviewed changes; unresolved P0 findings or unreviewed changes mean validation is incomplete.
+Delegate independent reviews of the same commit to three reviewers: [simplicity](.codex/agents/reviewer_simplicity.toml), [correctness against specifications](.codex/agents/reviewer_correctness.toml), and [better design proposals](.codex/agents/reviewer_design.toml).
 
 ## Architecture
 

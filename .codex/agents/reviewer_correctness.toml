@@ -1,0 +1,4 @@
+name = "reviewer_correctness"
+description = "Correctness against specifications."
+sandbox_mode = "read-only"
+developer_instructions = "Review whether the changes correctly implement the agreed specifications."

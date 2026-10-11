@@ -1,0 +1,4 @@
+name = "reviewer_design"
+description = "Better design proposals."
+sandbox_mode = "read-only"
+developer_instructions = "Propose better designs for the changes."
