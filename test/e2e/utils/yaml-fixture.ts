@@ -22,7 +22,6 @@ export interface FixtureUser {
 export interface FixtureDeck {
   id: string;
   name: string;
-  url?: string;
   isPublic: boolean;
   studyFilter: { selectedTags: string[]; tagAndFilter: boolean };
   category: string;
@@ -161,7 +160,6 @@ const remoteDeckSchema = z.strictObject({
   id: nonEmptyString,
   uid: nonEmptyString,
   name: nonBlankString,
-  url: z.url().optional(),
   isPublic: z.boolean().optional(),
   studyFilter: z.object({ selectedTags: z.array(z.string()), tagAndFilter: z.boolean() }).optional(),
   category: z.string().optional(),
@@ -629,7 +627,6 @@ const normalizeDeck = (raw: RawRemoteDeck, id: string, uid: string): FixtureDeck
   const normalized: FixtureDeck = {
     id,
     name: raw.name,
-    ...(raw.url === undefined ? {} : { url: raw.url }),
     isPublic: raw.isPublic ?? false,
     studyFilter: {
       selectedTags: [...(raw.studyFilter?.selectedTags ?? [])],

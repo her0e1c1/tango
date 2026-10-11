@@ -1,16 +1,6 @@
 import type { z } from "zod";
 import type { Deck, DeckId, RemoteDeckCreateInput } from "../model/types";
-import {
-  onSnapshot,
-  collection,
-  deleteField,
-  doc,
-  serverTimestamp,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+import { onSnapshot, collection, doc, serverTimestamp, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { auth, db } from "@/shared/firebase";
 import { omitUndefined } from "@/shared/lib/omitUndefined";
 import {
@@ -60,7 +50,6 @@ export async function editDeck(uid: string, deck: z.input<typeof deckEditSchema>
   const input = editDeckSchema.parse({ uid, deck });
   const document = omitUndefined({
     name: input.deck.name,
-    url: input.deck.url === null ? deleteField() : input.deck.url,
     isPublic: input.deck.isPublic,
     updatedAt: serverTimestamp(),
     studyFilter: input.deck.studyFilter,

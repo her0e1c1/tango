@@ -83,13 +83,7 @@ function preparePersistence() {
     replaceRemoteDecks([...getDecks(), deckFixture({ ...omitUndefined(value), uid, createdAt: now, updatedAt: now })]);
   });
   mocked(editDeck).mockImplementation(async (_uid, value) => {
-    replaceRemoteDecks(
-      getDecks().map((item) =>
-        item.id === value.id
-          ? { ...item, ...omitUndefined(value), url: value.url === null ? undefined : (value.url ?? item.url) }
-          : item
-      )
-    );
+    replaceRemoteDecks(getDecks().map((item) => (item.id === value.id ? { ...item, ...omitUndefined(value) } : item)));
   });
   mocked(deleteDeck).mockImplementation(async (_uid, id) =>
     replaceRemoteDecks(getDecks().filter((item) => item.id !== id))

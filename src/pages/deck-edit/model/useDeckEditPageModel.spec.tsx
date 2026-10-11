@@ -99,7 +99,6 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
     await userEvent.type(name, " Updated deck ");
-    await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "https://example.com/deck.csv");
     await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.selectOptions(screen.getByRole("combobox"), "science");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
@@ -110,7 +109,6 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     await userEvent.click(screen.getByText("More settings"));
 
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Updated deck");
-    expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveValue("https://example.com/deck.csv");
     expect(screen.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
     expect(screen.getByRole("combobox")).toHaveValue("science");
   });
@@ -140,20 +138,6 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     expect(screen.getByRole("button", { name: "Back to decks" })).toBeDisabled();
     finishSave();
     expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
-  });
-
-  it("removes a cleared optional URL from the stored Deck", async () => {
-    replaceRemoteDecks([createLocalDeck({ id: deckId, name: "Deck name", url: "https://example.com/deck.csv" })]);
-    const view = renderForm();
-    await userEvent.click(screen.getByText("More settings"));
-    await userEvent.clear(screen.getByRole("textbox", { name: "Source URL" }));
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-
-    expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
-    view.unmount();
-    renderForm();
-    await userEvent.click(screen.getByText("More settings"));
-    expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveValue("");
   });
 
   it("keeps the draft and saves it after an explicit retry", async () => {
@@ -190,20 +174,14 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     const view = renderForm();
     await userEvent.click(screen.getByText("More settings"));
     await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
-    await userEvent.type(screen.getByRole("textbox", { name: "Source URL" }), "not-a-url");
     await userEvent.click(screen.getByText("More settings"));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByText("Deck name is required.")).toBeVisible();
-    expect(screen.getByText("Enter a valid URL.")).toBeVisible();
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.type(name, "Corrected name");
     expect(name).toHaveValue("Corrected name");
     expect(name).toHaveFocus();
-    await userEvent.click(screen.getByText("More settings"));
-    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
-    expect(screen.getByRole("textbox", { name: "Source URL" })).toBeVisible();
-    expect(screen.getByRole("textbox", { name: "Source URL" })).toHaveFocus();
     view.unmount();
     renderForm();
     await userEvent.click(screen.getByText("More settings"));

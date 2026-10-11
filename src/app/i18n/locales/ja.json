@@ -243,8 +243,7 @@
     },
     "importFormatting": {
       "title": "その他の設定",
-      "description": "URL・改行",
-      "sourceUrl": "参照元URL",
+      "description": "改行",
       "convertLineBreaks": "改行を変換",
       "convertLineBreaksHelp": "連続する2つの改行を1つの表示上の改行にまとめます。"
     },

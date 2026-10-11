@@ -63,7 +63,7 @@ const clickCheckboxLabel = async (page: Page, name: string) => {
   return checkbox;
 };
 
-test("DECK-MANAGEMENT-01 persists edited name, category, and source URL across reload", async ({
+test("DECK-MANAGEMENT-01 persists edited name, category, and formatting across reload", async ({
   fixture,
   page,
   namespace,
@@ -71,7 +71,6 @@ test("DECK-MANAGEMENT-01 persists edited name, category, and source URL across r
   const deck = fixture.deck();
   await fixture.apply(page);
   const updatedName = `${namespace.caseId} updated`;
-  const updatedSourceUrl = "https://example.com/updated-deck.csv";
 
   await page.goto("/");
   await page.getByRole("button", { name: `Open actions for ${deck.name}` }).click();
@@ -79,7 +78,7 @@ test("DECK-MANAGEMENT-01 persists edited name, category, and source URL across r
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(updatedName);
   await page.getByRole("combobox").selectOption("typescript");
   await page.getByText("More settings").click();
-  await page.getByRole("textbox", { name: "Source URL" }).fill(updatedSourceUrl);
+  await clickCheckboxLabel(page, "Convert line breaks");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("status").filter({ hasText: `Updated deck “${updatedName}”.` })).toBeVisible();
@@ -90,7 +89,7 @@ test("DECK-MANAGEMENT-01 persists edited name, category, and source URL across r
   await expect(page.getByRole("textbox", { name: "Name", exact: true })).toHaveValue(updatedName);
   await expect(page.getByRole("combobox")).toHaveValue("typescript");
   await page.getByText("More settings").click();
-  await expect(page.getByRole("textbox", { name: "Source URL" })).toHaveValue(updatedSourceUrl);
+  await expect(page.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
 });
 
 test("DECK-MANAGEMENT-02 deletes one Deck and preserves unrelated Deck data", async ({ fixture, page }) => {
@@ -219,7 +218,6 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
 }) => {
   const name = `${namespace.caseId} created`;
   const category = "typescript";
-  const sourceUrl = "https://example.com/created-deck.csv";
   const { uid } = fixture.user();
   await fixture.apply(page, { auth: { linked: true } });
 
@@ -229,7 +227,6 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await page.getByText("More settings").click();
-  await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
   await clickCheckboxLabel(page, "Convert line breaks");
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect(page).toHaveURL(/\/deck\/(?!new$)[^/]+$/);
@@ -258,7 +255,6 @@ test("DECK-MANAGEMENT-05 creates one empty remote Deck without a local duplicate
   );
   expect(owned.map(documentId)).toEqual([deckId]);
   expect(owned.map(({ fields }) => fields.category?.stringValue)).toEqual([category]);
-  expect(owned.map(({ fields }) => fields.url?.stringValue)).toEqual([sourceUrl]);
   expect(owned.map(({ fields }) => fields.convertToBr?.booleanValue)).toEqual([true]);
   const ownedCardsForDeck = (await listDocuments("card")).filter(
     ({ fields }) => fields.uid?.stringValue === uid && fields.deckId?.stringValue === deckId
@@ -275,7 +271,6 @@ test("DECK-MANAGEMENT-06 rolls back a rejected remote create without locking the
 }) => {
   const name = `${namespace.caseId} failed deck`;
   const category = "typescript";
-  const sourceUrl = "https://example.com/failed.csv";
   const { uid } = fixture.user();
   await fixture.apply(page, { auth: { linked: true } });
   await page.goto("/");
@@ -286,7 +281,6 @@ test("DECK-MANAGEMENT-06 rolls back a rejected remote create without locking the
   await page.getByRole("textbox", { name: "Name", exact: true }).fill(name);
   await page.getByRole("combobox").selectOption(category);
   await page.getByText("More settings").click();
-  await page.getByRole("textbox", { name: "Source URL" }).fill(sourceUrl);
   await clickCheckboxLabel(page, "Convert line breaks");
   await page.getByRole("button", { name: "Create deck" }).click();
   await expect.poll(fault.wasTriggered).toBe(true);

@@ -48,7 +48,6 @@ async function seed(cardFilter?: CardFilter) {
   await createDeck(uid, {
     id,
     name: "Browse deck",
-    url: "https://example.com/deck",
     studyFilter: { selectedTags: ["study-a"], tagAndFilter: true },
     ...(cardFilter === undefined ? {} : { cardFilter }),
   });

@@ -10,7 +10,6 @@ const deckDocumentSchema = z.object({
   // Older documents duplicate the Firestore document id in their data.
   id: z.string().optional(),
   name: z.string(),
-  url: z.string().optional(),
   isPublic: z.boolean(),
   uid: z.string(),
   createdAt: z.number(),

@@ -30,7 +30,6 @@ const pageStoryDecks: Deck[] = [
     name: "Japanese starter",
     category: "markdown",
     studyFilter: { selectedTags: ["greeting"], tagAndFilter: false },
-    url: "https://example.com/decks/starter.csv",
     createdAt: timestamp - 14 * 24 * 60 * 60 * 1000,
     updatedAt: timestamp,
   }),

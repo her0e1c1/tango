@@ -3,7 +3,7 @@ import { vi } from "vitest";
 vi.mock("@/entities/deck/api/firestore", async (original) => {
   const actual = await original<typeof import("@/entities/deck/api/firestore")>();
   const { deckStore } = await import("@/entities/deck/model/store");
-  const { deckCreateSchema } = await import("@/entities/deck/model/schema");
+  const { deckCreateSchema, deckEditSchema } = await import("@/entities/deck/model/schema");
   const { omitUndefined } = await import("@/shared/lib/omitUndefined");
   return {
     ...actual,
@@ -14,15 +14,13 @@ vi.mock("@/entities/deck/api/firestore", async (original) => {
         remoteDecks: [...state.remoteDecks.filter((value) => value.id !== deck.id), deck],
       }));
     },
-    editDeck: async (uid: string, input: { id: string; url?: string | null }) => {
+    editDeck: async (uid: string, input: { id: string }) => {
       if (!uid || deckStore.getState().remoteDecks.find((deck) => deck.id === input.id)?.uid !== uid)
         throw new Error("Deck owner does not match the authenticated user");
       await Promise.resolve();
       deckStore.setState((state) => ({
         remoteDecks: state.remoteDecks.map((deck) =>
-          deck.id !== input.id
-            ? deck
-            : { ...deck, ...omitUndefined(input), url: input.url === null ? undefined : (input.url ?? deck.url) }
+          deck.id !== input.id ? deck : { ...deck, ...omitUndefined(deckEditSchema.parse(input)) }
         ),
       }));
     },

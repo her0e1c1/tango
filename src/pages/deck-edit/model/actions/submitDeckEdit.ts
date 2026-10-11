@@ -15,7 +15,7 @@ export async function submitDeckEdit(deckId: DeckId, values: DeckFormFields): Pr
   }
 
   const uid = getAuthUid();
-  const input = { ...values, id: deckId, url: values.url ?? null };
+  const input = { ...values, id: deckId };
   const save = async (): Promise<void> => {
     const deck = mustFindDeckById(getDecks(), deckId);
     if (deck.uid !== uid) throw new Error("Deck owner does not match the authenticated user");

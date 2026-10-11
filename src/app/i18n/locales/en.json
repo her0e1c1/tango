@@ -243,8 +243,7 @@
     },
     "importFormatting": {
       "title": "More settings",
-      "description": "URL · Line breaks",
-      "sourceUrl": "Source URL",
+      "description": "Line breaks",
       "convertLineBreaks": "Convert line breaks",
       "convertLineBreaksHelp": "Combine two consecutive line breaks into one displayed line break."
     },

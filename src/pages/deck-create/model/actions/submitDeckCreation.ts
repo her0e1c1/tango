@@ -24,8 +24,6 @@ export async function submitDeckCreation(
       name: values.name,
       category: values.category,
       convertToBr: values.convertToBr,
-
-      ...(values.url === undefined ? {} : { url: values.url }),
     });
     // Writes survive navigation, but resetting the store detaches their results.
     if (store.getState().mutationId !== mutationId) return;

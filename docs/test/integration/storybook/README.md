@@ -39,7 +39,6 @@
 | --- | --- | --- | --- |
 | STORYBOOK-DECK-FORM-01 | interaction | 正常系 | [名前とカテゴリを入力する](./deck-create.md#storybook-deck-form-01) |
 | STORYBOOK-DECK-FORM-02 | interaction | 正常系 | [詳細設定を開き直しても入力を保持する](./deck-create.md#storybook-deck-form-02) |
-| STORYBOOK-DECK-FORM-03 | interaction | 異常系 | [詳細項目の入力エラーを表示する](./deck-create.md#storybook-deck-form-03) |
 | STORYBOOK-DECK-CREATE-01 | interaction | 正常系 | [作成の成功後に新しい Deck を確認する](./deck-create.md#storybook-deck-create-01) |
 | STORYBOOK-DECK-CREATE-02 | interaction | 異常系 | [作成に失敗しても入力を保持する](./deck-create.md#storybook-deck-create-02) |
 | STORYBOOK-DECK-CREATE-03 | interaction | 異常系 | [空欄と空白のみの名前に現在の言語でエラーを表示する](./deck-create.md#storybook-deck-create-03) |

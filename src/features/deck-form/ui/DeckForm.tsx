@@ -1,17 +1,16 @@
 import type { TFunction } from "i18next";
 import type * as React from "react";
-import { useId, useLayoutEffect, useRef } from "react";
+import { useId } from "react";
 import { AiOutlineArrowLeft, AiOutlineDown } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import { Button } from "@/shared/ui/button";
-import { FormItem, Input, Switch } from "@/shared/ui/forms";
+import { FormItem, Switch } from "@/shared/ui/forms";
 
 export interface DeckFormFields {
   name: string;
   category: string;
-  url?: string | undefined;
   convertToBr: boolean;
 }
 
@@ -112,37 +111,11 @@ const BasicInformationSection = ({
   );
 };
 
-const ImportFormattingSection = ({
-  error,
-  hasNameError,
-  submitCount,
-  form,
-  idPrefix,
-}: {
-  error: string | undefined;
-  hasNameError: boolean;
-  submitCount: number;
-  form: UseFormReturn<DeckFormFields>;
-  idPrefix: string;
-}) => {
+const ImportFormattingSection = ({ form }: { form: UseFormReturn<DeckFormFields> }) => {
   const { t } = useTranslation();
-  const detailsRef = useRef<HTMLDetailsElement>(null);
-  const previousSubmitCount = useRef(submitCount);
-  const urlInputId = `${idPrefix}-url`;
-  const urlErrorId = `${urlInputId}-error`;
-
-  useLayoutEffect(() => {
-    const submitted = previousSubmitCount.current !== submitCount;
-    previousSubmitCount.current = submitCount;
-    // Reveal errors on every submit, but do not move focus while the user is correcting another field.
-    if (error !== undefined && detailsRef.current !== null) {
-      detailsRef.current.open = true;
-      if (submitted && !hasNameError) form.setFocus("url");
-    }
-  }, [error, hasNameError, submitCount, form]);
 
   return (
-    <details ref={detailsRef} className="group">
+    <details className="group">
       <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 text-caption text-ink [&::-webkit-details-marker]:hidden">
         <span className="flex flex-wrap items-baseline gap-2">
           {t("deckForm.importFormatting.title")}
@@ -151,27 +124,6 @@ const ImportFormattingSection = ({
         <AiOutlineDown aria-hidden="true" className="shrink-0 group-open:rotate-180" />
       </summary>
       <div className="space-y-5 pt-4">
-        <FormItem
-          col
-          label={t("deckForm.importFormatting.sourceUrl")}
-          inputId={urlInputId}
-          errorId={urlErrorId}
-          {...(error === undefined ? {} : { error })}
-        >
-          <Input
-            {...form.register("url", {
-              // Keep optional Deck URLs absent even though an empty HTML input reports an empty string.
-              setValueAs: (value: unknown) => (value === "" ? undefined : value),
-            })}
-            id={urlInputId}
-            type="url"
-            inputMode="url"
-            autoCapitalize="off"
-            spellCheck={false}
-            aria-invalid={error !== undefined || undefined}
-            aria-describedby={error === undefined ? undefined : urlErrorId}
-          />
-        </FormItem>
         <FormItem
           label={t("deckForm.importFormatting.convertLineBreaks")}
           help={t("deckForm.importFormatting.convertLineBreaksHelp")}
@@ -242,13 +194,7 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
             form={props.form}
             idPrefix={idPrefix}
           />
-          <ImportFormattingSection
-            error={formState.errors.url?.message}
-            hasNameError={formState.errors.name !== undefined}
-            submitCount={formState.submitCount}
-            form={props.form}
-            idPrefix={idPrefix}
-          />
+          <ImportFormattingSection form={props.form} />
           {props.mode === "edit" ? <DeckInformation deckInfo={props.deckInfo} /> : null}
         </fieldset>
         <div className="border-t border-border p-4 md:px-6">

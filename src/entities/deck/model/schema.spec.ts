@@ -6,7 +6,7 @@ import { createDeck as createDeckFixture } from "@/test/factories";
 
 import { createDeckSchema, editDeckSchema } from "./schema";
 
-describe("Deck operation schemas [CARD-LIST-ACTIONS-01]", () => {
+describe("Deck operation schemas [DECK-MANAGEMENT-01 DECK-MANAGEMENT-05]", () => {
   const deck = createDeckFixture({ id: "deck", uid: "uid-a" });
 
   describe("createDeckSchema", () => {
@@ -29,7 +29,6 @@ describe("Deck operation schemas [CARD-LIST-ACTIONS-01]", () => {
       ["authenticated uid", { uid: "", deck }, "confirmed user"],
       ["Deck id", { uid: "uid-a", deck: { ...deck, id: "" } }, "Deck id"],
       ["Deck name", { uid: "uid-a", deck: { ...deck, name: "   " } }, "Deck name"],
-      ["Deck URL", { uid: "uid-a", deck: { ...deck, url: "not-a-url" } }, "valid URL"],
     ])("rejects an invalid %s", (_case, input, message) => {
       expect(() => createDeckSchema.parse(input)).toThrow(message);
     });
@@ -43,24 +42,16 @@ describe("Deck operation schemas [CARD-LIST-ACTIONS-01]", () => {
 
   describe("editDeckSchema", () => {
     it("accepts a partial edit with a non-empty Deck id", () => {
-      expect(
-        editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", name: " Renamed ", url: "https://example.com" } })
-      ).toEqual({
+      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", name: " Renamed " } })).toEqual({
         uid: "uid-a",
-        deck: { id: "deck", name: "Renamed", url: "https://example.com" },
+        deck: { id: "deck", name: "Renamed" },
       });
-    });
-
-    it("uses null to distinguish clearing a URL from leaving it unchanged", () => {
-      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck" } }).deck).not.toHaveProperty("url");
-      expect(editDeckSchema.parse({ uid: "uid-a", deck: { id: "deck", url: null } }).deck).toHaveProperty("url", null);
     });
 
     it.each([
       ["authenticated uid", { uid: "", deck: { id: "deck" } }, "confirmed user"],
       ["Deck id", { uid: "uid-a", deck: { id: "" } }, "Deck id"],
       ["provided Deck name", { uid: "uid-a", deck: { id: "deck", name: "   " } }, "Deck name"],
-      ["provided Deck URL", { uid: "uid-a", deck: { id: "deck", url: "not-a-url" } }, "valid URL"],
     ])("rejects an invalid %s", (_case, input, message) => {
       expect(() => editDeckSchema.parse(input)).toThrow(message);
     });

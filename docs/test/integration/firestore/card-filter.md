@@ -76,7 +76,7 @@ Then:
 
 - 選択タグと AND / OR 条件が対象 Deck のフィルターとして保存され、同じ条件を復元できる。
 - 初期値や学習用のタグ条件に置き換わらない。
-- 学習条件と、対象 Deck の名前・URL・公開設定・作成日時は変わらない。保存に伴う updatedAt はサーバー確定 Timestamp になる。
+- 学習条件と、対象 Deck の名前・公開設定・作成日時は変わらない。保存に伴う updatedAt はサーバー確定 Timestamp になる。
 
 <a id="firestore-card-filter-03"></a>
 
