@@ -281,7 +281,8 @@ test("STUDY-SESSION-05 finishes the final Card and shows the completion screen",
 
   await expect(page).toHaveURL(`/deck/${deck.id}/study`);
   await expect(page.getByRole("heading", { name: "Study complete" })).toBeVisible();
-  await expect(page.getByText(`You studied ${String(session.cardOrderIds.length)} cards.`)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Study complete" })).toBeFocused();
+  await expect(page.getByText(`Session: ${String(session.cardOrderIds.length)} cards`)).toBeVisible();
   const backToDeckList = page.getByRole("button", { name: "Back to deck list" });
   await expect(backToDeckList).toBeVisible();
   await backToDeckList.click();

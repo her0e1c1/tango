@@ -261,6 +261,7 @@ When:
 Then:
 
 - 学習完了の表示になり、存在しない次の Card を操作させない。
+- 対象 Card 数を「Session: 2 cards」と表示し、完了見出しにフォーカスが移る。件数は回答数や閲覧数ではなく、session に含まれる Card 数を表す。
 
 <a id="storybook-study-session-03"></a>
 

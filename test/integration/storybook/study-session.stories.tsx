@@ -190,6 +190,8 @@ export const Answer: Story = {
       await userEvent.click(canvas.getByRole("button", { name: "Second" }));
       await userEvent.click(canvas.getByRole("button", { name: "Swipe right" }));
       await expect(await canvas.findByRole("heading", { name: "Study complete" })).toBeVisible();
+      await expect(canvas.getByRole("heading", { name: "Study complete" })).toHaveFocus();
+      await expect(canvas.getByText("Session: 2 cards")).toBeVisible();
       await expect(canvas.queryByRole("slider")).not.toBeInTheDocument();
       await expect(canvas.queryByRole("button", { name: "Swipe up" })).not.toBeInTheDocument();
       await expect(canvas.getByRole("button", { name: "Back to deck list" })).toBeEnabled();
