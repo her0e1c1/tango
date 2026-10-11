@@ -6,7 +6,7 @@
 
 import cx from "classnames";
 import * as React from "react";
-// biome-ignore lint/correctness/noUnresolvedImports: highlight.js exposes this default through its ESM export map.
+// highlight.js exposes this default through its ESM export map.
 import hljs from "highlight.js";
 
 import "./Code.scss";

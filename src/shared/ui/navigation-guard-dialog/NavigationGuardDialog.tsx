@@ -65,7 +65,7 @@ export const NavigationGuardDialog: React.FC<NavigationGuardDialogProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-canvas/70 px-shell-gutter py-6">
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: The alertdialog owns Escape and focus-trap keyboard handling. */}
+      {/* The alertdialog owns Escape and focus-trap keyboard handling. */}
       <div
         ref={dialogRef}
         role="alertdialog"
