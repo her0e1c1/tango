@@ -121,7 +121,7 @@ Then:
 
 - 回答は10件になり、session の currentIndex は `9`、endReason は `completed`、endedAt は Timestamp になる。
 
-失敗時の部分更新なしは FIRESTORE-STUDY-ANSWER-10 で確認する。
+失敗時に成功した保存を保持することは [FIRESTORE-STUDY-ANSWER-09](#firestore-study-answer-09)・[FIRESTORE-STUDY-ANSWER-10](#firestore-study-answer-10) で確認する。
 
 <a id="firestore-study-answer-05"></a>
 
