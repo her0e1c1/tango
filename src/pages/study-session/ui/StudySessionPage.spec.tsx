@@ -496,14 +496,16 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(mocks.abandonStudySession).not.toHaveBeenCalled();
   });
 
-  it("keeps the completion screen on the Study route and disables Study shortcuts", async () => {
-    void setStudySessionIndex(deckId, 1);
+  it("shows the session Card count after advancing with the slider and keeps completion on the Study route", async () => {
     renderPage(`/deck/${deckId}/study`, "/previous");
+    fireEvent.change(screen.getByRole("slider", { name: "Study progress" }), { target: { value: "1" } });
+    expect(await screen.findByText("Front two")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "Swipe up" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Study complete" })).toBeVisible();
-    expect(screen.getByText("You studied 2 cards.")).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "Study complete" })).toHaveFocus();
+    expect(screen.getByText("Session: 2 cards")).toBeVisible();
     expect(screen.queryByRole("heading", { level: 1, name: "Deck list destination" })).not.toBeInTheDocument();
     expect(getStudySession(deckId)).toBeUndefined();
 

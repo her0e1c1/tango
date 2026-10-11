@@ -443,7 +443,7 @@ test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport wit
   await expect(completion).toHaveCount(0);
   await page.getByRole("button", { name: "Swipe right", exact: true }).click();
   await expect(completion).toBeVisible();
-  await expect(completion.getByText("You studied 1 card.", { exact: true })).toBeVisible();
+  await expect(completion.getByText("Session: 1 card", { exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Study progress" })).toHaveCount(0);
 });
 

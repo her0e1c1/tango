@@ -490,8 +490,8 @@
     "completion": {
       "eyebrow": "セッション完了",
       "title": "学習完了",
-      "summary_one": "{{count}}枚のカードを学習しました。",
-      "summary_other": "{{count}}枚のカードを学習しました。",
+      "summary_one": "対象カード: {{count}}枚",
+      "summary_other": "対象カード: {{count}}枚",
       "back": "デッキ一覧へ戻る"
     },
     "frontAria": "カードの表面テキスト",

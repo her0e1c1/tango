@@ -490,8 +490,8 @@
     "completion": {
       "eyebrow": "Session complete",
       "title": "Study complete",
-      "summary_one": "You studied {{count}} card.",
-      "summary_other": "You studied {{count}} cards.",
+      "summary_one": "Session: {{count}} card",
+      "summary_other": "Session: {{count}} cards",
       "back": "Back to deck list"
     },
     "frontAria": "Card front text",
