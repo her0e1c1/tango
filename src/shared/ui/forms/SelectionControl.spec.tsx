@@ -134,15 +134,16 @@ describe("shared selection controls", () => {
     expect(onTagChange).toHaveBeenCalledOnce();
   });
 
-  it("passes the chosen native file to the unchanged upload callback", () => {
+  it("DECK-IMPORT-11 passes the chosen file before clearing the native selection", async () => {
     const onChange = vi.fn();
     const file = new File(["front,back"], "biology.csv", { type: "text/csv" });
     render(<Upload onChange={onChange} />);
 
     const input = screen.getByLabelText("Upload a csv file") as HTMLInputElement;
-    fireEvent.change(input, { target: { files: [file] } });
+    await userEvent.upload(input, file);
 
-    expect(input?.files?.[0]).toBe(file);
+    expect(input.files).toHaveLength(0);
+    expect(input).toHaveValue("");
     expect(onChange).toHaveBeenCalledExactlyOnceWith(file);
   });
 

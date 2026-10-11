@@ -9,7 +9,8 @@ import {
 } from "./utils/fixtures";
 import { downloadDeckCards } from "./utils/ui-helpers";
 import type { Page } from "@playwright/test";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import * as Papa from "papaparse";
 
 test.describe("import-sample", () => {
@@ -230,6 +231,47 @@ test.describe("import", () => {
       expect(await documentsForUid("card", uid)).toEqual([]);
     });
   }
+
+  test("DECK-IMPORT-11 A corrected file at the same path can be selected repeatedly", async ({
+    fixture,
+    page,
+  }, testInfo) => {
+    const { uid } = fixture.user();
+    await fixture.apply(page);
+    await page.goto("/import");
+    const path = testInfo.outputPath("retry.csv");
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(path, Buffer.from([0x82, 0xa0, 44, 98, 44, 44, 107]));
+    const upload = page.getByLabel("Upload a csv file");
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await upload.setInputFiles(path);
+      await expect(page.getByRole("alert")).toContainText("This CSV cannot be read as UTF-8.");
+      await expect(upload).toHaveValue("");
+    }
+
+    await writeFile(path, "corrected front,corrected back,,corrected-key");
+    await upload.setInputFiles(path);
+    await expect(page.getByText("corrected front", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Add 1 card", exact: true })).toBeEnabled();
+    // Model the picker's cancel event without clearing or replacing its selected files.
+    await upload.dispatchEvent("cancel");
+    await expect(page.getByText("corrected front", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Add 1 card", exact: true })).toBeEnabled();
+
+    await writeFile(path, "invalid front,back,,");
+    await upload.setInputFiles(path);
+    await expect(page.getByRole("alert")).toContainText("Unique key is required.");
+    await expect(page.getByRole("button", { name: "Add 0 cards", exact: true })).toBeDisabled();
+    await writeFile(path, "latest front,latest back,,latest-key");
+    await upload.setInputFiles(path);
+    await expect(page.getByText("latest front", { exact: true })).toBeVisible();
+    await expect(page.getByText("latest back", { exact: true })).toBeVisible();
+    await expect(page.getByText("retry.csv", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Add 1 card", exact: true })).toBeEnabled();
+    expect(await documentsForUid("deck", uid)).toEqual([]);
+    expect(await documentsForUid("card", uid)).toEqual([]);
+  });
 
   test("DECK-IMPORT-03 A remote CSV import survives reload", async ({ fixture, page, namespace }) => {
     const { uid } = fixture.user();

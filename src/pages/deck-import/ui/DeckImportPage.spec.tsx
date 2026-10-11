@@ -95,7 +95,7 @@ const selectLocalFile = async (name: string, backText = "back") => {
   await screen.findByRole("heading", { level: 2, name: "Review import" });
 };
 
-describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06 SETTINGS-09]", () => {
+describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPORT-06 DECK-IMPORT-11 SETTINGS-09]", () => {
   beforeEach(() => {
     deckImportStore.setState(deckImportStore.getInitialState(), true);
     dismissToast();
@@ -138,20 +138,25 @@ describe("DeckImportPage [DECK-IMPORT-01 DECK-IMPORT-04 DECK-IMPORT-05 DECK-IMPO
     renderPage();
     await selectLocalFile("previous.csv");
     await userEvent.click(screen.getByRole("button", { name: "Choose file or example" }));
-    fireEvent.change(screen.getByLabelText("Upload a csv file"), {
-      target: { files: [new File([new Uint8Array([0x82, 0xa0, 44, 98, 44, 44, 107])], "invalid.csv")] },
-    });
+    await userEvent.upload(
+      screen.getByLabelText("Upload a csv file"),
+      new File([new Uint8Array([0x82, 0xa0, 44, 98, 44, 44, 107])], "invalid.csv", { type: "text/csv" })
+    );
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "This CSV cannot be read as UTF-8. Save it as UTF-8 and select it again."
     );
     expect(screen.queryByRole("button", { name: "Add 1 card" })).not.toBeInTheDocument();
     expect(screen.getByLabelText("Upload a csv file")).toBeEnabled();
+    const upload = screen.getByLabelText("Upload a csv file");
     await actAsync(() => getI18n().changeLanguage("ja"));
     expect(screen.getByRole("alert")).toHaveTextContent(
       "このCSVはUTF-8として読み取れません。UTF-8で保存し直して、もう一度選択してください。"
     );
     await actAsync(() => getI18n().changeLanguage("en"));
-    await selectLocalFile("recovered.csv", "日本語�");
+    await userEvent.upload(upload, new File(["front,日本語�,,key"], "invalid.csv", { type: "text/csv" }));
+    expect(await screen.findByText("日本語�", { exact: true })).toBeVisible();
+    fireEvent(screen.getByLabelText("Upload a csv file"), new Event("cancel", { bubbles: true }));
+    expect(screen.getByText("日本語�", { exact: true })).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "Add 1 card" }));
     expect(await screen.findByText("front: 日本語�")).toBeVisible();
   });
