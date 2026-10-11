@@ -1,6 +1,6 @@
 import "@/test/mockFirestorePersistence";
 import { setStudySessionIndex } from "@/entities/study-session";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter } from "react-router-dom";
@@ -61,6 +61,56 @@ describe("NAVIGATION-09 NAVIGATION-10 NAVIGATION-14 NAVIGATION-15 NAVIGATION-16 
     ownedDeckIds.length = 0;
     clearStudySessions();
     replaceAuthSession({ status: "initializing" });
+  });
+
+  it("NAVIGATION-09 shows each card's code language without changing saved data", async () => {
+    const deck = createLocalDeck({ id: "view-code", name: "Code View Deck", category: "typescript" });
+    const typescript = "interface Greeting { value: string; }";
+    const python = "def greet():\n    return True";
+    await seedLocalDeck(deck, [
+      createLocalCard({
+        id: "code-1-ts",
+        deckId: deck.id,
+        frontText: "TypeScript",
+        backText: typescript,
+        uniqueKey: "1",
+      }),
+      createLocalCard({
+        id: "code-2-py",
+        deckId: deck.id,
+        frontText: "Python",
+        backText: python,
+        tags: ["python"],
+        uniqueKey: "2",
+      }),
+    ]);
+    const before = savedState(deck.id);
+    const router = createMemoryRouter(appRoutes, { initialEntries: [`/deck/${deck.id}/view`] });
+    const view = render(<App router={router} />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Card front" }));
+    let code = within(screen.getByRole("region", { name: "Card answer" })).getByRole("code");
+    expect(within(code).getByText("interface")).toHaveClass("hljs-keyword");
+    await userEvent.keyboard("{ArrowRight}");
+    await userEvent.click(screen.getByRole("button", { name: "Card front" }));
+
+    code = within(screen.getByRole("region", { name: "Card answer" })).getByRole("code");
+    expect(code.textContent).toBe(python);
+    expect(code).toHaveClass("language-python");
+    expect(code).not.toHaveClass("language-typescript");
+    expect(within(code).getByText("def")).toHaveClass("hljs-keyword");
+
+    await userEvent.keyboard("{ArrowLeft}");
+    await userEvent.click(screen.getByRole("button", { name: "Card front" }));
+
+    code = within(screen.getByRole("region", { name: "Card answer" })).getByRole("code");
+    expect(code.textContent).toBe(typescript);
+    expect(code).toHaveClass("language-typescript");
+    expect(code).not.toHaveClass("language-python");
+    expect(within(code).getByText("interface")).toHaveClass("hljs-keyword");
+    expect(savedState(deck.id)).toEqual(before);
+    view.unmount();
+    router.dispose();
   });
 
   it("keeps an existing study resume point and saved data unchanged across viewing, reload, reentry, and both exits", async () => {
