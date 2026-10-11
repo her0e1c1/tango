@@ -21,14 +21,13 @@ const editableDeckFieldsSchema = z.object({
   cardFilter: cardFilterSchema.optional(),
   /** Fallback rendering category when Card tags do not select one. */
   category: z.string(),
-  /** Whether imported text converts two consecutive line breaks into one HTML <br />. */
+  /** Legacy line-break setting retained in storage; current rendering ignores it. */
   convertToBr: z.boolean(),
 });
 
 export const deckFormSchema = editableDeckFieldsSchema.pick({
   name: true,
   category: true,
-  convertToBr: true,
 });
 
 const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
@@ -38,7 +37,7 @@ const deckCreateFieldsSchema = editableDeckFieldsSchema.extend({
   isPublic: editableDeckFieldsSchema.shape.isPublic.default(false),
   /** Rendering category; omitted or undefined defaults to an empty string. */
   category: editableDeckFieldsSchema.shape.category.default(""),
-  /** Line-break conversion; omitted or undefined defaults to false. */
+  /** Legacy line-break setting; omitted or undefined defaults to false. */
   convertToBr: editableDeckFieldsSchema.shape.convertToBr.default(false),
 });
 

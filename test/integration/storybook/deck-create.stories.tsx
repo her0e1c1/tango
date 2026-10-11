@@ -19,13 +19,14 @@ export const Inputs: Story = {
       await expect(canvas.getByRole("textbox", { name: "Name" })).toHaveValue("New deck");
       await expect(canvas.getByRole("combobox", { name: "Display format" })).toHaveValue("math");
     });
-    await step("STORYBOOK-DECK-FORM-02 Preserve hidden import formatting inputs", async () => {
-      await userEvent.click(canvas.getByText(/More settings/));
-      await userEvent.click(canvas.getByRole("checkbox", { name: "Convert line breaks" }));
-      await userEvent.click(canvas.getByText(/More settings/));
-      await expect(canvas.getByRole("checkbox", { name: "Convert line breaks", hidden: true })).not.toBeVisible();
-      await userEvent.click(canvas.getByText(/More settings/));
-      await expect(canvas.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
+    await step("STORYBOOK-DECK-FORM-02 Omit the unused line-break setting", async () => {
+      await expect(
+        canvas.queryByRole("checkbox", { name: "Convert line breaks", hidden: true })
+      ).not.toBeInTheDocument();
+      await expect(canvas.queryByText("More settings")).not.toBeInTheDocument();
+      await expect(
+        canvas.queryByText("Combine two consecutive line breaks into one displayed line break.")
+      ).not.toBeInTheDocument();
     });
   },
 };

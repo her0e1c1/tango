@@ -1,17 +1,15 @@
 import type { TFunction } from "i18next";
 import type * as React from "react";
 import { useId } from "react";
-import { AiOutlineArrowLeft, AiOutlineDown } from "react-icons/ai";
+import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useTranslation } from "react-i18next";
 import { type UseFormReturn, useFormState } from "react-hook-form";
 
 import { Button } from "@/shared/ui/button";
-import { FormItem, Switch } from "@/shared/ui/forms";
 
 export interface DeckFormFields {
   name: string;
   category: string;
-  convertToBr: boolean;
 }
 
 interface CommonDeckFormProps {
@@ -111,30 +109,6 @@ const BasicInformationSection = ({
   );
 };
 
-const ImportFormattingSection = ({ form }: { form: UseFormReturn<DeckFormFields> }) => {
-  const { t } = useTranslation();
-
-  return (
-    <details className="group">
-      <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 text-caption text-ink [&::-webkit-details-marker]:hidden">
-        <span className="flex flex-wrap items-baseline gap-2">
-          {t("deckForm.importFormatting.title")}
-          <span className="text-xs text-ink-muted">{t("deckForm.importFormatting.description")}</span>
-        </span>
-        <AiOutlineDown aria-hidden="true" className="shrink-0 group-open:rotate-180" />
-      </summary>
-      <div className="space-y-5 pt-4">
-        <FormItem
-          label={t("deckForm.importFormatting.convertLineBreaks")}
-          help={t("deckForm.importFormatting.convertLineBreaksHelp")}
-        >
-          <Switch {...form.register("convertToBr")} aria-label={t("deckForm.importFormatting.convertLineBreaks")} />
-        </FormItem>
-      </div>
-    </details>
-  );
-};
-
 const DeckInformation = ({ deckInfo }: Pick<DeckEditFormProps, "deckInfo">) => {
   const { i18n, t } = useTranslation();
   const locale = i18n.resolvedLanguage ?? i18n.language;
@@ -194,7 +168,6 @@ export const DeckForm: React.FC<DeckFormProps> = (props) => {
             form={props.form}
             idPrefix={idPrefix}
           />
-          <ImportFormattingSection form={props.form} />
           {props.mode === "edit" ? <DeckInformation deckInfo={props.deckInfo} /> : null}
         </fieldset>
         <div className="border-t border-border p-4 md:px-6">

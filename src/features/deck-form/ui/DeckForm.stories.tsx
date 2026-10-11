@@ -38,11 +38,10 @@ const DeckFormStory = ({ deck, isSaving, mode, validationError, onCancel, onDele
   const form = useForm<DeckFormFields>({
     defaultValues:
       mode === "create"
-        ? { name: "", category: "", convertToBr: false }
+        ? { name: "", category: "" }
         : {
             name: deck.name,
             category: deck.category,
-            convertToBr: deck.convertToBr,
           },
   });
 
@@ -115,19 +114,6 @@ export const Interaction: Story = {
       await userEvent.selectOptions(category, "math");
       await expect(category).toHaveValue("math");
     });
-
-    await step("STORYBOOK-DECK-FORM-02 Preserve advanced settings", async () => {
-      await userEvent.click(canvas.getByText("More settings"));
-
-      const convertLineBreaks = canvas.getByRole("checkbox", { name: "Convert line breaks" });
-      await userEvent.click(convertLineBreaks);
-      await expect(convertLineBreaks).toBeChecked();
-
-      await userEvent.click(canvas.getByText("More settings"));
-      await expect(convertLineBreaks).not.toBeVisible();
-      await userEvent.click(canvas.getByText("More settings"));
-      await expect(convertLineBreaks).toBeChecked();
-    });
   },
 };
 export const Mobile: Story = {
@@ -139,11 +125,6 @@ export const Dark: Story = { args: { mode: "edit", deck: longDeck }, globals: { 
 export const MobileCreate: Story = {
   globals: { viewport: { value: "iphonex", isRotated: false } },
 };
-export const ExpandedSettings: Story = {
-  play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByText("More settings"));
-  },
-};
 export const JapaneseMobileCreate: Story = {
   parameters: { locale: "ja" },
   globals: { viewport: { value: "iphonex", isRotated: false } },
@@ -151,9 +132,6 @@ export const JapaneseMobileCreate: Story = {
 
 export const Tablet: Story = {
   ...LongContent,
-  play: async (context) => {
-    await ExpandedSettings.play?.(context);
-  },
   globals: { theme: "light", viewport: { value: "ipad", isRotated: false } },
 };
 

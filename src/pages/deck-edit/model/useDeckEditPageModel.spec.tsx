@@ -95,21 +95,17 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
 
   it("restores successfully saved form values from the Deck Entity", async () => {
     const view = renderForm();
-    await userEvent.click(screen.getByText("More settings"));
     const name = screen.getByRole("textbox", { name: "Name" });
     await userEvent.clear(name);
     await userEvent.type(name, " Updated deck ");
-    await userEvent.click(screen.getByRole("checkbox", { name: "Convert line breaks" }));
     await userEvent.selectOptions(screen.getByRole("combobox"), "science");
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByRole("heading", { name: "Deck list" })).toBeVisible();
     view.unmount();
     renderForm();
-    await userEvent.click(screen.getByText("More settings"));
 
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Updated deck");
-    expect(screen.getByRole("checkbox", { name: "Convert line breaks" })).toBeChecked();
     expect(screen.getByRole("combobox")).toHaveValue("science");
   });
 
@@ -172,9 +168,7 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
 
   it("keeps stored values unchanged when validation rejects the form", async () => {
     const view = renderForm();
-    await userEvent.click(screen.getByText("More settings"));
     await userEvent.clear(screen.getByRole("textbox", { name: "Name" }));
-    await userEvent.click(screen.getByText("More settings"));
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(await screen.findByText("Deck name is required.")).toBeVisible();
@@ -184,7 +178,6 @@ describe("DECK-MANAGEMENT-01 DECK-MANAGEMENT-08 PERSISTENCE-04 useDeckEditPageMo
     expect(name).toHaveFocus();
     view.unmount();
     renderForm();
-    await userEvent.click(screen.getByText("More settings"));
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Deck name");
   });
 });

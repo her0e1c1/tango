@@ -23,7 +23,6 @@ export async function submitDeckCreation(
       id: deckId,
       name: values.name,
       category: values.category,
-      convertToBr: values.convertToBr,
     });
     // Writes survive navigation, but resetting the store detaches their results.
     if (store.getState().mutationId !== mutationId) return;

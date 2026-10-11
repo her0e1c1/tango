@@ -1,4 +1,3 @@
-export { FormItem } from "./FormItem";
 export { Input } from "./Input";
 export { Select } from "./Select";
 export { Slider } from "./Slider";

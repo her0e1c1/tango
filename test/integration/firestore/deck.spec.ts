@@ -94,45 +94,48 @@ describe.concurrent("firestore/deck", { retry: 3 }, () => {
     expect(data).not.toHaveProperty("cardOrderIds");
   });
 
-  it.sequential("[FIRESTORE-DECK-03] saves partial edits and receives the updated settings", async () => {
-    clearRemoteDecks();
-    const deck = createRemoteDeckInput({
-      id: uuid(),
-      name: newDeck.name,
-      category: "language",
-      convertToBr: true,
-      studyFilter: { selectedTags: ["study"], tagAndFilter: true },
-      cardFilter: { selectedTags: ["browse"], tagAndFilter: false },
-    });
-    await createDeck("uid", deck);
-    const reference = doc(db, "deck", deck.id);
-    const before = (await getDocFromServer(reference)).data();
-    const errors: Error[] = [];
-    const unsubscribe = subscribeDecks("uid", (error) => errors.push(error));
-    try {
-      await vi.waitFor(() => {
-        expect(getDecks().find((value) => value.id === deck.id)).toMatchObject(deck);
+  it.sequential.each([false, true])(
+    "[FIRESTORE-DECK-03] preserves legacy convertToBr=%s through partial edits and subscriptions",
+    async (convertToBr) => {
+      clearRemoteDecks();
+      const deck = createRemoteDeckInput({
+        id: uuid(),
+        name: newDeck.name,
+        category: "language",
+        convertToBr,
+        studyFilter: { selectedTags: ["study"], tagAndFilter: true },
+        cardFilter: { selectedTags: ["browse"], tagAndFilter: false },
       });
-      await editDeck("uid", { id: deck.id, name: "updated", category: "math" });
-      expect((await getDocFromServer(reference)).data()).toEqual({
-        ...before,
-        name: "updated",
-        category: "math",
-        updatedAt: expect.any(Timestamp),
-      });
-      await vi.waitFor(() => {
-        expect(getDecks().find((value) => value.id === deck.id)).toMatchObject({
-          ...deck,
+      await createDeck("uid", deck);
+      const reference = doc(db, "deck", deck.id);
+      const before = (await getDocFromServer(reference)).data();
+      const errors: Error[] = [];
+      const unsubscribe = subscribeDecks("uid", (error) => errors.push(error));
+      try {
+        await vi.waitFor(() => {
+          expect(getDecks().find((value) => value.id === deck.id)).toMatchObject(deck);
+        });
+        await editDeck("uid", { id: deck.id, name: "updated", category: "math" });
+        expect((await getDocFromServer(reference)).data()).toEqual({
+          ...before,
           name: "updated",
           category: "math",
+          updatedAt: expect.any(Timestamp),
         });
-      });
-      expect(errors).toEqual([]);
-    } finally {
-      unsubscribe();
-      clearRemoteDecks();
+        await vi.waitFor(() => {
+          expect(getDecks().find((value) => value.id === deck.id)).toMatchObject({
+            ...deck,
+            name: "updated",
+            category: "math",
+          });
+        });
+        expect(errors).toEqual([]);
+      } finally {
+        unsubscribe();
+        clearRemoteDecks();
+      }
     }
-  });
+  );
 
   it("[FIRESTORE-DECK-04] tombstones the parent without rewriting child documents", async () => {
     const d = createRemoteDeckInput({ id: uuid(), name: newDeck.name });
