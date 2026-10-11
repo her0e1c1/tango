@@ -1,5 +1,7 @@
 import type { StoryObj } from "@storybook/react-vite";
 import { expect, fireEvent, mocked, waitFor } from "storybook/test";
+import { getI18n } from "react-i18next";
+import { updatePreferences } from "@/entities/preference";
 import { writeStudyAnswer } from "@/entities/study-answer";
 import { showToast } from "@/shared/ui/toast";
 import { dismissToast } from "@/shared/ui/toast/model";
@@ -80,13 +82,13 @@ export const DisabledDirection: Story = {
   },
   play: async ({ canvas, userEvent, step }) => {
     await step("STORYBOOK-STUDY-CONTROLS-05 Skip unavailable directions during Tab navigation", async () => {
-      const left = await canvas.findByRole("button", { name: "Swipe left" });
+      const left = await canvas.findByRole("button", { name: "Swipe left: No action" });
       await expect(left).toBeDisabled();
       await userEvent.click(left);
       await expect(canvas.getByRole("button", { name: "Hello" })).toBeVisible();
       canvas.getByRole("button", { name: "Hello" }).focus();
       await userEvent.tab();
-      await expect(canvas.getByRole("button", { name: "Swipe up" })).toHaveFocus();
+      await expect(canvas.getByRole("button", { name: "Swipe up: Easy" })).toHaveFocus();
     });
   },
 };
@@ -101,7 +103,7 @@ export const DirectionKeyboard: Story = {
   },
   play: async ({ canvas, userEvent, step }) => {
     await step("STORYBOOK-STUDY-CONTROLS-06 Run one direction action with Enter", async () => {
-      const left = await canvas.findByRole("button", { name: "Swipe left" });
+      const left = await canvas.findByRole("button", { name: "Swipe left: Skip" });
       await expect(left).toHaveAttribute("aria-description", "Skip");
       left.focus();
       await userEvent.keyboard("{Enter}");
@@ -193,7 +195,7 @@ export const Answer: Story = {
       await expect(canvas.getByRole("heading", { name: "Study complete" })).toHaveFocus();
       await expect(canvas.getByText("Session: 2 cards")).toBeVisible();
       await expect(canvas.queryByRole("slider")).not.toBeInTheDocument();
-      await expect(canvas.queryByRole("button", { name: "Swipe up" })).not.toBeInTheDocument();
+      await expect(canvas.queryByRole("button", { name: "Swipe up: Easy" })).not.toBeInTheDocument();
       await expect(canvas.getByRole("button", { name: "Back to deck list" })).toBeEnabled();
     });
   },
@@ -219,6 +221,46 @@ export const AnswerFailure: Story = {
         "Unable to save progress. Check your connection and retry."
       );
       await expect(canvas.queryByRole("heading", { name: "Study complete" })).not.toBeInTheDocument();
+    });
+  },
+};
+
+export const DirectionNames: Story = {
+  play: async ({ canvas, step }) => {
+    await step("STORYBOOK-STUDY-SESSION-04 Keep action names current without moving focus or answering", async () => {
+      const left = await canvas.findByRole("button", { name: "Swipe left: Again" });
+      const directions = ["left", "up", "down", "right"];
+      const japaneseDirections = ["左", "上", "下", "右"];
+      const ratings = ["Again", "Easy", "Hard", "Good"];
+      const buttons = directions.map((direction, index) =>
+        canvas.getByRole("button", { name: `Swipe ${direction}: ${ratings[index]}` })
+      );
+      left.focus();
+      await getI18n().changeLanguage("ja");
+      for (const [index, button] of buttons.entries()) {
+        await expect(button).toHaveAccessibleName(`${japaneseDirections[index]}へスワイプ: ${ratings[index]}`);
+        await expect(button).toHaveTextContent(ratings[index]!);
+      }
+      updatePreferences({
+        controls: {
+          cardSwipeUp: "GoBack",
+          cardSwipeDown: "DoNothing",
+          cardSwipeLeft: "GoToNextCard",
+          cardSwipeRight: "RateHard",
+        },
+      });
+      const actions = ["スキップ", "学習を終了", "何もしない", "Hard"];
+      for (const [index, button] of buttons.entries()) {
+        await waitFor(() =>
+          expect(button).toHaveAccessibleName(`${japaneseDirections[index]}へスワイプ: ${actions[index]}`)
+        );
+        await expect(button).toHaveTextContent(actions[index]!);
+      }
+      await expect(left).toHaveFocus();
+      await expect(buttons[2]!).toBeDisabled();
+      await expect(canvas.getByRole("button", { name: "Hello" })).toBeVisible();
+      await expect(canvas.getByRole("slider")).toHaveValue("0");
+      await expect(writeStudyAnswer).not.toHaveBeenCalled();
     });
   },
 };

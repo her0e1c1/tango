@@ -113,7 +113,7 @@ test("STUDY-CONTROLS-04 shows configured Study controls without changing the act
 
   await expect(dialog).not.toBeVisible();
   await expect(page.getByRole("button", { name: "Open study help" })).toBeFocused();
-  await expect(page.getByRole("button", { name: "Swipe left" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Swipe left/ })).toHaveCount(0);
 });
 
 test("STUDY-CONTROLS-05 toggles and persists the Study Help button", async ({ fixture, page }) => {
@@ -291,7 +291,7 @@ test.describe("View mode", () => {
 });
 
 test.describe("View mode", () => {
-  const scenario = { id: "STUDY-CONTROLS-08", route: "study", next: "Swipe right" };
+  const scenario = { id: "STUDY-CONTROLS-08", route: "study", next: "Swipe right: Good" };
   test("STUDY-CONTROLS-08 keeps button actions and autoplay available in view mode", async ({ fixture, page }) => {
     const deck = fixture.deck();
     const first = fixture.card("card-1");
@@ -358,7 +358,7 @@ test("STUDY-CONTROLS-10 keeps long text and all controls reachable on a short vi
   await expect
     .poll(() => surface.evaluate((element) => element.scrollTop + element.clientHeight >= element.scrollHeight - 1))
     .toBe(true);
-  for (const name of ["Swipe right", "Play", "Skip"]) {
+  for (const name of ["Swipe right: Good", "Play", "Skip"]) {
     const button = page.getByRole("button", { name, exact: true });
     await button.scrollIntoViewIfNeeded();
     await expect(button).toBeInViewport();
@@ -412,3 +412,102 @@ test("STUDY-CONTROLS-11 allows touch scrolling and pinch enlargement without car
   await expect.poll(() => readViewMode(page)).toBe(true);
   expect((await readSession(fixture.user().uid, deck.id))?.currentIndex).toBe(0);
 });
+
+for (const language of ["en", "ja"] as const) {
+  for (const remapped of [false, true]) {
+    test(`STUDY-CONTROLS-12 names the current direction actions (${language}, remapped=${remapped})`, async ({
+      fixture,
+      page,
+    }) => {
+      const deck = fixture.deck();
+      const card = fixture.card("card-1");
+      await fixture.apply(page, {
+        preferences: {
+          language,
+          ...(remapped
+            ? {
+                controls: {
+                  cardSwipeUp: "GoBack",
+                  cardSwipeDown: "DoNothing",
+                  cardSwipeLeft: "GoToNextCard",
+                  cardSwipeRight: "RateHard",
+                },
+              }
+            : {}),
+        },
+      });
+      await page.goto(`/deck/${deck.id}/study`);
+      await expect(page.getByRole("button", { name: card.frontText, exact: true })).toBeVisible();
+      // Entering Study records its visit independently of the label-only interactions below.
+      await expect.poll(async () => (await readSession(fixture.user().uid, deck.id))?.lastStudiedAt).toBeGreaterThan(0);
+      const progress = await readProgress(card.id);
+      const session = await readSession(fixture.user().uid, deck.id);
+      const preferences = await page.evaluate(() => localStorage.getItem("tango-config"));
+      const directions =
+        language === "en"
+          ? ["Swipe left", "Swipe up", "Swipe down", "Swipe right"]
+          : ["左へスワイプ", "上へスワイプ", "下へスワイプ", "右へスワイプ"];
+      const actions = remapped
+        ? language === "en"
+          ? ["Skip", "End session", "No action", "Hard"]
+          : ["スキップ", "学習を終了", "何もしない", "Hard"]
+        : ["Again", "Easy", "Hard", "Good"];
+      const buttons = directions.map((direction, index) =>
+        page.getByRole("button", { name: `${direction}: ${actions[index]}`, exact: true })
+      );
+      for (const [index, button] of buttons.entries()) {
+        await expect(button).toBeVisible();
+        await expect(button).toHaveText(actions[index]!);
+        await expect(button).toHaveAttribute("aria-description", actions[index]!);
+      }
+      await buttons[1]!.focus();
+      await page.keyboard.press("Tab");
+      await expect(buttons[remapped ? 3 : 2]!).toBeFocused();
+      if (remapped) await expect(buttons[2]!).toBeDisabled();
+      const help = page.getByRole("button", {
+        name: language === "en" ? "Open study help" : "学習ヘルプを開く",
+        exact: true,
+      });
+      await help.click();
+      const dialog = page.getByRole("dialog");
+      const expectedHelp = remapped
+        ? language === "en"
+          ? [
+              "End the current session and return to the deck list",
+              "No action",
+              "Go to the next card",
+              "Hard — answer and continue",
+            ]
+          : [
+              "現在の学習セッションを終了してデッキ一覧へ戻る",
+              "何もしない",
+              "次のカードへ移動",
+              "Hard（難しい）で回答して次へ",
+            ]
+        : language === "en"
+          ? [
+              "Easy — answer and continue",
+              "Hard — answer and continue",
+              "Again — answer and continue",
+              "Good — answer and continue",
+            ]
+          : [
+              "Easy（簡単）で回答して次へ",
+              "Hard（難しい）で回答して次へ",
+              "Again（もう一度）で回答して次へ",
+              "Good（普通）で回答して次へ",
+            ];
+      for (const text of expectedHelp) await expect(dialog).toContainText(text);
+      await expect(dialog).toContainText(
+        language === "en"
+          ? "Exit without ending the current study session"
+          : "現在の学習セッションを終了せずに画面を離れる"
+      );
+      await page.keyboard.press("Escape");
+      await expect(help).toBeFocused();
+      expect(await readProgress(card.id)).toEqual(progress);
+      expect(await readSession(fixture.user().uid, deck.id)).toEqual(session);
+      expect(await page.evaluate(() => localStorage.getItem("tango-config"))).toBe(preferences);
+    });
+  }
+}

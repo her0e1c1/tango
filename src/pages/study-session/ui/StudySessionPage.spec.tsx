@@ -199,6 +199,57 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(mocks.persistOperation).not.toHaveBeenCalled();
   });
 
+  it.each([
+    {
+      controls: {
+        cardSwipeUp: "RateEasy",
+        cardSwipeDown: "RateHard",
+        cardSwipeLeft: "RateAgain",
+        cardSwipeRight: "RateGood",
+      } as const,
+      en: ["Again", "Easy", "Hard", "Good"],
+      ja: ["Again", "Easy", "Hard", "Good"],
+    },
+    {
+      controls: {
+        cardSwipeUp: "GoBack",
+        cardSwipeDown: "DoNothing",
+        cardSwipeLeft: "GoToNextCard",
+        cardSwipeRight: "RateHard",
+      } as const,
+      en: ["Skip", "End session", "No action", "Hard"],
+      ja: ["スキップ", "学習を終了", "何もしない", "Hard"],
+    },
+  ])(
+    "STUDY-CONTROLS-12 names the current actions and preserves focus on language changes: $en",
+    async ({ controls, en, ja }) => {
+      mocks.preferences = createPreferences({ controls });
+      renderPage();
+      const session = getStudySession(deckId);
+      const preferences = structuredClone(mocks.preferences);
+      const directions = ["left", "up", "down", "right"];
+      const japaneseDirections = ["左", "上", "下", "右"];
+      const buttons = directions.map((direction, index) =>
+        screen.getByRole("button", { name: `Swipe ${direction}: ${en[index]}` })
+      );
+      for (const [index, button] of buttons.entries()) {
+        expect(button).toHaveTextContent(en[index]!);
+        expect(button).toHaveAccessibleDescription(en[index]!);
+      }
+      buttons[0]!.focus();
+      await actAsync(() => getI18n().changeLanguage("ja"));
+      for (const [index, button] of buttons.entries()) {
+        expect(button).toHaveAccessibleName(`${japaneseDirections[index]}へスワイプ: ${ja[index]}`);
+        expect(button).toHaveTextContent(ja[index]!);
+      }
+      expect(buttons[0]).toHaveFocus();
+      expect(getStudySession(deckId)).toEqual(session);
+      expect(mocks.preferences).toEqual(preferences);
+      expect(mocks.persistOperation).not.toHaveBeenCalled();
+      expect(screen.getByText("Front one")).toBeVisible();
+    }
+  );
+
   it("allows the progress slider to advance and prevents returning to the skipped Card", async () => {
     renderPage();
     const slider = screen.getByRole("slider", { name: "Study progress" });
@@ -229,7 +280,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.queryByRole("button", { name: "Back to deck list" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Swipe controls" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Playback controls" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Swipe left/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
   });
 
@@ -501,7 +552,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     fireEvent.change(screen.getByRole("slider", { name: "Study progress" }), { target: { value: "1" } });
     expect(await screen.findByText("Front two")).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "Swipe up" }));
+    fireEvent.click(screen.getByRole("button", { name: "Swipe up: Easy" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Study complete" })).toBeVisible();
     expect(screen.getByRole("heading", { level: 1, name: "Study complete" })).toHaveFocus();
@@ -625,7 +676,7 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.getByRole("button", { name: "Swipe controls" })).not.toBePressed();
     expect(screen.getByRole("button", { name: "Playback controls" })).not.toBePressed();
     expect(screen.getByRole("button", { name: "Card details" })).not.toBePressed();
-    expect(screen.queryByRole("button", { name: "Swipe left" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Swipe left/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
     expect(screen.queryByText("not studied yet")).not.toBeInTheDocument();
     expect(screen.queryByText(/3 times/)).not.toBeInTheDocument();

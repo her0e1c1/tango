@@ -40,7 +40,7 @@ async function completeStudy(page: Page, deck: { id: string }, cards: readonly u
   await page.getByRole("button", { name: `Start ${String(cards.length)} cards` }).click();
   for (let index = 0; index < cards.length; index += 1) {
     await expect(page.getByRole("slider", { name: "Study progress" })).toHaveValue(String(index));
-    await page.getByRole("button", { name: "Swipe right" }).click();
+    await page.getByRole("button", { name: "Swipe right: Good" }).click();
   }
   await page.getByRole("button", { name: "Back to deck list" }).click();
   await page.getByRole("button", { name: "Study history", exact: true }).click();
@@ -277,7 +277,7 @@ test("STUDY-SESSION-05 finishes the final Card and shows the completion screen",
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: "Swipe up" }).click();
+  await page.getByRole("button", { name: "Swipe up: Easy" }).click();
 
   await expect(page).toHaveURL(`/deck/${deck.id}/study`);
   await expect(page.getByRole("heading", { name: "Study complete" })).toBeVisible();
@@ -304,7 +304,7 @@ test("STUDY-SESSION-06 keeps multiple Deck sessions independent", async ({ fixtu
   await fixture.apply(page);
 
   await page.goto(`/deck/${deckA.id}/study`);
-  await page.getByRole("button", { name: "Swipe up" }).click();
+  await page.getByRole("button", { name: "Swipe up: Easy" }).click();
   await returnToDeckList(page);
   await expect(page).toHaveURL(/\/$/);
   await page.getByRole("button", { name: `Continue ${deckB.name}` }).click();
@@ -362,7 +362,7 @@ test("STUDY-SESSION-07 preserves local-only progress and session position across
   await expect(page.getByRole("button", { name: "Start 2 cards", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Start 2 cards", exact: true }).click();
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Swipe right", exact: true }).click();
+  await page.getByRole("button", { name: "Swipe right: Good", exact: true }).click();
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();

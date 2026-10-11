@@ -20,7 +20,7 @@ test("CARD-VIEW-06 shows FSRS memory after a rating, reload, and offline navigat
   const rated = frontText === local.first.frontText ? local.first : local.second;
   const other = rated === local.first ? local.second : local.first;
   const ratedId = rated.id;
-  await page.getByRole("button", { name: "Swipe right" }).click();
+  await page.getByRole("button", { name: "Swipe right: Good" }).click();
   await expect(page.getByText(other.frontText, { exact: true })).toBeVisible();
   await page.goto(`/card/${ratedId}`);
   await expect(page.getByRole("img", { name: /Forgetting curve/ })).toBeVisible();

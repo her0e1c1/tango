@@ -21,6 +21,7 @@
 | STORYBOOK-STUDY-SESSION-01 | interaction | 正常系 | [解答を確認して評価すると次へ進む](#storybook-study-session-01) |
 | STORYBOOK-STUDY-SESSION-02 | interaction | 正常系 | [最後の Card を終えると完了を表示する](#storybook-study-session-02) |
 | STORYBOOK-STUDY-SESSION-03 | interaction | 異常系 | [回答処理の失敗を成功と扱わない](#storybook-study-session-03) |
+| STORYBOOK-STUDY-SESSION-04 | interaction | 正常系 | [方向ボタンの名前が言語と現在の操作に追従する](#storybook-study-session-04) |
 
 <a id="storybook-study-controls-01"></a>
 
@@ -282,3 +283,26 @@ When:
 Then:
 
 - 失敗が利用者に示され、成功した回答として完了画面に進まない。
+
+<a id="storybook-study-session-04"></a>
+
+### STORYBOOK-STUDY-SESSION-04 方向ボタンの名前が言語と現在の操作に追従する
+
+カテゴリ: `interaction`
+
+区分: 正常系
+
+Given:
+
+- 英語の学習画面で、既定の評価を持つ4方向ボタンと Card の表面を表示している。
+
+When:
+
+- 左方向ボタンへフォーカスを移し、日本語へ切り替える。
+- 上を学習終了、下を操作なし、左をスキップ、右を Hard の有効な割り当てへ切り替える。
+
+Then:
+
+- 各方向ボタンの名前に翻訳済みの方向と現在の caption が含まれ、言語と割り当ての変更に追従する。
+- 同じ左方向ボタンへフォーカスが残り、Card と学習位置は変わらない。
+- 操作なしのボタンは表示されたまま無効になる。名前の更新による回答の保存は発生しない。

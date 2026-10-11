@@ -17,7 +17,7 @@ test("STUDY-ACTIONS-01 saves a good answer and progress and advances to the next
   await page.goto(`/deck/${deck.id}/study`);
   await expect(page.getByText(currentCard.frontText, { exact: true })).toBeVisible();
   const beforeAnswer = await readSession(fixture.user().uid, deck.id);
-  await page.getByRole("button", { name: "Swipe right" }).click();
+  await page.getByRole("button", { name: "Swipe right: Good" }).click();
 
   const feedback = page.getByRole("status").filter({ hasText: "Swiped right" });
   const directionIcon = page.getByTestId("swipe-feedback-direction");
@@ -53,7 +53,7 @@ test("STUDY-ACTIONS-02 saves an again answer and progress and advances to the ne
   await fixture.apply(page);
 
   await page.goto(`/deck/${deck.id}/study`);
-  await page.getByRole("button", { name: "Swipe left" }).click();
+  await page.getByRole("button", { name: "Swipe left: Again" }).click();
 
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
   await expect.poll(() => readProgress(currentCard.id)).toEqual({ reps: 1 });
@@ -124,7 +124,7 @@ test("STUDY-ACTIONS-05 keeps saved progress and continues after an answer histor
   await page.goto(`/deck/${deck.id}/study`);
   allowExpectedFirestoreWriteFailure(browserErrors);
   const fault = await failNextFirestoreWrite(page, { collection: "studyAnswer" });
-  await page.getByRole("button", { name: "Swipe up" }).click();
+  await page.getByRole("button", { name: "Swipe up: Easy" }).click();
   await expect.poll(fault.wasTriggered).toBe(true);
   await fault.waitForFailure();
   await expect(page.getByRole("alert")).toContainText("Unable to save progress.");
@@ -139,7 +139,7 @@ test("STUDY-ACTIONS-05 keeps saved progress and continues after an answer histor
 
   await page.reload();
   await expect(page.getByText(nextCard.frontText, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Swipe up" }).click();
+  await page.getByRole("button", { name: "Swipe up: Easy" }).click();
 
   await expect(page.getByRole("status").filter({ hasText: "Swiped up" })).toBeVisible();
   await expect(page.getByText(thirdCard.frontText, { exact: true })).toBeVisible();

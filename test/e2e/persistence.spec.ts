@@ -408,7 +408,7 @@ test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport wit
   const controls = [
     { name: "warning", locator: warning },
     { name: "front", locator: page.locator("#frontText") },
-    ...["Swipe left", "Swipe down", "Swipe right", "Swipe up", "Play"].map((name) => ({
+    ...["Swipe left: Again", "Swipe down: Hard", "Swipe right: Good", "Swipe up: Easy", "Play"].map((name) => ({
       name,
       locator: page.getByRole("button", { name, exact: true }),
     })),
@@ -441,7 +441,7 @@ test("PERSISTENCE-10 keeps healthy study controls inside the mobile viewport wit
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   const completion = page.getByRole("region", { name: "Study complete", exact: true });
   await expect(completion).toHaveCount(0);
-  await page.getByRole("button", { name: "Swipe right", exact: true }).click();
+  await page.getByRole("button", { name: "Swipe right: Good", exact: true }).click();
   await expect(completion).toBeVisible();
   await expect(completion.getByText("Session: 1 card", { exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Study progress" })).toHaveCount(0);
