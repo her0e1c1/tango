@@ -19,6 +19,7 @@
 | STUDY-CONTROLS-09 | write | 正常系 | [view mode 設定を閲覧・学習・reload 間で共有できる](#study-controls-09) |
 | STUDY-CONTROLS-10 | write | 正常系 | [横向きの短い画面でも本文と操作ボタンに到達できる](#study-controls-10) |
 | STUDY-CONTROLS-11 | write | 正常系 | [view mode でタッチスクロールとピンチ拡大ができる](#study-controls-11) |
+| STUDY-CONTROLS-12 | read | 正常系 | [方向ボタンの読み上げ名で現在の操作を確認できる](#study-controls-12) |
 
 <a id="study-controls-01"></a>
 
@@ -286,3 +287,28 @@ Then:
 
 - 本文のスクロール位置が変わり、ピンチ操作で表示倍率が上がる。
 - 評価・Card 移動・モード終了は発生しない。
+
+<a id="study-controls-12"></a>
+
+### STUDY-CONTROLS-12 方向ボタンの読み上げ名で現在の操作を確認できる
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- 学習中の Card の表面と4方向の操作ボタンが表示されている。
+- 英語または日本語で、既定の評価割り当て、または上が学習終了・下が操作なし・左がスキップ・右が Hard の有効な別割り当てを使用している。
+
+When:
+
+- 方向ボタンへフォーカスを移して名前と表示を確認し、Help で現在の操作の説明を確認する。
+
+Then:
+
+- 各ボタンの読み上げ名は方向と現在の操作を含む。既定の上方向は英語で「Swipe up: Easy」、日本語で「上へスワイプ: Easy」となる。
+- 操作名は表示中の caption と一致し、Help の意味とも一致する。別割り当てでは評価・スキップ・学習終了・何もしないを区別し、独立した Exit は session を保持する操作として区別する。
+- 言語や有効な割り当てが変わると名前と caption が追従し、名前の更新だけではボタンのフォーカス、Card、学習結果、session、他の設定を変更しない。
+- 矢印・caption・ボタンの表示順は維持される。操作なしのボタンは表示されたまま無効であり、Tab 移動の対象にならない。

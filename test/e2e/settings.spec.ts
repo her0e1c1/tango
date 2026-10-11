@@ -143,7 +143,7 @@ test("SETTINGS-11 Restoring a positive interval preserves the active study sessi
   expect(await readPreferences(page)).toEqual(preferences);
   await expect(page.getByRole("button", { name: firstCard.frontText, exact: true })).toBeVisible();
 
-  await page.getByRole("button", { name: "Swipe right", exact: true }).click();
+  await page.getByRole("button", { name: "Swipe right: Good", exact: true }).click();
   await expect(page.getByRole("button", { name: secondCard.frontText, exact: true })).toBeVisible();
   const continuedPosition = { sessionId: session.sessionId, cardOrderIds: session.cardOrderIds, currentIndex: 1 };
   await expect.poll(() => readSession(fixture.user().uid, deck.id)).toMatchObject(continuedPosition);

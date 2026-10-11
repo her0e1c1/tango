@@ -219,6 +219,7 @@
 | STORYBOOK-STUDY-SESSION-01 | interaction | 正常系 | [解答を確認して評価すると次へ進む](./study-session.md#storybook-study-session-01) |
 | STORYBOOK-STUDY-SESSION-02 | interaction | 正常系 | [最後の Card を終えると完了を表示する](./study-session.md#storybook-study-session-02) |
 | STORYBOOK-STUDY-SESSION-03 | interaction | 異常系 | [回答処理の失敗を成功と扱わない](./study-session.md#storybook-study-session-03) |
+| STORYBOOK-STUDY-SESSION-04 | interaction | 正常系 | [方向ボタンの名前が言語と現在の操作に追従する](./study-session.md#storybook-study-session-04) |
 
 ## 学習履歴画面
 

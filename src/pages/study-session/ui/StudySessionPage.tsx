@@ -59,6 +59,12 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
   }
 
   const blocked = pageState.swipePending;
+  const captions = {
+    cardSwipeUp: t(`studySession.actionLabels.${query.swipeActions.cardSwipeUp}`),
+    cardSwipeDown: t(`studySession.actionLabels.${query.swipeActions.cardSwipeDown}`),
+    cardSwipeLeft: t(`studySession.actionLabels.${query.swipeActions.cardSwipeLeft}`),
+    cardSwipeRight: t(`studySession.actionLabels.${query.swipeActions.cardSwipeRight}`),
+  };
   const swipeActions = {
     disabled: blocked,
     disabledDirections: {
@@ -67,11 +73,12 @@ const StudySessionContainer: React.FC<{ deckId: string }> = ({ deckId }) => {
       cardSwipeLeft: query.swipeActions.cardSwipeLeft === "DoNothing",
       cardSwipeRight: query.swipeActions.cardSwipeRight === "DoNothing",
     },
-    captions: {
-      cardSwipeUp: t(`studySession.actionLabels.${query.swipeActions.cardSwipeUp}`),
-      cardSwipeDown: t(`studySession.actionLabels.${query.swipeActions.cardSwipeDown}`),
-      cardSwipeLeft: t(`studySession.actionLabels.${query.swipeActions.cardSwipeLeft}`),
-      cardSwipeRight: t(`studySession.actionLabels.${query.swipeActions.cardSwipeRight}`),
+    captions,
+    labels: {
+      cardSwipeUp: `${t("studySession.swipeActions.up")}: ${captions.cardSwipeUp}`,
+      cardSwipeDown: `${t("studySession.swipeActions.down")}: ${captions.cardSwipeDown}`,
+      cardSwipeLeft: `${t("studySession.swipeActions.left")}: ${captions.cardSwipeLeft}`,
+      cardSwipeRight: `${t("studySession.swipeActions.right")}: ${captions.cardSwipeRight}`,
     },
     onClickUp: swipeUp,
     onClickDown: swipeDown,
