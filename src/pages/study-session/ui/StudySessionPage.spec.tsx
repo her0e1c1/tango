@@ -174,6 +174,118 @@ describe("StudySessionPage [STUDY-CONTROLS-07] [STUDY-ACTIONS-04] [STUDY-SESSION
     expect(screen.getByText("Back one")).toBeVisible();
   });
 
+  it.each(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"])(
+    "STUDY-CONTROLS-13 ignores held %s after saving and accepts a fresh press",
+    async (key) => {
+      renderPage();
+      fireEvent.keyDown(window, { key });
+      expect(await screen.findByText("Front two")).toBeVisible();
+      await actAsync(async () => {
+        fireEvent.keyDown(window, { key, repeat: true });
+      });
+      expect(screen.getByText("Front two")).toBeVisible();
+      expect(getStudySession(deckId)?.currentIndex).toBe(1);
+      expect(mocks.persistOperation).toHaveBeenCalledOnce();
+      fireEvent.keyUp(window, { key });
+      fireEvent.keyDown(window, { key });
+      expect(await screen.findByRole("heading", { name: "Study complete" })).toBeVisible();
+      expect(mocks.persistOperation).toHaveBeenCalledTimes(2);
+    }
+  );
+
+  it("STUDY-CONTROLS-14 keeps playback active during held Space and pauses on a fresh press", () => {
+    mocks.preferences = createPreferences({ cardInterval: 60 });
+    renderPage();
+    fireEvent.keyDown(window, { key: " " });
+    expect(screen.getByRole("button", { name: "Pause" })).toBeVisible();
+    fireEvent.keyDown(window, { key: " ", repeat: true });
+    expect(screen.getByRole("button", { name: "Pause" })).toBeVisible();
+    fireEvent.keyUp(window, { key: " " });
+    fireEvent.keyDown(window, { key: " " });
+    expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
+  });
+
+  it.each([
+    { ctrlKey: true },
+    { metaKey: true },
+    { altKey: true },
+    { ctrlKey: true, shiftKey: true },
+    { metaKey: true, shiftKey: true },
+    { altKey: true, shiftKey: true },
+  ])("STUDY-CONTROLS-15 ignores modified shortcuts %o without cancelling them", async (modifiers) => {
+    renderPage();
+    const before = getStudySession(deckId);
+    for (const key of ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "b"]) {
+      await actAsync(async () => {
+        expect(fireEvent.keyDown(window, { key, ...modifiers })).toBe(true);
+      });
+      expect(screen.getByText("Front one")).toBeVisible();
+      expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
+      expect(getStudySession(deckId)).toEqual(before);
+    }
+    expect(mocks.persistOperation).not.toHaveBeenCalled();
+    expect(mocks.toggleShowSwipeButtonList).not.toHaveBeenCalled();
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(screen.getByText("Back one")).toBeVisible();
+  });
+
+  it.each([{ ctrlKey: true }, { metaKey: true }, { altKey: true }])(
+    "STUDY-CONTROLS-16 preserves view mode on modified Enter %o",
+    (modifiers) => {
+      mocks.preferences.controls.viewMode = true;
+      mocks.toggleViewMode.mockImplementation(() => {
+        mocks.preferences.controls.viewMode = false;
+      });
+      renderPage();
+      const surface = screen.getByRole("region", { name: "Card front text" });
+      fireEvent.keyDown(surface, { key: "Enter", ...modifiers });
+      fireEvent.keyDown(surface, { key: "Enter", ...modifiers, shiftKey: true });
+      expect(mocks.toggleViewMode).not.toHaveBeenCalled();
+      expect(screen.getByText("Front one")).toBeVisible();
+      fireEvent.keyDown(surface, { key: "Enter" });
+      expect(mocks.toggleViewMode).toHaveBeenCalledOnce();
+      fireEvent.keyDown(window, { key: "Enter", repeat: true });
+      expect(screen.getByText("Front one")).toBeVisible();
+      fireEvent.keyUp(window, { key: "Enter" });
+      fireEvent.keyDown(window, { key: "Enter" });
+      expect(screen.getByText("Back one")).toBeVisible();
+    }
+  );
+
+  it("STUDY-CONTROLS-15 preserves Shift-only Enter and exact lowercase b matching", () => {
+    renderPage();
+    fireEvent.keyDown(window, { key: "Enter", shiftKey: true });
+    expect(screen.getByText("Back one")).toBeVisible();
+    fireEvent.keyDown(window, { key: "B", shiftKey: true });
+    expect(mocks.toggleShowSwipeButtonList).not.toHaveBeenCalled();
+    fireEvent.keyDown(window, { key: "b", shiftKey: true });
+    expect(mocks.toggleShowSwipeButtonList).toHaveBeenCalledOnce();
+  });
+
+  it("STUDY-CONTROLS-15 leaves text entry and contenteditable keys native", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    render(
+      <>
+        <input aria-label="Notes" />
+        <textarea aria-label="Summary" />
+        <div role="textbox" aria-label="Editable notes" contentEditable />
+      </>
+    );
+    for (const field of screen.getAllByRole("textbox")) {
+      await user.click(field);
+      await user.keyboard("b b{ArrowLeft}{ArrowRight}{ArrowUp}{ArrowDown}{Enter}");
+    }
+    expect(screen.getByRole("textbox", { name: /^Notes$/ })).toHaveValue("b b");
+    expect(screen.getByRole("textbox", { name: "Summary" })).toHaveValue("b b\n");
+    expect(screen.getByRole("textbox", { name: "Editable notes" })).toHaveTextContent("b b");
+    expect(screen.getByText("Front one")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
+    expect(getStudySession(deckId)?.currentIndex).toBe(0);
+    expect(mocks.persistOperation).not.toHaveBeenCalled();
+    expect(mocks.toggleShowSwipeButtonList).not.toHaveBeenCalled();
+  });
+
   it("renders the active session from stored Entity state", () => {
     renderPage();
 

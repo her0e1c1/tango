@@ -55,8 +55,8 @@ export function useStudyShortcuts({
     if (action === undefined) return;
     // Native editing and activation keys take precedence, while unrelated Study shortcuts remain
     // available after a user moves focus into the card or floating controls.
-    // A held Enter must not exit reading mode and then flip the same card.
-    if (event.repeat && action === "toggleBackText") return;
+    // Study actions are single presses; leave held keys and browser shortcuts to their native targets.
+    if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
     const currentStudy = latestShortcuts.current;
     // A modal Help surface owns every key while open, including keys without native dialog behavior.
     if (currentStudy.status !== "studying" || currentStudy.helpOpen || shouldIgnoreCardShortcut(event)) return;
