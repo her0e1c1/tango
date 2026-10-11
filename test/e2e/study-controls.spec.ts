@@ -1,4 +1,4 @@
-import { expect, test } from "./utils/fixtures";
+import { expect, getDocument, listDocuments, test } from "./utils/fixtures";
 import { readProgress, readSession } from "./utils/study-helpers";
 import { createAnonymousDeck, startAnonymousStudy } from "./utils/ui-helpers";
 import type { Locator, Page } from "@playwright/test";
@@ -511,3 +511,158 @@ for (const language of ["en", "ja"] as const) {
     });
   }
 }
+
+const readAnswers = async (sessionId: string) =>
+  (await listDocuments("studyAnswer")).filter((item) => item.fields.sessionId?.stringValue === sessionId);
+
+for (const [key, rating] of [
+  ["ArrowUp", "easy"],
+  ["ArrowDown", "hard"],
+  ["ArrowLeft", "again"],
+  ["ArrowRight", "good"],
+] as const) {
+  test(`STUDY-CONTROLS-13 ignores held ${key} after saving and accepts a fresh press`, async ({ fixture, page }) => {
+    const deck = fixture.deck();
+    const session = fixture.session();
+    const first = fixture.card("card-1");
+    const second = fixture.card("card-2");
+    await fixture.apply(page);
+    await page.goto(`/deck/${deck.id}/study`);
+    await expect(page.getByText(first.frontText, { exact: true })).toBeVisible();
+    await page.keyboard.down(key);
+    await expect(page.getByText(second.frontText, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Swipe right: Good" })).toBeEnabled();
+    await expect.poll(() => readAnswers(session.sessionId)).toHaveLength(1);
+    const savedSession = await readSession(fixture.user().uid, deck.id);
+    const nextCard = await getDocument("card", second.id);
+    const answers = await readAnswers(session.sessionId);
+    expect(answers[0]?.fields.answer?.mapValue?.fields?.rating?.stringValue).toBe(rating);
+
+    await page.keyboard.down(key);
+    await expect(page.getByText(second.frontText, { exact: true })).toBeVisible();
+    expect(await readSession(fixture.user().uid, deck.id)).toEqual(savedSession);
+    expect(await getDocument("card", second.id)).toEqual(nextCard);
+    expect(await readAnswers(session.sessionId)).toEqual(answers);
+
+    await page.keyboard.up(key);
+    await page.keyboard.press(key);
+    await expect(page.getByText(fixture.card("card-3").frontText, { exact: true })).toBeVisible();
+    await expect.poll(() => readAnswers(session.sessionId)).toHaveLength(2);
+    const nextAnswer = (await readAnswers(session.sessionId)).find(
+      (item) => item.fields.cardId?.stringValue === second.id
+    );
+    expect(nextAnswer?.fields.answer?.mapValue?.fields?.rating?.stringValue).toBe(rating);
+    await expect.poll(() => readProgress(second.id)).toEqual({ reps: 1 });
+  });
+}
+
+test("STUDY-CONTROLS-14 toggles playback and swipe controls only on fresh presses", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  await fixture.apply(page, { preferences: { study: { cardInterval: 60 } } });
+  await page.goto(`/deck/${deck.id}/study`);
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+  await page.keyboard.down("Space");
+  await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
+  await page.keyboard.down("Space");
+  await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
+  await page.keyboard.up("Space");
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+  await page.keyboard.down("b");
+  await expect(page.getByRole("button", { name: "Swipe right: Good" })).toHaveCount(0);
+  await page.keyboard.down("b");
+  await expect(page.getByRole("button", { name: "Swipe right: Good" })).toHaveCount(0);
+  await page.keyboard.up("b");
+  await page.keyboard.press("b");
+  await expect(page.getByRole("button", { name: "Swipe right: Good" })).toBeVisible();
+  await expect(page.getByText(fixture.card("card-1").frontText, { exact: true })).toBeVisible();
+  expect((await readSession(fixture.user().uid, deck.id))?.currentIndex).toBe(0);
+  expect(await readAnswers(fixture.session().sessionId)).toHaveLength(0);
+  expect(await readProgress(fixture.card("card-1").id)).toEqual({ reps: 0 });
+});
+
+// Dispatch at the browser boundary so OS-reserved shortcuts cannot disappear before reaching the app.
+const sendModifiedKey = (
+  page: Page,
+  key: string,
+  modifiers: Pick<KeyboardEventInit, "ctrlKey" | "metaKey" | "altKey" | "shiftKey">
+) =>
+  page.evaluate(
+    ({ key, modifiers }) => {
+      const event = new KeyboardEvent("keydown", { key, ...modifiers, bubbles: true, cancelable: true });
+      let delivered = false;
+      const observe = (received: KeyboardEvent) => {
+        delivered = received === event;
+      };
+      window.addEventListener("keydown", observe);
+      document.body.dispatchEvent(event);
+      window.removeEventListener("keydown", observe);
+      return { delivered, defaultPrevented: event.defaultPrevented };
+    },
+    { key, modifiers }
+  );
+
+const shortcutModifiers = [
+  { ctrlKey: true },
+  { metaKey: true },
+  { altKey: true },
+  { ctrlKey: true, shiftKey: true },
+  { metaKey: true, shiftKey: true },
+  { altKey: true, shiftKey: true },
+];
+
+test("STUDY-CONTROLS-15 ignores delivered modified keys and then accepts ordinary input", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  const first = fixture.card("card-1");
+  await fixture.apply(page);
+  await page.goto(`/deck/${deck.id}/study`);
+  await expect(page.getByText(first.frontText, { exact: true })).toBeVisible();
+  const before = await getDocument("card", first.id);
+  const session = await readSession(fixture.user().uid, deck.id);
+  for (const modifiers of shortcutModifiers) {
+    for (const key of ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "b"]) {
+      expect(await sendModifiedKey(page, key, modifiers)).toEqual({ delivered: true, defaultPrevented: false });
+      await expect(page.getByText(first.frontText, { exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Swipe right: Good" })).toBeVisible();
+    }
+  }
+  expect(await getDocument("card", first.id)).toEqual(before);
+  expect(await readSession(fixture.user().uid, deck.id)).toEqual(session);
+  expect(await readAnswers(fixture.session().sessionId)).toHaveLength(0);
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("region", { name: "Study answer" })).toContainText(first.backText);
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByText(fixture.card("card-2").frontText, { exact: true })).toBeVisible();
+  await expect.poll(() => readAnswers(fixture.session().sessionId)).toHaveLength(1);
+  expect(
+    (await readAnswers(fixture.session().sessionId))[0]?.fields.answer?.mapValue?.fields?.rating?.stringValue
+  ).toBe("good");
+});
+
+test("STUDY-CONTROLS-16 keeps view mode persisted until an unmodified Enter", async ({ fixture, page }) => {
+  const deck = fixture.deck();
+  await fixture.apply(page, { preferences: { controls: { viewMode: true } } });
+  await page.goto(`/deck/${deck.id}/study`);
+  const surface = page.getByRole("region", { name: "Card front text" });
+  await expect(surface).toBeVisible();
+  for (const modifiers of shortcutModifiers) {
+    expect(await sendModifiedKey(page, "Enter", modifiers)).toEqual({ delivered: true, defaultPrevented: false });
+    await expect(surface).toBeVisible();
+    expect(await readViewMode(page)).toBe(true);
+  }
+  await page.reload();
+  await expect(surface).toBeVisible();
+  await surface.focus();
+  await page.keyboard.down("Enter");
+  await expect.poll(() => readViewMode(page)).toBe(false);
+  await page.keyboard.down("Enter");
+  await expect(page.getByText(fixture.card("card-1").frontText, { exact: true })).toBeVisible();
+  await page.keyboard.up("Enter");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("region", { name: "Study answer" })).toBeVisible();
+  expect((await readSession(fixture.user().uid, deck.id))?.currentIndex).toBe(0);
+  expect(await readAnswers(fixture.session().sessionId)).toHaveLength(0);
+  expect(await readProgress(fixture.card("card-1").id)).toEqual({ reps: 0 });
+});

@@ -20,6 +20,10 @@
 | STUDY-CONTROLS-10 | write | 正常系 | [横向きの短い画面でも本文と操作ボタンに到達できる](#study-controls-10) |
 | STUDY-CONTROLS-11 | write | 正常系 | [view mode でタッチスクロールとピンチ拡大ができる](#study-controls-11) |
 | STUDY-CONTROLS-12 | write | 正常系 | [方向ボタンの読み上げ名で現在の操作を確認できる](#study-controls-12) |
+| STUDY-CONTROLS-13 | write | 正常系 | [方向キーを長押ししても追加評価せず再押下で進める](#study-controls-13) |
+| STUDY-CONTROLS-14 | write | 正常系 | [Space と b の長押しで連続切替せず再押下で切り替える](#study-controls-14) |
+| STUDY-CONTROLS-15 | write | 正常系 | [修飾付きショートカットを無視して通常入力を受け付ける](#study-controls-15) |
+| STUDY-CONTROLS-16 | write | 正常系 | [修飾付き Enter で view mode を終了しない](#study-controls-16) |
 
 <a id="study-controls-01"></a>
 
@@ -312,3 +316,100 @@ Then:
 - 操作名は表示中の caption と一致し、Help の意味とも一致する。別割り当てでは評価・スキップ・学習終了・何もしないを区別し、独立した Exit は session を保持する操作として区別する。
 - 言語や有効な割り当てが変わると名前と caption が追従し、名前の更新だけではボタンのフォーカス、Card、学習結果、session、他の設定を変更しない。
 - 矢印・caption・ボタンの表示順は維持される。操作なしのボタンは表示されたまま無効であり、Tab 移動の対象にならない。
+
+<a id="study-controls-13"></a>
+
+### STUDY-CONTROLS-13 方向キーを長押ししても追加評価せず再押下で進める
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- view mode が OFF で複数の未評価 Card を学習中であり、方向キーには4段階評価が割り当てられている。
+
+When:
+
+- 方向キーを押し、最初の評価の保存が完了して次の Card が操作可能になってからも押し続ける。
+- キーを離して再び押す。
+
+Then:
+
+- 最初の押下では割当どおりの評価を1件保存し、次の Card に進む。
+- 長押し中は次の Card の回答履歴・記憶状態・復習予定と学習位置を変えない。
+- 離して再び押すと現在の Card を割当どおりに1回評価し、さらに次へ進む。
+
+<a id="study-controls-14"></a>
+
+### STUDY-CONTROLS-14 Space と b の長押しで連続切替せず再押下で切り替える
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- view mode が OFF で Card の表面が表示され、自動再生は停止中である。
+- 再生間隔は操作を終えるまで次の Card に進まない長さであり、方向ボタンは表示されている。
+
+When:
+
+- Space を押して保持し、離して再び押す。
+- b を押して保持し、離して再び押す。
+
+Then:
+
+- 最初の Space で再生を開始し、保持中は再生を維持し、再押下で停止する。
+- 最初の b で方向ボタンを隠し、保持中は非表示を維持し、再押下で表示する。
+- Card の表示・回答履歴・記憶状態・学習位置は変わらない。
+
+<a id="study-controls-15"></a>
+
+### STUDY-CONTROLS-15 修飾付きショートカットを無視して通常入力を受け付ける
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- view mode が OFF で未評価 Card の表面を学習中であり、自動再生は停止している。
+
+When:
+
+- Ctrl、Meta、Alt の各修飾キーを伴う方向キー・Enter・Space・b を入力する。Shift を併用する場合も確認する。
+- 修飾キーを外して通常の Enter と方向キーを入力する。
+
+Then:
+
+- アプリに届いた修飾付き入力では、表裏・再生・方向ボタン表示・回答履歴・記憶状態・復習予定・学習位置が変わらない。
+- 修飾キーを外した Enter は表裏を切り替え、表面での方向キーは現在の割当どおり1回評価して次に進む。
+- 無視した入力の既定動作と伝播を妨げず、入力欄・contenteditable・ボタン・slider・読取領域の操作を維持する。Shift 単独の既存のキー一致条件を変更しない。
+
+<a id="study-controls-16"></a>
+
+### STUDY-CONTROLS-16 修飾付き Enter で view mode を終了しない
+
+カテゴリ: `write`
+
+区分: 正常系
+
+Given:
+
+- Fixture: [`study-session-start`](./fixture/study-session-start.yaml)
+- Card の表面を表示し、view mode を ON にしている。
+
+When:
+
+- Ctrl、Meta、Alt の各修飾キーを伴う Enter を入力する。Shift を併用する場合も確認する。
+- reload した後、修飾キーを外した Enter を押して保持し、離して再び押す。
+
+Then:
+
+- 修飾付き Enter では表面と view mode を維持し、reload 後も ON のままとなる。
+- 修飾なしの最初の Enter で view mode だけを終了し、保持中は表面を維持する。再押下で裏面へ切り替わる。
+- 回答履歴・記憶状態・学習位置は変わらない。
