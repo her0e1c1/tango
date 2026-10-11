@@ -19,7 +19,7 @@
 | STUDY-CONTROLS-09 | write | 正常系 | [view mode 設定を閲覧・学習・reload 間で共有できる](#study-controls-09) |
 | STUDY-CONTROLS-10 | write | 正常系 | [横向きの短い画面でも本文と操作ボタンに到達できる](#study-controls-10) |
 | STUDY-CONTROLS-11 | write | 正常系 | [view mode でタッチスクロールとピンチ拡大ができる](#study-controls-11) |
-| STUDY-CONTROLS-12 | read | 正常系 | [方向ボタンの読み上げ名で現在の操作を確認できる](#study-controls-12) |
+| STUDY-CONTROLS-12 | write | 正常系 | [方向ボタンの読み上げ名で現在の操作を確認できる](#study-controls-12) |
 
 <a id="study-controls-01"></a>
 
@@ -292,7 +292,7 @@ Then:
 
 ### STUDY-CONTROLS-12 方向ボタンの読み上げ名で現在の操作を確認できる
 
-カテゴリ: `read`
+カテゴリ: `write`
 
 区分: 正常系
 
