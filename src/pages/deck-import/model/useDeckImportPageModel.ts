@@ -8,7 +8,6 @@ import { useDecks } from "@/entities/deck";
 import { usePreferences } from "@/entities/preference";
 import { useMountedGuard } from "@/shared/lib/useMountedGuard";
 import { routes } from "@/shared/router";
-import { showToast } from "@/shared/ui/toast";
 
 import type { DeckImportExampleId } from "../lib/examples";
 import { selectDeckImportExample } from "./actions/selectDeckImportExample";
@@ -18,6 +17,7 @@ import { selectDeckImportFile } from "./actions/selectDeckImportFile";
 import { useDeckImportState } from "./queries/useDeckImportState";
 import { getDeckImportExamples } from "./queries/getDeckImportExamples";
 import { resetDeckImportSelection } from "./actions/resetDeckImportSelection";
+import { completeDeckImport } from "./actions/completeDeckImport";
 import { deckImportStore } from "./store";
 
 const examples = getDeckImportExamples();
@@ -42,18 +42,7 @@ export function useDeckImportPageModel() {
     void importDeckPreviewAction();
   };
   useEffect(() => {
-    if (pendingImport === undefined) return;
-    const deckReady = decks.some((deck) => deck.id === pendingImport.destination.id);
-    const cardIds = pendingImport.mutations.flatMap((mutation) =>
-      mutation.kind === "create" ? [mutation.card.id] : []
-    );
-    if (!deckReady || cardIds.some((id) => !cards.some((card) => card.id === id))) return;
-    showToast({
-      messageKey: "deckImport.toast.imported",
-      messageParams: { count: cardIds.length },
-      tone: "success",
-    });
-    deckImportStore.setState({ status: "idle", source: { kind: "empty" } });
+    if (!completeDeckImport()) return;
     if (initiatedHere.current && isMounted()) void navigate(routes.deckList.to());
     initiatedHere.current = false;
   }, [cards, decks, isMounted, navigate, pendingImport]);

@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createDeck, getDecks } from "@/entities/deck";
 import { createCard, getCards } from "@/entities/card";
+import { showToast } from "@/shared/ui/toast";
 import { replaceRemoteDecks, replaceRemoteCards } from "@/test/utils/entityFixtures";
 import { createDeck as createDeckFixture, createCard as createCardFixture } from "@/test/factories";
 import { useDeckImportPageModel } from "./useDeckImportPageModel";
@@ -15,6 +16,7 @@ const controls = vi.hoisted(() => ({ uid: "anonymous-uid", navigate: vi.fn() }))
 vi.mock("@/shared/firebase", () => ({ db: {}, auth: {} }));
 vi.mock("@/entities/auth", () => ({ getAuthUid: () => controls.uid }));
 vi.mock("react-router-dom", () => ({ useNavigate: () => controls.navigate }));
+vi.mock("@/shared/ui/toast", () => ({ showToast: vi.fn() }));
 vi.mock("@/entities/deck", async (original) => ({
   ...(await original<typeof import("@/entities/deck")>()),
   createDeck: vi.fn(),
@@ -102,6 +104,55 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     }
   });
 
+  it.each(["deck first", "cards first"])(
+    "waits for the destination and every created Card before completing once (%s)",
+    async (arrivalOrder) => {
+      vi.mocked(createDeck).mockResolvedValue(undefined);
+      vi.mocked(createCard).mockResolvedValue(undefined);
+      const { result, rerender } = renderHook(useDeckImportPageModel);
+      await actAsync(() => selectDeckImportFile(new File(["front,back,tag,key\nsecond,answer,tag,other"], "deck.csv")));
+      await actAsync(async () => result.current.importPreview());
+      const destination = vi.mocked(createDeck).mock.calls[0]![1];
+      const deck = createDeckFixture({ id: destination.id, name: destination.name, uid: controls.uid });
+      const cards = vi.mocked(createCard).mock.calls.map(([uid, card]) => createCardFixture({ ...card, uid }));
+      expect(cards).toHaveLength(2);
+
+      act(() => {
+        if (arrivalOrder === "deck first") {
+          replaceRemoteDecks([deck]);
+          replaceRemoteCards(cards.slice(0, 1));
+        } else {
+          replaceRemoteCards(cards);
+        }
+      });
+      expect(result.current.view.pending).toBe(true);
+      expect(result.current.view.preview?.analysis.rows).toHaveLength(2);
+      expect(showToast).not.toHaveBeenCalled();
+      expect(controls.navigate).not.toHaveBeenCalled();
+
+      act(() => {
+        replaceRemoteDecks([deck]);
+        replaceRemoteCards(cards);
+      });
+      expect(result.current.view.pending).toBe(false);
+      expect(result.current.view.preview).toBeUndefined();
+      expect(showToast).toHaveBeenCalledExactlyOnceWith({
+        messageKey: "deckImport.toast.imported",
+        messageParams: { count: 2 },
+        tone: "success",
+      });
+      expect(controls.navigate).toHaveBeenCalledExactlyOnceWith("/");
+
+      act(() => {
+        replaceRemoteDecks([deck]);
+        replaceRemoteCards(cards);
+      });
+      rerender();
+      expect(showToast).toHaveBeenCalledOnce();
+      expect(controls.navigate).toHaveBeenCalledOnce();
+    }
+  );
+
   it("does not save invalid CSV rows", async () => {
     await selectDeckImportFile(new File(["front,back"], "invalid.csv"));
     expect(await importDeckPreview()).toBe(false);
@@ -157,6 +208,12 @@ describe("Deck import operations [DECK-IMPORT-01 DECK-IMPORT-02 DECK-IMPORT-03 D
     });
     expect(controls.navigate).not.toHaveBeenCalled();
     expect(result.current.view.pending).toBe(false);
+    expect(result.current.view.preview).toBeUndefined();
+    expect(showToast).toHaveBeenCalledExactlyOnceWith({
+      messageKey: "deckImport.toast.imported",
+      messageParams: { count: 1 },
+      tone: "success",
+    });
   });
 
   it("previews the built-in CSV example without writing it", async () => {
