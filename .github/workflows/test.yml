@@ -39,6 +39,7 @@ jobs:
               - '**/*.ts'
               - '**/*.tsx'
               - 'eslint.config.mjs'
+              - 'eslint.props.config.mjs'
 
   dependency-review:
     name: Dependency Review
