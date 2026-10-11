@@ -1,7 +1,4 @@
 name = "reviewer_simplicity"
-description = "Review simplicity and overengineering."
+description = "Simplicity review."
 sandbox_mode = "read-only"
-developer_instructions = """
-Identify unnecessary abstractions, wrappers, guards, and duplication.
-Suggest concrete simpler alternatives that preserve necessary protection and behavior.
-"""
+developer_instructions = "Review the changes for simplicity."

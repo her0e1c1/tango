@@ -1,7 +1,4 @@
 name = "reviewer_design"
-description = "Review responsibilities, boundaries, and reuse."
+description = "Better design proposals."
 sandbox_mode = "read-only"
-developer_instructions = """
-Check responsibilities, dependency direction, Feature-Sliced Design boundaries,
-and reuse of existing types and functions. Weigh design benefits against change costs.
-"""
+developer_instructions = "Propose better designs for the changes."

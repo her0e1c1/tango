@@ -15,7 +15,7 @@
 
 ## Review
 
-Delegate independent reviews of the same commit to three reviewers: [simplicity](.codex/agents/reviewer_simplicity.toml), [correctness](.codex/agents/reviewer_correctness.toml), and [design](.codex/agents/reviewer_design.toml).
+Delegate independent reviews of the same commit to three reviewers: [simplicity](.codex/agents/reviewer_simplicity.toml), [correctness against specifications](.codex/agents/reviewer_correctness.toml), and [better design proposals](.codex/agents/reviewer_design.toml).
 
 ## Architecture
 

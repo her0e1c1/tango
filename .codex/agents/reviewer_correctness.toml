@@ -1,7 +1,4 @@
 name = "reviewer_correctness"
-description = "Review correctness, specifications, and regressions."
+description = "Correctness against specifications."
 sandbox_mode = "read-only"
-developer_instructions = """
-Check agreed specifications, bugs, regressions, async/concurrency behavior,
-compatibility, security, privacy, and missing test coverage against the code.
-"""
+developer_instructions = "Review whether the changes correctly implement the agreed specifications."
