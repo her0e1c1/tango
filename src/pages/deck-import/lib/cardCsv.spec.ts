@@ -80,6 +80,76 @@ describe("DECK-IMPORT-01 DECK-IMPORT-02 card CSV import", () => {
       });
     });
 
+    it("keeps logical record numbers and original column context after multiline fields and blank records", async () => {
+      const analysis = await parseCsv(
+        '"front\ncontinued","back"," foo,foo, bar "," key "\n\n"bad ""front""","back"," key "\n" "," "," foo,foo, bar "," key "'
+      );
+
+      expect(analysis).toEqual({
+        rows: [
+          {
+            rowNumber: 1,
+            card: { frontText: "front\ncontinued", backText: "back", tags: ["foo", "bar"], uniqueKey: "key" },
+          },
+        ],
+        skippedRows: [2],
+        issues: [
+          {
+            rowNumber: 3,
+            diagnostic: { kind: "columns", count: 3 },
+            context: '["bad \\"front\\"","back"," key "]',
+          },
+          {
+            rowNumber: 4,
+            diagnostic: { kind: "card", field: "frontText", reason: "required" },
+            context: '[" "," "," foo,foo, bar "," key "]',
+          },
+          {
+            rowNumber: 4,
+            diagnostic: { kind: "card", field: "backText", reason: "required" },
+            context: '[" "," "," foo,foo, bar "," key "]',
+          },
+          {
+            rowNumber: 4,
+            diagnostic: { kind: "duplicate", uniqueKey: "key" },
+            context: '[" "," "," foo,foo, bar "," key "]',
+          },
+        ],
+        invalidCount: 2,
+      });
+    });
+
+    it.each([
+      { record: '"unterminated', code: "MissingQuotes", context: '["unterminated"]' },
+      { record: '"bad"tail,back,,key', code: "InvalidQuotes", context: '["bad\\"tail,back,,key"]' },
+    ])("reports $code from real CSV with logical record context", async ({ record, code, context }) => {
+      const analysis = await parseCsv(`"front\ncontinued",back,,key\n\n${record}`);
+
+      expect(analysis.rows).toEqual([
+        {
+          rowNumber: 1,
+          card: { frontText: "front\ncontinued", backText: "back", tags: [], uniqueKey: "key" },
+        },
+      ]);
+      expect(analysis.skippedRows).toEqual([2]);
+      expect(analysis.issues).toEqual(
+        expect.arrayContaining([{ rowNumber: 3, diagnostic: { kind: "parser", type: "Quotes", code }, context }])
+      );
+      expect(analysis.issues.every((issue) => issue.rowNumber === 3 && issue.context === context)).toBe(true);
+      expect(analysis.invalidCount).toBe(1);
+    });
+
+    it("keeps file-level empty-input diagnostics separate from record diagnostics", async () => {
+      const analysis = await parseCsv("   ");
+
+      expect(analysis.rows).toEqual([]);
+      expect(analysis.issues).toEqual(expect.arrayContaining([{ diagnostic: { kind: "empty" } }]));
+      for (const issue of analysis.issues) {
+        expect(issue).not.toHaveProperty("rowNumber");
+        expect(issue).not.toHaveProperty("context");
+      }
+    });
+
     it("rejects unsupported input at the parser boundary", async () => {
       // @ts-expect-error Verifies the runtime boundary for untyped callers.
       await expect(parseCsv({ content: "front,back" })).rejects.toThrow("CSV content must be a string");
