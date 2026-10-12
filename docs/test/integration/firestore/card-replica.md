@@ -19,7 +19,7 @@
 | FIRESTORE-CARD-REPLICA-09 | read | 正常系 | [cache のみでは checkpoint を進めない](#firestore-card-replica-09) |
 | FIRESTORE-CARD-REPLICA-10 | read | 正常系 | [FSRS は確定後に反映する](#firestore-card-replica-10) |
 | FIRESTORE-CARD-REPLICA-11 | batch | 正常系 | [匿名は replica を使わずローカル変更を表示する](#firestore-card-replica-11) |
-| FIRESTORE-CARD-REPLICA-12 | read | 異常系 | [匿名の不正 Card を変更単位で隔離し修復する](#firestore-card-replica-12) |
+| FIRESTORE-CARD-REPLICA-12 | batch | 異常系 | [匿名の不正 Card を変更単位で隔離し修復する](#firestore-card-replica-12) |
 | FIRESTORE-CARD-REPLICA-13 | read | 正常系 | [匿名の UID 切替後に旧購読の変更を反映しない](#firestore-card-replica-13) |
 | FIRESTORE-CARD-REPLICA-14 | read | 正常系 | [匿名の metadata 通知では Card を再処理しない](#firestore-card-replica-14) |
 
@@ -250,7 +250,7 @@ Then:
 
 ### FIRESTORE-CARD-REPLICA-12 匿名の不正 Card を変更単位で隔離し修復する
 
-カテゴリ: `read`
+カテゴリ: `batch`
 
 区分: 異常系
 
