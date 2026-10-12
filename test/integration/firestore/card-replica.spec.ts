@@ -408,7 +408,7 @@ describe("Confirmed Card replica", () => {
       const updated = getCards();
       expect(updated).toHaveLength(1000);
       for (const [index, card] of unchanged.entries()) expect(updated[index + 1]).toBe(card);
-      if (isAnonymous) expect(await indexedDB.databases()).toEqual([]);
+      expect((await indexedDB.databases()).map(({ name }) => name)).toEqual(isAnonymous ? [] : ["tango-card-replica"]);
     },
     20000
   );
