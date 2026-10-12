@@ -112,28 +112,31 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
         "2025-11-04T00:00:00-05:00",
       ],
     },
-  ] as const)("spans $hours hours and three New York calendar days in $start–$end", ({ start, end, midnights, hours }) => {
-    const range = getStudyHistoryRange(new URLSearchParams({ start, end }), new Date(2026, 8, 22)).period;
-    if (range === null) throw new Error("Expected a valid custom period");
-    expect(range).toEqual({ start: Date.parse(midnights[0]), end: Date.parse(midnights[3]) });
-    expect(range.end - range.start).toBe(hours * 60 * 60 * 1000);
-    for (const boundary of [range.start, range.end]) {
-      const date = new Date(boundary);
-      expect([date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()]).toEqual([0, 0, 0, 0]);
+  ] as const)(
+    "spans $hours hours and three New York calendar days in $start–$end",
+    ({ start, end, midnights, hours }) => {
+      const range = getStudyHistoryRange(new URLSearchParams({ start, end }), new Date(2026, 8, 22)).period;
+      if (range === null) throw new Error("Expected a valid custom period");
+      expect(range).toEqual({ start: Date.parse(midnights[0]), end: Date.parse(midnights[3]) });
+      expect(range.end - range.start).toBe(hours * 60 * 60 * 1000);
+      for (const boundary of [range.start, range.end]) {
+        const date = new Date(boundary);
+        expect([date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()]).toEqual([0, 0, 0, 0]);
+      }
+      const result = aggregateStudyHistory(
+        range,
+        [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
+        [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
+        visible
+      );
+      expect(result.days).toHaveLength(3);
+      expect(result.days.map((day) => day.date)).toEqual(midnights.slice(0, 3).map((date) => Date.parse(date)));
+      expect(result.days.map(({ started, completed }) => ({ started, completed }))).toEqual([
+        { started: 1, completed: 1 },
+        { started: 0, completed: 0 },
+        { started: 1, completed: 1 },
+      ]);
+      expect(result).toMatchObject({ started: 2, completed: 2 });
     }
-    const result = aggregateStudyHistory(
-      range,
-      [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
-      [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
-      visible
-    );
-    expect(result.days).toHaveLength(3);
-    expect(result.days.map((day) => day.date)).toEqual(midnights.slice(0, 3).map((date) => Date.parse(date)));
-    expect(result.days.map(({ started, completed }) => ({ started, completed }))).toEqual([
-      { started: 1, completed: 1 },
-      { started: 0, completed: 0 },
-      { started: 1, completed: 1 },
-    ]);
-    expect(result).toMatchObject({ started: 2, completed: 2 });
-  });
+  );
 });
