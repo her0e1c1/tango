@@ -31,21 +31,29 @@ export const clearRemoteCards = (): void => {
   cardStore.setState({ cardsById: {}, invalidCardIds: [] });
 };
 
-export function applyCardChanges(cards: readonly RemoteCard[]): void {
-  if (cards.length === 0) return;
-  cardStore.setState(({ cardsById }) => {
+export function applyCardChanges(
+  cards: readonly RemoteCard[],
+  {
+    removedCardIds = [],
+    invalidCardIds = [],
+  }: { removedCardIds?: readonly CardId[]; invalidCardIds?: readonly CardId[] } = {}
+): void {
+  if (cards.length + removedCardIds.length + invalidCardIds.length === 0) return;
+  const changedIds = new Set([...cards.map((card) => card.id), ...removedCardIds, ...invalidCardIds]);
+  cardStore.setState(({ cardsById, invalidCardIds: previousInvalidIds }) => {
     const next = { ...cardsById };
+    // Invalid changes hide the previous valid value without rewriting the saved document.
+    for (const id of [...removedCardIds, ...invalidCardIds]) delete next[id];
     for (const card of cards) {
       if (card.deletedAt === null) next[card.id] = card;
       else delete next[card.id];
     }
-    return { cardsById: next };
-  });
-}
-
-export function applyCardSnapshot(cards: readonly RemoteCard[], invalidCardIds: readonly CardId[] = []): void {
-  cardStore.setState({
-    cardsById: Object.fromEntries(cards.filter((card) => card.deletedAt === null).map((card) => [card.id, card])),
-    invalidCardIds: [...invalidCardIds],
+    return {
+      cardsById: next,
+      invalidCardIds:
+        invalidCardIds.length > 0 || previousInvalidIds.some((id) => changedIds.has(id))
+          ? [...previousInvalidIds.filter((id) => !changedIds.has(id)), ...invalidCardIds].sort()
+          : previousInvalidIds,
+    };
   });
 }

@@ -19,6 +19,9 @@
 | FIRESTORE-CARD-REPLICA-09 | read | 正常系 | [cache のみでは checkpoint を進めない](#firestore-card-replica-09) |
 | FIRESTORE-CARD-REPLICA-10 | read | 正常系 | [FSRS は確定後に反映する](#firestore-card-replica-10) |
 | FIRESTORE-CARD-REPLICA-11 | batch | 正常系 | [匿名は replica を使わずローカル変更を表示する](#firestore-card-replica-11) |
+| FIRESTORE-CARD-REPLICA-12 | read | 異常系 | [匿名の不正 Card を変更単位で隔離し修復する](#firestore-card-replica-12) |
+| FIRESTORE-CARD-REPLICA-13 | read | 正常系 | [匿名の UID 切替後に旧購読の変更を反映しない](#firestore-card-replica-13) |
+| FIRESTORE-CARD-REPLICA-14 | read | 正常系 | [匿名の metadata 通知では Card を再処理しない](#firestore-card-replica-14) |
 
 <a id="firestore-card-replica-01"></a>
 
@@ -171,7 +174,7 @@ Then:
 
 Given:
 
-- 1000 枚の Card の同期が完了している。
+- 通常または匿名アカウントで 1000 枚の Card の初回取得が完了している。
 
 When:
 
@@ -179,7 +182,8 @@ When:
 
 Then:
 
-- 変更 document だけを parse・Store 適用・IndexedDB 書き込みし、他の Card を再処理しない。
+- 変更 document だけを parse・Store 適用し、他の Card の値・参照を維持する。
+- 通常アカウントは変更 Card だけを replica へ書き込み、匿名は replica を作成しない。
 
 <a id="firestore-card-replica-09"></a>
 
@@ -241,3 +245,68 @@ Then:
 
 - サーバー応答を待たず、空状態から起動し、作成・編集・削除と再購読後の内容をローカル snapshot から表示できる。
 - Card replica と checkpoint の IndexedDB データベースを作成しない。
+
+<a id="firestore-card-replica-12"></a>
+
+### FIRESTORE-CARD-REPLICA-12 匿名の不正 Card を変更単位で隔離し修復する
+
+カテゴリ: `read`
+
+区分: 異常系
+
+Given:
+
+- SDK cache に匿名 UID の不正 Card があり、正常 Card が0件でも初回結果を取得する。FSRS はフィールド欠落と不正値の両方を確認する。
+
+When:
+
+- 不正 Card を修復して正常 Card を追加した後、一方を再び不正にし、他方の本文を同時に変更する。
+- 不正 Card を再修復してから、同じ Card を不正にし、続いて有効な tombstone にする。
+- 別の不正 Card を追加し、外部から物理削除して SDK 結果から除去する。
+
+Then:
+
+- 正常 Card が0件の初回結果でも ready を完了し、不正 ID を公開する。
+- 正常 sibling の変更を反映し、正常から不正になった Card の古い値を隠す。無関係な不正 ID は維持し、修復・有効な tombstone・SDK 結果からの除去で対象の診断を解除する。
+- 欠落・不正 FSRS を null に補完せず、不正 document を書き換えない。listener error は報告されず、replica は作成されない。
+
+<a id="firestore-card-replica-13"></a>
+
+### FIRESTORE-CARD-REPLICA-13 匿名の UID 切替後に旧購読の変更を反映しない
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- SDK cache に匿名 UID A の正常 Card と不正 ID、および UID B の正常 Card がある。
+
+When:
+
+- A の購読を解除し、認証 UID と親 Deck を B に切り替えて購読する。
+- 外部クライアントが A の Card を変更し、受信側の独立 listener で到着を確認する。
+
+Then:
+
+- B の Card だけを表示し、A の診断を消す。旧購読は Store と ready/error 通知を変更しない。
+
+<a id="firestore-card-replica-14"></a>
+
+### FIRESTORE-CARD-REPLICA-14 匿名の metadata 通知では Card を再処理しない
+
+カテゴリ: `read`
+
+区分: 正常系
+
+Given:
+
+- 匿名 UID の SDK cache に正常 Card があり、オフラインで初回購読が完了している。
+
+When:
+
+- SDK をオンラインにして、内容が同じサーバー結果を受信する。
+
+Then:
+
+- metadata のみの通知でも ready callback を呼び、Card の値・参照を維持する。Card の再 parse・Store 更新・replica 作成は行わない。

@@ -7,6 +7,7 @@ import {
   doc,
   enableNetwork,
   getDocs,
+  getDocFromCache,
   onSnapshot,
   query,
   QuerySnapshot,
@@ -374,27 +375,43 @@ describe("Confirmed Card replica", () => {
     expect(restored?.cards.map(({ frontText }) => frontText)).toEqual(["old"]);
   });
 
-  it("[FIRESTORE-CARD-REPLICA-08] processes only the changed Card among 1000 records", async () => {
-    const values = Array.from({ length: 1000 }, (_, index) => card(`card-${String(index).padStart(4, "0")}`));
-    await seed(values);
-    start();
-    await loaded(values.map(({ id }) => id));
-    await checkpoint(1000);
-    const parse = vi.spyOn(documents, "parseCardDocument");
-    const apply = vi.spyOn(store, "applyCardChanges");
-    const put = vi.spyOn(IDBObjectStore.prototype, "put");
-    await environment.withSecurityRulesDisabled(async (context) => {
-      await updateDoc(doc(context.firestore(), "card", "card-0000"), {
-        frontText: "changed",
-        updatedAt: serverTimestamp(),
+  it.each([false, true])(
+    "[FIRESTORE-CARD-REPLICA-08] processes only the changed Card among 1000 records (anonymous=%s)",
+    async (isAnonymous) => {
+      connection.isAnonymous = isAnonymous;
+      const values = Array.from({ length: 1000 }, (_, index) => card(`card-${String(index).padStart(4, "0")}`));
+      await seed(values);
+      start();
+      await loaded(values.map(({ id }) => id));
+      if (!isAnonymous) await checkpoint(1000);
+      const unchanged = getCards().slice(1);
+      const parse = vi.spyOn(documents, "parseCardDocument");
+      const parseLocal = vi.spyOn(documents, "parseLocalCardDocuments");
+      const apply = vi.spyOn(store, "applyCardChanges");
+      const put = vi.spyOn(IDBObjectStore.prototype, "put");
+      await environment.withSecurityRulesDisabled(async (context) => {
+        await updateDoc(doc(context.firestore(), "card", "card-0000"), {
+          frontText: "changed",
+          updatedAt: serverTimestamp(),
+        });
       });
-    });
-    await vi.waitFor(() => expect(getCards()[0]?.frontText).toBe("changed"));
-    expect(parse.mock.calls.map(([id]) => id)).toEqual(["card-0000"]);
-    expect(apply.mock.calls.flatMap(([cards]) => cards.map(({ id }) => id))).toEqual(["card-0000"]);
-    expect(put.mock.calls.filter(([value]) => "id" in value).map(([value]) => value.id)).toEqual(["card-0000"]);
-    expect(getCards()).toHaveLength(1000);
-  }, 20000);
+      await vi.waitFor(() => expect(getCards()[0]?.frontText).toBe("changed"));
+      expect(
+        isAnonymous
+          ? parseLocal.mock.calls.flatMap(([values]) => values.map(({ id }) => id))
+          : parse.mock.calls.map(([id]) => id)
+      ).toEqual(["card-0000"]);
+      expect(apply.mock.calls.flatMap(([cards]) => cards.map(({ id }) => id))).toEqual(["card-0000"]);
+      expect(put.mock.calls.filter(([value]) => "id" in value).map(([value]) => value.id)).toEqual(
+        isAnonymous ? [] : ["card-0000"]
+      );
+      const updated = getCards();
+      expect(updated).toHaveLength(1000);
+      for (const [index, card] of unchanged.entries()) expect(updated[index + 1]).toBe(card);
+      if (isAnonymous) expect(await indexedDB.databases()).toEqual([]);
+    },
+    20000
+  );
 
   it("[FIRESTORE-CARD-REPLICA-09] keeps the checkpoint unchanged for cached and pending snapshots", async () => {
     await seed([card("old")]);
@@ -446,6 +463,118 @@ describe("Confirmed Card replica", () => {
     expect(getCards()[0]?.frontText).toBe("edited");
     await deleteCard(uid, "local");
     await loaded([]);
+    expect(await indexedDB.databases()).toEqual([]);
+  });
+
+  it.each(["missing", "invalid"])(
+    "[FIRESTORE-CARD-REPLICA-12] isolates and repairs anonymous Cards with %s FSRS",
+    async (damage) => {
+      connection.isAnonymous = true;
+      const invalid = { ...card("broken"), fsrs: {} as never };
+      if (damage === "missing") Reflect.deleteProperty(invalid, "fsrs");
+      await seed([invalid]);
+      await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
+      await disableNetwork(connection.db);
+      await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
+      expect(getCards()).toEqual([]);
+      expect(store.cardStore.getState().invalidCardIds).toEqual(["broken"]);
+      expect((await getDocFromCache(doc(connection.db, "card", "broken"))).data()?.fsrs).toEqual(invalid.fsrs);
+
+      await enableNetwork(connection.db);
+      await seed([card("broken"), card("sibling")]);
+      await loaded(["broken", "sibling"]);
+      expect(store.cardStore.getState().invalidCardIds).toEqual([]);
+      await seed([invalid, { ...card("sibling"), frontText: "changed" }]);
+      await loaded(["sibling"]);
+      expect(getCards()[0]?.frontText).toBe("changed");
+      expect(store.cardStore.getState().invalidCardIds).toEqual(["broken"]);
+
+      await seed([{ ...card("sibling"), deletedAt: 2000 }]);
+      await loaded([]);
+      expect(store.cardStore.getState().invalidCardIds).toEqual(["broken"]);
+      await seed([card("broken")]);
+      await loaded(["broken"]);
+      expect(store.cardStore.getState().invalidCardIds).toEqual([]);
+      await seed([invalid]);
+      await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual(["broken"]));
+      await seed([{ ...card("broken"), deletedAt: 3000 }]);
+      await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual([]));
+      expect(getCards()).toEqual([]);
+
+      await seed([{ ...invalid, id: "removed" }, card("kept")]);
+      await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual(["removed"]));
+      await environment.withSecurityRulesDisabled(async (context) => {
+        const batch = writeBatch(context.firestore() as unknown as Firestore);
+        batch.delete(doc(context.firestore(), "card", "removed"));
+        batch.delete(doc(context.firestore(), "card", "kept"));
+        await batch.commit();
+      });
+      await vi.waitFor(() => {
+        expect(getCards()).toEqual([]);
+        expect(store.cardStore.getState().invalidCardIds).toEqual([]);
+      });
+      expect(errors).toEqual([]);
+      expect(await indexedDB.databases()).toEqual([]);
+    }
+  );
+
+  it("[FIRESTORE-CARD-REPLICA-13] ignores a stopped anonymous owner after switching UID", async () => {
+    connection.isAnonymous = true;
+    const oldUid = uid;
+    const nextUid = crypto.randomUUID();
+    await seed([card("old"), { ...card("invalid"), fsrs: {} as never }, { ...card("next"), uid: nextUid }]);
+    await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
+    const previousDb = connection.db;
+    const ready = vi.fn();
+    stops.push(subscribeCards(uid, (error) => errors.push(error), ready));
+    await loaded(["old"]);
+    await vi.waitFor(() => expect(store.cardStore.getState().invalidCardIds).toEqual(["invalid"]));
+    stop();
+    const readyCount = ready.mock.calls.length;
+    uid = nextUid;
+    connection.db = environment
+      .authenticatedContext(uid, { firebase: { sign_in_provider: "google.com", identities: {} } })
+      .firestore() as unknown as Firestore;
+    replaceRemoteDecks([createDeck({ id: "deck", uid })]);
+    start();
+    await loaded(["next"]);
+    expect(store.cardStore.getState().invalidCardIds).toEqual([]);
+    const state = store.cardStore.getState();
+    // Observe arrival on the old receiving client before checking that its stopped subscriber stayed silent.
+    const received = new Promise<void>((resolve, reject) =>
+      stops.push(
+        onSnapshot(
+          doc(previousDb, "card", "old"),
+          (snapshot) => {
+            if (!snapshot.metadata.fromCache && snapshot.data()?.frontText === "late") resolve();
+          },
+          reject
+        )
+      )
+    );
+    await seed([{ ...card("old"), uid: oldUid, frontText: "late" }]);
+    await received;
+    expect(store.cardStore.getState()).toBe(state);
+    expect(ready).toHaveBeenCalledTimes(readyCount);
+    expect(errors).toEqual([]);
+  });
+
+  it("[FIRESTORE-CARD-REPLICA-14] keeps Card references through anonymous metadata notifications", async () => {
+    connection.isAnonymous = true;
+    await seed([card("cached")]);
+    await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
+    await disableNetwork(connection.db);
+    const ready = vi.fn();
+    stops.push(subscribeCards(uid, (error) => errors.push(error), ready));
+    await vi.waitFor(() => expect(ready).toHaveBeenCalled());
+    const readyCount = ready.mock.calls.length;
+    const state = store.cardStore.getState();
+    const parse = vi.spyOn(documents, "parseLocalCardDocuments");
+    await enableNetwork(connection.db);
+    await vi.waitFor(() => expect(ready.mock.calls.length).toBeGreaterThan(readyCount));
+    expect(store.cardStore.getState()).toBe(state);
+    expect(parse.mock.calls.flatMap(([values]) => values)).toEqual([]);
+    expect(errors).toEqual([]);
     expect(await indexedDB.databases()).toEqual([]);
   });
 });
