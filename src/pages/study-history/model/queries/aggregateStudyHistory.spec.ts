@@ -87,4 +87,53 @@ describe("STUDY-SESSION-09 STUDY-SESSION-13 daily study counts", () => {
     expect(result.days[0]?.date).toBe(new Date(`${start}T00:00:00`).getTime());
     expect(result.days.at(-1)?.date).toBe(new Date(`${end}T00:00:00`).getTime());
   });
+
+  // The dedicated CI run starts in New York; ordinary unit runs retain the host timezone.
+  it.runIf(Intl.DateTimeFormat().resolvedOptions().timeZone === "America/New_York").each([
+    {
+      start: "2026-03-07",
+      end: "2026-03-09",
+      hours: 71,
+      midnights: [
+        "2026-03-07T00:00:00-05:00",
+        "2026-03-08T00:00:00-05:00",
+        "2026-03-09T00:00:00-04:00",
+        "2026-03-10T00:00:00-04:00",
+      ],
+    },
+    {
+      start: "2025-11-01",
+      end: "2025-11-03",
+      hours: 73,
+      midnights: [
+        "2025-11-01T00:00:00-04:00",
+        "2025-11-02T00:00:00-04:00",
+        "2025-11-03T00:00:00-05:00",
+        "2025-11-04T00:00:00-05:00",
+      ],
+    },
+  ] as const)("spans $hours hours and three New York calendar days in $start–$end", ({ start, end, midnights, hours }) => {
+    const range = getStudyHistoryRange(new URLSearchParams({ start, end }), new Date(2026, 8, 22)).period;
+    if (range === null) throw new Error("Expected a valid custom period");
+    expect(range).toEqual({ start: Date.parse(midnights[0]), end: Date.parse(midnights[3]) });
+    expect(range.end - range.start).toBe(hours * 60 * 60 * 1000);
+    for (const boundary of [range.start, range.end]) {
+      const date = new Date(boundary);
+      expect([date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()]).toEqual([0, 0, 0, 0]);
+    }
+    const result = aggregateStudyHistory(
+      range,
+      [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
+      [record(range.start - 1), record(range.start), record(range.end - 1), record(range.end)],
+      visible
+    );
+    expect(result.days).toHaveLength(3);
+    expect(result.days.map((day) => day.date)).toEqual(midnights.slice(0, 3).map((date) => Date.parse(date)));
+    expect(result.days.map(({ started, completed }) => ({ started, completed }))).toEqual([
+      { started: 1, completed: 1 },
+      { started: 0, completed: 0 },
+      { started: 1, completed: 1 },
+    ]);
+    expect(result).toMatchObject({ started: 2, completed: 2 });
+  });
 });
