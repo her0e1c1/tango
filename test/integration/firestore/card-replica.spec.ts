@@ -475,7 +475,18 @@ describe("Confirmed Card replica", () => {
       await seed([invalid]);
       await getDocs(query(collection(connection.db, "card"), where("uid", "==", uid)));
       await disableNetwork(connection.db);
-      await new Promise<void>((resolve, reject) => stops.push(subscribeCards(uid, reject, resolve)));
+      await new Promise<void>((resolve, reject) =>
+        stops.push(
+          subscribeCards(
+            uid,
+            (error) => {
+              errors.push(error);
+              reject(error);
+            },
+            resolve
+          )
+        )
+      );
       expect(getCards()).toEqual([]);
       expect(store.cardStore.getState().invalidCardIds).toEqual(["broken"]);
       expect((await getDocFromCache(doc(connection.db, "card", "broken"))).data()?.fsrs).toEqual(invalid.fsrs);
