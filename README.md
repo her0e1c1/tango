@@ -132,7 +132,8 @@ same acceptance suite with its configured worker and retry limits.
 ### Card FSRS
 
 `Card.fsrs` is the sole scheduling state. New and copied Cards start at `null`; content edits and update imports
-preserve it. Ratings partially update only `fsrs` and `updatedAt` in the same batch as Answer and Session.
+preserve it. Ratings partially update only `fsrs` and `updatedAt`. Card, Answer, and Session progress are saved
+independently; successful writes remain even if another write fails. Session creation and restart use a batch.
 `createdAt` remains Card creation time; `updatedAt` is the last document update, including ratings.
 The last rating time remains `fsrs.lastReviewedAt`. Content comparison in imports uses editable fields, and
 Card ordering uses creation time or FSRS deadlines, so a rating is not treated as a content edit.
