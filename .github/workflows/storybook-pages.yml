@@ -1,26 +1,61 @@
 name: Deploy Storybook to Pages
+run-name: Deploy Storybook ${{ github.event.client_payload.sha || github.sha }}
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+  repository_dispatch:
+    types: [dependabot-merged]
 
 concurrency:
   group: pages
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  candidate:
     if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      accepted: ${{ steps.candidate.outputs.accepted }}
+    steps:
+      - name: Validate main candidate
+        id: candidate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_SHA: ${{ github.event.client_payload.sha }}
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          CANDIDATE_SHA="$EVENT_SHA"
+          if [ "$EVENT_NAME" = repository_dispatch ]; then
+            CANDIDATE_SHA="$DISPATCH_SHA"
+          fi
+          [[ "$CANDIDATE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          main_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$CANDIDATE_SHA" != "$EVENT_SHA" ] || [ "$CANDIDATE_SHA" != "$main_sha" ]; then
+            echo "Candidate $CANDIDATE_SHA is superseded or mismatched (event $EVENT_SHA, main $main_sha); deployment skipped." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "accepted=true" >> "$GITHUB_OUTPUT"
+          echo "Accepted main candidate $CANDIDATE_SHA." >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    needs: candidate
+    if: needs.candidate.outputs.accepted == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
 
       - uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
 
@@ -44,5 +79,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - name: Validate current main candidate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          CANDIDATE_SHA: ${{ github.sha }}
+        run: |
+          main_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$CANDIDATE_SHA" != "$main_sha" ]; then
+            echo "Candidate $CANDIDATE_SHA was superseded by main $main_sha; refusing deployment." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
